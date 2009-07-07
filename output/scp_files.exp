@@ -1,0 +1,78 @@
+#!/usr/bin/expect --
+#----------------------------------------------------------------------
+# scp_files.exp 
+# Executive Summary: This is an Expect script that gets the figures
+# produced by the ADCIRC Surge Guidance System and copies them
+# to a remote host.
+#
+# If it doesn't find any .gif files locally, it just creates
+# directories on the destination host. If it does find .gif files
+# locally, it copies them to the remote machine.
+#----------------------------------------------------------------------
+#
+# Copyright(C) 2006, 2007, 2008, 2009 Jason Fleming
+# Copyright(C) 2006, 2007 Brett Estrade
+#
+# This file is part of the ADCIRC Surge Guidance System (ASGS).
+#
+# The ASGS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# ASGS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#----------------------------------------------------------------------
+#exp_internal 1   ;# used for debugging only
+set scriptdir [lindex $argv 0]
+set advisdir [lindex $argv 1]
+set resultshost [lindex $argv 2]
+set resultspath [lindex $argv 3]
+set resultsprompt [lindex $argv 4]
+set resultsusername [lindex $argv 5]
+set resultspassword [lindex $argv 6]
+set hostname [lindex $argv 7]
+set storm [lindex $argv 8]
+set year [lindex $argv 9]
+#
+set timeout -1
+proc establish_ssh { resultsusername resultshost resultsprompt resultspassword } {
+    spawn ssh -l $resultsusername $resultshost
+    expect "ssword:"
+    send "$resultspassword\r"
+    expect "$resultsprompt"
+    send_user "Login successful.\n"
+    return $spawn_id
+}
+#
+# if it is not already there, create it
+proc make_results_dir { ssh_spawn_id resultsusername resultspath resultsprompt endpath } {
+    set spawn_id $ssh_spawn_id
+    send "cd $resultspath\r"
+    expect "$resultsprompt"
+    send "mkdir -p $endpath\r"
+    expect "$resultsprompt"
+}
+set last_slash [string last / $advisdir]
+set dirname [string range $advisdir [expr $last_slash + 1] end]
+set dirname $dirname/
+set ssh_spawn_id [establish_ssh $resultsusername $resultshost $resultsprompt $resultspassword]
+set endpath $hostname/$storm$year/advisory_$dirname
+if { [catch {set files [glob $advisdir/*.gif]} errmsg] } {
+    puts $errmsg
+    make_results_dir $ssh_spawn_id $resultsusername $resultspath $resultsprompt $endpath
+} else {
+    set files [lappend files $scriptdir/index.html]
+    foreach f $files {
+       spawn scp $f $resultsusername@$resultshost:$resultspath/$endpath
+       expect "ssword:"
+       send "$resultspassword\r"
+       expect "100"
+    }
+}
+ 
