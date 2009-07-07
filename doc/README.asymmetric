@@ -1,0 +1,66 @@
+jgf20090623: Correction: hour 0 in the fort.22 corresponds to the cold start
+time (ADCIRC time=0) if the simulation is cold started, or to the hot start
+time if the simulation is hotstarted. 
+
+README.asymmetric
+
+The asymmetric vortex wind model input differs from most other types of wind
+input in ADCIRC in that it consists of storm parameters, rather than the
+meteorological data itself. ADCIRC then uses these parameters to generate the
+actual meteorological data internally at each node at every time step during
+the simulation. The result is that the fort.22 files are very small (e.g.
+20kB), in comparison with fort.22 files that contain actual meteorological
+data. Furthermore, preprocessing these files is very fast because it consists
+only of copying the fort.22 file as-is to each subdomain directory.
+
+The format of the fort.22 file for the asymmetric wind model is the ATCF
+(a.k.a. "BEST track") format. This format was developed by the U.S. Navy, and
+ATCF stands for Automated Tropical Cyclone Forecast. Historical tracks,
+real-time hindcast tracks and real-time forecast tracks may be found in this
+format. The format is documented in detail at the following web site:
+
+http://www.nrlmry.navy.mil/atcf_web/docs/database/new/abrdeck.html
+
+One important thing to remember about this format is that it looks like CSV
+data, but it is actually fixed column width data. Never change the width of the
+columns when you edit this data!
+
+It is assumed by the asymmetric wind code within ADCIRC that the first entry in
+the fort.22 file corresponds to the cold start time (ADCIRC time=0) if the
+simulation is cold started, or to the hotstart time if the simulation is
+hotstarted. Therefore, the forecast period (column #6) needs to be edited by
+the workflow scripts to reflect the time of the forecast/nowcast for each track
+location (each line) in hours from the start of the simulation (0, 6, 12, 18,
+etc). The original data in that column depends on what type of best track
+format data is being used. The original data might have 0 or other numbers in
+that column.
+
+For more details on how to prepare the input files for the asymmetric wind
+model, see the documentation in the ADCIRC manual under NWS=9:
+
+http://adcirc.org/documentv48/parameter_defs.html#NWS
+
+Real time hindcast and forecast advisories are made available by the NHC in
+ATCF format via their ftp site every six hours when there is an active tropical
+cyclone. These files are downloaded by the workflow and used to generate
+fort.22 files for ADCIRC.
+
+Since NHC forecast advisories do not contain the radius of maximum winds, this
+option uses the standard radii at specific wind speeds (34, 50, 64, 100 knots)
+reported in the four quadrants (NE, SE, SW, NW) of the storm to calculate the
+radius of maximum winds as a function of the azimuthal angle.
+
+The asymmetric wind model is activated by setting NWS=9 in the fort.15 file and
+adding a WTIMINC line in the appropriate place in this file. The WTIMINC line
+is not used, but is maintained for file-format compatilbility with the
+symmetric vortex wind model, and for possible future expansion.
+
+The asymmetric vortex wind model was developed and coded by Craig Mattocks
+(cmattock@email.unc.edu) and implemented in ADCIRC by Cristina Forbes
+(cforbes@email.unc.edu).
+
+Reference:
+
+Mattocks C. and C. Forbes, 2008: A real-time, event-triggered storm 
+surge forecasting system for the state of North Carolina, Ocean 
+Modelling, 25, 95-119, doi:10.1016/j.ocemod.2008.06.008
