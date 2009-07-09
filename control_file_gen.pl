@@ -75,7 +75,7 @@ my $endtime;
 my $dt=3.0; 
 my $bladj=0.9;
 my $name;
-my $stormname;
+my $stormname="STORMNAME";
 my $tau=0; # forecast period
 my $dir=getcwd();
 
@@ -243,9 +243,15 @@ my ($days,$hours,$seconds)
       $cs_year,$cs_mon,$cs_day,$cs_hour,$cs_min,$cs_sec,
       $e_year,$e_mon,$e_day,$e_hour,$e_min,$e_sec);
 # RNDAY is diff btw cold start time and end time
-# RNDAY is one time step short of the total time to ensure that we 
-# won't run out of storm data.
-my $RNDAY = $days + $hours/24 + ($seconds-$dt)/86400; 
+# For a forecast, RNDAY is one time step short of the total time to ensure 
+# that we won't run out of storm data 
+# For a nowcast, RNDAY will be equal to the total time, so that we end at
+# exactly the nowcast time
+my $stopshort = 0.0;
+unless ( $name eq "nowcast" ) {
+   $stopshort = $dt;
+}
+my $RNDAY = $days + $hours/24 + ($seconds-$stopshort)/86400; 
 #
 # If RNDAY is less than two timesteps, make sure it is at least two timesteps. 
 # This can happen if we start up from a fort.22 that has only one BEST line,

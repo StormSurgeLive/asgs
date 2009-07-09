@@ -251,7 +251,7 @@ while(<HCST>) {
 }
 close(HCST);
 if ( $zdFound == 0 ) {
-   printf STDERR "WARNING: The cold start time '$coldstartdate' was not found in the hindcast file $hindcastATCF.\n"; 
+   printf STDERR "WARNING: The zero date '$zeroDate' was not found in the hindcast file $hindcastATCF.\n"; 
 }
 my $forecastedDate; # as a string
 my $last_pressure = $lasthindcastpressure;
@@ -268,7 +268,7 @@ while(<FCST>) {
    $fmon = $2; 
    $fday = $3; 
    $fhour = $4;
-   # grab the forecast period, i.e., the number of hours beyond the
+   # grab the existing forecast period, i.e., the number of hours beyond the
    # forecast datetime that the forecast applies to
    my $tau=substr($_,29,4);   
    # determine the date and time that the forecast applies to
@@ -299,9 +299,9 @@ while(<FCST>) {
    # not used by nws9 in ADCIRC)
    substr($line,8,10)=sprintf("%10d",$forecastedDate);
    #
-   # calculate the difference between the forecasted time and the zero
+   # next, calculate the difference between the forecasted date and the zero
    # hour so that we can fill in the forecast period
-   (my $ddays,my $dhrs, my $dsec) = Date::Pcalc::Delta_DHMS($fhcyear,$fhcmon,$fhcday,$fhchour,0,0,$ftyear,$ftmon,$ftday,$fthour,0,0);
+   (my $ddays,my $dhrs, my $dsec) = Date::Pcalc::Delta_DHMS($zdyear,$zdmon,$zdday,$zdhour,0,0,$ftyear,$ftmon,$ftday,$fthour,0,0);
    my $time_difference = $ddays*24 + $dhrs; # in hours  
    # fill in the time difference as tau
    substr($line,29,4)=sprintf("%4d",$time_difference);

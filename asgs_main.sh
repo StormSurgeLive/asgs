@@ -65,6 +65,24 @@ checkDirExistence()
   fi
 }
 #
+# subroutine to check for the existence and nonzero length of the 
+# hotstart file
+# the subroutine assumes that the hotstart file is named fort.67 and
+# expects it to be found in $PWD
+checkHotstart()
+{ 
+   if [ ! -e fort.67 ]; then
+      fatal "The hotstart (fort.67) file was not found in $PWD. The preceding simulation run must have failed to produce it."
+   else 
+      hotstartSize=`stat -c %s fort.67`
+      if [ $hotstartSize == "0" ]; then 
+         fatal "The hotstart (fort.67) file in $PWD is of zero length. The preceding simulation run must have failed to produce it properly."
+      else
+         logMessage "The hotstart (fort.67) was found in $PWD and contains $hotstartSize bytes."
+      fi
+   fi  
+}
+#
 # subroutine to run adcprep, using a pre-prepped archive of fort.13 and 
 # fort.14 files
 prep()
@@ -76,6 +94,8 @@ prep()
     QUEUESYS=$6 # queueing system (LSF, LoadLeveler, etc)
     NCPU=$7     # number of CPUs to request in parallel jobs
     PREPPEDARCHIVE=$8 # preprocessed fort.13 and fort.14 package 
+    GRIDFILE=$9 # fulldomain grid
+    NAFILE=$10  # full domain nodal attributes file
     TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
     echo "$TIMESTAMP adcprep.log entry for $FILE for ensemble member $ENSTORM in $ADVISDIR as follows: " >> $ADVISDIR/adcprep.log
     if [ ! -d $ADVISDIR/$ENSTORM ]; then 
@@ -85,11 +105,13 @@ prep()
     logMessage $PWD "Copying fulldomain input files."
     # symbolically link grid 
     if [ ! -e $ADVISDIR/$ENSTORM/fort.14 ]; then 
-        ln -s $INPUTDIR/fort.14 $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+        ln -s $INPUTDIR/$GRIDFILE $ADVISDIR/$ENSTORM/fort.14 2>> ${SYSLOG}
     fi
     # symbolically link nodal attributes
     if [ ! -e $ADVISDIR/$ENSTORM/fort.13 ]; then
-        ln -s $INPUTDIR/fort.13 $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+        if [[ -z $NAFILE ]]; then
+           ln -s $INPUTDIR/$NAFILE $ADVISDIR/$ENSTORM/fort.13 2>> ${SYSLOG}
+        fi
     fi
     # if this is the cold start, we just prep the fort.15 and rely on a 
     # full adcprep that has already been done (to save time) and saved 
@@ -330,7 +352,7 @@ init_queenbee()
   HOSTNAME=queenbee.loni.org
   QUEUESYS=PBS
   QCHECKCMD=qstat
-  ACCOUNT=loni_lpfs2009
+  ACCOUNT=loni_asgs2009
   SUBMITSTRING="mpirun"
   SCRATCHDIR=/work/$USER
   SSHKEY=id_rsa_queenbee
@@ -343,7 +365,6 @@ init_ranger()
   HOSTNAME=ranger.tacc.utexas.edu
   QUEUESYS=PBS
   QCHECKCMD=qstat
-  NCPU=2800
   ACCOUNT=
   SUBMITSTRING="yod"
   SCRATCHDIR=$SCRATCH
@@ -608,6 +629,7 @@ while [ 1 -eq 1 ]; do
     CONTROLOPTIONS=" --cst $COLDSTARTDATE --metfile $ADVISDIR/nowcast/fort.22 --name nowcast --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE}"
     if [ $START = hotstart ]; then
        cd $OLDADVISDIR/nowcast/PE0000 2>> ${SYSLOG}
+       checkHotstart       
        HSTIME=`$ADCIRCDIR/hstime` 2>> ${SYSLOG}
        logMessage "Time in hotstart file is $HSTIME."
        METOPTIONS="$METOPTIONS --hotstartseconds $HSTIME "
@@ -623,7 +645,7 @@ while [ 1 -eq 1 ]; do
      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS 2>> ${SYSLOG}
     # preprocess
     logMessage $ADVISDIR "Starting nowcast preprocessing."
-    prep $ADVISDIR $INPUTDIR nowcast $START $OLDADVISDIR $QUEUESYS $NCPU $PREPPEDARCHIVE
+    prep $ADVISDIR $INPUTDIR nowcast $START $OLDADVISDIR $QUEUESYS $NCPU $PREPPEDARCHIVE $GRIDFILE $NAFILE
     # then submit the job
     logMessage $PWD "Submitting ADCIRC nowcast job."
     cd $ADVISDIR/nowcast 2>> ${SYSLOG}
@@ -640,6 +662,7 @@ while [ 1 -eq 1 ]; do
     # F O R E C A S T
     logMessage $PWD "Starting forecast for advisory $ADVISORY"
     cd $ADVISDIR/nowcast/PE0000 2>> ${SYSLOG}
+    checkHotstart
     HSTIME=`$ADCIRCDIR/hstime` 2>> ${SYSLOG}
     logMessage "Time in hotstart file is $HSTIME."
     METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $COLDSTARTDATE --hotstartseconds $HSTIME "
@@ -659,7 +682,7 @@ while [ 1 -eq 1 ]; do
         perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS 2>> ${SYSLOG}
         # preprocess
         logMessage $PWD "Starting $ENSTORM preprocessing."
-        prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $QUEUESYS $NCPU $PREPPEDARCHIVE
+        prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $QUEUESYS $NCPU $PREPPEDARCHIVE $GRIDFILE $NAFILE
         # then submit the job
         logMessage $PWD "Submitting ADCIRC ensemble member $ENSTORM for forecast."
         submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER
@@ -669,6 +692,7 @@ while [ 1 -eq 1 ]; do
         logMessage $PWD "$ENSTORM finished; postprocessing"
         # execute post processing
         ${SCRIPTDIR}/output/post.sh 2>> ${SYSLOG} 
+        si=$[$si + 1];
     done
     logMessage $PWD "Forecast complete for advisory $ADVISORY."
     OLDADVISDIR=$ADVISDIR
