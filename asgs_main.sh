@@ -64,6 +64,9 @@ checkDirExistence()
      fatal "The $TYPE '$DIR' does not exist."
   fi
 }
+#
+# subroutine to run adcprep, using a pre-prepped archive of fort.13 and 
+# fort.14 files
 prep()
 {   ADVISDIR=$1  # directory containing the current advisory
     INPUTDIR=$2 # directory where grid and nodal attribute files are found
@@ -165,7 +168,9 @@ $NCPU
 END
     fi
 }
-
+#
+# subroutine that calls an external script over and over until it
+# pulls down a new advisory (then it returns)
 downloadWindData() 
 {   STORM=$1
     YEAR=$2
@@ -199,7 +204,9 @@ downloadWindData()
        done
     fi
 }
-
+#
+# checks the local queueing system over and over to see if a job has
+# finished ... returns to the calling routine when the job has finished
 monitorJobs() 
 {   QUEUESYS=$1
     if [ $QUEUESYS = LSF ]; then
@@ -230,7 +237,8 @@ monitorJobs()
     fi
     logMessage "Job(s) complete."
 }
-
+#
+# submits a job to the local queueing system
 submitJob()
 {   QUEUESYS=$1
     NCPU=$2
@@ -258,6 +266,7 @@ submitJob()
         fatal "ERROR: Queueing system $QUEUESYS unrecognized."
     fi
 }
+#
 # Log file forced to be in /tmp/$$.asgs
 logMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
@@ -265,14 +274,16 @@ logMessage()
   echo ${MSG} >> ${SYSLOG} 
   echo ${MSG}
 }
-
+#
+# log a warning message, execution continues
 warn()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
   MSG="WARN..[${DATETIME}]: $@"
   echo ${MSG} >> ${SYSLOG} 
   echo ${MSG} 
 }
-
+#
+# log an error message, execution halts
 fatal()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
   MSG="FATAL.[${DATETIME}]: $@"
@@ -283,6 +294,9 @@ fatal()
   echo ${MSG}
   exit ${EXIT_NOT_OK} 
 }
+#
+# initialization subroutines for the various machines/architectures 
+#
 init_sapphire()
 { #<- can replace the following with a custom script
   HOSTNAME=sapphire.erdc.hpc.mil
@@ -582,7 +596,7 @@ while [ 1 -eq 1 ]; do
         mkdir $ADVISDIR/nowcast 2>> ${SYSLOG}
     fi
     # move raw ATCF files into advisory directory
-    mv *.fst *.btk $ADVISDIR 2>> ${SYSLOG}
+    mv *.fst *.dat $ADVISDIR 2>> ${SYSLOG}
     #
     # perform any initialization of output that must be done once for each 
     # advisory, before the actual runs begin
