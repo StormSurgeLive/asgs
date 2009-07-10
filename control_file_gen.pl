@@ -147,7 +147,7 @@ if ( $name eq "nowcast" ) {
    foreach $track (@TRACKS) {
       if ( @{$track}[4] =~ m/OFCL/) {
          $end = $track->[2];
-         printf(STDERR "INFO: New nowcast time is $end.\n");
+         printf(STDOUT "INFO: New nowcast time is $end.\n");
          last;
       }
    } 
@@ -220,6 +220,7 @@ if ( $name eq "nowcast" ) {
      }
    }
 }
+printf(STDOUT "INFO: The fort.15 file will be configured to end on $end.\n");
 #
 $cstart=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
 my $cs_year = $1;
@@ -244,11 +245,13 @@ my ($days,$hours,$seconds)
       $e_year,$e_mon,$e_day,$e_hour,$e_min,$e_sec);
 # RNDAY is diff btw cold start time and end time
 # For a forecast, RNDAY is one time step short of the total time to ensure 
-# that we won't run out of storm data 
-# For a nowcast, RNDAY will be equal to the total time, so that we end at
-# exactly the nowcast time
+# that we won't run out of storm data at the end of the fort.22
+# For a nowcast, RNDAY will be one time step long, so that we end at
+# the nowcast time, even if ADCIRC rounds down the number of timesteps
 my $stopshort = 0.0;
-unless ( $name eq "nowcast" ) {
+if ( $name eq "nowcast" ) {
+   $stopshort = -$dt;
+} else {
    $stopshort = $dt;
 }
 my $RNDAY = $days + $hours/24 + ($seconds-$stopshort)/86400; 

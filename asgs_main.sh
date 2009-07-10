@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #----------------------------------------------------------------
 #
 # asgs_main.sh: This is the main driver script for the ADCIRC Surge Guidance
@@ -36,6 +36,36 @@ echoHelp()
   echo "-e (environment): set the computer that the ASGS is running on" 
   echo "-h : show help"
   exit;
+}
+#
+# utility function to create progress indicator on console
+function activity_indicator {
+   activity=$1
+   # calculate formatting for the activity message
+   length=${#activity}
+   backspace="\b"
+   let i=0
+   while [[ $i -le $length ]]; do
+      backspace="$backspace\b"
+      i=$[$i + 1]
+   done
+
+   chars=( "-" "\\" "|" "/" )
+   charcount=0
+   while true
+   do
+      pos=$(($charcount % 4))
+      echo -en "${backspace}${chars[$pos]} $activity"
+      charcount=$(($charcount + 1))
+      sleep 1
+   done
+}
+#
+# utility function to stop progress indicator on console
+function stop_activity_indicator {
+  exec 2>/dev/null
+  kill $1
+  echo -en "\n"
 }
 #
 # subroutine to check for the existence of required files that have
@@ -78,9 +108,66 @@ checkHotstart()
       if [ $hotstartSize == "0" ]; then 
          fatal "The hotstart (fort.67) file in $PWD is of zero length. The preceding simulation run must have failed to produce it properly."
       else
-         logMessage "The hotstart (fort.67) was found in $PWD and contains $hotstartSize bytes."
+         logMessage "The hotstart (fort.67) file was found in $PWD and it contains $hotstartSize bytes."
       fi
    fi  
+}
+#
+# subroutine to create a symbolic link to the fort.22 file that has metadata in # to identify the type of data that is in the file 
+createMetaDataLink()
+{ STORM=$1
+  YEAR=$2
+  ADVISORY=$3
+  ENSTORM=$4
+  ADVISDIR=$5
+  VARIATION=$6
+  PERCENT=$7  
+#
+  mod="c"
+  windPercent="+00"
+  overlandSpeedPercent="+00"
+  veerPercent="+000"
+  rMaxPercent="+00"
+#
+  if [[ -z $PERCENT ]]; then
+     $modpercent=0
+     $modsign="+"
+  else
+     if [[ $PERCENT -lt 0 ]]; then
+        $modsign="-"
+        # lop off the minus sign since we already have it in modsign
+        $modpercent=${modpercent:1}
+     else 
+        $modsign="+"
+     fi
+  fi
+  if [[ ! -z $VARIATION ]]; then
+     mod="m"
+     case $VARIATION in
+        "windSpeed") 
+           $format="%02d"; windPercent=`printf "$format" $modpercent`
+           $windPercent=$modsign$windPercent
+           ;;
+        "overlandSpeed") 
+           $format="%02d"; overlandSpeedPercent=`printf "$format" $modpercent`
+           $overlandSpeedPercent=$modsign$overlandSpeedPercent
+           ;;
+        "veer") $modtype="v"
+           $format="%03d"; veerPercent=`printf "$format" $modpercent`
+           $veerPercent=$modsign$veerPercent
+           ;;
+        "rMax") $modType="r"
+           $format="%02d"; rMaxPercent=`printf "$format" $modpercent`
+           $rMaxPercent=$modsign$rMaxPercent
+            warn "rMax is not a supported variation at this time."
+           ;;
+         *) warn "'$VARIATION' is not a supported forecast variation. Supported variations are 'windSpeed', 'overlandSpeed', and 'veer'. The fort.22 will be labeled as 'consensus' although this may not be correct."
+           ;;
+     esac
+  fi
+  # assemble link name 
+  linkName=${YEAR}${STORM}${ADVISORY}${mod}_w${windPercent}o${overlandSpeedPercent}v${veerPercent}r${rMaxPercent}
+  ln -s $ADVISDIR/$ENSTORM/fort.22 $ADVISDIR/$ENSTORM/$linkName
 }
 #
 # subroutine to run adcprep, using a pre-prepped archive of fort.13 and 
@@ -102,7 +189,7 @@ prep()
 	mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
     fi
     cd $ADVISDIR/$ENSTORM
-    logMessage $PWD "Copying fulldomain input files."
+    logMessage "Copying fulldomain input files."
     # symbolically link grid 
     if [ ! -e $ADVISDIR/$ENSTORM/fort.14 ]; then 
         ln -s $INPUTDIR/$GRIDFILE $ADVISDIR/$ENSTORM/fort.14 2>> ${SYSLOG}
@@ -120,13 +207,13 @@ prep()
         # change to proper directory
         cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
         # copy in the files that have already been preprocessed
-        logMessage $PWD "Copying input files that have already been decomposed."
+        logMessage "Copying input files that have already been decomposed."
         cp $INPUTDIR/${PREPPEDARCHIVE} . 2>> ${SYSLOG}
         gunzip -f ${PREPPEDARCHIVE} 2>> ${SYSLOG}
         # untar the uncompressed archive
         UNCOMPRESSEDARCHIVE=${PREPPEDARCHIVE%.gz}
-        tar xvf $UNCOMPRESSEDARCHIVE 
-        logMessage $PWD "Removing $UNCOMPRESSEDARCHIVE"
+        tar xvf $UNCOMPRESSEDARCHIVE > untarred_files.log 2>> ${SYSLOG}
+        logMessage "Removing $UNCOMPRESSEDARCHIVE"
         rm $UNCOMPRESSEDARCHIVE 2>> ${SYSLOG}
         # run adcprep to decompose the new fort.15 file
         $INTERSTRING $ADCIRCDIR/adcprep <<END >> $ADVISDIR/adcprep.log
@@ -198,66 +285,61 @@ downloadWindData()
     YEAR=$2
     STORMDIR=$3
     SCRIPTDIR=$4
+    OLDADVISDIR=$5
+    activity_indicator "Checking remote site for new advisory..." &
+    pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
     cd $STORMDIR
     OPTIONS="--storm $STORM --year $YEAR"
     OPTIONS="$OPTIONS --site $FTPSITE --fdir $FDIR --hdir $HDIR"
     if [ "$START" = coldstart ]; then
-       logMessage $PWD "Downloading initial hindcast/forecast."
+       logMessage "Downloading initial hindcast/forecast."
        perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG
     else
-       logMessage $PWD "Waiting to download new advisory..."
-       # move hindcast/forecast files to "old" if they exist
-       if [ -e fort.22.hindcast ]; then
-          mv fort.22.hindcast fort.22.hindcast.old 2>> ${SYSLOG}
-          logMessage $PWD "Moving fort.22.hindcast to fort.22.hindcast.old."
-       fi
-       if [ -e fort.22.forecast ]; then
-          mv fort.22.forecast fort.22.forecast.old 2>> ${SYSLOG}
-          logMessage $PWD "Moving fort.22.forecast fort.22.forecast.old."
-       fi
+       logMessage "Checking remote site for new advisory..."
+       # TODO: jgf: This loop must be replaced with a more general mechanism
+       # that can also monitor the RSS feed for a new advisory from the NHC 
        while [ 1 -eq 1 ]; do
        perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG
-          if ! diff fort.22.forecast fort.22.forecast.old > /dev/null 2>> ${SYSLOG}; then
-             logMessage $PWD "New forecast detected."
+          if ! diff $OLDADVISDIR/al${STORM}${YEAR}.fst ./al${STORM}${YEAR}.fst > /dev/null 2>> ${SYSLOG}; then
+             logMessage "New forecast detected."
              break
           else
              sleep 60 # new forecast not yet published by NHC
           fi
        done
     fi
+    stop_activity_indicator ${pid}
 }
 #
 # checks the local queueing system over and over to see if a job has
 # finished ... returns to the calling routine when the job has finished
 monitorJobs() 
 {   QUEUESYS=$1
+    activity_indicator "Monitoring queue for run completion..." &
+    pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
+    sleep 60
     if [ $QUEUESYS = LSF ]; then
-        sleep 60
         JOBDONE=`bjobs 2>&1`
         until [[ $JOBDONE = "No unfinished job found" ]]; do
            sleep 60
            JOBDONE=`bjobs 2>&1`
         done
     elif [ $QUEUESYS = LoadLeveler ]; then
-        sleep 60
         while [[ `llq | grep $USER` ]]; do
             sleep 60
         done
     elif [ $QUEUESYS = PBS ]; then
-        sleep 60
         while [[ `$QCHECKCMD | grep $USER` ]]; do
             sleep 60
         done
     elif [ $QUEUESYS = mpiexec ]; then
-        sleep 60
-        while [[ `$QCHECKCMD | grep padcirc` ]]; do
-            logMessage "Using '$QCHECKCMD | grep padcirc' to monitor the job." #jgfdebug
-            sleep 60
-        done
+        # do nothing, mpiexec has returned at this point
+        logMessage "mpiexec has returned"
     else 
        fatal "ERROR: Queueing system $QUEUESYS unrecognized." 
     fi
     logMessage "Job(s) complete."
+    stop_activity_indicator ${pid}
 }
 #
 # submits a job to the local queueing system
@@ -280,8 +362,7 @@ submitJob()
         logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.pbs"
         qsub $ADVISDIR/$ENSTORM/padcirc.pbs >> ${SYSLOG} 2>&1
     elif [ $QUEUESYS = mpiexec ]; then
-        logMessage "Submitting job via $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc 2>> ${SYSLOG}"
-        $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc 2>> ${SYSLOG}
+        $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc >> ${SYSLOG} 2>&1 
     elif [ $QUEUESYS = SGE ]; then
         fatal "ERROR: The SGE system is not supported yet."
     else 
@@ -292,29 +373,35 @@ submitJob()
 # Log file forced to be in /tmp/$$.asgs
 logMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-  MSG="MSG...[${DATETIME}]: $@"
+  MSG="[${DATETIME}] INFO: $@"
   echo ${MSG} >> ${SYSLOG} 
-  echo ${MSG}
 }
 #
 # log a warning message, execution continues
 warn()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-  MSG="WARN..[${DATETIME}]: $@"
+  MSG="[${DATETIME}] WARNING: $@"
   echo ${MSG} >> ${SYSLOG} 
-  echo ${MSG} 
+  echo ${MSG}  # send to console
 }
 #
 # log an error message, execution halts
 fatal()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-  MSG="FATAL.[${DATETIME}]: $@"
+  MSG="[${DATETIME}] FATAL ERROR: $@"
   echo ${MSG} >> ${SYSLOG} 
   if [[ $EMAILNOTIFY = YES ]]; then
      cat ${SYSLOG} | mail -s "[ASGS] Fatal Error for PROCID ($$)" "${ASGSADMIN}"
   fi
-  echo ${MSG}
+  echo ${MSG} # send to console
   exit ${EXIT_NOT_OK} 
+}
+#
+# send a message to the console (i.e., window where the script was started)
+consoleMessage()
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+  MSG="[${DATETIME}] INFO: $@"
+  echo ${MSG}
 }
 #
 # initialization subroutines for the various machines/architectures 
@@ -390,7 +477,7 @@ init_desktop()
 {
   HOSTNAME=jason-desktop
   QUEUESYS=mpiexec
-  QCHECKCMD="ps aux | grep mpiexec "
+  QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec -n"
   SCRATCHDIR=/srv/asgs
   SSHKEY=id_rsa_jason-desktop
@@ -500,6 +587,9 @@ SSHKEY=
 
 logMessage "ASGS Start Up MSG: [PROCID] $$"
 logMessage "ASGS Start Up MSG: [SYSLOG] ${SYSLOG}"
+logMessage "The ADCIRC Surge Guidance System is activated."
+consoleMessage "Please see ASGS log file for detailed information regarding system progress."
+consoleMessage "ASGS Start Up MSG: [SYSLOG] The log file is ${SYSLOG}"
 
 SCRIPTDIR=`pwd`
 # first - look for SCRIPTDIR
@@ -580,8 +670,10 @@ else
     CSTIME=$COLDSTARTDATE
     OLDADVISDIR=$STORMDIR/$LASTSUBDIR
 fi
+ADVISORYNUM=$STARTADVISORYNUM
 #
-logMessage "$STORMDIR $START Storm $STORM in $YEAR"
+logMessage "$STORMDIR $START Storm $STORM advisory $ADVISORYNUM in $YEAR"
+consoleMessage "$STORMDIR $START Storm $STORM advisory $ADVISORYNUM in $YEAR"
 #
 ###############################
 #   BODY OF ASGS STARTS HERE    
@@ -589,26 +681,27 @@ logMessage "$STORMDIR $START Storm $STORM in $YEAR"
 ADVISORY=   # determined below
 ADVISDIR=   # determined below
 while [ 1 -eq 1 ]; do
-    . $SCRIPTDIR/config.sh
+    . ${CONFIG}
     cd $STORMDIR 2>> ${SYSLOG}
     #
     # N O W C A S T
     if [ $START != coldstart ]; then
-        logMessage $PWD "Checking for new advisory every 60 seconds ..."
+        logMessage "Checking for new advisory every 60 seconds ..."
     fi
     # download wind data from ftp site every 60 seconds to see if
     # there is a new advisory
-    downloadWindData $STORM $YEAR $STORMDIR $SCRIPTDIR 
+    downloadWindData $STORM $YEAR $STORMDIR $SCRIPTDIR $OLDADVISDIR
+    advformat="%02d"
+    ADVISORY=`printf "$advformat" $ADVISORYNUM`
+    ADVISDIR=$STORMDIR/${ADVISORY}
     if [[ $EMAILNOTIFY = YES ]]; then
        if [ $START != coldstart ]; then
            new_advisory_email $HOSTNAME $STORM $YEAR $ADVISORY
        fi
     fi
-    logMessage $PWD "Starting nowcast for advisory $ADVISORY"
-    advformat="%02d"
-    ADVISORY=`printf "$advformat" $ADVISORYNUM`
-    ADVISDIR=$STORMDIR/${ADVISORY}
-    logMessage $PWD "Creating directory $ADVISDIR"
+    logMessage "Starting nowcast for advisory $ADVISORY"
+    consoleMessage "Starting nowcast for advisory $ADVISORY"
+    logMessage "Creating directory $ADVISDIR"
     #
     if [ ! -d $ADVISDIR ]; then 
         mkdir $ADVISDIR 2>> ${SYSLOG}
@@ -631,40 +724,45 @@ while [ 1 -eq 1 ]; do
        cd $OLDADVISDIR/nowcast/PE0000 2>> ${SYSLOG}
        checkHotstart       
        HSTIME=`$ADCIRCDIR/hstime` 2>> ${SYSLOG}
-       logMessage "Time in hotstart file is $HSTIME."
+       logMessage "The time in the hotstart file is '$HSTIME' seconds."
        METOPTIONS="$METOPTIONS --hotstartseconds $HSTIME "
        CONTROLOPTIONS="$CONTROLOPTIONS --hst $HSTIME"
     else
+       OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
        logMessage $ADVISDIR "Coldstarting Storm $STORM in $YEAR"
        logMessage $ADVISDIR "Coldstart time is $COLDSTARTDATE"
     fi
     cd $ADVISDIR/nowcast 2>> ${SYSLOG}
     logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
-    ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS 2>> ${SYSLOG} 
+    ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
+    createMetaDataLink $STORM $YEAR $ADVISORY nowcast $ADVISDIR 
     logMessage "Generating ADCIRC Control File (fort.15) for nowcast with the following options: $CONTROLOPTIONS."
-     perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS 2>> ${SYSLOG}
+     perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
     # preprocess
     logMessage $ADVISDIR "Starting nowcast preprocessing."
     prep $ADVISDIR $INPUTDIR nowcast $START $OLDADVISDIR $QUEUESYS $NCPU $PREPPEDARCHIVE $GRIDFILE $NAFILE
     # then submit the job
-    logMessage $PWD "Submitting ADCIRC nowcast job."
+    logMessage "Submitting ADCIRC nowcast job."
     cd $ADVISDIR/nowcast 2>> ${SYSLOG}
     submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR nowcast $NOTIFYUSER
     # check once per minute until all jobs have finished
     monitorJobs $QUEUESYS 
+    consoleMesssage "Job(s) complete."
     # nowcast finished, get on with it
-    logMessage $PWD "nowcast run finished"
+    logMessage "nowcast run finished"
+    consoleMessage "nowcast run finished"
     cd $ADVISDIR 2>> ${SYSLOG}
     if [ $START = coldstart ]; then
         START=hotstart
     fi
     #
     # F O R E C A S T
-    logMessage $PWD "Starting forecast for advisory $ADVISORY"
+    logMessage "Starting forecast for advisory $ADVISORY"
+    consoleMessage "Starting forecast for advisory $ADVISORY"
     cd $ADVISDIR/nowcast/PE0000 2>> ${SYSLOG}
     checkHotstart
     HSTIME=`$ADCIRCDIR/hstime` 2>> ${SYSLOG}
-    logMessage "Time in hotstart file is $HSTIME."
+    logMessage "The time in the hotstart file is '$HSTIME' seconds."
     METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $COLDSTARTDATE --hotstartseconds $HSTIME "
     CONTROLOPTIONS="--cst $COLDSTARTDATE --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME"
     let si=0
@@ -677,24 +775,28 @@ while [ 1 -eq 1 ]; do
         METOPTIONS="$METOPTIONS --name $ENSTORM" 
         CONTROLOPTIONS="$CONTROLOPTIONS --metfile $ADVISDIR/${ENSTORM}/fort.22 --name $ENSTORM"
         logMessage "Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
-        ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS 2>> ${SYSLOG} 
+        ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
+        createMetaDataLink $STORM $YEAR $ADVISORY $ENSTORM $ADVISDIR 
         logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
-        perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS 2>> ${SYSLOG}
+        perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
         # preprocess
-        logMessage $PWD "Starting $ENSTORM preprocessing."
+        logMessage "Starting $ENSTORM preprocessing."
         prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $QUEUESYS $NCPU $PREPPEDARCHIVE $GRIDFILE $NAFILE
         # then submit the job
-        logMessage $PWD "Submitting ADCIRC ensemble member $ENSTORM for forecast."
+        logMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
+        consoleMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
         submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER
         # check once per minute until job has completed
-        monitorJobs $QUEUESYS
+        monitorJobs $QUEUESYS 
+        consoleMesssage "Job(s) complete."
         # execute post processing
-        logMessage $PWD "$ENSTORM finished; postprocessing"
+        logMessage "$ENSTORM finished; postprocessing"
         # execute post processing
         ${SCRIPTDIR}/output/post.sh 2>> ${SYSLOG} 
         si=$[$si + 1];
     done
-    logMessage $PWD "Forecast complete for advisory $ADVISORY."
+    logMessage "Forecast complete for advisory $ADVISORY."
+    consoleMessage "Forecast complete for advisory $ADVISORY."
     OLDADVISDIR=$ADVISDIR
     ADVISORYNUM=$[$ADVISORYNUM + 1] # jgfdebug: this is temporary, until we get rss xml feed 
 done

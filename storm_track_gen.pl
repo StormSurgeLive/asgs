@@ -246,12 +246,16 @@ while(<HCST>) {
     substr($line,80,3)=sprintf("%3d",$rad[1]);  
     substr($line,86,3)=sprintf("%3d",$rad[2]);
     substr($line,92,3)=sprintf("%3d",$rad[3]);
-    # write the line to the file
-    print MEMBER $line;
+    # write the line to the file, writing an eol if the line does not have one
+    if ( /\n/ ) {
+       print MEMBER $line;
+    } else { 
+       printf MEMBER "$line\n";
+    }
 }
 close(HCST);
 if ( $zdFound == 0 ) {
-   printf STDERR "WARNING: The zero date '$zeroDate' was not found in the hindcast file $hindcastATCF.\n"; 
+   printf STDERR "INFO: The zero date '$zeroDate' was not found in the hindcast file $hindcastATCF.\n"; 
 }
 my $forecastedDate; # as a string
 my $last_pressure = $lasthindcastpressure;
@@ -439,8 +443,12 @@ while(<FCST>) {
       $old_lat=$consensusLat;
       $old_lon=$consensusLon;
    }
-   # write the line to the file
-   print MEMBER $line;
+   # write the line to the file, writing an eol if the line does not have one
+   if ( /\n/ ) {
+      print MEMBER $line;
+   } else { 
+      printf MEMBER "$line\n";
+   }
 }
 close(FCST);
 close(MEMBER);
