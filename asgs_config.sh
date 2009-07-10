@@ -64,7 +64,7 @@ HDIR=/pub/ims/rick/ADCIRC/NHC_Advisories/btk # hindcast dir on test site
 #
 # we will implement automation of the correct advisory number in a later
 # release ... for now, we simply increment
-ADVISORYNUM=1  # the starting advisory number
+STARTADVISORYNUM=1  # the starting advisory number
 # 
 # It is assumed that the following files are in the INPUTDIR defined above
 #
@@ -98,6 +98,8 @@ NAME[5]="veerLeft"
 NAME[6]="largerRmax"
 NAME[7]="smallerRmax"
 NAME[8]="" # fill in the blank for custom variation
+#
+PERCENT=
 #
 # The end time is used to cut the simulation off after a certain point, 
 # e.g., if it has gone too far inland to be of interest
