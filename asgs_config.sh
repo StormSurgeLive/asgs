@@ -81,9 +81,21 @@ PREPPEDARCHIVE=prepped_sl15_corps_1000.tar.gz
 # size of the time step to use
 TIMESTEPSIZE=1.0
 #
+# estimated wall clock time for queueing systems that require an
+# estimate; must be set small when sending test problems to the debug queue;
+# for production, must be set large enough for any run, including initial
+# hindcast run, which may be longer than 5 days in some cases
+WALLTIME="4:00:00"
+#
 #-------------------------------------------------------------------
 # Storm ensemble configuration 
 #-------------------------------------------------------------------
+# 
+# Vortex wind model configuration, used on the NWS line in ADCIRC;
+# NWS=8: symmetric vortex, NWS=9: asymmetric vortex
+# (only NWS=9 is currently supported)
+NWS=9
+#
 ENSEMBLESIZE=1 # number of storms in the ensemble
 #
 # array of storm names that are to be run ... array length is ENSEMBLESIZE
