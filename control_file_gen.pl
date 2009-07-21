@@ -78,6 +78,7 @@ my $name;
 my $stormname="STORMNAME";
 my $tau=0; # forecast period
 my $dir=getcwd();
+my $nws=9;
 
 GetOptions("controltemplate=s" => \$controltemplate,
            "metfile=s" => \$metfile,
@@ -86,6 +87,7 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "endtime=s" => \$endtime,
            "dt=s" => \$dt,
            "bladj=s" => \$bladj, 
+           "nws=s" => \$nws, 
            "hst=s" => \$hotstarttime);
 #
 # open template file for fort.15
@@ -299,6 +301,8 @@ while(<TEMPLATE>) {
     } else { 
        s/%IHOT%/0/;
     }
+    # fill in the parameter that selects which wind model to use
+    s/%NWS%/$nws/;
     # fill in the timestep increment that hotstart files will be written at
     s/%NHSINC%/$NHSINC/;
     # fill in whether or not we want a hotstart file out of this
@@ -306,8 +310,7 @@ while(<TEMPLATE>) {
     # 
     # fill in ensemble name
     s/%EnsembleID%/$name/;
-    # Holland parameters -- not used for asymmetric wind model, but perhaps
-    # useful for debugging
+    # Holland parameters -- only used by symmetric vortex model (NWS=8)
     s/%HollandParams%/$cs_year $cs_mon $cs_day $cs_hour 1 $bladj/;
     print STORM $_;
 }

@@ -13,7 +13,7 @@
 #PBS -l size=%pbsncpu%
 
 # Specify the wall clock time
-#PBS -l walltime=3:30:00
+#PBS -l walltime=%walltime%
 
 # Merge stderr to stdout (optional, otherwise they're in separate files)
 #PBS -j oe

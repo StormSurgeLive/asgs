@@ -32,6 +32,7 @@ my $inputdir;  # directory where the template files are stored
 my $enstorm;   # name of the enesemble member (nowcast, storm3, etc)
 my $notifyuser; # email address of the user to be notified in case of error
 my $submitstring; # string to use to submit a job to the parallel queue
+my $walltime; # estimated maximum wall clock time  
 
 GetOptions("ncpu=i" => \$ncpu,
            "queuename=s" => \$queuename,
@@ -42,6 +43,7 @@ GetOptions("ncpu=i" => \$ncpu,
            "inputdir=s" => \$inputdir, 
            "enstorm=s" => \$enstorm,
            "notifyuser=s" => \$notifyuser,
+           "walltime=s" => \$walltime,
            "submitstring=s" => \$submitstring);
 
 # We expect that ncpu is the number of physical cpus (or cpu cores) that
@@ -65,6 +67,8 @@ while(<TEMPLATE>) {
     s/%pbsncpu%/$pbsncpu/;
     # name of the queue on which to run
     s/%queuename%/$queuename/;
+    # the estimated amount of wall clock time
+    s/%walltime%/$walltime/;
     # name of the account to take the hours from
     s/%account%/$account/;
     # directory where padcirc executable is located

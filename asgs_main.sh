@@ -358,7 +358,7 @@ submitJob()
         perl $SCRIPTDIR/loadleveler.pl --ncpu $NCPU --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER > $ADVISDIR/$ENSTORM/padcirc.ll 2>> ${SYSLOG}
         llsubmit $ADVISDIR/$ENSTORM/padcirc.ll >> ${SYSLOG} 2>&1
     elif [ $QUEUESYS = PBS ]; then
-        perl $SCRIPTDIR/pbs.pl --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --submitstring $SUBMITSTRING > $ADVISDIR/$ENSTORM/padcirc.pbs 2>> ${SYSLOG}
+        perl $SCRIPTDIR/$QSCRIPTGEN --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING > $ADVISDIR/$ENSTORM/padcirc.pbs 2>> ${SYSLOG}
         logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.pbs"
         qsub $ADVISDIR/$ENSTORM/padcirc.pbs >> ${SYSLOG} 2>&1
     elif [ $QUEUESYS = mpiexec ]; then
@@ -625,6 +625,7 @@ checkDirExistence $PERL5LIB "directory for the Date::Pcalc perl module"
 checkFileExistence $ADCIRCDIR "ADCIRC preprocessing executable" adcprep
 checkFileExistence $ADCIRCDIR "ADCIRC parallel executable" padcirc
 checkFileExistence $ADCIRCDIR "hotstart time extraction executable" hstime
+checkFileExistence $ADCIRCDIR "asymmetric metadata generation executable" aswip
 #
 checkFileExistence $INPUTDIR "ADCIRC mesh file" $GRIDFILE
 checkFileExistence $INPUTDIR "ADCIRC template fort.15 file" $CONTROLTEMPLATE
@@ -719,7 +720,7 @@ while [ 1 -eq 1 ]; do
     #
     # prepare nowcast met (fort.22) and control (fort.15) files 
     METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $COLDSTARTDATE --name nowcast" 
-    CONTROLOPTIONS=" --cst $COLDSTARTDATE --metfile $ADVISDIR/nowcast/fort.22 --name nowcast --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE}"
+    CONTROLOPTIONS=" --cst $COLDSTARTDATE --metfile $ADVISDIR/nowcast/fort.22 --name nowcast --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE}"
     if [ $START = hotstart ]; then
        cd $OLDADVISDIR/nowcast/PE0000 2>> ${SYSLOG}
        checkHotstart       
@@ -764,7 +765,7 @@ while [ 1 -eq 1 ]; do
     HSTIME=`$ADCIRCDIR/hstime` 2>> ${SYSLOG}
     logMessage "The time in the hotstart file is '$HSTIME' seconds."
     METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $COLDSTARTDATE --hotstartseconds $HSTIME "
-    CONTROLOPTIONS="--cst $COLDSTARTDATE --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME"
+    CONTROLOPTIONS="--cst $COLDSTARTDATE --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME"
     let si=0
     while [ $si -lt $ENSEMBLESIZE ]; do  
         ENSTORM=${NAME[${STORMLIST[$si]}]}
