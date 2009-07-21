@@ -736,6 +736,13 @@ while [ 1 -eq 1 ]; do
     cd $ADVISDIR/nowcast 2>> ${SYSLOG}
     logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
     ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
+    # create a new file that contains metadata
+    $ADCIRCDIR/aswip >> ${SYSLOG} 2>&1
+    if [ -e fort.222 ]; then
+       logMessage "TODO: Replace fort.22 with fort.222?"
+       #TODO: rm fort.22 
+       #TODO: mv fort.222 fort.22 
+    fi
     createMetaDataLink $STORM $YEAR $ADVISORY nowcast $ADVISDIR 
     logMessage "Generating ADCIRC Control File (fort.15) for nowcast with the following options: $CONTROLOPTIONS."
      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
@@ -777,6 +784,13 @@ while [ 1 -eq 1 ]; do
         CONTROLOPTIONS="$CONTROLOPTIONS --metfile $ADVISDIR/${ENSTORM}/fort.22 --name $ENSTORM"
         logMessage "Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
         ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
+        # create a new file that contains metadata
+        $ADCIRCDIR/aswip >> ${SYSLOG} 2>&1
+        if [ -e fort.222 ]; then
+           logMessage "TODO: Replace fort.22 with fort.222?"
+           #TODO: rm fort.22 
+           #TODO: mv fort.222 fort.22 
+        fi
         createMetaDataLink $STORM $YEAR $ADVISORY $ENSTORM $ADVISDIR 
         logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
         perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
