@@ -1,6 +1,4 @@
 # Specify the shell for PBS 
-# $Header: /Grid/Projects/LPFS/2007/hotstart/input/template.pbs,v 1.2 2007/04/10 20:58:21 estrabd Exp $
-
 #PBS -S /bin/sh
 
 # Specify the queue explicitly
@@ -10,7 +8,7 @@
 #PBS -M %notifyuser%
 
 # Specify number of cpus in a machine-specific way
-#PBS -l size=%pbsncpu%
+#PBS -l ncpus=%ncpu%
 
 # Specify the wall clock time
 #PBS -l walltime=%walltime%
@@ -40,6 +38,6 @@ cd %advisdir%/%enstorm%
 
 # These are the actual commands to be executed.
 echo "Test job starting at `date`"
-%submitstring% -sz %pbsncpu% %adcircdir%/padcirc
+%submitstring% -n %ncpu% %adcircdir%/padcirc >> %syslog%
 echo "Test job finished at `date`"
 # You don't need anything special at the end of the script.

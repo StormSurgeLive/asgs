@@ -33,10 +33,14 @@ my $enstorm;   # name of the enesemble member (nowcast, storm3, etc)
 my $notifyuser; # email address of the user to be notified in case of error
 my $submitstring; # string to use to submit a job to the parallel queue
 my $walltime; # estimated maximum wall clock time  
+my $qscript;  # the template file to use for the queue submission script
+my $syslog;   # the log file that the ASGS uses 
+
+# initialize to the log file that adcirc uses, just in case
+$syslog="adcirc.log";
 
 GetOptions("ncpu=i" => \$ncpu,
            "queuename=s" => \$queuename,
-           "ncpudivisor=s" => \$ncpudivisor,
            "account=s" => \$account,
            "adcircdir=s" => \$adcircdir,
            "advisdir=s" => \$advisdir,
@@ -44,27 +48,15 @@ GetOptions("ncpu=i" => \$ncpu,
            "enstorm=s" => \$enstorm,
            "notifyuser=s" => \$notifyuser,
            "walltime=s" => \$walltime,
+           "qscript=s" => \$qscript,
+           "syslog=s" => \$syslog,
            "submitstring=s" => \$submitstring);
 
-# We expect that ncpu is the number of physical cpus (or cpu cores) that
-# we intend to use. However,
-# for Portable Batch System (PBS) we must specify the number of compute
-# nodes to run on some systems, so we must divide by the number of cpus
-# per node in that case; 
-# on other systems, we actually specify the number of cpus (or cpu cores)
-# directly, and in these cases ncpudivisor will be unity
-my $pbsncpu;
-if ( $ncpudivisor == 1 ) {
-   $pbsncpu = sprintf("%d",$ncpu);
-} else {
-   $pbsncpu = sprintf("nodes=%d:ppn=%d",($ncpu/$ncpudivisor),$ncpudivisor);
-}
-
-open(TEMPLATE,"$inputdir/template.pbs") || die "ERROR: Can't open template.pbs file.";
+open(TEMPLATE,"<$qscript") || die "ERROR: Can't open $qscript file for reading as a template for the queue submission script.";
 
 while(<TEMPLATE>) {
     # fill in the number of compute nodes to run on (assuming 2 CPUs per node)
-    s/%pbsncpu%/$pbsncpu/;
+    s/%ncpu%/$ncpu/;
     # name of the queue on which to run
     s/%queuename%/$queuename/;
     # the estimated amount of wall clock time
@@ -81,6 +73,8 @@ while(<TEMPLATE>) {
     s/%notifyuser%/$notifyuser/;  
     # string to use to submit a job to the parallel queue
     s/%submitstring%/$submitstring/;
+    # file to direct stdout and stderr to from the adcirc process
+    s/%syslog%/$syslog/;
     print $_;
 }
 close(TEMPLATE);

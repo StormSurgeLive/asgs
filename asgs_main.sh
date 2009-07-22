@@ -178,7 +178,7 @@ prep()
     ENSTORM=$3  # ensemble member (nowcast, storm1, storm5, etc) 
     START=$4    # coldstart or hotstart
     OLDADVISDIR=$5 # directory containing last advisory
-    QUEUESYS=$6 # queueing system (LSF, LoadLeveler, etc)
+    ENV=$6     # machine to run on (jade, desktop, queenbee, etc)
     NCPU=$7     # number of CPUs to request in parallel jobs
     PREPPEDARCHIVE=$8 # preprocessed fort.13 and fort.14 package 
     GRIDFILE=$9 # fulldomain grid
@@ -216,12 +216,7 @@ prep()
         logMessage "Removing $UNCOMPRESSEDARCHIVE"
         rm $UNCOMPRESSEDARCHIVE 2>> ${SYSLOG}
         # run adcprep to decompose the new fort.15 file
-        $INTERSTRING $ADCIRCDIR/adcprep <<END >> $ADVISDIR/adcprep.log
-$NCPU
-4
-fort.14
-fort.15
-END
+        prepControlFile $ENV $NCPU
        # link to hurricane track file rather than prepping it with adcprep
        PE=0
        format="%04d"
@@ -263,19 +258,58 @@ END
            cp $FROMDIR/$file $ADVISDIR/$ENSTORM/$file 2>> ${SYSLOG}
        done
        # run adcprep to decompose the new fort.15 file
-       $INTERSTRING $ADCIRCDIR/adcprep <<END >> $ADVISDIR/adcprep.log
+       prepControlFile $ENV $NCPU
+       # run adcprep to decompose the hotstart file
+       prepHotstartFile $ENV $NCPU
+    fi
+}
+#
+# function to run adcprep in a platform dependent way to decompose 
+# the fort.15 file
+prepControlFile()
+{   ENV=$1
+    NCPU=$2
+    if [ $ENV = jade || $ENV = sapphire ]; then
+       qsub -l ncpus=0 -l walltime=02:00:00 -q debug -A erdcvenq -I
+       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+       $ADCIRCDIR/adcprep <<END >> $ADVISDIR/adcprep.log
 $NCPU
 4
 fort.14
 fort.15
 END
-        # run adcprep to decompose the hotstart file
-        $INTERSTRING $ADCIRCDIR/adcprep <<END >> $ADVISDIR/adcprep.log
+       exit
+    else
+       $ADCIRCDIR/adcprep <<END >> $ADVISDIR/adcprep.log
+$NCPU
+4
+fort.14
+fort.15
+END
+    fi
+}
+#
+# function to run adcprep in a platform dependent way to decompose 
+# the fort.68 file
+prepHotstartFile()
+{     ENV=$1
+      NCPU=$2
+      if [ $ENV = jade || $ENV = sapphire ]; then
+         qsub -l ncpus=0 -l walltime=02:00:00 -q debug -A erdcvenq -I
+         cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+         $ADCIRCDIR/adcprep <<END >> $ADVISDIR/adcprep.log
 $NCPU
 6
 68
 END
-    fi
+         exit
+      else
+         $ADCIRCDIR/adcprep <<END >> $ADVISDIR/adcprep.log
+$NCPU
+6
+68
+END
+      fi
 }
 #
 # subroutine that calls an external script over and over until it
@@ -358,7 +392,7 @@ submitJob()
         perl $SCRIPTDIR/loadleveler.pl --ncpu $NCPU --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER > $ADVISDIR/$ENSTORM/padcirc.ll 2>> ${SYSLOG}
         llsubmit $ADVISDIR/$ENSTORM/padcirc.ll >> ${SYSLOG} 2>&1
     elif [ $QUEUESYS = PBS ]; then
-        perl $SCRIPTDIR/$QSCRIPTGEN --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING > $ADVISDIR/$ENSTORM/padcirc.pbs 2>> ${SYSLOG}
+        perl $SCRIPTDIR/$QSCRIPTGEN --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG > $ADVISDIR/$ENSTORM/padcirc.pbs 2>> ${SYSLOG}
         logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.pbs"
         qsub $ADVISDIR/$ENSTORM/padcirc.pbs >> ${SYSLOG} 2>&1
     elif [ $QUEUESYS = mpiexec ]; then
@@ -720,7 +754,7 @@ while [ 1 -eq 1 ]; do
     #
     # prepare nowcast met (fort.22) and control (fort.15) files 
     METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $COLDSTARTDATE --name nowcast" 
-    CONTROLOPTIONS=" --cst $COLDSTARTDATE --metfile $ADVISDIR/nowcast/fort.22 --name nowcast --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE}"
+    CONTROLOPTIONS=" --cst $COLDSTARTDATE --metfile $ADVISDIR/nowcast/fort.22 --name nowcast --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE}"
     if [ $START = hotstart ]; then
        cd $OLDADVISDIR/nowcast/PE0000 2>> ${SYSLOG}
        checkHotstart       
@@ -748,7 +782,7 @@ while [ 1 -eq 1 ]; do
      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
     # preprocess
     logMessage $ADVISDIR "Starting nowcast preprocessing."
-    prep $ADVISDIR $INPUTDIR nowcast $START $OLDADVISDIR $QUEUESYS $NCPU $PREPPEDARCHIVE $GRIDFILE $NAFILE
+    prep $ADVISDIR $INPUTDIR nowcast $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $NAFILE
     # then submit the job
     logMessage "Submitting ADCIRC nowcast job."
     cd $ADVISDIR/nowcast 2>> ${SYSLOG}
@@ -772,7 +806,7 @@ while [ 1 -eq 1 ]; do
     HSTIME=`$ADCIRCDIR/hstime` 2>> ${SYSLOG}
     logMessage "The time in the hotstart file is '$HSTIME' seconds."
     METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $COLDSTARTDATE --hotstartseconds $HSTIME "
-    CONTROLOPTIONS="--cst $COLDSTARTDATE --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME"
+    CONTROLOPTIONS="--cst $COLDSTARTDATE --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME"
     let si=0
     while [ $si -lt $ENSEMBLESIZE ]; do  
         ENSTORM=${NAME[${STORMLIST[$si]}]}
@@ -796,7 +830,7 @@ while [ 1 -eq 1 ]; do
         perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
         # preprocess
         logMessage "Starting $ENSTORM preprocessing."
-        prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $QUEUESYS $NCPU $PREPPEDARCHIVE $GRIDFILE $NAFILE
+        prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $NAFILE
         # then submit the job
         logMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
         consoleMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."

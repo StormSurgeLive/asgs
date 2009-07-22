@@ -79,6 +79,7 @@ my $stormname="STORMNAME";
 my $tau=0; # forecast period
 my $dir=getcwd();
 my $nws=9;
+my $advisorynum;
 
 GetOptions("controltemplate=s" => \$controltemplate,
            "metfile=s" => \$metfile,
@@ -88,6 +89,7 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "dt=s" => \$dt,
            "bladj=s" => \$bladj, 
            "nws=s" => \$nws, 
+           "advisorynum=s" => \$advisorynum,
            "hst=s" => \$hotstarttime);
 #
 # open template file for fort.15
@@ -286,9 +288,12 @@ if ( $name eq "nowcast" ) {
 } else {
    $NHSTAR = 0;
 }
+# create run description
+my $rundesc=$stormname . " " . $advisorynum;
 while(<TEMPLATE>) {
     # if we are looking at the first line, fill in the name of the storm
-    s/%StormName%/$stormname/;
+    # and the advisory number, if available
+    s/%StormName%/$rundesc/;
     # if we are looking at the DT line, fill in the time step (seconds)
     s/%DT%/$dt/;
     # if we are looking at the RNDAY line, fill in the total run time (days)
