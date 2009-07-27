@@ -5,7 +5,6 @@
 # Parses text advisories from the National Hurricane Center and converts
 # them to ATCF format for use within ADCIRC.
 #
-# Contains code courtesy of the CERA program at LSU.
 #----------------------------------------------------------------
 # Copyright(C) 2009 Jason Fleming
 #
