@@ -1,2 +1,3 @@
+v1.1  - jgf20080727: included several new configuration file additions; nhc_advisory_bot.pl now parses advisories successfully; many bug fixes
 v1.01 - jgf20080710: added STARTADVISORYNUM and PERCENT to config file.
 v1.00 - jgf20080710: Initial release.

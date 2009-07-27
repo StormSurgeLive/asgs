@@ -40,13 +40,12 @@ use Date::Pcalc;
 #          1         2         3         4         5         6         7         8         9         0         1         2         3         4         5         6         7         8         9
 #01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
 #AL, 01, 2009052912, 03, OFCL,   0, 393N,  649W,  30, 1006, TD,  34, NEQ,    0,    0,    0,    0,    0,    0,  40,  40,   0,    ,   0, TBK,  65,  17,           ,  , 12, NEQ,  60,  60,   0,   0
-my $template = "AL, 01, 2009010100,   , OFCL,   0, 000N,  000W,  30, 1012,   ,  34, NEQ,    0,    0,    0,    0,    0,    0,  40,  40,   0,    ,   0, TBK,  65,  17,           ,  , 12, NEQ,  60,  60,   0,   0";
+my $template = "AL, 01, 2009010100,   , OFCL,   0, 000N,  000W,  30,    0,   ,  34, NEQ,    0,    0,    0,    0,    0,    0,  40,  40,   0,    ,   0, TBK,  65,  17,           ,  , 12, NEQ,  60,  60,   0,   0";
 my %month_lookup = (dummy => '00', JAN=>'01',FEB=>'02',MAR=>'03',APR=>'04',MAY=>'05',JUN=>'06',JUL=>'07',AUG=>'08',SEP=>'09',OCT=>'10',NOV=>'11',DEC=>'12');
 # These are the nhc storm number and url params.
 my ($adv_str, $adv_url) = ('','');
 # These are the data we are extracting
-my ( $date_time, $lat, $lon, $pressure, $diameter, $wind_max_sust, $wind_gust, $move_dir, $move_speed )
-  = ( '', -1, -1, -1, -1, -1, -1, -1, -1, -1, '' );
+my $pressure;
 my $storm_class="";
 my $storm_name;
 my $storm_number; 
@@ -60,12 +59,15 @@ my $nowcast_day;
 my $forecast_day;
 my $nowcast_hour;
 my $forecast_hour;
+my $date_time;
 my $forecast_date_time;
 my $nowcast_date_time;
 my $nowcast_max_wind;
 my $forecast_max_wind;
-my $nowcast_central_pressure;
 my $atcf_line = $template;
+my $lat;
+my $lon;
+my $vmax;
 #
 my @lines =(<>);
 my $body_ref = \@lines;
@@ -198,12 +200,11 @@ printf STDOUT "nowcast central pressure is $pressure\n";
 
 if (@match) {
    if ( $match[0] =~ /^MAX SUSTAINED WINDS\s+(\d{1,4}) KT WITH GUSTS TO\s+(\d{1,4})/ ) {
-      $wind_max_sust = $1;
-      $wind_gust     = $2;
+      $vmax = $1;
    }
 }
-substr($atcf_line,47,4) = sprintf("%4d",$wind_max_sust); 
-printf STDOUT "nowcast max wind is $wind_max_sust\n";
+substr($atcf_line,47,4) = sprintf("%4d",$vmax); 
+printf STDOUT "nowcast max wind is $vmax\n";
 my $forecast_atcf_filename = lc($storm_name) . "_advisory_" . $adv_num_str . ".fst";
 #
 # open output file
@@ -253,14 +254,19 @@ $forecast_year = $nowcast_year;
 $forecast_month = $nowcast_month;
 $forecast_day = $nowcast_day;
 $forecast_hour = $nowcast_hour;
-for my $i (0...$#{$body_ref}) {
-   if ( @{$body_ref}[$i] =~ /^FORECAST VALID/) {
+my $i=0;
+while ($i < $#{$body_ref} ) {
+   if ( @{$body_ref}[$i] =~ /^(FORECAST|OUTLOOK) VALID/) {
       my $atcf_line = $template;
+      # fill in the nowcast time
+      substr($atcf_line,8,10) = sprintf("%10d",$nowcast_date_time);
+      # fill in the storm name 
+      substr($atcf_line,148,10) = sprintf("%10s",$storm_name);
       my $line = @{$body_ref}[$i];
       chomp $line;
-      if ( $line =~ /^FORECAST VALID\s+(\d{2})\/(\d{4})Z/ ) {
-         $forecast_day = $1;
-         $forecast_hour = substr( $2, 0, 2 );
+      if ( $line =~ /^(FORECAST|OUTLOOK) VALID\s+(\d{2})\/(\d{4})Z/ ) {
+         $forecast_day = $2;
+         $forecast_hour = substr( $3, 0, 2 );
       }
       if ( $line =~ /Z\s+(\d{1,2}\.\d{1,2})([N|S])\s+(\d{1,2}\.\d{1,2})([E|W])/) {
          $lat = $1;
@@ -278,9 +284,9 @@ for my $i (0...$#{$body_ref}) {
       $line = @{$body_ref}[$i];
       chomp $line;
       if ($line =~ /^MAX WIND\s+(\d{1,4}) KT\.\.\.GUSTS\s+(\d{1,4}) KT\./ ) {
-         $forecast_max_wind = $1;
+         $vmax = $1;
       }
-      substr($atcf_line,47,4) = sprintf("%4d",$wind_max_sust); 
+      substr($atcf_line,47,4) = sprintf("%4d",$vmax); 
       $forecast_date_time = $forecast_year . $forecast_month . $forecast_day . $forecast_hour;
       # check to see if we have crossed into the next month
       if ( $forecast_date_time < $nowcast_date_time ) {
@@ -293,18 +299,23 @@ for my $i (0...$#{$body_ref}) {
       # forecast and the nowcast time
       (my $ddays,my $dhrs, my $dsec) = Date::Pcalc::Delta_DHMS($nowcast_year,$nowcast_month,$nowcast_day,$nowcast_hour,0,0,$forecast_year,$forecast_month,$forecast_day,$forecast_hour,0,0);
       my $forecast_period = $ddays*24 + $dhrs;      
-      substr($line,29,4)=sprintf("%4d",$forecast_period);
+      substr($atcf_line,29,4)=sprintf("%4d",$forecast_period);
+      # Get the next line and parse the isotachs
+      $i++;
       $i = parseIsotachs($body_ref, $i, $atcf_line); 
    } 
+   $i++;
 }
 close(ATCF);
 exit;
 
 sub parseIsotachs {
     my ($body_ref, $i, $atcf_line) = @_;
-    $i++;
+    $isotachs_found = 0;
+    @isotachs = ();
     while(1) { 
-       if ( @{$body_ref}[$i] =~ /^(\d{1,2}) KT\.{7}\s{0,}(\d{1,3})[N|S][E|W]\s+(\d{1,3})[N|S][E|W]\s+(\d{1,3})[N|S][E|W]\s+(\d{1,3})[N|S][E|W]/) {
+       #64 KT... 45NE  30SE  20SW  30NW.
+       if ( @{$body_ref}[$i] =~ /^(\d{1,2}) KT\.{3}\s{0,}(\d{1,3})[N|S][E|W]\s+(\d{1,3})[N|S][E|W]\s+(\d{1,3})[N|S][E|W]\s+(\d{1,3})[N|S][E|W]/) {
           $isotachs_found++;
           my @wind_radii = ( $1, $2, $3, $4, $5 );
           push @isotachs, @wind_radii;
