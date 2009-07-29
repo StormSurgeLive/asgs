@@ -17,31 +17,60 @@ input data that are missing or nonexistent (such as wind radii in various
 quadrants for a particular isotach). 
 
 The mechanism for achieving the goals described above is a preprocessing
-program called aswip that takes the ATCF formatted input data that would
-normally be used for the NWS8 or NWS9 and adds columns to it that describe 
-the following things:
+program called the asymmetric wind input preprocessor, or aswip, that 
+takes the ATCF formatted input data that would normally be used for the 
+NWS8 or NWS9 and adds columns to it that describe the following things:
 
-1. The Rmax from the hindcast (i.e., BEST lines) has been has been persisted
-from the Rmax column (described as MRD in the ATCF documentation) from the
-value in the forecast (i.e., OFCL lines). 
+1. The Rmax from the hindcast (i.e., BEST lines) has been persisted from the
+Rmax column (described as MRD in the ATCF documentation) from the value in the
+forecast (i.e., OFCL lines). 
 
-2. In the 2nd column after the storm name, the line number is filled in
-(starting from 1 on the first line of the file).     
+2. The storm direction DIR and speed SPEED in the ATCF file have been replaced
+with the calculated direction and speed to be used by ADCIRC. The values are
+provided in the same format as the ATCF file to provide compatibility between
+methods. The speed in given in knots and the direction is given in compass
+coordinates, with zero degrees indicating North and values increasing
+clockwise.
 
-3. In the 3rd column after the storm name, the isotach that was used in the
-rmax calculations is listed. For example, if the column contains a '1', then
-the first isotach (i.e., the 34kt isotach) was used to calculate the Rmax
-value. If the column contains a '2', then the 2nd isotach (i.e., the 50kt
-isotach was used), etc.
+3. In the 2nd column after the storm name, the cycle number is provided. A
+'cycle' is an entry or set of entries in the file that all have the same storm
+time or forecast period.  For cycles that have more than one isotach, this
+value will be repeated for each isotach (starting from 1 for the first cycle in
+the file).     
 
-4. In the following 4 columns: ?
+4. The 3rd column after the storm name contains the number of isotachs that are
+reported for that particular cycle.  This value is also repeated on each line
+for each isotach that is reported per cycle. For example, if the cycle has a
+34kt and a 50kt isotach entry then this column will contain a '2' for both
+entries in that cycle.
+ 
+5. The following 4 columns contain the flags that tell the ADCIRC NWS 19 code
+whether or not to use a particular wind radius from the isotach under
+consideration. There is a flag for each quadrant. A '0' indicates that the wind
+radius for that isotach and quadrant will not be used.  A '1' indicates that
+the wind radius for that isotach and quadrant will be used.  
 
-5. In the next 4 columns, the calculated Rmax for each quadrant is listed
+For example: if only the 34kt isotach is provided, then then all four wind 
+radii must be used, and the columns will all be set to '1' :
+ ... 34 ... 1 1 1 1 1 ...
+
+Another example: if 3 isotachs are provided then the columns may look 
+like the following:
+ ... 34 ... 3 0 0 0 0 ...
+ ... 50 ... 3 0 0 1 1 ...
+ ... 64 ... 3 1 1 0 0 ...
+this indicates -
+ use NO radii from the 34 kt isotach
+ use the 3 & 4 quadrant radii from the 50 kt isotach
+ use the 1 & 2 quadrant radii from the 64 kt isotach
+        
+Users could potentially modify these flags in the input file to manually select
+which radii to use for each cycle.
+
+6. In the next 4 columns, the calculated Rmax for each quadrant is listed
 in the following order: NE SE SW NW. 
 
-6. The next column contains the overall Holland B value.
-
-The storm speed and direction do not seem to appear in the file? 
+7. The next column contains the overall Holland B value.
 
 Finally, one valuable aspect of this file format is that it can be used by
 NWS8, NWS9, or NWS19, since the original data have not been modified. The
