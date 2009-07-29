@@ -41,6 +41,7 @@ echoHelp()
 # utility function to create progress indicator on console
 function activity_indicator {
    activity=$1
+   echo
    # calculate formatting for the activity message
    length=${#activity}
    backspace="\b"
@@ -182,12 +183,12 @@ prep()
     NCPU=$7     # number of CPUs to request in parallel jobs
     PREPPEDARCHIVE=$8 # preprocessed fort.13 and fort.14 package 
     GRIDFILE=$9 # fulldomain grid
-    NAFILE=$10  # full domain nodal attributes file
+    NAFILE=${10}  # full domain nodal attributes file
     TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
-    echo "$TIMESTAMP adcprep.log entry for $FILE for ensemble member $ENSTORM in $ADVISDIR as follows: " >> $ADVISDIR/adcprep.log
     if [ ! -d $ADVISDIR/$ENSTORM ]; then 
 	mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
     fi
+    echo "$TIMESTAMP adcprep.log entry for $FILE for ensemble member $ENSTORM in $ADVISDIR as follows: " >> $ADVISDIR/$ENSTORM/adcprep.log
     cd $ADVISDIR/$ENSTORM
     logMessage "Copying fulldomain input files."
     # symbolically link grid 
@@ -196,7 +197,7 @@ prep()
     fi
     # symbolically link nodal attributes
     if [ ! -e $ADVISDIR/$ENSTORM/fort.13 ]; then
-        if [[ -z $NAFILE ]]; then
+        if [[ ! -z $NAFILE ]]; then
            ln -s $INPUTDIR/$NAFILE $ADVISDIR/$ENSTORM/fort.13 2>> ${SYSLOG}
         fi
     fi
@@ -216,6 +217,7 @@ prep()
         logMessage "Removing $UNCOMPRESSEDARCHIVE"
         rm $UNCOMPRESSEDARCHIVE 2>> ${SYSLOG}
         # run adcprep to decompose the new fort.15 file
+        logMessage "Running adcprep to prepare new fort.15 file"
         prepControlFile $ENV $NCPU
        # link to hurricane track file rather than prepping it with adcprep
        PE=0
@@ -258,8 +260,10 @@ prep()
            cp $FROMDIR/$file $ADVISDIR/$ENSTORM/$file 2>> ${SYSLOG}
        done
        # run adcprep to decompose the new fort.15 file
+       logMessage "Running adcprep to prepare new fort.15 file."
        prepControlFile $ENV $NCPU
        # run adcprep to decompose the hotstart file
+       logMessage "Running adcprep to decompose hotstart file."
        prepHotstartFile $ENV $NCPU
     fi
 }
@@ -272,7 +276,7 @@ prepControlFile()
     if [ $ENV = jade || $ENV = sapphire ]; then
        qsub -l ncpus=0 -l walltime=02:00:00 -q debug -A erdcvenq -I
        cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-       $ADCIRCDIR/adcprep <<END >> $ADVISDIR/adcprep.log
+       $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
 $NCPU
 4
 fort.14
@@ -280,7 +284,7 @@ fort.15
 END
        exit
     else
-       $ADCIRCDIR/adcprep <<END >> $ADVISDIR/adcprep.log
+       $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
 $NCPU
 4
 fort.14
@@ -297,14 +301,14 @@ prepHotstartFile()
       if [ $ENV = jade || $ENV = sapphire ]; then
          qsub -l ncpus=0 -l walltime=02:00:00 -q debug -A erdcvenq -I
          cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-         $ADCIRCDIR/adcprep <<END >> $ADVISDIR/adcprep.log
+         $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
 $NCPU
 6
 68
 END
          exit
       else
-         $ADCIRCDIR/adcprep <<END >> $ADVISDIR/adcprep.log
+         $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
 $NCPU
 6
 68
@@ -386,13 +390,19 @@ submitJob()
     INPUTDIR=$6
     ENSTORM=$7
     NOTIFYSER=$8
+    ENV=$9
+    PPN=${10}
     if [ $QUEUESYS = LSF ]; then
         bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/padcirc >> ${SYSLOG}
     elif [ $QUEUESYS = LoadLeveler ]; then
         perl $SCRIPTDIR/loadleveler.pl --ncpu $NCPU --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER > $ADVISDIR/$ENSTORM/padcirc.ll 2>> ${SYSLOG}
         llsubmit $ADVISDIR/$ENSTORM/padcirc.ll >> ${SYSLOG} 2>&1
     elif [ $QUEUESYS = PBS ]; then
-        perl $SCRIPTDIR/$QSCRIPTGEN --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG > $ADVISDIR/$ENSTORM/padcirc.pbs 2>> ${SYSLOG}
+        QSCRIPTOPTIONS="--ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG"
+        if [[ ! -z $PPN ]]; then
+           QSCRIPTOPTIONS="$QSCRIPTOPTIONS --ppn $PPN"
+        fi
+        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.pbs 2>> ${SYSLOG}
         logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.pbs"
         qsub $ADVISDIR/$ENSTORM/padcirc.pbs >> ${SYSLOG} 2>&1
     elif [ $QUEUESYS = mpiexec ]; then
@@ -479,6 +489,21 @@ init_queenbee()
   SSHKEY=id_rsa_queenbee
   QSCRIPT=queenbee.template.pbs
   QSCRIPTGEN=queenbee.pbs.pl
+  PPN=8
+}
+
+init_tezpur()
+{ #<- can replace the following with a custom script
+  HOSTNAME=tezpur.hpc.lsu.edu
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  ACCOUNT=loni_asgs2009
+  SUBMITSTRING="mpirun"
+  SCRATCHDIR=/work/$USER
+  SSHKEY=id_rsa_tezpur
+  QSCRIPT=tezpur.template.pbs
+  QSCRIPTGEN=tezpur.pbs.pl
+  PPN=4
 }
 
 init_ranger()
@@ -545,6 +570,9 @@ env_dispatch(){
   "queenbee") logMessage "Queenbee (LONI) configuration found."
           init_queenbee
 	  ;;
+  "tezpur") logMessage "Tezpur (LSU) configuration found."
+          init_tezpur
+          ;;
   "topsail") logMessage "Topsail (UNC) configuration found."
              init_topsail
              ;;
@@ -618,7 +646,7 @@ STORMDIR=
 INPUTDIR=
 PERL5LIB=
 SSHKEY=
-
+PPN=
 logMessage "ASGS Start Up MSG: [PROCID] $$"
 logMessage "ASGS Start Up MSG: [SYSLOG] ${SYSLOG}"
 logMessage "The ADCIRC Surge Guidance System is activated."
@@ -772,10 +800,9 @@ while [ 1 -eq 1 ]; do
     ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
     # create a new file that contains metadata
     $ADCIRCDIR/aswip >> ${SYSLOG} 2>&1
-    if [ -e fort.222 ]; then
-       logMessage "TODO: Replace fort.22 with fort.222?"
-       #TODO: rm fort.22 
-       #TODO: mv fort.222 fort.22 
+    if [ -e NWS_19_fort.22 ]; then
+       mv fort.22 fort.22.orig
+       cp NWS_19_fort.22 fort.22 
     fi
     createMetaDataLink $STORM $YEAR $ADVISORY nowcast $ADVISDIR 
     logMessage "Generating ADCIRC Control File (fort.15) for nowcast with the following options: $CONTROLOPTIONS."
@@ -786,7 +813,7 @@ while [ 1 -eq 1 ]; do
     # then submit the job
     logMessage "Submitting ADCIRC nowcast job."
     cd $ADVISDIR/nowcast 2>> ${SYSLOG}
-    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR nowcast $NOTIFYUSER
+    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR nowcast $NOTIFYUSER $ENV $PPN
     # check once per minute until all jobs have finished
     monitorJobs $QUEUESYS 
     consoleMesssage "Job(s) complete."
@@ -820,10 +847,9 @@ while [ 1 -eq 1 ]; do
         ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
         # create a new file that contains metadata
         $ADCIRCDIR/aswip >> ${SYSLOG} 2>&1
-        if [ -e fort.222 ]; then
-           logMessage "TODO: Replace fort.22 with fort.222?"
-           #TODO: rm fort.22 
-           #TODO: mv fort.222 fort.22 
+        if [ -e NWS_19_fort.22 ]; then
+           mv fort.22 fort.22.orig
+           cp NWS_19_fort.22 fort.22 
         fi
         createMetaDataLink $STORM $YEAR $ADVISORY $ENSTORM $ADVISDIR 
         logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
@@ -834,7 +860,7 @@ while [ 1 -eq 1 ]; do
         # then submit the job
         logMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
         consoleMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
-        submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER
+        submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $PPN
         # check once per minute until job has completed
         monitorJobs $QUEUESYS 
         consoleMesssage "Job(s) complete."

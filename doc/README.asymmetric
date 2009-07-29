@@ -2,7 +2,7 @@ jgf20090623: Correction: hour 0 in the fort.22 corresponds to the cold start
 time (ADCIRC time=0) if the simulation is cold started, or to the hot start
 time if the simulation is hotstarted. 
 
-README.asymmetric
+README.asymmetric (NWS=9 in fort.15)
 
 The asymmetric vortex wind model input differs from most other types of wind
 input in ADCIRC in that it consists of storm parameters, rather than the
