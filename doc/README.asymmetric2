@@ -1,0 +1,49 @@
+README.asymmetric2 (NWS=19 in fort.15)
+
+The extended asymmetric vortex wind model is selected by setting NWS in the 
+ASGS configuration script to 19. 
+
+This wind model is based on the code that generates the original asymmetric
+vortex wind data (NWS=9), and its behavior is similar in many ways to that
+model. As a result, this documentation will focus mainly on the differences 
+between the two wind models. 
+
+The extended asymmetric vortex wind model was developed for several reasons:
+(1) to allow more visibility into the parameters, such as Rmax, that control a
+storm's size and shape and are calculated within the wind model code; (2) to
+allow the user to control parameters such as Rmax so that they may be adjusted
+by the user; and (3) to allow the user to deterministically compensate for
+input data that are missing or nonexistent (such as wind radii in various
+quadrants for a particular isotach). 
+
+The mechanism for achieving the goals described above is a preprocessing
+program called aswip that takes the ATCF formatted input data that would
+normally be used for the NWS8 or NWS9 and adds columns to it that describe 
+the following things:
+
+1. The Rmax from the hindcast (i.e., BEST lines) has been has been persisted
+from the Rmax column (described as MRD in the ATCF documentation) from the
+value in the forecast (i.e., OFCL lines). 
+
+2. In the 2nd column after the storm name, the line number is filled in
+(starting from 1 on the first line of the file).     
+
+3. In the 3rd column after the storm name, the isotach that was used in the
+rmax calculations is listed. For example, if the column contains a '1', then
+the first isotach (i.e., the 34kt isotach) was used to calculate the Rmax
+value. If the column contains a '2', then the 2nd isotach (i.e., the 50kt
+isotach was used), etc.
+
+4. In the following 4 columns: ?
+
+5. In the next 4 columns, the calculated Rmax for each quadrant is listed
+in the following order: NE SE SW NW. 
+
+6. The next column contains the overall Holland B value.
+
+The storm speed and direction do not seem to appear in the file? 
+
+Finally, one valuable aspect of this file format is that it can be used by
+NWS8, NWS9, or NWS19, since the original data have not been modified. The
+extra columns are used as input by NWS19, and as a result, they provide both 
+metadata and control over these parameters. 
