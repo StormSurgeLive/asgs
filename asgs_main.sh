@@ -121,10 +121,18 @@ createMetaDataLink()
   ADVISORY=$3
   ENSTORM=$4
   ADVISDIR=$5
-  VARIATION=$6
-  PERCENT=$7  
+  HOSTNAME=$6
+  VARIATION=$7
+  PERCENT=$8  
 #
-  mod="c"
+  echo "# This metadata describes the storm data used in this run."
+  echo "version:1" >> $ADVISDIR/$ENSTORM/fort.22.meta
+  echo "year:$YEAR" >> $ADVISDIR/$ENSTORM/fort.22.meta
+  echo "storm:$STORM" >> $ADVISDIR/$ENSTORM/fort.22.meta
+  echo "advisory:$ADVISORY" >> $ADVISDIR/$ENSTORM/fort.22.meta
+  echo "hostname:$HOSTNAME" >> $ADVISDIR/$ENSTORM/fort.22.meta  
+  echo "directory advisory:$ADVISDIR" >> $ADVISDIR/$ENSTORM/fort.22.meta
+  echo "directory storm:$ADVISDIR/$ENSTORM" >> $ADVISDIR/$ENSTORM/fort.22.meta
   windPercent="+00"
   overlandSpeedPercent="+00"
   veerPercent="+000"
@@ -144,27 +152,36 @@ createMetaDataLink()
   fi
   if [[ ! -z $VARIATION ]]; then
      mod="m"
+     echo "modified:y" >> $ADVISDIR/$ENSTORM/fort.22.meta
      case $VARIATION in
         "windSpeed") 
            $format="%02d"; windPercent=`printf "$format" $modpercent`
            $windPercent=$modsign$windPercent
+           echo "variation wind speed:$windPercent" >> $ADVISDIR/$ENSTORM/fort.22.meta
            ;;
         "overlandSpeed") 
            $format="%02d"; overlandSpeedPercent=`printf "$format" $modpercent`
            $overlandSpeedPercent=$modsign$overlandSpeedPercent
+           echo "variation overland speed:$overlandSpeedPercent" >>  $ADVISDIR/$ENSTORM/fort.22.meta
            ;;
         "veer") $modtype="v"
            $format="%03d"; veerPercent=`printf "$format" $modpercent`
            $veerPercent=$modsign$veerPercent
+           echo "variation veer:$veerPercent" >> $ADVISDIR/$ENSTORM/fort.22.meta
            ;;
         "rMax") $modType="r"
            $format="%02d"; rMaxPercent=`printf "$format" $modpercent`
            $rMaxPercent=$modsign$rMaxPercent
+           echo "variation rmax:$rMaxPercent" >> $ADVISDIR/$ENSTORM/fort.22.meta
+
             warn "rMax is not a supported variation at this time."
            ;;
          *) warn "'$VARIATION' is not a supported forecast variation. Supported variations are 'windSpeed', 'overlandSpeed', and 'veer'. The fort.22 will be labeled as 'consensus' although this may not be correct."
            ;;
      esac
+  else 
+      mod="c"
+      echo "modified:n" >> $ADVISDIR/$ENSTORM/fort.22.meta    
   fi
   # assemble link name 
   linkName=${YEAR}${STORM}${ADVISORY}${mod}_w${windPercent}o${overlandSpeedPercent}v${veerPercent}r${rMaxPercent}
@@ -804,7 +821,7 @@ while [ 1 -eq 1 ]; do
        mv fort.22 fort.22.orig
        cp NWS_19_fort.22 fort.22 
     fi
-    createMetaDataLink $STORM $YEAR $ADVISORY nowcast $ADVISDIR 
+    createMetaDataLink $STORM $YEAR $ADVISORY nowcast $ADVISDIR $HOSTNAME
     logMessage "Generating ADCIRC Control File (fort.15) for nowcast with the following options: $CONTROLOPTIONS."
      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
     # preprocess
@@ -851,7 +868,7 @@ while [ 1 -eq 1 ]; do
            mv fort.22 fort.22.orig
            cp NWS_19_fort.22 fort.22 
         fi
-        createMetaDataLink $STORM $YEAR $ADVISORY $ENSTORM $ADVISDIR 
+        createMetaDataLink $STORM $YEAR $ADVISORY $ENSTORM $ADVISDIR $HOSTNAME
         logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
         perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
         # preprocess
