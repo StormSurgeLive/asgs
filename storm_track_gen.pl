@@ -70,6 +70,7 @@ my $storm;                          # number, e.g., 05 or 12
 my $year;                           # YYYY
 my $coldstartdate;                  # YYYYMMDDHH24
 my $hotstartseconds = 0.0;          # default is not hotstart
+my $nws = 8;                        # the ADCIRC wind model to target
 my $name = "nhcConsensus";          # default track to generate
 my $percent;                        # magnitude of parameter variation
 my $strengthPercent = 20.0;
@@ -86,6 +87,7 @@ GetOptions(
            "year=s" => \$year,
            "coldstartdate=s" => \$coldstartdate,
            "hotstartseconds=s" => \$hotstartseconds,
+           "nws=s" => \$nws,
            "name=s" => \$name,
            "percent=s" => \$percent
            );
@@ -121,8 +123,11 @@ if ( $percent ) {
    } elsif ( $name eq "veer" ) {
       $veerPercent = $percent;
    } elsif ( $name eq "rMax" ) {  
-      die "ERROR: We do not have an algorithm for generating the '$name' ensemble member yet. The wind input file (fort.22) will not be generated.\n";
-      # $sizePercent = $percent;
+      if ( $nws == 9 || $nws == 19 ) {
+         die "ERROR: We do not have an algorithm for generating the '$name' ensemble member for NWS $nws yet. The wind input file (fort.22) will not be generated.\n";
+      } else {
+         $sizePercent = $percent;
+      }
    } else {
       printf STDERR "WARNING: 'percent' was specified at '$percent', but the ensemble member '$name' does not use percentage information. The percentage value will be ignored.\n"; 
    }
@@ -135,8 +140,12 @@ if ( $name eq "maxWindSpeed") {
    printf STDOUT "INFO: The forecast overland speed will be modified by $overlandSpeedPercent percent.\n";
 } elsif ( $name eq "veer" ) {
    printf STDOUT "INFO: The forecast track will be modified with a veer of $veerPercent percent.\n";
-} elsif ( $name eq "rMax" ) {  
-   die "ERROR: We do not have an algorithm for generating the '$name' ensemble member yet. The wind input file (fort.22) will not be generated.\n";
+} elsif ( $name eq "rMax" ) { 
+   if ( $nws == 9 || $nws == 19 ) { 
+      die "ERROR: We do not have an algorithm for generating the '$name' ensemble member yet. The wind input file (fort.22) will not be generated.\n";
+   } else {
+      printf STDOUT "INFO: The forecast track will be modified with a Rmax of $sizePercent percent fom the nowcast Rmax value.\n";
+   } 
 }
 #
 # open ATCF input files
@@ -206,17 +215,23 @@ while(<HCST>) {
     # jgfdebug20090624: the sub that fills in the rmax is not working
     #populateWindRadii(\@rad,\@oldrad,$lasthindcastrmax);
     #
-    # check to see if the hindcast line is prior to the zero date,
-    # if it is, then it will not be placed in the fort.22 file
-    if ( $fields[2] < $zeroDate ) {
-       next;
+    # for NWS 9 and 19, check to see if the hindcast line is prior to the 
+    # zero date, if it is, then it will not be placed in the fort.22 file
+    # for NWS 8, put all lines in the file, it will figure out which one 
+    # it needs
+    if ( $nws == 9 || $nws == 19 ) {
+       if ( $fields[2] < $zeroDate ) {
+          next;
+       }
     }
-    # we have found the zero hour in the hindcast file
+    # check to see if we have found the zero hour in the hindcast file
     if ( $fields[2] == $zeroDate ) {
        $zdFound = 1;
     }
-    if ( ($zdFound == 0) && ($fields[2] > $zeroDate) ) {
-       die "ERROR: The date '$fields[2]' was encountered in the hindcast file '$hindcastATCF'; however an exact match of the starting date '$zeroDate' should have preceded it somewhere. Therefore, the file does not contain the proper starting date (i.e., the zero date).\n";
+    if ( $nws == 9 || $nws == 19 ) {	
+       if ( ($zdFound == 0) && ($fields[2] > $zeroDate) ) {
+          die "ERROR: The date '$fields[2]' was encountered in the hindcast file '$hindcastATCF'; however an exact match of the starting date '$zeroDate' should have preceded it somewhere. Therefore, the file does not contain the proper starting date (i.e., the zero date).\n";
+       }  
     }
     # grab the first relevant hindcast line; this is the zero hour 
     unless ($firstHindcastTime) {
@@ -235,8 +250,10 @@ while(<HCST>) {
     # get difference between zero hour and this hindcast time 
     (my $ddays,my $dhrs, my $dsec) = Date::Pcalc::Delta_DHMS($fhcyear,$fhcmon,$fhcday,$fhchour,0,0,$hyear,$hmon,$hday,$hhour,0,0);
     my $time_difference = $ddays*24 + $dhrs; # in hours  
-    # fill in the time difference as tau
-    substr($line,29,4)=sprintf("%4d",$time_difference);
+    if ( $nws == 9 || $nws == 19 ) {
+       # fill in the time difference as tau
+       substr($line,29,4)=sprintf("%4d",$time_difference);
+    }
     #
     # set the background pressure to 1013
     substr($line,97,4)=sprintf("%4d",1013);
@@ -295,20 +312,24 @@ while(<FCST>) {
    if ( $forecastedDate == $zeroDate ) {
       $zdFound = 1;
    }
-   if ( ($zdFound == 0) && ($forecastedDate > $zeroDate) ) {
-      die "ERROR: The date found in the forecast file '$forecastATCF' is after the zero hour of '$zeroDate', but exact zero date was never found.\n";
+   if ( $nws == 9 || $nws == 19 ) {
+      if ( ($zdFound == 0) && ($forecastedDate > $zeroDate) ) {
+         die "ERROR: The date found in the forecast file '$forecastATCF' is after the zero hour of '$zeroDate', but exact zero date was never found.\n";
+      }
    }
    # 
    # fill in the forecasted date for metadata purposes (i.e., this is
-   # not used by nws9 in ADCIRC)
+   # not used by ADCIRC)
    substr($line,8,10)=sprintf("%10d",$forecastedDate);
    #
    # next, calculate the difference between the forecasted date and the zero
    # hour so that we can fill in the forecast period
    (my $ddays,my $dhrs, my $dsec) = Date::Pcalc::Delta_DHMS($zdyear,$zdmon,$zdday,$zdhour,0,0,$ftyear,$ftmon,$ftday,$fthour,0,0);
    my $time_difference = $ddays*24 + $dhrs; # in hours  
-   # fill in the time difference as tau
-   substr($line,29,4)=sprintf("%4d",$time_difference);
+   if ( $nws == 9 || $nws == 19 ) {
+      # fill in the time difference as tau
+      substr($line,29,4)=sprintf("%4d",$time_difference);
+   }
    #
    # set the background pressure to 1013
    substr($line,97,4)=sprintf("%4d",1013);
@@ -443,6 +464,15 @@ while(<FCST>) {
       $old_lat=$consensusLat;
       $old_lon=$consensusLon;
    }
+   # If NWS is 8, fill in the Rmax. If the requested variation is Rmax, 
+   # change it and then fill it in.
+   if ( $nws == 8 ) { 
+      my $rmax = $lasthindcastrmax;
+      if ( $name eq "rMax") { 
+         $rmax *= $sizePercent;
+      }
+      substr($line,109,3)=sprintf("%3d",$rmax);
+   } 
    # write the line to the file, writing an eol if the line does not have one
    if ( /\n/ ) {
       print MEMBER $line;
@@ -453,7 +483,9 @@ while(<FCST>) {
 close(FCST);
 close(MEMBER);
 if ( $zdFound == 0 ) {
-   die "ERROR: The zero hour '$zeroDate' was not found in the hindcast file $hindcastATCF or the forecast file $forecastATCF.\n"; 
+   if ( $nws == 9 || $nws == 19 ) {
+      die "ERROR: The zero hour '$zeroDate' was not found in the hindcast file $hindcastATCF or the forecast file $forecastATCF.\n"; 
+   }
 }
 1;
     

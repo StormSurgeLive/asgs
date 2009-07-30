@@ -125,7 +125,7 @@ createMetaDataLink()
   VARIATION=$7
   PERCENT=$8  
 #
-  echo "# This metadata describes the storm data used in this run."
+  echo "# This metadata describes the storm data used in this run." >> $ADVISDIR/$ENSTORM/fort.22.meta
   echo "version:1" >> $ADVISDIR/$ENSTORM/fort.22.meta
   echo "year:$YEAR" >> $ADVISDIR/$ENSTORM/fort.22.meta
   echo "storm:$STORM" >> $ADVISDIR/$ENSTORM/fort.22.meta
@@ -252,10 +252,10 @@ prep()
        else
             FROMDIR=$ADVISDIR/nowcast
        fi
-       # copy fulldomain files
-       cp $FROMDIR/fort.80 $ADVISDIR/$ENSTORM/fort.80 2>> ${SYSLOG}
-       cp $FROMDIR/partmesh.txt $ADVISDIR/$ENSTORM/partmesh.txt 2>> ${SYSLOG}
-       cp $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68
+       # link to fulldomain files
+       ln $FROMDIR/fort.80 $ADVISDIR/$ENSTORM/fort.80 2>> ${SYSLOG}
+       ln $FROMDIR/partmesh.txt $ADVISDIR/$ENSTORM/partmesh.txt 2>> ${SYSLOG}
+       ln $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68
        # link to existing subdomain files
        PE=0
        format="%04d"
@@ -274,7 +274,11 @@ prep()
           done
        done
        for file in fort.61 fort.62 fort.63 fort.64 fort.71 fort.72 fort.73 fort.74; do
-           cp $FROMDIR/$file $ADVISDIR/$ENSTORM/$file 2>> ${SYSLOG}
+          if [ $ENSTORM = nowcast ]; then
+             ln $FROMDIR/$file $ADVISDIR/$ENSTORM/$file 2>> ${SYSLOG}
+          else 
+             cp $FROMDIR/$file $ADVISDIR/$ENSTORM/$file 2>> ${SYSLOG}
+          fi
        done
        # run adcprep to decompose the new fort.15 file
        logMessage "Running adcprep to prepare new fort.15 file."
@@ -795,10 +799,10 @@ while [ 1 -eq 1 ]; do
     # perform any initialization of output that must be done once for each 
     # advisory, before the actual runs begin
     logMessage "Initializing post processing for advisory $ADVISORY."
-    ${OUTPUTDIR}/${INITPOST} $HOSTNAME $STORM $YEAR 2>> ${SYSLOG}
+    ${OUTPUTDIR}/${INITPOST} $ADVISDIR $STORM $YEAR $ADVISORY $POST_INIT_NOTIFY $HOSTNAME 2>> ${SYSLOG}
     #
     # prepare nowcast met (fort.22) and control (fort.15) files 
-    METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $COLDSTARTDATE --name nowcast" 
+    METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $COLDSTARTDATE --name nowcast --nws $NWS " 
     CONTROLOPTIONS=" --cst $COLDSTARTDATE --metfile $ADVISDIR/nowcast/fort.22 --name nowcast --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE}"
     if [ $START = hotstart ]; then
        cd $OLDADVISDIR/nowcast/PE0000 2>> ${SYSLOG}
@@ -849,7 +853,7 @@ while [ 1 -eq 1 ]; do
     checkHotstart
     HSTIME=`$ADCIRCDIR/hstime` 2>> ${SYSLOG}
     logMessage "The time in the hotstart file is '$HSTIME' seconds."
-    METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $COLDSTARTDATE --hotstartseconds $HSTIME "
+    METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $COLDSTARTDATE --hotstartseconds $HSTIME --nws $NWS "
     CONTROLOPTIONS="--cst $COLDSTARTDATE --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME"
     let si=0
     while [ $si -lt $ENSEMBLESIZE ]; do  
@@ -884,7 +888,7 @@ while [ 1 -eq 1 ]; do
         # execute post processing
         logMessage "$ENSTORM finished; postprocessing"
         # execute post processing
-        ${SCRIPTDIR}/output/post.sh 2>> ${SYSLOG} 
+        ${OUTPUTDIR}/${POSTPROCESS} $ADVISDIR $STORM $YEAR $ADVISORY $POST_READY_NOTIFY $HOSTNAME $ENSTORM 2>> ${SYSLOG} 
         si=$[$si + 1];
     done
     logMessage "Forecast complete for advisory $ADVISORY."

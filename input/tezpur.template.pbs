@@ -1,0 +1,32 @@
+# Specify the shell for PBS 
+#PBS -S /bin/sh
+# Specify the queue explicitly
+#PBS -q %queuename%
+# Specify email address
+#PBS -M %notifyuser%
+# Specify number of cpus in a machine-specific way
+#PBS -l nodes=%nnodes%:ppn=%ppn%
+# Specify the wall clock time
+#PBS -l walltime=%walltime%
+# Merge stderr to stdout (optional, otherwise they're in separate files)
+#PBS -j oe
+# Name the job (this will appear in the output from the qstat command)
+#PBS -N %enstorm%
+# Specify the output filename explicitly (optional; the default is named
+# from the job ID, in the directory where qsub was run.)
+#PBS -o %advisdir%/%enstorm%/%enstorm%.out
+# Specify the account that the time should be taken from 
+#PBS -A %account%
+# Request mail when job ends, or is aborted (optional, default is "a" only)
+# (commented out)
+#PBS -m ea
+#PBS -V
+export WORK_DIR=/scratch/$USER/
+export NPROCS=`wc -l $PBS_NODEFILE |gawk '//{print $1}'`
+# The directory to start in 
+cd %advisdir%/%enstorm%
+# These are the actual commands to be executed.
+echo "Test job starting at `date`"
+mpirun -machinefile $PBS_NODEFILE -np %ncpu% %adcircdir%/padcirc >> %syslog%
+echo "Test job finished at `date`"
+# You don't need anything special at the end of the script.
