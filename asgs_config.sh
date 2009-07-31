@@ -121,14 +121,19 @@ PERCENT=
 # Notification configuration 
 #-------------------------------------------------------------------
 EMAILNOTIFY=NO # set to yes to have host platform email notifications
+# this script is expected to be found in the output directory; it contains
+# all the email notification subroutines 
+NOTIFY_SCRIPT=notify.sh
 # the following list of addresses will receive an announcement when
 # the ASGS is activated for a particular storm (some end users consider
 # this to be junk mail)
 ACTIVATE_LIST="jsn_flmng@yahoo.com jgflemin@email.unc.edu"
 # addresses to receive notification that a new advisory is now running
 NEW_ADVISORY_LIST="jsn_flmng@yahoo.com jgflemin@email.unc.edu"
+# addresses to receive notification that postprocessing has been initialized 
+POST_INIT_LIST="jsn_flmng@yahoo.com jgflemin@email.unc.edu"
 # addresses to receive notification that new results are now available
-RESULTS_LIST="jsn_flmng@yahoo.com jgflemin@email.unc.edu"
+POST_LIST="jsn_flmng@yahoo.com jgflemin@email.unc.edu"
 # this is the email address in the PBS job script
 NOTIFYUSER=jgflemin@email.unc.edu
 #

@@ -79,6 +79,10 @@ my $sizePercent = 20.0;
 my $veerPercent = 100.0;
 my @supportedNames = qw/nowcast nhcConsensus maxWindSpeed overlandSpeed veer rMax/;
 my $pi=3.141592653589793;
+# if the NHC issues a special advisory, there may be incomplete lines in the 
+# hindcast file. This hash will save the most recent complete lines, to fill
+# in any missing data.
+my %complete_hc_lines = ();
 #
 #
 GetOptions(
@@ -192,6 +196,35 @@ my $ftmin; my $ftsec;                             # not used
 while(<HCST>) {
     my @fields = split(',',$_);
     my $line = $_;
+    # check to see if this is a complete line (meaning that all the fields
+    # up to and including the storm name are there
+    my $line_length = length($line);
+    #jgfdebug printf STDOUT "length of line $. is $line_length\n";
+    my $isotach_kts = substr($line,63,3);
+    if ( $line_length >= 159 ) { 
+       # this is a complete line
+       if ( $isotach_kts == 34 ) {
+          # clear out hash so that this data is always fresh
+          %complete_hc_lines = ();
+       }
+       # save it as-is in case we need to use it to fill in incomplete 
+       # lines that may occur later 
+       $complete_hc_lines{$isotach_kts} = $line;
+    } else {
+       printf STDOUT "WARNING: Line $. in the hindcast file is incomplete: $line\n";
+       # fill in from a corresponding complete line from the hash, if possible
+       my $last_complete_line = $complete_hc_lines{$isotach_kts};
+       if ( $last_complete_line ) {
+          # splice the complete line onto the incomplete line
+          $line = $line . substr($last_complete_line,$line_length,999);
+          printf STDOUT "WARNING: That line will be replaced with the following line: $line\n";  
+       } else {
+          # there wasn't a corresponding line in the hash ... safest thing
+          # to do is to drop this hindcast line entirely
+          printf STDOUT "WARNING: The incomplete line could not be filled in with data from prior lines, and will be dropped.\n";
+          next;
+       }
+    }
     #
     # record the final hindcast time, this will be used in case the
     # hindcast is newer than the forecast
@@ -199,19 +232,19 @@ while(<HCST>) {
     #
     # record the last hindcast values, these may be used in the 
     # fill-in of later values
-    $lasthindcastpressure=substr($_,53,4);
-    $lasthindcastwindspeed=substr($_,48,3);
-    $lasthindcastrmax=substr($_,109,3);
+    $lasthindcastpressure=substr($line,53,4);
+    $lasthindcastwindspeed=substr($line,48,3);
+    $lasthindcastrmax=substr($line,109,3);
     #
     # want to save the nowcast storm position
-    $old_lat=substr($_,34,4)/10.0;
-    $old_lon=substr($_,41,4)/10.0;
+    $old_lat=substr($line,34,4)/10.0;
+    $old_lon=substr($line,41,4)/10.0;
     #
     # grab the wind radii in the four quadrants
-    $rad[0]=substr($_,74,3);
-    $rad[1]=substr($_,80,3);  
-    $rad[2]=substr($_,86,3);
-    $rad[3]=substr($_,92,3);
+    $rad[0]=substr($line,74,3);
+    $rad[1]=substr($line,80,3);  
+    $rad[2]=substr($line,86,3);
+    $rad[3]=substr($line,92,3);
     # jgfdebug20090624: the sub that fills in the rmax is not working
     #populateWindRadii(\@rad,\@oldrad,$lasthindcastrmax);
     #

@@ -615,13 +615,12 @@ env_dispatch(){
 }
 # Option Summary
 #  
-#  -d dir      -> looks for config.sh here; defaults to current directory
-#  -e env_tag  -> machine to config for (ranger, sapphire, queenbee, etc)
-#  -h          -> show help and exit script
-#
+# -c : set location of configuration file"
+# -e (environment): set the computer that the ASGS is running on" 
+# -h : show help"
 #
 # Example:
-#   sh asgs_main.sh -d /path/to/config -e topsail 
+#   sh asgs_main.sh -c /path/to/config -e topsail 
 #
 # mail alert
 ASGSADMIN="estrabd+lpfs@gmail.com jgflemin@email.unc.edu" #<-- purposefully not in config.sh
@@ -717,6 +716,7 @@ checkFileExistence $INPUTDIR "preprocessed ADCIRC input archive" $PREPPEDARCHIVE
 #
 checkFileExistence $OUTPUTDIR "postprocessing initialization script" $INITPOST
 checkFileExistence $OUTPUTDIR "postprocessing script" $POSTPROCESS
+checkFileExistence $OUTPUTDIR "email notification script" $NOTIFY_SCRIPT
 #
 checkDirExistence ${PERL5LIB}/Date "subdirectory for the Pcalc.pm perl module"
 checkFileExistence ${PERL5LIB}/Date "perl module for date calculations" Pcalc.pm
@@ -727,7 +727,7 @@ checkFileExistence ~/.ssh "ssh key file" $SSHKEY
 # pull in subroutines for email notifications
 if [[ $EMAILNOTIFY = YES ]]; then
    # source notifications file
-   . ${OUTPUTDIR}/notify.sh
+   . ${OUTPUTDIR}/${NOTIFY_SCRIPT}
 fi
 #
 # initialize the directory where the storm will run, based on info from 
@@ -744,7 +744,7 @@ fi
 #
 if [[ $EMAILNOTIFY = YES ]]; then
    # send out an email to notify users that the ASGS is ACTIVATED
-   email_activation $HOSTNAME $STORM $YEAR $STORMDIR
+   activation_email $HOSTNAME $STORM $YEAR $STORMDIR $ACTIVATE_LIST
 fi
 #
 if [ $HOTORCOLD = "" ]; then
@@ -754,10 +754,7 @@ else
     CSTIME=$COLDSTARTDATE
     OLDADVISDIR=$STORMDIR/$LASTSUBDIR
 fi
-ADVISORYNUM=$STARTADVISORYNUM
-#
-logMessage "$STORMDIR $START Storm $STORM advisory $ADVISORYNUM in $YEAR"
-consoleMessage "$STORMDIR $START Storm $STORM advisory $ADVISORYNUM in $YEAR"
+ADVISORYNUM=
 #
 ###############################
 #   BODY OF ASGS STARTS HERE    
@@ -776,8 +773,11 @@ while [ 1 -eq 1 ]; do
     # there is a new advisory
     downloadWindData $STORM $YEAR $STORMDIR $SCRIPTDIR $OLDADVISDIR
     advformat="%02d"
-    ADVISORY=`printf "$advformat" $ADVISORYNUM`
+    # ADVISORY=`printf "$advformat" $ADVISORYNUM`
+    ADVISORY=`cat advisoryNumber`
     ADVISDIR=$STORMDIR/${ADVISORY}
+    logMessage "$START Storm $STORM advisory $ADVISORY in $YEAR"
+    consoleMessage "$START Storm $STORM advisory $ADVISORY in $YEAR"
     if [[ $EMAILNOTIFY = YES ]]; then
        if [ $START != coldstart ]; then
            new_advisory_email $HOSTNAME $STORM $YEAR $ADVISORY
@@ -799,7 +799,10 @@ while [ 1 -eq 1 ]; do
     # perform any initialization of output that must be done once for each 
     # advisory, before the actual runs begin
     logMessage "Initializing post processing for advisory $ADVISORY."
-    ${OUTPUTDIR}/${INITPOST} $ADVISDIR $STORM $YEAR $ADVISORY $POST_INIT_NOTIFY $HOSTNAME 2>> ${SYSLOG}
+    ${OUTPUTDIR}/${INITPOST} $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME 2>> ${SYSLOG}
+    if [[ $EMAILNOTIFY = YES ]]; then
+       post_init_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME 
+    fi
     #
     # prepare nowcast met (fort.22) and control (fort.15) files 
     METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $COLDSTARTDATE --name nowcast --nws $NWS " 
@@ -888,11 +891,14 @@ while [ 1 -eq 1 ]; do
         # execute post processing
         logMessage "$ENSTORM finished; postprocessing"
         # execute post processing
-        ${OUTPUTDIR}/${POSTPROCESS} $ADVISDIR $STORM $YEAR $ADVISORY $POST_READY_NOTIFY $HOSTNAME $ENSTORM 2>> ${SYSLOG} 
+        ${OUTPUTDIR}/${POSTPROCESS} $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM 2>> ${SYSLOG} 
+        if [[ $EMAILNOTIFY = YES ]]; then
+           post_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM
+        fi
         si=$[$si + 1];
     done
     logMessage "Forecast complete for advisory $ADVISORY."
     consoleMessage "Forecast complete for advisory $ADVISORY."
     OLDADVISDIR=$ADVISDIR
-    ADVISORYNUM=$[$ADVISORYNUM + 1] # jgfdebug: this is temporary, until we get rss xml feed 
+    #ADVISORYNUM=$[$ADVISORYNUM + 1] # jgfdebug: this is temporary, until we get rss xml feed 
 done

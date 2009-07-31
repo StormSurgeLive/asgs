@@ -66,13 +66,30 @@ while (!$dl) {
 
    $hcDl = $ftp->get($hindcastfile)
      or print STDERR "get failed ", $ftp->message;
-
+  
    # FORECAST TRACK
    $ftp->cwd($fdir)
      or die "Cannot change working directory ", $ftp->message;
 
    $fcDl = $ftp->get($forecastfile)
      or print STDERR "get failed ", $ftp->message;
+
+   # save the advisory number by parsing the name of the file that the 
+   # file points to (a hack for our ftp test rig)
+   if ( $site =~ /ftp.unc.edu/ ) {
+      print STDOUT "getting advisory number";
+      my @advisoryDir = $ftp->dir($fdir) 
+        or print STDERR "get advisoryNumber failed ", $ftp->message;
+      if ( @advisoryDir ) {
+         foreach my $line (@advisoryDir) {
+            if ( $line =~ /$forecastfile.*advisory_(\d{2}).fst/ ) {
+               open(ADVNUM,">advisoryNumber") || die "ERROR: Could not open 'advisoryNumber' to write: $!\n";
+               print ADVNUM "$1\n";
+               close(ADVNUM);
+            }
+         }
+      }
+   }
 
    $ftp->quit;
 
