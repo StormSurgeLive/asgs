@@ -30,25 +30,26 @@
 #-------------------------------------------------------------------
 # General configuration 
 #-------------------------------------------------------------------
-STORM=01             # storm number, e.g. 05=ernesto in 2006
-YEAR=2009            # year of the storm (useful for historical storms)
-COLDSTARTDATE="2008091000" # date corresponding to simulation coldstart
+STORM=07             # storm number, e.g. 05=ernesto in 2006
+YEAR=2008            # year of the storm (useful for historical storms)
+COLDSTARTDATE="2008082906" # date corresponding to simulation coldstart
 HOTORCOLD=coldstart  # "hotstart" or "coldstart"
 LASTSUBDIR=          # if hotstarting, the subdir to get the hs file from
-ADCIRCDIR=~/asgs2009/bin    # dir containing the ADCIRC executables
-INPUTDIR=~/asgs2009/input   # dir containing grid and other input files 
-OUTPUTDIR=~/asgs2009/output # dir containing post processing scripts
-PERL5LIB=~/asgs2009/PERL    # dir with DateCale.pm perl module
-NCPU=1000            # number of CPUs to use for all simulations
+ADCIRCDIR=/work/01053/rweaver/ASGS/fastfloodplain/work    # dir containing the ADCIRC executables
+INPUTDIR=/work/01053/rweaver/ASGS/trunk/input   # dir containing grid and other input files 
+OUTPUTDIR=/work/01053/rweaver/ASGS/trunk/output # dir containing post processing scripts
+PERL5LIB=/work/01053/rweaver/ASGS/trunk/PERL    # dir with DateCale.pm perl module
+NCPU=512            # number of CPUs to use for all simulations
 #
 #-------------------------------------------------------------------
 # Platform-related configuration
 #-------------------------------------------------------------------
-QUEUENAME=standard # for ERDC machines, non-emergency queue
+#QUEUENAME=standard # for ERDC machines, non-emergency queue
 #QUEUENAME=nbatch  # for ERDC machines, this is emergency queue name
 #QUEUENAME=512cpu  # for UNC (topsail); can also use 128cpu or 32cpu
 #QUEUENAME=workq   # for LSU (queenbee); non-emergency
 #QUEUENAME=priority # for LSU (queenbee); emergency queue name
+QUEUENAME=normal   # for TACC (ranger);
 #QUEUENAME=desktop  # for workstations with no queue
 #
 #-------------------------------------------------------------------
@@ -69,14 +70,22 @@ STARTADVISORYNUM=1  # the starting advisory number
 # It is assumed that the following files are in the INPUTDIR defined above
 #
 # file that contains the mesh (fort.14)
-GRIDFILE=sl15v3_2007_r10.grd
+GRIDFILE=tx_mesh.grd
+#GRIDFILE=ec2001.grd
+#GRIDFILE=sl15v3_2007_r10.grd
 # file that acts as a template for the control file (fort.15)
-CONTROLTEMPLATE=fort.15.sl15.corps.template
+CONTROLTEMPLATE=fort.15.tx_mesh.template
+#CONTROLTEMPLATE=fort.15.ec2001.template
+#CONTROLTEMPLATE=fort.15.sl15.corps.template
 # nodal attributes file (fort.13)
-NAFILE=sl15v3_2007_r09f.13
+NAFILE=tx_mesh.13
+#NAFILE=ec2001.13
+#NAFILE=sl15v3_2007_r09f.13
 # archive of the fort.14 and fort.13 that have already been preprocessed
 # for a certain number of CPUs (include the num of CPUs in the file name)
-PREPPEDARCHIVE=prepped_sl15_corps_1000.tar.gz
+PREPPEDARCHIVE=prepped_tx_mesh_512proc.tar.gz
+#PREPPEDARCHIVE=prepped_ec2001.tar.gz
+#PREPPEDARCHIVE=prepped_sl15_corps_1000.tar.gz
 # 
 # size of the time step to use
 TIMESTEPSIZE=1.0
@@ -127,15 +136,15 @@ NOTIFY_SCRIPT=notify.sh
 # the following list of addresses will receive an announcement when
 # the ASGS is activated for a particular storm (some end users consider
 # this to be junk mail)
-ACTIVATE_LIST="jsn_flmng@yahoo.com jgflemin@email.unc.edu"
+ACTIVATE_LIST="weav999@yahoo.com rjweaver@email.unc.edu"
 # addresses to receive notification that a new advisory is now running
-NEW_ADVISORY_LIST="jsn_flmng@yahoo.com jgflemin@email.unc.edu"
+NEW_ADVISORY_LIST="weav999@yahoo.com rjweaver@email.unc.edu"
 # addresses to receive notification that postprocessing has been initialized 
 POST_INIT_LIST="jsn_flmng@yahoo.com jgflemin@email.unc.edu"
 # addresses to receive notification that new results are now available
-POST_LIST="jsn_flmng@yahoo.com jgflemin@email.unc.edu"
+POST_LIST="weav999@yahoo.com rjweaver@email.unc.edu"
 # this is the email address in the PBS job script
-NOTIFYUSER=jgflemin@email.unc.edu
+NOTIFYUSER=rjweaver@email.unc.edu
 #
 #-------------------------------------------------------------------
 # Output configuration 
@@ -154,6 +163,6 @@ POSTPROCESS=corps_post.sh
 NUMOUTFILES=1
 POSTFILE[0]=results.tar.gz
 # the machine(s) to which result file(s) should be transferred
-RESULTSHOST[0]=dove.he.net
-RESULTSUSER[0]=seahrse
-RESULTSPATH[0]=/home/seahrse/public_html/ASGS
+#RESULTSHOST[0]=ranger.tacc.utexas.edu
+#RESULTSUSER[0]=rweaver
+RESULTSPATH[0]=/work/01053/rweaver/ASGS

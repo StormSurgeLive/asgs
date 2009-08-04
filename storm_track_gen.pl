@@ -216,7 +216,7 @@ while(<HCST>) {
        my $last_complete_line = $complete_hc_lines{$isotach_kts};
        if ( $last_complete_line ) {
           # splice the complete line onto the incomplete line
-          $line = $line . substr($last_complete_line,$line_length,999);
+          $line = $line . substr($last_complete_line,$line_length-1,999);
           printf STDOUT "WARNING: That line will be replaced with the following line: $line\n";  
        } else {
           # there wasn't a corresponding line in the hash ... safest thing

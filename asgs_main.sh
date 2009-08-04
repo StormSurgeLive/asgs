@@ -394,6 +394,10 @@ monitorJobs()
     elif [ $QUEUESYS = mpiexec ]; then
         # do nothing, mpiexec has returned at this point
         logMessage "mpiexec has returned"
+    elif [ $QUEUESYS = SGE ]; then
+        while [[ `$QCHECKCMD | grep $USER` ]]; do
+            sleep 60
+        done
     else 
        fatal "ERROR: Queueing system $QUEUESYS unrecognized." 
     fi
@@ -429,7 +433,10 @@ submitJob()
     elif [ $QUEUESYS = mpiexec ]; then
         $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc >> ${SYSLOG} 2>&1 
     elif [ $QUEUESYS = SGE ]; then
-        fatal "ERROR: The SGE system is not supported yet."
+        QSCRIPTOPTIONS="--ncpu $NCPU --ncpudivisor $NCPUDIVISOR --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG"
+        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.sge 2>> ${SYSLOG}
+        logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.sge"
+        qsub $ADVISDIR/$ENSTORM/padcirc.sge >> ${SYSLOG} 2>&1
     else 
         fatal "ERROR: Queueing system $QUEUESYS unrecognized."
     fi
@@ -530,10 +537,11 @@ init_tezpur()
 init_ranger()
 { #<- can replace the following with a custom script
   HOSTNAME=ranger.tacc.utexas.edu
-  QUEUESYS=PBS
+  QUEUESYS=SGE
   QCHECKCMD=qstat
-  ACCOUNT=
-  SUBMITSTRING="yod"
+  NCPUDIVISOR=16
+  ACCOUNT=TG-DMS080016N
+  SUBMITSTRING="ibrun tacc_affinity"
   SCRATCHDIR=$SCRATCH
   SSHKEY=id_rsa_ranger
   QSCRIPT=ranger.template.sge
@@ -623,7 +631,8 @@ env_dispatch(){
 #   sh asgs_main.sh -c /path/to/config -e topsail 
 #
 # mail alert
-ASGSADMIN="estrabd+lpfs@gmail.com jgflemin@email.unc.edu" #<-- purposefully not in config.sh
+#ASGSADMIN="estrabd+lpfs@gmail.com jgflemin@email.unc.edu" #<-- purposefully not in config.sh
+ASGSADMIN="rjweaver@email.unc.edu" #<-- purposefully not in config.sh
 
 # exit statuses
 EXIT_NOT_OK=1

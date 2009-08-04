@@ -1,0 +1,50 @@
+#! /usr/bin/env bash
+
+# This is a wrapper script for the java program actoshape-actoshape-1.0.2.jar.  In
+# most cases it will work as written, with no modifications, as long
+# as the file "actoshape-actoshape-1.0.2.jar" is in the same directory where this
+# script is.
+#
+# If you want to install this script in some directory other than the
+# one containing actoshape-actoshape-1.0.2.jar, or if for some other reason this
+# script isn't able to find actoshape-actoshape-1.0.2.jar when you run it, change the
+# following line to reference the full pathname of the directory
+# containing actoshape-actoshape-1.0.2.jar, and remove the comment character from the
+# beginning of the line:
+#ACTOSHAPE_HOME=/directory/containing/actoshape/jar
+
+#
+# This file is part of AcToShape
+# by Mark Phillips
+# mphillip@unca.edu
+#
+# Copyright (c) 2009  University of North Carolina at Asheville
+# Licensed under the RENCI Open Source Software License v. 1.0.
+# See the file LICENSE.txt for details.
+#
+
+export PATH=/usr/local/bin:$PATH
+
+if [[ "$ACTOSHAPE_HOME" == "" ]] ; then
+    ACTOSHAPE_HOME=`dirname $0`
+fi
+if [[ "$ACTOSHAPE_HOME" == "" ]] ; then
+    ACTOSHAPE_HOME=.
+fi
+
+export ACTOSHAPE_HOME
+
+unset CLASSPATH
+
+if [[ -d $ACTOSHAPE_HOME/build ]] ; then
+    CLASSPATH=`echo $ACTOSHAPE_HOME/build $ACTOSHAPE_HOME/lib/*.jar | sed -e 's/ /:/g'`
+elif [[ -d $ACTOSHAPE_HOME/lib ]] ; then
+    CLASSPATH=`echo $ACTOSHAPE_HOME/lib/*.jar | sed -e 's/ /:/g'`
+fi
+
+if [[ "$CLASSPATH" != "" ]] ; then
+    java -classpath $CLASSPATH edu.unca.nemac.gis.AcToShape "$@"
+else
+    java -jar $ACTOSHAPE_HOME/actoshape.jar "$@"
+fi
+

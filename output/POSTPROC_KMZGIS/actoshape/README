@@ -1,0 +1,41 @@
+
+                       ACTOSHAPE actoshape-1.0.2
+
+   Copyright (c) 2009  University of North Carolina at Asheville
+
+
+This directory contains version actoshape-1.0.2 of "actoshape", a
+program for generating shapefiles from ADCIRC output files.  Actoshape
+is a shell script which is intended to be invoked from the command
+line; it is a wrapper for a java program that is contained in the file
+"actoshape.jar".  Java must be installed on your system (version 1.5
+or higher) in order for actoshape to work.
+
+Documentation is in the file "actoshape.man".
+
+You should be able to invoke "actoshape" from the command-line by
+giving either a relative or absolute path to its location in this
+directory.  Note that by default, the "actoshape.jar" file should be
+located in the same directory where the "actoshape" script is.  If you
+want to install the "actoshape" script someplace else, or if you get
+an error message indicating that "actoshape.jar" cannot be found when
+you run "actoshape", open "actoshape" in an editor and modify it
+according to the comments at the top of the file.
+
+Actoshape comes with ABSOLUTELY NO WARRANTY.  It is Free Software
+and may be used under the terms of the RENCI Open Source Software
+License, a copy of which is available in the file LICENSE.txt.
+
+If you use actoshape in your project or publication, please
+give credit to the author.
+
+If you have questions or comments about actoshape, feel free
+to contact me.
+
+Thanks!
+
+Mark Phillips
+mphillip@unca.edu
+UNC Asheville
+National Environmental Modeling and Analysis Center
+Asheville, NC

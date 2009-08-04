@@ -1,0 +1,301 @@
+ LPFS2008  %StormName%          ! 32 CHARACTER ALPHANUMERIC RUN DESCRIPTION
+ %EnsembleID%          ! 24 CHARACTER ALPANUMERIC RUN IDENTIFICATION
+ 1                     ! NFOVER - NONFATAL ERROR OVERRIDE OPTION
+ 0                     ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
+ 100                   ! NSCREEN - UNIT 6 OUTPUT OPTION PARAMETER
+ %IHOT%                ! IHOT - HOT START PARAMETER
+ 2                     ! ICS - COORDINATE SYSTEM SELECTION PARAMETER
+ 0                     ! IM - MODEL SELECTION PARAMETER 
+ 1                     ! NOLIBF - BOTTOM FRICTION TERM SELECTION PARAMETER
+ 2                     ! NOLIFA - FINITE AMPLITUDE TERM SELECTION PARAMETER
+ 0                     ! NOLICA - SPATIAL DERIVATIVE CONVECTIVE SELECTION PARAMETER
+ 0                     ! NOLICAT - TIME DERIVATIVE CONVECTIVE TERM SELECTION PARAMETER
+ 7                     ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
+mannings_n_at_sea_floor
+surface_directional_effective_roughness_length
+sea_surface_height_above_geoid
+primitive_weighting_in_continuity_equation
+average_horizontal_eddy_viscosity_in_sea_water_wrt_depth
+surface_submergence_state
+surface_canopy_coefficient
+ 1                     ! NCOR - VARIABLE CORIOLIS IN SPACE OPTION PARAMETER
+ 1                     ! NTIP - TIDAL POTENTIAL OPTION PARAMETER
+ 8                     ! NWS - WIND STRESS AND BAROMETRIC PRESSURE OPTION PARAMETER
+ 2                     ! NRAMP - RAMP FUNCTION OPTION
+ 9.81                  ! G - ACCELERATION DUE TO GRAVITY - DETERMINES UNITS
+ -3.0                  ! TAU0 - WEIGHTING FACTOR IN GWCE
+ %DT%                   ! DT - TIME STEP (IN SECONDS)
+ 0.00                  ! STATIM - STARTING TIME (IN DAYS)
+ 0.00                  ! REFTIM - REFERENCE TIME (IN DAYS)
+ %HollandParams%        ! YYYY MM DD HH StNum BLAdj
+ %RNDAY%                  ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
+ 0.5 0.25 0.5           ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
+ 0.35 0.30 0.35        ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
+ 0.10 0 0 0.01         ! H0, NODEDRYMIN, NODEWETMIN, VELMIN
+ 265.5 29.0            ! SLAM0,SFEA0 - CENTER OF CPP PROJECTION (NOT USED IF ICS=1, NTIP=0, NCOR=0)
+ 0.0030 2.0 10 1.33333 ! FFACTOR,HBREAK,FTHETA,FGAMMA
+ 50.0                  ! ESL - LATERAL EDDY VISCOSITY COEFFICIENT; IGNORED IF NWP =1
+ 0.0                   ! CORI - CORIOLIS PARAMETER - IGNORED IF NCOR = 1
+ 0                     ! NTIF - TOTAL NUMBER OF TIDAL POTENTIAL CONSTITUENTS BE
+ 1                     ! NBFR - TOTAL NUMBER OF FORCING FREQUENCIES ON OPEN BOU
+ STEADY                    ! ALPHANUMERIC DATA FOR OPEN OCEAN FORCING
+ 0.000000000000000  1.00000   000.00 
+ STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING 
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 110.0                ! ANGINN : INNER ANGLE THRESHOLD
+1                     ! NFFR - TOTAL NUMBER OF FORCING FREQUENCIES ON FLUX BOUNDARIES
+ STEADY               ! CONSTITUENT. 1  ALPHA DESCRIPTOR
+ 0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
+  STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
+   0.000 0.00   ! FLOW  BOUNDARY FORCING For texas mesh  
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00     
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00   
+   0.000 0.00  
+ 0 0.0 100.0  600                         ! NOUTE,TOUTSE,TOUTFE,NSPOOLE:ELEV STATION OUTPUT INFO (UNIT  61)
+23                                      ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS, FOLLOWED BY LOCATIONS ON PROCEEDING LINES
+   -90.07482   30.03242     ! London Ave. Canal
+   -90.069444  29.871111    ! Harvey Canal at Lapalco Blvd (76220)
+   -90.393     30.0816      ! St. Charles
+   -89.9       30.0011      ! Golden Triangle
+   -89.9428    29.8431      ! Caernarvon
+   -90.364     29.8904      ! Northwest West Bank (in upper end of basin near highway 90)
+   -90.234     29.3821      ! Larose (point furthest west by Larose hurricane protection project)
+   -90.09228880 30.36579720 ! Lake Pontchartrain at Mandeville (85575)
+   -90.11564440 30.02216380 ! Lake Pontchartrain at West End (85625)
+   -90.02675000 29.96648050 ! Inner Harbor Navigational Canal (IHNC) New Orleans (76160)
+   -90.27305556 29.91250000 ! Sellers Canal at Hwy 90, LA (Pier 90) (82720)
+   -90.05972222 29.84833333 ! Harvey Canal at Boomtown Casino (76230)
+   -90.11055556 29.66944440 ! Barataria Waterway at Lafitte, LA (82875)
+   -90.24555556 29.34250000 ! Golden Meadow Floodgate, LA (South) (82260)
+   -90.125833 30.358611     ! USGS 073802330 (NWS) Lake Pontchartrain at Midlake on Causeway
+   -89.863889 30.141667     ! USGS 300830089515000 Little Irish Bayou
+   -89.910222 29.601        ! USGS 07380241 Suzie Bayou at L. Hermitage Rd near Deer Range, LA
+   -89.946806 29.272833     ! USGS 073802516 Barataria Pass at Grand Isle, LA
+   -89.605972 29.58575      ! USGS 07374527 Northeast Bay Gardene near Point-A-LA-Hache, LA
+   -89.905833 29.856667     ! USGS 295124089542100 Caernarvon Outfall Channel at Caernarvon, LA
+   -89.938667 30.004139     ! USGS 073802338 IWW @ I-510 Bridge (Paris Rd) at New Orleans, LA
+   -90.1      29.466667     ! USGS Little Lake near Bayou Dogris East of Galliano, halfway between Grand Isle and Lafitte
+   -89.250278 30.122778     ! USGS Mississippi Sound at Grand Pass
+0 0.0 100.0  7200                         ! NOUTV,TOUTSV,TOUTFV,NSPOOLV:VEL STATION OUTPUT INFO (UNIT  62)
+23                                      ! NSTAV - NUMBER OF ELEVATION RECORDING STATIONS, FOLLOWED BY LOCATIONS ON PROCEEDING LINES
+   -90.07482   30.03242     ! London Ave. Canal
+   -90.069444  29.871111    ! Harvey Canal at Lapalco Blvd (76220)
+   -90.393     30.0816      ! St. Charles
+   -89.9       30.0011      ! Golden Triangle
+   -89.9428    29.8431      ! Caernarvon
+   -90.364     29.8904      ! Northwest West Bank (in upper end of basin near highway 90)
+   -90.234     29.3821      ! Larose (point furthest west by Larose hurricane protection project)
+   -90.09228880 30.36579720 ! Lake Pontchartrain at Mandeville (85575)
+   -90.11564440 30.02216380 ! Lake Pontchartrain at West End (85625)
+   -90.02675000 29.96648050 ! Inner Harbor Navigational Canal (IHNC) New Orleans (76160)
+   -90.27305556 29.91250000 ! Sellers Canal at Hwy 90, LA (Pier 90) (82720)
+   -90.05972222 29.84833333 ! Harvey Canal at Boomtown Casino (76230)
+   -90.11055556 29.66944440 ! Barataria Waterway at Lafitte, LA (82875)
+   -90.24555556 29.34250000 ! Golden Meadow Floodgate, LA (South) (82260)
+   -90.125833 30.358611     ! USGS 073802330 (NWS) Lake Pontchartrain at Midlake on Causeway
+   -89.863889 30.141667     ! USGS 300830089515000 Little Irish Bayou
+   -89.910222 29.601        ! USGS 07380241 Suzie Bayou at L. Hermitage Rd near Deer Range, LA
+   -89.946806 29.272833     ! USGS 073802516 Barataria Pass at Grand Isle, LA
+   -89.605972 29.58575      ! USGS 07374527 Northeast Bay Gardene near Point-A-LA-Hache, LA
+   -89.905833 29.856667     ! USGS 295124089542100 Caernarvon Outfall Channel at Caernarvon, LA
+   -89.938667 30.004139     ! USGS 073802338 IWW @ I-510 Bridge (Paris Rd) at New Orleans, LA
+   -90.1      29.466667     ! USGS Little Lake near Bayou Dogris East of Galliano, halfway between Grand Isle and Lafitte
+   -89.250278 30.122778     ! USGS Mississippi Sound at Grand Pass
+0 0.0 100.0 600 ! NOUTM,TOUTSM,TOUTFM,NSPOOLM:METEO STATION OUTPUT INFO (UNITS 71/72)
+23     ! TOTAL NUMBER OF MET RECORDING STATIONS
+   -90.07482   30.03242     ! London Ave. Canal
+   -90.069444  29.871111    ! Harvey Canal at Lapalco Blvd (76220)
+   -90.393     30.0816      ! St. Charles
+   -89.9       30.0011      ! Golden Triangle
+   -89.9428    29.8431      ! Caernarvon
+   -90.364     29.8904      ! Northwest West Bank (in upper end of basin near highway 90)
+   -90.234     29.3821      ! Larose (point furthest west by Larose hurricane protection project)
+   -90.09228880 30.36579720 ! Lake Pontchartrain at Mandeville (85575)
+   -90.11564440 30.02216380 ! Lake Pontchartrain at West End (85625)
+   -90.02675000 29.96648050 ! Inner Harbor Navigational Canal (IHNC) New Orleans (76160)
+   -90.27305556 29.91250000 ! Sellers Canal at Hwy 90, LA (Pier 90) (82720)
+   -90.05972222 29.84833333 ! Harvey Canal at Boomtown Casino (76230)
+   -90.11055556 29.66944440 ! Barataria Waterway at Lafitte, LA (82875)
+   -90.24555556 29.34250000 ! Golden Meadow Floodgate, LA (South) (82260)
+   -90.125833 30.358611     ! USGS 073802330 (NWS) Lake Pontchartrain at Midlake on Causeway
+   -89.863889 30.141667     ! USGS 300830089515000 Little Irish Bayou
+   -89.910222 29.601        ! USGS 07380241 Suzie Bayou at L. Hermitage Rd near Deer Range, LA
+   -89.946806 29.272833     ! USGS 073802516 Barataria Pass at Grand Isle, LA
+   -89.605972 29.58575      ! USGS 07374527 Northeast Bay Gardene near Point-A-LA-Hache, LA
+   -89.905833 29.856667     ! USGS 295124089542100 Caernarvon Outfall Channel at Caernarvon, LA
+   -89.938667 30.004139     ! USGS 073802338 IWW @ I-510 Bridge (Paris Rd) at New Orleans, LA
+   -90.1      29.466667     ! USGS Little Lake near Bayou Dogris East of Galliano, halfway between Grand Isle and Lafitte
+   -89.250278 30.122778     ! USGS Mississippi Sound at Grand Pass
+0 0.0 100.0 3600             ! NOUTGE,TOUTSGE,TOUTFGE,NSPOOLGE : GLOBAL ELEVATION OUTPUT INFO (UNIT  63)
+0 0.0 100.0 10800            ! NOUTGV,TOUTSGV,TOUTFGV,NSPOOLGV : GLOBAL VELOCITY  OUTPUT INFO (UNIT  64)    
+1 0.0 100.0 10800            ! NOUTGW,TOUTSGW,TOUTFGW,NSPOOLGW : GLOBAL WIND OUTPUT INFO
+ 0                          ! NHARFR - NUMBER OF CONSTITUENTS TO BE INCLUDED IN THE HARMONIC ANALYSIS
+ 40.0  50.0  5  0.0         ! THAS,THAF,NHAINC,FMV - HARMONIC ANALYSIS PARAMETERS    
+ 1 1 1 1                    ! NHASE,NHASV,NHAGE,NHAGV - CONTROL HARMONIC ANALYSIS AND OUTPUT TO UNITS 51,52,53,54
+ %NHSTAR%  %NHSINC%          ! NHSTAR,NHSINC - HOT START FILE GENERATION PARAMETERS 
+ 1  0  1.E-10  25 0          ! ITITER, ISLDIA, CONVCR, ITMAX & ILUMP

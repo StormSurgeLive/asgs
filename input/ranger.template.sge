@@ -1,0 +1,73 @@
+#!/bin/bash
+
+
+# Specify the queue explicitly
+#$ -q %queuename%
+
+# Specify V 
+#$ -V 
+
+# Specify to run from current working directory 
+#$ -cwd 
+
+# Specify number of cpus in a machine-specific way
+#$ -pe %pbsncpu%
+
+# Specify the wall clock time
+#$ -l h_rt=%walltime%
+
+# Merge stderr to stdout (optional, otherwise they're in separate files)
+#$ -j y
+
+# Name the job (this will appear in the output from the qstat command)
+#$ -N %enstorm%
+
+# Specify the output filename explicitly (optional; the default is named
+# from the job ID, in the directory where qsub was run.)
+#$ -o %advisdir%/%enstorm%.out
+# $ -o %advisdir%/%enstorm%/%enstorm%.out
+
+# Specify the account that the time should be taken from 
+#$ -A %account%
+
+# Request mail when job ends, or is aborted (optional, default is "a" only)
+# (commented out)
+# $ -m ea
+
+# Specify email address
+#$ -M %notifyuser%
+
+
+# some commands
+set echo
+umask 007
+umask 
+# cache the executable and dynamic libraries locally
+
+export DEBUG_CACHE_BINARY
+cache_binary $PWD %adcircdir%/padcirc
+
+# Clean out all modules
+module purge
+# Reset to TACC baseline
+module load TACC
+# Unload default compiler and mpi stack
+module unload pgi mvapich2
+# Load which ever combination you need
+module load pgi
+module load mvapich/1.0.1
+module load ddt
+
+# The directory to start in 
+cd %advisdir%/%enstorm%
+
+
+cp %adcircdir%/padcirc ./padcirc.mvapich1
+# These are the actual commands to be executed.
+echo "Test job starting at `date`"
+
+  ibrun tacc_infinity ./padcirc.mvapich1
+#  %submitstring% ./padcirc.mvapich1
+
+echo "Test job finished at `date`"
+# You don't need anything special at the end of the script.
