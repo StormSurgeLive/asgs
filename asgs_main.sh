@@ -641,7 +641,9 @@ EXIT_OK=0
 # need to determine standard time format to be used for pasting log files
 STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 SYSLOG=/tmp/asgs-${STARTDATETIME}.$$.log
-
+# create directories with default permissions of "775" and 
+# files with the default permssion of "664"
+umask 002
 #
 # Initialize variables accessed from config.sh
 DRY=1           
