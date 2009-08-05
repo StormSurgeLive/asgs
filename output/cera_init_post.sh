@@ -29,5 +29,6 @@ ADVISORY=$4
 HOSTNAME=$5
 #
 POSTDIR=/work/kloffler
+umask 002
 #
 mkdir -p $POSTDIR/${STORM}${YEAR}/${ADVISORY}
