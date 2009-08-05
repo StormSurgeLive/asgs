@@ -124,6 +124,7 @@ createMetaDataLink()
   HOSTNAME=$6
   VARIATION=$7
   PERCENT=$8  
+  HSTIME=$9
 #
   echo "# This metadata describes the storm data used in this run." >> $ADVISDIR/$ENSTORM/fort.22.meta
   echo "version:1" >> $ADVISDIR/$ENSTORM/fort.22.meta
@@ -133,6 +134,7 @@ createMetaDataLink()
   echo "hostname:$HOSTNAME" >> $ADVISDIR/$ENSTORM/fort.22.meta  
   echo "directory advisory:$ADVISDIR" >> $ADVISDIR/$ENSTORM/fort.22.meta
   echo "directory storm:$ADVISDIR/$ENSTORM" >> $ADVISDIR/$ENSTORM/fort.22.meta
+  echo "time hotstart seconds:$HSTIME" >> $ADVISDIR/$ENSTORM/fort.22.meta
   windPercent="+00"
   overlandSpeedPercent="+00"
   veerPercent="+000"
@@ -772,6 +774,7 @@ ADVISORYNUM=
 ###############################
 ADVISORY=   # determined below
 ADVISDIR=   # determined below
+HSTIME=     # determined below
 while [ 1 -eq 1 ]; do
     . ${CONFIG}
     cd $STORMDIR 2>> ${SYSLOG}
@@ -826,6 +829,7 @@ while [ 1 -eq 1 ]; do
        METOPTIONS="$METOPTIONS --hotstartseconds $HSTIME "
        CONTROLOPTIONS="$CONTROLOPTIONS --hst $HSTIME"
     else
+       HSTIME=0
        OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
        logMessage $ADVISDIR "Coldstarting Storm $STORM in $YEAR"
        logMessage $ADVISDIR "Coldstart time is $COLDSTARTDATE"
@@ -839,7 +843,7 @@ while [ 1 -eq 1 ]; do
        mv fort.22 fort.22.orig
        cp NWS_19_fort.22 fort.22 
     fi
-    createMetaDataLink $STORM $YEAR $ADVISORY nowcast $ADVISDIR $HOSTNAME
+    createMetaDataLink $STORM $YEAR $ADVISORY nowcast $ADVISDIR $HOSTNAME $HSTIME
     logMessage "Generating ADCIRC Control File (fort.15) for nowcast with the following options: $CONTROLOPTIONS."
      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
     # preprocess
@@ -886,7 +890,7 @@ while [ 1 -eq 1 ]; do
            mv fort.22 fort.22.orig
            cp NWS_19_fort.22 fort.22 
         fi
-        createMetaDataLink $STORM $YEAR $ADVISORY $ENSTORM $ADVISDIR $HOSTNAME
+        createMetaDataLink $STORM $YEAR $ADVISORY $ENSTORM $ADVISDIR $HOSTNAME $HSTIME
         logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
         perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
         # preprocess
