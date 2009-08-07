@@ -47,8 +47,8 @@ NCPU=512            # number of CPUs to use for all simulations
 #QUEUENAME=standard # for ERDC machines, non-emergency queue
 #QUEUENAME=nbatch  # for ERDC machines, this is emergency queue name
 #QUEUENAME=512cpu  # for UNC (topsail); can also use 128cpu or 32cpu
-#QUEUENAME=workq   # for LSU (queenbee); non-emergency
-#QUEUENAME=priority # for LSU (queenbee); emergency queue name
+#QUEUENAME=workq   # for queenbee.loni.org or tezpur.hpc.lsu.edu; non-emergency
+#QUEUENAME=priority #for queenbee.loni.org or tezpur.hpc.lsu.edu; emergency
 QUEUENAME=normal   # for TACC (ranger);
 #QUEUENAME=desktop  # for workstations with no queue
 #

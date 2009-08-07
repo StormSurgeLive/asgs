@@ -70,12 +70,13 @@ my @TRACKS = (); # should be few enough to store all in an array for easy access
 my $controltemplate;
 my $metfile;
 my $coldstarttime;
-my $hotstarttime;
+my $hotstarttime;      # time, in seconds, of hotstart file (since coldstart)
+my $hotstarttime_days; # time, in days, of hotstart file (since coldstart)
 my $endtime;
 my $dt=3.0; 
 my $bladj=0.9;
-my $name;
-my $stormname="STORMNAME";
+my $enstorm;    # ensemble name of the storm
+my $nhcName="STORMNAME"; # storm name given by the nhc
 my $tau=0; # forecast period
 my $dir=getcwd();
 my $nws=9;
@@ -83,13 +84,14 @@ my $advisorynum;
 
 GetOptions("controltemplate=s" => \$controltemplate,
            "metfile=s" => \$metfile,
-           "name=s" => \$name, 
+           "name=s" => \$enstorm, 
            "cst=s" => \$coldstarttime,
            "endtime=s" => \$endtime,
            "dt=s" => \$dt,
            "bladj=s" => \$bladj, 
            "nws=s" => \$nws, 
            "advisorynum=s" => \$advisorynum,
+           "nhcName=s" => \$nhcName,
            "hst=s" => \$hotstarttime);
 #
 # open template file for fort.15
@@ -116,45 +118,43 @@ while (<METFILE>) {
   push(@TRACKS,[@tmp]); 
 }
 #
-# get name - reverse @TRACKS, and get name from first "BEST" track encountered
+# find last hindcast line
 my $track;
+my $nowcast;
 foreach $track (reverse(@TRACKS)) {
-  if (@{$track}[4] =~ m/BEST/) {
-    if ( defined $track->[27] ) {
-       $stormname = $track->[27];
-    } else {	 
-       printf STDERR "WARNING: The name of the storm does not appear in the hindcast.\n";
-       $stormname = "STORMNAME";
-    }
-    last;
-  }
+   if (@{$track}[4] =~ m/BEST/) {
+     if ( $nhcName eq "STORMNAME" ) {
+        # We need to get the storm name from the last hindcast line
+        if ( defined $track->[27] ) {
+           $nhcName = $track->[27];
+        } else {	 
+           printf STDERR "WARNING: The name of the storm does not appear in the hindcast.\n";
+        }
+     }
+     # also grab the last hindcast time; this will be the nowcast time
+     $nowcast = $track->[2];     
+     last;
+   }
 }
 #
 # get coldstart time
 my $cstart;
 unless ( $coldstarttime ) {
-   # loop through tracks, find first forecast line, use this to find 
-   # last hindcast line 
-   $cstart = @{$TRACKS[0]}[2];
+   $cstart = $nowcast; # adjusted later to make the difference nonzero
    print $cstart; # write cold start time to stdout for use in later runs
 } else {
    $cstart = $coldstarttime;
 }
 # convert hotstart time (in days since coldstart) if necessary
 if ( $hotstarttime ) {
-   $hotstarttime = $hotstarttime/86400.0;
+   $hotstarttime_days = $hotstarttime/86400.0;
 }
 # get end time
 my $end;
-# for a nowcast, end at the beginning of the offical forecast
-if ( $name eq "nowcast" ) { 
-   foreach $track (@TRACKS) {
-      if ( @{$track}[4] =~ m/OFCL/) {
-         $end = $track->[2];
-         printf(STDOUT "INFO: New nowcast time is $end.\n");
-         last;
-      }
-   } 
+# for a nowcast, end the run at the end of the hindcast
+if ( $enstorm eq "nowcast" ) { 
+   $end = $nowcast;
+   printf(STDOUT "INFO: New nowcast time is $end.\n");
 } elsif ( $endtime ) {
    # if this is not a nowcast, and the end time has been specified, end then
    $end = $endtime
@@ -231,16 +231,16 @@ my $cs_year = $1;
 my $cs_mon = $2;
 my $cs_day = $3;
 my $cs_hour = $4;
-my $cs_min = 0;
-my $cs_sec = 0;
+my $cs_min = 0.0;
+my $cs_sec = 0.0;
 #
 $end =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
 my $e_year = $1;
 my $e_mon = $2;
 my $e_day = $3;
 my $e_hour = $4;
-my $e_min = 0;
-my $e_sec = 0;
+my $e_min = 0.0;
+my $e_sec = 0.0;
 #
 # get difference btw cold start time and end time
 my ($days,$hours,$seconds) 
@@ -253,12 +253,12 @@ my ($days,$hours,$seconds)
 # For a nowcast, RNDAY will be one time step long, so that we end at
 # the nowcast time, even if ADCIRC rounds down the number of timesteps
 my $stopshort = 0.0;
-if ( $name eq "nowcast" ) {
+if ( $enstorm eq "nowcast" ) {
    $stopshort = -$dt;
 } else {
    $stopshort = $dt;
 }
-my $RNDAY = $days + $hours/24 + ($seconds-$stopshort)/86400; 
+my $RNDAY = $days + $hours/24.0 + ($seconds-$stopshort)/86400.0; 
 #
 # If RNDAY is less than two timesteps, make sure it is at least two timesteps. 
 # This can happen if we start up from a fort.22 that has only one BEST line,
@@ -266,30 +266,35 @@ my $RNDAY = $days + $hours/24 + ($seconds-$stopshort)/86400;
 # our algorithm actually stops one ts short of the full time, so RNDAY is
 # actually negative in this case. ADCIRC needs at least two timesteps from 
 # coldstart to create a valid hotstart file.
-my $runlength = $RNDAY*86400.0;
+my $runlength_seconds = $RNDAY*86400.0;
 if ( $hotstarttime ) {
-   $runlength-=$hotstarttime;
+   $runlength_seconds-=$hotstarttime;
 }
-my $min_runlength = 2*$dt;
-if ( $runlength < $min_runlength ) { 
-   $RNDAY=$min_runlength/86400.0;
-   unless ( $hotstarttime eq "" ) {
-      $RNDAY+=($hotstarttime/86400.0);
+my $min_runlength = 2*$dt; 
+# if we coldstart at the nowcast, we may not have calculated a runlength 
+# longer than the minimum
+if ( $runlength_seconds < $min_runlength ) { 
+   # recalculate the RNDAY as the hotstart time plus the minimal runlength
+   if ( $hotstarttime ) {
+      $RNDAY=$hotstarttime_days + ($min_runlength/86400.0);
+   } else {
+      $RNDAY=$min_runlength/86400.0;
    }
+   $runlength_seconds = $min_runlength;
 }
 #
 # if this is an update from hindcast to nowcast, calculate the hotstart 
 # increment so that we only write a single hotstart file at the end of 
 # the run. If this is a forecast, don't write a hotstart file at all.
-my $NHSINC = int($runlength/$dt);
+my $NHSINC = int($runlength_seconds/$dt);
 my $NHSTAR;
-if ( $name eq "nowcast" ) {
+if ( $enstorm eq "nowcast" ) {
    $NHSTAR = 1;
 } else {
    $NHSTAR = 0;
 }
 # create run description
-my $rundesc=$stormname . " " . $advisorynum;
+my $rundesc=$nhcName . " " . $advisorynum;
 while(<TEMPLATE>) {
     # if we are looking at the first line, fill in the name of the storm
     # and the advisory number, if available
@@ -314,7 +319,7 @@ while(<TEMPLATE>) {
     s/%NHSTAR%/$NHSTAR/;
     # 
     # fill in ensemble name
-    s/%EnsembleID%/$name/;
+    s/%EnsembleID%/$enstorm/;
     # Holland parameters -- only used by symmetric vortex model (NWS=8)
     s/%HollandParams%/$cs_year $cs_mon $cs_day $cs_hour 1 $bladj/;
     print STORM $_;

@@ -122,9 +122,10 @@ createMetaDataLink()
   ENSTORM=$4
   ADVISDIR=$5
   HOSTNAME=$6
-  VARIATION=$7
-  PERCENT=$8  
-  HSTIME=$9
+  HSTIME=$7
+  COLDSTARTDATE=$8
+  VARIATION=$9
+  PERCENT=${10}  
 #
   echo "# This metadata describes the storm data used in this run." >> $ADVISDIR/$ENSTORM/fort.22.meta
   echo "version:1" >> $ADVISDIR/$ENSTORM/fort.22.meta
@@ -135,6 +136,7 @@ createMetaDataLink()
   echo "directory advisory:$ADVISDIR" >> $ADVISDIR/$ENSTORM/fort.22.meta
   echo "directory storm:$ADVISDIR/$ENSTORM" >> $ADVISDIR/$ENSTORM/fort.22.meta
   echo "time hotstart seconds:$HSTIME" >> $ADVISDIR/$ENSTORM/fort.22.meta
+  echo "time coldstart date:$COLDSTARTDATE" >>  $ADVISDIR/$ENSTORM/fort.22.meta
   windPercent="+00"
   overlandSpeedPercent="+00"
   veerPercent="+000"
@@ -819,8 +821,12 @@ while [ 1 -eq 1 ]; do
     fi
     #
     # prepare nowcast met (fort.22) and control (fort.15) files 
-    METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $COLDSTARTDATE --name nowcast --nws $NWS " 
-    CONTROLOPTIONS=" --cst $COLDSTARTDATE --metfile $ADVISDIR/nowcast/fort.22 --name nowcast --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE}"
+    METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name nowcast --nws $NWS " 
+    CONTROLOPTIONS=" --metfile $ADVISDIR/nowcast/fort.22 --name nowcast --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE}"
+    if [[ ! -z $COLDSTARTDATE ]]; then
+       METOPTIONS="$METOPTIONS --coldstartdate $COLDSTARTDATE " 
+       CONTROLOPTIONS="$CONTROLOPTIONS --cst $COLDSTARTDATE " 
+    fi 
     if [ $START = hotstart ]; then
        cd $OLDADVISDIR/nowcast/PE0000 2>> ${SYSLOG}
        checkHotstart       
@@ -831,8 +837,8 @@ while [ 1 -eq 1 ]; do
     else
        HSTIME=0
        OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
-       logMessage $ADVISDIR "Coldstarting Storm $STORM in $YEAR"
-       logMessage $ADVISDIR "Coldstart time is $COLDSTARTDATE"
+       logMessage "Coldstarting Storm $STORM in $YEAR"
+       logMessage "Coldstart time is $COLDSTARTDATE"
     fi
     cd $ADVISDIR/nowcast 2>> ${SYSLOG}
     logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
@@ -843,7 +849,7 @@ while [ 1 -eq 1 ]; do
        mv fort.22 fort.22.orig
        cp NWS_19_fort.22 fort.22 
     fi
-    createMetaDataLink $STORM $YEAR $ADVISORY nowcast $ADVISDIR $HOSTNAME $HSTIME
+    createMetaDataLink $STORM $YEAR $ADVISORY nowcast $ADVISDIR $HOSTNAME $HSTIME $COLDSTARTDATE
     logMessage "Generating ADCIRC Control File (fort.15) for nowcast with the following options: $CONTROLOPTIONS."
      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
     # preprocess
@@ -890,7 +896,7 @@ while [ 1 -eq 1 ]; do
            mv fort.22 fort.22.orig
            cp NWS_19_fort.22 fort.22 
         fi
-        createMetaDataLink $STORM $YEAR $ADVISORY $ENSTORM $ADVISDIR $HOSTNAME $HSTIME
+        createMetaDataLink $STORM $YEAR $ADVISORY $ENSTORM $ADVISDIR $HOSTNAME $HSTIME $COLDSTARTDATE
         logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
         perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
         # preprocess
