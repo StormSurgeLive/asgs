@@ -205,6 +205,7 @@ prep()
     PREPPEDARCHIVE=$8 # preprocessed fort.13 and fort.14 package 
     GRIDFILE=$9 # fulldomain grid
     NAFILE=${10}  # full domain nodal attributes file
+    ACCOUNT=${11} # account to charge time to 
     TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
     if [ ! -d $ADVISDIR/$ENSTORM ]; then 
 	mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
@@ -239,7 +240,7 @@ prep()
         rm $UNCOMPRESSEDARCHIVE 2>> ${SYSLOG}
         # run adcprep to decompose the new fort.15 file
         logMessage "Running adcprep to prepare new fort.15 file"
-        prepControlFile $ENV $NCPU
+        prepControlFile $ENV $NCPU $ACCOUNT 
        # link to hurricane track file rather than prepping it with adcprep
        PE=0
        format="%04d"
@@ -286,10 +287,10 @@ prep()
        done
        # run adcprep to decompose the new fort.15 file
        logMessage "Running adcprep to prepare new fort.15 file."
-       prepControlFile $ENV $NCPU
+       prepControlFile $ENV $NCPU $ACCOUNT 
        # run adcprep to decompose the hotstart file
        logMessage "Running adcprep to decompose hotstart file."
-       prepHotstartFile $ENV $NCPU
+       prepHotstartFile $ENV $NCPU $ACCOUNT
     fi
 }
 #
@@ -298,6 +299,7 @@ prep()
 prepControlFile()
 {   ENV=$1
     NCPU=$2
+    ACCOUNT=$3
     if [ $ENV = jade || $ENV = sapphire ]; then
        qsub -l ncpus=0 -l walltime=02:00:00 -q debug -A erdcvenq -I
        cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
@@ -308,6 +310,24 @@ fort.14
 fort.15
 END
        exit
+    elif [ $ENV = ranger ]; then
+         cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+          echo $NCPU    > prep.in1
+          echo 4       >> prep.in1
+          echo fort.14 >> prep.in1
+          echo fort.15 >> prep.in1
+        SERQSCRIPT=ranger.template.serial
+        SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
+        perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
+        logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
+        qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
+    # check once per minute until all jobs have finished
+    monitorJobs $QUEUESYS
+    consoleMesssage "Job(s) complete."
+    # prep-ing control finished, get on with it
+    logMessage "adcprep control finished"
+    consoleMessage "adcprep control finished"
+
     else
        $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
 $NCPU
@@ -323,6 +343,7 @@ END
 prepHotstartFile()
 {     ENV=$1
       NCPU=$2
+      ACCOUNT=$3
       if [ $ENV = jade || $ENV = sapphire ]; then
          qsub -l ncpus=0 -l walltime=02:00:00 -q debug -A erdcvenq -I
          cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
@@ -332,6 +353,23 @@ $NCPU
 68
 END
          exit
+    elif [ $ENV = ranger ]; then
+         cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+          echo $NCPU    > prep.in1
+          echo 6       >> prep.in1
+          echo 68      >> prep.in1
+        SERQSCRIPT=ranger.template.serial
+        SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
+        perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
+        logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
+        qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
+    # check once per minute until all jobs have finished
+    monitorJobs $QUEUESYS
+    consoleMesssage "Job(s) complete."
+    # prep-ing hotstart finished, get on with it
+    logMessage "adcprep hotstart finished"
+    consoleMessage "adcprep hotstart finished"
+
       else
          $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
 $NCPU
@@ -854,7 +892,7 @@ while [ 1 -eq 1 ]; do
      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
     # preprocess
     logMessage $ADVISDIR "Starting nowcast preprocessing."
-    prep $ADVISDIR $INPUTDIR nowcast $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $NAFILE
+    prep $ADVISDIR $INPUTDIR nowcast $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $NAFILE $ACCOUNT
     # then submit the job
     logMessage "Submitting ADCIRC nowcast job."
     cd $ADVISDIR/nowcast 2>> ${SYSLOG}
@@ -901,7 +939,7 @@ while [ 1 -eq 1 ]; do
         perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
         # preprocess
         logMessage "Starting $ENSTORM preprocessing."
-        prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $NAFILE
+        prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $NAFILE $ACCOUNT
         # then submit the job
         logMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
         consoleMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."

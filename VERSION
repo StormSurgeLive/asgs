@@ -1,3 +1,4 @@
+v1.3  - rjw20080811: Added the adcprep scripts and modified asgs_main to accomodate submiting adcprep using qsub to the queue.
 v1.3  - rjw20080803: Added the post processing scripts to the output directory, and made changed to accommodate ranger (still debugging), added template
                      files and perl scripts to create the submit scripts for ranger SGE, modified the asgs_main and config to allow for SGE /ranger 
 v1.2  - jgf20080729: made changes to accommodate Tezpur; set up NWS19 preprocessing with aswip; created and added fort.15 template file for CERA.

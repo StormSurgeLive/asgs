@@ -60,8 +60,8 @@ QUEUENAME=normal   # for TACC (ranger);
 #HDIR=/atcf/btk      # hindcast dir on nhc ftp site
 #  the following are used at UNC for test storms
 FTPSITE=ftp.unc.edu
-FDIR=/pub/ims/rick/ADCIRC/NHC_Advisories/fst # forecast dir on test site
-HDIR=/pub/ims/rick/ADCIRC/NHC_Advisories/btk # hindcast dir on test site
+FDIR=/pub/ims/weaver/NHC_Advisories/fst # forecast dir on test site
+HDIR=/pub/ims/weaver/NHC_Advisories/btk # hindcast dir on test site
 #
 # we will implement automation of the correct advisory number in a later
 # release ... for now, we simply increment
@@ -94,7 +94,7 @@ TIMESTEPSIZE=1.0
 # estimate; must be set small when sending test problems to the debug queue;
 # for production, must be set large enough for any run, including initial
 # hindcast run, which may be longer than 5 days in some cases
-WALLTIME="4:00:00"
+WALLTIME="14:00:00"
 #
 #-------------------------------------------------------------------
 # Storm ensemble configuration 
@@ -103,7 +103,7 @@ WALLTIME="4:00:00"
 # Vortex wind model configuration, used on the NWS line in ADCIRC;
 # NWS=8: symmetric vortex, NWS=9: asymmetric vortex
 # (only NWS=9 is currently supported)
-NWS=9
+NWS=19
 #
 ENSEMBLESIZE=1 # number of storms in the ensemble
 #
