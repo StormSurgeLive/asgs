@@ -1011,7 +1011,9 @@ while [ 1 -eq 1 ]; do
         if [[ $EMAILNOTIFY = YES ]]; then
            post_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM
         fi
-        ${OUTPUTDIR}/${POSTPROCESS2} $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $GRIDFILE  2>> ${SYSLOG} 
+        if [[ ! -z $POSTPROCESS2 ]]; then # creates GIS and kmz figures
+           ${OUTPUTDIR}/${POSTPROCESS2} $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $GRIDFILE  2>> ${SYSLOG} 
+        fi
         si=$[$si + 1];
     done
     logMessage "Forecast complete for advisory $ADVISORY."
