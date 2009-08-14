@@ -1,5 +1,4 @@
-# Specify the shell for PBS 
-#PBS -S /bin/sh
+#!/bin/ksh
 
 # Specify the queue explicitly
 #PBS -q %queuename%
@@ -29,9 +28,6 @@
 # Request mail when job ends, or is aborted (optional, default is "a" only)
 # (commented out)
 ##PBS -m ea
-
-# use iobuffer on backend nodes
-export IOBUF_PARAMS='%stdout,fort.*'
 
 # The directory to start in 
 cd %advisdir%/%enstorm%
