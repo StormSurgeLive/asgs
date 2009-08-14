@@ -99,22 +99,31 @@ GetOptions(
 # check to see if the name of the storm is one that this script knows how to
 # generate ... if not, bomb out
 unless ( grep { $_ eq $name } @supportedNames ) {	
-   die "ERROR: Unable to generate the '$name' ensemble member. This type of storm variation is not suppported.\n";
+   die "ERROR: storm_track_gen.pl: Unable to generate the '$name' ensemble member. This type of storm variation is not suppported.\n";
 }
 #
 # check to see that all the mandatory command line arguments were specified
 unless ( $dir ) {
    $dir = cwd();
-   printf STDERR "WARNING: The path to the raw ATCF input files was not specified with the --dir argument. It will be assumed that the files are in the directory $dir.\n";
+   printf STDERR "WARNING: storm_track_gen.pl: The path to the raw ATCF input files was not specified with the --dir argument. It will be assumed that the files are in the directory $dir.\n";
 } 
 unless ( $storm ) {
-   die "ERROR: The storm number was not specified using the --storm argument.\n";
+   die "ERROR: storm_track_gen.pl: The storm number was not specified using the --storm argument.\n";
 }
 unless ( $year ) {
-   die "ERROR: The year was not specified using the --year argument.\n";
+   die "ERROR: storm_track_gen.pl: The year was not specified using the --year argument.\n";
 }
 unless ( $coldstartdate ) {
-   die "ERROR: The cold start date was not specified using the --coldstartdate argument.\n";
+   my $hindcastATCF = "$dir/bal$storm$year.dat";
+   open(HCST,"<$hindcastATCF") || die "ERROR: storm_track_gen.pl: Failed to open hindcast ATCF file $hindcastATCF for ensemble member '$name': $!.";
+   while(<HCST>) {
+      my @fields = split(',',$_);
+      $coldstartdate = $fields[2];
+   }
+   close(HCST);
+   $coldstartdate =~ s/\s*//g; # remove spaces
+   printf STDERR "INFO: storm_track_gen.pl: The cold start date was not specified using the --coldstartdate argument. The date/time of the most recent hindcast is '$coldstartdate'. This will be used as the coldstart date/time.\n";
+   printf STDOUT $coldstartdate;
 }
 
 # 
@@ -128,38 +137,38 @@ if ( $percent ) {
       $veerPercent = $percent;
    } elsif ( $name eq "rMax" ) {  
       if ( $nws == 9 || $nws == 19 ) {
-         die "ERROR: We do not have an algorithm for generating the '$name' ensemble member for NWS $nws yet. The wind input file (fort.22) will not be generated.\n";
+         die "ERROR: storm_track_gen.pl: We do not have an algorithm for generating the '$name' ensemble member for NWS $nws yet. The wind input file (fort.22) will not be generated.\n";
       } else {
          $sizePercent = $percent;
       }
    } else {
-      printf STDERR "WARNING: 'percent' was specified at '$percent', but the ensemble member '$name' does not use percentage information. The percentage value will be ignored.\n"; 
+      printf STDERR "WARNING: storm_track_gen.pl: 'percent' was specified at '$percent', but the ensemble member '$name' does not use percentage information. The percentage value will be ignored.\n"; 
    }
 } 
 #
 # send a message indicating the percent that will be used
 if ( $name eq "maxWindSpeed") {
-   printf STDOUT "INFO: The forecast maximum wind speed will be modified by $strengthPercent percent.\n";
+   printf STDERR "INFO: storm_track_gen.pl: The forecast maximum wind speed will be modified by $strengthPercent percent.\n";
 } elsif ($name eq "overlandSpeed") {
-   printf STDOUT "INFO: The forecast overland speed will be modified by $overlandSpeedPercent percent.\n";
+   printf STDERR "INFO: storm_track_gen.pl: The forecast overland speed will be modified by $overlandSpeedPercent percent.\n";
 } elsif ( $name eq "veer" ) {
-   printf STDOUT "INFO: The forecast track will be modified with a veer of $veerPercent percent.\n";
+   printf STDERR "INFO: storm_track_gen.pl: The forecast track will be modified with a veer of $veerPercent percent.\n";
 } elsif ( $name eq "rMax" ) { 
    if ( $nws == 9 || $nws == 19 ) { 
-      die "ERROR: We do not have an algorithm for generating the '$name' ensemble member yet. The wind input file (fort.22) will not be generated.\n";
+      die "ERROR: storm_track_gen.pl: We do not have an algorithm for generating the '$name' ensemble member yet. The wind input file (fort.22) will not be generated.\n";
    } else {
-      printf STDOUT "INFO: The forecast track will be modified with a Rmax of $sizePercent percent fom the nowcast Rmax value.\n";
+      printf STDERR "INFO: storm_track_gen.pl: The forecast track will be modified with a Rmax of $sizePercent percent fom the nowcast Rmax value.\n";
    } 
 }
 #
 # open ATCF input files
 my $forecastATCF = "$dir/al$storm$year.fst";
-open(FCST,"<$forecastATCF") || die "ERROR: Failed to open forecast ATCF file $forecastATCF for ensemble member '$name': $!.";
+open(FCST,"<$forecastATCF") || die "ERROR: storm_track_gen.pl: Failed to open forecast ATCF file $forecastATCF for ensemble member '$name': $!.";
 my $hindcastATCF = "$dir/bal$storm$year.dat";
-open(HCST,"<$hindcastATCF") || die "ERROR: Failed to open hindcast ATCF file $hindcastATCF for ensemble member '$name': $!.";
+open(HCST,"<$hindcastATCF") || die "ERROR: storm_track_gen.pl: Failed to open hindcast ATCF file $hindcastATCF for ensemble member '$name': $!.";
 #
 # create the fort.22 output file, which is the wind input file for ADCIRC
-open(MEMBER,">fort.22") || die "ERROR: Failed to open file for ensemble member '$name' fort.22 output file: $!.";
+open(MEMBER,">fort.22") || die "ERROR: storm_track_gen.pl: Failed to open file for ensemble member '$name' fort.22 output file: $!.";
 #
 # preprocess and rearrange ATCF files if necessary
 my @rad;                     # wind radii in the 4 quadrants (current time)
@@ -173,7 +182,7 @@ my $lasthindcastrmax;
 my $old_lat;
 my $old_lon;
 my $hours = 0;
-$coldstartdate =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+$coldstartdate =~ m/\s*(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
 my $csyear = $1;
 my $csmon = $2; 
 my $csday = $3; 
@@ -185,7 +194,7 @@ my $zdmin; my $zdsec;                             # not used
 ($zdyear,$zdmon,$zdday,$zdhour,$zdmin,$zdsec) =
    Date::Pcalc::Add_Delta_DHMS($csyear,$csmon,$csday, $cshour,0,0,0,0,0,$hotstartseconds); 
 my $zeroDate = sprintf("%4d%02d%02d%02d",$zdyear,$zdmon,$zdday,$zdhour); 
-printf STDOUT "INFO: The fort.22 will be configured to start on $zeroDate UTC.\n";
+printf STDERR "INFO: storm_track_gen.pl: The fort.22 will be configured to start on $zeroDate UTC.\n";
 my $zdFound = 0; # set to 1 if/when we find the zero date in the file
 my $fyear; my $fmon; my $fday; my $fhour; # time at which forecast is valid
 my $ftyear; my $ftmon; my $ftday; my $fthour; # time to which forecast applies
@@ -199,7 +208,7 @@ while(<HCST>) {
     # check to see if this is a complete line (meaning that all the fields
     # up to and including the storm name are there
     my $line_length = length($line);
-    #jgfdebug printf STDOUT "length of line $. is $line_length\n";
+    #jgfdebug printf STDERR "length of line $. is $line_length\n";
     my $isotach_kts = substr($line,63,3);
     if ( $line_length >= 159 ) { 
        # this is a complete line
@@ -211,17 +220,17 @@ while(<HCST>) {
        # lines that may occur later 
        $complete_hc_lines{$isotach_kts} = $line;
     } else {
-       printf STDOUT "WARNING: Line $. in the hindcast file is incomplete: $line\n";
+       printf STDERR "WARNING: storm_track_gen.pl: Line $. in the hindcast file is incomplete: $line\n";
        # fill in from a corresponding complete line from the hash, if possible
        my $last_complete_line = $complete_hc_lines{$isotach_kts};
        if ( $last_complete_line ) {
           # splice the complete line onto the incomplete line
           $line = $line . substr($last_complete_line,$line_length-1,999);
-          printf STDOUT "WARNING: That line will be replaced with the following line: $line\n";  
+          printf STDERR "WARNING: storm_track_gen.pl: That line will be replaced with the following line: $line\n";  
        } else {
           # there wasn't a corresponding line in the hash ... safest thing
           # to do is to drop this hindcast line entirely
-          printf STDOUT "WARNING: The incomplete line could not be filled in with data from prior lines, and will be dropped.\n";
+          printf STDERR "WARNING: storm_track_gen.pl: The incomplete line could not be filled in with data from prior lines, and will be dropped.\n";
           next;
        }
     }
@@ -263,7 +272,7 @@ while(<HCST>) {
     }
     if ( $nws == 9 || $nws == 19 ) {	
        if ( ($zdFound == 0) && ($fields[2] > $zeroDate) ) {
-          die "ERROR: The date '$fields[2]' was encountered in the hindcast file '$hindcastATCF'; however an exact match of the starting date '$zeroDate' should have preceded it somewhere. Therefore, the file does not contain the proper starting date (i.e., the zero date).\n";
+          die "ERROR: storm_track_gen.pl: The date '$fields[2]' was encountered in the hindcast file '$hindcastATCF'; however an exact match of the starting date '$zeroDate' should have preceded it somewhere. Therefore, the file does not contain the proper starting date (i.e., the zero date).\n";
        }  
     }
     # grab the first relevant hindcast line; this is the zero hour 
@@ -305,7 +314,7 @@ while(<HCST>) {
 }
 close(HCST);
 if ( $zdFound == 0 ) {
-   printf STDERR "INFO: The zero date '$zeroDate' was not found in the hindcast file $hindcastATCF.\n"; 
+   printf STDERR "INFO: storm_track_gen.pl: The zero date '$zeroDate' was not found in the hindcast file $hindcastATCF.\n"; 
 }
 my $forecastedDate; # as a string
 my $last_pressure = $lasthindcastpressure;
@@ -347,7 +356,7 @@ while(<FCST>) {
    }
    if ( $nws == 9 || $nws == 19 ) {
       if ( ($zdFound == 0) && ($forecastedDate > $zeroDate) ) {
-         die "ERROR: The date found in the forecast file '$forecastATCF' is after the zero hour of '$zeroDate', but exact zero date was never found.\n";
+         die "ERROR: storm_track_gen.pl: The date found in the forecast file '$forecastATCF' is after the zero hour of '$zeroDate', but exact zero date was never found.\n";
       }
    }
    # 
@@ -517,7 +526,7 @@ close(FCST);
 close(MEMBER);
 if ( $zdFound == 0 ) {
    if ( $nws == 9 || $nws == 19 ) {
-      die "ERROR: The zero hour '$zeroDate' was not found in the hindcast file $hindcastATCF or the forecast file $forecastATCF.\n"; 
+      die "ERROR: storm_track_gen.pl: The zero hour '$zeroDate' was not found in the hindcast file $hindcastATCF or the forecast file $forecastATCF.\n"; 
    }
 }
 1;
@@ -584,14 +593,14 @@ sub interpolateUncertaintyRadius($) {
     my @nhc_radii = (9.5, 36, 62, 89, 111, 167, 230, 302);
 
     if ( $tau<$nhc_tau[0] ) {
-	print STDERR "WARNING: Invalid forecast period (tau) of $tau in\n";
+	print STDERR "WARNING: storm_track_gen.pl: Invalid forecast period (tau) of $tau in\n";
         print STDERR "storm1 fort.22. Setting radius of uncertainty to";
 	print STDERR "$nhc_radii[0]\n";
 	return $nhc_radii[0];
     } elsif ( $tau>$nhc_tau[-1] ) {
 	# if the forecast period is longer than our last available data,
 	# extrapolate the radius
-	print STDERR "WARNING: Forecast period of $tau hours in storm1\n";
+	print STDERR "WARNING: storm_track_gen.pl: Forecast period of $tau hours in storm1\n";
         print STDERR "fort.22 is farther in the future than NHC publishes\n";
         print STDERR "uncertainty statistics. Extrapolating radius of\n";
         print STDERR "uncertainty from published data at $nhc_tau[-2] and\n";
@@ -612,6 +621,6 @@ sub interpolateUncertaintyRadius($) {
 	    }
 	}
     } else { 
-	die "ERROR: Failed to interpolate radius of uncertainty at $tau hours.";
+	die "ERROR: storm_track_gen.pl: Failed to interpolate radius of uncertainty at $tau hours.";
     }
 }

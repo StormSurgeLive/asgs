@@ -26,6 +26,7 @@
 use strict;
 use warnings;
 use Date::Pcalc;
+use Getopt::Long;
 
 # parse rss reports from Nat'l Hurricane Center Atlantic Marine Forecast
 # Advisory.  NHC Mail (Atlantic Marine)
@@ -67,8 +68,19 @@ my $atcf_line = $template;
 my $lat;
 my $lon;
 my $vmax;
+my $input;  # name of input file
+my $output; # name of output file
 #
-my @lines =(<>);
+GetOptions(
+           "input=s" => \$input,
+           "output=s" => \$output
+           );
+#
+open(INPUT,"<$input") || die "ERROR: nhc_advisory_bot.pl: Failed to open forecast advisory file $input for conversion to ATCF format: $!.";
+open(ATCF,">$output") || die "ERROR: nhc_advisory_bot.pl: Failed to open output ATCF file $output : $!.";
+#
+my @lines =(<INPUT>);
+close(INPUT);
 my $body_ref = \@lines;
 my $cnt = @{$body_ref};
 #
@@ -80,10 +92,10 @@ if (@match) {
    if ( $match[0] =~ /AL(\d{2})(\d{4})$/ ) {
       $storm_number = $1;
       $storm_year = $2;
-      printf STDOUT "STORM NUMBER: $storm_number\n";
-      printf STDOUT "STORM YEAR: $storm_year\n";
+      printf STDERR "INFO: nhc_advisory_bot.pl: STORM NUMBER: $storm_number\n";
+      printf STDERR "INFO: nhc_advisory_bot.pl: STORM YEAR: $storm_year\n";
    } else {
-      die "Exiting: NO NHC NUMBER/YEAR";
+      die "ERROR: nhc_advisory_bot.pl: NO NHC NUMBER/YEAR";
       exit;
    }
 }
@@ -114,7 +126,7 @@ if (@match) {
       $nowcast_day = $vals[3];
    }
    $nowcast_date_time = $nowcast_year . $nowcast_month . $nowcast_day . $nowcast_hour; 
-   printf STDOUT "Time of nowcast is $nowcast_date_time\n";
+   printf STDERR "INFO: nhc_advisory_bot.pl: Time of nowcast is $nowcast_date_time\n";
    substr($atcf_line,8,10) = sprintf("%10d",$nowcast_date_time);
 }
 # advisory number does not appear in the ATCF format
@@ -148,9 +160,9 @@ if ($tmp[0] eq 'HURRICANE'){
 substr($atcf_line,148,10) = sprintf("%10s",$storm_name);
 my $adv_num_str = sprintf( "%02d", $adv_num );
 my $adv_num_url_str = sprintf( "%03d", $adv_num );
-printf STDOUT "STORM NAME: $storm_name\n";
-printf STDOUT "STORM CLASS: $storm_class\n";
-printf STDOUT "ADVISORY NUMBER: $adv_num_str\n";
+printf STDERR "INFO: nhc_advisory_bot.pl: STORM NAME: $storm_name\n";
+printf STDERR "INFO: nhc_advisory_bot.pl: STORM CLASS: $storm_class\n";
+printf STDERR "INFO: nhc_advisory_bot.pl: ADVISORY NUMBER: $adv_num_str\n";
 if ( $storm_year > 2005 ) {
    $adv_url = "http://www.nhc.noaa.gov/archive/$storm_year/al$storm_number_str/al$storm_number_str$storm_year.fstadv.$adv_num_url_str.shtml";
 } else {
@@ -183,7 +195,7 @@ my $nowcast_lat = sprintf("%4d$ns_hem", $lat * 10);
 my $nowcast_lon = sprintf("%4d$ew_hem", $lon * 10);
 substr($atcf_line,34,5) = sprintf("%5s", $nowcast_lat);
 substr($atcf_line,41,5) = sprintf("%5s", $nowcast_lon);
-printf STDOUT "Nowcast position is '$nowcast_lat' '$nowcast_lon'\n";
+printf STDERR "INFO: nhc_advisory_bot.pl: Nowcast position is '$nowcast_lat' '$nowcast_lon'\n";
 @match = grep /^ESTIMATED MINIMUM CENTRAL PRESSURE/, @{$body_ref};
 if (@match) {
    if ( $match[0] =~ /^ESTIMATED MINIMUM CENTRAL PRESSURE\s+(.+)\s+MB/ ) {
@@ -191,7 +203,7 @@ if (@match) {
    }
 }
 substr($atcf_line,53,4) = sprintf("%4d", $pressure);
-printf STDOUT "nowcast central pressure is $pressure\n";
+printf STDERR "INFO: nhc_advisory_bot.pl: nowcast central pressure is $pressure\n";
     #MAX SUSTAINED WINDS  25 KT WITH GUSTS TO  35 KT.
     #MAX SUSTAINED WINDS 125 KT WITH GUSTS TO 155 KT.
 
@@ -203,11 +215,9 @@ if (@match) {
    }
 }
 substr($atcf_line,47,4) = sprintf("%4d",$vmax); 
-printf STDOUT "nowcast max wind is $vmax\n";
+printf STDERR "INFO: nhc_advisory_bot.pl: nowcast max wind is $vmax\n";
 my $forecast_atcf_filename = lc($storm_name) . "_advisory_" . $adv_num_str . ".fst";
 #
-# open output file
-open(ATCF,">$forecast_atcf_filename") || die "ERROR: Could not open $forecast_atcf_filename: $!"; 
 # collect nowcast wind radii, if any
 my $isotachs_found = 0;
 my @isotachs;

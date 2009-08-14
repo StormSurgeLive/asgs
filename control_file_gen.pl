@@ -95,14 +95,14 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "hst=s" => \$hotstarttime);
 #
 # open template file for fort.15
-open(TEMPLATE,"<$controltemplate") || die "ERROR: Failed to open the fort.15 template file $controltemplate for reading.";
+open(TEMPLATE,"<$controltemplate") || die "ERROR: control_file_gen.pl: Failed to open the fort.15 template file $controltemplate for reading.";
 #
 # open output control file
-open(STORM,">fort.15") || die "ERROR: Failed to open the output control file $dir/fort.15.";
-print STDOUT "INFO: The output fort.15 file will be written to the directory $dir.\n"; 
+open(STORM,">fort.15") || die "ERROR: control_file_gen.pl: Failed to open the output control file $dir/fort.15.";
+print STDOUT "INFO: control_file_gen.pl: The output fort.15 file will be written to the directory $dir.\n"; 
 #
 # open met input file
-open(METFILE,"<$metfile") || die "ERROR: Failed to open meteorological (ATCF-formatted) fort.22 file $metfile for reading.";
+open(METFILE,"<$metfile") || die "ERROR: control_file_gen.pl: Failed to open meteorological (ATCF-formatted) fort.22 file $metfile for reading.";
 #
 # Build track list
 #
@@ -128,7 +128,7 @@ foreach $track (reverse(@TRACKS)) {
         if ( defined $track->[27] ) {
            $nhcName = $track->[27];
         } else {	 
-           printf STDERR "WARNING: The name of the storm does not appear in the hindcast.\n";
+           printf STDERR "WARNING: control_file_gen.pl: The name of the storm does not appear in the hindcast.\n";
         }
      }
      # also grab the last hindcast time; this will be the nowcast time
@@ -154,7 +154,7 @@ my $end;
 # for a nowcast, end the run at the end of the hindcast
 if ( $enstorm eq "nowcast" ) { 
    $end = $nowcast;
-   printf(STDOUT "INFO: New nowcast time is $end.\n");
+   printf(STDOUT "INFO: control_file_gen.pl: New nowcast time is $end.\n");
 } elsif ( $endtime ) {
    # if this is not a nowcast, and the end time has been specified, end then
    $end = $endtime
@@ -224,7 +224,7 @@ if ( $enstorm eq "nowcast" ) {
      }
    }
 }
-printf(STDOUT "INFO: The fort.15 file will be configured to end on $end.\n");
+printf(STDOUT "INFO: control_file_gen.pl: The fort.15 file will be configured to end on $end.\n");
 #
 $cstart=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
 my $cs_year = $1;
@@ -254,7 +254,7 @@ my ($days,$hours,$seconds)
 # the nowcast time, even if ADCIRC rounds down the number of timesteps
 my $stopshort = 0.0;
 if ( $enstorm eq "nowcast" ) {
-   $stopshort = -$dt;
+   $stopshort = -2*$dt;
 } else {
    $stopshort = $dt;
 }
@@ -274,6 +274,7 @@ my $min_runlength = 2*$dt;
 # if we coldstart at the nowcast, we may not have calculated a runlength 
 # longer than the minimum
 if ( $runlength_seconds < $min_runlength ) { 
+   printf STDERR "INFO: control_file_gen.pl: Runlength was calculated as $runlength_seconds seconds, which is less than the minimum runlength of $min_runlength seconds. The RNDAY will be adjusted so that it ADCIRC runs for the minimum length of simulation time.\n";
    # recalculate the RNDAY as the hotstart time plus the minimal runlength
    if ( $hotstarttime ) {
       $RNDAY=$hotstarttime_days + ($min_runlength/86400.0);

@@ -40,12 +40,14 @@ INPUTDIR=/work/01053/rweaver/ASGS/trunk/input   # dir containing grid and other 
 OUTPUTDIR=/work/01053/rweaver/ASGS/trunk/output # dir containing post processing scripts
 PERL5LIB=/work/01053/rweaver/ASGS/trunk/PERL    # dir with DateCale.pm perl module
 NCPU=512            # number of CPUs to use for all simulations
+STARTADVISORYNUM=0
 #
 #-------------------------------------------------------------------
 # Platform-related configuration
 #-------------------------------------------------------------------
 #QUEUENAME=standard # for ERDC machines, non-emergency queue
 #QUEUENAME=nbatch  # for ERDC machines, this is emergency queue name
+#QUEUENAME=debug   # for ERDC machines, this is small (test) queue name
 #QUEUENAME=512cpu  # for UNC (topsail); can also use 128cpu or 32cpu
 #QUEUENAME=workq   # for queenbee.loni.org or tezpur.hpc.lsu.edu; non-emergency
 #QUEUENAME=priority #for queenbee.loni.org or tezpur.hpc.lsu.edu; emergency
@@ -55,6 +57,14 @@ QUEUENAME=normal   # for TACC (ranger);
 #-------------------------------------------------------------------
 # Input configuration
 #-------------------------------------------------------------------
+#
+# Once activated, the ASGS may be set to trigger a new nowcast/forecast cycle
+# in one of  ways: (1) a changed forecast file on the NHC ftp site, or a new
+# advisory announced on the NHC RSS feed 
+TRIGGER=ftp    # either "ftp" or "rss"
+#
+# site information for retrieving advisories
+RSSSITE=http://www.nhc.noaa.gov
 #FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files 
 #FDIR=/atcf/afst     # forecast dir on nhc ftp site
 #HDIR=/atcf/btk      # hindcast dir on nhc ftp site
@@ -63,10 +73,6 @@ FTPSITE=ftp.unc.edu
 FDIR=/pub/ims/weaver/NHC_Advisories/fst # forecast dir on test site
 HDIR=/pub/ims/weaver/NHC_Advisories/btk # hindcast dir on test site
 #
-# we will implement automation of the correct advisory number in a later
-# release ... for now, we simply increment
-STARTADVISORYNUM=1  # the starting advisory number
-# 
 # It is assumed that the following files are in the INPUTDIR defined above
 #
 # file that contains the mesh (fort.14)
