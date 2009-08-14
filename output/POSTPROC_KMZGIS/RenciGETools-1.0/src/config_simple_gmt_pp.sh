@@ -33,8 +33,8 @@ case "$TARGET" in
 # for Ranger
 	"ranger") 
 		GMTHOME=/share/home/01053/rweaver/GMT4.4.0			   # The GMT installation
-		PPDIR=/share/home/01053/rweaver/POSTPROC_KMZGIS/RenciGETools-1.0/src
-                GRDFILES=/share/home/01053/rweaver/POSTPROC_KMZGIS/grids
+		PPDIR=/share/home/01053/rweaver/ASGS/asgs_2009/output/POSTPROC_KMZGIS/RenciGETools-1.0/src
+                GRDFILES=/share/home/01053/rweaver/ASGS/asgs_2009/output/POSTPROC_KMZGIS/grids
 		GS=/usr/bin/gs				   # The ghostscript binary (gs)
         	ImageMagick=/usr/bin			   # path to ImageMagick binaries
         	ZIP=/usr/bin/zip			   # path to zip

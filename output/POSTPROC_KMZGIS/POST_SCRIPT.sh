@@ -4,6 +4,15 @@
 # UNC-CH IMS
 # rjweaver@email.unc.edu
 # 06/2009 
+ 
+ADVISDIR=$1
+OUTPUTDIR=$2
+STORM=$3
+YEAR=$4
+ADVISORY=$5
+HOSTNAME=$6
+ENSTORM=$7
+GRIDFILE=$8 
 
 # This script will run the KMZ and GIS shapefile generator
 # 
@@ -29,7 +38,7 @@
 # First set path to the POSTPROC_KMZGIS directory
 #
 
-POSTPROC_DIR=/share/home/01053/rweaver/POSTPROC_KMZGIS
+POSTPROC_DIR=$OUTPUTDIR/POSTPROC_KMZGIS
 
 # add location of KMZ scripts to PATH 
 # This should be fine unless locations were really changed
@@ -75,10 +84,10 @@ export PPDIR=$POSTPROC_DIR/RenciGETools-1.0/src
 # On topsail.unc.edu 4 layers for a 270000 node grid took 14 minutes.
 # to test the script use only 1 layer.
   
-      INPUTFILE=$POSTPROC_DIR/ike_coarse_v48_maxele.63
-     GRIDPREFIX='texas_coarse_grid'
-   OUTPUTPREFIX='texas_coarse_grid_example'
-       NUMLAYER=1
+      INPUTFILE=$ADVISDIR/$ENSTORM/maxele.63
+     GRIDPREFIX=`basename $GRIDFILE .grd`
+     OUTPUTPREFIX='$STORM_$YEAR_$ENSTORM_$ADVISORY'
+       NUMLAYER=3
 
  $PPDIR/adc_max_simple_plot_gmt.sh -f $INPUTFILE -g $GRIDPREFIX -p $OUTPUTPREFIX -n $NUMLAYER
 
@@ -130,9 +139,9 @@ fi
 
  mkdir  $OUTPUTPREFIX-output_files
 
- mv $OUTPUTPREFIX.* $OUTPUTPREFIX-output_files
- tar -czf $OUTPUTPREFIX.tgz $OUTPUTPREFIX-output_files
+ mv $OUTPUTPREFIX.* $ADVISDIR/$OUTPUTPREFIX-output_files
+ tar -czf $ADVISDIR/$OUTPUTPREFIX.tgz $ADVISDIR/$OUTPUTPREFIX-output_files
 
- rm -rf $OUTPUTPREFIX-output_files
+# rm -rf $ADVISDIR/$OUTPUTPREFIX-output_files
 ###
 exit 0
