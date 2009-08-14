@@ -1,341 +1,341 @@
-LPFS2008 %StormName%              ! 32 CHARACTER ALPHANUMERIC RUN DESCRIPTION
-%EnsembleID%                      ! 24 CHARACTER ALPANUMERIC RUN IDENTIFICATION
- 1  ! NFOVER - NONFATAL ERROR OVERRIDE OPTION
- 0  ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
-100  ! NSCREEN - UNIT 6 OUTPUT OPTION PARAMETER
-%IHOT%   ! IHOT - HOT START PARAMETER
- 2  ! ICS - COORDINATE SYSTEM SELECTION PARAMETER
- 0  ! IM - MODEL SELECTION PARAMETER 
- 1  ! NOLIBF - BOTTOM FRICTION TERM SELECTION PARAMETER
- 2  ! NOLIFA - FINITE AMPLITUDE TERM SELECTION PARAMETER
- 0  ! NOLICA - SPATIAL DERIVATIVE CONVECTIVE SELECTION PARAMETER
- 0  ! NOLICAT - TIME DERIVATIVE CONVECTIVE TERM SELECTION PARAMETER
- 6  ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
+ ASGS Corps %StormName%           ! 32 CHARACTER ALPHANUMERIC RUN DESCRIPTION
+ %EnsembleID%                     ! 24 CHARACTER ALPANUMERIC RUN IDENTIFICATION
+ 1                     ! NFOVER - NONFATAL ERROR OVERRIDE OPTION
+ 0                     ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
+-1000                  ! NSCREEN - UNIT 6 OUTPUT OPTION PARAMETER
+ %IHOT%                ! IHOT - HOT START PARAMETER
+ 2                     ! ICS - COORDINATE SYSTEM SELECTION PARAMETER
+ 0                     ! IM - MODEL SELECTION PARAMETER 
+ 1                     ! NOLIBF - BOTTOM FRICTION TERM SELECTION PARAMETER
+ 2                     ! NOLIFA - FINITE AMPLITUDE TERM SELECTION PARAMETER
+ 0                     ! NOLICA - SPATIAL DERIVATIVE CONVECTIVE SELECTION PARAMETER
+ 0                     ! NOLICAT - TIME DERIVATIVE CONVECTIVE TERM SELECTION PARAMETER
+ 6                     ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
 surface_submergence_state
 surface_directional_effective_roughness_length
 surface_canopy_coefficient
 mannings_n_at_sea_floor
 sea_surface_height_above_geoid
 primitive_weighting_in_continuity_equation
- 1  ! NCOR - VARIABLE CORIOLIS IN SPACE OPTION PARAMETER
- 1  ! NTIP - TIDAL POTENTIAL OPTION PARAMETER
- %NWS%  ! NWS - WIND STRESS AND BAROMETRIC PRESSURE OPTION PARAMETER
- 2  ! NRAMP - RAMP FUNCTION OPTION
- 9.81  ! G - ACCELERATION DUE TO GRAVITY - DETERMINES UNITS
- -3.0 ! TAU0 - WEIGHTING FACTOR IN GWCE
- %DT% ! DT - TIME STEP (IN SECONDS)
- 0.00  ! STATIM - STARTING TIME (IN DAYS)
- 0.00   ! REFTIM - REFERENCE TIME (IN DAYS)
- %HollandParams%    ! YYYY MM DD HH StNum BLAdj
- %RNDAY%  ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
- 0.5 0.25 0.5  ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
- 0.35 0.30 0.35  ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
- 0.10 0 0 0.01    ! H0, NODEDRYMIN, NODEWETMIN, VELMIN
- 265.5 29.0 ! SLAM0,SFEA0 - CENTER OF CPP PROJECTION (NOT USED IF ICS=1, NTIP=0, NCOR=0)
- 0.0030 2.0 10 1.33333 !  FFACTOR,HBREAK,FTHETA,FGAMMA
- 50.0 ! ESL - LATERAL EDDY VISCOSITY COEFFICIENT; IGNORED IF NWP =1
- 0.0    ! CORI - CORIOLIS PARAMETER - IGNORED IF NCOR = 1
- 0                      ! NTIF - TOTAL NUMBER OF TIDAL POTENTIAL CONSTITUENTS BE
- 1                      ! NBFR - TOTAL NUMBER OF FORCING FREQUENCIES ON OPEN BOU
- STEADY                 ! ALPHANUMERIC DESCRIPTION OF ELEVATION BDRY FORCING
- 0.000000000000 1.00000 000.00
- STEADY                 ! ALPHANUMERIC DESCRIPTION OF ELEVATION BDRY FORCING
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 0    0
- 110.0 ! ANGINN : INNER ANGLE THRESHOLD
-1 ! NFFR - TOTAL NUMBER OF FORCING FREQUENCIES ON FLUX BOUNDARIES
- STEADY ! CONSTITUENT. 1  ALPHA DESCRIPTOR
- 0.00000E-00       1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
+ 1                     ! NCOR - VARIABLE CORIOLIS IN SPACE OPTION PARAMETER
+ 0                     ! NTIP - TIDAL POTENTIAL OPTION PARAMETER
+ %NWS%                     ! NWS - WIND STRESS AND BAROMETRIC PRESSURE OPTION PARAMETER
+ 2                     ! NRAMP - RAMP FUNCTION OPTION
+ 9.81                  ! G - ACCELERATION DUE TO GRAVITY - DETERMINES UNITS
+ -3.0                  ! TAU0 - WEIGHTING FACTOR IN GWCE
+  %DT%                  ! DT - TIME STEP (IN SECONDS)
+ 0.00                  ! STATIM - STARTING TIME (IN DAYS)
+ 0.00                  ! REFTIM - REFERENCE TIME (IN DAYS)
+ %HollandParams%               ! WTIMINC not used in asymmetric wind model
+ %RNDAY%                 ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
+ 0.5 0.5 0.5           ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
+ 0.35 0.30 0.35        ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
+ 0.10 0 0 0.01         ! H0, NODEDRYMIN, NODEWETMIN, VELMIN
+ 265.5 29.0            ! SLAM0,SFEA0 - CENTER OF CPP PROJECTION (NOT USED IF ICS=1, NTIP=0, NCOR=0)
+ 0.0030 2.0 10 1.33333 ! FFACTOR,HBREAK,FTHETA,FGAMMA
+ 50.0                  ! ESL - LATERAL EDDY VISCOSITY COEFFICIENT; IGNORED IF NWP =1
+ 0.0                   ! CORI - CORIOLIS PARAMETER - IGNORED IF NCOR = 1
+ 0                     ! NTIF - TOTAL NUMBER OF TIDAL POTENTIAL CONSTITUENTS BE
+ 1                     ! NBFR - TOTAL NUMBER OF FORCING FREQUENCIES ON OPEN BOU
+ STEADY                    ! ALPHANUMERIC DATA FOR OPEN OCEAN FORCING
+ 0.000000000000000  1.00000   000.00 
+ STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING 
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 0.0000 0.0000
+ 110.0                ! ANGINN : INNER ANGLE THRESHOLD
+1                     ! NFFR - TOTAL NUMBER OF FORCING FREQUENCIES ON FLUX BOUNDARIES
+ STEADY               ! CONSTITUENT. 1  ALPHA DESCRIPTOR
+ 0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
   STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
    2.360 0.00   ! FLOW  BOUNDARY FORCING DATA FOR MS RIVER AT FIRST NODE  
    4.250 0.00   
@@ -350,86 +350,261 @@ primitive_weighting_in_continuity_equation
    0.660 0.00   
    0.660 0.00
    0.570 0.00   ! FLOW  BOUNDARY FORCING DATA FOR MS RIVER AT LAST NODE
-1 0.0 100.0 600 ! NOUTE,TOUTSE,TOUTFE,NSPOOLE:ELEV STATION OUTPUT INFO (UNIT  61)
-23      ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS, FOLLOWED BY LOCATIONS ON PROCEEDING LINES
-   -90.07482   30.03242     ! London Ave. Canal
-   -90.069444  29.871111    ! Harvey Canal at Lapalco Blvd (76220)
-   -90.393     30.0816      ! St. Charles
-   -89.9       30.0011      ! Golden Triangle
-   -89.9428    29.8431      ! Caernarvon
-   -90.364     29.8904      ! Northwest West Bank (in upper end of basin near highway 90)
-   -90.234     29.3821      ! Larose (point furthest west by Larose hurricane protection project)
-   -90.09228880 30.36579720 ! Lake Pontchartrain at Mandeville (85575)
-   -90.11564440 30.02216380 ! Lake Pontchartrain at West End (85625)
-   -90.02675000 29.96648050 ! Inner Harbor Navigational Canal (IHNC) New Orleans (76160)
-   -90.27305556 29.91250000 ! Sellers Canal at Hwy 90, LA (Pier 90) (82720)
-   -90.05972222 29.84833333 ! Harvey Canal at Boomtown Casino (76230)
-   -90.11055556 29.66944440 ! Barataria Waterway at Lafitte, LA (82875)
-   -90.24555556 29.34250000 ! Golden Meadow Floodgate, LA (South) (82260)
-   -90.125833 30.358611     ! USGS 073802330 (NWS) Lake Pontchartrain at Midlake on Causeway
-   -89.863889 30.141667     ! USGS 300830089515000 Little Irish Bayou
-   -89.910222 29.601        ! USGS 07380241 Suzie Bayou at L. Hermitage Rd near Deer Range, LA
-   -89.946806 29.272833     ! USGS 073802516 Barataria Pass at Grand Isle, LA
-   -89.605972 29.58575      ! USGS 07374527 Northeast Bay Gardene near Point-A-LA-Hache, LA
-   -89.905833 29.856667     ! USGS 295124089542100 Caernarvon Outfall Channel at Caernarvon, LA
-   -89.938667 30.004139     ! USGS 073802338 IWW @ I-510 Bridge (Paris Rd) at New Orleans, LA 
-   -90.1      29.466667     ! USGS Little Lake near Bayou Dogris East of Galliano, halfway between Grand Isle and Lafitte
-   -89.250278 30.122778     ! USGS Mississippi Sound at Grand Pass
-1 0.0 100.0  7200 ! NOUTV,TOUTSV,TOUTFV,NSPOOLV:VEL STATION OUTPUT INFO (UNIT  62)
-23     ! NSTAV - NUMBER OF VELOCITY RECORDING STATIONS, FOLLOWED BY LOCATIONS ON PROCEEDING LINES
-   -90.07482   30.03242     ! London Ave. Canal
-   -90.069444  29.871111    ! Harvey Canal at Lapalco Blvd (76220)
-   -90.393     30.0816      ! St. Charles
-   -89.9       30.0011      ! Golden Triangle
-   -89.9428    29.8431      ! Caernarvon
-   -90.364     29.8904      ! Northwest West Bank (in upper end of basin near highway 90)
-   -90.234     29.3821      ! Larose (point furthest west by Larose hurricane protection project)
-   -90.09228880 30.36579720 ! Lake Pontchartrain at Mandeville (85575)
-   -90.11564440 30.02216380 ! Lake Pontchartrain at West End (85625)
-   -90.02675000 29.96648050 ! Inner Harbor Navigational Canal (IHNC) New Orleans (76160)
-   -90.27305556 29.91250000 ! Sellers Canal at Hwy 90, LA (Pier 90) (82720)
-   -90.05972222 29.84833333 ! Harvey Canal at Boomtown Casino (76230)
-   -90.11055556 29.66944440 ! Barataria Waterway at Lafitte, LA (82875)
-   -90.24555556 29.34250000 ! Golden Meadow Floodgate, LA (South) (82260)
-   -90.125833 30.358611     ! USGS 073802330 (NWS) Lake Pontchartrain at Midlake on Causeway
-   -89.863889 30.141667     ! USGS 300830089515000 Little Irish Bayou
-   -89.910222 29.601        ! USGS 07380241 Suzie Bayou at L. Hermitage Rd near Deer Range, LA
-   -89.946806 29.272833     ! USGS 073802516 Barataria Pass at Grand Isle, LA
-   -89.605972 29.58575      ! USGS 07374527 Northeast Bay Gardene near Point-A-LA-Hache, LA
-   -89.905833 29.856667     ! USGS 295124089542100 Caernarvon Outfall Channel at Caernarvon, LA
-   -89.938667 30.004139     ! USGS 073802338 IWW @ I-510 Bridge (Paris Rd) at New Orleans, LA 
-   -90.1      29.466667     ! USGS Little Lake near Bayou Dogris East of Galliano, halfway between Grand Isle and Lafitte
-   -89.250278 30.122778     ! USGS Mississippi Sound at Grand Pass
-1 0.0 100.0 600 ! NOUTM,TOUTSM,TOUTFM,NSPOOLM:METEO STATION OUTPUT INFO (UNITS 71/72)
-23     ! TOTAL NUMBER OF MET RECORDING STATIONS
-   -90.07482   30.03242     ! London Ave. Canal
-   -90.069444  29.871111    ! Harvey Canal at Lapalco Blvd (76220)
-   -90.393     30.0816      ! St. Charles
-   -89.9       30.0011      ! Golden Triangle
-   -89.9428    29.8431      ! Caernarvon
-   -90.364     29.8904      ! Northwest West Bank (in upper end of basin near highway 90)
-   -90.234     29.3821      ! Larose (point furthest west by Larose hurricane protection project)
-   -90.09228880 30.36579720 ! Lake Pontchartrain at Mandeville (85575)
-   -90.11564440 30.02216380 ! Lake Pontchartrain at West End (85625)
-   -90.02675000 29.96648050 ! Inner Harbor Navigational Canal (IHNC) New Orleans (76160)
-   -90.27305556 29.91250000 ! Sellers Canal at Hwy 90, LA (Pier 90) (82720)
-   -90.05972222 29.84833333 ! Harvey Canal at Boomtown Casino (76230)
-   -90.11055556 29.66944440 ! Barataria Waterway at Lafitte, LA (82875)
-   -90.24555556 29.34250000 ! Golden Meadow Floodgate, LA (South) (82260)
-   -90.125833 30.358611     ! USGS 073802330 (NWS) Lake Pontchartrain at Midlake on Causeway
-   -89.863889 30.141667     ! USGS 300830089515000 Little Irish Bayou
-   -89.910222 29.601        ! USGS 07380241 Suzie Bayou at L. Hermitage Rd near Deer Range, LA
-   -89.946806 29.272833     ! USGS 073802516 Barataria Pass at Grand Isle, LA
-   -89.605972 29.58575      ! USGS 07374527 Northeast Bay Gardene near Point-A-LA-Hache, LA
-   -89.905833 29.856667     ! USGS 295124089542100 Caernarvon Outfall Channel at Caernarvon, LA
-   -89.938667 30.004139     ! USGS 073802338 IWW @ I-510 Bridge (Paris Rd) at New Orleans, LA 
-   -90.1      29.466667     ! USGS Little Lake near Bayou Dogris East of Galliano, halfway between Grand Isle and Lafitte
-   -89.250278 30.122778     ! USGS Mississippi Sound at Grand Pass
-1 0.0 100.0 3600 ! NOUTGE,TOUTSGE,TOUTFGE,NSPOOLGE : GLOBAL ELEVATION OUTPUT INFO (UNIT  63)
-1 0.0 100.0 10800 ! NOUTGV,TOUTSGV,TOUTFGV,NSPOOLGV : GLOBAL VELOCITY  OUTPUT INFO (UNIT  64)    
-1 0.0 100.0 10800 ! NOUTGW,TOUTSGW,TOUTFGW,NSPOOLGW : GLOBAL WIND OUTPUT INFO
- 0 ! NHARFR - NUMBER OF CONSTITUENTS TO BE INCLUDED IN THE HARMONIC ANALYSIS
- 40.0  50.0  5  0.0 ! THAS,THAF,NHAINC,FMV - HARMONIC ANALYSIS PARAMETERS    
- 1 1 1 1 ! NHASE,NHASV,NHAGE,NHAGV - CONTROL HARMONIC ANALYSIS AND OUTPUT TO UNITS 51,52,53,54
- %NHSTAR%  %NHSINC% ! NHSTAR,NHSINC - HOT START FILE GENERATION PARAMETERS 
- 1  0  1.E-10  25 0 ! ITITER, ISLDIA, CONVCR, ITMAX & ILUMP
+   2.180 0.00   ! FLOW  BOUNDARY FORCING DATA FOR ATCH RIVER AT FIRST NODE
+   2.180 0.00   
+   2.180 0.00   
+   2.180 0.00   
+   2.040 0.00   
+   2.000 0.00   
+   1.900 0.00               !  UPDATE ON 10/02/2006
+   1.810 0.00   
+   1.730 0.00   
+   1.640 0.00   
+   1.580 0.00   
+   1.530 0.00   
+   1.460 0.00                            ! FLOW  BOUNDARY FORCING DATA FOR ATCH RIVER AT LAST NODE
+1 0.0 24.0  900                         ! NOUTE,TOUTSE,TOUTFE,NSPOOLE:ELEV STATION OUTPUT INFO (UNIT  61)
+77                                      ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS, FOLLOWED BY LOCATIONS ON PROCEEDING LINES
+-89.3258 30.3264      !   8747437  Bay Waveland Yacht Club   MS  NOAA_NOS 
+-93.3007 30.1903      !   8767961  Bulk Terminal   LA  NOAA_NOS 
+-93.3429 29.7682      !   8768094  Calcasieu Pass  LA  NOAA_NOS 
+-90.1355 29.9329      !   8761955  Carrollton  LA  NOAA_NOS 
+-88.04596 30.63918    !   8736897  Coast Guard Sector Mobile   AL  NOAA_NOS
+-91.8800 29.7134      !   8765251  Cypremort Point   LA  NOAA_NOS
+-88.071023 30.250663  !   8735180  Dauphin Island  AL  NOAA_NOS
+-88.50595 30.348253   !   8741041  Dock E - Port of Pascagoula   MS  NOAA_NOS
+-90.3680 30.0503      !   8762372  *East Bank 1 - Norco - B. LaBranche   LA  NOAA_NOS
+-92.3050 29.5550      !   8766072  Freshwater Canal Locks  LA  NOAA_NOS
+-89.960729 29.266989  !   8761724  Grand Isle  LA  NOAA_NOS
+-87.6843 30.2799      !   8731439  *Gulf Shores - ICWW   AL  NOAA_NOS
+-89.0817 30.3600      !   8745557  Gulfport Harbor   MS  NOAA_NOS
+-93.2217 30.2236      !   8767816  Lake Charles  LA  NOAA_NOS
+-91.3381 29.4496      !   8764227  LAWMA - Amerada Pass  LA  NOAA_NOS
+-88.0433 30.7083      !   8737048  Mobile State Docks  AL  NOAA_NOS
+-90.11309 30.026204   !   8761927  New Canal Station   LA  NOAA_NOS
+-88.5630 30.3679      !   8741533  Pascagouala NOAA Lab  MS  NOAA_NOS
+-89.4067 28.9317      !   8760922  Pilots Station East - SW Pass   LA  NOAA_NOS
+-93.9300 29.8667      !   8770475  Port Arthur   TX  NOAA_NOS
+-90.208187 29.112673  !   8762075  Port Fourchon   LA  NOAA_NOS
+-93.8817 29.9800      !   8770520  *Rainbow Bridge   TX  NOAA_NOS
+-93.8701 29.7284      !   8770570  Sabine Pass North   TX  NOAA_NOS
+-89.67301 29.87021    !   8761305  Shell Beach   LA  NOAA_NOS  NOAA_NOS
+-91.2376 29.6675      !   8764044  Tesoro Marine Terminal  LA  NOAA_NOS
+-87.8250 30.4167      !   8732828  *Weeks Bay  AL  NOAA_NOS
+-90.43477 29.78621    !   8762482  West Bank 1 - Bayou Gauche  LA  NOAA_NOS
+-90.8950 30.3470      !   BYML1  *Amite River at Bayou Manchac Point   LA  NOAA_RFS
+-90.8520 30.3330      !   PVLL1  *Amite River at Port Vincent  LA  NOAA_RFS
+-91.7360 30.6910      !   MLVL1  Atchafalaya River 1 SE Melville   LA  NOAA_RFS
+-91.6870 30.2810      !   BLRL1  Atchafalaya River at Butte La Rose  LA  NOAA_RFS
+-91.7470 30.5350      !   KRZL1  Atchafalaya River at Krotz Springs  LA  NOAA_RFS
+-91.2110 29.6940      !   MCGL1  Atchafalaya River at Morgan City  LA  NOAA_RFS
+-91.4460 29.8930      !   GNDL1  Atchafalaya River at Myette Point   LA  NOAA_RFS
+-92.6317 30.4808      !   BSLL1  *Bayou Nezpique near Basile   LA  NOAA_RFS
+-89.0360 30.4880      !   LYNM6  Biloxi River 5 E Lyman  MS  NOAA_RFS
+-92.9154 30.5025      !   KDRL1  *Calcasieu River 4 W Kinder   LA  NOAA_RFS
+-93.1446 30.2902      !   OTBL1  *Calcasieu River at Old Town Bay  LA  NOAA_RFS
+-93.2183 30.2533      !   LCHL1  *Calcasieu River at Saltwater Barrier   LA  NOAA_RFS
+-93.2624 30.2939      !   LCRL1  *Calcasieu River at Sam Houston Jones State Park  LA  NOAA_RFS
+-88.4520 30.4590      !   ORAM6  Escatawpa River 3 N Orange Grove  MS  NOAA_RFS
+-91.3230 30.1300      !   BSRL1  *Intracoastal Waterway at Bayou Sorrel Lock   LA  NOAA_RFS
+-89.4410 30.3870      !   KLNM6  Jourdan River 1 S Kiln  MS  NOAA_RFS 
+-92.5903 30.1897      !   MRML1  *Mermentau River 2 S Mermentau  LA  NOAA_RFS
+-91.20041 30.4229     !   BTRL1  Mississippi River at Baton Rouge  LA  NOAA_RFS
+-90.9590 30.1030      !   DONL1  Mississippi River at Donaldsonville   LA  NOAA_RFS
+-90.58397 30.05479    !   RRVL1  Mississippi River at Reserve  LA  NOAA_RFS
+-88.6410 30.6110      !   PGFM6  Pascagoula River at Graham Ferry  MS  NOAA_RFS
+-89.7370 30.3850      !   PERL1  Pearl River 2 E Pearl River   LA  NOAA_RFS
+-93.7436 30.3036      !   DWYT2  *Sabine River 0.5 N Deweyville  TX  NOAA_RFS
+-93.7319 30.0903      !   ORNT2  *Sabine River 1.5 NE Orange   TX  NOAA_RFS
+-88.8930 30.4760      !   DIBM6  Tchoutacabouffa R.2 N D'Iberville   MS  NOAA_RFS
+-91.9928 30.2172      !   VLSL1  *Vermilion River at Lafayette - Surrey Street Gage  LA  NOAA_RFS
+-89.2060 30.3930      !   GLFM6  Wolf River 7 W Gulfport   MS  NOAA_RFS
+-89.73717 30.16993    !   301001089442600  Rigolets at Hwy 90 near Slidell   LA  USGS
+-89.8107 30.1962      !   0738023335   Lake Pontchartrain -  I10 Turnaround near Slidell   LA  USGS
+-89.7969 29.5711      !   01400  Mississippi River at West Point A La Hache  LA  USACE
+-89.2465 29.1338      !   01545  Mississippi River at Head of Passes   LA  USACE
+-89.9099 29.84569  ! 295124089542100   Caernarvon Outfall Channel at Caernarvon   LA   USGS
+-90.13000 29.47000  ! 292800090060000   Little Lake near Bay Dosgris E of Galliano   LA   USGS 
+-90.09000 29.67000  ! 82875    Barataria Waterway at Lafitte   LA   USACE
+-89.53000 29.54000  ! 07374527   Northeast Bay Gardene near Point-A-LA-Hache   LA   USGS
+-89.64000 29.53000  ! 073745258   Cow B. at American Bay near Point-A-LA-Hache   LA   USGS
+-89.87000 29.57000  ! 07380241    Suzie Bayou at L. Hermitage Rd near Deer Range   LA   USGS 
+-89.26617 30.14194  ! 3007220891501   Mississippi Sound at Grand Pass   MS   USGS
+-90.243390 29.337136  ! 82260   Bayou Lafourche At Golden Meadow Floodgate   LA   USACE
+-89.93800 30.00630  ! 073802338   IWW @ I-510 Bridge (Paris Rd) at New Orleans   LA   USGS 
+-90.16120 30.37637  ! 85575   Lake Pontchartrain at Mandeville   LA   USACE
+-89.93285 29.26176  ! 073802516   Barataria Pass at Grand Isle   LA   USGS
+-89.86240 30.11830  ! 300830089515000   Little Irish Bayou at Hwy 11 near Slidell   LA   USGS
+-90.11690 30.02220  ! 85625   Lake Pontchartrain at West End   LA   USACE
+-90.02740 29.96560  ! 76160   Inner Harbor Navigation Canal at New Orleans   LA   USACE
+-90.30730 29.91480  ! 82720   Sellers Canal at Highway 90   LA   USACE
+-90.06460 29.85610  ! 76230   Harvey Canal south of Lapalco Blvd   LA   USACE
+-90.88696 29.03295  ! 073813498   Caillou Bay SW of Cocodrie   LA   USGS 
+-90.07482 30.03242  ! 85626   London Ave Canal 1 - ICS Lakeside   LA   USACE
+-90.06944 29.87111  ! 76220    Harvey Canal at Lapalco Blvd   LA   USACE
+1 0.0 24.0  900                         ! NOUTV,TOUTSV,TOUTFV,NSPOOLV:VEL STATION OUTPUT INFO (UNIT  62)
+77                                      ! NSTAV - NUMBER OF CURRENT VELOCITY RECORDING STATIONS, FOLLOWED BY LOCATIONS ON PROCEEDING LINES
+-89.3258 30.3264      !   8747437  Bay Waveland Yacht Club   MS  NOAA_NOS 
+-93.3007 30.1903      !   8767961  Bulk Terminal   LA  NOAA_NOS 
+-93.3429 29.7682      !   8768094  Calcasieu Pass  LA  NOAA_NOS 
+-90.1355 29.9329      !   8761955  Carrollton  LA  NOAA_NOS 
+-88.04596 30.63918    !   8736897  Coast Guard Sector Mobile   AL  NOAA_NOS
+-91.8800 29.7134      !   8765251  Cypremort Point   LA  NOAA_NOS                                     
+-88.071023 30.250663  !   8735180  Dauphin Island  AL  NOAA_NOS
+-88.50595 30.348253   !   8741041  Dock E - Port of Pascagoula   MS  NOAA_NOS 
+-90.3680 30.0503      !   8762372  *East Bank 1 - Norco - B. LaBranche   LA  NOAA_NOS
+-92.3050 29.5550      !   8766072  Freshwater Canal Locks  LA  NOAA_NOS                               
+-89.960729 29.266989  !   8761724  Grand Isle  LA  NOAA_NOS                
+-87.6843 30.2799      !   8731439  *Gulf Shores - ICWW   AL  NOAA_NOS     
+-89.0817 30.3600      !   8745557  Gulfport Harbor   MS  NOAA_NOS                                     
+-93.2217 30.2236      !   8767816  Lake Charles  LA  NOAA_NOS                                         
+-91.3381 29.4496      !   8764227  LAWMA - Amerada Pass  LA  NOAA_NOS                                 
+-88.0433 30.7083      !   8737048  Mobile State Docks  AL  NOAA_NOS                                   
+-90.11309 30.026204   !   8761927  New Canal Station   LA  NOAA_NOS      
+-88.5630 30.3679      !   8741533  Pascagouala NOAA Lab  MS  NOAA_NOS                                 
+-89.4067 28.9317      !   8760922  Pilots Station East - SW Pass   LA  NOAA_NOS                       
+-93.9300 29.8667      !   8770475  Port Arthur   TX  NOAA_NOS                                         
+-90.208187 29.112673  !   8762075  Port Fourchon   LA  NOAA_NOS                    
+-93.8817 29.9800      !   8770520  *Rainbow Bridge   TX  NOAA_NOS                 
+-93.8701 29.7284      !   8770570  Sabine Pass North   TX  NOAA_NOS                                   
+-89.67301 29.87021    !   8761305  Shell Beach   LA  NOAA_NOS  NOAA_NOS          
+-91.2376 29.6675      !   8764044  Tesoro Marine Terminal  LA  NOAA_NOS                               
+-87.8250 30.4167      !   8732828  *Weeks Bay  AL  NOAA_NOS                     
+-90.43477 29.78621    !   8762482  West Bank 1 - Bayou Gauche  LA  NOAA_NOS        
+-90.8950 30.3470      !   BYML1  *Amite River at Bayou Manchac Point   LA  NOAA_RFS
+-90.8520 30.3330      !   PVLL1  *Amite River at Port Vincent  LA  NOAA_RFS        
+-91.7360 30.6910      !   MLVL1  Atchafalaya River 1 SE Melville   LA  NOAA_RFS                       
+-91.6870 30.2810      !   BLRL1  Atchafalaya River at Butte La Rose  LA  NOAA_RFS                     
+-91.7470 30.5350      !   KRZL1  Atchafalaya River at Krotz Springs  LA  NOAA_RFS                     
+-91.2110 29.6940      !   MCGL1  Atchafalaya River at Morgan City  LA  NOAA_RFS                       
+-91.4460 29.8930      !   GNDL1  Atchafalaya River at Myette Point   LA  NOAA_RFS                     
+-92.6317 30.4808      !   BSLL1  *Bayou Nezpique near Basile   LA  NOAA_RFS       
+-89.0360 30.4880      !   LYNM6  Biloxi River 5 E Lyman  MS  NOAA_RFS                                 
+-92.9154 30.5025      !   KDRL1  *Calcasieu River 4 W Kinder   LA  NOAA_RFS      
+-93.1446 30.2902      !   OTBL1  *Calcasieu River at Old Town Bay  LA  NOAA_RFS 
+-93.2183 30.2533      !   LCHL1  *Calcasieu River at Saltwater Barrier   LA  NOAA_RFS           
+-93.2624 30.2939      !   LCRL1  *Calcasieu River at Sam Houston Jones State Park  LA  NOAA_RFS
+-88.4520 30.4590      !   ORAM6  Escatawpa River 3 N Orange Grove  MS  NOAA_RFS 
+-91.3230 30.1300      !   BSRL1  *Intracoastal Waterway at Bayou Sorrel Lock   LA  NOAA_RFS   
+-89.4410 30.3870      !   KLNM6  Jourdan River 1 S Kiln  MS  NOAA_RFS 
+-92.5903 30.1897      !   MRML1  *Mermentau River 2 S Mermentau  LA  NOAA_RFS                
+-91.20041 30.4229     !   BTRL1  Mississippi River at Baton Rouge  LA  NOAA_RFS             
+-90.9590 30.1030      !   DONL1  Mississippi River at Donaldsonville   LA  NOAA_RFS 
+-90.58397 30.05479    !   RRVL1  Mississippi River at Reserve  LA  NOAA_RFS                
+-88.6410 30.6110      !   PGFM6  Pascagoula River at Graham Ferry  MS  NOAA_RFS 
+-89.7370 30.3850      !   PERL1  Pearl River 2 E Pearl River   LA  NOAA_RFS 
+-93.7436 30.3036      !   DWYT2  *Sabine River 0.5 N Deweyville  TX  NOAA_RFS             
+-93.7319 30.0903      !   ORNT2  *Sabine River 1.5 NE Orange   TX  NOAA_RFS              
+-88.8930 30.4760      !   DIBM6  Tchoutacabouffa R.2 N D'Iberville   MS  NOAA_RFS 
+-91.9928 30.2172      !   VLSL1  *Vermilion River at Lafayette - Surrey Street Gage  LA  NOAA_RFS 
+-89.2060 30.3930      !   GLFM6  Wolf River 7 W Gulfport   MS  NOAA_RFS 
+-89.73717 30.16993    !   301001089442600  Rigolets at Hwy 90 near Slidell   LA  USGS            
+-89.8107 30.1962      !   0738023335   Lake Pontchartrain -  I10 Turnaround near Slidell   LA  USGS 
+-89.7969 29.5711      !   01400  Mississippi River at West Point A La Hache  LA  USACE  
+-89.2465 29.1338      !   01545  Mississippi River at Head of Passes   LA  USACE  
+-89.90992 29.84569  ! 295124089542100   Caernarvon Outfall Channel at Caernarvon   LA   USGS
+-90.13000 29.47000  ! 292800090060000   Little Lake near Bay Dosgris E of Galliano   LA   USGS 
+-90.09000 29.67000  ! 82875    Barataria Waterway at Lafitte   LA   USACE
+-89.53000 29.54000  ! 07374527   Northeast Bay Gardene near Point-A-LA-Hache   LA   USGS
+-89.64000 29.53000  ! 073745258   Cow B. at American Bay near Point-A-LA-Hache   LA   USGS
+-89.87000 29.57000  ! 07380241    Suzie Bayou at L. Hermitage Rd near Deer Range   LA   USGS 
+-89.26617 30.14194  ! 3007220891501   Mississippi Sound at Grand Pass   MS   USGS
+-90.243390 29.337136  ! 82260   Bayou Lafourche At Golden Meadow Floodgate   LA   USACE   
+-89.93800 30.00630  ! 073802338   IWW @ I-510 Bridge (Paris Rd) at New Orleans   LA   USGS 
+-90.16120 30.37637  ! 85575   Lake Pontchartrain at Mandeville   LA   USACE
+-89.93285 29.26176  ! 073802516   Barataria Pass at Grand Isle   LA   USGS
+-89.86240 30.11830  ! 300830089515000   Little Irish Bayou at Hwy 11 near Slidell   LA   USGS 
+-90.11690 30.02220  ! 85625   Lake Pontchartrain at West End   LA   USACE
+-90.02740 29.96560  ! 76160   Inner Harbor Navigation Canal at New Orleans   LA   USACE
+-90.30730 29.91480  ! 82720   Sellers Canal at Highway 90   LA   USACE 
+-90.06460 29.85610  ! 76230   Harvey Canal south of Lapalco Blvd   LA   USACE
+-90.88696 29.03295  ! 073813498   Caillou Bay SW of Cocodrie   LA   USGS 
+-90.07482 30.03242  ! 85626   London Ave Canal 1 - ICS Lakeside   LA   USACE
+-90.06944 29.87111  ! 76220    Harvey Canal at Lapalco Blvd   LA   USACE
+1 0.0 24.0  900             ! NOUTM,TOUTSM,TOUTFM,NSPOOLM: MET STATION OUTPUT INFO (UNIT  71,72)
+77                           ! NSTAM - NUMBER OF MET RECORDING STATIONS
+-89.3258 30.3264      !   8747437  Bay Waveland Yacht Club   MS  NOAA_NOS 
+-93.3007 30.1903      !   8767961  Bulk Terminal   LA  NOAA_NOS 
+-93.3429 29.7682      !   8768094  Calcasieu Pass  LA  NOAA_NOS 
+-90.1355 29.9329      !   8761955  Carrollton  LA  NOAA_NOS 
+-88.04596 30.63918    !   8736897  Coast Guard Sector Mobile   AL  NOAA_NOS                  
+-91.8800 29.7134      !   8765251  Cypremort Point   LA  NOAA_NOS                                     
+-88.071023 30.250663  !   8735180  Dauphin Island  AL  NOAA_NOS                             
+-88.50595 30.348253   !   8741041  Dock E - Port of Pascagoula   MS  NOAA_NOS              
+-90.3680 30.0503      !   8762372  *East Bank 1 - Norco - B. LaBranche   LA  NOAA_NOS     
+-92.3050 29.5550      !   8766072  Freshwater Canal Locks  LA  NOAA_NOS                               
+-89.960729 29.266989  !   8761724  Grand Isle  LA  NOAA_NOS                              
+-87.6843 30.2799      !   8731439  *Gulf Shores - ICWW   AL  NOAA_NOS                   
+-89.0817 30.3600      !   8745557  Gulfport Harbor   MS  NOAA_NOS                                     
+-93.2217 30.2236      !   8767816  Lake Charles  LA  NOAA_NOS                                         
+-91.3381 29.4496      !   8764227  LAWMA - Amerada Pass  LA  NOAA_NOS                                 
+-88.0433 30.7083      !   8737048  Mobile State Docks  AL  NOAA_NOS                                   
+-90.11309 30.026204   !   8761927  New Canal Station   LA  NOAA_NOS                    
+-88.5630 30.3679      !   8741533  Pascagouala NOAA Lab  MS  NOAA_NOS                                 
+-89.4067 28.9317      !   8760922  Pilots Station East - SW Pass   LA  NOAA_NOS                       
+-93.9300 29.8667      !   8770475  Port Arthur   TX  NOAA_NOS                                         
+-90.208187 29.112673  !   8762075  Port Fourchon   LA  NOAA_NOS                       
+-93.8817 29.9800      !   8770520  *Rainbow Bridge   TX  NOAA_NOS                    
+-93.8701 29.7284      !   8770570  Sabine Pass North   TX  NOAA_NOS                                   
+-89.67301 29.87021    !   8761305  Shell Beach   LA  NOAA_NOS  NOAA_NOS             
+-91.2376 29.6675      !   8764044  Tesoro Marine Terminal  LA  NOAA_NOS                               
+-87.8250 30.4167      !   8732828  *Weeks Bay  AL  NOAA_NOS                        
+-90.43477 29.78621    !   8762482  West Bank 1 - Bayou Gauche  LA  NOAA_NOS       
+-90.8950 30.3470      !   BYML1  *Amite River at Bayou Manchac Point   LA  NOAA_RFS 
+-90.8520 30.3330      !   PVLL1  *Amite River at Port Vincent  LA  NOAA_RFS        
+-91.7360 30.6910      !   MLVL1  Atchafalaya River 1 SE Melville   LA  NOAA_RFS                       
+-91.6870 30.2810      !   BLRL1  Atchafalaya River at Butte La Rose  LA  NOAA_RFS                     
+-91.7470 30.5350      !   KRZL1  Atchafalaya River at Krotz Springs  LA  NOAA_RFS                     
+-91.2110 29.6940      !   MCGL1  Atchafalaya River at Morgan City  LA  NOAA_RFS                       
+-91.4460 29.8930      !   GNDL1  Atchafalaya River at Myette Point   LA  NOAA_RFS                     
+-92.6317 30.4808      !   BSLL1  *Bayou Nezpique near Basile   LA  NOAA_RFS                    
+-89.0360 30.4880      !   LYNM6  Biloxi River 5 E Lyman  MS  NOAA_RFS                                 
+-92.9154 30.5025      !   KDRL1  *Calcasieu River 4 W Kinder   LA  NOAA_RFS                   
+-93.1446 30.2902      !   OTBL1  *Calcasieu River at Old Town Bay  LA  NOAA_RFS              
+-93.2183 30.2533      !   LCHL1  *Calcasieu River at Saltwater Barrier   LA  NOAA_RFS       
+-93.2624 30.2939      !   LCRL1  *Calcasieu River at Sam Houston Jones State Park  LA  NOAA_RFS  
+-88.4520 30.4590      !   ORAM6  Escatawpa River 3 N Orange Grove  MS  NOAA_RFS 
+-91.3230 30.1300      !   BSRL1  *Intracoastal Waterway at Bayou Sorrel Lock   LA  NOAA_RFS     
+-89.4410 30.3870      !   KLNM6  Jourdan River 1 S Kiln  MS  NOAA_RFS 
+-92.5903 30.1897      !   MRML1  *Mermentau River 2 S Mermentau  LA  NOAA_RFS                  
+-91.20041 30.4229     !   BTRL1  Mississippi River at Baton Rouge  LA  NOAA_RFS               
+-90.9590 30.1030      !   DONL1  Mississippi River at Donaldsonville   LA  NOAA_RFS 
+-90.58397 30.05479    !   RRVL1  Mississippi River at Reserve  LA  NOAA_RFS                  
+-88.6410 30.6110      !   PGFM6  Pascagoula River at Graham Ferry  MS  NOAA_RFS 
+-89.7370 30.3850      !   PERL1  Pearl River 2 E Pearl River   LA  NOAA_RFS 
+-93.7436 30.3036      !   DWYT2  *Sabine River 0.5 N Deweyville  TX  NOAA_RFS               
+-93.7319 30.0903      !   ORNT2  *Sabine River 1.5 NE Orange   TX  NOAA_RFS                         
+-88.8930 30.4760      !   DIBM6  Tchoutacabouffa R.2 N D'Iberville   MS  NOAA_RFS 
+-91.9928 30.2172      !   VLSL1  *Vermilion River at Lafayette - Surrey Street Gage  LA  NOAA_RFS  
+-89.2060 30.3930      !   GLFM6  Wolf River 7 W Gulfport   MS  NOAA_RFS 
+-89.73717 30.16993    !   301001089442600  Rigolets at Hwy 90 near Slidell   LA  USGS             
+-89.8107 30.1962      !   0738023335   Lake Pontchartrain -  I10 Turnaround near Slidell   LA  USGS 
+-89.7969 29.5711      !   01400  Mississippi River at West Point A La Hache  LA  USACE  
+-89.2465 29.1338      !   01545  Mississippi River at Head of Passes   LA  USACE  
+-89.90992 29.84569  ! 295124089542100   Caernarvon Outfall Channel at Caernarvon   LA   USGS
+-90.13000 29.47000  ! 292800090060000   Little Lake near Bay Dosgris E of Galliano   LA   USGS 
+-90.09000 29.67000  ! 82875    Barataria Waterway at Lafitte   LA   USACE
+-89.53000 29.54000  ! 07374527   Northeast Bay Gardene near Point-A-LA-Hache   LA   USGS
+-89.64000 29.53000  ! 073745258   Cow B. at American Bay near Point-A-LA-Hache   LA   USGS
+-89.87000 29.57000  ! 07380241    Suzie Bayou at L. Hermitage Rd near Deer Range   LA   USGS 
+-89.26617 30.14194  ! 3007220891501   Mississippi Sound at Grand Pass   MS   USGS
+-90.243390 29.337136  ! 82260   Bayou Lafourche At Golden Meadow Floodgate   LA   USACE   
+-89.93800 30.00630  ! 073802338   IWW @ I-510 Bridge (Paris Rd) at New Orleans   LA   USGS 
+-90.16120 30.37637  ! 85575   Lake Pontchartrain at Mandeville   LA   USACE
+-89.93285 29.26176  ! 073802516   Barataria Pass at Grand Isle   LA   USGS
+-89.86240 30.11830  ! 300830089515000   Little Irish Bayou at Hwy 11 near Slidell   LA   USGS 
+-90.11690 30.02220  ! 85625   Lake Pontchartrain at West End   LA   USACE
+-90.02740 29.96560  ! 76160   Inner Harbor Navigation Canal at New Orleans   LA   USACE
+-90.30730 29.91480  ! 82720   Sellers Canal at Highway 90   LA   USACE
+-90.06460 29.85610  ! 76230   Harvey Canal south of Lapalco Blvd   LA   USACE
+-90.88696 29.03295  ! 073813498   Caillou Bay SW of Cocodrie   LA   USGS 
+-90.07482 30.03242  ! 85626   London Ave Canal 1 - ICS Lakeside   LA   USACE
+-90.06944 29.87111  ! 76220    Harvey Canal at Lapalco Blvd   LA   USACE
+ 1 0. 12. 3600            ! NOUTGE,TOUTSGE,TOUTFGE,NSPOOLGE : GLOBAL ELEVATION OUTPUT INFO (UNIT  63)
+ 1 0. 12. 3600             ! NOUTGV,TOUTSGV,TOUTFGV,NSPOOLGV : GLOBAL VELOCITY  OUTPUT INFO (UNIT  64)    
+ 1 0. 12. 3600             ! NOUTGM,TOUTSGM,TOUTFGM,NSPOOLGM : GLOBAL MET  OUTPUT INFO (UNIT  73,74)    
+ 0                          ! NHARFR - NUMBER OF CONSTITUENTS TO BE INCLUDED IN THE HARMONIC ANALYSIS
+ 40.0  50.0  5  0.0         ! THAS,THAF,NHAINC,FMV - HARMONIC ANALYSIS PARAMETERS    
+ 0 0 0 0                    ! NHASE,NHASV,NHAGE,NHAGV - CONTROL HARMONIC ANALYSIS AND OUTPUT TO UNITS 51,52,53,54
+ %NHSTAR%  %NHSINC%             ! NHSTAR,NHSINC - HOT START FILE GENERATION PARAMETERS 
+ 1  0  1.E-7  25 0          ! ITITER, ISLDIA, CONVCR, ITMAX & ILUMP

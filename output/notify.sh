@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
-email_activation()
+activation_email()
 { HOSTNAME=$1
   STORM=$2
   YEAR=$3

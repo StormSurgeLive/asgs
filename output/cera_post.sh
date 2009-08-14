@@ -21,17 +21,25 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
-ASGSADVISORYDIR=$1
-STORM=$2
-YEAR=$3
-ADVISORY=$4
-HOSTNAME=$5
-ENSTORM=$6
+CONFIG=$1
+ASGSADVISORYDIR=$2
+ADVISORY=$3
+HOSTNAME=$4
+ENSTORM=$5
+CSDATE=$6
+HSTIME=$7
 #
+# grab all static configuration data
+. ${CONFIG}
 POSTDIR=/work/cera
 umask 002
-#
+# create a fort.22.cera, formatted for NWS8 (easiest for plotting)
+mv fort.22 fort.22.temp
+${SCRIPTDIR}/storm_track_gen.pl --dir $ASGSADVISORYDIR --storm $STORM --year $YEAR --coldstartdate $CSDATE --hotstartseconds $HSTIME --nws 8 --name $ENSTORM 
+mv fort.22 fort.22.cera
+mv fort.22.temp fort.22
 POSTADVISORYDIR=$POSTDIR/${STORM}${YEAR}/${ADVISORY}
+cp $ASGSADVISORYDIR/fort.22.cera $POSTADVISORYDIR
 cp $ASGSADVISORYDIR/al${STORM}${YEAR}.fst $POSTADVISORYDIR
 cp $ASGSADVISORYDIR/bal${STORM}${YEAR}.dat $POSTADVISORYDIR
 mkdir -p $POSTADVISORYDIR/$ENSTORM

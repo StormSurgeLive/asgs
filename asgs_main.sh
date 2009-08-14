@@ -75,6 +75,9 @@ checkFileExistence()
 { FPATH=$1
   FTYPE=$2
   FNAME=$3
+  if [[ -z $FNAME ]]; then
+     fatal "The $FTYPE was not specified in the configuration file. When it is specified, the ASGS will look for it in the path ${FPATH}."
+  fi
   if [ $FNAME ]; then
      if [ -e "${FPATH}/${FNAME}" ]; then 
         logMessage "The $FTYPE '${FPATH}/${FNAME}' was found." 
@@ -89,6 +92,9 @@ checkFileExistence()
 checkDirExistence()
 { DIR=$1 
   TYPE=$2
+  if [[ -z $DIR ]]; then
+      fatal "The $TYPE was not specified in the configuration file." 
+  fi 
   if [ -e $DIR ]; then 
      logMessage "The $TYPE '$DIR' was found." 
   else
@@ -204,8 +210,9 @@ prep()
     NCPU=$7     # number of CPUs to request in parallel jobs
     PREPPEDARCHIVE=$8 # preprocessed fort.13 and fort.14 package 
     GRIDFILE=$9 # fulldomain grid
-    NAFILE=${10}  # full domain nodal attributes file
-    ACCOUNT=${11} # account to charge time to 
+    ACCOUNT=${10} # account to charge time to 
+    NAFILE=${11}  # full domain nodal attributes file, must be last in the
+                  # argument list, since it may be undefined
     TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
     if [ ! -d $ADVISDIR/$ENSTORM ]; then 
 	mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
@@ -496,7 +503,8 @@ submitJob()
     ENSTORM=$7
     NOTIFYSER=$8
     ENV=$9
-    PPN=${10}
+    ACCOUNT=${10}
+    PPN=${11}
     if [ $QUEUESYS = LSF ]; then
         bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/padcirc >> ${SYSLOG}
     elif [ $QUEUESYS = LoadLeveler ]; then
@@ -507,6 +515,7 @@ submitJob()
         if [[ ! -z $PPN ]]; then
            QSCRIPTOPTIONS="$QSCRIPTOPTIONS --ppn $PPN"
         fi
+        logMessage "QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
         perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.pbs 2>> ${SYSLOG}
         logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.pbs"
         qsub $ADVISDIR/$ENSTORM/padcirc.pbs >> ${SYSLOG} 2>&1
@@ -563,7 +572,7 @@ init_sapphire()
   HOSTNAME=sapphire.erdc.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
-  ACCOUNT=erdcvenq
+  ACCOUNT=erdcvhsp
   SUBMITSTRING="aprun"
   SCRATCHDIR=/work2/$USER
   SSHKEY=id_rsa_sapphire
@@ -576,7 +585,7 @@ init_jade()
   HOSTNAME=jade.erdc.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
-  ACCOUNT=erdcvenq
+  ACCOUNT=erdcvhsp
   SUBMITSTRING="aprun"
 # INTERSTRING="qsub -l size=1,walltime=00:10:00 -A $ACCOUNT -q $QUEUENAME -I"
   INTERSTRING=
@@ -711,8 +720,8 @@ env_dispatch(){
 #   sh asgs_main.sh -c /path/to/config -e topsail 
 #
 # mail alert
-#ASGSADMIN="estrabd+lpfs@gmail.com jgflemin@email.unc.edu" #<-- purposefully not in config.sh
-ASGSADMIN="rjweaver@email.unc.edu" #<-- purposefully not in config.sh
+ASGSADMIN="estrabd+lpfs@gmail.com jgflemin@email.unc.edu" #<-- purposefully not in config.sh
+#ASGSADMIN="rjweaver@email.unc.edu" #<-- purposefully not in config.sh
 
 # exit statuses
 EXIT_NOT_OK=1
@@ -804,7 +813,10 @@ checkFileExistence $ADCIRCDIR "asymmetric metadata generation executable" aswip
 #
 checkFileExistence $INPUTDIR "ADCIRC mesh file" $GRIDFILE
 checkFileExistence $INPUTDIR "ADCIRC template fort.15 file" $CONTROLTEMPLATE
-checkFileExistence $INPUTDIR "ADCIRC nodal attributes (fort.13) file" $NAFILE
+# fort.13 (nodal attributes) file is optional
+if [[ ! -z $NAFILE ]]; then
+   checkFileExistence $INPUTDIR "ADCIRC nodal attributes (fort.13) file" $NAFILE
+fi
 checkFileExistence $INPUTDIR "preprocessed ADCIRC input archive" $PREPPEDARCHIVE
 #
 checkFileExistence $OUTPUTDIR "postprocessing initialization script" $INITPOST
@@ -936,11 +948,12 @@ while [ 1 -eq 1 ]; do
      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
     # preprocess
     logMessage $ADVISDIR "Starting nowcast preprocessing."
-    prep $ADVISDIR $INPUTDIR nowcast $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $NAFILE $ACCOUNT
+    prep $ADVISDIR $INPUTDIR nowcast $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT $NAFILE
     # then submit the job
     logMessage "Submitting ADCIRC nowcast job."
     cd $ADVISDIR/nowcast 2>> ${SYSLOG}
-    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR nowcast $NOTIFYUSER $ENV $PPN
+    logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR nowcast $NOTIFYUSER $ENV $ACCOUNT $PPN"
+    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR nowcast $NOTIFYUSER $ENV $ACCOUNT $PPN
     # check once per minute until all jobs have finished
     monitorJobs $QUEUESYS 
     consoleMesssage "Job(s) complete."
@@ -983,11 +996,11 @@ while [ 1 -eq 1 ]; do
         perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
         # preprocess
         logMessage "Starting $ENSTORM preprocessing."
-        prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $NAFILE $ACCOUNT
+        prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT $NAFILE
         # then submit the job
         logMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
         consoleMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
-        submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $PPN
+        submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN
         # check once per minute until job has completed
         monitorJobs $QUEUESYS 
         consoleMesssage "Job(s) complete."

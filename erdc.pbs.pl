@@ -68,7 +68,7 @@ while(<TEMPLATE>) {
     # directory for this particular advisory
     s/%advisdir%/$advisdir/;  
     # name of this member of the ensemble (nowcast, storm3, etc)
-    s/%enstorm%/$enstorm/;  
+    s/%enstorm%/$enstorm/g;  
     # user to notify when errors occur
     s/%notifyuser%/$notifyuser/;  
     # string to use to submit a job to the parallel queue
