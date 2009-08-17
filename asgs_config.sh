@@ -39,7 +39,7 @@ ADCIRCDIR=/work/01053/rweaver/ASGS/adcirc_v48ffpl/work    # dir containing the A
 INPUTDIR=/work/01053/rweaver/ASGS/asgs_2009/input   # dir containing grid and other input files 
 OUTPUTDIR=/work/01053/rweaver/ASGS/asgs_2009/output # dir containing post processing scripts
 PERL5LIB=/work/01053/rweaver/ASGS/asgs_2009/PERL    # dir with DateCale.pm perl module
-NCPU=512            # number of CPUs to use for all simulations
+NCPU=256            # number of CPUs to use for all simulations
 STARTADVISORYNUM=0
 #
 #-------------------------------------------------------------------
@@ -51,7 +51,8 @@ STARTADVISORYNUM=0
 #QUEUENAME=512cpu  # for UNC (topsail); can also use 128cpu or 32cpu
 #QUEUENAME=workq   # for queenbee.loni.org or tezpur.hpc.lsu.edu; non-emergency
 #QUEUENAME=priority #for queenbee.loni.org or tezpur.hpc.lsu.edu; emergency
-QUEUENAME=normal   # for TACC (ranger);
+#QUEUENAME=normal   # for TACC (ranger);
+QUEUENAME=development   # for TACC (ranger) development;
 #QUEUENAME=desktop  # for workstations with no queue
 #
 #-------------------------------------------------------------------
@@ -76,20 +77,20 @@ HDIR=/pub/ims/weaver/NHC_Advisories/btk # hindcast dir on test site
 # It is assumed that the following files are in the INPUTDIR defined above
 #
 # file that contains the mesh (fort.14)
-GRIDFILE=texas_2.47Mnode.grd
+GRIDFILE=texas_2.85Mnode.grd
 #GRIDFILE=ec2001.grd
 #GRIDFILE=sl15v3_2007_r10.grd
 # file that acts as a template for the control file (fort.15)
-CONTROLTEMPLATE=texas_2.47Mnode.fort.15_template_metonly
+CONTROLTEMPLATE=texas_2.85Mnode.fort.15_template_metonly
 #CONTROLTEMPLATE=fort.15.ec2001.template
 #CONTROLTEMPLATE=fort.15.sl15.corps.template
 # nodal attributes file (fort.13)
-NAFILE=texas_2.47Mnode.fort.13
+NAFILE=texas_2.85Mnode.fort.13
 #NAFILE=ec2001.13
 #NAFILE=sl15v3_2007_r09f.13
 # archive of the fort.14 and fort.13 that have already been preprocessed
 # for a certain number of CPUs (include the num of CPUs in the file name)
-PREPPEDARCHIVE=prepped_texas_2.47Mnode_512proc.tar.gz
+PREPPEDARCHIVE=prepped_texas_2.85Mnode_256proc.tar.gz
 #PREPPEDARCHIVE=prepped_ec2001.tar.gz
 #PREPPEDARCHIVE=prepped_sl15_corps_1000.tar.gz
 # 
@@ -100,7 +101,7 @@ TIMESTEPSIZE=1.0
 # estimate; must be set small when sending test problems to the debug queue;
 # for production, must be set large enough for any run, including initial
 # hindcast run, which may be longer than 5 days in some cases
-WALLTIME="14:00:00"
+WALLTIME="2:00:00"
 #
 #-------------------------------------------------------------------
 # Storm ensemble configuration 
@@ -164,7 +165,7 @@ NOTIFYUSER=rjweaver@email.unc.edu
 INITPOST=post_init.sh
 # this is the name of the post processing script
 POSTPROCESS=corps_post.sh
-POSTPROCESS2=POST_SCRIPT.sh
+POSTPROCESS2=POSTPROC_KMZGIS/POST_SCRIPT.sh
 # these are the output files that should be transmitted to another
 # machine BY THE WORKFLOW (as opposed to the post processing script)
 NUMOUTFILES=1

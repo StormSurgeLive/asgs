@@ -84,10 +84,11 @@ export PPDIR=$POSTPROC_DIR/RenciGETools-1.0/src
 # On topsail.unc.edu 4 layers for a 270000 node grid took 14 minutes.
 # to test the script use only 1 layer.
   
-      INPUTFILE=$ADVISDIR/$ENSTORM/maxele.63
+#      INPUTFILE=$ADVISDIR/$ENSTORM/maxele.63
+      INPUTFILE=$ADVISDIR/$ENSTORM/maxwvel.63
      GRIDPREFIX=`basename $GRIDFILE .grd`
      OUTPUTPREFIX='$STORM_$YEAR_$ENSTORM_$ADVISORY'
-       NUMLAYER=3
+       NUMLAYER=2
 
  $PPDIR/adc_max_simple_plot_gmt.sh -f $INPUTFILE -g $GRIDPREFIX -p $OUTPUTPREFIX -n $NUMLAYER
 
