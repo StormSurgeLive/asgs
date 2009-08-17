@@ -140,6 +140,7 @@ while (!$dl) {
    my $textAdvisoryPath;
    my $advNum;
    my $stormFound = 0;
+   # printf STDERR "INFO: get_atcf.pl: The index-at.xml file contains $cnt lines.\n";
    # loop over the body of the index file, looking for our storm
    while($i<$cnt) {
       if ( $lines[$i] =~ /$nhcName Forecast\/Advisory Number (\d{1,2})/ ) {
@@ -147,10 +148,12 @@ while (!$dl) {
          # for our storm
          $stormFound = 1;
          $advNum = sprintf("%02d",$1);
+         # printf STDERR "INFO: get_atcf.pl Advisory '$advNum' for storm $nhcName was found in the index-at.xml file.\n";
          # compare the advisory number in the index file with the current
          # advisory number on the command line, if any
          if ( defined $adv ) {
             if ( $advNum eq $adv ) {
+                #printf STDERR "INFO: get_atcf.pl: advNum is '$advNum' and adv is '$adv': Not a new advisory.\n";
                last;    # this is not a new advisory
             } else {
                printf STDOUT "$advNum";

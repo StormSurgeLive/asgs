@@ -414,6 +414,7 @@ downloadWindData()
     fi
     while [ $newAdvisory = false ]; do
        newAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
+       # logMessage "newAdvisoryNum is $newAdvisoryNum"
        # check to see if we have a new one, and if so, determine the
        # new advisory number correctly
        case $TRIGGER in 
@@ -422,7 +423,7 @@ downloadWindData()
              if ! diff $OLDADVISDIR/$forecastFileName ./$forecastFileName > /dev/null 2>> ${SYSLOG}; then
                 # forecasts from NHC ftp site do not have advisory number
                 newAdvisoryNum=$[$ADVISORY + 1]
-
+                printf "%02d" $newAdvisoryNum > $STORMDIR/advisoryNumber 2>> $SYSLOG 
                 newAdvisory="true"
              fi 
           fi
@@ -431,6 +432,7 @@ downloadWindData()
           # if there was a new advisory, the get_atcf.pl script
           # would have returned the advisory number in stdout
           if [ ! -z $newAdvisoryNum ]; then
+             printf  $newAdvisoryNum > $STORMDIR/advisoryNumber 2>> $SYSLOG 
              newAdvisory="true"
              if [ -e $forecastFileName ]; then 
                 mv $forecastFileName $forecastFileName.ftp 2>> $SYSLOG
@@ -451,7 +453,6 @@ downloadWindData()
     done
     stop_activity_indicator ${pid}
     logMessage "New forecast detected." 
-    printf "%02d" $newAdvisoryNum > $STORMDIR/advisoryNumber 2>> $SYSLOG 
     if [ $TRIGGER = rss ]; then
        perl ${SCRIPTDIR}/nhc_advisory_bot.pl --input ${forecastFileName}.html --output $forecastFileName >> ${SYSLOG} 2>&1
     fi
@@ -886,7 +887,7 @@ while [ 1 -eq 1 ]; do
     consoleMessage "$START Storm $STORM advisory $ADVISORY in $YEAR"
     if [[ $EMAILNOTIFY = YES ]]; then
        if [ $START != coldstart ]; then
-           new_advisory_email $HOSTNAME $STORM $YEAR $ADVISORY
+           new_advisory_email $HOSTNAME $STORM $YEAR $ADVISORY $NEW_ADVISORY_LIST
        fi
     fi
     logMessage "Starting nowcast for advisory $ADVISORY"
@@ -907,7 +908,7 @@ while [ 1 -eq 1 ]; do
     logMessage "Initializing post processing for advisory $ADVISORY."
     ${OUTPUTDIR}/${INITPOST} $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME 2>> ${SYSLOG}
     if [[ $EMAILNOTIFY = YES ]]; then
-       post_init_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME 
+       post_init_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $POST_INIT_LIST
     fi
     #
     # prepare nowcast met (fort.22) and control (fort.15) files 
@@ -1009,7 +1010,7 @@ while [ 1 -eq 1 ]; do
         # execute post processing
         ${OUTPUTDIR}/${POSTPROCESS} $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM 2>> ${SYSLOG} 
         if [[ $EMAILNOTIFY = YES ]]; then
-           post_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM
+           post_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $POST_LIST
         fi
         if [[ ! -z $POSTPROCESS2 ]]; then # creates GIS and kmz figures
            ${OUTPUTDIR}/${POSTPROCESS2} $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $GRIDFILE  2>> ${SYSLOG} 

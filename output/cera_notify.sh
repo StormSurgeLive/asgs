@@ -22,6 +22,7 @@ activation_email()
   STORM=$2
   YEAR=$3
   STORMDIR=$4
+  ACTIVATE_LIST=$5
 cat <<END > $STORMDIR/activate.txt 2>> ${SYSLOG}
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
@@ -59,6 +60,7 @@ new_advisory_email()
   STORM=$2
   YEAR=$3
   ADVISORY=$4
+  NEW_ADVISORY_LIST=$5
 
 cat <<END > $STORMDIR/new_advisory.txt 2>> ${SYSLOG}
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
@@ -88,6 +90,7 @@ STORM=$2
 YEAR=$3
 ADVISORY=$4
 HOSTNAME=$5
+POST_INIT_LIST=$6
 #
 POSTDIR=/work/cera
 #
@@ -114,6 +117,7 @@ YEAR=$3
 ADVISORY=$4
 HOSTNAME=$5
 ENSTORM=$6
+POST_LIST=$7
 #
 POSTDIR=/work/cera
 #
