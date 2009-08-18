@@ -39,6 +39,7 @@ ADCIRCDIR=/work/01053/rweaver/ASGS/adcirc_v48ffpl/work    # dir containing the A
 INPUTDIR=/work/01053/rweaver/ASGS/asgs_2009/input   # dir containing grid and other input files 
 OUTPUTDIR=/work/01053/rweaver/ASGS/asgs_2009/output # dir containing post processing scripts
 PERL5LIB=/work/01053/rweaver/ASGS/asgs_2009/PERL    # dir with DateCale.pm perl module
+SCRIPTDIR=`pwd`  # dir where the various PERL scripts for the ASGS  located
 NCPU=256            # number of CPUs to use for all simulations
 STARTADVISORYNUM=0
 #

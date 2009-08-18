@@ -617,7 +617,7 @@ init_tezpur()
   QCHECKCMD=qstat
   ACCOUNT=loni_asgs2009
   SUBMITSTRING="mpirun"
-  SCRATCHDIR=/work/$USER
+  SCRATCHDIR=/work/cera
   SSHKEY=id_rsa_tezpur
   QSCRIPT=tezpur.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
@@ -722,6 +722,7 @@ env_dispatch(){
 #
 # mail alert
 ASGSADMIN="estrabd+lpfs@gmail.com jgflemin@email.unc.edu" #<-- purposefully not in config.sh
+#ASGSADMIN="estrabd+lpfs@gmail.com jgflemin@email.unc.edui natedill@gmail.com" #<-- purposefully not in config.sh
 #ASGSADMIN="rjweaver@email.unc.edu" #<-- purposefully not in config.sh
 
 # exit statuses
@@ -730,7 +731,7 @@ EXIT_OK=0
 
 # need to determine standard time format to be used for pasting log files
 STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-SYSLOG=/tmp/asgs-${STARTDATETIME}.$$.log
+SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log
 # create directories with default permissions of "775" and 
 # files with the default permssion of "664"
 umask 002
@@ -776,7 +777,7 @@ logMessage "The ADCIRC Surge Guidance System is activated."
 consoleMessage "Please see ASGS log file for detailed information regarding system progress."
 consoleMessage "ASGS Start Up MSG: [SYSLOG] The log file is ${SYSLOG}"
 
-SCRIPTDIR=`pwd`
+#SCRIPTDIR=`pwd` -  SCRIPTDIR is  now set in asgs_config.sh
 # first - look for SCRIPTDIR
 while getopts "c:e:h" optname; do    #<- first getopts for SCRIPTDIR
   case $optname in
@@ -827,8 +828,6 @@ checkFileExistence $OUTPUTDIR "email notification script" $NOTIFY_SCRIPT
 checkDirExistence ${PERL5LIB}/Date "subdirectory for the Pcalc.pm perl module"
 checkFileExistence ${PERL5LIB}/Date "perl module for date calculations" Pcalc.pm
 #
-checkDirExistence ~/.ssh "subdirectory containing ssh key"
-checkFileExistence ~/.ssh "ssh key file" $SSHKEY
 #
 # pull in subroutines for email notifications
 if [[ $EMAILNOTIFY = YES ]]; then
@@ -1008,7 +1007,8 @@ while [ 1 -eq 1 ]; do
         # execute post processing
         logMessage "$ENSTORM finished; postprocessing"
         # execute post processing
-        ${OUTPUTDIR}/${POSTPROCESS} $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM 2>> ${SYSLOG} 
+        #${OUTPUTDIR}/${POSTPROCESS} $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM 2>> ${SYSLOG} 
+        ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $COLDSTARTDATE $HSTIME 2>> ${SYSLOG} 
         if [[ $EMAILNOTIFY = YES ]]; then
            post_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $POST_LIST
         fi
