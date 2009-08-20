@@ -1,15 +1,15 @@
 #! /usr/bin/env bash
 
-# This is a wrapper script for the java program actoshape-actoshape-1.0.2.jar.  In
+# This is a wrapper script for the java program actoshape-actoshape-1.0.5.jar.  In
 # most cases it will work as written, with no modifications, as long
-# as the file "actoshape-actoshape-1.0.2.jar" is in the same directory where this
+# as the file "actoshape-actoshape-1.0.5.jar" is in the same directory where this
 # script is.
 #
 # If you want to install this script in some directory other than the
-# one containing actoshape-actoshape-1.0.2.jar, or if for some other reason this
-# script isn't able to find actoshape-actoshape-1.0.2.jar when you run it, change the
+# one containing actoshape-actoshape-1.0.5.jar, or if for some other reason this
+# script isn't able to find actoshape-actoshape-1.0.5.jar when you run it, change the
 # following line to reference the full pathname of the directory
-# containing actoshape-actoshape-1.0.2.jar, and remove the comment character from the
+# containing actoshape-actoshape-1.0.5.jar, and remove the comment character from the
 # beginning of the line:
 #ACTOSHAPE_HOME=/directory/containing/actoshape/jar
 
@@ -45,6 +45,6 @@ fi
 if [[ "$CLASSPATH" != "" ]] ; then
     java -classpath $CLASSPATH edu.unca.nemac.gis.AcToShape "$@"
 else
-    java -jar $ACTOSHAPE_HOME/actoshape.jar "$@"
+    java -jar $ACTOSHAPE_HOME/actoshape-actoshape-1.0.5.jar "$@"
 fi
 

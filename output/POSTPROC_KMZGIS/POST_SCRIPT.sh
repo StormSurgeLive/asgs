@@ -84,11 +84,11 @@ export PPDIR=$POSTPROC_DIR/RenciGETools-1.0/src
 # On topsail.unc.edu 4 layers for a 270000 node grid took 14 minutes.
 # to test the script use only 1 layer.
   
-#      INPUTFILE=$ADVISDIR/$ENSTORM/maxele.63
-      INPUTFILE=$ADVISDIR/$ENSTORM/maxwvel.63
+      INPUTFILE=$ADVISDIR/$ENSTORM/maxele.63
+#      INPUTFILE=$ADVISDIR/$ENSTORM/maxwvel.63
      GRIDPREFIX=`basename $GRIDFILE .grd`
-     OUTPUTPREFIX=$STORM_$YEAR_$ENSTORM_$ADVISORY
-       NUMLAYER=2
+     OUTPUTPREFIX=${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}
+       NUMLAYER=3
 
  $PPDIR/adc_max_simple_plot_gmt.sh -f $INPUTFILE -g $GRIDPREFIX -p $OUTPUTPREFIX -n $NUMLAYER
 
@@ -125,14 +125,16 @@ else
  exit 1
 fi
 
+echo "starting Java script ArcGIS POST PROC", $WEST, $SOUTH, $EAST, $NORTH
+echo $INPUTGRID, $INPUTFILE,$OUTPUTPREFIX.shp
+
  java -jar $POSTPROC_DIR/actoshape/actoshape.jar \
   --box $WEST $SOUTH $EAST $NORTH \
-  --nowater  \
+  --clipcoast 10
   $INPUTGRID \
   $INPUTFILE \
   $OUTPUTPREFIX.shp
 
-# --nowater  \
 # ..   ..
 # $POSTPROC_DIR/actoshape/actoshape \
 #
@@ -140,8 +142,8 @@ fi
 
  mkdir  $OUTPUTPREFIX-output_files
 
- mv $OUTPUTPREFIX.* $ADVISDIR/$OUTPUTPREFIX-output_files
- tar -czf $ADVISDIR/$OUTPUTPREFIX.tgz $ADVISDIR/$OUTPUTPREFIX-output_files
+ mv $OUTPUTPREFIX.* $OUTPUTPREFIX-output_files
+ tar -czf $OUTPUTPREFIX.tgz $OUTPUTPREFIX-output_files
 
 # rm -rf $ADVISDIR/$OUTPUTPREFIX-output_files
 ###

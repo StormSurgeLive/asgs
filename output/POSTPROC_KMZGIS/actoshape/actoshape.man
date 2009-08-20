@@ -49,13 +49,54 @@ OPTIONS
         latitudes.
 
     --nowater, -W
-        Omit triangles that are below sea level (below the geoid). Using
-        this option is usually a good idea, because it greatly reduces the
-        size of the resulting shapefile(s), and typically what you want to
-        visualize using GIS is the level of flooding over land that does not
-        normally have water over it, i.e. over land whose elevation is above
-        sea level. This option ensures that all triangles in the output
-        correspond to land that is normally dry.
+        This option has been discontinued. Use --clipcoast instead.
+
+    --clipcoast [ LEVEL ], -c [ LEVEL ]
+        Clip the output to exclude regions that are below a certain contour
+        level in elevation. If LEVEL is not specified, it defaults to 0,
+        which corresponds to mean sea level (MSL). So, specifying
+        --clipcoast (or -c) with no argument causes the output to be clipped
+        to the MSL coastline; all triangles below MSL will be omitted from
+        the output, and triangles which are partially above MSL and
+        partially below will be clipped so that only the part that is above
+        MSL is included in the output. (Sometimes this results in a
+        quadrilateral rather than a triangle, of course.)
+
+        If LEVEL is specified, it is interpreted as a depth below MSL in
+        meters, and the clipping is done relative to that level rather than
+        to MSL: regions below the given level are excluded from the output.
+        Positive LEVEL values correspond to depths below MSL. So, for
+        example, "--cliplevel 2" will exclude all regions deeper than 2
+        meters below MSL.
+
+        Using --cliplevel, either with the default level of 0 or an
+        explicitly specified level, is usually a good idea, because it can
+        greatly reduce the number of polgons in the resulting shapefile(s),
+        and hence the size of the file(s).
+
+    --interpolate, -i
+        This option is only relevant if --cliplevel or -c is specified. It
+        affects the way that floodlevel values are assigned to clipped
+        polygons in the output. In general, actoshape assigns a floodlevel
+        value to each triangle in the output by averaging the floodlevel
+        value at each of its vertices. If a triangle is clipped, though,
+        there are two possibly meaningful ways to assign this value, because
+        there are two sets of "vertices" associated with the clipped
+        polygon: (a) the 3 vertices of the original triangle, and (b) the 3
+        or 4 vertices of the clipped polygon. Actoshape's default behavior
+        is to assign a floodlevel value to every output polygon that is
+        computed by averaging the floodlevels from the 3 vertices of the
+        original triangle, whether it is clipped or not. In other words, by
+        default, the (a) set of vertices is used. If --interpolate or -i is
+        specified, though, actoshape will assign floodlevel values to the
+        new vertices of the clipped polygon by linearly interpolating along
+        the edges of the original triangle, and then compuate the average
+        floodlevel for the clipped polygon by averaging the (3 or 4) values
+        at its vertices --- i.e. the vertices in set (b) above.
+
+        The --interpolate option also affects the way that depth and level63
+        values are assigned to output polygons; see SHAPEFILE STRUCTURE
+        below for a description of these values.
 
     --subdivide N, -s N
         Refine the model grid N times, where each refinement consists of
@@ -85,11 +126,12 @@ SHAPEFILE STRUCTURE
         The number of the time step for this shapefile.
 
     floodlevel (float)
-        The average level of water above the surface of the land for the
-        triangle for this time step. Positive floodlevels indicate a level
-        of water above the land surface. This attribute can be tied to a
-        color gradient when creating visualizations to indicate the degree
-        of flooding.
+        The average level of water above "normal", where "normal" means the
+        level of the land surface for regions above mean sea level, or mean
+        sea level for regions at or below mean sea level. This attribute can
+        be tied to a color gradient when creating visualizations to indicate
+        the degree of flooding. Positive floodlevels indicate a level of
+        water above the land surface, or above MSL.
 
     level63 (float)
         The averge water level for this triangle corresponding to this time

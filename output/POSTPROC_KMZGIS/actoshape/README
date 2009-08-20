@@ -1,10 +1,10 @@
 
-                       ACTOSHAPE actoshape-1.0.2
+                       ACTOSHAPE actoshape-1.0.5
 
    Copyright (c) 2009  University of North Carolina at Asheville
 
 
-This directory contains version actoshape-1.0.2 of "actoshape", a
+This directory contains version actoshape-1.0.5 of "actoshape", a
 program for generating shapefiles from ADCIRC output files.  Actoshape
 is a shell script which is intended to be invoked from the command
 line; it is a wrapper for a java program that is contained in the file

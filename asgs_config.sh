@@ -40,7 +40,7 @@ INPUTDIR=/work/01053/rweaver/ASGS/asgs_2009/input   # dir containing grid and ot
 OUTPUTDIR=/work/01053/rweaver/ASGS/asgs_2009/output # dir containing post processing scripts
 PERL5LIB=/work/01053/rweaver/ASGS/asgs_2009/PERL    # dir with DateCale.pm perl module
 SCRIPTDIR=`pwd`  # dir where the various PERL scripts for the ASGS  located
-NCPU=256            # number of CPUs to use for all simulations
+NCPU=16            # number of CPUs to use for all simulations
 STARTADVISORYNUM=0
 #
 #-------------------------------------------------------------------
@@ -78,25 +78,25 @@ HDIR=/pub/ims/weaver/NHC_Advisories/btk # hindcast dir on test site
 # It is assumed that the following files are in the INPUTDIR defined above
 #
 # file that contains the mesh (fort.14)
-GRIDFILE=texas_2.85Mnode.grd
+GRIDFILE=ec_95d.grd
 #GRIDFILE=ec2001.grd
 #GRIDFILE=sl15v3_2007_r10.grd
 # file that acts as a template for the control file (fort.15)
-CONTROLTEMPLATE=texas_2.85Mnode.fort.15_template_metonly
+CONTROLTEMPLATE=ec_95_fort.15_template
 #CONTROLTEMPLATE=fort.15.ec2001.template
 #CONTROLTEMPLATE=fort.15.sl15.corps.template
 # nodal attributes file (fort.13)
-NAFILE=texas_2.85Mnode.fort.13
+NAFILE=
 #NAFILE=ec2001.13
 #NAFILE=sl15v3_2007_r09f.13
 # archive of the fort.14 and fort.13 that have already been preprocessed
 # for a certain number of CPUs (include the num of CPUs in the file name)
-PREPPEDARCHIVE=prepped_texas_2.85Mnode_256proc.tar.gz
+PREPPEDARCHIVE=prepped_ec_95d_16proc.tar.gz
 #PREPPEDARCHIVE=prepped_ec2001.tar.gz
 #PREPPEDARCHIVE=prepped_sl15_corps_1000.tar.gz
 # 
 # size of the time step to use
-TIMESTEPSIZE=1.0
+TIMESTEPSIZE=10.0
 #
 # estimated wall clock time for queueing systems that require an
 # estimate; must be set small when sending test problems to the debug queue;
@@ -137,7 +137,7 @@ PERCENT=
 #-------------------------------------------------------------------
 # Notification configuration 
 #-------------------------------------------------------------------
-EMAILNOTIFY=NO # set to yes to have host platform email notifications
+EMAILNOTIFY=yes # set to yes to have host platform email notifications
 # this script is expected to be found in the output directory; it contains
 # all the email notification subroutines 
 NOTIFY_SCRIPT=notify.sh
@@ -148,7 +148,7 @@ ACTIVATE_LIST="weav999@yahoo.com rjweaver@email.unc.edu"
 # addresses to receive notification that a new advisory is now running
 NEW_ADVISORY_LIST="weav999@yahoo.com rjweaver@email.unc.edu"
 # addresses to receive notification that postprocessing has been initialized 
-POST_INIT_LIST="jsn_flmng@yahoo.com jgflemin@email.unc.edu"
+POST_INIT_LIST="weav999@yahoo.com rjweaver@email.unc.edu"
 # addresses to receive notification that new results are now available
 POST_LIST="weav999@yahoo.com rjweaver@email.unc.edu"
 # this is the email address in the PBS job script
@@ -174,4 +174,4 @@ POSTFILE[0]=results.tar.gz
 # the machine(s) to which result file(s) should be transferred
 #RESULTSHOST[0]=ranger.tacc.utexas.edu
 #RESULTSUSER[0]=rweaver
-RESULTSPATH[0]=/work/01053/rweaver/ASGS
+#RESULTSPATH[0]=/work/01053/rweaver/
