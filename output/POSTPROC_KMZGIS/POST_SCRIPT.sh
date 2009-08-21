@@ -84,11 +84,11 @@ export PPDIR=$POSTPROC_DIR/RenciGETools-1.0/src
 # On topsail.unc.edu 4 layers for a 270000 node grid took 14 minutes.
 # to test the script use only 1 layer.
   
-      INPUTFILE=$ADVISDIR/$ENSTORM/maxele.63
-#      INPUTFILE=$ADVISDIR/$ENSTORM/maxwvel.63
+     INPUTFILE=$ADVISDIR/$ENSTORM/maxele.63
+#    INPUTFILE=$ADVISDIR/$ENSTORM/maxwvel.63
      GRIDPREFIX=`basename $GRIDFILE .grd`
      OUTPUTPREFIX=${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}
-       NUMLAYER=3
+     NUMLAYER=3
 
  $PPDIR/adc_max_simple_plot_gmt.sh -f $INPUTFILE -g $GRIDPREFIX -p $OUTPUTPREFIX -n $NUMLAYER
 
@@ -130,7 +130,7 @@ echo $INPUTGRID, $INPUTFILE,$OUTPUTPREFIX.shp
 
  java -jar $POSTPROC_DIR/actoshape/actoshape.jar \
   --box $WEST $SOUTH $EAST $NORTH \
-  --clipcoast 10
+  --clipcoast 100 \
   $INPUTGRID \
   $INPUTFILE \
   $OUTPUTPREFIX.shp
