@@ -227,9 +227,18 @@ function MakePlot
 	        arg="$file $PSCONTOURARGS -R$BOX -C$cpt "
 	        if [ $DEBUG ] ; 
             then 
-                echo DEBUG :: Drawing triangles : $NICE $GMTHOME/bin/pscontour $arg \> $targ.ps ; 
+                echo DEBUG :: Drawing triangles :  $GMTHOME/bin/pscontour $arg \> $targ.ps ; 
             fi 
-	    $NICE $GMTHOME/bin/pscontour $arg  > $targ.ps
+	     $GMTHOME/bin/pscontour $arg -K  > $targ.ps
+    # add track line and points if available
+    #       perl $PPDIR/make_track_files.pl 
+        if [  -e track_point.dat ] ; then
+            $GMTHOME/bin/psxy ./track_point.dat -: -R -JX -O -K -P -G0 -Skhurricane -V >>  $targ.ps
+        fi
+        if [  -e track_line.dat ] ; then
+            $GMTHOME/bin/psxy ./track_line.dat -: -R -JX -O  -P -W5.0  -V >>  $targ.ps
+        fi
+
             ConvertAndMogrify $targ
 
             # Make the kml file for this tile

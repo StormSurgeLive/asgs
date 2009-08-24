@@ -89,6 +89,8 @@ export PPDIR=$POSTPROC_DIR/RenciGETools-1.0/src
      GRIDPREFIX=`basename $GRIDFILE .grd`
      OUTPUTPREFIX=${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}
      NUMLAYER=3
+    # create track line and points if available
+ perl $PPDIR/make_track_files.pl
 
  $PPDIR/adc_max_simple_plot_gmt.sh -f $INPUTFILE -g $GRIDPREFIX -p $OUTPUTPREFIX -n $NUMLAYER
 
