@@ -54,7 +54,6 @@ STARTADVISORYNUM=0
 #QUEUENAME=priority #for queenbee.loni.org or tezpur.hpc.lsu.edu; emergency
 #QUEUENAME=normal   # for TACC (ranger);
 QUEUENAME=development   # for TACC (ranger) development;
-QUEUENAME=normal   # for TACC (ranger); 
 #QUEUENAME=desktop  # for workstations with no queue
 #
 #-------------------------------------------------------------------
