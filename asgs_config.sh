@@ -39,7 +39,7 @@ ADCIRCDIR=/work/01053/rweaver/ASGS/adcirc_v48ffpl/work    # dir containing the A
 INPUTDIR=/work/01053/rweaver/ASGS/asgs_2009/input   # dir containing grid and other input files 
 OUTPUTDIR=/work/01053/rweaver/ASGS/asgs_2009/output # dir containing post processing scripts
 PERL5LIB=/work/01053/rweaver/ASGS/asgs_2009/PERL    # dir with DateCale.pm perl module
-SCRIPTDIR=`pwd`  # dir where the various PERL scripts for the ASGS  located
+SCRIPTDIR=/work/01053/rweaver/ASGS/asgs_2009/  # dir where the various PERL scripts for the ASGS  located
 NCPU=16            # number of CPUs to use for all simulations
 STARTADVISORYNUM=0
 #
@@ -54,6 +54,7 @@ STARTADVISORYNUM=0
 #QUEUENAME=priority #for queenbee.loni.org or tezpur.hpc.lsu.edu; emergency
 #QUEUENAME=normal   # for TACC (ranger);
 QUEUENAME=development   # for TACC (ranger) development;
+QUEUENAME=normal   # for TACC (ranger); 
 #QUEUENAME=desktop  # for workstations with no queue
 #
 #-------------------------------------------------------------------
@@ -66,7 +67,7 @@ QUEUENAME=development   # for TACC (ranger) development;
 TRIGGER=ftp    # either "ftp" or "rss"
 #
 # site information for retrieving advisories
-RSSSITE=http://www.nhc.noaa.gov
+RSSSITE=www.nhc.noaa.gov
 #FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files 
 #FDIR=/atcf/afst     # forecast dir on nhc ftp site
 #HDIR=/atcf/btk      # hindcast dir on nhc ftp site
@@ -81,18 +82,22 @@ HDIR=/pub/ims/weaver/NHC_Advisories/btk # hindcast dir on test site
 GRIDFILE=ec_95d.grd
 #GRIDFILE=ec2001.grd
 #GRIDFILE=sl15v3_2007_r10.grd
+#GRIDFILE=sl15v3_2007_r10.grd
 # file that acts as a template for the control file (fort.15)
 CONTROLTEMPLATE=ec_95_fort.15_template
 #CONTROLTEMPLATE=fort.15.ec2001.template
+#CONTROLTEMPLATE=fort.15.sl15.corps.template
 #CONTROLTEMPLATE=fort.15.sl15.corps.template
 # nodal attributes file (fort.13)
 NAFILE=
 #NAFILE=ec2001.13
 #NAFILE=sl15v3_2007_r09f.13
+#NAFILE=sl15v3_2007_r09f.13
 # archive of the fort.14 and fort.13 that have already been preprocessed
 # for a certain number of CPUs (include the num of CPUs in the file name)
 PREPPEDARCHIVE=prepped_ec_95d_16proc.tar.gz
 #PREPPEDARCHIVE=prepped_ec2001.tar.gz
+#PREPPEDARCHIVE=prepped_sl15_corps_1000.tar.gz
 #PREPPEDARCHIVE=prepped_sl15_corps_1000.tar.gz
 # 
 # size of the time step to use
