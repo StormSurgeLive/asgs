@@ -20,7 +20,7 @@
 
 # Specify the output filename explicitly (optional; the default is named
 # from the job ID, in the directory where qsub was run.)
-#PBS -o %advisdir%/%enstorm%.out
+#PBS -o %advisdir%/%enstorm%/%enstorm%.out
 
 # Specify the account that the time should be taken from 
 #PBS -A %account%
