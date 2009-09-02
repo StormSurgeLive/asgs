@@ -49,23 +49,23 @@ open(TEMPLATE,"$qscript") || die "ERROR: Can't open ranger.template.sge file.";
 
 while(<TEMPLATE>) {
     # fill in the number of compute nodes to run on 
-    s/%pbsncpu%/$pbsncpu/;
+    s/%pbsncpu%/$pbsncpu/g;
     # name of the queue on which to run
-    s/%queuename%/$queuename/;
+    s/%queuename%/$queuename/g;
     # name of the account to take the hours from
-    s/%account%/$account/;
+    s/%account%/$account/g;
     # directory where padcirc executable is located
-    s/%adcircdir%/$adcircdir/;
+    s/%adcircdir%/$adcircdir/g;
     # directory for this particular advisory
-    s/%advisdir%/$advisdir/;  
+    s/%advisdir%/$advisdir/g;  
     # directory wallclocktime
-    s/%walltime%/$walltime/;  
+    s/%walltime%/$walltime/g;  
     # name of this member of the ensemble (nowcast, storm3, etc)
     s/%enstorm%/$enstorm/g;  
     # user to notify when errors occur
-    s/%notifyuser%/$notifyuser/;  
+    s/%notifyuser%/$notifyuser/g;  
     # string to use to submit a job to the parallel queue
-    s/%submitstring%/$submitstring/;
+    s/%submitstring%/$submitstring/g;
     print $_;
 }
 close(TEMPLATE);

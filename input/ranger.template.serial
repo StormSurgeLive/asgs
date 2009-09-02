@@ -60,11 +60,24 @@ cd %advisdir%/%enstorm%
 
 cp %adcircdir%/adcprep ./adcprep
 # These are the actual commands to be executed.
-echo " prep job starting at `date`"
 
-   
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+    echo "[${DATETIME}] : Job starting"          >> run.start
+    echo "[${DATETIME}] : %advisdir%  %enstorm%" >> run.start
+    echo "[${DATETIME}] : adcprep"               >> run.start
+
 ./adcprep < prep.in1  > decomp.out1
 
+    ERROVALUE=$?
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+    if [ $ERROVALUE == 0 ] ; then
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.finish
+    echo "[${DATETIME}] :  %advisdir%  %enstorm%"               >> run.finish
+    echo "[${DATETIME}] :  adcprep"                             >> run.finish
+    else
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.error
+    echo "[${DATETIME}] :  %advisdir%  %enstorm%"               >> run.error
+    echo "[${DATETIME}] :  adcprep"                             >> run.error
+    fi
 
-echo "prep job finished at `date`"
 # You don't need anything special at the end of the script.

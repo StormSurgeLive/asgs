@@ -334,7 +334,20 @@ END
         qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
     # check once per minute until all jobs have finished
     monitorJobs $QUEUESYS
+        mv prep.in1 prep.in_controlfile
+        mv decomp.out1 decomp.out_controlfile
     consoleMesssage "Job(s) complete."
+      if [ -e run.start ] ; then
+     mv run.start $ENSTORM.adcprepcontrol.run.start
+      fi
+      if [ -e run.finish ] ; then
+     mv run.finish $ENSTORM.adcprepcontrol.run.finish
+      fi
+      if [ -e run.error ] ; then
+     mv run.error $ENSTORM.adcprepcontrol.run.error
+      fi
+
+     
     # prep-ing control finished, get on with it
     logMessage "adcprep control finished"
     consoleMessage "adcprep control finished"
@@ -376,7 +389,19 @@ END
         qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
     # check once per minute until all jobs have finished
     monitorJobs $QUEUESYS
+        mv prep.in1 prep.in_hotstartfile
+        mv decomp.out1 decomp.out_hotstartfile
     consoleMesssage "Job(s) complete."
+      if [ -e run.start ] ; then
+     mv run.start $ENSTORM.adcprephotstart.run.start
+      fi
+      if [ -e run.finish ] ; then
+     mv run.finish $ENSTORM.adcprephotstart.run.finish
+      fi
+      if [ -e run.error ] ; then
+     mv run.error $ENSTORM.adcprephotstart.run.error
+      fi
+
     # prep-ing hotstart finished, get on with it
     logMessage "adcprep hotstart finished"
     consoleMessage "adcprep hotstart finished"
@@ -487,7 +512,15 @@ monitorJobs()
         # do nothing, mpiexec has returned at this point
         logMessage "mpiexec has returned"
     elif [ $QUEUESYS = SGE ]; then
-        while [[ `$QCHECKCMD | grep $USER` ]]; do
+         # look for appropriate file
+  #       if [ ! -e run.start ]; then
+  #         fatal "ERROR: Job failed to submit- no run.start file"
+  #       fi
+  #      while [[ `$QCHECKCMD | grep $USER` ]]; do
+         while [[ ! -e run.finish ]]; do
+           if [ -e run.error ];then
+           fatal "ERROR: Job crashed in SGE queue"
+           fi        
             sleep 60
         done
     else 
@@ -725,9 +758,9 @@ env_dispatch(){
 #   sh asgs_main.sh -c /path/to/config -e topsail 
 #
 # mail alert
-ASGSADMIN="estrabd+lpfs@gmail.com jgflemin@email.unc.edu" #<-- purposefully not in config.sh
+#ASGSADMIN="estrabd+lpfs@gmail.com jgflemin@email.unc.edu" #<-- purposefully not in config.sh
 #ASGSADMIN="estrabd+lpfs@gmail.com jgflemin@email.unc.edui natedill@gmail.com" #<-- purposefully not in config.sh
-#ASGSADMIN="rjweaver@email.unc.edu" #<-- purposefully not in config.sh
+ASGSADMIN="rjweaver@email.unc.edu" #<-- purposefully not in config.sh
 
 # exit statuses
 EXIT_NOT_OK=1
@@ -961,6 +994,15 @@ while [ 1 -eq 1 ]; do
     # check once per minute until all jobs have finished
     monitorJobs $QUEUESYS 
     consoleMesssage "Job(s) complete."
+      if [ -e run.start ] ; then
+     mv run.start nowcast.run.start
+      fi
+      if [ -e run.finish ] ; then
+     mv run.finish nowcast.run.finish
+      fi
+      if [ -e run.error ] ; then
+     mv run.error nowcast.run.error
+      fi
     # nowcast finished, get on with it
     logMessage "nowcast run finished"
     consoleMessage "nowcast run finished"
@@ -1008,6 +1050,15 @@ while [ 1 -eq 1 ]; do
         # check once per minute until job has completed
         monitorJobs $QUEUESYS 
         consoleMesssage "Job(s) complete."
+      if [ -e run.start ] ; then
+     mv run.start $ENSTORM.run.start
+      fi
+      if [ -e run.finish ] ; then
+     mv run.finish $ENSTORM.run.finish
+      fi
+      if [ -e run.error ] ; then
+     mv run.error $ENSTORM.run.error
+      fi
         # execute post processing
         logMessage "$ENSTORM finished; postprocessing"
         # execute post processing

@@ -63,12 +63,28 @@ cd %advisdir%/%enstorm%
 
 
 cp %adcircdir%/padcirc ./padcirc.mvapich1
+
 # These are the actual commands to be executed.
-echo "Test job starting at `date`"
+     
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+    echo "[${DATETIME}] : Job starting"          >> run.start
+    echo "[${DATETIME}] : %advisdir%  %enstorm%" >> run.start
+    echo "[${DATETIME}] : padcirc"               >> run.start
 
   ibrun  ./padcirc.mvapich1
 #  ibrun tacc_infinity ./padcirc.mvapich1
 #  %submitstring% ./padcirc.mvapich1
+    ERROVALUE=$?
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+    if [ $ERROVALUE == 0 ] ; then
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.finish
+    echo "[${DATETIME}] :  %advisdir%  %enstorm%"               >> run.finish
+    echo "[${DATETIME}] :  padcirc"                             >> run.finish
+    else
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.error
+    echo "[${DATETIME}] :  %advisdir%  %enstorm%"               >> run.error
+    echo "[${DATETIME}] :  padcirc"                             >> run.error
+    fi
 
-echo "Test job finished at `date`"
 # You don't need anything special at the end of the script.
+

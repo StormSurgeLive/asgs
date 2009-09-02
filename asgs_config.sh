@@ -30,9 +30,9 @@
 #-------------------------------------------------------------------
 # General configuration 
 #-------------------------------------------------------------------
-STORM=07             # storm number, e.g. 05=ernesto in 2006
+STORM=09             # storm number, e.g. 05=ernesto in 2006
 YEAR=2008            # year of the storm (useful for historical storms)
-COLDSTARTDATE="2008082906" # date corresponding to simulation coldstart
+COLDSTARTDATE=       # date corresponding to simulation coldstart
 HOTORCOLD=coldstart  # "hotstart" or "coldstart"
 LASTSUBDIR=          # if hotstarting, the subdir to get the hs file from
 ADCIRCDIR=/work/01053/rweaver/ASGS/adcirc_v48ffpl/work    # dir containing the ADCIRC executables
@@ -40,8 +40,8 @@ INPUTDIR=/work/01053/rweaver/ASGS/asgs_2009/input   # dir containing grid and ot
 OUTPUTDIR=/work/01053/rweaver/ASGS/asgs_2009/output # dir containing post processing scripts
 PERL5LIB=/work/01053/rweaver/ASGS/asgs_2009/PERL    # dir with DateCale.pm perl module
 SCRIPTDIR=/work/01053/rweaver/ASGS/asgs_2009/  # dir where the various PERL scripts for the ASGS  located
-NCPU=16            # number of CPUs to use for all simulations
-STARTADVISORYNUM=0
+NCPU=16           # number of CPUs to use for all simulations
+STARTADVISORYNUM=41
 #
 #-------------------------------------------------------------------
 # Platform-related configuration
@@ -79,34 +79,31 @@ HDIR=/pub/ims/weaver/NHC_Advisories/btk # hindcast dir on test site
 #
 # file that contains the mesh (fort.14)
 GRIDFILE=ec_95d.grd
-#GRIDFILE=ec2001.grd
-#GRIDFILE=sl15v3_2007_r10.grd
+#GRIDFILE=texas_2.85Mnode.grd
 #GRIDFILE=sl15v3_2007_r10.grd
 # file that acts as a template for the control file (fort.15)
 CONTROLTEMPLATE=ec_95_fort.15_template
-#CONTROLTEMPLATE=fort.15.ec2001.template
-#CONTROLTEMPLATE=fort.15.sl15.corps.template
+#CONTROLTEMPLATE=texas_2.85Mnode.fort.15_template
 #CONTROLTEMPLATE=fort.15.sl15.corps.template
 # nodal attributes file (fort.13)
 NAFILE=
-#NAFILE=ec2001.13
-#NAFILE=sl15v3_2007_r09f.13
+#NAFILE=texas_2.85Mnode.fort.13
 #NAFILE=sl15v3_2007_r09f.13
 # archive of the fort.14 and fort.13 that have already been preprocessed
 # for a certain number of CPUs (include the num of CPUs in the file name)
 PREPPEDARCHIVE=prepped_ec_95d_16proc.tar.gz
-#PREPPEDARCHIVE=prepped_ec2001.tar.gz
-#PREPPEDARCHIVE=prepped_sl15_corps_1000.tar.gz
+#PREPPEDARCHIVE=prepped_texas_2.85Mnode_256proc.tar.gz
 #PREPPEDARCHIVE=prepped_sl15_corps_1000.tar.gz
 # 
 # size of the time step to use
-TIMESTEPSIZE=10.0
+TIMESTEPSIZE=30.0
 #
 # estimated wall clock time for queueing systems that require an
 # estimate; must be set small when sending test problems to the debug queue;
 # for production, must be set large enough for any run, including initial
 # hindcast run, which may be longer than 5 days in some cases
 WALLTIME="2:00:00"
+#WALLTIME="10:00:00"
 #
 #-------------------------------------------------------------------
 # Storm ensemble configuration 
