@@ -142,11 +142,11 @@ echo $INPUTGRID, $INPUTFILE,$OUTPUTPREFIX.shp
 #
 # Use this section of the script to move the files where you want them
 
- mkdir  $OUTPUTPREFIX-output_files
+ mkdir  $OUTPUTPREFIX-KMZ_GIS_files
 
- mv $OUTPUTPREFIX.* $OUTPUTPREFIX-output_files
- tar -czf $OUTPUTPREFIX.tgz $OUTPUTPREFIX-output_files
+ mv $OUTPUTPREFIX.* $OUTPUTPREFIX-KMZ_GIS_files
+ tar -czf $OUTPUTPREFIX-KMZ_GIS.tgz $OUTPUTPREFIX-output_files
 
-# rm -rf $ADVISDIR/$OUTPUTPREFIX-output_files
+ rm -rf $OUTPUTPREFIX-KMZ_GIS_files $OUTPUTPREFIX*.png
 ###
 exit 0
