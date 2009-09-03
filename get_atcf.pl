@@ -172,7 +172,7 @@ while (!$dl) {
             last;
          }
          last unless $n;
-         $body.=$buf
+         $body.=$buf;
       }
       my $indexOpenSuccess = open(INDEX,">index-at.xml");
       unless ($indexOpenSuccess) {
@@ -253,13 +253,13 @@ while (!$dl) {
          $body="";
          while(1) { 
             my $buf;
-            my $n = $http->read_entity_body($buf,1024);
+            my $n = $advConnect->read_entity_body($buf,1024);
             unless ( defined $n ) {
                stderrMessage("ERROR","http: buffer read failed: $!");
                last;
             }
             last unless $n;
-            $body.=$buf
+            $body.=$buf;
          }
          my $textAdvFile = $forecastfile . ".html";
          my $openTxtForecastSuccess = open(TEXTFORECAST,">$textAdvFile");
