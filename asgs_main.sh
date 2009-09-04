@@ -322,36 +322,24 @@ fort.15
 END
        exit
     elif [ $ENV = ranger ]; then
-         cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-          echo $NCPU    > prep.in1
-          echo 4       >> prep.in1
-          echo fort.14 >> prep.in1
-          echo fort.15 >> prep.in1
-        SERQSCRIPT=ranger.template.serial
-        SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
-        perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
-        logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
-        qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
-    # check once per minute until all jobs have finished
-    monitorJobs $QUEUESYS
-        mv prep.in1 prep.in_controlfile
-        mv decomp.out1 decomp.out_controlfile
-    consoleMesssage "Job(s) complete."
-      if [ -e run.start ] ; then
-     mv run.start $ENSTORM.adcprepcontrol.run.start
-      fi
-      if [ -e run.finish ] ; then
-     mv run.finish $ENSTORM.adcprepcontrol.run.finish
-      fi
-      if [ -e run.error ] ; then
-     mv run.error $ENSTORM.adcprepcontrol.run.error
-      fi
-
-     
-    # prep-ing control finished, get on with it
-    logMessage "adcprep control finished"
-    consoleMessage "adcprep control finished"
-
+       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+       echo $NCPU    > prep.in1
+       echo 4       >> prep.in1
+       echo fort.14 >> prep.in1
+       echo fort.15 >> prep.in1
+       SERQSCRIPT=ranger.template.serial
+       SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
+       perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
+       logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
+       qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
+       # check once per minute until all jobs have finished
+       monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol
+       mv prep.in1 prep.in_controlfile
+       mv decomp.out1 decomp.out_controlfile
+       consoleMesssage "Job(s) complete."
+       # prep-ing control finished, get on with it
+       logMessage "adcprep control finished"
+       consoleMessage "adcprep control finished"
     else
        $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
 $NCPU
@@ -378,34 +366,23 @@ $NCPU
 END
          exit
     elif [ $ENV = ranger ]; then
-         cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-          echo $NCPU    > prep.in1
-          echo 6       >> prep.in1
-          echo 68      >> prep.in1
-        SERQSCRIPT=ranger.template.serial
-        SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
-        perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
-        logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
-        qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
-    # check once per minute until all jobs have finished
-    monitorJobs $QUEUESYS
-        mv prep.in1 prep.in_hotstartfile
-        mv decomp.out1 decomp.out_hotstartfile
-    consoleMesssage "Job(s) complete."
-      if [ -e run.start ] ; then
-     mv run.start $ENSTORM.adcprephotstart.run.start
-      fi
-      if [ -e run.finish ] ; then
-     mv run.finish $ENSTORM.adcprephotstart.run.finish
-      fi
-      if [ -e run.error ] ; then
-     mv run.error $ENSTORM.adcprephotstart.run.error
-      fi
-
-    # prep-ing hotstart finished, get on with it
-    logMessage "adcprep hotstart finished"
-    consoleMessage "adcprep hotstart finished"
-
+       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+       echo $NCPU    > prep.in1
+       echo 6       >> prep.in1
+       echo 68      >> prep.in1
+       SERQSCRIPT=ranger.template.serial
+       SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
+       perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
+       logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
+       qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
+       # check once per minute until all jobs have finished
+       monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart
+       mv prep.in1 prep.in_hotstartfile
+       mv decomp.out1 decomp.out_hotstartfile
+       consoleMesssage "Job(s) complete."
+       # prep-ing hotstart finished, get on with it
+       logMessage "adcprep hotstart finished"
+       consoleMessage "adcprep hotstart finished"
       else
          $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
 $NCPU
@@ -491,6 +468,7 @@ downloadWindData()
 # finished ... returns to the calling routine when the job has finished
 monitorJobs() 
 {   QUEUESYS=$1
+    ENSTORM=$2
     activity_indicator "Monitoring queue for run completion..." &
     pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
     sleep 60
@@ -505,9 +483,18 @@ monitorJobs()
             sleep 60
         done
     elif [ $QUEUESYS = PBS ]; then
-        while [[ `$QCHECKCMD | grep $USER` ]]; do
-            sleep 60
+        until [[ -e run.finish || -e run.error ]]; do
+            sleep 10
         done
+        # we can't go on if the nowcast run fails, but a failed forecast
+        # won't stop us in our tracks
+        if [[ -e run.error ]]; then
+            if [ $ENSTORM = nowcast ]; then 
+               fatal "The $ENSTORM run failed." 
+            else
+               warn "The $ENSTORM run failed; results are not available for this ensemble member for this advisory."
+            fi
+        fi
     elif [ $QUEUESYS = mpiexec ]; then
         # do nothing, mpiexec has returned at this point
         logMessage "mpiexec has returned"
@@ -519,7 +506,7 @@ monitorJobs()
   #      while [[ `$QCHECKCMD | grep $USER` ]]; do
          while [[ ! -e run.finish ]]; do
            if [ -e run.error ];then
-           fatal "ERROR: Job crashed in SGE queue"
+              fatal "ERROR: Job crashed in SGE queue"
            fi        
             sleep 60
         done
@@ -528,6 +515,9 @@ monitorJobs()
     fi
     logMessage "Job(s) complete."
     stop_activity_indicator ${pid}
+    for run_file in `ls run.*`; do
+       mv $run_file ${ENSTORM}.${run_file}
+    done
 }
 #
 # submits a job to the local queueing system
@@ -995,17 +985,8 @@ while [ 1 -eq 1 ]; do
     logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR nowcast $NOTIFYUSER $ENV $ACCOUNT $PPN"
     submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR nowcast $NOTIFYUSER $ENV $ACCOUNT $PPN
     # check once per minute until all jobs have finished
-    monitorJobs $QUEUESYS 
+    monitorJobs $QUEUESYS nowcast
     consoleMesssage "Job(s) complete."
-      if [ -e run.start ] ; then
-     mv run.start nowcast.run.start
-      fi
-      if [ -e run.finish ] ; then
-     mv run.finish nowcast.run.finish
-      fi
-      if [ -e run.error ] ; then
-     mv run.error nowcast.run.error
-      fi
     # nowcast finished, get on with it
     logMessage "nowcast run finished"
     consoleMessage "nowcast run finished"
@@ -1051,17 +1032,8 @@ while [ 1 -eq 1 ]; do
         consoleMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
         submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN
         # check once per minute until job has completed
-        monitorJobs $QUEUESYS 
+        monitorJobs $QUEUESYS $ENSTORM
         consoleMesssage "Job(s) complete."
-      if [ -e run.start ] ; then
-     mv run.start $ENSTORM.run.start
-      fi
-      if [ -e run.finish ] ; then
-     mv run.finish $ENSTORM.run.finish
-      fi
-      if [ -e run.error ] ; then
-     mv run.error $ENSTORM.run.error
-      fi
         # execute post processing
         logMessage "$ENSTORM finished; postprocessing"
         # execute post processing
