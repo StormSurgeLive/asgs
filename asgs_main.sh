@@ -755,7 +755,7 @@ env_dispatch(){
 # -h : show help"
 #
 # Example:
-#   sh asgs_main.sh -c /path/to/config -e topsail 
+#   bash asgs_main.sh -c /path/to/config -e topsail 
 #
 # mail alert
 #ASGSADMIN="estrabd+lpfs@gmail.com jgflemin@email.unc.edu" #<-- purposefully not in config.sh
@@ -819,13 +819,6 @@ consoleMessage "ASGS Start Up MSG: [SYSLOG] The log file is ${SYSLOG}"
 while getopts "c:e:h" optname; do    #<- first getopts for SCRIPTDIR
   case $optname in
     c) CONFIG=${OPTARG}
-       if [ -e "${CONFIG}" ]; then 
-          logMessage "${CONFIG} found!" 
-          # source config file
-          . ${CONFIG}
-       else
-          fatal "${CONFIG} does not exist!"
-       fi
        ;;
     e) ENV=${OPTARG} 
        ;;
@@ -838,6 +831,16 @@ logMessage "ASGS script directory set to ${SCRIPTDIR}"
 # dispatch environment
 logMessage "Configuring the ASGS for the '${ENV}' platform..."
 env_dispatch ${ENV} 
+#
+# Since the config file is read after the platform configuration has been
+# made, settings in the config file will override those in the plaform config.
+if [ -e "${CONFIG}" ]; then 
+   logMessage "Configuring the ASGS according to the file ${CONFIG}." 
+    # source config file
+    . ${CONFIG}
+else
+    fatal "${CONFIG} does not exist!"
+fi
 #
 # check existence of all required files and directories
 checkDirExistence $ADCIRCDIR "ADCIRC executables directory" 

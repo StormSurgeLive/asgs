@@ -16,17 +16,10 @@
 # of seconds from the hotstart file in the case of a hotstart) must correspond
 # exactly to one of the times in the hindcast or forecast file.
 #
-# 2. If the wind radius in any of the four quadrants is zero, that quadrant's
-# radius can be filled in with the average of the nonzero radii at that point
-# in time. If all the radii are zero, they will all be set to the correpsonding
-# values from the previous time level. If there are no values from the previous
-# time level, they will be set to the then-current Rmax in the case of a 
-# hindcast line, or to the nowcast Rmax in the case of a forecast line. 
-#
-# 3. Conversion of km to degrees (lat and lon) is only approximate and 
+# 2. Conversion of km to degrees (lat and lon) is only approximate and 
 # could be made more accurate.
 #
-# 4. The fill-in of the forecast central pressure is based on an algorithm
+# 3. The fill-in of the forecast central pressure is based on an algorithm
 # under development by Jason Fleming (jason.fleming@seahorsecoastal.com). This
 # algorithm is the subject of current research and is subject to change.
 #
@@ -225,7 +218,7 @@ while(<HCST>) {
        my $last_complete_line = $complete_hc_lines{$isotach_kts};
        if ( $last_complete_line ) {
           # splice the complete line onto the incomplete line
-          $line = $line . substr($last_complete_line,$line_length-1,999);
+          $line = $line . substr($last_complete_line,$line_length,999);
           printf STDERR "WARNING: storm_track_gen.pl: That line will be replaced with the following line: $line\n";  
        } else {
           # there wasn't a corresponding line in the hash ... safest thing
