@@ -376,7 +376,7 @@ END
        logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
        qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
        # check once per minute until all jobs have finished
-       monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart
+        monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart
        mv prep.in1 prep.in_hotstartfile
        mv decomp.out1 decomp.out_hotstartfile
        consoleMesssage "Job(s) complete."
@@ -468,7 +468,7 @@ downloadWindData()
 # finished ... returns to the calling routine when the job has finished
 monitorJobs() 
 {   QUEUESYS=$1
-    ENSTORM=$2
+    ENSTORM_TEMP=$2
     activity_indicator "Monitoring queue for run completion..." &
     pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
     sleep 60
@@ -489,10 +489,10 @@ monitorJobs()
         # we can't go on if the nowcast run fails, but a failed forecast
         # won't stop us in our tracks
         if [[ -e run.error ]]; then
-            if [ $ENSTORM = nowcast ]; then 
-               fatal "The $ENSTORM run failed." 
+            if [ $ENSTORM_TEMP = nowcast ]; then 
+               fatal "The $ENSTORM_TEMP run failed." 
             else
-               warn "The $ENSTORM run failed; results are not available for this ensemble member for this advisory."
+               warn "The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
             fi
         fi
     elif [ $QUEUESYS = mpiexec ]; then
@@ -516,7 +516,7 @@ monitorJobs()
     logMessage "Job(s) complete."
     stop_activity_indicator ${pid}
     for run_file in `ls run.*`; do
-       mv $run_file ${ENSTORM}.${run_file}
+       mv $run_file ${ENSTORM_TEMP}.${run_file}
     done
 }
 #
