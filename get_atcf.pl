@@ -189,6 +189,7 @@ while (!$dl) {
       my $advNum;
       my $stormFound = 0;
       my $linkFound = 0;
+      my $newAdvisory = 0;
       # printf STDERR "INFO: get_atcf.pl: 
       # The index-at.xml file contains $cnt lines.\n";
       # loop over the body of the index file, looking for our storm
@@ -202,15 +203,13 @@ while (!$dl) {
          # compare the advisory number in the index file with the current
          # advisory number on the command line, if any
             if ( defined $adv ) {
-               if ( $advNum eq $adv ) {
-                #printf STDERR "INFO: get_atcf.pl: advNum is '$advNum' and adv is '$adv': Not a new advisory.\n";
-                  last;    # this is not a new advisory
-               } else {
+               unless ( $advNum eq $adv ) {
+                  $newAdvisory = 1;
                   printf STDOUT "$advNum";
                }
             }
-            # if new advisory, grab the link to the actual text of the advisory 
             while ($i<$cnt) {
+               # grab the link to the actual text of the advisory 
                $i++;
                if ( defined $lines[$i] ) {
                   if ( $lines[$i] =~ /link/ ) {
@@ -231,8 +230,15 @@ while (!$dl) {
          }   
          $i++;
       }
-      unless ( $stormFound && $linkFound ) { 
+      unless ( $stormFound ) { 
          stderrMessage("ERROR","http: The storm named '$nhcName' was not found in the RSS feed.");
+         next;
+      }
+      unless (  $linkFound ) { 
+         stderrMessage("ERROR","http: The link to the Forecast/Advisory for the storm named '$nhcName' was not found in the index file of the RSS feed.");
+         next;
+      }
+      unless ( $newAdvisory ) { 
          next;
       }
       if ( defined $textAdvisoryHost and defined $textAdvisoryPath ) {

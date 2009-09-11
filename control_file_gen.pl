@@ -287,7 +287,7 @@ if ( $runlength_seconds < $min_runlength ) {
 # if this is an update from hindcast to nowcast, calculate the hotstart 
 # increment so that we only write a single hotstart file at the end of 
 # the run. If this is a forecast, don't write a hotstart file at all.
-my $NHSINC = int($runlength_seconds/$dt);
+my $NHSINC = int(($RNDAY*86400.0)/$dt);
 my $NHSTAR;
 if ( $enstorm eq "nowcast" ) {
    $NHSTAR = 1;
