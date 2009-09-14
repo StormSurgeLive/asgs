@@ -29,6 +29,7 @@ my ($image,$world,$east,$west,$north,$south);
 my ($firstStep,$nSteps,$stepInterval);
 my $thisFileExt;
 my $thisFileName;
+my $imageMagickPath; # full path to ImageMagick executables, up through /bin
 
 # May need to specify the full path.
 my $IDENTIFY = "identify";
@@ -44,8 +45,13 @@ GetOptions ('image=s'        => \$image,
             'east=s'         => \$east,
             'west=s'         => \$west,
             'north=s'        => \$north,
-            'south=s'        => \$south);
-
+            'south=s'        => \$south,
+            'imagemagickpath=s' => \$imageMagickPath);
+#
+# prepend the full path to image magick
+if (defined $imageMagicPath) { 
+   $IDENTIFY=$imageMagickPath . $IDENTIFY
+}
 # get the x and y size in pixels of the image.
 my $fileSize =`$IDENTIFY $image |  awk '{print \$3}'`;
 #my $fileSize =`identify $image |  awk '{print \$3}'`;

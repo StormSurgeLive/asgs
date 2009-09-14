@@ -18,11 +18,11 @@ rm -rf .gmt*
 
 
 #Set Target by  hard-wire.
-TARGET="sapphire";
+#TARGET="sapphire";
 #TARGET="topsail";
 #TARGET="ranger";
 #TARGET="queenbee";
-#TARGET="jade";
+TARGET="jade";
 
 # Outputs diagnostic messages
 DEBUG=1

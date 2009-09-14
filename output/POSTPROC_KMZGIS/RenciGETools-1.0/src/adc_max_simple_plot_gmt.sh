@@ -247,7 +247,7 @@ function MakePlot
             $PPDIR/WriteTiledKML $KMLArg
 
             # Now call the world file builder.
-            worldArg="--image=$targ.png --world=$targ.world --north=$TileNorth --south=$TileSouth --east=$TileEast --west=$TileWest"
+            worldArg="--image=$targ.png --world=$targ.world --north=$TileNorth --south=$TileSouth --east=$TileEast --west=$TileWest --imagemagickpath $ImageMagick"
             echo $worldArg
             $PPDIR/makeWorldFile.pl $worldArg
 
