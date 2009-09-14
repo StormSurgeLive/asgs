@@ -18,11 +18,11 @@ rm -rf .gmt*
 
 
 #Set Target by  hard-wire.
-#TARGET="sapphire";
+TARGET="sapphire";
 #TARGET="topsail";
 #TARGET="ranger";
 #TARGET="queenbee";
-TARGET="jade";
+#TARGET="jade";
 
 # Outputs diagnostic messages
 DEBUG=1
@@ -77,7 +77,7 @@ case "$TARGET" in
                 GRDFILES=~/asgs/trunk/output/POSTPROC_KMZGIS/grids
                 GS=/usr/bin/gs     # The ghostscript binary (gs)
                 # path to ImageMagick binaries
-                ImageMagick=/usr/local/usp/ImageMagick/bin
+                ImageMagick=/usr/local/usp/ImageMagick/default/bin
                 ZIP=/usr/bin/zip   # path to zip
                 ;;
 esac
