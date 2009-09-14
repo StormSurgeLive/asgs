@@ -84,15 +84,16 @@ export PPDIR=$POSTPROC_DIR/RenciGETools-1.0/src
 # On topsail.unc.edu 4 layers for a 270000 node grid took 14 minutes.
 # to test the script use only 1 layer.
   
+     KMZLOGFILE=$ADVISDIR/$ENSTORM/kmz.log # log file for kmz info and errors
      INPUTFILE=$ADVISDIR/$ENSTORM/maxele.63
 #    INPUTFILE=$ADVISDIR/$ENSTORM/maxwvel.63
      GRIDPREFIX=`basename $GRIDFILE .grd`
      OUTPUTPREFIX=${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}
      NUMLAYER=3
     # create track line and points if available
- perl $PPDIR/make_track_files.pl
+ perl $PPDIR/make_track_files.pl >> $KMZLOGFILE 2>&1
 
- $PPDIR/adc_max_simple_plot_gmt.sh -f $INPUTFILE -g $GRIDPREFIX -p $OUTPUTPREFIX -n $NUMLAYER
+ $PPDIR/adc_max_simple_plot_gmt.sh -f $INPUTFILE -g $GRIDPREFIX -p $OUTPUTPREFIX -n $NUMLAYER >> $KMZLOGFILE 2>&1
 
 # exit 0
 # #####################################################
@@ -126,16 +127,16 @@ else
  echo "cannot find, $GRDFILES/$GRIDPREFIX.grd ,or, $GRDFILES/$GRIDPREFIX.14 "
  exit 1
 fi
-
+GISLOGFILE=$ADVISDIR/$ENSTORM/gis.log # log file for gis-related info/errors
 echo "starting Java script ArcGIS POST PROC", $WEST, $SOUTH, $EAST, $NORTH
 echo $INPUTGRID, $INPUTFILE,$OUTPUTPREFIX.shp
 
- java -Xmx1024M -jar $POSTPROC_DIR/actoshape/actoshape.jar \
+ java -Xmx512M -jar $POSTPROC_DIR/actoshape/actoshape.jar \
   --box $WEST $SOUTH $EAST $NORTH \
   --clipcoast 100 \
   $INPUTGRID \
   $INPUTFILE \
-  $OUTPUTPREFIX.shp
+  $OUTPUTPREFIX.shp >> $GISLOGFILE 2>&1
 
 # ..   ..
 # $POSTPROC_DIR/actoshape/actoshape \

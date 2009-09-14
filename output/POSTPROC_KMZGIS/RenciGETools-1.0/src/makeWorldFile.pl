@@ -50,7 +50,7 @@ GetOptions ('image=s'        => \$image,
 #
 # prepend the full path to image magick
 if (defined $imageMagickPath) { 
-   $IDENTIFY=$imageMagickPath . $IDENTIFY
+   $IDENTIFY=$imageMagickPath . "/" . $IDENTIFY
 }
 # get the x and y size in pixels of the image.
 my $fileSize =`$IDENTIFY $image |  awk '{print \$3}'`;
