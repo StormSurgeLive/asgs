@@ -49,7 +49,7 @@ GetOptions ('image=s'        => \$image,
             'imagemagickpath=s' => \$imageMagickPath);
 #
 # prepend the full path to image magick
-if (defined $imageMagicPath) { 
+if (defined $imageMagickPath) { 
    $IDENTIFY=$imageMagickPath . $IDENTIFY
 }
 # get the x and y size in pixels of the image.

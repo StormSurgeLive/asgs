@@ -21,12 +21,15 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
-ASGSADVISORYDIR=$1
-STORM=$2
-YEAR=$3
-ADVISORY=$4
-HOSTNAME=$5
-ENSTORM=$6
+CONFIG=$1
+ASGSADVISORYDIR=$2
+STORM=$3
+YEAR=$4
+ADVISORY=$5
+HOSTNAME=$6
+ENSTORM=$7
+COLDSTARTDATE=$8
+HSTIME=$9
 #
 POSTDIR=/dev/null
 #
