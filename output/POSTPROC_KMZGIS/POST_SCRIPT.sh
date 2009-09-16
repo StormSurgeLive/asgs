@@ -131,9 +131,9 @@ GISLOGFILE=$ADVISDIR/$ENSTORM/gis.log # log file for gis-related info/errors
 echo "starting Java script ArcGIS POST PROC", $WEST, $SOUTH, $EAST, $NORTH
 echo $INPUTGRID, $INPUTFILE,$OUTPUTPREFIX.shp
 
- java -Xmx512M -jar $POSTPROC_DIR/actoshape/actoshape.jar \
+ java -Xmx2048M -jar $POSTPROC_DIR/actoshape/actoshape.jar \
   --box $WEST $SOUTH $EAST $NORTH \
-  --clipcoast 100 \
+  --clipcoast  \
   $INPUTGRID \
   $INPUTFILE \
   $OUTPUTPREFIX.shp >> $GISLOGFILE 2>&1
