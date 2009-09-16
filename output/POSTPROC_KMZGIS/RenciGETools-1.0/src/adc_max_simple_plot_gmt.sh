@@ -166,12 +166,9 @@ function MakeColorbar
 	$GMTHOME/bin/gmtset Y_ORIGIN = 0.i
 	#-D defines the position of the center/top (for horizontal scale) or center/left (for vertical scale) and the dimensions of the scale
 	# -Dxpos/ypos/length/width
-	#arg1="-P -R0/0/1/1r -JX1i/10i -B0 -K"
-	#arg2="-D0i/5i/10i/1i -O -B$barg -C$cpt"
-	arg1="-P -R0/0/1/1r -JX0.5i/5i -B0 -K"
-	arg2="-D0i/2.5i/5i/0.5i -O -B$barg -C$cpt"
-        #arg3="-crop 120x390+60+340"   # topsail
-        arg3=" -crop 110x400+00+110"
+        arg1="-P -R0/0/1/1r -JX2i/8i -B0 -K"
+        arg2="-D0.25i/3.5i/5i/.5i -O -B$barg -C$cpt"
+        arg3="-crop 130x400+00+50"   
 
 	if [ $DEBUG ] ; then 
       echo Drawing colorbar :  $GMTHOME/bin/psbasemap $arg1 \>\> $targ.ps 
