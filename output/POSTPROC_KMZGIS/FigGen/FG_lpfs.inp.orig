@@ -1,0 +1,58 @@
+FOR BEST RESULTS, PLEASE KEEP COMMENTS OUT OF THE FIRST 50 CHARACTERS ON EACH LINE.
+12345678901234567890123456789012345678901234567890
+4                                                  ! Level of screen output.
+/work/rweaver/GMT4.3.1/bin/                        ! Path where GMT executables are located.
+./Temp1/                                           ! Path where temporary files will be created.
+ASGS_HWM_trk1_                                     ! Alphanumeric label for these plots.
+1,High Water Marks(NAVD88): Consensus 2008.08.2812 ! Plot label flag and plot label.
+1                                                  ! Time bar flag: 0 to ignore, 1 to plot time bar.
+-90.50                                             ! Lat/lon box.
+-89.50                                             !
+29.80                                              !
+30.50                                              !
+fort.14                                            ! Name of grid file.
+0                                                  ! Plot grid flag: 0 to ignore, 1 to plot triangular grid on figure.
+PARAMETERS FOR CONTOURS:
+1                                                  ! Contour fill flag: 0 to ignore, 1 to plot filled contours, 2 to plot differences.
+1                                                  ! Contour lines flag: 0 to ignore, 1 to plot contour lines, 2 to plot differences.
+maxele.63                                          ! Name(s) of file(s) to use for contours.
+OUTPUT-FULL                                        ! Contour file format flag: OUTPUT-FULL, OUTPUT-SPARSE, .
+1.000                                              ! Unit conversion factor for contours.
+m                                                  ! Alphanumeric label for units after conversion.
+SMS                                                !+INTERVALS      lor palette flag: RGB, SMS, SMS+INTERVALS.
+Default31.pal                                      !,ContourRange.txt      ! Name of SMS color palette., corresponding contour range
+DEFAULT                                            ! Color lines flag: DEFAULT, CONTOUR-LINES, GRID-BATH, GRID-SIZE.  Requires GMT4.3.0.
+FIND                                               ! Minimum,maximum in contour range (or FIND to determine from file).
+1.0                                                ! Interval in contour range.
+100                                                ! Number of times to split contour interval (for smoother plots).
+2                                                  ! Label every xth contour line on the plot (or 0 for no labels).
+0.1                                                ! Require contour line labels to be more than x inches apart.
+0                                                  ! Rotation angle for contour line labels (or n for normal or p for parallel.)
+12                                                 ! Font size for contour line labels.
+1.0                                                ! Label the scale at intervals of x.
+0.25                                               ! Width (inches) of scale.
+PARAMETERS FOR VECTORS:
+0                                                  ! Vector flag: 0 to ignore, 1 to plot vectors.
+fort.64                                            ! Name of file to use for vectors (fort.64, fort.74).
+OUTPUT-FULL                                        ! Vector file format flag: OUTPUT-FULL, OUTPUT-SPARSE.
+1.00000                                            ! Unit conversion factor for vectors.
+m/s                                                ! Alphanumeric label for units after conversion.
+180.0                                              ! Magnitude of vector corresponding to one inch on the page.
+0.15                                               ! Spacing between vectors in degrees.
+0.06                                               ! Vector head length.
+0.04                                               ! Vector head width.
+0.01                                               ! Vector tail width.
+FIND                                               ! Magnitude of vector to show in the vector scale (or FIND to determine from file).
+PARAMETERS FOR OVERALL PLOT(S):
+0,Brown                                            ! Boundaries flag: 0 to ignore, 1 to plot roads/levees from grid.
+0,White,Coastline.dat                              ! Coastline file: 0 to ignore, 1 to plot coastline from external file.
+0,White,Labels.txt                                 ! Labels flag: 0 to ignore, 1 to plot labels from external file.
+6.50                                               ! Width (inches) of plot.
+0.25                                               ! Distance (inches) between edge of plot and contour scale, vector scale, time bar, plot label, etc.
+0.25                                               ! Alternate black and white boxes on the border at every xth degree.
+1.00                                               ! Annotate on the border at every xth degree.
+600                                                ! Resolution (dpi) of large JPG images.
+1200                                                ! Width (pixels) of small JPG images.
+1                                                  ! Number of records for which to produce images (or 0 for all).
+1                                                  ! List of records (ignored if the number of records is 0).
+

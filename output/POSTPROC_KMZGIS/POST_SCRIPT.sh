@@ -4,7 +4,7 @@
 # UNC-CH IMS
 # rjweaver@email.unc.edu
 # 06/2009 
- 
+#  
 ADVISDIR=$1
 OUTPUTDIR=$2
 STORM=$3
@@ -14,8 +14,8 @@ HOSTNAME=$6
 ENSTORM=$7
 GRIDFILE=$8 
 
-# This script will run the KMZ and GIS shapefile generator
-# 
+# This script will run the KMZ and GIS shapefile generator 
+# adn make a JPG of the maxele file
 #
 # to use copy this script where you would like the output to be generated,
 # follow the instructions on how to set up the path definitions and 
@@ -93,7 +93,7 @@ export PPDIR=$POSTPROC_DIR/RenciGETools-1.0/src
     # create track line and points if available
  perl $PPDIR/make_track_files.pl >> $KMZLOGFILE 2>&1
 
- $PPDIR/adc_max_simple_plot_gmt.sh -f $INPUTFILE -g $GRIDPREFIX -p $OUTPUTPREFIX -n $NUMLAYER >> $KMZLOGFILE 2>&1
+ $PPDIR/adc_max_simple_plot_gmt.sh -f $INPUTFILE -g $GRIDPREFIX -p $OUTPUTPREFIX -n $NUMLAYER >> $KMZLOGFILE 2>&1 
 
 # exit 0
 # #####################################################
@@ -136,18 +136,56 @@ echo $INPUTGRID, $INPUTFILE,$OUTPUTPREFIX.shp
   --clipcoast  \
   $INPUTGRID \
   $INPUTFILE \
-  $OUTPUTPREFIX.shp >> $GISLOGFILE 2>&1
+  $OUTPUTPREFIX.shp >> $GISLOGFILE 2>&1  &
 
+# #####################################################
+#
+# now set definitions for JPG generator
+#
+# .. JPG ..
+# Use the same NSEW as above (may create a bad plot)
+# OR define your own bounds
+#  NORTH=30.5
+#  SOUTH=27.5
+#  EAST=-88.5
+#  WEST=-90.5
+
+#
+#  Usage Example:
+#   perl make_JPG.pl --storm 01 --year 2006 --adv 05 --n 30.5 --s 28.5 --e -88.5 --w -90.5 --outputprefix 01_2006_nhcconsensus_05
+
+  perl $POSTPROC_DIR/FigGen/make_JPG.pl --outputdir $POSTPROC_DIR --gmthome $GMTHOME --storm ${STORM} --year ${YEAR} --adv $ADVISORY --n $NORTH --s $SOUTH --e $EAST --w $WEST --outputprefix $OUTPUTPREFIX
+    
+    ln -fs $POSTPROC_DIR/FigGen/adcirc_logo_white.jpg ./
+    ln -fs $POSTPROC_DIR/FigGen/Default31.pal ./
+#    cd ./Temp
+#    ln -fs $GRDFILES/$GRIDPREFIX.gmt.bnd.xy ./fort.14.bnd.xy
+#    ln -fs $GRDFILES/$GRIDPREFIX.gmt.tri ./fort.14.tri
+#    ln -fs $GRDFILES/$GRIDPREFIX.gmt.xyz ./fort.14.gmt.xyz
+#    cd ../
+
+    $POSTPROC_DIR/FigGen/FigureGen26.exe >> jpg.log 2>&1  &
+   
 # ..   ..
-# $POSTPROC_DIR/actoshape/actoshape \
 #
 # Use this section of the script to move the files where you want them
 
- mkdir  $OUTPUTPREFIX-KMZ_GIS_files
+  while [ ! -e $OUTPUTPREFIX.kmz ]; do
+      sleep 60
+   done
+  while [ ! -e $OUTPUTPREFIX.shp ]; do
+      sleep 60
+   done
+  while [ ! -e $OUTPUTPREFIX.jpg ]; do
+      sleep 60
+   done
+      sleep 60
 
- mv $OUTPUTPREFIX.* $OUTPUTPREFIX-KMZ_GIS_files
- tar -czf $OUTPUTPREFIX-KMZ_GIS.tgz $OUTPUTPREFIX-KMZ_GIS_files
+         mkdir  $OUTPUTPREFIX-KMZ_GIS_files
 
- rm -rf $OUTPUTPREFIX-KMZ_GIS_files $OUTPUTPREFIX*.png
+          mv $OUTPUTPREFIX.* $OUTPUTPREFIX-KMZ_GIS_files
+         tar -czf $OUTPUTPREFIX-KMZ_GIS.tgz $OUTPUTPREFIX-KMZ_GIS_files
+
+         rm -rf $OUTPUTPREFIX-KMZ_GIS_files $OUTPUTPREFIX*.png
 ###
 exit 0

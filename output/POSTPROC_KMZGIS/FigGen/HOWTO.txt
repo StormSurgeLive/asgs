@@ -1,0 +1,59 @@
+Robert J Weaver
+2008/09/25
+
+You should be able to untar this in your directory and then link the 3 files
+(fort.14, fort.22, maxele.63) and then run ./generate_images_lpfs_wideview.pl
+and get a nice plot out of it.
+
+How to run the modified Casey's plotting program.
+
+The program has been modified to plot the track line and 
+position by running an external script which reads the fort.22 file.
+
+The plotting packlage is run by a script that first reads the fort.22 file.
+
+From that file, two track files are created one for plotting the track line,
+and the other for plotting the positions.
+
+The cycle time is also read from the fort.22 file.
+The script modifes this time and converts to Central Standard or Daylight time.
+The cycle time is part of the title of the plot.
+
+Also in the title of the plot is the advisory number and the run type.
+This information is read form hte one line file named
+"./track_name_file"
+This file MUST be updated before every run  
+(until we find a way to have this info read from somewhere else)
+
+Next the bounds for the plot are set.
+currently these are
+                 $Wlon = "-92.0" ;
+                 $Elon = "-88.0" ;
+                 $Slat = "28.5"  ;
+                 $Nlat = "31.0"  ;
+
+In my mind it is easier to change the script than the input file.  
+Eventually these bounds can be created "on the fly"
+
+The script modified ts the FG_lpfs.inp.orig file and creates a new file called
+FG_lpfs.inp Which is in turn read by the program.
+
+The maxele.63 file must be there and the fort.14 file
+We also need a color palette, Default31.pal 
+
+The last thing the script does is run the FigureGen26_wline.exe program.
+
+with these files in the working directory, we are set to go.
+just run trhe script generate_images_lpfs_wideview.pl.   
+
+
+I am learning easier ways to modify files in perl and 
+hope to clean up the process in the future.
+
+
+You should be able to untar this in your directory and then link the 3 files
+(fort.14, fort.22, maxele.63) and then run ./generate_images_lpfs_wideview.pl.
+
+
+-Robert
+

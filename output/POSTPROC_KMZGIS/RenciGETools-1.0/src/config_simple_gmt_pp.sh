@@ -18,9 +18,9 @@ rm -rf .gmt*
 
 
 #Set Target by  hard-wire.
-TARGET="sapphire";
+#TARGET="sapphire";
 #TARGET="topsail";
-#TARGET="ranger";
+TARGET="ranger";
 #TARGET="queenbee";
 #TARGET="jade";
 
@@ -33,7 +33,7 @@ DEBUG=1
 case "$TARGET" in 
 # for Ranger
 	"ranger") 
-		GMTHOME=/share/home/01053/rweaver/GMT4.4.0			   # The GMT installation
+		GMTHOME=/share/home/01053/rweaver/GMT4.3.1			   # The GMT installation
 		PPDIR=/share/home/01053/rweaver/ASGS/asgs_2009/output/POSTPROC_KMZGIS/RenciGETools-1.0/src
                 GRDFILES=/share/home/01053/rweaver/ASGS/asgs_2009/output/POSTPROC_KMZGIS/grids
 		GS=/usr/bin/gs				   # The ghostscript binary (gs)
@@ -83,8 +83,8 @@ case "$TARGET" in
 esac
 
 #  input the LAT LON bounds your desire for your output
-#BOX="TX";
-BOX="LA";
+BOX="TX";
+#BOX="LA";
 #BOX="WFL";
 #BOX="NC";
 case "$BOX" in
