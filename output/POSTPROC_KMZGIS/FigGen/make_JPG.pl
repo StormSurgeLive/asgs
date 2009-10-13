@@ -41,9 +41,9 @@ GetOptions(
 # Now would be a good place to open up the input file for FigureGen26 
 #
           $lineno = 0 ;
-    open( FIGGENINPUT , "< $outputdir/FigGen/FG_lpfs.inp.orig" ) || die " No input file in this directory to modify \n";
+    open( FIGGENINPUT , "< $outputdir/FigGen/FG_asgs.inp.orig" ) || die " No input file in this directory to modify \n";
 # just write a new input file
-    open( FIGGENOUTPUT, "> ./FG_lpfs.new.inp" ) || die " Could not open new inputgfile to write to \n";
+    open( FIGGENOUTPUT, "> ./FG_asgs.new.inp" ) || die " Could not open new inputgfile to write to \n";
       while(<FIGGENINPUT>) {
               chomp;
          $inputline = $_ ;
@@ -92,7 +92,7 @@ GetOptions(
                  print FIGGENOUTPUT "$inputline_new\n" ;
             }
             elsif ( $lineno == 23 ) { 
-                 $inputline_new = "Default31.pal" ;
+                 $inputline_new = "Default2.pal" ;
                  print FIGGENOUTPUT "$inputline_new\n" ;
             }
             else {
@@ -101,26 +101,9 @@ GetOptions(
       }  # end of FigGen INPUT file loop
        close FIGGENINPUT;
        close FIGGENOUTPUT;
-          rename("./FG_lpfs.new.inp", "./FG_lpfs.inp");
+          rename("./FG_asgs.new.inp", "./FigGen32_35_asgs.inp");
 #
 # The input file is ready now lets go get (symbolic link)
 # the remaining files required to run the program
 #
-
-# we have the 
-# maxelev.63
-# input file
           
-# use test to be sure grid file exists
-#        if ( -e "./fort.14" ) {
-#             print "grid file is ready \n";
-#         } else {
-#             die " problem with input grid: fort.14\n";
-#         }
-
-# now run figgen
-
-#        system("./FigureGen26_wline.exe") ;
-
-
-# end of storm track loop
