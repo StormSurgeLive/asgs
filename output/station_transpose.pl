@@ -182,7 +182,7 @@ while (<STAFILE>) {
    if ($. == 1 ) {
       chomp;
       printf TRANSPOSE "# " . $_ . "\n";
-      printf TRANSPOSE "DATE" . $separator . "TIME" . $separator . "TIMEZONE" . $separator;
+      printf TRANSPOSE "#DATE" . $separator . "TIME" . $separator . "TIMEZONE" . $separator;
       foreach (@sta_names) {
           printf TRANSPOSE "\"$_\"" . $separator;
       }
@@ -238,7 +238,8 @@ while (<STAFILE>) {
       m/^\s*([^\s]*)\s*([^\s]*)\s*$/;
       ($year,$month,$day,$hour,$min,$sec)
          = Date::Pcalc::Add_Delta_DHMS($cs_year,$cs_mon,$cs_day,
-            $cs_hour,$cs_min,$cs_sec,0,$gmtoffset,0,sprintf("%f",$1));
+            $cs_hour,$cs_min,$cs_sec,0,$gmtoffset,0,sprintf("%2d",$1));
+      
       $time = sprintf("%4s-%02s-%02s$separator%02s:%02s:%02d$separator",
                 $year,$month,$day,$hour,$min,$sec);
    #
