@@ -14,8 +14,12 @@ HOSTNAME=$6
 ENSTORM=$7
 GRIDFILE=$8 
 
+
+
+  cd $ADVISDIR/$ENSTORM
+#  	echo $ADVISDIR/$ENSTORM
 # This script will run the KMZ and GIS shapefile generator 
-# adn make a JPG of the maxele file
+# and make a JPG of the maxele file
 #
 # to use copy this script where you would like the output to be generated,
 # follow the instructions on how to set up the path definitions and 
@@ -40,10 +44,13 @@ GRIDFILE=$8
 
 POSTPROC_DIR=$OUTPUTDIR/POSTPROC_KMZGIS
 
+#echo $POSTPROC_DIR
+
 # add location of KMZ scripts to PATH 
 # This should be fine unless locations were really changed
 
 export PPDIR=$POSTPROC_DIR/RenciGETools-1.0/src
+#echo $PPDIR
 
 # now set dddefinitions needed for the KMZ generator
 #
@@ -93,7 +100,7 @@ export PPDIR=$POSTPROC_DIR/RenciGETools-1.0/src
     # create track line and points if available
  perl $PPDIR/make_track_files.pl >> $KMZLOGFILE 2>&1
 
- $PPDIR/adc_max_simple_plot_gmt.sh -f $INPUTFILE -g $GRIDPREFIX -p $OUTPUTPREFIX -n $NUMLAYER >> $KMZLOGFILE 2>&1 
+ $PPDIR/adc_max_simple_plot_gmt.sh -f $INPUTFILE -g $GRIDPREFIX -p $OUTPUTPREFIX -n $NUMLAYER >> $KMZLOGFILE 2>&1  &
 
 # exit 0
 # #####################################################
@@ -153,19 +160,35 @@ echo $INPUTGRID, $INPUTFILE,$OUTPUTPREFIX.shp
 #
 #  Usage Example:
 #   perl make_JPG.pl --storm 01 --year 2006 --adv 05 --n 30.5 --s 28.5 --e -88.5 --w -90.5 --outputprefix 01_2006_nhcconsensus_05
+  
+# for now must create this in the sharedirectory on Ranger, so make it so on every machine
+  cd $POSTPROC_DIR/FigGen/
 
-  perl $POSTPROC_DIR/FigGen/make_JPG.pl --outputdir $POSTPROC_DIR --gmthome $GMTHOME --storm ${STORM} --year ${YEAR} --adv $ADVISORY --n $NORTH --s $SOUTH --e $EAST --w $WEST --outputprefix $OUTPUTPREFIX
+    ln -fs $INPUTFILE ./
+    ln -fs $ADVISDIR/$ENSTORM/fort.14 ./ 
+
+  perl make_JPG.pl --outputdir $POSTPROC_DIR --gmthome $GMTHOME --storm ${STORM} --year ${YEAR} --adv $ADVISORY --n $NORTH --s $SOUTH --e $EAST --w $WEST --outputprefix $OUTPUTPREFIX
     
-    ln -fs $POSTPROC_DIR/FigGen/adcirc_logo_white.jpg ./
-    ln -fs $POSTPROC_DIR/FigGen/Default31.pal ./
 #    cd ./Temp
 #    ln -fs $GRDFILES/$GRIDPREFIX.gmt.bnd.xy ./fort.14.bnd.xy
 #    ln -fs $GRDFILES/$GRIDPREFIX.gmt.tri ./fort.14.tri
 #    ln -fs $GRDFILES/$GRIDPREFIX.gmt.xyz ./fort.14.gmt.xyz
 #    cd ../
 
-    $POSTPROC_DIR/FigGen/FigureGen26.exe >> jpg.log 2>&1  &
-   
+    ./FigureGen32.exe >> $ADVISDIR/$ENSTORM/jpg.log 2>&1  &
+
+    while [ ! -e $POSTPROC_DIR/FigGen/$OUTPUTPREFIX.jpg ]; do
+      sleep 60
+   done
+     sleep 60
+      mv ./$OUTPUTPREFIX.jpg  $ADVISDIR/$ENSTORM/$OUTPUTPREFIX.jpg
+         rm -f $POSTPROC_DIR/FigGen/fort.14
+         rm -f $POSTPROC_DIR/FigGen/max*.63
+         rm -f $POSTPROC_DIR/FigGen/$OUTPUTPREFIX.ps
+
+
+# now go back to the advisory directory
+    cd $ADVISDIR/$ENSTORM/
 # ..   ..
 #
 # Use this section of the script to move the files where you want them
@@ -176,11 +199,8 @@ echo $INPUTGRID, $INPUTFILE,$OUTPUTPREFIX.shp
   while [ ! -e $OUTPUTPREFIX.shp ]; do
       sleep 60
    done
-  while [ ! -e $OUTPUTPREFIX.jpg ]; do
       sleep 60
-   done
-      sleep 60
-
+        
          mkdir  $OUTPUTPREFIX-KMZ_GIS_files
 
           mv $OUTPUTPREFIX.* $OUTPUTPREFIX-KMZ_GIS_files
