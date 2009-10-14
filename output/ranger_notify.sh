@@ -92,7 +92,7 @@ ADVISORY=$4
 HOSTNAME=$5
 POST_INIT_LIST=$6
 #
-POSTDIR=/work/01053/rweaver
+POSTDIR=/scratch/01053/rweaver
 #
 cat <<END > $ASGSADVISORYDIR/post_init_notify.txt 
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
@@ -119,7 +119,7 @@ HOSTNAME=$5
 ENSTORM=$6
 POST_LIST=$7
 #
-POSTDIR=/work/01053/rweaver
+POSTDIR=/scratch/01053/rweaver
 #
 POSTADVISORYDIR=$POSTDIR/${STORM}${YEAR}/${ADVISORY}
 metalink=`ls ${YEAR}${STORM}${ADVISORY}?_w???o???v????r???`
@@ -132,7 +132,40 @@ $POSTADVISORYDIR/$ENSTORM/fort.22.meta
 $POSTADVISORYDIR/$ENSTORM/fort.61
 $POSTADVISORYDIR/$ENSTORM/maxele.63
 $POSTADVISORYDIR/$ENSTORM/maxwvel.63
+$POSTADVISORYDIR/${ENSTORM}/${YEAR}${STORM}.${ADVISORY}.plots.tar.gz
 END
 #
 cat $ASGSADVISORYDIR/post_notify.txt | mail -s "ASGS results available for storm $STORM advisory $ADVISORY on $HOSTNAME" $POST_LIST
 }
+
+
+post2_email()
+{ ASGSADVISORYDIR=$1
+STORM=$2
+YEAR=$3
+ADVISORY=$4
+HOSTNAME=$5
+ENSTORM=$6
+POST_LIST=$7
+#
+POSTDIR=/scratch/01053/rweaver
+#
+POSTADVISORYDIR=$POSTDIR/${STORM}${YEAR}/${ADVISORY}
+metalink=`ls ${YEAR}${STORM}${ADVISORY}?_w???o???v????r???`
+cat <<END > $ASGSADVISORYDIR/post_notify.txt
+$POSTADVISORYDIR/al${STORM}${YEAR}.fst
+$POSTADVISORYDIR/bal${STORM}${YEAR}.dat
+$POSTADVISORYDIR/$ENSTORM/$metalink
+$POSTADVISORYDIR/$ENSTORM/fort.22
+$POSTADVISORYDIR/$ENSTORM/fort.22.meta
+$POSTADVISORYDIR/$ENSTORM/fort.61
+$POSTADVISORYDIR/$ENSTORM/maxele.63
+$POSTADVISORYDIR/$ENSTORM/maxwvel.63
+$POSTADVISORYDIR/${ENSTORM}/${YEAR}${STORM}.${ADVISORY}.plots.tar.gz
+$POSTADVISORYDIR/$ENSTORM/${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}-KMZ_GIS.tgz
+END
+#
+
+cat $ASGSADVISORYDIR/post_notify.txt | mail -s "ASGS GIS, KMZ and JPG results available for storm $STORM advisory $ADVISORY on $HOSTNAME" $POST_LIST }
+
+
