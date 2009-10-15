@@ -140,7 +140,7 @@ echo $INPUTGRID, $INPUTFILE,$OUTPUTPREFIX.shp
 
  java -Xmx2048M -jar $POSTPROC_DIR/actoshape/actoshape.jar \
   --box $WEST $SOUTH $EAST $NORTH \
-  --clipcoast  \
+  --clipcoast 100 \
   $INPUTGRID \
   $INPUTFILE \
   $OUTPUTPREFIX.shp >> $GISLOGFILE 2>&1  &
@@ -204,7 +204,7 @@ echo $INPUTGRID, $INPUTFILE,$OUTPUTPREFIX.shp
          mkdir  $OUTPUTPREFIX-KMZ_GIS_files
 
           mv $OUTPUTPREFIX.* $OUTPUTPREFIX-KMZ_GIS_files
-         tar -czf $OUTPUTPREFIX-KMZ_GIS.tgz $OUTPUTPREFIX-KMZ_GIS_files
+         tar -czf $OUTPUTPREFIX-KMZ_GIS.tar.gz $OUTPUTPREFIX-KMZ_GIS_files
 
          rm -rf $OUTPUTPREFIX-KMZ_GIS_files $OUTPUTPREFIX*.png
 ###
