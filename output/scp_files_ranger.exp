@@ -1,0 +1,59 @@
+#!/usr/bin/expect --
+#----------------------------------------------------------------------
+# scp_files.exp 
+# Executive Summary: This is an Expect script that gets the figures
+# produced by the ADCIRC Surge Guidance System and copies them
+# to a remote host.
+#
+# If it doesn't find any .gif files locally, it just creates
+# directories on the destination host. If it does find .gif files
+# locally, it copies them to the remote machine.
+#----------------------------------------------------------------------
+#
+# Copyright(C) 2006, 2007, 2008, 2009 Jason Fleming
+# Copyright(C) 2006, 2007 Brett Estrade
+#
+# This file is part of the ADCIRC Surge Guidance System (ASGS).
+#
+# The ASGS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# ASGS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#----------------------------------------------------------------------
+#exp_internal 1   ;# used for debugging only
+set scriptdir [lindex $argv 0]
+set advisdir [lindex $argv 1]
+set resultshost [lindex $argv 2]
+set resultspath [lindex $argv 3]
+set resultsprompt [lindex $argv 4]
+set resultsusername [lindex $argv 5]
+set resultspassword [lindex $argv 6]
+set hostname [lindex $argv 7]
+set enstorm [lindex $argv 8]
+set outputprefix1 [lindex $argv 9]
+set outputprefix2 [lindex $argv 10]
+#
+set timeout -1
+
+
+       spawn scp $advisdir/$enstorm/$outputprefix1.tar.gz   $resultsusername@$resultshost:$resultspath
+       expect "ssword:"
+       send "$resultspassword\r"
+       expect "100"
+
+       spawn scp $advisdir/$enstorm/$outputprefix2.tar.gz   $resultsusername@$resultshost:$resultspath
+       expect "ssword:"
+       send "$resultspassword\r"
+       expect "100"
+#    }
+#}
+
+ 

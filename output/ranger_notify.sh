@@ -31,19 +31,17 @@ This message is to let you know that the ASGS has been ACTIVATED for storm
 number $STORM of ${YEAR}. 
 
 The ASGS was activated on $HOSTNAME because 
-the storm is forecast to pass within 270 nautical miles of the Louisiana
-Gulf Coast at some point in its track. 
+the storm is forecast to impact the Gulf Coast.
 
 The supercomputer $HOSTNAME has downloaded 
 a hurricane forecast from the National Hurricane Center, and is performing
 calculations with ADCIRC to predict the storm surge and wind speed along
-the complete Southern Louisiana Coast as well as greater New Orleans.
+the complete Texas Coast as well as Galveston Bay.
 
 You will receive an email from the ASGS on $HOSTNAME as soon 
 as the results of these predictions become available. You will also continue to
 receive storm surge and wind speed predictions for each forecast that the NHC
-issues for this storm, until the storm has passed to the north of the
-northern Gulf Coast.
+issues for this storm.
 
 YOU MAY ALSO RECEIVE activation emails from ASGS instances that are running on
 supercomputers OTHER THAN ${HOSTNAME}. Those instances 
@@ -118,6 +116,8 @@ ADVISORY=$4
 HOSTNAME=$5
 ENSTORM=$6
 POST_LIST=$7
+RESULTSFTPADDRESS=$8
+
 #
 POSTDIR=/scratch/01053/rweaver
 #
@@ -133,11 +133,17 @@ $POSTADVISORYDIR/$ENSTORM/fort.61
 $POSTADVISORYDIR/$ENSTORM/maxele.63
 $POSTADVISORYDIR/$ENSTORM/maxwvel.63
 $POSTADVISORYDIR/${ENSTORM}/${YEAR}${STORM}.${ADVISORY}.plots.tar.gz
+$POSTADVISORYDIR/$ENSTORM/${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}-KMZ_GIS.tgz
+
+The JPG, KMZ, GIS and hydrographs can also be found on the following ftp site:
+$RESULTSFTPADDRESS
+${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}-KMZ_GIS.tgz
+${YEAR}${STORM}.${ADVISORY}.plots.tar.gz
+
 END
 #
 cat $ASGSADVISORYDIR/post_notify.txt | mail -s "ASGS results available for storm $STORM advisory $ADVISORY on $HOSTNAME" $POST_LIST
 }
-
 
 post2_email()
 { ASGSADVISORYDIR=$1
@@ -147,6 +153,7 @@ ADVISORY=$4
 HOSTNAME=$5
 ENSTORM=$6
 POST_LIST=$7
+RESULTSFTPADDRESS=$8
 #
 POSTDIR=/scratch/01053/rweaver
 #
@@ -163,9 +170,17 @@ $POSTADVISORYDIR/$ENSTORM/maxele.63
 $POSTADVISORYDIR/$ENSTORM/maxwvel.63
 $POSTADVISORYDIR/${ENSTORM}/${YEAR}${STORM}.${ADVISORY}.plots.tar.gz
 $POSTADVISORYDIR/$ENSTORM/${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}-KMZ_GIS.tgz
+
+${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}-KMZ_GIS.tgz and ${YEAR}${STORM}.${ADVISORY}.plots.tar.gz
+can also be found on the following ftp site:
+$RESULTSFTPADDRESS
+
+
 END
 #
-
-cat $ASGSADVISORYDIR/post_notify.txt | mail -s "ASGS GIS, KMZ and JPG results available for storm $STORM advisory $ADVISORY on $HOSTNAME" $POST_LIST }
+#
+cat $ASGSADVISORYDIR/post_notify.txt | mail -s "ASGS GIS, KMZ and JPG results available for storm $STORM advisory $ADVISORY on $HOSTNAME" $POST_LIST 
+#
+}
 
 
