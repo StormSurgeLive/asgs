@@ -749,8 +749,8 @@ env_dispatch(){
 #
 # mail alert
 #ASGSADMIN="estrabd+lpfs@gmail.com jgflemin@email.unc.edu" #<-- purposefully not in config.sh
-#ASGSADMIN="estrabd+lpfs@gmail.com jgflemin@email.unc.edui natedill@gmail.com" #<-- purposefully not in config.sh
-ASGSADMIN="rjweaver@email.unc.edu" #<-- purposefully not in config.sh
+ASGSADMIN="ndill@whgrp.com natedill@gmail.com" #<-- purposefully not in config.sh
+#ASGSADMIN="rjweaver@email.unc.edu" #<-- purposefully not in config.sh
 
 # exit statuses
 EXIT_NOT_OK=1
