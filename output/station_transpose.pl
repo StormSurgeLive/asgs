@@ -40,7 +40,7 @@ my $stationFile; # full path name of station output file
 my $format = "space"; # column separator in transposed file (space or comma)
 my $vectorOutput = "magnitude"; # magnitude or direction or raw
 my $coldstartdate; # yyyymmddhh24 when the simulation was coldstarted
-my $gmtoffset=5; # number of hours between gmt and local time
+my $gmtoffset=-5; # number of hours between gmt and local time
 my $timezone="CDT"; # time zone designation to be placed on graphs
 my $units = "english"; # output units, english or si
 my @supported_files = qw(elevation velocity windvelocity barometricpressure);
@@ -143,7 +143,7 @@ if ( $fileToTranspose eq "elevation" ) {
 }
 #
 # jgfdebug
-stderrMessage("DEBUG","According to the fort.15 file, there are $num_elev_sta elevation stations, $num_vel_sta velocity stations, and $num_met_sta meteorological stations\n");
+stderrMessage("DEBUG","According to the fort.15 file, there are $num_elev_sta elevation stations, $num_vel_sta velocity stations, and $num_met_sta meteorological stations.\n");
 #
 # check to see if this is scalar data or vector data
 my $fileType;
@@ -193,7 +193,7 @@ while (<STAFILE>) {
    if ($. == 2) {
       m/^\s*([^\s]*)\s*([^\s]*)/;
       $total_stations = $2;
-      stderrMessage("INFO","Output file contains $total_stations stations.\n");
+      stderrMessage("INFO","Output file '$transposeFilename' contains $total_stations stations.\n");
    #
    # there is a header line with the time, at the start of each dataset
    } elsif ($. > 2 && ($.-3) % ($total_stations+1) == 0) {

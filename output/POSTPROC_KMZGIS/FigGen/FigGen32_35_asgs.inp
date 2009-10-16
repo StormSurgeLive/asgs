@@ -1,15 +1,15 @@
 FOR BEST RESULTS, PLEASE KEEP COMMENTS OUT OF THE FIRST 50 CHARACTERS ON EACH LINE.
 12345678901234567890123456789012345678901234567890
 4                                                  ! Level of screen output.
-/share/home/01053/rweaver/GMT4.3.1/bin/
+/usr/local/usp/gmt/bin/
 ./Temp/
-09_2008_p1024_42
-1,HWM (NAVD88): Storm 09 2008  Adv #42
+09_2008_nhcConsensus_41
+1,HWM (NAVD88): Storm 09 2008  Adv #41
 1                                                  ! Time bar flag: 0 to ignore, 1 to plot time bar.
--98
--93
-25.5
-30.5
+-93.5
+-88.5
+26
+31
 fort.14                                            ! Name of grid file.
 0                                                  ! Plot grid flag: 0 to ignore, 1 to plot triangular grid on figure.
 PARAMETERS FOR CONTOURS:

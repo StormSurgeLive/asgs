@@ -76,6 +76,8 @@ my $pi=3.141592653589793;
 # hindcast file. This hash will save the most recent complete lines, to fill
 # in any missing data.
 my %complete_hc_lines = ();
+my $nhcName;  # NHC's current storm name (IKE, KATRINA, INVEST, ONE, etc)
+my $stormClass; # NHC's current storm classification (TD, TS, HU, IN, etc)
 #
 #
 GetOptions(
@@ -163,6 +165,10 @@ open(HCST,"<$hindcastATCF") || die "ERROR: storm_track_gen.pl: Failed to open hi
 # create the fort.22 output file, which is the wind input file for ADCIRC
 open(MEMBER,">fort.22") || die "ERROR: storm_track_gen.pl: Failed to open file for ensemble member '$name' fort.22 output file: $!.";
 #
+# create the file that holds the current storm class and name ... this is 
+# only used for the title on the hydrographs
+open(NHCCLASSNAME,">nhcClassName") || die "ERROR: storm_track_gen.pl: Failed to open file 'nhcClassName' to write NHC storm class and name: $!.";
+#
 # preprocess and rearrange ATCF files if necessary
 my @rad;                     # wind radii in the 4 quadrants (current time)
 my @oldrad;                  # wind radii in the 4 quadrants (previous time)
@@ -228,6 +234,20 @@ while(<HCST>) {
        }
     }
     #
+    # grab the current storm name and class
+    if (defined $fields[27]) {
+       $fields[27]=~/\s*(\S*)\s*/; # strip spaces from current storm name
+       $nhcName = $1;
+    } else { 
+       $nhcName = "STORMNAME";
+    }
+    if (defined $fields[10]) {
+       $fields[10]=~/\s*(\S*)\s*/; # strip spaces from current storm class
+       $stormClass = $1;
+    } else {
+       $stormClass = " ";
+    }
+    #
     # record the final hindcast time, this will be used in case the
     # hindcast is newer than the forecast
     $lasthindcasttime = $fields[2];
@@ -243,10 +263,10 @@ while(<HCST>) {
     $old_lon=substr($line,41,4)/10.0;
     #
     # grab the wind radii in the four quadrants
-    $rad[0]=substr($line,74,3);
-    $rad[1]=substr($line,80,3);  
-    $rad[2]=substr($line,86,3);
-    $rad[3]=substr($line,92,3);
+    #$rad[0]=substr($line,74,3);
+    #$rad[1]=substr($line,80,3);  
+    #$rad[2]=substr($line,86,3);
+    #$rad[3]=substr($line,92,3);
     # jgfdebug20090624: the sub that fills in the rmax is not working
     #populateWindRadii(\@rad,\@oldrad,$lasthindcastrmax);
     #
@@ -294,10 +314,10 @@ while(<HCST>) {
     substr($line,97,4)=sprintf("%4d",1013);
     #
     # fill in the radii values
-    substr($line,74,3)=sprintf("%3d",$rad[0]);
-    substr($line,80,3)=sprintf("%3d",$rad[1]);  
-    substr($line,86,3)=sprintf("%3d",$rad[2]);
-    substr($line,92,3)=sprintf("%3d",$rad[3]);
+    #substr($line,74,3)=sprintf("%3d",$rad[0]);
+    #substr($line,80,3)=sprintf("%3d",$rad[1]);  
+    #substr($line,86,3)=sprintf("%3d",$rad[2]);
+    #substr($line,92,3)=sprintf("%3d",$rad[3]);
     # write the line to the file, writing an eol if the line does not have one
     if ( /\n/ ) {
        print MEMBER $line;
@@ -309,6 +329,10 @@ close(HCST);
 if ( $zdFound == 0 ) {
    printf STDERR "INFO: storm_track_gen.pl: The zero date '$zeroDate' was not found in the hindcast file $hindcastATCF.\n"; 
 }
+#
+# write the last current storm class and name to file
+printf NHCCLASSNAME $stormClass . " " . $nhcName;
+close(NHCCLASSNAME);
 my $forecastedDate; # as a string
 my $last_pressure = $lasthindcastpressure;
 my $last_windspeed = $lasthindcastwindspeed;

@@ -162,8 +162,10 @@ for (my $i=3; $i<$numCol; $i++ ) {
    my $titlePrefixUnderscore = join("_",@titlePrefixWords);
    my @enstormWords = split(" ",$enstorm);
    my $enstormUnderscore = join("_",@enstormWords);
-   my $gpscript = $stormname . "." . $advisory . "." . $enstormUnderscore . "." . $titlePrefixUnderscore . "." . $stanameUnderscore . ".gp";
-   my $psplotName =  $stormname . "." . $advisory . "." . $enstormUnderscore . "." . $titlePrefixUnderscore . "." . $stanameUnderscore . ".ps";  
+   my @stormnameWords = split(" ",$stormname);
+   my $stormnameUnderscore = join("_",@stormnameWords);
+   my $gpscript = $stormnameUnderscore . "." . $advisory . "." . $enstormUnderscore . "." . $titlePrefixUnderscore . "." . $stanameUnderscore . ".gp";
+   my $psplotName =  $stormnameUnderscore . "." . $advisory . "." . $enstormUnderscore . "." . $titlePrefixUnderscore . "." . $stanameUnderscore . ".ps";  
    #
    my $col = $i + 1;
    #
@@ -198,7 +200,7 @@ sub stderrMessage ($$) {
    (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
    my $year = 1900 + $yearOffset;
    my $theTime = "[$year-".sprintf("%3s",$months[$month])."-".sprintf("%02d",$dayOfMonth)."-T".sprintf("%02d",$hour).":".sprintf("%02d",$minute).":".sprintf("%02d",$second)."]";
-   printf STDERR "$theTime $level: station_transpose.pl: $message\n";
+   printf STDERR "$theTime $level: autoplot.pl: $message\n";
 }
 #
 # General subroutine used to test if an element is already in an array
