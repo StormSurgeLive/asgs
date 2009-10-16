@@ -1,11 +1,11 @@
 FOR BEST RESULTS, PLEASE KEEP COMMENTS OUT OF THE FIRST 50 CHARACTERS ON EACH LINE.
 12345678901234567890123456789012345678901234567890
 4                                                  ! Level of screen output.
-/usr/local/usp/gmt/bin/
+/share/home/01053/rweaver/GMT4.4.0/bin/
 ./Temp/
 09_2008_nhcConsensus_41
 1,HWM (NAVD88): Storm 09 2008  Adv #41
-1                                                  ! Time bar flag: 0 to ignore, 1 to plot time bar.
+0                                                  ! Time bar flag: 0 to ignore, 1 to plot time bar.
 -93.5
 -88.5
 26

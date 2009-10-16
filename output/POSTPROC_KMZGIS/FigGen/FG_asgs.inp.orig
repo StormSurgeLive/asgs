@@ -5,7 +5,7 @@ FOR BEST RESULTS, PLEASE KEEP COMMENTS OUT OF THE FIRST 50 CHARACTERS ON EACH LI
 Temp/                                              ! Path where temporary files will be created.
 Ike_asgs_attempt2                                  ! Alphanumeric label for these plots.
 1,Maximum WSE Ike ASGS                             ! Plot label flag and plot label.
-1                                                  ! Time bar flag: 0 to ignore, 1 to plot time bar.
+0                                                  ! Time bar flag: 0 to ignore, 1 to plot time bar.
 -98.0
 -93.0
 25.5
