@@ -24,6 +24,8 @@ activation_email()
   STORMDIR=$4
   ACTIVATE_LIST=$5
 
+COMMA_SEP_LIST=${ACTIVATE_LIST// /,}
+
 cat <<END > $STORMDIR/activate.txt 2>> ${SYSLOG}
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
@@ -52,7 +54,7 @@ identical to the results produced on ${HOSTNAME}. The other instances
 are running for redundancy purposes.
 
 END
-    cat $STORMDIR/activate.txt | mail -s "ASGS Activated on $HOSTNAME" "$ACTIVATE_LIST" 2>> ${SYSLOG}
+    cat $STORMDIR/activate.txt | mail -s "ASGS Activated on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG}
 }
 
 new_advisory_email()
@@ -61,6 +63,9 @@ new_advisory_email()
   YEAR=$3
   ADVISORY=$4
   NEW_ADVISORY_LIST=$5
+
+  # replace spaces in mailing list with commas
+  COMMA_SEP_LIST=${NEW_ADVISORY_LIST// /,}
 
 cat <<END > $STORMDIR/new_advisory.txt 2>> ${SYSLOG}
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
@@ -80,7 +85,7 @@ that are running on supercomputers OTHER THAN ${HOSTNAME}.
 The other instances are running for redundancy purposes.  
 
 END
-     cat $STORMDIR/new_advisory.txt | mail -s "advisory detected by ASGS on $HOSTNAME" "$NEW_ADVISORY_LIST" 2>> ${SYSLOG}
+     cat $STORMDIR/new_advisory.txt | mail -s "advisory detected by ASGS on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG}
 
 }
  
