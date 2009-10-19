@@ -158,6 +158,7 @@ for (my $i=3; $i<$numCol; $i++ ) {
    my $plottitle = $stormname . ", " . "advisory " . $advisory . ", " . $titlePrefix . " at " . $stationName;
    my @titleWords = split(" ",$stationName);
    my $stanameUnderscore = join("_",@titleWords);
+   my $shortnameUnderscore = substr($stanameUnderscore,0,30); 
    my @titlePrefixWords = split(" ",$titlePrefix);
    my $titlePrefixUnderscore = join("_",@titlePrefixWords);
    my @enstormWords = split(" ",$enstorm);
@@ -165,7 +166,7 @@ for (my $i=3; $i<$numCol; $i++ ) {
    my @stormnameWords = split(" ",$stormname);
    my $stormnameUnderscore = join("_",@stormnameWords);
    my $gpscript = $stormnameUnderscore . "." . $advisory . "." . $enstormUnderscore . "." . $titlePrefixUnderscore . "." . $stanameUnderscore . ".gp";
-   my $psplotName =  $stormnameUnderscore . "." . $advisory . "." . $titlePrefixUnderscore . "." . $stanameUnderscore . ".ps";  
+   my $psplotName =  $stormnameUnderscore . "." . $advisory . "." . $titlePrefixUnderscore . "." . $shortnameUnderscore . ".ps";  
    #
    my $col = $i + 1;
    #

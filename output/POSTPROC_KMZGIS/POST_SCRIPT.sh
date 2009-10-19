@@ -138,7 +138,7 @@ GISLOGFILE=$ADVISDIR/$ENSTORM/gis.log # log file for gis-related info/errors
 echo "starting Java script ArcGIS POST PROC", $WEST, $SOUTH, $EAST, $NORTH
 echo $INPUTGRID, $INPUTFILE,$OUTPUTPREFIX.shp
 
- java -Xmx1024M -jar $POSTPROC_DIR/actoshape/actoshape.jar \
+ java -Xmx2048M -jar $POSTPROC_DIR/actoshape/actoshape.jar \
   --box $WEST $SOUTH $EAST $NORTH \
   --clipcoast 100 \
   $INPUTGRID \
@@ -174,7 +174,6 @@ echo $INPUTGRID, $INPUTFILE,$OUTPUTPREFIX.shp
 #    ln -fs $GRDFILES/$GRIDPREFIX.gmt.tri ./fort.14.tri
 #    ln -fs $GRDFILES/$GRIDPREFIX.gmt.xyz ./fort.14.gmt.xyz
 #    cd ../
-echo "PATH is $PATH"
     ./FigureGen32.exe >> $ADVISDIR/$ENSTORM/jpg.log 2>&1  &
 
     while [ ! -e $POSTPROC_DIR/FigGen/$OUTPUTPREFIX.jpg ]; do
