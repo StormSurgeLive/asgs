@@ -1,7 +1,7 @@
 FOR BEST RESULTS, PLEASE KEEP COMMENTS OUT OF THE FIRST 50 CHARACTERS ON EACH LINE.
 12345678901234567890123456789012345678901234567890
 4                                                  ! Level of screen output.
-/share/home/01053/rweaver/GMT4.4.0/bin/
+/usr/local/usp/gmt/4.4.0/bin/
 ./Temp/
 09_2008_nhcConsensus_41
 1,HWM (NAVD88): Storm 09 2008  Adv #41

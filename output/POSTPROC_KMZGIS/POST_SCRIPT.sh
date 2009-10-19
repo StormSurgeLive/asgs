@@ -174,7 +174,7 @@ echo $INPUTGRID, $INPUTFILE,$OUTPUTPREFIX.shp
 #    ln -fs $GRDFILES/$GRIDPREFIX.gmt.tri ./fort.14.tri
 #    ln -fs $GRDFILES/$GRIDPREFIX.gmt.xyz ./fort.14.gmt.xyz
 #    cd ../
-
+echo "PATH is $PATH"
     ./FigureGen32.exe >> $ADVISDIR/$ENSTORM/jpg.log 2>&1  &
 
     while [ ! -e $POSTPROC_DIR/FigGen/$OUTPUTPREFIX.jpg ]; do

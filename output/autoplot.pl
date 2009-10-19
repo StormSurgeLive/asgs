@@ -165,7 +165,7 @@ for (my $i=3; $i<$numCol; $i++ ) {
    my @stormnameWords = split(" ",$stormname);
    my $stormnameUnderscore = join("_",@stormnameWords);
    my $gpscript = $stormnameUnderscore . "." . $advisory . "." . $enstormUnderscore . "." . $titlePrefixUnderscore . "." . $stanameUnderscore . ".gp";
-   my $psplotName =  $stormnameUnderscore . "." . $advisory . "." . $enstormUnderscore . "." . $titlePrefixUnderscore . "." . $stanameUnderscore . ".ps";  
+   my $psplotName =  $stormnameUnderscore . "." . $advisory . "." . $titlePrefixUnderscore . "." . $stanameUnderscore . ".ps";  
    #
    my $col = $i + 1;
    #

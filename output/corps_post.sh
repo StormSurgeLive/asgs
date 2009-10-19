@@ -42,6 +42,10 @@
    # now create csv files that can easily be imported into excel
    perl ${OUTPUTDIR}/station_transpose.pl --filetotranspose elevation --controlfile ${ADVISDIR}/${ENSTORM}/fort.15 --stationfile ${ADVISDIR}/${ENSTORM}/fort.61 --format comma --coldstartdate $CSDATE --gmtoffset -5 --timezone CDT --units english
    perl ${OUTPUTDIR}/station_transpose.pl --filetotranspose windvelocity --controlfile ${ADVISDIR}/${ENSTORM}/fort.15 --stationfile ${ADVISDIR}/${ENSTORM}/fort.72 --format comma --vectorOutput magnitude --coldstartdate $CSDATE --gmtoffset -5 --timezone CDT --units english
+   #
+   # rename csv files to something more intuitive
+   mv fort.61_transpose.csv 200809.41.station.elevation.csv
+   mv fort.72_transpose.csv 200809.41.station.windspeed.csv
    # 
    # switch to plots directory
    initialDirectory=`pwd`;
@@ -52,20 +56,22 @@
    perl ${OUTPUTDIR}/autoplot.pl --filetoplot fort.61_transpose.txt --plotType elevation --plotdir ${ADVISDIR}/${ENSTORM}/plots --outputdir ${OUTPUTDIR} --timezone CDT --units english --stormname "$STORMNAME" --enstorm $ENSTORM --advisory $ADVISORY --datum NAVD88
    # plot wind speed data with gnuplot 
    perl ${OUTPUTDIR}/autoplot.pl --filetoplot fort.72_transpose.txt --plotType windvelocity --plotdir ${ADVISDIR}/${ENSTORM}/plots --outputdir ${OUTPUTDIR} --timezone CDT --units english --stormname "$STORMNAME" --enstorm $ENSTORM --advisory $ADVISORY --datum NAVD88
+#
+# FigGen32.exe (called below) calls the 'convert' program, and the path is 
+# not configurable there, so let's see if we can get the program to work
+# by adding the imagemagick path to the path before calling that program
+# Also, the 'convert' program is called below.
+export PATH=$PATH:$IMAGEMAGICKPATH 
+echo "PATH is $PATH"
    for plotfile in `ls *.gp`; do
       gnuplot $plotfile
    done
    for plotfile in `ls *.ps`; do
       pngname=${plotfile%.ps}.png
-      ${IMAGEMAGICKPATH}/convert -rotate 90 $plotfile $pngname
+      convert -rotate 90 $plotfile $pngname
    done
    tar cvzf ${ADVISDIR}/${ENSTORM}/${YEAR}${STORM}.${ADVISORY}.plots.tar.gz *.png *.csv
    cd $initialDirectory
-#
-# FigGen32.exe (called below) calls the 'convert' program, and the path is 
-# not configurable there, so let's see if we can get the program to work
-# by adding the imagemagick path to the path before calling that program
-export PATH=$PATH:$IMAGEMAGICKPATH 
 #
 #  now create the Google Earth, jpg, and GIS output files
    ${OUTPUTDIR}/POSTPROC_KMZGIS/POST_SCRIPT.sh $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $GRIDFILE $GISCONFIG $CLIPCOAST
