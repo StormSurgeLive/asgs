@@ -312,7 +312,7 @@ prepControlFile()
     NCPU=$2
     ACCOUNT=$3
     if [ $ENV = jade || $ENV = sapphire ]; then
-       qsub -l ncpus=0 -l walltime=02:00:00 -q debug -A erdcvenq -I
+       qsub -l ncpus=0 -l walltime=02:00:00 -q debug -A $ACCOUNT -I
        cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
        $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
 $NCPU
@@ -357,7 +357,7 @@ prepHotstartFile()
       NCPU=$2
       ACCOUNT=$3
       if [ $ENV = jade || $ENV = sapphire ]; then
-         qsub -l ncpus=0 -l walltime=02:00:00 -q debug -A erdcvenq -I
+         qsub -l ncpus=0 -l walltime=02:00:00 -q debug -A $ACCOUNT -I
          cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
          $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
 $NCPU

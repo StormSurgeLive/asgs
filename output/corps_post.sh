@@ -62,7 +62,6 @@
 # by adding the imagemagick path to the path before calling that program
 # Also, the 'convert' program is called below.
 export PATH=$PATH:$IMAGEMAGICKPATH 
-echo "PATH is $PATH"
    for plotfile in `ls *.gp`; do
       gnuplot $plotfile
    done
@@ -74,4 +73,4 @@ echo "PATH is $PATH"
    cd $initialDirectory
 #
 #  now create the Google Earth, jpg, and GIS output files
-   ${OUTPUTDIR}/POSTPROC_KMZGIS/POST_SCRIPT.sh $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $GRIDFILE $GISCONFIG $CLIPCOAST
+   ${OUTPUTDIR}/POSTPROC_KMZGIS/POST_SCRIPT_Corps.sh $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $GRIDFILE $GISCONFIG $CLIPCOAST
