@@ -141,7 +141,7 @@ echo $INPUTGRID, $INPUTFILE,$OUTPUTPREFIX.shp
 
  java -Xmx1500M -jar $POSTPROC_DIR/actoshape/actoshape.jar \
   --box $WEST $SOUTH $EAST $NORTH \
-  --clipcoast 100 \
+  --clipcoast \
   $INPUTGRID \
   $INPUTFILE \
   $OUTPUTPREFIX.shp >> $GISLOGFILE 2>&1  

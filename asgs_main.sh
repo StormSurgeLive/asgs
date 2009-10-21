@@ -311,43 +311,47 @@ prepControlFile()
 {   ENV=$1
     NCPU=$2
     ACCOUNT=$3
-    if [ $ENV = jade || $ENV = sapphire ]; then
-       qsub -l ncpus=0 -l walltime=00:50:00 -q debug -A $ACCOUNT -I
-       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-       $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
-$NCPU
-4
-fort.14
-fort.15
-END
-       exit
-    elif [ $ENV = ranger ]; then
-       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-       echo $NCPU    > prep.in1
-       echo 4       >> prep.in1
-       echo fort.14 >> prep.in1
-       echo fort.15 >> prep.in1
-       SERQSCRIPT=ranger.template.serial
-       SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
-       perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
-       logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
-       qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
-       # check once per minute until all jobs have finished
+        QSCRIPTOPTIONS="--ncpu $NCPU --queuename $SERQUEUE --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm $ENSTORM --syslog $SYSLOG"
+        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.pbs 2>> ${SYSLOG}
+       qsub $ADVISDIR/$ENSTORM/adcprep.pbs >> ${SYSLOG} 2>&1
        monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol
-       mv prep.in1 prep.in_controlfile
-       mv decomp.out1 decomp.out_controlfile
-       consoleMesssage "Job(s) complete."
-       # prep-ing control finished, get on with it
-       logMessage "adcprep control finished"
-       consoleMessage "adcprep control finished"
-    else
-       $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
-$NCPU
-4
-fort.14
-fort.15
-END
-    fi
+       logMessage "Finished adcprepping control file (fort.15)."
+#    if [ $ENV = jade || $ENV = sapphire ]; then
+#       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+#       $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
+#$NCPU
+#4
+#fort.14
+#fort.15
+#END
+#       exit
+#    elif [ $ENV = ranger ]; then
+#       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+#       echo $NCPU    > prep.in1
+#       echo 4       >> prep.in1
+#       echo fort.14 >> prep.in1
+#       echo fort.15 >> prep.in1
+#       SERQSCRIPT=ranger.template.serial
+#       SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
+#       perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
+#       logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
+#       qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
+       # check once per minute until all jobs have finished
+#       monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol
+#       mv prep.in1 prep.in_controlfile
+#       mv decomp.out1 decomp.out_controlfile
+#       consoleMesssage "Job(s) complete."
+#       # prep-ing control finished, get on with it
+#       logMessage "adcprep control finished"
+#       consoleMessage "adcprep control finished"
+#    else
+#       $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
+#$NCPU
+#4
+#fort.14
+#fort.15
+#END
+#    fi
 }
 #
 # function to run adcprep in a platform dependent way to decompose 
@@ -356,40 +360,45 @@ prepHotstartFile()
 {     ENV=$1
       NCPU=$2
       ACCOUNT=$3
-      if [ $ENV = jade || $ENV = sapphire ]; then
-         qsub -l ncpus=0 -l walltime=00:50:00 -q debug -A $ACCOUNT -I
-         cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-         $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
-$NCPU
-6
-68
-END
-         exit
-    elif [ $ENV = ranger ]; then
-       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-       echo $NCPU    > prep.in1
-       echo 6       >> prep.in1
-       echo 68      >> prep.in1
-       SERQSCRIPT=ranger.template.serial
-       SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
-       perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
-       logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
-       qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
-       # check once per minute until all jobs have finished
-        monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart
-       mv prep.in1 prep.in_hotstartfile
-       mv decomp.out1 decomp.out_hotstartfile
-       consoleMesssage "Job(s) complete."
-       # prep-ing hotstart finished, get on with it
-       logMessage "adcprep hotstart finished"
-       consoleMessage "adcprep hotstart finished"
-      else
-         $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
-$NCPU
-6
-68
-END
-      fi
+      QSCRIPTOPTIONS="--ncpu $NCPU --queuename $SERQUEUE --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPHOTSTARTSCRIPT --enstorm $ENSTORM --syslog $SYSLOG"
+      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep_hotstart.pbs 2>> ${SYSLOG}
+      qsub $ADVISDIR/$ENSTORM/adcprep_hotstart.pbs >> ${SYSLOG} 2>&1
+      monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart
+      logMessage "Finished adcprepping hotstart file (fort.68)."
+#      if [ $ENV = jade || $ENV = sapphire ]; then
+#         qsub -l ncpus=0 -l walltime=00:50:00 -q debug -A $ACCOUNT -I
+#         cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+#         $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
+#$NCPU
+#6
+#68
+#END
+#         exit
+#    elif [ $ENV = ranger ]; then
+#       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+#       echo $NCPU    > prep.in1
+#       echo 6       >> prep.in1
+#       echo 68      >> prep.in1
+#       SERQSCRIPT=ranger.template.serial
+#       SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
+#       perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
+#       logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
+#       qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
+#       # check once per minute until all jobs have finished
+#        monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart
+#       mv prep.in1 prep.in_hotstartfile
+#       mv decomp.out1 decomp.out_hotstartfile
+#       consoleMesssage "Job(s) complete."
+#       # prep-ing hotstart finished, get on with it
+#       logMessage "adcprep hotstart finished"
+#       consoleMessage "adcprep hotstart finished"
+#      else
+#         $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
+#$NCPU
+#6
+#68
+#END
+#      fi
 }
 #
 # subroutine that calls an external script over and over until it
@@ -605,6 +614,8 @@ init_sapphire()
   SCRATCHDIR=/work2/$USER
   SSHKEY=~/.ssh/id_rsa_sapphire
   QSCRIPT=erdc.template.pbs
+  PREPCONTROLSCRIPT=erdc.adcprep.template.pbs
+  PREPHOTSTARTSCRIPT=erdc.adcprep.hotstart.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
 }
 
@@ -620,6 +631,8 @@ init_jade()
   SCRATCHDIR=/work/$USER
   SSHKEY=~/.ssh/id_rsa_jade
   QSCRIPT=erdc.template.pbs
+  PREPCONTROLSCRIPT=erdc.adcprep.template.pbs
+  PREPHOTSTARTSCRIPT=erdc.adcprep.hotstart.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
 }
 
@@ -782,6 +795,7 @@ MAILINGLIST=
 ENV=
 QUEUESYS=
 QUEUENAME=
+SERQUEUE=
 QCHECKCMD=
 NCPU=
 ACCOUNT=
