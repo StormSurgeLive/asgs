@@ -47,9 +47,10 @@ close(STORMNAMEFILE);
 open(TEMPLATE,"<$templatefile") || die "ERROR: corps_index.pl: Can't open '$templatefile' file for reading as a template for the results display.";
 
 while(<TEMPLATE>) {
-    s/%stormname%/$stormname/;
-    s/%giskmzjpgarchive%/$giskmzjpgarchive/;
-    s/%plotsarchive%/$plotsarchive/;
+    s/%advisory%/$advisory/g;
+    s/%stormname%/$stormname/g;
+    s/%giskmzjpgarchive%/$giskmzjpgarchive/g;
+    s/%plotsarchive%/$plotsarchive/g;
     print $_;
 }
 close(TEMPLATE);
