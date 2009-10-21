@@ -106,18 +106,17 @@ running on ${HOSTNAME}.
 The supercomputer $HOSTNAME has produced ADCIRC results for 
 storm surge guidance for advisory $ADVISORY for storm $STORM of $YEAR. 
 
-These results consist of the following file sets:
+These results can be found at the following web site:
 
-$POSTADVISORYDIR/${ENSTORM}/${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}-plots.tar.gz
-$POSTADVISORYDIR/$ENSTORM/${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}-KMZ_GIS.tgz
+http://www.seahorsecoastal.com/ASGS/$HOSTNAME/$STORM$YEAR/advisory_$ADVISORY
 
-The hydrographs, wind speed plots, and data files (in csv format) are in the
-first file set, while contour plots in JPG, KMZ (Google Earth), and GIS
-formats are in the second file set. 
+The results consist of two archive files; the first contains hydrographs and 
+wind speed plots at selected locations as well as the raw data that were
+used to produce the plots, and the second contains contour plots of maximum 
+surge elevation in GIS, Google Earth, and JPG format.
 
-$RESULTSFTPADDRESS
-${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}-KMZ_GIS.tar.gz
-${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}-plots.tar.gz
+The ASGS on $HOSTNAME is now waiting for the National Hurricane Center to
+issue the next advisory. 
 
 END
 # replace spaces in mailing list with commas

@@ -247,7 +247,7 @@ prep()
         rm $UNCOMPRESSEDARCHIVE 2>> ${SYSLOG}
         # run adcprep to decompose the new fort.15 file
         logMessage "Running adcprep to prepare new fort.15 file"
-        prepControlFile $ENV $NCPU $ACCOUNT 
+        prepControlFile $ENV $NCPU $ACCOUNT
        # link to hurricane track file rather than prepping it with adcprep
        PE=0
        format="%04d"
@@ -312,7 +312,7 @@ prepControlFile()
     NCPU=$2
     ACCOUNT=$3
     if [ $ENV = jade || $ENV = sapphire ]; then
-       qsub -l ncpus=0 -l walltime=02:00:00 -q debug -A $ACCOUNT -I
+       qsub -l ncpus=0 -l walltime=00:50:00 -q debug -A $ACCOUNT -I
        cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
        $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
 $NCPU
@@ -357,7 +357,7 @@ prepHotstartFile()
       NCPU=$2
       ACCOUNT=$3
       if [ $ENV = jade || $ENV = sapphire ]; then
-         qsub -l ncpus=0 -l walltime=02:00:00 -q debug -A $ACCOUNT -I
+         qsub -l ncpus=0 -l walltime=00:50:00 -q debug -A $ACCOUNT -I
          cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
          $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
 $NCPU
@@ -603,7 +603,7 @@ init_sapphire()
   ACCOUNT=erdcvhsp
   SUBMITSTRING="aprun"
   SCRATCHDIR=/work2/$USER
-  SSHKEY=id_rsa_sapphire
+  SSHKEY=~/.ssh/id_rsa_sapphire
   QSCRIPT=erdc.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
 }
@@ -618,7 +618,7 @@ init_jade()
 # INTERSTRING="qsub -l size=1,walltime=00:10:00 -A $ACCOUNT -q $QUEUENAME -I"
   INTERSTRING=
   SCRATCHDIR=/work/$USER
-  SSHKEY=id_rsa_jade
+  SSHKEY=~/.ssh/id_rsa_jade
   QSCRIPT=erdc.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
 }
@@ -935,7 +935,7 @@ while [ 1 -eq 1 ]; do
     # perform any initialization of output that must be done once for each 
     # advisory, before the actual runs begin
     logMessage "Initializing post processing for advisory $ADVISORY."
-    ${OUTPUTDIR}/${INITPOST} $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME 2>> ${SYSLOG}
+    ${OUTPUTDIR}/${INITPOST} $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $SSHKEY $CONFIG $SYSLOG >> ${SYSLOG} 2>&1 
     if [[ $EMAILNOTIFY = YES ]]; then
        post_init_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME "${POST_INIT_LIST}"  >> ${SYSLOG} 2>&1
     fi
@@ -1038,7 +1038,7 @@ while [ 1 -eq 1 ]; do
         logMessage "$ENSTORM finished; postprocessing"
         # execute post processing
         #${OUTPUTDIR}/${POSTPROCESS} $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM 2>> ${SYSLOG} 
-        ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR >> ${SYSLOG} 2>&1
+        ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
         if [[ $EMAILNOTIFY = YES ]]; then
            post_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM "${POST_LIST}" >> ${SYSLOG} 2>&1
         fi

@@ -139,7 +139,7 @@ date >> $GISLOGFILE
 echo "starting Java script ArcGIS POST PROC", $WEST, $SOUTH, $EAST, $NORTH
 echo $INPUTGRID, $INPUTFILE,$OUTPUTPREFIX.shp
 
- java -Xmx2048M -jar $POSTPROC_DIR/actoshape/actoshape.jar \
+ java -Xmx1500M -jar $POSTPROC_DIR/actoshape/actoshape.jar \
   --box $WEST $SOUTH $EAST $NORTH \
   --clipcoast 100 \
   $INPUTGRID \

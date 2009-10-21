@@ -29,6 +29,7 @@
    GRIDFILE=${10}
    OUTPUTDIR=${11}
    SYSLOG=${12}
+   SSHKEY=${13}
    #
    . ${CONFIG} # grab all static config info
    #
@@ -74,3 +75,17 @@ export PATH=$PATH:$IMAGEMAGICKPATH
 #
 #  now create the Google Earth, jpg, and GIS output files
    ${OUTPUTDIR}/POSTPROC_KMZGIS/POST_SCRIPT_Corps.sh $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $GRIDFILE $GISCONFIG $CLIPCOAST
+#
+# grab the names of the output files
+GISKMZJPG=`ls *KMZ_GIS.tar.gz`
+PLOTS=`ls *plots.tar.gz`
+#
+# now create the index.html file to go with the output
+  perl ${OUTPUTDIR}/corps_index.pl --advisory $ADVISORY --templatefile ${OUTPUTDIR}/corps_index_template.html --giskmzjpgarchive $GISKMZJPG --plotsarchive $PLOTS > index.html
+#
+# now copy plots and visualizations to the website
+  ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "mkdir -p ${WEBPATH}/$HOSTNAME/$STORM$YEAR/advisory_${ADVISORY}"
+  scp -i $SSHKEY index.html ${WEBUSER}@${WEBHOST}:${WEBPATH}/$HOSTNAME/$STORM$YEAR/advisory_${ADVISORY}
+  scp -i $SSHKEY $GISKMZJPG ${WEBUSER}@${WEBHOST}:${WEBPATH}/$HOSTNAME/$STORM$YEAR/advisory_${ADVISORY}
+  scp -i $SSHKEY $PLOTS ${WEBUSER}@${WEBHOST}:${WEBPATH}/$HOSTNAME/$STORM$YEAR/advisory_${ADVISORY}
+  ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/$HOSTNAME/$STORM$YEAR/advisory_${ADVISORY}"
