@@ -219,7 +219,20 @@ while (<STAFILE>) {
                      printf TRANSPOSE ("%20s",sqrt($vector_tuple_1[$i]*$vector_tuple_1[$i] + $vector_tuple_2[$i]*$vector_tuple_2[$i]));
                   } elsif ( $vectorOutput eq "direction" ) {
                      # assumes vectors are in east and north components
-                     my $direction = 360.0 - atan($vector_tuple_2[$i]/$vector_tuple_1[$i])*(360.0/(2.0*$pi));
+                     my $direction = 0.0;
+                     # if north component is zero
+                     if ( $vector_tuple_2[$i] ) {
+                        # if east component is negative
+                        if ( $vector_tuple_1[$i] < 0.0 ) {
+                           $direction = 270.0;
+                        } else { # east component is negative or zero
+                           $direction = 90.0;
+                        }
+                     } 
+                     # if both components are nonzero
+                     if ( $vector_tuple_1[$i] != 0.0 && $vector_tuple_2[$i] != 0.0 ) {  
+                        my $direction = 360.0 - atan($vector_tuple_2[$i]/$vector_tuple_1[$i])*(360.0/(2.0*$pi));
+                     }
                      printf TRANSPOSE ("%20s",$direction);
                   }
                } else {
