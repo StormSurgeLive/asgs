@@ -3,15 +3,19 @@
 #                          	netcdfNAMtoOWI                                 #
 ################################################################################
 # This script is triggered when a netCDF NAM file is received by LDM	       #
-# 									       #
+# Its purpose is to convert the NAM data to OWI formatted data for use in      #
+# ADCIRC.								       #
 ################################################################################
 #                   The packages used are the following:                       #
 ################################################################################
 #NetCDF                                                                        #
+#ArraySub								       #	
+#Getopt									       #
 ################################################################################
 #written by Eve-Marie Devaliere for UNC/FRF                                    #
+#additions for grib2 input and command line arguments by Jason Fleming for ASGS#
 #first written: 03/17/10                                                       #
-#last updated: 03/19/10                                            	       #
+#last updated: 03/31/10                                            	       #
 ################################################################################
 
 ######################################################
@@ -21,91 +25,52 @@ use strict;
 no strict 'refs';
 use NetCDF;
 use ArraySub;
+use Getopt::Long;
 ######################################################
 #             Variables declarations                 #
 ######################################################
-our $dataDir="/data/renci/ADCIRC/wind/";
-our $outDir='/data/renci/ADCIRC/wind/src/';
-our $outFilename='uvp.txt';
-our $ptFile='ptFile.txt';
-our ($wndFile,$presFile);
+our $dataDir="/data/renci/ADCIRC/wind/";    # path to NAM data
+our $outDir='/data/renci/ADCIRC/wind/src/'; # path for OWI data
+our $outFilename='uvp.txt';                 # OWI output file name
+our $ptFile='ptFile.txt';                   # file name of output grid lat/lon
+our $fort22='fort.22';			    # fort.22 path and filename
+our ($wndFile,$presFile);                   # names of OWI wind/pre output files
+our @namFormats = qw(grib2 netCDF);          # accceptable file types for NAMdata
+our @namTypes = qw(nowcasts forecast);       # acceptable structure of NAMdata
+our $namFormat = "netCDF";                  # default NAM format is netCDF
+our $namType = "forecast";                  # expect forecast data by default
 our ($nDims,$nVars,$nAtts,$recDim,$dimName,%varId,@dimIds,$name,$dataType,%data,%dimId,%nRec,$nRec,@ugrd,@vgrd,@atmp,@time,@OWI_wnd,@miniOWI_wnd,@OWI_pres,@miniOWI_pres,@zeroOffset,$geoHeader);
-our ($OWItimeRef,$startTime,$endTime,$timeStep,$wndHeader,$presHeader,@miniUgrd,@miniVgrd,@miniAtmp,@OWItime);
+our ($OWItimeRef,$startTime,$endTime,$timeStep,$mainHeader,@miniUgrd,@miniVgrd,@miniAtmp,@OWItime,$recordLength);
 ######################################################
 #                    Main Program                    #
 ######################################################
-#first get all the variables ids and dimensions ids from the netCDF file
+# get command line options for variables
+GetOptions(
+          "dataDir=s" => \$dataDir,
+          "outDir=s" => \$outDir,
+          "outFilename=s" => \$outFilename,
+          "ptFile=s" => \$ptFile,
+          "namFormat=s" => \$namFormat,
+          "namType=s" => \$namType
+         );
 &printDate("Start processing NAM Data");
 &printDate("Process Point File ....");
 $geoHeader=&processPtFile($ptFile);
-&printDate("Process netCDF file ...");
-my $ncid = NetCDF::open($ARGV[0],NetCDF::NOWRITE) or die "can't open file $ARGV[0], error $! \n";
-NetCDF::inquire($ncid,\$nDims,\$nVars,\$nAtts,\$recDim);
-#print "ndims=$nDims  nVar=$nVars, natt=$nAtts, recDim=$recDim\n";
- for my $var (0 .. $nVars-1)# var ids are 0, 1 and 2 if we have 3 variables
- {
-	 NetCDF::varinq($ncid,$var,\$name,\$dataType,$nDims,\@dimIds,\$nAtts);
-	 my $dimID=splice (@dimIds, 0, $nDims);
-        # print "VAR: $var: NAME: $name, DATA TYPE: $dataType, NDIMS: $nDims, DIMIDS: $dimID, NATTS: $nAtts\n";
-         $varId{$name} = $var; # array of variable ID numbers as a function of variable name
-	 $dimId{$name}=$dimID;
- }
-# get x,y,time dimensions
-NetCDF::diminq($ncid, $dimId{'x'},$dimName,$nRec); 
-$nRec{'x'}=$nRec;
-NetCDF::diminq($ncid, $dimId{'y'},$dimName,$nRec);
-$nRec{'y'}=$nRec;
-NetCDF::diminq($ncid, $dimId{'time'},$dimName,$nRec);
-$nRec{'time'}=$nRec;
-
-# get the time
-NetCDF::varget($ncid, $varId{'time'},0,$nRec{'time'},\@time);
-($OWItimeRef,$startTime,$endTime,$timeStep)=&convertTime(\@time);
-$wndHeader="OWI WWS Wind Output Ucomp,Vcomp in m/s		Start:$startTime End:$endTime";
-$presHeader="OWI WWS Pressure Output Pressure in Pa		Start:$startTime End:$endTime";# pressure in Pa?
-push @OWI_wnd, $wndHeader;
-push @OWI_pres, $presHeader;
-@OWItime=@$OWItimeRef;
-
-# build the filenames
-$wndFile='NAM_'.$startTime.'_'.$endTime.'.wnd';
-$presFile='NAM_'.$startTime.'_'.$endTime.'.pre';
-# # get u,v,p values
-NetCDF::varget($ncid, $varId{'velocity_we'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@ugrd);
-my $nelems=@ugrd;
-NetCDF::varget($ncid, $varId{'velocity_sn'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@vgrd);
-NetCDF::varget($ncid, $varId{'atm_pressure'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@atmp);
-# close netCDF file 
-NetCDF::close($ncid);
-
-# figure out each time-step record length
-my $recordLength=$nelems/$nRec{'time'};
-&printDate("Rotate and format each time-step ...");
-# loop through the time-steps to run awips_interp	
-for my $t (0 .. $nRec{'time'}-1)
-{
-	&printDate("TS=$t");
-	my $startInd=$t*$recordLength;
-	my $stopInd=($t+1)*$recordLength-1;
-	my @subset=($startInd .. $stopInd);
-	# select subset of array corresponding at the particular time-step
-	@miniUgrd=@ugrd[@subset];
-	@miniVgrd=@vgrd[@subset];
-	@miniAtmp=@atmp[@subset];
-	# # print u,v,p file
-	my $outFile=$outDir.$outFilename;
-	 open (OUT,">$outFile") or die "Can't open output file ($outFile), error: $! \n";
-	 for my $i (0 .. $recordLength-1)
-	 {
-		 print OUT "$miniUgrd[$i] \t $miniVgrd[$i] \t $miniAtmp[$i]\n";
-	 }
-	 close (OUT);
-
-	# #run awis_interp
-	 `./awip_lambert_interp.x 221 3 uvp.txt ptFile.txt rotatedNAM.txt`;
-	 &toOWIformat('rotatedNAM.txt',$geoHeader."Dt=".$OWItime[$t]);
-}
-
+# load NAM data
+if ( $namFormat eq "grib2" ) 
+	{
+	&getGrib2($namType);
+	}
+elsif ( $namFormat eq "netCDF" )
+	{
+	#first get all the variables ids and dimensions ids from the netCDF file
+	&printDate("Process netCDF file ...");
+	&getNetCDF();
+	&addToFort22();# have to add the record length to fort.22
+	&printDate("Rotate and format each time-step ...");
+	# loop through the time-steps to run awips_interp	
+	&rotateAndFormat();
+	}
 &printDate("Print OWI files...");
 &printOWIfiles();
 &printDate("Done processing NAM Data");
@@ -157,10 +122,12 @@ sub processPtFile
 	($swLat,$null)=&giveMinArray(\@lat);
 	($swLon,$null)=&giveMinArray(\@lon);
 	#get rid of remaining space (may be important for format of header line)
-	$swLat=~m/(\d+.\d+)/;
-	$swLat=$1;
-	$swLon=~m/(\d+.\d+)/;
-	$swLon=$1;
+	$swLat=~m/(\S+)/;
+	$swLat=sprintf("%3.4f",$1);# first to have the right float format
+	$swLat=sprintf("%8s",$swLat);# then to have the right spacing in the file
+	$swLon=~m/(\S+)/;
+	$swLon=sprintf("%3.4f",$1);
+	$swLon=sprintf("%8s",$swLon);
 	# find the uniques lat and lon
 	%seen=();
 	foreach my $item (@lat)
@@ -177,9 +144,13 @@ sub processPtFile
 	@uniqLatSorted=sort(@uniqLat);
 	@uniqLonSorted=sort(@uniqLon);
 	# assume a constant dx/dy - abs in case of negative values...
-	$dx=abs($uniqLonSorted[1]-$uniqLonSorted[0]);
-	$dy=abs($uniqLatSorted[1]-$uniqLatSorted[0]);
-	my $headerLine="iLat= $nLat"."iLong= $nLon"."DX= $dx"."DY= $dy"."SWLat= $swLat"."SWLon= $swLon";
+	$dx=sprintf("%1.4f",abs($uniqLonSorted[1]-$uniqLonSorted[0]));
+	$dy=sprintf("%1.4f",abs($uniqLatSorted[1]-$uniqLatSorted[0]));
+	$dx=sprintf("%6s",$dx);
+	$dy=sprintf("%6s",$dy);
+	$nLat=sprintf("%4s",$nLat);
+	$nLon=sprintf("%4s",$nLon);
+	my $headerLine="iLat=$nLat"."iLong=$nLon"."DX=$dx"."DY=$dy"."SWLat=$swLat"."SWLon=$swLon";
 	#print "headerline=$headerLine\n";
 	return $headerLine;
 	
@@ -240,7 +211,9 @@ sub toOWIformat
 	my @file=<FIL>;
 	close(FIL);
 	my (@ugrd,@vgrd,@atmp,@uLines,@vLines,@pLines,$uStr,$vStr,$pStr);
-	($uStr,$vStr,$pStr)=('','','');
+	undef ($uStr);
+	undef ($vStr);
+	undef ($pStr);
 	my $count=0;
 	my $null;
 	foreach my $line (@file)
@@ -253,19 +226,30 @@ sub toOWIformat
 	my $miniCount=0;
 	for my $i (0 .. $nTot)# can do u, v and p at the same time
 	{
-		my $u=sprintf("%1.5f",$ugrd[$i]);
-		my $v=sprintf("%1.5f",$vgrd[$i]);
-		my $p=sprintf("%6d",$atmp[$i]);
-		$uStr=$uStr."   $u";# concatenate values together
-		$vStr=$vStr."   $v";
-		$pStr=$pStr."   $p";
+		my $u=sprintf("% 10f",$ugrd[$i]);
+		my $v=sprintf("% 10f",$vgrd[$i]);
+		my $p=sprintf("% 4.4f",$atmp[$i]*0.01);# change from Pascal to millibar while at it
+		if (defined($uStr))
+		{
+			$uStr=$uStr."$u";# concatenate values together
+			$vStr=$vStr."$v";
+			$pStr=$pStr."$p";
+		}
+		else
+		{
+			$uStr=$u;# concatenate values together
+			$vStr=$v;
+			$pStr=$p;
+		}
 		if (($miniCount==7) || ($i==$nTot))# 8 values per line or reach the end of the file
 		{
 			$miniCount=0;
 			push @uLines,$uStr;
 			push @vLines,$vStr;
 			push @pLines,$pStr;
-			($uStr,$vStr,$pStr)=('','','');
+			undef ($uStr);
+			undef ($vStr);
+			undef ($pStr);
 		}
 		else
 		{
@@ -296,4 +280,98 @@ sub printOWIfiles
 		print PRE $line."\n";
 	}
 	close(PRE);
+}
+################################################################################
+# NAME: &getNetCDF
+# CALL: &getNetCDF
+# GOAL: get the u,v,p data and time info from the netCDF file
+################################################################################
+sub getNetCDF
+{
+	my $ncid = NetCDF::open($ARGV[0],NetCDF::NOWRITE) or die "can't open file $ARGV[0], error $! \n";
+	NetCDF::inquire($ncid,\$nDims,\$nVars,\$nAtts,\$recDim);
+	#print "ndims=$nDims  nVar=$nVars, natt=$nAtts, recDim=$recDim\n";
+	 for my $var (0 .. $nVars-1)# var ids are 0, 1 and 2 if we have 3 variables
+	 {
+		 NetCDF::varinq($ncid,$var,\$name,\$dataType,$nDims,\@dimIds,\$nAtts);
+		 my $dimID=splice (@dimIds, 0, $nDims);
+		# print "VAR: $var: NAME: $name, DATA TYPE: $dataType, NDIMS: $nDims, DIMIDS: $dimID, NATTS: $nAtts\n";
+		 $varId{$name} = $var; # array of variable ID numbers as a function of variable name
+		 $dimId{$name}=$dimID;
+	 }
+	# get x,y,time dimensions
+	NetCDF::diminq($ncid, $dimId{'x'},$dimName,$nRec); 
+	$nRec{'x'}=$nRec;
+	NetCDF::diminq($ncid, $dimId{'y'},$dimName,$nRec);
+	$nRec{'y'}=$nRec;
+	NetCDF::diminq($ncid, $dimId{'time'},$dimName,$nRec);
+	$nRec{'time'}=$nRec;
+	
+	# get the time
+	NetCDF::varget($ncid, $varId{'time'},0,$nRec{'time'},\@time);
+	($OWItimeRef,$startTime,$endTime,$timeStep)=&convertTime(\@time);
+	#$mainHeader="Oceanweather WIN/PRE Format					$startTime   $endTime";
+	$mainHeader="Oceanweather WIN/PRE Format                            $startTime     $startTime";
+	push @OWI_wnd, $mainHeader;
+	push @OWI_pres, $mainHeader;
+	@OWItime=@$OWItimeRef;
+	
+	# build the filenames
+	$wndFile='NAM_'.$startTime.'_'.$endTime.'.222';
+	$presFile='NAM_'.$startTime.'_'.$endTime.'.221';
+	# # get u,v,p values
+	NetCDF::varget($ncid, $varId{'velocity_we'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@ugrd);
+	my $nelems=@ugrd;
+	NetCDF::varget($ncid, $varId{'velocity_sn'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@vgrd);
+	NetCDF::varget($ncid, $varId{'atm_pressure'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@atmp);
+	# close netCDF file 
+	NetCDF::close($ncid);
+	# figure out each time-step record length
+	$recordLength=$nelems/$nRec{'time'};
+}
+################################################################################
+# NAME: &rotateAndFormat	
+# CALL: &rotateAndFormat()
+# GOAL: loop through time-steps to rotate and output at specific points with 
+#	awips_lambert_interp - populate the OWI array with resulting data
+################################################################################
+sub rotateAndFormat
+{
+	for my $t (0 .. $nRec{'time'}-1)
+		{
+		&printDate("TS=$t");
+		my $startInd=$t*$recordLength;
+		my $stopInd=($t+1)*$recordLength-1;
+		my @subset=($startInd .. $stopInd);
+		# select subset of array corresponding at the particular time-step
+		@miniUgrd=@ugrd[@subset];
+		@miniVgrd=@vgrd[@subset];
+		@miniAtmp=@atmp[@subset];
+		# # print u,v,p file
+		my $outFile=$outDir.$outFilename;
+		 open (OUT,">$outFile") or die "Can't open output file ($outFile), error: $! \n";
+		 for my $i (0 .. $recordLength-1)
+		 {
+			 print OUT "$miniUgrd[$i] \t $miniVgrd[$i] \t $miniAtmp[$i]\n";
+		 }
+		 close (OUT);
+	
+		# #run awis_interp
+		 `./awip_lambert_interp.x 221 3 uvp.txt ptFile.txt rotatedNAM.txt velocity`;
+		 &toOWIformat('rotatedNAM.txt',$geoHeader."DT=".$OWItime[$t]);
+		}
+}
+################################################################################
+# NAME: &addToFort22	
+# CALL: &addToFort22()
+# GOAL: loop through time-steps to rotate and output at specific points with 
+#	awips_lambert_interp - populate the OWI array with resulting data
+################################################################################
+sub addToFort22
+{
+	open(F22,">>$fort22");
+	my $wtiminc=$timeStep*3600; # ts in seconds
+	print F22 "# $wtiminc";
+	close(F22);
+	
 }
