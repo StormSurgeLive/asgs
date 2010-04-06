@@ -424,7 +424,7 @@ sub addToFort22
 {
 	open(F22,">>$fort22");
 	my $wtiminc=$timeStep*3600; # ts in seconds
-	print F22 "# $wtiminc";
+	print F22 "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15\n";
 	close(F22);
 	
 }
@@ -482,13 +482,13 @@ sub getGrib2
                &printDate("NAMtoOWI.pl: INFO: nlon is $nxny[0] nlat is $nxny[1].");
                $recordLength = $nxny[0] * $nxny[1];
                foreach my $val (@rawUVP[(0 .. ($recordLength-1))]) {
-                  push(@ugrd,chomp($val));
+                  push(@ugrd,$val);
                }
                foreach my $val (@rawUVP[($recordLength .. (2*$recordLength-1))]) {
-                  push(@vgrd,chomp($val));
+                  push(@vgrd,$val);
                }
                foreach my $val (@rawUVP[(2*$recordLength .. (3*$recordLength-1))]){
-                  push(@atmp,chomp($val));
+                  push(@atmp,$val);
                }
                $numGrib2Files++;
             }
