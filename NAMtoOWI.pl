@@ -2,9 +2,9 @@
 ################################################################################
 #                          	netcdfNAMtoOWI                                 #
 ################################################################################
-# This script is triggered when a netCDF NAM file is received by LDM	       #
-# Its purpose is to convert the NAM data to OWI formatted data for use in      #
-# ADCIRC.								       #
+# This script is triggered when a netCDF NAM file is received by LDM.
+# Its purpose is to convert the NAM data to OWI formatted data for use in
+# ADCIRC.
 ################################################################################
 #                   The packages used are the following:                       #
 ################################################################################
@@ -17,7 +17,11 @@
 #first written: 03/17/10                                                       #
 #last updated: 03/31/10                                            	       #
 ################################################################################
-
+#
+# Example of usage for a set of grib2 files containing nowcast data:
+#
+# perl ~/asgs/NAMtoOWI.pl --ptFile ~/Ida/ptFile.txt --namFormat grib2 --namType nowcast --awipGridNumber 218 --dataDir ~/Ida --outDir ~/Ida/test --velocityMultiplier 0.9 --scriptDir ~/asgs
+#
 ######################################################
 #      Packages and exportation requirements         #
 ######################################################
@@ -30,10 +34,14 @@ use Getopt::Long;
 #             Variables declarations                 #
 ######################################################
 our $dataDir="/data/renci/ADCIRC/wind/";    # path to NAM data
-our $outDir='/data/renci/ADCIRC/wind/src/'; # path for OWI data
-our $outFilename='uvp.txt';                 # OWI output file name
+our $outDir='/data/renci/ADCIRC/wind/src/'; # path to NAM u,v,p text data 
+our $outFilename='uvp.txt';                 # filename of NAM u,v,p text data
 our $ptFile='ptFile.txt';                   # file name of output grid lat/lon
 our $fort22='fort.22';			    # fort.22 path and filename
+our $awipGridNumber=221;                    # code that describes the grid num
+our $velocityMultiplier=1.0;                # multiplier for vels
+our $pressureMultiplier=0.01;               # convert Pascals to mb by default
+our $scriptDir=".";                        # path to executables
 our ($wndFile,$presFile);                   # names of OWI wind/pre output files
 our @namFormats = qw(grib2 netCDF);          # accceptable file types for NAMdata
 our @namTypes = qw(nowcasts forecast);       # acceptable structure of NAMdata
@@ -41,6 +49,15 @@ our $namFormat = "netCDF";                  # default NAM format is netCDF
 our $namType = "forecast";                  # expect forecast data by default
 our ($nDims,$nVars,$nAtts,$recDim,$dimName,%varId,@dimIds,$name,$dataType,%data,%dimId,%nRec,$nRec,@ugrd,@vgrd,@atmp,@time,@OWI_wnd,@miniOWI_wnd,@OWI_pres,@miniOWI_pres,@zeroOffset,$geoHeader);
 our ($OWItimeRef,$startTime,$endTime,$timeStep,$mainHeader,@miniUgrd,@miniVgrd,@miniAtmp,@OWItime,$recordLength);
+# @ugrd holds the lambert gridded u wind velocity data, across all time steps 
+# @vgrd holds the lambert gridded v wind velocity data, across all time steps 
+# @atmp holds the lambert gridded atm. pressure data, across all time steps 
+# $startTime and $endTime are date/time strings for main OWI header
+# $timeStep is the met time increment (WTIMINC), in hours
+# $mainHeader is at the top of the OWI files
+# @OWItime is the time in the header of each met data set (i.e., incl. minutes)
+# $recordLength is the number of grid points in the lambert gridded data
+#
 ######################################################
 #                    Main Program                    #
 ######################################################
@@ -51,7 +68,11 @@ GetOptions(
           "outFilename=s" => \$outFilename,
           "ptFile=s" => \$ptFile,
           "namFormat=s" => \$namFormat,
-          "namType=s" => \$namType
+          "namType=s" => \$namType,
+          "awipGridNumber=s" => \$awipGridNumber,
+          "velocityMultiplier=s" => \$velocityMultiplier,
+          "pressureMultiplier=s" => \$pressureMultiplier,
+          "scriptDir=s" => \$scriptDir
          );
 &printDate("Start processing NAM Data");
 &printDate("Process Point File ....");
@@ -59,7 +80,12 @@ $geoHeader=&processPtFile($ptFile);
 # load NAM data
 if ( $namFormat eq "grib2" ) 
 	{
+	&printDate("Process grib2 file ...");
 	&getGrib2($namType);
+	&addToFort22();# have to add the record length to fort.22
+	&printDate("Rotate and format each time-step ...");
+	# loop through the time-steps to run awips_interp	
+	&rotateAndFormat();
 	}
 elsif ( $namFormat eq "netCDF" )
 	{
@@ -108,7 +134,14 @@ sub printDate()
 sub processPtFile
 {
 	my $ptFile=shift;
+
 	my (@lat,@lon,$null,@ary,$swLat,$swLon,@uniqLat,@uniqLon,$nLat,$nLon,$nPts,%seen,@uniqLatSorted,@uniqLonSorted,$dx,$dy);
+        # check for existence of lat/lon file before attempting to open
+        unless (-e $ptFile ) 
+        { 
+                 &printDate("NAMtoOWI.pl: ERROR: Grid specification file '$ptFile' does not exist.");
+                 die;
+        }       
 	open(PT,$ptFile);
 	my @pt=<PT>;
 	chomp(@pt);
@@ -207,6 +240,12 @@ sub toOWIformat
 	my ($file,$header)=@_;
 	push @OWI_wnd,$header;
 	push @OWI_pres,$header;
+        # check for existence of the data file before attempting to open
+        unless (-e $file ) 
+        { 
+                 &printDate("NAMtoOWI.pl: ERROR: The data file '$file' does not exist.");
+                 die;
+        }       
 	open (FIL,$file);
 	my @file=<FIL>;
 	close(FIL);
@@ -228,7 +267,7 @@ sub toOWIformat
 	{
 		my $u=sprintf("% 10f",$ugrd[$i]);
 		my $v=sprintf("% 10f",$vgrd[$i]);
-		my $p=sprintf("% 4.4f",$atmp[$i]*0.01);# change from Pascal to millibar while at it
+		my $p=sprintf("% 4.4f",$atmp[$i]*$pressureMultiplier);# change from Pascal to millibar while at it
 		if (defined($uStr))
 		{
 			$uStr=$uStr."$u";# concatenate values together
@@ -288,6 +327,19 @@ sub printOWIfiles
 ################################################################################
 sub getNetCDF
 {
+        # check to be sure that the NetCDF file was specified on the command
+        # line before attempting to open
+        unless ( defined $ARGV[0] ) 
+        {
+                 &printDate("NAMtoOWI.pl: ERROR: NetCDF filename was not specified on command line.");
+                 die;
+        }
+        # check for existence of netcdf file before attempting to open
+        unless (-e $ARGV[0] ) 
+        { 
+                 &printDate("NAMtoOWI.pl: ERROR: NetCDF file '$ARGV[0]' does not exist.");
+                 die;
+        }       
 	my $ncid = NetCDF::open($ARGV[0],NetCDF::NOWRITE) or die "can't open file $ARGV[0], error $! \n";
 	NetCDF::inquire($ncid,\$nDims,\$nVars,\$nAtts,\$recDim);
 	#print "ndims=$nDims  nVar=$nVars, natt=$nAtts, recDim=$recDim\n";
@@ -311,7 +363,7 @@ sub getNetCDF
 	NetCDF::varget($ncid, $varId{'time'},0,$nRec{'time'},\@time);
 	($OWItimeRef,$startTime,$endTime,$timeStep)=&convertTime(\@time);
 	#$mainHeader="Oceanweather WIN/PRE Format					$startTime   $endTime";
-	$mainHeader="Oceanweather WIN/PRE Format                            $startTime     $startTime";
+	$mainHeader="Oceanweather WIN/PRE Format                            $startTime     $startTime"; #jgf: Hey Eve, why is startTime here twice?
 	push @OWI_wnd, $mainHeader;
 	push @OWI_pres, $mainHeader;
 	@OWItime=@$OWItimeRef;
@@ -357,7 +409,8 @@ sub rotateAndFormat
 		 close (OUT);
 	
 		# #run awis_interp
-		 `./awip_lambert_interp.x 221 3 uvp.txt ptFile.txt rotatedNAM.txt velocity`;
+		 `$scriptDir/awip_lambert_interp.x $awipGridNumber 3 $outFile $ptFile rotatedNAM.txt velocity $velocityMultiplier`;
+
 		 &toOWIformat('rotatedNAM.txt',$geoHeader."DT=".$OWItime[$t]);
 		}
 }
@@ -375,3 +428,83 @@ sub addToFort22
 	close(F22);
 	
 }
+
+################################################################################
+# NAME: &getGrib2
+# CALL: &getGrib2
+# GOAL: get the u,v,p data and time info from the grib2 files
+################################################################################
+sub getGrib2
+{
+        # if these are nowcast files, we'll assume that the data are 
+        # six hours apart 
+        # also assume that there are no missing files
+        if ( $namType eq "nowcast" ) { 
+           $timeStep = 6; # in hours
+        } else { 
+           &printDate("NAMtoOWI.pl: ERROR: namType of '$namType' is not supported.");
+           die;
+        }
+        # assume that $dataDir points to a directory containing subdirectories
+        # named erl.*, e.g. erl.091108 (i.e., 8 November 2009)
+        my @grib2Dirs = glob($dataDir."/erl.*");
+        my $numGrib2Dirs = @grib2Dirs;
+        &printDate("NAMtoOWI.pl: INFO: There is/are $numGrib2Dirs grib2 dir(s).");
+        if ( $numGrib2Dirs == 0 ) {
+           &printDate("NAMtoOWI.pl: ERROR: There are no grib2 directories to process.");
+           die;
+        }  
+        # assume that each of these directories contain some grib2 files
+        # that are named with the extension ".grib2"
+        my $numGrib2Files = 0;
+        foreach my $dir (@grib2Dirs) {
+            my @grib2Files = glob($dir."/*.grib2");
+            foreach my $file (@grib2Files) {
+               &printDate("working on $file");
+               # grab the YYYYMMDDHH time from the inventory
+               `$scriptDir/wgrib2 $file -match PRMSL` =~ m/d=(\d+)/;
+               &printDate("NAMtoOWI.pl: INFO: the time is $1.");
+               #FIXME need to add the timeStep to endTime to get true endTime
+               $endTime = $1; # save the last value to represent the end time
+               unless (defined $startTime ) {
+                  $startTime = $1; # grab the first time stamp as starting time
+               }
+               push(@OWItime,$1."00"); # add the minutes columns
+               #
+               # now grab the u,v,p data from the file, sending the
+               # accompanying inventory info (that would normally go to 
+               # stdout also) to /dev/null 
+               #
+               my @rawUVP = `$scriptDir/wgrib2 $file -match "(UGRD:10|VGRD:10|PRMSL)" -inv /dev/null -text -`;
+               #               
+               # the nlon and nlat are the first line in the output 
+               my @nxny = split(" ",shift(@rawUVP)); 
+               &printDate("NAMtoOWI.pl: INFO: nlon is $nxny[0] nlat is $nxny[1].");
+               $recordLength = $nxny[0] * $nxny[1];
+               foreach my $val (@rawUVP[(0 .. ($recordLength-1))]) {
+                  push(@ugrd,chomp($val));
+               }
+               foreach my $val (@rawUVP[($recordLength .. (2*$recordLength-1))]) {
+                  push(@vgrd,chomp($val));
+               }
+               foreach my $val (@rawUVP[(2*$recordLength .. (3*$recordLength-1))]){
+                  push(@atmp,chomp($val));
+               }
+               $numGrib2Files++;
+            }
+        }
+        $mainHeader="Oceanweather WIN/PRE Format                            $startTime     $endTime";
+	push @OWI_wnd, $mainHeader;
+	push @OWI_pres, $mainHeader;
+	# build the filenames
+	$wndFile='NAM_'.$startTime.'_'.$endTime.'.222';
+	$presFile='NAM_'.$startTime.'_'.$endTime.'.221';
+        &printDate("NAMtoOWI.pl: INFO: Processed $numGrib2Files grib2 file(s) in $numGrib2Dirs grib2 directories.");
+	$nRec{'time'}=$numGrib2Files;
+        if ( $numGrib2Files == 0 ) { 
+           &printDate("NAMtoOWI.pl: ERROR: There were no grib2 files to process.");
+           die;
+        } 
+        
+} 
+
