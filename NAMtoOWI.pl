@@ -327,7 +327,8 @@ sub printOWIfiles
 ################################################################################
 sub getNetCDF
 {
-        # check to be sure that the NetCDF file was specified on the command
+	my $filename;
+	 # check to be sure that the NetCDF file was specified on the command
         # line before attempting to open
         unless ( defined $ARGV[0] ) 
         {
@@ -339,7 +340,18 @@ sub getNetCDF
         { 
                  &printDate("NAMtoOWI.pl: ERROR: NetCDF file '$ARGV[0]' does not exist.");
                  die;
-        }       
+        } 
+	if ($ARGV[0] =~/.gz$/)
+	{
+		`gunzip $ARGV[0]`;
+		$filename=$`;
+	}
+	else
+	{
+		$filename=$ARGV[0];
+	}
+	my $ncid = NetCDF::open($filename,NetCDF::NOWRITE) or die "can't open file $ARGV[0], error $! \n";
+             
 	my $ncid = NetCDF::open($ARGV[0],NetCDF::NOWRITE) or die "can't open file $ARGV[0], error $! \n";
 	NetCDF::inquire($ncid,\$nDims,\$nVars,\$nAtts,\$recDim);
 	#print "ndims=$nDims  nVar=$nVars, natt=$nAtts, recDim=$recDim\n";
