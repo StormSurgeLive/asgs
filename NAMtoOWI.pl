@@ -267,7 +267,10 @@ sub toOWIformat
 	{
 		my $u=sprintf("% 10f",$ugrd[$i]);
 		my $v=sprintf("% 10f",$vgrd[$i]);
-		my $p=sprintf("% 4.4f",$atmp[$i]*$pressureMultiplier);# change from Pascal to millibar while at it
+                # change from Pascal to millibar while at it
+                # needed to add sprintf %10s for pressure vals < 1000
+                my $p=sprintf("%10s",
+                    sprintf("% 4.4f",$atmp[$i]*$pressureMultiplier));
 		if (defined($uStr))
 		{
 			$uStr=$uStr."$u";# concatenate values together
