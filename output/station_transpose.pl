@@ -8,7 +8,7 @@
 # different stations and the rows represent time. 
 #
 #----------------------------------------------------------------
-# Copyright(C) 2009 Jason Fleming
+# Copyright(C) 2009,2010 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -24,6 +24,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#----------------------------------------------------------------
+#
+# usage sample:
+# export PERL5LIB=~/asgs/trunk/PERL
+# perl ~/asgs/trunk/output/station_transpose.pl --filetotranspose barometricpressure --controlfile ./fort.15 --stationfile ./fort.71 --format space --coldstartdate 2009110100 --gmtoffset 0 --timezone GMT --units si
+#
 #----------------------------------------------------------------
 use strict;
 use warnings;
@@ -278,6 +284,11 @@ while (<STAFILE>) {
                stderrMessage("ERROR","Output in english units is not available for barometric pressure.");
             }
          } 
+         if ( $scalar != -99999 && $filetoTranspose eq "barometricpressure" ) {
+             # convert from m of water to mb: multiply by rho_0 g to get 
+             # Pascals, then divide by 100 to get mb
+             $scalar *= (1000.0 * 9.81 / 100.0);
+         }
          $station_val[$1-1] = $scalar;
       } else {
         # this is vector data
