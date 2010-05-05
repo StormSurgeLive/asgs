@@ -354,8 +354,6 @@ sub getNetCDF
 		$filename=$ARGV[0];
 	}
 	my $ncid = NetCDF::open($filename,NetCDF::NOWRITE) or die "can't open file $ARGV[0], error $! \n";
-             
-	my $ncid = NetCDF::open($ARGV[0],NetCDF::NOWRITE) or die "can't open file $ARGV[0], error $! \n";
 	NetCDF::inquire($ncid,\$nDims,\$nVars,\$nAtts,\$recDim);
 	#print "ndims=$nDims  nVar=$nVars, natt=$nAtts, recDim=$recDim\n";
 	 for my $var (0 .. $nVars-1)# var ids are 0, 1 and 2 if we have 3 variables
@@ -451,70 +449,77 @@ sub addToFort22
 ################################################################################
 sub getGrib2
 {
-        # if these are nowcast files, we'll assume that the data are 
-        # six hours apart 
-        # also assume that there are no missing files
-        if ( $namType eq "nowcast" ) { 
-           $timeStep = 6; # in hours
-        } else { 
-           &printDate("NAMtoOWI.pl: ERROR: namType of '$namType' is not supported.");
-           die;
-        }
-        # assume that $dataDir points to a directory containing subdirectories
-        # named erl.*, e.g. erl.091108 (i.e., 8 November 2009)
-        my @grib2Dirs = glob($dataDir."/erl.*");
-        my $numGrib2Dirs = @grib2Dirs;
-        &printDate("NAMtoOWI.pl: INFO: There is/are $numGrib2Dirs grib2 dir(s).");
-        if ( $numGrib2Dirs == 0 ) {
-           &printDate("NAMtoOWI.pl: ERROR: There are no grib2 directories to process.");
-           die;
-        }  
-        # assume that each of these directories contain some grib2 files
-        # that are named with the extension ".grib2"
+        # assume that there are no gaps in the data, i.e., no missing
+        # files
         my $numGrib2Files = 0;
-        foreach my $dir (@grib2Dirs) {
-            my @grib2Files = glob($dir."/*.grib2");
-            foreach my $file (@grib2Files) {
-               &printDate("working on $file");
-               # grab the YYYYMMDDHH time from the inventory
-               `$scriptDir/wgrib2 $file -match PRMSL` =~ m/d=(\d+)/;
-               &printDate("NAMtoOWI.pl: INFO: the time is $1.");
-               #FIXME need to add the timeStep to endTime to get true endTime
-               $endTime = $1; # save the last value to represent the end time
-               unless (defined $startTime ) {
-                  $startTime = $1; # grab the first time stamp as starting time
-               }
-               push(@OWItime,$1."00"); # add the minutes columns
-               #
-               # now grab the u,v,p data from the file, sending the
-               # accompanying inventory info (that would normally go to 
-               # stdout also) to /dev/null 
-               #
-               my @rawUVP = `$scriptDir/wgrib2 $file -match "(UGRD:10|VGRD:10|PRMSL)" -inv /dev/null -text -`;
-               #               
-               # the nlon and nlat are the first line in the output 
-               my @nxny = split(" ",shift(@rawUVP)); 
-               &printDate("NAMtoOWI.pl: INFO: nlon is $nxny[0] nlat is $nxny[1].");
-               $recordLength = $nxny[0] * $nxny[1];
-               foreach my $val (@rawUVP[(0 .. ($recordLength-1))]) {
-                  push(@ugrd,$val);
-               }
-               foreach my $val (@rawUVP[($recordLength .. (2*$recordLength-1))]) {
-                  push(@vgrd,$val);
-               }
-               foreach my $val (@rawUVP[(2*$recordLength .. (3*$recordLength-1))]){
-                  push(@atmp,$val);
-               }
-               $numGrib2Files++;
-            }
+        my @grib2Files;
+        my $timestep;
+        if ( $namType eq "nowcast" ) { 
+           # if these are nowcast files, we'll assume that the data are 
+           # six hours apart, and that they are located in directories
+           # called 'erl.yymmdd' where yymmdd is the year month day 
+           $timeStep = 6.0; # in hours
+           my @grib2Dirs = glob($dataDir."/erl.*");
+           my $numGrib2Dirs = @grib2Dirs;
+           &printDate("NAMtoOWI.pl: INFO: There is/are $numGrib2Dirs grib2 dir(s).");
+           if ( $numGrib2Dirs == 0 ) {
+              &printDate("NAMtoOWI.pl: ERROR: There are no grib2 directories to process.");
+              die;
+           }  
+	   # assume that $dataDir points to a directory containing
+	   # subdirectories named erl.*, e.g. erl.091108 (i.e., 8 November
+	   # 2009) assume that each of these directories contain some grib2
+	   # files that are named with the extension ".grib2"
+           foreach my $dir (@grib2Dirs) {
+              push(@grib2Files,glob($dir."/*.grib2"));
+           }
+        } else { 
+           # if these are forecast files, we'll assume that the data are
+           # three hours apart, and that they are all located in the same
+           # subdirectory 
+           $timestep = 3.0; # in hours 
+           @grib2Files = glob($dataDir."/*.grib2");
+        }
+        foreach my $file (@grib2Files) {
+           &printDate("working on $file");
+           # grab the YYYYMMDDHH time from the inventory
+           `$scriptDir/wgrib2 $file -match PRMSL` =~ m/d=(\d+)/;
+           &printDate("NAMtoOWI.pl: INFO: the time is $1.");
+           #FIXME need to add the timeStep to endTime to get true endTime
+           $endTime = $1; # save the last value to represent the end time
+           unless (defined $startTime ) {
+              $startTime = $1; # grab the first time stamp as starting time
+           }
+           push(@OWItime,$1."00"); # add the minutes columns
+           #
+           # now grab the u,v,p data from the file, sending the
+           # accompanying inventory info (that would normally go to 
+           # stdout also) to /dev/null 
+           #
+           my @rawUVP = `$scriptDir/wgrib2 $file -match "(UGRD:10|VGRD:10|PRMSL)" -inv /dev/null -text -`;
+           #               
+           # the nlon and nlat are the first line in the output 
+           my @nxny = split(" ",shift(@rawUVP)); 
+           &printDate("NAMtoOWI.pl: INFO: nlon is $nxny[0] nlat is $nxny[1].");
+           $recordLength = $nxny[0] * $nxny[1];
+           foreach my $val (@rawUVP[(0 .. ($recordLength-1))]) {
+              push(@ugrd,$val);
+           }
+           foreach my $val (@rawUVP[($recordLength .. (2*$recordLength-1))]) {
+              push(@vgrd,$val);
+           }
+           foreach my $val (@rawUVP[(2*$recordLength .. (3*$recordLength-1))]){
+              push(@atmp,$val);
+           }
+           $numGrib2Files++;
         }
         $mainHeader="Oceanweather WIN/PRE Format                            $startTime     $endTime";
-	push @OWI_wnd, $mainHeader;
-	push @OWI_pres, $mainHeader;
-	# build the filenames
-	$wndFile='NAM_'.$startTime.'_'.$endTime.'.222';
-	$presFile='NAM_'.$startTime.'_'.$endTime.'.221';
-        &printDate("NAMtoOWI.pl: INFO: Processed $numGrib2Files grib2 file(s) in $numGrib2Dirs grib2 directories.");
+        push @OWI_wnd, $mainHeader;
+        push @OWI_pres, $mainHeader;
+        # build the filenames
+        $wndFile='NAM_'.$startTime.'_'.$endTime.'.222';
+        $presFile='NAM_'.$startTime.'_'.$endTime.'.221';
+        &printDate("NAMtoOWI.pl: INFO: Processed $numGrib2Files grib2 file(s).");
 	$nRec{'time'}=$numGrib2Files;
         if ( $numGrib2Files == 0 ) { 
            &printDate("NAMtoOWI.pl: ERROR: There were no grib2 files to process.");
