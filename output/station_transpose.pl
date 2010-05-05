@@ -219,6 +219,7 @@ while (<STAFILE>) {
             for (my $i=0; $i<$total_stations; $i++ ) {
                if ( $vectorOutput eq "raw" ) {
                   printf TRANSPOSE ("%20s %20s",$vector_tuple_1[$i], $vector_tuple_2[$i]);
+               # we have two valid values
                } elsif ( $vector_tuple_1[$i] != -99999 
                       && $vector_tuple_2[$i] != -99999 ) {
                   if ( $vectorOutput eq "magnitude" ) {
@@ -227,21 +228,25 @@ while (<STAFILE>) {
                      # assumes vectors are in east and north components
                      my $direction = 0.0;
                      # if north component is zero
-                     if ( $vector_tuple_2[$i] ) {
-                        # if east component is negative
-                        if ( $vector_tuple_1[$i] < 0.0 ) {
-                           $direction = 270.0;
-                        } else { # east component is negative or zero
-                           $direction = 90.0;
-                        }
-                     } 
+                     #if ( $vector_tuple_2[$i] ) {
+                     #   # if east component is negative
+                     #   if ( $vector_tuple_1[$i] < 0.0 ) {
+                     #      $direction = 270.0;
+                     #   } else { # east component is negative or zero
+                     #      $direction = 90.0;
+                     #   }
+                     #} 
                      # if both components are nonzero
-                     if ( $vector_tuple_1[$i] != 0.0 && $vector_tuple_2[$i] != 0.0 ) {  
-                        my $direction = 360.0 - atan($vector_tuple_2[$i]/$vector_tuple_1[$i])*(360.0/(2.0*$pi));
+                     if ( $vector_tuple_1[$i] == 0.0 && $vector_tuple_2[$i] == 0.0 ) {  
+                       $direction = -99999;
+                     } else {
+                       # my $direction = 360.0 - atan($vector_tuple_2[$i]/$vector_tuple_1[$i])*(360.0/(2.0*$pi));
+                        $direction = (180.0+(atan2($vector_tuple_1[$i],$vector_tuple_2[$i])*180.0/$pi ) ) % 360.0;
                      }
                      printf TRANSPOSE ("%20s",$direction);
                   }
                } else {
+                  # we have invalid values
                   printf TRANSPOSE "-99999";
                }
                printf TRANSPOSE $separator;
@@ -284,7 +289,7 @@ while (<STAFILE>) {
                stderrMessage("ERROR","Output in english units is not available for barometric pressure.");
             }
          } 
-         if ( $scalar != -99999 && $filetoTranspose eq "barometricpressure" ) {
+         if ( $scalar != -99999 && $fileToTranspose eq "barometricpressure" ) {
              # convert from m of water to mb: multiply by rho_0 g to get 
              # Pascals, then divide by 100 to get mb
              $scalar *= (1000.0 * 9.81 / 100.0);

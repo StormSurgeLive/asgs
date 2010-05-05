@@ -3,8 +3,8 @@ FOR BEST RESULTS, PLEASE KEEP COMMENTS OUT OF THE FIRST 50 CHARACTERS ON EACH LI
 4                                                  ! Level of screen output.
 /usr/local/usp/gmt/4.4.0/bin/
 ./Temp/
-09_2008_nhcConsensus_48
-1,HWM (NAVD88): Storm 09 2008  Adv #48
+11_2009_nhcConsensus_27
+1,HWM (NAVD88): Storm 11 2009  Adv #27
 0                                                  ! Time bar flag: 0 to ignore, 1 to plot time bar.
 -93.5
 -88.5

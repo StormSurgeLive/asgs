@@ -59,32 +59,32 @@ my $hcDl = 0; # true if the hindcast was downloaded successfully
 my $fcDl = 0; # true if the forecast was downloaded successfully
 
 while (!$dl) {
-   $hcDl = 1; #!!!!!!!!!!!!!! should be zero
+   $hcDl = 0; 
    $fcDl = 0;
    my $ftp;
-   #my $ftp = Net::FTP->new($ftpsite, Debug => 0, Passive => 1); 
-   #unless ( defined $ftp ) {
-   #   stderrMessage("ERROR","ftp: Cannot connect to $ftpsite: $@");
-   #   next;
-   #}
-   #my $ftpLoginSuccess = $ftp->login("anonymous",'-anonymous@');
-   #unless ( $ftpLoginSuccess ) {
-   #   stderrMessage("ERROR","ftp: Cannot login: " . $ftp->message);
-   #   next;
-   #}
-   #
+   my $ftp = Net::FTP->new($ftpsite, Debug => 0, Passive => 1); 
+   unless ( defined $ftp ) {
+      stderrMessage("ERROR","ftp: Cannot connect to $ftpsite: $@");
+      next;
+   }
+   my $ftpLoginSuccess = $ftp->login("anonymous",'-anonymous@');
+   unless ( $ftpLoginSuccess ) {
+      stderrMessage("ERROR","ftp: Cannot login: " . $ftp->message);
+      next;
+   }
+   
    # HINDCAST TRACK
-   #my $hcDirSuccess = $ftp->cwd($hdir);
-   #unless ( $hcDirSuccess ) {
-   #   stderrMessage("ERROR",
-   #       "ftp: Cannot change working directory to '$hdir': " . $ftp->message);
-   #   next;
-   #}
-   #$hcDl = $ftp->get($hindcastfile);
-   #unless ( $hcDl ) {
-   #  stderrMessage("ERROR","ftp: Get '$hindcastfile' failed: " . $ftp->message);
-   #  next;
-   #}
+   my $hcDirSuccess = $ftp->cwd($hdir);
+   unless ( $hcDirSuccess ) {
+      stderrMessage("ERROR",
+          "ftp: Cannot change working directory to '$hdir': " . $ftp->message);
+      next;
+   }
+   $hcDl = $ftp->get($hindcastfile);
+   unless ( $hcDl ) {
+     stderrMessage("ERROR","ftp: Get '$hindcastfile' failed: " . $ftp->message);
+     next;
+   }
    # grab the name of the storm from the hindcast, if it was not provided
    # in the command line parameters
    unless ( $nhcName ) {
@@ -150,7 +150,7 @@ while (!$dl) {
          }
       }
    }
-   #$ftp->quit;
+   $ftp->quit;
    if ( $trigger eq "rss" ) {
       my $http = Net::HTTP->new(Host => $rsssite);
       unless ($http) {
