@@ -41,7 +41,7 @@
 #   [--dt timestep] [--nowcast] [--controltemplate templatefile] < storm1_fort.22 
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2006, 2007, 2008, 2009 Jason Fleming
+# Copyright(C) 2006, 2007, 2008, 2009, 2010 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -81,6 +81,8 @@ my $tau=0; # forecast period
 my $dir=getcwd();
 my $nws=9;
 my $advisorynum;
+my $particles;  # flag to produce fulldomain current velocity files at an 
+                # increment of 30 minutes
 
 GetOptions("controltemplate=s" => \$controltemplate,
            "metfile=s" => \$metfile,
@@ -92,7 +94,8 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "nws=s" => \$nws, 
            "advisorynum=s" => \$advisorynum,
            "nhcName=s" => \$nhcName,
-           "hst=s" => \$hotstarttime);
+           "hst=s" => \$hotstarttime,
+           "particles" => \$particles);
 #
 # open template file for fort.15
 open(TEMPLATE,"<$controltemplate") || die "ERROR: control_file_gen.pl: Failed to open the fort.15 template file $controltemplate for reading.";
@@ -101,39 +104,90 @@ open(TEMPLATE,"<$controltemplate") || die "ERROR: control_file_gen.pl: Failed to
 open(STORM,">fort.15") || die "ERROR: control_file_gen.pl: Failed to open the output control file $dir/fort.15.";
 print STDOUT "INFO: control_file_gen.pl: The output fort.15 file will be written to the directory $dir.\n"; 
 #
-# open met input file
-open(METFILE,"<$metfile") || die "ERROR: control_file_gen.pl: Failed to open meteorological (ATCF-formatted) fort.22 file $metfile for reading.";
-#
-# Build track list
-#
-while (<METFILE>) {
-  chomp($_);
-  my @tmp = ();
-  # split and remove any spaces
-  foreach my $item (split(',',$_)) {
-    $item =~ s/\s*//g;
-    push(@tmp,$item);
-  }
-  # 2d array of arrays; [@tmp] creates an anon array in each element of @TRACK
-  push(@TRACKS,[@tmp]); 
+# call subroutine that knows how to fill in the fort.15 for each particular 
+# type of forcing 
+if ( abs($nws) == 19 || abs($nws) == 319 ) {
+   &asymmetricParameters(); 
+} 
+if ( abs($nws) == 12 || abs($nws) == 312 ) {
+   &owiParameters();
 }
+
 #
-# find last hindcast line
-my $track;
-my $nowcast;
-foreach $track (reverse(@TRACKS)) {
-   if (@{$track}[4] =~ m/BEST/) {
-     if ( $nhcName eq "STORMNAME" ) {
-        # We need to get the storm name from the last hindcast line
-        if ( defined $track->[27] ) {
-           $nhcName = $track->[27];
-        } else {	 
-           printf STDERR "WARNING: control_file_gen.pl: The name of the storm does not appear in the hindcast.\n";
-        }
-     }
-     # also grab the last hindcast time; this will be the nowcast time
-     $nowcast = $track->[2];     
-     last;
+while(<TEMPLATE>) {
+    # if we are looking at the first line, fill in the name of the storm
+    # and the advisory number, if available
+    s/%StormName%/$rundesc/;
+    # if we are looking at the DT line, fill in the time step (seconds)
+    s/%DT%/$dt/;
+    # if we are looking at the RNDAY line, fill in the total run time (days)
+    s/%RNDAY%/$RNDAY/;  
+    # fill in the correct value of IHOT -- we always look for a fort.68
+    # file, and since we only write one hotstart file during the run, we
+    # know we will always be left with a fort.67 file.
+    if ( $hotstarttime ) {
+       s/%IHOT%/68/;
+    } else { 
+       s/%IHOT%/0/;
+    }
+    # fill in the parameter that selects which wind model to use
+    s/%NWS%/$nws/;
+    # fill in the timestep increment that hotstart files will be written at
+    s/%NHSINC%/$NHSINC/;
+    # fill in whether or not we want a hotstart file out of this
+    s/%NHSTAR%/$NHSTAR/;
+    # 
+    # fill in ensemble name
+    s/%EnsembleID%/$enstorm/;
+    # Holland parameters -- only used by symmetric vortex model (NWS=8)
+    s/%HollandParams%/$cs_year $cs_mon $cs_day $cs_hour 1 $bladj/;
+    print STORM $_;
+}
+
+#
+# open met file containing datetime data
+if ( $nws == 19 || $nws == 319 ) { 
+   open(METFILE,"<$metfile") || die "ERROR: control_file_gen.pl: Failed to open meteorological (ATCF-formatted) fort.22 file '$metfile' for reading.";
+} 
+if ( $nws == 12 || $nws == 312 ) {
+   open(METFILE,"<$metfile") || die "ERROR: control_file_gen.pl: Failed to open meteorological (OWI-formatted) fort.221 file '$metfile' for reading.";
+}
+
+# DETERMINE DATETIME AT END OF HINDCAST 
+#
+# if we are using cyclone data
+if ( $nws == 19 || $nws = 319 ) { 
+   # Build track list
+   while (<METFILE>) {
+      chomp($_);
+      my @tmp = ();
+      # split and remove any spaces
+      foreach my $item (split(',',$_)) {
+         $item =~ s/\s*//g;
+         push(@tmp,$item);
+      }
+      # 2d array of arrays; [@tmp] creates an anon array in each 
+      # element of @TRACK
+      push(@TRACKS,[@tmp]); 
+   }
+   #
+   # find last hindcast line
+   my $track;
+   my $nowcast;
+   foreach $track (reverse(@TRACKS)) {
+      if (@{$track}[4] =~ m/BEST/) {
+         if ( $nhcName eq "STORMNAME" ) {
+            # We need to get the storm name from the last hindcast line
+            if ( defined $track->[27] ) {
+               $nhcName = $track->[27];
+            } else {	 
+               printf STDERR "WARNING: control_file_gen.pl: The name of the storm does not appear in the hindcast.\n";
+            }
+         }
+         # also grab the last hindcast time; this will be the nowcast time
+         $nowcast = $track->[2];     
+         last;
+      }
    }
 }
 #
@@ -152,9 +206,9 @@ if ( $hotstarttime ) {
 # get end time
 my $end;
 # for a nowcast, end the run at the end of the hindcast
-if ( $enstorm eq "nowcast" ) { 
+if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) { 
    $end = $nowcast;
-   printf(STDOUT "INFO: control_file_gen.pl: New nowcast time is $end.\n");
+   printf(STDOUT "INFO: control_file_gen.pl: New $enstorm time is $end.\n");
 } elsif ( $endtime ) {
    # if this is not a nowcast, and the end time has been specified, end then
    $end = $endtime
@@ -296,35 +350,8 @@ if ( $enstorm eq "nowcast" ) {
 }
 # create run description
 my $rundesc=$nhcName . " " . $advisorynum;
-while(<TEMPLATE>) {
-    # if we are looking at the first line, fill in the name of the storm
-    # and the advisory number, if available
-    s/%StormName%/$rundesc/;
-    # if we are looking at the DT line, fill in the time step (seconds)
-    s/%DT%/$dt/;
-    # if we are looking at the RNDAY line, fill in the total run time (days)
-    s/%RNDAY%/$RNDAY/;  
-    # fill in the correct value of IHOT -- we always look for a fort.68
-    # file, and since we only write one hotstart file during the run, we
-    # know we will always be left with a fort.67 file.
-    if ( $hotstarttime ) {
-       s/%IHOT%/68/;
-    } else { 
-       s/%IHOT%/0/;
-    }
-    # fill in the parameter that selects which wind model to use
-    s/%NWS%/$nws/;
-    # fill in the timestep increment that hotstart files will be written at
-    s/%NHSINC%/$NHSINC/;
-    # fill in whether or not we want a hotstart file out of this
-    s/%NHSTAR%/$NHSTAR/;
-    # 
-    # fill in ensemble name
-    s/%EnsembleID%/$enstorm/;
-    # Holland parameters -- only used by symmetric vortex model (NWS=8)
-    s/%HollandParams%/$cs_year $cs_mon $cs_day $cs_hour 1 $bladj/;
-    print STORM $_;
-}
+
+
 close(TEMPLATE);
 close(STORM);
 close(METFILE);

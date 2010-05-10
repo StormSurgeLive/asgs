@@ -9,7 +9,7 @@
 #-------------------------------------------------------------------
 #
 # Copyright(C) 2006, 2007 Brett Estrade
-# Copyright(C) 2006, 2007, 2008, 2009 Jason Fleming
+# Copyright(C) 2006, 2007, 2008, 2009, 2010 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -35,17 +35,25 @@ YEAR=2008            # year of the storm (useful for historical storms)
 COLDSTARTDATE=       # date corresponding to simulation coldstart
 HOTORCOLD=coldstart  # "hotstart" or "coldstart"
 LASTSUBDIR=          # if hotstarting, the subdir to get the hs file from
-ADCIRCDIR=/work/01053/rweaver/ASGS/adcirc_v48ffpl/work    # dir containing the ADCIRC executables
-INPUTDIR=/work/01053/rweaver/ASGS/asgs_2009/input   # dir containing grid and other input files 
-OUTPUTDIR=/work/01053/rweaver/ASGS/asgs_2009/output # dir containing post processing scripts
-PERL5LIB=/work/01053/rweaver/ASGS/asgs_2009/PERL    # dir with DateCale.pm perl module
-SCRIPTDIR=/work/01053/rweaver/ASGS/asgs_2009/  # dir where the various PERL scripts for the ASGS  located
-NCPU=16           # number of CPUs to use for all simulations
-STARTADVISORYNUM=41
+ADCIRCDIR=~/adcirc/v48release/work  # dir containing the ADCIRC executables
+INPUTDIR=~/asgs/trunk/input   # dir containing grid and other input files 
+OUTPUTDIR=~/asgs/trunk/output # dir containing post processing scripts
+PERL5LIB=~/asgs/trunk/PERL    # dir with DateCale.pm perl module
+SCRIPTDIR=~/asgs/trunk        # dir where ASGS executables located
+NCPU=16                       # number of CPUs to use for all simulations
+STARTADVISORYNUM=41           # starting advisory number, set to zero if
+                              # downloading forecast advisories via rss
+BACKGROUNDMET=on     # [de]activate NAM download/forcing
+TIDES=off            # [de]activate tidal forcing
+TROPICALCYCLONE=off  # [de]activate tropical cyclone forcing
+PARTICLETRACK=off    # [de]activate particle tracking 
 #
 #-------------------------------------------------------------------
 # Platform-related configuration
 #-------------------------------------------------------------------
+#QUEUENAME=R11329  # example dedicated queue name on ERDC machines
+#SERQUEUE=R11299   # example dedicated serial queue name on ERDC machines
+#SERQUEUE=debug     # for running test problems on ERDC machines
 #QUEUENAME=standard # for ERDC machines, non-emergency queue
 #QUEUENAME=nbatch  # for ERDC machines, this is emergency queue name
 #QUEUENAME=debug   # for ERDC machines, this is small (test) queue name
@@ -53,8 +61,8 @@ STARTADVISORYNUM=41
 #QUEUENAME=workq   # for queenbee.loni.org or tezpur.hpc.lsu.edu; non-emergency
 #QUEUENAME=priority #for queenbee.loni.org or tezpur.hpc.lsu.edu; emergency
 #QUEUENAME=normal   # for TACC (ranger);
-QUEUENAME=development   # for TACC (ranger) development;
-#QUEUENAME=desktop  # for workstations with no queue
+#QUEUENAME=development   # for TACC (ranger) development;
+QUEUENAME=desktop  # for workstations with no queue
 #
 #-------------------------------------------------------------------
 # Input configuration
@@ -67,6 +75,8 @@ TRIGGER=ftp    # either "ftp" or "rss"
 #
 # site information for retrieving advisories
 RSSSITE=www.nhc.noaa.gov
+#RSSSITE=www.seahorsecoastal.com # used for testing 
+#
 #FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files 
 #FDIR=/atcf/afst     # forecast dir on nhc ftp site
 #HDIR=/atcf/btk      # hindcast dir on nhc ftp site
@@ -75,25 +85,37 @@ FTPSITE=ftp.unc.edu
 FDIR=/pub/ims/weaver/NHC_Advisories/fst # forecast dir on test site
 HDIR=/pub/ims/weaver/NHC_Advisories/btk # hindcast dir on test site
 #
+# Location to download the background meteorological data from 
+# the directory must contain the nam.yyyymmdd files
+BACKSITE=ftpprd.ncep.noaa.gov       # NAM forecast data from NCEP
+BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
+#
 # It is assumed that the following files are in the INPUTDIR defined above
 #
 # file that contains the mesh (fort.14)
 GRIDFILE=ec_95d.grd
+#GRIDFILE=sl15_2007_IHNC_r03q_levchk.grd
 #GRIDFILE=texas_2.85Mnode.grd
 #GRIDFILE=sl15v3_2007_r10.grd
 # file that acts as a template for the control file (fort.15)
-CONTROLTEMPLATE=ec_95_fort.15_template
+#CONTROLTEMPLATE=ec_95_tides_fort.15_template
+CONTROLTEMPLATE=ec_95_notides_fort.15_template
+#CONTROLTEMPLATE=fort.15.sl15v7.tides.corps.template
+#CONTROLTEMPLATE=fort.15.sl15v7.notides.corps.template
 #CONTROLTEMPLATE=texas_2.85Mnode.fort.15_template
 #CONTROLTEMPLATE=fort.15.sl15.corps.template
 # nodal attributes file (fort.13)
 NAFILE=
+#NAFILE=sl15_2007_IHNC_r03q_EVIS2.13
 #NAFILE=texas_2.85Mnode.fort.13
 #NAFILE=sl15v3_2007_r09f.13
 # archive of the fort.14 and fort.13 that have already been preprocessed
 # for a certain number of CPUs (include the num of CPUs in the file name)
-PREPPEDARCHIVE=prepped_ec_95d_16proc.tar.gz
+PREPPEDARCHIVE=prepped_ec_95d_4proc.tar.gz
+#PREPPEDARCHIVE=prepped_ec_95d_16proc.tar.gz
+#PREPPEDARCHIVE=prepped_sl15v7_corps_1000.tar.gz
 #PREPPEDARCHIVE=prepped_texas_2.85Mnode_256proc.tar.gz
-#PREPPEDARCHIVE=prepped_sl15_corps_1000.tar.gz
+#PREPPEDARCHIVE=prepped_sl15v3_corps_1000.tar.gz
 # 
 # size of the time step to use
 TIMESTEPSIZE=30.0
@@ -109,11 +131,6 @@ WALLTIME="2:00:00"
 # Storm ensemble configuration 
 #-------------------------------------------------------------------
 # 
-# Vortex wind model configuration, used on the NWS line in ADCIRC;
-# NWS=8: symmetric vortex, NWS=9: asymmetric vortex
-# (only NWS=9 is currently supported)
-NWS=19
-#
 ENSEMBLESIZE=1 # number of storms in the ensemble
 #
 # array of storm names that are to be run ... array length is ENSEMBLESIZE
@@ -154,6 +171,7 @@ POST_INIT_LIST="weav999@yahoo.com rjweaver@email.unc.edu"
 POST_LIST="weav999@yahoo.com rjweaver@email.unc.edu"
 # this is the email address in the PBS job script
 NOTIFYUSER=rjweaver@email.unc.edu
+ASGSADMIN=jason.fleming@seahorsecoastal.com
 #
 #-------------------------------------------------------------------
 # Output configuration 
@@ -167,12 +185,3 @@ NOTIFYUSER=rjweaver@email.unc.edu
 INITPOST=post_init.sh
 # this is the name of the post processing script
 POSTPROCESS=corps_post.sh
-POSTPROCESS2=POSTPROC_KMZGIS/POST_SCRIPT.sh
-# these are the output files that should be transmitted to another
-# machine BY THE WORKFLOW (as opposed to the post processing script)
-NUMOUTFILES=1
-POSTFILE[0]=results.tar.gz
-# the machine(s) to which result file(s) should be transferred
-#RESULTSHOST[0]=ranger.tacc.utexas.edu
-#RESULTSUSER[0]=rweaver
-#RESULTSPATH[0]=/work/01053/rweaver/
