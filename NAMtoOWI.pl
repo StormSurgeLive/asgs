@@ -30,6 +30,7 @@ no strict 'refs';
 use NetCDF;
 use ArraySub;
 use Getopt::Long;
+use Date::Pcalc;
 ######################################################
 #             Variables declarations                 #
 ######################################################
@@ -451,9 +452,7 @@ sub getGrib2
 {
         # assume that there are no gaps in the data, i.e., no missing
         # files
-        my $numGrib2Files = 0;
         my @grib2Files;
-        my $timestep;
         if ( $namType eq "nowcast" ) { 
            # if these are nowcast files, we'll assume that the data are 
            # six hours apart, and that they are located in directories
@@ -477,20 +476,46 @@ sub getGrib2
            # if these are forecast files, we'll assume that the data are
            # three hours apart, and that they are all located in the same
            # subdirectory 
-           $timestep = 3.0; # in hours 
+           $timeStep = 3.0; # in hours 
            @grib2Files = glob($dataDir."/*.grib2");
         }
+        # grab the start time (YYYYMMDDHH) from the inventory
+        # in the first file
+        `$scriptDir/wgrib2 $grib2Files[0] -match PRMSL` =~ m/d=(\d+)/;
+        $startTime = $1;
+        &printDate("NAMtoOWI.pl: INFO: The start time is '$startTime'.");
+        $startTime =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+        my $sy = $1; # start year
+        my $sm = $2; # start month
+        my $sd = $3; # start day
+        my $sh = $4; # start hour
+        my ($ey, $em, $ed, $eh, $emin, $es);# end year, mon, day, hour, min, sec
+        my ($fy, $fm, $fd, $fh, $fmin, $fs);# forecast yr, mon, day, hr, mn, sec
+        my $numGrib2Files = 0;
         foreach my $file (@grib2Files) {
-           &printDate("working on $file");
-           # grab the YYYYMMDDHH time from the inventory
-           `$scriptDir/wgrib2 $file -match PRMSL` =~ m/d=(\d+)/;
-           &printDate("NAMtoOWI.pl: INFO: the time is $1.");
-           #FIXME need to add the timeStep to endTime to get true endTime
-           $endTime = $1; # save the last value to represent the end time
-           unless (defined $startTime ) {
-              $startTime = $1; # grab the first time stamp as starting time
+           $numGrib2Files++;
+           &printDate("Starting work on '$file'.");
+           # grab the forecast hour from the filename itself
+           $file =~ m/nam.t\d\dz.awip12(\d\d).tm00.grib2/;
+           my $forecastHour = $1;
+           &printDate("NAMtoOWI.pl: INFO: The forecast hour is '$forecastHour'.");
+           ($fy, $fm, $fd, $fh, $fmin, $fs) =
+              Date::Pcalc::Add_Delta_DHMS($sy, $sm, $sd, $sh, 0, 0, 
+                 0, $forecastHour, 0, 0);
+           # calculate and save the end time ... last one will represent
+           # end of the OWI file
+           if ( $namType eq "forecast" ) {
+              ($ey, $em, $ed, $eh, $emin, $es) =
+                 Date::Pcalc::Add_Delta_DHMS($sy, $sm, $sd, $sh, 0, 0, 
+                    0, $forecastHour, 0, 0);
+              $endTime = sprintf("%4d%02d%02d%02d",$ey ,$em, $ed, $eh);
+           } 
+           if ( $namType eq "nowcast" ) {
+              `$scriptDir/wgrib2 $file -match PRMSL` =~ m/d=(\d+)/;
+              $endTime = $1;
            }
-           push(@OWItime,$1."00"); # add the minutes columns
+           &printDate("NAMtoOWI.pl: INFO: The end time is '$endTime'."); 
+           push(@OWItime,$endTime."00"); # add the minutes columns
            #
            # now grab the u,v,p data from the file, sending the
            # accompanying inventory info (that would normally go to 
@@ -511,7 +536,6 @@ sub getGrib2
            foreach my $val (@rawUVP[(2*$recordLength .. (3*$recordLength-1))]){
               push(@atmp,$val);
            }
-           $numGrib2Files++;
         }
         $mainHeader="Oceanweather WIN/PRE Format                            $startTime     $endTime";
         push @OWI_wnd, $mainHeader;
