@@ -480,6 +480,7 @@ downloadCycloneData()
 # subroutine that polls an external ftp site for background meteorology data,
 # converts it to OWI format (reprojecting the data if necessary), makes 
 # symbolic links to it, and returns.
+       downloadBackgroundMet $ADVISDIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME
 downloadBackgroundMet() 
 {   
    ADVISDIR=$1
@@ -488,6 +489,62 @@ downloadBackgroundMet()
    BACKSITE=$4
    BACKDIR=$5
    ENSTORM=$6
+   CSDATE=$7
+   HSTIME=$8
+#
+    activity_indicator "Checking remote site for background meteorology data..." &
+    pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
+    cd $RUNDIR
+    OPTIONS="--storm $STORM --year $YEAR --ftpsite $FTPSITE --fdir $FDIR --hdir $HDIR --rsssite $RSSSITE --trigger $TRIGGER --adv $ADVISORY"
+    if [ "$START" = coldstart ]; then
+       logMessage "Downloading initial hindcast/forecast."
+    else
+       logMessage "Checking remote site for new advisory..."
+    fi
+    while [ $newAdvisory = false ]; do
+       newAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
+       # logMessage "newAdvisoryNum is $newAdvisoryNum"
+       # check to see if we have a new one, and if so, determine the
+       # new advisory number correctly
+       case $TRIGGER in 
+       "ftp")
+          if [ $START = hotstart ]; then
+             if ! diff $OLDADVISDIR/$forecastFileName ./$forecastFileName > /dev/null 2>> ${SYSLOG}; then
+                # forecasts from NHC ftp site do not have advisory number
+                newAdvisoryNum=$[$ADVISORY + 1]
+                printf "%02d" $newAdvisoryNum > $RUNDIR/advisoryNumber 2>> $SYSLOG 
+                newAdvisory="true"
+             fi 
+          fi
+          ;;
+       "rss")
+          # if there was a new advisory, the get_atcf.pl script
+          # would have returned the advisory number in stdout
+          if [ ! -z $newAdvisoryNum ]; then
+             printf  $newAdvisoryNum > $RUNDIR/advisoryNumber 2>> $SYSLOG 
+             newAdvisory="true"
+             if [ -e $forecastFileName ]; then 
+                mv $forecastFileName $forecastFileName.ftp 2>> $SYSLOG
+             fi
+          fi       
+          ;;
+       *)
+          fatal "Invalid 'TRIGGER' type: '$TRIGGER'; must be ftp or rss." 
+          ;;
+       esac
+       if [ $START = coldstart ]; then
+          if [ $TRIGGER = ftp ]; then
+             newAdvisoryNum=$ADVISORY
+          fi         
+          newAdvisory="true"
+       fi 
+       sleep 60 # we are hotstarting, the advisory is same as last one
+    done
+    stop_activity_indicator ${pid}
+    logMessage "New forecast detected." 
+    if [ $TRIGGER = rss ]; then
+       perl ${SCRIPTDIR}/nhc_advisory_bot.pl --input ${forecastFileName}.html --output $forecastFileName >> ${SYSLOG} 2>&1
+    fi
    # 
    # just a dummy routine for now
    logMessage "ADVISDIR is $ADVISDIR"
@@ -1043,7 +1100,8 @@ if [[ $START = coldstart ]]; then
    #
    # TODO: Handle hindcast for other met types
 else 
-   
+   # start from   H O T S T A R T   file  
+   logMessage "Starting nowcast from the hotstart file '$HOTSTARTFILE'."
 fi
 #
 # B E G I N   N O W C A S T / F O R E C A S T   L O O P
@@ -1052,6 +1110,7 @@ while [ 1 -eq 1 ]; do
     cd $RUNDIR 2>> ${SYSLOG}
     #
     # N O W C A S T
+    ENSTORM=nowcast
     logMessage "Checking for new meteorological data every 60 seconds ..."
     if [[ $TROPICALCYCLONE = on && $BACKGROUNDMET = off ]]; then
        # download wind data from ftp site every 60 seconds to see if
@@ -1066,59 +1125,79 @@ while [ 1 -eq 1 ]; do
        fi
     fi
     if [[ $TROPICALCYCLONE = off && $BACKGROUNDMET = on ]]; then
+       # copy the hotstart file to the run directory
+       cp $HOTSTARTFILE $RUNDIR 2>> ${SYSLOG}
+       cd $RUNDIR 2>> ${SYSLOG}
        # check the time in the hotstart file 
        HSTIME=`$ADCIRCDIR/hstime` 2>> ${SYSLOG}
-       HSTIME=`
-       # download latest NAM data
-       downloadBackgroundMet $ADVISDIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM
-
+       NWS=12
+       if [[ $WAVES = on ]]; then
+          NWS=312
+       fi
+       logMessage "NWS is $NWS."
+       logMessage "Downloading background meteorology."
+       ADVISDIR=$RUNDIR/$ENSTORM   
+       logMessage "downloadBackgroundMet $ADVISDIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME"
+       downloadBackgroundMet $ADVISDIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME
        ADVISORY=`cat advisoryNumber`
-       ADVISDIR=$RUNDIR/${ADVISORY}
-       logMessage "$START Storm $STORM advisory $ADVISORY in $YEAR"
-       consoleMessage "$START Storm $STORM advisory $ADVISORY in $YEAR"
+       ADVISDIR=$RUNDIR/${ADVISORY}/$ENSTORM
+       logMessage "$START $ENSTORM cycle $ADVISORY."
+       consoleMessage "$START $ENSTORM cycle $ADVISORY."
        if [[ $EMAILNOTIFY = YES ]]; then
               new_advisory_email $HOSTNAME $STORM $YEAR $ADVISORY "${NEW_ADVISORY_LIST}" >> ${SYSLOG} 2>&1
        fi
     fi
     logMessage "Starting nowcast."
-    consoleMessage "Starting nowcast for advisory $ADVISORY"
-    logMessage "Creating directory $ADVISDIR"
+    consoleMessage "Starting nowcast for cycle '$ADVISORY'."
+    logMessage "Creating directory '$ADVISDIR'."
     #
     if [ ! -d $ADVISDIR ]; then 
         mkdir $ADVISDIR 2>> ${SYSLOG}
     fi
-    if [ ! -d $ADVISDIR/nowcast ]; then
-        mkdir $ADVISDIR/nowcast 2>> ${SYSLOG}
+    if [ ! -d $ADVISDIR/$ENSTORM ]; then
+        mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
     fi
-    # move raw ATCF files into advisory directory
-    mv *.fst *.dat $ADVISDIR 2>> ${SYSLOG}
-    #
-    # prepare nowcast met (fort.22) and control (fort.15) files 
-    METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name nowcast --nws $NWS " 
-    CONTROLOPTIONS=" --metfile $ADVISDIR/nowcast/fort.22 --name nowcast --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE}"
-    cd $OLDADVISDIR/nowcast/PE0000 2>> ${SYSLOG}
-    checkHotstart       
-    HSTIME=`$ADCIRCDIR/hstime` 2>> ${SYSLOG}
-    logMessage "The time in the hotstart file is '$HSTIME' seconds."
-    METOPTIONS="$METOPTIONS --hotstartseconds $HSTIME "
-    CONTROLOPTIONS="$CONTROLOPTIONS --hst $HSTIME"
-    cd $ADVISDIR/nowcast 2>> ${SYSLOG}
-    METOPTIONS="$METOPTIONS --coldstartdate $CSDATE " 
-    logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
-    ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1   
-    # create a new file that contains metadata
-    $ADCIRCDIR/aswip >> ${SYSLOG} 2>&1
-    if [ -e NWS_19_fort.22 ]; then
-       mv fort.22 fort.22.orig
-       cp NWS_19_fort.22 fort.22 
+    if [[ $TROPICALCYCLONE = on && $BACKGROUNDMET = off ]]; then
+       # move raw ATCF files into advisory directory
+       mv *.fst *.dat $ADVISDIR 2>> ${SYSLOG}
+       #
+       # prepare nowcast met (fort.22) and control (fort.15) files 
+       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name nowcast --nws $NWS " 
+       CONTROLOPTIONS=" --metfile $ADVISDIR/nowcast/fort.22 --name nowcast --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE}"
+       cd $OLDADVISDIR/nowcast/PE0000 2>> ${SYSLOG}
+       checkHotstart       
+       HSTIME=`$ADCIRCDIR/hstime` 2>> ${SYSLOG}
+       logMessage "The time in the hotstart file is '$HSTIME' seconds."
+       METOPTIONS="$METOPTIONS --hotstartseconds $HSTIME "
+       CONTROLOPTIONS="$CONTROLOPTIONS --hst $HSTIME"
+       cd $ADVISDIR/nowcast 2>> ${SYSLOG}
+       METOPTIONS="$METOPTIONS --coldstartdate $CSDATE " 
+       logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
+       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1   
+       # create a new file that contains metadata
+       $ADCIRCDIR/aswip >> ${SYSLOG} 2>&1
+       if [ -e NWS_19_fort.22 ]; then
+          mv fort.22 fort.22.orig
+          cp NWS_19_fort.22 fort.22 
+       fi
+       createMetaDataLink $STORM $YEAR $ADVISORY nowcast $ADVISDIR $HOSTNAME $HSTIME $CSDATE
+       CONTROLOPTIONS="$CONTROLOPTIONS --cst $CSDATE " 
+       logMessage "Generating ADCIRC Control File (fort.15) for nowcast with the following options: $CONTROLOPTIONS."
+       perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
     fi
-    createMetaDataLink $STORM $YEAR $ADVISORY nowcast $ADVISDIR $HOSTNAME $HSTIME $CSDATE
-    CONTROLOPTIONS="$CONTROLOPTIONS --cst $CSDATE " 
-    logMessage "Generating ADCIRC Control File (fort.15) for nowcast with the following options: $CONTROLOPTIONS."
-    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
+    if [[ $TROPICALCYCLONE = off && $BACKGROUNDMET = on ]]; then
+      # prepare hindcast met (fort.22) and control (fort.15) files 
+      CONTROLOPTIONS=" --metfile $ADVISDIR/fort.221 --name hindcast --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE"
+      METOPTIONS="--dir $ADVISDIR --enstorm hindcast --nws $NWS --coldstartdate $CSDATE" 
+      OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
+      logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
+      ${SCRIPTDIR}/nam_fort22_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1   
+      logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
+      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
+    fi
     # preprocess
     logMessage $ADVISDIR "Starting nowcast preprocessing."
-    prep $ADVISDIR $INPUTDIR nowcast $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT $NAFILE
+    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT $NAFILE
     # then submit the job
     logMessage "Submitting ADCIRC nowcast job."
     cd $ADVISDIR/nowcast 2>> ${SYSLOG}
