@@ -50,6 +50,12 @@ C    + Added options to produce output in terms of wind
 C    velocity rather than wind stress, and pressure in units of 
 C    millibars rather than m of H2O. Also made the application of 
 C    a time weighting conversion factor an option.
+C    jgf20100513:
+C    +changed the log file name to lambert_diag.out to make it more special
+C    +switched the unit number of all log messages to 16 to keep this program
+C     from writing fort.1 file
+C    +changed the format from A30 to A132 for writing file names to the log
+C     file so that the full value of the file name would be captured there
 C
 C    Build Instructions:
 C    g95 -ffixed-form -Wall -o awip_lambert_interp.x awip_lambert_interp.f90
@@ -209,7 +215,7 @@ C     Formulate help message
 
 C...Open a diagnostics output file
 
-      OPEN(16,file='diag.out',status='replace')
+      OPEN(16,file='lambert_diag.out',status='replace')
 
       CALL GETARG(1,BUFFER)
       READ(BUFFER,'(i4)')GNUM
@@ -224,17 +230,17 @@ C...Open a diagnostics output file
       CALL GETARG(3,BUFFER)
       READ(BUFFER,'(a)')MET_F_NAME
       WRITE(16,4)TRIM(MET_F_NAME)
- 4    FORMAT('MET_F_NAME',1x,A30) 
+ 4    FORMAT('MET_F_NAME',1x,A132) 
 
       CALL GETARG(4,BUFFER)
       READ(BUFFER,'(a)')TARGPTNAME
       WRITE(16,5)TRIM(TARGPTNAME)
- 5    FORMAT('TARGPTNAME',1x,A30) 
+ 5    FORMAT('TARGPTNAME',1x,A132) 
 
       CALL GETARG(5,BUFFER)
       READ(BUFFER,'(a)')MET_F_NAME_OUT
       WRITE(16,6)TRIM(MET_F_NAME_OUT)
- 6    FORMAT('MET_F_NAME_OUT',1x,A30) 
+ 6    FORMAT('MET_F_NAME_OUT',1x,A132) 
    
       IF (IARGC().gt.5) THEN
          CALL GETARG(6,BUFFER)
@@ -267,7 +273,7 @@ C      FILL=9.999e20
 C new fill val in netCDF versions of NCEP grib files
       FILL=-9999.
 
-      WRITE(1,*) 'The value used to represent fill is ',fill
+      WRITE(16,*) 'The value used to represent fill is ',fill
 
 C...Open file of lls to interpolate to
       INQUIRE(file=TARGPTNAME,EXIST=FileFound)

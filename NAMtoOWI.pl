@@ -20,7 +20,7 @@
 #
 # Example of usage for a set of grib2 files containing nowcast data:
 #
-# perl ~/asgs/NAMtoOWI.pl --ptFile ~/Ida/ptFile.txt --namFormat grib2 --namType nowcast --awipGridNumber 218 --dataDir ~/Ida --outDir ~/Ida/test --velocityMultiplier 0.9 --scriptDir ~/asgs
+# perl ~/asgs/NAMtoOWI.pl --ptFile ~/Ida/ptFile.txt --namFormat grib2 --namType nowcast --awipGridNumber 218 --dataDir ~/Ida --outDir ~/Ida/test/ --velocityMultiplier 0.9 --scriptDir ~/asgs
 #
 ######################################################
 #      Packages and exportation requirements         #
@@ -541,8 +541,8 @@ sub getGrib2
         push @OWI_wnd, $mainHeader;
         push @OWI_pres, $mainHeader;
         # build the filenames
-        $wndFile='NAM_'.$startTime.'_'.$endTime.'.222';
-        $presFile='NAM_'.$startTime.'_'.$endTime.'.221';
+        $wndFile=$outDir.'NAM_'.$startTime.'_'.$endTime.'.222';
+        $presFile=$outDir.'NAM_'.$startTime.'_'.$endTime.'.221';
         &printDate("NAMtoOWI.pl: INFO: Processed $numGrib2Files grib2 file(s).");
 	$nRec{'time'}=$numGrib2Files;
         if ( $numGrib2Files == 0 ) { 

@@ -36,21 +36,20 @@ $^W++;
 
 # the output will be stored in a file called fort.22
 
-my $dir;                            # path to fort.22* files
-my $coldstartdate;                  # YYYYMMDDHH24
-my $hotstartseconds = 0.0;          # default is not hotstart
-my $nws = 8;                        # the ADCIRC wind model to target
+my $advisdir;                            # path to fort.22* files
+my $csdate;                         # YYYYMMDDHH24
+#my $start;                          # hotstart or coldstart
+my $hstime = 0.0;                   # default is not hotstart
 my $enstorm = "nowcast";            # hindcast, nowcast, nhcConsensus, veerLeft
 my @supportedNames = qw/hindcast nowcast nhcConsensus maxWindSpeed overlandSpeed veer rMax/;
 my $pi=3.141592653589793;
 #
 #
 GetOptions(
-           "dir=s" => \$dir,
-           "coldstartdate=s" => \$coldstartdate,
-           "hotstartseconds=s" => \$hotstartseconds,
-           "nws=s" => \$nws,
-           "enstorm=s" => \$name
+           "advisdir=s" => \$advisdir,
+           "csdate=s" => \$csdate,
+           "hstime=s" => \$hstime,
+           "enstorm=s" => \$enstorm
            );
 #
 # check to see if the name of the storm is one that this script knows how to

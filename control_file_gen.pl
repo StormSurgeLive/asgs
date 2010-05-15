@@ -8,7 +8,7 @@
 # file and the fort.22 file to be used as input must be specified on the
 # command line. 
 #
-# It optionally accepts the coldstarttime (YYYYMMDDHH24), that is, the 
+# It optionally accepts the csdate (YYYYMMDDHH24), that is, the 
 # calendar time that corresponds to t=0 in simulation time. If it is 
 # not provided, the first line in the fort.22 file is used as the cold start 
 # time, and this time is written to stdout.
@@ -37,7 +37,7 @@
 # on the last time step of the run.
 #
 # usage:
-#   %perl control_file_gen.pl [--cst coldstarttime] [--hst hotstarttime]
+#   %perl control_file_gen.pl [--cst csdate] [--hst hstime]
 #   [--dt timestep] [--nowcast] [--controltemplate templatefile] < storm1_fort.22 
 #
 #--------------------------------------------------------------------------
@@ -69,9 +69,9 @@ use Cwd;
 my @TRACKS = (); # should be few enough to store all in an array for easy access
 my $controltemplate;
 my $metfile;
-my $coldstarttime;
-my $hotstarttime;      # time, in seconds, of hotstart file (since coldstart)
-my $hotstarttime_days; # time, in days, of hotstart file (since coldstart)
+our $csdate;
+my $hstime;      # time, in seconds, of hotstart file (since coldstart)
+my $hstime_days; # time, in days, of hotstart file (since coldstart)
 my $endtime;
 my $dt=3.0; 
 my $bladj=0.9;
@@ -81,28 +81,39 @@ my $tau=0; # forecast period
 my $dir=getcwd();
 my $nws=9;
 my $advisorynum;
+our $advisdir;  # the directory for this run 
 my $particles;  # flag to produce fulldomain current velocity files at an 
                 # increment of 30 minutes
-
+our $NHSINC;    # time step increment at which to write hot start files
+our $NHSTAR;    # whether or not ADCIRC should WRITE a hotstart file
+our $RNDAY;     # total run length from cold start, in days
+my $ihot;       # whether or not ADCIRC should READ a hotstart file
+my $fdcv;       # line that controls full domain current velocity output
+our $wtiminc;   # parameters related to met timing 
+our $rundesc;   # description of run, 1st line in fort.15
+our $ensembleid; # run id, 2nd line in fort.15
+#
 GetOptions("controltemplate=s" => \$controltemplate,
            "metfile=s" => \$metfile,
            "name=s" => \$enstorm, 
-           "cst=s" => \$coldstarttime,
+           "cst=s" => \$csdate,
            "endtime=s" => \$endtime,
            "dt=s" => \$dt,
            "bladj=s" => \$bladj, 
            "nws=s" => \$nws, 
            "advisorynum=s" => \$advisorynum,
            "nhcName=s" => \$nhcName,
-           "hst=s" => \$hotstarttime,
+           "hstime=s" => \$hstime,
+           "advisdir=s" => \$advisdir,
            "particles" => \$particles);
 #
 # open template file for fort.15
 open(TEMPLATE,"<$controltemplate") || die "ERROR: control_file_gen.pl: Failed to open the fort.15 template file $controltemplate for reading.";
 #
 # open output control file
-open(STORM,">fort.15") || die "ERROR: control_file_gen.pl: Failed to open the output control file $dir/fort.15.";
-print STDOUT "INFO: control_file_gen.pl: The output fort.15 file will be written to the directory $dir.\n"; 
+my $stormDir = $advisdir."/".$enstorm;
+open(STORM,">$stormDir/fort.15") || die "ERROR: control_file_gen.pl: Failed to open the output control file $stormDir.";
+stderrMessage("INFO","The fort.15 file will be written to the directory $stormDir."); 
 #
 # call subroutine that knows how to fill in the fort.15 for each particular 
 # type of forcing 
@@ -112,7 +123,30 @@ if ( abs($nws) == 19 || abs($nws) == 319 ) {
 if ( abs($nws) == 12 || abs($nws) == 312 ) {
    &owiParameters();
 }
-
+# we want a hotstart file if this is a nowcast
+if ( $enstorm eq "nowcast" ) {
+   $NHSTAR = 1;
+   # write a hotstart file on the last time step of the run
+   $NHSINC = int(($RNDAY*86400.0)/$dt);
+} else {
+   $NHSTAR = 0;
+   $NHSINC = 99999;
+}
+# we always look for a fort.68 file, and since we only write one hotstart
+# file during the run, we know we will always be left with a fort.67 file.
+if ( defined $hstime ) {
+   $ihot = 68;
+} else {
+   $ihot = 0;
+}
+if ( $particles ) { 
+   # need to have full domain current velocity output every 30 minutes
+   my $inc = int(1800.0/$dt);
+   $fdcv = "1 0.0 365.0 $inc";
+} else {
+   # otherwise no need for this file
+   $fdcv = "0 0.0 365.0 99999";
+}
 #
 while(<TEMPLATE>) {
     # if we are looking at the first line, fill in the name of the storm
@@ -122,41 +156,140 @@ while(<TEMPLATE>) {
     s/%DT%/$dt/;
     # if we are looking at the RNDAY line, fill in the total run time (days)
     s/%RNDAY%/$RNDAY/;  
-    # fill in the correct value of IHOT -- we always look for a fort.68
-    # file, and since we only write one hotstart file during the run, we
-    # know we will always be left with a fort.67 file.
-    if ( $hotstarttime ) {
-       s/%IHOT%/68/;
-    } else { 
-       s/%IHOT%/0/;
-    }
+    # set whether or not we are going to read a hotstart file
+    s/%IHOT%/$ihot/;
     # fill in the parameter that selects which wind model to use
     s/%NWS%/$nws/;
     # fill in the timestep increment that hotstart files will be written at
     s/%NHSINC%/$NHSINC/;
     # fill in whether or not we want a hotstart file out of this
     s/%NHSTAR%/$NHSTAR/;
-    # 
-    # fill in ensemble name
-    s/%EnsembleID%/$enstorm/;
-    # Holland parameters -- only used by symmetric vortex model (NWS=8)
-    s/%HollandParams%/$cs_year $cs_mon $cs_day $cs_hour 1 $bladj/;
+    # fill in ensemble name -- this is in the comment line
+    s/%EnsembleID%/$ensembleid/;
+    # may be asymmetric parameters, or wtiminc, rstiminc, etc
+    s/%WTIMINC%/$wtiminc/;
+    # turn on full domain current velocity if needed
+    s/%FullDomainCurrentVelocity%/$fdcv/;
     print STORM $_;
 }
 
+close(TEMPLATE);
+close(STORM);
 #
-# open met file containing datetime data
-if ( $nws == 19 || $nws == 319 ) { 
-   open(METFILE,"<$metfile") || die "ERROR: control_file_gen.pl: Failed to open meteorological (ATCF-formatted) fort.22 file '$metfile' for reading.";
-} 
-if ( $nws == 12 || $nws == 312 ) {
-   open(METFILE,"<$metfile") || die "ERROR: control_file_gen.pl: Failed to open meteorological (OWI-formatted) fort.221 file '$metfile' for reading.";
+#--------------------------------------------------------------------------
+#   S U B   O W I  P A R A M E T E R S
+#
+# Determines parameter values for the control file when running
+# ADCIRC with OWI formatted meteorological data (NWS12).  
+#--------------------------------------------------------------------------
+sub owiParameters () {
+   #
+   # open met file 
+   open(METFILE,"<fort.22") || die "ERROR: control_file_gen.pl: Failed to open OWI (NWS12) fort.22 file for reading.";
+   my $line = <METFILE>;
+   close(METFILE);
+   $line =~ /^# (\d+)/;
+   $wtiminc = $1; # grab the WTIMINC value written by NAMtoOWI.pl
+   #
+   # determine the relationship between the start of the NAM data and the
+   # current time in the ADCIRC run
+   $csdate =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+   my $cy = $1;
+   my $cm = $2;
+   my $cd = $3;
+   my $ch = $4;
+   my ($ny, $nm, $nd, $nh, $nmin, $ns); # current ADCIRC time
+   if ( defined $hstime && $hstime != 0 ) {
+      # now add the hotstart seconds
+      ($ny,$nm,$nd,$nh,$nmin,$ns) =
+         Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,0,0,0,0,0,$hstime);
+   } else {
+      # the hotstart time was not provided, or it was provided and is equal to 0
+      # therefore the current ADCIRC time is the cold start time, t=0
+      $ny = $cy;
+      $nm = $cm;
+      $nd = $cd;
+      $nh = $ch;
+      $nmin = 0;
+      $ns = 0;
+   }
+   # determine the date time of the start of the OWI files
+   my @fort221 = glob($advisdir."/".$enstorm."/*.221");
+   $fort221[0] =~ /NAM_(\d+)/;
+   my $owistart = $1;
+   # create run description
+   $rundesc = "NAM $owistart";
+   $owistart =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+   my $oy = $1;
+   my $om = $2;
+   my $od = $3;
+   my $oh = $4;
+   my $omin = 0;
+   my $os = 0;
+   #
+   # get difference
+   (my $ddays, my $dhrs, my $dsec)
+           = Date::Pcalc::Delta_DHMS(
+                $ny,$nm,$nd,$nh,0,0,
+                $oy,$om,$od,$oh,0,0);
+   # find the difference in seconds
+   my $blank_time = $ddays*86400.0 + $dhrs*3600.0 + $dsec;
+   stderrMessage("INFO","Blank time is '$blank_time'.");
+   # calculate the number of blank snaps (or the number of 
+   # snaps to be skipped in the OWI file if it starts before the 
+   # current time in the ADCIRC run)
+   my $nwbs = int($blank_time/$wtiminc);
+   stderrMessage("INFO","nwbs is '$nwbs'");
+   #
+   # create the fort.22 output file, which is the wind input file for ADCIRC
+   open(MEMBER,">$stormDir/fort.22") || die "ERROR: control_file_gen.pl: Failed to open file for ensemble member '$enstorm' to write fort.22 file: $!.";
+   printf MEMBER "1\n";     # nwset
+   printf MEMBER "$nwbs\n"; # nwbs
+   printf MEMBER "1.0\n";   # dwm
+   close(MEMBER);
+   #
+   # determine the date time of the end of the OWI files
+   $fort221[0] =~ /(\d+).221$/;
+   my $owiend = $1;
+   stderrMessage("INFO","The OWI file ends at '$owiend'.");
+   $owiend =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+   my $ey = $1;
+   my $em = $2;
+   my $ed = $3;
+   my $eh = $4;
+   my $emin = 0;
+   my $es = 0;
+   #
+   # get difference
+   (my $ddays, my $dhrs, my $dsec)
+           = Date::Pcalc::Delta_DHMS(
+                $cy,$cm,$cd,$ch,0,0,
+                $ey,$em,$ed,$eh,0,0);
+   # find the new total run length in days
+   $RNDAY = $ddays + $dhrs/24.0 + $dsec/86400.0;
+   # determine the number of hours of this run, from hotstart to end
+   (my $ddays, my $dhrs, my $dsec)
+           = Date::Pcalc::Delta_DHMS(
+                $ny,$nm,$nd,$nh,0,0,
+                $ey,$em,$ed,$eh,0,0);
+   my $addHours = $ddays*24.0 + $dhrs + $dsec;
+   $ensembleid = $addHours . " hour " . $enstorm . " run";
 }
-
-# DETERMINE DATETIME AT END OF HINDCAST 
 #
-# if we are using cyclone data
-if ( $nws == 19 || $nws = 319 ) { 
+#--------------------------------------------------------------------------
+#   S U B   A S Y M M E T R I C  P A R A M E T E R S
+#
+# Determines parameter values for the control file when running
+# the asymmetric wind model (NWS19).  
+#--------------------------------------------------------------------------
+sub asymmetricParameters () {
+   $ensembleid = $enstorm;
+   #
+   # open met file containing datetime data
+   open(METFILE,"<$metfile") || die "ERROR: control_file_gen.pl: Failed to open meteorological (ATCF-formatted) fort.22 file '$metfile' for reading.";
+   #
+   # determine date time at end of hindcast
+   #
    # Build track list
    while (<METFILE>) {
       chomp($_);
@@ -189,169 +322,182 @@ if ( $nws == 19 || $nws = 319 ) {
          last;
       }
    }
-}
-#
-# get coldstart time
-my $cstart;
-unless ( $coldstarttime ) {
-   $cstart = $nowcast; # adjusted later to make the difference nonzero
-   print $cstart; # write cold start time to stdout for use in later runs
-} else {
-   $cstart = $coldstarttime;
-}
-# convert hotstart time (in days since coldstart) if necessary
-if ( $hotstarttime ) {
-   $hotstarttime_days = $hotstarttime/86400.0;
-}
-# get end time
-my $end;
-# for a nowcast, end the run at the end of the hindcast
-if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) { 
-   $end = $nowcast;
-   printf(STDOUT "INFO: control_file_gen.pl: New $enstorm time is $end.\n");
-} elsif ( $endtime ) {
-   # if this is not a nowcast, and the end time has been specified, end then
-   $end = $endtime
-} else {
-   # this is not a nowcast; end time was not explicitly specified, 
-   # get end time based on either 
-   # 1. running out of fort.22 file or 
-   # 2. two or more days inland
-   my $ty;  # level of tropical cyclone development
-   my $now_inland; # boolean, 1 if TY is "IN"
-   my $tin; # time since the first occurrence of TY as "IN"
-   my $tin_year;
-   my $tin_mon;
-   my $tin_day;
-   my $tin_hour;
-   my $tin_min;
-   my $tin_sec;
-   my $tin_tau; # forecast period at first occurrence of TY as "IN"
-   my $c_year;  # time of line currently being processed
-   my $c_mon;
-   my $c_day;
-   my $c_hour;
-   my $c_min;
-   my $c_sec;
-   my $ddays;
-   my $dhrs;
-   my $dsec; # difference btw time inland and time on current line
-   foreach $track (@TRACKS) {
-#     my $lat = substr(@{$track}[6],0,3); # doesn't work if only 2 digits
-     #@{$track}[6] =~ /[0-9]*/;
-     $_ = @{$track}[6];
-     /([0-9]*)/;
-     $end = $track->[2];
-     $tau = $track->[5];
-     $ty = @{$track}[10];
-     if ( $ty eq "IN" and (not $now_inland) ) {
-        $now_inland = 1;
-        $tin = @{$track}[2]; # time at first occurrence of "IN" (inland) 
-        $tin =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
-        $tin_year = $1;
-        $tin_mon = $2;
-        $tin_day = $3;
-        $tin_hour = $4;
-        $tin_min = 0;
-        $tin_sec = 0;
-        $tin_tau = @{$track}[5]
-     }
-     if ( $now_inland ) { 
-        $end =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
-        $c_year = $1;
-        $c_mon = $2;
-        $c_day = $3;
-        $c_hour = $4;
-        $c_min = 0;
-        $c_sec = 0;
-        #
-        # get difference between first occurrence of IN (inland)
-        # and the time on the current track line
-        ($ddays,$dhrs,$dsec) 
-           = Date::Pcalc::Delta_DHMS(
+   #
+   # get coldstart time
+   my $cstart;
+   unless ( $csdate ) {
+      $cstart = $nowcast; # adjusted later to make the difference nonzero
+      print $cstart; # write cold start time to stdout for use in later runs
+   } else {
+      $cstart = $csdate;
+   }
+   # convert hotstart time (in days since coldstart) if necessary
+   if ( $hstime ) {
+      $hstime_days = $hstime/86400.0;
+   }
+   # get end time
+   my $end;
+   # for a nowcast, end the run at the end of the hindcast
+   if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) { 
+      $end = $nowcast;
+      printf(STDOUT "INFO: control_file_gen.pl: New $enstorm time is $end.\n");
+   } elsif ( $endtime ) {
+      # if this is not a nowcast, and the end time has been specified, end then
+      $end = $endtime
+   } else {
+      # this is not a nowcast; end time was not explicitly specified, 
+      # get end time based on either 
+      # 1. running out of fort.22 file or 
+      # 2. two or more days inland
+      my $ty;  # level of tropical cyclone development
+      my $now_inland; # boolean, 1 if TY is "IN"
+      my $tin; # time since the first occurrence of TY as "IN"
+      my $tin_year;
+      my $tin_mon;
+      my $tin_day;
+      my $tin_hour;
+      my $tin_min;
+      my $tin_sec;
+      my $tin_tau; # forecast period at first occurrence of TY as "IN"
+      my $c_year;  # time of line currently being processed
+      my $c_mon;
+      my $c_day;
+      my $c_hour;
+      my $c_min;
+      my $c_sec;
+      my $ddays;
+      my $dhrs;
+      my $dsec; # difference btw time inland and time on current line
+      foreach $track (@TRACKS) {
+#        my $lat = substr(@{$track}[6],0,3); # doesn't work if only 2 digits
+        #@{$track}[6] =~ /[0-9]*/;
+        $_ = @{$track}[6];
+        /([0-9]*)/;
+        $end = $track->[2];
+        $tau = $track->[5];
+        $ty = @{$track}[10];
+        if ( $ty eq "IN" and (not $now_inland) ) {
+           $now_inland = 1;
+           $tin = @{$track}[2]; # time at first occurrence of "IN" (inland) 
+           $tin =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+           $tin_year = $1;
+           $tin_mon = $2;
+           $tin_day = $3;
+           $tin_hour = $4;
+           $tin_min = 0;
+           $tin_sec = 0;
+           $tin_tau = @{$track}[5]
+        }
+        if ( $now_inland ) { 
+           $end =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+           $c_year = $1;
+           $c_mon = $2;
+           $c_day = $3;
+           $c_hour = $4;
+           $c_min = 0;
+           $c_sec = 0;
+           #
+           # get difference between first occurrence of IN (inland)
+           # and the time on the current track line
+           ($ddays,$dhrs,$dsec) 
+              = Date::Pcalc::Delta_DHMS(
                 $tin_year,$tin_mon,$tin_day,$tin_hour,$tin_min,$tin_sec,
                 $c_year,$c_mon,$c_day,$c_hour,$c_min,$c_sec);
-        my $time_inland = $ddays + $dhrs/24 + $dsec/86400 + ($tau-$tin_tau)/24;
-        if ( $time_inland >= 2.0 ) {
-           last; # jump out of loop with current track as last track
+           my $time_inland = $ddays + $dhrs/24 + $dsec/86400 + ($tau-$tin_tau)/24;
+           if ( $time_inland >= 2.0 ) {
+              last; # jump out of loop with current track as last track
+           }
         }
-     }
+      }
    }
-}
-printf(STDOUT "INFO: control_file_gen.pl: The fort.15 file will be configured to end on $end.\n");
-#
-$cstart=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
-my $cs_year = $1;
-my $cs_mon = $2;
-my $cs_day = $3;
-my $cs_hour = $4;
-my $cs_min = 0.0;
-my $cs_sec = 0.0;
-#
-$end =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
-my $e_year = $1;
-my $e_mon = $2;
-my $e_day = $3;
-my $e_hour = $4;
-my $e_min = 0.0;
-my $e_sec = 0.0;
-#
-# get difference btw cold start time and end time
-my ($days,$hours,$seconds) 
-   = Date::Pcalc::Delta_DHMS(
-      $cs_year,$cs_mon,$cs_day,$cs_hour,$cs_min,$cs_sec,
-      $e_year,$e_mon,$e_day,$e_hour,$e_min,$e_sec);
-# RNDAY is diff btw cold start time and end time
-# For a forecast, RNDAY is one time step short of the total time to ensure 
-# that we won't run out of storm data at the end of the fort.22
-# For a nowcast, RNDAY will be one time step long, so that we end at
-# the nowcast time, even if ADCIRC rounds down the number of timesteps
-my $stopshort = 0.0;
-if ( $enstorm eq "nowcast" ) {
-   $stopshort = -2*$dt;
-} else {
-   $stopshort = $dt;
-}
-my $RNDAY = $days + $hours/24.0 + ($seconds-$stopshort)/86400.0; 
-#
-# If RNDAY is less than two timesteps, make sure it is at least two timesteps. 
-# This can happen if we start up from a fort.22 that has only one BEST line,
-# i.e., it starts at the nowcast. RNDAY would be zero in this case, except 
-# our algorithm actually stops one ts short of the full time, so RNDAY is
-# actually negative in this case. ADCIRC needs at least two timesteps from 
-# coldstart to create a valid hotstart file.
-my $runlength_seconds = $RNDAY*86400.0;
-if ( $hotstarttime ) {
-   $runlength_seconds-=$hotstarttime;
-}
-my $min_runlength = 2*$dt; 
-# if we coldstart at the nowcast, we may not have calculated a runlength 
-# longer than the minimum
-if ( $runlength_seconds < $min_runlength ) { 
-   printf STDERR "INFO: control_file_gen.pl: Runlength was calculated as $runlength_seconds seconds, which is less than the minimum runlength of $min_runlength seconds. The RNDAY will be adjusted so that it ADCIRC runs for the minimum length of simulation time.\n";
-   # recalculate the RNDAY as the hotstart time plus the minimal runlength
-   if ( $hotstarttime ) {
-      $RNDAY=$hotstarttime_days + ($min_runlength/86400.0);
+   printf(STDOUT "INFO: control_file_gen.pl: The fort.15 file will be configured to end on $end.\n");
+   #
+   $cstart=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+   my $cs_year = $1;
+   my $cs_mon = $2;
+   my $cs_day = $3;
+   my $cs_hour = $4;
+   my $cs_min = 0.0;
+   my $cs_sec = 0.0;
+   #
+   $end =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+   my $e_year = $1;
+   my $e_mon = $2;
+   my $e_day = $3;
+   my $e_hour = $4;
+   my $e_min = 0.0;
+   my $e_sec = 0.0;
+   #
+   # get difference btw cold start time and end time
+   my ($days,$hours,$seconds) 
+      = Date::Pcalc::Delta_DHMS(
+         $cs_year,$cs_mon,$cs_day,$cs_hour,$cs_min,$cs_sec,
+         $e_year,$e_mon,$e_day,$e_hour,$e_min,$e_sec);
+   # RNDAY is diff btw cold start time and end time
+   # For a forecast, RNDAY is one time step short of the total time to ensure 
+   # that we won't run out of storm data at the end of the fort.22
+   # For a nowcast, RNDAY will be one time step long, so that we end at
+   # the nowcast time, even if ADCIRC rounds down the number of timesteps
+   my $stopshort = 0.0;
+   if ( $enstorm eq "nowcast" ) {
+      $stopshort = -2*$dt;
    } else {
-      $RNDAY=$min_runlength/86400.0;
+      $stopshort = $dt;
    }
-   $runlength_seconds = $min_runlength;
+   my $RNDAY = $days + $hours/24.0 + ($seconds-$stopshort)/86400.0; 
+   #
+   # If RNDAY is less than two timesteps, make sure it is at least two timesteps. 
+   # This can happen if we start up from a fort.22 that has only one BEST line,
+   # i.e., it starts at the nowcast. RNDAY would be zero in this case, except 
+   # our algorithm actually stops one ts short of the full time, so RNDAY is
+   # actually negative in this case. ADCIRC needs at least two timesteps from 
+   # coldstart to create a valid hotstart file.
+   my $runlength_seconds = $RNDAY*86400.0;
+   if ( $hstime ) {
+      $runlength_seconds-=$hstime;
+   }
+   my $min_runlength = 2*$dt; 
+   # if we coldstart at the nowcast, we may not have calculated a runlength 
+   # longer than the minimum
+   if ( $runlength_seconds < $min_runlength ) { 
+      printf STDERR "INFO: control_file_gen.pl: Runlength was calculated as $runlength_seconds seconds, which is less than the minimum runlength of $min_runlength seconds. The RNDAY will be adjusted so that it ADCIRC runs for the minimum length of simulation time.\n";
+      # recalculate the RNDAY as the hotstart time plus the minimal runlength
+      if ( $hstime ) {
+         $RNDAY=$hstime_days + ($min_runlength/86400.0);
+      } else {
+         $RNDAY=$min_runlength/86400.0;
+      }
+      $runlength_seconds = $min_runlength;
+   }
+   #
+   # if this is an update from hindcast to nowcast, calculate the hotstart 
+   # increment so that we only write a single hotstart file at the end of 
+   # the run. If this is a forecast, don't write a hotstart file at all.
+   my $NHSINC = int(($RNDAY*86400.0)/$dt);
+   my $NHSTAR;
+   # create run description
+   my $rundesc=$nhcName . " " . $advisorynum;
+   # create the WTIMINC line
+   $wtiminc = $cs_year." ".$cs_mon." ".$cs_day." ".$cs_hour." 1 ".$bladj;
 }
 #
-# if this is an update from hindcast to nowcast, calculate the hotstart 
-# increment so that we only write a single hotstart file at the end of 
-# the run. If this is a forecast, don't write a hotstart file at all.
-my $NHSINC = int(($RNDAY*86400.0)/$dt);
-my $NHSTAR;
-if ( $enstorm eq "nowcast" ) {
-   $NHSTAR = 1;
-} else {
-   $NHSTAR = 0;
+#--------------------------------------------------------------------------
+#   S U B   S T D E R R  M E S S A G E
+#
+# Writes a log message to standard error.  
+#--------------------------------------------------------------------------
+sub stderrMessage () {
+   my $level = shift;
+   my $message = shift;
+   my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+   (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
+   my $year = 1900 + $yearOffset;
+   my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
+   my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
+   printf STDERR "$theTime $level: control_file_gen.pl: $message\n";
+   if ($level eq "ERROR") {
+      sleep 60
+   }
 }
-# create run description
-my $rundesc=$nhcName . " " . $advisorynum;
 
 
-close(TEMPLATE);
-close(STORM);
-close(METFILE);

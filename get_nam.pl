@@ -23,12 +23,10 @@
 #--------------------------------------------------------------
 # If nowcast data is requested, the script will grab the nowcast 
 # data corresponding to the current ADCIRC time, and then grab all
-# successive nowcast data. 
+# successive nowcast data, if any. 
 #
 # If forecast data is requested, the script will grab the nowcast
-# and corresponding forecast data corresponding to the current 
-# ADCIRC time.
-#
+# and forecast data corresponding to the current ADCIRC time.
 #--------------------------------------------------------------
 $^W++;
 use strict;
@@ -98,6 +96,14 @@ unless ( -e $cycletime ) {
    }
 }
 #
+# create the nowcast or forecast directory for this cycle if needed
+unless ( -e $cycletime."/".$enstorm ) { 
+   unless ( mkdir($cycletime."/".$enstorm,0777) ) {
+      stderrMessage("ERROR","Could not make directory '$cycletime/$enstorm': $!.");
+      die;
+   }
+}
+#
 # now go to the ftp site and download the files
 my $dl = 0;   # true if we were able to download the file(s) successfully
 
@@ -113,6 +119,9 @@ while (!$dl) {
       stderrMessage("ERROR","ftp: Cannot login: " . $ftp->message);
       next;
    }
+   # switch to binary mode
+   $ftp->binary();
+   # cd to the directory containing the NAM files
    my $hcDirSuccess = $ftp->cwd($backdir);
    unless ( $hcDirSuccess ) {
       stderrMessage("ERROR",
@@ -194,7 +203,7 @@ while (!$dl) {
             stderrMessage("INFO","ftp: Get '$f' failed: " . $ftp->message);
             next;
          } else {
-            stderrMessage("INFO","Download of '$f' is complete.");
+            stderrMessage("INFO","Download complete.");
          }
       }
       # if this is a forecast, we now have everything we need ... however,
@@ -223,7 +232,8 @@ sub stderrMessage () {
    my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
    (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
    my $year = 1900 + $yearOffset;
-   my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hour:$minute:$second]";
+   my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
+   my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
    printf STDERR "$theTime $level: get_nam.pl: $message\n";
    if ($level eq "ERROR") {
       sleep 60
