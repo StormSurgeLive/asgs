@@ -45,7 +45,6 @@ our $pressureMultiplier=0.01;               # convert Pascals to mb by default
 our $scriptDir=".";                        # path to executables
 our ($wndFile,$presFile);                   # names of OWI wind/pre output files
 our @namFormats = qw(grib2 netCDF);          # accceptable file types for NAMdata
-our @namTypes = qw(nowcasts forecast);       # acceptable structure of NAMdata
 our $namFormat = "netCDF";                  # default NAM format is netCDF
 our $namType = "forecast";                  # expect forecast data by default
 our ($nDims,$nVars,$nAtts,$recDim,$dimName,%varId,@dimIds,$name,$dataType,%data,%dimId,%nRec,$nRec,@ugrd,@vgrd,@atmp,@time,@OWI_wnd,@miniOWI_wnd,@OWI_pres,@miniOWI_pres,@zeroOffset,$geoHeader);
@@ -450,6 +449,7 @@ sub addToFort22
 ################################################################################
 sub getGrib2
 {
+        $fort22 = $outDir.$fort22;
         # assume that there are no gaps in the data, i.e., no missing
         # files
         my @grib2Files;
@@ -504,16 +504,15 @@ sub getGrib2
                  0, $forecastHour, 0, 0);
            # calculate and save the end time ... last one will represent
            # end of the OWI file
-           if ( $namType eq "forecast" ) {
+           if ( $namType eq "nowcast" ) {
+              `$scriptDir/wgrib2 $file -match PRMSL` =~ m/d=(\d+)/;
+              $endTime = $1;
+           } else {
               ($ey, $em, $ed, $eh, $emin, $es) =
                  Date::Pcalc::Add_Delta_DHMS($sy, $sm, $sd, $sh, 0, 0, 
                     0, $forecastHour, 0, 0);
               $endTime = sprintf("%4d%02d%02d%02d",$ey ,$em, $ed, $eh);
            } 
-           if ( $namType eq "nowcast" ) {
-              `$scriptDir/wgrib2 $file -match PRMSL` =~ m/d=(\d+)/;
-              $endTime = $1;
-           }
            &printDate("NAMtoOWI.pl: INFO: The end time is '$endTime'."); 
            push(@OWItime,$endTime."00"); # add the minutes columns
            #

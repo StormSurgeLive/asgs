@@ -66,6 +66,21 @@ use Getopt::Long;
 use Date::Pcalc; 
 use Cwd;
 #
+
+my $fort61freq=0; # output frequency in SECONDS 
+my $fort61append; # if defined, output files will be appended across hotstarts 
+my $fort62freq=0; # output frequency in SECONDS 
+my $fort62append; # if defined, output files will be appended across hotstarts 
+my $fort63freq=0; # output frequency in SECONDS 
+my $fort63append; # if defined, output files will be appended across hotstarts 
+my $fort64freq=0; # output frequency in SECONDS 
+my $fort64append; # if defined, output files will be appended across hotstarts 
+my $fort7172freq=0; # output frequency in SECONDS 
+my $fort7172append; # if defined, output files will be appended across hotstart 
+my $fort7374freq=0; # output frequency in SECONDS 
+my $fort7374append; # if defined, output files will be appended across hotstarts 
+my ($fort61, $fort62, $fort63, $fort64, $fort7172, $fort7374);
+#
 my @TRACKS = (); # should be few enough to store all in an array for easy access
 my $controltemplate;
 my $metfile;
@@ -105,13 +120,25 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "nhcName=s" => \$nhcName,
            "hstime=s" => \$hstime,
            "advisdir=s" => \$advisdir,
-           "particles" => \$particles);
+           "fort61freq=s" => \$fort61freq,
+           "fort62freq=s" => \$fort62freq,
+           "fort63freq=s" => \$fort63freq,
+           "fort64freq=s" => \$fort64freq,
+           "fort7172freq=s" => \$fort7172freq,
+           "fort7374freq=s" => \$fort7374freq,
+           "fort61append" => \$fort61append,
+           "fort62append" => \$fort62append,
+           "fort63append" => \$fort63append,
+           "fort64append" => \$fort64append,
+           "fort7172append" => \$fort7172append,
+           "fort7374append" => \$fort7374append,
+           );
 #
 # open template file for fort.15
 open(TEMPLATE,"<$controltemplate") || die "ERROR: control_file_gen.pl: Failed to open the fort.15 template file $controltemplate for reading.";
 #
 # open output control file
-my $stormDir = $advisdir."/".$enstorm;
+our $stormDir = $advisdir."/".$enstorm;
 open(STORM,">$stormDir/fort.15") || die "ERROR: control_file_gen.pl: Failed to open the output control file $stormDir.";
 stderrMessage("INFO","The fort.15 file will be written to the directory $stormDir."); 
 #
@@ -139,14 +166,13 @@ if ( defined $hstime ) {
 } else {
    $ihot = 0;
 }
-if ( $particles ) { 
-   # need to have full domain current velocity output every 30 minutes
-   my $inc = int(1800.0/$dt);
-   $fdcv = "1 0.0 365.0 $inc";
-} else {
-   # otherwise no need for this file
-   $fdcv = "0 0.0 365.0 99999";
-}
+# [de]activate output files with time step increment and with(out) appending.
+$fort61 = &getSpecifier($fort61freq,$fort61append) . " 0.0 365.0 " . &getIncrement($fort61freq,$dt);
+$fort62 = &getSpecifier($fort62freq,$fort62append) . " 0.0 365.0 " . &getIncrement($fort62freq,$dt);
+$fort63 = &getSpecifier($fort63freq,$fort63append) . " 0.0 365.0 " . &getIncrement($fort63freq,$dt);
+$fort64 = &getSpecifier($fort64freq,$fort64append) . " 0.0 365.0 " . &getIncrement($fort64freq,$dt);
+$fort7172 = &getSpecifier($fort7172freq,$fort7172append) . " 0.0 365.0 " . &getIncrement($fort7172freq,$dt);
+$fort7374 = &getSpecifier($fort7374freq,$fort7374append) . " 0.0 365.0 " . &getIncrement($fort7374freq,$dt);
 #
 while(<TEMPLATE>) {
     # if we are looking at the first line, fill in the name of the storm
@@ -168,13 +194,59 @@ while(<TEMPLATE>) {
     s/%EnsembleID%/$ensembleid/;
     # may be asymmetric parameters, or wtiminc, rstiminc, etc
     s/%WTIMINC%/$wtiminc/;
-    # turn on full domain current velocity if needed
-    s/%FullDomainCurrentVelocity%/$fdcv/;
+    # output options
+    s/%FORT61%/$fort61/;
+    s/%FORT62%/$fort62/;
+    s/%FORT63%/$fort63/;
+    s/%FORT64%/$fort64/;
+    s/%FORT7172%/$fort7172/;
+    s/%FORT7374%/$fort7374/;
     print STORM $_;
 }
 
 close(TEMPLATE);
 close(STORM);
+#
+#--------------------------------------------------------------------------
+#   S U B   G E T   S P E C I F I E R
+#
+# Determines the correct output specifier for output files based on
+# the output frequency and whether or not the files should be appended.
+#--------------------------------------------------------------------------
+sub getSpecifier () {
+   my $freq = shift;
+   my $append = shift;
+   my $specifier;
+
+   if ( $freq == 0 ) {
+      $specifier = "0";
+   } else {
+      if ( defined $append ) { 
+         $specifier = "-1";
+      } else {
+         $specifier = "1";
+      }
+   }
+   return $specifier;
+}
+#
+#--------------------------------------------------------------------------
+#   S U B   G E T   I N C R E M E N T 
+#
+# Determines the correct time step increment based on the output frequency 
+# and time step size.
+#--------------------------------------------------------------------------
+sub getIncrement () {
+   my $freq = shift;
+   my $timestepsize = shift;
+   my $increment;
+   if ( $freq == 0 ) {
+      $increment = "99999";
+   } else {
+      $increment = int($freq/$timestepsize);
+   }
+   return $increment;
+}
 #
 #--------------------------------------------------------------------------
 #   S U B   O W I  P A R A M E T E R S
@@ -185,11 +257,11 @@ close(STORM);
 sub owiParameters () {
    #
    # open met file 
-   open(METFILE,"<fort.22") || die "ERROR: control_file_gen.pl: Failed to open OWI (NWS12) fort.22 file for reading.";
+   open(METFILE,"<$stormDir/fort.22") || die "ERROR: control_file_gen.pl: Failed to open OWI (NWS12) fort.22 file for reading.";
    my $line = <METFILE>;
    close(METFILE);
    $line =~ /^# (\d+)/;
-   $wtiminc = $1; # grab the WTIMINC value written by NAMtoOWI.pl
+   $wtiminc = $1;
    #
    # determine the relationship between the start of the NAM data and the
    # current time in the ADCIRC run
@@ -214,7 +286,7 @@ sub owiParameters () {
       $ns = 0;
    }
    # determine the date time of the start of the OWI files
-   my @fort221 = glob($advisdir."/".$enstorm."/*.221");
+   my @fort221 = glob($stormDir."/NAM*.221");
    $fort221[0] =~ /NAM_(\d+)/;
    my $owistart = $1;
    # create run description

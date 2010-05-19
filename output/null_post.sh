@@ -1,10 +1,11 @@
 #!/bin/bash
-#
+#--------------------------------------------------------------------------
 # null_post.sh 
-# 
+#--------------------------------------------------------------------------
 # Copies output from the ASGS to /dev/null.
+#--------------------------------------------------------------------------
 # 
-# Copyright(C) 2008, 2009 Jason Fleming
+# Copyright(C) 2008, 2009, 2010 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -21,6 +22,7 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
+#--------------------------------------------------------------------------
 CONFIG=$1
 ASGSADVISORYDIR=$2
 STORM=$3
@@ -33,13 +35,5 @@ HSTIME=$9
 #
 POSTDIR=/dev/null
 #
-#POSTADVISORYDIR=$POSTDIR/${STORM}${YEAR}/${ADVISORY}
-cp $ASGSADVISORYDIR/al${STORM}${YEAR}.fst $POSTDIR
-cp $ASGSADVISORYDIR/bal${STORM}${YEAR}.dat $POSTDIR
-metalink=`ls ${YEAR}${STORM}${ADVISORY}?_w???o???v????r???`
-cp $metalink $POSTDIR
-cp $ASGSADVISORYDIR/$ENSTORM/fort.22 $POSTDIR
-cp $ASGSADVISORYDIR/$ENSTORM/fort.22.meta $POSTDIR
-cp $ASGSADVISORYDIR/$ENSTORM/fort.61 $POSTDIR
 cp $ASGSADVISORYDIR/$ENSTORM/maxele.63 $POSTDIR
 cp $ASGSADVISORYDIR/$ENSTORM/maxwvel.63 $POSTDIR
