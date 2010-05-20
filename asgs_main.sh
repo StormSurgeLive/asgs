@@ -277,7 +277,7 @@ prep()
           FROMDIR=$ADVISDIR/nowcast
        fi
        # link to fulldomain files
-       ln $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68
+       ln -s $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68
        # copy maxele and maxwvel files so that the max values will be 
        # preserved across hotstarts
        logMessage "Copying existing output files to this directory."
@@ -892,7 +892,13 @@ checkDirExistence $PERL5LIB "directory for the Date::Pcalc perl module"
 checkFileExistence $ADCIRCDIR "ADCIRC preprocessing executable" adcprep
 checkFileExistence $ADCIRCDIR "ADCIRC parallel executable" padcirc
 checkFileExistence $ADCIRCDIR "hotstart time extraction executable" hstime
-checkFileExistence $ADCIRCDIR "asymmetric metadata generation executable" aswip
+if [[ $TROPICALCYCLONE = on ]]; then
+   checkFileExistence $ADCIRCDIR "asymmetric metadata generation executable" aswip
+fi
+if [[ $BACKGROUNDMET = on ]]; then
+   checkFileExistence $SCRIPTDIR "NAM output reprojection executable (from lambert to geographic)" awip_lambert_interp.x
+   checkFileExistence $SCRIPTDIR "GRIB2 manipulation and extraction executable" wgrib2
+fi  
 #
 checkFileExistence $INPUTDIR "ADCIRC mesh file" $GRIDFILE
 checkFileExistence $INPUTDIR "ADCIRC template fort.15 file" $CONTROLTEMPLATE
@@ -922,7 +928,7 @@ fi
 # initialize the directory where this instance of the ASGS will run and 
 # keep all its files, info from the machine-specific initialization and
 # the asgs config file (e.g., asgs_config.sh)
-RUNDIR=$SCRATCHDIR/asgs.run.$$.init${STARTDATETIME}
+RUNDIR=$SCRATCHDIR/asgs$$
 logMessage "The directory $RUNDIR will be used for all files associated with this execution of the ASGS."
 # set directory to get perl date calcs module from
 export PERL5LIB=${SCRIPTDIR}:${PERL5LIB} #<- augment, don't write over existing

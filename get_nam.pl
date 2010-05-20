@@ -150,7 +150,7 @@ foreach my $file (@allFiles) {
    }
 }
 my $cycletime = $cycledate . $cyclehour;
-stderrMessage("DEBUG","The cycletime is '$cycletime'.");
+#stderrMessage("DEBUG","The cycletime is '$cycletime'.");
 #
 # we need to have at least one set of files beyond the current nowcast
 # time, i.e., we need fresh new files that we have not run with yet

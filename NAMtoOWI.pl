@@ -27,7 +27,7 @@
 ######################################################
 use strict;
 no strict 'refs';
-use NetCDF;
+#use NetCDF;
 use ArraySub;
 use Getopt::Long;
 use Date::Pcalc;
@@ -91,7 +91,7 @@ elsif ( $namFormat eq "netCDF" )
 	{
 	#first get all the variables ids and dimensions ids from the netCDF file
 	&printDate("Process netCDF file ...");
-	&getNetCDF();
+#	&getNetCDF();
 	&addToFort22();# have to add the record length to fort.22
 	&printDate("Rotate and format each time-step ...");
 	# loop through the time-steps to run awips_interp	
@@ -353,27 +353,27 @@ sub getNetCDF
 	{
 		$filename=$ARGV[0];
 	}
-	my $ncid = NetCDF::open($filename,NetCDF::NOWRITE) or die "can't open file $ARGV[0], error $! \n";
-	NetCDF::inquire($ncid,\$nDims,\$nVars,\$nAtts,\$recDim);
+#	my $ncid = NetCDF::open($filename,NetCDF::NOWRITE) or die "can't open file $ARGV[0], error $! \n";
+	#NetCDF::inquire($ncid,\$nDims,\$nVars,\$nAtts,\$recDim);
 	#print "ndims=$nDims  nVar=$nVars, natt=$nAtts, recDim=$recDim\n";
 	 for my $var (0 .. $nVars-1)# var ids are 0, 1 and 2 if we have 3 variables
 	 {
-		 NetCDF::varinq($ncid,$var,\$name,\$dataType,$nDims,\@dimIds,\$nAtts);
+	#	 NetCDF::varinq($ncid,$var,\$name,\$dataType,$nDims,\@dimIds,\$nAtts);
 		 my $dimID=splice (@dimIds, 0, $nDims);
 		# print "VAR: $var: NAME: $name, DATA TYPE: $dataType, NDIMS: $nDims, DIMIDS: $dimID, NATTS: $nAtts\n";
 		 $varId{$name} = $var; # array of variable ID numbers as a function of variable name
 		 $dimId{$name}=$dimID;
 	 }
 	# get x,y,time dimensions
-	NetCDF::diminq($ncid, $dimId{'x'},$dimName,$nRec); 
+	#NetCDF::diminq($ncid, $dimId{'x'},$dimName,$nRec); 
 	$nRec{'x'}=$nRec;
-	NetCDF::diminq($ncid, $dimId{'y'},$dimName,$nRec);
+	#NetCDF::diminq($ncid, $dimId{'y'},$dimName,$nRec);
 	$nRec{'y'}=$nRec;
-	NetCDF::diminq($ncid, $dimId{'time'},$dimName,$nRec);
+	#NetCDF::diminq($ncid, $dimId{'time'},$dimName,$nRec);
 	$nRec{'time'}=$nRec;
 	
 	# get the time
-	NetCDF::varget($ncid, $varId{'time'},0,$nRec{'time'},\@time);
+	#NetCDF::varget($ncid, $varId{'time'},0,$nRec{'time'},\@time);
 	($OWItimeRef,$startTime,$endTime,$timeStep)=&convertTime(\@time);
 	#$mainHeader="Oceanweather WIN/PRE Format					$startTime   $endTime";
 	$mainHeader="Oceanweather WIN/PRE Format                            $startTime     $startTime"; #jgf: Hey Eve, why is startTime here twice?
@@ -385,12 +385,12 @@ sub getNetCDF
 	$wndFile='NAM_'.$startTime.'_'.$endTime.'.222';
 	$presFile='NAM_'.$startTime.'_'.$endTime.'.221';
 	# # get u,v,p values
-	NetCDF::varget($ncid, $varId{'velocity_we'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@ugrd);
+	#NetCDF::varget($ncid, $varId{'velocity_we'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@ugrd);
 	my $nelems=@ugrd;
-	NetCDF::varget($ncid, $varId{'velocity_sn'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@vgrd);
-	NetCDF::varget($ncid, $varId{'atm_pressure'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@atmp);
+	#NetCDF::varget($ncid, $varId{'velocity_sn'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@vgrd);
+	#NetCDF::varget($ncid, $varId{'atm_pressure'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@atmp);
 	# close netCDF file 
-	NetCDF::close($ncid);
+	#NetCDF::close($ncid);
 	# figure out each time-step record length
 	$recordLength=$nelems/$nRec{'time'};
 }
