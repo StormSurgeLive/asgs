@@ -50,6 +50,9 @@ my $hour;     # hour (UTC) corresponding to current ADCIRC time
 my @targetDirs; # directories to download NAM data from 
 my $forecastLength = 84; # keeps retrying until it has enough forecast files 
                     # to go for the requested time period
+my $max_retries = 10; # max number of times to attempt download of forecast file
+my $num_retries = 0;      
+my $had_enough = 0;
 GetOptions(
            "rundir=s" => \$rundir,
            "backsite=s" => \$backsite,
@@ -279,19 +282,26 @@ for (my $i=0; $i<=$forecastLength; $i+=3 ) {
    }
    stderrMessage("INFO","Downloading '$f' to '$localDir'.");
    my $success = 0;
-   while ( $success == 0 ) {
+   $num_retries = 1;
+   while ( $success == 0 && $num_retries < $max_retries ) {
       my $stat = $ftp->get($f,$localDir."/".$f);
       unless ( $stat ) {
          stderrMessage("INFO","ftp: Get '$f' failed: " . $ftp->message);
+         $num_retries++;
+         stderrMessage("DEBUG","num_retries is $num_retries");
          sleep 60; 
       } else {
-        $dl++;
-        $success = 1;
+         $dl++;
+         $success = 1;
+         stderrMessage("INFO","Downloaded in $num_retries attempt(s)."); 
       }
+   }
+   if ( $num_retries >= $max_retries ) {
+      $had_enough = 1
    }
 }
 # if we found at least two files, we assume have enough for the next advisory
-if ( $dl >= ($forecastLength/3 + 2) ) {
+if ( ($dl >= ($forecastLength/3 + 2)) || ($had_enough == 1) ) {
    printf STDOUT $cycletime;
 } else {
    printf STDOUT "0";
