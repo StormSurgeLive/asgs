@@ -567,14 +567,22 @@ submitJob()
     ENV=$9
     ACCOUNT=${10}
     PPN=${11}
+    NUMWRITERS=${12}
+#
+    WRITEROPTION=""
+    if [[ $NUMWRITERS = "0" ]]; then
+       WRITEROPTION=""
+    else
+       WRITEROPTION="-W $NUMWRITERS"
+    fi
     if [ $QUEUESYS = LSF ]; then
-        bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/padcirc >> ${SYSLOG}
+        bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/padcirc $WRITEROPTION >> ${SYSLOG}
     elif [ $QUEUESYS = LoadLeveler ]; then
-        perl $SCRIPTDIR/loadleveler.pl --ncpu $NCPU --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER > $ADVISDIR/$ENSTORM/padcirc.ll 2>> ${SYSLOG}
+        perl $SCRIPTDIR/loadleveler.pl --ncpu $NCPU --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --numwriters $NUMWRITERS > $ADVISDIR/$ENSTORM/padcirc.ll 2>> ${SYSLOG}
         llsubmit $ADVISDIR/$ENSTORM/padcirc.ll >> ${SYSLOG} 2>&1
     elif [ $QUEUESYS = PBS ]; then
-        QSCRIPTOPTIONS="--ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG"
-        if [[ ! -z $PPN ]]; then
+        QSCRIPTOPTIONS="--ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS"
+        if [[ $PPN -ne 0 ]]; then
            QSCRIPTOPTIONS="$QSCRIPTOPTIONS --ppn $PPN"
         fi
         logMessage "QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
@@ -582,10 +590,10 @@ submitJob()
         logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.pbs"
         qsub $ADVISDIR/$ENSTORM/padcirc.pbs >> ${SYSLOG} 2>&1
     elif [ $QUEUESYS = mpiexec ]; then
-        logMessage "Submitting job via $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc >> ${SYSLOG} 2>&1"
-        $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc >> ${SYSLOG} 2>&1 
+        logMessage "Submitting job via $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc $WRITEROPTION >> ${SYSLOG} 2>&1"
+        $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc $WRITEROPTION >> ${SYSLOG} 2>&1 
     elif [ $QUEUESYS = SGE ]; then
-        QSCRIPTOPTIONS="--ncpu $NCPU --ncpudivisor $NCPUDIVISOR --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG"
+        QSCRIPTOPTIONS="--ncpu $NCPU --ncpudivisor $NCPUDIVISOR --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS"
         perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.sge 2>> ${SYSLOG}
         logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.sge"
         qsub $ADVISDIR/$ENSTORM/padcirc.sge >> ${SYSLOG} 2>&1
@@ -696,7 +704,7 @@ init_ranger()
   QUEUESYS=SGE
   QCHECKCMD=qstat
   NCPUDIVISOR=16
-  ACCOUNT=TG-DMS080016N
+  ACCOUNT=TG-DMS100024
   SUBMITSTRING="ibrun tacc_affinity"
   SCRATCHDIR=$SCRATCH
   SSHKEY=id_rsa_ranger
@@ -811,7 +819,7 @@ umask 002
 #
 # Initialize variables accessed from config.sh
 BACKGROUNDMET=on
-TIDES=off
+TIDEFAC=off
 TROPICALCYCLONE=off
 WAVES=off
 OUTPUTOPTIONS=
@@ -837,6 +845,7 @@ QUEUENAME=
 SERQUEUE=
 QCHECKCMD=
 NCPU=
+NUMWRITERS=0
 ACCOUNT=
 SUBMITSTRING=
 INTERSTRING=
@@ -850,7 +859,7 @@ RUNDIR=
 INPUTDIR=
 PERL5LIB=
 SSHKEY=
-PPN=
+PPN=0
 logMessage "ASGS Start Up MSG: [PROCID] $$"
 logMessage "ASGS Start Up MSG: [SYSLOG] ${SYSLOG}"
 logMessage "The ADCIRC Surge/Spill Guidance System is activated."
@@ -979,7 +988,7 @@ if [[ $START = coldstart ]]; then
    #if [[ $EMAILNOTIFY = YES ]]; then
    #   post_init_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME "${POST_INIT_LIST}"  >> ${SYSLOG} 2>&1
    #fi
-   if [[ $TIDES = on ]]; then 
+   if [[ $TIDEFAC = on ]]; then 
       # we would run tide_fac.f etc to get tidal info on correct date
       fatal "Tidal forcing is turned on in ${CONFIG} but is not yet supported in the ASGS."
    fi
@@ -1151,7 +1160,7 @@ while [ 1 -eq 1 ]; do
     logMessage "Submitting ADCIRC nowcast job."
     cd $ADVISDIR/nowcast 2>> ${SYSLOG}
     logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR nowcast $NOTIFYUSER $ENV $ACCOUNT $PPN"
-    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR nowcast $NOTIFYUSER $ENV $ACCOUNT $PPN
+    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR nowcast $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS
     # check once per minute until all jobs have finished
     monitorJobs $QUEUESYS nowcast
     consoleMesssage "Job(s) complete."
@@ -1211,7 +1220,7 @@ while [ 1 -eq 1 ]; do
        # then submit the job
        logMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
        consoleMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
-       submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN
+       submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS
        # check once per minute until job has completed
        monitorJobs $QUEUESYS $ENSTORM
        consoleMesssage "Job(s) complete."

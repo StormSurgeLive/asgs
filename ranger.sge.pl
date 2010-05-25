@@ -5,20 +5,22 @@ $^W++;
 use strict;
 use Getopt::Long;
 
-my $ncpu;      # number of CPUs the job should run on
+my $ncpu;        # number of CPUs the job should run on (includes writer procs)
+my $numwriters=0;  # number of dedicated writer processors (if any)
 my $ncpudivisor; # integer number to divide npu by
-my $queuename; # name of the queue to submit the job to
-my $account;    # name of the account to take the hours from
-my $adcircdir; # directory where the padcirc executable is found
-my $advisdir;   # directory for the individual advisory
-my $qscript;  # script to generate the queue file
-my $enstorm;   # name of the enesemble member (nowcast, storm3, etc)
-my $notifyuser; # email address of the user to be notified in case of error
-my $walltime;  # wallclocktime
-my $submitstring; # string to use to submit a job to the parallel queue
-my $syslog;  # location and name of system log file
+my $queuename;   # name of the queue to submit the job to
+my $account;     # name of the account to take the hours from
+my $adcircdir;   # directory where the padcirc executable is found
+my $advisdir;    # directory for the individual advisory
+my $qscript;     # script to generate the queue file
+my $enstorm;     # name of the enesemble member (nowcast, storm3, etc)
+my $notifyuser;  # email address of the user to be notified in case of error
+my $walltime;    # wallclocktime
+my $submitstring;# string to use to submit a job to the parallel queue
+my $syslog;      # location and name of system log file
 
 GetOptions("ncpu=i" => \$ncpu,
+           "numwriters=i" => \$numwriters,
            "ncpudivisor=s" => \$ncpudivisor,
            "queuename=s" => \$queuename,
            "account=s" => \$account,
@@ -31,18 +33,28 @@ GetOptions("ncpu=i" => \$ncpu,
            "submitstring=s" => \$submitstring,
            "syslog=s" => \$syslog);
 
-# We expect that ncpu is the number of physical cpus (or cpu cores) that
-# we intend to use. However,
-# for OpenPBS (SGE) we must specify the number of CPU's to run on 
-# and the number of cpus per node;
-# optimally the number of cpus per node is 16 and the num cpus 
-# must be divisible by 16. 
+# If dedicated writer processors will be used, we need to specify the
+# total number of CPUs here
+if ($numwriters != 0) {
+   $ncpu += $numwriters;
+}
+# We expect that ncpu is the number of physical cpus (or cpu cores) that we
+# intend to use. However, for OpenPBS (SGE) we must specify the number of CPUs
+# to run on and the number of cpus per node; optimally the number of cpus per
+# node is 16 and the num cpus must be divisible by 16. 
+
 my $pbsncpu;
 if ( $ncpudivisor == 1 ) {
    $pbsncpu = sprintf("%d",$ncpu);
 } else {
      $ncpudivisor=$ncpudivisor."way";
    $pbsncpu = $ncpudivisor." ".$ncpu;
+}
+
+# set writer option according to user specification
+my $writeroption = "";
+if ( $numwriters != 0 ) {
+   $writeroption = "-W ".$numwriters;
 }
 
 open(TEMPLATE,"$qscript") || die "ERROR: Can't open ranger.template.sge file.";
@@ -66,6 +78,8 @@ while(<TEMPLATE>) {
     s/%notifyuser%/$notifyuser/g;  
     # string to use to submit a job to the parallel queue
     s/%submitstring%/$submitstring/g;
+    # add writer option if user had specified dedicated writer processors
+    s/%writeroption%/$writeroption/g; 
     print $_;
 }
 close(TEMPLATE);

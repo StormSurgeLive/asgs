@@ -78,8 +78,9 @@ my $fort64append; # if defined, output files will be appended across hotstarts
 my $fort7172freq=0; # output frequency in SECONDS 
 my $fort7172append; # if defined, output files will be appended across hotstart 
 my $fort7374freq=0; # output frequency in SECONDS 
-my $fort7374append; # if defined, output files will be appended across hotstarts 
+my $fort7374append; # if defined, output files will append across hotstarts 
 my ($fort61, $fort62, $fort63, $fort64, $fort7172, $fort7374);
+our $sparseoutput; # if defined, then fort.63 and fort.64 will be sparse ascii
 #
 my @TRACKS = (); # should be few enough to store all in an array for easy access
 my $controltemplate;
@@ -132,6 +133,7 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "fort64append" => \$fort64append,
            "fort7172append" => \$fort7172append,
            "fort7374append" => \$fort7374append,
+           "sparse-output" => \$sparseoutput
            );
 #
 # open template file for fort.15
@@ -169,8 +171,15 @@ if ( defined $hstime ) {
 # [de]activate output files with time step increment and with(out) appending.
 $fort61 = &getSpecifier($fort61freq,$fort61append) . " 0.0 365.0 " . &getIncrement($fort61freq,$dt);
 $fort62 = &getSpecifier($fort62freq,$fort62append) . " 0.0 365.0 " . &getIncrement($fort62freq,$dt);
-$fort63 = &getSpecifier($fort63freq,$fort63append) . " 0.0 365.0 " . &getIncrement($fort63freq,$dt);
-$fort64 = &getSpecifier($fort64freq,$fort64append) . " 0.0 365.0 " . &getIncrement($fort64freq,$dt);
+#
+my $fort63specifier = &getSpecifier($fort63freq,$fort63append);
+my $fort64specifier = &getSpecifier($fort64freq,$fort64append);
+if ( defined $sparseoutput ) {
+   $fort63specifier *= 4;
+   $fort64specifier *= 4;
+}
+$fort63 = $fort63specifier . " 0.0 365.0 " . &getIncrement($fort63freq,$dt);
+$fort64 = $fort64specifier . " 0.0 365.0 " . &getIncrement($fort64freq,$dt);
 $fort7172 = &getSpecifier($fort7172freq,$fort7172append) . " 0.0 365.0 " . &getIncrement($fort7172freq,$dt);
 $fort7374 = &getSpecifier($fort7374freq,$fort7374append) . " 0.0 365.0 " . &getIncrement($fort7374freq,$dt);
 #
@@ -222,9 +231,9 @@ sub getSpecifier () {
       $specifier = "0";
    } else {
       if ( defined $append ) { 
-         $specifier = "-1";
-      } else {
          $specifier = "1";
+      } else {
+         $specifier = "-1";
       }
    }
    return $specifier;
