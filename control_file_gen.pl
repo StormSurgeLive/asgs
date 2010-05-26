@@ -294,6 +294,13 @@ sub owiParameters () {
       $nmin = 0;
       $ns = 0;
    }
+   #
+   # open file that will contain the hotstartdate
+   open(HSD,">$stormDir/hotstartdate") || die "ERROR: control_file_gen.pl: Failed to open the HOTSTARTDATE file $stormDir/hotstartdate.";
+   my $hotstartdate = $ny.$nm.$nd.$nh;
+   stderrMessage("INFO","The file containing the hotstartdate '$hotstartdate' will be written to the directory $stormDir."); 
+   printf HSD $hotstartdate;
+   close(HSD); 
    # determine the date time of the start of the OWI files
    my @fort221 = glob($stormDir."/NAM*.221");
    $fort221[0] =~ /NAM_(\d+)/;
