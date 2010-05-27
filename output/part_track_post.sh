@@ -118,7 +118,7 @@
        STARTTIME=$(head -1 $ADVISDIR/$ENSTORM/hotstartdate | tail -1 | awk '{print $1}')
        STARTTIME2=${STARTTIME}0000
         echo $STARTTIME2
-       OUTPUTPREFIX=${STORM}${YEAR}_${ADVISORY}_PartTrack
+       OUTPUTPREFIX=PartTrack_${ADVISORY}
 
          ln -fs $TRACKDIR/make_ptFG_input.pl ./
   perl make_ptFG_input.pl --outputdir $TRACKDIR  --gmthome $GMTHOME2 --gridfile $GRIDPREFIX --gshome $GSHOME2 --storm ${STORM} --year ${YEAR} --adv $ADVISORY --n 31.0 --s 18.0 --e -80.0 --w -98.0 --outputprefix $OUTPUTPREFIX --starttime $STARTTIME2
