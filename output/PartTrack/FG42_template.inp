@@ -1,0 +1,98 @@
+FOR BEST RESULTS, PLEASE KEEP COMMENTS OUT OF THE FIRST 50 CHARACTERS ON EACH LINE.
+12345678901234567890123456789012345678901234567890
+4                                                  ! Level of screen output.
+/work/01053/rweaver/GMT4.5.2/bin//bin/
+/usr/bin/
+./Temp/
+--starttime
+1,HWM (NAVD88): Storm 05 2010  Adv #2010052618
+0                                                  ! Time bar flag: 0 to ignore, 1 to plot time bar.
+-98.0
+-80.0
+18.0
+31.0
+ec_95d.grd
+0                                                  ! Plot grid flag: 0 to ignore, 1 to plot triangular grid on figure.
+PARAMETERS FOR CONTOURS:
+0                                                  ! Contour fill flag: 0 to ignore, 1 to plot filled contours, 2 to plot differences.
+0                                                  ! Contour lines flag: 0 to ignore, 1 to plot contour lines, 2 to plot differences.
+maxele.63                                          ! Name(s) of file(s) to use for contours.
+ADCIRC-OUTPUT                                      ! Contour file format flag: ADCIRC-OUTPUT, GRID-BATH/SIZE/DECOMP-#, 13-MANNING/CANOPY/TAU0/EVIS/WIND-REDUCTION(-#)
+1.00000                                            ! Unit conversion factor for contours.
+m                                                  ! Alphanumeric label for units after conversion.
+SMS                                                ! Color palette flag: RGB, SMS(+INTERVALS), CPT(+INTERVALS).
+Default2.pal
+DEFAULT                                            ! Color lines flag: DEFAULT, CONTOUR-LINES, GRID-BATH/SIZE/DECOMP-#.  Requires GMT4.3.0.
+0,5                                                ! Minimum,maximum in contour range (or FIND to determine from file).
+0.5                                                 ! Interval in contour range.
+10                                                 ! Number of times to split contour interval (for smoother plots).
+0                                                  ! Label every xth contour line on the plot (or 0 for no labels).
+1                                                  ! Require contour line labels to be more than x inches apart.
+0                                                  ! Rotation angle for contour line labels (or n for normal or p for parallel.)
+12                                                 ! Font size for contour line labels.
+5.0                                                ! Label the scale at intervals of x.
+0.25                                               ! Width (inches) of scale.
+PARAMETERS FOR VECTORS:
+0                                                  ! Vector flag: 0 to ignore, 1 to plot vectors.
+fort.64                                            ! Name of file to use for vectors (fort.64, fort.74).
+ADCIRC-OUTPUT                                      ! Vector file format flag: ADCIRC-OUTPUT.
+1.00000                                            ! Unit conversion factor for vectors.
+m/s                                                ! Alphanumeric label for units after conversion.
+180.0                                              ! Magnitude of vector corresponding to one inch on the page.
+0.20                                               ! Spacing between vectors in degrees.
+0.06,0.04,0.01                                     ! Vector head length, head width, tail width.
+45.0                                               ! Magnitude of vector to show in the vector scale (or FIND to determine from file).
+PARAMETERS FOR PARTICLE TRACKING:
+1                                                  ! PartTrack flag: 0 to ignore, 1 to plot Particle Tracking output.
+input_deepwater.pth                                ! Name of file to use for Particle Tracking.
+1.0                                                ! Tracking Interval (in hours)(use only 1 for now)(0 will indicate track every timestep in Tracking File)
+5                                                  ! size of particle (in pt (values form 1-9))
+PARAMETERS FOR OVERALL PLOT(S):
+1,Brown                                            ! Boundaries flag: 0 to ignore, 1 to plot roads/levees from grid.
+0,Black,4,4                                        ! Coastline flag: 0 to ignore, 1 to plot coastline with color, resolution (1[Least]-4[Most]), water bodies (1[Least]-4[Most]).
+0,Black,drogue_full.out                             ! Dots/lines flag: 0 to ignore, 1 to plot unconnected dots, 2 to plot connected line segments from an external file.
+0,Black,Labels.txt                                 ! Labels flag: 0 to ignore, 1 to plot labels from external file.
+0,TL,2.0,adcirc_logo_white.png                     ! Logo flag: 0 to ignore, 1 to plot logo at position (TL,TR,BL,BR) and width (inches) from an external file.
+5.00                                               ! Width (inches) of plot.
+0.25                                               ! Distance (inches) between edge of plot and contour scale, vector scale, time bar, plot label, etc.
+5.00                                               ! Alternate black and white boxes on the border at every xth degree.
+5.00                                               ! Annotate on the border at every xth degree.
+1                                                  ! Image trim flag: 0 to ignore, 1 to trim image close to plot.
+72                                                 ! Resolution (dpi) of images.
+PNG,JPG                                            ! Raster file format(s): PNG, JPG, BMP, TIFF, EPS, PDF.
+1,100,3,
+0,0                                                ! Flag for georeferencing: (0 to ignore, 1 for images, 2 for zipped images), and lowermost layer (or 0 to optimize).
+0                                                  ! Number of records for which to produce images (or 0 for all).
+1                                                   ! List of records (ignored if the number of records is 0).
+3
+6
+9
+12
+15
+18
+21
+24
+27
+30
+33
+36
+39
+42
+45
+48
+51
+54
+57
+60
+63
+66
+69
+72
+75
+78
+81
+84
+87
+90
+93
+96
