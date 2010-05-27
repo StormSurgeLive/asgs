@@ -149,7 +149,6 @@
    done
      sleep 30
   
-     #   mv ./$OUTPUTPREFIX.kmz ./PartTrack_${ADVISDIR}_${ENSTORM}.kmz
-        cp ./$OUTPUTPREFIX.kmz ./PartTrack_${ADVISDIR}_${ENSTORM}.kmz ${HOME}
+        cp ./$OUTPUTPREFIX.kmz  ${HOME}
                       
    cd $initialDirectory
