@@ -297,7 +297,7 @@ sub owiParameters () {
    #
    # open file that will contain the hotstartdate
    open(HSD,">$stormDir/hotstartdate") || die "ERROR: control_file_gen.pl: Failed to open the HOTSTARTDATE file $stormDir/hotstartdate.";
-   my $hotstartdate = $ny.$nm.$nd.$nh;
+   my $hotstartdate = sprintf("%4d%02d%02d%02d",$ny,$nm,$nd,$nh);
    stderrMessage("INFO","The file containing the hotstartdate '$hotstartdate' will be written to the directory $stormDir."); 
    printf HSD $hotstartdate;
    close(HSD); 
