@@ -262,14 +262,14 @@ prep()
        # this is a   H O T S T A R T
        # set directory where data will be copied from     
        if [ $ENSTORM = nowcast ]; then
-          if [[ -z $LASTSUBDIR ]]; then 
-             # this is a nowcast run, and we are getting the hotstart file
-             # from the ASGS's last nowcast run 
-             FROMDIR=$OLDADVISDIR/nowcast
-          else
+          if [[ $OLDADVISDIR = $LASTSUBDIR ]]; then 
              # this is a nowcast run, but we are getting the hotstart
              # file from a pre-existing, external spinup run
              FROMDIR=$LASTSUBDIR
+          else
+             # this is a nowcast run, and we are getting the hotstart file
+             # from the ASGS's last nowcast run 
+             FROMDIR=$OLDADVISDIR/nowcast
           fi
        else 
           # this is a forecast run, and we get the hotstart file from
