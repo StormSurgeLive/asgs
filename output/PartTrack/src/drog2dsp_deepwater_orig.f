@@ -373,6 +373,11 @@ C
 C
 C Open and start reading the time-series velocity file
 C
+C Initialize the velocities to zero
+C
+         us=0.0d0
+         vs=0.0d0
+         Sparse=0
 C
       IF (NUMFILE.EQ.2) then
 
@@ -386,19 +391,16 @@ C               numtimes=numtimes-1
        READ(UNIT=LINE,FMT=*,END=9001, ERR=9001) filetime(1),timestep,
      &                                NumNonDefaultNodes,DefaultValue
        Sparse=1
-         WRITE(*,*) "Sparse file: SPARSE = ", Sparse 
        GOTO 9002
 9001   READ(UNIT=LINE,FMT=*) filetime(1),timestep
        Sparse=0
-         WRITE(*,*) "regular file: SPARSE = ", Sparse 
 9002   CONTINUE
          
            k=1
            IF ( Sparse .EQ. 1 ) then        
-                DO l=1,NumNodes
-                  us(l,k)=DefaultValue
-                  vs(l,k)=DefaultValue
-                 ENDDO
+
+            us(:,k)=DefaultValue
+            vs(:,k)=DefaultValue
 
               DO l=1,NumNonDefaultNodes
                read(10,*,end=9000,err=9000) node, us(node,k), vs(node,k)
@@ -609,16 +611,11 @@ C *** Find each timestep in the fort.64 file
                   timeinc=filetime(j)-filetime(j-1)
                   timediff=filetime(j)-T1
 
-                  IF ( Sparse .EQ. 1 ) then
-C                   write(*,*) "Sparse = 1 ",Sparse  
-                    DO l=1,NumNodes
-                      us(l,2)=DefaultValue
-                      vs(l,2)=DefaultValue
-                      udiff=us(l,2)-us(l,1)
-                      unew(l)=us(l,2)-((timediff*udiff)/timeinc)
-                      vdiff=vs(l,2)-vs(l,1)
-                      vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
-                    ENDDO
+                   IF ( Sparse .EQ. 1 ) then
+                      us(:,2)=DefaultValue
+                      vs(:,2)=DefaultValue
+                      vnew(:)=0.0d0
+                      vnew(:)=0.0d0
                      DO l=1,NumNonDefaultNodes
                read(10,*,end=9003,err=9003) node, us(node,2), vs(node,2)
                      udiff=us(l,2)-us(l,1)
@@ -626,8 +623,7 @@ C                   write(*,*) "Sparse = 1 ",Sparse
                      vdiff=vs(l,2)-vs(l,1)
                      vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
                      ENDDO
-                  ELSEIF (Sparse .EQ. 0 ) then
-C                   write(*,*) "Sparse = 0 ",Sparse  
+                   ELSEIF (Sparse .EQ. 0 ) then
                      DO l=1,NumNodes
                read(10,*,end=9003,err=9003) node, us(node,2), vs(node,2)
                      udiff=us(l,2)-us(l,1)
@@ -644,11 +640,8 @@ C                   write(*,*) "Sparse = 0 ",Sparse
                  GOTO 150
              ELSE 
                    IF ( Sparse .EQ. 1 ) then
-C                   write(*,*) "Sparse = 1 ",Sparse
-                    DO l=1,NumNodes
-                      us(l,1)=DefaultValue
-                      vs(l,1)=DefaultValue
-                    ENDDO
+                      us(:,1)=DefaultValue
+                      vs(:,1)=DefaultValue
                      DO l=1,NumNonDefaultNodes
                read(10,*,end=9004,err=9004) node, us(node,1), vs(node,1)
                      ENDDO
@@ -682,14 +675,10 @@ C                   write(*,*) "Sparse = 1 ",Sparse
                     if (j.ne.numstop) then
 
                   IF ( Sparse .EQ. 1 ) then
-                    DO l=1,NumNodes
-                      us(l,2)=DefaultValue
-                      vs(l,2)=DefaultValue
-                      udiff=us(l,2)-us(l,1)
-                      unew(l)=us(l,2)-((timediff*udiff)/timeinc)
-                      vdiff=vs(l,2)-vs(l,1)
-                      vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
-                    ENDDO
+                      us(:,2)=DefaultValue
+                      vs(:,2)=DefaultValue
+                      vnew(:)=0.0d0
+                      vnew(:)=0.0d0
                      DO l=1,NumNonDefaultNodes
                read(10,*,end=9005,err=9005) node, us(node,2), vs(node,2)
                      udiff=us(l,2)-us(l,1)
