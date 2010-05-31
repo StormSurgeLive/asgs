@@ -110,7 +110,7 @@ GetOptions(
                  print FIGGENOUTPUT "$inputline_new\n" ;
             }
             elsif ( $lineno == 63 ) { 
-                 $inputline_new = "1,100,3,".$starttime ;
+                 $inputline_new = "1,100,2,".$starttime ;
                  print FIGGENOUTPUT "$inputline_new\n" ;
             }
             else {

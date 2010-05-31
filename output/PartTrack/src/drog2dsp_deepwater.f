@@ -82,52 +82,55 @@ C        MAIN PROGRAM
 C
 C***********************************************************************
 C
+c     INTEGER :: ND, NNE, NFR
+c     INTEGER :: MXDRG, MXTIME
+c     REAL :: TOL, REARTH
 C
 C AMPLITUDES AND PHASES FOR EACH COORDINATE DIRECTION READ FROM ?????.VEL 
 C
       COMMON /SINU/AMPX,AMPY,PHIX,PHIY
-      REAL*8 AMPX(1:ND,1:NFR),AMPY(1:ND,1:NFR)
-      REAL*8 PHIX(1:ND,1:NFR),PHIY(1:ND,1:NFR)
+      REAL*8 :: AMPX(1:ND,1:NFR),AMPY(1:ND,1:NFR)
+      REAL*8 ::  PHIX(1:ND,1:NFR),PHIY(1:ND,1:NFR)
 C
 C FREQUENCIES AND THE NUMBER OF FREQUENCIES - READ FROM ?????.VEL
 C
       COMMON /FREQCO/FREQ,NFREQ
-      REAL*8 FREQ(NFR)
+      REAL*8 ::  FREQ(NFR)
 
 C U and V velocities read from ?????.VEL (a fort.64 file)
       COMMON /VEL/UNEW,VNEW
-      REAL*8 UNEW(ND),VNEW(ND)
-      REAL*8 US(ND,2),VS(ND,2)
+      REAL*8 ::  UNEW(ND),VNEW(ND)
+      REAL*8 ::  US(ND,2),VS(ND,2)
 
       COMMON /IOPT/NUMFILE
-      INTEGER NUMFILE
+      INTEGER ::  NUMFILE
 C
 C COORDINATES OF THE NODES - READ FROM ?????.GR3
 C
       COMMON /COORDS/X,Y
-      REAL*8 X(ND),Y(ND)
+      REAL*8 ::  X(ND),Y(ND)
 C
 C SHAPE FUNCTION INFORMATION
 C
       COMMON /ABA0/A,B,A0
-      REAL*8 A(NNE,3),B(NNE,3),A0(NNE,2)
+      REAL*8 ::  A(NNE,3),B(NNE,3),A0(NNE,2)
 C
 C TABLE OF ELEMENTS
 C
       COMMON /ELEMS/ELEMS
-      INTEGER ELEMS(NNE,3)
+      INTEGER ::  ELEMS(NNE,3)
 C
 C CONNECTIVITY MATRICES - ELEMENT-ELEMENT & NODE-ELEMENT
 C
       COMMON /CONEC/ICEE,ICNE
-      INTEGER ICEE(NNE,3),ICNE(ND,12)
+      INTEGER ::  ICEE(NNE,3),ICNE(ND,12)
 C
 C AREAS OF ELEMENTS
 C
       COMMON /ELAREAS/AR
-      REAL*8 AR(NNE)
+      REAL*8 ::  AR(NNE)
       COMMON /ARBEL/T
-      REAL*8 T(NNE,3)
+      REAL*8 ::  T(NNE,3)
 C
 C TOLERANCE ERROR PARAMETERS
 C
@@ -136,54 +139,64 @@ C
 C NUMBER OF NODES, NUMBER OF ELEMENTS
 C
       COMMON /NUMBER/NMND,NMEL,NTINT
-      INTEGER NTINT
+      INTEGER ::  NTINT
 C
 C BOUNDARY SEGMENTS
 C
       COMMON /BSEGS/NSEG,IBSEG,ISEGP,ISEGF,IBSEGEL
-      INTEGER IBSEG(ND,2),ISEGP(ND),ISEGF(ND),IBSEGEL(ND),NSEG
-      INTEGER IL(3,2),ISEG,IPROD,IEAD,K
+      INTEGER ::  IBSEG(ND,2),ISEGP(ND),ISEGF(ND),IBSEGEL(ND)
+      INTEGER ::  NSEG
+      INTEGER ::  IL(3,2)
+      INTEGER ::  ISEG,IPROD,IEAD,K
 
 C 
 C NUMBER VARIABLES
 C
       COMMON /NUMS/NTIME
-      INTEGER NTIME
+      INTEGER ::  NTIME
 C
 C LOCAL VARIABLES - DT1, ARRAY OF STEP SIZES FOR INTEGRATION
 C
-      REAL*8 DT1(MXDRG)
+      REAL*8 ::  DT1(MXDRG)
 C
 C XDR,YDR - INITIAL DROGUE POSITIONS AND AFTER EACH TRACKING SET,
 C THE NEW LOCATION.
 C
-      REAL*8 XDR(MXDRG),YDR(MXDRG),ZDR(MXDRG)
-      INTEGER IDR(MXDRG),JJDR(MXDRG)
+      REAL*8 :: XDR(MXDRG),YDR(MXDRG),ZDR(MXDRG)
+      INTEGER :: IDR(MXDRG),JJDR(MXDRG)
 C
 C CHARACTER VARIABLES FOR FILENAMES AND MISC
 C
-      CHARACTER*80 GRID,HEADER
-      CHARACTER*72 VLIST(NFR),CASE,CASE3,CASE4
-      
-      REAL*8 SCAMPU(NFR),SCPHAU(NFR)
-      REAL*8 SCAMPV(NFR),SCPHAV(NFR)
-      INTEGER ICOMP(NFR)
-      REAL*8 LONG,LAT,DEGRAD
-      REAL*8 XO,YO
-      REAL*8 EPS,DTMIN,PI,TPATH,TIME,SCNDX,SCNDY,SCDRX,SCDRY,XD,YD,ZD
-      REAL*8 AX,PX,AY,PY,XSTART,YSTART,STEPP,t1,t2,COSPHI
-      INTEGER N1,N2,N3,NNO,NFREQT,III,NOTFND,IND,ii,jj,JNEW
-      INTEGER NFREQ,NMND,NMEL,LEGNO,NPER,J
-      INTEGER IPRINT,I,N,NDR,L
-      REAL*8 XTEST,YTEST
-      INTEGER IHOUR,IH
-      INTEGER NUMNODES, TIMESTEP, NODE, NUMTIMES, NUMSTOP
-      INTEGER OUTPUTTIMESTEP
-      INTEGER drnum
-      REAL  Junk
-      REAL  FILETIME(MXTIME), TIMEINC
-      REAL  TIMEDIFF,UDIFF,VDIFF
+      CHARACTER(LEN=80) :: GRID,HEADER
+      CHARACTER(LEN=72) :: VLIST(NFR)
+      CHARACTER(LEN=72) :: CASE,CASE3,CASE4
       CHARACTER(LEN=20) :: JunkC
+      CHARACTER(LEN=100) :: LINE
+      
+      REAL*8  :: SCAMPU(NFR),SCPHAU(NFR)
+      REAL*8  :: SCAMPV(NFR),SCPHAV(NFR)
+      INTEGER :: ICOMP(NFR)
+      REAL*8  :: LONG,LAT,DEGRAD
+      REAL*8  :: XO,YO
+      REAL*8  :: EPS,DTMIN,PI,TPATH,TIME
+      REAL*8  :: SCNDX,SCNDY,SCDRX,SCDRY,XD,YD,ZD
+      REAL*8  :: AX,PX,AY,PY,XSTART,YSTART,STEPP,t1,t2,COSPHI
+      INTEGER :: N1,N2,N3,NNO,NFREQT,III,NOTFND,IND,ii,jj,JNEW
+      INTEGER :: NFREQ,NMND,NMEL,LEGNO,NPER,J
+      INTEGER :: IPRINT,I,N,NDR,L
+      REAL*8  :: XTEST,YTEST
+      INTEGER :: IHOUR,IH
+      INTEGER :: NUMNODES, TIMESTEP, NODE, NUMTIMES, NUMSTOP
+      INTEGER :: OUTPUTTIMESTEP
+      INTEGER :: Drnum,JunkI
+      REAL    :: Junk,JunkR
+      REAL    :: FILETIME(MXTIME)
+      REAL    :: TIMEINC
+      REAL    :: TIMEDIFF,UDIFF,VDIFF
+      INTEGER :: NumNonDefaultNodes, IntegerTimeStep
+      INTEGER :: Sparse
+      REAL    :: DefaultValue
+      REAL    :: RealTime
 C
 C *** BEGIN EXECUTION 
 C
@@ -360,21 +373,50 @@ C
 C
 C Open and start reading the time-series velocity file
 C
-
+C Initialize the velocities to zero
+C
+         us=0.0d0
+         vs=0.0d0
+         Sparse=0
+C
       IF (NUMFILE.EQ.2) then
+
          open(10,
      +     file=vlist(1)(:INDEX(VLIST(1),' ')-1)//'.v2c',
      +     status='old')
-          read(10,*) 
-          read(10,*) numtimes,numnodes
-               numtimes=numtimes-1
-          read(10,*) filetime(1),timestep
-             k=1
-             do l=1,numnodes
-               read(10,*) node, us(l,k), vs(l,k)
-             enddo
+          read(10,*) ! HEADER
+          read(10,*) numtimes,numnodes, JunkR, JunkI, JunkI
+C               numtimes=numtimes-1
+       READ(UNIT=10,FMT='(A)',END=9000,ERR=9000) LINE
+       READ(UNIT=LINE,FMT=*,END=9001, ERR=9001) filetime(1),timestep,
+     &                                NumNonDefaultNodes,DefaultValue
+       Sparse=1
+       GOTO 9002
+9001   READ(UNIT=LINE,FMT=*) filetime(1),timestep
+       Sparse=0
+9002   CONTINUE
+         
+           k=1
+           IF ( Sparse .EQ. 1 ) then        
 
+            us(:,k)=DefaultValue
+            vs(:,k)=DefaultValue
 
+              DO l=1,NumNonDefaultNodes
+               read(10,*,end=9000,err=9000) node, us(node,k), vs(node,k)
+              ENDDO
+
+           ELSEIF (Sparse .EQ. 0 ) then 
+           
+              DO l=1,NumNodes
+               read(10,*,end=9000,err=9000) node, us(node,k), vs(node,k)
+              ENDDO
+
+           ELSE 
+        WRITE(*,*) "Bad Sparse Value,Error reading vel input file"
+9000    WRITE(*,*)"Error reading or end of file while reading velocity"
+           STOP   
+           ENDIF
 C
 C NFREQT KEEPS COUNT OF THE FREQUENCIES ACTUALLY USED
 C INDPER=0 INDICATES THAT THIS FREQUENCY IS NOT USED
@@ -554,43 +596,110 @@ C
 C *** Find each timestep in the fort.64 file
 
       IF (NUMFILE.EQ.2) then
-         if (I.eq.1) then
-            do j = 2,numtimes
-              read(10,*) filetime(j),timestep
-               if ((T1.ge.filetime(j-1)).and.(T1.lt.filetime(j))) then
+         IF (I.eq.1) then
+            DO j = 2,numtimes
+
+           IF ( Sparse .EQ. 1 ) then
+       READ(UNIT=10,FMT=*,END=9003, ERR=9003) filetime(j),timestep,
+     &                                NumNonDefaultNodes,DefaultValue
+           ELSEIF (Sparse .EQ. 0 ) then
+       READ(UNIT=10,FMT=*,END=9003, ERR=9003) filetime(j),timestep
+           ENDIF
+
+              IF ((T1.ge.filetime(j-1)).and.(T1.lt.filetime(j))) then
                   timeinc=filetime(j)-filetime(j-1)
                   timediff=filetime(j)-T1
-                  do l=1,numnodes
-                     read(10,*) node, us(l,2), vs(l,k)
+
+                   IF ( Sparse .EQ. 1 ) then
+                      us(:,2)=DefaultValue
+                      vs(:,2)=DefaultValue
+                      vnew(:)=0.0d0
+                      vnew(:)=0.0d0
+                     DO l=1,NumNonDefaultNodes
+               read(10,*,end=9003,err=9003) node, us(node,2), vs(node,2)
                      udiff=us(l,2)-us(l,1)
                      unew(l)=us(l,2)-((timediff*udiff)/timeinc)
                      vdiff=vs(l,2)-vs(l,1)
                      vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
-                     enddo
+                     ENDDO
+                   ELSEIF (Sparse .EQ. 0 ) then
+                     DO l=1,NumNodes
+               read(10,*,end=9003,err=9003) node, us(node,2), vs(node,2)
+                     udiff=us(l,2)-us(l,1)
+                     unew(l)=us(l,2)-((timediff*udiff)/timeinc)
+                     vdiff=vs(l,2)-vs(l,1)
+                     vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
+                    ENDDO
+                   ELSE
+        WRITE(*,*) "Bad Sparse Value,Error reading vel input file"
+9003    WRITE(*,*)"Error reading or end of file while reading velocity"
+                    STOP
+                  ENDIF
                   numstop=j
-                  goto 150
-                else 
-                  do l=1,numnodes
-                     read(10,*) node, us(l,1), vs(l,1)
-                  enddo
-                endif
-               enddo
-          else
-               do j= numstop,numtimes
-                 if (j.ne.numstop) read(10,*) filetime(j),timestep
+                 GOTO 150
+             ELSE 
+                   IF ( Sparse .EQ. 1 ) then
+                      us(:,1)=DefaultValue
+                      vs(:,1)=DefaultValue
+                     DO l=1,NumNonDefaultNodes
+               read(10,*,end=9004,err=9004) node, us(node,1), vs(node,1)
+                     ENDDO
+                   ELSEIF (Sparse .EQ. 0 ) then
+                     DO l=1,NumNodes
+               read(10,*,end=9004,err=9004) node, us(node,1), vs(node,1)
+                    ENDDO
+                   ELSE
+        WRITE(*,*) "Bad Sparse Value,Error reading vel input file"
+9004    WRITE(*,*)"Error reading or end of file while reading velocity"
+                    STOP
+                  ENDIF
+
+             ENDIF ! T1 time conditional
+           ENDDO  ! numtimes
+         ELSE ! I not equal to 1
+              DO j= numstop,numtimes
+                 IF (j.ne.numstop) THEN
+           IF ( Sparse .EQ. 1 ) then
+       READ(UNIT=10,FMT=*,END=9005, ERR=9005) filetime(j),timestep,
+     &                                NumNonDefaultNodes,DefaultValue
+           ELSEIF (Sparse .EQ. 0 ) then
+       READ(UNIT=10,FMT=*,END=9005, ERR=9005) filetime(j),timestep
+           ENDIF
+                ENDIF
                    write(20,*) filetime(j),numstop,j
+
                  if ((T1.ge.filetime(j-1)).and.(T1.le.filetime(j))) then
                   timeinc=filetime(j)-filetime(j-1)
                   timediff=filetime(j)-T1
                     if (j.ne.numstop) then
-                     do l=1,numnodes
-                        read(10,*) node, us(l,2), vs(l,2)
-                        udiff=us(l,2)-us(l,1)
-                        unew(l)=us(l,2)-((timediff*udiff)/timeinc)
-                        vdiff=vs(l,2)-vs(l,1)
-                        vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
-                      enddo
-                   else
+
+                  IF ( Sparse .EQ. 1 ) then
+                      us(:,2)=DefaultValue
+                      vs(:,2)=DefaultValue
+                      vnew(:)=0.0d0
+                      vnew(:)=0.0d0
+                     DO l=1,NumNonDefaultNodes
+               read(10,*,end=9005,err=9005) node, us(node,2), vs(node,2)
+                     udiff=us(l,2)-us(l,1)
+                     unew(l)=us(l,2)-((timediff*udiff)/timeinc)
+                     vdiff=vs(l,2)-vs(l,1)
+                     vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
+                     ENDDO
+                   ELSEIF (Sparse .EQ. 0 ) then
+                     DO l=1,NumNodes
+               read(10,*,end=9005,err=9005) node, us(node,2), vs(node,2)
+                     udiff=us(l,2)-us(l,1)
+                     unew(l)=us(l,2)-((timediff*udiff)/timeinc)
+                     vdiff=vs(l,2)-vs(l,1)
+                     vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
+                    ENDDO
+                   ELSE
+        WRITE(*,*) "Bad Sparse Value,Error reading vel input file"
+9005    WRITE(*,*)"Error reading or end of file while reading velocity"
+                    STOP
+                  ENDIF
+
+                  else !numstop conditional
                        do l=1,numnodes
                         udiff=us(l,2)-us(l,1)
                         unew(l)=us(l,2)-((timediff*udiff)/timeinc)

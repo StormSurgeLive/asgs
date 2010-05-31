@@ -4,7 +4,7 @@ FOR BEST RESULTS, PLEASE KEEP COMMENTS OUT OF THE FIRST 50 CHARACTERS ON EACH LI
 /work/01053/rweaver/GMT4.5.2/bin//bin/
 /usr/bin/
 ./Temp/
---starttime
+PartTrack_
 1,HWM (NAVD88): Storm 05 2010  Adv #2010052618
 0                                                  ! Time bar flag: 0 to ignore, 1 to plot time bar.
 -98.0

@@ -49,15 +49,22 @@
      TRACKDIR=$OUTPUTDIR/PartTrack
 
      ln -fs  ${ADVISDIR}/${ENSTORM}/fort.14  ./${GRIDPREFIX}
-     ln -fs $TRACKDIR/input_deepwater.din ./
      ln -fs $TRACKDIR/connect2D_optimized.exe ./
 
+   # Generate the input file with initial positions
+
+       ln -fs $TRACKDIR/gen_part_track_input.sh
+     ./gen_part_track_input.sh $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $ENSTORM $OUTPUTDIR 
+      echo '  ./gen_part_track_input.sh $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $ENSTORM $OUTPUTDIR '  > $HOME/gen_log.log
+
    # create drogue_input_1 file
+
    # name of input file is hardwired as input_deepwater.din
    # output will be input_deepwater.pth
         echo input_deepwater > drogue_input_1
         echo ${GRIDPREFIX} >> drogue_input_1
-   # using input file now process the grid file
+
+   # process the grid file
     
     ./connect2D_optimized.exe 
 
@@ -83,25 +90,30 @@
      echo "            PARAMETER (TOL=${Tol})         "    >> ./CB_2D.h
 
      ln -fs $TRACKDIR/src/drog2dsp_deepwater.f ./drog2dsp_deepwater.f
-     ifort ./drog2dsp_deepwater.f -o ./drog2dsp_deepwater.exe
 
-   #   ln -fs $TRACKDIR/drog2dsp_deepwater.exe ./
-   #   ln -fs $TRACKDIR/CB_2D.h ./CB_2D.h
+   module unload intel/9.1
+   module load intel/11.1
+
+     ifort -w -mcmodel medium -shared-intel drog2dsp_deepwater.f -o drog2dsp_deepwater.exe
+
+
    # need the fort.64 file
      ln -fs $ADVISDIR/$ENSTORM/fort.64  ./fort.64.v2c
+# run on logingnode until solution to shared files available on compute nodes
+        ./drog2dsp_deepwater.exe > ./PartTrack_01.out
 
-       SERQSCRIPT=ranger.PartTrack.template.serial
-       SERQSCRIPTOPTIONS="--account $ACCOUNTpost --adcircdir $TRACKDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $TRACKDIR/$SERQSCRIPT"
-       perl $TRACKDIR/ranger.PartTrack.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge 2>> ${SYSLOG}
-       echo "Submitting $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge"
-       qsub $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge >> ${SYSLOG} 2>&1
+#        SERQSCRIPT=ranger.PartTrack.template.serial
+#       SERQSCRIPTOPTIONS="--account $ACCOUNTpost --adcircdir $TRACKDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $TRACKDIR/$SERQSCRIPT"
+#       perl $TRACKDIR/ranger.PartTrack.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge 2>> ${SYSLOG}
+#       echo "Submitting $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge"
+#       qsub $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge >> ${SYSLOG} 2>&1
            counter1=0
        while [ ! -s ./input_deepwater.pth ]; do
-              counter1=$counter1+1
+              counter1=`expr $counter1 + 1`
            echo $counter1 ' particle path file not ready yet'
            sleep 60
        done
-           sleep 60
+           sleep 30
    # 3) Generate vizualizations
       
      ln -fs $TRACKDIR/FigureGen42_serial.exe ./
@@ -150,6 +162,6 @@
    done
      sleep 30
   
-        cp ./${OUTPUTPREFIX_lmz}.kmz  ${HOME}
+        cp ./${OUTPUTPREFIX_kmz}.kmz  ${HOME}
                       
    cd $initialDirectory
