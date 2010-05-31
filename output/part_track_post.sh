@@ -100,13 +100,13 @@
    # need the fort.64 file
      ln -fs $ADVISDIR/$ENSTORM/fort.64  ./fort.64.v2c
 # run on logingnode until solution to shared files available on compute nodes
-        ./drog2dsp_deepwater.exe > ./PartTrack_01.out
+#        ./drog2dsp_deepwater.exe > ./PartTrack_01.out
 
-#        SERQSCRIPT=ranger.PartTrack.template.serial
-#       SERQSCRIPTOPTIONS="--account $ACCOUNTpost --adcircdir $TRACKDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $TRACKDIR/$SERQSCRIPT"
-#       perl $TRACKDIR/ranger.PartTrack.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge 2>> ${SYSLOG}
-#       echo "Submitting $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge"
-#       qsub $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge >> ${SYSLOG} 2>&1
+        SERQSCRIPT=ranger.PartTrack.template.serial
+       SERQSCRIPTOPTIONS="--account $ACCOUNTpost --adcircdir $TRACKDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $TRACKDIR/$SERQSCRIPT"
+       perl $TRACKDIR/ranger.PartTrack.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge 2>> ${SYSLOG}
+       echo "Submitting $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge"
+       qsub $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge >> ${SYSLOG} 2>&1
            counter1=0
        while [ ! -s ./input_deepwater.pth ]; do
               counter1=`expr $counter1 + 1`
