@@ -65,9 +65,20 @@
         echo ${GRIDPREFIX} >> drogue_input_1
 
    # process the grid file
-    
-    ./connect2D_optimized.exe 
 
+   # before we process the file lets look for an already processed file in 
+   # the $outputdir/parttrack/input directory
+
+       
+     if [ ! -e /corral/hurricane/grids/${GRIDPREFIX}.gr2 ] 
+     then
+    ./connect2D_optimized.exe 
+      cp ./${GRIDPREFIX}.gr2 /corral/hurricane/grids/${GRIDPREFIX}.gr2
+     else
+   #  ln -fs  /corral/hurricane/grids/${GRIDPREFIX}.gr2 ./${GRIDPREFIX}.gr2
+      cp  /corral/hurricane/grids/${GRIDPREFIX}.gr2 ./${GRIDPREFIX}.gr2
+     fi
+   
    # 2) Track Particles
       # Write CB_2D.h file
 
@@ -128,14 +139,16 @@
         GSHOME2=/usr/bin/
        GMTHOME2=/work/01053/rweaver/GMT4.5.2/bin/
        STARTTIME=$(head -1 $ADVISDIR/$ENSTORM/hotstartdate | tail -1 | awk '{print $1}')
+       NumRecords=$(head -2 ./fort.64 | tail -1 | awk '{print $1}')  # 
+
        STARTTIME2=${STARTTIME}0000
         echo $STARTTIME2
        OUTPUTPREFIX_fg=PartTrack_${ADVISORY}_
        OUTPUTPREFIX_kmz=PartTrack_${ADVISORY}
 
          ln -fs $TRACKDIR/make_ptFG_input.pl ./
-  perl make_ptFG_input.pl --outputdir $TRACKDIR  --gmthome $GMTHOME2 --gridfile $GRIDPREFIX --gshome $GSHOME2 --storm ${STORM} --year ${YEAR} --adv $ADVISORY --n 31.0 --s 18.0 --e -80.0 --w -98.0 --outputprefix ${OUTPUTPREFIX_fg} --starttime $STARTTIME2
- #   perl make_ptFG_input.pl --outputdir $TRACKDIR --gmthome $GMTHOME --gridfile $GRIDPREFIX --gshome $GSHOME --storm ${STORM} --year ${YEAR} --adv $ADVISORY --n $NORTH --s $SOUTH --e $EAST --w $WEST --outputprefix $OUTPUTPREFIX --starttime $STARTTIME
+  perl make_ptFG_input.pl --outputdir $TRACKDIR  --gmthome $GMTHOME2 --gridfile $GRIDPREFIX --gshome $GSHOME2 --storm ${STORM} --year ${YEAR} --adv $ADVISORY --n 31.0 --s 18.0 --e -80.0 --w -98.0 --outputprefix ${OUTPUTPREFIX_fg} --starttime $STARTTIME2 --numrecords $NumRecords
+ #   perl make_ptFG_input.pl --outputdir $TRACKDIR --gmthome $GMTHOME --gridfile $GRIDPREFIX --gshome $GSHOME --storm ${STORM} --year ${YEAR} --adv $ADVISORY --n $NORTH --s $SOUTH --e $EAST --w $WEST --outputprefix $OUTPUTPREFIX --starttime $STARTTIME --numrecords $NumRecords
 
   # Serial run on login(Head)  node
       ./FigureGen42_serial.exe >> $ADVISDIR/$ENSTORM/figgen_track.log 2>&1  &
