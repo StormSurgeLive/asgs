@@ -10,7 +10,7 @@
 # use Net::HTTP;
 use Getopt::Long;
 #  Usage Example:
-#   perl mak_JPG.pl --outputdir $POSTPROC_DIR --gmthome $GMTHOME --gridfile $GRIDFILE --gshome $GSHOME --storm 01 --year 2006 --adv 05 --n 30.5 --s 28.5 --e -88.5 --w -90.5 --outputprefix Particle_Tracking --starttime $STARTTIME2
+#   perl mak_JPG.pl --outputdir $POSTPROC_DIR --gmthome $GMTHOME --gridfile $GRIDFILE --gshome $GSHOME --storm 01 --year 2006 --adv 05 --n 30.5 --s 28.5 --e -88.5 --w -90.5 --outputprefix Particle_Tracking --starttime $STARTTIME2 --numrecords $NumRecords
 #
 my $gmthome;
 my $gshome;
@@ -25,6 +25,7 @@ my $west;
 my $outputprefix;
 my $outputdir;
 my $starttime;
+my $numrecords;
 GetOptions(
            "outputdir=s" => \$outputdir,
            "gmthome=s" => \$gmthome,
@@ -38,7 +39,8 @@ GetOptions(
            "e=s" => \$east,
            "w=s" => \$west,
            "outputprefix=s" => \$outputprefix,
-           "starttime=s" => \$starttime
+           "starttime=s" => \$starttime,
+           "numrecords=s" => \$numrecords
            );
 
 # Open up the storm track name file and loop through each storm vriation in the file
@@ -113,10 +115,22 @@ GetOptions(
                  $inputline_new = "1,100,2,".$starttime ;
                  print FIGGENOUTPUT "$inputline_new\n" ;
             }
-            else {
+            elsif ( $lineno == 65 ) { 
+                 $numrecords2 = $numrecords/2.0 ;           
+                 $inputline_new = $numrecords2 ;
                  print FIGGENOUTPUT "$inputline_new\n" ;
+                   for ($count = 1; $count <= $numrecords2; $count++)
+                    {
+                      $inputline_new = 1 + 2*($count-1) ;
+                       print FIGGENOUTPUT "$inputline_new\n";
+                    }
             }
+            else {
+                 print FIGGENOUTPUT  "$inputline_new\n" ;
+            }
+       
       }  # end of FigGen INPUT file loop
+
        close FIGGENINPUT;
        close FIGGENOUTPUT;
 #
