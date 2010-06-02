@@ -105,7 +105,8 @@
    module unload intel/9.1
    module load intel/11.1
 
-     ifort -w -mcmodel medium -shared-intel drog2dsp_deepwater.f -o drog2dsp_deepwater.exe
+     ifort -w  drog2dsp_deepwater.f -o drog2dsp_deepwater.exe
+#     ifort -w -mcmodel medium -shared-intel drog2dsp_deepwater.f -o drog2dsp_deepwater.exe
 
 
    # need the fort.64 file
