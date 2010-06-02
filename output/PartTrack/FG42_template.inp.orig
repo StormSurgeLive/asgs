@@ -63,29 +63,3 @@ PNG,JPG                                            ! Raster file format(s): PNG,
 1,100,3,20080903130000                             ! Flag for Google KMZ file, transparency (0-100) of images, number of layers, and time stamp of first record in 63 file for animation.
 0,0                                                ! Flag for georeferencing: (0 to ignore, 1 for images, 2 for zipped images), and lowermost layer (or 0 to optimize).
 0                                                 ! Number of records for which to produce images (or 0 for all).
-1                                                   ! List of records (ignored if the number of records is 0).
-3
-5
-7
-9
-11
-13
-15
-17
-19
-21
-23
-25
-27
-29
-31
-33
-35
-39
-41
-43
-45
-47
-49
-51
-
