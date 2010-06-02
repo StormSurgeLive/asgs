@@ -293,7 +293,6 @@ C
          X(I)=LONG*REARTH*SCNDX
          Y(I)= LAT*REARTH*SCNDY
    10 CONTINUE
-C        ! WRITE(*,*)  X(5000), Y(5000)
 C
 C READ THE TABLE OF ELEMENTS
 C
@@ -579,7 +578,7 @@ C *** Find each timestep in the fort.64 file
                   timediff=filetime(j)-T1
 
                   IF ( Sparse .EQ. 1 ) then
-                   write(*,*) "Sparse = 1 ",Sparse  
+C                   write(*,*) "Sparse = 1 ",Sparse  
                     DO l=1,NumNodes
                       us(l,2)=DefaultValue
                       vs(l,2)=DefaultValue
@@ -596,7 +595,7 @@ C *** Find each timestep in the fort.64 file
                      vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
                      ENDDO
                   ELSEIF (Sparse .EQ. 0 ) then
-                   write(*,*) "Sparse = 0 ",Sparse  
+C                   write(*,*) "Sparse = 0 ",Sparse  
                      DO l=1,NumNodes
                read(10,*,end=9003,err=9003) node, us(node,2), vs(node,2)
                      udiff=us(l,2)-us(l,1)
@@ -613,7 +612,7 @@ C *** Find each timestep in the fort.64 file
                  GOTO 150
              ELSE 
                    IF ( Sparse .EQ. 1 ) then
-                   write(*,*) "Sparse = 1 ",Sparse
+C                   write(*,*) "Sparse = 1 ",Sparse
                     DO l=1,NumNodes
                       us(l,1)=DefaultValue
                       vs(l,1)=DefaultValue
@@ -701,8 +700,6 @@ C *** Find each timestep in the fort.64 file
          endif
        endif   
 150      continue
-  
-     
 C
 C LOOP OVER EACH DROGUE
 C
@@ -719,15 +716,10 @@ C
               YO = YDR(II)
               JJ = JJDR(II)
              NTIME = I
-
 C
 C GET THE COMPONENTS OF FLOW AT XO, YO
 C
-C               WRITE(*,*) "call Vels"
-               WRITE(*,*) JJ,NUMFILE
               CALL VELS(JJ,XO,YO,UNEW,VNEW,T1,NUMFILE)
-C               WRITE(*,*) "return from Vels"
-C
 C
 C TRACK THIS PARTICLE FROM TIME T1 TO T2
 C
@@ -735,21 +727,15 @@ c              WRITE(45,*) '********************************************'
 c              WRITE(45,*) ' PROCESSING DROGUE # ',II
 c              WRITE(45,*) ' FROM TIME ',T1,' to ',T2
 c              WRITE(45,*) ' '
-C               WRITE(*,*) "call TACK"
               CALL TRACK(JJ,JNEW,XO,YO,UNEW,VNEW,T1,T2,DT1(II),II)
-C               WRITE(*,*) "return from TRACK"
 
               XDR(II) = XO
               YDR(II) = YO
               JJDR(II) = JNEW
 
   160     CONTINUE
-         Write(*,*)" done looping through particles and tracking"
 C
 C *** WRITE OUT THE POSITIONS AT THIS TIME STEP
-C
-
-C *** Section to print output in ACE/vis format
 C
        write(*,*) "write output for this time"
 
@@ -761,17 +747,14 @@ C
      +                        ZDR(II)
   170       CONTINUE
             ENDIF
-          write(*,*) "wrote output for this time"
 
   171     FORMAT ( 2(1x,1e18.9), 1x, i8 )
   172     FORMAT (I8,2x,2(1x,1e18.9),2x,I6)
-C
 C
 C INCREMENT THE LIMITS OF INTEGRATION
 C
           T1 = T1 + STEPP
           T2 = T2 + STEPP
-
 
 180       CONTINUE
 
@@ -893,9 +876,6 @@ C
       YLOCAL(1)=Y(ELEMS(J,1))
       YLOCAL(2)=Y(ELEMS(J,2))
       YLOCAL(3)=Y(ELEMS(J,3))
-C       write(*,*) XLOCAL(1) , YLOCAL(1)
-C       write(*,*) XLOCAL(2) , YLOCAL(2)
-C       write(*,*) XLOCAL(3) , YLOCAL(3)
 C
 C  CALCULATE THE X AND Y COMPONENTS OF VECTORS POINTING FROM (XP,YP)
 C  TO EACH NODE ON THE ELEMENT
@@ -907,7 +887,6 @@ C
          THETA=DATAN2(DELY,DELX)
          VX(I)=D*DCOS(THETA)
          VY(I)=D*DSIN(THETA)
-C         WRITE(*,*) VX(I), VY(I)
  10   CONTINUE
 C
 C  DETERMINE IF THE POINT IS ON THE ELEMENT BY CALCULATING THE
