@@ -2,7 +2,7 @@ C-----------------------------------------------------------------------
 C
 C       DROGUES  -  ***   DROGUES.F   ***  HARMONIC VELOCITY FIELDS
 C              	    ***   DISTRIBUTION VERSION 1991, BRIAN O. BLANTON 
-C                   ***   LAST MODIFICATION MAY 1997
+C                   ***   LAST MODIFICATION MAY 2010
 C
 C-----------------------------------------------------------------------
 C
@@ -14,7 +14,7 @@ C                   RICHARD KOSSICK, MIT
 C
 C MODIFICATIONS BY: BRIAN O. BLANTON, UNC
 C                   RICK LUETTICH, UNC       
-C
+C                   ROBERT J WEAVER, UNC
 C-----------------------------------------------------------------------
 C
 C   THE ORIGINAL CODE IS A PART OF THE COMPUTATIONAL STRUCTURE, ACE, FOR 
@@ -62,6 +62,15 @@ C                          TO BE CHANGED EXCEPT TO MAKE IT A FILE THAT ENDS IN
 C                          .V2C
 C
 C       RJW MAY 2010     - MODIFIED TO USE FOR TRACKING OIL SLICK
+C                          Removed all harmonic velocity capabilities 
+C                          added an imrproved searching algorithm to find starting elements 
+C                          for each particle.  ALtered input method, input file names now
+C                          read in from drogue_input_1.  
+C                          ADDED ability to handle full global output velocity files OR
+C                          sparse global output velocity files.
+C                          Modified input and output format to work with ASGS tracking system
+C                          Included a Z, variable (flag) for each particle 
+C                          
 C-----------------------------------------------------------------------
 C
 C     SET MAXIMUM DIMENSIONING OF ARRAYS
@@ -578,7 +587,6 @@ C
 
       WRITE(12,'(a)') GRID
       WRITE(12,*) NTINT/IPRINT, NDR, OUTPUTTIMESTEP
-C      WRITE(12,*) NTINT/IPRINT +1, NDR, OUTPUTTIMESTEP
       WRITE(12,*) T1,NDR
       DO III = 1, NDR
          IDR(III) = III 
