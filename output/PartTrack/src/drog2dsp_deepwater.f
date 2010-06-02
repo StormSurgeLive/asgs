@@ -194,6 +194,7 @@ C
       INTEGER :: Sparse
       REAL    :: DefaultValue
       REAL    :: RealTime
+      INTEGER :: PEI,NL
 C
 C *** BEGIN EXECUTION 
 C
@@ -495,13 +496,54 @@ C
             XDR(III-NOTFND)=XDR(III)
             YDR(III-NOTFND)=YDR(III)
           ENDIF
-          DO 120 I = 1,NMEL
+C new search algorithm
+          IF (III .EQ. 1) THEN  
+C first search all elelments for home of first particle
+           DO 120 I = 1,NMEL
+                 
               CALL BELEL(I,XSTART,YSTART,IND)
               IF (IND.EQ.1) THEN
                   JJDR(III-NOTFND) = I
+C   PEI = particle element index
+                  PEI=I
+                WRite(*,*) III, PEI
                   GO TO 130
               END IF
   120     CONTINUE
+         ELSE ! node loop 1 conditional
+C  now search neighboring elements first for locations of subsequesnt particles
+C   PEI = particle element index
+                  NL = PEI
+              CALL BELEL(NL,XSTART,YSTART,IND)
+              IF (IND.EQ.1) THEN
+                  JJDR(III-NOTFND) = NL
+                   PEI=NL
+                WRite(*,*) III, PEI
+                  GO TO 130
+              END IF
+          DO 121 I = 2,NMEL
+                  NL = PEI + (I-1)
+                  IF (NL .GT. NMEL) NL = NL-NMEL
+              CALL BELEL(NL,XSTART,YSTART,IND)
+              IF (IND.EQ.1) THEN
+                  JJDR(III-NOTFND) = NL
+                   PEI=NL
+                WRite(*,*) III, PEI
+                  GO TO 130
+              END IF
+                  NL = PEI - (I-1)
+                  IF (NL .LT. 1) NL = NL+NMEL
+              CALL BELEL(NL,XSTART,YSTART,IND)
+              IF (IND.EQ.1) THEN
+                  JJDR(III-NOTFND) = NL
+                   PEI=NL
+                WRite(*,*) III, PEI
+                  GO TO 130
+              END IF
+
+  121     CONTINUE
+
+         ENDIF ! node loop 1 conditional
           PRINT *,'*** COULD NOT FIND STARTING ELEMENT FOR DROGUE ',III
           NOTFND=NOTFND+1
 
@@ -578,7 +620,7 @@ C *** Find each timestep in the fort.64 file
                   timediff=filetime(j)-T1
 
                   IF ( Sparse .EQ. 1 ) then
-C                   write(*,*) "Sparse = 1 ",Sparse  
+                   write(*,*) "Sparse = 1 ",Sparse  
                     DO l=1,NumNodes
                       us(l,2)=DefaultValue
                       vs(l,2)=DefaultValue
@@ -595,7 +637,7 @@ C                   write(*,*) "Sparse = 1 ",Sparse
                      vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
                      ENDDO
                   ELSEIF (Sparse .EQ. 0 ) then
-C                   write(*,*) "Sparse = 0 ",Sparse  
+                   write(*,*) "Sparse = 0 ",Sparse  
                      DO l=1,NumNodes
                read(10,*,end=9003,err=9003) node, us(node,2), vs(node,2)
                      udiff=us(l,2)-us(l,1)
@@ -612,7 +654,7 @@ C                   write(*,*) "Sparse = 0 ",Sparse
                  GOTO 150
              ELSE 
                    IF ( Sparse .EQ. 1 ) then
-C                   write(*,*) "Sparse = 1 ",Sparse
+                   write(*,*) "Sparse = 1 ",Sparse
                     DO l=1,NumNodes
                       us(l,1)=DefaultValue
                       vs(l,1)=DefaultValue
@@ -700,6 +742,8 @@ C                   write(*,*) "Sparse = 1 ",Sparse
          endif
        endif   
 150      continue
+  
+     
 C
 C LOOP OVER EACH DROGUE
 C
@@ -716,10 +760,12 @@ C
               YO = YDR(II)
               JJ = JJDR(II)
              NTIME = I
+
 C
 C GET THE COMPONENTS OF FLOW AT XO, YO
 C
               CALL VELS(JJ,XO,YO,UNEW,VNEW,T1,NUMFILE)
+C
 C
 C TRACK THIS PARTICLE FROM TIME T1 TO T2
 C
@@ -734,8 +780,12 @@ c              WRITE(45,*) ' '
               JJDR(II) = JNEW
 
   160     CONTINUE
+         Write(*,*)" done looping through particles and tracking"
 C
 C *** WRITE OUT THE POSITIONS AT THIS TIME STEP
+C
+
+C *** Section to print output in ACE/vis format
 C
        write(*,*) "write output for this time"
 
@@ -747,14 +797,17 @@ C
      +                        ZDR(II)
   170       CONTINUE
             ENDIF
+          write(*,*) "wrote output for this time"
 
   171     FORMAT ( 2(1x,1e18.9), 1x, i8 )
   172     FORMAT (I8,2x,2(1x,1e18.9),2x,I6)
+C
 C
 C INCREMENT THE LIMITS OF INTEGRATION
 C
           T1 = T1 + STEPP
           T2 = T2 + STEPP
+
 
 180       CONTINUE
 
@@ -887,6 +940,7 @@ C
          THETA=DATAN2(DELY,DELX)
          VX(I)=D*DCOS(THETA)
          VY(I)=D*DSIN(THETA)
+C         WRITE(*,*) VX(I), VY(I)
  10   CONTINUE
 C
 C  DETERMINE IF THE POINT IS ON THE ELEMENT BY CALCULATING THE
