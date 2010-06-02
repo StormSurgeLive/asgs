@@ -88,9 +88,6 @@ c     REAL :: TOL, REARTH
 C
 C AMPLITUDES AND PHASES FOR EACH COORDINATE DIRECTION READ FROM ?????.VEL 
 C
-      COMMON /SINU/AMPX,AMPY,PHIX,PHIY
-      REAL*8 :: AMPX(1:ND,1:NFR),AMPY(1:ND,1:NFR)
-      REAL*8 ::  PHIX(1:ND,1:NFR),PHIY(1:ND,1:NFR)
 C
 C FREQUENCIES AND THE NUMBER OF FREQUENCIES - READ FROM ?????.VEL
 C
@@ -387,6 +384,7 @@ C               numtimes=numtimes-1
      &                                NumNonDefaultNodes,DefaultValue
        Sparse=1
          WRITE(*,*) "Sparse file: SPARSE = ", Sparse 
+         write(*,*) NumNonDefaultNodes
        GOTO 9002
 9001   READ(UNIT=LINE,FMT=*) filetime(1),timestep
        Sparse=0
@@ -419,36 +417,9 @@ C
 C NFREQT KEEPS COUNT OF THE FREQUENCIES ACTUALLY USED
 C INDPER=0 INDICATES THAT THIS FREQUENCY IS NOT USED
 C
-      ELSE IF (NUMFILE.EQ.1) then
-      
-         NFREQT = 1
-         DO 80 J = 1,NPER
-            open(10,
-     +        file=vlist(j)(:INDEX(VLIST(j),' ')-1)//'.v2c',
-     +        status='old')
-            read(10,9020)GRID
-            read(10,9020)header
-            read(10,*)freq(j)  
-C
-C READ AMPLITUDE AND PHASE FOR EACH COORDINATE DIRECTION AT
-C EACH NODE
-C
-            DO 70 I = 1,NMND
-               COSPHI=DCOS(Y(I)/REARTH)
-               READ(10,*) NNO,AX,PX,AY,PY
-               AX=AX/COSPHI 
-               AMPX(I,NFREQT)=AX*SCAMPU(J)
-               AMPY(I,NFREQT)=AY*SCAMPV(J)
-               PHIX(I,NFREQT)=PX*SCPHAU(J)*DEGRAD
-               PHIY(I,NFREQT)=PY*SCPHAV(J)*DEGRAD
-
-   70       CONTINUE
-            write(*,*) 'Comp Read: ',vlist(j)(:INDEX(VLIST(j),' ')-1)//
-     &         '.v2c'
-c         IF (ICOMP(J).EQ.1) NFREQT = NFREQT + 1
-
-   80    CONTINUE
-
+      ELSE
+        WRITE(*,*) "numfile not recognized"
+        STOP
       ENDIF
 
          WRITE (6,*) ' VELOCITY INPUT COMPLETE: NO ERROR '
@@ -511,9 +482,6 @@ C
 C
 C *** DEFINE ELEMENT INTERPOLATION FUNCTIONS FOR VELOCITY
 C
-      IF (NUMFILE.EQ.1) then
-         CALL SVEL
-       ENDIF
 
 
 C
@@ -601,6 +569,7 @@ C *** Find each timestep in the fort.64 file
            IF ( Sparse .EQ. 1 ) then
        READ(UNIT=10,FMT=*,END=9003, ERR=9003) filetime(j),timestep,
      &                                NumNonDefaultNodes,DefaultValue
+        write(*,*) NumNonDefaultNodes
            ELSEIF (Sparse .EQ. 0 ) then
        READ(UNIT=10,FMT=*,END=9003, ERR=9003) filetime(j),timestep
            ENDIF
@@ -610,7 +579,7 @@ C *** Find each timestep in the fort.64 file
                   timediff=filetime(j)-T1
 
                   IF ( Sparse .EQ. 1 ) then
-C                   write(*,*) "Sparse = 1 ",Sparse  
+                   write(*,*) "Sparse = 1 ",Sparse  
                     DO l=1,NumNodes
                       us(l,2)=DefaultValue
                       vs(l,2)=DefaultValue
@@ -627,7 +596,7 @@ C                   write(*,*) "Sparse = 1 ",Sparse
                      vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
                      ENDDO
                   ELSEIF (Sparse .EQ. 0 ) then
-C                   write(*,*) "Sparse = 0 ",Sparse  
+                   write(*,*) "Sparse = 0 ",Sparse  
                      DO l=1,NumNodes
                read(10,*,end=9003,err=9003) node, us(node,2), vs(node,2)
                      udiff=us(l,2)-us(l,1)
@@ -644,7 +613,7 @@ C                   write(*,*) "Sparse = 0 ",Sparse
                  GOTO 150
              ELSE 
                    IF ( Sparse .EQ. 1 ) then
-C                   write(*,*) "Sparse = 1 ",Sparse
+                   write(*,*) "Sparse = 1 ",Sparse
                     DO l=1,NumNodes
                       us(l,1)=DefaultValue
                       vs(l,1)=DefaultValue
@@ -670,6 +639,7 @@ C                   write(*,*) "Sparse = 1 ",Sparse
            IF ( Sparse .EQ. 1 ) then
        READ(UNIT=10,FMT=*,END=9005, ERR=9005) filetime(j),timestep,
      &                                NumNonDefaultNodes,DefaultValue
+        write(*,*) NumNonDefaultNodes
            ELSEIF (Sparse .EQ. 0 ) then
        READ(UNIT=10,FMT=*,END=9005, ERR=9005) filetime(j),timestep
            ENDIF
@@ -736,6 +706,7 @@ C                   write(*,*) "Sparse = 1 ",Sparse
 C
 C LOOP OVER EACH DROGUE
 C
+         Write(*,*)" loop through particles and track"
           DO 160 II = 1,NDR
 C
 C IF THIS ELEMENT WAS ELIMINATED ON A PREVIOUS STEP THEN SKIP
@@ -752,8 +723,11 @@ C
 C
 C GET THE COMPONENTS OF FLOW AT XO, YO
 C
+C               WRITE(*,*) "call Vels"
+               WRITE(*,*) JJ,NUMFILE
               CALL VELS(JJ,XO,YO,UNEW,VNEW,T1,NUMFILE)
-
+C               WRITE(*,*) "return from Vels"
+C
 C
 C TRACK THIS PARTICLE FROM TIME T1 TO T2
 C
@@ -761,19 +735,23 @@ c              WRITE(45,*) '********************************************'
 c              WRITE(45,*) ' PROCESSING DROGUE # ',II
 c              WRITE(45,*) ' FROM TIME ',T1,' to ',T2
 c              WRITE(45,*) ' '
+C               WRITE(*,*) "call TACK"
               CALL TRACK(JJ,JNEW,XO,YO,UNEW,VNEW,T1,T2,DT1(II),II)
+C               WRITE(*,*) "return from TRACK"
 
               XDR(II) = XO
               YDR(II) = YO
               JJDR(II) = JNEW
 
   160     CONTINUE
+         Write(*,*)" done looping through particles and tracking"
 C
 C *** WRITE OUT THE POSITIONS AT THIS TIME STEP
 C
 
 C *** Section to print output in ACE/vis format
 C
+       write(*,*) "write output for this time"
 
           IF(MOD(I,IPRINT).EQ.0)THEN
             WRITE (12,*) T1,NDR
@@ -783,6 +761,7 @@ C
      +                        ZDR(II)
   170       CONTINUE
             ENDIF
+          write(*,*) "wrote output for this time"
 
   171     FORMAT ( 2(1x,1e18.9), 1x, i8 )
   172     FORMAT (I8,2x,2(1x,1e18.9),2x,I6)
@@ -853,63 +832,6 @@ C FIND END OF STRING
 C
 C END OF ROUTINE
  21   RETURN
-      END
-C
-C***********************************************************************
-      SUBROUTINE BELELOLD(J,XP,YP,IND)
-C***********************************************************************
-C
-C *** DETERMINE WHETHER THE POINT (XP,YP) IS WITHIN ELEMENT "J"
-C *** (OR ON ITS BOUNDARIES).  IF SO, IND=1; IF NOT, IND=0
-C 
-C-----------------------------------------------------------------------
-      INCLUDE 'CB_2D.h'
-C-----------------------------------------------------------------------
-C
-      REAL*8  XP,YP
-      INTEGER J,IND
-      REAL*8 TU,TL
-      PARAMETER (TU=1.D0+TOL,TL=-TOL)
-      COMMON /ELAREAS/AR
-      REAL*8 AR(NNE)
-C
-C *** SHAPE FUNCTION VARIABLES
-C
-      COMMON /ABA0/A,B,A0
-      REAL*8 A(NNE,3)
-      REAL*8 B(NNE,3)
-      REAL*8 A0(NNE,2)
-      COMMON /ARBEL/T
-      REAL*8 T(NNE,3)
-C
-C *** LOCAL VARIABLE DECLARATION
-C 
-      REAL*8 S
-C
-C *** THE SHAPE FUNCTION, S, FOR ELEMENT "J" IS USED TO
-C *** DETERMINE WHETHER POINT (XP,YP) IS WITHIN OR ON THE
-C *** ELEMENT'S BOUNDARY.  IF THE POINT IS WITHIN OR ON THE
-C *** ELEMENT, ALL 3 SHAPE FUNCTIONS WILL RANGE IN VALUE
-C *** BETWEEN [0,1].  IF (XP,YP) LIES OUTSIDE OF THE ELEMENT,
-C *** ONE OR MORE OF THE ELEMENT'S SHAPE FUNCIONS WILL ATTAIN A
-C *** VALUE EITHER LESS THAN 0 OR GREATER THAN 1 ( S > 1, OR S
-C *** < 0 ).
-C
-C *** COMPUTE EACH OF THE 3 SHAPE FUNCTIONS BASED ON
-C *** THE COORDINATES (XP,YP).
-C
-      S = (T(J,1)+B(J,1)*XP+A(J,1)*YP)*0.5D0/AR(J)
-      IF (S.GT.TU.OR.S.LT.TL) GOTO 10 
-      S = (T(J,2)+B(J,2)*XP+A(J,2)*YP)*0.5D0/AR(J)
-      IF (S.GT.TU.OR.S.LT.TL) GOTO 10
-      S = (T(J,3)+B(J,3)*XP+A(J,3)*YP)*0.5D0/AR(J)
-      IF (S.GT.TU.OR.S.LT.TL) GOTO 10
-      IND = 1
-      RETURN
- 
- 10   IND = 0
-      RETURN
-
       END
 C
 C***********************************************************************
@@ -1806,71 +1728,6 @@ c      WRITE(45,*) ' '
       END
 
 C***********************************************************************
-      SUBROUTINE SVEL
-C     This subroutine is used if harmonic files are used.
-C***********************************************************************
-C
-C ***   SET MAXIMUM ARRAY DIMENSIONS
-C-----------------------------------------------------------------------
-      INCLUDE 'CB_2D.h'
-C-----------------------------------------------------------------------
-C
-      COMMON /UFIN/C1,C2,C3,C4,C5,C6
-      COMMON /VFIN/D1,D2,D3,D4,D5,D6
-      COMMON /SINU/AMPX,AMPY,PHIX,PHIY
-      COMMON /ELAREAS/AR
-      REAL*8 AR(1:NNE)
-      COMMON /ABA0/A,B,A0
-      COMMON /ELEMS/ELEMS
-      COMMON /FREQCO/FREQ,NFREQ
-      COMMON /NUMBER/NMND,NMEL
-      INTEGER ELEMS(1:NNE,1:3)
-      REAL*8 A(1:NNE,1:3),B(1:NNE,1:3),A0(NNE,2),FREQ(1:NFR),
-     +     AMPX(1:ND,1:NFR),AMPY(1:ND,1:NFR),
-     +     PHIX(1:ND,1:NFR),PHIY(1:ND,1:NFR)
-      REAL*8 C1(1:NNE,1:NFR),C2(1:NNE,1:NFR),C3(1:NNE,1:NFR),
-     +     C4(1:NNE,1:NFR),C5(1:NNE,1:NFR),C6(1:NNE,1:NFR)
-      REAL*8 D1(1:NNE,1:NFR),D2(1:NNE,1:NFR),D3(1:NNE,1:NFR),
-     +     D4(1:NNE,1:NFR),D5(1:NNE,1:NFR),D6(1:NNE,1:NFR)
-      INTEGER NFREQ,NMND,NMEL,J,n1,n2,n3,l
-      REAL*8 u1,u2,u3,u4,u5,u6,v1,v2,v3,v4,v5,v6,a03,ari
-
-      DO 20 J = 1,NMEL
-          N1 = ELEMS(J,1)
-          N2 = ELEMS(J,2)
-          N3 = ELEMS(J,3)
-          A03 = AR(J) - A0(J,1) - A0(J,2)
-          ARI = 0.5d0/AR(J)
-          DO 10 L = 1,NFREQ
-              U1 = AMPX(N1,L)*DCOS(PHIX(N1,L))
-              U2 = AMPX(N2,L)*DCOS(PHIX(N2,L))
-              U3 = AMPX(N3,L)*DCOS(PHIX(N3,L))
-              U4 = AMPX(N1,L)*DSIN(PHIX(N1,L))
-              U5 = AMPX(N2,L)*DSIN(PHIX(N2,L))
-              U6 = AMPX(N3,L)*DSIN(PHIX(N3,L))
-              V1 = AMPY(N1,L)*DCOS(PHIY(N1,L))
-              V2 = AMPY(N2,L)*DCOS(PHIY(N2,L))
-              V3 = AMPY(N3,L)*DCOS(PHIY(N3,L))
-              V4 = AMPY(N1,L)*DSIN(PHIY(N1,L))
-              V5 = AMPY(N2,L)*DSIN(PHIY(N2,L))
-              V6 = AMPY(N3,L)*DSIN(PHIY(N3,L))
-              C1(J,L) = ARI* (B(J,1)*U1+B(J,2)*U2+B(J,3)*U3)
-              C4(J,L) = ARI* (B(J,1)*U4+B(J,2)*U5+B(J,3)*U6)
-              C2(J,L) = ARI* (A(J,1)*U1+A(J,2)*U2+A(J,3)*U3)
-              C5(J,L) = ARI* (A(J,1)*U4+A(J,2)*U5+A(J,3)*U6)
-              C3(J,L) = 2*ARI* (A0(J,1)*U1+A0(J,2)*U2+A03*U3)
-              C6(J,L) = 2*ARI* (A0(J,1)*U4+A0(J,2)*U5+A03*U6)
-              D1(J,L) = ARI* (B(J,1)*V1+B(J,2)*V2+B(J,3)*V3)
-              D4(J,L) = ARI* (B(J,1)*V4+B(J,2)*V5+B(J,3)*V6)
-              D2(J,L) = ARI* (A(J,1)*V1+A(J,2)*V2+A(J,3)*V3)
-              D5(J,L) = ARI* (A(J,1)*V4+A(J,2)*V5+A(J,3)*V6)
-              D3(J,L) = 2*ARI* (A0(J,1)*V1+A0(J,2)*V2+A03*V3)
-              D6(J,L) = 2*ARI* (A0(J,1)*V4+A0(J,2)*V5+A03*V6)
-   10     CONTINUE
-   20 CONTINUE
-      RETURN
-
-      END
 
 C
 C***********************************************************************
@@ -1982,45 +1839,13 @@ C
       REAL*8 UF, VF, X, Y, T
       REAL*8 UFUN, VFUN, UFUNTIME, VFUNTIME
 
-      IF (NUMFILE.EQ.1) THEN
-         UF = UFUN(J,X,Y,T)
-         VF = VFUN(J,X,Y,T)
-      ELSE IF (NUMFILE.EQ.2) THEN
+      IF (NUMFILE.EQ.2) THEN
           UF = UFUNTIME(J,X,Y,T)
           VF = VFUNTIME(J,X,Y,T)
       ENDIF
       RETURN
       END
 
-C***********************************************************************
-      REAL*8 FUNCTION UFUN(J,X,Y,T)
-C     THIS FUNCTION IS USED IF HARMONIC VELOCITY FILES ARE USED
-C***********************************************************************
-C
-C       DETERMINES X COMPONENT OF VELOCITY AT (X,Y)
-C
-C ***   SET MAXIMUM ARRAY DIMENSIONS
-C-----------------------------------------------------------------------
-      INCLUDE 'CB_2D.h'
-C-----------------------------------------------------------------------
-C
-      COMMON /UFIN/C1,C2,C3,C4,C5,C6
-      COMMON /FREQCO/FREQ,NFREQ
-      REAL*8 FREQ(1:NFR)
-      REAL*8 C1(1:NNE,1:NFR),C2(1:NNE,1:NFR),C3(1:NNE,1:NFR)
-      REAL*8 C4(1:NNE,1:NFR),C5(1:NNE,1:NFR),C6(1:NNE,1:NFR)
-      REAL*8 FQ
-      INTEGER J,NFREQ,L
-      REAL*8 X,Y,T
-
-      UFUN = 0.D0
-      DO 10 L = 1,NFREQ
-          FQ = FREQ(L)*T
-          UFUN = UFUN + (C1(J,L)*X+C2(J,L)*Y+C3(J,L))*DCOS(FQ)
-          UFUN = UFUN + (C4(J,L)*X+C5(J,L)*Y+C6(J,L))*DSIN(FQ)
-   10 CONTINUE
-      RETURN
-      END
 
 C
 C***********************************************************************
@@ -2073,37 +1898,6 @@ C
 
       UFUNTIME = UFUNTIME + (F1*X+F2*Y+F3)
       UFUNTIME = UFUNTIME + (F4*X+F5*Y+F6)
-   10 CONTINUE
-      RETURN
-      END
-
-C
-C***********************************************************************
-      REAL*8 FUNCTION VFUN(J,X,Y,T)
-C     THIS FUNCTION IS USED IF HARMONIC VELOCITY FILES ARE USED
-C***********************************************************************
-C
-C       COMPUTES Y COMPONENT OF VELOCITY AT (X,Y)
-C
-C ***   SET MAXIMUM ARRAY DIMENSIONS
-C-----------------------------------------------------------------------
-      INCLUDE 'CB_2D.h'
-C-----------------------------------------------------------------------
-C
-      COMMON /VFIN/D1,D2,D3,D4,D5,D6
-      COMMON /FREQCO/FREQ,NFREQ
-      REAL*8 FREQ(1:NFR)
-      REAL*8 D1(1:NNE,1:NFR),D2(1:NNE,1:NFR),D3(1:NNE,1:NFR)
-      REAL*8 D4(1:NNE,1:NFR),D5(1:NNE,1:NFR),D6(1:NNE,1:NFR)
-      REAL*8 FQ
-      INTEGER J,NFREQ,L
-      REAL*8 X,Y,T
-
-      VFUN = 0.D0
-      DO 10 L = 1,NFREQ
-          FQ = FREQ(L)*T
-          VFUN = VFUN + (D1(J,L)*X+D2(J,L)*Y+D3(J,L))*DCOS(FQ)
-          VFUN = VFUN + (D4(J,L)*X+D5(J,L)*Y+D6(J,L))*DSIN(FQ)
    10 CONTINUE
       RETURN
       END
