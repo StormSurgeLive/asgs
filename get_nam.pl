@@ -158,11 +158,11 @@ my @allFiles = $ftp->ls();
 foreach my $file (@allFiles) { 
    if ( $file =~ /nam.t(\d+)z.awip1200.tm00.grib2/ ) { 
       $cyclehour = $1;
-      #stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
+      stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
    }
 }
 my $cycletime = $cycledate . $cyclehour;
-#stderrMessage("DEBUG","The cycletime is '$cycletime'.");
+stderrMessage("DEBUG","The cycletime is '$cycletime'.");
 #
 # we need to have at least one set of files beyond the current nowcast
 # time, i.e., we need fresh new files that we have not run with yet

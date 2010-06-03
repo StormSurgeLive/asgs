@@ -710,6 +710,8 @@ init_ranger()
   SSHKEY=id_rsa_ranger
   QSCRIPT=ranger.template.sge
   QSCRIPTGEN=ranger.sge.pl
+  UMASK=006
+  GROUP="G-81535"
 }
 
 init_lonestar()
@@ -826,6 +828,8 @@ OUTPUTOPTIONS=
 TRIGGER="rss"
 STARTADVISORYNUM=null
 FORECASTLENGTH=
+UMASK=002
+GROUP=""
 DRY=1           
 DEMO=       
 STORM=        
@@ -882,6 +886,14 @@ done
 logMessage "Configuring the ASGS for the '${ENV}' platform..."
 env_dispatch ${ENV} 
 #
+# set the file and directory permissions, which are platform dependent
+logMessage "Setting permissions with the following umask: $UMASK."
+umask $UMASK 2>> ${SYSLOG}
+#if [[ $GROUP != "" ]]; then
+#   logMessage "Setting effective group to $GROUP."
+#   newgrp $GROUP 2>> ${SYSLOG}
+#fi
+#
 # Since the config file is read after the platform configuration has been
 # made, settings in the config file will override those in the plaform config.
 if [ -e "${CONFIG}" ]; then 
@@ -923,6 +935,7 @@ checkFileExistence $INPUTDIR "preprocessed ADCIRC input archive" $PREPPEDARCHIVE
 checkFileExistence $OUTPUTDIR "postprocessing initialization script" $INITPOST
 checkFileExistence $OUTPUTDIR "postprocessing script" $POSTPROCESS
 checkFileExistence $OUTPUTDIR "email notification script" $NOTIFY_SCRIPT
+checkFileExistence $OUTPUTDIR "data archival script" $ARCHIVE
 #
 checkDirExistence ${PERL5LIB}/Date "subdirectory for the Pcalc.pm perl module"
 checkFileExistence ${PERL5LIB}/Date "perl module for date calculations" Pcalc.pm
@@ -1236,6 +1249,9 @@ while [ 1 -eq 1 ]; do
        fi
        si=$[$si + 1];
     done
+    # copy results to archive location
+    logMessage "Initiating archival process, if any."
+    ${OUTPUTDIR}/${ARCHIVE} $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $ARCHIVEBASE $ARCHIVEDIR  2>> ${SYSLOG} & 
     logMessage "Forecast complete for advisory '$ADVISORY.'"
     consoleMessage "Forecast complete for advisory '$ADVISORY.'"
     OLDADVISDIR=$ADVISDIR
