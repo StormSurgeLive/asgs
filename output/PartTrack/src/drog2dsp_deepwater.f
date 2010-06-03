@@ -515,7 +515,7 @@ C first search all elelments for home of first particle
                   JJDR(III-NOTFND) = I
 C   PEI = particle element index
                   PEI=I
-                WRite(*,*) III, PEI
+C                WRite(*,*) III, PEI
                   GO TO 130
               END IF
   120     CONTINUE
@@ -527,7 +527,7 @@ C   PEI = particle element index
               IF (IND.EQ.1) THEN
                   JJDR(III-NOTFND) = NL
                    PEI=NL
-                WRite(*,*) III, PEI
+C                WRite(*,*) III, PEI
                   GO TO 130
               END IF
           DO 121 I = 2,NMEL
@@ -537,7 +537,7 @@ C   PEI = particle element index
               IF (IND.EQ.1) THEN
                   JJDR(III-NOTFND) = NL
                    PEI=NL
-                WRite(*,*) III, PEI
+C                WRite(*,*) III, PEI
                   GO TO 130
               END IF
                   NL = PEI - (I-1)
@@ -546,7 +546,7 @@ C   PEI = particle element index
               IF (IND.EQ.1) THEN
                   JJDR(III-NOTFND) = NL
                    PEI=NL
-                WRite(*,*) III, PEI
+C                WRite(*,*) III, PEI
                   GO TO 130
               END IF
 
