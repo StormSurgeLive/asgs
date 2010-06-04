@@ -120,17 +120,16 @@
        echo "Submitting $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge"
        qsub $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge >> ${SYSLOG} 2>&1
            counter1=0
-       while [ ! -e ./run.finish -o ! -e ./run.error ]; do
+       while [ ! -e ./run.finish ]; do
+              if [  -e ./run.error ]
+              then
+               echo "Particle Tracking finished with error"
+               exit
+              fi
               counter1=`expr $counter1 + 1`
-          #echo $counter1 ' particle path file not ready yet'
            sleep 60
        done
            echo  $counter1
-           sleep 30
-        if [ ! -s ./input_deepwater.pth -o -e run.error ]; do
-               echo "Particle Tracking finished but not complete or with error"
-            exit
-        done
            sleep 30
    # 3) Generate vizualizations
       
@@ -152,6 +151,12 @@
         echo $STARTTIME2
        OUTPUTPREFIX_fg=PartTrack_${ADVISORY}_
        OUTPUTPREFIX_kmz=PartTrack_${ADVISORY}
+  # now generate the outputprefix based on run time and initial particle position time
+
+       InitPartTime=$(head -1 ./InitialParticleTime.txt | tail -1 | awk '{print $1}')
+
+       OUTPUTPREFIX_final=PrtTrk_NAM${ADVISORY}_IPL${InitPartTime}
+
 
          ln -fs $TRACKDIR/make_ptFG_input.pl ./
   perl make_ptFG_input.pl --outputdir $TRACKDIR  --gmthome $GMTHOME2 --gridfile $GRIDPREFIX --gshome $GSHOME2 --storm ${STORM} --year ${YEAR} --adv $ADVISORY --n 31.0 --s 18.0 --e -80.0 --w -98.0 --outputprefix ${OUTPUTPREFIX_fg} --starttime $STARTTIME2 --numrecords $NumRecords
@@ -183,8 +188,15 @@
    done
      sleep 30
   
-#        cp ./${OUTPUTPREFIX_kmz}.kmz  ${HOME}
-        cp ./${OUTPUTPREFIX_kmz}.kmz /corral/hurricane/rweaver
-        cp ./input_deepwater.pth  /corral/hurricane/rweaver/${OUTPUTPREFIX_kmz}.pth
-                      
+        mv ./${OUTPUTPREFIX_kmz}.kmz  ${OUTPUTPREFIX_final}.kmz
+        mv ./input_deepwater.pth      ${OUTPUTPREFIX_final}.pth
+        cp ./${OUTPUTPREFIX_final}.kmz /corral/hurricane/rweaver/${OUTPUTPREFIX_final}.kmz
+        cp ./${OUTPUTPREFIX_final}.pth /corral/hurricane/rweaver/${OUTPUTPREFIX_final}.pth
+
+  # change group and permissions to be sure everyone can read the archived files
+
+    chgrp -R G-81535  /corral/hurricane/rweaver/*pth
+    chgrp -R G-81535  /corral/hurricane/rweaver/*kmz
+    chmod 640 /corral/hurricane/rweaver/*pth /corral/hurricane/rweaver/*kmz
+ 
    cd $initialDirectory
