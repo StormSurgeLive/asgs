@@ -25,7 +25,7 @@
 
 # Specify the output filename explicitly (optional; the default is named
 # from the job ID, in the directory where qsub was run.)
-#$ -o %advisdir%/%enstorm%/%enstorm%PartTrack.out
+#$ -o %advisdir%/%enstorm%/PartTrack/%enstorm%PartTrack.out
 
 # Specify the account that the time should be taken from 
 #$ -A %account%

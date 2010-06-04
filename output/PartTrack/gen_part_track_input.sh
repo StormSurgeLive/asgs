@@ -43,8 +43,16 @@ echo $VELINPUTFILE
     RUNLENGTH=$(head -1 ./convertednumbers | tail -1 | awk '{print $2}') 
  # get initial locations
 #   Initial_Loc_File=$(ls -tr1 $TRACKDIR/InitialPositions/*500m.txt | tail -1  | awk '{print $1}')
-    Initial_Loc_File=$(ls -tr1 $TRACKDIR/InitialPositions/*1000m* | tail -1  | awk '{print $1}')
+#    Initial_Loc_File=$(ls -tr1 $TRACKDIR/InitialPositions/*1000m* | tail -1  | awk '{print $1}')
+    Initial_Loc_File=$(ls -tr1 /corral/hurricane/mthoward/*1000m* | tail -1  | awk '{print $1}')
     Initial_Loc_File_base=`basename $Initial_Loc_File`
+ 
+
+  InitPartTime=${Initial_Loc_File_base:1:9}
+   echo $InitPartTime > InitialParticleTime.txt
+   echo $Initial_Loc_File_base >> InitialParticleTime.txt
+   
+
 #     echo $NumRecords $OutputFreq $RunStartTime $Initial_Loc_File
 #  Get the number of particles form the initial positino file
      NumParticles=$(wc -l ${Initial_Loc_File} | awk '{print $1}')
