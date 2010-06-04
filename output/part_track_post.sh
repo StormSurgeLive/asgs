@@ -120,12 +120,17 @@
        echo "Submitting $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge"
        qsub $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge >> ${SYSLOG} 2>&1
            counter1=0
-       while [ ! -e ./run.finish ]; do
+       while [ ! -e ./run.finish || ! -e ./run.error ]; do
               counter1=`expr $counter1 + 1`
           #echo $counter1 ' particle path file not ready yet'
            sleep 60
        done
-            echo  $counter1
+           echo  $counter1
+           sleep 30
+        if [ ! -s ./input_deepwater.pth || -e run.error ]; do
+               echo "Particle Tracking finished but not complete or with error"
+            exit
+        done
            sleep 30
    # 3) Generate vizualizations
       
