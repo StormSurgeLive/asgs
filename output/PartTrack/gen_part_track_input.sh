@@ -30,7 +30,7 @@
 #      VELINPUTFILE=./fort.64
 echo $VELINPUTFILE
    
-    NumRecords=$(head -2 ${VELINPUTFILE} | tail -1 | awk '{print $1}')  # in Hours
+    NumRecords=$(head -2 ${VELINPUTFILE} | tail -1 | awk '{print $1}')  # 
     OutputFreq=$(head -2 ${VELINPUTFILE} | tail -1 | awk '{print $3}')  # in Seconds
 
     RunStartTime=$(head -3 ${VELINPUTFILE} | tail -1 | awk '{print $1}') # in Seconds
@@ -42,7 +42,8 @@ echo $VELINPUTFILE
     RunStartTimeHr=$(head -1 ./convertednumbers | tail -1 | awk '{print $1}') 
     RUNLENGTH=$(head -1 ./convertednumbers | tail -1 | awk '{print $2}') 
  # get initial locations
-    Initial_Loc_File=$(ls -t1 $TRACKDIR/InitialPositions/*1000m.txt | tail -1  | awk '{print $1}')
+#   Initial_Loc_File=$(ls -tr1 $TRACKDIR/InitialPositions/*500m.txt | tail -1  | awk '{print $1}')
+    Initial_Loc_File=$(ls -tr1 $TRACKDIR/InitialPositions/*1000m* | tail -1  | awk '{print $1}')
     Initial_Loc_File_base=`basename $Initial_Loc_File`
 #     echo $NumRecords $OutputFreq $RunStartTime $Initial_Loc_File
 #  Get the number of particles form the initial positino file
