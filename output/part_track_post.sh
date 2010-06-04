@@ -120,11 +120,12 @@
        echo "Submitting $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge"
        qsub $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge >> ${SYSLOG} 2>&1
            counter1=0
-       while [ ! -s ./input_deepwater.pth ]; do
+       while [ ! -e ./run.finish ]; do
               counter1=`expr $counter1 + 1`
-           echo $counter1 ' particle path file not ready yet'
+          #echo $counter1 ' particle path file not ready yet'
            sleep 60
        done
+            echo  $counter1
            sleep 30
    # 3) Generate vizualizations
       
@@ -138,7 +139,7 @@
 
     # create FigGen input File
         GSHOME2=/usr/bin/
-       GMTHOME2=/work/01053/rweaver/GMT4.5.2/bin/
+       GMTHOME2=/work/01053/rweaver/GMT4.5.0/bin/
        STARTTIME=$(head -1 $ADVISDIR/$ENSTORM/hotstartdate | tail -1 | awk '{print $1}')
        NumRecords=$(head -2 ./fort.64 | tail -1 | awk '{print $1}')  # 
 
@@ -171,11 +172,14 @@
      
   #    ./FigureGen42_parallel.exe >> $ADVISDIR/$ENSTORM/figgen_track.log 2>&1  &
 
+#    while [ ! -e ./run.finish ]; do
     while [ ! -e ./${OUTPUTPREFIX_kmz}.kmz ]; do
       sleep 60
    done
      sleep 30
   
-        cp ./${OUTPUTPREFIX_kmz}.kmz  ${HOME}
+#        cp ./${OUTPUTPREFIX_kmz}.kmz  ${HOME}
+        cp ./${OUTPUTPREFIX_kmz}.kmz /corral/hurricane/rweaver
+        cp ./input_deepwater.pth  /corral/hurricane/rweaver/${OUTPUTPREFIX_kmz}.pth
                       
    cd $initialDirectory
