@@ -48,7 +48,7 @@ echo $VELINPUTFILE
     Initial_Loc_File_base=`basename $Initial_Loc_File`
  
 
-  InitPartTime=${Initial_Loc_File_base:1:9}
+  InitPartTime=${Initial_Loc_File_base:1:16}
    echo $InitPartTime > InitialParticleTime.txt
    echo $Initial_Loc_File_base >> InitialParticleTime.txt
    
