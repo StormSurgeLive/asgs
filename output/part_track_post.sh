@@ -55,7 +55,7 @@
 
        ln -fs $TRACKDIR/gen_part_track_input.sh
      ./gen_part_track_input.sh $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $ENSTORM $OUTPUTDIR 
-      echo '  ./gen_part_track_input.sh $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $ENSTORM $OUTPUTDIR '  > $HOME/gen_log.log
+      echo ' ./gen_part_track_input.sh' $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $ENSTORM $OUTPUTDIR  > $HOME/gen_log.log
 
    # create drogue_input_1 file
 
@@ -116,14 +116,15 @@
 
         SERQSCRIPT=ranger.PartTrack.template.serial
        SERQSCRIPTOPTIONS="--account $ACCOUNTpost --adcircdir $TRACKDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $TRACKDIR/$SERQSCRIPT"
+         echo $SERQSCRIPTOPTIONS > scriptgrn_pt.log
        perl $TRACKDIR/ranger.PartTrack.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge 2>> ${SYSLOG}
        echo "Submitting $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge"
        qsub $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge >> ${SYSLOG} 2>&1
            counter1=0
        while [ ! -e ./run.finish ]; do
-              if [  -e ./run.error ]
+              if [ -e ./run.error ]
               then
-               echo "Particle Tracking finished with error"
+               echo "Particle Tracking finished with error"  >> ./run.error
                exit
               fi
               counter1=`expr $counter1 + 1`
@@ -163,14 +164,14 @@
  #   perl make_ptFG_input.pl --outputdir $TRACKDIR --gmthome $GMTHOME --gridfile $GRIDPREFIX --gshome $GSHOME --storm ${STORM} --year ${YEAR} --adv $ADVISORY --n $NORTH --s $SOUTH --e $EAST --w $WEST --outputprefix $OUTPUTPREFIX --starttime $STARTTIME --numrecords $NumRecords
 
   # Serial run on login(Head)  node
-      ./FigureGen42_serial.exe >> $ADVISDIR/$ENSTORM/figgen_track.log 2>&1  &
+     # ./FigureGen42_serial.exe >> $ADVISDIR/$ENSTORM/figgen_track.log 2>&1  &
 
   # Serial run
-      # SERQSCRIPT=ranger.PartTrackFG.template.serial
-      # SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $TRACKDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $TRACKDIR/$SERQSCRIPT"
-      # perl $TRACKDIR/ranger.FigGen42.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/PartTrack/parttrackfg.serial.sge 2>> ${SYSLOG}
-      # logMessage "Submitting $ADVISDIR/$ENSTORM/PartTrack/parttrackfg.serial.sge"
-      # qsub $ADVISDIR/$ENSTORM/PartTrack/parttrackfg.serial.sge >> ${SYSLOG} 2>&1
+       SERQSCRIPT=ranger.PartTrackFG.template.serial
+       SERQSCRIPTOPTIONS="--adcircdir $TRACKDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $TRACKDIR/$SERQSCRIPT"
+       perl $TRACKDIR/ranger.FigGen42.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/PartTrack/parttrackfg.serial.sge 2>> ${SYSLOG}
+       logMessage "Submitting $ADVISDIR/$ENSTORM/PartTrack/parttrackfg.serial.sge"
+       qsub $ADVISDIR/$ENSTORM/PartTrack/parttrackfg.serial.sge >> ${SYSLOG} 2>&1
 
 
   # Parallel run
