@@ -60,6 +60,6 @@ PARAMETERS FOR OVERALL PLOT(S):
 1                                                  ! Image trim flag: 0 to ignore, 1 to trim image close to plot.
 72                                                 ! Resolution (dpi) of images.
 PNG,JPG                                            ! Raster file format(s): PNG, JPG, BMP, TIFF, EPS, PDF.
-1,100,4,                    
+1,100,3,                    
 0,0                                                ! Flag for georeferencing: (0 to ignore, 1 for images, 2 for zipped images), and lowermost layer (or 0 to optimize).
 0                                                 ! Number of records for which to produce images (or 0 for all).
