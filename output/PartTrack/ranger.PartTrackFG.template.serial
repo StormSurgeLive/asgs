@@ -2,8 +2,7 @@
 
 
 # Specify the queue explicitly
-#$ -q serial
-# $ -q request
+#$ -q vis
 
 # Specify V 
 #$ -V 
@@ -15,20 +14,17 @@
 #$ -pe 1way 16
 
 # Specify the wall clock time
-#$ -l h_rt=00:30:00
+#$ -l h_rt=01:00:00
 
 # Merge stderr to stdout (optional, otherwise they're in separate files)
 #$ -j y
 
 # Name the job (this will appear in the output from the qstat command)
-#$ -N Prep
+#$ -N FigureGen42
 
 # Specify the output filename explicitly (optional; the default is named
 # from the job ID, in the directory where qsub was run.)
 #$ -o %advisdir%/%enstorm%/%enstorm%PartTrack.out
-
-# Specify the account that the time should be taken from 
-#$ -A %account%
 
 # Request mail when job ends, or is aborted (optional, default is "a" only)
 # (commented out)
@@ -52,34 +48,32 @@ module load TACC
 module unload pgi mvapich2
 # Load which ever combination you need
 module load pgi
-module load mvapich/1.0.1
+#module load mvapich/1.0.1
 module load ddt
+module load intel/11.1
 
 # The directory to start in 
 cd %advisdir%/%enstorm%/PartTrack
 
-cp %adcircdir%/FigureGen42_serial.exe ./
-Cp %adcircdir%/FG42_template.inp ./FG42_template.inp
-
 # These are the actual commands to be executed.
 
     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-    echo "[${DATETIME}] : Job starting"          >> run.fg.start
-    echo "[${DATETIME}] : %advisdir%  %enstorm%" >> run.fg.start
-    echo "[${DATETIME}] : FigGen42 PartTrack"    >> run.fg.start
+    echo "[${DATETIME}] : Job starting"          >> run.fig.start
+    echo "[${DATETIME}] : %advisdir%  %enstorm%" >> run.fig.start
+    echo "[${DATETIME}] : FigGen42 PartTrack"    >> run.fig.start
 
      ./FigureGen42_serial.exe  >  FigGen_PartTrack.out
 
     ERROVALUE=$?
     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
     if [ $ERROVALUE == 0 ] ; then
-    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.fg.finish
-    echo "[${DATETIME}] :  %advisdir%  %enstorm%"               >> run.fg.finish
-    echo "[${DATETIME}] :  FigGen42 PartTrack"                  >> run.fg.finish
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.fig.finish
+    echo "[${DATETIME}] :  %advisdir%  %enstorm%"               >> run.fig.finish
+    echo "[${DATETIME}] :  FigGen42 PartTrack"                  >> run.fig.finish
     else
-    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.fg.error
-    echo "[${DATETIME}] :  %advisdir%  %enstorm%"               >> run.fg.error
-    echo "[${DATETIME}] :  FigGen42 PartTrack"                  >> run.fg.error
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.fig.error
+    echo "[${DATETIME}] :  %advisdir%  %enstorm%"               >> run.fig.error
+    echo "[${DATETIME}] :  FigGen42 PartTrack"                  >> run.fig.error
     fi
 
 # You don't need anything special at the end of the script.

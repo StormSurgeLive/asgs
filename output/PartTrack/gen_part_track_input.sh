@@ -24,6 +24,7 @@
    ADVISORY=$5
    ENSTORM=$6
    OUTPUTDIR=$7
+#   SPECIAL=$8
 
     TRACKDIR=$OUTPUTDIR/PartTrack/
     VELINPUTFILE=${ADVISDIR}/${ENSTORM}/fort.64
@@ -41,16 +42,22 @@ echo $VELINPUTFILE
              ./convert_numbers.exe
     RunStartTimeHr=$(head -1 ./convertednumbers | tail -1 | awk '{print $1}') 
     RUNLENGTH=$(head -1 ./convertednumbers | tail -1 | awk '{print $2}') 
+    
+  
+#      if [-z ${PARTICLEFILE} ] ; then 
  # get initial locations
 #   Initial_Loc_File=$(ls -tr1 $TRACKDIR/InitialPositions/*500m.txt | tail -1  | awk '{print $1}')
 #    Initial_Loc_File=$(ls -tr1 $TRACKDIR/InitialPositions/*1000m* | tail -1  | awk '{print $1}')
     Initial_Loc_File=$(ls -tr1 /corral/hurricane/mthoward/*1000m* | tail -1  | awk '{print $1}')
-    Initial_Loc_File_base=`basename $Initial_Loc_File`
- 
+    Initial_Loc_File_base=`basename $Initial_Loc_File .txt`
+#      else
+#      Initial_Loc_File=/corral/hurricane/mthoward/${PARTICLEFILE} | tail -1  | awk '{print $1}')
+#      Initial_Loc_File_base=`basename $Initial_Loc_File .txt`
+#     fi 
 
-  InitPartTime=${Initial_Loc_File_base:1:16}
-   echo $InitPartTime > InitialParticleTime.txt
-   echo $Initial_Loc_File_base >> InitialParticleTime.txt
+  InitPartTime=${Initial_Loc_File_base:1:8}
+   echo $Initial_Loc_File_base > InitialParticleTime.txt
+   echo $InitPartTime >> InitialParticleTime.txt
    
 
 #     echo $NumRecords $OutputFreq $RunStartTime $Initial_Loc_File

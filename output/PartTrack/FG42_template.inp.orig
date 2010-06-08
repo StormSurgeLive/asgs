@@ -1,7 +1,7 @@
 FOR BEST RESULTS, PLEASE KEEP COMMENTS OUT OF THE FIRST 50 CHARACTERS ON EACH LINE.
 12345678901234567890123456789012345678901234567890
 4                                                  ! Level of screen output.
-/work/01053/rweaver/GMT4.5.2/bin/                   ! Path where GMT executables are located.
+/work/01053/rweaver/GMT4.5.0/bin/                   ! Path where GMT executables are located.
 /usr/bin/                                          ! Path where GhostScript executable is located.
 ./Temp/                                            ! Path where temporary files will be created.
 Particle_tracking_                                 ! Alphanumeric label for these plots.
@@ -46,7 +46,7 @@ PARAMETERS FOR PARTICLE TRACKING:
 1                                                  ! PartTrack flag: 0 to ignore, 1 to plot Particle Tracking output.
 input_deepwater.pth                                ! Name of file to use for Particle Tracking.
 1.0                                                ! Tracking Interval (in hours)(use only 1 for now)(0 will indicate track every timestep in Tracking File)
-3                                                  ! size of particle (in pt (values form 1-9))
+1                                                  ! size of particle (in pt (values form 1-9))
 PARAMETERS FOR OVERALL PLOT(S):
 1,Brown                                            ! Boundaries flag: 0 to ignore, 1 to plot roads/levees from grid.
 0,Black,4,4                                        ! Coastline flag: 0 to ignore, 1 to plot coastline with color, resolution (1[Least]-4[Most]), water bodies (1[Least]-4[Most]).
@@ -58,8 +58,8 @@ PARAMETERS FOR OVERALL PLOT(S):
 5.00                                               ! Alternate black and white boxes on the border at every xth degree.
 5.00                                               ! Annotate on the border at every xth degree.
 1                                                  ! Image trim flag: 0 to ignore, 1 to trim image close to plot.
-100                                                ! Resolution (dpi) of images.
+72                                                 ! Resolution (dpi) of images.
 PNG,JPG                                            ! Raster file format(s): PNG, JPG, BMP, TIFF, EPS, PDF.
-1,100,3,20080903130000                             ! Flag for Google KMZ file, transparency (0-100) of images, number of layers, and time stamp of first record in 63 file for animation.
+1,100,4,                    
 0,0                                                ! Flag for georeferencing: (0 to ignore, 1 for images, 2 for zipped images), and lowermost layer (or 0 to optimize).
 0                                                 ! Number of records for which to produce images (or 0 for all).

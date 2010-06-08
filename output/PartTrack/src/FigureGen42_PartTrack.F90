@@ -96,7 +96,7 @@ MODULE DATA
         INTEGER             :: PartSize
         INTEGER             :: OptimizeContours = 0
         INTEGER,ALLOCATABLE :: RecordsList(:)
-        INTEGER             :: RemoveFiles = 1
+        INTEGER             :: RemoveFiles = 0
         INTEGER             :: Resolution
         INTEGER             :: SmallJPGWidth
         INTEGER             :: SplitBy
@@ -2322,13 +2322,13 @@ SUBROUTINE GoogleKMZ
 
       IMPLICIT NONE
 
-      INTRINSIC          :: LEN_TRIM
-      INTRINSIC          :: TRIM
+      INTRINSIC           :: LEN_TRIM
+      INTRINSIC           :: TRIM
 
-      CHARACTER(LEN=100) :: GoogleLabel
-      CHARACTER(LEN=240) :: Line
+      CHARACTER(LEN=100)  :: GoogleLabel
+      CHARACTER(LEN=1000) :: Line
 
-      INTEGER            :: IR
+      INTEGER             :: IR
 
       GoogleLabel = ""
       GoogleLabel = TRIM(AlphaLabel)
@@ -2363,35 +2363,122 @@ SUBROUTINE GoogleKMZ
 
       ENDIF
 
-      Line = ""
-      Line = TRIM(Line)//" "//"zip -q"
-      Line = TRIM(Line)//" "//TRIM(GoogleLabel)//".kmz"
-      IF(NumRecords.NE.1)THEN
-         Line = TRIM(Line)//" "//TRIM(GoogleLabel)//".kml"
+!     Line = ""
+!     Line = TRIM(Line)//" "//"zip -q"
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//".kmz"
+!     IF(NumRecords.NE.1)THEN
+!        Line = TRIM(Line)//" "//TRIM(GoogleLabel)//".kml"
+!     ENDIF
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*01.kml"
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*02.kml"
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*03.kml"
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*04.kml"
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*05.kml"
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*06.kml"
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*07.kml"
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*08.kml"
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*01.png"
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*02.png"
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*03.png"
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*04.png"
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*05.png"
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*06.png"
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*07.png"
+!     Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*08.png"
+!     IF(((IfPlotFilledContours.GE.1).OR.(TRIM(ColorLines).NE."DEFAULT")).AND. &
+!        (INDEX(ContourFileFormat,"GRID-DECOMP").LE.0))THEN
+!        CALL SYSTEM(TRIM(Path)//"ps2raster Scale.ps -A -E600 -FScale.jpg"// &
+!                    " -G"//TRIM(GSPath)//"gs -P -Tg")
+!        Line = TRIM(Line)//" "//"Scale.png"
+!     ENDIF
+!     IF(IfPlotLogo.EQ.1)THEN
+!        Line = TRIM(Line)//" "//TRIM(LogoFile)
+!     ENDIF
+!     PRINT*, TRIM(Line)
+!     CALL SYSTEM(TRIM(Line))
+
+!     IF(NumRecords.NE.1)THEN
+!        CALL SYSTEM("rm "//TRIM(GoogleLabel)//".kml")
+!     ENDIF
+!     CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*.kml")
+!     CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*.png")
+!     CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*.ps")
+!     IF(((IfPlotFilledContours.GE.1).OR.(TRIM(ColorLines).NE."DEFAULT")).AND. &
+!        (INDEX(ContourFileFormat,"GRID-DECOMP").LE.0))THEN
+!        CALL SYSTEM("rm "//"Scale.png")
+!        CALL SYSTEM("rm "//"Scale.ps")
+!     ENDIF
+
+!Casey 100606: Changes start here.
+      IF(NumLayers.GT.0)THEN
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*01.kml"
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*01.png"
+         CALL SYSTEM(TRIM(Line))
+         CALL SYSTEM("rm -r "//TRIM(GoogleLabel)//"*01.kml")
+         CALL SYSTEM("rm -r "//TRIM(GoogleLabel)//"*01.png")
+         CALL SYSTEM("rm -r "//TRIM(GoogleLabel)//"*01.ps")
       ENDIF
-      Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*.kml"
-      Line = TRIM(Line)//" "//TRIM(GoogleLabel)//"*.png"
+      IF(NumLayers.GT.1)THEN
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*02.kml"
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*02.png"
+         CALL SYSTEM(TRIM(Line))
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*02.kml")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*02.png")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*02.ps")
+      ENDIF
+      IF(NumLayers.GT.2)THEN
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*03.kml"
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*03.png"
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*04.kml"
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*04.png"
+         CALL SYSTEM(TRIM(Line))
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*03.kml")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*03.png")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*03.ps")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*04.kml")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*04.png")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*04.ps")
+      ENDIF
+      IF(NumLayers.GT.3)THEN
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*05.kml"
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*05.png"
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*06.kml"
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*06.png"
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*07.kml"
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*07.png"
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*08.kml"
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*08.png"
+         CALL SYSTEM(TRIM(Line))
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*05.kml")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*05.png")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*05.ps")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*06.kml")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*06.png")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*06.ps")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*07.kml")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*07.png")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*07.ps")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*08.kml")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*08.png")
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*08.ps")
+      ENDIF
+      IF(NumRecords.NE.1)THEN
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//".kml"
+         CALL SYSTEM(TRIM(Line))
+         CALL SYSTEM("rm "//TRIM(GoogleLabel)//".kml")
+      ENDIF
       IF(((IfPlotFilledContours.GE.1).OR.(TRIM(ColorLines).NE."DEFAULT")).AND. &
          (INDEX(ContourFileFormat,"GRID-DECOMP").LE.0))THEN
          CALL SYSTEM(TRIM(Path)//"ps2raster Scale.ps -A -E600 -FScale.jpg"// &
                      " -G"//TRIM(GSPath)//"gs -P -Tg")
-         Line = TRIM(Line)//" "//"Scale.png"
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//"Scale.png"
+         CALL SYSTEM(TRIM(Line))
+         CALL SYSTEM("rm Scale.ps")
+         CALL SYSTEM("rm Scale.png")
       ENDIF
       IF(IfPlotLogo.EQ.1)THEN
-         Line = TRIM(Line)//" "//TRIM(LogoFile)
-      ENDIF
-      CALL SYSTEM(TRIM(Line))
-
-      IF(NumRecords.NE.1)THEN
-         CALL SYSTEM("rm "//TRIM(GoogleLabel)//".kml")
-      ENDIF
-      CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*.kml")
-      CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*.png")
-      CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*.ps")
-      IF(((IfPlotFilledContours.GE.1).OR.(TRIM(ColorLines).NE."DEFAULT")).AND. &
-         (INDEX(ContourFileFormat,"GRID-DECOMP").LE.0))THEN
-         CALL SYSTEM("rm "//"Scale.png")
-         CALL SYSTEM("rm "//"Scale.ps")
+         Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(LogoFile)
+         CALL SYSTEM(TRIM(Line))
       ENDIF
 
       IF(Verbose.GE.3)THEN
