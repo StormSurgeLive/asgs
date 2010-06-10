@@ -5,19 +5,21 @@
 # rjweaver@email.unc.edu
 # 06/2009 
 #  
-ADVISDIR=$1
-OUTPUTDIR=$2
-STORM=$3
-YEAR=$4
-ADVISORY=$5
-HOSTNAME=$6
-ENSTORM=$7
-GRIDFILE=$8 
-
-
-
-  cd $ADVISDIR/$ENSTORM
+CONFIG=$1
+ADVISDIR=$2
+OUTPUTDIR=$3
+STORM=$4
+YEAR=$5
+ADVISORY=$6
+HOSTNAME=$7
+ENSTORM=$8
+GRIDFILE=$9 
+#
+cd $ADVISDIR/$ENSTORM
 #  	echo $ADVISDIR/$ENSTORM
+# grab configuration from main ASGS configuration script
+. ${CONFIG}
+#
 # This script will run the KMZ and GIS shapefile generator 
 # and make a JPG of the maxele file
 #
@@ -41,21 +43,19 @@ GRIDFILE=$8
 #
 # First set path to the POSTPROC_KMZGIS directory
 #
-
 POSTPROC_DIR=$OUTPUTDIR/POSTPROC_KMZGIS
-
 #echo $POSTPROC_DIR
-
+#
 # add location of KMZ scripts to PATH 
 # This should be fine unless locations were really changed
-
+#
 export PPDIR=$POSTPROC_DIR/RenciGETools-1.0/src
 #echo $PPDIR
-
-# now set dddefinitions needed for the KMZ generator
+#
+# now set definitions needed for the KMZ generator
 #
 # .. KMZ .. 
-
+#
 # THERE ARE 2 FILES TO EDIT PRIOR TO RUNNING KMZ SCRIPTS
 
 # .......
@@ -65,7 +65,7 @@ export PPDIR=$POSTPROC_DIR/RenciGETools-1.0/src
 # This is the main configuration file for the KMZ scripts.
 # in this file you must indicate the computer on which you
 # are trying to run, AND the bounding box for your output.
-# the vairable names are :
+# the varable names are :
 #
 # TARGET and BOX
 #

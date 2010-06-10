@@ -483,14 +483,18 @@ downloadBackgroundMet()
    CSDATE=$6
    HSTIME=$7
    FORECASTLENGTH=$8
+   ALTNAMDIR=$9
 #
 #   activity_indicator "Checking remote site for background meteorology data..." &
 #   pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
 #   stop_activity_indicator ${pid} 
    cd $RUNDIR 2>> ${SYSLOG}
+   if [[ $ENSTORM != "nowcast" ]]; then
+      cp advisoryNumber currentCycle 2>> ${SYSLOG}
+   fi
    echo "0" > advisoryNumber 2>> ${SYSLOG}
    while [[ `cat advisoryNumber` -lt 2 ]]; do
-      OPTIONS="--rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH"
+      OPTIONS="--rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR"
       perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG} > advisoryNumber
       if [[ `cat advisoryNumber` -lt 2 ]]; then
          sleep 60
@@ -828,6 +832,7 @@ OUTPUTOPTIONS=
 TRIGGER="rss"
 STARTADVISORYNUM=null
 FORECASTLENGTH=
+ALTNAMDIR=
 UMASK=002
 GROUP=""
 DRY=1           
@@ -952,6 +957,9 @@ fi
 # the asgs config file (e.g., asgs_config.sh)
 RUNDIR=$SCRATCHDIR/asgs$$
 logMessage "The directory $RUNDIR will be used for all files associated with this execution of the ASGS."
+# add the run directory to the list of alternate directories to look for 
+# NAM data in
+ALTNAMDIR="${ALTNAMDIR},$RUNDIR"
 # set directory to get perl date calcs module from
 export PERL5LIB=${SCRIPTDIR}:${PERL5LIB} #<- augment, don't write over existing
 # see if the storm directory already exists in the scratch space
@@ -1039,8 +1047,8 @@ if [[ $START = coldstart ]]; then
       fi
       logMessage "NWS is $NWS."
       logMessage "Downloading background meteorology."
-      logMessage "downloadBackgroundMet $ADVISDIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM"
-      downloadBackgroundMet $ADVISDIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM
+      logMessage "downloadBackgroundMet $ADVISDIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $ALTNAMDIR"
+      downloadBackgroundMet $ADVISDIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $ALTNAMDIR
       # prepare hindcast met (fort.22) and control (fort.15) files 
       CONTROLOPTIONS=" --metfile $ADVISDIR/fort.221 --name hindcast --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE"
       OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
@@ -1138,8 +1146,8 @@ while [ 1 -eq 1 ]; do
        fi
        logMessage "NWS is $NWS."
        logMessage "Downloading background meteorology."
-       logMessage "downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH"
-       downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH
+       logMessage "downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR"
+       downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR
        ADVISORY=`cat advisoryNumber`
        ADVISDIR=$RUNDIR/${ADVISORY}
        cd $ADVISDIR 2>> ${SYSLOG}
@@ -1195,7 +1203,7 @@ while [ 1 -eq 1 ]; do
        if [ ! -d $ADVISDIR/${ENSTORM} ]; then
           mkdir $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
        fi
-       cd $ADVISDIR/${ENSTORM}
+       cd $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
        # TROPICAL CYCLONE ONLY
        if [[ $TROPICALCYCLONE = on && $BACKGROUNDMET = off ]]; then
           METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $CSDATE --hotstartseconds $HSTIME --nws $NWS --name $ENSTORM"
@@ -1214,7 +1222,11 @@ while [ 1 -eq 1 ]; do
        if [[ $TROPICALCYCLONE = off && $BACKGROUNDMET = on ]]; then
           logMessage "$START $ENSTORM cycle $ADVISORY."
           consoleMessage "$START $ENSTORM cycle $ADVISORY."
-          # convert met files to OWI format
+          # download and convert met files to OWI format
+          logMessage "Downloading background meteorology."
+          logMessage "downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR"
+          downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR
+          cd $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
           NAMOPTIONS=" --ptFile ${INPUTDIR}/${PTFILE} --namFormat grib2 --namType $ENSTORM --awipGridNumber 218 --dataDir ${ADVISDIR}/${ENSTORM} --outDir ${ADVISDIR}/${ENSTORM}/ --velocityMultiplier 0.893 --scriptDir ${SCRIPTDIR}"
           logMessage "Converting NAM data to OWI format with the following options : $NAMOPTIONS"
           perl ${SCRIPTDIR}/NAMtoOWI.pl $NAMOPTIONS >> ${SYSLOG} 2>&1 
@@ -1245,7 +1257,7 @@ while [ 1 -eq 1 ]; do
           post_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM "${POST_LIST}" >> ${SYSLOG} 2>&1
        fi
        if [[ ! -z $POSTPROCESS2 ]]; then # creates GIS and kmz figures
-          ${OUTPUTDIR}/${POSTPROCESS2} $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $GRIDFILE  2>> ${SYSLOG} 
+          ${OUTPUTDIR}/${POSTPROCESS2} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG 2>> ${SYSLOG} 
        fi
        si=$[$si + 1];
     done
