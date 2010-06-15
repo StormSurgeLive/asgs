@@ -45,6 +45,7 @@ MODULE DATA
         CHARACTER(LEN=50)   :: PartTrackFile
         CHARACTER(LEN=50)   :: PartTrackInitial
         CHARACTER(LEN=50)   :: PartTrackSnap
+        CHARACTER(LEN=50)   :: ParticlePalette
 
         INTEGER             :: ContourFileType
         INTEGER             :: ContourLabelEvery
@@ -91,6 +92,7 @@ MODULE DATA
         INTEGER             :: NumRecords
         INTEGER             :: NumRecs
         INTEGER             :: NumParticles
+        INTEGER             :: NumParticleColors
         INTEGER             :: NumSubDomains
         INTEGER             :: NumSubRecords = 1
         INTEGER             :: PartSize
@@ -261,10 +263,12 @@ PROGRAM FigureGen
                         TimeStep = NINT(JunkR)
                     ENDIF
                 ENDIF
-            ELSEIF(IfPlotPartTrack.GT.0)THEN
+            ENDIF
+            IF(IfPlotPartTrack.GT.0)THEN
                     OPEN(UNIT=19,FILE=TRIM(PartTrackFile),ACTION="READ")
                     READ(UNIT=19,FMT='(A)') JunkC
                     READ(UNIT=19,FMT=*) NumRecs, NumParticles, JunkR
+               WRITE(*,*) NumRecs
                     READ(UNIT=19,FMT=*) JunkI, JunkI
                     CLOSE(UNIT=19,STATUS="KEEP")
                     IF(IfGoogle.EQ.1)THEN
@@ -281,7 +285,7 @@ PROGRAM FigureGen
         ENDIF
 #endif
 
-
+          write(*,*) NumRecs, NumRecords
         IF(NumRecords.EQ.0)THEN
             NumRecords = NumRecs
             ALLOCATE(RecordsList(1:NumRecords))
@@ -320,6 +324,10 @@ PROGRAM FigureGen
         ENDIF
         CALL MPI_BCAST(NumNodesGlobal, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, IERR)
         CALL MPI_BCAST(NumNodesLocal, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, IERR)
+        IF (IfPlotPartTrack.GT.0)THEN
+           CALL MPI_BCAST(NumParticleColors, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, IERR)
+        ENDIF
+
 #endif
 
         IF(MyRank.NE.0)THEN
@@ -1278,6 +1286,79 @@ SUBROUTINE CreateCPTFiles
         IF(ALLOCATED(DiffContours)) DEALLOCATE(DiffContours)        
         IF(ALLOCATED(MakeGray)) DEALLOCATE(MakeGray)        
         IF(ALLOCATED(PaletteColors)) DEALLOCATE(PaletteColors)
+
+
+        IF (IfPlotPartTrack .EQ. 1 ) THEN
+        
+          OPEN(UNIT=14,FILE=TRIM(ParticlePalette),ACTION="READ")
+
+            READ(UNIT=14,FMT='(A)') JunkC
+            READ(UNIT=14,FMT='(A)') JunkC
+            READ(UNIT=14,FMT=*)     JunkC, NumColors
+            READ(UNIT=14,FMT='(A)') JunkC
+
+            ALLOCATE(PaletteColors(1:NumColors))
+
+            DO I=1,NumColors
+
+                READ(UNIT=14,FMT=*) PaletteColors(I)%Value1, &
+                                    PaletteColors(I)%Red1,   &
+                                    PaletteColors(I)%Green1, &
+                                    PaletteColors(I)%Blue1
+
+            ENDDO
+            CLOSE(UNIT=14,STATUS="KEEP")
+
+                TempSplitBy = 1
+                NumGMTColors = NumColors
+                NumGMTColors = NumColors
+           NumParticleColors = NumColors
+
+
+            ALLOCATE(GMTColors(1:NumGMTColors))
+                DO I=1,NumGMTColors
+                        CurrentContour = (I-1.0)
+                        GMTColors(I)%Value1 = (I-1)
+                        GMTColors(I)%Red1   = PaletteColors(I)%Red1
+                        GMTColors(I)%Green1 = PaletteColors(I)%Green1
+                        GMTColors(I)%Blue1  = PaletteColors(I)%Blue1
+                        GMTColors(I)%Value2 = (I)
+                        GMTColors(I)%Red2   = PaletteColors(I)%Red1
+                        GMTColors(I)%Green2 = PaletteColors(I)%Green1
+                        GMTColors(I)%Blue2  = PaletteColors(I)%Blue1
+                ENDDO
+
+                OPEN(UNIT=15,FILE=TRIM(TempPath)//"ParticlePalette.cpt",ACTION="WRITE")
+            WRITE(UNIT=15,FMT='(A)') "#"
+            WRITE(UNIT=15,FMT='(A)') "#"
+            WRITE(UNIT=15,FMT='(A)') "#"
+           DO I=1,NumGMTColors
+
+                WRITE(UNIT=15,FMT='(2(F16.8,2X,I3,2X,I3,2X,I3,2X))')                     &
+                                    GMTColors(I)%Value1,                                 &
+                                    NINT(GMTColors(I)%Red1),                             &
+                                    NINT(GMTColors(I)%Green1), NINT(GMTColors(I)%Blue1), &
+                                    GMTColors(I)%Value2,                                 &
+                                    NINT(GMTColors(I)%Red2),                             &
+                                    NINT(GMTColors(I)%Green2), NINT(GMTColors(I)%Blue2)
+
+            ENDDO
+                IF(IfGoogle.EQ.0)THEN
+                    WRITE(UNIT=15,FMT='(A)') "B  215  215  215"
+                ELSE
+                    WRITE(UNIT=15,FMT='(A)') "B  255  255  255"
+                ENDIF
+                WRITE(UNIT=15,FMT='(A,I3,A,I3,A,I3)') "F  ",                       &
+                                        NINT(GMTColors(NumGMTColors)%Red2),"  ",   &
+                                        NINT(GMTColors(NumGMTColors)%Green2),"  ", &
+                                        NINT(GMTColors(NumGMTColors)%Blue2)
+                 WRITE(UNIT=15,FMT='(A)') "N  255  255  255"
+            CLOSE(UNIT=15,STATUS="KEEP")
+
+        IF(ALLOCATED(GMTColors)) DEALLOCATE(GMTColors)
+        IF(ALLOCATED(PaletteColors)) DEALLOCATE(PaletteColors)
+
+        ENDIF
 
         IF(Verbose.GE.3)THEN
             WRITE(*,'(A,I4.4,A)') "Processor ", MyRank, " created the contour palettes."
@@ -3992,6 +4073,8 @@ SUBROUTINE ReadInputFile
         READ(UNIT=11,FMT='(A40)') PartTrackFile
         READ(UNIT=11,FMT=*)       PartTrackInterval
         READ(UNIT=11,FMT=*)       PartSize
+        READ(UNIT=11,FMT='(A40)') ParticlePalette
+
 
         READ(UNIT=11,FMT='(A1)')  JunkC ! PARAMETERS FOR OVERALL PLOT
 
@@ -4541,13 +4624,13 @@ SUBROUTINE ReadInputFile
                 DoScale = 1
         ENDIF
 
-        IF(IfPlotPartTrack.GT.0)THEN
+        IF((IfPlotLogo.GT.0).AND.(IfGoogle.EQ.0))THEN
             KeepOpen(1:14) = 1
-        ELSEIF((IfPlotLogo.GT.0).AND.(IfGoogle.EQ.0))THEN
-            KeepOpen(1:13) = 1
         ELSEIF((IfAddTimeBar.GT.0).AND.(IfGoogle.EQ.0))THEN
-            KeepOpen(1:12) = 1
+            KeepOpen(1:13) = 1
         ELSEIF(IfAddPlotLabel.GT.0)THEN
+            KeepOpen(1:12) = 1
+        ELSEIF(IfPlotPartTrack.GT.0)THEN
             KeepOpen(1:11) = 1
         ELSEIF(IfPlotVectors.GT.0)THEN
             KeepOpen(1:10) = 1
@@ -4589,7 +4672,7 @@ END SUBROUTINE
 
 
 
-SUBROUTINE ReadNodeVals(UnitNumber, FileType, JunkI, UVal, VVal)
+SUBROUTINE ReadNodeVals(UnitNumber, FileType, JunkI, UVal, VVal, ZVal)
 
         USE DATA, ONLY: MyRank, Verbose
 
@@ -4601,6 +4684,7 @@ SUBROUTINE ReadNodeVals(UnitNumber, FileType, JunkI, UVal, VVal)
 
         REAL,INTENT(OUT)    :: UVal
         REAL,INTENT(OUT)    :: VVal
+        REAL,INTENT(OUT)    :: ZVal
 
         outer: DO
 
@@ -4611,7 +4695,7 @@ SUBROUTINE ReadNodeVals(UnitNumber, FileType, JunkI, UVal, VVal)
             ELSEIF(FileType.EQ.2)THEN
                 READ(UNIT=UnitNumber,FMT=*,END=8002,ERR=8002) JunkI, UVal, VVal
             ELSEIF(FileType.EQ.3)THEN
-                READ(UNIT=UnitNumber,FMT=*,END=8002,ERR=8002) JunkI, UVal, VVal
+                READ(UNIT=UnitNumber,FMT=*,END=8002,ERR=8002) JunkI, UVal, VVal, ZVal
             ENDIF
             EXIT outer
 
@@ -5924,12 +6008,9 @@ SUBROUTINE WritePSImage(Record,IL1,IL2,IL3)
        ! CREATE NEW FILE FORMAT for PARTICLE TRACKING
         IF(IfPlotPartTrack.EQ.1)THEN
 
-              WRITE(UNIT=PartSizeInit,FMT='(I1)')  PartSize+2
+              WRITE(UNIT=PartSizeInit,FMT='(I1)')  PartSize
               WRITE(UNIT=PartSizeSnp,FMT='(I1)')  PartSize
 
-       !    WRITE(*,*) "now plot the points in PS file"
-
-              ! add initial position circle outline
                 Line = ""
                 Line = TRIM(Line)//TRIM(Path)//"psxy"
                 Line = TRIM(Line)//" "//TRIM(TempPath)//TRIM(PartTrackInitial)//".xyz"
@@ -5939,13 +6020,18 @@ SUBROUTINE WritePSImage(Record,IL1,IL2,IL3)
                     Line = TRIM(Line)//" "//"-JQ"//TRIM(CentralMeridianC)//"/"//TRIM(WidthC)//"i"
                 ENDIF
                 Line = TRIM(Line)//" "//"-R"//TRIM(XMin)//"/"//TRIM(XMax)//"/"//TRIM(YMin)//"/"//TRIM(YMax)
-                IF((IfGoogle.EQ.0).AND.(IfGIS.EQ.0))THEN
+                IF((IfPlotFilledContours.EQ.0).AND. &
+                   (IfPlotGrid.EQ.0).AND.           &
+                   (IfPlotContourLines.EQ.0).AND.   &
+                   (IfGoogle.EQ.0).AND.             &
+                   (IfGIS.EQ.0))THEN
                     Line = TRIM(Line)//" "//"-Bp"//TRIM(BorderIncrementMajorC)//"f"//TRIM(BorderIncrementMinorC)// &
                                        "/s"//TRIM(BorderIncrementMajorC)//"f"//TRIM(BorderIncrementMinorC)//"WeSn"
                 ENDIF
-                Line = TRIM(Line)//" "//"-GMaroon"
                 Line = TRIM(Line)//" "//"-Sc"//TRIM(PartSizeInit)//"p"
-                Line = TRIM(Line)//" "//"-K"
+                Line = TRIM(Line)//" "//"-Glightgrey"
+               ! Line = TRIM(Line)//" "//"-C"//TRIM(TempPath)//"ParticlePalette.cpt"
+                Line = TRIM(Line)//" -K"
                 IF(IfStarted.EQ.0)THEN
                     Line = TRIM(Line)//" "//">"
                     IfStarted = 1
@@ -5953,6 +6039,7 @@ SUBROUTINE WritePSImage(Record,IL1,IL2,IL3)
                     Line = TRIM(Line)//" "//"-O >>"
                 ENDIF
                 Line = TRIM(Line)//" "//TRIM(PlotName)//".ps"
+            !    write(*,*) Line
                 CALL SYSTEM(TRIM(Line))
              ! NOW add the current position
                 Line = ""
@@ -5964,16 +6051,26 @@ SUBROUTINE WritePSImage(Record,IL1,IL2,IL3)
                     Line = TRIM(Line)//" "//"-JQ"//TRIM(CentralMeridianC)//"/"//TRIM(WidthC)//"i"
                 ENDIF
                 Line = TRIM(Line)//" "//"-R"//TRIM(XMin)//"/"//TRIM(XMax)//"/"//TRIM(YMin)//"/"//TRIM(YMax)
-                IF((IfGoogle.EQ.0).AND.(IfGIS.EQ.0))THEN
-                    Line = TRIM(Line)//" "//"-Bp"//TRIM(BorderIncrementMajorC)//"f"//TRIM(BorderIncrementMinorC)// &
-                                       "/s"//TRIM(BorderIncrementMajorC)//"f"//TRIM(BorderIncrementMinorC)//"WeSn"
+               IF((IfPlotFilledContours.EQ.0).AND. &
+                  (IfPlotGrid.EQ.0).AND.           &
+                  (IfPlotContourLines.EQ.0).AND.   &
+                  (IfGoogle.EQ.0).AND.             &
+                  (IfGIS.EQ.0))THEN
+                   Line = TRIM(Line)//" "//"-Bp"//TRIM(BorderIncrementMajorC)//"f"//TRIM(BorderIncrementMinorC)// &
+                                      "/s"//TRIM(BorderIncrementMajorC)//"f"//TRIM(BorderIncrementMinorC)//"WeSn"
                 ENDIF
-                Line = TRIM(Line)//" "//"-GBlack"
                 Line = TRIM(Line)//" "//"-Sc"//TRIM(PartSizeSnp)//"p"
+                Line = TRIM(Line)//" "//"-C"//TRIM(TempPath)//"ParticlePalette.cpt"
+                IF(KeepOpen(12).EQ.1)THEN
+                    Line = TRIM(Line)//" -K"
+                ENDIF
                 Line = TRIM(Line)//" "//"-O >>"
-                Line = TRIM(Line)//" "//TRIM(PlotName)//".ps"
+               Line = TRIM(Line)//" "//TRIM(PlotName)//".ps"
+             !   write(*,*) Line
+
                 CALL SYSTEM(TRIM(Line))
 
+                !Line = TRIM(Line)//" "//"-GBlack"
          !  WRITE(*,*) "OK ploted the points in PS file"
         ENDIF
 
@@ -5988,7 +6085,7 @@ SUBROUTINE WritePSImage(Record,IL1,IL2,IL3)
             Line = TRIM(Path)//"pstext "//TRIM(TempPath)//TRIM(PlotLabelFile) &
                         //" -JX1i -R0/8/0/1 -Xa"//TRIM(PlotLabelXAdjustC)     &
                         //"i -Ya"//TRIM(PlotLabelYAdjustC)//"i"  
-            IF(KeepOpen(12).EQ.1)THEN
+            IF(KeepOpen(13).EQ.1)THEN
                 Line = TRIM(Line)//" -K"
             ENDIF
             Line = TRIM(Line)//" -N -O >>"//Trim(PlotName)//".ps"
@@ -6057,7 +6154,7 @@ SUBROUTINE WritePSImage(Record,IL1,IL2,IL3)
                         //TRIM(TimeCurrentTextFile)//" -JX1i -R0/2/0/2" &
                         //" -Xa"//TRIM(SideBarXC)//"i"                  &
                         //" -Ya"//TRIM(TimeScaleTextYC)//"i"
-            IF(KeepOpen(13).EQ.1)THEN
+            IF(KeepOpen(14).EQ.1)THEN
                 Line = TRIM(Line)//" -K"
             ENDIF
             Line = TRIM(Line)//" -N -O >> "//TRIM(PlotName)//".ps"
@@ -6131,7 +6228,7 @@ SUBROUTINE WritePSImage(Record,IL1,IL2,IL3)
             CALL SYSTEM("mv "//TRIM(TempPath)//TRIM(PlotName)//"_grf* .")
 
         ELSE
-          WRITE(*,*) " have ps image now work weithit to make png  1"
+   !          WRITE(*,*) " have ps image now work weithit to make png  1"
 
              CALL SYSTEM("grep -v showpage "//TRIM(PlotName)//".ps | sed -e "//    &
                         "'s/scale 0 A/scale 0 A showpage/g' > "//TRIM(TempPath)// &
@@ -6139,7 +6236,7 @@ SUBROUTINE WritePSImage(Record,IL1,IL2,IL3)
 
             CALL SYSTEM("mv "//TRIM(TempPath)//TRIM(PlotName)//".ps "// &
                         TRIM(PlotName)//".ps")
-          WRITE(*,*) " have ps image now work weithit to make png  2"
+    !      WRITE(*,*) " have ps image now work weithit to make png  2"
 
             IF(DoPNG.EQ.1)THEN
                 Line = TRIM(Path)//"ps2raster"
@@ -6157,7 +6254,7 @@ SUBROUTINE WritePSImage(Record,IL1,IL2,IL3)
                 CALL SYSTEM("mv "//TRIM(TempPath)//TRIM(PlotName)//".png .")
             ENDIF
 
-          WRITE(*,*) " have ps image now work weithit to make png  3"
+      !    WRITE(*,*) " have ps image now work weithit to make png  3"
 
             IF(DoJPG.EQ.1)THEN
                 Line = TRIM(Path)//"ps2raster"
@@ -6166,7 +6263,6 @@ SUBROUTINE WritePSImage(Record,IL1,IL2,IL3)
                     Line = TRIM(Line)//" "//"-A"
                 ENDIF
                 Line = TRIM(Line)//" "//"-E"//TRIM(ResolutionC)
-            !   Line = TRIM(Line)//" "//"-F"//TRIM(PlotName)//".jpg"
                 Line = TRIM(Line)//" "//"-F"//TRIM(TempPath)//TRIM(PlotName)//".jpg"
                 Line = TRIM(Line)//" "//"-G"//TRIM(GSPath)//"gs"
                 Line = TRIM(Line)//" "//"-P"
@@ -6174,6 +6270,7 @@ SUBROUTINE WritePSImage(Record,IL1,IL2,IL3)
                 CALL SYSTEM(TRIM(Line))
                 CALL SYSTEM("mv "//TRIM(TempPath)//TRIM(PlotName)//".jpg .")
             ENDIF
+            !   Line = TRIM(Line)//" "//"-F"//TRIM(PlotName)//".jpg"
 
             IF(DoPDF.EQ.1)THEN
                 Line = TRIM(Path)//"ps2raster"
@@ -6297,6 +6394,7 @@ SUBROUTINE WriteXYZFiles(Record)
         REAL                :: JunkR
         REAL                :: JunkR1
         REAL                :: JunkR2
+        REAL                :: JunkR3
         REAL,ALLOCATABLE    :: Lat(:)
         REAL,ALLOCATABLE    :: Lon(:)
         REAL,ALLOCATABLE    :: Sizes(:)
@@ -6310,7 +6408,7 @@ SUBROUTINE WriteXYZFiles(Record)
         REAL,ALLOCATABLE    :: YpInit(:)
         REAL,ALLOCATABLE    :: XpSnp(:)
         REAL,ALLOCATABLE    :: YpSnp(:)
-        REAL,ALLOCATABLE    :: PartVectors(:)
+        REAL,ALLOCATABLE    :: ZFlag(:)
 
 
         IF((IfPlotFilledContours.GE.1).OR.(IfPlotContourLines.GE.1))THEN
@@ -7415,43 +7513,61 @@ SUBROUTINE WriteXYZFiles(Record)
             ALLOCATE(YpInit(1:NumParticles))
             ALLOCATE(XpSnp(1:NumParticles))
             ALLOCATE(YpSnp(1:NumParticles))
+            ALLOCATE(ZFlag(1:NumParticles))
           ! READ in initial positions
-                  READ(UNIT=20,FMT=*) CurrentTime, JunkR
-                  WRITE(*,*) CurrentTime, JunkR
-                    DO I=1,NumParticles
-                        CALL ReadNodeVals(20,3,JunkI,JunkR1,JunkR2)
+             
+                READ(UNIT=20,FMT=*) CurrentTime, JunkR
+          !        WRITE(*,*) CurrentTime, JunkR
+                 DO I=1,NumParticles
+                        CALL ReadNodeVals(20,3,JunkI,JunkR1,JunkR2,JunkR3)
                 XpInit(JunkI) = JunkR1
                 YpInit(JunkI) = JunkR2
-                    ENDDO
+                   IF (JunkR3.GT.NumParticleColors) THEN
+                    ZFlag(JunkI) = mod(NINT(JunkR3),NumParticleColors)
+                   ELSE
+                    ZFlag(JunkI)=JunkR3
+                   ENDIF
+                ENDDO
           
-            IF(Record.GT.2)THEN
-                DO J=1,Record-1
+            IF(Record.GT.1)THEN
+
+                DO J=2,Record-1
                    READ(UNIT=20,FMT=*) CurrentTime, JunkR
                     DO I=1,NumParticles
-                        CALL ReadNodeVals(20,3,JunkI,JunkR1,JunkR2)
+                        CALL ReadNodeVals(20,0,JunkI,JunkR1,JunkR2,JunkR3)
                     ENDDO
                 ENDDO
-            ENDIF
-                     
+
                   READ(UNIT=20,FMT=*) CurrentTime, JunkR
                   WRITE(*,*) Record, CurrentTime, JunkR
 
-            DO I=1,NumParticles
-                CALL ReadNodeVals(20,3,JunkI,JunkR1,JunkR2)
-                XpSnp(JunkI) = JunkR1
-                YpSnp(JunkI) = JunkR2
-            !    PartVectors(JunkI) = SQRT((XpSnp(JunkI)-XpInit(JunkI))/(YpSnp(JunkI)-YpInit(JunkI)))
-            ENDDO
+                DO I=1,NumParticles
+                  CALL ReadNodeVals(20,3,JunkI,JunkR1,JunkR2,JunkR3)
+                    XpSnp(JunkI) = JunkR1
+                    YpSnp(JunkI) = JunkR2
+                   IF (JunkR3.GT.NumParticleColors) THEN
+                    ZFlag(JunkI) = mod(NINT(JunkR3),NumParticleColors)
+                   ELSE
+                    ZFlag(JunkI)=JunkR3
+                   ENDIF
+                    
+                ENDDO
+            ELSE
+                    XpSnp(JunkI) = XpInit(JunkI)
+                    YpSnp(JunkI) = YpInit(JunkI)
+            ENDIF
 
             DO I=1,NumParticles 
-                WRITE(UNIT=17,FMT='(2(2X,F16.8))') XpInit(I), YpInit(I)
-                WRITE(UNIT=18,FMT='(2(2X,F16.8))') XpSnp(I), YpSnp(I)
+                      
+                WRITE(UNIT=17,FMT='(2(2X,F16.8),2X,F6.1)') XpInit(I), YpInit(I), ZFlag(I)
+                WRITE(UNIT=18,FMT='(2(2X,F16.8),2X,F6.1)') XpSnp(I), YpSnp(I), ZFlag(I)
             ENDDO
 
             IF(ALLOCATED(XpInit)) DEALLOCATE(XpInit)
             IF(ALLOCATED(YpInit)) DEALLOCATE(YpInit)
             IF(ALLOCATED(XpSnp)) DEALLOCATE(XpSnp)
             IF(ALLOCATED(YpSnp)) DEALLOCATE(YpSnp)
+            IF(ALLOCATED(ZFlag)) DEALLOCATE(ZFlag)
             !  IF(ALLOCATED(PartVectors)) DEALLOCATE(PartVectors)
 
             CLOSE(UNIT=17,STATUS="KEEP")

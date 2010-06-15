@@ -111,11 +111,11 @@ GetOptions(
                  $inputline_new = "Hue_standard_01.pal" ;
                  print FIGGENOUTPUT "$inputline_new\n" ;
             }
-            elsif ( $lineno == 63 ) { 
+            elsif ( $lineno == 64 ) { 
                  $inputline_new = $inputline.$starttime ;
                  print FIGGENOUTPUT "$inputline_new\n" ;
             }
-            elsif ( $lineno == 65 ) { 
+            elsif ( $lineno == 66 ) { 
                  $numrecords2 = $numrecords/2.0 ;           
                  $inputline_new = $numrecords2 ;
                  print FIGGENOUTPUT "$inputline_new\n" ;
