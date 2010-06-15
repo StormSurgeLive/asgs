@@ -178,6 +178,7 @@ C
       CHARACTER(LEN=72) :: CASE,CASE3,CASE4
       CHARACTER(LEN=20) :: JunkC
       CHARACTER(LEN=100) :: LINE
+      CHARACTER(LEN=41) :: OUTPUT_HEADER
       
       REAL*8  :: SCAMPU(NFR),SCPHAU(NFR)
       REAL*8  :: SCAMPV(NFR),SCPHAV(NFR)
@@ -392,7 +393,7 @@ C
          open(10,
      +     file=vlist(1)(:INDEX(VLIST(1),' ')-1)//'.v2c',
      +     status='old')
-          read(10,*) ! HEADER
+          read(10,'(A)')  OUTPUT_HEADER
           read(10,*) numtimes,numnodes, JunkR, JunkI, JunkI
 !               numtimes=numtimes-1
        READ(UNIT=10,FMT='(A)',END=9000,ERR=9000) LINE
@@ -609,7 +610,7 @@ C *** WRITE OUT HEADERS AND INITIAL DROGUE POSITIONS
 C     TO ACE/vis OUTPUT FILE
 C
 
-      WRITE(12,'(a)') GRID
+      WRITE(12,'(a)') OUTPUT_HEADER,"   ",GRID
       WRITE(12,*) NTINT/IPRINT, NDR, OUTPUTTIMESTEP
       WRITE(12,*) T1,NDR
       DO III = 1, NDR
