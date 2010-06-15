@@ -99,6 +99,7 @@
      echo "            PARAMETER (MXTIME=${MxTime})   "    >> ./CB_2D.h
      echo "            PARAMETER (REARTH=6.3675D6)    "    >> ./CB_2D.h
      echo "            PARAMETER (TOL=${Tol})         "    >> ./CB_2D.h
+     echo "            PARAMETER (NDIV=1000)          "    >> ./CB_2D.h
 
      ln -fs $TRACKDIR/src/drog2dsp_deepwater.f ./drog2dsp_deepwater.f
 
