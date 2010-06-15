@@ -204,6 +204,13 @@ C
       REAL    :: DefaultValue
       REAL    :: RealTime
       INTEGER :: PEI,NL
+!
+C
+C!st3 SEARCHING TABLE         
+      INTEGER :: NE_PIECE_INDEX(NDIV,NDIV), NE_PIECE(NDIV,NDIV)          !st3
+      INTEGER :: NE_PIECE_LIST(NNE*2)                                    !st3
+      REAL*8  :: XMIN(2), DX(2)                                          !st3
+      INTEGER :: IX, IY                                                  !st3
 C
 C *** BEGIN EXECUTION 
 C
@@ -387,7 +394,7 @@ C
      +     status='old')
           read(10,*) ! HEADER
           read(10,*) numtimes,numnodes, JunkR, JunkI, JunkI
-C               numtimes=numtimes-1
+!               numtimes=numtimes-1
        READ(UNIT=10,FMT='(A)',END=9000,ERR=9000) LINE
        READ(UNIT=LINE,FMT=*,END=9001, ERR=9001) filetime(1),timestep,
      &                                NumNonDefaultNodes,DefaultValue
@@ -402,11 +409,10 @@ C               numtimes=numtimes-1
          
            k=1
            IF ( Sparse .EQ. 1 ) then        
-                DO l=1,NumNodes
-                  us(l,k)=DefaultValue
-                  vs(l,k)=DefaultValue
-                 ENDDO
-
+             DO l=1,NumNodes
+               us(l,k)=DefaultValue
+               vs(l,k)=DefaultValue
+              ENDDO
               DO l=1,NumNonDefaultNodes
                read(10,*,end=9000,err=9000) node, us(node,k), vs(node,k)
               ENDDO
@@ -494,6 +500,12 @@ C
 
 
 C
+C!st3 *** MAKE SEARCHING TABLE
+      CALL MAKE_STAB( NMEL, ELEMS, NMND, X, Y, DX, XMIN,                 !st3
+     +                NE_PIECE, NE_PIECE_INDEX, NE_PIECE_LIST )          !st3
+
+C!st3
+C
 C *** FIND STARTING ELEMENT FOR EACH DROGUE
 C
       print*,'Locating initial drogue positions',NDR
@@ -505,57 +517,69 @@ C
             XDR(III-NOTFND)=XDR(III)
             YDR(III-NOTFND)=YDR(III)
           ENDIF
-C new search algorithm
-          IF (III .EQ. 1) THEN  
-C first search all elelments for home of first particle
-           DO 120 I = 1,NMEL
-                 
+
+          IX = INT( (XSTART-XMIN(1))/DX(1) ) + 1                         !st3
+          IY = INT( (YSTART-XMIN(2))/DX(2) ) + 1                         !st3
+C!st3          DO 120 I = 1,NMEL                                         !st3
+          DO 120 J = 1, NE_PIECE(IX,IY)                                  !st3
+              I = NE_PIECE_LIST(J+NE_PIECE_INDEX(IX,IY))                 !st3
               CALL BELEL(I,XSTART,YSTART,IND)
               IF (IND.EQ.1) THEN
                   JJDR(III-NOTFND) = I
-C   PEI = particle element index
-                  PEI=I
-C                WRite(*,*) III, PEI
                   GO TO 130
               END IF
   120     CONTINUE
-         ELSE ! node loop 1 conditional
-C  now search neighboring elements first for locations of subsequesnt particles
-C   PEI = particle element index
-                  NL = PEI
-              CALL BELEL(NL,XSTART,YSTART,IND)
-              IF (IND.EQ.1) THEN
-                  JJDR(III-NOTFND) = NL
-                   PEI=NL
-C                WRite(*,*) III, PEI
-                  GO TO 130
-              END IF
-          DO 121 I = 2,NMEL
-                  NL = PEI + (I-1)
-                  IF (NL .GT. NMEL) NL = NL-NMEL
-              CALL BELEL(NL,XSTART,YSTART,IND)
-              IF (IND.EQ.1) THEN
-                  JJDR(III-NOTFND) = NL
-                   PEI=NL
-C                WRite(*,*) III, PEI
-                  GO TO 130
-              END IF
-                  NL = PEI - (I-1)
-                  IF (NL .LT. 1) NL = NL+NMEL
-              CALL BELEL(NL,XSTART,YSTART,IND)
-              IF (IND.EQ.1) THEN
-                  JJDR(III-NOTFND) = NL
-                   PEI=NL
-C                WRite(*,*) III, PEI
-                  GO TO 130
-              END IF
-
-  121     CONTINUE
-
-         ENDIF ! node loop 1 conditional
+!C new search algorithm
+!          IF (III .EQ. 1) THEN  
+!C first search all elelments for home of first particle
+!           DO 120 I = 1,NMEL
+!                 
+!              CALL BELEL(I,XSTART,YSTART,IND)
+!              IF (IND.EQ.1) THEN
+!                  JJDR(III-NOTFND) = I
+!C   PEI = particle element index
+!                  PEI=I
+!C                WRite(*,*) III, PEI
+!                  GO TO 130
+!              END IF
+!  120     CONTINUE
+!         ELSE ! node loop 1 conditional
+!C  now search neighboring elements first for locations of subsequesnt particles
+!C   PEI = particle element index
+!                  NL = PEI
+!              CALL BELEL(NL,XSTART,YSTART,IND)
+!              IF (IND.EQ.1) THEN
+!                  JJDR(III-NOTFND) = NL
+!                   PEI=NL
+!C                WRite(*,*) III, PEI
+!                  GO TO 130
+!              END IF
+!          DO 121 I = 2,NMEL
+!                  NL = PEI + (I-1)
+!                  IF (NL .GT. NMEL) NL = NL-NMEL
+!              CALL BELEL(NL,XSTART,YSTART,IND)
+!              IF (IND.EQ.1) THEN
+!                  JJDR(III-NOTFND) = NL
+!                   PEI=NL
+!C                WRite(*,*) III, PEI
+!                  GO TO 130
+!              END IF
+!                  NL = PEI - (I-1)
+!                  IF (NL .LT. 1) NL = NL+NMEL
+!              CALL BELEL(NL,XSTART,YSTART,IND)
+!              IF (IND.EQ.1) THEN
+!                  JJDR(III-NOTFND) = NL
+!                   PEI=NL
+!C                WRite(*,*) III, PEI
+!                  GO TO 130
+!              END IF
+!
+!  121     CONTINUE
+!
+!         ENDIF ! node loop 1 conditional
           PRINT *,'*** COULD NOT FIND STARTING ELEMENT FOR DROGUE ',III
           NOTFND=NOTFND+1
-
+!
   130 CONTINUE
 
       NDR=NDR-NOTFND
@@ -629,43 +653,33 @@ C *** Find each timestep in the fort.64 file
 
                   IF ( Sparse .EQ. 1 ) then
                    write(*,*) "Sparse = 1 ",Sparse  
-                    DO l=1,NumNodes
-                      us(l,2)=DefaultValue
-                      vs(l,2)=DefaultValue
-                      udiff=us(l,2)-us(l,1)
-                      unew(l)=us(l,2)-((timediff*udiff)/timeinc)
-                      vdiff=vs(l,2)-vs(l,1)
-                      vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
-                    ENDDO
+                     DO l=1,NumNodes
+                      us(l,2)=0.0d0  !DefaultValue
+                      vs(l,2)=0.0d0  !DefaultValue
+                     ENDDO
                      DO l=1,NumNonDefaultNodes
                read(10,*,end=9003,err=9003) node, us(node,2), vs(node,2)
+                     ENDDO
+                  ELSEIF (Sparse .EQ. 0 ) then
+                     write(*,*) "Sparse = 0 ",Sparse
+                     DO l=1,NumNodes
+               read(10,*,end=9003,err=9003) node, us(node,2), vs(node,2)
+                     ENDDO
+                  ENDIF
+                     DO l=1,NumNodes
                      udiff=us(l,2)-us(l,1)
                      unew(l)=us(l,2)-((timediff*udiff)/timeinc)
                      vdiff=vs(l,2)-vs(l,1)
                      vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
                      ENDDO
-                  ELSEIF (Sparse .EQ. 0 ) then
-                   write(*,*) "Sparse = 0 ",Sparse  
-                     DO l=1,NumNodes
-               read(10,*,end=9003,err=9003) node, us(node,2), vs(node,2)
-                     udiff=us(l,2)-us(l,1)
-                     unew(l)=us(l,2)-((timediff*udiff)/timeinc)
-                     vdiff=vs(l,2)-vs(l,1)
-                     vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
-                    ENDDO
-                   ELSE
-        WRITE(*,*) "Bad Sparse Value,Error reading vel input file"
-9003    WRITE(*,*)"Error reading or end of file while reading velocity"
-                    STOP
-                  ENDIF
                   numstop=j
                  GOTO 150
              ELSE 
                    IF ( Sparse .EQ. 1 ) then
                    write(*,*) "Sparse = 1 ",Sparse
                     DO l=1,NumNodes
-                      us(l,1)=DefaultValue
-                      vs(l,1)=DefaultValue
+                      us(l,1)=0.0d0  !DefaultValue
+                      vs(l,1)=0.0d0  !DefaultValue
                     ENDDO
                      DO l=1,NumNonDefaultNodes
                read(10,*,end=9004,err=9004) node, us(node,1), vs(node,1)
@@ -674,12 +688,7 @@ C *** Find each timestep in the fort.64 file
                      DO l=1,NumNodes
                read(10,*,end=9004,err=9004) node, us(node,1), vs(node,1)
                     ENDDO
-                   ELSE
-        WRITE(*,*) "Bad Sparse Value,Error reading vel input file"
-9004    WRITE(*,*)"Error reading or end of file while reading velocity"
-                    STOP
-                  ENDIF
-
+                   ENDIF
              ENDIF ! T1 time conditional
            ENDDO  ! numtimes
          ELSE ! I not equal to 1
@@ -700,44 +709,36 @@ C *** Find each timestep in the fort.64 file
                   timediff=filetime(j)-T1
                     if (j.ne.numstop) then
 
-                  IF ( Sparse .EQ. 1 ) then
-                    DO l=1,NumNodes
-                      us(l,2)=DefaultValue
-                      vs(l,2)=DefaultValue
-                      udiff=us(l,2)-us(l,1)
-                      unew(l)=us(l,2)-((timediff*udiff)/timeinc)
-                      vdiff=vs(l,2)-vs(l,1)
-                      vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
-                    ENDDO
+                 IF ( Sparse .EQ. 1 ) then
+                   write(*,*) "Sparse = 1 ",Sparse
+                     DO l=1,NumNodes
+                      us(l,2)=0.0d0  !DefaultValue
+                      vs(l,2)=0.0d0  !DefaultValue
+                     ENDDO
                      DO l=1,NumNonDefaultNodes
-               read(10,*,end=9005,err=9005) node, us(node,2), vs(node,2)
+               read(10,*,end=9003,err=9003) node, us(node,2), vs(node,2)
+                     ENDDO
+                  ELSEIF (Sparse .EQ. 0 ) then
+                     write(*,*) "Sparse = 0 ",Sparse
+                     DO l=1,NumNodes
+               read(10,*,end=9003,err=9003) node, us(node,2), vs(node,2)
+                     ENDDO
+                  ENDIF
+                     DO l=1,NumNodes
                      udiff=us(l,2)-us(l,1)
                      unew(l)=us(l,2)-((timediff*udiff)/timeinc)
                      vdiff=vs(l,2)-vs(l,1)
                      vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
                      ENDDO
-                   ELSEIF (Sparse .EQ. 0 ) then
-                     DO l=1,NumNodes
-               read(10,*,end=9005,err=9005) node, us(node,2), vs(node,2)
+            else !numstop conditional
+                    DO l=1,NumNodes
                      udiff=us(l,2)-us(l,1)
                      unew(l)=us(l,2)-((timediff*udiff)/timeinc)
                      vdiff=vs(l,2)-vs(l,1)
                      vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
-                    ENDDO
-                   ELSE
-        WRITE(*,*) "Bad Sparse Value,Error reading vel input file"
-9005    WRITE(*,*)"Error reading or end of file while reading velocity"
-                    STOP
-                  ENDIF
+                    ENDDO 
+             endif ! numstop conditional
 
-                  else !numstop conditional
-                       do l=1,numnodes
-                        udiff=us(l,2)-us(l,1)
-                        unew(l)=us(l,2)-((timediff*udiff)/timeinc)
-                        vdiff=vs(l,2)-vs(l,1)
-                        vnew(l)=vs(l,2)-((timediff*vdiff)/timeinc)
-                       enddo
-                   endif
                      numstop=j
                      goto 150
                 else 
@@ -808,7 +809,7 @@ C
           write(*,*) "wrote output for this time"
 
   171     FORMAT ( 2(1x,1e18.9), 1x, i8 )
-  172     FORMAT (I8,2x,2(1x,1e18.9),2x,I6)
+  172     FORMAT (I8,2x,2(1x,1e18.9),2x,F8.1)
 C
 C
 C INCREMENT THE LIMITS OF INTEGRATION
@@ -830,6 +831,9 @@ c      CLOSE (UNIT=45)
 
  6006 FORMAT(A)
  9020 FORMAT (A)
+ 9003   write(*,*) "error reading in velocity values"
+ 9004   write(*,*) "error reading in velocity values"
+ 9005   write(*,*) "error reading in velocity values"
       END
 C
 C***********************************************************************
@@ -1995,6 +1999,88 @@ C
       VFUNTIME = VFUNTIME + (G1*X+G2*Y+G3)
       VFUNTIME = VFUNTIME + (G4*X+G5*Y+G6)
    10 CONTINUE
+      RETURN
+      END
+
+C!st3*******************************************************************
+      SUBROUTINE MAKE_STAB( NMEL, ELEMS, NMND, X, Y, DX, XMIN,
+     +                NE_PIECE, NE_PIECE_INDEX, NE_PIECE_LIST )
+C     MAKE SEARCHING TABLE
+C!st3*******************************************************************
+C-----------------------------------------------------------------------
+      INCLUDE 'CB_2D.h'
+C-----------------------------------------------------------------------
+      INTEGER, INTENT(IN) :: NMEL, ELEMS(NNE,3), NMND
+      REAL*8,  INTENT(IN) :: X(ND), Y(ND)
+      REAL*8,  INTENT(OUT):: DX(2), XMIN(2)
+      INTEGER, INTENT(OUT):: NE_PIECE(NDIV,NDIV),
+     +                       NE_PIECE_INDEX(NDIV,NDIV),
+     +                       NE_PIECE_LIST(NNE*2)
+!     NE_PIECE(:,:) :      Total number of elements in PIECE(IX,IY)
+!     NE_PIECE_LIST(:):    Element number list of PEICE(IX,IY)
+!     NE_PIECE_INDEX(:,:): Index of NE_PIECE_LIST for PIECE(IX,IY)
+!          *This index is required for Commpressing of Strage of LIST
+!
+      INTEGER :: N, M, I, J, IX(3), IY(3), ISTART
+      REAL*8  :: XMAX(2)
+!
+      XMAX(1) = MAXVAL(X(1:NMND))
+      XMIN(1) = MINVAL(X(1:NMND))
+      XMAX(2) = MAXVAL(Y(1:NMND))
+      XMIN(2) = MINVAL(Y(1:NMND))
+      DO I = 1, 2
+        XMAX(I) = XMAX(I) + 1.0d0
+        DX(I) = ( XMAX(I) - XMIN(I) ) / DBLE(NDIV)
+      ENDDO
+!
+! SEARCH PIECE INDEX
+      DO I = 1, NDIV
+        DO J = 1, NDIV
+          NE_PIECE(I,J) = 0
+        ENDDO
+      ENDDO
+      DO M = 1, NMEL
+        DO J = 1, 3
+          N = ELEMS(M,J)
+          IX(J) = INT( (X(N)-XMIN(1)) / DX(1) ) + 1
+          IY(J) = INT( (Y(N)-XMIN(2)) / DX(2) ) + 1
+        ENDDO
+        DO I = MINVAL(IX(1:3)), MAXVAL(IX(1:3))
+          DO J = MINVAL(IY(1:3)), MAXVAL(IY(1:3))
+            NE_PIECE(I,J) = NE_PIECE(I,J) + 1
+          ENDDO
+        ENDDO
+      ENDDO
+      ISTART = 0
+      DO I = 1, NDIV
+        DO J = 1, NDIV
+          NE_PIECE_INDEX(I,J) = ISTART
+          ISTART = ISTART + NE_PIECE(I,J)
+        ENDDO
+      ENDDO
+!
+! MAKE PIECE TABLE
+      DO I = 1, NDIV
+        DO J = 1, NDIV
+          NE_PIECE(I,J) = 0
+        ENDDO
+      ENDDO
+      DO M = 1, NMEL
+        DO J = 1, 3
+          N = ELEMS(M,J)
+          IX(J) = INT( (X(N)-XMIN(1)) / DX(1) ) + 1
+          IY(J) = INT( (Y(N)-XMIN(2)) / DX(2) ) + 1
+        ENDDO
+        DO I = MINVAL(IX(1:3)), MAXVAL(IX(1:3))
+          DO J = MINVAL(IY(1:3)), MAXVAL(IY(1:3))
+!           Count Total number of elements in PIECE(I,J)
+            NE_PIECE(I,J) = NE_PIECE(I,J) + 1
+!           Store Element number in PIECE(I,J)
+            NE_PIECE_LIST(NE_PIECE(I,J)+NE_PIECE_INDEX(I,J)) = M
+          ENDDO
+        ENDDO
+      ENDDO
+!
       RETURN
       END
 
