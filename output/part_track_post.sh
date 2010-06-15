@@ -107,7 +107,6 @@
    module load intel/11.1
 
      ifort -w  drog2dsp_deepwater.f -o drog2dsp_deepwater.exe
-#     ifort -w -mcmodel medium -shared-intel drog2dsp_deepwater.f -o drog2dsp_deepwater.exe
 
 
    # need the fort.64 file
@@ -140,6 +139,7 @@
 #     ln -fs $TRACKDIR/FG42_template.inp ./
      ln -fs $TRACKDIR/Hue_standard_01.pal ./
      ln -fs $ADVISDIR/$ENSTORM/maxele.63 ./
+     ln -fs $TRACKDIR/ParticlePalette1.txt ./
      ln -fs $ADVISDIR/$ENSTORM/fort.64  ./fort.64
 
 
