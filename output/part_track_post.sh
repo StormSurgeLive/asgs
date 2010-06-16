@@ -91,6 +91,7 @@
      echo $NumElem $NumNode
      echo "         IMPLICIT NONE                  "     >  ./CB_2D.h
      echo "         INTEGER NNE,ND,NFR,MXDRG,MXTIME,MXFILETIME" >>  ./CB_2D.h
+     echo "         INTEGER NDIV                              " >>  ./CB_2D.h
      echo "         REAL*8 REARTH,TOL                 "    >> ./CB_2D.h
      echo "            PARAMETER (NNE=${NumElem})     "    >> ./CB_2D.h
      echo "            PARAMETER (ND=${NumNode})      "    >> ./CB_2D.h
