@@ -2493,6 +2493,7 @@ SUBROUTINE GoogleKMZ
 !Casey 100606: Changes start here.
       IF(NumLayers.GT.0)THEN
          Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*01.kml"
+         CALL SYSTEM(TRIM(Line))
          Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*01.png"
          CALL SYSTEM(TRIM(Line))
          CALL SYSTEM("rm -r "//TRIM(GoogleLabel)//"*01.kml")
@@ -2501,6 +2502,7 @@ SUBROUTINE GoogleKMZ
       ENDIF
       IF(NumLayers.GT.1)THEN
          Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*02.kml"
+         CALL SYSTEM(TRIM(Line))
          Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*02.png"
          CALL SYSTEM(TRIM(Line))
          CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*02.kml")
@@ -2509,8 +2511,11 @@ SUBROUTINE GoogleKMZ
       ENDIF
       IF(NumLayers.GT.2)THEN
          Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*03.kml"
+         CALL SYSTEM(TRIM(Line))
          Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*03.png"
+         CALL SYSTEM(TRIM(Line))
          Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*04.kml"
+         CALL SYSTEM(TRIM(Line))
          Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*04.png"
          CALL SYSTEM(TRIM(Line))
          CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*03.kml")
@@ -2522,12 +2527,19 @@ SUBROUTINE GoogleKMZ
       ENDIF
       IF(NumLayers.GT.3)THEN
          Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*05.kml"
+         CALL SYSTEM(TRIM(Line))
          Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*05.png"
+         CALL SYSTEM(TRIM(Line))
          Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*06.kml"
+         CALL SYSTEM(TRIM(Line))
          Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*06.png"
+         CALL SYSTEM(TRIM(Line))
          Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*07.kml"
+         CALL SYSTEM(TRIM(Line))
          Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*07.png"
+         CALL SYSTEM(TRIM(Line))
          Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*08.kml"
+         CALL SYSTEM(TRIM(Line))
          Line = "zip -q "//TRIM(GoogleLabel)//".kmz "//TRIM(GoogleLabel)//"*08.png"
          CALL SYSTEM(TRIM(Line))
          CALL SYSTEM("rm "//TRIM(GoogleLabel)//"*05.kml")
@@ -6029,8 +6041,8 @@ SUBROUTINE WritePSImage(Record,IL1,IL2,IL3)
                                        "/s"//TRIM(BorderIncrementMajorC)//"f"//TRIM(BorderIncrementMinorC)//"WeSn"
                 ENDIF
                 Line = TRIM(Line)//" "//"-Sc"//TRIM(PartSizeInit)//"p"
-                Line = TRIM(Line)//" "//"-Glightgrey"
-               ! Line = TRIM(Line)//" "//"-C"//TRIM(TempPath)//"ParticlePalette.cpt"
+               !Line = TRIM(Line)//" "//"-Glightgrey"
+                Line = TRIM(Line)//" "//"-C"//TRIM(TempPath)//"ParticlePalette.cpt"
                 Line = TRIM(Line)//" -K"
                 IF(IfStarted.EQ.0)THEN
                     Line = TRIM(Line)//" "//">"
