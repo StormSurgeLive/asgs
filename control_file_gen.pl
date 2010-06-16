@@ -306,7 +306,7 @@ sub owiParameters () {
    $fort221[0] =~ /NAM_(\d+)/;
    my $owistart = $1;
    # create run description
-   $rundesc = "NAM $owistart";
+   $rundesc = "cs:$csdate"."0000 cy:$owistart ASGS NAM";
    $owistart =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
    my $oy = $1;
    my $om = $2;
@@ -564,7 +564,7 @@ sub asymmetricParameters () {
    my $NHSINC = int(($RNDAY*86400.0)/$dt);
    my $NHSTAR;
    # create run description
-   my $rundesc=$nhcName . " " . $advisorynum;
+   my $rundesc = "cs:$csdate"."0000 cy:$nhcName$advisorynum ASGS";
    # create the WTIMINC line
    $wtiminc = $cs_year." ".$cs_mon." ".$cs_day." ".$cs_hour." 1 ".$bladj;
 }

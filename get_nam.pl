@@ -25,8 +25,8 @@
 # data corresponding to the current ADCIRC time, and then grab all
 # successive nowcast data, if any. 
 #
-# If forecast data is requested, the script will grab the nowcast
-# and forecast data corresponding to the current ADCIRC time.
+# If forecast data is requested, the script will grab the 
+# forecast data corresponding to the current ADCIRC time.
 #--------------------------------------------------------------
 $^W++;
 use strict;
@@ -34,10 +34,6 @@ use Net::FTP;
 use Getopt::Long;
 use Date::Pcalc;
 use Cwd;
-#  Usage Example:
-#
-#  perl ~/asgs/trunk/get_nam.pl --rundir ~/biz/NSFOil/nam_download --backsite ftpprd.ncep.noaa.gov --backdir /pub/data/nccf/com/nam/prod --enstorm nowcast --csdate 2010051100 --hstime 86400.0
-#
 #
 our $rundir;   # directory where the ASGS is running
 my $backsite; # ncep ftp site for nam data
@@ -45,7 +41,9 @@ my $backdir;  # dir on ncep ftp site
 my $enstorm;  # hindcast, nowcast, or forecast
 my $csdate;   # UTC date and hour (YYYYMMDDHH) of ADCIRC cold start
 my $hstime;   # hotstart time, i.e., time since ADCIRC cold start (in seconds)
-my @altnamdirs; # altnerate directories to look in for NAM data 
+my @altnamdirs; # alternate directories to look in for NAM data 
+our $archivedruns; # path to previously conducted and archived files
+our @forecastcycle; # nam cycles to run a forecast (not just nowcast)
 my $scriptDir;  # directory where the wgrib2 executable is found
 #
 my $date;     # date (UTC) corresponding to current ADCIRC time
@@ -68,6 +66,8 @@ GetOptions(
            "forecastLength=s" => \$forecastLength,
            "hstime=s" => \$hstime,
            "altnamdirs=s" => \@altnamdirs,
+           "archivedruns=s" => \$archivedruns,
+           "forecastcycle=s" => \@forecastcycle,
            "scriptdir=s" => \$scriptDir
           );
 #
@@ -96,6 +96,7 @@ unless ( $hcDirSuccess ) {
 }
 if ( defined $enstorm ) { 
    unless ( $enstorm eq "nowcast" ) {
+      @forecastcycle = split(/,/,join(',',@forecastcycle));
       &getForecastData();
       exit;
    }
@@ -278,7 +279,7 @@ foreach my $dir (@targetDirs) {
       } else {
          stderrMessage("INFO","Download complete.");
          push(@nowcasts_downloaded,$dirDate.$hourString);
-         stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
+         #stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
          $dl++;
       }
    }
@@ -302,39 +303,41 @@ while ($datetime_needed <= $cycletime) {
    # look through the list of downloaded files to see if we already have it
    foreach my $downloaded (@nowcasts_downloaded) {
       if ( $downloaded == $datetime_needed ) { 
-         stderrMessage("DEBUG","Already downloaded nowcast data for '$datetime_needed'.");
+         #stderrMessage("DEBUG","Already downloaded nowcast data for '$datetime_needed'.");
          $already_haveit = 1;
       } 
    }
    unless ( $already_haveit == 1 ) {
       # don't have it, look in alternate directories for it
       stderrMessage("DEBUG","Don't have nowcast data for '$datetime_needed', searching alternate directories.");
-      # loop through all the alternative directories
-      foreach my $andir (@altnamdirs) {
-         stderrMessage("DEBUG","Checking '$andir'.");
-         my $alt_location = $andir."/".$datetime_needed."/nowcast/erl.".substr($date_needed,2)."/nam.t".$hour_needed."z.awip1200.tm00.grib2";
-         # does the file exist in this alternate directory?
-         if ( -e $alt_location ) {
-            $localDir = $cycletime."/nowcast/erl.".substr($date_needed,2);
-            # perform a smoke test on the file we found to check that it is
-            # not corrupted (not a definitive test but better than nothing)
-	    unless ( `$scriptDir/wgrib2 $alt_location -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
-               stderrMessage("INFO","The file '$alt_location' appears to be corrupted and will not be used.");
-               next;
-            }
-            stderrMessage("DEBUG","Nowcast file '$alt_location' found. Copying to cycle directory '$localDir'.");
-            unless ( -e $localDir ) {
-               unless ( mkdir($localDir,0777) ) {
-                  stderrMessage("ERROR","Could not make the directory '$localDir': $!");
-                  die;
+      if (defined @altnamdirs) {
+         # loop through all the alternative directories
+         foreach my $andir (@altnamdirs) {
+            #stderrMessage("DEBUG","Checking '$andir'.");
+            my $alt_location = $andir."/".$datetime_needed."/nowcast/erl.".substr($date_needed,2)."/nam.t".$hour_needed."z.awip1200.tm00.grib2";
+            # does the file exist in this alternate directory?
+            if ( -e $alt_location ) {
+               $localDir = $cycletime."/nowcast/erl.".substr($date_needed,2);
+               # perform a smoke test on the file we found to check that it is
+               # not corrupted (not a definitive test but better than nothing)
+	       unless ( `$scriptDir/wgrib2 $alt_location -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
+                  stderrMessage("INFO","The file '$alt_location' appears to be corrupted and will not be used.");
+                  next;
                }
+               #stderrMessage("DEBUG","Nowcast file '$alt_location' found. Copying to cycle directory '$localDir'.");
+               unless ( -e $localDir ) {
+                  unless ( mkdir($localDir,0777) ) {
+                     stderrMessage("ERROR","Could not make the directory '$localDir': $!");
+                     die;
+                  }
+               }
+               symlink($alt_location,$localDir."/nam.t".$hour_needed."z.awip1200.tm00.grib2");
+               $dl++;
+               $already_haveit = 1;
+            } else {
+               # file does not exist in this alternate directory
+               #stderrMessage("DEBUG","The file '$alt_location' was not found.");
             }
-            symlink($alt_location,$localDir."/nam.t".$hour_needed."z.awip1200.tm00.grib2");
-            $dl++;
-            $already_haveit = 1;
-         } else {
-            # file does not exist in this alternate directory
-            stderrMessage("DEBUG","The file '$alt_location' was not found.");
          }
       }
       if ( $already_haveit == 0 ) { 
@@ -377,11 +380,109 @@ sub getForecastData() {
       exit 1;
    }
    my $cycletime = <CYCLENUM>;
-   stderrMessage("DEBUG","The cycle time for the forecast is '$cycletime'.");
+   #stderrMessage("DEBUG","The cycle time for the forecast is '$cycletime'.");
    close(CYCLENUM);
    my $localDir = $cycletime."/namforecast";
    my $cycledate = substr($cycletime,0,8);
    my $cyclehour = substr($cycletime,-2,2);
+   #
+   # Check to see if the cycle hour matches one that we are supposed to
+   # run a forecast for. If so, write a file called "runme" in the 
+   # forecast directory. 
+   #
+   # If not, check to see if an earlier cycle should have run, but 
+   # failed, and the failure was not made up in a later run. If so, 
+   # write the file called "runme" in the forecast directory.
+   #
+   # This will require us to calculate the cycle date and hour of the
+   # cycle 6 hours prior to this one, and then to look in the rundir
+   # for that directory.
+   my $runme = 0;
+   my $rationale = "scheduled";
+   #stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
+   foreach my $cycle (@forecastcycle) {
+      if ( $cycle eq $cyclehour ) {
+         $runme = 1;
+         last;
+      }
+   }
+   # we may still want to run the forecast to make up for an earlier 
+   # forecast that failed or was otherwise missed (24 hour lookback)
+   if ( $runme == 0 ) {
+      my $earlier_success = 0; # 1 if an earlier run succeeded
+      for ( my $i=-6; $i>=-24; $i-=6 ) { 
+         # determine date/time of previous cycle
+         $cycledate =~ /(\d\d\d\d)(\d\d)(\d\d)/;
+         my $cdy = $1;
+         my $cdm = $2;
+         my $cdd = $3;
+         my ($pcy, $pcm, $pcd, $pch, $pcmin, $pcs); # previous cycle time
+         # now subtract the right number of hours
+        ($pcy,$pcm,$pcd,$pch,$pcmin,$pcs) =
+          Date::Pcalc::Add_Delta_DHMS($cdy,$cdm,$cdd,$cyclehour,0,0,0,$i,0,0);
+         # form the date and hour of the previous cycle time
+         my $previous_date = sprintf("%4d%02d%02d",$pcy ,$pcm, $pcd);
+         my $previous_hour = sprintf("%02d",$pch);
+         my $previous_cycle = $previous_date.$previous_hour;
+         stderrMessage("DEBUG","The previous cycle was '$previous_cycle'.");
+         # check to see if the previous cycle forecast was scheduled to run
+         my $was_scheduled = 0;
+         foreach my $cycle (@forecastcycle) {
+            if ( $cycle eq $previous_hour ) {
+               stderrMessage("DEBUG","The previous cycle was scheduled to run a forecast.");
+               $was_scheduled = 1;
+               last;
+            }
+         }
+         # since the ASGS will move failed ensemble directories out of 
+         # their parent cycle directory, the presence of the namforecast.out
+         # file indicates that it was successful
+         #
+         # If the prior one is present, and was not scheduled, then
+         # we'll assume it was a make-up run; in this case no need to 
+         # force this one. If it is present, and was scheduled, then no need 
+         # for any make up run.
+         #
+         # When looking for the previous runs, check the current run directory
+         # as well as the local archive of previous successful runs
+         my @prev_dirs;
+         push(@prev_dirs,$rundir);
+         push(@prev_dirs,$archivedruns);
+         foreach my $dir (@prev_dirs) {
+            if ( -e "$dir/$previous_cycle/namforecast.out" ) {
+               $earlier_success = 1; 
+               stderrMessage("DEBUG","The previous cycle completed successfully and was found at '$dir/$previous_cycle'.");
+               last;
+            }
+         }
+         if ( $earlier_success == 1 ) {
+            stderrMessage("DEBUG","The previous cycle ran. No need for a make-up run.");
+            last;
+         } else {
+            # ok the prior cycle did not run ... if it was supposed to 
+            # then force the current forecast to run
+            if ( $was_scheduled == 1 ) {
+               $rationale = "The previous cycle '$previous_cycle' did not successfully run a forecast, although it was scheduled. Forcing the current forecast '$cycletime' to run as a make-up run.";
+               stderrMessage("DEBUG",$rationale);
+               last;
+            }
+         }
+      }
+      if ( $earlier_success == 0 ) {
+         $runme = 1;
+      }
+   }
+   if ( $runme == 1 ) {
+      unless (open(RUNME,">$localDir/runme") ) { 
+         stderrMessage("ERROR","Could not open '$localDir/runme' for writing: $!.");
+         exit 1;
+      }
+      printf RUNME $rationale;
+      close(RUNME);
+   } 
+   #
+   # in any case, whether we are actually going to run the forecast or not,
+   # we always want to download the files
    stderrMessage("INFO","Downloading from directory 'nam.$cycledate'.");
    $hcDirSuccess = $ftp->cwd("nam.".$cycledate);
    unless ( $hcDirSuccess ) {
@@ -416,7 +517,7 @@ sub getForecastData() {
          unless ( $stat ) {
             stderrMessage("INFO","ftp: Get '$f' failed: " . $ftp->message);
             $num_retries++;
-            stderrMessage("DEBUG","num_retries is $num_retries");
+            #stderrMessage("DEBUG","num_retries is $num_retries");
             sleep 60; 
          } else {
             $dl++;

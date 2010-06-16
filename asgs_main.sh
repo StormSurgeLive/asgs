@@ -333,8 +333,14 @@ END
        perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
        logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
        qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
-      # check once per minute until all jobs have finished
-       monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol
+       # if qsub succeeded, monitor the job, otherwise an error is indicated
+       if [[ $? = 0 ]]; then
+          # check once per minute until all jobs have finished
+          monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol
+       else 
+          date > $ADVISDIR/$ENSTORM/run.error
+          echo "qsub rejected the job to adcprep the control file." >> $ADVISDIR/$ENSTORM/run.error
+       fi
        mv prep.in1 prep.in_controlfile
        mv decomp.out1 decomp.out_controlfile
        consoleMesssage "Job(s) complete."
@@ -381,8 +387,15 @@ END
        perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
        logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
        qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
+       # if qsub succeeded, monitor the job, otherwise an error is indicated
+       if [[ $? = 0 ]]; then
+          # check once per minute until all jobs have finished
+          monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart
+       else 
+          date > $ADVISDIR/$ENSTORM/run.error
+          echo "qsub rejected the job to adcprep the hotstart file." >> $ADVISDIR/$ENSTORM/run.error
+       fi
        # check once per minute until all jobs have finished
-        monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart
        mv prep.in1 prep.in_hotstartfile
        mv decomp.out1 decomp.out_hotstartfile
        consoleMesssage "Job(s) complete."
@@ -484,6 +497,9 @@ downloadBackgroundMet()
    HSTIME=$7
    FORECASTLENGTH=$8
    ALTNAMDIR=$9
+   FORECASTCYCLE=${10}
+   ARCHIVEBASE=${11}
+   ARCHIVEDIR=${12}
 #
 #   activity_indicator "Checking remote site for background meteorology data..." &
 #   pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
@@ -494,7 +510,7 @@ downloadBackgroundMet()
    fi
    echo "0" > advisoryNumber 2>> ${SYSLOG}
    while [[ `cat advisoryNumber` -lt 2 ]]; do
-      OPTIONS="--rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR"
+      OPTIONS="--rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle $FORECASTCYCLE --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
       perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG} > advisoryNumber
       if [[ `cat advisoryNumber` -lt 2 ]]; then
          sleep 60
@@ -510,46 +526,17 @@ monitorJobs()
     activity_indicator "Monitoring queue for run completion..." &
     pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
     sleep 60
-    if [ $QUEUESYS = LSF ]; then
-        JOBDONE=`bjobs 2>&1`
-        until [[ $JOBDONE = "No unfinished job found" ]]; do
-           sleep 60
-           JOBDONE=`bjobs 2>&1`
-        done
-    elif [ $QUEUESYS = LoadLeveler ]; then
-        while [[ `llq | grep $USER` ]]; do
-            sleep 60
-        done
-    elif [ $QUEUESYS = PBS ]; then
-        until [[ -e run.finish || -e run.error ]]; do
-            sleep 10
-        done
-        # we can't go on if the nowcast run fails, but a failed forecast
-        # won't stop us in our tracks
-        if [[ -e run.error ]]; then
-            if [ $ENSTORM_TEMP = nowcast ]; then 
-               fatal "The $ENSTORM_TEMP run failed." 
-            else
-               warn "The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
-            fi
-        fi
-    elif [ $QUEUESYS = mpiexec ]; then
+    if [[ $QUEUESYS = "mpiexec" ]]; then
         # do nothing, mpiexec has returned at this point
         logMessage "mpiexec has returned"
-    elif [ $QUEUESYS = SGE ]; then
-         # look for appropriate file
-  #       if [ ! -e run.start ]; then
-  #         fatal "ERROR: Job failed to submit- no run.start file"
-  #       fi
-  #      while [[ `$QCHECKCMD | grep $USER` ]]; do
-         while [[ ! -e run.finish ]]; do
-           if [ -e run.error ];then
-              fatal "ERROR: Job crashed in SGE queue"
-           fi        
+    else
+        until [[ -e run.finish || -e run.error ]]; do
             sleep 60
         done
-    else 
-       fatal "ERROR: Queueing system $QUEUESYS unrecognized." 
+        if [[ -e run.error ]]; then
+           warn "The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
+           cat run.error >> jobFailed         
+        fi
     fi
     logMessage "Job(s) complete."
     stop_activity_indicator ${pid}
@@ -601,9 +588,31 @@ submitJob()
         perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.sge 2>> ${SYSLOG}
         logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.sge"
         qsub $ADVISDIR/$ENSTORM/padcirc.sge >> ${SYSLOG} 2>&1
+        # if qsub succeeded, monitor the job, otherwise an error is indicated
+        if [[ $? = 1 ]]; then
+          date > $ADVISDIR/$ENSTORM/run.error
+          echo "qsub rejected the padcirc job." >> $ADVISDIR/$ENSTORM/run.error
+        fi
     else 
-        fatal "ERROR: Queueing system $QUEUESYS unrecognized."
+        fatal "Queueing system $QUEUESYS unrecognized."
     fi
+}
+#
+# checks to see if a job has failed, and if so, copies it off to 
+# another directory
+handleFailedJob() 
+{   
+RUNDIR=$1
+ADVISDIR=$2
+ENSTORM=$3
+SYSLOG=$4
+# check to see that adcprep did not conspicuously fail
+if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then 
+   warn "The adcprep phase of the nowcast job has failed."
+   FAILDATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+   warn "Moving failed cycle to 'failed.${FAILDATETIME}'."
+   mv $ADVISDIR/$ENSTORM $RUNDIR/failed.${FAILDATETIME} 2>> ${SYSLOG}
+fi
 }
 #
 # Log file forced to be in /tmp/$$.asgs
@@ -633,7 +642,15 @@ fatal()
   exit ${EXIT_NOT_OK} 
 }
 #
+# log a debug message
+debugMessage()
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+  MSG="[${DATETIME}] DEBUG: $@"
+  echo ${MSG} >> ${SYSLOG} 
+}
+#
 # send a message to the console (i.e., window where the script was started)
+# (these should be rare)
 consoleMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
   MSG="[${DATETIME}] INFO: $@"
@@ -829,6 +846,9 @@ TIDEFAC=off
 TROPICALCYCLONE=off
 WAVES=off
 OUTPUTOPTIONS=
+ARCHIVEBASE=/dev/null
+ARCHIVEDIR=null
+FORECASTCYCLE="00,06,12,18"
 TRIGGER="rss"
 STARTADVISORYNUM=null
 FORECASTLENGTH=
@@ -1047,8 +1067,8 @@ if [[ $START = coldstart ]]; then
       fi
       logMessage "NWS is $NWS."
       logMessage "Downloading background meteorology."
-      logMessage "downloadBackgroundMet $ADVISDIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $ALTNAMDIR"
-      downloadBackgroundMet $ADVISDIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $ALTNAMDIR
+      logMessage "downloadBackgroundMet $ADVISDIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR"
+      downloadBackgroundMet $ADVISDIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR
       # prepare hindcast met (fort.22) and control (fort.15) files 
       CONTROLOPTIONS=" --metfile $ADVISDIR/fort.221 --name hindcast --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE"
       OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
@@ -1146,8 +1166,8 @@ while [ 1 -eq 1 ]; do
        fi
        logMessage "NWS is $NWS."
        logMessage "Downloading background meteorology."
-       logMessage "downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR"
-       downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR
+       logMessage "downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR"
+       downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR
        ADVISORY=`cat advisoryNumber`
        ADVISDIR=$RUNDIR/${ADVISORY}
        cd $ADVISDIR 2>> ${SYSLOG}
@@ -1177,6 +1197,9 @@ while [ 1 -eq 1 ]; do
     logMessage "Starting nowcast preprocessing."
     logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT $NAFILE"
     prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT $NAFILE
+    # check to see that adcprep did not conspicuously fail
+    handleFailedJob $RUNDIR $ADVISDIR nowcast $SYSLOG
+    if [[ ! -d $ADVISDIR/nowcast ]]; then continue; fi
     # then submit the job
     logMessage "Submitting ADCIRC nowcast job."
     cd $ADVISDIR/nowcast 2>> ${SYSLOG}
@@ -1184,6 +1207,9 @@ while [ 1 -eq 1 ]; do
     submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR nowcast $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS
     # check once per minute until all jobs have finished
     monitorJobs $QUEUESYS nowcast
+    # check to see that the nowcast job did not conspicuously fail
+    handleFailedJob $RUNDIR $ADVISDIR nowcast $SYSLOG
+    if [[ ! -d $ADVISDIR/nowcast ]]; then continue; fi
     consoleMesssage "Job(s) complete."
     # nowcast finished, get on with it
     logMessage "Nowcast run finished."
@@ -1193,6 +1219,8 @@ while [ 1 -eq 1 ]; do
     # F O R E C A S T
     logMessage "Starting forecast for advisory '$ADVISORY'."
     consoleMessage "Starting forecast for advisory '$ADVISORY'."
+    # source config file
+    . ${CONFIG}
     cd $ADVISDIR/nowcast/PE0000 2>> ${SYSLOG}
     checkHotstart
     HSTIME=`$ADCIRCDIR/hstime` 2>> ${SYSLOG}
@@ -1224,8 +1252,8 @@ while [ 1 -eq 1 ]; do
           consoleMessage "$START $ENSTORM cycle $ADVISORY."
           # download and convert met files to OWI format
           logMessage "Downloading background meteorology."
-          logMessage "downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR"
-          downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR
+          logMessage "downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR"
+          downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR
           cd $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
           NAMOPTIONS=" --ptFile ${INPUTDIR}/${PTFILE} --namFormat grib2 --namType $ENSTORM --awipGridNumber 218 --dataDir ${ADVISDIR}/${ENSTORM} --outDir ${ADVISDIR}/${ENSTORM}/ --velocityMultiplier 0.893 --scriptDir ${SCRIPTDIR}"
           logMessage "Converting NAM data to OWI format with the following options : $NAMOPTIONS"
@@ -1242,22 +1270,34 @@ while [ 1 -eq 1 ]; do
        # preprocess
        logMessage "Starting $ENSTORM preprocessing."
        prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT $NAFILE
-       # then submit the job
-       logMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
-       consoleMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
-       submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS
-       # check once per minute until job has completed
-       monitorJobs $QUEUESYS $ENSTORM
-       consoleMesssage "Job(s) complete."
-       # execute post processing
-       logMessage "$ENSTORM finished; postprocessing"
-       # execute post processing
-       ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
-       if [[ $EMAILNOTIFY = YES ]]; then
-          post_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM "${POST_LIST}" >> ${SYSLOG} 2>&1
-       fi
-       if [[ ! -z $POSTPROCESS2 ]]; then # creates GIS and kmz figures
-          ${OUTPUTDIR}/${POSTPROCESS2} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG 2>> ${SYSLOG} 
+       handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
+       if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
+       RUNFORECAST=yes
+       if [[ $BACKGROUNDMET = on ]]; then
+          if [[ ! -e $ADVISDIR/$ENSTORM/runme ]]; then
+             RUNFORECAST=no
+          fi
+       fi 
+       if [[ $RUNFORECAST = yes ]]; then
+          # then submit the job
+          logMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
+          consoleMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
+          submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS
+          # check once per minute until job has completed
+          monitorJobs $QUEUESYS $ENSTORM
+          handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
+          if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
+          consoleMesssage "Job(s) complete."
+          # execute post processing
+          logMessage "$ENSTORM finished; postprocessing"
+          # execute post processing
+          ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
+          if [[ $EMAILNOTIFY = YES ]]; then
+             post_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM "${POST_LIST}" >> ${SYSLOG} 2>&1
+          fi
+          if [[ ! -z $POSTPROCESS2 ]]; then # creates GIS and kmz figures
+             ${OUTPUTDIR}/${POSTPROCESS2} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG 2>> ${SYSLOG} 
+          fi
        fi
        si=$[$si + 1];
     done

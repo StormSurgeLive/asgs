@@ -74,32 +74,32 @@ GetOptions(
           "pressureMultiplier=s" => \$pressureMultiplier,
           "scriptDir=s" => \$scriptDir
          );
-&printDate("Start processing NAM Data");
-&printDate("Process Point File ....");
+&stderrMessage("INFO","Started processing NAM data.");
+&stderrMessage("INFO","Started processing point file.");
 $geoHeader=&processPtFile($ptFile);
 # load NAM data
 if ( $namFormat eq "grib2" ) 
 	{
-	&printDate("Process grib2 file ...");
+	&stderrMessage("INFO","Processing grib2 file(s).");
 	&getGrib2($namType);
 	&addToFort22();# have to add the record length to fort.22
-	&printDate("Rotate and format each time-step ...");
+	&stderrMessage("INFO","Rotate and format each time-step.");
 	# loop through the time-steps to run awips_interp	
 	&rotateAndFormat();
 	}
 elsif ( $namFormat eq "netCDF" )
 	{
 	#first get all the variables ids and dimensions ids from the netCDF file
-	&printDate("Process netCDF file ...");
+	&stderrMessage("INFO","Process netCDF file.");
 #	&getNetCDF();
 	&addToFort22();# have to add the record length to fort.22
-	&printDate("Rotate and format each time-step ...");
+	&stderrMessage("INFO","Rotate and format each time-step.");
 	# loop through the time-steps to run awips_interp	
 	&rotateAndFormat();
 	}
-&printDate("Print OWI files...");
+&stderrMessage("INFO","Print OWI files.");
 &printOWIfiles();
-&printDate("Done processing NAM Data");
+&stderrMessage("INFO","Done processing NAM data.");
 ######################################################
 #                    Subroutines                     #
 ######################################################
@@ -139,7 +139,7 @@ sub processPtFile
         # check for existence of lat/lon file before attempting to open
         unless (-e $ptFile ) 
         { 
-                 &printDate("NAMtoOWI.pl: ERROR: Grid specification file '$ptFile' does not exist.");
+                 &stderrMessage("ERROR","Grid specification file '$ptFile' does not exist.");
                  die;
         }       
 	open(PT,$ptFile);
@@ -243,8 +243,8 @@ sub toOWIformat
         # check for existence of the data file before attempting to open
         unless (-e $file ) 
         { 
-                 &printDate("NAMtoOWI.pl: ERROR: The data file '$file' does not exist.");
-                 die;
+            &stderrMessage("ERROR","The data file '$file' does not exist.");
+            die;
         }       
 	open (FIL,$file);
 	my @file=<FIL>;
@@ -335,13 +335,13 @@ sub getNetCDF
         # line before attempting to open
         unless ( defined $ARGV[0] ) 
         {
-                 &printDate("NAMtoOWI.pl: ERROR: NetCDF filename was not specified on command line.");
+            &stderrMessage("ERROR","NetCDF filename was not specified on command line.");
                  die;
         }
         # check for existence of netcdf file before attempting to open
         unless (-e $ARGV[0] ) 
         { 
-                 &printDate("NAMtoOWI.pl: ERROR: NetCDF file '$ARGV[0]' does not exist.");
+                 &stderrMessage("ERROR","NetCDF file '$ARGV[0]' does not exist.");
                  die;
         } 
 	if ($ARGV[0] =~/.gz$/)
@@ -404,7 +404,7 @@ sub rotateAndFormat
 {
 	for my $t (0 .. $nRec{'time'}-1)
 		{
-		&printDate("TS=$t");
+		#&stderrMessage("DEBUG","TS=$t");
 		my $startInd=$t*$recordLength;
 		my $stopInd=($t+1)*$recordLength-1;
 		my @subset=($startInd .. $stopInd);
@@ -460,9 +460,9 @@ sub getGrib2
            $timeStep = 6.0; # in hours
            my @grib2Dirs = glob($dataDir."/erl.*");
            my $numGrib2Dirs = @grib2Dirs;
-           &printDate("NAMtoOWI.pl: INFO: There is/are $numGrib2Dirs grib2 dir(s).");
+           &stderrMessage("INFO","There is/are $numGrib2Dirs grib2 dir(s).");
            if ( $numGrib2Dirs == 0 ) {
-              &printDate("NAMtoOWI.pl: ERROR: There are no grib2 directories to process.");
+              &stderrMessage("ERROR","There are no grib2 directories to process.");
               die;
            }  
 	   # assume that $dataDir points to a directory containing
@@ -483,7 +483,7 @@ sub getGrib2
         # in the first file
         `$scriptDir/wgrib2 $grib2Files[0] -match PRMSL` =~ m/d=(\d+)/;
         $startTime = $1;
-        &printDate("NAMtoOWI.pl: INFO: The start time is '$startTime'.");
+        #&stderrMessage("DEBUG","The start time is '$startTime'.");
         $startTime =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
         my $sy = $1; # start year
         my $sm = $2; # start month
@@ -494,11 +494,11 @@ sub getGrib2
         my $numGrib2Files = 0;
         foreach my $file (@grib2Files) {
            $numGrib2Files++;
-           &printDate("Starting work on '$file'.");
+           #&stderrMessage("DEBUG","Starting work on '$file'.");
            # grab the forecast hour from the filename itself
            $file =~ m/nam.t\d\dz.awip12(\d\d).tm00.grib2/;
            my $forecastHour = $1;
-           &printDate("NAMtoOWI.pl: INFO: The forecast hour is '$forecastHour'.");
+           #&stderrMessage("DEBUG","The forecast hour is '$forecastHour'.");
            ($fy, $fm, $fd, $fh, $fmin, $fs) =
               Date::Pcalc::Add_Delta_DHMS($sy, $sm, $sd, $sh, 0, 0, 
                  0, $forecastHour, 0, 0);
@@ -513,7 +513,7 @@ sub getGrib2
                     0, $forecastHour, 0, 0);
               $endTime = sprintf("%4d%02d%02d%02d",$ey ,$em, $ed, $eh);
            } 
-           &printDate("NAMtoOWI.pl: INFO: The end time is '$endTime'."); 
+           #&stderrMessage("DEBUG","The end time is '$endTime'."); 
            push(@OWItime,$endTime."00"); # add the minutes columns
            #
            # now grab the u,v,p data from the file, sending the
@@ -524,7 +524,7 @@ sub getGrib2
            #               
            # the nlon and nlat are the first line in the output 
            my @nxny = split(" ",shift(@rawUVP)); 
-           &printDate("NAMtoOWI.pl: INFO: nlon is $nxny[0] nlat is $nxny[1].");
+           #&stderrMessage("INFO","nlon is $nxny[0] nlat is $nxny[1].");
            $recordLength = $nxny[0] * $nxny[1];
            foreach my $val (@rawUVP[(0 .. ($recordLength-1))]) {
               push(@ugrd,$val);
@@ -542,12 +542,26 @@ sub getGrib2
         # build the filenames
         $wndFile=$outDir.'NAM_'.$startTime.'_'.$endTime.'.222';
         $presFile=$outDir.'NAM_'.$startTime.'_'.$endTime.'.221';
-        &printDate("NAMtoOWI.pl: INFO: Processed $numGrib2Files grib2 file(s).");
+        &stderrMessage("INFO","Processed $numGrib2Files grib2 file(s).");
 	$nRec{'time'}=$numGrib2Files;
         if ( $numGrib2Files == 0 ) { 
-           &printDate("NAMtoOWI.pl: ERROR: There were no grib2 files to process.");
+           &stderrMessage("ERROR","There were no grib2 files to process.");
            die;
         } 
         
 } 
+
+sub stderrMessage () {
+   my $level = shift;
+   my $message = shift;
+   my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+   (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
+   my $year = 1900 + $yearOffset;
+   my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
+   my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
+   printf STDERR "$theTime $level: NAMtoOWI.pl: $message\n";
+   if ($level eq "ERROR") {
+      sleep 60
+   }
+}
 
