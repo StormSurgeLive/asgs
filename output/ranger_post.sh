@@ -42,7 +42,7 @@ if [[ -e ${ADVISDIR}/${ENSTORM}/fort.61 ]]; then
    # now create csv files that can easily be imported into excel
    perl ${OUTPUTDIR}/station_transpose.pl --filetotranspose elevation --controlfile ${ADVISDIR}/${ENSTORM}/fort.15 --stationfile ${ADVISDIR}/${ENSTORM}/fort.61 --format comma --coldstartdate $CSDATE --gmtoffset -5 --timezone CDT --units english 2>> ${SYSLOG}
 fi
-if [[ -e ${ADVISDIR}/${ENSTORM}/fort.72 ]] then   
+if [[ -e ${ADVISDIR}/${ENSTORM}/fort.72 ]]; then   
    # transpose wind velocity output file so that we can graph it with gnuplot
    perl ${OUTPUTDIR}/station_transpose.pl --filetotranspose windvelocity --controlfile ${ADVISDIR}/${ENSTORM}/fort.15 --stationfile ${ADVISDIR}/${ENSTORM}/fort.72 --format space --vectorOutput magnitude --coldstartdate $CSDATE --gmtoffset -5 --timezone CDT --units english 2>> ${SYSLOG}
    perl ${OUTPUTDIR}/station_transpose.pl --filetotranspose windvelocity --controlfile ${ADVISDIR}/${ENSTORM}/fort.15 --stationfile ${ADVISDIR}/${ENSTORM}/fort.72 --format comma --vectorOutput magnitude --coldstartdate $CSDATE --gmtoffset -5 --timezone CDT --units english 2>> ${SYSLOG}
@@ -57,7 +57,7 @@ cd ${ADVISDIR}/$ENSTORM/plots 2>> ${SYSLOG}
 if [[ -e ${ADVISDIR}/${ENSTORM}/fort.61 ]]; then
    perl ${OUTPUTDIR}/autoplot.pl --filetoplot fort.61_transpose.txt --plotType elevation --plotdir ${ADVISDIR}/${ENSTORM}/plots --outputdir ${OUTPUTDIR} --timezone CDT --units english --stormname "$STORMNAME" --enstorm $ENSTORM --advisory $ADVISORY --datum NAVD88
 fi
-if [[ -e ${ADVISDIR}/${ENSTORM}/fort.72 ]] then
+if [[ -e ${ADVISDIR}/${ENSTORM}/fort.72 ]]; then
    # plot wind speed data with gnuplot 
    perl ${OUTPUTDIR}/autoplot.pl --filetoplot fort.72_transpose.txt --plotType windvelocity --plotdir ${ADVISDIR}/${ENSTORM}/plots --outputdir ${OUTPUTDIR} --timezone CDT --units english --stormname "$STORMNAME" --enstorm $ENSTORM --advisory $ADVISORY --datum NAVD88
 fi
