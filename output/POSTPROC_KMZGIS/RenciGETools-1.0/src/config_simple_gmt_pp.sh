@@ -33,6 +33,7 @@ DEBUG=1
 case "$TARGET" in 
 # for Ranger
 	"ranger") 
+                echo "Target is Ranger."
 		GMTHOME=/share/home/01053/rweaver/GMT4.4.0			   # The GMT installation
 		#PPDIR=/share/home/01053/rweaver/ASGS/asgs_2009/output/POSTPROC_KMZGIS/RenciGETools-1.0/src
                 PPDIR=/share/home/00976/jgflemin/asgs/trunk/output/POSTPROC_KMZGIS/RenciGETools-1.0/src

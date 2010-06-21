@@ -91,16 +91,16 @@ export PPDIR=$POSTPROC_DIR/RenciGETools-1.0/src
 # On topsail.unc.edu 4 layers for a 270000 node grid took 14 minutes.
 # to test the script use only 1 layer.
   
-     KMZLOGFILE=$ADVISDIR/$ENSTORM/kmz.log # log file for kmz info and errors
-     INPUTFILE=$ADVISDIR/$ENSTORM/maxele.63
+KMZLOGFILE=$ADVISDIR/$ENSTORM/kmz.log # log file for kmz info and errors
+INPUTFILE=$ADVISDIR/$ENSTORM/maxele.63
 #    INPUTFILE=$ADVISDIR/$ENSTORM/maxwvel.63
-     GRIDPREFIX=`basename $GRIDFILE .grd`
-     OUTPUTPREFIX=${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}
-     NUMLAYER=3
-    # create track line and points if available
- perl $PPDIR/make_track_files.pl >> $KMZLOGFILE 2>&1
-
- $PPDIR/adc_max_simple_plot_gmt.sh -f $INPUTFILE -g $GRIDPREFIX -p $OUTPUTPREFIX -n $NUMLAYER >> $KMZLOGFILE 2>&1  &
+GRIDPREFIX=`basename $GRIDFILE .grd`
+OUTPUTPREFIX=${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}
+NUMLAYER=3
+# create track line and points if available
+perl $PPDIR/make_track_files.pl >> $KMZLOGFILE 2>&1
+#
+$PPDIR/adc_max_simple_plot_gmt.sh -f $INPUTFILE -g $GRIDPREFIX -p $OUTPUTPREFIX -n $NUMLAYER >> $KMZLOGFILE 2>&1  &
 
 # exit 0
 # #####################################################
@@ -116,23 +116,23 @@ export PPDIR=$POSTPROC_DIR/RenciGETools-1.0/src
 
 # excecute config file to get bounds for output box (full coastline)
 # and location (Path) to grid files
-  source $PPDIR/config_simple_gmt_pp.sh
+source $PPDIR/config_simple_gmt_pp.sh
 # OR define your own bounds 
 #  NORTH=30.5
 #  SOUTH=28.5
 #  EAST=-88.5
 #  WEST=-90.5
 #
- echo 
+echo 
 if [ -e $GRDFILES/$GRIDPREFIX.grd ]
 then
-  INPUTGRID=$GRDFILES/$GRIDPREFIX.grd
+   INPUTGRID=$GRDFILES/$GRIDPREFIX.grd
 elif [ -e $GRDFILES/$GRIDPREFIX.14 ]
 then
- INPUTGRID=$GRDFILES/$GRIDPREFIX.14
+   INPUTGRID=$GRDFILES/$GRIDPREFIX.14
 else
- echo "cannot find, $GRDFILES/$GRIDPREFIX.grd ,or, $GRDFILES/$GRIDPREFIX.14 "
- exit 1
+   echo "cannot find, $GRDFILES/$GRIDPREFIX.grd ,or, $GRDFILES/$GRIDPREFIX.14 "
+   exit 1
 fi
 GISLOGFILE=$ADVISDIR/$ENSTORM/gis.log # log file for gis-related info/errors
 echo "starting Java script ArcGIS POST PROC", $WEST, $SOUTH, $EAST, $NORTH
@@ -162,49 +162,44 @@ echo $INPUTGRID, $INPUTFILE,$OUTPUTPREFIX.shp
 #   perl make_JPG.pl --storm 01 --year 2006 --adv 05 --n 30.5 --s 28.5 --e -88.5 --w -90.5 --outputprefix 01_2006_nhcconsensus_05
   
 # for now must create this in the sharedirectory on Ranger, so make it so on every machine
-  cd $POSTPROC_DIR/FigGen/
-
-    ln -fs $INPUTFILE ./
-    ln -fs $ADVISDIR/$ENSTORM/fort.14 ./ 
-
-  perl make_JPG.pl --outputdir $POSTPROC_DIR --gmthome $GMTHOME --storm ${STORM} --year ${YEAR} --adv $ADVISORY --n $NORTH --s $SOUTH --e $EAST --w $WEST --outputprefix $OUTPUTPREFIX
+cd $POSTPROC_DIR/FigGen/
+#
+ln -fs $INPUTFILE ./
+ln -fs $ADVISDIR/$ENSTORM/fort.14 ./ 
+#
+ perl make_JPG.pl --outputdir $POSTPROC_DIR --gmthome $GMTHOME --storm ${STORM} --year ${YEAR} --adv $ADVISORY --n $NORTH --s $SOUTH --e $EAST --w $WEST --outputprefix $OUTPUTPREFIX
     
 #    cd ./Temp
 #    ln -fs $GRDFILES/$GRIDPREFIX.gmt.bnd.xy ./fort.14.bnd.xy
 #    ln -fs $GRDFILES/$GRIDPREFIX.gmt.tri ./fort.14.tri
 #    ln -fs $GRDFILES/$GRIDPREFIX.gmt.xyz ./fort.14.gmt.xyz
 #    cd ../
-    ./FigureGen32.exe >> $ADVISDIR/$ENSTORM/jpg.log 2>&1  &
-
-    while [ ! -e $POSTPROC_DIR/FigGen/$OUTPUTPREFIX.jpg ]; do
-      sleep 60
-   done
-     sleep 60
-      mv ./$OUTPUTPREFIX.jpg  $ADVISDIR/$ENSTORM/$OUTPUTPREFIX.jpg
-         rm -f $POSTPROC_DIR/FigGen/fort.14
-         rm -f $POSTPROC_DIR/FigGen/max*.63
-         rm -f $POSTPROC_DIR/FigGen/$OUTPUTPREFIX.ps
-
-
+./FigureGen32.exe >> $ADVISDIR/$ENSTORM/jpg.log 2>&1  &
+#
+while [ ! -e $POSTPROC_DIR/FigGen/$OUTPUTPREFIX.jpg ]; do
+   sleep 60
+done
+sleep 60
+mv ./$OUTPUTPREFIX.jpg  $ADVISDIR/$ENSTORM/$OUTPUTPREFIX.jpg
+rm -f $POSTPROC_DIR/FigGen/fort.14
+rm -f $POSTPROC_DIR/FigGen/max*.63
+rm -f $POSTPROC_DIR/FigGen/$OUTPUTPREFIX.ps
+#
 # now go back to the advisory directory
-    cd $ADVISDIR/$ENSTORM/
+cd $ADVISDIR/$ENSTORM/
 # ..   ..
 #
 # Use this section of the script to move the files where you want them
-
-  while [ ! -e $OUTPUTPREFIX.kmz ]; do
-      sleep 60
-   done
-  while [ ! -e $OUTPUTPREFIX.shp ]; do
-      sleep 60
-   done
-      sleep 60
-        
-         mkdir  $OUTPUTPREFIX-KMZ_GIS_files
-
-          mv $OUTPUTPREFIX.* $OUTPUTPREFIX-KMZ_GIS_files
-         tar -czf $OUTPUTPREFIX-KMZ_GIS.tar.gz $OUTPUTPREFIX-KMZ_GIS_files
-
-         rm -rf $OUTPUTPREFIX-KMZ_GIS_files $OUTPUTPREFIX*.png
+while [ ! -e $OUTPUTPREFIX.kmz ]; do
+   sleep 60
+done
+while [ ! -e $OUTPUTPREFIX.shp ]; do
+   sleep 60
+done
+sleep 60
+mkdir  $OUTPUTPREFIX-KMZ_GIS_files
+mv $OUTPUTPREFIX.* $OUTPUTPREFIX-KMZ_GIS_files
+tar -czf $OUTPUTPREFIX-KMZ_GIS.tar.gz $OUTPUTPREFIX-KMZ_GIS_files
+rm -rf $OUTPUTPREFIX-KMZ_GIS_files $OUTPUTPREFIX*.png
 ###
 exit 0

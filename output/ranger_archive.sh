@@ -38,6 +38,8 @@ if [[ -e $ARCHIVEBASE ]]; then
    if [[ ! -e ${ARCHIVEBASE}/${ARCHIVEDIR} ]]; then
       mkdir ${ARCHIVEBASE}/${ARCHIVEDIR} 
    fi 
+   chgrp -R G-81535 ${ADVISDIR} 
+   chmod -R 750 ${ADVISDIR}
    cp -a $ADVISDIR ${ARCHIVEBASE}/${ARCHIVEDIR}
 else
    echo "Archival process failed, archive base directory '$ARCHIVEBASE' does not exist." 1>&2
