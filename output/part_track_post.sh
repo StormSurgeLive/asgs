@@ -33,9 +33,6 @@
    #
    . ${CONFIG} # grab all static config info
    #
-   # grab storm class and name from file
-  #   STORMNAME=`cat nhcClassName` 
-  #   STORMNAME=${STORMNAME}" "${YEAR}
 
    # switch to tracking directory
    initialDirectory=`pwd`;
@@ -43,163 +40,52 @@
    # mv *.txt *.csv ${ADVISDIR}/$ENSTORM/tracking
    cd ${ADVISDIR}/$ENSTORM/PartTrack
 
-   # 1) Process Grid
-   GRIDPREFIX=`basename $GRIDFILE .grd`
+   PARTICLEFILE=$(ls -tr1 /corral/hurricane/mthoward/*composite*.txt | tail -1  | awk '{print $1}')
 
-     TRACKDIR=$OUTPUTDIR/PartTrack
-
-     ln -fs  ${ADVISDIR}/${ENSTORM}/fort.14  ./${GRIDPREFIX}
-     ln -fs $TRACKDIR/connect2D_optimized.exe ./
-
-   # Generate the input file with initial positions
-
-       ln -fs $TRACKDIR/gen_part_track_input.sh
-     ./gen_part_track_input.sh $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $ENSTORM $OUTPUTDIR 
-      echo ' ./gen_part_track_input.sh' $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $ENSTORM $OUTPUTDIR  > $HOME/gen_log.log
-
-   # create drogue_input_1 file
-
-   # name of input file is hardwired as input_deepwater.din
-   # output will be input_deepwater.pth
-        echo input_deepwater > drogue_input_1
-        echo ${GRIDPREFIX} >> drogue_input_1
-
-   # process the grid file
-
-   # before we process the file lets look for an already processed file in 
-   # the $outputdir/parttrack/input directory
-
-       
-     if [ ! -e /corral/hurricane/grids/${GRIDPREFIX}.gr2 ] 
-     then
-    ./connect2D_optimized.exe 
-      cp ./${GRIDPREFIX}.gr2 /corral/hurricane/grids/${GRIDPREFIX}.gr2
-     else
-   #  ln -fs  /corral/hurricane/grids/${GRIDPREFIX}.gr2 ./${GRIDPREFIX}.gr2
-      cp  /corral/hurricane/grids/${GRIDPREFIX}.gr2 ./${GRIDPREFIX}.gr2
-     fi
-   
-   # 2) Track Particles
-      # Write CB_2D.h file
-
-    NumElem=$(head -2 ./${GRIDPREFIX} | tail -1 | awk '{print $1}')
-    NumNode=$(head -2 ./${GRIDPREFIX} | tail -1 | awk '{print $2}')
-    NumFreq=1
-    MxDrog=40000
-    MxTime=3600
-    Tol=50.0D0
-     echo $NumElem $NumNode
-     echo "         IMPLICIT NONE                  "     >  ./CB_2D.h
-     echo "         INTEGER NNE,ND,NFR,MXDRG,MXTIME,MXFILETIME" >>  ./CB_2D.h
-     echo "         INTEGER NDIV                              " >>  ./CB_2D.h
-     echo "         REAL*8 REARTH,TOL                 "    >> ./CB_2D.h
-     echo "            PARAMETER (NNE=${NumElem})     "    >> ./CB_2D.h
-     echo "            PARAMETER (ND=${NumNode})      "    >> ./CB_2D.h
-     echo "            PARAMETER (NFR=${NumFreq})     "    >> ./CB_2D.h
-     echo "            PARAMETER (MXDRG=${MxDrog})    "    >> ./CB_2D.h
-     echo "            PARAMETER (MXTIME=${MxTime})   "    >> ./CB_2D.h
-     echo "            PARAMETER (REARTH=6.3675D6)    "    >> ./CB_2D.h
-     echo "            PARAMETER (TOL=${Tol})         "    >> ./CB_2D.h
-     echo "            PARAMETER (NDIV=1000)          "    >> ./CB_2D.h
-
-     ln -fs $TRACKDIR/src/drog2dsp_deepwater.f ./drog2dsp_deepwater.f
-
-   module unload intel/9.1
-   module load intel/11.1
-
-     ifort -w  drog2dsp_deepwater.f -o drog2dsp_deepwater.exe
+   GSHOME2=/usr/bin/
+#   GSHOME2=/share/home/01053/rweaver/ghostscript-8.71/bin/
+   GMTHOME2=/work/01053/rweaver/GMT4.5.0/bin/
+   STARTTIME=$(head -1 $ADVISDIR/$ENSTORM/hotstartdate | tail -1 | awk '{print $1}')
+   NumRecords=$(head -2 ./fort.64 | tail -1 | awk '{print $1}')  # 
 
 
-   # need the fort.64 file
-     ln -fs $ADVISDIR/$ENSTORM/fort.64  ./fort.64.v2c
-# run on logingnode until solution to shared files available on compute nodes
-#        ./drog2dsp_deepwater.exe > ./PartTrack_01.out
+#  Create config file for particle tracking and visualizations
+ echo "#!/bin/bash              "  > PartTrack_config.conf
+if [ $TROPICALCYCLONE -eq "off" ];then
+  STORM=${ADVISORY}
+  KIND=NAM
+else
+  STORM=$STORM
+  KIND=TC
+fi
+ echo "STORM=${STORM}           " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "STORMNAME=${STORM}       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "CSDATE=${CSDATE}         " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "OUTPUTDIR=${OUTPUTDIR}   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "INPUTDATADIR=${ADVISDIR}/${ENSTORM}               " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "TRACKDIR=${OUTPUTDIR}/PartTrack/TRACKING_FILES    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "ADVISORY=${ADVISORY}           " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "KIND=${KIND}                   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "PARTICLEFILE=${PARTICLEFILE}   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "PARTFILETYPE=0   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "NORTH=31.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "SOUTH=21.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "EAST=-82.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "WEST=-97.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "SYSLOG=${SYSLOG}          " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "NOTIFYUSER=${NOTIFYUSER}  " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "ACCOUNT=${ACCOUNTpost}    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "GSHOME2=${GSHOME2}        " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "GMTHOME2=${GMTHOME2}      " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "VECTORLIM=50       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "CONTOURLIM=-1,3    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
 
-        SERQSCRIPT=ranger.PartTrack.template.serial
-       SERQSCRIPTOPTIONS="--account $ACCOUNTpost --adcircdir $TRACKDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $TRACKDIR/$SERQSCRIPT"
-         echo $SERQSCRIPTOPTIONS > scriptgrn_pt.log
-       perl $TRACKDIR/ranger.PartTrack.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge 2>> ${SYSLOG}
-       echo "Submitting $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge"
-       qsub $ADVISDIR/$ENSTORM/PartTrack/parttrack.serial.sge >> ${SYSLOG} 2>&1
-           counter1=0
-       while [ ! -e ./run.finish ]; do
-              if [ -e ./run.error ]
-              then
-               echo "Particle Tracking finished with error"  >> ./run.error
-               exit
-              fi
-              counter1=`expr $counter1 + 1`
-           sleep 60
-       done
-           echo  $counter1
-           sleep 30
-   # 3) Generate vizualizations
-      
-     ln -fs $TRACKDIR/FigureGen42_serial.exe ./
-#     ln -fs $TRACKDIR/FigureGen42_parallel.exe ./
-#     ln -fs $TRACKDIR/FG42_template.inp ./
-     ln -fs $TRACKDIR/Hue_standard_01.pal ./
-     ln -fs $ADVISDIR/$ENSTORM/maxele.63 ./
-     ln -fs $TRACKDIR/ParticlePalette1.txt ./
-     ln -fs $ADVISDIR/$ENSTORM/fort.64  ./fort.64
-
-
-    # create FigGen input File
-        GSHOME2=/usr/bin/
-       GMTHOME2=/work/01053/rweaver/GMT4.5.0/bin/
-       STARTTIME=$(head -1 $ADVISDIR/$ENSTORM/hotstartdate | tail -1 | awk '{print $1}')
-       NumRecords=$(head -2 ./fort.64 | tail -1 | awk '{print $1}')  # 
-
-       STARTTIME2=${STARTTIME}0000
-        echo $STARTTIME2
-       OUTPUTPREFIX_fg=PartTrack_${ADVISORY}_
-       OUTPUTPREFIX_kmz=PartTrack_${ADVISORY}
-  # now generate the outputprefix based on run time and initial particle position time
-
-       InitPartTime=$(head -1 ./InitialParticleTime.txt | tail -1 | awk '{print $1}')
-
-       OUTPUTPREFIX_final=PrtTrk_NAM${ADVISORY}_IPL${InitPartTime}
-
-
-         ln -fs $TRACKDIR/make_ptFG_input.pl ./
-  perl make_ptFG_input.pl --outputdir $TRACKDIR  --gmthome $GMTHOME2 --gridfile $GRIDPREFIX --gshome $GSHOME2 --storm ${STORM} --year ${YEAR} --adv $ADVISORY --n 31.0 --s 18.0 --e -80.0 --w -98.0 --outputprefix ${OUTPUTPREFIX_fg} --starttime $STARTTIME2 --numrecords $NumRecords
- #   perl make_ptFG_input.pl --outputdir $TRACKDIR --gmthome $GMTHOME --gridfile $GRIDPREFIX --gshome $GSHOME --storm ${STORM} --year ${YEAR} --adv $ADVISORY --n $NORTH --s $SOUTH --e $EAST --w $WEST --outputprefix $OUTPUTPREFIX --starttime $STARTTIME --numrecords $NumRecords
-
-  # Serial run on login(Head)  node
-     # ./FigureGen42_serial.exe >> $ADVISDIR/$ENSTORM/figgen_track.log 2>&1  &
-
-  # Serial run
-       SERQSCRIPT=ranger.PartTrackFG.template.serial
-       SERQSCRIPTOPTIONS="--adcircdir $TRACKDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $TRACKDIR/$SERQSCRIPT"
-       perl $TRACKDIR/ranger.FigGen42.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/PartTrack/parttrackfg.serial.sge 2>> ${SYSLOG}
-       logMessage "Submitting $ADVISDIR/$ENSTORM/PartTrack/parttrackfg.serial.sge"
-       qsub $ADVISDIR/$ENSTORM/PartTrack/parttrackfg.serial.sge >> ${SYSLOG} 2>&1
-
-
-  # Parallel run
-  #     QSCRIPT=ranger.PartTrackFG.template.sge
-  #     QSCRIPTOPTIONS="--ncpu 80 --ncpudivisor 16 --queuename development --account $ACCOUNT --adcircdir $TRACKDIR --advisdir $ADVISDIR --qscript $TRACKDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime 00:20:00  --syslog $SYSLOG"
-   #    perl $TRACKDIR/ranger.FigGen42.sge.pl  $PARQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/parttrackfg.parallel.sge 2>> ${SYSLOG}
-   #    logMessage "Submitting $ADVISDIR/$ENSTORM/parttrackfg.parallel.sge"
-   #    qsub $ADVISDIR/$ENSTORM/parttrackfg.parallel.sge >> ${SYSLOG} 2>&1
      
-  #    ./FigureGen42_parallel.exe >> $ADVISDIR/$ENSTORM/figgen_track.log 2>&1  &
+      ln -fs $TRACKDIR/part_track_main.sh ./
 
-#    while [ ! -e ./run.finish ]; do
-    while [ ! -e ./${OUTPUTPREFIX_kmz}.kmz ]; do
-      sleep 60
-   done
-     sleep 30
+       ./part_track_main.sh ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf > PT_main.log 
+    
+      
   
-        mv ./${OUTPUTPREFIX_kmz}.kmz  ${OUTPUTPREFIX_final}.kmz
-        mv ./input_deepwater.pth      ${OUTPUTPREFIX_final}.pth
-        cp ./${OUTPUTPREFIX_final}.kmz /corral/hurricane/rweaver/${OUTPUTPREFIX_final}.kmz
-        cp ./${OUTPUTPREFIX_final}.pth /corral/hurricane/rweaver/${OUTPUTPREFIX_final}.pth
-
-  # change group and permissions to be sure everyone can read the archived files
-
-    chgrp -R G-81535  /corral/hurricane/rweaver/*pth
-    chgrp -R G-81535  /corral/hurricane/rweaver/*kmz
-    chmod 640 /corral/hurricane/rweaver/*pth /corral/hurricane/rweaver/*kmz
  
    cd $initialDirectory
