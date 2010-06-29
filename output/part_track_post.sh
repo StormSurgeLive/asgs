@@ -78,7 +78,7 @@ fi
  echo "GSHOME2=${GSHOME2}        " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "GMTHOME2=${GMTHOME2}      " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "VECTORLIM=50       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "CONTOURLIM=-1,3    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "CONTOURLIM=FIND    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
 
      
       ln -fs $TRACKDIR/part_track_main.sh ./part_track_main.sh
