@@ -47,13 +47,10 @@
    # switch to tracking directory
    initialDirectory=`pwd`;
    
-   mkdir ${STORMNAME}
-   mkdir ${STORMNAME}/TRACKING
-   mkdir ${STORMNAME}/TRACKING/IMAGES
-   cd ${STORMNAME} 
-     ADVISDIR=$initialDirectory/${STORMNAME}
-     PTDIR=$initialDirectory/${STORMNAME}/TRACKING
-     PTIMAGESDIR=$initialDirectory/${STORMNAME}/TRACKING/IMAGES
+     ADVISDIR=$initialDirectory
+     PTDIR=$ADVISDIR/TRACKING
+  mkdir $PTDIR
+  #  PTIMAGESDIR=$initialDirectory/${STORMNAME}/TRACKING/IMAGES
    # 1) GATHER REQUIRED FILES
 
      ln -fs  ${INPUTDATADIR}/fort.14  ./
@@ -203,14 +200,12 @@
 
   
 #        mv ./${OUTPUTPREFIX_kmz}.kmz  ${OUTPUTPREFIX_final}.kmz
-#        mv ./input_deepwater.pth      ${OUTPUTPREFIX_final}.pth
+        mv $PTDIR/input_deepwater.pth     ${OUTPUTPREFIX_final}.pth
 #        cp ./${OUTPUTPREFIX_final}.kmz /corral/hurricane/rweaver/${OUTPUTPREFIX_final}.kmz
-#        cp ./${OUTPUTPREFIX_final}.pth /corral/hurricane/rweaver/${OUTPUTPREFIX_final}.pth
+        cp ./${OUTPUTPREFIX_final}.pth /corral/hurricane/rweaver/$STORMNAME_${OUTPUTPREFIX_final}.pth
 
   # change group and permissions to be sure everyone can read the archived files
 
-    chgrp -R G-81535  /corral/hurricane/rweaver/*gif
-    chgrp -R G-81535  /corral/hurricane/rweaver/*jpg
-    chmod 640 /corral/hurricane/rweaver/*pth /corral/hurricane/rweaver/*gif
-    chmod 640 /corral/hurricane/rweaver/*pth /corral/hurricane/rweaver/*jpg
+    chgrp -R G-81535  /corral/hurricane/rweaver/$STORMNAME_${OUTPUTPREFIX_final}
+    chmod 640 -R /corral/hurricane/rweaver/$STORMNAME_${OUTPUTPREFIX_final}
  

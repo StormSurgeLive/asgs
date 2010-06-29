@@ -8,7 +8,7 @@ my $gmtoffset=0; # difference between GMT and local time (hours)
                  # (assuming the ADCIRC output is in GMT)
 my $fortdate='fortdate';   # name of fort.61 file
 my $storm='storm';   # name of storm for title
-my $kind='Hurricane'; # kind of forcing hurricane or nam
+my $kind='TC'; # kind of forcing hurricane or nam
 my $type='Part'; # type of plot Elev or Part
 my $partinfo='48000_pts'; # type of plot Elev or Part
 
