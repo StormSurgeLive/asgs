@@ -1,0 +1,15 @@
+Ike_depthavg curr, 96 hours column of drifters      
+1  216.0  433.0 216 1 
+fort.64                              
+1  1.0  1.0  1.0  1.0                
+END OF LEG INFORMATION               
+Specify iprint (# of time steps between outputs)   
+1                                    
+Scaling info for test case grid (MKS -> 1.0)       
+1.00  1.00                           
+Horizontal error, and minimum time step            
+1.00  0.01                           
+Scaling factors for drogue coordinates in x,y directions   
+1.00  1.00                           
+Number of starting drogues (ndr)     
+12141     Gustav_Points      

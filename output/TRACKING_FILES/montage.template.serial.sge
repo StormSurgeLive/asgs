@@ -1,0 +1,119 @@
+#!/bin/bash
+
+
+# Specify the queue explicitly
+#$ -q %queue%
+
+# Specify V 
+#$ -V 
+
+# Specify to run from current working directory 
+#$ -cwd 
+
+# Specify number of cpus in a machine-specific way
+#$ -pe 1way 16
+
+# Specify the wall clock time
+#$ -l h_rt=4:00:00
+
+# Merge stderr to stdout (optional, otherwise they're in separate files)
+#$ -j y
+
+# Name the job (this will appear in the output from the qstat command)
+#$ -N montage
+
+# Specify the output filename explicitly (optional; the default is named
+# from the job ID, in the directory where qsub was run.)
+#$ -o %dir%/montage.out
+
+# Request mail when job ends, or is aborted (optional, default is "a" only)
+# (commented out)
+# $ -m ea
+
+# Specify email address
+# $ -M %notifyuser%
+
+
+# some commands
+set echo
+umask 007
+umask 
+
+
+# Clean out all modules
+module purge
+# Reset to TACC baseline
+module load TACC
+# Unload default compiler and mpi stack
+module unload pgi mvapich2
+# Load which ever combination you need
+module load pgi
+#module load mvapich/1.0.1
+module load ddt
+module load intel/11.1
+
+# The directory to start in 
+cd %dir%
+
+# These are the actual commands to be executed.
+
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+    echo "[${DATETIME}] : Job starting"          >> run.mon.start
+    echo "[${DATETIME}] : %dir%     " >> run.mon.start
+    echo "[${DATETIME}] : montage"    >> run.mon.start
+    
+      numdom=$(wc -l Part_FileList |awk '{print $1}')
+  #    Elev_FileList
+
+       echo `date` $numdom
+          K=0
+     for (( j = 1 ; j <= $numdom ; j++ ))
+      do
+
+      File2Process1=$(head -$j Elev_FileList | tail -1 | awk '{print $1}')
+      File2Process2=$(head -$j Part_FileList | tail -1 | awk '{print $1}')
+       echo `date` $File2Process1 $File2Process2
+     
+    
+          filenum=$j        
+           if  [ $filenum -lt 10 ]
+           then
+             OutFile="%storm%_Elev_Part_montage_000${filenum}.jpg"
+           elif [ $filenum -lt 100 ] 
+           then
+             OutFile="%storm%_Elev_Part_montage_00${filenum}.jpg"
+           else
+             OutFile="%storm%_Elev_Part_montage_0${filenum}.jpg"
+            fi    
+
+
+          montage -geometry +0+0 -tile 2x1  $File2Process1 $File2Process2 $OutFile &
+
+        echo  `date` $j ${OutFile}
+       K=$(($K + 1))
+        echo $K
+        if [ $K -ge 16 ]
+        then
+            wait
+          K=0
+        fi
+      
+      done
+       wait
+      convert %storm%_Elev_Part_montage*.jpg -trim -delay 12 -loop 0 -resize 25% %storm%_Elev_Part_25p_montage.gif
+       wait
+      convert %storm%_Elev_Part_montage*.jpg -trim -delay 12 -loop 0 -resize 12.5% %storm%_Elev_Part_12_5p_montage.gif
+
+    ERROVALUE=$?
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+    if [ $ERROVALUE == 0 ] ; then
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.mon.finish
+    echo "[${DATETIME}] :  %dir%"               >> run.mon.finish
+    echo "[${DATETIME}] :  montage"                  >> run.mon.finish
+    else
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.mon.error
+    echo "[${DATETIME}] :  %dir%"               >> run.mon.error
+    echo "[${DATETIME}] :  montage"                  >> run.mon.error
+    fi
+
+# You don't need anything special at the end of the script.

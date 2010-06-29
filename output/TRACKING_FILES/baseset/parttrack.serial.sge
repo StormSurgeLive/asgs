@@ -1,0 +1,87 @@
+#!/bin/bash
+
+
+# Specify the queue explicitly
+# $ -q serial
+#$ -q request
+
+# Specify V 
+#$ -V 
+
+# Specify to run from current working directory 
+#$ -cwd 
+
+# Specify number of cpus in a machine-specific way
+#$ -pe 1way 16
+
+# Specify the wall clock time
+#$ -l h_rt=03:00:00
+
+# Merge stderr to stdout (optional, otherwise they're in separate files)
+#$ -j y
+
+# Name the job (this will appear in the output from the qstat command)
+#$ -N ParticleTracking 
+
+# Specify the output filename explicitly (optional; the default is named
+# from the job ID, in the directory where qsub was run.)
+#$ -o /work/01053/rweaver/PartTrack/KATRINA/TRACKING/PT_KATRINA.out
+
+# Specify the account that the time should be taken from 
+#$ -A TG-DMS100024
+
+# Request mail when job ends, or is aborted (optional, default is "a" only)
+# (commented out)
+# $ -m ea
+
+# Specify email address
+# $ -M rjweaver@email.unc.edu
+
+newgrp G-81535
+# some commands
+set echo
+umask 007
+umask 006
+umask 026
+
+# Clean out all modules
+module purge
+# Reset to TACC baseline
+module load TACC
+# Unload default compiler and mpi stack
+# module unload pgi mvapich2
+# Load which ever combination you need
+# module load pgi
+# module load mvapich/1.0.1
+module load ddt
+module load intel/11.1
+
+ module list > module_list.txt
+  
+ # The directory to start in 
+cd /work/01053/rweaver/PartTrack/KATRINA/TRACKING
+    
+#   ifort -w -mcmodel medium -shared-intel ./drog2dsp_deepwater_sparse.f -o ./drog2dsp_deepwater_sparse.exe
+#    echo "Cannot compile here must do so in shell script on head node"
+# These are the actual commands to be executed.
+
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+    echo "[${DATETIME}] : Job starting"          > run.start
+    echo "[${DATETIME}] : /work/01053/rweaver/PartTrack/GUSTAV" >> run.start
+    echo "[${DATETIME}] : PartTrack"               >> run.start
+
+    drog2dsp_deepwater_node.exe >  PartTrack_out1
+
+    ERROVALUE=$?
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+    if [ $ERROVALUE == 0 ] ; then
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" > run.finish
+    echo "[${DATETIME}] : /work/01053/rweaver/PartTrack/GUSTAV"               >> run.finish
+    echo "[${DATETIME}] :  PartTrack"                           >> run.finish
+    else
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" > run.error
+    echo "[${DATETIME}] :  /work/01053/rweaver/PartTrack/GUSTAV"               >> run.error
+    echo "[${DATETIME}] :  PartTrack"                             >> run.error
+    fi
+
+# You don't need anything special at the end of the script.

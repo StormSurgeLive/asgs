@@ -1,0 +1,88 @@
+#!/bin/bash
+
+
+# Specify the queue explicitly
+#$ -q %queue%
+
+#$ -A %account%
+
+# Specify V 
+#$ -V 
+
+# Specify to run from current working directory 
+#$ -cwd 
+
+# Specify number of cpus in a machine-specific way
+#$ -pe %pbsncpu%
+
+# Specify the wall clock time
+#$ -l h_rt=6:00:00
+
+# Merge stderr to stdout (optional, otherwise they're in separate files)
+#$ -j y
+
+# Name the job (this will appear in the output from the qstat command)
+#$ -N FigureGen42
+
+# Specify the output filename explicitly (optional; the default is named
+# from the job ID, in the directory where qsub was run.)
+#$ -o %dir%/%storm%_FG.out
+
+# Request mail when job ends, or is aborted (optional, default is "a" only)
+# (commented out)
+# $ -m ea
+
+# Specify email address
+# $ -M %notifyuser% 
+
+
+# some commands
+set echo
+umask 007
+umask 006 
+umask 026 
+# 1) intel/9.1     8) cluster-paths         15) gx-map/0.5.3.3    22) tginfo/1.0.1    29) tar/1.22
+# 2) python/2.5.2  9) pgi/7.2-5             16) srb-client/3.4.1  23) TERAGRID-BASIC  30) cluster
+# 3) gmp/4.2.4     10) metis/4.0            17) tg-policy/0.2     24) globus/4.0.8    31) TACC
+# 4) mpfr/2.3.2    11) netcdf/3.6.2         18) tgproxy/0.9.1     25) GLOBUS-4.0    
+# 5) gcc/4.3.2     12) mvapich/1.0.1        19) tgresid/2.0.3     26) TERAGRID-DEV  
+# 6) TACC-paths    13) binutils-amd/070220  20) tgusage/3.0       27) CTSSV4        
+# 7) Linux         14) TERAGRID-paths       21) uberftp/2.4       28) gzip/1.3.12  
+
+# Clean out all modules
+module purge
+# Reset to TACC baseline
+module load TACC
+module load TACC-paths
+# Unload default compiler and mpi stack
+module unload pgi mvapich2
+# Load which ever combination you need
+module load pgi
+module load mvapich/1.0.1
+module load ddt
+
+# The directory to start in 
+cd %dir%
+
+# These are the actual commands to be executed.
+
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+    echo "[${DATETIME}] : Job starting"          >> run.fig.start
+    echo "[${DATETIME}] : %dir%" >> run.fig.start
+    echo "[${DATETIME}] : FigGen42 PartTrack"    >> run.fig.start
+
+    ibrun ./FigureGen42_PartTrack_parallel.exe  >  FigGen_PartTrack.out
+
+    ERROVALUE=$?
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+    if [ $ERROVALUE == 0 ] ; then
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.fig.finish
+    echo "[${DATETIME}] :  %dir%"               >> run.fig.finish
+    echo "[${DATETIME}] :  FigGen42 PartTrack"                  >> run.fig.finish
+    else
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.fig.error
+    echo "[${DATETIME}] :  %dir%"               >> run.fig.error
+    echo "[${DATETIME}] :  FigGen42 PartTrack"                  >> run.fig.error
+    fi
+
+# You don't need anything special at the end of the script.
