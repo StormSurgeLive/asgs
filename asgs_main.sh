@@ -309,8 +309,8 @@ prepControlFile()
     NCPU=$2
     ACCOUNT=$3
     if [[ $ENV = jade || $ENV = sapphire ]]; then
-        QSCRIPTOPTIONS="--ncpu $NCPU --queuename $SERQUEUE --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm $ENSTORM --syslog $SYSLOG"
-        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.pbs 2>> ${SYSLOG}
+       QSCRIPTOPTIONS="--ncpu $NCPU --queuename $SERQUEUE --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm $ENSTORM --syslog $SYSLOG"
+       perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.pbs 2>> ${SYSLOG}
        qsub $ADVISDIR/$ENSTORM/adcprep.pbs >> ${SYSLOG} 2>&1
        monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol
        cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
@@ -608,7 +608,7 @@ ENSTORM=$3
 SYSLOG=$4
 # check to see that adcprep did not conspicuously fail
 if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then 
-   warn "The adcprep phase of the nowcast job has failed."
+   warn "The job has failed."
    FAILDATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
    warn "Moving failed cycle to 'failed.${FAILDATETIME}'."
    mv $ADVISDIR/$ENSTORM $RUNDIR/failed.${FAILDATETIME} 2>> ${SYSLOG}
@@ -1267,10 +1267,6 @@ while [ 1 -eq 1 ]; do
        fi
        logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
        perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
-       # preprocess
-       logMessage "Starting $ENSTORM preprocessing."
-       prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT $NAFILE
-       handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
        if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
        RUNFORECAST=yes
        if [[ $BACKGROUNDMET = on ]]; then
@@ -1279,6 +1275,10 @@ while [ 1 -eq 1 ]; do
           fi
        fi 
        if [[ $RUNFORECAST = yes ]]; then
+          # preprocess
+          logMessage "Starting $ENSTORM preprocessing."
+          prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT $NAFILE
+          handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
           # then submit the job
           logMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
           consoleMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
