@@ -118,5 +118,5 @@
        sleep 30
    done
 
-  #   rm -f  $PTDIR/*.ps 
+     rm -f  $PTDIR/*.ps 
 

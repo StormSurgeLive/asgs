@@ -114,5 +114,5 @@
        sleep 30
      done
     
- #    rm -f  $ADVISDIR/*.ps
+     rm -f  $ADVISDIR/*.ps
 
