@@ -50,7 +50,7 @@
 
 
 #  Create config file for particle tracking and visualizations
- echo "#!/bin/bash              "  > PartTrack_config.conf
+ echo "#!/bin/bash              "  > ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
 if [ $TROPICALCYCLONE -eq "off" ];then
   STORM=${ADVISORY}
   KIND=NAM
@@ -81,7 +81,7 @@ fi
  echo "CONTOURLIM=-1,3    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
 
      
-      ln -fs $TRACKDIR/part_track_main.sh ./
+      ln -fs $TRACKDIR/part_track_main.sh ./part_track_main.sh
 
        ./part_track_main.sh ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf > PT_main.log 
     
