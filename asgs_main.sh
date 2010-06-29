@@ -215,7 +215,8 @@ prep()
     PREPPEDARCHIVE=$8 # preprocessed fort.13 and fort.14 package 
     GRIDFILE=$9 # fulldomain grid
     ACCOUNT=${10} # account to charge time to 
-    NAFILE=${11}  # full domain nodal attributes file, must be last in the
+    OUTPUTOPTIONS="${11}" # contains list of args for appending files 
+    NAFILE=${12}  # full domain nodal attributes file, must be last in the
                   # argument list, since it may be undefined
     TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
     if [ ! -d $ADVISDIR/$ENSTORM ]; then 
@@ -287,11 +288,17 @@ prep()
        if  [ -e $FROMDIR/maxwvel.63 ]; then      
           cp $FROMDIR/maxwvel.63 $ADVISDIR/$ENSTORM/maxwvel.63 2>> ${SYSLOG}
        fi
-       # copy existing subdomain files
+       # copy existing subdomain files if they are supposed to be appended
        for file in fort.61 fort.62 fort.63 fort.64 fort.71 fort.72 fort.73 fort.74; do
-          if [ -e $FROMDIR/$file ]; then
-             cp $FROMDIR/$file $ADVISDIR/$ENSTORM/$file 2>> ${SYSLOG}
-          fi
+          matcharg=--${file/./}append
+          for arg in $OUTPUTOPTIONS ; do 
+             if [[ $matcharg = $arg ]]; then 
+                if [ -e $FROMDIR/$file ]; then
+                   logMessage "Copying $FROMDIR/$file to $ADVISDIR/$ENSTORM/$file so that it will be appended during the upcoming run." 
+                   cp $FROMDIR/$file $ADVISDIR/$ENSTORM/$file 2>> ${SYSLOG}
+                fi
+             fi
+          done
        done
        # run adcprep to decompose the new fort.15 file
        logMessage "Running adcprep to prepare new fort.15 file."
@@ -1077,7 +1084,7 @@ if [[ $START = coldstart ]]; then
       perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
       # preprocess
       logMessage $ADVISDIR "Starting hindcast preprocessing."
-      prep $RUNDIR $INPUTDIR hindcast $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT $NAFILE
+      prep $RUNDIR $INPUTDIR hindcast $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $NAFILE
       # then submit the job
       logMessage "Submitting ADCIRC hindcast job."
       cd $ADVISDIR 2>> ${SYSLOG}
@@ -1195,8 +1202,8 @@ while [ 1 -eq 1 ]; do
     consoleMessage "Starting nowcast for cycle '$ADVISORY'."
     # preprocess
     logMessage "Starting nowcast preprocessing."
-    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT $NAFILE"
-    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT $NAFILE
+    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $NAFILE"
+    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $NAFILE
     # check to see that adcprep did not conspicuously fail
     handleFailedJob $RUNDIR $ADVISDIR nowcast $SYSLOG
     if [[ ! -d $ADVISDIR/nowcast ]]; then continue; fi
@@ -1277,7 +1284,7 @@ while [ 1 -eq 1 ]; do
        if [[ $RUNFORECAST = yes ]]; then
           # preprocess
           logMessage "Starting $ENSTORM preprocessing."
-          prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT $NAFILE
+          prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $NAFILE
           handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
           # then submit the job
           logMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
