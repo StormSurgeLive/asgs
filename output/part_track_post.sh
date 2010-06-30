@@ -45,8 +45,6 @@
    GSHOME2=/usr/bin/
 #   GSHOME2=/share/home/01053/rweaver/ghostscript-8.71/bin/
    GMTHOME2=/work/01053/rweaver/GMT4.5.0/bin/
-   STARTTIME=$(head -1 $ADVISDIR/$ENSTORM/hotstartdate | tail -1 | awk '{print $1}')
-   NumRecords=$(head -2 ./fort.64 | tail -1 | awk '{print $1}')  # 
 
 
 #  Create config file for particle tracking and visualizations
