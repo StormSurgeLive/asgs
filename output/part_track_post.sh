@@ -58,7 +58,7 @@ else
 fi
  echo "STORM=${STORM}           " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "STORMNAME=${STORM}       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "CSDATE=${CSDATE}         " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "CSDATE=${CSDATE}0000         " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "OUTPUTDIR=${OUTPUTDIR}   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "INPUTDATADIR=${ADVISDIR}/${ENSTORM}               " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
     TRACKDIR=${OUTPUTDIR}/TRACKING_FILES
