@@ -46,7 +46,7 @@
 #   GSHOME2=/share/home/01053/rweaver/ghostscript-8.71/bin/
    GMTHOME2=/work/01053/rweaver/GMT4.5.0/bin/
 
-
+  
 #  Create config file for particle tracking and visualizations
  echo "#!/bin/bash              "  > ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
 if [ $TROPICALCYCLONE == "off" ];then
@@ -61,7 +61,8 @@ fi
  echo "CSDATE=${CSDATE}         " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "OUTPUTDIR=${OUTPUTDIR}   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "INPUTDATADIR=${ADVISDIR}/${ENSTORM}               " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "TRACKDIR=${OUTPUTDIR}/TRACKING_FILES    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+    TRACKDIR=${OUTPUTDIR}/TRACKING_FILES
+ echo "TRACKDIR=${TRACKDIR}           " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "ADVISORY=${ADVISORY}           " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "KIND=${KIND}                   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "PARTICLEFILE=${PARTICLEFILE}   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
