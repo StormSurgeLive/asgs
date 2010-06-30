@@ -61,7 +61,7 @@ fi
  echo "CSDATE=${CSDATE}         " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "OUTPUTDIR=${OUTPUTDIR}   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "INPUTDATADIR=${ADVISDIR}/${ENSTORM}               " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "TRACKDIR=${OUTPUTDIR}/PartTrack/TRACKING_FILES    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "TRACKDIR=${OUTPUTDIR}/TRACKING_FILES    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "ADVISORY=${ADVISORY}           " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "KIND=${KIND}                   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "PARTICLEFILE=${PARTICLEFILE}   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
