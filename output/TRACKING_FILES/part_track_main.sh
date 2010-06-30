@@ -103,7 +103,7 @@
     Tol=50.0D0
      echo $NumElem $NumNode
 
-       NumNode=$NumNode+100000
+       NumNode=$(($NumNode+100000))
 
      echo "         IMPLICIT NONE                  "     >  ./CB_2D.h
      echo "         INTEGER NNE,ND,NFR,MXDRG,MXTIME,MXFILETIME" >>  ./CB_2D.h
