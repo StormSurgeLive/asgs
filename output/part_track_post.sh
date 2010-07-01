@@ -68,16 +68,16 @@ fi
  echo "PARTICLEFILE=${PARTICLEFILE}   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "PARTFILETYPE=0   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "NORTH=31.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "SOUTH=21.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "EAST=-82.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "WEST=-97.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "SOUTH=27.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "EAST=-85.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "WEST=-92.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "SYSLOG=${SYSLOG}          " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "NOTIFYUSER=${NOTIFYUSER}  " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "ACCOUNT=${ACCOUNTpost}    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "GSHOME2=${GSHOME2}        " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "GMTHOME2=${GMTHOME2}      " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "VECTORLIM=50       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "CONTOURLIM=FIND    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "CONTOURLIM=-1,3    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
 
      
       ln -fs $TRACKDIR/part_track_main.sh ./part_track_main.sh
