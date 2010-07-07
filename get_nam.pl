@@ -314,29 +314,37 @@ while ($datetime_needed <= $cycletime) {
          # loop through all the alternative directories
          foreach my $andir (@altnamdirs) {
             #stderrMessage("DEBUG","Checking '$andir'.");
-            my $alt_location = $andir."/".$datetime_needed."/nowcast/erl.".substr($date_needed,2)."/nam.t".$hour_needed."z.awip1200.tm00.grib2";
-            # does the file exist in this alternate directory?
-            if ( -e $alt_location ) {
-               $localDir = $cycletime."/nowcast/erl.".substr($date_needed,2);
-               # perform a smoke test on the file we found to check that it is
-               # not corrupted (not a definitive test but better than nothing)
-	       unless ( `$scriptDir/wgrib2 $alt_location -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
-                  stderrMessage("INFO","The file '$alt_location' appears to be corrupted and will not be used.");
-                  next;
-               }
-               #stderrMessage("DEBUG","Nowcast file '$alt_location' found. Copying to cycle directory '$localDir'.");
-               unless ( -e $localDir ) {
-                  unless ( mkdir($localDir,0777) ) {
-                     stderrMessage("ERROR","Could not make the directory '$localDir': $!");
-                     die;
+            my @subdirs = glob("$andir/??????????"); 
+            foreach my $subdir (@subdirs) {
+               my $alt_location = $subdir."/nowcast/erl.".substr($date_needed,2)."/nam.t".$hour_needed."z.awip1200.tm00.grib2";
+               stderrMessage("DEBUG","Looking for '$alt_location'.");
+               # does the file exist in this alternate directory?
+               if ( -e $alt_location ) {
+                  $localDir = $cycletime."/nowcast/erl.".substr($date_needed,2);
+                  # perform a smoke test on the file we found to check that it is
+                  # not corrupted (not a definitive test but better than nothing)
+	          unless ( `$scriptDir/wgrib2 $alt_location -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
+                     stderrMessage("INFO","The file '$alt_location' appears to be corrupted and will not be used.");
+                     next;
                   }
+                  stderrMessage("DEBUG","Nowcast file '$alt_location' found. Copying to cycle directory '$localDir'.");
+                  unless ( -e $localDir ) {
+                     unless ( mkdir($localDir,0777) ) {
+                        stderrMessage("ERROR","Could not make the directory '$localDir': $!");
+                        die;
+                     }
+                  }
+                  symlink($alt_location,$localDir."/nam.t".$hour_needed."z.awip1200.tm00.grib2");
+                  $dl++;
+                  $already_haveit = 1;
+                  last;
+               } else {
+                  # file does not exist in this alternate directory
+                  stderrMessage("DEBUG","The file '$alt_location' was not found.");
                }
-               symlink($alt_location,$localDir."/nam.t".$hour_needed."z.awip1200.tm00.grib2");
-               $dl++;
-               $already_haveit = 1;
-            } else {
-               # file does not exist in this alternate directory
-               #stderrMessage("DEBUG","The file '$alt_location' was not found.");
+            }
+            if ( $already_haveit == 1 ) {
+               last;
             }
          }
       }
