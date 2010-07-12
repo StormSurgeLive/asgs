@@ -81,10 +81,10 @@
 
 
          ln -fs $TRACKDIR/make_ptFG_input.pl ./
-    FG_INPUTSCRIPTOPTIONS="--outputdir $TRACKDIR  --gmthome $GMTHOME2 --gridfile fort.14 --gshome $GSHOME2 --storm ${STORM} --year ${YEAR} --adv $ADVISORY --n $NORTH --s $SOUTH --e $EAST --w $WEST --outputprefix ${OUTPUTPREFIX} --starttime $CSDATE --numrecords $NumRecords --type $TYPE  --vectorlimits $VECTORLIM --contourlimits $CONTOURLIM"
+    FG_INPUTSCRIPTOPTIONS="--fgscript $TRACKDIR/FG42_PART_template.inp.orig --outputdir $TRACKDIR  --gmthome $GMTHOME2 --gridfile fort.14 --gshome $GSHOME2 --storm ${STORM} --year ${YEAR} --adv $ADVISORY --n $NORTH --s $SOUTH --e $EAST --w $WEST --outputprefix ${OUTPUTPREFIX} --starttime $CSDATE --numrecords $NumRecords --type $TYPE --vectorlimits $VECTORLIM --contourlimits $CONTOURLIM --windvect $WINDVECT --vectcut $VECTCUT"
        echo `date` "  Creating FG input file"  >> $SYSLOG
        echo $FG_INPUTSCRIPTOPTIONS  >> $SYSLOG
-  perl make_ptFG_input.pl $FG_INPUTSCRIPTOPTIONS  2>> ${SYSLOG}
+  perl make_ptFG_input.pl $FG_INPUTSCRIPTOPTIONS > $PTDIR/FG42_template.inp  2>> ${SYSLOG}
 
   #Paralllel run
       

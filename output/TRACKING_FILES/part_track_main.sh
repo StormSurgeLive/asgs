@@ -158,14 +158,14 @@
    # 3) Generate vizualizations
        OUTPUTPREFIX=${TYPE}_${ADVISORY}_
        OUTPUTPREFIX_file=${TYPE}_${ADVISORY}
-     InitPartTime=$(head -1 ./InitialParticleTime.txt | tail -1 | awk '{print $1}')
+     InitPartTime=$(head -2 ./InitialParticleTime.txt | tail -1 | awk '{print $1}')
 
-      OUTPUTPREFIX_final=PrtTrk_${KIND}${ADVISORY}_IPL${InitPartTime}
+      OUTPUTPREFIX_final=WindElevPart_mon_${KIND}${ADVISORY}_IPL${InitPartTime}_composite_NGOM
 
      ln -fs $TRACKDIR/FG_particle_images.sh 
     ./FG_particle_images.sh $CONFIG $PTDIR
    
-      
+# wait for particle images to finish
     while [ ! -e $PTDIR/run.ps.finish ]; do
              if [ -e ./run.ps.error ]
               then
@@ -180,11 +180,22 @@
    mkdir $ADVISDIR/MONTAGE
    cd $ADVISDIR/MONTAGE
 
+   rm $PTDIR/*_0001.jpg   
    ls $PTDIR/*.jpg > Part_FileList
+# now wait for elevation velocity images to finish
+    while [ ! -e $ADVISDIR/run.ps.finish ]; do
+             if [ -e ./run.ps.error ]
+              then
+               echo "ps2raster on Elevatione Images finished with error"  >> $SYSLOG
+               exit
+              fi
+      sleep 30
+   done
+   rm $ADVISDIR/*_0001.jpg
    ls $ADVISDIR/*.jpg > Elev_FileList
     
         QSCRIPT=montage.template.serial.sge
- QSCRIPTOPTIONS="--account $ACCOUNT --dir $ADVISDIR/MONTAGE --queue vis  --qscript $TRACKDIR/$QSCRIPT --notifyuser $NOTIFYUSER --storm $STORMNAME"
+ QSCRIPTOPTIONS="--account $ACCOUNT --dir $ADVISDIR/MONTAGE --queue vis  --qscript $TRACKDIR/$QSCRIPT --notifyuser $NOTIFYUSER --storm $STORMNAME --outputprefix $OUTPUTPREFIX_final"
    perl $TRACKDIR/ranger.montage.serial.pl $QSCRIPTOPTIONS > $ADVISDIR/MONTAGE/montage.sge  2>> ${SYSLOG}
       echo "Submitting $ADVISDIR/MONTAGE/montage.sge"  >> $SYSLOG
        qsub $ADVISDIR/MONTAGE/montage.sge >> ${SYSLOG} 2>&1
@@ -192,20 +203,21 @@
       sleep 30
    done
 
-     mkdir /corral/hurricane/rweaver/$STORMNAME_${OUTPUTPREFIX_final}
-      cp *.gif /corral/hurricane/rweaver/$STORMNAME_${OUTPUTPREFIX_final}
-      cp *.jpg /corral/hurricane/rweaver/$STORMNAME_${OUTPUTPREFIX_final}
+      cp $OUTPUTPREFIX_final*.gif /corral/hurricane/asgs_output/movies/
+      cp $OUTPUTPREFIX_final.avi /corral/hurricane/asgs_output/movies/
+      cp $OUTPUTPREFIX_final.mp4 /corral/hurricane/asgs_output/movies/
+      chgrp G-81535 /corral/hurricane/asgs_output/movies/$OUTPUTPREFIX_final*
+      chmod 640 /corral/hurricane/asgs_output/movies/$OUTPUTPREFIX_final*
+
+     mkdir /corral/hurricane/asgs_output/frames/$OUTPUTPREFIX_final/
+     cp $OUTPUTPREFIX_final*.jpg /corral/hurricane/asgs_output/frames/$OUTPUTPREFIX_final/
+     chgrp -R G-81535  /corral/hurricane/asgs_output/frames/$OUTPUTPREFIX_final/
+     chmod 640 /corral/hurricane/asgs_output/frames/$OUTPUTPREFIX_final/$OUTPUTPREFIX_final*.jpg
+
       
    cd $initialDirectory
 
   
-#        mv ./${OUTPUTPREFIX_kmz}.kmz  ${OUTPUTPREFIX_final}.kmz
         mv $PTDIR/input_deepwater.pth     ${OUTPUTPREFIX_final}.pth
-#        cp ./${OUTPUTPREFIX_final}.kmz /corral/hurricane/rweaver/${OUTPUTPREFIX_final}.kmz
-        cp ./${OUTPUTPREFIX_final}.pth /corral/hurricane/rweaver/$STORMNAME_${OUTPUTPREFIX_final}.pth
+        cp ./${OUTPUTPREFIX_final}.pth /corral/hurricane/rweaver/${OUTPUTPREFIX_final}.pth
 
-  # change group and permissions to be sure everyone can read the archived files
-
-    chgrp -R G-81535  /corral/hurricane/rweaver/$STORMNAME_${OUTPUTPREFIX_final}
-    chmod 640 -R /corral/hurricane/rweaver/$STORMNAME_${OUTPUTPREFIX_final}
- 

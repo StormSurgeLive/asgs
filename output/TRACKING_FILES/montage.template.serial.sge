@@ -78,14 +78,13 @@ cd %dir%
           filenum=$j        
            if  [ $filenum -lt 10 ]
            then
-             OutFile="%storm%_Elev_Part_montage_000${filenum}.jpg"
+             OutFile="%outputprefix%_000${filenum}.jpg"
            elif [ $filenum -lt 100 ] 
            then
-             OutFile="%storm%_Elev_Part_montage_00${filenum}.jpg"
+             OutFile="%outputprefix%_00${filenum}.jpg"
            else
-             OutFile="%storm%_Elev_Part_montage_0${filenum}.jpg"
+             OutFile="%outputprefix%_0${filenum}.jpg"
             fi    
-
 
           montage -geometry +0+0 -tile 2x1  $File2Process1 $File2Process2 $OutFile &
 
@@ -100,9 +99,58 @@ cd %dir%
       
       done
        wait
-      convert %storm%_Elev_Part_montage*.jpg -trim -delay 12 -loop 0 -resize 25% %storm%_Elev_Part_25p_montage.gif
+# now resize the files for animations
+
+       ls %outputprefix%*.jpg  > Mont_FileList
+       numdom=$(wc -l Mont_FileList |awk '{print $1}')
+            K=0
+     for (( j = 1 ; j <= $numdom ; j++ ))
+      do
+
+      File2Process1=$(head -$j Mont_FileList | tail -1 | awk '{print $1}')
+       echo `date` $File2Process1 
+
+
+          filenum=$j
+           if  [ $filenum -lt 10 ]
+           then
+             OutFile="%outputprefix%_2_000${filenum}.jpg"
+           elif [ $filenum -lt 100 ]
+           then
+             OutFile="%outputprefix%_2_00${filenum}.jpg"
+           else
+             OutFile="%outputprefix%_2_0${filenum}.jpg"
+            fi
+
+               convert $File2Process1 -resize 2000x772 $OutFile &
+
+        echo  `date` $j ${OutFile}
+       K=$(($K + 1))
+        echo $K
+        if [ $K -ge 16 ]
+        then
+            wait
+          K=0
+        fi
+
+      done
        wait
-      convert %storm%_Elev_Part_montage*.jpg -trim -delay 12 -loop 0 -resize 12.5% %storm%_Elev_Part_12_5p_montage.gif
+
+
+# Create .avi from series of jpegs
+~adamk/bin/ffmpeg -y -r 6 -b 1800 -i %outputprefix%_2_%04d.jpg -sameq -vcodec wmv1  %outputprefix%.avi
+
+# Convert the .avi to .mp4 using H.264
+~adamk/bin/ffmpeg -i  %outputprefix%.avi -acodec libfaac -ab 128k -ac 2 -vcodec libx264 -vpre slow -crf 22 -threads 0  %outputprefix%.mp4
+
+
+# Create animated gif
+
+      convert %outputprefix%_2*.jpg -delay 12 -loop 0 %outputprefix%.gif
+       wait
+      convert %outputprefix%_2*.jpg -delay 12 -loop 0 -resize 25% %outputprefix%_sm.gif
+
+      
 
     ERROVALUE=$?
     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`

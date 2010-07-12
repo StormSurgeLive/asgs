@@ -1,16 +1,16 @@
 FOR BEST RESULTS, PLEASE KEEP COMMENTS OUT OF THE FIRST 50 CHARACTERS ON EACH LINE.
 12345678901234567890123456789012345678901234567890
 4                                                  ! Level of screen output.
-/work/01053/rweaver/GMT4.5.2/bin/
-/share/home/01053/rweaver/ghostscript-8.71/bin/
-Temp/
-IKE_Particle_track_
-2,Ike_Particle_Title.txt
+%gmthome%                                          ! path to GMT
+%gshome%                                           ! path to GS
+%tempdir%                                          ! name of temporary directory
+%outputprefix%                                     ! prefix for output filename
+2,%storm%_%type%_Title.txt                         ! Plot title flag and title or name of file containing title
 0                                                  ! Time bar flag: 0 to ignore, 1 to plot time bar.
--94.20
--87.5
-26.0
-31.00
+%west%
+%east%
+%south%
+%north%
 fort.14
 0                                                  ! Plot grid flag: 0 to ignore, 1 to plot triangular grid on figure.
 PARAMETERS FOR CONTOURS:
@@ -23,7 +23,7 @@ m-Elev.                                            ! Alphanumeric label for unit
 SMS+INTERVALS                                      ! Color palette flag: RGB, SMS(+INTERVALS), CPT(+INTERVALS).
 TopoBlueGreen3.pal,TopoBlueGreen.txt
 DEFAULT                                            ! Color lines flag: DEFAULT, CONTOUR-LINES, GRID-BATH/SIZE/DECOMP-#.  Requires GMT4.3.0.
--1.0, 5.0                                          ! Minimum,maximum in contour range (or FIND to determine from file).
+%contourlimits%                                    ! Minimum,maximum in contour range (or FIND to determine from file).
 0.5                                                ! Interval in contour range.
 100                                                ! Number of times to split contour interval (for smoother plots).
 0                                                  ! Label every xth contour line on the plot (or 0 for no labels).
@@ -39,11 +39,11 @@ fort.74                                            ! Name of file to use for vec
 ADCIRC-OUTPUT                                      ! Vector file format flag: ADCIRC-OUTPUT.
 1.00000                                            ! Unit conversion factor for vectors.
 m/s-Wind Vel.                                      ! Alphanumeric label for units after conversion.
-120.0                                              ! Magnitude of vector corresponding to one inch on the page.
+%windvect%                                         ! Magnitude of vector corresponding to one inch on the page.
 0.1                                                ! Spacing between vectors in degrees.
 0.06,0.04,0.01                                     ! Vector head length, head width, tail width.
-50                                                 ! Magnitude of vector to show in the vector scale (or FIND to determine from file).
-5.0                                                ! Minimum Magnitude Vector to Plot
+%vectorlimits%                                     ! Magnitude of vector to show in the vector scale (or FIND to determine from file).
+%vectcut%                                          ! Minimum Magnitude Vector to Plot
 PARAMETERS FOR PARTICLE TRACKING:
 1                                                  ! PartTrack flag: 0 to ignore, 1 to plot Particle Tracking output.
 input_deepwater.pth                                ! Name of file to use for Particle Tracking.
@@ -64,6 +64,6 @@ PARAMETERS FOR OVERALL PLOT(S):
 0                                                  ! Image trim flag: 0 to ignore, 1 to trim image close to plot.
 300                                                ! Resolution (dpi) of images.
 NONE                                               ! Raster file format(s): PNG, JPG, BMP, TIFF, EPS, PDF.
-0,100,2,20100528000000
+0,100,2,%starttime%
 0,0                                                ! Flag for georeferencing: (0 to ignore, 1 for images, 2 for zipped images), and lowermost layer (or 0 to optimize).
 0

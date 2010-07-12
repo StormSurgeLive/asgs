@@ -52,9 +52,17 @@
 if [ $TROPICALCYCLONE == "off" ];then
   STORM=${ADVISORY}
   KIND=NAM
+  WINDVECT=50
+  VECTORLIM=30
+  VECTORCUT=2
+  CONTOURLIMmax=2
 else
   STORM=$STORM
   KIND=TC
+  WINDVECT=120
+  VECTORLIM=50
+  VECTCUT=5
+  CONTOURLIMmax=3.5
 fi
  echo "STORM=${STORM}           " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "STORMNAME=${STORM}       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
@@ -68,16 +76,18 @@ fi
  echo "PARTICLEFILE=${PARTICLEFILE}   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "PARTFILETYPE=0   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "NORTH=31.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "SOUTH=27.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "SOUTH=26.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "EAST=-85.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "WEST=-92.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "WEST=-94.2       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "SYSLOG=${SYSLOG}          " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "NOTIFYUSER=${NOTIFYUSER}  " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "ACCOUNT=${ACCOUNTpost}    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "GSHOME2=${GSHOME2}        " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "GMTHOME2=${GMTHOME2}      " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "VECTORLIM=50       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "CONTOURLIM=-1,3    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "VECTORLIM=$VECTORLIM      " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "CONTOURLIM=-1,$CONTOURLIMmax    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "WINDVECT=$WINDVECT         " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "VECTCUT=$VECTCUT           " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
 
      
       ln -fs $TRACKDIR/part_track_main.sh ./part_track_main.sh
