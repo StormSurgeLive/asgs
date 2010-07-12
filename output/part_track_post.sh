@@ -86,8 +86,11 @@ fi
  echo "GMTHOME2=${GMTHOME2}      " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "VECTORLIM=$VECTORLIM      " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "CONTOURLIM=-1,$CONTOURLIMmax    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "WINDVECT=$WINDVECT         " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "VECTCUT=$VECTCUT           " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "WINDVECT=$WINDVECT              " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "VECTCUT=$VECTCUT                " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "PT_POST_LIST=$PT_POST_LIST      " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "ENSTORM=$ENSTORM                " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "HOSTNAME=$HOSTNAME              " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
 
      
       ln -fs $TRACKDIR/part_track_main.sh ./part_track_main.sh
