@@ -19,7 +19,7 @@
 #
 particle_tracking_email()
 { 
-ADVISORYDIR=$1
+ADVISDIR=$1
 STORM=$2
 YEAR=$3
 ADVISORY=$4
@@ -29,11 +29,11 @@ OUTPUTPREFIX=$7
 POST_LIST=$8
 
 #
-PTDIR=$ADVISORYDIR/TACKING
+PTDIR=$ADVISDIR/TACKING
 POSTDIR=/corral/hurricane/asgs_output
 ANIMPOSTDIR=/corral/hurricane/asgs_output/movies
 
-cat <<END > $ADVISORYDIR/post_notify.txt 
+cat <<END > $ADVISDIR/post_notify.txt 
 ASGS Oil Spill results available for $KIND $STORM advisory $ADVISORY 
 and initial particle location ${PARTICLEFILE} on $HOSTNAME
 
@@ -57,6 +57,6 @@ $ADVISDIR/MONTAGE
 
 END
 #
-cat $ADVISORYDIR/post_notify.txt | mail -s "ASGS Oil Spill results available for $KIND $STORM advisory $ADVISORY  Initial Particle location ${PARTICLEFILE} on $HOSTNAME" $POST_LIST
+cat $ADVISDIR/post_notify.txt | mail -s "ASGS Oil Spill results available for $KIND $STORM advisory $ADVISORY  Initial Particle location ${PARTICLEFILE} on $HOSTNAME" $POST_LIST
 }
 
