@@ -207,12 +207,12 @@
       cp $OUTPUTPREFIX_final.avi /corral/hurricane/asgs_output/movies/
       cp $OUTPUTPREFIX_final.mp4 /corral/hurricane/asgs_output/movies/
       chgrp G-81535 /corral/hurricane/asgs_output/movies/$OUTPUTPREFIX_final*
-      chmod 640 /corral/hurricane/asgs_output/movies/$OUTPUTPREFIX_final*
+      chmod 755 /corral/hurricane/asgs_output/movies/$OUTPUTPREFIX_final*
 
      mkdir /corral/hurricane/asgs_output/frames/$OUTPUTPREFIX_final/
      cp $OUTPUTPREFIX_final*.jpg /corral/hurricane/asgs_output/frames/$OUTPUTPREFIX_final/
      chgrp -R G-81535  /corral/hurricane/asgs_output/frames/$OUTPUTPREFIX_final/
-     chmod 640 /corral/hurricane/asgs_output/frames/$OUTPUTPREFIX_final/$OUTPUTPREFIX_final*.jpg
+     chmod 755 /corral/hurricane/asgs_output/frames/$OUTPUTPREFIX_final/$OUTPUTPREFIX_final*.jpg
 
       
    cd $initialDirectory
