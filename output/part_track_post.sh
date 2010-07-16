@@ -88,7 +88,7 @@ fi
  echo "CONTOURLIM=-1,$CONTOURLIMmax    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "WINDVECT=$WINDVECT              " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "VECTCUT=$VECTCUT                " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "PT_POST_LIST=$PT_POST_LIST      " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "PT_POST_LIST=\"$PT_POST_LIST\"      " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "ENSTORM=$ENSTORM                " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "HOSTNAME=$HOSTNAME              " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
 
