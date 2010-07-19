@@ -70,7 +70,6 @@
 
      GRID=fort.14
      VELINPUTFILE=fort.64   
-     ln -fs $TRACKDIR/connect2D_optimized.exe ./
      ln -fs  ${INPUTDATADIR}/fort.64  ./
      ln -fs  ${INPUTDATADIR}/fort.14  ./
      ln -fs $TRACKDIR/Date ./
