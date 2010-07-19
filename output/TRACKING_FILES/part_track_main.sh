@@ -191,6 +191,7 @@
         mv $PTDIR/input_deepwater.pth     ${OUTPUTPREFIX_final}.pth
         cp ./${OUTPUTPREFIX_final}.pth /corral/hurricane/rweaver/${OUTPUTPREFIX_final}.pth
 
-    particle_tracking_email.sh $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM ${OUTPUTPREFIX_final} "${PT_POST_LIST}" >> ${SYSLOG} 2>&1
+  
+        $TRACKDIR/particle_tracking_email.sh $ADVISDIR $STORM $KIND $ADVISORY $HOSTNAME $ENSTORM ${OUTPUTPREFIX_final} "${PT_POST_LIST}" >> ${SYSLOG} 2>&1
 
 
