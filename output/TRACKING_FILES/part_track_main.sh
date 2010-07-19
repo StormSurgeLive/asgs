@@ -88,50 +88,19 @@
         echo input_deepwater > drogue_input_1
         echo ${GRID} >> drogue_input_1
 
-   # process the grid file
-
-    ./connect2D_optimized.exe 
-   
-   # 2) Track Particles
-      # Write CB_2D.h file
-
-    NumElem=$(head -2 ./${GRID} | tail -1 | awk '{print $1}')
-    NumNode=$(head -2 ./${GRID} | tail -1 | awk '{print $2}')
-    NumFreq=1
-    MxDrog=$(wc -l $PARTICLEFILE | awk '{print $1}')
-    MxTime=3600
-    Tol=50.0D0
-     echo $NumElem $NumNode
-
-       NumNode=$(($NumNode+100000))
-
-     echo "         IMPLICIT NONE                  "     >  ./CB_2D.h
-     echo "         INTEGER NNE,ND,NFR,MXDRG,MXTIME,MXFILETIME" >>  ./CB_2D.h
-     echo "         INTEGER NDIV                              " >>  ./CB_2D.h
-     echo "         REAL*8 REARTH,TOL                 "    >> ./CB_2D.h
-     echo "            PARAMETER (NNE=${NumElem})     "    >> ./CB_2D.h
-     echo "            PARAMETER (ND=${NumNode})      "    >> ./CB_2D.h
-     echo "            PARAMETER (NFR=${NumFreq})     "    >> ./CB_2D.h
-     echo "            PARAMETER (MXDRG=${MxDrog})    "    >> ./CB_2D.h
-     echo "            PARAMETER (MXTIME=${MxTime})   "    >> ./CB_2D.h
-     echo "            PARAMETER (REARTH=6.3675D6)    "    >> ./CB_2D.h
-     echo "            PARAMETER (TOL=${Tol})         "    >> ./CB_2D.h
-     echo "            PARAMETER (NDIV=1000)          "    >> ./CB_2D.h
-
-
+   # 1) Track Particles
    module purge
    module load TACC
    module load intel/11.1
  
      if [ $PARTFILETYPE -eq 0 ]; then
       # no particle numbers 3 columns oil locations
-     ln -fs $TRACKDIR/drog2dsp_deepwater.f ./drog2dsp_deepwater.f
+     ln -fs $TRACKDIR/drog2dsp_deepwater.f90 ./drog2dsp_deepwater.f90
      elif [ $PARTFILETYPE -eq 1 ]; then 
-     ln -fs $TRACKDIR/drog2dsp_deepwater_node.f ./drog2dsp_deepwater.f
+     ln -fs $TRACKDIR/drog2dsp_deepwater_node.f90 ./drog2dsp_deepwater.f90
      fi
 
-     ifort -w  drog2dsp_deepwater.f -o drog2dsp_deepwater.exe
-
+     ifort -w  drog2dsp_deepwater.f90 -o drog2dsp_deepwater.exe
 
    # need the fort.64 file
      ln -fs ./fort.64  ./fort.64.v2c
@@ -155,7 +124,7 @@
            echo  $counter1
            sleep 30
 
-   # 3) Generate vizualizations
+   # 2) Generate vizualizations
        OUTPUTPREFIX=${TYPE}_${ADVISORY}_
        OUTPUTPREFIX_file=${TYPE}_${ADVISORY}
      InitPartTime=$(head -2 ./InitialParticleTime.txt | tail -1 | awk '{print $1}')
@@ -202,6 +171,8 @@
    while [ ! -e $ADVISDIR/MONTAGE/run.mon.finish ]; do
       sleep 30
    done
+     
+      mv /corral/hurricane/asgs_output/movies/*.* /corral/hurricane/asgs_output/movies/archive      
 
       cp $OUTPUTPREFIX_final*.gif /corral/hurricane/asgs_output/movies/
       cp $OUTPUTPREFIX_final.avi /corral/hurricane/asgs_output/movies/
