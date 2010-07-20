@@ -122,7 +122,7 @@ cd %dir%
              OutFile="%outputprefix%_2_0${filenum}.jpg"
             fi
 
-               convert $File2Process1 -trim -resize 2000x772 $OutFile &
+               convert $File2Process1 -trim -resize 2000x576\! -bordercolor White -border 10 $OutFile &
 
         echo  `date` $j ${OutFile}
        K=$(($K + 1))
