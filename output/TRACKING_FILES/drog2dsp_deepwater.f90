@@ -135,6 +135,7 @@
       INTEGER,ALLOCATABLE           :: IDR(:),JJDR(:)       !IDR(MXDRG),JJDR(MXDRG)
 !   !CHARACTER VARIABLES FOR FILENAMES AND MISC
       CHARACTER(LEN=80)   :: GRID,HEADER
+      CHARACTER(LEN=140)  :: HEADER2
       CHARACTER(LEN=72),ALLOCATABLE :: VLIST(:) !VLIST(NFR)
       CHARACTER(LEN=72)   :: CASE0
       CHARACTER(LEN=20)   :: JunkC
@@ -215,8 +216,8 @@
         ALLOCATE( KODE(1:NDR), ICURBS(1:NDR) )
 !
 ! *** READ IN DROGUE COORDINATES
-      READ(11,'(A)') HEADER
-      WRITE(*,*) HEADER
+      READ(11,'(A)') HEADER2
+      WRITE(*,*) HEADER2
       DO I = 1,NDR
         READ(11,*) XD, YD, ZD
         XDR(I)=XD*REARTH*DEGRAD*SCDRX
@@ -273,7 +274,7 @@
         read(10,*) ! HEADER
         read(10,*) numtimes,numnodes, JunkR, JunkI, JunkI
         IF(NUMNODES /= NMND ) THEN
-          WRITE(6,*) "Different total number of nodes are in velocity and grid file"
+        WRITE(6,*) "Diff.tot num nodes are in velocity and grid file"
           STOP
         ENDIF
         ALLOCATE(FILETIME(1:numtimes))
@@ -411,7 +412,7 @@
 ! *** WRITE OUT HEADERS AND INITIAL DROGUE POSITIONS
 !     TO ACE/vis OUTPUT FILE
 
-      WRITE(12,'(a)') GRID
+      WRITE(12,'(a)') HEADER2
       WRITE(12,*) NTINT/IPRINT, NDR, OUTPUTTIMESTEP
       WRITE(12,*) T1,NDR
       DO III = 1, NDR
@@ -452,7 +453,7 @@
          IF (I.eq.1) then
            LOOP_NUMTIMES1:DO j = 2,numtimes
              IF ( Sparse .EQ. 1 ) then
-               READ(UNIT=10,FMT=*,END=9003, ERR=9003) filetime(j),timestep,NumNonDefaultNodes,DefaultValue
+                READ(UNIT=10,FMT=*,END=9003, ERR=9003) filetime(j),timestep,NumNonDefaultNodes,DefaultValue
                write(*,*) NumNonDefaultNodes
              ELSEIF (Sparse .EQ. 0 ) then
                READ(UNIT=10,FMT=*,END=9003, ERR=9003) filetime(j),timestep

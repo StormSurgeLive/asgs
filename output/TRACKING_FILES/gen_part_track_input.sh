@@ -23,7 +23,8 @@
    PARTICLEFILE=$4
 
 
-   
+    ColdStart=$(head -1 ${VELINPUTFILE} | tail -1 | awk '{print $1}')   
+    CycleTime=$(head -1 ${VELINPUTFILE} | tail -1 | awk '{print $2}')   
     NumRecords=$(head -2 ${VELINPUTFILE} | tail -1 | awk '{print $1}')  # 
     OutputFreq=$(head -2 ${VELINPUTFILE} | tail -1 | awk '{print $3}')  # in Seconds
 
@@ -67,7 +68,7 @@ echo "1.00  0.01                           "  >>    input_deepwater_header
 echo "Scaling factors for drogue coordinates in x,y directions   "  >>    input_deepwater_header
 echo "1.00  1.00                           "  >>    input_deepwater_header
 echo "Number of starting drogues (ndr)     "  >>    input_deepwater_header
-echo "${NumParticles}      ${Initial_Loc_File_base}      "  >>    input_deepwater_header
+echo "${NumParticles} ${ColdStart} ${CycleTime}  ${Initial_Loc_File_base} "  >>    input_deepwater_header
 
         cat input_deepwater_header  ${Initial_Loc_File} > input_deepwater.din
 
