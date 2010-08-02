@@ -76,9 +76,9 @@ fi
  echo "PARTICLEFILE=${PARTICLEFILE}   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "PARTFILETYPE=0   " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "NORTH=31.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "SOUTH=26.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "EAST=-85.0       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
- echo "WEST=-94.2       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "SOUTH=27.5       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "EAST=-87.5       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
+ echo "WEST=-93.7       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "SYSLOG=${SYSLOG}          " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "NOTIFYUSER=${NOTIFYUSER}  " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "ACCOUNT=${ACCOUNTpost}    " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
