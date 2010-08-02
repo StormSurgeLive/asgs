@@ -176,6 +176,7 @@
       cp $OUTPUTPREFIX_final*.gif /corral/hurricane/asgs_output/movies/
       cp $OUTPUTPREFIX_final.avi /corral/hurricane/asgs_output/movies/
       cp $OUTPUTPREFIX_final.mp4 /corral/hurricane/asgs_output/movies/
+      cp $PTDIR/input_deepwater.pth  /corral/hurricane/asgs_output/movies/${OUTPUTPREFIX_final}.pth
       chgrp G-81535 /corral/hurricane/asgs_output/movies/$OUTPUTPREFIX_final*
       chmod 755 /corral/hurricane/asgs_output/movies/$OUTPUTPREFIX_final*
 
