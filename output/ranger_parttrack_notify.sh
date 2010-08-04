@@ -29,7 +29,7 @@ OUTPUTPREFIX=$7
 POST_LIST=$8
 
 #
-PTDIR=$ADVISDIR/TACKING
+PTDIR=$ADVISDIR/TRACKING
 POSTDIR=/corral/hurricane/asgs_output
 ANIMPOSTDIR=/corral/hurricane/asgs_output/movies
 

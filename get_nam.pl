@@ -317,7 +317,7 @@ while ($datetime_needed <= $cycletime) {
             my @subdirs = glob("$andir/??????????"); 
             foreach my $subdir (@subdirs) {
                my $alt_location = $subdir."/nowcast/erl.".substr($date_needed,2)."/nam.t".$hour_needed."z.awip1200.tm00.grib2";
-               stderrMessage("DEBUG","Looking for '$alt_location'.");
+               #stderrMessage("DEBUG","Looking for '$alt_location'.");
                # does the file exist in this alternate directory?
                if ( -e $alt_location ) {
                   $localDir = $cycletime."/nowcast/erl.".substr($date_needed,2);
@@ -340,7 +340,7 @@ while ($datetime_needed <= $cycletime) {
                   last;
                } else {
                   # file does not exist in this alternate directory
-                  stderrMessage("DEBUG","The file '$alt_location' was not found.");
+                  #stderrMessage("DEBUG","The file '$alt_location' was not found.");
                }
             }
             if ( $already_haveit == 1 ) {
