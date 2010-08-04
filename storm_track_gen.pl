@@ -336,6 +336,8 @@ close(NHCCLASSNAME);
 my $forecastedDate; # as a string
 my $last_pressure = $lasthindcastpressure;
 my $last_windspeed = $lasthindcastwindspeed;
+my $consensus_angle=0;      # direction of motion of consensus track
+my $old_consensus_angle=0;  # previous direction of consensus track
 #---------------------------------------------------------------------
 # P R O C E S S I N G   F O R E C A S T   F I L E 
 #---------------------------------------------------------------------
@@ -477,8 +479,6 @@ while(<FCST>) {
    # of uncertainty
    if (($name eq "veer") && ($tau != 0)) {
       my $radius;                 # radius of uncertainty
-      my $consensus_angle=0;      # direction of motion of consensus track
-      my $old_consensus_angle=0;  # previous direction of consensus track
       $radius=interpolateUncertaintyRadius($tau);
       # scale to the percentage requested 
       $radius *= abs($veerPercent/100.0);
