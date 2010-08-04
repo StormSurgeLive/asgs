@@ -81,6 +81,7 @@ my $fort7374freq=0; # output frequency in SECONDS
 my $fort7374append; # if defined, output files will append across hotstarts 
 my ($fort61, $fort62, $fort63, $fort64, $fort7172, $fort7374);
 our $sparseoutput; # if defined, then fort.63 and fort.64 will be sparse ascii
+my ($fort61netcdf, $fort62netcdf, $fort63netcdf, $fort64netcdf, $fort7172netcdf, $fort7374netcdf); # for netcdf (not ascii) output
 #
 my @TRACKS = (); # should be few enough to store all in an array for easy access
 my $controltemplate;
@@ -88,7 +89,7 @@ my $metfile;
 our $csdate;
 my $hstime;      # time, in seconds, of hotstart file (since coldstart)
 my $hstime_days; # time, in days, of hotstart file (since coldstart)
-my $endtime;
+our $endtime;    # time at which the run should end
 my $dt=3.0; 
 my $bladj=0.9;
 my $enstorm;    # ensemble name of the storm
@@ -133,27 +134,44 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "fort64append" => \$fort64append,
            "fort7172append" => \$fort7172append,
            "fort7374append" => \$fort7374append,
+           "fort61netcdf" => \$fort61netcdf,
+           "fort62netcdf" => \$fort62netcdf,
+           "fort63netcdf" => \$fort63netcdf,
+           "fort64netcdf" => \$fort64netcdf,
+           "fort7172netcdf" => \$fort7172netcdf,
+           "fort7374netcdf" => \$fort7374netcdf,
            "sparse-output" => \$sparseoutput
            );
 #
 # open template file for fort.15
-open(TEMPLATE,"<$controltemplate") || die "ERROR: control_file_gen.pl: Failed to open the fort.15 template file $controltemplate for reading.";
+unless (open(TEMPLATE,"<$controltemplate")) {
+   stderrMessage("ERROR","Failed to open the fort.15 template file $controltemplate for reading.");
+   die;
+}
 #
 # open output control file
 our $stormDir = $advisdir."/".$enstorm;
-open(STORM,">$stormDir/fort.15") || die "ERROR: control_file_gen.pl: Failed to open the output control file $stormDir.";
+unless (open(STORM,">$stormDir/fort.15")) { 
+   stderrMessage("ERROR","Failed to open the output control file $stormDir/fort.15.");
+   die;
+}
 stderrMessage("INFO","The fort.15 file will be written to the directory $stormDir."); 
 #
 # call subroutine that knows how to fill in the fort.15 for each particular 
 # type of forcing 
 if ( abs($nws) == 19 || abs($nws) == 319 ) {
+   stderrMessage("DEBUG","Setting parameters appropriately for asymmetric vortex model.");
    &asymmetricParameters(); 
 } 
 if ( abs($nws) == 12 || abs($nws) == 312 ) {
    &owiParameters();
 }
-# we want a hotstart file if this is a nowcast
-if ( $enstorm eq "nowcast" ) {
+if ( $enstorm eq "hindcast" ) {
+   stderrMessage("DEBUG","This is a hindcast."); 
+   &hindcastParameters();
+}
+# we want a hotstart file if this is a nowcast or hindcast
+if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
    $NHSTAR = 1;
    # write a hotstart file on the last time step of the run
    $NHSINC = int(($RNDAY*86400.0)/$dt);
@@ -169,20 +187,29 @@ if ( defined $hstime ) {
    $ihot = 0;
 }
 # [de]activate output files with time step increment and with(out) appending.
-$fort61 = &getSpecifier($fort61freq,$fort61append) . " 0.0 365.0 " . &getIncrement($fort61freq,$dt);
-$fort62 = &getSpecifier($fort62freq,$fort62append) . " 0.0 365.0 " . &getIncrement($fort62freq,$dt);
+$fort61 = &getSpecifier($fort61freq,$fort61append,$fort61netcdf) . " 0.0 365.0 " . &getIncrement($fort61freq,$dt);
+$fort62 = &getSpecifier($fort62freq,$fort62append,$fort62netcdf) . " 0.0 365.0 " . &getIncrement($fort62freq,$dt);
 #
-my $fort63specifier = &getSpecifier($fort63freq,$fort63append);
-my $fort64specifier = &getSpecifier($fort64freq,$fort64append);
+my $fort63specifier = &getSpecifier($fort63freq,$fort63append,$fort63netcdf);
+my $fort64specifier = &getSpecifier($fort64freq,$fort64append,$fort64netcdf);
 if ( defined $sparseoutput ) {
-   $fort63specifier *= 4;
-   $fort64specifier *= 4;
+   unless ( defined $fort63netcdf ) { 
+      $fort63specifier *= 4;
+   }
+   unless ( defined $fort64netcdf ) { 
+      $fort64specifier *= 4;
+   }
 }
 $fort63 = $fort63specifier . " 0.0 365.0 " . &getIncrement($fort63freq,$dt);
 $fort64 = $fort64specifier . " 0.0 365.0 " . &getIncrement($fort64freq,$dt);
-$fort7172 = &getSpecifier($fort7172freq,$fort7172append) . " 0.0 365.0 " . &getIncrement($fort7172freq,$dt);
-$fort7374 = &getSpecifier($fort7374freq,$fort7374append) . " 0.0 365.0 " . &getIncrement($fort7374freq,$dt);
+$fort7172 = &getSpecifier($fort7172freq,$fort7172append,$fort7172netcdf) . " 0.0 365.0 " . &getIncrement($fort7172freq,$dt);
+$fort7374 = &getSpecifier($fort7374freq,$fort7374append,$fort7374netcdf) . " 0.0 365.0 " . &getIncrement($fort7374freq,$dt);
+if ( $enstorm eq "hindcast" ) {
+   $fort7172 = "ERROR: This line should not be here! In a hindcast, the ASGS assumes that there is no met forcing. As a result, the fort.15 template file should not have output specifiers for meteorological output. Please remove the NOUTM etc line and the met stations from the template file '$controltemplate'.";
+    $fort7374 = "ERROR: This line should not be here! In a hindcast, the ASGS assumes that there is no met forcing. As a result, the fort.15 template file should not have output specifiers for meteorological output. Please remove the NOUTGW etc line from the template file '$controltemplate'.";
+}
 #
+stderrMessage("INFO","Filling in control template.");
 while(<TEMPLATE>) {
     # if we are looking at the first line, fill in the name of the storm
     # and the advisory number, if available
@@ -220,11 +247,13 @@ close(STORM);
 #   S U B   G E T   S P E C I F I E R
 #
 # Determines the correct output specifier for output files based on
-# the output frequency and whether or not the files should be appended.
+# the output frequency, whether or not the files should be appended,
+# and whether or not the netcdf format is used (ascii is the default).
 #--------------------------------------------------------------------------
 sub getSpecifier () {
    my $freq = shift;
    my $append = shift;
+   my $netcdf = shift;
    my $specifier;
 
    if ( $freq == 0 ) {
@@ -234,6 +263,9 @@ sub getSpecifier () {
          $specifier = "1";
       } else {
          $specifier = "-1";
+      }
+      if ( defined $netcdf ) {
+         $specifier *= 3;
       }
    }
    return $specifier;
@@ -256,6 +288,21 @@ sub getIncrement () {
    }
    return $increment;
 }
+#
+#--------------------------------------------------------------------------
+#   S U B    H I N D C A S T  P A R A M E T E R S
+#
+# Determines parameter values for the control file when running
+# ADCIRC during a hindcast with no met forcing.  
+#--------------------------------------------------------------------------
+sub hindcastParameters () {
+    $rundesc = "cs:$csdate"."0000 cy: ASGS hindcast";
+    $RNDAY = $endtime;  
+    $nws = 0;
+    $ensembleid = "$endtime day hindcast run";
+    $wtiminc = "ERROR: This line should not be here! In a hindcast, the ASGS assumes that there is no met forcing. As a result, the fort.15 template file should not have a WTIMINC line. Please remove the WTIMINC line from the template file '$controltemplate'.";
+    stderrMessage("DEBUG","Finished setting hindcast parameters.");
+} 
 #
 #--------------------------------------------------------------------------
 #   S U B   O W I  P A R A M E T E R S
@@ -374,7 +421,11 @@ sub asymmetricParameters () {
    $ensembleid = $enstorm;
    #
    # open met file containing datetime data
-   open(METFILE,"<$metfile") || die "ERROR: control_file_gen.pl: Failed to open meteorological (ATCF-formatted) fort.22 file '$metfile' for reading.";
+   unless (open(METFILE,"<$metfile")) { 
+      stderrMessage("ERROR","Failed to open meteorological (ATCF-formatted) fort.22 file '$metfile' for reading.");
+      die;
+   }
+   stderrMessage("DEBUG","Successfully opened meteorological (ATCF-formatted) fort.22 file '$metfile' for reading.");
    #
    # determine date time at end of hindcast
    #
@@ -402,7 +453,7 @@ sub asymmetricParameters () {
             if ( defined $track->[27] ) {
                $nhcName = $track->[27];
             } else {	 
-               printf STDERR "WARNING: control_file_gen.pl: The name of the storm does not appear in the hindcast.\n";
+               stderrMessage("WARNING","The name of the storm does not appear in the hindcast.");
             }
          }
          # also grab the last hindcast time; this will be the nowcast time
@@ -426,9 +477,9 @@ sub asymmetricParameters () {
    # get end time
    my $end;
    # for a nowcast, end the run at the end of the hindcast
-   if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) { 
+   if ( $enstorm eq "nowcast" ) { 
       $end = $nowcast;
-      printf(STDOUT "INFO: control_file_gen.pl: New $enstorm time is $end.\n");
+      stderrMessage("INFO","New $enstorm time is $end.");
    } elsif ( $endtime ) {
       # if this is not a nowcast, and the end time has been specified, end then
       $end = $endtime
@@ -498,7 +549,7 @@ sub asymmetricParameters () {
         }
       }
    }
-   printf(STDOUT "INFO: control_file_gen.pl: The fort.15 file will be configured to end on $end.\n");
+   stderrMessage("INFO","The fort.15 file will be configured to end on $end.");
    #
    $cstart=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
    my $cs_year = $1;
@@ -532,7 +583,8 @@ sub asymmetricParameters () {
    } else {
       $stopshort = $dt;
    }
-   my $RNDAY = $days + $hours/24.0 + ($seconds-$stopshort)/86400.0; 
+   $RNDAY = $days + $hours/24.0 + ($seconds-$stopshort)/86400.0; 
+   #stderrMessage("DEBUG","RNDAY is initially calculated as $RNDAY.");
    #
    # If RNDAY is less than two timesteps, make sure it is at least two timesteps. 
    # This can happen if we start up from a fort.22 that has only one BEST line,
@@ -548,7 +600,7 @@ sub asymmetricParameters () {
    # if we coldstart at the nowcast, we may not have calculated a runlength 
    # longer than the minimum
    if ( $runlength_seconds < $min_runlength ) { 
-      printf STDERR "INFO: control_file_gen.pl: Runlength was calculated as $runlength_seconds seconds, which is less than the minimum runlength of $min_runlength seconds. The RNDAY will be adjusted so that it ADCIRC runs for the minimum length of simulation time.\n";
+      stderrMessage("INFO","Runlength was calculated as $runlength_seconds seconds, which is less than the minimum runlength of $min_runlength seconds. The RNDAY will be adjusted so that it ADCIRC runs for the minimum length of simulation time.");
       # recalculate the RNDAY as the hotstart time plus the minimal runlength
       if ( $hstime ) {
          $RNDAY=$hstime_days + ($min_runlength/86400.0);
@@ -561,10 +613,10 @@ sub asymmetricParameters () {
    # if this is an update from hindcast to nowcast, calculate the hotstart 
    # increment so that we only write a single hotstart file at the end of 
    # the run. If this is a forecast, don't write a hotstart file at all.
-   my $NHSINC = int(($RNDAY*86400.0)/$dt);
-   my $NHSTAR;
+   $NHSINC = int(($RNDAY*86400.0)/$dt);
+   $NHSTAR;
    # create run description
-   my $rundesc = "cs:$csdate"."0000 cy:$nhcName$advisorynum ASGS";
+   $rundesc = "cs:$csdate"."0000 cy:$nhcName$advisorynum ASGS";
    # create the WTIMINC line
    $wtiminc = $cs_year." ".$cs_mon." ".$cs_day." ".$cs_hour." 1 ".$bladj;
 }

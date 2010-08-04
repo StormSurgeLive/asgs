@@ -37,6 +37,8 @@ my $walltime; # estimated maximum wall clock time
 my $qscript;  # the template file to use for the queue submission script
 my $syslog;   # the log file that the ASGS uses 
 my $ppn;      # the number of processors per node
+my $nuwriters; # number of writer processors, if any
+my $localhotstart; # present if subdomain hotstart files should be written
 
 # initialize to the log file that adcirc uses, just in case
 $syslog="adcirc.log";
@@ -53,6 +55,8 @@ GetOptions("ncpu=s" => \$ncpu,
            "qscript=s" => \$qscript,
            "syslog=s" => \$syslog,
            "submitstring=s" => \$submitstring,
+           "localhotstart" => \$localhotstart,
+           "numwriters=s" => \$numwriters, 
            "ppn=s" => \$ppn );
 
 # calculate the number of nodes to request, based on the number of cpus and the
@@ -63,9 +67,17 @@ my $nnodes = $ncpu/$ppn;
 if ( ($ncpu%$ppn) != 0 ) {
    $nnodes++;
 } 
-
+# set up command line optionsa, if any
+my $cloptions = "";
+if ( defined $numwriters ) {
+   $cloptions = " -W " . $numwriters;
+}
+if ( defined $localhotstart ) {
+   $cloptions .= " -S";
+}
+#
 open(TEMPLATE,"<$qscript") || die "ERROR: Can't open $qscript file for reading as a template for the queue submission script.";
-
+#
 while(<TEMPLATE>) {
     # fill in the number of CPUs
     s/%ncpu%/$ncpu/;
@@ -91,6 +103,8 @@ while(<TEMPLATE>) {
     s/%submitstring%/$submitstring/;
     # file to direct stdout and stderr to from the adcirc process
     s/%syslog%/$syslog/;
+    # fill in command line options
+    s/%cloption%/$cloption/;
     print $_;
 }
 close(TEMPLATE);

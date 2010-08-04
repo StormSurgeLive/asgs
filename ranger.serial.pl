@@ -11,6 +11,7 @@ my $advisdir;   # directory for the individual advisory
 my $enstorm;   # name of the enesemble member (nowcast, storm3, etc)
 my $notifyuser; # email address of the user to be notified in case of error
 my $serqscript; # name of serial qscript file
+my $walltime; # amount of wall clock time expected for adcprep
 
 GetOptions(
            "account=s" => \$account,
@@ -18,6 +19,7 @@ GetOptions(
            "advisdir=s" => \$advisdir,
            "enstorm=s" => \$enstorm,
            "notifyuser=s" => \$notifyuser,
+           "walltime=s" => \$walltime,
            "serqscript=s" => \$serqscript,
 );
 
@@ -28,6 +30,8 @@ while(<TEMPLATE>) {
     s/%account%/$account/;
     # directory where padcirc executable is located
     s/%adcircdir%/$adcircdir/;
+    # expected wall clock time 
+    s/%walltime%/$walltime/;
     # directory for this particular advisory
     s/%advisdir%/$advisdir/;  
     # name of this member of the ensemble (nowcast, storm3, etc)

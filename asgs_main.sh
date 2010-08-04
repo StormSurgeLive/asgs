@@ -202,8 +202,8 @@ createMetaDataLink()
   ln -s $ADVISDIR/$ENSTORM/fort.22 $ADVISDIR/$ENSTORM/$linkName
 }
 #
-# subroutine to run adcprep, using a pre-prepped archive of fort.13 and 
-# fort.14 files
+# subroutine to run adcprep, using a pre-prepped archive of fort.13,  
+# fort.14 and fort.18 files
 prep()
 {   ADVISDIR=$1  # directory containing the now/forecast runs for this cycle
     INPUTDIR=$2 # directory where grid and nodal attribute files are found
@@ -216,7 +216,9 @@ prep()
     GRIDFILE=$9 # fulldomain grid
     ACCOUNT=${10} # account to charge time to 
     OUTPUTOPTIONS="${11}" # contains list of args for appending files 
-    NAFILE=${12}  # full domain nodal attributes file, must be last in the
+    HOTSTARTCOMP=${12}
+    WALLTIME=${13}
+    NAFILE=${14}  # full domain nodal attributes file, must be last in the
                   # argument list, since it may be undefined
     TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
     if [ ! -d $ADVISDIR/$ENSTORM ]; then 
@@ -237,10 +239,15 @@ prep()
     fi
     # copy in the files that have already been preprocessed
     logMessage "Copying input files that have already been decomposed."
-    cp $INPUTDIR/${PREPPEDARCHIVE} . 2>> ${SYSLOG}
-    gunzip -f ${PREPPEDARCHIVE} 2>> ${SYSLOG}
+    if [[ $ENSTORM = hindcast ]]; then
+       PREPPED=$HINDCASTARCHIVE
+    else
+       PREPPED=$PREPPEDARCHIVE
+    fi
+    cp $INPUTDIR/${PREPPED} . 2>> ${SYSLOG}
+    gunzip -f ${PREPPED} 2>> ${SYSLOG}
     # untar the uncompressed archive
-    UNCOMPRESSEDARCHIVE=${PREPPEDARCHIVE%.gz}
+    UNCOMPRESSEDARCHIVE=${PREPPED%.gz}
     tar xvf $UNCOMPRESSEDARCHIVE > untarred_files.log 2>> ${SYSLOG}
     logMessage "Removing $UNCOMPRESSEDARCHIVE"
     rm $UNCOMPRESSEDARCHIVE 2>> ${SYSLOG}
@@ -248,17 +255,12 @@ prep()
     # full adcprep that has already been done (to save time) and saved 
     # in a tar file
     if [ $START = coldstart ]; then
-        # run adcprep to decompose the new fort.15 file
-        logMessage "Running adcprep to prepare new fort.15 file"
-        prepControlFile $ENV $NCPU $ACCOUNT
+       # run adcprep to decompose the new fort.15 file
+       logMessage "Running adcprep to prepare new fort.15 file"
+       prepControlFile $ENV $NCPU $ACCOUNT $WALLTIME 
        # link to hurricane track file rather than prepping it with adcprep
        PE=0
        format="%04d"
-       while [ $PE -lt $NCPU ]; do
-           PESTRING=`printf "$format" $PE`
-           ln -s $ADVISDIR/$ENSTORM/fort.22 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.22 2>> ${SYSLOG}
-           PE=`expr $PE + 1`
-       done
     else
        # this is a   H O T S T A R T
        # set directory where data will be copied from     
@@ -269,30 +271,70 @@ prep()
              FROMDIR=$LASTSUBDIR
           else
              # this is a nowcast run, and we are getting the hotstart file
-             # from the ASGS's last nowcast run 
-             FROMDIR=$OLDADVISDIR/nowcast
+             # either from the ASGS's last nowcast run or from an initial 
+             # hindcast run
+             if [[ -d $OLDADVISDIR/nowcast ]]; then
+                FROMDIR=$OLDADVISDIR/nowcast
+             fi
+             if [[ -d $OLDADVISDIR/hindcast ]]; then
+                FROMDIR=$OLDADVISDIR/hindcast 
+             fi
           fi
        else 
           # this is a forecast run, and we get the hotstart file from
           # our own nowcast run in our own advisory directory
           FROMDIR=$ADVISDIR/nowcast
        fi
-       # link to fulldomain files
-       ln -s $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68
+       # copy or link to fulldomain files
+       while [ $PE -lt $NCPU ]; do
+           PESTRING=`printf "$format" $PE`
+           ln -s $ADVISDIR/$ENSTORM/fort.22 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.22 2>> ${SYSLOG}
+           PE=`expr $PE + 1`
+       done
+       if [[ $HOTSTARTCOMP = fulldomain ]]; then
+          ln -s $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68
+       else
+          # copy the subdomain hotstart files over          
+          PE=0
+          format="%04d"
+          logMessage "Starting copy of subdomain hotstart files." 
+          while [ $PE -lt $NCPU ]; do
+             PESTRING=`printf "$format" $PE`
+             cp $FROMDIR/PE${PESTRING}/fort.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.68 2>> ${SYSLOG}
+             PE=`expr $PE + 1`
+          done
+          logMessage "Completed copy of subdomain hotstart files."
+       fi 
        # copy maxele and maxwvel files so that the max values will be 
        # preserved across hotstarts
        logMessage "Copying existing output files to this directory."
        if  [ -e $FROMDIR/maxele.63 ]; then
+          logMessage "Copying $FROMDIR/maxele.63 to $ADVISDIR/$ENSTORM/maxele.63 so that its values will be preserved across the hotstart." 
           cp $FROMDIR/maxele.63 $ADVISDIR/$ENSTORM/maxele.63 2>> ${SYSLOG}
        fi
        if  [ -e $FROMDIR/maxwvel.63 ]; then      
+          logMessage "Copying $FROMDIR/maxwvel.63 to $ADVISDIR/$ENSTORM/maxwvel.63 so that its values will be preserved across the hotstart." 
           cp $FROMDIR/maxwvel.63 $ADVISDIR/$ENSTORM/maxwvel.63 2>> ${SYSLOG}
        fi
-       # copy existing subdomain files if they are supposed to be appended
+       # copy existing fulldomain files if they are supposed to be appended
        for file in fort.61 fort.62 fort.63 fort.64 fort.71 fort.72 fort.73 fort.74; do
           matcharg=--${file/./}append
+          if [[ $file = "fort.71" || $file = "fort.72" ]]; then
+             matcharg="--fort7172append"
+          elif [[ $file = "fort.73" || $file = "fort.74" ]]; then
+             matcharg="--fort7374append"
+          fi
+          # check the output options to see if the file is being appended
           for arg in $OUTPUTOPTIONS ; do 
              if [[ $matcharg = $arg ]]; then 
+                # the file is being appended; check to see if it is in netcdf
+                # format, and if so, use the netcdf name
+                netCDFArg=${matcharg/append/netcdf/}      
+                for outputArg in $OUTPUTOPTIONS ; do 
+                   if [[ $outputArg = $netCDFArg ]]; then
+                      file=${file/./}.nc
+                   fi
+                done
                 if [ -e $FROMDIR/$file ]; then
                    logMessage "Copying $FROMDIR/$file to $ADVISDIR/$ENSTORM/$file so that it will be appended during the upcoming run." 
                    cp $FROMDIR/$file $ADVISDIR/$ENSTORM/$file 2>> ${SYSLOG}
@@ -302,10 +344,12 @@ prep()
        done
        # run adcprep to decompose the new fort.15 file
        logMessage "Running adcprep to prepare new fort.15 file."
-       prepControlFile $ENV $NCPU $ACCOUNT 
-       # run adcprep to decompose the hotstart file
-       logMessage "Running adcprep to decompose hotstart file."
-       prepHotstartFile $ENV $NCPU $ACCOUNT
+       prepControlFile $ENV $NCPU $ACCOUNT $WALLTIME
+       if [[ $HOTSTARTCOMP = fulldomain ]]; then
+          # run adcprep to decompose the hotstart file
+          logMessage "Running adcprep to decompose hotstart file."
+          prepHotstartFile $ENV $NCPU $ACCOUNT $WALLTIME
+       fi
     fi
 }
 #
@@ -315,18 +359,12 @@ prepControlFile()
 {   ENV=$1
     NCPU=$2
     ACCOUNT=$3
+    WALLTIME=$4
     if [[ $ENV = jade || $ENV = sapphire ]]; then
-       QSCRIPTOPTIONS="--ncpu $NCPU --queuename $SERQUEUE --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm $ENSTORM --syslog $SYSLOG"
+       QSCRIPTOPTIONS="--ncpu $NCPU --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm $ENSTORM --syslog $SYSLOG"
        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.pbs 2>> ${SYSLOG}
        qsub $ADVISDIR/$ENSTORM/adcprep.pbs >> ${SYSLOG} 2>&1
-       monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol
-       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-       $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
-$NCPU
-4
-fort.14
-fort.15
-END
+       monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol $WALLTIME
        logMessage "Finished adcprepping control file (fort.15)."
        exit
     elif [[ $ENV = ranger ]]; then
@@ -336,18 +374,16 @@ END
        echo fort.14 >> prep.in1
        echo fort.15 >> prep.in1
        SERQSCRIPT=ranger.template.serial
-       SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
+       SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $ADCIRCDIR --walltime $WALLTIME --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
        perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
        logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
        qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
        # if qsub succeeded, monitor the job, otherwise an error is indicated
-       if [[ $? = 0 ]]; then
-          # check once per minute until all jobs have finished
-          monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol
-       else 
-          date > $ADVISDIR/$ENSTORM/run.error
-          echo "qsub rejected the job to adcprep the control file." >> $ADVISDIR/$ENSTORM/run.error
+       if [[ $? = 1 ]]; then
+          rangerResubmit $ADVISDIR $ENSTORM adcprep.serial.sge $SYSLOG
        fi
+       # check once per minute until all jobs have finished
+       monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol $WALLTIME
        mv prep.in1 prep.in_controlfile
        mv decomp.out1 decomp.out_controlfile
        consoleMesssage "Job(s) complete."
@@ -370,18 +406,12 @@ prepHotstartFile()
 {     ENV=$1
       NCPU=$2
       ACCOUNT=$3
+      WALLTIME=$4
       if [[ $ENV = jade || $ENV = sapphire ]]; then
-         QSCRIPTOPTIONS="--ncpu $NCPU --queuename $SERQUEUE --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPHOTSTARTSCRIPT --enstorm $ENSTORM --syslog $SYSLOG"
+         QSCRIPTOPTIONS="--ncpu $NCPU --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPHOTSTARTSCRIPT --enstorm $ENSTORM --syslog $SYSLOG"
          perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep_hotstart.pbs 2>> ${SYSLOG}
          qsub $ADVISDIR/$ENSTORM/adcprep_hotstart.pbs >> ${SYSLOG} 2>&1
-         monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart
-         qsub -l ncpus=0 -l walltime=00:50:00 -q debug -A $ACCOUNT -I
-         cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-         $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
-$NCPU
-6
-68
-END
+         monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart $WALLTIME
          logMessage "Finished adcprepping hotstart file (fort.68)."
          exit
     elif [[ $ENV = ranger ]]; then
@@ -390,19 +420,16 @@ END
        echo 6       >> prep.in1
        echo 68      >> prep.in1
        SERQSCRIPT=ranger.template.serial
-       SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
+       SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $ADCIRCDIR --walltime $WALLTIME --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
        perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
        logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
        qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
        # if qsub succeeded, monitor the job, otherwise an error is indicated
-       if [[ $? = 0 ]]; then
-          # check once per minute until all jobs have finished
-          monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart
-       else 
-          date > $ADVISDIR/$ENSTORM/run.error
-          echo "qsub rejected the job to adcprep the hotstart file." >> $ADVISDIR/$ENSTORM/run.error
+       if [[ $? = 1 ]]; then
+         rangerResubmit $ADVISDIR $ENSTORM adcprep.serial.sge $SYSLOG
        fi
        # check once per minute until all jobs have finished
+       monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart $WALLTIME
        mv prep.in1 prep.in_hotstartfile
        mv decomp.out1 decomp.out_hotstartfile
        consoleMesssage "Job(s) complete."
@@ -525,20 +552,47 @@ downloadBackgroundMet()
    done   
 }
 #
-# checks the local queueing system over and over to see if a job has
-# finished ... returns to the calling routine when the job has finished
+# watches for the existence of certain files that are written by the job as
+# it executes and proceeds according to the status that is indicated by 
+# those files
 monitorJobs() 
 {   QUEUESYS=$1
     ENSTORM_TEMP=$2
+    WALLTIME=$3
+#
     activity_indicator "Monitoring queue for run completion..." &
     pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
-    sleep 60
+#
+#   convert the expected wall clock time of the job to seconds, assuming
+#   WALLTIME is in the format HH:MM:SS
+    hours=${WALLTIME:0:2}
+    minutes=${WALLTIME:3:2}
+    seconds=${WALLTIME:6:2}
+    limit=$(($hours * 3600 + $minutes * 60 + $seconds)) # WALLTIME in seconds
+#
     if [[ $QUEUESYS = "mpiexec" ]]; then
         # do nothing, mpiexec has returned at this point
         logMessage "mpiexec has returned"
     else
+        until [[ -e run.start ]]; do
+           sleep 10
+        done
+        logMessage "The $ENSTORM_TEMP job has started."   
+        startTime=`date +%s`  # epoch seconds
         until [[ -e run.finish || -e run.error ]]; do
             sleep 60
+            endTime=`date +%s`
+            runTime=$(($endTime - $startTime))
+            if [[ $runTime -gt $limit ]]; then
+               hoursEnd=$(($limit / 3600))
+               remainder=$(($limit % 3600))
+               minutesEnd=$(($remainder / 60))
+               secondsEnd=$(($remainder % 60))
+               format="%02d:%02d:%02d"
+               hms=`printf "$format" $hoursEnd $minutesEnd $secondsEnd`
+               warn "The wall clock time limit is $WALLTIME but the job has been running for $hms."
+               echo "The wall clock time limit is $WALLTIME but the job has been running for $hms." > run.error
+            fi
         done
         if [[ -e run.error ]]; then
            warn "The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
@@ -554,55 +608,90 @@ monitorJobs()
 #
 # submits a job to the local queueing system
 submitJob()
-{   QUEUESYS=$1
-    NCPU=$2
-    ADCIRCDIR=$3
-    ADVISDIR=$4
-    SCRIPTDIR=$5
-    INPUTDIR=$6
-    ENSTORM=$7
-    NOTIFYSER=$8
-    ENV=$9
-    ACCOUNT=${10}
-    PPN=${11}
-    NUMWRITERS=${12}
+{  QUEUESYS=$1
+   NCPU=$2
+   ADCIRCDIR=$3
+   ADVISDIR=$4
+   SCRIPTDIR=$5
+   INPUTDIR=$6
+   ENSTORM=$7
+   NOTIFYSER=$8
+   ENV=$9
+   ACCOUNT=${10}
+   PPN=${11}
+   NUMWRITERS=${12}
+   HOTSTARTCOMP=${13}
+   WALLTIME=${14}
 #
-    WRITEROPTION=""
-    if [[ $NUMWRITERS = "0" ]]; then
-       WRITEROPTION=""
-    else
-       WRITEROPTION="-W $NUMWRITERS"
-    fi
-    if [ $QUEUESYS = LSF ]; then
-        bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/padcirc $WRITEROPTION >> ${SYSLOG}
-    elif [ $QUEUESYS = LoadLeveler ]; then
-        perl $SCRIPTDIR/loadleveler.pl --ncpu $NCPU --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --numwriters $NUMWRITERS > $ADVISDIR/$ENSTORM/padcirc.ll 2>> ${SYSLOG}
-        llsubmit $ADVISDIR/$ENSTORM/padcirc.ll >> ${SYSLOG} 2>&1
-    elif [ $QUEUESYS = PBS ]; then
-        QSCRIPTOPTIONS="--ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS"
-        if [[ $PPN -ne 0 ]]; then
-           QSCRIPTOPTIONS="$QSCRIPTOPTIONS --ppn $PPN"
-        fi
-        logMessage "QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
-        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.pbs 2>> ${SYSLOG}
-        logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.pbs"
-        qsub $ADVISDIR/$ENSTORM/padcirc.pbs >> ${SYSLOG} 2>&1
-    elif [ $QUEUESYS = mpiexec ]; then
-        logMessage "Submitting job via $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc $WRITEROPTION >> ${SYSLOG} 2>&1"
-        $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc $WRITEROPTION >> ${SYSLOG} 2>&1 
-    elif [ $QUEUESYS = SGE ]; then
-        QSCRIPTOPTIONS="--ncpu $NCPU --ncpudivisor $NCPUDIVISOR --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS"
-        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.sge 2>> ${SYSLOG}
-        logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.sge"
-        qsub $ADVISDIR/$ENSTORM/padcirc.sge >> ${SYSLOG} 2>&1
-        # if qsub succeeded, monitor the job, otherwise an error is indicated
-        if [[ $? = 1 ]]; then
-          date > $ADVISDIR/$ENSTORM/run.error
-          echo "qsub rejected the padcirc job." >> $ADVISDIR/$ENSTORM/run.error
-        fi
-    else 
-        fatal "Queueing system $QUEUESYS unrecognized."
-    fi
+   CLOPTION=""     # command line options
+   LOCALHOTSTART=""
+   if [[ $NUMWRITERS != "0" ]]; then
+      CLOPTION="-W $NUMWRITERS"
+   fi
+   if [[ $HOTSTARTCOMP = subdomain ]]; then
+      CLOPTION="$CLOPTION -S"
+      LOCALHOTSTART="--localhotstart"
+   fi
+   if [ $QUEUESYS = LSF ]; then
+      bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/padcirc $CLOPTION >> ${SYSLOG}
+   elif [ $QUEUESYS = LoadLeveler ]; then
+      perl $SCRIPTDIR/loadleveler.pl --ncpu $NCPU --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --numwriters $NUMWRITERS $LOCALHOTSTART > $ADVISDIR/$ENSTORM/padcirc.ll 2>> ${SYSLOG}
+      llsubmit $ADVISDIR/$ENSTORM/padcirc.ll >> ${SYSLOG} 2>&1
+   elif [ $QUEUESYS = PBS ]; then
+      QSCRIPTOPTIONS="--ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
+      if [[ $PPN -ne 0 ]]; then
+         QSCRIPTOPTIONS="$QSCRIPTOPTIONS --ppn $PPN"
+      fi
+      logMessage "QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
+      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.pbs 2>> ${SYSLOG}
+      logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.pbs"
+      qsub $ADVISDIR/$ENSTORM/padcirc.pbs >> ${SYSLOG} 2>&1
+   elif [ $QUEUESYS = mpiexec ]; then
+      logMessage "Submitting job via $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc $WRITEROPTION $LOCALHOTSTART >> ${SYSLOG} 2>&1"
+      $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc $WRITEROPTION $LOCALHOTSTART >> ${SYSLOG} 2>&1 
+   elif [ $QUEUESYS = SGE ]; then
+      QSCRIPTOPTIONS="--ncpu $NCPU --ncpudivisor $NCPUDIVISOR --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
+      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.sge 2>> ${SYSLOG}
+      logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.sge"
+      qsub $ADVISDIR/$ENSTORM/padcirc.sge >> ${SYSLOG} 2>&1
+      # if qsub failed, resubmit the job 5 times before giving up
+      if [[ $? = 1 ]]; then
+         rangerResubmit $ADVISDIR $ENSTORM padcirc.sge $SYSLOG
+      fi 
+   else 
+      fatal "Queueing system $QUEUESYS unrecognized."
+   fi
+}
+#
+# since valid jobs are sometimes rejected on ranger, this function will
+# attempt to resubmit rejected jobs 5 times before giving up
+rangerResubmit()
+{
+   ADVISDIR=$1
+   ENSTORM=$2
+   SCRIPTNAME=$3
+   SYSLOG=$4
+#
+   num_retries=0
+   success=0
+   while [[ $num_retries -le 5 ]]; do
+      logMessage "SGE rejected the job; will resubmit after 60 seconds."
+      sleep 60
+      qsub $ADVISDIR/$ENSTORM/$SCRIPTNAME >> ${SYSLOG} 2>&1
+      num_retries=`expr $num_retries + 1`
+      logMessage "The number of retries is $num_retries."
+      if [[ $? = 0 ]]; then
+         success=1
+         logMessage "The job was successfully resubmitted."
+         break
+      fi
+   done
+   if [[ $success = 0 ]]; then     
+      date > $ADVISDIR/$ENSTORM/run.error
+      msg="The job '$ADVISDIR/$ENSTORM/$SCRIPTNAME' was not accepted by SGE after it was resubmitted $num_retries times."
+      warning $msg
+      echo $msg >> $ADVISDIR/$ENSTORM/run.error
+   fi 
 }
 #
 # checks to see if a job has failed, and if so, copies it off to 
@@ -622,7 +711,7 @@ if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then
 fi
 }
 #
-# Log file forced to be in /tmp/$$.asgs
+# Log file will be in the directory where the asgs was executed
 logMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
   MSG="[${DATETIME}] INFO: $@"
@@ -852,14 +941,20 @@ BACKGROUNDMET=on
 TIDEFAC=off
 TROPICALCYCLONE=off
 WAVES=off
+HINDCASTTEMPLATE=null
 OUTPUTOPTIONS=
 ARCHIVEBASE=/dev/null
 ARCHIVEDIR=null
 FORECASTCYCLE="00,06,12,18"
 TRIGGER="rss"
 STARTADVISORYNUM=null
-FORECASTLENGTH=
+FORECASTLENGTH=84
 ALTNAMDIR=
+HOTSTARTCOMP=fulldomain
+HINDCASTWALLTIME="10:00:00"
+ADCPREPWALLTIME="00:30:00"
+NOWCASTWALLTIME="02:00:00"
+FORECASTWALLTIME="05:00:00"
 UMASK=002
 GROUP=""
 DRY=1           
@@ -955,6 +1050,9 @@ fi
 #
 checkFileExistence $INPUTDIR "ADCIRC mesh file" $GRIDFILE
 checkFileExistence $INPUTDIR "ADCIRC template fort.15 file" $CONTROLTEMPLATE
+if [[ $HINDCASTTEMPLATE  != null ]]; then
+   checkFileExistence $INPUTDIR "ADCIRC hindcast template fort.15 file" $HINDCASTTEMPLATE
+fi
 # fort.13 (nodal attributes) file is optional
 if [[ ! -z $NAFILE ]]; then
    checkFileExistence $INPUTDIR "ADCIRC nodal attributes (fort.13) file" $NAFILE
@@ -1014,6 +1112,11 @@ ADVISORY=$STARTADVISORYNUM
 ###############################
 #   BODY OF ASGS STARTS HERE    
 ###############################
+if [[ $BACKGROUNDMET = on && $TROPICALCYCLONE = on ]]; then
+   NWS=29
+   # not ready for this yet
+   fatal "Background meteorology and tropical cyclone forcing are both turned on in ${CONFIG} but simultaneous use of these two forcing types is not yet supported in ASGS."
+fi
 #
 # If we are coldstarting, perform a hindcast ... this is necessary 
 # to ramp up forcing and allow transient signals to die away before 
@@ -1022,84 +1125,56 @@ ADVISDIR=   # determined below
 HSTIME=     # determined below
 #
 #       H I N D C A S T
+#
 if [[ $START = coldstart ]]; then
    logMessage "Starting hindcast."
    ENSTORM=hindcast
-   #ADVISDIR=$RUNDIR/$ENSTORM   
+   ADVISDIR=$RUNDIR/initialize
    mkdir -p $ADVISDIR 2>> ${SYSLOG} 
+   STORMDIR=$ADVISDIR/$ENSTORM
+   mkdir -p $STORMDIR 2>> ${SYSLOG} 
    HSTIME=0
-   #
-   # perform any initialization of output that must be done once for each 
-   # advisory, before the actual runs begin
-   #logMessage "Initializing post processing for advisory $ADVISORY."
-   #${OUTPUTDIR}/${INITPOST} $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $SSHKEY $CONFIG $SYSLOG >> ${SYSLOG} 2>&1 
-   #if [[ $EMAILNOTIFY = YES ]]; then
-   #   post_init_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME "${POST_INIT_LIST}"  >> ${SYSLOG} 2>&1
-   #fi
    if [[ $TIDEFAC = on ]]; then 
       # we would run tide_fac.f etc to get tidal info on correct date
       fatal "Tidal forcing is turned on in ${CONFIG} but is not yet supported in the ASGS."
    fi
+   # We assume that the hindcast is only used to spin up tides or 
+   # initialize rivers ... therefore no met forcing.
+   NWS=0
+   OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
+   logMessage "Coldstarting Storm '$STORM' in '$YEAR'."
+   logMessage "Coldstart time is '$CSDATE'."
+   logMessage "The initial hindcast duration is '$HINDCASTLENGTH' days."
+   logMessage "The initial hindcast input will be based on the file '$HINDCASTTEMPLATE'."
+   # prepare hindcast control (fort.15) file 
+   CONTROLOPTIONS="--name $ENSTORM --advisdir $ADVISDIR --cst $CSDATE --endtime $HINDCASTLENGTH --dt $TIMESTEPSIZE --nws $NWS --advisorynum 0 --controltemplate ${INPUTDIR}/${HINDCASTTEMPLATE} $OUTPUTOPTIONS"
+   logMessage "Constructing control file with the following options: $CONTROLOPTIONS."
+   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
+   # don't have a meterological forcing (fort.22) file in this case
+   # preprocess
+   logMessage "Starting $ENSTORM preprocessing."
+   logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $NAFILE"
+   prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $NAFILE
+   # check to see that adcprep did not conspicuously fail
+   handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
+   if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
+   # then submit the job
+   logMessage "Submitting ADCIRC $ENSTORM job."
+   cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+   logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME"
+   submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME
+   # check once per minute until all jobs have finished
+   monitorJobs $QUEUESYS $ENSTORM $HINDCASTWALLTIME
+   # check to see that the nowcast job did not conspicuously fail
+   handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
+   if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
+   consoleMesssage "Job(s) complete."
+   # nowcast finished, get on with it
+   logMessage "$ENSTORM run finished."
+   cd $ADVISDIR 2>> ${SYSLOG}
+   OLDADVISDIR=$ADVISDIR
+   START=hotstart
    #
-   # HINDCAST: Cyclone forcing only
-   if [[ $BACKGROUNDMET = off && $TROPICALCYCLONE = on ]]; then
-      # FIXME: jgf20100505: this is temporarily broken
-      NWS=19
-      if [[ $WAVES = on ]]; then
-         NWS=`expr $(( 300 + $NWS ))` 
-      fi
-      HSTIME=0
-      OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
-      logMessage "Coldstarting Storm $STORM in $YEAR"
-      logMessage "Coldstart time is '$CSDATE'"
-      # prepare hindcast met (fort.22) and control (fort.15) files 
-      METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name nowcast --nws $NWS " 
-      CONTROLOPTIONS=" --metfile $ADVISDIR/nowcast/fort.22 --name nowcast --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE}"
-      if [[ -z $CSDATE ]]; then
-         logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
-         CSDATE=`${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS 2>> ${SYSLOG}`
-      fi
-   fi 
-   if [[ $BACKGROUNDMET = on && $TROPICALCYCLONE = on ]]; then
-      NWS=29
-      # not ready for this yet
-      fatal "Background meteorology and tropical cyclone forcing are both turned on in ${CONFIG} but simultaneous use of these two forcing types is not yet supported in ASGS."
-   fi
-   #
-   # HINDCAST: Background met forcing only
-   if [[ $BACKGROUNDMET = on && $TROPICALCYCLONE = off ]]; then
-      NWS=12
-      if [[ $WAVES = on ]]; then
-         NWS=312
-      fi
-      logMessage "NWS is $NWS."
-      logMessage "Downloading background meteorology."
-      logMessage "downloadBackgroundMet $ADVISDIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR"
-      downloadBackgroundMet $ADVISDIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR
-      # prepare hindcast met (fort.22) and control (fort.15) files 
-      CONTROLOPTIONS=" --metfile $ADVISDIR/fort.221 --name hindcast --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE"
-      OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
-      logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
-      logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
-      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
-      # preprocess
-      logMessage $ADVISDIR "Starting hindcast preprocessing."
-      prep $RUNDIR $INPUTDIR hindcast $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $NAFILE
-      # then submit the job
-      logMessage "Submitting ADCIRC hindcast job."
-      cd $ADVISDIR 2>> ${SYSLOG}
-      logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $RUNDIR $SCRIPTDIR $INPUTDIR hindcast $NOTIFYUSER $ENV $ACCOUNT $PPN"
-      submitJob $QUEUESYS $NCPU $ADCIRCDIR $RUNDIR $SCRIPTDIR $INPUTDIR hindcast $NOTIFYUSER $ENV $ACCOUNT $PPN
-      # check once per minute until all jobs have finished
-      monitorJobs $QUEUESYS hindcast
-      consoleMesssage "Job(s) complete."
-      # hindcast finished, get on with it
-      logMessage "hindcast run finished"
-      consoleMessage "hindcast run finished"
-      cd $ADVISDIR 2>> ${SYSLOG}
-   fi 
-   #
-   # TODO: Handle hindcast for other met types
 else 
    # start from   H O T S T A R T   file  
    logMessage "Starting nowcast from the hotstart file '$LASTSUBDIR/fort.67'."
@@ -1108,32 +1183,47 @@ fi
 #
 # B E G I N   N O W C A S T / F O R E C A S T   L O O P
 while [ 1 -eq 1 ]; do
-    . ${CONFIG}
-    cd $RUNDIR 2>> ${SYSLOG}
+   . ${CONFIG}
+   if [[ -d $OLDADVISDIR/nowcast ]]; then
+       cd $OLDADVISDIR/nowcast/PE0000 2>> ${SYSLOG}
+   fi
+   if [[ -d $OLDADVISDIR/hindcast ]]; then
+       cd $OLDADVISDIR/hindcast/PE0000 2>> ${SYSLOG}
+   fi
+   checkHotstart       
+   HSTIME=`$ADCIRCDIR/hstime` 2>> ${SYSLOG}
+   logMessage "The time in the hotstart file is '$HSTIME' seconds."
+   cd $RUNDIR 2>> ${SYSLOG}
     #
     # N O W C A S T
     ENSTORM=nowcast
     logMessage "Checking for new meteorological data every 60 seconds ..."
     # TROPICAL CYCLONE ONLY
-    if [[ $TROPICALCYCLONE = on && $BACKGROUNDMET = off ]]; then
+    if [[ $TROPICALCYCLONE = on ]]; then
+       NWS=19
+       if [[ $WAVES = on ]]; then
+          NWS=319
+       fi
        # download wind data from ftp site every 60 seconds to see if
        # there is a new advisory
        downloadCycloneData $STORM $YEAR $RUNDIR $SCRIPTDIR $OLDADVISDIR $TRIGGER $ADVISORY $FTPSITE $RSSSITE $FDIR $HDIR
        ADVISORY=`cat advisoryNumber`
        ADVISDIR=$RUNDIR/${ADVISORY}
+       if [ ! -d $ADVISDIR ]; then 
+           mkdir $ADVISDIR 2>> ${SYSLOG}
+       fi
+       if [ ! -d $ADVISDIR/$ENSTORM ]; then
+           mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+       fi
        logMessage "$START Storm $STORM advisory $ADVISORY in $YEAR"
        consoleMessage "$START Storm $STORM advisory $ADVISORY in $YEAR"
-       cd $OLDADVISDIR/nowcast/PE0000 2>> ${SYSLOG}
-       checkHotstart       
-       HSTIME=`$ADCIRCDIR/hstime` 2>> ${SYSLOG}
-       logMessage "The time in the hotstart file is '$HSTIME' seconds."
-       cd $ADVISDIR/nowcast 2>> ${SYSLOG}
        # move raw ATCF files into advisory directory
        mv *.fst *.dat $ADVISDIR 2>> ${SYSLOG}
        #
        # prepare nowcast met (fort.22) and control (fort.15) files 
-       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name nowcast --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE" 
-       CONTROLOPTIONS=" --metfile $ADVISDIR/nowcast/fort.22 --name nowcast --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE" 
+       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE" 
+       CONTROLOPTIONS=" --metfile $ADVISDIR/$ENSTORM/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE $OUTPUTOPTIONS" 
        logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
        ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1   
        # create a new file that contains metadata
@@ -1142,31 +1232,12 @@ while [ 1 -eq 1 ]; do
           mv fort.22 fort.22.orig
           cp NWS_19_fort.22 fort.22 
        fi
-       createMetaDataLink $STORM $YEAR $ADVISORY nowcast $ADVISDIR $HOSTNAME $HSTIME $CSDATE
-       logMessage "Generating ADCIRC Control File (fort.15) for nowcast with the following options: $CONTROLOPTIONS."
+       createMetaDataLink $STORM $YEAR $ADVISORY $ENSTORM $ADVISDIR $HOSTNAME $HSTIME $CSDATE
+       logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
        #
-       if [ ! -d $ADVISDIR ]; then 
-           mkdir $ADVISDIR 2>> ${SYSLOG}
-       fi
-       if [ ! -d $ADVISDIR/$ENSTORM ]; then
-           mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-       fi
     fi
-    # BACKGROUND METEOROLOGY ONLY
-    if [[ $TROPICALCYCLONE = off && $BACKGROUNDMET = on ]]; then
-       # copy the hotstart file to the run directory
-       if [[ $OLDADVISDIR = $LASTSUBDIR ]]; then 
-          # this will be true if we are just starting up from a pre-existing
-          # spinup run 
-          logMessage "Copying $LASTSUBDIR/PE0000/fort.67 to ${RUNDIR}."
-          cp $LASTSUBDIR/PE0000/fort.67 $RUNDIR 2>> ${SYSLOG}
-       else 
-          logMessage "Copying $OLDADVISDIR/nowcast/PE0000/fort.67 to ${RUNDIR}." 
-          cp $OLDADVISDIR/nowcast/PE0000/fort.67 $RUNDIR 2>> ${SYSLOG}  
-       fi    
-       cd $RUNDIR 2>> ${SYSLOG}
-       # check the time in the hotstart file 
-       HSTIME=`$ADCIRCDIR/hstime` 2>> ${SYSLOG}
+    # BACKGROUND METEOROLOGY 
+    if [[ $BACKGROUNDMET = on ]]; then
        NWS=-12
        if [[ $WAVES = on ]]; then
           NWS=-312
@@ -1202,21 +1273,21 @@ while [ 1 -eq 1 ]; do
     consoleMessage "Starting nowcast for cycle '$ADVISORY'."
     # preprocess
     logMessage "Starting nowcast preprocessing."
-    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $NAFILE"
-    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $NAFILE
+    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $NAFILE"
+    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $NAFILE
     # check to see that adcprep did not conspicuously fail
-    handleFailedJob $RUNDIR $ADVISDIR nowcast $SYSLOG
-    if [[ ! -d $ADVISDIR/nowcast ]]; then continue; fi
+    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
+    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
     # then submit the job
-    logMessage "Submitting ADCIRC nowcast job."
-    cd $ADVISDIR/nowcast 2>> ${SYSLOG}
-    logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR nowcast $NOTIFYUSER $ENV $ACCOUNT $PPN"
-    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR nowcast $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS
+    logMessage "Submitting ADCIRC $ENSTORM job."
+    cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+    logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME"
+    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME
     # check once per minute until all jobs have finished
-    monitorJobs $QUEUESYS nowcast
+    monitorJobs $QUEUESYS $ENSTORM $HINDCASTWALLTIME
     # check to see that the nowcast job did not conspicuously fail
-    handleFailedJob $RUNDIR $ADVISDIR nowcast $SYSLOG
-    if [[ ! -d $ADVISDIR/nowcast ]]; then continue; fi
+    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
+    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
     consoleMesssage "Job(s) complete."
     # nowcast finished, get on with it
     logMessage "Nowcast run finished."
@@ -1239,10 +1310,11 @@ while [ 1 -eq 1 ]; do
           mkdir $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
        fi
        cd $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
+       RUNFORECAST=yes
        # TROPICAL CYCLONE ONLY
-       if [[ $TROPICALCYCLONE = on && $BACKGROUNDMET = off ]]; then
+       if [[ $TROPICALCYCLONE = on ]]; then
           METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $CSDATE --hotstartseconds $HSTIME --nws $NWS --name $ENSTORM"
-          CONTROLOPTIONS="--cst $CSDATE --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile $ADVISDIR/${ENSTORM}/fort.22 --name $ENSTORM"
+          CONTROLOPTIONS="--cst $CSDATE --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile $ADVISDIR/${ENSTORM}/fort.22 --name $ENSTORM $OUTPUTOPTIONS"
           logMessage "Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
           ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
           # create a new file that contains metadata
@@ -1254,7 +1326,7 @@ while [ 1 -eq 1 ]; do
           createMetaDataLink $STORM $YEAR $ADVISORY $ENSTORM $ADVISDIR $HOSTNAME $HSTIME $CSDATE
        fi
        # BACKGROUND METEOROLOGY ONLY
-       if [[ $TROPICALCYCLONE = off && $BACKGROUNDMET = on ]]; then
+       if [[ $BACKGROUNDMET = on ]]; then
           logMessage "$START $ENSTORM cycle $ADVISORY."
           consoleMessage "$START $ENSTORM cycle $ADVISORY."
           # download and convert met files to OWI format
@@ -1271,27 +1343,24 @@ while [ 1 -eq 1 ]; do
           NAM222=`ls NAM*.222`;
           ln -s $NAM221 fort.221 2>> ${SYSLOG}
           ln -s $NAM222 fort.222 2>> ${SYSLOG}
+          if [[ ! -e $ADVISDIR/$ENSTORM/runme ]]; then
+             RUNFORECAST=no
+          fi
        fi
        logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
        perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
        if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
-       RUNFORECAST=yes
-       if [[ $BACKGROUNDMET = on ]]; then
-          if [[ ! -e $ADVISDIR/$ENSTORM/runme ]]; then
-             RUNFORECAST=no
-          fi
-       fi 
        if [[ $RUNFORECAST = yes ]]; then
           # preprocess
           logMessage "Starting $ENSTORM preprocessing."
-          prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $NAFILE
+          prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $NAFILE
           handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
           # then submit the job
           logMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
           consoleMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
-          submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS
+          submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME
           # check once per minute until job has completed
-          monitorJobs $QUEUESYS $ENSTORM
+          monitorJobs $QUEUESYS $ENSTORM $FORECASTWALLTIME
           handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
           if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
           consoleMesssage "Job(s) complete."

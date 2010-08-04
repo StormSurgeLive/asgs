@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Copyright(C) 2006, 2007, 2008, 2009 Jason Fleming
+# Copyright(C) 2006, 2007, 2008, 2009, 2010 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -35,6 +35,8 @@ my $submitstring; # string to use to submit a job to the parallel queue
 my $walltime; # estimated maximum wall clock time  
 my $qscript;  # the template file to use for the queue submission script
 my $syslog;   # the log file that the ASGS uses 
+my $localhotstart; # present if subdomain hotstart files should be written
+my $numwriters; # number of writer processors, if any
 
 # initialize to the log file that adcirc uses, just in case
 $syslog="adcirc.log";
@@ -50,10 +52,21 @@ GetOptions("ncpu=i" => \$ncpu,
            "walltime=s" => \$walltime,
            "qscript=s" => \$qscript,
            "syslog=s" => \$syslog,
+           "localhotstart" => \$localhotstart,
+           "numwriters=s" => \$numwriters,
            "submitstring=s" => \$submitstring);
-
+#
 open(TEMPLATE,"<$qscript") || die "ERROR: Can't open $qscript file for reading as a template for the queue submission script.";
-
+#
+# add command line option if local hot start files should be written
+my $cloption = "";
+if ( defined $localhotstart ) {
+   $cloption = "-S";
+}
+if ( defined $numwriters ) {
+   $cloption = $cloption . " -W " . $numwriters; 
+}
+#
 while(<TEMPLATE>) {
     # fill in the number of compute nodes to run on (assuming 2 CPUs per node)
     s/%ncpu%/$ncpu/;
@@ -75,6 +88,8 @@ while(<TEMPLATE>) {
     s/%submitstring%/$submitstring/;
     # file to direct stdout and stderr to from the adcirc process
     s/%syslog%/$syslog/;
+    # add command line options
+    s/%cloption%/$cloption/;
     print $_;
 }
 close(TEMPLATE);

@@ -10,7 +10,7 @@
 #PBS -l ncpus=0
 
 # Specify the wall clock time
-#PBS -l walltime=00:50:00
+#PBS -l walltime=%walltime%
 
 # Merge stderr to stdout (optional, otherwise they're in separate files)
 #PBS -j oe

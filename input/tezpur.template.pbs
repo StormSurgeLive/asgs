@@ -32,7 +32,7 @@ echo "Test job starting at `date`"
     echo "[${DATETIME}] : %advisdir%  %enstorm%" >> run.start
     echo "[${DATETIME}] : padcirc"               >> run.start
 
-mpirun -machinefile $PBS_NODEFILE -np %ncpu% %adcircdir%/padcirc >> %syslog%
+mpirun -machinefile $PBS_NODEFILE -np %ncpu% %adcircdir%/padcirc %cloption% >> %syslog%
 
     ERROVALUE=$?
     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`

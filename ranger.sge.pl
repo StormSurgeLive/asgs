@@ -18,6 +18,7 @@ my $notifyuser;  # email address of the user to be notified in case of error
 my $walltime;    # wallclocktime
 my $submitstring;# string to use to submit a job to the parallel queue
 my $syslog;      # location and name of system log file
+my $localhotstart; # will be present if subdomain hotstart files should be written
 
 GetOptions("ncpu=i" => \$ncpu,
            "numwriters=i" => \$numwriters,
@@ -31,6 +32,7 @@ GetOptions("ncpu=i" => \$ncpu,
            "notifyuser=s" => \$notifyuser,
            "walltime=s" => \$walltime,
            "submitstring=s" => \$submitstring,
+           "localhotstart" => \$localhotstart,
            "syslog=s" => \$syslog);
 
 # If dedicated writer processors will be used, we need to specify the
@@ -50,15 +52,20 @@ if ( $ncpudivisor == 1 ) {
      $ncpudivisor=$ncpudivisor."way";
    $pbsncpu = $ncpudivisor." ".$ncpu;
 }
-
-# set writer option according to user specification
-my $writeroption = "";
+#
+# set command line options according to user specification
+my $cloption = "";
 if ( $numwriters != 0 ) {
-   $writeroption = "-W ".$numwriters;
+   $cloption = "-W ".$numwriters;
 }
-
+#
+# set command line option for subdomain files to be written if necessary
+if ( defined $localhotstart ) {
+   $cloption .= " -S";
+}
+#
 open(TEMPLATE,"$qscript") || die "ERROR: Can't open ranger.template.sge file.";
-
+#
 while(<TEMPLATE>) {
     # fill in the number of compute nodes to run on 
     s/%pbsncpu%/$pbsncpu/g;
@@ -78,8 +85,8 @@ while(<TEMPLATE>) {
     s/%notifyuser%/$notifyuser/g;  
     # string to use to submit a job to the parallel queue
     s/%submitstring%/$submitstring/g;
-    # add writer option if user had specified dedicated writer processors
-    s/%writeroption%/$writeroption/g; 
+    # add command line options
+    s/%cloption%/$cloption/g; 
     print $_;
 }
 close(TEMPLATE);

@@ -71,7 +71,7 @@ cp %adcircdir%/padcirc ./padcirc.mvapich1
     echo "[${DATETIME}] : %advisdir%  %enstorm%" >> run.start
     echo "[${DATETIME}] : padcirc"               >> run.start
 
-  ibrun  ./padcirc.mvapich1 %writeroption%
+  ibrun  ./padcirc.mvapich1 %cloption%
 #  ibrun tacc_infinity ./padcirc.mvapich1
 #  %submitstring% ./padcirc.mvapich1
     ERROVALUE=$?
