@@ -1061,6 +1061,9 @@ if [[ $HOTORCOLD = hotstart ]]; then
    checkFileExistence "" "ADCIRC hotstart (fort.67 or fort.68) file " $LASTSUBDIR/PE0000/fort.67
 fi 
 checkFileExistence $INPUTDIR "preprocessed ADCIRC input archive" $PREPPEDARCHIVE
+if [[ $HOTORCOLD = coldstart ]]; then
+   checkFileExistence $INPUTDIR "preprocessed ADCIRC input archive for hindcast" $HINDCASTARCHIVE
+fi
 #
 checkFileExistence $OUTPUTDIR "postprocessing initialization script" $INITPOST
 checkFileExistence $OUTPUTDIR "postprocessing script" $POSTPROCESS
@@ -1218,7 +1221,7 @@ while [ 1 -eq 1 ]; do
        logMessage "$START Storm $STORM advisory $ADVISORY in $YEAR"
        consoleMessage "$START Storm $STORM advisory $ADVISORY in $YEAR"
        # move raw ATCF files into advisory directory
-       mv *.fst *.dat $ADVISDIR 2>> ${SYSLOG}
+       mv *.fst *.dat *.xml *.html $ADVISDIR 2>> ${SYSLOG}
        #
        # prepare nowcast met (fort.22) and control (fort.15) files 
        cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
