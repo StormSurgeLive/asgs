@@ -1187,6 +1187,9 @@ fi
 # B E G I N   N O W C A S T / F O R E C A S T   L O O P
 while [ 1 -eq 1 ]; do
    . ${CONFIG}
+   if [[ -d $LASTSUBDIR/PE0000 ]]; then  # kickoff from subdomain hotstart files
+       cd $LASTSUBDIR/PE0000 2>> ${SYSLOG}
+   fi
    if [[ -d $OLDADVISDIR/nowcast ]]; then
        cd $OLDADVISDIR/nowcast/PE0000 2>> ${SYSLOG}
    fi

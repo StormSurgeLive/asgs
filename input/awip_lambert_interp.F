@@ -327,6 +327,8 @@ C...Read in AWIP grid met file
          DO I=1,NXP
             READ(99,*,END=10) 
      &         Ueta(I,J),Veta(I,J),(VAReta(I,J,K),K=1,NCOL-2)
+C               write(16,*) "DEBUG: Ueta, Veta, VAReta(",I,",",J,")=",
+C     &            Ueta(I,J), Veta(I,J), VAReta(I,J,1)
          END DO
       END DO
  10   CONTINUE

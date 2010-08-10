@@ -450,8 +450,6 @@ sub addToFort22
 sub getGrib2
 {
         $fort22 = $outDir.$fort22;
-        # assume that there are no gaps in the data, i.e., no missing
-        # files
         my @grib2Files;
         if ( $namType eq "nowcast" ) { 
            # if these are nowcast files, we'll assume that the data are 
@@ -479,11 +477,11 @@ sub getGrib2
            $timeStep = 3.0; # in hours 
            @grib2Files = glob($dataDir."/*.grib2");
         }
-        # grab the start time (YYYYMMDDHH) from the inventory
-        # in the first file
+        # grab the start time (YYYYMMDDHH) of the grib2 files from the
+        # inventory in the first file
         `$scriptDir/wgrib2 $grib2Files[0] -match PRMSL` =~ m/d=(\d+)/;
         $startTime = $1;
-        #&stderrMessage("DEBUG","The start time is '$startTime'.");
+        &stderrMessage("DEBUG","The start time is '$startTime'.");
         $startTime =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
         my $sy = $1; # start year
         my $sm = $2; # start month
@@ -492,9 +490,15 @@ sub getGrib2
         my ($ey, $em, $ed, $eh, $emin, $es);# end year, mon, day, hour, min, sec
         my ($fy, $fm, $fd, $fh, $fmin, $fs);# forecast yr, mon, day, hr, mn, sec
         my $numGrib2Files = 0;
+        my $oldForecastHour = 0;
+        my $oldEndTime = $startTime; 
+        my @oldRawUVP;
+        my $dhrs = 0;
+        my ($oey, $oem, $oed, $oeh, $oemin, $oes); # old end time
+        my ($ney, $nem, $ned, $neh, $nemin, $nes); # new end time
         foreach my $file (@grib2Files) {
            $numGrib2Files++;
-           #&stderrMessage("DEBUG","Starting work on '$file'.");
+           &stderrMessage("DEBUG","Starting work on '$file'.");
            # grab the forecast hour from the filename itself
            $file =~ m/nam.t\d\dz.awip12(\d\d).tm00.grib2/;
            my $forecastHour = $1;
@@ -504,37 +508,112 @@ sub getGrib2
                  0, $forecastHour, 0, 0);
            # calculate and save the end time ... last one will represent
            # end of the OWI file
+           my $numInterp = 0;
+           my @factors; 
+           $factors[0] = 1.0;
            if ( $namType eq "nowcast" ) {
               `$scriptDir/wgrib2 $file -match PRMSL` =~ m/d=(\d+)/;
               $endTime = $1;
+              # check to see if there are any missing cycles ... if so, then
+              # we will linearly interpolate from the previous cycle to the 
+              # current one
+              #
+              # first, we compare the new end time and the old end time ...
+              # if they are farther apart than a single time step, we must
+              # interpolate the correct number of uvp data snaps in between
+              $oldEndTime =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;       
+              $oey = $1;
+              $oem = $2;
+              $oed = $3;
+              $oeh = $4;
+              $endTime =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;       
+              $ney = $1;
+              $nem = $2;
+              $ned = $3;
+              $neh = $4;
+              (my $ddays,$dhrs, my $dsec) = Date::Pcalc::Delta_DHMS($oey,$oem,$oed,$oeh,0,0,$ney,$nem,$ned,$neh,0,0);
+              $dhrs = $dhrs + $ddays * 24;
+              #&stderrMessage("DEBUG","The dhrs is $dhrs."); 
+              if ( $dhrs > $timeStep ) {
+                 &stderrMessage("WARNING","The time difference between the files is greater than $timeStep hours. The intervening data will be linearly interpolated.");
+                 $numInterp = $dhrs/$timeStep;
+                 &stderrMessage("DEBUG","There are $numInterp time increments to interpolate."); 
+                 # calculate interpolating factors
+                 for (my $i=1; $i<=$numInterp; $i++ ) {
+                    $factors[$i-1] = 1.0/$numInterp * $i; 
+                 }
+              } else {
+                 $numInterp = 0;
+                 $factors[0] = 1.0;
+              }
            } else {
               ($ey, $em, $ed, $eh, $emin, $es) =
                  Date::Pcalc::Add_Delta_DHMS($sy, $sm, $sd, $sh, 0, 0, 
                     0, $forecastHour, 0, 0);
               $endTime = sprintf("%4d%02d%02d%02d",$ey ,$em, $ed, $eh);
            } 
-           #&stderrMessage("DEBUG","The end time is '$endTime'."); 
+           &stderrMessage("DEBUG","The end time is '$endTime'."); 
            push(@OWItime,$endTime."00"); # add the minutes columns
            #
            # now grab the u,v,p data from the file, sending the
            # accompanying inventory info (that would normally go to 
            # stdout also) to /dev/null 
            #
-           my @rawUVP = `$scriptDir/wgrib2 $file -match "(UGRD:10|VGRD:10|PRMSL)" -inv /dev/null -text -`;
-           #               
-           # the nlon and nlat are the first line in the output 
-           my @nxny = split(" ",shift(@rawUVP)); 
+           # can't grab the U,V,P from the file all within one wgrib2 command
+           # since wgrib2 will output them in the order in which they are 
+           # found in the grib2 file ... PRMSL comes first in the grib2
+           # file, so it would be first in the array ... need it to be last
+           my @rawU = `$scriptDir/wgrib2 $file -match "UGRD:10" -inv /dev/null -text -`;
+           my @rawV = `$scriptDir/wgrib2 $file -match "VGRD:10" -inv /dev/null -text -`;
+           my @rawP = `$scriptDir/wgrib2 $file -match "PRMSL" -inv /dev/null -text -`;
+           #
+           # nlon and nlat are the first line in the output for each data set
+           my @nxny = split(" ",shift(@rawU));
+           shift(@rawV); # get rid of header line
+           shift(@rawP); # get rid of header line
            #&stderrMessage("INFO","nlon is $nxny[0] nlat is $nxny[1].");
            $recordLength = $nxny[0] * $nxny[1];
-           foreach my $val (@rawUVP[(0 .. ($recordLength-1))]) {
-              push(@ugrd,$val);
-           }
-           foreach my $val (@rawUVP[($recordLength .. (2*$recordLength-1))]) {
-              push(@vgrd,$val);
-           }
-           foreach my $val (@rawUVP[(2*$recordLength .. (3*$recordLength-1))]){
-              push(@atmp,$val);
-           }
+           my @rawUVP = (@rawU,@rawV,@rawP);
+           # interpolate if necessary
+           if ( $numInterp > 0 ) {
+              for ( my $i=1; $i<=$numInterp; $i++ ) {
+                 (my $iy, my $im, my $iday, my $ih, my $imin, my $isec) =
+                    Date::Pcalc::Add_Delta_DHMS($oey, $oem, $oed, $oeh, 0, 0, 
+                    0, $i*$timeStep, 0, 0);
+                 my $interpolatedTime = sprintf("%4d%02d%02d%02d",$iy ,$im, $iday, $ih);
+                 &stderrMessage("WARNING","Interpolating data at time $interpolatedTime in the date range ($oldEndTime, $endTime) with the interpolating factor $factors[$i-1].");
+                 my @interpUVP;
+                 # create output data ... this will be linearly interpolated in
+                 # time between two valid datasets
+                 for ( my $uvp_index=0; $uvp_index<($recordLength*3); $uvp_index++ ) {
+                    $interpUVP[$uvp_index] = ($rawUVP[$uvp_index] - $oldRawUVP[$uvp_index]) * $factors[$i-1] + $oldRawUVP[$uvp_index];
+                 }   
+                 foreach my $val (@interpUVP[(0 .. ($recordLength-1))]) {
+                    push(@ugrd,$val);
+                 }
+                 foreach my $val (@interpUVP[($recordLength .. (2*$recordLength-1))]) {
+                    push(@vgrd,$val);
+                 }
+                 foreach my $val (@interpUVP[(2*$recordLength .. (3*$recordLength-1))]){
+                    push(@atmp,$val);
+                 }
+              }
+           } else {
+              # there wasn't any data missing between the last file and
+              # the current one, so just push the data into the arrays
+              foreach my $val (@rawUVP[(0 .. ($recordLength-1))]) {
+                 push(@ugrd,$val);
+              }
+              foreach my $val (@rawUVP[($recordLength .. (2*$recordLength-1))]) {
+                 push(@vgrd,$val);
+              }
+              foreach my $val (@rawUVP[(2*$recordLength .. (3*$recordLength-1))]){
+                 push(@atmp,$val);
+              }
+           }              
+           $oldEndTime = $endTime;
+           $oldForecastHour = $forecastHour;
+           @oldRawUVP = @rawUVP;
         }
         $mainHeader="Oceanweather WIN/PRE Format                            $startTime     $endTime";
         push @OWI_wnd, $mainHeader;
