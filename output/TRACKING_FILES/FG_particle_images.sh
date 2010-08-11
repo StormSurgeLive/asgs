@@ -95,7 +95,14 @@
        qsub $PTDIR/parttrackfg.parallel.sge >> ${SYSLOG} 2>&1
 
    while [ ! -e ./run.fig.finish ]; do
-       sleep 60
+        if [ -e ./run.fig.error ]
+          then
+           echo "FigureGen onParticle Tracking Images finished with error"  >> $SYSLOG
+           echo "See log file *_FG.out in $PTDIR for more details "  >> $SYSLOG
+             exit
+          fi
+       
+      sleep 60
    done
       sleep 30
 

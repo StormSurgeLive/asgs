@@ -91,6 +91,13 @@
        qsub $ADVISDIR/parttrackfg.parallel.sge >> ${SYSLOG} 2>&1
 
      while [ ! -e ./run.fig.finish ]; do
+          if [ -e ./run.fig.error ]
+          then
+           echo "FigureGen on Elevation/Velocity Images finished with error"  >> $SYSLOG
+           echo "See log file *_FG.out in $ADVISDIR for more details "  >> $SYSLOG
+             exit
+          fi
+
        sleep 60
    done
       sleep 30
