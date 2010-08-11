@@ -108,6 +108,14 @@ if ( defined @altnamdirs ) {
    @altnamdirs = split(/,/,join(',',@altnamdirs));
 }
 #
+# Add directory where the ASGS is currently running to the list of 
+# alternate NAM directories so that it can pick up grib2 files that
+# have been downloaded during previous cycles in the same ASGS instance
+# and are needed for the current cycle but are no longer available
+# from the NAM ftp site and have not yet been copied to one of the alternate
+# NAM directories
+push(@altnamdirs,$rundir);
+#
 # determine date and hour corresponding to current ADCIRC time
 # first, extract the date/time components from the incoming string
 $csdate =~ /(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
