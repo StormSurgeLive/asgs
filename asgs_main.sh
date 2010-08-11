@@ -366,7 +366,6 @@ prepControlFile()
        qsub $ADVISDIR/$ENSTORM/adcprep.pbs >> ${SYSLOG} 2>&1
        monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol $WALLTIME
        logMessage "Finished adcprepping control file (fort.15)."
-       exit
     elif [[ $ENV = ranger ]]; then
        cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
        echo $NCPU    > prep.in1
@@ -413,7 +412,6 @@ prepHotstartFile()
          qsub $ADVISDIR/$ENSTORM/adcprep_hotstart.pbs >> ${SYSLOG} 2>&1
          monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart $WALLTIME
          logMessage "Finished adcprepping hotstart file (fort.68)."
-         exit
     elif [[ $ENV = ranger ]]; then
        cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
        echo $NCPU    > prep.in1
@@ -1075,7 +1073,8 @@ checkFileExistence ${PERL5LIB}/Date "perl module for date calculations" Pcalc.pm
 #
 #
 # pull in subroutines for email notifications
-if [[ $EMAILNOTIFY = YES ]]; then
+if [[ $EMAILNOTIFY = yes ]]; then
+   logMessage "Accessing functions for email notifications."
    # source notifications file
    . ${OUTPUTDIR}/${NOTIFY_SCRIPT}
 fi

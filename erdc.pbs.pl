@@ -36,7 +36,7 @@ my $walltime; # estimated maximum wall clock time
 my $qscript;  # the template file to use for the queue submission script
 my $syslog;   # the log file that the ASGS uses 
 my $localhotstart; # present if subdomain hotstart files should be written
-my $numwriters; # number of writer processors, if any
+my $numwriters=0; # number of writer processors, if any
 
 # initialize to the log file that adcirc uses, just in case
 $syslog="adcirc.log";
@@ -63,8 +63,9 @@ my $cloption = "";
 if ( defined $localhotstart ) {
    $cloption = "-S";
 }
-if ( defined $numwriters ) {
+if ( $numwriters != 0 ) {
    $cloption = $cloption . " -W " . $numwriters; 
+   $ncpu += $numwriters;
 }
 #
 while(<TEMPLATE>) {
