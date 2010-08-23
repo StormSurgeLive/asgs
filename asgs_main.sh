@@ -286,11 +286,13 @@ prep()
           FROMDIR=$ADVISDIR/nowcast
        fi
        # copy or link to fulldomain files
-       while [ $PE -lt $NCPU ]; do
-           PESTRING=`printf "$format" $PE`
-           ln -s $ADVISDIR/$ENSTORM/fort.22 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.22 2>> ${SYSLOG}
-           PE=`expr $PE + 1`
-       done
+       if [[ -e $ADVISDIR/ENSTORM/fort.22 ]]; then
+          while [[ $PE -lt $NCPU ]]; do
+             PESTRING=`printf "$format" $PE`
+             ln -s $ADVISDIR/$ENSTORM/fort.22 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.22 2>> ${SYSLOG}
+             PE=`expr $PE + 1`
+          done
+       fi
        if [[ $HOTSTARTCOMP = fulldomain ]]; then
           ln -s $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68
        else
