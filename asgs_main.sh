@@ -768,6 +768,8 @@ init_sapphire()
   PREPCONTROLSCRIPT=erdc.adcprep.template.pbs
   PREPHOTSTARTSCRIPT=erdc.adcprep.hotstart.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
+  ulimit -s unlimited 
+  ulimit -v 2097152   # needed for NAMtoOWI.pl to avoid Out of memory error 
 }
 
 init_jade()
