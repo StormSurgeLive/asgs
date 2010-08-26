@@ -18,11 +18,11 @@ rm -rf .gmt*
 
 
 #Set Target by  hard-wire.
-#TARGET="sapphire";
+TARGET="sapphire";
 #TARGET="topsail";
-TARGET="ranger";
+#TARGET="ranger";
 #TARGET="queenbee";
-TARGET="jade";
+#TARGET="jade";
 
 # Outputs diagnostic messages
 DEBUG=1
@@ -33,12 +33,9 @@ DEBUG=1
 case "$TARGET" in 
 # for Ranger
 	"ranger") 
-                echo "Target is Ranger."
 		GMTHOME=/share/home/01053/rweaver/GMT4.4.0			   # The GMT installation
-		#PPDIR=/share/home/01053/rweaver/ASGS/asgs_2009/output/POSTPROC_KMZGIS/RenciGETools-1.0/src
-                PPDIR=/share/home/00976/jgflemin/asgs/trunk/output/POSTPROC_KMZGIS/RenciGETools-1.0/src
-                #GRDFILES=/share/home/01053/rweaver/ASGS/asgs_2009/output/POSTPROC_KMZGIS/grids
-                GRDFILES=/share/home/00976/jgflemin/asgs/trunk/output/POSTPROC_KMZGIS/grids
+		PPDIR=/share/home/01053/rweaver/ASGS/asgs_2009/output/POSTPROC_KMZGIS/RenciGETools-1.0/src
+                GRDFILES=/share/home/01053/rweaver/ASGS/asgs_2009/output/POSTPROC_KMZGIS/grids
 		GS=/usr/bin/gs				   # The ghostscript binary (gs)
         	ImageMagick=/usr/bin			   # path to ImageMagick binaries
         	ZIP=/usr/bin/zip			   # path to zip
@@ -80,7 +77,7 @@ case "$TARGET" in
                 GRDFILES=~/asgs/trunk/output/POSTPROC_KMZGIS/grids
                 GS=/usr/bin/gs     # The ghostscript binary (gs)
                 # path to ImageMagick binaries
-                ImageMagick=/usr/local/usp/ImageMagick/bin
+                ImageMagick=/usr/local/usp/ImageMagick/6.5.2-10/bin
                 ZIP=/usr/bin/zip   # path to zip
                 ;;
 esac

@@ -69,9 +69,15 @@ unless ( is_member($plotType,@supported_files)) {
 # form label of y axis on plot based on command line arguments
 my $ylabel;       # full label for y axis
 my $vectorLabel;  # describes the vector quantity 
-my $labelUnits;  # units of the vector quantity
-my $ymin;         # min cutoff on the graph
-my $ymax;         # max cutoff on the graph
+my $labelUnits;   # units of the vector quantity
+#
+# we used to let gnuplot autorange the graphs, but this was confusing to 
+# end users: tiny, cm-scale variations in water levels looked like giant
+# oscillations b/c gnuplot autoscaled the graphs ... now we set a default
+# scale, and if the numbers exceed the range, we adjust so that we can 
+# see the actual range 
+my $default_ymin; # min cutoff on the graph
+my $default_ymax; # max cutoff on the graph
 my $titlePrefix;  # the first words in the title of the plot
 if ( $vectorOutput eq "magnitude" ) {
    $vectorLabel = "Speed ";
@@ -79,53 +85,55 @@ if ( $vectorOutput eq "magnitude" ) {
 } else {
    $vectorLabel = "Compass Direction ";
    $labelUnits = "(degrees)";
-   $ymin = 0.0;
-   $ymax = 360.0;
+   $default_ymin = 0.0;
+   $default_ymax = 360.0;
 }
 if ( $plotType eq "elevation" ) {
-   $titlePrefix = "Stage above " . $datum;
+#   $titlePrefix = "Stage above " . $datum;
+   $titlePrefix = "Stage ";
    if ( $units eq "english" ) {
       $labelUnits ="(ft)";
-      $ymin = "-3.0";
-      $ymax = "12.0";
+      $default_ymin = "-3.0";
+      $default_ymax = "12.0";
    } else { 
       $labelUnits = "(m)";
-      $ymin = "-1.0";
-      $ymax = "4.0";
+      $default_ymin = "-1.0";
+      $default_ymax = "4.0";
    }
 } elsif ( $plotType eq "velocity" ) {
    if ( $units eq "english" && $vectorOutput eq "magnitude" ) {
       $labelUnits = "(ft/s)";
-      $ymin = "0.0";
-      $ymax = "3.0";
+      $default_ymin = "0.0";
+      $default_ymax = "3.0";
    } elsif ( $units ne "english" && $vectorOutput eq "magnitude" ) { 
       $labelUnits = "(m/s)";
-      $ymin = "0.0";
-      $ymax = "1.0";
+      $default_ymin = "0.0";
+      $default_ymax = "1.0";
    }
    $titlePrefix = "Water Current " . $vectorLabel;
    # $ylabel = "Water Current " . $vectorLabel . $vectorUnits;
 } elsif ( $plotType eq "barometricpressure" ) {
-   $titlePrefix = "Barometric Pressure ";
+   $titlePrefix = "Atm.Press. ";
    $labelUnits = "(mb)"; # english units not available
-   $ymin = "920.0";
-   $ymax = "1013.0";
+   $default_ymin = "920.0";
+   $default_ymax = "1013.0";
 } elsif ( $plotType eq "windvelocity" ) {
    $titlePrefix = "Wind " . $vectorLabel;
    if ( $units eq "english" && $vectorOutput eq "magnitude" ) {
       $labelUnits = "(kts)";
-      $ymin = "0.0";
-      $ymax = "90.0";
+      $default_ymin = "0.0";
+      $default_ymax = "75.0";
    } elsif ( $units ne "english" && $vectorOutput eq "magnitude" ) { 
       $labelUnits = "(m/s) ";
-      $ymin = "0.0";
-      $ymax = "45.0";
+      $default_ymin = "0.0";
+      $default_ymax = "25.0";
    }
 }
 $ylabel = $titlePrefix . $labelUnits;
 #
-# Open transposed file to determine the number of columns and grab station
-# names
+# Open transposed file to determine the number of columns, grab station
+# names, and determine min and max for each station for adjusting ymin and
+# ymax
 unless (open(TRANSPOSE,"<$fileToPlot")) {
    stderrMessage("ERROR","Could not open $fileToPlot: $!.");
    exit(1);
@@ -136,10 +144,33 @@ my $startgraph = "not implemented";  # date on which the graph should start
 my $endforecast = "not implemented"; # date on which the graph should end (end of forecast)
 my @stanames;    # the names of the stations
 my $numCol;      # number of stations
+my @ymins;       # the minimum value at each station
+my @ymaxes;      # the maximum value at each station
+my @station_vals; # the value at each station at a given time
 while (<TRANSPOSE>) {
    if ( $. == 2 ) { # second line is a header with station names
       @stanames = ($_ =~ /(".*?"|\S+)/g);
       $numCol = @stanames;    
+   }
+   if ( ($. != 1) && ($. != 2) ) { 
+      @station_vals = split;
+      if ( $. == 3 ) {
+         # initialize the min and max arrays if this is the first set of values
+         for (my $i=3; $i<$numCol; $i++ ) {
+            $ymins[$i] = $station_vals[$i];
+            $ymaxes[$i] = $station_vals[$i];
+         }
+      } else {
+         # see if we have set a new ymin or a new ymax
+         for (my $i=3; $i<$numCol; $i++ ) {
+            if ( ($station_vals[$i] < $ymins[$i]) || ($ymins[$i] == -99999) ) {
+               $ymins[$i] = $station_vals[$i];
+            }
+            if ( $station_vals[$i] > $ymaxes[$i] ) {
+               $ymaxes[$i] = $station_vals[$i];
+            }
+         }
+      }
    }
 }
 #
@@ -170,14 +201,30 @@ for (my $i=3; $i<$numCol; $i++ ) {
    #
    my $col = $i + 1;
    #
+   # if station value exceeds ymax, then use the station max as the max on the
+   # plot; if station value is less than ymin (but not -99999) then use it as
+   # the min on the plot
+   my $myYmax;
+   my $myYmin;
+   $myYmax = $default_ymax;
+   $myYmin = $default_ymin;
+   if ( $ymaxes[$i] > $default_ymax ) {
+     $myYmax = $ymaxes[$i];
+     stderrMessage("INFO","Station $stanames[$i] has a maximum value of $myYmax, which is greater than $default_ymax, the normal maximum range for the plot $plottitle ... therefore the y-axis of this plot will be set to max out at $myYmax.");
+   } 
+   if ( ($ymins[$i] < $default_ymin) && ($ymins[$i] != -99999) ) {
+     $myYmin = $ymins[$i];
+     stderrMessage("INFO","Station $stanames[$i] has a minimum value of $myYmin, which is less than $default_ymin, the normal minimum range for the plot $plottitle ... therefore the y-axis of this plot will be set to bottom out at $myYmin.");
+   } 
+   #
    # Create gnuplotscript file 
    unless (open(GPSCRIPT,">$plotDir/$gpscript")) {
       stderrMessage("ERROR","Could not create $plotDir/$gpscript: $!.");
       exit(1);
    }
    while(<TEMPLATE>) {
-      s/%ymin%/$ymin/;
-      s/%ymax%/$ymax/;
+      s/%ymin%/$myYmin/;
+      s/%ymax%/$myYmax/;
       s/%ylabel%/$ylabel/;
       s/%startgraph%/$startgraph/;
       s/%endforecast%/$endforecast/;
