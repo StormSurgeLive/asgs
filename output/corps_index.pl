@@ -26,7 +26,7 @@ $^W++;
 use strict;
 use Getopt::Long;
 
-my $stormname;        # name of the storm from nhcClassName
+my $stormname;        # name of the storm
 my $advisory;         # the advisory number
 my $giskmzjpgarchive; # name of the tar file that holds the gis, kmz, jpg files
 my $plotsarchive;     # name of the file that holds the hydrograph and wind speed plots
@@ -35,7 +35,8 @@ my $templatefile;     # html template to be filled in with results
 GetOptions("advisory=s" => \$advisory,
            "templatefile=s" => \$templatefile,
            "giskmzjpgarchive=s" => \$giskmzjpgarchive,
-           "plotsarchive=s" => \$plotsarchive
+           "plotsarchive=s" => \$plotsarchive,
+           "stormname=s" => \$stormname
            );
 
 open(STORMNAMEFILE,"nhcClassName") || die "ERROR: corps_index.pl: Can't open 'nhcClassName' file for reading the NHC class and name of the storm.";

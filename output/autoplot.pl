@@ -92,11 +92,11 @@ if ( $plotType eq "elevation" ) {
 #   $titlePrefix = "Stage above " . $datum;
    $titlePrefix = "Stage ";
    if ( $units eq "english" ) {
-      $labelUnits ="(ft)";
+      $labelUnits ="(ft above " . $datum . ")";
       $default_ymin = "-3.0";
       $default_ymax = "12.0";
    } else { 
-      $labelUnits = "(m)";
+      $labelUnits = "(m above " . $datum . ")";
       $default_ymin = "-1.0";
       $default_ymax = "4.0";
    }

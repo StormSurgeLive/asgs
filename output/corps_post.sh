@@ -35,7 +35,9 @@ SSHKEY=${13}
 #
 # grab storm class and name from file
 if [[ $BACKGROUNDMET = on ]]; then
-   STORMNAME="NAM $ADVISORY $ENSTORM"
+   # the NAM cycle time is the last two digits of the "advisory"
+   namcyclehour=${ADVISORY:9:2}
+   STORMNAME="NAM ${namcyclehour}Z"
 fi
 if [[ $TROPICALCYCLONE = on ]]; then 
    STORMNAME=`cat nhcClassName` 
@@ -86,7 +88,7 @@ GISKMZJPG=`ls *KMZ_GIS.tar.gz`
 PLOTS=`ls *plots.tar.gz`
 #
 # now create the index.html file to go with the output
-perl ${OUTPUTDIR}/corps_index.pl --advisory $ADVISORY --templatefile ${OUTPUTDIR}/corps_index_template.html --giskmzjpgarchive $GISKMZJPG --plotsarchive $PLOTS > index.html
+perl ${OUTPUTDIR}/corps_index.pl --stormname $STORMNAME --advisory $ADVISORY --templatefile ${OUTPUTDIR}/corps_index_template.html --giskmzjpgarchive $GISKMZJPG --plotsarchive $PLOTS > index.html
 #
 # now copy plots and visualizations to the website
 ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "mkdir -p ${WEBPATH}/$HOSTNAME/$STORM$YEAR/advisory_${ADVISORY}"
