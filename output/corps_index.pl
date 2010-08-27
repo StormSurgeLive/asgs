@@ -39,12 +39,6 @@ GetOptions("advisory=s" => \$advisory,
            "stormname=s" => \$stormname
            );
 
-open(STORMNAMEFILE,"nhcClassName") || die "ERROR: corps_index.pl: Can't open 'nhcClassName' file for reading the NHC class and name of the storm.";
-
-$stormname = <STORMNAMEFILE>;
-chomp($stormname);
-close(STORMNAMEFILE);
-
 open(TEMPLATE,"<$templatefile") || die "ERROR: corps_index.pl: Can't open '$templatefile' file for reading as a template for the results display.";
 
 while(<TEMPLATE>) {

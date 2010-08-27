@@ -36,7 +36,7 @@ SSHKEY=${13}
 # grab storm class and name from file
 if [[ $BACKGROUNDMET = on ]]; then
    # the NAM cycle time is the last two digits of the "advisory"
-   namcyclehour=${ADVISORY:9:2}
+   namcyclehour=${ADVISORY:8:2}
    STORMNAME="NAM ${namcyclehour}Z"
 fi
 if [[ $TROPICALCYCLONE = on ]]; then 
@@ -90,9 +90,22 @@ PLOTS=`ls *plots.tar.gz`
 # now create the index.html file to go with the output
 perl ${OUTPUTDIR}/corps_index.pl --stormname $STORMNAME --advisory $ADVISORY --templatefile ${OUTPUTDIR}/corps_index_template.html --giskmzjpgarchive $GISKMZJPG --plotsarchive $PLOTS > index.html
 #
-# now copy plots and visualizations to the website
-ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "mkdir -p ${WEBPATH}/$HOSTNAME/$STORM$YEAR/advisory_${ADVISORY}"
-scp -i $SSHKEY index.html ${WEBUSER}@${WEBHOST}:${WEBPATH}/$HOSTNAME/$STORM$YEAR/advisory_${ADVISORY}
-scp -i $SSHKEY $GISKMZJPG ${WEBUSER}@${WEBHOST}:${WEBPATH}/$HOSTNAME/$STORM$YEAR/advisory_${ADVISORY}
-scp -i $SSHKEY $PLOTS ${WEBUSER}@${WEBHOST}:${WEBPATH}/$HOSTNAME/$STORM$YEAR/advisory_${ADVISORY}
-ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/$HOSTNAME/$STORM$YEAR/advisory_${ADVISORY}"
+# now copy plots and visualizations to the website, based on the forcing
+# (i.e., NAM or NHC tropical cyclone), machine on which they were run, the 
+# grid name, and the advisory 
+if [[ $BACKGROUNDMET = on ]]; then
+   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "mkdir -p ${WEBPATH}/NAM/$HOSTNAME/$ADVISORY"
+   scp -i $SSHKEY index.html ${WEBUSER}@${WEBHOST}:${WEBPATH}/NAM/$HOSTNAME/$ADVISORY
+   scp -i $SSHKEY $GISKMZJPG ${WEBUSER}@${WEBHOST}:${WEBPATH}/NAM/$HOSTNAME/$ADVISORY
+   scp -i $SSHKEY $PLOTS ${WEBUSER}@${WEBHOST}:${WEBPATH}/NAM/$HOSTNAME/$ADVISORY
+   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/NAM/$HOSTNAME/$ADVISORY"
+fi
+if [[ $TROPICALCYCLONE = on ]]; then 
+   STORMNAME=`cat nhcClassName` 
+   STORMNAME=${STORMNAME}_$ENSTORM
+   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "mkdir -p ${WEBPATH}/$STORMNAME/$HOSTNAME/advisory_${ADVISORY}"
+   scp -i $SSHKEY index.html ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME/$HOSTNAME/advisory_${ADVISORY}
+   scp -i $SSHKEY $GISKMZJPG ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME/$HOSTNAME/advisory_${ADVISORY}
+   scp -i $SSHKEY $PLOTS ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME/$HOSTNAME/advisory_${ADVISORY}
+   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/$STORMNAME/$HOSTNAME/advisory_${ADVISORY}"
+fi
