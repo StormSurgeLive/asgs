@@ -50,8 +50,8 @@ perl ${OUTPUTDIR}/station_transpose.pl --filetotranspose elevation --controlfile
 perl ${OUTPUTDIR}/station_transpose.pl --filetotranspose windvelocity --controlfile ${ADVISDIR}/${ENSTORM}/fort.15 --stationfile ${ADVISDIR}/${ENSTORM}/fort.72 --format comma --vectorOutput magnitude --coldstartdate $CSDATE --gmtoffset -5 --timezone CDT --units english
 #
 # rename csv files to something more intuitive
-mv fort.61_transpose.csv ${STORMNAME}.station.elevation.csv
-mv fort.72_transpose.csv ${STORMNAME}.station.windspeed.csv
+mv fort.61_transpose.csv ${STORMNAME}.${ADVISORY}.station.elevation.csv
+mv fort.72_transpose.csv ${STORMNAME}.${ADVISORY}.station.windspeed.csv
 # 
 # switch to plots directory
 initialDirectory=`pwd`;

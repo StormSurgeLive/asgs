@@ -59,7 +59,7 @@ case "$TARGET" in
                 ;;
         "jade")
            echo Target is Jade
-                GMTHOME=/usr/local/usp/gmt  # The GMT installation
+                GMTHOME=/usr/local/usp/gmt/4.4.0  # The GMT installation
                 PPDIR=~/asgs/trunk/output/POSTPROC_KMZGIS/RenciGETools-1.0/src
                 # grids  The GMT-formatted & ADCIRC grid files
                 GRDFILES=~/asgs/trunk/output/POSTPROC_KMZGIS/grids
