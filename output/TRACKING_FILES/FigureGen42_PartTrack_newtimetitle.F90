@@ -4739,8 +4739,42 @@ SUBROUTINE ReadNodeVals(UnitNumber, FileType, JunkI, UVal, VVal, ZVal)
 
         ENDDO outer
 
-END SUBROUTINE
+END SUBROUTINE ReadNodeVals
 
+SUBROUTINE ReadNodeVals2(UnitNumber, FileType, JunkI, UVal, VVal)
+
+        USE DATA, ONLY: MyRank, Verbose
+
+        IMPLICIT NONE
+
+        INTEGER,INTENT(IN)  :: FileType
+        INTEGER,INTENT(OUT) :: JunkI
+        INTEGER,INTENT(IN)  :: UnitNumber
+
+        REAL,INTENT(OUT)    :: UVal
+        REAL,INTENT(OUT)    :: VVal
+
+        outer: DO
+
+            IF(FileType.EQ.0)THEN
+                READ(UNIT=UnitNumber,FMT=*,END=8002,ERR=8002) JunkI
+            ELSEIF(FileType.EQ.1)THEN
+                READ(UNIT=UnitNumber,FMT=*,END=8002,ERR=8002) JunkI, UVal
+            ELSEIF(FileType.EQ.2)THEN
+                READ(UNIT=UnitNumber,FMT=*,END=8002,ERR=8002) JunkI, UVal, VVal
+            ENDIF
+            EXIT outer
+
+ 8002       CONTINUE
+            IF(Verbose.GE.4)THEN
+                WRITE(*,'(A,I4.4,A)') "Processor ",MyRank," is waiting to read."
+            ENDIF
+            BACKSPACE(UnitNumber)
+            CALL SLEEP(60)
+
+        ENDDO outer
+
+END SUBROUTINE ReadNodeVals2
 
 
 SUBROUTINE ReadTimeStamp(UnitNumber, FileName, TimeReal, TimeReal2, NonDefaultNodes, DefaultValue)
@@ -6517,7 +6551,7 @@ SUBROUTINE WriteXYZFiles(Record)
 
                             DO I=1,NumNodes1
 
-                                CALL ReadNodeVals(19,0,JunkI,JunkR1,JunkR2)
+                                CALL ReadNodeVals2(19,0,JunkI,JunkR1,JunkR2)
 
                             ENDDO
 
@@ -6555,7 +6589,7 @@ SUBROUTINE WriteXYZFiles(Record)
 
                         IF(ContourFileType.EQ.1)THEN
 
-                            CALL ReadNodeVals(19,1,JunkI,JunkR1,JunkR2)
+                            CALL ReadNodeVals2(19,1,JunkI,JunkR1,JunkR2)
                             U1(JunkI) = JunkR1
 
                             IF(U1(JunkI).GT.-99998.0)THEN
@@ -6568,7 +6602,7 @@ SUBROUTINE WriteXYZFiles(Record)
 
                         ELSEIF(ContourFileType.EQ.2)THEN
                 
-                            CALL ReadNodeVals(19,2,JunkI,JunkR1,JunkR2)
+                            CALL ReadNodeVals2(19,2,JunkI,JunkR1,JunkR2)
                             U1(JunkI) = JunkR1
                             V1(JunkI) = JunkR2
 
@@ -6937,13 +6971,13 @@ SUBROUTINE WriteXYZFiles(Record)
 
                             DO I=1,NumNodes1
 
-                                CALL ReadNodeVals(19,0,JunkI,JunkR1,JunkR2)
+                                CALL ReadNodeVals2(19,0,JunkI,JunkR1,JunkR2)
 
                             ENDDO
 
                             DO I=1,NumNodes2
 
-                                CALL ReadNodeVals(23,0,JunkI,JunkR1,JunkR2)
+                                CALL ReadNodeVals2(23,0,JunkI,JunkR1,JunkR2)
 
                             ENDDO
 
@@ -6988,7 +7022,7 @@ SUBROUTINE WriteXYZFiles(Record)
 
                         IF(ContourFileType.EQ.1)THEN
 
-                            CALL ReadNodeVals(19,1,JunkI,JunkR1,JunkR2)
+                            CALL ReadNodeVals2(19,1,JunkI,JunkR1,JunkR2)
                             U1(JunkI) = JunkR1
 
                             IF(U1(JunkI).GT.-99998.0)THEN
@@ -7001,7 +7035,7 @@ SUBROUTINE WriteXYZFiles(Record)
 
                         ELSEIF(ContourFileType.EQ.2)THEN
                 
-                            CALL ReadNodeVals(19,2,JunkI,JunkR1,JunkR2)
+                            CALL ReadNodeVals2(19,2,JunkI,JunkR1,JunkR2)
                             U1(JunkI) = JunkR1
                             V1(JunkI) = JunkR2
 
@@ -7018,7 +7052,7 @@ SUBROUTINE WriteXYZFiles(Record)
 
                         IF(ContourFileType.EQ.1)THEN
 
-                            CALL ReadNodeVals(23,1,JunkI,JunkR1,JunkR2)
+                            CALL ReadNodeVals2(23,1,JunkI,JunkR1,JunkR2)
                             U2(JunkI) = JunkR1
 
                             IF(U2(JunkI).GT.-99998.0)THEN
@@ -7031,7 +7065,7 @@ SUBROUTINE WriteXYZFiles(Record)
 
                         ELSEIF(ContourFileType.EQ.2)THEN
                 
-                            CALL ReadNodeVals(23,2,JunkI,JunkR1,JunkR2)
+                            CALL ReadNodeVals2(23,2,JunkI,JunkR1,JunkR2)
                             U2(JunkI) = JunkR1
                             V2(JunkI) = JunkR2
 
@@ -7492,7 +7526,7 @@ SUBROUTINE WriteXYZFiles(Record)
 
                     DO I=1,NumNodes1
 
-                        CALL ReadNodeVals(20,0,JunkI,JunkR1,JunkR2)
+                        CALL ReadNodeVals2(20,0,JunkI,JunkR1,JunkR2)
 
                     ENDDO
 
@@ -7518,7 +7552,7 @@ SUBROUTINE WriteXYZFiles(Record)
 
             DO I=1,NumNodes1
 
-                CALL ReadNodeVals(20,2,JunkI,JunkR1,JunkR2)
+                CALL ReadNodeVals2(20,2,JunkI,JunkR1,JunkR2)
                 U1(JunkI) = JunkR1
                 V1(JunkI) = JunkR2
 

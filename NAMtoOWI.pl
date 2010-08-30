@@ -44,7 +44,7 @@ our $velocityMultiplier=1.0;                # multiplier for vels
 our $pressureMultiplier=0.01;               # convert Pascals to mb by default
 our $scriptDir=".";                        # path to executables
 our ($wndFile,$presFile);                   # names of OWI wind/pre output files
-our @namFormats = qw(grib2 netCDF);          # accceptable file types for NAMdata
+our @namFormats = qw(grb grib2 netCDF);   # accceptable file types for NAMdata
 our $namFormat = "netCDF";                  # default NAM format is netCDF
 our $namType = "forecast";                  # expect forecast data by default
 our ($nDims,$nVars,$nAtts,$recDim,$dimName,%varId,@dimIds,$name,$dataType,%data,%dimId,%nRec,$nRec,@ugrd,@vgrd,@atmp,@time,@OWI_wnd,@miniOWI_wnd,@OWI_pres,@miniOWI_pres,@zeroOffset,$geoHeader);
@@ -78,9 +78,9 @@ GetOptions(
 &stderrMessage("INFO","Started processing point file.");
 $geoHeader=&processPtFile($ptFile);
 # load NAM data
-if ( $namFormat eq "grib2" ) 
+if ( ($namFormat eq "grib2") || ($namFormat eq "grb") ) 
 	{
-	&stderrMessage("INFO","Processing grib2 file(s).");
+	&stderrMessage("INFO","Processing file(s).");
 	&getGrib2($namType);
 	&addToFort22();# have to add the record length to fort.22
 	&stderrMessage("INFO","Rotate and format each time-step.");
@@ -453,34 +453,49 @@ sub getGrib2
         my @grib2Files;
         if ( $namType eq "nowcast" ) { 
            # if these are nowcast files, we'll assume that the data are 
-           # six hours apart, and that they are located in directories
-           # called 'erl.yymmdd' where yymmdd is the year month day 
+           # six hours apart
            $timeStep = 6.0; # in hours
-           my @grib2Dirs = glob($dataDir."/erl.*");
+           # assume grib2 files are located in directories
+           # called 'erl.yymmdd' where yymmdd is the year month day 
+           my @grib2Dirs;
+           if ( $namFormat eq "grib2" ) {
+	      # assume that $dataDir points to a directory containing
+	      # subdirectories named erl.*, e.g. erl.091108 (i.e., 8 November
+	      # 2009) assume that each of these directories contain some grib2
+	      # files that are named with the extension ".grib2"
+              @grib2Dirs = glob($dataDir."/erl.*");
+           }
+           # assume grib files are all in the data directory
+           if ( $namFormat eq "grb" ) {
+              $grib2Dirs[0] = $dataDir;
+           }
            my $numGrib2Dirs = @grib2Dirs;
-           &stderrMessage("INFO","There is/are $numGrib2Dirs grib2 dir(s).");
+           &stderrMessage("INFO","There is/are $numGrib2Dirs directories to process.");
            if ( $numGrib2Dirs == 0 ) {
-              &stderrMessage("ERROR","There are no grib2 directories to process.");
+              &stderrMessage("ERROR","There are no data directories to process.");
               die;
            }  
-	   # assume that $dataDir points to a directory containing
-	   # subdirectories named erl.*, e.g. erl.091108 (i.e., 8 November
-	   # 2009) assume that each of these directories contain some grib2
-	   # files that are named with the extension ".grib2"
            foreach my $dir (@grib2Dirs) {
-              push(@grib2Files,glob($dir."/*.grib2"));
+              push(@grib2Files,glob($dir."/*.".$namFormat));
            }
         } else { 
            # if these are forecast files, we'll assume that the data are
            # three hours apart, and that they are all located in the same
            # subdirectory 
            $timeStep = 3.0; # in hours 
-           @grib2Files = glob($dataDir."/*.grib2");
+           @grib2Files = glob($dataDir."/*.".$namFormat);
         }
-        # grab the start time (YYYYMMDDHH) of the grib2 files from the
-        # inventory in the first file
-        `$scriptDir/wgrib2 $grib2Files[0] -match PRMSL` =~ m/d=(\d+)/;
-        $startTime = $1;
+        # grab the start time (YYYYMMDDHH) of the files from the
+        # inventory in the first file ... this assumes that glob returns
+        # the files in ascending order.
+        if ( $namFormat eq "grb" ) {
+           `$scriptDir/wgrib -v $grib2Files[0] | grep PRMSL` =~ m/:D=(\d+):PRMSL:/;
+           $startTime = $1;  
+        }
+        if ( $namFormat eq "grib2" ) {
+           `$scriptDir/wgrib2 $grib2Files[0] -match PRMSL` =~ m/d=(\d+)/;
+           $startTime = $1;
+        }
         &stderrMessage("DEBUG","The start time is '$startTime'.");
         $startTime =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
         my $sy = $1; # start year
@@ -490,7 +505,7 @@ sub getGrib2
         my ($ey, $em, $ed, $eh, $emin, $es);# end year, mon, day, hour, min, sec
         my ($fy, $fm, $fd, $fh, $fmin, $fs);# forecast yr, mon, day, hr, mn, sec
         my $numGrib2Files = 0;
-        my $oldForecastHour = 0;
+        my $oldCycleHour = 0;
         my $oldEndTime = $startTime; 
         my @oldRawUVP;
         my $dhrs = 0;
@@ -499,21 +514,34 @@ sub getGrib2
         foreach my $file (@grib2Files) {
            $numGrib2Files++;
            &stderrMessage("DEBUG","Starting work on '$file'.");
-           # grab the forecast hour from the filename itself
-           $file =~ m/nam.t\d\dz.awip12(\d\d).tm00.grib2/;
-           my $forecastHour = $1;
-           #&stderrMessage("DEBUG","The forecast hour is '$forecastHour'.");
+           my $cycleHour = "00";
+           if ( $namFormat eq "grib2" ) {
+              # grab the cycle hour from the filename itself
+              $file =~ m/nam.t\d\dz.awip12(\d\d).tm00.grib2/;
+              $cycleHour = $1;
+           }
+           if ( $namFormat eq "grb" ) {
+              `$scriptDir/wgrib -v $file | grep PRMSL` =~ m/:D=(\d\d\d\d)(\d\d)(\d\d)(\d\d):PRMSL:/;
+              $cycleHour = $4;  
+           }
+           &stderrMessage("DEBUG","The cycle hour is '$cycleHour'.");
            ($fy, $fm, $fd, $fh, $fmin, $fs) =
               Date::Pcalc::Add_Delta_DHMS($sy, $sm, $sd, $sh, 0, 0, 
-                 0, $forecastHour, 0, 0);
+                 0, $cycleHour, 0, 0);
            # calculate and save the end time ... last one will represent
            # end of the OWI file
            my $numInterp = 0;
            my @factors; 
            $factors[0] = 1.0;
            if ( $namType eq "nowcast" ) {
-              `$scriptDir/wgrib2 $file -match PRMSL` =~ m/d=(\d+)/;
-              $endTime = $1;
+              if ( $namFormat eq "grib2" ) {
+                 `$scriptDir/wgrib2 $file -match PRMSL` =~ m/d=(\d+)/;
+                 $endTime = $1;
+              } 
+              if ( $namFormat eq "grb" ) {
+                 `$scriptDir/wgrib -v $file | grep PRMSL` =~ m/:D=(\d+):PRMSL:/;
+                 $endTime = $1;
+              } 
               # check to see if there are any missing cycles ... if so, then
               # we will linearly interpolate from the previous cycle to the 
               # current one
@@ -549,23 +577,54 @@ sub getGrib2
            } else {
               ($ey, $em, $ed, $eh, $emin, $es) =
                  Date::Pcalc::Add_Delta_DHMS($sy, $sm, $sd, $sh, 0, 0, 
-                    0, $forecastHour, 0, 0);
+                    0, $cycleHour, 0, 0);
               $endTime = sprintf("%4d%02d%02d%02d",$ey ,$em, $ed, $eh);
            } 
            &stderrMessage("DEBUG","The end time is '$endTime'."); 
            push(@OWItime,$endTime."00"); # add the minutes columns
            #
-           # now grab the u,v,p data from the file, sending the
-           # accompanying inventory info (that would normally go to 
-           # stdout also) to /dev/null 
-           #
-           # can't grab the U,V,P from the file all within one wgrib2 command
-           # since wgrib2 will output them in the order in which they are 
-           # found in the grib2 file ... PRMSL comes first in the grib2
-           # file, so it would be first in the array ... need it to be last
-           my @rawU = `$scriptDir/wgrib2 $file -match "UGRD:10" -inv /dev/null -text -`;
-           my @rawV = `$scriptDir/wgrib2 $file -match "VGRD:10" -inv /dev/null -text -`;
-           my @rawP = `$scriptDir/wgrib2 $file -match "PRMSL" -inv /dev/null -text -`;
+           # now grab the u,v,p data from the file
+           my @rawU;
+           my @rawV;
+           my @rawP;
+           if ( $namFormat eq "grib2" ) { 
+              # send accompanying inventory info (that would normally go to 
+              # stdout also) to /dev/null 
+              #
+              # can't grab the U,V,P from the file all within one wgrib2 command
+              # since wgrib2 will output them in the order in which they are 
+              # found in the grib2 file ... PRMSL comes first in the grib2
+              # file, so it would be first in the array ... need it to be last
+              @rawU = `$scriptDir/wgrib2 $file -match "UGRD:10" -inv /dev/null -text -`;
+              @rawV = `$scriptDir/wgrib2 $file -match "VGRD:10" -inv /dev/null -text -`;
+              @rawP = `$scriptDir/wgrib2 $file -match "PRMSL" -inv /dev/null -text -`;
+           }
+           if ( $namFormat eq "grb" ) {
+              #
+              # get record number for wind velocity (u) at 10m
+              `$scriptDir/wgrib -v $file | grep "UGRD:10 m above gnd"` =~ m/^(\d+):/;
+              my $record_number = $1;
+              # now decode the data for that record number to an external file
+              system("wgrib -d $record_number -o ugrd.txt -text $file");
+              # read in the data from the resulting file
+              @rawU = `cat ugrd.txt`;
+              #
+              # get record number for wind velocity (v) at 10m
+              `$scriptDir/wgrib -v $file | grep "VGRD:10 m above gnd"` =~ m/^(\d+):/;
+              $record_number = $1;
+              # now decode the data for that record number to an external file
+              system("wgrib -d $record_number -o vgrd.txt -text $file");
+              # read in the data from the resulting file
+              @rawV = `cat vgrd.txt`;
+              #
+              # get record number for sea level barometric pressure
+              `$scriptDir/wgrib -v $file | grep PRMSL` =~ m/^(\d+):/;
+              $record_number = $1;
+              # now decode the data for that record number to an external file
+              system("wgrib -d $record_number -o prmsl.txt -text $file");
+              # read in the data from the resulting file
+              @rawP = `cat prmsl.txt`;
+           }
            #
            # nlon and nlat are the first line in the output for each data set
            my @nxny = split(" ",shift(@rawU));
@@ -574,6 +633,10 @@ sub getGrib2
            #&stderrMessage("INFO","nlon is $nxny[0] nlat is $nxny[1].");
            $recordLength = $nxny[0] * $nxny[1];
            my @rawUVP = (@rawU,@rawV,@rawP);
+           open(STUFF,">stuff.$endTime"); # debug
+           foreach my $stuff (@rawUVP) {  # debug
+              print STUFF $stuff;         # debug
+           }                              # debug
            # interpolate if necessary
            if ( $numInterp > 0 ) {
               for ( my $i=1; $i<=$numInterp; $i++ ) {
@@ -612,7 +675,7 @@ sub getGrib2
               }
            }              
            $oldEndTime = $endTime;
-           $oldForecastHour = $forecastHour;
+           $oldCycleHour = $cycleHour;
            @oldRawUVP = @rawUVP;
         }
         $mainHeader="Oceanweather WIN/PRE Format                            $startTime     $endTime";
@@ -621,10 +684,10 @@ sub getGrib2
         # build the filenames
         $wndFile=$outDir.'NAM_'.$startTime.'_'.$endTime.'.222';
         $presFile=$outDir.'NAM_'.$startTime.'_'.$endTime.'.221';
-        &stderrMessage("INFO","Processed $numGrib2Files grib2 file(s).");
+        &stderrMessage("INFO","Processed $numGrib2Files file(s).");
 	$nRec{'time'}=$numGrib2Files;
         if ( $numGrib2Files == 0 ) { 
-           &stderrMessage("ERROR","There were no grib2 files to process.");
+           &stderrMessage("ERROR","There were no files to process.");
            die;
         } 
         
