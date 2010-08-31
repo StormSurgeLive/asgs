@@ -77,7 +77,11 @@ for plotfile in `ls *.ps`; do
    pngname=${plotfile%.ps}.png
    convert -rotate 90 $plotfile $pngname
 done
-tar cvzf ${ADVISDIR}/${ENSTORM}/${YEAR}${STORM}.${ADVISORY}.plots.tar.gz *.png *.csv
+plotarchive=${ADVISORY}.plots.tar.gz
+if [[ $TROPICALCYCLONE = on ]]; then
+   plotarchive=${YEAR}${STORM}.${plotarchive}
+fi
+tar cvzf ${ADVISDIR}/${ENSTORM}/${plotarchive} *.png *.csv
 cd $initialDirectory
 #
 #  now create the Google Earth, jpg, and GIS output files
