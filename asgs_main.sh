@@ -731,7 +731,7 @@ fatal()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
   MSG="[${DATETIME}] FATAL ERROR: $@"
   echo ${MSG} >> ${SYSLOG} 
-  if [[ $EMAILNOTIFY = YES ]]; then
+  if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
      cat ${SYSLOG} | mail -s "[ASGS] Fatal Error for PROCID ($$)" "${ASGSADMIN}"
   fi
   echo ${MSG} # send to console
@@ -1079,7 +1079,7 @@ checkFileExistence ${PERL5LIB}/Date "perl module for date calculations" Pcalc.pm
 #
 #
 # pull in subroutines for email notifications
-if [[ $EMAILNOTIFY = yes ]]; then
+if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
    logMessage "Accessing functions for email notifications."
    # source notifications file
    . ${OUTPUTDIR}/${NOTIFY_SCRIPT}
@@ -1101,7 +1101,7 @@ if [ ! -d $RUNDIR ]; then
     mkdir -p $RUNDIR #
 fi
 #
-if [[ $EMAILNOTIFY = YES ]]; then
+if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
    # send out an email to notify users that the ASGS is ACTIVATED
    activation_email $HOSTNAME $STORM $YEAR $RUNDIR "${ACTIVATE_LIST}" >> ${SYSLOG} 2>&1
 fi
@@ -1276,7 +1276,7 @@ while [ 1 -eq 1 ]; do
        ln -s $NAM221 fort.221 2>> ${SYSLOG}
        ln -s $NAM222 fort.222 2>> ${SYSLOG}
     fi
-    if [[ $EMAILNOTIFY = YES ]]; then
+    if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
        new_advisory_email $HOSTNAME $STORM $YEAR $ADVISORY "${NEW_ADVISORY_LIST}" >> ${SYSLOG} 2>&1
     fi
     perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
@@ -1379,7 +1379,7 @@ while [ 1 -eq 1 ]; do
           logMessage "$ENSTORM finished; postprocessing"
           # execute post processing
           ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
-          if [[ $EMAILNOTIFY = YES ]]; then
+          if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
              post_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM "${POST_LIST}" >> ${SYSLOG} 2>&1
           fi
           if [[ ! -z $POSTPROCESS2 ]]; then # creates GIS and kmz figures
