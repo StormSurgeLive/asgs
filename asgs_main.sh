@@ -629,15 +629,16 @@ submitJob()
       CLOPTION="-W $NUMWRITERS"
    fi
    if [[ $HOTSTARTCOMP = subdomain ]]; then
-      CLOPTION="$CLOPTION -S"
+      CLOPTION="${CLOPTION} -S"
       LOCALHOTSTART="--localhotstart"
    fi
-   if [ $QUEUESYS = LSF ]; then
+# 
+   if [[ $QUEUESYS = LSF ]]; then
       bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/padcirc $CLOPTION >> ${SYSLOG}
-   elif [ $QUEUESYS = LoadLeveler ]; then
+   elif [[ $QUEUESYS = LoadLeveler ]]; then
       perl $SCRIPTDIR/loadleveler.pl --ncpu $NCPU --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --numwriters $NUMWRITERS $LOCALHOTSTART > $ADVISDIR/$ENSTORM/padcirc.ll 2>> ${SYSLOG}
       llsubmit $ADVISDIR/$ENSTORM/padcirc.ll >> ${SYSLOG} 2>&1
-   elif [ $QUEUESYS = PBS ]; then
+   elif [[ $QUEUESYS = PBS ]]; then
       QSCRIPTOPTIONS="--ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
       if [[ $PPN -ne 0 ]]; then
          QSCRIPTOPTIONS="$QSCRIPTOPTIONS --ppn $PPN"
@@ -646,10 +647,10 @@ submitJob()
       perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.pbs 2>> ${SYSLOG}
       logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.pbs"
       qsub $ADVISDIR/$ENSTORM/padcirc.pbs >> ${SYSLOG} 2>&1
-   elif [ $QUEUESYS = mpiexec ]; then
-      logMessage "Submitting job via $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc $WRITEROPTION $LOCALHOTSTART >> ${SYSLOG} 2>&1"
-      $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc $WRITEROPTION $LOCALHOTSTART >> ${SYSLOG} 2>&1 
-   elif [ $QUEUESYS = SGE ]; then
+   elif [[ $QUEUESYS = mpiexec ]]; then
+      logMessage "Submitting job via $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc $CLOPTION >> ${SYSLOG} 2>&1"
+      $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc $CLOPTION >> ${SYSLOG} 2>&1 
+   elif [[ $QUEUESYS = SGE ]]; then
       QSCRIPTOPTIONS="--ncpu $NCPU --ncpudivisor $NCPUDIVISOR --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
       perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.sge 2>> ${SYSLOG}
       logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.sge"
@@ -981,7 +982,7 @@ SERQUEUE=
 QCHECKCMD=
 NCPU=
 NUMWRITERS=0
-ACCOUNT=
+ACCOUNT=desktop
 SUBMITSTRING=
 INTERSTRING=
 RESULTSHOST=
@@ -994,7 +995,7 @@ RUNDIR=
 INPUTDIR=
 PERL5LIB=
 SSHKEY=
-PPN=0
+PPN=1
 logMessage "ASGS Start Up MSG: [PROCID] $$"
 logMessage "ASGS Start Up MSG: [SYSLOG] ${SYSLOG}"
 logMessage "The ADCIRC Surge/Spill Guidance System is activated."
