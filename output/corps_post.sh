@@ -43,6 +43,9 @@ if [[ $TROPICALCYCLONE = on ]]; then
    STORMNAME=`cat nhcClassName` 
    STORMNAME=${STORMNAME}" "${YEAR}" "$ENSTORM
 fi
+#
+#  R E F O R M A T T I N G
+#
 # transpose elevation output file so that we can graph it with gnuplot
 perl ${OUTPUTDIR}/station_transpose.pl --filetotranspose elevation --controlfile ${ADVISDIR}/${ENSTORM}/fort.15 --stationfile ${ADVISDIR}/${ENSTORM}/fort.61 --format space --coldstartdate $CSDATE --gmtoffset -5 --timezone CDT --units english
 # transpose wind velocity output file so that we can graph it with gnuplot
@@ -52,8 +55,10 @@ perl ${OUTPUTDIR}/station_transpose.pl --filetotranspose elevation --controlfile
 perl ${OUTPUTDIR}/station_transpose.pl --filetotranspose windvelocity --controlfile ${ADVISDIR}/${ENSTORM}/fort.15 --stationfile ${ADVISDIR}/${ENSTORM}/fort.72 --format comma --vectorOutput magnitude --coldstartdate $CSDATE --gmtoffset -5 --timezone CDT --units english
 #
 # rename csv files to something more intuitive
-mv fort.61_transpose.csv ${STORMNAME}.${ADVISORY}.station.elevation.csv
-mv fort.72_transpose.csv ${STORMNAME}.${ADVISORY}.station.windspeed.csv
+mv ${ADVISDIR}/${ENSTORM}/fort.61_transpose.csv ${ADVISDIR}/${ENSTORM}/${STORMNAME}.${ADVISORY}.station.elevation.csv
+mv ${ADVISDIR}/${ENSTORM}/fort.72_transpose.csv ${ADVISDIR}/${ENSTORM}/${STORMNAME}.${ADVISORY}.station.windspeed.csv
+#
+# G N U P L O T   F O R   L I N E   G R A P H S
 # 
 # switch to plots directory
 initialDirectory=`pwd`;
@@ -81,11 +86,27 @@ plotarchive=${ADVISORY}.plots.tar.gz
 if [[ $TROPICALCYCLONE = on ]]; then
    plotarchive=${YEAR}${STORM}.${plotarchive}
 fi
-tar cvzf ${ADVISDIR}/${ENSTORM}/${plotarchive} *.png *.csv
+# tar up the plots and the csv files
+# also include the maxele.63 file and the original fort.61 and fort.72
+# as requested by Max Agnew and David Ramirez at the New Orleans District
+tar cvzf ${ADVISDIR}/${ENSTORM}/${plotarchive} *.png *.csv ../maxele.63 ../fort.61 ../fort.72
 cd $initialDirectory
 #
-#  now create the Google Earth, jpg, and GIS output files
-${OUTPUTDIR}/POSTPROC_KMZGIS/POST_SCRIPT_Corps.sh $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $GRIDFILE $GISCONFIG $CLIPCOAST
+#  G I S     K M Z      J P G 
+#
+# name of bounding box for contour plots (see config_simple_gmt_pp.sh
+# for choices)
+BOX=LA
+# FigureGen executable to use for making JPG files (assumed to be located
+# in $OUTPUTDIR/POSTPROC_KMZGIS/FigGen/
+FIGUREGENEXECUTABLE=FigureGen32_prompt_inp.exe
+# The full path and name for the FigureGen template file.
+FIGUREGENTEMPLATE=$OUTPUTDIR/POSTPROC_KMZGIS/FigGen/FG_asgs.inp.orig
+#
+#  now create the Google Earth (kmz), jpg, and GIS contour plots
+${OUTPUTDIR}/POSTPROC_KMZGIS/POST_SCRIPT_Corps.sh $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $GRIDFILE $CONFIG $BOX $FIGUREGENEXECUTABLE $FIGUREGENTEMPLATE
+#
+#  P U B L I C A T I O N
 #
 # grab the names of the output files
 GISKMZJPG=`ls *KMZ_GIS.tar.gz`
@@ -98,18 +119,21 @@ perl ${OUTPUTDIR}/corps_index.pl --stormname $STORMNAME --advisory $ADVISORY --t
 # (i.e., NAM or NHC tropical cyclone), machine on which they were run, the 
 # grid name, and the advisory 
 if [[ $BACKGROUNDMET = on ]]; then
-   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "mkdir -p ${WEBPATH}/NAM/$HOSTNAME/$ADVISORY"
-   scp -i $SSHKEY index.html ${WEBUSER}@${WEBHOST}:${WEBPATH}/NAM/$HOSTNAME/$ADVISORY
-   scp -i $SSHKEY $GISKMZJPG ${WEBUSER}@${WEBHOST}:${WEBPATH}/NAM/$HOSTNAME/$ADVISORY
-   scp -i $SSHKEY $PLOTS ${WEBUSER}@${WEBHOST}:${WEBPATH}/NAM/$HOSTNAME/$ADVISORY
-   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/NAM/$HOSTNAME/$ADVISORY"
+   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "mkdir -p ${WEBPATH}/NAM/$GRIDFILE/$HOSTNAME/0.25DegreeResolution/$ADVISORY"
+   scp -i $SSHKEY index.html ${WEBUSER}@${WEBHOST}:${WEBPATH}/NAM/$GRIDFILE/$HOSTNAME/0.25DegreeResolution/$ADVISORY
+   scp -i $SSHKEY $GISKMZJPG ${WEBUSER}@${WEBHOST}:${WEBPATH}/NAM/$GRIDFILE/$HOSTNAME/0.25DegreeResolution/$ADVISORY
+   scp -i $SSHKEY $PLOTS ${WEBUSER}@${WEBHOST}:${WEBPATH}/NAM/$GRIDFILE/$HOSTNAME/0.25DegreeResolution/$ADVISORY
+   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/NAM"
 fi
 if [[ $TROPICALCYCLONE = on ]]; then 
    STORMNAME=`cat nhcClassName` 
-   STORMNAME=${STORMNAME}_$ENSTORM
-   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "mkdir -p ${WEBPATH}/$STORMNAME/$HOSTNAME/advisory_${ADVISORY}"
-   scp -i $SSHKEY index.html ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME/$HOSTNAME/advisory_${ADVISORY}
-   scp -i $SSHKEY $GISKMZJPG ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME/$HOSTNAME/advisory_${ADVISORY}
-   scp -i $SSHKEY $PLOTS ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME/$HOSTNAME/advisory_${ADVISORY}
-   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/$STORMNAME/$HOSTNAME/advisory_${ADVISORY}"
+   # find the space between the storm class (TD, TS, HU, etc) and the NHC name
+   ind=`expr index "$STORMNAME" ' '`
+   # just use the storm's name and year on the web page
+   STORMNAME="${STORMNAME:$ind}$YEAR"
+   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "mkdir -p ${WEBPATH}/$STORMNAME/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}"
+   scp -i $SSHKEY index.html ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
+   scp -i $SSHKEY $GISKMZJPG ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
+   scp -i $SSHKEY $PLOTS ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
+   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/$STORMNAME/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}"
 fi

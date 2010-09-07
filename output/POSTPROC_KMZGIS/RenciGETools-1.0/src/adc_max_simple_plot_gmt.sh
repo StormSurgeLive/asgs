@@ -61,7 +61,13 @@ function Usage
     echo "      example -c 0:2 will produce a colormap between 0 and 2 units."
     echo "  -u: The units for the display.  Must be either M (meters) or "
     echo "      FT for feet.  Default is meters."
-   
+    echo "  -a: The target platform (topsail, ranger, sapphire, etc). This" 
+    echo "      allows the user to specify the path to required executables."
+    echo "      The various platforms are defined in config_simple_gmt_pp.sh."
+    echo "      The default is topsail."
+    echo "  -b: The bounding box to be used for graphics (NC, TX, LA etc)."
+    echo "      The different boxes are defined in config_simple_gmt_pp.sh."
+    echo "      The default is NC."
 }
 
 function StripFile
@@ -268,8 +274,8 @@ function MakePlot
     done
 
     # make a montage for this level.
-    $PPDIR/makeMontage.sh $Prefix $level
-	rm -rf temp.trk temp.6h.trk ll.temp
+    $PPDIR/makeMontage.sh $Prefix $level $TARGET $BOX
+    rm -rf temp.trk temp.6h.trk ll.temp
 }
 
 
@@ -297,8 +303,10 @@ timeStep=1
 logo="adcirc_logo_white.png"
 #logo="renci_logo_white_www_sm.png"
 UNITS="M"
-
-while getopts ":f:g:p:n:d:e:o:k:m:c:t:u:" optname
+TARGET="topsail"
+BOX="NC"
+#
+while getopts ":f:g:p:n:d:e:o:k:m:c:t:u:a:b:" optname
   do
     case "$optname" in
       "f")
@@ -344,6 +352,12 @@ while getopts ":f:g:p:n:d:e:o:k:m:c:t:u:" optname
         ;;
       "u")
         UNITS=$OPTARG
+        ;;
+      "a")
+        TARGET=$OPTARG
+        ;;
+      "b")
+        BOX=$OPTARG
         ;;
       "?")
         echo "Unknown option $OPTARG"
@@ -411,7 +425,7 @@ fi
 
 #----------- EXEC Config File -------------------------------------
 #----------- Sets SYS DIRS, GMT variables, etc ... ----------------
-source $PPDIR/config_simple_gmt_pp.sh
+source $PPDIR/config_simple_gmt_pp.sh $TARGET $BOX
 
 echo MaxFile    = $MaxFile
 echo AdcGrid    = $AdcGrid

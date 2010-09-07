@@ -10,22 +10,27 @@
 # http://www.renci.org
 #----------- EXEC Config File -------------------------------------
 #----------- Sets SYS DIRS, GMT variables, etc ... ----------------
-source $PPDIR/config_simple_gmt_pp.sh
 
-if [ $# -ne 2 ] ; then
-        echo Must have 2 Command-Line args
-	echo Usage: $0 \<prefix\> \<level\>
+
+if [ $# -lt 5 ] ; then
+    echo Must have 4 Command-Line args
+    echo Usage: $0 \<prefix\> \<level\> \<target\> \<box\>
     echo where \<prefix\> is the same as argument 3 to adc_max_simple_plot_gmt.sh
     echo and level is the zoom level for which you want the montage.
     echo For example, if I build the tiles with 
     echo adc_max_simple_plot_gmt.sh ~bblanton/maxele.63 nciv6a Hanna5 3
     echo then makeMontage.sh Hanna5 3 
     echo produces a montage of the 3rd level of Hanna5 tiles.
+    echo target defines the machine on which the montage is created.
+    echo box defines the lat/lon bounding box for the figure.
 #	echo Usage: $0 \<prefix> \<thisLevel> \<nLevels>
 	exit 1
 else 
    prefix=$1
    level=$2
+   TARGET=$3
+   BOX=$4
+   source $PPDIR/config_simple_gmt_pp.sh $TARGET $BOX
    MONTAGE=$ImageMagick/montage
 fi
 #nLevels=$3

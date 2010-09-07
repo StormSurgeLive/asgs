@@ -1,15 +1,15 @@
 FOR BEST RESULTS, PLEASE KEEP COMMENTS OUT OF THE FIRST 50 CHARACTERS ON EACH LINE.
 12345678901234567890123456789012345678901234567890
 4                                                  ! Level of screen output.
-/usr/local/usp/gmt/4.4.0/bin/
+/usr/local/bin/
 ./Temp/
-03_2010_namforecast_2010090112
-1,HWM (NAVD88): Storm 03 2010  Adv #2010090112
+07_2010_nhcConsensus_36
+1,HWM (NAVD88): Storm 07 2010  Adv #36
 0                                                  ! Time bar flag: 0 to ignore, 1 to plot time bar.
--93.5
--88.5
-26
-31
+-79
+-75
+33
+37
 fort.14                                            ! Name of grid file.
 0                                                  ! Plot grid flag: 0 to ignore, 1 to plot triangular grid on figure.
 PARAMETERS FOR CONTOURS:

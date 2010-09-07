@@ -1,15 +1,15 @@
 FOR BEST RESULTS, PLEASE KEEP COMMENTS OUT OF THE FIRST 50 CHARACTERS ON EACH LINE.
 12345678901234567890123456789012345678901234567890
 4                                                  ! Level of screen output.
-/share/home/01053/rweaver/GMT4.4.0/bin/             ! Path where GMT executables are located.
+%GMTHOMEBIN%                                       ! Path where GMT executables are located.
 Temp/                                              ! Path where temporary files will be created.
-Ike_asgs_attempt2                                  ! Alphanumeric label for these plots.
-1,Maximum WSE Ike ASGS                             ! Plot label flag and plot label.
+%OUTPUTPREFIX%                                                           ! Alphanumeric label for these plots.
+%PLOTLABEL%                                        ! Plot label flag and plot label.
 0                                                  ! Time bar flag: 0 to ignore, 1 to plot time bar.
--98.0
--93.0
-25.5
-30.5
+%WEST%
+%EAST%
+%SOUTH%
+%NORTH%
 fort.14                                            ! Name of grid file.
 0                                                  ! Plot grid flag: 0 to ignore, 1 to plot triangular grid on figure.
 PARAMETERS FOR CONTOURS:

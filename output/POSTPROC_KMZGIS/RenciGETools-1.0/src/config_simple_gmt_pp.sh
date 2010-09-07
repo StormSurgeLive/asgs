@@ -11,19 +11,12 @@
 # For questions, comments please contact software@renci.org
 # 
 # 
-
+TARGET=$1
+BOX=$2
+#
 echo Exec-ing config file config_gmt_pp.sh
 rm -rf .gmt*
-
-
-
-#Set Target by  hard-wire.
-TARGET="sapphire";
-#TARGET="topsail";
-#TARGET="ranger";
-#TARGET="queenbee";
-#TARGET="jade";
-
+#
 # Outputs diagnostic messages
 DEBUG=1
 
@@ -33,9 +26,7 @@ DEBUG=1
 case "$TARGET" in 
 # for Ranger
 	"ranger") 
-		GMTHOME=/share/home/01053/rweaver/GMT4.4.0			   # The GMT installation
-		PPDIR=/share/home/01053/rweaver/ASGS/asgs_2009/output/POSTPROC_KMZGIS/RenciGETools-1.0/src
-                GRDFILES=/share/home/01053/rweaver/ASGS/asgs_2009/output/POSTPROC_KMZGIS/grids
+		GMTHOME=/share/home/01053/rweaver/GMT4.4.0 # The GMT installation
 		GS=/usr/bin/gs				   # The ghostscript binary (gs)
         	ImageMagick=/usr/bin			   # path to ImageMagick binaries
         	ZIP=/usr/bin/zip			   # path to zip
@@ -43,16 +34,12 @@ case "$TARGET" in
         "topsail")
            echo Target is TOPSAIL
                 GMTHOME=/ifs1/home/rjweaver/GMT4.3.1              # The GMT installation
-                PPDIR=/ifs1/scr/rjweaver/POSTPROC_KMZGIS/RenciGETools-1.0/src      # The shell script dir
-                GRDFILES=/ifs1/scr/rjweaver/POSTPROC_KMZGIS/grids                    #grids # The GMT-formatted & ADCIRC grid files
                 GS=/usr/bin/gs                             # The ghostscript binary (gs)
                 ImageMagick=/usr/bin                       # path to ImageMagick binaries
                 ZIP=/usr/bin/zip                           # path to zip
                 ;;
         "queenbee")
                 GMTHOME=/home/rweaver/GMT4.3.1      # The GMT installation
-                PPDIR=/home/rweaver/POSTPROC_KMZGIS/RenciGETools-1.0/src    # The shell script dir
-                GRDFILES=/home/rweaver/POSTPROC_KMZGIS/grids                # The GMT-formatted& ADCIRC grid files
                 GS=/usr/bin/gs                        # The ghostscript binary (gs)
                 ImageMagick=/usr/local/packages/imageMagick-6.0.8/bin               # path to ImageMagick binaries
                 ZIP=/usr/bin/zip                            # path to zip
@@ -60,9 +47,6 @@ case "$TARGET" in
         "jade")
            echo Target is Jade
                 GMTHOME=/usr/local/usp/gmt  # The GMT installation
-                PPDIR=~/asgs/trunk/output/POSTPROC_KMZGIS/RenciGETools-1.0/src
-                # grids  The GMT-formatted & ADCIRC grid files
-                GRDFILES=~/asgs/trunk/output/POSTPROC_KMZGIS/grids
                 GS=/usr/bin/gs     # The ghostscript binary (gs)
                 # path to ImageMagick binaries
                 ImageMagick=/usr/local/usp/ImageMagick/bin
@@ -72,21 +56,23 @@ case "$TARGET" in
         "sapphire")
            echo Target is Sapphire
                 GMTHOME=/usr/local/usp/gmt/4.4.0  # The GMT installation
-                PPDIR=~/asgs/trunk/output/POSTPROC_KMZGIS/RenciGETools-1.0/src
-                # grids  The GMT-formatted & ADCIRC grid files
-                GRDFILES=~/asgs/trunk/output/POSTPROC_KMZGIS/grids
                 GS=/usr/bin/gs     # The ghostscript binary (gs)
                 # path to ImageMagick binaries
                 ImageMagick=/usr/local/usp/ImageMagick/6.5.2-10/bin
                 ZIP=/usr/bin/zip   # path to zip
                 ;;
+
+        "desktop")
+           echo Target is desktop
+                GMTHOME=/usr/local  # The GMT installation
+                GS=/usr/bin/gs     # The ghostscript binary (gs)
+                # path to ImageMagick binaries
+                ImageMagick=/usr/bin
+                ZIP=/usr/bin/zip   # path to zip
+                ;;
 esac
 
 #  input the LAT LON bounds your desire for your output
-#BOX="TX";
-BOX="LA";
-#BOX="WFL";
-#BOX="NC";
 case "$BOX" in
 # Texas Coast
        "TX")

@@ -633,11 +633,16 @@ submitJob()
       LOCALHOTSTART="--localhotstart"
    fi
 # 
+#  Load Sharing Facility (LSF); used on topsail at UNC
    if [[ $QUEUESYS = LSF ]]; then
       bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/padcirc $CLOPTION >> ${SYSLOG}
+#
+#  LoadLeveler (often used on IBM systems)
    elif [[ $QUEUESYS = LoadLeveler ]]; then
       perl $SCRIPTDIR/loadleveler.pl --ncpu $NCPU --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --numwriters $NUMWRITERS $LOCALHOTSTART > $ADVISDIR/$ENSTORM/padcirc.ll 2>> ${SYSLOG}
       llsubmit $ADVISDIR/$ENSTORM/padcirc.ll >> ${SYSLOG} 2>&1
+#
+#  Portable Batch System (PBS); widely used
    elif [[ $QUEUESYS = PBS ]]; then
       QSCRIPTOPTIONS="--ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
       if [[ $PPN -ne 0 ]]; then
@@ -647,9 +652,17 @@ submitJob()
       perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.pbs 2>> ${SYSLOG}
       logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.pbs"
       qsub $ADVISDIR/$ENSTORM/padcirc.pbs >> ${SYSLOG} 2>&1
+#
+#  No queueing system, just mpiexec (used on standalone computers)
    elif [[ $QUEUESYS = mpiexec ]]; then
-      logMessage "Submitting job via $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc $CLOPTION >> ${SYSLOG} 2>&1"
-      $SUBMITSTRING $NCPU $ADCIRCDIR/padcirc $CLOPTION >> ${SYSLOG} 2>&1 
+      CPUREQUEST=$NCPU
+      if [[ $NUMWRITERS != "0" ]]; then
+         CPUREQUEST=`expr $NCPU + $NUMWRITERS`
+      fi
+      logMessage "Submitting job via $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/padcirc $CLOPTION >> ${SYSLOG} 2>&1"
+      $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/padcirc $CLOPTION >> ${SYSLOG} 2>&1 
+#
+#  Sun Grid Engine (SGE); used on Sun and many Linux clusters
    elif [[ $QUEUESYS = SGE ]]; then
       QSCRIPTOPTIONS="--ncpu $NCPU --ncpudivisor $NCPUDIVISOR --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
       perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.sge 2>> ${SYSLOG}

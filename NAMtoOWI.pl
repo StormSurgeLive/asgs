@@ -633,10 +633,6 @@ sub getGrib2
            #&stderrMessage("INFO","nlon is $nxny[0] nlat is $nxny[1].");
            $recordLength = $nxny[0] * $nxny[1];
            my @rawUVP = (@rawU,@rawV,@rawP);
-           open(STUFF,">stuff.$endTime"); # debug
-           foreach my $stuff (@rawUVP) {  # debug
-              print STUFF $stuff;         # debug
-           }                              # debug
            # interpolate if necessary
            if ( $numInterp > 0 ) {
               for ( my $i=1; $i<=$numInterp; $i++ ) {
