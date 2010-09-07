@@ -148,6 +148,7 @@ date >> $KMZLOGFILE
 # to actually generate the kmz (Google Earth) file. TARGET and BOX should
 # be specified in the CONFIG file specified above (i.e., the main ASGS
 # configuration file). 
+echo "INFO: POST_SCRIPT_Corps.sh: Generating Google Earth image with the following command: $PPDIR/adc_max_simple_plot_gmt.sh -f $OUTPUTFILE -g $GRIDPREFIX -p $OUTPUTPREFIX -n $NUMLAYER -a $TARGET -b $BOX >> $KMZLOGFILE 2>&1."  
 $PPDIR/adc_max_simple_plot_gmt.sh -f $OUTPUTFILE -g $GRIDPREFIX -p $OUTPUTPREFIX -n $NUMLAYER -a $TARGET -b $BOX >> $KMZLOGFILE 2>&1  
 date >> $KMZLOGFILE
 # #####################################################
