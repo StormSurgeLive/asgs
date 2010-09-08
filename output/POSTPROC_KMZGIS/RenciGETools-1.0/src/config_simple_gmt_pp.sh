@@ -14,7 +14,7 @@
 TARGET=$1
 BOX=$2
 #
-echo Exec-ing config file config_gmt_pp.sh
+echo "INFO: config_simple_gmt_pp.sh: TARGET is '$TARGET' and BOX is '$BOX'."
 rm -rf .gmt*
 #
 # Outputs diagnostic messages
@@ -26,26 +26,28 @@ DEBUG=1
 case "$TARGET" in 
 # for Ranger
 	"ranger") 
+                echo "INFO: config_simple_gmt_pp.sh: TARGET is ranger."
 		GMTHOME=/share/home/01053/rweaver/GMT4.4.0 # The GMT installation
-		GS=/usr/bin/gs				   # The ghostscript binary (gs)
-        	ImageMagick=/usr/bin			   # path to ImageMagick binaries
-        	ZIP=/usr/bin/zip			   # path to zip
+		GS=/usr/bin/gs	     # The ghostscript binary (gs)
+        	ImageMagick=/usr/bin # path to ImageMagick binaries
+        	ZIP=/usr/bin/zipi    # path to zip
 		;; 
         "topsail")
-           echo Target is TOPSAIL
-                GMTHOME=/ifs1/home/rjweaver/GMT4.3.1              # The GMT installation
-                GS=/usr/bin/gs                             # The ghostscript binary (gs)
-                ImageMagick=/usr/bin                       # path to ImageMagick binaries
-                ZIP=/usr/bin/zip                           # path to zip
+                echo "INFO: config_simple_gmt_pp.sh: TARGET is topsail."
+                GMTHOME=/ifs1/home/rjweaver/GMT4.3.1  # The GMT installation
+                GS=/usr/bin/gs             # The ghostscript binary (gs)
+                ImageMagick=/usr/bin       # path to ImageMagick binaries
+                ZIP=/usr/bin/zip           # path to zip
                 ;;
         "queenbee")
+                echo "INFO: config_simple_gmt_pp.sh: TARGET is queenbee."
                 GMTHOME=/home/rweaver/GMT4.3.1      # The GMT installation
-                GS=/usr/bin/gs                        # The ghostscript binary (gs)
+                GS=/usr/bin/gs            # The ghostscript binary (gs)
                 ImageMagick=/usr/local/packages/imageMagick-6.0.8/bin               # path to ImageMagick binaries
-                ZIP=/usr/bin/zip                            # path to zip
+                ZIP=/usr/bin/zip                 # path to zip
                 ;;
         "jade")
-           echo Target is Jade
+                echo "INFO: config_simple_gmt_pp.sh: TARGET is jade."
                 GMTHOME=/usr/local/usp/gmt/4.4.0  # The GMT installation
                 GS=/usr/bin/gs     # The ghostscript binary (gs)
                 # path to ImageMagick binaries
@@ -54,7 +56,7 @@ case "$TARGET" in
                 ;;
 
         "sapphire")
-           echo Target is Sapphire
+                echo "INFO: config_simple_gmt_pp.sh: TARGET is sapphire."
                 GMTHOME=/usr/local/usp/gmt/4.4.0  # The GMT installation
                 GS=/usr/bin/gs     # The ghostscript binary (gs)
                 # path to ImageMagick binaries
@@ -62,14 +64,26 @@ case "$TARGET" in
                 ZIP=/usr/bin/zip   # path to zip
                 ;;
 
+        "diamond")
+                echo "INFO: config_simple_gmt_pp.sh: TARGET is diamond."
+                GMTHOME=/usr/local/usp/gmt/4.5.2  # The GMT installation
+                GS=/usr/bin/gs     # The ghostscript binary (gs)
+                # path to ImageMagick binaries
+                ImageMagick=/usr/local/usp/ImageMagick/6.5.2-10/bin
+                ZIP=/usr/bin/zip   # path to zip
+                ;;
+
         "desktop")
-           echo Target is desktop
+                echo "INFO: config_simple_gmt_pp.sh: TARGET is desktop."
                 GMTHOME=/usr/local  # The GMT installation
                 GS=/usr/bin/gs     # The ghostscript binary (gs)
                 # path to ImageMagick binaries
                 ImageMagick=/usr/bin
                 ZIP=/usr/bin/zip   # path to zip
                 ;;
+        *)
+                echo "ERROR: config_simple_gmt_pp.sh: TARGET was either unspecified or was not recognized. Allowable values include the following: ranger, topsail, queenbee, jade, sapphire, diamond, desktop."       
+                ;; 
 esac
 
 #  input the LAT LON bounds your desire for your output
@@ -102,6 +116,8 @@ case "$BOX" in
       WEST=-79
       EAST=-75
        ;;
+       *)
+        echo "ERROR: config_simple_gmt_pp.sh: BOX was either unspecified or was not recognized. Allowable values include the following: TX, LA, WFL, NC."         
 esac
 
 

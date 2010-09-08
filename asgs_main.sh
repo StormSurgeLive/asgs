@@ -362,7 +362,7 @@ prepControlFile()
     NCPU=$2
     ACCOUNT=$3
     WALLTIME=$4
-    if [[ $ENV = jade || $ENV = sapphire ]]; then
+    if [[ $ENV = jade || $ENV = sapphire || $ENV = diamond ]]; then
        QSCRIPTOPTIONS="--ncpu $NCPU --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm $ENSTORM --syslog $SYSLOG"
        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.pbs 2>> ${SYSLOG}
        qsub $ADVISDIR/$ENSTORM/adcprep.pbs >> ${SYSLOG} 2>&1
@@ -408,7 +408,7 @@ prepHotstartFile()
       NCPU=$2
       ACCOUNT=$3
       WALLTIME=$4
-      if [[ $ENV = jade || $ENV = sapphire ]]; then
+      if [[ $ENV = jade || $ENV = sapphire || $ENV = diamond ]]; then
          QSCRIPTOPTIONS="--ncpu $NCPU --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPHOTSTARTSCRIPT --enstorm $ENSTORM --syslog $SYSLOG"
          perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep_hotstart.pbs 2>> ${SYSLOG}
          qsub $ADVISDIR/$ENSTORM/adcprep_hotstart.pbs >> ${SYSLOG} 2>&1
@@ -805,6 +805,23 @@ init_jade()
   ulimit -v 2097152   # needed for NAMtoOWI.pl to avoid Out of memory error 
 }
 
+init_diamond()
+{ #<- can replace the following with a custom script
+  HOSTNAME=diamond.erdc.hpc.mil
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  ACCOUNT=erdcvhsp
+  SUBMITSTRING="aprun"
+  SCRATCHDIR=/work/$USER
+  SSHKEY=~/.ssh/id_rsa_diamond
+  QSCRIPT=erdc.template.pbs
+  PREPCONTROLSCRIPT=erdc.adcprep.template.pbs
+  PREPHOTSTARTSCRIPT=erdc.adcprep.hotstart.template.pbs
+  QSCRIPTGEN=erdc.pbs.pl
+  ulimit -s unlimited 
+  ulimit -v 2097152   # needed for NAMtoOWI.pl to avoid Out of memory error 
+}
+
 init_queenbee()
 { #<- can replace the following with a custom script
   HOSTNAME=queenbee.loni.org
@@ -897,6 +914,9 @@ env_dispatch(){
   "jade") logMessage "Jade (ERDC) configuration found."
           init_jade
 	  ;;
+  "diamond") logMessage "Diamond (ERDC) configuration found."
+          init_diamond
+	  ;;
   "queenbee") logMessage "Queenbee (LONI) configuration found."
           init_queenbee
 	  ;;
@@ -918,7 +938,7 @@ env_dispatch(){
   "test") logMessage "test environment (default) configuration found."
           init_test
           ;; 
-  *) fatal "'$1' is not a supported environment; currently supported options: sapphire, jade, ranger, lonestar, queenbee, topsail, desktop"
+  *) fatal "'$1' is not a supported environment; currently supported options: sapphire, jade, diamond, ranger, lonestar, queenbee, topsail, desktop"
      ;;
   esac
 }
