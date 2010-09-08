@@ -1,267 +1,245 @@
-G95 module created on Fri Sep  3 15:46:03 2010 from FigureGen32.F90
-If you edit this, you'll get what you deserve.
-module-version 6
-(() () () () () () () () () () () () () () () () () () () () ())
-
-()
-
-()
-
-()
-
-()
-
-(2 'alphalabel' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-3 'borderincrementmajor' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN
-NONE NONE) (REAL 8) 0 0 () () '' () ())
-4 'borderincrementminor' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN
-NONE NONE) (REAL 8) 0 0 () () '' () ())
-5 'boundariescolor' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-6 'buffer' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (REAL
-8) 0 0 () () '' () ())
-7 'coastlinecolor' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-8 'coastlinefile' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-9 'colorlines' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '40'))) 0 0 () () '' () ())
-10 'contourconversionfactor' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN
-NONE NONE) (REAL 8) 0 0 () () '' () ())
-11 'contourfile1' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-12 'contourfile2' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-13 'contourfileformat' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-14 'contourfiletype' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (INTEGER 4) 0 0 () () '' () ())
-15 'contourinterval' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (REAL 8) 0 0 () () '' () ())
-16 'contourlabelevery' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (INTEGER 4) 0 0 () () '' () ())
-17 'contourlabelmindist' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN
-NONE NONE) (REAL 8) 0 0 () () '' () ())
-18 'contourlabelrotation' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN
-NONE NONE) (CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '40'))) 0 0 () () '' ()
-())
-19 'contourlabelsize' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (INTEGER 4) 0 0 () () '' () ())
-20 'contourmax' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-REAL 8) 0 0 () () '' () ())
-21 'contourmin' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-REAL 8) 0 0 () () '' () ())
-22 'contourunits' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '40'))) 0 0 () () '' () ())
-23 'contourxyzfile' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-24 'currenttime' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(REAL 8) 0 0 () () '' () ())
-25 'data' 'data' 1 ((MODULE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (UNKNOWN)
-0 0 () () '' () ())
-26 'diffcontoursfile' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '40'))) 0 0 () () '' () ())
-27 'findcontourrange' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (INTEGER 4) 0 0 () () '' () ())
-28 'findvectorscale' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (INTEGER 4) 0 0 () () '' () ())
-29 'fort14file' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '40'))) 0 0 () () '' () ())
-30 'googleday' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-INTEGER 4) 0 0 () () '' () ())
-31 'googlehour' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-INTEGER 4) 0 0 () () '' () ())
-32 'googlemin' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-INTEGER 4) 0 0 () () '' () ())
-33 'googlemonth' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(INTEGER 4) 0 0 () () '' () ())
-34 'googlesec' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-INTEGER 4) 0 0 () () '' () ())
-35 'googletransparency' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (INTEGER 4) 0 0 () () '' () ())
-36 'googleyear' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-INTEGER 4) 0 0 () () '' () ())
-37 'ierr' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-INTEGER 4) 0 0 () () '' () ())
-38 'ifaddplotlabel' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (INTEGER 4) 0 0 () () '' () ())
-39 'ifaddtimebar' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(INTEGER 4) 0 0 () () '' () ())
-40 'ifgoogle' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-INTEGER 4) 0 0 () () '' () ())
-41 'ifplotboundaries' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (INTEGER 4) 0 0 () () '' () ())
-42 'ifplotcoastline' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (INTEGER 4) 0 0 () () '' () ())
-43 'ifplotcontourlines' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (INTEGER 4) 0 0 () () '' () ())
-44 'ifplotfilledcontours' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN
-NONE NONE) (INTEGER 4) 0 0 () () '' () ())
-45 'ifplotgrid' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-INTEGER 4) 0 0 () () '' () ())
-46 'ifplotlabels' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(INTEGER 4) 0 0 () () '' () ())
-47 'ifplotlogo' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-INTEGER 4) 0 0 () () '' () ())
-48 'ifplotvectors' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(INTEGER 4) 0 0 () () '' () ())
-49 'imagetrimflag' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(INTEGER 4) 0 0 () () '' () ())
-50 'inputfile' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '100'))) 0 0 () () '' () ())
-51 'labelscolor' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '40'))) 0 0 () () '' () ())
-52 'labelsfile' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '40'))) 0 0 () () '' () ())
-53 'largejpgresolution' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (INTEGER 4) 0 0 () () '' () ())
-54 'latlonbuffer' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(REAL 8) 0 0 () () '' () ())
-55 'latn' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (REAL 8)
-0 0 () () '' () ())
-56 'lats' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (REAL 8)
-0 0 () () '' () ())
-57 'logofile' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-58 'logolocation' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-59 'logowidth' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-60 'longe' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (REAL
-8) 0 0 () () '' () ())
-61 'longw' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (REAL
-8) 0 0 () () '' () ())
-62 'myrank' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-INTEGER 4) 0 0 () () '' () ())
-63 'nodecolors' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE
-ALLOCATABLE DIMENSION) (REAL 8) 0 0 () (1 DEFERRED () ()) '' () ())
-64 'numnodesglobal' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (INTEGER 4) 0 0 () () '' () ())
-65 'numnodeslocal' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(INTEGER 4) 0 0 () () '' () ())
-66 'numprocs' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-INTEGER 4) 0 0 () () '' () ())
-67 'numrecords' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-INTEGER 4) 0 0 () () '' () ())
-68 'numrecs' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-INTEGER 4) 0 0 () () '' () ())
-69 'numsubdomains' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(INTEGER 4) 0 0 () () '' () ())
-70 'palette' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-71 'path' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-72 'plotlabel' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-73 'plotlabelfile' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-74 'recordslist' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE
-ALLOCATABLE DIMENSION) (INTEGER 4) 0 0 () (1 DEFERRED () ()) '' () ())
-75 'removefiles' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(INTEGER 4) 0 0 () () '' () ())
-76 'scaleheight' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(REAL 8) 0 0 () () '' () ())
-77 'scalelabelevery' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (REAL 8) 0 0 () () '' () ())
-78 'scalewidth' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-REAL 8) 0 0 () () '' () ())
-79 'smalljpgwidth' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(INTEGER 4) 0 0 () () '' () ())
-80 'smspalette' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '40'))) 0 0 () () '' () ())
-81 'splitby' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-INTEGER 4) 0 0 () () '' () ())
-82 'templabelsfile' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '60'))) 0 0 () () '' () ())
-83 'tempmapfile1' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '60'))) 0 0 () () '' () ())
-84 'tempmapfile2' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '60'))) 0 0 () () '' () ())
-85 'temppath' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-86 'timecurrentfile' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-87 'timecurrenttextfile' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN
-NONE NONE) (CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' ()
-())
-88 'timemaxfile' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-89 'timestep' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-INTEGER 4) 0 0 () () '' () ())
-90 'vectorconversionfactor' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN
-NONE NONE) (REAL 8) 0 0 () () '' () ())
-91 'vectorfile' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '40'))) 0 0 () () '' () ())
-92 'vectorfileformat' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-93 'vectorfiletype' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (INTEGER 4) 0 0 () () '' () ())
-94 'vectorheadlength' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (REAL 8) 0 0 () () '' () ())
-95 'vectorheadwidth' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (REAL 8) 0 0 () () '' () ())
-96 'vectormag' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-REAL 8) 0 0 () () '' () ())
-97 'vectorscalefile' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '40'))) 0 0 () () '' () ())
-98 'vectorscalemag' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (REAL 8) 0 0 () () '' () ())
-99 'vectorspacing' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(REAL 8) 0 0 () () '' () ())
-100 'vectortailwidth' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (REAL 8) 0 0 () () '' () ())
-101 'vectortextfile' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE
-NONE) (CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '40'))) 0 0 () () '' () ())
-102 'vectorufile' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-103 'vectorunits' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '40'))) 0 0 () () '' () ())
-104 'vectorvfile' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE)
-(CHARACTER 1 ((CONSTANT (INTEGER 4) 0 '50'))) 0 0 () () '' () ())
-105 'verbose' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-INTEGER 4) 0 0 () () '' () ())
-106 'width' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE) (
-REAL 8) 0 0 () () '' () ())
-107 'x' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE
-ALLOCATABLE DIMENSION) (REAL 8) 0 0 () (1 DEFERRED () ()) '' () ())
-108 'xyznodes' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE
-ALLOCATABLE DIMENSION) (INTEGER 4) 0 0 () (1 DEFERRED () ()) '' () ())
-109 'y' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE
-ALLOCATABLE DIMENSION) (REAL 8) 0 0 () (1 DEFERRED () ()) '' () ())
-110 'z' 'data' 1 ((VARIABLE UNKNOWN UNKNOWN UNKNOWN NONE NONE
-ALLOCATABLE DIMENSION) (REAL 8) 0 0 () (1 DEFERRED () ()) '' () ())
-)
-
-('alphalabel' 0 2 'borderincrementmajor' 0 3 'borderincrementminor' 0 4
-'boundariescolor' 0 5 'buffer' 0 6 'coastlinecolor' 0 7 'coastlinefile'
-0 8 'colorlines' 0 9 'contourconversionfactor' 0 10 'contourfile1' 0 11
-'contourfile2' 0 12 'contourfileformat' 0 13 'contourfiletype' 0 14
-'contourinterval' 0 15 'contourlabelevery' 0 16 'contourlabelmindist' 0
-17 'contourlabelrotation' 0 18 'contourlabelsize' 0 19 'contourmax' 0 20
-'contourmin' 0 21 'contourunits' 0 22 'contourxyzfile' 0 23 'currenttime'
-0 24 'data' 0 25 'diffcontoursfile' 0 26 'findcontourrange' 0 27
-'findvectorscale' 0 28 'fort14file' 0 29 'googleday' 0 30 'googlehour' 0
-31 'googlemin' 0 32 'googlemonth' 0 33 'googlesec' 0 34
-'googletransparency' 0 35 'googleyear' 0 36 'ierr' 0 37 'ifaddplotlabel'
-0 38 'ifaddtimebar' 0 39 'ifgoogle' 0 40 'ifplotboundaries' 0 41
-'ifplotcoastline' 0 42 'ifplotcontourlines' 0 43 'ifplotfilledcontours'
-0 44 'ifplotgrid' 0 45 'ifplotlabels' 0 46 'ifplotlogo' 0 47
-'ifplotvectors' 0 48 'imagetrimflag' 0 49 'inputfile' 0 50 'labelscolor'
-0 51 'labelsfile' 0 52 'largejpgresolution' 0 53 'latlonbuffer' 0 54
-'latn' 0 55 'lats' 0 56 'logofile' 0 57 'logolocation' 0 58 'logowidth'
-0 59 'longe' 0 60 'longw' 0 61 'myrank' 0 62 'nodecolors' 0 63
-'numnodesglobal' 0 64 'numnodeslocal' 0 65 'numprocs' 0 66 'numrecords'
-0 67 'numrecs' 0 68 'numsubdomains' 0 69 'palette' 0 70 'path' 0 71
-'plotlabel' 0 72 'plotlabelfile' 0 73 'recordslist' 0 74 'removefiles' 0
-75 'scaleheight' 0 76 'scalelabelevery' 0 77 'scalewidth' 0 78
-'smalljpgwidth' 0 79 'smspalette' 0 80 'splitby' 0 81 'templabelsfile' 0
-82 'tempmapfile1' 0 83 'tempmapfile2' 0 84 'temppath' 0 85
-'timecurrentfile' 0 86 'timecurrenttextfile' 0 87 'timemaxfile' 0 88
-'timestep' 0 89 'vectorconversionfactor' 0 90 'vectorfile' 0 91
-'vectorfileformat' 0 92 'vectorfiletype' 0 93 'vectorheadlength' 0 94
-'vectorheadwidth' 0 95 'vectormag' 0 96 'vectorscalefile' 0 97
-'vectorscalemag' 0 98 'vectorspacing' 0 99 'vectortailwidth' 0 100
-'vectortextfile' 0 101 'vectorufile' 0 102 'vectorunits' 0 103
-'vectorvfile' 0 104 'verbose' 0 105 'width' 0 106 'x' 0 107 'xyznodes' 0
-108 'y' 0 109 'z' 0 110)
+V24 data
+15 FigureGen26.F90 S582 0
+09/08/2010  09:50:11
+enduse
+D 44 18 12
+D 46 18 13
+D 48 18 14
+D 50 18 15
+D 52 21 6 1 30 28 0 1 0 0 1
+ 20 24 26 20 24 22
+D 55 21 6 1 0 17 0 0 0 0 0
+ 0 17 0 3 17 0
+D 58 21 6 1 40 39 0 1 0 0 1
+ 34 37 38 34 37 35
+D 61 21 6 1 0 17 0 0 0 0 0
+ 0 17 0 3 17 0
+D 67 21 9 1 52 51 0 1 0 0 1
+ 46 49 50 46 49 47
+D 70 21 6 1 0 17 0 0 0 0 0
+ 0 17 0 3 17 0
+D 76 21 9 1 62 61 0 1 0 0 1
+ 56 59 60 56 59 57
+D 79 21 6 1 0 17 0 0 0 0 0
+ 0 17 0 3 17 0
+D 85 21 9 1 72 71 0 1 0 0 1
+ 66 69 70 66 69 67
+D 88 21 6 1 0 17 0 0 0 0 0
+ 0 17 0 3 17 0
+S 582 24 0 0 0 8 1 0 4664 5 0 0 0 0 0 0 0 0 0 98 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 data
+S 583 3 0 0 0 6 0 1 0 0 0 0 0 0 0 0 50 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 6
+S 584 6 4 0 0 44 585 582 4669 4 0 0 0 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 alphalabel
+S 585 6 4 0 0 44 586 582 4680 4 0 0 50 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 boundariescolor
+S 586 6 4 0 0 44 587 582 4696 4 0 0 100 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 coastlinecolor
+S 587 6 4 0 0 44 589 582 4711 4 0 0 150 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 coastlinefile
+S 588 3 0 0 0 6 0 1 0 0 0 0 0 0 0 0 40 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 6
+S 589 6 4 0 0 46 590 582 4725 4 0 0 200 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 colorlines
+S 590 6 4 0 0 44 591 582 4736 4 0 0 240 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 contourfile1
+S 591 6 4 0 0 44 592 582 4749 4 0 0 290 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 contourfile2
+S 592 6 4 0 0 44 593 582 4762 4 0 0 340 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 contourfileformat
+S 593 6 4 0 0 46 594 582 4780 4 0 0 390 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 contourlabelrotation
+S 594 6 4 0 0 46 595 582 4801 4 0 0 430 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 contourunits
+S 595 6 4 0 0 44 596 582 4814 4 0 0 470 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 contourxyzfile
+S 596 6 4 0 0 46 597 582 4829 4 0 0 520 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 diffcontoursfile
+S 597 6 4 0 0 46 599 582 4846 4 0 0 560 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 fort14file
+S 598 3 0 0 0 6 0 1 0 0 0 0 0 0 0 0 100 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 6
+S 599 6 4 0 0 48 600 582 4857 4 0 0 600 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 inputfile
+S 600 6 4 0 0 46 601 582 4867 4 0 0 700 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 labelscolor
+S 601 6 4 0 0 46 602 582 4879 4 0 0 740 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 labelsfile
+S 602 6 4 0 0 44 603 582 4890 4 0 0 780 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 palette
+S 603 6 4 0 0 44 604 582 4898 4 0 0 830 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 path
+S 604 6 4 0 0 44 605 582 4903 4 0 0 880 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 plotlabel
+S 605 6 4 0 0 44 606 582 4913 4 0 0 930 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 plotlabelfile
+S 606 6 4 0 0 46 608 582 4927 4 0 0 980 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 smspalette
+S 607 3 0 0 0 6 0 1 0 0 0 0 0 0 0 0 60 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 6
+S 608 6 4 0 0 50 609 582 4938 4 0 0 1020 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 templabelsfile
+S 609 6 4 0 0 50 610 582 4953 4 0 0 1080 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 tempmapfile1
+S 610 6 4 0 0 50 611 582 4966 4 0 0 1140 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 tempmapfile2
+S 611 6 4 0 0 44 612 582 4979 4 0 0 1200 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 temppath
+S 612 6 4 0 0 44 613 582 4988 4 0 0 1250 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 timecurrentfile
+S 613 6 4 0 0 44 614 582 5004 4 0 0 1300 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 timecurrenttextfile
+S 614 6 4 0 0 44 615 582 5024 4 0 0 1350 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 timemaxfile
+S 615 6 4 0 0 46 616 582 5036 4 0 0 1400 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 vectorfile
+S 616 6 4 0 0 44 617 582 5047 4 0 0 1440 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 vectorfileformat
+S 617 6 4 0 0 46 618 582 5064 4 0 0 1490 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 vectorscalefile
+S 618 6 4 0 0 46 619 582 5080 4 0 0 1530 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 vectortextfile
+S 619 6 4 0 0 46 620 582 5095 4 0 0 1570 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 vectorunits
+S 620 6 4 0 0 44 621 582 5107 4 0 0 1610 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 vectorufile
+S 621 6 4 0 0 44 1 582 5119 4 0 0 1660 0 0 0 0 0 0 714 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 vectorvfile
+S 622 6 4 0 0 6 623 582 5131 4 0 0 0 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 contourfiletype
+S 623 6 4 0 0 6 624 582 5147 4 0 0 4 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 contourlabelevery
+S 624 6 4 0 0 6 625 582 5165 4 0 0 8 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 contourlabelsize
+S 625 6 4 0 0 6 626 582 5182 4 0 0 12 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 findcontourrange
+S 626 6 4 0 0 6 627 582 5199 4 0 0 16 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 findvectorscale
+S 627 6 4 0 0 6 628 582 5215 4 0 0 20 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 ierr
+S 628 6 4 0 0 6 629 582 5220 4 0 0 24 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 ifaddplotlabel
+S 629 6 4 0 0 6 630 582 5235 4 0 0 28 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 ifaddtimebar
+S 630 6 4 0 0 6 631 582 5248 4 0 0 32 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 ifplotboundaries
+S 631 6 4 0 0 6 632 582 5265 4 0 0 36 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 ifplotcoastline
+S 632 6 4 0 0 6 633 582 5281 4 0 0 40 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 ifplotcontourlines
+S 633 6 4 0 0 6 634 582 5300 4 0 0 44 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 ifplotfilledcontours
+S 634 6 4 0 0 6 635 582 5321 4 0 0 48 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 ifplotgrid
+S 635 6 4 0 0 6 636 582 5332 4 0 0 52 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 ifplotlabels
+S 636 6 4 0 0 6 637 582 5345 4 0 0 56 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 ifplotvectors
+S 637 6 4 0 0 6 638 582 5359 4 0 0 60 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 largejpgresolution
+S 638 6 4 0 0 6 639 582 5378 4 0 0 64 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 myrank
+S 639 6 4 0 0 6 640 582 5385 4 0 0 68 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 numnodesglobal
+S 640 6 4 0 0 6 641 582 5400 4 0 0 72 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 numnodeslocal
+S 641 6 4 0 0 6 642 582 5414 4 0 0 76 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 numprocs
+S 642 6 4 0 0 6 643 582 5423 4 0 0 80 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 numrecords
+S 643 6 4 0 0 6 644 582 5434 4 0 0 84 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 numrecs
+S 644 6 4 0 0 6 657 582 5442 40800006 0 0 88 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 z_b_0
+S 645 7 6 0 0 52 1 582 5448 10a00004 51 0 0 648 0 0 0 650 0 0 0 0 0 0 0 0 647 0 0 649 582 0 0 0 0 recordslist
+S 646 3 0 0 0 6 0 1 0 0 0 0 0 0 0 0 18 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 6
+S 647 8 4 0 0 55 664 582 5460 40822004 1020 0 0 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 recordslist$sd
+S 648 6 4 0 0 7 649 582 5475 40802001 1020 0 0 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 recordslist$p
+S 649 6 4 0 0 7 647 582 5489 40802000 1020 0 0 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 recordslist$o
+S 650 22 1 0 0 8 1 582 5503 40000000 1000 0 0 0 645 0 0 0 0 647 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 recordslist$arrdsc
+S 651 3 0 0 0 6 0 1 0 0 0 0 0 0 0 0 13 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 6
+S 652 3 0 0 0 6 0 1 0 0 0 0 0 0 0 0 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 6
+S 653 3 0 0 0 6 0 1 0 0 0 0 0 0 0 0 17 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 6
+S 654 3 0 0 0 6 0 1 0 0 0 0 0 0 0 0 7 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 6
+S 655 3 0 0 0 6 0 1 0 0 0 0 0 0 0 0 8 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 6
+S 656 6 4 0 0 6 1 582 5522 80000c 0 0 0 0 0 0 0 0 0 716 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 removefiles
+S 657 6 4 0 0 6 658 582 5534 4 0 0 92 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 smalljpgwidth
+S 658 6 4 0 0 6 659 582 5548 4 0 0 96 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 splitby
+S 659 6 4 0 0 6 660 582 5556 4 0 0 100 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 vectorfiletype
+S 660 6 4 0 0 6 661 582 5571 4 0 0 104 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 verbose
+S 661 6 4 0 0 6 693 582 5579 40800006 0 0 108 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 z_b_1
+S 662 7 6 0 0 58 1 582 5585 10a00004 51 0 0 664 0 0 0 666 0 0 0 0 0 0 0 0 663 0 0 665 582 0 0 0 0 xyznodes
+S 663 8 4 0 0 61 697 582 5594 40822004 1020 0 0 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 xyznodes$sd
+S 664 6 4 0 0 7 665 582 5606 40802001 1020 0 0 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 xyznodes$p
+S 665 6 4 0 0 7 663 582 5617 40802000 1020 0 0 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 xyznodes$o
+S 666 22 1 0 0 8 1 582 5628 40000000 1000 0 0 0 662 0 0 0 0 663 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 xyznodes$arrdsc
+S 667 6 4 0 0 9 668 582 5644 4 0 0 0 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 borderincrementmajor
+S 668 6 4 0 0 9 669 582 5665 4 0 0 8 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 borderincrementminor
+S 669 6 4 0 0 9 670 582 5686 4 0 0 16 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 buffer
+S 670 6 4 0 0 9 671 582 5693 4 0 0 24 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 contourconversionfactor
+S 671 6 4 0 0 9 672 582 5717 4 0 0 32 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 contourinterval
+S 672 6 4 0 0 9 673 582 5733 4 0 0 40 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 contourlabelmindist
+S 673 6 4 0 0 9 674 582 5753 4 0 0 48 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 contourmax
+S 674 6 4 0 0 9 675 582 5764 4 0 0 56 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 contourmin
+S 675 6 4 0 0 9 678 582 5775 4 0 0 64 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 currenttime
+S 676 6 4 0 0 9 1 582 5787 80000c 0 0 0 0 0 0 0 0 0 718 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 latlonbuffer
+S 677 3 0 0 0 8 0 1 0 0 0 0 0 0 0 0 1048576000 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 8
+S 678 6 4 0 0 9 679 582 5800 4 0 0 72 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 latn
+S 679 6 4 0 0 9 680 582 5805 4 0 0 80 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 lats
+S 680 6 4 0 0 9 681 582 5810 4 0 0 88 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 longe
+S 681 6 4 0 0 9 682 582 5816 4 0 0 96 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 longw
+S 682 6 4 0 0 9 683 582 5822 4 0 0 104 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 scaleheight
+S 683 6 4 0 0 9 684 582 5834 4 0 0 112 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 scalelabelevery
+S 684 6 4 0 0 9 685 582 5850 4 0 0 120 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 scalewidth
+S 685 6 4 0 0 9 686 582 5861 4 0 0 128 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 vectorconversionfactor
+S 686 6 4 0 0 9 687 582 5884 4 0 0 136 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 vectormag
+S 687 6 4 0 0 9 688 582 5894 4 0 0 144 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 vectorheadlength
+S 688 6 4 0 0 9 689 582 5911 4 0 0 152 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 vectorheadwidth
+S 689 6 4 0 0 9 690 582 5927 4 0 0 160 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 vectorscalemag
+S 690 6 4 0 0 9 691 582 5942 4 0 0 168 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 vectorspacing
+S 691 6 4 0 0 9 692 582 5956 4 0 0 176 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 vectortailwidth
+S 692 6 4 0 0 9 1 582 5972 4 0 0 184 0 0 0 0 0 0 717 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 width
+S 693 6 4 0 0 6 695 582 5978 40800006 0 0 112 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 z_b_2
+S 694 7 6 0 0 67 1 582 5984 10a00004 51 0 0 697 0 0 0 699 0 0 0 0 0 0 0 0 696 0 0 698 582 0 0 0 0 x
+S 695 6 4 0 0 6 700 582 5986 40800006 0 0 116 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 z_b_3
+S 696 8 4 0 0 70 704 582 5992 40822004 1020 0 0 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 x$sd
+S 697 6 4 0 0 7 698 582 5997 40802001 1020 0 0 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 x$p
+S 698 6 4 0 0 7 696 582 6001 40802000 1020 0 0 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 x$o
+S 699 22 1 0 0 8 1 582 6005 40000000 1000 0 0 0 694 0 0 0 0 696 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 x$arrdsc
+S 700 6 4 0 0 6 702 582 6014 40800006 0 0 120 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 z_b_4
+S 701 7 6 0 0 76 1 582 6020 10a00004 51 0 0 704 0 0 0 706 0 0 0 0 0 0 0 0 703 0 0 705 582 0 0 0 0 y
+S 702 6 4 0 0 6 707 582 6022 40800006 0 0 124 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 z_b_5
+S 703 8 4 0 0 79 711 582 6028 40822004 1020 0 0 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 y$sd
+S 704 6 4 0 0 7 705 582 6033 40802001 1020 0 0 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 y$p
+S 705 6 4 0 0 7 703 582 6037 40802000 1020 0 0 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 y$o
+S 706 22 1 0 0 8 1 582 6041 40000000 1000 0 0 0 701 0 0 0 0 703 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 y$arrdsc
+S 707 6 4 0 0 6 709 582 6050 40800006 0 0 128 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 z_b_6
+S 708 7 6 0 0 85 1 582 6056 10a00004 51 0 0 711 0 0 0 713 0 0 0 0 0 0 0 0 710 0 0 712 582 0 0 0 0 z
+S 709 6 4 0 0 6 1 582 6058 40800006 0 0 132 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 z_b_7
+S 710 8 4 0 0 88 622 582 6064 40822004 1020 0 0 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 z$sd
+S 711 6 4 0 0 7 712 582 6069 40802001 1020 0 0 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 z$p
+S 712 6 4 0 0 7 710 582 6073 40802000 1020 0 0 0 0 0 0 0 0 715 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 z$o
+S 713 22 1 0 0 8 1 582 6077 40000000 1000 0 0 0 708 0 0 0 0 710 0 0 0 0 0 0 0 0 0 0 582 0 0 0 0 z$arrdsc
+S 714 11 0 0 0 8 1 582 6086 40800000 801000 0 1710 0 0 584 621 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 data$1
+S 715 11 0 0 0 8 714 582 6093 40800000 801000 0 576 0 0 648 709 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 data$0
+S 716 11 0 0 0 8 715 582 6100 40800008 801000 0 4 0 0 656 656 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 data$8
+S 717 11 0 0 0 8 716 582 6107 40800000 801000 0 192 0 0 667 692 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 data$2
+S 718 11 0 0 0 8 717 582 6114 40800008 801000 0 8 0 0 676 676 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 data$10
+A 12 2 0 0 0 6 583 0 0 0 12 0 0 0 0 0 0 0 0 0
+A 13 2 0 0 0 6 588 0 0 0 13 0 0 0 0 0 0 0 0 0
+A 14 2 0 0 0 6 598 0 0 0 14 0 0 0 0 0 0 0 0 0
+A 15 2 0 0 0 6 607 0 0 0 15 0 0 0 0 0 0 0 0 0
+A 17 2 0 0 0 6 646 0 0 0 17 0 0 0 0 0 0 0 0 0
+A 18 2 0 0 0 6 651 0 0 0 18 0 0 0 0 0 0 0 0 0
+A 19 1 0 1 0 55 647 0 0 0 0 0 0 0 0 0 0 0 0 0
+A 20 10 0 0 0 6 19 1 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 18
+A 21 2 0 0 0 6 652 0 0 0 21 0 0 0 0 0 0 0 0 0
+A 22 10 0 0 20 6 19 4 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 21
+A 23 4 0 0 0 6 22 0 3 0 0 0 0 2 0 0 0 0 0 0
+A 24 4 0 0 0 6 20 0 23 0 0 0 0 1 0 0 0 0 0 0
+A 25 2 0 0 0 6 653 0 0 0 25 0 0 0 0 0 0 0 0 0
+A 26 10 0 0 22 6 19 7 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 25
+A 27 2 0 0 0 6 654 0 0 0 27 0 0 0 0 0 0 0 0 0
+A 28 10 0 0 26 6 19 10 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 27
+A 29 2 0 0 0 6 655 0 0 0 29 0 0 0 0 0 0 0 0 0
+A 30 10 0 0 28 6 19 13 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 29
+A 31 1 0 0 0 6 656 0 0 0 0 0 0 0 0 0 0 0 0 0
+A 33 1 0 1 0 61 663 0 0 0 0 0 0 0 0 0 0 0 0 0
+A 34 10 0 0 0 6 33 1 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 18
+A 35 10 0 0 34 6 33 4 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 21
+A 36 4 0 0 0 6 35 0 3 0 0 0 0 2 0 0 0 0 0 0
+A 37 4 0 0 0 6 34 0 36 0 0 0 0 1 0 0 0 0 0 0
+A 38 10 0 0 35 6 33 7 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 25
+A 39 10 0 0 38 6 33 10 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 27
+A 40 10 0 0 39 6 33 13 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 29
+A 41 2 0 0 0 8 677 0 0 0 41 0 0 0 0 0 0 0 0 0
+A 42 1 0 0 0 9 676 0 0 0 0 0 0 0 0 0 0 0 0 0
+A 45 1 0 1 0 70 696 0 0 0 0 0 0 0 0 0 0 0 0 0
+A 46 10 0 0 0 6 45 1 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 18
+A 47 10 0 0 46 6 45 4 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 21
+A 48 4 0 0 0 6 47 0 3 0 0 0 0 2 0 0 0 0 0 0
+A 49 4 0 0 0 6 46 0 48 0 0 0 0 1 0 0 0 0 0 0
+A 50 10 0 0 47 6 45 7 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 25
+A 51 10 0 0 50 6 45 10 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 27
+A 52 10 0 0 51 6 45 13 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 29
+A 55 1 0 1 48 79 703 0 0 0 0 0 0 0 0 0 0 0 0 0
+A 56 10 0 0 0 6 55 1 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 18
+A 57 10 0 0 56 6 55 4 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 21
+A 58 4 0 0 0 6 57 0 3 0 0 0 0 2 0 0 0 0 0 0
+A 59 4 0 0 0 6 56 0 58 0 0 0 0 1 0 0 0 0 0 0
+A 60 10 0 0 57 6 55 7 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 25
+A 61 10 0 0 60 6 55 10 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 27
+A 62 10 0 0 61 6 55 13 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 29
+A 65 1 0 1 0 88 710 0 0 0 0 0 0 0 0 0 0 0 0 0
+A 66 10 0 0 0 6 65 1 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 18
+A 67 10 0 0 66 6 65 4 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 21
+A 68 4 0 0 0 6 67 0 3 0 0 0 0 2 0 0 0 0 0 0
+A 69 4 0 0 0 6 66 0 68 0 0 0 0 1 0 0 0 0 0 0
+A 70 10 0 0 67 6 65 7 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 25
+A 71 10 0 0 70 6 65 10 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 27
+A 72 10 0 0 71 6 65 13 0 0 0 0 0 0 0 0 0 0 0 0
+X 1 29
+Z
+Z

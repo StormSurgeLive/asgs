@@ -32,6 +32,7 @@ c individual data files, one for each model output (typically hourly)
       real noData, timestep
       real elev(500000), elevPt
       integer stringLen
+      integer iargc
 
 !     First arg if any is the name of the input.63
       if (iargc() .gt. 0)then
