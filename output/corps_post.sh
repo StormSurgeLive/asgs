@@ -126,14 +126,14 @@ if [[ $BACKGROUNDMET = on ]]; then
    ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/NAM"
 fi
 if [[ $TROPICALCYCLONE = on ]]; then 
-   STORMNAME=`cat nhcClassName` 
+   STORMCLASSNAME=`cat nhcClassName` 
    # find the space between the storm class (TD, TS, HU, etc) and the NHC name
-   ind=`expr index "$STORMNAME" ' '`
+   ind=`expr index "$STORMCLASSNAME" ' '`
    # just use the storm's name and year on the web page
-   STORMNAME="${STORMNAME:$ind}$YEAR"
-   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "mkdir -p ${WEBPATH}/$STORMNAME/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}"
-   scp -i $SSHKEY index.html ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
-   scp -i $SSHKEY $GISKMZJPG ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
-   scp -i $SSHKEY $PLOTS ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
-   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/$STORMNAME/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}"
+   STORMNAME=${STORMCLASSNAME:$ind}
+   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "mkdir -p ${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}"
+   scp -i $SSHKEY index.html ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
+   scp -i $SSHKEY $GISKMZJPG ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
+   scp -i $SSHKEY $PLOTS ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
+   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}"
 fi

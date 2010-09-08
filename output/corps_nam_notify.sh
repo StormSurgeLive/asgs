@@ -22,7 +22,8 @@ activation_email()
   STORM=$2
   YEAR=$3
   STORMDIR=$4
-  ACTIVATE_LIST=$5
+  GRIDFILE=$5
+  ACTIVATE_LIST=$6
 
 COMMA_SEP_LIST=${ACTIVATE_LIST// /,}
 
@@ -31,10 +32,11 @@ This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
 This message is to let you know that the ASGS has been ACTIVATED and is using
-the North American Mesoscale model for meteorological forcing.
+the North American Mesoscale (NAM) model for meteorological forcing. Results
+will be produced using the $GRIDFILE grid. 
 
 You will continue to receive email from the ASGS on $HOSTNAME
-as the results of this guidance become available.
+as the results become available.
 
 END
     logMessage "Sending activation email to the following addresses: $COMMA_SEP_LIST."
@@ -46,7 +48,8 @@ new_advisory_email()
   STORM=$2
   YEAR=$3
   ADVISORY=$4
-  NEW_ADVISORY_LIST=$5
+  GRIDFILE=$5
+  NEW_ADVISORY_LIST=$6
 
   # replace spaces in mailing list with commas
   COMMA_SEP_LIST=${NEW_ADVISORY_LIST// /,}
@@ -58,7 +61,7 @@ running on ${HOSTNAME}.
 The supercomputer $HOSTNAME has detected a new NAM cycle
 (number $ADVISORY) from the National Centers for Environmental
 Prediction (NCEP). The forcing data have been downloaded; ADCIRC surge
-calculations are about to begin. 
+calculations are about to begin, using the $GRIDFILE grid. 
 
 You will receive another email from the ASGS on $HOSTNAME
 as soon as the resulting storm surge guidance becomes available.
@@ -76,18 +79,19 @@ YEAR=$3
 ADVISORY=$4
 HOSTNAME=$5
 ENSTORM=$6
-POST_LIST=$7
+GRIDFILE=$7
+POST_LIST=$8
 
 cat <<END > $ASGSADVISORYDIR/post_notify.txt 
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
 The supercomputer $HOSTNAME has produced ADCIRC results for 
-surge guidance for NAM cycle $ADVISORY. 
+NAM cycle $ADVISORY on the $GRIDFILE grid.
 
 These results can be found at the following web site:
 
-http://www.seahorsecoastal.com/ASGS/NAM/$HOSTNAME/$ADVISORY
+http://www.seahorsecoastal.com/ASGS/NAM/$GRIDFILE/$HOSTNAME/0.25DegreeResolution/$ADVISORY
 
 The results consist of two archive files; the first contains hydrographs and 
 wind speed plots at selected locations as well as the raw data that were

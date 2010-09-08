@@ -22,7 +22,8 @@ activation_email()
   STORM=$2
   YEAR=$3
   STORMDIR=$4
-  ACTIVATE_LIST=$5
+  GRIDFILE=$5
+  ACTIVATE_LIST=$6
 
 COMMA_SEP_LIST=${ACTIVATE_LIST// /,}
 
@@ -31,7 +32,7 @@ This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
 This message is to let you know that the ASGS has been ACTIVATED for storm
-number $STORM of ${YEAR}. 
+number $STORM of ${YEAR} on the $GRIDFILE grd. 
 
 The ASGS was activated on $HOSTNAME because 
 the storm is forecast to pass within 270 nautical miles of southern Louisiana
@@ -62,7 +63,8 @@ new_advisory_email()
   STORM=$2
   YEAR=$3
   ADVISORY=$4
-  NEW_ADVISORY_LIST=$5
+  GRIDFILE=$5
+  NEW_ADVISORY_LIST=$6
 
   # replace spaces in mailing list with commas
   COMMA_SEP_LIST=${NEW_ADVISORY_LIST// /,}
@@ -72,9 +74,10 @@ This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
 The supercomputer $HOSTNAME has detected a new advisory
-(number $ADVISORY) from the National Hurricane Center for storm number $STORM 
-of ${YEAR}. This advisory has been downloaded; ADCIRC
-storm surge calculations are about to begin. 
+(number $ADVISORY) from the National Hurricane Center for storm number
+$STORM of ${YEAR}. This advisory has been downloaded; ADCIRC
+storm surge calculations are about to begin on the $GRIDFILE 
+grid. 
 
 You will receive another email from the ASGS on $HOSTNAME
 as soon as the resulting storm surge guidance becomes available.
@@ -92,23 +95,31 @@ END
  
 post_email()
 { ASGSADVISORYDIR=$1
-STORM=$2
+STORMCLASSNAME=$2
 YEAR=$3
 ADVISORY=$4
 HOSTNAME=$5
 ENSTORM=$6
-POST_LIST=$7
+GRIDFILE=$7
+POST_LIST=$8
+#
+# STORMCLASSNAME will be something like "HU IKE" or "TS EARL"
+# find the location of the space between the storm class and the name
+ind=`expr index "$STORMCLASSNAME" ' '`
+# to get just the name, strip off the space and everything before it
+STORMNAME=${STORMCLASSNAME:$ind}
 
 cat <<END > $ASGSADVISORYDIR/post_notify.txt 
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
 The supercomputer $HOSTNAME has produced ADCIRC results for 
-storm surge guidance for advisory $ADVISORY for storm $STORM of $YEAR. 
+storm surge guidance for advisory $ADVISORY for $STORMCLASSNAME of $YEAR
+on the $GRIDFILE grid. 
 
 These results can be found at the following web site:
 
-http://www.seahorsecoastal.com/ASGS/$HOSTNAME/$STORM$YEAR/advisory_$ADVISORY
+http://www.seahorsecoastal.com/ASGS/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_$ADVISORY
 
 The results consist of two archive files; the first contains hydrographs and 
 wind speed plots at selected locations as well as the raw data that were
@@ -123,7 +134,7 @@ END
 COMMA_SEP_LIST=${POST_LIST// /,}
 #
 logMessage "Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
-cat $ASGSADVISORYDIR/post_notify.txt | mail -s "ASGS results available for storm $STORM advisory $ADVISORY on $HOSTNAME" $POST_LIST
+cat $ASGSADVISORYDIR/post_notify.txt | mail -s "ASGS results available for $STORMCLASSNAME advisory $ADVISORY on $HOSTNAME" $POST_LIST
 }
 
 

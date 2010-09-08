@@ -1117,7 +1117,7 @@ fi
 #
 if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
    # send out an email to notify users that the ASGS is ACTIVATED
-   activation_email $HOSTNAME $STORM $YEAR $RUNDIR "${ACTIVATE_LIST}" >> ${SYSLOG} 2>&1
+   activation_email $HOSTNAME $STORM $YEAR $RUNDIR $GRIDFILE "${ACTIVATE_LIST}" >> ${SYSLOG} 2>&1
 fi
 #
 OLDADVISDIR=null
@@ -1291,7 +1291,7 @@ while [ 1 -eq 1 ]; do
        ln -s $NAM222 fort.222 2>> ${SYSLOG}
     fi
     if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
-       new_advisory_email $HOSTNAME $STORM $YEAR $ADVISORY "${NEW_ADVISORY_LIST}" >> ${SYSLOG} 2>&1
+       new_advisory_email $HOSTNAME $STORM $YEAR $ADVISORY $GRIDFILE "${NEW_ADVISORY_LIST}" >> ${SYSLOG} 2>&1
     fi
     perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
     logMessage "Starting nowcast."
@@ -1394,7 +1394,8 @@ while [ 1 -eq 1 ]; do
           # execute post processing
           ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
           if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
-             post_email $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM "${POST_LIST}" >> ${SYSLOG} 2>&1
+             STORMNAME=`cat ${ADVISDIR}/${ENSTORM}/nhcClassName`
+             post_email $ADVISDIR "$STORMNAME" $YEAR $ADVISORY $HOSTNAME $ENSTORM $GRIDFILE "${POST_LIST}" >> ${SYSLOG} 2>&1
           fi
           if [[ ! -z $POSTPROCESS2 ]]; then # creates GIS and kmz figures
              ${OUTPUTDIR}/${POSTPROCESS2} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG 2>> ${SYSLOG} 
