@@ -46,7 +46,7 @@ case "$TARGET" in
                 ;;
         "jade")
            echo Target is Jade
-                GMTHOME=/usr/local/usp/gmt  # The GMT installation
+                GMTHOME=/usr/local/usp/gmt/4.4.0  # The GMT installation
                 GS=/usr/bin/gs     # The ghostscript binary (gs)
                 # path to ImageMagick binaries
                 ImageMagick=/usr/local/usp/ImageMagick/bin
