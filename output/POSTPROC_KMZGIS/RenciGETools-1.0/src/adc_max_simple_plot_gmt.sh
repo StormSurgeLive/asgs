@@ -195,7 +195,7 @@ function MakeColorbar
 
 function MakePlot
 {
-	local file cpt max units barg title BOX targ
+	local file cpt max units barg title BOX targ TARGET
 	file=$1
 	cpt=$2
 	max=$3
@@ -203,6 +203,7 @@ function MakePlot
 	barg=$5
 	BOX=$6
     	level=$7
+        TARGET=$8
 
     # This is the number of tiles on a side at this level
     nTiles=$(echo "2^($level - 1)" |bc)
@@ -560,8 +561,8 @@ if [ -e $MaxFile  ] ; then
    	   for ((currentLevel=1; currentLevel<=NLevels; currentLevel++))
     	  do
 	         for b in "${BOXLIMS[@]}" ; do
-	            echo MakePlot max.temp $CPTZ $max $UNITS $BARG  $b $currentLevel 
-	    		MakePlot      max.temp $CPTZ $max $UNITS $BARG  $b $currentLevel 
+	            echo MakePlot max.temp $CPTZ $max $UNITS $BARG  $b $currentLevel $TARGET
+                    MakePlot max.temp $CPTZ $max $UNITS $BARG $b $currentLevel $TARGET 
 	    	 done
     	  done
 
