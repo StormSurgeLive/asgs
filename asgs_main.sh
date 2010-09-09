@@ -1029,6 +1029,7 @@ INPUTDIR=
 PERL5LIB=
 SSHKEY=
 PPN=1
+STORMNAME=stormname
 logMessage "ASGS Start Up MSG: [PROCID] $$"
 logMessage "ASGS Start Up MSG: [SYSLOG] ${SYSLOG}"
 logMessage "The ADCIRC Surge/Spill Guidance System is activated."
@@ -1111,14 +1112,6 @@ checkFileExistence $OUTPUTDIR "data archival script" $ARCHIVE
 checkDirExistence ${PERL5LIB}/Date "subdirectory for the Pcalc.pm perl module"
 checkFileExistence ${PERL5LIB}/Date "perl module for date calculations" Pcalc.pm
 #
-#
-# pull in subroutines for email notifications
-if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
-   logMessage "Accessing functions for email notifications."
-   # source notifications file
-   . ${OUTPUTDIR}/${NOTIFY_SCRIPT}
-fi
-#
 # initialize the directory where this instance of the ASGS will run and 
 # keep all its files, info from the machine-specific initialization and
 # the asgs config file (e.g., asgs_config.sh)
@@ -1135,10 +1128,8 @@ if [ ! -d $RUNDIR ]; then
     mkdir -p $RUNDIR #
 fi
 #
-if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
-   # send out an email to notify users that the ASGS is ACTIVATED
-   activation_email $HOSTNAME $STORM $YEAR $RUNDIR $GRIDFILE "${ACTIVATE_LIST}" >> ${SYSLOG} 2>&1
-fi
+# send out an email to notify users that the ASGS is ACTIVATED
+${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORM $YEAR $RUNDIR advisory enstorm $GRIDFILE activation $EMAILNOTIFY $SYSLOG "${ACTIVATE_LIST}" >> ${SYSLOG} 2>&1
 #
 OLDADVISDIR=null
 CSDATE=$COLDSTARTDATE
@@ -1225,6 +1216,7 @@ fi
 #
 # B E G I N   N O W C A S T / F O R E C A S T   L O O P
 while [ 1 -eq 1 ]; do
+   # re-read configuration file to pick up any changes
    . ${CONFIG}
    if [[ -d $LASTSUBDIR/PE0000 ]]; then  # kickoff from subdomain hotstart files
        cd $LASTSUBDIR/PE0000 2>> ${SYSLOG}
@@ -1271,6 +1263,11 @@ while [ 1 -eq 1 ]; do
        CONTROLOPTIONS=" --metfile $ADVISDIR/$ENSTORM/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE $OUTPUTOPTIONS" 
        logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
        ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1   
+       STORMCLASSNAME=`cat ${ADVISDIR}/${ENSTORM}/nhcClassName`
+       # find the space between the storm class (TD, TS, HU, etc) and NHC name
+       ind=`expr index "$STORMCLASSNAME" ' '`
+       # just use the storm's name
+       STORMNAME=${STORMCLASSNAME:$ind}
        # create a new file that contains metadata
        $ADCIRCDIR/aswip >> ${SYSLOG} 2>&1
        if [ -e NWS_19_fort.22 ]; then
@@ -1310,9 +1307,8 @@ while [ 1 -eq 1 ]; do
        ln -s $NAM221 fort.221 2>> ${SYSLOG}
        ln -s $NAM222 fort.222 2>> ${SYSLOG}
     fi
-    if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
-       new_advisory_email $HOSTNAME $STORM $YEAR $ADVISORY $GRIDFILE "${NEW_ADVISORY_LIST}" >> ${SYSLOG} 2>&1
-    fi
+    # send out an email alerting end users that a new cycle has been issued
+    ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" >> ${SYSLOG} 2>&1
     perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
     logMessage "Starting nowcast."
     consoleMessage "Starting nowcast for cycle '$ADVISORY'."
@@ -1413,10 +1409,8 @@ while [ 1 -eq 1 ]; do
           logMessage "$ENSTORM finished; postprocessing"
           # execute post processing
           ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
-          if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
-             STORMNAME=`cat ${ADVISDIR}/${ENSTORM}/nhcClassName`
-             post_email $ADVISDIR "$STORMNAME" $YEAR $ADVISORY $HOSTNAME $ENSTORM $GRIDFILE "${POST_LIST}" >> ${SYSLOG} 2>&1
-          fi
+          # send out an email notifying end users that results are available
+          ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" >> ${SYSLOG} 2>&1
           if [[ ! -z $POSTPROCESS2 ]]; then # creates GIS and kmz figures
              ${OUTPUTDIR}/${POSTPROCESS2} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG 2>> ${SYSLOG} 
           fi

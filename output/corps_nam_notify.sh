@@ -17,16 +17,29 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
-activation_email()
-{ HOSTNAME=$1
-  STORM=$2
-  YEAR=$3
-  STORMDIR=$4
-  GRIDFILE=$5
-  ACTIVATE_LIST=$6
-
-COMMA_SEP_LIST=${ACTIVATE_LIST// /,}
-
+HOSTNAME=$1
+STORM=$2
+YEAR=$3
+STORMDIR=$4
+ADVISORY=$5
+ENSTORM=$6
+GRIDFILE=$7
+PHASE=$8
+EMAILNOTIFY=$9
+SYSLOG=${10}
+ADDRESS_LIST=${11}
+#
+# simply return if we are not supposed to send out emails
+if [[ $EMAILNOTIFY != yes && $EMAILNOTIFY != YES ]]; then
+   return
+fi
+COMMA_SEP_LIST=${ADDRESS_LIST// /,}
+case $PHASE in
+#
+#               A C T I V A T I O N
+#
+"activation")
+#
 cat <<END > $STORMDIR/activate.txt 2>> ${SYSLOG}
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
@@ -41,19 +54,12 @@ as the results become available.
 END
     logMessage "Sending activation email to the following addresses: $COMMA_SEP_LIST."
     cat $STORMDIR/activate.txt | mail -s "ASGS Activated on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
-}
-
-new_advisory_email()
-{ HOSTNAME=$1
-  STORM=$2
-  YEAR=$3
-  ADVISORY=$4
-  GRIDFILE=$5
-  NEW_ADVISORY_LIST=$6
-
-  # replace spaces in mailing list with commas
-  COMMA_SEP_LIST=${NEW_ADVISORY_LIST// /,}
-
+;;
+#
+#              N E W  C Y C L E 
+#
+"newcycle")
+#
 cat <<END > $STORMDIR/new_advisory.txt 2>> ${SYSLOG}
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
@@ -69,20 +75,13 @@ as soon as the resulting storm surge guidance becomes available.
 END
     logMessage "Sending 'new cycle detected' email to the following addresses: $COMMA_SEP_LIST."
      cat $STORMDIR/new_advisory.txt | mail -s "new cycle detected by ASGS on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
-
-}
- 
-post_email()
-{ ASGSADVISORYDIR=$1
-STORM=$2
-YEAR=$3
-ADVISORY=$4
-HOSTNAME=$5
-ENSTORM=$6
-GRIDFILE=$7
-POST_LIST=$8
-
-cat <<END > $ASGSADVISORYDIR/post_notify.txt 
+;;
+#
+#              R E S U L T S 
+#
+"results")
+#
+cat <<END > ${STORMDIR}/${ADVISORY}/post_notify.txt 
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
@@ -102,12 +101,12 @@ The ASGS on $HOSTNAME is now waiting for the National Centers for
 Environmental Prediction (NCEP) to issue the next cycle. 
 
 END
-# replace spaces in mailing list with commas
-COMMA_SEP_LIST=${POST_LIST// /,}
 #
 logMessage "Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
-cat $ASGSADVISORYDIR/post_notify.txt | mail -s "ASGS results available for cycle $ADVISORY on $HOSTNAME" $POST_LIST
-}
-
-
-
+cat ${STORMDIR}/${ADVISORY}/post_notify.txt | mail -s "ASGS results available for cycle $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+;;
+*)
+logMessage "ERROR: corps_cyclone_notify.sh: The PHASE was specified as '$PHASE', which is not recognized. Email was not sent."
+;;
+esac
+return
