@@ -258,9 +258,6 @@ prep()
        # run adcprep to decompose the new fort.15 file
        logMessage "Running adcprep to prepare new fort.15 file"
        prepControlFile $ENV $NCPU $ACCOUNT $WALLTIME 
-       # link to hurricane track file rather than prepping it with adcprep
-       PE=0
-       format="%04d"
     else
        # this is a   H O T S T A R T
        # set directory where data will be copied from     
@@ -287,6 +284,8 @@ prep()
        fi
        # copy or link to fulldomain files
        if [[ -e $ADVISDIR/ENSTORM/fort.22 ]]; then
+          PE=0
+          format="%04d"
           while [[ $PE -lt $NCPU ]]; do
              PESTRING=`printf "$format" $PE`
              ln -s $ADVISDIR/$ENSTORM/fort.22 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.22 2>> ${SYSLOG}
@@ -363,7 +362,7 @@ prepControlFile()
     ACCOUNT=$3
     WALLTIME=$4
     if [[ $ENV = jade || $ENV = sapphire || $ENV = diamond ]]; then
-       QSCRIPTOPTIONS="--ncpu $NCPU --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm $ENSTORM --syslog $SYSLOG"
+       QSCRIPTOPTIONS="--ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm $ENSTORM --syslog $SYSLOG"
        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.pbs 2>> ${SYSLOG}
        qsub $ADVISDIR/$ENSTORM/adcprep.pbs >> ${SYSLOG} 2>&1
        monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol $WALLTIME
@@ -409,7 +408,7 @@ prepHotstartFile()
       ACCOUNT=$3
       WALLTIME=$4
       if [[ $ENV = jade || $ENV = sapphire || $ENV = diamond ]]; then
-         QSCRIPTOPTIONS="--ncpu $NCPU --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPHOTSTARTSCRIPT --enstorm $ENSTORM --syslog $SYSLOG"
+         QSCRIPTOPTIONS="--ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPHOTSTARTSCRIPT --enstorm $ENSTORM --syslog $SYSLOG"
          perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep_hotstart.pbs 2>> ${SYSLOG}
          qsub $ADVISDIR/$ENSTORM/adcprep_hotstart.pbs >> ${SYSLOG} 2>&1
          monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart $WALLTIME
@@ -814,12 +813,11 @@ init_diamond()
   SUBMITSTRING="aprun"
   SCRATCHDIR=/work/$USER
   SSHKEY=~/.ssh/id_rsa_diamond
-  QSCRIPT=erdc.template.pbs
-  PREPCONTROLSCRIPT=erdc.adcprep.template.pbs
-  PREPHOTSTARTSCRIPT=erdc.adcprep.hotstart.template.pbs
+  QSCRIPT=erdc.diamond.template.pbs
+  PREPCONTROLSCRIPT=erdc.diamond.adcprep.template.pbs
+  PREPHOTSTARTSCRIPT=erdc.diamond.adcprep.hotstart.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
-  ulimit -s unlimited 
-  ulimit -v 2097152   # needed for NAMtoOWI.pl to avoid Out of memory error 
+  PPN=8 
 }
 
 init_queenbee()

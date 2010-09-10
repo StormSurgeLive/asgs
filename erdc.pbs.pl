@@ -37,11 +37,13 @@ my $qscript;  # the template file to use for the queue submission script
 my $syslog;   # the log file that the ASGS uses 
 my $localhotstart; # present if subdomain hotstart files should be written
 my $numwriters=0; # number of writer processors, if any
+my $ppn=1;     # number of processors per node
 
 # initialize to the log file that adcirc uses, just in case
 $syslog="adcirc.log";
 
 GetOptions("ncpu=i" => \$ncpu,
+           "ppn=i" => \$ppn,
            "queuename=s" => \$queuename,
            "account=s" => \$account,
            "adcircdir=s" => \$adcircdir,
@@ -67,9 +69,21 @@ if ( $numwriters != 0 ) {
    $cloption = $cloption . " -W " . $numwriters; 
    $ncpu += $numwriters;
 }
+# for a platform where we request a number of compute nodes (diamond) rather
+# than a number of cores (e.g., sapphire and jade), we calculate the number 
+# of nodes to request, based on the given number of processors per node
+my $select=1;
+if ( $ppn != 1 ) {
+   $select = $ncpu / $ppn;
+   if ( ($ncpu % $ppn) > 0 ) {
+      $select++;
+   }
+}
 #
 while(<TEMPLATE>) {
-    # fill in the number of compute nodes to run on (assuming 2 CPUs per node)
+    # fill in the number of nodes to run on 
+    s/%select%/$select/; 
+    # fill in the number of cores to run on 
     s/%ncpu%/$ncpu/;
     # name of the queue on which to run
     s/%queuename%/$queuename/;

@@ -17,6 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
+#
+logMessage()
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+  MSG="[${DATETIME}] INFO: $@"
+  echo ${MSG} >> ${SYSLOG}
+}
+
 HOSTNAME=$1
 STORM=$2
 YEAR=$3
@@ -31,7 +38,7 @@ ADDRESS_LIST=${11}
 #
 # simply return if we are not supposed to send out emails
 if [[ $EMAILNOTIFY != yes && $EMAILNOTIFY != YES ]]; then
-   return
+   exit
 fi
 COMMA_SEP_LIST=${ADDRESS_LIST// /,}
 case $PHASE in
@@ -109,4 +116,3 @@ cat ${STORMDIR}/${ADVISORY}/post_notify.txt | mail -s "ASGS results available fo
 logMessage "ERROR: corps_cyclone_notify.sh: The PHASE was specified as '$PHASE', which is not recognized. Email was not sent."
 ;;
 esac
-return

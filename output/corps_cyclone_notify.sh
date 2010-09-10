@@ -31,7 +31,7 @@ ADDRESS_LIST=${11}
 #
 # simply return if we are not supposed to send out emails
 if [[ $EMAILNOTIFY != yes && $EMAILNOTIFY != YES ]]; then
-   return
+   exit
 fi
 COMMA_SEP_LIST=${ADDRESS_LIST// /,}
 case $PHASE in
@@ -132,4 +132,3 @@ cat ${STORMDIR}/${ADVISORY}/post_notify.txt | mail -s "ASGS results available fo
 logMessage "ERROR: corps_cyclone_notify.sh: The PHASE was specified as '$PHASE', which is not recognized. Email was not sent."
 ;;
 esac
-return
