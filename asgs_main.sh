@@ -810,7 +810,7 @@ init_diamond()
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=erdcvhsp
-  SUBMITSTRING="aprun"
+  SUBMITSTRING="mpiexec_mpt"
   SCRATCHDIR=/work/$USER
   SSHKEY=~/.ssh/id_rsa_diamond
   QSCRIPT=erdc.diamond.template.pbs
