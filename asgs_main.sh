@@ -283,7 +283,7 @@ prep()
           FROMDIR=$ADVISDIR/nowcast
        fi
        # copy or link to fulldomain files
-       if [[ -e $ADVISDIR/ENSTORM/fort.22 ]]; then
+       if [[ -e $ADVISDIR/$ENSTORM/fort.22 ]]; then
           PE=0
           format="%04d"
           while [[ $PE -lt $NCPU ]]; do
