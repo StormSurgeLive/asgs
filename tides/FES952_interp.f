@@ -18,6 +18,12 @@ c  linear interpolation from the 3 active corners.  Nodes located     *
 c  inside a FES grid square with only 2 or 1 active nodes are not     *
 c  computed.  Rather the dummy value of -999, -999. is assigned.      *
 c                                                                     *
+C  jgf2.07 20110319: added implicit none, explicitly declared all
+C  variables, added capability to control input via command line 
+C  parameters, thus making this program more amenable to automation.
+C  Repeated code for specifying file extensions was removed. 
+C  The pre-existing menu input capability was retained.
+C               
 c            Comment line cleanup by R.L. 10/12/01                    *
 c             Written by R.L.  3/10/1995    v2.06                     *
 c               Modified from OSU_tea.for  v1.03                      *
@@ -68,96 +74,182 @@ c                                                                     *
 c**********************************************************************
 
       program FES_interp
-
-      PARAMETER(MNLON=720,MNLAT=361,MNP=50000)
-
-      DIMENSION     Ga(MNLON,MNLAT),Gp(MNLON,MNLAT)
-      DIMENSION     node(MNP),xlon(MNP),ylat(MNP),xtemp(MNP),ytemp(MNP)
-      DIMENSION     iobcor(4)
-      REAL*8        phi(4),c(4),s(4),tc,ts
-      REAL*8        deg2rad,rad2deg,freq
-      REAL          latmin,latmax,lonmin,lonmax
-      character*55  datafile,gridfile,header
-      character*3   consname
+      implicit none
+      character(80), parameter :: version = "2.07"
+      real, allocatable :: Ga(:,:), Gp(:,:)
+      integer, allocatable :: node(:)
+      real, allocatable :: xlon(:),ylat(:),xtemp(:),ytemp(:)
+      integer :: iobcor(4)
+      integer       iobflag, ixlo, xlonlo, ixhi, jylo, jyhi
+      real*8        phi(4),c(4),s(4),tc,ts
+      real*8        deg2rad,rad2deg,freq
+      real          latmin,latmax,lonmin,lonmax, dlon, dlat, ylatlo
+      real          zeta, eta, x1, x2, x3, y1, y2, y3, twoarea, amp
+      real          pha, uamp, upha, vamp, vpha
+      integer       nlon, nlat
+      character(2048) datafile,gridfile,header
+      character(3)  consname
       logical       found
+      integer       interp
+      integer       ipout
+      integer       ne, np, nope, neta, nvdll
+      integer       n, nn, idum, i, i1, i2, i3, ii, j, k
+      real          depth, undefa, undefp, undef
+      integer       nnodes ! number of nodes to interpolate to in the target
+      integer       argcount
+      character(2048) cmdlinearg    
+      character(4)  outFileExt
+      character(2048) outFileName
+      character(2048) dataDir
 
       deg2rad = atan(1.d0)/45.d0
       rad2deg = 45.d0/atan(1.d0)
 
-
-c   General format statements
+c     General format statements
 
 1055  FORMAT(a55)
 1056  FORMAT(a2)
-1110  FORMAT(' File ',A55,' WAS NOT FOUND!')
-1111  FORMAT(' File ',A55,' WAS FOUND!')
+1110  FORMAT(' File ',A,' WAS NOT FOUND!')
+1111  FORMAT(' File ',A,' WAS FOUND!')
 1102  format(' *********************  Try Again  *********************')
 
-c   Prompt for type of output, either open boundary values for ADCIRC run or
-c   tea format output for entire grid
-
-      write(*,*)' Do interpolation at 1=open boundary nodes/2=all nodes'
-      read(*,*) interp
-      write(*,*) ' '
-      if((interp.lt.1).or.(interp.gt.2)) then
-         write(*,*) ' Previous answer must be 1 or 2 '
-         write(*,*) ' Program terminated'
-         stop
+C
+C     Initialize to reasonable defaults
+      interp=1  ! we usually use this program to establish tidal b.c.s
+      ipout=2   ! ADCIRC requires phase angle to be degrees
+      gridfile='fort.14' ! this is what we usually name the ADCIRC mesh file
+      consname='M2'      ! just use the most commonly requested as the default
+      datafile='m2.fes95.2'
+      outFileExt='.obc'  ! for ADCIRC
+      outFileName='m2_FES.obc' ! for ADCIRC m2 tide
+      dataDir = "."
+C
+C     Process command line options, if any
+      argcount = iargc()
+      if (argcount.gt.0) then
+         i = 0
+         do while(i.lt.argcount)
+            i = i + 1
+            call getarg(i, cmdlinearg)
+            select case(cmdlinearg(1:2))
+               case("-n") ! either open boundaries or all nodes
+                  i = i + 1
+                  call getarg(i,cmdlinearg)
+                  select case(trim(cmdlinearg))
+                     case("open")
+                        ! do nothing; open boundaries is the default
+                     case("allnodes")
+                        interp=2
+                     case default
+                        write(*,*) "ERROR: FES952_interp: -n '",
+     &                     trim(cmdlinearg),"' not recognized."
+                        stop
+                  end select
+               case("-p") ! phase angle units, degrees or radians
+                  i = i + 1
+                  call getarg(i,cmdlinearg)
+                  select case(cmdlinearg)
+                     case("degrees")
+                        ! do nothing, degrees is the default
+                     case("radians")
+                        ipout = 2
+                     case default
+                        write(*,*) "ERROR: FES952_interp: -p '",
+     &                     trim(cmdlinearg),"' not recognized."
+                        stop
+                  end select
+               case("-f") ! adcirc mesh file name
+                  i = i + 1
+                  call getarg(i,gridfile)
+               case("-c") ! name of tidal constituent
+                  i = i + 1
+                  call getarg(i,consname)
+               case("-d") ! directory where tidal data files are stored
+                  i = i + 1
+                  call getarg(i,datadir)
+               case("-v") ! show version information
+                  write(*,*) "FES952_interp version ",version
+               case("-h") ! show a help message
+                  write(*,*) "Usage information:"
+                  write(*,*) "-n [open] or [allnodes]"
+                  write(*,*) "-p [degrees] or [radians]"
+                  write(*,*) "-f ADCIRC mesh file name"
+                  write(*,*) "-c name of tidal constituent"
+                  write(*,*) "-d directory containing tidal db"
+                  write(*,*) "-v show version information"
+                  write(*,*) "-h this message"
+                  stop
+               case default
+                  write(*,*) "ERROR: FES952_interp: ",
+     &               "Command line option '",
+     &               trim(cmdlinearg)," not recognized."
+                  stop
+            end select
+         end do
+      else ! end processing of command line options, if any
+C
+C        if command line options were not specified, use the menu approach
+C
+         ! Prompt for type of output, either open boundary values for ADCIRC
+         ! run or tea format output for entire grid
+         write(*,*) 
+     &      ' Do interpolation at 1=open boundary nodes/2=all nodes'
+         read(*,*) interp
+         write(*,*) ' '
+         if((interp.lt.1).or.(interp.gt.2)) then
+            write(*,*) ' Previous answer must be 1 or 2 '
+            write(*,*) ' Program terminated'
+            stop
          endif
-
-c   Prompt for phase output in radians or degrees
-
-      write(*,*) ' Phase angle output in 1=radians/2=degrees ?'
-      read(*,*) ipout
-      write(*,*) ' '
-      if((ipout.lt.1).or.(ipout.gt.2)) then
-         write(*,*) ' Previous answer must be 1 or 2 '
-         write(*,*) ' Program terminated'
-         stop
+         ! Prompt for phase output in radians or degrees
+         write(*,*) ' Phase angle output in 1=radians/2=degrees ?'
+         read(*,*) ipout
+         write(*,*) ' '
+         if((ipout.lt.1).or.(ipout.gt.2)) then
+            write(*,*) ' Previous answer must be 1 or 2 '
+            write(*,*) ' Program terminated'
+            stop
          endif
-
-c   Prompt for, open and read in ADCIRC grid file
-
-  21  write(*,*) ' Enter name of the ADCIRC grid file'
-      write(*,*) ' '
-      read(*,1055) gridfile
-      inquire(file=gridfile,exist=found)
-      if(found) goto 22
-      write(*,1110) gridfile
-      goto 21
-  22  write(*,1111) gridfile
-
-      open(11,file=gridfile)
-
-      read(11,*)header
-      read(11,*)ne,np
-      if(np.ge.MNP) then
-         write(*,*) ' ************** FATAL ERROR **********************'
-         write(*,*) ' The number of nodes in the ADCIRC grid file > MNP'
-         write(*,*) ' in the PARAMETER statement of this program.  '
-         write(*,*) ' Increase MNP > ',np,' and recompile the source.'
-         write(*,*) ' *************************************************'
+         ! Prompt for the ADCIRC grid file
+  21     write(*,*) ' Enter name of the ADCIRC grid file'
+         write(*,*) ' '
+         read(*,1055) gridfile
+         ! Enter tidal constituent to process
+         write(*,*)' Enter tidal constituent to process.'
+         write(*,*)
+     &      ' The choices are K2,L2,M2,N2,S2,T2,K1,O1,P1,Q1,2N2,',
+     &                                                      'MU2,NU2'
+         write(*,*)' '
+         read(*,1056) consname
+      endif ! end menu-driven prompts for program input
+C
+C     Open and read in ADCIRC grid file
+      inquire(file=trim(gridfile),exist=found)
+      if (found.eqv..false.) then
+         write(*,*) "ERROR: FES952_interp: The ADCIRC mesh file '",
+     &      trim(gridfile),"' was not found."
          stop
-         endif
-
+      endif
+      open(11,file=trim(gridfile),status='old',action='read')
+      read(11,*) header
+      read(11,*) ne,np
+      allocate(node(np),xlon(np),ylat(np),xtemp(np),ytemp(np))
       do n=1,np
          read(11,*) node(n),xtemp(n),ytemp(n),depth
          if(xtemp(n).lt.-180.) xtemp(n)=xtemp(n)+360.
          if(xtemp(n).ge.180.) xtemp(n)=xtemp(n)-360.
-         end do
-
-      if(interp.eq.2) then
+      end do
+C
+      if(interp.eq.2) then ! interpolate to all nodes in the target mesh
          nnodes=np
-         do n=1,nnodes
-            xlon(n)=xtemp(n)
-            ylat(n)=ytemp(n)
-            end do
-         endif
-
-      if(interp.eq.1) then
+         xlon(:)=xtemp(:)
+         ylat(:)=ytemp(:)
+      endif
+C
+      if(interp.eq.1) then ! only interpolate to open boundary nodes
          do n=1,ne
-            read(11,*) nn,idum,i1,i2,i3
-            end do
+            read(11,*) nn,idum,i1,i2,i3 ! skip past the element table
+         end do
          read(11,*) nope
          read(11,*) neta
          nnodes=neta
@@ -170,205 +262,79 @@ c   Prompt for, open and read in ADCIRC grid file
                end do
             end do
          if(n.ne.neta) then
-            write(*,*) 'Warning, the number of open boundary nodes does'
+            write(*,*) 'WARNING: the number of open boundary nodes does'
             write(*,*) '         not match NETA in the ADCIRC grid file'
             write(*,*) ' '
-            endif
+         endif
          nnodes=n
          do n=1,nnodes
             xlon(n)=xtemp(node(n))
             ylat(n)=ytemp(node(n))
-            end do
-         endif
+         end do
+      endif
 
       close(11)
 
-      write(*,*)'Finished reading ADCIRC grid file'
-      write(*,*)' '
-
-c   Enter tidal constituent to process, assign frequency and open output file
-
-      write(*,*)' Enter tidal constituent to process.'
-      write(*,*)' The choices are K2,L2,M2,N2,S2,T2,K1,O1,P1,Q1,2N2,',
-     &                                                      'MU2,NU2'
-      write(*,*)' '
-      read(*,1056) consname
-
-      if((consname.eq.'K2').or.(consname.eq.'k2')) then
-         consname='K2'
-         freq=0.000145842317201d0
-         if(interp.eq.1) then
-            open(12,file='K2_FES.obc')
-            write(12,*) ' K2_FES.obc'
-            endif
-         if(interp.eq.2) then
-            open(12,file='K2_FES.tea')
-            write(12,*) ' K2_FES.tea'
-            endif
-         endif
-      if((consname.eq.'L2').or.(consname.eq.'l2')) then
-         consname='L2'
-         freq=0.
-         if(interp.eq.1) then
-            open(12,file='L2_FES.obc')
-            write(12,*) ' L2_FES.obc'
-            endif
-         if(interp.eq.2) then
-            open(12,file='L2_FES.tea')
-            write(12,*) ' L2_FES.tea'
-            endif
-         endif
-      if((consname.eq.'M2').or.(consname.eq.'m2')) then
-         consname='M2'
-         freq=0.000140518902509d0
-         if(interp.eq.1) then
-            open(12,file='M2_FES.obc')
-            write(12,*) ' M2_FES.obc'
-            endif
-         if(interp.eq.2) then
-            open(12,file='M2_FES.tea')
-            write(12,*) ' M2_FES.tea'
-            endif
-         endif
-      if((consname.eq.'N2').or.(consname.eq.'n2')) then
-         consname='N2'
-         freq=0.000137879699487d0
-         if(interp.eq.1) then
-            open(12,file='N2_FES.obc')
-            write(12,*) ' N2_FES.obc'
-            endif
-         if(interp.eq.2) then
-            open(12,file='N2_FES.tea')
-            write(12,*) ' N2_FES.tea'
-            endif
-         endif
-      if((consname.eq.'S2').or.(consname.eq.'s2')) then
-         consname='S2'
-         freq=0.000145444104333d0
-         if(interp.eq.1) then
-            open(12,file='S2_FES.obc')
-            write(12,*) ' S2_FES.obc'
-            endif
-         if(interp.eq.2) then
-            open(12,file='S2_FES.tea')
-            write(12,*) ' S2_FES.tea'
-            endif
-         endif
-      if((consname.eq.'T2').or.(consname.eq.'t2')) then
-         consname='T2'
-         freq=0.
-         if(interp.eq.1) then
-            open(12,file='T2_FES.obc')
-            write(12,*) ' T2_FES.obc'
-            endif
-         if(interp.eq.2) then
-            open(12,file='T2_FES.tea')
-            write(12,*) ' T2_FES.tea'
-            endif
-         endif
-      if((consname.eq.'K1').or.(consname.eq.'k1'))then
-         consname='K1'
-         freq=0.000072921158358d0
-         if(interp.eq.1) then
-            open(12,file='K1_FES.obc')
-            write(12,*) ' K1_FES.obc'
-            endif
-         if(interp.eq.2) then
-            open(12,file='K1_FES.tea')
-            write(12,*) ' K1_FES.tea'
-            endif
-         endif
-      if((consname.eq.'O1').or.(consname.eq.'o1')) then
-         consname='O1'
-         freq=0.000067597744151d0
-         if(interp.eq.1) then
-            open(12,file='O1_FES.obc')
-            write(12,*) ' O1_FES.obc'
-            endif
-         if(interp.eq.2) then
-            open(12,file='O1_FES.tea')
-            write(12,*) ' O1_FES.tea'
-            endif
-         endif
-      if((consname.eq.'P1').or.(consname.eq.'p1')) then
-         consname='P1'
-         freq=0.000072522945975d0
-         if(interp.eq.1) then
-            open(12,file='P1_FES.obc')
-            write(12,*) ' P1_FES.obc'
-            endif
-         if(interp.eq.2) then
-            open(12,file='P1_FES.tea')
-            write(12,*) ' P1_FES.tea'
-            endif
-         endif
-      if((consname.eq.'Q1').or.(consname.eq.'q1')) then
-         consname='Q1'
-         freq=0.000064958541129d0
-         if(interp.eq.1) then
-            open(12,file='Q1_FES.obc')
-            write(12,*) ' Q1_FES.obc'
-            endif
-         if(interp.eq.2) then
-            open(12,file='Q1_FES.tea')
-            write(12,*) ' Q1_FES.tea'
-            endif
-         endif
-      if((consname.eq.'2N2').or.(consname.eq.'2n2')) then
-         consname='2N2'
-         freq=0.
-         if(interp.eq.1) then
-            open(12,file='2N2_FES.obc')
-            write(12,*) ' 2N2_FES.obc'
-            endif
-         if(interp.eq.2) then
-            open(12,file='2N2_FES.tea')
-            write(12,*) ' 2N2_FES.tea'
-            endif
-         endif
-      if((consname.eq.'MU2').or.(consname.eq.'mu2')) then
-         consname='MU2'
-         freq=0.
-         if(interp.eq.1) then
-            open(12,file='MU2_FES.obc')
-            write(12,*) ' MU2_FES.obc'
-            endif
-         if(interp.eq.2) then
-            open(12,file='MU2_FES.tea')
-            write(12,*) ' MU2_FES.tea'
-            endif
-         endif
-      if((consname.eq.'NU2').or.(consname.eq.'nu2')) then
-         consname='NU2'
-         freq=0.
-         if(interp.eq.1) then
-            open(12,file='NU2_FES.obc')
-            write(12,*) ' NU2_FES.obc'
-            endif
-         if(interp.eq.2) then
-            open(12,file='NU2_FES.tea')
-            write(12,*) ' NU2_FES.tea'
-            endif
-         endif
-
+      write(*,*)
+     &   'INFO: FES952_interp: Finished reading ADCIRC grid file.'
+C
+C     Output file 
+      ! extension  
+      if (interp.eq.2) then
+         outFileExt = '.tea'
+      endif
+      ! form output file name 
+      outFileName = trim(consname)//'_FES'//trim(outFileExt)
+      ! open output file
+      open(12,file=outFileName,status='replace',action='write')
+      ! assign frequency
+      select case(consname)
+         case('K2','k2')
+            freq=0.000145842317201d0  
+         case('L2','l2')
+            freq=0.
+         case('M2','m2')
+            freq=0.000140518902509d0
+         case('N2','n2')
+            freq=0.000137879699487d0   
+         case('S2','s2')
+            freq=0.000145444104333d0
+         case('T2','t2')
+            freq=0.
+         case('K1','k1')
+            freq=0.000072921158358d0  
+         case('O1','o1')
+            freq=0.000067597744151d0
+         case('P1','p1')
+            freq=0.000072522945975d0
+         case('Q1','q1')
+            freq=0.000064958541129d0 
+         case('2N2','2n2')
+            freq=0.
+         case('MU2','mu2')
+            freq=0. 
+         case('NU2','nu2')
+            freq=0.
+         case default
+            write(*,*) "ERROR: FES952_interp: The tidal constituent '",
+     &         trim(consname),"' was not recognized."
+            stop
+      end select
+C
       write(12,*) 1
-      if(interp.eq.1) write(12,*) freq,nnodes
-      if(interp.eq.2) write(12,*) freq,1
+      if (interp.eq.1) write(12,*) freq,nnodes
+      if (interp.eq.2) write(12,*) freq,1
       write(12,*) consname
-
-c   Prompt for, open and read in FES95.2 tidal database file
-
-  31  write(*,*) ' Enter name of the FES95.2 elevation data file'
-      write(*,*) ' '
-      read(*,1055) datafile
+C
+c     open and read in FES95.2 tidal database file
+      datafile = trim(dataDir)//'/'//trim(consname)//'.fes95.2'
       inquire(file=datafile,exist=found)
-      if(found) goto 32
-      write(*,1110) datafile
-      goto 31
-  32  write(*,1111) datafile
-
-      open(11,file=datafile)
-
+      if (found.eqv..false.) then
+         write(*,*) "ERROR: FES952_interp: The tidal db file '",
+     &      trim(datafile),"' was not found."
+         stop
+      endif
+      open(11,file=trim(datafile),status='old',action='read')
       read(11,*) lonmin,lonmax
       read(11,*) latmin,latmax
       read(11,*) dlon,dlat
@@ -385,10 +351,11 @@ c      write(*,*) ' '
       if(UNDEFa.ne.UNDEFp) then
          write(*,*) ' FATAL ERROR: UNDEFa <> UNDEFp '
          stop
-         else
+      else
          UNDEF=UNDEFa
-         endif
+      endif
 
+      allocate(Ga(nlon,nlat),Gp(nlon,nlat))
       do j=1,nlat
          do i=1,nlon-1,30
             read(11,*) (Ga(ii,j),ii=i,i+29)
@@ -398,11 +365,10 @@ c      write(*,*) ' '
 
       close(11)
 
-      write(*,*) 'Finished reading in FES95.2 data'
-      write(*,*) ' '
+      write(*,*)'INFO: FES952_interp: Finished reading in FES95.2 data.'
 
 
-c   Main loop for every node in ADCIRC grid
+c     Main loop for every target node in ADCIRC grid
 
       do 99 n=1,nnodes
 
@@ -427,31 +393,31 @@ c1000 format(1x,f8.2,1x,f8.2,3x,f8.2,1x,f8.2)
          if((Ga(ixlo,jylo).eq.UNDEF).or.(Gp(ixlo,jylo).eq.UNDEF)) then
             iobflag=iobflag+1
             iobcor(iobflag)=1
-            else
+         else
             c(1)=Ga(ixlo,jylo)*cos(deg2rad*Gp(ixlo,jylo))
             s(1)=Ga(ixlo,jylo)*sin(deg2rad*Gp(ixlo,jylo))
-            endif
+         endif
          if((Ga(ixhi,jylo).eq.UNDEF).or.(Gp(ixhi,jylo).eq.UNDEF)) then
             iobflag=iobflag+1
             iobcor(iobflag)=2
-            else
+         else
             c(2)=Ga(ixhi,jylo)*cos(deg2rad*Gp(ixhi,jylo))
             s(2)=Ga(ixhi,jylo)*sin(deg2rad*Gp(ixhi,jylo))
-            endif
+         endif
          if((Ga(ixhi,jyhi).eq.UNDEF).or.(Gp(ixhi,jyhi).eq.UNDEF)) then
             iobflag=iobflag+1
             iobcor(iobflag)=3
-            else
+         else
             c(3)=Ga(ixhi,jyhi)*cos(deg2rad*Gp(ixhi,jyhi))
             s(3)=Ga(ixhi,jyhi)*sin(deg2rad*Gp(ixhi,jyhi))
-            endif
+         endif
          if((Ga(ixlo,jyhi).eq.UNDEF).or.(Gp(ixlo,jyhi).eq.UNDEF)) then
             iobflag=iobflag+1
             iobcor(iobflag)=4
-            else
+         else
             c(4)=Ga(ixlo,jyhi)*cos(deg2rad*Gp(ixlo,jyhi))
             s(4)=Ga(ixlo,jyhi)*sin(deg2rad*Gp(ixlo,jyhi))
-            endif
+         endif
 
 c     Determine factors to interpolate FES results to the node
 
@@ -462,7 +428,7 @@ c     Determine factors to interpolate FES results to the node
             phi(2)=zeta*(1.-eta)
             phi(3)=zeta*eta
             phi(4)=(1.-zeta)*eta
-            endif
+         endif
 
          if(iobflag.eq.1) then       ! 3 corners are active, use triangle based linear interp.
             if(iobcor(1).eq.1) then
@@ -472,7 +438,7 @@ c     Determine factors to interpolate FES results to the node
                y1=ylatlo
                y2=ylatlo+dlat
                y3=ylatlo+dlat
-               endif
+            endif
             if(iobcor(1).eq.2) then
                x1=xlonlo+dlon
                x2=xlonlo
@@ -480,7 +446,7 @@ c     Determine factors to interpolate FES results to the node
                y1=ylatlo+dlat
                y2=ylatlo+dlat
                y3=ylatlo
-               endif
+            endif
             if(iobcor(1).eq.3) then
                x1=xlonlo
                x2=xlonlo
@@ -488,7 +454,7 @@ c     Determine factors to interpolate FES results to the node
                y1=ylatlo+dlat
                y2=ylatlo
                y3=ylatlo
-               endif
+            endif
             if(iobcor(1).eq.4) then
                x1=xlonlo
                x2=xlonlo+dlon
@@ -496,12 +462,12 @@ c     Determine factors to interpolate FES results to the node
                y1=ylatlo
                y2=ylatlo
                y3=ylatlo+dlat
-               endif
+            endif
             twoarea=dlon*dlat
             phi(1)=((xlon(n)-x3)*(y2-y3)+(x3-x2)*(ylat(n)-y3))/twoarea
             phi(2)=((xlon(n)-x1)*(y3-y1)+(x1-x3)*(ylat(n)-y1))/twoarea
             phi(3)=((xlon(n)-x1)*(y1-y2)+(x2-x1)*(ylat(n)-y1))/twoarea
-            endif
+         endif
 
 c     Interpolate constituent
 
@@ -511,16 +477,16 @@ c     Interpolate constituent
             do i=1,4
                tc=tc+phi(i)*c(i)
                ts=ts+phi(i)*s(i)
-               enddo
-            endif
+            enddo
+         endif
          if(iobflag.eq.1) then        ! 3 corners are active
             do i=1,3
                j=iobcor(1)+i
                if(j.gt.4) j=j-4
                tc=tc+phi(i)*c(j)
                ts=ts+phi(i)*s(j)
-               enddo
-            endif
+            enddo
+         endif
 
 c     Compute amplitude and phase
 
@@ -530,16 +496,16 @@ c     Compute amplitude and phase
             amp=amp/100.
             if(ts.lt.0) pha=360.-pha
             if(ipout.eq.1) pha=pha*deg2rad
-            else
+         else
             amp=-999.
             pha=-999.
-            endif
+         endif
          if(interp.eq.2) write(12,1298) node(n),amp,pha,iobflag
  1298    format(1x,i7,1x,f10.4,1x,f8.2,1x,i2)
          if(interp.eq.1) write(12,1299) amp,pha,node(n),iobflag
  1299    format(1x,f10.4,1x,f8.2,1x,i7,1x,i2)
 
-  99     continue
+  99  continue
 
 C   If writing output at all nodes, tack on to the end of the file dummy U and V
 C   velocity amplitude and phases
@@ -552,8 +518,9 @@ C   velocity amplitude and phases
          do j=1,nnodes
             write(12,1300) j,uamp,upha,vamp,vpha
  1300       format(1x,i7,1x,f10.4,1x,f8.2,1x,f10.4,1x,f8.2)
-            end do
-         endif
-
+         end do
+      endif
+      write(*,*) "INFO: FES952_interp: Finished writing data to '",
+     &   trim(outFileName),"'."
       stop
       END
