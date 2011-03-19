@@ -209,7 +209,7 @@ if [[ $FIGUREGENTEMPLATE = "" ]]; then
 fi
 #
 # create a temp directory for FigureGen to use
-mkdir Temp 2>> $JPGLOGFILE
+mkdir ${ADVISDIR}/${ENSTORM}/Temp 2>> $JPGLOGFILE
 # copy the color palette to the ensemble directory
 cp $POSTPROC_DIR/FigGen/Default2.pal $ADVISDIR/$ENSTORM 2>> $JPGLOGFILE
 # copy the logo to the ensemble directory

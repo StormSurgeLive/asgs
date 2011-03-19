@@ -1027,7 +1027,7 @@ INPUTDIR=
 PERL5LIB=
 SSHKEY=
 PPN=1
-STORMNAME=stormname
+ENSTORMNAMES[0]=nhcConsensus
 logMessage "ASGS Start Up MSG: [PROCID] $$"
 logMessage "ASGS Start Up MSG: [SYSLOG] ${SYSLOG}"
 logMessage "The ADCIRC Surge/Spill Guidance System is activated."
@@ -1344,7 +1344,7 @@ while [ 1 -eq 1 ]; do
     logMessage "The time in the hotstart file is '$HSTIME' seconds."
     let si=0
     while [ $si -lt $ENSEMBLESIZE ]; do  
-       ENSTORM=${NAME[${STORMLIST[$si]}]}
+       ENSTORM=${ENSTORMNAMES[$si]}
        if [ ! -d $ADVISDIR/${ENSTORM} ]; then
           mkdir $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
        fi
@@ -1352,15 +1352,20 @@ while [ 1 -eq 1 ]; do
        RUNFORECAST=yes
        # TROPICAL CYCLONE ONLY
        if [[ $TROPICALCYCLONE = on ]]; then
-          METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $CSDATE --hotstartseconds $HSTIME --nws $NWS --name $ENSTORM"
+          METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $CSDATE --hotstartseconds $HSTIME --nws $NWS --name $ENSTORM --percent ${PERCENT[$si]}"
           CONTROLOPTIONS="--cst $CSDATE --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile $ADVISDIR/${ENSTORM}/fort.22 --name $ENSTORM $OUTPUTOPTIONS"
           logMessage "Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
           ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
-          # create a new file that contains metadata
-          $ADCIRCDIR/aswip >> ${SYSLOG} 2>&1
-          if [ -e NWS_19_fort.22 ]; then
-             mv fort.22 fort.22.orig
-             cp NWS_19_fort.22 fort.22 
+          if [[ $NWS = 19 || $NWS = 319 ]]; then
+             # create a new file that contains metadata and has the Rmax 
+             # in it already ... potentially with Rmax changes if desired
+             ASWIPOPTIONS="-P ${PERCENT[$si]} -R ${RMAX[$si]}"
+             logMessage "Running aswip fort.22 preprocessor for $ENSTORM with the following options: $ASWIPOPTIONS."
+             $ADCIRCDIR/aswip $ASWIPOPTIONS >> ${SYSLOG} 2>&1
+             if [ -e NWS_19_fort.22 ]; then
+                mv fort.22 fort.22.orig 2>> ${SYSLOG}
+                cp NWS_19_fort.22 fort.22 2>> ${SYSLOG}
+             fi
           fi
           createMetaDataLink $STORM $YEAR $ADVISORY $ENSTORM $ADVISDIR $HOSTNAME $HSTIME $CSDATE
        fi

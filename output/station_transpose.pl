@@ -143,7 +143,7 @@ close(FORT15);
 if ( $fileToTranspose eq "elevation" ) {
    @sta_names = @elev_sta_names;
 } elsif ( $fileToTranspose eq "velocity" ) {
-   @sta_names = @elev_sta_names;
+   @sta_names = @vel_sta_names;
 } elsif ( $fileToTranspose eq "windvelocity" || $fileToTranspose eq "barometricpressure" ) {
    @sta_names = @met_sta_names;
 }

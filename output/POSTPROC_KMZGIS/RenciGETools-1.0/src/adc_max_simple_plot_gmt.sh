@@ -69,7 +69,29 @@ function Usage
     echo "      The different boxes are defined in config_simple_gmt_pp.sh."
     echo "      The default is NC."
 }
-
+#
+# Just echoes to the screen 
+logMessage()
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+  MSG="[${DATETIME}] INFO: $@"
+  echo ${MSG} 
+}
+#
+# Just echoes to the screen and exits with error status
+errorMessage()
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+  MSG="[${DATETIME}] ERROR: $@"
+  echo ${MSG} 
+  exit 1
+}
+#
+# log a debug message
+debugMessage()
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+  MSG="[${DATETIME}] DEBUG: $@"
+  echo ${MSG} 
+}
+#
 function StripFile
 {
 
@@ -80,15 +102,15 @@ function StripFile
        else
           cat temp.dat | awk '{print $1 "   " $2 * 3.2808}' > temp.dat2
        fi
-          # paste with nodal coords
-	      awk '{print $2}'  temp.dat2  | paste $XY - > max.temp
-	      rm temp.dat temp.dat2
-       else
+       # paste with nodal coords
+       awk '{print $2}'  temp.dat2  | paste $XY - > max.temp
+       rm temp.dat temp.dat2
+    else
        # A netcdf file
-          buildArg="--dataFile=$MaxFile --fort63Mode=$Mode63 --scale=$ScaleFactor --outFile=max.temp --timeStep=$timeStep"
-          echo "calling BuildContourFile $buildArg"
-          result=`$PPDIR/BuildContourFile $buildArg`
-       fi
+       buildArg="--dataFile=$MaxFile --fort63Mode=$Mode63 --scale=$ScaleFactor --outFile=max.temp --timeStep=$timeStep"
+       logMessage "adc_max_simple_plot_gmt.sh: StripFile: Calling BuildContourFile with the following argument(s): $buildArg."
+       result=`$PPDIR/BuildContourFile $buildArg`
+    fi
 }
 
 function getMinMax {
@@ -101,42 +123,40 @@ function getMinMax {
          # netCDF file.
          maxArg="$maxArg --gridFile=$MaxFile"
        fi
-       echo "calling FindMax $maxArg"
+       logMessage "adc_max_simple_plot_gmt.sh: getMinMax: Calling FindMax with the following arguments: $maxArg."
        minmax=`$PPDIR/FindMax $maxArg`
 
-       echo "minmax value is $minmax"
+       logMessage "adc_max_simple_plot_gmt.sh: getMinMax: minmax value is $minmax."
        min=`echo $minmax | awk '{print $1}'`
        max=`echo $minmax | awk '{print $2}'`
     else
        min=$MIN
        max=$MAX
     fi
-    echo $min $max
+    logMessage "adc_max_simple_plot_gmt.sh: getMinMax: min is $min and max is $max."
 }
 
 function MakePalette
 {
     deltaRange=$(echo "scale=4;$max - $min"|bc)
     deltaColor=$(echo "scale=$ColorPrecision;$deltaRange/$NUMBEROFCOLORS"|bc)
-	deltaColor="$(printf '%f' $deltaColor)"
-    echo "deltaColor $deltaColor\n";
-	res=$(echo "$deltaColor==0" | bc)
-	if [ $res -eq 1 ] ; then 
-		echo "Color increment ($deltaColor) too small; reset ColorPrecision"
-		exit 1
-	fi
-  	ZCOLRANGE=$min/$max/$deltaColor
-
+    deltaColor="$(printf '%f' $deltaColor)"
+    logMessage "adc_max_simple_plot_gmt.sh: MakePallette: deltaColor $deltaColor\n";
+    res=$(echo "$deltaColor==0" | bc)
+    if [ $res -eq 1 ] ; then 
+       errorMessage "adc_max_simple_plot_gmt.sh: MakePallette: Color increment ($deltaColor) too small; reset ColorPrecision. Exiting."
+       # exit 1
+    fi
+    ZCOLRANGE=$min/$max/$deltaColor
     $GMTHOME/bin/gmtset COLOR_BACKGROUND = $DryColor
-  	echo "Making color palette  $CPTZ with args -C$CTABLE -T$ZCOLRANGE"
-	$GMTHOME/bin/makecpt -C$CTABLE -T$ZCOLRANGE > $CPTZ
+    logMessage "adc_max_simple_plot_gmt.sh: MakePallette: Making color palette $CPTZ with the following arguments: -C$CTABLE -T$ZCOLRANGE."
+    $GMTHOME/bin/makecpt -C$CTABLE -T$ZCOLRANGE > $CPTZ
 }
 
 function GSConvert
 {
-	echo Converting $1.ps to $1.$FPEXT at $RES dpi
-	echo $GS$GSARG $1.$FPEXT $1.ps 
-	$GS $GSARG$1.$FPEXT $1.ps >> gs.diag  2>&1
+    logMessage "adc_max_simple_plot_gmt.sh: GSConvert: Converting $1.ps to $1.$FPEXT at $RES dpi with the following command: $GS $GSARG$1.$FPEXT $1.ps >> gs.diag 2>&1."
+    $GS $GSARG$1.$FPEXT $1.ps >> gs.diag  2>&1
 }
 
 function ConvertAndMogrify
@@ -146,64 +166,61 @@ function ConvertAndMogrify
 #	$CONVERT $CONVERTARG $1.ps $1.$FPEXT  >> gs.diag  2>&1
 
     	GSConvert $1
-	echo Mogrifying $1.$FPEXT
-	echo $ImageMagick/mogrify $MOGRIFYARG $1.$FPEXT
+	logMessage "adc_max_simple_plot_gmt.sh: ConvertAndMogrify: Mogrifying $1.$FPEXT with the following command: $ImageMagick/mogrify $MOGRIFYARG $1.$FPEXT >> gs.diag 2>&1."
 	$ImageMagick/mogrify $MOGRIFYARG $1.$FPEXT  >> gs.diag  2>&1
 }
 
 function CleanUp
 {
 	# Clean up
-	echo Cleaning up ...
+	logMessage "adc_max_simple_plot_gmt.sh: CleanUp: Cleaning via rm -f temp.dat temp2.dat fort.997 gs.diag."
 	rm -f temp.dat temp2.dat fort.997 gs.diag
 	if [ $CompressFiles -eq "1" ] ; then 
-		echo Bzipping $FP.ps $FP.$FPEXT 
+		logMessage "adc_max_simple_plot_gmt.sh: CleanUp: Bzipping $FP.ps $FP.$FPEXT." 
 		bzip2 --force $FP.$FPEXT $FP.ps
 	fi
 }
 
 function MakeColorbar
 {
-	cpt=$1
-	barg=$2
-  	targ=$3
-            
-	$GMTHOME/bin/gmtset X_ORIGIN = 0.i
-	$GMTHOME/bin/gmtset Y_ORIGIN = 0.i
-	#-D defines the position of the center/top (for horizontal scale) or center/left (for vertical scale) and the dimensions of the scale
-	# -Dxpos/ypos/length/width
-   #     arg1="-P -R0/0/1/1r -JX2i/8i -B0 -K"
-   #     arg2="-D0.25i/3.5i/5i/.5i -O -B$barg -C$cpt"
-   #     arg3="-crop 130x400+00+50"   
-     #   arg1="-P -R0/0/1/1r -JX1i/10i -B0 -K"
-     #   arg2="-D0i/5i/10i/1i -O -B$barg -C$cpt"
-        arg1="-P -R0/0/1/1r -JX0.5i/5i -B0 -K"
-        arg2="-D0i/2.5i/5i/0.5i -O -B$barg -C$cpt"
-        arg3="-crop 130x460+60+340"   # topsail
-
-
-	if [ $DEBUG ] ; then 
-      echo Drawing colorbar :  $GMTHOME/bin/psbasemap $arg1 \>\> $targ.ps 
-      echo Drawing colorbar :  $GMTHOME/bin/psscale $arg2 \>\> $targ.ps 
-	  echo Converting : $ImageMagick/convert $arg3 $targ.ps $targ.png
-	fi
+    cpt=$1
+    barg=$2
+    targ=$3
+#            
+    $GMTHOME/bin/gmtset X_ORIGIN = 0.i
+    $GMTHOME/bin/gmtset Y_ORIGIN = 0.i
+    #-D defines the position of the center/top (for horizontal scale) or center/left (for vertical scale) and the dimensions of the scale
+    # -Dxpos/ypos/length/width
+    #     arg1="-P -R0/0/1/1r -JX2i/8i -B0 -K"
+    #     arg2="-D0.25i/3.5i/5i/.5i -O -B$barg -C$cpt"
+    #     arg3="-crop 130x400+00+50"   
+    #   arg1="-P -R0/0/1/1r -JX1i/10i -B0 -K"
+    #   arg2="-D0i/5i/10i/1i -O -B$barg -C$cpt"
+    arg1="-P -R0/0/1/1r -JX0.5i/5i -B0 -K"
+    arg2="-D0i/2.5i/5i/0.5i -O -B$barg -C$cpt"
+    arg3="-crop 130x460+60+340"   # topsail
+#
+    if [ $DEBUG ] ; then 
+       debugMessage "adc_max_simple_plot_gmt.sh: MakeColorbar: Drawing colorbar : $GMTHOME/bin/psbasemap $arg1 \>\> $targ.ps." 
+       debugMessage "adc_max_simple_plot_gmt.sh: MakeColorbar: Drawing colorbar : $GMTHOME/bin/psscale $arg2 \>\> $targ.ps." 
+       debugMessage "adc_max_simple_plot_gmt.sh: MakeColorbar: Converting : $ImageMagick/convert $arg3 $targ.ps $targ.png."
+    fi
     rm .gmtdefaults4
-	$GMTHOME/bin/psbasemap $arg1 > $targ.ps
-        $GMTHOME/bin/psscale $arg2 >> $targ.ps
-	$ImageMagick/convert $arg3 $targ.ps $targ.png
+    $GMTHOME/bin/psbasemap $arg1 > $targ.ps
+    $GMTHOME/bin/psscale $arg2 >> $targ.ps
+    $ImageMagick/convert $arg3 $targ.ps $targ.png
 }
 
 function MakePlot
 {
-	local file cpt max units barg title BOX targ TARGET
+	local file cpt max units barg title BOXLIMS targ 
 	file=$1
 	cpt=$2
 	max=$3
 	units=$4
 	barg=$5
-	BOX=$6
+	BOXLIMS=$6
     	level=$7
-        TARGET=$8
 
     # This is the number of tiles on a side at this level
     nTiles=$(echo "2^($level - 1)" |bc)
@@ -224,41 +241,38 @@ function MakePlot
 
     # Tile name is level.x.y where 1.1 is lower left
     # The loop proceeds from west to east and south to north
-    for ((y=1; y<=nTiles; y++))
-    do
-        for ((x=1; x<=nTiles; x++))
-        do
-            BOX="$TileWest/$TileEast/$TileSouth/$TileNorth"
-	        targ="$Prefix.$level.$x.$y"
-	        echo ' '
-	        echo Generating figure ... $@ $targ with BOX $BOX
-           
-	        # Draw Colored triangles
-	        arg="$file $PSCONTOURARGS -R$BOX -C$cpt "
-	        if [ $DEBUG ] ; 
-            then 
-                echo DEBUG :: Drawing triangles :  $GMTHOME/bin/pscontour $arg \> $targ.ps ; 
+    for ((y=1; y<=nTiles; y++)); do
+        for ((x=1; x<=nTiles; x++)); do
+            BOXLIMS="$TileWest/$TileEast/$TileSouth/$TileNorth"
+            targ="$Prefix.$level.$x.$y"
+            echo ' '
+            logMessage "adc_max_simple_plot_gmt.sh: MakePlot: Generating figure ... $@ $targ with BOX $BOXLIMS on platform $TARGET."
+            #           
+            # Draw Colored triangles
+            arg="$file $PSCONTOURARGS -R$BOXLIMS -C$cpt "
+            if [ $DEBUG ] ; then 
+                debugMessage "adc_max_simple_plot_gmt.sh: MakePlot: Drawing triangles :  $GMTHOME/bin/pscontour $arg \> $targ.ps." 
             fi 
-	     $GMTHOME/bin/pscontour $arg -K  > $targ.ps
-    # add track line and points if available
-    #       perl $PPDIR/make_track_files.pl 
-        if [  -e track_point.dat ] ; then
-            $GMTHOME/bin/psxy ./track_point.dat -: -R -JX -O -K -P -G0 -Skhurricane -V >>  $targ.ps
-        fi
-        if [  -e track_line.dat ] ; then
-            $GMTHOME/bin/psxy ./track_line.dat -: -R -JX -O  -P -W5.0  -V >>  $targ.ps
-        fi
+            $GMTHOME/bin/pscontour $arg -K  > $targ.ps
+            # add track line and points if available
+            #       perl $PPDIR/make_track_files.pl 
+            if [  -e track_point.dat ] ; then
+               $GMTHOME/bin/psxy ./track_point.dat -: -R -JX -O -K -P -G0 -Skhurricane -V >>  $targ.ps
+            fi
+            if [  -e track_line.dat ] ; then
+               $GMTHOME/bin/psxy ./track_line.dat -: -R -JX -O  -P -W5.0  -V >>  $targ.ps
+            fi
 
             ConvertAndMogrify $targ
 
             # Make the kml file for this tile
             KMLArg="--prefix=$Prefix --level=$level --maxLevel=$NLevels --tileX=$x --tileY=$y --minPix=256 --maxPix=512 --north=$TileNorth --south=$TileSouth --east=$TileEast --west=$TileWest --colorbar=$colorbarName.png --date=$Date --endDate=$EndDate --logo=$logo"
-            echo $KMLArg
+            logMessage "adc_max_simple_plot_gmt.sh: MakePlot: Making kml file for this tile with the command $PPDIR/WriteTiledKML $KMLArg."
             $PPDIR/WriteTiledKML $KMLArg
 
             # Now call the world file builder.
             worldArg="--image=$targ.png --world=$targ.world --north=$TileNorth --south=$TileSouth --east=$TileEast --west=$TileWest --imagemagickpath $ImageMagick"
-            echo $worldArg
+            logMessage "adc_max_simple_plot_gmt.sh: MakePlot: Calling world file builder with the command $PPDIR/makeWorldFile.pl $worldArg."
             $PPDIR/makeWorldFile.pl $worldArg
 
             # Reset East and West for next tile.
@@ -275,6 +289,7 @@ function MakePlot
     done
 
     # make a montage for this level.
+    logMessage "adc_max_simple_plot_gmt.sh: MakePlot: Making a montage for this level with the command $PPDIR/makeMontage.sh $Prefix $level $TARGET $BOX."
     $PPDIR/makeMontage.sh $Prefix $level $TARGET $BOX
     rm -rf temp.trk temp.6h.trk ll.temp
 }
