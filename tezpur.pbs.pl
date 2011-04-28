@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Copyright(C) 2006, 2007, 2008, 2009 Jason Fleming
+# Copyright(C) 2006, 2007, 2008, 2009, 2010, 2011 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -17,6 +17,10 @@
 # 
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# Despite the file name, this template filler is used for both Tezpur and 
+# Blueridge.
 #
 $^W++;
 use strict;
@@ -37,7 +41,8 @@ my $walltime; # estimated maximum wall clock time
 my $qscript;  # the template file to use for the queue submission script
 my $syslog;   # the log file that the ASGS uses 
 my $ppn;      # the number of processors per node
-my $nuwriters; # number of writer processors, if any
+my $numwriters; # number of writer processors, if any
+my $cloptions; # command line options for adcirc, if any
 my $localhotstart; # present if subdomain hotstart files should be written
 
 # initialize to the log file that adcirc uses, just in case
@@ -55,6 +60,7 @@ GetOptions("ncpu=s" => \$ncpu,
            "qscript=s" => \$qscript,
            "syslog=s" => \$syslog,
            "submitstring=s" => \$submitstring,
+           "cloptions=s" => \$cloptions,
            "localhotstart" => \$localhotstart,
            "numwriters=s" => \$numwriters, 
            "ppn=s" => \$ppn );
@@ -67,7 +73,7 @@ my $nnodes = $ncpu/$ppn;
 if ( ($ncpu%$ppn) != 0 ) {
    $nnodes++;
 } 
-# set up command line optionsa, if any
+# set up command line options, if any
 my $cloptions = "";
 if ( defined $numwriters ) {
    $cloptions = " -W " . $numwriters;
@@ -104,7 +110,7 @@ while(<TEMPLATE>) {
     # file to direct stdout and stderr to from the adcirc process
     s/%syslog%/$syslog/;
     # fill in command line options
-    s/%cloption%/$cloption/;
+    s/%cloptions%/$cloptions/;
     print $_;
 }
 close(TEMPLATE);

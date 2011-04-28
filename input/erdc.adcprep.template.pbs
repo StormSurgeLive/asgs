@@ -35,7 +35,7 @@ cd %advisdir%/%enstorm%
 # These are the actual commands to be executed.
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 echo "[${DATETIME}] : adcprep starting in %advisdir%/%enstorm%." > run.start
-echo "Test job starting at $DATETIME."
+echo "job starting at $DATETIME."
 %adcircdir%/adcprep <<END >> adcprep.log 2>&1
 %ncpu%
 4

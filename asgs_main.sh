@@ -346,11 +346,12 @@ prep()
        # run adcprep to decompose the new fort.15 file
        logMessage "Running adcprep to prepare new fort.15 file."
        prepControlFile $ENV $NCPU $ACCOUNT $WALLTIME
-       if [[ $HOTSTARTCOMP = fulldomain ]]; then
-          # run adcprep to decompose the hotstart file
-          logMessage "Running adcprep to decompose hotstart file."
-          prepHotstartFile $ENV $NCPU $ACCOUNT $WALLTIME
-       fi
+#       jgf20110428: no longer needed in adcirc v49
+#       if [[ $HOTSTARTCOMP = fulldomain ]]; then
+#          # run adcprep to decompose the hotstart file
+#          logMessage "Running adcprep to decompose hotstart file."
+#          prepHotstartFile $ENV $NCPU $ACCOUNT $WALLTIME
+#       fi
     fi
 }
 #
@@ -361,8 +362,8 @@ prepControlFile()
     NCPU=$2
     ACCOUNT=$3
     WALLTIME=$4
-    if [[ $ENV = jade || $ENV = sapphire || $ENV = diamond ]]; then
-       QSCRIPTOPTIONS="--ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm $ENSTORM --syslog $SYSLOG"
+    if [[ $ENV = jade || $ENV = sapphire || $ENV = diamond || $ENV = blueridge ]]; then
+       QSCRIPTOPTIONS="--ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --syslog $SYSLOG"
        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.pbs 2>> ${SYSLOG}
        qsub $ADVISDIR/$ENSTORM/adcprep.pbs >> ${SYSLOG} 2>&1
        monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol $WALLTIME
@@ -407,8 +408,8 @@ prepHotstartFile()
       NCPU=$2
       ACCOUNT=$3
       WALLTIME=$4
-      if [[ $ENV = jade || $ENV = sapphire || $ENV = diamond ]]; then
-         QSCRIPTOPTIONS="--ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPHOTSTARTSCRIPT --enstorm $ENSTORM --syslog $SYSLOG"
+      if [[ $ENV = jade || $ENV = sapphire || $ENV = diamond || $ENV = blueridge ]]; then
+         QSCRIPTOPTIONS="--ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPHOTSTARTSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --syslog $SYSLOG"
          perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep_hotstart.pbs 2>> ${SYSLOG}
          qsub $ADVISDIR/$ENSTORM/adcprep_hotstart.pbs >> ${SYSLOG} 2>&1
          monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart $WALLTIME
@@ -768,6 +769,21 @@ consoleMessage()
 #
 # initialization subroutines for the various machines/architectures 
 #
+init_blueridge()
+{ #<- can replace the following with a custom script
+  HOSTNAME=blueridge.renci.org
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  ACCOUNT=noaccount
+  SUBMITSTRING=submitstring
+  SCRATCHDIR=/work/$USER
+  SSHKEY=~/.ssh/id_rsa_blueridge
+  QSCRIPT=renci.template.pbs
+  PREPCONTROLSCRIPT=renci.adcprep.template.pbs
+  PREPHOTSTARTSCRIPT=renci.adcprep.hotstart.template.pbs
+  QSCRIPTGEN=tezpur.pbs.pl
+  PPN=8
+}
 init_sapphire()
 { #<- can replace the following with a custom script
   HOSTNAME=sapphire.erdc.hpc.mil
@@ -906,6 +922,9 @@ init_test()
 # such as queue interactions
 env_dispatch(){
  case $1 in
+  "blueridge") logMessage "Blueridge (RENCI) configuration found."
+          init_blueridge
+          ;;
   "sapphire") logMessage "Sapphire (ERDC) configuration found."
           init_sapphire
 	  ;;
@@ -936,7 +955,7 @@ env_dispatch(){
   "test") logMessage "test environment (default) configuration found."
           init_test
           ;; 
-  *) fatal "'$1' is not a supported environment; currently supported options: sapphire, jade, diamond, ranger, lonestar, queenbee, topsail, desktop"
+  *) fatal "'$1' is not a supported environment; currently supported options: blueridge, sapphire, jade, diamond, ranger, lonestar, queenbee, topsail, desktop"
      ;;
   esac
 }
@@ -1334,6 +1353,7 @@ while [ 1 -eq 1 ]; do
     cd $ADVISDIR 2>> ${SYSLOG}
     #
     # F O R E C A S T
+    # 
     logMessage "Starting forecast for advisory '$ADVISORY'."
     consoleMessage "Starting forecast for advisory '$ADVISORY'."
     # source config file
@@ -1344,7 +1364,7 @@ while [ 1 -eq 1 ]; do
     logMessage "The time in the hotstart file is '$HSTIME' seconds."
     let si=0
     while [ $si -lt $ENSEMBLESIZE ]; do  
-       ENSTORM=${ENSTORMNAMES[$si]}
+       ENSTORM=${NAME[${STORMLIST[$si]}]}
        if [ ! -d $ADVISDIR/${ENSTORM} ]; then
           mkdir $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
        fi

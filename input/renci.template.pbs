@@ -1,0 +1,38 @@
+#!/bin/bash
+#PBS -V
+#PBS -N %enstorm%
+#PBS -l nodes=%nnodes%:ppn=%ppn%
+#PBS -l walltime=%walltime%
+#PBS -M %notifyuser%
+#PBS -j oe
+#PBS -o %advisdir%/%enstorm%/%enstorm%.out
+##PBS -I
+cd %advisdir%/%enstorm%
+cat $PBS_NODEFILE
+hostname
+MPIHOME=/opt/mpi/intel/openmpi-1.3.3
+#MPIHOME=/opt/mpi/intel/mvapich2-1.4
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MPIHOME/lib
+OPTS="--mca btl openib,self" # -np 64 --bynode"
+#OPTS="--mca btl tcp,self --mca btl_tcp_if_include eth0"
+CMD="$MPIHOME/bin/mpirun $OPTS -n %ncpu% %adcircdir%/padcirc %cloption% >> %syslog%"
+echo $CMD
+echo "%enstorm% job starting at `date`"
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+echo "[${DATETIME}] : Job starting"          >> run.start
+echo "[${DATETIME}] : %advisdir%  %enstorm%" >> run.start
+echo "[${DATETIME}] : padcirc"               >> run.start
+$CMD
+ERROVALUE=$?
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+if [ $ERROVALUE == 0 ] ; then
+   echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.finish
+   echo "[${DATETIME}] :  %advisdir%  %enstorm%"               >> run.finish
+   echo "[${DATETIME}] :  padcirc"                             >> run.finish
+else
+   echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.error
+   echo "[${DATETIME}] :  %advisdir%  %enstorm%"               >> run.error
+   echo "[${DATETIME}] :  padcirc"                             >> run.error
+fi
+echo "%enstorm% job finished at `date`"
+

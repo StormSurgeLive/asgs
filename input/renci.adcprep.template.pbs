@@ -1,0 +1,36 @@
+#!/bin/bash
+#PBS -V
+#PBS -N %enstorm%
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=%walltime%
+#PBS -M %notifyuser%
+#PBS -j oe
+#PBS -o %advisdir%/%enstorm%/%enstorm%.out
+##PBS -I
+cd %advisdir%/%enstorm%
+cat $PBS_NODEFILE
+hostname
+MPIHOME=/opt/mpi/intel/openmpi-1.3.3
+#MPIHOME=/opt/mpi/intel/mvapich2-1.4
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MPIHOME/lib
+OPTS="--mca btl openib,self" # -np 64 --bynode"
+#OPTS="--mca btl tcp,self --mca btl_tcp_if_include eth0"
+echo "%enstorm% job starting at `date`"
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+echo "[${DATETIME}] : adcprep starting in"      >> run.start
+echo "[${DATETIME}] : %advisdir%  %enstorm%" >> run.start
+%adcircdir%/adcprep <<END >> adcprep.log 2>&1
+%ncpu%
+4
+fort.14
+fort.15
+END
+ERROVALUE=$?
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+if [ $ERROVALUE == 0 ] ; then
+   RUNSUFFIX="finish"
+else
+   RUNSUFFIX="error"
+fi
+echo "[${DATETIME}] : adcprep finished in %advisdir%/%enstorm% with return value = $ERROVALUE" > run.${RUNSUFFIX}
+echo "adcprep job finished at $DATETIME."
