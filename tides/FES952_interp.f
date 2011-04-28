@@ -80,11 +80,13 @@ c**********************************************************************
       integer, allocatable :: node(:)
       real, allocatable :: xlon(:),ylat(:),xtemp(:),ytemp(:)
       integer :: iobcor(4)
-      integer       iobflag, ixlo, xlonlo, ixhi, jylo, jyhi
+      integer       iobflag, ixlo, ixhi, jylo, jyhi
       real*8        phi(4),c(4),s(4),tc,ts
       real*8        deg2rad,rad2deg,freq
-      real          latmin,latmax,lonmin,lonmax, dlon, dlat, ylatlo
-      real          zeta, eta, x1, x2, x3, y1, y2, y3, twoarea, amp
+      real*8        latmin,latmax,lonmin,lonmax
+      real*8        dlon, dlat, ylatlo, xlonlo
+
+      real*8        zeta, eta, x1, x2, x3, y1, y2, y3, twoarea, amp
       real          pha, uamp, upha, vamp, vpha
       integer       nlon, nlat
       character(2048) datafile,gridfile,header
@@ -109,10 +111,6 @@ c     General format statements
 
 1055  FORMAT(a55)
 1056  FORMAT(a2)
-1110  FORMAT(' File ',A,' WAS NOT FOUND!')
-1111  FORMAT(' File ',A,' WAS FOUND!')
-1102  format(' *********************  Try Again  *********************')
-
 C
 C     Initialize to reasonable defaults
       interp=1  ! we usually use this program to establish tidal b.c.s

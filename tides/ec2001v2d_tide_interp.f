@@ -31,6 +31,14 @@ C                                    ascending order of nodes the N2<N3<N1    *
 C                                    and the N3<N1<N2 definitions of NO(n)    *
 C                                    were switched.)  Corrected 3-22-99       *
 C          R.A. LUETTICH    VERSION  1.06 for ec2001_v2d database             *
+C          J.G. FLEMING     VERSION  1.07 20110320 Added capability to 
+C                           run the code via command line options to facilitate
+C                           automation; added code to automatically grab the 
+C                           open boundary node locations from an ADCIRC fort.14
+C                           (mesh) file; made arrays dynamically allocated;
+C                           added implicit none and explicitly declared all
+C                           variables. Added comment lines throughout. 
+C                           Made all nodal coordinates double precision.
 C                                                                             *
 C******************************************************************************
 C                                                                             *
@@ -105,50 +113,160 @@ C     -  DESCRIPTION OF OUTPUT DATA WRITTEN TO UNIT 2  (tides.dia)            *
 C          self explanitory.  see output file.                                *
 C                                                                             *
 C******************************************************************************
-
-CUSER...
-CUSER...SET PARAMETER STATEMENTS
-CUSER....THE PARAMETERS HAVE TO BE RE-SET PRIOR TO EXECUTION TO INSURE
-CUSER....SUFFICIENT SPACE HAS BEEN ALLOCATED FOR A SPECIFIC PROBLEM
-CUSER....PARAMETER STATEMENTS MUST ALSO BE ADJUSTED IN THE SUBROUTINES
-CUSER....AND FUNCTION STATEMENTS
-CUSER...
-        PARAMETER(MNP=400000)
-        PARAMETER(MNHARF=10)
-CUSER...
-CUSER...END OF PARAMETER STATEMENTS
-CUSER....
-
-C...
-C...DIMENSION ALL ARRAYS AND DEFINE COMMON BLOCKS
-C...
-      DIMENSION X(MNP),Y(MNP),XOUT(MNP),YOUT(MNP)
-	DIMENSION NM1(2*MNP),NM2(2*MNP),NM3(2*MNP)
-      DIMENSION FREQ(MNHARF),NFACT(MNHARF),EQARG(MNHARF),
-     &          NAME(MNHARF)
-      DIMENSION EAMP(3,MNHARF),EPHA(3,MNHARF),ETAMP(MNHARF,MNP),
-     &          ETPHA(MNHARF,MNP)
+      PROGRAM EC2001V2D_TIDE_INTERP
+      IMPLICIT NONE
+C
+      REAL, PARAMETER :: PI=3.141592653589793
+      CHARACTER(80), PARAMETER :: version = "1.07"
+C      REAL :: X(MNP),Y(MNP),XOUT(MNP),YOUT(MNP)
+C      INTEGER :: NM1(2*MNP),NM2(2*MNP),NM3(2*MNP)
+C      REAL FREQ(MNHARF),NFACT(MNHARF),EQARG(MNHARF)
+C      CHARACTER*10 :: NAME(MNHARF)
+C      REAL :: EAMP(3,MNHARF),EPHA(3,MNHARF),ETAMP(MNHARF,MNP),
+C     &          ETPHA(MNHARF,MNP)
+C
+      REAL(8), ALLOCATABLE :: X(:),Y(:),XOUT(:),YOUT(:),XLON(:),YLAT(:)
+      REAL, ALLOCATABLE :: EAMP(:,:),EPHA(:,:),
+     &                     ETAMP(:,:), ETPHA(:,:)
+      REAL, ALLOCATABLE :: FREQ(:),NFACT(:),EQARG(:)
+      INTEGER, ALLOCATABLE :: NM1(:),NM2(:),NM3(:)
+      INTEGER, ALLOCATABLE :: node(:), tnode(:)
+      CHARACTER*10, ALLOCATABLE :: HCNAME(:)
 c      DIMENSION UAMP(3,MNHARF),UPHA(3,MNHARF),UTAMP(MNHARF,MNP),
 c     &          UTPHA(MNHARF,MNP)
 c      DIMENSION VAMP(3,MNHARF),VPHA(3,MNHARF),VTAMP(MNHARF,MNP),
 c     &          VTPHA(MNHARF,MNP)
-      DIMENSION NN(3),NO(3)
-      CHARACTER*10 NAME
-      REAL NFACT
-
-      OPEN(1,FILE='tides.out')
-	OPEN(2,FILE='tides.dia')
-	OPEN(12,FILE='tides.in')
-      OPEN(14,FILE='ec2001_v2d.grd')
-
+      INTEGER :: NNE   ! source element containing the target location
+      INTEGER :: NN(3) ! node #s around the source ele containing target loc
+      INTEGER :: NO(3)
+      INTEGER :: NOUT ! number of target locations for harmonic data
+      INTEGER :: TNP  ! number of nodes in the target mesh
+      INTEGER :: TNE  ! number of elements in the target mesh
+      INTEGER :: NP   ! number of nodes in the source mesh (w/harmonic data)
+      INTEGER :: NE   ! number of elements in the source mesh (w/harmonic data)
+      INTEGER :: I, JKI, NHY, KMIN, K, N1, N2, N3, N, EN
+      INTEGER :: NOPE, NETA, NVDLL 
+      INTEGER :: NHC, J, NPP, IBEG, SNODE, II, IDUM, I1, I2, I3
+      REAL(8) :: AEMIN, X4, Y4, X1, X2, X3, Y1, Y2, Y3, AREAS, E1R, E1I
+      REAL :: E2R, E2I, E3R, E3I, ETR, ETI, depth
+      REAL(8) :: STA1, STA2, STA3
+      REAL(8) :: A1, A2, A3, AA, AE, AREA
+      CHARACTER(24) :: AGRID
+      CHARACTER(24) :: header
+      CHARACTER(1024) :: cmdlinearg
+      INTEGER :: argcount
+      LOGICAL :: adcircFormat !.true. if coords should be omitted from output
+C
+      CHARACTER(1024) :: outfile ! where the results will be written
+      CHARACTER(1024) :: logfile 
+      CHARACTER(1024) :: targetmesh ! where the tides should be interpolated
+      CHARACTER(1024) :: sourcemesh ! where the tidal data is interpolated from
+      CHARACTER(1024) :: tidaldb    ! tidal harmonic data file
+      LOGICAL :: FOUND ! true if file exists
+C
+C     Set reasonable defaults
+      outfile = 'tides.out'
+      logfile = 'tides.dia'
+      targetmesh = 'tides.in'
+      sourcemesh = 'ec2001_v2d.grd'      
+      tidaldb = 'ec2001_v2d.tdb'
+      adcircFormat = .false.
+C
+C     Process command line options, if any
+      argcount = iargc()
+      if (argcount.gt.0) then
+         i = 0
+         do while(i.lt.argcount)
+            i = i + 1
+            call getarg(i, cmdlinearg)
+            select case(cmdlinearg(1:2))
+               case("-o") ! output file name
+                  i = i + 1
+                  call getarg(i,outfile)
+               case("-l") ! log file
+                  i = i + 1
+                  call getarg(i,logfile)
+               case("-t") ! target mesh
+                  i = i + 1
+                  call getarg(i,targetmesh)
+               case("-s") ! source mesh
+                  i = i + 1
+                  call getarg(i,sourcemesh)
+               case("-d") ! data for harmonic tides
+                  i = i + 1
+                  call getarg(i,tidaldb)
+               case("-f") ! format: either full or adcirc-style
+                  i = i + 1
+                  call getarg(i,cmdlinearg)
+                  select case(trim(cmdlinearg))
+                     case("full")
+                        ! do nothing; incl. coordinates is the default
+                     case("adcirc")
+                        adcircFormat = .true.                        
+                     case default
+                        write(*,*) "ERROR: ec2001v2d_tide_interp: -f '",
+     &                     trim(cmdlinearg),"' not recognized."
+                        stop
+                  end select
+               case("-v") ! show version information
+                  write(*,*) "ec2001v2d_tide_interp version ",version
+               case("-h") ! show a help message
+                  write(*,*) "-o outfile"
+                  write(*,*) "-l logfile"
+                  write(*,*) "-s sourcemesh"
+                  write(*,*) "-t targetmesh"
+                  write(*,*) "-d tidaldb"
+                  write(*,*) "-f full or -f adcirc"
+                  write(*,*) "-v show version"
+                  write(*,*) "-h this message"
+                  stop
+               case default
+                  write(*,*) "ERROR: ec2001v2d_tide_interp: ",
+     &               "Command line option '",
+     &               trim(cmdlinearg)," not recognized."
+                  stop
+            end select
+         end do
+      endif ! end processing of command line options, if any
+C
+C
+      ! open the file where the results will be written
+      OPEN(1,FILE=trim(outfile),STATUS='replace',action='write')
+      ! open a log file
+      OPEN(2,FILE=trim(logfile),STATUS='replace', action='write')
+      ! open the file containing the target locations
+      INQUIRE(FILE=trim(targetmesh),EXIST=FOUND)
+      IF (FOUND.EQV..FALSE.) THEN
+            write(*,*) "ERROR: ec2001v2d_tide_interp: ",
+     &      " The ADCIRC target mesh file '",
+     &      trim(targetmesh),"' was not found."
+         STOP
+      ENDIF
+      OPEN(12,FILE=trim(targetmesh),STATUS='old',action='read')
+      ! open the source mesh file upon which the tidal data is defined
+      INQUIRE(FILE=trim(sourcemesh),EXIST=FOUND)
+      IF (FOUND.EQV..FALSE.) THEN
+            write(*,*) "ERROR: ec2001v2d_tide_interp: ",
+     &      " The ADCIRC source mesh file '",
+     &      trim(sourcemesh),"' was not found."
+         STOP
+      ENDIF
+      OPEN(14,FILE=trim(sourcemesh),STATUS='old',action='read')
+      ! open the tidal databaseh file 
+      INQUIRE(FILE=trim(tidaldb),EXIST=FOUND)
+      IF (FOUND.EQV..FALSE.) THEN
+            write(*,*) "ERROR: ec2001v2d_tide_interp: ",
+     &      " The tidal database file '",
+     &      trim(tidaldb),"' was not found."
+         STOP
+      ENDIF
+      OPEN(105,FILE=trim(tidaldb),STATUS='old',action='read')
+      READ(105,*) NHC
+      ALLOCATE(FREQ(NHC),NFACT(NHC),EQARG(NHC),HCNAME(NHC))
+      ALLOCATE(EAMP(3,NHC),EPHA(3,NHC))
+      REWIND(105)
 C...
-C...DEFINE PI
-C...
-      PI=3.141592653589793
-
-C...
-C...OUTPUT FILE HEADER
-C...
+C...  OUTPUT FILE HEADER
       WRITE(1,3900)
  3900 FORMAT(//,8X,'Constituent',13x,'Elevation',16x,'East Velocity',
      &          12X,'North Velocity')
@@ -159,44 +277,78 @@ C...
      &                                                  '(deg)'),/)
 
 C...
-C...READ INPUT LOCATIONS FOR HARMONIC ANALYSIS OUTPUT
-C...
-      READ(12,*) NOUT
+C...  READ TARGET LOCATIONS FOR HARMONIC ANALYSIS OUTPUT
+      read(12,*) header
+      read(12,*) tne,tnp
+      allocate(node(tnp),xlon(tnp),ylat(tnp))
+      do n=1,tnp
+         read(12,*) node(n),xlon(n),ylat(n),depth
+         if(xlon(n).lt.-180.) xlon(n)=xlon(n)+360.
+         if(xlon(n).ge.180.) xlon(n)=xlon(n)-360.
+      end do
+C
+      do n=1,tne
+         read(12,*) en,idum,i1,i2,i3 ! skip past the element table
+      end do
+      read(12,*) nope
+      read(12,*) neta
+      nout=neta
+      allocate(tnode(nout),xout(nout),yout(nout))
+      n=0
+      do k=1,nope
+         read(12,*) nvdll
+         do i=1,nvdll
+            n=n+1
+            read(12,*) tnode(n)
+            end do
+         end do
+      if(n.ne.neta) then
+         write(*,*) "ERROR: ec2001v2d_tide_interp: ",
+     &   "the number of open boundary nodes (",n,
+     &   "), in the target mesh file '",
+     &   trim(targetmesh),"' not match NETA (",neta,
+     &   ") in the target mesh file."
+         write(*,*) ' '
+         stop
+      endif
+      do n=1,nout
+         xout(n)=xlon(tnode(n)) ! assumes the nodes are in order at top of file
+         yout(n)=ylat(tnode(n))
+      end do
+      close(12)
+
       DO I=1,NOUT
-        READ(12,*) XOUT(I),YOUT(I)
         WRITE(2,1000) XOUT(I),YOUT(I)
  1000   FORMAT(//,' OUTPUT WILL BE GENERATED FOR THE POSITION: ',/,
      &            5X,F11.6,' E LONGITUDE , ',F11.6,' N LATITUDE',//)
-	  END DO
- 
+      END DO
 C...
-C...INPUT GRID INFORMATION FROM UNIT 14
-C...
+C...  INPUT GRID INFORMATION FROM UNIT 14
       READ(14,'(A24)') AGRID
       READ(14,*) NE,NP
-
-C...NODAL COORDINATES
-
-      WRITE(*,*) 'READING NODAL COORDINATES......'
-      WRITE(*,*) ' '
+      ALLOCATE(X(NP),Y(NP))
+      ALLOCATE(ETAMP(NHC,NOUT),ETPHA(NHC,NOUT))
+      ALLOCATE(NM1(NE),NM2(NE),NM3(NE))
+C
+C...  NODAL COORDINATES
+C      WRITE(*,*) 'READING NODAL COORDINATES......'
+C      WRITE(*,*) ' '
       DO I=1,NP
         READ(14,*) JKI,X(JKI),Y(JKI)
-        END DO
-
-C....CONNECTIVITY TABLE 
-
-      WRITE(*,*) 'READING ELEMENT TABLE......'
-      WRITE(*,*) ' '
+      END DO
+C
+C.... CONNECTIVITY TABLE 
+C      WRITE(*,*) 'READING ELEMENT TABLE......'
+C      WRITE(*,*) ' '
       DO I=1,NE
         READ(14,*) JKI,NHY,NM1(JKI),NM2(JKI),NM3(JKI)
-	  END DO
-
+      END DO
+      CLOSE(14)
 C...
-C....COMPUTE ELEMENT IN WHICH EACH LOCATION LIES.
-C...
-      WRITE(*,*) 'COMPUTING LOCATION AND INTERPOLATING......'
-	WRITE(*,*) ' '
-    	DO I=1,NOUT
+C.... COMPUTE ELEMENT IN WHICH EACH LOCATION LIES.
+C      WRITE(*,*) 'COMPUTING LOCATION AND INTERPOLATING......'
+C      WRITE(*,*) ' '
+      DO I=1,NOUT
         AEMIN=1.0E+25
         KMIN=0
         X4=XOUT(I)
@@ -208,7 +360,7 @@ C...
           Y1=Y(NM1(K))
           Y2=Y(NM2(K))
           Y3=Y(NM3(K))
- 	    AREAS=(X1-X3)*(Y2-Y3)-(X3-X2)*(Y3-Y1)
+          AREAS=(X1-X3)*(Y2-Y3)-(X3-X2)*(Y3-Y1)
           A1=(X4-X3)*(Y2-Y3)-(X3-X2)*(Y3-Y4)
           A2=(X1-X3)*(Y4-Y3)-(X3-X4)*(Y3-Y1)
           A3=(X1-X4)*(Y2-Y4)-(X4-X2)*(Y4-Y1)
@@ -221,20 +373,21 @@ C...
             N2=NM2(K)
             N3=NM3(K)
             AREA=AREAS
-            ENDIF
-          END DO
+          ENDIF
+        END DO
 
 C......PRINT WARNING IF NODE OUTSIDE THE DOMAIN
 
         IF(AEMIN.GT.1.0E-5) THEN                  !OUTSIDE AN ELEMENT
           WRITE(*,2000) AEMIN
           WRITE(2,2000) AEMIN
- 2000     FORMAT(///,' WARNING -  SPECIFIED LOCATION DOES NOT LIE',
+ 2000     FORMAT(' WARNING: ec2001v2d_tide_interp:', 
+     &           ' SPECIFIED LOCATION DOES NOT LIE',
      &           ' WITHIN ANY ELEMENT IN THE DOMAIN.',/,' CHECK THE',
      &           ' LONGITUDE AND LATITUDE FOR THIS LOCATION',
      &           ' PROGRAM WILL ESTIMATE NEAREST ELEMENT',/,' THE',
      &           ' PROXIMITY INDEX FOR THIS LOCATION EQUALS ',E15.6)
-	    ENDIF
+        ENDIF
 
 C......COMPUTE INFORMATION REQUIRED TO INTERPOLATE AT OUTPUT LOCATION
 
@@ -259,7 +412,7 @@ C......DETERMINE ASCENDING ORDER OF NODES
           NO(2)=2
           NO(3)=3
           GOTO 200
-          ENDIF
+        ENDIF
         IF((N2.LT.N1).AND.(N1.LT.N3)) THEN
           NN(1)=N2
           NN(2)=N1
@@ -268,7 +421,7 @@ C......DETERMINE ASCENDING ORDER OF NODES
           NO(1)=2
           NO(3)=3
           GOTO 200
-          ENDIF
+        ENDIF
         IF((N1.LT.N3).AND.(N3.LT.N2)) THEN
           NN(1)=N1
           NN(2)=N3
@@ -277,8 +430,8 @@ C......DETERMINE ASCENDING ORDER OF NODES
           NO(3)=2
           NO(2)=3
           GOTO 200
-          ENDIF
-c     Bug fix for v 1.05 on 3-22-99 starts here:
+        ENDIF
+c       Bug fix for v 1.05 on 3-22-99 starts here:
         IF((N2.LT.N3).AND.(N3.LT.N1)) THEN
           NN(1)=N2
           NN(2)=N3
@@ -287,7 +440,7 @@ c     Bug fix for v 1.05 on 3-22-99 starts here:
           NO(1)=2
           NO(2)=3
           GOTO 200
-          ENDIF
+        ENDIF
         IF((N3.LT.N1).AND.(N1.LT.N2)) THEN
           NN(1)=N3
           NN(2)=N1
@@ -296,7 +449,7 @@ c     Bug fix for v 1.05 on 3-22-99 starts here:
           NO(3)=2
           NO(1)=3
           GOTO 200
-          ENDIF
+        ENDIF
 c     End of bug fix (the above definitions of NO(.) were switched in previous version
         IF((N3.LT.N2).AND.(N2.LT.N1)) THEN
           NN(1)=N3
@@ -306,51 +459,47 @@ c     End of bug fix (the above definitions of NO(.) were switched in previous v
           NO(2)=2
           NO(1)=3
           GOTO 200
-          ENDIF
+        ENDIF
 
-C......WRITE THE ELEMENT CONTAINING THE OUTPUT LOCATION
-
-  200   WRITE(*,2100) NNE,NN(1),NN(2),NN(3)
-        WRITE(2,2100) NNE,NN(1),NN(2),NN(3)
+C...... WRITE THE ELEMENT CONTAINING THE OUTPUT LOCATION
+C  200   WRITE(*,2100) NNE,NN(1),NN(2),NN(3)
+  200   WRITE(2,2100) NNE,NN(1),NN(2),NN(3)
  2100   FORMAT(' SPECIFIED LOCATION WAS FOUND IN ELEMENT ',I8,/,
      &      5X,' WHICH IS MADE UP OF NODES ',3I8,//)
-
-C......READ HARMONIC CONSTITUENT INFORMATION
-
-        OPEN(105,FILE='ec2001_v2d.tdb')
-
+C
+C...... READ HARMONIC CONSTITUENT INFORMATION
         READ(105,*) NHC
         DO J=1,NHC
-          READ(105,3100) FREQ(J),NFACT(J),EQARG(J),NAME(J)
+          READ(105,3100) FREQ(J),NFACT(J),EQARG(J),HCNAME(J)
  3100     FORMAT(E21.10,F11.7,F13.8,2X,A10)
-          END DO
+        END DO
 
         READ(105,*) NPP
  3200   FORMAT(1X) 
 c3200    FORMAT(//)
-        DO K=1,3
+        DO K=1,3  ! loop over the three nodes in the source element
           IBEG=1
           IF(K.GE.2) IBEG=NN(K-1)+1
-          DO II=IBEG,NN(K)-1
+          DO II=IBEG,NN(K)-1 ! skip down through the tidal database file
             READ(105,3200)
-            END DO
-          READ(105,*) NODE,(EAMP(NO(K),J),EPHA(NO(K),J),J=1,NHC)
+          END DO
+          READ(105,*) SNODE,(EAMP(NO(K),J),EPHA(NO(K),J),J=1,NHC) ! source node
 c          READ(105,*)      (UAMP(NO(K),J),UPHA(NO(K),J),J=1,NHC)
 c          READ(105,*)      (VAMP(NO(K),J),VPHA(NO(K),J),J=1,NHC)
-          IF(NODE.NE.NN(K)) THEN
+          IF(SNODE.NE.NN(K)) THEN ! failed to skip to the right node
             WRITE(*,*) 'ERROR FINDING NODE ',NN(K),' PROGRAM HAS FOUND',
      &                ' NODE ',NODE,' IN ITS PLACE'
             WRITE(*,*)' PROGRAM WILL NOW BE TERMINATED'
             STOP
-            ENDIF
+          ENDIF
           DO J=1,NHC
             EPHA(NO(K),J)=PI*EPHA(NO(K),J)/180.
 c            UPHA(NO(K),J)=PI*UPHA(NO(K),J)/180.
 c            VPHA(NO(K),J)=PI*VPHA(NO(K),J)/180.
-            END DO
-         END DO
+          END DO
+        END DO
 
-	  CLOSE(105)
+        REWIND(105)
 
 C......COMPUTE HARMONIC CONSTITUENTS AT THE OUTPUT LOCATION
 
@@ -384,10 +533,10 @@ c          UTAMP(J,I)=SQRT(UTR*UTR+UTI*UTI)
 c          VTAMP(J,I)=SQRT(VTR*VTR+VTI*VTI)
           IF(ETAMP(J,I).EQ.0.) THEN
              ETPHA(J,I)=0.
-             ELSE
+          ELSE
              ETPHA(J,I)=180.*ACOS(ETR/ETAMP(J,I))/PI
              IF(ETI.LT.0.) ETPHA(J,I)=360.-ETPHA(J,I)
-             ENDIF
+          ENDIF
 c          IF(UTAMP(J,I).EQ.0.) THEN
 c             UTPHA(J,I)=0.
 c             ELSE
@@ -400,29 +549,33 @@ c             ELSE
 c             VTPHA(J,I)=180.*ACOS(VTR/VTAMP(J,I))/PI
 c             IF(VTI.LT.0.) VTPHA(J,I)=360.-VTPHA(J,I)
 c             ENDIF
-          END DO
-
         END DO
-
+      END DO
+C
 C......WRITE THE RESULTS
-
       DO J=1,NHC
-	  WRITE(1,3999) NAME(J)
- 3999   FORMAT(//,1X,A10,/)
-	  DO I=1,NOUT
-          WRITE(1,4000) XOUT(I),YOUT(I),ETAMP(J,I),ETPHA(J,I)
+        WRITE(1,3999) HCNAME(J)
+ 3999   FORMAT(1X,A10)
+        DO I=1,NOUT
+          IF (adcircFormat.eqv..true.) THEN
+             WRITE(1,4010) ETAMP(J,I),ETPHA(J,I)
+c     &             		,UTAMP(J,I),UTPHA(J,I),VTAMP(J,I),VTPHA(J,I)
+ 4010        FORMAT(1X,3(E12.5,2X,F8.3,3X))
+          ELSE
+             WRITE(1,4000) XOUT(I),YOUT(I),ETAMP(J,I),ETPHA(J,I)
 c     &           		,UTAMP(J,I),UTPHA(J,I),VTAMP(J,I),VTPHA(J,I)
- 4000     FORMAT(1X,2(F11.6,2X),3(E12.5,2X,F8.3,3X))
-          END DO
-	  END DO
+ 4000        FORMAT(1X,2(F11.6,2X),3(E12.5,2X,F8.3,3X))
+          ENDIF
+        END DO
+      END DO
 
+      WRITE(*,4100) trim(outfile)
+ 4100 FORMAT("INFO: ec2001v2d_tide_interp: ",
+     &  "RESULTS HAVE BEEN STORED IN FILE: '",A,"'.")
 
-      WRITE(*,*) ' '                   
-      WRITE(*,4100)
- 4100 FORMAT('**** RESULTS HAVE BEEN STORED IN FILE: TIDES.OUT ****')
-
-      CLOSE(14)
       CLOSE(1)
+      CLOSE(2)
+      CLOSE(105)
 
       STOP
-      END
+      END PROGRAM EC2001V2D_TIDE_INTERP
