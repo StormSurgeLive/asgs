@@ -363,7 +363,7 @@ prepControlFile()
     ACCOUNT=$3
     WALLTIME=$4
     if [[ $ENV = jade || $ENV = sapphire || $ENV = diamond || $ENV = blueridge ]]; then
-       QSCRIPTOPTIONS="--ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --syslog $SYSLOG"
+       QSCRIPTOPTIONS="--ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm prep15.${ENSTORM} --notifyuser $NOTIFYUSER --syslog $SYSLOG"
        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.pbs 2>> ${SYSLOG}
        qsub $ADVISDIR/$ENSTORM/adcprep.pbs >> ${SYSLOG} 2>&1
        monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol $WALLTIME
