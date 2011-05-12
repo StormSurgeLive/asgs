@@ -44,6 +44,7 @@ my $ppn;      # the number of processors per node
 my $numwriters; # number of writer processors, if any
 my $cloptions; # command line options for adcirc, if any
 my $localhotstart; # present if subdomain hotstart files should be written
+my $jobtype;  # e.g., prep15, padcirc, padcswan, etc
 
 # initialize to the log file that adcirc uses, just in case
 $syslog="adcirc.log";
@@ -63,7 +64,8 @@ GetOptions("ncpu=s" => \$ncpu,
            "cloptions=s" => \$cloptions,
            "localhotstart" => \$localhotstart,
            "numwriters=s" => \$numwriters, 
-           "ppn=s" => \$ppn );
+           "ppn=s" => \$ppn,
+           "jobtype=s" => \$jobtype );
 
 # calculate the number of nodes to request, based on the number of cpus and the
 # number of processors per node
@@ -111,6 +113,8 @@ while(<TEMPLATE>) {
     s/%syslog%/$syslog/;
     # fill in command line options
     s/%cloptions%/$cloptions/;
+    # the type of job that is being submitted
+    s/%jobtype%/$jobtype/;
     print $_;
 }
 close(TEMPLATE);

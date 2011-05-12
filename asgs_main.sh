@@ -362,8 +362,8 @@ prepControlFile()
     NCPU=$2
     ACCOUNT=$3
     WALLTIME=$4
-    if [[ $ENV = jade || $ENV = sapphire || $ENV = diamond || $ENV = blueridge ]]; then
-       QSCRIPTOPTIONS="--ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm prep15.${ENSTORM} --notifyuser $NOTIFYUSER --syslog $SYSLOG"
+    if [[ $ENV = jade || $ENV = sapphire || $ENV = diamond || $ENV = blueridge || $ENV = kittyhawk ]]; then
+       QSCRIPTOPTIONS="--jobtype prep15 --ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm ${ENSTORM} --notifyuser $NOTIFYUSER --syslog $SYSLOG"
        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.pbs 2>> ${SYSLOG}
        qsub $ADVISDIR/$ENSTORM/adcprep.pbs >> ${SYSLOG} 2>&1
        monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol $WALLTIME
@@ -408,7 +408,7 @@ prepHotstartFile()
       NCPU=$2
       ACCOUNT=$3
       WALLTIME=$4
-      if [[ $ENV = jade || $ENV = sapphire || $ENV = diamond || $ENV = blueridge ]]; then
+      if [[ $ENV = jade || $ENV = sapphire || $ENV = diamond || $ENV = blueridge || $ENV = kittyhawk ]]; then
          QSCRIPTOPTIONS="--ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPHOTSTARTSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --syslog $SYSLOG"
          perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep_hotstart.pbs 2>> ${SYSLOG}
          qsub $ADVISDIR/$ENSTORM/adcprep_hotstart.pbs >> ${SYSLOG} 2>&1
@@ -562,18 +562,22 @@ monitorJobs()
 #
     activity_indicator "Monitoring queue for run completion..." &
     pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
+    logMessage "Monitoring progress of $ENSTORM_TEMP job."
 #
 #   convert the expected wall clock time of the job to seconds, assuming
 #   WALLTIME is in the format HH:MM:SS
     hours=${WALLTIME:0:2}
     minutes=${WALLTIME:3:2}
     seconds=${WALLTIME:6:2}
-    limit=$(($hours * 3600 + $minutes * 60 + $seconds)) # WALLTIME in seconds
+    # bash interprets numbers with leading zeroes as octal ... the 10# prefix
+    # tells bash that the numbers are base 10
+    limit=$((10#$hours * 3600 + 10#$minutes * 60 + 10#$seconds)) >> $SYSLOG # WALLTIME in seconds
 #
     if [[ $QUEUESYS = "mpiexec" ]]; then
         # do nothing, mpiexec has returned at this point
         logMessage "mpiexec has returned"
     else
+        logMessage "Waiting for $ENSTORM_TEMP job to start."
         until [[ -e run.start ]]; do
            sleep 10
         done
@@ -622,6 +626,7 @@ submitJob()
    NUMWRITERS=${12}
    HOTSTARTCOMP=${13}
    WALLTIME=${14}
+   JOBTYPE=${15}
 #
    CLOPTION=""     # command line options
    LOCALHOTSTART=""
@@ -639,12 +644,12 @@ submitJob()
 #
 #  LoadLeveler (often used on IBM systems)
    elif [[ $QUEUESYS = LoadLeveler ]]; then
-      perl $SCRIPTDIR/loadleveler.pl --ncpu $NCPU --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --numwriters $NUMWRITERS $LOCALHOTSTART > $ADVISDIR/$ENSTORM/padcirc.ll 2>> ${SYSLOG}
+      perl $SCRIPTDIR/loadleveler.pl --jobtype $JOBTYPE --ncpu $NCPU --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --numwriters $NUMWRITERS $LOCALHOTSTART > $ADVISDIR/$ENSTORM/padcirc.ll 2>> ${SYSLOG}
       llsubmit $ADVISDIR/$ENSTORM/padcirc.ll >> ${SYSLOG} 2>&1
 #
 #  Portable Batch System (PBS); widely used
    elif [[ $QUEUESYS = PBS ]]; then
-      QSCRIPTOPTIONS="--ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
+      QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
       if [[ $PPN -ne 0 ]]; then
          QSCRIPTOPTIONS="$QSCRIPTOPTIONS --ppn $PPN"
       fi
@@ -664,7 +669,7 @@ submitJob()
 #
 #  Sun Grid Engine (SGE); used on Sun and many Linux clusters
    elif [[ $QUEUESYS = SGE ]]; then
-      QSCRIPTOPTIONS="--ncpu $NCPU --ncpudivisor $NCPUDIVISOR --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
+      QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --ncpudivisor $NCPUDIVISOR --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
       perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.sge 2>> ${SYSLOG}
       logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.sge"
       qsub $ADVISDIR/$ENSTORM/padcirc.sge >> ${SYSLOG} 2>&1
@@ -783,6 +788,21 @@ init_blueridge()
   PREPHOTSTARTSCRIPT=renci.adcprep.hotstart.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=8
+}
+init_kittyhawk()
+{ #<- can replace the following with a custom script
+  HOSTNAME=kittyhawk.renci.org
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  ACCOUNT=noaccount
+  SUBMITSTRING=submitstring
+  SCRATCHDIR=/work/$USER
+  SSHKEY=~/.ssh/id_rsa_kittyhawk
+  QSCRIPT=kittyhawk.template.pbs
+  PREPCONTROLSCRIPT=kittyhawk.adcprep.template.pbs
+  PREPHOTSTARTSCRIPT=renci.adcprep.hotstart.template.pbs
+  QSCRIPTGEN=tezpur.pbs.pl
+  PPN=4
 }
 init_sapphire()
 { #<- can replace the following with a custom script
@@ -922,6 +942,9 @@ init_test()
 # such as queue interactions
 env_dispatch(){
  case $1 in
+  "kittyhawk") logMessage "Kittyhawk (RENCI) configuration found."
+          init_kittyhawk
+          ;;
   "blueridge") logMessage "Blueridge (RENCI) configuration found."
           init_blueridge
           ;;
@@ -955,7 +978,7 @@ env_dispatch(){
   "test") logMessage "test environment (default) configuration found."
           init_test
           ;; 
-  *) fatal "'$1' is not a supported environment; currently supported options: blueridge, sapphire, jade, diamond, ranger, lonestar, queenbee, topsail, desktop"
+  *) fatal "'$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, queenbee, topsail, desktop"
      ;;
   esac
 }
@@ -1031,6 +1054,7 @@ QUEUENAME=
 SERQUEUE=
 QCHECKCMD=
 NCPU=
+JOBTYPE=
 NUMWRITERS=0
 ACCOUNT=desktop
 SUBMITSTRING=
@@ -1103,6 +1127,11 @@ if [[ $BACKGROUNDMET = on ]]; then
    checkFileExistence $SCRIPTDIR "NAM output reprojection executable (from lambert to geographic)" awip_lambert_interp.x
    checkFileExistence $SCRIPTDIR "GRIB2 manipulation and extraction executable" wgrib2
 fi  
+if [[ $WAVES = on ]]; then
+   JOBTYPE=padcswan
+else
+   JOBTYPE=padcirc
+fi
 #
 checkFileExistence $INPUTDIR "ADCIRC mesh file" $GRIDFILE
 checkFileExistence $INPUTDIR "ADCIRC template fort.15 file" $CONTROLTEMPLATE
@@ -1211,8 +1240,8 @@ if [[ $START = coldstart ]]; then
    # then submit the job
    logMessage "Submitting ADCIRC $ENSTORM job."
    cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-   logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME"
-   submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME
+   logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
+   submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE
    # check once per minute until all jobs have finished
    monitorJobs $QUEUESYS $ENSTORM $HINDCASTWALLTIME
    # check to see that the nowcast job did not conspicuously fail
@@ -1339,8 +1368,8 @@ while [ 1 -eq 1 ]; do
     # then submit the job
     logMessage "Submitting ADCIRC $ENSTORM job."
     cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-    logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME"
-    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME
+    logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
+    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE
     # check once per minute until all jobs have finished
     monitorJobs $QUEUESYS $ENSTORM $NOWCASTWALLTIME
     # check to see that the nowcast job did not conspicuously fail
@@ -1422,7 +1451,7 @@ while [ 1 -eq 1 ]; do
           # then submit the job
           logMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
           consoleMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
-          submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME
+          submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
           # check once per minute until job has completed
           monitorJobs $QUEUESYS $ENSTORM $FORECASTWALLTIME
           handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
