@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -V
-#PBS -N %enstorm%
+#PBS -N %jobtype%.%enstorm%
 #PBS -l nodes=%nnodes%:ppn=%ppn%
 #PBS -l walltime=%walltime%
 #PBS -M %notifyuser%

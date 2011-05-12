@@ -216,9 +216,10 @@ prep()
     GRIDFILE=$9 # fulldomain grid
     ACCOUNT=${10} # account to charge time to 
     OUTPUTOPTIONS="${11}" # contains list of args for appending files 
-    HOTSTARTCOMP=${12}
-    WALLTIME=${13}
-    NAFILE=${14}  # full domain nodal attributes file, must be last in the
+    HOTSTARTCOMP=${12} # fulldomain or subdomain
+    WALLTIME=${13} # HH:MM:SS format
+    HOTSTARTFORMAT=${14}
+    NAFILE=${15}  # full domain nodal attributes file, must be last in the
                   # argument list, since it may be undefined
     TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
     if [ ! -d $ADVISDIR/$ENSTORM ]; then 
@@ -292,10 +293,15 @@ prep()
              PE=`expr $PE + 1`
           done
        fi
+       HOTSTARTSUFFIX=
+       if [[ $HOTSTARTFORMAT = netcdf ]]; then
+          HOTSTARTSUFFIX=.nc
+       fi
        if [[ $HOTSTARTCOMP = fulldomain ]]; then
-          ln -s $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68
+          ln -s $FROMDIR/PE0000/fort.67${HOTSTARTSUFFIX} $ADVISDIR/$ENSTORM/fort.68${HOTSTARTSUFFIX} >> $SYSLOG
        else
-          # copy the subdomain hotstart files over          
+          # copy the subdomain hotstart files over
+          # subdomain hotstart files are always binary formatted          
           PE=0
           format="%04d"
           logMessage "Starting copy of subdomain hotstart files." 
@@ -1068,6 +1074,7 @@ NOTIFYUSER=
 RUNDIR=
 INPUTDIR=
 PERL5LIB=
+HOTSTARTFORMAT=
 SSHKEY=
 PPN=1
 ENSTORMNAMES[0]=nhcConsensus
@@ -1232,8 +1239,8 @@ if [[ $START = coldstart ]]; then
    # don't have a meterological forcing (fort.22) file in this case
    # preprocess
    logMessage "Starting $ENSTORM preprocessing."
-   logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $NAFILE"
-   prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $NAFILE
+   logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $NAFILE"
+   prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $NAFILE
    # check to see that adcprep did not conspicuously fail
    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
@@ -1360,8 +1367,8 @@ while [ 1 -eq 1 ]; do
     consoleMessage "Starting nowcast for cycle '$ADVISORY'."
     # preprocess
     logMessage "Starting nowcast preprocessing."
-    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $NAFILE"
-    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $NAFILE
+    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $NAFILE"
+    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $NAFILE
     # check to see that adcprep did not conspicuously fail
     handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
     if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
@@ -1446,7 +1453,7 @@ while [ 1 -eq 1 ]; do
        if [[ $RUNFORECAST = yes ]]; then
           # preprocess
           logMessage "Starting $ENSTORM preprocessing."
-          prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $NAFILE
+          prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $NAFILE
           handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
           # then submit the job
           logMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
