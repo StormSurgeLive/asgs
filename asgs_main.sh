@@ -108,18 +108,48 @@ checkDirExistence()
 #
 # subroutine to check for the existence and nonzero length of the 
 # hotstart file
-# the subroutine assumes that the hotstart file is named fort.67 and
-# expects it to be found in $PWD
+# the subroutine assumes that the hotstart file is named fort.$LUN or 
+# fort.$LUN.nc depending on the format and expects it to be provided with 
+# the full path if it is not in the current directory. 
 checkHotstart()
-{ 
-   if [ ! -e fort.67 ]; then
-      fatal "The hotstart (fort.67) file was not found in $PWD. The preceding simulation run must have failed to produce it."
+{
+   FROMDIR=$1
+   HOTSTARTFORMAT=$2 
+   LUN=$3
+#
+   HOTSTARTFILE=
+   # set name and specific file location based on format (netcdf or binary)
+   if [[ $HOTSTARTFORMAT = netcdf ]]; then
+      HOTSTARTFILE=$FROMDIR/fort.$LUN.nc
+   else
+      HOTSTARTFILE=$FROMDIR/PE0000/fort.$LUN
+   fi
+   # check for existence of hotstart file
+   if [ ! -e $HOTSTARTFILE ]; then
+      fatal "The hotstart file '$HOTSTARTFILE' was not found. The preceding simulation run must have failed to produce it."
+   # if it exists, check size to be sure its nonzero
    else 
-      hotstartSize=`stat -c %s fort.67`
+      hotstartSize=`stat -c %s $HOTSTARTFILE`
       if [ $hotstartSize == "0" ]; then 
-         fatal "The hotstart (fort.67) file in $PWD is of zero length. The preceding simulation run must have failed to produce it properly."
+         fatal "The hotstart file '$HOTSTARTFILE' is of zero length. The preceding simulation run must have failed to produce it properly."
       else
-         logMessage "The hotstart (fort.67) file was found in $PWD and it contains $hotstartSize bytes."
+         logMessage "The hotstart file '$HOTSTARTFILE' was found and it contains $hotstartSize bytes."
+         # check time in hotstart file to be sure it can be found and that
+         # it is nonzero
+         HSTIME=
+         if [[ $HOTSTARTFORMAT = netcdf ]]; then
+            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE -n` 2>> ${SYSLOG}
+         else
+            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE` 2>> ${SYSLOG}
+         fi
+         errorOccurred=`expr index "$HSTIME" ERROR`
+         if [[ $errorOccurred != 0 ]]; then
+            fatal "The hstime utility could not read the ADCIRC time from the file '$HOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
+         else
+            if [[ $HSTIME -eq 0 ]]; then
+               fatal "The time in the hotstart file '$HOTSTARTFILE' is zero. The preceding simulation run must have failed to produce a proper hotstart file."
+            fi
+         fi
       fi
    fi  
 }
@@ -293,25 +323,6 @@ prep()
              PE=`expr $PE + 1`
           done
        fi
-       HOTSTARTSUFFIX=
-       if [[ $HOTSTARTFORMAT = netcdf ]]; then
-          HOTSTARTSUFFIX=.nc
-       fi
-       if [[ $HOTSTARTCOMP = fulldomain ]]; then
-          ln -s $FROMDIR/PE0000/fort.67${HOTSTARTSUFFIX} $ADVISDIR/$ENSTORM/fort.68${HOTSTARTSUFFIX} >> $SYSLOG
-       else
-          # copy the subdomain hotstart files over
-          # subdomain hotstart files are always binary formatted          
-          PE=0
-          format="%04d"
-          logMessage "Starting copy of subdomain hotstart files." 
-          while [ $PE -lt $NCPU ]; do
-             PESTRING=`printf "$format" $PE`
-             cp $FROMDIR/PE${PESTRING}/fort.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.68 2>> ${SYSLOG}
-             PE=`expr $PE + 1`
-          done
-          logMessage "Completed copy of subdomain hotstart files."
-       fi 
        # copy maxele and maxwvel files so that the max values will be 
        # preserved across hotstarts
        logMessage "Copying existing output files to this directory."
@@ -358,6 +369,26 @@ prep()
 #          logMessage "Running adcprep to decompose hotstart file."
 #          prepHotstartFile $ENV $NCPU $ACCOUNT $WALLTIME
 #       fi
+       if [[ $HOTSTARTCOMP = fulldomain ]]; then
+          if [[ $HOTSTARTFORMAT = netcdf ]]; then
+             # copy netcdf file so we overwrite the one that adcprep created
+             cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG
+          else
+             ln -s $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG
+          fi
+       else
+          # copy the subdomain hotstart files over
+          # subdomain hotstart files are always binary formatted          
+          PE=0
+          format="%04d"
+          logMessage "Starting copy of subdomain hotstart files." 
+          while [ $PE -lt $NCPU ]; do
+             PESTRING=`printf "$format" $PE`
+             cp $FROMDIR/PE${PESTRING}/fort.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.68 2>> ${SYSLOG}
+             PE=`expr $PE + 1`
+          done
+          logMessage "Completed copy of subdomain hotstart files."
+       fi 
     fi
 }
 #
@@ -634,14 +665,12 @@ submitJob()
    WALLTIME=${14}
    JOBTYPE=${15}
 #
-   CLOPTION=""     # command line options
-   LOCALHOTSTART=""
+   CLOPTIONS=""     # command line options
    if [[ $NUMWRITERS != "0" ]]; then
-      CLOPTION="-W $NUMWRITERS"
+      CLOPTIONS="-W $NUMWRITERS"
    fi
    if [[ $HOTSTARTCOMP = subdomain ]]; then
-      CLOPTION="${CLOPTION} -S"
-      LOCALHOTSTART="--localhotstart"
+      CLOPTIONS="${CLOPTIONS} -S"
    fi
 # 
 #  Load Sharing Facility (LSF); used on topsail at UNC
@@ -655,9 +684,12 @@ submitJob()
 #
 #  Portable Batch System (PBS); widely used
    elif [[ $QUEUESYS = PBS ]]; then
-      QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
+      QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG"
       if [[ $PPN -ne 0 ]]; then
          QSCRIPTOPTIONS="$QSCRIPTOPTIONS --ppn $PPN"
+      fi
+      if [[ $CLOPTIONS != "" ]]; then
+         QSCRIPTOPTIONS="${QSCRIPTOPTIONS} --cloptions '$CLOPTIONS'"
       fi
       logMessage "QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
       perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.pbs 2>> ${SYSLOG}
@@ -1136,6 +1168,10 @@ if [[ $BACKGROUNDMET = on ]]; then
 fi  
 if [[ $WAVES = on ]]; then
    JOBTYPE=padcswan
+   checkDirExistence $ADCIRCSWANDIR "ADCIRC+SWAN executables directory" 
+   checkFileExistence $ADCIRCSWANDIR "ADCIRC+SWAN parallel executable" padcswan
+   checkFileExistence $ADCIRCSWANDIR "ADCIRC+SWAN enabled preprocessing executable" adcprep 
+   # TODO: check for fort.26 and swaninit and swaninit templates
 else
    JOBTYPE=padcirc
 fi
@@ -1233,7 +1269,7 @@ if [[ $START = coldstart ]]; then
    logMessage "The initial hindcast duration is '$HINDCASTLENGTH' days."
    logMessage "The initial hindcast input will be based on the file '$HINDCASTTEMPLATE'."
    # prepare hindcast control (fort.15) file 
-   CONTROLOPTIONS="--name $ENSTORM --advisdir $ADVISDIR --cst $CSDATE --endtime $HINDCASTLENGTH --dt $TIMESTEPSIZE --nws $NWS --advisorynum 0 --controltemplate ${INPUTDIR}/${HINDCASTTEMPLATE} $OUTPUTOPTIONS"
+   CONTROLOPTIONS="--name $ENSTORM --advisdir $ADVISDIR --cst $CSDATE --endtime $HINDCASTLENGTH --dt $TIMESTEPSIZE --nws $NWS --hsformat $HOTSTARTFORMAT --advisorynum 0 --controltemplate ${INPUTDIR}/${HINDCASTTEMPLATE} $OUTPUTOPTIONS"
    logMessage "Constructing control file with the following options: $CONTROLOPTIONS."
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
    # don't have a meterological forcing (fort.22) file in this case
@@ -1263,7 +1299,7 @@ if [[ $START = coldstart ]]; then
    #
 else 
    # start from   H O T S T A R T   file  
-   logMessage "Starting nowcast from the hotstart file '$LASTSUBDIR/fort.67'."
+   logMessage "Starting nowcast from the hotstart file under '$LASTSUBDIR'."
    OLDADVISDIR=$LASTSUBDIR
 fi
 #
@@ -1271,17 +1307,20 @@ fi
 while [ 1 -eq 1 ]; do
    # re-read configuration file to pick up any changes
    . ${CONFIG}
-   if [[ -d $LASTSUBDIR/PE0000 ]]; then  # kickoff from subdomain hotstart files
-       cd $LASTSUBDIR/PE0000 2>> ${SYSLOG}
-   fi
+   FROMDIR=
+   LUN=       # logical unit number; either 67 or 68
    if [[ -d $OLDADVISDIR/nowcast ]]; then
-       cd $OLDADVISDIR/nowcast/PE0000 2>> ${SYSLOG}
+       FROMDIR=$OLDADVISDIR/nowcast
    fi
    if [[ -d $OLDADVISDIR/hindcast ]]; then
-       cd $OLDADVISDIR/hindcast/PE0000 2>> ${SYSLOG}
+       FROMDIR=$OLDADVISDIR/hindcast
    fi
-   checkHotstart       
-   HSTIME=`$ADCIRCDIR/hstime` 2>> ${SYSLOG}
+   checkHotstart $FROMDIR $HOTSTARTFORMAT  67
+   if [[ $HOTSTARTFORMAT = netcdf ]]; then
+      HSTIME=`$ADCIRCDIR/hstime -f ${FROMDIR}/fort.67.nc -n` 2>> ${SYSLOG}
+   else
+      HSTIME=`$ADCIRCDIR/hstime -f ${FROMDIR}/PE0000/fort.67` 2>> ${SYSLOG}
+   fi
    logMessage "The time in the hotstart file is '$HSTIME' seconds."
    cd $RUNDIR 2>> ${SYSLOG}
     #
@@ -1313,7 +1352,7 @@ while [ 1 -eq 1 ]; do
        # prepare nowcast met (fort.22) and control (fort.15) files 
        cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
        METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE" 
-       CONTROLOPTIONS=" --metfile $ADVISDIR/$ENSTORM/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE $OUTPUTOPTIONS" 
+       CONTROLOPTIONS=" --metfile $ADVISDIR/$ENSTORM/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS" 
        logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
        ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1   
        STORMCLASSNAME=`cat ${ADVISDIR}/${ENSTORM}/nhcClassName`
@@ -1350,7 +1389,7 @@ while [ 1 -eq 1 ]; do
        NAMOPTIONS=" --ptFile ${INPUTDIR}/${PTFILE} --namFormat grib2 --namType $ENSTORM --awipGridNumber 218 --dataDir ${ADVISDIR}/${ENSTORM} --outDir ${ADVISDIR}/${ENSTORM}/ --velocityMultiplier 0.893 --scriptDir ${SCRIPTDIR}"
        logMessage "Converting NAM data to OWI format with the following options : $NAMOPTIONS"
        perl ${SCRIPTDIR}/NAMtoOWI.pl $NAMOPTIONS >> ${SYSLOG} 2>&1 
-       CONTROLOPTIONS=" --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME $OUTPUTOPTIONS"
+       CONTROLOPTIONS=" --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
        logMessage "Generating ADCIRC Control File (fort.15) and meteorological control file (fort.22) for $ENSTORM with the following options: $CONTROLOPTIONS."
 
        # create links to the OWI files
@@ -1394,9 +1433,12 @@ while [ 1 -eq 1 ]; do
     consoleMessage "Starting forecast for advisory '$ADVISORY'."
     # source config file
     . ${CONFIG}
-    cd $ADVISDIR/nowcast/PE0000 2>> ${SYSLOG}
-    checkHotstart
-    HSTIME=`$ADCIRCDIR/hstime` 2>> ${SYSLOG}
+    checkHotstart ${ADVISDIR}/nowcast $HOTSTARTFORMAT 67
+    if [[ $HOTSTARTFORMAT = netcdf ]]; then
+       HSTIME=`$ADCIRCDIR/hstime -f ${ADVISDIR}/nowcast/fort.67.nc -n` 2>> ${SYSLOG}
+    else
+       HSTIME=`$ADCIRCDIR/hstime -f ${ADVISDIR}/nowcast/PE0000/fort.67` 2>> ${SYSLOG}
+    fi
     logMessage "The time in the hotstart file is '$HSTIME' seconds."
     let si=0
     while [ $si -lt $ENSEMBLESIZE ]; do  
@@ -1409,7 +1451,7 @@ while [ 1 -eq 1 ]; do
        # TROPICAL CYCLONE ONLY
        if [[ $TROPICALCYCLONE = on ]]; then
           METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $CSDATE --hotstartseconds $HSTIME --nws $NWS --name $ENSTORM --percent ${PERCENT[$si]}"
-          CONTROLOPTIONS="--cst $CSDATE --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile $ADVISDIR/${ENSTORM}/fort.22 --name $ENSTORM $OUTPUTOPTIONS"
+          CONTROLOPTIONS="--cst $CSDATE --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile $ADVISDIR/${ENSTORM}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
           logMessage "Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
           ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
           if [[ $NWS = 19 || $NWS = 319 ]]; then
@@ -1437,7 +1479,7 @@ while [ 1 -eq 1 ]; do
           NAMOPTIONS=" --ptFile ${INPUTDIR}/${PTFILE} --namFormat grib2 --namType $ENSTORM --awipGridNumber 218 --dataDir ${ADVISDIR}/${ENSTORM} --outDir ${ADVISDIR}/${ENSTORM}/ --velocityMultiplier 0.893 --scriptDir ${SCRIPTDIR}"
           logMessage "Converting NAM data to OWI format with the following options : $NAMOPTIONS"
           perl ${SCRIPTDIR}/NAMtoOWI.pl $NAMOPTIONS >> ${SYSLOG} 2>&1 
-          CONTROLOPTIONS=" --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME $OUTPUTOPTIONS"
+          CONTROLOPTIONS=" --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
           # create links to the OWI files
           NAM221=`ls NAM*.221`; 
           NAM222=`ls NAM*.222`;
@@ -1455,6 +1497,7 @@ while [ 1 -eq 1 ]; do
           logMessage "Starting $ENSTORM preprocessing."
           prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $NAFILE
           handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
+          if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
           # then submit the job
           logMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
           consoleMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."

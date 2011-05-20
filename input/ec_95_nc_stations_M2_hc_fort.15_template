@@ -277,3 +277,13 @@
  0 0 0 0                    ! NHASE,NHASV,NHAGE,NHAGV - CONTROL HARMONIC ANALYSIS AND OUTPUT TO UNITS 51,52,53,54
  %NHSTAR%  %NHSINC%          ! NHSTAR,NHSINC - HOT START FILE GENERATION PARAMETERS 
  1  0  1.E-7  25 0          ! ITITER, ISLDIA, CONVCR, ITMAX & ILUMP
+NCFS
+UNC-CH IMS, RENCI, SeahorseCoastal
+RENCI HPC
+NCFS Nowcast/Forecast
+http://www.renci.org
+No Comment
+RENCI HPC
+CF
+jason.fleming@seahorsecoastal.com
+varies

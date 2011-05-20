@@ -17,8 +17,7 @@ OPTS="--mca btl openib,self" # -np 64 --bynode"
 #OPTS="--mca btl tcp,self --mca btl_tcp_if_include eth0"
 echo "%enstorm% job starting at `date`"
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-echo "[${DATETIME}] : adcprep starting in"      >> run.start
-echo "[${DATETIME}] : %advisdir%  %enstorm%" >> run.start
+echo "[${DATETIME}] : %jobtype%.%enstorm% starting in %advisdir%/%enstorm%" >> run.start
 %adcircdir%/adcprep <<END >> adcprep.log 2>&1
 %ncpu%
 4

@@ -81,6 +81,7 @@ my $fort7374freq=0; # output frequency in SECONDS
 my $fort7374append; # if defined, output files will append across hotstarts 
 my ($fort61, $fort62, $fort63, $fort64, $fort7172, $fort7374);
 our $sparseoutput; # if defined, then fort.63 and fort.64 will be sparse ascii
+my $hsformat="binary";  # input param for hotstart format: binary or netcdf
 my ($fort61netcdf, $fort62netcdf, $fort63netcdf, $fort64netcdf, $fort7172netcdf, $fort7374netcdf); # for netcdf (not ascii) output
 #
 my @TRACKS = (); # should be few enough to store all in an array for easy access
@@ -102,7 +103,7 @@ our $advisdir;  # the directory for this run
 my $particles;  # flag to produce fulldomain current velocity files at an 
                 # increment of 30 minutes
 our $NHSINC;    # time step increment at which to write hot start files
-our $NHSTAR;    # whether or not ADCIRC should WRITE a hotstart file
+our $NHSTAR;    # writing and format of ADCIRC hotstart output file
 our $RNDAY;     # total run length from cold start, in days
 my $ihot;       # whether or not ADCIRC should READ a hotstart file
 my $fdcv;       # line that controls full domain current velocity output
@@ -140,7 +141,8 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "fort64netcdf" => \$fort64netcdf,
            "fort7172netcdf" => \$fort7172netcdf,
            "fort7374netcdf" => \$fort7374netcdf,
-           "sparse-output" => \$sparseoutput
+           "sparse-output" => \$sparseoutput,
+           "hsformat=s" => \$hsformat
            );
 #
 # open template file for fort.15
@@ -173,6 +175,9 @@ if ( $enstorm eq "hindcast" ) {
 # we want a hotstart file if this is a nowcast or hindcast
 if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
    $NHSTAR = 1;
+   if ( $hsformat eq "netcdf" ) {
+      $NHSTAR = 3;
+   }
    # write a hotstart file on the last time step of the run
    $NHSINC = int(($RNDAY*86400.0)/$dt);
 } else {
@@ -183,6 +188,9 @@ if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
 # file during the run, we know we will always be left with a fort.67 file.
 if ( defined $hstime ) {
    $ihot = 68;
+   if ( $hsformat eq "netcdf" ) {
+      $ihot+=300;
+   }
 } else {
    $ihot = 0;
 }

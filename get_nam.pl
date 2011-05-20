@@ -544,6 +544,9 @@ sub getForecastData() {
       if ( $num_retries >= $max_retries ) {
          $had_enough = 1;
          stderrMessage("INFO","Retried download more than $max_retries times. Giving up on downloading $f.");
+         last;  # if we tried 10 times and couldn't get it, the files are 
+                # probably not there at all, so don't spend time trying to 
+                # get the rest of them
       }
    }
    if ( ($dl >= $forecastLength/3 ) || ($had_enough == 1) ) {

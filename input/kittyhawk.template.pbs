@@ -14,13 +14,11 @@ MPIHOME=/opt/mpi/openmpi/intel
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MPIHOME/lib
 OPTS="--mca btl openib,self" # -np 64 --bynode"
 #OPTS="--mca btl tcp,self --mca btl_tcp_if_include eth0"
-CMD="$MPIHOME/bin/mpirun $OPTS -n %ncpu% %adcircdir%/padcirc %cloption% >> %syslog%"
+CMD="$MPIHOME/bin/mpirun $OPTS -n %ncpu% %adcircdir%/padcirc %cloptions% >> %syslog%"
 echo $CMD
 echo "%enstorm% job starting at `date`"
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-echo "[${DATETIME}] : Job starting"          >> run.start
-echo "[${DATETIME}] : %advisdir%  %enstorm%" >> run.start
-echo "[${DATETIME}] : padcirc"               >> run.start
+echo "[${DATETIME}] : %jobtype%.%enstorm% starting in %advisdir%/%enstorm%." > run.start
 $CMD
 ERROVALUE=$?
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
