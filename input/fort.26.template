@@ -1,9 +1,9 @@
 $*************************HEADING************************
 $
 PROJ 'ASGS' '2011'
-'%StormName%'
-'%EnsembleID%'
-'%WTIMINC%'
+'StormName: %StormName%'
+'EnsembleID: %EnsembleID%'
+'WTIMINC Line in ADCIRC fort.15: %WTIMINC%'
 $
 $********************MODEL INPUT*************************
 $
@@ -18,14 +18,16 @@ READ UNSTRUCTURED
 $
 INIT ZERO
 $
-INPGRID WLEV UNSTRUCTURED EXCEPTION 0.1  NONSTAT %startdatetime% %swants% SEC %enddatetime%
+INPGRID WLEV UNSTRUCTURED EXCEPTION 0.1  NONSTAT %startdatetime% %swandt% SEC %enddatetime%
 READINP ADCWL
 $
-INPGRID  CUR UNSTRUCTURED EXCEPTION 0.   NONSTAT %startdatetime% %swants% SEC %enddatetime%
+INPGRID  CUR UNSTRUCTURED EXCEPTION 0.   NONSTAT %startdatetime% %swandt% SEC %enddatetime%
 READINP ADCCUR
 $
-INPGRID WIND UNSTRUCTURED EXCEPTION 0.   NONSTAT %startdatetime% %swants% SEC %enddatetime%
+INPGRID WIND UNSTRUCTURED EXCEPTION 0.   NONSTAT %startdatetime% %swandt% SEC %enddatetime%
 READINP ADCWIND
+$
+%hotstart%
 $
 GEN3 KOMEN AGROW
 WCAP KOMEN 2.36E-5 3.02E-3 2.0 1.0 1.0
@@ -33,13 +35,13 @@ BREAKING RUE
 FRICTION JONSWAP CFJON=0.038
 OFF REFRAC
 PROP BSBT
-NUM STOPC DABS=0.005 DREL=0.01 CURVAT=0.005 NPNTS=101 NONSTAT MXITNS=20
+NUM STOPC DABS=0.005 DREL=0.01 CURVAT=0.005 NPNTS=99 NONSTAT MXITNS=10
 $
 $*************************************************************
 $
 QUANTITY HS DIR TM01 TM02 FMIN=0.031384 FMAX=0.547632
 $
 TEST 1,0
-COMPUTE %startdatetime% %swants% SEC %enddatetime%
+COMPUTE %startdatetime% %swandt% SEC %enddatetime%
 STOP
 $
