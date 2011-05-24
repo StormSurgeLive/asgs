@@ -83,15 +83,22 @@ my ($fort61, $fort62, $fort63, $fort64, $fort7172, $fort7374);
 our $sparseoutput; # if defined, then fort.63 and fort.64 will be sparse ascii
 my $hsformat="binary";  # input param for hotstart format: binary or netcdf
 my ($fort61netcdf, $fort62netcdf, $fort63netcdf, $fort64netcdf, $fort7172netcdf, $fort7374netcdf); # for netcdf (not ascii) output
+my $hotswan = "on"; # "off" if swan has to be cold started (only on first nowcast)
 #
 my @TRACKS = (); # should be few enough to store all in an array for easy access
 my $controltemplate;
+my $swantemplate;
 my $metfile;
 our $csdate;
+our ($ny, $nm, $nd, $nh, $nmin, $ns); # current ADCIRC time
+our ($ey, $em, $ed, $eh, $emin, $es); # ADCIRC end time
+my $startdatetime; # formatted for swan fort.26
+my $enddatetime;   # formatted for swan fort.26
 my $hstime;      # time, in seconds, of hotstart file (since coldstart)
 my $hstime_days; # time, in days, of hotstart file (since coldstart)
 our $endtime;    # time at which the run should end
-my $dt=3.0; 
+my $dt=3.0;      # adcirc time step, in seconds
+my $swandt=600.0; # swan time step, in seconds
 my $bladj=0.9;
 my $enstorm;    # ensemble name of the storm
 my $nhcName="STORMNAME"; # storm name given by the nhc
@@ -107,16 +114,19 @@ our $NHSTAR;    # writing and format of ADCIRC hotstart output file
 our $RNDAY;     # total run length from cold start, in days
 my $ihot;       # whether or not ADCIRC should READ a hotstart file
 my $fdcv;       # line that controls full domain current velocity output
-our $wtiminc;   # parameters related to met timing 
+our $wtiminc;   # parameters related to met and wave timing 
 our $rundesc;   # description of run, 1st line in fort.15
 our $ensembleid; # run id, 2nd line in fort.15
+my $waves = "off"; # set to "on" if adcirc is coupled with swan is being run
 #
 GetOptions("controltemplate=s" => \$controltemplate,
+           "swantemplate=s" => \$swantemplate,
            "metfile=s" => \$metfile,
            "name=s" => \$enstorm, 
            "cst=s" => \$csdate,
            "endtime=s" => \$endtime,
            "dt=s" => \$dt,
+           "swandt=s" => \$swandt,
            "bladj=s" => \$bladj, 
            "nws=s" => \$nws, 
            "advisorynum=s" => \$advisorynum,
@@ -142,8 +152,21 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "fort7172netcdf" => \$fort7172netcdf,
            "fort7374netcdf" => \$fort7374netcdf,
            "sparse-output" => \$sparseoutput,
-           "hsformat=s" => \$hsformat
+           "hsformat=s" => \$hsformat,
+           "hotswan=s" => \$hotswan
            );
+
+#
+# determine whether SWAN has been turned on
+my $waves_digit = int($nws / 100); 
+if ( abs($waves_digit) == 3 ) {
+   $waves = "on";   
+   stderrMessage("INFO","Wave forcing is active.");
+}
+stderrMessage("DEBUG","nws is $nws and waves digit is $waves_digit.");
+#----------------------------------------------------
+#
+#  A D C I R C   C O N T R O L   F I L E 
 #
 # open template file for fort.15
 unless (open(TEMPLATE,"<$controltemplate")) {
@@ -216,8 +239,12 @@ if ( $enstorm eq "hindcast" ) {
    $fort7172 = "ERROR: This line should not be here! In a hindcast, the ASGS assumes that there is no met forcing. As a result, the fort.15 template file should not have output specifiers for meteorological output. Please remove the NOUTM etc line and the met stations from the template file '$controltemplate'.";
     $fort7374 = "ERROR: This line should not be here! In a hindcast, the ASGS assumes that there is no met forcing. As a result, the fort.15 template file should not have output specifiers for meteorological output. Please remove the NOUTGW etc line from the template file '$controltemplate'.";
 }
+# add swan time step to WTIMINC line if waves have been activated
+if ( $waves eq "on" ) {
+   $wtiminc.=" $swandt"
+}
 #
-stderrMessage("INFO","Filling in control template.");
+stderrMessage("INFO","Filling in ADCIRC control template (fort.15).");
 while(<TEMPLATE>) {
     # if we are looking at the first line, fill in the name of the storm
     # and the advisory number, if available
@@ -250,6 +277,56 @@ while(<TEMPLATE>) {
 
 close(TEMPLATE);
 close(STORM);
+#
+#
+#  S W A N   C O N T R O L   F I L E  
+#
+unless ( $waves eq "on" ) {
+   exit;
+}
+# open template file for fort.26
+unless (open(TEMPLATE,"<$swantemplate")) {
+   stderrMessage("ERROR","Failed to open the swan template file $swantemplate for reading.");
+   die;
+}
+#
+# open output fort.26 file
+unless (open(STORM,">$stormDir/fort.26")) { 
+   stderrMessage("ERROR","Failed to open the output control file $stormDir/fort.26.");
+   die;
+}
+stderrMessage("INFO","The fort.26 file will be written to the directory $stormDir."); 
+#
+$startdatetime = sprintf("%4d%02d%02d.%02d0000",$ny,$nm,$nd,$nh);
+$enddatetime = sprintf("%4d%02d%02d.%02d0000",$ey,$em,$ed,$eh);
+my $swanhs =  "INIT HOTSTART MULTIPLE 'swan.68'";
+if ( $hotswan eq "off" ) {
+   $swanhs = "\$ swan will coldstart";
+}
+#
+stderrMessage("INFO","Filling in swan control template (fort.26).");
+while(<TEMPLATE>) {
+    # if we are looking at the first line, fill in the name of the storm
+    # and the advisory number, if available
+    s/%StormName%/$rundesc/;
+    # if we are looking at the DT line, fill in the time step (seconds)
+    s/%swandt%/$swandt/;
+    # fill in ensemble name -- this is in the comment line
+    s/%EnsembleID%/$ensembleid/;
+    # may be asymmetric parameters, or wtiminc, rstiminc, etc
+    s/%WTIMINC%/$wtiminc/;
+    #
+    s/%hotstart%/$swanhs/;
+    # swan start time -- corresponds to adcirc hot start time
+    s/%startdatetime%/$startdatetime/;
+    # swan end time%
+    s/%enddatetime%/$enddatetime/;
+    print STORM $_;
+}
+close(TEMPLATE);
+close(STORM);
+exit;
+#
 #
 #--------------------------------------------------------------------------
 #   S U B   G E T   S P E C I F I E R
@@ -334,7 +411,6 @@ sub owiParameters () {
    my $cm = $2;
    my $cd = $3;
    my $ch = $4;
-   my ($ny, $nm, $nd, $nh, $nmin, $ns); # current ADCIRC time
    if ( defined $hstime && $hstime != 0 ) {
       # now add the hotstart seconds
       ($ny,$nm,$nd,$nh,$nmin,$ns) =
@@ -396,12 +472,12 @@ sub owiParameters () {
    my $owiend = $1;
    stderrMessage("INFO","The OWI file ends at '$owiend'.");
    $owiend =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
-   my $ey = $1;
-   my $em = $2;
-   my $ed = $3;
-   my $eh = $4;
-   my $emin = 0;
-   my $es = 0;
+   $ey = $1;
+   $em = $2;
+   $ed = $3;
+   $eh = $4;
+   $emin = 0;
+   $es = 0;
    #
    # get difference
    (my $ddays, my $dhrs, my $dsec)
@@ -566,20 +642,39 @@ sub asymmetricParameters () {
    my $cs_hour = $4;
    my $cs_min = 0.0;
    my $cs_sec = 0.0;
+
+   my $cy = $1;
+   my $cm = $2;
+   my $cd = $3;
+   my $ch = $4;
+   if ( defined $hstime && $hstime != 0 ) {
+      # now add the hotstart seconds
+      ($ny,$nm,$nd,$nh,$nmin,$ns) =
+         Date::Pcalc::Add_Delta_DHMS($cs_year,$cs_mon,$cs_day,$cs_hour,$cs_min,$cs_sec,0,0,0,$hstime);
+   } else {
+      # the hotstart time was not provided, or it was provided and is equal to 0
+      # therefore the current ADCIRC time is the cold start time, t=0
+      $ny = $cy;
+      $nm = $cm;
+      $nd = $cd;
+      $nh = $ch;
+      $nmin = 0;
+      $ns = 0;
+   }
    #
    $end =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
-   my $e_year = $1;
-   my $e_mon = $2;
-   my $e_day = $3;
-   my $e_hour = $4;
-   my $e_min = 0.0;
-   my $e_sec = 0.0;
+   $ey = $1;
+   $em = $2;
+   $ed = $3;
+   $eh = $4;
+   $emin = 0.0;
+   $es = 0.0;
    #
    # get difference btw cold start time and end time
    my ($days,$hours,$seconds) 
       = Date::Pcalc::Delta_DHMS(
          $cs_year,$cs_mon,$cs_day,$cs_hour,$cs_min,$cs_sec,
-         $e_year,$e_mon,$e_day,$e_hour,$e_min,$e_sec);
+         $ey,$em,$ed,$eh,$emin,$es);
    # RNDAY is diff btw cold start time and end time
    # For a forecast, RNDAY is one time step short of the total time to ensure 
    # that we won't run out of storm data at the end of the fort.22

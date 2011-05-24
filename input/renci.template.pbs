@@ -21,7 +21,7 @@ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 RUNSUFFIX="start"
 echo $CMD
 echo "${DATETIME}" > run.start
-$CMD >> %syslog% 2>&1
+$CMD 
 ERROVALUE=$?
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 if [ $ERROVALUE == 0 ] ; then

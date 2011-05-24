@@ -435,8 +435,9 @@ sub rotateAndFormat
 ################################################################################
 sub addToFort22
 {
-	open(F22,">>$fort22");
+	open(F22,">>$fort22") || die "ERROR: NAMtoOWI.pl: Failed to open OWI (NWS12) fort.22 file to append a comment line with the met time increment.";
 	my $wtiminc=$timeStep*3600; # ts in seconds
+        &stderrMessage("INFO","Appending the WTIMINC value of '$wtiminc' to the fort.22 file '$fort22'.");
 	print F22 "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15\n";
 	close(F22);
 	

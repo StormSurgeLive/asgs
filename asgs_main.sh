@@ -268,6 +268,11 @@ prep()
            ln -s $INPUTDIR/$NAFILE $ADVISDIR/$ENSTORM/fort.13 2>> ${SYSLOG}
         fi
     fi
+    if [[ $WAVES = on ]]; then
+       if [ ! -e $ADVISDIR/$ENSTORM/swaninit ]; then
+          cp $INPUTDIR/swaninit.template $ADVISDIR/$ENSTORM/swaninit 2>> ${SYSLOG}
+       fi
+    fi
     # copy in the files that have already been preprocessed
     logMessage "Copying input files that have already been decomposed."
     if [[ $ENSTORM = hindcast ]]; then
@@ -292,6 +297,7 @@ prep()
     else
        # this is a   H O T S T A R T
        # set directory where data will be copied from     
+       HOTSWAN=on  # whether we are hotstarting swan
        if [ $ENSTORM = nowcast ]; then
           if [[ $OLDADVISDIR = $LASTSUBDIR ]]; then 
              # this is a nowcast run, but we are getting the hotstart
@@ -306,6 +312,7 @@ prep()
              fi
              if [[ -d $OLDADVISDIR/hindcast ]]; then
                 FROMDIR=$OLDADVISDIR/hindcast 
+                HOTSWAN=off # hindcast runs don't include swan
              fi
           fi
        else 
@@ -320,20 +327,21 @@ prep()
           while [[ $PE -lt $NCPU ]]; do
              PESTRING=`printf "$format" $PE`
              ln -s $ADVISDIR/$ENSTORM/fort.22 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.22 2>> ${SYSLOG}
+             if [[ $WAVES = on ]]; then
+                ln -s $ADVISDIR/$ENSTORM/fort.26 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.26 2>> ${SYSLOG}
+             fi
              PE=`expr $PE + 1`
           done
        fi
-       # copy maxele and maxwvel files so that the max values will be 
+       # copy max and min files so that the max values will be 
        # preserved across hotstarts
        logMessage "Copying existing output files to this directory."
-       if  [ -e $FROMDIR/maxele.63 ]; then
-          logMessage "Copying $FROMDIR/maxele.63 to $ADVISDIR/$ENSTORM/maxele.63 so that its values will be preserved across the hotstart." 
-          cp $FROMDIR/maxele.63 $ADVISDIR/$ENSTORM/maxele.63 2>> ${SYSLOG}
-       fi
-       if  [ -e $FROMDIR/maxwvel.63 ]; then      
-          logMessage "Copying $FROMDIR/maxwvel.63 to $ADVISDIR/$ENSTORM/maxwvel.63 so that its values will be preserved across the hotstart." 
-          cp $FROMDIR/maxwvel.63 $ADVISDIR/$ENSTORM/maxwvel.63 2>> ${SYSLOG}
-       fi
+       for file in maxele.63 maxwvel.63 minpr.63 maxrs.63 maxvel.63; do
+          if  [ -e $FROMDIR/$file ]; then
+             logMessage "Copying $FROMDIR/$file to $ADVISDIR/$ENSTORM/$file so that its values will be preserved across the hotstart." 
+             cp $FROMDIR/$file $ADVISDIR/$ENSTORM/$file 2>> ${SYSLOG}
+          fi
+       done
        # copy existing fulldomain files if they are supposed to be appended
        for file in fort.61 fort.62 fort.63 fort.64 fort.71 fort.72 fort.73 fort.74; do
           matcharg=--${file/./}append
@@ -346,7 +354,7 @@ prep()
           for arg in $OUTPUTOPTIONS ; do 
              if [[ $matcharg = $arg ]]; then 
                 # the file is being appended; check to see if it is in netcdf
-                # format, and if so, use the netcdf name
+                # format, nd if so, use the netcdf name
                 netCDFArg=${matcharg/append/netcdf/}      
                 for outputArg in $OUTPUTOPTIONS ; do 
                    if [[ $outputArg = $netCDFArg ]]; then
@@ -376,7 +384,8 @@ prep()
           else
              ln -s $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG
           fi
-       else
+       fi
+       if [[ $HOTSTARTCOMP = subdomain || $WAVES = on ]]; then
           # copy the subdomain hotstart files over
           # subdomain hotstart files are always binary formatted          
           PE=0
@@ -384,7 +393,12 @@ prep()
           logMessage "Starting copy of subdomain hotstart files." 
           while [ $PE -lt $NCPU ]; do
              PESTRING=`printf "$format" $PE`
-             cp $FROMDIR/PE${PESTRING}/fort.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.68 2>> ${SYSLOG}
+             if [[ $HOTSTARTCOMP = subdomain ]]; then
+                cp $FROMDIR/PE${PESTRING}/fort.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.68 2>> ${SYSLOG}
+             fi
+             if [[ $WAVES = on && $HOTSWAN = on ]]; then
+                 cp $FROMDIR/PE${PESTRING}/swan.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/swan.68 2>> ${SYSLOG}            
+             fi
              PE=`expr $PE + 1`
           done
           logMessage "Completed copy of subdomain hotstart files."
@@ -403,7 +417,7 @@ prepControlFile()
        QSCRIPTOPTIONS="--jobtype prep15 --ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm ${ENSTORM} --notifyuser $NOTIFYUSER --syslog $SYSLOG"
        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.pbs 2>> ${SYSLOG}
        qsub $ADVISDIR/$ENSTORM/adcprep.pbs >> ${SYSLOG} 2>&1
-       monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol $WALLTIME
+       monitorJobs $QUEUESYS ${ENSTORM}.prep15 $WALLTIME
        logMessage "Finished adcprepping control file (fort.15)."
     elif [[ $ENV = ranger ]]; then
        cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
@@ -1171,7 +1185,8 @@ if [[ $WAVES = on ]]; then
    checkDirExistence $ADCIRCSWANDIR "ADCIRC+SWAN executables directory" 
    checkFileExistence $ADCIRCSWANDIR "ADCIRC+SWAN parallel executable" padcswan
    checkFileExistence $ADCIRCSWANDIR "ADCIRC+SWAN enabled preprocessing executable" adcprep 
-   # TODO: check for fort.26 and swaninit and swaninit templates
+   checkFileExistence $INPUTDIR "SWAN initialization template file " swaninit.template
+   checkFileExistence $INPUTDIR "SWAN control template file" $SWANTEMPLATE
 else
    JOBTYPE=padcirc
 fi
@@ -1249,6 +1264,7 @@ HSTIME=     # determined below
 #       H I N D C A S T
 #
 if [[ $START = coldstart ]]; then
+   JOBTYPE=padcirc  # we won't run waves during the spinup hindcast
    logMessage "Starting hindcast."
    ENSTORM=hindcast
    ADVISDIR=$RUNDIR/initialize
@@ -1307,6 +1323,11 @@ fi
 while [ 1 -eq 1 ]; do
    # re-read configuration file to pick up any changes
    . ${CONFIG}
+   JOBTYPE=padcirc
+   HOTSWAN=on
+   if [[ $WAVES = on ]]; then
+      JOBTYPE=padcswan
+   fi
    FROMDIR=
    LUN=       # logical unit number; either 67 or 68
    if [[ -d $OLDADVISDIR/nowcast ]]; then
@@ -1314,6 +1335,7 @@ while [ 1 -eq 1 ]; do
    fi
    if [[ -d $OLDADVISDIR/hindcast ]]; then
        FROMDIR=$OLDADVISDIR/hindcast
+       HOTSWAN=off  # we didn't run swan in the hindcast; swan will coldstart
    fi
    checkHotstart $FROMDIR $HOTSTARTFORMAT  67
    if [[ $HOTSTARTFORMAT = netcdf ]]; then
@@ -1401,6 +1423,13 @@ while [ 1 -eq 1 ]; do
     fi
     # send out an email alerting end users that a new cycle has been issued
     ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" >> ${SYSLOG} 2>&1
+    # select padcirc or padcswan directory, based on ASGS configuration
+    XDIR=$ADCIRCDIR   # directory where simulation executables are stored
+    if [[ $WAVES = on ]]; then
+       CONTROLOPTIONS="${CONTROLOPTIONS} --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
+       XDIR=$ADCIRCSWANDIR
+    fi
+    # generate fort.15 file
     perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
     logMessage "Starting nowcast."
     consoleMessage "Starting nowcast for cycle '$ADVISORY'."
@@ -1412,10 +1441,10 @@ while [ 1 -eq 1 ]; do
     handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
     if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
     # then submit the job
-    logMessage "Submitting ADCIRC $ENSTORM job."
+    logMessage "Submitting $ENSTORM job."
     cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-    logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
-    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE
+    logMessage "submitJob $QUEUESYS $NCPU $XDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
+    submitJob $QUEUESYS $NCPU $XDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE
     # check once per minute until all jobs have finished
     monitorJobs $QUEUESYS $ENSTORM $NOWCASTWALLTIME
     # check to see that the nowcast job did not conspicuously fail
@@ -1433,6 +1462,13 @@ while [ 1 -eq 1 ]; do
     consoleMessage "Starting forecast for advisory '$ADVISORY'."
     # source config file
     . ${CONFIG}
+    JOBTYPE=padcirc
+    XDIR=$ADCIRCDIR
+    if [[ $WAVES = on ]]; then
+       JOBTYPE=padcswan
+       XDIR=$ADCIRCSWANDIR
+       HOTSWAN=on
+    fi
     checkHotstart ${ADVISDIR}/nowcast $HOTSTARTFORMAT 67
     if [[ $HOTSTARTFORMAT = netcdf ]]; then
        HSTIME=`$ADCIRCDIR/hstime -f ${ADVISDIR}/nowcast/fort.67.nc -n` 2>> ${SYSLOG}
@@ -1489,6 +1525,10 @@ while [ 1 -eq 1 ]; do
              RUNFORECAST=no
           fi
        fi
+       if [[ $WAVES = on ]]; then
+          CONTROLOPTIONS="${CONTROLOPTIONS} --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
+          XDIR=$ADCIRCSWANDIR
+       fi
        logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
        perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
        if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
@@ -1499,9 +1539,9 @@ while [ 1 -eq 1 ]; do
           handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
           if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
           # then submit the job
-          logMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
-          consoleMessage "Submitting ADCIRC ensemble member $ENSTORM for forecast."
-          submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
+          logMessage "Submitting ensemble member $ENSTORM for forecast."
+          consoleMessage "Submitting ensemble member $ENSTORM for forecast."
+          submitJob $QUEUESYS $NCPU $XDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
           # check once per minute until job has completed
           monitorJobs $QUEUESYS $ENSTORM $FORECASTWALLTIME
           handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
