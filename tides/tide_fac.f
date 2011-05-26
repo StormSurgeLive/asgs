@@ -1,6 +1,14 @@
 C PROGRAM TO COMPUTE NODAL FACTORS AND EQUILIBRIUM ARGUEMENTS
 C
+C     jgf20110526: Added command line option processing to bypass menu
+C     driven interface; menu driven interface is still the default and is
+C     used if no command line options are present; added optional alternate
+C     output format that just contains the name of the tidal constituent
+C     and the nodal factors and equlilibrium arguments to simplify use 
+C     in an automated context (scripting).
 C
+      PROGRAM TIDE_FAC
+C     TODO: IMPLICIT NONE
       PARAMETER(NCNST=37)
 
       CHARACTER CNAME(NCNST)*8
@@ -9,25 +17,86 @@ C
       DIMENSION NCON(NCNST)
       COMMON /CNST/ NODFAC(NCNST),GRTERM(NCNST),SPEED(NCNST),P(NCNST)
 
-      OPEN(UNIT=11,FILE='tide_fac.out',STATUS='UNKNOWN')
+      INTEGER :: ARGCOUNT ! number of command line arguments
+      INTEGER :: IARGC    ! function to return command line arguments
+      INTEGER :: I        ! loop counter for command line arguments
+      CHARACTER(2048) :: CMDLINEARG ! content of cmd line arg
+      CHARACTER(2048) :: OUTPUTFORMAT ! "simple" to output just the nf and eqar
+      LOGICAL :: SIMPLE_OUTPUT ! .true. to output just the nf and eq args
 
-      WRITE(*,*) 'ENTER LENGTH OF RUN TIME (DAYS)'
-      READ(*,*) XDAYS
+      SIMPLE_OUTPUT = .FALSE.
+      ARGCOUNT = IARGC() ! count up command line options
+      IF (ARGCOUNT.gt.0) THEN
+         I=0
+         DO WHILE (I.lt.ARGCOUNT)
+            I = I + 1
+            CALL GETARG(I, CMDLINEARG)
+            WRITE(*,*) "INFO: tide_fac.f: Processing ",TRIM(CMDLINEARG)
+            SELECT CASE(TRIM(CMDLINEARG))
+            CASE("--length")
+               I = I + 1
+               CALL GETARG(I,CMDLINEARG)
+               READ(CMDLINEARG,*) XDAYS
+            CASE("--year")
+               I = I + 1
+               CALL GETARG(I,CMDLINEARG)
+               READ(CMDLINEARG,*) IYR
+            CASE("--month")
+               I = I + 1
+               CALL GETARG(I,CMDLINEARG)
+               READ(CMDLINEARG,*) IMO
+            CASE("--day")
+               I = I + 1
+               CALL GETARG(I,CMDLINEARG)
+               READ(CMDLINEARG,*) IDAY
+            CASE("--hour")
+               I = I + 1
+               CALL GETARG(I,CMDLINEARG)
+               READ(CMDLINEARG,*) BHR
+            CASE("--outputformat")
+               I = I + 1
+               CALL GETARG(I,CMDLINEARG)
+               READ(CMDLINEARG,*) OUTPUTFORMAT 
+               IF (TRIM(OUTPUTFORMAT).eq."simple") THEN
+                  SIMPLE_OUTPUT = .TRUE.
+               ELSE
+                  WRITE(*,*) "ERROR: tide_fac.f: '",TRIM(CMDLINEARG),
+     &               "' was not recognized as an output format."
+               ENDIF
+            CASE DEFAULT
+               WRITE(*,*) 
+     &            "WARNING: tide_fac.f: Command line argument '",
+     &            TRIM(CMDLINEARG),"' was not recognized."
+            END SELECT
+         END DO
+      ELSE
+         WRITE(*,*) 'ENTER LENGTH OF RUN TIME (DAYS)'
+         READ(*,*) XDAYS
+         WRITE(*,*)
+     &      ' ENTER START TIME - BHR,IDAY,IMO,IYR (IYR e.g. 1992)'
+         READ(*,*) BHR,IDAY,IMO,IYR
+      ENDIF
+
       RHRS=XDAYS*24.
-
-      WRITE(*,*)' ENTER START TIME - BHR,IDAY,IMO,IYR (IYR e.g. 1992)'
-      READ(*,*) BHR,IDAY,IMO,IYR
       YR=IYR
       MONTH=IMO
       DAY=IDAY
       HRM=BHR+RHRS/2.
-      WRITE(11,10) BHR,IDAY,IMO,IYR
+
       WRITE(*,10) BHR,IDAY,IMO,IYR
-  10  FORMAT(' TIDAL FACTORS STARTING: ', 
-     &       ' HR-',F5.2,',  DAY-',I3,',  MONTH-',I3,'  YEAR-',I5,/)
       WRITE(*,11) XDAYS
-      WRITE(11,11) XDAYS
-  11  FORMAT(' FOR A RUN LASTING ',F8.2,' DAYS',//)
+
+      OPEN(UNIT=11,FILE='tide_fac.out',STATUS='UNKNOWN')
+      IF (SIMPLE_OUTPUT.eqv..FALSE.) THEN
+         WRITE(11,10) BHR,IDAY,IMO,IYR
+  10     FORMAT(' TIDAL FACTORS STARTING: ', 
+     &       ' HR-',F5.2,',  DAY-',I3,',  MONTH-',I3,'  YEAR-',I5,/)
+         WRITE(11,11) XDAYS
+  11     FORMAT(' FOR A RUN LASTING ',F8.2,' DAYS',//)
+         WRITE(11,*) 'CONST   NODE     EQ ARG (ref GM)'
+         WRITE(11,1300)
+ 1300    FORMAT(' NAME   FACTOR    (DEG) ',//)
+      ENDIF
 
 C-- DETERMINE THE JULIAN TIME AT BEGINNING AND MIDDLE OF RECORD
       DAYJ=DAYJUL(YR,MONTH,DAY)
@@ -48,10 +117,6 @@ C-- DETERMINE GREENWICH EQUIL. TERMS AT BEGINNING OF RECORD
       NCON(7)=2
       NCON(8)=35
 
-      WRITE(11,*) 'CONST   NODE     EQ ARG (ref GM)'
-      WRITE(11,1300)
- 1300 FORMAT(' NAME   FACTOR    (DEG) ',//)
-
       DO 20 NC=1,NUMCON
         IC=NCON(NC)
 
@@ -62,7 +127,7 @@ C EQUILIBRIUM ARGUEMENT IS REFERENCED TO THE GRENWICH MERIDIAN
    20   CONTINUE
 
       STOP
-      END
+      END PROGRAM TIDE_FAC
 
 
 
