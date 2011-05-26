@@ -18,12 +18,7 @@ OPTS="--mca btl openib,self" # -np 64 --bynode"
 echo "%enstorm% job starting at `date`"
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 echo "[${DATETIME}] : %jobtype%.%enstorm% starting in %advisdir%/%enstorm%" >> run.start
-%adcircdir%/adcprep <<END >> adcprep.log 2>&1
-%ncpu%
-4
-fort.14
-fort.15
-END
+%adcircdir%/adcprep --np %ncpu% --%jobtype% >> adcprep.log 2>&1
 ERROVALUE=$?
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 if [ $ERROVALUE == 0 ] ; then

@@ -287,13 +287,28 @@ prep()
     tar xvf $UNCOMPRESSEDARCHIVE > untarred_files.log 2>> ${SYSLOG}
     logMessage "Removing $UNCOMPRESSEDARCHIVE"
     rm $UNCOMPRESSEDARCHIVE 2>> ${SYSLOG}
+    #
+    # if we have variable river flux, prep the fort.20 file
+    if [[ $VARFLUX = on ]]; then
+       # jgf20110525: For now, just copy a static file to this location
+       # and adcprep it. TODO: When real time flux data become available,
+       # grab those instead of relying on a static file.
+       ln -s ${INPUTDIR}/${RIVERFLUX} ./fort.20        
+       prepFile prep20 $NCPU $ACCOUNT $WALLTIME
+    fi
     # if this is the cold start, we just prep the fort.15 and rely on a 
     # full adcprep that has already been done (to save time) and saved 
     # in a tar file
     if [ $START = coldstart ]; then
        # run adcprep to decompose the new fort.15 file
        logMessage "Running adcprep to prepare new fort.15 file"
-       prepControlFile $ENV $NCPU $ACCOUNT $WALLTIME 
+       prepFile prep15 $NCPU $ACCOUNT $WALLTIME 
+       if [[ $VARFLUX = on ]]; then
+          ln -s ${INPUTDIR}/${RIVERINIT} ./fort.88
+          # run adcprep to decompose the river elevation init (fort.88) file
+          logMessage "Running adcprep to prepare fort.88 file."
+          prepFile prep88 $NCPU $ACCOUNT $WALLTIME
+       fi
     else
        # this is a   H O T S T A R T
        # set directory where data will be copied from     
@@ -370,13 +385,8 @@ prep()
        done
        # run adcprep to decompose the new fort.15 file
        logMessage "Running adcprep to prepare new fort.15 file."
-       prepControlFile $ENV $NCPU $ACCOUNT $WALLTIME
-#       jgf20110428: no longer needed in adcirc v49
-#       if [[ $HOTSTARTCOMP = fulldomain ]]; then
-#          # run adcprep to decompose the hotstart file
-#          logMessage "Running adcprep to decompose hotstart file."
-#          prepHotstartFile $ENV $NCPU $ACCOUNT $WALLTIME
-#       fi
+       prepFile prep15 $NCPU $ACCOUNT $WALLTIME
+       # bring in hotstart file(s)
        if [[ $HOTSTARTCOMP = fulldomain ]]; then
           if [[ $HOTSTARTFORMAT = netcdf ]]; then
              # copy netcdf file so we overwrite the one that adcprep created
@@ -407,26 +417,22 @@ prep()
 }
 #
 # function to run adcprep in a platform dependent way to decompose 
-# the fort.15 file
-prepControlFile()
-{   ENV=$1
+# the fort.15, fort.20, or fort.88 file
+prepFile()
+{   JOBTYPE=$1
     NCPU=$2
     ACCOUNT=$3
     WALLTIME=$4
-    if [[ $ENV = jade || $ENV = sapphire || $ENV = diamond || $ENV = blueridge || $ENV = kittyhawk ]]; then
-       QSCRIPTOPTIONS="--jobtype prep15 --ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm ${ENSTORM} --notifyuser $NOTIFYUSER --syslog $SYSLOG"
+    if [[ $QUEUESYS = PBS ]]; then
+       QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPCONTROLSCRIPT --enstorm ${ENSTORM} --notifyuser $NOTIFYUSER --syslog $SYSLOG"
        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.pbs 2>> ${SYSLOG}
        qsub $ADVISDIR/$ENSTORM/adcprep.pbs >> ${SYSLOG} 2>&1
-       monitorJobs $QUEUESYS ${ENSTORM}.prep15 $WALLTIME
-       logMessage "Finished adcprepping control file (fort.15)."
-    elif [[ $ENV = ranger ]]; then
+       monitorJobs $QUEUESYS ${ENSTORM}.$JOBTYPE $WALLTIME
+       logMessage "Finished adcprepping file ($JOBTYPE)."
+    elif [[ $QUEUESYS = SGE ]]; then
        cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-       echo $NCPU    > prep.in1
-       echo 4       >> prep.in1
-       echo fort.14 >> prep.in1
-       echo fort.15 >> prep.in1
        SERQSCRIPT=ranger.template.serial
-       SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $ADCIRCDIR --walltime $WALLTIME --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
+       SERQSCRIPTOPTIONS="--jobtype --ncpu $NCPU --account $ACCOUNT --adcircdir $ADCIRCDIR --walltime $WALLTIME --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
        perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
        logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
        qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
@@ -436,64 +442,13 @@ prepControlFile()
        fi
        # check once per minute until all jobs have finished
        monitorJobs $QUEUESYS ${ENSTORM}.adcprepcontrol $WALLTIME
-       mv prep.in1 prep.in_controlfile
-       mv decomp.out1 decomp.out_controlfile
        consoleMesssage "Job(s) complete."
-       # prep-ing control finished, get on with it
-       logMessage "adcprep control finished"
-       consoleMessage "adcprep control finished"
+       # prep-ing finished, get on with it
+       logMessage "adcprep finished"
+       consoleMessage "adcprep finished"
     else
-       $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
-$NCPU
-4
-fort.14
-fort.15
-END
+       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
     fi
-}
-#
-# function to run adcprep in a platform dependent way to decompose 
-# the fort.68 file
-prepHotstartFile()
-{     ENV=$1
-      NCPU=$2
-      ACCOUNT=$3
-      WALLTIME=$4
-      if [[ $ENV = jade || $ENV = sapphire || $ENV = diamond || $ENV = blueridge || $ENV = kittyhawk ]]; then
-         QSCRIPTOPTIONS="--ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $INPUTDIR/$PREPHOTSTARTSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --syslog $SYSLOG"
-         perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep_hotstart.pbs 2>> ${SYSLOG}
-         qsub $ADVISDIR/$ENSTORM/adcprep_hotstart.pbs >> ${SYSLOG} 2>&1
-         monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart $WALLTIME
-         logMessage "Finished adcprepping hotstart file (fort.68)."
-    elif [[ $ENV = ranger ]]; then
-       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-       echo $NCPU    > prep.in1
-       echo 6       >> prep.in1
-       echo 68      >> prep.in1
-       SERQSCRIPT=ranger.template.serial
-       SERQSCRIPTOPTIONS="--account $ACCOUNT --adcircdir $ADCIRCDIR --walltime $WALLTIME --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
-       perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
-       logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
-       qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
-       # if qsub succeeded, monitor the job, otherwise an error is indicated
-       if [[ $? = 1 ]]; then
-         rangerResubmit $ADVISDIR $ENSTORM adcprep.serial.sge $SYSLOG
-       fi
-       # check once per minute until all jobs have finished
-       monitorJobs $QUEUESYS ${ENSTORM}.adcprephotstart $WALLTIME
-       mv prep.in1 prep.in_hotstartfile
-       mv decomp.out1 decomp.out_hotstartfile
-       consoleMesssage "Job(s) complete."
-       # prep-ing hotstart finished, get on with it
-       logMessage "adcprep hotstart finished"
-       consoleMessage "adcprep hotstart finished"
-      else
-         $ADCIRCDIR/adcprep <<END >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
-$NCPU
-6
-68
-END
-      fi
 }
 #
 # subroutine that calls an external script over and over until it
@@ -837,7 +792,6 @@ init_blueridge()
   SSHKEY=~/.ssh/id_rsa_blueridge
   QSCRIPT=renci.template.pbs
   PREPCONTROLSCRIPT=renci.adcprep.template.pbs
-  PREPHOTSTARTSCRIPT=renci.adcprep.hotstart.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=8
 }
@@ -1071,6 +1025,7 @@ BACKGROUNDMET=on
 TIDEFAC=off
 TROPICALCYCLONE=off
 WAVES=off
+VARFLUX=off
 HINDCASTTEMPLATE=null
 OUTPUTOPTIONS=
 ARCHIVEBASE=/dev/null
@@ -1189,6 +1144,10 @@ if [[ $WAVES = on ]]; then
    checkFileExistence $INPUTDIR "SWAN control template file" $SWANTEMPLATE
 else
    JOBTYPE=padcirc
+fi
+if [[ $VARFLUX = on ]]; then
+   checkFileExistence $INPUTDIR "River elevation initialization file " $RIVERINIT
+   checkFileExistence $INPUTDIR "River flux default file " $RIVERFLUX
 fi
 #
 checkFileExistence $INPUTDIR "ADCIRC mesh file" $GRIDFILE

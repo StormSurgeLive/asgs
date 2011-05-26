@@ -112,6 +112,7 @@ my $particles;  # flag to produce fulldomain current velocity files at an
 our $NHSINC;    # time step increment at which to write hot start files
 our $NHSTAR;    # writing and format of ADCIRC hotstart output file
 our $RNDAY;     # total run length from cold start, in days
+my $nffr = -1;  # for flux boundaries; -1: top of fort.20 corresponds to hs
 my $ihot;       # whether or not ADCIRC should READ a hotstart file
 my $fdcv;       # line that controls full domain current velocity output
 our $wtiminc;   # parameters related to met and wave timing 
@@ -216,6 +217,7 @@ if ( defined $hstime ) {
    }
 } else {
    $ihot = 0;
+   $nffr = 0;
 }
 # [de]activate output files with time step increment and with(out) appending.
 $fort61 = &getSpecifier($fort61freq,$fort61append,$fort61netcdf) . " 0.0 365.0 " . &getIncrement($fort61freq,$dt);
@@ -257,6 +259,8 @@ while(<TEMPLATE>) {
     s/%IHOT%/$ihot/;
     # fill in the parameter that selects which wind model to use
     s/%NWS%/$nws/;
+    # fill in the parameter that selects which wind model to use
+    s/%NFFR%/$nffr/;
     # fill in the timestep increment that hotstart files will be written at
     s/%NHSINC%/$NHSINC/;
     # fill in whether or not we want a hotstart file out of this
