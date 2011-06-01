@@ -102,7 +102,7 @@ while(<TEMPLATE>) {
     # fill in command line options
     s/%cloptions%/$cloptions/;
     # the type of job that is being submitted
-    s/%jobtype%/$jobtype/;
+    s/%jobtype%/$jobtype/g;
     print $_;
 }
 close(TEMPLATE);

@@ -22,9 +22,11 @@ C     TODO: IMPLICIT NONE
       INTEGER :: I        ! loop counter for command line arguments
       CHARACTER(2048) :: CMDLINEARG ! content of cmd line arg
       CHARACTER(2048) :: OUTPUTFORMAT ! "simple" to output just the nf and eqar
+      CHARACTER(2048) :: OUTPUTDIR ! directory to place output file
       LOGICAL :: SIMPLE_OUTPUT ! .true. to output just the nf and eq args
 
       SIMPLE_OUTPUT = .FALSE.
+      OUTPUTDIR = "."
       ARGCOUNT = IARGC() ! count up command line options
       IF (ARGCOUNT.gt.0) THEN
          I=0
@@ -63,6 +65,9 @@ C     TODO: IMPLICIT NONE
                   WRITE(*,*) "ERROR: tide_fac.f: '",TRIM(CMDLINEARG),
      &               "' was not recognized as an output format."
                ENDIF
+            CASE("--outputdir")
+               I = I + 1
+               CALL GETARG(I,OUTPUTDIR)
             CASE DEFAULT
                WRITE(*,*) 
      &            "WARNING: tide_fac.f: Command line argument '",
@@ -86,7 +91,8 @@ C     TODO: IMPLICIT NONE
       WRITE(*,10) BHR,IDAY,IMO,IYR
       WRITE(*,11) XDAYS
 
-      OPEN(UNIT=11,FILE='tide_fac.out',STATUS='UNKNOWN')
+      OPEN(UNIT=11,FILE=TRIM(OUTPUTDIR)//'/tide_fac.out',
+     &   STATUS='UNKNOWN')
       IF (SIMPLE_OUTPUT.eqv..FALSE.) THEN
          WRITE(11,10) BHR,IDAY,IMO,IYR
   10     FORMAT(' TIDAL FACTORS STARTING: ', 

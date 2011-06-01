@@ -41,7 +41,7 @@
 #   [--dt timestep] [--nowcast] [--controltemplate templatefile] < storm1_fort.22 
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2006, 2007, 2008, 2009, 2010 Jason Fleming
+# Copyright(C) 2006, 2007, 2008, 2009, 2010, 2011 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -87,11 +87,18 @@ my $hotswan = "on"; # "off" if swan has to be cold started (only on first nowcas
 #
 my @TRACKS = (); # should be few enough to store all in an array for easy access
 my $controltemplate;
+my $elevstations="null"; # file containing list of adcirc elevation stations
+my $velstations="null";  # file with list of adcirc velocity stations
+my $metstations="null";  # file with list of adcirc meteorological stations
 my $swantemplate;
 my $metfile;
 our $csdate;
+our ($cy, $cm, $cd, $ch, $cmin, $cs); # ADCIRC cold start time
 our ($ny, $nm, $nd, $nh, $nmin, $ns); # current ADCIRC time
 our ($ey, $em, $ed, $eh, $emin, $es); # ADCIRC end time
+my $numelevstations="0"; # number and list of adcirc elevation stations
+my $numvelstations="0";  # number and list of adcirc velocity stations
+my $nummetstations="0";  # number and list of adcirc meteorological stations
 my $startdatetime; # formatted for swan fort.26
 my $enddatetime;   # formatted for swan fort.26
 my $hstime;      # time, in seconds, of hotstart file (since coldstart)
@@ -107,6 +114,7 @@ my $dir=getcwd();
 my $nws=9;
 my $advisorynum;
 our $advisdir;  # the directory for this run 
+my $scriptdir = "."; # the directory containing asgs_main.sh
 my $particles;  # flag to produce fulldomain current velocity files at an 
                 # increment of 30 minutes
 our $NHSINC;    # time step increment at which to write hot start files
@@ -119,9 +127,14 @@ our $wtiminc;   # parameters related to met and wave timing
 our $rundesc;   # description of run, 1st line in fort.15
 our $ensembleid; # run id, 2nd line in fort.15
 my $waves = "off"; # set to "on" if adcirc is coupled with swan is being run
+my ($m2nf, $s2nf, $n2nf, $k2nf, $k1nf, $o1nf, $p1nf, $q1nf); # nodal factors
+my ($m2eqarg, $s2eqarg, $n2eqarg, $k2eqarg, $k1eqarg, $o1eqarg, $p1eqarg, $q1eqarg); # equilibrium arguments 
 #
 GetOptions("controltemplate=s" => \$controltemplate,
            "swantemplate=s" => \$swantemplate,
+           "elevstations=s" => \$elevstations,
+           "velstations=s" => \$velstations,
+           "metstations=s" => \$metstations,
            "metfile=s" => \$metfile,
            "name=s" => \$enstorm, 
            "cst=s" => \$csdate,
@@ -134,6 +147,7 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "nhcName=s" => \$nhcName,
            "hstime=s" => \$hstime,
            "advisdir=s" => \$advisdir,
+           "scriptdir=s" => \$scriptdir,           
            "fort61freq=s" => \$fort61freq,
            "fort62freq=s" => \$fort62freq,
            "fort63freq=s" => \$fort63freq,
@@ -156,7 +170,15 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "hsformat=s" => \$hsformat,
            "hotswan=s" => \$hotswan
            );
-
+#
+# parse out the pieces of the cold start date
+$csdate=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+$cy = $1;
+$cm = $2;
+$cd = $3;
+$ch = $4;
+$cmin = 0.0;
+$cs = 0.0;
 #
 # determine whether SWAN has been turned on
 my $waves_digit = int($nws / 100); 
@@ -165,6 +187,8 @@ if ( abs($waves_digit) == 3 ) {
    stderrMessage("INFO","Wave forcing is active.");
 }
 stderrMessage("DEBUG","nws is $nws and waves digit is $waves_digit.");
+#
+#
 #----------------------------------------------------
 #
 #  A D C I R C   C O N T R O L   F I L E 
@@ -237,13 +261,123 @@ $fort63 = $fort63specifier . " 0.0 365.0 " . &getIncrement($fort63freq,$dt);
 $fort64 = $fort64specifier . " 0.0 365.0 " . &getIncrement($fort64freq,$dt);
 $fort7172 = &getSpecifier($fort7172freq,$fort7172append,$fort7172netcdf) . " 0.0 365.0 " . &getIncrement($fort7172freq,$dt);
 $fort7374 = &getSpecifier($fort7374freq,$fort7374append,$fort7374netcdf) . " 0.0 365.0 " . &getIncrement($fort7374freq,$dt);
-if ( $enstorm eq "hindcast" ) {
-   $fort7172 = "ERROR: This line should not be here! In a hindcast, the ASGS assumes that there is no met forcing. As a result, the fort.15 template file should not have output specifiers for meteorological output. Please remove the NOUTM etc line and the met stations from the template file '$controltemplate'.";
-    $fort7374 = "ERROR: This line should not be here! In a hindcast, the ASGS assumes that there is no met forcing. As a result, the fort.15 template file should not have output specifiers for meteorological output. Please remove the NOUTGW etc line from the template file '$controltemplate'.";
+if ( $nws eq "0" ) {
+   $fort7172 = "NO LINE HERE";
+   $fort7374 = "NO LINE HERE";
 }
 # add swan time step to WTIMINC line if waves have been activated
 if ( $waves eq "on" ) {
    $wtiminc.=" $swandt"
+}
+#
+# determine if tide_fac.x executable is present, and if so, generate 
+# nodal factors and equilibrium arguments
+my $tides = "off";
+if ( -e "$scriptdir/tides/tide_fac.x" && -x "$scriptdir/tides/tide_fac.x" ) {
+   my $tide_fac_message = `$scriptdir/tides/tide_fac.x --length $RNDAY --year $cy --month $cm --day $cd --hour $ch --outputformat simple --outputdir $advisdir/$enstorm`;
+   if ( $tide_fac_message =~ /ERROR|WARNING/ ) {
+      stderrMessage("WARNING","There was an issue when running $scriptdir/tides/tide_fac.x: $tide_fac_message.");
+   } else {
+      stderrMessage("INFO","Nodal factors and equilibrium arguments were written to the file $advisdir/$enstorm/tide_fac.out.");
+      # open data file 
+      unless (open(TIDEFAC,"<$advisdir/$enstorm/tide_fac.out")) {
+         stderrMessage("ERROR","Failed to open the file '$advisdir/$enstorm/tide_fac.out' for reading.");
+         die;
+      }
+      # parse out nodal factors and equilibrium arguments from the 
+      # various constituents
+      $tides = "on";
+      stderrMessage("INFO","Parsing tidal node factors and equilibrium arguments.");
+      while(<TIDEFAC>) { 
+         my @constituent = split;
+         if ( $constituent[0] eq "M2" ) {
+            $m2nf = $constituent[1];
+            $m2eqarg = $constituent[2];
+         } elsif ( $constituent[0] eq "S2" ) {
+            $s2nf = $constituent[1];
+            $s2eqarg = $constituent[2];
+         } elsif  ( $constituent[0] eq "N2" ) {
+            $n2nf = $constituent[1];
+            $n2eqarg = $constituent[2];
+         } elsif ( $constituent[0] eq "K2" ) {
+            $k2nf = $constituent[1];
+            $k2eqarg = $constituent[2];
+         } elsif ( $constituent[0] eq "K1" ) {
+            $k1nf = $constituent[1];
+            $k1eqarg = $constituent[2];
+         } elsif ( $constituent[0] eq "O1" ) {
+            $o1nf = $constituent[1];
+            $o1eqarg = $constituent[2];
+         } elsif ( $constituent[0] eq "P1" ) {
+            $p1nf = $constituent[1];
+            $p1eqarg = $constituent[2];
+         } elsif ( $constituent[0] eq "Q1" ) {
+            $q1nf = $constituent[1];
+            $q1eqarg = $constituent[2];
+         } else {
+            stderrMessage("WARNING","Tidal constituent named '$constituent[0]' was unrecognized.");
+         }
+      }
+      close(TIDEFAC);
+   }
+} else {
+   stderrMessage("INFO","The executable that generates the tidal node factors and equilibrium arguments ($scriptdir/tides/tide_fac.x) was not found. Updated nodal factors and equilibrium arguments will not be generated.");
+}
+#
+# load up stations
+# elevation stations
+if ( $elevstations =~ /null/) {
+   $numelevstations = "0";
+   stderrMessage("INFO","There are no elevation stations.");
+} else {
+   $numelevstations = `wc -l $elevstations`;
+   stderrMessage("INFO","There are $numelevstations elevation stations in the file '$elevstations'.");
+   unless (open(STATIONS,"<$elevstations")) {
+      stderrMessage("ERROR","Failed to open the elevation stations file $elevstations for reading.");
+      die;
+   }
+   while (<STATIONS>) {
+      $numelevstations.=$_;
+   }
+   close(STATIONS);
+   chomp($numelevstations);
+}
+# velocity stations
+if ( $velstations =~ /null/) {
+   $numvelstations = "0";
+   stderrMessage("INFO","There are no velocity stations.");
+} else {
+   $numvelstations = `wc -l $velstations`;
+   stderrMessage("INFO","There are $numvelstations velocity stations in the file '$velstations'.");
+   unless (open(STATIONS,"<$velstations")) {
+      stderrMessage("ERROR","Failed to open the velocity stations file $velstations for reading.");
+      die;
+   }
+   while (<STATIONS>) {
+      $numvelstations.=$_;
+   }
+   close(STATIONS);
+   chomp($numvelstations);
+}
+# meteorology stations
+if ( $metstations =~ /null/) {
+   $nummetstations = "0";
+   stderrMessage("INFO","There are no meteorological stations.");
+} elsif ( $nws eq "0" ) {
+   stderrMessage("INFO","NWS is zero; meteorological stations will not be written to the fort.15 file.");
+   $nummetstations = "NO LINE HERE";
+} else {
+   $nummetstations = `wc -l $metstations`;
+   stderrMessage("INFO","There are $nummetstations meteorological stations in the file '$metstations'.");
+   unless (open(STATIONS,"<$metstations")) {
+      stderrMessage("ERROR","Failed to open the meteorological stations file $metstations for reading.");
+      die;
+   }
+   while (<STATIONS>) {
+      $nummetstations.=$_;
+   }
+   close(STATIONS);
+   chomp($nummetstations);
 }
 #
 stderrMessage("INFO","Filling in ADCIRC control template (fort.15).");
@@ -261,6 +395,17 @@ while(<TEMPLATE>) {
     s/%NWS%/$nws/;
     # fill in the parameter that selects which wind model to use
     s/%NFFR%/$nffr/;
+    # fill in nodal factors and equilibrium arguments
+    if ( $tides eq "on" ) {
+       s/%M2NF%/$m2nf/; s/%M2EQARG%/$m2eqarg/;
+       s/%S2NF%/$s2nf/; s/%S2EQARG%/$s2eqarg/;
+       s/%N2NF%/$n2nf/; s/%N2EQARG%/$n2eqarg/;
+       s/%K2NF%/$k2nf/; s/%K2EQARG%/$k2eqarg/;
+       s/%K1NF%/$k1nf/; s/%K1EQARG%/$k1eqarg/;
+       s/%O1NF%/$o1nf/; s/%O1EQARG%/$o1eqarg/;
+       s/%P1NF%/$p1nf/; s/%P1EQARG%/$p1eqarg/;
+       s/%Q1NF%/$q1nf/; s/%Q1EQARG%/$q1eqarg/;
+    }
     # fill in the timestep increment that hotstart files will be written at
     s/%NHSINC%/$NHSINC/;
     # fill in whether or not we want a hotstart file out of this
@@ -269,6 +414,12 @@ while(<TEMPLATE>) {
     s/%EnsembleID%/$ensembleid/;
     # may be asymmetric parameters, or wtiminc, rstiminc, etc
     s/%WTIMINC%/$wtiminc/;
+    # elevation stations
+    s/%NUMELEVSTATIONS%/$numelevstations/;
+    # velocity stations
+    s/%NUMVELSTATIONS%/$numvelstations/;
+    # meteorological stations
+    s/%NUMMETSTATIONS%/$nummetstations/;
     # output options
     s/%FORT61%/$fort61/;
     s/%FORT62%/$fort62/;
@@ -276,7 +427,9 @@ while(<TEMPLATE>) {
     s/%FORT64%/$fort64/;
     s/%FORT7172%/$fort7172/;
     s/%FORT7374%/$fort7374/;
-    print STORM $_;
+    unless (/NO LINE HERE/) {
+       print STORM $_;
+    }
 }
 
 close(TEMPLATE);
@@ -389,7 +542,7 @@ sub hindcastParameters () {
     $RNDAY = $endtime;  
     $nws = 0;
     $ensembleid = "$endtime day hindcast run";
-    $wtiminc = "ERROR: This line should not be here! In a hindcast, the ASGS assumes that there is no met forcing. As a result, the fort.15 template file should not have a WTIMINC line. Please remove the WTIMINC line from the template file '$controltemplate'.";
+    $wtiminc = "NO LINE HERE";
     stderrMessage("DEBUG","Finished setting hindcast parameters.");
 } 
 #
@@ -410,11 +563,6 @@ sub owiParameters () {
    #
    # determine the relationship between the start of the NAM data and the
    # current time in the ADCIRC run
-   $csdate =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
-   my $cy = $1;
-   my $cm = $2;
-   my $cd = $3;
-   my $ch = $4;
    if ( defined $hstime && $hstime != 0 ) {
       # now add the hotstart seconds
       ($ny,$nm,$nd,$nh,$nmin,$ns) =
@@ -550,14 +698,6 @@ sub asymmetricParameters () {
       }
    }
    #
-   # get coldstart time
-   my $cstart;
-   unless ( $csdate ) {
-      $cstart = $nowcast; # adjusted later to make the difference nonzero
-      print $cstart; # write cold start time to stdout for use in later runs
-   } else {
-      $cstart = $csdate;
-   }
    # convert hotstart time (in days since coldstart) if necessary
    if ( $hstime ) {
       $hstime_days = $hstime/86400.0;
@@ -638,23 +778,10 @@ sub asymmetricParameters () {
       }
    }
    stderrMessage("INFO","The fort.15 file will be configured to end on $end.");
-   #
-   $cstart=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
-   my $cs_year = $1;
-   my $cs_mon = $2;
-   my $cs_day = $3;
-   my $cs_hour = $4;
-   my $cs_min = 0.0;
-   my $cs_sec = 0.0;
-
-   my $cy = $1;
-   my $cm = $2;
-   my $cd = $3;
-   my $ch = $4;
    if ( defined $hstime && $hstime != 0 ) {
       # now add the hotstart seconds
       ($ny,$nm,$nd,$nh,$nmin,$ns) =
-         Date::Pcalc::Add_Delta_DHMS($cs_year,$cs_mon,$cs_day,$cs_hour,$cs_min,$cs_sec,0,0,0,$hstime);
+         Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,0,0,0,$hstime);
    } else {
       # the hotstart time was not provided, or it was provided and is equal to 0
       # therefore the current ADCIRC time is the cold start time, t=0
@@ -677,7 +804,7 @@ sub asymmetricParameters () {
    # get difference btw cold start time and end time
    my ($days,$hours,$seconds) 
       = Date::Pcalc::Delta_DHMS(
-         $cs_year,$cs_mon,$cs_day,$cs_hour,$cs_min,$cs_sec,
+         $cy,$cm,$cd,$ch,$cmin,$cs,
          $ey,$em,$ed,$eh,$emin,$es);
    # RNDAY is diff btw cold start time and end time
    # For a forecast, RNDAY is one time step short of the total time to ensure 
@@ -725,7 +852,7 @@ sub asymmetricParameters () {
    # create run description
    $rundesc = "cs:$csdate"."0000 cy:$nhcName$advisorynum ASGS";
    # create the WTIMINC line
-   $wtiminc = $cs_year." ".$cs_mon." ".$cs_day." ".$cs_hour." 1 ".$bladj;
+   $wtiminc = $cy." ".$cm." ".$cd." ".$ch." 1 ".$bladj;
 }
 #
 #--------------------------------------------------------------------------
