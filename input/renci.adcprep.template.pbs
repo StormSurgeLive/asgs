@@ -17,7 +17,7 @@ OPTS="--mca btl openib,self" # -np 64 --bynode"
 #OPTS="--mca btl tcp,self --mca btl_tcp_if_include eth0"
 echo "%enstorm% job starting at `date`"
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-echo "[${DATETIME}] : %jobtype%.%enstorm% starting in %advisdir%/%enstorm%" >> run.start
+echo "[${DATETIME}] : %jobtype%.%enstorm% starting in %advisdir%/%enstorm%" > %jobtype%.%enstorm%.run.start
 %adcircdir%/adcprep --np %ncpu% --%jobtype% >> adcprep.log 2>&1
 ERROVALUE=$?
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
@@ -26,5 +26,5 @@ if [ $ERROVALUE == 0 ] ; then
 else
    RUNSUFFIX="error"
 fi
-echo "[${DATETIME}] : adcprep finished in %advisdir%/%enstorm% with return value = $ERROVALUE" > run.${RUNSUFFIX}
+echo "[${DATETIME}] : adcprep finished in %advisdir%/%enstorm% with return value = $ERROVALUE" > %jobtype%.%enstorm%.run.${RUNSUFFIX}
 echo "adcprep job finished at $DATETIME."
