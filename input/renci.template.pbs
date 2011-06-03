@@ -6,6 +6,7 @@
 #PBS -M %notifyuser%
 #PBS -j oe
 #PBS -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out
+#PBS -q %queuename%
 ##PBS -I
 cd %advisdir%/%enstorm%
 cat $PBS_NODEFILE
