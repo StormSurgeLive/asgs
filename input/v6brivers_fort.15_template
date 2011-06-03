@@ -26,6 +26,7 @@ wave_refraction_in_swan
 %DT%                       ! DT - TIME STEP (IN SECONDS)
 0.0                       ! STATIM - STARTING TIME (IN DAYS)
 0.0                       ! REFTIM - REFERENCE TIME (IN DAYS)
+%WTIMINC%                 ! WTIMINC
 %RNDAY%                   ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
 20. 0.25 0.0                      ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
 0.35 0.30 0.35            ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION

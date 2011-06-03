@@ -146,12 +146,26 @@ checkHotstart()
          if [[ $errorOccurred != 0 ]]; then
             fatal "The hstime utility could not read the ADCIRC time from the file '$HOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
          else
-            if [[ $HSTIME -eq 0 ]]; then
+            if float_cond '$HSTIME == 0.0'; then
                fatal "The time in the hotstart file '$HOTSTARTFILE' is zero. The preceding simulation run must have failed to produce a proper hotstart file."
             fi
          fi
       fi
    fi  
+}
+#
+# Evaluate a floating point number conditional expression.
+# From http://www.linuxjournal.com/content/floating-point-math-bash
+function float_cond()
+{
+    local cond=0
+    if [[ $# -gt 0 ]]; then
+        cond=$(echo "$*" | bc -q 2>/dev/null)
+        if [[ -z "$cond" ]]; then cond=0; fi
+        if [[ "$cond" != 0  &&  "$cond" != 1 ]]; then cond=0; fi
+    fi
+    local stat=$((cond == 0))
+    return $stat
 }
 #
 # subroutine to create a symbolic link to the fort.22 file that has metadata in # to identify the type of data that is in the file 
@@ -357,22 +371,16 @@ prep()
           fi
        fi
        # set directory where data will be copied from     
-       if [ $ENSTORM = nowcast ]; then
-          if [[ $OLDADVISDIR = $LASTSUBDIR ]]; then 
-             # this is a nowcast run, but we are getting the hotstart
-             # file from a pre-existing, external spinup run
-             FROMDIR=$LASTSUBDIR
-          else
-             # this is a nowcast run, and we are getting the hotstart file
-             # either from the ASGS's last nowcast run or from an initial 
-             # hindcast run
-             if [[ -d $OLDADVISDIR/nowcast ]]; then
-                FROMDIR=$OLDADVISDIR/nowcast
-             fi
-             if [[ -d $OLDADVISDIR/hindcast ]]; then
-                FROMDIR=$OLDADVISDIR/hindcast 
-                HOTSWAN=off # hindcast runs don't include swan
-             fi
+       if [[ $ENSTORM = nowcast ]]; then
+          # this is a nowcast run, and we are getting the hotstart file
+          # either from the ASGS's last nowcast run or from an initial 
+          # hindcast run
+          if [[ -d $OLDADVISDIR/nowcast ]]; then
+             FROMDIR=$OLDADVISDIR/nowcast
+          fi
+          if [[ -d $OLDADVISDIR/hindcast ]]; then
+             FROMDIR=$OLDADVISDIR/hindcast 
+             HOTSWAN=off # hindcast runs don't include swan
           fi
        else 
           # this is a forecast run, and we get the hotstart file from
@@ -418,9 +426,9 @@ prep()
        if [[ $HOTSTARTCOMP = fulldomain ]]; then
           if [[ $HOTSTARTFORMAT = netcdf ]]; then
              # copy netcdf file so we overwrite the one that adcprep created
-             cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG
+             cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG 2>&1
           else
-             ln -s $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG
+             ln -s $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG 2>&1
           fi
        fi
        if [[ $HOTSTARTCOMP = subdomain || $WAVES = on ]]; then
@@ -1218,7 +1226,21 @@ if [[ ! -z $NAFILE ]]; then
    checkFileExistence $INPUTDIR "ADCIRC nodal attributes (fort.13) file" $NAFILE
 fi
 if [[ $HOTORCOLD = hotstart ]]; then
-   checkFileExistence "" "ADCIRC hotstart (fort.67 or fort.68) file " $LASTSUBDIR/PE0000/fort.67
+   if [[ $HOTSTARTFORMAT = netcdf ]]; then
+      if [[ -d $LASTSUBDIR/hindcast ]]; then
+         checkFileExistence "" "ADCIRC hotstart (fort.67.nc) file " $LASTSUBDIR/hindcast/fort.67.nc
+      fi
+      if [[ -d $LASTSUBDIR/nowcast ]]; then
+         checkFileExistence "" "ADCIRC hotstart (fort.67.nc) file " $LASTSUBDIR/nowcast/fort.67.nc
+      fi
+   else
+      if [[ -d $LASTSUBDIR/hindcast ]]; then
+         checkFileExistence "" "ADCIRC hotstart (fort.67) file " $LASTSUBDIR/hindcast/PE0000/fort.67
+      fi
+      if [[ -d $LASTSUBDIR/nowcast ]]; then
+         checkFileExistence "" "ADCIRC hotstart (fort.67) file " $LASTSUBDIR/nowcast/PE0000/fort.67
+      fi
+   fi
 fi 
 if [[ -e ${INPUTDIR}/${PREPPEDARCHIVE} ]]; then
    logMessage "Found archive of preprocessed input files ${INPUTDIR}/${PREPPEDARCHIVE}."
@@ -1462,7 +1484,7 @@ while [ 1 -eq 1 ]; do
     logMessage "Submitting $ENSTORM job."
     cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
     logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
-    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPEDC
+    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE
     # check once per minute until all jobs have finished
     monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $NOWCASTWALLTIME
     # check to see that the nowcast job did not conspicuously fail
