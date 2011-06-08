@@ -92,10 +92,12 @@ my $velstations="null";  # file with list of adcirc velocity stations
 my $metstations="null";  # file with list of adcirc meteorological stations
 my $swantemplate;
 my $metfile;
+my $gridname="nc6b";
 our $csdate;
 our ($cy, $cm, $cd, $ch, $cmin, $cs); # ADCIRC cold start time
 our ($ny, $nm, $nd, $nh, $nmin, $ns); # current ADCIRC time
 our ($ey, $em, $ed, $eh, $emin, $es); # ADCIRC end time
+our ($oy, $om, $od, $oh, $omin, $os); # OWI start time
 my $numelevstations="0"; # number and list of adcirc elevation stations
 my $numvelstations="0";  # number and list of adcirc velocity stations
 my $nummetstations="0";  # number and list of adcirc meteorological stations
@@ -137,6 +139,7 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "metstations=s" => \$metstations,
            "metfile=s" => \$metfile,
            "name=s" => \$enstorm, 
+           "gridname=s" => \$gridname, 
            "cst=s" => \$csdate,
            "endtime=s" => \$endtime,
            "dt=s" => \$dt,
@@ -325,59 +328,13 @@ if ( -e "$scriptdir/tides/tide_fac.x" && -x "$scriptdir/tides/tide_fac.x" ) {
 }
 #
 # load up stations
-# elevation stations
-if ( $elevstations =~ /null/) {
-   $numelevstations = "0";
-   stderrMessage("INFO","There are no elevation stations.");
-} else {
-   $numelevstations = `wc -l $elevstations`;
-   stderrMessage("INFO","There are $numelevstations elevation stations in the file '$elevstations'.");
-   unless (open(STATIONS,"<$elevstations")) {
-      stderrMessage("ERROR","Failed to open the elevation stations file $elevstations for reading.");
-      die;
-   }
-   while (<STATIONS>) {
-      $numelevstations.=$_;
-   }
-   close(STATIONS);
-   chomp($numelevstations);
-}
-# velocity stations
-if ( $velstations =~ /null/) {
-   $numvelstations = "0";
-   stderrMessage("INFO","There are no velocity stations.");
-} else {
-   $numvelstations = `wc -l $velstations`;
-   stderrMessage("INFO","There are $numvelstations velocity stations in the file '$velstations'.");
-   unless (open(STATIONS,"<$velstations")) {
-      stderrMessage("ERROR","Failed to open the velocity stations file $velstations for reading.");
-      die;
-   }
-   while (<STATIONS>) {
-      $numvelstations.=$_;
-   }
-   close(STATIONS);
-   chomp($numvelstations);
-}
-# meteorology stations
-if ( $metstations =~ /null/) {
-   $nummetstations = "0";
-   stderrMessage("INFO","There are no meteorological stations.");
-} elsif ( $nws eq "0" ) {
+$numelevstations = &getStations($elevstations,"elevation");
+$numvelstations = &getStations($velstations,"velocity");
+if ( $nws eq "0" ) {
    stderrMessage("INFO","NWS is zero; meteorological stations will not be written to the fort.15 file.");
    $nummetstations = "NO LINE HERE";
 } else {
-   $nummetstations = `wc -l $metstations`;
-   stderrMessage("INFO","There are $nummetstations meteorological stations in the file '$metstations'.");
-   unless (open(STATIONS,"<$metstations")) {
-      stderrMessage("ERROR","Failed to open the meteorological stations file $metstations for reading.");
-      die;
-   }
-   while (<STATIONS>) {
-      $nummetstations.=$_;
-   }
-   close(STATIONS);
-   chomp($nummetstations);
+   $nummetstations = &getStations($metstations,"meteorology");
 }
 #
 stderrMessage("INFO","Filling in ADCIRC control template (fort.15).");
@@ -482,6 +439,56 @@ while(<TEMPLATE>) {
 }
 close(TEMPLATE);
 close(STORM);
+#
+# write run.properties file
+# set components
+my $model = "padcirc";
+my $model_type = "SADC"; 
+my $wind_model = "vortex-nws$nws";
+my $run_type = "Forecast";
+my $cycle_hour = "00";
+my $miscfield = "00";
+my $date1 = sprintf("%4d%02d%02dT%02d%02d",$ny,$nm,$nd,$nh,$nmin); # start time
+my $date2 = sprintf("%4d%02d%02dT%02d%02d",$ny,$nm,$nd,$nh,$nmin); # 1st output
+my $date3 = sprintf("%4d%02d%02dT%02d%02d",$ey,$em,$ed,$eh,$emin); # end time
+if ( $waves eq "on" ) {
+   $model_type = "SPDS";
+   $model = "padcswan";
+}
+if ( $nws == 0 ) { 
+   $wind_model = "none";
+}
+if ( abs($nws) == 12 || abs($nws) == 312 ) {
+   $wind_model = "WNAMAW12-NCP";
+   $cycle_hour = sprintf("%02d",$oh);
+   $date1 = sprintf("%4d%02d%02dT%02d%02d",$oy,$om,$od,$oh,$omin); 
+}
+if ( $enstorm eq "nowcast" ) {
+   $run_type = "Nowcast";
+} elsif ( $enstorm eq "hindcast" ) {
+   $run_type = "Hindcast";
+}
+unless ( undef $advisorynum ) {
+   $miscfield = $advisorynum;
+}
+# last time step of model output contained in the file
+my $rp_fname = $model_type . $gridname . "-UNC_" . $wind_model . "_" . $date1 . "_" . $date2 . "_" . $date3 . "_" . $cycle_hour . "_run.properties";
+my $prodid = $model_type . $gridname . "-UNC_" . $wind_model . "_" . $date1 . "_" . $date2 . "_" . $date3 . "_" . $cycle_hour . "<field>_Z.nc.gz";
+stderrMessage("INFO","Opening run.properties file for writing.");
+unless (open(RUNPROPS,">$stormDir/$rp_fname")) { 
+   stderrMessage("ERROR","Failed to open the run.properties file for writing.");
+   die;
+}
+printf RUNPROPS "RunType : $run_type\n";
+printf RUNPROPS "ADCIRCgrid : $gridname\n";
+printf RUNPROPS "stormnumber : $cycle_hour\n";
+printf RUNPROPS "miscfield : $miscfield\n";
+printf RUNPROPS "currentcycle : 00\n";
+printf RUNPROPS "prodID : $prodid\n";
+printf RUNPROPS "InitialHotStartTime : $hstime\n";
+printf RUNPROPS "Model : $model\n";
+close(RUNPROPS);
+stderrMessage("INFO","Wrote run.properties file $stormDir/$rp_fname.");
 exit;
 #
 #
@@ -529,6 +536,36 @@ sub getIncrement () {
       $increment = int($freq/$timestepsize);
    }
    return $increment;
+}
+#
+#--------------------------------------------------------------------------
+#   S U B   G E T   S T A T I O N S
+#
+# Pulls in the stations from an external file.
+#--------------------------------------------------------------------------
+sub getStations () {
+   my $station_file = shift;
+   my $station_type = shift;
+   my $numstations = "";
+   if ( $station_file =~ /null/) {
+      $numstations = "0";
+      stderrMessage("INFO","There are no $station_type stations.");
+      return $numstations; # early return
+   } 
+   $numstations = `wc -l $station_file`;
+   $numstations =~ /^(\d+)/;
+   my $number = $1;
+   stderrMessage("INFO","There are $number $station_type stations in the file '$station_file'.");
+   unless (open(STATIONS,"<$station_file")) {
+      stderrMessage("ERROR","Failed to open the $station_type stations file $station_file for reading.");
+      die;
+   }
+   while (<STATIONS>) {
+      $numstations.=$_;
+   }
+   close(STATIONS);
+   chomp($numstations);
+   return $numstations;
 }
 #
 #--------------------------------------------------------------------------
@@ -591,12 +628,12 @@ sub owiParameters () {
    # create run description
    $rundesc = "cs:$csdate"."0000 cy:$owistart ASGS NAM";
    $owistart =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
-   my $oy = $1;
-   my $om = $2;
-   my $od = $3;
-   my $oh = $4;
-   my $omin = 0;
-   my $os = 0;
+   $oy = $1;
+   $om = $2;
+   $od = $3;
+   $oh = $4;
+   $omin = 0;
+   $os = 0;
    #
    # get difference
    (my $ddays, my $dhrs, my $dsec)

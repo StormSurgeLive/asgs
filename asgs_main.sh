@@ -170,7 +170,8 @@ function float_cond()
 #
 # subroutine to create a symbolic link to the fort.22 file that has metadata in # to identify the type of data that is in the file 
 createMetaDataLink()
-{ STORM=$1
+{ 
+  STORM=$1
   YEAR=$2
   ADVISORY=$3
   ENSTORM=$4
@@ -191,6 +192,7 @@ createMetaDataLink()
   echo "directory storm:$ADVISDIR/$ENSTORM" >> $ADVISDIR/$ENSTORM/fort.22.meta
   echo "time hotstart seconds:$HSTIME" >> $ADVISDIR/$ENSTORM/fort.22.meta
   echo "time coldstart date:$CSDATE" >>  $ADVISDIR/$ENSTORM/fort.22.meta
+#
   windPercent="+00"
   overlandSpeedPercent="+00"
   veerPercent="+000"
@@ -454,7 +456,11 @@ prep()
     # one so that we don't have to do another prepall 
     if [[ $HAVEARCHIVE = no ]]; then
        logMessage "Creating an archive of preprocessed files and saving to ${INPUTDIR}/${PREPPED} to avoid having to run prepall again."
-       tar cvzf ${INPUTDIR}/${PREPPED} partmesh.txt PE*/fort.13 PE*/fort.14 PE*/fort.18 2>> ${SYSLOG}
+       FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18'
+       if [[ ! -z $NAFILE ]]; then
+          FILELIST='${FILELIST} PE*/fort.13'
+       fi
+       tar cvzf ${INPUTDIR}/${PREPPED} ${FILELIST} 2>> ${SYSLOG}
     fi 
 }
 #
@@ -731,8 +737,8 @@ submitJob()
       if [[ $NUMWRITERS != "0" ]]; then
          CPUREQUEST=`expr $NCPU + $NUMWRITERS`
       fi
-      logMessage "Submitting job via $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/padcirc $CLOPTION >> ${SYSLOG} 2>&1"
-      $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/padcirc $CLOPTION >> ${SYSLOG} 2>&1 
+      logMessage "Submitting job via $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${SYSLOG} 2>&1"
+      $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${SYSLOG} 2>&1 
 #
 #  Sun Grid Engine (SGE); used on Sun and many Linux clusters
    elif [[ $QUEUESYS = SGE ]]; then
@@ -1088,6 +1094,8 @@ VARFLUX=off
 ELEVSTATIONS=null
 VELSTATIONS=null
 METSTATIONS=null
+GRIDFILE=fort.14
+GRIDNAME=fort14
 OUTPUTOPTIONS=
 ARCHIVEBASE=/dev/null
 ARCHIVEDIR=null
@@ -1326,6 +1334,7 @@ if [[ $START = coldstart ]]; then
    # prepare hindcast control (fort.15) file 
    CONTROLOPTIONS="--name $ENSTORM --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --cst $CSDATE --endtime $HINDCASTLENGTH --dt $TIMESTEPSIZE --nws $NWS --hsformat $HOTSTARTFORMAT --advisorynum 0 --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
    CONTROLOPTIONS="$CONTROLOPTIONS --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
+   CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    logMessage "Constructing control file with the following options: $CONTROLOPTIONS."
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
    # don't have a meterological forcing (fort.22) file in this case
@@ -1464,6 +1473,7 @@ while [ 1 -eq 1 ]; do
        CONTROLOPTIONS="${CONTROLOPTIONS} --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
     fi
     CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
+    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
     # generate fort.15 file
     perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
     logMessage "Starting nowcast."
@@ -1565,6 +1575,7 @@ while [ 1 -eq 1 ]; do
           CONTROLOPTIONS="${CONTROLOPTIONS} --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
        fi
        CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
+       CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
        logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
        perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
        if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi

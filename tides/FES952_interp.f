@@ -75,7 +75,7 @@ c**********************************************************************
 
       program FES_interp
       implicit none
-      character(80), parameter :: version = "2.07"
+      character(80), parameter :: version = "2.08"
       real, allocatable :: Ga(:,:), Gp(:,:)
       integer, allocatable :: node(:)
       real, allocatable :: xlon(:),ylat(:),xtemp(:),ytemp(:)
@@ -103,6 +103,8 @@ c**********************************************************************
       character(4)  outFileExt
       character(2048) outFileName
       character(2048) dataDir
+      logical       latLonOnly ! if true, just write lat lon and exit
+      logical       toPosLon   ! if true, convert lon from -180/180 to 0/360
 
       deg2rad = atan(1.d0)/45.d0
       rad2deg = 45.d0/atan(1.d0)
@@ -121,6 +123,8 @@ C     Initialize to reasonable defaults
       outFileExt='.obc'  ! for ADCIRC
       outFileName='m2_FES.obc' ! for ADCIRC m2 tide
       dataDir = "."
+      latLonOnly = .false.
+      toPosLon = .false.
 C
 C     Process command line options, if any
       argcount = iargc()
@@ -130,6 +134,12 @@ C     Process command line options, if any
             i = i + 1
             call getarg(i, cmdlinearg)
             select case(cmdlinearg(1:2))
+               case("-b") ! just write node locations as lat lon (i.e., 
+                          ! reversed); useful for tpx0 interpolation 
+                  latLonOnly = .true.
+               case("-l") ! to convert lon range from -180 to 180 -> 
+                          ! 0 to 360; useful for tpx0 interpolation
+                  toPosLon = .true.
                case("-n") ! either open boundaries or all nodes
                   i = i + 1
                   call getarg(i,cmdlinearg)
@@ -172,6 +182,7 @@ C     Process command line options, if any
                   write(*,*) "-n [open] or [allnodes]"
                   write(*,*) "-p [degrees] or [radians]"
                   write(*,*) "-f ADCIRC mesh file name"
+                  write(*,*) "-b (output node locations only)"
                   write(*,*) "-c name of tidal constituent"
                   write(*,*) "-d directory containing tidal db"
                   write(*,*) "-v show version information"
@@ -234,8 +245,11 @@ C     Open and read in ADCIRC grid file
       allocate(node(np),xlon(np),ylat(np),xtemp(np),ytemp(np))
       do n=1,np
          read(11,*) node(n),xtemp(n),ytemp(n),depth
-         if(xtemp(n).lt.-180.) xtemp(n)=xtemp(n)+360.
-         if(xtemp(n).ge.180.) xtemp(n)=xtemp(n)-360.
+         if (xtemp(n).lt.-180.) xtemp(n)=xtemp(n)+360.
+         if (xtemp(n).ge.180.) xtemp(n)=xtemp(n)-360.
+         if ((toPosLon.eqv..true.).and.(xtemp(n).lt.0.0)) then
+            xtemp(n)=xtemp(n)+360.
+         endif
       end do
 C
       if(interp.eq.2) then ! interpolate to all nodes in the target mesh
@@ -275,6 +289,19 @@ C
 
       write(*,*)
      &   'INFO: FES952_interp: Finished reading ADCIRC grid file.'
+C      
+C     If user specified -b, just write lat lon to file ... this is useful
+C     for tpxo interpolation. 
+      if (latLonOnly.eqv..true.) then
+         write(*,*) "INFO: Writing lat_lon file with node locations."
+         open(12,file="lat_lon",status='replace',action='write')
+         do n=1,nnodes
+            write(12,*) ylat(n),xlon(n)
+         end do
+         close(12)
+         write(*,*) "INFO: Finished writing lat_lon file."
+         stop
+      endif
 C
 C     Output file 
       ! extension  
