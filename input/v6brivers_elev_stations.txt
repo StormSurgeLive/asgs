@@ -23,7 +23,6 @@
  -77.78590     34.21300      !Wrightsville Beach, NC           (NOS Station ID 8658163) 
  -77.95300     34.22700      !Wilmington, NC                   (NOS Station ID 8658120)
  -78.50700     33.86500      !Sunset Beach, NC                 (NOS Station ID 8659897)
- -77.06194     35.54330      !Pamlico River at Washington, NC         (USGS Station ID 02084472)
  -76.72278     35.91500      !Roanoke River at NC45 near Westover, NC (USGS Station ID 0208114150)
  -78.91833     33.65500      !Springmaid Pier, SC              (NOS Station ID 8661070)
  -79.92500     32.78166      !Charleston, SC                   (NOS Station ID 8665530)

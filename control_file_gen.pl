@@ -114,7 +114,7 @@ my $nhcName="STORMNAME"; # storm name given by the nhc
 my $tau=0; # forecast period
 my $dir=getcwd();
 my $nws=9;
-my $advisorynum;
+my $advisorynum="0";
 our $advisdir;  # the directory for this run 
 my $scriptdir = "."; # the directory containing asgs_main.sh
 my $particles;  # flag to produce fulldomain current velocity files at an 
@@ -388,57 +388,55 @@ while(<TEMPLATE>) {
        print STORM $_;
     }
 }
-
 close(TEMPLATE);
 close(STORM);
 #
 #
 #  S W A N   C O N T R O L   F I L E  
 #
-unless ( $waves eq "on" ) {
-   exit;
+if ( $waves eq "on" ) {
+   # open template file for fort.26
+   unless (open(TEMPLATE,"<$swantemplate")) {
+      stderrMessage("ERROR","Failed to open the swan template file $swantemplate for reading.");
+      die;
+   }
+   #
+   # open output fort.26 file
+   unless (open(STORM,">$stormDir/fort.26")) { 
+      stderrMessage("ERROR","Failed to open the output control file $stormDir/fort.26.");
+      die;
+   }
+   stderrMessage("INFO","The fort.26 file will be written to the directory $stormDir."); 
+   #
+   $startdatetime = sprintf("%4d%02d%02d.%02d0000",$ny,$nm,$nd,$nh);
+   $enddatetime = sprintf("%4d%02d%02d.%02d0000",$ey,$em,$ed,$eh);
+   my $swanhs =  "INIT HOTSTART MULTIPLE 'swan.68'";
+   if ( $hotswan eq "off" ) {
+      $swanhs = "\$ swan will coldstart";
+   }
+   #
+   stderrMessage("INFO","Filling in swan control template (fort.26).");
+   while(<TEMPLATE>) {
+       # if we are looking at the first line, fill in the name of the storm
+       # and the advisory number, if available
+       s/%StormName%/$rundesc/;
+       # if we are looking at the DT line, fill in the time step (seconds)
+       s/%swandt%/$swandt/;
+       # fill in ensemble name -- this is in the comment line
+       s/%EnsembleID%/$ensembleid/;
+       # may be asymmetric parameters, or wtiminc, rstiminc, etc
+       s/%WTIMINC%/$wtiminc/;
+       #
+       s/%hotstart%/$swanhs/;
+       # swan start time -- corresponds to adcirc hot start time
+       s/%startdatetime%/$startdatetime/;
+       # swan end time%
+       s/%enddatetime%/$enddatetime/;
+       print STORM $_;
+   }
+   close(TEMPLATE);
+   close(STORM);
 }
-# open template file for fort.26
-unless (open(TEMPLATE,"<$swantemplate")) {
-   stderrMessage("ERROR","Failed to open the swan template file $swantemplate for reading.");
-   die;
-}
-#
-# open output fort.26 file
-unless (open(STORM,">$stormDir/fort.26")) { 
-   stderrMessage("ERROR","Failed to open the output control file $stormDir/fort.26.");
-   die;
-}
-stderrMessage("INFO","The fort.26 file will be written to the directory $stormDir."); 
-#
-$startdatetime = sprintf("%4d%02d%02d.%02d0000",$ny,$nm,$nd,$nh);
-$enddatetime = sprintf("%4d%02d%02d.%02d0000",$ey,$em,$ed,$eh);
-my $swanhs =  "INIT HOTSTART MULTIPLE 'swan.68'";
-if ( $hotswan eq "off" ) {
-   $swanhs = "\$ swan will coldstart";
-}
-#
-stderrMessage("INFO","Filling in swan control template (fort.26).");
-while(<TEMPLATE>) {
-    # if we are looking at the first line, fill in the name of the storm
-    # and the advisory number, if available
-    s/%StormName%/$rundesc/;
-    # if we are looking at the DT line, fill in the time step (seconds)
-    s/%swandt%/$swandt/;
-    # fill in ensemble name -- this is in the comment line
-    s/%EnsembleID%/$ensembleid/;
-    # may be asymmetric parameters, or wtiminc, rstiminc, etc
-    s/%WTIMINC%/$wtiminc/;
-    #
-    s/%hotstart%/$swanhs/;
-    # swan start time -- corresponds to adcirc hot start time
-    s/%startdatetime%/$startdatetime/;
-    # swan end time%
-    s/%enddatetime%/$enddatetime/;
-    print STORM $_;
-}
-close(TEMPLATE);
-close(STORM);
 #
 # write run.properties file
 # set components
@@ -446,11 +444,12 @@ my $model = "padcirc";
 my $model_type = "SADC"; 
 my $wind_model = "vortex-nws$nws";
 my $run_type = "Forecast";
-my $cycle_hour = "00";
-my $miscfield = "00";
+my $cycle_hour = sprintf("%02d",$nh);
+my $currentdate = substr($ny,2,2) . sprintf("%02d%02d",$nm,$nd); # start time
 my $date1 = sprintf("%4d%02d%02dT%02d%02d",$ny,$nm,$nd,$nh,$nmin); # start time
 my $date2 = sprintf("%4d%02d%02dT%02d%02d",$ny,$nm,$nd,$nh,$nmin); # 1st output
 my $date3 = sprintf("%4d%02d%02dT%02d%02d",$ey,$em,$ed,$eh,$emin); # end time
+my $runstarttime = sprintf("%4d%02d%02d%02d",$ny,$nm,$nd,$nh); # start time
 if ( $waves eq "on" ) {
    $model_type = "SPDS";
    $model = "padcswan";
@@ -461,6 +460,7 @@ if ( $nws == 0 ) {
 if ( abs($nws) == 12 || abs($nws) == 312 ) {
    $wind_model = "WNAMAW12-NCP";
    $cycle_hour = sprintf("%02d",$oh);
+   $currentdate = substr($oy,2,2) . sprintf("%02d%02d",$om,$od); # start time
    $date1 = sprintf("%4d%02d%02dT%02d%02d",$oy,$om,$od,$oh,$omin); 
 }
 if ( $enstorm eq "nowcast" ) {
@@ -468,27 +468,28 @@ if ( $enstorm eq "nowcast" ) {
 } elsif ( $enstorm eq "hindcast" ) {
    $run_type = "Hindcast";
 }
-unless ( undef $advisorynum ) {
-   $miscfield = $advisorynum;
-}
 # last time step of model output contained in the file
 my $rp_fname = $model_type . $gridname . "-UNC_" . $wind_model . "_" . $date1 . "_" . $date2 . "_" . $date3 . "_" . $cycle_hour . "_run.properties";
 my $prodid = $model_type . $gridname . "-UNC_" . $wind_model . "_" . $date1 . "_" . $date2 . "_" . $date3 . "_" . $cycle_hour . "<field>_Z.nc.gz";
 stderrMessage("INFO","Opening run.properties file for writing.");
-unless (open(RUNPROPS,">$stormDir/$rp_fname")) { 
+unless (open(RUNPROPS,">$stormDir/run.properties")) { 
    stderrMessage("ERROR","Failed to open the run.properties file for writing.");
    die;
 }
 printf RUNPROPS "RunType : $run_type\n";
 printf RUNPROPS "ADCIRCgrid : $gridname\n";
 printf RUNPROPS "stormnumber : $cycle_hour\n";
-printf RUNPROPS "miscfield : $miscfield\n";
-printf RUNPROPS "currentcycle : 00\n";
+printf RUNPROPS "miscfield : $advisorynum\n";
+printf RUNPROPS "advisory : $advisorynum\n";
+printf RUNPROPS "currentcycle : $cycle_hour\n";
+printf RUNPROPS "currentdate : $currentdate\n";
 printf RUNPROPS "prodID : $prodid\n";
 printf RUNPROPS "InitialHotStartTime : $hstime\n";
+printf RUNPROPS "RunStartTime : $runstarttime\n";
+printf RUNPROPS "ColdStartTime : $csdate\n";
 printf RUNPROPS "Model : $model\n";
 close(RUNPROPS);
-stderrMessage("INFO","Wrote run.properties file $stormDir/$rp_fname.");
+stderrMessage("INFO","Wrote run.properties file $stormDir/run.properties.");
 exit;
 #
 #
