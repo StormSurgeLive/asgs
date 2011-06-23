@@ -440,7 +440,7 @@ if ( $waves eq "on" ) {
 #
 # write run.properties file
 # set components
-my $model = "padcirc";
+my $model = "PADCIRC";
 my $model_type = "SADC"; 
 my $wind_model = "vortex-nws$nws";
 my $run_type = "Forecast";
@@ -450,9 +450,10 @@ my $date1 = sprintf("%4d%02d%02dT%02d%02d",$ny,$nm,$nd,$nh,$nmin); # start time
 my $date2 = sprintf("%4d%02d%02dT%02d%02d",$ny,$nm,$nd,$nh,$nmin); # 1st output
 my $date3 = sprintf("%4d%02d%02dT%02d%02d",$ey,$em,$ed,$eh,$emin); # end time
 my $runstarttime = sprintf("%4d%02d%02d%02d",$ny,$nm,$nd,$nh); # start time
+my $runendtime = sprintf("%4d%02d%02d%02d",$ey,$em,$ed,$eh); # end time
 if ( $waves eq "on" ) {
    $model_type = "SPDS";
-   $model = "padcswan";
+   $model = "PADCSWAN";
 }
 if ( $nws == 0 ) { 
    $wind_model = "none";
@@ -478,7 +479,7 @@ unless (open(RUNPROPS,">$stormDir/run.properties")) {
 }
 printf RUNPROPS "RunType : $run_type\n";
 printf RUNPROPS "ADCIRCgrid : $gridname\n";
-printf RUNPROPS "stormnumber : $cycle_hour\n";
+printf RUNPROPS "stormnumber : 00\n";
 printf RUNPROPS "miscfield : $advisorynum\n";
 printf RUNPROPS "advisory : $advisorynum\n";
 printf RUNPROPS "currentcycle : $cycle_hour\n";
@@ -486,7 +487,9 @@ printf RUNPROPS "currentdate : $currentdate\n";
 printf RUNPROPS "prodID : $prodid\n";
 printf RUNPROPS "InitialHotStartTime : $hstime\n";
 printf RUNPROPS "RunStartTime : $runstarttime\n";
+printf RUNPROPS "RunEndTime : $runendtime\n";
 printf RUNPROPS "ColdStartTime : $csdate\n";
+printf RUNPROPS "WindModel : $wind_model\n";
 printf RUNPROPS "Model : $model\n";
 close(RUNPROPS);
 stderrMessage("INFO","Wrote run.properties file $stormDir/run.properties.");
@@ -637,12 +640,12 @@ sub owiParameters () {
    $os = 0;
    #
    # get difference
-   (my $ddays, my $dhrs, my $dsec)
+   (my $ddays, my $dhrs, my $dmin, my $dsec)
            = Date::Pcalc::Delta_DHMS(
                 $ny,$nm,$nd,$nh,0,0,
                 $oy,$om,$od,$oh,0,0);
    # find the difference in seconds
-   my $blank_time = $ddays*86400.0 + $dhrs*3600.0 + $dsec;
+   my $blank_time = $ddays*86400.0 + $dhrs*3600.0 + $dmin*60.0 + $dsec;
    stderrMessage("INFO","Blank time is '$blank_time'.");
    # calculate the number of blank snaps (or the number of 
    # snaps to be skipped in the OWI file if it starts before the 
@@ -670,18 +673,18 @@ sub owiParameters () {
    $es = 0;
    #
    # get difference
-   (my $ddays, my $dhrs, my $dsec)
+   (my $ddays, my $dhrs, my $dmin, my $dsec)
            = Date::Pcalc::Delta_DHMS(
                 $cy,$cm,$cd,$ch,0,0,
                 $ey,$em,$ed,$eh,0,0);
    # find the new total run length in days
-   $RNDAY = $ddays + $dhrs/24.0 + $dsec/86400.0;
+   $RNDAY = $ddays + $dhrs/24.0 + $dmin/1440.0 + $dsec/86400.0;
    # determine the number of hours of this run, from hotstart to end
-   (my $ddays, my $dhrs, my $dsec)
+   (my $ddays, my $dhrs, my $dmin, my $dsec)
            = Date::Pcalc::Delta_DHMS(
                 $ny,$nm,$nd,$nh,0,0,
                 $ey,$em,$ed,$eh,0,0);
-   my $addHours = $ddays*24.0 + $dhrs + $dsec;
+   my $addHours = $ddays*24.0 + $dhrs + $dmin/60.0 + $dsec/3600.0;
    $ensembleid = $addHours . " hour " . $enstorm . " run";
 }
 #
@@ -772,6 +775,7 @@ sub asymmetricParameters () {
       my $c_sec;
       my $ddays;
       my $dhrs;
+      my $dmin; 
       my $dsec; # difference btw time inland and time on current line
       foreach $track (@TRACKS) {
 #        my $lat = substr(@{$track}[6],0,3); # doesn't work if only 2 digits
@@ -804,11 +808,11 @@ sub asymmetricParameters () {
            #
            # get difference between first occurrence of IN (inland)
            # and the time on the current track line
-           ($ddays,$dhrs,$dsec) 
+           ($ddays,$dhrs,$dmin,$dsec) 
               = Date::Pcalc::Delta_DHMS(
                 $tin_year,$tin_mon,$tin_day,$tin_hour,$tin_min,$tin_sec,
                 $c_year,$c_mon,$c_day,$c_hour,$c_min,$c_sec);
-           my $time_inland = $ddays + $dhrs/24 + $dsec/86400 + ($tau-$tin_tau)/24;
+           my $time_inland = $ddays + $dhrs/24 + $dmin/1440 + $dsec/86400 + ($tau-$tin_tau)/24;
            if ( $time_inland >= 2.0 ) {
               last; # jump out of loop with current track as last track
            }
@@ -840,7 +844,7 @@ sub asymmetricParameters () {
    $es = 0.0;
    #
    # get difference btw cold start time and end time
-   my ($days,$hours,$seconds) 
+   my ($days,$hours,$minutes,$seconds) 
       = Date::Pcalc::Delta_DHMS(
          $cy,$cm,$cd,$ch,$cmin,$cs,
          $ey,$em,$ed,$eh,$emin,$es);
@@ -855,7 +859,7 @@ sub asymmetricParameters () {
    } else {
       $stopshort = $dt;
    }
-   $RNDAY = $days + $hours/24.0 + ($seconds-$stopshort)/86400.0; 
+   $RNDAY = $days + $hours/24.0 + $minutes/1440.0 + ($seconds-$stopshort)/86400.0; 
    #stderrMessage("DEBUG","RNDAY is initially calculated as $RNDAY.");
    #
    # If RNDAY is less than two timesteps, make sure it is at least two timesteps. 

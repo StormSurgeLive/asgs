@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog name="ADCIRC/PADCSWAN Results from RENCI"
+        xmlns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"
+        xmlns:xlink="http://www.w3.org/1999/xlink">
+
+  <service name="all" base="" serviceType="compound">
+    <service name="odap" serviceType="OpenDAP" base="/thredds/dodsC/" />
+    <service name="http" serviceType="HTTPServer" base="/thredds/fileServer/" />
+    <service name="uddc" serviceType="UDDC" base="/thredds/uddc/"/>
+    <service name="uddc" serviceType="ISO" base="/thredds/iso/"/>
+    <!--service name="wcs" serviceType="WCS" base="/thredds/wcs/" /-->
+    <!--service name="wms" serviceType="WMS" base="/thredds/wms/" /-->
+    <!--service name="ncss" serviceType="NetcdfSubset" base="/thredds/ncss/" /-->
+  </service>
+
+  <datasetScan name="ADCIRC" ID="ADCIRC-nc6b" 
+           path="ADCIRC" location="/projects/ncfs/opendap/data/ADCIRC">
+    <serviceName>all</serviceName>
+    <addDatasetSize/>
+    <metadata inherited="true">
+      <serviceName>all</serviceName>
+      <dataType>Grid</dataType>
+        <geospatialCoverage>
+          <northsouth>
+            <start>26.92475</start>
+            <size>15.9778</size>
+            <units>degrees_north</units>
+          </northsouth>
+          <eastwest>
+            <start>-135.33123</start>
+            <size>103.78772</size>
+            <units>degrees_east</units>
+          </eastwest>
+        </geospatialCoverage>
+    </metadata>
+
+    <metadata inherited="false">
+      <documentation type="summary">ADCIRC Model runs on the NC6B grid</documentation>
+    </metadata>
+
+    <filter>
+      <include wildcard="*"/>
+    </filter>
+
+  </datasetScan>
+
+  <datasetScan name="PADCSWAN" ID="PADCSWAN-nc6b" 
+           path="PADCSWAN" location="/projects/ncfs/opendap/data/PADCSWAN">
+    <serviceName>all</serviceName>
+    <addDatasetSize/>
+    <metadata inherited="true">
+      <serviceName>all</serviceName>
+      <dataType>Grid</dataType>
+        <geospatialCoverage>
+          <northsouth>
+            <start>26.92475</start>
+            <size>15.9778</size>
+            <units>degrees_north</units>
+          </northsouth>
+          <eastwest>
+            <start>-135.33123</start>
+            <size>103.78772</size>
+            <units>degrees_east</units>
+          </eastwest>
+        </geospatialCoverage>
+    </metadata>
+
+    <metadata inherited="false">
+      <documentation type="summary">PADCSWAN Model runs on the NC6B grid</documentation>
+    </metadata>
+
+    <filter>
+      <include wildcard="*"/>
+    </filter>
+
+  </datasetScan>
+
+</catalog>
