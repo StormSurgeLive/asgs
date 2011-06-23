@@ -10,7 +10,9 @@
 # Written for : NCSCOOP
 # Date: 19 Sep, 2005
 # Modified: 18 Jun, 2008
-
+#
+# jgf20110622: Refactored and rearranged for NCFS2011.
+#
 use strict;
 use warnings;
 use Getopt::Long;
@@ -104,16 +106,17 @@ $cycle=$RP{"currentcycle"};
 $model=$RP{"Model"};
 $windtag=$RP{"WindModel"};
 my $coldstarttime=$RP{"ColdStartTime"};
+my $runstarttime=$RP{"RunStartTime"};
 #
 $year = "20" . substr $startDate,0,2;
 $mon = substr $startDate,2,2;
 $mday = substr $startDate,4,2;
 $fullDate = "${year}${mon}${mday}${cycle}";
-$coldstarttime=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
-my $cy = $1;
-my $cm = $2;
-my $cd = $3;
-my $ch = $4;
+$runstarttime=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+my $rsy = $1;
+my $rsm = $2;
+my $rsd = $3;
+my $rsh = $4;
 $openDAPDirectory = "$OPENDAPBASEDIR/$model/$ADCIRCgrid/$windtag/$year/$mon/$mday/$cycle";
 #stderrMessage("DEBUG","openDAPDirectory: $openDAPDirectory");
 #$openDAPPrefix="http://data.disaster.renci.org:1935/thredds/catalog/$model/$ADCIRCgrid";
@@ -168,7 +171,7 @@ foreach my $file (@files) {
       system("rm -rf $file.nc.gz"); 
    }
    #stderrMessage("DEBUG","Converting $file to $file.nc (netCDF).");
-   $status=`$PPDIR/convert_adc_native_2_netCDF -y $cy -m $cm -d $cd -h $ch $file`;   
+   $status=`$PPDIR/convert_adc_native_2_netCDF -y $rsy -m $rsm -d $rsd -h $rsh $file`;   
    # The conversion program writes a lot of info to stdout ... can't use this
    # as a status indicator
    #if ( $status == 1 ) {
@@ -294,7 +297,7 @@ for (my $i=0; $i<($num_files/2); $i++ ) {
 }
 
 
-# Send the email message
+# Send the email message, if configured to do so
 if ($SendNotification) {
    my $subject = "ADCIRC NCFS POSTED for $fullDate";
    my $httpPathName=$openDAPPrefix;

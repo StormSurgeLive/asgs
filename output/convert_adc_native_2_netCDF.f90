@@ -271,6 +271,7 @@ IF (IgnoreDate.eqv..false.) THEN
    WRITE(*,*)'  COLD-START D,M,Y=',D,M,Y
    WRITE(*,*)'  COLD-START KD   =',FCSDKD
 ELSE IF (cmdLineDateProvided.eqv..true.) THEN
+   ! this represents the run start time
    TIME_UNIT_STR='Hours since '//SYYYY//'-'//SM//'-'//SD//' '//SH//':00:00 UTC'
 ELSE
    TIME_UNIT_STR='Hours'
