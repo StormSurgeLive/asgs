@@ -6,7 +6,7 @@
 # loop which is executed once per advisory cycle.
 # 
 #----------------------------------------------------------------
-# Copyright(C) 2006, 2007, 2008, 2009, 2010 Jason Fleming
+# Copyright(C) 2006, 2007, 2008, 2009, 2010, 2011 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -338,12 +338,6 @@ prep()
     else
        # this is a   H O T S T A R T
        HOTSWAN=on  # whether we are hotstarting swan
-       if [[ $VARFLUX = on ]]; then
-          # jgf20110525: For now, just copy a static file to this location
-          # and adcprep it. TODO: When real time flux data become available,
-          # grab those instead of relying on a static file.
-          ln -s ${INPUTDIR}/${RIVERFLUX} ./fort.20        
-       fi
        # link to fulldomain fort.26 file (which was created by 
        # control_file_gen.pl)
        if [[ $WAVES = on ]]; then
@@ -613,6 +607,42 @@ downloadBackgroundMet()
          sleep 60
       fi
    done   
+}
+#
+# subroutine that downloads river flux data from an external ftp site 
+# and constructs a river flux boundary condition file (fort.20) to covert
+# the full time period of the run
+downloadRiverFluxData() 
+{   
+   ADVISDIR=$1
+   MESHFILE=$2
+   RIVERSITE=$3
+   RIVERDIR=$4
+   ENSTORM=$5
+   CSDATE=$6
+   HSTIME=$7
+   SCRIPTDIR=$8
+   DEFAULTFILE=$9
+#
+   OPTIONS="--advisdir $ADVISDIR --meshfile $MESHFILE --riversite $RIVERSITE --riverdir $RIVERDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --scriptdir $SCRIPTDIR --defaultfile $DEFAULTFILE"
+   TRIES=0 
+   SUCCESS=no
+   while [[ $TRIES -lt 10 ]]; do
+      perl ${SCRIPTDIR}/get_flux.pl $OPTIONS 2>> ${SYSLOG} 
+      if [[ $? = 0 ]]; then
+         logMessage "Completed construction of river flux boundary condition (fort.20 file)."
+         SUCCESS=yes
+         break
+      else
+         TRIES=$[$TRIES + 1]
+         warn "Attempt $TRIES at constructing river flux boundary condition (fort.20) file has failed. After 10 attempts, the default flux boundary condition file '$DEFAULTFILE' will be used."
+         sleep 60
+      fi 
+   done     
+   if [[ $SUCCESS = no ]]; then
+      warn "Using default river flux boundary condition file '$DEFAULTFILE'."
+      ln -s $DEFAULTFILE ./fort.20 2>> ${SYSLOG}       
+   fi
 }
 #
 # watches for the existence of certain files that are written by the job as
@@ -1091,6 +1121,8 @@ TIDEFAC=off
 TROPICALCYCLONE=off
 WAVES=off
 VARFLUX=off
+RIVERSITE=ftp.nssl.noaa.gov
+RIVERDIR=/projects/ciflow/adcirc_info
 ELEVSTATIONS=null
 VELSTATIONS=null
 METSTATIONS=null
@@ -1468,7 +1500,7 @@ while [ 1 -eq 1 ]; do
     fi
     # send out an email alerting end users that a new cycle has been issued
     ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" >> ${SYSLOG} 2>&1
-    # select padcirc or padcswan directory, based on ASGS configuration
+    # activate padcswan based on ASGS configuration
     if [[ $WAVES = on ]]; then
        CONTROLOPTIONS="${CONTROLOPTIONS} --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
     fi
@@ -1476,6 +1508,10 @@ while [ 1 -eq 1 ]; do
     CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
     # generate fort.15 file
     perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
+    # get river flux nowcast data, if configured to do so
+    if [[ $VARFLUX = on ]]; then
+       downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX}
+    fi
     logMessage "Starting nowcast."
     consoleMessage "Starting nowcast for cycle '$ADVISORY'."
     # preprocess
@@ -1579,6 +1615,10 @@ while [ 1 -eq 1 ]; do
        logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
        perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
        if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
+       # get river flux nowcast data, if configured to do so
+       if [[ $VARFLUX = on ]]; then
+          downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX}
+       fi
        if [[ $RUNFORECAST = yes ]]; then
           # preprocess
           logMessage "Starting $ENSTORM preprocessing."

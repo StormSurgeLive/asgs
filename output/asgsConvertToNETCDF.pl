@@ -13,60 +13,332 @@
 
 use strict;
 use warnings;
+use Getopt::Long;
 
-sub sendEmailMessage {
-   # This is a simple function to send an email alert that the NCFS system has produced it's results.
-   # the arguments are:
-   #
-   #    openDAPURLPrefix: the fixed portion of the URL to the file. For example 
-   #
-   #        http://data.disaster.renci.org:1935/thredds/catalog/PADCSWAN/nc6b
-   #
-   #    propertiesFile: the name of the run.properties file AS IT APPEARS THE
-   #    OPENDAP Archive. For example:
-   #
-   #        SPDSnc6b-UNC_WNAMAW12-NCP_20110607T0600_20110607T0700_20110610T1800_00_run.properties
-   #
-   #    date: the 10 digit YYYYMMDDHH date of the run
-   #
-   #    to: the list of users to which to send the email.
-   #   
+my ($prodID,$HSprodID,$ADCIRCgrid);
+my (%RP,$k,$v);
+my ($windtag,$windsrc);
+my ($model, $startDate, $cycle, $year, $mon, $mday, $fullDate);
+my $status;
+my $openDAPDirectory;
+our $GRIDDIR = "/shared/apps/software-data/adcircRenderTools/grids";
+our $PPDIR = "/shared/apps/software-data/RenciGETools/trunk/src";
+my $cmdLinePPDIR;
+my $envPPDIR = $ENV{'PPDIR'};
+our $OPENDAPBASEDIR="/projects/ncfs/opendap/data";
+my $InsertFile=0;
+my $DeleteFiles=0;
+my $SendNotification=1;
+my $CopyFile=1;
+sub stderrMessage($$);
+# set the OpenDAP prefix:  Change this if/when we change where opendap.renci.org points.
+my $openDAPPrefix;
 
-   my ($openDAPURLPrefix, $propertiesFile, $date, $to) = @_;
-   my ($subject, $yyyy, $mm, $dd, $hh);
+# the new name of the run.properties file as stored in OpenDap. Set below and 
+# used in the call to sendEmailMessage
+my $runPropertiesFileName;
 
-   $subject = "ADCIRC NCFS POSTED for $date";
-   my $httpPathName=$openDAPURLPrefix;
+# SET the email list!
+my $toList="howard\@renci.org, jason.fleming\@seahorsecoastal.com, nc.cera.renci\@gmail.com";
+
+my %types=("fort.15"         => "fort15" , 
+           "fort.61"         => "statelev", 
+           "fort.63"         => "elev", 
+           "fort.64"         => "dvel", 
+           "fort.67"         => "hots67",
+           "fort.68"         => "hots",
+           "maxele.63"       => "maxelev",
+           "timeofmaxele.63" => "tmaxele",
+           "swan_DIR.63"     => "dir",
+           "swan_DIR_max.63" => "maxdir",
+           "swan_TM01.63"    => "tm01",
+           "swan_TM01_max.63" => "maxtm01",
+           "swan_TPS.63"    => "tps",
+           "swan_TPS_max.63" => "maxtps",
+           "swan_HS.63"      => "hsign",
+           "swan_HS_max.63"  => "maxhsign",
+           "run.properties"  => "run.properties",
+           "stationOut.tar"  => "stations");
+#
+my @files = qw( fort.61 fort.63 fort.64 maxele.63 swan_HS.63 swan_HS_max.63 swan_TM01.63 swan_TM01_max.63 swan_TPS.63 swan_TPS_max.63 swan_DIR.63 swan_DIR_max.63 timeofmaxele.63 );
+#
+#
+GetOptions(
+    "ppdir=s" => \$cmdLinePPDIR,
+    "griddir=s" => \$GRIDDIR,
+    "opendapbasedir=s" => \$OPENDAPBASEDIR,
+    "insertfile" => \$InsertFile, 
+    "deletefiles" => \$DeleteFiles,
+    "sendnotification" => \$SendNotification,
+    "copyfile" => \$CopyFile   
+          );
+#
+if (defined $cmdLinePPDIR) {
+   $PPDIR = $cmdLinePPDIR;
+} elsif (defined $envPPDIR) {
+   $PPDIR = $envPPDIR;
+} 
+#stderrMessage("DEBUG","Path to executables (PPDIR) is set to ".$PPDIR.".");
+#stderrMessage("DEBUG","Path to mesh file (GRIDDIR) is set to '$GRIDDIR'.");
+#stderrMessage("DEBUG","Path to OPenDAP data (OPENDAPBASEDIR) is set to '$OPENDAPBASEDIR'.");
+
+if (!-e "run.properties"){
+   stderrMessage("ERROR","The run.properties file was not found.");
+   die;
+}
+if (!-e "$PPDIR/convert_adc_native_2_netCDF") {
+   stderrMessage("ERROR","The executable that converts ascii output from ADCIRC to NetCDF ('$PPDIR/convert_adc_native_2_netCDF') was not found.");
+   die;
+}
+
+# read run.properties file as a hash, split on :
+%RP=&ReadFileAsHash("run.properties",":");
+stderrMessage("INFO","run.properties content is:");
+&PrintHash(%RP);
+#
+$prodID=$RP{"prodID"};
+$HSprodID=$RP{"HSprodID"};
+$ADCIRCgrid=$RP{"ADCIRCgrid"};
+$startDate=$RP{"currentdate"};
+$cycle=$RP{"currentcycle"};
+$model=$RP{"Model"};
+$windtag=$RP{"WindModel"};
+my $coldstarttime=$RP{"ColdStartTime"};
+#
+$year = "20" . substr $startDate,0,2;
+$mon = substr $startDate,2,2;
+$mday = substr $startDate,4,2;
+$fullDate = "${year}${mon}${mday}${cycle}";
+$coldstarttime=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+my $cy = $1;
+my $cm = $2;
+my $cd = $3;
+my $ch = $4;
+$openDAPDirectory = "$OPENDAPBASEDIR/$model/$ADCIRCgrid/$windtag/$year/$mon/$mday/$cycle";
+#stderrMessage("DEBUG","openDAPDirectory: $openDAPDirectory");
+#$openDAPPrefix="http://data.disaster.renci.org:1935/thredds/catalog/$model/$ADCIRCgrid";
+$openDAPPrefix="http://opendap.renci.org:1935/thredds/catalog/$model/$ADCIRCgrid";
+#stderrMessage("DEBUG","openDAPPrefix: $openDAPPrefix");
+
+unless (-e $openDAPDirectory) {
+   system("mkdir -p  $openDAPDirectory"); 
+}
+
+if (!defined $prodID) {
+   stderrMessage("ERROR","prodID not found in run.properties file.");
+   die; 
+}
+if (!defined $ADCIRCgrid) {
+   stderrMessage("ERROR","ADCIRCgrid not found in run.properties file."); 
+   die;
+}
+my @filesProcessed;
+#
+# Process hotstart files, if applicable ... we just compress them
+if (!defined $HSprodID){
+   stderrMessage("INFO","This is not a hotstart run.");
+} else {
+   my @hsFiles = qw(fort.67 fort.68);
+   foreach my $hsf (@hsFiles) {
+      stderrMessage("INFO","Gzipping $hsf.");
+      $status=`gzip --force $hsf`;
+      if ( $status ne "" ) {
+         stderrMessage("ERROR","Compression of $hsf failed: $status.");
+      } else {
+         my $myHSProductID = $HSprodID;
+         my $myHSProductType = $types{$hsf};
+         $myHSProductID=~s/<field>/$myHSProductType/;
+         push(@filesProcessed,$hsf.".gz",$myHSProductID.".gz");
+      }
+   }
+}
+#
+# Process the standard list of files
+my $myProductID = $prodID;
+my $myProductType;
+foreach my $file (@files) {
+   $status=0;
+   stderrMessage("INFO","Processing $file.");
+   if (!-e $file){
+      stderrMessage("INFO","$file was not found. It will not be processed.");
+      next;  
+   }
+   if (-e "$file.nc.gz") {
+      stderrMessage("INFO","Deleting $file.nc.gz ...");
+      system("rm -rf $file.nc.gz"); 
+   }
+   #stderrMessage("DEBUG","Converting $file to $file.nc (netCDF).");
+   $status=`$PPDIR/convert_adc_native_2_netCDF -y $cy -m $cm -d $cd -h $ch $file`;   
+   # The conversion program writes a lot of info to stdout ... can't use this
+   # as a status indicator
+   #if ( $status == 1 ) {
+   #   stderrMessage("ERROR","Conversion program '$PPDIR/convert_adc_native_2_netCDF' returned '$status'. The file $file will not be processed."); 
+   #   next;
+   #}                           
+   # if this is a fort.63 || fort.64 file, 
+   # append netcdf version of grid to .nc file
+   #   print  "Appending netcdf grid file to $fnc ...\n";
+   #   if ( $f eq "fort.63" || $f eq "fort.64" || $f eq "maxele.63" || $f eq "timeofmaxele.63" ||
+   #       $f eq "swan_HS.63" || $f eq "swan_HS_max.63" || 
+   #       $f eq "swan_TM01.63" || $f eq "swan_TM01_max.63" || 
+   #       $f eq "swan_TPS.63" || $f eq "swan_TPS_max.63" || 
+   #       $f eq "swan_DIR.63" || $f eq "swan_DIR_max.63"){
+   #
+   #      my $temp=$ADCIRCNCGDLOC;
+   #      $temp=~s/<GRIDNAME>/$ADCIRCgrid/;  
+   #      die "$temp not found." if (!-e $temp);
+   #      $com="$NCODIR/ncks --quiet --append $temp $fnc >& /dev/null";
+   #      print "$com\n";
+   #      $status=`$com`;
+   #   }
+
+
+   #stderrMessage("DEBUG","Gzipping $file.nc ... ");
+   $status=`mv $file.nc $file.nc.gz`; # $status=`gzip --force $file.nc`; #jgf20110622 turn compression off for compatibility with the NC-CERA web application portal
+   if ( $status ne "" ) {
+      stderrMessage("ERROR","Compression of $file.nc failed: $status. The file $file will not be processed.");
+      next; 
+   }
+   $myProductID = $prodID;
+   $myProductType = $types{$file};
+   $myProductID=~s/<field>/$myProductType/;
+   push(@filesProcessed,$file.".nc.gz",$myProductID);
+   #
+   my $shpPrefix = $myProductID;
+   # Some special processing for the maxele files. We'd like to
+   # run the shape file generator.
+   #         if ($f eq "maxele.63") {
+   #            $shpPrefix =~s/<field>/$t/;
+   #            $shpPrefix =~s/Z.nc.gz/shp/;
+   #            my $actoCommand = "$ACTOSHAPE --nowater $gridFile maxele.63 $shpPrefix";
+   #            print "actoCommand: $actoCommand\n";
+   #            my $result = `$ACTOSHAPE --nowater $gridFile maxele.63 $shpPrefix`;
+   #             my $shpTarFile = "$shpPrefix.tar.gz";
+   #             $result = `tar cfz $shpTarFile $shpPrefix.{shp,shx,prj,dbf} `;
+   #            my $shpZipFile = "$shpPrefix.zip";
+   #            $result = `zip -j $shpZipFile $shpPrefix.{shp,shx,prj,dbf} `;
+   
+   #            if ($InsertFile) {
+   #               print "Inserting $shpZipFile as $shpZipFile ... \n";
+   #               &pqi("$shpZipFile",$shpZipFile);
+   #            }
+   
+   #            if ($DeleteFiles) {
+   #               system("rm -rf $shpPrefix.{shp,shx,prj,dbf}"); 
+   #            }
+   #         }
+   # We may want to delete the files once they are processed. 
+   if ($DeleteFiles) {
+       #system("rm -rf $file"); 
+      system("rm -rf $file.nc.gz"); 
+   }
+}
+#
+# Process fort.15 file, if it exists. This just gets compressed.
+if (-e "fort.15") {
+   $myProductID = $prodID;
+   $myProductType = $types{"fort.15"};
+   $myProductID=~s/<field>/$myProductType/;
+   $myProductID=~s/.nc.gz//;
+   stderrMessage("INFO","Gzipping fort.15.");
+   $status=`mv fort.15 fort.15.gz`; # $status=`gzip --force fort.15`; #jgf20110622 turn compression off for compatibility with the NC-CERA web application portal
+   if ( $status ne "" ) {
+     stderrMessage("ERROR","Compression of fort.15 failed: $status.");
+   } else {
+      push(@filesProcessed,"fort.15.gz",$myProductID.".gz");
+   }
+}
+#
+# process stations out file, if it exists ... we just compress it
+if (-e "stationOut.tar") {
+   $myProductID = $prodID;
+   $myProductType = $types{"stationOut.tar"};
+   $myProductID=~s/<field>/$myProductType/;
+   $myProductID=~s/nc.gz/tar/;
+   stderrMessage("INFO","Gzipping 'stationOut.tar'.");
+   $status=`mv stationOut.tar stationOut.tar.gz`; # $status=`gzip --force stationOut.tar`; #jgf20110622 turn compression off for compatibility with the NC-CERA web application portal
+   if ( $status ne "" ) {
+      stderrMessage("ERROR","Compression of stationOut.tar failed: $status.");
+   } else {
+      push(@filesProcessed,"stationOut.tar.gz",$myProductID.".gz");
+   }
+}
+#
+# process run.properties file: only on the forecast.
+if (-e "run.properties") {
+   $myProductID = $prodID;
+   $myProductType = $types{"run.properties"};
+   $myProductID=~s/<field>/_$myProductType/;
+   $myProductID=~s/_Z.nc.gz//;
+   push(@filesProcessed,"run.properties",$myProductID);
+   # Save the name for run.properties, we will need it for the mail message.
+   $runPropertiesFileName = $myProductID;
+}
+#
+# now copy and/or insert processed files as requested
+my $num_files = @filesProcessed;
+if ($CopyFile) {
+  stderrMessage("INFO","Copying files to '$openDAPDirectory'.");
+}
+for (my $i=0; $i<($num_files/2); $i++ ) {
+   my $to = pop(@filesProcessed);
+   my $from = pop(@filesProcessed);
+   if ($CopyFile) {
+      stderrMessage("INFO","Copying '$from' as '$to'.");
+      system("cp $from $openDAPDirectory/$to");
+   }
+   if ($InsertFile) {
+      stderrMessage("INFO","Inserting '$from' as '$to'.");
+      # &pqi($from,$to);
+   }
+}
+
+
+# Send the email message
+if ($SendNotification) {
+   my $subject = "ADCIRC NCFS POSTED for $fullDate";
+   my $httpPathName=$openDAPPrefix;
    $httpPathName=~s/catalog/fileServer/;
-
-   $yyyy = substr $date,0,4;
-   $mm = substr $date,4,2;
-   $dd = substr $date,6,2;
-   $hh = substr $date,8,2;
-
    my $message = <<END;
 
-The ADCIRC NCFS solutions for $date have been posted to $openDAPURLPrefix/$yyyy/$mm/$dd/$hh/
+The ADCIRC NCFS solutions for $fullDate have been posted to $openDAPPrefix/$windtag/$year/$mon/$mday/$cycle/
 
-The run.properties file is : $httpPathName/$yyyy/$mm/$dd/$hh/$propertiesFile
+The run.properties file is : $httpPathName/$windtag/$year/$mon/$mday/$cycle/$runPropertiesFileName
 
 or wget the file with the  following command
 
-wget  $httpPathName/$yyyy/$mm/$dd/$hh/$propertiesFile
+wget  $httpPathName/$windtag/$year/$mon/$mday/$cycle/$runPropertiesFileName
 END
 
    open(MAIL, "|/usr/sbin/sendmail -t");
 
    ## Mail Header
-   print MAIL "To: $to\n";
+   print MAIL "To: $toList\n";
    print MAIL "Subject: $subject\n\n";
    ## Mail Body
    print MAIL "$message\n";
 
    close(MAIL);
 }
+print 0;
 
-sub ReadFileAsHash
+##########
+########## private subs
+##########
+
+#
+#  Prints a message to stderr, annotated with the date, the specified 
+#  severity level, and the name of this script.
+sub stderrMessage($$) {
+   my $level = shift;
+   my $message = shift;
+   my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+   (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
+   my $year = 1900 + $yearOffset;
+   my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
+   my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
+   printf STDERR "$theTime $level: asgsConvertToNETCDF.pl: $message\n";
+}
 #
 # ReadFileAsHash reads the contents of a file into
 # a perl hash.  It assumes that there are 2 fields per 
@@ -75,7 +347,7 @@ sub ReadFileAsHash
 # fields are put into the key and value for the hash entry.
 # BOB: 28 July 2006
 # %H=&ReadFileAsHash($_[0]=<filename>,$_[1]=<separator>);
-#
+sub ReadFileAsHash
 {
    my ($k,$v,%H);
    # read file as a hash, split on $_[1];
@@ -104,334 +376,3 @@ sub PrintHash
 }
 
 
-our $GRIDDIR;
-our $PPDIR;
-our $defLib;
-our $OPENDAPBASEDIR="/projects/ncfs/opendap/data";
-
-BEGIN {
-   $PPDIR = $ENV{'PPDIR'};
-   if (!defined($PPDIR) or !$PPDIR) {
-      $PPDIR = "/shared/apps/software-data/RenciGETools/trunk/src";
-      print "Using default PPDIR $PPDIR\n";
-   } else {
-      print "Using user PPDIR $PPDIR\n";
-   }
-   $GRIDDIR = "/shared/apps/software-data/adcircRenderTools/grids";
-   print "Using GRIDDR $GRIDDIR\n";
-}
-
-# SET the email list!
-my $toList="howard\@renci.org, jason.fleming\@seahorsecoastal.com, nc.cera.renci\@gmail.com";
-# set the OpenDAP prefix:  Change this if/when we change where opendap.renci.org points.
-my $openDAPPrefix="http://data.disaster.renci.org:1935/thredds/catalog/PADCSWAN/nc6b";
-
-# the new name of the run.properties file as stored in OpenDap. Set below and 
-# used in the call to sendEmailMessage
-my $runPropertiesFileName;
-
-my ($prodID,$HSprodID,$ADCIRCgrid);
-my (%RP,$k,$v);
-my ($windtag,$windsrc,$date1,$date2,$date3,$field);
-my ($fname,$fname_no_nc,$fpath,$fsuffix,$fort,$fieldn,$Fsuffix);
-my ($NDSETS, $NP, $DT_NSPOOLG, $NSPOOLG, $IRTYPE);
-my ($dd,$mm,$yy,$dd2,$mm2,$yy2);
-my ($model, $startDate, $cycle, $year, $mon, $mday, $fullDate);
-my ($com,$status);
-my (@files,@pids);
-my $openDAPDirectory;
-
-my %types=("fort.15"         => "fort15" , 
-           "fort.61"         => "statelev", 
-           "fort.63"         => "elev", 
-           "fort.64"         => "dvel", 
-           "fort.67"         => "hots67",
-           "fort.68"         => "hots",
-           "maxele.63"       => "maxelev",
-           "timeofmaxele.63" => "tmaxele",
-           "swan_DIR.63"     => "dir",
-           "swan_DIR_max.63" => "maxdir",
-           "swan_TM01.63"    => "tm01",
-           "swan_TM01_max.63" => "maxtm01",
-           "swan_TPS.63"    => "tps",
-           "swan_TPS_max.63" => "maxtps",
-           "swan_HS.63"      => "hsign",
-           "swan_HS_max.63"  => "maxhsign",
-           "run.properties"  => "run.properties",
-           "stationOut.tar"  => "stations");
-my $HSrun=1;
-my $InsertFile=0;
-my $DeleteFiles=0;
-my $SendNotification=0;
-my $CopyFile=1;
-
-if (!-e "run.properties"){
-    print  "run.properties file not found.  Cannot insert without it.\n";
-    print 1;exit 1;}
-
-# read run.properties file as a hash, split on :
-%RP=&ReadFileAsHash("run.properties",":");
-print "\nrun.properties Hash is: \n";
-&PrintHash(%RP);
-
-$prodID=$RP{"prodID"};
-$HSprodID=$RP{"HSprodID"};
-$ADCIRCgrid=$RP{"ADCIRCgrid"};
-$startDate=$RP{"currentdate"};
-$cycle=$RP{"currentcycle"};
-$model=$RP{"Model"};
-$year = "20" . substr $startDate,0,2;
-$mon = substr $startDate,2,2;
-$mday = substr $startDate,4,2;
-$fullDate = "${year}${mon}${mday}${cycle}";
-$openDAPDirectory = "$OPENDAPBASEDIR/$model/$ADCIRCgrid/$year/$mon/$mday/$cycle";
-print "openDAPDirectory: $openDAPDirectory\n";
-
-unless (-e $openDAPDirectory) {
-   system("mkdir -p  $openDAPDirectory"); 
-}
-
-die "prodID not found in run.properties file."  if (!defined $prodID);
-die "ADCIRCgrid not found in run.properties file."  if (!defined $ADCIRCgrid);
-
-# this is the order in which the files will get processed/inserted
-push(@files,"maxele.63");
-push(@pids,$prodID);
-push(@files,"timeofmaxele.63");
-push(@pids,$prodID);
-push(@files,"fort.15");
-push(@pids,$prodID);
-push(@files,"fort.61");
-push(@pids,$prodID);
-push(@files,"fort.63");
-push(@pids,$prodID);
-push(@files,"fort.64");
-push(@pids,$prodID);
-push(@files,"swan_HS.63");
-push(@pids,$prodID);
-push(@files,"swan_HS_max.63");
-push(@pids,$prodID);
-push(@files,"swan_TM01.63");
-push(@pids,$prodID);
-push(@files,"swan_TM01_max.63");
-push(@pids,$prodID);
-push(@files,"swan_TPS.63");
-push(@pids,$prodID);
-push(@files,"swan_TPS_max.63");
-push(@pids,$prodID);
-push(@files,"swan_DIR.63");
-push(@pids,$prodID);
-push(@files,"swan_DIR_max.63");
-push(@pids,$prodID);
-push(@files,"fort.67");
-push(@pids,$HSprodID);
-push(@files,"fort.68");
-push(@pids,$HSprodID);
-push(@files,"stationOut.tar");
-push(@pids,$prodID);
-push(@files,"run.properties");
-push(@pids,$prodID);
-
-if (!defined $HSprodID){
-   print "This is not a hotstart run.\n" ;
-   $HSrun=0;
-}
-
-my $pp;
-for (my $i=0;$i<=$#files;$i++){
-   $status=0;
-
-   my $f=$files[$i];
-   my $p=$pids[$i];
-   my $t=$types{$f};
-   
-   print "\nProcessing $f ... \n";
-
-   if ($f eq "fort.61" || 
-       $f eq "fort.63" || 
-       $f eq "fort.64" || 
-       $f eq "maxele.63" || 
-       $f eq "swan_HS.63" || 
-       $f eq "swan_HS_max.63" || 
-       $f eq "swan_TM01.63" || 
-       $f eq "swan_TM01_max.63" || 
-       $f eq "swan_TPS.63" || 
-       $f eq "swan_TPS_max.63" || 
-       $f eq "swan_DIR.63" || 
-       $f eq "swan_DIR_max.63" || 
-       $f eq "timeofmaxele.63" ){
-      if (!-e $f){
-         print "Skipping $f.  DNE.\n";
-      }
-      else{
-         if (-e "$f.nc.gz"){
-            print "Deleting $f.nc.gz ...\n";
-            system("rm -rf $f.nc.gz"); 
-         }
-
-         print "Converting $f to $f.nc (netCDF) ...\n";
-         &conv2netcdf($f);
-
-         print "Gzipping $f.nc ... \n";
-         $status=`gzip --force $f.nc`;
-
-         $pp=$p;
-         $pp=~s/<field>/$t/;
-         if ($CopyFile) {
-            print "copying $f.nc.gz as $pp ... \n";
-            system("cp $f.nc.gz $openDAPDirectory/$pp");
-         }
-
-         if ($InsertFile) {
-            print "Inserting $f.nc.gz as $pp ... \n";
-         }
-         my $shpPrefix = $p;
-         # Some special processing for the maxele files. We'd like to
-         # run the shape file generator.
-#         if ($f eq "maxele.63") {
-#            $shpPrefix =~s/<field>/$t/;
-#            $shpPrefix =~s/Z.nc.gz/shp/;
-#            my $actoCommand = "$ACTOSHAPE --nowater $gridFile maxele.63 $shpPrefix";
-#            print "actoCommand: $actoCommand\n";
-#            my $result = `$ACTOSHAPE --nowater $gridFile maxele.63 $shpPrefix`;
-#             my $shpTarFile = "$shpPrefix.tar.gz";
-#             $result = `tar cfz $shpTarFile $shpPrefix.{shp,shx,prj,dbf} `;
-#            my $shpZipFile = "$shpPrefix.zip";
-#            $result = `zip -j $shpZipFile $shpPrefix.{shp,shx,prj,dbf} `;
-
-#            if ($InsertFile) {
-#               print "Inserting $shpZipFile as $shpZipFile ... \n";
-#               &pqi("$shpZipFile",$shpZipFile);
-#            }
-
-#            if ($DeleteFiles) {
-#               system("rm -rf $shpPrefix.{shp,shx,prj,dbf}"); 
-#            }
-#         }
-
-         # We may want to delete the files once they are processed. 
-         if ($DeleteFiles) {
-            system("rm -rf $f"); 
-            system("rm -rf $f.nc.gz"); 
-         }
-      }
-   } else {
-
-       # insert hotstart file, if
-#      if ($HSrun && ($f eq "fort.67" || $f eq "fort.68")){
-       if ($HSrun && $f eq "fort.68"){
-         print "Gzipping $f ... \n";
-         $status=`gzip --force $f`;
-         if ($InsertFile) {
-            print "Inserting $f.gz as $p.gz ...\n";
-#           &pqi("$f.gz","$p.gz");
-         }
-
-         if ($CopyFile) {
-            print "copying $f.gz as $p.gz ... \n";
-            system("cp $f.gz $openDAPDirectory/$p.gz");
-         }
-      }
-
-      # insert fort.15 file, if it exists...
-      if ($f eq "fort.15"){
-         if (-e $f){
-            $pp=$p;
-            $pp=~s/<field>/$t/;
-            $pp=~s/.nc.gz//;
-            print "Gzipping $f ... \n";
-            $status=`gzip --force $f`;
-            if ($InsertFile) {
-               print "Inserting $f.gz as $pp.gz ...\n";
-#              &pqi("$f.gz","$pp.gz");
-            }
-
-            if ($CopyFile) {
-               print "copying $f.gz as $pp.gz ... \n";
-               system("cp $f.gz $openDAPDirectory/$pp.gz");
-            }
-         }
-      }
-
-      # insert stations out file, if it exists...
-      if ($f eq "stationOut.tar"){
-         if (-e $f){
-            $pp=$p;
-            print "Substituting into $pp ... \n";
-            $pp=~s/<field>/$t/;
-            $pp=~s/nc.gz/tar/;
-            print "Gzipping $f ... \n";
-            $status=`gzip --force $f`;
-            if ($InsertFile) {
-               print "Inserting $f.gz as $pp.gz ...\n";
-#              &pqi("$f.gz","$pp.gz");
-            }
-
-            if ($CopyFile) {
-               print "copying $f.gz as $pp.gz ... \n";
-               system("cp $f.gz $openDAPDirectory/$pp.gz");
-            }
-         }
-      }
-
-      # run.properties file: only on the forecast.
-      if ($f eq "run.properties"){
-         if (-e $f){
-            $pp=$p;
-            print "Substituting into $pp ... \n";
-            $pp=~s/<field>/_$t/;
-            $pp=~s/_Z.nc.gz//;
-            if ($InsertFile) {
-               print "Inserting $f as $pp ...\n";
-#              &pqi("$f","$pp");
-            }
-
-            if ($CopyFile) {
-               print "copying $f as $pp ... \n";
-               system("cp $f $openDAPDirectory/$pp");
-
-               # Save the name for run.properties, we will need it for the mail message.
-               $runPropertiesFileName = $pp;
-            }
-         }
-      }
-   }
-}
-
-# Send the email message
-sendEmailMessage($openDAPPrefix, $runPropertiesFileName, $fullDate, $toList);
-
-print 0;
-exit 0;
-
-##########
-########## private subs
-##########
-
-sub conv2netcdf{
-   my $f=$_[0];
-   my $fnc=$f;
-   $fnc.=".nc";
-#   return;
-   my $com="$PPDIR/convert_adc_native_2_netCDF";
-
-   die "Cant find exec $com." if (!-e $com);   
-   $status=`$com $f`;                               
-
-   # if this is a fort.63 || fort.64 file, 
-   # append netcdf version of grid to .nc file
-   #   print  "Appending netcdf grid file to $fnc ...\n";
-#   if ( $f eq "fort.63" || $f eq "fort.64" || $f eq "maxele.63" || $f eq "timeofmaxele.63" ||
-#       $f eq "swan_HS.63" || $f eq "swan_HS_max.63" || 
-#       $f eq "swan_TM01.63" || $f eq "swan_TM01_max.63" || 
-#       $f eq "swan_TPS.63" || $f eq "swan_TPS_max.63" || 
-#       $f eq "swan_DIR.63" || $f eq "swan_DIR_max.63"){
-#
-#      my $temp=$ADCIRCNCGDLOC;
-#      $temp=~s/<GRIDNAME>/$ADCIRCgrid/;  
-#      die "$temp not found." if (!-e $temp);
-#      $com="$NCODIR/ncks --quiet --append $temp $fnc >& /dev/null";
-#      print "$com\n";
-#      $status=`$com`;
-#   }
-}
