@@ -105,7 +105,7 @@ my $startdatetime; # formatted for swan fort.26
 my $enddatetime;   # formatted for swan fort.26
 my $hstime;      # time, in seconds, of hotstart file (since coldstart)
 my $hstime_days; # time, in days, of hotstart file (since coldstart)
-our $endtime;    # time at which the run should end
+our $endtime;    # time at which the run should end (days since coldstart)
 my $dt=3.0;      # adcirc time step, in seconds
 my $swandt=600.0; # swan time step, in seconds
 my $bladj=0.9;
@@ -182,6 +182,14 @@ $cd = $3;
 $ch = $4;
 $cmin = 0.0;
 $cs = 0.0;
+#
+# initialize "now" to a reasonable value
+$ny = $1;
+$nm = $2;
+$nd = $3;
+$nh = $4;
+$nmin = $cmin;
+$ns = $cs;
 #
 # determine whether SWAN has been turned on
 my $waves_digit = int($nws / 100); 
@@ -485,7 +493,9 @@ printf RUNPROPS "advisory : $advisorynum\n";
 printf RUNPROPS "currentcycle : $cycle_hour\n";
 printf RUNPROPS "currentdate : $currentdate\n";
 printf RUNPROPS "prodID : $prodid\n";
-printf RUNPROPS "InitialHotStartTime : $hstime\n";
+if (defined $hstime) {
+   printf RUNPROPS "InitialHotStartTime : $hstime\n";
+}
 printf RUNPROPS "RunStartTime : $runstarttime\n";
 printf RUNPROPS "RunEndTime : $runendtime\n";
 printf RUNPROPS "ColdStartTime : $csdate\n";
@@ -581,6 +591,8 @@ sub getStations () {
 sub hindcastParameters () {
     $rundesc = "cs:$csdate"."0000 cy: ASGS hindcast";
     $RNDAY = $endtime;  
+    ($ey,$em,$ed,$eh,$emin,$es) =
+       Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$endtime,0,0,0);
     $nws = 0;
     $ensembleid = "$endtime day hindcast run";
     $wtiminc = "NO LINE HERE";

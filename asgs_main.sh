@@ -452,7 +452,7 @@ prep()
        logMessage "Creating an archive of preprocessed files and saving to ${INPUTDIR}/${PREPPED} to avoid having to run prepall again."
        FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18'
        if [[ ! -z $NAFILE ]]; then
-          FILELIST='${FILELIST} PE*/fort.13'
+          FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18 PE*/fort.13'
        fi
        tar cvzf ${INPUTDIR}/${PREPPED} ${FILELIST} 2>> ${SYSLOG}
     fi 
