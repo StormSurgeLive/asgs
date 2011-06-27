@@ -38,6 +38,7 @@ my $syslog;   # the log file that the ASGS uses
 my $localhotstart; # present if subdomain hotstart files should be written
 my $numwriters=0; # number of writer processors, if any
 my $ppn=1;     # number of processors per node
+my $jobtype;  # e.g., prep15, padcirc, padcswan, etc
 
 # initialize to the log file that adcirc uses, just in case
 $syslog="adcirc.log";
@@ -56,7 +57,8 @@ GetOptions("ncpu=i" => \$ncpu,
            "syslog=s" => \$syslog,
            "localhotstart" => \$localhotstart,
            "numwriters=s" => \$numwriters,
-           "submitstring=s" => \$submitstring);
+           "submitstring=s" => \$submitstring, 
+           "jobtype=s" => \$jobtype );
 #
 open(TEMPLATE,"<$qscript") || die "ERROR: Can't open $qscript file for reading as a template for the queue submission script.";
 #
@@ -105,6 +107,8 @@ while(<TEMPLATE>) {
     s/%syslog%/$syslog/;
     # add command line options
     s/%cloption%/$cloption/;
+    # the type of job that is being submitted
+    s/%jobtype%/$jobtype/g;
     print $_;
 }
 close(TEMPLATE);
