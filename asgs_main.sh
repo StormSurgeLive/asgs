@@ -455,6 +455,12 @@ prep()
           FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18 PE*/fort.13'
        fi
        tar cvzf ${INPUTDIR}/${PREPPED} ${FILELIST} 2>> ${SYSLOG}
+       # check status of tar operation; if it failed, delete the file
+       # it attempted to make and alert the operator
+       if [[ $? != 0 ]]; then
+          warn "The construction of a tar archive of the preprocessed input files has failed."
+          rm ${INPUTDIR}/${PREPPED} 2>> ${SYSLOG} 2>&1
+       fi
     fi 
 }
 #
