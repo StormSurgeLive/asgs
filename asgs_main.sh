@@ -1581,7 +1581,12 @@ while [ 1 -eq 1 ]; do
           if [[ $NWS = 19 || $NWS = 319 ]]; then
              # create a new file that contains metadata and has the Rmax 
              # in it already ... potentially with Rmax changes if desired
-             ASWIPOPTIONS="-P ${PERCENT[$si]} -R ${RMAX[$si]}"
+             if [[ ! -z ${PERCENT[$si]} ]]; then
+                ASWIPOPTIONS="-P ${PERCENT[$si]}"
+             fi
+             if [[ ! -z ${RMAX[$si]} ]]; then
+                ASWIPOPTIONS="${ASWIPOPTIONS} -R ${RMAX[$si]}"
+             fi
              logMessage "Running aswip fort.22 preprocessor for $ENSTORM with the following options: $ASWIPOPTIONS."
              $ADCIRCDIR/aswip $ASWIPOPTIONS >> ${SYSLOG} 2>&1
              if [ -e NWS_19_fort.22 ]; then
