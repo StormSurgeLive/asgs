@@ -252,6 +252,10 @@ if ( $numNowcast == 0 && $numForecast == 0 ) {
    @fields = split(" ",$line);
    $inc = $fields[0]; # this should never change
    stderrMessage("INFO","The time increment in the default fort.20 file is $inc seconds.");
+   # use the increment to calculate the last date we will need data 
+   # for, which is one time increment beyond the end date of the 
+   # simulation
+   $lastDateNeeded = &incDate($end,$inc);
    # read the flux data from the file
    @flux_data = <FLUX>;
    close(FLUX);
@@ -323,6 +327,10 @@ sub getFluxData() {
       $line = <FLUX>; 
       @fields = split(" ",$line);
       $inc = $fields[0]; # this should never change
+      # use the increment to calculate the last date we will need data 
+      # for, which is one time increment beyond the end date of the 
+      # simulation
+      $lastDateNeeded = &incDate($end,$inc);
       stderrMessage("INFO","The time increment in the default fort.20 file is $inc seconds.");
       # read the first set of flux data from the file
       for (my $i=0; $i<$varflux_nodes; $i++) {
@@ -332,8 +340,9 @@ sub getFluxData() {
       close(FLUX);
       $dateNeeded = &incDate($dateNeeded,$inc);
       $startingPointFound = 1; # data will be interpolated later
-      $startingPoint = 0; # now we can start from the first file in the list 
-   } else {
+      $startingPoint = -$numFiles; # now we can start from the first file in the list 
+   } 
+   if ($startingPointFound == 1) {
       # we have a file to start from, open it up and check to see if it
       # has enough data, if not, loop through the remaining files in the list
       # until the whole time period has been covered
@@ -439,11 +448,21 @@ sub getFluxData() {
                for (my $i=1; $i<$varflux_nodes; $i++) {
                   $endingNodalFlux[$i] = <FLUX>;
                }
+               #stderrMessage("DEBUG","Starting nodal flux:");
+               #for (my $j=0; $j<$varflux_nodes; $j++ ) {
+               #   stderrMessage("DEBUG","j=$j flux=$startingNodalFlux[$j]");
+               #}
+               #stderrMessage("DEBUG","Ending nodal flux:");
+               #for (my $j=0; $j<$varflux_nodes; $j++ ) {
+               #   stderrMessage("DEBUG","j=$j flux=$endingNodalFlux[$j]");
+               #}
                # now fill in the data for each missing time increment
                for (my $i=1; $i<=$num_incs; $i++) {
                   for (my $j=0; $j<$varflux_nodes; $j++) {
                      my $flux = ($i/($num_incs+1))
-                      *($endingNodalFlux[$j] - $startingNodalFlux[$j]);
+                      *($endingNodalFlux[$j] - $startingNodalFlux[$j])
+                      +$startingNodalFlux[$j];
+               #      stderrMessage("DEBUG","j=$j flux=$flux");
                      push(@flux_data,$flux."\n");
                   }
                }
@@ -483,7 +502,7 @@ sub incDate () {
    $oldDate =~ /(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/; 
    (my $ndy, my $ndm, my $ndd, my $ndh, my $ndmin, my $nds) =
          Date::Pcalc::Add_Delta_DHMS($1,$2,$3,$4,$5,$6,0,0,0,$incSecs); 
-   return sprintf("%4d%02d%02d%02d%02d%02d",$ndy,$ndm,$ndd,$ndh,$ndmin,$nds);
+   return sprintf("%4d%02d%02d%02d%02d%02d",$ndy,$ndm,$ndd,$ndh,$ndmin,0);
 }
 #
 #  Sorts a list of flux files from earliest starting date to latest starting
