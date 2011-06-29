@@ -106,7 +106,7 @@ my $enddatetime;   # formatted for swan fort.26
 my $hstime;      # time, in seconds, of hotstart file (since coldstart)
 my $hstime_days; # time, in days, of hotstart file (since coldstart)
 our $endtime;    # time at which the run should end (days since coldstart)
-my $dt=3.0;      # adcirc time step, in seconds
+our $dt=3.0;      # adcirc time step, in seconds
 my $swandt=600.0; # swan time step, in seconds
 my $bladj=0.9;
 my $enstorm;    # ensemble name of the storm
@@ -869,7 +869,8 @@ sub asymmetricParameters () {
    my $stopshort = 0.0;
    if ( $enstorm eq "nowcast" ) {
       my $RNDAY_sec = $days*86400.0 + $hours*3600.0 + $minutes*60.0 + $seconds;
-      my $RNDAY_remainder = $RNDAY_sec % $dt;
+      my $div = $RNDAY_sec / $dt;
+      my $RNDAY_remainder = $RNDAY_sec - int($div)*$dt;
       # if the remainder is less than 0.5, ADCIRC will round the number of 
       # time steps down; if it is 0.5 or greater, then ADCIRC will round the
       # number of time steps up 
@@ -926,7 +927,8 @@ sub asymmetricParameters () {
          $RNDAY = $total_time / 86400.0; # convert to days
       # the common case is for total_time >> swandt
       } elsif ( $total_time > $swandt ) {
-         my $swan_remainder = $total_time % $swandt; # in seconds
+         my $swan_div = $total_time / $swandt;
+         my $swan_remainder = $total_time - int($swan_div)*$swandt;
          if ( $swan_remainder != 0 ) {
             $total_time += ($swandt - $swan_remainder);
             $RNDAY = $total_time / 86400.0; # convert back to days 
