@@ -589,6 +589,7 @@ sub getStations () {
 sub hindcastParameters () {
     $rundesc = "cs:$csdate"."0000 cy: ASGS hindcast";
     $RNDAY = $endtime;  
+    $NHSINC = int(($RNDAY*86400.0)/$dt);
     ($ey,$em,$ed,$eh,$emin,$es) =
        Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$endtime,0,0,0);
     $nws = 0;
