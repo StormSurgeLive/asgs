@@ -20,11 +20,11 @@
 #PBS -j oe
 
 # Name the job (this will appear in the output from the qstat command)
-#PBS -N %enstorm%
+#PBS -N %jobtype%
 
 # Specify the output filename explicitly (optional; the default is named
 # from the job ID, in the directory where qsub was run.)
-#PBS -o %advisdir%/%enstorm%/%enstorm%.out
+#PBS -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out
 
 # Specify the account that the time should be taken from 
 #PBS -A %account%
@@ -38,14 +38,9 @@ cd %advisdir%/%enstorm%
 
 # These are the actual commands to be executed.
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-echo "[${DATETIME}] : adcprep starting in %advisdir%/%enstorm%." > run.start
-echo "Test job starting at $DATETIME."
-%adcircdir%/adcprep <<END >> adcprep.log 2>&1
-%ncpu%
-4
-fort.14
-fort.15
-END
+echo "[${DATETIME}] : %jobtype% starting in %advisdir%/%enstorm%." > %jobtype%.%enstorm%.run.start
+echo "Job starting at $DATETIME."
+%adcircdir%/adcprep --np %ncpu% --%jobtype% >> adcprep.log 2>&1
 ERROVALUE=$?
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 if [ $ERROVALUE == 0 ] ; then
@@ -53,6 +48,6 @@ if [ $ERROVALUE == 0 ] ; then
 else 
    RUNSUFFIX="error"
 fi
-echo "[${DATETIME}] : adcprep finished in %advisdir%/%enstorm% with return value = $ERROVALUE" > run.${RUNSUFFIX}
-echo "Test job finished at $DATETIME."
+echo "[${DATETIME}] : adcprep finished in %advisdir%/%enstorm% with return value = $ERROVALUE" > %jobtype%.%enstorm%.run.${RUNSUFFIX}
+echo "adcprep job finished at $DATETIME."
 # You don't need anything special at the end of the script.
