@@ -128,7 +128,7 @@ my $fdcv;       # line that controls full domain current velocity output
 our $wtiminc;   # parameters related to met and wave timing 
 our $rundesc;   # description of run, 1st line in fort.15
 our $ensembleid; # run id, 2nd line in fort.15
-my $waves = "off"; # set to "on" if adcirc is coupled with swan is being run
+our $waves = "off"; # set to "on" if adcirc is coupled with swan is being run
 my ($m2nf, $s2nf, $n2nf, $k2nf, $k1nf, $o1nf, $p1nf, $q1nf); # nodal factors
 my ($m2eqarg, $s2eqarg, $n2eqarg, $k2eqarg, $k1eqarg, $o1eqarg, $p1eqarg, $q1eqarg); # equilibrium arguments 
 #
@@ -237,8 +237,6 @@ if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
    if ( $hsformat eq "netcdf" ) {
       $NHSTAR = 3;
    }
-   # write a hotstart file on the last time step of the run
-   $NHSINC = int(($RNDAY*86400.0)/$dt);
 } else {
    $NHSTAR = 0;
    $NHSINC = 99999;
@@ -698,6 +696,7 @@ sub owiParameters () {
                 $ey,$em,$ed,$eh,0,0);
    my $addHours = $ddays*24.0 + $dhrs + $dmin/60.0 + $dsec/3600.0;
    $ensembleid = $addHours . " hour " . $enstorm . " run";
+   $NHSINC = int(($RNDAY*86400.0)/$dt);
 }
 #
 #--------------------------------------------------------------------------
@@ -746,7 +745,7 @@ sub asymmetricParameters () {
             }
          }
          # also grab the last hindcast time; this will be the nowcast time
-         $nowcast = $track->[2];     
+         $nowcast = $track->[2]; # yyyymmddhh    
          last;
       }
    }
@@ -756,7 +755,7 @@ sub asymmetricParameters () {
       $hstime_days = $hstime/86400.0;
    }
    # get end time
-   my $end;
+   my $end; # yyyymmddhh
    # for a nowcast, end the run at the end of the hindcast
    if ( $enstorm eq "nowcast" ) { 
       $end = $nowcast;
@@ -855,7 +854,7 @@ sub asymmetricParameters () {
    $emin = 0.0;
    $es = 0.0;
    #
-   # get difference btw cold start time and end time
+   # get total difference btw cold start time and end time ... this is RNDAY
    my ($days,$hours,$minutes,$seconds) 
       = Date::Pcalc::Delta_DHMS(
          $cy,$cm,$cd,$ch,$cmin,$cs,
@@ -865,11 +864,20 @@ sub asymmetricParameters () {
    # that we won't run out of storm data at the end of the fort.22
    # For a nowcast, RNDAY will be one time step long, so that we end at
    # the nowcast time, even if ADCIRC rounds down the number of timesteps
+   # jgf20110629: Lets see if we can get the nowcast to stop at the exact time
+   # that we want
    my $stopshort = 0.0;
    if ( $enstorm eq "nowcast" ) {
-      $stopshort = -2*$dt;
+      my $RNDAY_sec = $days*86400.0 + $hours*3600.0 + $minutes*60.0 + $seconds;
+      my $RNDAY_remainder = $RNDAY_sec % $dt;
+      # if the remainder is less than 0.5, ADCIRC will round the number of 
+      # time steps down; if it is 0.5 or greater, then ADCIRC will round the
+      # number of time steps up 
+      if ( $RNDAY_remainder < 0.5 ) {
+         $stopshort -= $dt; # need to add one time step 
+      }
    } else {
-      $stopshort = $dt;
+      $stopshort = $dt; # subtract one time step for forecasts
    }
    $RNDAY = $days + $hours/24.0 + $minutes/1440.0 + ($seconds-$stopshort)/86400.0; 
    #stderrMessage("DEBUG","RNDAY is initially calculated as $RNDAY.");
@@ -902,7 +910,30 @@ sub asymmetricParameters () {
    # increment so that we only write a single hotstart file at the end of 
    # the run. If this is a forecast, don't write a hotstart file at all.
    $NHSINC = int(($RNDAY*86400.0)/$dt);
-   $NHSTAR;
+   #
+   # If we have swan coupling, we may need to add some run time, after 
+   # the adcirc hotstart file was written, to give swan a chance to write
+   # its hotstart file. After adcirc has written its hotstart file, 
+   # swan has to run its time own time step, and then write
+   # the swan hotstart file. 
+   if ( $waves eq "on" ) {
+      my $total_time = $RNDAY*86400.0; # in seconds
+      # unusual but possible for the total run time to be less than the swan
+      # time step
+      if ( $total_time < $swandt ) {
+         $total_time = $swandt; # run for at least one swan time step 
+         $NHSINC = int($total_time/$dt);
+         $RNDAY = $total_time / 86400.0; # convert to days
+      # the common case is for total_time >> swandt
+      } elsif ( $total_time > $swandt ) {
+         my $swan_remainder = $total_time % $swandt; # in seconds
+         if ( $swan_remainder != 0 ) {
+            $total_time += ($swandt - $swan_remainder);
+            $RNDAY = $total_time / 86400.0; # convert back to days 
+         }
+      }
+   }
+   #
    # create run description
    $rundesc = "cs:$csdate"."0000 cy:$nhcName$advisorynum ASGS";
    # create the WTIMINC line
