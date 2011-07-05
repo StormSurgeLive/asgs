@@ -95,3 +95,5 @@
  -75.73493     36.00727      !Colington, NC                    (Extra point 33)
  -77.15107     34.77140      !Stella, NC                       (Extra point 34)
  -77.42159     34.60274      !New River near Camp Lajuene, NC  (Extra point 35)
+-77.41943     35.64552      !Tar River near Rock Springs, NC  (USGS station 02083893)
+-77.44656     35.37030      !Contentnea Creek at Grifton      (USGS station 02081764)
