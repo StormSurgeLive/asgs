@@ -47,6 +47,10 @@ my %types=("fort.15"         => "fort15" ,
            "fort.61"         => "statelev", 
            "fort.63"         => "elev", 
            "fort.64"         => "dvel", 
+           "fort.71"         => "statatmpress", 
+           "fort.72"         => "statwvel", 
+           "fort.73"         => "atmpress", 
+           "fort.74"         => "wvel", 
            "fort.67"         => "hots67",
            "fort.68"         => "hots",
            "maxele.63"       => "maxelev",
@@ -55,6 +59,8 @@ my %types=("fort.15"         => "fort15" ,
            "swan_DIR_max.63" => "maxdir",
            "swan_TM01.63"    => "tm01",
            "swan_TM01_max.63" => "maxtm01",
+           "swan_TMM10.63"    => "tmm10",
+           "swan_TMM10_max.63" => "maxtmm10",
            "swan_TPS.63"    => "tps",
            "swan_TPS_max.63" => "maxtps",
            "swan_HS.63"      => "hsign",
@@ -62,7 +68,7 @@ my %types=("fort.15"         => "fort15" ,
            "run.properties"  => "run.properties",
            "stationOut.tar"  => "stations");
 #
-my @files = qw( fort.61 fort.63 fort.64 maxele.63 swan_HS.63 swan_HS_max.63 swan_TM01.63 swan_TM01_max.63 swan_TPS.63 swan_TPS_max.63 swan_DIR.63 swan_DIR_max.63 timeofmaxele.63 );
+my @files = qw( fort.61 fort.63 fort.64 fort.71 fort.72 fort.73 fort.74 maxele.63 swan_HS.63 swan_HS_max.63 swan_TMM10.63 swan_TMM10_max.63 swan_TPS.63 swan_TPS_max.63 swan_DIR.63 swan_DIR_max.63 timeofmaxele.63 );
 #
 #
 GetOptions(

@@ -22,7 +22,7 @@ PROGRAM ADCPOSTNETCDF
 IMPLICIT NONE
 LOGICAL FILEEXIST,IgnoreDate
 INTEGER II,JJ,FORTUNIT,L,IERR
-INTEGER UNITLIST(6),NUNITS
+INTEGER UNITLIST(8),NUNITS
 LOGICAL            :: cmdLineDateProvided
 CHARACTER          :: SH*2,SM*2,SD*2,SYYYY*4
 
@@ -37,7 +37,7 @@ IgnoreDate=.True.
 cmdLineDateProvided=.False.
 
 DATA NUNITS/6/
-DATA UNITLIST/61,62,63,64,73,74/
+DATA UNITLIST/61,62,63,64,71,72,73,74/
 
 ! IF NO INPUT ARGUMENTS, CHECK AND PROCESS LOCAL 
 ! FORT.?? FILES.
@@ -347,7 +347,7 @@ CASE ('61','63')
    CALL STATUSCHECK(NF90_PUT_ATT(NCID=NCFILEID,VARID=ZETAID, NAME='missing_value',VALUES=-99999.))
    CALL STATUSCHECK(NF90_PUT_ATT(NCID=NCFILEID,VARID=ZETAID, NAME='dry_value',    VALUES=-99999.))
 
-CASE ('73')
+CASE ('71','73')
 
    ! We will use the same dimid's as 61,63 so that the code further below does not need amending
    
@@ -377,7 +377,7 @@ CASE ('62','64')
    CALL STATUSCHECK(NF90_PUT_ATT(NCID=NCFILEID,VARID=VBARID, NAME='missing_value',VALUES=-99999.))
    CALL STATUSCHECK(NF90_PUT_ATT(NCID=NCFILEID,VARID=VBARID, NAME='dry_value',    VALUES=-99999.))
 
-CASE ('74')
+CASE ('72','74')
 
    ! We will use the same dimid's as 62,64 so that the code further below does not need amending
 
@@ -414,7 +414,7 @@ ELSE
 ENDIF
 
 SELECT CASE (CUNIT)
-CASE ('61','63','73')
+CASE ('61','63','71','73')
 
    DO I=1,NDSET
       IF (IsCompact) THEN
@@ -446,7 +446,7 @@ CASE ('61','63','73')
 
    END DO
 
-CASE ('62','64','74')
+CASE ('62','64','72','74')
 
    DO I=1,NDSET
 
