@@ -173,14 +173,15 @@ createMetaDataLink()
 { 
   STORM=$1
   YEAR=$2
-  ADVISORY=$3
-  ENSTORM=$4
-  ADVISDIR=$5
-  HOSTNAME=$6
-  HSTIME=$7
-  CSDATE=$8
-  VARIATION=$9
-  PERCENT=${10}  
+  GRIDNAME=$3
+  ADVISORY=$4
+  ENSTORM=$5
+  ADVISDIR=$6
+  HOSTNAME=$7
+  HSTIME=$8
+  CSDATE=$9
+  VARIATION=${10}
+  PERCENT=${11}  
 #
   echo "# This metadata describes the storm data used in this run." >> $ADVISDIR/$ENSTORM/fort.22.meta
   echo "version:1" >> $ADVISDIR/$ENSTORM/fort.22.meta
@@ -192,6 +193,7 @@ createMetaDataLink()
   echo "directory storm:$ADVISDIR/$ENSTORM" >> $ADVISDIR/$ENSTORM/fort.22.meta
   echo "time hotstart seconds:$HSTIME" >> $ADVISDIR/$ENSTORM/fort.22.meta
   echo "time coldstart date:$CSDATE" >>  $ADVISDIR/$ENSTORM/fort.22.meta
+  echo "mesh:$GRIDNAME" >>  $ADVISDIR/$ENSTORM/fort.22.meta
 #
   windPercent="+00"
   overlandSpeedPercent="+00"
@@ -1471,7 +1473,7 @@ while [ 1 -eq 1 ]; do
           mv fort.22 fort.22.orig
           cp NWS_19_fort.22 fort.22 
        fi
-       createMetaDataLink $STORM $YEAR $ADVISORY $ENSTORM $ADVISDIR $HOSTNAME $HSTIME $CSDATE
+       createMetaDataLink $STORM $YEAR $GRIDNAME $ADVISORY $ENSTORM $ADVISDIR $HOSTNAME $HSTIME $CSDATE
        logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
        #
     fi
@@ -1594,7 +1596,7 @@ while [ 1 -eq 1 ]; do
                 cp NWS_19_fort.22 fort.22 2>> ${SYSLOG}
              fi
           fi
-          createMetaDataLink $STORM $YEAR $ADVISORY $ENSTORM $ADVISDIR $HOSTNAME $HSTIME $CSDATE
+          createMetaDataLink $STORM $YEAR $GRIDNAME $ADVISORY $ENSTORM $ADVISDIR $HOSTNAME $HSTIME $CSDATE
        fi
        # BACKGROUND METEOROLOGY ONLY
        if [[ $BACKGROUNDMET = on ]]; then
