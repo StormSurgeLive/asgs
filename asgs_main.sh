@@ -730,11 +730,13 @@ submitJob()
    JOBTYPE=${15}
 #
    CLOPTIONS=""     # command line options
+   LOCALHOTSTART=""
    if [[ $NUMWRITERS != "0" ]]; then
       CLOPTIONS="-W $NUMWRITERS"
    fi
    if [[ $HOTSTARTCOMP = subdomain ]]; then
       CLOPTIONS="${CLOPTIONS} -S"
+      LOCALHOTSTART="--localhotstart"
    fi
 # 
 #  Load Sharing Facility (LSF); used on topsail at UNC
