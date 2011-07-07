@@ -26,7 +26,7 @@ END MODULE
 
 PROGRAM HottifySWAN
 
-      USE DATA, ONLY: IERR,MyProc,NumProcs
+      USE DATA, ONLY: IERR,MyProc,NumProcs,UnitNumber
 
       IMPLICIT NONE
 
@@ -35,7 +35,9 @@ PROGRAM HottifySWAN
 #endif
 
       CHARACTER(LEN=1) :: UserSel
-
+      INTEGER :: ARGCOUNT ! number of command line arguments
+      INTEGER :: I        ! counter for command line arguments
+      CHARACTER(2048) :: CMDLINEARG ! a command line argument
 #ifdef MPI
       CALL MPI_INIT(IERR)
       CALL MPI_COMM_RANK(MPI_COMM_WORLD,MyProc,IERR)
@@ -48,7 +50,24 @@ PROGRAM HottifySWAN
       IF(MyProc.EQ.0)THEN
          ARGCOUNT=IARGC()
          IF (ARGCOUNT.ne.0) THEN
-          
+            DO WHILE (I.LT.ARGCOUNT) 
+               I=I+1
+               CALL GETARG(I,CMDLINEARG)  
+               SELECT CASE(CMDLINEARG(1:2))
+               CASE("-g") ! globalize
+                  UserSel = "1"
+               CASE("-l") ! localize
+                  UserSel = "2"
+               CASE("-u") ! unit number
+                  I=I+1
+                  CALL GETARG(I,UnitNumber) 
+               CASE DEFAULT
+                  WRITE(*,'(A)',ADVANCE='YES')            &
+                  "Hottify: The command line option '",   &
+                  trim(CMDLINEARG),                       &
+                  "' was not recognized."                 
+               END SELECT
+            END DO
          ELSE        
             WRITE(*,'(A)',ADVANCE='YES') " "
             WRITE(*,'(A)',ADVANCE='YES') "This program will globalize or localize a set of SWAN hot-start files."
@@ -57,6 +76,7 @@ PROGRAM HottifySWAN
             WRITE(*,'(A)',ADVANCE='YES') "...... 2. Create a set of local files from an existing global file."
             WRITE(*,'(A)',ADVANCE='NO') "... Please enter your selection (1/2): "
             READ(*,'(A)') UserSel
+         ENDIF
       ENDIF
 
 #ifdef MPI
