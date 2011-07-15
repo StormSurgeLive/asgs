@@ -54,6 +54,9 @@ my %types=("fort.15"         => "fort15" ,
            "fort.67"         => "hots67",
            "fort.68"         => "hots",
            "maxele.63"       => "maxelev",
+           "maxrs.63"        => "maxradstress",
+           "maxwvel.63"      => "maxwvel",
+           "minpr.63"        => "minatmpress",
            "timeofmaxele.63" => "tmaxele",
            "swan_DIR.63"     => "dir",
            "swan_DIR_max.63" => "maxdir",
@@ -68,7 +71,7 @@ my %types=("fort.15"         => "fort15" ,
            "run.properties"  => "run.properties",
            "stationOut.tar"  => "stations");
 #
-my @files = qw( fort.61 fort.63 fort.64 fort.71 fort.72 fort.73 fort.74 maxele.63 swan_HS.63 swan_HS_max.63 swan_TMM10.63 swan_TMM10_max.63 swan_TPS.63 swan_TPS_max.63 swan_DIR.63 swan_DIR_max.63 timeofmaxele.63 );
+my @files = qw( fort.61 fort.63 fort.64 fort.71 fort.72 fort.73 fort.74 maxele.63 maxrs.63 maxwvel.63 minpr.63 swan_HS.63 swan_HS_max.63 swan_TMM10.63 swan_TMM10_max.63 swan_TPS.63 swan_TPS_max.63 swan_DIR.63 swan_DIR_max.63 timeofmaxele.63 );
 #
 #
 GetOptions(
@@ -99,7 +102,7 @@ if (!-e "$PPDIR/convert_adc_native_2_netCDF") {
    die;
 }
 
-# read run.properties file as a hash, split on :
+# read run.properties file as a hash, split on ":"
 %RP=&ReadFileAsHash("run.properties",":");
 stderrMessage("INFO","run.properties content is:");
 &PrintHash(%RP);
@@ -202,8 +205,19 @@ foreach my $file (@files) {
    #   }
 
 
+   #
+   # Additional processing of maxele.63.nc file: append inundation masks,
+   # calculate and append inundation data.
+   if ($file eq "maxele.63") {
+      if ( -e "maxele.63.nc" ) {
+        $status = `ncks --quiet --append $PPDIR/nc_inundation_v6b_msl-inundation-masks.nc maxele.63.nc`; # append depth data and inundation masks
+        $status = `ncap2 --overwrite -S $PPDIR/produceInundationData.scr maxele.63.nc maxele.63.nc`;     # calculate inundation level     
+      }
+   }
+   #
+   # compress netcdf files
    #stderrMessage("DEBUG","Gzipping $file.nc ... ");
-   $status=`mv $file.nc $file.nc.gz`; # $status=`gzip --force $file.nc`; #jgf20110622 turn compression off for compatibility with the NC-CERA web application portal
+   $status=`gzip --force $file.nc`; 
    if ( $status ne "" ) {
       stderrMessage("ERROR","Compression of $file.nc failed: $status. The file $file will not be processed.");
       next; 
@@ -250,7 +264,7 @@ if (-e "fort.15") {
    $myProductID=~s/<field>/$myProductType/;
    $myProductID=~s/.nc.gz//;
    stderrMessage("INFO","Gzipping fort.15.");
-   $status=`mv fort.15 fort.15.gz`; # $status=`gzip --force fort.15`; #jgf20110622 turn compression off for compatibility with the NC-CERA web application portal
+   $status=`gzip --force fort.15`;
    if ( $status ne "" ) {
      stderrMessage("ERROR","Compression of fort.15 failed: $status.");
    } else {
@@ -265,7 +279,7 @@ if (-e "stationOut.tar") {
    $myProductID=~s/<field>/$myProductType/;
    $myProductID=~s/nc.gz/tar/;
    stderrMessage("INFO","Gzipping 'stationOut.tar'.");
-   $status=`mv stationOut.tar stationOut.tar.gz`; # $status=`gzip --force stationOut.tar`; #jgf20110622 turn compression off for compatibility with the NC-CERA web application portal
+   $status=`gzip --force stationOut.tar`; 
    if ( $status ne "" ) {
       stderrMessage("ERROR","Compression of stationOut.tar failed: $status.");
    } else {
