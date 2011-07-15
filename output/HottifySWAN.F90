@@ -46,7 +46,7 @@ PROGRAM HottifySWAN
       MyProc = 0
       NumProcs = 1
 #endif
-
+      UnitNumber = 0
       IF(MyProc.EQ.0)THEN
          ARGCOUNT=IARGC()
          IF (ARGCOUNT.ne.0) THEN
@@ -60,7 +60,8 @@ PROGRAM HottifySWAN
                   UserSel = "2"
                CASE("-u") ! unit number
                   I=I+1
-                  CALL GETARG(I,UnitNumber) 
+                  CALL GETARG(I,CMDLINEARG) 
+                  READ(CMDLINEARG,*) UnitNumber
                CASE DEFAULT
                   WRITE(*,'(A)',ADVANCE='YES')            &
                   "Hottify: The command line option '",   &
@@ -172,7 +173,7 @@ SUBROUTINE Globalize
       WRITE(*,'(A)',ADVANCE='YES') "Globalizing the local SWAN hot-start files ..."
       WRITE(*,'(A,A,A)',ADVANCE='YES') "... Building the array with the local action densities."
       WRITE(*,'(A)',ADVANCE='NO') "... Progress: +"
-      FLUSH(6)
+      !FLUSH(6)
 
       ALLOCATE(Local(1:NumCores))
 
@@ -276,7 +277,7 @@ SUBROUTINE Globalize
 
       WRITE(*,'(A,A,A)',ADVANCE='YES') "... The hot-start information is being written to the ",TRIM(SwanFile)," file."
       WRITE(*,'(A)',ADVANCE='NO') "... Progress: +"
-      FLUSH(6)
+      !FLUSH(6)
 
       DO IV=1,NumGlobalVerts
 
@@ -377,12 +378,13 @@ SUBROUTINE GlobalToLocal
             READ(18,'(A)') JunkC
          ENDDO
 
-         READ(18,'(A8,I8,I8,I8)') JunkC,JunkI,JunkI,NumLocalVerts
+         READ(18,'(A8,I12,I12,I12)') JunkC,JunkI,JunkI,NumLocalVerts
 
          DO IV=1,NumLocalVerts
-            READ(18,'(I12)') Vert
+            READ(18,*) Vert
             IF(Vert.GT.0)THEN
                G2L(Vert,2) = IV
+               !WRITE(*,*) IV,NumLocalVerts  ! jgfdebug
             ENDIF
          ENDDO
 
@@ -431,9 +433,10 @@ SUBROUTINE Localize
       If(MyProc.EQ.0)THEN
          WRITE(*,'(A)',ADVANCE='YES')
          WRITE(*,'(A)',ADVANCE='YES') "Reading the global SWAN hot-start file ..."
-
-         WRITE(*,'(A)',ADVANCE='NO') "... Please enter the unit number of the global file (67/68): "
-         READ(*,*) UnitNumber
+         IF (UnitNumber.eq.0) THEN
+            WRITE(*,'(A)',ADVANCE='NO') "... Please enter the unit number of the global file (67/68): "
+            READ(*,*) UnitNumber
+         ENDIF
       ENDIF
 
 #ifdef MPI
@@ -796,8 +799,10 @@ SUBROUTINE WriteHeader
 
       WRITE(*,'(A)',ADVANCE='YES') " "
       WRITE(*,'(A)',ADVANCE='YES') "Writing the header information ..."
-      WRITE(*,'(A)',ADVANCE='NO') "... Enter the unit number for the file (67/68): "
-      READ(*,*) UnitNumber
+      IF (UnitNumber.eq.0) THEN
+         WRITE(*,'(A)',ADVANCE='NO') "... Enter the unit number for the file (67/68): "
+         READ(*,*) UnitNumber
+      ENDIF
 
       WRITE(SwanFile,'(A,I2.2)') "PE0000/swan.",UnitNumber
       OPEN(UNIT=99,FILE=TRIM(SwanFile),ACTION='READ')
@@ -914,7 +919,7 @@ SUBROUTINE ShowBar(Now,Total)
              ELSE
                 WRITE(*,'(A)',ADVANCE='NO') "-"
              ENDIF
-             FLUSH(6)
+             !FLUSH(6)
              EXIT outer
           ENDIF
        ENDDO outer

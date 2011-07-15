@@ -1,9 +1,8 @@
 #!/bin/bash
 #--------------------------------------------------------------------------
-# null_archive.sh 
+# ranger_archive.sh 
 #--------------------------------------------------------------------------
-# Does nothing. Placeholder that can be used for runs where data archiving
-# is not desired.
+# Copies all files to corral.
 #--------------------------------------------------------------------------
 # 
 # Copyright(C) 2010 Jason Fleming
