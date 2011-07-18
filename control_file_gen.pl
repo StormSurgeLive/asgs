@@ -122,6 +122,7 @@ my $particles;  # flag to produce fulldomain current velocity files at an
 our $NHSINC;    # time step increment at which to write hot start files
 our $NHSTAR;    # writing and format of ADCIRC hotstart output file
 our $RNDAY;     # total run length from cold start, in days
+our $stormnumber = "00"; # 2 digit integer uniquely identifying a storm 
 my $nffr = -1;  # for flux boundaries; -1: top of fort.20 corresponds to hs
 my $ihot;       # whether or not ADCIRC should READ a hotstart file
 my $fdcv;       # line that controls full domain current velocity output
@@ -485,7 +486,7 @@ unless (open(RUNPROPS,">$stormDir/run.properties")) {
 }
 printf RUNPROPS "RunType : $run_type\n";
 printf RUNPROPS "ADCIRCgrid : $gridname\n";
-printf RUNPROPS "stormnumber : 00\n";
+printf RUNPROPS "stormnumber : $stormnumber\n";
 printf RUNPROPS "miscfield : $advisorynum\n";
 printf RUNPROPS "advisory : $advisorynum\n";
 printf RUNPROPS "currentcycle : $cycle_hour\n";
@@ -747,6 +748,8 @@ sub asymmetricParameters () {
          }
          # also grab the last hindcast time; this will be the nowcast time
          $nowcast = $track->[2]; # yyyymmddhh    
+         # also grab the storm number for the run.properties file
+         $stormnumber = $track->[1]; # zero padded two digit integer
          last;
       }
    }
