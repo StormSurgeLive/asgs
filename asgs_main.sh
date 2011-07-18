@@ -267,7 +267,8 @@ prep()
     HOTSTARTCOMP=${12} # fulldomain or subdomain
     WALLTIME=${13} # HH:MM:SS format
     HOTSTARTFORMAT=${14}
-    NAFILE=${15}  # full domain nodal attributes file, must be last in the
+    MINMAX=${15}
+    NAFILE=${16}  # full domain nodal attributes file, must be last in the
                   # argument list, since it may be undefined
     TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
 #
@@ -340,8 +341,8 @@ prep()
     else
        # this is a   H O T S T A R T
        HOTSWAN=on  # whether we are hotstarting swan
-       # link to fulldomain fort.26 file (which was created by 
-       # control_file_gen.pl)
+       # copy in the swaninit file which contains the name of the swan 
+       # control file (conventionally named fort.26 when used with ADCIRC) 
        if [[ $WAVES = on ]]; then
           cp $INPUTDIR/swaninit.template $ADVISDIR/$ENSTORM/swaninit 2>> ${SYSLOG}
        fi
@@ -385,15 +386,19 @@ prep()
           # our own nowcast run in our own advisory directory
           FROMDIR=$ADVISDIR/nowcast
        fi
-       # copy max and min files so that the max values will be 
-       # preserved across hotstarts
        logMessage "Copying existing output files to this directory."
-       for file in maxele.63 maxwvel.63 minpr.63 maxrs.63 maxvel.63; do
-          if  [ -e $FROMDIR/$file ]; then
-             logMessage "Copying $FROMDIR/$file to $ADVISDIR/$ENSTORM/$file so that its values will be preserved across the hotstart." 
-             cp $FROMDIR/$file $ADVISDIR/$ENSTORM/$file 2>> ${SYSLOG}
-          fi
-       done
+       if [[ $MINMAX = continuous ]]; then
+          # copy max and min files so that the max values will be 
+          # preserved across hotstarts
+          for file in maxele.63 maxwvel.63 minpr.63 maxrs.63 maxvel.63; do
+             if  [ -e $FROMDIR/$file ]; then
+                logMessage "Copying $FROMDIR/$file to $ADVISDIR/$ENSTORM/$file so that its values will be preserved across the hotstart." 
+                cp $FROMDIR/$file $ADVISDIR/$ENSTORM/$file 2>> ${SYSLOG}
+             fi
+          done
+       else
+          logMessage "MINMAX was set to '$MINMAX' in the ASGS config file; as a result, the maxele.63 etc files will not be from the previous run to the current run. ADCIRC will start the record of max and min values anew."
+       fi
        # copy existing fulldomain files if they are supposed to be appended
        for file in fort.61 fort.62 fort.63 fort.64 fort.71 fort.72 fort.73 fort.74; do
           matcharg=--${file/./}append
@@ -1131,6 +1136,7 @@ TIDEFAC=off
 TROPICALCYCLONE=off
 WAVES=off
 VARFLUX=off
+MINMAX=continuous
 RIVERSITE=ftp.nssl.noaa.gov
 RIVERDIR=/projects/ciflow/adcirc_info
 ELEVSTATIONS=null
@@ -1382,8 +1388,8 @@ if [[ $START = coldstart ]]; then
    # don't have a meterological forcing (fort.22) file in this case
    # preprocess
    logMessage "Starting $ENSTORM preprocessing."
-   logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $NAFILE"
-   prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $NAFILE
+   logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE"
+   prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE
    # check to see that adcprep did not conspicuously fail
    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
@@ -1526,8 +1532,8 @@ while [ 1 -eq 1 ]; do
     consoleMessage "Starting nowcast for cycle '$ADVISORY'."
     # preprocess
     logMessage "Starting nowcast preprocessing."
-    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $NAFILE"
-    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $NAFILE
+    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE"
+    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE
     # check to see that adcprep did not conspicuously fail
     handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
     if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
@@ -1637,9 +1643,12 @@ while [ 1 -eq 1 ]; do
        if [[ $RUNFORECAST = yes ]]; then
           # preprocess
           logMessage "Starting $ENSTORM preprocessing."
-          prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $NAFILE
+          prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE
           handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
-          if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
+          if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
+             si=$[$si + 1];
+             continue
+          fi
           JOBTYPE=padcirc
           if [[ $WAVES = on ]]; then
              JOBTYPE=padcswan
@@ -1651,7 +1660,10 @@ while [ 1 -eq 1 ]; do
           # check once per minute until job has completed
           monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $FORECASTWALLTIME
           handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
-          if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
+          if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
+             si=$[$si + 1];
+             continue 
+          fi
           consoleMesssage "Job(s) complete."
           # execute post processing
           logMessage "$ENSTORM finished; postprocessing"

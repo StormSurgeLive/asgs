@@ -34,3 +34,5 @@ SSHKEY=${13}
 cd ${ADVISDIR}/${ENSTORM}
 . ${CONFIG} # grab all static config info. 
 perl ${OUTPUTDIR}/asgsConvertToNETCDF.pl --ppdir ${SCRIPTDIR}/output 
+#
+#/shared/apps/software-data/RenciGETools/trunk/src/asgsCreateKMZs.sh -c
