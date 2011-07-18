@@ -1425,6 +1425,9 @@ while [ 1 -eq 1 ]; do
    LUN=       # logical unit number; either 67 or 68
    if [[ -d $OLDADVISDIR/nowcast ]]; then
        FROMDIR=$OLDADVISDIR/nowcast
+       if [[ $WAVES = on ]]; then
+          HOTSWAN=on # if swan is active, it ran in the nowcast
+       fi 
    fi
    if [[ -d $OLDADVISDIR/hindcast ]]; then
        FROMDIR=$OLDADVISDIR/hindcast
@@ -1482,7 +1485,6 @@ while [ 1 -eq 1 ]; do
           cp NWS_19_fort.22 fort.22 
        fi
        createMetaDataLink $STORM $YEAR $GRIDNAME $ADVISORY $ENSTORM $ADVISDIR $HOSTNAME $HSTIME $CSDATE
-       logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
        #
     fi
     # BACKGROUND METEOROLOGY 
@@ -1505,8 +1507,6 @@ while [ 1 -eq 1 ]; do
        logMessage "Converting NAM data to OWI format with the following options : $NAMOPTIONS"
        perl ${SCRIPTDIR}/NAMtoOWI.pl $NAMOPTIONS >> ${SYSLOG} 2>&1 
        CONTROLOPTIONS=" --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
-       logMessage "Generating ADCIRC Control File (fort.15) and meteorological control file (fort.22) for $ENSTORM with the following options: $CONTROLOPTIONS."
-
        # create links to the OWI files
        cd $ENSTORM 2>> ${SYSLOG}
        NAM221=`ls NAM*.221`; 
@@ -1523,6 +1523,7 @@ while [ 1 -eq 1 ]; do
     CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
     CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
     # generate fort.15 file
+    logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
     perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
     # get river flux nowcast data, if configured to do so
     if [[ $VARFLUX = on ]]; then
