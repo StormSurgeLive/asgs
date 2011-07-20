@@ -27,6 +27,7 @@ use strict;
 use warnings;
 use Date::Pcalc;
 use Getopt::Long;
+use DateTime::Format::ISO8601;
 
 # parse rss reports from Nat'l Hurricane Center Atlantic Marine Forecast
 # Advisory.  NHC Mail (Atlantic Marine)
@@ -214,6 +215,11 @@ if (@match) {
       $vmax = $1;
    }
 }
+# Carola Kaiser 19 July 2011 
+open(PLOT,">>run.properties") || die "ERROR: nhc_advisory_bot.pl: Failed to open run.properties file for appending storm name and vmax: $!.";
+print PLOT "stormname:$storm_name\nwind:$vmax\n";
+close(PLOT);
+#
 substr($atcf_line,47,4) = sprintf("%4d",$vmax); 
 printf STDERR "INFO: nhc_advisory_bot.pl: nowcast max wind is $vmax\n";
 my $forecast_atcf_filename = lc($storm_name) . "_advisory_" . $adv_num_str . ".fst";

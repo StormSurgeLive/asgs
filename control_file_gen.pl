@@ -480,7 +480,7 @@ if ( $enstorm eq "nowcast" ) {
 my $rp_fname = $model_type . $gridname . "-UNC_" . $wind_model . "_" . $date1 . "_" . $date2 . "_" . $date3 . "_" . $cycle_hour . "_run.properties";
 my $prodid = $model_type . $gridname . "-UNC_" . $wind_model . "_" . $date1 . "_" . $date2 . "_" . $date3 . "_" . $cycle_hour . "<field>_Z.nc.gz";
 stderrMessage("INFO","Opening run.properties file for writing.");
-unless (open(RUNPROPS,">$stormDir/run.properties")) { 
+unless (open(RUNPROPS,">>$stormDir/run.properties")) { 
    stderrMessage("ERROR","Failed to open the run.properties file for writing.");
    die;
 }
