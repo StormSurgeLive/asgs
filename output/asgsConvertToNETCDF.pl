@@ -21,6 +21,7 @@ my ($prodID,$HSprodID,$ADCIRCgrid);
 my (%RP,$k,$v);
 my ($windtag,$windsrc);
 my ($model, $startDate, $cycle, $year, $mon, $mday, $fullDate);
+my $stormnumber = "00"; # number of storm if NWS19 vortex forcing
 my $status;
 my $openDAPDirectory;
 our $GRIDDIR = "/shared/apps/software-data/adcircRenderTools/grids";
@@ -72,6 +73,7 @@ my %types=("fort.15"         => "fort15" ,
            "stationOut.tar"  => "stations");
 #
 my @files = qw( fort.61 fort.63 fort.64 fort.71 fort.72 fort.73 fort.74 maxele.63 maxrs.63 maxwvel.63 minpr.63 swan_HS.63 swan_HS_max.63 swan_TMM10.63 swan_TMM10_max.63 swan_TPS.63 swan_TPS_max.63 swan_DIR.63 swan_DIR_max.63 timeofmaxele.63 );
+my @compressionOnlyFiles = qw( fort.15 stationOut.tar );
 #
 #
 GetOptions(
@@ -114,6 +116,7 @@ $startDate=$RP{"currentdate"};
 $cycle=$RP{"currentcycle"};
 $model=$RP{"Model"};
 $windtag=$RP{"WindModel"};
+$stormnumber=$RP{"stormnumber"};
 my $coldstarttime=$RP{"ColdStartTime"};
 my $runstarttime=$RP{"RunStartTime"};
 #
@@ -145,6 +148,16 @@ if (!defined $ADCIRCgrid) {
    die;
 }
 my @filesProcessed;
+#
+# if this run corresponds to a particular tropical cyclone, we will want to 
+# publish the ATCF formatted hindcast and forecast data
+if ( $stormnumber ne "00" ) {
+   my $hindcast_atcf = "../al".$stormnumber.$year.".fst";
+   my $forecast_atcf = "../bal".$stormnumber.$year.".dat";
+   push(@compressionOnlyFiles,$hindcast_atcf,$forecast_atcf);
+   $types{$hindcast_atcf} = "atcfhindcast";
+   $types{$forecast_atcf} = "atcfforecast";
+}
 #
 # Process hotstart files, if applicable ... we just compress them
 if (!defined $HSprodID){
@@ -257,33 +270,24 @@ foreach my $file (@files) {
    }
 }
 #
-# Process fort.15 file, if it exists. This just gets compressed.
-if (-e "fort.15") {
+# Process files that just get compressed.
+foreach my $file (@compressionOnlyFiles) {
+   $status=0;
+   stderrMessage("INFO","Processing $file.");
+   if (!-e $file){
+      stderrMessage("INFO","$file was not found. It will not be processed.");
+      next;  
+   }
    $myProductID = $prodID;
-   $myProductType = $types{"fort.15"};
+   $myProductType = $types{$file};
    $myProductID=~s/<field>/$myProductType/;
    $myProductID=~s/.nc.gz//;
-   stderrMessage("INFO","Gzipping fort.15.");
-   $status=`gzip --force fort.15`;
+   stderrMessage("INFO","Gzipping $file.");
+   $status=`gzip --force $file`;
    if ( $status ne "" ) {
-     stderrMessage("ERROR","Compression of fort.15 failed: $status.");
+     stderrMessage("ERROR","Compression of $file failed: $status.");
    } else {
-      push(@filesProcessed,"fort.15.gz",$myProductID.".gz");
-   }
-}
-#
-# process stations out file, if it exists ... we just compress it
-if (-e "stationOut.tar") {
-   $myProductID = $prodID;
-   $myProductType = $types{"stationOut.tar"};
-   $myProductID=~s/<field>/$myProductType/;
-   $myProductID=~s/nc.gz/tar/;
-   stderrMessage("INFO","Gzipping 'stationOut.tar'.");
-   $status=`gzip --force stationOut.tar`; 
-   if ( $status ne "" ) {
-      stderrMessage("ERROR","Compression of stationOut.tar failed: $status.");
-   } else {
-      push(@filesProcessed,"stationOut.tar.gz",$myProductID.".gz");
+      push(@filesProcessed,"$file.gz",$myProductID.".gz");
    }
 }
 #
