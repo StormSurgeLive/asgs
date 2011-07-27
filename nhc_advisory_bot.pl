@@ -71,9 +71,11 @@ my $lon;
 my $vmax;
 my $input;  # name of input file
 my $output; # name of output file
+my $metadata="run.properties"; # name of metadata file
 #
 GetOptions(
            "input=s" => \$input,
+           "metadata=s" => \$metadata,
            "output=s" => \$output
            );
 #
@@ -216,7 +218,7 @@ if (@match) {
    }
 }
 # Carola Kaiser 19 July 2011 
-open(PLOT,">>run.properties") || die "ERROR: nhc_advisory_bot.pl: Failed to open run.properties file for appending storm name and vmax: $!.";
+open(PLOT,">>$metadata") || die "ERROR: nhc_advisory_bot.pl: Failed to open run.properties file for appending storm name and vmax: $!.";
 print PLOT "stormname:$storm_name\nwind:$vmax\n";
 close(PLOT);
 #
