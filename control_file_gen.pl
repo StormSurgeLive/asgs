@@ -232,6 +232,7 @@ if ( $enstorm eq "hindcast" ) {
    stderrMessage("DEBUG","This is a hindcast."); 
    &hindcastParameters();
 }
+#
 # we want a hotstart file if this is a nowcast or hindcast
 if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
    $NHSTAR = 1;
@@ -242,6 +243,7 @@ if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
    $NHSTAR = 0;
    $NHSINC = 99999;
 }
+#
 # we always look for a fort.68 file, and since we only write one hotstart
 # file during the run, we know we will always be left with a fort.67 file.
 if ( defined $hstime ) {
@@ -870,24 +872,11 @@ sub asymmetricParameters () {
    # the nowcast time, even if ADCIRC rounds down the number of timesteps
    # jgf20110629: Lets see if we can get the nowcast to stop at the exact time
    # that we want
-   my $stopshort = 0.0;
-   if ( $enstorm eq "nowcast" ) {
-      my $RNDAY_sec = $days*86400.0 + $hours*3600.0 + $minutes*60.0 + $seconds;
-      my $div = $RNDAY_sec / $dt;
-      my $RNDAY_remainder = $RNDAY_sec - int($div)*$dt;
-      # if the remainder is less than 0.5, ADCIRC will round the number of 
-      # time steps down; if it is 0.5 or greater, then ADCIRC will round the
-      # number of time steps up 
-      if ( $RNDAY_remainder < 0.5 ) {
-         $stopshort -= $dt; # need to add one time step 
-      }
-   } else {
-      $stopshort = $dt; # subtract one time step for forecasts
-   }
-   $RNDAY = $days + $hours/24.0 + $minutes/1440.0 + ($seconds-$stopshort)/86400.0; 
-   #stderrMessage("DEBUG","RNDAY is initially calculated as $RNDAY.");
-   #
-   # If RNDAY is less than two timesteps, make sure it is at least two timesteps. 
+   $RNDAY = $days + $hours/24.0 + $minutes/1440.0 + $seconds/86400.0;
+   my $RNDAY_orig = $RNDAY;
+
+   # If RNDAY is less than two timesteps, make sure it is at least
+   #  two timesteps. 
    # This can happen if we start up from a fort.22 that has only one BEST line,
    # i.e., it starts at the nowcast. RNDAY would be zero in this case, except 
    # our algorithm actually stops one ts short of the full time, so RNDAY is
@@ -927,17 +916,15 @@ sub asymmetricParameters () {
       # time step
       if ( $total_time < $swandt ) {
          $total_time = $swandt; # run for at least one swan time step 
-         $NHSINC = int($total_time/$dt);
          $RNDAY = $total_time / 86400.0; # convert to days
-      # the common case is for total_time >> swandt
-      } elsif ( $total_time > $swandt ) {
-         my $swan_div = $total_time / $swandt;
-         my $swan_remainder = $total_time - int($swan_div)*$swandt;
-         if ( $swan_remainder != 0 ) {
-            $total_time += ($swandt - $swan_remainder);
-            $RNDAY = $total_time / 86400.0; # convert back to days 
-         }
+         $NHSINC = int(($RNDAY*86400.0)/$dt);
       }
+   }
+   # check to see if the RNDAY had to be modified from the value calculated
+   # purely from the met file ... if so, modify the ending time accordingly
+   if ( $RNDAY != $RNDAY_orig ) {
+    ($ey,$em,$ed,$eh,$emin,$es) =
+       Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$RNDAY,0,0,0);
    }
    #
    # create run description
