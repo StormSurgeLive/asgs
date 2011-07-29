@@ -138,6 +138,14 @@ $openDAPPrefix="http://opendap.renci.org:1935/thredds/catalog/$model/$ADCIRCgrid
 unless (-e $openDAPDirectory) {
    system("mkdir -p  $openDAPDirectory"); 
 }
+# write the opendap directory that the files were copied to so that we 
+# know where they went
+unless ( open(OPENDAPPATH,">opendappath.log") ) {
+   stderrMessage("ERROR","Could not open the file opendappath.log for writing: $!.");
+   die;
+}
+printf OPENDAPPATH "$openDAPDirectory";
+close(OPENDAPPATH);
 
 if (!defined $prodID) {
    stderrMessage("ERROR","prodID not found in run.properties file.");
@@ -221,10 +229,10 @@ foreach my $file (@files) {
    #
    # Additional processing of maxele.63.nc file: append inundation masks,
    # calculate and append inundation data.
-   if ($file eq "maxele.63") {
-      if ( -e "maxele.63.nc" ) {
-        $status = `ncks --quiet --append $PPDIR/nc_inundation_v6b_msl-inundation-masks.nc maxele.63.nc`; # append depth data and inundation masks
-        $status = `ncap2 --overwrite -S $PPDIR/produceInundationData.scr maxele.63.nc maxele.63.nc`;     # calculate inundation level     
+   if ($file eq "maxele.63" || $file eq "fort.63" ) {
+      if ( -e $file ) {
+        $status = `ncks --quiet --append $PPDIR/nc_inundation_v6b_msl-inundation-masks.nc $file.nc`; # append depth data and inundation masks
+        $status = `ncap2 --overwrite -S $PPDIR/produceInundationData.scr $file.nc $file.nc`;     # calculate inundation level     
       }
    }
    #

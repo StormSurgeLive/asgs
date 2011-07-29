@@ -27,7 +27,7 @@ use strict;
 use warnings;
 use Date::Pcalc;
 use Getopt::Long;
-use DateTime::Format::ISO8601;
+#use DateTime::Format::ISO8601;
 
 # parse rss reports from Nat'l Hurricane Center Atlantic Marine Forecast
 # Advisory.  NHC Mail (Atlantic Marine)

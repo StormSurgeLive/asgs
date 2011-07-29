@@ -486,6 +486,16 @@ unless (open(RUNPROPS,">>$stormDir/run.properties")) {
    stderrMessage("ERROR","Failed to open the run.properties file for writing.");
    die;
 }
+printf RUNPROPS "version : 1\n";
+printf RUNPROPS "year : $ny\n";
+printf RUNPROPS "storm : $stormnumber\n";
+printf RUNPROPS "directory advisory : $advisorynum\n";
+printf RUNPROPS "directory storm : $stormDir\n";
+if (defined $hstime) {
+   printf RUNPROPS "time hotstart seconds : $hstime\n";
+}
+printf RUNPROPS "time coldstart date : $csdate\n";
+printf RUNPROPS "mesh : $gridname\n";
 printf RUNPROPS "RunType : $run_type\n";
 printf RUNPROPS "ADCIRCgrid : $gridname\n";
 printf RUNPROPS "stormnumber : $stormnumber\n";
