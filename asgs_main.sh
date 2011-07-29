@@ -900,7 +900,7 @@ init_blueridge()
   ACCOUNT=noaccount
   SUBMITSTRING=submitstring
   SCRATCHDIR=/work/$USER
-  SSHKEY=~/.ssh/id_rsa_blueridge
+  SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=renci.template.pbs
   PREPCONTROLSCRIPT=renci.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
@@ -1131,6 +1131,7 @@ SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log
 umask 002
 #
 # Initialize variables accessed from config.sh
+INSTANCENAME=1
 BACKGROUNDMET=on
 TIDEFAC=off
 TROPICALCYCLONE=off
@@ -1388,6 +1389,7 @@ if [[ $START = coldstart ]]; then
    # don't have a meterological forcing (fort.22) file in this case
    # preprocess
    logMessage "Starting $ENSTORM preprocessing."
+    echo "hostname : $HOSTNAME" >> $ADVISDIR/$ENSTORM/run.properties  
    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE"
    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE
    # check to see that adcprep did not conspicuously fail
@@ -1531,6 +1533,7 @@ while [ 1 -eq 1 ]; do
     fi
     logMessage "Starting nowcast."
     consoleMessage "Starting nowcast for cycle '$ADVISORY'."
+    echo "hostname : $HOSTNAME" >> $ADVISDIR/$ENSTORM/run.properties  
     # preprocess
     logMessage "Starting nowcast preprocessing."
     logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE"
@@ -1641,6 +1644,7 @@ while [ 1 -eq 1 ]; do
        if [[ $VARFLUX = on ]]; then
           downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX}
        fi
+       echo "hostname : $HOSTNAME" >> $ADVISDIR/$ENSTORM/run.properties  
        if [[ $RUNFORECAST = yes ]]; then
           # preprocess
           logMessage "Starting $ENSTORM preprocessing."

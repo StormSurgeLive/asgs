@@ -33,6 +33,30 @@ SSHKEY=${13}
 #
 cd ${ADVISDIR}/${ENSTORM}
 . ${CONFIG} # grab all static config info. 
+#
+# convert files to netcdf and copy to directory where they can be 
+# published via opendap
 perl ${OUTPUTDIR}/asgsConvertToNETCDF.pl --ppdir ${SCRIPTDIR}/output 
 #
-#/shared/apps/software-data/RenciGETools/trunk/src/asgsCreateKMZs.sh -c
+# create Google Earth images of water surface elevation and significant
+# wave height
+${OUTPUTDIR}/asgsCreateKMZs.sh -c ${OUTPUTDIR}/setupPostProcessGraphics.sh > graphics.log 2>&1
+#
+# copy the Google Earth images to a directory where they can be 
+# published via opendap
+OPENDAPDIR=`cat opendappath.log`;
+NCFS_CURRENT_DIR=/projects/ncfs/opendap/data/NCFS_CURRENT
+cp graphics/*.kmz ${OPENDAPDIR} >> graphics.log 2>&1 
+rm ${NCFS_CURRENT_DIR}/*.kmz >> graphics.log 2>&1
+cp graphics/*.kmz ${NCFS_CURRENT_DIR} >> graphics.log 2>&1
+#
+# Copy the run.properties file to a consistent location (an external web 
+# server in this case) with a path set according to the name of the ASGS
+# instance that created the results.
+cp run.properties /projects/ncfs/opendap/data/NCFS_CURRENT/run.properties.${HOSTNAME}.${INSTANCENAME} 2>> ${SYSLOG}
+#
+# jgf20110729: There seem to be issues ith ssh key permissions on blueridge so 
+# I commented this out.
+ssh ${WEBHOST} -l ${WEBUSER} "mkdir -p ${WEBPATH}/${INSTANCENAME}"
+scp run.properties ${WEBUSER}@${WEBHOST}:${WEBPATH}/${INSTANCENAME}/run.properties.${HOSTNAME}.${INSTANCENAME}
+ssh ${WEBHOST} -l ${WEBUSER} "chmod -R 755 ${WEBPATH}/${INSTANCENAME}"
