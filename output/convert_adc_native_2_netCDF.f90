@@ -480,23 +480,23 @@ CASE ('61','63','71','73')
    DO   ! loop until file ends 
       IF (IsCompact) THEN
       
-         READ(199,*,END=999)TIMEOUT,IT,NW,FILVAL
+         READ(199,*,END=999,ERR=998)TIMEOUT,IT,NW,FILVAL
          TIMEOUT=(TIMEOUT/86400.D0 - TIMESHIFT)*24.
          WRITE(*,'(I6,1x,F10.4,1x,I10)')I,TIMEOUT,IT
          ZETA=FILVAL
          ALLOCATE(UTEMP(NW),IFIL(NW))
-         READ(199,*)(IFIL(J),UTEMP(J),J=1,NW)
+         READ(199,*,END=999,ERR=998)(IFIL(J),UTEMP(J),J=1,NW)
          ZETA(IFIL)=UTEMP
          DEALLOCATE(UTEMP,IFIL)
 
       ELSE
       
-         READ(199,*,END=999)TIMEOUT,IT
+         READ(199,*,END=999,ERR=998)TIMEOUT,IT
          TIMEOUT=(TIMEOUT/86400.D0 - TIMESHIFT)*24.
          WRITE(*,'(I6,1x,F10.4,1x,I10)')I,TIMEOUT,IT
 
          DO J=1,NP
-            READ(199,*)II,ZETA(J)
+            READ(199,*,END=999,ERR=998)II,ZETA(J)
          END DO
 	 !WRITE(*,*)II,ZETA(NP)
 
@@ -511,12 +511,12 @@ CASE ('62','64','72','74')
    I=1
    DO  ! loop until file ends
 
-      READ(199,*,END=999)TIMEOUT,IT
+      READ(199,*,END=999,ERR=998)TIMEOUT,IT
       TIMEOUT=(TIMEOUT/86400.D0 - TIMESHIFT)*24.
       WRITE(*,*)I,TIMEOUT,IT
 
       DO J=1,NP
-         READ(199,*,END=999)II,UBAR(J),VBAR(J)
+         READ(199,*,END=999,ERR=998)II,UBAR(J),VBAR(J)
       END DO
 
       CALL STATUSCHECK(NF90_PUT_VAR(NCID=NCFILEID,VARID=TIME_ID,VALUES=TIMEOUT,START=(/I/)))
@@ -528,6 +528,7 @@ CASE ('62','64','72','74')
 END SELECT
 
 GOTO 1000
+998 WRITE(*,*) "ERROR: convert_adc_native_2_netcdf: Error reading dataset ",I,TIMEOUT,IT," line ",J,"."
 
 999 CONTINUE
 

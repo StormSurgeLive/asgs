@@ -160,8 +160,8 @@ my @filesProcessed;
 # if this run corresponds to a particular tropical cyclone, we will want to 
 # publish the ATCF formatted hindcast and forecast data
 if ( $stormnumber ne "00" ) {
-   my $hindcast_atcf = "../al".$stormnumber.$year.".fst";
-   my $forecast_atcf = "../bal".$stormnumber.$year.".dat";
+   my $forecast_atcf = "../al".$stormnumber.$year.".fst";
+   my $hindcast_atcf = "../bal".$stormnumber.$year.".dat";
    push(@compressionOnlyFiles,$hindcast_atcf,$forecast_atcf);
    $types{$hindcast_atcf} = "atcfhindcast";
    $types{$forecast_atcf} = "atcfforecast";
