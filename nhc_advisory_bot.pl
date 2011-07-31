@@ -304,7 +304,7 @@ while ($i < $#{$body_ref} ) {
          $vmax = $1;
       }
       substr($atcf_line,47,4) = sprintf("%4d",$vmax); 
-      $forecast_date_time = $forecast_year . $forecast_month . $forecast_day . $forecast_hour;
+      $forecast_date_time = sprintf("%04d%02d%02d%02d", $forecast_year, $forecast_month, $forecast_day, $forecast_hour);
       # check to see if we have crossed into the next month
       if ( $forecast_date_time < $nowcast_date_time ) {
          $forecast_month++;
