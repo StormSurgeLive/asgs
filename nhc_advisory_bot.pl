@@ -281,6 +281,10 @@ while ($i < $#{$body_ref} ) {
       substr($atcf_line,148,10) = sprintf("%10s",$storm_name);
       my $line = @{$body_ref}[$i];
       chomp $line;
+      # if the storm will dissipate, there is no more data to process
+      if ( $line =~ /DISSIPATED/ ) {
+         last;
+      }
       if ( $line =~ /^(FORECAST|OUTLOOK) VALID\s+(\d{2})\/(\d{4})Z/ ) {
          $forecast_day = $2;
          $forecast_hour = substr( $3, 0, 2 );
