@@ -1169,6 +1169,8 @@ HINDCASTWALLTIME="10:00:00"
 ADCPREPWALLTIME="00:30:00"
 NOWCASTWALLTIME="02:00:00"
 FORECASTWALLTIME="05:00:00"
+TIMESTEPSIZE=1.0
+SWANDT=600
 UMASK=002
 GROUP=""
 DRY=1           
@@ -1537,7 +1539,7 @@ while [ 1 -eq 1 ]; do
     ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" >> ${SYSLOG} 2>&1
     # activate padcswan based on ASGS configuration
     if [[ $WAVES = on ]]; then
-       CONTROLOPTIONS="${CONTROLOPTIONS} --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
+       CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
     fi
     CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
     CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
@@ -1654,7 +1656,7 @@ while [ 1 -eq 1 ]; do
           fi
        fi
        if [[ $WAVES = on ]]; then
-          CONTROLOPTIONS="${CONTROLOPTIONS} --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
+          CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
        fi
        CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
        CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
