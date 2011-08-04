@@ -332,6 +332,9 @@ for (my $i=0; $i<($num_files/2); $i++ ) {
 # Send the email message, if configured to do so
 if ($SendNotification) {
    my $subject = "ADCIRC NCFS POSTED for $fullDate";
+   if ( $windtag =~ /vortex/ ) {
+      $subject .= " (TROPICAL CYCLONE)"; 
+   }
    my $httpPathName=$openDAPPrefix;
    $httpPathName=~s/catalog/fileServer/;
    my $message = <<END;
