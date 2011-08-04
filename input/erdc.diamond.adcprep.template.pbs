@@ -4,10 +4,10 @@
 #PBS -q %queuename%
 
 # Specify email address
-#PBS -M jgflemin@email.unc.edu
+#PBS -M %notifyuser%
 
 # Specify the number of compute nodes to use
-#PBS -l select=%select%:ncpus=8:mpiprocs=8
+#PBS -l select=1:ncpus=8:mpiprocs=1
 
 # Allow PBS to use any available nodes. Exclude other users from using my
 # nodes while they are scheduled to me.

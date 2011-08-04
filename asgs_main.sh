@@ -838,13 +838,24 @@ handleFailedJob()
 RUNDIR=$1
 ADVISDIR=$2
 ENSTORM=$3
-SYSLOG=$4
-# check to see that adcprep did not conspicuously fail
+NOTIFYSCRIPT=$4
+HOSTNAME=$5
+STORMNAME=$6
+YEAR=$7
+STORMDIR=$8
+ADVISORY=$9
+GRIDFILE=${10}
+EMAILNOTIFY=${11}
+SYSLOG=${12}
+POST_LIST="${13}"
+# check to see that the job did not conspicuously fail
 if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then 
    warn "The job has failed."
    FAILDATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
    warn "Moving failed cycle to 'failed.${FAILDATETIME}'."
    mv $ADVISDIR/$ENSTORM $RUNDIR/failed.${FAILDATETIME} 2>> ${SYSLOG}
+   # send an email to notify the operator that a job has failed
+   $NOTIFYSCRIPT $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $GRIDFILE jobfailed $EMAILNOTIFY $SYSLOG "${POST_LIST}"
 fi
 }
 #
@@ -1332,6 +1343,8 @@ export PERL5LIB=${SCRIPTDIR}:${PERL5LIB} #<- augment, don't write over existing
 if [ ! -d $RUNDIR ]; then
     # -p says make the entire path tree if intermediate dirs do not exist 
     mkdir -p $RUNDIR #
+else 
+   fatal "The run directory $RUNDIR that the ASGS attempted to create actually already exists; it must be left over from a previous (now defunct) invokation of the ASGS. This is really more of an unfortunate coincidence than an outright error. Please restart the ASGS so it will run under a different process ID and therefore use a different run directory name."      
 fi
 #
 # send out an email to notify users that the ASGS is ACTIVATED
@@ -1393,8 +1406,10 @@ if [[ $START = coldstart ]]; then
    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE"
    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE
    # check to see that adcprep did not conspicuously fail
-   handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
-   if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
+   handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME hindcast $YEAR $STORMDIR $ADVISORY $GRIDFILE $EMAILNOTIFY $SYSLOG "${POST_LIST}"
+   if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
+      fatal "The prep for the hindcast run has failed."
+   fi
    # then submit the job
    logMessage "Submitting ADCIRC $ENSTORM job."
    cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
@@ -1404,8 +1419,10 @@ if [[ $START = coldstart ]]; then
    # check once per minute until all jobs have finished
    monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $HINDCASTWALLTIME
    # check to see that the nowcast job did not conspicuously fail
-   handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
-   if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
+   handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME hindcast $YEAR $STORMDIR $ADVISORY $GRIDFILE $EMAILNOTIFY $SYSLOG "${POST_LIST}"
+   if [[ ! -d $ADVISDIR/$ENSTORM ]]; then 
+      fatal "The hindcast run has failed."
+   fi
    consoleMesssage "Job(s) complete."
    # nowcast finished, get on with it
    logMessage "$ENSTORM run finished."
@@ -1539,8 +1556,10 @@ while [ 1 -eq 1 ]; do
     logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE"
     prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE
     # check to see that adcprep did not conspicuously fail
-    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
-    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
+    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $GRIDFILE $EMAILNOTIFY $SYSLOG "${POST_LIST}"
+    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then 
+       continue  # abandon this nowcast and wait for the next one
+    fi
     JOBTYPE=padcirc
     HOTSWAN=on
     if [[ $WAVES = on ]]; then
@@ -1554,8 +1573,10 @@ while [ 1 -eq 1 ]; do
     # check once per minute until all jobs have finished
     monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $NOWCASTWALLTIME
     # check to see that the nowcast job did not conspicuously fail
-    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
-    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
+    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $GRIDFILE $EMAILNOTIFY $SYSLOG "${POST_LIST}"
+    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
+       continue # abandon this nowcast and wait for the next one
+    fi
     consoleMesssage "Job(s) complete."
     # nowcast finished, get on with it
     logMessage "Nowcast run finished."
@@ -1649,10 +1670,10 @@ while [ 1 -eq 1 ]; do
           # preprocess
           logMessage "Starting $ENSTORM preprocessing."
           prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE
-          handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
+          handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $GRIDFILE $EMAILNOTIFY $SYSLOG "${POST_LIST}"
           if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
              si=$[$si + 1];
-             continue
+             continue # abandon this member of the forecast ensemble 
           fi
           JOBTYPE=padcirc
           if [[ $WAVES = on ]]; then
@@ -1664,10 +1685,10 @@ while [ 1 -eq 1 ]; do
           submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
           # check once per minute until job has completed
           monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $FORECASTWALLTIME
-          handleFailedJob $RUNDIR $ADVISDIR $ENSTORM $SYSLOG
+          handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $GRIDFILE $EMAILNOTIFY $SYSLOG "${POST_LIST}"
           if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
              si=$[$si + 1];
-             continue 
+             continue  # abandon this member of the forecast ensemble  
           fi
           consoleMesssage "Job(s) complete."
           # execute post processing
