@@ -76,7 +76,7 @@ if ( $numwriters != 0 ) {
 # of nodes to request, based on the given number of processors per node
 my $select=1;
 if ( $ppn != 1 ) {
-   $select = $ncpu / $ppn;
+   $select = int($ncpu / $ppn);
    if ( ($ncpu % $ppn) > 0 ) {
       $select++;
    }

@@ -43,6 +43,8 @@ my $syslog;   # the log file that the ASGS uses
 my $ppn;      # the number of processors per node
 my $cloptions=""; # command line options for adcirc, if any
 my $jobtype;  # e.g., prep15, padcirc, padcswan, etc
+my $localhotstart; # present if subdomain hotstart files should be written
+my $numwriters=0;  # number of writer processors, if any
 
 # initialize to the log file that adcirc uses, just in case
 $syslog="adcirc.log";
@@ -59,7 +61,8 @@ GetOptions("ncpu=s" => \$ncpu,
            "qscript=s" => \$qscript,
            "syslog=s" => \$syslog,
            "submitstring=s" => \$submitstring,
-           "cloptions=s" => \$cloptions,
+           "localhotstart" => \$localhotstart,
+           "numwriters=s" => \$numwriters,
            "ppn=s" => \$ppn,
            "jobtype=s" => \$jobtype );
 
@@ -67,7 +70,17 @@ GetOptions("ncpu=s" => \$ncpu,
 # number of processors per node
 unless ( $ncpu ) { die "ERROR: tezpur.pbs.pl: The number of CPUs was not specified."; }
 unless ( $ppn ) { die "ERROR: tezpur.pbs.pl: The number of processors per node was not specified."; }
-my $nnodes = $ncpu/$ppn; 
+#
+# add command line option if local hot start files should be written
+$cloptions = "";
+if ( defined $localhotstart ) {
+   $cloptions = "-S";
+}
+if ( $numwriters != 0 ) {
+   $cloptions = $cloptions . " -W " . $numwriters;
+   $ncpu += $numwriters;
+}
+my $nnodes = int($ncpu/$ppn); 
 if ( ($ncpu%$ppn) != 0 ) {
    $nnodes++;
 } 

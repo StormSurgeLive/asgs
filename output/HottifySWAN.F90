@@ -756,7 +756,7 @@ SUBROUTINE LocalToGlobal
             READ(18,'(A)') JunkC
          ENDDO
 
-         READ(18,'(A8,I8,I8,I8)') JunkC,JunkI,JunkI,NumLocalVerts
+         READ(18,'(A8,I12,I12,I12)') JunkC,JunkI,JunkI,NumLocalVerts
 
          ALLOCATE(L2G(IC)%Conn(1:NumLocalVerts))
 
