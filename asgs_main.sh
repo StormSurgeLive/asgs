@@ -672,12 +672,12 @@ monitorJobs()
 #
 #   convert the expected wall clock time of the job to seconds, assuming
 #   WALLTIME is in the format HH:MM:SS
-    hours=${WALLTIME:0:2}
-    minutes=${WALLTIME:3:2}
+    hours=${WALLTIME:0:2}   # requires leading zero! e.g., 05:00:00
+    minutes=${WALLTIME:3:2} 
     seconds=${WALLTIME:6:2}
     # bash interprets numbers with leading zeroes as octal ... the 10# prefix
     # tells bash that the numbers are base 10
-    limit=$((10#$hours * 3600 + 10#$minutes * 60 + 10#$seconds)) >> $SYSLOG # WALLTIME in seconds
+    limit=$((10#$hours * 3600 + 10#$minutes * 60 + 10#$seconds)) # WALLTIME in seconds
 #
     if [[ $QUEUESYS = "mpiexec" ]]; then
         # do nothing, mpiexec has returned at this point
@@ -854,7 +854,7 @@ if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then
    warn "Moving failed cycle to 'failed.${FAILDATETIME}'."
    mv $ADVISDIR/$ENSTORM $RUNDIR/failed.${FAILDATETIME} 2>> ${SYSLOG}
    # send an email to notify the operator that a job has failed
-   $NOTIFYSCRIPT $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $GRIDFILE jobfailed $EMAILNOTIFY $SYSLOG "${POST_LIST}"
+   $NOTIFYSCRIPT $HOSTNAME $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE jobfailed $EMAILNOTIFY $SYSLOG "${POST_LIST}"
 fi
 }
 #
@@ -1148,6 +1148,7 @@ TROPICALCYCLONE=off
 WAVES=off
 VARFLUX=off
 MINMAX=continuous
+STORMNAME=stormname
 RIVERSITE=ftp.nssl.noaa.gov
 RIVERDIR=/projects/ciflow/adcirc_info
 ELEVSTATIONS=null
@@ -1174,7 +1175,7 @@ UMASK=002
 GROUP=""
 DRY=1           
 DEMO=       
-STORM=        
+STORM=0        
 YEAR=      
 CSDATE=
 HOTORCOLD=
@@ -1535,7 +1536,7 @@ while [ 1 -eq 1 ]; do
        ln -s $NAM222 fort.222 2>> ${SYSLOG}
     fi
     # send out an email alerting end users that a new cycle has been issued
-    ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" >> ${SYSLOG} 2>&1
+    ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" >> ${SYSLOG} 2>&1
     # activate padcswan based on ASGS configuration
     if [[ $WAVES = on ]]; then
        CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
@@ -1569,7 +1570,7 @@ while [ 1 -eq 1 ]; do
     # then submit the job
     logMessage "Submitting $ENSTORM job."
     cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-    logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
+    logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE"
     submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE
     # check once per minute until all jobs have finished
     monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $NOWCASTWALLTIME
