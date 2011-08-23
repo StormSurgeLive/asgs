@@ -640,7 +640,7 @@ downloadRiverFluxData()
    OPTIONS="--advisdir $ADVISDIR --meshfile $MESHFILE --riversite $RIVERSITE --riverdir $RIVERDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --scriptdir $SCRIPTDIR --defaultfile $DEFAULTFILE"
    TRIES=0 
    SUCCESS=no
-   while [[ $TRIES -lt 10 ]]; do
+   while [[ $TRIES -lt 2 ]]; do
       perl ${SCRIPTDIR}/get_flux.pl $OPTIONS 2>> ${SYSLOG} 
       if [[ $? = 0 ]]; then
          logMessage "Completed construction of river flux boundary condition (fort.20 file)."
@@ -1162,6 +1162,7 @@ ARCHIVEDIR=null
 FORECASTCYCLE="00,06,12,18"
 TRIGGER="rss"
 STARTADVISORYNUM=null
+ADVISORY=null
 FORECASTLENGTH=84
 ALTNAMDIR=
 HOTSTARTCOMP=fulldomain
@@ -1207,6 +1208,7 @@ RUNDIR=
 INPUTDIR=
 PERL5LIB=
 HOTSTARTFORMAT=
+STORMDIR=stormdir
 SSHKEY=
 PPN=1
 ENSTORMNAMES[0]=nhcConsensus
@@ -1477,6 +1479,7 @@ while [ 1 -eq 1 ]; do
        downloadCycloneData $STORM $YEAR $RUNDIR $SCRIPTDIR $OLDADVISDIR $TRIGGER $ADVISORY $FTPSITE $RSSSITE $FDIR $HDIR
        ADVISORY=`cat advisoryNumber`
        ADVISDIR=$RUNDIR/${ADVISORY}
+       STORMDIR=$ADVISDIR/$ENSTORM
        if [ ! -d $ADVISDIR ]; then 
            mkdir $ADVISDIR 2>> ${SYSLOG}
        fi
@@ -1520,6 +1523,7 @@ while [ 1 -eq 1 ]; do
        downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR
        ADVISORY=`cat advisoryNumber`
        ADVISDIR=$RUNDIR/${ADVISORY}
+       STORMDIR=$ADVISDIR/$ENSTORM
        cd $ADVISDIR 2>> ${SYSLOG}
        logMessage "$START $ENSTORM cycle $ADVISORY."
        consoleMessage "$START $ENSTORM cycle $ADVISORY."
@@ -1604,6 +1608,7 @@ while [ 1 -eq 1 ]; do
     let si=0
     while [ $si -lt $ENSEMBLESIZE ]; do  
        ENSTORM=${NAME[${STORMLIST[$si]}]}
+       STORMDIR=$ADVISDIR/$ENSTORM
        if [ ! -d $ADVISDIR/${ENSTORM} ]; then
           mkdir $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
        fi

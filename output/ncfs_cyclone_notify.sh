@@ -83,7 +83,7 @@ END
 #
 "results")
 #
-cat <<END > ${STORMDIR}/${ADVISORY}/post_notify.txt 
+cat <<END > ${STORMDIR}/post_notify.txt 
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
@@ -97,14 +97,14 @@ issue the next advisory.
 END
 #
 echo "INFO: ncfs_cyclone_notify.sh: Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/${ADVISORY}/post_notify.txt | mail -s "ASGS results available for $STORM advisory $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/post_notify.txt | mail -s "ASGS results available for $STORM advisory $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
 #               J O B   F A I L E D  
 #
 "jobfailed")
 #
-cat <<END > ${STORMDIR}/${ADVISORY}/jobfailed_notify.txt 
+cat <<END > ${STORMDIR}/jobfailed_notify.txt 
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
@@ -117,7 +117,7 @@ issue the next advisory.
 END
 #
 echo "INFO: ncfs_cyclone_notify.sh: Sending 'job failed' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/${ADVISORY}/jobfailed_notify.txt | mail -s "ASGS job failure for $STORM advisory $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/jobfailed_notify.txt | mail -s "ASGS job failure for $STORM advisory $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 *)
 echo "ERROR: ncfs_cyclone_notify.sh: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."

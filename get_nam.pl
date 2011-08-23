@@ -451,8 +451,9 @@ sub getForecastData() {
             }
          }
          # since the ASGS will move failed ensemble directories out of 
-         # their parent cycle directory, the presence of the namforecast.out
-         # file indicates that it was successful
+         # their parent cycle directory, the presence of the 
+         # padcswan.namforecast.run.finish or padcirc.namforecast.run.finish
+         # files indicates that it was successful
          #
          # If the prior one is present, and was not scheduled, then
          # we'll assume it was a make-up run; in this case no need to 
@@ -465,7 +466,7 @@ sub getForecastData() {
          push(@prev_dirs,$rundir);
          push(@prev_dirs,$archivedruns);
          foreach my $dir (@prev_dirs) {
-            if ( -e "$dir/$previous_cycle/namforecast.out" ) {
+            if ( -e "$dir/$previous_cycle/padcswan.namforecast.run.finish" || -e "$dir/$previous_cycle/padcirc.namforecast.run.finish" ) {
                $earlier_success = 1; 
                stderrMessage("DEBUG","The previous cycle completed successfully and was found at '$dir/$previous_cycle'.");
                last;
