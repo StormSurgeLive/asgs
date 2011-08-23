@@ -192,13 +192,13 @@ my $cyclehour = $2;
 # grab the date portion from the start of the adcirc run date/time
 $now =~ /(\d{8})/; 
 stderrMessage("DEBUG","The most recent available flux cycle date and hour is '$cycledate$cyclehour'.");
-if ( $cycledate < $1 ) { 
-   # something strange has happened here ... the most recent files
-   # available on the ftp site actually earlier than the current state
-   # of the ADCIRC run ... an ftp error, most likely
-   stderrMessage("ERROR","The flux cycledate is '$cycledate' but the ADCIRC hotstart date is '$now'; therefore an error has occurred. get_flux.pl is halting this attempted download.");
-   die;
-}
+#if ( $cycledate < $1 ) { 
+#   # something strange has happened here ... the most recent files
+#   # available on the ftp site actually earlier than the current state
+#   # of the ADCIRC run ... an ftp error, most likely
+#   stderrMessage("ERROR","The flux cycledate is '$cycledate' but the ADCIRC hotstart date is '$now'; therefore an error has occurred. get_flux.pl is halting this attempted download.");
+#   die;
+#}
 # separate the available files into nowcast and forecast
 my @nowcastFluxFiles;
 my @forecastFluxFiles;
