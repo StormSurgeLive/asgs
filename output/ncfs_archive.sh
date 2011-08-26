@@ -51,8 +51,12 @@ for dir in `ls -d */`; do
    # compress the fort.63, swan files, and all the min/max files
    for file in `ls *.63`; do
       echo "ncfs_archive.sh: Compressing $file file in ${ADVISDIR}/${dir}."
-      gzip $file 2>&1
+       gzip $file 2>&1
    done
+   # gunzip files that will be needed for the next cycle TODO: fix this hack
+   gunzip maxele.63.gz 2>&1
+   gunzip maxwvel.63.gz 2>&1
+   gunzip minpr.63.gz 2>&1
    #
    # compress the remaining fulldomain output files
    for file in fort.64 fort.73 fort.74; do 

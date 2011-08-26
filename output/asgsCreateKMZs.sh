@@ -118,6 +118,8 @@ function processWindFiles {
 function processAdcirc1 {
    # Now for ADCIRC.1
    cd $baseDir
+
+   extraArgs="--colorRange=0:15 --units=FT --legendUnits=FT"
  
    # set up the bounding box from the precompute file
    setBoundingBox $PREPROCESSBASE/adcirc/$adcircGrid/$adcircGrid.1.1.1.pre
@@ -181,7 +183,7 @@ function processAdcirc1 {
       adcStepSecs=`sed -n '3q;2p' fort.63 | awk '{print $3}' | awk -F"E" 'BEGIN{OFMT="%10.10f"} {print $1 * (10 ^ $2)}'`
  
       # Build the surge  movie
-      $PPDIR/MakeGEMovieFromJava.pl --dataFile=fort.63.nc --fort63Mode=netCDFScoop --prefix=$TRACKNAME-adcirc --nLevels=2 --startDate=$adcStartTime --firstStep=1 --nSteps=$nSteps --stepInterval=1 --varName=zeta --legend="Zeta"  --highClip=30 --lowClip=-5 --precomputeDir=$PREPROCESSBASE/adcirc/$adcircGrid --precomputePrefix=$adcircGrid --outputType=p --outputDir=graphics --west=$west --north=$north --south=$south --east=$east --timeStep=$adcStepSecs --grid=$GRIDDIR/$adcircGrid.nc
+      $PPDIR/MakeGEMovieFromJava.pl --dataFile=fort.63.nc --fort63Mode=netCDFScoop --prefix=$TRACKNAME-adcirc --nLevels=2 --startDate=$adcStartTime --firstStep=1 --nSteps=$nSteps --stepInterval=1 --varName=zeta --legend="Zeta"  --highClip=30 --lowClip=-5 --precomputeDir=$PREPROCESSBASE/adcirc/$adcircGrid --precomputePrefix=$adcircGrid --outputType=p --outputDir=graphics --west=$west --north=$north --south=$south --east=$east --timeStep=$adcStepSecs --grid=$GRIDDIR/$adcircGrid.nc $extraArgs
       gzip fort.63.nc
    fi
 
@@ -204,7 +206,9 @@ function processAdcirc1 {
    fi
 
    if [ -e maxele.63.nc ] ; then
-      $PPDIR/MakeGEMovieFromJava.pl --dataFile=maxele.63.nc --fort63Mode=netCDFScoop --prefix=$TRACKNAME-adcirc-max --nLevels=5 --startDate=$adcStartTime --firstStep=1 --nSteps=1 --stepInterval=1 --varName=zeta --legend="MaxZeta"  --highClip=30 --lowClip=-5 --precomputeDir=$PREPROCESSBASE/adcirc/$adcircGrid --precomputePrefix=$adcircGrid --outputType=p --outputDir=graphics --west=$west --north=$north --south=$south --east=$east --timeStep=$adcStepSecs --grid=$GRIDDIR/$adcircGrid.nc
+      $PPDIR/MakeGEMovieFromJava.pl --dataFile=maxele.63.nc --fort63Mode=netCDFScoop --prefix=$TRACKNAME-adcirc-max --nLevels=5 --startDate=$adcStartTime --firstStep=1 --nSteps=1 --stepInterval=1 --varName=zeta --legend="MaxZeta"  --highClip=30 --lowClip=-5 --precomputeDir=$PREPROCESSBASE/adcirc/$adcircGrid --precomputePrefix=$adcircGrid --outputType=p --outputDir=graphics --west=$west --north=$north --south=$south --east=$east --timeStep=$adcStepSecs --grid=$GRIDDIR/$adcircGrid.nc $extraArgs
+
+      $PPDIR/MakeGEMovieFromJava.pl --dataFile=maxele.63.nc --fort63Mode=netCDFScoop --prefix=$TRACKNAME-inundation-max --nLevels=5 --startDate=$adcStartTime --firstStep=1 --nSteps=1 --stepInterval=1 --varName=inundationZeta --legend="MaxInundation"  --highClip=30 --lowClip=-5 --precomputeDir=$PREPROCESSBASE/adcirc/$adcircGrid --precomputePrefix=$adcircGrid --outputType=p --outputDir=graphics --west=$west --north=$north --south=$south --east=$east --timeStep=$adcStepSecs --grid=$GRIDDIR/$adcircGrid.nc  $extraArgs
       gzip maxele.63.nc
    fi
 }
