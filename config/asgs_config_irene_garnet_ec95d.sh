@@ -29,7 +29,7 @@
 #-------------------------------------------------------------------
 # General configuration 
 #-------------------------------------------------------------------
-INSTANCENAME=1
+INSTANCENAME=2
 STORM=09  # storm number, e.g. 05=ernesto in 2006 
 YEAR=2011 # year of the storm (useful for historical storms) 
 COLDSTARTDATE=2011080200     # date corresponding to simulation coldstart 
@@ -41,7 +41,7 @@ INPUTDIR=/u/jgflemin/asgs/trunk/input   # dir containing grid and other input fi
 OUTPUTDIR=/u/jgflemin/asgs/trunk/output # dir containing post processing scripts
 PERL5LIB=/u/jgflemin/asgs/trunk/PERL    # dir with DateCale.pm perl module
 SCRIPTDIR=/u/jgflemin/asgs/trunk        # dir where ASGS executables located 
-NCPU=992                       # number of compute CPUs for all simulations 
+NCPU=32                       # number of compute CPUs for all simulations 
 NUMWRITERS=16                 # number of writer CPUs 
 STARTADVISORYNUM=0            # starting advisory number, set to zero if
 		      # downloading forecast advisories via rss
@@ -49,7 +49,7 @@ STARTADVISORYNUM=0            # starting advisory number, set to zero if
 BACKGROUNDMET=off     # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
 TROPICALCYCLONE=on # [de]activate tropical cyclone forcing (temp. broken)
-WAVES=on             # [de]activate wave forcing 
+WAVES=off             # [de]activate wave forcing 
 VARFLUX=off          # [de]activate variable river flux forcing
 #-------------------------------------------------------------------
 # Platform-related configuration
@@ -69,12 +69,12 @@ VARFLUX=off          # [de]activate variable river flux forcing
 #QUEUENAME=desktop
 #QUEUENAME=kittyhawk # doesn't seem to be a divided queue structure at RENCI
 #QUEUENAME=batch # default queue name at RENCI
-QUEUENAME=R211934 
-SERQUEUE=R211934  
-ACCOUNT=ERDCV00898HSP
-#QUEUENAME=standard 
-#SERQUEUE=standard  
-#ACCOUNT=ERDCV00898ENQ
+#QUEUENAME=R211934 
+#SERQUEUE=R211934  
+#ACCOUNT=ERDCV00898HSP
+QUEUENAME=standard 
+SERQUEUE=standard  
+ACCOUNT=ERDCV00898ENQ
 SCRATCHDIR=/work/jgflemin
 #
 #-------------------------------------------------------------------
@@ -134,17 +134,17 @@ RIVERDIR=/projects/ciflow/adcirc_info
 # It is assumed that the following files are in the INPUTDIR defined above
 #
 # file that contains the mesh (fort.14)
-GRIDFILE=FEMA_R3_20110303_MSL.grd
-GRIDNAME=FEMA_R3
+GRIDFILE=ec_95d.grd
+GRIDNAME=ec95d
 # file that acts as a template for the control file (fort.15)
-CONTROLTEMPLATE=FEMA_R3_fort.15.template
+CONTROLTEMPLATE=ec_95_fort.15_template
 # lists of stations to include in the fort.15 file ... if there are no
 # stations of a particular type, set the corresponding variable to "null"
 ELEVSTATIONS=FEMA_R3_elev_stations.txt
 VELSTATIONS=null
 METSTATIONS=FEMA_R3_met_stations.txt
 # nodal attributes file (fort.13)
-NAFILE=FEMA_R3_20110303_MSL.13 
+NAFILE=
 #
 # SWAN template control file (for creating fort.26 files)
 SWANTEMPLATE=FEMA_R3_fort.26.template
@@ -182,10 +182,10 @@ SWANDT=900
 # not get dumped out of the queue b/c it ran out of time ... also give nowcasts
 # a little extra time, since some nowcasts are longer than others, depending
 # on the circumstances.
-HINDCASTWALLTIME="24:00:00"
-ADCPREPWALLTIME="00:15:00"
-NOWCASTWALLTIME="05:00:00"
-FORECASTWALLTIME="05:00:00"
+HINDCASTWALLTIME="02:00:00"
+ADCPREPWALLTIME="00:05:00"
+NOWCASTWALLTIME="01:00:00"
+FORECASTWALLTIME="01:00:00"
 WALLTIME="05:30:00"
 #
 #-------------------------------------------------------------------

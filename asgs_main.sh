@@ -982,6 +982,24 @@ init_diamond()
   PPN=8 
 }
 
+init_garnet()
+{ #<- can replace the following with a custom script
+  HOSTNAME=garnet.erdc.hpc.mil
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  ACCOUNT=erdcvhsp
+  SUBMITSTRING="aprun"
+  SCRATCHDIR=/work/$USER
+  SSHKEY=~/.ssh/id_rsa_garnet
+  QSCRIPT=garnet.template.pbs
+  PREPCONTROLSCRIPT=garnet.adcprep.template.pbs
+  PREPHOTSTARTSCRIPT=garnet.adcprep.template.pbs
+  QSCRIPTGEN=erdc.pbs.pl
+  PPN=16 
+  module load netcdf/4.1.1.0
+}
+
+
 init_queenbee()
 { #<- can replace the following with a custom script
   HOSTNAME=queenbee.loni.org
@@ -1082,6 +1100,9 @@ env_dispatch(){
 	  ;;
   "diamond") logMessage "Diamond (ERDC) configuration found."
           init_diamond
+	  ;;
+  "garnet") logMessage "Garnet (ERDC) configuration found."
+          init_garnet
 	  ;;
   "queenbee") logMessage "Queenbee (LONI) configuration found."
           init_queenbee
