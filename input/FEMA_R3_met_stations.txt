@@ -1,0 +1,22 @@
+-75.2889   39.0858    ! Diamond Shoals (Red Buoy)
+-70.4717   38.5033    ! HOTEL 200NM East of Cape May NJ
+-70.7019   38.4636    ! Delaware Bay, DE"
+-74.8367   36.5753    ! Virginia Beach 64NM E of Virgina Beach, VA
+-75.7133   36.9050    ! Chesapeake Light, VA
+-75.7453   36.1842    ! Duck Pier, NC"
+-76.4367   38.8983    ! Thomas Point, NC"
+-76.2730   38.2990    ! Barren Island
+-76.2610   37.9380    ! Smith Point
+-76.3650   38.4860    ! Taylors Island
+-75.7141   36.1999    ! Duck 3km waverider
+-75.437   39.089      ! Delaware Reserve, DE
+-75.40194 35.006111   ! Diamond Shoals, NC
+-75.745   36.184      ! Duck Pier, NC
+-76.437   38.898      ! Thomas Point, MD
+-75.756   36.904      ! Cape Henry, VA.
+-76.380   38.473      ! Mid Bay Buoy
+-76.113   39.375      ! North Bay Buoy
+-76.452   37.878      ! Smith Point Buoy
+-76.362   38.985      ! Baltimore Approaches Buoy
+-76.159   38.635      ! Choptank River Buoy
+-76.527   38.389      ! Patuxent/ACT Buoy
