@@ -466,7 +466,7 @@ sub getForecastData() {
          push(@prev_dirs,$rundir);
          push(@prev_dirs,$archivedruns);
          foreach my $dir (@prev_dirs) {
-            if ( -e "$dir/$previous_cycle/padcswan.namforecast.run.finish" || -e "$dir/$previous_cycle/padcirc.namforecast.run.finish" ) {
+            if ( -e "$dir/$previous_cycle/namforecast/padcswan.namforecast.run.finish" || -e "$dir/$previous_cycle/namforecast/padcirc.namforecast.run.finish" ) {
                $earlier_success = 1; 
                stderrMessage("DEBUG","The previous cycle completed successfully and was found at '$dir/$previous_cycle'.");
                last;

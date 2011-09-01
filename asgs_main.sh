@@ -266,9 +266,10 @@ prep()
     OUTPUTOPTIONS="${11}" # contains list of args for appending files 
     HOTSTARTCOMP=${12} # fulldomain or subdomain
     WALLTIME=${13} # HH:MM:SS format
-    HOTSTARTFORMAT=${14}
-    MINMAX=${15}
-    NAFILE=${16}  # full domain nodal attributes file, must be last in the
+    HOTSTARTFORMAT=${14}   # "binary" or "netcdf"
+    MINMAX=${15}           # "continuous" or "reset"  
+    HOTSWAN=${16} # "yes" or "no" to reinitialize SWAN only
+    NAFILE=${17}  # full domain nodal attributes file, must be last in the
                   # argument list, since it may be undefined
     TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
 #
@@ -340,7 +341,7 @@ prep()
        fi
     else
        # this is a   H O T S T A R T
-       HOTSWAN=on  # whether we are hotstarting swan
+       #
        # copy in the swaninit file which contains the name of the swan 
        # control file (conventionally named fort.26 when used with ADCIRC) 
        if [[ $WAVES = on ]]; then
@@ -1169,6 +1170,7 @@ TROPICALCYCLONE=off
 WAVES=off
 VARFLUX=off
 MINMAX=continuous
+REINITIALIZESWAN=no
 STORMNAME=stormname
 RIVERSITE=ftp.nssl.noaa.gov
 RIVERDIR=/projects/ciflow/adcirc_info
@@ -1405,6 +1407,7 @@ HSTIME=     # determined below
 #
 if [[ $START = coldstart ]]; then
    logMessage "Starting hindcast."
+   HOTSWAN=off
    ENSTORM=hindcast
    ADVISDIR=$RUNDIR/initialize
    mkdir -p $ADVISDIR 2>> ${SYSLOG} 
@@ -1428,8 +1431,8 @@ if [[ $START = coldstart ]]; then
    # preprocess
    logMessage "Starting $ENSTORM preprocessing."
     echo "hostname : $HOSTNAME" >> $ADVISDIR/$ENSTORM/run.properties  
-   logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE"
-   prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE
+   logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
+   prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
    # check to see that adcprep did not conspicuously fail
    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME hindcast $YEAR $STORMDIR $ADVISORY $GRIDFILE $EMAILNOTIFY "${POST_LIST}"
    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
@@ -1467,11 +1470,12 @@ while [ 1 -eq 1 ]; do
    . ${CONFIG}
    FROMDIR=
    LUN=       # logical unit number; either 67 or 68
+   HOTSWAN=on
+   if [[ $REINITIALIZESWAN = yes ]]; then
+      HOTSWAN=off
+   fi
    if [[ -d $OLDADVISDIR/nowcast ]]; then
        FROMDIR=$OLDADVISDIR/nowcast
-       if [[ $WAVES = on ]]; then
-          HOTSWAN=on # if swan is active, it ran in the nowcast
-       fi 
    fi
    if [[ -d $OLDADVISDIR/hindcast ]]; then
        FROMDIR=$OLDADVISDIR/hindcast
@@ -1580,8 +1584,8 @@ while [ 1 -eq 1 ]; do
     echo "hostname : $HOSTNAME" >> $ADVISDIR/$ENSTORM/run.properties  
     # preprocess
     logMessage "Starting nowcast preprocessing."
-    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE"
-    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE
+    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
+    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
     # check to see that adcprep did not conspicuously fail
     handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $GRIDFILE $EMAILNOTIFY "${POST_LIST}"
     if [[ ! -d $ADVISDIR/$ENSTORM ]]; then 
@@ -1616,9 +1620,7 @@ while [ 1 -eq 1 ]; do
     consoleMessage "Starting forecast for advisory '$ADVISORY'."
     # source config file to pick up any configuration changes
     . ${CONFIG}
-    if [[ $WAVES = on ]]; then
-       HOTSWAN=on
-    fi
+    HOTSWAN=on # doesn't do anything unless WAVES=on
     checkHotstart ${ADVISDIR}/nowcast $HOTSTARTFORMAT 67
     if [[ $HOTSTARTFORMAT = netcdf ]]; then
        HSTIME=`$ADCIRCDIR/hstime -f ${ADVISDIR}/nowcast/fort.67.nc -n` 2>> ${SYSLOG}
@@ -1697,7 +1699,7 @@ while [ 1 -eq 1 ]; do
        if [[ $RUNFORECAST = yes ]]; then
           # preprocess
           logMessage "Starting $ENSTORM preprocessing."
-          prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $NAFILE
+          prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
           handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $GRIDFILE $EMAILNOTIFY "${POST_LIST}"
           if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
              si=$[$si + 1];
