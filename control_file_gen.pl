@@ -499,6 +499,7 @@ printf RUNPROPS "mesh : $gridname\n";
 printf RUNPROPS "RunType : $run_type\n";
 printf RUNPROPS "ADCIRCgrid : $gridname\n";
 printf RUNPROPS "stormnumber : $stormnumber\n";
+printf RUNPROPS "stormname : $nhcName\n";
 printf RUNPROPS "miscfield : $advisorynum\n";
 printf RUNPROPS "advisory : $advisorynum\n";
 printf RUNPROPS "currentcycle : $cycle_hour\n";
