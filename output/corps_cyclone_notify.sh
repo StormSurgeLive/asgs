@@ -67,7 +67,7 @@ identical to the results produced on ${HOSTNAME}. The other instances
 are running for redundancy purposes.
 
 END
-    logMessage "Sending activation email to the following addresses: $COMMA_SEP_LIST."
+    echo "Sending activation email to the following addresses: $COMMA_SEP_LIST."
     cat $STORMDIR/activate.txt | mail -s "ASGS Activated on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
@@ -94,7 +94,7 @@ that are running on supercomputers OTHER THAN ${HOSTNAME}.
 The other instances are running for redundancy purposes.  
 
 END
-    logMessage "Sending 'new advisory detected' email to the following addresses: $COMMA_SEP_LIST."
+    echo "Sending 'new advisory detected' email to the following addresses: $COMMA_SEP_LIST."
      cat $STORMDIR/new_advisory.txt | mail -s "advisory detected by ASGS on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 
 ;;
@@ -103,7 +103,7 @@ END
 #
 "results")
 #
-cat <<END > ${STORMDIR}/${ADVISORY}/post_notify.txt 
+cat <<END > ${STORMDIR}/post_notify.txt 
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
@@ -125,15 +125,15 @@ issue the next advisory.
 
 END
 #
-logMessage "Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/${ADVISORY}/post_notify.txt | mail -s "ASGS results available for $STORM advisory $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+echo "Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
+cat ${STORMDIR}/post_notify.txt | mail -s "ASGS results available for $STORM advisory $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
 #              J O B   F A I L E D 
 #
 "jobfailed")
 #
-cat <<END > ${STORMDIR}/${ADVISORY}/job_failed_notify.txt 
+cat <<END > ${STORMDIR}/job_failed_notify.txt 
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
@@ -143,10 +143,10 @@ on the $GRIDFILE grid.
 
 END
 #
-logMessage "Sending 'job failed' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/${ADVISORY}/job_failed_notify.txt | mail -s "ASGS job failed on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+echo "Sending 'job failed' email to the following addresses: $COMMA_SEP_LIST."
+cat ${STORMDIR}/job_failed_notify.txt | mail -s "ASGS job failed on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 *)
-logMessage "ERROR: corps_cyclone_notify.sh: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."
+echo "ERROR: corps_cyclone_notify.sh: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."
 ;;
 esac
