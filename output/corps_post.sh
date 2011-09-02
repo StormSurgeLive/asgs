@@ -40,8 +40,11 @@ if [[ $BACKGROUNDMET = on ]]; then
    STORMNAME="NAM ${namcyclehour}Z"
 fi
 if [[ $TROPICALCYCLONE = on ]]; then 
-   STORMNAME=`cat nhcClassName` 
-   STORMNAME=${STORMNAME}" "${YEAR}" "$ENSTORM
+   STORMCLASSNAME=`cat nhcClassName` 
+   # find the space between the storm class (TD, TS, HU, etc) and the NHC name
+   ind=`expr index "$STORMCLASSNAME" ' '`
+   # just use the storm's name 
+   STORMNAME=${STORMCLASSNAME:$ind}
 fi
 #
 #  R E F O R M A T T I N G
@@ -126,11 +129,6 @@ if [[ $BACKGROUNDMET = on ]]; then
    ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/NAM"
 fi
 if [[ $TROPICALCYCLONE = on ]]; then 
-   STORMCLASSNAME=`cat nhcClassName` 
-   # find the space between the storm class (TD, TS, HU, etc) and the NHC name
-   ind=`expr index "$STORMCLASSNAME" ' '`
-   # just use the storm's name and year on the web page
-   STORMNAME=${STORMCLASSNAME:$ind}
    ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "mkdir -p ${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}"
    scp -i $SSHKEY index.html ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
    scp -i $SSHKEY $GISKMZJPG ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}

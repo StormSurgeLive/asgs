@@ -572,9 +572,17 @@ sub getIncrement () {
 sub getStations () {
    my $station_file = shift;
    my $station_type = shift;
+#
    my $numstations = "";
+   my $station_var = "NSTAE";
+   if ( $station_type eq "velocity" ) {
+      $station_var = "NSTAV";
+   } 
+   if ( $station_type eq "meteorology" ) {
+      $station_var = "NSTAM";
+   }
    if ( $station_file =~ /null/) {
-      $numstations = "0";
+      $numstations = "0   ! $station_var" ;
       stderrMessage("INFO","There are no $station_type stations.");
       return $numstations; # early return
    } 
@@ -586,6 +594,10 @@ sub getStations () {
       stderrMessage("ERROR","Failed to open the $station_type stations file $station_file for reading.");
       die;
    }
+   chomp($numstations);
+   # need to add this as a sort of comment in the fort.15 for the post
+   # processing script station_transpose.pl to find  
+   $numstations = $numstations . " " . $station_var . "\n";
    while (<STATIONS>) {
       $numstations.=$_;
    }

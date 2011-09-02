@@ -116,23 +116,21 @@ unless(open(FORT15,"<$controlFile")) {
 #
 while(<FORT15>) {
    my @Fld = split;
-   unless ( defined $Fld[2] ) {
-      next;
-   }
-   if ( $Fld[2] eq "NSTAE" || $Fld[2] eq "NSTAV" || $Fld[2] eq "NSTAM" ) {
+   if ( /(NSTAE)/ || /(NSTAV)/ || /(NSTAM)/ ) {
       $num_sta = $Fld[0];
+      my $station_type = $1;
       for ( my $i=0; $i<$num_sta; $i++ ) {
          my $line =<FORT15>; 
          chomp($line);
-         if ( $Fld[2] eq "NSTAE" ) {
+         if ( $station_type eq "NSTAE" ) {
             $num_elev_sta = $num_sta;
             push(@elev_sta_names,substr($line,(index($line,"!"))+1));  
          }
-         if ( $Fld[2] eq "NSTAV" ) {
+         if ( $station_type eq "NSTAV" ) {
             $num_vel_sta = $num_sta;
             push(@vel_sta_names,substr($line,(index($line,"!"))+1));  
          }
-         if ( $Fld[2] eq "NSTAM" ) {
+         if ( $station_type eq "NSTAM" ) {
             $num_met_sta = $num_sta;
             push(@met_sta_names,substr($line,(index($line,"!"))+1));  
          }
