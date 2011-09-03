@@ -73,6 +73,15 @@ case "$TARGET" in
                 ZIP=/usr/bin/zip   # path to zip
                 ;;
 
+        "garnet")
+                echo "INFO: config_simple_gmt_pp.sh: TARGET is garnet."
+                GMTHOME=/usr/local/usp/gmt/4.5.5  # The GMT installation
+                GS=/usr/bin/gs     # The ghostscript binary (gs)
+                # path to ImageMagick binaries
+                ImageMagick=/usr/local/usp/ImageMagick/6.5.2-10/bin
+                ZIP=/usr/bin/zip   # path to zip
+                ;;
+
         "desktop")
                 echo "INFO: config_simple_gmt_pp.sh: TARGET is desktop."
                 GMTHOME=/usr/local  # The GMT installation

@@ -997,6 +997,7 @@ init_garnet()
   PREPHOTSTARTSCRIPT=garnet.adcprep.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
   PPN=16 
+  . /opt/modules/default/etc/modules.sh
   module load netcdf/4.1.1.0
 }
 
