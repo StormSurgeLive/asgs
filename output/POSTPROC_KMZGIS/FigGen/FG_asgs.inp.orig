@@ -17,8 +17,8 @@ PARAMETERS FOR CONTOURS:
 0                                                  ! Contour lines flag: 0 to ignore, 1 to plot contour lines, 2 to plot differences.
 maxele.63                                          ! Name(s) of file(s) to use for contours.
 OUTPUT-FULL                                        ! Contour file format flag: OUTPUT-FULL/SPARSE, GRID-BATH/SIZE/DECOMP-#, 13-MANNING/CANOPY/TAU0/EVIS/WIND-REDUCTION(-#).
-1                                                  ! Unit conversion factor for contours.
-m                                                  ! Alphanumeric label for units after conversion.
+3.2808399                                                  ! Unit conversion factor for contours.
+ft                                                   ! Alphanumeric label for units after conversion.
 SMS                                                ! Color palette flag: RGB, SMS, SMS+INTERVALS.
 Default2.pal                                       ! Name of SMS color palette.
 DEFAULT                                            ! Color lines flag: DEFAULT, CONTOUR-LINES, GRID-BATH, GRID-SIZE.  Requires GMT4.3.0.

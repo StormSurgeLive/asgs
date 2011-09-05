@@ -125,8 +125,15 @@ case "$BOX" in
       WEST=-79
       EAST=-75
        ;;
+# VA Coast
+       "VA")
+      NORTH=40
+      SOUTH=35
+      WEST=-77.4
+      EAST=-72.5
+       ;;
        *)
-        echo "ERROR: config_simple_gmt_pp.sh: BOX was either unspecified or was not recognized. Allowable values include the following: TX, LA, WFL, NC."         
+        echo "ERROR: config_simple_gmt_pp.sh: BOX was either unspecified or was not recognized. Allowable values include the following: TX, LA, WFL, NC, VA."         
 esac
 
 
