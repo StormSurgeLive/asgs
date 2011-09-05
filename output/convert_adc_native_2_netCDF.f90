@@ -15,6 +15,9 @@
 !
 ! jgf20110622: The following worked for me on blueridge:
 ! ifort -traceback -static  Strings.f90 convert_adc_native_2_netCDF.f90 -o convert_adc_native_2_netCDF  -L/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.0.1-icc-ifort/lib -lnetcdf -I/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.0.1-icc-ifort/include
+!
+! jgf20110905: The following worked on garnet at erdc:
+!pgf90  -Bstatic Strings.f90 convert_adc_native_2_netCDF.f90 -o convert_adc_native_2_netCDF  -L /opt/cray/netcdf/4.1.1.0/netcdf-pgi/lib -lnetcdff -L/opt/cray/hdf5/default/hdf5-pgi/lib -I /opt/cray/netcdf/4.1.1.0/netcdf-pgi/include -lnetcdf -lhdf5_hl -lhdf5 -lhdf5_fortran -lz
 
 
 PROGRAM ADCPOSTNETCDF

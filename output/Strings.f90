@@ -706,7 +706,11 @@ do i=1,lenstr
       ibsl=0
       cycle
    end if
+#ifdef GARNET
+   if(ch == '\\') then          ! backslash with backslash inactive
+#else
    if(ch == '\') then          ! backslash with backslash inactive
+#endif
       k=k+1
       before(k:k)=ch
       ibsl=1
@@ -766,7 +770,11 @@ do i=1,lenstr
    ibsl=0
    cycle
   end if
+#ifdef GARNET
+  if(ch == '\\') then          ! backslash with backslash inactive
+#else
   if(ch == '\') then          ! backslash with backslash inactive
+#endif
    ibsl=1
    cycle
   end if

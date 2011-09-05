@@ -38,7 +38,7 @@ module load netcdf/4.1.1.0
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 echo "[${DATETIME}] : padcirc starting in %advisdir%/%enstorm%." >> %jobtype%.%enstorm%.run.start
 echo "Test job starting at $DATETIME."
-%submitstring% -n %ncpu% %adcircdir%/%jobtype% %cloption% >> %syslog%
+%submitstring% -n %ncpu% %adcircdir%/%jobtype% %cloption% > %jobtype%.%enstorm%.stdout.stderr 2>&1
 ERROVALUE=$?
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 if [ $ERROVALUE == 0 ] ; then

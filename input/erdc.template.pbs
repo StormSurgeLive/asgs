@@ -34,9 +34,9 @@ cd %advisdir%/%enstorm%
 
 # These are the actual commands to be executed.
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-echo "[${DATETIME}] : padcirc starting in %advisdir%/%enstorm%." >> %jobtype%.%enstorm%.run.start
-echo "Test job starting at $DATETIME."
-%submitstring% -n %ncpu% %adcircdir%/%jobtype% %cloption% >> %syslog%
+echo "[${DATETIME}] : %jobtype% starting in %advisdir%/%enstorm%." >> %jobtype%.%enstorm%.run.start
+echo "Job starting at $DATETIME."
+%submitstring% -n %ncpu% %adcircdir%/%jobtype% %cloption% >> %jobtype%.%enstorm%.stdout.stderr 2>&1
 ERROVALUE=$?
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 if [ $ERROVALUE == 0 ] ; then
