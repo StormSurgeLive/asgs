@@ -50,6 +50,7 @@ PROGRAM HottifySWAN
       IF(MyProc.EQ.0)THEN
          ARGCOUNT=IARGC()
          IF (ARGCOUNT.ne.0) THEN
+            I=0
             DO WHILE (I.LT.ARGCOUNT) 
                I=I+1
                CALL GETARG(I,CMDLINEARG)  
