@@ -29,11 +29,16 @@ our $PPDIR = "/shared/apps/software-data/RenciGETools/trunk/src";
 my $cmdLinePPDIR;
 my $envPPDIR = $ENV{'PPDIR'};
 our $OPENDAPBASEDIR="/projects/ncfs/opendap/data";
-my $InsertFile=0;
+my $pathonly='';     # if this is set, write opendappath to stdout and exit
+my $remote='';       # if this is set, scp files to remote location
+my $InsertFile=0; 
 my $DeleteFiles=0;
 my $SendNotification=1;
 my $CopyFile=1;
 sub stderrMessage($$);
+my $sshkey;  # public key for scp'ing results to remote hosts
+my $opendapuser; # username for scp'ing results to remote hosts
+my $opendaphost; # hostname for scp'ing results 
 # set the OpenDAP prefix:  Change this if/when we change where opendap.renci.org points.
 my $openDAPPrefix;
 
@@ -80,6 +85,12 @@ GetOptions(
     "ppdir=s" => \$cmdLinePPDIR,
     "griddir=s" => \$GRIDDIR,
     "opendapbasedir=s" => \$OPENDAPBASEDIR,
+    "opendapuser=s" => \$opendapuser,
+    "opendaphost=s" => \$opendaphost,
+    "sshkey=s" => \$sshkey,
+    "pathonly" => \$pathonly,
+    "remote" => \$remote,
+    "tolist=s" => \$toList,
     "insertfile" => \$InsertFile, 
     "deletefiles" => \$DeleteFiles,
     "sendnotification" => \$SendNotification,
@@ -91,9 +102,6 @@ if (defined $cmdLinePPDIR) {
 } elsif (defined $envPPDIR) {
    $PPDIR = $envPPDIR;
 } 
-#stderrMessage("DEBUG","Path to executables (PPDIR) is set to ".$PPDIR.".");
-#stderrMessage("DEBUG","Path to mesh file (GRIDDIR) is set to '$GRIDDIR'.");
-#stderrMessage("DEBUG","Path to OPenDAP data (OPENDAPBASEDIR) is set to '$OPENDAPBASEDIR'.");
 
 if (!-e "run.properties"){
    stderrMessage("ERROR","The run.properties file was not found.");
@@ -120,6 +128,15 @@ $stormnumber=$RP{"stormnumber"};
 my $coldstarttime=$RP{"ColdStartTime"};
 my $runstarttime=$RP{"RunStartTime"};
 #
+if (!defined $prodID) {
+   stderrMessage("ERROR","prodID not found in run.properties file.");
+   die; 
+}
+if (!defined $ADCIRCgrid) {
+   stderrMessage("ERROR","ADCIRCgrid not found in run.properties file."); 
+   die;
+}
+#
 $year = "20" . substr $startDate,0,2;
 $mon = substr $startDate,2,2;
 $mday = substr $startDate,4,2;
@@ -130,14 +147,8 @@ my $rsm = $2;
 my $rsd = $3;
 my $rsh = $4;
 $openDAPDirectory = "$OPENDAPBASEDIR/$model/$ADCIRCgrid/$windtag/$year/$mon/$mday/$cycle";
-#stderrMessage("DEBUG","openDAPDirectory: $openDAPDirectory");
-#$openDAPPrefix="http://data.disaster.renci.org:1935/thredds/catalog/$model/$ADCIRCgrid";
 $openDAPPrefix="http://opendap.renci.org:1935/thredds/catalog/$model/$ADCIRCgrid";
-#stderrMessage("DEBUG","openDAPPrefix: $openDAPPrefix");
-
-unless (-e $openDAPDirectory) {
-   system("mkdir -p  $openDAPDirectory"); 
-}
+#
 # write the opendap directory that the files were copied to so that we 
 # know where they went
 unless ( open(OPENDAPPATH,">opendappath.log") ) {
@@ -146,15 +157,11 @@ unless ( open(OPENDAPPATH,">opendappath.log") ) {
 }
 printf OPENDAPPATH "$openDAPDirectory";
 close(OPENDAPPATH);
-
-if (!defined $prodID) {
-   stderrMessage("ERROR","prodID not found in run.properties file.");
-   die; 
+if ( $pathonly ) {
+   stderrMessage("INFO","The 'pathonly' option was selected; this script will now exit.");
+   exit 0; 
 }
-if (!defined $ADCIRCgrid) {
-   stderrMessage("ERROR","ADCIRCgrid not found in run.properties file."); 
-   die;
-}
+#
 my @filesProcessed;
 #
 # if this run corresponds to a particular tropical cyclone, we will want to 
@@ -202,30 +209,6 @@ foreach my $file (@files) {
    }
    #stderrMessage("DEBUG","Converting $file to $file.nc (netCDF).");
    $status=`$PPDIR/convert_adc_native_2_netCDF -y $rsy -m $rsm -d $rsd -h $rsh $file`;   
-   # The conversion program writes a lot of info to stdout ... can't use this
-   # as a status indicator
-   #if ( $status == 1 ) {
-   #   stderrMessage("ERROR","Conversion program '$PPDIR/convert_adc_native_2_netCDF' returned '$status'. The file $file will not be processed."); 
-   #   next;
-   #}                           
-   # if this is a fort.63 || fort.64 file, 
-   # append netcdf version of grid to .nc file
-   #   print  "Appending netcdf grid file to $fnc ...\n";
-   #   if ( $f eq "fort.63" || $f eq "fort.64" || $f eq "maxele.63" || $f eq "timeofmaxele.63" ||
-   #       $f eq "swan_HS.63" || $f eq "swan_HS_max.63" || 
-   #       $f eq "swan_TM01.63" || $f eq "swan_TM01_max.63" || 
-   #       $f eq "swan_TPS.63" || $f eq "swan_TPS_max.63" || 
-   #       $f eq "swan_DIR.63" || $f eq "swan_DIR_max.63"){
-   #
-   #      my $temp=$ADCIRCNCGDLOC;
-   #      $temp=~s/<GRIDNAME>/$ADCIRCgrid/;  
-   #      die "$temp not found." if (!-e $temp);
-   #      $com="$NCODIR/ncks --quiet --append $temp $fnc >& /dev/null";
-   #      print "$com\n";
-   #      $status=`$com`;
-   #   }
-
-
    #
    # Additional processing of maxele.63.nc file: append inundation masks,
    # calculate and append inundation data.
@@ -249,28 +232,7 @@ foreach my $file (@files) {
    push(@filesProcessed,$file.".nc.gz",$myProductID);
    #
    my $shpPrefix = $myProductID;
-   # Some special processing for the maxele files. We'd like to
-   # run the shape file generator.
-   #         if ($f eq "maxele.63") {
-   #            $shpPrefix =~s/<field>/$t/;
-   #            $shpPrefix =~s/Z.nc.gz/shp/;
-   #            my $actoCommand = "$ACTOSHAPE --nowater $gridFile maxele.63 $shpPrefix";
-   #            print "actoCommand: $actoCommand\n";
-   #            my $result = `$ACTOSHAPE --nowater $gridFile maxele.63 $shpPrefix`;
-   #             my $shpTarFile = "$shpPrefix.tar.gz";
-   #             $result = `tar cfz $shpTarFile $shpPrefix.{shp,shx,prj,dbf} `;
-   #            my $shpZipFile = "$shpPrefix.zip";
-   #            $result = `zip -j $shpZipFile $shpPrefix.{shp,shx,prj,dbf} `;
-   
-   #            if ($InsertFile) {
-   #               print "Inserting $shpZipFile as $shpZipFile ... \n";
-   #               &pqi("$shpZipFile",$shpZipFile);
-   #            }
-   
-   #            if ($DeleteFiles) {
-   #               system("rm -rf $shpPrefix.{shp,shx,prj,dbf}"); 
-   #            }
-   #         }
+   #
    # We may want to delete the files once they are processed. 
    if ($DeleteFiles) {
        #system("rm -rf $file"); 
@@ -319,8 +281,13 @@ for (my $i=0; $i<($num_files/2); $i++ ) {
    my $to = pop(@filesProcessed);
    my $from = pop(@filesProcessed);
    if ($CopyFile) {
-      stderrMessage("INFO","Copying '$from' as '$to'.");
-      system("cp $from $openDAPDirectory/$to");
+      if ($remote) {
+         system("scp -i $sshkey $from $opendapuser\@$opendaphost:$openDAPDirectory/$to");
+         stderrMessage("INFO","Copying '$from' to '$opendapuser\@$opendaphost:$openDAPDirectory/$to'.");
+      } else {
+         stderrMessage("INFO","Copying '$from' as '$to'.");
+         system("cp $from $openDAPDirectory/$to");
+      }
    }
    if ($InsertFile) {
       stderrMessage("INFO","Inserting '$from' as '$to'.");
@@ -375,7 +342,7 @@ sub stderrMessage($$) {
    my $year = 1900 + $yearOffset;
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-   printf STDERR "$theTime $level: asgsConvertToNETCDF.pl: $message\n";
+   printf STDERR "$theTime $level: asgsConvertR3ToNETCDF.pl: $message\n";
 }
 #
 # ReadFileAsHash reads the contents of a file into

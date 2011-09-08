@@ -33,6 +33,10 @@ SSHKEY=${13}
 #
 . ${CONFIG} # grab all static config info
 #
+# write the target area to the run.properties file for the CERA
+# web app
+echo "asgs : la" >> run.properties
+#
 # grab storm class and name from file
 if [[ $BACKGROUNDMET = on ]]; then
    # the NAM cycle time is the last two digits of the "advisory"

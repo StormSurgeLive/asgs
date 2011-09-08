@@ -33,6 +33,11 @@ SSHKEY=${13}
 #
 . ${CONFIG} # grab all static config info
 #
+#
+# write the target area to the run.properties file for the CERA
+# web app
+echo "asgs : va" >> run.properties
+#
 # grab storm class and name from file
 if [[ $BACKGROUNDMET = on ]]; then
    # the NAM cycle time is the last two digits of the "advisory"
@@ -91,6 +96,9 @@ fi
 #
 # Convert results to NetCDF format and copy to RENCI for post processing.
 # Copy to directory where they can be published via opendap
-#perl ${OUTPUTDIR}/asgsConvertR3ToNETCDF.pl --ppdir ${SCRIPTDIR}/output --griddir ${OUTPUTDIR}/POSTPROC_KMZGIS/grids
+perl ${OUTPUTDIR}/asgsConvertR3ToNETCDF.pl --ppdir ${SCRIPTDIR}/output --griddir ${OUTPUTDIR}/POSTPROC_KMZGIS/grids --opendapbasedir $OPENDAPBASEDIR --pathonly
+OPENDAPPATH=`cat opendappath.log`
+ssh ${OPENDAPHOST} -l ${OPENDAPUSER} -i $SSHKEY "mkdir -p $OPENDAPPATH"
+perl ${OUTPUTDIR}/asgsConvertR3ToNETCDF.pl --ppdir ${SCRIPTDIR}/output --griddir ${OUTPUTDIR}/POSTPROC_KMZGIS/grids --opendapbasedir $OPENDAPBASEDIR --remote --sshkey $SSHKEY --opendapuser $OPENDAPUSER --opendaphost $OPENDAPHOST --tolist "jason.fleming@seahorsecoastal.com, jason.g.fleming@gmail.com"
 
 
