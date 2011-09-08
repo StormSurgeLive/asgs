@@ -36,7 +36,7 @@
 # The directory to start in 
 
 cd %advisdir%/%enstorm%
-
+export MPI_GROUP_MAX=%ncpu%
 # These are the actual commands to be executed.
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 echo "[${DATETIME}] : %jobtype%.%enstorm% starting in %advisdir%/%enstorm%." > %jobtype%.%enstorm%.run.start

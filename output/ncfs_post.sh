@@ -34,6 +34,10 @@ SSHKEY=${13}
 cd ${ADVISDIR}/${ENSTORM}
 . ${CONFIG} # grab all static config info. 
 #
+# write the target area to the run.properties file for the CERA
+# web app
+echo "asgs : nc" >> run.properties
+#
 # convert files to netcdf and copy to directory where they can be 
 # published via opendap
 perl ${OUTPUTDIR}/asgsConvertToNETCDF.pl --ppdir ${SCRIPTDIR}/output 
