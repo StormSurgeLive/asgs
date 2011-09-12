@@ -33,6 +33,11 @@ ADDRESS_LIST=${11}
 if [[ $EMAILNOTIFY != yes && $EMAILNOTIFY != YES ]]; then
    exit
 fi
+STORMCLASSNAME=`cat nhcClassName`
+# find the space between the storm class (TD, TS, HU, etc) and the NHC name
+ind=`expr index "$STORMCLASSNAME" ' '`
+# just use the storm's name 
+STORMNAME=${STORMCLASSNAME:$ind}
 COMMA_SEP_LIST=${ADDRESS_LIST// /,}
 case $PHASE in
 #
@@ -44,8 +49,8 @@ cat <<END > $STORMDIR/activate.txt 2>> ${SYSLOG}
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
-This message is to let you know that the ASGS has been ACTIVATED for storm
-number $STORM of ${YEAR} on the $GRIDFILE grd. 
+This message is to let you know that the ASGS has been ACTIVATED for 
+$STORMCLASSNAME ${YEAR} on the $GRIDFILE grd. 
 
 The ASGS was activated on $HOSTNAME because 
 the storm is forecast to pass within 270 nautical miles of southern Louisiana
@@ -59,12 +64,6 @@ as soon as the results of this guidance become available. You will also
 continue to receive storm surge guidance for each forecast that the NHC
 issues for this storm, until the storm has passed to the north of the
 northern Gulf Coast.
-
-YOU MAY ALSO RECEIVE activation emails from ASGS instances that are running on
-supercomputers OTHER THAN ${HOSTNAME}. Those instances 
-are completely independent of this one, and will produce results that are
-identical to the results produced on ${HOSTNAME}. The other instances 
-are running for redundancy purposes.
 
 END
     echo "Sending activation email to the following addresses: $COMMA_SEP_LIST."
@@ -80,8 +79,8 @@ This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
 The supercomputer $HOSTNAME has detected a new advisory
-(number $ADVISORY) from the National Hurricane Center for storm number
-$STORM of ${YEAR}. This advisory has been downloaded; ADCIRC
+(number $ADVISORY) from the National Hurricane Center for
+$STORMCLASSNAME ${YEAR}. This advisory has been downloaded; ADCIRC
 storm surge calculations are about to begin on the $GRIDFILE 
 grid. 
 
@@ -95,7 +94,7 @@ The other instances are running for redundancy purposes.
 
 END
     echo "Sending 'new advisory detected' email to the following addresses: $COMMA_SEP_LIST."
-     cat $STORMDIR/new_advisory.txt | mail -s "advisory detected by ASGS on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+     cat $STORMDIR/new_advisory.txt | mail -s "$STORMNAME advisory $ADVISORY detected by ASGS on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 
 ;;
 #
@@ -108,12 +107,12 @@ This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
 The supercomputer $HOSTNAME has produced ADCIRC results for 
-storm surge guidance for advisory $ADVISORY for $STORM of $YEAR
+storm surge guidance for advisory $ADVISORY for $STORMCLASSNAME $YEAR
 on the $GRIDFILE grid. 
 
 These results can be found at the following web site:
 
-http://www.seahorsecoastal.com/ASGS/$STORMYEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_$ADVISORY
+http://www.seahorsecoastal.com/ASGS/${STORMNAME}${YEAR}/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_$ADVISORY
 
 The results consist of two archive files; the first contains hydrographs and 
 wind speed plots at selected locations as well as the raw data that were
@@ -126,7 +125,7 @@ issue the next advisory.
 END
 #
 echo "Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/post_notify.txt | mail -s "ASGS results available for $STORM advisory $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/post_notify.txt | mail -s "ASGS results available for $STORMNAME advisory $ADVISORY from $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
 #              J O B   F A I L E D 
@@ -138,13 +137,13 @@ This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
 A job running on the supercomputer $HOSTNAME has failed when running 
-storm surge guidance for advisory $ADVISORY for $STORM of $YEAR
+storm surge guidance for advisory $ADVISORY for $STORMCLASSNAME $YEAR
 on the $GRIDFILE grid. 
 
 END
 #
 echo "Sending 'job failed' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/job_failed_notify.txt | mail -s "ASGS job failed on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/job_failed_notify.txt | mail -s "ASGS job $STORMNAME $ADVISORY failed on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 *)
 echo "ERROR: corps_cyclone_notify.sh: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."

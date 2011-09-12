@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright(C) 2008, 2009, 2010 Jason Fleming
+# Copyright(C) 2008, 2009, 2010, 2011 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -100,5 +100,4 @@ perl ${OUTPUTDIR}/asgsConvertR3ToNETCDF.pl --ppdir ${SCRIPTDIR}/output --griddir
 OPENDAPPATH=`cat opendappath.log`
 ssh ${OPENDAPHOST} -l ${OPENDAPUSER} -i $SSHKEY "mkdir -p $OPENDAPPATH"
 perl ${OUTPUTDIR}/asgsConvertR3ToNETCDF.pl --ppdir ${SCRIPTDIR}/output --griddir ${OUTPUTDIR}/POSTPROC_KMZGIS/grids --opendapbasedir $OPENDAPBASEDIR --remote --sshkey $SSHKEY --opendapuser $OPENDAPUSER --opendaphost $OPENDAPHOST --tolist "jason.fleming@seahorsecoastal.com, jason.g.fleming@gmail.com"
-
-
+ssh ${OPENDAPHOST} -l ${OPENDAPUSER} -i $SSHKEY "chmod +r $OPENDAPPATH/*"
