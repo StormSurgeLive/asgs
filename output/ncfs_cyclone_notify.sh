@@ -33,6 +33,11 @@ ADDRESS_LIST=${11}
 if [[ $EMAILNOTIFY != yes && $EMAILNOTIFY != YES ]]; then
    exit
 fi
+STORMCLASSNAME=`cat nhcClassName`
+# find the space between the storm class (TD, TS, HU, etc) and the NHC name
+ind=`expr index "$STORMCLASSNAME" ' '`
+# just use the storm's name 
+STORMNAME=${STORMCLASSNAME:$ind}
 COMMA_SEP_LIST=${ADDRESS_LIST// /,}
 case $PHASE in
 #
@@ -64,8 +69,8 @@ This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
 The supercomputer $HOSTNAME has detected a new advisory
-(number $ADVISORY) from the National Hurricane Center for storm number
-$STORM of ${YEAR}. This advisory has been downloaded; ADCIRC
+(number $ADVISORY) from the National Hurricane Center for
+$STORMCLASSNAME ${YEAR}. This advisory has been downloaded; ADCIRC
 storm surge calculations are about to begin on the $GRIDFILE 
 grid. 
 
@@ -75,7 +80,7 @@ as soon as the resulting storm surge guidance becomes available.
 
 END
     echo "INFO: ncfs_cyclone_notify.sh: Sending 'new advisory detected' email to the following addresses: $COMMA_SEP_LIST."
-     cat $STORMDIR/new_advisory.txt | mail -s "advisory detected by ASGS on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+     cat $STORMDIR/new_advisory.txt | mail -s "ASGS: $STORMNAME advisory $ADVISOORY detected by ASGS on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 
 ;;
 #
@@ -88,7 +93,7 @@ This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
 The supercomputer $HOSTNAME has produced ADCIRC results for 
-storm surge guidance for advisory $ADVISORY for $STORM of $YEAR
+storm surge guidance for advisory $ADVISORY for $STORMCLASSNAME $YEAR
 on the $GRIDFILE mesh. 
 
 The ASGS on $HOSTNAME is now waiting for the National Hurricane Center to
@@ -97,7 +102,7 @@ issue the next advisory.
 END
 #
 echo "INFO: ncfs_cyclone_notify.sh: Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/post_notify.txt | mail -s "ASGS results available for $STORM advisory $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/post_notify.txt | mail -s "ASGS results available for $STORM advisory $ADVISORY from $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
 #               J O B   F A I L E D  
@@ -109,7 +114,7 @@ This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
 The supercomputer $HOSTNAME has experienced job failure for 
-advisory $ADVISORY for $STORM of $YEAR on the $GRIDFILE mesh. 
+advisory $ADVISORY for $STORMCLASSNAME  $YEAR on the $GRIDFILE mesh. 
 
 The ASGS on $HOSTNAME is now waiting for the National Hurricane Center to
 issue the next advisory. 
@@ -117,7 +122,7 @@ issue the next advisory.
 END
 #
 echo "INFO: ncfs_cyclone_notify.sh: Sending 'job failed' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/jobfailed_notify.txt | mail -s "ASGS job failure for $STORM advisory $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/jobfailed_notify.txt | mail -s "ASGS job failure for $STORMNAME advisory $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 *)
 echo "ERROR: ncfs_cyclone_notify.sh: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."
