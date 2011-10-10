@@ -35,14 +35,8 @@ my $coldstartdate;                  # YYYYMMDDHH24
 my $input="NWS_19_fort.22";         # name of input file
 my $output="plot_radii.sh";         # gmt script file
 my $hotstartseconds = 0.0;          # default is not hotstart
-my $nws = 8;                        # the ADCIRC wind model to target
 my $name = "nhcConsensus";          # default track to generate
-my $percent;                        # magnitude of parameter variation
 my $advisorynum="30";
-my $strengthPercent = 20.0;
-my $overlandSpeedPercent = -20.0;
-my $sizePercent = 20.0;
-my $veerPercent = 100.0;
 my $pi=3.141592653589793;
 # if the NHC issues a special advisory, there may be incomplete lines in the 
 # hindcast file. This hash will save the most recent complete lines, to fill
@@ -58,9 +52,7 @@ GetOptions(
            "year=s" => \$year,
            "coldstartdate=s" => \$coldstartdate,
            "hotstartseconds=s" => \$hotstartseconds,
-           "nws=s" => \$nws,
            "name=s" => \$name,
-           "percent=s" => \$percent,
            "advisorynum=s" => \$advisorynum
            );
 #
@@ -94,7 +86,15 @@ my @vmax;
 my @nhc_rmax;
 my @B;
 my @pc;
+my $min_pc = 1015;
 my $stormname;
+my @tr_speeds;                       # storm translation speed
+my @tr_directions;                   # storm translation direction
+my @gp_radii;                    # arrow coordinates for radii in gnuplot
+my @rmax;
+my @unset_gp_radii;
+my $arrow_num = 0;
+my $label_num = 0;
 while (<FORT22>) { 
    # break into fields 
    my @fields = split(',',$_);
@@ -102,6 +102,11 @@ while (<FORT22>) {
    my $hour=$fields[5];
    if ( $hour != $previous_hour ) { 
       $cycle_num++;
+      $arrow_num=5;
+      $label_num=2;
+      $gp_radii[$cycle_num] = "";
+      $unset_gp_radii[$cycle_num] = "";
+      $rmax[$cycle_num] = "";
       $isotachs_per_cycle[$cycle_num] = 1;
       $fields[4] =~ /([A-Z]{4})/;
       $type[$cycle_num] = $1;
@@ -115,8 +120,15 @@ while (<FORT22>) {
       $B[$cycle_num] = $1;
       $fields[9] =~  /(\d+)/;
       $pc[$cycle_num] = $1;
+      if ( $pc[$cycle_num] < $min_pc ) {
+         $min_pc = $pc[$cycle_num];
+      }
       $fields[27] =~ /([A-Z]+)/;
       $stormname = $1;
+      $fields[25] =~ /(\d+)/;
+      $tr_directions[$cycle_num] = $1;
+      $fields[26] =~ /(\d+)/;
+      $tr_speeds[$cycle_num] = $1;
    } else {
       $isotachs_per_cycle[$cycle_num]++;
    }
@@ -129,6 +141,55 @@ while (<FORT22>) {
    my $se=$fields[14];
    my $sw=$fields[15];
    my $nw=$fields[16];
+   my $ne_label_spacing = -$vmax[$cycle_num]/10;
+   my $se_label_spacing = $ne_label_spacing * 1.75;
+   my $sw_label_spacing = $ne_label_spacing * 2.25;
+   my $nw_label_spacing = $ne_label_spacing * 2.75;
+   $gp_radii[$cycle_num] .= "set arrow $arrow_num from $ne,$ne_label_spacing to $ne,$speed ls 1\n";
+   $gp_radii[$cycle_num] .= "set label $label_num \"NE\" at $ne,$ne_label_spacing center textcolor rgbcolor \"black\"\n"; 
+   $unset_gp_radii[$cycle_num] .= "unset arrow $arrow_num\nunset label $label_num\n";
+   $arrow_num++;
+   $label_num++;
+   $gp_radii[$cycle_num] .= "set arrow $arrow_num from $se,$se_label_spacing to $se,$speed ls 2\n";
+   $gp_radii[$cycle_num] .= "set label $label_num \"SE\" at $se,$se_label_spacing center textcolor rgbcolor \"dark-orange\"\n"; 
+   $unset_gp_radii[$cycle_num] .= "unset arrow $arrow_num\nunset label $label_num\n";
+   $arrow_num++;
+   $label_num++;
+   $gp_radii[$cycle_num] .= "set arrow $arrow_num from $sw,$sw_label_spacing to $sw,$speed ls 3\n";
+   $gp_radii[$cycle_num] .= "set label $label_num \"SW\" at $sw,$sw_label_spacing center textcolor rgbcolor \"dark-magenta\"\n"; 
+   $unset_gp_radii[$cycle_num] .= "unset arrow $arrow_num\nunset label $label_num\n";
+   $arrow_num++;
+   $label_num++;
+   $gp_radii[$cycle_num] .= "set arrow $arrow_num from $nw,$nw_label_spacing to $nw,$speed ls 4\n";
+   $gp_radii[$cycle_num] .= "set label $label_num \"NW\" at $nw,$nw_label_spacing center textcolor rgbcolor \"dark-blue\"\n"; 
+   $unset_gp_radii[$cycle_num] .= "unset arrow $arrow_num\nunset label $label_num\n";
+   $arrow_num++;
+   $label_num++;
+#   my $ne_rmax=$fields[34];
+#   my $se_rmax=$fields[35];
+#   my $sw_rmax=$fields[36];
+#   my $nw_rmax=$fields[37];
+#   $rmax[$cycle_num] .= "set arrow $arrow_num from $ne_rmax,$ne_label_spacing to $ne_rmax,$vmax[$cycle_num] ls 8\n";
+#   $gp_radii[$cycle_num] .= "set label $label_num \"NE\" at $ne_rmax,$ne_label_spacing center textcolor rgbcolor \"red\"\n"; 
+#   $unset_gp_radii[$cycle_num] .= "unset arrow $arrow_num\nunset label $label_num\n";
+#   $arrow_num++;
+#   $label_num++;
+#   $rmax[$cycle_num] .= "set arrow $arrow_num from $se_rmax,$se_label_spacing to $se_rmax,$vmax[$cycle_num] ls 8\n";
+#   $gp_radii[$cycle_num] .= "set label $label_num \"SE\" at $se_rmax,$se_label_spacing center textcolor rgbcolor \"red\"\n"; 
+#   $unset_gp_radii[$cycle_num] .= "unset arrow $arrow_num\nunset label $label_num\n";
+#   $arrow_num++;
+#   $label_num++;
+#   $rmax[$cycle_num] .= "set arrow $arrow_num from $sw_rmax,$sw_label_spacing to $sw_rmax,$vmax[$cycle_num] ls 8\n";
+#   $gp_radii[$cycle_num] .= "set label $label_num \"SW\" at $sw_rmax,$sw_label_spacing center textcolor rgbcolor \"red\"\n"; 
+#   $unset_gp_radii[$cycle_num] .= "unset arrow $arrow_num\nunset label $label_num\n";
+#   $arrow_num++;
+#   $label_num++;
+#   $rmax[$cycle_num] .= "set arrow $arrow_num from $nw_rmax,$nw_label_spacing to $nw_rmax,$vmax[$cycle_num] ls 8\n";
+#   $gp_radii[$cycle_num] .= "set label $label_num \"NW\" at $nw_rmax,$nw_label_spacing center textcolor rgbcolor \"red\"\n"; 
+#   $unset_gp_radii[$cycle_num] .= "unset arrow $arrow_num\nunset label $label_num\n";
+#   $arrow_num++;
+#   $label_num++;
+#
    my $radii_file_name = "radii_" . $speed . "kt_" . sprintf("cycle%02d",$cycle_num) . ".d";
    unless (open(RADIUSDATA,">$dir/$radii_file_name")) {
       stderrMessage("ERROR","Failed to open gmt script file '$dir/$radii_file_name' for writing: $!.");
@@ -146,7 +207,7 @@ while (<FORT22>) {
 my @isotach_speeds = ( 34, 50, 64 ); 
 my @isotach_colors = qw( green purple yellow ); 
 my $extents = "-R0/400/0/360";
-my $offset = "-Xa2.5i -Ya3.5i";
+my $offset = "-Xa3.5i -Ya2.5i";
 for (my $cycle=1; $cycle<=$cycle_num; $cycle++ ) {
    printf GMTSCRIPT "#\n# plots for isotachs of cycle $cycle\n";
    my $radii_plot_name = sprintf("radii_cycle%02d.ps",$cycle);
@@ -171,12 +232,12 @@ for (my $cycle=1; $cycle<=$cycle_num; $cycle++ ) {
       # -B[p|s]xinfo[/yinfo[/zinfo]][:."Title":][W|w][E|e][S|s][N|n][Z|z[+]]
       # To specify separate x and y ticks, separate the substrings that apply to the x and y axes with a slash [/]
       # radius increment and annotations
-      my $info = "g100";
-      my $segment = ":::,\"nm\":";
+      my $info = "200g100";
+      my $segment = ":::,\"nm\":"; # for x axis (r in this case)
       my $xinfo = $info.$segment;
       # azimuth increment and annotations
-      $info = "g90";
-      my $ylabel = "B=$B[$cycle], Vmax=$vmax[$cycle]kt, Pc=$pc[$cycle]mb";
+      $info = "45g45";
+      my $ylabel = "B=$B[$cycle], Vmax=$vmax[$cycle]kt, Pc=$pc[$cycle]mb Vtr=$tr_speeds[$cycle]kt dir=$tr_directions[$cycle]deg";
       if ( $type[$cycle] eq "BEST" ) {
          $ylabel .= ", NHC Rmax=$nhc_rmax[$cycle]nm";   
       }
@@ -185,14 +246,19 @@ for (my $cycle=1; $cycle<=$cycle_num; $cycle++ ) {
       # title 
       my $title = ":.\"$stormname$advisorynum $type[$cycle] $time[$cycle]\":";
       my $ticks = "-B".$xinfo."/".$yinfo.$title;
-      printf GMTSCRIPT "psrose $radii_file_name $kontinue $append -P -A90 -S2i $extents $offset -G$isotach_colors[$isotach-1] -Wthickest -V $ticks -L $redirect $radii_plot_name\n";
+      printf GMTSCRIPT "psrose $radii_file_name $kontinue $append -A90 -S2i $extents $offset -G$isotach_colors[$isotach-1] -Wthickest -V $ticks -L $redirect $radii_plot_name\n";
    }
    if ( -e $full_circle_data_file ) {
       printf GMTSCRIPT "# convert from trigonometric azimuth to compass\n";
       printf GMTSCRIPT "# azimuth and switch radius and azimuth columns\n";
       printf GMTSCRIPT "awk '{ \$2=90-\$2; if (\$2<0) \$2=\$2+360; print \$2\" \"\$1 }' $full_circle_data_file > compass_$full_circle_data_file\n"; 
       printf GMTSCRIPT "# now plot the fitted Rmax values\n";
-      printf GMTSCRIPT "psxy compass_$full_circle_data_file -JP4i -O -P -A -Xa2.5i -Ya3.5i -R0/360/0/400 -Wfat,red -V >> $radii_plot_name\n";
+      printf GMTSCRIPT "psxy compass_$full_circle_data_file -JP4i -O -K -A -Xa3.5i -Ya2.5i -R0/360/0/400 -Wfat,red -V >> $radii_plot_name\n";
+      printf GMTSCRIPT "# now plot the line along which we have V(r) and P(r)\n";
+      printf GMTSCRIPT "awk '{ print 45\" \"\$1 }' radialvp_01.d | psxy -JP4i -O -K -A -Xa3.5i -Ya2.5i -R0/360/0/400 -Wfat,black -V >> $radii_plot_name\n";
+      printf GMTSCRIPT "awk '{ print 315\" \"\$1 }' radialvp_01.d | psxy -JP4i -O -K -A -Xa3.5i -Ya2.5i -R0/360/0/400 -Wfat,darkorange -V >> $radii_plot_name\n";
+      printf GMTSCRIPT "awk '{ print 225\" \"\$1 }' radialvp_01.d | psxy -JP4i -O -K -A -Xa3.5i -Ya2.5i -R0/360/0/400 -Wfat,darkmagenta -V >> $radii_plot_name\n";
+      printf GMTSCRIPT "awk '{ print 135\" \"\$1 }' radialvp_01.d | psxy -JP4i -O -A -Xa3.5i -Ya2.5i -R0/360/0/400 -Wfat,darkblue -V >> $radii_plot_name\n";
    } else {
       stderrMessage("INFO","Could not find $full_circle_data_file.");
    }
@@ -260,36 +326,78 @@ unless (open(GPSCRIPT,">$dir/radial_v_and_p.gp")) {
    stderrMessage("ERROR","Failed to open gnuplot script file '$dir/radial_v_and_p.gp' for writing: $!.");
    die;
 }
-printf GPSCRIPT "set terminal postscript color \"Times-Roman\" 14\n";
+#printf GPSCRIPT "set terminal postscript color \"Times-Roman\" 24\n";
+printf GPSCRIPT "set terminal postscript color \"Helvetica\" 20\n";
 printf GPSCRIPT "set xlabel \"Distance from Center (nm)\"\n";
 printf GPSCRIPT "set grid\n";
-printf GPSCRIPT "set style line 1 lt 1 lc rgbcolor \"black\" lw 3\n";
-printf GPSCRIPT "set style line 2 lt 1 lc rgbcolor \"dark-orange\" lw 3\n";
-printf GPSCRIPT "set style line 3 lt 1 lc rgbcolor \"dark-magenta\" lw 3\n";
-printf GPSCRIPT "set style line 4 lt 1 lc rgbcolor \"dark-blue\" lw 3\n";
-printf GPSCRIPT "set title  \"$stormname $advisorynum Wind Speed in Each Quadrant\"\n";
-printf GPSCRIPT "key top right box\n";
+printf GPSCRIPT "set style line 1 lt 1 lc rgbcolor \"black\" lw 5 pt 1 ps 2\n";
+printf GPSCRIPT "set style line 2 lt 1 lc rgbcolor \"dark-orange\" lw 5 pt 2 ps 2\n";
+printf GPSCRIPT "set style line 3 lt 1 lc rgbcolor \"dark-magenta\" lw 5 pt 4 ps 2\n";
+printf GPSCRIPT "set style line 4 lt 1 lc rgbcolor \"dark-blue\" lw 5 pt 6 ps 2\n";
+printf GPSCRIPT "set style line 5 lt 1 lc rgbcolor \"yellow\" lw 5\n";
+printf GPSCRIPT "set style line 6 lt 1 lc rgbcolor \"purple\" lw 5\n";
+printf GPSCRIPT "set style line 7 lt 1 lc rgbcolor \"green\" lw 5\n";
+printf GPSCRIPT "set style line 8 lt 1 lc rgbcolor \"red\" lw 5\n";
+printf GPSCRIPT "set title  \"Wind Speed in Each Quadrant\"\n";
+printf GPSCRIPT "set key top right\n";
 printf GPSCRIPT "set ylabel \"Wind Speed (kt)\"\n";
+my $arrow_1_set = 0;
+my $arrow_2_set = 0;
 for (my $cycle=1; $cycle<=$cycle_num; $cycle++ ) {
    my $plot_file_name = sprintf("radialv_%02d.ps",$cycle);
    my $data_file_name = sprintf("radialvp_%02d.d",$cycle);
-   printf GPSCRIPT "set output $plot_file_name\n";
-   printf GPSCRIPT "plot '$data_file_name' using 1:2 title \"NE Quadrant Wind Speed\" with lines ls 1,\\\n";
-   printf GPSCRIPT "'$data_file_name' using 1:3 title \"SE Quadrant Wind Speed\" with lines ls 2,\\\n";
-   printf GPSCRIPT "'$data_file_name' using 1:4 title \"SW Quadrant Wind Speed\" with lines ls 3,\\\n";
-   printf GPSCRIPT "'$data_file_name' using 1:5 title \"NW Quadrant Wind Speed\" with lines ls 4\n";
+   my $plot_max = $vmax[$cycle] + 5;
+   printf GPSCRIPT "# now plot wind speed data on properly scaled plot\n";
+   printf GPSCRIPT "set yrange [:$plot_max]\n";
+   printf GPSCRIPT "set output \"$plot_file_name\"\n";  
+   if ( $plot_max > 64 ) {
+      printf GPSCRIPT "set arrow 1 from 0,64 to 400,64 ls 5 nohead\n";
+      $arrow_1_set = 1;
+   } else {
+      if ( $arrow_1_set == 1 ) {  
+         printf GPSCRIPT "unset arrow 1\n";
+         $arrow_1_set = 0;
+      }
+   }
+   if ( $plot_max > 50 ) {
+      printf GPSCRIPT "set arrow 2 from 0,50 to 400,50 ls 6 nohead\n";
+      $arrow_2_set = 1;
+   } else {
+      if ( $arrow_2_set == 1 ) {  
+         printf GPSCRIPT "unset arrow 2\n";
+         $arrow_2_set = 0;
+      }
+   }   
+   printf GPSCRIPT "set arrow 3 from 0,34 to 400,34 ls 7 nohead\n";
+   printf GPSCRIPT "set arrow 4 from 0,$vmax[$cycle] to 400,$vmax[$cycle] ls 8 nohead\n";
+   printf GPSCRIPT "set label 1 \"Vmax\" at -50,$vmax[$cycle] center textcolor rgbcolor \"red\"\n"; 
+   printf GPSCRIPT $gp_radii[$cycle];
+   printf GPSCRIPT "plot '$data_file_name' every 60 using 1:2 title \"NE\" with points ls 1,\\\n";
+   printf GPSCRIPT "'$data_file_name' every 60::15 using 1:3 title \"SE\" with points ls 2,\\\n";
+   printf GPSCRIPT "'$data_file_name' every 60::30 using 1:4 title \"SW\" with points ls 3,\\\n";
+   printf GPSCRIPT "'$data_file_name' every 60::45 using 1:5 title \"NW\" with points ls 4,\\\n";
+   printf GPSCRIPT "'$data_file_name' using 1:2 notitle \"NE\" with lines ls 1,\\\n";
+   printf GPSCRIPT "'$data_file_name' using 1:3 notitle \"SE\" with lines ls 2,\\\n";
+   printf GPSCRIPT "'$data_file_name' using 1:4 notitle \"SW\" with lines ls 3,\\\n";
+   printf GPSCRIPT "'$data_file_name' using 1:5 notitle \"NW\" with lines ls 4\n";
+   printf GPSCRIPT $unset_gp_radii[$cycle];
 }
-set title  "IRENE35 Atmospheric Pressure in Each Quadrant"
-set ylabel "Sea Level Atmospheric Pressure (mbar)"
-set key bottom right box
+printf GPSCRIPT "set title  \"Atmospheric Pressure in Each Quadrant\"\n";
+printf GPSCRIPT "set ylabel \"Sea Level Atmospheric Pressure (mbar)\"\n";
+printf GPSCRIPT "set key bottom right\n";
+printf GPSCRIPT "set yrange[$min_pc:1015]\n";
 for (my $cycle=1; $cycle<=$cycle_num; $cycle++ ) {
    my $plot_file_name = sprintf("radialp_%02d.ps",$cycle);
    my $data_file_name = sprintf("radialvp_%02d.d",$cycle);
-   printf GPSCRIPT "set output $plot_file_name\n";  
-   printf GPSCRIPT "plot '$data_file_name' using 1:6 title \"NE Quadrant P(r)\" with lines ls 1,\\\n";
-   printf GPSCRIPT "'$data_file_name' using 1:7 title \"SE Quadrant P(r)\" with lines ls 2,\\\n";
-   printf GPSCRIPT "'$data_file_name' using 1:8 title \"SW Quadrant P(r)\" with lines ls 3,\\\n";
-   printf GPSCRIPT "'$data_file_name' using 1:9 title \"NW Quadrant P(r)\" with lines ls 4\n";
+   printf GPSCRIPT "set output \"$plot_file_name\"\n";  
+   printf GPSCRIPT "plot '$data_file_name' every 60 using 1:6 title \"NE\" with points ls 1,\\\n";
+   printf GPSCRIPT "'$data_file_name' every 60::15 using 1:7 title \"SE\" with points ls 2,\\\n";
+   printf GPSCRIPT "'$data_file_name' every 60::30 using 1:8 title \"SW\" with points ls 3,\\\n";
+   printf GPSCRIPT "'$data_file_name' every 60::45 using 1:9 title \"NW\" with points ls 4,\\\n";
+   printf GPSCRIPT "'$data_file_name' using 1:6 notitle \"NE\" with lines ls 1,\\\n";
+   printf GPSCRIPT "'$data_file_name' using 1:7 notitle \"SE\" with lines ls 2,\\\n";
+   printf GPSCRIPT "'$data_file_name' using 1:8 notitle \"SW\" with lines ls 3,\\\n";
+   printf GPSCRIPT "'$data_file_name' using 1:9 notitle \"NW\" with lines ls 4\n";
 }
 close(GPSCRIPT);
 #
