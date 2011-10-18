@@ -48,7 +48,7 @@ PROGRAM HottifySWAN
 #endif
       UnitNumber = 0
       IF(MyProc.EQ.0)THEN
-         ARGCOUNT=IARGC()
+         ARGCOUNT=COMMAND_ARGUMENT_COUNT()
          IF (ARGCOUNT.ne.0) THEN
             I=0
             DO WHILE (I.LT.ARGCOUNT) 
