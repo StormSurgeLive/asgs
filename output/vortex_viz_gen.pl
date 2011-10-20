@@ -24,6 +24,7 @@
 #
 use strict;
 use Getopt::Long;
+use Math::Trig;
 use Date::Pcalc;
 use Cwd;
 $^W++;
@@ -38,6 +39,8 @@ my $hotstartseconds = 0.0;          # default is not hotstart
 my $name = "nhcConsensus";          # default track to generate
 my $advisorynum="30";
 my $pi=3.141592653589793;
+my $defaultOutputIncrement = "true";# false if user has supplied the output inc
+my $output_increment="";        # time in seconds between outputs
 # if the NHC issues a special advisory, there may be incomplete lines in the 
 # hindcast file. This hash will save the most recent complete lines, to fill
 # in any missing data.
@@ -53,8 +56,14 @@ GetOptions(
            "coldstartdate=s" => \$coldstartdate,
            "hotstartseconds=s" => \$hotstartseconds,
            "name=s" => \$name,
-           "advisorynum=s" => \$advisorynum
+           "advisorynum=s" => \$advisorynum,
+           "outputincrement=s" => \$output_increment
            );
+#
+# check to see if the output increment was specified
+if ( $output_increment ne "" ) {
+   $defaultOutputIncrement="false";
+}
 #
 # open NWS19 fort.22 file
 unless (open(FORT22,"<$dir/$input")) {
@@ -82,11 +91,13 @@ my $previous_hour=-1;
 my @isotachs_per_cycle;
 my @type;
 my @time;
+my @timesec;
 my @vmax;
 my @nhc_rmax;
 my @B;
 my @pc;
 my $min_pc = 1015;
+my $max_vmax = 40;
 my $stormname;
 my @tr_speeds;                       # storm translation speed
 my @tr_directions;                   # storm translation direction
@@ -112,8 +123,13 @@ while (<FORT22>) {
       $type[$cycle_num] = $1;
       $fields[2] =~ /(\d{4})(\d{2})(\d{2})(\d{2})/;
       $time[$cycle_num] = $4."Z ".$2."/".$3."/".$1;    
+      $fields[5] =~ /(\d+)/;
+      $timesec[$cycle_num] = $1 * 3600;
       $fields[8] =~ /(\d+)/;
       $vmax[$cycle_num] = $1;
+      if ( $vmax[$cycle_num] > $max_vmax ) {
+         $max_vmax = $vmax[$cycle_num];
+      }
       $fields[19] =~ /(\d+)/;
       $nhc_rmax[$cycle_num] = $1;
       $fields[38] =~ /(\d{1}+\.\d+)/;
@@ -190,7 +206,7 @@ while (<FORT22>) {
 #   $arrow_num++;
 #   $label_num++;
 #
-   my $radii_file_name = "radii_" . $speed . "kt_" . sprintf("cycle%02d",$cycle_num) . ".d";
+   my $radii_file_name = "radii_" . $speed . "kt_" . sprintf("cycle%03d",$cycle_num) . ".d";
    unless (open(RADIUSDATA,">$dir/$radii_file_name")) {
       stderrMessage("ERROR","Failed to open gmt script file '$dir/$radii_file_name' for writing: $!.");
       die;
@@ -208,13 +224,31 @@ my @isotach_speeds = ( 34, 50, 64 );
 my @isotach_colors = qw( green purple yellow ); 
 my $extents = "-R0/400/0/360";
 my $offset = "-Xa3.5i -Ya2.5i";
-for (my $cycle=1; $cycle<=$cycle_num; $cycle++ ) {
+my $cycle=0;
+my $last_output;
+my $sec=0;
+if ( $defaultOutputIncrement eq "true" ) {
+   $last_output = $cycle_num;
+} else {
+   $last_output = $timesec[$cycle_num] / $output_increment;
+}
+for (my $output_num=1; $output_num<=$last_output; $output_num++ ) {
+   if ( $defaultOutputIncrement eq "true" ) {
+      $cycle=$output_num;
+   } else {
+      # determine which cycle we are in by the time in seconds
+      for ($cycle=1; $cycle<$cycle_num; $cycle++) {
+         if ( $sec >= $timesec[$cycle] && $sec < $timesec[$cycle+1] ) {
+            last;
+         }
+      }
+   }
    printf GMTSCRIPT "#\n# plots for isotachs of cycle $cycle\n";
-   my $radii_plot_name = sprintf("radii_cycle%02d.ps",$cycle);
-   my $full_circle_data_file = sprintf("full_circle_rmaxes_%02d.d",$cycle);
+   my $radii_plot_name = sprintf("radii_%03d.ps",$output_num);
+   my $full_circle_data_file = sprintf("full_circle_rmaxes_%03d.d",$output_num);
    for (my $isotach=1; $isotach<=$isotachs_per_cycle[$cycle]; $isotach++ ) {
       printf GMTSCRIPT "# plot $isotach_speeds[$isotach-1] kt isotach\n";
-      my $radii_file_name = "radii_" . $isotach_speeds[$isotach-1] . "kt_" . sprintf("cycle%02d",$cycle) . ".d";
+      my $radii_file_name = "radii_" . $isotach_speeds[$isotach-1] . "kt_" . sprintf("cycle%03d",$cycle) . ".d";
       my $kontinue="";
       my $append="";
       my $redirect=">";
@@ -246,21 +280,25 @@ for (my $cycle=1; $cycle<=$cycle_num; $cycle++ ) {
       # title 
       my $title = ":.\"$stormname$advisorynum $type[$cycle] $time[$cycle]\":";
       my $ticks = "-B".$xinfo."/".$yinfo.$title;
-      printf GMTSCRIPT "psrose $radii_file_name $kontinue $append -A90 -S2i $extents $offset -G$isotach_colors[$isotach-1] -Wthickest -V $ticks -L $redirect $radii_plot_name\n";
+      printf GMTSCRIPT "psrose $radii_file_name $kontinue $append -A90 -S2i $extents $offset -G$isotach_colors[$isotach-1] -Wthickest $ticks -L $redirect $radii_plot_name\n";
    }
+   # now plot hi-res Rmax results
    if ( -e $full_circle_data_file ) {
       printf GMTSCRIPT "# convert from trigonometric azimuth to compass\n";
       printf GMTSCRIPT "# azimuth and switch radius and azimuth columns\n";
       printf GMTSCRIPT "awk '{ \$2=90-\$2; if (\$2<0) \$2=\$2+360; print \$2\" \"\$1 }' $full_circle_data_file > compass_$full_circle_data_file\n"; 
       printf GMTSCRIPT "# now plot the fitted Rmax values\n";
-      printf GMTSCRIPT "psxy compass_$full_circle_data_file -JP4i -O -K -A -Xa3.5i -Ya2.5i -R0/360/0/400 -Wfat,red -V >> $radii_plot_name\n";
+      printf GMTSCRIPT "psxy compass_$full_circle_data_file -JP4i -O -K -A -Xa3.5i -Ya2.5i -R0/360/0/400 -Wfat,red  >> $radii_plot_name\n";
       printf GMTSCRIPT "# now plot the line along which we have V(r) and P(r)\n";
-      printf GMTSCRIPT "awk '{ print 45\" \"\$1 }' radialvp_01.d | psxy -JP4i -O -K -A -Xa3.5i -Ya2.5i -R0/360/0/400 -Wfat,black -V >> $radii_plot_name\n";
-      printf GMTSCRIPT "awk '{ print 315\" \"\$1 }' radialvp_01.d | psxy -JP4i -O -K -A -Xa3.5i -Ya2.5i -R0/360/0/400 -Wfat,darkorange -V >> $radii_plot_name\n";
-      printf GMTSCRIPT "awk '{ print 225\" \"\$1 }' radialvp_01.d | psxy -JP4i -O -K -A -Xa3.5i -Ya2.5i -R0/360/0/400 -Wfat,darkmagenta -V >> $radii_plot_name\n";
-      printf GMTSCRIPT "awk '{ print 135\" \"\$1 }' radialvp_01.d | psxy -JP4i -O -A -Xa3.5i -Ya2.5i -R0/360/0/400 -Wfat,darkblue -V >> $radii_plot_name\n";
+      printf GMTSCRIPT "awk '{ print 45\" \"\$1 }' radialvp_001.d | psxy -JP4i -O -K -A -Xa3.5i -Ya2.5i -R0/360/0/400 -Wfat,black  >> $radii_plot_name\n";
+      printf GMTSCRIPT "awk '{ print 315\" \"\$1 }' radialvp_001.d | psxy -JP4i -O -K -A -Xa3.5i -Ya2.5i -R0/360/0/400 -Wfat,darkorange  >> $radii_plot_name\n";
+      printf GMTSCRIPT "awk '{ print 225\" \"\$1 }' radialvp_001.d | psxy -JP4i -O -K -A -Xa3.5i -Ya2.5i -R0/360/0/400 -Wfat,darkmagenta  >> $radii_plot_name\n";
+      printf GMTSCRIPT "awk '{ print 135\" \"\$1 }' radialvp_001.d | psxy -JP4i -O -A -Xa3.5i -Ya2.5i -R0/360/0/400 -Wfat,darkblue  >> $radii_plot_name\n";
    } else {
       stderrMessage("INFO","Could not find $full_circle_data_file.");
+   }
+   if ( $defaultOutputIncrement eq "false" ) {
+      $sec += $output_increment;
    }
 }
 #
@@ -282,34 +320,34 @@ printf GMTSCRIPT "#\n# create background map for storm centers as follows:\n";
 printf GMTSCRIPT "# 6in wide, 5 deg Border incr., portrait, gray colored\n";
 printf GMTSCRIPT "# land, Verbose output, the plot will be Kontinued, to\n";
 printf GMTSCRIPT "# a file centers_[stormname]_[advisory].ps.\n";
-printf GMTSCRIPT "pscoast \$limits -JM6i -B5:.\"$stormname $advisorynum\": -P -Ggray -V -K > centers_$stormname\_$advisorynum.ps\n";
+printf GMTSCRIPT "pscoast \$limits -JM6i -B5:.\"$stormname $advisorynum\": -P -Ggray  -K > centers_$stormname\_$advisorynum.ps\n";
 # crosses
 printf GMTSCRIPT "#\n# the cross is made of a vertical line and a horizontal\n";
 printf GMTSCRIPT "# line, so psxy has to be called twice.\n";
 printf GMTSCRIPT "# The -O indicates that the plot is continued.\n";
 printf GMTSCRIPT "psxy -O -K -R -J $stormname\_$advisorynum\_centers.d -S-0.1i -Wthick >> centers_$stormname\_$advisorynum.ps\n";
 printf GMTSCRIPT "psxy -R -J -O -K $stormname\_$advisorynum\_centers.d -Sy0.1i -Wthick >> centers_$stormname\_$advisorynum.ps\n";
-if ( -e "full_circle_latlon_01.d" ) {
+if ( -e "full_circle_latlon_001.d" ) {
    for (my $cycle=1; $cycle<=$cycle_num; $cycle++ ) {
       my $kontinue="-K";
-      if ( $cycle==$cycle_num && !-e "radialvp_latlon_01.d" ) {
+      if ( $cycle==$cycle_num && !-e "radialvp_latlon_001.d" ) {
          $kontinue="";
       }
-      printf GMTSCRIPT sprintf("psxy -R -J -O $kontinue full_circle_latlon_%02d.d -Sp -Wthin >> centers_$stormname\_$advisorynum.ps\n",$cycle);
+      printf GMTSCRIPT sprintf("psxy -R -J -O $kontinue full_circle_latlon_%03d.d -Sp -Wthin >> centers_$stormname\_$advisorynum.ps\n",$cycle);
    }
 } else {
-   stderrMessage("INFO","Could not find full_circle_latlon_01.d.");
+   stderrMessage("INFO","Could not find full_circle_latlon_001.d.");
 }
-if ( -e "radialvp_latlon_01.d" ) {
+if ( -e "radialvp_latlon_001.d" ) {
    for (my $cycle=1; $cycle<=$cycle_num; $cycle++ ) {
       my $kontinue="-K";
       if ( $cycle==$cycle_num ) {
          $kontinue="";
       }
-      printf GMTSCRIPT sprintf("psxy -R -J -O $kontinue radialvp_latlon_%02d.d -Sp -Wthin >> centers_$stormname\_$advisorynum.ps\n",$cycle);
+      printf GMTSCRIPT sprintf("psxy -R -J -O $kontinue radialvp_latlon_%03d.d -Sp -Wthin >> centers_$stormname\_$advisorynum.ps\n",$cycle);
    }
 } else {
-   stderrMessage("INFO","Could not find radialvp_latlon_01.d.");
+   stderrMessage("INFO","Could not find radialvp_latlon_001.d.");
 }
 # clean up gmt history
 printf GMTSCRIPT "# clean up gmt history\n";
@@ -343,10 +381,22 @@ printf GPSCRIPT "set key top right\n";
 printf GPSCRIPT "set ylabel \"Wind Speed (kt)\"\n";
 my $arrow_1_set = 0;
 my $arrow_2_set = 0;
-for (my $cycle=1; $cycle<=$cycle_num; $cycle++ ) {
-   my $plot_file_name = sprintf("radialv_%02d.ps",$cycle);
-   my $data_file_name = sprintf("radialvp_%02d.d",$cycle);
-   my $plot_max = $vmax[$cycle] + 5;
+$sec=0;
+for (my $output_num=1; $output_num<=$last_output; $output_num++ ) {
+   # determine which cycle this output time belongs to
+   if ( $defaultOutputIncrement eq "true" ) {
+      $cycle=$output_num;
+   } else {
+      # determine which cycle we are in by the time in seconds
+      for ($cycle=1; $cycle<$cycle_num; $cycle++) {
+         if ( $sec >= $timesec[$cycle] && $sec < $timesec[$cycle+1] ) {
+            last;
+         }
+      }
+   }
+   my $plot_file_name = sprintf("radialv_%03d.ps",$output_num);
+   my $data_file_name = sprintf("radialvp_%03d.d",$output_num);
+   my $plot_max = $max_vmax + 5;
    printf GPSCRIPT "# now plot wind speed data on properly scaled plot\n";
    printf GPSCRIPT "set yrange [:$plot_max]\n";
    printf GPSCRIPT "set output \"$plot_file_name\"\n";  
@@ -379,27 +429,93 @@ for (my $cycle=1; $cycle<=$cycle_num; $cycle++ ) {
    printf GPSCRIPT "'$data_file_name' using 1:2 notitle \"NE\" with lines ls 1,\\\n";
    printf GPSCRIPT "'$data_file_name' using 1:3 notitle \"SE\" with lines ls 2,\\\n";
    printf GPSCRIPT "'$data_file_name' using 1:4 notitle \"SW\" with lines ls 3,\\\n";
-   printf GPSCRIPT "'$data_file_name' using 1:5 notitle \"NW\" with lines ls 4\n";
+   printf GPSCRIPT "'$data_file_name' using 1:5 notitle \"NW\" with lines ls 4,\\\n";
+   printf GPSCRIPT "'$data_file_name' using 1:6 notitle \"max\" with lines ls 8\n";
    printf GPSCRIPT $unset_gp_radii[$cycle];
+
+   if ( $defaultOutputIncrement eq "false" ) {
+      $sec += $output_increment;
+   }
 }
 printf GPSCRIPT "set title  \"Atmospheric Pressure in Each Quadrant\"\n";
 printf GPSCRIPT "set ylabel \"Sea Level Atmospheric Pressure (mbar)\"\n";
 printf GPSCRIPT "set key bottom right\n";
 printf GPSCRIPT "set yrange[$min_pc:1015]\n";
-for (my $cycle=1; $cycle<=$cycle_num; $cycle++ ) {
-   my $plot_file_name = sprintf("radialp_%02d.ps",$cycle);
-   my $data_file_name = sprintf("radialvp_%02d.d",$cycle);
+$sec=0;
+for (my $output_num=1; $output_num<=$last_output; $output_num++ ) {
+   # determine which cycle this output time belongs to
+   if ( $defaultOutputIncrement eq "true" ) {
+      $cycle=$output_num;
+   } else {
+      # determine which cycle we are in by the time in seconds
+      for ($cycle=1; $cycle<$cycle_num; $cycle++) {
+         if ( $sec >= $timesec[$cycle] && $sec < $timesec[$cycle+1] ) {
+            last;
+         }
+      }
+   }
+   my $plot_file_name = sprintf("radialp_%03d.ps",$output_num);
+   my $data_file_name = sprintf("radialvp_%03d.d",$output_num);
    printf GPSCRIPT "set output \"$plot_file_name\"\n";  
-   printf GPSCRIPT "plot '$data_file_name' every 60 using 1:6 title \"NE\" with points ls 1,\\\n";
-   printf GPSCRIPT "'$data_file_name' every 60::15 using 1:7 title \"SE\" with points ls 2,\\\n";
-   printf GPSCRIPT "'$data_file_name' every 60::30 using 1:8 title \"SW\" with points ls 3,\\\n";
-   printf GPSCRIPT "'$data_file_name' every 60::45 using 1:9 title \"NW\" with points ls 4,\\\n";
-   printf GPSCRIPT "'$data_file_name' using 1:6 notitle \"NE\" with lines ls 1,\\\n";
-   printf GPSCRIPT "'$data_file_name' using 1:7 notitle \"SE\" with lines ls 2,\\\n";
-   printf GPSCRIPT "'$data_file_name' using 1:8 notitle \"SW\" with lines ls 3,\\\n";
-   printf GPSCRIPT "'$data_file_name' using 1:9 notitle \"NW\" with lines ls 4\n";
+   printf GPSCRIPT "plot '$data_file_name' every 60 using 1:7 title \"NE\" with points ls 1,\\\n";
+   printf GPSCRIPT "'$data_file_name' every 60::15 using 1:8 title \"SE\" with points ls 2,\\\n";
+   printf GPSCRIPT "'$data_file_name' every 60::30 using 1:9 title \"SW\" with points ls 3,\\\n";
+   printf GPSCRIPT "'$data_file_name' every 60::45 using 1:10 title \"NW\" with points ls 4,\\\n";
+   printf GPSCRIPT "'$data_file_name' using 1:7 notitle \"NE\" with lines ls 1,\\\n";
+   printf GPSCRIPT "'$data_file_name' using 1:8 notitle \"SE\" with lines ls 2,\\\n";
+   printf GPSCRIPT "'$data_file_name' using 1:9 notitle \"SW\" with lines ls 3,\\\n";
+   printf GPSCRIPT "'$data_file_name' using 1:10 notitle \"NW\" with lines ls 4\n";
+
+   if ( $defaultOutputIncrement eq "false" ) {
+      $sec += $output_increment;
+   }
 }
 close(GPSCRIPT);
+# 
+# generate data to show solution process for determination of Rmax
+# equation containing Coriolis forces
+# B=1.0, Vmax=45kt, Pc = 979mb, Vtr = 17kt, dir=23deg, Ir = 220nm, Vr=34kt
+#
+# open data file for Vh with coriolis
+unless (open(WITHCORIOLIS,">withCoriolis.d")) {
+   stderrMessage("ERROR","Failed to open withCoriolis.d for writing: $!.");
+   die;
+}
+# open data file for Vh without coriolis
+unless (open(NOCORIOLIS,">noCoriolis.d")) {
+   stderrMessage("ERROR","Failed to open noCoriolis.d for writing: $!.");
+   die;
+}
+my $windReduction = 0.8924;
+my $testB = 1.0;
+my $Vmax = 45; 
+my $Pc = 979;
+my $Vtr = 17; 
+my $dir = 23;
+my $Ir = 220;
+my $Vr = 34;
+my $cLat = 44.2;
+my $cori = 2*sin(deg2rad($cLat))*2*$pi/86164.2;
+$Vmax = ($Vmax - $Vtr) / $windReduction;
+for (my $r=1; $r<400; $r++ ) {
+   printf WITHCORIOLIS "$r ";
+   printf NOCORIOLIS "$r ";
+   for (my $rmx=10; $rmx<400; $rmx+=10 ) {
+      my $Vh = 1/0.5144*(sqrt( 
+         ($Vmax*0.51444)**2 * ($rmx/$r)**$testB * exp(1-($rmx/$r)**$testB) 
+            + (1852*$r*$cori/2)**2) - 1852*$r*$cori/2);
+      $Vh = ($Vh*$windReduction) + $Vtr;
+      printf WITHCORIOLIS " $Vh";
+      $Vh = 1/0.5144*(sqrt( 
+         ($Vmax*0.51444)**2 * ($rmx/$r)**$testB * exp(1-($rmx/$r)**$testB))); 
+      $Vh = ($Vh*$windReduction) + $Vtr;
+      printf NOCORIOLIS " $Vh";
+   } 
+   printf WITHCORIOLIS "\n";
+   printf NOCORIOLIS "\n";
+}
+close(WITHCORIOLIS);
+close(NOCORIOLIS);
 #
 sub stderrMessage () {
    my $level = shift;
@@ -409,7 +525,7 @@ sub stderrMessage () {
    my $year = 1900 + $yearOffset;
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-   printf STDERR "$theTime $level: storm_track_gen.pl: $message\n";
+   printf STDERR "$theTime $level: vortex_viz_gen.pl: $message\n";
    if ($level eq "ERROR") {
       sleep 60
    }

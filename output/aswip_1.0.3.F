@@ -8,11 +8,11 @@ C
       USE global
       ! Import global constants
       USE constants, only : Rearth, hour2sec, ms2kt, one, 
-     &    windReduction, RhoWatG
+     &    windReduction, RhoWatG, ten2one
       ! Import asymmetric hurricane vortex class
       USE vortex
       USE wind, only : nws19get, writeFullCircleRmaxes, vortexLon,
-     &                 vortexLat, writeRadialVandP
+     &                 vortexLat, writeRadialVandP, nws9get
       IMPLICIT NONE
 
       !=================================================================
@@ -73,6 +73,15 @@ C
                                             ! corresponds to
       REAL(sz), ALLOCATABLE :: cycleLons(:) ! longitudes for each cycle 
       REAL(sz), ALLOCATABLE :: cycleLats(:) ! latitudes for each cycle
+      REAL(sz), ALLOCATABLE :: cycleDirs(:) ! directions for each cycle
+      INTEGER :: num_outputs ! number of writes to output file
+      INTEGER :: iout        ! output counter
+      REAL(sz), ALLOCATABLE :: outputSecs(:) ! time in seconds for output
+      REAL(sz), ALLOCATABLE :: outputLons(:) ! longitudes at each output time
+      REAL(sz), ALLOCATABLE :: outputLats(:) ! latitudes at each output time
+      REAL(sz), ALLOCATABLE :: outputDirs(:) ! storm direction at output times
+      REAL(sz) :: interp   ! time interpolation factor for time varying params
+      REAL(sz) :: trigDir
       REAL(sz) :: azimuth  ! angle of node w.r.t. vortex (radians)
       REAL(sz) :: vtest    ! wind speed along Rmax curve
       REAL(sz) :: vmax_azimuth ! azimuthal angle at which vmax occurs 
@@ -80,7 +89,10 @@ C
       INTEGER, PARAMETER :: radial_resolution = 2 ! data points per nm
       CHARACTER(80) :: rmax_file_name ! name of full circle rmax output
       CHARACTER(80) :: radialvp_file_name ! name of radial V and P output
-      CHARACTER(80) :: node_file_name ! name of file containing nodal locations 
+      CHARACTER(80) :: node_file_name ! name of file containing node locations
+      REAL(sz) :: output_increment    ! time increment for output (seconds)
+      LOGICAL :: defaultOutputIncrement = .true. ! equal to cycle time incr.
+
       REAL(sz), DIMENSION(:), ALLOCATABLE :: pressure
       REAL(sz), DIMENSION(:), ALLOCATABLE :: radial_speed
       INTEGER, DIMENSION(0:5) :: lookup_radii ! periodic interpolation 
@@ -114,6 +126,7 @@ C     jgf49.30 Initialize to reasonable defaults.
       percentSpecified=.false. 
       method=2             ! calc rMaxes based on largest available isotach
                            ! radius for each quadrant, a.k.a. the fancy method
+      nws=19
       azimuth = 45.d0
       do i=1,4 
          quadrantAngles(i) = deg2rad*azimuth
@@ -143,6 +156,19 @@ C     jgf49.30 Initialize to reasonable defaults.
                write(screenunit,*) "INFO: Processing '",CMDLINEOPTION,
      &            " ",trim(CMDLINEARG),"'." 
                READ(CMDLINEARG,*) method
+            CASE("-O","-o")  ! time increment for writing output (seconds)
+               defaultOutputIncrement = .false.
+               I=I+1
+               CALL GETARG(I,CMDLINEARG)
+               write(screenunit,*) "INFO: Processing '",CMDLINEOPTION,
+     &            " ",trim(CMDLINEARG),"'." 
+               READ(CMDLINEARG,*) output_increment 
+            CASE("-N","-n")  ! nws parameter (9 or 19)
+               I=I+1
+               CALL GETARG(I,CMDLINEARG)
+               write(screenunit,*) "INFO: Processing '",CMDLINEOPTION,
+     &            " ",trim(CMDLINEARG),"'." 
+               READ(CMDLINEARG,*) nws
             CASE("-P","-p")  ! percent change of rmax relative to calculated val
                I=I+1
                CALL GETARG(I,CMDLINEARG)
@@ -220,7 +246,7 @@ C     message and terminate.
       allocate(dir(i),speed(i),count_newcycle(i),cycle_num(i))
       allocate(isotachs_per_cycle(i),CycleTime(i))
       allocate(quadflag(i,4),stormname(i))
-      allocate(uTrans(i), vTrans(i),HollB(i),atcfRMW(i) )
+      allocate(uTrans(i+1), vTrans(i+1),HollB(i),atcfRMW(i) )
       allocate(uTrans2(i), vTrans2(i)) !,HollB(i),atcfRMW(i) )
       allocate(h_speed(i), h_dir(i) )
       
@@ -273,10 +299,6 @@ C     message and terminate.
          rlon(ient) = (-1.0d0) * ilon(ient) * 0.1d0
          rlat(ient) = ilat(ient) * 0.1d0
 C
-C        jgf49.30 Commented this line out so that the code that handles
-C        the "no isotach" case (near the end of this program) will be active.
-C        if (atcfRMW(ient) .eq. 0.0 .AND. atcfRMW(ient-1) .ne. 0.0 )
-C     &                                    atcfRMW(ient)=atcfRMW(ient-1)
       !------------
       ! Set ipn to background pressure of 1013
       !---------===
@@ -403,25 +425,46 @@ C
                h_dir(ient)=0.0 
             endif
          ELSE 
-            h_dir(ient)= asin(abs(uTrans(ient))/h_speed(ient))*rad2deg  ! in deg
-            if ( uTrans(ient) .gt. 0.0d0 ) then
-               ! I or IV quadrant
-               if( vTrans(ient) .lt. 0.0d0 ) then
-                  !  IV quadrant
-                  h_dir(ient)=180.0d0 - h_dir(ient) 
+            theta = atan(abs(vTrans(ient)/uTrans(ient))) * rad2deg
+            ! get the correct quadrant
+            if ( uTrans(ient).gt.0.0d0 ) then 
+               if ( vTrans(ient).gt.0.0d0 ) then ! NE
+                  h_dir(ient) = theta    
+               else                              ! SE
+                  h_dir(ient) = 360.d0 - theta
                endif
-            else !uTrans  < 0
-               ! II or III quadrant
-               if( vTrans(ient) .gt. 0.0d0 ) then
-                  ! II  quadrant
-                  h_dir(ient)=-h_dir(ient)
-               else
-                  h_dir(ient)=h_dir(ient)-180.0d0
+            else                            
+               if ( vTrans(ient).gt.0.0d0) then  ! NW             
+                  h_dir(ient) = 180.d0 - theta
+               else 
+                  h_dir(ient) = 180.d0 + theta   ! SW
                endif
             endif
-            if (h_dir(ient) .lt. 0.0d0 ) then 
-               h_dir(ient)=h_dir(ient) + 360.0d0
-            endif
+            ! convert to compass coordinates
+            h_dir(ient) = 90.d0 - h_dir(ient)
+            if ( h_dir(ient).lt.0.0d0 ) then
+               h_dir(ient) = h_dir(ient) + 360.d0
+            endif               
+
+C            h_dir(ient)= asin(abs(uTrans(ient))/h_speed(ient))*rad2deg  ! in deg
+C            if ( uTrans(ient) .gt. 0.0d0 ) then
+C               ! I or IV quadrant
+C               if( vTrans(ient) .lt. 0.0d0 ) then
+C                  !  IV quadrant
+C                  h_dir(ient)=180.0d0 - h_dir(ient) 
+C               endif
+C            else !uTrans  < 0
+C               ! II or III quadrant
+C               if( vTrans(ient) .gt. 0.0d0 ) then
+C                  ! II  quadrant
+C                  h_dir(ient)=-h_dir(ient)
+c              else
+C                  h_dir(ient)=h_dir(ient)-180.0d0
+C               endif
+C            endif
+C            if (h_dir(ient) .lt. 0.0d0 ) then 
+C               h_dir(ient)=h_dir(ient) + 360.0d0
+C            endif
          ENDIF ! hspeed == 0
       ENDDO
 
@@ -479,11 +522,12 @@ C
                                  ! this val will be thrown away later
             endif   
             Vr=Vmax 
-         case(1) ! set all radii equal to the nonzero radius
-            where (ir(ient,:).eq.0) irad(ient,:) = radii_sum
-         case(2) ! avg the 2 radii that are given to get the 2 that are missing
-            where (ir(ient,:).eq.0) irad(ient,:) = 0.5 * radii_sum 
-         case(3) ! average the radii on either side of the missing radius
+         case(1) ! set missing radii equal to half the nonzero radius
+            where (ir(ient,:).eq.0) irad(ient,:) = 0.5 * radii_sum
+         case(2) ! set missing to half the avg of the 2 radii that are given
+            where (ir(ient,:).eq.0) irad(ient,:) = 0.5 * radii_sum * 0.5
+         case(3) ! set missing radius to half the average of the 
+                 ! radii on either side
             do i=1,4
                if (ir(ient,i).eq.0) then
                   irad(ient,i) = 0.5*
@@ -509,18 +553,31 @@ C
         ! scale (Vmax - Vt) and Vr up to the top of the surface,
         ! where the cylcostrophic wind balance is valid.
         !-------------------------------------------------------
-        VmaxBL = (Vmax-SQRT(uTrans(ient)*uTrans(ient)
-     &                     +vTrans(ient)*vTrans(ient)))/windReduction
+        !uTrans(ient) = 0.d0 !jgfdebug
+        !vTrans(ient) = 0.d0 !jgfdebug
+        !h_speed(ient) = 0.0d0 ! jgfdebug
+        VmaxBL = (Vmax-SQRT(uTrans(ient)**2.d0+vTrans(ient)**2.d0))
+     &             /windReduction
         do i=1,4
-           U_Vr = Vr * cos(quadrantAngles(i))
-           V_Vr = Vr * sin(quadrantAngles(i))
+           ! quadrant angles are in the radial direction, we need
+           ! the tangential direction, b/c that is the direction of Vr
+           U_Vr = Vr * cos(quadrantAngles(i) + (deg2rad*90.0d0))
+           V_Vr = Vr * sin(quadrantAngles(i) + (deg2rad*90.0d0))
            quadrantVr(i) = sqrt(
      &                   (U_Vr - uTrans(ient))**2  
      &                  +(V_Vr - vTrans(ient))**2
      &                  )/windReduction
         end do
-        !VrBL = Vr/windReduction
-        quadrantVr(:) = Vr/windReduction
+        !
+        ! check to see if any of the isotach wind speeds end up being
+        ! greater than Vmax, and if so, don't apply the translation speed
+        do i=1,4
+           if ( quadrantVr(i).gt.VmaxBL ) then
+              quadrantVr(:) = Vr/windReduction
+              VmaxBL = Vmax/windReduction
+              exit
+           endif
+        enddo
         call setUseQuadrantVr(.true.)
         ! jgfdebug
         do i=1,4
@@ -528,10 +585,12 @@ C
               print *,"ERROR: ient=",ient,"r(",i,")=",r(i)
            endif
         enddo
-        CALL newVortex_rmax_b_OUT(stormname(ient),
-     &   advr(ient),iyear(ient),imth(ient),iday(ient),ihr(ient),
-     &   iFcstInc(ient),Pn,Pc,cLat,cLon,VmaxBL,quadrantVr,r,
-     &   rmaxw(ient,:),HollB(ient))
+        call newVortex(Pn,Pc,cLat,cLon,VmaxBL)
+        call setIsotachWindSpeeds(quadrantVr)
+        call setIsotachRadii(r)
+        call calcRmaxes()
+        call getRmaxes(rmaxw(ient,:))
+        HollB(ient) = getShapeParameter()
 
 C    reset rmax to zero if there was a zero radius to the isotach for all
 C    isotachs EXCEPT the 34 kt isotach.  in that case leave the radius that
@@ -689,23 +748,74 @@ C
       ! at those nodes.
       if ((writeFullCircleRmaxes.eqv..true.).or.
      &    (writeRadialVandP.eqv..true.)) then
-         ! open the file we just wrote, so NWS19 can access it
-         OPEN(22,FILE='NWS_19_fort.22',STATUS='OLD')
+         select case(nws)
+         case(19)
+            ! open the file we just wrote, so NWS19 can access it
+            OPEN(22,FILE='NWS_19_fort.22',STATUS='OLD')
+         case(9)
+            ! open the file we just wrote, so NWS19 can access it
+            OPEN(22,FILE='fort.22',STATUS='OLD')
+         case default
+            write(*,*) "ERROR: aswip: -n ",nws,
+     &        " is not an nws value supported by aswip."
+         end select
          ! place the time in seconds to which each cycle corresponds,
          ! along with the storm position for each cycle, in new arrays
          ! so that we can conveniently loop through them
-         allocate(cycleSecs(num_cycles))
-         allocate(cycleLons(num_cycles),cycleLats(num_cycles))
-         cycleSecs(1) = CycleTime(1) 
+         if ( defaultOutputIncrement.eqv..true. ) then
+            num_outputs = num_cycles
+         else
+            ! determine how many cycles are needed for the given increment
+            num_outputs = 1 + int(cycleTime(num_entry)/output_increment)
+         endif
+         allocate(outputSecs(num_outputs),cycleSecs(num_cycles))
+         allocate(outputLats(num_outputs),cycleLats(num_cycles))
+         allocate(outputLons(num_outputs),cycleLons(num_cycles))
+         allocate(outputDirs(num_outputs),cycleDirs(num_cycles))
+         cycleSecs(1) = CycleTime(1)
+         outputSecs(1) = CycleTime(1) 
+         outputLons(1) = rlon(1)
          cycleLons(1) = rlon(1)
+         outputLats(1) = rlat(1)
          cycleLats(1) = rlat(1)
+         outputDirs(1) = h_dir(1)
+         cycleDirs(1) = h_dir(1)
+         time = CycleTime(1)
+         iout=2
          icyc=2
          do ient=2,num_entry
             if ( cycle_num(ient).ne.cycle_num(ient-1) ) then
-               cycleSecs(icyc) = cycleTime(ient)
+               cycleSecs(icyc) = CycleTime(ient)
                cycleLons(icyc) = rlon(ient)
                cycleLats(icyc) = rlat(ient)
-               icyc = icyc + 1
+               cycleDirs(icyc) = h_dir(ient)
+               if ( defaultOutputIncrement.eqv..true. ) then
+                  outputSecs(iout) = cycleTime(ient)
+                  outputLons(iout) = rlon(ient)
+                  outputLats(iout) = rlat(ient)
+                  outputDirs(iout) = h_dir(ient)
+                  iout = iout + 1
+               else
+                  do while( time.lt.cycleTime(ient) )
+                     time = time + output_increment
+                     outputSecs(iout) = time
+C                     write(*,*) 'time=',time,
+C     &                  ' cycleTime=',cycleTime(ient)
+                     interp = (time - cycleSecs(icyc-1))
+     &                  /(cycleSecs(icyc)-cycleSecs(icyc-1)) 
+                     outputLons(iout) = interp * 
+     &                   (cycleLons(icyc)-cycleLons(icyc-1)) 
+     &                   + cycleLons(icyc-1)
+                     outputLats(iout) = interp * 
+     &                   (cycleLats(icyc)-cycleLats(icyc-1)) 
+     &                   + cycleLats(icyc-1)
+                     outputDirs(iout) = interp * 
+     &                   (cycleDirs(icyc)-cycleDirs(icyc-1)) 
+     &                   + cycleDirs(icyc-1)
+                     iout = iout + 1
+                  end do 
+               endif   
+               icyc = icyc + 1 
             endif
          end do
          !
@@ -713,29 +823,29 @@ C
             np = 360
          endif
          if (writeRadialVandP.eqv..true.) then
-            np = radial_extent * radial_resolution * 4 ! 4 quadrants
+            np = radial_extent * radial_resolution * 5 ! 4 quadrants + max
          endif
          ics = 2
          allocate(slam(np),sfea(np))
          allocate(wvnx2(np),wvny2(np),prn2(np))
          allocate(radial_speed(np),pressure(np))
-         do icyc=1,num_cycles
+         do iout=1,num_outputs
             if (writeFullCircleRmaxes.eqv..true.) then
                ! create a set of nodes in a circle around the center of the
                ! storm so that we can get an Rmax in all directions
                do i=1,np
                   azimuth = real(i-1) * deg2rad
-                  slam(i) = cycleLons(icyc)*deg2rad 
+                  slam(i) = outputLons(iout)*deg2rad 
      &               + (1.0d0*deg2rad)*cos(azimuth)
-                  sfea(i) = cycleLats(icyc)*deg2rad 
+                  sfea(i) = outputLats(iout)*deg2rad 
      &               + (1.0d0*deg2rad)*sin(azimuth)
                enddo
                ! open the file where the full circle Rmaxes will be written
-               write(rmax_file_name,'(I2.2,".d")') icyc
+               write(rmax_file_name,'(I3.3,".d")') iout
                rmax_file_name = "full_circle_rmaxes_"// 
      &                           rmax_file_name//".d" 
                OPEN(444,FILE=trim(rmax_file_name),STATUS='REPLACE')
-               write(node_file_name,'(I2.2,".d")') icyc
+               write(node_file_name,'(I3.3,".d")') iout
                node_file_name = "full_circle_latlon_"//
      &                           node_file_name//".d"
             endif 
@@ -743,24 +853,30 @@ C
                ! create four strings of nodes in straight lines out from 
                ! the center of the storm, one in the center of each quadrant
                dr = 0.0d0
-               do i=1,np-4,4
+               do i=1,np-5,5
                   call xy2latlon(dr*cos(45.d0*deg2rad),
-     &                 dr*sin(45.d0*deg2rad), cycleLats(icyc),
-     &                 cycleLons(icyc), sfea(i), slam(i)) ! NEQ
+     &                 dr*sin(45.d0*deg2rad), outputLats(iout),
+     &                 outputLons(iout), sfea(i), slam(i)) ! NEQ
                   call xy2latlon(dr*cos(315.d0*deg2rad),
-     &                 dr*sin(315.0d0*deg2rad), cycleLats(icyc),
-     &                 cycleLons(icyc), sfea(i+1), slam(i+1)) ! SEQ
+     &                 dr*sin(315.0d0*deg2rad), outputLats(iout),
+     &                 outputLons(iout), sfea(i+1), slam(i+1)) ! SEQ
                   call xy2latlon(dr*cos(225.d0*deg2rad),
-     &                 dr*sin(225.d0*deg2rad), cycleLats(icyc),
-     &                 cycleLons(icyc), sfea(i+2),slam(i+2))  ! SWQ
+     &                 dr*sin(225.d0*deg2rad), outputLats(iout),
+     &                 outputLons(iout), sfea(i+2),slam(i+2))  ! SWQ
                   call xy2latlon(dr*cos(135.d0*deg2rad),
-     &                 dr*sin(135.d0*deg2rad),cycleLats(icyc),
-     &                 cycleLons(icyc), sfea(i+3), slam(i+3)) ! NWQ
+     &                 dr*sin(135.d0*deg2rad),outputLats(iout),
+     &                 outputLons(iout), sfea(i+3), slam(i+3)) ! NWQ
+                  trigDir = 360.d0 - outputDirs(iout) + 90.d0  
+                  call xy2latlon(
+     &                 dr*cos((trigDir-90.d0)*deg2rad),
+     &                 dr*sin((trigDir-90.d0)*deg2rad),
+     &                 outputLats(iout),outputLons(iout),
+     &                 sfea(i+4), slam(i+4)) ! MAX
                   dr = dr + 1852.0d0/real(radial_resolution) 
                end do 
                slam(:) = slam(:) * deg2rad
-               sfea(:) = sfea(:) * deg2rad + cycleLats(icyc) * deg2rad
-               write(node_file_name,'(I2.2,".d")') icyc
+               sfea(:) = sfea(:) * deg2rad + outputLats(iout) * deg2rad
+               write(node_file_name,'(I3.3,".d")') iout
                node_file_name = "radialvp_latlon_"//
      &                           node_file_name//".d"
             endif
@@ -770,8 +886,17 @@ C
                write(333,*) slam(i)*rad2deg, sfea(i)*rad2deg
             end do 
             close(333)
-            CALL NWS19GET(SLAM,SFEA,WVNX2,WVNY2,PRN2,NP,
-     &         cycleSecs(icyc), ICS)
+            select case(nws)
+            case(19)
+                CALL NWS19GET(SLAM,SFEA,WVNX2,WVNY2,PRN2,NP,
+     &             outputSecs(iout), ICS)
+            case(9)
+                CALL NWS9GET(slam, sfea, wvnx2, wvny2, prn2, 
+     &             np, outputSecs(iout), ics)
+            case default
+               write(*,*) "ERROR: aswip: -n ",nws,
+     &           " is not an nws value supported by aswip."
+            end select 
             if (writeFullCircleRmaxes.eqv..true.) then
                CLOSE(444)
                ! search around the storm along Rmax to find the vmax 
@@ -785,26 +910,28 @@ C
                      vmax_azimuth = real(i-1)
                   endif
                end do 
-               write(*,*) "vmax=",vmax," vmax_azimuth=",vmax_azimuth
+C               write(*,*) "vmax=",vmax," vmax_azimuth=",vmax_azimuth
             endif
             if (writeRadialVandP.eqv..true.) then
                ! open the file where the radial V and P will be written
-               write(radialvp_file_name,'(I2.2,".d")') icyc
+               write(radialvp_file_name,'(I3.3,".d")') iout
                radialvp_file_name = "radialvp_"// 
      &                           radialvp_file_name//".d" 
                OPEN(555,FILE=trim(radialvp_file_name),STATUS='REPLACE')
-               ! convert from m/s velocity to speed in kt
+               ! convert from m/s velocity to speed in kt and convert
+               ! from 10minute averaged winds (needed by ADCIRC) back
+               ! to 1minute averaged winds (which match the data from NHC) 
                do i=1,np
                   radial_speed(i) 
-     &               = sqrt(wvnx2(i)**2 + wvny2(i)**2)
+     &               = ten2one * sqrt(wvnx2(i)**2 + wvny2(i)**2)
      &                       /0.514444d0   
                   ! convert from mH2O to mbar
                   pressure(i) = prn2(i) * RhoWatG / 100.d0 
                enddo
                dr = 0.0d0
-               do i=1,np-4,4
-                  write(555,*) dr,(radial_speed(i+j),j=0,3),
-     &                         (pressure(i+j),j=0,3)
+               do i=1,np-5,5
+                  write(555,*) dr,(radial_speed(i+j),j=0,4),
+     &                         (pressure(i+j),j=0,4)
                   dr = dr + 1.0d0/real(radial_resolution) 
                end do 
                CLOSE(555)
