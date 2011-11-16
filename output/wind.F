@@ -67,6 +67,7 @@ C
       ! used for vis/diagnostics on nws19
       LOGICAL :: writeFullCircleRmaxes = .false.
       LOGICAL :: writeRadialVandP = .false.
+      LOGICAL :: writeSpatialVandP = .false.
 
 C------------------------end of data declarations-----------------------
        CONTAINS 
@@ -2913,7 +2914,8 @@ C     jgf46.16 commented out according to cf
          ! the mesh changes at each time step if we are writing out
          ! the full circle Rmaxes 
          if ((writeFullCircleRmaxes.eqv..true.).or.
-     &              (writeRadialVandP.eqv..true.)) then
+     &              (writeRadialVandP.eqv..true.).or.
+     &              (writeSpatialVandP.eqv..true.)) then
             xcoor(:) = slam(:) * rad2deg
             ycoor(:) = sfea(:) * rad2deg
          endif
@@ -3457,6 +3459,7 @@ C     cf added if missing values set winds to zero and pressure to P0
       INTEGER , DIMENSION(:,:),ALLOCATABLE, SAVE :: ir,ir1
       CHARACTER(LEN = 10),DIMENSION(:),ALLOCATABLE,SAVE::name,name1
       REAL(sz),SAVE :: timeOld,timeNew
+      REAL(sz) :: uTransNow, vTransNow ! time-interpolated overland speed, kts
       CHARACTER*1 ew,E,W,ns,N,S
       INTEGER, SAVE :: num_cycles ! num unique date/times in the fort.22
 C
@@ -3488,7 +3491,8 @@ C
       ! the mesh changes at each time step if we are writing out
       ! the full circle Rmaxes 
       if ((writeFullCircleRmaxes.eqv..true.).or.
-     &           (writeRadialVandP.eqv..true.)) then
+     &           (writeRadialVandP.eqv..true.).or.
+     &           (writeSpatialVandP.eqv..true.)) then
          xcoor(:) = slam(:) * rad2deg
          ycoor(:) = sfea(:) * rad2deg
       endif
@@ -3718,7 +3722,10 @@ C     we are running off the end of the data.
          crmaxw(i)=rmaxw(icyc-1,i) +
      &                          wtratio*(rmaxw(icyc,i)-rmaxw(icyc-1,i))
       enddo
-
+      uTransNow = uTrans(icyc-1) + wtratio 
+     &                  * (uTrans(icyc)-utrans(icyc-1))
+      vTransNow = vTrans(icyc-1) + wtratio 
+     &                  * (vTrans(icyc)-uTrans(icyc-1))
       Vr = one * cycle_num(icyc-1)
 
       ! jgf49.0803 Make the current Rmax and center location
@@ -3750,10 +3757,10 @@ C     we are running off the end of the data.
       ! scale (Vmax - Vt) and Vr up to the top of the surface,
       ! where the cylcostrophic wind balance is valid.
       !-------------------------------------------------------
-      VmaxBL = (Vmax-SQRT(uTrans(icyc)**2.d0+vTrans(icyc)**2.d0))
+      VmaxBL = (Vmax-SQRT(uTransNow**2.d0+vTransNow**2.d0))
      &             /windReduction
       call newVortex(Pn,Pc,cLat,cLon,VmaxBL)
-      call setShapeParameter(cHollB)
+      !call setShapeParameter(cHollB)
       call setRmaxes(crmaxw)
       call fitRmaxes()
 
@@ -3767,7 +3774,7 @@ C     we are running off the end of the data.
       !-------------------------------------------------------------
       DO i=1,np
          CALL uvp(ycoor(i),xcoor(i), 
-     &        uTrans(icyc)*kt2ms,vTrans(icyc)*kt2ms,
+     &        uTransNow*kt2ms,vTransNow*kt2ms,
      &        wvnx(i),wvny(i), press(i)) !
          !-------------------------------------------
          ! Convert atmospheric pressure (Pascals) to

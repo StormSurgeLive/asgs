@@ -58,7 +58,6 @@
       !
       !=================================================================
       MODULE vortex
-      ! Import custom precision types for cross-platform portability
       USE precision
       USE constants         ! Import global constants
       IMPLICIT NONE
@@ -145,7 +144,7 @@
                Vmax = vm
                ! evaluate basic physical params
                corio = two * omega * SIN(deg2rad*cLat)
-               B = (Vmax*kt2ms)*(Vmax*kt2ms) * RhoAir * EXP(one)
+               B = (Vmax*kt2ms)**2 * RhoAir * EXP(one)
      &                   / ((Pn - Pc) * mb2pa)
                B = MAX( MIN(B,twoPointFive), one) ! limit B to range 1.0->2.5
 
@@ -255,9 +254,9 @@
                else 
                   thisVr = Vr
                endif
-              VeeH = Vh (radius(quad), x, B, Pn, Pc, cLat, Vmax) 
+              VeeH = Vh (radius(quad), x) 
               VhWithCori = 
-     &           ABS(Vh(radius(quad), x, B, Pn, Pc, cLat, Vmax)) 
+     &           ABS(Vh(radius(quad), x)) 
      &           - thisVr
 !              PRINT *, "----------------------------------------"
 !              PRINT *, "func:  Quadrant    = ", quad
@@ -286,9 +285,9 @@
                thisVr = Vr
             endif
             VhNoCori = ABS(ms2kt *
-     &              SQRT( (Vmax*kt2ms)**2.0d0 * (testRmax/radius(quad))**B
-     &              * EXP(1 - (testRmax/radius(quad))**B)))
-     &              - thisVr
+     &           SQRT( (Vmax*kt2ms)**2.0d0 * (testRmax/radius(quad))**B
+     &           * EXP(1 - (testRmax/radius(quad))**B)))
+     &           - thisVr
 
             !===============================================================
             END FUNCTION VhNoCori
@@ -373,8 +372,7 @@
             !    B            Exponential shape parameter (no units)
             !    Pn           Ambient surface pressure (mb)
             !    Pc           Surface pressure at center of storm (mb)
-            !    cLat         Latitude of storm center (degrees north)
-            !    Vmax         Maximum wind velocity
+            !    Vmax         Maximum wind speed (kts)
             !
             ! On output:
             !    Vh           Radial wind speed (knots)
@@ -382,40 +380,17 @@
             ! Note:
             !    Computation is performed in mks, then converted back to knots.
             !==================================================================
-!            REAL(sz) FUNCTION Vh(r, Rmax, B, Pn, Pc, cLat)
-            REAL(sz) FUNCTION Vh(r, Rmax, B, Pn, Pc, cLat, Vmax)
-               REAL(sz), INTENT(IN) :: r
-               REAL(sz), INTENT(IN) :: Rmax
-               REAL(sz), INTENT(IN) :: Vmax
-               REAL(sz), INTENT(IN) :: B
-               REAL(sz), INTENT(IN) :: Pn
-               REAL(sz), INTENT(IN) :: Pc
-               REAL(sz), INTENT(IN) :: cLat
+            REAL(sz) FUNCTION Vh(r, Rmax)
+            REAL(sz), INTENT(IN) :: r
+            REAL(sz), INTENT(IN) :: Rmax
 
-               REAL(sz) :: deltaP    ! Pn - Pc (Pa)
-               REAL(sz) :: Brho      ! B / density of air
-               REAL(sz) :: RmaxrB    ! (Rmax/r)**B
-               REAL(sz) :: rf2       ! r*f/2
-               REAL(sz) :: Vmax_ms       ! get Vmax into m/s (it is passed in in knots)
+              Vh = ms2kt * SQRT( 
+     &            (Vmax*kt2ms)**2.d0 * (Rmax/r)**B  
+     &                   * EXP(1-(Rmax/r)**B)
+     &            + (nm2m*r*corio/2.d0)**2.d0) 
+     &            - nm2m*r*corio/2.d0
 
-               Vmax_ms=Vmax*kt2ms  ! get Vmax into m/s (it is passed in in knots)
-               deltaP = (Pn - Pc) * mb2pa
-               Brho = B / RhoAir
-               RmaxrB = (Rmax/r)**B
-!              rf2 = nm2m * r * coriolis(cLat) / two
-               rf2 = nm2m * r * corio / two
-!               Vh = ms2kt * (SIGN(one, cLat) *
-!     &                      SQRT( Brho * RmaxrB * deltaP * EXP(-RmaxrB)
-!     &                            + rf2*rf2 ) - rf2)
-               Vh = ms2kt * (SIGN(one, cLat) *
-     &                SQRT( Vmax_ms*Vmax_ms * RmaxrB  * EXP(1 - RmaxrB)
-     &                            + rf2*rf2 ) - rf2)
 
-!              PRINT *, "Vh:  deltaP = ", deltaP
-!              PRINT *, "Vh:  Brho   = ", Brho
-!              PRINT *, "Vh:  RmaxrB = ", RmaxrB
-!              PRINT *, "Vh:  rf2    = ", rf2
-!              PRINT *, "Vh:  Vh     = ", Vh
             END FUNCTION Vh
 
             !=================================================================
@@ -465,6 +440,8 @@
                REAL(sz) :: vf
                REAL(sz) :: damp
                REAL(sz) :: percentCoriolis
+               REAL(sz) :: speedAtRmax
+               REAL(sz) :: vmaxFactor
                INTEGER :: i
                !------------------------------------------------------
                ! Calculate distance and angle between eye of hurricane
@@ -480,14 +457,10 @@
                ! in eye velocity is zero not translational velocity
                !----------------------------------------
                IF (dist < one) THEN
-!                  u = uTrans
-!                  v = vTrans
-! RJW                  
                  u = zero
                  v = zero
-
-                  p = Pc * mb2pa
-                  RETURN
+                 p = Pc * mb2pa
+                 RETURN
                END IF
 
                dist = m2nm * dist
@@ -507,40 +480,44 @@
                ! averages to 10-minute averages for the storm surge
                ! model.
                !---------------------------------------------------
-            if ( dist.le.rmx ) then
-               ! neglect coriolis term
-               percentCoriolis = 0.0d0
-            endif
-            if ( (dist.gt.rmx).and.(dist.le.(1.4d0*rmx)) ) then
-               ! blend in coriolis term
-               percentCoriolis = (dist-rmx)/(1.4d0*rmx-rmx)
-            endif
-            if ( dist.gt.(1.4d0*rmx) ) then
-               ! include full coriolis term
-               percentCoriolis = 1.d0
-            endif
+            ! jgfdebug
+            percentCoriolis=1.0d0
             speed = SQRT( 
-     &            (Vmax*kt2ms)**2.d0 * (rmx/dist)**B  
-     &                   * EXP(1-(rmx/dist)**B)
+     &           (Vmax*kt2ms)**2.d0 * (rmx/dist)**B  
+     &                  * EXP(1.d0-(rmx/dist)**B)
+     &            + (nm2m*dist*percentCoriolis
+     &                           *corio/2.d0)**2.d0) 
+     &            - nm2m*dist*percentCoriolis*corio/2.d0
+            
+            ! calculate the wind speed (m/s) at Rmax, using 
+            ! equation that includes full coriolis
+            speedAtRmax = SQRT( 
+     &           (Vmax*kt2ms)**2.d0 *   
+     &                  * EXP(0.d0)
      &            + (nm2m*dist*percentCoriolis
      &                           *corio/2.d0)**2.d0) 
      &            - nm2m*dist*percentCoriolis*corio/2.d0
 
+            ! calculate a factor to place the velocity profile so that
+            ! it hits vmax
+            vmaxFactor = Vmax*kt2ms / speedAtRmax
+ 
            ! jgf20111007: Calculate NWS8-like translation speed
-           TransSpdX = (abs(speed/(Vmax*kt2ms)))*uTrans
-           TransSpdY = (abs(speed/(Vmax*kt2ms)))*vTrans
+           TransSpdX = (abs(speed/(speedAtRmax)))*uTrans
+           TransSpdY = (abs(speed/(speedAtRmax)))*vTrans
+
+           speed = speed * vmaxFactor
 
            ! now reduce the wind speed to the surface
            speed = speed * windReduction
  
            u = -speed * COS(deg2rad*angle) 
            v =  speed * SIN(deg2rad*angle) 
-
            !
            ! Alter wind direction by adding a frictional inflow angle
-           !CALL rotate(u,v, fang(dist,rmx), cLat, uf,vf)
-           !u = uf
-           !v = vf
+           CALL rotate(u,v, fang(dist,rmx), cLat, uf,vf)
+           u = uf
+           v = vf
            !
            ! jgf20111007: Add in the translation velocity
            u = u + TransSpdX
@@ -766,14 +743,6 @@
 
             END SUBROUTINE fitRmaxes
 
-            !==================================================
-            ! Print an error message, then terminate execution.
-            !==================================================
-            SUBROUTINE killJob(message)
-             CHARACTER(LEN = *), INTENT(IN) :: message
-              WRITE (*,'(a)') message
-! jgfdebug             STOP "Program terminated by SUBROUTINE killJob"
-            END SUBROUTINE killJob
 
             SUBROUTINE setUseQuadrantVr(u)
                LOGICAL, INTENT(IN) :: u

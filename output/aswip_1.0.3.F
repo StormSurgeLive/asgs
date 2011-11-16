@@ -12,7 +12,8 @@ C
       ! Import asymmetric hurricane vortex class
       USE vortex
       USE wind, only : nws19get, writeFullCircleRmaxes, vortexLon,
-     &                 vortexLat, writeRadialVandP, nws9get
+     &                 vortexLat, writeRadialVandP, nws9get, 
+     &                 writeSpatialVandP
       IMPLICIT NONE
 
       !=================================================================
@@ -86,12 +87,19 @@ C
       REAL(sz) :: vtest    ! wind speed along Rmax curve
       REAL(sz) :: vmax_azimuth ! azimuthal angle at which vmax occurs 
       INTEGER, PARAMETER :: radial_extent = 400 ! (nm) max dist. to write V,P
-      INTEGER, PARAMETER :: radial_resolution = 2 ! data points per nm
+      INTEGER, PARAMETER :: quadrant_radial_resolution = 2 ! data points per nm
+      INTEGER, PARAMETER :: spatial_radial_resolution = 1 
+      INTEGER, PARAMETER :: azimuthal_increment = 1
+      INTEGER :: num_rvalues ! dimension in radial direction for spatial output
+      INTEGER :: ry, t  ! loop counters in radial and theta directions
       CHARACTER(80) :: rmax_file_name ! name of full circle rmax output
       CHARACTER(80) :: radialvp_file_name ! name of radial V and P output
       CHARACTER(80) :: node_file_name ! name of file containing node locations
+      CHARACTER(80) :: spatial_file_name ! file containing spatial output
+      CHARACTER(80) :: scratch  ! throw-away line from file
       REAL(sz) :: output_increment    ! time increment for output (seconds)
       LOGICAL :: defaultOutputIncrement = .true. ! equal to cycle time incr.
+      INTEGER :: frame ! output frame number to render (0 for all frames)
 
       REAL(sz), DIMENSION(:), ALLOCATABLE :: pressure
       REAL(sz), DIMENSION(:), ALLOCATABLE :: radial_speed
@@ -106,8 +114,11 @@ C     jgf49.30: New variables to support command line options
       INTEGER :: IARGC   ! function to return number of command line arguments
       INTEGER :: ARGCOUNT ! number of command line arguments
       CHARACTER(2048) :: CMDLINEARG
+      CHARACTER(2048) :: meshFileName ! name of file containing node locations
+      LOGICAL :: nodesFromMesh ! .true. if we are supposed to load a fort.14
       CHARACTER(2) :: CMDLINEOPTION ! the option flag itself
       LOGICAL :: fileFound ! .true. if the input file is there
+      LOGICAL :: writeNWS19 ! .false. if we don't want to write it
       REAL(sz) :: percent  ! desired percentage change in Rmax relative to the
                            ! value calculated from isotach radii data (0 to 100)
       REAL(sz) :: forecastRmax ! constant Rmax value for the duration of the 
@@ -127,6 +138,9 @@ C     jgf49.30 Initialize to reasonable defaults.
       method=2             ! calc rMaxes based on largest available isotach
                            ! radius for each quadrant, a.k.a. the fancy method
       nws=19
+      frame=0
+      writeNWS19=.true.
+      nodesFromMesh=.false.
       azimuth = 45.d0
       do i=1,4 
          quadrantAngles(i) = deg2rad*azimuth
@@ -150,6 +164,27 @@ C     jgf49.30 Initialize to reasonable defaults.
                write(screenunit,*) "INFO: Processing '",CMDLINEOPTION,
      &            "'." 
                writeRadialVandP=.true.
+            CASE("-S","-s") ! spatial V and P regular gridded vals requested
+               write(screenunit,*) "INFO: Processing '",CMDLINEOPTION,
+     &            "'." 
+               writeSpatialVandP=.true.
+            CASE("-D","-d") ! don't write NWS19 fort.22
+               write(screenunit,*) "INFO: Processing '",CMDLINEOPTION,
+     &            "'." 
+               writeNWS19=.false.
+            CASE("-F","-f")  ! selecting a particular frame to render
+               I=I+1
+               CALL GETARG(I,CMDLINEARG)
+               write(screenunit,*) "INFO: Processing '",CMDLINEOPTION,
+     &            " ",trim(CMDLINEARG),"'." 
+               READ(CMDLINEARG,*) frame
+            CASE("-I","-i")  ! input fort.14 file containing mesh locations
+               I=I+1
+               CALL GETARG(I,CMDLINEARG)
+               write(screenunit,*) "INFO: Processing '",CMDLINEOPTION,
+     &            " ",trim(CMDLINEARG),"'." 
+               meshFileName = trim(CMDLINEARG)
+               nodesFromMesh = .true.
             CASE("-M","-m")  ! method of selecting quadrant Rmax values
                I=I+1
                CALL GETARG(I,CMDLINEARG)
@@ -212,10 +247,6 @@ C
       W='W'
       N='N'
       S='S'
-      !------------
-      ! open output file
-      !------------
-      OPEN(222,file="NWS_19_fort.22",status="unknown")
 C
 C     jgf49.30 Check to see if the fort.22 file is there and if not, emit error 
 C     message and terminate.
@@ -446,26 +477,7 @@ C
                h_dir(ient) = h_dir(ient) + 360.d0
             endif               
 
-C            h_dir(ient)= asin(abs(uTrans(ient))/h_speed(ient))*rad2deg  ! in deg
-C            if ( uTrans(ient) .gt. 0.0d0 ) then
-C               ! I or IV quadrant
-C               if( vTrans(ient) .lt. 0.0d0 ) then
-C                  !  IV quadrant
-C                  h_dir(ient)=180.0d0 - h_dir(ient) 
-C               endif
-C            else !uTrans  < 0
-C               ! II or III quadrant
-C               if( vTrans(ient) .gt. 0.0d0 ) then
-C                  ! II  quadrant
-C                  h_dir(ient)=-h_dir(ient)
-c              else
-C                  h_dir(ient)=h_dir(ient)-180.0d0
-C               endif
-C            endif
-C            if (h_dir(ient) .lt. 0.0d0 ) then 
-C               h_dir(ient)=h_dir(ient) + 360.0d0
-C            endif
-         ENDIF ! hspeed == 0
+         ENDIF 
       ENDDO
 
       !-----------------------------------------
@@ -556,7 +568,12 @@ C            endif
         !uTrans(ient) = 0.d0 !jgfdebug
         !vTrans(ient) = 0.d0 !jgfdebug
         !h_speed(ient) = 0.0d0 ! jgfdebug
-        VmaxBL = (Vmax-SQRT(uTrans(ient)**2.d0+vTrans(ient)**2.d0))
+
+        uTrans(ient) = 0.5d0*uTrans(ient) !jgfdebug
+        vTrans(ient) = 0.5d0*vTrans(ient) !jgfdebug
+        h_speed(ient) = 0.50d0*h_speed(ient) ! jgfdebug
+        VmaxBL = (Vmax
+     &           -SQRT(uTrans(ient)**2.d0+vTrans(ient)**2.d0))
      &             /windReduction
         do i=1,4
            ! quadrant angles are in the radial direction, we need
@@ -700,54 +717,56 @@ C!-------------------------------------------------------------------
       !------------------------
       ! WRITE OUTPUT
       !------------------------
-      DO ient=1,num_entry
-         !-----------------------------------
-         ! NHC advisory best-track i/o format
-         !-----------------------------------
-22       FORMAT(3x, i3, 2x, i4, 3i2, 6x, a4, 2(2x,i3),a1, 1x, i5,a1, 2x,
-     &         i3,2x, i4, 6x, i3, 7x, 4(i4,2x), i4, 8x, i3,
+      if ( writeNWS19.eqv..true. ) then
+         OPEN(222,file="NWS_19_fort.22",status="unknown")
+         DO ient=1,num_entry
+            !-----------------------------------
+            ! NHC advisory best-track i/o format
+            !-----------------------------------
+22          FORMAT(3x, i3, 2x, i4, 3i2, 6x, a4, 2(2x,i3),a1, 1x, i5,
+     &         a1, 2x, i3,2x, i4, 6x, i3, 7x, 4(i4,2x), i4, 8x, i3,
      &          27x, 2(i3,2x), a10)
-         !-----------------------------------
-         ! NHC advisory best-track i/o format
-         ! WITH nws=19 ADDED DATA
-         !-----------------------------------
-26       FORMAT("AL,",1x,i2.2,",",i5,3i2.2,",",3x,",",1x,a4,",",
+            !-----------------------------------
+            ! NHC advisory best-track i/o format
+            ! WITH nws=19 ADDED DATA
+            !-----------------------------------
+26          FORMAT("AL,",1x,i2.2,",",i5,3i2.2,",",3x,",",1x,a4,",",
      &         i4,",",i4,a1,",",i5,a1,",",i4,",",i5,",",3x,",",i4,",",
      &       " NEQ,",5(i5,","),5x,",",i4,", ",5(4x,","),i3,", ",i3,",",
      &         a10," ",1x,",",i4,",",i5,",",1x, 4(i1,",",1x),2x, 
      &         4(f6.1,",",1x), 2x, f8.4)!,2(2x,f10.4))
 
-
-         ! jgf49.30: Modify the Rmax as specified on the command line.
-         IF (constantRmax.eqv..true.) THEN
-            DO i=1,4
-               rmaxw(ient,i) = forecastRmax
-            ENDDO
-         ELSEIF (percentSpecified.eqv..true.) THEN
-            DO i=1,4
-               rmaxw(ient,i) = rmaxw(ient,i)*(percent/100.d0)
-            ENDDO
-         ENDIF
+            ! jgf49.30: Modify the Rmax as specified on the command line.
+            IF (constantRmax.eqv..true.) THEN
+               DO i=1,4
+                  rmaxw(ient,i) = forecastRmax
+               ENDDO
+            ELSEIF (percentSpecified.eqv..true.) THEN
+               DO i=1,4
+                  rmaxw(ient,i) = rmaxw(ient,i)*(percent/100.d0)
+               ENDDO
+            ENDIF
 C
-         WRITE(222,26) advr(ient), iyear(ient),imth(ient),iday(ient),
-     &      ihr(ient), castType(ient),iFcstInc(ient), ilat(ient),ns,
-     &      ilon(ient),ew, ispd(ient), icpress(ient), ivr(ient),
-     &      (ir(ient,i),i=1,4), ipn(ient), atcfRMW(ient),
-     &      nint(h_dir(ient)),nint(h_speed(ient)), stormname(ient), 
-     &      cycle_num(ient),isotachs_per_cycle(cycle_num(ient)),
-     &     (quadflag(ient,i),i=1,4),(rmaxw(ient,i),i=1,4),HollB(ient)
+            WRITE(222,26) advr(ient), iyear(ient),imth(ient),iday(ient),
+     &         ihr(ient), castType(ient),iFcstInc(ient), ilat(ient),ns,
+     &         ilon(ient),ew, ispd(ient), icpress(ient), ivr(ient),
+     &         (ir(ient,i),i=1,4), ipn(ient), atcfRMW(ient),
+     &         nint(h_dir(ient)),nint(h_speed(ient)), stormname(ient), 
+     &         cycle_num(ient),isotachs_per_cycle(cycle_num(ient)),
+     &        (quadflag(ient,i),i=1,4),(rmaxw(ient,i),i=1,4),HollB(ient)
 
-      ENDDO
-
-      close(222)
+         ENDDO
+         close(222)
+      endif
 
  
       !
       ! If additional diagnostic output was requested, generate the 
-      ! required node locations and invoke NWS19GET to find the data
+      ! required node locations and invoke NWS19GET to calculate the data
       ! at those nodes.
       if ((writeFullCircleRmaxes.eqv..true.).or.
-     &    (writeRadialVandP.eqv..true.)) then
+     &    (writeRadialVandP.eqv..true.).or.
+     &    (writeSpatialVandP.eqv..true.)) then
          select case(nws)
          case(19)
             ! open the file we just wrote, so NWS19 can access it
@@ -823,13 +842,29 @@ C     &                  ' cycleTime=',cycleTime(ient)
             np = 360
          endif
          if (writeRadialVandP.eqv..true.) then
-            np = radial_extent * radial_resolution * 5 ! 4 quadrants + max
+            ! 4 quadrants + max
+            np = radial_extent * quadrant_radial_resolution * 5
+         endif
+         if (writeSpatialVandP.eqv..true.) then
+            if (nodesFromMesh.eqv..false.) then
+               np = radial_extent * spatial_radial_resolution 
+     &              * (360/azimuthal_increment) 
+            else
+               open(14,FILE=trim(meshFileName),STATUS='OLD')
+               read(14,*) scratch  ! throw away AGRID  
+               read(14,*) ne, np
+            endif 
          endif
          ics = 2
          allocate(slam(np),sfea(np))
          allocate(wvnx2(np),wvny2(np),prn2(np))
          allocate(radial_speed(np),pressure(np))
          do iout=1,num_outputs
+            ! if we only want one output frame, and this is not it,
+            ! just skip to the next one
+            if ( (frame.ne.0).and.(iout.ne.frame) ) then
+               cycle
+            endif
             if (writeFullCircleRmaxes.eqv..true.) then
                ! create a set of nodes in a circle around the center of the
                ! storm so that we can get an Rmax in all directions
@@ -872,7 +907,7 @@ C     &                  ' cycleTime=',cycleTime(ient)
      &                 dr*sin((trigDir-90.d0)*deg2rad),
      &                 outputLats(iout),outputLons(iout),
      &                 sfea(i+4), slam(i+4)) ! MAX
-                  dr = dr + 1852.0d0/real(radial_resolution) 
+                  dr = dr + 1852.0d0/real(quadrant_radial_resolution) 
                end do 
                slam(:) = slam(:) * deg2rad
                sfea(:) = sfea(:) * deg2rad + outputLats(iout) * deg2rad
@@ -880,12 +915,82 @@ C     &                  ' cycleTime=',cycleTime(ient)
                node_file_name = "radialvp_latlon_"//
      &                           node_file_name//".d"
             endif
+
             ! write lat/lon values to a file for plotting
-            OPEN(333,FILE=trim(node_file_name),STATUS='REPLACE')
-            do i=1,np
-               write(333,*) slam(i)*rad2deg, sfea(i)*rad2deg
-            end do 
-            close(333)
+            if ( (writeRadialVandP.eqv..true.).or.
+     &             (writeFullCircleRmaxes.eqv..true.) ) then
+               OPEN(333,FILE=trim(node_file_name),STATUS='REPLACE')
+               do i=1,np
+                  write(333,*) slam(i)*rad2deg, sfea(i)*rad2deg
+               end do 
+               close(333)
+            endif
+
+            if (writeSpatialVandP.eqv..true.) then
+               if (nodesFromMesh.eqv..false.) then
+                  ! create a set of nodes in circles around the center of the
+                  ! storm so that we can get visualize V and P in all directions
+                  dr = 1.d0/real(spatial_radial_resolution)
+                  num_rvalues = radial_extent*spatial_radial_resolution
+                  i=1
+                  do ry=1, num_rvalues
+                     do t=1,360
+                        azimuth = real(t-1) * deg2rad
+                        dx = real(ry)*cos(azimuth) * 1852.0d0 ! nm to m
+                        dy = real(ry)*sin(azimuth) * 1852.0d0 ! nm to m
+                        call xy2latlon(dx, dy, 
+     &                     outputLats(iout), outputLons(iout), 
+     &                     sfea(i), slam(i))
+                        i=i+1
+                        !write(*,*) 'outputLats=',outputLats(iout)
+                        !write(*,*) 'outputLons=',outputLons(iout)
+                        !write(*,*) 'azimuth=',azimuth,' dx=',dx,' dy=',dy
+                        !write(*,*) 'slam=',slam(i),' sfea=',sfea(i)
+                     enddo
+                  enddo
+                  if ( i.ne.(np+1) ) then
+                     write(*,*) 'ERROR: aswip: i=',i,' while np=',np
+                  endif
+               else
+                  do i=1,np
+                     read(14,*) j, dx, dy
+                     slam(j) = dx
+                     sfea(j) = dy 
+                  enddo
+               endif
+               slam(:) = slam(:) * deg2rad
+               sfea(:) = sfea(:) * deg2rad 
+     &              + outputLats(iout) * deg2rad
+               ! open the file where spatial coordinates for V and P
+               ! will be written
+               write(spatial_file_name,'(I3.3,".d")') iout
+               spatial_file_name = "spatial_data_"// 
+     &                           spatial_file_name//".d" 
+               open(555,FILE=trim(spatial_file_name),STATUS='REPLACE')
+               write(555,'(A)') '# vtk DataFile Version 3.0'
+               write(555,'(A)') 'Vortex V and P data'
+               write(555,'(A)') 'ASCII'
+               !write(555,'(A)') 'DATASET STRUCTURED_GRID'
+               write(555,'(A)') 'DATASET UNSTRUCTURED_GRID'
+               !write(555,'(A,I3,I3,I3)') 'DIMENSIONS 360 400 1'
+               write(555,'(A,I6,A)') 'POINTS ',np,' float'
+               ! save coordinates as Cartesian (km) for use in VTK
+               do i=1,np
+                  call latlon2xy(sfea(i)*rad2deg-outputLats(iout),
+     &              slam(i)*rad2deg,
+     &              outputLats(iout),outputLons(iout),dx,dy)
+                  write(555,'(E15.8,E15.8,E15.8)') 
+     &              dx/1000.0d0, dy/1000.0d0, 0.0d0
+               enddo 
+               write(555,'(A,I6,I7)') 'CELLS ',np,np*2
+               do i=1,np
+                  write(555,'(A,I6)') '1 ',i
+               enddo
+               write(555,'(A,I6)') 'CELL_TYPES ',np
+               do i=1,np
+                  write(555,'(A)') '1'
+               enddo
+            endif 
             select case(nws)
             case(19)
                 CALL NWS19GET(SLAM,SFEA,WVNX2,WVNY2,PRN2,NP,
@@ -912,6 +1017,28 @@ C     &                  ' cycleTime=',cycleTime(ient)
                end do 
 C               write(*,*) "vmax=",vmax," vmax_azimuth=",vmax_azimuth
             endif
+            if (writeSpatialVandP.eqv..true.) then
+               write(555,'(A,I6)') 'POINT_DATA ',np
+               write(555,'(A)') 'SCALARS WindSpeed float 1'
+               write(555,'(A)') 'LOOKUP_TABLE default'
+               do i=1,np
+                  write(555,'(E15.8)') 
+     &              (ten2one * sqrt(wvnx2(i)**2 + wvny2(i)**2)
+     &                       /0.514444d0)   
+               enddo
+               write(555,'(A)') 'SCALARS Pressure float 1'
+               write(555,'(A)') 'LOOKUP_TABLE default'
+               do i=1,np
+                  write(555,'(E15.8)') prn2(i) * RhoWatG / 100.d0 
+               enddo
+               write(555,'(A)') 'VECTORS WindVelocity float'
+               do i=1,np
+                  write(555,'(E15.8,E15.8,E15.8)')
+     &              (ten2one*wvnx2(i)/0.514444d0),   
+     &              (ten2one*wvny2(i)/0.514444d0), 0.0d0  
+               enddo
+               close(555)
+            endif
             if (writeRadialVandP.eqv..true.) then
                ! open the file where the radial V and P will be written
                write(radialvp_file_name,'(I3.3,".d")') iout
@@ -932,7 +1059,7 @@ C               write(*,*) "vmax=",vmax," vmax_azimuth=",vmax_azimuth
                do i=1,np-5,5
                   write(555,*) dr,(radial_speed(i+j),j=0,4),
      &                         (pressure(i+j),j=0,4)
-                  dr = dr + 1.0d0/real(radial_resolution) 
+                  dr = dr + 1.0d0/real(quadrant_radial_resolution) 
                end do 
                CLOSE(555)
             endif
