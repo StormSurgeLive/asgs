@@ -39,6 +39,7 @@ sub stderrMessage($$);
 my $sshkey;  # public key for scp'ing results to remote hosts
 my $opendapuser; # username for scp'ing results to remote hosts
 my $opendaphost; # hostname for scp'ing results 
+my $remoteppdir="/projects/ncfs/apps/asgs/trunk/output"; # netcdf post proc 
 # set the OpenDAP prefix:  Change this if/when we change where opendap.renci.org points.
 my $openDAPPrefix;
 
@@ -83,6 +84,7 @@ my @compressionOnlyFiles = qw( fort.15 stationOut.tar );
 #
 GetOptions(
     "ppdir=s" => \$cmdLinePPDIR,
+    "remoteppdir=s" => \$remoteppdir,
     "griddir=s" => \$GRIDDIR,
     "opendapbasedir=s" => \$OPENDAPBASEDIR,
     "opendapuser=s" => \$opendapuser,
@@ -203,17 +205,17 @@ foreach my $file (@files) {
       stderrMessage("INFO","$file was not found. It will not be processed.");
       next;  
    }
-   if (-e "$file.nc.gz") {
-      stderrMessage("INFO","Deleting $file.nc.gz ...");
-      system("rm -rf $file.nc.gz"); 
-   }
+#   if (-e "$file.nc.gz") {
+#      stderrMessage("INFO","Deleting $file.nc.gz ...");
+#      system("rm -rf $file.nc.gz"); 
+#   }
    #stderrMessage("DEBUG","Converting $file to $file.nc (netCDF).");
-   $status=`$PPDIR/convert_adc_native_2_netCDF -y $rsy -m $rsm -d $rsd -h $rsh $file`;   
+#   $status=`$PPDIR/convert_adc_native_2_netCDF -y $rsy -m $rsm -d $rsd -h $rsh $file`;   
    #
    # Additional processing of maxele.63.nc file: append inundation masks,
    # calculate and append inundation data.
    if ($file eq "maxele.63" || $file eq "fort.63" ) {
-      if ( -e $file ) {
+      if ( -e $file && !$remote ) {
         $status = `ncks --quiet --append $PPDIR/nc_inundation_v6b_msl-inundation-masks.nc $file.nc`; # append depth data and inundation masks
         $status = `ncap2 --overwrite -S $PPDIR/produceInundationData.scr $file.nc $file.nc`;     # calculate inundation level     
       }
@@ -221,11 +223,11 @@ foreach my $file (@files) {
    #
    # compress netcdf files
    #stderrMessage("DEBUG","Gzipping $file.nc ... ");
-   $status=`gzip --force $file.nc`; 
-   if ( $status ne "" ) {
-      stderrMessage("ERROR","Compression of $file.nc failed: $status. The file $file will not be processed.");
-      next; 
-   }
+#   $status=`gzip --force $file.nc`; 
+#   if ( $status ne "" ) {
+#      stderrMessage("ERROR","Compression of $file.nc failed: $status. The file $file will not be processed.");
+#      next; 
+#   }
    $myProductID = $prodID;
    $myProductType = $types{$file};
    $myProductID=~s/<field>/$myProductType/;
@@ -284,6 +286,19 @@ for (my $i=0; $i<($num_files/2); $i++ ) {
       if ($remote) {
          system("scp -i $sshkey $from $opendapuser\@$opendaphost:$openDAPDirectory/$to");
          stderrMessage("INFO","Copying '$from' to '$opendapuser\@$opendaphost:$openDAPDirectory/$to'.");
+      if ($from eq "maxele.63.nc.gz" || $from eq "fort.63.nc.gz" ) {
+         if ( -e $from ) {
+            stderrMessage("INFO","Performing remote decompression on '$opendapuser\@$opendaphost:$openDAPDirectory/$to'.");
+            system("ssh $opendaphost -l $opendapuser -i $sshkey \"gunzip $openDAPDirectory/$to\""); # decompress the data
+            my $basename =substr($to,0,-3);
+            stderrMessage("INFO","Performing remote append of depth data and inundation masks on '$opendapuser\@$opendaphost:$openDAPDirectory/$basename'.");
+            system("ssh $opendaphost -l $opendapuser -i $sshkey \"ncks --quiet --append $remoteppdir/FEMA_R3_draft_20110303_MSL.nc $openDAPDirectory/$basename\""); # append depth data and inundation masks
+            stderrMessage("INFO","Performing remote calculation of inundation on '$opendapuser\@$opendaphost:$openDAPDirectory/$basename'.");
+            system("ssh $opendaphost -l $opendapuser -i $sshkey \"ncap2 --overwrite -S $remoteppdir/produceInundationData.scr $openDAPDirectory/$basename $openDAPDirectory/$basename\"");     # calculate inundation level     
+            stderrMessage("INFO","Performing remote compression on '$opendapuser\@$opendaphost:$openDAPDirectory/$basename'.");
+            system("ssh $opendaphost -l $opendapuser -i $sshkey \"gzip --force $openDAPDirectory/$basename\""); # recompress the data
+      }
+   }
       } else {
          stderrMessage("INFO","Copying '$from' as '$to'.");
          system("cp $from $openDAPDirectory/$to");

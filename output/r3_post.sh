@@ -96,8 +96,9 @@ fi
 #
 # Convert results to NetCDF format and copy to RENCI for post processing.
 # Copy to directory where they can be published via opendap
+REMOTEPPDIR=/projects/ncfs/apps/asgs/trunk/output
 perl ${OUTPUTDIR}/asgsConvertR3ToNETCDF.pl --ppdir ${SCRIPTDIR}/output --griddir ${OUTPUTDIR}/POSTPROC_KMZGIS/grids --opendapbasedir $OPENDAPBASEDIR --pathonly
 OPENDAPPATH=`cat opendappath.log`
 ssh ${OPENDAPHOST} -l ${OPENDAPUSER} -i $SSHKEY "mkdir -p $OPENDAPPATH"
-perl ${OUTPUTDIR}/asgsConvertR3ToNETCDF.pl --ppdir ${SCRIPTDIR}/output --griddir ${OUTPUTDIR}/POSTPROC_KMZGIS/grids --opendapbasedir $OPENDAPBASEDIR --remote --sshkey $SSHKEY --opendapuser $OPENDAPUSER --opendaphost $OPENDAPHOST --tolist "jason.fleming@seahorsecoastal.com, jason.g.fleming@gmail.com"
+perl ${OUTPUTDIR}/asgsConvertR3ToNETCDF.pl --ppdir ${SCRIPTDIR}/output --remoteppdir $REMOTEPPDIR  --griddir ${OUTPUTDIR}/POSTPROC_KMZGIS/grids --opendapbasedir $OPENDAPBASEDIR --remote --sshkey $SSHKEY --opendapuser $OPENDAPUSER --opendaphost $OPENDAPHOST --tolist "jason.fleming@seahorsecoastal.com, jason.g.fleming@gmail.com"
 ssh ${OPENDAPHOST} -l ${OPENDAPUSER} -i $SSHKEY "chmod +r $OPENDAPPATH/*"
