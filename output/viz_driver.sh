@@ -1,10 +1,11 @@
 #!/bin/sh
-ADCIRCDIR=~/adcirc/trunk_newvortex/work
+ADCIRCDIR=~/adcirc/newvortex/work
 PERL5LIB=~/asgs/trunk/PERL ; export PERL5LIB
-ADVISORY=025
-TIMESTEP=default # "default" to hit the cycle times
+ADVISORY=Hindcast
+TIMESTEP=1800.0 # "default" to hit the cycle times
 FRAME=0          # "0" for all frames
 MYPROC=0         # "0" in serial
+MESHFILE=~/adcirc/examples/parallel_ec95d/coldnetcdf/ec_95d.grd  # "0" to autogenerate mesh
 #
 DELAY=10
 if [ $TIMESTEP = default ]; then
@@ -28,7 +29,7 @@ $ADCIRCDIR/aswip -m 1
 # executing in subdirs?)
 #
 # execute frame driver in serial for all frames
-./frame_driver.sh $TIMESTEP $ADVISORY $FRAME $MYPROC $ADCIRCDIR $PERL5LIB
+./frame_driver.sh $TIMESTEP $ADVISORY $FRAME $MYPROC $ADCIRCDIR $PERL5LIB $MESHFILE
 #
 # make animation out of the montage sequence of images
 convert -loop 0 -delay $DELAY montage_geom_???.gif anim_all_${ADVISORY}.gif
