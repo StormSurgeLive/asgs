@@ -527,17 +527,20 @@ the wind radius for that isotach and quadrant will be used.
 
 For example: if only the 34kt isotach is provided, then then all four wind
 radii must be used, and the columns will all be set to '1' :
- ... 34 ... 1 1 1 1 1 ...
+
+      ... 34 ... 1 1 1 1 1 ...
 
 Another example: if 3 isotachs are provided then the columns may look
 like the following:
- ... 34 ... 3 0 0 0 0 ...
- ... 50 ... 3 0 0 1 1 ...
- ... 64 ... 3 1 1 0 0 ...
+
+     ... 34 ... 3 0 0 0 0 ...
+     ... 50 ... 3 0 0 1 1 ...
+     ... 64 ... 3 1 1 0 0 ...
+
 this indicates -
- use NO radii from the 34 kt isotach
- use the 3 & 4 quadrant radii from the 50 kt isotach
- use the 1 & 2 quadrant radii from the 64 kt isotach
+* use NO radii from the 34 kt isotach
+* use the 3 & 4 quadrant radii from the 50 kt isotach
+* use the 1 & 2 quadrant radii from the 64 kt isotach
 
 Users could potentially modify these flags in the input file to manually select
 which radii to use for each cycle.
@@ -582,40 +585,48 @@ names easily later.
 
 An example of a fort.22.meta file is as follows:
 
-# Example fort.22 meta file
-version:1
-year:2008
-storm:07
-advisory:01
-hostname:tezpur.hpc.lsu.edu
-directory advisory:/work/jgflemin/072008/01
-directory storm:/work/jgflemin/072008/01/nowcast
-modified:y
-variation veer:+40
+    # Example fort.22 meta file
+    version:1
+    year:2008
+    storm:07
+    advisory:01
+    hostname:tezpur.hpc.lsu.edu
+    directory advisory:/work/jgflemin/072008/01
+    directory storm:/work/jgflemin/072008/01/nowcast
+    modified:y
+    variation veer:+40
 
 The shorthand mechanism for fort.22 metadata consists of a symbolic link to
 the fort.22 file. The name of the link encodes the track variations according
 to the following format:
-
-YYYYSSAA[c|m]_w[+|-]PPo[+|-]PPv[+|-]PPPr[+|-]PP
+ 
+     YYYYSSAA[c|m]_w[+|-]PPo[+|-]PPv[+|-]PPPr[+|-]PP
 
 where
-YYYY is the four digit year
-SS is the number of that storm for that year
-AA is the advisory number
-c means consensus or m means modified
-w[+|-]PP is the 2 digit, positive or negative percent variation in max
+
+*YYYY is the four digit year
+
+*SS is the number of that storm for that year
+
+*AA is the advisory number
+
+*c means consensus or m means modified
+
+*w[+|-]PP is the 2 digit, positive or negative percent variation in max
 wind speed
-o[+|-]PP is the 2 digit, positive or negative percent variation in over
+
+*o[+|-]PP is the 2 digit, positive or negative percent variation in over
 land speed
-v[+|-]PPP is the 3 digit, positive or negative percent variation in veer
-r[+|-]PP is the 2 digit, positive or negative percent variation in rmax
+
+*v[+|-]PPP is the 3 digit, positive or negative percent variation in veer
+
+*r[+|-]PP is the 2 digit, positive or negative percent variation in rmax
 (not supported by storm_track_gen.pl as of ASGS v1.2).
 
 As a concrete example of the above format that provides the same track
 information as the fort.22.meta file described above:
 
-20080701m_w+00o+00v+040r+00
+     20080701m_w+00o+00v+040r+00
 
 This symbolic link can be found by looking for a filename that follows this
 format; there will not be another file in the directory whose name matches
