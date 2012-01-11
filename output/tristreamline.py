@@ -68,9 +68,9 @@ gridActor.GetProperty().SetRepresentationToWireframe()
 #xmin= -1953764.5423199304  xmax= 1473590.7094357659
 #ymin= -3071352.8797937827  ymax= 1150611.477018431
 seedsSphere = vtk.vtkPointSource()
-seedsSphere.SetRadius(3071352.0)
+seedsSphere.SetRadius(1400000.0)
 seedsSphere.SetCenter(0.0, 0.0, 0.0)
-seedsSphere.SetNumberOfPoints(5000)
+seedsSphere.SetNumberOfPoints(2000)
 seedTransform = vtk.vtkTransform()
 seedTransform.Scale(1.0,1.0,0.0)
 #seedTransform.RotateZ(1.0*float(frame)) # 1 degree
@@ -93,7 +93,7 @@ streamer.SetIntegrator(integ)
 streamTube = vtk.vtkTubeFilter()
 streamTube.SetInputConnection(streamer.GetOutputPort())
 #streamTube.SetInputArrayToProcess(1,0,0,vtkDataObject::FIELD_ASSOCIATION_POINTS, vectors)
-streamTube.SetRadius(5000.0)
+streamTube.SetRadius(10000.0)
 streamTube.SetNumberOfSides(12)
 
 streamWarp = vtk.vtkWarpScalar()

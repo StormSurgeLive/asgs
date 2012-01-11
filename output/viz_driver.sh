@@ -1,11 +1,13 @@
 #!/bin/sh
+ASGSDIR=~/asgs/trunk
 ADCIRCDIR=~/adcirc/newvortex/work
-PERL5LIB=~/asgs/trunk/PERL ; export PERL5LIB
-ADVISORY=Hindcast
-TIMESTEP=1800.0 # "default" to hit the cycle times
-FRAME=0          # "0" for all frames
-MYPROC=0         # "0" in serial
-MESHFILE=~/adcirc/examples/parallel_ec95d/coldnetcdf/ec_95d.grd  # "0" to autogenerate mesh
+PERL5LIB=$ASGSDIR/PERL ; export PERL5LIB
+ADVISORY=30
+TIMESTEP=default # 1800.0 # "default" to hit the cycle times
+FRAME=0         # "0" for all frames
+MYPROC=0        # "0" in serial
+MESHFILE=0      # "0" to autogenerate mesh
+#MESHFILE=~/adcirc/examples/parallel_ec95d/coldnetcdf/ec_95d.grd  # "0" to autogenerate mesh
 #
 DELAY=10
 if [ $TIMESTEP = default ]; then
@@ -19,7 +21,7 @@ rm -f fort.22 radii_???.ps radialv_???.ps radialp_???.ps page???.gif page???.ps 
 ln -s fort.22.orig.irene.${ADVISORY} fort.22
 #
 # generate a preprocessed output file
-$ADCIRCDIR/aswip -m 1
+$ADCIRCDIR/aswip -m 2
 #
 # TODO: for parallel execution:
 # add code that can count up the frames, make subdirs for the
@@ -29,7 +31,7 @@ $ADCIRCDIR/aswip -m 1
 # executing in subdirs?)
 #
 # execute frame driver in serial for all frames
-./frame_driver.sh $TIMESTEP $ADVISORY $FRAME $MYPROC $ADCIRCDIR $PERL5LIB $MESHFILE
+$ASGSDIR/output/frame_driver.sh $TIMESTEP $ADVISORY $FRAME $MYPROC $ADCIRCDIR $ASGSDIR $PERL5LIB $MESHFILE
 #
 # make animation out of the montage sequence of images
 convert -loop 0 -delay $DELAY montage_geom_???.gif anim_all_${ADVISORY}.gif
