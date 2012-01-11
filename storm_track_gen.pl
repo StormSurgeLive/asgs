@@ -71,6 +71,7 @@ my $overlandSpeedPercent = -20.0;
 my $sizePercent = 20.0;
 my $veerPercent = 100.0;
 my $pi=3.141592653589793;
+my $method="twoslope";              # algorithm for predicting central pressure
 # if the NHC issues a special advisory, there may be incomplete lines in the 
 # hindcast file. This hash will save the most recent complete lines, to fill
 # in any missing data.
@@ -87,6 +88,7 @@ GetOptions(
            "hotstartseconds=s" => \$hotstartseconds,
            "nws=s" => \$nws,
            "name=s" => \$name,
+           "method=s" => \$method,
            "percent=s" => \$percent
            );
 #
@@ -198,6 +200,7 @@ my $zdFound = 0; # set to 1 if/when we find the zero date in the file
 my $fyear; my $fmon; my $fday; my $fhour; # time at which forecast is valid
 my $ftyear; my $ftmon; my $ftday; my $fthour; # time to which forecast applies
 my $ftmin; my $ftsec;                             # not used
+my $tsflag="0";  # set to 1 when the storm reaches tropical storm force 
 #---------------------------------------------------------------------
 # P R O C E S S I N G   H I N D C A S T   F I L E 
 #---------------------------------------------------------------------
@@ -257,6 +260,11 @@ while(<HCST>) {
     $lasthindcastpressure=substr($line,53,4);
     $lasthindcastwindspeed=substr($line,48,3);
     $lasthindcastrmax=substr($line,109,3);
+    #
+    # set the tsflag if the storm has achieved TS-force winds
+    if ( $lasthindcastwindspeed > 39.0 ) { 
+       $tsflag = 1;
+    }
     #
     # want to save the nowcast storm position
     $old_lat=substr($line,34,4)/10.0;
@@ -412,6 +420,11 @@ while(<FCST>) {
    substr($line,92,3)=sprintf("%3d",$rad[3]);
    my $forecast_windspeed=substr($_,48,3);
    my $forecast_pressure=substr($_,53,4);
+   #
+   # set the tsflag if the storm has achieved TS-force winds
+   if ( $forecast_windspeed > 39.0 ) { 
+      $tsflag = 1;
+   }
    # 
    # fill in the forecast central pressure, if it is missing
    if ( $forecast_pressure == 0 ) {
@@ -437,9 +450,25 @@ while(<FCST>) {
                + 0.65*($last_windspeed-$forecast_windspeed))); 
          }
       }
-      # slower windspeeds can be strange ... just use the last pressure
-      if ( $forecast_windspeed <= 30 ) {
-         $forecast_pressure = sprintf("%4d",$last_pressure);
+      # slower windspeeds can be strange 
+      if ( $method eq "twoslope" ) {
+         # just use the last pressure
+         if ( $forecast_windspeed <= 30 ) {
+            $forecast_pressure = sprintf("%4d",$last_pressure);
+         }
+      } elsif ( $method eq "asgs2012" ) { 
+         # slower windspeeds can be strange ... use Dvorak if the storm is
+         # early in its history, or use ah77 if it is late in its history
+         if ( $forecast_windspeed <= 35 ) {
+            if ( $tsflag == 0 ) {
+               # use Dvorak
+               $forecast_pressure = 1015 - ($forecast_windspeed/3.92*0.51444444)**(1.0/0.644);
+            } else {
+               # its later in the storm's history -- use AH77
+               $forecast_pressure = 1010 - ($forecast_windspeed/3.4*0.51444444)**(1.0/0.644);
+            }
+            $forecast_pressure = sprintf("%4d",$forecast_pressure);
+         }
       }
       # fill in the forecast central pressure value
       substr($line,53,4) = $forecast_pressure;
