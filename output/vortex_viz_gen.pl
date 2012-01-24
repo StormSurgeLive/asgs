@@ -155,8 +155,14 @@ while (<FORT22>) {
    }
    $previous_hour = $hour; 
    # grab isotach speed 
-   $fields[11] =~ /(\d\d)/;
+   $fields[11] =~ /(\d+)/;
    my $speed=$1;
+   # early in a storm's development (INVEST and prior) the NHC may
+   # list the isotach wind speed as zero ... we use 34kt here instead
+   # ... just for consistency of display in the plots
+   if ( $speed == 0 ) {
+	   $speed = 34;
+   }
    # grab radii and write to file with isotach speed and cycle number for gmt
    my $ne=$fields[13];
    my $se=$fields[14];
