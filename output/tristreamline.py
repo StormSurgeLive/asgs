@@ -73,7 +73,7 @@ seedsSphere.SetCenter(0.0, 0.0, 0.0)
 seedsSphere.SetNumberOfPoints(2000)
 seedTransform = vtk.vtkTransform()
 seedTransform.Scale(1.0,1.0,0.0)
-#seedTransform.RotateZ(1.0*float(frame)) # 1 degree
+seedTransform.RotateZ(1.0*float(frame)) # 1 degree
 seedFilter = vtk.vtkTransformPolyDataFilter()
 seedFilter.SetTransform(seedTransform)
 seedFilter.SetInputConnection(seedsSphere.GetOutputPort())
@@ -122,12 +122,15 @@ iren = vtk.vtkRenderWindowInteractor()
 iren.SetRenderWindow(renWin)
 
 ren.SetBackground(1.0, 1.0, 1.0)
-ren.AddActor(gridActor)
-ren.AddActor(outlineActor)
+#ren.AddActor(gridActor)
+#ren.AddActor(outlineActor)
 ren.AddActor(streamTubeActor)
-ren.ResetCamera()
+
 cam = ren.GetActiveCamera()
-cam.Zoom(1.3)
+cam.Pitch(50)
+ren.ResetCamera()
+cam.Zoom(1.5)
+
 if ( interact == 0 ):
     renWin.OffScreenRenderingOn()
 renWin.Render()
