@@ -637,22 +637,25 @@ downloadRiverFluxData()
    HSTIME=$7
    SCRIPTDIR=$8
    DEFAULTFILE=$9
+   USERIVERFILEONLY=${10}
 #
    OPTIONS="--advisdir $ADVISDIR --meshfile $MESHFILE --riversite $RIVERSITE --riverdir $RIVERDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --scriptdir $SCRIPTDIR --defaultfile $DEFAULTFILE"
    TRIES=0 
    SUCCESS=no
-   while [[ $TRIES -lt 2 ]]; do
-      perl ${SCRIPTDIR}/get_flux.pl $OPTIONS 2>> ${SYSLOG} 
-      if [[ $? = 0 ]]; then
-         logMessage "Completed construction of river flux boundary condition (fort.20 file)."
-         SUCCESS=yes
-         break
-      else
-         TRIES=$[$TRIES + 1]
-         warn "Attempt $TRIES at constructing river flux boundary condition (fort.20) file has failed. After 10 attempts, the default flux boundary condition file '$DEFAULTFILE' will be used."
-         sleep 60
-      fi 
-   done     
+   if [[ $USERIVERFILEONLY = no ]]; then  
+      while [[ $TRIES -lt 2 ]]; do
+         perl ${SCRIPTDIR}/get_flux.pl $OPTIONS 2>> ${SYSLOG} 
+         if [[ $? = 0 ]]; then
+            logMessage "Completed construction of river flux boundary condition (fort.20 file)."
+            SUCCESS=yes
+            break
+         else
+            TRIES=$[$TRIES + 1]
+            warn "Attempt $TRIES at constructing river flux boundary condition (fort.20) file has failed. After 2 attempts, the default flux boundary condition file '$DEFAULTFILE' will be used."
+            sleep 60
+         fi 
+      done
+   fi     
    if [[ $SUCCESS = no ]]; then
       warn "Using default river flux boundary condition file '$DEFAULTFILE'."
       ln -s $DEFAULTFILE ./fort.20 2>> ${SYSLOG}       
@@ -1172,6 +1175,7 @@ WAVES=off
 VARFLUX=off
 MINMAX=continuous
 REINITIALIZESWAN=no
+USERIVERFILEONLY=no
 STORMNAME=stormname
 RIVERSITE=ftp.nssl.noaa.gov
 RIVERDIR=/projects/ciflow/adcirc_info
@@ -1578,7 +1582,7 @@ while [ 1 -eq 1 ]; do
     perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
     # get river flux nowcast data, if configured to do so
     if [[ $VARFLUX = on ]]; then
-       downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX}
+       downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX} $USERIVERFILEONLY
     fi
     logMessage "Starting nowcast."
     consoleMessage "Starting nowcast for cycle '$ADVISORY'."
@@ -1694,7 +1698,7 @@ while [ 1 -eq 1 ]; do
        if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
        # get river flux nowcast data, if configured to do so
        if [[ $VARFLUX = on ]]; then
-          downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX}
+          downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX} $USERIVERFILEONLY
        fi
        echo "hostname : $HOSTNAME" >> $ADVISDIR/$ENSTORM/run.properties  
        if [[ $RUNFORECAST = yes ]]; then

@@ -26,6 +26,7 @@ my $status;
 my $openDAPDirectory;
 our $GRIDDIR = "/shared/apps/software-data/adcircRenderTools/grids";
 our $PPDIR = "/shared/apps/software-data/RenciGETools/trunk/src";
+my $inundationmask = "nc_inundation_v6b_msl-inundation-masks.nc";
 my $cmdLinePPDIR;
 my $envPPDIR = $ENV{'PPDIR'};
 our $OPENDAPBASEDIR="/projects/ncfs/opendap/data";
@@ -83,6 +84,7 @@ GetOptions(
     "insertfile" => \$InsertFile, 
     "deletefiles" => \$DeleteFiles,
     "sendnotification" => \$SendNotification,
+    "inundationmask=s" => \$inundationmask,
     "copyfile" => \$CopyFile   
           );
 #
@@ -129,7 +131,11 @@ my $rsy = $1;
 my $rsm = $2;
 my $rsd = $3;
 my $rsh = $4;
-$openDAPDirectory = "$OPENDAPBASEDIR/$model/$ADCIRCgrid/$windtag/$year/$mon/$mday/$cycle";
+if ( defined $windtag ) {
+   $openDAPDirectory = "$OPENDAPBASEDIR/$model/$ADCIRCgrid/$windtag/$year/$mon/$mday/$cycle";
+} else {
+   $openDAPDirectory = "$OPENDAPBASEDIR/$model/$ADCIRCgrid/$year/$mon/$mday/$cycle";
+}
 #stderrMessage("DEBUG","openDAPDirectory: $openDAPDirectory");
 #$openDAPPrefix="http://data.disaster.renci.org:1935/thredds/catalog/$model/$ADCIRCgrid";
 $openDAPPrefix="http://opendap.renci.org:1935/thredds/catalog/$model/$ADCIRCgrid";
@@ -231,8 +237,10 @@ foreach my $file (@files) {
    # calculate and append inundation data.
    if ($file eq "maxele.63" || $file eq "fort.63" ) {
       if ( -e $file ) {
-        $status = `ncks --quiet --append $PPDIR/nc_inundation_v6b_msl-inundation-masks.nc $file.nc`; # append depth data and inundation masks
-        $status = `ncap2 --overwrite -S $PPDIR/produceInundationData.scr $file.nc $file.nc`;     # calculate inundation level     
+         # append depth data and inundation masks
+         $status = `ncks --quiet --append $PPDIR/$inundationmask $file.nc`;
+         # calculate inundation level     
+         $status = `ncap2 --overwrite -S $PPDIR/produceInundationData.scr $file.nc $file.nc`;    
       }
    }
    #
@@ -337,15 +345,21 @@ if ($SendNotification) {
    }
    my $httpPathName=$openDAPPrefix;
    $httpPathName=~s/catalog/fileServer/;
+   my $path_suffix;
+   if ( defined $windtag ) {
+      $path_suffix =  "$windtag/$year/$mon/$mday/$cycle/";
+   } else {
+      $path_suffix =  "$year/$mon/$mday/$cycle/";    
+   }
    my $message = <<END;
 
-The ADCIRC NCFS solutions for $fullDate have been posted to $openDAPPrefix/$windtag/$year/$mon/$mday/$cycle/
+The ADCIRC NCFS solutions for $fullDate have been posted to $openDAPPrefix/$path_suffix
 
-The run.properties file is : $httpPathName/$windtag/$year/$mon/$mday/$cycle/$runPropertiesFileName
+The run.properties file is : $httpPathName/$path_suffix/$runPropertiesFileName
 
-or wget the file with the  following command
+or wget the file with the following command
 
-wget  $httpPathName/$windtag/$year/$mon/$mday/$cycle/$runPropertiesFileName
+wget  $httpPathName/$path_suffix/$runPropertiesFileName
 END
 
    open(MAIL, "|/usr/sbin/sendmail -t");

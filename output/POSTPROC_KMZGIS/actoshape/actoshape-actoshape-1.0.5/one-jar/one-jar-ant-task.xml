@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<project>
+    <!-- The following property is expected to be overridden by caller -->   
+	<taskdef name="one-jar" classname="com.simontuffs.onejar.ant.OneJarTask" 
+			 classpath="one-jar/one-jar-ant-task-0.96.jar" onerror="report"/>
+</project>

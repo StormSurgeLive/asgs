@@ -414,6 +414,7 @@ sub getForecastData() {
    # cycle 6 hours prior to this one, and then to look in the rundir
    # for that directory.
    my $runme = 0;
+   my $noforecast = 0;
    my $rationale = "scheduled";
    #stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
    foreach my $cycle (@forecastcycle) {
@@ -421,10 +422,15 @@ sub getForecastData() {
          $runme = 1;
          last;
       }
+      # allow for the possibility that we aren't supposed to run any forecasts
+      if ( $cycle eq "none" ) {
+         $noforecast = 1;
+         last;
+      }
    }
    # we may still want to run the forecast to make up for an earlier 
    # forecast that failed or was otherwise missed (24 hour lookback)
-   if ( $runme == 0 ) {
+   if ( $runme == 0 && $noforecast == 0 ) {
       my $earlier_success = 0; # 1 if an earlier run succeeded
       for ( my $i=-6; $i>=-24; $i-=6 ) { 
          # determine date/time of previous cycle
