@@ -5,20 +5,38 @@ import sys
 from optparse import OptionParser
 from vtk.util.colors import *
 
-frame = 1
-interact = 0
+#frame = 1
+#interact = 0
 # get command line argument for the frame number
-if (len(sys.argv) > 1):
-    frame = sys.argv[1]
-if (len(sys.argv) > 2):
-    if (sys.argv[2] == "-i"):
-        interact = 1
+#if (len(sys.argv) > 1):
+#    frame = sys.argv[1]
+#if (len(sys.argv) > 2):
+#    if (sys.argv[2] == "-i"):
+#        interact = 1
+
+#
+# parse command line options
+parser = OptionParser()
+parser.add_option("-i", "--interact", dest="interact", default=False,
+                  action="store_true", help="to enable interaction with data")
+parser.add_option("-f", "--frame", dest="frame", default=1,
+                  help="frame to render")
+parser.add_option("-a", "--annotation", dest="annotation", default="null",
+                  help="text to place in frame")
+
+#parser.add_option("-a", "--variable", dest="variable",
+#                  default="BathymetricDepth", help="variable to visualize")
+#
+# TODO: option for input file name
+(options, args) = parser.parse_args()
+
+
 
 # Create a structured grid with these points
 meshReader = vtk.vtkUnstructuredGridReader()
 #meshReader = vtk.vtkXMLUnstructuredGridReader()
 #meshReader = vtk.vtkPVDReader()
-input_file = 'spatial_data_%03d.d' % int(frame)
+input_file = 'spatial_data_%03d.d' % int(options.frame)
 #input_file = 'v6brivers.14_fort.74_%03d.vtu' % int(frame)
 #input_file = 'v6brivers.14_fort.74.pvd'
 #input_file = 'femar3_irene30_maxwvel.vtu'
@@ -73,7 +91,7 @@ seedsSphere.SetCenter(0.0, 0.0, 0.0)
 seedsSphere.SetNumberOfPoints(2000)
 seedTransform = vtk.vtkTransform()
 seedTransform.Scale(1.0,1.0,0.0)
-seedTransform.RotateZ(1.0*float(frame)) # 1 degree
+seedTransform.RotateZ(1.0*float(options.frame)) # 1 degree
 seedFilter = vtk.vtkTransformPolyDataFilter()
 seedFilter.SetTransform(seedTransform)
 seedFilter.SetInputConnection(seedsSphere.GetOutputPort())
@@ -113,6 +131,25 @@ streamTubeActor = vtk.vtkActor()
 streamTubeActor.SetMapper(mapStreamTube)
 streamTubeActor.GetProperty().SetColor(0.0,0.0,0.0)
 
+# Create annotation
+if ( options.annotation != "null" ):
+   ann = vtk.vtkTextActor()
+   ann.SetTextScaleModeToViewport()
+   ann.SetDisplayPosition(100,600)
+   ann.SetInput(options.annotation)
+   # specify an initial size
+   ann.GetPosition2Coordinate().SetCoordinateSystemToNormalizedViewport()
+   ann.GetPosition2Coordinate().SetValue(0.6,0.1)
+   # properties of text annotation
+   annprop = ann.GetTextProperty()
+   annprop.SetFontSize(36)
+   annprop.SetFontFamilyToArial()
+   #annprop.SetJustificationToCentered()
+   #annprop.BoldOn()
+   #annprop.ItalicOn()
+   #annprop.ShadowOn()
+   annprop.SetColor(0,0,0)
+
 # Create the usual rendering stuff.
 ren = vtk.vtkRenderer()
 renWin = vtk.vtkRenderWindow()
@@ -125,13 +162,15 @@ ren.SetBackground(1.0, 1.0, 1.0)
 #ren.AddActor(gridActor)
 #ren.AddActor(outlineActor)
 ren.AddActor(streamTubeActor)
+if ( options.annotation != "null" ):
+   ren.AddActor(ann)
 
 cam = ren.GetActiveCamera()
 cam.Pitch(50)
 ren.ResetCamera()
 cam.Zoom(1.5)
 
-if ( interact == 0 ):
+if ( options.interact == False ):
     renWin.OffScreenRenderingOn()
 renWin.Render()
 
@@ -139,14 +178,14 @@ renWin.Render()
 w2if = vtk.vtkWindowToImageFilter()
 w2if.SetInput(renWin)
 w2if.Update()
- 
+
 writer = vtk.vtkPNGWriter()
-filename = 'spatial_data_%03d.png' % int(frame)
+filename = 'spatial_data_%03d.png' % int(options.frame)
 writer.SetFileName(filename)
 writer.SetInput(w2if.GetOutput())
 writer.Write()
 
 # Interact with the data.
-if (interact == 1):
+if (options.interact == True):
     iren.Initialize()
     iren.Start()
