@@ -2,7 +2,8 @@
 INPUT=$1     # fort.22 file used as input
 ADVISORY=$2  # used in file names and plot titles
 TIMESTEP=$3  # seconds, e.g., 1800.0 # "default" to hit the cycle times
-MESHFILE=$4  # fort.14 file name or 0 to autogenerate mesh
+MESHFILE=$4  # fort.14 file name or "auto" to autogenerate mesh
+DESCRIPT=$5  # very short description for the streamlines viz
 
 ASGSDIR=~/asgs/trunk
 ADCIRCDIR=~/adcirc/newvortex/work
@@ -10,7 +11,7 @@ PERL5LIB=$ASGSDIR/PERL ; export PERL5LIB
 
 FRAME=0         # "0" for all frames
 MYPROC=0        # "0" in serial
-#MESHFILE=~/adcirc/examples/parallel_ec95d/coldnetcdf/ec_95d.grd  # "0" to autogenerate mesh
+#MESHFILE=~/adcirc/examples/parallel_ec95d/coldnetcdf/ec_95d.grd  # "auto" to autogenerate mesh
 #
 DELAY=10
 if [ $TIMESTEP = default ]; then
@@ -26,7 +27,7 @@ $ADCIRCDIR/aswip -m 2 -w $INPUT
 # TODO: for parallel execution?
 #
 # execute frame driver in serial for all frames
-$ASGSDIR/output/frame_driver.sh $INPUT $TIMESTEP $ADVISORY $FRAME $MYPROC $ADCIRCDIR $ASGSDIR $PERL5LIB $MESHFILE
+$ASGSDIR/output/frame_driver.sh $INPUT $TIMESTEP $ADVISORY $FRAME $MYPROC $ADCIRCDIR $ASGSDIR $PERL5LIB $MESHFILE "$DESCRIPT"
 #
 # make animation out of the montage sequence of images
 #convert -loop 0 -delay $DELAY montage_geom_???.gif anim_all_${ADVISORY}.gif
