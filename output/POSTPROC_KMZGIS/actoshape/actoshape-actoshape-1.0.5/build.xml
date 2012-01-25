@@ -1,0 +1,175 @@
+<project name="actoshape" default="compile" basedir=".">
+
+  <property name="build.home" value="build"/>
+  <property name="src" value="./src" />
+
+  <path id="compile.classpath">
+	<fileset dir="./lib">
+	  <include name="**/*.jar"/>
+	</fileset>
+  </path>
+
+  <target name="prepare">
+    <mkdir dir="${build.home}"/>
+  </target>
+
+  <target name="compile" depends="prepare">
+    <javac srcdir="src"
+          destdir="${build.home}"
+           debug="true"
+       listfiles="yes">
+        <classpath refid="compile.classpath"/>
+    </javac>
+  </target>
+
+  <target name="actoshape-main" depends="compile">
+    <jar destfile="lib/actoshape-main.jar" basedir="${build.home}">
+      <manifest>
+	<attribute name="Main-Class" value="edu.unca.nemac.gis.AcToShape"/>
+      </manifest>
+    </jar>
+  </target>
+  
+  <target name="man">
+    <exec executable="perldoc" outputproperty="perldoc-output">
+      <arg value="actoshape.man.in"/>
+    </exec>
+    <exec executable="col" inputstring="${perldoc-output}" output="actoshape.man">
+      <arg value="-xb"/>
+    </exec>
+  </target>
+
+  <import file="one-jar/one-jar-ant-task.xml"/>
+
+  <target name="jar" depends="actoshape-main">
+    <one-jar destfile="actoshape.jar">
+      <manifest>
+	<attribute name="Main-Class" value="com.simontuffs.onejar.Boot"/>
+	<attribute name="One-Jar-Main-Class" value="edu.unca.nemac.gis.AcToShape"/>
+      </manifest>
+      <main jar="lib/actoshape-main.jar"/>
+      <lib>
+	<fileset dir="lib" includes="**/*.jar" excludes="actoshape-main.jar"/>
+      </lib>
+    </one-jar>
+  </target>
+
+  <target name="dist" depends="jar,man">
+    <delete dir="dist"/>
+    <mkdir dir="dist"/>
+    <exec executable="./version" outputproperty="version-tag">
+      <arg value="-c"/>
+    </exec>
+    <mkdir dir="dist/actoshape-${version-tag}"/>
+    <copy  file="actoshape.jar" tofile="dist/actoshape-${version-tag}/actoshape-${version-tag}.jar" />
+    <copy  file="actoshape.man" todir="dist/actoshape-${version-tag}" />
+    <copy  file="actoshape"     todir="dist/actoshape-${version-tag}" />
+    <copy  file="LICENSE.txt"   todir="dist/actoshape-${version-tag}" />
+    <replace file="dist/actoshape-${version-tag}/actoshape"
+             token="$${version-tag}" value="${version-tag}"/>
+    <replace file="dist/actoshape-${version-tag}/actoshape"
+             token="actoshape.jar" value="actoshape-${version-tag}.jar"/>
+    <replace file="dist/actoshape-${version-tag}/actoshape"
+             token="actoshape-trunk.jar" value="actoshape-${version-tag}.jar"/>
+    <chmod file="dist/actoshape-${version-tag}/actoshape" perm="a+x"/>
+    <echo file="dist/actoshape-${version-tag}/README">
+                       ACTOSHAPE ${version-tag}
+
+   Copyright (c) 2009  University of North Carolina at Asheville
+
+
+This directory contains version ${version-tag} of "actoshape", a
+program for generating shapefiles from ADCIRC output files.  Actoshape
+is a shell script which is intended to be invoked from the command
+line; it is a wrapper for a java program that is contained in the file
+"actoshape.jar".  Java must be installed on your system (version 1.5
+or higher) in order for actoshape to work.
+
+Documentation is in the file "actoshape.man".
+
+You should be able to invoke "actoshape" from the command-line by
+giving either a relative or absolute path to its location in this
+directory.  Note that by default, the "actoshape.jar" file should be
+located in the same directory where the "actoshape" script is.  If you
+want to install the "actoshape" script someplace else, or if you get
+an error message indicating that "actoshape.jar" cannot be found when
+you run "actoshape", open "actoshape" in an editor and modify it
+according to the comments at the top of the file.
+
+Actoshape comes with ABSOLUTELY NO WARRANTY.  It is Free Software
+and may be used under the terms of the RENCI Open Source Software
+License, a copy of which is available in the file LICENSE.txt.
+
+If you use actoshape in your project or publication, please
+give credit to the author.
+
+If you have questions or comments about actoshape, feel free
+to contact me.
+
+Thanks!
+
+Mark Phillips
+mphillip@unca.edu
+UNC Asheville
+National Environmental Modeling and Analysis Center
+Asheville, NC
+</echo>
+    <tar destfile="actoshape-${version-tag}.tar.gz" compression="gzip">
+      <tarfileset dir="dist" filemode="755">
+        <include name="actoshape-${version-tag}/actoshape"/>
+      </tarfileset>
+      <tarfileset dir="dist">
+        <exclude name="actoshape-${version-tag}/actoshape"/>
+        <include name="actoshape-${version-tag}/**"/>
+      </tarfileset>
+    </tar>
+  </target>
+
+  <target name="srcdist" depends="clean">
+    <delete dir="dist"/>
+    <mkdir dir="dist"/>
+    <exec executable="./version" outputproperty="version-tag">
+      <arg value="-c"/>
+    </exec>
+    <mkdir dir="dist/actoshape-${version-tag}"/>
+    <copy todir="dist/actoshape-${version-tag}">
+      <fileset dir=".">
+        <exclude name="*.gz"/>
+        <exclude name="dist/**"/>
+        <exclude name="output/**"/>
+        <include name="**"/>
+      </fileset>
+    </copy>
+    <chmod file="dist/actoshape-${version-tag}/actoshape" perm="a+x"/>
+    <chmod file="dist/actoshape-${version-tag}/version" perm="a+x"/>
+    <tar destfile="actoshape-${version-tag}-src.tar.gz" compression="gzip">
+      <tarfileset dir="dist" filemode="755">
+        <include name="actoshape-${version-tag}/actoshape"/>
+        <include name="actoshape-${version-tag}/version"/>
+      </tarfileset>
+      <tarfileset dir="dist">
+        <exclude name="actoshape-${version-tag}/actoshape"/>
+        <exclude name="actoshape-${version-tag}/version"/>
+        <include name="actoshape-${version-tag}/**"/>
+      </tarfileset>
+    </tar>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build.home}"/>
+    <delete dir="dist"/>
+    <delete file="lib/actoshape-main.jar"/>
+    <delete file="actoshape.jar"/>
+    <delete file="actoshape.man"/>
+    <exec executable="./version" outputproperty="version-tag">
+      <arg value="-c"/>
+    </exec>
+  </target>
+
+  <target name="distclean" depends="clean">
+    <delete file="actoshape-${version-tag}.tar.gz"/>
+    <delete file="actoshape-${version-tag}-src.tar.gz"/>
+  </target>
+
+
+</project>

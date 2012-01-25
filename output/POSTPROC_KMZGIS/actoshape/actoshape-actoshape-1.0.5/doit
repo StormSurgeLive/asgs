@@ -1,0 +1,11 @@
+#! /bin/bash
+
+./t/actoshape/actoshape \
+  --box -78.7772 33.2920 -75.1513 36.7416 \
+  --nowater \
+  testdata/nc_inundation_v6a.grd \
+  testdata/maxele.63 \
+  output.shp
+
+#  testdata/fort.1999_Floyd_bb2.acc.6hr.63 \
+
