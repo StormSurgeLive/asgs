@@ -4,14 +4,14 @@
 #
 # This script reformats ADCIRC input or output files to vtk xml format for
 # visualization and/or analysis.
-# 
+#
 use strict;
 $^W++;
 use Getopt::Long;
 #
 my %adcirctypes = ("maxele.63", "MaximumElevation", "maxwvel.63", "MaximumWindSpeed", "minpr.63", "MinimumBarometricPressure", "fort.63", "WaterSurfaceElevation", "fort.73", "BarometricPressure", "fort.74", "WindVelocity");
-my $R = 6378206.4;           # radius of the earth 
-my $pi = 3.141592653589793;  
+my $R = 6378206.4;           # radius of the earth
+my $pi = 3.141592653589793;
 my $deg2rad = 2*$pi/360.0;
 my @x; # x coordinates or longitude
 my @y; # y coordinates or latitude
@@ -20,7 +20,7 @@ my @time; # in seconds since cold start for each dataset in the file
 my @timestep; # integer number, since coldstart, for each dataset in the file
 #
 my $meshfile = "fort.14";
-my $cpp;  # 1 to reproject to cpp (carte parallelogrammatique projection) 
+my $cpp;  # 1 to reproject to cpp (carte parallelogrammatique projection)
 my $slam0 = 265.5; # longitude at center of projection
 my $sfea0 = 29.0;  # latitude at center of projection
 my @adcircfiles;
@@ -52,7 +52,7 @@ my $np = $fields[1];
 for (my $i=0; $i<$np; $i++) {
    $line = <MESH>;
    @fields = split(' ',$line);
-   $x[$i] = $fields[1]; 
+   $x[$i] = $fields[1];
    $y[$i] = $fields[2];
    $z[$i] = $fields[3];
 }
@@ -76,7 +76,7 @@ for (my $i=0; $i<$ne; $i++) {
 close(MESH);
 #
 # write data from adcirc file(s)
-foreach my $file (@adcircfiles) {  
+foreach my $file (@adcircfiles) {
    my $num_components = 0; # 1 if scalar, 2 if 2D vector, 3 if 3D vector
    my $num_datasets = 0;   # 0 if unknown
    my $scalars_name = "";
@@ -87,15 +87,15 @@ foreach my $file (@adcircfiles) {
       $scalars_name = "Scalars=\"BathymetricDepth\"";
    }
    if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" ) {
-      $num_components = 1; 
+      $num_components = 1;
       $num_datasets = 1;
    }
    if ( $file eq "fort.63" || $file eq "fort.73" ) {
       $num_components = 1;
       $num_datasets = 0;
-   } 
+   }
    if ( $file eq "fort.74" ) {
-      $num_components = 2; 
+      $num_components = 2;
       $num_datasets = 0;
    }
    # make sure we can actually open the adcirc file before going further
@@ -107,11 +107,11 @@ foreach my $file (@adcircfiles) {
    # parse down to where the data starts
    $line = <ADCIRCFILE>;  # read comment line (not used)
    $line = <ADCIRCFILE>;  # read header line (not used)
-   if ( $num_datasets == 0 ) { 
+   if ( $num_datasets == 0 ) {
       # we don't know how many datasets are in this file, it is likely more
-      # than one, so we need to start a small separate pvd file that lists 
-      # the data files in the collection 
-      my $outfile = $meshfile . "_" . $file . ".pvd"; 
+      # than one, so we need to start a small separate pvd file that lists
+      # the data files in the collection
+      my $outfile = $meshfile . "_" . $file . ".pvd";
       unless (open(PVD,">$outfile")) {
          stderrMessage("ERROR",
             "Failed to open vtk file $outfile for writing: $!.");
@@ -125,26 +125,26 @@ foreach my $file (@adcircfiles) {
    my @comp; # components of the dataset
    while (<ADCIRCFILE>) {
       @fields = split(' ',$_);
-      $time[0] = $fields[0]; 
+      $time[0] = $fields[0];
       $timestep[0] = $fields[1];
       my @mag; # for holding vector magnitudes
       for (my $i=0; $i<$np; $i++) {
          $line = <ADCIRCFILE>;
          @fields = split(' ',$line);
          # get rid of the node number
-         shift(@fields); 
+         shift(@fields);
          if ( $num_components == 2 ) {
             # calculate vector magnitude
             $mag[$i] = sqrt($fields[0]**2 + $fields[1]**2);
             push(@fields,"0.0"); # vtk expects all vectors to be 3D
          }
-         $comp[$i] = join(' ',@fields); 
+         $comp[$i] = join(' ',@fields);
       }
-      my $outfile = $meshfile . "_" . $file; 
+      my $outfile = $meshfile . "_" . $file;
       my $dataset_ext = "";
       if ( $num_datasets == 0 ) {
          $dataset_ext = sprintf("%03d",$dataset);
-         $outfile = "_" . $dataset_ext;
+         $outfile = $outfile . "_" . $dataset_ext;
       }
       $outfile .= ".vtu";
       # start writing vtk-formatted file
@@ -163,7 +163,7 @@ foreach my $file (@adcircfiles) {
       my $vectors_name = "";
       if ( $num_components > 1 ) {
          $scalars_name = "Scalars=\"$adcirctypes{$file}Magnitude\"";
-         $vectors_name = "Vectors=\"$adcirctypes{$file}\"";      
+         $vectors_name = "Vectors=\"$adcirctypes{$file}\"";
       }
       printf OUT "         <PointData $scalars_name $vectors_name>\n";
       printf OUT "            <DataArray Name=\"BathymetricDepth\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
@@ -229,7 +229,7 @@ foreach my $file (@adcircfiles) {
       close(PVD);
    }
    close(ADCIRCFILE);
-} 
+}
 sub stderrMessage () {
    my $level = shift;
    my $message = shift;
