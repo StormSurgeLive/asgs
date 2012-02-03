@@ -11,9 +11,11 @@ parser.add_option("-f", "--file", dest="filename", default="fort.14",
                   help="file to read")
 parser.add_option("-i", "--interact", dest="interact", default=False,
                   action="store_true", help="to enable interaction with data")
-parser.add_option("-a", "--variable", dest="variable", 
+parser.add_option("-v", "--variable", dest="variable",
                   default="BathymetricDepth", help="variable to visualize")
-                  
+parser.add_option("-a", "--annotation", dest="annotation", default="null",
+                  help="text to place in frame")
+
 (options, args) = parser.parse_args()
 
 # set up offscreen rendering
@@ -68,13 +70,29 @@ gridActor = vtk.vtkActor()
 gridActor.SetMapper(planeMapper)
 #gridActor.GetProperty().SetRepresentationToWireframe()
 
+# streamline parameters for whole gulf and atlantic
+seedCenterX = -33000000.0
+seedCenterY = 3000000.0
+seedCenterZ = 0.0
+seedRadius = 3000000.0
+seedNum = 10000
+streamMaxPropagationTime = 160000.0
+streamTubeRadius = 5000.0
+# streamline parameters for just eastern nc area
+#seedCenterX = -32700000.0
+#seedCenterY = 3600000.0
+#seedCenterZ = 0.0
+#seedRadius = 500000.0
+#seedNum = 10000
+#streamMaxPropagationTime = 160000.0
+#streamTubeRadius = 500.0
 # create streamlines
 if options.variable == 'WindVelocity':
     print 'Generating streamlines.'
     seedsSphere = vtk.vtkPointSource()
-    seedsSphere.SetRadius(3000000.0)
-    seedsSphere.SetCenter(-33000000.0, 3000000.0, 0.0)
-    seedsSphere.SetNumberOfPoints(10000)
+    seedsSphere.SetCenter(seedCenterX, seedCenterY, seedCenterZ)
+    seedsSphere.SetRadius(seedRadius)
+    seedsSphere.SetNumberOfPoints(seedNum)
     seedTransform = vtk.vtkTransform()
     seedTransform.Scale(1.0,1.0,0.0)
     #seedTransform.RotateZ(1.0*float(frame)) # 1 degree
@@ -87,7 +105,7 @@ if options.variable == 'WindVelocity':
     streamer.SetInputConnection(meshReader.GetOutputPort())
     #streamer.SetStartPosition(0.18474886E+01, 0.12918899E+00, 0.00000000E+00)
     streamer.SetSource(seedFilter.GetOutput())
-    streamer.SetMaximumPropagation(160000.0)
+    streamer.SetMaximumPropagation(streamMaxPropagationTime)
     #streamer.SetMaximumPropagationUnitToTimeUnit()
     streamer.SetInitialIntegrationStep(1.0)
     #streamer.SetInitialIntegrationStepUnitToCellLengthUnit()
@@ -97,7 +115,7 @@ if options.variable == 'WindVelocity':
     streamTube = vtk.vtkTubeFilter()
     streamTube.SetInputConnection(streamer.GetOutputPort())
     #streamTube.SetInputArrayToProcess(1,0,0,vtkDataObject::FIELD_ASSOCIATION_POINTS, vectors)
-    streamTube.SetRadius(5000.0)
+    streamTube.SetRadius(streamTubeRadius)
     streamTube.SetNumberOfSides(12)
     #streamTube.SetVaryRadiusToVaryRadiusByVector()
 
@@ -110,6 +128,25 @@ if options.variable == 'WindVelocity':
     streamTubeActor.GetProperty().SetColor(0.0,0.0,0.0)
     ##streamTubeActor.GetProperty().BackfaceCullingOn()
 
+# Create annotation
+if ( options.annotation != "null" ):
+   ann = vtk.vtkTextActor()
+   ann.SetTextScaleModeToViewport()
+   ann.SetDisplayPosition(50,600)
+   ann.SetInput(options.annotation)
+   # specify an initial size
+   ann.GetPosition2Coordinate().SetCoordinateSystemToNormalizedViewport()
+   ann.GetPosition2Coordinate().SetValue(0.6,0.1)
+   # properties of text annotation
+   annprop = ann.GetTextProperty()
+   annprop.SetFontSize(36)
+   annprop.SetFontFamilyToArial()
+   #annprop.SetJustificationToCentered()
+   #annprop.BoldOn()
+   #annprop.ItalicOn()
+   #annprop.ShadowOn()
+   annprop.SetColor(0,0,0)
+
 # Create the usual rendering stuff.
 ren = vtk.vtkRenderer()
 renWin = vtk.vtkRenderWindow()
@@ -121,32 +158,32 @@ iren.SetRenderWindow(renWin)
 ren.SetBackground(1.0, 1.0, 1.0)
 ren.AddActor(outlineActor)
 if options.variable != 'WindVelocity':
-    ren.AddActor(gridActor)
+   ren.AddActor(gridActor)
 else:
-    ren.AddActor(streamTubeActor)
+   ren.AddActor(streamTubeActor)
+if ( options.annotation != "null" ):
+   ren.AddActor(ann)
 
 ren.ResetCamera()
 cam = ren.GetActiveCamera()
-cam.Zoom(1.5)
+cam.Zoom(1.3)
 if options.interact == False:
-    renWin.OffScreenRenderingOn()
+   renWin.OffScreenRenderingOn()
 renWin.Render()
-
-# write a png
-#w2if = vtk.vtkWindowToImageFilter()
-#w2if.SetInput(renWin)
-#w2if.Update()
- 
-#writer = vtk.vtkPNGWriter()
-#filename = 'spatial_data_%03d.png' % int(frame)
-#writer.SetFileName(filename)
-#writer.SetInput(w2if.GetOutput())
-#writer.Write()
 
 # Interact with the data.
 if options.interact == True:
-    iren.Initialize()
-    iren.Start()
+   iren.Initialize()
+   iren.Start()
+else:
+   # write a png
+   w2if = vtk.vtkWindowToImageFilter()
+   w2if.SetInput(renWin)
+   w2if.Update()
+   writer = vtk.vtkPNGWriter()
+   writer.SetFileName(options.filename + ".png")
+   writer.SetInput(w2if.GetOutput())
+   writer.Write()
 
 
 
@@ -215,7 +252,7 @@ if options.interact == True:
 #w2if = vtk.vtkWindowToImageFilter()
 #w2if.SetInput(renWin)
 #w2if.Update()
- 
+
 #writer = vtk.vtkPNGWriter()
 #filename = 'spatial_data_%03d.png' % int(frame)
 #writer.SetFileName(filename)

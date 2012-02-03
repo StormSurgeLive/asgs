@@ -4,19 +4,19 @@
 #---------------------------------------------------------------------
 #
 # Copyright(C) 2011 Jason Fleming
-# 
+#
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
-# 
+#
 # The ASGS is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # ASGS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
@@ -30,7 +30,7 @@ use Cwd;
 $^W++;
 
 my $dir=".";                        # path to input and output files
-my $storm;                          # number, e.g., 05 or 12 
+my $storm;                          # number, e.g., 05 or 12
 my $year;                           # YYYY
 my $coldstartdate;                  # YYYYMMDDHH24
 my $input="NWS_19_fort.22";         # name of input file
@@ -40,9 +40,10 @@ my $hotstartseconds = 0.0;          # default is not hotstart
 my $name = "nhcConsensus";          # default track to generate
 my $advisorynum="30";
 my $pi=3.141592653589793;
+my $plot_max = "-99.0";
 my $defaultOutputIncrement = "true";# false if user has supplied the output inc
 my $output_increment="";        # time in seconds between outputs
-# if the NHC issues a special advisory, there may be incomplete lines in the 
+# if the NHC issues a special advisory, there may be incomplete lines in the
 # hindcast file. This hash will save the most recent complete lines, to fill
 # in any missing data.
 my %complete_hc_lines = ();
@@ -63,6 +64,7 @@ GetOptions(
            "frame=s" => \$frame,
            "myproc=s" => \$myproc,
            "nws=s" => \$nws,
+           "plotmax=s" => \$plot_max,
            "outputincrement=s" => \$output_increment
            );
 #
@@ -111,12 +113,12 @@ my @rmax;
 my @unset_gp_radii;
 my $arrow_num = 0;
 my $label_num = 0;
-while (<FORT22>) { 
-   # break into fields 
+while (<FORT22>) {
+   # break into fields
    my @fields = split(',',$_);
    # grab hour
    my $hour=$fields[5];
-   if ( $hour != $previous_hour ) { 
+   if ( $hour != $previous_hour ) {
       $cycle_num++;
       $arrow_num=5;
       $label_num=2;
@@ -127,7 +129,7 @@ while (<FORT22>) {
       $fields[4] =~ /([A-Z]{4})/;
       $type[$cycle_num] = $1;
       $fields[2] =~ /(\d{4})(\d{2})(\d{2})(\d{2})/;
-      $time[$cycle_num] = $4."Z ".$2."/".$3."/".$1;    
+      $time[$cycle_num] = $4."Z ".$2."/".$3."/".$1;
       $fields[5] =~ /(\d+)/;
       $timesec[$cycle_num] = $1 * 3600;
       $fields[8] =~ /(\d+)/;
@@ -153,15 +155,15 @@ while (<FORT22>) {
    } else {
       $isotachs_per_cycle[$cycle_num]++;
    }
-   $previous_hour = $hour; 
-   # grab isotach speed 
+   $previous_hour = $hour;
+   # grab isotach speed
    $fields[11] =~ /(\d+)/;
    my $speed=$1;
    # early in a storm's development (INVEST and prior) the NHC may
    # list the isotach wind speed as zero ... we use 34kt here instead
    # ... just for consistency of display in the plots
    if ( $speed == 0 ) {
-	   $speed = 34;
+      $speed = 34;
    }
    # grab radii and write to file with isotach speed and cycle number for gmt
    my $ne=$fields[13];
@@ -173,22 +175,22 @@ while (<FORT22>) {
    my $sw_label_spacing = $ne_label_spacing * 2.25;
    my $nw_label_spacing = $ne_label_spacing * 2.75;
    $gp_radii[$cycle_num] .= "set arrow $arrow_num from $ne,$ne_label_spacing to $ne,$speed ls 1\n";
-   $gp_radii[$cycle_num] .= "set label $label_num \"NE\" at $ne,$ne_label_spacing center textcolor rgbcolor \"black\"\n"; 
+   $gp_radii[$cycle_num] .= "set label $label_num \"NE\" at $ne,$ne_label_spacing center textcolor rgbcolor \"black\"\n";
    $unset_gp_radii[$cycle_num] .= "unset arrow $arrow_num\nunset label $label_num\n";
    $arrow_num++;
    $label_num++;
    $gp_radii[$cycle_num] .= "set arrow $arrow_num from $se,$se_label_spacing to $se,$speed ls 2\n";
-   $gp_radii[$cycle_num] .= "set label $label_num \"SE\" at $se,$se_label_spacing center textcolor rgbcolor \"dark-orange\"\n"; 
+   $gp_radii[$cycle_num] .= "set label $label_num \"SE\" at $se,$se_label_spacing center textcolor rgbcolor \"dark-orange\"\n";
    $unset_gp_radii[$cycle_num] .= "unset arrow $arrow_num\nunset label $label_num\n";
    $arrow_num++;
    $label_num++;
    $gp_radii[$cycle_num] .= "set arrow $arrow_num from $sw,$sw_label_spacing to $sw,$speed ls 3\n";
-   $gp_radii[$cycle_num] .= "set label $label_num \"SW\" at $sw,$sw_label_spacing center textcolor rgbcolor \"dark-magenta\"\n"; 
+   $gp_radii[$cycle_num] .= "set label $label_num \"SW\" at $sw,$sw_label_spacing center textcolor rgbcolor \"dark-magenta\"\n";
    $unset_gp_radii[$cycle_num] .= "unset arrow $arrow_num\nunset label $label_num\n";
    $arrow_num++;
    $label_num++;
    $gp_radii[$cycle_num] .= "set arrow $arrow_num from $nw,$nw_label_spacing to $nw,$speed ls 4\n";
-   $gp_radii[$cycle_num] .= "set label $label_num \"NW\" at $nw,$nw_label_spacing center textcolor rgbcolor \"dark-blue\"\n"; 
+   $gp_radii[$cycle_num] .= "set label $label_num \"NW\" at $nw,$nw_label_spacing center textcolor rgbcolor \"dark-blue\"\n";
    $unset_gp_radii[$cycle_num] .= "unset arrow $arrow_num\nunset label $label_num\n";
    $arrow_num++;
    $label_num++;
@@ -197,22 +199,22 @@ while (<FORT22>) {
 #   my $sw_rmax=$fields[36];
 #   my $nw_rmax=$fields[37];
 #   $rmax[$cycle_num] .= "set arrow $arrow_num from $ne_rmax,$ne_label_spacing to $ne_rmax,$vmax[$cycle_num] ls 8\n";
-#   $gp_radii[$cycle_num] .= "set label $label_num \"NE\" at $ne_rmax,$ne_label_spacing center textcolor rgbcolor \"red\"\n"; 
+#   $gp_radii[$cycle_num] .= "set label $label_num \"NE\" at $ne_rmax,$ne_label_spacing center textcolor rgbcolor \"red\"\n";
 #   $unset_gp_radii[$cycle_num] .= "unset arrow $arrow_num\nunset label $label_num\n";
 #   $arrow_num++;
 #   $label_num++;
 #   $rmax[$cycle_num] .= "set arrow $arrow_num from $se_rmax,$se_label_spacing to $se_rmax,$vmax[$cycle_num] ls 8\n";
-#   $gp_radii[$cycle_num] .= "set label $label_num \"SE\" at $se_rmax,$se_label_spacing center textcolor rgbcolor \"red\"\n"; 
+#   $gp_radii[$cycle_num] .= "set label $label_num \"SE\" at $se_rmax,$se_label_spacing center textcolor rgbcolor \"red\"\n";
 #   $unset_gp_radii[$cycle_num] .= "unset arrow $arrow_num\nunset label $label_num\n";
 #   $arrow_num++;
 #   $label_num++;
 #   $rmax[$cycle_num] .= "set arrow $arrow_num from $sw_rmax,$sw_label_spacing to $sw_rmax,$vmax[$cycle_num] ls 8\n";
-#   $gp_radii[$cycle_num] .= "set label $label_num \"SW\" at $sw_rmax,$sw_label_spacing center textcolor rgbcolor \"red\"\n"; 
+#   $gp_radii[$cycle_num] .= "set label $label_num \"SW\" at $sw_rmax,$sw_label_spacing center textcolor rgbcolor \"red\"\n";
 #   $unset_gp_radii[$cycle_num] .= "unset arrow $arrow_num\nunset label $label_num\n";
 #   $arrow_num++;
 #   $label_num++;
 #   $rmax[$cycle_num] .= "set arrow $arrow_num from $nw_rmax,$nw_label_spacing to $nw_rmax,$vmax[$cycle_num] ls 8\n";
-#   $gp_radii[$cycle_num] .= "set label $label_num \"NW\" at $nw_rmax,$nw_label_spacing center textcolor rgbcolor \"red\"\n"; 
+#   $gp_radii[$cycle_num] .= "set label $label_num \"NW\" at $nw_rmax,$nw_label_spacing center textcolor rgbcolor \"red\"\n";
 #   $unset_gp_radii[$cycle_num] .= "unset arrow $arrow_num\nunset label $label_num\n";
 #   $arrow_num++;
 #   $label_num++;
@@ -227,12 +229,12 @@ while (<FORT22>) {
    printf RADIUSDATA "$sw 225\n";
    printf RADIUSDATA "$nw 315\n";
    close(RADIUSDATA);
-} 
+}
 #
-# now that we know how many isotachs are in each cycle, we can create the 
+# now that we know how many isotachs are in each cycle, we can create the
 # gmt script code to plot them
-my @isotach_speeds = ( 34, 50, 64 ); 
-my @isotach_colors = qw( green purple yellow ); 
+my @isotach_speeds = ( 34, 50, 64 );
+my @isotach_colors = qw( green purple yellow );
 my $extents = "-R0/400/0/360";
 my $offset = "-Xa3.5i -Ya2.5i";
 my $cycle=0;
@@ -263,10 +265,10 @@ for (my $output_num=1; $output_num<=$last_output; $output_num++ ) {
       my $kontinue="";
       my $append="";
       my $redirect=">";
-      if ( $isotach < $isotachs_per_cycle[$cycle] 
+      if ( $isotach < $isotachs_per_cycle[$cycle]
            || -e $full_circle_data_file ) {
          $kontinue="-K";
-      } 
+      }
       if ( $isotach > 1 ) {
          $append="-O";
          $redirect=">>";
@@ -284,11 +286,11 @@ for (my $output_num=1; $output_num<=$last_output; $output_num++ ) {
       $info = "45g45";
       my $ylabel = "B=$B[$cycle], Vmax=$vmax[$cycle]kt, Pc=$pc[$cycle]mb Vtr=$tr_speeds[$cycle]kt dir=$tr_directions[$cycle]deg";
       if ( $type[$cycle] eq "BEST" ) {
-         $ylabel .= ", NHC Rmax=$nhc_rmax[$cycle]nm";   
+         $ylabel .= ", NHC Rmax=$nhc_rmax[$cycle]nm";
       }
       $segment = ":\"$ylabel\":";
       my $yinfo = $info.$segment;
-      # title 
+      # title
       my $title = ":.\"$stormname$advisorynum $type[$cycle] $time[$cycle]\":";
       my $ticks = "-B".$xinfo."/".$yinfo.$title;
       printf GMTSCRIPT "psrose $radii_file_name $kontinue $append -A90 -S2i $extents $offset -G$isotach_colors[$isotach-1] -Wthickest $ticks -L $redirect $radii_plot_name\n";
@@ -297,7 +299,7 @@ for (my $output_num=1; $output_num<=$last_output; $output_num++ ) {
    if ( -e $full_circle_data_file ) {
       printf GMTSCRIPT "# convert from trigonometric azimuth to compass\n";
       printf GMTSCRIPT "# azimuth and switch radius and azimuth columns\n";
-      printf GMTSCRIPT "awk '{ \$2=90-\$2; if (\$2<0) \$2=\$2+360; print \$2\" \"\$1 }' $full_circle_data_file > compass_$full_circle_data_file\n"; 
+      printf GMTSCRIPT "awk '{ \$2=90-\$2; if (\$2<0) \$2=\$2+360; print \$2\" \"\$1 }' $full_circle_data_file > compass_$full_circle_data_file\n";
       printf GMTSCRIPT "# now plot the fitted Rmax values\n";
       printf GMTSCRIPT "psxy compass_$full_circle_data_file -JP4i -O -K -A -Xa3.5i -Ya2.5i -R0/360/0/400 -Wfat,red  >> $radii_plot_name\n";
       printf GMTSCRIPT "# now plot the line along which we have V(r) and P(r)\n";
@@ -370,7 +372,7 @@ close(GMTSCRIPT);
 #
 # G N U P L OT
 #
-# Now generate a gnuplot script for the V(r) and P(r) line graphs  
+# Now generate a gnuplot script for the V(r) and P(r) line graphs
 unless (open(GPSCRIPT,">$dir/radial_v_and_p.gp")) {
    stderrMessage("ERROR","Failed to open gnuplot script file '$dir/radial_v_and_p.gp' for writing: $!.");
    die;
@@ -407,15 +409,17 @@ for (my $output_num=1; $output_num<=$last_output; $output_num++ ) {
    }
    my $plot_file_name = sprintf("radialv_%03d.ps",$output_num);
    my $data_file_name = sprintf("radialvp_%03d.d",$output_num);
-   my $plot_max = $max_vmax + 5;
+   if ( $plot_max eq "-99.0" ) {
+      $plot_max = $max_vmax + 5;
+   }
    printf GPSCRIPT "# now plot wind speed data on properly scaled plot\n";
    printf GPSCRIPT "set yrange [:$plot_max]\n";
-   printf GPSCRIPT "set output \"$plot_file_name\"\n";  
+   printf GPSCRIPT "set output \"$plot_file_name\"\n";
    if ( $plot_max > 64 ) {
       printf GPSCRIPT "set arrow 1 from 0,64 to 400,64 ls 5 nohead\n";
       $arrow_1_set = 1;
    } else {
-      if ( $arrow_1_set == 1 ) {  
+      if ( $arrow_1_set == 1 ) {
          printf GPSCRIPT "unset arrow 1\n";
          $arrow_1_set = 0;
       }
@@ -424,14 +428,14 @@ for (my $output_num=1; $output_num<=$last_output; $output_num++ ) {
       printf GPSCRIPT "set arrow 2 from 0,50 to 400,50 ls 6 nohead\n";
       $arrow_2_set = 1;
    } else {
-      if ( $arrow_2_set == 1 ) {  
+      if ( $arrow_2_set == 1 ) {
          printf GPSCRIPT "unset arrow 2\n";
          $arrow_2_set = 0;
       }
-   }   
+   }
    printf GPSCRIPT "set arrow 3 from 0,34 to 400,34 ls 7 nohead\n";
    printf GPSCRIPT "set arrow 4 from 0,$vmax[$cycle] to 400,$vmax[$cycle] ls 8 nohead\n";
-   printf GPSCRIPT "set label 1 \"Vmax\" at -50,$vmax[$cycle] center textcolor rgbcolor \"red\"\n"; 
+   printf GPSCRIPT "set label 1 \"Vmax\" at -50,$vmax[$cycle] center textcolor rgbcolor \"red\"\n";
    printf GPSCRIPT $gp_radii[$cycle];
    printf GPSCRIPT "plot '$data_file_name' every 60 using 1:2 title \"NE\" with points ls 1,\\\n";
    printf GPSCRIPT "'$data_file_name' every 60::15 using 1:3 title \"SE\" with points ls 2,\\\n";
@@ -467,7 +471,7 @@ for (my $output_num=1; $output_num<=$last_output; $output_num++ ) {
    }
    my $plot_file_name = sprintf("radialp_%03d.ps",$output_num);
    my $data_file_name = sprintf("radialvp_%03d.d",$output_num);
-   printf GPSCRIPT "set output \"$plot_file_name\"\n";  
+   printf GPSCRIPT "set output \"$plot_file_name\"\n";
    printf GPSCRIPT "plot '$data_file_name' every 60 using 1:7 title \"NE\" with points ls 1,\\\n";
    printf GPSCRIPT "'$data_file_name' every 60::15 using 1:8 title \"SE\" with points ls 2,\\\n";
    printf GPSCRIPT "'$data_file_name' every 60::30 using 1:9 title \"SW\" with points ls 3,\\\n";
@@ -482,7 +486,7 @@ for (my $output_num=1; $output_num<=$last_output; $output_num++ ) {
    }
 }
 close(GPSCRIPT);
-# 
+#
 # generate data to show solution process for determination of Rmax
 # equation containing Coriolis forces
 # B=1.0, Vmax=45kt, Pc = 979mb, Vtr = 17kt, dir=23deg, Ir = 220nm, Vr=34kt
@@ -499,9 +503,9 @@ unless (open(NOCORIOLIS,">noCoriolis.d")) {
 }
 my $windReduction = 0.8924;
 my $testB = 1.0;
-my $Vmax = 45; 
+my $Vmax = 45;
 my $Pc = 979;
-my $Vtr = 17; 
+my $Vtr = 17;
 my $dir = 23;
 my $Ir = 220;
 my $Vr = 34;
@@ -512,16 +516,16 @@ for (my $r=1; $r<400; $r++ ) {
    printf WITHCORIOLIS "$r ";
    printf NOCORIOLIS "$r ";
    for (my $rmx=10; $rmx<400; $rmx+=10 ) {
-      my $Vh = 1/0.5144*(sqrt( 
-         ($Vmax*0.51444)**2 * ($rmx/$r)**$testB * exp(1-($rmx/$r)**$testB) 
+      my $Vh = 1/0.5144*(sqrt(
+         ($Vmax*0.51444)**2 * ($rmx/$r)**$testB * exp(1-($rmx/$r)**$testB)
             + (1852*$r*$cori/2)**2) - 1852*$r*$cori/2);
       $Vh = ($Vh*$windReduction) + $Vtr;
       printf WITHCORIOLIS " $Vh";
-      $Vh = 1/0.5144*(sqrt( 
-         ($Vmax*0.51444)**2 * ($rmx/$r)**$testB * exp(1-($rmx/$r)**$testB))); 
+      $Vh = 1/0.5144*(sqrt(
+         ($Vmax*0.51444)**2 * ($rmx/$r)**$testB * exp(1-($rmx/$r)**$testB)));
       $Vh = ($Vh*$windReduction) + $Vtr;
       printf NOCORIOLIS " $Vh";
-   } 
+   }
    printf WITHCORIOLIS "\n";
    printf NOCORIOLIS "\n";
 }
