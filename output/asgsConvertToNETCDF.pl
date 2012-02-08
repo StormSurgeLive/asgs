@@ -43,7 +43,7 @@ my $openDAPPrefix;
 my $runPropertiesFileName;
 
 # SET the email list!
-my $toList="howard\@renci.org, jason.fleming\@seahorsecoastal.com, nc.cera.renci\@gmail.com";
+my $toList="howard\@renci.org, jason.fleming\@seahorsecoastal.com, nc.cera.renci\@gmail.com, xwang25\@uncc.edu, lyu8\@uncc.edu, aidong.lu\@uncc.edu";
 
 my %types=("fort.15"         => "fort15" , 
            "fort.61"         => "statelev", 
