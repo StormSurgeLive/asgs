@@ -128,9 +128,15 @@ foreach my $file (@adcircfiles) {
       $time[0] = $fields[0];
       $timestep[0] = $fields[1];
       my @mag; # for holding vector magnitudes
+      my $io_success = "true";
       for (my $i=0; $i<$np; $i++) {
          $line = <ADCIRCFILE>;
-         @fields = split(' ',$line);
+         if ( defined $line ) {
+            @fields = split(' ',$line);
+         } else {
+            stderrMessage("ERROR","Ran out of data: $!.");
+            die;
+         }
          # get rid of the node number
          shift(@fields);
          if ( $num_components == 2 ) {
@@ -239,9 +245,6 @@ sub stderrMessage () {
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
    printf STDERR "$theTime $level: adc2vtk.pl: $message\n";
-   if ($level eq "ERROR") {
-      sleep 60
-   }
 }
 
 
