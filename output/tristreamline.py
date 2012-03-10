@@ -4,21 +4,13 @@ import vtk
 import sys
 from optparse import OptionParser
 from vtk.util.colors import *
-
-#frame = 1
-#interact = 0
-# get command line argument for the frame number
-#if (len(sys.argv) > 1):
-#    frame = sys.argv[1]
-#if (len(sys.argv) > 2):
-#    if (sys.argv[2] == "-i"):
-#        interact = 1
-
 #
 # parse command line options
 parser = OptionParser()
 parser.add_option("-i", "--interact", dest="interact", default=False,
                   action="store_true", help="to enable interaction with data")
+parser.add_option("-o", "--outline", dest="outline", default=False,
+                  action="store_true", help="to display mesh outline")
 parser.add_option("-f", "--frame", dest="frame", default=1,
                   help="frame to render")
 parser.add_option("-a", "--annotation", dest="annotation", default="null",
@@ -29,8 +21,6 @@ parser.add_option("-a", "--annotation", dest="annotation", default="null",
 #
 # TODO: option for input file name
 (options, args) = parser.parse_args()
-
-
 
 # Create a structured grid with these points
 meshReader = vtk.vtkUnstructuredGridReader()
@@ -160,8 +150,9 @@ iren.SetRenderWindow(renWin)
 
 ren.SetBackground(1.0, 1.0, 1.0)
 #ren.AddActor(gridActor)
-#ren.AddActor(outlineActor)
 ren.AddActor(streamTubeActor)
+if ( options.outline == True ):
+   ren.AddActor(outlineActor)
 if ( options.annotation != "null" ):
    ren.AddActor(ann)
 

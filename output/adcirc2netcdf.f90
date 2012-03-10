@@ -6,12 +6,18 @@
 ! 2012-01-12:   v1 - Original
 ! 2012-01-16:   v2 - Fixed Time Bug, Made CF Compliant
 ! 2012-01-17:   v3 - Added maxele
+! 2012-02-27:   v4 ...
 
+! Example of compiling adcirc2netcdf.f90 with g95:
 ! g95 -o adcirc2netcdf.x -ffree-form -ffree-line-length-huge -I/usr/local/netcdf/netcdf-4.1.1/f90 adcirc2netcdf.f90 -L/usr/local/hdf5/hdf5-1.8.8/hdf5/lib  -lnetcdf -lhdf5_hl -lhdf5 -lhdf5_fortran -lz
 !-----+---------+---------+---------+---------+---------+---------+
    module adcmesh
 !-----+---------+---------+---------+---------+---------+---------+
       character(120) :: meshFileName ! full pathname of file
+      real, parameter :: R = 6378206.4 ! radius of the earth
+      real, parameter :: pi = 3.141592653589793
+      real :: deg2rad
+
       double precision, allocatable :: xyd(:,:), bar(:,:,:)
       character(120)                :: agrid
       integer                       :: ne, np
@@ -19,6 +25,37 @@
       integer                       :: nbou, nvel, nvel_max, nodemax
       integer,          allocatable :: nm(:,:), nvdll(:), nbdv(:,:), nsequencer(:)
       integer,          allocatable :: nvell(:), ibtype(:),  nbvv(:,:), ibconn(:,:)
+      !
+      integer                       :: NC_DimID_node
+      integer                       :: NC_DimID_nele
+      integer                       :: NC_DimID_nvertex
+      integer                       :: NC_DimID_nope
+      integer                       :: NC_DimID_max_nvdll
+      integer                       :: NC_DimID_nbou
+      integer                       :: NC_DimID_neta
+      integer                       :: NC_DimID_nvel
+      integer                       :: NC_DimID_max_nvell
+      !
+      integer                       :: NC_VarID_Mesh
+      integer                       :: NC_VarID_x
+      integer                       :: NC_VarID_y
+      integer                       :: NC_VarID_element
+      integer                       :: NC_VarID_neta
+      integer                       :: NC_VarID_nvdll
+      integer                       :: NC_VarID_max_nvdll
+      integer                       :: NC_VarID_ibtypee
+      integer                       :: NC_VarID_nbdv
+      integer                       :: NC_VarID_nvel
+      integer                       :: NC_VarID_nvell
+      integer                       :: NC_VarID_max_nvell
+      integer                       :: NC_VarID_ibtype
+      integer                       :: NC_VarID_nbvv
+      integer                       :: NC_VarID_depth
+
+      logical                       :: projectCPP ! .true. if user wants to project mesh coordinates with CPP to aid in visualization
+      logical                       :: cppUpdated ! .true. if we've already computed/written CPP on this execution
+      real                          :: slam0  ! longitude on which cpp projection is centered
+      real                          :: sfea0  ! latitude on which cpp projection is centered
 
    contains
 
@@ -95,7 +132,7 @@
       bar(:,:,:) = 0.0d0
       ibconn(:,:) = 0
       agrid = ' '
-      read(iunit,*)
+      read(iunit,*) agrid
       read(iunit,*) ne, np
       do k = 1, np
          read(iunit,*) jn, (xyd(j,k), j=1,3)
@@ -190,6 +227,7 @@
       logical                       :: meshonly   ! .true. if user just wants to conver the mesh
       logical                       :: withXDMF ! .true. if user wants to generate XDMF xml with netcdf4 file
       logical                       :: onlyXDMF ! .true. if user has netcdf4 file already and wants to generate XDMF xml
+
       integer                       :: ncFileType
       integer                       :: NC_ID
       INTEGER                       :: NC_DimID(2)
@@ -197,33 +235,9 @@
       INTEGER                       :: NC_Start(2)
 
       integer                       :: NC_DimID_time
-      integer                       :: NC_DimID_node
-      integer                       :: NC_DimID_nele
-      integer                       :: NC_DimID_nvertex
-      integer                       :: NC_DimID_nope
-      integer                       :: NC_DimID_max_nvdll
-      integer                       :: NC_DimID_nbou
-      integer                       :: NC_DimID_neta
-      integer                       :: NC_DimID_nvel
-      integer                       :: NC_DimID_max_nvell
       integer                       :: NC_DimID_single
 
-      integer                       :: NC_VarID_Mesh
       integer                       :: NC_VarID_time
-      integer                       :: NC_VarID_x
-      integer                       :: NC_VarID_y
-      integer                       :: NC_VarID_element
-      integer                       :: NC_VarID_neta
-      integer                       :: NC_VarID_nvdll
-      integer                       :: NC_VarID_max_nvdll
-      integer                       :: NC_VarID_ibtypee
-      integer                       :: NC_VarID_nbdv
-      integer                       :: NC_VarID_nvel
-      integer                       :: NC_VarID_nvell
-      integer                       :: NC_VarID_max_nvell
-      integer                       :: NC_VarID_ibtype
-      integer                       :: NC_VarID_nbvv
-      integer                       :: NC_VarID_depth
       integer                       :: NC_VarID_zeta
       integer                       :: NC_VarID_u_vel
       integer                       :: NC_VarID_v_vel
@@ -235,8 +249,9 @@
       integer                       :: NC_VarID_hs
       integer                       :: NC_VarID_tmm10
       integer                       :: NC_VarID_tps
-
+      integer, parameter            :: version = 4
       ! initializations
+      deg2rad = 2*pi/360.0
       meshFileName = "null"
       attFile = "null"
       menuOpt = 0
@@ -244,6 +259,12 @@
       meshonly = .false.
       withXDMF = .false.
       onlyXDMF = .false.
+      projectCPP = .false.
+      cppUpdated = .false.
+      !
+      write(6,*) "INFO: adcirc2netcdf version ",version,"."
+      ! Report netcdf version
+      write(6,*) "INFO: adcirc2netcdf was compiled with the following netcdf library: ",trim(nf90_inq_libvers())
 
       ! jgf: Process command line options; can be used along with menu choices;
       ! if command line options provide all needed input, menu will not
@@ -275,7 +296,7 @@
                   attFile = trim(cmdlinearg)
                case("--datafile")
                   i = i + 1
-                  call getarg(i, cmdlinearg)
+                  call getarg(i, InputFile)
                   write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
                   select case(trim(cmdlinearg))
                      case("fort.63")
@@ -302,6 +323,8 @@
                         menuOpt = 11
                      case("adcirc_swan")
                         menuOpt = 12
+                     case("fort.14","fort.44","fort.45","fort.46")
+                        menuOpt = 14
                      case default
                         write(6,*) "WARNING: Command line argument '",TRIM(cmdlinearg),"' was not recognized."
                   end select
@@ -311,6 +334,16 @@
                case("--xdmf-only")
                   onlyXDMF = .true.
                   write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+               case("--cpp")
+                  write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+                  projectCPP = .true.
+                  i = i + 1
+                  call getarg(i, cmdlinearg)
+                  read(cmdlinearg,*) slam0
+                  i = i + 1
+                  call getarg(i, cmdlinearg)
+                  read(cmdlinearg,*) sfea0
+                  write(6,*) "INFO: slam0=",slam0," and sfea0=",sfea0,"."
                case default
                   write(6,*) "WARNING: Command line option '",TRIM(cmdlineopt),"' was not recognized."
             end select
@@ -394,8 +427,8 @@
             Outputfile = 'swan_TMM10.63.nc'
          case(9) !TPS
             Outputfile = 'swan_TPS.63.nc'
-         case(14) !TPS
-            Outputfile = 'fort.14.nc'
+         case(14) !other
+            Outputfile = InputFile//'.nc'
          case default
             ! 10, 11, and 12 were assigned previously
       end select
@@ -403,7 +436,7 @@
       ! if the (netcdf4) file already exists, and we just want to generate
       ! XDMF xml for it,
       if (onlyXDMF.eqv..true.) then
-         call generateXDMF(OutputFile)
+         call generateXDMF(OutputFile, meshonly)
          stop
       endif
 
@@ -441,6 +474,7 @@
       enddo
 
       ! create mesh variables and associated attributes
+      CALL Check(NF90_PUT_ATT(NC_ID,NF90_GLOBAL,'agrid',trim(agrid)))
       CALL Check(NF90_DEF_DIM(NC_ID,'node',np,NC_DimID_node))
       CALL Check(NF90_DEF_DIM(NC_ID,'nele',ne,NC_DimID_nele))
       CALL Check(NF90_DEF_DIM(NC_ID,'nvertex',3,NC_DimID_nvertex))
@@ -657,8 +691,9 @@
             cycle
          end select
       enddo
-
+      !----------------------------------------------------------------
       ! end variable and attributes definitions
+      !----------------------------------------------------------------
       CALL Check(NF90_ENDDEF(NC_ID))
 
       ! place mesh-related data into the file
@@ -687,6 +722,10 @@
       write(6,*)    '*************************************************'
       write(6,*) 'Grid has been written to NETCDF'
       write(6,*)    '*************************************************'
+
+      if ( projectCPP.eqv..true. ) then
+         call generateCPP(nc_id)
+      endif
 
       if (meshonly.eqv..true.) then
          CALL Check(NF90_CLOSE(NC_ID))
@@ -793,150 +832,327 @@
 
       CALL Check(NF90_CLOSE(NC_ID))
 
+      if (withXDMF.eqv..true.) then
+         call generateXDMF(OutputFile, meshonly)
+      endif
+
       write(6,*)    '*************************************************'
       write(6,*) 'INFO: adcirc2netcdf finished.'
 !----------------------------------------------------------------------
    end program adcirc2netcdf
 !----------------------------------------------------------------------
 
+!-----------------------------------------------------------------------
+!     S U B R O U T I N E    G E N E R A T E   C P P
+!-----------------------------------------------------------------------
+!     jgf: Added utility subroutine for precomputing the CPP
+!     (carte parallelogrammatique projection) and adding it to the mesh
+!     file. This projection is useful in visualization.
+!
+!     This subroutine may be called just after the mesh data were placed
+!     in the netcdf file; if so, it doesn't need to inquire for the
+!     variable IDs, allocate memory for the data, etc. If this subroutine
+!     is called for a pre-existing netcdf file, this sub needs to get the
+!     variable IDs etc.
+!-----------------------------------------------------------------------
+   SUBROUTINE generateCPP(nc_id)
+      use netcdf
+      use adcmesh
+      implicit none
+      integer, intent(in) :: nc_id ! netcdf ID of the open file containing the mesh
+      integer :: NC_Count(2)
+      integer :: NC_Start(2)
+      integer :: NC_VarID_x_cpp
+      integer :: NC_VarID_y_cpp
+      integer :: nvar ! number of variables in the netcdf file
+      real(8), allocatable :: x_cpp(:)
+      real(8), allocatable :: y_cpp(:)
+      character(120) :: varname
+      logical :: foundCPP
+      integer :: i  ! loop counter
+      !
+      ! determine if memory is already allocated, etc. ... if so, we don't
+      ! need to do all the setup
+      if (allocated(xyd).eqv..false.) then
+         ! determine the number of nodes
+         call check(nf90_inq_dimid(nc_id, "node", NC_DimID_node))
+         call check(nf90_inquire_dimension(nc_id, NC_DimID_node, len=np))
+         allocate(xyd(3,np))
+         ! get the existing x and y coordinates of the nodes (lon and lat degrees)
+         call check(nf90_inq_varid(nc_id, "x", NC_VarID_x))
+         call check(nf90_inq_varid(nc_id, "y", NC_VarID_y))
+         NC_Count = (/ np, 1 /)
+         NC_Start = (/ 1, 1 /)
+         call check(nf90_get_var(nc_id, NC_VarID_x, xyd(1,1:np), NC_Start, NC_Count))
+         call check(nf90_get_var(nc_id, NC_VarID_y, xyd(2,1:np), NC_Start, NC_Count))
+      endif
+      !
+      ! check to see if we have already created netcdf variables for the
+      ! CPP coordinates
+      call check(nf90_inquire(nc_id,nVariables=nvar))
+      foundCPP = .false.
+      do i=1,nvar
+         call check(nf90_inquire_variable(nc_id, i, name=varname))
+         if ( trim(varname).eq."x_cpp" ) then
+            foundCPP = .true.
+            NC_VarID_x_cpp = i
+            call check(nf90_inq_varid(nc_id, "y_cpp", NC_VarID_y_cpp))
+            exit
+         endif
+      end do
+      ! if we didn't find the cpp coordinate variables, create them
+      if ( foundCPP.eqv..false. ) then
+         call check(nf90_redef(nc_id))
+         call check(nf90_def_var(nc_id, "x_cpp", NF90_DOUBLE, NC_DimID_node, NC_VarID_x_cpp))
+         call check(nf90_def_var(nc_id, "y_cpp", NF90_DOUBLE, NC_DimID_node, NC_VarID_y_cpp))
+         call check(nf90_enddef(nc_id))
+      endif
+      !
+      ! compute the CPP
+      allocate(x_cpp(np),y_cpp(np))
+      x_cpp = R * (xyd(1,:)*deg2rad - slam0*deg2rad) * cos(sfea0*deg2rad)
+      y_cpp = xyd(2,:)*deg2rad * R
+      !
+      ! write the projected coordinates to the file
+      call check(nf90_put_var(nc_id, NC_VarID_x_cpp, x_cpp))
+      call check(nf90_put_var(nc_id, NC_VarID_y_cpp, y_cpp))
+      !
+      ! clean up
+      deallocate(x_cpp, y_cpp)
+      cppUpdated = .true.
+
+      return
+!----------------------------------------------------------------------
+   end subroutine generateCPP
+!----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
 !     S U B R O U T I N E    G E N E R A T E   X D M F
 !-----------------------------------------------------------------------
 !     jgf: Added subroutine for generating XDMF xml for an
 !     existing netcdf4 file.
+!     This subroutine is intended for use with any netcdf4 file
+!     from ADCIRC, whether it was generated with adcirc2netcdf or
+!     ADCIRC itself.
 !-----------------------------------------------------------------------
-   SUBROUTINE generateXDMF(fn)
+   SUBROUTINE generateXDMF(fn, mo)
       use netcdf
+      use adcmesh
       implicit none
-      character(120), intent(in) :: fn  ! name of netcdf4 file to generate xml for
+      character(120), intent(in) :: fn  ! file name of netcdf4 file to generate xml for
+      logical, intent(in) :: mo         ! .true. if user just wants to generate xml for mesh, not data
 
       character(120) :: xmf ! name of XDMF xml file
-C
-      call check(nf90_open(trim(fn),NF_NOWRITE, nc_id))
+      logical :: fileFound = .false.
+      integer :: NC_DimID_time
+      integer :: NC_VarID_time
+      integer :: num_components
+      character(120) :: standard_name(3)
+      character(120) :: varname(3)
+      integer :: NC_VarID(3)
+      integer :: nc_id
+      integer :: ndset ! number of datasets in the file (length of unlimited dimension)
+      real(8), allocatable :: timesec(:)  ! time in seconds associated with each dataset
+      integer i, j ! loop counters
+!
+!     Check to see if file exists
+      inquire(FILE=trim(fn),EXIST=fileFound)
+      if (fileFound.eqv..false.) then
+         write(6,'("ERROR: The file ",A," was not found.")') trim(fn)
+         stop
+      else
+         ! netcdf file exists; open it
+         call check(nf90_open(trim(fn),NF90_WRITE, nc_id))
+      endif
+      ! if we are supposed to compute the CPP, do so, unless it is already done
+      if ((projectCPP.eqv..true.).and.(cppUpdated.eqv..false.)) then
+         call generateCPP(nc_id)
+      endif
+      !
+      ! form file name of XDMF xml file and open it
       xmf = trim(fn)//".xmf"
       open(10,file=xmf,status='replace')
+      ! write the beginning of the XDMF xml file
       write(10,'(A)') '<?xml version="1.0" ?>'
       write(10,'(A)') '<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>'
       write(10,'(A)') '<Xdmf Version="2.0">'
       write(10,'(A)') '   <Domain>'
-
-
-         write(xl,'(A)') '      <Grid Name="'//adjustl(trim(AGRID))//
-     &      '" GridType="Uniform">'
-         write(xl,'(A)') '         <Topology Name="ADCIRCMesh"'
-         write(xl,'(A)') '                   TopologyType="Triangle"'
-         write(xl,'(A)') '                   NodesPerElement="3"'
-         write(xl,'(A,I12,A)') '                   NumberOfElements="',
-     &      myMesh%num_elems,'"'
-         write(xl,'(A)') '                   BaseOffset="1">'
-         write(xl,'(A,I12,A)') '            <DataItem Dimensions="',
-     &      myMesh%num_elems,'  3"'
-         write(xl,'(A)') '                      DataType="Int"'
-         write(xl,'(A)') '                      Format="HDF">'
-     &      //myFile%FILENAME//':/element'
-         write(xl,'(A)') '            </DataItem>'
-         write(xl,'(A)') '         </Topology>'
-         write(xl,'(A)') '         <Geometry Name="NodeLocations"'
-         write(xl,'(A)') '                   GeometryType="X_Y">'
-         write(xl,'(A,I12,A)') '            <DataItem Dimensions="',
-     &      myMesh%num_nodes,'"'
-         write(xl,'(A)') '                      NumberType="Float"'
-         write(xl,'(A)') '                      Precision="8"'
-         write(xl,'(A)') '                      Format="HDF">'
-     &      //myFile%FILENAME//':/x'
-         write(xl,'(A)') '            </DataItem>'
-         write(xl,'(A,I12,A)') '            <DataItem Dimensions="',
-     &      myMesh%num_nodes,'"'
-         write(xl,'(A)') '                      NumberType="Float"'
-         write(xl,'(A)') '                      Precision="8"'
-         write(xl,'(A)') '                      Format="HDF">'//
-     &      myFile%FILENAME//':/y'
-         write(xl,'(A)') '            </DataItem>'
-         write(xl,'(A)') '         </Geometry>'
-         write(xl,'(A)') '         <Attribute Name="BathymetricDepth"'
-         write(xl,'(A)') '                    AttributeType="Scalar"'
-         write(xl,'(A)') '                    Center="Node">'
-         write(xl,'(A,I12,A)') '            <DataItem Dimensions="',
-     &      myMesh%num_nodes,'"'
-         write(xl,'(A)') '                      NumberType="Float"'
-         write(xl,'(A)') '                      Precision="8"'
-         write(xl,'(A)') '                      Format="HDF">'//
-     &      myFile%FILENAME//':/depth'
-         write(xl,'(A)') '            </DataItem>'
-         write(xl,'(A)') '         </Attribute>'
-         write(xl,'(A)') '      </Grid>'
-         write(xl,'(A)') '   </Domain>'
-         write(xl,'(A)') '</Xdmf>'
-
-
-
-
+      !
+      ! Inquire about mesh dimensions, variables, and attributes
+      call check(nf90_inq_dimid(nc_id, "node", NC_DimID_node))
+      call check(nf90_inquire_dimension(nc_id, NC_DimID_node, len=np))
+      call check(nf90_inq_dimid(nc_id, "nele", NC_DimID_nele))
+      call check(nf90_inquire_dimension(nc_id, NC_DimID_nele, len=ne))
+      call check(nf90_get_att(nc_id, NF90_GLOBAL, 'agrid', agrid))
+      !
+      ! write mesh portion of XDMF xml file
+      write(10,'(A)') '      <Grid Name="'//adjustl(trim(agrid))//'" GridType="Uniform">'
+      write(10,'(A)') '         <Topology Name="ADCIRCMesh"'
+      write(10,'(A)') '                   TopologyType="Triangle"'
+      write(10,'(A)') '                   NodesPerElement="3"'
+      write(10,'(A,I12,A)') '                   NumberOfElements="',ne,'"'
+      write(10,'(A)') '                   BaseOffset="1">'
+      write(10,'(A,I12,A)') '            <DataItem Dimensions="',ne,'  3"'
+      write(10,'(A)') '                      DataType="Int"'
+      write(10,'(A)') '                      Format="HDF">'//trim(fn)//':/element'
+      write(10,'(A)') '            </DataItem>'
+      write(10,'(A)') '         </Topology>'
+      write(10,'(A)') '         <Geometry Name="NodeLocations"'
+      write(10,'(A)') '                   GeometryType="X_Y">'
+      write(10,'(A,I12,A)') '            <DataItem Dimensions="',np,'"'
+      write(10,'(A)') '                      NumberType="Float"'
+      write(10,'(A)') '                      Precision="8"'
+      if (projectCPP.eqv..true.) then
+         write(10,'(A)') '                      Format="HDF">'//trim(fn)//':/x_cpp'
+      else
+         write(10,'(A)') '                      Format="HDF">'//trim(fn)//':/x'
+      endif
+      write(10,'(A)') '            </DataItem>'
+      write(10,'(A,I12,A)') '            <DataItem Dimensions="',np,'"'
+      write(10,'(A)') '                      NumberType="Float"'
+      write(10,'(A)') '                      Precision="8"'
+      if (projectCPP.eqv..true.) then
+         write(10,'(A)') '                      Format="HDF">'//trim(fn)//':/y_cpp'
+      else
+         write(10,'(A)') '                      Format="HDF">'//trim(fn)//':/y'
+      endif
+      write(10,'(A)') '            </DataItem>'
+      write(10,'(A)') '         </Geometry>'
+      write(10,'(A)') '         <Attribute Name="BathymetricDepth"'
+      write(10,'(A)') '                    AttributeType="Scalar"'
+      write(10,'(A)') '                    Center="Node">'
+      write(10,'(A,I12,A)') '            <DataItem Dimensions="',np,'"'
+      write(10,'(A)') '                      NumberType="Float"'
+      write(10,'(A)') '                      Precision="8"'
+      write(10,'(A)') '                      Format="HDF">'//trim(fn)//':/depth'
+      write(10,'(A)') '            </DataItem>'
+      write(10,'(A)') '         </Attribute>'
+      write(10,'(A)') '      </Grid>'
+      !
+      ! if only the mesh should be written, write the closing lines of the
+      ! XDMF xml file and return
+      if ( (mo.eqv..true.).or.(trim(fn).eq."fort.14.nc") ) then
+         write(10,'(A)') '   </Domain>'
+         write(10,'(A)') '</Xdmf>'
+         close(10)
+         return  ! EARLY RETURN
+      endif
+      !
+      ! have a look at how much data is in the file
+      call check(nf90_inquire(nc_id, unlimitedDimId=NC_DimID_time))
+      call check(nf90_inquire_dimension(nc_id, NC_DimID_time, len=ndset))
+      call check(nf90_inq_varid(nc_id, 'time', NC_VarID_time))
+      !
+      ! load up the time values (in seconds)
+      allocate(timesec(ndset))
+      call check(nf90_get_var(nc_id, NC_VarID_time, timesec, (/ 1 /), (/ ndset /) ))
+      !
+      ! set the variable name, standard name, and number of components,
+      ! based on the netcdf file name we've been asked to read
+      select case(trim(fn))
+         case("fort.63.nc")
+            num_components = 1
+            varname(1) = "zeta"
+         case("fort.64.nc")
+            num_components = 2
+            varname(1) = "u-vel"
+            varname(2) = "v-vel"
+         case("fort.73.nc")
+            num_components = 1
+            varname(1) = "pressure"
+         case("fort.74.nc")
+            num_components = 2
+            varname(1) = "windx"
+            varname(2) = "windy"
+         case("maxele.63.nc")
+            num_components = 1
+            varname(1) = "maxele"
+         case("swan_DIR.63.nc")
+            num_components = 1
+            varname(1) = "dir"
+         case("swan_HS.63.nc")
+            num_components = 1
+            varname(1) = "hs"
+         case("swan_TMM10.63.nc")
+            num_components = 1
+            varname(1) = "tmm10"
+         case("swan_TPS.63.nc")
+            num_components = 1
+            varname(1) = "tps"
+         case default
+            write(6,*) "ERROR: Cannot write XDMF xml for the file ",trim(fn),"."
+            stop
+      end select
+      !
+      ! grab the standard name(s) of the data for writing to the XDMF xml file
+      do i=1,num_components
+         call check(nf90_inq_varid(nc_id, varname(1), NC_VarID(1)))
+         call check(nf90_get_att(nc_id, NC_VarID(1), 'standard_name', standard_name(1)))
+      end do
+      !
+      ! write the XDMF xml for the time varying data
       write(10,'(A)') '      <Grid Name="TimeSeries"'
       write(10,'(A)') '            GridType="Collection"'
       write(10,'(A)') '            CollectionType="Temporal">'
-      ! now write XDMF XML data for this time slice
-      write(xl,'(A,E14.6,A)') '         <Grid Name="Time=',dat%myTime%timenc,'"'
-      write(xl,'(9x,A)') '      GridType="Uniform">'
-      write(xl,'(13x,A)') '<Topology Reference="//Topology[@Name=''ADCIRCMesh'']" />'
-      write(xl,'(13x,A)') '<Geometry Reference="//Geometry[@Name=''NodeLocations'']" />'
-        write(xl,'(13x,A)') '<Attribute Name="BathymetricDepth"'
-        write(xl,'(13x,A)') '           AttributeType="Scalar"'
-        write(xl,'(13x,A)') '           Center="Node">'
-        write(xl,'(13x,A,I12,A)') '   <DataItem Dimensions="',
-     &     dat%myMesh%num_nodes,'"'
-        write(xl,'(13x,A)') '             NumberType="Float"'
-        write(xl,'(13x,A)') '             Precision="8"'
-        write(xl,'(13x,A)') '             Format="HDF">'
-     &     //dat%myFile%FILENAME//':/depth'
-        write(xl,'(13x,A)') '   </DataItem>'
-        write(xl,'(13x,A)') '</Attribute>'
-        write(xl,'(13x,A,E14.6,A)')
-     &     '<Time Value="',dat%myTime%timenc,'"/>'
-        write(xl,'(13x,A)') '<Attribute Name="'
-     &                      //trim(xdmfAttributeName)//'"'
-        write(xl,'(13x,A)') '           Center="Node"'
-        if (descript%num_items_per_record.eq.1) then
-           write(xl,'(13x,A)') '           AttributeType="Scalar">'
-        else
-           write(xl,'(13x,A)') '           AttributeType="Vector">'
-           write(xl,'(13x,A)') '   <DataItem ItemType="Function"'
-           write(xl,'(13x,A,I12,A)') '                Dimensions="',
-     &        dat%myMesh%num_nodes,' 3"'
-           write(xl,'(13x,A)')
-     &             '                Function="JOIN($0, $1, 0*$0)">'
-        endif
-        do i=1,descript%num_items_per_record
-           write(xl,'(13x,A)') '      <DataItem ItemType="HyperSlab"'
-           write(xl,'(13x,A)') '                Dimensions="3070"'
-           write(xl,'(13x,A)') '               Type="HyperSlab">'
-           write(xl,'(13x,A)') '        <DataItem Dimensions="3 2"'
-           write(xl,'(13x,A)') '                  Format="XML">'
-           write(xl,'(13x,A,I5,A)') '                 ',
-     &         dat%myFile%record_counter-1,' 0'
-           write(xl,'(13x,A)') '                     1 1'
-           write(xl,'(13x,A,I12)') '                     1 ',
-     &         dat%myMesh%num_nodes
-           write(xl,'(13x,A)') '          </DataItem>'
-           write(xl,'(13x,A,I5,I12,A)')
-     &                   '          <DataItem Dimensions="',
-     &        dat%myTime%timenc_len-1,dat%myMesh%num_nodes,'"'
-           write(xl,'(13x,A)') '                 NumberType="Float"'
-           write(xl,'(13x,A)')
-     &        '                 Precision="8" Format="HDF">'//
-     &        trim(dat%myFile%FILENAME)//":/"//trim(dat%varnames(i))
-           write(xl,'(13x,A)') '            </DataItem>'
-           write(xl,'(13x,A)') '         </DataItem>'
-        enddo
-        if (descript%num_items_per_record.ne.1) then
-           write(xl,'(13x,A)') '      </DataItem>' ! end of FUNCTION
-        endif
-        write(xl,'(13x,A)') '   </Attribute>'
-        write(xl,'(13x,A)') '</Grid>' ! end of this time snap
-        write(xl,'(A)') '      </Grid>' ! end of temporal collection
-        write(xl,'(A)') '   </Domain>'
-        write(xl,'(A)') '</Xdmf>'
-        close(xl)
+      do i=1,ndset
+         ! now write XDMF XML data for this dataset
+         write(10,'(A,E14.6,A)') '         <Grid Name="Time=',timesec(i),'"'
+         write(10,'(9x,A)') '      GridType="Uniform">'
+         write(10,'(13x,A)') '<Topology Reference="//Topology[@Name=''ADCIRCMesh'']" />'
+         write(10,'(13x,A)') '<Geometry Reference="//Geometry[@Name=''NodeLocations'']" />'
+         write(10,'(13x,A)') '<Attribute Name="BathymetricDepth"'
+         write(10,'(13x,A)') '           AttributeType="Scalar"'
+         write(10,'(13x,A)') '           Center="Node">'
+         write(10,'(13x,A,I12,A)') '   <DataItem Dimensions="',np,'"'
+         write(10,'(13x,A)') '             NumberType="Float"'
+         write(10,'(13x,A)') '             Precision="8"'
+         write(10,'(13x,A)') '             Format="HDF">'//trim(fn)//':/depth'
+         write(10,'(13x,A)') '   </DataItem>'
+         write(10,'(13x,A)') '</Attribute>'
+         write(10,'(13x,A,E14.6,A)') '<Time Value="',timesec(i),'"/>'
+         write(10,'(13x,A)') '<Attribute Name="'//trim(standard_name(1))//'"'
+         write(10,'(13x,A)') '           Center="Node"'
+         if (num_components.eq.1) then
+            write(10,'(13x,A)') '           AttributeType="Scalar">'
+         else
+            write(10,'(13x,A)') '           AttributeType="Vector">'
+            write(10,'(13x,A)') '   <DataItem ItemType="Function"'
+            write(10,'(13x,A,I12,A)') '                Dimensions="',np,' 3"'
+            write(10,'(13x,A)') '                Function="JOIN($0, $1, 0*$0)">'
+         endif
+         do j=1,num_components
+            write(10,'(13x,A)') '      <DataItem ItemType="HyperSlab"'
+            write(10,'(13x,A)') '                Dimensions="3070"'
+            write(10,'(13x,A)') '               Type="HyperSlab">'
+            write(10,'(13x,A)') '        <DataItem Dimensions="3 2"'
+            write(10,'(13x,A)') '                  Format="XML">'
+            write(10,'(13x,A,I5,A)') '                 ',i-1,' 0'
+            write(10,'(13x,A)') '                     1 1'
+            write(10,'(13x,A,I12)') '                     1 ',np
+            write(10,'(13x,A)') '          </DataItem>'
+            write(10,'(13x,A,I5,I12,A)') '          <DataItem Dimensions="',ndset-1,np,'"'
+            write(10,'(13x,A)') '                 NumberType="Float"'
+            write(10,'(13x,A)') '                 Precision="8" Format="HDF">'//trim(fn)//":/"//trim(varname(j))
+            write(10,'(13x,A)') '            </DataItem>'
+            write(10,'(13x,A)') '         </DataItem>'
+         enddo
+         if (num_components.ne.1) then
+            write(10,'(13x,A)') '      </DataItem>' ! end of FUNCTION
+         endif
+         write(10,'(13x,A)') '   </Attribute>'
+         write(10,'(13x,A)') '</Grid>' ! end of this time snap
+      end do
+      write(10,'(A)') '      </Grid>' ! end of temporal collection
+      write(10,'(A)') '   </Domain>'
+      write(10,'(A)') '</Xdmf>'
+      close(10)
+      call check(nf90_close(nc_id))
+      return
+!----------------------------------------------------------------------
+   end subroutine generateXDMF
+!----------------------------------------------------------------------
+
+
 
 !----------------------------------------------------------------------
 !  CHECK

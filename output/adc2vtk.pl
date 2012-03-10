@@ -9,7 +9,13 @@ use strict;
 $^W++;
 use Getopt::Long;
 #
-my %adcirctypes = ("maxele.63", "MaximumElevation", "maxwvel.63", "MaximumWindSpeed", "minpr.63", "MinimumBarometricPressure", "fort.63", "WaterSurfaceElevation", "fort.73", "BarometricPressure", "fort.74", "WindVelocity");
+my %adcirctypes = ("maxele.63", "MaximumElevation",
+                   "maxwvel.63", "MaximumWindSpeed",
+                   "minpr.63", "MinimumBarometricPressure",
+                   "fort.63", "WaterSurfaceElevation",
+                   "fort.64", "WaterCurrentVelocity",
+                   "fort.73", "BarometricPressure",
+                   "fort.74", "WindVelocity");
 my $R = 6378206.4;           # radius of the earth
 my $pi = 3.141592653589793;
 my $deg2rad = 2*$pi/360.0;
@@ -94,7 +100,7 @@ foreach my $file (@adcircfiles) {
       $num_components = 1;
       $num_datasets = 0;
    }
-   if ( $file eq "fort.74" ) {
+   if ( $file eq "fort.74" || $file eq "fort.64" ) {
       $num_components = 2;
       $num_datasets = 0;
    }
@@ -111,7 +117,7 @@ foreach my $file (@adcircfiles) {
       # we don't know how many datasets are in this file, it is likely more
       # than one, so we need to start a small separate pvd file that lists
       # the data files in the collection
-      my $outfile = $meshfile . "_" . $file . ".pvd";
+      my $outfile = $file . ".pvd";
       unless (open(PVD,">$outfile")) {
          stderrMessage("ERROR",
             "Failed to open vtk file $outfile for writing: $!.");
@@ -146,7 +152,7 @@ foreach my $file (@adcircfiles) {
          }
          $comp[$i] = join(' ',@fields);
       }
-      my $outfile = $meshfile . "_" . $file;
+      my $outfile = $file;
       my $dataset_ext = "";
       if ( $num_datasets == 0 ) {
          $dataset_ext = sprintf("%03d",$dataset);
