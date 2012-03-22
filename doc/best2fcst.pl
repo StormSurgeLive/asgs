@@ -9,6 +9,10 @@
 # The resulting file will be used as input to aswip and ultimately
 # ADCIRC's NWS19.
 #
+# Also has the capability to time-interpolate the central pressure
+# values from the BEST track data into an ADCIRC fort.22 for HWind
+# data.
+#
 #---------------------------------------------------------------------
 #
 # Copyright(C) 2012 Jason Fleming
@@ -35,49 +39,197 @@ use Getopt::Long;
 use Date::Pcalc;
 $^W++;
 #
-my $input = "null";
+my $input = "null"; # name of the BEST track file
+my $hwind = "null"; # name of the ADCIRC HWind fort.22 file, if any
+my $csdate = "null";  # date/time of cold start, if HWind hours should
+                      # be relative to that or to a hot start time (yyyymmddhh24)
+my $hstime = "null";  # hot start time (sec), if the HWind hours should
+                      # be relative to the hotstart time
+
+# if csdate is specified on the command line, but the hstime is not, then
+# the HWind hours column will be relative to the cold start time.
+# if both csdate and hstime are specified on the command line, then
+# the HWind hours column will be relative to the hot start time.
+
 #
 GetOptions(
+
            "input=s" => \$input,
+           "hwind=s" => \$hwind,
+           "csdate=s" => \$csdate,
+           "hstime=s" => \$hstime
            );
 #
 unless(open(BEST,"<$input")) {
    stderrMessage("ERROR","Failed to open BEST track file $input: $!.");
    die;
 }
+
 my $output = "fcst_$input";
 unless(open(FCST,">$output")) {
    stderrMessage("ERROR","Failed to open forecast track file $output: $!.");
    die;
 }
+my @time_differences; # hours from the start of the best track data to the line in question
+my @pc;               # mb
+my $cycle = 1;
 my $start_date = "null";
+my $previous_date = "null";
 my $sy; my $sm; my $sd; my $sh;
-my $fy; my $fm; my $fd; my $fh;
+my $fy; my $fm; my $fd; my $fh; my $fmin;
 while(<BEST>) {
-    my @fields = split(',',$_);
-    my $date = $fields[2];
-    if ( $start_date eq "null" ) {
-        $start_date = $date;
-        $start_date =~ /(\d{4})(\d{2})(\d{2})(\d{2})/;
-       $sy = $1;
-       $sm = $2;
-       $sd = $3;
-       $sh = $4;
-    }
-    # determine difference in hours between this date and the
-    # start date
-    $date =~ /(\d{4})(\d{2})(\d{2})(\d{2})/;
-    $fy = $1;
-    $fm = $2;
-    $fd = $3;
-    $fh = $4;
-    (my $ddays,my $dhrs, my $dsec)
-        = Date::Pcalc::Delta_DHMS($sy,$sm,$sd,$sh,0,0,$fy,$fm,$fd,$fh,0,0);
-    my $time_difference = $ddays*24 + $dhrs; # in hours
-    my $line = $_;
-    substr($line,30,3) = sprintf("%3d",$time_difference);
-    printf FCST $line;
+   my @fields = split(',',$_);
+   my $date = $fields[2];
+   # determine difference in hours between this date and the
+   # best track start date
+   $date =~ /(\d{4})(\d{2})(\d{2})(\d{2})/;
+   $fy = $1;
+   $fm = $2;
+   $fd = $3;
+   $fh = $4;
+   if ( $start_date eq "null" ) {
+      $previous_date = $date;
+      $start_date = $date;
+      $sy = $1;
+      $sm = $2;
+      $sd = $3;
+      $sh = $4;
+   } elsif ( $date != $previous_date ) {
+      $cycle = $cycle + 1;
+   }
+   $pc[$cycle] =  $fields[9]; # in mb
+   (my $ddays, my $dhrs, my $dmin, my $dsec)
+      = Date::Pcalc::Delta_DHMS($sy,$sm,$sd,$sh,0,0,$fy,$fm,$fd,$fh,0,0);
+   $time_differences[$cycle] = $ddays*24 + $dhrs; # in hours
+   my $line = $_;
+   substr($line,30,3) = sprintf("%3d",$time_differences[$cycle]);
+   $previous_date = $date;
+   printf FCST $line;
 }
+close(BEST);
+close(FCST);
+#
+# we're done unless there is HWind data to interpolate to
+if ( $hwind eq "null" ) {
+   exit;
+}
+#
+# We now have the start date of the best track file, an array of hours
+# from the beginning of the file, and an array of central pressures that
+# correspond to each hour.
+#
+# Now read the HWind fort.22 file, calculating the hours corresponding to
+# each HWind file and time-interpolating the central pressures from the BEST
+# track file to the times listed in the HWind fort.22.
+#
+if ( $hwind ne "null" ) {
+   unless(open(HWIND,"<$hwind")) {
+      stderrMessage("ERROR","Failed to open hwind file $hwind: $!.");
+      die;
+   }
+}
+
+# open file to hold HWind data with interpolated central pressures and
+# hour values filled in
+my $hwind_out = "fcst_" . $hwind;
+unless(open(HWINDOUT,">$hwind_out")) {
+   stderrMessage("ERROR","Failed to open hwind output file $hwind_out for writing: $!.");
+   die;
+}
+my $hwind_start_date = "null";
+my $hours_from_best_start;
+my $hours_from_adcirc_start;
+my $hwind_pc;
+my $hsy; my $hsm; my $hsd; my $hsh; my $hsmin;
+my $line;
+$line = <HWIND>;
+printf HWINDOUT $line; # comment line
+$line = <HWIND>;
+printf HWINDOUT $line; # multiplier
+$line = <HWIND>;
+printf HWINDOUT "specifiedPc\n"; # tells ADCIRC to use the Pc in this file
+while(<HWIND>) {
+   my @fields = split(' ',$_);
+   my $hwind_file = $fields[3];
+   $hwind_file =~ /([a-zA-Z]{2})(\d{2})(\d{4})_(\d{2})(\d{2})_(\d{2})(\d{2})/;
+   my $basin = $1;       # "AL" for atlantic, "EP" for eastern pacific, etc
+   my $stormnumber = $2; # the id number of the storm for that year
+   $fy = $3;
+   $fm = $4;
+   $fd = $5;
+   $fh = $6;
+   $fmin = $7;
+   #stderrMessage("DEBUG","HWind: basin=$basin stormnumber=$stormnumber year=$fy month=$fm day=$fd hour=$fh minute=$fmin.");
+   #
+   # this is the first time in the file; do various initializations
+   if ( $hwind_start_date eq "null" ) {
+      $hsy = $fy;
+      $hsm = $fm;
+      $hsd = $fd;
+      $hsh = $fh;
+      $hsmin = $fmin;
+      $hwind_start_date = "found";
+      # compare the hwind start date with the range of date/times
+      # found in the best track file
+      (my $ddays, my $dhrs, my $dmin, my $dsec)
+         = Date::Pcalc::Delta_DHMS($sy,$sm,$sd,$sh,0,0,$hsy,$hsm,$hsd,$hsh,$hsmin,0);
+      $hours_from_best_start = $ddays * 24.0 + $dhrs + $dmin/60.0 + $dsec/3600.0; # in hours
+      if ( $hours_from_best_start < 0.0 ) {
+         stderrMessage("WARNING","The HWind data start before the best track data; the central pressure will be set to 1013 for HWind files prior to the start of the BEST track data.");
+      }
+      # compute hours needed to make time relative to either the cold start time or
+      # the hot start time, as specified on the command line
+      if ( $csdate ne "null" ) {
+         $csdate =~ /(\d{4})(\d{2})(\d{2})(\d{2})/;
+         my $cy = $1;
+         my $cm = $2;
+         my $cd = $3;
+         my $ch = $4;
+         (my $ddays,my $dhrs, my $dmin, my $dsec)
+         = Date::Pcalc::Delta_DHMS($cy,$cm,$cd,$ch,0,0,$hsy,$hsm,$hsd,$hsh,$hsmin,0);
+         $hours_from_adcirc_start = $ddays * 24.0 + $dhrs + $dmin/60.0 + $dsec/3600.0; # in hours
+         #stderrMessage("DEBUG","cy=$cy cm=$cm cd=$cd ch=$ch");
+         #stderrMessage("DEBUG","hsy=$hsy hsm=$hsm hsd=$hsd hsh=$hsh hsmin=$hsmin");
+         #tderrMessage("DEBUG","ddays=$ddays dhrs=$dhrs dsec=$dsec");
+         #stderrMessage("DEBUG","hours_from_adcirc_start=$hours_from_adcirc_start");
+         if ( $hstime ne "null" ) {
+            $hours_from_adcirc_start -= ($hstime / 3600.0); # in hours
+         }
+      }
+
+   }
+   # compute the number of hours since the start of the hwind data
+   (my $ddays, my $dhrs, my $dmin, my $dsec)
+      = Date::Pcalc::Delta_DHMS($hsy,$hsm,$hsd,$hsh,$hsmin,0,$fy,$fm,$fd,$fh,$fmin,0);
+   my $hours = $ddays * 24.0 + $dhrs + $dmin/60.0 + $dsec/3600.0; # in hours
+   # compute the number of hours since the start of the best track data
+   my $interp_hours = $hours_from_best_start + $hours;
+   if ( $interp_hours < $time_differences[1] ) {
+      stderrMessage("WARNING","HWind file $hwind_file is prior to best track data. Setting central pressure to 1013mb for this file.");
+      $hwind_pc = "1013";
+   } elsif ( $interp_hours > $time_differences[$cycle] ) {
+      stderrMessage("WARNING","HWind file $hwind_file is after the end of the best track data. Persisting central pressure $hwind_pc mb from previous time level.");
+      # just don't change $hwind_pc
+   } else {
+      for (my $i=1; $i<$cycle; $i++ ) {
+         if ( $interp_hours >= $time_differences[$i]
+            && $interp_hours <= $time_differences[$i+1] ) {
+            # we've found our interval, now linearly interpolate
+            my $wtratio = ( $interp_hours - $time_differences[$i] )
+               / ( $time_differences[$i+1] - $time_differences[$i] );
+            $hwind_pc = ( $pc[$i+1] - $pc[$i] ) * $wtratio + $pc[$i];
+            $hwind_pc = sprintf("%.0f",$hwind_pc);
+            last;
+         }
+      }
+   }
+   if ( $csdate ne "null" ) {
+      $hours += $hours_from_adcirc_start;
+   }
+   printf HWINDOUT "$hours $hwind_pc $fields[2] $hwind_file\n";
+}
+close(HWIND);
+close(HWINDOUT);
 
 sub stderrMessage () {
    my $level = shift;
@@ -88,9 +240,6 @@ sub stderrMessage () {
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
    printf STDERR "$theTime $level: best2fcst.pl: $message\n";
-   if ($level eq "ERROR") {
-      sleep 60
-   }
 }
 
 
