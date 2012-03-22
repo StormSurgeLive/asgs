@@ -76,12 +76,13 @@ $ activate dissipation by depth-induced breaking; default is
 $ CONSTANT with alpha=1.0 and gamma=0.73
 BREAKING
 $
- activate dissipation by bottom friction, default is JONSWAP with
+$ activate dissipation by bottom friction, default is JONSWAP with
 $ default cfjon=0.067
 FRICTION
 $
 $ activate three wave-wave interactions (triads)
-TRIADS
+$jgf20120321: turned this off per Rick's instruction
+$TRIADS 
 $
 $ choose numerical propagation scheme, BSBT is first order
 $ Backward Space Backward Time

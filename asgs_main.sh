@@ -273,7 +273,7 @@ prep()
                   # argument list, since it may be undefined
     TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
 #
-    # set the name of the archive of prepprocessed input files
+    # set the name of the archive of preprocessed input files
     PREPPED=$PREPPEDARCHIVE
     if [[ $START = coldstart ]]; then
        PREPPED=$HINDCASTARCHIVE
@@ -285,7 +285,7 @@ prep()
     fi
     # create directory to run in
     if [ ! -d $ADVISDIR/$ENSTORM ]; then 
-	mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+	   mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
     fi
     echo "$TIMESTAMP adcprep.log entry for $FILE for ensemble member $ENSTORM in $ADVISDIR as follows: " >> $ADVISDIR/$ENSTORM/adcprep.log
     cd $ADVISDIR/$ENSTORM
