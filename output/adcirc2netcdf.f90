@@ -10,6 +10,9 @@
 
 ! Example of compiling adcirc2netcdf.f90 with g95:
 ! g95 -o adcirc2netcdf.x -ffree-form -ffree-line-length-huge -I/usr/local/netcdf/netcdf-4.1.1/f90 adcirc2netcdf.f90 -L/usr/local/hdf5/hdf5-1.8.8/hdf5/lib  -lnetcdf -lhdf5_hl -lhdf5 -lhdf5_fortran -lz
+! Example of usage with command line options:
+! ~/asgs/trunk/output/adcirc2netcdf.x --netcdf4 --meshonly --meshfile fort.14 --attfile sl15_att.txt --with-xdmf --cpp 265.5 29.0
+
 !-----+---------+---------+---------+---------+---------+---------+
    module adcmesh
 !-----+---------+---------+---------+---------+---------+---------+
@@ -21,6 +24,8 @@
       double precision, allocatable :: xyd(:,:), bar(:,:,:)
       character(120)                :: agrid
       integer                       :: ne, np
+      integer                       :: neta_count ! count of open boundary nodes
+      integer                       :: nvel_count ! count of land boundary nodes
       integer                       :: nope, neta, nvdl_max
       integer                       :: nbou, nvel, nvel_max, nodemax
       integer,          allocatable :: nm(:,:), nvdll(:), nbdv(:,:), nsequencer(:)
@@ -67,6 +72,7 @@
       integer :: i, j, k
       integer, parameter :: iunit = 14
 !
+      write(6,*) "INFO: Reading mesh file dimensions."
       nvdl_max = 0
       nvel_max = 0
       nodemax = 0
@@ -81,24 +87,39 @@
       enddo
       write(6,*) '  |'
       read(iunit,*) nope
-      read(iunit,*)
+      read(iunit,*) neta ! total number of open boundary nodes
+      neta_count = 0
       do k = 1, nope
-         read(iunit,*) i
+         read(iunit,*) i ! number of nodes on the kth open boundary segment
          if( i >= nvdl_max ) nvdl_max = i
          do j = 1, i
             read(iunit,*)
+            neta_count = neta_count + 1
          enddo
       enddo
+      if ( neta_count.ne.neta ) then
+         write(6,'("WARNING: Number of open boundary nodes was set to ",I6," but ",I6," were found.")') neta, neta_count
+      endif
       read(iunit,*) nbou
-      read(iunit,*)
+      !write(6,'("DEBUG: There are ",I6," land boundary segments in the file.")') nbou
+      read(iunit,*) nvel ! total number of land boundary nodes
+      !write(6,'("DEBUG: There are ",I6," land boundary nodes in the file.")') nvel
+      nvel_count = 0
       do k = 1, nbou
-         read(iunit,*) i
+         read(iunit,*) i  ! number of nodes on the kth land boundary segment
+         !write(6,'("DEBUG: There are ",I6," land boundary nodes in segment ",I6,".")') i, k
          if( i >= nvel_max ) nvel_max = i
          do j = 1, i
             read(iunit,*)
+            nvel_count = nvel_count + 1
          enddo
       enddo
+      if ( nvel_count.ne.nvel) then
+         !write(6,'("WARNING: Number of land boundary nodes was set to ",I6," but ",I6," were found.")') nvel, nvel_count
+      endif
+
       rewind(iunit)
+      write(6,*) "INFO: Finished reading mesh file dimensions."
    !-----+---------+---------+---------+---------+---------+---------+
    end subroutine read14_alloc
    !-----+---------+---------+---------+---------+---------+---------+
@@ -132,6 +153,7 @@
       bar(:,:,:) = 0.0d0
       ibconn(:,:) = 0
       agrid = ' '
+      write(6,*) "INFO: Reading mesh file coordinates, connectivity, and boundary data."
       read(iunit,*) agrid
       read(iunit,*) ne, np
       do k = 1, np
@@ -182,7 +204,7 @@
          end select
       enddo
       close(14)
-      write(6,*) 'INFO: Finished reading mesh file.'
+      write(6,*) "INFO: Finished reading mesh file coordinates, connectivity, and boundary data."
 !     deallocate( nsequencer )
    !-----+---------+---------+---------+---------+---------+---------+
    end subroutine read14
@@ -350,6 +372,11 @@
          end do
       end if
 
+      ! if we are just looking at the mesh, set the InputFile to be the same as mesh file
+      if (meshonly.eqv..true.) then
+         InputFile = trim(meshFileName)//".nc"
+      endif
+
       ! XDMF xml only useful with HDF5 formatted data files
       if ((withXDMF.eqv..true.).and.(useNetCDF4.eqv..false.)) then
          write(6,*) "ERROR: The option '--with-xdmf' requires the option '--netcdf4'."
@@ -457,8 +484,10 @@
         read(100,*) att(1,i), att(2,i)
       enddo
       close(100)
+      write(6,*) "INFO: Finished reading metadata/attributes file."
 
       ! create netcdf file
+      write(6,*) "INFO: Creating NetCDF file '"//trim(OutputFile)//"'."
       ncFileType = NF90_CLOBBER ! netcdf3 format, netcdf classic model
       if (useNetCDF4.eqv..true.) then
          ncFileType = ior(NF90_HDF5,NF90_CLASSIC_MODEL) ! netcdf4 (i.e., hdf5) format, netcdf classic model
@@ -727,11 +756,6 @@
          call generateCPP(nc_id)
       endif
 
-      if (meshonly.eqv..true.) then
-         CALL Check(NF90_CLOSE(NC_ID))
-         stop
-      endif
-
       ! now moving on to the actual adcirc output data; first, set name
       ! of ascii output file to read, based on menu choice
       do i=1,nopt
@@ -754,6 +778,8 @@
                Inputfile = 'swan_TMM10.63'
             case(9) !TPS
                Inputfile = 'swan_TPS.63'
+            case(14) ! just the mesh
+               exit  ! jump out of this loop completely
          end select
          UnitNumber = 100+iopt(i)
          call openFileForRead(UnitNumber, trim(InputFile))
@@ -870,6 +896,8 @@
       character(120) :: varname
       logical :: foundCPP
       integer :: i  ! loop counter
+
+       write(6,'("INFO: Generating CPP coordinates and adding them to the NetCDF file.")')
       !
       ! determine if memory is already allocated, etc. ... if so, we don't
       ! need to do all the setup
@@ -920,7 +948,7 @@
       ! clean up
       deallocate(x_cpp, y_cpp)
       cppUpdated = .true.
-
+      write(6,'("INFO: Finished generating CPP coordinates. Variable names are x_cpp and y_cpp.")')
       return
 !----------------------------------------------------------------------
    end subroutine generateCPP
@@ -954,6 +982,8 @@
       integer :: ndset ! number of datasets in the file (length of unlimited dimension)
       real(8), allocatable :: timesec(:)  ! time in seconds associated with each dataset
       integer i, j ! loop counters
+
+      write(6,'(A)') "INFO: Generating XDMF xml to for this NetCDF file."
 !
 !     Check to see if file exists
       inquire(FILE=trim(fn),EXIST=fileFound)
@@ -1035,6 +1065,8 @@
          write(10,'(A)') '   </Domain>'
          write(10,'(A)') '</Xdmf>'
          close(10)
+         call check(nf90_close(nc_id))
+         write(6,'(A)') "INFO: Finished generating XDMF xml to for this NetCDF file."
          return  ! EARLY RETURN
       endif
       !
@@ -1147,6 +1179,7 @@
       write(10,'(A)') '</Xdmf>'
       close(10)
       call check(nf90_close(nc_id))
+      write(6,'(A)') "INFO: Finished generating XDMF xml to for this NetCDF file."
       return
 !----------------------------------------------------------------------
    end subroutine generateXDMF

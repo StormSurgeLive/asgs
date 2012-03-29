@@ -128,7 +128,6 @@ if ( $hwind ne "null" ) {
       die;
    }
 }
-
 # open file to hold HWind data with interpolated central pressures and
 # hour values filled in
 my $hwind_out = "fcst_" . $hwind;

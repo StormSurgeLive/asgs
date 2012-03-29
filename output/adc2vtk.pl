@@ -88,9 +88,54 @@ foreach my $file (@adcircfiles) {
    my $scalars_name = "";
    # set some parameters based on the type of file we are working with
    if ( $file eq "none" || $file eq "fort.14" ) {
-      $num_components = 0;
-      $num_datasets = 1;   # just write the bathymetric depth
-      $scalars_name = "Scalars=\"BathymetricDepth\"";
+      my $outfile = $meshfile . ".vtu";
+      # start writing vtk-formatted file
+      unless (open(OUT,">$outfile")) {
+         stderrMessage("ERROR","Failed to open vtk file $outfile for writing: $!.");
+         die;
+      }
+      printf OUT "<?xml version=\"1.0\"?>\n";
+      printf OUT "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+      printf OUT "   <UnstructuredGrid>\n";
+      printf OUT "      <Piece NumberOfPoints=\"$np\" NumberOfCells=\"$ne\">\n";
+      printf OUT "         <PointData Scalars=\"BathymetricDepth\">\n";
+      printf OUT "            <DataArray Name=\"BathymetricDepth\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+      for (my $i=0; $i<$np; $i++) {
+         printf OUT "$z[$i]\n";
+      }
+      printf OUT "            </DataArray>\n";
+      printf OUT "         </PointData>\n";
+      printf OUT "         <Points>\n";
+      printf OUT "            <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+      for (my $i=0; $i<$np; $i++) {
+         printf OUT "$x[$i] $y[$i] 0.0\n";
+      }
+      printf OUT "            </DataArray>\n";
+      printf OUT "         </Points>\n";
+      # write element connectivity indices
+      printf OUT "         <Cells>\n";
+      printf OUT "            <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n";
+      for (my $i=0; $i<$ne; $i++) {
+         printf OUT "$conn[$i]\n";
+      }
+      printf OUT "            </DataArray>\n";
+      printf OUT "            <DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">\n";
+      for (my $i=0; $i<$ne; $i++) {
+         my $offset = $i*3 + 3;
+         printf OUT "$offset\n";
+      }
+      printf OUT "            </DataArray>\n";
+      printf OUT "            <DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">\n";
+      for (my $i=0; $i<$ne; $i++) {
+         printf OUT "5\n";   # triangles
+      }
+      printf OUT "            </DataArray>\n";
+      printf OUT "         </Cells>\n";
+      printf OUT "      </Piece>\n";
+      printf OUT "   </UnstructuredGrid>\n";
+      printf OUT "</VTKFile>\n";
+      close(OUT);
+      last;
    }
    if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" ) {
       $num_components = 1;
