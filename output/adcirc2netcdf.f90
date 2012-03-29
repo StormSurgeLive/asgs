@@ -10,6 +10,8 @@
 
 ! Example of compiling adcirc2netcdf.f90 with g95:
 ! g95 -o adcirc2netcdf.x -ffree-form -ffree-line-length-huge -I/usr/local/netcdf/netcdf-4.1.1/f90 adcirc2netcdf.f90 -L/usr/local/hdf5/hdf5-1.8.8/hdf5/lib  -lnetcdf -lhdf5_hl -lhdf5 -lhdf5_fortran -lz
+! Example of compiling adcirc2netcdf.f90 with ifort:
+! ifort -o adcirc2netcdf.x -i-dynamic -I/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/include adcirc2netcdf.f90 -L/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/lib  -lnetcdf -lnetcdff -lz
 ! Example of usage with command line options:
 ! ~/asgs/trunk/output/adcirc2netcdf.x --netcdf4 --meshonly --meshfile fort.14 --attfile sl15_att.txt --with-xdmf --cpp 265.5 29.0
 
@@ -318,7 +320,7 @@
                   attFile = trim(cmdlinearg)
                case("--datafile")
                   i = i + 1
-                  call getarg(i, InputFile)
+                  call getarg(i, cmdlinearg)
                   write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
                   select case(trim(cmdlinearg))
                      case("fort.63")
@@ -350,6 +352,7 @@
                      case default
                         write(6,*) "WARNING: Command line argument '",TRIM(cmdlinearg),"' was not recognized."
                   end select
+                  InputFile = trim(cmdlinearg)
                case("--with-xdmf")
                   withXDMF = .true.
                   write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
@@ -489,9 +492,11 @@
       ! create netcdf file
       write(6,*) "INFO: Creating NetCDF file '"//trim(OutputFile)//"'."
       ncFileType = NF90_CLOBBER ! netcdf3 format, netcdf classic model
+#ifdef HAVE_NETCDF4
       if (useNetCDF4.eqv..true.) then
          ncFileType = ior(NF90_HDF5,NF90_CLASSIC_MODEL) ! netcdf4 (i.e., hdf5) format, netcdf classic model
       endif
+#endif
       CALL Check(NF90_CREATE(TRIM(OutputFile),ncFileType,NC_ID))
 
       ! create time dimension and create global attributes
@@ -577,6 +582,7 @@
       CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'dimension',2))
       CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'node_coordinates','x y'))
       CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'face_node_connectivity','element'))
+#ifdef NETCDF_CAN_DEFLATE
       if (useNetCDF4.eqv..true.) then
          if (nope.ne.0) then
             call check(nf90_def_var_deflate(NC_ID, NC_VarID_nvdll, 0, 1, 2))
@@ -594,6 +600,7 @@
          call check(nf90_def_var_deflate(NC_ID, NC_VarID_depth, 0, 1, 2))
          call check(nf90_def_var_deflate(NC_ID, NC_VarID_Mesh, 0, 1, 2))
       endif
+#endif
 
       ! create adcirc output variables and associated attributes
       NC_DimID = (/ NC_DimID_node, NC_DimID_Time /)
@@ -608,7 +615,9 @@
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_zeta,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_zeta,'mesh','adcirc_mesh'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_zeta,'units','m'))
+#ifdef NETCDF_CAN_DEFLATE
             if (useNetCDF4.eqv..true.) call check(nf90_def_var_deflate(NC_ID, NC_VarID_zeta, 1, 1, 2))
+#endif
             !          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_zeta,'positive','up')) 'DO NOT USE'
          case(2) !64
             CALL Check(NF90_DEF_VAR(NC_ID,'u-vel',NF90_DOUBLE,NC_DimID,NC_VarID_u_vel))
@@ -621,7 +630,9 @@
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_u_vel,'units','m s-1'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_u_vel,'positive','east'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_u_vel,'dry_Value',-99999.0d0))
+#ifdef NETCDF_CAN_DEFLATE
             if (useNetCDF4.eqv..true.) call check(nf90_def_var_deflate(NC_ID, NC_VarID_u_vel, 1, 1, 2))
+#endif
             CALL Check(NF90_DEF_VAR(NC_ID,'v-vel',NF90_DOUBLE,NC_DimID,NC_VarID_v_vel))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_v_vel,'_FillValue',FillValue))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_v_vel,'long_name','water column vertically averaged north/south velocity'))
@@ -632,7 +643,9 @@
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_v_vel,'units','m s-1'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_v_vel,'positive','north'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_v_vel,'dry_Value',-99999.0d0))
+#ifdef NETCDF_CAN_DEFLATE
             if (useNetCDF4.eqv..true.) call check(nf90_def_var_deflate(NC_ID, NC_VarID_v_vel, 1, 1, 2))
+#endif
          case(3) !73
             CALL Check(NF90_DEF_VAR(NC_ID,'pressure',NF90_DOUBLE,NC_DimID,NC_VarID_p))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_p,'_FillValue',FillValue))
@@ -642,7 +655,9 @@
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_p,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_p,'mesh','adcirc_mesh'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_p,'units','meters of water'))
+#ifdef NETCDF_CAN_DEFLATE
             if (useNetCDF4.eqv..true.) call check(nf90_def_var_deflate(NC_ID, NC_VarID_p, 1, 1, 2))
+#endif
 !          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_p,'positive','up')) 'DO NOT USE'
          case(4) !74
             CALL Check(NF90_DEF_VAR(NC_ID,'windx',NF90_DOUBLE,NC_DimID,NC_VarID_windx))
@@ -654,7 +669,9 @@
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_windx,'mesh','adcirc_mesh'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_windx,'units','m s-1'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_windx,'positive','east'))
+#ifdef NETCDF_CAN_DEFLATE
             if (useNetCDF4.eqv..true.) call check(nf90_def_var_deflate(NC_ID, NC_VarID_windx, 1, 1, 2))
+#endif
             CALL Check(NF90_DEF_VAR(NC_ID,'windy',NF90_DOUBLE,NC_DimID,NC_VarID_windy))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_windy,'_FillValue',FillValue))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_windy,'long_name','n/s wind velocity'))
@@ -664,7 +681,9 @@
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_windy,'mesh','adcirc_mesh'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_windy,'units','m s-1'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_windy,'positive','north'))
+#ifdef NETCDF_CAN_DEFLATE
             if (useNetCDF4.eqv..true.) call check(nf90_def_var_deflate(NC_ID, NC_VarID_windy, 1, 1, 2))
+#endif
          case(5) !MAXELE
             CALL Check(NF90_DEF_VAR(NC_ID,'maxele',NF90_DOUBLE,NC_DimID,NC_VarID_maxele))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'_FillValue',FillValue))
@@ -674,8 +693,10 @@
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'mesh','adcirc_mesh'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'units','m'))
+#ifdef NETCDF_CAN_DEFLATE
             if (useNetCDF4.eqv..true.) call check(nf90_def_var_deflate(NC_ID, NC_VarID_maxele, 1, 1, 2))
              !          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_zeta,'positive','up')) 'DO NOT USE'
+#endif
          case(6) !DIR
             CALL Check(NF90_DEF_VAR(NC_ID,'dir',NF90_DOUBLE,NC_DimID,NC_VarID_dir))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dir,'_FillValue',FillValue))
@@ -685,7 +706,9 @@
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dir,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dir,'mesh','adcirc_mesh'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dir,'units','degrees_CW_from_East'))
+#ifdef NETCDF_CAN_DEFLATE
             if (useNetCDF4.eqv..true.) call check(nf90_def_var_deflate(NC_ID, NC_VarID_dir, 1, 1, 2))
+#endif
          case(7) !HS
             CALL Check(NF90_DEF_VAR(NC_ID,'hs',NF90_DOUBLE,NC_DimID,NC_VarID_hs))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_hs,'_FillValue',FillValue))
@@ -695,7 +718,9 @@
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_hs,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_hs,'mesh','adcirc_mesh'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_hs,'units','m'))
+#ifdef NETCDF_CAN_DEFLATE
             if (useNetCDF4.eqv..true.) call check(nf90_def_var_deflate(NC_ID, NC_VarID_hs, 1, 1, 2))
+#endif
          case(8) !TMM10
             CALL Check(NF90_DEF_VAR(NC_ID,'tmm10',NF90_DOUBLE,NC_DimID,NC_VarID_tmm10))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tmm10,'_FillValue',FillValue))
@@ -705,7 +730,9 @@
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tmm10,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tmm10,'mesh','adcirc_mesh'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tmm10,'units','s'))
+#ifdef NETCDF_CAN_DEFLATE
             if (useNetCDF4.eqv..true.) call check(nf90_def_var_deflate(NC_ID, NC_VarID_tmm10, 1, 1, 2))
+#endif
          case(9) !TPS
             CALL Check(NF90_DEF_VAR(NC_ID,'tps',NF90_DOUBLE,NC_DimID,NC_VarID_tps))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tps,'_FillValue',FillValue))
@@ -715,7 +742,9 @@
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tps,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tps,'mesh','adcirc_mesh'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tps,'units','s'))
+#ifdef NETCDF_CAN_DEFLATE
             if (useNetCDF4.eqv..true.) call check(nf90_def_var_deflate(NC_ID, NC_VarID_tps, 1, 1, 2))
+#endif
          case(14) ! just the mesh
             cycle
          end select
