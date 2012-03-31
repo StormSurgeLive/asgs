@@ -9,9 +9,9 @@
 ! 2012-02-27:   v4 ...
 
 ! Example of compiling adcirc2netcdf.f90 with g95:
-! g95 -o adcirc2netcdf.x -ffree-form -ffree-line-length-huge -I/usr/local/netcdf/netcdf-4.1.1/f90 adcirc2netcdf.f90 -L/usr/local/hdf5/hdf5-1.8.8/hdf5/lib  -lnetcdf -lhdf5_hl -lhdf5 -lhdf5_fortran -lz
+! g95 -o adcirc2netcdf.x -cpp -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -ffree-form -ffree-line-length-huge -I/usr/local/netcdf/netcdf-4.1.1/f90 adcirc2netcdf.f90 -L/usr/local/hdf5/hdf5-1.8.8/hdf5/lib  -lnetcdf -lhdf5_hl -lhdf5 -lhdf5_fortran -lz
 ! Example of compiling adcirc2netcdf.f90 with ifort:
-! ifort -o adcirc2netcdf.x -i-dynamic -I/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/include adcirc2netcdf.f90 -L/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/lib  -lnetcdf -lnetcdff -lz
+! ifort -o adcirc2netcdf.x -i-dynamic -cpp -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/include adcirc2netcdf.f90 -L/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/lib  -lnetcdf -lnetcdff -lz
 ! Example of usage with command line options:
 ! ~/asgs/trunk/output/adcirc2netcdf.x --netcdf4 --meshonly --meshfile fort.14 --attfile sl15_att.txt --with-xdmf --cpp 265.5 29.0
 
@@ -610,7 +610,7 @@
             CALL Check(NF90_DEF_VAR(NC_ID,'zeta',NF90_DOUBLE,NC_DimID,NC_VarID_zeta))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_zeta,'_FillValue',FillValue))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_zeta,'long_name','water surface elevation above geoid'))
-            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_zeta,'standard_name','sea_surface_height_above_geoid'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_zeta,'standard_name','water_surface_elevation'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_zeta,'coordinates','time y x'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_zeta,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_zeta,'mesh','adcirc_mesh'))
@@ -1159,8 +1159,37 @@
          ! now write XDMF XML data for this dataset
          write(10,'(A,E14.6,A)') '         <Grid Name="Time=',timesec(i),'"'
          write(10,'(9x,A)') '      GridType="Uniform">'
-         write(10,'(13x,A)') '<Topology Reference="//Topology[@Name=''ADCIRCMesh'']" />'
-         write(10,'(13x,A)') '<Geometry Reference="//Geometry[@Name=''NodeLocations'']" />'
+         write(10,'(A)') '         <Topology Name="ADCIRCMesh"'
+         write(10,'(A)') '                   TopologyType="Triangle"'
+         write(10,'(A)') '                   NodesPerElement="3"'
+         write(10,'(A,I12,A)') '                   NumberOfElements="',ne,'"'
+         write(10,'(A)') '                   BaseOffset="1">'
+         write(10,'(A,I12,A)') '            <DataItem Dimensions="',ne,'  3"'
+         write(10,'(A)') '                      DataType="Int"'
+         write(10,'(A)') '                      Format="HDF">'//trim(fn)//':/element'
+         write(10,'(A)') '            </DataItem>'
+         write(10,'(A)') '         </Topology>'
+         write(10,'(A)') '         <Geometry Name="NodeLocations"'
+         write(10,'(A)') '                   GeometryType="X_Y">'
+         write(10,'(A,I12,A)') '            <DataItem Dimensions="',np,'"'
+         write(10,'(A)') '                      NumberType="Float"'
+         write(10,'(A)') '                      Precision="8"'
+         if (projectCPP.eqv..true.) then
+            write(10,'(A)') '                      Format="HDF">'//trim(fn)//':/x_cpp'
+         else
+            write(10,'(A)') '                      Format="HDF">'//trim(fn)//':/x'
+         endif
+         write(10,'(A)') '            </DataItem>'
+         write(10,'(A,I12,A)') '            <DataItem Dimensions="',np,'"'
+         write(10,'(A)') '                      NumberType="Float"'
+         write(10,'(A)') '                      Precision="8"'
+         if (projectCPP.eqv..true.) then
+            write(10,'(A)') '                      Format="HDF">'//trim(fn)//':/y_cpp'
+         else
+            write(10,'(A)') '                      Format="HDF">'//trim(fn)//':/y'
+         endif
+         write(10,'(A)') '            </DataItem>'
+         write(10,'(A)') '         </Geometry>'
          write(10,'(13x,A)') '<Attribute Name="BathymetricDepth"'
          write(10,'(13x,A)') '           AttributeType="Scalar"'
          write(10,'(13x,A)') '           Center="Node">'
@@ -1183,7 +1212,7 @@
          endif
          do j=1,num_components
             write(10,'(13x,A)') '      <DataItem ItemType="HyperSlab"'
-            write(10,'(13x,A)') '                Dimensions="3070"'
+            write(10,'(13x,A,I12,A)') '                Dimensions="',np,'"'
             write(10,'(13x,A)') '               Type="HyperSlab">'
             write(10,'(13x,A)') '        <DataItem Dimensions="3 2"'
             write(10,'(13x,A)') '                  Format="XML">'
