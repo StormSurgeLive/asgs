@@ -326,7 +326,6 @@
       close(10)
       call check(nf90_close(nc_id))
       write(6,'(A)') "INFO: Finished generating XDMF xml to for this NetCDF file."
-      return
 !----------------------------------------------------------------------
       end program generateXDMF
 !----------------------------------------------------------------------
