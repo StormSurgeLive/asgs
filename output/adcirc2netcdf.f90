@@ -416,7 +416,7 @@
       ! jgf: make a list of files to convert, based on use menu selection;
       ! set names of files that will contain more than one type of data
       select case(menuOpt)
-         case(1,2,3,4,5,6,7,8,9,14)
+         case(1,2,3,4,5,6,7,8,9,14,15)
             nopt = 1       ! only need to convert 1 file
             allocate(iopt(nopt))
             iopt(1) = menuOpt ! file to convert has been selected from the menu
