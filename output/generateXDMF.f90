@@ -234,7 +234,7 @@
       if ( ndset.eq.1 ) then
          call check(nf90_inq_varid(nc_id, varname(1), NC_VarID(1)))
          call check(nf90_get_att(nc_id, NC_VarID(1), 'standard_name', standard_name(1)))
-         write(10,'(A)') '         <Attribute Name="',standard_name(1),'"'
+         write(10,'(A)') '         <Attribute Name="',trim(standard_name(1)),'"'
          write(10,'(A)') '                    AttributeType="Scalar"'
          write(10,'(A)') '                    Center="Node">'
          write(10,'(A,I12,A)') '            <DataItem Dimensions="',np,'"'
