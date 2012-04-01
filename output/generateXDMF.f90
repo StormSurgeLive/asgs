@@ -66,6 +66,7 @@
                   i = i + 1
                   call getarg(i, cmdlinearg)
                   write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
+                  datafile = trim(cmdlinearg)
                case("--use-cpp")
                   useCPP = .true.
                   write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
