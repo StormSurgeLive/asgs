@@ -38,6 +38,7 @@
       integer :: NC_VarID_time
       integer :: num_components
       character(120) :: standard_name(3)
+      character(120) :: dataDesc ! how the variable is described
       character(NF90_MAX_NAME) :: varname(3)
       integer :: NC_VarID(3)
       integer :: nc_id
@@ -151,7 +152,6 @@
       write(10,'(A)') '                      Format="HDF">'//trim(datafile)//':/depth'
       write(10,'(A)') '            </DataItem>'
       write(10,'(A)') '         </Attribute>'
-      write(10,'(A)') '      </Grid>'
       !
       ! have a look at how much data is in the file
       call check(nf90_inquire(nc_id, unlimitedDimId=NC_DimID_time))
@@ -169,35 +169,37 @@
          call check(nf90_inquire_variable(nc_id, i, thisVarName))
          select case(trim(thisVarName))
          case("zeta")
-            write(6,*) "INFO: Preparing to write XDMF xml for a fort.63 file."
+            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC water surface elevation (fort.63) file."
             varname(1) = trim(thisVarName)
             num_components = 1
             exit
          case("u-vel","v-vel")
-            write(6,*) "INFO: Preparing to write XDMF xml for a fort.64 file."
+            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC water current velocity (fort.64) file."
             num_components = 2
             varname(1) = "u-vel"
             varname(2) = "v-vel"
             exit
          case("pressure")
-            write(6,*) "INFO: Preparing to write XDMF xml for a fort.73 file."
+            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC barometric pressure (fort.73) file."
             num_components = 1
             varname(1) = "pressure"
             exit
          case("windx","windy")
-            write(6,*) "INFO: Preparing to write XDMF xml for a fort.74 file."
+            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC wind velocity (fort.74) file."
             num_components = 2
             varname(1) = "windx"
             varname(2) = "windy"
             exit
          case("maxele")
-            write(6,*) "INFO: Preparing to write XDMF xml for a maxele.63 file."
+            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC maximum water elevation (maxele.63) file."
             num_components = 1
+            ndset = 1
             varname(1) = "maxele"
             exit
          case("maxwvel")
-            write(6,*) "INFO: Preparing to write XDMF xml for a maxwvel.63 file."
+            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC maximum wind speed (maxwvel.63) file."
             num_components = 1
+            ndset = 1
             varname(1) = "maxwvel"
             exit
          case("dir")
@@ -229,6 +231,26 @@
          write(6,*) "ERROR: Did not recognize any of the variables in the file."
          stop
       endif
+      if ( ndset.eq.1 ) then
+         call check(nf90_inq_varid(nc_id, varname(1), NC_VarID(1)))
+         call check(nf90_get_att(nc_id, NC_VarID(1), 'standard_name', standard_name(1)))
+         write(10,'(A)') '         <Attribute Name="',standard_name(1),'"'
+         write(10,'(A)') '                    AttributeType="Scalar"'
+         write(10,'(A)') '                    Center="Node">'
+         write(10,'(A,I12,A)') '            <DataItem Dimensions="',np,'"'
+         write(10,'(A)') '                      NumberType="Float"'
+         write(10,'(A)') '                      Precision="8"'
+         write(10,'(A)') '                      Format="HDF">'//trim(datafile)//':/'//trim(varname(1))
+         write(10,'(A)') '            </DataItem>'
+         write(10,'(A)') '         </Attribute>'
+         write(10,'(A)') '      </Grid>'
+         write(10,'(A)') '   </Domain>'
+         write(10,'(A)') '</Xdmf>'
+         close(10)
+         call check(nf90_close(nc_id))
+         write(6,'(A)') "INFO: Finished generating XDMF xml to for this NetCDF file."
+         stop
+      endif
       !
       ! load up the time values (in seconds)
       allocate(timesec(ndset))
@@ -238,9 +260,19 @@
       do i=1,num_components
          call check(nf90_inq_varid(nc_id, varname(i), NC_VarID(i)))
          call check(nf90_get_att(nc_id, NC_VarID(i), 'standard_name', standard_name(i)))
+         dataDesc = standard_name(1)
+         if ( num_components.eq.2 ) then
+            if ( varname(1).eq."windx" ) then
+               dataDesc = "wind_velocity"
+            endif
+            if ( varname(1).eq."u-vel" ) then
+               dataDesc = "water current velocity"
+            endif
+         endif
       end do
       !
       ! write the XDMF xml for the time varying data
+      write(10,'(A)') '      </Grid>'
       write(10,'(A)') '      <Grid Name="TimeSeries"'
       write(10,'(A)') '            GridType="Collection"'
       write(10,'(A)') '            CollectionType="Temporal">'
@@ -289,7 +321,7 @@
          write(10,'(13x,A)') '   </DataItem>'
          write(10,'(13x,A)') '</Attribute>'
          write(10,'(13x,A,E14.6,A)') '<Time Value="',timesec(i),'"/>'
-         write(10,'(13x,A)') '<Attribute Name="'//trim(standard_name(1))//'"'
+         write(10,'(13x,A)') '<Attribute Name="'//trim(dataDesc)//'"'
          write(10,'(13x,A)') '           Center="Node"'
          if (num_components.eq.1) then
             write(10,'(13x,A)') '           AttributeType="Scalar">'
