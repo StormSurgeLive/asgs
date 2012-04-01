@@ -266,6 +266,7 @@
       integer                       :: NC_VarID_u_vel
       integer                       :: NC_VarID_v_vel
       integer                       :: NC_VarID_maxele
+      integer                       :: NC_VarID_maxwvel
       integer                       :: NC_VarID_p
       integer                       :: NC_VarID_windx
       integer                       :: NC_VarID_windy
@@ -347,8 +348,10 @@
                         menuOpt = 11
                      case("adcirc_swan")
                         menuOpt = 12
-                     case("fort.14","fort.44","fort.45","fort.46")
+                     case("fort.14")
                         menuOpt = 14
+                     case("maxwvel.63")
+                        menuOpt = 15
                      case default
                         write(6,*) "WARNING: Command line argument '",TRIM(cmdlinearg),"' was not recognized."
                   end select
@@ -457,7 +460,7 @@
             Outputfile = 'swan_TMM10.63.nc'
          case(9) !TPS
             Outputfile = 'swan_TPS.63.nc'
-         case(14) !other
+         case(14,15) !other
             Outputfile = InputFile//'.nc'
          case default
             ! 10, 11, and 12 were assigned previously
@@ -747,6 +750,20 @@
 #endif
          case(14) ! just the mesh
             cycle
+         case(15) ! maxwvel
+            CALL Check(NF90_DEF_VAR(NC_ID,'maxwvel',NF90_DOUBLE,NC_DimID,NC_VarID_maxwvel))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'_FillValue',FillValue))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'long_name','maximum wind speed at sea level'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'standard_name','maximum_wind_speed_at_sea_level'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'coordinates','time y x'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'location','node'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'mesh','adcirc_mesh'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'units','m s-1'))
+#ifdef NETCDF_CAN_DEFLATE
+            if (useNetCDF4.eqv..true.) call check(nf90_def_var_deflate(NC_ID, NC_VarID_maxwvel, 1, 1, 2))
+             !          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_zeta,'positive','up')) 'DO NOT USE'
+#endif
+
          end select
       enddo
       !----------------------------------------------------------------
@@ -809,6 +826,8 @@
                Inputfile = 'swan_TPS.63'
             case(14) ! just the mesh
                exit  ! jump out of this loop completely
+            case(15) ! maxwvel
+               Inputfile = 'maxwvel.63'
          end select
          UnitNumber = 100+iopt(i)
          call openFileForRead(UnitNumber, trim(InputFile))
@@ -875,6 +894,8 @@
                 CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_tmm10,Global1,NC_Start,NC_Count))
               case(9) !TPS
                 CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_tps,Global1,NC_Start,NC_Count))
+              case(15) ! maxwvel
+                CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_maxwvel,Global1,NC_Start,NC_Count))
             end select
             SS = SS + 1 ! jgf: Increment the dataset counter
          ENDDO
@@ -1128,6 +1149,9 @@
          case("maxele.63.nc")
             num_components = 1
             varname(1) = "maxele"
+         case("maxwvel.63.nc")
+            num_components = 1
+            varname(1) = "maxwvel"
          case("swan_DIR.63.nc")
             num_components = 1
             varname(1) = "dir"
