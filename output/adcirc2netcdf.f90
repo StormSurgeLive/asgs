@@ -448,8 +448,8 @@ include 'adcmesh.f90'
          case(5) !MAXELE
             CALL Check(NF90_DEF_VAR(NC_ID,'maxele',NF90_DOUBLE,NC_DimID,NC_VarID_maxele))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'_FillValue',FillValue))
-            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'long_name','maximum water surface elevation above geoid'))
-            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'standard_name','maximum_sea_surface_height_above_geoid'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'long_name','maximum sea surface elevation above datum'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'standard_name','maximum_sea_surface_elevation_above_datum'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'coordinates','time y x'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'mesh','adcirc_mesh'))
