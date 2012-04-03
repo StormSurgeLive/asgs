@@ -87,7 +87,7 @@
          stop
       else
          ! netcdf file exists; open it
-         call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
+         call check(nf90_open(trim(datafile), NF90_WRITE, nc_id))
       endif
       write(6,'("INFO: Generating CPP coordinates and adding them to the NetCDF file.")')
 
