@@ -82,7 +82,7 @@ include 'adcmesh.f90'
       useNetCDF4 = .false.
       meshonly = .false.
       !
-      write(6,*) "INFO: adcirc2netcdf version ",version,"."
+      !write(6,*) "INFO: adcirc2netcdf version ",version,"."
       ! Report netcdf version
       write(6,*) "INFO: adcirc2netcdf was compiled with the following netcdf library: ",trim(nf90_inq_libvers())
 
@@ -611,7 +611,7 @@ include 'adcmesh.f90'
             ENDDO
             do N=1,NumNodesNonDefault
               select case(iopt(i))
-                case(1,3,5,6,7,8,9) ! scalar data
+                case(1,3,5,6,7,8,9,15) ! scalar data
                   READ(UnitNumber,*) j,Temp1
                   Global1(j) = Temp1
                 case(2,4)           ! 2D vector data
