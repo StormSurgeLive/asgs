@@ -19,9 +19,10 @@ my %adcirctypes = ("maxele.63", "MaximumElevation",
 my $R = 6378206.4;           # radius of the earth
 my $pi = 3.141592653589793;
 my $deg2rad = 2*$pi/360.0;
-my @x; # x coordinates or longitude
-my @y; # y coordinates or latitude
-my @z; # depth
+our @x; # x coordinates or longitude
+our @y; # y coordinates or latitude
+our @z; # depth
+our @conn; # list of nodal connectivity indices
 my @time; # in seconds since cold start for each dataset in the file
 my @timestep; # integer number, since coldstart, for each dataset in the file
 #
@@ -69,7 +70,7 @@ if ( defined $cpp ) {
       $y[$i] = $y[$i]*$deg2rad*$R;
    }
 }
-my @conn; # list of nodal connectivity indices
+
 for (my $i=0; $i<$ne; $i++) {
    $line = <MESH>;
    @fields = split(' ',$line);
@@ -83,6 +84,7 @@ close(MESH);
 #
 # write data from adcirc file(s)
 foreach my $file (@adcircfiles) {
+   stderrMessage("INFO","Processing $file.");
    my $num_components = 0; # 1 if scalar, 2 if 2D vector, 3 if 3D vector
    my $num_datasets = 0;   # 0 if unknown
    my $scalars_name = "";
@@ -94,48 +96,12 @@ foreach my $file (@adcircfiles) {
          stderrMessage("ERROR","Failed to open vtk file $outfile for writing: $!.");
          die;
       }
-      printf OUT "<?xml version=\"1.0\"?>\n";
-      printf OUT "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-      printf OUT "   <UnstructuredGrid>\n";
-      printf OUT "      <Piece NumberOfPoints=\"$np\" NumberOfCells=\"$ne\">\n";
+      &writeHeader($ne, $np);
       printf OUT "         <PointData Scalars=\"BathymetricDepth\">\n";
-      printf OUT "            <DataArray Name=\"BathymetricDepth\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
-      for (my $i=0; $i<$np; $i++) {
-         printf OUT "$z[$i]\n";
-      }
-      printf OUT "            </DataArray>\n";
-      printf OUT "         </PointData>\n";
-      printf OUT "         <Points>\n";
-      printf OUT "            <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-      for (my $i=0; $i<$np; $i++) {
-         printf OUT "$x[$i] $y[$i] 0.0\n";
-      }
-      printf OUT "            </DataArray>\n";
-      printf OUT "         </Points>\n";
-      # write element connectivity indices
-      printf OUT "         <Cells>\n";
-      printf OUT "            <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n";
-      for (my $i=0; $i<$ne; $i++) {
-         printf OUT "$conn[$i]\n";
-      }
-      printf OUT "            </DataArray>\n";
-      printf OUT "            <DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">\n";
-      for (my $i=0; $i<$ne; $i++) {
-         my $offset = $i*3 + 3;
-         printf OUT "$offset\n";
-      }
-      printf OUT "            </DataArray>\n";
-      printf OUT "            <DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">\n";
-      for (my $i=0; $i<$ne; $i++) {
-         printf OUT "5\n";   # triangles
-      }
-      printf OUT "            </DataArray>\n";
-      printf OUT "         </Cells>\n";
-      printf OUT "      </Piece>\n";
-      printf OUT "   </UnstructuredGrid>\n";
-      printf OUT "</VTKFile>\n";
+      &writeMesh($ne, $np);
+      &writeFooter();
       close(OUT);
-      last;
+      next;
    }
    if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" ) {
       $num_components = 1;
@@ -172,12 +138,13 @@ foreach my $file (@adcircfiles) {
       printf PVD "<VTKFile type=\"Collection\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
       printf PVD "   <Collection>\n";
    }
-   my $dataset = 1;
+   my $dataset = 0;
    my @comp; # components of the dataset
    while (<ADCIRCFILE>) {
       @fields = split(' ',$_);
-      $time[0] = $fields[0];
-      $timestep[0] = $fields[1];
+      $time[$dataset] = $fields[0];
+      $timestep[$dataset] = $fields[1];
+      #stderrMessage("DEBUG","time is $time[$dataset], timestep is $timestep[$dataset]");
       my @mag; # for holding vector magnitudes
       my $io_success = "true";
       for (my $i=0; $i<$np; $i++) {
@@ -200,8 +167,14 @@ foreach my $file (@adcircfiles) {
       my $outfile = $file;
       my $dataset_ext = "";
       if ( $num_datasets == 0 ) {
-         $dataset_ext = sprintf("%03d",$dataset);
+         $dataset_ext = sprintf("%03d",$dataset+1);
          $outfile = $outfile . "_" . $dataset_ext;
+      }
+      $scalars_name = "Scalars=\"$adcirctypes{$file}\"";
+      my $vectors_name = "";
+      if ( $num_components > 1 ) {
+         $scalars_name = "Scalars=\"$adcirctypes{$file}Magnitude\"";
+         $vectors_name = "Vectors=\"$adcirctypes{$file}\"";
       }
       $outfile .= ".vtu";
       # start writing vtk-formatted file
@@ -210,24 +183,10 @@ foreach my $file (@adcircfiles) {
          die;
       }
       if ( $num_datasets == 0 ) {
-         printf PVD "         <DataSet timestep=\"$time[0]\" group=\"\" part=\"0\" file=\"$outfile\"/>\n";
+         printf PVD "         <DataSet timestep=\"$time[$dataset]\" group=\"\" part=\"0\" file=\"$outfile\"/>\n";
       }
-      printf OUT "<?xml version=\"1.0\"?>\n";
-      printf OUT "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-      printf OUT "   <UnstructuredGrid>\n";
-      printf OUT "      <Piece NumberOfPoints=\"$np\" NumberOfCells=\"$ne\">\n";
-      # write out bathymetric depth as a dataset
-      my $vectors_name = "";
-      if ( $num_components > 1 ) {
-         $scalars_name = "Scalars=\"$adcirctypes{$file}Magnitude\"";
-         $vectors_name = "Vectors=\"$adcirctypes{$file}\"";
-      }
-      printf OUT "         <PointData $scalars_name $vectors_name>\n";
-      printf OUT "            <DataArray Name=\"BathymetricDepth\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
-      for (my $i=0; $i<$np; $i++) {
-         printf OUT "$z[$i]\n";
-      }
-      printf OUT "            </DataArray>\n";
+      &writeHeader($ne, $np);
+      printf OUT "         <PointData $scalars_name $vectors_name>\n"; # set default dataset
       # write out dataset from ADCIRC file
       my $vtk_components = $num_components;
       if ( $num_components == 2 ) {
@@ -246,37 +205,8 @@ foreach my $file (@adcircfiles) {
          }
          printf OUT "            </DataArray>\n";
       }
-      printf OUT "         </PointData>\n";
-      # write mesh node coordinates
-      printf OUT "         <Points>\n";
-      printf OUT "            <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-      for (my $i=0; $i<$np; $i++) {
-         printf OUT "$x[$i] $y[$i] 0.0\n";
-      }
-      printf OUT "            </DataArray>\n";
-      printf OUT "         </Points>\n";
-      # write element connectivity indices
-      printf OUT "         <Cells>\n";
-      printf OUT "            <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n";
-      for (my $i=0; $i<$ne; $i++) {
-         printf OUT "$conn[$i]\n";
-      }
-      printf OUT "            </DataArray>\n";
-      printf OUT "            <DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">\n";
-      for (my $i=0; $i<$ne; $i++) {
-         my $offset = $i*3 + 3;
-         printf OUT "$offset\n";
-      }
-      printf OUT "            </DataArray>\n";
-      printf OUT "            <DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">\n";
-      for (my $i=0; $i<$ne; $i++) {
-         printf OUT "5\n";   # triangles
-      }
-      printf OUT "            </DataArray>\n";
-      printf OUT "         </Cells>\n";
-      printf OUT "      </Piece>\n";
-      printf OUT "   </UnstructuredGrid>\n";
-      printf OUT "</VTKFile>\n";
+      &writeMesh($ne, $np);    # write out bathymetric depth as a dataset
+      &writeFooter();
       close(OUT);
       $dataset++;
    }
@@ -287,6 +217,60 @@ foreach my $file (@adcircfiles) {
    }
    close(ADCIRCFILE);
 }
+
+sub writeHeader () {
+   my $ne = shift;
+   my $np = shift;
+   printf OUT "<?xml version=\"1.0\"?>\n";
+   printf OUT "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+   printf OUT "   <UnstructuredGrid>\n";
+   printf OUT "      <Piece NumberOfPoints=\"$np\" NumberOfCells=\"$ne\">\n";
+}
+
+sub writeFooter () {
+   printf OUT "      </Piece>\n";
+   printf OUT "   </UnstructuredGrid>\n";
+   printf OUT "</VTKFile>\n";
+}
+
+sub writeMesh () {
+   my $ne = shift;
+   my $np = shift;
+
+   printf OUT "            <DataArray Name=\"BathymetricDepth\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   for (my $i=0; $i<$np; $i++) {
+      printf OUT "$z[$i]\n";
+   }
+   printf OUT "            </DataArray>\n";
+   printf OUT "         </PointData>\n";
+   printf OUT "         <Points>\n";
+   printf OUT "            <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+   for (my $i=0; $i<$np; $i++) {
+      printf OUT "$x[$i] $y[$i] 0.0\n";
+   }
+   printf OUT "            </DataArray>\n";
+   printf OUT "         </Points>\n";
+   # write element connectivity indices
+   printf OUT "         <Cells>\n";
+   printf OUT "            <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n";
+   for (my $i=0; $i<$ne; $i++) {
+      printf OUT "$conn[$i]\n";
+   }
+   printf OUT "            </DataArray>\n";
+   printf OUT "            <DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">\n";
+   for (my $i=0; $i<$ne; $i++) {
+      my $offset = $i*3 + 3;
+      printf OUT "$offset\n";
+   }
+   printf OUT "            </DataArray>\n";
+   printf OUT "            <DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">\n";
+   for (my $i=0; $i<$ne; $i++) {
+      printf OUT "5\n";   # triangles
+   }
+   printf OUT "            </DataArray>\n";
+   printf OUT "         </Cells>\n";
+}
+
 sub stderrMessage () {
    my $level = shift;
    my $message = shift;
