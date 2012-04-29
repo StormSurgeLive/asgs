@@ -13,7 +13,7 @@
 ! Example of compiling adcirc2netcdf.f90 with ifort:
 ! ifort -o adcirc2netcdf.x -i-dynamic -cpp -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/include adcirc2netcdf.f90 -L/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/lib  -lnetcdf -lnetcdff -lz
 ! Example of usage with command line options:
-! ~/asgs/trunk/output/adcirc2netcdf.x --netcdf4 --meshonly --meshfile fort.14 --attfile sl15_att.txt --with-xdmf --cpp 265.5 29.0
+! ~/asgs/trunk/output/adcirc2netcdf.x --netcdf4 --meshonly --meshfile fort.14 --attfile sl15_att.txt
 
 include 'adcmesh.f90'
 
@@ -630,12 +630,12 @@ include 'adcmesh.f90'
                 CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_zeta,Global1,NC_Start,NC_Count))
               case(2) !64
                 CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_u_vel,Global1,NC_Start,NC_Count))
-                CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_v_vel,Global1,NC_Start,NC_Count))
+                CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_v_vel,Global2,NC_Start,NC_Count))
               case(3) !73
                 CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_P,Global1,NC_Start,NC_Count))
               case(4) !74
                 CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_windx,Global1,NC_Start,NC_Count))
-                CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_windy,Global1,NC_Start,NC_Count))
+                CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_windy,Global2,NC_Start,NC_Count))
               case(5) !MAXELE
                 CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_maxele,Global1,NC_Start,NC_Count))
               case(6) !DIR
