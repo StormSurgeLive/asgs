@@ -180,7 +180,8 @@
          end select
       end do
       !
-      call check(nf90_get_att(nc_id,nf90_global,'agrid',agrid))
+      agrid = 'null'
+      call check(nf90_get_att(nc_id,nf90_global,'grid',agrid))
       ! determine time increment between output writes
       if ( ndset.gt.1 ) then
          time_increment = timesec(2) - timesec(1)
@@ -195,7 +196,7 @@
       open(11,file=trim(ascii_datafile_name),status='replace',action='write')
       ! write header info
       write(11,'(A)') trim(agrid)
-      write(11,*) ndset, np, time_increment, nspool, num_components
+      write(11,1010) ndset, np, time_increment, nspool, num_components
       ! get the variable id(s) of the data we want to convert
       do i=1,num_components
          call check(nf90_inq_varid(nc_id, varname(i), nc_varid(i)))
@@ -217,9 +218,9 @@
                endif
              end do
          else
-            write(11,*) timesec(i), it
+            write(11,2120) timesec(i), it
             do k=1,np
-               write(11,*) k,(adcirc_data(k,j),j=1,num_components)
+               write(11,2453) k,(adcirc_data(k,j),j=1,num_components)
             end do
          endif
          write(6,advance='no',fmt='(I4)') i
@@ -228,6 +229,10 @@
       write(6,*) "INFO: Wrote ",i-1," data sets."
       close(11)
       call check(nf90_close(nc_id))
+!
+ 1010 FORMAT(1X,I10,1X,I10,1X,E15.7E3,1X,I8,1X,I5,1X,'FileFmtVersion: ',I10)
+ 2120 FORMAT(2X,1pE20.10E3,5X,I10)
+ 2453 FORMAT(2x, i8, 2x, 1pE20.10E3, 1pE20.10E3, 1pE20.10E3, 1pE20.10E3)
 !---------------------------------------------------------------------
       end program netcdf2adcirc
 !---------------------------------------------------------------------

@@ -6,7 +6,7 @@
 # them to ATCF format for use within ADCIRC.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2009 Jason Fleming
+# Copyright(C) 2009-2012: Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -49,7 +49,7 @@ my ($adv_str, $adv_url) = ('','');
 my $pressure;
 my $storm_class="";
 my $storm_name;
-my $storm_number; 
+my $storm_number;
 my $adv_num;
 my $storm_year;
 my $nowcast_year;
@@ -103,7 +103,7 @@ if (@match) {
    }
 }
 my $storm_number_str = sprintf( "%02d", $storm_number );
-substr($atcf_line,4,2) = $storm_number_str; 
+substr($atcf_line,4,2) = $storm_number_str;
 # Date format
 # 1500Z THU SEP 02 2004
 # July 18th TD 2. HAS CHANGED
@@ -128,7 +128,7 @@ if (@match) {
       $nowcast_month = $month_lookup{$vals[2]};
       $nowcast_day = $vals[3];
    }
-   $nowcast_date_time = $nowcast_year . $nowcast_month . $nowcast_day . $nowcast_hour; 
+   $nowcast_date_time = $nowcast_year . $nowcast_month . $nowcast_day . $nowcast_hour;
    printf STDERR "INFO: nhc_advisory_bot.pl: Time of nowcast is $nowcast_date_time\n";
    substr($atcf_line,8,10) = sprintf("%10d",$nowcast_date_time);
 }
@@ -155,7 +155,7 @@ my @tmp = split(' ', $storm_name);
 if ($tmp[0] eq 'HURRICANE'){
    $storm_class = $tmp[0];
    $storm_name = $tmp[1];
-} elsif ($tmp[0] eq 'TROPICAL' or $tmp[0] eq 'SUBTROPICAL') { 
+} elsif ($tmp[0] eq 'TROPICAL' or $tmp[0] eq 'SUBTROPICAL') {
     # SUBTROPICAL is rare. see 2007 01
     $storm_class = "$tmp[0] $tmp[1]";
     $storm_name = $tmp[2];
@@ -217,12 +217,12 @@ if (@match) {
       $vmax = $1;
    }
 }
-# Carola Kaiser 19 July 2011 
+# Carola Kaiser 19 July 2011
 open(PLOT,">>$metadata") || die "ERROR: nhc_advisory_bot.pl: Failed to open run.properties file for appending storm name and vmax: $!.";
 print PLOT "stormname:$storm_name\nwind:$vmax\nadvisory time: $date_time\n";
 close(PLOT);
 #
-substr($atcf_line,47,4) = sprintf("%4d",$vmax); 
+substr($atcf_line,47,4) = sprintf("%4d",$vmax);
 printf STDERR "INFO: nhc_advisory_bot.pl: nowcast max wind is $vmax\n";
 my $forecast_atcf_filename = lc($storm_name) . "_advisory_" . $adv_num_str . ".fst";
 #
@@ -235,7 +235,7 @@ for my $i (0...$#{$body_ref}) {
       #50 KT.......120NE  75SE  60SW  75NW.
       #34 KT.......175NE 120SE 120SW 120NW.
       $i++;
-      while(1) { 
+      while(1) {
          if ( @{$body_ref}[$i] =~ /^(\d{1,2}) KT\.{7}\s{0,}(\d{1,3})[N|S][E|W]\s+(\d{1,3})[N|S][E|W]\s+(\d{1,3})[N|S][E|W]\s+(\d{1,3})[N|S][E|W]/) {
             $isotachs_found++;
             my @wind_radii = ( $1, $2, $3, $4, $5 );
@@ -248,17 +248,17 @@ for my $i (0...$#{$body_ref}) {
       for ( my $j=$isotachs_found; $j>0; $j-- ) {
          for ( my $k=0; $k<4; $k++ ) {
             my $starting_pos = 72 + ($k * 6);
-            my $list_pos = 1 + $k + ( 5 * ($j-1) ); 
+            my $list_pos = 1 + $k + ( 5 * ($j-1) );
             # fill in wind radii
             substr($atcf_line,$starting_pos,5) = sprintf("%5d",$isotachs[$list_pos]);
             # fill in isotach
             substr($atcf_line,63,3) = sprintf("%3d",$isotachs[5*($j-1)]);
          }
-         printf ATCF "$atcf_line\n"; 
-      } 
+         printf ATCF "$atcf_line\n";
+      }
       unless ( $isotachs_found ) {
-         printf ATCF "$atcf_line\n"; 
-      }  
+         printf ATCF "$atcf_line\n";
+      }
       last;
    }
 }
@@ -266,7 +266,7 @@ for my $i (0...$#{$body_ref}) {
 # FORECAST VALID 10/0000Z 21.5N  84.5W FORECASTs have a bizzare date format:
 # dd/hhmm  BUT near end of the month say 31/0000 the forecast dates switch to
 # 01/0000, 01/12000 so we need to check for this and increment the month.
-my $forecast_period = 0; 
+my $forecast_period = 0;
 $forecast_year = $nowcast_year;
 $forecast_month = $nowcast_month;
 $forecast_day = $nowcast_day;
@@ -277,7 +277,7 @@ while ($i < $#{$body_ref} ) {
       my $atcf_line = $template;
       # fill in the nowcast time
       substr($atcf_line,8,10) = sprintf("%10d",$nowcast_date_time);
-      # fill in the storm name 
+      # fill in the storm name
       substr($atcf_line,148,10) = sprintf("%10s",$storm_name);
       my $line = @{$body_ref}[$i];
       chomp $line;
@@ -307,24 +307,24 @@ while ($i < $#{$body_ref} ) {
       if ($line =~ /^MAX WIND\s+(\d{1,4}) KT\.\.\.GUSTS\s+(\d{1,4}) KT\./ ) {
          $vmax = $1;
       }
-      substr($atcf_line,47,4) = sprintf("%4d",$vmax); 
+      substr($atcf_line,47,4) = sprintf("%4d",$vmax);
       $forecast_date_time = sprintf("%04d%02d%02d%02d", $forecast_year, $forecast_month, $forecast_day, $forecast_hour);
       # check to see if we have crossed into the next month
       if ( $forecast_date_time < $nowcast_date_time ) {
          $forecast_month++;
          if ( $forecast_month > 12 ) {
-            $forecast_month = 1; 
+            $forecast_month = 1;
          }
       }
-      # Determine the time in hours (forecast period) between the current 
+      # Determine the time in hours (forecast period) between the current
       # forecast and the nowcast time
       (my $ddays,my $dhrs, my $dsec) = Date::Pcalc::Delta_DHMS($nowcast_year,$nowcast_month,$nowcast_day,$nowcast_hour,0,0,$forecast_year,$forecast_month,$forecast_day,$forecast_hour,0,0);
-      my $forecast_period = $ddays*24 + $dhrs;      
+      my $forecast_period = $ddays*24 + $dhrs;
       substr($atcf_line,29,4)=sprintf("%4d",$forecast_period);
       # Get the next line and parse the isotachs
       $i++;
-      $i = parseIsotachs($body_ref, $i, $atcf_line); 
-   } 
+      $i = parseIsotachs($body_ref, $i, $atcf_line);
+   }
    $i++;
 }
 close(ATCF);
@@ -334,7 +334,7 @@ sub parseIsotachs {
     my ($body_ref, $i, $atcf_line) = @_;
     $isotachs_found = 0;
     @isotachs = ();
-    while(1) { 
+    while(1) {
        #64 KT... 45NE  30SE  20SW  30NW.
        if ( @{$body_ref}[$i] =~ /^(\d{1,2}) KT\.{3}\s{0,}(\d{1,3})[N|S][E|W]\s+(\d{1,3})[N|S][E|W]\s+(\d{1,3})[N|S][E|W]\s+(\d{1,3})[N|S][E|W]/) {
           $isotachs_found++;
@@ -348,16 +348,16 @@ sub parseIsotachs {
     for ( my $j=$isotachs_found; $j>0; $j-- ) {
        for ( my $k=0; $k<4; $k++ ) {
           my $starting_pos = 72 + ($k * 6);
-          my $list_pos = 1 + $k + ( 5 * ($j-1) ); 
+          my $list_pos = 1 + $k + ( 5 * ($j-1) );
           # fill in wind radii
           substr($atcf_line,$starting_pos,5) = sprintf("%5d",$isotachs[$list_pos]);
           # fill in isotach
           substr($atcf_line,63,3) = sprintf("%3d",$isotachs[5*($j-1)]);
        }
-       printf ATCF "$atcf_line\n"; 
-    } 
+       printf ATCF "$atcf_line\n";
+    }
     unless ( $isotachs_found ) {
-       printf ATCF "$atcf_line\n"; 
-    }  
-    return $i; 
+       printf ATCF "$atcf_line\n";
+    }
+    return $i;
 }
