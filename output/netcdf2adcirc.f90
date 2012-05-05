@@ -39,6 +39,8 @@
       integer :: NC_VarID_time
       integer :: nc_count(2)
       integer :: nc_start(2)
+      integer :: nc_count3D(3)
+      integer :: nc_start3D(3)
       integer :: numNodesNonDefault
       integer :: nc_id
       integer :: ndim
@@ -51,10 +53,11 @@
       real(8) :: defaultValue
       real(8), allocatable :: timesec(:)  ! time in seconds associated with each dataset
       real(8), allocatable :: adcirc_data(:,:) ! generic holder for converted data
+      real(8), allocatable :: adcirc_data3D(:,:,:) ! generic holder for converted data
       integer :: nspool
       integer :: it
       integer :: argcount
-      integer :: i, j, k
+      integer :: i, j, k, m
       character(1024) :: cmdlineopt
       character(1024) :: cmdlinearg
       character(1024) :: datafile
@@ -113,11 +116,19 @@
       call check(nf90_get_var(nc_id, NC_VarID_time, timesec, (/ 1 /), (/ ndset /) ))
       !
       ! determine the type of file that we have
-      varname(1) = "null"
+      varname(:) = "null"
       num_components = 1
       do i=1,nvar
          call check(nf90_inquire_variable(nc_id, i, thisVarName))
          select case(trim(thisVarName))
+         case("u-vel3D","v-vel3D","w-vel3D")
+            write(6,*) "INFO: Preparing to write an ADCIRC 3D water current velocity (fort.45) file."
+            ascii_datafile_name = "fort.45"
+            num_components = 3
+            varname(1) = "u-vel3D"
+            varname(2) = "v-vel3D"
+            varname(3) = "w-vel3D"
+            exit
          case("zeta")
             write(6,*) "INFO: Preparing to write an ADCIRC water surface elevation (fort.63) file."
             ascii_datafile_name = "fort.63"
@@ -181,7 +192,7 @@
       end do
       !
       agrid = 'null'
-      call check(nf90_get_att(nc_id,nf90_global,'grid',agrid))
+      call check(nf90_get_att(nc_id,nf90_global,'agrid',agrid))
       ! determine time increment between output writes
       if ( ndset.gt.1 ) then
          time_increment = timesec(2) - timesec(1)
@@ -196,18 +207,42 @@
       open(11,file=trim(ascii_datafile_name),status='replace',action='write')
       ! write header info
       write(11,'(A)') trim(agrid)
-      write(11,1010) ndset, np, time_increment, nspool, num_components
+      if ((num_components.eq.1).or.(num_components.eq.2)) then
+         write(11,1010) ndset, np, time_increment, nspool, num_components
+      endif
+      if (num_components.eq.3) then
+         write(11,1011) ndset, np, time_increment, nspool, nfen, num_components
+      endif
       ! get the variable id(s) of the data we want to convert
       do i=1,num_components
          call check(nf90_inq_varid(nc_id, varname(i), nc_varid(i)))
       end do
-      allocate(adcirc_data(np,num_components))
-      nc_count = (/ np, 1 /)
+
+      if ((num_components.eq.1).or.(num_components.eq.2)) then
+          allocate(adcirc_data(np,num_components))
+         nc_count = (/ np, 1 /)
+      endif
+      if (num_components.eq.3) then
+         call check(nf90_inq_dimid(nc_id, "num_v_nodes", nc_dimid_vnode))
+         nc_count3D = (/ np, nfen, 1 /)
+         allocate(adcirc_data3D(np,nfen,num_components))
+         call check(nf90_inquire_dimension(nc_id, nc_dimid_vnode, len=nfen))
+      endif
       write(6,*) "INFO: Commence writing file ..."
       do i=1,ndset
-         nc_start = (/ 1, i /)
+         if ((num_components.eq.1).or.(num_components.eq.2)) then
+            nc_start = (/ 1, i /)
+         endif
+         if (num_components.eq.3) then
+            nc_start3D = (/ 1, 1, i /)
+         endif
          do j=1,num_components
-            call check(nf90_get_var(nc_id,nc_varid(j),adcirc_data(:,j),nc_start,nc_count))
+            if ((num_components.eq.1).or.(num_components.eq.2)) then
+               call check(nf90_get_var(nc_id,nc_varid(j),adcirc_data(:,j),nc_start,nc_count))
+            endif
+            if (num_components.eq.3) then
+               call check(nf90_get_var(nc_id,nc_varid(j),adcirc_data3D(:,:,j),nc_start3D,nc_count3D))
+            endif
          end do
          if ( sparse.eqv..true. ) then
             numNodesNonDefault = count( adcirc_data(:,1).eq.-99999.d0 )
@@ -218,10 +253,18 @@
                endif
              end do
          else
-            write(11,2120) timesec(i), it
-            do k=1,np
-               write(11,2453) k,(adcirc_data(k,j),j=1,num_components)
-            end do
+            if ((num_components.eq.1).or.(num_components.eq.2)) then
+               write(11,2120) timesec(i), it
+               do k=1,np
+                  write(11,2453) k,(adcirc_data(k,j),j=1,num_components)
+               end do
+            endif
+            if (num_components.eq.3) then
+               write(11,2121) timesec(i), it, (-1+(real(2)/real(nfen))*m,m=1,nfen-1), 1.d0, 1.d0
+               do k=1,np
+                  write(11,2454) k,(adcirc_data3D(k,j,1),adcirc_data3D(k,j,2),adcirc_data3D(k,j,3),j=1,nfen)
+               end do
+            endif
          endif
          write(6,advance='no',fmt='(I4)') i
       enddo
@@ -231,8 +274,11 @@
       call check(nf90_close(nc_id))
 !
  1010 FORMAT(1X,I10,1X,I10,1X,E15.7E3,1X,I8,1X,I5,1X,'FileFmtVersion: ',I10)
+ 1011 FORMAT(1X,I10,1X,I10,1X,E15.7E3,1X,I8,1X,I5,1X,I2,1X,'FileFmtVersion: ',I10)
  2120 FORMAT(2X,1pE20.10E3,5X,I10)
+ 2121 FORMAT(2X,1pE20.10E3,5X,I10,99(1pE20.10E3,2X))
  2453 FORMAT(2x, i8, 2x, 1pE20.10E3, 1pE20.10E3, 1pE20.10E3, 1pE20.10E3)
+ 2454 FORMAT(2x, i8, 2x, 99(1pE20.10E3))
 !---------------------------------------------------------------------
       end program netcdf2adcirc
 !---------------------------------------------------------------------

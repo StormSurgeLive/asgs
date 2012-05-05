@@ -92,7 +92,7 @@
          call check(nf90_close(nc_id))
          stop
       endif
-      write(6,'(A)') "INFO: Generating XDMF xml to for this NetCDF file."
+      write(6,'(A)') "INFO: Generating XDMF xml for this NetCDF file."
       !
       ! form file name of XDMF xml file and open it
       xmf = trim(datafile)//".xmf"

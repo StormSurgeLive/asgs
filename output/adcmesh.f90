@@ -15,6 +15,7 @@
       double precision, allocatable :: xyd(:,:), bar(:,:,:)
       character(120)                :: agrid
       integer                       :: ne, np
+      integer                       :: nfen
       integer                       :: neta_count ! count of open boundary nodes
       integer                       :: nvel_count ! count of land boundary nodes
       integer                       :: nope, neta, nvdl_max
@@ -23,6 +24,7 @@
       integer,          allocatable :: nvell(:), ibtype(:),  nbvv(:,:), ibconn(:,:)
       !
       integer                       :: NC_DimID_node
+      integer                       :: NC_DimID_vnode
       integer                       :: NC_DimID_nele
       integer                       :: NC_DimID_nvertex
       integer                       :: NC_DimID_nope
