@@ -202,17 +202,7 @@
       nspool = -99999
       it = -99999
       defaultValue = -99999.d0
-      !
-      ! open the ascii adcirc file that will hold the data
-      open(11,file=trim(ascii_datafile_name),status='replace',action='write')
-      ! write header info
-      write(11,'(A)') trim(agrid)
-      if ((num_components.eq.1).or.(num_components.eq.2)) then
-         write(11,1010) ndset, np, time_increment, nspool, num_components
-      endif
-      if (num_components.eq.3) then
-         write(11,1011) ndset, np, time_increment, nspool, nfen, num_components
-      endif
+
       ! get the variable id(s) of the data we want to convert
       do i=1,num_components
          call check(nf90_inq_varid(nc_id, varname(i), nc_varid(i)))
@@ -224,11 +214,26 @@
       endif
       if (num_components.eq.3) then
          call check(nf90_inq_dimid(nc_id, "num_v_nodes", nc_dimid_vnode))
+         call check(nf90_inquire_dimension(nc_id, nc_dimid_vnode, len=nfen))
          nc_count3D = (/ np, nfen, 1 /)
          allocate(adcirc_data3D(np,nfen,num_components))
-         call check(nf90_inquire_dimension(nc_id, nc_dimid_vnode, len=nfen))
+         allocate(sigma(nfen))
+         call check(nf90_inq_varid(nc_id, "sigma", nc_varid_sigma))
+         call check(nf90_get_var(nc_id, nc_varid_sigma, sigma))
       endif
+
       write(6,*) "INFO: Commence writing file ..."
+      !
+      ! open the ascii adcirc file that will hold the data
+      open(11,file=trim(ascii_datafile_name),status='replace',action='write')
+      ! write header info
+      write(11,'(A)') trim(agrid)
+      if ((num_components.eq.1).or.(num_components.eq.2)) then
+         write(11,1010) ndset, np, time_increment, nspool, num_components
+      endif
+      if (num_components.eq.3) then
+         write(11,1011) ndset, np, time_increment, nspool, nfen, num_components
+      endif
       do i=1,ndset
          if ((num_components.eq.1).or.(num_components.eq.2)) then
             nc_start = (/ 1, i /)
@@ -260,7 +265,7 @@
                end do
             endif
             if (num_components.eq.3) then
-               write(11,2121) timesec(i), it, (-1+(real(2)/real(nfen))*m,m=1,nfen-1), 1.d0, 1.d0
+               write(11,2121) timesec(i), it, (sigma(m),sigma(m),sigma(m),m=1,nfen-1),sigma(nfen),sigma(nfen)
                do k=1,np
                   write(11,2454) k,(adcirc_data3D(k,j,1),adcirc_data3D(k,j,2),adcirc_data3D(k,j,3),j=1,nfen)
                end do
