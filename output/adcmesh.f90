@@ -13,6 +13,7 @@
       real :: deg2rad
 
       double precision, allocatable :: xyd(:,:), bar(:,:,:)
+      real(8), allocatable          :: sigma(:)
       character(120)                :: agrid
       integer                       :: ne, np
       integer                       :: nfen
@@ -37,6 +38,7 @@
       integer                       :: NC_VarID_Mesh
       integer                       :: NC_VarID_x
       integer                       :: NC_VarID_y
+      integer                       :: NC_VarID_sigma
       integer                       :: NC_VarID_element
       integer                       :: NC_VarID_neta
       integer                       :: NC_VarID_nvdll
