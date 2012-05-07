@@ -1,0 +1,96 @@
+storm_track_gen(1)
+==================
+:doctype: manpage
+
+NAME
+----
+storm_track_gen.pl - generates ATCF formatted input files for ADCIRC using a combination
+of hindcast and forecast data. 
+
+SYNOPSIS
+--------
+*storm_track_gen.pl* --dir 'PATH_TO_RAW_ATCF_FILES' --storm 'STORM_NUMBER' --year 'YEAR' [OPTIONS]
+
+DESCRIPTION
+-----------
+The storm_track_gen.pl(1) program has three required command line arguments and 
+six optional command line arguments. These command line arguments are listed below.
+
+OPTIONS
+-------
+
+*--dir* 'PATH_TO_RAW_ATCF_FILES'::
+    Find the raw ATCF input files in the directory 'PATH_TO_RAW_ATCF_FILES'. This 
+    command line argument is required.
+
+*--storm* 'STORM_NUMBER'::
+    Use 'STORM_NUMBER' as the storm number in the year specified by the *--year* option
+    below. This is used in constructing the names of the input files. This command line
+    argument is required.
+
+*--year* 'YEAR'::
+    Use the four digit year 'YEAR' when constructing the names of the input files. 
+    This command line argument is required. 
+
+*--coldstartdate* 'CS_DATE_TIME'::
+    Parse the number string 'CS_DATE_TIME' to determine the year, month, day, and hour
+    corresponding to the ADCIRC cold start time. The number string is ten characters 
+    in the format +YYYYMMDDHH24+. This is used to relate the dates and times listed
+    in the ATCF data with the current state of the ADCIRC simulation. If it is not
+    supplied, the script assumes that the very first line in the hindcast ATCF file
+    corresponds to the ADCIRC cold start date and time. 
+
+*--hotstartseconds* 'ADCIRC_MODEL_TIME'::
+    Use number of seconds 'ADCIRC_MODEL_TIME' as an offset to the cold start date and
+    time to determine the date and time corresponding to the current ADCIRC model time
+    if the model is to be hotstarted. 
+
+*--nws* 'NWS'::
+    Generate an ATCF formatted file suitable for use in ADCIRC's internal vortex 
+    model specified by the NWS value 'NWS'. See documentation for ADCIRC's fort.15
+    file for details of the NWS parameter. Possible values are 19 or 319.
+
+*--name* 'VARIATION'::
+    Vary the output data using according to the string 'VARIATION'. Allowable 
+    values are 'maxWindSpeed', 'overlandSpeed', and 'veer'. The output data will
+    have the corresponding values adjusted as described below. 
+
+*--percent* 'PERCENT'::
+    When varying the output data using the *--name* option above, use 'PERCENT'
+    as the magnitude of the variation, as described below. 
+
+
+.Definitions
+
+maxWindSpeed;;
+   The Vmax in the output data will be adjusted using the percentage indicated
+with the *--percent* command line option; for example, the use of this
+variation with a percent value of 110 will increase all Vmax values in the
+forecast portion of the output by 10%.  If these data are subsequently used in
+the aswip program, that program will calculate the Rmax values based on the
+modified Vmax. 
+
+overlandSpeed;;
+   The forecast times in the output data will be adjusted using the percentage
+indicated with the *--percent* command line option; for example, the use of 
+this variation with a percent value of 110 will reduce all forecast times in
+the output by 10%.
+
+veer;;
+   The storm coordinates in the output data will be adjusted using the percentage
+indicated with the *--percent* command line option; for example, the use of
+this variation with a percent value of 100 will cause the storm to veer to the right
+along the right edge of the consensus track; setting the percent value to -100
+will cause the storm to veer to the left along the left edge of the consensus track.
+
+AUTHOR
+------
+The nhc_advisory_bot.pl code was written by Jason Fleming with contributions
+from Brett Estrade and constitutes a part of the ADCIRC Surge Guidance System (ASGS).
+
+COPYING
+-------
+The ASGS is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.

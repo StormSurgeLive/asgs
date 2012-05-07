@@ -1,0 +1,45 @@
+nhc_advisory_bot(1)
+===================
+:doctype: manpage
+
+NAME
+----
+nhc_advisory_bot.pl - Parses text advisories from the National Hurricane Center and converts
+them to ATCF format for use within ADCIRC 
+
+SYNOPSIS
+--------
+*nhc_advisory_bot.pl* --input 'NHC_FORECAST_ADVISORY' --output 'OUTFILE' --metadata 'RUN_PROPERTIES_FILE'
+
+
+DESCRIPTION
+-----------
+The nhc_advisory_bot.pl(1) program has three required command line arguments, listed below. 
+
+OPTIONS
+-------
+
+*--input* 'NHC_FORECAST_ADVISORY'::
+    Read the official forecast/advisory as issued by the National Hurricane Center
+    from the file 'NHC_FORECAST_ADVISORY'.
+
+*--output* 'OUTFILE'::
+    Write an ATCF formatted file with the data from the forecast/advisory to
+    the file 'OUTFILE'. 
+
+*--metadata* 'RUN_PROPERTIES_FILE'::
+    Write metadata about the forecast/advisory, including the name of the 
+    storm and the maximum wind speed to the metadata file 'RUN_PROPERTIES_FILE'.
+    This file is conventionally named +run.properties+. 
+
+AUTHOR
+------
+The nhc_advisory_bot.pl code was written by Jason Fleming and constitutes
+a part of the ADCIRC Surge Guidance System (ASGS).
+
+COPYING
+-------
+The ASGS is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
