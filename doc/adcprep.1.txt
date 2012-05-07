@@ -1,0 +1,75 @@
+ADCPREP(1)
+=========
+:doctype: manpage
+
+NAME
+----
+adcprep - domain decomposition for the coastal circulation and storm surge model ADCIRC
+
+SYNOPSIS
+--------
+*adcprep* --np 'NUM_SUBDOMAINS' ['OPTIONS']
+
+
+DESCRIPTION
+-----------
+The adcprep(1) program has optional command line arguments, listed below. 
+
+OPTIONS
+-------
+
+The capability of adcprep to use command line options was developed to
+ease the task of automating its execution. If the adcprep command is issued
+without command line options, it will present an interactive menu to 
+the user to allow the selection of the task to be performed. 
+
+*--np* 'NUM_SUBDOMAINS'::
+    Decompose the domain into 'NUM_SUBDOMAINS' subdomains. The number of subdomains
+    should be equal to the number of compute processors that will be used in the
+    parallel computation. This command line option is required.
+
+*--partmesh*::
+    Partition the mesh only; that is, decide which subdomain each of the nodes
+    should fall into. This should be done first. The result is a file called
+    +partmesh.txt+, which consists of a list of integers, one line per node
+    in the fulldomain mesh. Each integer in the list represents the subdomain
+    number that each node will fall into. As a result, the range of values
+    in the file represents the range of subdomain numbers. 
+
+*--prepall*::
+    Use the +partmesh.txt+ file to decompose all the ADCIRC input files into
+    subdirectories numbered 'PExxxx' where 'xxxx' is the zero indexed, zero 
+    padded subdomain number. Expects all input files to have the default names,
+    e.g., the mesh file must be named +fort.14+ instead of something like 
+    +myMeshFile.grd+ in order for this option to work. This option requires
+    that adcprep has already been executed with the *partmesh* option, and that
+    the +partmesh.txt+ file was written successfully.    
+
+*--prep13*::
+    Only redecompose the nodal attributes (fort.13) input file. Requires that
+    *prepall* step has already been performed.
+
+*--prep15*::
+    Only redecompose the control model parameter and periodic boundary conditions
+    file (fort.15) input file. Requires that *prepall* step has already been performed.
+
+*--prep20*::
+    Only redecompose the non-periodic, normal flux boundary condition file (fort.20).
+    Requires that *prepall* step has already been performed.
+
+*--prep88*::
+    Only redecompose the upland river initialization file (fort.88).
+    Requires that *prepall* step has already been performed.
+
+AUTHOR
+------
+The ADCPREP code is copyrighted by R. A. Luettich, Jr., and J. J. Westerink, 1994--2012.
+
+RESOURCES
+---------
+Official ADCIRC Documentation: http://www.adcirc.org
+
+COPYING
+-------
+No part of the code may be reproduced or redistributed without the written
+permission of the authors. 

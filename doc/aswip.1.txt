@@ -1,0 +1,135 @@
+ASWIP(1)
+========
+:doctype: manpage
+
+NAME
+----
+aswip - asymmetric vortex preprocessing and analysis code for ADCIRC
+
+SYNOPSIS
+--------
+*aswip* ['OPTIONS']
+
+
+DESCRIPTION
+-----------
+The aswip(1) command reads an ADCIRC fort.22 file for the HWind format
+(NWS=15 in the ADCIRC fort.15) or an ATCF formatted BEST track file with the hours column filled
+in as described for the dynamic asymmetric vortex model (NWS=19 in the ADCIRC fort.15)
+In the case of ATCF formatted input, it generates an output file suitable for
+use in the asymmetric vortex model in ADCIRC. It can also perform vortex wind
+field analyses as described below.
+
+OPTIONS
+-------
+
+*-a, -A*::
+    Calculate Rmax as a function of azimuthal angle in increments
+    of 1 degree and output the data to file(s) called full_circle_rmaxes_xxx.d.
+
+*-v, -V*::
+    Calculate wind velocity and barometric pressure along five storm radii:
+    northeast, southeast, southwest, northwest, and the radius that is
+    clockwise perpendicular to storm motion. Radial resolution is half
+    a nautical mile. Output the data to file(s) called radialvp_xxx.d.
+
+*-s, -S*::
+    Calculate wind velocity and barometric pressure on an unstructured
+    mesh, which defaults to a circular mesh consisting only of points,
+    with no element table. However, an element table will be included
+    in the output file if a suitable table has been specified with the '-e'
+    option. The radial spatial resolution is
+    1 nautical mile and azimuthal resolution is 5 nautical miles.
+    The data are output to VTK-formatted file(s) called spatial_data_xxx.d
+    (VTK stands for Visualization ToolKit, a free visualization package
+    from Kitware, Inc.). These files can be loaded directly into VTK
+    (http://www.vtk.org) or Paraview (http://www.paraview.org) for
+    visualization and further analysis.
+
+*-d, -D*::
+    Suppress writing of the asymmetric vortex output file (NWS_19_fort.22).
+
+*-e, -E* 'ELEMENT_TABLE_FILE'::
+    Use the element table in the file 'ELEMENT_TABLE_FILE' to go along
+    with the spatial wind velocity and barometric pressure data that are
+    being generated as specified by the '-s' option. Inclusion of an
+    element table enables the production of streamlines for visualization.
+
+*-f, -F* 'FRAME_NUMBER'::
+    Only perform wind analyses on the specified 'FRAME_NUMBER', that is,
+    the snapshot found by incrementing into the data using either the timestep,
+    if provided by the '-o' option. If the '-o' option was not given,
+    each snapshot or time period in the raw data is considered a frame.
+
+*-i, -I* 'MESH_FILE'::
+    Generate spatial wind velocity and barometric pressures on the mesh
+    in the file 'MESH_FILE'. This option requires that the 'MESH_FILE'
+    be in the ADCIRC fort.14 file format.
+
+*-m, -M* 'ISOTACH_SELECTION_METHOD'::
+    Use 'ISOTACH_SELECTION_METHOD' to choose among isotachs when more than
+    one has been provided for a particular quadrant at a particular point
+    in time. The selected isotach will be used for calculation of Rmax
+    at the center of that storm quadrant at that point in time. Possible
+    values of 'ISOTACH_SELECTION_METHOD' are 1, meaning that the 34kt
+    isotach should always be used; or 2, meaning that the highest isotach
+    should always be used.
+
+*-o, -O* 'TIME_INCREMENT'::
+    Use 'TIME_INCREMENT' (in seconds) when performing wind analyses. If
+    this option is not used, and wind analyses were requested using other
+    options, the time increment defaults to the time resolution of the underlying
+    data. If the time resolution of the underlying data varies, output will
+    simply be generated at each time that data are available.
+
+*-n, -N* 'NWS'::
+    The input fort.22 file is set up in the format required for the
+    ADCIRC wind model corresponding to the 'NWS' value. The NWS values
+    15 and 19 are supported. If 'NWS' is set to 19, the fort.22 is expected
+    to be in ATCF format with the hours column set to monotonically increasing
+    values, and an input file will be generated for ADCIRC's asymmetric vortex
+    model. If 'NWS' is set to 15 (HWind), only wind analysis features are supported.
+
+*-p, -P* 'PERCENT_RMAX'::
+    Enlarge or reduce the radius to maximum winds that have been calculated
+    for the asymmetric vortex by the amount specified by 'PERCENT_RMAX'.
+
+*-x, -X* 'PERCENT_VMAX'::
+    Intensify or weaken the maximum wind speed from the ATCF formatted
+    input file by the amount specified by 'PERCENT_VMAX'.
+
+*-t, -T* 'TIME_OFFSET'::
+    Use the 'TIME_OFFSET' value (in seconds) to correspond to the first
+    data in the input file, rather than setting the first data to correspond
+    to time=0.
+
+*-r, -R* 'RMAX'::
+    Set all the radius to maximum wind values to the specified value
+    in the NWS_19_fort.22 asymmetric vortex file for use in ADCIRC.
+
+*-w, -W* 'FILE_TO_PROCESS'::
+    Use the file name 'FILE_TO_PROCESS' as the input file for processing;
+    the default is 'fort.22' if this option is not specified.
+
+DEPENDENCIES
+------------
+Aswip is distributed with the ADCIRC source code and requires that several
+ADCIRC modules be available during compilation.
+
+AUTHOR
+------
+Aswip was originally created by Robert Weaver and Rick Luettich.
+Jason Fleming reorganized it for modularity and brevity and added
+the meteorological analysis features. This man page was written by
+Jason Fleming.
+
+RESOURCES
+---------
+Official ADCIRC Documentation: http://www.adcirc.org
+Seahorse Coastal Consulting: http://www.seahorsecoastal.com
+
+COPYING
+-------
+The aswip code is distributed with ADCIRC and is covered by the same
+license.
+:w
