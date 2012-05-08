@@ -1,16 +1,25 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.5.2" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="AsciiDoc 8.6.7">
 <title>The ASGS Developers Guide</title>
 <style type="text/css">
-/* Debug borders */
-p, li, dt, dd, div, pre, h1, h2, h3, h4, h5, h6 {
-/*
-  border: 1px solid red;
-*/
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
 }
 
 body {
@@ -35,13 +44,8 @@ strong {
   color: #083194;
 }
 
-tt {
-  color: navy;
-}
-
 h1, h2, h3, h4, h5, h6 {
   color: #527bbd;
-  font-family: sans-serif;
   margin-top: 1.2em;
   margin-bottom: 0.5em;
   line-height: 1.3;
@@ -59,9 +63,11 @@ h3 {
 h3 + * {
   clear: left;
 }
+h5 {
+  font-size: 1.0em;
+}
 
 div.sectionbody {
-  font-family: serif;
   margin-left: 0;
 }
 
@@ -77,45 +83,44 @@ p {
 ul, ol, li > p {
   margin-top: 0;
 }
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
 
 pre {
   padding: 0;
   margin: 0;
 }
 
-span#author {
+#author {
   color: #527bbd;
-  font-family: sans-serif;
   font-weight: bold;
   font-size: 1.1em;
 }
-span#email {
+#email {
 }
-span#revnumber, span#revdate, span#revremark {
-  font-family: sans-serif;
+#revnumber, #revdate, #revremark {
 }
 
-div#footer {
-  font-family: sans-serif;
+#footer {
   font-size: small;
   border-top: 2px solid silver;
   padding-top: 0.5em;
   margin-top: 4.0em;
 }
-div#footer-text {
+#footer-text {
   float: left;
   padding-bottom: 0.5em;
 }
-div#footer-badges {
+#footer-badges {
   float: right;
   padding-bottom: 0.5em;
 }
 
-div#preamble {
+#preamble {
   margin-top: 1.5em;
   margin-bottom: 1.5em;
 }
-div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
+div.imageblock, div.exampleblock, div.verseblock,
 div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
 div.admonitionblock {
   margin-top: 1.0em;
@@ -135,7 +140,6 @@ div.content { /* Block element content. */
 /* Block element titles. */
 div.title, caption.title {
   color: #527bbd;
-  font-family: sans-serif;
   font-weight: bold;
   text-align: left;
   margin-top: 1.0em;
@@ -157,13 +161,15 @@ div.content + div.title {
 
 div.sidebarblock > div.content {
   background: #ffffee;
-  border: 1px solid silver;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
   padding: 0.5em;
 }
 
 div.listingblock > div.content {
-  border: 1px solid silver;
-  background: #f4f4f4;
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
   padding: 0.5em;
 }
 
@@ -171,8 +177,8 @@ div.quoteblock, div.verseblock {
   padding-left: 1.0em;
   margin-left: 1.0em;
   margin-right: 10%;
-  border-left: 5px solid #dddddd;
-  color: #777777;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
 }
 
 div.quoteblock > div.attribution {
@@ -180,8 +186,9 @@ div.quoteblock > div.attribution {
   text-align: right;
 }
 
-div.verseblock > div.content {
-  white-space: pre;
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
 }
 div.verseblock > div.attribution {
   padding-top: 0.75em;
@@ -254,35 +261,12 @@ div.compact div, div.compact div {
   margin-bottom: 0.1em;
 }
 
-div.tableblock > table {
-  border: 3px solid #527bbd;
-}
-thead, p.table.header {
-  font-family: sans-serif;
-  font-weight: bold;
-}
 tfoot {
   font-weight: bold;
 }
 td > div.verse {
   white-space: pre;
 }
-p.table {
-  margin-top: 0;
-}
-/* Because the table frame attribute is overriden by CSS in most browsers. */
-div.tableblock > table[frame="void"] {
-  border-style: none;
-}
-div.tableblock > table[frame="hsides"] {
-  border-left-style: none;
-  border-right-style: none;
-}
-div.tableblock > table[frame="vsides"] {
-  border-top-style: none;
-  border-bottom-style: none;
-}
-
 
 div.hdlist {
   margin-top: 0.8em;
@@ -339,25 +323,32 @@ span.footnote, span.footnoteref {
   min-width: 100px;
 }
 
-
-@media print {
-  div#footer-badges { display: none; }
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
 }
 
-div#toc {
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
   margin-bottom: 2.5em;
 }
 
-div#toctitle {
+#toctitle {
   color: #527bbd;
-  font-family: sans-serif;
   font-size: 1.1em;
   font-weight: bold;
   margin-top: 1.0em;
   margin-bottom: 0.1em;
 }
 
-div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -373,51 +364,217 @@ div.toclevel4 {
   margin-left: 6em;
   font-size: 0.9em;
 }
-/* Workarounds for IE6's broken and incomplete CSS2. */
 
-div.sidebar-content {
-  background: #ffffee;
-  border: 1px solid silver;
-  padding: 0.5em;
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+tt {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
 }
-div.sidebar-title, div.image-title {
-  color: #527bbd;
-  font-family: sans-serif;
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
   font-weight: bold;
-  margin-top: 0.0em;
-  margin-bottom: 0.5em;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
 }
 
-div.listingblock div.content {
-  border: 1px solid silver;
-  background: #f4f4f4;
-  padding: 0.5em;
+
+/*
+ * html5 specific
+ *
+ * */
+
+.monospaced {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
 }
 
-div.quoteblock-attribution {
-  padding-top: 0.5em;
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
   text-align: right;
 }
 
-div.verseblock-content {
-  white-space: pre;
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
 }
-div.verseblock-attribution {
-  padding-top: 0.75em;
-  text-align: left;
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
 }
-
-div.exampleblock-content {
-  border-left: 3px solid #dddddd;
-  padding-left: 0.5em;
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
 }
 
-/* IE6 sets dynamically generated links as visited. */
-div#toc a:visited { color: blue; }
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+@media screen {
+  body {
+    max-width: 50em; /* approximately 80 characters wide */
+    margin-left: 16em;
+  }
+
+  #toc {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 13em;
+    padding: 0.5em;
+    padding-bottom: 1.5em;
+    margin: 0;
+    overflow: auto;
+    border-right: 3px solid #f8f8f8;
+    background-color: white;
+  }
+
+  #toc .toclevel1 {
+    margin-top: 0.5em;
+  }
+
+  #toc .toclevel2 {
+    margin-top: 0.25em;
+    display: list-item;
+    color: #aaaaaa;
+  }
+
+  #toctitle {
+    margin-top: 0.5em;
+  }
+}
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
-window.onload = function(){asciidoc.footnotes();}
 var asciidoc = {  // Namespace.
 
 /////////////////////////////////////////////////////////////////////
@@ -459,7 +616,7 @@ toc: function (toclevels) {
 
   function tocEntries(el, toclevels) {
     var result = new Array;
-    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
     // Function that scans the DOM tree for header elements (the DOM2
     // nodeIterator API would be a better technique but not supported by all
     // browsers).
@@ -479,6 +636,25 @@ toc: function (toclevels) {
   }
 
   var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
   var entries = tocEntries(document.getElementById("content"), toclevels);
   for (var i = 0; i < entries.length; ++i) {
     var entry = entries[i];
@@ -506,24 +682,44 @@ toc: function (toclevels) {
  */
 
 footnotes: function () {
-  var cont = document.getElementById("content");
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
   var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
   var spans = cont.getElementsByTagName("span");
   var refs = {};
   var n = 0;
   for (i=0; i<spans.length; i++) {
     if (spans[i].className == "footnote") {
       n++;
-      // Use [\s\S] in place of . so multi-line matches work.
-      // Because JavaScript has no s (dotall) regex flag.
-      note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
       noteholder.innerHTML +=
         "<div class='footnote' id='_footnote_" + n + "'>" +
         "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
         n + "</a>. " + note + "</div>";
-      spans[i].innerHTML =
-        "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
-        "' title='View footnote' class='footnote'>" + n + "</a>]";
       var id =spans[i].getAttribute("id");
       if (id != null) refs["#"+id] = n;
     }
@@ -543,32 +739,86 @@ footnotes: function () {
       }
     }
   }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
 }
 
 }
+asciidoc.install(2);
 /*]]>*/
 </script>
 </head>
-<body>
+<body class="article">
 <div id="header">
 <h1>The ASGS Developers Guide</h1>
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
 </div>
 <div id="content">
+<div class="sect1">
 <h2 id="_introduction">Introduction</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This document describes the guidelines that ADCIRC Surge Guidance System
-developers should use when developing new code for ASGS and its related
-utilities. It also presents a short tutorial for Subversion (svn), the version
-control software that we use to coordinate development and ease the task of
-merging in new features.</p></div>
+<div class="paragraph"><p>The ADCIRC Surge Guidance System (ASGS) is a portable, transportable,
+geographically agnostic software system for generating storm surge and wave
+guidance from ADCIRC + SWAN in real time on high resolution grids.</p></div>
+<div class="paragraph"><p>It derives meteorological forcing either from gridded wind fields (e.g., NCEP’s
+NAM model) or, for tropical cyclones, from a parametric wind / pressure model
+using storm parameters extracted from the text of the National Hurricane
+Center&#8217;s Forecast/Advisories.</p></div>
+<div class="paragraph"><p>For tropical cyclones the system is also configured to run a mini-ensemble of
+storms comprised of a predefined set of perturbations to the NHC’s consensus
+forecast. The ASGS can be configured to accept river flow forecasts as input as
+well.</p></div>
+<div class="paragraph"><p>The system runs successfully on a wide range of high performance computing
+platforms including Ranger at the Texas Advanced Computing Center (Univ Texas),
+Diamond, Jade and Sapphire at the US Army Corps of Engineers Engineering
+Research and Development Center, QueenBee and Tezpur at LONI and LSU, and
+several HPC platforms / clusters at the University of North Carolina at Chapel
+Hill.  The ASGS has been run on several grids covering the western North
+Atlantic, Caribbean Sea and Gulf of Mexico with high resolution areas in the
+northern and western Gulf of Mexico, in North Carolina and in
+Maryland/Virginia.</p></div>
+<div class="paragraph"><p>This document provides (a) a tour of the source, with brief explanations of the
+function of each major source code file; (b) installation requirements and
+procedure; (c) details of the vortex meterological model embedded in ADCIRC;
+(d) the guidelines that ADCIRC Surge Guidance System developers should use when
+developing new code for ASGS and its related utilities; and (e) a short
+tutorial for Subversion (svn), the version control software that we use to
+coordinate development and ease the task of merging in new features.</p></div>
 </div>
+</div>
+<div class="sect1">
 <h2 id="_guided_tour">Guided Tour</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The following is a list of directories and files that are provided
 with the ASGS along with a description of their purpose and function.</p></div>
-<h3 id="_base">base</h3><div style="clear:left"></div>
+<div class="sect2">
+<h3 id="_base">base</h3>
 <div class="paragraph"><p>The root of the ASGS directory structure contains the scripts that provide
 the main features of the ASGS.</p></div>
+<div class="sect3">
 <h4 id="_asgs_main_sh">asgs_main.sh</h4>
 <div class="paragraph"><p>The actual script that is executed to activate the ASGS is called asgs_main.sh.
 Its main function is to perform a hindcast if needed, then move to a
@@ -581,6 +831,8 @@ meteorological data, constructing control files, generating visualizations of
 results, etc., is contained in modular external scripts.</p></div>
 <div class="paragraph"><p>The asgs_main.sh script is the most central and most important one in the
 ASGS.</p></div>
+</div>
+<div class="sect3">
 <h4 id="_control_file_gen_pl">control_file_gen.pl</h4>
 <div class="paragraph"><p>The ADCIRC fort.15 and SWAN fort.26 (run control) files are generated by
 control_file_gen.pl. This script accepts a wide array of input arguments that
@@ -597,6 +849,8 @@ generating tides, etc) and the already-generated meteorological forcing files
 (if any) and produces control files for ADCIRC or ADCIRC+SWAN along with
 metadata in the run.properties file.</p></div>
 <div class="paragraph"><p>This is the 2nd most important script in the ASGS (after asgs_main.sh).</p></div>
+</div>
+<div class="sect3">
 <h4 id="_get_atcf_pl">get_atcf.pl</h4>
 <div class="paragraph"><p>The get_atcf.pl script is used by the ASGS to monitor the RSS feed from the
 National Hurricane Center for new Forecast/Advisories and to download the
@@ -617,6 +871,8 @@ site) was designed by the Automated Tropical Cyclone Forecasting system (ATCF).
 Please see the section below that discusses the ADCIRC parametric vortex models
 below for more details on this format, including a link to the online
 documentation.</p></div>
+</div>
+<div class="sect3">
 <h4 id="_nhc_advisory_bot_pl">nhc_advisory_bot.pl</h4>
 <div class="paragraph"><p>The nhc_advisory_bot.pl script takes the html file downloaded by get_atcf.pl
 script and parses out all the information required to write an ATCF formatted
@@ -624,6 +880,8 @@ forecast file ("OFCL"). It then generates the ATCF formatted file with the
 forecast parameters; this file could be used directly by one of ADCIRC&#8217;s
 internal parametric vortex models, but the ASGS subjects it to further
 processing as described below.</p></div>
+</div>
+<div class="sect3">
 <h4 id="_storm_track_gen_pl">storm_track_gen.pl</h4>
 <div class="paragraph"><p>The storm_track_gen.pl script takes the ATCF-formatted file generated by
 nhc_advisory_bot.pl (representing the forecast), the ATCF-formatted file
@@ -638,6 +896,8 @@ input), the overland speed of the storm (to speed it up or slow it down), and
 the maximum wind speed. These variations are configured in the overall ASGS
 configuration file and can be used to explore "what-if" scenarios during a
 tropical cyclone event.</p></div>
+</div>
+<div class="sect3">
 <h4 id="_get_nam_pl">get_nam.pl</h4>
 <div class="paragraph"><p>The get_nam.pl script is used by the ASGS to monitor NCEP&#8217;s anonymous ftp site
 for newly released output from their NAM (North American Mesoscale) atmospheric
@@ -652,6 +912,8 @@ retries the download every 60 seconds until new data have been discovered and
 downloaded.</p></div>
 <div class="paragraph"><p>The get_nam.pl script relies on the "wgrib2" executable to perform basic
 sanity checks on the grib2 files that it downloads.</p></div>
+</div>
+<div class="sect3">
 <h4 id="_namtoowi_pl">NAMtoOWI.pl</h4>
 <div class="paragraph"><p>The NAM output files in grib2 format that were downloaded by get_nam.pl are
 converted into a form that ADCIRC (or ADCIRC+SWAN) can use by the NAMtoOWI.pl
@@ -663,6 +925,8 @@ awip_lambert_interp executable. A list of points must be provided where the
 reprojected and interpolated data should be calculated. Finally, the
 interpolated data are output in OWI (Ocean Weather Inc) format for use in
 ADCIRC or ADCIRC+SWAN (NWS=12).</p></div>
+</div>
+<div class="sect3">
 <h4 id="_get_flux_pl">get_flux.pl</h4>
 <div class="paragraph"><p>If time-varying river flux boundary condition data (ADCIRC&#8217;s fort.20 file) are
 available, and the ASGS has been configured to include river flux forcing, the
@@ -673,6 +937,8 @@ flux files, since the file format is not self describing. The script also takes
 into account the current time in the ADCIRC simulation and the files that are
 currently available on the remote ftp site when constructing the flux boundary
 condition file that ADCIRC will actually use.</p></div>
+</div>
+<div class="sect3">
 <h4 id="_queue_script_generators">queue script generators</h4>
 <div class="paragraph"><p>The ASGS supports many HPC platforms, and it seems that each one is different
 from the others and has its own idiosyncracies. As a result, there are a number
@@ -683,35 +949,82 @@ in that they all use a template approach &#8230; a working queue script has
 "blanks" inserted for parameters that will change for different simulation runs
 and then a script is written (often cloned from one of the existing ones) that
 simply fills in the blanks according to the command line arguments.</p></div>
-<h3 id="_config">config</h3><div style="clear:left"></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_config">config</h3>
 <div class="paragraph"><p>The "config" subdirectory contains sample configuration files to illustrate
 the changes to be made for various situations.</p></div>
+<div class="sect3">
 <h4 id="_config_asgs_config_irene_garnet_ec95d_sh">config/asgs_config_irene_garnet_ec95d.sh</h4>
 <div class="paragraph"><p>This is a sample configuration file that sets the ASGS up to run hurricane
 Irene on the Garnet machine at ERDC using the small ec95d mesh.</p></div>
+</div>
+<div class="sect3">
 <h4 id="_config_asgs_config_irene_swan_garnet_r3_sh">config/asgs_config_irene_swan_garnet_r3.sh</h4>
 <div class="paragraph"><p>This sample configuration file illustrates the settings required for
 the ASGS to run hurricane Irene with SWAN coupling on the Garnet machine
 at USACE ERDC using the FEMA R3 mesh for the US mid-Atlantic coast.</p></div>
+</div>
+<div class="sect3">
 <h4 id="_config_asgs_config_irene_swan_river_br_ncv6b_sh">config/asgs_config_irene_swan_river_br_ncv6b.sh</h4>
 <div class="paragraph"><p>During hurricane Irene, this sample configuration file was used in North
 Carolina to run the ASGS on the Blueridge Dell linux cluster at RENCI with SWAN
 coupling on the NC v6b mesh.</p></div>
-<h3 id="_doc">doc</h3><div style="clear:left"></div>
-<div class="paragraph"><p>This directory contains the following documents: ASGSDevGuide.pdf,
-ASGSDevGuide.html, ASGSDevGuide.txt, README.asymmetric, README.fort.22.meta,
-ASGSDevGuide.txt, README.asymmetric2, and README.storm_track_gen.</p></div>
-<h3 id="_input">input</h3><div style="clear:left"></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_doc">doc</h3>
+<div class="paragraph"><p>This directory contains documentation for the ASGS, as described in the following
+subsections.</p></div>
+<div class="sect3">
+<h4 id="_asgs_operators_guide">ASGS Operators Guide</h4>
+<div class="paragraph"><p>ASGSOperatorsGuide.html (and its source document ASGSOperatorsGuide.txt)
+provide an overall view of the ASGS code, along with a description of how
+to configure the system to perform the desired type of simulations, and
+how to run the ASGS.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_asgs_developers_guide">ASGS Developers Guide</h4>
+<div class="paragraph"><p>ASGSDevGuide.html (and its source document ASGSDevGuide.txt) provides information
+to ASGS installers and developers to help with understand the structure and
+function of each piece in the project, and provides a set of step-by-step
+installation instructions.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_man_pages">Man Pages</h4>
+<div class="paragraph"><p>Manual pages have been developed for some of the ASGS component programs,
+mainly as a way of providing a reference to the meaning of the command line
+options. Man pages are currently available for the following programs: <em>adcirc</em>
+(which includes <em>padcirc</em> and <em>padcswan</em>), <em>adcprep</em>, <em>aswip</em>,
+<em>nhc_advisory_bot.pl</em>, and <em>storm_track_gen.pl</em>.  The content and number of
+these manual pages will continue to grow over time.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_readme_files">README Files</h4>
+<div class="paragraph"><p>Two README Files are available, one for the asymmetric (NWS=9) and one for the
+configurable asymmetric (NWS=19) vortex meteorological models that are embedded
+in ADCIRC. These were written as initial documentation to provide the salient
+information about these models, and will be absorbed into the other types of
+documentation listed above over time. They will eventually be removed.</p></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_input">input</h3>
 <div class="paragraph"><p>The input subdirectory contains the input files (mesh files, nodal attributes
 files, etc) and templates for dynamically generated input files as well as
 dynamically generated queue scripts. It also contains the ptFile_gen.pl script
 for generating a set of points for reprojecting NAM data into geographic
 projection.</p></div>
-<h3 id="_logs">logs</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_logs">logs</h3>
 <div class="paragraph"><p>This subdirectory is meant for storing the log files that the ASGS generates
 during execution. The Operator should change to this subdirectory before
 executing the ASGS.</p></div>
-<h3 id="_output">output</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_output">output</h3>
 <div class="paragraph"><p>The output subdirectory contains all the routines that can be used
 when dealing with output and post processing. The code in this subdirectory
 can be categorized as follows:</p></div>
@@ -748,141 +1061,429 @@ Archiving of results: ncfs_archive.sh, ranger_archive.sh.
 </p>
 </li>
 </ol></div>
+<div class="sect3">
 <h4 id="_output_parttrack">output/PartTrack</h4>
 <div class="paragraph"><p>This subdirectory contains infrastructure for performing particle tracking post processing.</p></div>
+</div>
+<div class="sect3">
 <h4 id="_output_postproc_kmzgis">output/POSTPROC_KMZGIS</h4>
 <div class="paragraph"><p>This subdirectory contains code for generating Google Earth (kmz) images
 and GIS shape files. Much of the underlying technology was developed by RENCI.</p></div>
+</div>
+<div class="sect3">
 <h4 id="_output_tracking_files">output/TRACKING_FILES</h4>
 <div class="paragraph"><p>This subdirectory contains infrastructure for performing particle tracking post processing.</p></div>
-<h3 id="_perl">PERL</h3><div style="clear:left"></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_perl">PERL</h3>
 <div class="paragraph"><p>The PERL subdirectory contains the DateCalc perl module that is used for
 date math during execution, particularly for preparation of control files
 and meteorological forcing files.</p></div>
-<h3 id="_tides">tides</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_tides">tides</h3>
 <div class="paragraph"><p>The tides subdirectory contains code and data for dynamically
 providing nodal factors and equilibrium arguments for simulations
 that include tidal forcing. It also has infrastructure for setting
 tidal boundary conditions.</p></div>
 </div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_installation">Installation</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Steps required to get it going on a machine that is already supported.</p></div>
-<div class="paragraph"><p>System requirements. ADCIRC version requirements, etc.</p></div>
+<div class="paragraph"><p>The list of requirements for deployment of the ASGS at a new high performance
+computing facility is as follows:</p></div>
+<div class="sect2">
+<h3 id="_hardware_requirements">Hardware Requirements</h3>
+<div class="ulist"><ul>
+<li>
+<p>
+ASGS can complete a single tropical cyclone forecast on the North Carolina
+grid (version 6b, 295328
+nodes) in 1 hour 10 minutes on 384 2-year old Nehalem cores. A 5 member
+ensemble on this machine and using this grid would therefore require 1920
+cores.
+</p>
+</li>
+<li>
+<p>
+The ASGS produced 15 GB of data per advisory with a single ensemble
+member on the NC v6b grid during Irene.  Running one complete storm (estimated
+at 30 advisories) with 5 ensemble members would therefore require 15*5*30 =
+2250 GB = 2.25 TB uncompressed ascii (includes hourly output from all full
+domain files, also includes all SWAN output).  We are presently completing the
+conversion of ASGS output to NetCDF which will provide significant data storage
+savings.
+</p>
+</li>
+<li>
+<p>
+The OCPR Louisiana mesh has 1,088,315 nodes, so the use of this mesh
+to produce results for Louisiana would require 3.7x more resources than
+described for the NC v6b mesh, all other things being equal.
+</p>
+</li>
+<li>
+<p>
+The preferred distribution mechanism for distributing output data files is an
+opendap server, preferably one that shares a file system with the ASGS. A
+shared filesystem would allow results to be streamed to the OpenDAP system as
+they are produced, allowing visualization postprocessing to proceed in
+parallel with the generation of results.
+</p>
+</li>
+<li>
+<p>
+Incoming connectivity requirements include http and
+ftp for downloading data. Outgoing connectivity requirements include mail as
+well as the ability to expose results to an opendap server.
+</p>
+</li>
+</ul></div>
 </div>
-<h2 id="_configuration">Configuration</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>Steps required to get it going on a machine that is already supported.</p></div>
+<div class="sect2">
+<h3 id="_software_requirements">Software requirements</h3>
+<div class="ulist"><ul>
+<li>
+<p>
+The 2011stable version of the ASGS is compatible with the latest
+stable release version of ADCIRC v50. The latest trunk version of the ASGS
+always seems to require the latest trunk version of ADCIRC.
+</p>
+</li>
+<li>
+<p>
+Running the ASGS requires minimal external libraries and
+executables, because the System has been designed with portability in mind.
+These libraries and executables are as follows: a Fortran compiler including
+mpif90, a C compiler, MPI, NetCDF, GNU make, svn client, bash, perl, tar, gzip,
+screen, and mail.
+</p>
+</li>
+<li>
+<p>
+If graphical post processing is required, the list of
+requirements becomes much longer, including GMT, ImageMagick, ghostscript,
+gnuplot and RenciGETools and all their dependencies.
+</p>
+</li>
+</ul></div>
 </div>
-<h2 id="_execution">Execution</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>Starting the ASGS. Looking at the log file. Making things easier with the
-<em>screen</em> utility.</p></div>
+<div class="sect2">
+<h3 id="_installation_step_by_step">Installation Step-by-Step</h3>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Determine if your platform already meets the requirements listed in the
+previous two sections. If not, the unfulfilled requirements must be resolved.
+</p>
+</li>
+<li>
+<p>
+If the ASGS is to be installed on an HPC system, determine if the
+target HPC system is already supported by the ASGS. This determination can be
+made by checking the <em>env_dispatch</em> subroutine in the <em>asgs_main.sh</em>
+source code.
+</p>
+<div class="olist loweralpha"><ol class="loweralpha">
+<li>
+<p>
+If the target HPC system is not found in the list in <em>env_dispatch</em>, then it
+is not already supported by the ASGS. Adding support for a new HPC system to the
+ASGS is not that difficult; please see the section entitled Pioneering below for
+details.
+</p>
+</li>
+<li>
+<p>
+If the ASGS is to be installed on a personal linux machine (i.e., a desktop
+or laptop without a queueing system where you just run parallel jobs directly via
+mpiexec), then use <em>desktop</em> as the environment.
+</p>
+</li>
+</ol></div>
+</li>
+<li>
+<p>
+If NAM data are to by used as input, compile <em>input/awip_lambert_interp.F</em> to
+an executable called <em>awip_lambert_interp.x</em> and place the executable in the
+ASGS base directory.  Example instructions for compiling this program are
+listed in the comments at the top of the source file. This code is used with
+meteorological input from the NAM (North American Mesoscale) model to convert
+the data from a Lambert Conformal projection to geographic.
+</p>
+</li>
+<li>
+<p>
+If NAM data are to be used as input, download and compile the wgrib2 package
+from NCEP&#8217;s Climate Prediction Center (CPC):
+<a href="http://www.cpc.ncep.noaa.gov/products/wesley/wgrib2/">http://www.cpc.ncep.noaa.gov/products/wesley/wgrib2/</a> &#8230; instructions for
+compiling this code are available from that site. The resulting executable
+should be named <em>wgrib2</em> and placed in the ASGS base directory.
+</p>
+</li>
+<li>
+<p>
+Compile the program <em>tides/tide_fac.f</em> according to the instructions in the
+source code and name the resulting executable <em>tide_fac.x</em>, leaving it in the
+<em>tides</em> subdirectory.
+</p>
+</li>
+<li>
+<p>
+Go to the directory that contains the ADCIRC source code that will be used by
+the ASGS and compile <em>adcprep</em>, <em>padcirc</em> and <em>hstime</em>. If tropical cyclone
+forcing will be used, also compile <em>aswip</em>. If wave coupling will be activated,
+also compile <em>padcswan</em>. Leave the executable files in place.
+</p>
+</li>
+<li>
+<p>
+Collect up the ADCIRC input files that would normally be required for the
+mesh that will be used in real-time operation. At a minimum, this includes a
+fort.14 (mesh) and fort.15 (control) file. It may also include a fort.13
+(nodal attributes), fort.26 (swan control), and swaninit files. Place these
+files in the <em>input</em> subdirectory. The actual file names are arbitrary; the
+ASGS does not require them to be named fort.14 etc.
+</p>
+</li>
+<li>
+<p>
+Make a copy of the fort.15, swaninit, and fort.26 files; convert the copies into
+template files by removing key parameters and replacing them with a special
+string that the ASGS will use to fill in the parameters during operation
+(analogous to filling out a form). The template versions of the control files
+have the string <em>.template</em> appended to their file names by convention, but the names are
+arbitrary. Have a look at the files <em>input/FEMA_R3_fort.15.template</em> and
+<em>input/FEMA_R3_fort.26.template</em> to get an idea of how to turn a control
+file into a template. Its not complicated, but may be slightly tedious.
+</p>
+</li>
+<li>
+<p>
+If there was a list of elevation or meteorological recording stations in the
+fort.15 file, cut and paste the lists of stations into separate files with the
+same format as required by the fort.15 &#8230; the files
+<em>input/FEMA_R3_elev_stations.txt</em> and <em>input/FEMA_R3_met_stations.txt</em> are
+examples. The station lists should not appear in the fort.15 template file.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>Once the above steps are complete, the ASGS should be ready to run and produce
+results. The installation of programs required for post processing are not
+included in the above procedure, and will be covered in a later iteration of
+this document.</p></div>
+<div class="paragraph"><p>Instructions for configuring an instance of the ASGS and starting it up are
+found in the ASGS Operators Guide (in <em>doc/ASGSOperatorsGuide.html</em>).</p></div>
 </div>
+<div class="sect2">
+<h3 id="_pioneering">Pioneering</h3>
+<div class="paragraph"><p>The term <em>Pioneering</em> is used to refer to the process of installing and
+running the ASGS on an HPC system where it has never run before. Because
+the ASGS is not specific to any particular type of HPC system, it is not
+too difficult to do this, particularly for a developer that already has
+experience with the target HPC system and knows its idiosyncracies.</p></div>
+<div class="paragraph"><p>The differences between HPC platforms that are relevant to ADCIRC and ASGS
+generally fall into the following categories:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+c, f90, and mpif90 compilers, or different versions of those compilers
+</p>
+</li>
+<li>
+<p>
+netcdf libraries, versions of those libraries, and procedures for
+compiling programs that use netcdf
+</p>
+</li>
+<li>
+<p>
+differences in the type of queueing system that different platforms use
+for job submission (e.g., ASGS currently supports PBS, SGE, LoadLeveler, LSF and mpiexec)
+</p>
+</li>
+<li>
+<p>
+technical requirements and IT policies for submitting MPI jobs, including
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+differences in the way that the number of cores is actually specified when submitting a job
+</p>
+</li>
+<li>
+<p>
+method for handling reservations and special high priority queue submission
+</p>
+</li>
+<li>
+<p>
+method of transitioning from a lower priority to a higher priority queue
+</p>
+</li>
+</ul></div>
+</li>
+<li>
+<p>
+technical requirements and IT policies for submitting single processor jobs (i.e., adcprep), including:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+whether they can be run on a login node or must be processed through a queue
+</p>
+</li>
+<li>
+<p>
+how different the submission of single processor jobs is from regular MPI jobs
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+different queue name?
+</p>
+</li>
+<li>
+<p>
+different account number?
+</p>
+</li>
+<li>
+<p>
+special characters on queue script submission line?
+</p>
+</li>
+</ul></div>
+</li>
+<li>
+<p>
+whether single processor jobs that require high memory (as adcprep often does on
+large meshes) have other idiosyncratic requirements for submission
+</p>
+</li>
+</ul></div>
+</li>
+<li>
+<p>
+libraries available for graphical post processing on the target HPC system
+</p>
+</li>
+<li>
+<p>
+method of transmitting numerical and graphical results to end users
+</p>
+</li>
+<li>
+<p>
+available facilities and methods for archiving data
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>(as mentioned in the requirements section), which may vary from
+nothing at all to everything an ASGS developer could possibly need (although
+perhaps not in the required library versions)</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_meteorological_forcing">Meteorological Forcing</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The ASGS is capable of using gridded met fields from NCEP&#8217;s NAM model, or
 two different types of vortex forcing with ADCIRC&#8217;s asymmetric wind models
-(NWS9 and NWS19).</p></div>
-<h3 id="_nam_forcing">NAM Forcing</h3><div style="clear:left"></div>
-<div class="paragraph"><p>The NAM data is downloaded from NCEP and converted to OWI format for use
-in ADCIRC.</p></div>
-<h3 id="_storm_track_generation_for_vortex_models">Storm Track Generation for Vortex Models</h3><div style="clear:left"></div>
-<div class="paragraph"><p>README.storm_track_gen</p></div>
-<div class="paragraph"><p>The script storm_track_gen.pl accepts a raw ATCF-format hindcast file (straight
-from the NHC ftp site) and a raw ATCF-format forecast file (either straight
-from the NHC ftp site or formed by some other method, e.g., parsed from a text
-advisory). It produces a fort.22 file for ADCIRC for the NWS=9 (asymmetric wind
-vortex model) option.</p></div>
-<div class="paragraph"><p>Examples showing the use of command line parameters are as follows:</p></div>
-<div class="paragraph"><p>--dir /path/to/atcf/files : Required. This is used to provide the path to the
-ATCF formatted hindcast and forecast files.</p></div>
-<div class="paragraph"><p>--storm 01 : Required. The NHC numbers each tropical cyclone of the season, and
-the storm number is required to determine the names of the input files.</p></div>
-<div class="paragraph"><p>--year 2009 : Required. The year is used in the names of the input files as
-well.</p></div>
-<div class="paragraph"><p>--coldstartdate 2009090100 : Required. The asymmetric wind model assumes that
-the first line in the fort.22 file is the one to be used when execution begins
-(whether the start of execution represents a coldstart or a hotstart). As a
-result, the correct line in the hindcast and forecast file must be selected to
-reflect the desired cold start time (YYYYMMDDHH24).</p></div>
-<div class="paragraph"><p>--hotstartseconds 86400.0 : Required if execution begins as a hotstart. Because
-the asymmetric wind model within ADCIRC will always start at the top of the
-fort.22 file at the beginning of execution, the fort.22 file must begin at the
-date and time that matches the hotstart file, if any. If this command line
-argument is not given, the script assumes a cold start (i.e., that
-hotstartseconds is zero).</p></div>
-<div class="paragraph"><p>--name nhcConsensus : Optional. If this argument is not given, the script
-assumes that the fort.22 for the NHC consensus forecast should be generated.
-Other possible variations include maxWindSpeed, overlandSpeed, and veer. In the
-future, variation of rMax will be supported as well. Only one --name argument
-is allowed per execution.</p></div>
-<div class="paragraph"><p>--percent 50 : Optional. This argument controls the magnitude of variation for
-the maxWindSpeed, overlandSpeed, and veer variations. For the maxWindSpeed and
-overlandSpeed variations, a positive percentage increases the speed and a
-negative percentage decreases the speed. For the veer variation, -100 percent
-represents the left edge of the cone of uncertainty, and 100 percent represents
-the right edge of the cone of uncertainty. The default percentage variation is
-20 percent for maxWindSpeed, -20 percent for overland speed, and 100 percent
-for veer.</p></div>
-<div class="paragraph"><p>Selecting the right hindcast or forecast line to start with based on the
-coldstart time and hotstart seconds, and filling in the date, time, and
-forecast periods correctly on the following lines requires the bulk of the code
-in the script. Most of the complexity is due to the fact that ADCIRC may be
-required to start anywhere in the hindcast and forecast, and it is possible to
-have a hindcast that is later than the forecast. Creating the storm variations
-requires a comparatively small amount of code.</p></div>
-<div class="paragraph"><p>In addition to filling in the required forecast period, filling in the date
-in the forecast portion of the file, and performing the requested variation,
-the script modifies the data from the NHC in three other ways:</p></div>
+(NWS9 and NWS19). An outline of the procedure used by ASGS for obtaining
+and processing these input data is provided below.</p></div>
+<div class="sect2">
+<h3 id="_nam_forcing">NAM Forcing</h3>
+<div class="paragraph"><p>The National Centers for Environmental Prediction (NCEP, a division of the
+National Oceanic and Atmospheric Administration, NOAA) runs the North American
+Mesoscale model (NAM) four times per day, producing a nowcast and a 3.5 day
+forecast of the atmosphere over North America.</p></div>
+<div class="paragraph"><p>The NAM data are produced on a Lambert Conformal grid with 12km spacing and
+written in a binary file format called grib2. The ASGS uses the following
+procedure to prepare these data for use in ADCIRC.</p></div>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
-The background pressure is changed to 1013 mb.
+The <em>get_nam.pl</em> program is used to connect to the NCEP ftp site once per
+minute and check the dates and times of the most recent NAM output files. If it
+finds files that have dates and times that are more recent than the most recent
+ADCIRC hotstart file, a new cycle is deemed to have started, and the new files
+are downloaded in preparation for a nowcast run.
 </p>
 </li>
 <li>
 <p>
-The wind radii, which are required by the asymmetric vortex model, are
-filled in if they are missing. These fields are populated according to the
-following procedure: (a) if the wind radius in any of the four quadrants is
-zero, that quadrant&#8217;s radius will be filled in with the average of the nonzero
-radii at that point in time; (b) if all the radii are zero, they will all be
-set equal to the correpsonding values from the previous time level; (c) if
-there are no values from the previous time level, they will be set to the
-then-current hindcast Rmax in the case of a hindcast line, or to the nowcast
-Rmax in the case of a forecast line.
+Once the data have been downloaded, the ASGS runs the <em>NAMtoOWI.pl</em> script
+to perform the following procedures:
+</p>
+<div class="olist loweralpha"><ol class="loweralpha">
+<li>
+<p>
+extract the data that are required (u, v, p at 10m or MSL &#8230; the grib2
+files also have a lot of data that is not needed by the ASGS)
 </p>
 </li>
 <li>
 <p>
-The central pressure is filled in according to an experimental algorithm
-under development by Jason Fleming. This algorithm uses a family of negatively
-sloped lines that relate changes in central pressure to changes in max wind
-speed. This algorithm is being refined for storms in the Gulf. It is a topic of
-current research and is targeted for publication. As such, it is subject to
-change and improvement over the course of the season.
+call <em>awip_lambert_interp.x</em> on each grib2 file to reproject the data from
+Lambert Conformal to geographic projection and interpolate the data onto a grid
+that is regular in geographic coordinates (which is required for the OWI file
+format) using an external list of lat,lon points (e.g., <em>input/ptFile.txt</em>)
+</p>
+</li>
+<li>
+<p>
+write the data in OWI format to fort.221 and fort.222 files, and generate a
+companion fort.22
 </p>
 </li>
 </ol></div>
-<div class="paragraph"><p>The script assumes that the files are named bal[storm][year].dat and
-al[storm][year].fst. For example, the first tropical cyclone in the Atlantic
-basin in 2009 will have files named bal012009.dat and al012009.fst.</p></div>
-<div class="paragraph"><p>At the beginning of the script&#8217;s source code, additional technical assumptions
-are listed that may be of interest.</p></div>
-<h3 id="_original_asymmetric_vortex_wind_model_adcirc_nws_9">Original Asymmetric Vortex Wind Model (ADCIRC NWS=9)</h3><div style="clear:left"></div>
-<div class="paragraph"><p>jgf20090623: Correction: hour 0 in the fort.22 corresponds to the cold start
-time (ADCIRC time=0) if the simulation is cold started, or to the hot start
-time if the simulation is hotstarted.</p></div>
-<div class="paragraph"><p>README.asymmetric (NWS=9 in fort.15)</p></div>
+</li>
+<li>
+<p>
+The ASGS then uses <em>control_file_gen.pl</em> and the meteorological files that
+were generated by <em>NAMtoOWI.pl</em> to properly formulate the ADCIRC fort.15
+control file (and SWAN fort.26 file, if any).
+</p>
+</li>
+<li>
+<p>
+Once the nowcast job has been submitted and completed, the ASGS calls
+<em>get_nam.pl</em> again to download the NAM forecast data for the same cycle, using
+the steps listed above.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>The forecast data are not downloaded at the same time as the nowcast data,
+because NCEP releases the NAM data files as they are generated, which can take more
+than an hour. As a result, it makes more sense to download and run the nowcast
+while NCEP continues to post forecast data, then come back when the nowcast run
+is complete and download the forecast.</p></div>
+<div class="paragraph"><p>The ASGS may be able to finish the nowcast before NCEP finishes posting
+forecast data, depending on the size of the mesh, number and speed of the
+processors the ASGS is using, and queue congestion, if any. If that happens,
+<em>get_nam.pl</em> just downloads the forecast data as they become available, and
+when they have all been downloaded, the ASGS goes on to set up and run the
+forecast as described above.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_parametric_vortex_forcing">Parametric Vortex Forcing</h3>
+<div class="paragraph"><p>The ASGS can also be configured to use data from the National Hurricane Center
+(NHC) to generate parameter files for use in ADCIRC&#8217;s internal configurable
+asymmetric vortex model (ADCIRC NWS=19).</p></div>
+<div class="sect3">
+<h4 id="_background">Background</h4>
 <div class="paragraph"><p>The asymmetric vortex wind model input differs from most other types of wind
 input in ADCIRC in that it consists of storm parameters, rather than the
 meteorological data itself. ADCIRC then uses these parameters to generate the
 actual meteorological data internally at each node at every time step during
 the simulation. The result is that the fort.22 files are very small (e.g.
 20kB), in comparison with fort.22 files that contain actual meteorological
-data. Furthermore, preprocessing these files is very fast because it consists
-only of copying the fort.22 file as-is to each subdomain directory.</p></div>
+data.</p></div>
 <div class="paragraph"><p>The format of the fort.22 file for the asymmetric wind model is the ATCF
 (a.k.a. "BEST track") format. This format was developed by the U.S. Navy, and
 ATCF stands for Automated Tropical Cyclone Forecast. Historical tracks,
@@ -901,45 +1502,17 @@ location (each line) in hours from the start of the simulation (0, 6, 12, 18,
 etc). The original data in that column depends on what type of best track
 format data is being used. The original data might have 0 or other numbers in
 that column.</p></div>
-<div class="paragraph"><p>For more details on how to prepare the input files for the asymmetric wind
-model, see the documentation in the ADCIRC manual under NWS=9:</p></div>
-<div class="paragraph"><p><a href="http://adcirc.org/documentv48/parameter_defs.html#NWS">http://adcirc.org/documentv48/parameter_defs.html#NWS</a></p></div>
-<div class="paragraph"><p>Real time hindcast and forecast advisories are made available by the NHC in
-ATCF format via their ftp site every six hours when there is an active tropical
-cyclone. These files are downloaded by the workflow and used to generate
-fort.22 files for ADCIRC.</p></div>
-<div class="paragraph"><p>Since NHC forecast advisories do not contain the radius of maximum winds, this
-option uses the standard radii at specific wind speeds (34, 50, 64, 100 knots)
-reported in the four quadrants (NE, SE, SW, NW) of the storm to calculate the
-radius of maximum winds as a function of the azimuthal angle.</p></div>
-<div class="paragraph"><p>The asymmetric wind model is activated by setting NWS=9 in the fort.15 file and
-adding a WTIMINC line in the appropriate place in this file. The WTIMINC line
-is not used, but is maintained for file-format compatilbility with the
-symmetric vortex wind model, and for possible future expansion.</p></div>
-<div class="paragraph"><p>The asymmetric vortex wind model was developed and coded by Craig Mattocks
-(<a href="mailto:cmattock@email.unc.edu">cmattock@email.unc.edu</a>) and implemented in ADCIRC by Cristina Forbes
-(<a href="mailto:cforbes@email.unc.edu">cforbes@email.unc.edu</a>).</p></div>
-<div class="paragraph"><p>Reference:</p></div>
-<div class="paragraph"><p>Mattocks C. and C. Forbes, 2008: A real-time, event-triggered storm
-surge forecasting system for the state of North Carolina, Ocean
-Modelling, 25, 95-119, doi:10.1016/j.ocemod.2008.06.008</p></div>
-<h3 id="_what_if_asymmetric_vortex_wind_model_adcirc_nws_19">"What-if" Asymmetric Vortex Wind Model (ADCIRC NWS=19)</h3><div style="clear:left"></div>
-<div class="paragraph"><p>README.asymmetric2 (NWS=19 in fort.15)</p></div>
-<div class="paragraph"><p>The extended asymmetric vortex wind model is selected by setting NWS in the
-ASGS configuration script to 19.</p></div>
-<div class="paragraph"><p>This wind model is based on the code that generates the original asymmetric
-vortex wind data (NWS=9), and its behavior is similar in many ways to that
-model. As a result, this documentation will focus mainly on the differences
-between the two wind models.</p></div>
-<div class="paragraph"><p>The extended asymmetric vortex wind model was developed for several reasons:
-(1) to allow more visibility into the parameters, such as Rmax, that control a
-storm&#8217;s size and shape and are calculated within the wind model code; (2) to
-allow the user to control parameters such as Rmax so that they may be adjusted
-by the user; and (3) to allow the user to deterministically compensate for
-input data that are missing or nonexistent (such as wind radii in various
-quadrants for a particular isotach).</p></div>
+<div class="paragraph"><p>The behavior of the configurable asymmetric meteorological model (NWS=19) is
+similar to its ancestor, the original asymmetric meteorological model (NWS=9).
+However, the configurable asymmetric vortex wind model was developed for
+several reasons: (1) to allow more visibility into the parameters, such as
+Rmax, that control a storm&#8217;s size and shape and are calculated within the wind
+model code; (2) to allow the user to control parameters such as Rmax so that
+they may be adjusted by the user; and (3) to allow the user to
+deterministically compensate for input data that are missing or nonexistent
+(such as wind radii in various quadrants for a particular isotach).</p></div>
 <div class="paragraph"><p>The mechanism for achieving the goals described above is a preprocessing
-program called the asymmetric wind input preprocessor, or aswip, that
+program called the asymmetric wind input preprocessor, or <em>aswip</em>, that
 takes the ATCF formatted input data that would normally be used for the
 NWS8 or NWS9 and adds columns to it that describe the following things:</p></div>
 <div class="olist arabic"><ol class="arabic">
@@ -982,27 +1555,13 @@ entries in that cycle.
 <p>
 The following 4 columns contain the flags that tell the ADCIRC NWS 19 code
 whether or not to use a particular wind radius from the isotach under
-consideration. There is a flag for each quadrant. A <em>0</em> indicates that the wind
-radius for that isotach and quadrant will not be used.  A <em>1</em> indicates that
-the wind radius for that isotach and quadrant will be used.
+consideration. There is a flag for each quadrant. A 0 indicates that the wind
+radius for that isotach and quadrant will not be used.  A 1 indicates that
+the wind radius for that isotach and quadrant will be used. For example: if
+only the 34kt isotach is provided, then then all four wind radii must be used,
+and the columns will all be set to 1.
 </p>
 </li>
-</ol></div>
-<div class="paragraph"><p>For example: if only the 34kt isotach is provided, then then all four wind
-radii must be used, and the columns will all be set to <em>1</em> :
- &#8230; 34 &#8230; 1 1 1 1 1 &#8230;</p></div>
-<div class="paragraph"><p>Another example: if 3 isotachs are provided then the columns may look
-like the following:
- &#8230; 34 &#8230; 3 0 0 0 0 &#8230;
- &#8230; 50 &#8230; 3 0 0 1 1 &#8230;
- &#8230; 64 &#8230; 3 1 1 0 0 &#8230;
-this indicates -
- use NO radii from the 34 kt isotach
- use the 3 &amp; 4 quadrant radii from the 50 kt isotach
- use the 1 &amp; 2 quadrant radii from the 64 kt isotach</p></div>
-<div class="paragraph"><p>Users could potentially modify these flags in the input file to manually select
-which radii to use for each cycle.</p></div>
-<div class="olist arabic"><ol class="arabic">
 <li>
 <p>
 In the next 4 columns, the calculated Rmax for each quadrant is listed
@@ -1015,68 +1574,152 @@ The next column contains the overall Holland B value.
 </p>
 </li>
 </ol></div>
+<div class="paragraph"><p>Another example: if 3 isotachs are provided then the columns may look
+like the following:</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>34 ... 3 0 0 0 0 ...
+50 ... 3 0 0 1 1 ...
+64 ... 3 1 1 0 0 ...</pre>
+</div></div>
+<div class="paragraph"><p>this indicates -</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+use NO radii from the 34 kt isotach
+</p>
+</li>
+<li>
+<p>
+use the 3 &amp; 4 quadrant radii from the 50 kt isotach
+</p>
+</li>
+<li>
+<p>
+use the 1 &amp; 2 quadrant radii from the 64 kt isotach
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>Users could potentially modify these flags in the input file to manually select
+which radii to use for each cycle.</p></div>
 <div class="paragraph"><p>Finally, one valuable aspect of this file format is that it can be used by
 NWS8, NWS9, or NWS19, since the original data have not been modified. The
 extra columns are used as input by NWS19, and as a result, they provide both
 metadata and control over these parameters.</p></div>
 </div>
-<h2 id="_metadata_generation">Metadata Generation</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>When the ASGS Workflow creates a fort.22 file, it is difficult to tell how that
-file has been modified from the original, just by looking at it. The Workflow
-(specifically, storm_track_gen.pl) is capable of generating variations in
-track, overland speed, and maximum wind speed. Modifications to radius to max
-wind will be provided for in a future ASGS release (beyond v1.2).</p></div>
-<div class="paragraph"><p>In order to clearly indicate whether the track has been varied, and if so, how
-the track has been varied, two metadata mechanisms are provided. First, a file
-with a fixed name, fort.22.meta, is created that contains a description of the
-wind file. In addition, a symbolic link is made to the fort.22 file that
-contains encoded information about the data in the file. These mechanisms will
-now be described in turn.</p></div>
-<div class="paragraph"><p>The fort.22.meta file uses the <em>#</em> symbol to denote comments, so lines starting
-with # are ignored. The other lines are key value pairs using the delimiter
-<em>:</em>. Everything on one line before the first delimiter is considered to be the
-key, everything after that until the end of the line (not including the
-linebreak) is the value.</p></div>
-<div class="paragraph"><p>The order of the key/value pairs is arbitrary, and the names of the keys are
-subject to extension and/or change. In order to manage any changes, and make it
-future-safe, a version specification in the first line is a requirement. This
-would make it possible to read in the files after changes in the format/key
-names easily later.</p></div>
-<div class="paragraph"><p>An example of a fort.22.meta file is as follows:</p></div>
-<div class="paragraph"><p># Example fort.22 meta file
-version:1
-year:2008
-storm:07
-advisory:01
-hostname:tezpur.hpc.lsu.edu
-directory advisory:/work/jgflemin/072008/01
-directory storm:/work/jgflemin/072008/01/nowcast
-modified:y
-variation veer:+40</p></div>
-<div class="paragraph"><p>The shorthand mechanism for fort.22 metadata consists of a symbolic link to
-the fort.22 file. The name of the link encodes the track variations according
-to the following format:</p></div>
-<div class="paragraph"><p>YYYYSSAA[c|m]_w[<tt>|-]PPo[</tt>|-]PPv[<tt>|-]PPPr[</tt>|-]PP</p></div>
-<div class="paragraph"><p>where
-YYYY is the four digit year
-SS is the number of that storm for that year
-AA is the advisory number
-c means consensus or m means modified
-w[<tt>|-]PP is the 2 digit, positive or negative percent variation in max
-wind speed
-o[</tt>|-]PP is the 2 digit, positive or negative percent variation in over
-land speed
-v[<tt>|-]PPP is the 3 digit, positive or negative percent variation in veer
-r[</tt>|-]PP is the 2 digit, positive or negative percent variation in rmax
-(not supported by storm_track_gen.pl as of ASGS v1.2).</p></div>
-<div class="paragraph"><p>As a concrete example of the above format that provides the same track
-information as the fort.22.meta file described above:</p></div>
-<div class="paragraph"><p>20080701m_w+00o+00v+040r+00</p></div>
-<div class="paragraph"><p>This symbolic link can be found by looking for a filename that follows this
-format; there will not be another file in the directory whose name matches
-this format.</p></div>
+<div class="sect3">
+<h4 id="_procedure">Procedure</h4>
+<div class="paragraph"><p>The steps that the ASGS uses to prepare the Forecast/Advisory data for use in
+ADCIRC are described below.</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+The ASGS uses the <em>get_atcf.pl</em> script to check the NHC RSS feed (which is
+just an xml text file they keep on their web site). The RSS feed contains the
+current advisory number and a hyperlink to the html-formatted file containing
+the forecast/advisory text.
+</p>
+</li>
+<li>
+<p>
+The <em>get_atcf.pl</em> starts by downloading the latest ATCF formatted hindcast
+file from the NHC anonymous ftp site. The current name of the storm is parsed
+out of the hindcast file for use in <em>get_atcf.pl</em> during parsing of the
+RSS feed; e.g., the storm name can change from TD TWO to TD BERTHA from one
+advisory to the next. The hindcast data are also used later when ASGS calls
+<em>storm_track_gen.pl</em>.
+</p>
+</li>
+<li>
+<p>
+The <em>get_atcf.pl</em> script then downloads the NHC forecast/advisory as follows
+</p>
+<div class="olist loweralpha"><ol class="loweralpha">
+<li>
+<p>
+if the ASGS has just started, it follows the hyperlink in the RSS feed and
+downloads the current forecast/advisory
+</p>
+</li>
+<li>
+<p>
+if the ASGS has already run through a complete advisory cycle, it
+polls the NHC RSS feed once per minute &#8230; when it detects that
+the advisory number has been updated in that file, it follows the
+hyperlink in the RSS xml file and downloads the current forecast/advisory,
+returning the new advisory number to the ASGS
+</p>
+</li>
+</ol></div>
+</li>
+<li>
+<p>
+The ASGS calls the <em>nhc_advisory_bot.pl</em> script to parse the
+forecast/advisory text out of the html and parse the relevant parameters out of
+the forecast advisory text to produce an ATCF-formatted forecast file.
+</p>
+</li>
+<li>
+<p>
+After <em>get_atcf.pl</em> and <em>nhc_advisory_bot.pl</em> have run, the ASGS has
+an ATCF-formatted hindcast file (containing the past and present states of the
+tropical cyclone) and an ATCF-formatted forecast file containing the present and
+predicted future states of the tropical cyclone.
+</p>
+</li>
+<li>
+<p>
+The ASGS then calls <em>storm_track_gen.pl</em>, providing it with the current
+hotstart time in ADCIRC; the <em>storm_track_gen.pl</em> script melds the hindcast
+and forecast data together such that it
+</p>
+<div class="olist loweralpha"><ol class="loweralpha">
+<li>
+<p>
+starts at the current ADCIRC hotstart time
+</p>
+</li>
+<li>
+<p>
+ends at the end of the nowcast period, which is the same as the end of the
+hindcast data, if the run is a nowcast run
+</p>
+</li>
+<li>
+<p>
+ends at the end of the forecast period, if the run is a forecast run
+</p>
+</li>
+<li>
+<p>
+has the specifed track perturbations applied, if any perturbations were
+specified, and if the run is a forecast run
+</p>
+</li>
+</ol></div>
+</li>
+<li>
+<p>
+The <em>storm_track_gen.pl</em> script writes out the melded data to an
+ATCF-formatted fort.22 file.
+</p>
+</li>
+<li>
+<p>
+The ASGS then calls <em>aswip</em> to process the fort.22 file produced by
+<em>storm_track_gen.pl</em>; <em>aswip</em> calculates the Rmax in each quadrant and writes
+out an NWS_19_fort.22 for use in ADCIRC.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>After the NWS_19_fort.22 file has been produced, the ASGS feeds it to
+<em>control_file_gen.pl</em>, which generates a fort.15 file that will cover the time
+period specified by the parameters listed in the NWS_19_fort.22 file.</p></div>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_development_strategy">Development Strategy</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The ASGS development strategy consists of the maintenance of two separate
@@ -1085,18 +1728,12 @@ stable version only receives bug fixes, while the development version receives
 bug fixes as well as new features.</p></div>
 <div class="paragraph"><p>At some point, the development version becomes stable. At that time, a stable
 branch is created from it, and then new features are added to the previosly
-stable code, creating a new development version. At that time, the major
-version number will be incremented, e.g., stable v48.xx will become the next
-development version as v49.00.</p></div>
-<div class="paragraph"><p>The minor version number is changed each time there is a change
-in the code and the modified code is committed back to the repository. Details
-of the implementation of this strategy with Subversion are provided in
-the section entitled "Subversion".</p></div>
+stable code, creating a new development version.</p></div>
+<div class="paragraph"><p>As of this writing (7 May 2012) the latest stable version is on the branch
+named 2011stable. The ASGS trunk is where new features are developed.</p></div>
 </div>
-<h2 id="_pioneering">Pioneering</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>How to put the ASGS on a machine where it has never run before.</p></div>
 </div>
+<div class="sect1">
 <h2 id="_subversion">Subversion</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Subversion is a version control system. That is, it provides a means for many
@@ -1118,20 +1755,22 @@ painstakingly examining each change they had made and cutting and pasting the
 changes one by one into the up-to-date version of ASGS. With Subversion, the
 software examines the changes that were made locally and makes corresponding
 changes to the mainline version in an automated way.</p></div>
-<h3 id="_policies">Policies</h3><div style="clear:left"></div>
+<div class="sect2">
+<h3 id="_policies">Policies</h3>
 <div class="paragraph"><p>Working with subversion requires greater coordination among ASGS developers.
 For example, if two developers change the same line of code in two different
 branches in two different ways, this will create a conflict that will have to
 be resolved manually.</p></div>
-<div class="paragraph"><p>Furthermore, if one developer makes changes to trunk that prevent the code from
-compiling, it will be difficult for other developers to continue working if
+<div class="paragraph"><p>Furthermore, if one developer makes changes to trunk that prevent the system
+from running, it will be difficult for other developers to continue working if
 they update to the latest code. As a result, ASGS development with Subversion
 will adhere to the following policies:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
 Communicate. Jason Fleming is responsible for making sure ASGS development is
-smooth, pain-free and productive---when in doubt, email him (<a href="mailto:jason.fleming@seahorsecoastal.com">jason.fleming@seahorsecoastal.com</a>).
+smooth, pain-free and productive---when in doubt, email him
+(<a href="mailto:jason.fleming@seahorsecoastal.com">jason.fleming@seahorsecoastal.com</a>).
 </p>
 </li>
 <li>
@@ -1141,41 +1780,51 @@ Make a branch to develop new features, rather than making changes to trunk.
 </li>
 <li>
 <p>
-Don&#8217;t commit changes to trunk that prevent the code from compiling, at least on your platform. You should also confirm that your code compiles with and without NetCDF.
+Don&#8217;t commit changes to trunk that might cause issues that prevent the system
+from running, at least on your platform.
 </p>
 </li>
 </ul></div>
-<h3 id="_instructions">Instructions</h3><div style="clear:left"></div>
-<div class="paragraph"><p>Comprehensive documentation for Subversion is available: <a href="http://svnbook.red-bean.com/">http://svnbook.red-bean.com/</a>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_instructions">Instructions</h3>
+<div class="paragraph"><p>Comprehensive documentation for Subversion is available:
+<a href="http://svnbook.red-bean.com/">http://svnbook.red-bean.com/</a>.</p></div>
 <div class="paragraph"><p>The ASGS code is hosted at the following Subversion repository location:</p></div>
 <div class="literalblock">
-<div class="content">
-<pre><tt>http://www.seahorsecoastal.com/svn/asgs</tt></pre>
+<div class="content monospaced">
+<pre>http://www.seahorsecoastal.com/svn/asgs</pre>
 </div></div>
 <div class="paragraph"><p>To check out code from the trunk, please type</p></div>
 <div class="literalblock">
-<div class="content">
-<pre><tt>svn checkout http://www.seahorsecoastal.com/svn/asgs/trunk</tt></pre>
+<div class="content monospaced">
+<pre>svn checkout http://www.seahorsecoastal.com/svn/asgs/trunk</pre>
 </div></div>
 <div class="paragraph"><p>Here are a few examples of things that we commonly do with svn.</p></div>
+<div class="sect3">
 <h4 id="_compare_revisions">Compare Revisions</h4>
-<div class="paragraph"><p>In order to see the changes between revisions of the repository, type (for example)</p></div>
+<div class="paragraph"><p>In order to see the changes between revisions of the repository, type (for
+example)</p></div>
 <div class="literalblock">
-<div class="content">
-<pre><tt>svn diff -r 15:16 control_file_gen.pl</tt></pre>
+<div class="content monospaced">
+<pre>svn diff -r 15:16 control_file_gen.pl</pre>
 </div></div>
+</div>
+<div class="sect3">
 <h4 id="_package_up_code_from_repository">Package Up Code From Repository</h4>
-<div class="paragraph"><p>In order to create a tar file that contains just the ASGS code and excludes
-the .svn directories, the first step is to export the code to a new
-subdirectory. For example:</p></div>
+<div class="paragraph"><p>In order to create a tar file that contains just the ASGS code and excludes the
+.svn directories, the first step is to export the code to a new subdirectory.
+For example:</p></div>
 <div class="literalblock">
-<div class="content">
-<pre><tt>svn export ./trunk ./asgs_today</tt></pre>
+<div class="content monospaced">
+<pre>svn export ./trunk ./asgs_today</pre>
 </div></div>
 <div class="paragraph"><p>Would copy the local files under version control from the trunk subdir to the
 asgs_today subdir, excluding the .svn files. Particular revisions of the svn
 repository can also be extracted, see the svn documentation for details on how
 to do this.</p></div>
+</div>
+<div class="sect3">
 <h4 id="_pull_old_version_from_repository">Pull Old Version from Repository</h4>
 <div class="paragraph"><p>One advantage of using svn is that it is easy to go back to an older version of
 the code, if necessary. The first thing to do in this case is usually to look
@@ -1183,48 +1832,55 @@ at the svn log to see what changes were made, so that you can select the right
 version of the repository to extract. Go to the subdirectory of the code tree
 that you want an older version of and issue the command</p></div>
 <div class="literalblock">
-<div class="content">
-<pre><tt>svn log</tt></pre>
+<div class="content monospaced">
+<pre>svn log</pre>
 </div></div>
 <div class="paragraph"><p>Look at the log entries, and note the revision that you&#8217;d like to extract.
-Let&#8217;s say you want to retrieve asgs/trunk at revision 65 of the repository
-(for example). Issue the following command:</p></div>
+Let&#8217;s say you want to retrieve asgs/trunk at revision 65 of the repository (for
+example). Issue the following command:</p></div>
 <div class="literalblock">
-<div class="content">
-<pre><tt>svn checkout -r 65 http://www.seahorsecoastal.com/svn/asgs/trunk</tt></pre>
+<div class="content monospaced">
+<pre>svn checkout -r 65 http://www.seahorsecoastal.com/svn/asgs/trunk</pre>
 </div></div>
+</div>
+<div class="sect3">
 <h4 id="_make_a_branch">Make a Branch</h4>
 <div class="paragraph"><p>To make a branch off trunk to add a new feature and call it the myfeature branch:</p></div>
 <div class="literalblock">
-<div class="content">
-<pre><tt>svn copy http://www.seahorsecoastal.com/svn/asgs/trunk http://www.seahorsecoastal.com/svn/asgs/branches/myfeature --message "Creating branch to add myfeature"</tt></pre>
+<div class="content monospaced">
+<pre>svn copy http://www.seahorsecoastal.com/svn/asgs/trunk http://www.seahorsecoastal.com/svn/asgs/branches/myfeature --message "Creating branch to add myfeature"</pre>
 </div></div>
 <div class="paragraph"><p>Then to start using the newly created branch:</p></div>
 <div class="literalblock">
-<div class="content">
-<pre><tt>svn checkout http://www.seahorsecoastal.com/svn/asgs/branches/myfeature</tt></pre>
+<div class="content monospaced">
+<pre>svn checkout http://www.seahorsecoastal.com/svn/asgs/branches/myfeature</pre>
 </div></div>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_appendix_a_this_document">Appendix A: This Document</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>This document was prepared from the text file ASGSDevGuide.txt using
 software called asciidoc (<a href="http://www.methods.co.nz/asciidoc/">http://www.methods.co.nz/asciidoc/</a>). The document
 can be formatted as an html page with the command</p></div>
 <div class="literalblock">
-<div class="content">
-<pre><tt>asciidoc ASGSDevGuide.txt</tt></pre>
+<div class="content monospaced">
+<pre>asciidoc --backend html5 -a toc2 ASGSDevGuide.txt</pre>
 </div></div>
 <div class="paragraph"><p>or formatted as a pdf with the command</p></div>
 <div class="literalblock">
-<div class="content">
-<pre><tt>a2x --format=pdf ASGSDevGuide.txt</tt></pre>
+<div class="content monospaced">
+<pre>a2x --format=pdf ASGSDevGuide.txt</pre>
 </div></div>
 </div>
 </div>
-<div id="footnotes"><hr /></div>
+</div>
+<div id="footnotes"><hr></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-11-14 16:11:23 EDT
+Last updated 2012-05-08 12:52:24 EDT
 </div>
 </div>
 </body>

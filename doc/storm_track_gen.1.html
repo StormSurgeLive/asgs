@@ -779,8 +779,8 @@ six optional command line arguments. These command line arguments are listed bel
 <dd>
 <p>
     Use <em>STORM_NUMBER</em> as the storm number in the year specified by the <strong>--year</strong> option
-    below. This is used in constructing the names of the input files. This command line
-    argument is required.
+    below (the NHC numbers each tropical cyclone of the season). This is used in
+    constructing the names of the input files. This command line argument is required.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -812,7 +812,9 @@ six optional command line arguments. These command line arguments are listed bel
 <p>
     Use number of seconds <em>ADCIRC_MODEL_TIME</em> as an offset to the cold start date and
     time to determine the date and time corresponding to the current ADCIRC model time
-    if the model is to be hotstarted.
+    if the model is to be hotstarted. If this command line
+    argument is not given, the script assumes a cold start (i.e., that
+    hotstartseconds is zero).
 </p>
 </dd>
 <dt class="hdlist1">
@@ -832,7 +834,8 @@ six optional command line arguments. These command line arguments are listed bel
 <p>
     Vary the output data using according to the string <em>VARIATION</em>. Allowable
     values are <em>maxWindSpeed</em>, <em>overlandSpeed</em>, and <em>veer</em>. The output data will
-    have the corresponding values adjusted as described below.
+    have the corresponding values adjusted as described below. Only one --name
+    argument is allowed per execution.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -841,7 +844,9 @@ six optional command line arguments. These command line arguments are listed bel
 <dd>
 <p>
     When varying the output data using the <strong>--name</strong> option above, use <em>PERCENT</em>
-    as the magnitude of the variation, as described below.
+    as the magnitude of the variation, as described below. The default
+    percentage variation is 20 percent for maxWindSpeed, -20 percent for
+    overland speed, and 100 percent for veer.
 </p>
 </dd>
 </dl></div>
@@ -886,6 +891,63 @@ will cause the storm to veer to the left along the left edge of the consensus tr
 </div>
 </div>
 <div class="sect1">
+<h2 id="_discussion">DISCUSSION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The script storm_track_gen.pl accepts a raw ATCF-format hindcast file (straight
+from the NHC ftp site) and a raw ATCF-format forecast file (either straight
+from the NHC ftp site or formed by some other method, e.g., parsed from a text
+advisory). It produces a fort.22 file for ADCIRC for the NWS=9 (asymmetric wind
+vortex model) option.</p></div>
+<div class="paragraph"><p>Selecting the right hindcast or forecast line to start with based on the
+coldstart time and hotstart seconds, and filling in the date, time, and
+forecast periods correctly on the following lines requires the bulk of the code
+in the script. Most of the complexity is due to the fact that ADCIRC may be
+required to start at a point in time that may be somewhere in the hindcast or
+forecast, depending on the circumstance. Also, it is possible to have a
+hindcast file that has a later end date than the start date in the forecast
+file. Creating the storm variations requires a comparatively small amount of
+code.</p></div>
+<div class="paragraph"><p>In addition to filling in the required forecast period, filling in the date
+in the forecast portion of the file, and performing the requested variation,
+the script modifies the data from the NHC in three other ways:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+The background pressure is changed to 1013 mb.
+</p>
+</li>
+<li>
+<p>
+The wind radii, which are required by the asymmetric vortex model (ADCIRC&#8217;s
+NWS=9), are filled in if they are missing. These fields are populated according
+to the following procedure: (a) if the wind radius in any of the four quadrants
+is zero, that quadrant&#8217;s radius will be filled in with the average of the
+nonzero radii at that point in time; (b) if all the radii are zero, they will
+all be set equal to the correpsonding values from the previous time level; (c)
+if there are no values from the previous time level, they will be set to the
+then-current hindcast Rmax in the case of a hindcast line, or to the nowcast
+Rmax in the case of a forecast line.
+</p>
+</li>
+<li>
+<p>
+The central pressure is filled in according to an experimental algorithm
+under development by Jason Fleming. This algorithm uses a family of negatively
+sloped lines that relate changes in central pressure to changes in max wind
+speed. This algorithm is being refined for storms in the Gulf. It is a topic of
+current research and is targeted for publication. As such, it is subject to
+change and improvement over the course of the season.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>The script assumes that the files are named bal[storm][year].dat and
+al[storm][year].fst. For example, the first tropical cyclone in the Atlantic
+basin in 2009 will have files named bal012009.dat and al012009.fst.</p></div>
+<div class="paragraph"><p>At the beginning of the script&#8217;s source code, additional technical assumptions
+are listed that may be of interest.</p></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_author">AUTHOR</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The nhc_advisory_bot.pl code was written by Jason Fleming with contributions
@@ -901,11 +963,21 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.</p></div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_this_page">THIS PAGE</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The html for this page can be generated from the text file using <em>asciidoc</em> as follows:</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>asciidoc --backend html5 storm_track_gen.1.txt</pre>
+</div></div>
+</div>
+</div>
 </div>
 <div id="footnotes"><hr></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-05-07 14:47:11 EDT
+Last updated 2012-05-08 10:09:40 EDT
 </div>
 </div>
 </body>
