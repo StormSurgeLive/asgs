@@ -456,7 +456,7 @@ if ( $waves eq "on" ) {
    close(STORM);
 }
 #
-# write run.properties file
+# append run.properties file
 # set components
 my $model = "PADCIRC";
 my $model_type = "SADC";
@@ -522,9 +522,95 @@ printf RUNPROPS "RunEndTime : $runendtime\n";
 printf RUNPROPS "ColdStartTime : $csdate\n";
 printf RUNPROPS "WindModel : $wind_model\n";
 printf RUNPROPS "Model : $model\n";
+# write the names of the output files to the run.properties file
+&writeFileName("fort.61",$fort61specifier);
+&writeFileName("fort.62",$fort62specifier);
+&writeFileName("fort.63",$fort63specifier);
+&writeFileName("fort.64",$fort64specifier);
+&writeFileName("fort.71",$fort7172specifier);
+&writeFileName("fort.72",$fort7172specifier);
+&writeFileName("fort.73",$fort7374specifier);
+&writeFileName("fort.74",$fort7374specifier);
+&writeFileName("maxele.63",$fort63specifier);
+&writeFileName("maxvel.63",$fort64specifier);
+&writeFileName("maxwvel.63",$fort7374specifier);
+&writeFileName("minpr.63",$fort7374specifier);
+# the following files are currently (20120208) available as ascii
+if ( $waves eq "on" ) {
+   &writeFileName("maxrs.63","1");
+   &writeFileName("swan_DIR.63","1");
+   &writeFileName("swan_DIR_max.63","1");
+   &writeFileName("swan_HS.63","1");
+   &writeFileName("swan_HS_max.63","1");
+   &writeFileName("swan_TMM10.63","1");
+   &writeFileName("swan_TMM10_max.63","1");
+   &writeFileName("swan_TPS.63","1");
+   &writeFileName("swan_TPS_max.63","1");
+}
 close(RUNPROPS);
 stderrMessage("INFO","Wrote run.properties file $stormDir/run.properties.");
 exit;
+#
+#
+#--------------------------------------------------------------------------
+#   S U B   W R I T E   F I L E   N A M E
+#
+# If an output file will be available, its name and type is written
+# to the run.properties file.
+#--------------------------------------------------------------------------
+sub writeFileName () {
+   my $identifier = shift;
+   my $specifier = shift;
+   #
+   my $format = "ascii"; # default output file format
+   my $filename = $identifier; # default (ascii) name of output file
+   #
+   # if there won't be any output of this type, just return without
+   # writing anything to the run.properties file
+   if ( $specifier == 0 ) {
+      if ( $identifier eq "maxele.63" || $identifier eq "maxvel.63" ||
+         $identifier eq "maxwvel.63" || $identifier eq "minpr.63" ||
+         $identifier eq "maxrs.63" ) {
+            $specifier = 1; # these files will always be there
+      } else {
+         return;
+      }
+   }
+   # create the hash for relating the basic file identifier with the
+   # long winded file type description
+   my %ids_descs;
+   $ids_descs{"fort.61"} = "Water Surface Elevation Stations";
+   $ids_descs{"fort.62"} = "Water Current Velocity Stations";
+   $ids_descs{"fort.63"} = "Water Surface Elevation";
+   $ids_descs{"fort.64"} = "Water Current Velocity";
+   $ids_descs{"fort.71"} = "Barometric Pressure Stations";
+   $ids_descs{"fort.72"} = "Wind Velocity Stations";
+   $ids_descs{"fort.73"} = "Barometric Pressure";
+   $ids_descs{"fort.74"} = "Wind Velocity";
+   $ids_descs{"maxele.63"} = "Maximum Water Surface Elevation";
+   $ids_descs{"maxvel.63"} = "Maximum Current Speed";
+   $ids_descs{"maxwvel.63"} = "Maximum Wind Speed";
+   $ids_descs{"minpr.63"} = "Minimum Barometric Pressure";
+   $ids_descs{"maxrs.63"} = "Maximum Wave Radiation Stress";
+   $ids_descs{"swan_DIR.63"} = "Mean Wave Direction";
+   $ids_descs{"swan_DIR_max.63"} = "Maximum Mean Wave Direction";
+   $ids_descs{"swan_HS.63"} = "Significant Wave Height";
+   $ids_descs{"swan_HS_max.63"} = "Maximum Significant Wave Height";
+   $ids_descs{"swan_TMM10.63"} = "Mean Wave Period";
+   $ids_descs{"swan_TMM10_max.63"} = "Maximum Mean Wave Period";
+   $ids_descs{"swan_TPS.63"} = "Peak Wave Period";
+   $ids_descs{"swan_TPS_max.63"} = "Maximum Peak Wave Period";
+   #
+   if ( abs($specifier) == 3 || abs($specifier == 5) ) {
+      $filename = $filename . ".nc";
+      $format = "netcdf";
+   }
+   if ( abs($specifier) == 4 ) {
+      $format = "sparse-ascii";
+   }
+   printf RUNPROPS "$ids_descs{$identifier} File Name : $filename\n";
+   printf RUNPROPS "$ids_descs{$identifier} Format : $format\n";
+}
 #
 #
 #--------------------------------------------------------------------------
