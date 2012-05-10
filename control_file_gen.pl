@@ -89,6 +89,7 @@ our $sparseoutput; # if defined, then fort.63 and fort.64 will be sparse ascii
 my $hsformat="binary";  # input param for hotstart format: binary or netcdf
 my ($fort61netcdf, $fort62netcdf, $fort63netcdf, $fort64netcdf, $fort7172netcdf, $fort7374netcdf); # for netcdf (not ascii) output
 my $hotswan = "on"; # "off" if swan has to be cold started (only on first nowcast)
+our $netcdf4;  # if defined, then netcdf files should use netcdf4 formatting
 #
 my @TRACKS = (); # should be few enough to store all in an array for easy access
 my $controltemplate;
@@ -177,6 +178,7 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "fort64netcdf" => \$fort64netcdf,
            "fort7172netcdf" => \$fort7172netcdf,
            "fort7374netcdf" => \$fort7374netcdf,
+           "netcdf4" => \$netcdf4,
            "sparse-output" => \$sparseoutput,
            "hsformat=s" => \$hsformat,
            "hotswan=s" => \$hotswan
@@ -247,6 +249,9 @@ if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
    $NHSTAR = 1;
    if ( $hsformat eq "netcdf" ) {
       $NHSTAR = 3;
+      if ( defined $netcdf4 ) {
+         $NHSTAR = 5;
+      }
    }
 } else {
    $NHSTAR = 0;
@@ -258,15 +263,20 @@ if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
 if ( defined $hstime ) {
    $ihot = 68;
    if ( $hsformat eq "netcdf" ) {
-      $ihot+=300;
+      $ihot = 368;
+      if ( defined $netcdf4 ) {
+         $ihot = 568;
+      }
    }
 } else {
    $ihot = 0;
    $nffr = 0;
 }
 # [de]activate output files with time step increment and with(out) appending.
-$fort61 = &getSpecifier($fort61freq,$fort61append,$fort61netcdf) . " 0.0 365.0 " . &getIncrement($fort61freq,$dt);
-$fort62 = &getSpecifier($fort62freq,$fort62append,$fort62netcdf) . " 0.0 365.0 " . &getIncrement($fort62freq,$dt);
+my $fort61specifier = &getSpecifier($fort61freq,$fort61append,$fort61netcdf);
+my $fort62specifier = &getSpecifier($fort62freq,$fort62append,$fort62netcdf)
+$fort61 = $fort61specifier . " 0.0 365.0 " . &getIncrement($fort61freq,$dt);
+$fort62 = $fort62specifier . " 0.0 365.0 " . &getIncrement($fort62freq,$dt);
 #
 my $fort63specifier = &getSpecifier($fort63freq,$fort63append,$fort63netcdf);
 my $fort64specifier = &getSpecifier($fort64freq,$fort64append,$fort64netcdf);
@@ -280,8 +290,10 @@ if ( defined $sparseoutput ) {
 }
 $fort63 = $fort63specifier . " 0.0 365.0 " . &getIncrement($fort63freq,$dt);
 $fort64 = $fort64specifier . " 0.0 365.0 " . &getIncrement($fort64freq,$dt);
-$fort7172 = &getSpecifier($fort7172freq,$fort7172append,$fort7172netcdf) . " 0.0 365.0 " . &getIncrement($fort7172freq,$dt);
-$fort7374 = &getSpecifier($fort7374freq,$fort7374append,$fort7374netcdf) . " 0.0 365.0 " . &getIncrement($fort7374freq,$dt);
+my $fort7172specifier = &getSpecifier($fort7172freq,$fort7172append,$fort7172netcdf);
+my $fort7374specifier = &getSpecifier($fort7374freq,$fort7374append,$fort7374netcdf);
+$fort7172 = $fort7172specifier . " 0.0 365.0 " . &getIncrement($fort7172freq,$dt);
+$fort7374 = $fort7374specifier . " 0.0 365.0 " . &getIncrement($fort7374freq,$dt);
 if ( $nws eq "0" ) {
    $fort7172 = "NO LINE HERE";
    $fort7374 = "NO LINE HERE";
@@ -523,6 +535,7 @@ printf RUNPROPS "ColdStartTime : $csdate\n";
 printf RUNPROPS "WindModel : $wind_model\n";
 printf RUNPROPS "Model : $model\n";
 # write the names of the output files to the run.properties file
+stderrMessage("INFO","Writing file names and formats to run.properties file.");
 &writeFileName("fort.61",$fort61specifier);
 &writeFileName("fort.62",$fort62specifier);
 &writeFileName("fort.63",$fort63specifier);
@@ -635,7 +648,11 @@ sub getSpecifier () {
          $specifier = "-1";
       }
       if ( defined $netcdf ) {
-         $specifier *= 3;
+         if ( defined $netcdf4 ) {
+            $specifier *= 5;
+         } else {
+            $specifier *= 3;
+         }
       }
    }
    return $specifier;
