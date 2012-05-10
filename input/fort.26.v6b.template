@@ -82,7 +82,7 @@ FRICTION
 $
 $ activate three wave-wave interactions (triads)
 $jgf20120321: turned this off per Rick's instruction
-$TRIADS 
+$ TRIADS 
 $
 $ choose numerical propagation scheme, BSBT is first order
 $ Backward Space Backward Time
