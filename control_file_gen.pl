@@ -274,7 +274,7 @@ if ( defined $hstime ) {
 }
 # [de]activate output files with time step increment and with(out) appending.
 my $fort61specifier = &getSpecifier($fort61freq,$fort61append,$fort61netcdf);
-my $fort62specifier = &getSpecifier($fort62freq,$fort62append,$fort62netcdf)
+my $fort62specifier = &getSpecifier($fort62freq,$fort62append,$fort62netcdf);
 $fort61 = $fort61specifier . " 0.0 365.0 " . &getIncrement($fort61freq,$dt);
 $fort62 = $fort62specifier . " 0.0 365.0 " . &getIncrement($fort62freq,$dt);
 #
