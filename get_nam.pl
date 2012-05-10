@@ -71,6 +71,7 @@ GetOptions(
            "scriptdir=s" => \$scriptDir
           );
 #
+stderrMessage("DEBUG","hstime is $hstime");
 our $dl = 0;   # true if we were able to download the file(s) successfully
 our $ftp = Net::FTP->new($backsite, Debug => 0, Passive => 1); 
 unless ( defined $ftp ) {
@@ -142,6 +143,7 @@ if ( defined $hstime && $hstime != 0 ) {
 # form the date and hour of the current ADCIRC time
 $date = sprintf("%4d%02d%02d",$ny ,$nm, $nd);
 $hour = sprintf("%02d",$nh);
+stderrMessage("DEBUG","The current ADCIRC time is $date.");
 #
 # now go to the ftp site and download the files
 # get the list of nam dates where data is available
@@ -158,7 +160,7 @@ my @sortedNamDirs = sort { lc($a) cmp lc($b) } @namDirs;
 # narrow the list to the target date and any later dates
 my @targetDirs;
 foreach my $dir (@sortedNamDirs) {
-#   stderrMessage("DEBUG","Found the directory '$dir' on the NCEP ftp site.");
+   stderrMessage("DEBUG","Found the directory '$dir' on the NCEP ftp site.");
    $dir =~ /nam.(\d+)/;
    if ( $1 < $date ) { 
       next; 
@@ -169,7 +171,7 @@ foreach my $dir (@sortedNamDirs) {
 # determine the most recent date/hour ... this is the cycle time
 $targetDirs[-1] =~ /nam.(\d+)/;
 my $cycledate = $1; 
-#stderrMessage("DEBUG","The cycledate is '$cycledate'.");
+stderrMessage("DEBUG","The cycledate is '$cycledate'.");
 if ( $cycledate < $date ) { 
    stderrMessage("ERROR","The cycledate is '$cycledate' but the ADCIRC hotstart date is '$date'; therefore an error has occurred. get_nam.pl is halting this attempted download.");
    printf STDOUT $dl;

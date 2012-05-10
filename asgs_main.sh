@@ -1488,8 +1488,10 @@ while [ 1 -eq 1 ]; do
    fi
    checkHotstart $FROMDIR $HOTSTARTFORMAT  67
    if [[ $HOTSTARTFORMAT = netcdf ]]; then
+      logMessage "hotstart format is netcdf"
       HSTIME=`$ADCIRCDIR/hstime -f ${FROMDIR}/fort.67.nc -n` 2>> ${SYSLOG}
    else
+      logMessage "hotstart format is binary"
       HSTIME=`$ADCIRCDIR/hstime -f ${FROMDIR}/PE0000/fort.67` 2>> ${SYSLOG}
    fi
    logMessage "The time in the hotstart file is '$HSTIME' seconds."

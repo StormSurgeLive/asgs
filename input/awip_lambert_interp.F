@@ -60,6 +60,8 @@ C
 C    Build Instructions:
 C    g95 -ffixed-form -Wall -o awip_lambert_interp.x awip_lambert_interp.f90
 C
+C    ifort -o awip_lambert_interp.x awip_lambert_interp.F
+C
 C
 C***********************************************************************
 
