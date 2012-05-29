@@ -202,25 +202,47 @@
             ndset = 1
             varname(1) = "maxwvel"
             exit
-         case("dir")
-            write(6,*) "INFO: Preparing to write XDMF xml for a swan_DIR.63 file."
-            num_components = 1
-            varname(1) = "dir"
+         case("radstress_x","radstress_y")
+            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC wave radiation stress gradient (rads.64) file."
+            num_components = 2
+            varname(1) = "radstress_x"
+            varname(2) = "radstress_y"
             exit
-         case("hs")
-            write(6,*) "INFO: Preparing to write XDMF xml for a swan_HS.63 file."
+         case("swan_DIR")
+            write(6,*) "INFO: Preparing to write XDMF xml for a SWAN wave direction (swan_DIR.63) file."
             num_components = 1
-            varname(1) = "hs"
+            varname(1) = "swan_DIR"
             exit
-         case("tmm10")
-            write(6,*) "INFO: Preparing to write XDMF xml for a swan_TMM10.63 file."
+         case("swan_HS")
+            write(6,*) "INFO: Preparing to write XDMF xml for a SWAN significant wave height (swan_HS.63) file."
             num_components = 1
-            varname(1) = "tmm10"
+            varname(1) = "swan_HS"
             exit
-         case("tps")
-            write(6,*) "INFO: Preparing to write XDMF xml for a swan_TPS.63 file."
+         case("swan_TMM10")
+            write(6,*) "INFO: Preparing to write XDMF xml for a SWAN mean absolute wave period (swan_TMM10.63) file."
             num_components = 1
-            varname(1) = "tps"
+            varname(1) = "swan_TMM10"
+            exit
+         case("swan_TM01")
+            write(6,*) "INFO: Preparing to write XDMF xml for a SWAN mean absolute wave period (swan_TM01.63) file."
+            num_components = 1
+            varname(1) = "swan_TM01"
+            exit
+         case("swan_TM02")
+            write(6,*) "INFO: Preparing to write XDMF xml for a SWAN mean absolute zero crossing period (swan_TM02.63) file."
+            num_components = 1
+            varname(1) = "swan_TM02"
+            exit
+         case("swan_TPS")
+            write(6,*) "INFO: Preparing to write XDMF xml for a SWAN smoothed peak period (swan_TPS.63) file."
+            num_components = 1
+            varname(1) = "swan_TPS"
+            exit
+         case("swan_windx","swan_windy")
+            write(6,*) "INFO: Preparing to write XDMF xml for a SWAN wind velocity (swan_WIND.64) file."
+            num_components = 2
+            varname(1) = "swan_windx"
+            varname(2) = "swan_windy"
             exit
          case default
             cycle     ! did not recognize this variable name
@@ -267,6 +289,12 @@
             endif
             if ( varname(1).eq."u-vel" ) then
                dataDesc = "water current velocity"
+            endif
+            if ( varname(1).eq."radstress_x" ) then
+               dataDesc = "radiation_stress_gradient"
+            endif
+            if ( varname(1).eq."swan_windx" ) then
+               dataDesc = "swan_wind_velocity"
             endif
          endif
       end do
@@ -358,7 +386,7 @@
       write(10,'(A)') '</Xdmf>'
       close(10)
       call check(nf90_close(nc_id))
-      write(6,'(A)') "INFO: Finished generating XDMF xml to for this NetCDF file."
+      write(6,'(A)') "INFO: Finished generating XDMF xml for this NetCDF file."
 !----------------------------------------------------------------------
       end program generateXDMF
 !----------------------------------------------------------------------

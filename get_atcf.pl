@@ -3,6 +3,10 @@
 # get_atcf.pl:
 #   This script downloads the latest raw hindcast and forecast from
 #   the NHC.
+#
+#   It can also load the hindcast and forecast files from the local 
+#   file system.
+#
 #--------------------------------------------------------------
 # Copyright(C) 2006, 2007, 2008, 2009 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
@@ -30,15 +34,24 @@ use Getopt::Long;
 #  Usage Example:
 #   perl get_atcf.pl --ftpsite ftp.tpc.ncep.noaa.gov --rsssite www.nhc.noaa.gov --fdir /ftp/path/to/forecast --hdir /ftp/path/to/hindcast --storm 01 --year 2006 --adv 05 --trigger rss
 #
-my $ftpsite;
-my $rsssite;
-my $fdir;
-my $hdir;
-my $storm;
-my $year;
+my $ftpsite; # hostname for hindcast, nowcast, and/or forecast data 
+             # $ftpsite can also be set to "filesystem" to pick up these
+             # data from the local filesystem
+my $rsssite; # hostname where the RSS feed (index-at.xml) is located
+             # $rsssite can also be set to "filesystem" to pick up these
+             # data from the local filesystem
+my $fdir;    # directory on $ftpsite for ATCF formatted forecast data
+my $hdir;    # directory on $ftpsite for ATCF formatted hindcast data
+my $storm;   # two digit NHC storm number 
+my $year;    # four digit year of the storm 
 my $adv;     # formatted advisory number of the previous advisory, if any
 my $trigger = "rss"; # the data source used to detect a new advisory
+             # can also be set to "rssembedded" to get the advisory text 
+             # that is embedded in the RSS xml file, rather than following
+             # the external link to the text of the forecast/advisory
 my $nhcName; # the name given by the NHC, e.g., TWO, GUSTAV, KATRINA, etc
+my $body;    # text of the forecast/advisory
+
 GetOptions(
            "rsssite=s" => \$rsssite,
            "ftpsite=s" => \$ftpsite,
@@ -50,10 +63,10 @@ GetOptions(
            "trigger=s" => \$trigger,
            "nhcName=s" => \$nhcName
            );
-
+#
 my $hindcastfile="bal".$storm.$year.".dat";
 my $forecastfile="al".$storm.$year.".fst";
-
+#
 my $dl = 0;   # true if we were able to download both hindcast and forecast
 my $hcDl = 0; # true if the hindcast was downloaded successfully
 my $fcDl = 0; # true if the forecast was downloaded successfully
@@ -62,39 +75,61 @@ while (!$dl) {
    $hcDl = 0; 
    $fcDl = 0;
    my $ftp;
-   my $ftp = Net::FTP->new($ftpsite, Debug => 0, Passive => 1); 
-   unless ( defined $ftp ) {
-      stderrMessage("ERROR","ftp: Cannot connect to $ftpsite: $@");
-      next;
+   #
+   # OPEN FTP SESSION (if needed)
+   if ( $ftpsite ne "filesystem" ) {
+      my $ftp = Net::FTP->new($ftpsite, Debug => 0, Passive => 1); 
+      unless ( defined $ftp ) {
+         stderrMessage("ERROR","ftp: Cannot connect to $ftpsite: $@");
+         next;
+      }
+      my $ftpLoginSuccess = $ftp->login("anonymous",'-anonymous@');
+      unless ( $ftpLoginSuccess ) {
+         stderrMessage("ERROR","ftp: Cannot login: " . $ftp->message);
+         next;
+      }
    }
-   my $ftpLoginSuccess = $ftp->login("anonymous",'-anonymous@');
-   unless ( $ftpLoginSuccess ) {
-      stderrMessage("ERROR","ftp: Cannot login: " . $ftp->message);
-      next;
+   #
+   # Verify existence of hindcast directory
+   if ( $ftpsite eq "filesystem" ) {
+      # we are getting the hindcast from the local filesystem
+      if ( -e $hdir && -d $hdir ) {
+         $hcDl = 1;       
+      } else {
+         stderrMessage("ERROR","Get '$hindcastfile' failed: " 
+            . " the local directory $hdir does not exist, or is not a directory.");
+         next;           
+      }
+   } else {
+      # we are getting the hindcast from an ftp server
+      my $hcDirSuccess = $ftp->cwd($hdir);
+      unless ( $hcDirSuccess ) {
+         stderrMessage("ERROR",
+             "ftp: Cannot change working directory to '$hdir': " . $ftp->message);
+         next;
+      }
+      $hcDl = $ftp->get($hindcastfile);
+      unless ( $hcDl ) {
+        stderrMessage("ERROR","ftp: Get '$hindcastfile' failed: " . $ftp->message);
+        next;
+      }
+
    }
-   
-   # HINDCAST TRACK
-   my $hcDirSuccess = $ftp->cwd($hdir);
-   unless ( $hcDirSuccess ) {
-      stderrMessage("ERROR",
-          "ftp: Cannot change working directory to '$hdir': " . $ftp->message);
-      next;
-   }
-   $hcDl = $ftp->get($hindcastfile);
-   unless ( $hcDl ) {
-     stderrMessage("ERROR","ftp: Get '$hindcastfile' failed: " . $ftp->message);
-     next;
-   }
+   #
    # grab the name of the storm from the hindcast, if it was not provided
    # in the command line parameters
    unless ( $nhcName ) {
       if ( $hcDl ) { 
-         my $hcOpenSuccess = open(HINDCAST,"<$hindcastfile");
+         my $hcOpenSuccess;
+         if ( $ftpsite eq "filesystem" ) {
+            $hcOpenSuccess = open(HINDCAST,"<$hdir/$hindcastfile");
+         } else {
+            $hcOpenSuccess = open(HINDCAST,"<$hindcastfile");       
+         }
          unless ($hcOpenSuccess) { 
-            stderrMessage("ERROR",
-               "Could not open hindcast file '$hindcastfile'.");  
+            stderrMessage("ERROR","Could not open hindcast file '$hindcastfile'.");  
             next;
-         } 
+         }
          # grab the last defined name in the hindcast 
          while(<HINDCAST>) {
             my @line = split(",",$_);
@@ -107,7 +142,11 @@ while (!$dl) {
          }
          close(HINDCAST);
       } else { 
-         stderrMessage("ERROR","Could not get NHC Name from hindcast because the download of the hindcast file '$hindcastfile' was not successful; the NHC Name for the storm was also not provided in the command line parameters.");
+         stderrMessage("ERROR","Could not get NHC Name from hindcast " .
+            "because the download of the hindcast file '$hindcastfile' " .
+            "was not successful; " .
+            "the NHC Name for the storm was also not provided " .
+            "in the command line parameters.");
          next;
       }
    }
@@ -150,38 +189,62 @@ while (!$dl) {
          }
       }
    }
-   $ftp->quit;
-   if ( $trigger eq "rss" ) {
-      my $http = Net::HTTP->new(Host => $rsssite);
-      unless ($http) {
-         stderrMessage("ERROR","http: Cannot connect to $rsssite: $@");
-         next;
-      }
-      my $httpReqSuccess = $http->write_request(GET         => "/index-at.xml", 
-                                               'User-Agent' => "Mozilla/5.0");
-      unless ( $httpReqSuccess ) {
-         stderrMessage("ERROR","http: Request for index-at.xml failed.");
-         next;
-      }
-      my ($code, $mess, %h) = $http->read_response_headers();
-      my $body;
-      while(1) { 
-         my $buf;
-         my $n = $http->read_entity_body($buf,1024);
-         unless ( defined $n ) {
-            stderrMessage("ERROR","http: buffer read failed: $!");
-            last;
+   if ( $ftpsite ne "filesystem" ) {
+      $ftp->quit;
+   }
+   #
+   # Now load up the text of the forecast/advisory
+   if ( $trigger eq "rss" || $trigger eq "rssembedded" ) {
+      # pick up the RSS feed from the local filesystem
+      if ( $rsssite eq "filesystem" ) {
+         if ( -e "$fdir/index-at.xml" ) { 
+            unless (open(FORECAST,"<$fdir/index-at.xml")) {
+               stderrMessage("ERROR","Cannot open the file $fdir/index-at.xml: $!");
+               next;
+            }
+            # stuff the lines of the forecast into a string variable; 
+            # this mimics what happens if we download the RSS feed from
+            # the web
+            while (<FORECAST>) {
+               $body .= $_;
+            }
+            close(FORECAST);
+         } else {
+            stderrMessage("ERROR","Cannot find the file $fdir/index-at.xml.");
+            next;        
          }
-         last unless $n;
-         $body.=$buf;
+      } else {
+         # pick up the RSS feed from the web
+         my $http = Net::HTTP->new(Host => $rsssite);
+         unless ($http) {
+            stderrMessage("ERROR","http: Cannot connect to $rsssite: $@");
+            next;
+         }
+         my $httpReqSuccess = $http->write_request(GET         => "/index-at.xml", 
+                                                  'User-Agent' => "Mozilla/5.0");
+         unless ( $httpReqSuccess ) {
+            stderrMessage("ERROR","http: Request for index-at.xml failed.");
+            next;
+         }
+         my ($code, $mess, %h) = $http->read_response_headers();
+         while(1) { 
+            my $buf;
+            my $n = $http->read_entity_body($buf,1024);
+            unless ( defined $n ) {
+               stderrMessage("ERROR","http: buffer read failed: $!");
+               last;
+            }
+            last unless $n;
+            $body.=$buf;
+         }
+         my $indexOpenSuccess = open(INDEX,">index-at.xml");
+         unless ($indexOpenSuccess) {
+            stderrMessage("ERROR","Could not open index-at.xml for writing.");
+            next;
+         }
+         print INDEX $body;
+         close(INDEX);
       }
-      my $indexOpenSuccess = open(INDEX,">index-at.xml");
-      unless ($indexOpenSuccess) {
-         stderrMessage("ERROR","Could not open index-at.xml for writing.");
-         next;
-      }
-      print INDEX $body;
-      close(INDEX);
       my @lines=split("\n",$body); # break text into an array of lines
       my $cnt=@lines;  # count them
       my $i=0;
@@ -210,20 +273,32 @@ while (!$dl) {
                }
             }
             while ($i<$cnt) {
-               # grab the link to the actual text of the advisory 
                $i++;
                if ( defined $lines[$i] ) {
-                  if ( $lines[$i] =~ /link/ ) {
-                     $linkFound = 1;
-                     $lines[$i] =~ /<link>http:\/\/(.*?)\/(.*)<\/link>/;
-                     $textAdvisoryHost=$1;
-                     $textAdvisoryPath=$2;
-                     last;
-                  }
-                  if ( $lines[$i] =~ /item/ ) {
-                     stderrMessage("ERROR",
-                        "http: The link to the text advisory was not found in index-at.xml.");
-                     last;
+               # grab the actual text of the advisory from the RSS xml
+                  if ( $trigger eq "rssembedded" ) {
+                     if ( $lines[$i] =~ /description/ ) {
+                        $body = "";
+                        while ( $lines[$i] ne "</pre>]]></description>" ) {
+                           $body .= $lines[$i];
+                           $i++;
+                        }
+                        last;
+                     }
+                  } else {
+                     # just grab the link to the actual text of the advisory 
+                     if ( $lines[$i] =~ /link/ ) {
+                        $linkFound = 1;
+                        $lines[$i] =~ /<link>http:\/\/(.*?)\/(.*)<\/link>/;
+                        $textAdvisoryHost=$1;
+                        $textAdvisoryPath=$2;
+                        last;
+                     }
+                     if ( $lines[$i] =~ /item/ ) {
+                        stderrMessage("ERROR",
+                           "http: The link to the text advisory was not found in index-at.xml.");
+                        last;
+                     }
                   }
                }
             }          
@@ -235,7 +310,7 @@ while (!$dl) {
          stderrMessage("ERROR","http: The storm named '$nhcName' was not found in the RSS feed.");
          next;
       }
-      unless (  $linkFound ) { 
+      if ( $trigger eq "rss" && !$linkFound ) { 
          stderrMessage("ERROR","http: The link to the Forecast/Advisory for the storm named '$nhcName' was not found in the index file of the RSS feed.");
          next;
       }
@@ -256,7 +331,7 @@ while (!$dl) {
                "http: Request for /$textAdvisoryPath failed.");
             next;
          }
-         ($code, $mess, %h) = $advConnect->read_response_headers();
+         my ($code, $mess, %h) = $advConnect->read_response_headers();
          $body="";
          while(1) { 
             my $buf;
@@ -268,16 +343,16 @@ while (!$dl) {
             last unless $n;
             $body.=$buf;
          }
-         my $textAdvFile = $forecastfile . ".html";
-         my $openTxtForecastSuccess = open(TEXTFORECAST,">$textAdvFile");
-         unless ($openTxtForecastSuccess) {
-            stderrMessage("ERROR","Could not open $textAdvFile for writing.");
-            next;
-         }
-         print TEXTFORECAST $body;
-         close(TEXTFORECAST);
-         $fcDl=1;
-      }      
+      }
+      my $textAdvFile = $forecastfile . ".html";
+      my $openTxtForecastSuccess = open(TEXTFORECAST,">$textAdvFile");
+      unless ($openTxtForecastSuccess) {
+         stderrMessage("ERROR","Could not open $textAdvFile for writing.");
+         next;
+      }
+      print TEXTFORECAST $body;
+      close(TEXTFORECAST);
+      $fcDl=1;
    }
 
    if ( $hcDl && $fcDl ) { 
