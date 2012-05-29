@@ -536,7 +536,9 @@ downloadCycloneData()
     newAdvisory=false
     newAdvisoryNum=
     forecastFileName=al${STORM}${YEAR}.fst
+    hindcastFileName=bal${STORM}${YEAR}.dat
     OPTIONS="--storm $STORM --year $YEAR --ftpsite $FTPSITE --fdir $FDIR --hdir $HDIR --rsssite $RSSSITE --trigger $TRIGGER --adv $ADVISORY"
+    logMessage "Options for get_atcf.pl are as follows : $OPTIONS"
     if [ "$START" = coldstart ]; then
        logMessage "Downloading initial hindcast/forecast."
     else
@@ -558,7 +560,7 @@ downloadCycloneData()
              fi
           fi
           ;;
-       "rss")
+       "rss" | "rssembedded" )
           # if there was a new advisory, the get_atcf.pl script
           # would have returned the advisory number in stdout
           if [ ! -z $newAdvisoryNum ]; then
@@ -570,7 +572,7 @@ downloadCycloneData()
           fi
           ;;
        *)
-          fatal "Invalid 'TRIGGER' type: '$TRIGGER'; must be ftp or rss."
+          fatal "Invalid 'TRIGGER' type: '$TRIGGER'; must be ftp, rss or rssembedded."
           ;;
        esac
        if [ $START = coldstart ]; then
@@ -583,9 +585,12 @@ downloadCycloneData()
     done
     stop_activity_indicator ${pid}
     logMessage "New forecast detected."
-    if [ $TRIGGER = rss ]; then
+    if [[ $TRIGGER = rss || $TRIGGER = rssembedded ]]; then
        perl ${SCRIPTDIR}/nhc_advisory_bot.pl --input ${forecastFileName}.html --output $forecastFileName >> ${SYSLOG} 2>&1
     fi
+    if [[ $FTPSITE = filesystem ]]; then
+       cp $HDIR/$hindcastFileName $hindcastFileName 2>> ${SYSLOG}
+	fi
 }
 #
 # subroutine that polls an external ftp site for background meteorology data,
