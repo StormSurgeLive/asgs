@@ -78,7 +78,7 @@ while (!$dl) {
    #
    # OPEN FTP SESSION (if needed)
    if ( $ftpsite ne "filesystem" ) {
-      my $ftp = Net::FTP->new($ftpsite, Debug => 0, Passive => 1); 
+      $ftp = Net::FTP->new($ftpsite, Debug => 0, Passive => 1); 
       unless ( defined $ftp ) {
          stderrMessage("ERROR","ftp: Cannot connect to $ftpsite: $@");
          next;
@@ -280,18 +280,25 @@ while (!$dl) {
                      if ( $lines[$i] =~ /description/ ) {
                         $body = "";
                         while ( $lines[$i] ne "</pre>]]></description>" ) {
-                           $body .= $lines[$i];
+                           $body .= $lines[$i] . "\n";
                            $i++;
                         }
                         last;
                      }
                   } else {
                      # just grab the link to the actual text of the advisory 
-                     if ( $lines[$i] =~ /link/ ) {
+                     # from a webserver
+                     if ( $lines[$i] =~ /<link>http:\/\/(.*?)\/(.*)<\/link>/ ) {
                         $linkFound = 1;
-                        $lines[$i] =~ /<link>http:\/\/(.*?)\/(.*)<\/link>/;
                         $textAdvisoryHost=$1;
                         $textAdvisoryPath=$2;
+                        last;
+                     }
+                     # grab the full path and file name of the file that
+                     # contains the actual text of the advisory
+                     if ( $lines[$i] =~ /<link>(\/.*)<\/link>/ ) {
+                        $linkFound = 1;
+                        $textAdvisoryPath=$1;
                         last;
                      }
                      if ( $lines[$i] =~ /item/ ) {
@@ -310,6 +317,8 @@ while (!$dl) {
          stderrMessage("ERROR","http: The storm named '$nhcName' was not found in the RSS feed.");
          next;
       }
+      # if we are supposed to get the text of the forecast file from
+      # link in the RSS feed, and we find no such link, we are toast
       if ( $trigger eq "rss" && !$linkFound ) { 
          stderrMessage("ERROR","http: The link to the Forecast/Advisory for the storm named '$nhcName' was not found in the index file of the RSS feed.");
          next;
@@ -317,6 +326,9 @@ while (!$dl) {
       unless ( $newAdvisory ) { 
          next;
       }
+      # if we are supposed to follow a link and we have successfully
+      # parsed out a hostname and path, follow the corresponding link
+      # to the text of the advisory
       if ( defined $textAdvisoryHost and defined $textAdvisoryPath ) {
          my $advConnect = Net::HTTP->new(Host => $textAdvisoryHost);
          unless ($advConnect) {
@@ -344,6 +356,28 @@ while (!$dl) {
             $body.=$buf;
          }
       }
+      # if we are supposed to get the text of the forecast advisory from
+      # the local file system, and we have successfully parsed out the
+      # full path and file name of the file that contains the text of the
+      # advsiory, then load it up in $body to mimic what would have happened
+      # if we had downloaded it via http 
+      if ( $rsssite eq "filesystem" and defined $textAdvisoryPath and not defined $textAdvisoryHost ) {
+	     unless ( -e $textAdvisoryPath ) {
+            stderrMessage("ERROR","The file containing the full text of the forecast advisory ('$textAdvisoryPath', pulled from the link in the RSS feed) does not exist.");
+			next;		
+		 } 
+         unless ( open(ADVTEXT,"<$textAdvisoryPath") ) {
+         	stderrMessage("ERROR","Could not open '$textAdvisoryPath' to read: $!");
+            next;
+         }
+		 while (<ADVTEXT>) {
+		    $body .= $_;
+		 }
+		 close(ADVTEXT);
+	  }
+      # now write out the file, which may contain html or other extraneous
+      # data, so that the relevant data can be parsed out 
+      # by nhc_advisory_bot.pl 
       my $textAdvFile = $forecastfile . ".html";
       my $openTxtForecastSuccess = open(TEXTFORECAST,">$textAdvFile");
       unless ($openTxtForecastSuccess) {
