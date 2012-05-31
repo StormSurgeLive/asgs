@@ -1,42 +1,16 @@
 #!/bin/bash
-
-
-# Specify the queue explicitly
 #$ -q %queuename%
-
-# Specify V 
 #$ -V 
-
-# Specify to run from current working directory 
 #$ -cwd 
-
-# Specify number of cpus in a machine-specific way
 #$ -pe %pbsncpu%
-
-# Specify the wall clock time
 #$ -l h_rt=%walltime%
-
-# Merge stderr to stdout (optional, otherwise they're in separate files)
 #$ -j y
-
-# Name the job (this will appear in the output from the qstat command)
-#$ -N %enstorm%
-
-# Specify the output filename explicitly (optional; the default is named
-# from the job ID, in the directory where qsub was run.)
-#$ -o %advisdir%/%enstorm%.out
-# $ -o %advisdir%/%enstorm%/%enstorm%.out
-
-# Specify the account that the time should be taken from 
+#$ -N ASGS-%enstorm%
+#$ -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out
 #$ -A %account%
-
-# Request mail when job ends, or is aborted (optional, default is "a" only)
-# (commented out)
-# $ -m ea
-
-# Specify email address
+#$ -m bea
 #$ -M %notifyuser%
-
+#Casey 120530: Replaced the queue commands.
 
 # some commands
 set echo
@@ -61,29 +35,34 @@ module load ddt
 # The directory to start in 
 cd %advisdir%/%enstorm%
 
-
-cp %adcircdir%/padcirc ./padcirc.mvapich1
+#Casey 120529: Generalized the handling of padcirc/padcswan.
+#cp %adcircdir%/padcirc ./padcirc.mvapich1
+cp %adcircdir%/%jobtype% .
 
 # These are the actual commands to be executed.
      
+#Casey 120509: Added jobtype and enstorm to the run.start file. 
     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-    echo "[${DATETIME}] : Job starting"          >> run.start
-    echo "[${DATETIME}] : %advisdir%  %enstorm%" >> run.start
-    echo "[${DATETIME}] : padcirc"               >> run.start
+    echo "[${DATETIME}] : Job starting"          >> %jobtype%.%enstorm%.run.start
+    echo "[${DATETIME}] : %advisdir%  %enstorm%" >> %jobtype%.%enstorm%.run.start
+    echo "[${DATETIME}] : padcirc"               >> %jobtype%.%enstorm%.run.start
 
-  ibrun  ./padcirc.mvapich1 %cloption%
+#Casey 120529: Generalized the handling of padcirc/padcswan.
+#  ibrun  ./padcirc.mvapich1 %cloption%
+  ibrun ./%jobtype% %cloption%
 #  ibrun tacc_infinity ./padcirc.mvapich1
 #  %submitstring% ./padcirc.mvapich1
+#Casey 120509: Added jobtype and enstorm to the run.finish and run.error files.
     ERROVALUE=$?
     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
     if [ $ERROVALUE == 0 ] ; then
-    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.finish
-    echo "[${DATETIME}] :  %advisdir%  %enstorm%"               >> run.finish
-    echo "[${DATETIME}] :  padcirc"                             >> run.finish
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> %jobtype%.%enstorm%.run.finish
+    echo "[${DATETIME}] :  %advisdir%  %enstorm%"                      >> %jobtype%.%enstorm%.run.finish
+    echo "[${DATETIME}] :  padcirc"                                    >> %jobtype%.%enstorm%.run.finish
     else
-    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.error
-    echo "[${DATETIME}] :  %advisdir%  %enstorm%"               >> run.error
-    echo "[${DATETIME}] :  padcirc"                             >> run.error
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> %jobtype%.%enstorm%.run.error
+    echo "[${DATETIME}] :  %advisdir%  %enstorm%"                      >> %jobtype%.%enstorm%.run.error
+    echo "[${DATETIME}] :  padcirc"                                    >> %jobtype%.%enstorm%.run.error
     fi
 
 # You don't need anything special at the end of the script.
