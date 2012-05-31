@@ -12,6 +12,9 @@ my $enstorm;   # name of the enesemble member (nowcast, storm3, etc)
 my $notifyuser; # email address of the user to be notified in case of error
 my $serqscript; # name of serial qscript file
 my $walltime; # amount of wall clock time expected for adcprep
+#Casey 120509: Added the ncpu and jobtype variables.
+my $ncpu;
+my $jobtype;
 
 GetOptions(
            "account=s" => \$account,
@@ -21,6 +24,9 @@ GetOptions(
            "notifyuser=s" => \$notifyuser,
            "walltime=s" => \$walltime,
            "serqscript=s" => \$serqscript,
+#Casey 120509: Added the ncpu and jobtype variables.
+           "ncpu=i" => \$ncpu,
+           "jobtype=s" => \$jobtype,
 );
 
 open(TEMPLATE,"$serqscript") || die "ERROR: Can't open ranger.template.serial file.";
@@ -38,6 +44,9 @@ while(<TEMPLATE>) {
     s/%enstorm%/$enstorm/g;  
     # user to notify when errors occur
     s/%notifyuser%/$notifyuser/;  
+#Casey 120509: Added the ncpu and jobtype variables.
+    s/%ncpu%/$ncpu/;
+    s/%jobtype%/$jobtype/;
     print $_;
 }
 close(TEMPLATE);

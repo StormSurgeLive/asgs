@@ -19,6 +19,8 @@ my $walltime;    # wallclocktime
 my $submitstring;# string to use to submit a job to the parallel queue
 my $syslog;      # location and name of system log file
 my $localhotstart; # will be present if subdomain hotstart files should be written
+#Casey 120509: Added the jobtype variable.
+my $jobtype;
 
 GetOptions("ncpu=i" => \$ncpu,
            "numwriters=i" => \$numwriters,
@@ -33,7 +35,10 @@ GetOptions("ncpu=i" => \$ncpu,
            "walltime=s" => \$walltime,
            "submitstring=s" => \$submitstring,
            "localhotstart" => \$localhotstart,
-           "syslog=s" => \$syslog);
+           "syslog=s" => \$syslog,
+#Casey 120509: Added the jobtype variable.
+           "jobtype=s" => \$jobtype,
+);
 
 # If dedicated writer processors will be used, we need to specify the
 # total number of CPUs here
@@ -60,8 +65,9 @@ if ( $numwriters != 0 ) {
 }
 #
 # set command line option for subdomain files to be written if necessary
+#Casey 120515: Added the -R flag.
 if ( defined $localhotstart ) {
-   $cloption .= " -S";
+   $cloption .= " -S -R";
 }
 #
 open(TEMPLATE,"$qscript") || die "ERROR: Can't open ranger.template.sge file.";
@@ -87,6 +93,8 @@ while(<TEMPLATE>) {
     s/%submitstring%/$submitstring/g;
     # add command line options
     s/%cloption%/$cloption/g; 
+#Casey 120509: Added the jobtype variable.
+    s/%jobtype%/$jobtype/g;
     print $_;
 }
 close(TEMPLATE);

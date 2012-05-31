@@ -1,41 +1,16 @@
 #!/bin/bash
-
-
-# Specify the queue explicitly
 #$ -q serial
-
-# Specify V 
 #$ -V 
-
-# Specify to run from current working directory 
 #$ -cwd 
-
-# Specify number of cpus in a machine-specific way
 #$ -pe 1way 16
-
-# Specify the wall clock time
 #$ -l h_rt=%walltime%
-
-# Merge stderr to stdout (optional, otherwise they're in separate files)
 #$ -j y
-
-# Name the job (this will appear in the output from the qstat command)
-#$ -N Prep
-
-# Specify the output filename explicitly (optional; the default is named
-# from the job ID, in the directory where qsub was run.)
-#$ -o %advisdir%/%enstorm%/%enstorm%prep.out
-
-# Specify the account that the time should be taken from 
+#$ -N ASGS-prep
+#$ -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out
 #$ -A %account%
-
-# Request mail when job ends, or is aborted (optional, default is "a" only)
-# (commented out)
-# $ -m ea
-
-# Specify email address
-# $ -M %notifyuser%
-
+#$ -m bea
+#$ -M %notifyuser%
+#Casey 120530: Replaced the queue commands.
 
 # some commands
 set echo
@@ -61,23 +36,27 @@ cd %advisdir%/%enstorm%
 cp %adcircdir%/adcprep ./adcprep
 # These are the actual commands to be executed.
 
+#Casey 120509: Added the jobtype and enstorm to the run.start file.
     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-    echo "[${DATETIME}] : Job starting"          >> run.start
-    echo "[${DATETIME}] : %advisdir%  %enstorm%" >> run.start
-    echo "[${DATETIME}] : adcprep"               >> run.start
+    echo "[${DATETIME}] : Job starting"          >> %jobtype%.%enstorm%.run.start
+    echo "[${DATETIME}] : %advisdir%  %enstorm%" >> %jobtype%.%enstorm%.run.start
+    echo "[${DATETIME}] : adcprep"               >> %jobtype%.%enstorm%.run.start
 
-./adcprep < prep.in1  > decomp.out1
+#Casey 120509: Corrected the call to adcprep.
+#./adcprep < prep.in1  > decomp.out1
+./adcprep --np %ncpu% --%jobtype%
 
+#Casey 120509: Added the jobtype and enstorm to the run.finish and run.error files.
     ERROVALUE=$?
     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
     if [ $ERROVALUE == 0 ] ; then
-    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.finish
-    echo "[${DATETIME}] :  %advisdir%  %enstorm%"               >> run.finish
-    echo "[${DATETIME}] :  adcprep"                             >> run.finish
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> %jobtype%.%enstorm%.run.finish
+    echo "[${DATETIME}] :  %advisdir%  %enstorm%"                      >> %jobtype%.%enstorm%.run.finish
+    echo "[${DATETIME}] :  adcprep"                                    >> %jobtype%.%enstorm%.run.finish
     else
-    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.error
-    echo "[${DATETIME}] :  %advisdir%  %enstorm%"               >> run.error
-    echo "[${DATETIME}] :  adcprep"                             >> run.error
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> %jobtype%.%enstorm%.run.error
+    echo "[${DATETIME}] :  %advisdir%  %enstorm%"                      >> %jobtype%.%enstorm%.run.error
+    echo "[${DATETIME}] :  adcprep"                                    >> %jobtype%.%enstorm%.run.error
     fi
 
 # You don't need anything special at the end of the script.
