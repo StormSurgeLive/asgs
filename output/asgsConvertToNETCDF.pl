@@ -18,7 +18,8 @@ use warnings;
 use Getopt::Long;
 
 my ($prodID,$HSprodID,$ADCIRCgrid);
-my (%RP,$k,$v);
+our %RP;
+my ($k,$v);
 my ($windtag,$windsrc);
 my ($model, $startDate, $cycle, $year, $mon, $mday, $fullDate);
 my $stormnumber = "00"; # number of storm if NWS19 vortex forcing
@@ -145,6 +146,11 @@ $windtag=$RP{"WindModel"};
 $stormnumber=$RP{"stormnumber"};
 my $coldstarttime=$RP{"ColdStartTime"};
 my $runstarttime=$RP{"RunStartTime"};
+my $instancename=$RP{"instance"};
+#
+if ( $instancename ne "1" ) { 
+   $toList="jason.fleming\@seahorsecoastal.com, nc.cera.renci2\@gmail.com";
+}
 #
 $year = "20" . substr $startDate,0,2;
 $mon = substr $startDate,2,2;
@@ -157,12 +163,18 @@ my $rsd = $3;
 my $rsh = $4;
 if ( defined $windtag ) {
    $openDAPDirectory = "$OPENDAPBASEDIR/$model/$ADCIRCgrid/$windtag/$year/$mon/$mday/$cycle";
+	if ( $instancename ne "1" ) { 
+       $openDAPDirectory = "$OPENDAPBASEDIR/blueridge.renci.org:2/$model/$ADCIRCgrid/$windtag/$year/$mon/$mday/$cycle";
+	}
 } else {
    $openDAPDirectory = "$OPENDAPBASEDIR/$model/$ADCIRCgrid/$year/$mon/$mday/$cycle";
 }
 #stderrMessage("DEBUG","openDAPDirectory: $openDAPDirectory");
 #$openDAPPrefix="http://data.disaster.renci.org:1935/thredds/catalog/$model/$ADCIRCgrid";
 $openDAPPrefix="http://opendap.renci.org:1935/thredds/catalog/$model/$ADCIRCgrid";
+if ( $instancename ne "1" ) {
+   $openDAPPrefix="http://opendap.renci.org:1935/thredds/catalog/blueridge.renci.org:2/$model/$ADCIRCgrid";
+}
 #stderrMessage("DEBUG","openDAPPrefix: $openDAPPrefix");
 
 unless (-e $openDAPDirectory) {
@@ -352,7 +364,7 @@ if (-e "run.properties") {
 #
 # write out the hash that represents the run.properties file
 # with the updated names and formats
-&writeHashToFile("run.properties",":",%RP);
+&writeHashToFile("run.properties",":");
 #
 # now copy and/or insert processed files as requested
 my $num_files = @filesProcessed;
@@ -447,9 +459,13 @@ sub ReadFileAsHash
    }
    while (<FIL>){
       ($k,$v)=split /$_[1]/;
-      chomp($k);chomp($v);
-      #remove leading and trailing whitespaces
-      $k =~ s/\s+//g;
+      chomp($k);
+      chomp($v);
+      #$k =~ s/\s+//g;
+      # remove leading and trailing whitespaces from the key
+      $k =~ s/^\s+//g;
+      $k =~ s/\s+$//g; 
+      # remove whitespace from the value
       $v =~ s/\s+//g;
       $H{$k}=$v;
    }
@@ -461,13 +477,12 @@ sub writeHashToFile
 {
    my $fname = shift;
    my $separator = shift;
-   my %hashToWrite = shift;
    unless ( open(FIL,">$fname") ) {
       stderrMessage("ERROR","Could not open the file $fname for writing: $!.");
       die;
    }
-   foreach my $key (keys(%hashToWrite)) {
-      printf FIL "$key $separator $hashToWrite{$key}\n";
+   foreach my $key (keys(%RP)) {
+      printf FIL "$key $separator $RP{$key}\n";
    }
    close(FIL)
 }
