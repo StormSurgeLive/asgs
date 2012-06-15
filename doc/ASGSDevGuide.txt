@@ -1,8 +1,9 @@
 The ASGS Developers Guide
 =========================
+Jason Fleming <jason.fleming@seahorsecoastal.com>
+v1.0, June 2012, Seahorse Coastal Consulting:
 
-:Author: Jason Fleming
-:Email:  <jason.fleming@seahorsecoastal.com>
+image::figures/SCC_logo.png["Seahorse Coastal Consulting",align="center",link="http://www.seahorsecoastal.com"]
 
 Introduction
 ------------

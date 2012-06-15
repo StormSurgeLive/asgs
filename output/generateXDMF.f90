@@ -25,6 +25,10 @@
 !
 ! g95 -o generateXDMF.x -ffree-form -ffree-line-length-huge -I/usr/local/netcdf/netcdf-4.1.1/f90 generateXDMF.f90 -L/usr/local/hdf5/hdf5-1.8.8/hdf5/lib -lnetcdf -lhdf5_hl -lhdf5 -lhdf5_fortran -lz
 !
+!Example for compiling this program with gfortran:
+!
+!gfortran -o generateXDMF.x -ffree-form -ffree-line-length-none -I/usr/include generateXDMF.f90 -lnetcdf -lnetcdff -lz
+!
       include 'adcmesh.f90'
 
       program generateXDMF
