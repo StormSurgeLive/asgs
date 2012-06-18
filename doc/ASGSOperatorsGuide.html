@@ -1,0 +1,2922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="AsciiDoc 8.6.6">
+<title>The ASGS Operators Guide</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+pre {
+  padding: 0;
+  margin: 0;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+tt {
+  font-family: monospace;
+  font-size: inherit;
+  color: navy;
+}
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+.monospaced {
+  font-family: monospace;
+  font-size: inherit;
+  color: navy;
+}
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+@media screen {
+  body {
+    max-width: 50em; /* approximately 80 characters wide */
+    margin-left: 16em;
+  }
+
+  #toc {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 13em;
+    padding: 0.5em;
+    padding-bottom: 1.5em;
+    margin: 0;
+    overflow: auto;
+    border-right: 3px solid #f8f8f8;
+    background-color: white;
+  }
+
+  #toc .toclevel1 {
+    margin-top: 0.5em;
+  }
+
+  #toc .toclevel2 {
+    margin-top: 0.25em;
+    display: list-item;
+    color: #aaaaaa;
+  }
+
+  #toctitle {
+    margin-top: 0.5em;
+  }
+}
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install(2);
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>The ASGS Operators Guide</h1>
+<span id="author">Jason Fleming</span><br>
+<span id="email" class="monospaced">&lt;<a href="mailto:jason.fleming@seahorsecoastal.com">jason.fleming@seahorsecoastal.com</a>&gt;</span><br>
+<span id="revnumber">version 1.0,</span>
+<span id="revdate">June 2012, Seahorse Coastal Consulting</span>
+<br><span id="revremark"></span>
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_executive_summary">Executive Summary</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The ADCIRC Surge Guidance System (ASGS) is a software system for generating
+storm surge and wave guidance from ADCIRC + SWAN in real time on high
+resolution grids. The Coastal Emergency Risks Asssessment (CERA) web
+visualization application provides an interactive web medium for examination of
+results by official clients. During a tropical cyclone event, the ASGS
+constructs meteorological forcing from a parametric wind / pressure model using
+storm parameters extracted from National Hurricane Center (NHC) Forecast
+Advisories. During nor&#8217;easters or for day-to-day generation of tidal forecasts
+and other results, the system uses gridded wind and pressure fields (e.g.,
+NCEP’s NAM model) as input forcing. In both cases, hydrologically-driven river
+forecast data from NSSL are used to account for the effects of precipitation
+and upland river flooding.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_system_structure">System Structure</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>An overview of the modular structure of the ASGS is shown in Figure 1. The
+figure indicates the separation of System components into the following
+categories:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+reference information (in purple), which specify the system configuration and physical parameter data used in the simulation;
+</p>
+</li>
+<li>
+<p>
+dynamic input data (in red) that varies in time and must be downloaded from external data sources for every forecast cycle;
+</p>
+</li>
+<li>
+<p>
+input file production (in green), which implements the
+system behavior specified by the Operator in the system configuration files; and
+</p>
+</li>
+<li>
+<p>
+output visualization, publication, and interaction (in blue) for use by
+clients and end users.
+</p>
+</li>
+</ol></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/asgs_structure_color.png" alt="figures/asgs_structure_color.png">
+</div>
+<div class="title">Figure 1. The overall structure of the ASGS divides the various features into their own modules. The configuration and static physical data that are common to all simulation runs are shown at the top in purple, the dynamic data acquisition modules are shown in red, the internal data processing and input file generation are shown in green, and output modules are shown in blue at the bottom. Arrows are conceptual and indicate data flow.</div>
+</div>
+<div class="paragraph"><p>These categories and associated modules will be described in greater detail
+below.</p></div>
+<div class="sect2">
+<h3 id="_reference_information">Reference Information</h3>
+<div class="paragraph"><p>The reference information includes a dynamic specification of system behavior
+in the configuration file as well as static physical data, embodied in the
+simulation input files ADCIRC. The system configuration consists of a single
+file, and all of the features and behavior of the various components can be
+controlled from this single configuration file. This file is used to activate
+or deactivate the various types of physical forcing, including tropical cyclone
+meteorology, ordinary meteorology, wave simulation and coupling, tides, and
+river flow input. It is also used to specify a wide variety of other settings,
+including (for example) the type of computer that the system is running on, the
+number of processors to use in parallel execution, the name of the ADCIRC mesh
+file for the domain of interest, the number of storms in an ensemble and their
+characteristics, the types of output products to generate, the email addresses
+of officials that should be notified when results are ready, and many others.</p></div>
+<div class="paragraph"><p>The simulation input files represent a purely static set of physical data that
+are used in the simulations. These data include the ADCIRC mesh (domain
+discretization), the bathymetry and topography of the domain, the spatially
+varying Manning&#8217;s n value, and the directional wind roughness lengths and
+canopy effects derived from land cover data. The static data also include the
+tidal constituents to be included (if any), convergence controls and solution
+parameters for SWAN and ADCIRC, the names and locations of point recording
+stations for location-specific output data, and other data related to the
+internal procedures of the simulation codes.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_dynamic_input_data">Dynamic Input Data</h3>
+<div class="paragraph"><p>The system is capable of downloading and preparing dynamic meteorological data
+from two sources: the National Hurricane Center&#8217;s (NHC) Forecast/Advisories,
+and the National Centers for Environmental Prediction&#8217;s (NCEP) North American
+Mesoscale (NAM) model, depending on the data source selected by the Operator.
+Furthermore, the system has a module for downloading river boundary flow data
+from the National Severe Storms Laboratory and preparing it for use in ADCIRC.</p></div>
+<div class="paragraph"><p>For tropical cyclone events, the NHC Forecast/Advisories are downloaded by the
+system as soon as they are issued, and the relevant storm parameters (including
+storm positions. maximum wind speeds, and isotach radii) are parsed into a
+format that ADCIRC can use to generate wind fields using an internal asymmetric
+vortex model. For ordinary meteorology, including nor&#8217;easters and other
+systems, the system downloads regularly gridded meteorological fields from the
+NAM model from the NCEP ftp site. The gridded meteorological fields are
+extracted from the grib2 format that NCEP uses, reformatted and written to OWI
+formatted files that ADCIRC reads.</p></div>
+<div class="paragraph"><p>Once meteorological data have been obtained, the system downloads the latest
+river flow data from the National Severe Storms Laboratory (NSSL) ftp site.
+These data are in a file format that ADCIRC can read natively, and are set up
+to correspond to a particular ADCIRC mesh. The module that downloads these data
+must splice a series of these files together to match the date and time range
+implied by the meteorological data that have already been obtained.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_input_file_production">Input File Production</h3>
+<div class="paragraph"><p>Once the Operator has created a configuration file and assembled the static
+physical input data for a particular instance of the system and initiates
+startup, the system reads its configuration file and tries to determine its
+state: whether it is starting “hot” with a simulation that is already in
+progress, or “cold”, where a new ADCIRC or ADCIRC+SWAN simulation must be
+started from scratch (see Figure 2). It also makes a determination about the
+state of its input files; specifically, whether they have already been
+decomposed for parallel execution. If the system must start from a “cold”
+state, it creates input files and executes a hindcast simulation to warm up the
+simulation and prepare it for the cyclical nowcast/forecast production phase
+(described below). Accordingly, this hindcast run is set so that it writes a
+hotstart file at the very end to represent the state of the warmed-up
+simulation. In addition, if the input files have not been prepared for parallel
+execution, the system decomposes them for the specified number of processors.
+If the hindcast and/or decomposition tasks are required, they must only be
+performed once at the start of the system&#8217;s execution (processes that occur at
+most one time during an execution of the system are shown in blue in figure 2).</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/asgs_overview_color.png" alt="figures/asgs_overview_color.png">
+</div>
+<div class="title">Figure 2. The overview of the logic of the ASGS divides the one-time start up process for an initially "cold" simulation state in blue, with the bulk of the time being spent in the nowcast/forecast cycle, indicated by green.</div>
+</div>
+<div class="paragraph"><p>The nowcast occurs next if the simulation state is already "hot" when the
+system starts up, or if the system has already performed the decomposition and
+warm up phases. The first step in the nowcast is to determine if there are new
+meterological data available, by contacting the associated external website or
+ftp site, checking the timestamps that are available there, and comparing them
+with the current simulation time. If there are data available that are more
+recent than the current simulation time, a new cycle is deemed to have begun,
+and those data are downloaded. The system downloads the data it requires to
+cover the time period between its current simulation time and the most recent
+data that are available files that are available. After the meteorological data
+have been acquired, river data are acquired in the same way, if they have been
+specified.</p></div>
+<div class="paragraph"><p>Once the external data have been acquired, the input files for the ADCIRC
+simulation code (and the SWAN simulation code if wave forcing has been
+specified by the Operator in the system configuration file) are constructed
+using the time range of the meteorological forcing files and the various
+configuration parameters in the system configuration file. This includes tidal
+boundary conditions, output file formats and frequency of production of output
+files, and locations for point recording of output for comparison with tide
+gages or meteorological data collection equipment. The nowcast  control file(s)
+for ADCIRC and SWAN are set to write a hotstart file at the end of the
+simulation for use in starting the forecast, as well as a future nowcast. The
+last file written during the nowcast phase is the queue script that will be
+used to submit the job to the high performance computer&#8217;s queueing system.</p></div>
+<div class="paragraph"><p>Once the nowcast is complete, the system acquires the data required for one or
+more forecasts. These data will already be present in the case of a tropical
+cyclone, since the NHC forecast/advisory has already been parsed. For NAM
+forcing, the NAM forecast data are downloaded from NCEP and converted to OWI
+using the same technique as described for the nowcast. If river flux forcing
+was specified, the river flux data are downloaded and formatted in a similar
+manner to the nowcast. The control files are constructed to cover the time
+period implied by the forecast meteorological data, but are not set to write a
+hotstart file at the end. When the forecast is complete, the system executes
+post processing (described in the next section) and archives the data as
+required.</p></div>
+<div class="paragraph"><p>These forecast process described above is  applied to  each member of the
+forecast ensemble until all ensemble members have been completed, at which
+point the system goes back to looking for new meteorological data for its next
+nowcast.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_adcirc_asymmetric_vortex_model_used_during_irene">ADCIRC Asymmetric Vortex Model Used During Irene</h3>
+<div class="paragraph"><p>The application of meteorological forcing presented a challenge for operational
+storm surge forecasts because of the need for timely availability of high
+resolution input data. The most accurate data-assimilated meteorological fields
+from the H*Wind project were only available for nowcast and hindcast times, and
+even then were not available until several hours had passed after a
+corresponding hurricane advisory had been issued from the NHC. In addition,
+regularly gridded meteorological data from models such as the North American
+Mesoscale (NAM) model had a relatively coarse grid resolution in comparison to
+the unstructured ADCIRC mesh (12km grid resolution vs 30m minimum mesh
+resolution).</p></div>
+<div class="paragraph"><p>In contrast, parametric wind models produce comparable storm surge in many
+cases (Houston et al, 1999; Mattocks et al 2006). They also had the following
+advantages: (1) they require a comparatively tiny quantity of input data; (2)
+they could be coded as fast subroutines that run in-process; (3) they could
+provide wind stress and barometric pressure at arbitrary locations.</p></div>
+<div class="paragraph"><p>As a result of the advantages of parametric wind models, the Holland model
+(Holland, 1980) was selected as the basis of the wind speed and pressure field.
+Modifications and additions were made to the published model to account for the
+dynamic changes in the hurricane parameters along the hurricane&#8217;s track, as
+well as its adaptation to the data available from the NHC advisory, as
+described below. This modified model was referred to as the Dynamic Asymmetric
+Holland Model.</p></div>
+<div class="sect3">
+<h4 id="_dynamic_asymmetric_holland_model">Dynamic Asymmetric Holland Model</h4>
+<div class="paragraph"><p>The hurricane advisory contained at least the following information for each
+forecast increment: date, time, latitude and longitude of the center of the
+storm, and maximum observed wind speed at 10m with a 1 minute sampling
+interval. In addition, the distance to isotachs at various wind speeds were
+sometimes provided in one or more storm quadrants.</p></div>
+<div class="paragraph"><p>The vortex model was set up to operate in a two step process. The first step
+was the use of isotach data from the forecast/advisory to calculate a
+representative radius to maximum winds (Rmax) in each of the four storm
+quadrants, for each forecast increment, before the actual ADCIRC run. The
+second step was to interpolate the resulting Rmax for all nodes at each time
+step of the simulation, to determine the wind velocity throughout the domain at
+each time step.</p></div>
+<div class="paragraph"><p>The first step was performed in a pre-processing program for all the data from
+a particular forecast/advisory, before the ADCIRC run began. This design
+provided visibility to the Rmax values that ADCIRC would use, and gave the Operator
+the capability to modify the input values for experimentation.</p></div>
+<div class="paragraph"><p>The representative Rmax values were determined for each quadrant and forecast
+increment by subtracting the translation speed of the storm from the maximum
+wind speed, and converting both the translation-reduced maximum wind speed and
+the highest isotach wind speed in that quadrant into the equivalent wind speeds
+at the top of the atmospheric boundary layer. These wind speeds and the
+distance to the highest isotach in that quadrant were then substituted into the
+gradient wind equation. The gradient wind equation was then solved for the Rmax
+in that quadrant using Brent&#8217;s method, or if that failed numerically, a brute
+force marching algorithm.</p></div>
+<div class="paragraph"><p>The pre-processing program then appended the resulting Rmax values to the
+meterological input file for use in the actual ADCIRC simulation.</p></div>
+<div class="paragraph"><p>The second step occured during the execution of ADCIRC. For each time step in
+the simulation, the central pressure, latitude and longitude of the storm
+center, and radii to maximum winds were interpolated in time to reflect the
+simulation time relative to the forecast increments provided by the National
+Hurricane Center. The translation speed from the most recent forecast increment
+was used to reduce the time-interpolateed maximum wind speed. The
+time-interpolated maximum wind radii were interpolated in space using a cubic
+spline; the relevant value of Rmax at each node was determined from the cubic
+spline curve. Finally, the Holland(1980) model was used to determine the nodal
+wind velocity using the spline-interpolated Rmax, the translation-reduced value
+of the maximum wind speed, and a Holland B whose value was calculated and then
+limited to the range of 1.0 to 2.5.</p></div>
+<div class="paragraph"><p>After the computation of the nodal wind velocities at the top of the
+atmospheric boundary layer, the magnitudes were reduced to corresponding values
+at 10m, and then reduced again from the 1 minute averaging used by the National
+Hurricane Center to 10 minute averaging required by ADCIRC. A "damped"
+translational velocity was vectorially added to the nodal wind velocities,
+where the damping was proportional to the distance from the radius to maximum
+winds.</p></div>
+<div class="paragraph"><p>Finally, the wind vectors were rotated toward the center of the storm by an
+angle that depended on the distance from the center: the rotation angle was ten
+degrees between the center and the radius to maximum winds; it was twenty five
+degrees beyond 1.2 times the radius to maximum winds; and the rotation angle
+was linearly interpolated from the ten degree value at Rmax and the 25 degree
+value at 1.2 times Rmax.</p></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_output_visualization_publication_and_interaction">Output Visualization, Publication, and Interaction</h3>
+<div class="paragraph"><p>The production of human-comprehensible output is arguably the most important
+step in the entire process. Clients must be notified that new results are
+available; and they must be able to get to and use the results in a way that is
+intuitive for them. As there is more than type of end user or client, there is
+more than one approach to producing useful output: (a) publication of raw data;
+(b) production and publication of static images, non-interactive animations,
+and results files in domain specific formats; and (c) elucidation via
+interactive visualization through a web application.</p></div>
+<div class="paragraph"><p>Publication of raw results is the most basic step for post processing, and an
+OpenDAP server was selected and used to publish raw data in NetCDF format to
+clients and end users. An OpenDAP server provides a web interface to the data,
+making it easy for users to simply click on a link to the graphics or data file
+they wish to download, either for the latest run or for any previous simulation
+run.  Technologies such as NCTOOLBOX are available for sophisticated end users
+to apply their own analyses to the raw data, producing the output they require
+locally.  Once the data have been posted to the OpenDAP server, the system
+sends an email to a list of email addresses as specified in the system
+configuration file to notify them that new results are available.</p></div>
+<div class="paragraph"><p>The next level of presentation is in-situ post processing, that is, running
+non-interactive graphics generation programs in the high performance computing
+environment to generate static images, non-interactive animations, and
+reformatted versions of results in specialty fomats. These techniques are all
+in currently place, and have the advantage of not requiring voluminous
+quantities of data to be moved to an external server for post processing. For
+example, the system produces GIS shape files, JPEG images and non-interactive
+animations of maximum inundation as well as Google Earth (kmz) images of
+maximum inundation, all with in-situ post processing. These output products are
+then published to the OpenDAP server to make them available to clients. The
+disadvantage of in-situ processing is the lack of interactivity.</p></div>
+<div class="paragraph"><p>The highest and by far the most effective level of presentation is the use of
+an interactive web visualization application to elucidate results. For this
+level, the Coastal Emergency Risks Assessment (CERA) interactive web
+application was deployed and used to provide an interactive interface that
+served the needs of non-technical as well as experienced clients.</p></div>
+<div class="paragraph"><p>The CERA application integrates visualization ADCIRC and ADCIRC+SWAN results
+with Google Maps to provide the context for the results as well as practical
+features such as panning and the ability to zoom in more closely at various
+areas of interest to see greater resolution and detail. The application
+organizes results by storm and advisory (for tropical cyclone results) or by
+cycle (for NCEP NAM results). It presents these options concisely via dropdown
+boxes across the top of its interface.</p></div>
+<div class="paragraph"><p>The right side of the interface is an accordion-type menu that presents the
+various types of data that are available, including water surface elevation,
+inundation, significant wave height, wave period, and wind speed. For each type
+of data, the application is able to present a zoomable image of the maximum
+values that occurred over the course of the forecast (e.g., high water marks)
+as well as a zoomable, stoppable animation that illustrates the evolution of
+the data through time.</p></div>
+<div class="paragraph"><p>Furthermore, the interface allowed the user to click on any point of the storm
+track to view the data that are relevant to the time when the storm was at that
+point in the track. It is also capable of presenting the nodes of the
+underlying ADCIRC mesh, and displaying detailed summary information for any
+particular node the user selects.</p></div>
+<div class="paragraph"><p>The CERA application works by using the OpenDAP server as a staging area for
+raw data. The CERA application received notification email from the NCFS that
+new results were published to the OpenDAP server in NetCDF format. It would
+then download these data as well as some summary information about the type of
+forecast run that produced the data. It generated visualizations via production
+of image tiles at progressively finer scales, thus providing the user with the
+ability to zoom in and examine results in greater detail. These image tiles
+were then stored on the web server where the data were published, and sent to
+web clients as required by the user interaction with the web application and
+its menu system.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration">Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The ASGS is set up for a particular modeling situation using a configuration
+file.  Information in the ASGS configuration file is generally restricted to
+parameters that are determined by the scientific and logistical choices of the
+Operator. In contrast, configuration that is particular to a the underlying HPC
+platform is covered in the ASGS Developers Guide, and platform-specific
+configuration is generally contained within the ASGS itself, rather than an
+external configuration file.</p></div>
+<div class="paragraph"><p>The ASGS continually re-reads its configuration file; it is first read
+upon startup, and then once before every nowcast and forecast. This gives
+the ASGS a degree of dynamic configurability.</p></div>
+<div class="paragraph"><p>One unique aspect of the ASGS configuration file is that it is also a
+shell script. As a result, the configuration parameters are actually
+(bash) shell script variables, and are set as such. The use of a shell
+script as a configuration file also comes in handy if the desired
+configuration requires some logic, or the use of simple arrays; examples
+of both will be provided in the following sections.</p></div>
+<div class="paragraph"><p>On the other hand, one of the side effects of the use of a shell script as a
+configuration file is that it is dangerous to comment out the variables in the
+configuration file, or to set them equal to "".  This causes the associateed
+value to be "missing" in the list of arguments to various subroutines within
+the ASGS, which moves all the other command line arguments up one place,
+causing many issues.</p></div>
+<div class="paragraph"><p>In order to avoid these issues, the solution is to leave unneeded configuration
+parameters alone, rather than commenting them out or setting them to "".  If
+the values are not useful, or not needed, the ASGS will generally deal with
+them gracefully. There aren&#8217;t any features or behavior of the ASGS that are
+triggered by the mere presence of a particular configuration parameter in the
+configuration file. Parameters can be set to the word "null" for lack of any
+appropriate value; examples of this are provided below.</p></div>
+<div class="paragraph"><p>Each of the following sections details the parameters that are present in the
+configuration file. The sections start with a brief description of the section,
+followed by a snippet from a real configuration file. The definitions of the
+parameters in that section are then provided in detail. The definitions may be
+followed by a discussion of how the configuration parameters are used by the
+ASGS.</p></div>
+<div class="paragraph"><p>In an actual ASGS configuration file, the configuration parameters can be
+provided in any order.</p></div>
+<div class="sect2">
+<h3 id="_fundamental">Fundamental</h3>
+<div class="paragraph"><p>Fundamental configuration includes the name of the ASGS instance,
+resources required, and the type and timing of system startup.</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>INSTANCENAME=2           # "name" of this ASGS process
+COLDSTARTDATE=2012042500 # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=coldstart      # "hotstart" or "coldstart"
+LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
+HINDCASTLENGTH=45.0      # length of initial hindcast, from cold (days)
+REINITIALIZESWAN=no      # used to bounce the wave solution</pre>
+</div></div>
+<div class="dlist"><div class="title">Definitions</div><dl>
+<dt class="hdlist1">
+INSTANCENAME
+</dt>
+<dd>
+<p>
+    The instance name can be any string; a single digit integer is used
+    in practice. The instance name is helpful when multiple instances of the
+    ASGS are running on the same machine. It can also be used to label results,
+    to indicate which instance (among several on a particular machine)
+    generated the results.
+</p>
+</dd>
+<dt class="hdlist1">
+COLDSTARTDATE
+</dt>
+<dd>
+<p>
+    This date corresponds to ADCIRC time=0; it is used in many different
+    ways by the ASGS, but the principal uses are as follows: (a) determination
+    of nodal factors and equilibrium arguments for tidal forcing; (b)
+    determination of the relationship between the current simulation state
+    (along with the hotstart time) and the available input data.
+</p>
+</dd>
+<dt class="hdlist1">
+HOTORCOLD
+</dt>
+<dd>
+<p>
+    This parameter can either be set to <em>coldstart</em> or <em>hotstart</em>. When
+    set to <em>coldstart</em>, the ASGS will start by performing a hindcast as
+    as described in the previous section. If it is set to <em>hotstart</em>, the
+    ASGS will hotstart the simulation using the hotstart file found in the
+    location indicated by the <em>LASTSUBDIR</em> parameter described below.
+</p>
+</dd>
+<dt class="hdlist1">
+LASTSUBDIR
+</dt>
+<dd>
+<p>
+    The full path to the last good nowcast (or hindcast) subdirectory
+    must be provided here if the ASGS is meant to start by resuming a simulation that is
+    already in progress. For example, if the full path to the hotstart file is
+    <span class="monospaced">/srv/asgs99999/initialize/hindcast/fort.67</span>, then the
+    <em>LASTSUBDIR</em> parameter should be set to <span class="monospaced">/srv/asgs99999/initialize</span>.
+    If the full path to the hotstart file is
+    <span class="monospaced">/srv/asgs88888/2012010100/nowcast/fort.67</span>, the <em>LASTSUBDIR</em> parameter
+    should be set to <span class="monospaced">/srv/asgs88888/2012010100</span>. In other words, the
+    ASGS wants to find either a hindcast or nowcast subdirectory under
+    the <em>LASTSUBDIR</em> directory. The ASGS always sets ADCIRC to write
+    a fort.67 file (not a fort.68 file), and only on a hindcast or nowcast,
+    never on a forecast. If the <em>HOTORCOLD</em> parameter is set to <span class="monospaced">coldstart</span>,
+    this parameter can be set to <span class="monospaced">null</span>.
+</p>
+</dd>
+<dt class="hdlist1">
+HINDCASTLENGTH
+</dt>
+<dd>
+<p>
+    The length of the hindcast is only used by the ASGS if it actually
+    has to perform the hindcast; that is, if the ASGS is supposed to coldstart
+    ADCIRC.
+</p>
+</dd>
+<dt class="hdlist1">
+REINITIALIZESWAN
+</dt>
+<dd>
+<p>
+    The reinitialization of SWAN parameter can be set to "yes" to
+    re-coldstart SWAN (not ADCIRC) at the start of the
+    nowcast in case the SWAN solution
+    develops issues but the ADCIRC solution has not. Set this back to
+    "no" when the SWAN solution has normalized, or else ASGS will
+    continue to re-coldstart
+    SWAN on every nowcast.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_source_file_paths">Source File Paths</h3>
+<div class="paragraph"><p>The ASGS is flexible about the locations of the files that it requires.
+This makes it easy to change the version of ADCIRC that is used in the
+ASGS, for example.</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>ADCIRCDIR=/projects/ncfs/apps/adcirc/trunk/work # ADCIRC executables
+INPUTDIR=/projects/ncfs/apps/asgs/trunk/input   # grid and other input files
+OUTPUTDIR=/projects/ncfs/apps/asgs/trunk/output # post processing scripts
+PERL5LIB=/projects/ncfs/apps/asgs/trunk/PERL    # DateCale.pm perl module
+SCRIPTDIR=/projects/ncfs/apps/asgs/trunk        # ASGS executables</pre>
+</div></div>
+<div class="dlist"><div class="title">Definitions</div><dl>
+<dt class="hdlist1">
+ADCIRCDIR
+</dt>
+<dd>
+<p>
+    The ADCIRC (or ADCIRC+SWAN) directory parameter should be set to the
+    full path where the executable files are located.
+    The use of this parameter allows the Operator to simply compile ADCIRC
+    and leave the executables in place. It also allows the Operator to
+    change the version of ADCIRC that is being used by simply changing the
+    path contained in this parameter.
+</p>
+</dd>
+<dt class="hdlist1">
+INPUTDIR
+</dt>
+<dd>
+<p>
+    The input directory parameter must be set to the full path to the ADCIRC
+    input files (fort.13,
+    fort.14) and templates (fort.15.template, fort.26.template) that are
+    used by the ASGS to construct input sets, as well as queue script template
+    files that are used to submit compute jobs. When ASGS creates a reusable
+    archive of preprocessed input files, it places it in the directory. This
+    is normally set to the input subdirectory of the ASGS installation.
+</p>
+</dd>
+<dt class="hdlist1">
+OUTPUTDIR
+</dt>
+<dd>
+<p>
+    The  output directory parameter must be set to the full path to the
+    post processing scripts and related data that will be used to post
+    process the ADCIRC results produced by the ASGS. This is normally set
+    to the output subdirectory of the ASGS installation.
+</p>
+</dd>
+<dt class="hdlist1">
+PERL5LIB
+</dt>
+<dd>
+<p>
+    The perl 5 library parameter is used to set the path to the directory
+    containing the Pcalc.pm
+    perl module. This module is an external dependency, and allows the ASGS
+    to perform the date math that is required for many differnt purposes
+    during operation. This file is distributed with the ASGS in the PERL
+    subdirectory of the ASGS installation.
+</p>
+</dd>
+<dt class="hdlist1">
+SCRIPTDIR
+</dt>
+<dd>
+<p>
+    The script directory refers to the ASGS installation itself. There is
+    no assumed relationship between the directory where the ASGS configuration
+    file is stored, or the directory where the ASGS is executed, and the
+    ASGS installation directory. This parameter also allows the Operator
+    to change the version of the ASGS that is used for a particular scenario,
+    by changing this parameter to point to another ASGS installation.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_physical_forcing">Physical Forcing</h3>
+<div class="paragraph"><p>The physical forcing that is applied via ADCIRC is controlled via the following
+configuration parameters; these parameters are each set to <span class="monospaced">on</span> or <span class="monospaced">off</span>.</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>BACKGROUNDMET=on     # NAM download/forcing
+TIDEFAC=on           # tide factor recalc
+TROPICALCYCLONE=off  # tropical cyclone forcing
+WAVES=on             # wave forcing
+VARFLUX=on           # variable river flux forcing</pre>
+</div></div>
+<div class="dlist"><div class="title">Definitions</div><dl>
+<dt class="hdlist1">
+BACKGROUNDMET
+</dt>
+<dd>
+<p>
+    Set to background meteorology to <span class="monospaced">on</span> to activate meteorological forcing
+    with data from the North American Meoscale (NAM) model from the National
+    Centers for Environmental Prediction (NCEP). Data are acquired from the
+    NCEP ftp site.
+    If this is turned on, then <em>TROPICALCYCLONE</em> must be set to
+    <span class="monospaced">off</span> (i.e., these types of forcing are mutually exclusive).
+</p>
+</dd>
+<dt class="hdlist1">
+TIDEFAC
+</dt>
+<dd>
+<p>
+    Set the tidal factor parameter to <span class="monospaced">on</span> to activate tidal forcing, which
+    causes the nodal factors and equilibrium arguments to be recalculated
+    for every simulation run.
+</p>
+</dd>
+<dt class="hdlist1">
+TROPICALCYCLONE
+</dt>
+<dd>
+<p>
+    The tropical cyclone forcing parameter should be set to <span class="monospaced">on</span> to activate
+    meteorological forcing with one of the vortex models that are embedded
+    in ADCIRC. This requires forecast/advisory data from the National
+    Hurricane Center (NHC) as input. Data may be acquired from the NHC
+    web and ftp sites, or may be retrieved from the local file system,
+    as described in the Tropical Cyclone section below.
+    If this is turned on, then <em>BACKGROUNDMET</em> should be turned off
+    (i.e., these types of forcing are mutually exclusive).
+</p>
+</dd>
+<dt class="hdlist1">
+WAVES
+</dt>
+<dd>
+<p>
+    The coupling of SWAN to ADCIRC is activated by setting this parameter
+    to <span class="monospaced">on</span>. Because SWAN simulates wind-driven waves, either <em>BACKGROUNDMET</em>
+    or <em>TROPICALCYCLONE</em> must be turned on for the parameter to have any
+    effect.
+</p>
+</dd>
+<dt class="hdlist1">
+VARFLUX
+</dt>
+<dd>
+<p>
+    The variable flux parameter is used to activate aperiodic river boundary
+    forcing, and will cause the ASGS to look to an external ftp site for
+    ADCIRC fort.20 files and use that data to construct ADCIRC fort.20
+    files that are appropriate for the simulation run that it is constructing.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_computational_resources">Computational Resources</h3>
+<div class="paragraph"><p>The computational resources available to the ASGS will dictate many
+of the parameter settings in this section, and these parameter
+settings are interdependent, as described below.</p></div>
+<div class="paragraph"><p>This section also provides an example of the use of shell scripting
+logic to set some of the parameter values based on other parameter
+values, to provide a degree of dynamic configurability.</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
+SWANDT=1200                 # swan time step size (seconds)
+NCPU=180                    # number of compute CPUs for all simulations
+HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
+ADCPREPWALLTIME="00:15:00"  # adcprep wall clock time, including partmesh
+NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
+FORECASTWALLTIME="05:00:00" # forecast wall clock time
+#QUEUENAME=batch            # default queue name on this machine
+#SERQUEUE=batch             # default queue name (for serial jobs)
+QUEUENAME=armycore          # dedicated queue name on this machine
+SERQUEUE=armycore           # dedicated queue name for serial jobs
+#
+# the number of processors per node must be specified in the
+# queue script for this platform; the number of processors per
+# node is different for the different queues; the total number
+# of CPUs that we request should be evenly divisible by the
+# number of processors per node; lets apply some logic:
+if [[ $QUEUENAME = batch ]]; then # this is the default
+   PPN=8
+   NUMWRITERS=4
+else              # armycore nodes
+   PPN=12
+   NUMWRITERS=12
+fi</pre>
+</div></div>
+<div class="dlist"><div class="title">Definitions</div><dl>
+<dt class="hdlist1">
+TIMESTEPSIZE
+</dt>
+<dd>
+<p>
+    The time step size (in seconds) is used to set the time step on
+    ADCIRC simulations. A shorter time step generally means that the
+    required wall clock time will be longer, all other things being
+    equal.
+</p>
+</dd>
+<dt class="hdlist1">
+SWANDT
+</dt>
+<dd>
+<p>
+    The SWAN time step (in seconds) is used to set the time step for
+    SWAN. It should be evenly divisible by the ADCIRC time step size.
+    A shorter timestep generally means a longer wall clock time requirement.
+</p>
+</dd>
+<dt class="hdlist1">
+NCPU
+</dt>
+<dd>
+<p>
+    The number of CPUs that should be used for all simulations, including
+    hindcast, nowcasts, and each forecast ensemble member.
+</p>
+</dd>
+<dt class="hdlist1">
+HINDCASTWALLTIME
+</dt>
+<dd>
+<p>
+    The estimated time required to complete the hindcast, whose length
+    (in simulated days) is specified by the <em>HINDCASTLENGTH</em> parameter.
+</p>
+</dd>
+<dt class="hdlist1">
+ADCPREPWALLTIME
+</dt>
+<dd>
+<p>
+    The estimated time required to run adcprep, for the longest expected
+    adcprep job type (i.e., partmesh, prepall, prep15).
+</p>
+</dd>
+<dt class="hdlist1">
+NOWCASTWALLTIME
+</dt>
+<dd>
+<p>
+    The estimated time required to run a nowcast, taking into account
+    the fact that a nowcast simulation time period may be longer than
+    the typical intercycle simulation time (typically
+    6 hours) if previous nowcasts have been missed for some reason.
+</p>
+</dd>
+<dt class="hdlist1">
+FORECASTWALLTIME
+</dt>
+<dd>
+<p>
+    The estimated time required to run a single member of the
+    forecast ensemble, for the ensemble member with the longest
+    forecast length.
+</p>
+</dd>
+<dt class="hdlist1">
+QUEUENAME
+</dt>
+<dd>
+<p>
+    The name of the queue for parallel computational jobs; this
+    is only present in the configuration file if it varies according to
+    the circumstances of the simulation.
+</p>
+</dd>
+<dt class="hdlist1">
+SERQUEUE
+</dt>
+<dd>
+<p>
+    The name of the queue for serial (single processor) computational
+    jobs, like adcprep; this is only present in the configuration file
+    if the choice of queue varies according to the circumstances of the
+    simulation.
+</p>
+</dd>
+<dt class="hdlist1">
+PPN
+</dt>
+<dd>
+<p>
+    The number of processors per node is a parameter that is only required by
+    certain HPC platforms, and even on those platforms it is generally
+    a static parameter set in asgs_main.sh. It is only supplied in the
+    configuration file if it has to be changed depending on the circumstances
+    of the simulation.
+</p>
+</dd>
+<dt class="hdlist1">
+NUMWRITERS
+</dt>
+<dd>
+<p>
+    If dedicated writer processors are to be used in the simulation, the
+    number of dedicated writers is set here. When submitting a compute job,
+    the ASGS will request a number of processors equal to <em>NCPU+NUMWRITERS</em>.
+    If dedicated writers are not to be used, set this value to <span class="monospaced">0</span>.
+</p>
+</dd>
+</dl></div>
+<div class="sect3">
+<h4 id="_wall_clock_time_estimates">Wall Clock Time Estimates</h4>
+<div class="paragraph"><p>The estimates of wall clock time are required because of the need
+to fill in the estimated wall clock time of the job in the associated
+queue script when jobs are submitted. Wall clock times are in the format
+HH:MM:SS, with a leading zero if the number of hours is a single digit.</p></div>
+<div class="paragraph"><p>On computational plaforms where ASGS does not have access to a dedicated queue
+and is unable to give its jobs special priority over other jobs, the estimated
+wall clock times should be as small as possible while ensuring that there is
+enough cushion so that the job is very likely to finish in the estimated time.
+This is because longer estimated wall clock times generally result in longer
+waits in a shared queue, with subsequent delays in the production of results.</p></div>
+<div class="paragraph"><p>However, as bad as it is to wait in the queue, it is even worse to have a job
+killed by the queueing system for exceeding the estimated wall clock limit &#8230;
+especially if the job was nearly complete at the time it was killed by the
+system.</p></div>
+<div class="paragraph"><p>In general, an accurate estimate of the wall clock time requires experience
+with the underlying compute platform as well as the mesh and input files in
+question. There are many factors that affect wall clock time: number of nodes
+in the mesh, time step sizes, number of CPUs, implicit vs explicit solution
+mode in ADCIRC, scalability of the underlying hardware, use of dedicated writer
+processes, presence or absence of swan coupling, and the type of output files
+that are being written as well as their frequency of output.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_dynamic_configurability">Dynamic Configurability</h4>
+<div class="paragraph"><p>For this particular HPC plaform, there are two queues: a shared queue
+called "batch" and a high priority queue called "armycore". The
+platform requires that the number of processors per node be specified,
+but this parameter depends on the queue to which the job was submitted.</p></div>
+<div class="paragraph"><p>In order to be able to dynamically switch an instance of the ASGS from a low
+priority queue to a higher priority queue on this platform (for example, if a
+tropical cyclone is suddenly deemed to be a sufficient threat), the Operator
+need only change the <em>QUEUENAME</em> from <span class="monospaced">batch</span> to <span class="monospaced">armycore</span>, and script takes
+care of the other settings. The ASGS then propagates the changes in the
+queuename, the number of processors per node, and the overall number of CPUs
+requested into the queue scripts that it submits.</p></div>
+<div class="paragraph"><p>Although the overall number of requested CPUs would change in this scenario,
+the number of compute CPUs would not. Changing the number of compute CPUs
+dynamically is also possible, unless ADCIRC is set to produce subdomain
+hotstart files, or wave coupling has been activated. This is because SWAN
+always produces subdomain hotstart files, which make it difficult to
+dynamically change the number of compute CPUs, since the SWAN hotstart files
+would have to be recomposed into a fulldomain SWAN hotstart file, and then
+redecomposed into the right number of subdomain hotstart files for the new
+number of CPUs.</p></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_external_data_sources">External Data Sources</h3>
+<div class="paragraph"><p>During real time operation, the ASGS contacts external sites over the
+network to acquire the data it needs for its next nowcast/forecast cycle.
+The configurability of this contact allows the Operator to create mock
+sites for testing purposes, as well as keep up with changes in the
+structure of external data sites.</p></div>
+<div class="sect3">
+<h4 id="_tropical_cyclones">Tropical Cyclones</h4>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>STORM=03                         # storm number, e.g. 05=ernesto in 2006
+YEAR=2010                        # year of the storm
+TRIGGER=rss                      # either "ftp" or "rss"
+RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
+FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
+FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
+#
+#RSSSITE=www.seahorsecoastal.com # used for testing
+#FTPSITE=ftp.unc.edu             # for test storms
+#FDIR=/pub/ims/rick/ADCIRC/NHC_Advisories/fst # forecast dir on test site
+#HDIR=/pub/ims/rick/ADCIRC/NHC_Advisories/btk # hindcast dir on test site</pre>
+</div></div>
+<div class="dlist"><div class="title">Definitions</div><dl>
+<dt class="hdlist1">
+STORM
+</dt>
+<dd>
+<p>
+    The storm parameter is the two digit storm number assigned by the
+    National Hurricane Center.
+    The name of storm can change, e.g., TD TWELVE can become HU KATRINA,
+    but the number never changes (still 12 in that example). The NHC names
+    data files according to the storm number, not its name.
+</p>
+</dd>
+<dt class="hdlist1">
+YEAR
+</dt>
+<dd>
+<p>
+    The four digit year is also used by the NHC to name data files that
+    are relevant to a particular tropical cyclone.
+</p>
+</dd>
+<dt class="hdlist1">
+TRIGGER
+</dt>
+<dd>
+<p>
+    The trigger parameter tells the ASGS where to look for new
+    advisories. When set to <span class="monospaced">rss</span> or <span class="monospaced">rssembedded</span>,
+    the ASGS looks at the advisory number in an RSS feed
+    (i.e., an index-at.xml file); when the number changes, a new advisory is
+    deemed to have been issued.
+    In the past, the ASGS always
+    followed a link in the RSS feed to a website with the text of the new
+    forecast/advisory. However, starting with the 2012 season, the NHC has also
+    started embedding the text of the forecast/advisory directly
+    in the xml of their RSS feed. In addition, they sometimes
+    don&#8217;t update the link to the new forecast/advisory page when they update
+    the advisory number; this issue caused 2 stale advisories to be fed to
+    the ASGS at the start of the 2012 season (1 during Alberto and
+    1 during Beryl). As a result, the ASGS can now be configured to pull
+    the text of the forecast/advisory directly from the RSS feed,
+    rather than following the embedded link. This feature is activated by
+    setting TRIGGER=rssembedded. In order to configure the ASGS to
+    follow the RSS feed&#8217;s link to the text of the forecast/advisory,
+    Operators should set TRIGGER=rss.
+    In the past, it was also possible to set the TRIGGER to ftp, causing
+    the ASGS to look for a changed forecast file on the NHC ftp site.
+    As a result of a variety of issues
+    associated with getting forecast/advisory data in ATCF format from the
+    NHC ftp site, TRIGGER should not be set to <span class="monospaced">ftp</span> for
+    tropical cyclone events.
+</p>
+</dd>
+<dt class="hdlist1">
+RSSSITE
+</dt>
+<dd>
+<p>
+    The Really Simple Syndication (RSS) site is the website where the
+    ASGS should look for the index-at.xml (the "at" indicates that it is
+    the feed for the Atlantic basin).
+    If RSSSITE is set to "filesystem", then FDIR must be set to the full
+    path to the index-at.xml (RSS feed) file on the local filesystem.
+</p>
+</dd>
+<dt class="hdlist1">
+FTPSITE
+</dt>
+<dd>
+<p>
+    If <em>FTPSITE</em> is set to "filesystem", then <em>HDIR</em> must be set to the path to
+    the bal&lt;storm&gt;&lt;year&gt;.dat (ATCF-formatted) hindcast/nowcast data file.
+</p>
+</dd>
+<dt class="hdlist1">
+FDIR
+</dt>
+<dd>
+<p>
+    The forecast directory is the path to the index-at.xml on the
+    website where advisories are being issued if <em>RSSSITE</em> is a website.
+    If <em>RSSSITE</em> is set to <span class="monospaced">filesystem</span>, then the forecast directory
+    should be set to the full path to the index-at.xml file on the local
+    filesystem.
+</p>
+</dd>
+<dt class="hdlist1">
+HDIR
+</dt>
+<dd>
+<p>
+    The hindcast directory is the path to the bal&lt;STORM&gt;&lt;YEAR&gt;.dat file
+    containing the hindcast/nowcast data for the storm <em>STORM</em> of year
+    <em>YEAR</em> on the ftp site <em>FTPSITE</em>. If <em>FTPSITE</em> is set to <span class="monospaced">filesystem</span>
+    then the hindcast directory should be set to the full path to the
+    bal&lt;STORM&gt;&lt;YEAR&gt;.dat file on the local filesystem.
+</p>
+</dd>
+</dl></div>
+<div class="sect4">
+<h5 id="_testing">Testing</h5>
+<div class="paragraph"><p>New for the 2012 season, the ASGS can now be configured to load tc hindcast
+files and/or forecast/advisory files directly from the local filesystem,
+instead of downloading them from remote web and ftp sites.</p></div>
+<div class="paragraph"><p>This feature is useful for testing, and for production on platforms that
+do not support direct download of external files. It is activated by
+setting <em>FTPSITE</em> to <span class="monospaced">filesystem</span> and/or setting <em>RSSSITE</em> to <span class="monospaced">filesystem</span>
+in the ASGS configuration file. The <em>FTPSITE</em> and <em>RSSSITE</em> configuration
+parameters are completely independent of each other.</p></div>
+</div>
+<div class="sect4">
+<h5 id="_interactions">Interactions</h5>
+<div class="paragraph"><p>If the <em>RSSSITE</em> is set to <span class="monospaced">filesystem</span> and <em>TRIGGER</em> <span class="monospaced">rss</span>,
+then the ASGS will
+load the index-at.xml from the designated location on the local file
+system and parse out the link to the text of the forecast advisory. If
+it is a link to a website, it will follow the link to the website.</p></div>
+<div class="paragraph"><p>However, if the forecast/advisory is also on the local filesystem, the
+&lt;link&gt; tag in the RSS xml should be populated with the full path and
+file name of the corresponding forecast/advisory text file.</p></div>
+<div class="paragraph"><p>When <em>TRIGGER</em> is set to <span class="monospaced">rssembedded</span>, the ASGS still looks at the advisory
+number in the RSS feed to determine when a new advisory has been issued, but
+instead of following a hyperlink, it pulls the text of the forecast/advisory
+from the RSS feed itself.</p></div>
+<div class="paragraph"><p>When <em>TRIGGER</em> is set to <span class="monospaced">ftp</span>, the ASGS will look for an ATCF-formatted
+file called al&lt;stormnumber&gt;&lt;year&gt;.fst, and compare the content of that
+file to the last one it downloaded. When the content changes, a new
+advisory is deemed to have been issued.</p></div>
+<div class="paragraph"><p>The problems with setting <em>TRIGGER</em> to <span class="monospaced">ftp</span> include the following: (a) the
+ATCF-formatted file does not contain the advisory number; (b) the NHC sometimes
+issues intermediate advisories simply to update nowcast information, which will
+look to the ASGS like a new advisory; (c) the file can contain typos which do
+not affect the ASGS but the typo will be corrected by NHC, causing the ASGS to
+think a new advisory has been issued.</p></div>
+<div class="paragraph"><p>On the other hand, the ASGS still uses ftp to get the ATCF-formatted
+BEST track files (that is, the hindcast/nowcast information); it now
+also has the option of looking to the local filesystem instead of a
+remote ftp site.</p></div>
+<div class="paragraph"><p>Since TRIGGER=ftp is not used, <em>FDIR</em> is only used by the
+ASGS when RSSSITE=filesystem, to find the RSS feed (index-at.xml) on the
+local file system.</p></div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_background_meteorology">Background Meteorology</h4>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>FORECASTCYCLE="00,12"
+BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
+BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
+FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
+PTFILE=ptFile_oneEighth.txt         # the lat/lons for the OWI background met
+ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"</pre>
+</div></div>
+<div class="dlist"><div class="title">Definitions</div><dl>
+<dt class="hdlist1">
+FORECASTCYCLE
+</dt>
+<dd>
+<p>
+    The forecast cycle parameter tells the ASGS which NAM cycles to run a
+    forecast for, and which NAM cycles it should just nowcast.
+    It will always download forecast files for every cycle in any case.
+    Set this to "00,06,12,18" to run the forecast for all NAM cycles.
+    Set this to <span class="monospaced">none</span> to only run nowcasts (i.e., if forecasting should
+    be turned off).
+</p>
+</dd>
+<dt class="hdlist1">
+BACKSITE
+</dt>
+<dd>
+<p>
+    The background meteorological ftp site is the location where the ASGS
+    should look for background meteorological data.
+</p>
+</dd>
+<dt class="hdlist1">
+BACKDIR
+</dt>
+<dd>
+<p>
+    The background meteorological directory is the location on <em>BACKSITE</em>
+    where the directories containing NAM output files in grib2 format are
+    located (directory naming convention is nam.yyyymmdd).
+</p>
+</dd>
+<dt class="hdlist1">
+FORECASTLENGTH
+</dt>
+<dd>
+<p>
+    Number of hours to forecast; default value is the total length of the
+    NAM forecast (84 hours or 3.5 days).
+</p>
+</dd>
+<dt class="hdlist1">
+PTFILE
+</dt>
+<dd>
+<p>
+    The point file contains a list of lat/lon points that the NAM data should
+    be reprojected to during the conversion from grib2 format and Lambert
+    Conformal projection to OWI (ascii text) format and geographic projection.
+    The utility <em>input/ptFile_gen.pl</em> is provided with the ASGS to aid in
+    generating or regenerating files of this type.
+</p>
+</dd>
+<dt class="hdlist1">
+ALTNAMDIR
+</dt>
+<dd>
+<p>
+    These local directories are alternate locations for searching for NAM
+    input data on the local filesystem,
+    in case old data cannot be found on the NCEP ftp site.
+    When looking for nowcast files, the ASGS will look for grib2 files in
+    the directories $ALTNAMDIR/*/nowcast/erl.YYMMDD/" (2 digit year,
+    2 digit month, 2 digit day). When looking for forecast data, the ASGS
+    will look for grib2 files in the following directories:
+    $ALTNAMDIR/YYYYMMDDHH24/namforecast/
+    (4 digit year, 2 digit month, 2 digit day, 2 digit hour of 24 hour clock).
+    The directories must be separated by commas with no spaces.
+    No need for a trailing forward slash.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect3">
+<h4 id="_river_flux">River Flux</h4>
+<div class="paragraph"><p>If <em>VARFLUX</em> has been set to <span class="monospaced">on</span>, then the ASGS will download aperiodic
+river flux data (i.e., adcirc fort.20 files from an external website, as
+configured in this section.</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>RIVERSITE=ftp.nssl.noaa.gov
+RIVERDIR=/projects/ciflow/adcirc_info</pre>
+</div></div>
+<div class="dlist"><div class="title">Definitions</div><dl>
+<dt class="hdlist1">
+RIVERSITE
+</dt>
+<dd>
+<p>
+   The river boundary data ftp site parameter provides the domain name of the
+   anonymous ftp site that the ASGS should contact for fort.20 files with
+   variable river flux data.
+</p>
+</dd>
+<dt class="hdlist1">
+RIVERDIR
+</dt>
+<dd>
+<p>
+   The river directory parameter is the full path to the river flux files on
+   the <em>RIVERSITE</em> anonymous ftp site.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_input_files_and_templates">Input Files and Templates</h3>
+<div class="paragraph"><p>The input files and input file templates are used by the ASGS to constuct
+simulation runs. Many of these files are not included in the ASGS repository,
+as many of them are very large. If the files to be used are not in the
+repository, they will have to be provided by the Operator.</p></div>
+<div class="paragraph"><p>These parameters are used to specify just the names of the input files and
+templates; the full path is not provided. The ASGS will look for these files
+on the filesystem path specifed in the <em>INPUTDIR</em> parameter.</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>GRIDFILE=nc_inundation_v6c_rivers_msl.grd # mesh (fort.14) file
+GRIDNAME=nc6b
+CONTROLTEMPLATE=v6brivers_nowindreduction_explicit_fort.15_template # fort.15 template
+ELEVSTATIONS=v6brivers_elev_stations.txt
+VELSTATIONS=null
+METSTATIONS=v6brivers_met_stations.txt
+NAFILE=v6brivers_newrough.13
+SWANTEMPLATE=fort.26.v6b.limiter.template
+RIVERINIT=v6brivers.88
+RIVERFLUX=v6brivers_fort.20_default
+HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
+PREPPEDARCHIVE=prepped_ncv6b_${INSTANCENAME}_${NCPU}.tar.gz
+HINDCASTARCHIVE=prepped_ncv6b_hc_${INSTANCENAME}_${NCPU}.tar.gz</pre>
+</div></div>
+<div class="dlist"><div class="title">Definitions</div><dl>
+<dt class="hdlist1">
+GRIDFILE
+</dt>
+<dd>
+<p>
+    The grid file parameter specifies the name of the mesh file (fort.14 file)
+    to be used in the simulation.
+</p>
+</dd>
+<dt class="hdlist1">
+GRIDNAME
+</dt>
+<dd>
+<p>
+    The grid name is just a short and human-readable name to identify the
+    mesh; it is used in postprocessing to label the output.
+</p>
+</dd>
+<dt class="hdlist1">
+CONTROLTEMPLATE
+</dt>
+<dd>
+<p>
+    The control template is an adcirc fort.15 file (control file) that
+    has been converted into a template by replacing key input values with
+    special characters. During execution, the ASGS looks for the special
+    characters and replaces them with the appropriate values for an actual
+    simulation run. More information about this is provided in the ASGS
+    Developers Guide.
+</p>
+</dd>
+<dt class="hdlist1">
+ELEVSTATIONS
+</dt>
+<dd>
+<p>
+    The elevation stations file is a list of the elevation recording stations
+    that should be output to the adcirc fort.61 file. The file format is the
+    same as it would be for a list of stations in the adcirc fort.15 file.
+</p>
+</dd>
+<dt class="hdlist1">
+VELSTATIONS
+</dt>
+<dd>
+<p>
+    The velocity stations file is like the elevation stations file, except it
+    is for current velocity and the adcirc fort.62 file.
+</p>
+</dd>
+<dt class="hdlist1">
+METSTATIONS
+</dt>
+<dd>
+<p>
+    The meteorological stations file is like the elevation stations file,
+    except it is for meteorological data and the adcirc fort.71 and fort.72
+    files.
+</p>
+</dd>
+<dt class="hdlist1">
+NAFILE
+</dt>
+<dd>
+<p>
+    The nodal attributes file parameter provides the name of the nodal
+    attributes file (fort.13 file) that should be used with the simulation.
+    If there is no nodal attributes file, this parameter can be left blank.
+</p>
+</dd>
+<dt class="hdlist1">
+SWANTEMPLATE
+</dt>
+<dd>
+<p>
+    The swan template file is an adcirc fort.26 file (swan control file)
+    that has been converted into a template using the same type of process
+    as for the <em>CONTROLTEMPLATE</em> described above.
+</p>
+</dd>
+<dt class="hdlist1">
+RIVERINIT
+</dt>
+<dd>
+<p>
+    If <em>VARFLUX</em> has been set to <span class="monospaced">on</span>, an upland river initialization file
+    (adcirc fort.88 file) must be provided to provide the initial water
+    level heights along the river nodes.
+</p>
+</dd>
+<dt class="hdlist1">
+HINDCASTRIVERFLUX
+</dt>
+<dd>
+<p>
+    If <em>VARFLUX</em> has been set to <span class="monospaced">on</span>, an adcirc fort.20 file (aperiodic
+    river flux boundary file) must be provided to cover the entire duration
+    of the hindcast (as specified by the <em>HINDCASTLENGTH</em> parameter). The
+    hindcast river flux parameter must be set to the name of this fort.20 file.
+</p>
+</dd>
+<dt class="hdlist1">
+PREPPEDARCHIVE
+</dt>
+<dd>
+<p>
+    Because of the delay caused by having to run adcprep (specifically partmesh
+    and prepall) on large meshes, the ASGS will create an archive of the
+    subdomain fort.13, fort.14, and fort.18 files to avoid having to run
+    these time consuming adcprep jobs more than once. The use of this prepped
+    archive allows the ASGS to only use adcprep for fort.15 and fort.20 files
+    on each simulation run, since those are the only files that change from
+    cycle to cycle. The number of compute CPUs is embedded in the file name
+    in the example above, as this allows dynamic configurability of the
+    number of compute CPUs (if the number of compute CPUs changes, the
+    ASGS will not find the prepped archive that it needs, and will generate
+    a new one for the new number of CPUs. Please note that <strong>if any of the
+    station files are changed, the prepped archive file will no longer be
+    valid and must be deleted</strong>. If the prepped archive file does not exist,
+    the ASGS will detect this and simply generate a new one.
+</p>
+</dd>
+<dt class="hdlist1">
+HINDCASTARCHIVE
+</dt>
+<dd>
+<p>
+    The prepped hindcast archive file is created for the same purpose as the
+    <em>PREPPEDARCHIVE</em> file but is only used on a hindcast. The reason for
+    a separate archive for hindcasts is that meteorological forcing is
+    not applied on a hindcast, so meteorological stations are not present
+    in the adcirc fort.15 file on a hindcast, which changes the adcirc fort.18
+    (message passing) files. As a result, the subdomain files for hindcasts
+    must be kept separate from the subdomain files for nowcasts and forecasts,
+    at least when meteorological forcing is applied to nowcasts and forecasts,
+    which is always, for all practical purposes.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>Although the ASGS does not generally include the actual mesh and other
+input files for production instances of the ASGS, the east coast 95d mesh and
+input file are included for use in learning and testing the ASGS. In order
+to use these example files, use the following configuration settings:</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>GRIDFILE=ec_95d.grd                     # mesh (fort.14) file
+GRIDNAME=ec95d
+CONTROLTEMPLAT1E=ec_95_fort.15_template # fort.15 template
+ELEVSTATIONS=corps_elev_stations.txt    # or substitute your own stations file
+VELSTATIONS=corps_vel_stations.txt
+METSTATIONS=corps_vel_stations.txt
+NAFILE=                                 # no nodal attributes for ec95d
+SWANTEMPLATE=fort.26.ec95.template      # only used if WAVES=on
+RIVERINIT=null                          # this mesh has no rivers ...
+RIVERFLUX=null
+HINDCASTRIVERFLUX=null
+PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz</pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_storm_ensemble">Storm Ensemble</h3>
+<div class="paragraph"><p>Once a nowcast run is complete, the ASGS is capable of running more
+than one type of forecast. If background meteorology is used, the forecast
+ensemble can only consist of one member: namforecast. However, if tropical
+cyclone forcing is used, the ensemble can have one or more members, with
+each member expressing a different perturbation from the base storm.</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>ENSEMBLESIZE=1 # number of storms in the ensemble
+STORMLIST[0]=8 # namforecast
+NAME[0]="nowcast"
+NAME[1]="nhcConsensus"
+NAME[2]="higherMaxWindSpeed"
+NAME[3]="slowerOverlandSpeed"
+NAME[4]="veerRight"
+NAME[5]="veerLeft"
+NAME[6]="largerRmax"
+NAME[7]="smallerRmax"
+NAME[8]="namforecast"
+PERCENT[2]=20
+PERCENT[4]=100
+PERCENT[5]=-100
+PERCENT[6]=50
+PERCENT[7]=-50
+#ENDTIME=2008090200</pre>
+</div></div>
+<div class="dlist"><div class="title">Definitions</div><dl>
+<dt class="hdlist1">
+ENSEMBLESIZE
+</dt>
+<dd>
+<p>
+    The ensemble size parameter should be set to the number of different
+    forecast runs to be performed after each nowcast. For background
+    meteorology (NAM), or for tropical cylcone forcing where only the
+    NHC consensus forecast should be run, the ensemble size should
+    be set to 1. For tropical cyclone forecasting where multiple perturbations
+    to the base forecast are to be run, the ensemble size should be equal
+    to the total number of forecast runs.
+</p>
+</dd>
+<dt class="hdlist1">
+STORMLIST
+</dt>
+<dd>
+<p>
+    The storm list is an array parameter of size <em>ENSEMBLESIZE</em> that
+    provides the array index of the name of each storm in the ensemble.
+    The ASGS is sensitive to these names, and uses them during construction
+    of input files to apply the specified perturbations.
+</p>
+</dd>
+<dt class="hdlist1">
+NAME
+</dt>
+<dd>
+<p>
+    The name list is an array parameter of arbitrary size that lists
+    the names of the various storms that could potentially be used in
+    an ensemble. In other words, this array will generally have lots
+    of values that may or may not be used in any particular storm ensemble.
+</p>
+</dd>
+<dt class="hdlist1">
+PERCENT
+</dt>
+<dd>
+<p>
+    The percent variation is an array parameter of size <em>ENSEMBLESIZE</em> that
+    specifies the percent variation for perturbations that are implied by
+    the storm name. The ASGS ignores this parameter for storms named
+    <em>nowcast</em>, <em>nhcConsensus</em>, and <em>namforecast</em>.
+</p>
+</dd>
+<dt class="hdlist1">
+ENDTIME
+</dt>
+<dd>
+<p>
+    The optional end time parameter provides the year, month, day, and
+    hour when the forecast period should end. This parameter was implemented
+    for storms whose forecast reaches so far inland that it becomes irrelevant;
+    cutting the forecast short saves processing time for landfalling storms
+    and allows the ASGS to produce results more quickly.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>The <em>STORMLIST</em>, <em>NAME</em>, and <em>PERCENT</em> parameters represent examples
+of the ASGS configuration file taking advantage of its identity as a
+shell script by using of simple bash shell array variables as
+configuriation parameters. All of the arrays are zero indexed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_output_files">Output Files</h3>
+<div class="paragraph"><p>Control over ADCIRC output is mainly accomplished through the use of a single
+parameter, <em>OUTPUTOPTIONS</em>. The content of this parameter is one long string
+of command line options (ultimately fed to the control_file_gen.pl perl script)
+that specify the characteristics of the various output files.</p></div>
+<div class="paragraph"><p>The <em>OUTPUTOPTIONS</em> parameter is built by concatenating several convenience
+parameters for each of the output file types. These convenience parameters
+include <em>FORT63</em>, <em>FORT7374</em>, <em>SPARSE</em>, etc; these sub-parameters are really
+only used to enhance readability of the configuration file. It would be equally
+valid (but less readable) to supply the same command line options directly in
+the <em>OUTPUTOPTIONS</em> parameter.</p></div>
+<div class="paragraph"><p>By default, all output from ADCIRC is turned off; output of each type can be
+activated by providing the corresponding command line argument for the output
+frequency. In order for output to be produced, the output frequency must be
+nonzero.</p></div>
+<div class="paragraph"><p>If a particular type of output is activated, then a new output file of that
+type will be created for each nowcast/foreast cycle (rather than appending the
+file from the previous nowcast/forecast cycle) by default. On the other hand,
+if continuous output is desired, this behavior can be specified with with the
+corresponding "append" string (e.g., --fort61append), which will cause the data
+file to reflect the whole time series from the time that the append parameter
+was supplied.</p></div>
+<div class="paragraph"><p>Output frequency in this section is in SECONDS, not timesteps; the ASGS takes
+care of calculating the ADCIRC timestep increment required to achieve the
+output frequency specified here, and will automatically recalculate the
+timestep increment if the Operator changes the ADCIRC time step using the
+<em>TIMESTEPSIZE</em> parameter.</p></div>
+<div class="paragraph"><p>By default, output files are in ADCIRC ascii text format. The format of
+output files can be specified on a file-by-file basis, by providing the
+corresponding netcdf format string (e.g., --fort63netcdf).</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>FORT61="--fort61freq 900.0 --fort61netcdf" # water surface elevation station output
+FORT62="--fort62freq 0"                    # water current velocity station output
+FORT63="--fort63freq 3600.0"               # full domain water surface elevation output
+FORT64="--fort64freq 3600.0"               # full domain water current velocity output
+FORT7172="--fort7172freq 3600.0"           # met station output
+FORT7374="--fort7374freq 3600.0"           # full domain meteorological output
+SPARSE="--sparse-output"
+OUTPUTOPTIONS="${SPARSE} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+HOTSTARTCOMP=fulldomain                    # fulldomain or subdomain hotstart files
+HOTSTARTFORMAT=netcdf                      # binary or netcdf hotstart files
+MINMAX=reset                               # "continuous" or "reset" for maxele.63 etc files</pre>
+</div></div>
+<div class="dlist"><div class="title">Definitions</div><dl>
+<dt class="hdlist1">
+OUTPUTOPTIONS
+</dt>
+<dd>
+<p>
+    The output options parameter is a quoted string containing the command
+    line options to the control_file_gen.pl perl script for controlling
+    output. Its content is the amalgamation of other subparameters, if any.
+</p>
+</dd>
+<dt class="hdlist1">
+FORT61
+</dt>
+<dd>
+<p>
+    The fort.61 sub-parameter is optional, and is used to control output
+    to the ADCIRC water surface elevation recording stations (fort.61) file.
+    The locations and names of the recording stations are provided via a
+    file specified by the <em>ELEVSTATIONS</em> parameter (see the Input Files
+    and Templates section of this document).
+</p>
+</dd>
+<dt class="hdlist1">
+FORT62
+</dt>
+<dd>
+<p>
+    The fort.62 sub-parameter is optional, and is used to control output
+    to the ADCIRC water current velocity recording stations (fort.62) file.
+    The locations and names of the recording stations are provided via a
+    file specified by the <em>VELSTATIONS</em> parameter (see the Input Files
+    and Templates section of this document).
+</p>
+</dd>
+<dt class="hdlist1">
+FORT63
+</dt>
+<dd>
+<p>
+    The fort.63 sub-parameter is optional, and is used to control output
+    to the ADCIRC fulldomain water surface elevation (fort.63) file.
+</p>
+</dd>
+<dt class="hdlist1">
+FORT64
+</dt>
+<dd>
+<p>
+    The fort.64 sub-parameter is optional, and is used to control output
+    to the ADCIRC fulldomain water current velocity (fort.64) file.
+</p>
+</dd>
+<dt class="hdlist1">
+FORT7172
+</dt>
+<dd>
+<p>
+    The fort.71/fort.72 sub-parameter is optional, and is used to control output
+    to the ADCIRC meteorological recording stations files (fort.71 and fort.72)
+    file. The locations and names of the recording stations are provided via a
+    file specified by the <em>METSTATIONS</em> parameter (see the Input Files
+    and Templates section of this document).
+</p>
+</dd>
+<dt class="hdlist1">
+FORT7374
+</dt>
+<dd>
+<p>
+    The fort.73/fort.74 sub-parameter is optional, and is used to control output
+    to the ADCIRC fulldomain meteorological output (fort.73 and fort.74) files.
+</p>
+</dd>
+<dt class="hdlist1">
+SPARSE
+</dt>
+<dd>
+<p>
+    The spare output parameter is optional, and if provided, it will cause
+    all fulldomain non-netcdf output files for which ADCIRC is capable of
+    producing sparse output to be produced in that format.
+</p>
+</dd>
+<dt class="hdlist1">
+HOTSTARTCOMP
+</dt>
+<dd>
+<p>
+    The composition of hotstart files can be either "subdomain" to produce
+    subdomain hotstart files, or "fulldomain" to produce fulldomain
+    hotstart files. This parameter only affects ADCIRC hotstart files;
+    SWAN always produces subdomain hotstart files.
+    This parameter has no effect if the ADCIRC hotstart files are in netcdf
+    format,
+    as ADCIRC is not capable of producing subdomain hotstart files in netcdf
+    format.
+</p>
+</dd>
+<dt class="hdlist1">
+HOTSTARTFORMAT
+</dt>
+<dd>
+<p>
+    The hot start format parameter is used to specify whether hotstart files
+    are produced in nonportable binary or in netcdf format. Because of the
+    transparency and portability of NetCDF hotstart files, the NetCDF format is
+    recommended.
+</p>
+</dd>
+<dt class="hdlist1">
+MINMAX
+</dt>
+<dd>
+<p>
+    The maxele.63 and maxwvel.63 files are always generated by ADCIRC and
+    will normally reflect the solution since coldstart, if ADCIRC was
+    coldstarted, or the solution since the most recent hotstart if ADCIRC
+    was hotstarted. If this parameter is set to <span class="monospaced">reset</span>, these two files
+    will not be copied from the previous nowcast cycle, so that these files
+    will only reflect the current nowcast/forecast cycle, "forgetting" the
+    high water marks etc from previous cycles. If this parameter is set
+    to <span class="monospaced">continuous</span>, then the ASGS will copy these files from the previous
+    nowcast/forecast cycle to the current cycle, preserving the history
+    of extreme values. <strong>Care should be taken in the setting of the MINMAX
+    value to <span class="monospaced">continuous</span>, including consultation with end users,
+    who may be confused by the inclusion of high water marks from the
+    past when these high water marks are presented in the
+    context of a forecast,
+    which end users expect to only contain results pertaining to the future.</strong>
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_notification">Notification</h3>
+<div class="paragraph"><p>The ASGS is capable of sending email to interested parties at several
+points in its execution, to notify them of its status or of the occurrence
+of various events (both positive and adverse).</p></div>
+<div class="paragraph"><p>Parameters that are populated with more than one email address should
+have each address separated by a space; the whole list of adresses
+should be enclosed in double quotes.</p></div>
+<div class="paragraph"><p>The email address lists should be kept as short as possible; if a particular
+email address is receiving email at each stage of the ASGS execution, this
+could result in more than a dozen emails per day, evenly spaced throughout the
+day and night.</p></div>
+<div class="paragraph"><p>Experience shows that jittery end users do not want to hear their smart phone
+rattling on their night stand at 4:30am with a message from the ASGS that the
+NHC has just issued a new advisory, but the results will not be available for
+another couple hours.</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
+NOTIFY_SCRIPT=ncfs_nam_notify.sh
+ACTIVATE_LIST="foo@bar.edu foo2@bar.com"
+NEW_ADVISORY_LIST="foo@bar.edu foo2@bar.com"
+POST_INIT_LIST="foo@bar.edu foo2@bar.com"
+POST_LIST="foo@bar.edu foo2@bar.com"
+JOB_FAILED_LIST="foo@bar.edu foo2@bar.com"
+NOTIFYUSER=foo@bar.edu
+ASGSADMIN=foo@bar.edu</pre>
+</div></div>
+<div class="dlist"><div class="title">Definitions</div><dl>
+<dt class="hdlist1">
+EMAILNOTIFY
+</dt>
+<dd>
+<p>
+    The email notify parameter can be set to <span class="monospaced">yes</span> to enable the ASGS to
+    send out notifications via email; if set to <span class="monospaced">no</span>, all email notification
+    is turned off, except for email sent to the ASGS Operator directly from
+    the queueing system when a job fails.
+</p>
+</dd>
+<dt class="hdlist1">
+NOTIFY_SCRIPT
+</dt>
+<dd>
+<p>
+    The notify script parameter is used to specify the shell script with the
+    content of the actual emails that will be sent in each situation. Because
+    different ASGS sites have different requirements for the content of this
+    email, its content is configurable by simply plugging in a different
+    script and selecting it via this parameter. The notification script is
+    expected to be found in the output subdirectory of the <em>SCRIPTDIR</em>
+    directory.
+</p>
+</dd>
+<dt class="hdlist1">
+ACTIVATE_LIST
+</dt>
+<dd>
+<p>
+    The activate list parameter contains one or more email addresses of
+    recipients that should receive an announcement when the ASGS is
+</p>
+</dd>
+<dt class="hdlist1">
+NEW_ADVISORY_LIST
+</dt>
+<dd>
+<p>
+    The new advisory list parameter contains one or more email addresses
+    of recipients that should receive notification that a
+    new advisory is now running.
+</p>
+</dd>
+<dt class="hdlist1">
+POST_INIT_LIST
+</dt>
+<dd>
+<p>
+    The post processing initialization list contains one or more email
+    addresses that should receive notification that a new forecast is
+    complete and that post processing has started.
+</p>
+</dd>
+<dt class="hdlist1">
+POST_LIST
+</dt>
+<dd>
+<p>
+    The in-situ post processing completion list contains one or more email
+    addresses to receive notification that the in-situ post processing
+    (that is, post
+    post processing and graphics generation that are set to occur locally
+    on the HPC plaform where ADCIRC is running) is complete, and the results
+    have been made available for viewing, interaction, and/or downloading
+    (depending on the site and type of output product).
+</p>
+</dd>
+<dt class="hdlist1">
+JOB_FAILED_LIST
+</dt>
+<dd>
+<p>
+    The job failed list parameter contains one or more email addresses
+    that receive notification when the ASGS detects that a job has failed.
+</p>
+</dd>
+<dt class="hdlist1">
+NOTIFYUSER
+</dt>
+<dd>
+<p>
+    The notify user parameter contains one email address, that of the
+    ASGS Operator. This email address is propagated by the ASGS to the queue
+    scripts for the computational jobs that it submits. As a result, the
+    Operator will receive email directly from the queueing system on the
+    HPC platform where the ASGS is running. Queueing systems generally
+    only send email when a job experiences an error. This parameter is not
+    affected by the <em>EMAILNOTIFY</em> parameter above; the ASGS Operator will
+    always receive these types of emails, even if <em>EMAILNOTIFY</em> is set to <span class="monospaced">no</span>.
+</p>
+</dd>
+<dt class="hdlist1">
+ASGSADMIN
+</dt>
+<dd>
+<p>
+    The ASGS administrator parameter contains one email address, that of the
+    ASGS Operator. This address receives an email if the ASGS experiences
+    a fatal error; the content of the email is the ASGS log file up to the
+    time that the fatal error occurred.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_post_processing_and_publication">Post Processing and Publication</h3>
+<div class="paragraph"><p>The ASGS post processing infrastructure includes in-situ post processing (i.e.,
+generation of graphics and/or other output products on the HPC platform where
+the ASGS itself is running) as well as publication of results to end users. It
+is one area of ASGS implementation that can be wildly different at different
+sites. Some ASGS sites produce all their graphics and other output products
+in-situ, while other sites simply copy raw ADCIRC output files to an external
+server.</p></div>
+<div class="paragraph"><p>This diversity is accommodated by asking the Operator to specify the name of an
+executable program to run at the end of a forecast that performs the desired
+post processing tasks. Changing the post processing and publication then
+becomes as easy as changing the name of the post processing program in this
+configuration file.</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>INITPOST=null_init_post.sh
+POSTPROCESS=ncfs_post.sh
+POSTPROCESS2=null_post.sh
+TARGET=blueridge
+WEBHOST=webserver.hostingco.com
+WEBUSER=remoteuser
+WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts</pre>
+</div></div>
+<div class="dlist"><div class="title">Definitions</div><dl>
+<dt class="hdlist1">
+INITPOST
+</dt>
+<dd>
+<p>
+    The initial post processing parameter specifies the name of an executable
+    program that the ASGS should run at the start of a forecast. This may
+    be used to create directories for the results on an external website.
+    To turn off initial post processing, set this parameter to the trivial
+    script <span class="monospaced">null_init_post.sh</span>, which does nothing.
+</p>
+</dd>
+<dt class="hdlist1">
+POSTPROCESS
+</dt>
+<dd>
+<p>
+    The post process parameter specifies the name of an executable program
+    that the ASGS should use for in-situ post processing and publication
+    of results. See the existing post processing scripts like <em>ncfs_post.sh</em>
+    and <em>corps_post.sh</em> for examples. See the code in <em>asgs_main.sh</em> to see
+    the list of arguments that are supplied to this post processing script.
+    To turn off post processing, set this parameter to the value <span class="monospaced">null_post.sh</span>
+    which is a trivial shell script that does nothing.
+</p>
+</dd>
+<dt class="hdlist1">
+POSTPROCESS2
+</dt>
+<dd>
+<p>
+    If a second, separate post processing script is required, it can be
+    incorporated using this parameter; the associated executable is run
+    by the ASGS after running the executable indicated by the <em>POSTPROCESS</em>
+    parameter.
+</p>
+</dd>
+<dt class="hdlist1">
+TARGET
+</dt>
+<dd>
+<p>
+    The target parameter is specific to the programs in RenciGETools
+    package that generate Google Earth (kmz) visualizations; it is used to
+    select the target geographical location for the visualizations from
+    a predefined list. See the RenciGETools subdirectory (included with
+    the ASGS) for details.
+</p>
+</dd>
+<dt class="hdlist1">
+WEBHOST
+</dt>
+<dd>
+<p>
+    The optional web host parameter is useful for specifying the hostname of a machine
+    with a webserver that will publish results; output products will be
+    transferred via scp to this host, provided that ssh key authentication
+    has been configured.
+</p>
+</dd>
+<dt class="hdlist1">
+WEBUSER
+</dt>
+<dd>
+<p>
+    The optional web user parameter specifies the user name on the host <em>WEBHOST</em> that
+    should be used in establishing the scp connection between the HPC
+    platform where ASGS is running and the remote host.
+</p>
+</dd>
+<dt class="hdlist1">
+WEBPATH
+</dt>
+<dd>
+<p>
+    The optional web path parameter is the full path to the directory where output
+    products should be transferred on <em>WEBHOST</em>.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>The ASGS assumes that the executables indicated by <em>INITPOST</em>, <em>POSTPROCESS</em>,
+and <em>POSTPROCESS2</em> are located in the <em>OUTPUTDIR</em> directory.</p></div>
+<div class="paragraph"><p>One important issue to take into account in the design of the post processing
+is error handling. Specifically, the post processing script developer should
+ensure that control is returned to the calling routine (<em>asgs_main.sh</em> in this
+case) in the event of an error. Under no circumstances should the post
+processing script enter a loop that waits on a particular subprocess to complete
+successfully; if that subprocess ends abnormally, an infinite loop will result,
+preventing control from returning to the ASGS and preventing any further
+nowcast/forecast cycles from running.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_archiving">Archiving</h3>
+<div class="paragraph"><p>Once results have been produced, there is an issue of how they should be
+stored. This is another area, like post processing, that varies widely
+among sites that run the ASGS. Some HPC platforms have specific policies
+regarding data retention, and well developed systems in place for long
+term storage. Other sites have an ad-hoc policy regarding data retention
+and no long term storage facilities of any kind. Again, the ASGS handles
+this diversity by allowing the Operator to plug in an executable file
+that performs the desired tasks.</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>ARCHIVE=ncfs_archive.sh
+ARCHIVEBASE=/projects/ncfs/data
+ARCHIVEDIR=archive</pre>
+</div></div>
+<div class="dlist"><div class="title">Definitions</div><dl>
+<dt class="hdlist1">
+ARCHIVE
+</dt>
+<dd>
+<p>
+    The archive parameter is the name of an executable file that is
+    called by the ASGS after all forecast ensemble members are complete
+    It is automatically executed in the background (that is, with an ampersand)
+    so that the ASGS can continue with the next nowcast/forecast cycle
+    immediately, if needed. The ASGS passes the values of <em>ARCHVEBASE</em>
+    and <em>ARCHIVEDIR</em> to the archival executable, along with other
+    input arguments (see <em>asgs_main.sh</em> for details). The ASGS expects
+    to find the executable program specified by this parameter in the
+    <em>OUTPUTDIR</em> directory.
+</p>
+</dd>
+<dt class="hdlist1">
+ARCHIVEBASE
+</dt>
+<dd>
+<p>
+    The archive base parameter represents the full path to the location
+    where files should be archived.
+</p>
+</dd>
+<dt class="hdlist1">
+ARCHIVEDIR
+</dt>
+<dd>
+<p>
+    The archive directory parameter represents the subdirectory of
+    <em>ARCHIVEBASE</em> where files should be archived. It will be created
+    by the ASGS if it does not already exist.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_execution">Execution</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>How to make it go, using screen, starting in the right directory, and how to
+check the log files.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_testing_2">Testing</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_setting_up_the_mock_nhc_files_for_testing">Setting Up the Mock NHC Files for Testing</h3>
+<div class="paragraph"><p>For the forecast files, you can use the text advisories from the NHC
+website.</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>http://www.nhc.noaa.gov/archive/</pre>
+</div></div>
+<div class="paragraph"><p>Just click on the year, and you&#8217;ll see all the storms for that year.</p></div>
+<div class="paragraph"><p>Then click on the name of the storm you want to run. You&#8217;ll see all the
+forecast/advisories that were issued for that storm.</p></div>
+<div class="paragraph"><p>Then click on the forecast/advisory you want to run, and "Save Page
+As&#8230;" to save the html (just the html) to a file. You could feed this
+html file to the ASGS, but we are going to do some additional editing,
+as described below. Repeat this step for all the advisories you want to
+run.</p></div>
+<div class="paragraph"><p>Once you have those, you&#8217;ll need a mock RSS feed. You can create this by
+taking the text of each forecast/advisory from the html files you
+downloaded and inserting it into an index-at.xml file. I&#8217;ve attached the
+index-at.xml file from Beryl advisory 07 as an example.</p></div>
+<div class="paragraph"><p>For example, if you want to run Ike advisories 42, 44, and 46, you&#8217;d do
+the following</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+use a text editor to pluck out the actual text of the
+forecast/advisory from each html file;
+</p>
+</li>
+<li>
+<p>
+use a text editor to embed that text into a template index-at.xml
+file, being sure to also update the advisory number;
+</p>
+</li>
+<li>
+<p>
+end up with three files named something like ike.42.index-at.xml,
+ike.44.index-at.xml, ike.46.index-at.xml.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>Now, you&#8217;ll also need a hindcast file to go along with each forecast
+file. In a real storm, the hindcast data end before or just after the
+start of the forecast when each advisory is issued.</p></div>
+<div class="paragraph"><p>So, in the case of Ike, you need a set of bal092008.dat files that end
+at the appropriate times for your forecasts. To support our test efforts
+in prior seasons, I&#8217;ve created a bunch of files like this for various
+storms here:</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>ftp://ftp.unc.edu/pub/ims/rick/ADCIRC/NHC_Advisories/btk/</pre>
+</div></div>
+<div class="paragraph"><p>Hopefully this archive will be of use to you.</p></div>
+<div class="paragraph"><p>So at this point, you have a bunch of files called (for example)
+ike.XX.index-at.xml and ike_advisory_XX.btk (one set for each advisory,
+where XX is the advisory number.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_configuring_the_asgs_for_test_advisories_stored_on_local_filesystem">Configuring the ASGS for Test Advisories Stored on Local Filesystem</h3>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>STORM=
+YEAR=
+TRIGGER=rssembedded
+RSSSITE=filesystem
+FTPSITE=filesystem
+FDIR=/path/to/stormname.XX.index-at.xml
+HDIR=/path/to/stormname_advisory_XX.btk</pre>
+</div></div>
+<div class="paragraph"><p>Using Ike as an example, would be 09 and would be
+2008.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_actually_running_asgs_from_advisories_stored_in_local_files">Actually Running ASGS from Advisories Stored in Local Files</h3>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Go to the directory where you have the mock RSS feed for the
+forecast/advisories.
+</p>
+</li>
+<li>
+<p>
+Make a symbolic link to the first advisory you want to run, e.g.:
+</p>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>ln -s ike.42.index-at.xml index-at.xml</pre>
+</div></div>
+</li>
+</ol></div>
+<div class="paragraph"><p>because the ASGS is hardwired to look for the index-at.xml file.</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Make a symbolic link to the hindcast data that correspond to the
+first advisory you want to run, e.g.:
+</p>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>ln -s ike_advisory_42.btk bal092008.dat</pre>
+</div></div>
+</li>
+</ol></div>
+<div class="paragraph"><p>because the ASGS is hardwired to look for a file that is formatted as
+bal.dat.</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Start up the ASGS as you normally would. It will grab the NHC data
+from the local filesystem (whichever advisory your symbolic links point
+to).
+</p>
+</li>
+<li>
+<p>
+Whenever you want to issue a new advisory, manually update the
+symbolic link for the hindcast to the next hindcast file, then manually
+update the symbolic link to the next forecast file. For example:
+</p>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>rm bal092008.dat ; ln -s ike_advisory_44.btk bal092008.dat
+rm index-at.xml ; ln -s ike.44.index-at.xml index-at.xml</pre>
+</div></div>
+</li>
+</ol></div>
+<div class="paragraph"><p>Always update the symbolic link to the hindcast first, b/c the ASGS will
+be looking for a change in the forecast data to tell it when a new
+advisory has been issued. If you update the forecast link first, the
+ASGS will detect it so quickly that it will start its new cycle b/f you
+can update the hindcast link. This will just cause it to use the old
+hindcast.  </p></div>
+<div class="paragraph"><p>You could even write a shell script to update these links periodically
+if you want; it doesn&#8217;t have to be manual, although it probably will be
+when you first start doing this.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_performance_during_hurricane_irene">Performance During Hurricane Irene</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Hurricane Irene 2011 provided an oppportunity to use the ASGS and CERA
+technologies to assist officials in the NWS and USCG with real-life operational
+and emergency management decisions. The implementation of these technologies
+for the North Carolina and US East Coast that provided the basis for this real
+life application are described below, including the static physical data, use
+of dynamic meteorological and river flow data, operational configuration,
+interaction with web-based results, and feedback from official end users.</p></div>
+<div class="paragraph"><p>During Hurricane Irene of 2011, the ASGS and CERA technologies were actively
+and heavily utilized by National Weather Service (NWS) offices, emergency
+managers, and the US Coast Guard. In one example of the real benefit for
+emergency management officials, US Coast Guard Admirals personally operated the
+web application to examine and interact with simulation results, and then used
+those results in their decision to evacuate their command center near Norfolk,
+VA, relocating to their secondary command center in Missouri. Subsequently, the
+predicted flooding did occur, rendering the abandoned USCG command center
+useless. In summary, the USCG was able to maintain uninterrupted command and
+control over the course of Hurricane Irene from their alternate command center,
+and have lauded the ASGS/CERA system for its contribution to this successful
+operational decision.</p></div>
+<div class="sect2">
+<h3 id="_north_carolina_physical_data">North Carolina Physical Data</h3>
+<div class="paragraph"><p>The discretization of the North Carolina domain (the mesh) that was used for
+both ADCIRC and SWAN is shown below in figure 3. The mesh contained 295328
+nodes and 575512 with a minimum element size of 13m. The land cover data that
+were used to derive directional wind roughness lengths, canopy coefficients,
+and Manning&#8217;s n friction values are shown in figure 5. The system set 127
+points throughout the domain for sampling the model output for comparison with
+tide gauges and water levels in river flood plains and other locations. It also
+specified 99 locations for point sampling of model meteorological data for
+comparison with physical meteorological data collected at land based and
+buoy-based meteorological data collected by various state and federal agencies
+and universities.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_dynamic_input_data_2">Dynamic Input Data</h3>
+<div class="paragraph"><p>As the storm that would eventually become Irene was forming, the ASGS/CERA
+system had already been running for months at RENCI on the blueridge machine, a
+1408 core Dell High Performance Computing cluster, producing daily forecasts
+using NCEP NAM meteorology, river flow data from NSSL, and tidal forcing.</p></div>
+<div class="paragraph"><p>When Irene formed and the decision was made to start running vortex-forced
+tropical cyclone forecasts, a new instance of the ASGS was started up from the
+most recent hotstart file from the existing NAM results. The new instance was
+configured to run on 384 processors, rather than the 180 that were used in the
+NAM runs. Both ASGS instances then ran side by side for several days, sending
+their output to the CERA web application, until the NAM instance was shut down
+to conserve processor time.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_internally_generated_input_files">Internally Generated Input Files</h3>
+<div class="paragraph"><p>On 384 processors, the ASGS was able to perform all file manipulations for the
+nowcast and forecast cycle for the consensus track, submit the jobs, and
+generate results for a 5 day forecast in 1 hour 15 minutes from the time the
+NHC forecast/advisory was issued.</p></div>
+<div class="paragraph"><p>As hurricane Irene approached the North Carolina coast, the team member that
+operates of the ASGS system lost electric power and could therefore no longer
+oversee the operation of the ASGS during this critical period. However, since
+the ASGS itself was actually executing at the RENCI facility, which is located
+in Durham, North Carolina and that facility never lost power, the ASGS was able
+to continue operating autonomously without interruption and without interaction
+or oversight for the duration of the storm.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_output_visualization_and_interaction">Output Visualization and Interaction</h3>
+<div class="paragraph"><p>The results produced by the ASGS were converted in-situ to Google Earth (kmz)
+graphics and posted to the OpenDAP server at RENCI for use by the Newport NWS
+forecast office. The raw data in NetCDF format were also posted to the OpenDAP
+server and then a notification email was sent to the CERA web application.</p></div>
+<div class="paragraph"><p>The web application picked up the latest raw data, generated the image tiles
+for the animations and maximum values visualizations at all levels of detail,
+and sent email notification to selected official end users at NOAA and the USCG
+to notify them that new results were available for interaction over the web.
+The CERA website itself was not password protected, but end users were
+instructed not to publicize the availability of the site. The CERA web
+processing required another 1 hour and 15 minutes to generate image tiles for a
+particular advisory, for a total turn around time of 2 hours and 30 minutes.</p></div>
+<div class="paragraph"><p>There were myriad examples of the use of the ASGS/CERA results by emergency
+managers and officials during the storm event. As stated in the executive
+summary, several Admirals at the USCG personally examined and interacted with
+the ASGS/CERA results via the CERA site and subsequently made the operational
+decision to evacuate their command center in Virginia. The flooding depicted in
+the results did occur, and the USCG was extremely pleased and satisfied with
+their experience with the ASGS/CERA guidance.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_performance_during_the_deepwater_horizon_event">Performance During the Deepwater Horizon Event</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Discuss configuration, operation, and performance during Deepwater Horizon.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_refs">Refs</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>“Irene helps UNC researchers hone forecasts” UNC Spotlight,
+<a href="http://www.unc.edu/spotlight/Irene-tests-researchers">http://www.unc.edu/spotlight/Irene-tests-researchers</a>, retrieved 18 March 2012.</p></div>
+<div class="paragraph"><p>“Hurricane Drives Toward New York with Deadly Fury”, New York Times Sunday
+Edition, August 28, 2011; scientific credit for real time results used in a
+graphic depicting storm surge guidance along US east coast.</p></div>
+<div class="paragraph"><p>Fleming, J., C. Fulcher, R. Luettich, B. Estrade, G. Allen, and H. Winer, 2008.
+A Real Time Storm Surge Forecasting System using ADCIRC, Estuarine and Coastal
+Modeling X, M. L. Spaulding [ed], ASCE, 373-392.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_appendix_a_this_document">Appendix A: This Document</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This document was prepared from the text file ASGSOperatorsGuide.txt using
+software called asciidoc (<a href="http://www.methods.co.nz/asciidoc/">http://www.methods.co.nz/asciidoc/</a>). The document
+can be formatted as an html page with the command</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>asciidoc ASGSOperatorsGuide.txt</pre>
+</div></div>
+<div class="paragraph"><p>or formatted as a pdf with the command</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>a2x --format=pdf ASGSOperatorsGuide.txt</pre>
+</div></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr></div>
+<div id="footer">
+<div id="footer-text">
+Version 1.0<br>
+Last updated 2012-06-18 14:53:25 EDT
+</div>
+</div>
+</body>
+</html>
