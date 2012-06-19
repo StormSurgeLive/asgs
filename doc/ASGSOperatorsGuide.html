@@ -785,7 +785,7 @@ asciidoc.install(2);
 <div class="imageblock" style="text-align:center;">
 <div class="content">
 <a class="image" href="http://www.seahorsecoastal.com">
-<img src="figures/SCC_logo.png" alt="Seahorse Coastal Consulting" width="400">
+<img src="http://www.seahorsecoastal.com/figures/SCC_logo.png" alt="Seahorse Coastal Consulting" width="400">
 </a>
 </div>
 </div>
@@ -837,7 +837,7 @@ clients and end users.
 </ol></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img src="figures/asgs_structure_color.png" alt="figures/asgs_structure_color.png" width="500">
+<img src="http://www.seahorsecoastal.com/figures/asgs_structure_color.png" alt="http://www.seahorsecoastal.com/figures/asgs_structure_color.png" width="500">
 </div>
 <div class="title">Figure 1. The overall structure of the ASGS divides the various features into their own modules. The configuration and static physical data that are common to all simulation runs are shown at the top in purple, the dynamic data acquisition modules are shown in red, the internal data processing and input file generation are shown in green, and output modules are shown in blue at the bottom. Arrows are conceptual and indicate data flow.</div>
 </div>
@@ -852,21 +852,22 @@ file, and all of the features and behavior of the various components can be
 controlled from this single configuration file. This file is used to activate
 or deactivate the various types of physical forcing, including tropical cyclone
 meteorology, ordinary meteorology, wave simulation and coupling, tides, and
-river flow input. It is also used to specify a wide variety of other settings,
-including (for example) the type of computer that the system is running on, the
-number of processors to use in parallel execution, the name of the ADCIRC mesh
-file for the domain of interest, the number of storms in an ensemble and their
+river flow input.</p></div>
+<div class="paragraph"><p>It is also used to specify a wide variety of other settings, including (for
+example) the type of computer that the system is running on, the number of
+processors to use in parallel execution, the name of the ADCIRC mesh file for
+the domain of interest, the number of storms in an ensemble and their
 characteristics, the types of output products to generate, the email addresses
 of officials that should be notified when results are ready, and many others.</p></div>
 <div class="paragraph"><p>The simulation input files represent a purely static set of physical data that
 are used in the simulations. These data include the ADCIRC mesh (domain
 discretization), the bathymetry and topography of the domain, the spatially
 varying Manning&#8217;s n value, and the directional wind roughness lengths and
-canopy effects derived from land cover data. The static data also include the
-tidal constituents to be included (if any), convergence controls and solution
-parameters for SWAN and ADCIRC, the names and locations of point recording
-stations for location-specific output data, and other data related to the
-internal procedures of the simulation codes.</p></div>
+canopy effects derived from land cover data.</p></div>
+<div class="paragraph"><p>The static data also include the tidal constituents to be included (if any),
+convergence controls and solution parameters for SWAN and ADCIRC, the names and
+locations of point recording stations for location-specific output data, and
+other data related to the internal procedures of the simulation codes.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_dynamic_input_data">Dynamic Input Data</h3>
@@ -899,25 +900,27 @@ physical input data for a particular instance of the system and initiates
 startup, the system reads its configuration file and tries to determine its
 state: whether it is starting “hot” with a simulation that is already in
 progress, or “cold”, where a new ADCIRC or ADCIRC+SWAN simulation must be
-started from scratch (see Figure 2). It also makes a determination about the
-state of its input files; specifically, whether they have already been
-decomposed for parallel execution. If the system must start from a “cold”
-state, it creates input files and executes a hindcast simulation to warm up the
-simulation and prepare it for the cyclical nowcast/forecast production phase
-(described below). Accordingly, this hindcast run is set so that it writes a
-hotstart file at the very end to represent the state of the warmed-up
-simulation. In addition, if the input files have not been prepared for parallel
-execution, the system decomposes them for the specified number of processors.
-If the hindcast and/or decomposition tasks are required, they must only be
-performed once at the start of the system&#8217;s execution (processes that occur at
-most one time during an execution of the system are shown in blue in figure 2).</p></div>
+started from scratch (see Figure 2).</p></div>
+<div class="paragraph"><p>It also makes a determination about the state of its input files; specifically,
+whether they have already been decomposed for parallel execution. If the system
+must start from a “cold” state, it creates input files and executes a hindcast
+simulation to warm up the simulation and prepare it for the cyclical
+nowcast/forecast production phase (described below). Accordingly, this hindcast
+run is set so that it writes a hotstart file at the very end to represent the
+state of the warmed-up simulation.</p></div>
+<div class="paragraph"><p>In addition, if the input files have not been prepared for parallel execution,
+the system decomposes them for the specified number of processors.  If the
+hindcast and/or decomposition tasks are required, they must only be performed
+once at the start of the system&#8217;s execution (processes that occur at most one
+time during an execution of the system are shown in blue in Figure 2).</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img src="figures/asgs_overview_color.png" alt="figures/asgs_overview_color.png">
+<img src="http://www.seahorsecoastal.com/figures/asgs_overview_color.png" alt="http://www.seahorsecoastal.com/figures/asgs_overview_color.png">
 </div>
 <div class="title">Figure 2. The overview of the logic of the ASGS divides the one-time start up process for an initially "cold" simulation state in blue, with the bulk of the time being spent in the nowcast/forecast cycle, indicated by green.</div>
 </div>
-<div class="paragraph"><p>The nowcast occurs next if the simulation state is already "hot" when the
+<div class="paragraph"><p>/
+The nowcast occurs next if the simulation state is already "hot" when the
 system starts up, or if the system has already performed the decomposition and
 warm up phases. The first step in the nowcast is to determine if there are new
 meterological data available, by contacting the associated external website or
@@ -952,13 +955,13 @@ period implied by the forecast meteorological data, but are not set to write a
 hotstart file at the end. When the forecast is complete, the system executes
 post processing (described in the next section) and archives the data as
 required.</p></div>
-<div class="paragraph"><p>These forecast process described above is  applied to  each member of the
+<div class="paragraph"><p>These forecast process described above is applied to each member of the
 forecast ensemble until all ensemble members have been completed, at which
 point the system goes back to looking for new meteorological data for its next
 nowcast.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_adcirc_asymmetric_vortex_model_used_during_irene">ADCIRC Asymmetric Vortex Model Used During Irene</h3>
+<h3 id="_adcirc_asymmetric_vortex_model">ADCIRC Asymmetric Vortex Model</h3>
 <div class="paragraph"><p>The application of meteorological forcing presented a challenge for operational
 storm surge forecasts because of the need for timely availability of high
 resolution input data. The most accurate data-assimilated meteorological fields
@@ -997,8 +1000,8 @@ step of the simulation, to determine the wind velocity throughout the domain at
 each time step.</p></div>
 <div class="paragraph"><p>The first step was performed in a pre-processing program for all the data from
 a particular forecast/advisory, before the ADCIRC run began. This design
-provided visibility to the Rmax values that ADCIRC would use, and gave the Operator
-the capability to modify the input values for experimentation.</p></div>
+provided visibility to the Rmax values that ADCIRC would use, and gave the
+Operator the capability to modify the input values for experimentation.</p></div>
 <div class="paragraph"><p>The representative Rmax values were determined for each quadrant and forecast
 increment by subtracting the translation speed of the storm from the maximum
 wind speed, and converting both the translation-reduced maximum wind speed and
@@ -1037,9 +1040,9 @@ was linearly interpolated from the ten degree value at Rmax and the 25 degree
 value at 1.2 times Rmax.</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img src="figures/irene25_vortex_analysis.png" alt="figures/irene25_vortex_analysis.png" width="700">
+<img src="http://www.seahorsecoastal.com/figures/irene25_vortex_analysis.png" alt="http://www.seahorsecoastal.com/figures/irene25_vortex_analysis.png" width="700">
 </div>
-<div class="title">Figure 7. The hurricane vortex model embedded in ADCIRC was used to generate wind velocity and barometric pressure at each timestep of the simulation using isotach radii (depicted at top left) extracted from the National Hurricane Center Forecast/Advisories. A streamline visualization of the surface wind speeds is shown at top right, and the profiles of wind speed in each quadrant and barometric pressure in each quadrant are shown at bottom left and bottom right respectively.</div>
+<div class="title">Figure 3. The hurricane vortex model embedded in ADCIRC was used to generate wind velocity and barometric pressure at each timestep of the simulation using isotach radii (depicted at top left) extracted from the National Hurricane Center Forecast/Advisories. A streamline visualization of the surface wind speeds is shown at top right, and the profiles of wind speed in each quadrant and barometric pressure in each quadrant are shown at bottom left and bottom right respectively.</div>
 </div>
 </div>
 </div>
@@ -1054,15 +1057,15 @@ more than one approach to producing useful output: (a) publication of raw data;
 and results files in domain specific formats; and (c) elucidation via
 interactive visualization through a web application.</p></div>
 <div class="paragraph"><p>Publication of raw results is the most basic step for post processing, and an
-OpenDAP server was selected and used to publish raw data in NetCDF format to
-clients and end users. An OpenDAP server provides a web interface to the data,
-making it easy for users to simply click on a link to the graphics or data file
-they wish to download, either for the latest run or for any previous simulation
-run.  Technologies such as NCTOOLBOX are available for sophisticated end users
-to apply their own analyses to the raw data, producing the output they require
-locally.  Once the data have been posted to the OpenDAP server, the system
-sends an email to a list of email addresses as specified in the system
-configuration file to notify them that new results are available.</p></div>
+OpenDAP server is recommended for use in publication of raw data in NetCDF
+format to clients and end users. An OpenDAP server provides a web interface to
+the data, making it easy for users to simply click on a link to the graphics or
+data file they wish to download, either for the latest run or for any previous
+simulation run.  Technologies such as NCTOOLBOX are available for sophisticated
+end users to apply their own analyses to the raw data, producing the output
+they require locally.  Once the data have been posted to the OpenDAP server,
+the system sends an email to a list of email addresses as specified in the
+system configuration file to notify them that new results are available.</p></div>
 <div class="paragraph"><p>The next level of presentation is in-situ post processing, that is, running
 non-interactive graphics generation programs in the high performance computing
 environment to generate static images, non-interactive animations, and
@@ -1074,16 +1077,16 @@ animations of maximum inundation as well as Google Earth (kmz) images of
 maximum inundation, all with in-situ post processing. These output products are
 then published to the OpenDAP server to make them available to clients. The
 disadvantage of in-situ processing is the lack of interactivity.</p></div>
-<div class="paragraph"><p>The highest and by far the most effective level of presentation is the use of
-an interactive web visualization application to elucidate results. For this
-level, the Coastal Emergency Risks Assessment (CERA) interactive web
+<div class="paragraph"><p>The most effective type of presentation is the use of an interactive web
+visualization application to elucidate results and provide interactivity. For
+this level, the Coastal Emergency Risks Assessment (CERA) interactive web
 application was deployed and used to provide an interactive interface that
 served the needs of non-technical as well as experienced clients.</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img src="figures/irene25_maxwind.png" alt="figures/irene25_maxwind.png" width="700">
+<img src="http://www.seahorsecoastal.com/figures/irene25_maxwind.png" alt="http://www.seahorsecoastal.com/figures/irene25_maxwind.png" width="700">
 </div>
-<div class="title">Figure 8. The CERA interactive web visualization of maximum wind speed for Irene advisory 25 in real time shows the swath of maximum wind speeds along the consensus forecast track. The storm name and year dropdown menus are visible at the top of the interface, with accordion type menus for each type of output data along the right side.</div>
+<div class="title">Figure 4. The CERA interactive web visualization of maximum wind speed for Irene advisory 25 in real time shows the swath of maximum wind speeds along the consensus forecast track. The storm name and year dropdown menus are visible at the top of the interface, with accordion type menus for each type of output data along the right side.</div>
 </div>
 <div class="paragraph"><p>The CERA application integrates visualization ADCIRC and ADCIRC+SWAN results
 with Google Maps to provide the context for the results as well as practical
@@ -1094,9 +1097,9 @@ cycle (for NCEP NAM results). It presents these options concisely via dropdown
 boxes across the top of its interface.</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img src="figures/irene23_maxwaveheight.png" alt="figures/irene23_maxwaveheight.png" width="700">
+<img src="http://www.seahorsecoastal.com/figures/irene23_maxwaveheight.png" alt="http://www.seahorsecoastal.com/figures/irene23_maxwaveheight.png" width="700">
 </div>
-<div class="title">Figure 9. The maximum significant wave height from SWAN for Irene advisory 23 in real time shows the tremendous open water wave heights that were being generated by the storm at its peak intensity, as well as the size of the waves that were actually impinging on the coastline.</div>
+<div class="title">Figure 5. The maximum significant wave height from SWAN for Irene advisory 23 in real time shows the tremendous open water wave heights that were being generated by the storm at its peak intensity, as well as the size of the waves that were actually impinging on the coastline.</div>
 </div>
 <div class="paragraph"><p>The right side of the interface is an accordion-type menu that presents the
 various types of data that are available, including water surface elevation,
@@ -1107,9 +1110,9 @@ as well as a zoomable, stoppable animation that illustrates the evolution of
 the data through time.</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img src="figures/irene28_maxele.png" alt="figures/irene28_maxele.png" width="700">
+<img src="http://www.seahorsecoastal.com/figures/irene28_maxele.png" alt="http://www.seahorsecoastal.com/figures/irene28_maxele.png" width="700">
 </div>
-<div class="title">Figure 10. The maximum water surface elevation from Irene advisory 28 in real time provided emergency managers with high water mark data that indicated the hardest hit areas that required immediate attention.</div>
+<div class="title">Figure 6. The maximum water surface elevation from Irene advisory 28 in real time provided emergency managers with high water mark data that indicated the hardest hit areas that required immediate attention.</div>
 </div>
 <div class="paragraph"><p>Furthermore, the interface allowed the user to click on any point of the storm
 track to view the data that are relevant to the time when the storm was at that
@@ -1118,9 +1121,9 @@ underlying ADCIRC mesh, and displaying detailed summary information for any
 particular node the user selects.</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img src="figures/irene28_maxwind_closeup.png" alt="figures/irene28_maxwind_closeup.png" width="700">
+<img src="http://www.seahorsecoastal.com/figures/irene28_maxwind_closeup.png" alt="http://www.seahorsecoastal.com/figures/irene28_maxwind_closeup.png" width="700">
 </div>
-<div class="title">Figure 10. This close-up of the maximum wind speed from Irene advisory 28 in real time shows the consensus forecast track of the storm as well as the local wind speeds. The dark blue colors show the results of the land use data described previously, and the resulting surface roughness lengths that knock down the force of the wind. The directionality of the roughness lengths can be seen by carefully examining the wind shadows on the Neuse and Pamlico rivers.</div>
+<div class="title">Figure 7. This close-up of the maximum wind speed from Irene advisory 28 in real time shows the consensus forecast track of the storm as well as the local wind speeds. The dark blue colors show the results of the land use data described previously, and the resulting surface roughness lengths that knock down the force of the wind. The directionality of the roughness lengths can be seen by carefully examining the wind shadows on the Neuse and Pamlico rivers.</div>
 </div>
 <div class="paragraph"><p>The CERA application works by using the OpenDAP server as a staging area for
 raw data. The CERA application received notification email from the NCFS that
@@ -1148,12 +1151,12 @@ external configuration file.</p></div>
 <div class="paragraph"><p>The ASGS continually re-reads its configuration file; it is first read
 upon startup, and then once before every nowcast and forecast. This gives
 the ASGS a degree of dynamic configurability.</p></div>
-<div class="paragraph"><p>One unique aspect of the ASGS configuration file is that it is also a
-shell script. As a result, the configuration parameters are actually
-(bash) shell script variables, and are set as such. The use of a shell
-script as a configuration file also comes in handy if the desired
-configuration requires some logic, or the use of simple arrays; examples
-of both will be provided in the following sections.</p></div>
+<div class="paragraph"><p>One unique aspect of the ASGS configuration file is that it is also a shell
+script. As a result, the configuration parameters are actually (bash) shell
+script variables, and are set as such. The use of a shell script as a
+configuration file also comes in handy if the desired configuration requires
+some logic, or the use of simple arrays; examples of both will be provided in
+the following sections.</p></div>
 <div class="paragraph"><p>On the other hand, one of the side effects of the use of a shell script as a
 configuration file is that it is dangerous to comment out the variables in the
 configuration file, or to set them equal to "".  This causes the associateed
@@ -2934,15 +2937,15 @@ for the North Carolina and US East Coast that provided the basis for this real
 life application are described below, including the static physical data, use
 of dynamic meteorological and river flow data, operational configuration,
 interaction with web-based results, and feedback from official end users.</p></div>
-<div class="paragraph"><p>During Hurricane Irene of 2011 (please see Figure 3), the ADCIRC+SWAN results
+<div class="paragraph"><p>During Hurricane Irene of 2011 (please see Figure 8), the ADCIRC+SWAN results
 that were produced in real time by the ASGS were actively and heavily utilized
 by National Weather Service (NWS) offices, emergency managers, and the US Coast
 Guard.</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img src="figures/irene_track.png" alt="figures/irene_track.png" width="400">
+<img src="http://www.seahorsecoastal.com/figures/irene_track.png" alt="http://www.seahorsecoastal.com/figures/irene_track.png" width="400">
 </div>
-<div class="title">Figure 3. Hurricane Irene of 2011 strengthened into a major (Category 3) hurricane and threatened almost the entire US Atlantic coast at one point or another. It made its initial landfall on Cape Lookout, North Carolina.</div>
+<div class="title">Figure 8. Hurricane Irene of 2011 strengthened into a major (Category 3) hurricane and threatened almost the entire US Atlantic coast at one point or another. It made its initial landfall on Cape Lookout, North Carolina.</div>
 </div>
 <div class="paragraph"><p>In one example of the real benefit for emergency management officials, US Coast
 Guard Admirals used the real time results results in their decision to evacuate
@@ -2959,13 +2962,13 @@ both ADCIRC and SWAN is shown below in figure 4. The mesh contained 295328
 nodes and 575512 with a minimum element size of 13m.</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img src="figures/ncv6b_mesh.png" alt="figures/ncv6b_mesh.png" width="400">
+<img src="http://www.seahorsecoastal.com/figures/ncv6b_mesh.png" alt="http://www.seahorsecoastal.com/figures/ncv6b_mesh.png" width="400">
 </div>
-<div class="title">Figure 4. The domain discretization for the North Carolina coast consists of 295328 nodes and 575512 elements with approximately 90% of the nodes lying near, on, or inland of the North Carolina coastline.</div>
+<div class="title">Figure 9. The domain discretization for the North Carolina coast consists of 295328 nodes and 575512 elements with approximately 90% of the nodes lying near, on, or inland of the North Carolina coastline.</div>
 </div>
 <div class="paragraph"><p>The land cover data that were used to derive directional wind roughness
 lengths, canopy coefficients, and Manning&#8217;s n friction values are shown in
-Figure 5. The system set 127 points throughout the domain for sampling the
+Figure 10. The system set 127 points throughout the domain for sampling the
 model output for comparison with tide gauges and water levels in river flood
 plains and other locations. It also specified 99 locations for point sampling
 of model meteorological data for comparison with physical meteorological data
@@ -2973,16 +2976,16 @@ collected at land based and buoy-based meteorological data collected by various
 state and federal agencies and universities.</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img src="figures/nc_landcover.png" alt="figures/nc_landcover.png" width="400">
+<img src="http://www.seahorsecoastal.com/figures/nc_landcover.png" alt="http://www.seahorsecoastal.com/figures/nc_landcover.png" width="400">
 </div>
-<div class="title">Figure 5. The land cover data for North Carolina were used to construct a complete map of directional wind reduction factors, canopy coefficients, and Manning&#8217;s n friction parameters at every node in the mesh.</div>
+<div class="title">Figure 10. The land cover data for North Carolina were used to construct a complete map of directional wind reduction factors, canopy coefficients, and Manning&#8217;s n friction parameters at every node in the mesh.</div>
 </div>
-<div class="paragraph"><p>The bathymetry contours are shown below in Figure 6.</p></div>
+<div class="paragraph"><p>The bathymetry contours are shown below in Figure 11.</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img src="figures/ncv6b_bathy.png" alt="figures/ncv6b_bathy.png" width="400">
+<img src="http://www.seahorsecoastal.com/figures/ncv6b_bathy.png" alt="http://www.seahorsecoastal.com/figures/ncv6b_bathy.png" width="400">
 </div>
-<div class="title">Figure 6. The bathymetry of the ADCIRC+SWAN mesh shows the wide range of elevations that are present; the inland extent of the mesh provide detailed coastal inundation coverage as well as river flood plain coverage.</div>
+<div class="title">Figure 11. The bathymetry of the ADCIRC+SWAN mesh shows the wide range of elevations that are present; the inland extent of the mesh provide detailed coastal inundation coverage as well as river flood plain coverage.</div>
 </div>
 </div>
 <div class="sect2">
@@ -3035,25 +3038,25 @@ particular advisory, for a total turn around time of 2 hours and 30 minutes.</p>
 and comparisons were developed by Kendra Dresback.</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img src="figures/irene_track_comparisons.png" alt="figures/irene_track_comparisons.png" width="400">
+<img src="http://www.seahorsecoastal.com/figures/irene_track_comparisons.png" alt="http://www.seahorsecoastal.com/figures/irene_track_comparisons.png" width="400">
 </div>
 <div class="title">Figure 12. The track of hurricane Irene was well forecast, with minor variations from advisory to advisory. The numbers on this plot indicate the locations where measured data were collected and compared with point samples of model output.</div>
 </div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img src="figures/irene_oregoninlet.png" alt="figures/irene_oregoninlet.png" width="400">
+<img src="http://www.seahorsecoastal.com/figures/irene_oregoninlet.png" alt="http://www.seahorsecoastal.com/figures/irene_oregoninlet.png" width="400">
 </div>
 <div class="title">Figure 13. Comparison of the forecast results from several advisories to the measured data at Oregon Inlet, NC.</div>
 </div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img src="figures/irene_beaufort.png" alt="figures/irene_beaufort.png" width="400">
+<img src="http://www.seahorsecoastal.com/figures/irene_beaufort.png" alt="http://www.seahorsecoastal.com/figures/irene_beaufort.png" width="400">
 </div>
 <div class="title">Figure 14. Comparison of the forecast results from several advisories to the measured data at Beaufort, NC.</div>
 </div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img src="figures/irene_advisory_comparisons_scatter_45deg.png" alt="figures/irene_advisory_comparisons_scatter_45deg.png" width="400">
+<img src="http://www.seahorsecoastal.com/figures/irene_advisory_comparisons_scatter_45deg.png" alt="http://www.seahorsecoastal.com/figures/irene_advisory_comparisons_scatter_45deg.png" width="400">
 </div>
 <div class="title">Figure 15. Comparison of forecast results from several advisories to the measured data, illustrating the convergence of storm surge guidance so to the measured values as the uncertainty in the meteorological forecast is reduced.</div>
 </div>
@@ -3101,7 +3104,7 @@ can be formatted as an html page with the command</p></div>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2012-06-19 16:14:23 EDT
+Last updated 2012-06-19 16:38:18 EDT
 </div>
 </div>
 </body>
