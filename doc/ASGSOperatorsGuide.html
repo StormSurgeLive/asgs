@@ -780,21 +780,29 @@ asciidoc.install(2);
 </div>
 </div>
 <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<a class="image" href="http://www.seahorsecoastal.com">
+<img src="figures/SCC_logo.png" alt="Seahorse Coastal Consulting" width="400">
+</a>
+</div>
+</div>
+</div>
+</div>
 <div class="sect1">
 <h2 id="_executive_summary">Executive Summary</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The ADCIRC Surge Guidance System (ASGS) is a software system for generating
 storm surge and wave guidance from ADCIRC + SWAN in real time on high
-resolution grids. The Coastal Emergency Risks Asssessment (CERA) web
-visualization application provides an interactive web medium for examination of
-results by official clients. During a tropical cyclone event, the ASGS
-constructs meteorological forcing from a parametric wind / pressure model using
-storm parameters extracted from National Hurricane Center (NHC) Forecast
-Advisories. During nor&#8217;easters or for day-to-day generation of tidal forecasts
-and other results, the system uses gridded wind and pressure fields (e.g.,
-NCEP’s NAM model) as input forcing. In both cases, hydrologically-driven river
-forecast data from NSSL are used to account for the effects of precipitation
-and upland river flooding.</p></div>
+resolution grids. The ASGS constructs meteorological forcing from a parametric
+wind / pressure model using storm parameters extracted from National Hurricane
+Center (NHC) Forecast Advisories. During nor&#8217;easters or for day-to-day
+generation of tidal forecasts and other results, the system uses gridded wind
+and pressure fields (e.g., NCEP’s NAM model) as input forcing. In both cases,
+hydrologically-driven river forecast data from NSSL can also be used to account
+for the effects of precipitation and upland river flooding.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -829,7 +837,7 @@ clients and end users.
 </ol></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img src="figures/asgs_structure_color.png" alt="figures/asgs_structure_color.png">
+<img src="figures/asgs_structure_color.png" alt="figures/asgs_structure_color.png" width="500">
 </div>
 <div class="title">Figure 1. The overall structure of the ASGS divides the various features into their own modules. The configuration and static physical data that are common to all simulation runs are shown at the top in purple, the dynamic data acquisition modules are shown in red, the internal data processing and input file generation are shown in green, and output modules are shown in blue at the bottom. Arrows are conceptual and indicate data flow.</div>
 </div>
@@ -1027,6 +1035,12 @@ degrees between the center and the radius to maximum winds; it was twenty five
 degrees beyond 1.2 times the radius to maximum winds; and the rotation angle
 was linearly interpolated from the ten degree value at Rmax and the 25 degree
 value at 1.2 times Rmax.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/irene25_vortex_analysis.png" alt="figures/irene25_vortex_analysis.png" width="700">
+</div>
+<div class="title">Figure 7. The hurricane vortex model embedded in ADCIRC was used to generate wind velocity and barometric pressure at each timestep of the simulation using isotach radii (depicted at top left) extracted from the National Hurricane Center Forecast/Advisories. A streamline visualization of the surface wind speeds is shown at top right, and the profiles of wind speed in each quadrant and barometric pressure in each quadrant are shown at bottom left and bottom right respectively.</div>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -1065,6 +1079,12 @@ an interactive web visualization application to elucidate results. For this
 level, the Coastal Emergency Risks Assessment (CERA) interactive web
 application was deployed and used to provide an interactive interface that
 served the needs of non-technical as well as experienced clients.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/irene25_maxwind.png" alt="figures/irene25_maxwind.png" width="700">
+</div>
+<div class="title">Figure 8. The CERA interactive web visualization of maximum wind speed for Irene advisory 25 in real time shows the swath of maximum wind speeds along the consensus forecast track. The storm name and year dropdown menus are visible at the top of the interface, with accordion type menus for each type of output data along the right side.</div>
+</div>
 <div class="paragraph"><p>The CERA application integrates visualization ADCIRC and ADCIRC+SWAN results
 with Google Maps to provide the context for the results as well as practical
 features such as panning and the ability to zoom in more closely at various
@@ -1072,6 +1092,12 @@ areas of interest to see greater resolution and detail. The application
 organizes results by storm and advisory (for tropical cyclone results) or by
 cycle (for NCEP NAM results). It presents these options concisely via dropdown
 boxes across the top of its interface.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/irene23_maxwaveheight.png" alt="figures/irene23_maxwaveheight.png" width="700">
+</div>
+<div class="title">Figure 9. The maximum significant wave height from SWAN for Irene advisory 23 in real time shows the tremendous open water wave heights that were being generated by the storm at its peak intensity, as well as the size of the waves that were actually impinging on the coastline.</div>
+</div>
 <div class="paragraph"><p>The right side of the interface is an accordion-type menu that presents the
 various types of data that are available, including water surface elevation,
 inundation, significant wave height, wave period, and wind speed. For each type
@@ -1079,11 +1105,23 @@ of data, the application is able to present a zoomable image of the maximum
 values that occurred over the course of the forecast (e.g., high water marks)
 as well as a zoomable, stoppable animation that illustrates the evolution of
 the data through time.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/irene28_maxele.png" alt="figures/irene28_maxele.png" width="700">
+</div>
+<div class="title">Figure 10. The maximum water surface elevation from Irene advisory 28 in real time provided emergency managers with high water mark data that indicated the hardest hit areas that required immediate attention.</div>
+</div>
 <div class="paragraph"><p>Furthermore, the interface allowed the user to click on any point of the storm
 track to view the data that are relevant to the time when the storm was at that
 point in the track. It is also capable of presenting the nodes of the
 underlying ADCIRC mesh, and displaying detailed summary information for any
 particular node the user selects.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/irene28_maxwind_closeup.png" alt="figures/irene28_maxwind_closeup.png" width="700">
+</div>
+<div class="title">Figure 10. This close-up of the maximum wind speed from Irene advisory 28 in real time shows the consensus forecast track of the storm as well as the local wind speeds. The dark blue colors show the results of the land use data described previously, and the resulting surface roughness lengths that knock down the force of the wind. The directionality of the roughness lengths can be seen by carefully examining the wind shadows on the Neuse and Pamlico rivers.</div>
+</div>
 <div class="paragraph"><p>The CERA application works by using the OpenDAP server as a staging area for
 raw data. The CERA application received notification email from the NCFS that
 new results were published to the OpenDAP server in NetCDF format. It would
@@ -2639,35 +2677,127 @@ ARCHIVEDIR
 <div class="sect1">
 <h2 id="_execution">Execution</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>How to make it go, using screen, starting in the right directory, and how to
-check the log files.</p></div>
+<div class="paragraph"><p>Once the configuration file is ready, the ASGS is ready for execution.
+Because the ASGS is a long running process, it is not advisable start it
+in a normal shell process, because the process will be killed if the Operator
+then logs out. Some Operators have used the -nohup option on other projects
+to prevent this from happening, but this option also prevents the Operator
+from restoring interactive access to the ASGS process when the Operator
+logs back in.</p></div>
+<div class="paragraph"><p>As a result, the preferred mechanism for running the ASGS is through a
+<em>screen</em> session. The <em>screen</em> program is a standard utility that allows
+a user to start a shell process, and then "detach" from that process. It
+is then possible to perform other tasks, log out, log back in, etc., without
+the process in the <em>screen</em> session being affected. The Operator can then
+"reattach" to the screen session and regain interactive access to the ASGS
+process.</p></div>
+<div class="paragraph"><p>In order to start a screen session, just type</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>screen</pre>
+</div></div>
+<div class="paragraph"><p>and a new shell will start. Type <span class="monospaced">pwd</span> and <span class="monospaced">ls</span> just to prove to yourself that
+you are running in a shell. Then, in order to "detach" from the process, type</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>&lt;Ctrl-a&gt; d</pre>
+</div></div>
+<div class="paragraph"><p>and you have returned to the shell where you started the screen process. In
+order to "reattach" to the <em>screen</em> process, type</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>screen -r</pre>
+</div></div>
+<div class="paragraph"><p>and you&#8217;ll see that you&#8217;ve returned to the process where you typed <span class="monospaced">pwd</span> and
+<span class="monospaced">ls</span> earlier.</p></div>
+<div class="paragraph"><p>Now, to start the ASGS, go to the directory where the ASGS should write its
+log files (it writes its log file to the same directory where it was executed).
+It is recommended that the log files be written to a directory called <span class="monospaced">log</span>
+somewhere in the Operator&#8217;s home directory. Once inside that directory,
+type</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>bash /path/to/asgs_main.sh -c /path/to/asgs_config_file_you_created.sh -e mycomputer</pre>
+</div></div>
+<div class="paragraph"><p>where the <span class="monospaced">-c</span> command line option gives the location of the ASGS configuration
+file that you&#8217;ve created, and the <span class="monospaced">-e</span> command line option indicates the
+environment (the HPC platform) that is being used. The available HPC platforms
+are as follows: blueridge, kittyhawk, sapphire, jade, diamond, garnet,
+queenbee, tezpur, ranger, lonestar, topsail, and desktop.</p></div>
+<div class="paragraph"><p>When it starts up, the ASGS performs a long list of checks to determine whether
+it can find all the executables that it needs to run, as well as a short
+list of sanity checks on its configuration. If it found an issue, it will
+report the error. If not, it will provide the name of its log file, including
+the full path to it. All the important information reported by the ASGS
+will be in its log file, rather than the login session where it is running. Once
+the ASGS starts running, detach from the <em>screen</em> session with</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>&lt;Ctrl-a&gt; d</pre>
+</div></div>
+<div class="paragraph"><p>Its possible to follow the progress of the ASGS in real time using the
+<em>tail</em> command on its log file as follows:</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>tail -f /path/to/asgs_log_file.log</pre>
+</div></div>
+<div class="paragraph"><p>All log entries are time stamped, and the log entries have four levels of
+severity: DEBUG, INFO, WARNING, and FATAL ERROR. The DEBUG and INFO messages
+simply provide information, while the WARNING messages generally indicate
+a situation that warrants attention from the Operator. FATAL ERROR messages
+indicate an error condition where the ASGS was unable to self correct, causing
+it to cease execution.</p></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_testing_2">Testing</h2>
 <div class="sectionbody">
+<div class="paragraph"><p>A system like the ASGS that is designed to run in real time in high profile
+situations should be tested extensively to ensure that all avoidable issues are
+worked out prior to real time deployment. Testing the ASGS is a three step
+process:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Creating the mock input data that will be used in the test.
+</p>
+</li>
+<li>
+<p>
+Configuring the ASGS properly to run the test.
+</p>
+</li>
+<li>
+<p>
+Manipulating the mock input in real time during the test.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>These steps are detailed in the sections below.</p></div>
 <div class="sect2">
-<h3 id="_setting_up_the_mock_nhc_files_for_testing">Setting Up the Mock NHC Files for Testing</h3>
-<div class="paragraph"><p>For the forecast files, you can use the text advisories from the NHC
-website.</p></div>
+<h3 id="_creating_forecast_advisories_for_testing">Creating Forecast/Advisories for Testing</h3>
+<div class="paragraph"><p>For tropical cyclone testing, the text advisories from the NHC
+website can be used for forecasts. These files can be found at
+the following location:</p></div>
 <div class="literalblock">
 <div class="content monospaced">
 <pre>http://www.nhc.noaa.gov/archive/</pre>
 </div></div>
-<div class="paragraph"><p>Just click on the year, and you&#8217;ll see all the storms for that year.</p></div>
-<div class="paragraph"><p>Then click on the name of the storm you want to run. You&#8217;ll see all the
-forecast/advisories that were issued for that storm.</p></div>
-<div class="paragraph"><p>Then click on the forecast/advisory you want to run, and "Save Page
-As&#8230;" to save the html (just the html) to a file. You could feed this
-html file to the ASGS, but we are going to do some additional editing,
-as described below. Repeat this step for all the advisories you want to
-run.</p></div>
-<div class="paragraph"><p>Once you have those, you&#8217;ll need a mock RSS feed. You can create this by
-taking the text of each forecast/advisory from the html files you
-downloaded and inserting it into an index-at.xml file. I&#8217;ve attached the
-index-at.xml file from Beryl advisory 07 as an example.</p></div>
-<div class="paragraph"><p>For example, if you want to run Ike advisories 42, 44, and 46, you&#8217;d do
-the following</p></div>
+<div class="paragraph"><p>Just click on the year to see all the storms for that year.</p></div>
+<div class="paragraph"><p>Then click on the name of the storm that the ASGS should run.
+The list of all the forecast/advisories that were issued for that storm
+will be shown.</p></div>
+<div class="paragraph"><p>Then click on the first forecast/advisory that should run, and "Save Page
+As&#8230;" to save the html (just the html) to a file. This file could be fed
+to the ASGS, but some additional editing should be performed,
+as described below. Repeat this step for all the advisories in the test.</p></div>
+<div class="paragraph"><p>Once all the html files for the forecast/advisories in the test have been
+obtained, a mock RSS feed should be created. Take the text of each
+forecast/advisory from the html files insert it into an index-at.xml file. An
+example index-at.xml file from advisory 07 of TS Beryl 2012 can be found in the
+<span class="monospaced">doc</span> subdirectory of the ASGS installation directory.</p></div>
+<div class="paragraph"><p>For example, to run Ike advisories 42, 44, and 46, the procedure would be as
+follows:</p></div>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
@@ -2688,24 +2818,34 @@ ike.44.index-at.xml, ike.46.index-at.xml.
 </p>
 </li>
 </ol></div>
-<div class="paragraph"><p>Now, you&#8217;ll also need a hindcast file to go along with each forecast
-file. In a real storm, the hindcast data end before or just after the
-start of the forecast when each advisory is issued.</p></div>
-<div class="paragraph"><p>So, in the case of Ike, you need a set of bal092008.dat files that end
-at the appropriate times for your forecasts. To support our test efforts
-in prior seasons, I&#8217;ve created a bunch of files like this for various
+<div class="paragraph"><p>Now, a hindcast file will also be needed to go along with each forecast file.
+In a real storm, the hindcast data end before or just after the start of the
+forecast when each advisory is issued.</p></div>
+<div class="paragraph"><p>So, in the case of Ike, a set of bal092008.dat files is needed that each end
+at the appropriate times for the forecasts. To support ASGS test efforts
+in prior seasons, the author has created a bunch of files like this for various
 storms here:</p></div>
 <div class="literalblock">
 <div class="content monospaced">
 <pre>ftp://ftp.unc.edu/pub/ims/rick/ADCIRC/NHC_Advisories/btk/</pre>
 </div></div>
-<div class="paragraph"><p>Hopefully this archive will be of use to you.</p></div>
-<div class="paragraph"><p>So at this point, you have a bunch of files called (for example)
+<div class="paragraph"><p>Hopefully this archive will be of use to the ASGS Operator community.</p></div>
+<div class="paragraph"><p>So at this point, an inventory of files called (for example)
 ike.XX.index-at.xml and ike_advisory_XX.btk (one set for each advisory,
-where XX is the advisory number.</p></div>
+where XX is the advisory number) has been developed.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_configuring_the_asgs_for_test_advisories_stored_on_local_filesystem">Configuring the ASGS for Test Advisories Stored on Local Filesystem</h3>
+<h3 id="_configuring_the_asgs_for_testing">Configuring the ASGS for Testing</h3>
+<div class="paragraph"><p>In normal operation, the ASGS contacts remote web and ftp sites to
+collect the real time data that it requires. During a test, however,
+the Operator will be supplying these files. If the ASGS Operator has
+administrative access to a web server and ftp server, these can be
+set up to mimic the web and ftp sites of the NHC, and the ASGS can
+be configured to go to the mock sites instead of the real ones.</p></div>
+<div class="paragraph"><p>However, it is simpler to reconfigure the ASGS to look to its local
+filesystem for the mock files, thus eliminating the requirement for
+having web and ftp servers handy. A sample set of test configuration
+parameters for external data sources is as follows:</p></div>
 <div class="literalblock">
 <div class="content monospaced">
 <pre>STORM=
@@ -2713,57 +2853,57 @@ YEAR=
 TRIGGER=rssembedded
 RSSSITE=filesystem
 FTPSITE=filesystem
-FDIR=/path/to/stormname.XX.index-at.xml
-HDIR=/path/to/stormname_advisory_XX.btk</pre>
+FDIR=/path/to/index-at.xml
+HDIR=/path/to/bal'STORM'YEAR'.dat</pre>
 </div></div>
-<div class="paragraph"><p>Using Ike as an example, would be 09 and would be
-2008.</p></div>
+<div class="paragraph"><p>Using Ike as an example, <em>STORM</em> would be set to 09 and <em>YEAR</em>
+would be set to 2008. Please see the section on External Data Sources
+above for more detail on these parameters.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_actually_running_asgs_from_advisories_stored_in_local_files">Actually Running ASGS from Advisories Stored in Local Files</h3>
+<h3 id="_issuing_advisories">Issuing Advisories</h3>
+<div class="paragraph"><p>Once the mock advisories have been developed and the ASGS has been
+configured, it is up to the Operator to play the role of the NHC
+and "issue" new hindcast/nowcast data and new forecast advisories.
+Step-by-step instructions for doing this are as follows:</p></div>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
-Go to the directory where you have the mock RSS feed for the
-forecast/advisories.
+Go to the directory where the mock RSS feed for the
+forecast/advisories are stored.
 </p>
 </li>
 <li>
 <p>
-Make a symbolic link to the first advisory you want to run, e.g.:
+Make a symbolic link to the first advisory in the test
+(because the ASGS is hardwired to look for the index-at.xml file), e.g.:
 </p>
 <div class="literalblock">
 <div class="content monospaced">
 <pre>ln -s ike.42.index-at.xml index-at.xml</pre>
 </div></div>
 </li>
-</ol></div>
-<div class="paragraph"><p>because the ASGS is hardwired to look for the index-at.xml file.</p></div>
-<div class="olist arabic"><ol class="arabic">
 <li>
 <p>
-Make a symbolic link to the hindcast data that correspond to the
-first advisory you want to run, e.g.:
+Make a symbolic link to the hindcast data that correspond to the first
+advisory in the test (because the ASGS is hardwired to look for a file that is
+formatted as bal <em>STORM</em> <em>YEAR</em> .dat), e.g.:
 </p>
 <div class="literalblock">
 <div class="content monospaced">
 <pre>ln -s ike_advisory_42.btk bal092008.dat</pre>
 </div></div>
 </li>
-</ol></div>
-<div class="paragraph"><p>because the ASGS is hardwired to look for a file that is formatted as
-bal.dat.</p></div>
-<div class="olist arabic"><ol class="arabic">
 <li>
 <p>
-Start up the ASGS as you normally would. It will grab the NHC data
-from the local filesystem (whichever advisory your symbolic links point
+Start up the ASGS normally. It will grab the NHC data
+from the local filesystem (whichever advisory the symbolic links point
 to).
 </p>
 </li>
 <li>
 <p>
-Whenever you want to issue a new advisory, manually update the
+To issue a new advisory, manually update the
 symbolic link for the hindcast to the next hindcast file, then manually
 update the symbolic link to the next forecast file. For example:
 </p>
@@ -2774,66 +2914,90 @@ rm index-at.xml ; ln -s ike.44.index-at.xml index-at.xml</pre>
 </div></div>
 </li>
 </ol></div>
-<div class="paragraph"><p>Always update the symbolic link to the hindcast first, b/c the ASGS will
-be looking for a change in the forecast data to tell it when a new
-advisory has been issued. If you update the forecast link first, the
-ASGS will detect it so quickly that it will start its new cycle b/f you
-can update the hindcast link. This will just cause it to use the old
-hindcast.  </p></div>
-<div class="paragraph"><p>You could even write a shell script to update these links periodically
-if you want; it doesn&#8217;t have to be manual, although it probably will be
-when you first start doing this.</p></div>
+<div class="paragraph"><p>Always update the symbolic link to the hindcast first, because the ASGS will be
+looking for a change in the forecast data to tell it when a new advisory has
+been issued. If the forecast link is updated first, the ASGS will detect it so
+quickly that it will start its new cycle before the hindcast link can be
+updated. This will just cause the ASGS to use the old hindcast/nowcast data.  </p></div>
+<div class="paragraph"><p>A shell script could be written to update these links periodically to issue the
+mock advisories; the process of issuing advisories doesn&#8217;t have to be manual.</p></div>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_performance_during_hurricane_irene">Performance During Hurricane Irene</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Hurricane Irene 2011 provided an oppportunity to use the ASGS and CERA
-technologies to assist officials in the NWS and USCG with real-life operational
-and emergency management decisions. The implementation of these technologies
+<div class="paragraph"><p>Hurricane Irene 2011 provided an oppportunity to use the ASGS
+technology to assist officials in the NWS and USCG with real-life operational
+and emergency management decisions. The implementation
 for the North Carolina and US East Coast that provided the basis for this real
 life application are described below, including the static physical data, use
 of dynamic meteorological and river flow data, operational configuration,
 interaction with web-based results, and feedback from official end users.</p></div>
-<div class="paragraph"><p>During Hurricane Irene of 2011, the ASGS and CERA technologies were actively
-and heavily utilized by National Weather Service (NWS) offices, emergency
-managers, and the US Coast Guard. In one example of the real benefit for
-emergency management officials, US Coast Guard Admirals personally operated the
-web application to examine and interact with simulation results, and then used
-those results in their decision to evacuate their command center near Norfolk,
-VA, relocating to their secondary command center in Missouri. Subsequently, the
-predicted flooding did occur, rendering the abandoned USCG command center
-useless. In summary, the USCG was able to maintain uninterrupted command and
-control over the course of Hurricane Irene from their alternate command center,
-and have lauded the ASGS/CERA system for its contribution to this successful
-operational decision.</p></div>
+<div class="paragraph"><p>During Hurricane Irene of 2011 (please see Figure 3), the ADCIRC+SWAN results
+that were produced in real time by the ASGS were actively and heavily utilized
+by National Weather Service (NWS) offices, emergency managers, and the US Coast
+Guard.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/irene_track.png" alt="figures/irene_track.png" width="400">
+</div>
+<div class="title">Figure 3. Hurricane Irene of 2011 strengthened into a major (Category 3) hurricane and threatened almost the entire US Atlantic coast at one point or another. It made its initial landfall on Cape Lookout, North Carolina.</div>
+</div>
+<div class="paragraph"><p>In one example of the real benefit for emergency management officials, US Coast
+Guard Admirals used the real time results results in their decision to evacuate
+their command center near Norfolk, VA, relocating to their secondary command
+center in Missouri. Subsequently, the predicted flooding did occur, rendering
+the abandoned USCG command center useless. In summary, the USCG was able to
+maintain uninterrupted command and control over the course of Hurricane Irene
+from their alternate command center, and have lauded the ASGS system for its
+real time contribution to this successful operational decision.</p></div>
 <div class="sect2">
 <h3 id="_north_carolina_physical_data">North Carolina Physical Data</h3>
 <div class="paragraph"><p>The discretization of the North Carolina domain (the mesh) that was used for
-both ADCIRC and SWAN is shown below in figure 3. The mesh contained 295328
-nodes and 575512 with a minimum element size of 13m. The land cover data that
-were used to derive directional wind roughness lengths, canopy coefficients,
-and Manning&#8217;s n friction values are shown in figure 5. The system set 127
-points throughout the domain for sampling the model output for comparison with
-tide gauges and water levels in river flood plains and other locations. It also
-specified 99 locations for point sampling of model meteorological data for
-comparison with physical meteorological data collected at land based and
-buoy-based meteorological data collected by various state and federal agencies
-and universities.</p></div>
+both ADCIRC and SWAN is shown below in figure 4. The mesh contained 295328
+nodes and 575512 with a minimum element size of 13m.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/ncv6b_mesh.png" alt="figures/ncv6b_mesh.png" width="400">
+</div>
+<div class="title">Figure 4. The domain discretization for the North Carolina coast consists of 295328 nodes and 575512 elements with approximately 90% of the nodes lying near, on, or inland of the North Carolina coastline.</div>
+</div>
+<div class="paragraph"><p>The land cover data that were used to derive directional wind roughness
+lengths, canopy coefficients, and Manning&#8217;s n friction values are shown in
+Figure 5. The system set 127 points throughout the domain for sampling the
+model output for comparison with tide gauges and water levels in river flood
+plains and other locations. It also specified 99 locations for point sampling
+of model meteorological data for comparison with physical meteorological data
+collected at land based and buoy-based meteorological data collected by various
+state and federal agencies and universities.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/nc_landcover.png" alt="figures/nc_landcover.png" width="400">
+</div>
+<div class="title">Figure 5. The land cover data for North Carolina were used to construct a complete map of directional wind reduction factors, canopy coefficients, and Manning&#8217;s n friction parameters at every node in the mesh.</div>
+</div>
+<div class="paragraph"><p>The bathymetry contours are shown below in Figure 6.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/ncv6b_bathy.png" alt="figures/ncv6b_bathy.png" width="400">
+</div>
+<div class="title">Figure 6. The bathymetry of the ADCIRC+SWAN mesh shows the wide range of elevations that are present; the inland extent of the mesh provide detailed coastal inundation coverage as well as river flood plain coverage.</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_dynamic_input_data_2">Dynamic Input Data</h3>
-<div class="paragraph"><p>As the storm that would eventually become Irene was forming, the ASGS/CERA
-system had already been running for months at RENCI on the blueridge machine, a
+<div class="paragraph"><p>As the storm that would eventually become Irene was forming, the ASGS
+had already been running for months at RENCI on the blueridge machine, a
 1408 core Dell High Performance Computing cluster, producing daily forecasts
 using NCEP NAM meteorology, river flow data from NSSL, and tidal forcing.</p></div>
 <div class="paragraph"><p>When Irene formed and the decision was made to start running vortex-forced
 tropical cyclone forecasts, a new instance of the ASGS was started up from the
-most recent hotstart file from the existing NAM results. The new instance was
-configured to run on 384 processors, rather than the 180 that were used in the
-NAM runs. Both ASGS instances then ran side by side for several days, sending
-their output to the CERA web application, until the NAM instance was shut down
+most recent hotstart file from the existing NAM results.</p></div>
+<div class="paragraph"><p>The new instance was configured to run on 384 processors, rather than the 180
+that were used in the NAM runs. Both ASGS instances then ran side by side for
+several days, sending their output to the CERA web application for post
+processing and presentation, until the NAM instance of the ASGS was shut down
 to conserve processor time.</p></div>
 </div>
 <div class="sect2">
@@ -2848,7 +3012,7 @@ oversee the operation of the ASGS during this critical period. However, since
 the ASGS itself was actually executing at the RENCI facility, which is located
 in Durham, North Carolina and that facility never lost power, the ASGS was able
 to continue operating autonomously without interruption and without interaction
-or oversight for the duration of the storm.</p></div>
+or oversight for the remainder of the storm.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_output_visualization_and_interaction">Output Visualization and Interaction</h3>
@@ -2864,13 +3028,35 @@ The CERA website itself was not password protected, but end users were
 instructed not to publicize the availability of the site. The CERA web
 processing required another 1 hour and 15 minutes to generate image tiles for a
 particular advisory, for a total turn around time of 2 hours and 30 minutes.</p></div>
-<div class="paragraph"><p>There were myriad examples of the use of the ASGS/CERA results by emergency
-managers and officials during the storm event. As stated in the executive
-summary, several Admirals at the USCG personally examined and interacted with
-the ASGS/CERA results via the CERA site and subsequently made the operational
-decision to evacuate their command center in Virginia. The flooding depicted in
-the results did occur, and the USCG was extremely pleased and satisfied with
-their experience with the ASGS/CERA guidance.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_fidelity_to_measured_data">Fidelity to Measured Data</h3>
+<div class="paragraph"><p>A few comparisons with measured data are provided here; these particular plots
+and comparisons were developed by Kendra Dresback.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/irene_track_comparisons.png" alt="figures/irene_track_comparisons.png" width="400">
+</div>
+<div class="title">Figure 12. The track of hurricane Irene was well forecast, with minor variations from advisory to advisory. The numbers on this plot indicate the locations where measured data were collected and compared with point samples of model output.</div>
+</div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/irene_oregoninlet.png" alt="figures/irene_oregoninlet.png" width="400">
+</div>
+<div class="title">Figure 13. Comparison of the forecast results from several advisories to the measured data at Oregon Inlet, NC.</div>
+</div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/irene_beaufort.png" alt="figures/irene_beaufort.png" width="400">
+</div>
+<div class="title">Figure 14. Comparison of the forecast results from several advisories to the measured data at Beaufort, NC.</div>
+</div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/irene_advisory_comparisons_scatter_45deg.png" alt="figures/irene_advisory_comparisons_scatter_45deg.png" width="400">
+</div>
+<div class="title">Figure 15. Comparison of forecast results from several advisories to the measured data, illustrating the convergence of storm surge guidance so to the measured values as the uncertainty in the meteorological forecast is reduced.</div>
+</div>
 </div>
 </div>
 </div>
@@ -2915,7 +3101,7 @@ can be formatted as an html page with the command</p></div>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2012-06-18 14:53:25 EDT
+Last updated 2012-06-19 16:14:23 EDT
 </div>
 </div>
 </body>
