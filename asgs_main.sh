@@ -918,7 +918,7 @@ init_blueridge()
   QCHECKCMD=qstat
   ACCOUNT=noaccount
   SUBMITSTRING=submitstring
-  SCRATCHDIR=/work/$USER
+  SCRATCHDIR=/projects/ncfs/data
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=renci.template.pbs
   PREPCONTROLSCRIPT=renci.adcprep.template.pbs
