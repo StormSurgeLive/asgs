@@ -50,7 +50,7 @@ echo "asgs : gomex" >> run.properties
 #
 # create opendap path
 FORCING=WNAMAW12-NCP
-if [[ TROPICALCYCLONE = on ]]; then
+if [[ $TROPICALCYCLONE = on ]]; then
    FORCING="vortex-"
    if [[ WAVES = on ]]; then 
       FORCING=${FORCING}nws319
@@ -62,6 +62,14 @@ MODEL=PADCIRC
 if [[ WAVES = on ]]; then
    MODEL=PADCSWAN
 fi
+# RunStartTime : 2012062600
+RUNSTARTTIMELINE=`cat run.properties | grep RunStartTime` #; echo $RUNSTARTTIMELINE 
+COLON=`expr index "$RUNSTARTTIMELINE" :`                  #; echo $COLON
+RUNSTARTTIME=`echo ${RUNSTARTTIMELINE:$COLON}`            #; echo $RUNSTARTTIME 
+YEAR=`echo ${RUNSTARTTIME:$0:4}`                          #; echo $YEAR 
+MONTH=`echo ${RUNSTARTTIME:4:2}`                          #; echo $MONTH 
+DAY=`echo ${RUNSTARTTIME:6:2}`                            #; echo $DAY
+HOUR=`echo ${RUNSTARTTIME:8:2}`                           #; echo $HOUR
 OPENDAPPATH=${OPENDAPBASEPATH}/${HOSTNAME}:2/${MODEL}/${GRIDNAME}/${FORCING}/${YEAR}/${MONTH}/${DAY}/${HOUR}
 mkdir -p $OPENDAPPATH
 cd $OPENDAPPATH
