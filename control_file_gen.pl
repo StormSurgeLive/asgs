@@ -414,6 +414,12 @@ while(<TEMPLATE>) {
     s/%FORT64%/$fort64/;
     s/%FORT7172%/$fort7172/;
     s/%FORT7374%/$fort7374/;
+    s/%CSYEAR%/$cy/;
+    s/%CSMONTH%/$cm/;
+    s/%CSDAY%/$cd/;
+    s/%CSHOUR%/$ch/;
+    s/%CSMIN%/$cmin/;
+    s/%CSSEC%/$cs/;
     unless (/NO LINE HERE/) {
        print STORM $_;
     }
