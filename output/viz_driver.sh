@@ -11,7 +11,7 @@ VMAX=$9      # percent adjustment in Vmax (%), 0 to leave Vmax alone
 TIMEOFFSET=${10} # for NWS15, time in seconds of start time of analysis
 #
 ASGSDIR=~/asgs/trunk
-ADCIRCDIR=~/adcirc/newvortex/work
+ADCIRCDIR=~/adcirc/trunk/work
 PERL5LIB=$ASGSDIR/PERL ; export PERL5LIB
 #
 FRAME=0         # "0" for all frames
@@ -24,7 +24,7 @@ if [ $TIMESTEP = default ]; then
 fi
 #
 # clean up pre-existing data and image files, if any
-rm -f radii_???.ps radialv_???.ps radialp_???.ps page???.gif page???.ps pages???.ps spatial_data_???.d spatial_cycle???.gif montage_geom_???.gif montage*.jpg spatial_data_???.d full_circle_rmaxes_???.d radii_??kt_cycle???.d radialvp_latlon_???.d full_circle_latlon_???.d spatial_data_???.d *.png compass_full_circle_rmaxes_???.d radialvp_???.d montage_geom_fullsize_???.gif montage_geom_???.gif
+rm -f  radii_???.?ps radialv_???.?ps radialp_???.?ps page???.gif page???.?ps pages???.?ps spatial_data_???.d spatial_cycle???.gif montage_geom_???.gif montage*.jpg spatial_data_???.d full_circle_rmaxes_???.d radii_??kt_cycle???.d radialvp_latlon_???.d full_circle_latlon_???.d spatial_data_???.d *.png compass_full_circle_rmaxes_???.d radialvp_???.d montage_geom_fullsize_???.gif montage_geom_???.gif
 #
 # generate a preprocessed output file
 if [ $NWS = 19 ]; then

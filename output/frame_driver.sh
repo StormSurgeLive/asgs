@@ -64,9 +64,9 @@ fi
 for file in $files; do
    num=`expr substr $file 14 3`
    if [ $MESHFILE = auto ]; then
-      python ${ASGSDIR}/output/tristreamline.py -f $num -a "$DESCRIPT"
+      vtkpython ${ASGSDIR}/output/tristreamline.py -f $num -a "$DESCRIPT"
    else
-      python ${ASGSDIR}/output/unstreamline.py $num
+      vtkpython ${ASGSDIR}/output/unstreamline.py $num
    fi
 done
 #

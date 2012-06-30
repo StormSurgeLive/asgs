@@ -1346,6 +1346,45 @@ successfully; if that subprocess ends abnormally, an infinite loop will result,
 preventing control from returning to the ASGS and preventing any further
 nowcast/forecast cycles from running. 
 
+OpenDAP
+^^^^^^^
+
+The Open Data Access Protocol (OpenDAP) is a convenient way to interactively
+publish large scientfic datasets, including those produced by the ASGS 
+(see www.opendap.org for details on this technology).
+
+The current ad hoc scheme for organizing ASGS results on an OpenDAP server
+consists of the formation of a path that reflects the hierarchical 
+categorization of those results. For example, an URL that starts with 
+an 'OPENDAPBASE' of 
+
+ http://opendap.institution.org:1935/thredds/catalog
+
+might have results posted to the following path
+
+ $OPENDAPBASE/hostname.hpc.org:2/PADCSWAN/nc6b/vortex-nws319/2012/05/26/06/
+
+This path would link to the results produced on the machine named
+'hostname.hpc.org' by the ASGS instance named '2', using PADCSWAN (as opposed
+to PADCIRC) on the mesh named 'nc6b' using the 'vortex-nws319' parametric wind
+model, with wave coupling turned on (as evidenced by the '3' in
+'vortex-nws319'), in the year 2012, month 05, day 26, hour 06. These results
+represent the NHC consensus forecast for Beryl 2012 advisory 2. 
+
+The NAM results that were produced at about the same time by another instance
+of the ASGS on the same machine might be posted to the folllowing path:
+
+ $OPENDAPBASE/hostname.hpc.org:1/PADCSWAN/nc6b/WNAMAW12-NCP/2012/05/26/00/
+
+This shows how the opendap path would differ if the instance name,
+meteorological forcing type, and forecast time were to change. 
+
+As stated previously, this is an ad hoc hierarchy. It is subject to change,
+and most likely will change as a set of best practices are developed.  
+
+
+
+
 Archiving
 ~~~~~~~~~
 
