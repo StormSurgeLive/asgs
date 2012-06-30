@@ -2620,6 +2620,41 @@ processing script enter a loop that waits on a particular subprocess to complete
 successfully; if that subprocess ends abnormally, an infinite loop will result,
 preventing control from returning to the ASGS and preventing any further
 nowcast/forecast cycles from running.</p></div>
+<div class="sect3">
+<h4 id="_opendap">OpenDAP</h4>
+<div class="paragraph"><p>The Open Data Access Protocol (OpenDAP) is a convenient way to interactively
+publish large scientfic datasets, including those produced by the ASGS
+(see www.opendap.org for details on this technology).</p></div>
+<div class="paragraph"><p>The current ad hoc scheme for organizing ASGS results on an OpenDAP server
+consists of the formation of a path that reflects the hierarchical
+categorization of those results. For example, an URL that starts with
+an <em>OPENDAPBASE</em> of</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>http://opendap.institution.org:1935/thredds/catalog</pre>
+</div></div>
+<div class="paragraph"><p>might have results posted to the following path</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>$OPENDAPBASE/hostname.hpc.org:2/PADCSWAN/nc6b/vortex-nws319/2012/05/26/06/</pre>
+</div></div>
+<div class="paragraph"><p>This path would link to the results produced on the machine named
+<em>hostname.hpc.org</em> by the ASGS instance named <em>2</em>, using PADCSWAN (as opposed
+to PADCIRC) on the mesh named <em>nc6b</em> using the <em>vortex-nws319</em> parametric wind
+model, with wave coupling turned on (as evidenced by the <em>3</em> in
+<em>vortex-nws319</em>), in the year 2012, month 05, day 26, hour 06. These results
+represent the NHC consensus forecast for Beryl 2012 advisory 2.</p></div>
+<div class="paragraph"><p>The NAM results that were produced at about the same time by another instance
+of the ASGS on the same machine might be posted to the folllowing path:</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>$OPENDAPBASE/hostname.hpc.org:1/PADCSWAN/nc6b/WNAMAW12-NCP/2012/05/26/00/</pre>
+</div></div>
+<div class="paragraph"><p>This shows how the opendap path would differ if the instance name,
+meteorological forcing type, and forecast time were to change.</p></div>
+<div class="paragraph"><p>As stated previously, this is an ad hoc hierarchy. It is subject to change,
+and most likely will change as a set of best practices are developed.</p></div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_archiving">Archiving</h3>
@@ -3104,7 +3139,7 @@ can be formatted as an html page with the command</p></div>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2012-06-19 16:38:18 EDT
+Last updated 2012-06-30 15:42:42 EDT
 </div>
 </div>
 </body>

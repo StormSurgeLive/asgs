@@ -161,9 +161,9 @@ cam.Pitch(50)
 ren.ResetCamera()
 cam.Zoom(1.5)
 
-if ( options.interact == False ):
-    renWin.OffScreenRenderingOn()
-renWin.Render()
+#if ( options.interact == False ):
+#    renWin.OffScreenRenderingOn()
+#renWin.Render()
 
 # write a png
 w2if = vtk.vtkWindowToImageFilter()

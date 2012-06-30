@@ -257,7 +257,7 @@ prep()
     INPUTDIR=$2 # directory where grid and nodal attribute files are found
     ENSTORM=$3  # ensemble member (nowcast, storm1, storm5, etc)
     START=$4    # coldstart or hotstart
-    OLDADVISDIR=$5 # directory containing last advisory
+    FROMDIR=$5 # directory containing files to hotstart this run from 
     ENV=$6     # machine to run on (jade, desktop, queenbee, etc)
     NCPU=$7     # number of CPUs to request in parallel jobs
     PREPPEDARCHIVE=$8 # preprocessed fort.13 and fort.14 package
@@ -283,7 +283,7 @@ prep()
     if [[ ! -e ${INPUTDIR}/${PREPPED} ]]; then
        HAVEARCHIVE=no
     fi
-    # create directory to run in
+    # create directory to run in 
     if [ ! -d $ADVISDIR/$ENSTORM ]; then
       mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
     fi
@@ -369,23 +369,6 @@ prep()
                 PE=`expr $PE + 1`
              done
           fi
-       fi
-       # set directory where data will be copied from
-       if [[ $ENSTORM = nowcast ]]; then
-          # this is a nowcast run, and we are getting the hotstart file
-          # either from the ASGS's last nowcast run or from an initial
-          # hindcast run
-          if [[ -d $OLDADVISDIR/nowcast ]]; then
-             FROMDIR=$OLDADVISDIR/nowcast
-          fi
-          if [[ -d $OLDADVISDIR/hindcast ]]; then
-             FROMDIR=$OLDADVISDIR/hindcast
-             HOTSWAN=off # hindcast runs don't include swan
-          fi
-       else
-          # this is a forecast run, and we get the hotstart file from
-          # our own nowcast run in our own advisory directory
-          FROMDIR=$ADVISDIR/nowcast
        fi
        logMessage "Copying existing output files to this directory."
        if [[ $MINMAX = continuous ]]; then
@@ -1194,7 +1177,7 @@ ARCHIVEBASE=/dev/null
 ARCHIVEDIR=null
 FORECASTCYCLE="00,06,12,18"
 TRIGGER="rss"
-STARTADVISORYNUM=null
+LASTADVISORYNUM=0
 ADVISORY=null
 FORECASTLENGTH=84
 ALTNAMDIR=
@@ -1245,6 +1228,7 @@ STORMDIR=stormdir
 SSHKEY=
 PPN=1
 VELOCITYMULTIPLIER=1.0
+HOTSWAN=off
 ENSTORMNAMES[0]=nhcConsensus
 logMessage "ASGS Start Up MSG: [PROCID] $$"
 logMessage "ASGS Start Up MSG: [SYSLOG] ${SYSLOG}"
@@ -1396,8 +1380,8 @@ else
     START=$HOTORCOLD
     OLDADVISDIR=$RUNDIR/$LASTSUBDIR
 fi
-printf "%02d" $STARTADVISORYNUM > $RUNDIR/advisoryNumber 2>> $SYSLOG
-ADVISORY=$STARTADVISORYNUM
+printf "%02d" $LASTADVISORYNUM > $RUNDIR/advisoryNumber 2>> $SYSLOG
+ADVISORY=$LASTADVISORYNUM
 #
 ###############################
 #   BODY OF ASGS STARTS HERE
@@ -1482,16 +1466,17 @@ while [ 1 -eq 1 ]; do
    . ${CONFIG}
    FROMDIR=
    LUN=       # logical unit number; either 67 or 68
-   HOTSWAN=on
-   if [[ $REINITIALIZESWAN = yes ]]; then
-      HOTSWAN=off
-   fi
    if [[ -d $OLDADVISDIR/nowcast ]]; then
        FROMDIR=$OLDADVISDIR/nowcast
    fi
    if [[ -d $OLDADVISDIR/hindcast ]]; then
        FROMDIR=$OLDADVISDIR/hindcast
-       HOTSWAN=off  # we didn't run swan in the hindcast; swan will coldstart
+   fi
+   # turn SWAN hotstarting on or off as appropriate
+   if [[ $WAVES = on && -e $FROMDIR/PE0000/swan.67 && $REINITIALIZESWAN = no ]]; then
+       HOTSWAN=on # doesn't do anything unless WAVES=on
+   else 
+       HOTSWAN=off
    fi
    checkHotstart $FROMDIR $HOTSTARTFORMAT  67
    if [[ $HOTSTARTFORMAT = netcdf ]]; then
@@ -1506,6 +1491,8 @@ while [ 1 -eq 1 ]; do
     #
     # N O W C A S T
     ENSTORM=nowcast
+    RUNNOWCAST=yes 
+    NOWCASTDIR=     # directory with hotstart files to be used in forecast
     logMessage "Checking for new meteorological data every 60 seconds ..."
     # TROPICAL CYCLONE ONLY
     if [[ $TROPICALCYCLONE = on ]]; then
@@ -1518,12 +1505,12 @@ while [ 1 -eq 1 ]; do
        downloadCycloneData $STORM $YEAR $RUNDIR $SCRIPTDIR $OLDADVISDIR $TRIGGER $ADVISORY $FTPSITE $RSSSITE $FDIR $HDIR
        ADVISORY=`cat advisoryNumber`
        ADVISDIR=$RUNDIR/${ADVISORY}
-       STORMDIR=$ADVISDIR/$ENSTORM
        if [ ! -d $ADVISDIR ]; then
            mkdir $ADVISDIR 2>> ${SYSLOG}
        fi
-       if [ ! -d $ADVISDIR/$ENSTORM ]; then
-           mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+       NOWCASTDIR=$ADVISDIR/$ENSTORM
+       if [ ! -d $NOWCASTDIR ]; then
+           mkdir $NOWCASTDIR 2>> ${SYSLOG}
        fi
        logMessage "$START Storm $STORM advisory $ADVISORY in $YEAR"
        consoleMessage "$START Storm $STORM advisory $ADVISORY in $YEAR"
@@ -1531,9 +1518,9 @@ while [ 1 -eq 1 ]; do
        mv *.fst *.dat *.xml *.html $ADVISDIR 2>> ${SYSLOG}
        #
        # prepare nowcast met (fort.22) and control (fort.15) files
-       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+       cd $NOWCASTDIR 2>> ${SYSLOG}
        METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE"
-       CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $ADVISDIR/$ENSTORM/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+       CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
        logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
        ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
        STORMCLASSNAME=`cat ${ADVISDIR}/${ENSTORM}/nhcClassName`
@@ -1562,12 +1549,12 @@ while [ 1 -eq 1 ]; do
        downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR
        ADVISORY=`cat advisoryNumber`
        ADVISDIR=$RUNDIR/${ADVISORY}
-       STORMDIR=$ADVISDIR/$ENSTORM
+       NOWCASTDIR=$ADVISDIR/$ENSTORM
        cd $ADVISDIR 2>> ${SYSLOG}
        logMessage "$START $ENSTORM cycle $ADVISORY."
        consoleMessage "$START $ENSTORM cycle $ADVISORY."
        # convert met files to OWI format
-       NAMOPTIONS=" --ptFile ${INPUTDIR}/${PTFILE} --namFormat grib2 --namType $ENSTORM --awipGridNumber 218 --dataDir ${ADVISDIR}/${ENSTORM} --outDir ${ADVISDIR}/${ENSTORM}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
+       NAMOPTIONS=" --ptFile ${INPUTDIR}/${PTFILE} --namFormat grib2 --namType $ENSTORM --awipGridNumber 218 --dataDir $NOWCASTDIR --outDir ${NOWCASTDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
        logMessage "Converting NAM data to OWI format with the following options : $NAMOPTIONS"
        perl ${SCRIPTDIR}/NAMtoOWI.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
        CONTROLOPTIONS=" --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
@@ -1589,45 +1576,63 @@ while [ 1 -eq 1 ]; do
     # generate fort.15 file
     logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
     perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
-    # get river flux nowcast data, if configured to do so
-    if [[ $VARFLUX = on ]]; then
-       downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX} $USERIVERFILEONLY
+    # if current nowcast ends at same time as last nowcast, don't run it,
+    # we'll just use the previous nowcast hotstart file(s) ... to signal that
+    # this is the case, control_file_gen.pl won't write the 'runme' file
+    if [[ ! -e $NOWCASTDIR/runme ]]; then
+       RUNNOWCAST=no
     fi
-    logMessage "Starting nowcast."
-    consoleMessage "Starting nowcast for cycle '$ADVISORY'."
-    echo "hostname : $HOSTNAME" >> $ADVISDIR/$ENSTORM/run.properties
-    echo "instance : $INSTANCENAME" >> $ADVISDIR/$ENSTORM/run.properties
-    # preprocess
-    logMessage "Starting nowcast preprocessing."
-    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
-    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
-    # check to see that adcprep did not conspicuously fail
-    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $GRIDFILE $EMAILNOTIFY "${POST_LIST}"
-    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
-       continue  # abandon this nowcast and wait for the next one
+    echo "hostname : $HOSTNAME" >> $NOWCASTDIR/run.properties
+    echo "instance : $INSTANCENAME" >> $NOWCASTDIR/run.properties
+    if [[ $RUNNOWCAST = yes ]]; then
+       logMessage "Starting nowcast."
+       consoleMessage "Starting nowcast for cycle '$ADVISORY'."
+       # get river flux nowcast data, if configured to do so
+       if [[ $VARFLUX = on ]]; then
+          downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX} $USERIVERFILEONLY
+       fi
+       # preprocess
+       logMessage "Nowcast preprocessing."
+       logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
+       prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
+       # check to see that adcprep did not conspicuously fail
+       handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $GRIDFILE $EMAILNOTIFY "${POST_LIST}"
+       # if handleFailedJob has detected a problem, it will rename the 
+       # nowcast directory; therefore, the non-existence of the nowcast
+       # directory is evidence that something has gone wrong in prep
+       if [[ ! -d $NOWCASTDIR ]]; then
+          continue  # abandon this nowcast and wait for the next one
+       fi
+       JOBTYPE=padcirc
+       HOTSWAN=on
+       if [[ $WAVES = on ]]; then
+          JOBTYPE=padcswan
+       fi
+       # then submit the job
+       logMessage "Submitting $ENSTORM job."
+       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+       logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE"
+       submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE
+       # check once per minute until all jobs have finished
+       monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $NOWCASTWALLTIME
+       # check to see that the nowcast job did not conspicuously fail
+       handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $GRIDFILE $EMAILNOTIFY "${POST_LIST}"
+       if [[ ! -d $NOWCASTDIR ]]; then
+          continue # abandon this nowcast and wait for the next one
+       fi
+       consoleMesssage "Job(s) complete."
+       # nowcast finished, get on with it
+       logMessage "Nowcast run finished."
+       consoleMessage "Nowcast run finished."
+       cd $ADVISDIR 2>> ${SYSLOG}
+    else
+       # we didn't run the nowcast, because our latest nowcast data end 
+       # at the same time as the previous nowcast data, so we can just use
+       # the prior cycle's nowcast hotstart file
+       logMessage "The nowcast data end at the same time as the hindcast/nowcast data from the previous cycle. As a result, a nowcast will not be run on this cycle; this cycle's forecast(s) will be hotstarted from the hindcast/nowcast of the previous cycle."
+       logMessage "Skipping the submission of the nowcast job and proceeding directly to the forecast(s)."
+       NOWCASTDIR=$FROMDIR
     fi
-    JOBTYPE=padcirc
-    HOTSWAN=on
-    if [[ $WAVES = on ]]; then
-       JOBTYPE=padcswan
-    fi
-    # then submit the job
-    logMessage "Submitting $ENSTORM job."
-    cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-    logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE"
-    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE
-    # check once per minute until all jobs have finished
-    monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $NOWCASTWALLTIME
-    # check to see that the nowcast job did not conspicuously fail
-    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $GRIDFILE $EMAILNOTIFY "${POST_LIST}"
-    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
-       continue # abandon this nowcast and wait for the next one
-    fi
-    consoleMesssage "Job(s) complete."
-    # nowcast finished, get on with it
-    logMessage "Nowcast run finished."
-    consoleMessage "Nowcast run finished."
-    cd $ADVISDIR 2>> ${SYSLOG}
     #
     # F O R E C A S T
     #
@@ -1635,27 +1640,32 @@ while [ 1 -eq 1 ]; do
     consoleMessage "Starting forecast for advisory '$ADVISORY'."
     # source config file to pick up any configuration changes
     . ${CONFIG}
-    HOTSWAN=on # doesn't do anything unless WAVES=on
-    checkHotstart ${ADVISDIR}/nowcast $HOTSTARTFORMAT 67
+    # turn SWAN hotstarting on or off as appropriate
+    if [[ $WAVES = on && -e $NOWCASTDIR/PE0000/swan.67 && $REINITIALIZESWAN = no ]]; then
+       HOTSWAN=on # doesn't do anything unless WAVES=on
+    else 
+       HOTSWAN=off
+    fi
+    checkHotstart $NOWCASTDIR $HOTSTARTFORMAT 67
     if [[ $HOTSTARTFORMAT = netcdf ]]; then
-       HSTIME=`$ADCIRCDIR/hstime -f ${ADVISDIR}/nowcast/fort.67.nc -n` 2>> ${SYSLOG}
+       HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/fort.67.nc -n` 2>> ${SYSLOG}
     else
-       HSTIME=`$ADCIRCDIR/hstime -f ${ADVISDIR}/nowcast/PE0000/fort.67` 2>> ${SYSLOG}
+       HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/PE0000/fort.67` 2>> ${SYSLOG}
     fi
     logMessage "The time in the hotstart file is '$HSTIME' seconds."
     let si=0
     while [ $si -lt $ENSEMBLESIZE ]; do
        ENSTORM=${NAME[${STORMLIST[$si]}]}
        STORMDIR=$ADVISDIR/$ENSTORM
-       if [ ! -d $ADVISDIR/${ENSTORM} ]; then
-          mkdir $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
+       if [ ! -d $STORMDIR ]; then
+          mkdir $STORMDIR 2>> ${SYSLOG}
        fi
-       cd $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
+       cd $STORMDIR 2>> ${SYSLOG}
        RUNFORECAST=yes
        # TROPICAL CYCLONE ONLY
        if [[ $TROPICALCYCLONE = on ]]; then
           METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $CSDATE --hotstartseconds $HSTIME --nws $NWS --name $ENSTORM --percent ${PERCENT[$si]}"
-          CONTROLOPTIONS="--cst $CSDATE --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile $ADVISDIR/${ENSTORM}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+          CONTROLOPTIONS="--cst $CSDATE --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile ${STORMDIR}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
           logMessage "Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
           ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
           if [[ $NWS = 19 || $NWS = 319 ]]; then
@@ -1685,7 +1695,7 @@ while [ 1 -eq 1 ]; do
           logMessage "downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR"
           downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR
           cd $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
-          NAMOPTIONS=" --ptFile ${INPUTDIR}/${PTFILE} --namFormat grib2 --namType $ENSTORM --awipGridNumber 218 --dataDir ${ADVISDIR}/${ENSTORM} --outDir ${ADVISDIR}/${ENSTORM}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
+          NAMOPTIONS=" --ptFile ${INPUTDIR}/${PTFILE} --namFormat grib2 --namType $ENSTORM --awipGridNumber 218 --dataDir ${STORMDIR} --outDir ${STORMDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
           logMessage "Converting NAM data to OWI format with the following options : $NAMOPTIONS"
           perl ${SCRIPTDIR}/NAMtoOWI.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
           CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
@@ -1694,7 +1704,7 @@ while [ 1 -eq 1 ]; do
           NAM222=`ls NAM*.222`;
           ln -s $NAM221 fort.221 2>> ${SYSLOG}
           ln -s $NAM222 fort.222 2>> ${SYSLOG}
-          if [[ ! -e $ADVISDIR/$ENSTORM/runme ]]; then
+          if [[ ! -e $STORMDIR/runme ]]; then
              RUNFORECAST=no
           fi
        fi
@@ -1705,19 +1715,19 @@ while [ 1 -eq 1 ]; do
        CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
        logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
        perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
-       if [[ ! -d $ADVISDIR/$ENSTORM ]]; then continue; fi
+       if [[ ! -d $STORMDIR ]]; then continue; fi
        # get river flux nowcast data, if configured to do so
        if [[ $VARFLUX = on ]]; then
           downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX} $USERIVERFILEONLY
        fi
-       echo "hostname : $HOSTNAME" >> $ADVISDIR/$ENSTORM/run.properties
-       echo "instance : $INSTANCENAME" >> $ADVISDIR/$ENSTORM/run.properties
+       echo "hostname : $HOSTNAME" >> ${STORMDIR}/run.properties
+       echo "instance : $INSTANCENAME" >> ${STORMDIR}/run.properties
        if [[ $RUNFORECAST = yes ]]; then
           # preprocess
-          logMessage "Starting $ENSTORM preprocessing."
-          prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
+          logMessage "Starting $ENSTORM preprocessing with the following command: prep $ADVISDIR $INPUTDIR $ENSTORM $START $NOWCASTDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
+          prep $ADVISDIR $INPUTDIR $ENSTORM $START $NOWCASTDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
           handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $GRIDFILE $EMAILNOTIFY "${POST_LIST}"
-          if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
+          if [[ ! -d $STORMDIR ]]; then
              si=$[$si + 1];
              continue # abandon this member of the forecast ensemble
           fi
@@ -1732,7 +1742,7 @@ while [ 1 -eq 1 ]; do
           # check once per minute until job has completed
           monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $FORECASTWALLTIME
           handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $GRIDFILE $EMAILNOTIFY "${POST_LIST}"
-          if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
+          if [[ ! -d $STORMDIR ]]; then
              si=$[$si + 1];
              continue  # abandon this member of the forecast ensemble
           fi
@@ -1754,6 +1764,12 @@ while [ 1 -eq 1 ]; do
     ${OUTPUTDIR}/${ARCHIVE} $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $ARCHIVEBASE $ARCHIVEDIR  2>> ${SYSLOG} &
     logMessage "Forecast complete for advisory '$ADVISORY.'"
     consoleMessage "Forecast complete for advisory '$ADVISORY.'"
-    OLDADVISDIR=$ADVISDIR
-    LASTSUBDIR=""
+    LASTSUBDIR=null # don't need this any longer
+    # if we ran the nowcast on this cycle, then this cycle's nowcast becomes 
+    # the basis for the next cycle; on the other hand, if we used a previous 
+    # nowcast as the basis for this cycle, then that previous nowcast will 
+    # also have to be the basis for the next cycle 
+    if [[ $RUNNOWCAST = yes ]]; then
+       OLDADVISDIR=$ADVISDIR
+    fi
 done

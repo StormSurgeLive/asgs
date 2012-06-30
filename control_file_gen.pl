@@ -41,7 +41,7 @@
 #   [--dt timestep] [--nowcast] [--controltemplate templatefile] < storm1_fort.22
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2006, 2007, 2008, 2009, 2010, 2011 Jason Fleming
+# Copyright(C) 2006, 2007, 2008, 2009, 2010, 2011, 2012 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -115,7 +115,7 @@ our $endtime;    # time at which the run should end (days since coldstart)
 our $dt=3.0;      # adcirc time step, in seconds
 my $swandt=600.0; # swan time step, in seconds
 my $bladj=0.9;
-my $enstorm;    # ensemble name of the storm
+our $enstorm;    # ensemble name of the storm
 my $nhcName="STORMNAME"; # storm name given by the nhc
 my $tau=0; # forecast period
 my $dir=getcwd();
@@ -842,6 +842,13 @@ sub owiParameters () {
    my $addHours = $ddays*24.0 + $dhrs + $dmin/60.0 + $dsec/3600.0;
    $ensembleid = $addHours . " hour " . $enstorm . " run";
    $NHSINC = int(($RNDAY*86400.0)/$dt);
+   #
+   # create the runme file, if this is a nowcast
+   if ( $enstorm eq "nowcast" ) {
+      open(RUNME,">$stormDir/runme") || die "ERROR: control_file_gen.pl: Failed to open runme file for writing in the directory $stormDir: $!.";
+      printf RUNME "$ensembleid\n";     
+   }
+   close(RUNME);
 }
 #
 #--------------------------------------------------------------------------
@@ -1030,7 +1037,11 @@ sub asymmetricParameters () {
    my $min_runlength = 2*$dt;
    # if we coldstart at the nowcast, we may not have calculated a runlength
    # longer than the minimum
+   my $goodRunlength = 1;
    if ( $runlength_seconds < $min_runlength ) {
+      if ( $enstorm eq "nowcast" ) {
+         $goodRunlength = 0;
+      }
       stderrMessage("INFO","Runlength was calculated as $runlength_seconds seconds, which is less than the minimum runlength of $min_runlength seconds. The RNDAY will be adjusted so that it ADCIRC runs for the minimum length of simulation time.");
       # recalculate the RNDAY as the hotstart time plus the minimal runlength
       if ( $hstime ) {
@@ -1064,8 +1075,16 @@ sub asymmetricParameters () {
    # check to see if the RNDAY had to be modified from the value calculated
    # purely from the met file ... if so, modify the ending time accordingly
    if ( $RNDAY != $RNDAY_orig ) {
-    ($ey,$em,$ed,$eh,$emin,$es) =
+      ($ey,$em,$ed,$eh,$emin,$es) =
        Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$RNDAY,0,0,0);
+   } 
+   # create the runme file, if this is a nowcast that has an ending time
+   # that is later than the previous hotstart
+   if ( $enstorm eq "nowcast" && $goodRunlength == 1 ) {
+      my $runlengthHours = ( $RNDAY*86400.0 - $hstime ) / 3600.0;
+      open(RUNME,">$stormDir/runme") || die "ERROR: control_file_gen.pl: Failed to open runme file for writing in the directory $stormDir: $!.";
+      printf RUNME "$runlengthHours hour nowcast\n";     
+      close(RUNME);
    }
    #
    # create run description
