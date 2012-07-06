@@ -3,7 +3,7 @@
 # get_flux.pl: downloads fort.20 files representing variable river
 # flux data for ASGS nowcasts and forecasts.
 #--------------------------------------------------------------
-# Copyright(C) 2011 Jason Fleming
+# Copyright(C) 2011, 2012 Jason Fleming
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 # 
@@ -36,8 +36,8 @@ use Date::Pcalc;
 use Cwd;
 #
 our $advisdir;   # directory where the ASGS is running
-my $riversite; # ftp site for variable flux b.c. data
-my $riverdir;  # dir on ftp site for variable flux b.c. data
+my $riversite; # site for variable flux b.c. data
+my $riverdir;  # dir on site for variable flux b.c. data
 my $enstorm;  # hindcast, nowcast, or other
 my $csdate;   # UTC date and hour (YYYYMMDDHH) of ADCIRC cold start
 my $hstime;   # hotstart time, i.e., time since ADCIRC cold start (in seconds)
@@ -59,11 +59,15 @@ our $defaultfile; # file containing the default fluxes if none can be downloaded
 our $lastDateNeeded; # date of last flux data required to fully cover the run
 our $startingPointFound = 0;
 our $enough_data = 0; 
+my $rdp = "scp";       # river data protocol; either scp or ftp 
+my $riveruser = "ldm"; # username on river data machine when using scp
 #
 GetOptions(
            "advisdir=s" => \$advisdir,
            "riversite=s" => \$riversite,
            "riverdir=s" => \$riverdir,
+           "riveruser=s" => \$riveruser,
+           "riverdataprotocol=s" => \$rdp,
            "defaultfile=s" => \$defaultfile,
            "meshfile=s" => \$meshfile,
            "enstorm=s" => \$enstorm,
@@ -74,28 +78,32 @@ GetOptions(
            "scriptdir=s" => \$scriptDir
           );
 #
-our $dl = 0;   # true if we were able to download the file(s) successfully
-our $ftp = Net::FTP->new($riversite, Debug => 0, Passive => 1); 
-unless ( defined $ftp ) {
-   stderrMessage("ERROR","ftp: Cannot connect to $riversite: $@");
-   printf STDOUT $dl;
-   exit 1;
-}
-my $ftpLoginSuccess = $ftp->login("anonymous",'-anonymous@');
-unless ( $ftpLoginSuccess ) {
-   stderrMessage("ERROR","ftp: Cannot login: " . $ftp->message);
-   printf STDOUT $dl;
-   exit 1;
-}
-# switch to binary mode
-$ftp->binary();
-# cd to the directory containing the fort.20 variable river flux files
-my $dirSuccess = $ftp->cwd($riverdir);
-unless ( $dirSuccess ) {
-   stderrMessage("ERROR",
-       "ftp: Cannot change working directory to '$riverdir': " . $ftp->message);
-   # TODO: error message so the ASGS can retry?
-   die;
+# jgf20120706: The default protocol is now scp rather than ftp. 
+#
+if ( $rdp eq "ftp" ) {
+   our $dl = 0;   # true if we were able to download the file(s) successfully
+   our $ftp = Net::FTP->new($riversite, Debug => 0, Passive => 1); 
+   unless ( defined $ftp ) {
+      stderrMessage("ERROR","ftp: Cannot connect to $riversite: $@");
+      printf STDOUT $dl;
+      exit 1;
+   }
+   my $ftpLoginSuccess = $ftp->login("anonymous",'-anonymous@');
+   unless ( $ftpLoginSuccess ) {
+      stderrMessage("ERROR","ftp: Cannot login: " . $ftp->message);
+      printf STDOUT $dl;
+      exit 1;
+   }
+   # switch to binary mode
+   $ftp->binary();
+   # cd to the directory containing the fort.20 variable river flux files
+   my $dirSuccess = $ftp->cwd($riverdir);
+   unless ( $dirSuccess ) {
+      stderrMessage("ERROR",
+          "ftp: Cannot change working directory to '$riverdir': " . $ftp->message);
+      # TODO: error message so the ASGS can retry?
+      die;
+   }
 }
 #
 # determine date and hour corresponding to current ADCIRC time
@@ -115,8 +123,8 @@ if ( defined $hstime && $hstime != 0 ) {
 # info is required for parsing the fort.20 file(s) we'll download and 
 # for determining the time span of the data within them
 unless ( open(MESH,"<$meshfile") ) { 
-   stderrMessage("ERROR","Could not open '$meshfile' for reading: $!.");
-   die;
+  stderrMessage("ERROR","Could not open '$meshfile' for reading: $!.");
+  die;
 }
 # parse adcirc mesh file, skipping unneeded lines
 my $line = <MESH>;  # header line
@@ -181,7 +189,12 @@ if ( $end == 0 ) {
    die;
 }
 #
-my @fluxFiles = $ftp->ls(); # gets all the current data file names
+# get all the current data file names
+if ( $rdp eq "ftp" ) {
+   my @fluxFiles = $ftp->ls();
+} else {
+   my @fluxFiles = `ssh -l $riveruser $riversite "find $riverdir"`;
+}
 # now sort the files from earliest to most recent (it appears that ls() does
 # not automatically do this for us)
 my @sortedFluxFiles = sort by_start_date @fluxFiles;
@@ -219,9 +232,9 @@ stderrMessage("DEBUG","There are '$numNowcast' nowcast fort.20 files and '$numFo
 our $dateNeeded = $now;
 our $dataDate = $dateNeeded; # initialize to a reasonable value
 #
-# If this is a nowcast, and there are nowcast files on the ftp site, 
+# If this is a nowcast, and there are nowcast files on the site, 
 # construct a fort.20 file using the nowcast ("*HC*") data
-# files from the ftp site. Also use nowcast data to construct a fort.20 file
+# files from the site. Also use nowcast data to construct a fort.20 file
 # if this is a forecast but there isn't any forecast data (seems unlikely).  
 if ( ($enstorm eq "nowcast") || 
         (($enstorm ne "nowcast") && ($numForecast == 0)) ) {
@@ -231,17 +244,17 @@ if ( ($enstorm eq "nowcast") ||
 }
 #
 # If this is some sort of forecast, construct a fort.20 file using the 
-# forecast ("*FC*") data from the ftp site ... also, if this is a nowcast
+# forecast ("*FC*") data from the site ... also, if this is a nowcast
 # but there wasn't enough nowcast data, use forecast data to fill out the 
 # remainder of the required data ... only do this if there is forecast data
-# on the ftp site. 
+# on the site. 
 if ( ($enstorm ne "nowcast") || ($enough_data == 0) ) {
    if ($numForecast != 0) {
       $enough_data = &getFluxData(@forecastFluxFiles);
    }
 }
 #
-# If there weren't any data on the ftp site at all, use the default values
+# If there weren't any data on the site at all, use the default values
 if ( $numNowcast == 0 && $numForecast == 0 ) {
    unless (open(FLUX,"<$defaultfile") ) { 
       stderrMessage("ERROR","Could not open '$defaultfile' for reading: $!.");
@@ -261,7 +274,7 @@ if ( $numNowcast == 0 && $numForecast == 0 ) {
    close(FLUX);
    $enough_data = 1; # we've made sure the default data file is really long
 } elsif ($enough_data == 0) {
-   # If there were data on the ftp site, but there wasn't enough nowcast and
+   # If there were data on the site, but there wasn't enough nowcast and
    # forecast data in the file(s) to cover all the required run time, then 
    # persist the last available flux data
    my @flux_persist; 
@@ -315,7 +328,7 @@ sub getFluxData() {
    # could not find a file to start with ... all the files on the ftp site
    # are later than the time we are interested in ... this could happen if
    # we have an outage and the file(s) we need get too stale and are removed
-   # from the ftp site before we have a chance to download them 
+   # from the site before we have a chance to download them 
    if ($startingPointFound == 0) {
       stderrMessage("WARNING","All the data files are later than the time of interest. The simulation will start with a default flux value, then linearly interpolate to the first available flux value.");
       # open up the file containing default flux values
@@ -348,17 +361,21 @@ sub getFluxData() {
       # until the whole time period has been covered
       for (my $i=$startingPoint; $i<=-1; $i++) {
          stderrMessage("INFO","Downloading '$_[$i]' to '$advisdir'.");
-         my $success = $ftp->get($_[$i],$advisdir."/".$enstorm."/".$_[$i]);
-         unless ( $success ) {
-            stderrMessage("INFO","ftp: Get '$_[$i]' failed: " . $ftp->message);
-            my $num_flux = @flux_data;
-            if ( $num_flux == 0 ) { # we failed to download the very first file
-               last;
-            } else { # a gap in the data that we can interpolate over
-               next;
+         if ( $rdp eq "ftp" ) {
+            my $success = $ftp->get($_[$i],$advisdir."/".$enstorm."/".$_[$i]);
+            unless ( $success ) {
+               stderrMessage("INFO","ftp: Get '$_[$i]' failed: " . $ftp->message);
+               my $num_flux = @flux_data;
+               if ( $num_flux == 0 ) { # we failed to download the very first file
+                  last;
+               } else { # a gap in the data that we can interpolate over
+                  next;
+               }
+            } else {
+               stderrMessage("INFO","Download complete.");
             }
          } else {
-            stderrMessage("INFO","Download complete.");
+            my $status = `scp $riveruser@$riversite:$_[$i] $advisdir/$enstorm`;
          }
          unless (open(FLUX,"<$advisdir/$enstorm/$_[$i]") ) { 
             stderrMessage("ERROR","Could not open '$advisdir/$enstorm/$_[$i]' for reading: $!.");
