@@ -554,17 +554,16 @@ stderrMessage("INFO","Writing file names and formats to run.properties file.");
 &writeFileName("maxvel.63",$fort64specifier);
 &writeFileName("maxwvel.63",$fort7374specifier);
 &writeFileName("minpr.63",$fort7374specifier);
-# the following files are currently (20120208) available as ascii
 if ( $waves eq "on" ) {
-   &writeFileName("maxrs.63","1");
-   &writeFileName("swan_DIR.63","1");
-   &writeFileName("swan_DIR_max.63","1");
-   &writeFileName("swan_HS.63","1");
-   &writeFileName("swan_HS_max.63","1");
-   &writeFileName("swan_TMM10.63","1");
-   &writeFileName("swan_TMM10_max.63","1");
-   &writeFileName("swan_TPS.63","1");
-   &writeFileName("swan_TPS_max.63","1");
+   &writeFileName("maxrs.63",$fort7374specifier);
+   &writeFileName("swan_DIR.63",$fort7374specifier);
+   &writeFileName("swan_DIR_max.63",$fort7374specifier);
+   &writeFileName("swan_HS.63",$fort7374specifier);
+   &writeFileName("swan_HS_max.63",$fort7374specifier);
+   &writeFileName("swan_TMM10.63",$fort7374specifier);
+   &writeFileName("swan_TMM10_max.63",$fort7374specifier);
+   &writeFileName("swan_TPS.63",$fort7374specifier);
+   &writeFileName("swan_TPS_max.63",$fort7374specifier);
 }
 close(RUNPROPS);
 stderrMessage("INFO","Wrote run.properties file $stormDir/run.properties.");
@@ -620,7 +619,7 @@ sub writeFileName () {
    $ids_descs{"swan_TPS.63"} = "Peak Wave Period";
    $ids_descs{"swan_TPS_max.63"} = "Maximum Peak Wave Period";
    #
-   if ( abs($specifier) == 3 || abs($specifier == 5) ) {
+   if ( abs($specifier) == 3 || abs($specifier) == 5 ) {
       $filename = $filename . ".nc";
       $format = "netcdf";
    }
