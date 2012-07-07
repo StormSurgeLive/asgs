@@ -46,6 +46,7 @@
       integer                       :: NC_VarID_ibtypee
       integer                       :: NC_VarID_nbdv
       integer                       :: NC_VarID_nvel
+      integer                       :: NC_VarID_nope 
       integer                       :: NC_VarID_nvell
       integer                       :: NC_VarID_max_nvell
       integer                       :: NC_VarID_ibtype

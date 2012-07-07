@@ -12,8 +12,11 @@
 ! g95 -o adcirc2netcdf.x -cpp -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -ffree-form -ffree-line-length-huge -I/usr/local/netcdf/netcdf-4.1.1/f90 adcirc2netcdf.f90 -L/usr/local/hdf5/hdf5-1.8.8/hdf5/lib  -lnetcdf -lhdf5_hl -lhdf5 -lhdf5_fortran -lz
 ! Example of compiling adcirc2netcdf.f90 with ifort:
 ! ifort -o adcirc2netcdf.x -i-dynamic -cpp -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/include adcirc2netcdf.f90 -L/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/lib  -lnetcdf -lnetcdff -lz
+! Example of compiling adcirc2netcdf.f90 with gfortran:
+! gfortran -o adcirc2netcdf.x -cpp -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -ffree-form -ffree-line-length-none -I. -I/usr/include -L/usr/lib adcirc2netcdf.f90 -lnetcdf -lnetcdff -lz
 ! Example of usage with command line options:
 ! ~/asgs/trunk/output/adcirc2netcdf.x --netcdf4 --meshonly --meshfile fort.14 --attfile sl15_att.txt
+
 
 include 'adcmesh.f90'
 
@@ -317,6 +320,12 @@ include 'adcmesh.f90'
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvdll,'long_name','total number of nodes in each elevation specified & boundary segment'))
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvdll,'units','nondimensional'))
 
+         CALL Check(NF90_DEF_VAR(NC_ID,'max_nvdll',NF90_int,NC_DimID_single,NC_VarID_max_nvdll))
+         CALL Check(NF90_DEF_VAR(NC_ID,'max_nvell',NF90_int,NC_DimID_single,NC_VarID_max_nvell))      
+         CALL Check(NF90_DEF_VAR(NC_ID,'neta',NF90_int,NC_DimID_single,NC_VarID_neta))
+         CALL Check(NF90_DEF_VAR(NC_ID,'nope',NF90_int,NC_DimID_single,NC_VarID_nope))
+         CALL Check(NF90_DEF_VAR(NC_ID,'nvel',NF90_int,NC_DimID_single,NC_VarID_nvel))
+
          CALL Check(NF90_DEF_VAR(NC_ID,'nbdv',NF90_DOUBLE,(/ NC_DimID_nope, NC_DimID_max_nvdll /),NC_VarID_nbdv))
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbdv,'long_name','node numbers on each elevation specified boundary & segment'))
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbdv,'units','nondimensional'))
@@ -391,7 +400,7 @@ include 'adcmesh.f90'
             CALL Check(NF90_DEF_VAR(NC_ID,'u-vel',NF90_DOUBLE,NC_DimID,NC_VarID_u_vel))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_u_vel,'_FillValue',FillValue))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_u_vel,'long_name','water column vertically averaged east/west velocity'))
-            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_u_vel,'standard_name','barotropic_eastward_sea_water_velocity'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_u_vel,'standard_name','eastward_water_velocity'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_u_vel,'coordinates','time y x'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_u_vel,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_u_Vel,'mesh','adcirc_mesh'))
@@ -403,7 +412,7 @@ include 'adcmesh.f90'
             CALL Check(NF90_DEF_VAR(NC_ID,'v-vel',NF90_DOUBLE,NC_DimID,NC_VarID_v_vel))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_v_vel,'_FillValue',FillValue))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_v_vel,'long_name','water column vertically averaged north/south velocity'))
-            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_v_vel,'standard_name','barotropic_northward_sea_water_velocity'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_v_vel,'standard_name','northward_water_velocity'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_v_vel,'coordinates','time y x'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_v_vel,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_v_vel,'mesh','adcirc_mesh'))
@@ -415,7 +424,7 @@ include 'adcmesh.f90'
             CALL Check(NF90_DEF_VAR(NC_ID,'pressure',NF90_DOUBLE,NC_DimID,NC_VarID_p))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_p,'_FillValue',FillValue))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_p,'long_name','air pressure at sea level'))
-            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_p,'standard_name','air_pressure'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_p,'standard_name','air_pressure_at_sea_level'))            
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_p,'coordinates','time y x'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_p,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_p,'mesh','adcirc_mesh'))
@@ -446,21 +455,21 @@ include 'adcmesh.f90'
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_windy,'positive','north'))
             varid(2) = NC_VarID_windy
          case(5) !MAXELE
-            CALL Check(NF90_DEF_VAR(NC_ID,'maxele',NF90_DOUBLE,NC_DimID,NC_VarID_maxele))
+            CALL Check(NF90_DEF_VAR(NC_ID,'zeta_max',NF90_DOUBLE,NC_DimID_node,NC_VarID_maxele))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'_FillValue',FillValue))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'long_name','maximum sea surface elevation above datum'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'standard_name','maximum_sea_surface_elevation_above_datum'))
-            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'coordinates','time y x'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'coordinates','y x'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'mesh','adcirc_mesh'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'units','m'))
             num_components = 1
             varid(1) = NC_VarID_maxele
          case(6) !DIR
-            CALL Check(NF90_DEF_VAR(NC_ID,'dir',NF90_DOUBLE,NC_DimID,NC_VarID_dir))
+            CALL Check(NF90_DEF_VAR(NC_ID,'swan_DIR',NF90_DOUBLE,NC_DimID,NC_VarID_dir))         
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dir,'_FillValue',FillValue))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dir,'long_name','wave direction'))
-            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dir,'standard_name','wave_direction'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dir,'standard_name','sea_surface_wave_to_direction'))            
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dir,'coordinates','time y x'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dir,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dir,'mesh','adcirc_mesh'))
@@ -468,10 +477,10 @@ include 'adcmesh.f90'
             num_components = 1
             varid(1) = NC_VarID_dir
          case(7) !HS
-            CALL Check(NF90_DEF_VAR(NC_ID,'hs',NF90_DOUBLE,NC_DimID,NC_VarID_hs))
+            CALL Check(NF90_DEF_VAR(NC_ID,'swan_HS',NF90_DOUBLE,NC_DimID,NC_VarID_hs))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_hs,'_FillValue',FillValue))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_hs,'long_name','significant wave height'))
-            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_hs,'standard_name','significant_wave_height'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_hs,'standard_name','sea_surface_wave_significant_height'))            
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_hs,'coordinates','time y x'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_hs,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_hs,'mesh','adcirc_mesh'))
@@ -479,10 +488,10 @@ include 'adcmesh.f90'
             num_components = 1
             varid(1) = NC_VarID_hs
          case(8) !TMM10
-            CALL Check(NF90_DEF_VAR(NC_ID,'tmm10',NF90_DOUBLE,NC_DimID,NC_VarID_tmm10))
+            CALL Check(NF90_DEF_VAR(NC_ID,'swan_TMM10',NF90_DOUBLE,NC_DimID,NC_VarID_tmm10))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tmm10,'_FillValue',FillValue))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tmm10,'long_name','Mean Period'))
-            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tmm10,'standard_name','mean_period'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tmm10,'standard_name','sea_surface_wave_mean_period_from_variance_spectral_density_inverse_frequency_moment'))                
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tmm10,'coordinates','time y x'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tmm10,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tmm10,'mesh','adcirc_mesh'))
@@ -490,10 +499,10 @@ include 'adcmesh.f90'
             num_components = 1
             varid(1) = NC_VarID_tmm10
          case(9) !TPS
-            CALL Check(NF90_DEF_VAR(NC_ID,'tps',NF90_DOUBLE,NC_DimID,NC_VarID_tps))
+            CALL Check(NF90_DEF_VAR(NC_ID,'swan_TPS',NF90_DOUBLE,NC_DimID,NC_VarID_tps))         
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tps,'_FillValue',FillValue))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tps,'long_name','Peak Period'))
-            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tps,'standard_name','peak_period'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tps,'standard_name','maximum_sea_surface_wave_period_at_variance_spectral_density_maximum'))            
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tps,'coordinates','time y x'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tps,'location','node'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tps,'mesh','adcirc_mesh'))
@@ -535,6 +544,13 @@ include 'adcmesh.f90'
       CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_depth,xyd(3,1:np),NC_Start,NC_Count))
       NC_Count = (/ 3, ne /)
       CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_element,nm,NC_Start,NC_Count))
+
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_max_nvell,nvel_max))
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_max_nvdll,nvdl_max))
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nope,nope))
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_neta,neta))      
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvel,nvel))            
+      
       if (nope.ne.0) then
          NC_Count = (/ nope, 1 /)
          CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvdll,nvdll,NC_Start,NC_Count))
