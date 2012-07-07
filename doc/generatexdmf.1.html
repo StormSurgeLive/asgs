@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="generator" content="AsciiDoc 8.6.6">
-<title>ADCIRC(1)</title>
+<title>generateXDMF(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
 
@@ -735,12 +735,12 @@ asciidoc.install();
 <body class="manpage">
 <div id="header">
 <h1>
-ADCIRC(1) Manual Page
+generateXDMF(1) Manual Page
 </h1>
 <h2>NAME</h2>
 <div class="sectionbody">
-<p>adcirc -
-   coastal circulation and storm surge model
+<p>generateXDMF.f90 -
+   Create a companion XDMF xml for an ADCIRC netcdf output file.
 </p>
 </div>
 </div>
@@ -748,13 +748,22 @@ ADCIRC(1) Manual Page
 <div class="sect1">
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p><strong>adcirc</strong> [<em>OPTIONS</em>]</p></div>
+<div class="paragraph"><p><strong>generateXDMF.x</strong> [--use-cpp] --datafile <em>ADCIRC_FILE_NAME</em></p></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The adcirc(1) program has optional command line arguments, listed below.</p></div>
+<div class="paragraph"><p>The <span class="monospaced">generateXDMF.f90(1)</span> program constructs a small Extensible Data Model
+and Format (XDMF) xml companion file for the specified ADCIRC netcdf file. The
+XDMF format is an Army research standard file type. It is readable by several
+different 3rd party applications, including ParaView, the free 3D
+multiplatform visualization application for scientific data.
+The extension on the resulting xml file is <em>.xmf</em>.
+ Since the XDMF
+format requires data files that are formatted using the Hierarchical Data
+Format (HDF5), which is also the underlying format for netcdf4, only ADCIRC
+netcdf files that are formatted as netcdf4 are compatible with this program.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -762,87 +771,25 @@ ADCIRC(1) Manual Page
 <div class="sectionbody">
 <div class="dlist"><dl>
 <dt class="hdlist1">
-<strong>-I</strong> <em>INPUTDIR</em>
+<strong>--use-cpp</strong>
 </dt>
 <dd>
 <p>
-    Look for input files in the directory <em>INPUTDIR</em> instead
-    of looking in the directory where the ADCIRC command was issued.
+   Make the resulting xml file refer to the CPP projected coordinates in the
+   netcdf file, instead of the geographic coordinates.
 </p>
 </dd>
 <dt class="hdlist1">
-<strong>-O</strong> <em>GLOBALDIR</em>
+<strong>--datafile</strong> <em>ADCIRC_FILE_NAME</em>
 </dt>
 <dd>
 <p>
-    Write fulldomain output files to the directory <em>GLOBALDIR</em> instead
-    of writing them to the directory where the ADCIRC command was issued.
-</p>
-</dd>
-<dt class="hdlist1">
-<strong>-L</strong>
-</dt>
-<dd>
-<p>
-    When running in parallel, write subdomain output and binary hotstart files
-    to the PE* subdirectories instead of writing fulldomain output and
-    binary hotstart files. This option does not affect the writing of NetCDF hotstart files,
-    which are always written for the full domain.
-</p>
-</dd>
-<dt class="hdlist1">
-<strong>-S</strong>
-</dt>
-<dd>
-<p>
-    When running in parallel, write subdomain binary hotstart files
-    to the PE* subdirectories instead of writing fulldomain binary
-    hotstart files. This option does not affect the writing of NetCDF hotstart file,
-    which are always written for the full domain.
-</p>
-</dd>
-<dt class="hdlist1">
-<strong>-R</strong>
-</dt>
-<dd>
-<p>
-    When running in parallel, read subdomain binary hotstart files
-    instead of a fulldomain binary hotstart file. This option does not
-    affect the reading of NetCDF hotstart files, which always reflect
-    the fulldomain solution.
-</p>
-</dd>
-<dt class="hdlist1">
-<strong>-W</strong> <em>NUM_WRITERS</em>
-</dt>
-<dd>
-<p>
-    When running in parallel, dedicate <em>NUM_WRITERS</em> MPI processes
-    solely to the task of writing ascii output files (either sparse or dense ascii
-    formats). Must be a positive integer. This option only affects the
-    writing of the ascii formatted fort.63, fort.64, fort.73, and fort.74 files.
-</p>
-</dd>
-<dt class="hdlist1">
-<strong>-Ws</strong> <em>NUM_SPLIT_WRITERS</em>
-</dt>
-<dd>
-<p>
-    Same as <strong>-W</strong> option above, but a new file is created each time the data
-    are written; the integer part of the simulation time is appended to the
-    file name.
-</p>
-</dd>
-<dt class="hdlist1">
-<strong>-H</strong> <em>NUM_HOTSTART_WRITERS</em>
-</dt>
-<dd>
-<p>
-    Same as <strong>-W</strong> option above, except that <em>NUM_HOTSTART_WRITERS</em> MPI processes
-    will be dedicated to writing binary hotstart files. This option does
-    not affect the writing of NetCDF hotstart files. The binary hotstart files
-    that are written using this option are only suitable for 2DDI runs without
-    harmonic analysis.
+    Use the netcdf formatted ADCIRC output file named <em>ADCIRC_FILE_NAME</em> when
+    calcuating and writing the XDMF output. The <strong>generateXDMF</strong> program
+    works with the following ADCIRC output files: <em>fort.63.nc</em>, <em>fort.64.nc</em>,
+    <em>fort.73.nc</em>, <em>fort.74.nc</em>, <em>maxele.63.nc</em>, <em>maxwvel.63.nc</em>, <em>rads.64.nc</em>,
+    <em>swan_DIR.63.nc</em>, <em>swan_HS.63.nc</em>, <em>swan_TMM10.63.nc</em>, <em>swan_TM01.63.nc</em>,
+    <em>swan_TM02.63.nc</em>, and <em>swan_TPS.63.nc</em>.
 </p>
 </dd>
 </dl></div>
@@ -851,27 +798,24 @@ ADCIRC(1) Manual Page
 <div class="sect1">
 <h2 id="_author">AUTHOR</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The ADCIRC code is copyrighted by R. A. Luettich, Jr., and J. J. Westerink, 1994&#8212;2012.</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_resources">RESOURCES</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>Official ADCIRC Documentation: <a href="http://www.adcirc.org">http://www.adcirc.org</a></p></div>
+<div class="paragraph"><p>The generateXDMF.f90 program was written by Jason Fleming for use in
+the ADCIRC Surge Guidance System (ASGS).</p></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_copying">COPYING</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>No part of the code may be reproduced or redistributed without the written
-permission of the authors.</p></div>
+<div class="paragraph"><p>The ASGS is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-05-07 14:36:22 EDT
+Last updated 2012-07-06 23:11:00 EDT
 </div>
 </div>
 </body>

@@ -1,0 +1,55 @@
+generateXDMF(1)
+================
+:doctype: manpage
+
+NAME
+----
+generateXDMF.f90 - Create a companion XDMF xml for an ADCIRC netcdf 
+output file.  
+
+SYNOPSIS
+--------
+*generateXDMF.x* [--use-cpp] --datafile 'ADCIRC_FILE_NAME'
+
+
+DESCRIPTION
+-----------
+
+The +generateXDMF.f90(1)+ program constructs a small Extensible Data Model
+and Format (XDMF) xml companion file for the specified ADCIRC netcdf file. The 
+XDMF format is an Army research standard file type. It is readable by several
+different 3rd party applications, including ParaView, the free 3D 
+multiplatform visualization application for scientific data.
+The extension on the resulting xml file is '.xmf'.
+ Since the XDMF
+format requires data files that are formatted using the Hierarchical Data
+Format (HDF5), which is also the underlying format for netcdf4, only ADCIRC
+netcdf files that are formatted as netcdf4 are compatible with this program.
+
+
+OPTIONS
+-------
+
+*--use-cpp*::
+   Make the resulting xml file refer to the CPP projected coordinates in the
+   netcdf file, instead of the geographic coordinates. 
+
+*--datafile* 'ADCIRC_FILE_NAME'::
+    Use the netcdf formatted ADCIRC output file named 'ADCIRC_FILE_NAME' when
+    calcuating and writing the XDMF output. The *generateXDMF* program 
+    works with the following ADCIRC output files: 'fort.63.nc', 'fort.64.nc',
+    'fort.73.nc', 'fort.74.nc', 'maxele.63.nc', 'maxwvel.63.nc', 'rads.64.nc',
+    'swan_DIR.63.nc', 'swan_HS.63.nc', 'swan_TMM10.63.nc', 'swan_TM01.63.nc',
+    'swan_TM02.63.nc', and 'swan_TPS.63.nc'.
+
+AUTHOR
+------
+The generateXDMF.f90 program was written by Jason Fleming for use in 
+the ADCIRC Surge Guidance System (ASGS).
+
+COPYING
+-------
+The ASGS is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
