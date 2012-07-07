@@ -29,6 +29,9 @@
 !
 !gfortran -o generateXDMF.x -ffree-form -ffree-line-length-none -I/usr/include generateXDMF.f90 -lnetcdf -lnetcdff -lz
 !
+! For compiling on blueridge at RENCI:
+!ifort -o generateXDMF.x -i-dynamic -I/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/include -L/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/lib generateXDMF.f90 -lnetcdf -lnetcdff -lz
+
       include 'adcmesh.f90'
 
       program generateXDMF
@@ -38,6 +41,7 @@
       character(1024) :: datafile
       character(1024) :: xmf ! name of XDMF xml file
       logical :: fileFound = .false.
+      integer :: ncStatus
       integer :: NC_DimID_time
       integer :: NC_VarID_time
       integer :: num_components
@@ -112,7 +116,11 @@
       call check(nf90_inquire_dimension(nc_id, NC_DimID_node, len=np))
       call check(nf90_inq_dimid(nc_id, "nele", NC_DimID_nele))
       call check(nf90_inquire_dimension(nc_id, NC_DimID_nele, len=ne))
-      call check(nf90_get_att(nc_id, NF90_GLOBAL, 'agrid', agrid))
+      agrid = "mesh"
+      ncStatus = nf90_get_att(nc_id, NF90_GLOBAL, 'agrid', agrid)
+      if ( ncStatus.ne.NF90_NOERR ) then
+         call check(nf90_get_att(nc_id, NF90_GLOBAL, 'grid', agrid))
+      endif
       !
       ! write mesh portion of XDMF xml file
       write(10,'(A)') '      <Grid Name="'//adjustl(trim(agrid))//'" GridType="Uniform">'
