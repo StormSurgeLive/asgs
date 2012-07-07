@@ -1,0 +1,41 @@
+generateCPP(1)
+================
+:doctype: manpage
+
+NAME
+----
+generateCPP.f90 - Insert the CPP projection into an ADCIRC netcdf output file. 
+
+SYNOPSIS
+--------
+*generateCPP.x* --datafile 'ADCIRC_FILE_NAME'
+
+
+DESCRIPTION
+-----------
+
+The +generateCPP.f90(1)+ program calculates the CPP projection of a set of
+geographic coordinates found in an ADCIRC netcdf output file and inserts the
+projected coordinates into the netcdf file (leaving the existing geographic
+coordinates intact and unaffected). This can be helpful in generating
+visualizations. The variable names of the new coordinates are 'x_cpp' and
+'y_cpp'.
+
+OPTIONS
+-------
+
+*--datafile* 'ADCIRC_FILE_NAME'::
+    Use the netcdf formatted ADCIRC output file named 'ADCIRC_FILE_NAME' when
+    calcuating and writing the CPP projection.
+
+AUTHOR
+------
+The generateCPP.f90 program was written by Jason Fleming for use in 
+the ADCIRC Surge Guidance System (ASGS).
+
+COPYING
+-------
+The ASGS is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.

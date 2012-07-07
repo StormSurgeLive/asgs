@@ -1,0 +1,63 @@
+adcirc2netcdf(1)
+================
+:doctype: manpage
+
+NAME
+----
+adcirc2netcdf.f90 - Converts ADCIRC ascii output files to netcdf. 
+
+SYNOPSIS
+--------
+*adcirc2netcdf.x* [--netcdf4] [--meshonly] --meshfile 'MESH' --attfile 'METADATA_FILE' --datafile 'ADCIRC_FILE_NAME'
+
+
+DESCRIPTION
+-----------
+The +adcirc2netcdf.f90(1)+ program converts ascii ADCIRC output files to 
+netcdf. If command line arguments are used, then the *--meshfile*, *--attfile*,
+and *--datafile* arguments are required. If command line options are not
+used, the program presents a menu interface. 
+
+OPTIONS
+-------
+
+*--netcdf4*::
+    Write a netcdf4 formatted file (netcdf-4 classic model) rather than 
+    a netcdf3 formatted file. In order to use this option, this adcirc2netcdf
+    must be compiled against netcdf4 libraries, with the right command line
+    arguments used in the compilation. See the adcirc2netcdf.f90 source
+    code for details. 
+
+*--meshonly*::
+    Only write the mesh to the netcdf file, then exit.  
+
+*--meshfile* 'MESH'::
+    Use the ascii formatted ADCIRC mesh (fort.14) file named 'MESH' when
+    writing mesh data to the netcdf file. 
+
+*--attfile* 'METADATA_FILE'::
+    Write attributes to the netcdf file using the metadata found in 
+    'METADATA_FILE'. The file 'METADATA_FILE' has the following format:
+    the first line is the number of attribute/value pairs; the second line
+    contains a line with the time units, e.g., 
+    +seconds since 2005-07-26 00:00:00 +00:00+ and the remaining lines 
+    consist of attributes and their corresponding values in single quotes.
+
+*--datafile* 'ADCIRC_FILE_NAME'::
+    Use the ascii formatted ADCIRC output file named 'ADCIRC_FILE_NAME' when
+    writing data to the netcdf file. The *adcirc2netcdf* program supports
+    the following ADCIRC output files: 'fort.63', 'fort.64', 'fort.73', 
+    'fort.74', 'maxele.63', 'maxwvel.63', 'swan_DIR.63', 'swan_HS.63', 
+    'swan_TMM10.63', and 'swan_TPS.63'. 
+
+AUTHOR
+------
+The adcirc2netcdf.f90 program was written by Corbitt Kerr with modifications
+by Jason Fleming for use in the ADCIRC Surge Guidance System (ASGS).
+
+COPYING
+-------
+The ASGS is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
