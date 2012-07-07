@@ -80,9 +80,11 @@ GetOptions(
 #
 # jgf20120706: The default protocol is now scp rather than ftp. 
 #
+our $dl;
+our $ftp;
 if ( $rdp eq "ftp" ) {
-   our $dl = 0;   # true if we were able to download the file(s) successfully
-   our $ftp = Net::FTP->new($riversite, Debug => 0, Passive => 1); 
+   $dl = 0;   # true if we were able to download the file(s) successfully
+   $ftp = Net::FTP->new($riversite, Debug => 0, Passive => 1); 
    unless ( defined $ftp ) {
       stderrMessage("ERROR","ftp: Cannot connect to $riversite: $@");
       printf STDOUT $dl;
@@ -190,10 +192,11 @@ if ( $end == 0 ) {
 }
 #
 # get all the current data file names
+my @fluxFiles;
 if ( $rdp eq "ftp" ) {
-   my @fluxFiles = $ftp->ls();
+   @fluxFiles = $ftp->ls();
 } else {
-   my @fluxFiles = `ssh -l $riveruser $riversite "find $riverdir"`;
+   @fluxFiles = `ssh -l $riveruser $riversite "find $riverdir"`;
 }
 # now sort the files from earliest to most recent (it appears that ls() does
 # not automatically do this for us)
