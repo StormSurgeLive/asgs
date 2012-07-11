@@ -25,7 +25,7 @@
 #
 #---------------------------------------------------------------------
 #
-# Copyright(C) 2006, 2007, 2008, 2009 Jason Fleming
+# Copyright(C) 2006--2012 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).

@@ -1671,10 +1671,13 @@ while [ 1 -eq 1 ]; do
           if [[ $NWS = 19 || $NWS = 319 ]]; then
              # create a new file that contains metadata and has the Rmax
              # in it already ... potentially with Rmax changes if desired
-             if [[ ! -z ${PERCENT[$si]} ]]; then
+             if [[ ${PERCENT[$si]} != default && $ENSTORM =~ maxWindSpeedOnly ]]; then
+                ASWIPOPTIONS="-X ${PERCENT[$si]}"
+             fi
+             if [[ ${PERCENT[$si]} != default && ${RMAX[$si]} = scaled ]]; then
                 ASWIPOPTIONS="-P ${PERCENT[$si]}"
              fi
-             if [[ ! -z ${RMAX[$si]} ]]; then
+             if [[ ${RMAX[$si]} != default && ${RMAX[$si]} != scaled ]]; then
                 ASWIPOPTIONS="${ASWIPOPTIONS} -R ${RMAX[$si]}"
              fi
              logMessage "Running aswip fort.22 preprocessor for $ENSTORM with the following options: $ASWIPOPTIONS."
