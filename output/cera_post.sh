@@ -22,7 +22,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
 CONFIG=$1
-ASGSADVISORYDIR=$2
+ADVISDIR=$2
 STORM=$3
 YEAR=$4
 ADVISORY=$5
@@ -30,23 +30,47 @@ HOSTNAME=$6
 ENSTORM=$7
 CSDATE=$8
 HSTIME=$9
+GRIDFILE=${10}
+OUTPUTDIR=${11}
+SYSLOG=${12}
+SSHKEY=${13}
+#
 #
 # grab all static configuration data
 . ${CONFIG}
-POSTDIR=/work/cera
 umask 002
+
+cd $ADVISDIR/$ENSTORM
 # create a fort.22.cera, formatted for NWS8 (easiest for plotting)
-mv fort.22 fort.22.temp
-${SCRIPTDIR}/storm_track_gen.pl --dir $ASGSADVISORYDIR --storm $STORM --year $YEAR --coldstartdate $CSDATE --hotstartseconds $HSTIME --nws 8 --name $ENSTORM 
-mv fort.22 fort.cera.22
-mv fort.22.temp fort.22
-POSTADVISORYDIR=$POSTDIR/${STORM}${YEAR}/${ADVISORY}
+#mv fort.22 fort.22.temp
+#${SCRIPTDIR}/storm_track_gen.pl --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $CSDATE --hotstartseconds $HSTIME --nws 8 --name $ENSTORM 
+#mv fort.22 fort.cera.22
+#mv fort.22.temp fort.22
+#POSTADVISORYDIR=$POSTDIR/${STORM}${YEAR}/${ADVISORY}
 #cp $ASGSADVISORYDIR/fort.22.cera $POSTADVISORYDIR
 #cp $ASGSADVISORYDIR/al${STORM}${YEAR}.fst $POSTADVISORYDIR
 #cp $ASGSADVISORYDIR/bal${STORM}${YEAR}.dat $POSTADVISORYDIR
 #mkdir -p $POSTADVISORYDIR/$ENSTORM
-cp $POSTADVISORYDIR/al${STORM}${YEAR}.fst $POSTADVISORYDIR/$ENSTORM
-cp $POSTADVISORYDIR/bal${STORM}${YEAR}.dat $POSTADVISORYDIR/$ENSTORM
+cp $ADVISDIR/al${STORM}${YEAR}.fst .
+cp $ADVISDIR/bal${STORM}${YEAR}.dat .
+
+if [ -f fort.63 ]; then
+  echo "INFO: cera_post.sh: gzipping fort.63"
+  gzip fort.63
+fi
+if [ -f fort.74 ]; then
+  echo "INFO: cera_post.sh: gzipping fort.74"
+   gzip fort.74
+fi
+if [ -f fort.64 ]; then
+  echo "INFO: cera_post.sh: gzipping fort.64"
+   gzip fort.64
+fi
+if [ -f fort.73 ]; then
+  echo "INFO: cera_post.sh: gzipping fort.73"
+   gzip fort.73
+fi
+
 
 #metalink=`ls ${YEAR}${STORM}${ADVISORY}?_w???o???v????r???`
 #cp $metalink $POSTADVISORYDIR   #$ENSTORM
