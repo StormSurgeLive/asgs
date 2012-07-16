@@ -1017,6 +1017,8 @@ init_tezpur()
   SCRATCHDIR=/work/cera
   SSHKEY=id_rsa_tezpur
   QSCRIPT=tezpur.template.pbs
+  PREPCONTROLSCRIPT=tezpur.adcprep.template.pbs
+  PREPHOTSTARTSCRIPT=tezpur.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=4
 }

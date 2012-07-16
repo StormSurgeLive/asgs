@@ -17,13 +17,39 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
-activation_email()
-{ HOSTNAME=$1
-  STORM=$2
-  YEAR=$3
-  STORMDIR=$4
-  ACTIVATE_LIST=$5
-cat <<END > $STORMDIR/activate.txt 2>> ${SYSLOG}
+#
+HOSTNAME=$1
+STORM=$2
+YEAR=$3
+STORMDIR=$4
+ADVISORY=$5
+ENSTORM=$6
+GRIDFILE=$7
+PHASE=$8    
+EMAILNOTIFY=$9
+SYSLOG=${10}
+ADDRESS_LIST=${11}
+#
+# simply return if we are not supposed to send out emails
+if [[ $EMAILNOTIFY != yes && $EMAILNOTIFY != YES ]]; then
+   exit
+fi
+STORMCLASSNAME=`cat nhcClassName`
+# find the space between the storm class (TD, TS, HU, etc) and the NHC name
+ind=`expr index "$STORMCLASSNAME" ' '`
+# just use the storm's name 
+STORMNAME=${STORMCLASSNAME:$ind}
+COMMA_SEP_LIST=${ADDRESS_LIST// /,}
+
+
+
+case $PHASE in
+#
+#               A C T I V A T I O N
+#
+"activation") 
+#
+cat <<END > ${STORMDIR}/activate.txt 2>> ${SYSLOG}
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
@@ -52,17 +78,15 @@ identical to the results produced on ${HOSTNAME}. The other instances
 are running for redundancy purposes.
 
 END
-    cat $STORMDIR/activate.txt | mail -s "ASGS Activated on $HOSTNAME" $ACTIVATE_LIST 2>> ${SYSLOG}
-}
-
-new_advisory_email()
-{ HOSTNAME=$1
-  STORM=$2
-  YEAR=$3
-  ADVISORY=$4
-  NEW_ADVISORY_LIST=$5
-
-cat <<END > $STORMDIR/new_advisory.txt 2>> ${SYSLOG}
+    echo "INFO: cera_notify.sh: Sending activation email to the following addresses; $COMMA_SEP_LIST."
+    cat ${STORMDIR}/activate.txt | mail -s "ASGS Activated on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG}
+;;
+#
+#               N E W  C Y C L E
+#
+"newcycle")
+#
+cat <<END > ${STORMDIR}/new_advisory.txt 2>> ${SYSLOG}
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
@@ -80,60 +104,152 @@ that are running on supercomputers OTHER THAN ${HOSTNAME}.
 The other instances are running for redundancy purposes.  
 
 END
-     cat $STORMDIR/new_advisory.txt | mail -s "advisory detected by ASGS on $HOSTNAME" $NEW_ADVISORY_LIST 2>> ${SYSLOG}
-
-}
-
-post_init_email()
-{ ASGSADVISORYDIR=$1
-STORM=$2
-YEAR=$3
-ADVISORY=$4
-HOSTNAME=$5
-POST_INIT_LIST=$6
+     echo "INFO: cera_notify.sh: Sending activation email to the following addresses; $COMMA_SEP_LIST."
+     cat ${STORMDIR}/new_advisory.txt | mail -s "advisory detected by ASGS on $HOSTNAME" $NEW_ADVISORY_LIST 2>> ${SYSLOG}
+;;
 #
-POSTDIR=/work/cera
+#              RESULTS 
 #
-cat <<END > $ASGSADVISORYDIR/post_init_notify.txt 
+"results")
+#
+cat <<END > ${STORMDIR}/post_notify.txt 
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
-This message is to let you know that the ASGS has started a new advisory
-and has initialized the following directory for its output results:
+The supercomputer $HOSTNAME has produced ADCIRC results for 
+storm surge guidance for advisory $ADVISORY for $STORMCLASSNAME $YEAR
+on the $GRIDFILE mesh. 
 
-$POSTDIR/${STORM}${YEAR}/${ADVISORY}
+The ASGS on $HOSTNAME is now waiting for the National Hurricane Center to
+issue the next advisory. 
 
-When the results for this advisory are ready, they will be copied to
-that directory by the ASGS and another email will be sent as notification.
+ADCIRC output is located at:
+
+END
+if [ -f ${STORMDIR}/fort.63.gz ]; then
+echo ${STORMDIR}/fort.63.gz >> post_notify.txt
+fi 
+if [ -f ${STORMDIR}/fort.63 ]; then
+echo ${STORMDIR}/fort.63 >> post_notify.txt
+fi 
+if [ -f ${STORMDIR}/fort.63.nc ]; then
+echo ${STORMDIR}/fort.63.nc >> post_notify.txt
+fi 
+
+if [ -f ${STORMDIR}/fort.61.gz ]; then
+echo ${STORMDIR}/fort.61.gz >> post_notify.txt
+fi 
+if [ -f ${STORMDIR}/fort.61 ]; then
+echo ${STORMDIR}/fort.61 >> post_notify.txt
+fi 
+if [ -f ${STORMDIR}/fort.61.nc ]; then
+echo ${STORMDIR}/fort.61.nc >> post_notify.txt
+fi 
+
+if [ -f ${STORMDIR}/fort.73.gz ]; then
+echo ${STORMDIR}/fort.73.gz >> post_notify.txt
+fi 
+if [ -f ${STORMDIR}/fort.73 ]; then
+echo ${STORMDIR}/fort.73 >> post_notify.txt
+fi 
+if [ -f ${STORMDIR}/fort.73.nc ]; then
+echo ${STORMDIR}/fort.73.nc >> post_notify.txt
+fi 
+
+if [ -f ${STORMDIR}/fort.74.gz ]; then
+echo ${STORMDIR}/fort.74.gz >> post_notify.txt
+fi 
+if [ -f ${STORMDIR}/fort.74 ]; then
+echo ${STORMDIR}/fort.74 >> post_notify.txt
+fi 
+if [ -f ${STORMDIR}/fort.74.nc ]; then
+echo ${STORMDIR}/fort.74.nc >> post_notify.txt
+fi 
+
+if [ -f ${STORMDIR}/fort.64.gz ]; then
+echo ${STORMDIR}/fort.64.gz >> post_notify.txt
+fi 
+if [ -f ${STORMDIR}/fort.64 ]; then
+echo ${STORMDIR}/fort.64 >> post_notify.txt
+fi 
+if [ -f ${STORMDIR}/fort.64.nc ]; then
+echo ${STORMDIR}/fort.64.nc >> post_notify.txt
+fi 
+
+if [ -f ${STORMDIR}/maxele.63 ]; then
+echo ${STORMDIR}/maxele.63 >> post_notify.txt
+fi 
+if [ -f ${STORMDIR}/maxwvel.63 ]; then
+echo ${STORMDIR}/maxwvel.63 >> post_notify.txt
+fi 
+if [ -f ${STORMDIR}/fort.22.meta ]; then
+echo ${STORMDIR}/fort.22.meta >> post_notify.txt
+fi 
+
+if [ -f ${STORMDIR}/al${STORM}${YEAR}.fst ]; then
+echo ${STORMDIR}/al${STORM}${YEAR}.fst >> post_notify.txt
+fi 
+if [ -f ${STORMDIR}/bal${STORM}${YEAR}.dat ]; then
+echo ${STORMDIR}/bal${STORM}${YEAR}.dat >> post_notify.txt
+fi 
+if [ -f ${STORMDIR}/run.properties ]; then
+echo ${STORMDIR}/run.properties >> post_notify.txt
+fi 
+
+#
+echo "INFO: cera_notify.sh: Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
+cat ${STORMDIR}/post_notify.txt | mail -s "ASGS results available for $STORM advisory $ADVISORY from $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+;;
+#
+#               J O B   F A I L E D  
+#
+"jobfailed")
+#
+cat <<END > ${STORMDIR}/jobfailed_notify.txt 
+This is an automated message from the ADCIRC Surge Guidance System (ASGS)
+running on ${HOSTNAME}.
+
+The supercomputer $HOSTNAME has experienced job failure for 
+advisory $ADVISORY for $STORMCLASSNAME  $YEAR on the $GRIDFILE mesh. 
+
+The ASGS on $HOSTNAME is now waiting for the National Hurricane Center to
+issue the next advisory. 
+
 END
 #
-cat $ASGSADVISORYDIR/post_init_notify.txt | mail -s "ASGS init directory for storm $STORM advisory $ADVISORY on $HOSTNAME" $POST_INIT_LIST
-}
+echo "INFO: cera_notify.sh: Sending 'job failed' email to the following addresses: $COMMA_SEP_LIST."
+cat ${STORMDIR}/jobfailed_notify.txt | mail -s "ASGS job failure for $STORMNAME advisory $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+;;
+#
+*)
+echo "ERROR: cera__notify.sh: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."
+;;
+esac
 
-post_email() 
-{ ASGSADVISORYDIR=$1
-STORM=$2
-YEAR=$3
-ADVISORY=$4
-HOSTNAME=$5
-ENSTORM=$6
-POST_LIST=$7
+#post_email() 
+#{ ASGSADVISORYDIR=$1
+#STORM=$2
+#YEAR=$3
+#ADVISORY=$4
+#HOSTNAME=$5
+#ENSTORM=$6
+#POST_LIST=$7
 #
-POSTDIR=/work/cera
+#POSTDIR=/work/cera
 #
-POSTADVISORYDIR=$POSTDIR/${STORM}${YEAR}/${ADVISORY}
-metalink=`ls ${YEAR}${STORM}${ADVISORY}?_w???o???v????r???`
-cat <<END > $ASGSADVISORYDIR/post_notify.txt 
-$POSTADVISORYDIR/$ENSTORM/al${STORM}${YEAR}.fst 
-$POSTADVISORYDIR/$ENSTORM/bal${STORM}${YEAR}.dat 
-$POSTADVISORYDIR/$ENSTORM/$metalink
-$POSTADVISORYDIR/$ENSTORM/fort.22
-$POSTADVISORYDIR/$ENSTORM/fort.22.meta
-$POSTADVISORYDIR/$ENSTORM/fort.61
-$POSTADVISORYDIR/$ENSTORM/maxele.63
-$POSTADVISORYDIR/$ENSTORM/maxwvel.63
-$POSTADVISORYDIR/$ENSTORM/fort.cera.22
-END
+#POSTADVISORYDIR=$POSTDIR/${STORM}${YEAR}/${ADVISORY}
+#metalink=`ls ${YEAR}${STORM}${ADVISORY}?_w???o???v????r???`
+#cat <<END > $ASGSADVISORYDIR/post_notify.txt 
+#$POSTADVISORYDIR/$ENSTORM/al${STORM}${YEAR}.fst 
+#$POSTADVISORYDIR/$ENSTORM/bal${STORM}${YEAR}.dat 
+#$POSTADVISORYDIR/$ENSTORM/$metalink
+#$POSTADVISORYDIR/$ENSTORM/fort.22
+#$POSTADVISORYDIR/$ENSTORM/fort.22.meta
+#$POSTADVISORYDIR/$ENSTORM/fort.61
+#$POSTADVISORYDIR/$ENSTORM/maxele.63
+#$POSTADVISORYDIR/$ENSTORM/maxwvel.63
+#$POSTADVISORYDIR/$ENSTORM/fort.cera.22
+#END
 #
-cat $ASGSADVISORYDIR/post_notify.txt | mail -s "ASGS results available for storm $STORM advisory $ADVISORY on $HOSTNAME" $POST_LIST
-}
+#cat $ASGSADVISORYDIR/post_notify.txt | mail -s "ASGS results available for storm $STORM advisory $ADVISORY on $HOSTNAME" $POST_LIST
+#}

@@ -227,6 +227,8 @@ while (!$dl) {
             next;
          }
          my ($code, $mess, %h) = $http->read_response_headers();
+         #nld empty $body to clear any old advisory numbers from the xml
+         $body="";
          while(1) { 
             my $buf;
             my $n = $http->read_entity_body($buf,1024);
@@ -324,6 +326,8 @@ while (!$dl) {
          next;
       }
       unless ( $newAdvisory ) { 
+         #nld wait a bit here to slow down repeated checks to http site stderrMessage("INFO","Napping.");
+         sleep 60;
          next;
       }
       # if we are supposed to follow a link and we have successfully

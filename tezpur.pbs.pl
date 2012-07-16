@@ -83,7 +83,7 @@ if ( $numwriters != 0 ) {
 my $nnodes = int($ncpu/$ppn); 
 if ( ($ncpu%$ppn) != 0 ) {
    $nnodes++;
-} 
+}
 #
 open(TEMPLATE,"<$qscript") || die "ERROR: tezpur.pbs.pl: Can't open $qscript file for reading as a template for the queue submission script.";
 #
