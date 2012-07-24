@@ -513,8 +513,9 @@ downloadCycloneData()
     RSSSITE=$9
     FDIR=${10}
     HDIR=${11}
-    activity_indicator "Checking remote site for new advisory..." &
-    pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
+#    activity_indicator "Checking remote site for new advisory..." &
+    echo "Checking remote site for new advisory..." 
+#    pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
     cd $RUNDIR 2>> ${SYSLOG}
     newAdvisory=false
     newAdvisoryNum=
@@ -566,7 +567,7 @@ downloadCycloneData()
        fi
        sleep 60 # we are hotstarting, the advisory is same as last one
     done
-    stop_activity_indicator ${pid}
+#    stop_activity_indicator ${pid}
     logMessage "New forecast detected."
     if [[ $TRIGGER = rss || $TRIGGER = rssembedded ]]; then
        perl ${SCRIPTDIR}/nhc_advisory_bot.pl --input ${forecastFileName}.html --output $forecastFileName >> ${SYSLOG} 2>&1
@@ -657,9 +658,11 @@ monitorJobs()
 {   QUEUESYS=$1
     ENSTORM_TEMP=$2
     WALLTIME=$3
+#    set -x
 #
-    activity_indicator "Monitoring queue for run completion..." &
-    pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
+#    activity_indicator "Monitoring queue for run completion..." &
+#    pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
+    echo "Monitoring queue for run completion..." 
     logMessage "Monitoring progress of $ENSTORM_TEMP job."
 #
 #   convert the expected wall clock time of the job to seconds, assuming
@@ -705,7 +708,8 @@ monitorJobs()
         fi
     fi
     logMessage "Finished monitoring $ENSTORM_TEMP job."
-    stop_activity_indicator ${pid}
+#    stop_activity_indicator ${pid}
+#    set +x
 }
 #
 # submits a job to the local queueing system
