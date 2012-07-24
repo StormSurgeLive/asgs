@@ -60,7 +60,7 @@ VARFLUX=off          # [de]activate variable river flux forcing
 # Computational Resources
 #-----------------------------------------------------------------
 TIMESTEPSIZE=1.0     # timestep for adcirc simulation (seconds)
-SWANDE=1200          # timestep for swan (seconds 
+SWANDT=1200          # timestep for swan (seconds 
 NCPU=512             # number of procs to use for simulation
 NUMWRITERS=0         # number of writer CPUs 
 #PPN=4               # not used on tezpur (this is set in the environment dispach sedtion of asgs_main.sh)
