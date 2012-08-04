@@ -260,7 +260,7 @@ while (!$dl) {
       # The index-at.xml file contains $cnt lines.\n";
       # loop over the body of the index file, looking for our storm
       while ($i<$cnt) {
-         if ( $lines[$i] =~ /$nhcName Forecast\/Advisory Number (\d{1,2})/ ) {
+         if ( $lines[$i] =~ /$nhcName Forecast.Advisory Number (\d{1,2})/ ) {
             # we have found the entry containing info about the latest advisory
             # for our storm
             $stormFound = 1;
