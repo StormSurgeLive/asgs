@@ -374,7 +374,8 @@ prep()
        if [[ $MINMAX = continuous ]]; then
           # copy max and min files so that the max values will be
           # preserved across hotstarts
-          for file in maxele.63 maxwvel.63 minpr.63 maxrs.63 maxvel.63; do
+# Casey 121009: Our UT partners need a few more files.
+          for file in maxele.63 maxwvel.63 minpr.63 maxrs.63 maxvel.63 elemaxdry.63 nodeflag.63 rising.63 tinun.63; do
              if  [ -e $FROMDIR/$file ]; then
                 logMessage "Copying $FROMDIR/$file to $ADVISDIR/$ENSTORM/$file so that its values will be preserved across the hotstart."
                 cp $FROMDIR/$file $ADVISDIR/$ENSTORM/$file 2>> ${SYSLOG}
@@ -479,9 +480,13 @@ prepFile()
        logMessage "Finished adcprepping file ($JOBTYPE)."
     elif [[ $QUEUESYS = SGE ]]; then
        cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-       SERQSCRIPT=ranger.template.serial
+# Casey 121009: Change for TACC Lonestar.
+#      SERQSCRIPT=ranger.template.serial
+       SERQSCRIPT=lonestar.template.serial
        SERQSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --account $ACCOUNT --adcircdir $ADCIRCDIR --walltime $WALLTIME --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $INPUTDIR/$SERQSCRIPT"
-       perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
+# Casey 121009: Change for TACC Lonestar.
+#      perl $SCRIPTDIR/ranger.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
+       perl $SCRIPTDIR/lonestar.serial.pl  $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
        logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge"
        qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
        # if qsub succeeded, monitor the job, otherwise an error is indicated
@@ -1033,7 +1038,7 @@ init_ranger()
   QUEUESYS=SGE
   QCHECKCMD=qstat
   NCPUDIVISOR=16
-  ACCOUNT=TG-DMS100024
+  ACCOUNT=ADCIRC
   SUBMITSTRING="ibrun tacc_affinity"
   SCRATCHDIR=$SCRATCH
   SSHKEY=id_rsa_ranger
@@ -1043,17 +1048,21 @@ init_ranger()
   GROUP="G-81535"
 }
 
+# Casey 121009: Changes for TACC Lonestar.
 init_lonestar()
 { #<- can replace the following with a custom script
   HOSTNAME=lonestar.tacc.utexas.edu
-  QUEUESYS=PBS
+  QUEUESYS=SGE
   QCHECKCMD=qstat
-  ACCOUNT=
-  SUBMITSTRING="yod"
+  NCPUDIVISOR=12
+  ACCOUNT=ADCIRC
+  SUBMITSTRING="ibrun tacc_affinity"
   SCRATCHDIR=$SCRATCH
   SSHKEY=id_rsa_lonestar
   QSCRIPT=lonestar.template.sge
-  QSCRIPTGEN=ranger.sge.pl
+  QSCRIPTGEN=lonestar.sge.pl
+  UMASK=006
+  GROUP="G-803086"
 }
 
 init_desktop()
@@ -1115,8 +1124,9 @@ env_dispatch(){
   "ranger") logMessage "Ranger (TACC) configuration found."
           init_ranger
              ;;
+# Casey 121009: Changed to init_lonestar.
   "lonestar") logMessage "Lonestar (TACC) configuration found."
-          init_ranger
+          init_lonestar
              ;;
   "desktop") logMessage "desktop configuration found."
           init_desktop
@@ -1376,7 +1386,8 @@ else
 fi
 #
 # send out an email to notify users that the ASGS is ACTIVATED
-${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORM $YEAR $RUNDIR advisory enstorm $GRIDFILE activation $EMAILNOTIFY $SYSLOG "${ACTIVATE_LIST}" >> ${SYSLOG} 2>&1
+# Casey 121009: Added $ARCHIVEBASE and $ARCHIVEDIR to the arguments.
+${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
 #
 OLDADVISDIR=null
 CSDATE=$COLDSTARTDATE
@@ -1761,7 +1772,8 @@ while [ 1 -eq 1 ]; do
           # execute post processing
           ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
           # send out an email notifying end users that results are available
-          ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" >> ${SYSLOG} 2>&1
+          # Casey 121009: Added ARCHIVEBASE and ARCHIVEDIR.
+          ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
           if [[ ! -z $POSTPROCESS2 ]]; then # creates GIS and kmz figures
              ${OUTPUTDIR}/${POSTPROCESS2} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG 2>> ${SYSLOG}
           fi

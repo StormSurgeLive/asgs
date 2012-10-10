@@ -10,7 +10,7 @@
 #$ -A %account%
 #$ -m bea
 #$ -M %notifyuser%
-#Casey 120530: Replaced the queue commands.
+# Casey 121009: Replaced the queue commands.
 
 # some commands
 set echo
@@ -36,17 +36,17 @@ cd %advisdir%/%enstorm%
 cp %adcircdir%/adcprep ./adcprep
 # These are the actual commands to be executed.
 
-#Casey 120509: Added the jobtype and enstorm to the run.start file.
+# Casey 121009: Added the jobtype and enstorm to the run.start file.
     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
     echo "[${DATETIME}] : Job starting"          >> %jobtype%.%enstorm%.run.start
     echo "[${DATETIME}] : %advisdir%  %enstorm%" >> %jobtype%.%enstorm%.run.start
     echo "[${DATETIME}] : adcprep"               >> %jobtype%.%enstorm%.run.start
 
-#Casey 120509: Corrected the call to adcprep.
+# Casey 121009: Corrected the call to adcprep.
 #./adcprep < prep.in1  > decomp.out1
 ./adcprep --np %ncpu% --%jobtype%
 
-#Casey 120509: Added the jobtype and enstorm to the run.finish and run.error files.
+# Casey 121009: Added the jobtype and enstorm to the run.finish and run.error files.
     ERROVALUE=$?
     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
     if [ $ERROVALUE == 0 ] ; then
