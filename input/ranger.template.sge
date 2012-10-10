@@ -22,15 +22,15 @@ umask
 # cache_binary $PWD %adcircdir%/padcirc
 
 # Clean out all modules
-module purge
+#module purge
 # Reset to TACC baseline
-module load TACC
+#module load TACC
 # Unload default compiler and mpi stack
-module unload pgi mvapich2
+#module unload pgi mvapich2
 # Load which ever combination you need
-module load pgi
-module load mvapich/1.0.1
-module load ddt
+#module load pgi
+#module load mvapich/1.0.1
+#module load ddt
 
 # The directory to start in 
 cd %advisdir%/%enstorm%

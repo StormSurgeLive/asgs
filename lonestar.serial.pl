@@ -29,7 +29,7 @@ GetOptions(
            "jobtype=s" => \$jobtype,
 );
 
-open(TEMPLATE,"$serqscript") || die "ERROR: Can't open ranger.template.serial file.";
+open(TEMPLATE,"$serqscript") || die "ERROR: Can't open lonestar.template.serial file.";
 
 while(<TEMPLATE>) {
     # name of the account to take the hours from

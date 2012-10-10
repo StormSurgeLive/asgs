@@ -292,6 +292,12 @@ $fort63 = $fort63specifier . " 0.0 365.0 " . &getIncrement($fort63freq,$dt);
 $fort64 = $fort64specifier . " 0.0 365.0 " . &getIncrement($fort64freq,$dt);
 my $fort7172specifier = &getSpecifier($fort7172freq,$fort7172append,$fort7172netcdf);
 my $fort7374specifier = &getSpecifier($fort7374freq,$fort7374append,$fort7374netcdf);
+# Casey 121009: Debug for sparse output.
+if ( defined $sparseoutput ) {
+   unless ( defined $fort7374netcdf ) {
+      $fort7374specifier *= 4;
+   }
+}
 $fort7172 = $fort7172specifier . " 0.0 365.0 " . &getIncrement($fort7172freq,$dt);
 $fort7374 = $fort7374specifier . " 0.0 365.0 " . &getIncrement($fort7374freq,$dt);
 if ( $nws eq "0" ) {

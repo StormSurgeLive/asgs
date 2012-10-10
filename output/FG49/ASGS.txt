@@ -1,0 +1,21 @@
+The ADCIRC Surge Guidance System (ASGS) is a software system
+for generating storm surge and wave guidance from SWAN+ADCIRC
+in real time on high-resolution meshes.  The ASGS constructs
+meteorological forcing from a parametric wind/pressure model
+using storm parameters extracted from National Hurricane Center
+(NHC) Forecast Advisories.  This meteorological forcing is then
+applied to simulations of waves and circulation by SWAN+ADCIRC
+during storm events.  More information about the validation of
+SWAN+ADCIRC in the northern Gulf is available here:
+
+http://www.caseydietrich.com/swanadcirc/
+
+This specific application of the ASGS utilizes a mesh with
+relatively low levels of resolution in the eastern Gulf,
+and thus it does not include the necessary resolution
+to provide high-fidelity  simulations of waves and surge
+on the continental shelf and in the coastal floodplains
+of the eastern Gulf.  Instead, these results should 
+be used only to consider the storm's large-scale effects
+on the eastern Gulf.  The providers do not guarantee the accuracy
+of these results, especially in the nearshore.
