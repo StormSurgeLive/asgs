@@ -71,7 +71,7 @@ if [ -f fort.73 ]; then
    gzip fort.73
 fi
 
-
+echo "asgs : ng" >> run.properties
 #metalink=`ls ${YEAR}${STORM}${ADVISORY}?_w???o???v????r???`
 #cp $metalink $POSTADVISORYDIR   #$ENSTORM
 #cp $ASGSADVISORYDIR/$ENSTORM/fort.22 $POSTADVISORYDIR

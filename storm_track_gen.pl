@@ -122,12 +122,23 @@ unless ( $coldstartdate ) {
 # 
 # set the percent for variables that can be adjusted by percentages
 if ( $percent ) {
+   unless ( open(PROPS,">>run.properties") ) {
+      stderrMessage("ERROR","Failed to open run.properties file for ensemble member '$name': $!.");
+      die;
+   }
    if ( $name =~ /maxWindSpeed/) {
       $strengthPercent = $percent;
+      printf PROPS "variation maxWindSpeed : $percent\n";
    } elsif ($name =~ /overlandSpeed/) {
       $overlandSpeedPercent = $percent;
+      printf PROPS "variation overlandSpeed : $percent\n";
    } elsif ( $name =~ /veer/ ) {
       $veerPercent = $percent;
+      my $sign = "";
+      if ($percent > 0.0) { 
+         $sign = "+";
+      }
+      printf PROPS "variation veer : $sign$percent\n";
    } elsif ( $name =~ /rMax/ ) {  
       # the rmax variation is controlled by the aswip program
    } else {
@@ -168,6 +179,10 @@ unless (open(MEMBER,">fort.22")) {
 # only used for the title on the hydrographs
 unless (open(NHCCLASSNAME,">nhcClassName")) { 
    stderrMessage("ERROR","Failed to open file 'nhcClassName' to write NHC storm class and name: $!.");
+   die;
+}
+unless (open(PROPS,">>run.properties")) { 
+   stderrMessage("ERROR","Failed to open file 'run.properties' to write NHC storm class and name: $!.");
    die;
 }
 #
@@ -343,6 +358,13 @@ if ( $zdFound == 0 ) {
 # write the last current storm class and name to file
 printf NHCCLASSNAME $stormClass . " " . $nhcName;
 close(NHCCLASSNAME);
+# write the last current storm class and name to run.properties file; 
+printf PROPS "storm class : $stormClass\n";
+printf PROPS "storm name : $nhcName\n";
+# write the names of the unmodified, ATCF-formatted track data
+printf PROPS "track_raw_dat : bal$storm$year.dat\n";
+printf PROPS "track_raw_fst : al$storm$year.fst\n";
+close(PROPS);
 my $forecastedDate; # as a string
 my $last_pressure = $lasthindcastpressure;
 my $last_windspeed = $lasthindcastwindspeed;
