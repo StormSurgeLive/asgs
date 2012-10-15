@@ -243,6 +243,7 @@ if ( $enstorm eq "hindcast" ) {
    stderrMessage("DEBUG","This is a hindcast.");
    &hindcastParameters();
 }
+
 #
 # we want a hotstart file if this is a nowcast or hindcast
 if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {

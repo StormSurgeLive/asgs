@@ -16,7 +16,7 @@
 #PBS -j oe
 
 # Name the job (this will appear in the output from the qstat command)
-#PBS -N %enstorm%
+#PBS -N %pbsname%
 
 # Specify the output filename explicitly (optional; the default is named
 # from the job ID, in the directory where qsub was run.)

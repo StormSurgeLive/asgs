@@ -3,7 +3,7 @@
 # get_nam.pl: downloads background meteorology data from NCEP
 # for ASGS nowcasts and forecasts
 #--------------------------------------------------------------
-# Copyright(C) 2010 Jason Fleming
+# Copyright(C) 2010, 2011, 2012 Jason Fleming
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 # 
@@ -36,6 +36,7 @@ use Date::Pcalc;
 use Cwd;
 #
 our $rundir;   # directory where the ASGS is running
+my $statefile = "null"; # file that holds the current simulation state
 my $backsite; # ncep ftp site for nam data
 my $backdir;  # dir on ncep ftp site
 my $enstorm;  # hindcast, nowcast, or forecast
@@ -58,6 +59,7 @@ my @nowcasts_downloaded;  # list of nowcast files that were
                           # successfully downloaded
 #
 GetOptions(
+           "statefile=s" => \$statefile,
            "rundir=s" => \$rundir,
            "backsite=s" => \$backsite,
            "backdir=s" => \$backdir,
@@ -397,8 +399,9 @@ sub getForecastData() {
       stderrMessage("ERROR","Could not open '$rundir/currentCycle' for reading: $!.");
       exit 1;
    }
-   my $cycletime = <CYCLENUM>;
-   #stderrMessage("DEBUG","The cycle time for the forecast is '$cycletime'.");
+   <CYCLENUM> =~ /(\d+)/;
+   my $cycletime = $1;
+   stderrMessage("DEBUG","The cycle time for the forecast is '$cycletime'.");
    close(CYCLENUM);
    my $localDir = $cycletime."/namforecast";
    my $cycledate = substr($cycletime,0,8);
@@ -578,3 +581,5 @@ sub stderrMessage () {
       sleep 60
    }
 }
+
+

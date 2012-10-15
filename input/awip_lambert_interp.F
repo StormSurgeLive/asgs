@@ -62,6 +62,10 @@ C    g95 -ffixed-form -Wall -o awip_lambert_interp.x awip_lambert_interp.f90
 C
 C    ifort -o awip_lambert_interp.x awip_lambert_interp.F
 C
+C    On garnet at ERDC, be sure to add the -tp=shanghai-64 flag to the 
+C    fortran compiler flags; otherwise the executable will fail with
+C    an opaque "Illegal instruction" error message. 
+C
 C
 C***********************************************************************
 

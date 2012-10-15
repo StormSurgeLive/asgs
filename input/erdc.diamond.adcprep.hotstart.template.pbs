@@ -33,6 +33,9 @@
 # (commented out)
 ##PBS -m ea
 
+# Rebuild environment 
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/usp/PETtools/CE/pkgs/hdf5-1.8.4-serial/lib
+
 # The directory to start in 
 cd %advisdir%/%enstorm%
 

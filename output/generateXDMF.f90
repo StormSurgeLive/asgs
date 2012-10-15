@@ -29,8 +29,11 @@
 !
 !gfortran -o generateXDMF.x -ffree-form -ffree-line-length-none -I/usr/include generateXDMF.f90 -lnetcdf -lnetcdff -lz
 !
-! For compiling on blueridge at RENCI:
+! For compiling on blueridge at RENCI with ifort:
 !ifort -o generateXDMF.x -i-dynamic -I/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/include -L/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/lib generateXDMF.f90 -lnetcdf -lnetcdff -lz
+!
+! For compiling with pgf90:
+! pgf90 -o generateXDMF.x -Mpreprocess -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/opt/cray/netcdf/4.1.3/pgi/109/include generateXDMF.f90 -L/opt/cray/netcdf/4.1.3/pgi/109/lib  -lnetcdf -lnetcdff
 
       include 'adcmesh.f90'
 
@@ -38,6 +41,7 @@
       use netcdf
       use adcmesh
       implicit none
+      integer :: iargc
       character(1024) :: datafile
       character(1024) :: xmf ! name of XDMF xml file
       logical :: fileFound = .false.
@@ -56,6 +60,7 @@
       integer :: natt     ! number of global attributes in the file
       integer :: ncformat ! whether netcdf 3 or netcdf 4
       integer :: ndset    ! number of datasets in the file (length of unlimited dimension)
+      logical :: multisets ! .true. for files with multiple types of data, like hotstart files
       real(8), allocatable :: timesec(:)  ! time in seconds associated with each dataset
       integer argcount
       character(1024) :: cmdlineopt
@@ -63,6 +68,7 @@
       logical :: useCPP ! true if we should refer to cpp coordinates in the netcdf file
       integer i, j ! loop counters
 
+      multisets = .false.
       useCPP = .false.
       argcount = iargc() ! count up command line options
       if (argcount.gt.0) then
@@ -181,38 +187,64 @@
          call check(nf90_inquire_variable(nc_id, i, thisVarName))
          select case(trim(thisVarName))
          case("zeta")
-            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC water surface elevation (fort.63) file."
+            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC water surface elevation file."
             varname(1) = trim(thisVarName)
             num_components = 1
             exit
+         case("zeta1","zeta2")
+            write(6,*) "INFO: Preparing to write XDMF xml for the elevations in an ADCIRC hotstart file."
+            varname(1) = "zeta1"
+            varname(2) = "zeta2"
+            num_components = 1 
+            ndset = 2
+            multisets = .true.
+            exit
          case("u-vel","v-vel")
-            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC water current velocity (fort.64) file."
+            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC water current velocity file."
             num_components = 2
             varname(1) = "u-vel"
             varname(2) = "v-vel"
             exit
          case("pressure")
-            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC barometric pressure (fort.73) file."
+            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC barometric pressure file."
             num_components = 1
             varname(1) = "pressure"
             exit
          case("windx","windy")
-            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC wind velocity (fort.74) file."
+            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC wind velocity file."
             num_components = 2
             varname(1) = "windx"
             varname(2) = "windy"
             exit
-         case("maxele")
+         case("maxele","zeta_max")
             write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC maximum water elevation (maxele.63) file."
             num_components = 1
             ndset = 1
-            varname(1) = "maxele"
+            varname(1) = trim(thisVarName)
             exit
-         case("maxwvel")
+         case("maxwvel","wind_max")
             write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC maximum wind speed (maxwvel.63) file."
             num_components = 1
             ndset = 1
-            varname(1) = "maxwvel"
+            varname(1) = trim(thisVarName)
+            exit
+         case("maxvel","vel_max")
+            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC maximum current speed (maxvel.63) file."
+            num_components = 1
+            ndset = 1
+            varname(1) = trim(thisVarName)
+            exit
+         case("maxrs","radstress_max")
+            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC maximum wave radiation stress gradient (maxrs.63) file."
+            num_components = 1
+            ndset = 1
+            varname(1) = trim(thisVarName)
+            exit
+         case("minpr","pressure_min")
+            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC minimum barometric pressure (minpr.63) file."
+            num_components = 1
+            ndset = 1
+            varname(1) = trim(thisVarName)
             exit
          case("radstress_x","radstress_y")
             write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC wave radiation stress gradient (rads.64) file."
@@ -265,7 +297,7 @@
          write(6,*) "ERROR: Did not recognize any of the variables in the file."
          stop
       endif
-      if ( ndset.eq.1 ) then
+      if ( (ndset.eq.1).or.(multisets.eqv..true.) ) then
          call check(nf90_inq_varid(nc_id, varname(1), NC_VarID(1)))
          call check(nf90_get_att(nc_id, NC_VarID(1), 'standard_name', standard_name(1)))
          write(10,'(A)') '         <Attribute Name="'//trim(standard_name(1))//'"'
@@ -277,12 +309,28 @@
          write(10,'(A)') '                      Format="HDF">'//trim(datafile)//':/'//trim(varname(1))
          write(10,'(A)') '            </DataItem>'
          write(10,'(A)') '         </Attribute>'
+         !
+         if ( multisets.eqv..true. ) then
+            do i=2,ndset
+               call check(nf90_inq_varid(nc_id, varname(i), NC_VarID(i)))
+               call check(nf90_get_att(nc_id, NC_VarID(i), 'standard_name', standard_name(i)))
+               write(10,'(A)') '         <Attribute Name="'//trim(standard_name(i))//'"'
+               write(10,'(A)') '                    AttributeType="Scalar"'
+               write(10,'(A)') '                    Center="Node">'
+               write(10,'(A,I12,A)') '            <DataItem Dimensions="',np,'"'
+               write(10,'(A)') '                      NumberType="Float"'
+               write(10,'(A)') '                      Precision="8"'
+               write(10,'(A)') '                      Format="HDF">'//trim(datafile)//':/'//trim(varname(i))
+               write(10,'(A)') '            </DataItem>'
+               write(10,'(A)') '         </Attribute>'
+            end do
+         end if
          write(10,'(A)') '      </Grid>'
          write(10,'(A)') '   </Domain>'
          write(10,'(A)') '</Xdmf>'
          close(10)
          call check(nf90_close(nc_id))
-         write(6,'(A)') "INFO: Finished generating XDMF xml to for this NetCDF file."
+         write(6,'(A)') "INFO: Finished generating XDMF xml for this NetCDF file."
          stop
       endif
       !

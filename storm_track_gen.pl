@@ -177,8 +177,8 @@ unless (open(MEMBER,">fort.22")) {
 #
 # create the file that holds the current storm class and name ... this is 
 # only used for the title on the hydrographs
-unless (open(NHCCLASSNAME,">nhcClassName")) { 
-   stderrMessage("ERROR","Failed to open file 'nhcClassName' to write NHC storm class and name: $!.");
+unless (open(PROPS,">>run.properties")) { 
+   stderrMessage("ERROR","Failed to open file 'run.properties' to write NHC storm class and name: $!.");
    die;
 }
 unless (open(PROPS,">>run.properties")) { 
@@ -355,9 +355,13 @@ if ( $zdFound == 0 ) {
    stderrMessage("INFO","The zero date '$zeroDate' was not found in the hindcast file $hindcastATCF."); 
 }
 #
-# write the last current storm class and name to file
-printf NHCCLASSNAME $stormClass . " " . $nhcName;
-close(NHCCLASSNAME);
+# write the last current storm class and name to run.properties file; 
+printf PROPS "storm class : $stormClass\n";
+printf PROPS "storm name : $nhcName\n";
+# write the names of the unmodified, ATCF-formatted track data
+printf PROPS "track_raw_dat : bal$storm$year.dat\n";
+printf PROPS "track_raw_fst : al$storm$year.fst\n";
+close(PROPS);
 # write the last current storm class and name to run.properties file; 
 printf PROPS "storm class : $stormClass\n";
 printf PROPS "storm name : $nhcName\n";
