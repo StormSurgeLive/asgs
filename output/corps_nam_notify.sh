@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright(C) 2008, 2009, 2010 Jason Fleming
+# Copyright(C) 2008--2012 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -130,6 +130,6 @@ logMessage "Sending 'job_failed' email to the following addresses: $COMMA_SEP_LI
 cat ${STORMDIR}/${ADVISORY}/job_failed_notify.txt | mail -s "ASGS job failed for cycle $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 *)
-logMessage "ERROR: corps_cyclone_notify.sh: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."
+logMessage "ERROR: corps_nam_notify.sh: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."
 ;;
 esac

@@ -49,7 +49,7 @@ STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 #
 # write the target area to the run.properties file for the CERA
 # web app
-echo "asgs : ng" >> run.properties 2>> $SYSLOG
+echo "asgs : fl" >> run.properties 2>> $SYSLOG
 echo "enstorm : $ENSTORM" >> run.properties 2>> $SYSLOG
 #
 # grab storm class and name from file
@@ -78,73 +78,6 @@ for file in `ls *.nc`; do
    logMessage "Generating XDMF xml file to accompany $file."
    ${OUTPUTDIR}/generateXDMF.x --use-cpp --datafile $file 2>> $SYSLOG
 done
-#
-#  O P E N  D A P    P U B L I C A T I O N 
-#
-STORMNAMEPATH=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
-# make opendap directory
-OPENDAPTYPE=tc
-if [[ $BACKGROUNDMET = on ]]; then
-   OPENDAPTYPE=nam
-   STORMNAMEPATH=nam218
-fi
-OPENDAPDIR=$OPENDAPBASEDIR/$OPENDAPTYPE/$STORMNAMEPATH/$ADVISORY/$GRIDNAME/$HOSTNAME/$INSTANCENAME/$ENSTORM
-logMessage "Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER with the ssh key in $SSHKEY."
-ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
-for file in `ls *.nc *.xmf fort.15 fort.22 run.properties`; do 
-   chmod +r $file 2>> $SYSLOG
-   logMessage "Transferring $file."
-   scp -i $SSHKEY $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG
-   ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "chmod +r $OPENDAPDIR/$file"
-done
-#
-# make symbolic links to directory structure that CERA web app uses
-#$openDAPDirectory = "$OPENDAPBASEDIR/blueridge.renci.org:2/$model/$ADCIRCgrid/$windtag/$year/$mon/$mday/$cycle"
-# RunStartTime : 2012080812
-#if [[ $ENSTORM = nhcConsensus || $ENSTORM = namforecast ]]; then
-runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'` 
-year=${runStartTime:0:4} 
-month=${runStartTime:4:2} 
-day=${runStartTime:6:2} 
-currentCycle=`grep currentcycle run.properties | sed 's/currentcycle.*://' | sed 's/\s//g'`
-model=`grep ^Model run.properties | sed 's/Model.*://' | sed 's/\s//g'`
-mesh=`grep mesh run.properties | sed 's/mesh.*://' | sed 's/\s//g'`
-windtag=`grep WindModel run.properties | sed 's/WindModel.*://' | sed 's/\s//g'`
-# CERA web app is hard coded to look for blueridge.renci.org:2
-openDapDirectory=$OPENDAPBASEDIR/blueridge.renci.org:2/$model/$mesh/$windtag/$year/$month/$day/$currentCycle/$ENSTORM
-ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "mkdir -p $openDapDirectory" 2>> $SYSLOG 
-for file in `ls *.nc *.xmf fort.15 fort.22 run.properties`; do
-   logMessage "Making symbolic link on OpenDAP server for $file."
-   ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "ln -s $OPENDAPDIR/$file $openDapDirectory/$file"
-done
-scp -i $SSHKEY ${ADVISDIR}/al*.fst ${OPENDAPUSER}@${OPENDAPHOST}:${openDapDirectory} 2>> $SYSLOG
-scp -i $SSHKEY ${ADVISDIR}/bal*.dat ${OPENDAPUSER}@${OPENDAPHOST}:${openDapDirectory} 2>> $SYSLOG
-if [[ $INSTANCENAME = nodcorps ]]; then
-   if [[ $ENSTORM != nhcConGarratt && $ENSTORM != veerLeft ]]; then
-      COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com,asgs.cera.lsu@gmail.com"
-      subject="ADCIRC NCFS POSTED for $runStartTime $ENSTORM"
-      if [[ $TROPICALCYCLONE = on ]]; then
-         subject=${subject}" (TROPICAL CYCLONE)"
-      fi
-      openDAPPrefix="http://opendap.renci.org:1935/thredds/catalog/blueridge.renci.org:2/$model/$mesh"
-      httpPathName="http://opendap.renci.org:1935/thredds/fileServer/blueridge.renci.org:2/$model/$mesh"
-      path_suffix="$windtag/$year/$month/$day/$currentCycle/$ENSTORM"
-      cat <<END > ${STORMDIR}/cera_results_notify.txt 
-
-The ADCIRC NCFS solutions for $runStartDate have been posted to $openDAPPrefix/$path_suffix
-
-The run.properties file is : $httpPathName/$path_suffix/run.properties
-   
-or wget the file with the following command
-
-wget  $httpPathName/$path_suffix/run.properties
-END
-#
-      echo "INFO: corps_post.sh: Sending 'results available' email to the following addresses: $COMMA_SEP_LIST."
-      cat ${STORMDIR}/cera_results_notify.txt | mail -s "$subject" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
-   fi
-fi
-#fi
 # Convert max elevation file from netcdf to ascii if necessary
 if [[ -e ${STORMDIR}/maxele.63.nc ]]; then
    logMessage "Converting maxele.63.nc from netcdf to ascii."
@@ -217,7 +150,7 @@ fi
 #
 # name of bounding box for contour plots (see config_simple_gmt_pp.sh
 # for choices)
-BOX=LA
+BOX=WFL
 # FigureGen executable to use for making JPG files (assumed to be located
 # in $OUTPUTDIR/POSTPROC_KMZGIS/FigGen/
 FIGUREGENEXECUTABLE=FigureGen32_prompt_inp.x
@@ -252,4 +185,45 @@ if [[ $TROPICALCYCLONE = on ]]; then
    scp -i $SSHKEY $GISKMZJPG ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
    scp -i $SSHKEY $PLOTS ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
    ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}"
+fi
+#
+# OpenDAP Publication
+#
+# TODO: make sure there is enough disk space on target server (manually)
+STORMNAMEPATH=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
+# make opendap directory
+OPENDAPTYPE=tc
+if [[ $BACKGROUNDMET = on ]]; then
+   OPENDAPTYPE=nam
+   STORMNAMEPATH=nam218
+fi
+OPENDAPDIR=$OPENDAPBASEDIR/$OPENDAPTYPE/$STORMNAMEPATH/$ADVISORY/$GRIDNAME/$HOSTNAME/$INSTANCENAME/$ENSTORM
+logMessage "Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER with the ssh key in $SSHKEY."
+ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
+for file in `ls *.nc *.xmf fort.15 fort.22 run.properties`; do 
+   chmod +r $file 2>> $SYSLOG
+   logMessage "Transferring $file."
+   scp -i $SSHKEY $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG
+   ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "chmod +r $OPENDAPDIR/$file"
+done
+#
+# make symbolic links to directory structure that CERA web app uses
+#$openDAPDirectory = "$OPENDAPBASEDIR/blueridge.renci.org:2/$model/$ADCIRCgrid/$windtag/$year/$mon/$mday/$cycle"
+# RunStartTime : 2012080812
+if [[ $ENSTORM = nhcConsensus || $ENSTORM = namforecast ]]; then
+   runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'` 
+   year=${runStartTime:0:4} 
+   month=${runStartTime:4:2} 
+   day=${runStartTime:6:2} 
+   currentCycle=`grep currentcycle run.properties | sed 's/currentcycle.*://' | sed 's/\s//g'`
+   model=`grep ^Model run.properties | sed 's/Model.*://' | sed 's/\s//g'`
+   mesh=`grep mesh run.properties | sed 's/mesh.*://' | sed 's/\s//g'`
+   windtag=`grep WindModel run.properties | sed 's/WindModel.*://' | sed 's/\s//g'`
+   # CERA web app is hard coded to look for blueridge.renci.org:2
+   openDapDirectory=$OPENDAPBASEDIR/blueridge.renci.org:2/$model/$mesh/$windtag/$year/$month/$day/$currentCycle
+   ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "mkdir -p $openDapDirectory" 2>> $SYSLOG 
+   for file in `ls *.nc *.xmf fort.15 fort.22 run.properties`; do
+      logMessage "Making symbolic link on OpenDAP server for $file."
+      ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "ln -s $OPENDAPDIR/$file $openDapDirectory/$file"
+   done
 fi

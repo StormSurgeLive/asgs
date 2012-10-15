@@ -81,6 +81,7 @@ if ( $ppn != 1 ) {
       $select++;
    }
 }
+my $pbsname=substr($enstorm,0,14);
 #
 while(<TEMPLATE>) {
     # fill in the number of nodes to run on 
@@ -99,6 +100,8 @@ while(<TEMPLATE>) {
     s/%advisdir%/$advisdir/;  
     # name of this member of the ensemble (nowcast, storm3, etc)
     s/%enstorm%/$enstorm/g;  
+    # name of this member, potentially shortened, will appear in qstat
+    s/%pbsname%/$pbsname/;  
     # user to notify when errors occur
     s/%notifyuser%/$notifyuser/;  
     # string to use to submit a job to the parallel queue

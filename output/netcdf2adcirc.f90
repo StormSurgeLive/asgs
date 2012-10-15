@@ -25,6 +25,12 @@
 ! Example of compiling this program with g95:
 ! g95 -o netcdf2adcirc.x -ffree-form -ffree-line-length-huge -I/usr/local/netcdf/netcdf-4.1.1/f90 netcdf2adcirc.f90 -L/usr/local/hdf5/hdf5-1.8.8/hdf5/lib -lnetcdf -lhdf5_hl -lhdf5 -lhdf5_fortran -lz
 !
+! Example of compiling this program with pgf90:
+! pgf90 -o netcdf2adcirc.x -Mpreprocess -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/opt/cray/netcdf/4.1.3/pgi/109/include  netcdf2adcirc.f90 -lnetcdf
+!
+! Example of compiling this program with gfortran:
+! gfortran -o netcdf2adcirc.x -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I$HOME/include -L$HOME/lib netcdf2adcirc.f90 -lnetcdf -lnetcdff
+
       include 'adcmesh.f90'
 
       program netcdf2adcirc
@@ -32,6 +38,7 @@
       use netcdf
       implicit none
 
+      integer :: iargc
       character(NF90_MAX_NAME) :: varName(3)
       character(NF90_MAX_NAME) :: thisVarName
       integer :: NC_VarID(3)
@@ -64,9 +71,12 @@
       character(1024) :: ascii_datafile_name
       logical :: meshonly
       logical :: sparse
+      logical :: stationfile ! true if the data represent recording stations
 
       meshonly = .false.
       sparse = .false.
+      stationfile = .false.
+      agrid = 'null'
 
       write(6,*) "INFO: adcirc2netcdf was compiled with the following netcdf library: ",trim(nf90_inq_libvers())
 
@@ -104,9 +114,6 @@
       endif
       ! determine the number of snapshots in the file
       call check(nf90_inquire_dimension(nc_id, nc_dimid_time, len=ndset))
-      ! determine the number of nodes
-      call check(nf90_inq_dimid(nc_id, "node", nc_dimid_node))
-      call check(nf90_inquire_dimension(nc_id, nc_dimid_node, len=np))
       !
       !  get time
       !
@@ -121,6 +128,8 @@
       do i=1,nvar
          call check(nf90_inquire_variable(nc_id, i, thisVarName))
          select case(trim(thisVarName))
+         case("station_name")
+            stationfile = .true.
          case("u-vel3D","v-vel3D","w-vel3D")
             write(6,*) "INFO: Preparing to write an ADCIRC 3D water current velocity (fort.45) file."
             ascii_datafile_name = "fort.45"
@@ -153,11 +162,11 @@
             varname(1) = "windx"
             varname(2) = "windy"
             exit
-         case("maxele")
+         case("zeta_max")
             write(6,*) "INFO: Preparing to write an ADCIRC maximum water elevation (maxele.63) file."
             ascii_datafile_name = "maxele.63"
             ndset = 1
-            varname(1) = "maxele"
+            varname(1) = "zeta_max"
             exit
          case("maxwvel")
             write(6,*) "INFO: Preparing to write an ADCIRC maximum wind speed (maxwvel.63) file."
@@ -190,9 +199,21 @@
             cycle     ! did not recognize this variable name
          end select
       end do
-      !
-      agrid = 'null'
-      call check(nf90_get_att(nc_id,nf90_global,'agrid',agrid))
+      ! if this is actually a station file, change the ascii name
+      if ( stationfile.eqv..true.) then
+         select case(trim(ascii_datafile_name))
+         case("fort.63")
+            ascii_datafile_name = "fort.61"
+         case("fort.74")
+            ascii_datafile_name = "fort.72"
+         end select
+         call check(nf90_inq_dimid(nc_id, "station", nc_dimid_node))
+      else
+         ! determine the number of nodes
+         call check(nf90_inq_dimid(nc_id, "node", nc_dimid_node))
+         call check(nf90_get_att(nc_id,nf90_global,'agrid',agrid))
+      endif
+      call check(nf90_inquire_dimension(nc_id, nc_dimid_node, len=np))
       ! determine time increment between output writes
       if ( ndset.gt.1 ) then
          time_increment = timesec(2) - timesec(1)

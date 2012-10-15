@@ -33,11 +33,8 @@ ADDRESS_LIST=${11}
 if [[ $EMAILNOTIFY != yes && $EMAILNOTIFY != YES ]]; then
    exit
 fi
-STORMCLASSNAME=`cat nhcClassName`
-# find the space between the storm class (TD, TS, HU, etc) and the NHC name
-ind=`expr index "$STORMCLASSNAME" ' '`
-# just use the storm's name 
-STORMNAME=${STORMCLASSNAME:$ind}
+# load storm's name 
+STORMNAME=`grep "storm name" ${STORMDIR}/run.properties | sed 's/storm name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 COMMA_SEP_LIST=${ADDRESS_LIST// /,}
 case $PHASE in
 #

@@ -1,6 +1,6 @@
 #!/bin/bash
 #-----------------------------------------------------------------------
-# Copyright(C) 2010 Jason Fleming
+# Copyright(C) 2010--2012 Jason Fleming
 # Copyright(C) 2008, 2009 Robert J Weaver
 #-----------------------------------------------------------------------
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -40,6 +40,8 @@
 # sl15v3_2007_r10.gmt.tri
 # sl15v3_2007_r10.gmt.xy
 # sl15v3_2007_r10.gmt.xyz
+# You should also have a copy of the original mesh file (or a symbolic
+# link to the original mesh file) in this directory.
 # 
 # (2)
 # The postprocessing for KMZ, GIS, and JPG depends on the configuration
@@ -82,7 +84,7 @@
 # fortran compiler. (a) Please compile FigureGen locally; the source code is
 # in $POSTPROC_DIR/FigGen/FigureGen32.F90.
 # (b) Please be sure to specify the name FigureGen executable you'd like to 
-# use, as FIGUREGENEXECUTABLE. The default is "FigureGen32_prompt_inp.exe". 
+# use, as FIGUREGENEXECUTABLE. The default is "FigureGen32_prompt_inp.x". 
 #
 # (4) 
 # The FigureGen template input file for creating JPG files should be passed
@@ -200,7 +202,7 @@ date >> $JPGLOGFILE
 # 
 # use default FigureGen executable if it has not been specified
 if [[ $FIGUREGENEXECUTABLE = "" ]]; then
-   FIGUREGENEXECUTABLE=FigureGen32_prompt_inp.exe
+   FIGUREGENEXECUTABLE=FigureGen32_prompt_inp.x
 fi
 #
 # Use the default FigureGen template if it has not been specified

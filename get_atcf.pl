@@ -8,7 +8,7 @@
 #   file system.
 #
 #--------------------------------------------------------------
-# Copyright(C) 2006, 2007, 2008, 2009 Jason Fleming
+# Copyright(C) 2006--2012 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -31,9 +31,10 @@ use strict;
 use Net::FTP;
 use Net::HTTP;
 use Getopt::Long;
-#  Usage Example:
-#   perl get_atcf.pl --ftpsite ftp.tpc.ncep.noaa.gov --rsssite www.nhc.noaa.gov --fdir /ftp/path/to/forecast --hdir /ftp/path/to/hindcast --storm 01 --year 2006 --adv 05 --trigger rss
 #
+my $statefile="null"; # shell script with variables and values that 
+                      # record the current state of the ASGS
+our %state;  # represents current state of ASGS
 my $ftpsite; # hostname for hindcast, nowcast, and/or forecast data 
              # $ftpsite can also be set to "filesystem" to pick up these
              # data from the local filesystem
@@ -53,6 +54,7 @@ my $nhcName; # the name given by the NHC, e.g., TWO, GUSTAV, KATRINA, etc
 my $body;    # text of the forecast/advisory
 
 GetOptions(
+           "statefile=s" => \$statefile,
            "rsssite=s" => \$rsssite,
            "ftpsite=s" => \$ftpsite,
            "fdir=s" => \$fdir,
@@ -166,7 +168,6 @@ while (!$dl) {
             . $ftp->message);
         next;
       }
-   
       # save the advisory number by parsing the name of the file that the 
       # file points to (a hack for our ftp test rig)
       if ( $ftpsite =~ /ftp.unc.edu/ ) {
@@ -177,14 +178,9 @@ while (!$dl) {
          }
          foreach my $line (@advisoryDir) {
             if ( $line =~ /$forecastfile.*advisory_(\d{2}).fst/ ) {
-               my $advNumOpenSuccess = open(ADVNUM,">advisoryNumber");
-               unless ($advNumOpenSuccess) {
-                  stderrMessage("ERROR",
-                     "Could not open 'advisoryNumber' to write: $!");
-                  next;
-               }
-               print ADVNUM "$1\n";
-               close(ADVNUM);
+               %state = readFileAsHash($statefile,"=");
+               $state{"ADVISORY"}=$1;
+               writeHashToFile($statefile,"=");
             }
          }
       }
@@ -271,6 +267,7 @@ while (!$dl) {
             if ( defined $adv ) {
                unless ( $advNum eq $adv ) {
                   $newAdvisory = 1;
+                  stderrMessage("DEBUG","The new advisory number is $advNum.");
                   printf STDOUT "$advNum";
                }
             }
@@ -317,6 +314,7 @@ while (!$dl) {
       }
       unless ( $stormFound ) { 
          stderrMessage("ERROR","http: The storm named '$nhcName' was not found in the RSS feed.");
+         #stderrMessage("DEBUG","The body of the index-at.xml file was $body.");
          next;
       }
       # if we are supposed to get the text of the forecast file from
@@ -401,6 +399,63 @@ while (!$dl) {
 }
 1;
 
+
+#
+# ReadFileAsHash reads the contents of a file into
+# a perl hash.  It assumes that there are 2 fields per
+# line in the file, separated by a character (like :).
+# The line is split on this char, and the left and right
+# fields are put into the key and value for the hash entry.
+# BOB: 28 July 2006
+# %H=&ReadFileAsHash($_[0]=<filename>,$_[1]=<separator>);
+sub readFileAsHash ()
+{
+   my ($k,$v,%H);
+   # read file as a hash, split on $_[1];
+   my $fname = $_[0];
+   unless ( open(FIL,"<$fname") ) {
+      stderrMessage("ERROR","Could not open the file $fname for reading: $!.");
+      die;
+   }
+   while (<FIL>){
+      ($k,$v)=split /$_[1]/;
+      chomp($k);
+      chomp($v);
+      #$k =~ s/\s+//g;
+      # remove leading and trailing whitespaces from the key
+      $k =~ s/^\s+//g;
+      $k =~ s/\s+$//g; 
+      # remove whitespace from the value
+      $v =~ s/\s+//g;
+      $H{$k}=$v;
+   }
+   close(FIL);
+   return %H;
+}
+
+sub writeHashToFile ()
+{
+   my $fname = shift;
+   my $separator = shift;
+   unless ( open(FIL,">$fname") ) {
+      stderrMessage("ERROR","Could not open the file $fname for writing: $!.");
+      die;
+   }
+   foreach my $key (keys(%state)) {
+      printf FIL "$key $separator $state{$key}\n";
+   }
+   close(FIL)
+}
+
+sub printHash ()
+{
+   my %h=@_;
+   my ($k,$v);
+   while(($k,$v)=each %h){
+      print sprintf("%20s => %-s\n",$k,$v);
+   }
+}
+
 sub stderrMessage () {
    my $level = shift;
    my $message = shift;
@@ -413,3 +468,6 @@ sub stderrMessage () {
       sleep 60
    }
 }
+
+
+

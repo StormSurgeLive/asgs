@@ -3,14 +3,15 @@ INPUT=$1     # fort.22 file used as input
 ADVISORY=$2  # used in file names and plot titles
 TIMESTEP=$3  # seconds, e.g., 1800.0 # "default" to hit the cycle times
 MESHFILE=$4  # fort.14 file name or "auto" to autogenerate mesh
-DESCRIPT=$5  # very short description for the streamlines viz
+DESCRIPT="$5"  # very short description for the streamlines viz
 PLOTMAX=$6   # max in wind speed range for plots, or "auto" to autoscale
 NWS=$7       # 15 or 19
 RMAX=$8      # percent adjustment in Rmax (%), 0 to leave Rmax alone
 VMAX=$9      # percent adjustment in Vmax (%), 0 to leave Vmax alone
 TIMEOFFSET=${10} # for NWS15, time in seconds of start time of analysis
+TIMEZONE=${11} # used in the timestamp on the animation; GMT, EDT, or CDT
 #
-ASGSDIR=~/asgs/trunk
+ASGSDIR=~/asgs/jet
 ADCIRCDIR=~/adcirc/trunk/work
 PERL5LIB=$ASGSDIR/PERL ; export PERL5LIB
 #
@@ -34,9 +35,19 @@ fi
 # TODO: for parallel execution?
 #
 # execute frame driver in serial for all frames
-$ASGSDIR/output/frame_driver.sh $NWS $INPUT $TIMESTEP $ADVISORY $FRAME $MYPROC $ADCIRCDIR $ASGSDIR $PERL5LIB $MESHFILE "$DESCRIPT" $PLOTMAX $RMAX $VMAX $TIMEOFFSET
+$ASGSDIR/output/frame_driver.sh $NWS $INPUT $TIMESTEP $ADVISORY $FRAME $MYPROC $ADCIRCDIR $ASGSDIR $PERL5LIB $MESHFILE "$DESCRIPT" $PLOTMAX $RMAX $VMAX $TIMEOFFSET $TIMEZONE
 #
 # make animation out of the montage sequence of images
+FRAMERATE=5
+if [[ $TIMESTEP = default ]]; then
+   FRAMERATE=1
+fi
 #convert -loop 0 -delay $DELAY montage_geom_???.gif anim_all_${ADVISORY}.gif
 rm anim_${TIMESTEP}_all.mp4
-ffmpeg -r 5 -i montage_geom_%03d.jpg anim_${TIMESTEP}_all.mp4
+ffmpeg -r $FRAMERATE -sameq -i montage_geom_%03d.jpg anim_${TIMESTEP}_all.mp4
+# convert to H.264 with handbrake
+HandBrakeCLI --input anim_${TIMESTEP}_all.mp4 --output anim_${TIMESTEP}_all_264.mp4 --encoder x264 --two-pass
+# create ogv file 
+ffmpeg2theora --videoquality 10 --output anim_${TIMESTEP}_all.ogv --seek-index --speedlevel 0 anim_${TIMESTEP}_all.mp4
+# create webm file 
+#ffmpeg -r 5 -sameq -i montage_geom_%03d.jpg anim_${TIMESTEP}_all.webm
