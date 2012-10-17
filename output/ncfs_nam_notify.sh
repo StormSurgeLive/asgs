@@ -34,7 +34,9 @@ GRIDFILE=$7
 PHASE=$8
 EMAILNOTIFY=$9
 SYSLOG=${10}
-ADDRESS_LIST=${11}
+ADDRESS_LIST="${11}"
+ARCHIVEBASE=${12}
+ARCHIVEDIR=${13}
 #
 # simply return if we are not supposed to send out emails
 if [[ $EMAILNOTIFY != yes && $EMAILNOTIFY != YES ]]; then

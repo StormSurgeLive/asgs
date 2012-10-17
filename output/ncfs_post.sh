@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright(C) 2011 Jason Fleming
+# Copyright(C) 2011, 2012 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -31,16 +31,28 @@ OUTPUTDIR=${11}
 SYSLOG=${12}
 SSHKEY=${13}
 #
+# grab all config info
+si=-1
+. ${CONFIG}
+# Bring in logging functions
+. ${SCRIPTDIR}/logging.sh
+# Bring in platform-specific configuration
+. ${SCRIPTDIR}/platforms.sh
+# dispatch environment (using the functions in platforms.sh)
+env_dispatch ${TARGET}
+# grab all config info (again, last, so the CONFIG file takes precedence)
+. ${CONFIG}
+#
 cd ${ADVISDIR}/${ENSTORM}
-. ${CONFIG} # grab all static config info. 
 #
 # write the target area to the run.properties file for the CERA
 # web app
 echo "asgs : nc" >> run.properties
 #
-# convert files to netcdf and copy to directory where they can be 
-# published via opendap
-perl ${OUTPUTDIR}/asgsConvertToNETCDF.pl --ppdir ${SCRIPTDIR}/output 
+# generate XDMF xml files 
+for file in `ls *.nc`; do
+   ${OUTPUTDIR}/generateXDMF.x --datafile $file 2>> $SYSLOG
+done
 #
 # create Google Earth images of water surface elevation and significant
 # wave height
@@ -54,13 +66,63 @@ cp graphics/*.kmz ${OPENDAPDIR} >> graphics.log 2>&1
 rm ${NCFS_CURRENT_DIR}/*.kmz >> graphics.log 2>&1
 cp graphics/*.kmz ${NCFS_CURRENT_DIR} >> graphics.log 2>&1
 #
-# Copy the run.properties file to a consistent location (an external web 
-# server in this case) with a path set according to the name of the ASGS
-# instance that created the results.
+# construct the opendap directory path where the results will be posted
+#
+STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
+STORMNAMEPATH=null
+DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
+CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
+if [[ $BACKGROUNDMET = on ]]; then
+   # for NAM, the "advisory number" is actually the cycle time 
+   STORMNAMEPATH=daily/nam
+fi
+if [[ $TROPICALCYCLONE = on ]]; then
+   STORMNAME=`grep "storm name" ${STORMDIR}/run.properties | sed 's/storm name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+   STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
+   STORMNAMEPATH=tc/$STORMNAMELC
+fi
+OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HOSTNAME/$INSTANCENAME/$ENSTORM
+# put the opendap download url in the run.properties file for CERA to find
+downloadURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
+echo "downloadurl : $downloadURL" >> run.properties
+# now actually make the directory (OPENDAPBASEDIR is specified in CONFIG)
+OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
+mkdir -p $OPENDAPDIR 2>> ${SYSLOG}
+# make symbolic links from the opendap dir to the important files for the run
+cd $OPENDAPDIR 2>> ${SYSLOG}
+ln -s ${ADVISDIR}/${ENSTORM}/fort.14 .  2>> ${SYSLOG}
+ln -s ${ADVISDIR}/${ENSTORM}/fort.15 . 2>> ${SYSLOG}
+ln -s ${ADVISDIR}/${ENSTORM}/fort.*.nc . 2>> ${SYSLOG}
+ln -s ${ADVISDIR}/${ENSTORM}/max*.nc . 2>> ${SYSLOG}
+ln -s ${ADVISDIR}/${ENSTORM}/min*.nc . 2>> ${SYSLOG}
+ln -s ${ADVISDIR}/${ENSTORM}/run.properties . 2>> ${SYSLOG}
+ln -s ${ADVISDIR}/${ENSTORM}/*.xmf . 2>> ${SYSLOG}
+ln -s ${ADVISDIR}/${ENSTORM}/*.kmz . 2>> ${SYSLOG}
+for file in fort.13 fort.22 fort.26; do 
+   if [ -e ${ADVISDIR}/${ENSTORM}/$file ]; then
+      ln -s ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
+   fi
+done
+#
+# Copy the latest run.properties file to a consistent location in opendap
 cp run.properties /projects/ncfs/opendap/data/NCFS_CURRENT/run.properties.${HOSTNAME}.${INSTANCENAME} 2>> ${SYSLOG}
 #
-# jgf20110729: There seem to be issues ith ssh key permissions on blueridge so 
-# I commented this out.
-ssh ${WEBHOST} -l ${WEBUSER} "mkdir -p ${WEBPATH}/${INSTANCENAME}"
-scp run.properties ${WEBUSER}@${WEBHOST}:${WEBPATH}/${INSTANCENAME}/run.properties.${HOSTNAME}.${INSTANCENAME}
-ssh ${WEBHOST} -l ${WEBUSER} "chmod -R 755 ${WEBPATH}/${INSTANCENAME}"
+# send an email to CERA web application to notify it that results are ready
+COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com,nc.cera.renci2@gmail.com"
+subject="ADCIRC NCFS POSTED for $ADVISORY"
+if [[ $TROPICALCYCLONE = on ]]; then
+   subject=${subject}" (TROPICAL CYCLONE)"
+fi
+cat <<END > ${STORMDIR}/cera_results_notify.txt 
+
+The ADCIRC NCFS solutions for $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
+
+The run.properties file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
+   
+or wget the file with the following command
+
+wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
+END
+#
+echo "INFO: ncfs_post.sh: Sending 'results available' email to the following addresses: $COMMA_SEP_LIST." >> $SYSLOG
+cat ${STORMDIR}/cera_results_notify.txt | mail -s "$subject" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
