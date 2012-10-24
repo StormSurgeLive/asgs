@@ -39,7 +39,7 @@
 -89.87000 29.57000  ! 07380241    Suzie Bayou at L. Hermitage Rd near Deer Range   LA   USGS 
 -89.26617 30.14194  ! 3007220891501   Mississippi Sound at Grand Pass   MS   USGS
 -90.243390 29.337136  ! 82260   Bayou Lafourche At Golden Meadow Floodgate   LA   USACE    --nld mmoved from -90.24154 29.33743
--90.16120 30.37637  ! 85575   Lake Pontchartrain at Mandeville   LA   USACE
+-90.091639 30.363029 ! 85575   Lake Pontchartrain at Mandeville   LA   USACE --nld 10-24-2012 moved after Scott Lincoln pointed out previous position was incorrect. this location is a bit south of actual location to keep it in wet element.:
 -89.93285 29.26176  ! 073802516   Barataria Pass at Grand Isle   LA   USGS
 -90.88696 29.03295  ! 073813498   Caillou Bay SW of Cocodrie   LA   USGS 
 -90.07482 30.03242  ! 85626   London Ave Canal 1 - ICS Lakeside   LA   USACE
