@@ -50,21 +50,21 @@ cd ${ADVISDIR}/${ENSTORM}
 echo "asgs : nc" >> run.properties
 #
 # generate XDMF xml files 
-for file in `ls *.nc`; do
-   ${OUTPUTDIR}/generateXDMF.x --datafile $file 2>> $SYSLOG
-done
+#for file in `ls *.nc`; do
+#   ${OUTPUTDIR}/generateXDMF.x --datafile $file 2>> $SYSLOG
+#done
 #
 # create Google Earth images of water surface elevation and significant
 # wave height
-${OUTPUTDIR}/asgsCreateKMZs.sh -c ${OUTPUTDIR}/setupPostProcessGraphics.sh > graphics.log 2>&1
+#${OUTPUTDIR}/asgsCreateKMZs.sh -c ${OUTPUTDIR}/setupPostProcessGraphics.sh > graphics.log 2>&1
 #
 # copy the Google Earth images to a directory where they can be 
 # published via opendap
-OPENDAPDIR=`cat opendappath.log`;
-NCFS_CURRENT_DIR=/projects/ncfs/opendap/data/NCFS_CURRENT
-cp graphics/*.kmz ${OPENDAPDIR} >> graphics.log 2>&1 
-rm ${NCFS_CURRENT_DIR}/*.kmz >> graphics.log 2>&1
-cp graphics/*.kmz ${NCFS_CURRENT_DIR} >> graphics.log 2>&1
+#OPENDAPDIR=`cat opendappath.log`;
+#NCFS_CURRENT_DIR=/projects/ncfs/opendap/data/NCFS_CURRENT
+#cp graphics/*.kmz ${OPENDAPDIR} >> graphics.log 2>&1 
+#rm ${NCFS_CURRENT_DIR}/*.kmz >> graphics.log 2>&1
+#cp graphics/*.kmz ${NCFS_CURRENT_DIR} >> graphics.log 2>&1
 #
 # construct the opendap directory path where the results will be posted
 #
@@ -74,10 +74,10 @@ DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
 CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
 if [[ $BACKGROUNDMET = on ]]; then
    # for NAM, the "advisory number" is actually the cycle time 
-   STORMNAMEPATH=daily/nam
+   STORMNAMEPATH=tc/nam
 fi
 if [[ $TROPICALCYCLONE = on ]]; then
-   STORMNAME=`grep "storm name" ${STORMDIR}/run.properties | sed 's/storm name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+   STORMNAME=`grep "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
    STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
    STORMNAMEPATH=tc/$STORMNAMELC
 fi
@@ -93,14 +93,20 @@ cd $OPENDAPDIR 2>> ${SYSLOG}
 ln -s ${ADVISDIR}/${ENSTORM}/fort.14 .  2>> ${SYSLOG}
 ln -s ${ADVISDIR}/${ENSTORM}/fort.15 . 2>> ${SYSLOG}
 ln -s ${ADVISDIR}/${ENSTORM}/fort.*.nc . 2>> ${SYSLOG}
+ln -s ${ADVISDIR}/${ENSTORM}/swan*.nc . 2>> ${SYSLOG}
 ln -s ${ADVISDIR}/${ENSTORM}/max*.nc . 2>> ${SYSLOG}
 ln -s ${ADVISDIR}/${ENSTORM}/min*.nc . 2>> ${SYSLOG}
 ln -s ${ADVISDIR}/${ENSTORM}/run.properties . 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/*.xmf . 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/*.kmz . 2>> ${SYSLOG}
-for file in fort.13 fort.22 fort.26; do 
+#ln -s ${ADVISDIR}/${ENSTORM}/*.xmf . 2>> ${SYSLOG}
+#ln -s ${ADVISDIR}/${ENSTORM}/*.kmz . 2>> ${SYSLOG}
+for file in fort.13 fort.22 fort.26 ; do 
    if [ -e ${ADVISDIR}/${ENSTORM}/$file ]; then
       ln -s ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
+   fi
+done
+for file in al*.fst bal*.dat ; do 
+   if [ -e ${ADVISDIR}/$file ]; then
+      ln -s ${ADVISDIR}/$file . 2>> ${SYSLOG}
    fi
 done
 #
@@ -109,7 +115,8 @@ cp run.properties /projects/ncfs/opendap/data/NCFS_CURRENT/run.properties.${HOST
 #
 # send an email to CERA web application to notify it that results are ready
 COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com,nc.cera.renci2@gmail.com"
-subject="ADCIRC NCFS POSTED for $ADVISORY"
+runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'`
+subject="ADCIRC NCFS POSTED for $runStartTime"
 if [[ $TROPICALCYCLONE = on ]]; then
    subject=${subject}" (TROPICAL CYCLONE)"
 fi

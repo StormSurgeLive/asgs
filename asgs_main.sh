@@ -514,14 +514,16 @@ downloadRiverFluxData()
    MESHFILE=$2
    RIVERSITE=$3
    RIVERDIR=$4
-   ENSTORM=$5
-   CSDATE=$6
-   HSTIME=$7
-   SCRIPTDIR=$8
-   DEFAULTFILE=$9
-   USERIVERFILEONLY=${10}
+   RIVERUSER=$5
+   RIVERDATAPROTOCOL=$6
+   ENSTORM=$7
+   CSDATE=$8
+   HSTIME=$9
+   SCRIPTDIR=${10}
+   DEFAULTFILE=${11}
+   USERIVERFILEONLY=${12}
 #
-   OPTIONS="--advisdir $ADVISDIR --meshfile $MESHFILE --riversite $RIVERSITE --riverdir $RIVERDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --scriptdir $SCRIPTDIR --defaultfile $DEFAULTFILE"
+   OPTIONS="--advisdir $ADVISDIR --meshfile $MESHFILE --riversite $RIVERSITE --riverdir $RIVERDIR --riveruser $RIVERUSER --riverdataprotocol $RIVERDATAPROTOCOL --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --scriptdir $SCRIPTDIR --defaultfile $DEFAULTFILE"
    TRIES=0
    SUCCESS=no
    if [[ $USERIVERFILEONLY = no ]]; then
@@ -839,6 +841,8 @@ USERIVERFILEONLY=no
 STORMNAME=stormname
 RIVERSITE=ftp.nssl.noaa.gov
 RIVERDIR=/projects/ciflow/adcirc_info
+RIVERUSER=null
+RIVERDATAPROTOCOL=null
 ELEVSTATIONS=null
 VELSTATIONS=null
 METSTATIONS=null
@@ -1302,7 +1306,7 @@ while [ true ]; do
       allMessage "Starting nowcast for cycle '$ADVISORY'."
       # get river flux nowcast data, if configured to do so
       if [[ $VARFLUX = on ]]; then
-         downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX} $USERIVERFILEONLY
+         downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $RIVERUSER $RIVERDATAPROTOCOL $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX} $USERIVERFILEONLY
       fi
       # preprocess
       logMessage "Nowcast preprocessing."
@@ -1497,7 +1501,7 @@ while [ true ]; do
       if [[ ! -d $STORMDIR ]]; then continue; fi
       # get river flux nowcast data, if configured to do so
       if [[ $VARFLUX = on ]]; then
-         downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX} $USERIVERFILEONLY
+         downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $RIVERUSER $RIVERDATAPROTOCOL $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX} $USERIVERFILEONLY
       fi
       echo "hostname : $HOSTNAME" >> ${STORMDIR}/run.properties
       echo "instance : $INSTANCENAME" >> ${STORMDIR}/run.properties
