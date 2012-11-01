@@ -166,11 +166,6 @@ include 'adcmesh.f90'
          end do
       end if
 
-      ! if we are just looking at the mesh, set the InputFile to be the same as mesh file
-      if (meshonly.eqv..true.) then
-         InputFile = trim(meshFileName)//".nc"
-      endif
-
       ! present file conversion menu to user if the file was not specified on the
       ! command line
   997 continue
@@ -242,7 +237,9 @@ include 'adcmesh.f90'
             Outputfile = 'swan_TMM10.63.nc'
          case(9) !TPS
             Outputfile = 'swan_TPS.63.nc'
-         case(14,15) ! mesh
+         case(14)
+            Outputfile = trim(meshFileName)//'.nc'
+         case(15) ! mesh
             Outputfile = trim(InputFile)//'.nc'
          case default
             ! 10, 11, and 12 were assigned previously
