@@ -11,7 +11,7 @@ VMAX=$9      # percent adjustment in Vmax (%), 0 to leave Vmax alone
 TIMEOFFSET=${10} # for NWS15, time in seconds of start time of analysis
 TIMEZONE=${11} # used in the timestamp on the animation; GMT, EDT, or CDT
 #
-ASGSDIR=~/asgs/jet
+ASGSDIR=~/asgs/trunk
 ADCIRCDIR=~/adcirc/trunk/work
 PERL5LIB=$ASGSDIR/PERL ; export PERL5LIB
 #

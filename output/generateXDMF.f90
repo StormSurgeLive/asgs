@@ -50,8 +50,13 @@
       integer :: NC_VarID_time
       integer :: num_components
       character(120) :: standard_name(3)
-      character(120) :: dataDesc ! how the variable is described
+      character(120) :: dataDesc      ! how the variable is described
+      character(120) :: dataMagDesc   ! how the magnitude of the vector is described
+      character(120) :: fileTypeDesc  ! how the file is described
+      character(120) :: vectorMagDesc ! how the vector magnitude is 
+                                      ! described (only for vector datasets)
       character(NF90_MAX_NAME) :: varname(3)
+      character(NF90_MAX_NAME) :: varMagName
       integer :: NC_VarID(3)
       integer :: nc_id
       character(NF90_MAX_NAME) :: thisVarName
@@ -66,10 +71,14 @@
       character(1024) :: cmdlineopt
       character(1024) :: cmdlinearg
       logical :: useCPP ! true if we should refer to cpp coordinates in the netcdf file
+      logical :: useMag ! true if vector magnitude data are found in the file
+      logical :: fileTypeLogged ! true if file type has been logged as INFO message
       integer i, j ! loop counters
 
       multisets = .false.
       useCPP = .false.
+      useMag = .false.
+      fileTypeLogged = .false.
       argcount = iargc() ! count up command line options
       if (argcount.gt.0) then
          i=0
@@ -80,11 +89,11 @@
                case("--datafile")
                   i = i + 1
                   call getarg(i, cmdlinearg)
-                  write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
+                  write(6,*) "INFO: generateXDMF.f90:  Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
                   datafile = trim(cmdlinearg)
                case("--use-cpp")
                   useCPP = .true.
-                  write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+                  write(6,*) "INFO: generateXDMF.f90:  Processing ",trim(cmdlineopt),"."
                case default
             end select
          end do
@@ -106,7 +115,7 @@
          call check(nf90_close(nc_id))
          stop
       endif
-      write(6,'(A)') "INFO: Generating XDMF xml for this NetCDF file."
+      write(6,'(A)') "INFO: generateXDMF.f90:  Generating XDMF xml for this NetCDF file."
       !
       ! form file name of XDMF xml file and open it
       xmf = trim(datafile)//".xmf"
@@ -178,7 +187,7 @@
       ! determine the type of data stored in the file
       call check(nf90_inquire(nc_id, ndim, nvar, natt, nc_dimid_time, ncformat))
       if ( (ncformat.eq.nf90_format_netcdf4).or.(ncformat.eq.nf90_format_netcdf4_classic) ) then
-         write(6,*) "INFO: The data file uses netcdf4 formatting."
+         write(6,*) "INFO: generateXDMF.f90:  The data file uses netcdf4 formatting."
       endif
       !
       ! determine the type of file that we have
@@ -187,116 +196,114 @@
          call check(nf90_inquire_variable(nc_id, i, thisVarName))
          select case(trim(thisVarName))
          case("zeta")
-            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC water surface elevation file."
+            fileTypeDesc = "an ADCIRC water surface elevation file"
             varname(1) = trim(thisVarName)
             num_components = 1
-            exit
          case("zeta1","zeta2")
-            write(6,*) "INFO: Preparing to write XDMF xml for the elevations in an ADCIRC hotstart file."
+            fileTypeDesc = "the elevations in an ADCIRC hotstart file"
             varname(1) = "zeta1"
             varname(2) = "zeta2"
             num_components = 1 
             ndset = 2
             multisets = .true.
-            exit
          case("u-vel","v-vel")
-            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC water current velocity file."
+            fileTypeDesc = "an ADCIRC water current velocity file"
             num_components = 2
             varname(1) = "u-vel"
             varname(2) = "v-vel"
-            exit
+         case("vel_mag","wind_mag","radstress_mag","swan_wind_mag") 
+            write(6,*) "INFO: generateXDMF.f90:  The file contains vector magnitude data."
+            varMagName = trim(thisVarName)
+            useMag = .true.
          case("pressure")
-            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC barometric pressure file."
+            fileTypeDesc = "an ADCIRC barometric pressure file"
             num_components = 1
             varname(1) = "pressure"
-            exit
          case("windx","windy")
-            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC wind velocity file."
+            fileTypeDesc = "an ADCIRC wind velocity file"
             num_components = 2
             varname(1) = "windx"
             varname(2) = "windy"
-            exit
          case("maxele","zeta_max")
-            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC maximum water elevation (maxele.63) file."
+            fileTypeDesc = "an ADCIRC maximum water surface elevation (maxele.63) file"
             num_components = 1
             ndset = 1
             varname(1) = trim(thisVarName)
-            exit
          case("maxwvel","wind_max")
-            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC maximum wind speed (maxwvel.63) file."
+            fileTypeDesc = "an ADCIRC maximum wind speed (maxwvel.63) file"
             num_components = 1
             ndset = 1
             varname(1) = trim(thisVarName)
-            exit
          case("maxvel","vel_max")
-            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC maximum current speed (maxvel.63) file."
+            fileTypeDesc = "an ADCIRC maximum current speed (maxvel.63) file"
             num_components = 1
             ndset = 1
             varname(1) = trim(thisVarName)
-            exit
          case("maxrs","radstress_max")
-            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC maximum wave radiation stress gradient (maxrs.63) file."
+            fileTypeDesc = "an ADCIRC maximum wave radiation stress gradient (maxrs.63) file"
             num_components = 1
             ndset = 1
             varname(1) = trim(thisVarName)
-            exit
          case("minpr","pressure_min")
-            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC minimum barometric pressure (minpr.63) file."
+            fileTypeDesc = "an ADCIRC minimum barometric pressure (minpr.63) file"
             num_components = 1
             ndset = 1
             varname(1) = trim(thisVarName)
-            exit
          case("radstress_x","radstress_y")
-            write(6,*) "INFO: Preparing to write XDMF xml for an ADCIRC wave radiation stress gradient (rads.64) file."
+            fileTypeDesc = "an ADCIRC wave radiation stress gradient (rads.64) file"
             num_components = 2
             varname(1) = "radstress_x"
             varname(2) = "radstress_y"
-            exit
          case("swan_DIR")
-            write(6,*) "INFO: Preparing to write XDMF xml for a SWAN wave direction (swan_DIR.63) file."
+            fileTypeDesc = "a SWAN wave direction (swan_DIR.63) file"
             num_components = 1
             varname(1) = "swan_DIR"
-            exit
          case("swan_HS")
-            write(6,*) "INFO: Preparing to write XDMF xml for a SWAN significant wave height (swan_HS.63) file."
+            fileTypeDesc = "a SWAN significant wave height (swan_HS.63) file"
             num_components = 1
             varname(1) = "swan_HS"
-            exit
          case("swan_TMM10")
-            write(6,*) "INFO: Preparing to write XDMF xml for a SWAN mean absolute wave period (swan_TMM10.63) file."
+            fileTypeDesc = "a SWAN mean absolute wave period (swan_TMM10.63) file"
             num_components = 1
             varname(1) = "swan_TMM10"
-            exit
          case("swan_TM01")
-            write(6,*) "INFO: Preparing to write XDMF xml for a SWAN mean absolute wave period (swan_TM01.63) file."
+            fileTypeDesc = "SWAN mean absolute wave period (swan_TM01.63) file"
             num_components = 1
             varname(1) = "swan_TM01"
-            exit
          case("swan_TM02")
-            write(6,*) "INFO: Preparing to write XDMF xml for a SWAN mean absolute zero crossing period (swan_TM02.63) file."
+            fileTypeDesc = "a SWAN mean absolute zero crossing period (swan_TM02.63) file"
             num_components = 1
             varname(1) = "swan_TM02"
-            exit
          case("swan_TPS")
-            write(6,*) "INFO: Preparing to write XDMF xml for a SWAN smoothed peak period (swan_TPS.63) file."
+            fileTypeDesc = "a SWAN smoothed peak period (swan_TPS.63) file"
             num_components = 1
             varname(1) = "swan_TPS"
-            exit
          case("swan_windx","swan_windy")
-            write(6,*) "INFO: Preparing to write XDMF xml for a SWAN wind velocity (swan_WIND.64) file."
+            fileTypeDesc = "a SWAN wind velocity (swan_WIND.64) file"  
             num_components = 2
             varname(1) = "swan_windx"
             varname(2) = "swan_windy"
-            exit
          case default
             cycle     ! did not recognize this variable name
          end select
       end do
+      !    
       ! bomb out if we did not recognize any of the variable names in the file
       if ( trim(varname(1)).eq."null" ) then
-         write(6,*) "ERROR: Did not recognize any of the variables in the file."
+         write(6,*) "INFO: generateXDMF.f90: Did not recognize any of the variables in the file."
+         write(6,*) "INFO: generateXDMF.f90: The xml file will only contain mesh-related information."
+         ! finish off the xml so the user can at least look at the mesh
+         write(10,'(A)') '      </Grid>'
+         write(10,'(A)') '   </Domain>'
+         write(10,'(A)') '</Xdmf>'
+         close(10)
+         write(6,*) "INFO: generateXDMF.f90: Terminating after writing mesh-related into to xml file."
          stop
+      else
+         ! log the guessed type of the file for the user
+         write(6,*) "INFO: generateXDMF.f90:  Preparing to write XDMF xml for "//trim(fileTypeDesc)//"."    
       endif
+      
       if ( (ndset.eq.1).or.(multisets.eqv..true.) ) then
          call check(nf90_inq_varid(nc_id, varname(1), NC_VarID(1)))
          call check(nf90_get_att(nc_id, NC_VarID(1), 'standard_name', standard_name(1)))
@@ -330,7 +337,7 @@
          write(10,'(A)') '</Xdmf>'
          close(10)
          call check(nf90_close(nc_id))
-         write(6,'(A)') "INFO: Finished generating XDMF xml for this NetCDF file."
+         write(6,'(A)') "INFO: generateXDMF.f90:  Finished generating XDMF xml for this NetCDF file."
          stop
       endif
       !
@@ -344,22 +351,25 @@
          call check(nf90_get_att(nc_id, NC_VarID(i), 'standard_name', standard_name(i)))
          dataDesc = standard_name(1)
          if ( num_components.eq.2 ) then
-            if ( varname(1).eq."windx" ) then
+            select case(trim(varname(1)))
+            case("windx")
                dataDesc = "wind_velocity"
-            endif
-            if ( varname(1).eq."u-vel" ) then
+            case("u-vel")
                dataDesc = "water current velocity"
-            endif
-            if ( varname(1).eq."radstress_x" ) then
+            case("radstress_x")
                dataDesc = "radiation_stress_gradient"
-            endif
-            if ( varname(1).eq."swan_windx" ) then
+            case("swan_windx")
                dataDesc = "swan_wind_velocity"
-            endif
+            case default
+               write(6,*) "ERROR: The variable name "//trim(varname(1))//" was unrecognized."
+               stop
+            end select
+            dataMagDesc = trim(dataDesc)//"_magnitude"
          endif
       end do
       !
       ! write the XDMF xml for the time varying data
+      ! TODO: This should be modularized. Its turning into spaghetti.
       write(10,'(A)') '      </Grid>'
       write(10,'(A)') '      <Grid Name="TimeSeries"'
       write(10,'(A)') '            GridType="Collection"'
@@ -439,6 +449,27 @@
             write(10,'(13x,A)') '      </DataItem>' ! end of FUNCTION
          endif
          write(10,'(13x,A)') '   </Attribute>'
+         if (useMag.eqv..true.) then
+            ! add the magnitude of the vector
+            write(10,'(13x,A)') '<Attribute Name="'//trim(dataMagDesc)//'"'
+            write(10,'(13x,A)') '           Center="Node"'
+            write(10,'(13x,A)') '           AttributeType="Scalar">'
+            write(10,'(13x,A)') '      <DataItem ItemType="HyperSlab"'
+            write(10,'(13x,A,I12,A)') '                Dimensions="',np,'"'
+            write(10,'(13x,A)') '               Type="HyperSlab">'
+            write(10,'(13x,A)') '        <DataItem Dimensions="3 2"'
+            write(10,'(13x,A)') '                  Format="XML">'
+            write(10,'(13x,A,I5,A)') '                 ',i-1,' 0'
+            write(10,'(13x,A)') '                     1 1'
+            write(10,'(13x,A,I12)') '                     1 ',np
+            write(10,'(13x,A)') '          </DataItem>'
+            write(10,'(13x,A,I5,I12,A)') '          <DataItem Dimensions="',ndset-1,np,'"'
+            write(10,'(13x,A)') '                 NumberType="Float"'
+            write(10,'(13x,A)') '                 Precision="8" Format="HDF">'//trim(datafile)//":/"//trim(varMagName)
+            write(10,'(13x,A)') '            </DataItem>'
+            write(10,'(13x,A)') '         </DataItem>'
+            write(10,'(13x,A)') '</Attribute>'
+         endif
          write(10,'(13x,A)') '</Grid>' ! end of this time snap
       end do
       write(10,'(A)') '      </Grid>' ! end of temporal collection
@@ -446,7 +477,7 @@
       write(10,'(A)') '</Xdmf>'
       close(10)
       call check(nf90_close(nc_id))
-      write(6,'(A)') "INFO: Finished generating XDMF xml for this NetCDF file."
+      write(6,'(A)') "INFO: generateXDMF.f90:  Finished generating XDMF xml for this NetCDF file."
 !----------------------------------------------------------------------
       end program generateXDMF
 !----------------------------------------------------------------------

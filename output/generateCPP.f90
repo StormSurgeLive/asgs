@@ -29,6 +29,9 @@
 !
 ! Example of compiling generateCPP.f90 with pgf90:
 ! pgf90 -o generateCPP.x -Mpreprocess -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/opt/cray/netcdf/4.1.3/pgi/109/include generateCPP.f90 -L/opt/cray/netcdf/4.1.3/pgi/109/lib  -lnetcdf -lnetcdff
+!
+! Example of compiling with gfortran:
+! gfortran -cpp -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -o generateCPP.x -ffree-form -ffree-line-length-none -I/usr/include generateCPP.f90 -lnetcdf -lnetcdff -lz
 
       include 'adcmesh.f90'
 

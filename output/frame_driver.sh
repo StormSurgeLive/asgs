@@ -100,7 +100,7 @@ for file in $files; do
    montage radii_${num}.png spatial_data_${num}.png radialv_${num}_corrected.png radialp_${num}_corrected.png -geometry +2+2 montage_geom_${num}.png
    convert -trim -border 2%x2% -bordercolor white montage_geom_${num}.png montage_geom_${num}.png
    # add header to label the frame
-   convert montage_geom_${num}.png -font Verdana-Regular -pointsize 72 -background SkyBlue label:'Isaac Surface Wind Analysis' +swap -gravity Center -append -bordercolor SkyBlue -border 5x5 montage_geom_${num}.png
+   convert montage_geom_${num}.png -font Verdana-Regular -pointsize 72 -background SkyBlue label:'Sandy Surface Wind Analysis' +swap -gravity Center -append -bordercolor SkyBlue -border 5x5 montage_geom_${num}.png
    # add small logo to header to identify the analyst
    composite -gravity NorthWest -geometry +5+9 ./SCC_header.png montage_geom_${num}.png montage_geom_${num}.png
    # add timestamp to indicate local time and exact time associated with interstitial frames
