@@ -193,11 +193,25 @@ if ( $end == 0 ) {
 #
 # get all the current data file names
 my @fluxFiles;
+my @allFiles;
 if ( $rdp eq "ftp" ) {
-   @fluxFiles = $ftp->ls();
+   @allFiles = $ftp->ls();
 } else {
-   @fluxFiles = `ssh -l $riveruser $riversite "find $riverdir"`;
+   @allFiles = `ssh -l $riveruser $riversite "find $riverdir"`;
 }
+# get a list of actual files, get rid of empty directories etc
+for (my $i=0; $i<@allFiles; $i++) {
+   #stderrMessage("DEBUG","allFile: $allFiles[$i]");
+   unless ( $allFiles[$i] =~ /OKU_(\d+)T(\d\d)/ ) {
+      next;
+   } else {
+      push(@fluxFiles,$allFiles[$i]);
+   }
+}
+chomp(@fluxFiles);
+#for (my $i=0; $i<@fluxFiles; $i++) {
+#   stderrMessage("DEBUG","fluxFile: $fluxFiles[$i]");
+#}
 # now sort the files from earliest to most recent (it appears that ls() does
 # not automatically do this for us)
 my @sortedFluxFiles = sort by_start_date @fluxFiles;
@@ -378,10 +392,13 @@ sub getFluxData() {
                stderrMessage("INFO","Download complete.");
             }
          } else {
-            my $status = `scp $riveruser@$riversite:$_[$i] $advisdir/$enstorm`;
+            my $scp_command="scp $riveruser\@$riversite:$_[$i] $advisdir/$enstorm";
+            stderrMessage("DEBUG","Downloading file with $scp_command");
+            my $status = `$scp_command`;
          }
-         unless (open(FLUX,"<$advisdir/$enstorm/$_[$i]") ) { 
-            stderrMessage("ERROR","Could not open '$advisdir/$enstorm/$_[$i]' for reading: $!.");
+         my $baseFileName = `basename $_[$i]`;
+         unless (open(FLUX,"<$advisdir/$enstorm/$baseFileName") ) { 
+            stderrMessage("ERROR","Could not open '$advisdir/$enstorm/$baseFileName' for reading: $!.");
             die;
          }
          # determine the start date of the data in this file
@@ -547,7 +564,4 @@ sub stderrMessage () {
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
    printf STDERR "$theTime $level: get_flux.pl: $message\n";
-   if ($level eq "ERROR") {
-      sleep 60
-   }
 }

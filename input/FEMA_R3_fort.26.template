@@ -1,6 +1,6 @@
 $*************************HEADING************************
 $
-PROJ 'ASGS' '2011'
+PROJ 'ASGS' '2012'
 'StormName: %StormName%'
 'EnsembleID: %EnsembleID%'
 'WTIMINC Line in ADCIRC fort.15: %WTIMINC%'
@@ -34,13 +34,11 @@ BREAKING RUE
 FRICTION JONSWAP CFJON=0.038
 $OFF REFRAC
 PROP BSBT
-NUM STOPC DABS=0.005 DREL=0.01 CURVAT=0.005 NPNTS=95 NONSTAT MXITNS=20
+NUM STOPC DABS=0.005 DREL=0.01 CURVAT=0.005 NPNTS=95 NONSTAT MXITNS=10 CSIGMA CFL=0.25 CTHETA CFL=0.25
 $
 $*************************************************************
 $
-QUANTITY HS DIR TM01 TM02 FMIN=0.031384 FMAX=0.547632
-
-
+QUANTITY HS DIR TM01 FMIN=0.031384 FMAX=0.547632
 TEST 1,0
 COMPUTE %startdatetime% %swandt%  SEC %enddatetime% 
 STOP

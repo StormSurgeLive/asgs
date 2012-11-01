@@ -30,7 +30,10 @@
 !
 ! Example of compiling this program with gfortran:
 ! gfortran -o netcdf2adcirc.x -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I$HOME/include -L$HOME/lib netcdf2adcirc.f90 -lnetcdf -lnetcdff
-
+!
+! Example of compiling this program with intel fortran at RENCI: 
+! ifort -o netcdf2adcirc.x -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -i-dynamic -I/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/include -L/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/lib netcdf2adcirc.f90 -lnetcdf -lnetcdff -lz
+!
       include 'adcmesh.f90'
 
       program netcdf2adcirc
