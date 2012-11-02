@@ -109,41 +109,45 @@ my $num_met_sta = 0;
 my @met_sta_names;
 my @sta_names;
 my $sta_type = ""; # which station type we are currently parsing
+my $controlFileFound = 1;
 unless(open(FORT15,"<$controlFile")) {
-   stderrMessage("ERROR","Could not open $controlFile for reading.");
-   exit 1;
-}
-#
-while(<FORT15>) {
-   my @Fld = split;
-   if ( /(NSTAE)/ || /(NSTAV)/ || /(NSTAM)/ ) {
-      $num_sta = $Fld[0];
-      my $station_type = $1;
-      for ( my $i=0; $i<$num_sta; $i++ ) {
-         my $line =<FORT15>; 
-         chomp($line);
-         if ( $station_type eq "NSTAE" ) {
-            $num_elev_sta = $num_sta;
-            push(@elev_sta_names,substr($line,(index($line,"!"))+1));  
-         }
-         if ( $station_type eq "NSTAV" ) {
-            $num_vel_sta = $num_sta;
-            push(@vel_sta_names,substr($line,(index($line,"!"))+1));  
-         }
-         if ( $station_type eq "NSTAM" ) {
-            $num_met_sta = $num_sta;
-            push(@met_sta_names,substr($line,(index($line,"!"))+1));  
+   stderrMessage("WARNING","Could not open $controlFile for reading.");
+   stderrMessage("WARNING","The number of stations will be gleaned from the datafile itself.");
+   stderrMessage("WARNING","The station names will default to 'Station1', 'Station2', etc.");
+   $controlFileFound = 0;
+} else {
+   stderrMessage("INFO","The number of stations and the station names will be parsed from the file '$controlFile'.");
+   while(<FORT15>) {
+      my @Fld = split;
+      if ( /(NSTAE)/ || /(NSTAV)/ || /(NSTAM)/ ) {
+         $num_sta = $Fld[0];
+         my $station_type = $1;
+         for ( my $i=0; $i<$num_sta; $i++ ) {
+            my $line =<FORT15>; 
+            chomp($line);
+            if ( $station_type eq "NSTAE" ) {
+               $num_elev_sta = $num_sta;
+               push(@elev_sta_names,substr($line,(index($line,"!"))+1));  
+            }
+            if ( $station_type eq "NSTAV" ) {
+               $num_vel_sta = $num_sta;
+               push(@vel_sta_names,substr($line,(index($line,"!"))+1));  
+            }
+            if ( $station_type eq "NSTAM" ) {
+               $num_met_sta = $num_sta;
+               push(@met_sta_names,substr($line,(index($line,"!"))+1));  
+            }
          }
       }
    }
-}
-close(FORT15);
-if ( $fileToTranspose eq "elevation" ) {
-   @sta_names = @elev_sta_names;
-} elsif ( $fileToTranspose eq "velocity" ) {
-   @sta_names = @vel_sta_names;
-} elsif ( $fileToTranspose eq "windvelocity" || $fileToTranspose eq "barometricpressure" ) {
-   @sta_names = @met_sta_names;
+   close(FORT15);
+   if ( $fileToTranspose eq "elevation" ) {
+      @sta_names = @elev_sta_names;
+   } elsif ( $fileToTranspose eq "velocity" ) {
+      @sta_names = @vel_sta_names;
+   } elsif ( $fileToTranspose eq "windvelocity" || $fileToTranspose eq "barometricpressure" ) {
+      @sta_names = @met_sta_names;
+   }
 }
 #
 # jgfdebug
@@ -181,15 +185,11 @@ my $time;
 while (<STAFILE>) {
    #
    # the first line in the file is a comment line; transcribe it to the 
-   # transposed file as a gnuplot comment line ; then write the 
-   # names of the stations on the next line according to the requested format
+   # transposed file as a gnuplot comment line
    if ($. == 1 ) {
       chomp;
       printf TRANSPOSE "# " . $_ . "\n";
-      printf TRANSPOSE "#DATE" . $separator . "TIME" . $separator . "TIMEZONE" . $separator;
-      foreach (@sta_names) {
-          printf TRANSPOSE "\"$_\"" . $separator;
-      }
+
    } 
    #
    # 2nd line in the file contains the number of stations;
@@ -198,6 +198,19 @@ while (<STAFILE>) {
       m/^\s*([^\s]*)\s*([^\s]*)/;
       $total_stations = $2;
       stderrMessage("INFO","Output file '$transposeFilename' contains $total_stations stations.\n");
+      # if the user didn't specify a fort.15, create default station names,
+      # using the number of stations we just found in the station output file
+      if ( $controlFileFound == 0 ) { 
+         for (my $i=0; $i<$total_stations; $i++ ) {
+            my $default_station_number = $i+1;
+            $sta_names[$i] = "Station" . $default_station_number;
+         }
+      }
+      # write the names of the stations on the next line according to the requested format
+      printf TRANSPOSE "#DATE" . $separator . "TIME" . $separator . "TIMEZONE" . $separator;
+      foreach (@sta_names) {
+          printf TRANSPOSE "\"$_\"" . $separator;
+      }
    #
    # there is a header line with the time, at the start of each dataset
    } elsif ($. > 2 && ($.-3) % ($total_stations+1) == 0) {
