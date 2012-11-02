@@ -59,6 +59,7 @@
       integer :: ncformat
       integer :: ndset
       integer :: num_components
+      integer :: ag,agold,agnew
       real(8) :: time_increment
       real(8) :: defaultValue
       real(8), allocatable :: timesec(:)  ! time in seconds associated with each dataset
@@ -214,7 +215,15 @@
       else
          ! determine the number of nodes
          call check(nf90_inq_dimid(nc_id, "node", nc_dimid_node))
-         call check(nf90_get_att(nc_id,nf90_global,'agrid',agrid))
+         agold=nf90_get_att(nc_id,nf90_global,'grid',agrid)
+         agnew=nf90_get_att(nc_id,nf90_global,'agrid',agrid)
+         if(agold.EQ.NF90_NOERR)then
+           ag=nf90_get_att(nc_id,nf90_global,'grid',agrid)
+         elseif(agnew.EQ.NF90_NOERR)then
+           ag=nf90_get_att(nc_id,nf90_global,'agrid',agrid)
+         else
+           call check(agnew)
+         endif
       endif
       call check(nf90_inquire_dimension(nc_id, nc_dimid_node, len=np))
       ! determine time increment between output writes
