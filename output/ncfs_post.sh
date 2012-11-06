@@ -99,7 +99,7 @@ ln -s ${ADVISDIR}/${ENSTORM}/min*.nc . 2>> ${SYSLOG}
 ln -s ${ADVISDIR}/${ENSTORM}/run.properties . 2>> ${SYSLOG}
 #ln -s ${ADVISDIR}/${ENSTORM}/*.xmf . 2>> ${SYSLOG}
 #ln -s ${ADVISDIR}/${ENSTORM}/*.kmz . 2>> ${SYSLOG}
-for file in fort.13 fort.22 fort.26 ; do 
+for file in fort.13 fort.22 fort.26 fort.221 fort.222 ; do 
    if [ -e ${ADVISDIR}/${ENSTORM}/$file ]; then
       ln -s ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
    fi
