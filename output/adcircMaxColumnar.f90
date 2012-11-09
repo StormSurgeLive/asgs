@@ -60,7 +60,7 @@ include 'adcmesh.f90'
       meshFileName = "null"
       !
       ! Report netcdf version
-      write(6,*) "INFO: adcirc2netcdf was compiled with the following netcdf library: ",trim(nf90_inq_libvers())
+      write(6,*) "INFO: adcircMaxColumnar was compiled with the following netcdf library: ",trim(nf90_inq_libvers())
 
       argcount = iargc() ! count up command line options
       if (argcount.gt.0) then
