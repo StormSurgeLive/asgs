@@ -113,9 +113,100 @@ risk and disaster planning. (\cite{LynchDR2004})(\cite
 {LynchDR2004}) (\cite{MasseyWG2007}) (\cite{OConnorWP1999}) (\cite
 {VerlaanM2005}) (\cite{XieL2006}) (\cite{MattocksC2006}) (\cite
 {RamakrishnanL2006})(\cite{KennedyA2010})(\cite{FlemingJG2008})
-(\cite{JelesnianskiCP1992})(\cite{GlahnB2009})(\cite{GlahnB2009})
+(\cite{GlahnB2009})(\cite{GlahnB2009})
 (\cite{KimSC1996})(\cite{BlainCA2002Tidal})(\cite{BlantonBO2012})
-(\cite{VanCootenS2011})(\cite{BooijN1999})
+(\cite{VanCootenS2011})(\cite{BooijN1999})(\cite{ChuP2009})
+
+As the technology supporting numerical storm surge calculations 
+developed over time, the value of the predictions for real time 
+emergency response became more and more clear (\cite
+{JelesnianskiCP1992}). The first attempt to apply an existing 
+coastal model in a real time context was the SLOSH model (\cite
+{JelesnianskiCP1992}). This system was developed according to the 
+``closed system'' paradigm depicted in Figure 1. In this approach, a 
+small unified team of developers within a single organization takes 
+responsibility for every aspect of the system: gathering of physical 
+(e.g., bathymetry), construction of a meteorological model, offline 
+validation, computational resources, post processing, visualization, 
+dissemination to end users within the same organization, and the 
+software automation to make the whole stack run in real time. 
+
+The advantages of the closed system approach are simplicity and 
+control. Simplicity results from the need to only code for a single 
+computational plaform with a narrow set of capabilites as required 
+to satisfy the target audience. All other things being equal, simple 
+systems are more reliable and easier to maintain than complex 
+systems. Closed systems are also easier to control. This ease of 
+control stems from the availability of dedicated resources, 
+including compute time, staff time, and a single chain of command 
+with high level buy-in for the stated objectives of the real time 
+guidance system.
+
+The disadvantages of the closed system are expense, inflexibility, 
+and stagnation. Closed systems are relatively expensive because all 
+research, development and maintenance costs must be borne by a 
+single working group within an organization. New features and capabilities
+can only be produced as the time and budget of that group allows, and 
+development of new capabilities must be balanced against the need to 
+maintain and operate.
+
+Because closed systems are developed for a narrow target audience on 
+a single target platform, many simplfying assumptions may be made to 
+speed development, thus reducing the initial cost. But these 
+simplifying assumptions also serve to stymie later extensions to new 
+compute platforms, new geographical areas, or the inclusion of new
+features. 
+
+The final disadvantage of closed systems is stagnation. The lack of
+technology sharing with other working groups, or applications for other
+projects or end users tends to limit the expansion of the technology
+to new areas, especially those outside the experience of the foundational
+team. 
+
+An alternate architecture that we call the ``distributed chain'' is 
+illustrated in Figure 2. This type of system is the polar opposite
+of the closed system described previously. The distributed chain system
+distributes the load and responsibility of developing each piece of a
+real time guidance system to several geographically dispersed 
+organizations that are linked through the internet via a common data bus
+that is used to download products, then upload them after some processing or
+contribution to the final result. For example, one organization may
+be run a numerical weather model, while another orgainzation sets up 
+a surge model, with computational resources being offered by yet 
+another organization. 
+
+The advantages and disadvantages of the distributed chain system are 
+mostly the inverse of the closed system. The disadvantages are 
+complexity and lack of control: each time another institution or 
+software system are included in the chain, the system becomes more 
+complex and the number of potential points of failure increases. The 
+increase in the number of failure points is particularly significant 
+because the chain is only as strong as its weakest link. And because 
+each link in the chain is operated independently, there isn't a 
+single point of accountability for all of the participants.
+
+The advantages of the distributed chain are flexibility and vibrancy. 
+Because of the open-participation philosophy and sharing of a common data
+bus, the barrier to entry of new participants and new ideas is low, and
+as a result such architectures attract new ideas and new participants
+easily.
+
+On the issue of expense, it is difficult to determine whether the 
+closed system or the distributed chain have the advantage. The 
+distributed chain distributes the cost of development among several 
+participating teams, so the expense associated with any given team 
+is lower. However, the aggregate cost of the whole distributed chain
+may not be lower, as it includes the increased costs associated with
+coordinating the various participants. 
+
+Finally both closed systems and distributed chains have an issue 
+with long term viability that results from a lack of technology 
+sharing. Closed system technologies and the individual components of 
+distributed chain systems are generally kept ``in-house'' and not 
+freely shared with other developers outside the organization. As a 
+result, the products of these teams will continue to be available 
+only from their original developers and only for as long as they are 
+able to produce them.
 
 Over the course of time, the approach to numerical storm surge 
 calculations evolved in two separate directions: simulations that 
@@ -125,16 +216,16 @@ heavily on probabilistic formulation of the input and statistical
 interpretation of the output, the availablility of computational 
 resources that could be applied in each case was assumed to be 
 different. The model implementations meant for operations were 
-required to run with lower resolution and ower provision of 
+required to run with lower resolution and lower provision of 
 computational resources than model implementations used for offline 
 design studies. 
 
-This bifucation of resource requirements was strongly evident during 
-the approach and landfall of hurricane Katrina on the northern Gulf 
-coast of the US in 2005. The storm surge forecasts that were 
-produced in real time for Katrina contained far less detail and 
-realism than the coastal engineering design studies that were 
-commonly performed at that time using ADCIRC. 
+This bifucation of approach to resource requirements was strongly 
+evident during the approach and landfall of hurricane Katrina on the 
+northern Gulf coast of the US in 2005. The storm surge forecasts 
+that were produced in real time for Katrina contained far less 
+detail and realism than the coastal engineering design studies that 
+were commonly performed at that time using ADCIRC. 
 
 As a result, in the aftermath of Katrina, there was strong 
 motivation to bring the detail, realism and computational resources 
@@ -749,11 +840,25 @@ Start acknowledgments here.
 % FIGURES-REMOVE ALL DIRECTORY PATHS TO FIGURE FILES BEFORE SUBMITTING TO THE AMS FOR PEER REVIEW
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%    C L O S E D   S Y S T E M 
+\begin{figure}[t]
+  \noindent\includegraphics[width=19pc,angle=0]{closed_system.pdf}\\
+  \caption{Enter the caption for your figure here.  Repeat as
+  necessary for each of your figures.}\label{f1}
+\end{figure}
+
+%    D I S T R I B U T E D   C H A I N
+\begin{figure}[t]
+  \noindent\includegraphics[width=19pc,angle=0]{distributed_chain.pdf}\\
+  \caption{Enter the caption for your figure here.  Repeat as
+  necessary for each of your figures.}\label{f1}
+\end{figure}
+
 %    A S G S   O V E R V I E W   F L O W C H A R T
 \begin{figure}[t]
   \noindent\includegraphics[width=19pc,angle=0]{asgs_overview_color.pdf}\\
   \caption{Enter the caption for your figure here.  Repeat as
-  necessary for each of your figures.\cite{LynchDR2004}}\label{f1}
+  necessary for each of your figures.}\label{f1}
 \end{figure}
 
 %    A S G S   S T R U C T U R E   D I A G R A M 
