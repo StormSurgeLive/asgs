@@ -105,108 +105,17 @@ were motivated by scientific curiosity, applied studies were later
 commissioned by federal agencies such as the US Army Corps of 
 Engineers for storm surge protection designs and by the Federal 
 Emergency Management Agency (FEMA) for the purpose of quantifying 
-risk and disaster planning. (\cite{LynchDR2004})(\cite
-{ASGSOperatorsGuide2011}) (\cite{ASGSDevelopersGuide2011}) (\cite
-{BlainCA1998}) (\cite{BlainCA2002}) (\cite{BlainCA2002}) (\cite
+risk and disaster planning. (\cite{LynchDR2004})(\cite 
+{ASGSOperatorsGuide2011}) (\cite{ASGSDevelopersGuide2011}) (\cite 
+{BlainCA1998}) (\cite{BlainCA2002}) (\cite{BlainCA2002}) (\cite 
 {DietrichJC2012}) (\cite{FlatherRA1994}) (\cite{GraberHC2006}) (\cite
-{HollandGJ1980}) (\cite{HoustonSH1999}) (\cite{HubbertGD1991}) (\cite
-{LynchDR2004}) (\cite{MasseyWG2007}) (\cite{OConnorWP1999}) (\cite
-{VerlaanM2005}) (\cite{XieL2006}) (\cite{MattocksC2006}) (\cite
-{RamakrishnanL2006})(\cite{KennedyA2010})(\cite{FlemingJG2008})
-(\cite{GlahnB2009})(\cite{GlahnB2009})
-(\cite{KimSC1996})(\cite{BlainCA2002Tidal})(\cite{BlantonBO2012})
-(\cite{VanCootenS2011})(\cite{BooijN1999})(\cite{ChuP2009})
-
-As the technology supporting numerical storm surge calculations 
-developed over time, the value of the predictions for real time 
-emergency response became more and more clear (\cite
-{JelesnianskiCP1992}). The first attempt to apply an existing 
-coastal model in a real time context was the SLOSH model (\cite
-{JelesnianskiCP1992}). This system was developed according to the 
-``closed system'' paradigm depicted in Figure 1. In this approach, a 
-small unified team of developers within a single organization takes 
-responsibility for every aspect of the system: gathering of physical 
-(e.g., bathymetry), construction of a meteorological model, offline 
-validation, computational resources, post processing, visualization, 
-dissemination to end users within the same organization, and the 
-software automation to make the whole stack run in real time. 
-
-The advantages of the closed system approach are simplicity and 
-control. Simplicity results from the need to only code for a single 
-computational plaform with a narrow set of capabilites as required 
-to satisfy the target audience. All other things being equal, simple 
-systems are more reliable and easier to maintain than complex 
-systems. Closed systems are also easier to control. This ease of 
-control stems from the availability of dedicated resources, 
-including compute time, staff time, and a single chain of command 
-with high level buy-in for the stated objectives of the real time 
-guidance system.
-
-The disadvantages of the closed system are expense, inflexibility, 
-and stagnation. Closed systems are relatively expensive because all 
-research, development and maintenance costs must be borne by a 
-single working group within an organization. New features and capabilities
-can only be produced as the time and budget of that group allows, and 
-development of new capabilities must be balanced against the need to 
-maintain and operate.
-
-Because closed systems are developed for a narrow target audience on 
-a single target platform, many simplfying assumptions may be made to 
-speed development, thus reducing the initial cost. But these 
-simplifying assumptions also serve to stymie later extensions to new 
-compute platforms, new geographical areas, or the inclusion of new
-features. 
-
-The final disadvantage of closed systems is stagnation. The lack of
-technology sharing with other working groups, or applications for other
-projects or end users tends to limit the expansion of the technology
-to new areas, especially those outside the experience of the foundational
-team. 
-
-An alternate architecture that we call the ``distributed chain'' is 
-illustrated in Figure 2. This type of system is the polar opposite
-of the closed system described previously. The distributed chain system
-distributes the load and responsibility of developing each piece of a
-real time guidance system to several geographically dispersed 
-organizations that are linked through the internet via a common data bus
-that is used to download products, then upload them after some processing or
-contribution to the final result. For example, one organization may
-be run a numerical weather model, while another orgainzation sets up 
-a surge model, with computational resources being offered by yet 
-another organization. 
-
-The advantages and disadvantages of the distributed chain system are 
-mostly the inverse of the closed system. The disadvantages are 
-complexity and lack of control: each time another institution or 
-software system are included in the chain, the system becomes more 
-complex and the number of potential points of failure increases. The 
-increase in the number of failure points is particularly significant 
-because the chain is only as strong as its weakest link. And because 
-each link in the chain is operated independently, there isn't a 
-single point of accountability for all of the participants.
-
-The advantages of the distributed chain are flexibility and vibrancy. 
-Because of the open-participation philosophy and sharing of a common data
-bus, the barrier to entry of new participants and new ideas is low, and
-as a result such architectures attract new ideas and new participants
-easily.
-
-On the issue of expense, it is difficult to determine whether the 
-closed system or the distributed chain have the advantage. The 
-distributed chain distributes the cost of development among several 
-participating teams, so the expense associated with any given team 
-is lower. However, the aggregate cost of the whole distributed chain
-may not be lower, as it includes the increased costs associated with
-coordinating the various participants. 
-
-Finally both closed systems and distributed chains have an issue 
-with long term viability that results from a lack of technology 
-sharing. Closed system technologies and the individual components of 
-distributed chain systems are generally kept ``in-house'' and not 
-freely shared with other developers outside the organization. As a 
-result, the products of these teams will continue to be available 
-only from their original developers and only for as long as they are 
-able to produce them.
+{HollandGJ1980}) (\cite{HoustonSH1999}) (\cite{HubbertGD1991}) (
+\cite {LynchDR2004}) (\cite{MasseyWG2007}) (\cite{OConnorWP1999}) (
+\cite {VerlaanM2005}) (\cite{XieL2006}) (\cite{MattocksC2006}) (\cite
+{RamakrishnanL2006})(\cite{KennedyA2010})(\cite{FlemingJG2008}) (
+\cite{GlahnB2009})(\cite{GlahnB2009}) (\cite{KimSC1996})(\cite
+{BlainCA2002Tidal})(\cite{BlantonBO2012}) (\cite{VanCootenS2011})(
+\cite{BooijN1999})(\cite{ChuP2009})
 
 Over the course of time, the approach to numerical storm surge 
 calculations evolved in two separate directions: simulations that 
@@ -231,6 +140,144 @@ As a result, in the aftermath of Katrina, there was strong
 motivation to bring the detail, realism and computational resources 
 of a design study to bear in real time.  
 
+As the technology supporting numerical storm surge calculations 
+developed over time, the value of the predictions for real time 
+emergency response became more and more clear (\cite 
+{JelesnianskiCP1992}). The first attempt to apply an existing 
+coastal model in a real time context was the SLOSH model (\cite 
+{JelesnianskiCP1992}). This system was developed according to the 
+``closed system'' paradigm depicted in Figure 1. In this approach, a 
+small unified team of developers within a single organization takes 
+responsibility for every aspect of the system: gathering of physical 
+(e.g., bathymetry), construction of a meteorological model, offline 
+validation, computational resources, post processing, visualization, 
+dissemination to end users within the same organization, and the 
+software automation to make the whole stack run in real time. 
+
+The advantages of the closed system approach are simplicity and 
+control. Simplicity results from the need to only code for a single 
+computational plaform with a narrow set of capabilites as required 
+to satisfy the target audience. All other things being equal, simple 
+systems are more reliable and easier to maintain than complex 
+systems. Closed systems are also easier to control. This ease of 
+control stems from the availability of dedicated resources, 
+including compute time, staff time, and a single chain of command 
+with high level buy-in for the stated objectives of the real time 
+guidance system.
+
+The disadvantages of the closed system are expense, inflexibility, 
+and stagnation. Closed systems are relatively expensive because all 
+research, development and maintenance costs must be borne by a 
+single working group within an organization. New features and 
+capabilities can only be produced as the time and budget of that 
+group allows, and development of new capabilities must be balanced 
+against the need to maintain and operate.
+
+Because closed systems are developed for a narrow target audience on 
+a single target platform, many simplfying assumptions may be made to 
+speed development, thus reducing the initial cost. But these 
+simplifying assumptions also serve to stymie later extensions to new 
+compute platforms, new geographical areas, or the inclusion of new 
+features. 
+
+The final disadvantage of closed systems is stagnation. The lack of 
+technology sharing with other working groups, or applications for 
+other projects or end users tends to limit the expansion of the 
+technology to new areas, especially those outside the experience of 
+the foundational team. 
+
+An alternate architecture that we call the ``distributed chain'' is 
+illustrated in Figure 2. This type of system is the polar opposite 
+of the closed system described previously. The distributed chain 
+system distributes the load and responsibility of developing each 
+piece of a real time guidance system to several geographically 
+dispersed organizations that are linked through the internet via a 
+common data bus that is used to download products, then upload them 
+after some processing or contribution to the final result. For 
+example, one organization may be run a numerical weather model, 
+while another orgainzation sets up a surge model, with computational 
+resources being offered by yet another organization. 
+
+The advantages and disadvantages of the distributed chain system are 
+mostly the inverse of the closed system. The disadvantages are 
+complexity and lack of control: each time another institution or 
+software system are included in the chain, the system becomes more 
+complex and the number of potential points of failure increases. The 
+increase in the number of failure points is particularly significant 
+because the chain is only as strong as its weakest link. And because 
+each link in the chain is operated independently, there isn't a 
+single point of accountability for all of the participants.
+
+The advantages of the distributed chain are flexibility and 
+vibrancy. Because of the open-participation philosophy and sharing 
+of a common data bus, the barrier to entry of new participants and 
+new ideas is low, and as a result such architectures attract new 
+ideas and new participants easily.
+
+On the issue of expense, it is difficult to determine whether the 
+closed system or the distributed chain have the advantage. The 
+distributed chain distributes the cost of development among several 
+participating teams, so the expense associated with any given team 
+is lower. However, the aggregate cost of the whole distributed chain 
+may not be lower, as it includes the increased costs associated with 
+coordinating the various participants. 
+
+Finally both closed systems and distributed chains face the burden 
+of reinventing the wheel when implemnting new features, and even 
+issues of long term viability; these issues result from a lack of 
+freely shared technology. Closed system technologies and the 
+individual components of distributed chain systems are generally 
+kept ``in-house'' and not freely shared with other developers 
+outside the organization. As a result, technological features must 
+be created from scratch whenever a new group decides to develop a 
+real time coastal forecast system. Furthermore, the products of 
+these teams will continue to be available only from their original 
+developers and only for as long as they are able to produce them, 
+and the issues of stagnation still apply to those technologies.
+
+In order to combine the advantages of both the closed system and 
+distributed chain approaches while avoiding their respective 
+disadvantages, the ASGS has been developed using a regional team 
+approach. In this paradigm, shown in Figure 3, the technology and 
+know-how associated with it are freely shared among participants, 
+while the responsibility for local validation, securing computational 
+resources, real time execution and communication with local emergency
+manager and high level officials are distributed to regional teams 
+to apply the ASGS to issues of local interest. 
+
+The regional team approach offers the flexibility and vibrancy of 
+the distributed chain, since the existing technology is freely 
+shared among participants, enabling new participants to get up to 
+speed quickly while existing participants benefit from sharing  new 
+features. It also solves the weakest link and accoutability issues 
+inherent in the distributed chain approach, since each regional team 
+operates independently in a self-contained way during a real time 
+event, and each team is subject to a single local chain of command and 
+coordination in real time.
+
+The expense of the regional team approach is relatively low, 
+particularly for new participants, because the burden of ongoing 
+maintenance efforts and new feature development is distributed among 
+all participants, while the benefits of those efforts are shared by 
+all, preventing any regional team from having to reinvent the wheel. 
+However, in order for the benefits of technology sharing to accrue, 
+a central coordinator or guide must take responsibility for 
+integrating disparate features, developing new features in the 
+underlying numerical model(s) to support new capabilities in the 
+software automation system, writing or aggregating documentation, 
+ensuring continuity, and providing training or capacity building. 
+
+Finally, and perhaps most importantly, securing computational 
+resources with the regional team approach is cheaper and easier than 
+through any other approach. Regional computing centers have an 
+inherent incentive to provide resources to support real time 
+modeling for a current event that is directly relevant to their 
+local environment, and a disincentive to provide resources for 
+events that are not locally relevant. This dovetailing of interests 
+greatly simplifies and facilitates access to computational 
+resources, and in our experience this advantage should not be 
+underestimated. 
+
 \subsection{Challenges}
 
 The provision of any sort of real-time prediction of storm surge is 
@@ -243,22 +290,22 @@ high quality wind data are not available until several hours after
 the corresponding forecast advisory has been issued. 
 
 In addition, there are particular challenges associated with the 
-offsite production of storm surge predictions in a real time 
-context from a general-purpose coastal circulation model such as AD- 
-CIRC, including the following: (1) ADCIRC is capable of producing 
-results at high resolution but requires supercomputer-level 
-computational power to do so; (2) the input wind data from an 
-offsite source is voluminous and requires high-bandwidth connections 
-for transmittal in a reasonable pe- riod of time; (3) the on-demand 
-availability and 99.999\% reliability requirements for an 
-operational storm surge forecasting system are far higher than are 
-normally required of a shared-use super- computer and commercial 
-grade internet connections; (4) redundancy may be employed to 
-increase reliability and availability of results but also increases 
-complexity as well as requiring portability; (5) the results must be 
-post-processed and reliably delivered to off-site end users in a 
-form that is useful while communicating the underlying uncertainty 
-and without causing confusion. 
+offsite production of storm surge predictions in a real time context 
+from a general-purpose coastal circulation model such as ADCIRC, 
+including the following: (1) ADCIRC is capable of producing results 
+at high resolution but requires supercomputer-level computational 
+power to do so; (2) the input wind data from an offsite source is 
+voluminous and requires high-bandwidth connections for transmittal 
+in a reasonable pe- riod of time; (3) the on-demand availability and 
+99.999\% reliability requirements for real time storm surge 
+forecasting system are far higher than are normally required of a 
+shared-use super- computer and commercial grade internet 
+connections; (4) redundancy may be employed to increase reliability 
+and availability of results but also increases complexity as well as 
+requiring portability; (5) the results must be post-processed and 
+reliably delivered to off-site end users in a form that is useful 
+while communicating the underlying uncertainty and without causing 
+confusion. 
 
 The following sections describe how a generalized real time storm 
 surge forecasting system was developed to meet each of the 
@@ -275,8 +322,38 @@ forecast advisory from the National Hurricane Center is provided.
 The methods used to provide results in a timely manner are discussed 
 in principle and then a detailed description is provided to show the 
 methods in practice. Finally, the measures taken to assure the 
-reliablility of an operational storm surge forecast system based on 
+reliablility of a real time storm surge forecast system based on 
 a generalized coastal ocean model are discussed.
+
+\subsection{Overview}
+
+A brief description of how the ASGS conceptualizes the operation of 
+ADCIRC or ADCIRC+SWAN into three phases: hindcast, nowcast, and 
+forecast. 
+
+Then describe what happens in each phase: the hindcast is for 
+spinning up tides and/or initializing rivers while meteorological 
+forcing is turned off. 
+
+The nowcast is for updating the current state of the simulation from 
+where it left off at the end of its last execution (could be either 
+a nowcast or hindcast) to the start of the current set of forecast 
+data. The nowcast uses data that are considered definitive over the 
+time period being covered, that is, not speculative forecast data. 
+Parameter variations are not allowed during a nowcast. 
+
+The forecast is speculative, meaning that the input is a representation
+of a possible future state, and a wide variety of parameter variations
+are enabled for constructing an ensemble of forecasts to cover the possible
+range of future states, or to construct ``what-if'' scenarios.
+
+\subsection{ADCIRC}
+
+Brief boilerplate description of the ADCIRC model.
+
+\subsection{SWAN}
+
+Brief boilerplate description of the SWAN model.
 
 \subsection{ASGS Structure}
 
@@ -325,7 +402,7 @@ internal procedures of the simulation codes.
 \subsection{Dynamic Input Data}
 
 The application of meteorological forcing presents a challenge for 
-operational storm surge forecasts because of the need for timely 
+real time storm surge forecasts because of the need for timely 
 availability of input data as well as additional preprocessing 
 delays associated with large meteorological datasets. The most 
 accurate data-assimilated meteorological fields are not available 
@@ -333,7 +410,9 @@ until several hours have passed after a corresponding hurricane
 advisory from the NHC. When they do become available, a 
 preprocessing step must be performed to interpolate the data onto 
 the storm surge grid, which may introduce significant delays for 
-very large input datasets. Other disadvantages include the fact that 
+very large input datasets. 
+
+Other disadvantages include the fact that 
 they have a relatively coarse resolution in comparison to the 
 underlying simulation grid, and the fact that they may include 
 meteorological information far from the area of interest. In 
@@ -351,6 +430,8 @@ parameters along the hurricane’s track, as well as its adaptation to
 the data available from the NHC advisory. This modified model will 
 be referred to as the Dynamic Holland model.
 
+\subsubsection{North American Mesoscale Model}
+
 The system is capable of downloading and preparing dynamic 
 meteorological data from two sources: the National Hurricane 
 Center's (NHC) Forecast/Advisories, and the National Centers for 
@@ -359,6 +440,8 @@ model, depending on the data source selected by the Operator.
 Furthermore, the system has a module for downloading river boundary 
 flow data from the National Severe Storms Laboratory and preparing 
 it for use in ADCIRC.
+
+\subsubsection{Asymmetric Vortex Model}
 
 For tropical cyclone events, the NHC Forecast/Advisories are 
 downloaded by the system as soon as they are issued, and the 
@@ -371,6 +454,8 @@ fields from the NAM model from the NCEP ftp site. The gridded
 meteorological fields are extracted from the grib2 format that NCEP 
 uses, reformatted and written to OWI formatted files that ADCIRC 
 reads. 
+
+\subsubsection{River Flux Forcing}
 
 Once meteorological data have been obtained, the system downloads 
 the latest river flow data from the National Severe Storms 
@@ -427,7 +512,7 @@ files and the various configuration parameters in the system
 configuration file. This includes tidal boundary conditions, output 
 file formats and frequency of production of output files, and 
 locations for point recording of output for comparison with tide 
-gages or meteorological data collection equipment. The nowcast  
+gages or meteorological data collection equipment. The nowcast 
 control file(s) for ADCIRC and SWAN are set to write a hotstart file 
 at the end of the simulation for use in starting the forecast, as 
 well as a future nowcast. The last file written during the nowcast 
@@ -447,10 +532,104 @@ to write a hotstart file at the end. When the forecast is complete,
 the system executes post processing (described in the next section) 
 and archives the data as required. 
 
-These forecast process described above is  applied to  each member 
-of the forecast ensemble until all ensemble members have been 
+These forecast process described above is applied to  each member of 
+the forecast ensemble until all ensemble members have been 
 completed, at which point the system goes back to looking for new 
 meteorological data for its next nowcast.
+
+\subsection{Flexibility}
+
+Definition of what we mean by flexible: different types of forcing 
+can be configured, configuration is centralized so that different 
+capabilities can be meteorological models are possible. Flexibility 
+also comes from the use of standards, including dissemination 
+standards such as OpenDAP as well as metadata standards. This 
+flexibility allows the use of multiple different types of post 
+processing including built in (non-interactive) post processing like 
+FigureGen, RenciGETools as well as interactive post processing like 
+CERA and AdcircViz.
+
+\subsection{Reliability}
+
+Reliability in operation is mostly the result of the self-contained 
+nature of the system, which avoids the weakest link and on-call 
+issues associated with the distributed chain architecture. It also 
+results from having many checks, fail-safes, and retries built into 
+the various modules of the system that address and work around issues
+that arise during real time operation. 
+
+\subsection{Extensibility}
+
+Extensibility stems from the ability to plug in new capabilities
+either in a forecast ensemble or in 
+
+\subsection{Maintainability}
+
+A system that has developed over time without a focus on 
+maintainability will gradually lose flexibility and become more and 
+more difficult to fix and upgrade. 
+
+Maintainability comes from several factors, the most important of 
+which is the use of computer languages that are widely used and well 
+understood in the coastal modeling community, such as shell 
+scripting and Fortran (and to a lesser extent, perl) while avoiding 
+languages that may be more capable but have a much smaller user base 
+in the coastal modeling community (such as Java).  
+
+Documentation is critical to maintainability of a shared software 
+automation system to prevent a loss of continuity during inevitable 
+staff turnover.
+
+\subsection{Affordability}
+
+Development that allows local teams to solve the issues that are 
+within their core competencies while receiving the benefit of the 
+knowledge and capabilities of other participants allows the fastest
+progress of all participants at the lowest cost for each of them.
+
+\subsection{Availability}
+
+In contrast to closed systems, the long term viability of a widely
+available system is never in question.  
+
+\subsection{Coordination}
+
+As in any project with a distributed workload and multiple 
+objectives, a certain level of central coordination or point of 
+contact is necessary to prevent splintering and provide guidance for 
+integration of new features, fixes, and new lines of development. In 
+addition, some new features of the software automation system
+may require new developements in the underlying software, and that these
+developments be coordinated. As a result, the development and maintenance
+process benefits from the participation of a central development 
+coordinator. 
+
+In the context of operation, whether in a real time event such as 
+the approach of a tropical cyclone, or in the provision of 
+day-to-day guidance, the self-contained and independent nature of 
+the operation of the ASGS means that local coordination is all that is
+necessary to ensure that the system operates as expected. 
+
+\subsection{Portability}
+
+How the goal of portability was achieved in the ASGS. It starts with 
+the portability of the underlying numerical models. Portability is achieved
+via: the init subroutines in the shell script, plus case switch statement for
+the queueing system in asgs main.sh, a custom template for submitting 
+jobs, and possibly a custom template filler script. 
+
+\subsection{Relocatability}
+
+Relocatability basically rests on the system not making any assumptions 
+about the underlying mesh. In its current incarnation, the Operator must
+supply the mesh and an adcirc control file that contains any static 
+boundary conditions (for example, the amplitude and phase of tidal 
+constituents along the boundary). 
+
+\subsection{Forecast Ensemble}
+
+A brief description of how an ensemble of storms is configured, 
+and the types of variations that are possible. 
 
 \subsection{Output Visualization, Publication, and Interaction}
 
@@ -577,7 +756,7 @@ advisory cycle.
 \subsection{ADCIRC Asymmetric Vortex Model}
 
 The application of meteorological forcing presented a challenge for 
-operational storm surge forecasts because of the need for timely 
+real time storm surge forecasts because of the need for timely 
 availability of high resolution input data. The most accurate 
 data-assimilated meteorological fields from the H*Wind project were 
 only available for nowcast and hindcast times, and even then were 
@@ -676,28 +855,14 @@ value at 1.2 times Rmax.
 \section{Results}
 
 In order to demonstrate the utility of the generalized forecast 
-system, recent applications of the ASGS and their results will be highlighted.
+system, recent applications of the ASGS and their results will be 
+highlighted.
 
-The primary compute platform for the case study system is sapphire, 
-a Cray-XT3 at the Engineering Research and Development Center (ERDC) 
-at the Army Corps of Engineers. Sapphire is a linux cluster with 
-4096 dual-core CPUs running at 2.6 GHz. The secondary platform 
-consists of the IBM P5 sytems that are part of the Louisiana Optical 
-Network Initiative (LONI). The machines in this group are based on 
-the AIX operating system and include ducky, bluedawg, zeke, and 
-neptune. Each of the LONI clusters consists of 14 IBM Power5 575 
-systems, each with 8 CPUs running at 1.9 GHz. Lastly, the case study 
-system has also run on topsail, a Dell linux cluster at the 
-University of North Carolina consisting of 4160 CPUs running at 2.3 
-GHz; the topsail system at UNC is used primarily for development and 
-testing and as a tertiary backup during the hurricane season. 
-Sapphire is the only system of the three whose administrators have 
-guaranteed that dedicated CPUs will be available in the event of a 
-tropical cyclone threatening the case study area. The neptune 
-machine in the LONI group has exclusively available for the LPFS 
-during tropical cyclone events in 2007, although this availability 
-has not been guaranteed. The topsail system is a shared resource 
-that may or may not have CPUs available at any given time.
+\subsection{Deepwater Horizon}
+
+Brief description of how the ASGS was used during Deepwater Horizon in 2010.
+
+\subsection{Irene}
 
 During Hurricane Irene of 2011, the ASGS and CERA technologies were 
 actively and heavily utilized by National Weather Service (NWS) 
@@ -712,17 +877,17 @@ abandoned USCG command center useless. In summary, the USCG was able
 to maintain uninterrupted command and control over the course of 
 Hurricane Irene from their alternate command center, and have lauded 
 the ASGS/CERA system for its contribution to this successful 
-operational decision.
+real time decision.
 
 Hurricane Irene 2011 provided an oppportunity to use the ASGS and 
 CERA technologies to assist officials in the NWS and USCG with 
-real-life operational and emergency management decisions. The 
+real-life and emergency management decisions in real time. The 
 implementation of these technologies for the North Carolina and US 
 East Coast that provided the basis for this real life application 
 are described below, including the static physical data, use of 
-dynamic meteorological and river flow data, operational 
-configuration, interaction with web-based results, and feedback from 
-official end users. 
+dynamic meteorological and river flow data, configuration, 
+interaction with web-based results, and feedback from official end 
+users. 
 
 \subsection{North Carolina Physical Data}
 
@@ -795,10 +960,18 @@ There were myriad examples of the use of the ASGS/CERA results by
 emergency managers and officials during the storm event. As stated 
 in the executive summary, several Admirals at the USCG personally 
 examined and interacted with the ASGS/CERA results via the CERA site 
-and subsequently made the operational decision to evacuate their 
+and subsequently made the real time decision to evacuate their 
 command center in Virginia. The flooding depicted in the results did 
 occur, and the USCG was extremely pleased and satisfied with their 
 experience with the ASGS/CERA guidance.
+
+\subsection{Isaac}
+
+Brief description of how the ASGS was used during hurricane Isaac in 2012.
+
+\subsection{Sandy}
+
+Brief description of how the ASGS performed during hurricane Sandy in 2012.
 
 \section{Conclusions}
 
