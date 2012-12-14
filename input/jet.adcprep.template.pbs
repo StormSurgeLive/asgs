@@ -1,9 +1,9 @@
 #!/bin/sh --login
 #
-#PBS -A jetmgmt
+#PBS -A surge
 #PBS -l walltime=%walltime%
 #PBS -l procs=1
-#PBS -l partition=sjet
+#PBS -l partition=njet
 #PBS -l vmem=2G
 #PBS -j oe
 #PBS -V
@@ -13,6 +13,7 @@
 #
 module load intel
 module load mvapich2
+LD_LIBRARY_PATH=/apps/intel/12.1/composer_xe_2011_sp1.10.319/mkl/lib/intel64:/apps/intel/12.1/composer_xe_2011_sp1.10.319/debugger/lib/intel64:/apps/intel/12.1/composer_xe_2011_sp1.10.319/compiler/lib/intel64:/apps/mvapich2/1.8-r5609-intel/lib:/apps/netcdf/4.2.1.1-intel/lib:/apps/hdf5/1.8.9-intel/lib
 np=$PBS_NP
 export OMP_STACKSIZE=512m
 #
