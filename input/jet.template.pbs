@@ -1,0 +1,35 @@
+#!/bin/sh --login
+#
+#PBS -V
+#PBS -N %jobtype%.%enstorm%
+#PBS -A jetmgmt
+#PBS -l walltime=%walltime%
+#PBS -l procs=%ncpu%
+#PBS -l partition=sjet
+#PBS -M %notifyuser%
+#PBS -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out
+#PBS -j oe
+#
+module load intel
+module load mvapich2
+np=$PBS_NP
+export OMP_STACKSIZE=512m
+#
+cd %advisdir%/%enstorm%
+echo "%enstorm% job starting at `date`"
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+RUNSUFFIX="start"
+OPTS="-envall"
+CMD="/usr/bin/time mpiexec $OPTS -np $np %adcircdir%/%jobtype% %cloptions%"
+echo $CMD
+echo "${DATETIME}" > %jobtype%.%enstorm%.run.start
+$CMD
+ERROVALUE=$?
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+if [ $ERROVALUE == 0 ] ; then
+   RUNSUFFIX="finish"
+else
+   RUNSUFFIX="error"
+fi
+echo "[${DATETIME}] : %jobtype%.%enstorm% finished in %advisdir%/%enstorm% with return value = $ERROVALUE" > %jobtype%.%enstorm%.run.${RUNSUFFIX}
+echo "%jobtype%.%enstorm% job finished at $DATETIME."

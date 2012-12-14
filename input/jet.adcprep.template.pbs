@@ -1,0 +1,32 @@
+#!/bin/sh --login
+#
+#PBS -A jetmgmt
+#PBS -l walltime=%walltime%
+#PBS -l procs=1
+#PBS -l partition=sjet
+#PBS -l vmem=2G
+#PBS -j oe
+#PBS -V
+#PBS -N %jobtype%.%enstorm%
+#PBS -M %notifyuser%
+#PBS -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out
+#
+module load intel
+module load mvapich2
+np=$PBS_NP
+export OMP_STACKSIZE=512m
+#
+cd %advisdir%/%enstorm%
+echo "%enstorm% job starting at `date`"
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+echo "[${DATETIME}] : %jobtype%.%enstorm% starting in %advisdir%/%enstorm%" > %jobtype%.%enstorm%.run.start
+%adcircdir%/adcprep --np %ncpu% --%jobtype% >> adcprep.log 2>&1
+ERROVALUE=$?
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+if [ $ERROVALUE == 0 ] ; then
+   RUNSUFFIX="finish"
+else
+   RUNSUFFIX="error"
+fi
+echo "[${DATETIME}] : adcprep finished in %advisdir%/%enstorm% with return value = $ERROVALUE" > %jobtype%.%enstorm%.run.${RUNSUFFIX}
+echo "adcprep job finished at $DATETIME."
