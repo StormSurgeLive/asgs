@@ -104,8 +104,8 @@ and widespread independent application. }
 {FlatherRA1994}) (\cite{GraberHC2006}) (\cite {HollandGJ1980}) (\cite
 {HoustonSH1999}) (\cite{HubbertGD1991}) ( \cite {LynchDR2004}) (\cite
 {MasseyWG2007}) (\cite{OConnorWP1999}) ( \cite {VerlaanM2005}) (\cite
-{XieL2006}) (\cite{MattocksC2006}) (\cite {RamakrishnanL2006})(\cite
-{KennedyA2010})(\cite{FlemingJG2008}) ( \cite{GlahnB2009})(\cite
+{XieL2006})  (\cite {RamakrishnanL2006})(\cite
+{KennedyA2010}) ( \cite{GlahnB2009})(\cite
 {GlahnB2009}) (\cite{KimSC1996})(\cite {BlainCA2002Tidal})(\cite
 {BlantonBO2012}) (\cite{VanCootenS2011})( \cite{BooijN1999})(\cite
 {ChuP2009})
@@ -131,8 +131,6 @@ required to run with lower resolution and lower provision of
 computational resources than model implementations used for offline 
 design studies. 
 
-\subsection{Literature Review}
-
 This bifucation of approach to resource requirements was strongly 
 evident during the approach and landfall of hurricane Katrina on the 
 northern Gulf coast of the US in 2005. The storm surge forecasts 
@@ -143,6 +141,32 @@ were commonly performed at that time using ADCIRC.
 As a result, in the aftermath of Katrina, there was strong 
 motivation to bring the detail, realism and computational resources 
 of a design study to bear in real time.  
+
+\subsection{Literature Review}
+
+Point out the fact that that none of the automated ocean modeling 
+systems in the literature mention the existence of any other 
+automated modeling system.
+
+(\cite{MattocksC2006}) Original North Carolina Forecast System. NCFS 
+was rewritten from scratch two years later. Initial version of the 
+ADCIRC asymmetric vortex model, significantly modified later. Driven 
+by ADCIRC with asymmetric vortex model, WRF and tides. Closed system 
+architecture.  Did not include ensemble capability or the ability to 
+vary storm parameters. Targeted to North Carolina coast. Did not 
+include SWAN or an ensemble capability. Used different modes of 
+operation, including background mode (tides only), nowcast event 
+mode and forecast event mode mode. Also ran WRF and developed a 
+prototype data assimilation for WRF. Objective was to use WRF and 
+hydrological model at RENCI for precipitation and streamflow 
+predictions.
+
+(\cite{FlemingJG2008}) Initial development of the Lake Pontchartrain
+Forecasting System, the software system that would eventually become 
+the ADCIRC Surge Guidance System. Created ADCIRC symmetric vortex model.
+Had an ensemble capability to vary storm parameters, with 5 preconfigured
+ensemble members. Did not include SWAN, tidal forcing, or river forcing.
+Only generated hydrographs plots in real time. 
 
 As the technology supporting numerical storm surge calculations 
 developed over time, the value of the predictions for real time 
@@ -511,6 +535,13 @@ maximum winds; it was twenty five degrees beyond 1.2 times the
 radius to maximum winds; and the rotation angle was linearly 
 interpolated from the ten degree value at Rmax and the 25 degree 
 value at 1.2 times Rmax.
+
+Describe the aswip utility and its function. Describe the 
+differences between the NWS9 detailed in Mattocks (2006) and the 
+current NWS19. 
+
+Include a diagram or visual aid to show how aswip and the asymmetric 
+vortex model uses the isotach data to produce a met field. 
 
 \subsubsection{ADCIRC Boundary Conditions}
 
