@@ -99,15 +99,12 @@ and widespread independent application. }
 \section{Introduction}
 
 (\cite{LynchDR2004})(\cite {ASGSOperatorsGuide2011}) (\cite
-{ASGSDevelopersGuide2011}) (\cite {BlainCA1998}) (\cite
-{BlainCA2002}) (\cite{BlainCA2002}) (\cite {DietrichJC2012}) (\cite
+{ASGSDevelopersGuide2011}) (\cite {DietrichJC2012}) (\cite
 {FlatherRA1994}) (\cite{GraberHC2006}) (\cite {HollandGJ1980}) (\cite
 {HoustonSH1999}) (\cite{HubbertGD1991}) ( \cite {LynchDR2004}) (\cite
 {MasseyWG2007}) (\cite{OConnorWP1999}) ( \cite {VerlaanM2005}) (\cite
-{XieL2006})  (\cite {RamakrishnanL2006})(\cite
-{KennedyA2010}) ( \cite{GlahnB2009})(\cite
-{GlahnB2009}) (\cite{KimSC1996})(\cite {BlainCA2002Tidal})(\cite
-{BlantonBO2012}) (\cite{VanCootenS2011})( \cite{BooijN1999})(\cite
+{XieL2006})  (\cite{KennedyA2010}) ( \cite{GlahnB2009})
+(\cite{GlahnB2009}) (\cite{KimSC1996})( \cite{BooijN1999})(\cite
 {ChuP2009})
 
 Techniques have been under development since at least the 1950’s to 
@@ -144,9 +141,13 @@ of a design study to bear in real time.
 
 \subsection{Literature Review}
 
-Point out the fact that that none of the automated ocean modeling 
-systems in the literature mention the existence of any other 
-automated modeling system.
+(\cite{RamakrishnanL2006}) describes the Southeast Coastal Ocean 
+Observing and Prediction (SCOOP) system. Relies on a geographically 
+dispersed chain of participants linked via Local Data Manager (LDM) 
+from Unidata. Uses ADCIRC for storm surge, and a Holland model for 
+meteorological forcing based on the NHC weather forecast (did not 
+use an analytical vortex model embedded in ADCIRC. Computational 
+resources obtained opportunistically using the Globus Toolkit. 
 
 (\cite{MattocksC2006}) Original North Carolina Forecast System. NCFS 
 was rewritten from scratch two years later. Initial version of the 
@@ -161,12 +162,22 @@ prototype data assimilation for WRF. Objective was to use WRF and
 hydrological model at RENCI for precipitation and streamflow 
 predictions.
 
-(\cite{FlemingJG2008}) Initial development of the Lake Pontchartrain
+(\cite{FlemingJG2008}) Initial development of the Lake Pontchartrain 
 Forecasting System, the software system that would eventually become 
-the ADCIRC Surge Guidance System. Created ADCIRC symmetric vortex model.
-Had an ensemble capability to vary storm parameters, with 5 preconfigured
-ensemble members. Did not include SWAN, tidal forcing, or river forcing.
-Only generated hydrographs plots in real time. 
+the ADCIRC Surge Guidance System. LPFS was developed in the 
+aftermath of Katrina; Corps had installed movable surge protection 
+gates at the ends of the 17th St, Orleans Ave, and London Ave 
+canals, which drain rainwater from the city. Operated by cranes that 
+cannot be used in high winds, thus timing and magnitude of winds and 
+surge were important. Created ADCIRC symmetric vortex model. Had an 
+ensemble capability to vary storm parameters, with 5 preconfigured 
+ensemble members. Did not include SWAN, tidal forcing, or river 
+forcing. Only generated hydrographs plots in real time. 
+
+
+(\cite {BlainCA1998}) (\cite{BlainCA2002}) (\cite{BlainCA2002}) (\cite {BlainCA2002Tidal})
+
+
 
 As the technology supporting numerical storm surge calculations 
 developed over time, the value of the predictions for real time 
@@ -990,11 +1001,20 @@ In order to demonstrate the utility of the generalized forecast
 system, recent applications of the ASGS and their results will be 
 highlighted.
 
+
 \subsection{Deepwater Horizon}
 
 Brief description of how the ASGS was used during Deepwater Horizon in 2010.
 
 \subsection{Irene}
+
+Implementation of the ASGS at the Renaissance Computing Institute 
+(RENCI) in North Carolina, commonly referred to as the North 
+Carolina Forecast System. (\cite{BlantonBO2012}). The NCFS downloads 
+river flux boundary conditions for the Tar and Pamlico rivers; these 
+boundary conditions are produced by a hydrological model operated by 
+the National Severe Storms Lab and the University of Oklahoma (\cite
+{VanCootenS2011}). 
 
 During Hurricane Irene of 2011, the ASGS and CERA technologies were 
 actively and heavily utilized by National Weather Service (NWS) 
