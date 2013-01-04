@@ -458,109 +458,159 @@ the ADCIRC Asymmetric Vortex model described below.
 
 The application of meteorological forcing presents a challenge for 
 real time coastal modeling because of the need for timely 
-availability of high resolution input data. The most accurate 
-data-assimilated meteorological fields are the HWind data from 
-NOAA's Hurricane Research Division. However, being data assimilated, 
-they are only available for nowcast and hindcast times. 
+availability of accurate high resolution meteorological forecast 
+data. In terms of accuracy, the best data available are HWind from 
+NOAA's Hurricane Research Division (HRD) (\cite{PowellMD1998}). 
+data, but being data-assimilated, these meteorological fields are 
+only available for nowcast and hindcast times.
 
-One of the issues with the use of data derived from a full 
-meteorological model such as the North American Mesoscale (NAM) 
-model or the Global Forecast System (GFS) model is that time and 
-computational resources would have to be dedicated to their 
-production, and the result usually would not match the official 
-forecast from the National Hurricane Center. 
+One option for meteorological forcing is to run a full 
+meteorological model such as HWRF or GFS, or to use the output from 
+a previous execution of a full meteorological model. One of the 
+issues with the use of data derived from a full meteorological model 
+such as the North American Mesoscale (NAM) model or the Global 
+Forecast System (GFS) model is that time and computational resources 
+would have to be dedicated to their production, and the result 
+usually would not match the official forecast from the National 
+Hurricane Center. 
 
-On the other hand, one of the greatest advantages of an embedded 
-meteorological vortex model is its ability to use parameters 
-directly from the official forecast of the National Hurricane Center 
-forecast/advisory, which represents the official word on the likely 
-track of the storm, as opposed to the deterministic output of a full 
-meteorological model. Other advantages of having an embedded 
-analytical vortex model are speed associated resource savings (no 
-need to wait until a meteorological forecast run completes before 
-starting the storm surge run), reliability (no need to worry about 
-issues or failures in a full meteorological model), and precise 
-perturbability (it is easy to create variant tracks, storm sizes,
-maximum wind speeds, etc). As a result of these advantages, 
-embedded analytical vortex models have been the tools of choice for
-real time storm surge simulations in the ASGS from the very beginning
-of its development through the forseeable future.  
+On the other hand, one of the greatest advantages of an analytical 
+meteorological vortex model embedded in the ADCIRC code itself is 
+its ability to use parameters directly from the official forecast of 
+the National Hurricane Center forecast/advisory, which represents 
+the official word on the likely track of the storm, as opposed to 
+the deterministic output of a full meteorological model. Other 
+advantages of having an embedded analytical vortex model are speed 
+associated resource savings (no need to wait until a meteorological 
+forecast run completes before starting the storm surge run), 
+reliability (no need to worry about issues or failures in a full 
+meteorological model), small input file size (usually less than one 
+hundred lines), precise perturbability (it is easy to create variant 
+tracks, storm sizes, maximum wind speeds, etc), and the ability to 
+calculate the wind velocity and barometric pressure at every node 
+location and every time step without temporal or spatial 
+interplation. As a result of these advantages, embedded analytical 
+vortex models have been the tools of choice for real time storm 
+surge simulations in the ASGS from the very beginning of its 
+development through the forseeable future.  
 
 The first analytical meteorological vortex model that was coded 
-within ADCIRC was written in tandem with the initial stages of the 
+within ADCIRC was created in tandem with the initial stages of the 
 Lake Pontchartrain Forecast System (\cite{FlemingJG2008}) (the 
 progenitor of the ASGS). This symmetric Holland (\cite 
 {HollandGJ1980}) model did not take advantage of all the information 
 available in real time from official forecast/advisories from the 
 National Hurricane Center (NHC), and as a result, the asymmetric 
-vortex model was also developed, first as a standalone model then 
-incorporated into ADCIRC itself (\cite{MattocksC2006})(\cite{MattocksC2008}). 
+vortex model was also developed independently, first as a standalone 
+model then incorporated into ADCIRC itself (\cite{MattocksC2006})(
+\cite{MattocksC2008}). 
 
-Once incorporated into ADCIRC, the original asymmetric vortex model 
-performed adequately (\cite{ForbesC2010}), but there were five 
-upgrade opportunities that needed to be addressed to ensure flexible 
-and robust operation in real time: (1) it was not possible for the 
-operator to vary the radius of maximum winds (to create a storm 
-ensemble, for example) because the radius of maximum winds was 
-calculated internally to the model during ADCIRC's execution; (2) 
-its algorithm required exactly one isotach per storm quadrant and if 
+Once incorporated into ADCIRC, the asymmetric vortex model performed 
+adequately (\cite{ForbesC2010}), but there were five upgrade 
+opportunities that needed to be addressed in that original 
+implementation to ensure flexible and robust operation in real time: 
+(1) an additional feature was needed to allow the operator to vary 
+the radius of maximum winds (to create a storm ensemble, for 
+example) because the radius of maximum winds was calculated 
+internally to the model during ADCIRC's execution; (2) the original 
+algorithm required exactly one isotach per storm quadrant and if 
 multiple isotach radii were provided by the NHC for a given quadrant 
 at a given time, the isotach selection was not controllable by the 
 operator; (3) if the NHC did not provide data for all four storm 
-quadrants at a given time, the model was designed to produce winds 
-with zero velocity throughout the domain for the corresponding 
-period; (4) the internal solver for the radius to maximum winds 
-calculation would sometimes fail and introduce NaNs into the 
-solution; and (5) the blending of the storm translation speed into 
-the vortex wind velocity sometimes resulted in counterintuitive and 
-nonphysical results, particularly for fast moving storms at high 
-latitudes.
+quadrants at a given time, the original model was designed to 
+produce winds with zero velocity throughout the domain for the 
+corresponding period; (4) the internal solver for the radius to 
+maximum winds calculation would sometimes fail and introduce NaNs 
+into the solution; and (5) the blending of the storm translation 
+speed into the vortex wind velocity sometimes resulted in 
+counterintuitive and nonphysical results, particularly for fast 
+moving storms at high latitudes.
 
-For these reasons, a second generation of the asymmetric vortex 
+For these reasons, a second generation ``dynamic'' asymmetric vortex 
 model was developed, including a companion program to be used as a 
-preprocessor. 
-
-The meteorological preprocessor program accepts input files 
-formatted according to the Automated Tropical Cyclone Forecast 
+preprocessor. This meteorological preprocessor program accepts track 
+files formatted according to the Automated Tropical Cyclone Forecast 
 system best track format (http://www.nrlmry.navy.mil/atcf\_ 
-web/docs/database/new/abdeck.txt). 
+web/docs/database/new/abdeck.txt) and produces an augmented file for 
+use by the dynamic asymmetric vortex model in ADCIRC. 
 
-The track file contains the following tropical cyclone parameters 
-for each forecast increment: date, time, latitude and longitude of 
-the center of the storm, maximum observed wind speed (marine 
-exposure, at 10m with a 1 minute averaging period), and zero or more
-isotachs for each storm quadrant. The minimum central pressure, which 
-is required for any Holland parametric vortex model, is notably absent
-from the NHC official forecast, but is estimated and added to the 
-track file prior by the ASGS workflow before the file is used as
-input to the meteorological preprocessing program. The process
-of estimation is described later, in the section dealing with the
-generation of different tracks for a storm ensemble; for the purposes
-of the meteorological preprocessor, the central pressure is treated
-as a known variable. Finally, the track file contains zero or more 
-isotachs at various wind one or more storm quadrants.
+In summary, the dynamic asymmetric vortex model was set up to 
+operate in a two step process. The first step was the use of isotach 
+data from the forecast/advisory to calculate a representative radius 
+to maximum winds (Rmax) in each of the four storm quadrants, for 
+each forecast increment, before the actual ADCIRC run. The second 
+step was to interpolate the resulting Rmax for all nodes at each 
+time step of the simulation, to determine the wind velocity 
+throughout the domain at each time step.
+
+The raw track file derived only from data in the National Hurricane 
+Center Forecast/Advisory contains the following tropical cyclone 
+parameters for each forecast increment: date, time, latitude and 
+longitude of the center of the storm, maximum observed wind speed 
+(marine exposure, at 10m with a 1 minute averaging period), and zero 
+or more isotachs for each storm quadrant. The minimum central 
+pressure, which is required for any Holland parametric vortex model, 
+is notably absent from the NHC official forecast, but is estimated 
+and added to the track file prior by the ASGS workflow before the 
+file is used as input to the meteorological preprocessing program. 
+The process of estimation is described later, in the section dealing 
+with the generation of different tracks for a storm ensemble; for 
+the purposes of the meteorological preprocessor, the central 
+pressure is treated as a known variable. Finally, the track file 
+contains zero or more isotachs at various wind one or more storm 
+quadrants.
+
+The track preprocessor program begins by reading in the raw track file
+data and recording the time, storm location, and number of isotachs
+associated with each line in the file. From these data, the direction
+and speed of the storm center is calculated.
+
+Next, the radius to maximum winds is calculated in each storm 
+quadrant, based partly on the isotach radii provided by the National 
+Hurricane Center Forecast/Advisory. The issue at this point in the 
+calculations is that there is a high spatial and temporal 
+variability in the availability of isotach radii. For example, one 
+quadrant of the cyclone may have two or even three isotach radii 
+defined while a different quadrant has no isotach radii defined at 
+all. In the former case, the analysis program must choose one 
+isotach radius as representative while ignoring the others; in the 
+latter case, there is no information available and the gap in the 
+data must be covered somehow. Furthermore, the forecast advisory
+does not provide any isotach radii data for the extended forecast
+(days 4 and 5 of the forecast period).
+
+In order to deal with the full range of possibilities in the track 
+preprocessor, the issue was broken down to (a) each individual 
+isotach first, and then (b) each quadrant. 
+
+For each individual isotach radius, the forecast advisory may not 
+contain data for every quadrant. Five cases are possible: (1) one 
+isotach radius is missing; (2) two isotach radii are missing; (3) 
+three isotach radii are missing; (4) all isotach radii are missing 
+and (5) all isotach radii are available. 
+
+Two of the cases are trivial. If the isotach radii are available in 
+all four quadrants for an isotach, all the isotach data are eligible 
+for use as-is. Conversely, if none of the quadrants have data 
+available, then the radius of maximum winds calculations will not be 
+based on data for this particular isotach. 
+
+In cases where data are available for some quadrant(s) but not 
+others, the track preprocessor program generates reference estimates 
+of the missing data, mostly as a courtesy to the analyst, based on 
+the available radii data for that isotach. The three cases where 
+this may occur are shown in Figure X. However, by default, the 
+automatically generated reference estimates are not used in the 
+subsequent calculation of the radius to maximum wind unless no other 
+data are available. 
 
 For tropical cyclone events, the NHC Forecast/Advisories are 
 downloaded by the system as soon as they are issued, and the 
 relevant storm parameters (including storm positions. maximum wind 
 speeds, and isotach radii) are parsed into a format that ADCIRC can 
 use to generate wind fields using an internal asymmetric vortex 
-model. For ordinary meteorology, including nor'easters and other 
-systems, the system downloads regularly gridded meteorological 
-fields from the NAM model from the NCEP ftp site. The gridded 
-meteorological fields are extracted from the grib2 format that NCEP 
-uses, reformatted and written to OWI formatted files that ADCIRC 
-reads. 
+model. 
 
-
-
-The vortex model was set up to operate in a two step process. The 
-first step was the use of isotach data from the forecast/advisory to 
-calculate a representative radius to maximum winds (Rmax) in each of 
-the four storm quadrants, for each forecast increment, before the 
-actual ADCIRC run. The second step was to interpolate the resulting 
-Rmax for all nodes at each time step of the simulation, to determine 
-the wind velocity throughout the domain at each time step.
 
 The first step was performed in a pre-processing program for all the 
 data from a particular forecast/advisory, before the ADCIRC run 
@@ -683,6 +733,13 @@ processors. If the hindcast and/or decomposition tasks are required,
 they must only be performed once at the start of the system's 
 execution (processes that occur at most one time during an execution 
 of the system are shown in blue in figure 2).
+
+For ordinary meteorology, including nor'easters and other 
+systems, the system downloads regularly gridded meteorological 
+fields from the NAM model from the NCEP ftp site. The gridded 
+meteorological fields are extracted from the grib2 format that NCEP 
+uses, reformatted and written to OWI formatted files that ADCIRC 
+reads. 
 
 The nowcast occurs next if the simulation state is already "hot" 
 when the system starts up, or if the system has already performed 
