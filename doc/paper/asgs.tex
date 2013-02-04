@@ -8,6 +8,7 @@
 % DOUBLE SPACE VERSION FOR SUBMISSION TO THE AMS
 \documentclass[12pt]{article}
 \usepackage{ametsoc}
+\usepackage{url}
 \linenumbers
 %
 % The following two commands will generate a single space, double column paper that closely
@@ -98,6 +99,64 @@ and widespread independent application. }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % MAIN BODY OF PAPER
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Outline}
+
+I've provided an outline here to aid other authors reading this draft.
+It will be removed before submission. 
+
+\begin{enumerate}
+\item \textbf{Introduction} 
+\begin{enumerate}
+\item \textbf{Motivation} \\
+Why we needed to develop real time forecasting infrastructure for ADCIRC.
+\item \textbf{Literature Review} \\
+Historical development of real time modeling; brief review of relevant prior published work.
+\item \textbf{Challenges} \\
+Unique and not necessarily obvious obstacles in the world of real time modeling.
+\item \textbf{Objectives} \\
+What we sought to accomplish with development of ASGS.
+\end{enumerate}
+\item \textbf{Methods} \\
+How the system was designed and coded.
+\begin{enumerate}
+\item \textbf{Development Strategy} \\
+Strategy for developing software and deploying for effect
+\item \textbf{Physics} \\
+Selected tools for modeling coastal physics.
+\begin{enumerate}
+\item \textbf{ADCIRC, SWAN, and ADCIRC+SWAN} \\
+Brief boilerplate description of the ADCIRC model, the SWAN model,
+and the coupling between them. Mention tidal forcing and river
+flux forcing. 
+\item \textbf{ADCIRC Dynamic Asymmetric Vortex Model} \\
+Brief boilerplate description of the coupling between ADCIRC and SWAN.
+\end{enumerate}
+\item \textbf{Workflow Concept} \\
+How the real time modeling process was conceptualized. 
+\item \textbf{Reliability} \\
+Automated workaround, failover, and recovery features. 
+\item \textbf{Performance} \\
+Making it run fast. 
+\item \textbf{Flexibility} \\
+Making the system accommodate the Operator, rather than the other way around.
+\begin{enumerate}
+\item \textbf{Portable} \\
+Runs on a variety of HPC systems.
+\item \textbf{Relocatable} \\
+Any geographical area.
+\item \textbf{Configurable} \\
+Easily change forcing, output types, post processing, etc.
+\item \textbf{Scalable} \\
+More resources (additional processors, additional hpc platforms, additional operators, additional developers, additional sites) means better performance.
+\item \textbf{Extensible} \\
+New capabilities are easily added.
+\item \textbf{Maintainable} \\
+Clarity of code and continuity of personnel are baked in.
+\end{enumerate}
+\end{enumerate}
+\item \textbf{Results}
+\end{enumerate}
 
 \section{Introduction}
 
@@ -542,6 +601,8 @@ each forecast increment, before the actual ADCIRC run. The second
 step was to interpolate the resulting Rmax for all nodes at each 
 time step of the simulation, to determine the wind velocity 
 throughout the domain at each time step.
+
+ASWIP: Asymmetric Wind Input Parameterization.
 
 The raw track file derived only from data in the National Hurricane 
 Center Forecast/Advisory contains the following tropical cyclone 
