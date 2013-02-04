@@ -1,0 +1,10 @@
+Keep characters out of first 60 lines
+************************************************************
+Test.grd                                                     ! INPUT ADCIRC MESH (Cartesian Coordinates)
+1                                                            ! OUTPUT MESH OF ELEMENT SIZE (0 FOR OFF; 1 FOR ON)
+Element_Size.grd                                             ! OUTPUT ADCIRC MESH WITH Z VALUES AS ELEMENT SIZE
+Left_DEM                                                     ! INPUT FLT/GRD DEM FILE NAME (NO FILE EXTENTION) - MUST BE SAME COORDINATES AS INPUT MESH
+1.0                                                          ! Z-MULTIPLICATION FACTOR
+-1                                                           ! AVERAGING METHOD (-1 FOR AUTO; 0 FOR DIRECT LOOKUP; > 0 BRUTE FORCE CELL AVERAGE) 
+0                                                            ! SCREEN OUTPUT WHEN SEARCHING DEM FOR NODES (O FOR OFF; 1 FOR ON)
+Test_z.14                                                    ! OUTPUT ADCIRC MESH WITH INTERPOLATED Z-VALUES

@@ -26,26 +26,160 @@ our @conn; # list of nodal connectivity indices
 my @time; # in seconds since cold start for each dataset in the file
 my @timestep; # integer number, since coldstart, for each dataset in the file
 #
-my $meshfile = "fort.14";
+my $meshfile = "null";
 my $cpp;  # 1 to reproject to cpp (carte parallelogrammatique projection)
+   
 my $slam0 = 265.5; # longitude at center of projection
 my $sfea0 = 29.0;  # latitude at center of projection
-my @adcircfiles;
+#
+# If the storm characteristics change, but the track does not, the 
+# track lines will plot right on top of each other. The jitter is
+# a kludge to bump up the overlandSpeed and vmax tracks in the z 
+# direction to differentiate them visually. 
+my $jitter;
+my @adcircfiles;    # fulldomain adcirc output file names
+my @trackfiles;     # storm track files (fort.22) 
 #
 GetOptions(
+           "jitter" => \$jitter,
            "meshfile=s" => \$meshfile,
            "cpp" => \$cpp,
            "slam0=s" => \$slam0,
            "sfea0=s" => \$sfea0,
+           "trackfiles=s" => \@trackfiles,
            "adcircfiles=s" => \@adcircfiles
          );
 #
-unless ( defined @adcircfiles ) {
+# Process track files, producing a single VTP file containing all 
+# the tracks that were listed on the command line
+if ( !  @trackfiles ) {
+   $trackfiles[0] = "none";
+} else {
+   @trackfiles = split(/,/,join(',',@trackfiles)); # get a list w/o commas
+   my $outfile = "tracks.vtp";
+   # start writing vtk-formatted file
+   unless (open(OUT,">$outfile")) {
+      stderrMessage("ERROR","Failed to open vtk file $outfile for writing: $!.");
+      die;
+   }
+   # write header for VTP (track line file)
+   printf OUT "<?xml version=\"1.0\"?>\n";
+   printf OUT "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+   printf OUT "   <PolyData>\n";
+   foreach my $file (@trackfiles) {
+      stderrMessage("INFO","Processing $file.");
+      # make sure we can actually open the adcirc file before going further
+      unless (open(ADCIRCFILE,"<$file")) {
+         stderrMessage("ERROR",
+          "Failed to open ADCIRC file $file for reading: $!.");
+         next;
+      }
+      my $z = 0.0;
+      if (defined $jitter) {
+         if ( $file =~ /Speed/ ) {
+            $z = 20000.0;
+         }
+         if ( $file =~ /maxWind/ ) {
+            $z = 40000.0;
+         }
+      }
+      my $start_date = "null";
+      my $previous_date;
+      my $cycle = 0;
+      my @vmax; # max wind speed at each track point; read in knots; written in m/s
+      while(<ADCIRCFILE>) {
+         my @fields = split(',',$_);
+         my $date = $fields[2];
+         if ( $start_date eq "null" ) {
+            $previous_date = $date;
+            $start_date = $date;
+         } elsif ( $date != $previous_date ) {
+            $cycle = $cycle + 1;
+         }
+         # grab coordinates of storm center
+         $fields[6] =~/(\d+)(N|S)/; # tenths of degrees plus orientation, e.g., "217N"
+         $y[$cycle] =  $1/10.0;         # convert from tenths of degrees to degrees
+         my $yhemisphere = $2;
+         if ( $yhemisphere eq "S" ) {
+            $y[$cycle] *= -1.0;
+         }
+         $fields[7] =~/(\d+)(E|W)/; # tenths of degrees plus orientation, e.g., "767W"
+         $x[$cycle] =  $1/10.0;         # convert from tenths of degrees to degrees
+         my $xhemisphere = $2;
+         if ( $xhemisphere eq "W" ) {
+            $x[$cycle] *= -1.0;
+         }                 
+         # reproject to cpp if requested
+         if ( defined $cpp ) {
+            $x[$cycle] = $R*($x[$cycle]*$deg2rad-$slam0*$deg2rad)*cos($sfea0*$deg2rad);
+            $y[$cycle] = $y[$cycle]*$deg2rad*$R;
+         }
+         $vmax[$cycle] = $fields[8] * 0.51444444; # convert knots to m/s
+         $previous_date = $date;
+      }
+      close(ADCIRCFILE);
+      my $numTrackPoints = $cycle+1;
+      my $numLineSegments = $cycle;
+      printf OUT "      <!-- from track file $file -->\n";
+      printf OUT "      <Piece NumberOfPoints=\"$numTrackPoints\" NumberOfLines=\"$numLineSegments\">\n";
+      #
+      # vmax values at each track point
+      printf OUT "         <PointData Scalars=\"vmax\">\n";
+      printf OUT "            <DataArray type=\"Float64\" Name=\"vmax\" format=\"ascii\">\n";
+      printf OUT "               ";
+      for (my $i=0; $i<$numTrackPoints; $i++ ) {
+         printf OUT $vmax[$i] . " "; 
+      }
+      printf OUT "\n";
+      printf OUT "            </DataArray>\n";
+      printf OUT "         </PointData>\n";
+      #
+      # track point locations
+      printf OUT "         <Points>\n";
+      printf OUT "            <DataArray NumberOfComponents=\"3\" type=\"Float64\" Name=\"PointLocations\" format=\"ascii\">\n";
+      printf OUT "               ";
+      for (my $i=0; $i<$numTrackPoints; $i++ ) {         
+         printf OUT $x[$i] . " " . $y[$i] . " " . $z . "  "; 
+      }
+      printf OUT "\n"; 
+      printf OUT "            </DataArray>\n";
+      printf OUT "         </Points>\n";
+      #
+      # line connectivity/topology
+      printf OUT "         <Lines>\n";
+      printf OUT "            <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n";
+      printf OUT "               "; 
+      for ( my $i=0; $i<$numTrackPoints; $i++ ) {
+         printf OUT $i . " " . ($i+1) . "  "; 
+      }
+      printf OUT "\n";          
+      printf OUT "            </DataArray>\n";
+      printf OUT "            <DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">\n";
+      printf OUT "               ";
+      for ( my $i=0; $i<$numTrackPoints; $i++ ) {
+         printf OUT (2*($i+1)) . " "; 
+      }
+      printf OUT "\n";
+      printf OUT "            </DataArray>\n";
+      printf OUT "         </Lines>\n";
+      printf OUT "      </Piece>\n";
+   }      
+   # write VTP track(s) file footer
+   printf OUT "   </PolyData>\n";
+   printf OUT "</VTKFile>\n";
+   close(OUT);     
+}
+
+unless ( @adcircfiles ) {
    $adcircfiles[0] = "none";
 } else {
    @adcircfiles = split(/,/,join(',',@adcircfiles)); # get a list w/o commas
 }
 #
+if ( $meshfile eq "null" ) {
+   stderrMessage("INFO","Mesh file name was not provided or the file was not found. adc2vtk.pl is finished.");
+   exit;
+}
 unless (open(MESH,"<$meshfile")) {
    stderrMessage("ERROR","Failed to open mesh file $meshfile for reading: $!.");
    die;
