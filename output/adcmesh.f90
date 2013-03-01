@@ -8,9 +8,9 @@
    module adcmesh
 !-----+---------+---------+---------+---------+---------+---------+
       character(120) :: meshFileName ! full pathname of file
-      real, parameter :: R = 6378206.4 ! radius of the earth
-      real, parameter :: pi = 3.141592653589793
-      real :: deg2rad
+      double precision, parameter :: R = 6378206.4d0 ! radius of the earth
+      double precision, parameter :: pi = 3.141592653589793d0
+      double precision :: deg2rad
 
       double precision, allocatable :: xyd(:,:), bar(:,:,:)
       real(8), allocatable          :: sigma(:)
@@ -55,8 +55,8 @@
 
       logical                       :: projectCPP ! .true. if user wants to project mesh coordinates with CPP to aid in visualization
       logical                       :: cppUpdated ! .true. if we've already computed/written CPP on this execution
-      real                          :: slam0  ! longitude on which cpp projection is centered
-      real                          :: sfea0  ! latitude on which cpp projection is centered
+      double precision            :: slam0  ! longitude on which cpp projection is centered
+      double precision            :: sfea0  ! latitude on which cpp projection is centered
 
    contains
 
