@@ -1,8 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta name="generator" content="AsciiDoc 8.6.6">
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.6" />
 <title>generateCPP(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -740,7 +741,7 @@ generateCPP(1) Manual Page
 <h2>NAME</h2>
 <div class="sectionbody">
 <p>generateCPP.f90 -
-   Insert the CPP projection into an ADCIRC netcdf output file.
+   Insert the CPP (carte parallelogrammatique projection) into an ADCIRC netcdf output file, leaving the existing coordinates intact.
 </p>
 </div>
 </div>
@@ -754,7 +755,7 @@ generateCPP(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The <span class="monospaced">generateCPP.f90(1)</span> program calculates the CPP projection of a set of
+<div class="paragraph"><p>The <tt>generateCPP.f90(1)</tt> program calculates the CPP projection of a set of
 geographic coordinates found in an ADCIRC netcdf output file and inserts the
 projected coordinates into the netcdf file (leaving the existing geographic
 coordinates intact and unaffected). This can be helpful in generating
@@ -773,6 +774,17 @@ visualizations. The variable names of the new coordinates are <em>x_cpp</em> and
 <p>
     Use the netcdf formatted ADCIRC output file named <em>ADCIRC_FILE_NAME</em> when
     calcuating and writing the CPP projection.
+</p>
+</dd>
+<dt class="hdlist1">
+<strong>--cpp</strong> <em>SLAM0</em> <em>SFEA0</em>
+</dt>
+<dd>
+<p>
+    Use the values <em>SLAM0</em> and <em>SFEA0</em> as the longitude (degrees,
+    -180.0 to 180.0) and latitude (-80.0 to 80.0), respectively,
+    of the center of the
+    cpp projection.
 </p>
 </dd>
 </dl></div>
@@ -795,10 +807,10 @@ the Free Software Foundation, either version 3 of the License, or
 </div>
 </div>
 </div>
-<div id="footnotes"><hr></div>
+<div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-07-06 22:42:09 EDT
+Last updated 2013-02-27 15:52:15 EST
 </div>
 </div>
 </body>

@@ -58,7 +58,7 @@
       logical :: fileFound
       integer :: i  ! loop counter
 
-      deg2rad = 2*pi/360.0
+      deg2rad = 2*pi/360.d0
       fileFound = .false.
       argcount = iargc() ! count up command line options
       if (argcount.gt.0) then

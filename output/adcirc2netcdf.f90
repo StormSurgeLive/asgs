@@ -84,7 +84,7 @@ include 'adcmesh.f90'
       integer                       :: num_components ! variable components for netcdf4 compression
       integer                       :: varid(3) ! varids for netcdf4 compression
       ! initializations
-      deg2rad = 2*pi/360.0
+      deg2rad = 2*pi/360.d0
       meshFileName = "null"
       attFile = "null"
       menuOpt = 0

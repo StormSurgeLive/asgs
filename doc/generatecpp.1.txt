@@ -4,7 +4,8 @@ generateCPP(1)
 
 NAME
 ----
-generateCPP.f90 - Insert the CPP projection into an ADCIRC netcdf output file. 
+generateCPP.f90 - Insert the CPP (carte parallelogrammatique projection) 
+into an ADCIRC netcdf output file, leaving the existing coordinates intact.
 
 SYNOPSIS
 --------
@@ -27,6 +28,13 @@ OPTIONS
 *--datafile* 'ADCIRC_FILE_NAME'::
     Use the netcdf formatted ADCIRC output file named 'ADCIRC_FILE_NAME' when
     calcuating and writing the CPP projection.
+    
+*--cpp* 'SLAM0' 'SFEA0'::
+    Use the values 'SLAM0' and 'SFEA0' as the longitude (degrees, 
+    -180.0 to 180.0) and latitude (-80.0 to 80.0), respectively,
+    of the center of the 
+    cpp projection. 
+    
 
 AUTHOR
 ------
