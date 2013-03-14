@@ -34,8 +34,17 @@ my $pathfile = "null"; # file with particle positions
 my $velfile = "null";  # file with particle velocities 
 my $xdmffile = "particles.xmf"; # xdmf file where particle positions and/or velocities
                                  # are written
+my $cpp; # use this command line option to reproject to CPP coordinates
+my $slam0 = 0.0; # reference longitude for the cpp projection (degrees, -180 to 180)
+my $sfea0 = 0.0; # reference latitude for the cpp projection (degrees, -80 to 80)
+my $R = 6378206.4; # radius of the earth (meters)
+my $pi = 3.141592653589793;
+my $deg2rad = 2.0*$pi/360.0;
 #
 GetOptions(
+           "cpp" => \$cpp,
+           "slam0" => \$slam0,
+           "sfea0" => \$sfea0,
            "xdmffile=s" => \$xdmffile,
            "pathfile=s" => \$pathfile,
            "velfile=s" => \$velfile
@@ -116,6 +125,10 @@ for (my $i=0; $i<$nd; $i++ ) {
    # read particle positions and write them to the XDMF xml file
    for (my $j=0; $j<$npartDataset; $j++ ) {
       my @coords = split(" ",<PATHFILE>);
+      if (defined $cpp) {
+         $coords[1] = $R * ($coords[1]*$deg2rad - $slam0*$deg2rad) * cos($sfea0*$deg2rad);
+         $coords[2] = $coords[2]*$deg2rad * $R;
+      }
       printf XDMFFILE "$coords[1] $coords[2] $coords[3]\n"; 
    }
    printf XDMFFILE "         </DataItem>\n";
