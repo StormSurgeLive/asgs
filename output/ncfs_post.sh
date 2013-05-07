@@ -49,6 +49,9 @@ cd ${ADVISDIR}/${ENSTORM}
 # web app
 echo "asgs : nc" >> run.properties
 #
+# write the intended audience to the run.properties file for CERA
+echo "intendedAudience : general" >> run.properties
+#
 # generate XDMF xml files 
 #for file in `ls *.nc`; do
 #   ${OUTPUTDIR}/generateXDMF.x --datafile $file 2>> $SYSLOG
