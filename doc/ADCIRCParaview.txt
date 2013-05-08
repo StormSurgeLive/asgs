@@ -1,0 +1,259 @@
+ADCIRC Results Visualization with Paraview
+==========================================
+Jason Fleming <jason.fleming@seahorsecoastal.com>
+v1.0, May 2013, Seahorse Coastal Consulting:
+
+image::figures/SCC_logo.png["Seahorse Coastal Consulting",align="center",link="http://www.seahorsecoastal.com"]
+
+
+Executive Summary
+-----------------
+
+The use of the NetCDF4 output format allows ADCIRC and ADCIRC+SWAN 
+users to use the powerful open source 3D visualization system 
+Paraview to visualize their results. Seahorse Coastal Consulting has 
+developed several small utility programs that write small XML file 
+to accompany the NetCDF4 output files from ADCIRC or ADCIRC+SWAN. 
+These XML files implement the XDMF (extensible data and model 
+format, a US Army Research standard) format, that Paraview can read 
+directly. This document describes the compilation and use of these 
+utilities, as well as the process of loading the data into Paraview 
+and setting up a visualization. 
+
+Software Requirements
+---------------------
+
+The following software packages are required:
+
+* Paraview (obtained from http://www.paraview.org)
+
+* NetCDF4 (obtained from http://www.unidata.ucar.edu/software/netcdf), version 
+  4.1 or higher is recommended
+
+* adcmesh.f90: a utility package for manipulating ADCIRC mesh files
+
+* adcirc2netcdf.f90: converts ascii ADCIRC files to NetCDF4
+
+* generateCPP.f90: calculates CPP projection for a given mesh in a
+  NetCDF4 ADCIRC output file and adds the coordinates to the file
+  
+* generateXDMF.f90: creates an XML file to accompany an existing 
+  ADCIRC NetCDF4 file, thereby implementing the XDMF format
+
+* A Fortran compiler
+  
+The Fortran90 files list above are open source software and are a 
+part of the ADCIRC Surge Guidance System (ASGS) package. 
+
+Software Compilation 
+--------------------
+
+The utilities described above are relatively simple and are intended 
+to be standards compliant and therefore widely portable among 
+different Fortran compilers. As a result of this simplicity, a 
+makefile is not required for building these executables. Rather, the 
+source code for each utility has sample commands in comments at the 
+top to provide examples for compiling with different compilers.
+
+For example, the command you use to build generateXDMF.f90 with the 
+gfortran compiler might look like the following:
+
+ gfortran -o generateXDMF.x -ffree-form -ffree-line-length-none -I/usr/include
+  generateXDMF.f90 -lnetcdf -lnetcdff -lz
+
+You may or may not need to adjust the "-I" option to reflect the 
+installation location of NetCDF4 on your platform. And although the 
+adcmesh.f90 file does not appear in the compilation command above, 
+it is referenced in an _include_ directive in the source code, so it 
+must be present in the same directory where the above command was 
+issued. 
+
+Once you've compiled all the Fortran utilities above (although 
+adcirc2netcdf.f90 is only needed if you'll be starting with ascii 
+ADCIRC output), you're ready to run the programs to generate XDMF 
+output. 
+
+Creating XDMF Output
+--------------------
+
+XDMF actually consists of two separate but related files: a binary 
+file that holds model data and an XML file that describes the type 
+of coordinate system, the names of the variables, the time stamps on 
+time varying data, etc. This section of this document describes the 
+process of creating XDMF files from ADCIRC output, using the 
+Shinnecock Inlet test case (which is available from adcirc.org). 
+
+Starting from an ASCII ADCIRC File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+XDMF uses HDF5 to store large datasets; NetCDF4 uses HDF5 as the 
+underlying file format, so ADCIRC's native NetCDF4 output files 
+fulfill this requirement. If you're starting with ascii ADCIRC files,
+they must first be converted from ASCII to NetCDF4 format. The 
+utility program 'adcirc2netcdf.f90' was developed for this purpose.
+
+Complete details on the command line options for this utility are 
+provided in the manual page +adcirc2netcdf(1)+ which is also 
+available in the 'doc' subdirectory of the ASGS repository. One 
+detail that may not be obvious from the manual page is that a 
+metadata file is also required for the adcirc2netcdf utility to 
+work; this metadata file (called an attributes file) must contain at 
+least a specifically formatted line containing the calendar time 
+that corresponds to the ADCIRC cold start time. Any other metadata 
+attributes are optional. 
+
+For the Shinnecock Inlet test case, a metadata attributes file 
+might look like the following:
+
+  3
+  seconds since 2005-07-26 00:00:00 +00:00
+  'Purpose' 'Example to illustrate the use of adcirc2netcdf'
+  'Author' 'ADCIRC Modeler at MyCompany'
+  'Contact' 'adcircrulez@mycompany.com'
+  
+If we save the lines above to the file as +shinnecock_atts.txt+ in 
+the same directory as the output files from the Shinnecock Inlet 
+test case, we can then create a new NetCDF4 data file containing the 
+data from our ascii-formatted maximum water surface elevation file 
+(which is like a high water marks file) maxele.63 with the following 
+command:
+
+ adcirc2netcdf.x --netcdf4 --meshfile fort.14 --attfile shinnecock_atts.txt
+  --datafile maxele.63
+
+If your netcdf2adcirc.x executable file is not in the same directory 
+as your output files, and is not in your PATH environmental 
+variable, you'll have to supply the full path to the executable on 
+the command line, rather than just the name of the executable. You can
+verify that the metadata that you provided in the +shinnecock_atts.txt+
+file were actually incorporated in the NetCDF4 file by executing 
+
+ ncdump -h maxele.63.nc > header.txt
+ 
+and looking at the +header.txt+ file in a text editor. 
+
+Once You Have a NetCDF4 File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Whether you've generated a NetCDF4 file from ADCIRC natively (by
+using format type 5 for NOUTGE, NOUTGW, etc) or by creating a NetCDF4
+file with 'adcirc2netcdf', its now possible to generate a small
+XML file to accompany the ADCIRC data and to describe the coordinate
+system, the number of time steps in the file, etc. 
+
+Because these data are to be used in visualization, the first step 
+in the process involves the computation of the cpp projection if the 
+vertex locations from the geographic projection provided in the 
+NetCDF4 file. This step is a convenience, and is not strictly 
+required, but it will save you from the need to scale the results in 
+the vertical in Paraview; the distortion caused by using latitude 
+and longitude in the horizontal direction and meters in the vertical 
+direction can be extreme. The CPP projection creates a Cartesian 
+coordinate system using meters in all three physical dimensions. 
+
+To compute the CPP projection of the x and y vertex coordinates, 
+execute the 'generateCPP' as follows:
+
+ generateCPP.x --datafile maxele.63.nc
+
+Have a look inside the file with +ncdump -h maxele.63.nc > header.txt+
+to confirm that the original 'x' and 'y' coordinates are still there
+and that a new set of coordinates labeled 'x_cpp' and 'y_cpp' have been
+added.
+
+Next, we generate a small XML text file to accompany and describe our 
+data using the 'generateXDMF' utility as follows:
+
+ generateXDMF.x --use-cpp --datafile maxele.63.nc
+ 
+where the +--use-cpp+ option will cause the resulting XML file to refer
+to the CPP projected coordinates from the NetCDF4 file. Have a look at
+the XML file +maxele.63.nc.xmf+ with a text editor, and note that the 
+NodeLocations refer to 'x_cpp' and 'y_cpp'. If you ever wanted the file
+to refer to the vertex coordinates in geographic projection, simply edit
+these lines to refer to 'x' and 'y' instead if 'x_cpp' and 'y_cpp'. 
+
+If each of the steps outline in this section were successful, you are
+now ready load the file into Paraview for visualization.
+
+Visualization with Paraview
+---------------------------
+
+Start up Paraview, then
+
+1. Click 'File->Open'.
+2. Select the +maxele.63.nc.xmf+ file.  
+3. Click on the 'Properties' tab.
+4. Click the green 'Apply' button.
+
+At this point you should see something like the following 
+screenshot, a filled contour plot of the mesh bathymetry using 
+Paraview's default color scale, autoscaled to the range of depths in 
+the Shinnecock Inlet mesh.
+
+image::figures/paraview_maxele_ss.png["Paraview Maxele Screenshot",align="center"]
+
+Instead of the bathymetric contours, we'd like to look at the 
+contours of maximum water surface elevation. To do this, go to the 
+dropdown box at the top of the application window that currently 
+identifies +BathymetricDepth+ as the dataset that the visible 
+dataset. Click on this dropdown box and select 
++maximum_sea_surface_elevation_above_datum+, which is ADCIRC's name 
+for the maximum water surface elevation data. 
+
+Once the visible dataset has changed, you'll find that the contour 
+plot is now all red, with a few tiny specks of blue near the barrier
+island. This is because Paraview is autoscaling the data, and ADCIRC 
+always labels dry nodes with an elevation value of -99999.0 meters. 
+As a result, Paraview thinks that the bottom of the water surface 
+elevation range is -99999.0 meters. 
+
+To fix this color scale issue caused by missing values, we must filter
+out the missing values with Paraview's Threshold filter:
+
+1. Click 'Filters->Threshold' or the Threshold filter button.
+2. Paraview created a 'Threshold' filter and added it to the visualization
+   pipeline.
+3. Click on the 'Properties' tab. 
+4. Click on the 'Scalars' dropdown box that is currently labeled 
+   +BathymetricDepth+, and then click on +maximum_sea_surface_elevation_above_datum+
+   because those are the scalars we want to filter. 
+5. In the 'Lower Threshold' text box, change the value to -99998 so that
+   the dry node values will no longer be part of the dataset.
+6. Click the green 'Apply' button. 
+7. You may have to repeat the step where you click the dropdown box
+   near the top of the window, if it has reverted to +BathymetricDepth+; 
+   select the +maximum_sea_surface_elevation_above_datum+ again in this
+   dropdown box if needed.
+8. Rescale the colors to the data range of the Thresholded data set using
+   color rescale button (the button icon looks like a ruler with a green
+   double headed arrow above it). 
+   
+The Paraview window should look like the following: 
+
+image::figures/paraview_maxele_filt.png["Paraview Filtered Maxele Screenshot",align="center"]
+
+If so, then congratulations, you are now using Paraview to visualize ADCIRC
+results!
+
+Appendix A: This Document
+-------------------------
+
+This document was prepared from the text file ADCIRCParaview.txt 
+using software called asciidoc (http://www.methods.co.nz/asciidoc/). 
+The document can be formatted as an html page with the command 
+
+   asciidoc --backend html5 -a toc2 ADCIRCParaview.txt
+
+or formatted as a pdf with the command
+
+   a2x --format=pdf -a toc2 ADCIRCParaview.txt  
+
+ifdef::backend-docbook[]
+Index
+-----
+////////////////////////////////////////////////////////////////
+The index is normally left completely empty, it's contents being
+generated automatically by the DocBook toolchain.
+////////////////////////////////////////////////////////////////
+endif::backend-docbook[]

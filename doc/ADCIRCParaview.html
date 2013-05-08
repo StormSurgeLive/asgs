@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="AsciiDoc 8.6.6">
+<title>ADCIRC Results Visualization with Paraview</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+pre {
+  padding: 0;
+  margin: 0;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+tt {
+  font-family: monospace;
+  font-size: inherit;
+  color: navy;
+}
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+.monospaced {
+  font-family: monospace;
+  font-size: inherit;
+  color: navy;
+}
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+@media screen {
+  body {
+    max-width: 50em; /* approximately 80 characters wide */
+    margin-left: 16em;
+  }
+
+  #toc {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 13em;
+    padding: 0.5em;
+    padding-bottom: 1.5em;
+    margin: 0;
+    overflow: auto;
+    border-right: 3px solid #f8f8f8;
+    background-color: white;
+  }
+
+  #toc .toclevel1 {
+    margin-top: 0.5em;
+  }
+
+  #toc .toclevel2 {
+    margin-top: 0.25em;
+    display: list-item;
+    color: #aaaaaa;
+  }
+
+  #toctitle {
+    margin-top: 0.5em;
+  }
+}
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install(2);
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>ADCIRC Results Visualization with Paraview</h1>
+<span id="author">Jason Fleming</span><br>
+<span id="email" class="monospaced">&lt;<a href="mailto:jason.fleming@seahorsecoastal.com">jason.fleming@seahorsecoastal.com</a>&gt;</span><br>
+<span id="revnumber">version 1.0,</span>
+<span id="revdate">May 2013, Seahorse Coastal Consulting</span>
+<br><span id="revremark"></span>
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<a class="image" href="http://www.seahorsecoastal.com">
+<img src="figures/SCC_logo.png" alt="Seahorse Coastal Consulting">
+</a>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_executive_summary">Executive Summary</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The use of the NetCDF4 output format allows ADCIRC and ADCIRC+SWAN
+users to use the powerful open source 3D visualization system
+Paraview to visualize their results. Seahorse Coastal Consulting has
+developed several small utility programs that write small XML file
+to accompany the NetCDF4 output files from ADCIRC or ADCIRC+SWAN.
+These XML files implement the XDMF (extensible data and model
+format, a US Army Research standard) format, that Paraview can read
+directly. This document describes the compilation and use of these
+utilities, as well as the process of loading the data into Paraview
+and setting up a visualization.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_software_requirements">Software Requirements</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The following software packages are required:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Paraview (obtained from <a href="http://www.paraview.org">http://www.paraview.org</a>)
+</p>
+</li>
+<li>
+<p>
+NetCDF4 (obtained from <a href="http://www.unidata.ucar.edu/software/netcdf">http://www.unidata.ucar.edu/software/netcdf</a>), version
+  4.1 or higher is recommended
+</p>
+</li>
+<li>
+<p>
+adcmesh.f90: a utility package for manipulating ADCIRC mesh files
+</p>
+</li>
+<li>
+<p>
+adcirc2netcdf.f90: converts ascii ADCIRC files to NetCDF4
+</p>
+</li>
+<li>
+<p>
+generateCPP.f90: calculates CPP projection for a given mesh in a
+  NetCDF4 ADCIRC output file and adds the coordinates to the file
+</p>
+</li>
+<li>
+<p>
+generateXDMF.f90: creates an XML file to accompany an existing
+  ADCIRC NetCDF4 file, thereby implementing the XDMF format
+</p>
+</li>
+<li>
+<p>
+A Fortran compiler
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>The Fortran90 files list above are open source software and are a
+part of the ADCIRC Surge Guidance System (ASGS) package.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_software_compilation">Software Compilation</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The utilities described above are relatively simple and are intended
+to be standards compliant and therefore widely portable among
+different Fortran compilers. As a result of this simplicity, a
+makefile is not required for building these executables. Rather, the
+source code for each utility has sample commands in comments at the
+top to provide examples for compiling with different compilers.</p></div>
+<div class="paragraph"><p>For example, the command you use to build generateXDMF.f90 with the
+gfortran compiler might look like the following:</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>gfortran -o generateXDMF.x -ffree-form -ffree-line-length-none -I/usr/include
+ generateXDMF.f90 -lnetcdf -lnetcdff -lz</pre>
+</div></div>
+<div class="paragraph"><p>You may or may not need to adjust the "-I" option to reflect the
+installation location of NetCDF4 on your platform. And although the
+adcmesh.f90 file does not appear in the compilation command above,
+it is referenced in an <em>include</em> directive in the source code, so it
+must be present in the same directory where the above command was
+issued.</p></div>
+<div class="paragraph"><p>Once you&#8217;ve compiled all the Fortran utilities above (although
+adcirc2netcdf.f90 is only needed if you&#8217;ll be starting with ascii
+ADCIRC output), you&#8217;re ready to run the programs to generate XDMF
+output.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creating_xdmf_output">Creating XDMF Output</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>XDMF actually consists of two separate but related files: a binary
+file that holds model data and an XML file that describes the type
+of coordinate system, the names of the variables, the time stamps on
+time varying data, etc. This section of this document describes the
+process of creating XDMF files from ADCIRC output, using the
+Shinnecock Inlet test case (which is available from adcirc.org).</p></div>
+<div class="sect2">
+<h3 id="_starting_from_an_ascii_adcirc_file">Starting from an ASCII ADCIRC File</h3>
+<div class="paragraph"><p>XDMF uses HDF5 to store large datasets; NetCDF4 uses HDF5 as the
+underlying file format, so ADCIRC&#8217;s native NetCDF4 output files
+fulfill this requirement. If you&#8217;re starting with ascii ADCIRC files,
+they must first be converted from ASCII to NetCDF4 format. The
+utility program <em>adcirc2netcdf.f90</em> was developed for this purpose.</p></div>
+<div class="paragraph"><p>Complete details on the command line options for this utility are
+provided in the manual page <span class="monospaced">adcirc2netcdf(1)</span> which is also
+available in the <em>doc</em> subdirectory of the ASGS repository. One
+detail that may not be obvious from the manual page is that a
+metadata file is also required for the adcirc2netcdf utility to
+work; this metadata file (called an attributes file) must contain at
+least a specifically formatted line containing the calendar time
+that corresponds to the ADCIRC cold start time. Any other metadata
+attributes are optional.</p></div>
+<div class="paragraph"><p>For the Shinnecock Inlet test case, a metadata attributes file
+might look like the following:</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>3
+seconds since 2005-07-26 00:00:00 +00:00
+'Purpose' 'Example to illustrate the use of adcirc2netcdf'
+'Author' 'ADCIRC Modeler at MyCompany'
+'Contact' 'adcircrulez@mycompany.com'</pre>
+</div></div>
+<div class="paragraph"><p>If we save the lines above to the file as <span class="monospaced">shinnecock_atts.txt</span> in
+the same directory as the output files from the Shinnecock Inlet
+test case, we can then create a new NetCDF4 data file containing the
+data from our ascii-formatted maximum water surface elevation file
+(which is like a high water marks file) maxele.63 with the following
+command:</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>adcirc2netcdf.x --netcdf4 --meshfile fort.14 --attfile shinnecock_atts.txt
+ --datafile maxele.63</pre>
+</div></div>
+<div class="paragraph"><p>If your netcdf2adcirc.x executable file is not in the same directory
+as your output files, and is not in your PATH environmental
+variable, you&#8217;ll have to supply the full path to the executable on
+the command line, rather than just the name of the executable. You can
+verify that the metadata that you provided in the <span class="monospaced">shinnecock_atts.txt</span>
+file were actually incorporated in the NetCDF4 file by executing</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>ncdump -h maxele.63.nc &gt; header.txt</pre>
+</div></div>
+<div class="paragraph"><p>and looking at the <span class="monospaced">header.txt</span> file in a text editor.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_once_you_have_a_netcdf4_file">Once You Have a NetCDF4 File</h3>
+<div class="paragraph"><p>Whether you&#8217;ve generated a NetCDF4 file from ADCIRC natively (by
+using format type 5 for NOUTGE, NOUTGW, etc) or by creating a NetCDF4
+file with <em>adcirc2netcdf</em>, its now possible to generate a small
+XML file to accompany the ADCIRC data and to describe the coordinate
+system, the number of time steps in the file, etc.</p></div>
+<div class="paragraph"><p>Because these data are to be used in visualization, the first step
+in the process involves the computation of the cpp projection if the
+vertex locations from the geographic projection provided in the
+NetCDF4 file. This step is a convenience, and is not strictly
+required, but it will save you from the need to scale the results in
+the vertical in Paraview; the distortion caused by using latitude
+and longitude in the horizontal direction and meters in the vertical
+direction can be extreme. The CPP projection creates a Cartesian
+coordinate system using meters in all three physical dimensions.</p></div>
+<div class="paragraph"><p>To compute the CPP projection of the x and y vertex coordinates,
+execute the <em>generateCPP</em> as follows:</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>generateCPP.x --datafile maxele.63.nc</pre>
+</div></div>
+<div class="paragraph"><p>Have a look inside the file with <span class="monospaced">ncdump -h maxele.63.nc &gt; header.txt</span>
+to confirm that the original <em>x</em> and <em>y</em> coordinates are still there
+and that a new set of coordinates labeled <em>x_cpp</em> and <em>y_cpp</em> have been
+added.</p></div>
+<div class="paragraph"><p>Next, we generate a small XML text file to accompany and describe our
+data using the <em>generateXDMF</em> utility as follows:</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>generateXDMF.x --use-cpp --datafile maxele.63.nc</pre>
+</div></div>
+<div class="paragraph"><p>where the <span class="monospaced">--use-cpp</span> option will cause the resulting XML file to refer
+to the CPP projected coordinates from the NetCDF4 file. Have a look at
+the XML file <span class="monospaced">maxele.63.nc.xmf</span> with a text editor, and note that the
+NodeLocations refer to <em>x_cpp</em> and <em>y_cpp</em>. If you ever wanted the file
+to refer to the vertex coordinates in geographic projection, simply edit
+these lines to refer to <em>x</em> and <em>y</em> instead if <em>x_cpp</em> and <em>y_cpp</em>.</p></div>
+<div class="paragraph"><p>If each of the steps outline in this section were successful, you are
+now ready load the file into Paraview for visualization.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_visualization_with_paraview">Visualization with Paraview</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Start up Paraview, then</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Click <em>File&#8594;Open</em>.
+</p>
+</li>
+<li>
+<p>
+Select the <span class="monospaced">maxele.63.nc.xmf</span> file.
+</p>
+</li>
+<li>
+<p>
+Click on the <em>Properties</em> tab.
+</p>
+</li>
+<li>
+<p>
+Click the green <em>Apply</em> button.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>At this point you should see something like the following
+screenshot, a filled contour plot of the mesh bathymetry using
+Paraview&#8217;s default color scale, autoscaled to the range of depths in
+the Shinnecock Inlet mesh.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/paraview_maxele_ss.png" alt="Paraview Maxele Screenshot">
+</div>
+</div>
+<div class="paragraph"><p>Instead of the bathymetric contours, we&#8217;d like to look at the
+contours of maximum water surface elevation. To do this, go to the
+dropdown box at the top of the application window that currently
+identifies <span class="monospaced">BathymetricDepth</span> as the dataset that the visible
+dataset. Click on this dropdown box and select
+<span class="monospaced">maximum_sea_surface_elevation_above_datum</span>, which is ADCIRC&#8217;s name
+for the maximum water surface elevation data.</p></div>
+<div class="paragraph"><p>Once the visible dataset has changed, you&#8217;ll find that the contour
+plot is now all red, with a few tiny specks of blue near the barrier
+island. This is because Paraview is autoscaling the data, and ADCIRC
+always labels dry nodes with an elevation value of -99999.0 meters.
+As a result, Paraview thinks that the bottom of the water surface
+elevation range is -99999.0 meters.</p></div>
+<div class="paragraph"><p>To fix this color scale issue caused by missing values, we must filter
+out the missing values with Paraview&#8217;s Threshold filter:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Click <em>Filters&#8594;Threshold</em> or the Threshold filter button.
+</p>
+</li>
+<li>
+<p>
+Paraview created a <em>Threshold</em> filter and added it to the visualization
+   pipeline.
+</p>
+</li>
+<li>
+<p>
+Click on the <em>Properties</em> tab.
+</p>
+</li>
+<li>
+<p>
+Click on the <em>Scalars</em> dropdown box that is currently labeled
+   <span class="monospaced">BathymetricDepth</span>, and then click on <span class="monospaced">maximum_sea_surface_elevation_above_datum</span>
+   because those are the scalars we want to filter.
+</p>
+</li>
+<li>
+<p>
+In the <em>Lower Threshold</em> text box, change the value to -99998 so that
+   the dry node values will no longer be part of the dataset.
+</p>
+</li>
+<li>
+<p>
+Click the green <em>Apply</em> button.
+</p>
+</li>
+<li>
+<p>
+You may have to repeat the step where you click the dropdown box
+   near the top of the window, if it has reverted to <span class="monospaced">BathymetricDepth</span>;
+   select the <span class="monospaced">maximum_sea_surface_elevation_above_datum</span> again in this
+   dropdown box if needed.
+</p>
+</li>
+<li>
+<p>
+Rescale the colors to the data range of the Thresholded data set using
+   color rescale button (the button icon looks like a ruler with a green
+   double headed arrow above it).
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>The Paraview window should look like the following:</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="figures/paraview_maxele_filt.png" alt="Paraview Filtered Maxele Screenshot">
+</div>
+</div>
+<div class="paragraph"><p>If so, then congratulations, you are now using Paraview to visualize ADCIRC
+results!</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_appendix_a_this_document">Appendix A: This Document</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This document was prepared from the text file ADCIRCParaview.txt
+using software called asciidoc (<a href="http://www.methods.co.nz/asciidoc/">http://www.methods.co.nz/asciidoc/</a>).
+The document can be formatted as an html page with the command</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>asciidoc --backend html5 -a toc2 ADCIRCParaview.txt</pre>
+</div></div>
+<div class="paragraph"><p>or formatted as a pdf with the command</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>a2x --format=pdf -a toc2 ADCIRCParaview.txt</pre>
+</div></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr></div>
+<div id="footer">
+<div id="footer-text">
+Version 1.0<br>
+Last updated 2013-05-08 13:49:45 EDT
+</div>
+</div>
+</body>
+</html>
