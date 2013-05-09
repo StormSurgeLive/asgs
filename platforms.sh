@@ -27,6 +27,20 @@
 #
 # initialization subroutines for the various machines/architectures
 #
+init_camellia()
+{ #<- can replace the following with a custom script
+  HOSTNAME=camellia.worldwindsinc.com
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  ACCOUNT=bpj
+  SUBMITSTRING=qsub
+  SCRATCHDIR=$HOME/tmp
+  SSHKEY=~/.ssh/id_rsa.pub
+  QSCRIPT=ww.template.pbs
+  PREPCONTROLSCRIPT=ww.adcprep.template.pbs
+  QSCRIPTGEN=tezpur.pbs.pl
+  PPN=12
+}
 init_blueridge()
 { #<- can replace the following with a custom script
   HOSTNAME=blueridge.renci.org
@@ -214,6 +228,9 @@ init_test()
 # such as queue interactions
 env_dispatch(){
  case $1 in
+  "camellia") consoleMessage "Camellia(WorldWinds) configuration found."
+          init_camellia
+          ;;
   "kittyhawk") consoleMessage "Kittyhawk (RENCI) configuration found."
           init_kittyhawk
           ;;
