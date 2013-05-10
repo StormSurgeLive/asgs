@@ -133,6 +133,7 @@ subject="ADCIRC NCFS POSTED for $runStartTime"
 if [[ $TROPICALCYCLONE = on ]]; then
    subject=${subject}" (TROPICAL CYCLONE)"
 fi
+subject="${subject} $CERASERVER"
 cat <<END > ${STORMDIR}/cera_results_notify.txt 
 
 The ADCIRC NCFS solutions for $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
