@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright(C) 2011, 2012 Jason Fleming
+# Copyright(C) 2011--2013 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -43,7 +43,17 @@ env_dispatch ${TARGET}
 # grab all config info (again, last, so the CONFIG file takes precedence)
 . ${CONFIG}
 #
-cd ${ADVISDIR}/${ENSTORM}
+STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
+cd ${STORMDIR}
+# get the forecast ensemble member number for use in CERA load balancing
+ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+# we expect the ASGS config file to tell us how many cera servers there
+# are with CERASERVERNUM and assume they are consecutively named 
+# cera1, cera2, etc. We alternate the forecast ensemble members evenly 
+# among them
+CERASERVERNUM=`expr $ENMEMNUM % $NUMCERASERVERS + 1`
+CERASERVER=cera$CERASERVERNUM
+echo "ceraServer : $CERASERVER" >> run.properties
 #
 # write the target area to the run.properties file for the CERA
 # web app
@@ -71,7 +81,7 @@ echo "intendedAudience : general" >> run.properties
 #
 # construct the opendap directory path where the results will be posted
 #
-STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
+
 STORMNAMEPATH=null
 DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
 CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"

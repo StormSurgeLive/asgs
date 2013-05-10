@@ -6,7 +6,7 @@
 # loop which is executed once per advisory cycle.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2006, 2007, 2008, 2009, 2010, 2011, 2012 Jason Fleming
+# Copyright(C) 2006--2013 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -1505,6 +1505,9 @@ while [ true ]; do
       fi
       echo "hostname : $HOSTNAME" >> ${STORMDIR}/run.properties
       echo "instance : $INSTANCENAME" >> ${STORMDIR}/run.properties
+      # recording the ensemble member number may come in handy for load
+      # balancing the postprocessing, particularly for CERA
+      echo "forecastEnsembleMemberNumber : $si" >> ${STORMDIR}/run.properties
       if [[ $RUNFORECAST = yes ]]; then
          # preprocess
          logMessage "Starting $ENSTORM preprocessing with the following command: prep $ADVISDIR $INPUTDIR $ENSTORM $START $NOWCASTDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
