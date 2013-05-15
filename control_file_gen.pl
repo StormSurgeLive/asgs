@@ -520,24 +520,24 @@ unless (open(RUNPROPS,">>$stormDir/run.properties")) {
    stderrMessage("ERROR","Failed to open the run.properties file for writing.");
    die;
 }
-printf RUNPROPS "version : 1\n";
+# If we aren't using a vortex met model, we don't have a track
+# file, but the CERA web app still needs to have values for these
+# properties. In the case of a vortex met model, these values are
+# filled in by the storm_track_gen.pl script.
+if ( abs($nws) != 19 && abs($nws) != 319 ) {
+   printf RUNPROPS "track_raw_dat : notrack\n"; 
+   printf RUNPROPS "track_raw_fst : notrack\n"; 
+   printf RUNPROPS "track_modified : notrack\n"; 
+}
 printf RUNPROPS "year : $ny\n";
 printf RUNPROPS "storm : $stormnumber\n";
-printf RUNPROPS "directory advisory : $advisorynum\n";
 printf RUNPROPS "directory storm : $stormDir\n";
-if (defined $hstime) {
-   printf RUNPROPS "time hotstart seconds : $hstime\n";
-}
-printf RUNPROPS "time coldstart date : $csdate\n";
 printf RUNPROPS "mesh : $gridname\n";
 printf RUNPROPS "RunType : $run_type\n";
 printf RUNPROPS "ADCIRCgrid : $gridname\n";
 printf RUNPROPS "stormnumber : $stormnumber\n";
 printf RUNPROPS "stormname : $nhcName\n";
-printf RUNPROPS "miscfield : $advisorynum\n";
 printf RUNPROPS "advisory : $advisorynum\n";
-printf RUNPROPS "currentcycle : $cycle_hour\n";
-printf RUNPROPS "currentdate : $currentdate\n";
 printf RUNPROPS "prodID : $prodid\n";
 if (defined $hstime) {
    printf RUNPROPS "InitialHotStartTime : $hstime\n";
