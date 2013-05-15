@@ -362,13 +362,6 @@ printf PROPS "storm name : $nhcName\n";
 printf PROPS "track_raw_dat : bal$storm$year.dat\n";
 printf PROPS "track_raw_fst : al$storm$year.fst\n";
 close(PROPS);
-# write the last current storm class and name to run.properties file; 
-printf PROPS "storm class : $stormClass\n";
-printf PROPS "storm name : $nhcName\n";
-# write the names of the unmodified, ATCF-formatted track data
-printf PROPS "track_raw_dat : bal$storm$year.dat\n";
-printf PROPS "track_raw_fst : al$storm$year.fst\n";
-close(PROPS);
 my $forecastedDate; # as a string
 my $last_pressure = $lasthindcastpressure;
 my $last_windspeed = $lasthindcastwindspeed;
