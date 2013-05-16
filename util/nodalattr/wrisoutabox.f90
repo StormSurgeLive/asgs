@@ -49,7 +49,7 @@
       OPEN(15,FILE=TRIM(fileout))
       DO ctr=1,nn
         READ(14,*)n,x,y,dumr
-        IF(NOT((x.GE.x1).AND.(x.LE.x2).AND.(y.GE.y1).AND.(y.LE.y2)))THEN
+        IF(.NOT.((x.GE.x1).AND.(x.LE.x2).AND.(y.GE.y1).AND.(y.LE.y2)))THEN
           WRITE(15,*)n,0
         ENDIF
       ENDDO
