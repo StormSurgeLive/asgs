@@ -1,0 +1,32 @@
+NLCD code   mnasf         scc        sderl          Description
+11          0.02          1          0.001          !Open Water
+12          0.01          1          0.012          !Perennial Ice/Snow
+21          0.02          1          0.1           !Developed - Open Space
+22          0.05          1          0.3           !Developed - Low Intensity
+23          0.1           1          0.4           !Developed - Medium Intensity
+24          0.15          1          0.55          !Developed - High Intensity
+31          0.09          1          0.04          !Barren Land (Rock/Sand/Clay)
+32          0.04          1          0.09          !Unconsolidated Shore
+41          0.1           0          0.65          !Deciduous Forest
+42          0.11          0          0.72          !Evergreen Forest
+43          0.1           0          0.71          !Mixed Forest
+51          0.04          1          0.1           !Dwarf Scrub
+52          0.05          1          0.12          !Shrub/Scrub
+71          0.034         1          0.04          !Grassland/Herbaceous
+72          0.03          1          0.03          !Sedge/Herbaceous
+73          0.027         1          0.025         !Lichens
+74          0.025         1          0.02          !Moss
+81          0.033         1          0.06          !Pasture/Hay
+82          0.037         1          0.06          !Cultivated Crops
+90          0.1           0          0.55          !Woody Wetlands
+91          0.1           0          0.55          !Palustrine Forested Wetland
+92          0.048         0          0.12          !Palustrine Scrub/Shrib Wetland
+93          0.1           0          0.55          !Estuarine Forested Wetland
+94          0.048         1          0.12          !Estuarine Scrub/Shrub Wetland
+95          0.045         1          0.11          !Emergent Herbaceous Wetlands
+96          0.045         1          0.11          !Palustrine Emergent Wetland (Persistant)
+97          0.045         1          0.11          !Estuarine Emergent Wetland
+98          0.015         1          0.03          !Palustrine Aquatic Bed
+99          0.015         1          0.03          !Estuarine Aquatic Bed
+127                       1          -9999         !No data class
+-9999                     1          -9999         !No data class
