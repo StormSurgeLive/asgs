@@ -1,0 +1,27 @@
+fort.13
+/home/bigbend/Mesh/FLBB11.grd
+../lcccap/flbb10_ccap_withseagrass.txt
+7
+mannings_n_at_sea_floor
+../lcccap/ccap2mnasf
+n y
+0.02
+primitive_weighting_in_continuity_equation
+sea_surface_height_above_geoid
+0.0
+surface_canopy_coefficient
+../lcccap/ccap2scc
+n
+surface_directional_effective_roughness_length
+10000
+3000
+2
+../lcccap/ccap2sderl
+y
+../lcccap/flbb10_ccap_noseagrass.txt
+surface_submergence_state
+1
+-86 24
+n
+wave_refraction_in_swan
+-84.63 28.0 -82.4 30.45
