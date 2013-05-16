@@ -545,7 +545,7 @@ CTGA-END:  Added for fort.13 generation automation
 !    Direction two is 30 degrees - or between 15° and 45°)
 
                elseif (j == 2) then
-                  x_30=abs(y_inc*tand(30.0d0))
+                  x_30=abs(y_inc*tan(deg2rad*30.0d0))
                   xy_dist=sqrt(y_inc**2+x_30**2)
                   times=abs(total_dist/xy_dist)
                   ntimes=abs(total_dist/xy_dist)
@@ -641,7 +641,7 @@ CTGA-END:  Added for fort.13 generation automation
 !    Direction three is 60 degrees - or between 45° and 75°
                                     
                elseif (j.eq.3) then
-                  y_30=abs(x_inc*tand(30.0d0))
+                  y_30=abs(x_inc*tan(deg2rad*30.0d0))
                   xy_dist=sqrt(y_30**2+x_inc**2)
                   times=abs(total_dist/xy_dist)
                   ntimes=abs(total_dist/xy_dist)
@@ -773,7 +773,7 @@ CTGA-END:  Added for fort.13 generation automation
 !    Direction five is 120 degrees - or between 105° and 135°
 
                elseif (j.eq.5) then
-                  y_30=abs(x_inc*tand(30.0d0))
+                  y_30=abs(x_inc*tan(deg2rad*30.0d0))
                   xy_dist=sqrt(y_30**2+x_inc**2)
                   times=abs(total_dist/xy_dist)
                   ntimes=abs(total_dist/xy_dist)
@@ -871,7 +871,7 @@ CTGA-END:  Added for fort.13 generation automation
 !    Direction six is 150 degrees - or between 135° and 165°
 
                elseif (j.eq.6) then
-                  x_30=abs(y_inc*tand(30.0d0))
+                  x_30=abs(y_inc*tan(deg2rad*30.0d0))
                   xy_dist=sqrt(y_inc**2+x_30**2)
                   times=abs(total_dist/xy_dist)
                   ntimes=abs(total_dist/xy_dist)
@@ -1001,7 +1001,7 @@ CTGA-END:  Added for fort.13 generation automation
 65             continue
  
                elseif (j.eq.8) then
-                  x_30=abs(y_inc*tand(30.0d0))
+                  x_30=abs(y_inc*tan(deg2rad*30.0d0))
                   xy_dist=sqrt(y_inc**2+x_30**2)
                   times=abs(total_dist/xy_dist)
                   ntimes=abs(total_dist/xy_dist)
@@ -1095,7 +1095,7 @@ CTGA-END:  Added for fort.13 generation automation
 75             continue
 
                elseif (j.eq.9) then
-                  y_30=abs(x_inc*tand(30.0d0))
+                  y_30=abs(x_inc*tan(deg2rad*30.0d0))
                   xy_dist=sqrt(y_30**2+x_inc**2)
                   times=abs(total_dist/xy_dist)
                   ntimes=abs(total_dist/xy_dist)
@@ -1223,7 +1223,7 @@ CTGA-END:  Added for fort.13 generation automation
 95             continue
 
                elseif (j.eq.11) then
-                  y_30=abs(x_inc*tand(30.0d0))
+                  y_30=abs(x_inc*tan(deg2rad*30.0d0))
                   xy_dist=sqrt(y_30**2+x_inc**2)
                   times=abs(total_dist/xy_dist)
                   ntimes=abs(total_dist/xy_dist)
@@ -1316,7 +1316,7 @@ CTGA-END:  Added for fort.13 generation automation
 105            continue
          
                elseif (j.eq.12) then
-                  x_30=abs(y_inc*tand(30.0d0))
+                  x_30=abs(y_inc*tan(deg2rad*30.0d0))
                   xy_dist=sqrt(y_inc**2+x_30**2)
                   times=abs(total_dist/xy_dist)
                   ntimes=abs(total_dist/xy_dist)

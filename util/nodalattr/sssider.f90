@@ -224,7 +224,7 @@
             newwet(seednod(cnt1))=.TRUE.
          ENDIF
          !Repeat this loop until no new wet nodes are identified
-         DO WHILE (NOT(alldone))
+         DO WHILE (.NOT.(alldone))
             oldwet=newwet
             newwet=.FALSE.
             DO cnt2=1,nnod
@@ -239,7 +239,7 @@
                   ENDDO
                ENDIF
             ENDDO
-         IF(NOT(ANY(newwet))) alldone=.TRUE.                                    !if new wet nodes were found in this round of the loop
+         IF(.NOT.(ANY(newwet))) alldone=.TRUE.                                    !if new wet nodes were found in this round of the loop
          ENDDO
       ENDDO
 
