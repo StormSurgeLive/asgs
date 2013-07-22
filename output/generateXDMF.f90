@@ -29,8 +29,8 @@
 !
 !gfortran -o generateXDMF.x -ffree-form -ffree-line-length-none -I/usr/include generateXDMF.f90 -lnetcdf -lnetcdff -lz
 !
-! For compiling on blueridge at RENCI with ifort:
-!ifort -o generateXDMF.x -i-dynamic -I/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/include -L/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort/lib generateXDMF.f90 -lnetcdf -lnetcdff -lz
+! For compiling on blueridge at RENCI with ifort 20130516:
+!ifort -o generateXDMF.x -i-dynamic -I/projects/ncfs/apps/netcdf/netcdf-fortran-4.2/include -L/projects/ncfs/apps/netcdf/netcdf-fortran-4.2/lib generateXDMF.f90 -lnetcdf -lnetcdff -lz
 !
 ! For compiling with pgf90:
 ! pgf90 -o generateXDMF.x -Mpreprocess -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/opt/cray/netcdf/4.1.3/pgi/109/include generateXDMF.f90 -L/opt/cray/netcdf/4.1.3/pgi/109/lib  -lnetcdf -lnetcdff

@@ -607,6 +607,19 @@ monitorJobs()
             kill -TERM `ps --ppid $pid -o pid --no-headers` >> ${SYSLOG} 2>&1
             DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
             logMessage "$ENSTORM_TEMP job in $PWD terminated by ASGS for exceeding expected wall clock time." >> ${ENSTORM_TEMP}.run.error
+         else 
+            # if we are over the wall clock limit, wait until the operating system has had a chance
+            # to write the job log file, or until 5 minutes  have passed
+            overLimitTime=`date +%s`
+            until [[ ! -e ${ENSTORM_TEMP}.out ]]; do
+               logMessage "Waiting for queueing system to wrtite out the job log file ${ENSTORM_TEMP}.out."
+               sleep 60
+               nowTime=`date +%s`
+               if [[ `expr $nowTime - $overLimitTime` -gt 300 ]]; then
+                  warn "After 5 minutes, the ${ENSTORM_TEMP}.out file did not appear. Proceeding with error recovery." 
+                   break
+               fi
+            done
          fi
       fi
    done
