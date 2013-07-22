@@ -31,8 +31,13 @@ OUTPUTDIR=${11}
 SYSLOG=${12}
 SSHKEY=${13}
 #
+STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
+cd ${STORMDIR}
+# get the forecast ensemble member number 
+ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+#
 # grab all config info
-si=-1
+si=$ENMEMNUM
 . ${CONFIG}
 # Bring in logging functions
 . ${SCRIPTDIR}/logging.sh
@@ -42,11 +47,6 @@ si=-1
 env_dispatch ${TARGET}
 # grab all config info (again, last, so the CONFIG file takes precedence)
 . ${CONFIG}
-#
-STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
-cd ${STORMDIR}
-# get the forecast ensemble member number for use in CERA load balancing
-ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 # we expect the ASGS config file to tell us how many cera servers there
 # are with CERASERVERNUM and assume they are consecutively named 
 # cera1, cera2, etc. We alternate the forecast ensemble members evenly 
@@ -60,7 +60,7 @@ echo "ceraServer : $CERASERVER" >> run.properties
 echo "asgs : nc" >> run.properties
 #
 # write the intended audience to the run.properties file for CERA
-echo "intendedAudience : general" >> run.properties
+echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
 #
 # generate XDMF xml files 
 #for file in `ls *.nc`; do
@@ -134,6 +134,7 @@ if [[ $TROPICALCYCLONE = on ]]; then
    subject=${subject}" (TROPICAL CYCLONE)"
 fi
 subject="${subject} $CERASERVER"
+subject="${subject} $HOSTNAME.$INSTANCENAME $ENMEMNUM"
 cat <<END > ${STORMDIR}/cera_results_notify.txt 
 
 The ADCIRC NCFS solutions for $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX

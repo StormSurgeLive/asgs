@@ -32,6 +32,10 @@
 !
 ! Example of compiling with gfortran:
 ! gfortran -cpp -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -o generateCPP.x -ffree-form -ffree-line-length-none -I/usr/include generateCPP.f90 -lnetcdf -lnetcdff -lz
+!
+! Example of compiling with ifort on blueridge at RENCI 20130516:
+! ifort -cpp -o generateCPP.x -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -i-dynamic -I/projects/ncfs/apps/netcdf/netcdf-fortran-4.2/include -L/projects/ncfs/apps/netcdf/netcdf-fortran-4.2/lib generateCPP.f90 -lnetcdf -lnetcdff -lz
+
 
       include 'adcmesh.f90'
 
