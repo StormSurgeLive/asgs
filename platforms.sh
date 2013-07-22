@@ -55,6 +55,20 @@ init_blueridge()
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=8
 }
+init_croatan()
+{ #<- can replace the following with a custom script
+  HOSTNAME=croatan.renci.org
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  ACCOUNT=noaccount
+  SUBMITSTRING=submitstring
+  SCRATCHDIR=/projects/ncfs/data
+  SSHKEY=~/.ssh/id_rsa.pub
+  QSCRIPT=croatan.template.pbs
+  PREPCONTROLSCRIPT=croatan.adcprep.template.pbs
+  QSCRIPTGEN=tezpur.pbs.pl
+  PPN=16
+}
 init_kittyhawk()
 { #<- can replace the following with a custom script
   HOSTNAME=kittyhawk.renci.org
@@ -236,6 +250,9 @@ env_dispatch(){
           ;;
   "blueridge") consoleMessage "Blueridge (RENCI) configuration found."
           init_blueridge
+          ;;
+  "croatan") consoleMessage "Croatan (RENCI) configuration found."
+          init_croatan
           ;;
   "sapphire") consoleMessage "Sapphire (ERDC) configuration found."
           init_sapphire
