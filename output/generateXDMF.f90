@@ -34,6 +34,9 @@
 !
 ! For compiling with pgf90:
 ! pgf90 -o generateXDMF.x -Mpreprocess -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/opt/cray/netcdf/4.1.3/pgi/109/include generateXDMF.f90 -L/opt/cray/netcdf/4.1.3/pgi/109/lib  -lnetcdf -lnetcdff
+! 
+! Example for ifort on Diamond at ERDC 20130726:
+! ifort -cpp -o generateXDMF.x -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -i-dynamic -I/usr/local/usp/PETtools/CE/pkgs/netcdf-4.2.1.1-intel-serial/include -L/usr/local/usp/PETtools/CE/pkgs/netcdf-4.2.1.1-intel-serial/lib generateXDMF.f90 -lnetcdf -lnetcdff -lz
 
       include 'adcmesh.f90'
 

@@ -20,6 +20,9 @@
 ! Example of compiling adcirc2netcdf.f90 with pgf90:
 ! pgf90 -o adcirc2netcdf.x -Mpreprocess -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/opt/cray/netcdf/4.1.3/pgi/109/include adcirc2netcdf.f90 -L/opt/cray/netcdf/4.1.3/pgi/109/lib  -lnetcdf -lnetcdff
 !
+! Example using ifort on Diamond at ERDC 20130726:
+! ifort -cpp -o adcirc2netcdf.x -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -i-dynamic -I/usr/local/usp/PETtools/CE/pkgs/netcdf-4.2.1.1-intel-serial/include -L/usr/local/usp/PETtools/CE/pkgs/netcdf-4.2.1.1-intel-serial/lib adcirc2netcdf.f90 -lnetcdf -lnetcdff -lz
+!
 ! Example of usage with command line options:
 ! ~/asgs/trunk/output/adcirc2netcdf.x --netcdf4 --meshonly --meshfile fort.14 --attfile sl15_att.txt
 

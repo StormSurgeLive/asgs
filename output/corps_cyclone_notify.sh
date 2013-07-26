@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright(C) 2008, 2009, 2010 Jason Fleming
+# Copyright(C) 2008--2013 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
