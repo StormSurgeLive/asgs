@@ -172,11 +172,11 @@
             ndset = 1
             varname(1) = "zeta_max"
             exit
-         case("maxwvel")
+         case("wind_max")
             write(6,*) "INFO: Preparing to write an ADCIRC maximum wind speed (maxwvel.63) file."
             ascii_datafile_name = "maxwvel.63"
             ndset = 1
-            varname(1) = "maxwvel"
+            varname(1) = "wind_max"
             exit
          case("dir")
             write(6,*) "INFO: Preparing to write a swan_DIR.63 file."
