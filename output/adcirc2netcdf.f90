@@ -515,7 +515,7 @@ include 'adcmesh.f90'
          case(14) ! just the mesh
             cycle
          case(15) ! maxwvel
-            CALL Check(NF90_DEF_VAR(NC_ID,'maxwvel',NF90_DOUBLE,NC_DimID,NC_VarID_maxwvel))
+            CALL Check(NF90_DEF_VAR(NC_ID,'wind_max',NF90_DOUBLE,NC_DimID,NC_VarID_maxwvel))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'_FillValue',FillValue))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'long_name','maximum wind speed at sea level'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'standard_name','maximum_wind_speed_at_sea_level'))
