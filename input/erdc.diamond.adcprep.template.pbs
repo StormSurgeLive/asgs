@@ -33,7 +33,7 @@
 # (commented out)
 ##PBS -m ea
 
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/usp/PETtools/CE/pkgs/hdf5-1.8.4-serial/lib
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/usp/PETtools/CE/pkgs/hdf5-1.8.4-serial/lib:/usr/local/usp/PETtools/CE/pkgs/netcdf-4.2.1.1-intel-serial/lib
 
 # The directory to start in 
 cd %advisdir%/%enstorm%

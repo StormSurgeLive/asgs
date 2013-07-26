@@ -46,6 +46,20 @@ env_dispatch ${TARGET}
 export PATH=$PATH:$IMAGEMAGICKBINPATH # if ImageMagick is in nonstd location
 #
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
+cd ${STORMDIR}
+#
+# get the forecast ensemble member number for use in CERA load balancing
+ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+# we expect the ASGS config file to tell us how many cera servers there
+# are with CERASERVERNUM and assume they are consecutively named 
+# cera1, cera2, etc. We alternate the forecast ensemble members evenly 
+# among them
+CERASERVERNUM=`expr $ENMEMNUM % $NUMCERASERVERS + 1`
+CERASERVER=cera$CERASERVERNUM
+echo "ceraServer : $CERASERVER" >> run.properties
+#
+# write the intended audience to the run.properties file for CERA
+echo "intendedAudience : general" >> run.properties
 #
 # write the target area to the run.properties file for the CERA
 # web app
