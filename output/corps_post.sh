@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright(C) 2008--2012 Jason Fleming
+# Copyright(C) 2008--2013 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -31,8 +31,15 @@ OUTPUTDIR=${11}
 SYSLOG=${12}
 SSHKEY=${13}
 #
+STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
+cd ${STORMDIR}
+# get the forecast ensemble member number for use in CERA load balancing
+# as well as picking up any bespoke configuration for this ensemble
+# member in the configuration files
+ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+si=$ENMEMNUM
+#
 # grab all config info
-si=-1
 . ${CONFIG} 
 # Bring in logging functions
 . ${SCRIPTDIR}/logging.sh
@@ -45,11 +52,6 @@ env_dispatch ${TARGET}
 #
 export PATH=$PATH:$IMAGEMAGICKBINPATH # if ImageMagick is in nonstd location
 #
-STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
-cd ${STORMDIR}
-#
-# get the forecast ensemble member number for use in CERA load balancing
-ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 # we expect the ASGS config file to tell us how many cera servers there
 # are with CERASERVERNUM and assume they are consecutively named 
 # cera1, cera2, etc. We alternate the forecast ensemble members evenly 
@@ -59,7 +61,7 @@ CERASERVER=cera$CERASERVERNUM
 echo "ceraServer : $CERASERVER" >> run.properties
 #
 # write the intended audience to the run.properties file for CERA
-echo "intendedAudience : general" >> run.properties
+echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
 #
 # write the target area to the run.properties file for the CERA
 # web app
@@ -88,7 +90,7 @@ for file in `ls *.nc`; do
       continue
    fi
    logMessage "Adding CPP coordinates to $file."
-   ${OUTPUTDIR}/generateCPP.x --datafile $file 2>> $SYSLOG
+   ${OUTPUTDIR}/generateCPP.x --datafile $file --cpp $SLAM0 $SFEA0 2>> $SYSLOG
    logMessage "Generating XDMF xml file to accompany $file."
    ${OUTPUTDIR}/generateXDMF.x --use-cpp --datafile $file 2>> $SYSLOG
 done
@@ -113,9 +115,9 @@ for file in `ls *.nc *.xmf fort.15 fort.22 run.properties`; do
 done
 #
 # make symbolic links to directory structure that CERA web app uses
-#$openDAPDirectory = "$OPENDAPBASEDIR/blueridge.renci.org:2/$model/$ADCIRCgrid/$windtag/$year/$mon/$mday/$cycle"
+$openDAPDirectory = "$OPENDAPBASEDIR/blueridge.renci.org:2/$model/$ADCIRCgrid/$windtag/$year/$mon/$mday/$cycle"
 # RunStartTime : 2012080812
-#if [[ $ENSTORM = nhcConsensus || $ENSTORM = namforecast ]]; then
+if [[ $ENSTORM = nhcConsensus || $ENSTORM = namforecast ]]; then
 runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'` 
 year=${runStartTime:0:4} 
 month=${runStartTime:4:2} 
@@ -148,22 +150,25 @@ if [[ $INSTANCENAME = nodcorps ]]; then
 The ADCIRC NCFS solutions for $runStartDate have been posted to $openDAPPrefix/$path_suffix
 
 The run.properties file is : $httpPathName/$path_suffix/run.properties
-   
+  
 or wget the file with the following command
 
 wget  $httpPathName/$path_suffix/run.properties
 END
-#
+
       echo "INFO: corps_post.sh: Sending 'results available' email to the following addresses: $COMMA_SEP_LIST."
       cat ${STORMDIR}/cera_results_notify.txt | mail -s "$subject" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
    fi
 fi
-#fi
+fi
 # Convert max elevation file from netcdf to ascii if necessary
 if [[ -e ${STORMDIR}/maxele.63.nc ]]; then
    logMessage "Converting maxele.63.nc from netcdf to ascii."
    ${OUTPUTDIR}/netcdf2adcirc.x --datafile ${STORMDIR}/maxele.63.nc 2>> ${SYSLOG}
 fi
+#
+# G N U P L O T   F O R   L I N E   G R A P H S
+# 
 # transpose elevation output file so that we can graph it with gnuplot
 STATIONELEVATION=${STORMDIR}/fort.61
 if [[ -e $STATIONELEVATION || -e ${STATIONELEVATION}.nc ]]; then
@@ -188,16 +193,13 @@ if [[ -e $STATIONVELOCITY || -e ${STATIONVELOCITY}.nc ]]; then
    # rename csv files to something more intuitive
    mv ${ADVISDIR}/${ENSTORM}/fort.72_transpose.csv ${ADVISDIR}/${ENSTORM}/${STORMNAME}.${ADVISORY}.station.windspeed.csv 2>> ${SYSLOG} 2>&1
 fi
-#
-# G N U P L O T   F O R   L I N E   G R A P H S
-# 
 # switch to plots directory
 if [[ -e ${STORMDIR}/fort.61_transpose.txt || -e ${STORMDIR}/fort.72_transpose.txt ]]; then
    initialDirectory=`pwd`;
    mkdir ${STORMDIR}/plots 2>> ${SYSLOG}
    mv *.txt *.csv ${STORMDIR}/plots 2>> ${SYSLOG}
    cd ${STORMDIR}/plots
-   # generate gnuplot scripts for elevation datai
+   # generate gnuplot scripts for elevation data
    if [[ -e ${STORMDIR}/plots/fort.61_transpose.txt ]]; then
       logMessage "Generating gnuplot script for $ENSTORM hydrographs."
       perl ${OUTPUTDIR}/autoplot.pl --filetoplot ${STORMDIR}/plots/fort.61_transpose.txt --plotType elevation --plotdir ${STORMDIR}/plots --outputdir ${OUTPUTDIR} --timezone CDT --units english --stormname "$STORMNAME" --enstorm $ENSTORM --advisory $ADVISORY --datum NAVD88
