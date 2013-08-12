@@ -54,8 +54,6 @@
       integer :: NC_VarID_x_cpp
       integer :: NC_VarID_y_cpp
       integer :: nvar ! number of variables in the netcdf file
-      real(8), allocatable :: x_cpp(:)
-      real(8), allocatable :: y_cpp(:)
       character(NF90_MAX_NAME) :: varname
       logical :: foundCPP
       integer argcount
@@ -65,7 +63,7 @@
       logical :: fileFound
       integer :: i  ! loop counter
 
-      deg2rad = 2*pi/360.d0
+      deg2rad = 2.d0*pi/360.d0
       fileFound = .false.
       argcount = iargc() ! count up command line options
       if (argcount.gt.0) then
@@ -146,13 +144,11 @@
          call check(nf90_enddef(nc_id))
       endif
       !
-      ! compute the CPP
-      allocate(x_cpp(np),y_cpp(np))
-      write(6,'("INFO: Generating CPP coordinates and adding them to the NetCDF file.")')
-      x_cpp = R * (xyd(1,:)*deg2rad - slam0*deg2rad) * cos(sfea0*deg2rad)
-      y_cpp = xyd(2,:)*deg2rad * R
+      ! compute the projection to cartesian coordinates
+      call computeCPP()
       !
       ! write the projected coordinates to the file
+      write(6,'("INFO: Adding CPP coordinates to the NetCDF file.")')
       call check(nf90_put_var(nc_id, NC_VarID_x_cpp, x_cpp))
       call check(nf90_put_var(nc_id, NC_VarID_y_cpp, y_cpp))
       !
