@@ -11,8 +11,14 @@
       double precision, parameter :: R = 6378206.4d0 ! radius of the earth
       double precision, parameter :: pi = 3.141592653589793d0
       double precision :: deg2rad
+      double precision :: rad2deg
 
       double precision, allocatable :: xyd(:,:), bar(:,:,:)
+      !
+      logical                          :: cppComputed = .false.
+      double precision, allocatable :: x_cpp(:)
+      double precision, allocatable :: y_cpp(:)
+      !
       real(8), allocatable          :: sigma(:)
       character(120)                :: agrid
       integer                       :: ne, np
@@ -23,6 +29,13 @@
       integer                       :: nbou, nvel, nvel_max, nodemax
       integer,          allocatable :: nm(:,:), nvdll(:), nbdv(:,:), nsequencer(:)
       integer,          allocatable :: nvell(:), ibtype(:),  nbvv(:,:), ibconn(:,:)
+      !
+      logical                       :: neighborTableInitialized = .false.
+      integer                       :: NEIMIN
+      integer                       :: NEIMAX 
+      integer,         allocatable :: NNeigh(:)
+      integer,         allocatable :: NeiTab(:,:)
+      integer,         allocatable :: NeiTabEle(:,:)
       !
       integer                       :: NC_DimID_node
       integer                       :: NC_DimID_vnode
@@ -206,13 +219,240 @@
    end subroutine read14
    !-----+---------+---------+---------+---------+---------+---------+
 
+!******************************************************************************
+!                                                                             *
+!      Subroutine to generate neighbor tables from a connectivity table.      *
+!                                                                             *
+!      NOTES                                                                  *
+!      a node neighbor table is generated with the node itself is listed as   *
+!         neighbor #1 and all other neighbors are sorted and placed in cw     *
+!         order from east                                                     *
+!      a neighbor element table is generated with:                            *
+!         entry 1 = element # defined by neighbors 1,2,3                      *
+!         entry 2 = element # defined by neighbors 1,3,4                      *
+!         entry 3 = element # defined by neighbors 1,4,5                      *
+!          .......                                                            *
+!         entry last = element # defined by neighbors 1,nneigh,2              *
+!         a zero area means that the defined triangle lies outside the domain *
+!                                                                             *
+!                                                                             *
+!    v1.0   R.L.   6/29/99  used in 3D code                                   *
+!    v2.0   R.L.   5/23/02  adapted to provide neighbor el table              *
+!******************************************************************************
+!                                                                             *
+!     -  PARAMETERS WHICH MUST BE SET TO CONTROL THE DIMENSIONING OF ARRAYS   *
+!           ARE AS FOLLOWS:                                                   *
+!                                                                             *
+!          MNP = MAXIMUM NUMBER OF NODAL POINTS                               *
+!          MNE = MAXIMUM NUMBER OF ELEMENTS                                   *
+!          MNEI= 1+MAXIMUM NUMBER OF NODES CONNECTED TO ANY ONE NODE IN THE   *
+!                  FINITE ELEMENT GRID                                        *
+!                                                                             *
+!******************************************************************************
+!                                                                             *
+!    VARIABLE DEFINITIONS:                                                    *
+!       NE - NUMBER OF ELEMENTS                                               *
+!       NP - NUMBER OF NODES                                                  *
+!       NM(MNE,3) - NODE NUMBERS ASSOCIATED WITH EACH ELEMENT                 *
+!       NNeigh(MNP) NUMBER OF NEIGHBORS FOR EACH NODE                         *
+!       NeiTab(MNP,NEIMAX) 2D ARRAY OF NEIGHBORS FOR EACH NODE                *
+!       NeiTabEle(MNP,NEIMAX) 2D ARRAY OF NEIGHBOR ELEMENTS FOR EACH NODE     *
+!       NEIMIN - 1+MINIMUM NUMBER OF NEIGHBORS FOR ANY NODE                   *
+!       NEIMAX - 1+MAXIMUM NUMBER OF NEIGHBORS FOR ANY NODE                   *
+!                                                                             *
+!******************************************************************************
+      SUBROUTINE computeNeighborTable()
+      IMPLICIT NONE
+
+      INTEGER, PARAMETER :: MNEI = 15
+      DOUBLE PRECISION, ALLOCATABLE :: ANGLE(:)
+      INTEGER, ALLOCATABLE :: NEITEM(:)
+      INTEGER, ALLOCATABLE :: NNeighEle(:)
+      DOUBLE PRECISION :: ANGLELOW
+      DOUBLE PRECISION :: ANGLEMORE
+      DOUBLE PRECISION :: DELX
+      DOUBLE PRECISION :: DELY
+      DOUBLE PRECISION :: DIST
+      INTEGER :: NN1, NN2, NN3 ! node numbers around an element
+      INTEGER :: NE1, NE2, NE3 ! element numbers
+      INTEGER :: I, J, JJ, JLOW, K, N  ! loop counters
+      !
+      ! Initialization
+      ALLOCATE ( ANGLE(MNEI) )
+      ALLOCATE ( NEITEM(NP) )
+      ALLOCATE ( NNeighEle(NP) )
+      deg2rad = 2.d0*pi/360.d0
+      rad2deg = 1.d0/deg2rad
+      ! initialize neighbor table to zeroes
+      NNeigh(:)=0
+      NNeighEle(:)=0
+      NeiTab(:,:)=0
+      NeiTabEle(:,:)=0
+      DO 10 N=1,NE
+         NN1 = NM(N,1)
+         NN2 = NM(N,2)
+         NN3 = NM(N,3)
+         NNeighEle(NN1)=NNeighEle(NN1)+1
+         NNeighEle(NN2)=NNeighEle(NN2)+1
+         NNeighEle(NN3)=NNeighEle(NN3)+1
+         NeiTabEle(NN1,NNeighEle(NN1))=N
+         NeiTabEle(NN2,NNeighEle(NN2))=N
+         NeiTabEle(NN3,NNeighEle(NN3))=N
+
+         DO J=1,NNeigh(NN1)
+            IF(NN2.EQ.NeiTab(NN1,J)) GOTO 25
+         END DO
+         NNeigh(NN1)=NNeigh(NN1)+1
+         NNeigh(NN2)=NNeigh(NN2)+1
+         IF((NNeigh(NN1).GT.MNEI-1).OR.(NNeigh(NN2).GT.MNEI-1)) GOTO 999
+         NeiTab(NN1,NNeigh(NN1))=NN2
+         NeiTab(NN2,NNeigh(NN2))=NN1
+
+ 25      CONTINUE
+         DO J=1,NNeigh(NN1)
+            IF(NN3.EQ.NeiTab(NN1,J)) GOTO 35
+         END DO
+         NNeigh(NN1)=NNeigh(NN1)+1
+         NNeigh(NN3)=NNeigh(NN3)+1
+         IF((NNeigh(NN1).GT.MNEI-1).OR.(NNeigh(NN3).GT.MNEI-1)) GOTO 999
+         NeiTab(NN1,NNeigh(NN1))=NN3
+         NeiTab(NN3,NNeigh(NN3))=NN1
+
+ 35      CONTINUE
+         DO J=1,NNeigh(NN2)
+            IF(NN3.EQ.NeiTab(NN2,J)) GOTO 10
+         END DO
+         NNeigh(NN2)=NNeigh(NN2)+1
+         NNeigh(NN3)=NNeigh(NN3)+1
+         IF((NNeigh(NN2).GT.MNEI-1).OR.(NNeigh(NN3).GT.MNEI-1)) GOTO 999
+         NeiTab(NN2,NNeigh(NN2))=NN3
+         NeiTab(NN3,NNeigh(NN3))=NN2
+
+ 10   CONTINUE
+!
+!     INSERT NODE ITSELF IN PLACE #1 and SORT other NEIGHBORS by
+!     increasing cw angle from East
+!
+      DO I=1,NP
+         DO J=1,NNeigh(I)
+            NEITEM(J)=NeiTab(I,J)
+            DELX=x_cpp(NEITEM(J))-x_cpp(I)
+            DELY=y_cpp(NEITEM(J))-y_cpp(I)
+            DIST=SQRT(DELX*DELX+DELY*DELY)
+            IF(DIST.EQ.0.0d0) GOTO 998
+            IF(DELY.NE.0.0d0) THEN
+               ANGLE(J)=RAD2DEG*ACOS(DELX/DIST)
+               IF(DELY.GT.0.0) ANGLE(J)=360.0d0-ANGLE(J)
+            ENDIF
+            IF(DELY.EQ.0.0d0) THEN
+               IF(DELX.GT.0.0d0) ANGLE(J)=0.0d0
+               IF(DELX.LT.0.d0) ANGLE(J)=180.0d0
+            ENDIF
+         END DO
+         ANGLEMORE=-1.d0
+         DO JJ=1,NNeigh(I)
+            ANGLELOW=400.d0
+            DO J=1,NNeigh(I)
+               IF((ANGLE(J).LT.ANGLELOW).AND.(ANGLE(J).GT.ANGLEMORE)) THEN
+                  ANGLELOW=ANGLE(J)
+                  JLOW=J
+               ENDIF
+            END DO
+            NeiTab(I,JJ+1)=NEITEM(JLOW)
+            ANGLEMORE=ANGLELOW
+         END DO
+         NeiTab(I,1)=I
+         NNeigh(I)=NNeigh(I)+1
+      ENDDO
+!
+!     MATCH EACH SET OF 3 NODES WITH CORRESPONDING ELEMENT AND REORDER
+!     ELEMENTS ACCORDINGLY
+!
+      DO I=1,NP
+         DO K=1,NNeighEle(I)
+            NEITEM(K)=NeiTabEle(I,K)
+            NeiTabEle(I,K)=0
+         END DO
+         DO J=2,NNeigh(I)
+            NN1=NeiTab(I,1)
+            NN3=NeiTab(I,J)
+            IF(J.NE.NNeigh(I)) NN2=NeiTab(I,J+1)
+            IF(J.EQ.NNeigh(I)) NN2=NeiTab(I,2)
+            DO K=1,NNeighEle(I)
+               IF(NEITEM(K).NE.0) THEN
+                  IF(NM(NEITEM(K),1).EQ.NN1) THEN
+                     NE1=NM(NEITEM(K),1)
+                     NE2=NM(NEITEM(K),2)
+                     NE3=NM(NEITEM(K),3)
+                  ENDIF
+                  IF(NM(NEITEM(K),2).EQ.NN1) THEN
+                     NE1=NM(NEITEM(K),2)
+                     NE2=NM(NEITEM(K),3)
+                     NE3=NM(NEITEM(K),1)
+                  ENDIF
+                  IF(NM(NEITEM(K),3).EQ.NN1) THEN
+                     NE1=NM(NEITEM(K),3)
+                     NE2=NM(NEITEM(K),1)
+                     NE3=NM(NEITEM(K),2)
+                  ENDIF
+                  IF((NE2.EQ.NN2).AND.(NE3.EQ.NN3)) THEN
+                     NeiTabEle(I,J-1)=NEITEM(K)
+                     NEITEM(K)=0
+                  ENDIF
+               ENDIF
+            END DO
+         END DO
+      END DO
+      !
+      !  DETERMINE THE MAXIMUM AND MINIMUM NUMBER OF NEIGHBORS
+      NEIMAX = maxval(NNeigh)
+      NEIMIN = minval(NNeigh)
+      !  Deallocate local work arrays
+      DEALLOCATE ( ANGLE )
+      DEALLOCATE ( NEITEM )
+      DEALLOCATE ( NNEIGHELE )
+      RETURN
+
+ 999  CONTINUE
+      WRITE(6,*) 'ERROR: Computation of neighbor table failed.'
+      STOP
+ 998  CONTINUE
+      WRITE(6,*) 'ERROR: Nodes ',I,' and ',NEITEM(J),' have the same coordinates.'
+      STOP
+!-----------------------------------------------------------------------
+      END SUBROUTINE computeNeighborTable
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+!     S U B R O U T I N E   C O M P U T E  C P P 
+!-----------------------------------------------------------------------
+!     jgf: Very short subroutine to compute the CPP projection, 
+!     allocating memory in the process, and not overwriting the 
+!     original lat/lon data.
+!-----------------------------------------------------------------------
+      SUBROUTINE computeCPP()
+      IMPLICIT NONE
+      deg2rad = 2.d0*pi/360.d0
+      if (cppComputed.eqv..false.) then
+         allocate(x_cpp(np),y_cpp(np))
+         cppComputed = .true.
+      endif
+      write(6,'("INFO: Generating CPP coordinates.")')
+      x_cpp = R * (xyd(1,:)*deg2rad - slam0*deg2rad) * cos(sfea0*deg2rad)
+      y_cpp = xyd(2,:)*deg2rad * R
+      return
+!-----------------------------------------------------------------------
+      END SUBROUTINE computeCPP
+!-----------------------------------------------------------------------
+
+
 !-----------------------------------------------------------------------
 !     S U B R O U T I N E   O P E N  F I L E  F O R  R E A D
 !-----------------------------------------------------------------------
 !     jgf: Added general subroutine for opening an existing
 !     file for reading. Includes error checking.
 !-----------------------------------------------------------------------
-      SUBROUTINE openFileForRead(lun, filename)
+   SUBROUTINE openFileForRead(lun, filename)
       IMPLICIT NONE
       INTEGER, intent(in) :: lun   ! fortran logical unit number
       CHARACTER(*), intent(in) :: filename ! full pathname of file
@@ -241,14 +481,13 @@
       endif
       return
 !-----------------------------------------------------------------------
-      END SUBROUTINE openFileForRead
+   END SUBROUTINE openFileForRead
 !-----------------------------------------------------------------------
 
 !----------------------------------------------------------------------
 !  CHECK
 !---------------------------------------------------------------------
    SUBROUTINE Check(ncStatus)
- !     USE DATA,ONLY: MyRank
       USE netcdf
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: ncStatus
