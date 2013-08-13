@@ -83,6 +83,8 @@ include 'adcmesh.f90'
       integer                       :: NC_VarID_hs
       integer                       :: NC_VarID_tmm10
       integer                       :: NC_VarID_tps
+      integer                       :: NC_VarID_swantpsmax
+      integer                       :: NC_VarID_swanhsmax
       integer, parameter            :: version = 4
       integer                       :: num_components ! variable components for netcdf4 compression
       integer                       :: varid(3) ! varids for netcdf4 compression
@@ -96,7 +98,8 @@ include 'adcmesh.f90'
       !
       !write(6,*) "INFO: adcirc2netcdf version ",version,"."
       ! Report netcdf version
-      write(6,*) "INFO: adcirc2netcdf was compiled with the following netcdf library: ",trim(nf90_inq_libvers())
+      write(6,*) "INFO: adcirc2netcdf was compiled with the following netcdf library: ", &
+         trim(nf90_inq_libvers())
 
       ! jgf: Process command line options; can be used along with menu choices;
       ! if command line options provide all needed input, menu will not
@@ -159,6 +162,10 @@ include 'adcmesh.f90'
                         menuOpt = 14
                      case("maxwvel.63")
                         menuOpt = 15
+                     case("swan_HS_max.63")
+                        menuOpt = 16
+                     case("swan_TPS_max.63")
+                        menuOpt = 17
                      case default
                         write(6,*) "WARNING: Command line argument '",TRIM(cmdlinearg),"' was not recognized."
                   end select
@@ -196,7 +203,7 @@ include 'adcmesh.f90'
       ! jgf: make a list of files to convert, based on use menu selection;
       ! set names of files that will contain more than one type of data
       select case(menuOpt)
-         case(1,2,3,4,5,6,7,8,9,14,15)
+         case(1,2,3,4,5,6,7,8,9,14,15,16,17)
             nopt = 1       ! only need to convert 1 file
             allocate(iopt(nopt))
             iopt(1) = menuOpt ! file to convert has been selected from the menu
@@ -243,6 +250,10 @@ include 'adcmesh.f90'
          case(14)
             Outputfile = trim(meshFileName)//'.nc'
          case(15) ! mesh
+            Outputfile = trim(InputFile)//'.nc'
+         case(16) ! swan_HS_max.63
+            Outputfile = trim(InputFile)//'.nc'
+         case(17) ! swan_TPS_max.63
             Outputfile = trim(InputFile)//'.nc'
          case default
             ! 10, 11, and 12 were assigned previously
@@ -528,6 +539,30 @@ include 'adcmesh.f90'
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'units','m s-1'))
             num_components = 1
             varid(1) = NC_VarID_maxwvel
+         case(16) ! swan_HS_max
+            CALL Check(NF90_DEF_VAR(NC_ID,'swan_HS_max',NF90_DOUBLE,NC_DimID,NC_VarID_swanhsmax))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'_FillValue',FillValue))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'long_name','maximum significant wave height'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'standard_name', & 
+                'maximum_sea_surface_wave_significant_height'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'coordinates','time y x'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'location','node'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'mesh','adcirc_mesh'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'units','m'))
+            num_components = 1
+            varid(1) = NC_VarID_swanhsmax
+         case(17) ! swan_TPS_max
+            CALL Check(NF90_DEF_VAR(NC_ID,'swan_TPS_max',NF90_DOUBLE,NC_DimID,NC_VarID_swantpsmax))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'_FillValue',FillValue))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'long_name','maximum smoothed peak period'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'standard_name', &
+               'maximum_sea_surface_wave_period_at_variance_spectral_density_maximum'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'coordinates','time y x'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'location','node'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'mesh','adcirc_mesh'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'units','s'))
+            num_components = 1
+            varid(1) = NC_VarID_swantpsmax          
          end select
 #ifdef NETCDF_CAN_DEFLATE
          if (useNetCDF4.eqv..true.) then
@@ -573,7 +608,7 @@ include 'adcmesh.f90'
       end if
 
       write(6,*)    '*************************************************'
-      write(6,*) 'Grid has been written to NETCDF'
+      write(6,*) 'Mesh has been written to NETCDF'
       write(6,*)    '*************************************************'
 
       ! now moving on to the actual adcirc output data; first, set name
@@ -602,6 +637,10 @@ include 'adcmesh.f90'
                exit  ! jump out of this loop completely
             case(15) ! maxwvel
                Inputfile = 'maxwvel.63'
+            case(16) ! swan_HS_max
+               Inputfile = 'swan_HS_max.63'
+            case(17) ! swan_TPS_max
+               Inputfile = 'swan_TPS_max.63'
          end select
          UnitNumber = 100+iopt(i)
          call openFileForRead(UnitNumber, trim(InputFile))
@@ -633,7 +672,7 @@ include 'adcmesh.f90'
             ENDDO
             do N=1,NumNodesNonDefault
               select case(iopt(i))
-                case(1,3,5,6,7,8,9,15) ! scalar data
+                case(1,3,5,6,7,8,9,15,16,17) ! scalar data
                   READ(UnitNumber,*) j,Temp1
                   Global1(j) = Temp1
                 case(2,4)           ! 2D vector data
@@ -670,6 +709,10 @@ include 'adcmesh.f90'
                 CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_tps,Global1,NC_Start,NC_Count))
               case(15) ! maxwvel
                 CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_maxwvel,Global1,NC_Start,NC_Count))
+              case(16) ! swan_HS_max
+                CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_swanhsmax,Global1,NC_Start,NC_Count))
+              case(17) ! swan_TPS_max
+                CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_swantpsmax,Global1,NC_Start,NC_Count))
             end select
             SS = SS + 1 ! jgf: Increment the dataset counter
          ENDDO
