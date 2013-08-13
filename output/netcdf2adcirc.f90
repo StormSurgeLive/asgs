@@ -200,6 +200,18 @@
             ascii_datafile_name = "swan_TPS.63"
             varname(1) = "tps"
             exit
+         case("swan_HS_max")
+            write(6,*) "INFO: Preparing to write an ADCIRC maximum significant wave height (swan_HS_max.63) file."
+            ascii_datafile_name = "swan_HS_max.63"
+            ndset = 1
+            varname(1) = "swan_HS_max"
+            exit
+         case("swan_TPS_max")
+            write(6,*) "INFO: Preparing to write an ADCIRC maximum wave period (swan_TPS_max.63) file."
+            ascii_datafile_name = "swan_TPS_max.63"
+            ndset = 1
+            varname(1) = "swan_TPS_max"
+            exit                        
          case default
             !jgf this is tmi: write(6,*) "INFO: Did not recognize the variable name '"//trim(thisVarName)//"'."
             cycle     ! did not recognize this variable name
