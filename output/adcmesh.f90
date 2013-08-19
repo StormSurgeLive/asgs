@@ -74,9 +74,9 @@
    contains
 
    !-----+---------+---------+---------+---------+---------+---------+
-   !  READ14_ALLOC
+   !  READ14_FindDims
    !-----+---------+---------+---------+---------+---------+---------+
-   subroutine read14_alloc ()
+   subroutine read14_findDims ()
       implicit none
       integer :: i, j, k
       integer, parameter :: iunit = 14
@@ -130,7 +130,7 @@
       rewind(iunit)
       write(6,*) "INFO: Finished reading mesh file dimensions."
    !-----+---------+---------+---------+---------+---------+---------+
-   end subroutine read14_alloc
+   end subroutine read14_findDims
    !-----+---------+---------+---------+---------+---------+---------+
 
    !-----+---------+---------+---------+---------+---------+---------+
@@ -148,7 +148,7 @@
          read(5,'(A)') meshFileName
       endif
       call openFileForRead(iunit,trim(meshFileName))
-      call read14_alloc ()
+      call read14_findDims ()
 
       allocate( xyd(3,np) )
       allocate( nm(3,ne) )
@@ -190,27 +190,21 @@
       read(iunit,*) nvel
       do k = 1, nbou
          read(iunit,*) nvell(k), ibtype(k)
-         select case(ibtype(k))
-            case(0,1,2,10,11,12,20,21,22,30,52)
-               do j = 1, nvell(k)
+         do j = 1, nvell(k)
+            select case(ibtype(k))
+               case(0,1,2,10,11,12,20,21,22,30,52)
                   read(iunit,*) nbvv(k,j)
-                  nbvv(k,j) = nsequencer(nbvv(k,j))
-               enddo
-            case(3, 13, 23)
-               do j = 1, nvell(k)
+               case(3, 13, 23)
                   read(iunit,*) nbvv(k,j), (bar(i,k,j), i=1,2)
-                  nbvv(k,j) = nsequencer(nbvv(k,j))
-               enddo
-            case(4, 24)
-               do j = 1, nvell(k)
+               case(4, 24)
                   read(iunit,*) nbvv(k,j), ibconn(k,j), (bar(i,k,j), i=1,3)
-                  nbvv(k,j) = nsequencer(nbvv(k,j))
                   ibconn(k,j) = nsequencer(ibconn(k,j))
-               enddo
-            case default
-               write(6,*) 'ERROR: IBTYPE ',ibtype(k),' is not allowed.'
-               stop
-         end select
+               case default
+                  write(6,*) 'ERROR: IBTYPE ',ibtype(k),' is not allowed.'
+                  stop
+            end select
+            nbvv(k,j) = nsequencer(nbvv(k,j))
+         enddo
       enddo
       close(14)
       write(6,*) "INFO: Finished reading mesh file coordinates, connectivity, and boundary data."
@@ -496,7 +490,6 @@
          STOP
       ENDIF
    END SUBROUTINE check
-
 !-----+---------+---------+---------+---------+---------+---------+
    end module adcmesh
 !-----+---------+---------+---------+---------+---------+---------+
