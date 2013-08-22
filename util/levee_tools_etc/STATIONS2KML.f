@@ -4,7 +4,7 @@ C--------------------------------------------------------------------
 C this program takes as input an ADCIRC grid and file containing  
 C x,y,!description station locations (I simply copy this out of fort.15.
 C anything after x,y preceeded by a "!" will be used as a description in the kml.)
-C As output it produces a kml file that provieds information about where
+C As output it produces a kml file that provides information about where
 C each station falls in the grid (element number, nodes of that element, 
 C maximum elevation of the nodes, and draws a small snapshot of the grid around
 C each location. the snapshots of the grid can also be saved in fort.14
@@ -27,6 +27,23 @@ C
 C You should have received a copy of the GNU General Public License
 C along with this program.  If not, see <http://www.gnu.org/licenses/>.
 C---------------------------------------------------------------------
+C 
+C jgf20130822: Made the following modifications: extended the parsing 
+C of station descriptions from the station file to differentiate the
+C station ID, the station name, and subsequent comment lines, so that 
+C the comment line (after the 2nd exclamation mark) would be ignored;
+C add support for lines longer than 80 characters; fixed an issue with
+C contour generation where the first contour was erroneously set to
+C 1.0m (instead of -1.5m); replaced a couple instances of repeated
+C code with do loops; added support for command line options without
+C changing the original menu-driven input; added support for labeling
+C stations with their station ID and/or station name in Google Earth;
+C made the file name of the resulting KML file configurable; made the
+C writing of clipped meshes in fort.14 into a command line option.
+C
+C---------------------------------------------------------------------
+
+
       PROGRAM STATIONS2KML
 
       USE GRIDSTUFF
@@ -40,48 +57,121 @@ c      REAL*8, ALLOCATABLE :: X1TMP(:), Y1TMP(:), X2TMP(:), Y2TMP(:)
       REAL*8 FACTOR,XLIM(2),YLIM(2),SCL,pad,XTMP,YTMP,ZTMP,MAXZ,MINZ
       REAL*8 INTERVAL,XC(2),YC(2),CONTOUR
       
-      CHARACTER*80 FILENAME,TMPSTR,FILENAME2,DESC,clipname
+      CHARACTER(len=1024) :: meshFile
+      CHARACTER(len=1024) :: stationFile
+      CHARACTER(len=1024) :: outputFile
 
+      CHARACTER(len=1024) :: cmdlineopt
+      CHARACTER(len=1024) :: cmdlinearg
+     
+      CHARACTER(len=1024) :: TMPSTR
+      CHARACTER(len=1024) :: DESC
+            
+      CHARACTER*80 clipname
+     
+      CHARACTER(len=8), ALLOCATABLE :: STYLECOLOR(:)
+      INTEGER, PARAMETER :: numStyles = 8
+      INTEGER, PARAMETER :: numContours = 7
+      REAL(8), PARAMETER :: lowContourLevel = -1.5d0
+      REAL(8), PARAMETER :: contourIncrement = 0.5d0
+      LOGICAL :: labelWithStationIndex = .false.
+      LOGICAL :: labelWithStationID = .false.
+      LOGICAL :: labelWithStationName = .false.
+      LOGICAL :: lookingForID
+      LOGICAL :: writeClippedMeshes = .false.
+      CHARACTER(len=80) :: stationID
+      CHARACTER(len=1024) :: stationName
+      CHARACTER(len=1024) :: stationLabel
+      INTEGER :: startID
+      INTEGER :: endID
+      INTEGER :: endDesc
+      INTEGER :: argcount
+      INTEGER :: STYLE
 C--------------------------------------------------------------------
-      
-      WRITE(*,*)'GRID FILE?'
-      READ(*,*)FILENAME
-      
-      WRITE(*,*)'STATION X,Y FILE?'
-      READ(*,*)FILENAME2
-      
+      ! initializations
+      meshFile = 'fort.14'
+      stationFile = 'stations.txt'
+      outputFile = 'stations.kml'
       SCL=.8d0
-C READ IN THE STATIONS
-      OPEN(12,FILE=FILENAME2)
+      
+      argcount = iargc() ! count up command line options
+      if (argcount.gt.0) then
+         i=0
+         do while (i.lt.argcount)
+            i = i + 1
+            call getarg(i, cmdlineopt)
+            select case(trim(cmdlineopt))
+               case("--meshfile")
+                  i = i + 1
+                  call getarg(i, cmdlinearg)
+                  write(6,*) "INFO: Processing ",trim(cmdlineopt),
+     &                " ",trim(cmdlinearg),"."
+                  meshFile = trim(cmdlinearg)
+               case("--stationfile")
+                  i = i + 1
+                  call getarg(i, cmdlinearg)
+                  write(6,*) "INFO: Processing ",trim(cmdlineopt),
+     &             " ",trim(cmdlinearg),"."
+                  stationFile = trim(cmdlinearg)
+               case("--outputfile")
+                  i = i + 1
+                  call getarg(i, cmdlinearg)
+                  write(6,*) "INFO: Processing ",trim(cmdlineopt),
+     &               " ",trim(cmdlinearg),"."
+                  outputFile = trim(cmdlinearg)
+               case("--label-with-station-id") 
+                  write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+                  labelWithStationID = .true.
+               case("--label-with-station-name") 
+                  write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+                  labelWithStationName = .true.   
+               case("--label-with-station-index") 
+                  write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+                  labelWithStationIndex = .true.      
+               case("--write-clipped-meshes") 
+                  write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+                  writeClippedMeshes = .true.      
+               case default
+                  write(6,*) "WARNING: Command line option '",
+     &                TRIM(cmdlineopt),"' was not recognized."
+            end select
+         end do
+      else
+         ! if there weren't any command line options, prompt interactively
+         WRITE(*,*)'GRID FILE?'
+         READ(*,*) meshFile
+      
+         WRITE(*,*)'STATION X,Y FILE?'
+         READ(*,*) stationFile      
+      end if    
 
+C READ IN THE STATIONS
+      OPEN(12,FILE=trim(stationFile))
       I=0
       DO WHILE(.TRUE.)
-       READ(12,*,END=7)
-       I=I+1
+         READ(12,*,END=7)
+         I=I+1
       END DO
-      
  7    NS=I
-      CLOSE(12)
-      OPEN(12,FILE=FILENAME2)
-      
       WRITE(*,'(A,I4,A,A)')' THERE ARE ',NS,
-     & ' STATIONS IN ',TRIM(FILENAME2)
-      
-
-      CALL READ14(FILENAME)
-      
-      
-      OPEN(11,FILE='stations.kml')
-      
+     & ' STATIONS IN ',TRIM(stationFile)
+      REWIND(12)
+C     READ IN THE MESH       
+      CALL READ14(meshFile)
+C     OPEN THE OUTPUT KML FILE
+      OPEN(11,FILE=trim(outputFile),ACTION='write',STATUS='replace')
       WRITE(11,10)
       WRITE(11,20)
       WRITE(11,30)
       WRITE(TMPSTR,'(A,A)')'Stations in ',TRIM(AGRID)
-      WRITE(*,*)TMPSTR
-      WRITE(11,40)TMPSTR
+      WRITE(*,*) TRIM(TMPSTR)
+      WRITE(11,40) TRIM(TMPSTR)
 
 C     STYLE     
-      WRITE(11,300)'style1'
+      ALLOCATE(STYLECOLOR(numStyles))
+      STYLECOLOR = (/ 'ff000000','ffff0000','ffff7f00','ff9fff00',
+     &                'ff00ff00','ff00ff7f','ff007fff','ff0000ff' /)     
+      WRITE(11,300) 'style',1
 C      WRITE(11,302)
 C      WRITE(11,304)
       WRITE(11,307)
@@ -98,133 +188,137 @@ C      WRITE(11,303)
       WRITE(11,301)
 C     END  STYLE
 
-      
-C     STYLE         FOR CONTOURS
-      WRITE(11,300)'style2'
-      WRITE(11,309)
-      WRITE(11,304)'ffff0000'
-      WRITE(11,310)
-      WRITE(11,301)
-C     END  STYLE
-C     STYLE         FOR CONTOURS
-      WRITE(11,300)'style3'
-      WRITE(11,309)
-      WRITE(11,304)'ffff7f00'
-      WRITE(11,310)
-      WRITE(11,301)
-C     END  STYLE
-C     STYLE         FOR CONTOURS
-      WRITE(11,300)'style4'
-      WRITE(11,309)
-      WRITE(11,304)'ff9fff00'
-      WRITE(11,310)
-      WRITE(11,301)
-C     END  STYLEC     STYLE         FOR CONTOURS
-      WRITE(11,300)'style5'
-      WRITE(11,309)
-      WRITE(11,304)'ff00ff00'
-      WRITE(11,310)
-      WRITE(11,301)
-C     END  STYLE
-C     STYLE         FOR CONTOURS
-      WRITE(11,300)'style6'
-      WRITE(11,309)
-      WRITE(11,304)'ff00ff7f'
-      WRITE(11,310)
-      WRITE(11,301)
-C     END  STYLE
-C     STYLE         FOR CONTOURS
-      WRITE(11,300)'style7'
-      WRITE(11,309)
-      WRITE(11,304)'ff007fff'
-      WRITE(11,310)
-      WRITE(11,301)
-C     END  STYLEC     STYLE         FOR CONTOURS
-      WRITE(11,300)'style8'
-      WRITE(11,309)
-      WRITE(11,304)'ff0000ff'
-      WRITE(11,310)
-      WRITE(11,301)
-C     END  STYLE
-
-
+      DO J=2,numStyles
+         WRITE(11,300) 'style',J
+         WRITE(11,309)
+         WRITE(11,304) STYLECOLOR(J)
+         WRITE(11,310)
+         WRITE(11,301)
+      END DO
       
 C BIG LOOP OVER STATIONS     
       DO I=1,NS
-        READ(12,'(A80)')TMPSTR
-        READ(TMPSTR,*)XTMP,YTMP
-        K=INDEX(TMPSTR,'!')
-        DESC=TMPSTR(K:80)
-        write(*,*)xtmp,ytmp
-        ZTMP=0.D0
-        
-        
+         READ(12,'(A1024)')TMPSTR
+         READ(TMPSTR,*) XTMP,YTMP
+         K=INDEX(TMPSTR,'!')
+         ! jgf: The station description is everything between the ! marks
+         DESC=TMPSTR(K+1:)
+         ! jgf: Trim off trailing comment(s), if any
+         L = INDEX(DESC,"!")
+         IF ( L.ne.0 ) THEN
+            DESC=DESC(:L-1)
+         ENDIF
+         WRITE(*,*) "INFO: station description is '",trim(DESC),"'."
+         WRITE(*,'("INFO: station coordinates are ",F18.14,",",F18.14)')
+     &      xtmp,ytmp
+         ! jgf: Assume that station IDs consist of the first contiguous set
+         ! of nonspace characters after the "!"
+         IF ( (labelWithStationID.eqv..true.).OR.
+     &         (labelWithStationName.eqv..true.) ) THEN
+            K=1 
+            lookingForID = .true.
+            DO 
+               IF ( (lookingForID.eqv..false.) .AND. 
+     &            (DESC(K:K).eq." ") ) THEN
+                  ! this is just after the end of the ID
+                  endID = K-1
+                  EXIT
+               ENDIF
+               IF ( lookingForID.eqv..true. .AND. 
+     &            DESC(K:K).ne.' ' ) THEN
+                  ! this is start of the ID
+                  startID = K
+                  lookingForID = .false.
+               ENDIF
+               K=K+1
+            END DO
+            stationID = DESC(startID:endID)
+            stationName = TRIM(ADJUSTL(DESC(endID+1:)))
+            WRITE(*,*) "INFO: station ID is '",trim(stationID),"'."
+            WRITE(*,*) "INFO: station name is '",trim(stationName),"'."
+         ENDIF               
+         ZTMP=0.D0
+               
 c make folder for this station
          WRITE(11,319)
          WRITE(TMPSTR,'(A,I4)')'Station',I
          WRITE(11,40)TRIM(TMPSTR)        
         
-        
 C WRITE THE POINT PLACEMARK
-        WRITE(11,50)    
-        WRITE(TMPSTR,'(A,I4)')'STATION',I
-        WRITE(11,40)TRIM(TMPSTR)
-        WRITE(11,306)'style1'
-        WRITE(11,315)
-        WRITE(11,110)
-        WRITE(11,200)XTMP,YTMP,ZTMP
-        WRITE(11,111)
-        WRITE(11,316)
+         WRITE(11,50)
+         stationLabel = ""
+         IF ( (labelWithStationID.eqv..false. ) .AND.
+     &         (labelWithStationName.eqv..false.) ) THEN
+            labelWithStationIndex = .true.
+         ENDIF
+         IF ( labelWithStationIndex.eqv..true. ) THEN
+            WRITE(stationLabel,'(A,I0)') 'STATION ',I
+         ENDIF
+         IF ( labelWithStationID.eqv..true. ) THEN
+            WRITE(*,*) "DEBUG: Adding stationID to station label."
+            stationLabel = trim(stationLabel) // " " // trim(stationID)
+         ENDIF
+         IF ( labelWithStationName.eqv..true. ) THEN
+            stationLabel = trim(stationLabel) 
+     &         // " " // trim(stationName)
+         ENDIF
+         WRITE(*,*) "INFO: station label is ",trim(stationLabel) 
+         WRITE(11,40) TRIM(stationLabel)
+         WRITE(11,306)'style',1
+         WRITE(11,315)
+         WRITE(11,110)
+         WRITE(11,200)XTMP,YTMP,ZTMP
+         WRITE(11,111)
+         WRITE(11,316)
 C HOLD OFF ON CLOSING THIS PLACEMARK UNTIL WE WRITE THE DESCRIPTION        WRITE(11,51)          
       
         
 C GET THE CLIPPED GRID
-          PAD=1.D0/120.D0
-          XLIM(1)=XTMP-PAD
-          XLIM(2)=XTMP+PAD
-          YLIM(1)=YTMP-PAD
-          YLIM(2)=YTMP+PAD
+         PAD=1.D0/120.D0
+         XLIM(1)=XTMP-PAD
+         XLIM(2)=XTMP+PAD
+         YLIM(1)=YTMP-PAD
+         YLIM(2)=YTMP+PAD
                 
-          WRITE(*,*)
-          write(*,*)'CLIPPING GRID...'      
-          CALL  CLIPGRID(XLIM,YLIM)
-          
+         WRITE(*,*)
+         write(*,*) 'INFO: CLIPPING GRID...'      
+         CALL CLIPGRID(XLIM,YLIM)
+         IF ( writeClippedMeshes.eqv..true. ) THEN
 C---------------- WRITES OUT THE CLIPPED GRID -----------------------  
-c  uncomment this block to write out the clipped grids in fort.14 format
-c--------------------------------------------------------------------
-c          write(clipname,'(a,i0,a)')'clip',i,'.14'
-c          OPEN(15,FILE=clipname)
-c          WRITE(*,*)'WRITING CLIPPED GRID'
-c          WRITE(15,*)'CLIPEDGRID'
-c          WRITE(15,*)CLIP_NE,CLIP_NN
-c          DO Ii=1,CLIP_NN
-c             WRITE(15,990)CLIP_NID(Ii), CLPX(Ii),CLPY(Ii),CLPZ(Ii)
-c          END DO
-c          K=3
-c          DO Ii=1,CLIP_NE
-c             WRITE(15,995)Ii,K,(CLIP_NOC(J,Ii),J=1,3)
-c          END DO
-c          CLOSE(15)
-c 990      FORMAT(I12,3E17.8)     
-c 995      FORMAT(I12,I4,3I12)      
+            write(clipname,'(a,i0,a)') 'clip',i,'.14'
+            OPEN(15,FILE=clipname,ACTION='write',STATUS='replace')
+            WRITE(*,*) 'INFO: WRITING CLIPPED GRID'
+            WRITE(15,'(a,i0,a)') 'clip',i,'.14'
+            WRITE(15,*) CLIP_NE, CLIP_NN
+            DO Ii=1,CLIP_NN
+               WRITE(15,990)CLIP_NID(Ii), CLPX(Ii),CLPY(Ii),CLPZ(Ii)
+            END DO
+            K=3
+            DO Ii=1,CLIP_NE
+               WRITE(15,995)Ii,K,(CLIP_NOC(J,Ii),J=1,3)
+            END DO
+            CLOSE(15)
+         ENDIF     
+ 990     FORMAT(I12,3E17.8)     
+ 995     FORMAT(I12,I4,3I12)
 C------------------------------------------------------------------------                   
           
 C FIND THE ELEMENT IN WHICH IT RESIDES
-          INELE=0
-          DO J=1,CLIP_NE
-c                WRITE(*,*)'LOOKING IN ELEMENT',J,CLIP_NE
-                CALL LOCAT_CHK(J,XTMP,YTMP,CLIP_NOC,X,Y,K)
-                IF (K.EQ.1) THEN
-                INELE=CLIP_EID(J)
-                MAXZ=99D99
-                DO K=1,3
-                   MAXZ=MIN(MAXZ,Z(CLIP_NOC(K,J)))
-                END DO                   
-                GOTO 919
-                END IF
-          END DO  
+         INELE=0
+         DO J=1,CLIP_NE
+c           WRITE(*,*)'LOOKING IN ELEMENT',J,CLIP_NE
+            CALL LOCAT_CHK(J,XTMP,YTMP,CLIP_NOC,X,Y,K)
+            IF (K.EQ.1) THEN
+               INELE=CLIP_EID(J)
+               MAXZ=99D99
+               DO K=1,3
+                  MAXZ=MIN(MAXZ,Z(CLIP_NOC(K,J)))
+               END DO                   
+               GOTO 919
+            END IF
+         END DO  
           
- 919      CONTINUE
+ 919     CONTINUE
  
 C NOW WRITE DESCRIPTION
 
@@ -243,7 +337,7 @@ C NOW WRITE DESCRIPTION
          END IF
          WRITE(11,322) 
 C CLOSE THE POINT PLACEMARK NOW
-        WRITE(11,51)              
+         WRITE(11,51)              
           
         
 C  WRITE THE PLACEMARK WITH LineString 
@@ -252,25 +346,21 @@ C  WRITE THE PLACEMARK WITH LineString
          WRITE(11,40)TRIM(TMPSTR) 
 
          DO J=1,CLIP_NE
-           WRITE(11,50)
-           WRITE(11,306)'style1'
-           WRITE(11,317)
-           WRITE(11,110)
-         
-          DO K=1,3
-            WRITE(11,200)X(CLIP_NOC(K,J)),Y(CLIP_NOC(K,J)),
-     &       Z(CLIP_NOC(K,J))
-          END DO
+            WRITE(11,50)
+            WRITE(11,306)'style',1
+            WRITE(11,317)
+            WRITE(11,110)
+            DO K=1,3
+               WRITE(11,200)X(CLIP_NOC(K,J)),Y(CLIP_NOC(K,J)),
+     &            Z(CLIP_NOC(K,J))
+            END DO
             WRITE(11,200)X(CLIP_NOC(1,J)),Y(CLIP_NOC(1,J)),
-     &       Z(CLIP_NOC(1,J))
-
-          
-         
+     &          Z(CLIP_NOC(1,J))
             WRITE(11,111)
             WRITE(11,318)
             WRITE(11,51)
-          END DO
-          WRITE(11,320)  ! close folder
+         END DO
+         WRITE(11,320)  ! close folder
 
 C WRITE THE PLACEMARK WITH THE CONTOURS
          WRITE(11,319)
@@ -291,149 +381,33 @@ c         INTERVAL=(MAXZ-MINZ)/6.D0
          
 c         CONTOUR=MINZ
 c         DO J=1,5
-ccccccccccccccccccccccccccccccccccccccccccccccccccc   -1.5 meter            
-                       CONTOUR=1.d0
-           DO JJ=1,CLIP_NE
-             FOUND=0
-              CALL  TRI_CONTOUR(X,Y,Z,CLIP_NOC,jj,CONTOUR,XC,YC,FOUND)
-             IF (FOUND.EQ.1) THEN
-                WRITE(11,50)
-                WRITE(11,306)'style8'
-                WRITE(11,317)
-                WRITE(11,110)
-                DO K=1,2
-                 WRITE(11,200)XC(K),YC(K),CONTOUR
-                END DO
-                WRITE(11,111)
-                WRITE(11,318)
-                WRITE(11,51)
-             END IF
-            END DO
-            
-
-ccccccccccccccccccccccccccccccccccccccccccccccccccc   -1 meters
-           CONTOUR=-1.d0
-           DO JJ=1,CLIP_NE
-             FOUND=0
-              CALL  TRI_CONTOUR(X,Y,Z,CLIP_NOC,jj,CONTOUR,XC,YC,FOUND)
-             IF (FOUND.EQ.1) THEN
-                WRITE(11,50)
-                WRITE(11,306)'style7'
-                WRITE(11,317)
-                WRITE(11,110)
-                DO K=1,2
-                 WRITE(11,200)XC(K),YC(K),CONTOUR
-                END DO
-                WRITE(11,111)
-                WRITE(11,318)
-                WRITE(11,51)
-             END IF
-            END DO
-
-ccccccccccccccccccccccccccccccccccccccccccccccccccc   -0.5 meters
-           CONTOUR=-0.5d0
-           DO JJ=1,CLIP_NE
-             FOUND=0
-              CALL  TRI_CONTOUR(X,Y,Z,CLIP_NOC,jj,CONTOUR,XC,YC,FOUND)
-             IF (FOUND.EQ.1) THEN
-                WRITE(11,50)
-                WRITE(11,306)'style6'
-                WRITE(11,317)
-                WRITE(11,110)
-                DO K=1,2
-                 WRITE(11,200)XC(K),YC(K),CONTOUR
-                END DO
-                WRITE(11,111)
-                WRITE(11,318)
-                WRITE(11,51)
-             END IF
-            END DO
-
-ccccccccccccccccccccccccccccccccccccccccccccccccccc   0 meters           
-                       CONTOUR=0.d0
-           DO JJ=1,CLIP_NE
-             FOUND=0
-              CALL  TRI_CONTOUR(X,Y,Z,CLIP_NOC,jj,CONTOUR,XC,YC,FOUND)
-             IF (FOUND.EQ.1) THEN
-                WRITE(11,50)
-                WRITE(11,306)'style5'
-                WRITE(11,317)
-                WRITE(11,110)
-                DO K=1,2
-                 WRITE(11,200)XC(K),YC(K),CONTOUR
-                END DO
-                WRITE(11,111)
-                WRITE(11,318)
-                WRITE(11,51)
-             END IF
-            END DO
-
-ccccccccccccccccccccccccccccccccccccccccccccccccccc   0.5 meters           
-                       CONTOUR=0.5d0
-           DO JJ=1,CLIP_NE
-             FOUND=0
-              CALL  TRI_CONTOUR(X,Y,Z,CLIP_NOC,jj,CONTOUR,XC,YC,FOUND)
-             IF (FOUND.EQ.1) THEN
-                WRITE(11,50)
-                WRITE(11,306)'style4'
-                WRITE(11,317)
-                WRITE(11,110)
-                DO K=1,2
-                 WRITE(11,200)XC(K),YC(K),CONTOUR
-                END DO
-                WRITE(11,111)
-                WRITE(11,318)
-                WRITE(11,51)
-             END IF
-            END DO
-
-ccccccccccccccccccccccccccccccccccccccccccccccccccc   1 meter            
-                       CONTOUR=1.d0
-           DO JJ=1,CLIP_NE
-             FOUND=0
-              CALL  TRI_CONTOUR(X,Y,Z,CLIP_NOC,jj,CONTOUR,XC,YC,FOUND)
-             IF (FOUND.EQ.1) THEN
-                WRITE(11,50)
-                WRITE(11,306)'style3'
-                WRITE(11,317)
-                WRITE(11,110)
-                DO K=1,2
-                 WRITE(11,200)XC(K),YC(K),CONTOUR
-                END DO
-                WRITE(11,111)
-                WRITE(11,318)
-                WRITE(11,51)
-             END IF
-            END DO
-            
-           
-ccccccccccccccccccccccccccccccccccccccccccccccccccc   1.5 meter            
-                       CONTOUR=1.5d0
-           DO JJ=1,CLIP_NE
-             FOUND=0
-              CALL  TRI_CONTOUR(X,Y,Z,CLIP_NOC,jj,CONTOUR,XC,YC,FOUND)
-             IF (FOUND.EQ.1) THEN
-                WRITE(11,50)
-                WRITE(11,306)'style2'
-                WRITE(11,317)
-                WRITE(11,110)
-                DO K=1,2
-                 WRITE(11,200)XC(K),YC(K),CONTOUR
-                END DO
-                WRITE(11,111)
-                WRITE(11,318)
-                WRITE(11,51)
-             END IF
-            END DO
-            
-            
-            
-            
-C END WRITING CONTOURS     
-              
-          WRITE(11,320)  ! close folders      
-          WRITE(11,320)
-    
+         !
+         ! Contour generation loop for this station
+         CONTOUR = lowContourLevel
+         STYLE = numStyles
+         DO L=1, numContours
+            DO JJ=1,CLIP_NE
+               FOUND=0
+               CALL TRI_CONTOUR(X,Y,Z,CLIP_NOC,jj,CONTOUR,XC,YC,FOUND)
+               IF (FOUND.EQ.1) THEN
+                  WRITE(11,50)
+                  WRITE(11,306) 'style',STYLE
+                  WRITE(11,317)
+                  WRITE(11,110)
+                  DO K=1,2
+                     WRITE(11,200)XC(K),YC(K),CONTOUR
+                  END DO
+                  WRITE(11,111)
+                  WRITE(11,318)
+                  WRITE(11,51)
+               END IF
+            END DO        
+            CONTOUR = CONTOUR + contourIncrement
+            STYLE = STYLE - 1 
+         END DO             
+         WRITE(11,320)  ! close folders      
+         WRITE(11,320)
+         
       END DO
       
 C END OF LOOP OVER STATIONS
@@ -466,14 +440,14 @@ C WRITE CLOSE OUT
  120  FORMAT('<altitudeMode>absolute</altitudeMode>')
  200  FORMAT(F18.14,',',F17.14,',',F7.5)
  
- 300  FORMAT('<Style id="',A,'">')
+ 300  FORMAT('<Style id="',A,I0'">')
  301  FORMAT('</Style>)')
  302  FORMAT('<PolyStyle>')
  303  FORMAT('</PolyStyle>')
 C 304  FORMAT('<color>f80000ff</color>')
  304  FORMAT('<color>',A,'</color>')
  305  FORMAT('<colorMode>normal</colorMode>)')
- 306  FORMAT('<styleUrl>',A,'</styleUrl>')
+ 306  FORMAT('<styleUrl>',A,I0'</styleUrl>')
  307  FORMAT('<IconStyle>')
  308  FORMAT('</IconStyle>')
  309  FORMAT('<LineStyle>')
