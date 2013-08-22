@@ -168,7 +168,7 @@ C BOUNDARIES DEFINED BY XLIM AND YLIM (E.G. XLIM=(XMIN,XMAX))
       INTEGER I,J,K,l
       REAL*8  XLIM(2),YLIM(2)
       
-      write(*,*)'deallocating'
+      ! write(*,*)'DEBUG: deallocating'
       IF (ALLOCATED(IFOUNDE))   DEALLOCATE(IFOUNDE,IFOUNDN,CLIP_NOC,
      &                             CLPX,CLPY,CLPZ,CLIP_NID,CLIP_EID )
 
@@ -178,7 +178,7 @@ C BOUNDARIES DEFINED BY XLIM AND YLIM (E.G. XLIM=(XMIN,XMAX))
       CLIP_NN=0
       CLIP_NE=0
       
-      write(*,*)'finding nodes'
+      ! write(*,*)'DEBUG: finding nodes'
       DO I=1,NN
          IFOUNDN(NID(I))=0
          
@@ -191,7 +191,7 @@ C BOUNDARIES DEFINED BY XLIM AND YLIM (E.G. XLIM=(XMIN,XMAX))
          END IF
       END DO
       
-      write(*,*)'finding elements'
+      ! write(*,*) 'DEBUG: finding elements'
       DO I=1,NE
 c      write(*,*)'element', i,' of',ne
          IFOUNDE(I)=0
@@ -226,7 +226,7 @@ C UPDATE NODES THAT ARE OUTSIDE BUT ARE PART OF AN ELEMENT THAT IS IN
          END IF
       END DO
       
-      write(*,*)'allocating noc,xyz,nid'
+      ! write(*,*)'DEBUG: allocating noc,xyz,nid'
       ALLOCATE( CLIP_NID(CLIP_NN),CLPX(CLIP_NN),CLPY(CLIP_NN),
      &  CLPZ(CLIP_NN),CLIP_NOC(3,CLIP_NE),CLIP_EID(CLIP_NE) )
       
