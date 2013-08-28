@@ -17,6 +17,9 @@
 ! Example of compiling adcirc2netcdf.f90 with gfortran:
 ! gfortran -o adcirc2netcdf.x -cpp -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -ffree-form -ffree-line-length-none -I. -I/usr/include -L/usr/lib adcirc2netcdf.f90 -lnetcdf -lnetcdff -lz
 !
+! Example of compiling adcirc2netcdf.f90 with gfortran with debugging support:
+! gfortran -g -O0 -fbacktrace -DDEBUG -o adcirc2netcdf.x -cpp -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -ffree-form -ffree-line-length-none -I. -I/usr/include -L/usr/lib adcirc2netcdf.f90 -lnetcdf -lnetcdff -lz
+!
 ! Example of compiling adcirc2netcdf.f90 with pgf90:
 ! pgf90 -o adcirc2netcdf.x -Mpreprocess -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/opt/cray/netcdf/4.1.3/pgi/109/include adcirc2netcdf.f90 -L/opt/cray/netcdf/4.1.3/pgi/109/lib  -lnetcdf -lnetcdff
 !
@@ -60,7 +63,8 @@ include 'adcmesh.f90'
       character(2048)               :: cmdlinearg ! content of command line argument
       logical                       :: useNetCDF4 ! .true. if user wants netcdf classic model
                                                   ! files formatted in hdf5 format
-      logical                       :: meshonly   ! .true. if user just wants to conver the mesh
+      logical                       :: meshonly   ! .true. if user just wants to convert the mesh
+      logical                       :: dataonly   ! .true. if user just wants to convert the data
       integer                       :: ncFileType
       integer                       :: NC_ID
       INTEGER                       :: NC_DimID(2)
@@ -89,12 +93,13 @@ include 'adcmesh.f90'
       integer                       :: num_components ! variable components for netcdf4 compression
       integer                       :: varid(3) ! varids for netcdf4 compression
       ! initializations
-      deg2rad = 2*pi/360.d0
+      deg2rad = 2.0d0*pi/360.d0
       meshFileName = "null"
       attFile = "null"
       menuOpt = 0
       useNetCDF4 = .false.
       meshonly = .false.
+      dataonly = .false.
       !
       !write(6,*) "INFO: adcirc2netcdf version ",version,"."
       ! Report netcdf version
@@ -118,6 +123,9 @@ include 'adcmesh.f90'
                case("--meshonly")
                   meshonly = .true.
                   menuOpt = 14
+                  write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+               case("--dataonly")
+                  dataonly = .true.
                   write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
                case("--meshfile")
                   i = i + 1
@@ -259,9 +267,6 @@ include 'adcmesh.f90'
             ! 10, 11, and 12 were assigned previously
       end select
 
-      ! Load fort.14
-      call read14()
-
       ! Load Global Attributes
       write(6,*)    '*************************************************'
       if (trim(attFile).eq."null") then
@@ -287,116 +292,32 @@ include 'adcmesh.f90'
       endif
 #endif
       CALL Check(NF90_CREATE(TRIM(OutputFile),ncFileType,NC_ID))
-
       ! create time dimension and create global attributes
       CALL Check(NF90_DEF_DIM(NC_ID,'time',NF90_UNLIMITED,NC_DimID_time))
       CALL Check(NF90_DEF_VAR(NC_ID,'time',NF90_DOUBLE,NC_DimID_time,NC_VarID_time))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_time,'long_name','model time'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_time,'standard_name','time'))
       CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_time,'units',datenum))
       do i = 1,natt
         CALL Check(NF90_PUT_ATT(NC_ID,NF90_GLOBAL,att(1,i),att(2,i)))
       enddo
-
-      ! create mesh variables and associated attributes
+      !
+      ! Load fort.14
+      call read14()
+      !
+      ! create and store mesh dimensions 
       CALL Check(NF90_PUT_ATT(NC_ID,NF90_GLOBAL,'agrid',trim(agrid)))
       CALL Check(NF90_DEF_DIM(NC_ID,'node',np,NC_DimID_node))
       CALL Check(NF90_DEF_DIM(NC_ID,'nele',ne,NC_DimID_nele))
       CALL Check(NF90_DEF_DIM(NC_ID,'nvertex',3,NC_DimID_nvertex))
       CALL Check(NF90_DEF_DIM(NC_ID,'single',1,NC_DimID_single))
-      if (nope.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nope',nope,NC_DimID_nope))
-      if (nvdl_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_nvdll',nvdl_max,NC_DimID_max_nvdll))
-      if (neta.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'neta',neta,NC_DimID_neta))
-      if (nbou.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nbou',nbou,NC_DimID_nbou))
-      if (nvel.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nvel',nvel,NC_DimID_nvel))
-      if (nvel_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_nvell',nvel_max,NC_DimID_max_nvell))
-
-      ! ibtypee, ibconn, bars are ignored
-
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_time,'long_name','model time'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_time,'standard_name','time'))
-
-      CALL Check(NF90_DEF_VAR(NC_ID,'x',NF90_DOUBLE,NC_DimID_node,NC_VarID_x))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_x,'long_name','longitude'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_x,'standard_name','longitude'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_x,'units','degrees_east'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_x,'positive','east'))
-
-      CALL Check(NF90_DEF_VAR(NC_ID,'y',NF90_DOUBLE,NC_DimID_node,NC_VarID_y))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_y,'long_name','latitude'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_y,'standard_name','latitude'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_y,'units','degrees_north'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_y,'positive','north'))
-
-      CALL Check(NF90_DEF_VAR(NC_ID,'element',NF90_int,(/NC_DimID_nvertex, NC_DimID_nele /),NC_VarID_element))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_element,'long_name','element'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_element,'standard_name','face_node_connectivity'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_element,'units','nondimensional'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_element,'start_index',1))
-
-      if (nope.ne.0) then
-         CALL Check(NF90_DEF_VAR(NC_ID,'nvdll',NF90_DOUBLE,NC_DimID_nope,NC_VarID_nvdll))
-         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvdll,'long_name','total number of nodes in each elevation specified & boundary segment'))
-         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvdll,'units','nondimensional'))
-
-         CALL Check(NF90_DEF_VAR(NC_ID,'max_nvdll',NF90_int,NC_DimID_single,NC_VarID_max_nvdll))
-         CALL Check(NF90_DEF_VAR(NC_ID,'max_nvell',NF90_int,NC_DimID_single,NC_VarID_max_nvell))      
-         CALL Check(NF90_DEF_VAR(NC_ID,'neta',NF90_int,NC_DimID_single,NC_VarID_neta))
-         CALL Check(NF90_DEF_VAR(NC_ID,'nope',NF90_int,NC_DimID_single,NC_VarID_nope))
-         CALL Check(NF90_DEF_VAR(NC_ID,'nvel',NF90_int,NC_DimID_single,NC_VarID_nvel))
-
-         CALL Check(NF90_DEF_VAR(NC_ID,'nbdv',NF90_DOUBLE,(/ NC_DimID_nope, NC_DimID_max_nvdll /),NC_VarID_nbdv))
-         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbdv,'long_name','node numbers on each elevation specified boundary & segment'))
-         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbdv,'units','nondimensional'))
+      !
+      ! write the mesh definitions to the netcdf file unless the 
+      ! dataonly command line option was specified
+      if (dataonly.eqv..false.) then
+         call writeMeshDefinitionsToNetCDF(NC_ID, useNetCDF4)
       endif
-
-      if (nbou.ne.0) then
-         CALL Check(NF90_DEF_VAR(NC_ID,'nvell',NF90_DOUBLE,NC_DimID_nbou,NC_VarID_nvell))
-         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvell,'long_name','number of nodes in each normal flow specified boundary segment'))
-         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvell,'units','nondimensional'))
-
-         CALL Check(NF90_DEF_VAR(NC_ID,'ibtype',NF90_DOUBLE,NC_DimID_nbou,NC_VarID_ibtype))
-         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_ibtype,'long_name','type of normal flow (discharge) boundary'))
-         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_ibtype,'units','nondimensional'))
-
-         CALL Check(NF90_DEF_VAR(NC_ID,'nbvv',NF90_DOUBLE,(/ NC_DimID_nbou, NC_DimID_max_nvell /),NC_VarID_nbvv))
-         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbvv,'long_name','node numbers on normal flow boundary segment'))
-         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbvv,'units','nondimensional'))
-      endif
-
-      CALL Check(NF90_DEF_VAR(NC_ID,'depth',NF90_DOUBLE,NC_DimID_node,NC_VarID_depth))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'long_name','distance from geoid'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'standard_name','depth_below_geoid'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'coordinates','time y x'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'location','node'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'mesh','adcirc_mesh'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'units','m'))
-!      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'positive','down')) !DO NOT USE?
-
-      CALL Check(NF90_DEF_VAR(NC_ID,'adcirc_mesh',NF90_INT,NC_DimID_single,NC_VarID_mesh))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'long_name','mesh topology'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'standard_name','mesh_topology'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'dimension',2))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'node_coordinates','x y'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'face_node_connectivity','element'))
-#ifdef NETCDF_CAN_DEFLATE
-      if (useNetCDF4.eqv..true.) then
-         if (nope.ne.0) then
-            call check(nf90_def_var_deflate(NC_ID, NC_VarID_nvdll, 0, 1, 2))
-            call check(nf90_def_var_deflate(NC_ID, NC_VarID_nbdv, 0, 1, 2))
-         endif
-         if (nbou.ne.0) then
-            call check(nf90_def_var_deflate(NC_ID, NC_VarID_nvell, 0, 1, 2))
-            call check(nf90_def_var_deflate(NC_ID, NC_VarID_ibtype, 0, 1, 2))
-            call check(nf90_def_var_deflate(NC_ID, NC_VarID_nbvv, 0, 1, 2))
-         endif
-         call check(nf90_def_var_deflate(NC_ID, NC_VarID_x, 0, 1, 2))
-         call check(nf90_def_var_deflate(NC_ID, NC_VarID_y, 0, 1, 2))
-         call check(nf90_def_var_deflate(NC_ID, NC_VarID_element, 0, 1, 2))
-         call check(nf90_def_var_deflate(NC_ID, NC_VarID_depth, 0, 1, 2))
-         call check(nf90_def_var_deflate(NC_ID, NC_VarID_depth, 0, 1, 2))
-         call check(nf90_def_var_deflate(NC_ID, NC_VarID_Mesh, 0, 1, 2))
-      endif
-#endif
-
+      !      
       ! create adcirc output variables and associated attributes
       NC_DimID = (/ NC_DimID_node, NC_DimID_Time /)
       do i=1,nopt
@@ -577,40 +498,12 @@ include 'adcmesh.f90'
       !----------------------------------------------------------------
       CALL Check(NF90_ENDDEF(NC_ID))
 
-      ! place mesh-related data into the file
-      NC_Count = (/ np, 1 /)
-      NC_Start = (/ 1, 1 /)
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_x,xyd(1,1:np),NC_Start,NC_Count))
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_y,xyd(2,1:np),NC_Start,NC_Count))
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_depth,xyd(3,1:np),NC_Start,NC_Count))
-      NC_Count = (/ 3, ne /)
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_element,nm,NC_Start,NC_Count))
-
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_max_nvell,nvel_max))
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_max_nvdll,nvdl_max))
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nope,nope))
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_neta,neta))      
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvel,nvel))            
-      
-      if (nope.ne.0) then
-         NC_Count = (/ nope, 1 /)
-         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvdll,nvdll,NC_Start,NC_Count))
-         NC_Count = (/ nope, nvdl_max /)
-         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nbdv,nbdv,NC_Start,NC_Count))
+      ! place mesh-related data into the file, unless this is a data 
+      ! only file
+      if (dataonly.eqv..false.) then
+         call writeMeshDataToNetCDF(NC_ID)
       endif
-      if (nbou.ne.0) then
-         NC_Count = (/ nbou, 1 /)
-         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvell,nvell,NC_Start,NC_Count))
-         NC_Count = (/ nbou, 1 /)
-         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_ibtype,ibtype,NC_Start,NC_Count))
-         NC_Count = (/ nbou, nvel_max /)
-         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nbvv,nbvv,NC_Start,NC_Count))
-      end if
-
-      write(6,*)    '*************************************************'
-      write(6,*) 'Mesh has been written to NETCDF'
-      write(6,*)    '*************************************************'
-
+      !
       ! now moving on to the actual adcirc output data; first, set name
       ! of ascii output file to read, based on menu choice
       do i=1,nopt
@@ -730,6 +623,165 @@ include 'adcmesh.f90'
 !----------------------------------------------------------------------
    end program adcirc2netcdf
 !----------------------------------------------------------------------
+
+!----------------------------------------------------------------------
+!                  S U B R O U T I N E   
+!     W R I T E   M E S H   D E F I N I T I O N S  T O   N E T C D F 
+!----------------------------------------------------------------------
+!     This subroutine writes the mesh parameters to the netcdf file. 
+!----------------------------------------------------------------------
+      subroutine writeMeshDefinitionsToNetCDF(nc_id, useNetCDF4)
+      use netcdf
+      use adcmesh
+      implicit none
+      integer, intent(in) :: nc_id
+      logical, intent(in) :: useNetCDF4
+      integer              :: NC_DimID_single
+
+      if (nope.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nope',nope,NC_DimID_nope))
+      if (nvdl_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_nvdll',nvdl_max,NC_DimID_max_nvdll))
+      if (neta.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'neta',neta,NC_DimID_neta))
+      if (nbou.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nbou',nbou,NC_DimID_nbou))
+      if (nvel.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nvel',nvel,NC_DimID_nvel))
+      if (nvel_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_nvell',nvel_max,NC_DimID_max_nvell))
+   
+      ! ibtypee, ibconn, bars are ignored
+      CALL Check(NF90_DEF_VAR(NC_ID,'x',NF90_DOUBLE,NC_DimID_node,NC_VarID_x))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_x,'long_name','longitude'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_x,'standard_name','longitude'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_x,'units','degrees_east'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_x,'positive','east'))
+
+      CALL Check(NF90_DEF_VAR(NC_ID,'y',NF90_DOUBLE,NC_DimID_node,NC_VarID_y))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_y,'long_name','latitude'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_y,'standard_name','latitude'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_y,'units','degrees_north'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_y,'positive','north'))
+
+      CALL Check(NF90_DEF_VAR(NC_ID,'element',NF90_int,(/NC_DimID_nvertex, NC_DimID_nele /),NC_VarID_element))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_element,'long_name','element'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_element,'standard_name','face_node_connectivity'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_element,'units','nondimensional'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_element,'start_index',1))
+
+      if (nope.ne.0) then
+         CALL Check(NF90_DEF_VAR(NC_ID,'nvdll',NF90_DOUBLE,NC_DimID_nope,NC_VarID_nvdll))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvdll,'long_name','total number of nodes in each elevation specified & boundary segment'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvdll,'units','nondimensional'))
+
+         CALL Check(NF90_DEF_VAR(NC_ID,'max_nvdll',NF90_int,NC_DimID_single,NC_VarID_max_nvdll))
+         CALL Check(NF90_DEF_VAR(NC_ID,'max_nvell',NF90_int,NC_DimID_single,NC_VarID_max_nvell))      
+         CALL Check(NF90_DEF_VAR(NC_ID,'neta',NF90_int,NC_DimID_single,NC_VarID_neta))
+         CALL Check(NF90_DEF_VAR(NC_ID,'nope',NF90_int,NC_DimID_single,NC_VarID_nope))
+         CALL Check(NF90_DEF_VAR(NC_ID,'nvel',NF90_int,NC_DimID_single,NC_VarID_nvel))
+
+         CALL Check(NF90_DEF_VAR(NC_ID,'nbdv',NF90_DOUBLE,(/ NC_DimID_nope, NC_DimID_max_nvdll /),NC_VarID_nbdv))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbdv,'long_name','node numbers on each elevation specified boundary & segment'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbdv,'units','nondimensional'))
+      endif
+
+      if (nbou.ne.0) then
+         CALL Check(NF90_DEF_VAR(NC_ID,'nvell',NF90_DOUBLE,NC_DimID_nbou,NC_VarID_nvell))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvell,'long_name','number of nodes in each normal flow specified boundary segment'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvell,'units','nondimensional'))
+
+         CALL Check(NF90_DEF_VAR(NC_ID,'ibtype',NF90_DOUBLE,NC_DimID_nbou,NC_VarID_ibtype))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_ibtype,'long_name','type of normal flow (discharge) boundary'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_ibtype,'units','nondimensional'))
+
+         CALL Check(NF90_DEF_VAR(NC_ID,'nbvv',NF90_DOUBLE,(/ NC_DimID_nbou, NC_DimID_max_nvell /),NC_VarID_nbvv))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbvv,'long_name','node numbers on normal flow boundary segment'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbvv,'units','nondimensional'))
+      endif
+
+      CALL Check(NF90_DEF_VAR(NC_ID,'depth',NF90_DOUBLE,NC_DimID_node,NC_VarID_depth))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'long_name','distance from geoid'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'standard_name','depth_below_geoid'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'coordinates','time y x'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'location','node'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'mesh','adcirc_mesh'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'units','m'))
+!      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'positive','down')) !DO NOT USE?
+
+      CALL Check(NF90_DEF_VAR(NC_ID,'adcirc_mesh',NF90_INT,NC_DimID_single,NC_VarID_mesh))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'long_name','mesh topology'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'standard_name','mesh_topology'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'dimension',2))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'node_coordinates','x y'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'face_node_connectivity','element'))
+#ifdef NETCDF_CAN_DEFLATE
+      if (useNetCDF4.eqv..true.) then
+         if (nope.ne.0) then
+            call check(nf90_def_var_deflate(NC_ID, NC_VarID_nvdll, 0, 1, 2))
+            call check(nf90_def_var_deflate(NC_ID, NC_VarID_nbdv, 0, 1, 2))
+         endif
+         if (nbou.ne.0) then
+            call check(nf90_def_var_deflate(NC_ID, NC_VarID_nvell, 0, 1, 2))
+            call check(nf90_def_var_deflate(NC_ID, NC_VarID_ibtype, 0, 1, 2))
+            call check(nf90_def_var_deflate(NC_ID, NC_VarID_nbvv, 0, 1, 2))
+         endif
+         call check(nf90_def_var_deflate(NC_ID, NC_VarID_x, 0, 1, 2))
+         call check(nf90_def_var_deflate(NC_ID, NC_VarID_y, 0, 1, 2))
+         call check(nf90_def_var_deflate(NC_ID, NC_VarID_element, 0, 1, 2))
+         call check(nf90_def_var_deflate(NC_ID, NC_VarID_depth, 0, 1, 2))
+         call check(nf90_def_var_deflate(NC_ID, NC_VarID_depth, 0, 1, 2))
+         call check(nf90_def_var_deflate(NC_ID, NC_VarID_Mesh, 0, 1, 2))
+      endif
+#endif
+!----------------------------------------------------------------------
+      end subroutine writeMeshDefinitionsToNetCDF
+!----------------------------------------------------------------------
+
+!----------------------------------------------------------------------
+!                    S U B R O U T I N E   
+!         W R I T E   M E S H   D A T A   T O   N E T C D F 
+!----------------------------------------------------------------------
+!     This subroutine writes the mesh parameters to the netcdf file. 
+!----------------------------------------------------------------------
+      subroutine writeMeshDataToNetCDF(nc_id)
+      use netcdf
+      use adcmesh
+      implicit none
+      integer, intent(in) :: nc_id
+      INTEGER                       :: NC_Count(2)
+      INTEGER                       :: NC_Start(2)
+     
+      ! place mesh-related data into the file
+      NC_Count = (/ np, 1 /)
+      NC_Start = (/ 1, 1 /)
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_x,xyd(1,1:np),NC_Start,NC_Count))
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_y,xyd(2,1:np),NC_Start,NC_Count))
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_depth,xyd(3,1:np),NC_Start,NC_Count))
+      NC_Count = (/ 3, ne /)
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_element,nm,NC_Start,NC_Count))
+
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_max_nvell,nvel_max))
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_max_nvdll,nvdl_max))
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nope,nope))
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_neta,neta))      
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvel,nvel))            
+      
+      if (nope.ne.0) then
+         NC_Count = (/ nope, 1 /)
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvdll,nvdll,NC_Start,NC_Count))
+         NC_Count = (/ nope, nvdl_max /)
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nbdv,nbdv,NC_Start,NC_Count))
+      endif
+      if (nbou.ne.0) then
+         NC_Count = (/ nbou, 1 /)
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvell,nvell,NC_Start,NC_Count))
+         NC_Count = (/ nbou, 1 /)
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_ibtype,ibtype,NC_Start,NC_Count))
+         NC_Count = (/ nbou, nvel_max /)
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nbvv,nbvv,NC_Start,NC_Count))
+      end if
+
+      write(6,*) 'INFO: Mesh has been written to NETCDF'
+!----------------------------------------------------------------------
+      end subroutine writeMeshDataToNetCDF
+!----------------------------------------------------------------------
+
+
 
 !----------------------------------------------------------------------
 !  GETMONTHDAY
