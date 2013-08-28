@@ -485,8 +485,14 @@
       USE netcdf
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: ncStatus
+      INTEGER, ALLOCATABLE :: dummy(:)
       IF(ncStatus.NE.NF90_NOERR)THEN
-         WRITE(*,'(A,A)') "ERROR: NetCDF: ",TRIM(NF90_STRERROR(ncStatus))
+         WRITE(*,'(A,A)') "ERROR: ",TRIM(NF90_STRERROR(ncStatus))
+         ! if the program was compiled with debug support, generate an
+         ! intentional segmentation fault so that the executable will
+         ! dump a stack trace and we can find the line number where
+         ! this netcdf error was generated
+         WRITE(*,*) dummy(1)
          STOP
       ENDIF
    END SUBROUTINE check
