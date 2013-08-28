@@ -60,6 +60,7 @@ include 'adcmesh.f90'
       real(8), allocatable :: dist(:)
       real(8), allocatable :: dep(:)
       real(8), allocatable :: sumDepths(:)
+      real(8), allocatable :: sumLengths(:)
       integer :: i, j
       
       ! initializations
@@ -125,7 +126,8 @@ include 'adcmesh.f90'
          stop
       endif
       allocate(boundaryIndices(numBoundaries)) ! index into the nvell array
-      allocate(sumDepths(numBoundaries))      
+      allocate(sumDepths(numBoundaries))
+      allocate(sumLengths(numBoundaries))      
       bindex = 1
       boundaryNodes = 0
       do i=1, nbou
@@ -155,6 +157,7 @@ include 'adcmesh.f90'
                      (y_cpp(nextNodeNum)-y_cpp(thisNodeNum))**2 )
          dep(nodeindex) = 0.5d0 * xyd(3,thisNodeNum) ! use only half the depth
          sumDepths(i) = sumDepths(i) + dep(nodeindex) ! accumulate total depth
+         sumLengths(i) = sumLengths(i) + dist(nodeindex) ! accumulate total length
          nodeindex = nodeindex + 1
          do j=2, nvell(thisBoundaryNum)-1
             prevNodeNum = nbvv(thisBoundaryNum,j-1)
@@ -167,6 +170,7 @@ include 'adcmesh.f90'
             dist(nodeindex) = 0.5d0 * prevdist + 0.5d0 * nextdist
             dep(nodeindex) = xyd(3,thisNodeNum) ! use the whole depth here
             sumDepths(i) = sumDepths(i) + dep(nodeindex) ! accumulate total depth
+            sumLengths(i) = sumLengths(i) + dist(nodeindex) ! accumulate total length
             nodeindex = nodeindex + 1
          end do
          ! handle last node; use only half the distance from the previous node
@@ -176,6 +180,7 @@ include 'adcmesh.f90'
                            (y_cpp(thisNodeNum)-y_cpp(prevNodeNum))**2 )
          dep(nodeindex) = 0.5d0 * xyd(3,thisNodeNum) ! use only half the depth
          sumDepths(i) = sumDepths(i) + dep(nodeindex) ! accumulate total depth
+         sumLengths(i) = sumLengths(i) + dist(nodeindex) ! accumulate total length
          nodeindex = nodeindex + 1
       end do
       !
@@ -187,10 +192,10 @@ include 'adcmesh.f90'
       write(12,'(I3," # numBoundaries")') numBoundaries
       do i=1, numBoundaries
          thisBoundaryNum = boundaryIndices(i)
-         write(12,'(I3,I5,F15.8," # boundaryNum numNodes totalEffDepth(m)")') &
-         i, nvell(thisBoundaryNum), sumDepths(i)
+         write(12,'(I9,I3,F15.8,F15.8," # boundaryNum numNodes totalEffDepth(m) totalLength(m)")') &
+         i, nvell(thisBoundaryNum), sumDepths(i), sumLengths(i)
          do j=1,nvell(thisBoundaryNum)
-            write(12,'(I9,F15.8,F15.8," # nodeNum effDepth(m) effLength(m)")') &
+            write(12,'(I0,F15.8,F15.8," # nodeNum effDepth(m) effLength(m)")') &
             nbvv(thisBoundaryNum,j), dep(nodeindex), dist(nodeindex)
             nodeindex = nodeindex + 1
          end do
@@ -198,9 +203,7 @@ include 'adcmesh.f90'
  99   continue
       close(11)
       close(12)
-      write(6,'(A)') "INFO: Finished writing fluxes per unit width."
-      stop
-999   write(6,'(A)') "ERROR: There was an issue reading the flux file."     
+      write(6,'(A)') "INFO: Finished writing boundary information."
 !----------------------------------------------------------------------
    end program adcircFluxBC
 !----------------------------------------------------------------------

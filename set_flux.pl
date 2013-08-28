@@ -40,6 +40,7 @@ my $inputFluxUnits = "cumecs";
 my @supported_units = qw(cumecs cumec m^3/s m^3s^-1 cfs kcfs);
 my $numNodes; # the number of nodes on a boundary
 my $sumDepths; # the sum of the depth values at each node on the boundary (m)
+my $sumLengths; # the sum of the distances corresponding to each node on the boundary (m)
 my $dep;       # depth at an individual boundary node
 my $dist;      # distance along the boundary that a node's flux applies to (m)
 my $fluxFraction; # fraction of the total flux on the boundary attributed to a particular node 
@@ -116,13 +117,14 @@ for (my $i=0; $i<$numBoundaries; $i++ ) {
    @fields = split(" ",<BF>);
    $numNodes = $fields[1];
    $sumDepths = $fields[2];
+   $sumLengths = $fields[3];
    $comment .= " boundary start";
    for (my $j=0; $j<$numNodes; $j++ ) {
       @fields = split(" ",<BF>);
-      $dep = $fields[1]; # nodeNum effDepth(m) effLength(m)
+      $dep = $fields[1]; # nodeNum effDepth(m) effLength(m) 
       $dist = $fields[2]; 
       if ( $fluxProfile eq "uniform" ) {
-         $fluxFraction = 1.0 / ($numNodes-1.0);
+         $fluxFraction = 1.0 / $sumLengths;
          if ( $j == 0 || $j == $numNodes-1 ) {
             $fluxFraction *= 0.5;
          }
