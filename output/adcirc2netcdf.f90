@@ -92,6 +92,7 @@ include 'adcmesh.f90'
       integer, parameter            :: version = 4
       integer                       :: num_components ! variable components for netcdf4 compression
       integer                       :: varid(3) ! varids for netcdf4 compression
+      integer                       :: lastSlashPosition ! used for trimming full path from a filename
       ! initializations
       deg2rad = 2.0d0*pi/360.d0
       meshFileName = "null"
@@ -183,7 +184,9 @@ include 'adcmesh.f90'
             end select
          end do
       end if
-
+      if (meshonly.eqv..true.) then
+         menuOpt = 14
+      endif
       ! present file conversion menu to user if the file was not specified on the
       ! command line
   997 continue
@@ -234,7 +237,8 @@ include 'adcmesh.f90'
             write(6,*) 'ERROR: Your selection was invalid. Please try again.'
             goto 997
       end select
-
+      ! trim off the full path so we just have the file name
+      lastSlashPosition = index(trim(InputFile),"/",.true.) 
       ! now set NETCDF file name for files containing only one type of data
       select case(menuOpt)
          case(1) !63
@@ -256,13 +260,16 @@ include 'adcmesh.f90'
          case(9) !TPS
             Outputfile = 'swan_TPS.63.nc'
          case(14)
-            Outputfile = trim(meshFileName)//'.nc'
+            ! trim off the full path so we just have the file name
+            lastSlashPosition = index(trim(meshFileName),"/",.true.)
+            Outputfile = trim(meshFileName(lastSlashPosition+1:))//'.nc'
+            write(6,*) "DEBUG: The name of the output file is ",Outputfile
          case(15) ! mesh
-            Outputfile = trim(InputFile)//'.nc'
+            Outputfile = trim(InputFile(lastSlashPosition+1:))//'.nc'
          case(16) ! swan_HS_max.63
-            Outputfile = trim(InputFile)//'.nc'
+            Outputfile = trim(InputFile(lastSlashPosition+1:))//'.nc'
          case(17) ! swan_TPS_max.63
-            Outputfile = trim(InputFile)//'.nc'
+            Outputfile = trim(InputFile(lastSlashPosition+1:))//'.nc'
          case default
             ! 10, 11, and 12 were assigned previously
       end select
@@ -302,20 +309,20 @@ include 'adcmesh.f90'
         CALL Check(NF90_PUT_ATT(NC_ID,NF90_GLOBAL,att(1,i),att(2,i)))
       enddo
       !
-      ! Load fort.14
-      call read14()
-      !
-      ! create and store mesh dimensions 
-      CALL Check(NF90_PUT_ATT(NC_ID,NF90_GLOBAL,'agrid',trim(agrid)))
-      CALL Check(NF90_DEF_DIM(NC_ID,'node',np,NC_DimID_node))
-      CALL Check(NF90_DEF_DIM(NC_ID,'nele',ne,NC_DimID_nele))
-      CALL Check(NF90_DEF_DIM(NC_ID,'nvertex',3,NC_DimID_nvertex))
-      CALL Check(NF90_DEF_DIM(NC_ID,'single',1,NC_DimID_single))
-      !
       ! write the mesh definitions to the netcdf file unless the 
       ! dataonly command line option was specified
       if (dataonly.eqv..false.) then
+         call read14()
          call writeMeshDefinitionsToNetCDF(NC_ID, useNetCDF4)
+      else       
+         write(6,*) "INFO: Checking number of nodes in data file" 
+         call openFileForRead(20, trim(InputFile))
+         read(20,'(A)') JunkC
+         read(20,*) NumSnaps, NumNodes, Interval, Interval, nCol
+         close(20)
+         np = NumNodes
+         call check(NF90_PUT_ATT(NC_ID,NF90_GLOBAL,'description',trim(JunkC)))
+         call check(NF90_DEF_DIM(NC_ID,'node',np,NC_DimID_node))
       endif
       !      
       ! create adcirc output variables and associated attributes
@@ -503,6 +510,12 @@ include 'adcmesh.f90'
       if (dataonly.eqv..false.) then
          call writeMeshDataToNetCDF(NC_ID)
       endif
+      
+      if (meshonly.eqv..true.) then
+         call Check(NF90_CLOSE(NC_ID))
+         write(6,*) "INFO: The --meshonly option was specified; only mesh data were written."
+         stop
+      endif
       !
       ! now moving on to the actual adcirc output data; first, set name
       ! of ascii output file to read, based on menu choice
@@ -617,8 +630,6 @@ include 'adcmesh.f90'
       END DO
 
       CALL Check(NF90_CLOSE(NC_ID))
-
-      write(6,*)    '*************************************************'
       write(6,*) 'INFO: adcirc2netcdf finished.'
 !----------------------------------------------------------------------
    end program adcirc2netcdf
@@ -637,6 +648,13 @@ include 'adcmesh.f90'
       integer, intent(in) :: nc_id
       logical, intent(in) :: useNetCDF4
       integer              :: NC_DimID_single
+      !
+      ! create and store mesh dimensions 
+      CALL Check(NF90_PUT_ATT(NC_ID,NF90_GLOBAL,'agrid',trim(agrid)))
+      CALL Check(NF90_DEF_DIM(NC_ID,'node',np,NC_DimID_node))
+      CALL Check(NF90_DEF_DIM(NC_ID,'nele',ne,NC_DimID_nele))
+      CALL Check(NF90_DEF_DIM(NC_ID,'nvertex',3,NC_DimID_nvertex))
+      CALL Check(NF90_DEF_DIM(NC_ID,'single',1,NC_DimID_single))
 
       if (nope.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nope',nope,NC_DimID_nope))
       if (nvdl_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_nvdll',nvdl_max,NC_DimID_max_nvdll))
