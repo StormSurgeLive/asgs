@@ -772,14 +772,13 @@ include 'adcmesh.f90'
       CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_depth,xyd(3,1:np),NC_Start,NC_Count))
       NC_Count = (/ 3, ne /)
       CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_element,nm,NC_Start,NC_Count))
-
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_max_nvell,nvel_max))
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_max_nvdll,nvdl_max))
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nope,nope))
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_neta,neta))      
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvel,nvel))            
       
       if (nope.ne.0) then
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nope,nope))
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_max_nvell,nvel_max))
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_max_nvdll,nvdl_max))
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_neta,neta))      
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvel,nvel))            
          NC_Count = (/ nope, 1 /)
          CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvdll,nvdll,NC_Start,NC_Count))
          NC_Count = (/ nope, nvdl_max /)
