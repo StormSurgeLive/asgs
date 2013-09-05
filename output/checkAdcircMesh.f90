@@ -24,7 +24,10 @@
 
 ! Example of how to compile with gfortran:
 ! gfortran -o checkAdcircMesh.x -ffree-form -ffree-line-length-none -I/usr/include checkAdcircMesh.f90 -lnetcdf -lnetcdff -lz
-
+!
+! Example for compiling with ifort on croatan at RENCI:
+! ifort -o checkAdcircMesh.x -i-dynamic -cpp -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/projects/ncfs/apps/croatan/netcdf/include checkAdcircMesh.f90 -L/projects/ncfs/apps/croatan/netcdf/lib -lnetcdf -lnetcdff -lz
+!
 include 'adcmesh.f90'
 !-----+---------+---------+---------+---------+---------+---------+
 !
