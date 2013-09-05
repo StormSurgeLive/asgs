@@ -455,15 +455,10 @@
       errorIO = 0
 !
 !     Check to see if file exists
-      write(6,'("INFO: Searching for file to open on unit ",I5,"...")') lun
-      inquire(FILE=trim(filename),EXIST=fileFound)
-      if (fileFound.eqv..false.) then
-         write(6,'("ERROR: The file ",A," was not found.")') trim(filename)
+      call checkFileExistence(filename, errorIO)
+      if ( errorIO.ne.0) then
          stop
-      else
-         write(6,'("INFO: The file ",A," was found. The file will be opened.")') &
-            trim(filename)
-       endif
+      endif
 !
 !     Open existing file
       OPEN(lun,FILE=trim(filename),STATUS='OLD',ACTION='READ',IOSTAT=errorIO)
@@ -477,6 +472,35 @@
 !-----------------------------------------------------------------------
    END SUBROUTINE openFileForRead
 !-----------------------------------------------------------------------
+
+
+!-----------------------------------------------------------------------
+!     S U B R O U T I N E   C H E C K   F I L E   E X I S T E N C E
+!-----------------------------------------------------------------------
+!     jgf: Just check for the existence of a file. I separated this 
+!     from openFileForRead so that I could use it on NetCDF files 
+!     as well.  
+!-----------------------------------------------------------------------
+   SUBROUTINE checkFileExistence(filename, errorIO)
+      IMPLICIT NONE
+      CHARACTER(*), intent(in) :: filename ! full pathname of file
+      INTEGER, intent(out) :: errorIO  ! zero if the file opened successfully
+      LOGICAL :: fileFound    ! .true. if the file is present
+      errorIO = 0
+!
+!     Check to see if file exists
+      write(6,'("INFO: Searching for file ",A," ...")') trim(filename)
+      inquire(FILE=trim(filename),EXIST=fileFound)
+      if (fileFound.eqv..false.) then
+         write(6,'("ERROR: The file ",A," was not found.")') trim(filename)
+      else
+         write(6,'("INFO: The file ",A," was found.")') trim(filename)
+      endif
+      return
+!-----------------------------------------------------------------------
+   END SUBROUTINE checkFileExistence
+!-----------------------------------------------------------------------
+
 
 !----------------------------------------------------------------------
 !  CHECK
