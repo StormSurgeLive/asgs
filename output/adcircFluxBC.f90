@@ -72,13 +72,10 @@ include 'adcmesh.f90'
       btype = 52
       !
       ! Report netcdf version
-      write(6,*) "INFO: adcirc2netcdf was compiled with the following netcdf library: ", &
+      write(6,*) "INFO: adcircFluxBC was compiled with the following netcdf library: ", &
          trim(nf90_inq_libvers())
 
-      ! jgf: Process command line options; can be used along with menu choices;
-      ! if command line options provide all needed input, menu will not
-      ! be presented to user; programs with command line options are
-      ! slightly easier to automate than menu-based programs
+      ! Process command line options
       argcount = iargc() ! count up command line options
       if (argcount.gt.0) then
          i=0
