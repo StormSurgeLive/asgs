@@ -7,7 +7,7 @@
 #PBS -M %notifyuser%
 
 # Specify number of cpus in a machine-specific way
-#PBS -l ncpus=%ncpu%
+#PBS -l select=%select%:ncpus=32:mpiprocs=32
 
 # Specify the wall clock time
 #PBS -l walltime=%walltime%
@@ -33,8 +33,8 @@
 cd %advisdir%/%enstorm%
 
 # These are the actual commands to be executed.
-. /opt/modules/default/etc/modules.sh
-module load netcdf/4.1.1.0
+# . /opt/modules/default/etc/modules.sh
+module load cray-netcdf
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 echo "[${DATETIME}] : padcirc starting in %advisdir%/%enstorm%." >> %jobtype%.%enstorm%.run.start
 echo "Test job starting at $DATETIME."
