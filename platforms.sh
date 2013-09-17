@@ -7,7 +7,7 @@
 # is platform dependent. 
 #
 #----------------------------------------------------------------
-# Copyright(C) 2012 Jason Fleming
+# Copyright(C) 2012--2013 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -142,15 +142,13 @@ init_garnet()
   QCHECKCMD=qstat
   ACCOUNT=erdcvhsp
   SUBMITSTRING="aprun"
-  SCRATCHDIR=/work/$USER
+  SCRATCHDIR=$WORKDIR 
   SSHKEY=~/.ssh/id_rsa_garnet
   QSCRIPT=garnet.template.pbs
   PREPCONTROLSCRIPT=garnet.adcprep.template.pbs
   PREPHOTSTARTSCRIPT=garnet.adcprep.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
-  PPN=16
-  . /opt/modules/default/etc/modules.sh
-  module load netcdf/4.1.1.0
+  PPN=32
   IMAGEMAGICKBINPATH=/usr/local/usp/ImageMagick/default/bin 
 }
 init_queenbee()
