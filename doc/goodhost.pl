@@ -46,20 +46,22 @@ use Cwd;
 #
 my $goodlogs = "null";   # job log files from successful runs
 my $badlogs = "null";    # job log files from unsuccessful runs
+my $hostname = "null";   # name of a particular host the user is interested in
 my $scoresfile = "scores.txt"; # relative likelihood of troublemakers
 our %hostsScores; # hash of unique hostnames and their scores
 #
 GetOptions(
            "goodlogs=s" => \$goodlogs,
            "badlogs=s" => \$badlogs,
+           "hostname=s" => \$hostname,
            "scoresfile=s" => \$scoresfile
           );
 #
 if ( $goodlogs ne "null" ) {
-   &parseLogs($goodlogs,1);
+   &parseLogs($goodlogs,1,$hostname);
 }
 if ( $badlogs ne "null" ) {
-   &parseLogs($badlogs,-1);
+   &parseLogs($badlogs,-1,$hostname);
 }
 #
 # open the output file
@@ -83,6 +85,18 @@ close(OUT);
 sub parseLogs () {
    my $loglist = shift;
    my $increment = shift;
+   my $suspect_host = shift;
+   #
+   # if the user is interested in a particular host, then write out a time
+   # series that provides the dates and times when the host was used on
+   # successful as well as unsuccessful jobs.
+   if ( $hostname ne "null" ) {
+      my $timeseries = $hostname.$loglist.".dat";
+      unless (open(HOSTOUT,">$timeseries")) {
+         &stderrMessage("ERROR","Could not open host time series output file '$timeseries' for writing: $!.");
+         die;
+      }
+   }
    if ( -e $loglist ) {
       unless (open(LL,"<$loglist")) {
          &stderrMessage("ERROR","Found the log file list '$loglist' but could not open it: $!.");
@@ -123,6 +137,15 @@ sub parseLogs () {
          if ( &is_member($hostname,@runHostList)) {
             next;
          } 
+         if ( $hostname eq $suspect_host ) {
+            my $timestamp = `stat -c %y $logfile`;
+            # remove newline
+            chomp($timestamp);
+            # remove fractional seconds and the timezone
+            my $dot = index($timestamp,".");
+            $timestamp = substr($timestamp,0,$dot);
+            printf HOSTOUT "$timestamp $increment\n";
+         }
          &stderrMessage("DEBUG","Unique hostname found: '$_'.");
          # add the hostname to the list for this run
          push(@runHostList,$hostname);
@@ -139,6 +162,9 @@ sub parseLogs () {
       close(LF);
    }
    close(LL);
+   unless ( $suspect_host eq "null" ) {
+      close(HOSTOUT);
+   }
 }
 #
 # General subroutine used to test if an element is already in an array
