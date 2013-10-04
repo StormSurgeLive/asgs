@@ -28,6 +28,9 @@
 ! Example for compiling with ifort on croatan at RENCI:
 ! ifort -o checkAdcircMesh.x -i-dynamic -cpp -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/projects/ncfs/apps/croatan/netcdf/include checkAdcircMesh.f90 -L/projects/ncfs/apps/croatan/netcdf/lib -lnetcdf -lnetcdff -lz
 !
+! Compiling with pgf90 on garnet at ERDC 20130926:
+! pgf90 -o checkAdcircMesh.x -Mpreprocess -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/opt/cray/netcdf/4.3.0/pgi/121/include checkAdcircMesh.f90 -L/opt/cray/netcdf/4.3.0/pgi/121/lib -lnetcdf -lnetcdff
+
 include 'adcmesh.f90'
 !-----+---------+---------+---------+---------+---------+---------+
 !

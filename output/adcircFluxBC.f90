@@ -26,6 +26,9 @@
 
 ! Example of how to compile with gfortran:
 ! gfortran -o adcircFluxBC.x -ffree-form -ffree-line-length-none -I/usr/include adcircFluxBC.f90 -lnetcdf -lnetcdff -lz
+!
+! Compiling with pgf90 on garnet at ERDC 20130926:
+! pgf90 -o adcircFluxBC.x -Mpreprocess -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/opt/cray/netcdf/4.3.0/pgi/121/include adcircFluxBC.f90 -L/opt/cray/netcdf/4.3.0/pgi/121/lib -lnetcdf -lnetcdff
 
 include 'adcmesh.f90'
 !-----+---------+---------+---------+---------+---------+---------+

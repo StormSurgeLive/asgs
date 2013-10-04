@@ -4,7 +4,7 @@
 ! A program to convert adcirc files that are in netcdf format to
 ! adcirc ascii format.
 !--------------------------------------------------------------------------
-! Copyright(C) 2012 Jason Fleming
+! Copyright(C) 2012--2013 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -27,6 +27,9 @@
 !
 ! Example of compiling this program with pgf90:
 ! pgf90 -o netcdf2adcirc.x -Mpreprocess -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/opt/cray/netcdf/4.1.3/pgi/109/include  netcdf2adcirc.f90 -lnetcdf
+!
+! Compiling with pgf90 on garnet at ERDC 20130926:
+! pgf90 -o netcdf2adcirc.x -Mpreprocess -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/opt/cray/netcdf/4.3.0/pgi/121/include -L/opt/cray/netcdf/4.3.0/pgi/121/lib netcdf2adcirc.f90 -lnetcdf -lnetcdff
 !
 ! Example of compiling this program with gfortran:
 ! gfortran -o netcdf2adcirc.x -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I$HOME/include -L$HOME/lib netcdf2adcirc.f90 -lnetcdf -lnetcdff
@@ -84,7 +87,8 @@
       stationfile = .false.
       agrid = 'null'
 
-      write(6,*) "INFO: adcirc2netcdf was compiled with the following netcdf library: ",trim(nf90_inq_libvers())
+      write(6,*) "INFO: adcirc2netcdf was compiled with the following " &
+         // "netcdf library: ",trim(nf90_inq_libvers())
 
       deg2rad = 2*pi/360.0
 
@@ -104,129 +108,173 @@
                case("--datafile")
                   i = i + 1
                   call getarg(i, cmdlinearg)
-                  write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
+                  write(6,*) "INFO: Processing ",trim(cmdlineopt)," ", &
+                     trim(cmdlinearg),"."
                   datafile = trim(cmdlinearg)
                case default
-                  write(6,*) "WARNING: Command line option '",TRIM(cmdlineopt),"' was not recognized."
+                  write(6,*) "WARNING: Command line option '", &
+                     TRIM(cmdlineopt),"' was not recognized."
             end select
          end do
       end if
       ! open the netcdf file
       call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
       ! determine the type of data stored in the file
-      call check(nf90_inquire(nc_id, ndim, nvar, natt, nc_dimid_time, ncformat))
-      if ( (ncformat.eq.nf90_format_netcdf4).or.(ncformat.eq.nf90_format_netcdf4_classic) ) then
+      call check(nf90_inquire(nc_id, ndim, nvar, natt, &
+                              nc_dimid_time, ncformat))
+      if ( (ncformat.eq.nf90_format_netcdf4).or. &
+         (ncformat.eq.nf90_format_netcdf4_classic) ) then
          write(6,*) "INFO: The data file uses netcdf4 formatting."
       endif
       ! determine the number of snapshots in the file
-      call check(nf90_inquire_dimension(nc_id, nc_dimid_time, len=ndset))
+      call check(nf90_inquire_dimension(nc_id,nc_dimid_time,len=ndset))
       !
       !  get time
       !
       ! load up the time values (in seconds)
       allocate(timesec(ndset))
       call check(nf90_inq_varid(nc_id, "time", NC_VarID_time))
-      call check(nf90_get_var(nc_id, NC_VarID_time, timesec, (/ 1 /), (/ ndset /) ))
+      call check(nf90_get_var(nc_id, NC_VarID_time, timesec, &
+         (/ 1 /), (/ ndset /) ))
       !
       ! determine the type of file that we have
       varname(:) = "null"
       num_components = 1
+      ! is it a station file?
       do i=1,nvar
          call check(nf90_inquire_variable(nc_id, i, thisVarName))
          select case(trim(thisVarName))
          case("station_name")
             stationfile = .true.
+            call check(nf90_inq_dimid(nc_id, "station", nc_dimid_node))
+            exit
+         case default
+            ! do nothing
+         end select
+      end do
+      ! determine the type of data in the file, and set the output
+      ! filename accordingly
+      do i=1,nvar
+         call check(nf90_inquire_variable(nc_id, i, thisVarName))
+         select case(trim(thisVarName))
          case("u-vel3D","v-vel3D","w-vel3D")
-            write(6,*) "INFO: Preparing to write an ADCIRC 3D water current velocity (fort.45) file."
-            ascii_datafile_name = "fort.45"
+            write(6,*) "INFO: Preparing to write an ADCIRC 3D " &
+               // "water current velocity file."
+            if ( stationfile.eqv..true. ) then
+               ascii_datafile_name = "fort.42"
+            else
+               ascii_datafile_name = "fort.45"
+            endif
             num_components = 3
             varname(1) = "u-vel3D"
             varname(2) = "v-vel3D"
             varname(3) = "w-vel3D"
             exit
          case("zeta")
-            write(6,*) "INFO: Preparing to write an ADCIRC water surface elevation (fort.63) file."
-            ascii_datafile_name = "fort.63"
+            write(6,*) "INFO: Preparing to write an ADCIRC water " &
+               // "surface elevation file."
+            if ( stationfile.eqv..true. ) then
+               ascii_datafile_name = "fort.61"          
+            else 
+               ascii_datafile_name = "fort.63"
+            endif 
             varname(1) = "zeta"
             exit
          case("u-vel","v-vel")
-            write(6,*) "INFO: Preparing to write an ADCIRC water current velocity (fort.64) file."
-            ascii_datafile_name = "fort.64"
+            write(6,*) "INFO: Preparing to write an ADCIRC water " &
+               // "current velocity file."
+            if ( stationfile.eqv..true. ) then
+               ascii_datafile_name = "fort.62"
+            else
+               ascii_datafile_name = "fort.64"
+            endif
             num_components = 2
             varname(1) = "u-vel"
             varname(2) = "v-vel"
             exit
          case("pressure")
-            write(6,*) "INFO: Preparing to write an ADCIRC barometric pressure (fort.73) file."
-            ascii_datafile_name = "fort.73"
+            write(6,*) "INFO: Preparing to write an ADCIRC barometric " &
+               // "pressure file."
+            if ( stationfile.eqv..true. ) then
+               ascii_datafile_name = "fort.71"
+            else
+               ascii_datafile_name = "fort.73"
+            endif
             varname(1) = "pressure"
             exit
          case("windx","windy")
-            write(6,*) "INFO: Preparing to write an ADCIRC wind velocity (fort.74) file."
-            ascii_datafile_name = "fort.74"
+            write(6,*) "INFO: Preparing to write an ADCIRC wind " &
+               // "velocity file."
+            if ( stationfile.eqv..true. ) then
+                ascii_datafile_name = "fort.72"
+            else
+                ascii_datafile_name = "fort.74"
+            endif
             num_components = 2
             varname(1) = "windx"
             varname(2) = "windy"
             exit
          case("zeta_max")
-            write(6,*) "INFO: Preparing to write an ADCIRC maximum water elevation (maxele.63) file."
+            write(6,*) "INFO: Preparing to write an ADCIRC maximum " &
+               // "water elevation file."
             ascii_datafile_name = "maxele.63"
             ndset = 1
             varname(1) = "zeta_max"
             exit
          case("wind_max")
-            write(6,*) "INFO: Preparing to write an ADCIRC maximum wind speed (maxwvel.63) file."
+            write(6,*) "INFO: Preparing to write an ADCIRC maximum " &
+               // "wind speed file."
             ascii_datafile_name = "maxwvel.63"
             ndset = 1
             varname(1) = "wind_max"
             exit
          case("dir")
-            write(6,*) "INFO: Preparing to write a swan_DIR.63 file."
+            write(6,*) "INFO: Preparing to write a mean wave " &
+               // "direction file."
             ascii_datafile_name = "swan_DIR.63"
             varname(1) = "dir"
             exit
          case("hs")
-            write(6,*) "INFO: Preparing to write a swan_HS.63 file."
+            write(6,*) "INFO: Preparing to write a significant " &
+                // "wave height file."
             ascii_datafile_name = "swan_HS.63"
             varname(1) = "hs"
             exit
          case("tmm10")
-            write(6,*) "INFO: Preparing to write a swan_TMM10.63 file."
+            write(6,*) "INFO: Preparing to write a mean absolute " &
+              // "wave period file."
             ascii_datafile_name = "swan_TMM10.63"
             varname(1) = "tmm10"
             exit
          case("tps")
-            write(6,*) "INFO: Preparing to write a swan_TPS.63 file."
+            write(6,*) "INFO: Preparing to write a relative peak " &
+               // "period file."
             ascii_datafile_name = "swan_TPS.63"
             varname(1) = "tps"
             exit
          case("swan_HS_max")
-            write(6,*) "INFO: Preparing to write an ADCIRC maximum significant wave height (swan_HS_max.63) file."
+            write(6,*) "INFO: Preparing to write a maximum " &
+               // "significant wave height file."
             ascii_datafile_name = "swan_HS_max.63"
             ndset = 1
             varname(1) = "swan_HS_max"
             exit
          case("swan_TPS_max")
-            write(6,*) "INFO: Preparing to write an ADCIRC maximum wave period (swan_TPS_max.63) file."
+            write(6,*) "INFO: Preparing to write an maximum relative " &
+              // "peak wave period file."
             ascii_datafile_name = "swan_TPS_max.63"
             ndset = 1
             varname(1) = "swan_TPS_max"
             exit                        
          case default
-            !jgf this is tmi: write(6,*) "INFO: Did not recognize the variable name '"//trim(thisVarName)//"'."
+            !jgf this is tmi: write(6,*) "DEBUG: Did not recognize the variable name '"//trim(thisVarName)//"'."
             cycle     ! did not recognize this variable name
          end select
       end do
-      ! if this is actually a station file, change the ascii name
-      if ( stationfile.eqv..true.) then
-         select case(trim(ascii_datafile_name))
-         case("fort.63")
-            ascii_datafile_name = "fort.61"
-         case("fort.74")
-            ascii_datafile_name = "fort.72"
-         end select
-         call check(nf90_inq_dimid(nc_id, "station", nc_dimid_node))
-      else
+      write(6,*) "INFO: " // trim(ascii_datafile_name)
+      ! if this is not a station file, find the mesh node dimension and
+      ! comment 
+      if ( stationfile.eqv..false.) then
          ! determine the number of nodes
          call check(nf90_inq_dimid(nc_id, "node", nc_dimid_node))
          agold=nf90_get_att(nc_id,nf90_global,'grid',agrid)

@@ -6,7 +6,7 @@
 ! This projection is useful in visualization.
 !
 !--------------------------------------------------------------------------
-! Copyright(C) 2012 Jason Fleming
+! Copyright(C) 2012--2013 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -29,6 +29,9 @@
 !
 ! Example of compiling generateCPP.f90 with pgf90:
 ! pgf90 -o generateCPP.x -Mpreprocess -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/opt/cray/netcdf/4.1.3/pgi/109/include generateCPP.f90 -L/opt/cray/netcdf/4.1.3/pgi/109/lib  -lnetcdf -lnetcdff
+!
+! Compiling with pgf90 on garnet at ERDC 20130926:
+! pgf90 -o generateCPP.x -Mpreprocess -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -I/opt/cray/netcdf/4.3.0/pgi/121/include generateCPP.f90 -L/opt/cray/netcdf/4.3.0/pgi/121/lib -lnetcdf -lnetcdff
 !
 ! Example of compiling with gfortran:
 ! gfortran -cpp -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -o generateCPP.x -ffree-form -ffree-line-length-none -I/usr/include generateCPP.f90 -lnetcdf -lnetcdff -lz
