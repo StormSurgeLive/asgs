@@ -1,0 +1,213 @@
+The ASGS Interface Guide
+=========================
+Jason Fleming <jason.fleming@seahorsecoastal.com>
+v2013, October 2013, Seahorse Coastal Consulting:
+
+image::figures/SCC_logo.png["Seahorse Coastal Consulting",align="center",link="http://www.seahorsecoastal.com"]
+
+Executive Summary
+-----------------
+
+The ADCIRC Surge Guidance System (ASGS) provides real time output 
+from the ADCIRC or ADCIRC+SWAN models for analysis and 
+interpretation by downstream applications. An interface 
+specification is an invaluable tool that facilitates reliable 
+coordination between the ASGS and downstream applications while 
+enabling independent development processes. 
+
+As a result, this guide was created as a living document to detail 
+the interface contract the ASGS and its downstream applications. 
+This contract consists of the following three components: (1) the 
+run.properties files for each forecast ensemble member; (2) the 
+opendap server configuration; and (3) the format of the results files 
+themselves. 
+
+Not all downstream applications will rely on every aspect of the 
+interface described herein. Rather, each downstream application will 
+use only a subset of this specification. However, all instances of 
+the ASGS are required to adhere to all aspects of specification in 
+order to provide assurance of compatibility to all downstream 
+application developers.
+
+Run Properties
+--------------
+
+A run.properties file is produced for each forecast ensemble run 
+from the ASGS, and placed in the same results directory as the output
+files for the forecast run. 
+
+A sample of the run.properties file is shown below, organized into 
+document subsections according to the nature of various properties.
+Definitions of these properties will be added later.
+
+Input
+~~~~~
+
+The following properties describe the type of input that was used to
+generate the results.
+
+    storm class : TS
+    storm name : KAREN
+    track_raw_dat : bal122013.dat
+    track_raw_fst : al122013.fst
+    year : 2013
+    storm : 12
+    modified : n
+    mesh : sl15_2010_HSDRRS_2012_v9
+    RunType : Forecast
+    ADCIRCgrid : sl15_2010_HSDRRS_2012_v9
+    stormnumber : 12
+    stormname : KAREN
+    advisory : 10    
+    
+Output
+~~~~~~
+
+The following properties indicate the presence, name, and format
+of the output (results) files.
+
+    Water Surface Elevation Stations File Name : fort.61.nc
+    Water Surface Elevation Stations Format : netcdf
+    Water Surface Elevation File Name : fort.63.nc
+    Water Surface Elevation Format : netcdf
+    Barometric Pressure Stations File Name : fort.71.nc
+    Barometric Pressure Stations Format : netcdf
+    Wind Velocity Stations File Name : fort.72.nc
+    Wind Velocity Stations Format : netcdf
+    Barometric Pressure File Name : fort.73.nc
+    Barometric Pressure Format : netcdf
+    Wind Velocity File Name : fort.74.nc
+    Wind Velocity Format : netcdf
+    Maximum Water Surface Elevation File Name : maxele.63.nc
+    Maximum Water Surface Elevation Format : netcdf
+    Maximum Current Speed File Name : maxvel.63 
+    Maximum Current Speed Format : ascii
+    Maximum Wind Speed File Name : maxwvel.63.nc
+    Maximum Wind Speed Format : netcdf
+    Minimum Barometric Pressure File Name : minpr.63.nc
+    Minimum Barometric Pressure Format : netcdf
+
+Downstream
+~~~~~~~~~~
+
+The following properties provide information for use by particular 
+downstream applications for uses ranging from load balancing, 
+presentation to different audiences, labeling results, etc.
+
+    ceraServer : cera0
+    asgs : nc
+    intendedAudience : 
+    downloadurl : 
+    prodID : SADCsl15_2010_HSDRRS_2012_v9-UNC_vortex-nws19_20131005T1200_20131005T1200_20131007T1200_12<field>_Z.nc.gz
+
+Analysis
+~~~~~~~~
+
+The following properties provide key bits of data that describe how the
+results were generated.
+
+    InitialHotStartTime : 4276800.00000000
+    RunStartTime : 2013100512
+    RunEndTime : 2013100712
+    ColdStartTime : 2013081700
+    WindModel : vortex-nws19
+    Model : PADCIRC
+
+HPC Resources
+~~~~~~~~~~~~~
+
+The following properties provide data about the High Performance 
+Computing (HPC) resources that were involved in the production of 
+results, which may be used in troubleshooting or performance analysis.
+
+    directory storm : /projects/ncfs/data/asgs15784/10/nhcConsensus
+    hostname : hatteras.renci.org
+    instance : corpsbackup3
+    forecastEnsembleMemberNumber : 0
+    cpurequest : 480
+    ncpu : 480
+    numwriters : 0
+
+OPeNDAP Service
+---------------
+
+OPeNDAP is the middleware between the ASGS instance that is 
+generating results and any downstream applications that provide 
+further analysis and visualization. As such, the configuration 
+details of this service are critical to reliable compatibility with 
+downstream applications. 
+
+There are three subcomponents to the setup of OPeNDAP for ASGS: (1) 
+the XML configuration file for the server; (2) the directory 
+hierarchy used to post the results; and (3) the catalog generation 
+script. Each of these aspects are described more fully in the 
+following sections.
+
+OPeNDAP Configuration
+~~~~~~~~~~~~~~~~~~~~~
+
+The server itself runs inside Tomcat and has an XML configuration file
+whose content we will specify in this section.
+
+Directory Hierarchy
+~~~~~~~~~~~~~~~~~~~
+
+The results files from the ASGS are posted in a particular directory 
+hierarchy that enables us to have multiple instances of the ASGS on
+multiple machines producing results for multiple ensemble members on 
+multiple meshes. The details of this directory hierarchy are specified
+in this section.
+
+Catalog
+~~~~~~~
+
+RENCI has developed an automated cataloging script whose configuration
+and operation will be briefly described here with pointers to relevant
+publications containing further details. The contents of the resulting
+catalogs and their pertinence to downstream applications will also be
+provided here.
+
+Output Files
+------------
+
+The output files from the ASGS should be compressed NetCDF4, 
+produced according to CF standards, including a time stamp showing 
+the cold start date. This section can also describe any particular
+piece of NetCDF metadata that must be included for compatibility with 
+downstream applications.
+
+Climate and Forecast Standards
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description of the relevant parts of the CF standards that must
+be implemented in the ADCIRC and ADCIRC+SWAN NetCDF4 output files
+for compatibility with downstream applications.
+
+NetCDF Metadata
+~~~~~~~~~~~~~~~
+
+Any other key pieces of NetCDF metadata that are used by downstream
+applications and must be provided for compatibility.
+
+Appendix A: This Document
+-------------------------
+
+This document was prepared from the text file ASGSInterfaceGuide.txt 
+using software called asciidoc (http://www.methods.co.nz/asciidoc/). 
+The document can be formatted as an html page with the command 
+
+   asciidoc --backend html5 -a toc2 ASGSInterfaceGuide.txt
+
+or formatted as a pdf with the command
+
+   a2x --format=pdf -a toc2 ASGSInterfaceGuide.txt  
+
+
+ifdef::backend-docbook[]
+Index
+-----
+////////////////////////////////////////////////////////////////
+The index is normally left completely empty, it's contents being
+generated automatically by the DocBook toolchain.
+////////////////////////////////////////////////////////////////
+endif::backend-docbook[]
