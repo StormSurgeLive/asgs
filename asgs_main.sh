@@ -368,6 +368,22 @@ prepFile()
        monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $WALLTIME
        logMessage "Finished adcprepping file ($JOBTYPE)."
        ;;
+    "SLURM")
+       QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$ENV/$PREPCONTROLSCRIPT --enstorm ${ENSTORM} --notifyuser $NOTIFYUSER --syslog $SYSLOG"
+       perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.slurm 2>> ${SYSLOG}
+       # submit adcprep job, check to make sure sbatch succeeded, and if not, retry
+       while [ true ];  do
+          sbatch $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.slurm >> ${SYSLOG} 2>&1
+          if [[ $? = 0 ]]; then
+             break # qsub returned a "success" status
+          else
+             warn "sbatch $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.slurm failed; will retry in 60 seconds."
+             sleep 60
+          fi
+       done
+       monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $WALLTIME
+       logMessage "Finished adcprepping file ($JOBTYPE)."
+       ;;
     "SGE")
        cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
        SERQSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --account $ACCOUNT --adcircdir $ADCIRCDIR --walltime $WALLTIME --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $SCRIPTDIR/input/machines/$ENV/$SERQSCRIPT"
@@ -700,6 +716,30 @@ submitJob()
             break # qsub returned a "success" status
          else
             warn "qsub $ADVISDIR/$ENSTORM/padcirc.pbs failed; will retry in 60 seconds."
+            sleep 60
+         fi
+      done
+      ;;
+   #
+   #  SLURM
+   "SLURM")
+      QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$ENV/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING $LOCALHOTSTART --syslog $SYSLOG"
+      if [[ $PPN -ne 0 ]]; then
+         QSCRIPTOPTIONS="$QSCRIPTOPTIONS --ppn $PPN"
+      fi
+      if [[ $NUMWRITERS != "0" ]]; then
+         QSCRIPTOPTIONS="$QSCRIPTOPTIONS --numwriters $NUMWRITERS"
+      fi
+      logMessage "QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
+      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.slurm 2>> ${SYSLOG}
+      logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.slurm"
+      # submit job, check to make sure qsub succeeded, and if not, retry
+      while [ true ];  do
+         sbatch $ADVISDIR/$ENSTORM/padcirc.slurm >> ${SYSLOG} 2>&1
+         if [[ $? = 0 ]]; then
+            break # sbatch returned a "success" status
+         else
+            warn "sbatch $ADVISDIR/$ENSTORM/padcirc.slurm failed; will retry in 60 seconds."
             sleep 60
          fi
       done
