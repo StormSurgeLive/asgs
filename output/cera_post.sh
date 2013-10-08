@@ -5,6 +5,7 @@
 # Copies output from the ASGS for post processing.
 # 
 # Copyright(C) 2008, 2009 Jason Fleming
+# Copyright(C) 2010--2013 Nate Dill
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -38,19 +39,36 @@ SSHKEY=${13}
 #
 # grab all static configuration data
 . ${CONFIG}
+# Bring in logging functions
+. ${SCRIPTDIR}/logging.sh
+# Bring in platform-specific configuration
+. ${SCRIPTDIR}/platforms.sh
+# dispatch environment (using the functions in platforms.sh)
+# env_dispatch ${TARGET}  #nld - shouldn't matter for ng cera
+# grab all config info (again, last, so the CONFIG file takes precedence)
+. ${CONFIG}
+#
 umask 002
 
-cd $ADVISDIR/$ENSTORM
-# create a fort.22.cera, formatted for NWS8 (easiest for plotting)
-#mv fort.22 fort.22.temp
-#${SCRIPTDIR}/storm_track_gen.pl --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $CSDATE --hotstartseconds $HSTIME --nws 8 --name $ENSTORM 
-#mv fort.22 fort.cera.22
-#mv fort.22.temp fort.22
-#POSTADVISORYDIR=$POSTDIR/${STORM}${YEAR}/${ADVISORY}
-#cp $ASGSADVISORYDIR/fort.22.cera $POSTADVISORYDIR
-#cp $ASGSADVISORYDIR/al${STORM}${YEAR}.fst $POSTADVISORYDIR
-#cp $ASGSADVISORYDIR/bal${STORM}${YEAR}.dat $POSTADVISORYDIR
-#mkdir -p $POSTADVISORYDIR/$ENSTORM
+STORMDIR=${ADVISDIR}/${ENSTORM}   # this is the ensemble member directory for this advisory 
+cd $STORMDIR
+
+
+#########################################################################
+# get the forecast ensemble member number for use in CERA load balancing
+ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+# cera1, cera2, etc. We alternate the forecast ensemble members evenly 
+# we expect the ASGS config file to tell us how many cera servers there
+# are with CERASERVERNUM and assume they are consecutively named 
+# among them
+# nld - need to add NUMCERASERVERS to config 
+CERASERVERNUM=`expr $ENMEMNUM % $NUMCERASERVERS + 1`
+CERASERVER=cera$CERASERVERNUM
+echo "ceraServer : $CERASERVER" >> run.properties
+########################################################################
+
+
+# copy the forecast and bestrack files to the STORMDIR
 cp $ADVISDIR/al${STORM}${YEAR}.fst .
 cp $ADVISDIR/bal${STORM}${YEAR}.dat .
 
@@ -71,11 +89,42 @@ if [ -f fort.73 ]; then
    gzip fort.73
 fi
 
+# ng for northern gulf CERA
 echo "asgs : ng" >> run.properties
+
+# AUDIENCE  must be set in config file
+echo "intendedAudience : $AUDIENCE" >> run.properties
+
+#download path for scping files
+DOWNLOADURL=${HOSTNAME}:$STORMDIR
+echo "downloadurl : $DOWNLOADURL" >> run.properties
+
+# use nhcConsensus, veer, windSpeed, overlandSPeed, or vMax when setting ENSTORM in configu file
+#echo "track_modified : $ENSTORM" >> run.properties 
+#echo "variation_veer : $PERCENT" >> run.properties
+
+if [[ "veer" =~ $ENSTORM ]]; then
+  echo "track_modified : veer" >> run.properties
+  echo "variation_veer : $PERCENT" >> run.properties
+fi
+if [[ "windSpeed" =~ $ENSTORM ]]; then
+  echo "track_modified : windSpeed" >> run.properties
+  echo "variation_windSpeed : $PERCENT" >> run.properties
+fi
+if [[ "rMax" =~ $ENSTORM ]]; then
+  echo "track_modified : rMax" >> run.properties
+  echo "variation_rMax : $PERCENT" >> run.properties
+fi
+if [[ "overlandSpeed" =~ $ENSTORM ]]; then
+  echo "track_modified : overlandSpeed" >> run.properties
+  echo "variation_overlandSpeed : $PERCENT" >> run.properties
+fi
+
+
 #metalink=`ls ${YEAR}${STORM}${ADVISORY}?_w???o???v????r???`
 #cp $metalink $POSTADVISORYDIR   #$ENSTORM
 #cp $ASGSADVISORYDIR/$ENSTORM/fort.22 $POSTADVISORYDIR
 #cp $ASGSADVISORYDIR/$ENSTORM/fort.22.meta $POSTADVISORYDIR
 #cp $ASGSADVISORYDIR/$ENSTORM/fort.61 $POSTADVISORYDIR
 #cp $ASGSADVISORYDIR/$ENSTORM/maxele.63 $POSTADVISORYDIR
-#cp $ASGSADVISORYDIR/$ENSTORM/maxwvel.64 $POSTADVISORYDIR
+#cp $ASGSADVISORYDIR/$RM/maxwvel.64 $POSTADVISORYDIR

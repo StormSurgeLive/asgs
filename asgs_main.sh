@@ -991,6 +991,8 @@ done
 umask $UMASK
 # read config file just to get the location of $SCRIPTDIR
 . ${CONFIG}
+# name asgs log file here
+SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG must be defined before logging.sh is run.
 # Bring in logging functions
 . ${SCRIPTDIR}/logging.sh
 # Bring in platform-specific configuration
@@ -1001,7 +1003,7 @@ env_dispatch ${ENV}
 # the values in the platform-specific functions called by env_dispatch
 . ${CONFIG}
 RUNDIR=$SCRATCHDIR/asgs$$
-SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log
+#SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log #nld moved to before logging function is called
 # if we are starting from cron, look for a state file
 if [[ $ONESHOT = yes ]]; then
    # if it is there, read it

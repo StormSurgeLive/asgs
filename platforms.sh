@@ -194,6 +194,21 @@ init_tezpur()
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=4
 }
+init_mike()
+{ #<- can replace the following with a custom script
+  HOSTNAME=mike.hpc.lsu.edu
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  ACCOUNT=hpc_cera_2013
+  SUBMITSTRING="mpirun"
+  SCRATCHDIR=/work/cera
+  SSHKEY=id_rsa_mike
+  QSCRIPT=mike.template.pbs
+  PREPCONTROLSCRIPT=mike.adcprep.template.pbs
+  QSCRIPTGEN=tezpur.pbs.pl
+  PPN=16
+}
+
 
 init_ranger()
 { #<- can replace the following with a custom script
@@ -287,6 +302,9 @@ env_dispatch(){
      ;;
   "tezpur") consoleMessage "Tezpur (LSU) configuration found."
           init_tezpur
+          ;;
+  "mike") consoleMessage "SuperMike-II (LSU) configuration found."
+          init_mike
           ;;
   "topsail") consoleMessage "Topsail (UNC) configuration found."
              init_topsail
