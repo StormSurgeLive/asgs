@@ -44,9 +44,9 @@ COMMA_SEP_LIST=${ADDRESS_LIST// /,}
 
 
 case $PHASE in
-#
+################################################################################
 #               A C T I V A T I O N
-#
+################################################################################
 "activation") 
 #
 cat <<END > ${STORMDIR}/activate.txt 2>> ${SYSLOG}
@@ -81,9 +81,9 @@ END
     echo "INFO: cera_notify.sh: Sending activation email to the following addresses; $COMMA_SEP_LIST."
     cat ${STORMDIR}/activate.txt | mail -s "ASGS Activated on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG}
 ;;
-#
+################################################################################
 #               N E W  C Y C L E
-#
+################################################################################
 "newcycle")
 #
 cat <<END > ${STORMDIR}/new_advisory.txt 2>> ${SYSLOG}
@@ -107,102 +107,64 @@ END
      echo "INFO: cera_notify.sh: Sending activation email to the following addresses; $COMMA_SEP_LIST."
      cat ${STORMDIR}/new_advisory.txt | mail -s "advisory detected by ASGS on $HOSTNAME" $NEW_ADVISORY_LIST 2>> ${SYSLOG}
 ;;
-#
+################################################################################
 #              RESULTS 
-#
+################################################################################
 "results")
 #
+
+runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'` 
+
 cat <<END > ${STORMDIR}/post_notify.txt 
-This is an automated message from the ADCIRC Surge Guidance System (ASGS)
-running on ${HOSTNAME}.
 
-The supercomputer $HOSTNAME has produced ADCIRC results for 
-storm surge guidance for advisory $ADVISORY for $STORMCLASSNAME $YEAR
-on the $GRIDFILE mesh. 
-
-The ASGS on $HOSTNAME is now waiting for the National Hurricane Center to
-issue the next advisory. 
-
-ADCIRC output is located at:
-
+The ADCIRC solutions for $runStartTime have been posted to
+${HOSTNAME}:${STORMDIR}
+The run.properties file is:
+${HOSTNAME}:${STORMDIR}/run.properties
 END
-if [ -f ${STORMDIR}/fort.63.gz ]; then
-echo ${STORMDIR}/fort.63.gz >> post_notify.txt
-fi 
-if [ -f ${STORMDIR}/fort.63 ]; then
-echo ${STORMDIR}/fort.63 >> post_notify.txt
-fi 
-if [ -f ${STORMDIR}/fort.63.nc ]; then
-echo ${STORMDIR}/fort.63.nc >> post_notify.txt
-fi 
 
-if [ -f ${STORMDIR}/fort.61.gz ]; then
-echo ${STORMDIR}/fort.61.gz >> post_notify.txt
-fi 
-if [ -f ${STORMDIR}/fort.61 ]; then
-echo ${STORMDIR}/fort.61 >> post_notify.txt
-fi 
-if [ -f ${STORMDIR}/fort.61.nc ]; then
-echo ${STORMDIR}/fort.61.nc >> post_notify.txt
-fi 
+#Carola, do you need the following information anymore?
 
-if [ -f ${STORMDIR}/fort.73.gz ]; then
-echo ${STORMDIR}/fort.73.gz >> post_notify.txt
-fi 
-if [ -f ${STORMDIR}/fort.73 ]; then
-echo ${STORMDIR}/fort.73 >> post_notify.txt
-fi 
-if [ -f ${STORMDIR}/fort.73.nc ]; then
-echo ${STORMDIR}/fort.73.nc >> post_notify.txt
-fi 
+#This is an automated message from the ADCIRC Surge Guidance System (ASGS)
+#running on ${HOSTNAME}.
 
-if [ -f ${STORMDIR}/fort.74.gz ]; then
-echo ${STORMDIR}/fort.74.gz >> post_notify.txt
-fi 
-if [ -f ${STORMDIR}/fort.74 ]; then
-echo ${STORMDIR}/fort.74 >> post_notify.txt
-fi 
-if [ -f ${STORMDIR}/fort.74.nc ]; then
-echo ${STORMDIR}/fort.74.nc >> post_notify.txt
-fi 
+#The supercomputer $HOSTNAME has produced ADCIRC results for 
+#storm surge guidance for advisory $ADVISORY for $STORMCLASSNAME $YEAR
+#on the $GRIDFILE mesh. 
 
-if [ -f ${STORMDIR}/fort.64.gz ]; then
-echo ${STORMDIR}/fort.64.gz >> post_notify.txt
-fi 
-if [ -f ${STORMDIR}/fort.64 ]; then
-echo ${STORMDIR}/fort.64 >> post_notify.txt
-fi 
-if [ -f ${STORMDIR}/fort.64.nc ]; then
-echo ${STORMDIR}/fort.64.nc >> post_notify.txt
-fi 
+#The ASGS on $HOSTNAME is now waiting for the National Hurricane Center to
+#issue the next advisory. 
 
-if [ -f ${STORMDIR}/maxele.63 ]; then
-echo ${STORMDIR}/maxele.63 >> post_notify.txt
-fi 
-if [ -f ${STORMDIR}/maxwvel.63 ]; then
-echo ${STORMDIR}/maxwvel.63 >> post_notify.txt
-fi 
-if [ -f ${STORMDIR}/fort.22.meta ]; then
-echo ${STORMDIR}/fort.22.meta >> post_notify.txt
-fi 
+#ADCIRC output is located at:
 
-if [ -f ${STORMDIR}/al${STORM}${YEAR}.fst ]; then
-echo ${STORMDIR}/al${STORM}${YEAR}.fst >> post_notify.txt
-fi 
-if [ -f ${STORMDIR}/bal${STORM}${YEAR}.dat ]; then
-echo ${STORMDIR}/bal${STORM}${YEAR}.dat >> post_notify.txt
-fi 
-if [ -f ${STORMDIR}/run.properties ]; then
-echo ${STORMDIR}/run.properties >> post_notify.txt
-fi 
+#END
+#if [ -f ${STORMDIR}/fort.63.gz ]; then
+#echo ${STORMDIR}/fort.63.gz >> post_notify.txt
+#fi 
+#if [ -f ${STORMDIR}/fort.61.nc ]; then
+#echo ${STORMDIR}/fort.61.nc >> post_notify.txt
+#fi 
 
+#nld  get info for the subject line from the run.properties file
+# assume it was already written there by the POSTSCRIPT (e.g. cera_post.sh)
+ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+CERASERVER=`grep "ceraServer" ${STORMDIR}/run.properties | sed 's/ceraServer.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+INSTANCENAME=`grep "instance" ${STORMDIR}/run.properties | sed 's/instance.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+
+
+subject="ADCIRC POSTED for $runStartTime"
+if [[ $TROPICALCYCLONE = on ]]; then
+   subject=${subject}" (TROPICAL CYCLONE)"
+fi
+subject="${subject} $CERASERVER"
+subject="${subject} $HOSTNAME.$INSTANCENAME $ENMEMNUM"
 #
 echo "INFO: cera_notify.sh: Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/post_notify.txt | mail -s "ASGS results available for $STORM advisory $ADVISORY from $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/post_notify.txt | mail -s "$subject" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
-#
+################################################################################
 #               J O B   F A I L E D  
-#
+################################################################################
 "jobfailed")
 #
 cat <<END > ${STORMDIR}/jobfailed_notify.txt 
