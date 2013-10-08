@@ -537,6 +537,8 @@ printf RUNPROPS "RunType : $run_type\n";
 printf RUNPROPS "ADCIRCgrid : $gridname\n";
 printf RUNPROPS "stormnumber : $stormnumber\n";
 printf RUNPROPS "stormname : $nhcName\n";
+printf RUNPROPS "currentcycle : $cycle_hour\n";
+printf RUNPROPS "currentdate : $currentdate\n";
 printf RUNPROPS "advisory : $advisorynum\n";
 printf RUNPROPS "prodID : $prodid\n";
 if (defined $hstime) {
