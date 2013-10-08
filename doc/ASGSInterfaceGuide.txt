@@ -59,6 +59,25 @@ generate the results.
     stormnumber : 12
     stormname : KAREN
     advisory : 10    
+    currentcycle :
+    currentdate : 
+
+.Definitions
+RunStartTime::
+    Date and time in yyyyMMDDHH24 format, generally assumed to be in the 
+    GMT time zone unless otherwise indicated. It represents the time of
+    the most recent hotstart file, that is, the date and time at the end
+    of the most recent nowcast or hindcast period. It does not represent
+    the start of the forecast period, or the time that the forecast
+    was issued.   
+currentcycle::
+    This two digit hour is in a 24 hour format and padded with a leading
+    zero. This hour is equal to the hour from the RunStartTime value. 
+currentdate::
+    The end date of the most recent nowcast or hindcast period, including
+    the two digit year, month, and day. The value of this property
+    is the same as year, month, and day from the RunStartTime value.
+    
     
 Output
 ~~~~~~
