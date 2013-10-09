@@ -395,6 +395,11 @@ if ( $dl >= 2 ) {
 # now download all the files that are relevant to a forecast
 sub getForecastData() {
    my @targetFiles="";
+   # write a properties file to document when the forecast starts and ends
+   unless ( open(FP,">$rundir/forecast.properties") ) { 
+      stderrMessage("ERROR","Could not open '$rundir/forecast.properties' for writing: $!.");
+      exit 1;
+   }
    unless ( open(CYCLENUM,"<$rundir/currentCycle") ) { 
       stderrMessage("ERROR","Could not open '$rundir/currentCycle' for reading: $!.");
       exit 1;
@@ -403,9 +408,15 @@ sub getForecastData() {
    my $cycletime = $1;
    stderrMessage("DEBUG","The cycle time for the forecast is '$cycletime'.");
    close(CYCLENUM);
+   printf FP "forecastValidStart : $cycletime" . "0000\n";
+   printf FP "forecastTimeZoneOffset : +0000\n";
    my $localDir = $cycletime."/namforecast";
    my $cycledate = substr($cycletime,0,8);
    my $cyclehour = substr($cycletime,-2,2);
+   $cycledate =~ /(\d\d\d\d)(\d\d)(\d\d)/;
+   my $cdy = $1;
+   my $cdm = $2;
+   my $cdd = $3;
    #
    # Check to see if the cycle hour matches one that we are supposed to
    # run a forecast for. If so, write a file called "runme" in the 
@@ -439,10 +450,7 @@ sub getForecastData() {
       my $earlier_success = 0; # 1 if an earlier run succeeded
       for ( my $i=-6; $i>=-24; $i-=6 ) { 
          # determine date/time of previous cycle
-         $cycledate =~ /(\d\d\d\d)(\d\d)(\d\d)/;
-         my $cdy = $1;
-         my $cdm = $2;
-         my $cdd = $3;
+
          my ($pcy, $pcm, $pcd, $pch, $pcmin, $pcs); # previous cycle time
          # now subtract the right number of hours
         ($pcy,$pcm,$pcd,$pch,$pcmin,$pcs) =
@@ -566,6 +574,20 @@ sub getForecastData() {
    } else {
       printf STDOUT "0";
    }
+   # determine the end date of the forecast for the forecast.properties file
+   my $cyclehour = substr($cycletime,-2,2);
+   $cycledate =~ /(\d\d\d\d)(\d\d)(\d\d)/;
+   my $cdy = $1;
+   my $cdm = $2;
+   my $cdd = $3;
+   my $cmin = 0;
+   my $cs = 0;
+   my ($ey,$em,$ed,$eh,$emin,$es) =
+         Date::Pcalc::Add_Delta_DHMS($cdy,$cdm,$cdd,$cyclehour,$cmin,$cs,0,$dl*3,0,0);
+                           #  yyyy mm  dd hh mm ss 
+   my $end_date = sprintf("%04d%02d%02d%02%02d%02d",$ey,$em,$ed,$eh,$emin,$es); 
+   printf FP "forecastValidEnd : $end_date\n";
+   close(FP);
 }
 
 sub stderrMessage () {
