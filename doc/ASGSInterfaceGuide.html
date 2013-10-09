@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta name="generator" content="AsciiDoc 8.6.6">
+<meta name="generator" content="AsciiDoc 8.6.8">
 <title>The ASGS Interface Guide</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -86,10 +86,14 @@ ul, ol, li > p {
 ul > li     { color: #aaa; }
 ul > li > * { color: black; }
 
-pre {
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
   padding: 0;
   margin: 0;
 }
+
 
 #author {
   color: #527bbd;
@@ -348,7 +352,7 @@ div.colist td img {
   margin-bottom: 0.1em;
 }
 
-div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -406,17 +410,13 @@ span.underline { text-decoration: underline; }
 span.overline { text-decoration: overline; }
 span.line-through { text-decoration: line-through; }
 
+div.unbreakable { page-break-inside: avoid; }
+
 
 /*
  * xhtml11 specific
  *
  * */
-
-tt {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 div.tableblock {
   margin-top: 1.0em;
@@ -450,12 +450,6 @@ div.tableblock > table[frame="vsides"] {
  * html5 specific
  *
  * */
-
-.monospaced {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 table.tableblock {
   margin-top: 1.0em;
@@ -536,6 +530,8 @@ body.manpage div.sectionbody {
 @media print {
   body.manpage div#toc { display: none; }
 }
+
+
 @media screen {
   body {
     max-width: 50em; /* approximately 80 characters wide */
@@ -614,7 +610,7 @@ toc: function (toclevels) {
 
   function tocEntries(el, toclevels) {
     var result = new Array;
-    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
     // Function that scans the DOM tree for header elements (the DOM2
     // nodeIterator API would be a better technique but not supported by all
     // browsers).
@@ -643,7 +639,7 @@ toc: function (toclevels) {
   var i;
   for (i = 0; i < toc.childNodes.length; i++) {
     var entry = toc.childNodes[i];
-    if (entry.nodeName == 'div'
+    if (entry.nodeName.toLowerCase() == 'div'
      && entry.getAttribute("class")
      && entry.getAttribute("class").match(/^toclevel/))
       tocEntriesToRemove.push(entry);
@@ -689,7 +685,7 @@ footnotes: function () {
   var entriesToRemove = [];
   for (i = 0; i < noteholder.childNodes.length; i++) {
     var entry = noteholder.childNodes[i];
-    if (entry.nodeName == 'div' && entry.getAttribute("class") == "footnote")
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
       entriesToRemove.push(entry);
   }
   for (i = 0; i < entriesToRemove.length; i++) {
@@ -841,8 +837,44 @@ RunType : Forecast
 ADCIRCgrid : sl15_2010_HSDRRS_2012_v9
 stormnumber : 12
 stormname : KAREN
-advisory : 10</pre>
+advisory : 10
+currentcycle :
+currentdate :</pre>
 </div></div>
+<div class="dlist"><div class="title">Definitions</div><dl>
+<dt class="hdlist1">
+RunStartTime
+</dt>
+<dd>
+<p>
+    Date and time in yyyyMMDDHH24 format, generally assumed to be in the
+    GMT time zone unless otherwise indicated. It represents the time of
+    the most recent hotstart file, that is, the date and time at the end
+    of the most recent nowcast or hindcast period. It does not represent
+    the start of the forecast period, or the time that the forecast
+    was issued.
+</p>
+</dd>
+<dt class="hdlist1">
+currentcycle
+</dt>
+<dd>
+<p>
+    This two digit hour is in a 24 hour format and padded with a leading
+    zero. This hour is equal to the hour from the RunStartTime value.
+</p>
+</dd>
+<dt class="hdlist1">
+currentdate
+</dt>
+<dd>
+<p>
+    The end date of the most recent nowcast or hindcast period, including
+    the two digit year, month, and day. The value of this property
+    is the same as year, month, and day from the RunStartTime value.
+</p>
+</dd>
+</dl></div>
 </div>
 <div class="sect2">
 <h3 id="_output">Output</h3>
@@ -919,59 +951,220 @@ numwriters : 0</pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_opendap_service">OPeNDAP Service</h2>
+<h2 id="_thredds_catalog_service">THREDDS Catalog Service</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>OPeNDAP is the middleware between the ASGS instance that is
-generating results and any downstream applications that provide
-further analysis and visualization. As such, the configuration
-details of this service are critical to reliable compatibility with
-downstream applications.</p></div>
-<div class="paragraph"><p>There are three subcomponents to the setup of OPeNDAP for ASGS: (1)
-the XML configuration file for the server; (2) the directory
-hierarchy used to post the results; and (3) the catalog generation
-script. Each of these aspects are described more fully in the
-following sections.</p></div>
+<div class="paragraph"><p>To facilitate the publication, distribution, and access of ASGS results to
+dowstream applications, we are using THREDDS/OPeNDAP as a data access protocol
+between the ASGS instance that is generating results and any downstream
+applications that provide further analysis and visualization.  Unidata&#8217;s
+THREDDS DataServer (TDS) is a web server that provides metadata and data sccess
+for scientific dadtasets using several remote access protocols.  One such
+protocol is OPeNDAP.  As such, the configuration details of this service are
+critical to reliable compatibility with downstream applications.  OPeNDAP can
+be used directly in applications to retrieve data, as through a service request
+to a TDS, or as implemented for example in the MATLAB toolbox nctoolbox.
+Capabilities and details of using TDS and OPeNDAP are available at
+<a href="http://www.unidata.ucar.edu/software/thredds/current/tds/">http://www.unidata.ucar.edu/software/thredds/current/tds/</a> and
+<a href="http://www.opendap.org/">http://www.opendap.org/</a></p></div>
+<div class="paragraph"><p>There are three main steps to the setup of THREDDS for ASGS:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Install the THREDDS application on a publically accessible computer
+and configure a catalog for ASGS the XML configuration file for the server;
+</p>
+</li>
+<li>
+<p>
+Populate the THREDDS/ASGS server with model output into a defined
+and required directory hierarchy; and
+</p>
+</li>
+<li>
+<p>
+Generate a catalog file that describes the contents on the THREDDS server.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>Each of these steps are briefly described below. However, a detailed and
+up-to-date description of the setup and configuration of a TDS are fully
+described at the following URL, because there is no requirement that files
+posted in the manner described originate from ADCIRC.  Any non-rectangular
+model that conforms to the data format and metadata specifications can be
+served this way.</p></div>
+<div class="paragraph"><p><a href="https://docs.google.com/document/d/1iHHf4FN1ivGe039l_L0StuHB7d2VveAuzQsz8HVUkHA/pub">https://docs.google.com/document/d/1iHHf4FN1ivGe039l_L0StuHB7d2VveAuzQsz8HVUkHA/pub</a></p></div>
 <div class="sect2">
-<h3 id="_opendap_configuration">OPeNDAP Configuration</h3>
-<div class="paragraph"><p>The server itself runs inside Tomcat and has an XML configuration file
-whose content we will specify in this section.</p></div>
+<h3 id="_thredds_opendap_configuration">THREDDS/OPeNDAP Configuration</h3>
+<div class="paragraph"><p>We use a Unidata THREDDS Data Server to serve ASGS output and the underlying
+web server for a THREDDS Data Server (TDS) is tomcat5, not apache. If tomcat5
+is not running on the file server, install this first.  Instructions are at:</p></div>
+<div class="paragraph"><p><a href="http://www.unidata.ucar.edu/projects/THREDDS/tech/tds4.3/tutorial/index.html">http://www.unidata.ucar.edu/projects/THREDDS/tech/tds4.3/tutorial/index.html</a>
+<a href="http://www.unidata.ucar.edu/projects/THREDDS/tech/tds4.3/tutorial/Checklist.html">http://www.unidata.ucar.edu/projects/THREDDS/tech/tds4.3/tutorial/Checklist.html</a></p></div>
+<div class="paragraph"><p>The THREDDS app will be under the &lt;$tomcat5&gt;/webapps location, and its catalog
+configuration files are in &lt;$tomcat5&gt;/content/thredds.  OPeNDAP is a java class
+under the THREDDS server.</p></div>
+<div class="paragraph"><p>Edit &lt;$tomcat5&gt;/content/thredds/threddsConfig.xml for the local installation.</p></div>
+<div class="paragraph"><p>Once the TDS is running, create a catalog for ASGS output. The xml file
+&lt;$tomcat5&gt;/content/thredds/catalog.xml is the root catalog for TDS
+configuration.  An example of this root catalog is shown below, where three
+services are enabled; OPeNDAP, HTTP, and UDDC.  The catalogRef tag points to
+the asgs.xml file, located in the same directory and an example is listed
+below.</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;catalog name="ASGS THREDDS DATA SERVER"
+     xmlns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"
+     xmlns:xlink="http://www.w3.org/1999/xlink"&gt;</pre>
+</div></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>&lt;service name="all" base="" serviceType="compound"&gt;
+   &lt;service name="odap" serviceType="OpenDAP" base="/thredds/dodsC/" /&gt;
+   &lt;service name="http" serviceType="HTTPServer" base="/thredds/fileServer/" /&gt;
+   &lt;service name="uddc" serviceType="UDDC" base="/thredds/uddc/"/&gt;
+   &lt;!-- test comment --&gt;
+   &lt;!--service name="wcs" serviceType="WCS" base="/thredds/wcs/" /--&gt;
+   &lt;!--service name="wms" serviceType="WMS" base="/thredds/wms/" /--&gt;
+   &lt;!--service name="ncss" serviceType="NetcdfSubset" base="/thredds/ncss/" /--&gt;
+&lt;/service&gt;</pre>
+</div></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>&lt;catalogRef xlink:title="ASGS Output" xlink:href="asgs.xml" name=""/&gt;</pre>
+</div></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>&lt;/catalog&gt;</pre>
+</div></div>
+<div class="paragraph"><p>Example asgs.xml catalogRef file:</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;catalog name="ADCIRC/PADCSWAN Results from RENCI"
+        xmlns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"
+        xmlns:xlink="http://www.w3.org/1999/xlink"&gt;</pre>
+</div></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>&lt;service name="all" base="" serviceType="compound"&gt;
+  &lt;service name="odap" serviceType="OpenDAP" base="/thredds/dodsC/" /&gt;
+  &lt;service name="http" serviceType="HTTPServer" base="/thredds/fileServer/" /&gt;
+  &lt;service name="uddc" serviceType="UDDC" base="/thredds/uddc/"/&gt;
+  &lt;service name="uddc" serviceType="ISO" base="/thredds/iso/"/&gt;
+&lt;/service&gt;</pre>
+</div></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>&lt;datasetScan
+      name="ASGS"
+      ID="ASGSTCResults"
+      path="ASGS"
+      location="/projects/ncfs/opendap/data/tc"&gt;</pre>
+</div></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>   &lt;serviceName&gt;all&lt;/serviceName&gt;
+   &lt;addDatasetSize/&gt;
+   &lt;metadata inherited="false"&gt;
+   &lt;documentation type="summary"&gt;
+           Results produced by the ASGS system at MyLocation
+   &lt;/documentation&gt;
+&lt;/metadata&gt;
+&lt;filter&gt;
+   &lt;include wildcard="*"/&gt;
+   &lt;exclude wildcard="LOGS" atomic="false" collection="true"/&gt;
+&lt;/filter&gt;
+&lt;/datasetScan&gt;</pre>
+</div></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>&lt;/catalog&gt;</pre>
+</div></div>
 </div>
 <div class="sect2">
 <h3 id="_directory_hierarchy">Directory Hierarchy</h3>
-<div class="paragraph"><p>The results files from the ASGS are posted in a particular directory
-hierarchy that enables us to have multiple instances of the ASGS on
-multiple machines producing results for multiple ensemble members on
-multiple meshes. The details of this directory hierarchy are specified
-in this section.</p></div>
+<div class="paragraph"><p>The results files from the ASGS are posted in a particular directory hierarchy
+that enables us to have multiple instances of the ASGS on multiple machines
+producing results for multiple ensemble members on multiple meshes.</p></div>
+<div class="paragraph"><p>Put model output files into the following directory structure on the THREDDS
+server (ASGS can be configured to do this):</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>&lt;$SP&gt;/StormName/AdvisoryNumber/AdcircGrid/Machine/Instance/EnsembleName</pre>
+</div></div>
+<div class="paragraph"><p>where $SP is the starting/entry point into the THREDDS catalog.  Here is an
+example of a fully qualified URL to an ADCIRC output file on RENCI’s THREDDS
+server:</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>http://opendap.renci.org:1935/thredds/dodsC/tc/nam/2013052300/nc6b/blueridge.renci.org/2/namforecast</pre>
+</div></div>
+<div class="paragraph"><p>There is actually no requirement on these directory names, except that they
+exist.  In particular, the Instance can be used as a tag to denote specific
+instances of ASGS, such as “NOAATestRuns”. A run.properties file must accompany
+each ensemble member simulation.  This file is automatically generated by ASGS,
+but can generated by some other process as needed, if the simulations are not
+being carried out by an ASGS instance.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_catalog">Catalog</h3>
-<div class="paragraph"><p>RENCI has developed an automated cataloging script whose configuration
-and operation will be briefly described here with pointers to relevant
-publications containing further details. The contents of the resulting
-catalogs and their pertinence to downstream applications will also be
-provided here.</p></div>
+<div class="paragraph"><p>There is, unfortunately, no way to interrogate a thredds server to get a text
+file that describes the data content of the server.  Methods are being
+developed that will do this for a THREDDS server, but these methods are not
+ready for production use.  In lieu of this, RENCI has developed an automated
+cataloging script that allows a url-retrieve of the catalog file for each ASGS
+TDS.  This catalog generator can be run periodically in cron to maintain an
+up-to-date listing of the TDS content.</p></div>
+<div class="paragraph"><p>The current version of the catalog file generator is described in detail at this URL:</p></div>
+<div class="paragraph"><p><a href="https://docs.google.com/document/d/1iHHf4FN1ivGe039l_L0StuHB7d2VveAuzQsz8HVUkHA/pub">https://docs.google.com/document/d/1iHHf4FN1ivGe039l_L0StuHB7d2VveAuzQsz8HVUkHA/pub</a></p></div>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_output_files">Output Files</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The output files from the ASGS should be compressed NetCDF4,
-produced according to CF standards, including a time stamp showing
-the cold start date. This section can also describe any particular
-piece of NetCDF metadata that must be included for compatibility with
-downstream applications.</p></div>
+<div class="paragraph"><p>Adherence to community-defined, accepted and adopted conventions for data
+formats and metadata content are critical for model interoperbility, workflow
+development, and end-user applications.  To facilitate wide accessibility to
+ADCIRC output through THREDDS Data Servers, ADCIRC/ASGS outputs netCDF files
+(optionally specified in the fort.15 file).  These files must also have
+metadata (global, dimension, and variable attributes) that conform to NetCDF
+Climate and Forecast (CF) Metadata Conventions with extensions for
+non-rectangular grid models (CF-UGRID).</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">Make sure that ADCIRC and ADCPREP are compiled with netCDF4 support with
+compression.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>It is critical for ADCIRC netCDF4 files to maintain strict CF-UGRID compliance.
+This extension to CF conventions allows applications to discover, access, and
+process data in uniform ways and without having to make assumptions about the
+content of the data files.  This is the default for ASGS-generated output.</p></div>
+<div class="paragraph"><p>There is no technical requirement that the files be generated by ADCIRC.  As
+long as files are posted that are netCDF CF-UGRID compliant, any application
+that can handle ADCIRC files can also handle other model files, including SLOSH
+when properly formatted.</p></div>
+<div class="paragraph"><p>Information on CF and CF-UGRID can be found at:</p></div>
+<div class="paragraph"><p><a href="http://cf-pcmdi.llnl.gov/documents/cf-conventions">http://cf-pcmdi.llnl.gov/documents/cf-conventions</a></p></div>
+<div class="paragraph"><p><a href="https://github.com/ugrid-conventions/ugrid-conventions">https://github.com/ugrid-conventions/ugrid-conventions</a></p></div>
 <div class="sect2">
 <h3 id="_climate_and_forecast_standards">Climate and Forecast Standards</h3>
 <div class="paragraph"><p>Description of the relevant parts of the CF standards that must
 be implemented in the ADCIRC and ADCIRC+SWAN NetCDF4 output files
 for compatibility with downstream applications.</p></div>
+<div class="paragraph"><p><a href="http://cf-pcmdi.llnl.gov/documents/cf-conventions">http://cf-pcmdi.llnl.gov/documents/cf-conventions</a></p></div>
 </div>
 <div class="sect2">
 <h3 id="_netcdf_metadata">NetCDF Metadata</h3>
 <div class="paragraph"><p>Any other key pieces of NetCDF metadata that are used by downstream
 applications and must be provided for compatibility.</p></div>
+<div class="paragraph"><p>This must include a time stamp indicating the cold start date.</p></div>
+<div class="paragraph"><p><em><strong> JASON:  I don&#8217;t see where this is in the metadata.  I see that there is a "cs:" in the fort.15 header, and as a consequence its in the global attribute "description",  but I don&#8217;t see it as an attribute.  I think this is a good idea, though, to put it as a global attribute in each file. </strong></em></p></div>
 </div>
 </div>
 </div>
@@ -997,7 +1190,7 @@ The document can be formatted as an html page with the command</p></div>
 <div id="footer">
 <div id="footer-text">
 Version 2013<br>
-Last updated 2013-10-07 16:19:26 EDT
+Last updated 2013-10-09 10:39:16 EDT
 </div>
 </div>
 </body>
