@@ -427,6 +427,12 @@ downloadCycloneData()
     newAdvisoryNum=null
     forecastFileName=al${STORM}${YEAR}.fst
     hindcastFileName=bal${STORM}${YEAR}.dat
+    # check to see if we have a leftover forecast.properties file from
+    # a previous advisory laying around here in our run directory, and if
+    # so, delete it
+    if [[ -e forecast.properties ]]; then
+       rm forecast.properties 2>> ${SYSLOG}
+    fi
     OPTIONS="--storm $STORM --year $YEAR --ftpsite $FTPSITE --fdir $FDIR --hdir $HDIR --rsssite $RSSSITE --trigger $TRIGGER --adv $ADVISORY"
     logMessage "Options for get_atcf.pl are as follows : $OPTIONS"
     if [ "$START" = coldstart ]; then
@@ -477,7 +483,7 @@ downloadCycloneData()
     sed 's/ADVISORY=.*/ADVISORY='$newAdvisoryNum'/' $STATEFILE > ${STATEFILE}.new
     cp -f ${STATEFILE}.new $STATEFILE >> ${SYSLOG} 2>&1 
     if [[ $TRIGGER = rss || $TRIGGER = rssembedded ]]; then
-       perl ${SCRIPTDIR}/nhc_advisory_bot.pl --input ${forecastFileName}.html --output $forecastFileName >> ${SYSLOG} 2>&1
+       perl ${SCRIPTDIR}/nhc_advisory_bot.pl --input ${forecastFileName}.html --output $forecastFileName --metadata forecast.properties >> ${SYSLOG} 2>&1
     fi
     if [[ $FTPSITE = filesystem ]]; then
        cp $HDIR/$hindcastFileName $hindcastFileName 2>> ${SYSLOG}
@@ -1560,6 +1566,10 @@ while [ true ]; do
       fi
       echo "hostname : $HOSTNAME" >> ${STORMDIR}/run.properties
       echo "instance : $INSTANCENAME" >> ${STORMDIR}/run.properties
+      # write the start and end dates of the forecast to the run.properties file
+      if [[ -e $RUNDIR/forecast.properties ]]; then
+         cat $RUNDIR/forecast.properties >> ${STORMDIR}/run.properties
+      fi
       # recording the ensemble member number may come in handy for load
       # balancing the postprocessing, particularly for CERA
       echo "forecastEnsembleMemberNumber : $si" >> ${STORMDIR}/run.properties

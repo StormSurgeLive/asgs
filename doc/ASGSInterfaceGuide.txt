@@ -48,16 +48,16 @@ generate the results.
 
     storm class : TS
     storm name : KAREN
-    track_raw_dat : bal122013.dat
-    track_raw_fst : al122013.fst
+    stormnumber : 12
+    stormname : KAREN
     year : 2013
     storm : 12
     modified : n
+    track_raw_dat : bal122013.dat
+    track_raw_fst : al122013.fst
     mesh : sl15_2010_HSDRRS_2012_v9
     RunType : Forecast
     ADCIRCgrid : sl15_2010_HSDRRS_2012_v9
-    stormnumber : 12
-    stormname : KAREN
     advisory : 10    
     currentcycle :
     currentdate : 
