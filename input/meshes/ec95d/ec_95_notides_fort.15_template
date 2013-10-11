@@ -158,8 +158,8 @@ SeahorseCoastal, UNC-CH, USACE
 ERDC DSRC
 ASGS Nowcast/Forecast
 http://www.seahorsecoastal.com
-No Comment
+Model time is relative to UTC.
 ERDC DSRC
 CF
 jason.fleming@seahorsecoastal.com
-varies
+%CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
