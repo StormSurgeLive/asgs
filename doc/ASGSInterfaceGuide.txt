@@ -59,7 +59,7 @@ generate the results.
     RunType : Forecast
     ADCIRCgrid : sl15_2010_HSDRRS_2012_v9
     advisory : 10    
-    currentcycle :
+    currentcycle : 
     currentdate : 
 
 .Definitions
