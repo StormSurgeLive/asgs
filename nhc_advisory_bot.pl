@@ -221,7 +221,6 @@ if (@match) {
 open(PLOT,">>$metadata") || die "ERROR: nhc_advisory_bot.pl: Failed to open run.properties file for appending storm name and vmax: $!.";
 print PLOT "stormname:$storm_name\nwind:$vmax\nadvisory time: $date_time\n";
 print PLOT "forecastValidStart : $nowcast_date_time" . "0000\n";
-print PLOT "forecastTimeZoneOffset : +0000\n";
 #
 substr($atcf_line,47,4) = sprintf("%4d",$vmax);
 printf STDERR "INFO: nhc_advisory_bot.pl: nowcast max wind is $vmax\n";
