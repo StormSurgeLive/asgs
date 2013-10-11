@@ -409,7 +409,6 @@ sub getForecastData() {
    stderrMessage("DEBUG","The cycle time for the forecast is '$cycletime'.");
    close(CYCLENUM);
    printf FP "forecastValidStart : $cycletime" . "0000\n";
-   printf FP "forecastTimeZoneOffset : +0000\n";
    my $localDir = $cycletime."/namforecast";
    my $cycledate = substr($cycletime,0,8);
    my $cyclehour = substr($cycletime,-2,2);
