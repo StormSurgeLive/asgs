@@ -583,9 +583,9 @@ sub getForecastData() {
    my $cs = 0;
    my ($ey,$em,$ed,$eh,$emin,$es) =
          Date::Pcalc::Add_Delta_DHMS($cdy,$cdm,$cdd,$cyclehour,$cmin,$cs,0,$dl*3,0,0);
-                           #  yyyy mm  dd hh mm ss 
-   my $end_date = sprintf("%04d%02d%02d%02%02d%02d",$ey,$em,$ed,$eh,$emin,$es); 
-   printf FP "forecastValidEnd : $end_date\n";
+                        #  yyyy mm  dd  hh  
+   my $end_date = sprintf("%04d%02d%02d%02d",$ey,$em,$ed,$eh); 
+   printf FP "forecastValidEnd : $end_date" . "0000\n";
    close(FP);
 }
 
