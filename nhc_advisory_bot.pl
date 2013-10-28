@@ -72,6 +72,8 @@ my $vmax;
 my $input;  # name of input file
 my $output; # name of output file
 my $metadata="run.properties"; # name of metadata file
+my $center_direction=65;
+my $center_speed=17;
 #
 GetOptions(
            "input=s" => \$input,
@@ -155,7 +157,7 @@ my @tmp = split(' ', $storm_name);
 if ($tmp[0] eq 'HURRICANE'){
    $storm_class = $tmp[0];
    $storm_name = $tmp[1];
-} elsif ($tmp[0] eq 'TROPICAL' or $tmp[0] eq 'SUBTROPICAL') {
+} elsif ($tmp[0] eq 'TROPICAL' or $tmp[0] eq 'SUBTROPICAL' or $tmp[0] eq 'REMNANTS') {
     # SUBTROPICAL is rare. see 2007 01
     $storm_class = "$tmp[0] $tmp[1]";
     $storm_name = $tmp[2];
@@ -194,11 +196,25 @@ if (@match) {
       $ew_hem = $4;
    }
 }
+
 my $nowcast_lat = sprintf("%4d$ns_hem", $lat * 10);
 my $nowcast_lon = sprintf("%4d$ew_hem", $lon * 10);
 substr($atcf_line,34,5) = sprintf("%5s", $nowcast_lat);
 substr($atcf_line,41,5) = sprintf("%5s", $nowcast_lon);
 printf STDERR "INFO: nhc_advisory_bot.pl: Nowcast position is '$nowcast_lat' '$nowcast_lon'\n";
+#PRESENT MOVEMENT TOWARD THE NORTH-NORTHWEST OR 330 DEGREES AT   9 KT
+@match = grep /^PRESENT MOVEMENT TOWARD THE/, @{$body_ref};
+if (@match) {
+   if ($match[0] =~ /PRESENT MOVEMENT TOWARD THE.+OR\s+(\d{1,3})\s+DEGREES AT\s+(\d{1,2})\s+KT/) {
+      $center_direction=$1;
+      $center_speed=$2;
+   }
+   substr($atcf_line,138,4) = sprintf("%4d",$center_direction);
+   substr($atcf_line,143,4) = sprintf("%4d",$center_speed);
+   printf STDERR "INFO: nhc_advisory_bot.pl: nowcast storm direction is $center_direction degrees\n";
+   printf STDERR "INFO: nhc_advisory_bot.pl: nowcast storm speed is $center_speed knots\n";
+}
+
 @match = grep /^ESTIMATED MINIMUM CENTRAL PRESSURE/, @{$body_ref};
 if (@match) {
    if ( $match[0] =~ /^ESTIMATED MINIMUM CENTRAL PRESSURE\s+(.+)\s+MB/ ) {
