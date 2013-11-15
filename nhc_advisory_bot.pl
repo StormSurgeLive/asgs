@@ -157,7 +157,7 @@ my @tmp = split(' ', $storm_name);
 if ($tmp[0] eq 'HURRICANE'){
    $storm_class = $tmp[0];
    $storm_name = $tmp[1];
-} elsif ($tmp[0] eq 'TROPICAL' or $tmp[0] eq 'SUBTROPICAL' or $tmp[0] eq 'REMNANTS') {
+} elsif ($tmp[0] eq 'TROPICAL' or $tmp[0] eq 'SUBTROPICAL' or $tmp[0] eq 'REMNANTS' or $tmp[0] eq 'POST-TROPICAL') {
     # SUBTROPICAL is rare. see 2007 01
     $storm_class = "$tmp[0] $tmp[1]";
     $storm_name = $tmp[2];
@@ -235,7 +235,7 @@ if (@match) {
 }
 # Carola Kaiser 19 July 2011
 open(PLOT,">>$metadata") || die "ERROR: nhc_advisory_bot.pl: Failed to open run.properties file for appending storm name and vmax: $!.";
-print PLOT "stormname:$storm_name\nwind:$vmax\nadvisory time: $date_time\n";
+print PLOT "stormname:$storm_name\nstormclass:$storm_class\nwind:$vmax\nadvisory time: $date_time\n";
 print PLOT "forecastValidStart : $nowcast_date_time" . "0000\n";
 #
 substr($atcf_line,47,4) = sprintf("%4d",$vmax);
