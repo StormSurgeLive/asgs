@@ -1,0 +1,1287 @@
+%  LaTeX support: latex@mdpi.com
+%  In case you need support, please attach any log files that you could have, and specify the details of your LaTeX setup (which operating system and LaTeX version / tools you are using).
+
+%=================================================================
+
+% LaTeX Class File and Rendering Mode (choose one)
+% You will need to save the "mdpi.cls" and "mdpi.bst" files into the same folder as this template file.
+
+%=================================================================
+
+\documentclass[jmse,article,submit,moreauthors,pdftex,12pt,a4paper]{mdpi} 
+%--------------------
+% Class Options:
+%--------------------
+% journal
+%----------
+% Choose between the following MDPI journals:
+% actuators, administrativesciences, aerospace, agriculture, agronomy, algorithms, animals, antibiotics, antibodies, antioxidants, appliedsciences, arts, atmosphere, atoms, axioms, behavioralsciences, bioengineering, biology, biomedicines, biomolecules, biosensors, brainsciences, buildings, cancers, catalysts, cells, challenges, chemosensors, children, chromatography, climate, coatings, computation, computers, cosmetics, crystals, dentistryjournal, diagnostics, diseases, diversity, econometrics, economies, education, electronics, energies, entropy, environmentalsciences, fibers, foods, forests, futureinternet, galaxies, games, genes, geosciences, healthcare, humanities, informatics, information, inorganics, insects, ijerph, ijfs, ijms, ijgi, jcdd, jcm, jdb, jfb, joi, jlpea, jmse, jpm, jrfm, jsan, land, laws, life, lubricants, machines, marinedrugs, materials, mathematics, medicalsciences, membranes, metabolites, metals, microarrays, micromachines, microorganisms, minerals, molbank, molecules, nanomaterials, nutrients, optics, pathogens, pharmaceuticals, pharmaceutics, pharmacy, plants, polymers, processes, proteomes, publications, religions, remotesensing, resources, risks, robotics, sensors, socialsciences, societies, sports, sustainability, symmetry, systems, technologies, toxics, toxins, vaccines, veterinarysciences, viruses, water
+%---------
+% article
+%---------
+% The default type of manuscript is article, but could be replaced by using one of the class options: 
+% article, review, communication, commentary, letter, bookreview, correction, addendum, editorial.
+%----------
+% submit
+%----------
+% The class option "submit" will be changed to "accept" by the Editorial Office when the paper is accepted. This will only make changes to the frontpage (e.g. the logo of the journal will get visible), the headings, and the copyright information. Journal info and pagination for accepted papers will also be assigned by the Editorial Office.
+%------------------
+% moreauthors
+%------------------
+% If there is only one author the class option oneauthor should be used. Otherwise use the class option moreauthors.
+%---------
+% pdftex
+%---------
+% The option "pdftex" is for use with pdfLaTeX only. If eps figure are used, use the optioin "dvipdfm", with LaTeX and dvi2pdf only.
+
+%=================================================================
+
+\setcounter{page}{1}
+\lastpage{x}
+\doinum{10.3390/------}
+\pubvolume{xx}
+\pubyear{2013}
+\history{Received: xx / Accepted: xx / Published: xx}
+%------------------------------------------------------------------
+% The following line should be uncommented if the LaTeX file is uploaded to arXiv.org
+%\pdfoutput=1
+
+%=================================================================
+
+% Add packages and commands to include here
+% The amsmath, hyperref, caption, float and color packages are already included.
+%\usepackage{amssymb}
+\usepackage{graphicx}
+%S\usepackage{cite}
+%\usepackage{subfigure,psfig}
+
+%=================================================================
+
+% Full title of the paper (Capitalized)
+\Title{The ADCIRC Surge Guidance System}
+
+% Authors (Add full first names)
+\Author{Jason Fleming $^{1,}$*, Janelle Reynolds-Fleming $^{1}$ and Rick Luettich $^{2}$}
+
+% Affiliations / Addresses (Add [1] after \address if there is only one affiliation.)
+\address{%
+$^{1}$ Seahorse Coastal Consulting, 3103 Mandy Ln, Morehead City, North Carolina, USA\\
+$^{2}$ Institute of Marine Sciences, University of North Carolina at Chapel Hill, 3431 Arendell St., Morehead City, North Carolina 28557, USA}
+
+% Contact information of the corresponding author (Add [2] after \corres if there are more than one corresponding author.)
+\corres{jason.fleming@seahorsecoastal.com, +1 252 726 6323}
+
+% Abstract
+\abstract{The ADCIRC Surge Guidance System (ASGS) is 
+a real time software system for coastal ocean modeling that uses the 
+ADCIRC coastal circulation model with optional coupling to the SWAN 
+wave model. Initial development occurred in the aftermath of 
+hurricane Katrina in 2006, and reliability, performance, and 
+flexibility were key objectives. The ASGS has been applied 
+successfully in many real time events, most recently including 
+hurricanes Irene, Isaac, and Sandy as well as the 2010 Deepwater 
+Horizon event. It is the first freely available real time automated 
+coastal modeling system that is relocatable as well as portable 
+across computing platforms. All the components of the system are 
+open source and available for inspection, collaborative development 
+and widespread independent application.}
+
+% Keywords: add 3 to 10 keywords
+\keyword{adcirc; storm surge; automation; real time; visualization}
+
+% The fields PACS and MSC may be left empty or commented out if not applicable
+%\PACS{}
+%\MSC{}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+
+(\cite{DietrichJC2012}) 
+(\cite{DietrichJC2013}) 
+(\cite{BlantonBO2012})
+(\cite{LosegoJL2012})
+
+Over the course of time, the approach to numerical storm surge 
+calculations evolved in two separate directions: simulations that 
+were meant to be used operationally, and those that were meant to be 
+used in an offline design study. Although both approaches relied 
+heavily on probabilistic formulation of the input and statistical 
+interpretation of the output, the availablility of computational 
+resources that could be applied in each case was assumed to be 
+different. The model implementations meant for operations were 
+required to run with lower resolution and lower provision of 
+computational resources than model implementations used for offline 
+design studies. 
+
+This bimodal distribution of resource requirements was strongly 
+evident during the approach and landfall of hurricane Katrina on the 
+northern Gulf coast of the US in 2005. The official storm surge 
+forecasts that were produced in real time for Katrina contained a 
+lower level of detail and realism than the offline coastal 
+engineering design studies that were commonly performed at that time 
+using ADCIRC. 
+
+As a result, in the aftermath of Katrina, there was strong 
+motivation to bring the detail, realism and computational resources 
+of a design study to bear in real time. The ADCIRC Surge Guidance 
+System (ASGS) was conceived as a way to run the ADCIRC coastal ocean 
+and storm surge model in real time in the event of a tropical 
+cyclone threat. This paper updates our previous paper on the subject 
+\cite{FlemingJG2008} and describes the challenges associated with 
+running such a model in real time; the technical approaches that 
+were used in the design of the ASGS, and a survey of recent results. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Literature Review}
+
+A significant number of other researchers have produced automation 
+software for coastal ocean models. As the technology supporting 
+numerical storm surge calculations developed, the value of the 
+predictions for real time emergency response became more and more 
+clear. The first attempt to apply an existing coastal model in a 
+real time context was the SLOSH model \cite{JelesnianskiCP1992}.
+
+More recently, the Southeast Coastal Ocean Observing and Prediction 
+(SCOOP) system relied on a geographically dispersed chain of 
+participants linked via Local Data Manager (LDM) from Unidata \cite 
+{RamakrishnanL2006}. This SCOOP System represented an experimental 
+cyberinfrastructure approach to distributed computation for storm 
+surge prediction along the North Carolina Coast. It used ADCIRC for 
+storm surge, and a separate Holland\cite{HollandGJ1980} symmetric 
+vortex model for meteorological forcing based on the National 
+Hurricane Center's forecast advisories. Computational resources were 
+obtained opportunistically using the Globus Toolkit, and files were 
+transferred via GridFTP.  
+
+Separately from the SCOOP System, the North Carolina Forecast System 
+(NCFS) \cite{MattocksC2006} was also developed for the North 
+Carolina coastline. It included a new asymmetric vortex model and 
+also used ADCIRC for storm surge computations. The system made use 
+of different modes of operation, including background mode (tides 
+only), nowcast event mode and forecast event mode mode in the event 
+of a tropical cyclone. 
+
+A relocatable ADCIRC automation system for the US Navy was developed 
+\cite{ChuP2009} using a powerful template approach for constructing 
+input files; this technique was later adopted in the design of the 
+ASGS. The Navy system used a toolbox approach that would allow 
+simulations to be run in an automated or manual way. It divided up 
+programs into five modules as follows: (1) system set up; (2) data 
+acquisition; (3) model configuration; (4) model run status; and (5) 
+product generation and dissemination. The toolbox also included a 
+MeshGUI program that could be used by the operator to construct a 
+new mesh in a short period of time if one was not already available 
+for the area of interest. 
+
+In the aftermath of hurricane Katrina, the Lake Pontchartrain 
+Forecast System (LPFS) was developed for the New Orleans District of 
+the US Army Corps of Engineers \cite{FlemingJG2008}. The original 
+target region was the south shore of Lake Pontchartrain, just north 
+of the city of New Orleans in Louisiana, USA. The Corps of Engineers 
+had installed movable surge protection gates at the ends of the 17th 
+St, Orleans Ave, and London Ave canals, which drain rainwater from 
+the city. At that time, the surge gates were operated by cranes that 
+could not be used in high winds; as a result, the timing and 
+magnitude of both winds and surge were important. 
+
+The LPFS (the direct ancestor of the ASGS described here) did not 
+include tidal forcing, river forcing, or wave coupling, and only 
+generated simple hydrographs and wind speed plots for those three 
+locations in real time. After its introduction in 2006 and continued 
+development thereafter, the system was renamed the ADCIRC Surge 
+Guidance System in 2009 to reflect its expansion of application 
+beyond Lake Pontchartrain. 
+
+The following section describes the increased demand for real time 
+ADCIRC products that arose after the system was introduced, and the 
+methods by which this demand was fulfilled. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Methods}
+
+The challenges associated with the delivery of real time ADCIRC results
+and the methods by which these challeges were met are provided in this
+section.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Design Considerations}
+
+The two hurricane seasons after the introduction of the ASGS were 
+relatively quiet for the US in the Gulf of Mexico. In contrast, the 
+2008 season saw the landfall of hurricanes Gustav and Ike in quick 
+succession as shown in Figure \ref{fig:hurricanes_2008}.
+
+%    4   A T L A N T I C    H U R R I C A N E S 
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.9\textwidth]{4ATLHurricanes2008}\\
+  \caption{Gustav and Ike made landfall on US shores in the Gulf of Mexico in 2008.}
+  \label{fig:hurricanes_2008}
+\end{figure}
+
+During the evolution of Gustav, it became apparent that demand for 
+real time results from ADCIRC was needed in many geographical areas 
+beyond those originally envisioned. However, at that time the ASGS 
+had been only been programmed to produce results for the original 
+three locations as specified prior to the start of the season. A 
+significant reprogramming effort had to be mounted in real time, 
+between forecast advisories, to keep up with the unanticipated 
+expansion in demand for guidance in many other locations. 
+
+This ability to reprogram and adapt to changing needs in real time 
+is a distinct advantage that the ASGS has over operational systems. 
+As an aside, the word ``operational'' has a specific definition, 
+meaning that the underlying model and software have been approved by 
+a particular agency and cannot be changed once they have been 
+accepted for production. The ASGS, on the other hand, suffers no 
+such limitations on its adaptability, and many changes can be made 
+to the system, even in real time, to adapt it to the current 
+circumstances. However, prior to the approach of hurricane Gustav in 
+2008, such flexibility had not been a design goal.
+
+Immediately following the landfall of hurricane Gustav in Louisiana 
+in 2008, hurricane Ike traversed the Gulf, headed for a landfall in 
+Texas. While Ike was having significant impacts in Louisiana, 
+collaborators in Texas sought to run the ASGS for Texas as well, 
+using a locally developed mesh and other input data on local high 
+performance computing (HPC) resources. The resulting collaborative 
+efforts highlighted the need for a system that was geographically 
+relocatable and portable across computing platforms. The approach of 
+hurricane Ike also highlighted the value of ongoing technical 
+collaboration among regional participants that can share the 
+technical and computational workloads during major events. 
+
+After dealing with the challenges of the hurricanes Ike and Gustav 
+and enjoying a broad expansion in the intended scope the ASGS, a new 
+vision was developed for refining the design and implementation of 
+the system. These refinements focused on creating a system that was 
+reliable, collaborative, portable, relocatable, and extensible.  
+
+The methods for achieving each of these characteristics are 
+described in the following subsections. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Reliable}
+
+Speed and accuracy are useless if the results cannot be produced 
+because of software or hardware issues, and simplicity is the most 
+important design consideration for reliable operation. An overview 
+of system operation that illustrates its relative simplicity is 
+shown in Figure \ref{fig:asgs_overview}.
+
+%    A S G S   O V E R V I E W   F L O W C H A R T
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.5\textwidth]{asgs_overview_color}\\
+  \caption{The architecture of the ASGS is conceptually simple.}
+  \label{fig:asgs_overview}
+\end{figure}
+
+Each instance of the ASGS is entirely self-contained on a particular 
+computing resource, and its operation consists of three phases: 
+hindcast, nowcast, and forecast. The hindcast phase only occurs once 
+for any ASGS instance, but the nowcast/forecast cycle occurs each 
+time the meteorological forcing is updated (e.g., whenever the 
+National Hurricane Center issues a new advisory). 
+
+These phases are the core of the ASGS, and for the sake of 
+simplicity are implemented as a single shell script. This approach 
+provides a clean and accessible representation of the functionality 
+while modularizing all complex processing into subprograms for tasks 
+such as data transmittal, job handling, post processing, and 
+visualization.
+
+Self-checking is the second most important aspect for achieving 
+reliable operation. Once an automation code has been thoroughly 
+tested, the main source of reliability problems tend to be in the 
+underlying computing environment or the source data streams. A 
+modular approach like that used by the ASGS allows the core program 
+to hand off tasks to subprograms and check their results when 
+subtasks have been completed. 
+
+If self-checks indicate that errors or anomalies were generated, the 
+core program can take appropriate actions including trying again, 
+starting over, or giving up and looking for the next set of forcing 
+data. Pervasive use of consistency and sanity checks (coupled with 
+well planned responses to error conditions) results in an overall 
+system that is resilient to endogenous issues as well as those 
+generated by anomalies in the host environment.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Collaborative}
+
+The selection of a collaboration strategy has a suprisingly strong 
+influence on the quality and longevity of the underlying technology. 
+Collaboration for high performance computing projects can take many 
+forms, including a closed system, a distributed chain, or regional 
+teams. Each of these are described below, along with their effects 
+on development processes, real time operations, and technological 
+vibrancy.
+
+A closed system is the result of a collaboration within a unified 
+team of developers that takes responsibility for every aspect of the 
+system: gathering of physical (e.g., bathymetry) data, construction 
+of a meteorological model, offline validation, computational 
+resources, post processing, visualization, dissemination to end 
+users within the same organization, and the software automation to 
+make the whole stack run in real time. Nearly all real time guidance 
+systems detailed in the academic literature were developed using 
+this approach.
+
+The advantages of a closed system are simplicity and control. 
+Simplicity results from the need to only code for a single 
+computational plaform with a narrow set of capabilites as required 
+to satisfy the target audience. All other things being equal, simple 
+systems are more reliable and easier to maintain than complex 
+systems. Closed systems are also easier to control. This ease of 
+control stems from the availability of dedicated resources, 
+including compute time, staff time, and a single chain of command 
+with high level buy-in for the stated objectives of the real time 
+guidance system.
+
+The disadvantages of the closed system are expense, inflexibility, 
+and insularity. Closed systems are relatively expensive because all 
+research, development and maintenance costs must be borne by a 
+single working group within an organization. New features and 
+capabilities can only be produced as the time and budget of that 
+group allows, and development of new capabilities must be balanced 
+against the need to maintain and operate in production.
+
+The final disadvantage any closed systems is insularity. The lack of 
+technology sharing with other working groups, or applications for 
+other projects or end users tends to limit the expansion of the 
+technology to new areas, especially those outside the experience of 
+the foundational team. 
+
+An alternate architecture that we call the ``distributed chain'' is 
+the polar opposite of the closed system described previously. The 
+distributed chain system distributes the load and responsibility of 
+developing each piece of a real time guidance system to several 
+geographically dispersed organizations that are linked through the 
+internet via a common data bus that is used to download products, 
+then upload them after some processing or contribution to the final 
+result. For example, one organization may be run a numerical weather 
+model, while another orgainzation sets up a surge model, with 
+computational resources being offered by yet another organization. 
+
+The advantages and disadvantages of the distributed chain system are 
+mostly the inverse of the closed system. The disadvantages are 
+complexity and lack of control: each time another institution or 
+software system are included in the chain, the system becomes more 
+complex and the number of potential points of failure increases. The 
+increase in the number of failure points is particularly significant 
+because the chain is only as strong as its weakest link. And because 
+each link in the chain is operated independently, there isn't a 
+single point of accountability for all of the participants.
+
+The advantages of the distributed chain are flexibility and 
+vibrancy. Because of the open-participation philosophy and sharing 
+of a common data bus, the barrier to entry of new participants and 
+new ideas is low, and as a result such architectures attract new 
+ideas and new participants easily.
+
+Finally, both closed systems and distributed chains face the burden 
+of reinventing the wheel when implemnting new features, and even 
+issues of long term viability; these issues result from a lack of 
+freely shared technology. Closed system technologies and the 
+individual components of distributed chain systems are generally 
+kept ``in-house'' and not freely shared with other developers 
+outside the organization. As a result, technological features must 
+be created from scratch whenever a new group decides to develop a 
+real time coastal forecast system. Furthermore, the products of 
+these teams will continue to be available only from their original 
+developers and only for as long as they are able to produce them, 
+and the issues of stagnation still apply to those technologies.
+
+In order to combine the advantages of both the closed system and 
+distributed chain approaches while avoiding their respective 
+disadvantages, the ASGS has been developed using a regional team 
+approach. In this paradigm, shown in Figure \ref
+{fig:regional_teams}, the technology and know-how associated with it 
+are freely shared among participants, while the responsibility for 
+local validation, securing computational resources, real time 
+execution and communication with local emergency manager and high 
+level officials are distributed to regional teams to apply the ASGS 
+to issues of local interest. 
+
+%    R E G I O N A L   T E A M S  
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.8\textwidth]{regional_teams}\\
+  \caption{A collaboration among self contained regional teams facilitates reliability as well as vibrancy.}
+  \label{fig:regional_teams}
+\end{figure}
+
+The regional team approach offers the flexibility and vibrancy of 
+the distributed chain, since the existing technology is freely 
+shared among participants, enabling new participants to get up to 
+speed quickly while existing participants benefit from sharing  new 
+features. It also solves the weakest link and accoutability issues 
+inherent in the distributed chain approach, since each regional team 
+operates independently in a self-contained way during a real time 
+event, and each team is subject to a single local chain of command and 
+coordination in real time.
+
+The expense of the regional team approach is relatively low, 
+particularly for new participants, because the burden of ongoing 
+maintenance efforts and new feature development is distributed among 
+all participants, while the benefits of those efforts are shared by 
+all, preventing any regional team from having to reinvent the wheel. 
+However, in order for the benefits of technology sharing to accrue, 
+a central coordinator or guide must take responsibility for 
+integrating disparate features, developing new features in the 
+underlying numerical model(s) to support new capabilities in the 
+software automation system, writing or aggregating documentation, 
+ensuring continuity, and providing training or capacity building. 
+
+Finally, and perhaps most importantly, securing computational 
+resources with the regional team approach is cheaper and easier than 
+through any other approach. Regional computing centers have an 
+inherent incentive to provide resources to support real time 
+modeling for a current event that is directly relevant to their 
+local environment, and a disincentive to provide resources for 
+events that are not locally relevant. This dovetailing of interests 
+greatly simplifies and facilitates access to computational 
+resources, and in our experience this advantage should not be 
+underestimated. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Portable}
+
+Portability results from the application of standard technologies and
+the extraction of necessarily platform dependent code into a well 
+contained subsystem that can be selected at run time. 
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Relocatable}
+
+Relocatability basically rests on the system not making any 
+assumptions about the underlying mesh. That is, the static reference 
+information is abstracted away, in its own box, and any code that 
+uses the static reference information either makes no assumptions 
+about it, or relies on the ASGS configuration file. In its current 
+incarnation, the Operator must supply the mesh and an adcirc control 
+file that contains any static boundary conditions (for example, the 
+amplitude and phase of tidal constituents along the boundary). 
+
+The reference information includes a dynamic specification of system 
+behavior in the configuration file as well as static physical data, 
+embodied in the simulation input files ADCIRC. The system 
+configuration consists of a single file, and all of the features and 
+behavior of the various components can be controlled from this 
+single configuration file. This file is used to activate or 
+deactivate the various types of physical forcing, including tropical 
+cyclone meteorology, ordinary meteorology, wave simulation and 
+coupling, tides, and river flow input. It is also used to specify a 
+wide variety of other settings, including (for example) the type of 
+computer that the system is running on, the number of processors to 
+use in parallel execution, the name of the ADCIRC mesh file for the 
+domain of interest, the number of storms in an ensemble and their 
+characteristics, the types of output products to generate, the email 
+addresses of officials that should be notified when results are 
+ready, and many others. 
+
+The simulation input files represent a purely static set of physical 
+data that are used in the simulations. These data include the ADCIRC 
+mesh (domain discretization), the bathymetry and topography of the 
+domain, the spatially varying Manning's n value, and the directional 
+wind roughness lengths and canopy effects derived from land cover 
+data. The static data also include the tidal constituents to be 
+included (if any), convergence controls and solution parameters for 
+SWAN and ADCIRC, the names and locations of point recording stations 
+for location-specific output data, and other data related to the 
+internal procedures of the simulation codes. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Extensible}
+
+An overview of the resulting modular structure of the ASGS is shown 
+in Figure 1. The figure indicates the separation of components into 
+(1) reference information (in purple), which specify the system 
+configuration and physical parameter data used in the simulation; 
+(2) dynamic input data (in red) that varies in time and must be 
+downloaded from external data sources for every forecast cycle; (3) 
+input file production (in green), which implements the system 
+behavior specified by the user in the system configuration files; 
+and (4) output visualization, publication, and interaction (in blue) 
+for use by clients and end users. These modules will be described in 
+greater detail below, in the context of the objectives of the 
+overall system. 
+
+%    A S G S   S T R U C T U R E   D I A G R A M 
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.5\textwidth]{asgs_structure_color}\\
+  \caption{ASGS Structure.}
+  \label{fig:asgs_structure}
+\end{figure}
+
+
+Extensibility also comes from the use of standards, including 
+dissemination standards such as OpenDAP as well as metadata 
+standards. This flexibility allows the use of multiple different 
+types of post processing including built in (non-interactive) post 
+processing like FigureGen, RenciGETools as well as interactive post 
+processing like CERA and AdcircViz.
+
+Extensibility stems from the ability to plug in new capabilities
+either in a forecast ensemble, forcing types, or output processing.
+The oil spill work is a good example of this (plugging in the 
+particle tracking to the post processing). 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Physics}
+
+The ASGS uses the ADCIRC coastal circulation model for currents and 
+water levels, and supports the optional tight two-way coupling of 
+SWAN with ADCIRC for wave height, wave period, and wave radiation 
+stress simulation. These two models are described in this section. 
+
+\subsubsection{ADCIRC}
+
+The ADCIRC coastal circulation model is the heart of the phyical 
+modeling component of the ASGS. Brief boilerplate description of the 
+ADCIRC model. 
+
+The ADCIRC model offers eleven (TODO: IS THIS THE NUMBER) key 
+advantages for use in a real time system automation system for 
+coastal modeling applications including storm surge. These 
+advantages and their practical benefits will be described in this 
+section. 
+
+Finite element model which allows us to get right up into the fine 
+scale coastal features, and onto dry land. 
+
+Supports wetting and drying, which is key for inundation modeling.
+
+Supports subgrid-scale levees as internal barrier boundaries which 
+can be partially overtopped and have flow go over them in such cases 
+... key for modeling many important structures on land during 
+inundation. 
+
+Both 2D and 3D solution modes are available, using the same mesh, 
+which provides flexibility for various modeling scenarios. 
+
+SWAN coupling is available. 
+
+
+ADCIRC has always been developed with a strong emphasis on 
+portability across hardware platforms and fortran compilers.
+
+ADCIRC does not require recompilation to activate or deactivate the 
+simulation of various types of physical phenomena, such as wetting 
+and drying, tides, or different physical formulations. The model 
+physics are entirely controlled at run time through input files. 
+This dramatically enhances the configurabilty of the ASGS. 
+
+Has been used for many years (TODO: how many) for studies in 
+Southern Louisiana which means there is a high degree of confidence 
+in the model, a large library of meshes and associated input data, 
+and a deep well of experience in the use of the model for tropical 
+cyclones and inundation. 
+
+FEMA uses ADCIRC for flood insurance studies, which provides a library
+of meshes and input data to work with.
+
+The collaborative development philosophy of the ADCIRC developers
+and the ADCIRC community allows the authors to have one foot in the
+ADCIRC code and the other foot in the ASGS. When the demands of the
+ASGS indicated the need for new features or capabilities in ADCIRC, 
+these enhancements are developed in tandem in the coastal ocean modeling
+code, allowing more rapid development of the ASGS as well as ADCIRC
+than would otherwise occur if these technologies were developed by
+separate teams. 
+
+Supports and directly accepts a wide variety of meteorological 
+formats for forcing, including OWI format (used with validation data 
+sets from Ocean Weather Inc as well as in real time), HWind format 
+(useful for hindcasting and validation), and track file formats which
+closely follow the ATCF format used by BEST track files from the 
+National Hurricane Center. These track file formats are used to feed
+the ADCIRC Asymmetric Vortex model described below. 
+
+\subsubsection{ADCIRC Asymmetric Vortex Model}
+
+The application of meteorological forcing presents a challenge for 
+real time coastal modeling because of the need for timely 
+availability of accurate high resolution meteorological forecast 
+data. In terms of accuracy, the best data available are HWind from 
+NOAA's Hurricane Research Division (HRD) (\cite{PowellMD1998}). 
+data, but being data-assimilated, these meteorological fields are 
+only available for nowcast and hindcast times.
+
+One option for meteorological forcing is to run a full 
+meteorological model such as HWRF or GFS, or to use the output from 
+a previous execution of a full meteorological model. One of the 
+issues with the use of data derived from a full meteorological model 
+such as the North American Mesoscale (NAM) model or the Global 
+Forecast System (GFS) model is that time and computational resources 
+would have to be dedicated to their production, and the result 
+usually would not match the official forecast from the National 
+Hurricane Center. 
+
+On the other hand, one of the greatest advantages of an analytical 
+meteorological vortex model embedded in the ADCIRC code itself is 
+its ability to use parameters directly from the official forecast of 
+the National Hurricane Center forecast/advisory, which represents 
+the official word on the likely track of the storm, as opposed to 
+the deterministic output of a full meteorological model. Other 
+advantages of having an embedded analytical vortex model are speed 
+associated resource savings (no need to wait until a meteorological 
+forecast run completes before starting the storm surge run), 
+reliability (no need to worry about issues or failures in a full 
+meteorological model), small input file size (usually less than one 
+hundred lines), precise perturbability (it is easy to create variant 
+tracks, storm sizes, maximum wind speeds, etc), and the ability to 
+calculate the wind velocity and barometric pressure at every node 
+location and every time step without temporal or spatial 
+interplation. As a result of these advantages, embedded analytical 
+vortex models have been the tools of choice for real time storm 
+surge simulations in the ASGS from the very beginning of its 
+development through the forseeable future.  
+
+The first analytical meteorological vortex model that was coded 
+within ADCIRC was created in tandem with the initial stages of the 
+Lake Pontchartrain Forecast System (\cite{FlemingJG2008}) (the 
+progenitor of the ASGS). This symmetric Holland (\cite 
+{HollandGJ1980}) model did not take advantage of all the information 
+available in real time from official forecast/advisories from the 
+National Hurricane Center (NHC), and as a result, the asymmetric 
+vortex model was also developed independently, first as a standalone 
+model then incorporated into ADCIRC itself (\cite{MattocksC2006})(
+\cite{MattocksC2008}). 
+
+Once incorporated into ADCIRC, the asymmetric vortex model performed 
+adequately (\cite{ForbesC2010}), but there were five upgrade 
+opportunities that needed to be addressed in that original 
+implementation to ensure flexible and robust operation in real time: 
+(1) an additional feature was needed to allow the operator to vary 
+the radius of maximum winds (to create a storm ensemble, for 
+example) because the radius of maximum winds was calculated 
+internally to the model during ADCIRC's execution; (2) the original 
+algorithm required exactly one isotach per storm quadrant and if 
+multiple isotach radii were provided by the NHC for a given quadrant 
+at a given time, the isotach selection was not controllable by the 
+operator; (3) if the NHC did not provide data for all four storm 
+quadrants at a given time, the original model was designed to 
+produce winds with zero velocity throughout the domain for the 
+corresponding period; (4) the internal solver for the radius to 
+maximum winds calculation would sometimes fail and introduce NaNs 
+into the solution; and (5) the blending of the storm translation 
+speed into the vortex wind velocity sometimes resulted in 
+counterintuitive and nonphysical results, particularly for fast 
+moving storms at high latitudes.
+
+For these reasons, a second generation ``dynamic'' asymmetric vortex 
+model was developed, including a companion program to be used as a 
+preprocessor. This meteorological preprocessor program accepts track 
+files formatted according to the Automated Tropical Cyclone Forecast 
+system best track format (http://www.nrlmry.navy.mil/atcf\_ 
+web/docs/database/new/abdeck.txt) and produces an augmented file for 
+use by the dynamic asymmetric vortex model in ADCIRC. 
+
+In summary, the dynamic asymmetric vortex model was set up to 
+operate in a two step process. The first step was the use of isotach 
+data from the forecast/advisory to calculate a representative radius 
+to maximum winds (Rmax) in each of the four storm quadrants, for 
+each forecast increment, before the actual ADCIRC run. The second 
+step was to interpolate the resulting Rmax for all nodes at each 
+time step of the simulation, to determine the wind velocity 
+throughout the domain at each time step.
+
+ASWIP: Asymmetric Wind Input Parameterization.
+
+The raw track file derived only from data in the National Hurricane 
+Center Forecast/Advisory contains the following tropical cyclone 
+parameters for each forecast increment: date, time, latitude and 
+longitude of the center of the storm, maximum observed wind speed 
+(marine exposure, at 10m with a 1 minute averaging period), and zero 
+or more isotachs for each storm quadrant. The minimum central 
+pressure, which is required for any Holland parametric vortex model, 
+is notably absent from the NHC official forecast, but is estimated 
+and added to the track file prior by the ASGS workflow before the 
+file is used as input to the meteorological preprocessing program. 
+The process of estimation is described later, in the section dealing 
+with the generation of different tracks for a storm ensemble; for 
+the purposes of the meteorological preprocessor, the central 
+pressure is treated as a known variable. Finally, the track file 
+contains zero or more isotachs at various wind one or more storm 
+quadrants.
+
+The track preprocessor program begins by reading in the raw track file
+data and recording the time, storm location, and number of isotachs
+associated with each line in the file. From these data, the direction
+and speed of the storm center is calculated.
+
+Next, the radius to maximum winds is calculated in each storm 
+quadrant, based partly on the isotach radii provided by the National 
+Hurricane Center Forecast/Advisory. The issue at this point in the 
+calculations is that there is a high spatial and temporal 
+variability in the availability of isotach radii. For example, one 
+quadrant of the cyclone may have two or even three isotach radii 
+defined while a different quadrant has no isotach radii defined at 
+all. In the former case, the analysis program must choose one 
+isotach radius as representative while ignoring the others; in the 
+latter case, there is no information available and the gap in the 
+data must be covered somehow. Furthermore, the forecast advisory
+does not provide any isotach radii data for the extended forecast
+(days 4 and 5 of the forecast period).
+
+In order to deal with the full range of possibilities in the track 
+preprocessor, the issue was broken down to (a) each individual 
+isotach first, and then (b) each quadrant. 
+
+For each individual isotach radius, the forecast advisory may not 
+contain data for every quadrant. Five cases are possible: (1) one 
+isotach radius is missing; (2) two isotach radii are missing; (3) 
+three isotach radii are missing; (4) all isotach radii are missing 
+and (5) all isotach radii are available. 
+
+Two of the cases are trivial. If the isotach radii are available in 
+all four quadrants for an isotach, all the isotach data are eligible 
+for use as-is. Conversely, if none of the quadrants have data 
+available, then the radius of maximum winds calculations will not be 
+based on data for this particular isotach. 
+
+In cases where data are available for some quadrant(s) but not 
+others, the track preprocessor program generates reference estimates 
+of the missing data, mostly as a courtesy to the analyst, based on 
+the available radii data for that isotach. The three cases where 
+this may occur are shown in Figure X. However, by default, the 
+automatically generated reference estimates are not used in the 
+subsequent calculation of the radius to maximum wind unless no other 
+data are available. 
+
+For tropical cyclone events, the NHC Forecast/Advisories are 
+downloaded by the system as soon as they are issued, and the 
+relevant storm parameters (including storm positions. maximum wind 
+speeds, and isotach radii) are parsed into a format that ADCIRC can 
+use to generate wind fields using an internal asymmetric vortex 
+model. 
+
+The first step was performed in a pre-processing program for all the 
+data from a particular forecast/advisory, before the ADCIRC run 
+began. This design provided visibility to the Rmax values that 
+ADCIRC would use, and gave the user the capability to modify the 
+input values for experimentation.
+
+The representative Rmax values were determined for each quadrant and 
+forecast increment by subtracting the translation speed of the storm 
+from the maximum wind speed, and converting both the 
+translation-reduced maximum wind speed and the highest isotach wind 
+speed in that quadrant into the equivalent wind speeds at the top of 
+the atmospheric boundary layer. These wind speeds and the distance 
+to the highest isotach in that quadrant were then substituted into 
+the gradient wind equation. The gradient wind equation was then 
+solved for the Rmax in that quadrant using Brent's method, or if 
+that failed numerically, a brute force marching algorithm.
+
+The pre-processing program then appended the resulting Rmax values 
+to the meterological input file for use in the actual ADCIRC 
+simulation.
+
+The second step occured during the execution of ADCIRC. For each 
+time step in the simulation, the central pressure, latitude and 
+longitude of the storm center, and radii to maximum winds were 
+interpolated in time to reflect the simulation time relative to the 
+forecast increments provided by the National Hurricane Center. The 
+translation speed from the most recent forecast increment was used 
+to reduce the time-interpolateed maximum wind speed. The 
+time-interpolated maximum wind radii were interpolated in space 
+using a cubic spline; the relevant value of Rmax at each node was 
+determined from the cubic spline curve. Finally, the Holland(1980) 
+model was used to determine the nodal wind velocity using the 
+spline-interpolated Rmax, the translation-reduced value of the 
+maximum wind speed, and a Holland B whose value was calculated and 
+then limited to the range of 1.0 to 2.5.
+
+After the computation of the nodal wind velocities at the top of the 
+atmospheric boundary layer, the magnitudes were reduced to 
+corresponding values at 10m, and then reduced again from the 1 
+minute averaging used by the National Hurricane Center to 10 minute 
+averaging required by ADCIRC. A "damped" translational velocity was 
+vectorially added to the nodal wind velocities, where the damping 
+was proportional to the distance from the radius to maximum winds.
+
+Finally, the wind vectors were rotated toward the center of the 
+storm by an angle that depended on the distance from the center: the 
+rotation angle was ten degrees between the center and the radius to 
+maximum winds; it was twenty five degrees beyond 1.2 times the 
+radius to maximum winds; and the rotation angle was linearly 
+interpolated from the ten degree value at Rmax and the 25 degree 
+value at 1.2 times Rmax.
+
+Describe the aswip utility and its function. Describe the 
+differences between the NWS9 detailed in Mattocks (2006) and the 
+current NWS19. 
+
+Include a diagram or visual aid to show how aswip and the asymmetric 
+vortex model uses the isotach data to produce a met field. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Workflow Details}
+
+Once the Operator has created a configuration file and assembled the 
+static physical input data for a particular instance of the system 
+and initiates startup, the system reads its configuration file and 
+tries to determine its state: whether it is starting “hot” with a 
+simulation that is already in progress, or “cold”, where a new 
+ADCIRC or ADCIRC+SWAN simulation must be started from scratch (see 
+Figure 2). It also makes a determination about the state of its 
+input files; specifically, whether they have already been decomposed 
+for parallel execution. If the system must start from a “cold” 
+state, it creates input files and executes a hindcast simulation to 
+warm up the simulation and prepare it for the cyclical 
+nowcast/forecast production phase (described below). Accordingly, 
+this hindcast run is set so that it writes a hotstart file at the 
+very end to represent the state of the warmed-up simulation. In 
+addition, if the input files have not been prepared for parallel 
+execution, the system decomposes them for the specified number of 
+processors. If the hindcast and/or decomposition tasks are required, 
+they must only be performed once at the start of the system's 
+execution (processes that occur at most one time during an execution 
+of the system are shown in blue in figure 2).
+
+For ordinary meteorology, including nor'easters and other 
+systems, the system downloads regularly gridded meteorological 
+fields from the NAM model from the NCEP ftp site. The gridded 
+meteorological fields are extracted from the grib2 format that NCEP 
+uses, reformatted and written to OWI formatted files that ADCIRC 
+reads. 
+
+The nowcast occurs next if the simulation state is already "hot" 
+when the system starts up, or if the system has already performed 
+the decomposition and warm up phases. The first step in the nowcast 
+is to determine if there are new meterological data available, by 
+contacting the associated external website or ftp site, checking the 
+timestamps that are available there, and comparing them with the 
+current simulation time. If there are data available that are more 
+recent than the current simulation time, a new cycle is deemed to 
+have begun, and those data are downloaded. The system downloads the 
+data it requires to cover the time period between its current 
+simulation time and the most recent data that are available files 
+that are available. After the meteorological data have been 
+acquired, river data are acquired in the same way, if they have been 
+specified. 
+
+Once the external data have been acquired, the input files for the 
+ADCIRC simulation code (and the SWAN simulation code if wave forcing 
+has been specified by the Operator in the system configuration file) 
+are constructed using the time range of the meteorological forcing 
+files and the various configuration parameters in the system 
+configuration file. This includes tidal boundary conditions, output 
+file formats and frequency of production of output files, and 
+locations for point recording of output for comparison with tide 
+gages or meteorological data collection equipment. The nowcast 
+control file(s) for ADCIRC and SWAN are set to write a hotstart file 
+at the end of the simulation for use in starting the forecast, as 
+well as a future nowcast. The last file written during the nowcast 
+phase is the queue script that will be used to submit the job to the 
+high performance computer's queueing system.
+
+Once the nowcast is complete, the system acquires the data required 
+for one or more forecasts. These data will already be present in the 
+case of a tropical cyclone, since the NHC forecast/advisory has 
+already been parsed. For NAM forcing, the NAM forecast data are 
+downloaded from NCEP and converted to OWI using the same technique 
+as described for the nowcast. If river flux forcing was specified, 
+the river flux data are downloaded and formatted in a similar manner 
+to the nowcast. The control files are constructed to cover the time 
+period implied by the forecast meteorological data, but are not set 
+to write a hotstart file at the end. When the forecast is complete, 
+the system executes post processing (described in the next section) 
+and archives the data as required. 
+
+These forecast process described above is applied to  each member of 
+the forecast ensemble until all ensemble members have been 
+completed, at which point the system goes back to looking for new 
+meteorological data for its next nowcast.
+
+The computer that the system is running on will download the 
+hindcast and forecast, preprocess the input, submit all jobs, check 
+for their completion, post process results (including drawing the 
+graphs), and then communicate the results to end users and system 
+operators. Communication starts with an email to the operators to 
+notify them that a new advisory has been detected. When the 
+simulations have finished and post processed, the resulting graphs 
+are transmitted to a designated webserver (or servers) and then 
+another email is sent out to operators and end users with 
+representative graphics attached. That email also contains a 
+hyperlink to the full results on the webserver. Because the entire 
+system is self-contained on a single machine, redundancy can be used 
+to further enhance reliablity by simply installing and running the 
+system on additional machines, where it will operate independently. 
+
+The redundancy concept may also be applied to the communication of 
+results by configuring additional webservers to receive results as 
+they are produced. The least often encountered reliability problems 
+are in the data source and the model itself. The data source (the 
+NHC) rarely makes changes, and adjustments are easy to make. 
+Preventing numerical instabilities is mostly a matter of good grid 
+design. If a numerical instability issue were to occur, it would not 
+create a real problem unless it occurred during a nowcast run, since 
+errors in forecasts do not propagate to the next advisory cycle.
+
+\subsubsection{Configurable}
+
+Centralized configuration in a single file that allows control over all
+aspects of the system. 
+
+Met forcing can be either tropical cyclone driven, using the official 
+forecast/advisories from the National Hurricane Center, or it can be 
+driven by ordinary meteorology from the North American Mesoscale model 
+from NCEP.
+
+A brief description of how an ensemble of storms is configured, 
+and the types of variations that are possible. 
+
+The application of meteorological forcing presents a challenge for 
+real time storm surge forecasts because of the need for timely 
+availability of input data as well as additional preprocessing 
+delays associated with large meteorological datasets. 
+
+Other disadvantage include the fact that they have a relatively 
+coarse resolution in comparison to the underlying simulation grid, 
+and the fact that they may include meteorological information far 
+from the area of interest. In contrast, parametric wind models 
+produce comparable storm surge in many cases (Houston et al, 1999; 
+Mattocks et al 2006). They also have the advantages that they 
+require a comparatively tiny quantity of input data and that they 
+may be coded as fast subroutines that run in-process and can provide 
+wind stress and barometric pressure values at arbitrary locations. 
+As a result of the advantages that parametric wind models have for 
+the present application, the Holland model (Holland, 1980) was 
+selected as the basis of the wind speed and pressure field. 
+Modifications and additions were made to the published model to 
+account for the dynamic changes in the hurricane parameters along 
+the hurricane’s track, as well as its adaptation to the data 
+available from the NHC advisory. This modified model will be 
+referred to as the Dynamic Holland model.
+
+The system is capable of downloading and preparing dynamic 
+meteorological data from two sources: the National Hurricane 
+Center's (NHC) Forecast/Advisories, and the National Centers for 
+Environmental Prediction's (NCEP) North American Mesoscale (NAM) 
+model, depending on the data source selected by the Operator. 
+Furthermore, the system has a module for downloading river boundary 
+flow data from the National Severe Storms Laboratory and preparing 
+it for use in ADCIRC.
+
+Once meteorological data have been obtained, the system downloads 
+the latest river flow data from the National Severe Storms 
+Laboratory (NSSL) ftp site. These data are in a file format that 
+ADCIRC can read natively, and are set up to correspond to a 
+particular ADCIRC mesh. The module that downloads these data must 
+splice a series of these files together to match the date and time 
+range implied by the meteorological data that have already been 
+obtained. 
+
+The production of human-comprehensible output is arguably the most 
+important step in the entire process. Clients must be notified that 
+new results are available; and they must be able to get to and use 
+the results in a way that is  intuitive for them. As there is more 
+than type of end user or client, there is more than one approach to 
+producing useful output: (a) publication of raw data; (b) production 
+and publication of static images, non-interactive animations, and 
+results files in domain specific formats; and (c) elucidation via 
+interactive visualization through a web application.
+
+Publication of raw results is the most basic step for post 
+processing, and an OpenDAP server was selected and used to publish 
+raw data in NetCDF format to clients and end users. An OpenDAP 
+server provides a web interface to the data, making it easy for 
+users to simply click on a link to the graphics or data file they 
+wish to download, either for the latest run or for any previous 
+simulation run.  Technologies such as NCTOOLBOX are available for 
+sophisticated end users to apply their own analyses to the raw data, 
+producing the output they require locally.  Once the data have been 
+posted to the OpenDAP server, the system sends an email to a list of 
+email addresses as specified in the system configuration file to 
+notify them that new results are available. 
+
+The next level of presentation is in-situ post processing, that is, 
+running non-interactive graphics generation programs in the high 
+performance computing environment to generate static images, 
+non-interactive animations, and reformatted versions of results in 
+specialty fomats. These techniques are all in currently place, and 
+have the advantage of not requiring voluminous quantities of data to 
+be moved to an external server for post processing. For example, the 
+system produces GIS shape files, JPEG images and non-interactive 
+animations of maximum inundation as well as Google Earth (kmz) 
+images of maximum inundation, all with in-situ post processing. 
+These output products are then published to the OpenDAP server to 
+make them available to clients. The disadvantage of in-situ 
+processing is the lack of interactivity. 
+
+The highest and by far the most effective level of presentation is 
+the use of an interactive web visualization application to elucidate 
+results. For this level, the Coastal Emergency Risks Assessment 
+(CERA) interactive web application was deployed and used to provide 
+an interactive interface that served the needs of non-technical as 
+well as experienced clients. 
+
+The CERA application integrates visualization ADCIRC and ADCIRC+SWAN 
+results with Google Maps to provide the context for the results as 
+well as practical features such as panning and the ability to zoom 
+in more closely at various areas of interest to see greater 
+resolution and detail. The application organizes results by storm 
+and advisory (for tropical cyclone results) or by cycle (for NCEP 
+NAM results). It presents these options concisely via dropdown boxes 
+across the top of its interface.
+
+The right side of the interface is an accordion-type menu that 
+presents the various types of data that are available, including 
+water surface elevation, inundation, significant wave height, wave 
+period, and wind speed. For each type of data, the application is 
+able to present a zoomable image of the maximum values that occurred 
+over the course of the forecast (e.g., high water marks) as well as 
+a zoomable, stoppable animation that illustrates the evolution of 
+the data through time. 
+
+Furthermore, the interface allowed the user to click on any point of 
+the storm track to view the data that are relevant to the time when 
+the storm was at that point in the track. It is also capable of 
+presenting the nodes of the underlying ADCIRC mesh, and displaying 
+detailed summary information for any particular node the user 
+selects. 
+
+The CERA application works by using the OpenDAP server as a staging 
+area for raw data. The CERA application received notification email 
+from the NCFS that new results were published to the OpenDAP server 
+in NetCDF format. It would then download these data as well as some 
+summary information about the type of forecast run that produced the 
+data. It generated visualizations via production of image tiles at 
+progressively finer scales, thus providing the user with the ability 
+to zoom in and examine results in greater detail. These image tiles 
+were then stored on the web server where the data were published, 
+and sent to web clients as required by the user interaction with the 
+web application and its menu system.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%    N C   M E S H 
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.5\textwidth]{ncv6b_mesh}\\
+  \caption{North Carolina mesh.}
+  \label{fig:nc_mesh}
+\end{figure}
+
+%    N C   B A T H Y
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.5\textwidth]{ncv6b_bathy}\\
+  \caption{North Carolina bathymetry.}
+  \label{fig:nc_bathy}
+\end{figure}
+
+%    N C   L A N D C O V E R
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.5\textwidth]{nc_landcover}\\
+  \caption{North Carolina land cover.}
+  \label{fig:nc_landcover}
+\end{figure}
+
+%   S T O R M   P A R A M E T E R   V A R I A T I O N S
+\begin{figure}[t]
+  \centering
+  \noindent\includegraphics[width=0.5\textwidth]{variations}\\
+  \caption{Storm variations.}
+  \label{fig:storm_variations}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Results and Discussion}
+
+Implementation of the ASGS at the Renaissance Computing Institute 
+(RENCI) in North Carolina, commonly referred to as the North 
+Carolina Forecast System. (\cite{BlantonBO2012}). The NCFS downloads 
+river flux boundary conditions for the Tar and Pamlico rivers; these 
+boundary conditions are produced by a hydrological model operated by 
+the National Severe Storms Lab and the University of Oklahoma (\cite
+{VanCootenS2011}). 
+
+During Hurricane Irene of 2011, the ASGS and CERA technologies were 
+actively and heavily utilized by National Weather Service (NWS) 
+offices, emergency managers, and the US Coast Guard. In one example 
+of the real benefit for emergency management officials, US Coast 
+Guard Admirals personally operated the web application to examine 
+and interact with simulation results, and then used those results in 
+their decision to evacuate their command center near Norfolk, VA, 
+relocating to their secondary command center in Missouri. 
+Subsequently, the predicted flooding did occur, rendering the 
+abandoned USCG command center useless. In summary, the USCG was able 
+to maintain uninterrupted command and control over the course of 
+Hurricane Irene from their alternate command center, and have lauded 
+the ASGS/CERA system for its contribution to this successful 
+real time decision.
+
+Hurricane Irene 2011 provided an oppportunity to use the ASGS and 
+CERA technologies to assist officials in the NWS and USCG with 
+real-life and emergency management decisions in real time. The 
+implementation of these technologies for the North Carolina and US 
+East Coast that provided the basis for this real life application 
+are described below, including the static physical data, use of 
+dynamic meteorological and river flow data, configuration, 
+interaction with web-based results, and feedback from official end 
+users. 
+
+\subsection{North Carolina Physical Data}
+
+The discretization of the North Carolina domain (the mesh) that was 
+used for both ADCIRC and SWAN is shown below in figure 3. The mesh 
+contained 295328 nodes and 575512 with a minimum element size of 
+13m. The land cover data that were used to derive directional wind 
+roughness lengths, canopy coefficients, and Manning's n friction 
+values are shown in figure 5. The system set 127 points throughout 
+the domain for sampling the model output for comparison with tide 
+gauges and water levels in river flood plains and other locations. 
+It also specified 99 locations for point sampling of model 
+meteorological data for comparison with physical meteorological data 
+collected at land based and buoy-based meteorological data collected 
+by various state and federal agencies and universities.
+
+\subsection{Dynamic Input Data}
+
+As the storm that would eventually become Irene was forming, the 
+ASGS/CERA system had already been running for months at RENCI on the 
+blueridge machine, a 1408 core Dell High Performance Computing 
+cluster, producing daily forecasts using NCEP NAM meteorology, river 
+flow data from NSSL, and tidal forcing. 
+
+When Irene formed and the decision was made to start running 
+vortex-forced tropical cyclone forecasts, a new instance of the ASGS 
+was started up from the most recent hotstart file from the existing 
+NAM results. The new instance was configured to run on 384 
+processors, rather than the 180 that were used in the NAM runs. Both 
+ASGS instances then ran side by side for several days, sending their 
+output to the CERA web application, until the NAM instance was shut 
+down to conserve processor time.
+
+\subsubsection{Internally Generated Input Files}
+
+On 384 processors, the ASGS was able to perform all file 
+manipulations for the nowcast and forecast cycle for the consensus 
+track, submit the jobs, and generate results for a 5 day forecast in 
+1 hour 15 minutes from the time the NHC forecast/advisory was issued. 
+
+As hurricane Irene approached the North Carolina coast, the team 
+member that operates of the ASGS system lost electric power and 
+could therefore no longer oversee the operation of the ASGS during 
+this critical period. However, since the ASGS itself was actually 
+executing at the RENCI facility, which is located in Durham, North 
+Carolina and that facility never lost power, the ASGS was able to 
+continue operating autonomously without interruption and without 
+interaction or oversight for the duration of the storm.  
+
+\subsubsection{Output Visualization and Interaction}
+
+The results produced by the ASGS were converted in-situ to Google 
+Earth (kmz) graphics and posted to the OpenDAP server at RENCI for 
+use by the Newport NWS forecast office. The raw data in NetCDF 
+format were also posted to the OpenDAP server and then a 
+notification email was sent to the CERA web application. 
+
+The web application picked up the latest raw data, generated the 
+image tiles for the animations and maximum values visualizations at 
+all levels of detail, and sent email notification to selected 
+official end users at NOAA and the USCG to notify them that new 
+results were available for interaction over the web. The CERA 
+website itself was not password protected, but end users were 
+instructed not to publicize the availability of the site. The CERA 
+web processing required another 1 hour and 15 minutes to generate 
+image tiles for a particular advisory, for a total turn around time 
+of 2 hours and 30 minutes.
+
+There were myriad examples of the use of the ASGS/CERA results by 
+emergency managers and officials during the storm event. As stated 
+in the executive summary, several Admirals at the USCG personally 
+examined and interacted with the ASGS/CERA results via the CERA site 
+and subsequently made the real time decision to evacuate their 
+command center in Virginia. The flooding depicted in the results did 
+occur, and the USCG was extremely pleased and satisfied with their 
+experience with the ASGS/CERA guidance.
+
+\section{Conclusions}
+
+What does it all mean?
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\acknowledgements{Acknowledgements}
+
+This material is based upon work supported by the US Army Corps of 
+Engineers, New Orleans District, under Award Numbers: 
+W912P8-09-P-0324 and W912P8-13-C-0036; the Coastal Hazards Center of 
+Excellence, a US Department of Homeland Security Science and 
+Technology Center of Excellence under Award Number: 2008-ST-061-ND 
+0001; and the University of North Carolina at Chapel Hill 
+Renaissance Computing Institute. Disclaimer: The views and 
+conclusions contained in this document are those of the authors and 
+should not be interpreted as necessarily representing the official 
+policies, either expressed or implied, of the US Department of 
+Homeland Security.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\conflictofinterests{Conflicts of Interest}
+
+The authors declare no conflicts of interest. 
+
+%=================================================================
+% References: Variant A
+%=================================================================
+% Back Matter (References and Notes)
+%----------------------------------------------------------
+% Style and layout of the references
+%\bibliographystyle{mdpi}
+%\makeatletter
+%\renewcommand\@biblabel[1]{#1. }
+%\makeatother
+
+%\begin{thebibliography}{1}
+
+% Reference 1
+%\bibitem{ref-journal}
+%Lastname, F.; Author, T. The title of the cited article. {\em Journal Abbreviation} {\bf 2008}, {\em 10}, 142-149.
+
+% Reference 2
+%\bibitem{ref-book}
+%Lastname, F.F.; Author, T. The title of the cited contribution. In {\em The Book Title}; Editor, F., Meditor, A., Eds.; Publishing House: City, Country, 2007; pp. 32-58.
+
+%\end{thebibliography}
+
+%=================================================================
+% References:  Variant B
+%=================================================================
+% Use the following option to include external BibTeX files:
+\bibliography{references}
+\bibliographystyle{mdpi}
+
+
+
+\end{document}
+
