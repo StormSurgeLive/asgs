@@ -391,40 +391,48 @@ roster of regional teams that develop and operate the ASGS.
 \end{figure}
 
 Investigators at the University of North Caronlina at Chapel Hill 
-Institute of Marine Sciences (UNC IMS) provide thought leadership 
-and mentorship for the ASGS project while Seahorse Coastal 
-Consulting has led the technical development and programming of the 
-ASGS code since the project's inception in 2006. Furthermore, 
-Seahorse Coastal Consulting also operates the ASGS for the New 
-Orleans District of the US Army Corps of Engineers and for the State 
-of North Carolina using HPC resources at the Engineering Research 
-and Development Center (ERDC) and Renaissance Computing Instutute 
-(RENCI), respectively, in real time when tropical cyclones are 
-threatening the Louisiana or North Carolina coasts. 
+Institute of Marine Sciences (UNC IMS) provides advocacy, visibility, 
+credibility and thought leadership for the overall ASGS project. 
 
-The Renaissance Computing Institute also provides HPC resources and 
-support as well as novel indexing, visualization and analysis 
-capabilities \cite {BlantonBO2012} that take advantage of the unique 
-structure of the ASGS and its autonomous, replicated production of 
-results. Furthermore, RENCI has also coordinated outreach with local 
+Seahorse Coastal Consulting has led the technical development and 
+programming of the ASGS code since the project's inception in 2006. 
+Furthermore, Seahorse Coastal Consulting also collaborates with UNC 
+IMS to operate the ASGS for the New Orleans District of the US Army 
+Corps of Engineers using HPC resources at the Engineering Research 
+and Development Center (ERDC) to produce guidance for the Louisiana 
+coast. Furthermore, Seahorse Coastal Consulting also collaborates with 
+the Renaissance Computing Institute (RENCI) to produce guidance for 
+the State of North Carolina using RENCI HPC resources. 
+
+In addition to HPC resources and support, the Renaissance Computing 
+Institute has also developed a series of novel cyberinfrastructure 
+capabilities (including indexing, visualization and analysis) \cite 
+{BlantonBO2012} that take advantage of the unique structure of the 
+ASGS and its autonomous, replicated production of results. In 
+addition, RENCI has also coordinated structured outreach with local 
 emergency managers to collect feedback on the provision of storm 
 surge information to improve the construction of output products and 
-their dissemination \cite{LosegoJL2012}. The ASGS for North Carolina 
-is further supported by teams at the University of Oklahoma and the 
-National Severe Storms Laboratory (NSSL) with a hydrological model 
-of eastern North Carolina that provides upstream river boundary 
-conditions. The NSSL also aggregates the final results from the 
-North Carolina ASGS with other meteorological and stream flow 
-information into a password-protected web application called Coastal 
-and Inland Flooding Observation and Warning (CIFLOW) \cite 
-{VanCootenS2011} for officials within NOAA. 
+their dissemination \cite {LosegoJL2012}. 
+
+The ASGS for North Carolina is further supported by teams at the 
+University of Oklahoma (OU) and the National Severe Storms 
+Laboratory (NSSL) with a hydrological model of eastern North 
+Carolina that provides upstream river boundary conditions. The NSSL 
+also aggregates the final results from the North Carolina ASGS with 
+other meteorological and stream flow information into a 
+password-protected web application called Coastal and Inland 
+Flooding Observation and Warning (CIFLOW) \cite {VanCootenS2011} for 
+officials within NOAA. The OU team has also contributed quantitative
+skill assessments of ASGS results for past events in order to 
+inform the future development of the system and its underlying 
+models. \cite{DresbackKM2013}
 
 The ASGS is also operated locally (and autonomously) by regional 
 team members in Louisiana and Texas. The Louisiana team is based at 
 Louisiana State University and operates the ASGS on HPC resources 
 there, advising the Louisiana Governor's Office of Homeland Security 
 and Emergency Preparedness (GOSHEP)  as well as numerous state and 
-local agencies using generated results from their own instance(s) of 
+local agencies using generated results from their own instances of 
 the ASGS when a tropical cyclone is threatening the Lousiana coast. 
 Furthermore, the Louisiana team is also the developer of the Coastal 
 Emergency Risks Assessment (CERA) web application that provides 
@@ -432,14 +440,15 @@ fully interactive map-based visualization of ASGS results for use by
 emergency managers and other officials in Louisiana.
 
 The Texas team operates the ASGS for the Texas coast on HPC 
-resources at the University of Texas \cite{DietrichJC2013} whenever
-a storm threatens the Texas coast. The Texas team advises the Texas
-State Operations Center (SOC), as well as other state and local emergency
-managment and National Weather Service (NWS) offices. Furthermore,
-the Texas team has developed locally appropriate visualization capabilities
-using the FigureGen software package, and was instrumental in the 
-production of NSF-sponsored ASGS results during the Deepwater Horizon event 
-in 2010 \cite{DietrichJC2012}. 
+resources at the University of Texas \cite{DietrichJC2013} whenever 
+a storm threatens the Texas coast. The Texas team advises the Texas 
+State Operations Center (SOC), as well as other state and local 
+emergency managment and National Weather Service (NWS) offices. 
+Furthermore, the Texas team has developed locally appropriate 
+visualization capabilities using the FigureGen software package, and 
+was instrumental in the production of NSF-sponsored ASGS results for 
+surface oil slick modeling during the Deepwater Horizon event in 
+2010 \cite {DietrichJC2012}. 
 
 In this regional team paradigm, all collaborators have full access 
 to the entire software stack and all documentation, which is freely 
@@ -537,19 +546,28 @@ of results proceed automatically, and the ASGS returns to the
 nowcast phase, waiting for new meteorological forcing data to become 
 available. This nowcast/forecast loop is the core of the ASGS, and 
 for the sake of simplicity this core functionality is implemented as 
-a single shell script. This implentation provides a clean, 
+a single shell script. This implementation provides a clean, 
 comprehensible, and approachable superstructure that modularizes all 
 complex processing into subprograms for tasks such as data 
 transmittal, job handling, post processing, visualization, and 
-archiving.
+archiving as shown in Figure~\ref{fig:asgs_structure}.
+
+%    A S G S   S T R U C T U R E   D I A G R A M 
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.8\textwidth]{asgs_structure_color}\\
+  \caption{The ASGS is implemented as a core shell script with specialized subprograms that perform complex tasks.}
+  \label{fig:asgs_structure}
+\end{figure}
+
 
 As a result of this architecture, starting up the ASGS is simply a 
 matter of executing the core shell script. All the components of the 
 ASGS are self-contained on a particular computing resource. 
 Furthermore, if more than one copy of the ASGS is needed (for 
-example, if reliability requirements indicate that guidance is to be 
-produced on a backup machine), starting up another instance is as 
-easy as executing the core shell script a second time.
+example, if reliability considerations require that guidance is also 
+produced on a second machine for redundancy), starting up another 
+instance is as easy as executing the core shell script a second time.
 
 Self-checking is the second most important aspect for achieving 
 reliable operation. The modular approach of the ASGS---where the 
@@ -566,80 +584,129 @@ if several consecutive attempts have not resulted in success, the
 subprogram willl exit and provide an informative status condition to 
 the core shell script. 
 
-The core ASGS shell script has its own exception handling when 
-confronted with subprograms that exit with anomalous status or 
-outright error messages. In most cases the ASGS is programmed to 
-simply re-execute the subprogram; for example, retrying a download 
-of meteorological forcing data if the previous attempt failed or the 
-downloaded file was corrupted. However, some error conditions are 
-more difficult to treat in an automated software system; for 
-example, there are myriad possible causes for the failure of a 
-numerical simulation and an automated system cannot be expected to 
-diagnose and deal with the root causes of such failures. 
+In addition, the core ASGS shell script has its own exception 
+handling when confronted with subprograms that exit with anomalous 
+status or outright error messages. In most cases the ASGS is 
+programmed to simply re-execute the subprogram; for example, 
+retrying a download of meteorological forcing data if the previous 
+attempt failed or the downloaded file was corrupted. However, some 
+error conditions are more difficult to treat in an automated 
+software system; for example, there are myriad possible causes for 
+the failure of a numerical simulation and an automated system cannot 
+be expected to diagnose and deal with the root causes of such 
+failures. 
 
 As a result, the ASGS is programmed to reject a failed numerical 
 simulation run and all its attendant data, and reconstruct it from 
 scratch, as long as new input data are not yet available. In fact, 
 the ASGS will continue to reconstruct and resubmit a failed nowcast 
-over and over without limit until new forcing data become available. 
-In contrast, the ASGS will abandon a failed forecast if the forecast 
-is unlikely to finish before the next set of input data (e.g., a new 
-forecast advisory from the National Hurricane Center) become 
-available. Once new forcing data have become available, the ASGS 
-will abandon a failed nowcast simulation in favor of constructing a 
-new nowcast run with up-to-date data. The difference in handling of 
-nowcast and forecast failure stems from the relative importance of 
-these two phases. The ASGS can continue without the results of a 
-forecast, but no further production is possble if the latest nowcast 
-run does not complete successfully. 
+over and over without limit until the run succeeds or new forcing 
+data become available. In contrast, the ASGS will abandon a failed 
+forecast if the forecast is unlikely to finish before the next set 
+of input data (e.g., a new forecast advisory from the National 
+Hurricane Center) become available. The difference in the responses 
+to nowcast and forecast failure stems from the relative 
+importance of these two phases. The ASGS can continue without the 
+results of a forecast, but no further production is possble if the 
+latest nowcast run does not complete successfully. 
 
 As a result of the multiple levels of exception handling that are 
 built into the ASGS architecture, the system is able to self heal 
-and overcome the surprisingly large number of anomalies that 
-regularly occur in real world HPC hardware, software, and networking 
+and overcome the anomalies that regularly occur in real world HPC 
 environments. The resiliency of the ASGS in the face of the 
 occasional dropped network connection, inexplicably corrupted file, 
 intermittently failing queueing system, hanging simulation job, 
-unresponsive file system, unavailable input data, or numerically 
-unstable solution file is critical because results must be produced 
-reliably without human interaction around the clock. 
+excessively backlogged job stream, unresponsive file system, 
+unavailable input data, or numerically unstable solution file is 
+critical because results must be produced reliably without human 
+interaction around the clock. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Portability}
 
-Portability results from the application of standard technologies and
-the extraction of necessarily platform dependent code into a well 
-contained subsystem that can be selected at run time. 
+In order to provide service in a wide variety of geographical areas, 
+as well as the ability to get up and running quickly on new HPC 
+resources, software portability is a key requirement. Portability 
+has been ensured for the ASGS by limiting software dependencies, by 
+relying only on the most broadly available packages and by 
+isolating platform dependent code. 
 
+One of the unique challenges of a real time software system that 
+runs on shared HPC resources (as opposed to closed systems that run 
+on their own dedicated resources) is that the operator of the ASGS 
+does not have any influence over the underlying HPC environment. As 
+a result, long lists of exotic software dependencies and strict or 
+unusual requirements for host system configuration create high 
+barriers to portability. In contrast, the goal of broad portability 
+is best met by limiting dependencies to the most widely available 
+software packages. This is why the main ASGS code consists of a bash 
+script; bash is all but guaranteed to be available on any HPC 
+resource. 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Most of the subprograms in the ASGS that perform specialized tasks 
+are written in perl, which is also almost certain to be available. 
+Other software requirements include Fortran, C, MPI and NetCDF 
+libraries. If post processing and visualization are also performed 
+by the ASGS on the compute host, the list of software requirements 
+will expand considerably, but these additional dependencies will be 
+driven by local needs, and are therefore likely to be satisfied on 
+local compute resources. 
+
+The other consideration for portability is the extent to which 
+platform dependent code intermingles with the much larger body of 
+generic code that is expected to run on all platforms. In order to 
+ensure maximum portability, platform dependent code must be 
+extracted and isolated. The ASGS contains a separate machine 
+dependent configuration script that contains information such as the 
+type of queueing system, the location of the scratch directory where 
+the ASGS should run, the names of the template files that should be 
+used when generating queue scripts, and so forth. In the core of the 
+ASGS, code that varies depending on the underlying queueing system 
+is isolated in two functions using a case/switch construct that 
+selects code that is appropriate to the host system. When the ASGS 
+is started, the operator provides the name of the machine on which 
+it is running, and the ASGS will use the machine name to select the 
+correct host-specific settings automatically.
+
+When installing the ASGS for the first time on a new HPC resource 
+where it has never run before, it is up to the operator to add the 
+machine specific settings to the ASGS platform dependencies file, 
+and use a working queue script to make a new queue script template 
+for the new resource. Once this step has been completed and the 
+resulting changes have been merged back into the ASGS, any operator 
+can start up the ASGS on that resource by simply providing the name
+of the host on the command line.
+
+These techniques for maintaining portability have been successful 
+and now facilitate the running of the ASGS on a diverse array of 
+architectures, from a desktop linux machine with no queueing system 
+at all to some of the largest HPC resources in the world (including 
+the garnet machine at ERDC with over 150,000 compute cores) 
+employing a variety of queueing systems including PBS, LoadLeveler, 
+SGE, and SLURM. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Relocatability}
 
-Relocatability basically rests on the system not making any 
-assumptions about the underlying mesh. That is, the static reference 
-information is abstracted away, in its own box, and any code that 
-uses the static reference information either makes no assumptions 
-about it, or relies on the ASGS configuration file. In its current 
-incarnation, the Operator must supply the mesh and an adcirc control 
-file that contains any static boundary conditions (for example, the 
-amplitude and phase of tidal constituents along the boundary). 
+Geographic relocatability derives from a software architecture that 
+makes no assumptions about mesh size, input file names, boundary 
+types, forcing, or the host platform that is likely to be used for 
+any particular mesh. As shown in the purple boxes in Figure~\ref 
+{fig:asgs_structure}, the geographically dependent files and 
+configuration are logically separate and are isolated in their own 
+subdirectory, with separate subdirectories corresponding to 
+different meshes and associated reference information and input 
+files. 
 
 The reference information includes a dynamic specification of system 
 behavior in the configuration file as well as static physical data, 
-embodied in the simulation input files ADCIRC. The system 
+embodied in the simulation input files for ADCIRC. The system 
 configuration consists of a single file, and all of the features and 
 behavior of the various components can be controlled from this 
 single configuration file. This file is used to activate or 
 deactivate the various types of physical forcing, including tropical 
 cyclone meteorology, ordinary meteorology, wave simulation and 
-coupling, tides, and river flow input. It is also used to specify a 
-wide variety of other settings, including (for example) the type of 
-computer that the system is running on, the number of processors to 
-use in parallel execution, the name of the ADCIRC mesh file for the 
-domain of interest, the number of storms in an ensemble and their 
-characteristics, the types of output products to generate, the email 
-addresses of officials that should be notified when results are 
-ready, and many others. 
+coupling, tides, and river flow input. 
 
 The simulation input files represent a purely static set of physical 
 data that are used in the simulations. These data include the ADCIRC 
@@ -648,34 +715,73 @@ domain, the spatially varying Manning's n value, and the directional
 wind roughness lengths and canopy effects derived from land cover 
 data. The static data also include the tidal constituents to be 
 included (if any), convergence controls and solution parameters for 
-SWAN and ADCIRC, the names and locations of point recording stations 
-for location-specific output data, and other data related to the 
-internal procedures of the simulation codes. 
+SWAN and ADCIRC, and output controls, among other parameters.
+
+When adding a new geographical location that has not been previously 
+used in the ASGS, the mesh file name and the names of the other 
+static input files must be supplied in the ASGS configuration file. 
+Furthermore, the ADCIRC control file (known in ADCIRC parlance as 
+fort.15, and which also contains boundary condition information and 
+is specific to a particular mesh file) must be converted into a 
+template, with nearly all parameters---including such things as the 
+timestep and the output control---removed and replaced with special 
+character strings that can be filled in by the ASGS subprograms 
+during automated execution.
+
+Once the static files have been provided and a template version of 
+the ADCIRC control file has been constructed by the operator, the 
+names of the files are provided in the ASGS configuration and the 
+ASGS can begin running and providing results on the new mesh with 
+no other changes required.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Extensibility}
 
-An overview of the resulting modular structure of the ASGS is shown 
-in Figure 1. The figure indicates the separation of components into 
-(1) reference information (in purple), which specify the system 
+Originally, extensibility was not a design goal of the original Lake 
+Pontchartrain Forecast System, and is not a consideration for 
+operational forecasting systems in general. A common reason for the 
+lack of emphasis on extensibility is that real time guidance systems 
+are undertaken with a narrowly defined set of goals. The demand to 
+extend a real time guidance system to novel purposes in reaction to 
+new circumstances is either unanticipated (in the case of the 
+original LPFS) or impossible to fulfill in the case of operational 
+systems, because these may not be modified once they have been 
+approved for production. However, it is a critical feature of the 
+current ASGS, and has allowed the ASGS to be rapidly modified in 
+real time with new capabilities.
+
+As stated previously, the ASGS was designed for extensibility once 
+it became clear that new capabilities would have to be added on the 
+fly in response to new challenges and client needs. The modularity 
+shown in Figure~\ref{fig:asgs_structure} that serves the needs of 
+reliability, portability, and relocatability as described in the 
+previous sections is also ideal for extensibility. Figure~\ref 
+{fig:asgs_structure} indicates the separation of components into (1) 
+reference information (in purple), which specify the system 
 configuration and physical parameter data used in the simulation; 
 (2) dynamic input data (in red) that varies in time and must be 
 downloaded from external data sources for every forecast cycle; (3) 
 input file production (in green), which implements the system 
 behavior specified by the user in the system configuration files; 
 and (4) output visualization, publication, and interaction (in blue) 
-for use by clients and end users. These modules will be described in 
-greater detail below, in the context of the objectives of the 
-overall system. 
+for use by clients and end users. 
 
-%    A S G S   S T R U C T U R E   D I A G R A M 
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.5\textwidth]{asgs_structure_color}\\
-  \caption{ASGS Structure.}
-  \label{fig:asgs_structure}
-\end{figure}
+Because each of the complex subtasks that make up the process has 
+been modularized into a specialized subprogram that focuses on only 
+that task, and because the core program is simply a shell script 
+with a single comprehensive configuration file, swapping an existing 
+capability or behavior with a new one is simply a matter of swapping 
+in a new subprogram to replace one of the existing ones.
 
+The ASGS has taken this concept one step further by making the names 
+of certain subprograms, such as those involved in post processing, 
+configurable parameters in and of themselves. For example, the name 
+of the post processing script itself is a configuration parameter in 
+the ASGS configuration file, which means that any executable program 
+of any kind can be plugged in to the ASGS for use in post 
+processing. In this way, post processing in the ASGS is not really 
+analogous to a static subroutine call and is more like a hook that 
+can be used to attach any functionality.  
 
 Extensibility also comes from the use of standards, including 
 dissemination standards such as OpenDAP as well as metadata 
@@ -684,8 +790,8 @@ types of post processing including built in (non-interactive) post
 processing like FigureGen, RenciGETools as well as interactive post 
 processing like CERA and AdcircViz.
 
-Extensibility stems from the ability to plug in new capabilities
-either in a forecast ensemble, forcing types, or output processing.
+Extensibility stems from the ability to plug in new capabilities 
+either in a forecast ensemble, forcing types, or output processing. 
 The oil spill work is a good example of this (plugging in the 
 particle tracking to the post processing). 
 
