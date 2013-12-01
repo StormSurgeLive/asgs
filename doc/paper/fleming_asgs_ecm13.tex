@@ -568,26 +568,41 @@ the core shell script.
 
 The core ASGS shell script has its own exception handling when 
 confronted with subprograms that exit with anomalous status or 
-outright error messages. In such cases the ASGS may re-execute the 
-subprogram; for example, retrying a download of meteorological 
-forcing data if the previous attempt failed or the downloaded file 
-was corrupted. On the other hand the ASGS may reject the results of 
-a simulation run and retry in the case of a failed nowcast 
-simulation run. Or it may reject the results of a simulation run and 
-give up on the current forecast (as opposed to retrying) as in the 
-case of a forecast simulation that has failed after a subsequent 
-forecast advisory has become available. 
+outright error messages. In most cases the ASGS is programmed to 
+simply re-execute the subprogram; for example, retrying a download 
+of meteorological forcing data if the previous attempt failed or the 
+downloaded file was corrupted. However, some error conditions are 
+more difficult to treat in an automated software system; for 
+example, there are myriad possible causes for the failure of a 
+numerical simulation and an automated system cannot be expected to 
+diagnose and deal with the root causes of such failures. 
+
+As a result, the ASGS is programmed to reject a failed numerical 
+simulation run and all its attendant data, and reconstruct it from 
+scratch, as long as new input data are not yet available. In fact, 
+the ASGS will continue to reconstruct and resubmit a failed nowcast 
+over and over without limit until new forcing data become available. 
+In contrast, the ASGS will abandon a failed forecast if the forecast 
+is unlikely to finish before the next set of input data (e.g., a new 
+forecast advisory from the National Hurricane Center) become 
+available. Once new forcing data have become available, the ASGS 
+will abandon a failed nowcast simulation in favor of constructing a 
+new nowcast run with up-to-date data. The difference in handling of 
+nowcast and forecast failure stems from the relative importance of 
+these two phases. The ASGS can continue without the results of a 
+forecast, but no further production is possble if the latest nowcast 
+run does not complete successfully. 
 
 As a result of the multiple levels of exception handling that are 
 built into the ASGS architecture, the system is able to self heal 
-and overcome the surprising large number of anomalies that regularly 
-occur in the typical HPC hardware, software, and networking 
-environment. The resiliency of the system in the face of the 
+and overcome the surprisingly large number of anomalies that 
+regularly occur in real world HPC hardware, software, and networking 
+environments. The resiliency of the ASGS in the face of the 
 occasional dropped network connection, inexplicably corrupted file, 
-intermittently failing queueing system, unresponsive file system, 
-unavailable input data, or numerically unstable solution file is 
-critical for any system that must run reliably without human 
-interaction around the clock. 
+intermittently failing queueing system, hanging simulation job, 
+unresponsive file system, unavailable input data, or numerically 
+unstable solution file is critical because results must be produced 
+reliably without human interaction around the clock. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Portability}
