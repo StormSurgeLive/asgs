@@ -100,40 +100,36 @@ and widespread independent application.}
 
 \section{Introduction}
 
-(\cite{DietrichJC2012}) 
-(\cite{DietrichJC2013}) 
-(\cite{BlantonBO2012})
-(\cite{LosegoJL2012})
 
-Over the course of time, the approach to numerical storm surge 
-calculations evolved in two separate directions: simulations that 
-were meant to be used operationally, and those that were meant to be 
-used in an offline design study. Although both approaches relied 
-heavily on probabilistic formulation of the input and statistical 
-interpretation of the output, the availablility of computational 
-resources that could be applied in each case was assumed to be 
-different. The model implementations meant for operations were 
-required to run with lower resolution and lower provision of 
-computational resources than model implementations used for offline 
-design studies. 
+Over the course of time, resource allocation for numerical storm 
+surge calculations evolved on two separate tracks: simulations that 
+were meant to be used operationally for emergency management, and 
+those that were meant to be used in an offline design study. 
+Computational resource allocation for real time storm surge 
+applications has historically been far lower than in design studies 
+and other non-real time applications. 
 
 This bimodal distribution of resource requirements was strongly 
 evident during the approach and landfall of hurricane Katrina on the 
 northern Gulf coast of the US in 2005. The official storm surge 
-forecasts that were produced in real time for Katrina contained a 
-lower level of detail and realism than the offline coastal 
-engineering design studies that were commonly performed at that time 
-using ADCIRC. 
+forecasts that were produced in real time for Katrina using SLOSH 
+contained a lower level of resolution and far lower computational 
+resource allocation than the concurrent levee redesign project for 
+southern Louisiana using ADCIRC and a high resolution input data set.
 
-As a result, in the aftermath of Katrina, there was strong 
-motivation to bring the detail, realism and computational resources 
-of a design study to bear in real time. The ADCIRC Surge Guidance 
-System (ASGS) was conceived as a way to run the ADCIRC coastal ocean 
-and storm surge model in real time in the event of a tropical 
-cyclone threat. This paper updates our previous paper on the subject 
-\cite{FlemingJG2008} and describes the challenges associated with 
-running such a model in real time; the technical approaches that 
-were used in the design of the ASGS, and a survey of recent results. 
+As a result of the desire for enhanced resolution and detail in real 
+time guidance in the aftermath of Katrina, there was strong 
+motivation to bring the computational resources of a design study to 
+bear in real time. The ADCIRC Surge Guidance System (ASGS) was 
+conceived at that time as a way to run the ADCIRC coastal ocean and 
+storm surge model in real time in the event of a tropical cyclone 
+threat. 
+
+This paper on the ASGS updates our previous paper on the same 
+subject \cite {FlemingJG2008} and describes the challenges 
+associated with running such a model in real time; the technical 
+approaches that were used in the design of the ASGS, and a survey of 
+recent results. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -141,82 +137,93 @@ were used in the design of the ASGS, and a survey of recent results.
 
 A significant number of other researchers have produced automation 
 software for coastal ocean models. As the technology supporting 
-numerical storm surge calculations developed, the value of the 
-predictions for real time emergency response became more and more 
-clear. The first attempt to apply an existing coastal model in a 
-real time context was the SLOSH model \cite{JelesnianskiCP1992}.
+numerical storm surge calculations has developed, the value of the 
+predictions for real time emergency response became. The first 
+attempt to apply an existing coastal model in a real time context 
+was the SLOSH model \cite{JelesnianskiCP1992}. The SLOSH model
+requires minimal computational resources (running on a desktop
+computer) and is thus able to complete forecast ensembles consisting
+of hundreds of possible variations in only a few minutes.
 
-More recently, the Southeast Coastal Ocean Observing and Prediction 
-(SCOOP) system relied on a geographically dispersed chain of 
-participants linked via Local Data Manager (LDM) from Unidata \cite 
-{RamakrishnanL2006}. This SCOOP System represented an experimental 
-cyberinfrastructure approach to distributed computation for storm 
-surge prediction along the North Carolina Coast. It used ADCIRC for 
-storm surge, and a separate Holland\cite{HollandGJ1980} symmetric 
-vortex model for meteorological forcing based on the National 
-Hurricane Center's forecast advisories. Computational resources were 
-obtained opportunistically using the Globus Toolkit, and files were 
-transferred via GridFTP.  
+More recently, several pilot projects have been developed to run a 
+full scale ADCIRC model in real time to provide guidance for 
+emergency managers. The first of these was the Southeast Coastal 
+Ocean Observing and Prediction (SCOOP) system. This collaborative 
+system relied on a geographically dispersed chain of contributors 
+whose real time contributions to the guidance process were linked 
+via Local Data Manager (LDM) from Unidata \cite {RamakrishnanL2006}. 
+This SCOOP System represented an experimental cyberinfrastructure 
+approach to distributed computation for storm surge prediction along 
+the North Carolina Coast. It used ADCIRC for storm surge, and a 
+separate Holland\cite{HollandGJ1980} symmetric vortex model for 
+meteorological forcing based on the National Hurricane Center's 
+forecast advisories. Large scale high performance computing (HPC) 
+resources were obtained opportunistically using the Globus Toolkit, 
+and files were transferred via GridFTP.  
 
 Separately from the SCOOP System, the North Carolina Forecast System 
 (NCFS) \cite{MattocksC2006} was also developed for the North 
-Carolina coastline. It included a new asymmetric vortex model and 
-also used ADCIRC for storm surge computations. The system made use 
-of different modes of operation, including background mode (tides 
-only), nowcast event mode and forecast event mode mode in the event 
-of a tropical cyclone. 
+Carolina coastline. It included a new asymmetric vortex model for 
+production of meterological forcing data from National Hurricane 
+Center Forecast Advisories and also used ADCIRC for storm surge 
+computations. This system made use of different modes of operation, 
+including background mode (tides only), nowcast event mode and 
+forecast event mode mode in the event of a tropical cyclone. 
 
-A relocatable ADCIRC automation system for the US Navy was developed 
-\cite{ChuP2009} using a powerful template approach for constructing 
-input files; this technique was later adopted in the design of the 
-ASGS. The Navy system used a toolbox approach that would allow 
-simulations to be run in an automated or manual way. It divided up 
-programs into five modules as follows: (1) system set up; (2) data 
-acquisition; (3) model configuration; (4) model run status; and (5) 
-product generation and dissemination. The toolbox also included a 
-MeshGUI program that could be used by the operator to construct a 
-new mesh in a short period of time if one was not already available 
-for the area of interest. 
+A relocatable ADCIRC automation system for the US Navy was recently 
+developed \cite{ChuP2009} using a powerful template approach for 
+constructing input files; this technique was later adopted in the 
+design of the ASGS. The US Navy system used a toolbox approach that 
+would allow simulations to be run in an automated or manual way. It 
+divided up programs into five modules as follows: (1) system set up; 
+(2) data acquisition; (3) model configuration; (4) model run status; 
+and (5) product generation and dissemination. The toolbox even 
+included a novel MeshGUI program that could be used by the operator 
+to rapidly construct a new mesh in a short period of time if one was 
+not already available for the area of interest. 
 
-In the aftermath of hurricane Katrina, the Lake Pontchartrain 
-Forecast System (LPFS) was developed for the New Orleans District of 
-the US Army Corps of Engineers \cite{FlemingJG2008}. The original 
-target region was the south shore of Lake Pontchartrain, just north 
-of the city of New Orleans in Louisiana, USA. The Corps of Engineers 
-had installed movable surge protection gates at the ends of the 17th 
-St, Orleans Ave, and London Ave canals, which drain rainwater from 
-the city. At that time, the surge gates were operated by cranes that 
-could not be used in high winds; as a result, the timing and 
-magnitude of both winds and surge were important. 
+As stated previously, hurricane Katrina was the catalyst for the 
+development of the Lake Pontchartrain Forecast System (LPFS) for the 
+New Orleans District of the US Army Corps of Engineers \cite 
+{FlemingJG2008}. The original target region was the south shore of 
+Lake Pontchartrain (just to the north of the city of New Orleans) in 
+Louisiana, USA. This location was selected because the Corps of 
+Engineers had installed movable surge protection gates at the ends 
+of the 17th St, Orleans Ave, and London Ave canals, which drain 
+rainwater from the city. At that time, the surge gates were operated 
+by cranes that could not be used in high winds; as a result, 
+guidance on both the timing and magnitude of both winds and surge 
+were important.
 
-The LPFS (the direct ancestor of the ASGS described here) did not 
-include tidal forcing, river forcing, or wave coupling, and only 
-generated simple hydrographs and wind speed plots for those three 
-locations in real time. After its introduction in 2006 and continued 
-development thereafter, the system was renamed the ADCIRC Surge 
-Guidance System in 2009 to reflect its expansion of application 
-beyond Lake Pontchartrain. 
+The original LPFS (the direct ancestor of the ASGS described here) 
+did not include tidal forcing, river forcing, or wave coupling, and 
+only generated simple hydrographs and wind speed plots for those 
+three locations in real time. After its introduction in 2006 and 
+continued development thereafter, the system was renamed the ADCIRC 
+Surge Guidance System in 2009 to reflect its expansion of 
+application beyond Lake Pontchartrain. 
 
-The following section describes the increased demand for real time 
-ADCIRC products that arose after the system was introduced, and the 
-methods by which this demand was fulfilled. 
+The following section describes the evolution of the system from
+its relatively limited form as the LPFS to the more flexible and 
+powerful ASGS.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Methods}
 
-The challenges associated with the delivery of real time ADCIRC results
-and the methods by which these challeges were met are provided in this
-section.
+The design guidelines and workflow structure of the ASGS have developed 
+according to the needs of emergency managers and official decision
+makers as detailed in the following sections. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Design Considerations}
 
-The two hurricane seasons after the introduction of the ASGS were 
-relatively quiet for the US in the Gulf of Mexico. In contrast, the 
-2008 season saw the landfall of hurricanes Gustav and Ike in quick 
-succession as shown in Figure \ref{fig:hurricanes_2008}.
+The hurricane seasons of 2006 and 2007 after the initial deployment 
+of the LPFS were relatively quiet for the US in the Gulf of Mexico. 
+However, the following season (2008) saw the landfall of hurricanes 
+Gustav and Ike in quick succession as shown in Figure \ref 
+{fig:hurricanes_2008}.
 
 %    4   A T L A N T I C    H U R R I C A N E S 
 \begin{figure}[t]
@@ -226,23 +233,24 @@ succession as shown in Figure \ref{fig:hurricanes_2008}.
   \label{fig:hurricanes_2008}
 \end{figure}
 
-During the evolution of Gustav, it became apparent that demand for 
-real time results from ADCIRC was needed in many geographical areas 
-beyond those originally envisioned. However, at that time the ASGS 
-had been only been programmed to produce results for the original 
-three locations as specified prior to the start of the season. A 
-significant reprogramming effort had to be mounted in real time, 
-between forecast advisories, to keep up with the unanticipated 
-expansion in demand for guidance in many other locations. 
+During Gustav's evolution and approach, interaction with official 
+decision makers made it clear that they had a strong need for real 
+time ADCIRC guidance for many geographical areas beyond those 
+originally selected. However, at that time the LPFS was a software 
+automation with a geographically limited scope. A significant 
+reprogramming effort was mounted in real time, between forecast 
+advisories, to attempt keep up with the unanticipated expansion in 
+demand for guidance in many other geographic locations. 
 
 This ability to reprogram and adapt to changing needs in real time 
 is a distinct advantage that the ASGS has over operational systems. 
 As an aside, the word ``operational'' has a specific definition, 
-meaning that the underlying model and software have been approved by 
-a particular agency and cannot be changed once they have been 
-accepted for production. The ASGS, on the other hand, suffers no 
-such limitations on its adaptability, and many changes can be made 
-to the system, even in real time, to adapt it to the current 
+meaning that the underlying model, input data, and automation 
+software have been approved under a particular set of criteria and 
+cannot be changed once they have been accepted for production. The 
+ASGS, on the other hand, suffers no such limitations on its 
+adaptability, and many changes can be made to the system, even in 
+real time during the approach of a storm, to adapt it to the current 
 circumstances. However, prior to the approach of hurricane Gustav in 
 2008, such flexibility had not been a design goal.
 
@@ -258,159 +266,121 @@ hurricane Ike also highlighted the value of ongoing technical
 collaboration among regional participants that can share the 
 technical and computational workloads during major events. 
 
-After dealing with the challenges of the hurricanes Ike and Gustav 
-and enjoying a broad expansion in the intended scope the ASGS, a new 
-vision was developed for refining the design and implementation of 
-the system. These refinements focused on creating a system that was 
-reliable, collaborative, portable, relocatable, and extensible.  
+In summary, after dealing with the challenges of the hurricanes Ike 
+and Gustav during the 2008 season, it was found that (1) strong and 
+growing demand existed for real time storm surge guidance using 
+ADCIRC; (2) the narrow focus of the LPFS created gaps in 
+relocatability, extensibility, portability, relocatability, and 
+collaboration that would have to be closed in order to fulfill that 
+demand. 
 
-The methods for achieving each of these characteristics are 
-described in the following subsections. 
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Reliable}
-
-Speed and accuracy are useless if the results cannot be produced 
-because of software or hardware issues, and simplicity is the most 
-important design consideration for reliable operation. An overview 
-of system operation that illustrates its relative simplicity is 
-shown in Figure \ref{fig:asgs_overview}.
-
-%    A S G S   O V E R V I E W   F L O W C H A R T
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.5\textwidth]{asgs_overview_color}\\
-  \caption{The architecture of the ASGS is conceptually simple.}
-  \label{fig:asgs_overview}
-\end{figure}
-
-Each instance of the ASGS is entirely self-contained on a particular 
-computing resource, and its operation consists of three phases: 
-hindcast, nowcast, and forecast. The hindcast phase only occurs once 
-for any ASGS instance, but the nowcast/forecast cycle occurs each 
-time the meteorological forcing is updated (e.g., whenever the 
-National Hurricane Center issues a new advisory). 
-
-These phases are the core of the ASGS, and for the sake of 
-simplicity are implemented as a single shell script. This approach 
-provides a clean and accessible representation of the functionality 
-while modularizing all complex processing into subprograms for tasks 
-such as data transmittal, job handling, post processing, and 
-visualization.
-
-Self-checking is the second most important aspect for achieving 
-reliable operation. Once an automation code has been thoroughly 
-tested, the main source of reliability problems tend to be in the 
-underlying computing environment or the source data streams. A 
-modular approach like that used by the ASGS allows the core program 
-to hand off tasks to subprograms and check their results when 
-subtasks have been completed. 
-
-If self-checks indicate that errors or anomalies were generated, the 
-core program can take appropriate actions including trying again, 
-starting over, or giving up and looking for the next set of forcing 
-data. Pervasive use of consistency and sanity checks (coupled with 
-well planned responses to error conditions) results in an overall 
-system that is resilient to endogenous issues as well as those 
-generated by anomalies in the host environment.
+The methods that were applied during the expansion and 
+generalization of that initial system are described in the following 
+sections. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Collaborative}
+\subsection{Collaboration Strategy}
 
 The selection of a collaboration strategy has a suprisingly strong 
-influence on the quality and longevity of the underlying technology. 
-Collaboration for high performance computing projects can take many 
-forms, including a closed system, a distributed chain, or regional 
-teams. Each of these are described below, along with their effects 
-on development processes, real time operations, and technological 
-vibrancy.
+influence on the quality and longevity of the underlying technology 
+products. Collaboration has many advantages as well as pitfalls, and 
+successful collaboration requires that the incentives of the 
+participants be aligned and that each contributor maintain a focus 
+on results rather than process. 
 
-A closed system is the result of a collaboration within a unified 
-team of developers that takes responsibility for every aspect of the 
-system: gathering of physical (e.g., bathymetry) data, construction 
-of a meteorological model, offline validation, computational 
-resources, post processing, visualization, dissemination to end 
+In order to illustrate the characteristics of different 
+collaboration strategies that are commonly used when developing real 
+time storm surge guidance system, three different collaboration 
+strategies are described here. These three strategies are termed the 
+``closed system'', the ``distributed chain'', and the ``regional 
+team'' approach. Each of these are described below, along with their 
+effects on development processes, real time operations, and 
+technological vibrancy.
+
+A so-called ``closed system'' is the result of a collaboration 
+within a unified team of developers that takes responsibility for 
+every aspect of the system and its operation: gathering of physical 
+(e.g., bathymetry) data, construction of a meteorological model, 
+offline validation, computational resource allocation, post 
+processing, visualization, dissemination of output products to end 
 users within the same organization, and the software automation to 
 make the whole stack run in real time. Nearly all real time guidance 
-systems detailed in the academic literature were developed using 
-this approach.
+systems for storm surge that have been detailed in the research 
+literature were developed using this approach.
 
 The advantages of a closed system are simplicity and control. 
 Simplicity results from the need to only code for a single 
 computational plaform with a narrow set of capabilites as required 
 to satisfy the target audience. All other things being equal, simple 
 systems are more reliable and easier to maintain than complex 
-systems. Closed systems are also easier to control. This ease of 
-control stems from the availability of dedicated resources, 
-including compute time, staff time, and a single chain of command 
-with high level buy-in for the stated objectives of the real time 
-guidance system.
+systems. Closed systems are also easier to control because they 
+benefit from the availability of dedicated resources, including HPC 
+resources, staff time, and a single chain of command with high level 
+buy-in for the stated objectives of the real time guidance system.
 
 The disadvantages of the closed system are expense, inflexibility, 
 and insularity. Closed systems are relatively expensive because all 
-research, development and maintenance costs must be borne by a 
-single working group within an organization. New features and 
-capabilities can only be produced as the time and budget of that 
+research, development, maintenance, and operation costs must be 
+borne by a single working group within an organization. New features 
+and capabilities can only be produced as the time and budget of that 
 group allows, and development of new capabilities must be balanced 
 against the need to maintain and operate in production.
 
-The final disadvantage any closed systems is insularity. The lack of 
-technology sharing with other working groups, or applications for 
+The final disadvantage of any closed system is insularity. The lack 
+of technology sharing with other working groups, or applications for 
 other projects or end users tends to limit the expansion of the 
 technology to new areas, especially those outside the experience of 
 the foundational team. 
 
-An alternate architecture that we call the ``distributed chain'' is 
-the polar opposite of the closed system described previously. The 
-distributed chain system distributes the load and responsibility of 
-developing each piece of a real time guidance system to several 
-geographically dispersed organizations that are linked through the 
-internet via a common data bus that is used to download products, 
-then upload them after some processing or contribution to the final 
-result. For example, one organization may be run a numerical weather 
-model, while another orgainzation sets up a surge model, with 
-computational resources being offered by yet another organization. 
+In contrast, the second type of collaboration strategy, the 
+``distributed chain'' approach, is the polar opposite of the closed 
+system described previously. The distributed chain strategy starts 
+by conceptually modularizing the overall functionality into discrete 
+subsystems. The responsibility for development and real time 
+operation of each subsystem is then distributed to separate 
+organizations that are linked through the internet via a common data 
+bus that allows them to build storm surge products in an assembly 
+line fashion. For example, one organization may be run a numerical 
+weather model, while another orgainzation sets up a surge model, 
+with computational resources being offered by a third organization. 
+The distributed chain approach was pioneered by the team that 
+developed the SCOOP system and applied it to real time storm surge 
+guidance for the North Carolina Coast. \cite{RamakrishnanL2006}
 
 The advantages and disadvantages of the distributed chain system are 
-mostly the inverse of the closed system. The disadvantages are 
-complexity and lack of control: each time another institution or 
-software system are included in the chain, the system becomes more 
-complex and the number of potential points of failure increases. The 
-increase in the number of failure points is particularly significant 
-because the chain is only as strong as its weakest link. And because 
-each link in the chain is operated independently, there isn't a 
-single point of accountability for all of the participants.
+mostly the inverse of the closed system. The advantages of the 
+distributed chain are flexibility and vibrancy. Because of the 
+open-participation philosophy and sharing of a common data bus, the 
+barrier to entry of new participants and new ideas is low, and as a 
+result such collaboration strategies attract new ideas and new 
+participants easily.
 
-The advantages of the distributed chain are flexibility and 
-vibrancy. Because of the open-participation philosophy and sharing 
-of a common data bus, the barrier to entry of new participants and 
-new ideas is low, and as a result such architectures attract new 
-ideas and new participants easily.
+The disadvantages of a distributed chain are complexity and lack of 
+control: each time another institution or software system are 
+included in the chain, the system becomes more complex and the 
+number of potential points of failure increases. The increase in the 
+number of failure points is particularly significant because the 
+chain is only as strong as its weakest link. And because each link 
+in the chain is operated independently, there isn't a single point 
+of accountability for all of the participants.
 
-Finally, both closed systems and distributed chains face the burden 
-of reinventing the wheel when implemnting new features, and even 
+Both closed systems and distributed chains face the burden of 
+reinventing the wheel when implementing new features, and even 
 issues of long term viability; these issues result from a lack of 
 freely shared technology. Closed system technologies and the 
 individual components of distributed chain systems are generally 
-kept ``in-house'' and not freely shared with other developers 
-outside the organization. As a result, technological features must 
-be created from scratch whenever a new group decides to develop a 
-real time coastal forecast system. Furthermore, the products of 
-these teams will continue to be available only from their original 
+kept ``in-house'' and are not freely shared with other developers 
+outside the organization. Even within a given team, staff turnover 
+may create continuity issues. Furthermore, the products of these 
+teams will continue to be available only from their original 
 developers and only for as long as they are able to produce them, 
-and the issues of stagnation still apply to those technologies.
+and the issues of insularity still apply to those technologies.
 
 In order to combine the advantages of both the closed system and 
 distributed chain approaches while avoiding their respective 
 disadvantages, the ASGS has been developed using a regional team 
-approach. In this paradigm, shown in Figure \ref
-{fig:regional_teams}, the technology and know-how associated with it 
-are freely shared among participants, while the responsibility for 
-local validation, securing computational resources, real time 
-execution and communication with local emergency manager and high 
-level officials are distributed to regional teams to apply the ASGS 
-to issues of local interest. 
+approach. Figure \ref{fig:regional_teams} illustrates the current 
+roster of regional teams that develop and operate the ASGS. 
 
 %    R E G I O N A L   T E A M S  
 \begin{figure}[t]
@@ -420,10 +390,71 @@ to issues of local interest.
   \label{fig:regional_teams}
 \end{figure}
 
+Investigators at the University of North Caronlina at Chapel Hill 
+Institute of Marine Sciences (UNC IMS) provide thought leadership 
+and mentorship for the ASGS project while Seahorse Coastal 
+Consulting has led the technical development and programming of the 
+ASGS code since the project's inception in 2006. Furthermore, 
+Seahorse Coastal Consulting also operates the ASGS for the New 
+Orleans District of the US Army Corps of Engineers and for the State 
+of North Carolina using HPC resources at the Engineering Research 
+and Development Center (ERDC) and Renaissance Computing Instutute 
+(RENCI), respectively, in real time when tropical cyclones are 
+threatening the Louisiana or North Carolina coasts. 
+
+The Renaissance Computing Institute also provides HPC resources and 
+support as well as novel indexing, visualization and analysis 
+capabilities \cite {BlantonBO2012} that take advantage of the unique 
+structure of the ASGS and its autonomous, replicated production of 
+results. Furthermore, RENCI has also coordinated outreach with local 
+emergency managers to collect feedback on the provision of storm 
+surge information to improve the construction of output products and 
+their dissemination \cite{LosegoJL2012}. The ASGS for North Carolina 
+is further supported by teams at the University of Oklahoma and the 
+National Severe Storms Laboratory (NSSL) with a hydrological model 
+of eastern North Carolina that provides upstream river boundary 
+conditions. The NSSL also aggregates the final results from the 
+North Carolina ASGS with other meteorological and stream flow 
+information into a password-protected web application called Coastal 
+and Inland Flooding Observation and Warning (CIFLOW) \cite 
+{VanCootenS2011} for officials within NOAA. 
+
+The ASGS is also operated locally (and autonomously) by regional 
+team members in Louisiana and Texas. The Louisiana team is based at 
+Louisiana State University and operates the ASGS on HPC resources 
+there, advising the Louisiana Governor's Office of Homeland Security 
+and Emergency Preparedness (GOSHEP)  as well as numerous state and 
+local agencies using generated results from their own instance(s) of 
+the ASGS when a tropical cyclone is threatening the Lousiana coast. 
+Furthermore, the Louisiana team is also the developer of the Coastal 
+Emergency Risks Assessment (CERA) web application that provides 
+fully interactive map-based visualization of ASGS results for use by 
+emergency managers and other officials in Louisiana.
+
+The Texas team operates the ASGS for the Texas coast on HPC 
+resources at the University of Texas \cite{DietrichJC2013} whenever
+a storm threatens the Texas coast. The Texas team advises the Texas
+State Operations Center (SOC), as well as other state and local emergency
+managment and National Weather Service (NWS) offices. Furthermore,
+the Texas team has developed locally appropriate visualization capabilities
+using the FigureGen software package, and was instrumental in the 
+production of NSF-sponsored ASGS results during the Deepwater Horizon event 
+in 2010 \cite{DietrichJC2012}. 
+
+In this regional team paradigm, all collaborators have full access 
+to the entire software stack and all documentation, which is freely 
+shared. In addition, each team has a responsibility to provide real 
+time guidance only in their local area and the freedom to adapt and 
+enhance the ASGS as needed to meet the needs of local officials. 
+This approach distributes the workload of development and operation 
+to a large group (as in the distributed chain approach) while 
+maintaining strong accountability and results orientation as in the 
+closed system approach. 
+
 The regional team approach offers the flexibility and vibrancy of 
 the distributed chain, since the existing technology is freely 
 shared among participants, enabling new participants to get up to 
-speed quickly while existing participants benefit from sharing  new 
+speed quickly while existing participants benefit from sharing new 
 features. It also solves the weakest link and accoutability issues 
 inherent in the distributed chain approach, since each regional team 
 operates independently in a self-contained way during a real time 
@@ -436,36 +467,138 @@ maintenance efforts and new feature development is distributed among
 all participants, while the benefits of those efforts are shared by 
 all, preventing any regional team from having to reinvent the wheel. 
 However, in order for the benefits of technology sharing to accrue, 
-a central coordinator or guide must take responsibility for 
-integrating disparate features, developing new features in the 
-underlying numerical model(s) to support new capabilities in the 
+a central figure must take responsibility for coordinating the 
+efforts of the various teams, integrating disparate features 
+developed by different regional teams, developing new features in 
+the underlying numerical models to support new capabilities in the 
 software automation system, writing or aggregating documentation, 
-ensuring continuity, and providing training or capacity building. 
+ensuring continuity, and providing training and capacity building. 
+Seahorse Coastal Consulting serves in this central supporting role, 
+developing the ASGS documentation, conducting training seminars, and 
+providing the general technical cohesion that facilitates the 
+merging of new features back into a unified technology stack that 
+benefits all participants. 
 
-Finally, and perhaps most importantly, securing computational 
-resources with the regional team approach is cheaper and easier than 
-through any other approach. Regional computing centers have an 
-inherent incentive to provide resources to support real time 
-modeling for a current event that is directly relevant to their 
-local environment, and a disincentive to provide resources for 
-events that are not locally relevant. This dovetailing of interests 
-greatly simplifies and facilitates access to computational 
-resources, and in our experience this advantage should not be 
-underestimated. 
+The final and perhaps most important advantage of the regional team 
+collaboration strategy is that it dramatically enhances the 
+likelihood that dedicated access to shared HPC resources will be 
+granted for use in real time storm surge computations. Regional 
+shared-resource HPC centers have an inherent incentive to provide 
+resources to support real time modeling for a current event that is 
+directly relevant to their region, and a strong disincentive to 
+provide resources for events that are not locally relevant. For 
+example, an HPC center on the Atlantic coast is not likely to grant 
+dedicated real time access to their HPC resources for a storm that 
+is threatening the Gulf coast, and vice versa. But an HPC center in 
+any particular state is almost certain to grant dedicated access to 
+compute guidance for a storm that will make landfall in that state. 
+This alignment of incentives between an HPC center and its 
+corresponding regional ASGS team greatly simplifies and facilitates 
+dedicated access to HPC resources, and in our experience this 
+advantage should not be underestimated. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Portable}
+\subsection{Reliability}
+
+Speed and accuracy are useless if guidance cannot be produced 
+because of software or hardware issues. A client that has scheduled 
+an early morning briefing with high level officials must have 
+guidance available for the brief, and even accuracy considerations 
+take a back seat to the absolute requirement that results be 
+available as scheduled. 
+
+When designing for reliability, the two most valuable tools are 
+simplicity and self-healing. Of those two, simplicity is the most 
+important design consideration for reliable operation. A conceptual 
+overview of the ASGS workflow that illustrates its relative 
+simplicity is shown in Figure \ref{fig:asgs_overview}.
+
+%    A S G S   O V E R V I E W   F L O W C H A R T
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.5\textwidth]{asgs_overview_color}\\
+  \caption{The architecture of the ASGS is conceptually simple and mainly consists of a nowcast/forecast loop coded as a single shell script.}
+  \label{fig:asgs_overview}
+\end{figure}
+
+The core of the ASGS is the nowcast/forecast loop, as shown in green 
+in Figure \ref{fig:asgs_overview}. Each time the externally supplied 
+meteorological forcing is updated (e.g., whenever the National 
+Hurricane Center issues a new advisory) the ASGS conducts a new 
+nowcast to update the state of the solution from where it left off 
+at the end of the previous nowcast to the current state at the start 
+of the new forecast period. It causes the underlying physical model 
+(ADCIRC or ADCIRC+SWAN) to record the current solution state in 
+hotstart files at that point for use in starting one or more 
+forecasts and for starting the next nowcast cycle. 
+
+Once the forecast phase is complete, post processing and archiving 
+of results proceed automatically, and the ASGS returns to the 
+nowcast phase, waiting for new meteorological forcing data to become 
+available. This nowcast/forecast loop is the core of the ASGS, and 
+for the sake of simplicity this core functionality is implemented as 
+a single shell script. This implentation provides a clean, 
+comprehensible, and approachable superstructure that modularizes all 
+complex processing into subprograms for tasks such as data 
+transmittal, job handling, post processing, visualization, and 
+archiving.
+
+As a result of this architecture, starting up the ASGS is simply a 
+matter of executing the core shell script. All the components of the 
+ASGS are self-contained on a particular computing resource. 
+Furthermore, if more than one copy of the ASGS is needed (for 
+example, if reliability requirements indicate that guidance is to be 
+produced on a backup machine), starting up another instance is as 
+easy as executing the core shell script a second time.
+
+Self-checking is the second most important aspect for achieving 
+reliable operation. The modular approach of the ASGS---where the 
+main nowcast/forecast loop is coded as central shell script with all 
+complex processing occurring in subprograms---provides a built-in
+exception handling capability. 
+
+For example, each subprogram was designed with pervasive error 
+checking, consistency checking, and sanity checking to detect errors 
+and anomalies in its own operations. Wherever possible, the 
+responses of a subprogram to error conditions is to retry whatever 
+operation caused the error to occur. When a retry is not possible or 
+if several consecutive attempts have not resulted in success, the 
+subprogram willl exit and provide an informative status condition to 
+the core shell script. 
+
+The core ASGS shell script has its own exception handling when 
+confronted with subprograms that exit with anomalous status or 
+outright error messages. In such cases the ASGS may re-execute the 
+subprogram; for example, retrying a download of meteorological 
+forcing data if the previous attempt failed or the downloaded file 
+was corrupted. On the other hand the ASGS may reject the results of 
+a simulation run and retry in the case of a failed nowcast 
+simulation run. Or it may reject the results of a simulation run and 
+give up on the current forecast (as opposed to retrying) as in the 
+case of a forecast simulation that has failed after a subsequent 
+forecast advisory has become available. 
+
+As a result of the multiple levels of exception handling that are 
+built into the ASGS architecture, the system is able to self heal 
+and overcome the surprising large number of anomalies that regularly 
+occur in the typical HPC hardware, software, and networking 
+environment. The resiliency of the system in the face of the 
+occasional dropped network connection, inexplicably corrupted file, 
+intermittently failing queueing system, unresponsive file system, 
+unavailable input data, or numerically unstable solution file is 
+critical for any system that must run reliably without human 
+interaction around the clock. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Portability}
 
 Portability results from the application of standard technologies and
 the extraction of necessarily platform dependent code into a well 
 contained subsystem that can be selected at run time. 
 
 
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Relocatable}
+\subsection{Relocatability}
 
 Relocatability basically rests on the system not making any 
 assumptions about the underlying mesh. That is, the static reference 
@@ -505,7 +638,7 @@ for location-specific output data, and other data related to the
 internal procedures of the simulation codes. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Extensible}
+\subsection{Extensibility}
 
 An overview of the resulting modular structure of the ASGS is shown 
 in Figure 1. The figure indicates the separation of components into 
@@ -543,14 +676,12 @@ particle tracking to the post processing).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Physics}
+\subsection{Meteorological Forcing}
 
 The ASGS uses the ADCIRC coastal circulation model for currents and 
 water levels, and supports the optional tight two-way coupling of 
 SWAN with ADCIRC for wave height, wave period, and wave radiation 
 stress simulation. These two models are described in this section. 
-
-\subsubsection{ADCIRC}
 
 The ADCIRC coastal circulation model is the heart of the phyical 
 modeling component of the ASGS. Brief boilerplate description of the 
@@ -612,8 +743,6 @@ sets from Ocean Weather Inc as well as in real time), HWind format
 closely follow the ATCF format used by BEST track files from the 
 National Hurricane Center. These track file formats are used to feed
 the ADCIRC Asymmetric Vortex model described below. 
-
-\subsubsection{ADCIRC Asymmetric Vortex Model}
 
 The application of meteorological forcing presents a challenge for 
 real time coastal modeling because of the need for timely 
@@ -834,7 +963,7 @@ vortex model uses the isotach data to produce a met field.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Workflow Details}
+\subsection{Workflow}
 
 Once the Operator has created a configuration file and assembled the 
 static physical input data for a particular instance of the system 
@@ -936,8 +1065,6 @@ Preventing numerical instabilities is mostly a matter of good grid
 design. If a numerical instability issue were to occur, it would not 
 create a real problem unless it occurred during a nowcast run, since 
 errors in forecasts do not propagate to the next advisory cycle.
-
-\subsubsection{Configurable}
 
 Centralized configuration in a single file that allows control over all
 aspects of the system. 
@@ -1073,11 +1200,7 @@ and sent to web clients as required by the user interaction with the
 web application and its menu system.
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
 
 %    N C   M E S H 
 \begin{figure}[t]
@@ -1113,7 +1236,7 @@ web application and its menu system.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Results and Discussion}
+\section{Results}
 
 Implementation of the ASGS at the Renaissance Computing Institute 
 (RENCI) in North Carolina, commonly referred to as the North 
@@ -1148,7 +1271,7 @@ dynamic meteorological and river flow data, configuration,
 interaction with web-based results, and feedback from official end 
 users. 
 
-\subsection{North Carolina Physical Data}
+%{North Carolina Physical Data}
 
 The discretization of the North Carolina domain (the mesh) that was 
 used for both ADCIRC and SWAN is shown below in figure 3. The mesh 
@@ -1163,7 +1286,7 @@ meteorological data for comparison with physical meteorological data
 collected at land based and buoy-based meteorological data collected 
 by various state and federal agencies and universities.
 
-\subsection{Dynamic Input Data}
+%{Dynamic Input Data}
 
 As the storm that would eventually become Irene was forming, the 
 ASGS/CERA system had already been running for months at RENCI on the 
@@ -1180,7 +1303,7 @@ ASGS instances then ran side by side for several days, sending their
 output to the CERA web application, until the NAM instance was shut 
 down to conserve processor time.
 
-\subsubsection{Internally Generated Input Files}
+%{Internally Generated Input Files}
 
 On 384 processors, the ASGS was able to perform all file 
 manipulations for the nowcast and forecast cycle for the consensus 
@@ -1196,7 +1319,7 @@ Carolina and that facility never lost power, the ASGS was able to
 continue operating autonomously without interruption and without 
 interaction or oversight for the duration of the storm.  
 
-\subsubsection{Output Visualization and Interaction}
+%{Output Visualization and Interaction}
 
 The results produced by the ASGS were converted in-situ to Google 
 Earth (kmz) graphics and posted to the OpenDAP server at RENCI for 
