@@ -38,4 +38,4 @@ else
    RUNSUFFIX="error"
 fi
 echo "[${DATETIME}] : adcprep finished in %advisdir%/%enstorm% with return value = $ERROVALUE" > %jobtype%.%enstorm%.run.${RUNSUFFIX}
-echo "adcprep job finished at $DATETIME.
+echo "adcprep job finished at $DATETIME."
