@@ -4,6 +4,7 @@
 #SBATCH -t %wallminutes%
 #      #SBATCH -p %account%
 #SBATCH -n %ncpu% 
+#SBATCH --exclusive
 
 cd %advisdir%/%enstorm%
 
