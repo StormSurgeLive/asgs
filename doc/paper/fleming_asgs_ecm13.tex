@@ -794,7 +794,7 @@ party applications to effectively use the numerical results from the
 ASGS is not straightforward, since ASGS instances can be started
 and stopped at will, and any combination of forcing, mesh, and 
 other parameters can be used on geographically and institutionally
-disparate machines.
+disparate resources.
 
 The challenge of extending the ASGS to interface seamlessly with 
 unrelated visualization and analysis applications has been addressed 
@@ -813,22 +813,22 @@ results because an OPeNDAP server has the ability to examine the
 contents of NetCDF files and report dimensions, variable names,
 and other metadata. 
 
-The metadata inside ASGS NetCDF files is designed to adhere to the 
-CF and UGRID-CF standards. These standards provide standard names 
-for variables and topologies that allow data consumers to access the 
-internal data, process it appropriately, and present it to an 
-analyst accompanied by complete information about how the data was 
-generated, the parameters and forcing that were used, the physical 
-units, the time period the data cover, and other factors that are 
-important for interpreting the results. Most importantly, this 
-metadata allows third party data consumers to unambiguously 
-differentiate and analyze results that were simultaneously generated 
-on different HPC machines by different regional teams with different 
-meshes and other parameters, which is critically important when the 
-uncertainty of a storm track puts several coastal areas at risk at 
-the same time, causing a deluge of data with varying degrees of 
-relevance to be produced by multiple local ASGS instances in multiple
-regions. 
+The OPeNDAP-browsable metadata inside ADCIRC and ADCIRC+SWAN NetCDF 
+files is designed to adhere to the CF and UGRID-CF standards. These 
+standards provide standard names for variables and topologies that 
+allow data consumers to access the internal data, process it 
+appropriately, and present it to an analyst accompanied by complete 
+information about how the data was generated, the parameters and 
+forcing that were used, the physical units, the time period the data 
+cover, and other factors that are important for interpreting the 
+results. Most importantly, this metadata allows third party data 
+consumers to unambiguously differentiate and analyze results that 
+were simultaneously generated on different HPC machines by different 
+regional teams with different meshes and other parameters, which is 
+critically important when the uncertainty of a storm track puts 
+several coastal areas at risk at the same time, causing a deluge of 
+data with varying degrees of relevance to be produced by multiple 
+local ASGS instances in multiple regions. 
 
 In contrast to the NetCDF metadata, which are placed directly in the 
 NetCDF results files by ADCIRC or ADCIRC+SWAN, the ASGS also 
@@ -845,9 +845,10 @@ As a result of adherence to these protocols, formats and standards,
 a wide variety of downstream applications have been developed by 
 different regional teams to process, analyze, and present results 
 produced by the ASGS. The list includes web applications such as 
-CERA and CI-FLOW\cite{VanCootenS2011} as described previously, GIS shapefiles, Google 
-Earth files, the FigureGen\cite{DietrichJC2013} application, and the 
-AdcircViz Matlab application developed by RENCI.
+CERA and CI-FLOW\cite{VanCootenS2011} as described previously, GIS 
+shapefiles, Google Earth files, the FigureGen\cite{DietrichJC2013} 
+visualization application, and the AdcircViz analysis application 
+developed by RENCI.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
