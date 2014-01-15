@@ -35,6 +35,11 @@ All Teams
 There are some events or action items that pertain to all Teams; these
 items are detailed in this section. 
 
+Awareness
+---------
+
+I would like to develop a Wikipedia page for the ASGS.
+
 Testing
 -------
 
@@ -64,6 +69,9 @@ I'd like to compile a list of regional clients or stakeholders for each
 Team, as well as a list of national agencies that use our guidance. The
 lists will include local weather forecast offices, emergency managers,
 river forecast offices, public officials, etc.
+
+
+
 
 North Carolina
 ==============
@@ -101,6 +109,18 @@ Capabilities
 Web based graphical user interface for the ASGS, including configuration,
 control, and monitoring. 
 
+Generic fort.15 capability that allows operator to avoid the 
+construction of a fort.15 template for each mesh while being able to 
+control all fort.15 parameters from the ASGS config file (with 
+reasonable defaults). 
+
+End-to-end heartbeat monitoring that notifies operator when 
+something goes wrong (as opposed to emailing every time something 
+goes right. 
+
+Renaming nhcConsensus to nhcOfficial.
+
+
 Communication
 -------------
 
@@ -108,6 +128,8 @@ New website. Will contain all ASGS documentation, information about the
 real time ASGS participants. Will host the ASGS config/control app. 
 
 ASGS Up and Running training session at ADCIRC Boot Camp.
+
+ASGS page on wikipedia. 
 
 Recruiting
 ----------
