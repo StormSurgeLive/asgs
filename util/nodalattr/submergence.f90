@@ -1,12 +1,12 @@
 ! Example of compiling with gfortran with debugging turned on:
-! gfortran -g -O0 -Wall -ffree-line-length-none -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal -o submergence_eddyvis.x -I/home/jason/asgs/trunk/output -I/usr/include  submergence_eddyvis.f90  -lnetcdff
+! gfortran -g -O0 -Wall -ffree-line-length-none -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal -o submergence.x -I/home/jason/asgs/trunk/output -I/usr/include  submergence.f90  -lnetcdff
 !
 ! Example of compiling with gfortran with optimization turned on:
-! gfortran -O3 -ffree-line-length-none -o submergence_eddyvis.x -I/home/jason/asgs/trunk/output -I/usr/include  submergence_eddyvis.f90  -lnetcdff
+! gfortran -O3 -ffree-line-length-none -o submergence.x -I/home/jason/asgs/trunk/output -I/usr/include  submergence.f90  -lnetcdff
 !
 !
 include 'adcmesh.f90'
-program submergence_eddyvis
+program submergence
 use adcmesh
 implicit none
 character(len=1024) :: outputfile
@@ -18,7 +18,6 @@ real(8), allocatable :: seedx(:) ! (nseed) x coordinate locations of seed nodes
 real(8), allocatable :: seedy(:) ! (nseed) x coordinate locations of seed nodes
 real(8), allocatable :: localDryElevation(:) ! (m) (+upward) in viscinity of seed 
 real(8), allocatable :: dist(:) ! (np) distance (m) from seed to each node 
-real(8), allocatable :: minEdgeLength(:) ! (np) distance (m) from a node to nearest neighbor  
 integer, allocatable :: frontNodes(:) ! (np) node numbers along the wet front
 integer, allocatable :: newFrontNodes(:) ! (np) newly discovered wet nodes numbers
 integer :: numFrontNodes ! number of nodes along the wet front
@@ -27,18 +26,13 @@ integer :: neighborNode ! node connected to thisNode
 integer :: thisNode     ! wet node whose neighbors are currently under consideration
 logical, allocatable :: wet(:) ! (np) .true. for nodes found to be wet in the current round
 logical, allocatable :: startdry(:) ! (np) .true. for nodes that are to start dry (including those that would do so purely as a result of topography)
-real(8), allocatable :: eddyViscosity(:) ! the nodal attribute
 real(8) :: dryElevationAnyway ! (m) threshold elevation that forces nodes dry (+upward) 
-real(8) :: defaultEddyViscosity 
-logical :: genEddyViscosity
 character(1024) :: cmdlinearg
 character(1024) :: cmdlineopt
 integer :: argcount
 integer :: i, j, k
 !
 ! initializations
-defaultEddyViscosity = 20.d0
-genEddyViscosity = .false.
 dryElevationAnyway = 0.d0
 !
 ! process command line options
@@ -52,9 +46,6 @@ do while (i.lt.argcount)
    case("--verbose")
       write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
       verbose = .true.
-   case("--gen-eddy-viscosity")
-      write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
-      genEddyViscosity = .true.
    case("--meshfile")
       i = i + 1
       call getarg(i, cmdlinearg)
@@ -70,11 +61,6 @@ do while (i.lt.argcount)
       call getarg(i, cmdlinearg)
       write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
       seedfile = trim(cmdlinearg)
-   case("--default-eddy-viscosity")
-      i = i + 1
-      call getarg(i, cmdlinearg)
-      write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
-      read(cmdlinearg,*) defaultEddyViscosity   
    case("--dry-elevation")
       i = i + 1
       call getarg(i, cmdlinearg)
@@ -201,47 +187,6 @@ do i=1, np
 end do
 close(17)
 write(6,*) 'INFO: Finished writing surface submergence nodal attribute.'
-!
-! now generate and write out the horizontal eddy viscosity if it was requested
-if (genEddyViscosity.eqv..true.) then
-   write(6,*) 'INFO: Computing horizontal eddy viscosity.'
-   allocate(eddyViscosity(np))
-   eddyViscosity = defaultEddyViscosity
-   nodal_attr_name =  'average_horizontal_eddy_viscosity_in_sea_water_wrt_depth'
-   ! areas that are normally considered wet by ADCIRC are set to 2.0
-   where (xyd(3,:).lt.-dryElevationAnyway) 
-      eddyViscosity = 2.d0
-   end where
-   ! areas that have been selected to start dry set to 20.0
-   where (startDry.eqv..true.) 
-      eddyViscosity = 20.d0
-   end where
-   ! compute the lengths of the edges that connect each node to its neighbor
-   call computeNeighborEdgeLengthTable()
-   ! find the min edge length attached to each node
-   allocate(minEdgeLength(np))
-   do i=1,np
-      minEdgeLength(i) = minval(neighborEdgeLengthTable(i,2:nneigh(i)))
-   end do
-   ! areas with really small elements (<10-12m) set to 1.0 to prevent
-   ! some instabilities related to eddy viscosity on small elements 
-   where (minEdgeLength.lt.10.d0)
-      eddyViscosity = 1.d0
-   end where
-   write(6,*) 'INFO: Finished computing horizontal eddy viscosity.'      
-   write(6,*) 'INFO: Writing eddy viscosity nodal attribute.'
-   open(17,file='eddy_viscosity.'//trim(outputfile),action='write',status='replace')
-   write(17,'(A)') trim(nodal_attr_name)
-   ! write the number of nondefault values
-   write(17,*) count(eddyViscosity.ne.defaultEddyViscosity)
-   do i=1, np
-      if (eddyViscosity(i).ne.defaultEddyViscosity) then
-         write(17,*) i, eddyViscosity(i) 
-      endif
-   end do
-   close(17)
-   write(6,*) 'INFO: Finished writing eddy viscosity nodal attribute.'
-endif
 !-------------------------------------------------------------------
-end program submergence_eddyvis
+end program submergence
 !-------------------------------------------------------------------

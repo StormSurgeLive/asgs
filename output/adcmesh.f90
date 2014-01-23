@@ -188,7 +188,7 @@ do k = 1, ne
    read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) i
    lineNum = lineNum + 1
    if (i.ne.k) then
-      write(6,'("ERROR: Attempted to read element number ",i0," but found node number ",i0," instead.")') k, i
+      write(6,'("ERROR: Attempted to read element number ",i0," but found element number ",i0," instead.")') k, i
       stop
    endif 
 enddo
@@ -541,6 +541,9 @@ integer :: i, j, jj, jlow, k, n  ! loop counters
 if (cppComputed.eqv..false.) then
    call computeCPP()
 endif
+jlow = 0
+ne2 = 0
+ne3 = 0
 !
 ! For interior nodes, the number of neighbor nodes around any node is
 ! equal to the number of elements that contain that node. Boundary nodes
@@ -886,15 +889,9 @@ END SUBROUTINE computeAlbersEqualAreaConic
       USE netcdf
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: ncStatus
-      INTEGER, ALLOCATABLE :: dummy(:)
       IF(ncStatus.NE.NF90_NOERR)THEN
          WRITE(*,'(A,A)') "ERROR: ",TRIM(NF90_STRERROR(ncStatus))
-         ! if the program was compiled with debug support, generate an
-         ! intentional segmentation fault so that the executable will
-         ! dump a stack trace and we can find the line number where
-         ! this netcdf error was generated
-         WRITE(*,*) dummy(1)
-         STOP
+         ERROR STOP 1
       ENDIF
    END SUBROUTINE check
 !-----+---------+---------+---------+---------+---------+---------+

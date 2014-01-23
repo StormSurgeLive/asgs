@@ -1,6 +1,6 @@
 !
 ! Example of compilation with gfortran:
-! gfortran -ffree-line-length-none -o surface_roughness.x -I/home/jason/asgs/trunk/output -I/usr/include  surface_roughness.f90  -lnetcdff
+! gfortran -O3 -ffree-line-length-none -o surface_roughness.x -I/home/jason/asgs/trunk/output -I/usr/include  surface_roughness.f90  -lnetcdff
 !
 ! Example of compiling with gfortran with debugging turned on:
 ! gfortran -g -O0 -Wall -ffree-line-length-none -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal -o surface_roughness.x -I/home/jason/asgs/trunk/output -I/usr/include  surface_roughness.f90  -lnetcdff
@@ -32,7 +32,7 @@ real(8), allocatable :: std_weight_factor(:) ! expected distance weights along l
 real(8), allocatable :: weight_factor(:) ! actual distance weights (some may be zeroed)
 real(8), allocatable :: surf_rough_l(:) ! surface roughnesses along line of averaging
 logical, allocatable :: areDefaultValues(:) ! (np) .true. if all the values along the line are zero
-integer, allocatable :: canopy(:) !(np) 0 if the canopy cuts off all wind stress
+real, allocatable :: canopy(:) !(np) 0.0 if the canopy cuts off all wind stress
 integer :: numPoints ! number of points along the line where wt average is computed
 integer :: n_col  ! column number in the land cover data file 
 integer :: n_row  ! row number in the land cover data file 
@@ -267,7 +267,7 @@ if (genCanopy.eqv..true.) then
          luclass = nlcd_class(n_row,n_col)
          ! if we encounter a "missing" value, set it to the default of 1 
          if ((luclass.eq.127).or.(luclass.eq.-9999)) then
-            canopy(i) = 1
+            canopy(i) = 1.0
          else
             do m=1,nlc
                if (lookupTableKey(m).eq.luclass) then
@@ -276,7 +276,7 @@ if (genCanopy.eqv..true.) then
                endif
                ! if we got to here, we didn't jump out of the loop, and
                ! so we didn't find our land use value in the lookup table
-               canopy(i) = 1
+               canopy(i) = 1.0
             end do
          endif
       endif
@@ -286,10 +286,10 @@ if (genCanopy.eqv..true.) then
    open(12,file='canopy.'//trim(outputfile),action='write',status='replace')
    write(12,'(A)') trim(nodal_attr_name)
    ! write the number of nondefault values
-   write(12,*) count(canopy.eq.0)
+   write(12,*) count(canopy.eq.0.0)
    do i=1,np
-      if (canopy(i).eq.0) then
-         write(12,'(i0," ",i0)') i,canopy(i)
+      if (canopy(i).eq.0.0) then
+         write(12,'(i0," ",f3.1)') i,canopy(i)
       endif
    end do
    close(12)
