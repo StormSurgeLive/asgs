@@ -1,5 +1,5 @@
-! Example of compilation with gfortran:
-! gfortran -ffree-line-length-none -o mannings_n_finder.x -I/home/jason/asgs/trunk/output -I/usr/include  mannings_n_finder.f90  -lnetcdff
+! Example of compilation with gfortran with optimization:
+! gfortran -O3 -ffree-line-length-none -o mannings_n_finder.x -I/home/jason/asgs/trunk/output -I/usr/include  mannings_n_finder.f90  -lnetcdff
 !
 ! Example of compiling with gfortran with debugging turned on:
 ! gfortran -g -O0 -Wall -ffree-line-length-none -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal -o mannings_n_finder.x -I/home/jason/asgs/trunk/output -I/usr/include  mannings_n_finder.f90  -lnetcdff

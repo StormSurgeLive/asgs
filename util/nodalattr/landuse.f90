@@ -15,6 +15,39 @@
 ! r.in.gdal --overwrite nlcd2006_cut.img out=myLandUseLarge
 ! write out the subregion as ascii ArcGrid file
 ! r.out.arc --verbose input=myLandUseLarge output=myLandUseLargeAscii.grd
+!
+! example of grass WMS general capabilities request
+!r.in.wms mapserver="http://mapserver.flightgear.org/ms" -l
+!
+! example of gdalwarp:
+!gdalwarp -t_srs '+proj=utm +zone=11 +datum=WGS84' raw_spot.tif utm11.tif
+!
+! example grass script to download imagery via WMS
+!#set the region
+!g.region n=4926990 s=4914840 w=591570 e=607800 res=30 -p
+!# using r.in.wms to create RGB data to get a satellite coverage
+!r.in.wms layers=global_mosaic mapserver=http://wms.jpl.nasa.gov/wms.cgi \
+!        output=wms_global_mosaic
+!# export the data to VTK
+!r.out.vtk rgbmaps=wms_global_mosaic.red,wms_global_mosaic.green,wms_global_mosaic.blue \
+!          elevation=elevation.10m output=/tmp/out.vtk
+!
+!# visualize in Paraview or other VTK viewer:
+!paraview --data=/tmp/out.vtk
+!
+! example grass script to download land cover data via WMS
+!g.region -p n=37N s=33N w=85W e=75W res=0:00:30
+!r.in.wms output=nc_landcover mapserver="http://mapserver.flightgear.org/ms" \
+!         layer=LANDCOVER format=png
+!
+! DRG from Terraserver download
+!g.region res=1.2 -ap
+!g.region save=drg-resolution
+!r.in.wms output=terraserver-drg mapserver="http://terraserver.microsoft.com/ogcmap6.ashx" \
+!         layers=DRG region=drg-resolution format=jpeg srs=EPSG:26910
+
+
+
 !-----------------------------------------------------------------------
 module landuse
 !-----------------------------------------------------------------------
@@ -42,7 +75,7 @@ contains
 !---------
 !
 !-----------------------------------------------------------------------
-!      M O D U L E       L O A D  L A N D  U S E
+!      S U B R O U T I N E     L O A D  L A N D  U S E
 !-----------------------------------------------------------------------
 ! jgf: Loads up a set of land use data and echoes the metadata to stdout.
 !-----------------------------------------------------------------------
