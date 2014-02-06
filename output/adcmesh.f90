@@ -28,6 +28,12 @@ real(8), allocatable :: yalbers(:)
 ! parameters related to the neighbor edge length table (np,neimax)
 logical :: neighborEdgeLengthTableComputed = .false. ! .true. when mem is allocated for this
 real(8), allocatable :: neighborEdgeLengthTable(:,:)
+real(8), allocatable :: areas(:) ! (ne) 2x element areas in square meters
+real(8), allocatable :: sfac(:) ! (np)
+real(8), allocatable :: sfacAvg(:) ! (ne)
+real(8), allocatable :: fdx(:,:) ! (3,ne)
+real(8), allocatable :: fdy(:,:) ! (3,ne)
+real(8), allocatable :: centroids(:,:) ! (2,ne) x and y coordinates of the element centroids
 !
 real(8), allocatable          :: sigma(:)
 character(80)                 :: agrid
@@ -86,8 +92,8 @@ integer                       :: NC_VarID_depth
 
 logical                       :: projectCPP ! .true. if user wants to project mesh coordinates with CPP to aid in visualization
 logical                       :: cppUpdated ! .true. if we've already computed/written CPP on this execution
-double precision            :: slam0  ! longitude on which cpp projection is centered
-double precision            :: sfea0  ! latitude on which cpp projection is centered
+double precision            :: slam0  ! longitude on which cpp projection is centered (degrees)
+double precision            :: sfea0  ! latitude on which cpp projection is centered (degrees)
 real(8) :: lonmin   ! domain extents (degrees)
 real(8) :: lonmax
 real(8) :: latmin
@@ -820,6 +826,90 @@ END SUBROUTINE computeAlbersEqualAreaConic
 !-----------------------------------------------------------------------
       END SUBROUTINE computeCPP
 !-----------------------------------------------------------------------
+
+
+!-----------------------------------------------------------------------
+!     S U B R O U T I N E   C O M P U T E   2 X   A R E A S
+!-----------------------------------------------------------------------
+!     jgf: Compute 2x the elemental areas ... requires that the 
+!     the CPP projection has already been computed.
+!-----------------------------------------------------------------------
+      SUBROUTINE compute2xAreas()
+      IMPLICIT NONE
+      real(8) :: nx(3)
+      real(8) :: ny(3)
+      if (cppComputed.eqv..false.) then
+         call computeCPP()
+      endif
+      write(6,'("INFO: Computing 2x the elemental areas.")')
+      do i=1,ne
+         do j=1,3
+            nx(j) = x(nm(i,j))
+            ny(j) = y(nm(i,j))
+         end do
+         areas(i)=(nx(1)-nx(3))*(ny(2)-ny(3))+(nx(3)-nx(2))*(ny(1)-ny(3))
+      end do
+      write(6,'("INFO: Finished computing 2x the elemental areas.")')
+!-----------------------------------------------------------------------
+      END SUBROUTINE compute2xAreas
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+!                    S U B R O U T I N E   
+!     C O M P U T E   W E I G H T I N G   C O E F F I C I E N T S
+!-----------------------------------------------------------------------
+!     jgf: Compute the solution weighting coefficients.
+!-----------------------------------------------------------------------
+      SUBROUTINE computeWeightingCoefficients()
+      IMPLICIT NONE
+      real(8) :: nx(3)
+      real(8) :: ny(3)
+      if (cppComputed.eqv..false.) then
+         call computeCPP()
+      endif
+      allocate(sfac(np))
+      sfac(:)=cos(sfea0*deg2rad)/cos(sfea(:)*deg2rad)
+      write(6,'("INFO: Computing weighting coefficients.")')
+      do i=1,ne
+         myNodes(1:3) = nm(i,1:3)
+         sfacAvg(i) = oneThird * sum(sfac(myNodes(1:3)))
+         ! wrap the values around so we can easily implement a loop 
+         ! around the element
+         myNodes(0) = myNodes(3)
+         myNodes(4) = myNodes(1)
+         ! loop over the nodes on this element
+         do j=1,3
+            fdx(j,i) = y(myNodes(j+1))-y(myNodes(j-1))*sFacAvg ! b1, b2, b3
+            fdy(j,i) = x(myNodes(j-1))-x(myNodes(j+1))         ! a1, a2, a3
+         end do        
+      end do
+      write(6,'("INFO: Finished computing weighting coefficients.")')
+!-----------------------------------------------------------------------
+      END SUBROUTINE computeWeightingCoefficients
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+!                     S U B R O U T I N E  
+!         C O M P U T E   E L E M E N T   C E N T R O I D S
+!-----------------------------------------------------------------------
+!     jgf: Compute the solution weighting coefficients.
+!-----------------------------------------------------------------------
+      SUBROUTINE computeElementCentroids()
+      IMPLICIT NONE
+      if (cppComputed.eqv..false.) then
+         call computeCPP()
+      endif
+      allocate(centroids(2,ne))
+      write(6,'("INFO: Computing element centroids.")')
+      do i=1,ne
+         centroids(1,i) = oneThird * sum(x(nm(i,1:3)))
+         centroids(2,i) = oneThird * sum(y(nm(i,1:3)))
+      end do
+      write(6,'("INFO: Finished computing element centroids.")')
+!-----------------------------------------------------------------------
+      END SUBROUTINE computeElementCentroids
+!-----------------------------------------------------------------------
+
 
 !-----------------------------------------------------------------------
 !     S U B R O U T I N E   O P E N  F I L E  F O R  R E A D

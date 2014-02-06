@@ -15,7 +15,9 @@ my %adcirctypes = ("maxele.63", "MaximumElevation",
                    "fort.63", "WaterSurfaceElevation",
                    "fort.64", "WaterCurrentVelocity",
                    "fort.73", "BarometricPressure",
-                   "fort.74", "WindVelocity");
+                   "fort.74", "WindVelocity",
+                   "gradient.txt","WaterSurfaceElevationGradient",
+                   "maxgradient.txt","MaxWaterSurfaceElevationGradient");
 my $R = 6378206.4;           # radius of the earth
 my $pi = 3.141592653589793;
 my $deg2rad = 2*$pi/360.0;
@@ -31,6 +33,7 @@ my $cpp;  # 1 to reproject to cpp (carte parallelogrammatique projection)
    
 my $slam0 = 265.5; # longitude at center of projection
 my $sfea0 = 29.0;  # latitude at center of projection
+my $datacentered = "node";
 #
 # If the storm characteristics change, but the track does not, the 
 # track lines will plot right on top of each other. The jitter is
@@ -237,6 +240,7 @@ foreach my $file (@adcircfiles) {
       close(OUT);
       next;
    }
+   $datacentered = "node";
    if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" ) {
       $num_components = 1;
       $num_datasets = 1;
@@ -248,6 +252,16 @@ foreach my $file (@adcircfiles) {
    if ( $file eq "fort.74" || $file eq "fort.64" ) {
       $num_components = 2;
       $num_datasets = 0;
+   }
+   if ( $file eq "gradient.txt" ) {
+      $num_components = 1;
+      $num_datasets = 0;
+      $datacentered = "cell"; 
+   }
+   if ( $file eq "maxgradient.txt" ) {
+      $num_components = 1;
+      $num_datasets = 1;
+      $datacentered = "cell"; 
    }
    # make sure we can actually open the adcirc file before going further
    unless (open(ADCIRCFILE,"<$file")) {
