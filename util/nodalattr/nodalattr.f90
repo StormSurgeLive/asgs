@@ -195,6 +195,12 @@ end subroutine readNodalAttributesFile
 subroutine readNodalAttributesXDMF()
 implicit none
 integer*8 :: xdmfFortranObj ! object that receives the data
+!
+! need to open up the nodal attributes XDMF file and determine what
+! is inside it
+
+
+
 
 do i=1,numAttributes
    numValues = na(i)%numVals*numMeshNodes
