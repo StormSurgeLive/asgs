@@ -122,7 +122,9 @@ real(8) :: latmax
 ! elevation boundaries and flux boundaries where
 ! ibtype = 0,1,2,10,11,12,20,21,22,30,52
 type simpleBoundary_t
-   integer :: indexNum               ! order within the fort.14 file
+   integer :: indexNum                ! order within the fort.14 file
+   integer :: informationID           ! xdmf ID for IBTYPEE or IBTYPE info
+   integer :: setID                   ! xdmf ID for node numbers
    integer, allocatable :: nodes(:) ! node numbers on boundary
 end type simpleBoundary_t
 ! variable holding elevation boundaries
@@ -134,11 +136,17 @@ integer :: numSimpleFluxBoundaries ! for memory allocation
 integer :: sfCount   ! index into the simpleFluxBoundaries array
 
 ! flux boundaries where ibtype = 3, 13, 23
+
 type externalFluxBoundary_t
    integer :: indexNum               ! order within the fort.14 file
+   integer :: informationID              ! xdmf ID for IBTYPE info
+   integer :: setID                      ! xdmf ID for node numbers
+   integer :: numAttributes = 2
+   integer :: attributeIDs(2) ! xdmf IDs for parameters
    integer, allocatable :: nodes(:)
    real(8), allocatable :: barlanht(:)
    real(8), allocatable :: barlancfsp(:)
+   real(8), allocatable :: leveeGeom(:)
 end type externalFluxBoundary_t
 type(externalFluxBoundary_t), allocatable :: externalFluxBoundaries(:)
 integer :: numExternalFluxBoundaries 
@@ -147,11 +155,16 @@ integer :: efCount   ! index into the externalFluxBoundaries array
 ! flux boundaries where ibtype = 4, 24
 type internalFluxBoundary_t
    integer :: indexNum               ! order within the fort.14 file
+   integer :: informationID              ! xdmf ID for IBTYPE info
+   integer :: setID                      ! xdmf ID for node numbers
+   integer :: numAttributes = 4
+   integer :: attributeIDs(4) ! xdmf IDs for parameters
    integer, allocatable :: nodes(:)
    integer, allocatable :: ibconn(:)
    real(8), allocatable :: barinht(:)
    real(8), allocatable :: barincfsb(:)
-   real(8), allocatable :: barincfsp(:)         
+   real(8), allocatable :: barincfsp(:)
+   real(8), allocatable :: leveeGeom(:)         
 end type internalFluxBoundary_t
 type(internalFluxBoundary_t), allocatable :: internalFluxBoundaries(:)
 integer :: numInternalFluxBoundaries    
@@ -160,6 +173,10 @@ integer :: ifCount   ! index into the internalFluxBoundaries array
 ! flux boundaries where ibtype = 5, 25
 type internalFluxBoundaryWithPipes_t
    integer :: indexNum               ! order within the fort.14 file
+   integer :: informationID              ! xdmf ID for IBTYPE info
+   integer :: setID                      ! xdmf ID for node numbers
+   integer :: numAttributes = 7
+   integer :: attributeIDs(7) ! xdmf IDs for parameters
    integer, allocatable :: nodes(:)
    integer, allocatable :: ibconn(:)
    real(8), allocatable :: barinht(:)
@@ -168,6 +185,7 @@ type internalFluxBoundaryWithPipes_t
    real(8), allocatable :: pipeht(:)
    real(8), allocatable :: pipecoef(:)
    real(8), allocatable :: pipediam(:)
+   real(8), allocatable :: leveeGeom(:)
 end type internalFluxBoundaryWithPipes_t      
 type(internalFluxBoundaryWithPipes_t), allocatable :: internalFluxBoundariesWithPipes(:)
 integer :: numInternalFluxBoundariesWithPipes
@@ -437,6 +455,10 @@ do k = 1, nbou
    end select
 end do
 close(14)
+! 
+! initialize ibtype array
+ibtype = ibtype_orig
+!
 write(6,'(A)') 'INFO: Finished reading mesh file coordinates, connectivity, and boundary data.'
 return
       !
@@ -718,7 +740,7 @@ if (verbose.eqv..true.) then
    write(6,'("Number of internal flux boundaries (4,etc): ",i0,".")') numInternalFluxBoundaries
    write(6,'("Number of internal flux boundaries with pipes (5,etc): ",i0,".")') numInternalFluxBoundariesWithPipes
 endif
-write(6,'(a)') 'INFO: Writing node table.'
+write(6,'(a)') 'INFO: Writing node table to "' // trim(meshFileName) // '".'
 lineNum = 1
 write(unit=iunit,fmt='(a80)',err=10,iostat=ios) agrid
 lineNum = lineNum + 1
@@ -733,7 +755,7 @@ do k = 2, np
       k, (xyd(j,k), j=1,3)
    lineNum = lineNum + 1
 enddo
-write(6,'(a)') 'INFO: Writing element table.'
+write(6,'(a)') 'INFO: Writing element table to ' // trim(meshFileName) // '".'
 write(unit=iunit,fmt='(5(i0,2x),a)',err=10,iostat=ios) 1, nhy, ( nm(1,j), j = 1, 3 ), &
    '! element table : element number, number of nodes per element, node numbers counter clockwise around the element ' 
 lineNum = lineNum + 1
@@ -741,7 +763,7 @@ do k = 2, ne
    write(unit=iunit,fmt='(5(i0,2x))',err=10,iostat=ios) k, nhy, ( nm(k,j), j = 1, 3 )
    lineNum = lineNum + 1
 enddo
-write(6,'(a)') 'INFO: Writing boundaries.'
+write(6,'(a)') 'INFO: Writing boundaries to '  // trim(meshFileName) // '".'
 write(unit=iunit,fmt='(i0,a)',err=10,iostat=ios) nope, &
    ' ! total number of elevation specified boundary segments (nope)'  
 lineNum = lineNum + 1
