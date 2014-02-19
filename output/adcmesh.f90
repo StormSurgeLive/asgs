@@ -122,10 +122,11 @@ real(8) :: latmax
 ! elevation boundaries and flux boundaries where
 ! ibtype = 0,1,2,10,11,12,20,21,22,30,52
 type simpleBoundary_t
-   integer :: indexNum                ! order within the fort.14 file
+   integer :: indexNum                ! order within the fort.14 file (used to get IBTYPE etc)
    integer :: informationID           ! xdmf ID for IBTYPEE or IBTYPE info
    integer :: setID                   ! xdmf ID for node numbers
    integer, allocatable :: nodes(:) ! node numbers on boundary
+   real(8), allocatable :: bGeom(:)  ! coordinates for visualization
 end type simpleBoundary_t
 ! variable holding elevation boundaries
 type(simpleBoundary_t), allocatable :: elevationBoundaries(:)
@@ -165,6 +166,7 @@ type internalFluxBoundary_t
    real(8), allocatable :: barincfsb(:)
    real(8), allocatable :: barincfsp(:)
    real(8), allocatable :: leveeGeom(:)         
+   integer, allocatable :: ibTypeAttribute(:) ! used for visualization
 end type internalFluxBoundary_t
 type(internalFluxBoundary_t), allocatable :: internalFluxBoundaries(:)
 integer :: numInternalFluxBoundaries    
