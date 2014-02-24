@@ -9,7 +9,7 @@ module nodalattr
 character(len=1024) :: nodalAttributesFile    ! name of the file
 character(len=1024) :: nodalAttributesComment ! comment line at the top
 integer :: numMeshNodes ! expected to be the same as np
-integer :: numAttributes ! number of nodal attributes in the file
+integer :: numNodalAttributes ! number of nodal attributes in the file
 integer :: numLoadedAttributes ! number that we've loaded into memory
 !
 type nodalAttr_t
@@ -20,6 +20,8 @@ type nodalAttr_t
    real(8), allocatable :: defaultVals(:) ! default value(s) for real valued attributes 
    real(8), allocatable :: nonDefaultVals(:,:) ! nondefault value(s) for real valued attributes 
    integer, allocatable :: nonDefaultNodes(:) ! node numbers where nondefault vals occur
+   real(8), allocatable :: xdmfArray(:)
+   real(8), allocatable :: xdmfMatrix(:,:)
 end type nodalAttr_t
 ! variable capable of holding all nodal attributes in the file
 type(nodalAttr_t), allocatable :: na(:)
@@ -55,10 +57,10 @@ call openFileForRead(13,nodalAttributesFile)
 read(13,*) nodalAttributesComment
 read(13,*) numMeshNodes
 write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') numMeshNodes 
-read(13,*) numAttributes
-write(6,'("INFO: There are ",i0," nodal attributes in the file.")') numAttributes 
+read(13,*) numNodalAttributes
+write(6,'("INFO: There are ",i0," nodal attributes in the file.")') numNodalAttributes 
 ! read remainder of header
-do i=1,numAttributes
+do i=1,numNodalAttributes
    read(13,*) line
    ! see if this is the one we are interested in, and if so, load 
    ! up the relevant data; otherwise, skip past it
@@ -84,7 +86,7 @@ endif
 !
 ! now read the body of the nodal attributes file to find the specified
 ! n.a. data
-do i=1,numAttributes
+do i=1,numNodalAttributes
    read(13,*) line
    ! see if this is the one we are interested in, and if so, load 
    ! up the relevant data; otherwise, skip past it
@@ -121,21 +123,26 @@ end subroutine loadNodalAttribute
 ! attributes file. 
 !-----------------------------------------------------------------------
 subroutine readNodalAttributesFile(datafilebase)
+use adcmesh, only : openFileForRead
 implicit none
 character(len=1024), intent(in) :: datafilebase  ! name of the nodal attributes fileg
+character(len=1024) :: line
 integer :: w ! array index of the nodal attribute we are to write
-integer :: i, j, m
+integer :: i, j, k, m
+integer :: naIndex
+logical :: foundIt
 !
-write(6,'(a)') 'INFO: Reading nodal attributes from "',trim(datafilebase),'".'
+nodalAttributesFile = datafilebase
+write(6,'(a)') 'INFO: Reading nodal attributes from "' // trim(nodalAttributesFile) // '".'
 call openFileForRead(13,nodalAttributesFile)
-read(13,*) nodalAttributesComment
+read(13,'(a1024)') nodalAttributesComment
 read(13,*) numMeshNodes
 write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') numMeshNodes 
-read(13,*) numAttributes
-write(6,'("INFO: There are ",i0," nodal attributes in the file.")') numAttributes 
-allocate(na(numAttributes))
+read(13,*) numNodalAttributes
+write(6,'("INFO: There are ",i0," nodal attributes in the file.")') numNodalAttributes 
+allocate(na(numNodalAttributes))
 ! read remainder of header
-do i=1,numAttributes
+do i=1,numNodalAttributes
    read(13,*) line
    na(i)%attrName = trim(adjustl(line))
    read(13,*) na(i)%units
@@ -148,14 +155,14 @@ end do
 ! finished reading header
 !
 ! now read the body of the nodal attributes file
-do i=1,numAttributes
+do i=1,numNodalAttributes
    read(13,*) line
    ! the nodal attributes can be listed in the body of the ascii file in
    ! a different order than they were provided in the header; so we need
    ! to first figure out which of the attributes in the header correspond
    ! to these data 
    foundIt = .false.
-   do j=1,numAttributes
+   do j=1,numNodalAttributes
       if (trim(adjustl(line)).eq.trim(adjustl(na(j)%attrName))) then
          naIndex = j
          foundIt = .true.
@@ -163,10 +170,10 @@ do i=1,numAttributes
       endif
    end do
    if (foundIt.eqv..false.) then
-      write(6,'(a)') 'ERROR: The nodal attribute "',trim(adjustl(line)), &
-      '" was found in the body of the file but not the header. This file is not ' &
-      'properly formatted.'
-      error stop 1
+      !write(6,'(a)') 'ERROR: The nodal attribute ',trim(adjustl(line)), &
+      !' was found in the body of the file but not the header. This file is not ' &
+      !'properly formatted.'
+      stop 
    endif
    ! read the number of nondefault nodes
    read(13,*) na(naIndex)%numNodesNotDefault
@@ -185,78 +192,6 @@ write(6,'(a)') 'INFO: Finished reading nodal attribute data.'
 end subroutine readNodalAttributesFile
 !-----------------------------------------------------------------------
 
-!
-!-----------------------------------------------------------------------
-!                        S U B R O U T I N E    
-!       R E A D   N O D A L   A T T R I B U T E S   X D M F
-!-----------------------------------------------------------------------
-! jgf: Reads all nodal attributes from an XDMF file.
-!-----------------------------------------------------------------------
-subroutine readNodalAttributesXDMF()
-implicit none
-integer*8 :: xdmfFortranObj ! object that receives the data
-!
-! need to open up the nodal attributes XDMF file and determine what
-! is inside it
-
-
-
-
-do i=1,numAttributes
-   numValues = na(i)%numVals*numMeshNodes
-   select case(na(i)%numVals)
-   case(1) ! scalar data
-      allocate(data_array1(1:numMeshNodes))
-      attributeType = XDMF_ATTRIBUTE_TYPE_SCALAR
-   case(2:) ! vector data
-      allocate(data_arrayn(na(i)%numVals,1:numMeshNodes))
-      attributeType = XDMF_ATTRIBUTE_TYPE_MATRIX
-   case default
-      write(6,*) 'ERROR: The nodal attribute "',trim(adjustl(na(i)%attrName)),
-         '" has ',na(i)%numVals,' values at each node, but adcirc2xdmf ',
-         'does not recognize this nodal attribute.'
-      error stop 1   
-   end select
-   !
-   write(6,'(A)') 'INFO: Adding nodal attribute to XDMF.'
-   ! set the metadata for this nodal attribute
-   name_id = XdmfAddInformation(xdmfFortranObj, 'attribute_name'//CHAR(0), &
-            trim(adjustl(na(i)%attrName))//CHAR(0))
-   units_id = XdmfAddInformation(xdmfFortranObj, 'units'//CHAR(0), &
-            trim(adjustl(na(i)%units)//CHAR(0))
-   numVals_id = XdmfAddInformation(xdmfFortranObj, 'number_of_values'//CHAR(0), &
-            trim(adjustl(na(i)%numVals)//CHAR(0))
-   ! 
-   ! now read the data from the ascii ADCIRC file and write it to 
-   ! the xdmf file according to the data type (scalar or vector)
-   select case(na(i)%numVals)
-   case(1) ! scalar data
-      data_array1(:) = na(i)%defaultVals(1,:)
-      attributeID = XdmfAddAttribute(xdmfFortranObj, trim(adjustl(na(i)%attrName))//CHAR(0), &
-         XDMF_ATTRIBUTE_CENTER_NODE, attributeType, numValues, &
-         XDMF_ARRAY_TYPE_FLOAT64, data_array1)
-   case(2:) ! matrix data
-      attributeID = XdmfAddAttribute(xdmfFortranObj, trim(adjustl(na(i)%attrName))//CHAR(0), &
-         XDMF_ATTRIBUTE_CENTER_NODE, attributeType, numValues, &
-         XDMF_ARRAY_TYPE_FLOAT64, data_array2)
-   case default
-      ! already accounted for prior to reading the data
-   end select
-   ! 
-   ! call the addGrid method; creates an unstructured mesh object with the
-   ! specified name (2nd arg), then associates the geometry and topology 
-   ! created above with this new unstructured mesh, also associates any
-   ! informations or attributes with the new mesh, immediately writing
-   ! it to the hdf5 file if the last argument is set to .true. 
-   call XdmfAddGrid(xdmfFortranObj,trim(agrid)//char(0), writeToHDF5)
-end do
-write(6,'(a)') 'INFO: Finished reading nodal attributes data to XDMF.'
-!-----------------------------------------------------------------------
-end subroutine readNodalAttributesXDMF
-!-----------------------------------------------------------------------
-
-
-!
 !-----------------------------------------------------------------------
 !                    S U B R O U T I N E    
 !    W R I T E   N O D A L   A T T R I B U T E S   F I L E 
@@ -267,34 +202,34 @@ end subroutine readNodalAttributesXDMF
 subroutine writeNodalAttributesFile(newFileName)
 implicit none
 character(len=1024), intent(in) :: newFileName  ! name of the nodal attributes file to write
-integer :: i, j, m
+integer :: i, j, k, m
 !
-write(6,'(a)') 'INFO: Writing nodal attributes to "',trim(newFileName),'".'
-call open(unit=13,file=trim(adjustl(newFileName)),status='new',action='write')
+write(6,'(a)') 'INFO: Writing nodal attributes to "'//trim(newFileName)//'".'
+open(unit=13,file=trim(adjustl(newFileName)),status='new',action='write')
 write(13,'(a)') trim(adjustl(nodalAttributesComment))
 write(13,'(i0)') numMeshNodes
 write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') numMeshNodes 
-write(13,'(i0)') numAttributes
-write(6,'("INFO: There are ",i0," nodal attributes in the file.")') numAttributes 
+write(13,'(i0)') numNodalAttributes
+write(6,'("INFO: There are ",i0," nodal attributes in the file.")') numNodalAttributes 
 ! write remainder of header
-do i=1,numAttributes
+do i=1,numNodalAttributes
    write(13,'(a)') trim(adjustl(na(i)%attrName))
    write(13,'(a)') trim(adjustl(na(i)%units))
-   write(13,'(99(i0))') trim(adjustl(na(i)%numVals))
-   read(13,'(99(F15.7))') (na(i)%defaultVals(j), j=1,na(i)%numVals)
+   write(13,'(99(i0))') na(i)%numVals
+   write(13,'(99(F15.7))') (na(i)%defaultVals(j), j=1,na(i)%numVals)
 end do
 !
 ! finished writing header
 !
 ! now write the body of the nodal attributes file
-do i=1,numAttributes
-   write(13,'(a)') trim(adjustl(na(j)%attrName))
+do i=1,numNodalAttributes
+   write(13,'(a)') trim(adjustl(na(i)%attrName))
    ! write the number of nondefault nodes
-   write(13,'(i0)') na(naIndex)%numNodesNotDefault
+   write(13,'(i0)') na(i)%numNodesNotDefault
    ! write the node numbers and values for nodes whose value is not the default
-   do j=1,na(naIndex)%numNodesNotDefault
-      write(13,'(99(F15.7))') na(naIndex)%nonDefaultNodes(j), &
-         (na(naIndex)%nonDefaultVals(k,j), k=1,na(naIndex)%numVals)
+   do j=1,na(i)%numNodesNotDefault
+      write(13,'(i0,1x,99(F15.7))') na(i)%nonDefaultNodes(j), &
+         (na(i)%nonDefaultVals(k,j), k=1,na(i)%numVals)
    end do
 end do
 close(13)
@@ -303,68 +238,6 @@ write(6,'(a)') 'INFO: Finished writing nodal attribute data.'
 end subroutine writeNodalAttributesFile
 !-----------------------------------------------------------------------
 !
-!-----------------------------------------------------------------------
-!                        S U B R O U T I N E    
-!       W R I T E   N O D A L   A T T R I B U T E S   X D M F
-!-----------------------------------------------------------------------
-! jgf: Writes all nodal attributes to an XDMF file.
-!-----------------------------------------------------------------------
-subroutine writeNodalAttributesXDMF(xdmfFortranObj)
-implicit none
-integer*8 :: xdmfFortranObj ! object that receives the data
-
-do i=1,numAttributes
-   numValues = na(i)%numVals*numMeshNodes
-   select case(na(i)%numVals)
-   case(1) ! scalar data
-      allocate(data_array1(1:numMeshNodes))
-      attributeType = XDMF_ATTRIBUTE_TYPE_SCALAR
-   case(2:) ! vector data
-      allocate(data_arrayn(na(i)%numVals,1:numMeshNodes))
-      attributeType = XDMF_ATTRIBUTE_TYPE_MATRIX
-   case default
-      write(6,*) 'ERROR: The nodal attribute "',trim(adjustl(na(i)%attrName)),
-         '" has ',na(i)%numVals,' values at each node, but adcirc2xdmf ',
-         'does not recognize this nodal attribute.'
-      error stop 1   
-   end select
-   !
-   write(6,'(A)') 'INFO: Adding nodal attribute to XDMF.'
-   ! set the metadata for this nodal attribute
-   name_id = XdmfAddInformation(xdmfFortranObj, 'attribute_name'//CHAR(0), &
-            trim(adjustl(na(i)%attrName))//CHAR(0))
-   units_id = XdmfAddInformation(xdmfFortranObj, 'units'//CHAR(0), &
-            trim(adjustl(na(i)%units)//CHAR(0))
-   numVals_id = XdmfAddInformation(xdmfFortranObj, 'number_of_values'//CHAR(0), &
-            trim(adjustl(na(i)%numVals)//CHAR(0))
-   ! 
-   ! now read the data from the ascii ADCIRC file and write it to 
-   ! the xdmf file according to the data type (scalar or vector)
-   select case(na(i)%numVals)
-   case(1) ! scalar data
-      data_array1(:) = na(i)%defaultVals(1,:)
-      attributeID = XdmfAddAttribute(xdmfFortranObj, trim(adjustl(na(i)%attrName))//CHAR(0), &
-         XDMF_ATTRIBUTE_CENTER_NODE, attributeType, numValues, &
-         XDMF_ARRAY_TYPE_FLOAT64, data_array1)
-   case(2:) ! matrix data
-      attributeID = XdmfAddAttribute(xdmfFortranObj, trim(adjustl(na(i)%attrName))//CHAR(0), &
-         XDMF_ATTRIBUTE_CENTER_NODE, attributeType, numValues, &
-         XDMF_ARRAY_TYPE_FLOAT64, data_array2)
-   case default
-      ! already accounted for prior to reading the data
-   end select
-   ! 
-   ! call the addGrid method; creates an unstructured mesh object with the
-   ! specified name (2nd arg), then associates the geometry and topology 
-   ! created above with this new unstructured mesh, also associates any
-   ! informations or attributes with the new mesh, immediately writing
-   ! it to the hdf5 file if the last argument is set to .true. 
-   call XdmfAddGrid(xdmfFortranObj,trim(agrid)//char(0), writeToHDF5)
-end do
-write(6,'(a)') 'INFO: Finished writing nodal attributes data to XDMF.'
-!-----------------------------------------------------------------------
-end subroutine writeNodalAttributesXDMF
-!-----------------------------------------------------------------------
 
 
 !-----------------------------------------------------------------------
