@@ -1,13 +1,13 @@
- ASGS  %StormName%                                    ! 32 CHARACTER ALPHANUMERIC RUN DESCRIPTION
- %EnsembleID%                              ! 24 CHARACTER ALPANUMERIC RUN IDENTIFICATION
+ ASGS  cs:20130702000000 cy:2013080118 ASGS NAM                                    ! 32 CHARACTER ALPHANUMERIC RUN DESCRIPTION
+ 84 hour namforecast run                              ! 24 CHARACTER ALPANUMERIC RUN IDENTIFICATION
  1 ! NFOVER, warnelv,iwarndump,warnelevdumplimit,errorelev
  0                     ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
--1000                  ! NSCREEN - UNIT 6 OUTPUT OPTION PARAMETER
- %IHOT%                     ! IHOT - HOT START PARAMETER
+-1                     ! NSCREEN - UNIT 6 OUTPUT OPTION PARAMETER
+ 568                     ! IHOT - HOT START PARAMETER
  2                     ! ICS - COORDINATE SYSTEM SELECTION PARAMETER
  0                     ! IM - MODEL SELECTION PARAMETER 
  1                     ! NOLIBF - BOTTOM FRICTION TERM SELECTION PARAMETER
- 3                     ! NOLIFA - FINITE AMPLITUDE TERM SELECTION PARAMETER
+ 2                     ! NOLIFA - FINITE AMPLITUDE TERM SELECTION PARAMETER
  0                     ! NOLICA - SPATIAL DERIVATIVE CONVECTIVE SELECTION PARAMETER
  0                     ! NOLICAT - TIME DERIVATIVE CONVECTIVE TERM SELECTION PARAMETER
  8                     ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
@@ -18,19 +18,19 @@ surface_canopy_coefficient
 mannings_n_at_sea_floor
 sea_surface_height_above_geoid
 primitive_weighting_in_continuity_equation
-elemental_slope_limiter
+wave_refraction_in_swan
  1                     ! NCOR - VARIABLE CORIOLIS IN SPACE OPTION PARAMETER
  1                     ! NTIP - TIDAL POTENTIAL OPTION PARAMETER
-%NWS%                  ! NWS - WIND STRESS AND BAROMETRIC PRESSURE OPTION PARAMETER
+-12                  ! NWS - WIND STRESS AND BAROMETRIC PRESSURE OPTION PARAMETER
  2                     ! NRAMP - RAMP FUNCTION OPTION
  9.81                  ! G - ACCELERATION DUE TO GRAVITY - DETERMINES UNITS
  -3.0                  ! TAU0 - WEIGHTING FACTOR IN GWCE
- %DT%                   ! DT - TIME STEP (IN SECONDS)
+ 1.0                   ! DT - TIME STEP (IN SECONDS)
  0.00                  ! STATIM - STARTING TIME (IN DAYS)
  0.00                  ! REFTIM - REFERENCE TIME (IN DAYS)
- %WTIMINC%              ! WTIMINC, RSTIMINC (IN SECONDS)
- %RNDAY%             ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
- 3.0 0.5 2.0           ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
+ 10800              ! WTIMINC, RSTIMINC (IN SECONDS)
+ 34.25             ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
+ 10.0 3.0 5.0           ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
  0.35 0.30 0.35        ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
  0.10 0 0 0.01         ! H0, NODEDRYMIN, NODEWETMIN, VELMIN
  265.5 29.0            ! SLAM0,SFEA0 - CENTER OF CPP PROJECTION (NOT USED IF ICS=1, NTIP=0, NCOR=0)
@@ -39,36 +39,36 @@ elemental_slope_limiter
  0.0                   ! CORI - CORIOLIS PARAMETER - IGNORED IF NCOR = 1
  8                     ! NTIF - TOTAL NUMBER OF TIDAL POTENTIAL CONSTITUENTS BE
 M2                     ! ALPHANUMERIC DESCRIPTION
- 0.242334  1.405174E-004 0.693000  %M2NF%  %M2EQARG%
+ 0.242334  1.405174E-004 0.693000  1.02758  152.75
 S2                                                       ! ALPHANUMERIC DESCRIPTION
- 0.112841  1.454426E-004 0.693000  %S2NF%  %S2EQARG%
+ 0.112841  1.454426E-004 0.693000  1.00000  0.00
 N2                                                       ! ALPHANUMERIC DESCRIPTION
- 0.046398  1.378783E-004 0.693000  %N2NF%  %N2EQARG%
+ 0.046398  1.378783E-004 0.693000  1.02758  40.83
 K2                                                       ! ALPHANUMERIC DESCRIPTION
- 0.030704  1.458408E-004 0.693000  %K2NF%  %K2EQARG%
+ 0.030704  1.458408E-004 0.693000  0.81389  213.15
 K1                                                       ! ALPHANUMERIC DESCRIPTION
- 0.141565  7.292040E-005 0.736000  %K1NF%  %K2EQARG%
+ 0.141565  7.292040E-005 0.736000  0.92186  213.15
 O1                                                       ! ALPHANUMERIC DESCRIPTION
- 0.100514  6.759704E-005 0.695000  %O1NF%  %O1EQARG%
+ 0.100514  6.759704E-005 0.695000  0.87261  312.23
 P1                                                       ! ALPHANUMERIC DESCRIPTION
- 0.046843  7.252219E-005 0.706000  %P1NF%  %P1EQARG%
+ 0.046843  7.252219E-005 0.706000  1.00000  169.80
 Q1                                                       ! ALPHANUMERIC DESCRIPTION
- 0.019256 6.495787E-005 0.695000   %Q1NF%  %Q1EQARG% 
+ 0.019256 6.495787E-005 0.695000   0.87261  200.32 
 7  ! NBFR jgf20110607: tidal b.c.s interpolated from tpx0 7.2 
 M2                                       ! ALPHANUMERIC DESCRIPTION
-   1.405174E-004  %M2NF%  %M2EQARG%
+   1.405174E-004  1.02758  152.75
 S2                                       ! ALPHANUMERIC DESCRIPTION
-   1.454426E-004  %S2NF%  %S2EQARG%
+   1.454426E-004  1.00000  0.00
 N2                                       ! ALPHANUMERIC DESCRIPTION
-   1.378783E-004  %N2NF%  %N2EQARG%
+   1.378783E-004  1.02758  40.83
 K2                                       ! ALPHANUMERIC DESCRIPTION
-   1.458408E-004  %K2NF%  %K2EQARG%
+   1.458408E-004  0.81389  213.15
 K1                                       ! ALPHANUMERIC DESCRIPTION
-   7.292040E-005  %K1NF%  %K2EQARG%
+   7.292040E-005  0.92186  213.15
 O1                                       ! ALPHANUMERIC DESCRIPTION
-   6.759704E-005  %O1NF%  %O1EQARG%
+   6.759704E-005  0.87261  312.23
 Q1                                       ! ALPHANUMERIC DESCRIPTION
-   6.495787E-005  %Q1NF%  %Q1EQARG%
+   6.495787E-005  0.87261  200.32
 M2
  0.53959E+00   223.400
  0.52672E+00   222.950
@@ -900,53 +900,188 @@ Q1
  STEADY               ! CONSTITUENT. 1  ALPHA DESCRIPTOR
  0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
  STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
- 2.18   0.00  ! Missississippi river
- 4.37  0.00
- 4.37  0.00
- 4.37  0.00
- 4.37  0.00
- 4.37  0.00
- 4.37  0.00
- 4.37  0.00
- 4.37  0.00
- 4.37  0.00
- 2.18   0.00
- 0.97   0.00  ! Atchafalaya River
- 1.93   0.00
- 1.93   0.00
- 1.93   0.00
- 1.93   0.00
- 1.93   0.00
- 1.93   0.00
- 1.93   0.00
- 1.93   0.00
- 1.93   0.00
- 1.93   0.00
- 1.93   0.00
- 1.93   0.00
- 0.97   0.00
-%FORT61%                ! NOUTE,TOUTSE,TOUTFE,NSPOOLE:ELEV STATION OUTPUT INFO (UNIT  61)
-%NUMELEVSTATIONS%       ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS, FOLLOWED BY LOCATIONS ON PROCEEDING LINES
-%FORT62%                ! NOUTV,TOUTSV,TOUTFV,NSPOOLV:VEL STATION OUTPUT INFO (UNIT  62)
-%NUMVELSTATIONS%        ! NSTAV - NUMBER OF ELEVATION RECORDING STATIONS, FOLLOWED BY LOCATIONS ON PROCEEDING LINES
-%FORT7172%              ! NOUTM,TOUTSM,TOUTFM,NSPOOLM:METEO STATION OUTPUT INFO (UNITS 71/72)
-%NUMMETSTATIONS%        ! TOTAL NUMBER OF MET RECORDING STATIONS
-%FORT63%                ! NOUTGE,TOUTSGE,TOUTFGE,NSPOOLGE : GLOBAL ELEVATION OUTPUT INFO (UNIT  63)
-%FORT64%                ! NOUTGV,TOUTSGV,TOUTFGV,NSPOOLGV : GLOBAL VELOCITY  OUTPUT INFO (UNIT  64)    
-%FORT7374%              ! NOUTGW,TOUTSGW,TOUTFGW,NSPOOLGW : GLOBAL WIND OUTPUT INF
+ 6.60   0.00
+ 13.20  0.00
+ 13.20  0.00
+ 13.20  0.00
+ 13.20  0.00
+ 13.20  0.00
+ 13.20  0.00
+ 13.20  0.00
+ 13.20  0.00
+ 13.20  0.00
+ 6.60   0.00
+ 3.44   0.00
+ 6.89   0.00
+ 6.89   0.00
+ 6.89   0.00
+ 6.89   0.00
+ 6.89   0.00
+ 6.89   0.00
+ 6.89   0.00
+ 6.89   0.00
+ 6.89   0.00
+ 6.89   0.00
+ 6.89   0.00
+ 6.89   0.00
+ 3.44   0.00
+-5 0.0 365.0 900                ! NOUTE,TOUTSE,TOUTFE,NSPOOLE:ELEV STATION OUTPUT INFO (UNIT  61)
+45 /usr/local/u/jgflemin/asgs/trunk/input/meshes/cpra/cera_stations_ocpr.txt NSTAE
+-89.321943  30.327307     !   8747437  Bay Waveland Yacht Club   MS  NOAA_NOS                 -nld 7-11-12 moved from -89.3258 30.3264 so stays wet
+-93.3007 30.1903      !   8767961  Bulk Terminal   LA  NOAA_NOS 
+-93.3429 29.7682      !   8768094  Calcasieu Pass  LA  NOAA_NOS 
+-90.1355 29.9329      !   8761955  Carrollton  LA  NOAA_NOS 
+-88.04596 30.63918    !   8736897  Coast Guard Sector Mobile   AL  NOAA_NOS                              -- nld 6-29-09 moved from  -88.0583 30.6483  
+-91.8800 29.7134      !   8765251  Cypremort Point   LA  NOAA_NOS                                     
+-88.071023 30.250663  !   8735180  Dauphin Island  AL  NOAA_NOS                                         -- nld 6-29-09 moved from  -88.0750 30.2500   
+-90.367792  30.057955      !   8762372  *East Bank 1 - Norco - B. LaBranche   LA  NOAA_NOS           --nld 7-11-2012 moved from -90.3680 30.0503 into lake so stays wet, B. LaBranche not resolved          ??  
+-92.3050 29.5550      !   8766072  Freshwater Canal Locks  LA  NOAA_NOS                               
+-89.960729 29.266989  !   8761724  Grand Isle  LA  NOAA_NOS                                             -- nld 6-29-09 moved from  -89.9567 29.2633       
+-89.0817 30.3600      !   8745557  Gulfport Harbor   MS  NOAA_NOS                                     
+-93.223270  30.223774      !   8767816  Lake Charles  LA  NOAA_NOS                                   --nld 7-11-2012  moved from -93.2217 30.2236 into lake       
+-91.3381 29.4496      !   8764227  LAWMA - Amerada Pass  LA  NOAA_NOS                                 
+-90.111086  30.029446   !   8761927  New Canal Station   LA  NOAA_NOS                               --nld 7-11-2012 moved from -90.11309 30.026204  into wet eleme in lake       -- nld 6-29-09 moved from  -90.1134 30.0272        
+-89.4067 28.9317      !   8760922  Pilots Station East - SW Pass   LA  NOAA_NOS                       
+-93.931239  29.866856      !   8770475  Port Arthur   TX  NOAA_NOS                                       --nld 7-11-2012 moved from -93.9300 29.8667 to wet elem in channel  
+-90.208187 29.112673  !   8762075  Port Fourchon   LA  NOAA_NOS                                          -- nld 6-29-09 moved from  -90.1992 29.1142        
+-93.881713  29.980675      !   8770520  *Rainbow Bridge   TX  NOAA_NOS                                   --nld 7-11-2012 moved from -93.8817 29.9800  to wet elem in channel      -- nld 6-29-09 water body not resolved            ??  
+-93.8701 29.7284      !   8770570  Sabine Pass North   TX  NOAA_NOS                                   
+-89.67301 29.87021    !   8761305  Shell Beach   LA  NOAA_NOS  NOAA_NOS                                  -- nld 6-29-09 moved from  -89.6732 29.8681      
+-91.2376 29.6675      !   8764044  Tesoro Marine Terminal  LA  NOAA_NOS                               
+-90.43477 29.78621    !   8762482  West Bank 1 - Bayou Gauche  LA  NOAA_NOS                             -- nld 6-29-09 moved from  -90.4202 29.7886       
+-91.2110 29.6940      !   MCGL1  Atchafalaya River at Morgan City  LA  NOAA_RFS                       
+-91.4460 29.8930      !   GNDL1  Atchafalaya River at Myette Point   LA  NOAA_RFS                     
+-93.1446 30.2902      !   OTBL1  *Calcasieu River at Old Town Bay  LA  NOAA_RFS                          -- nld 6-29-09 water body not resolved            ?? 
+-93.217280  30.253399      !   LCHL1  *Calcasieu River at Saltwater Barrier   LA  NOAA_RFS                --nld 7-11-2012  moved from -93.2183 30.2533 to upstream side of barrier     -- which side of barrier                          ??  
+-92.5903 30.1897      !   MRML1  *Mermentau River 2 S Mermentau  LA  NOAA_RFS                            -- nld 6-29-09 Mermentau not resolved             ?? 
+-90.583777  30.053792    !   RRVL1  Mississippi River at Reserve  LA  NOAA_RFS      --nld 7-11-2012 moved from -90.58397 30.05479 to wet elem in river      -- nld 6-29-09 moved from  -90.5830 30.0830       
+-93.7319 30.0903      !   ORNT2  *Sabine River 1.5 NE Orange   TX  NOAA_RFS                               -- nld 6-29-09 Sabine River not resolved          ??  
+-89.73717 30.16993    !   301001089442600  Rigolets at Hwy 90 near Slidell   LA  USGS                    -- nld 6-29-09 moved from  -89.7405 30.1669        
+-89.8107 30.1962      !   0738023335   Lake Pontchartrain -  I10 Turnaround near Slidell   LA  USGS 
+-89.7969 29.5711      !   01400  Mississippi River at West Point A La Hache  LA  USACE  
+-89.2465 29.1338      !   01545  Mississippi River at Head of Passes   LA  USACE  
+-89.90992 29.84569  ! 295124089542100   Caernarvon Outfall Channel at Caernarvon   LA   USGS
+-90.13000 29.47000  ! 292800090060000   Little Lake near Bay Dosgris E of Galliano   LA   USGS 
+-90.09000 29.67000  ! 82875    Barataria Waterway at Lafitte   LA   USACE
+-89.53000 29.54000  ! 07374527   Northeast Bay Gardene near Point-A-LA-Hache   LA   USGS
+-89.64000 29.53000  ! 073745258   Cow B. at American Bay near Point-A-LA-Hache   LA   USGS
+-89.87000 29.57000  ! 07380241    Suzie Bayou at L. Hermitage Rd near Deer Range   LA   USGS 
+-89.26617 30.14194  ! 3007220891501   Mississippi Sound at Grand Pass   MS   USGS
+-90.243390 29.337136  ! 82260   Bayou Lafourche At Golden Meadow Floodgate   LA   USACE    --nld mmoved from -90.24154 29.33743
+-90.091639 30.363029 ! 85575   Lake Pontchartrain at Mandeville   LA   USACE --nld 10-24-2012 moved after Scott Lincoln pointed out previous position was incorrect. this location is a bit south of actual location to keep it in wet element.:
+-89.93285 29.26176  ! 073802516   Barataria Pass at Grand Isle   LA   USGS
+-90.88696 29.03295  ! 073813498   Caillou Bay SW of Cocodrie   LA   USGS 
+-90.07482 30.03242  ! 85626   London Ave Canal 1 - ICS Lakeside   LA   USACE       ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS, FOLLOWED BY LOCATIONS ON PROCEEDING LINES
+0 0.0 365.0 99999                ! NOUTV,TOUTSV,TOUTFV,NSPOOLV:VEL STATION OUTPUT INFO (UNIT  62)
+45 /usr/local/u/jgflemin/asgs/trunk/input/meshes/cpra/cera_stations_ocpr.txt NSTAV
+-89.321943  30.327307     !   8747437  Bay Waveland Yacht Club   MS  NOAA_NOS                 -nld 7-11-12 moved from -89.3258 30.3264 so stays wet
+-93.3007 30.1903      !   8767961  Bulk Terminal   LA  NOAA_NOS 
+-93.3429 29.7682      !   8768094  Calcasieu Pass  LA  NOAA_NOS 
+-90.1355 29.9329      !   8761955  Carrollton  LA  NOAA_NOS 
+-88.04596 30.63918    !   8736897  Coast Guard Sector Mobile   AL  NOAA_NOS                              -- nld 6-29-09 moved from  -88.0583 30.6483  
+-91.8800 29.7134      !   8765251  Cypremort Point   LA  NOAA_NOS                                     
+-88.071023 30.250663  !   8735180  Dauphin Island  AL  NOAA_NOS                                         -- nld 6-29-09 moved from  -88.0750 30.2500   
+-90.367792  30.057955      !   8762372  *East Bank 1 - Norco - B. LaBranche   LA  NOAA_NOS           --nld 7-11-2012 moved from -90.3680 30.0503 into lake so stays wet, B. LaBranche not resolved          ??  
+-92.3050 29.5550      !   8766072  Freshwater Canal Locks  LA  NOAA_NOS                               
+-89.960729 29.266989  !   8761724  Grand Isle  LA  NOAA_NOS                                             -- nld 6-29-09 moved from  -89.9567 29.2633       
+-89.0817 30.3600      !   8745557  Gulfport Harbor   MS  NOAA_NOS                                     
+-93.223270  30.223774      !   8767816  Lake Charles  LA  NOAA_NOS                                   --nld 7-11-2012  moved from -93.2217 30.2236 into lake       
+-91.3381 29.4496      !   8764227  LAWMA - Amerada Pass  LA  NOAA_NOS                                 
+-90.111086  30.029446   !   8761927  New Canal Station   LA  NOAA_NOS                               --nld 7-11-2012 moved from -90.11309 30.026204  into wet eleme in lake       -- nld 6-29-09 moved from  -90.1134 30.0272        
+-89.4067 28.9317      !   8760922  Pilots Station East - SW Pass   LA  NOAA_NOS                       
+-93.931239  29.866856      !   8770475  Port Arthur   TX  NOAA_NOS                                       --nld 7-11-2012 moved from -93.9300 29.8667 to wet elem in channel  
+-90.208187 29.112673  !   8762075  Port Fourchon   LA  NOAA_NOS                                          -- nld 6-29-09 moved from  -90.1992 29.1142        
+-93.881713  29.980675      !   8770520  *Rainbow Bridge   TX  NOAA_NOS                                   --nld 7-11-2012 moved from -93.8817 29.9800  to wet elem in channel      -- nld 6-29-09 water body not resolved            ??  
+-93.8701 29.7284      !   8770570  Sabine Pass North   TX  NOAA_NOS                                   
+-89.67301 29.87021    !   8761305  Shell Beach   LA  NOAA_NOS  NOAA_NOS                                  -- nld 6-29-09 moved from  -89.6732 29.8681      
+-91.2376 29.6675      !   8764044  Tesoro Marine Terminal  LA  NOAA_NOS                               
+-90.43477 29.78621    !   8762482  West Bank 1 - Bayou Gauche  LA  NOAA_NOS                             -- nld 6-29-09 moved from  -90.4202 29.7886       
+-91.2110 29.6940      !   MCGL1  Atchafalaya River at Morgan City  LA  NOAA_RFS                       
+-91.4460 29.8930      !   GNDL1  Atchafalaya River at Myette Point   LA  NOAA_RFS                     
+-93.1446 30.2902      !   OTBL1  *Calcasieu River at Old Town Bay  LA  NOAA_RFS                          -- nld 6-29-09 water body not resolved            ?? 
+-93.217280  30.253399      !   LCHL1  *Calcasieu River at Saltwater Barrier   LA  NOAA_RFS                --nld 7-11-2012  moved from -93.2183 30.2533 to upstream side of barrier     -- which side of barrier                          ??  
+-92.5903 30.1897      !   MRML1  *Mermentau River 2 S Mermentau  LA  NOAA_RFS                            -- nld 6-29-09 Mermentau not resolved             ?? 
+-90.583777  30.053792    !   RRVL1  Mississippi River at Reserve  LA  NOAA_RFS      --nld 7-11-2012 moved from -90.58397 30.05479 to wet elem in river      -- nld 6-29-09 moved from  -90.5830 30.0830       
+-93.7319 30.0903      !   ORNT2  *Sabine River 1.5 NE Orange   TX  NOAA_RFS                               -- nld 6-29-09 Sabine River not resolved          ??  
+-89.73717 30.16993    !   301001089442600  Rigolets at Hwy 90 near Slidell   LA  USGS                    -- nld 6-29-09 moved from  -89.7405 30.1669        
+-89.8107 30.1962      !   0738023335   Lake Pontchartrain -  I10 Turnaround near Slidell   LA  USGS 
+-89.7969 29.5711      !   01400  Mississippi River at West Point A La Hache  LA  USACE  
+-89.2465 29.1338      !   01545  Mississippi River at Head of Passes   LA  USACE  
+-89.90992 29.84569  ! 295124089542100   Caernarvon Outfall Channel at Caernarvon   LA   USGS
+-90.13000 29.47000  ! 292800090060000   Little Lake near Bay Dosgris E of Galliano   LA   USGS 
+-90.09000 29.67000  ! 82875    Barataria Waterway at Lafitte   LA   USACE
+-89.53000 29.54000  ! 07374527   Northeast Bay Gardene near Point-A-LA-Hache   LA   USGS
+-89.64000 29.53000  ! 073745258   Cow B. at American Bay near Point-A-LA-Hache   LA   USGS
+-89.87000 29.57000  ! 07380241    Suzie Bayou at L. Hermitage Rd near Deer Range   LA   USGS 
+-89.26617 30.14194  ! 3007220891501   Mississippi Sound at Grand Pass   MS   USGS
+-90.243390 29.337136  ! 82260   Bayou Lafourche At Golden Meadow Floodgate   LA   USACE    --nld mmoved from -90.24154 29.33743
+-90.091639 30.363029 ! 85575   Lake Pontchartrain at Mandeville   LA   USACE --nld 10-24-2012 moved after Scott Lincoln pointed out previous position was incorrect. this location is a bit south of actual location to keep it in wet element.:
+-89.93285 29.26176  ! 073802516   Barataria Pass at Grand Isle   LA   USGS
+-90.88696 29.03295  ! 073813498   Caillou Bay SW of Cocodrie   LA   USGS 
+-90.07482 30.03242  ! 85626   London Ave Canal 1 - ICS Lakeside   LA   USACE        ! NSTAV - NUMBER OF ELEVATION RECORDING STATIONS, FOLLOWED BY LOCATIONS ON PROCEEDING LINES
+-5 0.0 365.0 3600              ! NOUTM,TOUTSM,TOUTFM,NSPOOLM:METEO STATION OUTPUT INFO (UNITS 71/72)
+45 /usr/local/u/jgflemin/asgs/trunk/input/meshes/cpra/cera_stations_ocpr.txt NSTAM
+-89.321943  30.327307     !   8747437  Bay Waveland Yacht Club   MS  NOAA_NOS                 -nld 7-11-12 moved from -89.3258 30.3264 so stays wet
+-93.3007 30.1903      !   8767961  Bulk Terminal   LA  NOAA_NOS 
+-93.3429 29.7682      !   8768094  Calcasieu Pass  LA  NOAA_NOS 
+-90.1355 29.9329      !   8761955  Carrollton  LA  NOAA_NOS 
+-88.04596 30.63918    !   8736897  Coast Guard Sector Mobile   AL  NOAA_NOS                              -- nld 6-29-09 moved from  -88.0583 30.6483  
+-91.8800 29.7134      !   8765251  Cypremort Point   LA  NOAA_NOS                                     
+-88.071023 30.250663  !   8735180  Dauphin Island  AL  NOAA_NOS                                         -- nld 6-29-09 moved from  -88.0750 30.2500   
+-90.367792  30.057955      !   8762372  *East Bank 1 - Norco - B. LaBranche   LA  NOAA_NOS           --nld 7-11-2012 moved from -90.3680 30.0503 into lake so stays wet, B. LaBranche not resolved          ??  
+-92.3050 29.5550      !   8766072  Freshwater Canal Locks  LA  NOAA_NOS                               
+-89.960729 29.266989  !   8761724  Grand Isle  LA  NOAA_NOS                                             -- nld 6-29-09 moved from  -89.9567 29.2633       
+-89.0817 30.3600      !   8745557  Gulfport Harbor   MS  NOAA_NOS                                     
+-93.223270  30.223774      !   8767816  Lake Charles  LA  NOAA_NOS                                   --nld 7-11-2012  moved from -93.2217 30.2236 into lake       
+-91.3381 29.4496      !   8764227  LAWMA - Amerada Pass  LA  NOAA_NOS                                 
+-90.111086  30.029446   !   8761927  New Canal Station   LA  NOAA_NOS                               --nld 7-11-2012 moved from -90.11309 30.026204  into wet eleme in lake       -- nld 6-29-09 moved from  -90.1134 30.0272        
+-89.4067 28.9317      !   8760922  Pilots Station East - SW Pass   LA  NOAA_NOS                       
+-93.931239  29.866856      !   8770475  Port Arthur   TX  NOAA_NOS                                       --nld 7-11-2012 moved from -93.9300 29.8667 to wet elem in channel  
+-90.208187 29.112673  !   8762075  Port Fourchon   LA  NOAA_NOS                                          -- nld 6-29-09 moved from  -90.1992 29.1142        
+-93.881713  29.980675      !   8770520  *Rainbow Bridge   TX  NOAA_NOS                                   --nld 7-11-2012 moved from -93.8817 29.9800  to wet elem in channel      -- nld 6-29-09 water body not resolved            ??  
+-93.8701 29.7284      !   8770570  Sabine Pass North   TX  NOAA_NOS                                   
+-89.67301 29.87021    !   8761305  Shell Beach   LA  NOAA_NOS  NOAA_NOS                                  -- nld 6-29-09 moved from  -89.6732 29.8681      
+-91.2376 29.6675      !   8764044  Tesoro Marine Terminal  LA  NOAA_NOS                               
+-90.43477 29.78621    !   8762482  West Bank 1 - Bayou Gauche  LA  NOAA_NOS                             -- nld 6-29-09 moved from  -90.4202 29.7886       
+-91.2110 29.6940      !   MCGL1  Atchafalaya River at Morgan City  LA  NOAA_RFS                       
+-91.4460 29.8930      !   GNDL1  Atchafalaya River at Myette Point   LA  NOAA_RFS                     
+-93.1446 30.2902      !   OTBL1  *Calcasieu River at Old Town Bay  LA  NOAA_RFS                          -- nld 6-29-09 water body not resolved            ?? 
+-93.217280  30.253399      !   LCHL1  *Calcasieu River at Saltwater Barrier   LA  NOAA_RFS                --nld 7-11-2012  moved from -93.2183 30.2533 to upstream side of barrier     -- which side of barrier                          ??  
+-92.5903 30.1897      !   MRML1  *Mermentau River 2 S Mermentau  LA  NOAA_RFS                            -- nld 6-29-09 Mermentau not resolved             ?? 
+-90.583777  30.053792    !   RRVL1  Mississippi River at Reserve  LA  NOAA_RFS      --nld 7-11-2012 moved from -90.58397 30.05479 to wet elem in river      -- nld 6-29-09 moved from  -90.5830 30.0830       
+-93.7319 30.0903      !   ORNT2  *Sabine River 1.5 NE Orange   TX  NOAA_RFS                               -- nld 6-29-09 Sabine River not resolved          ??  
+-89.73717 30.16993    !   301001089442600  Rigolets at Hwy 90 near Slidell   LA  USGS                    -- nld 6-29-09 moved from  -89.7405 30.1669        
+-89.8107 30.1962      !   0738023335   Lake Pontchartrain -  I10 Turnaround near Slidell   LA  USGS 
+-89.7969 29.5711      !   01400  Mississippi River at West Point A La Hache  LA  USACE  
+-89.2465 29.1338      !   01545  Mississippi River at Head of Passes   LA  USACE  
+-89.90992 29.84569  ! 295124089542100   Caernarvon Outfall Channel at Caernarvon   LA   USGS
+-90.13000 29.47000  ! 292800090060000   Little Lake near Bay Dosgris E of Galliano   LA   USGS 
+-90.09000 29.67000  ! 82875    Barataria Waterway at Lafitte   LA   USACE
+-89.53000 29.54000  ! 07374527   Northeast Bay Gardene near Point-A-LA-Hache   LA   USGS
+-89.64000 29.53000  ! 073745258   Cow B. at American Bay near Point-A-LA-Hache   LA   USGS
+-89.87000 29.57000  ! 07380241    Suzie Bayou at L. Hermitage Rd near Deer Range   LA   USGS 
+-89.26617 30.14194  ! 3007220891501   Mississippi Sound at Grand Pass   MS   USGS
+-90.243390 29.337136  ! 82260   Bayou Lafourche At Golden Meadow Floodgate   LA   USACE    --nld mmoved from -90.24154 29.33743
+-90.091639 30.363029 ! 85575   Lake Pontchartrain at Mandeville   LA   USACE --nld 10-24-2012 moved after Scott Lincoln pointed out previous position was incorrect. this location is a bit south of actual location to keep it in wet element.:
+-89.93285 29.26176  ! 073802516   Barataria Pass at Grand Isle   LA   USGS
+-90.88696 29.03295  ! 073813498   Caillou Bay SW of Cocodrie   LA   USGS 
+-90.07482 30.03242  ! 85626   London Ave Canal 1 - ICS Lakeside   LA   USACE        ! TOTAL NUMBER OF MET RECORDING STATIONS
+-5 0.0 365.0 3600                ! NOUTGE,TOUTSGE,TOUTFGE,NSPOOLGE : GLOBAL ELEVATION OUTPUT INFO (UNIT  63)
+0 0.0 365.0 99999                ! NOUTGV,TOUTSGV,TOUTFGV,NSPOOLGV : GLOBAL VELOCITY  OUTPUT INFO (UNIT  64)    
+-5 0.0 365.0 3600              ! NOUTGW,TOUTSGW,TOUTFGW,NSPOOLGW : GLOBAL WIND OUTPUT INF
  0                      ! NHARFR - NUMBER OF CONSTITUENTS TO BE INCLUDED IN THE HARMONIC ANALYSIS
  40.0  50.0  5  0.0     ! THAS,THAF,NHAINC,FMV - HARMONIC ANALYSIS PARAMETERS    
  0 0 0 0                ! NHASE,NHASV,NHAGE,NHAGV - CONTROL HARMONIC ANALYSIS AND OUTPUT TO UNITS 51,52,53,54
- %NHSTAR%  %NHSINC%     ! NHSTAR,NHSINC - HOT START FILE GENERATION PARAMETERS 
+ 0  99999     ! NHSTAR,NHSINC - HOT START FILE GENERATION PARAMETERS 
  1  0  1.E-7  25 0      ! ITITER, ISLDIA, CONVCR, ITMAX & ILUMP
 LA ASGS modified ocpr grid 
-LSU CERA, Woods Hole Group Inc. 
+US Army Corps of Engineers, New Orleans District 
 ASGS
 NONE
-http://www.cera.lsu.edu
+http://www.seahorsecoastal.com
 NONE
-LSU HPC, LONI
+ERDC
 CF
-ndill@whgrp.com
-%CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
+jason.fleming@seahorsecoastal.com
+2013-07-02 00:00:00 +00:00
 &metControl DragLawString='Powell' /

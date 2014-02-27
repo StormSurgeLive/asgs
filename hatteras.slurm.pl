@@ -113,6 +113,8 @@ while(<TEMPLATE>) {
     s/%cloptions%/$cloptions/;
     # the type of job that is being submitted
     s/%jobtype%/$jobtype/g;
+    # fills in the number of nodes
+    s/%nnodes%/$nnodes/g;
     print $_;
 }
 close(TEMPLATE);

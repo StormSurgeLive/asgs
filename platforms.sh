@@ -27,6 +27,20 @@
 #
 # initialization subroutines for the various machines/architectures
 #
+init_arete()
+{ #<- can replace the following with a custom script
+  HOSTNAME=arete.cct.lsu.edu
+  QUEUESYS=SLURM
+  QCHECKCMD=sacct
+  ACCOUNT=null
+  SUBMITSTRING=srun
+  SCRATCHDIR=/scratch/$USER
+  SSHKEY=~/.ssh/id_rsa.pub
+  QSCRIPT=arete.template.slurm
+  PREPCONTROLSCRIPT=arete.adcprep.template.slurm
+  QSCRIPTGEN=hatteras.slurm.pl
+  PPN=8
+}
 init_camellia()
 { #<- can replace the following with a custom script
   HOSTNAME=camellia.worldwindsinc.com
@@ -315,13 +329,16 @@ env_dispatch(){
   "lonestar") consoleMessage "Lonestar (TACC) configuration found."
           init_lonestar
              ;;
+  "arete") consoleMessage "Arete (CCT) configuration found."
+          init_arete
+             ;;
   "desktop") consoleMessage "desktop configuration found."
           init_desktop
            ;;
   "test") consoleMessage "test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "'$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, queenbee, topsail, desktop"
+  *) fatal "'$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, queenbee, topsail, desktop, arete"
      ;;
   esac
 }
