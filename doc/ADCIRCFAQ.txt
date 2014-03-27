@@ -87,8 +87,10 @@ depending on the geographical area of interest.
 (meshes in particular)?*
 
 *A:* The tool of choice in the ADCIRC Community is the Surface water 
-Modeling System (SMS) from Aquaveo, LLC. However, there are other 
-possibilities, including the Blue Kenue package (https://www.nrc-cnrc.gc.ca/eng/solutions/advisory/blue_kenue_index.html).
+Modeling System (SMS) from Aquaveo, LLC (http://www.aquaveo.com). However, 
+there are other possibilities, including the Blue Kenue package 
+(https://www.nrc-cnrc.gc.ca/eng/solutions/advisory/blue_kenue_index.ht
+ml).
 
 *Q: What does ADCIRC create as output?*
 
