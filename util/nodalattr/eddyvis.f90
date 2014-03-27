@@ -28,7 +28,7 @@ dryElevationAnyway = 0.d0
 !
 ! process command line options
 argcount = iargc() ! count up command line options
-write(6,*) 'There are ',argcount,' command line options.'
+write(6,'(a,i0,a)') 'There are ',argcount,' command line options.'
 i=0
 do while (i.lt.argcount)
    i = i + 1
@@ -71,9 +71,9 @@ do while (i.lt.argcount)
 end do
 !
 ! Open and read the mesh file.
-write(6,*) 'INFO: Reading mesh file.'
+write(6,'(a)') 'INFO: Reading mesh file.'
 call read14()
-write(6,*) 'INFO: Finished reading mesh file.'
+write(6,'(a)') 'INFO: Finished reading mesh file.'
 !
 if (neighborTableComputed.eqv..false.) then
    call computeNeighborTable()
@@ -86,14 +86,25 @@ if (useStartDry.eqv..true.) then
 endif
 !
 ! now generate and write out the horizontal eddy viscosity
-write(6,*) 'INFO: Computing horizontal eddy viscosity.'
+write(6,'(a)') 'INFO: Computing horizontal eddy viscosity.'
 allocate(eddyViscosity(np))
 eddyViscosity = defaultEddyViscosity
 
+!jgfdebug
+write(6,'(a,i0)') 'numdefault=',count(eddyViscosity.eq.defaultEddyViscosity)
+write(6,'(a,i0)') 'num2=',count(eddyViscosity.eq.2.d0)
+write(6,'(a,i0)') 'num1=',count(eddyViscosity.eq.1.d0)
+
 ! areas that are normally considered wet by ADCIRC are set to 2.0
-where (xyd(3,:).lt.-dryElevationAnyway) 
+where (xyd(3,:).gt.-dryElevationAnyway) 
    eddyViscosity = 2.d0
 end where
+
+!jgfdebug
+write(6,'(a,i0)') 'numdefault=',count(eddyViscosity.eq.defaultEddyViscosity)
+write(6,'(a,i0)') 'num2=',count(eddyViscosity.eq.2.d0)
+write(6,'(a,i0)') 'num1=',count(eddyViscosity.eq.1.d0)
+
 ! areas that have been selected to start dry set to 20.0
 if (useStartDry.eqv..true.) then
    j=1
@@ -119,6 +130,12 @@ end do
 where (minEdgeLength.lt.10.d0)
    eddyViscosity = 1.d0
 end where
+
+!jgfdebug
+write(6,'(a,i0)') 'numdefault=',count(eddyViscosity.eq.defaultEddyViscosity)
+write(6,'(a,i0)') 'num2=',count(eddyViscosity.eq.2.d0)
+write(6,'(a,i0)') 'num1=',count(eddyViscosity.eq.1.d0)
+
 write(6,*) 'INFO: Finished computing horizontal eddy viscosity.'      
 write(6,*) 'INFO: Writing eddy viscosity nodal attribute.'
 nodal_attr_name = 'average_horizontal_eddy_viscosity_in_sea_water_wrt_depth'

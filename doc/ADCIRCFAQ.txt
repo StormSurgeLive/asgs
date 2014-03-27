@@ -1,0 +1,395 @@
+ADCIRC Frequently Asked Questions
+=================================
+
+:Author: Jason Fleming
+:Email:  <jason.fleming@seahorsecoastal.com>
+
+Introduction
+------------
+
+*Q: What is ADCIRC and what can it do?*
+
+*A* ADCIRC is a system of computer programs for solving time 
+dependent, free surface circulation and transport problems in two 
+and three dimensions. These programs utilize the finite element 
+method in space and therefore can be run on highly flexible, 
+irregularly spaced grids. Typical ADCIRC applications have included: 
+modeling tidally and wind driven circulation in coastal waters, 
+forecasting hurricane storm surge and flooding, dredging feasibility 
+and material disposal studies, larval transport studies, riverine 
+modeling for currents and water levels, and baroclinic coastal 
+modeling from lab scale to field scale. 
+
+*Q: What platforms does ADCIRC run on?*
+
+*A:* ADCIRC runs on any operating system for which there is a 
+working FORTRAN compiler. These include large commercial Unix 
+systems (IBM Power & Blue Gene), Cray, SGI, Sun), Linux and FreeBSD 
+based clusters, and personal workstations running Windows or Mac 
+OSX. We are not aware of any platforms that support a working modern 
+Fortran compiler that does not support ADCIRC. We routinely use the 
+Intel, PGI, Intel, and GCC suites of compilers on a great variety of 
+architectures. Network topology (Infiniband, GigE, shared memory 
+MPI, etc) appropriate MPI libraries and C compilers are required in 
+parallel environments. NetCDF libraries are optionally required in 
+order to support this type of output. The coupled ADCIRC+SWAN model 
+is available on all of the above platforms with the exception of 
+Windows (as of March 2014). The coupled ADCIRC+STWAVE model is 
+available on all the platforms including Windows PCs as part of the
+Coastal Storm Modeling System (CSTORM-MS).
+
+*Q: What are its main features?*
+
+*A:*  
+
+* Use of Cartesian or spherical coordinates
+* Two dimensional depth integrated (2DDI) and 3D solution capabilities
+* Full wetting/drying elements (2D and 3D)
+* Barrier elements (e.g. levees)
+* Conduits and porous barriers
+* Harmonic analysis ("on the fly")
+* Cold or hot starts
+* Well documented with web-served user's manual
+* Model design criteria
+* Large domain - localized resolution strategy to simplify often very difficult boundary condition specification
+* Very low numerical damping model allows model parameters to be based on physically relevant values
+* Consistent with the governing equations
+* Runs on single processor computers and parallel computers using MPI
+* Ascii and NetCDF output formats
+
+*Q: How can I engage with other ADCIRC users to ask questions and be
+in touch with the latest developments?*
+
+*A:* Contact Crystal Fulcher (cfulcher@email.unc.edu) and ask her to
+subscribe you to the ADCIRC listserv (adcirc@listserv.unc.edu).
+
+*Q: How can I purchase ADCIRC for Windows?*
+
+*A:* ADCIRC is commerically available from Aquaveo, LLC (www.aquaveo.com) 
+bundled with their software package SMS (Surface water Modeling 
+System). SMS and ADCIRC are also available from Veri-Tech, Inc 
+(www.veritechinc.com).
+
+*Q: I am a commercial user. How can I legally access the copyrighted 
+ADCIRC source code?*
+
+*A:* Contact Crystal Fulcher (cfulcher@email.unc.edu).
+
+*Q: What does ADCIRC need as input?*
+
+*A:* A set of files which defines such things as: bathymetry, 
+topography, boundary information, tidal characteristics, nodal 
+attributes (often based on land use data), river inflow, 
+meteorological forcing input, wave radiation stress forcing, and others
+depending on the geographical area of interest.
+
+*Q: What software packages are available for developing ADCIRC input 
+(meshes in particular)?*
+
+*A:* The tool of choice in the ADCIRC Community is the Surface water 
+Modeling System (SMS) from Aquaveo, LLC. However, there are other 
+possibilities, including the Blue Kenue package (https://www.nrc-cnrc.gc.ca/eng/solutions/advisory/blue_kenue_index.html).
+
+*Q: What does ADCIRC create as output?*
+
+*A:* Output files containing time varying and spatially varying 
+water surface elevation, water velocity, wind velocity, and 
+atmospheric pressure. These will be 2D or 3D as specified in the 
+input.
+
+*Q: How do I try it out?*
+
+*A:* There are test problems that can be downloaded from the 
+adcirc.org home page. Currently, there is no trial version of ADCIRC 
+for download. It may be possible to obtain a trial version as part 
+of the SMS software package (http://www.aquaveo.com/sms) which is 
+commonly used for ADCIRC mesh development and editing as well as 
+model output visualization.
+
+*Q: Are there any restrictions on ADCIRC use?*
+
+*A:* ADCIRC code cannot be redistributed. ADCIRC code is made freely 
+available to academic, government, and other not-for-profit research 
+purposes. Commercial use of ADCIRC is possible, but terms of use 
+must be fully negotiated with the major software authors. If any 
+results from ADCIRC, either direct or indirect, become published, 
+the ADCIRC model should be acknowledged in print as well.
+
+*Q: How do I visualize the results?*
+
+*A:* ADCIRC output files are directly readable by the Surface water 
+Modeling System (SMS) software package from Aquaveo 
+(http://www.aquaveo.com). In addition, various users have developed 
+utilities or scripts for visualizing ADCIRC output in ArcGIS, 
+Tecplot, Paraview, Google Earth, and gnuplot. One of the most 
+popular is a tool called FigureGen, which uses the Generic Mapping 
+Tools (GMT) package to generate publication-quality figures and 
+animations. It is developed by Casey Dietrich and is freely 
+available from http://www.caseydietrich.com. For any of the other 
+formats, you can request the latest version of an associated 
+conversion utility from the ADCIRC mailing list. 
+
+*Q: Who wrote ADCIRC?*
+
+*A:* ADCIRC has been developed by Dr. Rick Luettich at the 
+University of North Carolina at Chapel Hill, Institute of Marine 
+Sciences and by Dr. Joannes Westerink at the University of Notre 
+Dame, Department of Civil Engineering and Geologic Sciences.
+
+*Q: Has ADCIRC been validated?*
+
+*A:* The ADCIRC developers focused on proving that they are 
+correctly solving the governing partial differential equations 
+without introducing artificial damping or artificial modes that 
+alter the stated physics. They proved consistency and convergence 
+rates by examining problems with a range of dynamic balances so that 
+their analytical tests mimic real world applications. They based 
+error estimates on comparisons to simplified problems with 
+analytical solutions or on Richardson extrapolation.
+
+They used their models to solve real world problems applying 
+observed geometry and boundary conditions, universal air-sea 
+momentum transfer coefficients and frictional dissipation 
+parameters, ideally based on small scale process specific 
+measurements, so that a thorough evaluation of the model's 
+performance could be made. They computed model to measurement error 
+estimates and when possible measurement error estimates to define 
+model errors.
+
+Interested readers are referred to the substantial publication list 
+at the ADCIRC homepage.
+
+*Q: What if I find a bug in the code?*
+
+*A:* There is a list serve (adcirc@listserv.unc.edu) where bugs can 
+be reported. The primary contributors (Joannes Westerink and Rick 
+Luettich) welcome bug reports.
+
+*Q: How can I contribute to the development of ADCIRC?*
+
+*A:* The list serve (adcirc@listserv.unc.edu) is good place to start 
+connecting with people who are currently active within the 
+development community. There is an ADCIRC community workshop each 
+year which is open to anyone. More information can be found on the 
+list serve.
+
+
+*Q: I'm getting a "divide-by-zero" error when ADCIRC calls the SWAN 
+coupler during parallel execution. What does this mean?*
+
+*A:* This is an issue with the presence, location, and subdomain 
+preparation status of the coupled SWAN input file (fort.26). Make 
+sure that the swan input file fort.26 is in the same directory with 
+the other fulldomain input files and has been distributed to the 
+subdomain directories by adcprep.
+
+*Q: How do I resolve the error message "too many files open" when running 
+adcprep for large numbers of subdomains in parallel?*
+
+*A:* Most operating systems (OS) set limits on the number of 
+concurrently open files. If the number of subdomains is large 
+(>1000), then the operating system may run out of available file 
+handles when running adcprep. Find out how to increase the open file 
+limit.  In Linux, this is something like "ulimit -n 8192", which 
+tells the OS that, for this shell session, allow up to 8192 open 
+files.  
+
+*Q: When running ADCIRC, there are messages printed to the screen that
+say 'WARNING: Elevation.gt.WarnElev' ... what does that mean?*
+
+*A:* This means that the water surface elevation solution is farther 
+above the geoid than the 'warning' threshold level.
+
+Typically, this means that the water surface elevation solution is 
+growing larger than expected which often indicates a growing 
+instability. So why not just halt execution when this sort of 
+solution begins to form? Well, due to very large tidal ranges in 
+certain parts of the world, very high water elevations (e.g. 10 
+meters) are *possible*, and therefore ADCIRC will merely log a 
+warning at this point---not shut down the run. 
+
+There is also an 'error' water level (e.g. 1000 meters) at which the solution
+is clearly erroneous, causing ADCIRC to halt execution. The details of this
+warning/error check behavior depend on certain hard coded threshold levels. The
+default values for warning/error are:
+
+WarnElev  = 20.0 meters
+ErrorElev = 1000.0 meters.
+
+*Q: I have made an ADCIRC mesh for my area of interest, but the 
+resulting ADCIRC simulation is unstable, even with a very small time 
+step. What should I do?*
+
+*A:* Here are some places to start:
+
+* Can you compute the CFL parameter for each of your elements and 
+ensure that it is less that 1 globally?
+
+* Can you compute the element quality (a measure of how 
+'equilateral' the element is) for each element? Low quality elements 
+(even just one or two) can give you problems.
+
+* Try running a test simulation with the nonlinearity / 
+wetting-drying features turned off and then bring them back in 
+(presuming you get a stable run) one at a time.
+
+* You may be able to get a more stable run by adjusting tau0 (the 
+weighting between the primitive equation and the wave equation in 
+the overall continuity equation). For detailed information on how to do 
+this, please see the documentation of tau0 (in the fort.15 file) in 
+the Official ADCIRC Users Manual at http://www.adcirc.org.
+
+*Q: I have received an error like "forrtl: severe (''x''): attempt to ''blah
+blah blah''" where ''x'' is a number and ''blah blah blah'' is some sort of
+error message. What does this mean?*
+
+*A:* This message was not produced by ADCIRC. It was produced by the 
+library that comes with the Intel Fortran Compiler. For more 
+detailed descriptions of the meaning of all these sorts of messages, 
+please refer to the 
+http://www.ncsa.illinois.edu/UserInfo/Resources/Software/Intel/Compile
+rs/8.1/f_ug1/ug1l_rt_errors.htm Run-Time Error Messages site.
+
+*Q: What utilities are available for working with ADCIRC input and 
+output?*
+
+*A:* There are utilities available on the ADCIRC webpage at 
+http://adcirc.org/Utility_programs.html. There are also many 
+utilities that have been developed by various members of the ADCIRC 
+community for their personal use. Please submit a question to the 
+ADCIRC mailing list to find out what may already be available.
+
+*Q: Can the passive scalar transport in ADCIRC be used? The user 
+manual lists this option as “not fully implemented.” What, exactly, 
+does this mean? Will it not give reliable results?*  
+
+*A:* (Jason Fleming): Passive scalar transport is not the preferred 
+approach to doing tracking studies of conserved quantities in the 
+production version of ADCIRC. Instead, ADCIRC users generally take 
+current velocity output data and run it through a separate code that 
+they have written to advect clouds of virtual drifters. 
+
+This approach is used because the production version of ADCIRC uses 
+the Continuous Galerkin (CG) finite element formulation which 
+guarantees mass conservation along the boundary, but not 
+element-by-element mass conservation. Therefore, it is possible to 
+have mass conservation errors when tracking a conserved scalar in CG 
+ADCIRC. 
+
+There is also a Discontinuous Galerkin (DG) formulation, called 
+DGSWEM, which does guarantee element-by-element mass conservation. 
+This code is available from the Institute for Computation 
+Engineering and Sciences (ICES) at the University of Texas at Austin. 
+
+(David Hill): We have written some scripts (matlab) to do this.  
+They use a 4th order Runge-Kutta scheme to integrate the velocity 
+fields and compute trajectories.  We have wondered, however, about 
+the appropriate (output) time interval in the fort.64 file.  We have 
+erred on the side of accuracy (we have very complicated domains) and 
+use output every 5 or 10 minutes.  For large domain simulations, if 
+one wants to track particles over several days / weeks...we are 
+talking about a huge file.  Then, each time you wish to place and 
+track particles, the integration process is very slow.  With much 
+larger time intervals, however, too many particles seem to drift out 
+of the domain. I have had, on my wish list (listen up, 
+programmers!), a way in Adcirc to (some fort input file) to, at the 
+start of a simulation, specify initial drifter locations and 'on' 
+and 'off' times.  Then, when the simulation is run, Adcirc would, on 
+the fly, compute the trajectories and store the output in an output 
+file.  With the DG version of the code, will something like this be 
+implemented in the future?
+
+(John David Howlett): The model PTM may be of interest to you. An 
+interface for PTM has been developed in SMS. PTM uses the 
+hydrodynamic output from ADCIRC (and other models).
+
+http://xmswiki.com/wiki/SMS:PTM
+
+The Particle Tracking Model (PTM) is a Lagrangian particle tracker 
+designed to allow the user to simulate particle transport processes. 
+PTM is funded through two US Army Corps of Engineers Engineering 
+Research and Development Center (ERDC) research programs, the 
+Coastal Inlets Research Program (CIRP) and the Dredging Operations 
+and Environmental Research (DOER) Program.
+
+PTM has been developed for application to dredging and coastal 
+projects including dredged material dispersion and fate, sediment 
+pathway and fate, and constituent transport. The model contains 
+algorithms that appropriately represent transport, settling, 
+deposition, mixing, and resuspension processes in nearshore 
+wave/current conditions. It uses waves and currents developed 
+through other models and input directly to PTM as forcing functions.
+
+(Nate Dill): Check out chapter 3 and the associated appendix
+
+http://etd.lsu.edu/docs/available/etd-06142007-084318/
+
+Maybe too slow for a big ADCIRC grid, but it uses Scilab which is 
+free so you don't need $$$ for SMS or Matlab. Was working on a much 
+faster fortran version but not quite finished yet, email me if 
+interested.
+
+*Q: What does 'Failed to find prefix directory' mean? I got this 
+error message while attempting to run ADCIRC in parallel.* 
+
+*A*: The prefix directories are the PE000* directories that contain 
+the subdomains for running in parallel. This error message is 
+produced when PADCIRC is unable to find these subdomain directories. 
+Possible causes include: 
+
+* starting the job in a directory that does not contain the PE000* 
+directories
+* failing to preprocess (i.e., run adcprep) before starting the 
+parallel run 
+* failure of the underlying file system to provide access to the 
+files. 
+
+*Q: What is tau0?*
+
+*A:* The tau0 parameter is multiplied by the primitive continuity 
+equation; ADCIRC uses the both the primitive continuity equation as 
+well as the wave continuity equation in an overall formulation 
+called the Generalized Wave Continuity Equation. The tau0 parameter 
+can be thought of as a "weight" for the primitive continuity 
+equation. This weighting value is used to balance the numerical 
+properties of the continuity equations. A higher value is generally 
+used in shallower water. See the fort.15 documentation on 
+adcirc.org, and feel free to consult the ADCIRC mailing list for 
+recommendations for your particular modeling scenario.  
+
+*Q: Is there a list of web-based resources where I can find out more about 
+ADCIRC and ADCIRC+SWAN?*
+
+*A: Yes. Here is a partial list of links:
+
+* Official adcirc.org website and documentation: http://www.adcirc.org
+* Computational Hydraulics Laboratory: http://coast.nd.edu
+* Casey Dietrich's personal site: http://www.caseydietrich.com
+
+Appendix A: Content 
+------------------- 
+Please see also the ADCIRC information available at the Inundation 
+Science and Engineering Cooperative (ISEC): http://isec.nacse.org. 
+Some of the general information about ADCIRC in this document was 
+taken from this original source. 
+
+Appendix B: This Document
+-------------------------
+This document was prepared from the text file ADCIRCFAQ.txt using 
+software called asciidoc (http://www.methods.co.nz/asciidoc/). The document
+can be formatted as an html page with the command 
+
+   asciidoc ADCIRCFAQ.txt
+
+or formatted as a pdf with the command
+
+   a2x --format=pdf ADCIRCFAQ.txt  
+
+ifdef::backend-docbook[]
+Index
+-----
+////////////////////////////////////////////////////////////////
+The index is normally left completely empty, it's contents being
+generated automatically by the DocBook toolchain.
+////////////////////////////////////////////////////////////////
+endif::backend-docbook[]
