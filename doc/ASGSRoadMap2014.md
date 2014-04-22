@@ -61,6 +61,9 @@ Here is my proposed timetable:
 
 * Beta test: May 1--2 2014
 * Release test: May 29--30 2014
+* Navy Drill Exercise: May 5--15 2014
+* Corps Drill Exercise: May 16 2014
+
 
 Clients/Stakeholders
 --------------------
@@ -71,21 +74,52 @@ lists will include local weather forecast offices, emergency managers,
 river forecast offices, public officials, etc.
 
 
-
-
 North Carolina
 ==============
 
 OU/NSSL hydrology modeling.
 
+New Mesh from Brian Blanton: nc_inundation_v9.98.grd
+
 Louisiana
 =========
+
+New mesh from Max Agnew: HSDRRS2014_MRGO_leveeupdate_fixSTC_MX.grd 
+
+Mississippi / Alabama
+=====================
+
 
 New Orleans District
 ====================
 
 Texas
 =====
+
+Puerto Rico
+===========
+
+Delmarva
+========
+
+New York / New Jersey
+=====================
+
+South Carolina
+==============
+
+Georgia / North Florida
+=======================
+
+Florida (Central Atlantic Coast)
+================================
+
+Florida Gulf Coast
+==================
+
+Florida Panhandle
+=================
+
 
 NOAA CSDL
 =========
@@ -133,6 +167,8 @@ ASGS page on wikipedia.
 
 Recruiting
 ----------
+
+
 
 FL, GA, SC, DE/MD/VA, NY/NJ.  
 
