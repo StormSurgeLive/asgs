@@ -212,6 +212,7 @@
             num_components = 1 
             ndset = 2
             multisets = .true.
+            exit
          case("u-vel","v-vel")
             fileTypeDesc = "an ADCIRC water current velocity file"
             num_components = 2
