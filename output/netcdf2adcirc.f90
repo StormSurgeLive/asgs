@@ -39,6 +39,10 @@
 !
 ! Example using ifort on Diamond at ERDC 20130726:
 ! ifort -cpp -o netcdf2adcirc.x -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -i-dynamic -I/usr/local/usp/PETtools/CE/pkgs/netcdf-4.2.1.1-intel-serial/include -L/usr/local/usp/PETtools/CE/pkgs/netcdf-4.2.1.1-intel-serial/lib netcdf2adcirc.f90 -lnetcdf -lnetcdff -lz
+!
+! Example of compiling this program with intel fortran on hatteras at RENCI:
+! ifort -cpp -o netcdf2adcirc.x -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -i-dynamic -I/projects/ncfs/apps/netcdf/netcdf-fortran-4.2/include -L/projects/ncfs/apps/netcdf/netcdf-fortran-4.2/lib netcdf2adcirc.f90 -lnetcdff -lz
+!
 include 'adcmesh.f90'
 
 program netcdf2adcirc
