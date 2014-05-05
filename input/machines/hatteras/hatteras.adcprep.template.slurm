@@ -2,7 +2,7 @@
 
 #SBATCH -J %jobtype%.%enstorm%
 #SBATCH -t %wallminutes%
-#     #SBATCH -p %account%
+#SBATCH -p %account%
 #SBATCH -n 1 
 #SBATCH -c 1
 
