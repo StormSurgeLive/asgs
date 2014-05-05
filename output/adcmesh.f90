@@ -1391,7 +1391,7 @@ END SUBROUTINE computeAlbersEqualAreaConic
       INTEGER,INTENT(IN) :: ncStatus
       IF(ncStatus.NE.NF90_NOERR)THEN
          WRITE(*,'(A,A)') "ERROR: ",TRIM(NF90_STRERROR(ncStatus))
-         ERROR STOP 1
+         STOP 1
       ENDIF
    END SUBROUTINE check
 !-----+---------+---------+---------+---------+---------+---------+
