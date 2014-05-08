@@ -6,7 +6,7 @@
 # loop which is executed once per advisory cycle.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2006--2013 Jason Fleming
+# Copyright(C) 2006--2014 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
