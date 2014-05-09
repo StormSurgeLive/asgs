@@ -243,7 +243,7 @@ C     Process command line options, if any
                case default
                   write(*,*) "ERROR: ec2001v2d_tide_interp: ",
      &               "Command line option '",
-     &               trim(cmdlinearg)," not recognized."
+     &               trim(cmdlinearg),"' not recognized."
                   stop
             end select
          end do
