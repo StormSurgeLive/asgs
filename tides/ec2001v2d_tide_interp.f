@@ -113,6 +113,9 @@ C     -  DESCRIPTION OF OUTPUT DATA WRITTEN TO UNIT 2  (tides.dia)            *
 C          self explanatory.  see output file.                                *
 C                                                                             *
 C******************************************************************************
+C     Example of compiling with gfortran:
+C     gfortran -ffixed-line-length-none -o ec2001v2d_tide_interp.x ec2001v2d_tide_interp.f 
+
       PROGRAM EC2001V2D_TIDE_INTERP
       IMPLICIT NONE
 C
