@@ -4,7 +4,7 @@
 ! A program to generate XDMF xml for NetCDF4 formatted ADCIRC files.
 !
 !--------------------------------------------------------------------------
-! Copyright(C) 2012 Jason Fleming
+! Copyright(C) 2012--2014 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -236,11 +236,37 @@
             num_components = 1
             ndset = 1
             varname(1) = trim(thisVarName)
+            ! check to see if this is a new-style min/max file that records
+            ! the time of the min or max, and if so, prepare to convert the
+            ! time information as well
+            timeOfVarName = 'time_of_'//trim(thisVarName)
+            do j=1,nvar
+               call check(nf90_inquire_variable(nc_id, j, aVarName))
+               if (trim(aVarName).eq.trim(timeOfVarName)) then
+                  write(6,'(a)') 'INFO: The file contains time of occurrence data.'
+                  multisets = .true.
+                  varname(2) = trim(timeOfVarName)
+                  num_components = 2
+                  ndset = 2
+                  exit
+               endif 
+            end do
          case("maxwvel","wind_max")
             fileTypeDesc = "an ADCIRC maximum wind speed (maxwvel.63) file"
             num_components = 1
             ndset = 1
             varname(1) = trim(thisVarName)
+            do j=1,nvar
+               call check(nf90_inquire_variable(nc_id, j, aVarName))
+               if (trim(aVarName).eq.trim(timeOfVarName)) then
+                  write(6,'(a)') 'INFO: The file contains time of occurrence data.'
+                  multisets = .true.
+                  varname(2) = trim(timeOfVarName)
+                  num_components = 2
+                  ndset = 2
+                  exit
+               endif 
+            end do
          case("maxvel","vel_max")
             fileTypeDesc = "an ADCIRC maximum current speed (maxvel.63) file"
             num_components = 1

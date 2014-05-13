@@ -249,7 +249,23 @@ do i=1,nvar
          // "wind speed file."
       ascii_datafile_name = "maxwvel.63"
       ndset = 1
+      num_components = 1
       varname(1) = "wind_max"
+      ! check to see if this is a new-style min/max file that records
+      ! the time of the min or max, and if so, prepare to convert the
+      ! time information as well
+      timeOfVarName = 'time_of_'//trim(thisVarName)
+      do j=1,nvar
+         call check(nf90_inquire_variable(nc_id, j, aVarName))
+         if (trim(aVarName).eq.trim(timeOfVarName)) then
+            write(6,'(a)') 'INFO: The file contains time of occurrence data.'
+            extremesWithTime = .true.
+            varname(2) = trim(timeOfVarName)
+            num_components = 2
+            ndset = 2
+            exit
+         endif 
+      end do
       exit
    case("dir")
       write(6,*) "INFO: Preparing to write a mean wave " &
