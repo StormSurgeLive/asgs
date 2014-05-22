@@ -1,0 +1,104 @@
+fort15_sequence_nr,stationid,stationname,lat,lon
+1,8735180,Dauphin Island,30.2507,-88.071023
+2,SBPT2,Tide Station near Sabine Pass,29.728333,-93.870000
+3,CAPL1,Tide Station at Calcasieu Pass,29.768056,-93.342778
+4,LCRL1,Calcasieu River at Sam Houston Jones State Park,30.294167,-93.262778
+5,LCLL1,Tide Station at Lake Charles,30.223611,-93.221667
+6,LCHL1,Calcasieu River at Saltwater Barrier,30.253611,-93.218056
+7,FRWL1,Tide Station at Fresh Water Canal Locks,29.5550,-92.304722
+8,VLSL1,Vermilion River at Surrey St. at Lafayette,30.217222,-91.992500
+9,BSRL1,Atchafalaya River at Bayou Sorrel Lock,30.1300,-91.3225
+10,03820,Avoca Island Cutoff south of Morgan City,29.53333333,-91.24944440
+11,01300,Mississippi River at New Orleans (Carrollton),29.93472222,-90.13611111
+12,NORL1,Mississippi River at New Orleans,29.93472222,-90.13611111
+13,PERL1,Pearl River at Pearl River,30.385,-89.736667
+14,073815450,Chicot Pass near Myette Point near Charenton,29.89270406, -91.44566620
+15,07381324,Bayou Grand Caillou at Dulac,29.38299869, -90.71536740
+16,07381350,Company Canal at Hwy 1 at Lockport,29.64521343, -90.54480800
+17,OTBL1,Calcasieu River nr Old Town Bay,30.290278,-93.144722
+18,GNDL1,Atchafalaya River at Myette Point/Grand Lake,29.8925,-91.445556
+19,MCGL1,Atchafalaya River at Morgan City,29.696389,-91.210833
+20,01545,Mississippi River at Head of Passes,29.1338,-89.2465
+21,01480,Mississippi River at Venice,29.27583333,-89.35277778
+22,01670,Mississippi River Southwest Pass at East Jetty,28.9323055,-89.4071111
+23,07374540,Mississippi River at Buras,29.35713889,-89.5238611
+24,07374526,Black Bay nr Snake Island nr Pointe-A-La-Hache,29.63354395,-89.5636694
+25,01440,Mississippi River at Empire,29.3893722,-89.5964638
+26,07374527,Northeast Bay Gardene nr Point-A-LA-Hache,29.5859626,-89.6060323
+27,073745257,Crooked B. NW of L. Cuatro Caballo nr Delacroix,29.7082661,-89.7195065
+28,85700,Rigolets nr Lake Pontchartrain,30.1633861,-89.7379055
+29,01400,Mississippi River at West Point A La Hache,29.5711,-89.7969
+30,07374581,Bayou Liberty nr Slidell,30.30130578,-89.83062149
+31,295124089542100,Caernarvon Outfall Channel at Caernarvon,29.85355556,-89.9076944
+32,073745253,Reggio Canal nr Wills Point,29.78416667,-89.9375
+33,073802516,Barataria Pass at Grand Isle,29.27283333,-89.9468056
+34,07380251,Barataria Bay N of Grand Isle,29.42272045,-89.9506268
+35,01390,Mississippi River at Alliance,29.6845444,-89.9699
+36,01380,Mississippi River at Algiers Lock,29.9159916,-89.9710777
+37,76240,Algiers Lock - GIWW,29.9142972,-89.9733611
+38,07374525,Mississippi River at Belle Chasse,29.85715084,-89.977847
+39,76160,Inner Harbor Navigation Canal New Orleans,29.9664805,-90.02675
+40,01340,Mississippi River at IHNC Lock,29.9644138,-90.0274333
+41,073802512,Hackberry Bay NW of Grand Isle,29.39855505,-90.0411844
+42,76230,Harvey Canal at Boomtown Casino,29.8483583,-90.0598694
+43,76220,Harvey Canal Sector Gates nr Lapalco Blvd,29.8705638,-90.069325
+44,85626,London Ave Canal 1 - ICS Lake-side,30.0260555,-90.0720277
+45,76200,Harvey Lock at GIWW,29.9085,-90.0834111
+46,01320,Mississippi River at Harvey Lock,29.9100444,-90.0840639
+47,292800090060000,Little Lake nr Bay Dosgris E of Galliano,29.46666667,-90.1
+48,82875,Barataria Waterway at Lafitte,29.6694444,-90.11055556
+49,85625,Lake Pontchartrain at West End,30.0221638,-90.1156444
+50,82740,Bayou Segnette at Lapalco Blvd,29.89388889,-90.15805556
+51,07380335,Little Lake nr Cutoff,29.5177174,-90.1814655
+52,82730,Lake Cataouatche Pumping Station,29.87111111,-90.22888889
+53,82260,Golden Meadow Floodgate (South) ,29.3425,-90.2463888
+54,82250,Golden Meadow Floodgate (North) ,29.3441583,-90.2463972
+55,82720,Sellers Canal at Hwy 90 ,29.9125,-90.27305556
+56,85661,Cross Bayou Canal nr Hwy 61 (North),29.9862222,-90.3490166
+57,85660,Cross Bayou Canal nr Hwy 61 (South),29.9858861,-90.3490333
+58,07381235,GIWW West of Bayou Lafourche at Larose,29.5772222,-90.3808333
+59,85663,Bayou Trepagnier Control Structure (North),30.02399,-90.39982
+60,85420,Pass Manchac Near Pontchoula,30.28138889,-90.40027778
+61,01280,Mississippi River at Bonnet Carre ,29.9973888,-90.4248194
+62,07381150,Bayou Lafourche at Lockport,29.64705556,-90.5367778
+63,85300,Tickfaw River Near Springfield,30.3758611,-90.5508611
+64,07381355,Company Canal at Salt Barrier nr Lockport,29.62733333,-90.5576667
+65,RRVL1,Mississippi River at Reserve,30.055556,-90.568611
+66,01260,Mississippi River at Reserve,30.0544166,-90.568725
+67,07380215,Amite River at Hwy 22 nr Maurepas,30.3093619,-90.6103684
+68,07381331,GIWW at Houma,29.59805556,-90.71
+69,07381328,Houma Navigation Canal,29.38522075,-90.729812
+70,073802282,New River Canal nr Sorrento,30.18936433,-90.7862055
+71,07381000,Bayou Lafourche at Thibodaux,29.7979854,-90.8225932
+72,PVLL1,Amite River at Port Vincent,30.3325,-90.851944
+73,073802245,Black Bayou E of Gonzales,30.2404739,-90.8773197
+74,07381349,Caillou Lake SW of Dulac,29.24916667,-90.9211111
+75,07380401,Bayou Lafourche SW of Donaldsonville,30.09658793,-91.0059332
+76,073814675,Bayou Boeuf at Railroad Bridge at Amelia,29.66833333,-91.0997222
+77,073816503,Bayou Penchant S of Morgan City,29.58555556,-91.1552778
+78,76360,Bayou Boeuf Lock - East,29.6830388,-91.1710944
+79,76400,Bayou Boeuf Lock - West,29.6827305,-91.1805638
+80,03780,Lower Atchafalaya River at Morgan City,29.69638889,-91.21083333
+81,07381600,Lower Atchafalaya River at Morgan City,29.69281939,-91.2119368
+82,07381454,Belle River at Hwy 70 nr Pierre Part,29.9091111,-91.2158333
+83,073816501,Avoca Island Cutoff south of Morgan City,29.53333333,-91.2494444
+84,073816202,GIWW at mile 103 S of Morgan City,29.64944444,-91.3041667
+85,03720,Wax Lake Outlet at Calumet,29.6977,-91.3728
+86,03645,Six Mile Lake NE of Verdunville,29.7659166,-91.389666
+87,03615,Keelboat Pass below Lake Chicot,30.0384527,-91.4558333
+88,07381670,GIWW at Bayou Sale Ridge nr Franklin,29.68083333,-91.4705556
+89,07385790,Charenton Drainage Canal at Baldwin,29.82305556,-91.5416667
+90,07385765,Bayou Teche at Adeline Bridge nr Jeanerette,29.87937163,-91.5862248
+91,07387040,Vermilion Bay nr Cypremort Point,29.71326575,-91.8803982
+92,07386850,Vermilion River nr Lafayette,30.2190891,-91.9390072
+93,07386940,Vermilion River at Hwy 733 nr Lafayette,30.14186928,-92.0756783
+94,73650,Calcasieu River & Pass nr Cameron,29.7758055,-93.3479166
+95,02481660,Jourdan River nr Bay St Louis,30.3872,-89.4414
+96,GLFM6,Wolf River above Gulfport,30.3933,-89.2064
+97,DIBM6,Tchoutacabouffa River nr D'Iberville,30.4758,-88.8933
+98,02480285,West Pascagoula River at Hwy 90 at Gautier,30.3827,-88.60844
+99,02481299,Old Fort Bayou at Ocean Springs,30.41916667,-88.8280556
+100,LYMM6,Biloxi River nr Lyman,30.4880,-89.036
+101,8747437,Bay Waveland Yacht Club,30.3273,-89.3219
+102,301141089320300,E Pearl River at CSX Railroad nr Clairborne,30.1947222,-89.5341667
+103,08030540,Sabine Rv (at Navy Pier) at Orange,30.09798774,-93.72155440
