@@ -43,6 +43,10 @@ C writing of clipped meshes in fort.14 into a command line option.
 C
 C---------------------------------------------------------------------
 
+   ! example of compiling with gfortran:
+   ! gfortran GRIDSTUFF.f
+   ! gfortran -ffixed-line-length-none -c STATIONS2KML.f
+   ! gfortran -o stations2kml.x GRIDSTUFF.o STATIONS2KML.o
 
       PROGRAM STATIONS2KML
 
@@ -52,8 +56,6 @@ C---------------------------------------------------------------------
       
       INTEGER I,J,K,L,II,JJ,NS,INELE,FOUND
 c      REAL*8, ALLOCATABLE :: X1TMP(:), Y1TMP(:), X2TMP(:), Y2TMP(:)
-   
-     
       REAL*8 FACTOR,XLIM(2),YLIM(2),SCL,pad,XTMP,YTMP,ZTMP,MAXZ,MINZ
       REAL*8 INTERVAL,XC(2),YC(2),CONTOUR
       
@@ -87,6 +89,11 @@ c      REAL*8, ALLOCATABLE :: X1TMP(:), Y1TMP(:), X2TMP(:), Y2TMP(:)
       INTEGER :: endDesc
       INTEGER :: argcount
       INTEGER :: STYLE
+      LOGICAL :: unprintableCharacters
+      LOGICAL :: badLine
+      INTEGER :: numBadlines
+      LOGICAL :: badLinesFileOpened
+      
 C--------------------------------------------------------------------
       ! initializations
       meshFile = 'fort.14'
@@ -145,7 +152,7 @@ C--------------------------------------------------------------------
          READ(*,*) stationFile      
       end if    
 
-C READ IN THE STATIONS
+C     count the number of stations
       OPEN(12,FILE=trim(stationFile))
       I=0
       DO WHILE(.TRUE.)
@@ -153,9 +160,49 @@ C READ IN THE STATIONS
          I=I+1
       END DO
  7    NS=I
-      WRITE(*,'(A,I4,A,A)')' THERE ARE ',NS,
+      WRITE(*,'(A,I0,A,A)')' THERE ARE ',NS,
      & ' STATIONS IN ',TRIM(stationFile)
       REWIND(12)
+      !
+      ! look for unprintable characters in the station data
+      unprintableCharacters = .false.
+      badLine = .false.
+      numBadlines = 0
+      badLinesFileOpened = .false.
+      do i=1,ns
+         read(12,'(a1024)') tmpstr
+         ! jgf: Replace unprintable characters from pdf-derived data with spaces
+         do j=1,len(tmpstr)
+            if ( iachar(tmpstr(j:j)).lt.32.or.
+     &           iachar(tmpstr(j:j)).gt.126 ) then
+               tmpstr(j:j) = " "
+               unprintableCharacters = .true.
+               badLine = .true.
+            endif
+         end do         
+         if ( badLine.eqv..true. ) then
+            numBadLines = numBadLines + 1
+            write(*,
+     &        '("ERROR: Station file Line ",i0," contained unprintable characters.")') 
+     &         i
+            if (badLinesFileOpened.eqv..false.) then
+               open(unit=36,file='badLinesFile.txt',action='write',
+     &             status='replace')
+               badLinesFileOpened = .true.
+            endif
+            write(36,'(a)') trim(adjustl(tmpstr))
+         end if
+      end do
+      if (unprintableCharacters.eqv..true.) then 
+         write(*,'("ERROR: The station file contained ",i0," bad lines.")') numBadLines
+         close(36)
+         close(12)
+         stop
+      else
+         write(*,'("INFO: The station file does not contain spurious characters.")')
+         rewind(12)
+      endif
+
 C     READ IN THE MESH       
       CALL READ14(meshFile)
 C     OPEN THE OUTPUT KML FILE
@@ -198,7 +245,7 @@ C     END  STYLE
       
 C BIG LOOP OVER STATIONS     
       DO I=1,NS
-         READ(12,'(A1024)')TMPSTR
+         READ(12,'(A1024)') TMPSTR
          READ(TMPSTR,*) XTMP,YTMP
          K=INDEX(TMPSTR,'!')
          ! jgf: The station description is everything between the ! marks

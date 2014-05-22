@@ -213,6 +213,17 @@ type xdmfMetaData_t
    integer :: positive_id
    integer :: ndset ! number of data sets
 end type xdmfMetaData_t
+!
+! info related to recording stations
+type station_t
+   real(8) :: lon             ! decimal degrees east 
+   real(8) :: lat             ! decimal degrees north
+   integer :: elementIndex   ! where station is located in a particular mesh
+   integer :: nodeIndices(3) ! nodes that surround the station
+   integer :: weights(3)     ! used to interpolate station values based on nodal values
+   character(len=1024) :: stationID   ! generally a number assigned by govt agency 
+   character(len=1025) :: description ! human readable 
+end type station_t
    
 !-----+---------+---------+---------+---------+---------+---------+
 contains
@@ -1319,6 +1330,55 @@ END SUBROUTINE computeAlbersEqualAreaConic
 !-----------------------------------------------------------------------
       END SUBROUTINE computeElementCentroids
 !-----------------------------------------------------------------------
+
+   inner: DO E=1,NumElems
+
+      X1 = StationsLon(S)
+      X2 = GridLon(Conn(E,2))
+      X3 = GridLon(Conn(E,3))
+      Y1 = StationsLat(S)
+      Y2 = GridLat(Conn(E,2))
+      Y3 = GridLat(Conn(E,3))
+      SubArea1 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+
+      X1 = GridLon(Conn(E,1))
+      X2 = StationsLon(S)
+      X3 = GridLon(Conn(E,3))
+      Y1 = GridLat(Conn(E,1))
+      Y2 = StationsLat(S)
+      Y3 = GridLat(Conn(E,3))
+      SubArea2 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+
+      X1 = GridLon(Conn(E,1))
+      X2 = GridLon(Conn(E,2))
+      X3 = StationsLon(S)
+      Y1 = GridLat(Conn(E,1))
+      Y2 = GridLat(Conn(E,2))
+      Y3 = StationsLat(S)
+      SubArea3 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+
+      X1 = GridLon(Conn(E,1))
+      X2 = GridLon(Conn(E,2))
+      X3 = GridLon(Conn(E,3))
+      Y1 = GridLat(Conn(E,1))
+      Y2 = GridLat(Conn(E,2))
+      Y3 = GridLat(Conn(E,3))
+      TotalArea = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+
+      IF((SubArea1+SubArea2+SubArea3).LE.(1.01*TotalArea))THEN
+         StationsElem(S) = E
+         Weight(S,1) = ( (StationsLon(S)-X3)*(Y2-Y3)+(X2-X3)*(Y3-StationsLat(S)))/TotalArea
+         Weight(S,2) = ( (StationsLon(S)-X1)*(Y3-Y1)-(StationsLat(S)-Y1)*(X3-X1))/TotalArea
+         Weight(S,3) = (-(StationsLon(S)-X1)*(Y2-Y1)+(StationsLat(S)-Y1)*(X2-X1))/TotalArea
+         PRINT*, Weight(S,1), Weight(S,2), Weight(S,3), S
+         WRITE(19,'(I5)') S	!!! Adonahue: Determine which stations are in Mesh
+         EXIT inner
+      ELSE  !!! Adonahue Locate stations outside of Mesh
+         StationsElem(S) = 0
+      ENDIF    
+   ENDDO inner
+
+
 
 
 !-----------------------------------------------------------------------
