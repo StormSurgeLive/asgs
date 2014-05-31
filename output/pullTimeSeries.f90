@@ -160,74 +160,50 @@ PROGRAM PullTimeSeries
       READ(*,'(A)') GlobalFile
 
       OPEN(UNIT=12,FILE=TRIM(GlobalFile),ACTION="READ")
-
       READ(12,'(A)') JunkC
       READ(12,'(I11,I11,A)') NumSnaps,JunkI,Line
       WRITE(*,'(A)',ADVANCE="YES") " "
+
       WRITE(*,'(A)',ADVANCE="NO") "Enter name of output file: "
       READ(*,'(A)') OutputFile
-
       OPEN(UNIT=14,FILE=TRIM(OutputFile),ACTION="WRITE")
-
       WRITE(14,'(A)') "Interpolated values at stations"
       WRITE(14,'(I11,I11,A)') NumSnaps,NumStations,TRIM(Line)
 
       WRITE(*,'(A)',ADVANCE="YES") " "
-
-      DO SS=1,NumSnaps
-
-	 WRITE(*,'(A,I3.3,A,I3.3,A)',ADVANCE="YES") "Processing snap #",SS," of ",NumSnaps,"."
-
-         ALLOCATE(Global(1:NumNodes))
-
-         READ(12,'(A)',ERR=999,END=999) Line
-         READ(Line,*) JunkR, JunkI, NumNodesNonDefault, DefaultValue
-!        NumNodesNonDefault = NumNodes
-!        DefaultValue = -99999.D0
-
+      ALLOCATE(Global(1:NumNodes))       
+      ss = 1
+      DO 
+         WRITE(*,'(A,I3.3,A,I3.3,A)',ADVANCE="YES") "Processing snap #",SS," of ",NumSnaps,"."
+         !READ(12,'(A)',ERR=999,END=999) Line
+         READ(12,*,ERR=10) JunkR, JunkI
+         DefaultValue = -99999.D0
          WRITE(14,'(A)') TRIM(Line)
-
          DO N=1,NumNodes
-            Global(N) = DefaultValue
-         ENDDO
-
-         DO N=1,NumNodesNonDefault
             READ(12,*,ERR=999,END=999) JunkI, StationsTemp
             Global(JunkI) = StationsTemp
          ENDDO
-
          DO S=1,NumStations
-
-	    IF(StationsElem(S).eq.0)THEN   !!! Adonahue: Flag stations not in mesh
-		StationsTemp = -9999 
-	    ELSE
+            IF(StationsElem(S).eq.0)THEN   !!! Adonahue: Flag stations not in mesh
+               StationsTemp = -9999 
+            ELSE
                 StationsTemp = Global(Conn(StationsElem(S),1)) * Weight(S,1) &
                          + Global(Conn(StationsElem(S),2)) * Weight(S,2) &
                          + Global(Conn(StationsElem(S),3)) * Weight(S,3)
-	    ENDIF
-
+            ENDIF
             WRITE(14,'(I10,5X,E17.10)') S, StationsTemp
-
          ENDDO
-
-         DEALLOCATE(Global)
-
       ENDDO
-
+      DEALLOCATE(Global)
  999  CONTINUE
-
       CLOSE(UNIT=12,STATUS="KEEP")
       CLOSE(UNIT=19,STATUS="KEEP")
-
       WRITE(*,'(A)',ADVANCE="YES") "Significant wave heights were processed successfully!"
-
       CLOSE(UNIT=14,STATUS="KEEP")
-
       DEALLOCATE(Conn)
       DEALLOCATE(StationsElem)
       DEALLOCATE(StationsLat)
       DEALLOCATE(StationsLon)
       DEALLOCATE(Weight)
-
 END PROGRAM
 

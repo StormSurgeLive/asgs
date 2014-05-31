@@ -43,51 +43,17 @@
 ! Example of compiling this program with intel fortran on hatteras at RENCI:
 ! ifort -cpp -o netcdf2adcirc.x -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -i-dynamic -I/projects/ncfs/apps/netcdf/netcdf-fortran-4.2/include -L/projects/ncfs/apps/netcdf/netcdf-fortran-4.2/lib netcdf2adcirc.f90 -lnetcdff -lz
 !
-include 'adcmesh.f90'
-
 program netcdf2adcirc
-use adcmesh
 use netcdf
+use asgsio
+use adcmesh
+use adcircdata
 implicit none
-
-integer :: iargc
-character(NF90_MAX_NAME) :: varName(3)
-character(NF90_MAX_NAME) :: thisVarName
-character(NF90_MAX_NAME) :: aVarName
-character(NF90_MAX_NAME) :: timeOfVarName
-integer :: NC_VarID(3)
-integer :: NC_DimID_time
-integer :: NC_VarID_time
-integer :: nc_count(2)
-integer :: nc_start(2)
-integer :: nc_count3D(3)
-integer :: nc_start3D(3)
-integer :: numNodesNonDefault
-integer :: nc_id
-integer :: ndim
-integer :: nvar
-integer :: natt
-integer :: ncformat
-integer :: ndset
-integer :: num_components
-integer :: ag,agold,agnew
-real(8) :: time_increment
-real(8) :: defaultValue
-real(8), allocatable :: timesec(:)  ! time in seconds associated with each dataset
-real(8), allocatable :: adcirc_data(:,:) ! generic holder for converted data
-real(8), allocatable :: adcirc_data3D(:,:,:) ! generic holder for converted data
-integer :: nspool
-integer :: it
-integer :: argcount
+integer :: ag
+integer :: agnew
+integer :: agold
 integer :: i, j, k, m, n
-character(1024) :: cmdlineopt
-character(1024) :: cmdlinearg
-character(1024) :: datafile
-character(1024) :: ascii_datafile_name
 logical :: meshonly
-logical :: sparse
-logical :: stationfile ! true if the data represent recording stations
-logical :: extremesWithTime ! true if data are min/max with time of occurrence
 
 meshonly = .false.
 sparse = .false.
@@ -123,8 +89,10 @@ if (argcount.gt.0) then
       end select
    end do
 end if
+!
 ! open the netcdf file
 call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
+!
 ! determine the type of data stored in the file
 call check(nf90_inquire(nc_id, ndim, nvar, natt, &
                         nc_dimid_time, ncformat))
@@ -132,9 +100,9 @@ if ( (ncformat.eq.nf90_format_netcdf4).or. &
    (ncformat.eq.nf90_format_netcdf4_classic) ) then
    write(6,*) "INFO: The data file uses netcdf4 formatting."
 endif
+!
 ! determine the number of snapshots in the file
 call check(nf90_inquire_dimension(nc_id,nc_dimid_time,len=ndset))
-
 !
 !  get time
 !

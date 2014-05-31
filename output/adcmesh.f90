@@ -2,7 +2,7 @@
 !
 ! adcmesh.f90
 ! This is a module for storing and manipulating data for ADCIRC meshes;
-! it is based on code written by Corbitt Kerr.
+! it is based on code originally written by Corbitt Kerr.
 !
 !-----+---------+---------+---------+---------+---------+---------+
 module adcmesh
@@ -13,7 +13,7 @@ real(8), parameter :: pi = 3.141592653589793d0
 real(8), parameter :: deg2rad = pi/180.d0
 real(8), parameter :: rad2deg = 180.d0/pi
 real(8), parameter :: oneThird = 1.d0/3.d0
-logical                         :: verbose
+logical :: verbose
 real(8), allocatable, target :: xyd(:,:), bar(:,:,:)
 !
 ! parameters related to carte parallelogrammatique projection (CPP)
@@ -220,20 +220,20 @@ type station_t
    real(8) :: lat             ! decimal degrees north
    integer :: elementIndex   ! where station is located in a particular mesh
    integer :: nodeIndices(3) ! nodes that surround the station
-   integer :: weights(3)     ! used to interpolate station values based on nodal values
+   real(8) :: weights(3)     ! used to interpolate station values based on nodal values
    character(len=1024) :: stationID   ! generally a number assigned by govt agency 
    character(len=1025) :: description ! human readable 
 end type station_t
-   
+      
 !-----+---------+---------+---------+---------+---------+---------+
 contains
 !-----+---------+---------+---------+---------+---------+---------+  
-  
 
 !-----+---------+---------+---------+---------+---------+---------+
 !  READ14_FindDims
 !-----+---------+---------+---------+---------+---------+---------+
-subroutine read14_findDims ()
+subroutine read14_findDims()
+use asgsio
 implicit none
 integer :: ios ! i/o status 
 integer :: lineNum ! line number currently being read
@@ -245,7 +245,8 @@ numSimpleFluxBoundaries = 0
 numExternalFluxBoundaries = 0 
 numInternalFluxBoundaries = 0 
 numInternalFluxBoundariesWithPipes = 0
-
+!
+call openFileForRead(iunit, meshFileName)
 read(iunit,'(A80)',err=10,end=20,iostat=ios) agrid
 lineNum = lineNum + 1
 write(6,'(A)') "INFO: Mesh file comment line: "//trim(agrid)
@@ -347,10 +348,170 @@ return
 end subroutine read14_findDims
 !-----+---------+---------+---------+---------+---------+---------+
 
+
+!------------------------------------------------------------------
+!                   S U B R O U T I N E    
+!        F I N D   M E S H   D I M S   N E T C D F
+!------------------------------------------------------------------
+! Unfinished routine to read the dimensions of mesh data from
+! a netcdf file. See TODO comments at the end of the subroutine.
+!------------------------------------------------------------------
+subroutine findMeshDimsNetCDF(datafile)
+use netcdf
+use asgsio, only : nc_id, check
+implicit none
+character(len=1024), intent(in) :: datafile
+integer :: dimPres ! return code from netcdf to determine if the dimension is present in the file
+integer :: i
+integer :: natt ! number of attributes in the netcdf file
+integer :: nvar ! number of variables in the netcdf file
+integer :: ndim ! number of dimensions in the netcdf file
+integer :: nc_dimid_time ! id of the time dimension
+integer :: ncformat ! netcdf3, netcdf4, netcdf4 classic model, etc
+!
+! open the netcdf file
+call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
+!
+! determine the type of data stored in the file
+call check(nf90_inquire(nc_id, ndim, nvar, natt, &
+                        nc_dimid_time, ncformat))
+if ( (ncformat.eq.nf90_format_netcdf4).or. &
+   (ncformat.eq.nf90_format_netcdf4_classic) ) then
+   write(6,'(a)') 'INFO: The data file uses netcdf4 formatting.'
+endif
+!
+call readMeshCommentLineNetCDF()
+!
+! read the lengths of the dimensions that will always be present in 
+! an adcirc netcdf file that contains a mesh
+call check(nf90_inq_dimid(nc_id, 'node', nc_dimid_node))
+call check(nf90_inquire_dimension(nc_id, nc_dimid_node, len=np))
+call check(nf90_inq_dimid(nc_id, 'nele', nc_dimid_nele))
+call check(nf90_inquire_dimension(nc_id, nc_dimid_nele, len=ne))
+!
+! determine which other dimensions are present and find their lengths 
+!
+! open boundaries
+dimPres = nf90_inq_dimid(nc_id, 'nope', nc_dimid_nope)
+if (dimPres.eq.NF90_NOERR) then
+   call check(nf90_inquire_dimension(nc_id, nc_dimid_nope, len=nope))
+else 
+   nope = 0
+endif
+! total number of open boundary nodes
+dimPres = nf90_inq_dimid(nc_id, 'neta', nc_dimid_neta)
+if (dimPres.eq.NF90_NOERR) then
+   call check(nf90_inquire_dimension(nc_id, nc_dimid_neta, len=neta))
+else
+   neta = 0
+endif
+! longest open boundary segment
+dimPres = nf90_inq_dimid(nc_id, 'max_nvdll', nc_dimid_max_nvdll)
+if (dimPres.eq.NF90_NOERR) then
+   call check(nf90_inquire_dimension(nc_id, nc_dimid_max_nvdll, len=nvdll_max))
+else
+   nvdll_max = 0
+endif
+! allocate arrays to hold the data
+call allocateElevationBoundaryLengths()
+call allocateAdcircElevationBoundaryArrays() 
+!
+! now read in the lengths of the open boundary segments and the node
+! numbers on each segment
+if (nope.ne.0) then
+   call check(nf90_inq_varid(nc_id, 'nvdll', nc_varid_nvdll))
+   call check(nf90_get_var(nc_id, nc_varid_nvdll, nvdll, (/ 1 /), (/ nope /) ))
+   call check(nf90_inq_varid(nc_id, 'nbdv', nc_varid_nbdv))
+   do i=1, nope
+      call check(nf90_get_var(nc_id, nc_varid_nbdv, nbdv(i,:), (/ i, 1 /), (/ 1, nvdll(i) /) ))  
+   end do
+endif
+!
+!
+! flux boundaries
+dimPres = nf90_inq_dimid(nc_id, 'nbou', nc_dimid_nbou)
+if (dimPres.eq.NF90_NOERR) then
+   call check(nf90_inquire_dimension(nc_id, nc_dimid_nbou, len=nbou))
+else
+   nbou = 0
+endif
+! total number of flux boundary nodes
+dimPres = nf90_inq_dimid(nc_id, 'nvel', nc_dimid_nvel)
+if (dimPres.eq.NF90_NOERR) then
+   call check(nf90_inquire_dimension(nc_id, nc_dimid_nvel, len=nvel))
+else 
+   nvel = 0
+endif
+! longest flux boundary segment
+dimPres = nf90_inq_dimid(nc_id, 'max_nvell', nc_dimid_max_nvell)
+if (dimPres.eq.NF90_NOERR) then
+   call check(nf90_inquire_dimension(nc_id, nc_dimid_max_nvell, len=nvell_max))
+else
+   nvell_max = 0
+endif
+!
+call allocateFluxBoundaryLengths()
+call allocateAdcircFluxBoundaryArrays()
+!
+! now read in the lengths of the open boundary segments and the node
+! numbers on each segment
+if (nbou.ne.0) then
+   call check(nf90_inq_varid(nc_id, 'nvell', nc_varid_nvell))
+   call check(nf90_get_var(nc_id, nc_varid_nvell, nvell, (/ 1 /), (/ nbou /) ))
+   call check(nf90_inq_varid(nc_id, 'ibtype', nc_varid_ibtype))
+   call check(nf90_get_var(nc_id, nc_varid_ibtype, ibtype, (/ 1 /) , (/ nbou /) ))
+   call check(nf90_inq_varid(nc_id, 'nbvv', nc_varid_nbvv))
+   do i=1, nbou
+      call check(nf90_get_var(nc_id, nc_varid_nbvv, nbvv(i,:), (/ i, 1 /), (/ 1, nvell(i) /) ))  
+   end do
+endif
+
+! TODO: Finish this subroutine, and write a subroutine to actually
+! read the mesh data (coordinates, bathy/topo, element table).
+!
+! TODO: The NetCDF files written by ADCIRC don't actually contain the
+! levee heights, coefficients of sub/supercritical flow, etc. 
+
+!----------------------------------------------------------------------
+end subroutine findMeshDimsNetCDF
+!----------------------------------------------------------------------
+
+!------------------------------------------------------------------
+!                   S U B R O U T I N E    
+!   R E A D   M E S H   C O M M E N T   L I N E   N E T C D F
+!------------------------------------------------------------------
+! Reads the mesh comment line from the netcdf file, taking into 
+! account the fact that this comment line has been written with
+! two different variable names at different times by different 
+! programs. 
+!------------------------------------------------------------------
+subroutine readMeshCommentLineNetCDF()
+use netcdf
+use asgsio, only : nc_id, check
+implicit none
+! return codes to determine which of the variable names were
+! used in writing this file
+integer :: agold
+integer :: agnew
+integer :: ag
+agold = nf90_get_att(nc_id,nf90_global,'grid',agrid)
+agnew = nf90_get_att(nc_id,nf90_global,'agrid',agrid)
+if (agold.EQ.NF90_NOERR) then
+   ag = nf90_get_att(nc_id,nf90_global,'grid',agrid)
+elseif(agnew.EQ.NF90_NOERR) then
+   ag = nf90_get_att(nc_id,nf90_global,'agrid',agrid)
+else
+   call check(agnew)
+endif
+!----------------------------------------------------------------------
+end subroutine readMeshCommentLineNetCDF
+!----------------------------------------------------------------------
+
 !-----+---------+---------+---------+---------+---------+---------+
 ! READ14
 !-----+---------+---------+---------+---------+---------+---------+
-subroutine read14 ()
+subroutine read14()
+use asgsio
 implicit none
 integer :: i, j, k, jn, je, nhy
 integer, parameter :: iunit = 14
@@ -364,9 +525,9 @@ if (trim(meshFileName).eq."null") then
    write(6,'(a)',advance='no') "Enter name of the mesh file: "
    read(5,'(A)') meshFileName
 endif
-call openFileForRead(iunit,trim(meshFileName))
 !
-call read14_findDims ()
+call read14_findDims()
+!
 call allocateNodalAndElementalArrays()
 call allocateBoundaryArrays()
 !
@@ -901,7 +1062,184 @@ return
 end subroutine writeMesh
 !------------------------------------------------------------------
 
+!----------------------------------------------------------------------
+!                  S U B R O U T I N E   
+!     W R I T E   M E S H   D E F I N I T I O N S  T O   N E T C D F 
+!----------------------------------------------------------------------
+!     This subroutine writes the mesh parameters to the netcdf file. 
+!----------------------------------------------------------------------
+subroutine writeMeshDefinitionsToNetCDF(nc_id, useNetCDF4)
+use netcdf
+use asgsio, only : check
+implicit none
+integer, intent(in) :: nc_id
+logical, intent(in) :: useNetCDF4
+integer              :: NC_DimID_single
+!
+! create and store mesh dimensions 
+CALL Check(NF90_PUT_ATT(NC_ID,NF90_GLOBAL,'agrid',trim(agrid)))
+CALL Check(NF90_DEF_DIM(NC_ID,'node',np,NC_DimID_node))
+CALL Check(NF90_DEF_DIM(NC_ID,'nele',ne,NC_DimID_nele))
+CALL Check(NF90_DEF_DIM(NC_ID,'nvertex',3,NC_DimID_nvertex))
+CALL Check(NF90_DEF_DIM(NC_ID,'single',1,NC_DimID_single))
 
+if (nope.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nope',nope,NC_DimID_nope))
+if (nvdll_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_nvdll',nvdll_max,NC_DimID_max_nvdll))
+if (neta.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'neta',neta,NC_DimID_neta))
+if (nbou.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nbou',nbou,NC_DimID_nbou))
+if (nvel.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nvel',nvel,NC_DimID_nvel))
+if (nvell_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_nvell',nvell_max,NC_DimID_max_nvell))
+
+! ibtypee, ibconn, bars are ignored
+CALL Check(NF90_DEF_VAR(NC_ID,'x',NF90_DOUBLE,NC_DimID_node,NC_VarID_x))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_x,'long_name','longitude'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_x,'standard_name','longitude'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_x,'units','degrees_east'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_x,'positive','east'))
+
+CALL Check(NF90_DEF_VAR(NC_ID,'y',NF90_DOUBLE,NC_DimID_node,NC_VarID_y))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_y,'long_name','latitude'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_y,'standard_name','latitude'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_y,'units','degrees_north'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_y,'positive','north'))
+
+CALL Check(NF90_DEF_VAR(NC_ID,'element',NF90_int,(/NC_DimID_nvertex, NC_DimID_nele /),NC_VarID_element))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_element,'long_name','element'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_element,'standard_name','face_node_connectivity'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_element,'units','nondimensional'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_element,'start_index',1))
+
+if (nope.ne.0) then
+   CALL Check(NF90_DEF_VAR(NC_ID,'nvdll',NF90_DOUBLE,NC_DimID_nope,NC_VarID_nvdll))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvdll,'long_name','total number of nodes in each elevation specified & boundary segment'))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvdll,'units','nondimensional'))
+
+   CALL Check(NF90_DEF_VAR(NC_ID,'max_nvdll',NF90_int,NC_DimID_single,NC_VarID_max_nvdll))
+   CALL Check(NF90_DEF_VAR(NC_ID,'max_nvell',NF90_int,NC_DimID_single,NC_VarID_max_nvell))      
+   CALL Check(NF90_DEF_VAR(NC_ID,'neta',NF90_int,NC_DimID_single,NC_VarID_neta))
+   CALL Check(NF90_DEF_VAR(NC_ID,'nope',NF90_int,NC_DimID_single,NC_VarID_nope))
+   CALL Check(NF90_DEF_VAR(NC_ID,'nvel',NF90_int,NC_DimID_single,NC_VarID_nvel))
+
+   CALL Check(NF90_DEF_VAR(NC_ID,'nbdv',NF90_DOUBLE,(/ NC_DimID_nope, NC_DimID_max_nvdll /),NC_VarID_nbdv))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbdv,'long_name','node numbers on each elevation specified boundary & segment'))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbdv,'units','nondimensional'))
+endif
+
+if (nbou.ne.0) then
+   CALL Check(NF90_DEF_VAR(NC_ID,'nvell',NF90_DOUBLE,NC_DimID_nbou,NC_VarID_nvell))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvell,'long_name','number of nodes in each normal flow specified boundary segment'))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvell,'units','nondimensional'))
+
+   CALL Check(NF90_DEF_VAR(NC_ID,'ibtype',NF90_DOUBLE,NC_DimID_nbou,NC_VarID_ibtype))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_ibtype,'long_name','type of normal flow (discharge) boundary'))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_ibtype,'units','nondimensional'))
+
+   CALL Check(NF90_DEF_VAR(NC_ID,'nbvv',NF90_DOUBLE,(/ NC_DimID_nbou, NC_DimID_max_nvell /),NC_VarID_nbvv))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbvv,'long_name','node numbers on normal flow boundary segment'))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbvv,'units','nondimensional'))
+endif
+
+CALL Check(NF90_DEF_VAR(NC_ID,'depth',NF90_DOUBLE,NC_DimID_node,NC_VarID_depth))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'long_name','distance from geoid'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'standard_name','depth_below_geoid'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'coordinates','time y x'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'location','node'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'mesh','adcirc_mesh'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'units','m'))
+!      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'positive','down')) !DO NOT USE?
+
+CALL Check(NF90_DEF_VAR(NC_ID,'adcirc_mesh',NF90_INT,NC_DimID_single,NC_VarID_mesh))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'long_name','mesh topology'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'standard_name','mesh_topology'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'dimension',2))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'node_coordinates','x y'))
+CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'face_node_connectivity','element'))
+
+#ifdef NETCDF_CAN_DEFLATE
+if (useNetCDF4.eqv..true.) then
+   if (nope.ne.0) then
+      call check(nf90_def_var_deflate(NC_ID, NC_VarID_nvdll, 0, 1, 2))
+      call check(nf90_def_var_deflate(NC_ID, NC_VarID_nbdv, 0, 1, 2))
+   endif
+   if (nbou.ne.0) then
+      call check(nf90_def_var_deflate(NC_ID, NC_VarID_nvell, 0, 1, 2))
+      call check(nf90_def_var_deflate(NC_ID, NC_VarID_ibtype, 0, 1, 2))
+      call check(nf90_def_var_deflate(NC_ID, NC_VarID_nbvv, 0, 1, 2))
+   endif
+   call check(nf90_def_var_deflate(NC_ID, NC_VarID_x, 0, 1, 2))
+   call check(nf90_def_var_deflate(NC_ID, NC_VarID_y, 0, 1, 2))
+   call check(nf90_def_var_deflate(NC_ID, NC_VarID_element, 0, 1, 2))
+   call check(nf90_def_var_deflate(NC_ID, NC_VarID_depth, 0, 1, 2))
+   call check(nf90_def_var_deflate(NC_ID, NC_VarID_depth, 0, 1, 2))
+   call check(nf90_def_var_deflate(NC_ID, NC_VarID_Mesh, 0, 1, 2))
+endif
+#endif
+
+!----------------------------------------------------------------------
+      end subroutine writeMeshDefinitionsToNetCDF
+!----------------------------------------------------------------------
+
+!----------------------------------------------------------------------
+!                    S U B R O U T I N E   
+!         W R I T E   M E S H   D A T A   T O   N E T C D F 
+!----------------------------------------------------------------------
+!     This subroutine writes the mesh parameters to the netcdf file. 
+!----------------------------------------------------------------------
+      subroutine writeMeshDataToNetCDF(nc_id)
+      use netcdf
+      use asgsio, only : check
+      implicit none
+      integer, intent(in) :: nc_id
+      integer, allocatable :: nmnc(:,:) ! connectivity table to satisfy netcdf's expectations
+      integer :: nc_count(2)
+      integer :: nc_start(2)
+      integer :: i, j
+     
+      ! place mesh-related data into the file
+      NC_Count = (/ np, 1 /)
+      NC_Start = (/ 1, 1 /)
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_x,xyd(1,1:np),NC_Start,NC_Count))
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_y,xyd(2,1:np),NC_Start,NC_Count))
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_depth,xyd(3,1:np),NC_Start,NC_Count))
+      NC_Count = (/ 3, ne /)
+      !
+      ! we must reverse the order of the dimensions because netcdf writes
+      ! them to disk in column major order, according to the way C interprets
+      ! the data, rather than row major order, the way Fortran would interpret
+      ! the data
+      allocate(nmnc(3,ne))
+      do i=1, ne
+         do j=1, 3
+            nmnc(j,i)= nm(i,j)
+         end do
+      end do
+      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_element,nmnc,NC_Start,NC_Count))
+      deallocate(nmnc)
+      
+      if (nope.ne.0) then
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nope,nope))
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_max_nvell,nvell_max))
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_max_nvdll,nvdll_max))
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_neta,neta))      
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvel,nvel))            
+         NC_Count = (/ nope, 1 /)
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvdll,nvdll,NC_Start,NC_Count))
+         NC_Count = (/ nope, nvdll_max /)
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nbdv,nbdv,NC_Start,NC_Count))
+      endif
+      if (nbou.ne.0) then
+         NC_Count = (/ nbou, 1 /)
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvell,nvell,NC_Start,NC_Count))
+         NC_Count = (/ nbou, 1 /)
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_ibtype,ibtype,NC_Start,NC_Count))
+         NC_Count = (/ nbou, nvell_max /)
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nbvv,nbvv,NC_Start,NC_Count))
+      end if
+
+      write(6,*) 'INFO: Mesh has been written to NETCDF'
+!----------------------------------------------------------------------
+      end subroutine writeMeshDataToNetCDF
+!----------------------------------------------------------------------
 
 
 !******************************************************************************
@@ -1230,18 +1568,18 @@ END SUBROUTINE computeAlbersEqualAreaConic
 !     allocating memory in the process, and not overwriting the 
 !     original lat/lon data.
 !-----------------------------------------------------------------------
-      SUBROUTINE computeCPP()
-      IMPLICIT NONE
-      if (cppComputed.eqv..false.) then
-         allocate(x_cpp(np),y_cpp(np))
-         cppComputed = .true.
-      endif
-      write(6,'("INFO: Generating CPP coordinates.")')
-      x_cpp = R * (xyd(1,:)*deg2rad - slam0*deg2rad) * cos(sfea0*deg2rad)
-      y_cpp = xyd(2,:)*deg2rad * R
-      return
+SUBROUTINE computeCPP()
+IMPLICIT NONE
+if (cppComputed.eqv..false.) then
+   allocate(x_cpp(np),y_cpp(np))
+   cppComputed = .true.
+endif
+write(6,'("INFO: Generating CPP coordinates.")')
+x_cpp = R * (xyd(1,:)*deg2rad - slam0*deg2rad) * cos(sfea0*deg2rad)
+y_cpp = xyd(2,:)*deg2rad * R
+return
 !-----------------------------------------------------------------------
-      END SUBROUTINE computeCPP
+END SUBROUTINE computeCPP
 !-----------------------------------------------------------------------
 
 
@@ -1251,25 +1589,25 @@ END SUBROUTINE computeAlbersEqualAreaConic
 !     jgf: Compute 2x the elemental areas ... requires that the 
 !     the CPP projection has already been computed.
 !-----------------------------------------------------------------------
-      SUBROUTINE compute2xAreas()
-      IMPLICIT NONE
-      real(8) :: nx(3)
-      real(8) :: ny(3)
-      integer :: i, j
-      if (cppComputed.eqv..false.) then
-         call computeCPP()
-      endif
-      write(6,'("INFO: Computing 2x the elemental areas.")')
-      do i=1,ne
-         do j=1,3
-            nx(j) = x_cpp(nm(i,j))
-            ny(j) = y_cpp(nm(i,j))
-         end do
-         areas(i)=(nx(1)-nx(3))*(ny(2)-ny(3))+(nx(3)-nx(2))*(ny(1)-ny(3))
-      end do
-      write(6,'("INFO: Finished computing 2x the elemental areas.")')
+SUBROUTINE compute2xAreas()
+IMPLICIT NONE
+real(8) :: nx(3)
+real(8) :: ny(3)
+integer :: i, j
+if (cppComputed.eqv..false.) then
+   call computeCPP()
+endif
+write(6,'("INFO: Computing 2x the elemental areas.")')
+do i=1,ne
+   do j=1,3
+      nx(j) = x_cpp(nm(i,j))
+      ny(j) = y_cpp(nm(i,j))
+   end do
+   areas(i)=(nx(1)-nx(3))*(ny(2)-ny(3))+(nx(3)-nx(2))*(ny(1)-ny(3))
+end do
+write(6,'("INFO: Finished computing 2x the elemental areas.")')
 !-----------------------------------------------------------------------
-      END SUBROUTINE compute2xAreas
+END SUBROUTINE compute2xAreas
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
@@ -1278,32 +1616,32 @@ END SUBROUTINE computeAlbersEqualAreaConic
 !-----------------------------------------------------------------------
 !     jgf: Compute the solution weighting coefficients.
 !-----------------------------------------------------------------------
-      SUBROUTINE computeWeightingCoefficients()
-      IMPLICIT NONE
-      integer :: myNodes(0:4)
-      integer :: i, j
-      if (cppComputed.eqv..false.) then
-         call computeCPP()
-      endif
-      allocate(sfac(np))
-      allocate(fdx(3,ne))
-      allocate(fdy(3,ne))
-      sfac(:)=cos(sfea0*deg2rad)/cos(xyd(2,:)*deg2rad)
-      write(6,'("INFO: Computing weighting coefficients.")')
-      do i=1,ne
-         myNodes(1:3) = nm(i,1:3)
-         ! wrap the values around so we can easily implement a loop 
-         ! around the element
-         myNodes(0) = myNodes(3)
-         myNodes(4) = myNodes(1)
-         sfacAvg(i) = oneThird * sum(sfac(myNodes(1:3)))
-         ! loop over the nodes on this element
-         do j=1,3
-            fdy(j,i) = x_cpp(myNodes(j-1))-x_cpp(myNodes(j+1))         ! a1, a2, a3
-            fdx(j,i) = ( y_cpp(myNodes(j+1))-y_cpp(myNodes(j-1)) ) * sFacAvg(i) ! b1, b2, b3
-         end do        
-      end do
-      write(6,'("INFO: Finished computing weighting coefficients.")')
+SUBROUTINE computeWeightingCoefficients()
+IMPLICIT NONE
+integer :: myNodes(0:4)
+integer :: i, j
+if (cppComputed.eqv..false.) then
+   call computeCPP()
+endif
+allocate(sfac(np))
+allocate(fdx(3,ne))
+allocate(fdy(3,ne))
+sfac(:)=cos(sfea0*deg2rad)/cos(xyd(2,:)*deg2rad)
+write(6,'("INFO: Computing weighting coefficients.")')
+do i=1,ne
+   myNodes(1:3) = nm(i,1:3)
+   ! wrap the values around so we can easily implement a loop 
+   ! around the element
+   myNodes(0) = myNodes(3)
+   myNodes(4) = myNodes(1)
+   sfacAvg(i) = oneThird * sum(sfac(myNodes(1:3)))
+   ! loop over the nodes on this element
+   do j=1,3
+      fdy(j,i) = x_cpp(myNodes(j-1))-x_cpp(myNodes(j+1))         ! a1, a2, a3
+      fdx(j,i) = ( y_cpp(myNodes(j+1))-y_cpp(myNodes(j-1)) ) * sFacAvg(i) ! b1, b2, b3
+   end do        
+end do
+write(6,'("INFO: Finished computing weighting coefficients.")')
 !-----------------------------------------------------------------------
       END SUBROUTINE computeWeightingCoefficients
 !-----------------------------------------------------------------------
@@ -1314,146 +1652,90 @@ END SUBROUTINE computeAlbersEqualAreaConic
 !-----------------------------------------------------------------------
 !     jgf: Compute the solution weighting coefficients.
 !-----------------------------------------------------------------------
-      SUBROUTINE computeElementCentroids()
-      IMPLICIT NONE
-      integer :: i
-      if (cppComputed.eqv..false.) then
-         call computeCPP()
-      endif
-      allocate(centroids(2,ne))
-      write(6,'("INFO: Computing element centroids.")')
-      do i=1,ne
-         centroids(1,i) = oneThird * sum(x_cpp(nm(i,1:3)))
-         centroids(2,i) = oneThird * sum(y_cpp(nm(i,1:3)))
-      end do
-      write(6,'("INFO: Finished computing element centroids.")')
+SUBROUTINE computeElementCentroids()
+IMPLICIT NONE
+integer :: i
+if (cppComputed.eqv..false.) then
+   call computeCPP()
+endif
+allocate(centroids(2,ne))
+write(6,'("INFO: Computing element centroids.")')
+do i=1,ne
+   centroids(1,i) = oneThird * sum(x_cpp(nm(i,1:3)))
+   centroids(2,i) = oneThird * sum(y_cpp(nm(i,1:3)))
+end do
+write(6,'("INFO: Finished computing element centroids.")')
 !-----------------------------------------------------------------------
       END SUBROUTINE computeElementCentroids
 !-----------------------------------------------------------------------
 
-   inner: DO E=1,NumElems
-
-      X1 = StationsLon(S)
-      X2 = GridLon(Conn(E,2))
-      X3 = GridLon(Conn(E,3))
-      Y1 = StationsLat(S)
-      Y2 = GridLat(Conn(E,2))
-      Y3 = GridLat(Conn(E,3))
-      SubArea1 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-
-      X1 = GridLon(Conn(E,1))
-      X2 = StationsLon(S)
-      X3 = GridLon(Conn(E,3))
-      Y1 = GridLat(Conn(E,1))
-      Y2 = StationsLat(S)
-      Y3 = GridLat(Conn(E,3))
-      SubArea2 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-
-      X1 = GridLon(Conn(E,1))
-      X2 = GridLon(Conn(E,2))
-      X3 = StationsLon(S)
-      Y1 = GridLat(Conn(E,1))
-      Y2 = GridLat(Conn(E,2))
-      Y3 = StationsLat(S)
-      SubArea3 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-
-      X1 = GridLon(Conn(E,1))
-      X2 = GridLon(Conn(E,2))
-      X3 = GridLon(Conn(E,3))
-      Y1 = GridLat(Conn(E,1))
-      Y2 = GridLat(Conn(E,2))
-      Y3 = GridLat(Conn(E,3))
-      TotalArea = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-
-      IF((SubArea1+SubArea2+SubArea3).LE.(1.01*TotalArea))THEN
-         StationsElem(S) = E
-         Weight(S,1) = ( (StationsLon(S)-X3)*(Y2-Y3)+(X2-X3)*(Y3-StationsLat(S)))/TotalArea
-         Weight(S,2) = ( (StationsLon(S)-X1)*(Y3-Y1)-(StationsLat(S)-Y1)*(X3-X1))/TotalArea
-         Weight(S,3) = (-(StationsLon(S)-X1)*(Y2-Y1)+(StationsLat(S)-Y1)*(X2-X1))/TotalArea
-         PRINT*, Weight(S,1), Weight(S,2), Weight(S,3), S
-         WRITE(19,'(I5)') S	!!! Adonahue: Determine which stations are in Mesh
-         EXIT inner
-      ELSE  !!! Adonahue Locate stations outside of Mesh
-         StationsElem(S) = 0
-      ENDIF    
-   ENDDO inner
-
-
-
-
 !-----------------------------------------------------------------------
-!     S U B R O U T I N E   O P E N  F I L E  F O R  R E A D
+!  S U B R O U T I N E   C O M P U T E   S T A T I O N   W E I G H T S
 !-----------------------------------------------------------------------
-!     jgf: Added general subroutine for opening an existing
-!     file for reading. Includes error checking.
+! jgf: Find the element in which a station is located and then compute
+! the interpolation weights for evaluating the solution at the
+! station location.
 !-----------------------------------------------------------------------
-   SUBROUTINE openFileForRead(lun, filename)
-      IMPLICIT NONE
-      INTEGER, intent(in) :: lun   ! fortran logical unit number
-      CHARACTER(*), intent(in) :: filename ! full pathname of file
-      INTEGER :: errorIO  ! zero if the file opened successfully
-       errorIO = 0
+subroutine computeStationWeights(station)
+implicit none
+type(station_t), intent(inout) :: station
 !
-!     Check to see if file exists
-      call checkFileExistence(filename, errorIO)
-      if ( errorIO.ne.0) then
-         stop
-      endif
-!
-!     Open existing file
-      OPEN(lun,FILE=trim(filename),STATUS='OLD',ACTION='READ',IOSTAT=errorIO)
-      if (errorIO.ne.0) then
-          write(6,'("ERROR: Could not open the file ",A,".")') trim(filename)
-          stop
-      else
-         write(6,'("INFO: The file ",A," was opened successfully.")') trim(filename)
-      endif
-      return
+real(8) :: x1, x2, x3 ! longitude temporary variables
+real(8) :: y1, y2, y3 ! latitude temporary variables
+real(8) :: subArea1, subArea2, subArea3, TotalArea
+integer :: e
+
+do e=1,ne
+   X1 = station%lon
+   X2 = xyd(1,nm(e,2))
+   X3 = xyd(1,nm(e,3))
+   Y1 = station%lat
+   Y2 = xyd(2,nm(e,2))
+   Y3 = xyd(2,nm(E,3))
+   SubArea1 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+
+   X1 = xyd(1,nm(e,1))
+   X2 = station%lon
+   X3 = xyd(1,nm(e,3))
+   Y1 = xyd(2,nm(e,1))
+   Y2 = station%lat
+   Y3 = xyd(2,nm(e,3))
+   SubArea2 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+
+   X1 = xyd(1,nm(e,1))
+   X2 = xyd(1,nm(e,2))
+   X3 = station%lon
+   Y1 = xyd(2,nm(e,1))
+   Y2 = xyd(2,nm(e,2))
+   Y3 = station%lat
+   SubArea3 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+
+   X1 = xyd(1,nm(e,1))
+   X2 = xyd(1,nm(e,2))
+   X3 = xyd(1,nm(e,3))
+   Y1 = xyd(2,nm(e,1))
+   Y2 = xyd(2,nm(e,2))
+   Y3 = xyd(2,nm(e,3))
+   TotalArea = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+
+   IF ((SubArea1+SubArea2+SubArea3).LE.(1.01*TotalArea))THEN
+      station%elementIndex = e
+      station%weights(1) = ( (station%lon-X3)*(Y2-Y3)+(X2-X3)*(Y3-station%lat) )/TotalArea
+      station%weights(2) = ( (station%lon-X1)*(Y3-Y1)-(station%lat-Y1)*(X3-X1))/TotalArea
+      station%weights(3) = (-(station%lon-X1)*(Y2-Y1)+(station%lat-Y1)*(X2-X1))/TotalArea
+      exit
+   else  
+      station%elementIndex = 0
+      station%weights = -99999.0
+   endif    
+
+enddo
+
 !-----------------------------------------------------------------------
-   END SUBROUTINE openFileForRead
+END SUBROUTINE computeStationWeights
 !-----------------------------------------------------------------------
 
 
-!-----------------------------------------------------------------------
-!     S U B R O U T I N E   C H E C K   F I L E   E X I S T E N C E
-!-----------------------------------------------------------------------
-!     jgf: Just check for the existence of a file. I separated this 
-!     from openFileForRead so that I could use it on NetCDF files 
-!     as well.  
-!-----------------------------------------------------------------------
-   SUBROUTINE checkFileExistence(filename, errorIO)
-      IMPLICIT NONE
-      CHARACTER(*), intent(in) :: filename ! full pathname of file
-      INTEGER, intent(out) :: errorIO  ! zero if the file opened successfully
-      LOGICAL :: fileFound    ! .true. if the file is present
-      errorIO = 0
-!
-!     Check to see if file exists
-      write(6,'("INFO: Searching for file ",A," ...")') trim(filename)
-      inquire(FILE=filename,EXIST=fileFound)
-      if (fileFound.eqv..false.) then
-         write(6,'("ERROR: The file ",A," was not found.")') trim(filename)
-      else
-         write(6,'("INFO: The file ",A," was found.")') trim(filename)
-      endif
-      return
-!-----------------------------------------------------------------------
-   END SUBROUTINE checkFileExistence
-!-----------------------------------------------------------------------
-
-
-!----------------------------------------------------------------------
-!  CHECK
-!---------------------------------------------------------------------
-   SUBROUTINE Check(ncStatus)
-      USE netcdf
-      IMPLICIT NONE
-      INTEGER,INTENT(IN) :: ncStatus
-      IF(ncStatus.NE.NF90_NOERR)THEN
-         WRITE(*,'(A,A)') "ERROR: ",TRIM(NF90_STRERROR(ncStatus))
-         STOP 1
-      ENDIF
-   END SUBROUTINE check
 !-----+---------+---------+---------+---------+---------+---------+
    end module adcmesh
 !-----+---------+---------+---------+---------+---------+---------+
