@@ -157,7 +157,6 @@ case(ASCIIG)
                   ! we jump to here.     
 case(NETCDFG)
    call determineNetCDFFileCharacteristics(datafile)
-   write(6,'(a,i0,a)') 'INFO: There are ',ndset,' datasets in the file.'
    ! get netcdf variable IDs for the the data 
    do j=1,num_components
       !write(6,'(a,i0,a,a,a,i0,a)') 'DEBUG: The variable name for component ',j,' is ',trim(varname(j)),' and the variable ID is ',nc_varid(j),'.'
