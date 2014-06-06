@@ -1,7 +1,6 @@
 ! example of compiling with gfortran with optimization turned on
 ! gfortran -O3 -ffree-line-length-none -o tau0_gen.x -I/home/jason/asgs/trunk/output -I/usr/include  tau0_gen.f90  -lnetcdff
 !
-include 'adcmesh.f90'
 program tau0_gen
 use adcmesh
 implicit none
@@ -21,7 +20,7 @@ integer :: i, j
 !
 i=0
 argcount = iargc() ! count up command line options
-write(6,*) 'There are ',argcount,' command line options.'
+write(6,'(a,i0,a)') 'There are ',argcount,' command line options.'
 do while (i.lt.argcount)
    i = i + 1
    call getarg(i, cmdlineopt)
@@ -92,6 +91,13 @@ do i=1, np
       write(13,'(i8,f13.6)') i, tau0_min(i)
    endif
 end do
+if (verbose.eqv..true.) then
+   write(13,'(a)') 'average_distance_to_neighbors'
+   write(13,'(i0)') np
+   do i=1, np
+      write(13,'(i0,1x,f13.6)') i, dx_avg(i)
+   end do
+endif
 close(13)
 !-------------------------------------------------------------------
 end program tau0_gen

@@ -28,8 +28,6 @@ module adcircdata
 #ifdef ASGSNETCDF
 use netcdf
 #endif
-
-use asgsio
 implicit none
 
 #ifdef ASGSNETCDF
@@ -95,6 +93,7 @@ contains
 ! jgf: Determine type and contents of adcirc data (output) files.
 !----------------------------------------------------------------------
 subroutine determineNetCDFFileCharacteristics(datafile)
+use asgsio
 use adcmesh, only : np, nc_dimid_node, agrid, readMeshCommentLineNetCDF
 implicit none
 character(len=1024), intent(in) :: datafile
@@ -110,22 +109,28 @@ call check(nf90_inquire(nc_id, ndim, nvar, natt, &
                      nc_dimid_time, ncformat))
 if ( (ncformat.eq.nf90_format_netcdf4).or. &
    (ncformat.eq.nf90_format_netcdf4_classic) ) then
-   write(6,*) "INFO: The data file uses netcdf4 formatting."
+   write(6,'(a)') 'INFO: The data file uses netcdf4 formatting.'
 endif
 !
 ! determine the number of snapshots in the file
 call check(nf90_inquire_dimension(nc_id,nc_dimid_time,len=ndset))
+write(6,'(a,i0,a)') 'INFO: There is/are ',ndset,' dataset(s) in the file.'
+if (ndset.eq.0) then
+   write(6,'(a,a,a)') 'ERROR: The file "',trim(datafile),'" does not contain any output data.'
+   stop 1
+endif
 !
 !  get time
 !
 ! load up the time values (in seconds)
 allocate(timesec(ndset))
 call check(nf90_inq_varid(nc_id, "time", NC_VarID_time))
-call check(nf90_get_var(nc_id, NC_VarID_time, timesec, &
-   (/ 1 /), (/ ndset /) ))
+call check(nf90_get_var(nc_id, NC_VarID_time, timesec, (/ 1 /), (/ ndset /) ))
 !
 ! determine the type of file that we have
-varname(:) = "null"
+do i=1,3
+   varname(i) = "null"
+end do
 num_components = 1
 ! is it a station file?
 do i=1,nvar
@@ -160,7 +165,7 @@ do i=1,nvar
    call check(nf90_inquire_variable(nc_id, i, thisVarName))
    select case(trim(thisVarName))
    case("u-vel3D","v-vel3D","w-vel3D")
-      write(6,*) "INFO: Preparing to write an ADCIRC 3D " &
+      write(6,'(a)') "INFO: Preparing to write an ADCIRC 3D " &
          // "water current velocity file."
       if ( stationfile.eqv..true. ) then
          ascii_datafile_name = "fort.42"
@@ -173,7 +178,7 @@ do i=1,nvar
       varname(3) = "w-vel3D"
       exit
    case("zeta")
-      write(6,*) "INFO: Preparing to write an ADCIRC water " &
+      write(6,'(a)') "INFO: Preparing to write an ADCIRC water " &
          // "surface elevation file."
       if ( stationfile.eqv..true. ) then
          ascii_datafile_name = "fort.61"          
@@ -184,7 +189,7 @@ do i=1,nvar
       write(6,'(a,a,a)') 'INFO: The variable name is ',trim(adjustl(varname(1))),'.'
       exit
    case("u-vel","v-vel")
-      write(6,*) "INFO: Preparing to write an ADCIRC water " &
+      write(6,'(a)') "INFO: Preparing to write an ADCIRC water " &
          // "current velocity file."
       if ( stationfile.eqv..true. ) then
          ascii_datafile_name = "fort.62"
@@ -196,7 +201,7 @@ do i=1,nvar
       varname(2) = "v-vel"
       exit
    case("pressure")
-      write(6,*) "INFO: Preparing to write an ADCIRC barometric " &
+      write(6,'(a)') "INFO: Preparing to write an ADCIRC barometric " &
          // "pressure file."
       if ( stationfile.eqv..true. ) then
          ascii_datafile_name = "fort.71"
@@ -206,7 +211,7 @@ do i=1,nvar
       varname(1) = "pressure"
       exit
    case("windx","windy")
-      write(6,*) "INFO: Preparing to write an ADCIRC wind " &
+      write(6,'(a)') "INFO: Preparing to write an ADCIRC wind " &
          // "velocity file."
       if ( stationfile.eqv..true. ) then
           ascii_datafile_name = "fort.72"
@@ -218,7 +223,7 @@ do i=1,nvar
       varname(2) = "windy"
       exit
    case("zeta_max")
-      write(6,*) "INFO: Preparing to write an ADCIRC maximum " &
+      write(6,'(a)') "INFO: Preparing to write an ADCIRC maximum " &
          // "water elevation file."
       ascii_datafile_name = "maxele.63"
       varname(1) = "zeta_max"
@@ -241,7 +246,7 @@ do i=1,nvar
       end do
       exit
    case("wind_max")
-      write(6,*) "INFO: Preparing to write an ADCIRC maximum " &
+      write(6,'(a)') "INFO: Preparing to write an ADCIRC maximum " &
          // "wind speed file."
       ascii_datafile_name = "maxwvel.63"
       ndset = 1
@@ -264,38 +269,38 @@ do i=1,nvar
       end do
       exit
    case("dir")
-      write(6,*) "INFO: Preparing to write a mean wave " &
+      write(6,'(a)') "INFO: Preparing to write a mean wave " &
          // "direction file."
       ascii_datafile_name = "swan_DIR.63"
       varname(1) = "dir"
       exit
    case("hs")
-      write(6,*) "INFO: Preparing to write a significant " &
+      write(6,'(a)') "INFO: Preparing to write a significant " &
           // "wave height file."
       ascii_datafile_name = "swan_HS.63"
       varname(1) = "hs"
       exit
    case("tmm10")
-      write(6,*) "INFO: Preparing to write a mean absolute " &
+      write(6,'(a)') "INFO: Preparing to write a mean absolute " &
         // "wave period file."
       ascii_datafile_name = "swan_TMM10.63"
       varname(1) = "tmm10"
       exit
    case("tps")
-      write(6,*) "INFO: Preparing to write a relative peak " &
+      write(6,'(a)') "INFO: Preparing to write a relative peak " &
          // "period file."
       ascii_datafile_name = "swan_TPS.63"
       varname(1) = "tps"
       exit
    case("swan_HS_max")
-      write(6,*) "INFO: Preparing to write a maximum " &
+      write(6,'(a)') "INFO: Preparing to write a maximum " &
          // "significant wave height file."
       ascii_datafile_name = "swan_HS_max.63"
       ndset = 1
       varname(1) = "swan_HS_max"
       exit
    case("swan_TPS_max")
-      write(6,*) "INFO: Preparing to write an maximum relative " &
+      write(6,'(a)') "INFO: Preparing to write an maximum relative " &
         // "peak wave period file."
       ascii_datafile_name = "swan_TPS_max.63"
       ndset = 1
@@ -306,7 +311,7 @@ do i=1,nvar
       cycle     ! did not recognize this variable name
    end select
 end do
-write(6,*) "INFO: " // trim(ascii_datafile_name)
+!write(6,*) "INFO: " // trim(ascii_datafile_name)
 ! if this is not a station file, find the mesh node dimension and
 ! comment 
 if ( stationfile.eqv..false.) then

@@ -28,6 +28,15 @@ our @conn; # list of nodal connectivity indices
 my @time; # in seconds since cold start for each dataset in the file
 my @timestep; # integer number, since coldstart, for each dataset in the file
 #
+# nodal attributes related variables
+my $nattr; # number of nodal attributes in the fort.13
+my $attrName; # the name of a single attribute
+my %namesUnits; # relates the name of an attribute to its units
+my %namesNumValues; # how many values at each node
+my %namesDefaultValues; # the value(s) of the attribute at most nodes
+my %namesNumNonDefaults; # how many of the nodes have nondefault values
+my @attrValues; # at every node in the mesh
+#
 my $meshfile = "null";
 my $cpp;  # 1 to reproject to cpp (carte parallelogrammatique projection)
    
@@ -268,8 +277,73 @@ foreach my $file (@adcircfiles) {
       stderrMessage("ERROR",
           "Failed to open ADCIRC file $file for reading: $!.");
          next;
+   }     
+   # 
+   # for nodal attributes, we read the file entirely differently from an
+   # output file
+   if ( $file eq "fort.13" ) {
+      my $outfile = $file . ".vtu";
+      unless (open(OUT,">$outfile")) {
+         stderrMessage("ERROR","Failed to open vtk file $outfile for writing: $!.");
+         die;
+      }
+      &writeHeader($ne, $np);
+      printf OUT "         <PointData Scalars=\"NodalAttributes\">\n"; 
+      # 
+      # read nodal attributes file header
+      $line = <ADCIRCFILE>; # read comment line (not used)
+      $line = <ADCIRCFILE>; # number of nodes (not used)
+      $nattr = <ADCIRCFILE>; # number of nodal attributes
+      for (my $i=0; $i<$nattr; $i++ ) {
+         $attrName = <ADCIRCFILE>;
+         chomp($attrName);
+         $attrName =~ s/\s+//;
+         $namesUnits{$attrName} = <ADCIRCFILE>;
+         $namesNumValues{$attrName} = <ADCIRCFILE>;
+         $line = <ADCIRCFILE>;
+         chomp($line);      
+         $line =~ s/\s+//;
+         $namesDefaultValues{$attrName} = $line;        
+      }
+      #
+      # now read body of nodal attributes file
+      for (my $i=0; $i<$nattr; $i++ ) {
+         $attrName = <ADCIRCFILE>; # name of the nodal attribute
+         chomp($attrName);
+         $attrName =~ s/\s+//;
+         $namesNumNonDefaults{$attrName} = 0; # number of non default values for this attribute
+         $line = <ADCIRCFILE>; 
+         chomp($line);
+         $namesNumNonDefaults{$attrName} = $line; # number of non default values for this attribute
+         # set all values to the default 
+         for (my $n=0; $n<$np; $n++ ) {
+            $attrValues[$n] = $namesDefaultValues{$attrName};
+         }
+         for (my $n=0; $n<$namesNumNonDefaults{$attrName}; $n++) {
+            $line = <ADCIRCFILE>;
+            if ( defined $line ) {
+               chomp($line);
+               @fields = split(' ',$line);
+            } else {
+               stderrMessage("ERROR","Ran out of data: $!.");
+               die;
+            }
+            $attrValues[$fields[0]-1] = $fields[1];
+         }
+         $scalars_name = "Scalars=\"$attrName\"";
+         # write out dataset from ADCIRC file
+         my $vtk_components = 1;
+         printf OUT "            <DataArray Name=\"$attrName\" type=\"Float64\" NumberOfComponents=\"$vtk_components\" format=\"ascii\">\n";
+         for (my $i=0; $i<$np; $i++) {
+            printf OUT "$attrValues[$i]\n";
+         }
+         printf OUT "            </DataArray>\n";
+      }
+      &writeMesh($ne, $np);
+      &writeFooter();
+      close(OUT);
+      next;
    }
-   # parse down to where the data starts
    $line = <ADCIRCFILE>;  # read comment line (not used)
    $line = <ADCIRCFILE>;  # read header line (not used)
    if ( $num_datasets == 0 ) {
