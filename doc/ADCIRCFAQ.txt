@@ -368,6 +368,110 @@ ADCIRC and ADCIRC+SWAN?*
 * Computational Hydraulics Laboratory: http://coast.nd.edu
 * Casey Dietrich's personal site: http://www.caseydietrich.com
 
+*Q: How do I specify the tropical cyclone vortex parameters for the
+symmetric Holland model (NWS=8) in ADCIRC?
+
+The issue with specifying these parameters is that they are 
+dynamically related, that is, there isn't a one-to-one relationship 
+between any of them. If I wanted to create a storm parameter set out 
+of thin air for NWS=8 (symmetric Holland model), here are the 
+considerations:
+
+Max Wind and Min Pressure: The relationship here is complex. I've 
+looked at a lot of data, and there is a time history factor to the 
+relationship. For example, at the beginning of a storm, the max wind 
+might be 40kt and the min pressure might be 998mb. Of course, the 
+max wind increases in response decreases in the min pressure. But at 
+the end of that same storm, the max wind might be 35kt with a min 
+pressure of 975mb. So in real life, there is often a hysteresis.
+
+In the modeling world (as opposed to the real world), this 
+"hysteresis" effect doesn't occur reliably enough to make it into 
+the correlations. For example, it can get reset after the storm 
+passes over Hispaniola or Cuba, etc. So the curve fits that provide 
+a rule-of-thumb correlation are actually quite simple. There are 
+several, but I use a couple of published relationships for Vmax -> 
+Pmin:
+
+   Dvorak: Pmin = 1015mb - (Vmax/3.92)^(1/0.644)
+   Knaff/Zehr: Pmin = 1010mb - (Vmax/2.3)^(1/0.76)
+
+where Vmax is in m/s. 
+
+If the analyst needs to specify Pmin and then estimate Vmax, its 
+easy to solve these equations for Vmax in terms of Pmin. In fact, we 
+use the Knaff/Zehr relationship to do this in the ASGS in real time 
+because the NHC doesn't forecast Pmin. In any case, the analyst 
+needs to be able to specify either Vmax or Pmin.
+
+Once the Vmax and Pmin are established, the Holland B value---a 
+curve fit parameter that indicates the steepness of the velocity 
+profile and is not some sort of fundamental property of tropical 
+cyclones as some seem to believe---can be computed according to the 
+following formula:
+
+   B = (Vmax)^2 * rho_air * e / (Pn - Pmin)
+
+where Vmax is in m/s, rho_air is set to 1.15 kg m^-3 in ADCIRC, e is 
+Euler's number, Pn is the "far field" atmospheric pressure, and Pmin 
+is the central pressure (pressures in Pa, not mb).
+
+The far field or background pressure is set to 1013mb in ADCIRC. In 
+practice, the background pressure tends to be different in different 
+basins, e.g., different in the tropical Pacific than it is in the 
+tropical Atlantic, but ADCIRC always sets it to 1013mb.
+
+The radius to maximum wind has even less correlation to the other 
+storm parameters than Vmax has to Pmin. Looking at the data for Rmax 
+vs Vmax, or Rmax vs Pmin, or Rmax vs Time, or Rmax vs Latitude, I 
+see nothing but a shotgun blast of scatterpoints. My strategy would 
+be to start off with a default Rmax of 25nm in all cases, as this is 
+about in the middle of the spread of the data.
+
+The Rmax parameter is something that really gives a lot of storms 
+the character and damage profile they are remembered for. Everyone 
+remembers the huge fluctuations in Ike's Rmax, and the fact that it 
+had a huge Rmax of 80nm at one point; this really packed in the 
+kinetic energy and caused so much damage even though the Vmax made 
+it only a Cat 2 storm. In contrast, Andrew was a very compact Cat 5+ 
+storm that also did cataclysmic damage in a narrow swath of south 
+Florida.
+
+The analyst can start with a 25nm default Rmax and crank the damage 
+up and down by varying the Rmax. So the burden is on the analyst to 
+have either expertise in the specification of Rmax or access to 
+meteorologists and statisticians that are qualified to provide 
+guidance.
+ 
+ADCIRC reads the radius to the last closed isobar, which more or 
+less represents the farthest extent of the storm winds, but it does 
+not use it. I coded this up because the Holland curve fit does not 
+taper to zero; as a result, a storm in the Gulf causes nonzero wind 
+velocities in Maine, which is unrealistic to say the least. This 
+problem becomes worse as the B value falls, because the velocity 
+profile is more flat and this increases the spurious far field 
+velocity.
+
+However, when I tried to use the radius to the last closed isobar to 
+cut off the vortex wind in the far field, it created artificial 
+jumps in ADCIRC's wind speed record when comparing with measured 
+meteorological stations. Not only was the wind fluctuating up and 
+down, but the distance to the last closed isobar was fluctuating as 
+well. So, as a storm would approach NC, for example, ADCIRC's wind 
+speed at a station might show the winds suddenly going from 0 to 
+10m/s and back several times, once the storm came within "range" of 
+the met station. It just didn't work well, so I removed the spatial 
+cut off, but I didn't change the way the code reads the fort.22 
+file, so it still reads the radius to the last closed isobar. My 
+apologies for the confusion here. 
+
+The good news is in all this is that there is enough scatter in the 
+correlations of measured data, that if you stick with something 
+reasonable, its hard for anyone to say that your parameter sets are 
+unrealistic or impossible. But there is a certain amount of 
+expertise required to specify something that will pass muster in a 
+peer reviewed publication or engineering study.
+
 Appendix A: Content 
 ------------------- 
 Please see also the ADCIRC information available at the Inundation 
