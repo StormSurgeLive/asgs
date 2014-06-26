@@ -79,6 +79,7 @@
       integer                       :: NC_VarID_tps
       integer                       :: NC_VarID_swantpsmax
       integer                       :: NC_VarID_swanhsmax
+      integer                       :: NC_VarID_eslnodes
       integer, parameter            :: version = 4
       integer                       :: varid(3) ! varids for netcdf4 compression
       integer                       :: lastSlashPosition ! used for trimming full path from a filename
@@ -163,6 +164,8 @@
                         menuOpt = 16
                      case("swan_TPS_max.63")
                         menuOpt = 17
+                     case("ESLNodes.63")
+                        menuOpt = 18  
                      case default
                         write(6,*) "WARNING: Command line argument '",TRIM(cmdlinearg),"' was not recognized."
                   end select
@@ -202,7 +205,7 @@
       ! jgf: make a list of files to convert, based on use menu selection;
       ! set names of files that will contain more than one type of data
       select case(menuOpt)
-         case(1,2,3,4,5,6,7,8,9,14,15,16,17)
+         case(1,2,3,4,5,6,7,8,9,14,15,16,17,18)
             nopt = 1       ! only need to convert 1 file
             allocate(iopt(nopt))
             iopt(1) = menuOpt ! file to convert has been selected from the menu
@@ -222,8 +225,8 @@
             iopt = (/ 1, 2, 3, 4, 5, 6, 7, 8, 9 /)
             Outputfile = 'adcirc_swan.nc'
          case default
-            write(6,*) 'ERROR: Your selection was invalid. Please try again.'
-            goto 997
+            write(6,*) 'ERROR: The data file type was not recognized.'
+            stop
       end select
       ! trim off the full path so we just have the file name
       lastSlashPosition = index(trim(InputFile),"/",.true.) 
@@ -257,6 +260,8 @@
          case(16) ! swan_HS_max.63
             Outputfile = trim(InputFile(lastSlashPosition+1:))//'.nc'
          case(17) ! swan_TPS_max.63
+            Outputfile = trim(InputFile(lastSlashPosition+1:))//'.nc'
+         case(18) ! ESLNodes.63
             Outputfile = trim(InputFile(lastSlashPosition+1:))//'.nc'
          case default
             ! 10, 11, and 12 were assigned previously
@@ -478,7 +483,19 @@
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_swantpsmax,'mesh','adcirc_mesh'))
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_swantpsmax,'units','s'))
             num_components = 1
-            varid(1) = NC_VarID_swantpsmax          
+            varid(1) = NC_VarID_swantpsmax 
+         case(18) ! ESLNodes.63
+            CALL Check(NF90_DEF_VAR(NC_ID,'ESLNodes',NF90_DOUBLE,NC_DimID,NC_VarID_eslnodes))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_eslnodes,'_FillValue',FillValue))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_eslnodes,'long_name','elemental slope limiter active nodes'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_eslnodes,'standard_name', &
+               'elemental_slope_limiter_active_nodes'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_eslnodes,'coordinates','time y x'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_eslnodes,'location','node'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_eslnodes,'mesh','adcirc_mesh'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_eslnodes,'units','1'))
+            num_components = 1
+            varid(1) = NC_VarID_eslnodes                        
          end select
 #ifdef NETCDF_CAN_DEFLATE
          if (useNetCDF4.eqv..true.) then
@@ -535,6 +552,8 @@
                Inputfile = 'swan_HS_max.63'
             case(17) ! swan_TPS_max
                Inputfile = 'swan_TPS_max.63'
+            case(18) ! ESLNodes.63
+               Inputfile = 'ESLNodes.63'   
          end select
          UnitNumber = 100+iopt(i)
          call openFileForRead(UnitNumber, trim(InputFile))
@@ -566,7 +585,7 @@
             ENDDO
             do N=1,NumNodesNonDefault
               select case(iopt(i))
-                case(1,3,5,6,7,8,9,15,16,17) ! scalar data
+                case(1,3,5,6,7,8,9,15,16,17,18) ! scalar data
                   READ(UnitNumber,*) j,Temp1
                   Global1(j) = Temp1
                 case(2,4)           ! 2D vector data
@@ -607,6 +626,8 @@
                 CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_swanhsmax,Global1,NC_Start,NC_Count))
               case(17) ! swan_TPS_max
                 CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_swantpsmax,Global1,NC_Start,NC_Count))
+              case(18) ! ESLNodes
+                CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_eslnodes,Global1,NC_Start,NC_Count))
             end select
             SS = SS + 1 ! jgf: Increment the dataset counter
          ENDDO

@@ -296,6 +296,11 @@ do i=1,nvar
       fileTypeDesc = "a SWAN significant wave height (swan_HS.63) file"
       num_components = 1
       varname(1) = "swan_HS"
+   case("swan_HS_max")
+      fileTypeDesc = "a SWAN maximum significant wave height (swan_HS_max.63) file"
+      num_components = 1
+      ndset = 1
+      varname(1) = "swan_HS_max"
    case("swan_TMM10")
       fileTypeDesc = "a SWAN mean absolute wave period (swan_TMM10.63) file"
       num_components = 1
@@ -312,6 +317,16 @@ do i=1,nvar
       fileTypeDesc = "a SWAN smoothed peak period (swan_TPS.63) file"
       num_components = 1
       varname(1) = "swan_TPS"
+   case("swan_TPS_max")
+      fileTypeDesc = "a SWAN maximum smoothed peak period (swan_TPS_max.63) file"
+      num_components = 1
+      ndset = 1
+      varname(1) = "swan_TPS_max" 
+   case("ESLNodes")
+      fileTypeDesc = "an elemental slope limiter active nodes (ESLNodes.63) file"
+      num_components = 1
+      varname(1) = "ESLNodes"
+      ndset = 1         
    case("swan_windx","swan_windy")
       fileTypeDesc = "a SWAN wind velocity (swan_WIND.64) file"  
       num_components = 2

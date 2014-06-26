@@ -1,0 +1,185 @@
+-91.19156 30.44567 ! 07374000 ! storm tide, real-time streamgage West Baton Rouge Louisiana hwm: 12.59 ft NAVD 88 at 9:45 8/29/2012 GMT
+-89.97785 29.85715 ! 07374525 ! storm tide, real-time streamgage Plaquemines Louisiana hwm: 11.61 ft NAVD 88 at 4:00 8/29/2012 GMT
+-89.93750 29.78417 ! 073745253 ! storm tide, real-time streamgage Plaquemines Louisiana hwm: 1.56 ft NAVD 88 at 23:00 8/28/2012 GMT
+-89.56367 29.63354 ! 07374526 ! storm tide, real-time tidegage Plaquemines Louisiana hwm: 6.75 ft NAVD 88 at 18:00 8/28/2012 GMT
+-89.60603 29.58596 ! 07374527 ! storm tide, real-time streamgage Plaquemines Louisiana hwm: 13.21 ft NAVD 88 at 2:30 8/29/2012 GMT
+-89.83062 30.30131 ! 07374581 ! storm tide, real-time streamgage St Tammany Louisiana hwm: 8.13 ft NAVD 88 at 6:45 8/30/2012 GMT
+-90.77926 30.27547 ! 07380200 ! storm tide, real-time streamgage Livingston Louisiana hwm: 6.87 ft NGVD 29 at 3:30 8/31/2012 GMT
+-90.61037 30.30936 ! 07380215 ! storm tide, real-time streamgage Livingston Louisiana hwm: 6.58 ft NAVD 88 at 15:00 8/30/2012 GMT
+-90.87732 30.24047 ! 073802245 ! storm tide, real-time streamgage Ascension Louisiana hwm: 6.08 ft NAVD 88 at 13:30 8/30/2012 GMT
+-90.89954 30.22742 ! 073802273 ! storm tide, real-time streamgage Ascension Louisiana hwm: 5.49 ft NAVD 88 at 3:30 8/31/2012 GMT
+-90.19333 29.77139 ! 073802375 ! storm tide, real-time streamgage St Charles Louisiana hwm: 4.71 ft NAVD 88 at 16:00 8/30/2012 GMT
+-89.98886 29.69911 ! 07380238 ! storm tide, real-time streamgage Plaquemines Louisiana hwm: 3.44 ft NAVD 88 at 0:30 8/30/2012 GMT
+-89.95063 29.42272 ! 07380251 ! storm tide, real-time tidegage Plaquemines Louisiana hwm: 6.63 ft NAVD 88 at 11:00 8/29/2012 GMT
+-90.04118 29.39856 ! 073802512 ! storm tide, real-time tidegage Lafourche Louisiana hwm: 6.18 ft NAVD 88 at 9:00 8/29/2012 GMT
+-89.94681 29.27283 ! 073802516 ! storm tide, real-time tidegage Jefferson Louisiana hwm: 4.09 ft NAVD 88 at 8:00 8/30/2012 GMT
+-90.18147 29.51772 ! 07380335 ! storm tide, real-time tidegage Lafourche Louisiana hwm: 5.70 ft NGVD 29 at 19:00 8/29/2012 GMT
+-90.82259 29.79799 ! 07381000 ! storm tide, real-time streamgage Lafourche Louisiana hwm: 6.68 ft NAVD 88 at 1:15 8/30/2012 GMT
+-90.53678 29.64706 ! 07381150 ! storm tide, real-time streamgage Lafourche Louisiana hwm: 3.13 ft NAVD 88 at 11:00 8/31/2012 GMT
+-90.38083 29.57722 ! 07381235 ! storm tide, real-time streamgage Lafourche Louisiana hwm: 3.90 ft NAVD 88 at 0:00 8/31/2012 GMT
+-90.71537 29.38300 ! 07381324 ! storm tide, real-time streamgage Terrebonne Louisiana hwm: 2.58 ft NAVD 88 at 16:45 8/30/2012 GMT
+-90.72981 29.38522 ! 07381328 ! storm tide, real-time streamgage Terrebonne Louisiana hwm: 2.95 ft NAVD 88 at 16:45 8/30/2012 GMT
+-90.71000 29.59806 ! 07381331 ! storm tide, real-time streamgage Terrebonne Louisiana hwm: 2.57 ft NAVD 88 at 22:00 8/30/2012 GMT
+-90.58778 29.38889 ! 073813375 ! storm tide, real-time streamgage Terrebonne Louisiana hwm: 3.03 ft NAVD 88 at 8:15 8/29/2012 GMT
+-90.61803 29.38697 ! 07381343 ! storm tide, real-time streamgage Terrebonne Louisiana hwm: 2.51 ft NAVD 88 at 8:30 8/29/2012 GMT
+-90.92111 29.24917 ! 07381349 ! storm tide, real-time tidegage Terrebonne Louisiana hwm: 4.54 ft NAVD 88 at 16:12 8/30/2012 GMT
+-90.54481 29.64521 ! 07381350 ! storm tide, real-time streamgage Lafourche Louisiana hwm: 3.07 ft NAVD 88 at 10:15 8/31/2012 GMT
+-90.55767 29.62733 ! 07381355 ! storm tide, real-time streamgage Lafourche Louisiana hwm: 3.06 ft NAVD 88 at 12:00 8/31/2012 GMT
+-91.21583 29.90911 ! 07381454 ! storm tide, real-time streamgage St Martin Louisiana hwm: 2.01 ft NAVD 88 at 22:15 8/31/2012 GMT
+-91.09972 29.66833 ! 073814675 ! storm tide, real-time streamgage St Mary Louisiana hwm: 2.97 ft NAVD 88 at 21:45 8/30/2012 GMT
+-91.79833 30.98250 ! 07381490 ! storm surge, real-time streamgage Pointe Coupee Louisiana hwm: 5.27 ft NGVD 29 at 14:00 8/30/2012 GMT
+-91.68678 30.28159 ! 07381515 ! storm tide, real-time streamgage St Martin Louisiana hwm: 4.41 ft NGVD 29 at 0:15 8/31/2012 GMT
+-91.44567 29.89270 ! 073815450 ! storm tide, real-time streamgage St Mary Louisiana hwm: 3.70 ft NGVD 29 at 22:00 8/30/2012 GMT
+-91.21194 29.69282 ! 07381600 ! storm tide, real-time streamgage St Mary Louisiana hwm: 3.90 ft NAVD 88 at 21:30 8/30/2012 GMT
+-91.15528 29.58556 ! 073816503 ! storm tide, real-time streamgage Terrebonne Louisiana hwm: 3.67 ft NAVD 88 at 21:30 8/30/2012 GMT
+-91.47056 29.68083 ! 07381670 ! storm tide, real-time streamgage St Mary Louisiana hwm: 3.87 ft NAVD 88 at 21:30 8/30/2012 GMT
+-91.58622 29.87937 ! 07385765 ! storm tide, real-time streamgage St Mary Louisiana hwm: 1.49 ft NAVD 88 at 15:15 8/30/2012 GMT
+-91.54167 29.82306 ! 07385790 ! storm tide, real-time streamgage St Mary Louisiana hwm: 1.84 ft NAVD 88 at 15:00 8/30/2012 GMT
+-89.94050 29.32472 ! 291929089562600 ! storm tide, real-time tidegage Jefferson Louisiana hwm: 5.99 ft NAVD 88 at 16:00 8/29/2012 GMT
+-90.10000 29.46667 ! 292800090060000 ! storm tide, real-time streamgage Lafourche Louisiana hwm: 5.54 ft NAVD 88 at 17:00 8/29/2012 GMT
+-90.01111 29.48306 ! 292859090004000 ! storm tide, real-time tidegage Jefferson Louisiana hwm: 9.47 ft NAVD 88 at 9:00 8/30/2012 GMT
+-89.76056 29.49778 ! 292952089453800 ! storm tide, real-time streamgage Plaquemines Louisiana hwm: 8.84 ft NAVD 88 at 16:00 8/29/2012 GMT
+-90.94806 29.49778 ! 292952090565300 ! storm tide, real-time streamgage Terrebonne Louisiana hwm: 2.43 ft NAVD 88 at 7:00 8/31/2012 GMT
+-91.38556 29.54139 ! 293229091230800 ! storm tide, real-time streamgage St Mary Louisiana hwm: 3.55 ft NAVD 88 at 20:00 8/30/2012 GMT
+-90.20472 29.85528 ! 2951190901217 ! storm tide, real-time streamgage St Charles Louisiana hwm: 5.12 ft NAVD 88 at 4:00 8/30/2012 GMT
+-89.90769 29.85356 ! 295124089542100 ! storm tide, real-time streamgage Plaquemines Louisiana hwm: 3.00 ft NAVD 88 at 5:45 8/29/2012 GMT
+-90.31778 29.85528 ! 295501090190400 ! storm tide, real-time streamgage St Charles Louisiana hwm: 4.63 ft NAVD 88 at 18:15 8/30/2012 GMT
+-90.63083 30.10056 ! 300602090375100 ! storm tide, real-time streamgage St John the Baptist Louisiana hwm: 5.83 ft NAVD 88 at 21:00 8/31/2012 GMT
+-89.74056 30.16694 ! 301001089442600 ! storm tide, real-time tidegage Orleans Louisiana hwm: 7.88 ft NAVD 88 at 3:00 8/30/2012 GMT
+-89.53417 30.19472 ! 301141089320300 ! storm tide, real-time streamgage St Tammany Louisiana hwm: 9.01 ft NAVD 88 at 16:30 8/29/2012 GMT
+-90.64000 30.22333 ! 301324090382400 ! storm tide, real-time streamgage Ascension Louisiana hwm: 6.24 ft NAVD 88 at 1:00 8/31/2012 GMT
+-91.73556 30.28194 ! 301655091440800 ! storm tide, real-time streamgage St Martin Louisiana hwm: 8.88 ft NAVD 88 at 23:30 8/29/2012 GMT
+-91.73250 30.33889 ! 302020091435700 ! storm tide, real-time streamgage St Martin Louisiana hwm: 8.96 ft NAVD 88 at 2:00 9/4/2012 GMT
+-88.56306 30.36778 ! 02480212 ! storm tide, real-time streamgage Jackson Mississippi hwm: 5.90 ft NAVD 88 at 15:30 8/29/2012 GMT
+-88.58083 30.43806 ! 02480273 ! storm tide, real-time streamgage Jackson Mississippi hwm: 5.11 ft NAVD 88 at 16:30 8/29/2012 GMT
+-88.60844 30.38269 ! 02480285 ! storm tide, real-time streamgage Jackson Mississippi hwm: 5.96 ft NAVD 88 at 15:30 8/29/2012 GMT
+-88.97587 30.41575 ! 02481270 ! storm tide, real-time tidegage Harrison Mississippi hwm: 7.66 ft NAVD 88 at 18:45 8/29/2012 GMT
+-89.44139 30.38722 ! 02481660 ! storm tide, real-time streamgage Hancock Mississippi hwm: 10.28 ft NAVD 88 at 17:00 8/29/2012 GMT
+-89.38111 30.38436 ! 0248166590 ! storm tide, real-time streamgage Hancock Mississippi hwm: 10.26 ft NAVD 88 at 16:45 8/29/2012 GMT
+-91.41873 31.56044 ! 07290880 ! storm surge, real-time streamgage Adams Mississippi hwm: 28.39 ft NGVD 29 at 18:00 8/31/2012 GMT
+-88.85722 30.38833 ! 302318088512600 ! storm tide, real-time tidegage Harrison Mississippi hwm: 8.07 ft NAVD 88 at 18:15 8/29/2012 GMT
+-87.53355 30.32640 ! SSS-AL-BAL-001WL ! storm tide, water level Baldwin Alabama hwm: 3.52 ft NAVD88 at 16:35:51 8/29/2012 GMT
+-87.72813 30.30453 ! SSS-AL-BAL-002WL ! storm tide, water level Baldwin Alabama hwm: 3.18 ft NAVD88 at 15:14:00 8/29/2012 GMT
+-88.01794 30.23196 ! SSS-AL-BAL-003WL ! storm tide, water level Baldwin Alabama hwm: 4.72 ft NAVD88 at 16:55:00 8/28/2012 GMT
+-87.91155 30.52506 ! SSS-AL-BAL-004WL ! storm tide, water level Baldwin Alabama hwm: 4.94 ft NAVD88 at 17:29:00 8/29/2012 GMT
+-87.91876 30.63002 ! SSS-AL-BAL-005WL ! storm tide, water level Baldwin Alabama hwm: 4.97 ft NAVD88 at 16:31:30 8/29/2012 GMT
+-88.14082 30.25270 ! SSS-AL-MOB-001WL ! storm tide, water level Mobile Alabama hwm: 4.93 ft NAVD88 at 14:36:30 8/29/2012 GMT
+-88.19156 30.24848 ! SSS-AL-MOB-002WV ! wave height, wave height Mobile Alabama hwm: 7.43 ft NAVD88 at 11:04:14 8/29/2012 GMT
+-88.19156 30.24848 ! SSS-AL-MOB-003WL ! storm tide, water level Mobile Alabama hwm: 7.31 ft NAVD88 at 20:54:30 8/28/2012 GMT
+-88.24212 30.37822 ! SSS-AL-MOB-004WL ! storm tide, water level Mobile Alabama hwm: 5.28 ft NAVD88 at 14:39:30 8/29/2012 GMT
+-88.10972 30.37160 ! SSS-AL-MOB-005WL ! storm tide, water level Mobile Alabama hwm: 5.96 ft NAVD88 at 16:06:00 8/29/2012 GMT
+-88.10972 30.37160 ! SSS-AL-MOB-006WV ! wave height, wave height Mobile Alabama hwm: 5.86 ft NAVD88 at 11:10:28 8/29/2012 GMT
+-88.10500 30.53263 ! SSS-AL-MOB-007WL ! storm tide, water level Mobile Alabama hwm: 5.31 ft NAVD88 at 16:35:30 8/29/2012 GMT
+-88.09299 30.56630 ! SSS-AL-MOB-008WL ! storm tide, water level Mobile Alabama hwm: 5.45 ft NAVD88 at 19:07:30 8/29/2012 GMT
+-88.11424 30.58637 ! SSS-AL-MOB-009WL ! storm tide, water level Mobile Alabama hwm: 5.40 ft NAVD88 at 19:44:30 8/29/2012 GMT
+-88.09924 30.62526 ! SSS-AL-MOB-010WL ! storm tide, water level Mobile Alabama hwm: 5.48 ft NAVD88 at 19:38:30 8/29/2012 GMT
+-90.10028 29.77833 ! 00004264 ! storm tide, real-time RDG Jefferson Louisiana hwm: 4.28 ft NAVD88 at 19:00:00 8/30/2012 GMT
+-89.68778 29.83889 ! 295020089411600 ! storm tide, real-time RDG St Bernard Louisiana hwm: 7.96 ft NAVD88 at 11:15:00 8/29/2012 GMT
+-90.14529 30.07042 ! 300413090084304 ! storm tide, real-time RDG Jefferson Louisiana hwm: 7.41 ft NAVD88 at 13:15:00 8/29/2012 GMT
+-89.91861 30.08111 ! 3004510895507 ! storm tide, real-time RDG Orleans Louisiana hwm: 0.27 ft NAVD88 at 23:00:00 8/30/2012 GMT
+-89.86389 30.14167 ! 300830089515000 ! storm tide, real-time RDG Orleans Louisiana hwm: 6.13 ft NAVD88 at 8:15:00 8/30/2012 GMT
+-89.80163 30.20374 ! 301213894806 ! storm tide, real-time RDG St Tammany Louisiana hwm: 7.49 ft NAVD88 at 2:30:00 8/30/2012 GMT
+-89.84449 30.26921 ! 301609089504016 ! storm tide, real-time RDG St Tammany Louisiana hwm: 6.20 ft NAVD88 at 5:45:00 8/30/2012 GMT
+-90.40182 30.28462 ! 301704090240655 ! storm tide, real-time RDG Tangipahoa Louisiana hwm: 6.99 ft NAVD88 at 10:45:00 8/30/2012 GMT
+-89.93608 30.31317 ! 301847089560989 ! storm tide, real-time RDG St Tammany Louisiana hwm: 7.95 ft NAVD88 at 5:45:00 8/30/2012 GMT
+-90.15407 30.40433 ! 302415090091465 ! storm tide, real-time RDG St Tammany Louisiana hwm: 8.45 ft NAVD88 at 3:45:00 8/30/2012 GMT
+-89.93955 30.00633 ! SSS-LA-ORL-013WL ! storm tide, water level Orleans Louisiana hwm: 4.05 ft NAVD88 at 14:45:00  8/30/2012 GMT
+-89.94309 30.07691 ! SSS-LA-ORL-014WL ! storm tide, water level Orleans Louisiana hwm: 6.41 ft NAVD88 at 8:59:00 8/30/2012 GMT
+-89.80600 30.06712 ! SSS-LA-ORL-017WL ! storm tide, water level Orleans Louisiana hwm: 7.79 ft NAVD88 at 8:10:30 8/29/2012 GMT
+-89.86349 30.14197 ! SSS-LA-ORL-050WL ! storm tide, water level Orleans Louisiana hwm: 6.30 ft NAVD88 at 4:01:00 8/30/2012 GMT
+-90.23839 30.04104 ! SSS-LA-ORL-051WL ! storm tide, water level Orleans Louisiana hwm: 6.72 ft NAVD88 at 16:18:00 8/29/2012 GMT
+-89.76152 30.11626 ! SSS-LA-ORL-052WL ! storm tide, water level Orleans Louisiana hwm: 10.13 ft NAVD88 at 15:48:00 8/29/2012 GMT
+-90.11422 30.02226 ! SSS-LA-ORL-054WL !  storm tide, water level Orleans Louisiana hwm: 5.82 ft NAVD88 at 9:24:00 8/30/2012 GMT
+-89.84530 29.61310 ! SSS-LA-PLA-001WL ! storm tide, water level Plaquemines Louisiana hwm: 11.62 ft NAVD88 at 4:48:30 8/29/2012 GMT
+-89.84579 29.61179 ! SSS-LA-PLA-002WL ! storm tide, water level Plaquemines Louisiana hwm:    0.26 ft NAVD88 at 13:59:00 8/29/2012 GMT
+-89.72734 29.52933 ! SSS-LA-PLA-003WL ! storm tide, water level Plaquemines Louisiana hwm: 11.97 ft NAVD88 at 2:52:00 8/29/2012 GMT
+-89.76587 29.56657 ! SSS-LA-PLA-004WL ! storm tide, water level Plaquemines Louisiana hwm: 14.41 ft NAVD88 at 2:56:30 8/29/2012 GMT
+-89.93526 29.64860 ! SSS-LA-PLA-005WL ! storm tide, water level Plaquemines Louisiana hwm: 13.29 ft NAVD88 at 8:18:00 8/29/2012 GMT
+-89.97722 29.71100 ! SSS-LA-PLA-006WL ! storm tide, water level Plaquemines Louisiana hwm: 13.49 ft NAVD88 at 9:27:30 8/29/2012 GMT
+-89.53640 29.35278 ! SSS-LA-PLA-007WL ! storm tide, water level Plaquemines Louisiana hwm: 7.12 ft NAVD88 at 14:08:30 8/29/2012 GMT
+-89.64972 29.44990 ! SSS-LA-PLA-008WL ! storm tide, water level Plaquemines Louisiana hwm: 8.10 ft NAVD88 at 16:01:00 8/29/2012 GMT
+-89.35315 29.27228 ! SSS-LA-PLA-009WL ! storm tide, water level Plaquemines Louisiana hwm:    0.43 ft NAVD88 at 19:39:00 8/28/2012 GMT
+-89.35828 29.25242 ! SSS-LA-PLA-010WL ! storm tide, water level Plaquemines Louisiana hwm: 6.37 ft NAVD88 at 6:44:00 8/29/2012 GMT
+-89.38946 29.23234 ! SSS-LA-PLA-011WL ! storm tide, water level Plaquemines Louisiana hwm: 4.58 ft NAVD88 at 14:30:00 8/29/2012 GMT
+-89.60143 29.37509 ! SSS-LA-PLA-012WL ! storm tide, water level Plaquemines Louisiana hwm: 7.27 ft NAVD88 at 13:57:00 8/29/2012 GMT
+-90.01019 29.76168 ! SSS-LA-PLA-018WL ! storm tide, water level Plaquemines Louisiana hwm: 14.07 ft NAVD88 at 12:36:30 8/29/2012 GMT
+-89.95924 29.83164 ! SSS-LA-PLA-019WL ! storm tide, water level Plaquemines Louisiana hwm: 13.89 ft NAVD88 at 14:25:30 8/29/2012 GMT
+-89.97102 29.84030 ! SSS-LA-PLA-020WL ! storm tide, water level Plaquemines Louisiana hwm: 14.00 ft NAVD88 at 12:32:30 8/29/2012 GMT
+-89.90964 29.85545 ! SSS-LA-PLA-021WL ! storm tide, water level Plaquemines Louisiana hwm: 13.53 ft NAVD88 at 12:39:30 8/29/2012 GMT
+-89.91063 29.85561 ! SSS-LA-PLA-022WL ! storm tide, water level Plaquemines Louisiana hwm: 13.71 ft NAVD88 at 12:20:00 8/29/2012 GMT
+-89.89368 29.90092 ! SSS-LA-STB-003WL ! storm tide, water level St Bernard Louisiana hwm: 2.00 ft NAVD88 at 21:29:30 8/29/2012 GMT
+-89.76452 29.80691 ! SSS-LA-STB-024WL ! storm tide, water level St Bernard Louisiana hwm: 11.57 ft NAVD88 at 15:03:00 8/29/2012 GMT
+-89.61126 29.81886 ! SSS-LA-STB-025WL ! storm tide, water level St Bernard Louisiana hwm: 10.18 ft NAVD88 at 6:06:00 8/29/2012 GMT
+-89.78380 29.75786 ! SSS-LA-STB-026WL ! storm tide, water level St Bernard Louisiana hwm: 11.45 ft NAVD88 at 10:17:00 8/29/2012 GMT
+-89.71373 29.85327 ! SSS-LA-STB-027WL ! storm tide, water level St Bernard Louisiana hwm: 10.77 ft NAVD88 at 16:17:30 8/29/2012 GMT
+-89.77743 30.29038 ! SSS-LA-STT-007WL ! storm tide, water level St Tammany Louisiana hwm: 8.50 ft NAVD88 at 4:28:00 8/30/2012 GMT
+-89.79356 30.27134 ! SSS-LA-STT-008WL ! storm tide, water level St Tammany Louisiana hwm: 8.28 ft NAVD88 at 7:30:00 8/30/2012 GMT
+-90.00198 30.33739 ! SSS-LA-STT-010WL ! storm tide, water level St Tammany Louisiana hwm: 7.91 ft NAVD88 at 5:08:00 8/30/2012 GMT
+-90.07906 30.38488 ! SSS-LA-STT-011WL ! storm tide, water level St Tammany Louisiana hwm: 10.04 ft NAVD88 at 8:43:00  8/30/2012 GMT
+-90.13426 30.45449 ! SSS-LA-STT-012WL ! storm tide, water level St Tammany Louisiana hwm: 9.35 ft NAVD88 at 9:27:30 8/30/2012 GMT
+-89.61631 30.23835 ! SSS-LA-STT-100WL ! storm tide, water level St Tammany Louisiana hwm: 9.32 ft NAVD88 at 19:23:00 8/29/2012 GMT
+-89.72835 30.17615 ! SSS-LA-STT-101WL ! storm tide, water level St Tammany Louisiana hwm: 7.50 ft NAVD88 at 20:55:00 8/29/2012 GMT
+-89.63959 30.23518 ! SSS-LA-STT-102WL ! storm tide, water level St Tammany Louisiana hwm: 9.70 ft NAVD88 at 19:13:30 8/29/2012 GMT
+-90.26640 30.43865 ! SSS-LA-TAN-004WL ! storm tide, water level Tangipahoa Louisiana hwm: 9.27 ft NAVD88 at 8:55:30 8/30/2012 GMT
+-88.82804 30.41910 ! 02481299 ! storm tide, real-time RDG Jackson Mississippi hwm: 6.96 ft NAVD88 at 18:15:00 8/29/2012 GMT
+-89.26449 30.34242 ! 02481325 ! storm tide, real-time RDG Harrison Mississippi hwm: 8.66 ft NAVD88 at 19:30:00 8/29/2012 GMT
+-89.27336 30.35800 ! 0248152650 ! storm tide, real-time RDG Harrison Mississippi hwm: 9.39 ft NAVD88 at 17:00:00 8/29/2012 GMT
+-89.40161 30.36517 ! 02481667 ! storm tide, real-time RDG Hancock Mississippi hwm: 9.69 ft NAVD88 at 16:30:00 8/29/2012 GMT
+-89.42477 30.33020 ! 02481671 ! storm tide, real-time RDG Hancock Mississippi hwm: 10.12 ft NAVD88 at 17:45:00 8/29/2012 GMT
+-89.61478 30.23908 ! 02492670 ! storm tide, real-time RDG Hancock Mississippi hwm: 7.78 ft NAVD88 at 12:00:00 8/29/2012 GMT
+-89.32571 30.31007 ! SSS-MS-HAN-004WL ! storm tide, water level Hancock Mississippi hwm: 10.73 ft NAVD88 at 19:00:00  8/29/2012 GMT
+-89.37379 30.36557 ! SSS-MS-HAN-012WL ! storm tide, water level Hancock Mississippi hwm: 10.00 ft NAVD88 at 18:12:00 8/29/2012 GMT
+-89.32778 30.32420 ! SSS-MS-HAN-013WL ! storm tide, water level Hancock Mississippi hwm: 8.78 ft NAVD88 at 17:38:00 8/29/2012 GMT
+-89.32799 30.30244 ! SSS-MS-HAN-014WL ! storm tide, water level Hancock Mississippi hwm: 10.90 ft NAVD88 at 17:39:30 8/29/2012 GMT
+-89.42480 30.23954 ! SSS-MS-HAN-015WL ! storm tide, water level Hancock Mississippi hwm: 11.60 ft NAVD88 at 13:16:30 8/29/2012 GMT
+-89.43230 30.23953 ! SSS-MS-HAN-016WL ! storm tide, water level Hancock Mississippi hwm: 10.09 ft NAVD88 at 17:06:30 8/29/2012 GMT
+-89.55179 30.24995 ! SSS-MS-HAN-017WL ! storm tide, water level Hancock Mississippi hwm: 9.52 ft NAVD88 at 20:01:00 8/29/2012 GMT
+-89.48212 30.22103 ! SSS-MS-HAN-018WL ! storm tide, water level Hancock Mississippi hwm: 9.99 ft NAVD88 at 14:33:30 8/29/2012 GMT
+-89.02775 30.45346 ! SSS-MS-HAR-001WL ! storm tide, water level Harrison Mississippi hwm: 9.24 ft NAVD88 at 2:34:00 8/30/2012 GMT
+-89.01321 30.45353 ! SSS-MS-HAR-002WL ! storm tide, water level Harrison Mississippi hwm: 8.13 ft NAVD88 at 18:07:30 8/29/2012 GMT
+-89.09260 30.44943 ! SSS-MS-HAR-003WL ! riverine, water level Harrison Mississippi hwm: 18.50 ft NAVD88 at 1:31:30 8/30/2012 GMT
+-89.09313 30.41288 ! SSS-MS-HAR-004WL ! riverine, water level Harrison Mississippi hwm: 12.43 ft NAVD88 at 7:29:00 8/30/2012 GMT
+-89.09032 30.36419 ! SSS-MS-HAR-005WL ! storm tide, water level Harrison Mississippi hwm: 8.79 ft NAVD88 at 17:49:00 8/29/2012 GMT
+-89.04433 30.37691 ! SSS-MS-HAR-006WL ! storm tide, water level Harrison Mississippi hwm: 9.19 ft NAVD88 at 17:57:00 8/29/2012 GMT
+-89.03756 30.40946 ! SSS-MS-HAR-007WL ! storm tide, water level Harrison Mississippi hwm: 8.26 ft NAVD88 at 20:18:30 8/29/2012 GMT
+-89.01804 30.42071 ! SSS-MS-HAR-008WL ! storm tide, water level Harrison Mississippi hwm: 8.15 ft NAVD88 at 19:55:00 8/29/2012 GMT
+-89.08820 30.43154 ! SSS-MS-HAR-009WL ! storm tide, water level Harrison Mississippi hwm: 8.78 ft NAVD88 at 20:14:00 8/29/2012 GMT
+-89.23209 30.37702 ! SSS-MS-HAR-010WL ! storm tide, water level Harrison Mississippi hwm: 9.51 ft NAVD88 at 18:20:00 8/29/2012 GMT
+-89.26917 30.36672 ! SSS-MS-HAR-011WL ! storm tide, water level Harrison Mississippi hwm: 9.41 ft NAVD88 at 17:55:00 8/29/2012 GMT
+-89.29070 30.31244 ! SSS-MS-HAR-014WL ! storm tide, water level Harrison Mississippi hwm: 9.37 ft NAVD88 at 17:45:30 8/29/2012 GMT
+-88.85783 30.38999 ! SSS-MS-HAR-019WL ! storm tide, water level Harrison Mississippi hwm: 7.46 ft NAVD88 at 18:57:30 8/29/2012 GMT
+-88.95499 30.39084 ! SSS-MS-HAR-020WL ! storm tide, water level Harrison Mississippi hwm: 9.19 ft NAVD88 at 18:07:00 8/29/2012 GMT
+-88.97488 30.39089 ! SSS-MS-HAR-021WL ! storm tide, water level Harrison Mississippi hwm: 9.41 ft NAVD88 at 18:04:30 8/29/2012 GMT
+-89.03524 30.38008 ! SSS-MS-HAR-022WL ! storm tide, water level Harrison Mississippi hwm: 9.32 ft NAVD88 at 17:55:00 8/29/2012 GMT
+-89.14133 30.34418 ! SSS-MS-HAR-023WL ! storm tide, water level Harrison Mississippi hwm: 10.15 ft NAVD88 at 17:34:00 8/29/2012 GMT
+-89.17010 30.33752 ! SSS-MS-HAR-024WL ! storm tide, water level Harrison Mississippi hwm: 9.87 ft NAVD88 at 18:21:00 8/29/2012 GMT
+-89.24516 30.31130 ! SSS-MS-HAR-026WV ! wave height, wave height Harrison Mississippi hwm: 9.48 ft NAVD88 at 12:01:14 8/29/2012 GMT
+-88.82242 30.40644 ! SSS-MS-JAC-012WL ! storm tide, water level Jackson Mississippi hwm: 6.85 ft NAVD88 at 18:53:00 8/29/2012 GMT
+-88.77331 30.39889 ! SSS-MS-JAC-013WL ! storm tide, water level Jackson Mississippi hwm: 6.60 ft NAVD88 at 19:12:30 8/29/2012 GMT
+-88.75736 30.40036 ! SSS-MS-JAC-014WL ! storm tide, water level Jackson Mississippi hwm: 6.55 ft NAVD88 at 16:56:00 8/29/2012 GMT
+-88.76000 30.37429 ! SSS-MS-JAC-015WL ! storm tide, water level Jackson Mississippi hwm: 6.52 ft NAVD88 at 16:43:30 8/29/2012 GMT
+-88.73830 30.38059 ! SSS-MS-JAC-016WL ! storm tide, water level Jackson Mississippi hwm: 6.49 ft NAVD88 at 17:19:00 8/29/2012 GMT
+-88.70840 30.34301 ! SSS-MS-JAC-017WL ! storm tide, water level Jackson Mississippi hwm: 7.76 ft NAVD88 at 15:45:00 8/29/2012 GMT
+-88.70138 30.36284 ! SSS-MS-JAC-018WL ! storm tide, water level Jackson Mississippi hwm: 6.74 ft NAVD88 at 17:15:30 8/29/2012 GMT
+-88.70824 30.39582 ! SSS-MS-JAC-019WL ! storm tide, water level Jackson Mississippi hwm: 7.05 ft NAVD88 at 4:18:00 8/30/2012 GMT
+-88.65967 30.37901 ! SSS-MS-JAC-020WL ! storm tide, water level Jackson Mississippi hwm: 6.13 ft NAVD88 at 16:42:00 8/29/2012 GMT
+-88.66297 30.36332 ! SSS-MS-JAC-021WL ! storm tide, water level Jackson Mississippi hwm: 7.65 ft NAVD88 at 16:11:30 8/29/2012 GMT
+-88.61578 30.38803 ! SSS-MS-JAC-022WL ! storm tide, water level Jackson Mississippi hwm: 6.13 ft NAVD88 at 16:31:00 8/29/2012 GMT
+-88.65489 30.41112 ! SSS-MS-JAC-023WL ! storm tide, water level Jackson Mississippi hwm: 6.71 ft NAVD88 at 17:18:30 8/29/2012 GMT
+-88.64940 30.41980 ! SSS-MS-JAC-024WL ! storm tide, water level Jackson Mississippi hwm: 6.29 ft NAVD88 at 17:18:30 8/29/2012 GMT
+-88.48890 30.41344 ! SSS-MS-JAC-030WL ! storm tide, water level Jackson Mississippi hwm: 5.62 ft NAVD88 at 19:00:30 8/29/2012 GMT
+-88.51984 30.41989 ! SSS-MS-JAC-031WL ! storm tide, water level Jackson Mississippi hwm: 5.68 ft NAVD88 at 17:53:30 8/29/2012 GMT
+-88.49949 30.36814 ! SSS-MS-JAC-032WL ! storm tide, water level Jackson Mississippi hwm: 7.07 ft NAVD88 at 17:42:00 8/29/2012 GMT
+-88.52312 30.34300 ! SSS-MS-JAC-033WL ! storm tide, water level Jackson Mississippi hwm: 5.75 ft NAVD88 at 16:18:30 8/29/2012 GMT
+-88.55405 30.34821 ! SSS-MS-JAC-034WL ! storm tide, water level Jackson Mississippi hwm: 5.81 ft NAVD88 at 16:18:00 8/29/2012 GMT
+-88.84183 30.44324 ! SSS-MS-JAC-036WL ! storm tide, water level Jackson Mississippi hwm: 7.19 ft NAVD88 at 19:04:00  8/29/2012 GMT
+-88.88013 30.43813 ! SSS-MS-JAC-037WL ! storm tide, water level Jackson Mississippi hwm: 7.46 ft NAVD88 at 19:06:30 8/29/2012 GMT
+-88.89183 30.46218 ! SSS-MS-JAC-038WL ! storm tide, water level Jackson Mississippi hwm: 7.11 ft NAVD88 at 21:18:00 8/29/2012 GMT
+-88.63615 30.36134 ! SSS-MS-JAC-039WV ! wave height, wave height Jackson Mississippi hwm: 6.70 ft NAVD88 at 11:34:36 8/29/2012 GMT
+-88.60480 30.43780 ! SSS-MS-JAC-050WL ! storm tide, water level Jackson Mississippi hwm: 5.00 ft NAVD88 at 16:12:15 8/29/2012 GMT
+-88.55779 30.43825 ! SSS-MS-JAC-051WL ! storm tide, water level Jackson Mississippi hwm: 5.42 ft NAVD88 at 16:30:28 8/29/2012 GMT
+-88.54140 30.45860 ! SSS-MS-JAC-052WL ! storm tide, water level Jackson Mississippi hwm: 6.15 ft NAVD88 at 18:42:37 8/29/2012 GMT
+-88.84371 30.40942 ! SSS-MS-JAC-053WL ! storm tide, water level Jackson Mississippi hwm: 7.55 ft NAVD88 at 17:47:25 8/29/2012 GMT
+-88.56310 30.36778 ! SSS-MS-JAC-054WL ! storm tide, water level Jackson Mississippi hwm: 6.06 ft NAVD88 at 15:35:50 8/29/2012 GMT
+-88.60844 30.38270 ! SSS-MS-JAC-055WL ! storm tide, water level Jackson Mississippi hwm: 6.32 ft NAVD88 at 15:18:56 8/29/2012 GMT
+-88.85720 30.38830 ! SSS-MS-JAC-056WL ! storm tide, water level Harrison Mississippi hwm: 7.49 ft NAVD88 at 17:34:00 8/29/2012 GMT
