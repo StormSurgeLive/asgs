@@ -5,7 +5,7 @@ ASGS %StormName%          ! 30 CHARACTER ALPHANUM RUN DESCRIPTION
 -1000                     ! NSCREEN - UNIT 6 
 %IHOT%                    ! IHOT - HOT START 
 2                         ! ICS - COORDINATE SYSTEM 
-111122                    ! IM - MODEL TYPE  jgf20140502: corrected 111122 
+111112                    ! IM - MODEL TYPE  jgf20140502: corrected 111122 
 1                         ! NOLIBF - BOTTOM FRICTION TERM 
 2                         ! NOLIFA - FINITE AMPLITUDE TERM 
 1                         ! NOLICA - SPATIAL DERIVATIVE PORTION OF CONV. TERM
