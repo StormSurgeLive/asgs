@@ -257,6 +257,7 @@ init_lonestar()
   SERQSCRIPTGEN=lonestar.serial.pl
   UMASK=006
   GROUP="G-803086"
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/apps/intel11_1/netcdf/4.2.1.1/lib:/opt/apps/intel11_1/hdf5/1.8.8/lib
 }
 init_desktop()
 {

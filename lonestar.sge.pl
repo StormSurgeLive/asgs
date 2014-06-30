@@ -70,7 +70,7 @@ if ( defined $localhotstart ) {
    $cloption .= " -S -R";
 }
 #
-open(TEMPLATE,"$qscript") || die "ERROR: Can't open ranger.template.sge file.";
+open(TEMPLATE,"$qscript") || die "ERROR: Can't open $qscript file.";
 #
 while(<TEMPLATE>) {
     # fill in the number of compute nodes to run on 
