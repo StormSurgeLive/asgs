@@ -69,6 +69,7 @@ my $atcf_line = $template;
 my $lat;
 my $lon;
 my $vmax;
+my $gusts;  # in kt
 my $input;  # name of input file
 my $output; # name of output file
 my $metadata="run.properties"; # name of metadata file
@@ -231,15 +232,18 @@ printf STDERR "INFO: nhc_advisory_bot.pl: nowcast central pressure is $pressure\
 if (@match) {
    if ( $match[0] =~ /^MAX SUSTAINED WINDS\s+(\d{1,4}) KT WITH GUSTS TO\s+(\d{1,4})/ ) {
       $vmax = $1;
+      $gusts = $2;
    }
 }
 # Carola Kaiser 19 July 2011
 open(PLOT,">>$metadata") || die "ERROR: nhc_advisory_bot.pl: Failed to open run.properties file for appending storm name and vmax: $!.";
-print PLOT "stormname:$storm_name\nstormclass:$storm_class\nwind:$vmax\nadvisory time: $date_time\n";
+print PLOT "stormname:$storm_name\nstormclass:$storm_class\nwind:$vmax\nadvisory time: $date_time\ngusts : $gusts";
 print PLOT "forecastValidStart : $nowcast_date_time" . "0000\n";
 #
 substr($atcf_line,47,4) = sprintf("%4d",$vmax);
+substr($atcf_line,113,4) = sprintf("%4d",$gusts);
 printf STDERR "INFO: nhc_advisory_bot.pl: nowcast max wind is $vmax\n";
+printf STDERR "INFO: nhc_advisory_bot.pl: nowcast gusts is $gusts\n";
 my $forecast_atcf_filename = lc($storm_name) . "_advisory_" . $adv_num_str . ".fst";
 #
 # collect nowcast wind radii, if any
@@ -322,8 +326,10 @@ while ($i < $#{$body_ref} ) {
       chomp $line;
       if ($line =~ /^MAX WIND\s+(\d{1,4}) KT\.\.\.GUSTS\s+(\d{1,4}) KT\./ ) {
          $vmax = $1;
+         $gusts = $2;
       }
       substr($atcf_line,47,4) = sprintf("%4d",$vmax);
+      substr($atcf_line,113,4) = sprintf("%4d",$gusts);
       $forecast_date_time = sprintf("%04d%02d%02d%02d", $forecast_year, $forecast_month, $forecast_day, $forecast_hour);
       # check to see if we have crossed into the next month
       if ( $forecast_date_time < $nowcast_date_time ) {
