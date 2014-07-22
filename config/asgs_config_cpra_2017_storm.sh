@@ -164,8 +164,8 @@ case $si in    #$si is set in asgs_main.sh
      # do nothing ... this is not a forecast
   ;;
 0)
-  # ENSTORM=nhcConsensus
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
+  # ENSTORM=namforecast
   ;;
 1)
   ENSTORM=veerLeft50
