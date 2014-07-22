@@ -116,7 +116,7 @@ cp ${ADVISDIR}/${ENSTORM}/min*.nc . 2>> ${SYSLOG}
 cp ${ADVISDIR}/${ENSTORM}/run.properties . 2>> ${SYSLOG}
 #cp ${ADVISDIR}/${ENSTORM}/*.xmf . 2>> ${SYSLOG}
 #cp ${ADVISDIR}/${ENSTORM}/*.kmz . 2>> ${SYSLOG}
-for file in fort.13 fort.22 fort.26 fort.221 fort.222 ; do
+for file in fort.13 fort.22 fort.26 fort.221 fort.222 fort.61; do
    if [ -e ${ADVISDIR}/${ENSTORM}/$file ]; then
       cp ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
    fi
