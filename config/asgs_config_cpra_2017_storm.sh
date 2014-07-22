@@ -153,29 +153,6 @@ RIVERFLUX=null
 HINDCASTRIVERFLUX=null
 
 
-#-----------------------------------------------------------------
-# Storm Ensemble Configuration
-#-----------------------------------------------------------------
-ENSEMBLESIZE=1 # number of storms in the ensemble
-PERCENT=default
-RMAX=default
-case $si in    #$si is set in asgs_main.sh
--1)
-     # do nothing ... this is not a forecast
-  ;;
-0)
-   ENSTORM=nhcConsensus
-  # ENSTORM=namforecast
-  ;;
-1)
-  ENSTORM=veerLeft50
-  PERCENT=-50
- ;;
-esac
-
-
-
-
 # array of storm names that are to be run ... array length is 
 #STORMLIST[0]=1 # nhcConsensus  
 #STORMLIST[0]=8 # namforecast  
@@ -254,5 +231,24 @@ ARCHIVE=null_archive.sh
 ARCHIVEBASE=/work/cera/hurricane
 ARCHIVEDIR=asgs_ec95d
 
+#-----------------------------------------------------------------
+# Storm Ensemble Configuration
+#-----------------------------------------------------------------
+ENSEMBLESIZE=1 # number of storms in the ensemble
+PERCENT=default
+RMAX=default
+case $si in    #$si is set in asgs_main.sh
+-1)
+     # do nothing ... this is not a forecast
+  ;;
+0)
+   ENSTORM=nhcConsensus
+  # ENSTORM=namforecast
+  ;;
+1)
+  ENSTORM=veerLeft50
+  PERCENT=-50
+ ;;
+esac
 
 
