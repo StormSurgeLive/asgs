@@ -10,7 +10,7 @@ ASGS %StormName%       ! 32 CHARACTER ALPHANUMERIC RUN DESCRIPTION
  3                     ! NOLIFA - FINITE AMPLITUDE TERM SELECTION PARAMETER
  0                     ! NOLICA - SPATIAL DERIVATIVE CONVECTIVE SELECTION PARAMETER
  0                     ! NOLICAT - TIME DERIVATIVE CONVECTIVE TERM SELECTION PARAMETER
- 8                     ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
+ 7                     ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
 average_horizontal_eddy_viscosity_in_sea_water_wrt_depth
 sea_surface_height_above_geoid
 surface_submergence_state
@@ -18,7 +18,6 @@ surface_canopy_coefficient
 primitive_weighting_in_continuity_equation
 surface_directional_effective_roughness_length
 mannings_n_at_sea_floor
-wave_refraction_in_swan
  1                     ! NCOR - VARIABLE CORIOLIS IN SPACE
  1                     ! NTIP - TIDAL POTENTIAL
 %NWS%                  ! NWS - WIND STRESS AND BAROMETRIC PRESSURE
@@ -30,7 +29,7 @@ wave_refraction_in_swan
  0.00                  ! REFTIM - REFERENCE TIME (IN DAYS)
 %WTIMINC%              ! WTIMINC, RSTIMINC (IN SECONDS) 
 %RNDAY%                ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
- 0.5 0.5 2.0           ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
+ 10.0 3.0 1.0           ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
  0.35 0.30 0.35        ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
  0.10 0 0 0.01         ! H0, NODEDRYMIN, NODEWETMIN, VELMIN
  265.5 29.0            ! SLAM0,SFEA0 - CENTER OF CPP PROJECTION

@@ -98,7 +98,7 @@ if [[ $BACKGROUNDMET = on ]]; then
    STORMNAMEPATH=tc/nam
 fi
 if [[ $TROPICALCYCLONE = on ]]; then
-   STORMNAME=`grep "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+   STORMNAME=`grep -m 1 "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
    STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
    STORMNAMEPATH=tc/$STORMNAMELC
 fi
@@ -109,6 +109,7 @@ echo "downloadurl : $downloadURL" >> run.properties
 # now actually make the directory (OPENDAPBASEDIR is specified in CONFIG)
 OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
 #
+# /projects/ncfs/opendap/data/tc/phil phil/38/HSDRRS2014_MRGO_leveeupdate_fixSTC_MX/garnet.erdc.hpc.mil/philtest/nhcConsensus
 logMessage "Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER with the ssh key in $SSHKEY."
 ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
 for file in `ls *.nc *.xmf ${ADVISDIR}/al*.fst ${ADVISDIR}/bal*.dat fort.15 fort.22 run.properties`; do 
