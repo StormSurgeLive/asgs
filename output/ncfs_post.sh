@@ -90,7 +90,7 @@ if [[ $BACKGROUNDMET = on ]]; then
    STORMNAMEPATH=tc/nam
 fi
 if [[ $TROPICALCYCLONE = on ]]; then
-   STORMNAME=`grep "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+   STORMNAME=`grep "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//g' | tail -n 1` 2>> ${SYSLOG}
    STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
    STORMNAMEPATH=tc/$STORMNAMELC
 fi
@@ -128,13 +128,14 @@ cp run.properties /projects/ncfs/opendap/data/NCFS_CURRENT/run.properties.${HOST
 #
 # send an email to CERA web application to notify it that results are ready
 COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com,nc.cera.renci2@gmail.com"
+#COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com"
 runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'`
-subject="ADCIRC NCFS POSTED for $runStartTime"
+subject="ADCIRC NCFS $runStartTime $HOSTNAME.$INSTANCENAME $ENMEMNUM"
 if [[ $TROPICALCYCLONE = on ]]; then
-   subject=${subject}" (TROPICAL CYCLONE)"
+   subject=${subject}" (TC)"
 fi
-subject="${subject} $CERASERVER"
-subject="${subject} $HOSTNAME.$INSTANCENAME $ENMEMNUM"
+#subject="${subject} $CERASERVER"
+echo "INFO: ncfs_post.sh: The cera_results_notify.txt email subject line is '$subject'." >> ${SYSLOG}
 cat <<END > ${STORMDIR}/cera_results_notify.txt 
 
 The ADCIRC NCFS solutions for $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
