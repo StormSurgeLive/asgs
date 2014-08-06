@@ -52,7 +52,6 @@ my $trigger = "rss"; # the data source used to detect a new advisory
              # the external link to the text of the forecast/advisory
 my $nhcName; # the name given by the NHC, e.g., TWO, GUSTAV, KATRINA, etc
 my $body;    # text of the forecast/advisory
-
 GetOptions(
            "statefile=s" => \$statefile,
            "rsssite=s" => \$rsssite,
@@ -254,66 +253,84 @@ while (!$dl) {
       my $newAdvisory = 0;
       # printf STDERR "INFO: get_atcf.pl: 
       # The index-at.xml file contains $cnt lines.\n";
-      # loop over the body of the index file, looking for our storm
+      # Loop over the body of the index file, looking for our storm.
+      #
+      # jgf20140804: The storm name may have changed in the forecast, causing
+      # the storm name in the best track file to be outdated and different
+      # from the storm name found here. For example, in 2014, TD ONE changed
+      # to TS ARTHUR, and TD TWO changed to TS BERTHA. Therefore, we must
+      # look for the advisory by storm number, not name. 
       while ($i<$cnt) {
-         if ( $lines[$i] =~ /$nhcName Forecast.Advisory Number (\d{1,2})/ ) {
-            # we have found the entry containing info about the latest advisory
-            # for our storm
-            $stormFound = 1;
-            $advNum = sprintf("%02d",$1);
-         # printf STDERR "INFO: get_atcf.pl Advisory '$advNum' for storm $nhcName was found in the index-at.xml file.\n";
-         # compare the advisory number in the index file with the current
-         # advisory number on the command line, if any
-            if ( defined $adv ) {
-               unless ( $advNum eq $adv ) {
-                  $newAdvisory = 1;
-                  stderrMessage("DEBUG","The new advisory number is $advNum.");
-                  printf STDOUT "$advNum";
-               }
-            }
-            while ($i<$cnt) {
-               $i++;
-               if ( defined $lines[$i] ) {
-               # grab the actual text of the advisory from the RSS xml
-                  if ( $trigger eq "rssembedded" ) {
-                     if ( $lines[$i] =~ /description/ ) {
-                        $body = "";
-                        while ( $lines[$i] ne "</pre>]]></description>" ) {
-                           $body .= $lines[$i] . "\n";
-                           $i++;
-                        }
-                        last;
-                     }
-                  } else {
-                     # just grab the link to the actual text of the advisory 
-                     # from a webserver
-                     if ( $lines[$i] =~ /<link>http:\/\/(.*?)\/(.*)<\/link>/ ) {
-                        $linkFound = 1;
-                        $textAdvisoryHost=$1;
-                        $textAdvisoryPath=$2;
-                        last;
-                     }
-                     # grab the full path and file name of the file that
-                     # contains the actual text of the advisory
-                     if ( $lines[$i] =~ /<link>(\/.*)<\/link>/ ) {
-                        $linkFound = 1;
-                        $textAdvisoryPath=$1;
-                        last;
-                     }
-                     if ( $lines[$i] =~ /item/ ) {
-                        stderrMessage("ERROR",
-                           "http: The link to the text advisory was not found in index-at.xml.");
-                        last;
-                     }
+         # TROPICAL STORM BERTHA FORECAST/ADVISORY NUMBER  22
+         # NWS NATIONAL HURRICANE CENTER MIAMI FL       AL032014
+         if ( $lines[$i] =~ /NWS NATIONAL HURRICANE CENTER MIAMI FL\s+AL(\d{2})(\d{4})/ ) {
+            if ($1 == $storm && $2 == $year ) {
+               # we have found the entry containing info about the 
+               # latest advisory for our storm
+               $stormFound = 1;
+               # get the advisory number from the previous line
+               $lines[$i-1] =~ / ([A-Z]+) FORECAST.ADVISORY NUMBER\s+(\d{1,2})/;
+               $nhcName = $1;
+               $advNum = sprintf("%02d",$2);
+               printf STDERR "INFO: get_atcf.pl Advisory '$advNum' for storm $nhcName was found in the index-at.xml file.\n";
+               # compare the advisory number in the index file with the current
+               # advisory number on the command line, if any
+               if ( defined $adv ) {
+                  unless ( $advNum eq $adv ) {
+                     $newAdvisory = 1;
+                     stderrMessage("DEBUG","The new advisory number is $advNum.");
+                     printf STDOUT "$advNum";
                   }
                }
-            }          
-            last;   
+               #
+               # reset the line number to the beginning of the NHC 
+               # forecast/advisory text, and grab the whole of the advisory,
+               # storing it in the $body variable
+               $i -= 8;
+               while ($i<$cnt) {
+                  $i++;
+                  if ( defined $lines[$i] ) {
+                     # grab the actual text of the advisory from the RSS xml
+                     if ( $trigger eq "rssembedded" ) {
+                        if ( $lines[$i] =~ /description/ ) {
+                           $body = "";
+                           while ( $lines[$i] ne "</pre>]]></description>" ) {
+                              $body .= $lines[$i] . "\n";
+                              $i++;
+                           }
+                           last;
+                        }
+                     } else {
+                        # just grab the link to the actual text of the advisory 
+                        # from a webserver
+                        if ( $lines[$i] =~ /<link>http:\/\/(.*?)\/(.*)<\/link>/ ) {
+                           $linkFound = 1;
+                           $textAdvisoryHost=$1;
+                           $textAdvisoryPath=$2;
+                           last;
+                        }
+                        # grab the full path and file name of the file that
+                        # contains the actual text of the advisory
+                        if ( $lines[$i] =~ /<link>(\/.*)<\/link>/ ) {
+                           $linkFound = 1;
+                           $textAdvisoryPath=$1;
+                           last;
+                        }
+                        if ( $lines[$i] =~ /item/ ) {
+                           stderrMessage("ERROR",
+                           "http: The link to the text advisory was not found in index-at.xml.");
+                           last;
+                        }
+                     }
+                  }
+               }          
+               last;   
+            }
          }   
          $i++;
       }
       unless ( $stormFound ) { 
-         stderrMessage("ERROR","http: The storm named '$nhcName' was not found in the RSS feed.");
+         stderrMessage("ERROR","http: The storm number $storm (named '$nhcName') of $year was not found in the RSS feed.");
          #stderrMessage("DEBUG","The body of the index-at.xml file was $body.");
          next;
       }
