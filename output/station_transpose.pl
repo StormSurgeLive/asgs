@@ -49,6 +49,17 @@ my $coldstartdate; # yyyymmddhh24 when the simulation was coldstarted
 my $gmtoffset=-5; # number of hours between gmt and local time
 my $timezone="CDT"; # time zone designation to be placed on graphs
 my $units = "english"; # output units, english or si
+my $stationlabel = "after exclamation point"; # how to parse the station label from fort.15
+# on command line, use 
+# --stationlabel betweenbangs
+# if the station comment line has the station ID between two exclamation 
+# points and only the station ID should be used on the plots; e.g., the
+# station line in the fort.15 looks like this
+# -88.55779 30.43825 ! SSS-MS-JAC-051WL ! storm tide, water level Jackson Mississippi hwm: 5.42 ft NAVD88 at 16:30:28 8/29/2012 GMT
+my $firstBang;   # string location where first exclamation point appears
+my $secondBang;  # string location where second exclamation point appears
+my $labelLength; # length of station label string
+my $stationPlotLabel; # the string that is pulled from the fort.15 for each station to be used in labeling the associated plot
 my @supported_files = qw(elevation velocity windvelocity barometricpressure);
 my $year;
 my $month;
@@ -72,6 +83,7 @@ GetOptions(
            "coldstartdate=s" => \$coldstartdate,
            "gmtoffset=s" => \$gmtoffset,
            "timezone=s" => \$timezone,
+           "stationlabel=s" => \$stationlabel,
            "units=s" => \$units
            );
 # 
@@ -125,17 +137,35 @@ unless(open(FORT15,"<$controlFile")) {
          for ( my $i=0; $i<$num_sta; $i++ ) {
             my $line =<FORT15>; 
             chomp($line);
+            #
+            # determine the location(s) of the exclamation point(s) that
+            # are used to mark out the station name and/or station ID 
+            $firstBang = index($line,"!") + 1;
+            $secondBang = index($line,"!",$firstBang+1);
+            $labelLength = -1;
+            if ( $stationlabel eq "betweenbangs" && $firstBang ne -1 && $secondBang ne -1 ) {
+               $labelLength = $secondBang - $firstBang;
+            } else {
+               $labelLength = length($line) - $firstBang;
+            }
+            if ( $stationlabel eq "after exclamation point" || $stationlabel eq "betweenbangs" ) {           
+               $stationPlotLabel = substr($line,$firstBang,$labelLength);
+               $stationPlotLabel =~ s/^\s+|\s+$//g ;
+            }
+            if ( $stationlabel eq "numbered" ) { 
+               $stationPlotLabel = sprintf("%d",$i + 1);
+            }
             if ( $station_type eq "NSTAE" ) {
                $num_elev_sta = $num_sta;
-               push(@elev_sta_names,substr($line,(index($line,"!"))+1));  
+               push(@elev_sta_names,$stationPlotLabel);
             }
             if ( $station_type eq "NSTAV" ) {
                $num_vel_sta = $num_sta;
-               push(@vel_sta_names,substr($line,(index($line,"!"))+1));  
+               push(@vel_sta_names,$stationPlotLabel);  
             }
             if ( $station_type eq "NSTAM" ) {
                $num_met_sta = $num_sta;
-               push(@met_sta_names,substr($line,(index($line,"!"))+1));  
+               push(@met_sta_names,$stationPlotLabel);  
             }
          }
       }

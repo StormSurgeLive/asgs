@@ -352,6 +352,9 @@ character(len=1024), intent(out) :: maxFileName
 character(len=1024) :: fileNameBase
 integer :: extIndex
 !
+! defaults
+fileNameBase = datafile
+!
 ! find and trim off the extension, if any
 extIndex = 0
 extIndex = index(datafile,'.nc')
@@ -377,9 +380,11 @@ select case(trim(adjustl(fileNameBase)))
       maxFileName = 'swan_TMM10_max.63'
    case("swan_TPS.63")
       maxFileName = 'swan_TPS_max.63'
+   case("fort.69")
+      maxFileName = 'maxwarnelev.63'
    case default
       write(6,'(a,a,a)') 'WARNING: File name ',trim(adjustl(datafile)),' was not recognized.'
-      stop
+      maxFileName = trim(adjustl(fileNameBase)) // '_maxfile.63'
 end select
 write(6,'(a,a,a)') 'INFO: The max file name is set to ',trim(adjustl(maxFileName)),'.'
 !----------------------------------------------------------------------
