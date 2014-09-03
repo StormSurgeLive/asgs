@@ -71,10 +71,6 @@ def main(argv):
       if i[4] != -99999.0:
          out.write(i[0] + ',' + i[1] + ',' + i[2] + ',' + str(i[3]) + ',' + str(i[4]) + ',' + str(i[5]) + '\n')
    out.close()
-   print(sys.platform)
-   print(2 ** 100)     # raise 2 to a power 
-   x = 'Spam!'
-   print(x * 8)        # string repetition
 
 if __name__ == "__main__":
    main(sys.argv[1:])

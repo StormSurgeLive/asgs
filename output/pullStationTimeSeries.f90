@@ -117,11 +117,18 @@ close(14)
 !
 ! open the text file for writing time series data
 open(unit=61,file=trim(outputfile),status='replace',action='write')
+defaultValue = -99999.
 !
 ! open the data file (netcdf or ascii)
 select case(fileFormat)
 case(ASCIIG)
    call openFileForRead(63,datafile)
+   !
+   ! read header lines and write them to time series file
+   read(63,'(a1024)') line
+   write(61,*) trim(adjustl(line))
+   read(63,*) numSnaps, numNodes, snapR, snapI, num_components
+   write(61,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') numSnaps, numNodes, snapR, snapI, num_components
    SS=1  ! jgf: initialize the dataset counter
    !
    ! jgf: loop until we run out of data
@@ -132,8 +139,8 @@ case(ASCIIG)
       read(line,*,ERR=907,END=907) SnapR, SnapI, NumNodesNonDefault, defaultValue
       goto 908  ! jgf: this file is sparse ascii
  907  NumNodesNonDefault = numNodes !jgf: this file is full ascii
-         defaultValue = -99999.
- 908  dataValues = defaultValue
+
+ 908  adcirc_data = defaultValue
       select case(num_components)
       case(1) ! scalar data
          do n=1,numNodesNonDefault

@@ -29,7 +29,7 @@ integer :: ss ! dataset counter
 ! initializations
 writeMaxTimes = .false.
 findMin = .false.
-dataFileFormat = 1
+dataFileFormat = ASCIIG
 !
 ! process command line options
 argcount = iargc() ! count up command line options
@@ -65,11 +65,14 @@ select case(dataFileFormat)
       write(6,'(a,i0,a)') 'INFO: There are ',ndset,' datasets in the file.'
       write(header1,'(a,1x,a,1x,a)') trim(rundes), trim(runid), trim(agrid)
    case(ASCIIG)
+      call openFileForRead(63,datafile)
       read(63,'(a80)') header1                ! 1st header line
       read(63,'(a80)') header2                ! 2nd header line
       ! can't trust the number of datasets listed in the header as being
       ! accurate; it will be incorrect after a hotstart
-      read(header2,*) ndset, np, tInterval, Interval, num_components
+      read(header2,*) ndset, numNodes, tInterval, Interval, num_components
+      write(*,'(a,i0,a)') 'INFO: There are ',numNodes,' in the associated mesh.'
+      np = numNodes
    case default
       write(6,'(a)') 'ERROR: The data file format option is not valid.'
 end select

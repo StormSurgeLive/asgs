@@ -82,3 +82,6 @@ generateXDMF : adcmesh.mod generateXDMF.f90
 #
 pullStationTimeSeries : asgsio.mod adcmesh.mod adcircdata.mod pullStationTimeSeries.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+#
+totalWaterDepthGradient : adcmesh.mod totalWaterDepthGradient.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
