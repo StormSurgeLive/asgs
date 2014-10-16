@@ -184,7 +184,7 @@ prep()
     fi
     # symbolically link nodal attributes
     if [ ! -e $ADVISDIR/$ENSTORM/fort.13 ]; then
-        if [[ ! -z $NAFILE ]]; then
+        if [[ $NAFILE != null ]]; then
            ln -s $INPUTDIR/$NAFILE $ADVISDIR/$ENSTORM/fort.13 2>> ${SYSLOG}
         fi
     fi
@@ -330,7 +330,7 @@ prep()
     if [[ $HAVEARCHIVE = no ]]; then
        logMessage "Creating an archive of preprocessed files and saving to ${INPUTDIR}/${PREPPED} to avoid having to run prepall again."
        FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18'
-       if [[ ! -z $NAFILE ]]; then
+       if [[ $NAFILE != null ]]; then
           FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18 PE*/fort.13'
        fi
        tar cvzf ${INPUTDIR}/${PREPPED} ${FILELIST} 2>> ${SYSLOG}
@@ -694,7 +694,7 @@ submitJob()
    #
    #  Load Sharing Facility (LSF); used on topsail at UNC
    "LSF")
-      bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/padcirc $CLOPTION >> ${SYSLOG}
+      bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/padcirc $CLOPTIONS >> ${SYSLOG}
       ;;
    #
    #  LoadLeveler (often used on IBM systems)
@@ -755,10 +755,10 @@ submitJob()
    "mpiexec")
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
       echo "[${DATETIME}] Starting ${JOBTYPE}.${ENSTORM} job in $PWD." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start
-      logMessage "Submitting job via $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${SYSLOG} 2>&1"
+      logMessage "Submitting job via $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
       # submit the parallel job in a subshell
       (
-         $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${ADVISDIR}/${ENSTORM}/adcirc.log 2>&1
+         $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${ADVISDIR}/${ENSTORM}/adcirc.log 2>&1
          ERROVALUE=$?
          RUNSUFFIX="finish"
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
@@ -880,99 +880,13 @@ ASGSADMIN=
 EXIT_NOT_OK=1
 EXIT_OK=0
 #
+let si=-1       # storm index for forecast ensemble; -1 indicates non-forecast
 # need to determine standard time format to be used for pasting log files
 STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 
 # create directories with default permissions of "775" and
 # files with the default permssion of "664"
 umask 002
-#
-# Initialize variables accessed from config.sh to reasonable values
-INSTANCENAME=1
-BACKGROUNDMET=on
-TIDEFAC=off
-TROPICALCYCLONE=off
-WAVES=off
-VARFLUX=off
-MINMAX=continuous
-REINITIALIZESWAN=no
-USERIVERFILEONLY=no
-STORMNAME=stormname
-RIVERSITE=ftp.nssl.noaa.gov
-RIVERDIR=/projects/ciflow/adcirc_info
-RIVERUSER=null
-RIVERDATAPROTOCOL=null
-ELEVSTATIONS=null
-VELSTATIONS=null
-METSTATIONS=null
-GRIDFILE=fort.14
-GRIDNAME=fort14
-OUTPUTOPTIONS=
-ARCHIVEBASE=/dev/null
-ARCHIVEDIR=null
-FORECASTCYCLE="00,06,12,18"
-TRIGGER="rss"
-LASTADVISORYNUM=0
-ADVISORY=0
-FORECASTLENGTH=84
-ALTNAMDIR=null
-HOTSTARTCOMP=fulldomain
-HINDCASTWALLTIME="10:00:00"
-ADCPREPWALLTIME="00:30:00"
-NOWCASTWALLTIME="02:00:00"
-FORECASTWALLTIME="05:00:00"
-TIMESTEPSIZE=1.0
-SWANDT=600
-UMASK=002
-GROUP=""
-DRY=1
-DEMO=
-STORM=0
-YEAR=null
-CSDATE=null
-HOTORCOLD=coldstart
-LASTSUBDIR=null
-FTPSITE=null
-FTPFCSTDIR=null
-FTPHCSTDIR=null
-ADCIRCDIR=null
-SCRATCHDIR=null
-MAILINGLIST=null
-ENV=null
-QUEUESYS=null
-QUEUENAME=null
-SERQUEUE=null
-QCHECKCMD=null
-NCPU=null
-JOBTYPE=null
-NUMWRITERS=0
-ACCOUNT=desktop
-SUBMITSTRING=null
-INTERSTRING=null
-RESULTSHOST=null
-RESULTSPATH=null
-RESULTSUSERNAME=null
-RESULTSPROMPT=null
-RESULTSPASSWORD=null
-NOTIFYUSER=null
-RUNDIR=null
-INPUTDIR=null
-PERL5LIB=
-HOTSTARTFORMAT=null
-STORMDIR=stormdir
-SSHKEY=null
-PPN=1
-VELOCITYMULTIPLIER=1.0
-HOTSWAN=off
-ONESHOT=no      # yes if ASGS is launched by cron
-NCPUCAPACITY=2  # total number of CPUs available to run jobs
-let si=-1       # storm index for forecast ensemble; -1 indicates non-forecast
-STATEFILE=null
-ENSTORM=hindcast
-CYCLETIMELIMIT="05:00:00"
-IMAGEMAGICKBINPATH=null
-SERQSCRIPT=null
-SERQSCRIPTGEN=null
 #
 # first - look for SCRIPTDIR
 while getopts "c:e:s:h" optname; do    #<- first getopts for SCRIPTDIR
@@ -983,7 +897,7 @@ while getopts "c:e:s:h" optname; do    #<- first getopts for SCRIPTDIR
           exit $EXIT_NOT_OK
        fi 
        ;;
-    e) ENV=${OPTARG}
+    e) HPCENV=${OPTARG}
        ;;
     s) STATEFILE=${OPTARG}
        ONESHOT=yes
@@ -993,23 +907,27 @@ while getopts "c:e:s:h" optname; do    #<- first getopts for SCRIPTDIR
   esac
 done
 
+
 # set the file and directory permissions, which are platform dependent
 umask $UMASK
 # read config file just to get the location of $SCRIPTDIR
 . ${CONFIG}
 # name asgs log file here
 SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG must be defined before logging.sh is run.
+# Initialize variables accessed from ASGS config parameters to reasonable values
+. ${SCRIPTDIR}/config_defaults.sh
+# Initialize model parameters to appropriate values
+. ${SCRIPTDIR}/model_defaults.sh
 # Bring in logging functions
 . ${SCRIPTDIR}/logging.sh
 # Bring in platform-specific configuration
 . ${SCRIPTDIR}/platforms.sh
 # dispatch environment (using the functions in platforms.sh)
-env_dispatch ${ENV}
+env_dispatch ${HPCENV}
 # Re-read the config file, so that the variables can take precedence over
 # the values in the platform-specific functions called by env_dispatch
 . ${CONFIG}
 RUNDIR=$SCRATCHDIR/asgs$$
-#SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log #nld moved to before logging function is called
 # if we are starting from cron, look for a state file
 if [[ $ONESHOT = yes ]]; then
    # if it is there, read it
@@ -1095,7 +1013,7 @@ if [[ $METSTATIONS && $METSTATIONS != null ]]; then
    checkFileExistence $INPUTDIR "ADCIRC meteorological stations file" $METSTATIONS
 fi
 # fort.13 (nodal attributes) file is optional
-if [[ ! -z $NAFILE ]]; then
+if [[ $NAFILE != null ]]; then
    checkFileExistence $INPUTDIR "ADCIRC nodal attributes (fort.13) file" $NAFILE
 fi
 if [[ $HOTORCOLD = hotstart ]]; then
@@ -1169,6 +1087,12 @@ if [[ $BACKGROUNDMET = on && $TROPICALCYCLONE = on ]]; then
    # not ready for this yet
    fatal "Background meteorology and tropical cyclone forcing are both turned on in ${CONFIG} but simultaneous use of these two forcing types is not yet supported in ASGS."
 fi
+NOFORCING=false
+# If there is no forcing from an external data source, set a flag; this
+# is most often used in running test cases for ADCIRC.
+if [[ $BACKGROUNDMET = off && $TIDEFAC = off && $TROPICALCYCLONE = off && $WAVES = off && $VARFLUX = off ]]; then
+   NOFORCING=true
+fi
 #
 # If we are coldstarting, perform a hindcast ... this is necessary
 # to ramp up forcing and allow transient signals to die away before
@@ -1193,19 +1117,27 @@ if [[ $START = coldstart ]]; then
    # initialize rivers ... therefore no met forcing.
    NWS=0
    OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
-   logMessage "Coldstarting Storm '$STORM' in '$YEAR'."
+   logMessage "Coldstarting."
    logMessage "Coldstart time is '$CSDATE'."
    logMessage "The initial hindcast duration is '$HINDCASTLENGTH' days."
    # prepare hindcast control (fort.15) file
-   CONTROLOPTIONS="--name $ENSTORM --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --cst $CSDATE --endtime $HINDCASTLENGTH --dt $TIMESTEPSIZE --nws $NWS --hsformat $HOTSTARTFORMAT --advisorynum 0 --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
+   CONTROLOPTIONS="--name $ENSTORM --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --dt $TIMESTEPSIZE --cst $CSDATE --hsformat $HOTSTARTFORMAT  --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
    CONTROLOPTIONS="$CONTROLOPTIONS --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
+   if [[ $NOFORCING = true ]]; then
+      CONTROLOPTIONS="$CONTROLOPTIONS --specifiedRunLength $HINDCASTLENGTH"
+   else
+      CONTROLOPTIONS="$CONTROLOPTIONS --endtime $HINDCASTLENGTH  --nws $NWS  --advisorynum 0" 
+   fi
+   if [[ $DEFAULTSFILE != null ]]; then
+      CONTROLOPTIONS="$CONTROLOPTIONS --defaultsfile $DEFAULTSFILE"
+   fi
    logMessage "Constructing control file with the following options: $CONTROLOPTIONS."
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
    # don't have a meterological forcing (fort.22) file in this case
    # preprocess
    logMessage "Starting $ENSTORM preprocessing."
-   echo "hostname : $HOSTNAME" >> $ADVISDIR/$ENSTORM/run.properties
+    echo "hostname : $HOSTNAME" >> $ADVISDIR/$ENSTORM/run.properties
    echo "instance : $INSTANCENAME" >> $ADVISDIR/$ENSTORM/run.properties
    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
@@ -1243,6 +1175,7 @@ else
 fi
 #
 # B E G I N   N O W C A S T / F O R E C A S T   L O O P
+#
 while [ true ]; do
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
    ENSTORM=nowcast
@@ -1346,12 +1279,30 @@ while [ true ]; do
    # send out an email alerting end users that a new cycle has been issued
    cycleStartTime=`date +%s`  # epoch seconds
    ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORM $YEAR $NOWCASTDIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
+   # if there is no forcing from an external data source, set control options
+   if [[ $NOFORCING = true ]]; then
+      logMessage "NOFORCING is $NOFORCING"
+            # pull the latest advisory number from the statefile
+      ADVISORY=99999
+      ADVISDIR=$RUNDIR/${ADVISORY}
+      NOWCASTDIR=$ADVISDIR/$ENSTORM
+      if [ ! -d $NOWCASTDIR ]; then
+          mkdir -p $NOWCASTDIR 2>> ${SYSLOG}
+      fi
+      CONTROLOPTIONS="--nws 0 --advisorynum $ADVISORY"
+      CONTROLOPTIONS="$CONTROLOPTIONS --specifiedRunLength $NOWCASTDAYS"
+      CONTROLOPTIONS="$CONTROLOPTIONS --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+      logMessage "CONTROLOPTIONS is $CONTROLOPTIONS"
+   fi
    # activate padcswan based on ASGS configuration
    if [[ $WAVES = on ]]; then
       CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
    fi
    CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
+   if [[ $DEFAULTSFILE != null ]]; then
+      CONTROLOPTIONS="$CONTROLOPTIONS --defaultsfile $DEFAULTSFILE"
+   fi   
    # generate fort.15 file
    logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
@@ -1552,11 +1503,17 @@ while [ true ]; do
             RUNFORECAST=no
          fi
       fi
+      # if there is no forcing from an external data source, set control options
+      if [[ $NOFORCING = true ]]; then
+         CONTROLOPTIONS="--nws 0 --advisorynum $ADVISORY"
+         CONTROLOPTIONS="${CONTROLOPTIONS} --specifiedRunLength $FORECASTDAYS"
+         CONTROLOPTIONS="${CONTROLOPTIONS} --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+      fi
       if [[ $WAVES = on ]]; then
          CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
       fi
       CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
-      CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
+      CONTROLOPTIONS="${CONTROLOPTIONS} --gridname $GRIDNAME" # for run.properties
       logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
       perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
       if [[ ! -d $STORMDIR ]]; then continue; fi
@@ -1623,8 +1580,8 @@ while [ true ]; do
    if [[ $RUNNOWCAST = yes ]]; then
       OLDADVISDIR=$ADVISDIR
    fi
-   if [[ $ONESHOT = yes ]]; then
+   if [[ $ONESHOT = yes || $NOFORCING = true ]]; then
       wait      # allow any background processes to complete
-      exit $OK  # exit because the ASGS will be started once again by cron
+      exit $OK  # exit because the ASGS will be started again later
    fi
 done

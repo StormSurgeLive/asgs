@@ -96,11 +96,11 @@ if (argcount.gt.0) then
          case("--datafile")
             i = i + 1
             call getarg(i, cmdlinearg)
-            write(6,*) "INFO: generateXDMF.f90:  Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
+            write(6,'(a)') "INFO: generateXDMF.f90:  Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
             datafile = trim(cmdlinearg)
          case("--use-cpp")
             useCPP = .true.
-            write(6,*) "INFO: generateXDMF.f90:  Processing ",trim(cmdlineopt),"."
+            write(6,'(a)') "INFO: generateXDMF.f90:  Processing ",trim(cmdlineopt),"."
          case default
       end select
    end do
@@ -122,7 +122,7 @@ if ( (ncformat.ne.nf90_format_netcdf4).and.(ncformat.ne.nf90_format_netcdf4_clas
    call check(nf90_close(nc_id))
    stop
 endif
-write(6,'(A)') "INFO: generateXDMF.f90:  Generating XDMF xml for this NetCDF file."
+write(6,'(a)') "INFO: generateXDMF.f90:  Generating XDMF xml for this NetCDF file."
 !
 ! form file name of XDMF xml file and open it
 xmf = trim(datafile)//".xmf"
@@ -194,7 +194,7 @@ call check(nf90_inq_varid(nc_id, 'time', NC_VarID_time))
 ! determine the type of data stored in the file
 call check(nf90_inquire(nc_id, ndim, nvar, natt, nc_dimid_time, ncformat))
 if ( (ncformat.eq.nf90_format_netcdf4).or.(ncformat.eq.nf90_format_netcdf4_classic) ) then
-   write(6,*) "INFO: generateXDMF.f90:  The data file uses netcdf4 formatting."
+   write(6,'(a)') "INFO: generateXDMF.f90:  The data file uses netcdf4 formatting."
 endif
 !
 ! determine the type of file that we have
@@ -220,7 +220,7 @@ do i=1,nvar
       varname(1) = "u-vel"
       varname(2) = "v-vel"
    case("vel_mag","wind_mag","radstress_mag","swan_wind_mag") 
-      write(6,*) "INFO: generateXDMF.f90:  The file contains vector magnitude data."
+      write(6,'(a)') "INFO: generateXDMF.f90:  The file contains vector magnitude data."
       varMagName = trim(thisVarName)
       useMag = .true.
    case("pressure")
@@ -339,18 +339,18 @@ end do
 !    
 ! bomb out if we did not recognize any of the variable names in the file
 if ( trim(varname(1)).eq."null" ) then
-   write(6,*) "INFO: generateXDMF.f90: Did not recognize any of the variables in the file."
-   write(6,*) "INFO: generateXDMF.f90: The xml file will only contain mesh-related information."
+   write(6,'(a)') "INFO: generateXDMF.f90: Did not recognize any of the variables in the file."
+   write(6,'(a)') "INFO: generateXDMF.f90: The xml file will only contain mesh-related information."
    ! finish off the xml so the user can at least look at the mesh
    write(10,'(A)') '      </Grid>'
    write(10,'(A)') '   </Domain>'
    write(10,'(A)') '</Xdmf>'
    close(10)
-   write(6,*) "INFO: generateXDMF.f90: Terminating after writing mesh-related into to xml file."
+   write(6,'(a)') "INFO: generateXDMF.f90: Terminating after writing mesh-related into to xml file."
    stop
 else
    ! log the guessed type of the file for the user
-   write(6,*) "INFO: generateXDMF.f90:  Preparing to write XDMF xml for "//trim(fileTypeDesc)//"."    
+   write(6,'(a)') "INFO: generateXDMF.f90:  Preparing to write XDMF xml for "//trim(fileTypeDesc)//"."    
 endif
 
 if ( (ndset.eq.1).or.(multisets.eqv..true.) ) then
