@@ -119,7 +119,7 @@ our $enstorm;    # ensemble name of the storm
 my $nhcName="STORMNAME"; # storm name given by the nhc
 my $tau=0; # forecast period
 my $dir=getcwd();
-my $nws=9;
+my $nws=0;
 my $advisorynum="0";
 our $stormDir = "null"; # directory where the fort.15 file will be written
 our $advisdir;  # the directory for this run
@@ -137,6 +137,7 @@ our $wtiminc;   # parameters related to met and wave timing
 our $rundesc;   # description of run, 1st line in fort.15
 our $ensembleid; # run id, 2nd line in fort.15
 our $waves = "off"; # set to "on" if adcirc is coupled with swan is being run
+our $specifiedRunLength; # time in days for run if there is no externally specified forcing
 my ($m2nf, $s2nf, $n2nf, $k2nf, $k1nf, $o1nf, $p1nf, $q1nf); # nodal factors
 my ($m2eqarg, $s2eqarg, $n2eqarg, $k2eqarg, $k1eqarg, $o1eqarg, $p1eqarg, $q1eqarg); # equilibrium arguments
 #
@@ -181,7 +182,8 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "netcdf4" => \$netcdf4,
            "sparse-output" => \$sparseoutput,
            "hsformat=s" => \$hsformat,
-           "hotswan=s" => \$hotswan
+           "hotswan=s" => \$hotswan,
+           "specifiedRunLength=s" => \$specifiedRunLength
            );
 #
 # parse out the pieces of the cold start date
@@ -235,15 +237,15 @@ stderrMessage("INFO","The fort.15 file will be written to the directory $stormDi
 if ( abs($nws) == 19 || abs($nws) == 319 ) {
    stderrMessage("DEBUG","Setting parameters appropriately for asymmetric vortex model.");
    &asymmetricParameters();
-}
-if ( abs($nws) == 12 || abs($nws) == 312 ) {
+} elsif ( abs($nws) == 12 || abs($nws) == 312 ) {
    &owiParameters();
-}
-if ( $enstorm eq "hindcast" ) {
+} elsif ( defined $specifiedRunLength ) {
+   stderrMessage("DEBUG","The duration of this $enstorm run is specially defined.");
+   &customParameters();
+} elsif ( $enstorm eq "hindcast" ) {
    stderrMessage("DEBUG","This is a hindcast.");
    &hindcastParameters();
 }
-
 #
 # we want a hotstart file if this is a nowcast or hindcast
 if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
@@ -749,6 +751,53 @@ sub hindcastParameters () {
     $wtiminc = "NO LINE HERE";
     stderrMessage("DEBUG","Finished setting hindcast parameters.");
 }
+#
+#--------------------------------------------------------------------------
+#   S U B    C U S T O M   P A R A M E T E R S
+#
+# Determines parameter values for the control file when running
+# ADCIRC without external forcing (e.g., for running ADCIRC tests). 
+#--------------------------------------------------------------------------
+sub customParameters () {
+    $rundesc = "cs:$csdate"."0000 cy: ASGS";
+    my $alreadyElapsedDays = 0.0;
+    if ( defined $hstime && $hstime != 0 ) {
+       $alreadyElapsedDays = $hstime / 86400.0; 
+    }       
+    $RNDAY = $specifiedRunLength + $alreadyElapsedDays;
+    $NHSINC = int(($RNDAY*86400.0)/$dt);
+    $nws = 0;
+    $ensembleid = "$enstorm $specifiedRunLength day run";
+       #
+   # determine the relationship between the start of the NAM data and the
+   # current time in the ADCIRC run
+   if ( defined $hstime && $hstime != 0 ) {
+      # now add the hotstart seconds
+      ($ny,$nm,$nd,$nh,$nmin,$ns) =
+         Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,0,0,0,0,0,$hstime);
+   } else {
+      # the hotstart time was not provided, or it was provided and is equal to 0
+      # therefore the current ADCIRC time is the cold start time, t=0
+      $ny = $cy;
+      $nm = $cm;
+      $nd = $cd;
+      $nh = $ch;
+      $nmin = 0;
+      $ns = 0;
+   }
+   ($ey,$em,$ed,$eh,$emin,$es) =
+      Date::Pcalc::Add_Delta_DHMS($ny,$nm,$nd,$nh,0,0,$specifiedRunLength,0,0,0);    
+    $wtiminc = "NO LINE HERE";
+   # create the runme file, if this is a nowcast that has an ending time
+   # that is later than the previous hotstart
+   if ( $enstorm eq "nowcast" && $specifiedRunLength != 0 ) {
+      open(RUNME,">$stormDir/runme") || die "ERROR: control_file_gen.pl: Failed to open runme file for writing in the directory $stormDir: $!.";
+      printf RUNME "$specifiedRunLength day nowcast\n";     
+      close(RUNME);
+   }   
+   stderrMessage("DEBUG","Finished setting specified run length.");
+}
+
 #
 #--------------------------------------------------------------------------
 #   S U B   O W I  P A R A M E T E R S

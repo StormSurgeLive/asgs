@@ -1,11 +1,12 @@
 #!/bin/bash
-#--------------------------------------------------------------------------
-# null_post.sh 
-#--------------------------------------------------------------------------
-# Does nothing.
-#--------------------------------------------------------------------------
-# 
-# Copyright(C) 2008, 2009, 2010 Jason Fleming
+#----------------------------------------------------------------
+#
+# model_defaults.sh: This script provides the default 
+# configuration parameters for the models being driven by the 
+# ASGS.
+#
+#----------------------------------------------------------------
+# Copyright(C) 2014 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -21,16 +22,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#----------------------------------------------------------------
 #
-#--------------------------------------------------------------------------
-CONFIG=$1
-ASGSADVISORYDIR=$2
-STORM=$3
-YEAR=$4
-ADVISORY=$5
-HOSTNAME=$6
-ENSTORM=$7
-COLDSTARTDATE=$8
-HSTIME=$9
-#
-# do nothing
+TIMESTEPSIZE=1.0
