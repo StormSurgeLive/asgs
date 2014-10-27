@@ -5,6 +5,7 @@
 #SBATCH -p %account%
 #SBATCH -n %ncpu% 
 #SBATCH --exclusive
+#SBATCH --reservation=ncfs
 
 cd %advisdir%/%enstorm%
 

@@ -157,8 +157,7 @@ prep()
     HOTSTARTFORMAT=${14}   # "binary" or "netcdf"
     MINMAX=${15}           # "continuous" or "reset"
     HOTSWAN=${16} # "yes" or "no" to reinitialize SWAN only
-    NAFILE=${17}  # full domain nodal attributes file, must be last in the
-                  # argument list, since it may be undefined
+    NAFILE=${17}  # full domain nodal attributes file
     TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
 #
     # set the name of the archive of preprocessed input files
@@ -184,9 +183,11 @@ prep()
     fi
     # symbolically link nodal attributes
     if [ ! -e $ADVISDIR/$ENSTORM/fort.13 ]; then
+      if [[ ! -z $NAFILE ]]; then # this is here due to historical blunder
         if [[ $NAFILE != null ]]; then
            ln -s $INPUTDIR/$NAFILE $ADVISDIR/$ENSTORM/fort.13 2>> ${SYSLOG}
         fi
+      fi
     fi
     if [[ $HAVEARCHIVE = yes ]]; then
         # copy in the files that have already been preprocessed
@@ -330,8 +331,10 @@ prep()
     if [[ $HAVEARCHIVE = no ]]; then
        logMessage "Creating an archive of preprocessed files and saving to ${INPUTDIR}/${PREPPED} to avoid having to run prepall again."
        FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18'
-       if [[ $NAFILE != null ]]; then
-          FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18 PE*/fort.13'
+       if [[ ! -z $NAFILE ]];; then # this is here due to historical blunder
+          if [[ $NAFILE != null ]]; then
+             FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18 PE*/fort.13'
+          fi
        fi
        tar cvzf ${INPUTDIR}/${PREPPED} ${FILELIST} 2>> ${SYSLOG}
        # check status of tar operation; if it failed, delete the file
@@ -883,7 +886,7 @@ EXIT_OK=0
 let si=-1       # storm index for forecast ensemble; -1 indicates non-forecast
 # need to determine standard time format to be used for pasting log files
 STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-
+#
 # create directories with default permissions of "775" and
 # files with the default permssion of "664"
 umask 002
@@ -906,8 +909,7 @@ while getopts "c:e:s:h" optname; do    #<- first getopts for SCRIPTDIR
        ;;
   esac
 done
-
-
+#
 # set the file and directory permissions, which are platform dependent
 umask $UMASK
 # read config file just to get the location of $SCRIPTDIR
@@ -1013,8 +1015,10 @@ if [[ $METSTATIONS && $METSTATIONS != null ]]; then
    checkFileExistence $INPUTDIR "ADCIRC meteorological stations file" $METSTATIONS
 fi
 # fort.13 (nodal attributes) file is optional
-if [[ $NAFILE != null ]]; then
-   checkFileExistence $INPUTDIR "ADCIRC nodal attributes (fort.13) file" $NAFILE
+if [[ ! -z $NAFILE ]]; then # this is here due to historical blunder
+   if [[ $NAFILE != null ]]; then
+      checkFileExistence $INPUTDIR "ADCIRC nodal attributes (fort.13) file" $NAFILE
+   fi
 fi
 if [[ $HOTORCOLD = hotstart ]]; then
    if [[ $HOTSTARTFORMAT = netcdf ]]; then
@@ -1212,9 +1216,15 @@ while [ true ]; do
    logMessage "Checking for new meteorological data every 60 seconds ..."
    # TROPICAL CYCLONE ONLY
    if [[ $TROPICALCYCLONE = on ]]; then
-      NWS=19
+      if [[ $VORTEXMODEL = ASYMMETRIC ]]; then
+         BASENWS=19
+      fi
+      if [[ $VORTEXMODEL = GAHM ]]; then
+         BASENWS=20
+      fi
+      NWS=$BASENWS
       if [[ $WAVES = on ]]; then
-         NWS=319
+         NWS=`expr $BASENWS + 300`
       fi
       # download wind data from ftp site every 60 seconds to see if
       # there is a new advisory
@@ -1242,11 +1252,11 @@ while [ true ]; do
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
       STORMNAME=`grep "storm name" run.properties | sed 's/storm name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}    
-      # create an NWS19 file from the existing NWS9 file
-      $ADCIRCDIR/aswip >> ${SYSLOG} 2>&1
-      if [ -e NWS_19_fort.22 ]; then
-         mv fort.22 fort.22.orig
-         cp NWS_19_fort.22 fort.22
+      # create an ASYMMETRIC or GAHM fort.22 file from the existing NWS9 fort.22 file
+      $ADCIRCDIR/aswip -n $BASENWS >> ${SYSLOG} 2>&1
+      if [ -e NWS_${BASENWS}_fort.22 ]; then
+         mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
+         cp NWS_${BASENWS}_fort.22 fort.22 >> ${SYSLOG} 2>&1
       fi
    fi
    # BACKGROUND METEOROLOGY
@@ -1436,9 +1446,15 @@ while [ true ]; do
       RUNFORECAST=yes
       # TROPICAL CYCLONE ONLY
       if [[ $TROPICALCYCLONE = on ]]; then
-         NWS=19
+         if [[ $VORTEXMODEL = ASYMMETRIC ]]; then
+            BASENWS=19
+         fi
+         if [[ $VORTEXMODEL = GAHM ]]; then
+            BASENWS=20
+         fi
+         NWS=$BASENWS
          if [[ $WAVES = on ]]; then
-            NWS=319
+            NWS=`expr $BASENWS + 300`
          fi
          METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $CSDATE --hotstartseconds $HSTIME --nws $NWS --name $ENSTORM"
          if [[ ${PERCENT} != default ]]; then
@@ -1453,7 +1469,7 @@ while [ true ]; do
          CONTROLOPTIONS="--cst $CSDATE --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile ${STORMDIR}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          logMessage "Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
          ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
-         if [[ $NWS = 19 || $NWS = 319 ]]; then
+         if [[ $BASENWS = 19 || $BASENWS = 20 ]]; then
             # create a new file that contains metadata and has the Rmax
             # in it already ... potentially with Rmax changes if desired
             ASWIPOPTIONS=""
@@ -1471,10 +1487,10 @@ while [ true ]; do
                echo "modified : y" >> run.properties 2>> ${SYSLOG}
             fi
             logMessage "Running aswip fort.22 preprocessor for $ENSTORM with the following options: $ASWIPOPTIONS."
-            $ADCIRCDIR/aswip $ASWIPOPTIONS >> ${SYSLOG} 2>&1
-            if [[ -e NWS_19_fort.22 ]]; then
+            $ADCIRCDIR/aswip -n $BASENWS $ASWIPOPTIONS >> ${SYSLOG} 2>&1
+            if [[ -e NWS_${BASENWS}_fort.22 ]]; then
                mv fort.22 fort.22.orig 2>> ${SYSLOG}
-               cp NWS_19_fort.22 fort.22 2>> ${SYSLOG}
+               cp NWS_${BASENWS}_fort.22 fort.22 2>> ${SYSLOG}
             fi
          fi
       fi
