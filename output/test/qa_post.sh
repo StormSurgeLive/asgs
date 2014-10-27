@@ -77,7 +77,17 @@ RELERR=1e-6     # set the relative error threshold for passing the test
 ABSERR=1e-6   # set the absolute error threshold for passing the test
 if [[ -e fort.63 || -e fort.63.nc ]]; then
    if [[ -e fort.63.nc ]]; then
+      # check for executable that extracts ascii data from netcdf
+      if [[ ! -e ${OUTPUTDIR}/netcdf2adcirc.x ]]; then
+         echo "ERROR: quarter annulus $ENSTORM ETA2 test FAILED." >> ${SYSLOG}
+         exit
+      fi
       ${OUTPUTDIR}/netcdf2adcirc.x --datafile fort.63.nc 2>> ${SYSLOG}
+   fi
+   # check for executable that compares the actual output with the expected
+   if [[ ! -e ${ADCIRCDIR}/adccmp ]]; then
+      echo "ERROR: quarter annulus $ENSTORM ETA2 test FAILED." >> ${SYSLOG}
+      exit
    fi
    ${ADCIRCDIR}/adccmp ${GOLDDIR} . ETA2 $RELERR $ABSERR > ETA2.results
    if [[ -e ETA2.results ]]; then

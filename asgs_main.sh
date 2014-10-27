@@ -331,7 +331,7 @@ prep()
     if [[ $HAVEARCHIVE = no ]]; then
        logMessage "Creating an archive of preprocessed files and saving to ${INPUTDIR}/${PREPPED} to avoid having to run prepall again."
        FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18'
-       if [[ ! -z $NAFILE ]];; then # this is here due to historical blunder
+       if [[ ! -z $NAFILE ]]; then # this is here due to historical blunder
           if [[ $NAFILE != null ]]; then
              FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18 PE*/fort.13'
           fi
