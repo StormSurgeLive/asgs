@@ -200,6 +200,7 @@ while (!$dl) {
             # stuff the lines of the forecast into a string variable; 
             # this mimics what happens if we download the RSS feed from
             # the web
+            $body = '';
             while (<FORECAST>) {
                $body .= $_;
             }
@@ -264,15 +265,15 @@ while (!$dl) {
          # TROPICAL STORM BERTHA FORECAST/ADVISORY NUMBER  22
          # NWS NATIONAL HURRICANE CENTER MIAMI FL       AL032014
          if ( $lines[$i] =~ /NWS NATIONAL HURRICANE CENTER MIAMI FL\s+AL(\d{2})(\d{4})/ ) {
-            if ($1 == $storm && $2 == $year ) {
+            if ($1 == $storm && $2 == $year && $lines[$i-1] =~ /FORECAST.ADVISORY/ ) {
                # we have found the entry containing info about the 
                # latest advisory for our storm
                $stormFound = 1;
                # get the advisory number from the previous line
-               $lines[$i-1] =~ / ([A-Z]+) FORECAST.ADVISORY NUMBER\s+(\d{1,2})/;
+               $lines[$i-1] =~ /([A-Z]+) FORECAST.ADVISORY NUMBER\s+(\d{1,2})/;
                $nhcName = $1;
                $advNum = sprintf("%02d",$2);
-               printf STDERR "INFO: get_atcf.pl Advisory '$advNum' for storm $nhcName was found in the index-at.xml file.\n";
+               printf STDERR "INFO: get_atcf.pl: Advisory '$advNum' for storm $nhcName was found in the index-at.xml file.\n";
                # compare the advisory number in the index file with the current
                # advisory number on the command line, if any
                if ( defined $adv ) {
