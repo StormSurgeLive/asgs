@@ -36,7 +36,7 @@ REINITIALIZESWAN=no         # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/xdmf2_test/work # ADCIRC executables 
+ADCIRCDIR=~/adcirc/GAHM_jie/work # ADCIRC executables 
 SCRIPTDIR=~/asgs/trunk  # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/qa # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
