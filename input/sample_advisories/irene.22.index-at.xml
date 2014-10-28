@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+<pubDate>Thu, 25 Aug 2011 20:51:15 GMT</pubDate>
+<title>National Hurricane Center (Atlantic)</title>
+<description>Active tropical cyclones in the Atlantic, Caribbean, and the Gulf of Mexico</description>
+<link>http://www.nhc.noaa.gov/</link>
+<copyright>none</copyright>
+<managingEditor>nhcwebmaster@noaa.gov (nhcwebmaster)</managingEditor>
+<language>en-us</language>
+<webMaster>nhcwebmaster@noaa.gov (nhcwebmaster)</webMaster>
+<image>
+<url>http://www.nhc.noaa.gov/gifs/xml_logo_nhc.gif</url>
+<link>http://www.nhc.noaa.gov/</link>
+<description>NOAA logo</description>
+<title>National Hurricane Center (Atlantic)</title>
+<width>95</width>
+<height>45</height>
+</image>
+<item>
+<title>Hurricane IRENE Public Advisory Number 21A</title>
+<description>Issued at 200 PM EDT THU AUG 25 2011</description>
+<pubDate>Thu, 25 Aug 2011 17:45:38 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCPAT4+shtml/251745.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCPAT4+shtml/251745.shtml</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane IRENE Forecast/Advisory Number 22</title>
+<description>Issued at 2100 UTC THU AUG 25 2011</description>
+<pubDate>Thu, 25 Aug 2011 20:50:34 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCMAT4+shtml/252050.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCMAT4+shtml/252050.shtml</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane IRENE Forecast Discussion Number 21</title>
+<description>Issued at 1100 AM EDT THU AUG 25 2011</description>
+<pubDate>Thu, 25 Aug 2011 14:55:49 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCDAT4+shtml/251455.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCDAT4+shtml/251455.shtml</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane IRENE Wind Speed Probabilities Number 21</title>
+<description>Issued at 1500 UTC THU AUG 25 2011                                            </description>
+<pubDate>Thu, 25 Aug 2011 14:54:55 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIAPWSAT4+shtml/251454.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIAPWSAT4+shtml/251454.shtml</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane IRENE Graphics</title>
+<description>
+<![CDATA[
+<a href="http://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152235.shtml?5-daynl">
+<img src="http://www.nhc.noaa.gov/storm_graphics/AT09/AL0911W5_NL_sm2.gif"
+alt="Hurricane IRENE 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Thu, 25 Aug 2011 17:48:10 GMT
+<br /><br /><a href="http://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152235.shtml?tswind120">
+<img src="http://www.nhc.noaa.gov/storm_graphics/AT09/AL0911_PROB34_F120_sm2.gif"
+alt="Hurricane IRENE 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Thu, 25 Aug 2011 20:50:29 GMT
+]]>
+</description>
+<pubDate>Thu, 25 Aug 2011 20:51:05 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152235.shtml?5-daynl</link>
+<guid>http://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152235.shtml?5-daynl</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane IRENE Probabilistic Storm Surge Graphics</title>
+<description>
+<![CDATA[
+<a href="http://www.nhc.noaa.gov/psurgegraphics_at4.shtml?gm">
+<img src="http://www.nhc.noaa.gov/storm_graphics/AT09/AL0911_psurge5_m1_sm.png"
+alt="Hurricane IRENE Probabilistic Storm Surge Graphics Image"
+width="500" height="400" /></a><br/>
+Probabilistic Storm Surge Graphics last updated Thu, 25 Aug 2011 15:22:35 GMT
+]]>
+</description>
+<pubDate>Thu, 25 Aug 2011 15:22:35 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/psurgegraphics_at4.shtml?gm</link>
+<guid>http://www.nhc.noaa.gov/psurgegraphics_at4.shtml?gm</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane Local Statement for Charleston, SC</title>
+<description>Issued at 322 PM EDT THU AUG 25 2011</description>
+<pubDate>Thu, 25 Aug 2011 19:22:59 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS82-KCHS.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS82-KCHS.shtml</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane Local Statement for Wilmington, NC</title>
+<description>Issued at 230 PM EDT THU AUG 25 2011</description>
+<pubDate>Thu, 25 Aug 2011 18:30:37 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS82-KILM.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS82-KILM.shtml</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane Local Statement for Melbourne, FL</title>
+<description>Issued at 212 PM EDT THU AUG 25 2011</description>
+<pubDate>Thu, 25 Aug 2011 18:12:17 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS82-KMLB.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS82-KMLB.shtml</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane Local Statement for Wakefield, VA</title>
+<description>Issued at 1237 PM EDT THU AUG 25 2011</description>
+<pubDate>Thu, 25 Aug 2011 16:37:12 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS81-KAKQ.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS81-KAKQ.shtml</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane Local Statement for Newport/Morehead City, NC</title>
+<description>Issued at 1218 PM EDT THU AUG 25 2011</description>
+<pubDate>Thu, 25 Aug 2011 16:18:13 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS82-KMHX.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS82-KMHX.shtml</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane Local Statement for Jacksonville, FL</title>
+<description>Issued at 1153 AM EDT THU AUG 25 2011</description>
+<pubDate>Thu, 25 Aug 2011 15:53:25 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS82-KJAX.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS82-KJAX.shtml</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane Local Statement for Miami, FL</title>
+<description>Issued at 1142 AM EDT THU AUG 25 2011</description>
+<pubDate>Thu, 25 Aug 2011 15:42:42 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS82-KMFL.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS82-KMFL.shtml</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane IRENE 5-Day Track, Uncertainty Cone, Warnings (.shp)</title>
+<description>GIS Data last updated Thu, 25 Aug 2011 17:47:02 GMT</description>
+<pubDate>Thu, 25 Aug 2011 17:47:02 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gis/forecast/archive/al092011_5day_latest.zip</link>
+<guid>http://www.nhc.noaa.gov/gis/forecast/archive/al092011_5day_latest.zip</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane IRENE Best Track Information (.shp)</title>
+<description>GIS Data last updated Thu, 25 Aug 2011 20:50:06 GMT</description>
+<pubDate>Thu, 25 Aug 2011 20:50:06 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gis/best_track/al092011_best_track_latest.zip</link>
+<guid>http://www.nhc.noaa.gov/gis/best_track/al092011_best_track_latest.zip</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane IRENE Best Track Information (.kmz)</title>
+<description>GIS Data last updated Thu, 25 Aug 2011 20:50:05 GMT</description>
+<pubDate>Thu, 25 Aug 2011 20:50:05 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gis/best_track/al092011_best_track.kmz</link>
+<guid>http://www.nhc.noaa.gov/gis/best_track/al092011_best_track.kmz</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane IRENE Forecast Information (.shp)</title>
+<description>GIS Data last updated Thu, 25 Aug 2011 20:50:07 GMT</description>
+<pubDate>Thu, 25 Aug 2011 20:50:07 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gis/forecast/archive/al092011_fcst_latest.zip</link>
+<guid>http://www.nhc.noaa.gov/gis/forecast/archive/al092011_fcst_latest.zip</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane IRENE Wind Speed Probabilities - 0.5 Degree Multiple Basins (.shp)</title>
+<description>GIS Data last updated Thu, 25 Aug 2011 15:12:17 GMT</description>
+<pubDate>Thu, 25 Aug 2011 15:12:17 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gis/forecast/archive/wsp_120hrhalfDeg_latest.zip</link>
+<guid>http://www.nhc.noaa.gov/gis/forecast/archive/wsp_120hrhalfDeg_latest.zip</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane IRENE Wind Speed Probabilities - 0.1 Degree Multiple Basins (.shp)</title>
+<description>GIS Data last updated Thu, 25 Aug 2011 15:12:14 GMT</description>
+<pubDate>Thu, 25 Aug 2011 15:12:14 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gis/forecast/archive/wsp_120hrtenthDeg_latest.zip</link>
+<guid>http://www.nhc.noaa.gov/gis/forecast/archive/wsp_120hrtenthDeg_latest.zip</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane IRENE Probabilistic Storm Surge Graphics (.shp)</title>
+<description>GIS Data last updated Thu, 25 Aug 2011 15:22:50 GMT</description>
+<pubDate>Thu, 25 Aug 2011 15:22:50 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gis/storm_surge/al092011_psurge5_latest.zip</link>
+<guid>http://www.nhc.noaa.gov/gis/storm_surge/al092011_psurge5_latest.zip</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Hurricane IRENE Probabilistic Storm Surge Graphics (.kmz)</title>
+<description>GIS Data last updated Thu, 25 Aug 2011 15:23:08 GMT</description>
+<pubDate>Thu, 25 Aug 2011 15:23:08 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gis/storm_surge/al092011_psurge5_latest.kmz</link>
+<guid>http://www.nhc.noaa.gov/gis/storm_surge/al092011_psurge5_latest.kmz</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Tropical Depression TEN Public Advisory Number 2</title>
+<description>Issued at 1100 AM EDT THU AUG 25 2011</description>
+<pubDate>Thu, 25 Aug 2011 14:41:38 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCPAT5+shtml/251441.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCPAT5+shtml/251441.shtml</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Tropical Depression TEN Forecast/Advisory Number 2</title>
+<description>Issued at 1500 UTC THU AUG 25 2011</description>
+<pubDate>Thu, 25 Aug 2011 14:40:52 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCMAT5+shtml/251440.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCMAT5+shtml/251440.shtml</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Tropical Depression TEN Forecast Discussion Number 2</title>
+<description>Issued at 1100 AM EDT THU AUG 25 2011</description>
+<pubDate>Thu, 25 Aug 2011 14:45:22 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCDAT5+shtml/251445.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCDAT5+shtml/251445.shtml</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Tropical Depression TEN Wind Speed Probabilities Number 2</title>
+<description>Issued at 1500 UTC THU AUG 25 2011                                            </description>
+<pubDate>Thu, 25 Aug 2011 14:41:32 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIAPWSAT5+shtml/251441.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIAPWSAT5+shtml/251441.shtml</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Tropical Depression TEN Graphics</title>
+<description>
+<![CDATA[
+<a href="http://www.nhc.noaa.gov/refresh/graphics_at5+shtml/144112.shtml?5-daynl">
+<img src="http://www.nhc.noaa.gov/storm_graphics/AT10/AL1011W5_NL_sm2.gif"
+alt="Tropical Depression TEN 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Thu, 25 Aug 2011 14:47:21 GMT
+<br /><br /><a href="http://www.nhc.noaa.gov/refresh/graphics_at5+shtml/144112.shtml?tswind120">
+<img src="http://www.nhc.noaa.gov/storm_graphics/AT10/AL1011_PROB34_F120_sm2.gif"
+alt="Tropical Depression TEN 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Thu, 25 Aug 2011 15:10:54 GMT
+]]>
+</description>
+<pubDate>Thu, 25 Aug 2011 15:15:01 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/refresh/graphics_at5+shtml/144112.shtml?5-daynl</link>
+<guid>http://www.nhc.noaa.gov/refresh/graphics_at5+shtml/144112.shtml?5-daynl</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Tropical Depression TEN 5-Day Track, Uncertainty Cone, Warnings (.shp)</title>
+<description>GIS Data last updated Thu, 25 Aug 2011 14:46:11 GMT</description>
+<pubDate>Thu, 25 Aug 2011 14:46:11 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gis/forecast/archive/al102011_5day_latest.zip</link>
+<guid>http://www.nhc.noaa.gov/gis/forecast/archive/al102011_5day_latest.zip</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Tropical Depression TEN Best Track Information (.shp)</title>
+<description>GIS Data last updated Thu, 25 Aug 2011 14:40:21 GMT</description>
+<pubDate>Thu, 25 Aug 2011 14:40:21 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gis/best_track/al102011_best_track_latest.zip</link>
+<guid>http://www.nhc.noaa.gov/gis/best_track/al102011_best_track_latest.zip</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Tropical Depression TEN Best Track Information (.kmz)</title>
+<description>GIS Data last updated Thu, 25 Aug 2011 14:40:21 GMT</description>
+<pubDate>Thu, 25 Aug 2011 14:40:21 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gis/best_track/al102011_best_track.kmz</link>
+<guid>http://www.nhc.noaa.gov/gis/best_track/al102011_best_track.kmz</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Tropical Depression TEN Forecast Information (.shp)</title>
+<description>GIS Data last updated Thu, 25 Aug 2011 14:40:21 GMT</description>
+<pubDate>Thu, 25 Aug 2011 14:40:21 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gis/forecast/archive/al102011_fcst_latest.zip</link>
+<guid>http://www.nhc.noaa.gov/gis/forecast/archive/al102011_fcst_latest.zip</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Tropical Depression TEN Wind Speed Probabilities - 0.5 Degree Multiple Basins (.shp)</title>
+<description>GIS Data last updated Thu, 25 Aug 2011 15:12:17 GMT</description>
+<pubDate>Thu, 25 Aug 2011 15:12:17 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gis/forecast/archive/wsp_120hrhalfDeg_latest.zip</link>
+<guid>http://www.nhc.noaa.gov/gis/forecast/archive/wsp_120hrhalfDeg_latest.zip</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Tropical Depression TEN Wind Speed Probabilities - 0.1 Degree Multiple Basins (.shp)</title>
+<description>GIS Data last updated Thu, 25 Aug 2011 15:12:14 GMT</description>
+<pubDate>Thu, 25 Aug 2011 15:12:14 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gis/forecast/archive/wsp_120hrtenthDeg_latest.zip</link>
+<guid>http://www.nhc.noaa.gov/gis/forecast/archive/wsp_120hrtenthDeg_latest.zip</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+<item>
+<title>Atlantic Tropical Weather Outlook</title>
+<description>
+<![CDATA[
+<br/>
+000<br/>
+ABNT20 KNHC 251747<br/>
+TWOAT <br/>
+<br/>
+TROPICAL WEATHER OUTLOOK<br/>
+NWS NATIONAL HURRICANE CENTER MIAMI FL<br/>
+200 PM EDT THU AUG 25 2011<br/>
+<br/>
+FOR THE NORTH ATLANTIC...CARIBBEAN SEA AND THE GULF OF MEXICO...<br/>
+<br/>
+THE NATIONAL HURRICANE CENTER IS ISSUING ADVISORIES ON HURRICANE<br/>
+IRENE...LOCATED NEAR ABACO ISLAND IN THE BAHAMAS...AND ON TROPICAL<br/>
+DEPRESSION TEN...LOCATED ABOUT 505 MILES WEST OF THE SOUTHERNMOST<br/>
+CAPE VERDE ISLANDS.  <br/>
+<br/>
+SATELLITE IMAGES INDICATE THAT THE LOW PRESSURE AREA LOCATED ABOUT <br/>
+1150 MILES EAST-SOUTHEAST OF BERMUDA HAS WEAKENED.  DEVELOPMENT...IF<br/>
+ANY...OF THIS SYSTEM IS EXPECTED TO BE SLOW TO OCCUR DUE TO STRONG<br/>
+UPPER-LEVEL WINDS. THIS SYSTEM HAS A LOW CHANCE...10 PERCENT...OF<br/>
+BECOMING A TROPICAL CYCLONE DURING THE NEXT 48 HOURS AS IT MOVES<br/>
+TOWARD THE WEST-NORTHWEST AT ABOUT 15 MPH.<br/>
+<br/>
+ELSEWHERE...TROPICAL CYCLONE FORMATION IS NOT EXPECTED DURING THE<br/>
+NEXT 48 HOURS.<br/>
+<br/>
+PUBLIC ADVISORIES ON TROPICAL DEPRESSION TEN ARE ISSUED UNDER WMO<br/>
+HEADER WTNT35 KNHC AND UNDER AWIPS HEADER MIATCPAT5.<br/>
+FORECAST/ADVISORIES ON TROPICAL DEPRESSION TEN ARE ISSUED UNDER WMO<br/>
+HEADER WTNT25 KNHC AND UNDER AWIPS HEADER MIATCMAT5.<br/>
+<br/>
+$$<br/>
+FORECASTER BLAKE<br/>
+<br/>
+]]>
+</description>
+<pubDate>Thu, 25 Aug 2011 17:47:22 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gtwo_atl.shtml</link>
+<guid>http://www.nhc.noaa.gov/gtwo_atl.shtml?201108251747</guid>
+<author>nhcwebmaster@noaa.gov (nhcwebmaster)</author>
+</item>
+</channel>
+</rss>
