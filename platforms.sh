@@ -96,21 +96,6 @@ init_hatteras()
   PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=16
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/projects/ncfs/apps/croatan/netcdf/lib
-}
-init_hatteras14()
-{ #<- can replace the following with a custom script
-  HOSTNAME=hatteras.renci.org
-  QUEUESYS=SLURM
-  QCHECKCMD=sacct
-  ACCOUNT=ncfs
-  SUBMITSTRING=sbatch
-  SCRATCHDIR=/projects/ncfs/data
-  SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=hatteras.template.slurm
-  PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
-  QSCRIPTGEN=hatteras.slurm.pl
-  PPN=16
 }
 init_kittyhawk()
 { #<- can replace the following with a custom script
