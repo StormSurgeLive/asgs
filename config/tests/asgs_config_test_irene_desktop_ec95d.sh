@@ -55,11 +55,11 @@ VORTEXMODEL=GAHM   # specify which vortex model to use when TROPICALCYCLONE=on
 
 TIMESTEPSIZE=30.0           # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
-NCPU=2                      # number of compute CPUs for all simulations
-HINDCASTWALLTIME="01:00:00" # hindcast wall clock time
+NCPU=16                      # number of compute CPUs for all simulations
+HINDCASTWALLTIME="08:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="00:05:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
-FORECASTWALLTIME="01:00:00" # forecast wall clock time
+NOWCASTWALLTIME="08:00:00"  # longest nowcast wall clock time
+FORECASTWALLTIME="08:00:00" # forecast wall clock time
 NCPUCAPACITY=480
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=null
