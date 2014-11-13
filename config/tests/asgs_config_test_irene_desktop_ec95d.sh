@@ -47,7 +47,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=off  # NAM download/forcing
 TIDEFAC=on         # tide factor recalc
 TROPICALCYCLONE=on # tropical cyclone forcing
-WAVES=on           # wave forcing
+WAVES=off          # wave forcing
 VARFLUX=off        # variable river flux forcing
 VORTEXMODEL=GAHM   # specify which vortex model to use when TROPICALCYCLONE=on
 
@@ -172,18 +172,26 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=3 # number of storms in the ensemble
 case $si in
 -1)
    # do nothing ... this is not a forecast
    ;;
 0)
    # use the GAHM for the forecast
+   ENSTORM=gahm
    VORTEXMODEL=GAHM
    ;;
 1)
    # use the asymmetric model for the forecast
+   ENSTORM=asym
    VORTEXMODEL=ASYMMETRIC
+   ;;
+2)
+   # turn on wave forcing
+   ENSTORM=asymwaves
+   VORTEXMODEL=ASYMMETRIC
+   WAVES=on
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
