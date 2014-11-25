@@ -34,13 +34,18 @@ LASTSUBDIR=null
 HINDCASTLENGTH=2.0         # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no         # used to bounce the wave solution
 
-# Source file paths
+# ADCIRC(+SWAN) configuration (only used if ADCIRCDIR=auto)
 
-ADCIRCDIR=~/adcirc/GAHM_jie/work # ADCIRC executables 
-SCRIPTDIR=~/asgs/trunk  # ASGS scripts/executables  
-INPUTDIR=${SCRIPTDIR}/input/meshes/qa # dir containing grid and other input files 
-OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
-PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
+ADCIRCDIR=auto              # ADCIRC executables; "auto" to automatically compile 
+DEBUG=null                  # "full" or "null"
+SWAN=disable                # "enable" or "disable"
+NETCDF=disable              # "enable" or "disable"
+NETCDF4=disable             # "enable" or "disable" 
+NETCDF4_COMPRESSION=disable # "enable" or "disable"
+XDMF=disable                # "enable" or "disable"
+SOURCEURL=https://adcirc.renci.org/svn/adcirc/branches/GAHM_jie
+AUTOUPDATE=off              # "on" or "off"
+EXEBASEPATH=~/adcirc/asgs   # main directory for ASGS executables
 
 # Physical forcing from external data sources
 
@@ -110,6 +115,7 @@ RIVERDATAPROTOCOL=scp
 
 # Input files and templates
 
+INPUTDIR=${SCRIPTDIR}/input/meshes/qa # dir containing grid and other input files 
 GETINPUTSCRIPT=null
 GRIDFILE=fort.14
 GRIDNAME=fort14
@@ -141,8 +147,8 @@ FORT7172="--fort7172freq 3600.0"
 FORT7374="--fort7374freq 3600.0"
 #SPARSE="--sparse-output"
 SPARSE=""
-NETCDF4="--netcdf4"
-OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+NETCDFVERSION="--netcdf4"
+OUTPUTOPTIONS="${SPARSE} ${NETCDFVERSION} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
 # fulldomain or subdomain hotstart files
 HOTSTARTCOMP=fulldomain
 # binary or netcdf hotstart files
@@ -189,10 +195,15 @@ RMAX=default
 PERCENT=default
 ENSEMBLESIZE=3 # number of storms in the ensemble
 case $si in
+-2)
+   # this is the hindcast
+   ;;
 -1)
-   # do nothing ... this is not a forecast
+   # this is the nowcast
    ;;
 0)
+   # this (and subsequent ensemble members are the forecasts
+   #
    # ascii output files; ascii hotstart files; no writers
    ENSTORM=nowriters
    ;;
