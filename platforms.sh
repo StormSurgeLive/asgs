@@ -266,7 +266,7 @@ init_desktop()
   SUBMITSTRING="mpiexec -n"
   SCRATCHDIR=/srv/asgs
   SSHKEY=id_rsa_jason-desktop
-  ADCOPTIONS="compiler=gfortran MACHINENAME=jason-desktop"
+  ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
   SWANMACROSINC=macros.inc.gfortran
 }
 init_topsail()

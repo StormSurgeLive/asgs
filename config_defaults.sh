@@ -23,6 +23,8 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
+OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
+PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 INSTANCENAME=1
 BACKGROUNDMET=on
 TIDEFAC=off
@@ -94,7 +96,6 @@ RESULTSPASSWORD=null
 NOTIFYUSER=null
 RUNDIR=null
 INPUTDIR=null
-PERL5LIB=
 HOTSTARTFORMAT=null
 DEFAULTSFILE=null
 STORMDIR=stormdir

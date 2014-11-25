@@ -25,3 +25,14 @@
 #----------------------------------------------------------------
 #
 TIMESTEPSIZE=1.0
+DEBUG=null                  # "full" or "null"
+SWAN=disable                # "enable" or "disable"
+NETCDF=disable              # "enable" or "disable"
+NETCDF4=disable             # "enable" or "disable" 
+NETCDF4_COMPRESSION=disable # "enable" or "disable"
+XDMF=disable                # "enable" or "disable"
+SOURCEURL=https://adcirc.renci.org/svn/adcirc/branches/v50release
+AUTOUPDATE=off              # "on" or "off"
+EXEBASEPATH=~/adcirc/asgs   # main directory for ASGS executables
+SWANMACROSINC=nullmacros    # env_dispatch will pick the right file
+ADCOPTIONS='compiler=intel' # env_dispatch will pick the right options

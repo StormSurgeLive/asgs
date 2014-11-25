@@ -69,7 +69,7 @@ checkDirExistence()
   if [[ -z $DIR ]]; then
       fatal "The $TYPE was not specified in the configuration file."
   fi
-  if [ -e $DIR ]; then
+  if [[ -e $DIR ]]; then
      logMessage "The $TYPE '$DIR' was found."
   else
      fatal "The $TYPE '$DIR' does not exist."
@@ -139,22 +139,35 @@ function float_cond()
 }
 #
 # Retrieve and build ADCIRC(+SWAN) executables.
-function get_adcirc()
-   DEBUG=$1
-   SWAN=$2
-   NETCDF=$3
-   NETCDF4=$4
-   NETCDF4_COMPRESSION=$5
-   XDMF=$6
-   SOURCEURL=$7
-   AUTOUPDATE=$8
-   EXEBASEPATH=$9
-   SCRIPTDIR=${10}
-   HPCENV=${11}
-   SYSLOG=${12}
+get_adcirc()
+{
+   ADCIRCDIR=$1
+   DEBUG=$2
+   SWAN=$3
+   NETCDF=$4
+   NETCDF4=$5
+   NETCDF4_COMPRESSION=$6
+   XDMF=$7
+   SOURCEURL=$8
+   AUTOUPDATE=$9
+   EXEBASEPATH=${10}
+   SCRIPTDIR=${11}
+   SWANMACROSINC=${12}
+   ADCOPTIONS="${13}"
+   SYSLOG=${14}
    #
-   # example of this script being called:
-   # get_adcirc full enable enable enable enable null https://adcirc.renci.org/svn/adcirc/branches/GAHM_jie off ~/asgs/temp ~/asgs/trunk desktop ~/asgs/temp/syslog.log
+   # If the path to the ADCIRC executables is hard coded, just verify
+   # their existence and return.
+   if [[ $ADCIRCDIR != auto ]]; then
+      for executable in adcirc padcirc padcswan adcprep hstime aswip; do
+         if [[ ! -e $ADCIRCDIR/$executable ]]; then
+            warn "Could not find the executable file $ADCIRCDIR/${executable}."
+            return 1
+         fi
+      done
+      logMessage "All ADCIRC(+SWAN) executable files were found successfully."
+      return $ADCIRCDIR
+   fi
    #
    # Set the name of the properties file that describes the executables that
    # we're about to generate.
@@ -225,7 +238,8 @@ function get_adcirc()
    echo "AUTOUPDATE : $AUTOUPDATE" >> $PROPERTIES
    echo "EXEBASEPATH : $EXEBASEPATH" >> $PROPERTIES
    echo "SCRIPTDIR : $SCRIPTDIR" >> $PROPERTIES
-   echo "HPCENV : $HPCENV" >> $PROPERTIES
+   echo "SWANMACROSINC : $SWANMACROSINC" >> $PROPERTIES
+   echo "ADCOPTIONS : $ADCOPTIONS" >> $PROPERTIES
    echo "SYSLOG : $SYSLOG" >> $PROPERTIES
    #
    # Set the correct SWAN compiler flags for this HPC platform.
@@ -241,13 +255,14 @@ function get_adcirc()
       if [[ $? == 0 ]]; then
          logMessage "Successfully built ${executable}."
       else
-         warn "Failed to build ${executable}."
+         warn "Failed to build $EXEPATH/work/${executable}."
          return 1
       fi
    done
    # All executables were built successfully; return the ADCIRCDIR back to the 
    # calling script.
    return $EXEPATH/work
+}
 #
 #
 # subroutine to run adcprep, using a pre-prepped archive of fort.13,
@@ -995,16 +1010,19 @@ ASGSADMIN=
 EXIT_NOT_OK=1
 EXIT_OK=0
 #
-let si=-1       # storm index for forecast ensemble; -1 indicates non-forecast
+# get the value of SCRIPTDIR
+SCRIPTDIR=${0%%/asgs_main.sh}  # ASGS scripts/executables        
+si=-2  # storm index for forecast ensemble; -1 indicates nowcast, -2 forecast
 # need to determine standard time format to be used for pasting log files
 STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+# name asgs log file here
+SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG must be defined before logging.sh is run.
 #
 # create directories with default permissions of "775" and
 # files with the default permssion of "664"
 umask 002
 #
-# first - look for SCRIPTDIR
-while getopts "c:e:s:h" optname; do    #<- first getopts for SCRIPTDIR
+while getopts "c:e:s:h" optname; do    
   case $optname in
     c) CONFIG=${OPTARG}
        if [[ ! -e $CONFIG ]]; then
@@ -1022,25 +1040,23 @@ while getopts "c:e:s:h" optname; do    #<- first getopts for SCRIPTDIR
   esac
 done
 #
-# set the file and directory permissions, which are platform dependent
-umask $UMASK
-# read config file just to get the location of $SCRIPTDIR
-. ${CONFIG}
-# name asgs log file here
-SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG must be defined before logging.sh is run.
 # Initialize variables accessed from ASGS config parameters to reasonable values
 . ${SCRIPTDIR}/config_defaults.sh
 # Initialize model parameters to appropriate values
 . ${SCRIPTDIR}/model_defaults.sh
 # Bring in logging functions
 . ${SCRIPTDIR}/logging.sh
-# Bring in platform-specific configuration
+# Bring in platform-specific configuration functions
 . ${SCRIPTDIR}/platforms.sh
-# dispatch environment (using the functions in platforms.sh)
+# HPC environment defaults (using the functions in platforms.sh)
 env_dispatch ${HPCENV}
-# Re-read the config file, so that the variables can take precedence over
+# Read the config file, so that the variables can take precedence over
 # the values in the platform-specific functions called by env_dispatch
 . ${CONFIG}
+#
+# set the file and directory permissions, which are platform dependent
+umask $UMASK
+#
 RUNDIR=$SCRATCHDIR/asgs$$
 # if we are starting from cron, look for a state file
 if [[ $ONESHOT = yes ]]; then
@@ -1073,7 +1089,6 @@ else
       echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
    fi
 fi
-
 consoleMessage "Please see ASGS log file for detailed information regarding system progress."
 consoleMessage "ASGS Start Up MSG: [SYSLOG] The log file is ${SYSLOG}"
 logMessage "ASGS Start Up MSG: [PROCID] $$"
@@ -1087,24 +1102,16 @@ logMessage "ASGS state file is ${STATEFILE}."
 trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; . $CONFIG' USR1
 #
 # check existence of all required files and directories
-checkDirExistence $ADCIRCDIR "ADCIRC executables directory"
 checkDirExistence $INPUTDIR "directory for input files"
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
 checkDirExistence $PERL5LIB "directory for the Date::Pcalc perl module"
 #
-checkFileExistence $ADCIRCDIR "ADCIRC preprocessing executable" adcprep
-checkFileExistence $ADCIRCDIR "ADCIRC parallel executable" padcirc
-checkFileExistence $ADCIRCDIR "hotstart time extraction executable" hstime
-if [[ $TROPICALCYCLONE = on ]]; then
-   checkFileExistence $ADCIRCDIR "asymmetric metadata generation executable" aswip
-fi
 if [[ $BACKGROUNDMET = on ]]; then
    checkFileExistence $SCRIPTDIR "NAM output reprojection executable (from lambert to geographic)" awip_lambert_interp.x
    checkFileExistence $SCRIPTDIR "GRIB2 manipulation and extraction executable" wgrib2
 fi
 if [[ $WAVES = on ]]; then
    JOBTYPE=padcswan
-   checkFileExistence $ADCIRCDIR "ADCIRC+SWAN parallel executable" padcswan
    checkFileExistence $INPUTDIR "SWAN initialization template file " swaninit.template
    checkFileExistence $INPUTDIR "SWAN control template file" $SWANTEMPLATE
 else
@@ -1167,7 +1174,6 @@ checkFileExistence $OUTPUTDIR "data archival script" $ARCHIVE
 #
 checkDirExistence ${PERL5LIB}/Date "subdirectory for the Pcalc.pm perl module"
 checkFileExistence ${PERL5LIB}/Date "perl module for date calculations" Pcalc.pm
-
 #
 # initialize the directory where this instance of the ASGS will run and
 # keep all its files
@@ -1222,8 +1228,16 @@ if [[ $START = coldstart ]]; then
    logMessage "Starting hindcast."
    HOTSWAN=off
    ENSTORM=hindcast
+   si=-2      # represents a hindcast 
    # pick up config info that is specific to the hindcast
    . ${CONFIG}
+   # Obtain and/or verify ADCIRC(+SWAN) executables
+   get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG 
+   ADCIRCDIR=$?
+   if [[ $ADCIRCDIR = 1 ]]; then
+      warn "Failed to find or build ADCIRC(+SWAN) executables for hindcast."
+      exit ${EXIT_NOT_OK} # can't really come back from this
+   fi
    ADVISDIR=$RUNDIR/initialize
    mkdir -p $ADVISDIR 2>> ${SYSLOG}
    STORMDIR=$ADVISDIR/$ENSTORM
@@ -1295,8 +1309,22 @@ fi
 while [ true ]; do
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
    ENSTORM=nowcast
-   let si=-1
+   si=-1
+   # Initialize variables accessed from ASGS config parameters to reasonable values
+   . ${SCRIPTDIR}/config_defaults.sh
+   # Initialize model parameters to appropriate values
+   . ${SCRIPTDIR}/model_defaults.sh
+   # HPC environment defaults (using the functions in platforms.sh)
+   env_dispatch ${HPCENV}   
+   # grab the config specified by the operator
    . ${CONFIG}
+   # Obtain and/or verify ADCIRC(+SWAN) executables
+   get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG
+   ADCIRCDIR=$?
+   if [[ $ADCIRCDIR = 1 ]]; then
+      warn "Failed to find or build ADCIRC(+SWAN) executables for hindcast."
+      exit ${EXIT_NOT_OK} # can't really come back from this
+   fi      
    FROMDIR=null
    LUN=null       # logical unit number; either 67 or 68
    if [[ -d $OLDADVISDIR/nowcast ]]; then
@@ -1504,8 +1532,21 @@ while [ true ]; do
       # source config file to pick up any configuration changes, or any
       # config that is specific to forecasts, and set up the current 
       # ensemble member
-      ENSTORM=forecast  # to pick up forecast-related config from config file
+      ENSTORM=forecast  
+      # Initialize variables accessed from ASGS config parameters to reasonable values
+      . ${SCRIPTDIR}/config_defaults.sh
+      # Initialize model parameters to appropriate values
+      . ${SCRIPTDIR}/model_defaults.sh
+      # grab the config specified by the operator
       . ${CONFIG}
+      # Obtain and/or verify ADCIRC(+SWAN) executables
+      get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG
+      ADCIRCDIR=$?
+      if [[ $ADCIRCDIR = 1 ]]; then
+         warn "Failed to find or build ADCIRC(+SWAN) executables for $ENSTORM."
+         si=$[$si + 1];
+         continue # just go on to the next ensemble member
+      fi      
       subDirs=`find ${ADVISDIR} -maxdepth 1 -type d -print`
       if [[ ! -z subDirs ]]; then  # see if we have any ensemble member directories 
          # continuously loop to see if conditions are right to submit the next job
