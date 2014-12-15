@@ -34,9 +34,15 @@ LASTSUBDIR=null
 HINDCASTLENGTH=2.0         # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no         # used to bounce the wave solution
 
-# ADCIRC(+SWAN) configuration (only used if ADCIRCDIR=auto)
+# ADCIRC(+SWAN) configuration 
 
-ADCIRCDIR=auto              # ADCIRC executables; "auto" to automatically compile 
+ADCIRCBUILD=dynamic         # "static" for Operator-supplied executables;
+                            # "dynamic" to let ASGS build ADCIRC as specified 
+ADCIRCDIR=auto              # path to ADCIRC executables; ignored if 
+                            # ADCIRCBUILD=dynamic
+
+# ADCIRC Build specification (only used if ADCIRCBUILD=dynamic)
+
 DEBUG=null                  # "full" or "null"
 SWAN=disable                # "enable" or "disable"
 NETCDF=disable              # "enable" or "disable"

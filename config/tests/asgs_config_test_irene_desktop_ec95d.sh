@@ -34,13 +34,24 @@ LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
-# Source file paths
+# ADCIRC(+SWAN) configuration 
 
-ADCIRCDIR=~/adcirc/GAHM_jie/work # ADCIRC executables
-SCRIPTDIR=~/asgs/trunk        # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/ec95d   # grid and other input files
-OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
-PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
+ADCIRCBUILD=dynamic         # "static" for Operator-supplied executables;
+                            # "dynamic" to let ASGS build ADCIRC as specified 
+ADCIRCDIR=auto              # path to ADCIRC executables; ignored if 
+                            # ADCIRCBUILD=dynamic
+
+# ADCIRC Build specification (only used if ADCIRCBUILD=dynamic)
+
+DEBUG=null                  # "full" or "null"
+SWAN=enable                 # "enable" or "disable"
+NETCDF=enable               # "enable" or "disable"
+NETCDF4=enable              # "enable" or "disable" 
+NETCDF4_COMPRESSION=enable  # "enable" or "disable"
+XDMF=disable                # "enable" or "disable"
+SOURCEURL=https://adcirc.renci.org/svn/adcirc/branches/GAHM_jie
+AUTOUPDATE=off              # "on" or "off"
+EXEBASEPATH=~/adcirc/asgs   # main directory for ASGS executables
 
 # Physical forcing
 
@@ -55,12 +66,12 @@ VORTEXMODEL=GAHM   # specify which vortex model to use when TROPICALCYCLONE=on
 
 TIMESTEPSIZE=30.0           # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
-NCPU=16                      # number of compute CPUs for all simulations
+NCPU=3                      # number of compute CPUs for all simulations
 HINDCASTWALLTIME="08:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="00:05:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="08:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="08:00:00" # forecast wall clock time
-NCPUCAPACITY=480
+NCPUCAPACITY=3
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=null
 SERQUEUE=null
@@ -95,6 +106,7 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
+INPUTDIR=${SCRIPTDIR}/input/meshes/ec95d   # grid and other input files
 GRIDFILE=ec_95d.grd                     # mesh (fort.14) file
 GRIDNAME=ec95d
 CONTROLTEMPLATE=ec_95_fort.15_template  # fort.15 template
@@ -112,26 +124,26 @@ HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
 # Output files
 
 # water surface elevation station output
-FORT61="--fort61freq 900.0" 
+FORT61="--fort61freq 900.0 --fort61netcdf" 
 # water current velocity station output
-FORT62="--fort62freq 900.0"                    
+FORT62="--fort62freq 900.0 --fort62netcdf"                    
 # full domain water surface elevation output
-FORT63="--fort63freq 3600.0" 
+FORT63="--fort63freq 3600.0 --fort63netcdf" 
 # full domain water current velocity output
-FORT64="--fort64freq 3600.0" 
+FORT64="--fort64freq 3600.0 --fort64netcdf" 
 # met station output
-FORT7172="--fort7172freq 3600.0"           
+FORT7172="--fort7172freq 3600.0 --fort7172netcdf"           
 # full domain meteorological output
-FORT7374="--fort7374freq 3600.0"           
+FORT7374="--fort7374freq 3600.0 --fort7374netcdf"           
 #SPARSE="--sparse-output"
 SPARSE=""
 #NETCDF4="--netcdf4"
-NETCDF4=""
-OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+NETCDFVERSION="--netcdf4"
+OUTPUTOPTIONS="${SPARSE} ${NETCDFVERSION} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
 # fulldomain or subdomain hotstart files
 HOTSTARTCOMP=fulldomain                    
 # binary or netcdf hotstart files
-HOTSTARTFORMAT=binary                      
+HOTSTARTFORMAT=netcdf                      
 # "continuous" or "reset" for maxele.63 etc files
 MINMAX=continuous                               
 
@@ -174,10 +186,15 @@ RMAX=default
 PERCENT=default
 ENSEMBLESIZE=3 # number of storms in the ensemble
 case $si in
+-2)
+   # this is the hindcast
+   ;;
 -1)
-   # do nothing ... this is not a forecast
+   # this is the nowcast
    ;;
 0)
+   # this (and subsequent ensemble members are the forecasts
+   #
    # use the GAHM for the forecast
    ENSTORM=gahm
    VORTEXMODEL=GAHM

@@ -138,10 +138,11 @@ function float_cond()
     return $stat
 }
 #
-# Retrieve and build ADCIRC(+SWAN) executables.
+# Retrieve and build ADCIRC(+SWAN) executables. This function will set
+# the value of ADCIRCDIR if ADCIRCBUILD = "dynamic".
 get_adcirc()
 {
-   ADCIRCDIR=$1
+   ADCIRCDIR=$1 # this value may be changed in this function
    DEBUG=$2
    SWAN=$3
    NETCDF=$4
@@ -158,15 +159,16 @@ get_adcirc()
    #
    # If the path to the ADCIRC executables is hard coded, just verify
    # their existence and return.
-   if [[ $ADCIRCDIR != auto ]]; then
+   if [[ $ADCIRCBUILD = static ]]; then
       for executable in adcirc padcirc padcswan adcprep hstime aswip; do
          if [[ ! -e $ADCIRCDIR/$executable ]]; then
             warn "Could not find the executable file $ADCIRCDIR/${executable}."
             return 1
          fi
       done
+      # leave the value of ADCIRCDIR as-is
       logMessage "All ADCIRC(+SWAN) executable files were found successfully."
-      return $ADCIRCDIR
+      return 0
    fi
    #
    # Set the name of the properties file that describes the executables that
@@ -202,7 +204,8 @@ get_adcirc()
    # update and recompile them, then we're done.
    if [[ $EXEFOUND = t && $AUTOUPDATE = off ]]; then
       logMessage "Existing ADCIRC(+SWAN) executables were successfully found."
-      return $EXEPATH/work  # this is ADCIRCDIR
+      ADCIRCDIR=$EXEPATH/work # <-- setting the value of ADCIRCDIR
+      return 0  
    fi
    #
    logMessage "ADCIRC(+SWAN) executables were not found. They will be (re)built."
@@ -259,9 +262,8 @@ get_adcirc()
          return 1
       fi
    done
-   # All executables were built successfully; return the ADCIRCDIR back to the 
-   # calling script.
-   return $EXEPATH/work
+   # All executables were built successfully; set the value of ADCIRCDIR.
+   ADCIRCDIR=$EXEPATH/work
 }
 #
 #
@@ -529,7 +531,13 @@ prepFile()
        allMessage "adcprep finished."
        ;;
     *)
+       logMessage "Submitting job with $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1"
        $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
+       # check to see if adcprep completed successfully
+       if [[ $? != 0 ]]; then
+         warn "The adcprep ${JOBTYPE} failed. See the file $ADVISDIR/$ENSTORM/adcprep.log for details."
+         echo "The adcprep ${JOBTYPE} failed. See the file $ADVISDIR/$ENSTORM/adcprep.log for details." >> jobFailed
+       fi
        ;;
     esac
 }
@@ -1018,6 +1026,16 @@ STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 # name asgs log file here
 SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG must be defined before logging.sh is run.
 #
+# Initialize dynamic state variables
+LASTADVISORYNUM=0
+LASTSUBDIR=null
+ADVISORY=0
+CSDATE=null
+RUNDIR=null
+STATEFILE=null
+ENSTORM=hindcast
+HPCENV=null
+#
 # create directories with default permissions of "775" and
 # files with the default permssion of "664"
 umask 002
@@ -1233,8 +1251,7 @@ if [[ $START = coldstart ]]; then
    . ${CONFIG}
    # Obtain and/or verify ADCIRC(+SWAN) executables
    get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG 
-   ADCIRCDIR=$?
-   if [[ $ADCIRCDIR = 1 ]]; then
+   if [[ $? = 1 ]]; then
       warn "Failed to find or build ADCIRC(+SWAN) executables for hindcast."
       exit ${EXIT_NOT_OK} # can't really come back from this
    fi
@@ -1320,8 +1337,7 @@ while [ true ]; do
    . ${CONFIG}
    # Obtain and/or verify ADCIRC(+SWAN) executables
    get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG
-   ADCIRCDIR=$?
-   if [[ $ADCIRCDIR = 1 ]]; then
+   if [[ $? = 1 ]]; then
       warn "Failed to find or build ADCIRC(+SWAN) executables for hindcast."
       exit ${EXIT_NOT_OK} # can't really come back from this
    fi      
@@ -1512,6 +1528,7 @@ while [ true ]; do
    fi
    # write the ASGS state file
    LASTSUBDIR=`echo $NOWCASTDIR | sed 's/\/nowcast//g ; s/\/hindcast//g'`
+   logMessage "RUNDIR is $RUNDIR STATEFILE is $STATEFILE SYSLOG is $SYSLOG" #jgfdebug
    echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
    echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
@@ -1537,12 +1554,13 @@ while [ true ]; do
       . ${SCRIPTDIR}/config_defaults.sh
       # Initialize model parameters to appropriate values
       . ${SCRIPTDIR}/model_defaults.sh
+      # HPC environment defaults (using the functions in platforms.sh)
+      env_dispatch ${HPCENV}
       # grab the config specified by the operator
       . ${CONFIG}
       # Obtain and/or verify ADCIRC(+SWAN) executables
       get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG
-      ADCIRCDIR=$?
-      if [[ $ADCIRCDIR = 1 ]]; then
+      if [[ $? = 1 ]]; then
          warn "Failed to find or build ADCIRC(+SWAN) executables for $ENSTORM."
          si=$[$si + 1];
          continue # just go on to the next ensemble member
@@ -1724,7 +1742,7 @@ while [ true ]; do
                # only attempt post processing if this ensemble member ended successfully
                if [[ -d $STORMDIR ]]; then
                   logMessage "The $ENSTORM job ended successfully. Starting postprocessing."
-                  ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
+                  ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY $SCRIPTDIR >> ${SYSLOG} 2>&1
                   # notify analysts that new results are available
                   ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1  
                fi
