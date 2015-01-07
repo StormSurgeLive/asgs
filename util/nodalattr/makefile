@@ -31,6 +31,15 @@ ifeq ($(compiler),gfortran)
    endif
 endif
 #
+# specify compiler=intel on the make command line
+ifeq ($(compiler),intel)
+   FC := ifort
+   FFLAGS := -fpp
+   ifeq ($(DEBUG),full)
+      FFLAGS := -g -O0 -fpp -traceback -debug -check all 
+   endif
+endif
+#
 OUTPUTDIR := ../../output
 INCLUDES := -I. -I$(OUTPUTDIR)
 #
@@ -38,10 +47,17 @@ INCLUDES := -I. -I$(OUTPUTDIR)
 # use NETCDF=enable on the make command line
 ifeq ($(NETCDF),enable)
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
-   NETCDFPATH  := /usr
+   LDFLAGS     := -lnetcdff
+   ifeq ($(MACHINENAME),jason-desktop)
+      NETCDFPATH  := /usr
+   endif
+   ifeq ($(MACHINENAME),hatteras)
+      NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
+   endif
+   FFLAGS      := $(FFLAGS) -DASGSNETCDF
+   LDFLAGS     := -lnetcdff
    INCLUDES    := -I. -I$(NETCDFPATH)/include
    LIBS        := -L$(NETCDFPATH)/lib
-   LDFLAGS     := -lnetcdff
 endif
 ifeq ($(NETCDF4),enable)
    FFLAGS      := $(FFLAGS) -DHAVE_NETCDF4
@@ -51,8 +67,8 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := $(OUTPUTDIR)/adcmesh.o $(OUTPUTDIR)/asgsio.o
-MODS := $(OUTPUTDIR)/adcmesh.mod $(OUTPUTDIR)/asgsio.mod
+OBJ := adcmesh.o asgsio.o
+MODS := adcmesh.mod asgsio.mod
 #
 # targets
 all : tau0_gen
@@ -63,8 +79,8 @@ clean :
 tau0_gen : $(MODS) tau0_gen.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-$(OUTPUTDIR)/adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 $(OUTPUTDIR)/asgsio.mod
+adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcmesh.f90 $(LDFLAGS)
 #
-$(OUTPUTDIR)/asgsio.mod : $(OUTPUTDIR)/asgsio.f90 
+asgsio.mod : $(OUTPUTDIR)/asgsio.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/asgsio.f90 $(LDFLAGS)

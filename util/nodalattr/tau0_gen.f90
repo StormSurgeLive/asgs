@@ -1,6 +1,3 @@
-! example of compiling with gfortran with optimization turned on
-! gfortran -O3 -ffree-line-length-none -o tau0_gen.x -I/home/jason/asgs/trunk/output -I/usr/include  tau0_gen.f90  -lnetcdff
-!
 program tau0_gen
 use adcmesh
 implicit none
