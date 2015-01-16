@@ -21,6 +21,8 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #------------------------------------------------------------------------
 #
+# example invokation:
+# bash ~/asgs/trunk/output/test/kalpana_post.sh ~/asgs/config/asgs_config_arthur_swan_hatteras14_nc9.99_ncgahm_kalpanatest.sh  /srv/asgs/asgs3053/12 01 2014 12 hatteras nhcConsensus 2014042900 5680800.00000000 nc_inundation_v9.99.grd ~/asgs/trunk/output ~/asgs/log/kalpana_test.log ~/.ssh/id_rsa ~/asgs/trunk
 CONFIG=$1
 ADVISDIR=$2
 STORM=$3
@@ -65,14 +67,34 @@ echo "enstorm : $ENSTORM" >> run.properties 2>> $SYSLOG
 if [[ $TROPICALCYCLONE = on ]]; then
    STORMNAME=`grep "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//g' | tail -n 1` 2>> ${SYSLOG}
    # make the storm name lower case
-   STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
+   STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'` 2>> ${SYSLOG}
 fi
 #
 # Format/construct the name of the storm as Kalpana expects to receive it.
 KALPANANAME=asgs.${STORMNAMELC}.${ADVISORY}.${ENSTORM}.${GRIDNAME}.${INSTANCE}
 #
 # Call the script to generate the input file for Kalpana. 
-perl ${OUTPUTDIR}/input.pl --template ${OUTPUTDIR}/input.template --name $KALPANANAME --filechoice 2 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxele
-perl ${OUTUTDIR}/input.pl --template ${OUTPUTDIR}/input.template --name $KALPANANAME --filechoice 2 --shape B --vchoice X --domain N > input-shp.maxele
+perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 2 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxele 2>> ${SYSLOG}
+perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 2 --shape B --vchoice X --domain N > input-shp.maxele 2>> ${SYSLOG}
+#
+# Link in the palette file(s) that Kalpana expects to find in the local directory.
+ln -s ${OUTPUTDIR}/water-level.pal ${STORMDIR} 2>> ${SYSLOG}
+#
+# Link in the logo bar that Kalpana expects to find in the local directory
+# for the top of the Google Earth visualization. 
+ln -s ${OUTPUTDIR}/kalpana_logo.png ${STORMDIR}/logo.png 2>> ${SYSLOG}
+#
+# Call Kalpana to generate the output product(s).
+python ${OUTPUTDIR}/kalpana.py < input-kml.maxele 2>> ${SYSLOG}
+python ${OUTPUTDIR}/kalpana.py < input-shp.maxele 2>> ${SYSLOG}
+#
+# Zip kml, colorbar, and logo into distributable kmz file. 
+zip Maximum-Water-Levels.kmz Maximum-Water-Levels.kml Colorbar-water-levels.png logo.png 2>> ${SYSLOG}
+#
+# Zip GIS files together for distribution.
+zip -r Maximum-Water-Levels-gis.zip water-level 2>> ${SYSLOG}
+
+
+
 
 
