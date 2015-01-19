@@ -32,7 +32,7 @@ SYSLOG=${12}
 SSHKEY=${13}
 #
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
-cd ${STORMDIR}
+cd ${STORMDIR} 2>> ${SYSLOG}
 # get the forecast ensemble member number 
 ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 #
@@ -67,21 +67,93 @@ echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
 #   ${OUTPUTDIR}/generateXDMF.x --datafile $file 2>> $SYSLOG
 #done
 #
-# create Google Earth images of water surface elevation and significant
-# wave height
-#${OUTPUTDIR}/asgsCreateKMZs.sh -c ${OUTPUTDIR}/setupPostProcessGraphics.sh > graphics.log 2>&1
+#--------------------------------------------------------------------------
+#             K A L P A N A    K M Z   A N D   G I S 
+#--------------------------------------------------------------------------
+# Create Google Earth images and shapefiles of water surface elevation 
+# and significant wave height using Kalpana.
+#--------------------------------------------------------------------------
 #
-# copy the Google Earth images to a directory where they can be 
-# published via opendap
-#OPENDAPDIR=`cat opendappath.log`;
-#NCFS_CURRENT_DIR=/projects/ncfs/opendap/data/NCFS_CURRENT
-#cp graphics/*.kmz ${OPENDAPDIR} >> graphics.log 2>&1 
-#rm ${NCFS_CURRENT_DIR}/*.kmz >> graphics.log 2>&1
-#cp graphics/*.kmz ${NCFS_CURRENT_DIR} >> graphics.log 2>&1
+# First, load the GDAL system module, since it is used by the fiona python
+# module in Kalpana.
+module load gdal/1.11.1_gcc
+#
+# Now enter the python environment created for Kalpana using virtualenv.
+source /projects/ncfs/apps/kalpana/env/bin/activate
+#
+# Grab the name of the storm from the run.properties file if this is 
+# a tropical cyclone; otherwise set the storm name to NAM.
+STORMNAMELC=nam
+if [[ $TROPICALCYCLONE = on ]]; then
+   STORMNAME=`grep "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//g' | tail -n 1` 2>> ${SYSLOG}
+   # make the storm name lower case
+   STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'` 2>> ${SYSLOG}
+fi
+#
+# Format/construct the name of the storm as Kalpana expects to receive it.
+KALPANANAME=asgs.${STORMNAMELC}.${ADVISORY}.${ENSTORM}.${GRIDNAME}.${INSTANCE}
+#
+# Link in the palette file(s) that Kalpana expects to find in the 
+# local directory.
+ln -s ${OUTPUTDIR}/water-level.pal ${STORMDIR} 2>> ${SYSLOG}
+ln -s ${OUTPUTDIR}/wavht.pal ${STORMDIR} 2>> ${SYSLOG}
+#
+# Link in the logo bar that Kalpana expects to find in the local directory
+# for the top of the Google Earth visualization. 
+ln -s ${OUTPUTDIR}/kalpana_logo.png ${STORMDIR}/logo.png 2>> ${SYSLOG}
+#
+# Call the script to generate the input files for Kalpana. Then call
+# Kalpana to generate the product, then package up the result.
+if [[ -e maxele.63.nc ]]; then
+   # maxele kmz
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 2 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxele 2>> ${SYSLOG}
+   python ${OUTPUTDIR}/kalpana.py < input-kml.maxele 2>> ${SYSLOG}
+   zip Maximum-Water-Levels.kmz Maximum-Water-Levels.kml Colorbar-water-levels.png logo.png 2>> ${SYSLOG}
+   rm Maximum-Water-Levels.kml 2>> ${SYSLOG}
+   # maxele shapefile
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 2 --shape B --vchoice X --domain N > input-shp.maxele 2>> ${SYSLOG}
+   python ${OUTPUTDIR}/kalpana.py < input-shp.maxele 2>> ${SYSLOG}
+   zip -r Maximum-Water-Levels-gis.zip water-level 2>> ${SYSLOG}
+   rm -rf water-level 2>> ${SYSLOG}
+fi
+#
+# Maximum significant wave height
+if [[ -e swan_HS_max.63.nc ]]; then
+   # swan hs max kmz
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 4 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxhs 2>> ${SYSLOG}
+   python ${OUTPUTDIR}/kalpana.py < input-kml.maxhs 2>> ${SYSLOG}
+   zip Maximum-Wave-Heights.kmz Maximum-Wave-Heights.kml Colorbar-wave-heights.png logo.png 2>> ${SYSLOG}
+   rm Maximum-Wave-Heights.kml 2>> ${SYSLOG}
+   # swan hs max shapefile
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 4 --shape B --vchoice X --domain N > input-shp.maxhs 2>> ${SYSLOG}
+   python ${OUTPUTDIR}/kalpana.py < input-shp.maxhs 2>> ${SYSLOG}
+   zip -r Maximum-Wave-Heights-gis.zip wave-height 2>> ${SYSLOG}
+   rm -rf wave-height 2>> ${SYSLOG}
+fi
+#
+# Maximum wave periods
+if [[ -e swan_TPS_max.63.nc ]]; then
+   # swan tps max kmz
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 8 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxTPS 2>> ${SYSLOG}
+   python ${OUTPUTDIR}/kalpana.py < input-kml.maxTPS 2>> ${SYSLOG}
+   zip Maximum-Wave-Periods.kmz Maximum-Wave-Periods.kml Colorbar-wave-periods.png logo.png 2>> ${SYSLOG}
+   rm Maximum-Wave-Periods.kml 2>> ${SYSLOG}
+   # maxele shapefile
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 8 --shape B --vchoice X --domain N > input-shp.maxTPS 2>> ${SYSLOG}
+   python ${OUTPUTDIR}/kalpana.py < input-shp.maxTPS 2>> ${SYSLOG}
+   zip -r Maximum-Wave-Periods-gis.zip wave-period 2>> ${SYSLOG}
+   rm -rf wave-period 2>> ${SYSLOG}
+fi
+#
+# Unload the GDAL module since we no longer need it.
+module unload gdal/1.11.1_gcc
+
+#--------------------------------------------------------------------------
+#          O P E N D A P   P U B L I C A T I O N
+#--------------------------------------------------------------------------
 #
 # construct the opendap directory path where the results will be posted
 #
-
 STORMNAMEPATH=null
 DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
 CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
@@ -103,8 +175,6 @@ OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
 mkdir -p $OPENDAPDIR 2>> ${SYSLOG}
 # make symbolic links from the opendap dir to the important files for the run
 cd $OPENDAPDIR 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/fort.14 .  2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/fort.15 . 2>> ${SYSLOG}
 ln -s ${ADVISDIR}/${ENSTORM}/fort.*.nc . 2>> ${SYSLOG}
 ln -s ${ADVISDIR}/${ENSTORM}/swan*.nc . 2>> ${SYSLOG}
 ln -s ${ADVISDIR}/${ENSTORM}/max*.nc . 2>> ${SYSLOG}
@@ -112,15 +182,30 @@ ln -s ${ADVISDIR}/${ENSTORM}/min*.nc . 2>> ${SYSLOG}
 ln -s ${ADVISDIR}/${ENSTORM}/run.properties . 2>> ${SYSLOG}
 #ln -s ${ADVISDIR}/${ENSTORM}/*.xmf . 2>> ${SYSLOG}
 #ln -s ${ADVISDIR}/${ENSTORM}/*.kmz . 2>> ${SYSLOG}
+#
+# Link to input files to document how the run was performed.
+ln -s ${ADVISDIR}/${ENSTORM}/fort.14 .  2>> ${SYSLOG}
+ln -s ${ADVISDIR}/${ENSTORM}/fort.15 . 2>> ${SYSLOG}
 for file in fort.13 fort.22 fort.26 fort.221 fort.222 ; do 
    if [ -e ${ADVISDIR}/${ENSTORM}/$file ]; then
       ln -s ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
    fi
 done
+#
+# Link to the tropical cyclone forecast/advisory and tc best track
+# file, if available. 
 for file in al*.fst bal*.dat ; do 
    if [ -e ${ADVISDIR}/$file ]; then
       ln -s ${ADVISDIR}/$file . 2>> ${SYSLOG}
    fi
+done
+#
+# Link to the shapefile zip and the kmz files if present.
+for file in `ls ${ADVISDIR}/${ENSTORM}/*.zip 2>> ${SYSLOG}`; do 
+   ln -s $file . 2>> ${SYSLOG}
+done
+for file in `ls ${ADVISDIR}/${ENSTORM}/*.kmz 2>> ${SYSLOG}`; do 
+   ln -s $file . 2>> ${SYSLOG}
 done
 #
 # Copy the latest run.properties file to a consistent location in opendap
