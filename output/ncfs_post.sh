@@ -91,7 +91,7 @@ if [[ $TROPICALCYCLONE = on ]]; then
 fi
 #
 # Format/construct the name of the storm as Kalpana expects to receive it.
-KALPANANAME=asgs.${STORMNAMELC}.${ADVISORY}.${ENSTORM}.${GRIDNAME}.${INSTANCE}
+KALPANANAME=asgs.${STORMNAMELC}.${ADVISORY}.${ENSTORM}.${GRIDNAME}.${INSTANCENAME}
 #
 # Link in the palette file(s) that Kalpana expects to find in the 
 # local directory.
@@ -136,8 +136,8 @@ if [[ -e swan_TPS_max.63.nc ]]; then
    # swan tps max kmz
    perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 8 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxTPS 2>> ${SYSLOG}
    python ${OUTPUTDIR}/kalpana.py < input-kml.maxTPS 2>> ${SYSLOG}
-   zip Maximum-Wave-Periods.kmz Maximum-Wave-Periods.kml Colorbar-wave-periods.png logo.png 2>> ${SYSLOG}
-   rm Maximum-Wave-Periods.kml 2>> ${SYSLOG}
+   zip Maximum-Wave-Period.kmz Maximum-Wave-Period.kml Colorbar-wave-periods.png logo.png 2>> ${SYSLOG}
+   rm Maximum-Wave-Period.kml 2>> ${SYSLOG}
    # maxele shapefile
    perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 8 --shape B --vchoice X --domain N > input-shp.maxTPS 2>> ${SYSLOG}
    python ${OUTPUTDIR}/kalpana.py < input-shp.maxTPS 2>> ${SYSLOG}
