@@ -96,11 +96,11 @@ if (argcount.gt.0) then
          case("--datafile")
             i = i + 1
             call getarg(i, cmdlinearg)
-            write(6,'(a)') "INFO: generateXDMF.f90:  Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
+            write(6,'(a,a,a,a,a)') "INFO: generateXDMF.f90:  Processing '",trim(cmdlineopt)," ",trim(cmdlinearg),"'."
             datafile = trim(cmdlinearg)
          case("--use-cpp")
             useCPP = .true.
-            write(6,'(a)') "INFO: generateXDMF.f90:  Processing ",trim(cmdlineopt),"."
+            write(6,'(a,a,a)') "INFO: generateXDMF.f90:  Processing ",trim(cmdlineopt),"."
          case default
       end select
    end do

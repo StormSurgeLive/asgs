@@ -54,7 +54,7 @@ OBJ := adcmesh.o asgsio.o adcircdata.o
 MODS := adcmesh.mod asgsio.mod adcircdata.mod
 #
 # targets
-all : adcirc2netcdf netcdf2adcirc makeMax
+all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries totalWaterDepthGradient
 #
 clean :
 	rm -f *.o *.mod *.x
@@ -77,8 +77,8 @@ adcircdata.mod : adcircdata.f90 adcmesh.mod asgsio.mod
 makeMax : asgsio.mod adcmesh.mod adcircdata.mod ../util/makeMax.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o ../util/$@.x ../util/$@.f90 $(OBJ) $(LDFLAGS)
 #
-generateXDMF : adcmesh.mod generateXDMF.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+generateXDMF : adcmesh.mod asgsio.mod generateXDMF.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o $(LDFLAGS)
 #
 pullStationTimeSeries : asgsio.mod adcmesh.mod adcircdata.mod pullStationTimeSeries.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
