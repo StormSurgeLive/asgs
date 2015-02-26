@@ -54,6 +54,18 @@ warn()
   echo ${MSG}  # send to console
 }
 #
+# log an error message, notify Operator 
+error()
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+  MSG="[${DATETIME}] ERROR: $@"
+  echo ${MSG} >> ${SYSLOG}
+  echo ${MSG}  # send to console
+  # email the operator
+  if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
+     echo $MSG | mail -s "[ASGS] Attn: Error for $INSTANCENAME" "${ASGSADMIN}"
+  fi 
+}
+#
 # log an error message, execution halts
 fatal()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
