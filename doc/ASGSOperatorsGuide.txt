@@ -1,7 +1,7 @@
 The ASGS Operators Guide
 ========================
 Jason Fleming <jason.fleming@seahorsecoastal.com>
-v1.0, June 2012, Seahorse Coastal Consulting:
+v2.0, June 2014, Seahorse Coastal Consulting:
 
 image::http://www.seahorsecoastal.com/figures/SCC_logo.png["Seahorse Coastal Consulting",align="center",link="http://www.seahorsecoastal.com", width=400]
 
@@ -577,6 +577,8 @@ values, to provide a degree of dynamic configurability.
  #SERQUEUE=batch             # default queue name (for serial jobs)
  QUEUENAME=armycore          # dedicated queue name on this machine
  SERQUEUE=armycore           # dedicated queue name for serial jobs
+ NCPUCAPACITY=360            # total CPUs available to this ASGS instance
+ CYCLETIMELIMIT=05:00:00     # deadline for submitting forecast ensemble 
  #
  # the number of processors per node must be specified in the
  # queue script for this platform; the number of processors per 
@@ -639,6 +641,26 @@ NUMWRITERS::
     number of dedicated writers is set here. When submitting a compute job,
     the ASGS will request a number of processors equal to 'NCPU+NUMWRITERS'.
     If dedicated writers are not to be used, set this value to +0+. 
+NCPUCAPACITY::
+    The total number of CPUs available to this instance of the ASGS is
+    specified in the NCPUCAPACITY parameter. If this number is greater
+    than NCPU, the ASGS will be able to submit multiple forecast
+    ensemble members for simultaneous execution. If this number is the
+    same as NCPU, only one compute job will be submitted at a time.
+CYCLETIMELIMIT::
+    The CYCLETIMELIMIT gives the ASGS a deadline to submit all its forecast
+    ensemble member jobs (in hours:minutes:seconds after the current 
+    nowcast/forecast cycle was started. This comes into play if there
+    are so many compute jobs or they are executing so slowly that the 
+    next forecast cycle is about to start while the ASGS still has
+    jobs to submit from the previous cycle. For example, if the 
+    forecast ensemble contains 10 members, and only 5 of them have 
+    been submitted to the queue when the CYCLETIMELIMIT (e.g., 5 hours)
+    has passed, the ASGS will refrain from submitting any more. Instead,
+    it will allow the jobs it has already submitted to complete and 
+    post process while it starts looking for data to start the next 
+    forecast cycle. 
+
 
 Wall Clock Time Estimates
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1000,7 +1022,7 @@ to use these example files, use the following configuration settings:
  ELEVSTATIONS=corps_elev_stations.txt    # or substitute your own stations file
  VELSTATIONS=corps_vel_stations.txt
  METSTATIONS=corps_vel_stations.txt
- NAFILE=                                 # no nodal attributes for ec95d
+ NAFILE=null                             # no nodal attributes for ec95d
  SWANTEMPLATE=fort.26.ec95.template      # only used if WAVES=on
  RIVERINIT=null                          # this mesh has no rivers ...
  RIVERFLUX=null
@@ -1008,68 +1030,7 @@ to use these example files, use the following configuration settings:
  PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
  HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
  
-Storm Ensemble
-~~~~~~~~~~~~~~
 
-Once a nowcast run is complete, the ASGS is capable of running more 
-than one type of forecast. If background meteorology is used, the forecast
-ensemble can only consist of one member: namforecast. However, if tropical 
-cyclone forcing is used, the ensemble can have one or more members, with
-each member expressing a different perturbation from the base storm.
-
- ENSEMBLESIZE=1 # number of storms in the ensemble
- STORMLIST[0]=8 # namforecast  
- NAME[0]="nowcast"
- NAME[1]="nhcConsensus"
- NAME[2]="higherMaxWindSpeed"
- NAME[3]="slowerOverlandSpeed"
- NAME[4]="veerRight"
- NAME[5]="veerLeft"
- NAME[6]="largerRmax"
- NAME[7]="smallerRmax"
- NAME[8]="namforecast"
- PERCENT[2]=20
- PERCENT[4]=100
- PERCENT[5]=-100
- PERCENT[6]=50
- PERCENT[7]=-50
- #ENDTIME=2008090200
-
-.Definitions
-ENSEMBLESIZE::
-    The ensemble size parameter should be set to the number of different
-    forecast runs to be performed after each nowcast. For background
-    meteorology (NAM), or for tropical cylcone forcing where only the 
-    NHC consensus forecast should be run, the ensemble size should
-    be set to 1. For tropical cyclone forecasting where multiple perturbations
-    to the base forecast are to be run, the ensemble size should be equal
-    to the total number of forecast runs. 
-STORMLIST::
-    The storm list is an array parameter of size 'ENSEMBLESIZE' that
-    provides the array index of the name of each storm in the ensemble.
-    The ASGS is sensitive to these names, and uses them during construction
-    of input files to apply the specified perturbations. 
-NAME::
-    The name list is an array parameter of arbitrary size that lists
-    the names of the various storms that could potentially be used in 
-    an ensemble. In other words, this array will generally have lots
-    of values that may or may not be used in any particular storm ensemble.
-PERCENT::
-    The percent variation is an array parameter of size 'ENSEMBLESIZE' that
-    specifies the percent variation for perturbations that are implied by
-    the storm name. The ASGS ignores this parameter for storms named 
-    'nowcast', 'nhcConsensus', and 'namforecast'. 
-ENDTIME::
-    The optional end time parameter provides the year, month, day, and 
-    hour when the forecast period should end. This parameter was implemented
-    for storms whose forecast reaches so far inland that it becomes irrelevant;
-    cutting the forecast short saves processing time for landfalling storms
-    and allows the ASGS to produce results more quickly. 
-  
-The 'STORMLIST', 'NAME', and 'PERCENT' parameters represent examples
-of the ASGS configuration file taking advantage of its identity as a 
-shell script by using of simple bash shell array variables as 
-configuriation parameters. All of the arrays are zero indexed.
 
 Output Files
 ~~~~~~~~~~~~
@@ -1419,6 +1380,93 @@ ARCHIVEDIR::
     The archive directory parameter represents the subdirectory of 
     'ARCHIVEBASE' where files should be archived. It will be created  
     by the ASGS if it does not already exist.
+
+Storm Ensemble
+~~~~~~~~~~~~~~
+
+Once a nowcast run is complete, the ASGS is capable of running more 
+than one type of forecast. If background meteorology is used, the 
+forecast ensemble can only consist of one member: namforecast. 
+However, if tropical cyclone forcing is used, the ensemble can have 
+one or more members, with each member expressing a different 
+perturbation from the base storm.
+
+The configuration of the forecast ensemble must come LAST in the ASGS 
+configuration file. This is because analysts need to be able to 
+override any of parameter setting previously described in the file. 
+
+ RMAX=default
+ PERCENT=default
+ ENSEMBLESIZE=8 # number of storms in the ensemble
+ case $si in
+ -1)
+       # do nothing ... this is not a forecast
+    ;;
+ 0)
+    ENSTORM=nhcConsensus   # this is the NHC official forecast track
+    ;;
+ 1)
+    ENSTORM=rMaxLarger     # 20% larger Rmax
+    PERCENT=20
+    ;;
+ 2)
+    ENSTORM=rMaxSmaller    # 20% smaller Rmax
+    PERCENT=-20
+    ;;
+ 3)
+    ENSTORM=maxWindSpeedWeaker     # 15% lower Vmax
+    PERCENT=-15
+    ;;    
+ 4)
+    ENSTORM=maxWindSpeedStronger   # 15% higher Vmax
+    PERCENT=15
+    ;;    
+ 5)
+    ENSTORM=overlandSpeedSlower    # 10% slower moving eye
+    PERCENT=-10
+    ;;    
+ 6)
+    ENSTORM=overlandSpeedFaster    # 10% faster moving eye
+    PERCENT=10
+    ;;    
+ 7)
+    ENSTORM=veerRight   # track along right side of cone of uncertainty
+    PERCENT=100
+    ;;        
+ 8)
+    ENSTORM=veerLeft    # track along left side of cone of uncertainty
+    PERCENT=-100
+    ;;
+ *)
+    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
+    ;;
+ esac
+
+
+.Definitions
+ENSEMBLESIZE::
+    The ensemble size parameter should be set to the number of different
+    forecast runs to be performed after each nowcast. For background
+    meteorology (NAM), or for tropical cylcone forcing where only the 
+    NHC consensus forecast should be run, the ensemble size should
+    be set to 1. For tropical cyclone forecasting where multiple perturbations
+    to the base forecast are to be run, the ensemble size should be equal
+    to the total number of forecast runs. 
+NAME::
+    The name of the storm is actually used by the storm_track_gen.pl
+    script to alter the numerical track characteristics in the fort.22
+    file. The script looks for key phrases in the storm name such as
+    "rMax", "veer", "overlandSpeed", and "maxWindSpeed". It uses these
+    key phrases in combination with the PERCENT parameter to develop
+    the resulting fort.22 file. 
+PERCENT::
+    The percent variation applied to the storm characteristic 
+    implied by the name of the forecast ensemble member. For 
+    example, if the NAME is set to "rMaxLarger", and the PERCENT 
+    value is set to 15, then the resulting ensemble member will have 
+    an Rmax that is 1.15 times the Rmax of the base NHC official 
+    forecast stom. The ASGS ignores the PERCENT parameter for ensemble
+    members that do not have any key phrases in its NAME.   
 
 Execution
 ---------
