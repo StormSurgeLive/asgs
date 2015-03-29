@@ -61,6 +61,12 @@ OPTIONS
     if provided by the '-o' option. If the '-o' option was not given,
     each snapshot or time period in the raw data is considered a frame.
 
+*-g, -G* 'GEOFACTOR'::
+    Use the this geofactor when developing NWS_20_fort.22 files; geofactor
+    should be 0 or 1. Geostrophic balance is recommended and is specified
+    with a geofactor of 1. Cyclostrophic balance is specified by zero and
+    is only used for comparison purposes.
+
 *-i, -I* 'MESH_FILE'::
     Generate spatial wind velocity and barometric pressures on the mesh
     in the file 'MESH_FILE'. This option requires that the 'MESH_FILE'
@@ -73,7 +79,13 @@ OPTIONS
     at the center of that storm quadrant at that point in time. Possible
     values of 'ISOTACH_SELECTION_METHOD' are 1, meaning that the 34kt
     isotach should always be used; or 2, meaning that the highest isotach
-    should always be used.
+    should always be used. For NWS19, 2 is the recommended value, whereas
+    for NWS20, 4 is the recommended value (use all available isotachs).
+
+*-z, -Z* 'APPROACH'::
+    Use 'APPROACH' to define the direction of the radial wind velocity.
+    If set to 2, this sets both Vr and quadrantVr tangential to the
+    azimuth. This should be set to 1 for NWS19 and set to 2 for NWS20.
 
 *-o, -O* 'TIME_INCREMENT'::
     Use 'TIME_INCREMENT' (in seconds) when performing wind analyses. If
@@ -85,7 +97,7 @@ OPTIONS
 *-n, -N* 'NWS'::
     The input fort.22 file is set up in the format required for the
     ADCIRC wind model corresponding to the 'NWS' value. The NWS values
-    15 and 19 are supported. If 'NWS' is set to 19, the fort.22 is expected
+    15 and 19 are supported. If 'NWS' is set to 19 or 20, the fort.22 is expected
     to be in ATCF format with the hours column set to monotonically increasing
     values, and an input file will be generated for ADCIRC's asymmetric vortex
     model. If 'NWS' is set to 15 (HWind), only wind analysis features are supported.
