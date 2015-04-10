@@ -37,7 +37,7 @@ N2                                                       ! ALPHANUMERIC DESCRIPT
 S2                                                       ! ALPHANUMERIC DESCRIPTION
  0.112841  1.454426E-004 0.693000  %S2NF%  %S2EQARG%
 K1                                                       ! ALPHANUMERIC DESCRIPTION
- 0.141565  7.292040E-005 0.736000  %K1NF%  %K2EQARG%
+ 0.141565  7.292040E-005 0.736000  %K1NF%  %K1EQARG%
 O1                                                       ! ALPHANUMERIC DESCRIPTION
  0.100514  6.759704E-005 0.695000  %O1NF%  %O1EQARG%
  5                                        ! NBFR - TOTAL NUMBER OF FORCING FREQUENCIES ON OPEN BOUNDARIES
@@ -48,7 +48,7 @@ O1                                                       ! ALPHANUMERIC DESCRIPT
  S2
       0.000145444104333  %S2NF%  %S2EQARG%
  K1
-      0.000072921158358  %K1NF%  %K2EQARG%
+      0.000072921158358  %K1NF%  %K1EQARG%
  O1
       0.000067597744151  %O1NF%  %O1EQARG%
  M2                                       ! AMPLITUDE AND PHASE (IN DEGREES) OF HARMONIC FORCING FUNCTION
