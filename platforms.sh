@@ -27,6 +27,24 @@
 #
 # initialization subroutines for the various machines/architectures
 #
+init_queenbee()
+{ #<- can replace the following with a custom script
+  HOSTNAME=queenbee.loni.org
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
+  SUBMITSTRING=qsub
+  SCRATCHDIR=/work/$USER
+  SSHKEY=~/.ssh/id_rsa.pub
+  QSCRIPT=queenbee.template.pbs
+  PREPCONTROLSCRIPT=queenbee.adcprep.template.pbs
+  QSCRIPTGEN=tezpur.pbs.pl
+  PPN=20
+  module load intel
+  module load netcdf
+  module load netcdf_fortran
+  module load gcc
+}
 init_arete()
 { #<- can replace the following with a custom script
   HOSTNAME=arete.cct.lsu.edu
@@ -180,19 +198,6 @@ init_garnet()
   PPN=32
   IMAGEMAGICKBINPATH=/usr/local/usp/ImageMagick/default/bin 
 }
-init_queenbee()
-{ #<- can replace the following with a custom script
-  HOSTNAME=queenbee.loni.org
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  ACCOUNT=loni_asgs2009
-  SUBMITSTRING="mpirun"
-  SCRATCHDIR=/work/$USER
-  SSHKEY=id_rsa_queenbee
-  QSCRIPT=queenbee.template.pbs
-  QSCRIPTGEN=queenbee.pbs.pl
-  PPN=8
-}
 init_tezpur()
 { #<- can replace the following with a custom script
   HOSTNAME=tezpur.hpc.lsu.edu
@@ -305,16 +310,16 @@ env_dispatch(){
           ;;
   "jade") consoleMessage "Jade (ERDC) configuration found."
           init_jade
-     ;;
+          ;;
   "diamond") consoleMessage "Diamond (ERDC) configuration found."
           init_diamond
-     ;;
+          ;;
   "garnet") consoleMessage "Garnet (ERDC) configuration found."
           init_garnet
-     ;;
+          ;;
   "queenbee") consoleMessage "Queenbee (LONI) configuration found."
           init_queenbee
-     ;;
+          ;;
   "tezpur") consoleMessage "Tezpur (LSU) configuration found."
           init_tezpur
           ;;
@@ -322,17 +327,17 @@ env_dispatch(){
           init_mike
           ;;
   "topsail") consoleMessage "Topsail (UNC) configuration found."
-             init_topsail
-             ;;
+          init_topsail
+          ;;
   "ranger") consoleMessage "Ranger (TACC) configuration found."
           init_ranger
-             ;;
+          ;;
   "lonestar") consoleMessage "Lonestar (TACC) configuration found."
           init_lonestar
-             ;;
+          ;;
   "arete") consoleMessage "Arete (CCT) configuration found."
           init_arete
-             ;;
+          ;;
   "desktop") consoleMessage "desktop configuration found."
           init_desktop
            ;;

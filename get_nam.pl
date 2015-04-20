@@ -162,7 +162,7 @@ my @sortedNamDirs = sort { lc($a) cmp lc($b) } @namDirs;
 # narrow the list to the target date and any later dates
 my @targetDirs;
 foreach my $dir (@sortedNamDirs) {
-   stderrMessage("DEBUG","Found the directory '$dir' on the NCEP ftp site.");
+   #stderrMessage("DEBUG","Found the directory '$dir' on the NCEP ftp site.");
    $dir =~ /nam.(\d+)/;
    if ( $1 < $date ) { 
       next; 
@@ -173,7 +173,7 @@ foreach my $dir (@sortedNamDirs) {
 # determine the most recent date/hour ... this is the cycle time
 $targetDirs[-1] =~ /nam.(\d+)/;
 my $cycledate = $1; 
-stderrMessage("DEBUG","The cycledate is '$cycledate'.");
+#stderrMessage("DEBUG","The cycledate is '$cycledate'.");
 if ( $cycledate < $date ) { 
    stderrMessage("ERROR","The cycledate is '$cycledate' but the ADCIRC hotstart date is '$date'; therefore an error has occurred. get_nam.pl is halting this attempted download.");
    printf STDOUT $dl;
