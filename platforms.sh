@@ -218,17 +218,17 @@ init_mike()
   HOSTNAME=mike.hpc.lsu.edu
   QUEUESYS=PBS
   QCHECKCMD=qstat
-  ACCOUNT=hpc_cera_2013
+  ACCOUNT=pleaseSetAccountParamToHPCAllocationInASGSConfig
   SUBMITSTRING="mpirun"
-  SCRATCHDIR=/work/cera
+  SCRATCHDIR=/work/$USER
   SSHKEY=id_rsa_mike
   QSCRIPT=mike.template.pbs
   PREPCONTROLSCRIPT=mike.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=16
+  soft add +netcdf-4.1.3-Intel-13.0.0 
+  #/usr/local/packages/netcdf/4.1.3/Intel-13.0.0
 }
-
-
 init_ranger()
 { #<- can replace the following with a custom script
   HOSTNAME=ranger.tacc.utexas.edu
