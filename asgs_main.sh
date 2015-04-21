@@ -112,8 +112,9 @@ checkHotstart()
          else
             HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE` 2>> ${SYSLOG}
          fi
+         failureOccurred=$?
          errorOccurred=`expr index "$HSTIME" ERROR`
-         if [[ $errorOccurred != 0 ]]; then
+         if [[ $failureOccurred != 0 || $errorOccurred != 0 ]]; then
             fatal "The hstime utility could not read the ADCIRC time from the file '$HOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
          else
             if float_cond '$HSTIME == 0.0'; then
@@ -1270,6 +1271,7 @@ while [ true ]; do
       logMessage "hotstart format is binary"
       HSTIME=`$ADCIRCDIR/hstime -f ${FROMDIR}/PE0000/fort.67` 2>> ${SYSLOG}
    fi
+   
    logMessage "The time in the hotstart file is '$HSTIME' seconds."
    cd $RUNDIR 2>> ${SYSLOG}
    #
