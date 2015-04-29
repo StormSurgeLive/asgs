@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sat, 24 Sep 2005 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane RITA Forecast/Advisory Number 28</title>
+      <description>Issued at 1500Z SAT SEP 24 2005 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+HURRICANE RITA FORECAST/ADVISORY NUMBER  28
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL182005
+1500Z SAT SEP 24 2005
+ 
+AT 10 AM CDT...1500Z...THE HURRICANE WARNING FROM HIGH ISLAND TEXAS
+TO MORGAN CITY LOUISIANA HAS BEEN DOWNGRADED TO TROPICAL STORM
+WARNING.
+ 
+AT 10 AM CDT...1500Z...THE TROPICAL STORM WARNING FOR THE
+SOUTHEASTERN COAST OF LOUISIANA EAST OF MORGAN CITY TO THE MOUTH OF
+THE PEARL RIVER...INCLUDING METROPOLITAN NEW ORLEANS AND LAKE
+PONTCHARTRAIN HAS BEEN DISCONTINUED.
+ 
+HURRICANE CENTER LOCATED NEAR 31.0N  94.3W AT 24/1500Z
+POSITION ACCURATE WITHIN  15 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH OR 350 DEGREES AT  10 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  960 MB
+MAX SUSTAINED WINDS  65 KT WITH GUSTS TO  90 KT.
+64 KT....... 25NE  30SE  25SW  25NW.
+50 KT....... 30NE  40SE  45SW  45NW.
+34 KT....... 60NE 120SE  50SW  50NW.
+12 FT SEAS..  0NE 175SE 175SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 31.0N  94.3W AT 24/1500Z
+AT 24/1200Z CENTER WAS LOCATED NEAR 30.5N  94.2W
+ 
+FORECAST VALID 25/0000Z 32.5N  94.5W...INLAND
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 50NE  50SE  30SW  50NW.
+ 
+FORECAST VALID 25/1200Z 34.0N  93.5W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 26/0000Z 34.5N  92.0W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 26/1200Z 34.5N  91.5W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 27/1200Z 34.5N  90.0W...REMNANT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 250 NM
+ON DAY 4 AND 325 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 28/1200Z 34.5N  90.0W...REMNANT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+OUTLOOK VALID 29/1200Z 34.5N  90.0W...DISSIPATING
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 31.0N  94.3W
+ 
+NEXT ADVISORY AT 24/2100Z
+ 
+FORECASTER AVILA
+
+</pre>]]></description>
+      <pubDate>Sat, 24 Sep 2005 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2005/18/28.182005.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2005/18/28.182005.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

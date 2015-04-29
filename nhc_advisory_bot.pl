@@ -6,7 +6,7 @@
 # them to ATCF format for use within ADCIRC.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2009--2013: Jason Fleming
+# Copyright(C) 2009--2015: Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
