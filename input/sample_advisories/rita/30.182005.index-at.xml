@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sun, 25 Sep 2005 03:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression RITA Forecast/Advisory Number 30</title>
+      <description>Issued at 0300Z SUN SEP 25 2005 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+TROPICAL DEPRESSION RITA FORECAST/ADVISORY NUMBER  30
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL182005
+0300Z SUN SEP 25 2005
+ 
+TROPICAL DEPRESSION CENTER LOCATED NEAR 33.0N  93.9W AT 25/0300Z
+POSITION ACCURATE WITHIN  15 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH OR   5 DEGREES AT   9 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  985 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 33.0N  93.9W AT 25/0300Z
+AT 25/0000Z CENTER WAS LOCATED NEAR 32.5N  94.0W
+ 
+FORECAST VALID 25/1200Z 34.2N  93.4W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 26/0000Z 35.4N  91.8W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 26/1200Z 36.3N  89.8W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 27/0000Z 37.0N  87.6W...REMNANT LOW
+MAX WIND  20 KT...GUSTS  25 KT.
+ 
+FORECAST VALID 28/0000Z...ABSORBED BY FRONT
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 33.0N  93.9W
+ 
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE
+NATIONAL HURRICANE CENTER ON THIS SYSTEM
+ 
+FORECASTER KNABB
+
+</pre>]]></description>
+      <pubDate>Sun, 25 Sep 2005 03:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2005/18/30.182005.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2005/18/30.182005.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

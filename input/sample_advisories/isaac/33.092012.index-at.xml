@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 29 Aug 2012 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane ISAAC Forecast/Advisory Number 33</title>
+      <description>Issued at 0900 UTC WED AUG 29 2012 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+ 
+HURRICANE ISAAC FORECAST/ADVISORY NUMBER  33
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL092012
+0900 UTC WED AUG 29 2012
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+NONE.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A HURRICANE WARNING IS IN EFFECT FOR...
+* EAST OF MORGAN CITY LOUISIANA TO THE MISSISSIPPI-ALABAMA BORDER...
+INCLUDING METROPOLITAN NEW ORLEANS...LAKE PONTCHARTRAIN...AND LAKE
+MAUREPAS
+ 
+A HURRICANE WATCH IS IN EFFECT FOR...
+* INTRACOASTAL CITY TO MORGAN CITY LOUISIANA
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* THE MISSISSIPPI-ALABAMA BORDER TO DESTIN FLORIDA
+* MORGAN CITY TO SABINE PASS TEXAS
+ 
+A TROPICAL STORM WATCH IS IN EFFECT FOR...
+* EAST OF HIGH ISLAND TEXAS TO JUST WEST OF SABINE PASS
+ 
+HURRICANE CENTER LOCATED NEAR 29.2N  90.5W AT 29/0900Z
+POSITION ACCURATE WITHIN  15 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST-NORTHWEST OR 300 DEGREES AT   7 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  969 MB
+MAX SUSTAINED WINDS  70 KT WITH GUSTS TO  85 KT.
+64 KT....... 50NE  50SE   0SW   0NW.
+50 KT....... 80NE  70SE  50SW  50NW.
+34 KT.......150NE 150SE 140SW 130NW.
+12 FT SEAS.. 90NE 270SE 120SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 29.2N  90.5W AT 29/0900Z
+AT 29/0600Z CENTER WAS LOCATED NEAR 29.0N  90.1W
+ 
+FORECAST VALID 29/1800Z 29.7N  91.1W...INLAND
+MAX WIND  65 KT...GUSTS  80 KT.
+64 KT... 40NE  40SE   0SW   0NW.
+50 KT... 60NE  70SE  50SW  40NW.
+34 KT...130NE 150SE 140SW 120NW.
+ 
+FORECAST VALID 30/0600Z 30.5N  91.8W...INLAND
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 40NE  60SE  50SW  30NW.
+34 KT...120NE 120SE 120SW 100NW.
+ 
+FORECAST VALID 30/1800Z 31.8N  92.8W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 31/0600Z 33.6N  93.7W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 01/0600Z 37.5N  93.5W...POST-TROP/REMNT LOW
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 175 NM
+ON DAY 4 AND 225 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 02/0600Z 39.5N  90.0W...POST-TROP/REMNT LOW
+MAX WIND  15 KT...GUSTS  20 KT.
+ 
+OUTLOOK VALID 03/0600Z 40.5N  86.0W...POST-TROP/REMNT LOW
+MAX WIND  15 KT...GUSTS  20 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 29.2N  90.5W
+ 
+NEXT ADVISORY AT 29/1500Z
+ 
+$$
+FORECASTER PASCH/ROBERTS
+
+</pre>]]></description>
+      <pubDate>Wed, 29 Aug 2012 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2012/09/33.092012.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2012/09/33.092012.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

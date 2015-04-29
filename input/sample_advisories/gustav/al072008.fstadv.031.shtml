@@ -1,0 +1,507 @@
+
+
+
+
+
+  
+
+
+
+ 
+  
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+  <title>Hurricane GUSTAV </title>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+
+
+  <link href="/main.css" type="text/css" rel="stylesheet">
+   
+   <!-- Set up the top banners -->
+   <style type="text/css">
+   <!--
+    .body
+    {
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 0px;
+    margin-left: 0px
+    }
+    -->
+
+   <!--
+   .topbanner_780
+   {
+   background-image:url('/gifs/topbanner_780.jpg'); height:19px;
+   }
+   -->
+
+   <!--
+   .topbanner_1132
+   {
+   background-image:url('/gifs/topbanner_1132.jpg'); height:19px;
+   }
+   -->
+    
+   <!--
+   .ncep_bkgrnd
+   {
+   background-image:url('/gifs/ncep_bkgrnd.jpg');
+   }
+   -->
+
+   <!--
+   .navbkgrnd
+   {
+   background-image:url('/gifs/navbkgrnd.gif');
+   }
+   -->
+   </style>
+</head>
+
+<!-- Set the main background image (background will have the NWS vertical logo) -->
+<!-- Use a different image if the page contents has a large graphic -->
+
+<body background="/gifs/800_navbar.gif" class="body" onLoad="if (self != top) top.location = self.location">
+
+
+
+<!-- include Google Analytics tracking -->
+<!-- BEGIN Google Analytics code -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-49829254-1', 'noaa.gov');
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script>
+<!-- END Google Analytics code -->
+
+
+<!-- Now load the correct standard NHC header, based on page contents -->
+
+ <!-- Begin NHC standard header -->
+<table cellspacing="0" cellpadding="0" width="100%" border="0">
+  <tr>
+    <td colspan="2" align="left" class="topbanner_780">
+      <a href="#contents"><img height="1" alt="Skip Navigation Links" src="/gifs/skipgraphic.gif" width="1" border="0"></a>
+    </td>
+    <td colspan="2" align="right" width="100%" class="ncep_bkgrnd">
+      <a href="http://www.weather.gov/"><span class="link">weather.gov</span></a>&nbsp;&nbsp;&nbsp;
+    </td>
+  </tr>
+  <tr>
+    <td rowspan="3"><a href="http://www.noaa.gov/"><img height="78" alt="NOAA logo - Click to go to the NOAA homepage" src="/gifs/noaaleft.jpg" width="85" border="0"></a></td>
+    <td align="left"><img height="20" alt="National Weather Service" src="/gifs/nwstitle_780.jpg" width="607" border="0"></td>
+    <td rowspan="3" width="100%" class="ncep_bkgrnd">&nbsp;</td>
+    <td rowspan="3" align="right"><a href="http://www.weather.gov/"><img height="78" alt="NWS logo - Click to go to the NWS homepage" src="/gifs/nwsright.gif" width="85" border="0"></a></td>
+  </tr>
+  <tr>
+    <!-- Put your Center's header image here -->
+    <td align="left"><a href="/"><img height="58" alt="National Hurricane Center" src="/gifs/nhc_officename_780.jpg" width="607" border="0"></a></td>
+  </tr>
+</table>
+
+<!-- Begin Home, Public Affairs, Organization links and search engine code-->
+<table cellspacing="0" cellpadding="0" border="0" width="100%" class="navbkgrnd">
+<tr>
+ <td align="left" valign="top" width="94"><img src="/gifs/navbarleft.jpg" alt="" width="94" height="23" border="0"></td>
+ <td class="nav" id="menuitem" width="15%" align="center" nowrap="nowrap"><a href="/" class="navbar">Home</a></td>
+ <td class="nav" width="15%" align="right"><a href="http://www.weather.gov/pa/" class="navbar">News</a></td>
+ <td class="nav" width="20%" align="right"><a href="http://www.weather.gov/organization.php" class="navbar">Organization</a></td>
+ <td width="20%">&nbsp;</td>
+ <td align="right" class="searchinput "valign="top" width="20%" nowrap="nowrap">
+    <!-- Begin search code -->
+      <form method="get" action="http://search.usa.gov/search" style="margin-bottom:0; margin-top:0;">
+        <input type="hidden" name="v:project" value="firstgov">
+        <label for="query" class="yellow">Search&nbsp;&nbsp;</label>
+        <input type="text" name="query" id="query">
+        <input type="radio" name="affiliate" checked="checked" value="nws.noaa.gov" id="nws">
+        <label for="nws" class="yellow">NWS</label>
+        <input type="radio" name="affiliate" value="noaa.gov" id="noaa">
+        <label for="noaa" class="yellow">All NOAA</label>
+        <input type="submit" value="Go">
+      </form>
+   <!-- End search code -->
+</td>
+<!-- End search engine code -->
+
+<td align="right" valign="bottom" width="24"><img src="/gifs/navbarendcap_round.jpg" alt="" width="24" height="23" border="0"></td>
+</tr>
+</table>
+<!-- End Home, Public Affairs, Organization links and search engine code -->
+
+<!-- End NHC standard header -->
+
+
+
+
+<!-- Create main table for the page (has sidebar & the page contents) -->
+<table cellSpacing="0" cellPadding="1" width="760" border="0"> <!-- was 730 -->
+  <tbody>
+   <tr valign="top">
+    <!-- Set the width of the left-side navigation bar -->
+    <td width="140">
+ 
+    <!-- Now load the standard NHC left sidebar menu (top) -->   
+    <!-- Begin NHC standard left sidebar menu top -->
+<table bgcolor="#09248b" cellspacing="0" cellpadding="2" width="130" border="0">
+  <tbody>
+  <!-- Nationwide City,St/ZIP search -->
+    <tr align="left" valign="top">
+    <td class="searchinput" colSpan="2">
+      <div ID="Layer2" STYLE="position:absolute; width:200px; height:115px; z-index:2; visibility: hidden">
+       Search by city or zip code. Press enter or select the go button to submit request</div>
+      <form method="POST" action="http://forecast.weather.gov/zipcity.php" style="margin-bottom:2px;">
+      <span class="yellow">Local forecast by<br>&quot;City, St&quot; or &quot;ZIP&quot;</span><br>
+      <!-- <input type="text" name="inputstring" size="8" value="City, St" onFocus="if(this.value=='City, St')this.value='';">&nbsp; -->
+      <input class="searchinput" type="text" name="inputstring" size="10" value="" onFocus="this.value='';">&nbsp;
+      <input class="searchinput" type="submit" name="Go2" value="Go">
+    </form>
+    </td>
+    </tr>
+
+<!-- Old Local Search, disabled 25 January 2006
+    <tr>
+    <td class="searchinput" align="left" colspan="2">
+    <form action="http://www.firstgov.gov/fgsearch/index.jsp" name="query" style="margin-bottom:0;">
+    <label for="search"><span class="yellow">Search TPC</span></label>
+    <input type="hidden" name="parsed" value="true">
+    <input type="hidden" name="rn" value="3">
+    <input type="hidden" name="in0" value="domain">
+    <input type="hidden" name="dom0" value="nhc.noaa.gov">
+    <input type="text" name="mw0" id="search" size="12" maxlength="256" value="TPC Search" onFocus="this.value='';">&nbsp;&nbsp;<input type="submit" name="Go2" value="Go">
+    </td>
+    </tr>
+    </form>
+-->
+
+<!-- End standard NHC left sidebar menu top -->
+
+
+
+    <!-- Add a link for Text-only pages -->
+   <tr><td class="white" colspan="2">
+      <span class="yellow">Alternate Formats</span><br>
+      &nbsp;&nbsp;&nbsp;<a href="?text" class="navbar"><b>Text</b></a> &nbsp; &nbsp; | &nbsp; <a href="/mobile/" class="navbar">Mobile</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/signup.shtml" class="navbar">Email</a> &nbsp; | &nbsp; <a href="/aboutrss.shtml" class="navbar">RSS <img style="vertical-align:top" src="/gifs/xml2.gif" border="0" width="13" height="13" alt="XML/RSS logo"></a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/aboutalternate.shtml" class="navbar">About Alternates</a>
+    </td></tr>
+
+    <!-- Now load the standard NHC left sidebar menu (bottom) --> 
+    <!-- Load different menus based on page contents -->
+    
+      <!-- Begin standard NHC left sidebar menu bottom -->
+<!-- NOTE: Don't forget to make appropriate changes to ~/blank_page_top.php for these same links. -->
+    <tr>
+    <td class="white" colspan="2"><a name="storminfo"></a>
+      <span class="yellow">Cyclone Forecasts</span><br>
+      &nbsp;&nbsp;&nbsp;<a href="/cyclones/" class="navbar">Latest Advisory</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/archive/2014/" class="navbar">Past Advisories</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/audio/" class="navbar">Audio/Podcasts</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/aboutnhcprod.shtml" class="navbar">About Advisories</a>
+    </td>
+    </tr>
+
+    <tr>
+    <td class="white" colspan="2"><a name="tafb"></a>
+      <span class="yellow">Marine Forecasts</span><br>
+      &nbsp;&nbsp;&nbsp;<a href="/marine/" class="navbar">Atlantic &amp; E Pacific</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/marine/grids.php" class="navbar">Gridded Marine</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/abouttafbprod.shtml" class="navbar">About Marine</a><br>
+    </td>
+    </tr>
+
+    <tr>
+    <td class="white" colspan="2"><a name="history"></a>
+      <span class="yellow">Tools &amp; Data</span><br>
+      &nbsp;&nbsp;&nbsp;<a href="/satellite.php" class="navbar">Satellite</a> | <a href="http://radar.weather.gov/" class="navbar"><b>Radar</b></a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/analysis_tools.php" class="navbar">Analysis Tools</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/recon.php" class="navbar">Aircraft Recon</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/gis/" class="navbar">GIS Datasets</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/data/" class="navbar">Data Archive</a><br>
+    </td>
+    </tr>
+
+    <tr>
+    <td class="white" colspan="2"><a name="develop"></a>
+      <span class="yellow">Development</span><br>
+      &nbsp;&nbsp;&nbsp;<a href="/experimental/" class="navbar">Experimental</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/aboutresearch.shtml" class="navbar">Research</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/verification/" class="navbar">Forecast Accuracy</a><br>
+    </td>
+    </tr>
+
+    <tr>
+    <td class="white" colspan="2"><a name="awareness"></a>
+      <span class="yellow">Outreach &amp; Education</span><br>
+      &nbsp;&nbsp;&nbsp;<a href="/prepare/" class="navbar">Prepare</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/surge/" class="navbar">Storm Surge</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/climo/" class="navbar">About Cyclones</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/aboutnames.shtml" class="navbar">Cyclone Names</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/aboutsshws.php" class="navbar">Wind Scale</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/dcmi.shtml" class="navbar">Most Extreme</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/aboutmodels.shtml" class="navbar">Forecast Models</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/breakpoints/" class="navbar">Breakpoints</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/outreach/" class="navbar">Resources</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/aboutgloss.shtml" class="navbar">Glossary</a> | <a href="/acronyms.shtml" class="navbar">Acronyms</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/faq.shtml" class="navbar">Frequent Questions</a><br>
+    </td>
+    </tr>
+
+    <tr>
+    <td class="white" colspan="2"><a name="about"></a>
+      <span class="yellow">Our Organization</span><br>
+      &nbsp;&nbsp;&nbsp;<a href="/aboutintro.shtml" class="navbar">About NHC</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/mission.shtml" class="navbar">Mission &amp; Vision</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/aboutstaff.shtml" class="navbar">Staff</a> | <a href="/qa/" class="navbar">Q&amp;A</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="/aboutvisitor.shtml" class="navbar">Visitors</a> | <a href="/nhctour.shtml" class="navbar">Virtual Tour</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="http://www.aoml.noaa.gov/general/lib/lib1/nhclib/" class="navbar">Library Branch</a><br>
+      &nbsp;&nbsp;&nbsp;<a href="http://www.ncep.noaa.gov" class="navbar">NCEP</a> | <a href="http://www.ncep.noaa.gov/newsletter/" class="navbar">Newsletter</a><br>
+    </td>
+    </tr>
+
+    <tr>
+    <td class="white" colspan="2"><a name="contact"></a>
+      <span class="yellow">Contact Us</span><br>
+      &nbsp;&nbsp;&nbsp;<a href="/contact.shtml" class="navbar">Comments</a><br>
+      <div align="center">
+        <a href="/govexit.shtml?http://www.facebook.com/NWSNHC"><img src="/graphics/f_logo.png" alt="Follow the National Hurricane Center on Facebook" width="50" height="50" style="border:0px; margin-right:1px;" ></a>
+        <a href="/twitter.php"><img src="/graphics/twitter_logo.png" alt="Follow the National Hurricane Center on Twitter" height="50" width="50" style="border:0px; margin-left:1px;" /></a>
+        <br>
+        <a href="/govexit.shtml?http://www.youtube.com/user/NWSNHC"><img src="/graphics/youtube_logo.png" alt="Subscribe the National Hurricane Center on YouTube" height="28" width="40" style="border:0px; margin-bottom:10px;margin-top:5px;margin-right:9px;"></a>
+        <a href="/govexit.shtml?http://noaanhc.wordpress.com/"><img src="/graphics/w_logo.png" alt="Read the National Hurricane Center Inside the Eye blog on WordPress" height="32" width="32" style="border:0px; margin-left:5px; margin-bottom:10px; margin-right:10px;"></a>
+      </div>
+    </td>
+    </tr>
+
+    <tr>
+    <td align="center" colspan="2">
+      <a href="http://www.usa.gov/"><img src="/graphics/usagov_logo_color_110w_30h.gif" alt="FirstGov.gov is the U.S. Government's official Web portal to all Federal, state and local government Web resources and services." width="110" height="30" border="0"></a>
+    </td>
+    </tr>
+
+    <tr>
+    <td align="center" colspan="2">
+    &nbsp;
+    </td>
+    </tr>
+
+    <tr>
+    <td align="center" colspan="2">
+    &nbsp;
+    </td>
+    </tr>
+
+  </tbody>
+</table>
+<!-- End NHC standard left sidebar menu bottom -->
+
+    
+
+    
+    <!-- Mark the beginning of page contents (append #contents after the URL) -->
+    <td valign="top" style="text-align:center; padding-left:10px; margin-left:auto; margin-right:auto;"> <!-- was 540 -->
+     <a name="contents"></a><br>
+
+<!-- Begin main body -->
+
+<!-- Breadcrumb section (small table at end of each page's contents) -->
+
+<table cellspacing="0" cellpadding="0" width="100%" border="0">
+  <tbody>
+  <tr>
+  <td align="left">
+    <table cellspacing="0" cellpadding="0" width="100%" border="0">
+      <tbody>
+      <tr>
+      <td>
+
+      <!-- START OF CONTENT -->
+
+      <!-- BEGIN SPECIAL NOTICE SECTION -->
+      <!-- The following is special notice that will appear on all pages as a headline -->
+      <!-- Used during a problem on the website...creates a banner on all pages. -->
+
+      <!--
+UNCOMMENT THIS AS APPROPRIATE
+
+<span style="color:#FF0000; font-weight: bold; font-size:13">The NHC website is in backup mode. Some information may not be available.</span><br><br>
+-->
+
+
+      <!-- END SPECIAL NOTICE SECTION -->
+
+
+      
+      <h2 align="center" style="width: 100%;">Hurricane GUSTAV </h2>
+      <hr noshade width="100%" align="left">
+      
+      
+
+
+
+<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+HURRICANE GUSTAV FORECAST/ADVISORY NUMBER  31
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL072008
+0900 UTC MON SEP 01 2008
+ 
+AT 4 AM CDT...0900 UTC...THE HURRICANE WARNING EAST OF THE
+MISSISSIPPI-ALABAMA BORDER TO THE ALABAMA-FLORIDA BORDER HAS BEEN
+CHANGED TO A TROPICAL STORM WARNING.  A HURRICANE WARNING REMAINS
+IN EFFECT FROM JUST EAST OF HIGH ISLAND TEXAS EASTWARD TO THE
+MISSISSIPPI-ALABAMA BORDER...INCLUDING THE CITY OF NEW ORLEANS AND
+LAKE PONTCHARTRAIN. PREPARATIONS TO PROTECT LIFE AND PROPERTY
+SHOULD HAVE BEEN COMPLETED.
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FROM EAST OF THE
+MISSISSIPPI-ALABAMA BORDER TO THE OCHLOCKONEE RIVER.
+ 
+HURRICANE CENTER LOCATED NEAR 28.4N  89.5W AT 01/0900Z
+POSITION ACCURATE WITHIN  15 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTHWEST OR 315 DEGREES AT  14 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  956 MB
+MAX SUSTAINED WINDS 100 KT WITH GUSTS TO 120 KT.
+64 KT....... 60NE  30SE  30SW  40NW.
+50 KT.......120NE  90SE  60SW 100NW.
+34 KT.......200NE 175SE 140SW 175NW.
+12 FT SEAS..270NE 270SE 210SW 180NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 28.4N  89.5W AT 01/0900Z
+AT 01/0600Z CENTER WAS LOCATED NEAR 27.8N  88.9W
+ 
+FORECAST VALID 01/1800Z 29.5N  91.1W...INLAND
+MAX WIND 100 KT...GUSTS 120 KT.
+64 KT... 40NE  30SE  30SW  30NW.
+50 KT... 75NE  90SE  60SW  75NW.
+34 KT...125NE 175SE 140SW 125NW.
+ 
+FORECAST VALID 02/0600Z 30.7N  92.8W...INLAND
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 30NE  50SE  50SW  30NW.
+34 KT...100NE 125SE 125SW 100NW.
+ 
+FORECAST VALID 02/1800Z 31.4N  93.9W...INLAND
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 60NE  60SE  60SW  60NW.
+ 
+FORECAST VALID 03/0600Z 31.8N  94.7W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 04/0600Z 32.0N  95.5W...INLAND
+MAX WIND  20 KT...GUSTS  25 KT.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 225 NM
+ON DAY 4 AND 300 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 05/0600Z 32.0N  96.0W...INLAND
+MAX WIND  20 KT...GUSTS  25 KT.
+ 
+OUTLOOK VALID 06/0600Z 32.0N  96.5W...REMNANT LOW
+MAX WIND  20 KT...GUSTS  25 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 28.4N  89.5W
+ 
+NEXT ADVISORY AT 01/1500Z
+ 
+$$
+FORECASTER PASCH/BERG
+ 
+ 
+NNNN
+</pre>
+
+
+
+      <!-- END OF CONTENT -->
+
+      <br><hr width="100%" align="left">
+      </td>
+      </tr>
+      </tbody>
+    </table>
+    
+    <table cellspacing="0" cellpadding="0" border="0" width="100%" align="left">
+      <tbody>
+        <tr align="center">
+          <td>Quick Navigation Links:<br>
+            <a href="/cyclones/">Tropical Cyclone Forecasts</a> &nbsp;-&nbsp; <a href="/marine/">Tropical Marine Forecasts</a> &nbsp;-&nbsp; <a href="/data/">Data Archive</a><br>
+            <a href="/outreach/">Outreach</a> &nbsp;-&nbsp; <a href="/prepare/">Prepare</a> &nbsp;-&nbsp; <a href="/climo/">About Cyclones</a> &nbsp;-&nbsp; <a href="/aboutintro.shtml">About NHC</a> &nbsp;-&nbsp; <a href="/contact.shtml">Contact Us</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </tr>
+    <tr>
+     <td>
+     </td>
+</tr>
+</tbody>
+</table>
+    
+<!-- End of main body -->
+
+      <table cellSpacing="0" cellPadding="0" width="100%" border="0" align="left">
+        <tbody>
+
+        <!-- Now load the NHC standard footer -->
+        <!-- Begin NHC standard footer -->
+  <tr>
+    <td colspan="3"><hr width="100%" align="left"></td>
+  </tr>
+    <tr valign="top">
+    <td class="gray">
+      <a href="http://www.noaa.gov/"><span class="gray">NOAA/</span></a>
+      <a href="http://www.nws.noaa.gov/"><span class="gray">National Weather Service</span></a><br>
+      <a href="http://www.ncep.noaa.gov/"><span class="gray">National Centers for Environmental Prediction</span></a><br>
+      National Hurricane Center<br>
+      11691 SW 17th Street<br>
+      Miami, Florida 33165 USA<br>
+      <a href="/contact.shtml"><span class="gray">nhcwebmaster@noaa.gov</span></a>
+    </td>
+    <td><a href="http://www.weather.gov/disclaimer.php"><span class="gray">Disclaimer</span></a><br>
+      <a href="http://www.weather.gov/credits.php"><span class="gray">Credits</span></a><br>
+      <a href="http://www.cio.noaa.gov/Policy_Programs/info_quality.html"><span class="gray">Information Quality</span></a><br>
+      <a href="http://www.weather.gov/glossary/"><span class="gray">Glossary</span></a><br>
+    </td>
+    <td align="right"><a href="http://www.weather.gov/privacy.php"><span class="gray">Privacy Policy</span></a><br>
+      <a href="http://www.osec.doc.gov/omo/FOIA/FOIAWebsite.htm"><span class="gray">Freedom of Information Act (FOIA)</span></a><br>
+      <a href="http://www.weather.gov/admin.php"><span class="gray">About Us</span></a><br>
+      <a href="http://www.weather.gov/careers.php"><span class="gray">Career Opportunities</span></a><br>
+    </td>
+    </tr>
+<!-- End NHC standard footer -->
+
+        <tr valign="top">
+          <td class="gray" colspan="3">
+            Page last modified: Tuesday, 21-Apr-2009 12:09:13 UTC
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </td>
+  </tr>
+  </tbody>
+</table>
+</body>
+</html>
+
+ 
+
+
+

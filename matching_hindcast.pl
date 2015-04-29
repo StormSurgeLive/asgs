@@ -8,7 +8,7 @@
 # This is used for making test data sets. 
 #
 #----------------------------------------------------------------
-# Copyright(C) 2009 Jason Fleming
+# Copyright(C) 2009--2015 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
