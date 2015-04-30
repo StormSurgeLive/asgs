@@ -6,7 +6,7 @@
 # loop which is executed once per advisory cycle.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2006--2014 Jason Fleming
+# Copyright(C) 2006--2015 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -87,7 +87,7 @@ checkHotstart()
    HOTSTARTFORMAT=$2
    LUN=$3
 #
-   HOTSTARTFILE=
+   HOTSTARTFILE=''
    # set name and specific file location based on format (netcdf or binary)
    if [[ $HOTSTARTFORMAT = netcdf ]]; then
       HOTSTARTFILE=$FROMDIR/fort.$LUN.nc
@@ -106,11 +106,11 @@ checkHotstart()
          logMessage "The hotstart file '$HOTSTARTFILE' was found and it contains $hotstartSize bytes."
          # check time in hotstart file to be sure it can be found and that
          # it is nonzero
-         HSTIME=
+         HSTIME=''
          if [[ $HOTSTARTFORMAT = netcdf ]]; then
-            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE -n` 2>> ${SYSLOG}
+            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE -n 2>> ${SYSLOG}`
          else
-            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE` 2>> ${SYSLOG}
+            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE 2>> ${SYSLOG}`
          fi
          failureOccurred=$?
          errorOccurred=`expr index "$HSTIME" ERROR`
