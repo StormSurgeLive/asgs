@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2012 Jason Fleming
+# Copyright(C) 2013 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -27,8 +27,8 @@
 
 # Fundamental
 
-INSTANCENAME=1           # "name" of this ASGS process
-COLDSTARTDATE=2012042500 # calendar year month day hour YYYYMMDDHH24
+INSTANCENAME=cfsamp      # "name" of this ASGS process
+COLDSTARTDATE=2013101400 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -38,27 +38,32 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc/trunk/work # ADCIRC executables
 SCRIPTDIR=~/asgs/trunk        # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input   # grid and other input files
+INPUTDIR=${SCRIPTDIR}/input/meshes/ec95d # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=off    # NAM download/forcing
+BACKGROUNDMET=on     # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
-TROPICALCYCLONE=on   # tropical cyclone forcing
-WAVES=off            # wave forcing
+TROPICALCYCLONE=off  # tropical cyclone forcing
+WAVES=on             # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
 
 TIMESTEPSIZE=30.0           # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
-NCPU=4                      # number of compute CPUs for all simulations
 HINDCASTWALLTIME="01:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="00:05:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="01:00:00" # forecast wall clock time
+NCPU=24                     # number of compute CPUs for all simulations
+NCPUCAPACITY=24
+CYCLETIMELIMIT="05:00:00"
+QUEUENAME=null
+SERQUEUE=null
+SCRATCHDIR=/projects/ncfs/data
 
 # External data sources : Tropical cyclones
 
@@ -93,9 +98,9 @@ RIVERDIR=/projects/ciflow/adcirc_info
 GRIDFILE=ec_95d.grd                     # mesh (fort.14) file
 GRIDNAME=ec95d
 CONTROLTEMPLATE=ec_95_fort.15_template # fort.15 template
-ELEVSTATIONS=corps_elev_stations.txt    # or substitute your own stations file
-VELSTATIONS=corps_vel_stations.txt
-METSTATIONS=corps_vel_stations.txt
+ELEVSTATIONS=cera_stations.txt    # or substitute your own stations file
+VELSTATIONS=cera_stations.txt
+METSTATIONS=cera_stations.txt
 NAFILE=                                 # no nodal attributes for ec95d
 SWANTEMPLATE=fort.26.ec95.template      # only used if WAVES=on
 RIVERINIT=null                          # this mesh has no rivers ...
@@ -103,26 +108,6 @@ RIVERFLUX=null
 HINDCASTRIVERFLUX=null
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
-
-# Storm ensemble
-
-ENSEMBLESIZE=1 # number of storms in the ensemble
-STORMLIST[0]=1 # nhcConsensus
-NAME[0]="nowcast"
-NAME[1]="nhcConsensus"
-NAME[2]="higherMaxWindSpeed"
-NAME[3]="slowerOverlandSpeed"
-NAME[4]="veerRight"
-NAME[5]="veerLeft"
-NAME[6]="largerRmax"
-NAME[7]="smallerRmax"
-NAME[8]="namforecast"
-PERCENT[2]=20
-PERCENT[4]=100
-PERCENT[5]=-100
-PERCENT[6]=50
-PERCENT[7]=-50
-#ENDTIME=2008090200
 
 # Output files
 
@@ -147,26 +132,31 @@ HOTSTARTCOMP=fulldomain
 # binary or netcdf hotstart files
 HOTSTARTFORMAT=netcdf                      
 # "continuous" or "reset" for maxele.63 etc files
-MINMAX=continuous                               
+MINMAX=reset                               
 
 # Notification
 
-EMAILNOTIFY=no         # yes to have host HPC platform email notifications
-NOTIFY_SCRIPT=null_notify.sh
-ACTIVATE_LIST="foo@bar.edu foo2@bar.com"
-NEW_ADVISORY_LIST="foo@bar.edu foo2@bar.com"
-POST_INIT_LIST="foo@bar.edu foo2@bar.com"
-POST_LIST="foo@bar.edu foo2@bar.com"
-JOB_FAILED_LIST="foo@bar.edu foo2@bar.com"
-NOTIFYUSER=foo@bar.edu
-ASGSADMIN=foo@bar.edu
+EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
+NOTIFY_SCRIPT=ncfs_nam_notify.sh
+ACTIVATE_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
+NEW_ADVISORY_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
+POST_INIT_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
+POST_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
+JOB_FAILED_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
+NOTIFYUSER=jason.fleming@seahorsecoasatal.com
+ASGSADMIN=jason.fleming@seahorsecoastal.com
 
 # Post processing and publication
 
+INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=null_post.sh
+POSTPROCESS=ncfs_post.sh
 POSTPROCESS2=null_post.sh
-TARGET=blueridge
+TARGET=hatteras
+OPENDAPHOST=br0.renci.org
+OPENDAPUSER=ncfs
+OPENDAPBASEDIR=/projects/ncfs/opendap/data
+NUMCERASERVERS=2
 WEBHOST=webserver.hostingco.com
 WEBUSER=remoteuser
 WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts
@@ -177,3 +167,19 @@ ARCHIVE=null_archive.sh
 ARCHIVEBASE=/projects/ncfs/data
 ARCHIVEDIR=archive
 
+# Forecast ensemble members
+
+RMAX=default
+PERCENT=default
+ENSEMBLESIZE=1 # number of storms in the ensemble
+case $si in
+-1)
+      # do nothing ... this is not a forecast
+   ;;
+0)
+   ENSTORM=namforecast
+   ;;
+*)
+   echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
+   ;;
+esac
