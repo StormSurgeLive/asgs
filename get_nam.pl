@@ -52,7 +52,7 @@ my $hour;     # hour (UTC) corresponding to current ADCIRC time
 my @targetDirs; # directories to download NAM data from 
 our $forecastLength = 84; # keeps retrying until it has enough forecast files 
                     # to go for the requested time period
-our $max_retries = 10; # max number of times to attempt download of forecast file
+our $max_retries = 20; # max number of times to attempt download of forecast file
 our $num_retries = 0;      
 our $had_enough = 0;
 my @nowcasts_downloaded;  # list of nowcast files that were 
