@@ -401,6 +401,11 @@ prepFile()
        ;;
     *)
        $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
+       # check to see if adcprep completed successfully
+       if [[ $? != 0 ]]; then
+         warn "The adcprep ${JOBTYPE} failed. See the file $ADVISDIR/$ENSTORM/adcprep.log for details."
+         echo "The adcprep ${JOBTYPE} failed. See the file $ADVISDIR/$ENSTORM/adcprep.log for details." >> jobFailed
+       fi
        ;;
     esac
 }
@@ -974,6 +979,7 @@ CYCLETIMELIMIT="05:00:00"
 IMAGEMAGICKBINPATH=null
 SERQSCRIPT=null
 SERQSCRIPTGEN=null
+VORTEXMODEL=GAHM
 #
 # first - look for SCRIPTDIR
 while getopts "c:e:s:h" optname; do    #<- first getopts for SCRIPTDIR
@@ -1194,7 +1200,7 @@ if [[ $START = coldstart ]]; then
    # initialize rivers ... therefore no met forcing.
    NWS=0
    OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
-   logMessage "Coldstarting Storm '$STORM' in '$YEAR'."
+   logMessage "Coldstarting."
    logMessage "Coldstart time is '$CSDATE'."
    logMessage "The initial hindcast duration is '$HINDCASTLENGTH' days."
    # prepare hindcast control (fort.15) file
@@ -1281,9 +1287,13 @@ while [ true ]; do
    logMessage "Checking for new meteorological data every 60 seconds ..."
    # TROPICAL CYCLONE ONLY
    if [[ $TROPICALCYCLONE = on ]]; then
-      NWS=19
+      BASENWS=20
+      if [[ $VORTEXMODEL = ASYMMETRIC ]]; then
+         BASENWS=19
+      fi
+      NWS=$BASENWS
       if [[ $WAVES = on ]]; then
-         NWS=319
+         NWS=`expr $BASENWS + 300`
       fi
       # download wind data from ftp site every 60 seconds to see if
       # there is a new advisory
@@ -1311,11 +1321,11 @@ while [ true ]; do
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
       STORMNAME=`grep "storm name" run.properties | sed 's/storm name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}    
-      # create an NWS19 file from the existing NWS9 file
-      $ADCIRCDIR/aswip >> ${SYSLOG} 2>&1
-      if [ -e NWS_19_fort.22 ]; then
-         mv fort.22 fort.22.orig
-         cp NWS_19_fort.22 fort.22
+      # create a GAHM or ASYMMETRIC fort.22 file from the existing track file
+      $ADCIRCDIR/aswip -n $BASENWS >> ${SYSLOG} 2>&1
+      if [[ -e NWS_${BASENWS}_fort.22 ]]; then
+         mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
+         cp NWS_${BASENWS}_fort.22 fort.22 >> ${SYSLOG} 2>&1
       fi
    fi
    # BACKGROUND METEOROLOGY
@@ -1487,9 +1497,13 @@ while [ true ]; do
       RUNFORECAST=yes
       # TROPICAL CYCLONE ONLY
       if [[ $TROPICALCYCLONE = on ]]; then
-         NWS=19
+         BASENWS=20
+         if [[ $VORTEXMODEL = ASYMMETRIC ]]; then
+            BASENWS=19
+         fi
+         NWS=$BASENWS
          if [[ $WAVES = on ]]; then
-            NWS=319
+            NWS=`expr $BASENWS + 300`
          fi
          METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $CSDATE --hotstartseconds $HSTIME --nws $NWS --name $ENSTORM"
          if [[ ${PERCENT} != default ]]; then
@@ -1504,7 +1518,7 @@ while [ true ]; do
          CONTROLOPTIONS="--cst $CSDATE --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile ${STORMDIR}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          logMessage "Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
          ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
-         if [[ $NWS = 19 || $NWS = 319 ]]; then
+         if [[ $BASENWS = 19 || $BASENWS = 20 ]]; then
             # create a new file that contains metadata and has the Rmax
             # in it already ... potentially with Rmax changes if desired
             ASWIPOPTIONS=""
@@ -1522,10 +1536,10 @@ while [ true ]; do
                echo "modified : y" >> run.properties 2>> ${SYSLOG}
             fi
             logMessage "Running aswip fort.22 preprocessor for $ENSTORM with the following options: $ASWIPOPTIONS."
-            $ADCIRCDIR/aswip $ASWIPOPTIONS >> ${SYSLOG} 2>&1
-            if [[ -e NWS_19_fort.22 ]]; then
-               mv fort.22 fort.22.orig 2>> ${SYSLOG}
-               cp NWS_19_fort.22 fort.22 2>> ${SYSLOG}
+            $ADCIRCDIR/aswip -n $BASENWS $ASWIPOPTIONS >> ${SYSLOG} 2>&1
+            if [[ -e NWS_${BASENWS}_fort.22 ]]; then
+               mv fort.22 fort.22.orig 2>> ${SYSLOG} 
+               cp NWS_${BASENWS}_fort.22 fort.22 2>> ${SYSLOG}
             fi
          fi
       fi
