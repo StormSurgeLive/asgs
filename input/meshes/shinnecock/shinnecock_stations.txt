@@ -1,0 +1,3 @@
+-72.537491 40.840000  ! Shinnecock Bay
+-72.476286 40.841489  ! Shinnecock Inlet
+-72.466796 40.778291  ! Shinnecock Open Water

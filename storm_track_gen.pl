@@ -3,11 +3,10 @@
 # storm_track_gen.pl
 #
 # This script accepts raw ATCF files from the NHC and produces various
-# fort.22 files for ADCIRC (NWS=9). It accepts a forecast file 
+# fort.22 files for ADCIRC vortex models. It accepts a forecast file 
 # format and optionally a hindcast file. It also requires the cold start
-# time. By default, it produces a fort.22 file (ADCIRC NWS=9 format, i.e.,
-# for the asymmetric vortex wind model) that represents the NHC consensus
-# forecast. 
+# time. By default, it produces a fort.22 file for one of the ADCIRC 
+# vortex wind models that represents the NHC consensus forecast. 
 #---------------------------------------------------------------------
 #
 # ASSUMPTIONS:
@@ -25,7 +24,7 @@
 #
 #---------------------------------------------------------------------
 #
-# Copyright(C) 2006--2012 Jason Fleming
+# Copyright(C) 2006--2015 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -45,9 +44,6 @@
 #
 #---------------------------------------------------------------------
 #
-# VERSION information:
-# jgf20090624: initial release. Does not support Rmax variations yet. Code
-# that fills in the wind radii has a bug in it.
 #
 use strict;
 use Getopt::Long;
@@ -298,7 +294,7 @@ while(<HCST>) {
     # for NWS 8, put all lines in the file, it will figure out which one 
     # it needs
     # jgf20110720: Added possibility of swan coupling
-    if ( $nws == 9 || $nws == 19 || $nws == 309 || $nws == 319 ) {
+    if ( $nws == 20 || $nws == 19 || $nws == 320 || $nws == 319 ) {
        if ( $fields[2] < $zeroDate ) {
           next;
        }
@@ -307,7 +303,7 @@ while(<HCST>) {
     if ( $fields[2] == $zeroDate ) {
        $zdFound = 1;
     }
-    if ( $nws == 9 || $nws == 19 || $nws == 309 || $nws == 319 ) {	
+    if ( $nws == 20 || $nws == 19 || $nws == 320 || $nws == 319 ) {	
        if ( ($zdFound == 0) && ($fields[2] > $zeroDate) ) {
           stderrMessage("ERROR","The date '$fields[2]' was encountered in the hindcast file '$hindcastATCF'; however an exact match of the starting date '$zeroDate' should have preceded it somewhere. Therefore, the file does not contain the proper starting date (i.e., the zero date). The fort.22 file will not be written.");
           die;
@@ -330,7 +326,7 @@ while(<HCST>) {
     # get difference between zero hour and this hindcast time 
     (my $ddays,my $dhrs, my $dsec) = Date::Pcalc::Delta_DHMS($fhcyear,$fhcmon,$fhcday,$fhchour,0,0,$hyear,$hmon,$hday,$hhour,0,0);
     my $time_difference = $ddays*24 + $dhrs; # in hours  
-    if ( $nws == 9 || $nws == 19 || $nws == 309 || $nws == 319 ) {
+    if ( $nws == 20 || $nws == 19 || $nws == 320 || $nws == 319 ) {
        # fill in the time difference as tau
        substr($line,29,4)=sprintf("%4d",$time_difference);
     }
@@ -402,7 +398,7 @@ while(<FCST>) {
    if ( $forecastedDate == $zeroDate ) {
       $zdFound = 1;
    }
-   if ( $nws == 9 || $nws == 19 || $nws == 309 || $nws == 319 ) {
+   if ( $nws == 20 || $nws == 19 || $nws == 320 || $nws == 319 ) {
       if ( ($zdFound == 0) && ($forecastedDate > $zeroDate) ) {
          stderrMessage("ERROR","The date found in the forecast file '$forecastATCF' is after the zero hour of '$zeroDate', but exact zero date was never found.");
          die;
@@ -417,7 +413,7 @@ while(<FCST>) {
    # hour so that we can fill in the forecast period
    (my $ddays,my $dhrs, my $dsec) = Date::Pcalc::Delta_DHMS($zdyear,$zdmon,$zdday,$zdhour,0,0,$ftyear,$ftmon,$ftday,$fthour,0,0);
    my $time_difference = $ddays*24 + $dhrs; # in hours  
-   if ( $nws == 9 || $nws == 19 || $nws == 309 || $nws == 319 ) {
+   if ( $nws == 20 || $nws == 19 || $nws == 320 || $nws == 319 ) {
       # fill in the time difference as tau
       substr($line,29,4)=sprintf("%4d",$time_difference);
    }
@@ -593,7 +589,7 @@ while(<FCST>) {
 close(FCST);
 close(MEMBER);
 if ( $zdFound == 0 ) {
-   if ( $nws == 9 || $nws == 19 || $nws == 309 || $nws == 319 ) {
+   if ( $nws == 20 || $nws == 19 || $nws == 320 || $nws == 319 ) {
       stderrMessage("ERROR","The zero hour '$zeroDate' was not found in the hindcast file $hindcastATCF or the forecast file $forecastATCF."); 
    }
 }

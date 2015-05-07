@@ -232,9 +232,9 @@ stderrMessage("INFO","The fort.15 file will be written to the directory $stormDi
 #
 # call subroutine that knows how to fill in the fort.15 for each particular
 # type of forcing
-if ( abs($nws) == 19 || abs($nws) == 319 ) {
-   stderrMessage("DEBUG","Setting parameters appropriately for asymmetric vortex model.");
-   &asymmetricParameters();
+if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 ) {
+   stderrMessage("DEBUG","Setting parameters appropriately for vortex model.");
+   &vortexModelParameters($nws);
 }
 if ( abs($nws) == 12 || abs($nws) == 312 ) {
    &owiParameters();
@@ -524,7 +524,7 @@ unless (open(RUNPROPS,">>$stormDir/run.properties")) {
 # file, but the CERA web app still needs to have values for these
 # properties. In the case of a vortex met model, these values are
 # filled in by the storm_track_gen.pl script.
-if ( abs($nws) != 19 && abs($nws) != 319 ) {
+if ( abs($nws) != 19 && abs($nws) != 319 && abs($nws) != 20 && abs($nws) != 320 ) {
    printf RUNPROPS "track_raw_dat : notrack\n"; 
    printf RUNPROPS "track_raw_fst : notrack\n"; 
    printf RUNPROPS "track_modified : notrack\n"; 
@@ -860,13 +860,15 @@ sub owiParameters () {
 }
 #
 #--------------------------------------------------------------------------
-#   S U B   A S Y M M E T R I C  P A R A M E T E R S
+#   S U B   V O R T E X   M O D E L    P A R A M E T E R S
 #
 # Determines parameter values for the control file when running
-# the asymmetric wind model (NWS19).
+# the asymmetric wind model (NWS19) or the GAHM (NWS20)
 #--------------------------------------------------------------------------
-sub asymmetricParameters () {
+sub vortexModelParameters () {
+   my $nws = shift;
    $ensembleid = $enstorm;
+   my $geofactor = 1; # turns on Coriolis for GAHM; this is the default
    #
    # open met file containing datetime data
    unless (open(METFILE,"<$metfile")) {
@@ -1099,6 +1101,9 @@ sub asymmetricParameters () {
    $rundesc = "cs:$csdate"."0000 cy:$nhcName$advisorynum ASGS";
    # create the WTIMINC line
    $wtiminc = $cy." ".$cm." ".$cd." ".$ch." 1 ".$bladj;
+   if ( abs($nws) == 20 || abs($nws) == 320 ) {
+      $wtiminc .= " $geofactor";
+   } 
 }
 #
 #--------------------------------------------------------------------------

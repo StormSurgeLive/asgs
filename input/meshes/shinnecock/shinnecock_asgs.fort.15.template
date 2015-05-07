@@ -14,7 +14,7 @@ ASGS %StormName%              ! UPTO 32 CHARACTER ALPHANUMERIC RUN DESCRIPTION
  1                       ! NCOR - VARIABLE CORIOLIS IN SPACE OPTION PARAMETER
  1                       ! NTIP - TIDAL POTENTIAL OPTION PARAMETER
  %NWS%             ! NWS - WIND STRESS AND BAROMETRIC PRESSURE OPTION PARAMETER
- 2                                        ! NRAMP - RAMP FUNCTION OPTION
+ 1                         ! NRAMP - RAMP FUNCTION OPTION
  9.81                       ! G - ACCELERATION DUE TO GRAVITY - DETERMINES UNITS
  0.005                                    ! TAU0 - WEIGHTING FACTOR IN GWCE
  %DT%                                     ! DT - TIME STEP (IN SECONDS)
@@ -22,7 +22,7 @@ ASGS %StormName%              ! UPTO 32 CHARACTER ALPHANUMERIC RUN DESCRIPTION
 0.00   ! REFTIME - REFERENCE TIME (IN DAYS) 
  %WTIMINC%   ! WTIMINC (Not used if NWS=9) 
  %RNDAY%                        ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
- 0.5 0.5 0.5               ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
+ 2.0                    ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
  0.35  0.30  0.35           ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
  0.05 12 12 0.02             ! H0 - MINIMUM CUTOFF DEPTH
  -72.43 40.66                ! SLAM0,SFEA0
