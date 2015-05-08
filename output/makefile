@@ -30,6 +30,13 @@ ifeq ($(compiler),gfortran)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal #-Wall
    endif
 endif
+ifeq ($(compiler),intel)
+   FC := ifort
+   FFLAGS := -cpp -i-dynamic
+   ifeq ($(DEBUG),full)
+      FFLAGS := -cpp -g -O0 -traceback -debug all -check all -ftrapuv -fpe0 -i-dynamic  
+   endif
+endif
 #
 INCLUDES := -I. 
 #
@@ -54,7 +61,7 @@ OBJ := adcmesh.o asgsio.o adcircdata.o
 MODS := adcmesh.mod asgsio.mod adcircdata.mod
 #
 # targets
-all : adcirc2netcdf netcdf2adcirc makeMax
+all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP
 #
 clean :
 	rm -f *.o *.mod *.x
@@ -78,6 +85,9 @@ makeMax : asgsio.mod adcmesh.mod adcircdata.mod ../util/makeMax.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o ../util/$@.x ../util/$@.f90 $(OBJ) $(LDFLAGS)
 #
 generateXDMF : adcmesh.mod generateXDMF.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+#
+generateCPP : adcmesh.mod generateCPP.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
 pullStationTimeSeries : asgsio.mod adcmesh.mod adcircdata.mod pullStationTimeSeries.f90

@@ -42,12 +42,10 @@
 ! Example of compiling with ifort on diamond at ERDC 20130726:
 ! ifort -cpp -o generateCPP.x -DHAVE_NETCDF4 -DNETCDF_CAN_DEFLATE -i-dynamic -I/usr/local/usp/PETtools/CE/pkgs/netcdf-4.2.1.1-intel-serial/include -L/usr/local/usp/PETtools/CE/pkgs/netcdf-4.2.1.1-intel-serial/lib generateCPP.f90 -lnetcdf -lnetcdff -lz
 
-
-      include 'adcmesh.f90'
-
       program generateCPP
       use netcdf
       use adcmesh
+      use asgsio, only : check
       implicit none
 
       integer :: iargc
@@ -66,7 +64,6 @@
       logical :: fileFound
       integer :: i  ! loop counter
 
-      deg2rad = 2.d0*pi/360.d0
       fileFound = .false.
       argcount = iargc() ! count up command line options
       if (argcount.gt.0) then
