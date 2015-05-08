@@ -91,7 +91,8 @@ elif filechoice == 2:
     nc=netCDF4.Dataset('maxele.63.nc').variables
     #nc=netCDF4.Dataset('http://opendap.renci.org:1935/thredds/dodsC/ASGS/arthur/10/nc_inundation_v9.99/hatteras.renci.org/nchi/nhcConsensus/maxele.63.nc').variables
     vname='zeta_max'
-    palettename = 'water-level.pal'
+    #palettename = 'water-level.pal' !jgf20150508: use cold->warm instead
+    palettename = 'wavht.pal'
     var = nc[vname][:]
     var = var.filled(-100)
     var = np.multiply(3.28084,var)
