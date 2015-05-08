@@ -24,7 +24,7 @@ cd %advisdir%/%enstorm%
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 echo "[${DATETIME}] : %jobtype% starting in %advisdir%/%enstorm%." >> %jobtype%.%enstorm%.run.start
 echo "%jobtype% job starting at $DATETIME."
-mpirun -np %ncpu% -machinefile $PBS_NODEFILE %adcircdir%/%jobtype% %cloption% > %jobtype%.%enstorm%.stdout.stderr 2>&1
+mpirun -np %ncpu% -machinefile $PBS_NODEFILE %adcircdir%/%jobtype% %cloptions% > %jobtype%.%enstorm%.stdout.stderr 2>&1
 ERROVALUE=$?
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 if [ $ERROVALUE == 0 ] ; then
