@@ -264,7 +264,9 @@ while (!$dl) {
       while ($i<$cnt) {
          # TROPICAL STORM BERTHA FORECAST/ADVISORY NUMBER  22
          # NWS NATIONAL HURRICANE CENTER MIAMI FL       AL032014
-         if ( $lines[$i] =~ /NWS NATIONAL HURRICANE CENTER MIAMI FL\s+AL(\d{2})(\d{4})/ ) {
+         # pre-2006:
+         # NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL       AL182005
+         if ( $lines[$i] =~ /NATIONAL HURRICANE CENTER MIAMI FL\s+AL(\d{2})(\d{4})/ ) {
             if ($1 == $storm && $2 == $year && $lines[$i-1] =~ /FORECAST.ADVISORY/ ) {
                # we have found the entry containing info about the 
                # latest advisory for our storm
