@@ -17,7 +17,12 @@ my %adcirctypes = ("maxele.63", "MaximumElevation",
                    "fort.73", "BarometricPressure",
                    "fort.74", "WindVelocity",
                    "gradient.txt","WaterSurfaceElevationGradient",
-                   "maxgradient.txt","MaxWaterSurfaceElevationGradient");
+                   "maxgradient.txt","MaxWaterSurfaceElevationGradient",
+                   "positives.100","PositiveElementNumbers",
+                   "negatives.100","NegativeElementNumbers",
+                   "absolutes.100","AbsoluteElementNumbers",
+                   "fdrepeats.100","RepeatedElementNumbersWithinSubdomain",
+                   "subdomains.100","SubdomainNumbers");
 my $R = 6378206.4;           # radius of the earth
 my $pi = 3.141592653589793;
 my $deg2rad = 2*$pi/360.0;
@@ -42,7 +47,7 @@ my $cpp;  # 1 to reproject to cpp (carte parallelogrammatique projection)
    
 my $slam0 = 265.5; # longitude at center of projection
 my $sfea0 = 29.0;  # latitude at center of projection
-my $datacentered = "node";
+my $datacentered = "PointData";
 #
 # If the storm characteristics change, but the track does not, the 
 # track lines will plot right on top of each other. The jitter is
@@ -249,7 +254,14 @@ foreach my $file (@adcircfiles) {
       close(OUT);
       next;
    }
-   $datacentered = "node";
+   $datacentered = "PointData";
+   my $datatype = "Float64";
+   if ( $file eq "positives.100"  || $file eq "negatives.100" || $file eq "absolutes.100" || $file eq "subdomains.100" || $file eq "fdrepeats.100" ) {
+      $num_components = 1;
+      $num_datasets = 1;
+      $datacentered = "CellData";
+      $datatype = "Int32";
+   }
    if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" ) {
       $num_components = 1;
       $num_datasets = 1;
@@ -265,12 +277,12 @@ foreach my $file (@adcircfiles) {
    if ( $file eq "gradient.txt" ) {
       $num_components = 1;
       $num_datasets = 0;
-      $datacentered = "cell"; 
+      $datacentered = "CellData"; 
    }
    if ( $file eq "maxgradient.txt" ) {
       $num_components = 1;
       $num_datasets = 1;
-      $datacentered = "cell"; 
+      $datacentered = "CellData"; 
    }
    # make sure we can actually open the adcirc file before going further
    unless (open(ADCIRCFILE,"<$file")) {
@@ -369,7 +381,11 @@ foreach my $file (@adcircfiles) {
       #stderrMessage("DEBUG","time is $time[$dataset], timestep is $timestep[$dataset]");
       my @mag; # for holding vector magnitudes
       my $io_success = "true";
-      for (my $i=0; $i<$np; $i++) {
+      my $lim=$np; # nodal values are the default
+      if ( $datacentered eq "CellData" ) {
+         $lim=$ne;
+      }
+      for (my $i=0; $i<$lim; $i++) {
          $line = <ADCIRCFILE>;
          if ( defined $line ) {
             @fields = split(' ',$line);
@@ -408,24 +424,28 @@ foreach my $file (@adcircfiles) {
          printf PVD "         <DataSet timestep=\"$time[$dataset]\" group=\"\" part=\"0\" file=\"$outfile\"/>\n";
       }
       &writeHeader($ne, $np);
-      printf OUT "         <PointData $scalars_name $vectors_name>\n"; # set default dataset
+      printf OUT "         <$datacentered $scalars_name $vectors_name>\n"; 
       # write out dataset from ADCIRC file
       my $vtk_components = $num_components;
       if ( $num_components == 2 ) {
          $vtk_components = $num_components + 1; # for vtk all vectors are 3D
       }
-      printf OUT "            <DataArray Name=\"$adcirctypes{$file}\" type=\"Float64\" NumberOfComponents=\"$vtk_components\" format=\"ascii\">\n";
-      for (my $i=0; $i<$np; $i++) {
+      printf OUT "            <DataArray Name=\"$adcirctypes{$file}\" type=\"$datatype\" NumberOfComponents=\"$vtk_components\" format=\"ascii\">\n";
+      for (my $i=0; $i<$lim; $i++) {
          printf OUT "$comp[$i]\n";
       }
       printf OUT "            </DataArray>\n";
       # write vector magnitude if this is a vector dataset
       if ( $num_components > 1 ) {
-         printf OUT "            <DataArray Name=\"$adcirctypes{$file}Magnitude\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
-         for (my $i=0; $i<$np; $i++) {
+         printf OUT "            <DataArray Name=\"$adcirctypes{$file}Magnitude\" type=\"$datatype\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+         for (my $i=0; $i<$lim; $i++) {
             printf OUT "$mag[$i]\n";
          }
          printf OUT "            </DataArray>\n";
+      }
+      if ($datacentered eq "CellData") {
+         printf OUT "         </CellData>\n";
+         printf OUT "         <PointData>\n";
       }
       &writeMesh($ne, $np);    # write out bathymetric depth as a dataset
       &writeFooter();
