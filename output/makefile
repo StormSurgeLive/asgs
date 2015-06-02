@@ -30,6 +30,11 @@ ifeq ($(compiler),gfortran)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal #-Wall
    endif
 endif
+#
+# specify compiler=intel on the make command line
+#
+# For ifort 13.0.0 add -heap-arrays flag to prevent segmentation fault 
+# due possible compiler bug. Flag not needed for ifort version 13.1.3 and later. -nld
 ifeq ($(compiler),intel)
    FC := ifort
    FFLAGS := -cpp -i-dynamic
