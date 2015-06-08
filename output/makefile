@@ -85,3 +85,6 @@ pullStationTimeSeries : asgsio.mod adcmesh.mod adcircdata.mod pullStationTimeSer
 #
 totalWaterDepthGradient : adcmesh.mod totalWaterDepthGradient.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+#
+wetDryCheck : adcmesh.mod asgsio.mod wetDryCheck.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o $(LDFLAGS)

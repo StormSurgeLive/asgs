@@ -6,7 +6,7 @@
 # station output file.  
 #
 #----------------------------------------------------------------
-# Copyright(C) 2009 Jason Fleming
+# Copyright(C) 2009--2015 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -31,16 +31,16 @@ use Getopt::Long;
 #
 sub stderrMessage($$);
 #
-my $fileToPlot; # name of file to plot 
-my $plotType; # type of file to plot 
+my $fileToPlot; # file name of file to plot (e.g., fort.61 etc) 
+my $plotType; # type of file to plot, valid values are held in @supported_files
+my @supported_files = qw(elevation velocity windvelocity barometricpressure);
 my $outputDir; # location of template.gp file
 my $vectorOutput = "magnitude"; # magnitude or direction or raw
 my $timezone="CDT"; # time zone designation to be placed on graphs
 my $units = "english"; # output units, english or si
 my $plotDir;  # directory where the plots should be created
-my $plotType; # type of data to be plotted (elevation, velocity, etc)
 my $gpscript; # name of script file to create
-my @supported_files = qw(elevation velocity windvelocity barometricpressure);
+
 my $datum = "MSL";
 my $enstorm = "Consensus Forecast"; # name of the storm in the ensemble
 my $stormname; # NHC name, e.g., Ike, Katrina, Camille, etc

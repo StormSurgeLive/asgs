@@ -8,7 +8,7 @@
 # different stations and the rows represent time. 
 #
 #----------------------------------------------------------------
-# Copyright(C) 2009,2010 Jason Fleming
+# Copyright(C) 2009--2015 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
