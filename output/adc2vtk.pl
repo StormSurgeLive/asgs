@@ -22,7 +22,16 @@ my %adcirctypes = ("maxele.63", "MaximumElevation",
                    "negatives.100","NegativeElementNumbers",
                    "absolutes.100","AbsoluteElementNumbers",
                    "fdrepeats.100","RepeatedElementNumbersWithinSubdomain",
-                   "subdomains.100","SubdomainNumbers");
+                   "subdomains.100","SubdomainNumbers",
+                   "noff.100","ElementWetDryState",
+                   "noffornot.100","InconsistentElementWetDryState",
+                   "nodecode.63","NodeWetDryState",
+                   "residents.63","ResidentNodeNumbers",
+                   "ghosts.63","GhostNodeNumbers",
+                   "ghostmem.63","GhostNodeSubdomainMembership",
+                   "absolutes.63","AbsoluteNodeNumbers",
+                   "subdomains.63","SubdomainsFromFort18",
+                   "psubdomains.63","SubdomainsFromPartmesh");
 my $R = 6378206.4;           # radius of the earth
 my $pi = 3.141592653589793;
 my $deg2rad = 2*$pi/360.0;
@@ -262,10 +271,22 @@ foreach my $file (@adcircfiles) {
       $datacentered = "CellData";
       $datatype = "Int32";
    }
-   if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" ) {
+   if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" || $file eq "residents.63" || $file eq "ghosts.63" || $file eq "absolutes.63" || $file eq "subdomains.63" || $file eq "psubdomains.63" || $file eq "ghostmem.63" ) {
       $num_components = 1;
       $num_datasets = 1;
+      $datatype = "Int32";
    }
+   if ( $file eq "noff.100" || $file eq "noffornot.100" ) {
+      $num_components = 1;
+      $num_datasets = 0;
+      $datatype = "Int32";
+      $datacentered = "CellData"; 
+   }
+   if ( $file eq "nodecode.63" ) {
+      $num_components = 1;
+      $num_datasets = 0;
+      $datatype = "Int32";
+   }  
    if ( $file eq "fort.63" || $file eq "fort.73" ) {
       $num_components = 1;
       $num_datasets = 0;

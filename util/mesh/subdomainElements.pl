@@ -34,7 +34,6 @@ my @negatives;  # num fort.18 files containing negative f.d. element number
 my @absolutes;  # num fort.18 files containing abs val of f.d. element number
 my @repeats;    # used to check if same  fd ele num repeated within one fort.18
 my @subdomain;  # to visualize which subdomain an element is assigned to 
-my @height;     # to visualize how many subdomains one element is assigned to
 my $ne_g;      # number of fulldomain elements
 # 
 GetOptions("fulldomaindir=s" => \$fulldomainDir);
@@ -50,7 +49,7 @@ foreach my $dir (@subdomainDirs) {
    #
    # open fort.18 (ADCIRC subdomain info) file
    unless (open(FORT18,"<$dir/fort.18")) {
-      stderrMessage("ERROR","Failed to open the fort.18 template $dir/fort.18 for reading: $!");
+      stderrMessage("ERROR","Failed to open the $dir/fort.18 file for reading: $!");
       die;
    }
    my $line = <FORT18>; # FileFmt line; throwaway
@@ -111,7 +110,7 @@ foreach my $dir (@subdomainDirs) {
 #
 # open file for positives
 unless (open(POSITIVES,">positives.100")) {
-   stderrMessage("ERROR","Failed to open the postitives file for writing: $!.");
+   stderrMessage("ERROR","Failed to open the positives file for writing: $!.");
    die;
 }
 #
