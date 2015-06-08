@@ -25,6 +25,7 @@
 module asgsio
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
+use netcdf
 implicit none
 !
 integer :: argcount
@@ -40,8 +41,33 @@ integer, parameter :: NETCDF4 = 5
 integer, parameter :: XDMF = 7
 integer, parameter :: NETCDFG = 35
 integer, parameter :: ASCIIG = 14
-
+!
 integer :: nc_id ! netcdf id of file
+!
+! This derived data type is used to map NetCDF4 variables in various
+! ADCIRC files so that they can be represented in XDMF XML files. It
+! is used in generateXDMF.f90.
+type fileMetaData_t
+   logical :: initialized  ! .true. if memory has been allocated 
+   character(len=2048) :: netCDFFile ! name of targetted netCDF file
+   character(len=1024) :: fileTypeDesc
+   logical :: timeVarying  ! .true. if we have datasets at different times
+   integer :: numVarNetCDF ! number of variables targetted in NetCDF4 file
+   integer, allocatable :: nc_varID(:) ! netcdf variable ID for targetted variables
+   integer, allocatable :: nc_type(:) ! netcdf variable type for targetted variables
+   character(NF90_MAX_NAME), allocatable :: varNameNetCDF(:) 
+   !
+   character(len=2048) :: xmfFile ! name of XDMF XML file
+   integer :: xmfUnit      ! logical unit number of XDMF XML file
+   integer :: numVarXDMF   ! number of variables as represented in XDMF XML
+   character(len=2048), allocatable :: varNameXDMF(:)
+   integer, allocatable :: numComponentsXDMF(:) ! rank of the data array
+   character(len=20), allocatable :: dataCenter(:) ! "Node" or "Element"
+   character(len=20), allocatable :: typeXDMF(:) ! "Int" or "Float"
+   integer, allocatable :: precisionXDMF(:) ! 4 or 8   
+   logical :: timeOfOccurrence ! .true. if min/max file has time of occurrence data
+   logical :: useCPP  ! .true. if metadata should refer to CPP coordinates
+end type fileMetaData_t
 
 !-----------
 !-----------
@@ -116,7 +142,7 @@ use netcdf
 implicit none
 integer,intent(in) :: ncstatus
 if(ncstatus.ne.nf90_noerr)then
-   write(*,'(a,a)') "error: ",trim(nf90_strerror(ncstatus))
+   write(*,'(a,a)') "ERROR: ",trim(nf90_strerror(ncstatus))
    stop 1
 endif
 !---------------------------------------------------------------------      

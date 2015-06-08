@@ -78,3 +78,6 @@
 -91.2158333 29.9091111  !  07381454  !  Belle River at Hwy 70 nr Pierre Part
 -90.959167 30.102778  !  DONL1  !  Mississippi River at Donaldsonville
 -90.9875 30.108888  !  01220  !  Mississippi River at Donaldsonville
+-89.901944 30.014444 !  073802339  !  GIWW East Storm Surge Barrier at New Orleans
+-90.034167 30.030139 ! 073802332 ! Inner Harbor Navigation Canal nr Seabrook bridge
+-89.906944 29.858889 ! 073745245 ! Caernarvon Canal Sector Gate at Caernarvon

@@ -1236,7 +1236,7 @@ endif
          CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nbvv,nbvv,NC_Start,NC_Count))
       end if
 
-      write(6,*) 'INFO: Mesh has been written to NETCDF'
+      write(6,'(a)') 'INFO: Mesh has been written to NETCDF'
 !----------------------------------------------------------------------
       end subroutine writeMeshDataToNetCDF
 !----------------------------------------------------------------------
