@@ -54,6 +54,7 @@ integer :: agnew
 integer :: agold
 integer :: i, j, k, m, n
 logical :: meshonly
+integer :: ncstatus
 
 meshonly = .false.
 sparse = .false.
@@ -198,11 +199,11 @@ do i=1,nvar
       ndset = 1
       timeOfVarName = 'time_of_'//trim(thisVarName)
       do j=1,nvar
-         call check(nf90_inquire_variable(nc_id, j, aVarName))
          ! check to see if this is a new-style min/max file that records
          ! the time of the min or max, and if so, prepare to convert the
          ! time information as well
-         if (trim(aVarName).eq.trim(timeOfVarName)) then
+         ncStatus = nf90_inquire_variable(nc_id, j, aVarName)         
+         if ((ncStatus.eq.NF90_NOERR).and.(trim(aVarName).eq.trim(timeOfVarName)) ) then
             write(6,'(a)') 'INFO: The file contains time of occurrence data.'
             extremesWithTime = .true.
             varname(2) = trim(timeOfVarName)
@@ -284,14 +285,16 @@ write(6,*) "INFO: " // trim(ascii_datafile_name)
 if ( stationfile.eqv..false.) then
    ! determine the number of nodes
    call check(nf90_inq_dimid(nc_id, "node", nc_dimid_node))
-   agold=nf90_get_att(nc_id,nf90_global,'grid',agrid)
-   agnew=nf90_get_att(nc_id,nf90_global,'agrid',agrid)
-   if(agold.EQ.NF90_NOERR)then
-     ag=nf90_get_att(nc_id,nf90_global,'grid',agrid)
-   elseif(agnew.EQ.NF90_NOERR)then
-     ag=nf90_get_att(nc_id,nf90_global,'agrid',agrid)
+   ! get the name of the mesh
+   agold = nf90_get_att(nc_id,nf90_global,'grid',agrid)
+   agnew = nf90_get_att(nc_id,nf90_global,'agrid',agrid)
+   if (agold.EQ.NF90_NOERR) then
+      ag = nf90_get_att(nc_id,nf90_global,'grid',agrid)
+   elseif (agnew.EQ.NF90_NOERR) then
+      ag = nf90_get_att(nc_id,nf90_global,'agrid',agrid)
    else
-     call check(agnew)
+     write(*,'(a)') 'WARNING: The name of the mesh was not found.'
+     agrid = 'mesh_name_not_found'
    endif
 endif
 call check(nf90_inquire_dimension(nc_id, nc_dimid_node, len=np))
