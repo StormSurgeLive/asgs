@@ -116,6 +116,22 @@ init_hatteras()
   PPN=16
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/projects/ncfs/apps/croatan/netcdf/lib
 }
+init_stampede()
+{ #<- can replace the following with a custom script
+  HOSTNAME=stampede.tacc.utexas.edu
+  QUEUESYS=SLURM
+  QCHECKCMD=sacct
+  ACCOUNT=PleaseSpecifyACCOUNTInYourAsgsConfigFile
+  SUBMITSTRING=sbatch
+  SCRATCHDIR=$SCRATCH
+  SSHKEY=~/.ssh/id_rsa_stampede
+  QSCRIPT=stampede.template.slurm
+  PREPCONTROLSCRIPT=stampede.adcprep.template.slurm
+  QSCRIPTGEN=hatteras.slurm.pl
+  PPN=16
+  module load netcdf/4.3.2
+  #jgf20150610: Most likely QUEUENAME=normal SERQUEUENAME=serial
+}
 init_kittyhawk()
 { #<- can replace the following with a custom script
   HOSTNAME=kittyhawk.renci.org
@@ -335,6 +351,9 @@ env_dispatch(){
   "lonestar") consoleMessage "Lonestar (TACC) configuration found."
           init_lonestar
           ;;
+  "stampede") consoleMessage "Stampede (TACC) configuration found."
+          init_stampede
+          ;;
   "arete") consoleMessage "Arete (CCT) configuration found."
           init_arete
           ;;
@@ -344,7 +363,7 @@ env_dispatch(){
   "test") consoleMessage "test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "'$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, queenbee, topsail, desktop, arete"
+  *) fatal "'$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, queenbee, topsail, desktop, arete"
      ;;
   esac
 }
