@@ -1,0 +1,3 @@
+ -95.092  29.759  ! 001 WGRFC 001 Galveston Bay by the Ship Channel
+ -95.976  28.682  ! 002 WGRFC 002 Matagorda Bay by the Colorado River
+ -97.489  27.838  ! 003 WGRFC 003 Nueces Bay for the Nueces River
