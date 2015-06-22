@@ -29,8 +29,8 @@
 
 INSTANCENAME=namtx       # "name" of this ASGS process
 COLDSTARTDATE=2015051600 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+LASTSUBDIR=/scratch/00976/jgflemin/asgs32065/2015061700  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -59,10 +59,10 @@ ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="06:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="06:00:00" # forecast wall clock time
 NCPU=1120                   # number of compute CPUs for all simulations
-NCPUCAPACITY=16
+NCPUCAPACITY=1120
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=request     # "request" for priority, "normal" otherwise
-SERQUEUE=request      # "request" for priority, "serial" otherwise
+QUEUENAME=normal     # "request" for priority, "normal" otherwise
+SERQUEUE=serial      # "request" for priority, "serial" otherwise
 ACCOUNT=TG-DMS080016N
 
 # External data sources : Tropical cyclones

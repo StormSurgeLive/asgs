@@ -1140,7 +1140,12 @@ checkFileExistence $OUTPUTDIR "data archival script" $ARCHIVE
 #
 checkDirExistence ${PERL5LIB}/Date "subdirectory for the Pcalc.pm perl module"
 checkFileExistence ${PERL5LIB}/Date "perl module for date calculations" Pcalc.pm
-
+#
+# Check for any issues or inconsistencies in 
+# configuration parameters. 
+if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
+   fatal "NCPUCAPACITY must be greater than or equal to NCPU plus NUMWRITERS, however NCPUCAPACITY=$NCPUCAPACITY and NUMWRITERS=$NUMWRITERS and NCPU=$NCPU."
+fi
 #
 # initialize the directory where this instance of the ASGS will run and
 # keep all its files
@@ -1445,8 +1450,16 @@ while [ true ]; do
       # ensemble member
       ENSTORM=forecast  # to pick up forecast-related config from config file
       . ${CONFIG}
+      # Check for a misconfiguration where the Operator has set the  
+      # number of CPUs and number of writers greater than the total
+      # number of CPUs that will ever be available.
+      if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
+         error "The requested number of CPUs for $ENSTORM is set to $NCPU and the number of writer processors has been set to $NUMWRITERS but the total number of requested CPUs exceeds the NCPUCAPACITY parameter value of ${NCPUCAPACITY}; therefore this forecast ensemble member will never be able to execute. This forecast ensemble member is being abandoned."
+         continue 
+      fi
       subDirs=`find ${ADVISDIR} -maxdepth 1 -type d -print`
-      if [[ ! -z subDirs ]]; then  # see if we have any ensemble member directories 
+      #debugMessage "subDirs is $subDirs" # jgfdebug
+      if [[ ! -z $subDirs ]]; then  # see if we have any ensemble member directories 
          # continuously loop to see if conditions are right to submit the next job
          while [ true ]; do
             # check to see if the deadline has passed for submitting 
@@ -1458,7 +1471,11 @@ while [ true ]; do
             # total up the number of cpus currently engaged and compare with capacity
             cpusEngaged=0         
             for ensembleMemDir in $subDirs; do
-               if [[ $ensembleMemDir = $ADVISDIR ]]; then continue ; fi
+               # break out of the for loop if the subdirectory is the same as the advisory directory
+               if [[ $ensembleMemDir = $ADVISDIR ]]; then 
+                  #debugMessage "ensembleMemDir $ensembleMemDir is the same as ADVISDIR $ADVISDIR" #jgfdebug
+                  continue 
+               fi
                # parse the run.properties to see what the cpu request is for this job
                # ... if the was never submitted, there won't be a cpurequest property 
                cpuRequest=`grep 'cpurequest' $ensembleMemDir/run.properties | sed 's/cpurequest.*://' | sed 's/^\s//'`
@@ -1473,12 +1490,12 @@ while [ true ]; do
                   cpusEngaged=`expr $cpusEngaged + $cpuRequest`
                fi
             done
-            # debugMessage "The next ensemble member ('$ENSTORM') requires $NCPU compute cores and $NUMWRITERS dedicated writer cores. The number of CPUs currently engaged is $cpusEngaged. The max number of cores that can be engaged is $NCPUCAPACITY."
+            #debugMessage "The next ensemble member ('$ENSTORM') requires $NCPU compute cores and $NUMWRITERS dedicated writer cores. The number of CPUs currently engaged is $cpusEngaged. The max number of cores that can be engaged is $NCPUCAPACITY."
             if [[ `expr $NCPU + $NUMWRITERS + $cpusEngaged` -le $NCPUCAPACITY ]]; then
-               # debugMessage "Sufficient capacity exists to run the next job."
+               #debugMessage "Sufficient capacity exists to run the next job."
                break      # we now have the spare capacity to run this ensemble member
             else 
-               # debugMessage "Insufficient capacity to submit the next job. Sleeping for 1 minute."
+               logMessage "Insufficient capacity to submit the next job. Sleeping for 1 minute."
                sleep 60   # not enough cores available; sleep for a minute, then recheck/recalculate
             fi
          done

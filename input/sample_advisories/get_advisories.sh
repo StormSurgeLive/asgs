@@ -33,12 +33,15 @@ BASIN=$5
 FSTORMNUMBER=`printf "%02d" $STORMNUMBER`
 #
 while [[ $ADVISORY -le $MAXADVISORY ]]; do 
+   urlRoot=http://www.nhc.noaa.gov/archive/$YEAR
    file=`printf "$BASIN$FSTORMNUMBER$YEAR.fstadv.%03d.shtml" $ADVISORY` 
-   echo $file 
    if [[ $YEAR -lt 2006 ]]; then
-      curl http://www.nhc.noaa.gov/archive/$YEAR/mar/$file > $file
-   else
-      curl http://www.nhc.noaa.gov/archive/$YEAR/$BASIN$FSTORMNUMBER/$file > $file
-   fi  
+      urlRoot="$urlRoot/mar"
+   fi
+   if [[ $YEAR -ge 2006 ]]; then
+      urlRoot="$urlRoot/$BASIN$FSTORMNUMBER"
+   fi
+   echo "curl $urlRoot/$file > $file"
+   curl $urlRoot/$file > $file
    ADVISORY=`expr $ADVISORY + 1`
 done
