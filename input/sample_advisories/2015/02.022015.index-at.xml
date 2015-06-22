@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Tue, 16 Jun 2015 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm BILL Forecast/Advisory Number 2</title>
+      <description>Issued at 0900 UTC TUE JUN 16 2015 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM BILL FORECAST/ADVISORY NUMBER   2
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL022015
+0900 UTC TUE JUN 16 2015
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+NONE.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* BAFFIN BAY TO HIGH ISLAND TEXAS
+
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA.
+
+TROPICAL STORM CENTER LOCATED NEAR 27.9N  95.7W AT 16/0900Z
+POSITION ACCURATE WITHIN  40 NM
+
+PRESENT MOVEMENT TOWARD THE NORTHWEST OR 310 DEGREES AT  11 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1004 MB
+MAX SUSTAINED WINDS  45 KT WITH GUSTS TO  55 KT.
+34 KT.......130NE 130SE   0SW   0NW.
+12 FT SEAS..180NE 120SE  15SW  30NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 27.9N  95.7W AT 16/0900Z
+AT 16/0600Z CENTER WAS LOCATED NEAR 27.6N  95.3W
+
+FORECAST VALID 16/1800Z 29.0N  96.8W...INLAND
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT...120NE 130SE   0SW   0NW.
+
+FORECAST VALID 17/0600Z 30.6N  97.6W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 17/1800Z 32.6N  97.6W...POST-TROP/INLAND
+MAX WIND  20 KT...GUSTS  30 KT.
+
+FORECAST VALID 18/0600Z 34.5N  96.6W...POST-TROP/INLAND
+MAX WIND  15 KT...GUSTS  25 KT.
+
+FORECAST VALID 19/0600Z 36.3N  94.0W...POST-TROP/INLAND
+MAX WIND  15 KT...GUSTS  25 KT.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 200 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 20/0600Z 39.0N  88.0W...POST-TROP/INLAND
+MAX WIND  15 KT...GUSTS  25 KT.
+
+OUTLOOK VALID 21/0600Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 27.9N  95.7W
+
+NEXT ADVISORY AT 16/1500Z
+
+$$
+FORECASTER PASCH
+
+</pre>]]></description>
+      <pubDate>Tue, 16 Jun 2015 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2015/02/02.022015.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2015/02/02.022015.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
