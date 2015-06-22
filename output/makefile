@@ -41,6 +41,10 @@ ifeq ($(compiler),intel)
    ifeq ($(DEBUG),full)
       FFLAGS := -cpp -g -O0 -traceback -debug all -check all -ftrapuv -fpe0 -i-dynamic  
    endif
+   # jgf20150616: Added to implement nld's -heap-arrays fix.
+   ifeq ($(HEAP_ARRAYS),fix)
+      FFLAGS := $(FFLAGS) -heap-arrays
+   endif
 endif
 #
 INCLUDES := -I. 
@@ -50,6 +54,11 @@ INCLUDES := -I.
 ifeq ($(NETCDF),enable)
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    NETCDFPATH  := /usr
+   #
+   # jgf20150616: Added netcdf paths for stampede at TACC.
+   ifeq ($(MACHINENAME),stampede) 
+      NETCDFPATH := /opt/apps/intel13/netcdf/4.3.2/x86_64
+   endif
    INCLUDES    := -I. -I$(NETCDFPATH)/include
    LIBS        := -L$(NETCDFPATH)/lib
    LDFLAGS     := -lnetcdff

@@ -2,7 +2,7 @@
 
 #SBATCH -J %jobtype%.%enstorm%  # job name
 #SBATCH -t %walltime%           # wall time (hh:mm:ss)
-#SBATCH -p serial               # queue name e.g. serial or normal
+#SBATCH -p %queuename%          # queue name e.g. serial or normal or request
 #SBATCH -n 1 
 #SBATCH -N 1
 #SBATCH -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out

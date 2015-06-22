@@ -28,9 +28,9 @@
 # Fundamental
 
 INSTANCENAME=billtx      # "name" of this ASGS process
-COLDSTARTDATE=2015051700 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
+COLDSTARTDATE=2015051600 # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart       # "hotstart" or "coldstart"
+LASTSUBDIR=/scratch/00976/jgflemin/asgs32065/2015061700  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -44,9 +44,9 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on     # NAM download/forcing
+BACKGROUNDMET=off    # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
-TROPICALCYCLONE=off  # tropical cyclone forcing
+TROPICALCYCLONE=on   # tropical cyclone forcing
 WAVES=off            # wave forcing
 VARFLUX=off          # variable river flux forcing
 
@@ -61,23 +61,23 @@ FORECASTWALLTIME="06:00:00" # forecast wall clock time
 NCPU=1120                   # number of compute CPUs for all simulations
 NCPUCAPACITY=16
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=request           # "request" for priority, "normal" otherwise
-SERQUEUE=request            # "request" for priority, "normal" otherwise
+QUEUENAME=normal           # "request" for priority, "normal" otherwise
+SERQUEUE=serial            # "request" for priority, "serial" otherwise
 ACCOUNT=TG-DMS080016N
 
 # External data sources : Tropical cyclones
 
 STORM=02                         # storm number, e.g. 05=ernesto in 2006
-YEAR=2012                        # year of the storm
+YEAR=2015                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
-RSSSITE=filesystem
-FTPSITE=filesystem
-FDIR=${INPUTDIR}/sample_advisories
-HDIR=${INPUTDIR}/sample_advisories
-#RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
-#FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
-#FDIR=/atcf/afst                  # forecast dir on nhc ftp site
-#HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
+#RSSSITE=filesystem
+#FTPSITE=filesystem
+#FDIR=${INPUTDIR}/sample_advisories
+#HDIR=${INPUTDIR}/sample_advisories
+RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
+FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
+FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
@@ -97,7 +97,7 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 GRIDFILE=tx2008_r35h.grd               # mesh (fort.14) file
 GRIDNAME=tx2008_r35h
-CONTROLTEMPLATE=tx2008r35h_norough_template.15 # fort.15 template
+CONTROLTEMPLATE=tx2008r35h_template.15 # fort.15 template
 ELEVSTATIONS=ut-stations.txt    # or substitute your own stations file
 VELSTATIONS=ut-stations.txt
 METSTATIONS=ut-stations.txt
@@ -177,7 +177,7 @@ case $si in
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
