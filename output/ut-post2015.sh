@@ -138,7 +138,6 @@ perl ${OUTPUTDIR}/autoplot.pl --filetoplot fort.72_transpose.txt --plotType wind
 # We will need to call the 'convert' program, and the path is 
 # not configurable there, so let's see if we can get the program to work
 # by adding the imagemagick path to the path before calling that program
-#export PATH=/share/home/00675/jdietri1/ImageMagick-6.7.6-9/bin/convert:$PATH
 # jgf20150616: stampede has convert.
 for plotfile in `ls *.gp`; do
    gnuplot $plotfile 2>> ${SYSLOG}
@@ -152,57 +151,59 @@ if [[ $TROPICALCYCLONE = on ]]; then
    plotarchive=${YEAR}.${STORM}.${plotarchive} 2>> ${SYSLOG}
 fi
 #
-# extract netcdf data to ascii for use with FigureGen
-cd ${STORMDIR} 2>> ${SYSLOG}
-for file in maxele.63 swan_HS_max.63 maxwvel.63; do
-   if [[ -e ${file}.nc ]]; then
-      ${OUTPUTDIR}/netcdf2adcirc.x --datafile ${file}.nc 2>> ${SYSLOG}
-   fi
-done
-#
-# FigureGen commands for spatial plots.
-#
-module load intel/14.0.1.106 2>> ${SYSLOG} 2>&1
-module load gmt/5.1.1 2>> ${SYSLOG} 2>&1
-mkdir ${ADVISDIR}/${ENSTORM}/FG49 2>> ${SYSLOG}
-cd ${ADVISDIR}/${ENSTORM}/FG49 2>> ${SYSLOG}
-cp ../fort.14 . 2>> ${SYSLOG}
-cp ../maxele.63 . 2>> ${SYSLOG}
-cp ../swan_HS_max.63 . 2>> ${SYSLOG}
-cp ../maxwvel.63 . 2>> ${SYSLOG}
-cp ${OUTPUTDIR}/FG49/* . 2>> ${SYSLOG}
-tropcyc=0
-if [[ $TROPICALCYCLONE = on ]]; then
-   tropcyc=1
-fi
-perl FG49.pl --template FG49_MaxEle_LATEX.template --tropcyc ${tropcyc} --year ${YEAR} --storm ${STORM} --advisory ${ADVISORY} --kmzflag 0 > FG49_MaxEle_LATEX.inp 2>> ${SYSLOG} 
-perl FG49.pl --template FG49_MaxEle_LATEX.template --tropcyc ${tropcyc} --year ${YEAR} --storm ${STORM} --advisory ${ADVISORY} --kmzflag 1 > FG49_MaxEle_LATEX_KMZ.inp 2>> ${SYSLOG} 
-./FigureGen49_Serial.exe -I ./FG49_MaxEle_LATEX.inp -V 49 2>> ${SYSLOG} 2>&1
-./FigureGen49_Serial.exe -I ./FG49_MaxEle_LATEX_KMZ.inp -V 49 2>> ${SYSLOG} 2>&1
-perl FG49.pl --template FG49_MaxHS_LATEX.template --tropcyc ${tropcyc} --year ${YEAR} --storm ${STORM} --advisory ${ADVISORY} --kmzflag 0 > FG49_MaxHS_LATEX.inp 2>> ${SYSLOG}
-perl FG49.pl --template FG49_MaxHS_LATEX.template --tropcyc ${tropcyc} --year ${YEAR} --storm ${STORM} --advisory ${ADVISORY} --kmzflag 1 > FG49_MaxHS_LATEX_KMZ.inp 2>> ${SYSLOG}
-./FigureGen49_Serial.exe -I ./FG49_MaxHS_LATEX.inp -V 49 2>> ${SYSLOG} 2>&1
-./FigureGen49_Serial.exe -I ./FG49_MaxHS_LATEX_KMZ.inp -V 49 2>> ${SYSLOG} 2>&1
-perl FG49.pl --template FG49_MaxWind_LATEX.template --tropcyc ${tropcyc} --year ${YEAR} --storm ${STORM} --advisory ${ADVISORY} --kmzflag 0 > FG49_MaxWind_LATEX.inp 2>> ${SYSLOG}
-perl FG49.pl --template FG49_MaxWind_LATEX.template --tropcyc ${tropcyc} --year ${YEAR} --storm ${STORM} --advisory ${ADVISORY} --kmzflag 1 > FG49_MaxWind_LATEX_KMZ.inp 2>> ${SYSLOG}
-./FigureGen49_Serial.exe -I ./FG49_MaxWind_LATEX.inp -V 49 2>> ${SYSLOG} 2>&1
-./FigureGen49_Serial.exe -I ./FG49_MaxWind_LATEX_KMZ.inp -V 49 2>> ${SYSLOG} 2>&1
-perl FG49.pl --template FG49_MaxEle_FL.template --tropcyc ${tropcyc} --year ${YEAR} --storm ${STORM} --advisory ${ADVISORY} --kmzflag 0 > FG49_MaxEle_FL.inp 2>> ${SYSLOG}
-perl FG49.pl --template FG49_MaxEle_FL.template --tropcyc ${tropcyc} --year ${YEAR} --storm ${STORM} --advisory ${ADVISORY} --kmzflag 1 > FG49_MaxEle_FL_KMZ.inp 2>> ${SYSLOG}
-./FigureGen49_Serial.exe -I ./FG49_MaxEle_FL.inp -V 49 2>> ${SYSLOG} 2>&1
-./FigureGen49_Serial.exe -I ./FG49_MaxEle_FL_KMZ.inp -V 49 2>> ${SYSLOG} 2>&1
-perl FG49.pl --template FG49_MaxHS_FL.template --tropcyc ${tropcyc} --year ${YEAR} --storm ${STORM} --advisory ${ADVISORY} --kmzflag 0 > FG49_MaxHS_FL.inp 2>> ${SYSLOG}
-perl FG49.pl --template FG49_MaxHS_FL.template --tropcyc ${tropcyc} --year ${YEAR} --storm ${STORM} --advisory ${ADVISORY} --kmzflag 1 > FG49_MaxHS_FL_KMZ.inp 2>> ${SYSLOG}
-./FigureGen49_Serial.exe -I ./FG49_MaxHS_FL.inp -V 49 2>> ${SYSLOG} 2>&1
-./FigureGen49_Serial.exe -I ./FG49_MaxHS_FL_KMZ.inp -V 49 2>> ${SYSLOG} 2>&1
-perl FG49.pl --template FG49_MaxWind_FL.template --tropcyc ${tropcyc} --year ${YEAR} --storm ${STORM} --advisory ${ADVISORY} --kmzflag 0 > FG49_MaxWind_FL.inp 2>> ${SYSLOG}
-perl FG49.pl --template FG49_MaxWind_FL.template --tropcyc ${tropcyc} --year ${YEAR} --storm ${STORM} --advisory ${ADVISORY} --kmzflag 1 > FG49_MaxWind_FL_KMZ.inp 2>> ${SYSLOG}
-./FigureGen49_Serial.exe -I ./FG49_MaxWind_FL.inp -V 49 2>> ${SYSLOG} 2>&1
-./FigureGen49_Serial.exe -I ./FG49_MaxWind_FL_KMZ.inp -V 49 2>> ${SYSLOG} 2>&1
-#
 # tar up the plots and the csv files
 cd $InitialDirectory 2>> ${SYSLOG} 2>&1
-zip ${ADVISDIR}/${ENSTORM}/WGRFC.${plotarchive} plots/*.png plots/*.csv ./fort.61 ./fort.72 2>> ${SYSLOG} 2>&1
-zip ${ADVISDIR}/${ENSTORM}/UT-CSR.${plotarchive} ./fort.14 ./fort.22 ./maxele.63 ./elemaxdry.63 ./nodeflag.63 ./rising.63 ./tinun.63 FG49/*LATEX_0001.tif FG49/*LATEX_KMZ.kmz 2>> ${SYSLOG} 2>&1
-zip ${ADVISDIR}/${ENSTORM}/Miami-NWS.${plotarchive} FG49/ASGS.txt FG49/*FL_0001.tif FG49/*FL_KMZ.kmz 2>> ${SYSLOG} 2>&1
+#
+#  O P E N  D A P    P U B L I C A T I O N 
+#
+STORMNAMEPATH=null
+DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
+CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
+if [[ $BACKGROUNDMET = on ]]; then
+   # for NAM, the "advisory number" is actually the cycle time 
+   STORMNAMEPATH=tc/nam
+fi
+if [[ $TROPICALCYCLONE = on ]]; then
+   STORMNAME=`grep -m 1 "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+   STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
+   STORMNAMEPATH=tc/$STORMNAMELC
+fi
+OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HOSTNAME/$INSTANCENAME/$ENSTORM
+# put the opendap download url in the run.properties file for CERA to find
+downloadURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
+echo "downloadurl : $downloadURL" >> run.properties
+# now actually make the directory (OPENDAPBASEDIR is specified in CONFIG)
+OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
+#
+logMessage "Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER with the ssh key in $SSHKEY."
+debugMessage "The actual transfer has been commented out, pending the activation of a suitable thredds server."
+#ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
+for file in `ls *.nc *.xmf ${ADVISDIR}/al*.fst ${ADVISDIR}/bal*.dat fort.15 fort.22 run.properties`; do
+   chmod +r $file 2>> $SYSLOG
+   logMessage "Transferring $file."
+   debugMessage "(not actually transferring the file)"
+   #scp -i $SSHKEY $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG
+   #ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "chmod +r $OPENDAPDIR/$file"
+done
+#
+COMMA_SEP_LIST="jason.g.fleming@gmail.com" #,asgs.cera.lsu@gmail.com"
+runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'`
+subject="ADCIRC NCFS POSTED for $runStartTime"
+if [[ $TROPICALCYCLONE = on ]]; then
+   subject=${subject}" (TROPICAL CYCLONE)"
+fi
+subject="${subject} $CERASERVER"
+subject="${subject} $HOSTNAME.$INSTANCENAME $ENMEMNUM"
+cat <<END > ${STORMDIR}/cera_results_notify.txt 
+
+The ADCIRC NCFS solutions for $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
+
+The run.properties file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
+   
+or wget the file with the following command
+
+wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
+END
+echo "INFO: ut-post2015.sh: Sending 'results available' email to the following addresses: $COMMA_SEP_LIST."
+cat ${STORMDIR}/cera_results_notify.txt | mail -s "$subject" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 
