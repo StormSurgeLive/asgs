@@ -137,20 +137,20 @@ MINMAX=reset
 # Notification
 
 EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
-NOTIFY_SCRIPT=null_notify.sh
-ACTIVATE_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
-NEW_ADVISORY_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
-POST_INIT_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
-POST_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
-JOB_FAILED_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
-NOTIFYUSER=jason.fleming@seahorsecoasatal.com
-ASGSADMIN=jason.fleming@seahorsecoastal.com
+NOTIFY_SCRIPT=ut-nam-notify.sh
+ACTIVATE_LIST="jason.g.fleming@gmail.com"
+NEW_ADVISORY_LIST="jason.g.fleming@gmail.com"
+POST_INIT_LIST="jason.g.fleming@gmail.com"
+POST_LIST="jason.g.fleming@gmail.com"
+JOB_FAILED_LIST="jason.g.fleming@gmail.com"
+NOTIFYUSER=jason.g.fleming@gmail.com
+ASGSADMIN=jason.g.fleming@gmail.com
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general
+INTENDEDAUDIENCE=developers-only
 INITPOST=null_init_post.sh
-POSTPROCESS=null_post.sh
+POSTPROCESS=ut-post2015.sh
 POSTPROCESS2=null_post.sh
 TARGET=stampede
 OPENDAPHOST=br0.renci.org

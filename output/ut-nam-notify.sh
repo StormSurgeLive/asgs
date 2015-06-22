@@ -1,6 +1,8 @@
 #!/bin/bash
-#
-# Copyright(C) 2008, 2009, 2010 Jason Fleming
+#-------------------------------------------------------------------
+# ut-nam-notify.sh: Send emails for NAM forced model runs for Texas.
+#-------------------------------------------------------------------
+# Copyright(C) 2008-2015 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -16,7 +18,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#--------------------------------------------------------------------
 #
+logMessage()
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+  MSG="[${DATETIME}] INFO: $@"
+  echo ${MSG} >> ${SYSLOG}
+}
+
 HOSTNAME=$1
 STORM=$2
 YEAR=$3
@@ -28,6 +37,8 @@ PHASE=$8
 EMAILNOTIFY=$9
 SYSLOG=${10}
 ADDRESS_LIST=${11}
+ARCHIVEBASE=${12}
+ARCHIVEDIR=${13}
 #
 # simply return if we are not supposed to send out emails
 if [[ $EMAILNOTIFY != yes && $EMAILNOTIFY != YES ]]; then
@@ -55,7 +66,7 @@ The supercomputer $HOSTNAME has downloaded a hurricane forecast from the Nationa
 You will receive an email from the ASGS on $HOSTNAME as soon as the results of this guidance become available. You will also  continue to receive storm surge guidance for each forecast that the NHC issues for this storm, until the storm has passed through Texas.
 
 END
-    echo "Sending activation email to the following addresses: $COMMA_SEP_LIST."
+    logMessage "Sending activation email to the following addresses: $COMMA_SEP_LIST."
     cat $STORMDIR/activate.txt | mail -s "ASGS Activated on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
@@ -74,7 +85,7 @@ You will receive another email from the ASGS on $HOSTNAME as soon as the resulti
 You may also receive emails notifying you of the detection of advisory $ADVISORY for storm $STORM from ASGS instances that are running on supercomputers OTHER THAN ${HOSTNAME}.  The other instances are running for redundancy purposes.  
 
 END
-    echo "Sending 'new advisory detected' email to the following addresses: $COMMA_SEP_LIST."
+    logMessage "Sending 'new advisory detected' email to the following addresses: $COMMA_SEP_LIST."
      cat $STORMDIR/new_advisory.txt | mail -s "$STORMNAME advisory $ADVISORY detected by ASGS on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 
 ;;
@@ -92,7 +103,7 @@ The ASGS on $HOSTNAME is now waiting for the National Hurricane Center to issue 
 
 END
 #
-echo "Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
+logMessage "Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
 cat ${STORMDIR}/post_notify.txt | mail -s "ASGS results available for $STORMNAME advisory $ADVISORY from $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
@@ -107,10 +118,10 @@ A job running on the supercomputer $HOSTNAME has failed when running storm surge
 
 END
 #
-echo "Sending 'job failed' email to the following addresses: $COMMA_SEP_LIST."
+logMessage "Sending 'job failed' email to the following addresses: $COMMA_SEP_LIST."
 cat ${STORMDIR}/job_failed_notify.txt | mail -s "ASGS job $STORMNAME $ADVISORY failed on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 *)
-echo "ERROR: corps_cyclone_notify.sh: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."
+logMessage "ERROR: ut-nam-notify.sh: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."
 ;;
 esac

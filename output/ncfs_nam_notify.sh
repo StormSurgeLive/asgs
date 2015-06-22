@@ -1,6 +1,9 @@
 #!/bin/bash
-#
-# Copyright(C) 2008, 2009, 2010 Jason Fleming
+#----------------------------------------------------------------------------
+# ncfs_nam_notify.sh: Send emails for NAM forced model runs for
+# North Carolina.
+#----------------------------------------------------------------------------
+# Copyright(C) 2008-2015 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -16,7 +19,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
-#
+#----------------------------------------------------------------------------
 #
 logMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
