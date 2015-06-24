@@ -8,10 +8,9 @@
 ! Example of compiling with gfortran with profiling and test coverage turned on:
 ! gfortran -pg -O0 -fprofile-arcs -ftest-coverage -Wall -ffree-line-length-none -o convertna.x -I/home/jason/asgs/trunk/output -I/usr/include convertna.f90 -lnetcdff
 !-----------------------------------------------------------------------
-include 'adcmesh.f90'
-include 'nodalattr.f90'
 program convertna
 use adcmesh
+use asgsio, only : openFileForRead
 use nodalattr
 implicit none
 character(len=1024) :: outputfile

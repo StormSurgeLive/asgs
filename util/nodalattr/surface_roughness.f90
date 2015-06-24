@@ -8,8 +8,6 @@
 ! Example of compiling with gfortran with profiling and test coverage turned on:
 ! gfortran -pg -O0 -fprofile-arcs -ftest-coverage -Wall -ffree-line-length-none -o surface_roughness.x -I/home/jason/asgs/trunk/output -I/usr/include surface_roughness.f90 -lnetcdff
 !-----------------------------------------------------------------------
-include 'adcmesh.f90'
-include 'landuse.f90'
 program surface_roughness
 use adcmesh
 use landuse

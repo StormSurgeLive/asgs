@@ -39,7 +39,7 @@ contains
 ! file. 
 !-----------------------------------------------------------------------
 subroutine loadNodalAttribute(naName)
-use adcmesh, only : openFileForRead
+use asgsio, only : openFileForRead
 implicit none
 character(len=1024), intent(in) :: naName   ! name of the nodal attribute
 character(len=80) :: line    ! throwaway line
@@ -123,7 +123,7 @@ end subroutine loadNodalAttribute
 ! attributes file. 
 !-----------------------------------------------------------------------
 subroutine readNodalAttributesFile(datafilebase)
-use adcmesh, only : openFileForRead
+use asgsio, only : openFileForRead
 implicit none
 character(len=1024), intent(in) :: datafilebase  ! name of the nodal attributes fileg
 character(len=1024) :: line

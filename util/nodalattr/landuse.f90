@@ -80,7 +80,7 @@ contains
 ! jgf: Loads up a set of land use data and echoes the metadata to stdout.
 !-----------------------------------------------------------------------
 subroutine loadLandUse()
-use adcmesh, only : openFileForRead
+use asgsio, only : openFileForRead
 implicit none
 integer :: j, k
 integer :: chunk ! reporting 10% for progress bar
@@ -152,7 +152,7 @@ end subroutine loadLandUse
 ! is expected to be a real number. 
 !-----------------------------------------------------------------------
 subroutine loadLookupTable()
-use adcmesh, only : openFileForRead
+use asgsio, only : openFileForRead
 implicit none
 integer :: i, j
 ! 
