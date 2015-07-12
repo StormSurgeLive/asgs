@@ -1,8 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta name="generator" content="AsciiDoc 8.6.7">
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.6" />
 <title>ASWIP(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -348,7 +349,7 @@ div.colist td img {
   margin-bottom: 0.1em;
 }
 
-div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -406,8 +407,6 @@ span.underline { text-decoration: underline; }
 span.overline { text-decoration: overline; }
 span.line-through { text-decoration: line-through; }
 
-div.unbreakable { page-break-inside: avoid; }
-
 
 /*
  * xhtml11 specific
@@ -415,7 +414,7 @@ div.unbreakable { page-break-inside: avoid; }
  * */
 
 tt {
-  font-family: "Courier New", Courier, monospace;
+  font-family: monospace;
   font-size: inherit;
   color: navy;
 }
@@ -454,7 +453,7 @@ div.tableblock > table[frame="vsides"] {
  * */
 
 .monospaced {
-  font-family: "Courier New", Courier, monospace;
+  font-family: monospace;
   font-size: inherit;
   color: navy;
 }
@@ -582,7 +581,7 @@ toc: function (toclevels) {
 
   function tocEntries(el, toclevels) {
     var result = new Array;
-    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
     // Function that scans the DOM tree for header elements (the DOM2
     // nodeIterator API would be a better technique but not supported by all
     // browsers).
@@ -611,7 +610,7 @@ toc: function (toclevels) {
   var i;
   for (i = 0; i < toc.childNodes.length; i++) {
     var entry = toc.childNodes[i];
-    if (entry.nodeName.toLowerCase() == 'div'
+    if (entry.nodeName == 'div'
      && entry.getAttribute("class")
      && entry.getAttribute("class").match(/^toclevel/))
       tocEntriesToRemove.push(entry);
@@ -657,7 +656,7 @@ footnotes: function () {
   var entriesToRemove = [];
   for (i = 0; i < noteholder.childNodes.length; i++) {
     var entry = noteholder.childNodes[i];
-    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+    if (entry.nodeName == 'div' && entry.getAttribute("class") == "footnote")
       entriesToRemove.push(entry);
   }
   for (i = 0; i < entriesToRemove.length; i++) {
@@ -756,12 +755,16 @@ ASWIP(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The aswip(1) command reads an ADCIRC fort.22 file for the HWind format
-(NWS=15 in the ADCIRC fort.15) or an ATCF formatted BEST track file with the hours column filled
-in as described for the dynamic asymmetric vortex model (NWS=19 in the ADCIRC fort.15)
-In the case of ATCF formatted input, it generates an output file suitable for
-use in the asymmetric vortex model in ADCIRC. It can also perform vortex wind
-field analyses as described below.</p></div>
+<div class="paragraph"><p>The aswip(1) command reads an ATCF-formatted ADCIRC fort.22 file
+with the hours column filled in as described for the dynamic
+asymmetric vortex model (NWS=19 in the ADCIRC fort.15). It also
+reads an ADCIRC fort.22 file formatted for use with HWind (NWS=15),
+but only for visualzation purposes.</p></div>
+<div class="paragraph"><p>In the case of ATCF formatted input, aswip produces an ADCIRC
+fort.22 file suitable for use in the asymmetric vortex model
+(NWS=19) or Generalized Asymmetric Holland Model (GAHM, NWS=20) in
+ADCIRC. It can also perform vortex wind field analyses as described
+below.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -837,6 +840,17 @@ field analyses as described below.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+<strong>-g, -G</strong> <em>GEOFACTOR</em>
+</dt>
+<dd>
+<p>
+    Use the this geofactor when developing NWS_20_fort.22 files; geofactor
+    should be 0 or 1. Geostrophic balance is recommended and is specified
+    with a geofactor of 1. Cyclostrophic balance is specified by zero and
+    is only used for comparison purposes.
+</p>
+</dd>
+<dt class="hdlist1">
 <strong>-i, -I</strong> <em>MESH_FILE</em>
 </dt>
 <dd>
@@ -857,7 +871,18 @@ field analyses as described below.</p></div>
     at the center of that storm quadrant at that point in time. Possible
     values of <em>ISOTACH_SELECTION_METHOD</em> are 1, meaning that the 34kt
     isotach should always be used; or 2, meaning that the highest isotach
-    should always be used.
+    should always be used. For NWS19, 2 is the recommended value, whereas
+    for NWS20, 4 is the recommended value (use all available isotachs).
+</p>
+</dd>
+<dt class="hdlist1">
+<strong>-z, -Z</strong> <em>APPROACH</em>
+</dt>
+<dd>
+<p>
+    Use <em>APPROACH</em> to define the direction of the radial wind velocity.
+    If set to 2, this sets both Vr and quadrantVr tangential to the
+    azimuth. This should be set to 1 for NWS19 and set to 2 for NWS20.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -879,7 +904,7 @@ field analyses as described below.</p></div>
 <p>
     The input fort.22 file is set up in the format required for the
     ADCIRC wind model corresponding to the <em>NWS</em> value. The NWS values
-    15 and 19 are supported. If <em>NWS</em> is set to 19, the fort.22 is expected
+    15 and 19 are supported. If <em>NWS</em> is set to 19 or 20, the fort.22 is expected
     to be in ATCF format with the hours column set to monotonically increasing
     values, and an input file will be generated for ADCIRC&#8217;s asymmetric vortex
     model. If <em>NWS</em> is set to 15 (HWind), only wind analysis features are supported.
@@ -946,8 +971,8 @@ ADCIRC modules be available during compilation.</p></div>
 <div class="sectionbody">
 <div class="paragraph"><p>Aswip was originally created by Robert Weaver and Rick Luettich.
 Jason Fleming reorganized it for modularity and brevity and added
-the meteorological analysis features. This man page was written by
-Jason Fleming.</p></div>
+the meteorological analysis features. It was extended for use with
+the GAHM by Jie Gao. This man page was written by Jason Fleming.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -961,15 +986,14 @@ Seahorse Coastal Consulting: <a href="http://www.seahorsecoastal.com">http://www
 <h2 id="_copying">COPYING</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The aswip code is distributed with ADCIRC and is covered by the same
-license.
-:w</p></div>
+license.</p></div>
 </div>
 </div>
 </div>
-<div id="footnotes"><hr></div>
+<div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-05-07 14:36:23 EDT
+Last updated 2015-07-02 10:00:52 EDT
 </div>
 </div>
 </body>

@@ -13,12 +13,17 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-The aswip(1) command reads an ADCIRC fort.22 file for the HWind format
-(NWS=15 in the ADCIRC fort.15) or an ATCF formatted BEST track file with the hours column filled
-in as described for the dynamic asymmetric vortex model (NWS=19 in the ADCIRC fort.15)
-In the case of ATCF formatted input, it generates an output file suitable for
-use in the asymmetric vortex model in ADCIRC. It can also perform vortex wind
-field analyses as described below.
+The aswip(1) command reads an ATCF-formatted ADCIRC fort.22 file 
+with the hours column filled in as described for the dynamic 
+asymmetric vortex model (NWS=19 in the ADCIRC fort.15). It also
+reads an ADCIRC fort.22 file formatted for use with HWind (NWS=15), 
+but only for visualzation purposes. 
+
+In the case of ATCF formatted input, aswip produces an ADCIRC 
+fort.22 file suitable for use in the asymmetric vortex model 
+(NWS=19) or Generalized Asymmetric Holland Model (GAHM, NWS=20) in 
+ADCIRC. It can also perform vortex wind field analyses as described 
+below.
 
 OPTIONS
 -------
@@ -130,10 +135,10 @@ ADCIRC modules be available during compilation.
 
 AUTHOR
 ------
-Aswip was originally created by Robert Weaver and Rick Luettich.
-Jason Fleming reorganized it for modularity and brevity and added
-the meteorological analysis features. This man page was written by
-Jason Fleming.
+Aswip was originally created by Robert Weaver and Rick Luettich. 
+Jason Fleming reorganized it for modularity and brevity and added 
+the meteorological analysis features. It was extended for use with 
+the GAHM by Jie Gao. This man page was written by Jason Fleming.
 
 RESOURCES
 ---------
@@ -144,4 +149,3 @@ COPYING
 -------
 The aswip code is distributed with ADCIRC and is covered by the same
 license.
-:w
