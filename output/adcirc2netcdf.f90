@@ -68,6 +68,8 @@
       integer                       :: NC_VarID_timeOfmaxele
       integer                       :: NC_VarID_maxwvel
       integer                       :: NC_VarID_timeOfmaxwvel
+      integer                       :: NC_VarID_maxvel
+      integer                       :: NC_VarID_timeOfmaxvel
       integer                       :: NC_VarID_p
       integer                       :: NC_VarID_windx
       integer                       :: NC_VarID_windy
@@ -229,7 +231,7 @@
          varid(1) = NC_VarID_zeta
          !          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_zeta,'positive','up')) 'DO NOT USE'
       case('fort.64') !64
-         dataRank = "Vector"
+         dataRank = "2DVector"
          CALL Check(NF90_DEF_VAR(NC_ID,'u-vel',NF90_DOUBLE,NC_DimID,NC_VarID_u_vel))
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_u_vel,'_FillValue',FillValue))
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_u_vel,'long_name','water column vertically averaged east/west velocity'))
@@ -266,7 +268,7 @@
          varid(1) = NC_VarID_p
 !          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_p,'positive','up')) 'DO NOT USE'
       case('fort.74') !74
-         dataRank = "Vector"
+         dataRank = "2DVector"
          CALL Check(NF90_DEF_VAR(NC_ID,'windx',NF90_DOUBLE,NC_DimID,NC_VarID_windx))
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_windx,'_FillValue',FillValue))
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_windx,'long_name','e/w wind velocity'))
@@ -376,6 +378,27 @@
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_timeOfmaxwvel,'units','s'))
          endif
          varid(2) = NC_VarID_timeOfmaxwvel
+      case('maxvel.63') ! max water current velocity 
+         CALL Check(NF90_DEF_VAR(NC_ID,'vel_max',NF90_DOUBLE,NC_DimID_node,NC_VarID_maxvel))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxvel,'_FillValue',FillValue))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxvel,'long_name','maximum water column vertically averaged velocity'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxvel,'standard_name','maximum_water column_vertically_averaged_velocity'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxvel,'coordinates','time y x'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxvel,'location','node'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxvel,'mesh','adcirc_mesh'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxvel,'units','m s-1'))
+         varid(1) = NC_VarID_maxvel
+         if ( num_components.eq.2) then
+            CALL Check(NF90_DEF_VAR(NC_ID,'time_of_vel_max',NF90_DOUBLE,NC_DimID_node,NC_VarID_timeOfMaxvel))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_timeOfmaxvel,'_FillValue',FillValue))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_timeOfmaxvel,'long_name','time of maximum water column vertically averaged velocity'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_timeOfmaxvel,'standard_name','time_of_maximum_water_column_vertically_averaged_velocity'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_timeOfmaxvel,'coordinates','y x'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_timeOfmaxvel,'location','node'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_timeOfmaxvel,'mesh','adcirc_mesh'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_timeOfmaxvel,'units','s'))
+         endif
+         varid(2) = NC_VarID_timeOfmaxvel
       case('swan_HS_max.63') ! swan_HS_max
          CALL Check(NF90_DEF_VAR(NC_ID,'swan_HS_max',NF90_DOUBLE,NC_DimID,NC_VarID_swanhsmax))
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_swanhsmax,'_FillValue',FillValue))
@@ -492,10 +515,10 @@
          ENDDO
          do N=1,NumNodesNonDefault
            select case(trim(dataRank))
-             case("Scalar") ! scalar data
+             case("Scalar")                    ! scalar data
                READ(UnitNumber,*) j,Temp1
                Global1(j) = Temp1
-             case("2DVector")           ! 2D vector data
+             case("2DVector")                  ! 2D vector data
                READ(UnitNumber,*) j,Temp1,Temp2
                Global1(j) = Temp1
                Global2(j) = Temp2

@@ -710,7 +710,7 @@ do
             
       write(fmd%xmfUnit,'(A,i0,1x,i0,A)') '                <DataItem Dimensions="',nSnaps-1,domainExtent,'"'
       write(fmd%xmfUnit,'(a,a,a)') '                       NumberType="',trim(fmd%typeXDMF(j)),'"'
-      write(fmd%xmfUnit,'(A)') '                       Precision="',fmd%precisionXDMF(j),'"'
+      write(fmd%xmfUnit,'(a,i0,a)') '                       Precision="',fmd%precisionXDMF(j),'"'
       write(fmd%xmfUnit,'(A)') '                       Format="HDF">'//trim(fmd%netCDFFile)//':/'//trim(fmd%varNameNetCDF(i))
       write(fmd%xmfUnit,'(A)') '                  </DataItem>'
       write(fmd%xmfUnit,'(A)') '               </DataItem>'
