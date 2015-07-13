@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Thu, 21 May 2015 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane EXERCISE Forecast/Advisory Number 24</title>
+      <description>Issued at 0900Z THU MAY 21 2015 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+HURRICANE EXERCISE FORECAST/ADVISORY NUMBER   24
+NWS NATIONAL HURRICANE CENTER MIAMI FL   AL892015
+0900 UTC THU MAY 21 2015
+ 
+TROPICAL DEPRESSION CENTER LOCATED NEAR 28.9N  90.5W AT 21/0900Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 940 MB
+MAX SUSTAINED WINDS  115 KT WITH GUSTS TO  145 KT.
+64 KT...  85NE  60SE  55SW  70NW.
+50 KT... 120NE  90SE  60SW 110NW.
+34 KT... 225NE 190SE 150SW 190NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 28.9N 90.5W AT 21/0900Z
+AT 21/0600Z CENTER WAS LOCATED NEAR 28.9N  90.5W
+ 
+FORECAST VALID 21/2100Z 30.5N  90.3W
+MAX WIND 100 KT...GUSTS  125 KT.
+64 KT...  65NE  55SE  45SW  55NW.
+50 KT... 100NE  85SE  55SW  80NW.
+34 KT... 210NE 175SE 120SW 150NW.
+ 
+FORECAST VALID 22/0900Z 32.6N  90.0W
+MAX WIND  80 KT...GUSTS  110 KT.
+64 KT...  45NE  40SE  30SW  40NW.
+50 KT...  80NE  65SE  50SW  70NW.
+34 KT... 180NE 135SE  90SW 135NW.
+ 
+FORECAST VALID 22/2100Z 34.3N  89.0W
+MAX WIND  65 KT...GUSTS  85 KT.
+64 KT...  20NE  20SE  15SW  20NW.
+50 KT...  60NE  45SE  40SW  50NW.
+34 KT... 150NE 100SE  75SW 125NW.
+ 
+FORECAST VALID 23/0900Z 36.2N  88.0W
+MAX WIND  50 KT...GUSTS  65 KT.
+50 KT...  40NE  45SE  35SW  55NW.
+34 KT... 120NE 110SE  60SW 110NW.
+ 
+FORECAST VALID 24/0900Z 40.2N  86.7W
+MAX WIND  35 KT...GUSTS 55 KT.
+34 KT...  70NE  60SE  40SW  50NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 250 NM
+ON DAY 4 AND 325 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 25/0900Z 44.0N  84.0W
+MAX WIND 30 KT...GUSTS  45 KT.
+ 
+OUTLOOK VALID 26/0900Z 47.9N  84.0W
+MAX WIND  35 KT...GUSTS  45 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 23.2N  75.5W
+ 
+NEXT ADVISORY AT 21/1500Z
+ 
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Thu, 21 May 2015 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2015/89/24.892015.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2015/89/14.892015.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
