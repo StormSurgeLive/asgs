@@ -9,7 +9,7 @@
 -90.13611111 29.93472222  !  NORL1  !  Mississippi River at New Orleans
  -91.44566620 29.89270406  !  073815450  !  Chicot Pass near Myette Point near Charenton
 -93.144722 30.290278  !  OTBL1  !  Calcasieu River nr Old Town Bay
--91.445556 29.8925  !  GNDL1  !  Atchafalaya River at Myette Point/Grand Lake
+-91.445556 29.8925  !  GNDL1  !  Atchafalaya River at Myette Point Grand Lake
 -91.210833 29.696389  !  MCGL1  !  Atchafalaya River at Morgan City
 -89.2465 29.1338  !  01545  !  Mississippi River at Head of Passes
 -89.35277778 29.27583333  !  01480  !  Mississippi River at Venice
