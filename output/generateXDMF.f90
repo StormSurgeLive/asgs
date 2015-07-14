@@ -572,8 +572,8 @@ real(8), intent(in) :: thisTime
 
 ! Write the Grid xml for the time varying data
 ! now write XDMF XML data for this dataset
-write(fmd%xmfUnit,'(A,E20.15,A)') '      <Grid Name="Time=',thisTime,'" GridType="Uniform">'
-write(fmd%xmfUnit,'(13x,A,E20.15,A)') '<Time Value="',thisTime,'"/>'
+write(fmd%xmfUnit,'(A,E22.15,A)') '      <Grid Name="Time=',thisTime,'" GridType="Uniform">'
+write(fmd%xmfUnit,'(13x,A,E22.15,A)') '<Time Value="',thisTime,'"/>'
 call writeMeshTopologyGeometryDepth(fmd)
 !----------------------------------------------------------------------
 end subroutine writeTimeVaryingGrid
