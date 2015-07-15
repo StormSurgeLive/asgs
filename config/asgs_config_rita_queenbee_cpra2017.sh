@@ -67,6 +67,7 @@ ACCOUNT=loni_cera_2015
 
 # External data sources : Tropical cyclones
 
+PSEUDOSTORM=y
 STORM=18                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2005                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
