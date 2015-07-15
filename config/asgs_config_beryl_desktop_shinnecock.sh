@@ -65,6 +65,7 @@ CYCLETIMELIMIT="01:00:00"
 
 # External data sources : Tropical cyclones
 
+PSEUDOSTORM=y
 STORM=02                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2012                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"

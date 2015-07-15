@@ -70,6 +70,7 @@ ACCOUNT=batch # or "ncfs" on hatteras to use pre-empt capability
 
 # External data sources : Tropical cyclones
 
+PSEUDOSTORM=y
 STORM=89  # storm number, e.g. 05=ernesto in 2006 
 YEAR=2015 # year of the storm (useful for historical storms) 
 TRIGGER=rssembedded    # either "ftp" or "rss"
