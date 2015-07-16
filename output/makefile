@@ -62,6 +62,14 @@ ifeq ($(NETCDF),enable)
    INCLUDES    := -I. -I$(NETCDFPATH)/include
    LIBS        := -L$(NETCDFPATH)/lib
    LDFLAGS     := -lnetcdff
+# jgf07162015: Added compiler flags for hatteras at RENCI.
+   ifeq ($(MACHINENAME),hatteras)
+      NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
+   endif
+   FFLAGS      := $(FFLAGS) -DASGSNETCDF
+   LDFLAGS     := -lnetcdff
+   INCLUDES    := -I. -I$(NETCDFPATH)/include
+   LIBS        := -L$(NETCDFPATH)/lib
 endif
 ifeq ($(NETCDF4),enable)
    FFLAGS      := $(FFLAGS) -DHAVE_NETCDF4
