@@ -4,7 +4,7 @@
 # A system to build ASGS-related utilities for processing ADCIRC output.
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2014 Jason Fleming
+# Copyright(C) 2014--2015 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -52,6 +52,11 @@ ifeq ($(NETCDF),enable)
    endif
    ifeq ($(MACHINENAME),hatteras)
       NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
+   endif
+   #
+   #   # jgf20150616: Added netcdf paths for stampede at TACC.
+   ifeq ($(MACHINENAME),stampede)
+      NETCDFPATH := /opt/apps/intel13/netcdf/4.3.2/x86_64
    endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := -lnetcdff
