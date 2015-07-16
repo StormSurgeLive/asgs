@@ -1,6 +1,8 @@
 #!/bin/bash
-#
-# Copyright(C) 2011--2013 Jason Fleming
+#-----------------------------------------------------------------------
+# ncfs_post.sh : Post processing for North Carolina.
+#-----------------------------------------------------------------------
+# Copyright(C) 2011--2015 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -16,6 +18,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#-----------------------------------------------------------------------
 #
 CONFIG=$1
 ADVISDIR=$2
