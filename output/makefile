@@ -59,12 +59,13 @@ ifeq ($(NETCDF),enable)
    ifeq ($(MACHINENAME),stampede) 
       NETCDFPATH := /opt/apps/intel13/netcdf/4.3.2/x86_64
    endif
-   INCLUDES    := -I. -I$(NETCDFPATH)/include
-   LIBS        := -L$(NETCDFPATH)/lib
-   LDFLAGS     := -lnetcdff
-# jgf07162015: Added compiler flags for hatteras at RENCI.
+   # jgf20150716: Added compiler flags for hatteras at RENCI.
    ifeq ($(MACHINENAME),hatteras)
       NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
+   endif
+   # jgf20150720: Added compiler flags for queenbee at LONI.
+   ifeq ($(MACHINENAME),queenbee)
+      NETCDFPATH  := /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0
    endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := -lnetcdff
