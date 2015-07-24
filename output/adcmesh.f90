@@ -272,8 +272,10 @@ read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nope  ! total number of elevatio
 lineNum = lineNum + 1
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) neta  ! total number of nodes on elevation boundaries
 lineNum = lineNum + 1
+write(6,'(a)') 'INFO: Allocating memory for elevation specified boundaries.'
 call allocateElevationBoundaryLengths()
 call allocateAdcircElevationBoundaryArrays() 
+
 neta_count = 0
 nvdll_max = 0
 do k = 1, nope         
@@ -287,12 +289,13 @@ do k = 1, nope
    enddo
 enddo
 if ( neta_count.ne.neta ) then
-   write(6,'("WARNING: Number of open boundary nodes was set to ",I6," but ",I6," were found.")') neta, neta_count
+   write(6,'("WARNING: Number of open boundary nodes was set to ",i0," but ",i0," were found.")') neta, neta_count
 endif
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nbou ! total number of flux boundaries
 lineNum = lineNum + 1
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nvel ! total number of nodes on flux boundaries
 lineNum = lineNum + 1
+write(6,'(a)') 'INFO: Allocating memory for flux specified boundaries.'
 call allocateFluxBoundaryLengths()
 call allocateAdcircFluxBoundaryArrays()
 nvel_count = 0
@@ -323,7 +326,7 @@ do k = 1, nbou
    end select
 enddo
 if ( nvel_count.ne.nvel) then
-   write(6,'("WARNING: Number of land boundary nodes was set to ",I6," but ",I6," were found.")') nvel, nvel_count
+   write(6,'("WARNING: Number of land boundary nodes was set to ",i0," but ",i0," were found.")') nvel, nvel_count
    if (verbose.eqv..true.) then
       write(6,*) 'WARNING: Here is the summary of land boundary node information:'
       write(6,'("NVEL (specified number of land boundary nodes) = ",i0,".")') nvel
@@ -427,7 +430,6 @@ if (nope.ne.0) then
    end do
 endif
 !
-!
 ! flux boundaries
 dimPres = nf90_inq_dimid(nc_id, 'nbou', nc_dimid_nbou)
 if (dimPres.eq.NF90_NOERR) then
@@ -465,16 +467,82 @@ if (nbou.ne.0) then
       call check(nf90_get_var(nc_id, nc_varid_nbvv, nbvv(i,:), (/ i, 1 /), (/ 1, nvell(i) /) ))  
    end do
 endif
-
-! TODO: Finish this subroutine, and write a subroutine to actually
-! read the mesh data (coordinates, bathy/topo, element table).
 !
-! TODO: The NetCDF files written by ADCIRC don't actually contain the
-! levee heights, coefficients of sub/supercritical flow, etc. 
-
+! Close the file once the mesh dimensions have been determined and the 
+! arrays have been allocated. The actual data are read in the
+! subroutine readMeshNetCDF().
+call check(nf90_close(nc_id))
 !----------------------------------------------------------------------
 end subroutine findMeshDimsNetCDF
 !----------------------------------------------------------------------
+
+!------------------------------------------------------------------
+!    S U B R O U T I N E     R E A D   M E S H   N E T C D F
+!------------------------------------------------------------------
+! Read the mesh data (coordinates, bathy/topo, element table).
+! The subroutine findMeshDimsNetCDF() must be called before this 
+! one. 
+! TODO: The NetCDF files written by ADCIRC don't actually contain the
+! levee heights, coefficients of sub/supercritical flow, etc. 
+!------------------------------------------------------------------
+subroutine readMeshNetCDF(datafile)
+use netcdf
+use asgsio, only : nc_id, check
+implicit none
+character(len=1024), intent(in) :: datafile
+integer :: dimPres ! return code from netcdf to determine if the dimension is present in the file
+integer :: i
+integer :: natt ! number of attributes in the netcdf file
+integer :: nvar ! number of variables in the netcdf file
+integer :: ndim ! number of dimensions in the netcdf file
+integer :: nc_dimid_time ! id of the time dimension
+integer :: ncformat ! netcdf3, netcdf4, netcdf4 classic model, etc
+integer, allocatable :: nmnc(:,:) ! connectivity table to satisfy netcdf's expectations
+integer :: nc_count(2)
+integer :: nc_start(2)
+!
+! open the netcdf file
+call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
+!
+! read mesh lon, lat, depth data from the file
+nc_count = (/ np, 1 /)
+nc_start = (/ 1, 1 /)
+call check(nf90_get_var(nc_id,nc_varid_x,xyd(1,1:np),nc_start,nc_count))     
+call check(nf90_get_var(nc_id,nc_varid_y,xyd(2,1:np),nc_start,nc_count))
+call check(nf90_get_var(nc_id,nc_varid_depth,xyd(3,1:np),nc_start,nc_count))
+!
+! element table
+NC_Count = (/ 3, ne /)
+allocate(nmnc(3,ne))
+call check(nf90_get_var(nc_id,nc_varid_element,nmnc,nc_start,nc_count))
+!
+! open (i.e., elevation specified) boundaries
+if (nope.ne.0) then
+   call check(nf90_get_var(nc_id,nc_varid_nope,nope))
+   call check(nf90_get_var(nc_id,nc_varid_max_nvell,nvell_max))
+   call check(nf90_get_var(nc_id,nc_varid_max_nvdll,nvdll_max))
+   call check(nf90_get_var(nc_id,nc_varid_neta,neta))
+   call check(nf90_get_var(nc_id,nc_varid_nvel,nvel))
+   nc_count = (/ nope, 1 /)
+   call check(nf90_get_var(nc_id,nc_varid_nvdll,nvdll,nc_start,nc_count))
+   nc_count = (/ nope, nvdll_max /)   
+   call check(nf90_get_var(nc_id,nc_varid_nbdv,nbdv,nc_start,nc_count))
+endif
+if (nbou.ne.0) then
+   nc_count = (/ nbou, 1 /)
+   call check(nf90_get_var(nc_id,nc_varid_nvell,nvell,nc_start,nc_count))  
+   nc_count = (/ nbou, 1 /)
+   call check(nf90_get_var(nc_id,nc_varid_ibtype,ibtype,nc_start,nc_count))     
+   nc_count = (/ nbou, nvell_max /)
+   call check(nf90_get_var(nc_id,nc_varid_nbvv,nbvv,nc_start,nc_count))     
+end if
+call check(nf90_close(nc_id))
+write(6,'(a)') 'INFO: Mesh has been read from the netCDF file.'
+
+!----------------------------------------------------------------------
+end subroutine readMeshNetCDF
+!----------------------------------------------------------------------
+
 
 !------------------------------------------------------------------
 !                   S U B R O U T I N E    
@@ -738,30 +806,38 @@ end subroutine allocateAdcircElevationBoundaryArrays
 subroutine allocateAdcircFluxBoundaryArrays()
 implicit none
 allocate ( nbv(nvel),lbcodei(nvel))
-allocate ( barlanht(nbou,nvel),barlancfsp(nbou,nvel))
-allocate ( barinht(nbou,nvel),barincfsb(nbou,nvel),barincfsp(nbou,nvel))
-allocate ( pipeht(nbou,nvel),pipecoef(nbou,nvel),pipediam(nbou,nvel))
-allocate ( ibconn(nbou,nvel))
 allocate ( nbvv(nbou,0:nvel))
+!
+! jgf20150723: These are never used so I commented them out because
+! they are memory hogs.
+!allocate ( barlanht(nbou,nvel),barlancfsp(nbou,nvel))
+!allocate ( barinht(nbou,nvel),barincfsb(nbou,nvel),barincfsp(nbou,nvel))
+!allocate ( pipeht(nbou,nvel),pipecoef(nbou,nvel),pipediam(nbou,nvel))
+!allocate ( ibconn(nbou,nvel))
 ! kmd - added for rivers in baroclinic simulation
-allocate (bcrnbvv(nbou,0:nvel))
-allocate (bcrnvell(nbou))
+!allocate (bcrnbvv(nbou,0:nvel))
+!allocate (bcrnvell(nbou))
+
 !
 ! initialize to something troublesome to make it easy to spot issues
 nbv = -99999
 lbcodei = -99999
-barlanht = -99999.d0
-barlancfsp = -99999.d0
-barinht = -99999.d0
-barincfsb = -99999.d0
-barincfsp = -99999.d0
-pipeht = -99999.d0
-pipecoef = -99999.d0
-pipediam = -99999.d0
-ibconn = -99999
 nbvv = -99999
-bcrnbvv = -99999
-bcrnvell = -99999
+!
+! jgf20150723: These are never used so I commented them out because
+! they are memory hogs.
+!barlanht = -99999.d0
+!barlancfsp = -99999.d0
+!barinht = -99999.d0
+!barincfsb = -99999.d0
+!barincfsp = -99999.d0
+!pipeht = -99999.d0
+!pipecoef = -99999.d0
+!pipediam = -99999.d0
+!ibconn = -99999
+
+!bcrnbvv = -99999
+!bcrnvell = -99999
 !------------------------------------------------------------------
 end subroutine allocateAdcircFluxBoundaryArrays
 !------------------------------------------------------------------
@@ -1236,7 +1312,7 @@ endif
          CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nbvv,nbvv,NC_Start,NC_Count))
       end if
 
-      write(6,'(a)') 'INFO: Mesh has been written to NETCDF'
+      write(6,'(a)') 'INFO: Mesh has been written to the netCDF file.'
 !----------------------------------------------------------------------
       end subroutine writeMeshDataToNetCDF
 !----------------------------------------------------------------------

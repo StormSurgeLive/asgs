@@ -4,7 +4,7 @@
 # A system to build ASGS-related utilities for processing ADCIRC output.
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2014--2015 Jason Fleming
+# Copyright(C) 2014-2015 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -21,6 +21,31 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------
+# 
+# This makefile contains support for several different machines, but perhaps
+# not yours, although that will be easy to add. All you have to do is add a 
+# line that shows where the netCDF library is installed.
+#
+# For example, have a look at the following lines for the queenbee machine:
+#
+#  ifeq ($(MACHINENAME),queenbee)
+#      NETCDFPATH  := /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0
+#  endif
+#
+# In order to support your machine, you'll have to add something similar to 
+# define the NETCDFPATH variable. I do this by typing
+#
+# which ncdump
+#
+# and that gives me an answer like
+#
+# /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0/bin
+#
+# so I set the NETCDFPATH to that but without the "/bin" at the end. 
+# Then I compile by using the following command line:
+#
+#  make netcdf2adcirc compiler=intel MACHINENAME=queenbee NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable
+#
 #
 # specify compiler=gfortran on the make command line
 ifeq ($(compiler),gfortran)
@@ -78,7 +103,7 @@ OBJ := adcmesh.o asgsio.o adcircdata.o
 MODS := adcmesh.mod asgsio.mod adcircdata.mod
 #
 # targets
-all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries 
+all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries diffAdcircNetCDF
 #
 clean :
 	rm -f *.o *.mod *.x
@@ -109,3 +134,6 @@ pullStationTimeSeries : asgsio.mod adcmesh.mod adcircdata.mod pullStationTimeSer
 #
 wetDryCheck : adcmesh.mod asgsio.mod wetDryCheck.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o $(LDFLAGS)
+#
+diffAdcircNetCDF : adcmesh.mod adcircdata.mod asgsio.mod diffAdcircNetCDF.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o adcircdata.o $(LDFLAGS)
