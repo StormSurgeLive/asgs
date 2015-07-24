@@ -56,8 +56,12 @@ real(8) :: defaultValue
 real(8) :: fillValue
 real(8), allocatable :: timesec(:)  ! time in seconds associated with each dataset
 real(8), allocatable :: adcirc_data(:,:) ! generic holder for converted data
+real(8), allocatable :: gold_data(:,:)   ! holder for expected outputd data
+real(8), allocatable :: test_data(:,:)   ! generic holder for converted data
+real(8), allocatable :: result_data(:,:) ! generic holder for converted data
 integer, allocatable :: adcirc_idata(:,:) ! generic holder for converted integer data
 real(8), allocatable :: adcirc_data3D(:,:,:) ! generic holder for converted data
+character(len=120) :: datenum !seconds since 2008-07-31 12:00:00 +00:00
 integer :: nspool
 integer :: it
 character(1024) :: datafile
@@ -129,6 +133,7 @@ endif
 allocate(timesec(ndset))
 call check(nf90_inq_varid(nc_id, "time", NC_VarID_time))
 call check(nf90_get_var(nc_id, NC_VarID_time, timesec, (/ 1 /), (/ ndset /) ))
+call check(nf90_get_att(nc_id,nc_varid_time,'units',datenum))
 !
 ! determine the type of file that we have
 do i=1,3
