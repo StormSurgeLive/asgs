@@ -39,10 +39,24 @@ INCLUDES := -I. -I$(OUTPUTDIR)
 ifeq ($(NETCDF),enable)
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    NETCDFPATH  := /usr
+   #
+   #   # jgf20150616: Added netcdf paths for stampede at TACC.
+   ifeq ($(MACHINENAME),stampede) 
+      NETCDFPATH := /opt/apps/intel13/netcdf/4.3.2/x86_64
+   endif
+   # jgf20150716: Added compiler flags for hatteras at RENCI.
+   ifeq ($(MACHINENAME),hatteras)
+       NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
+   endif
+   # jgf20150720: Added compiler flags for queenbee at LONI.
+   ifeq ($(MACHINENAME),queenbee)
+      NETCDFPATH  := /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0
+   endif
+   FFLAGS      := $(FFLAGS) -DASGSNETCDF
+   LDFLAGS     := -lnetcdff
    INCLUDES    := -I. -I$(NETCDFPATH)/include
    LIBS        := -L$(NETCDFPATH)/lib
-   LDFLAGS     := -lnetcdff
-endif
+endif 
 ifeq ($(NETCDF4),enable)
    FFLAGS      := $(FFLAGS) -DHAVE_NETCDF4
 endif
@@ -53,6 +67,7 @@ endif
 #
 OBJ := adcmesh.o asgsio.o landuse.o
 MODS := adcmesh.mod asgsio.mod landuse.mod
+
 #
 # targets
 all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyvis convertna

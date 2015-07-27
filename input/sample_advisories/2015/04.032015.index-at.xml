@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Tue, 14 Jul 2015 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm CLAUDETTE Forecast/Advisory Number 4</title>
+      <description>Issued at 0900 UTC TUE JUL 14 2015 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM CLAUDETTE FORECAST/ADVISORY NUMBER   4
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL032015
+0900 UTC TUE JUL 14 2015
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+TROPICAL STORM CENTER LOCATED NEAR 40.1N  63.3W AT 14/0900Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE NORTHEAST OR  50 DEGREES AT  17 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1004 MB
+MAX SUSTAINED WINDS  40 KT WITH GUSTS TO  50 KT.
+34 KT....... 60NE  60SE   0SW  20NW.
+12 FT SEAS.. 60NE 120SE  60SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 40.1N  63.3W AT 14/0900Z
+AT 14/0600Z CENTER WAS LOCATED NEAR 39.5N  64.2W
+
+FORECAST VALID 14/1800Z 41.9N  61.1W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 70NE  80SE   0SW   0NW.
+
+FORECAST VALID 15/0600Z 45.0N  58.3W...POST-TROPICAL
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 90NE 120SE   0SW   0NW.
+
+FORECAST VALID 15/1800Z 48.0N  55.5W...POST-TROP/REMNT LOW
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 16/0600Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 40.1N  63.3W
+
+NEXT ADVISORY AT 14/1500Z
+
+$$
+FORECASTER BROWN
+
+</pre>]]></description>
+      <pubDate>Tue, 14 Jul 2015 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2015/03/04.032015.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2015/03/04.032015.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
