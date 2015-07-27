@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:georss="http://www.georss.org/georss"
+ xmlns:gml="http://www.opengis.net/gml"
+ xmlns:nhc="http://www.nhc.noaa.gov">
+<channel>
+<pubDate>Tue, 14 Jul 2015 20:40:45 GMT</pubDate>
+<title>NHC Atlantic</title>
+<description>Active tropical cyclones in the Atlantic, Caribbean, and the Gulf of Mexico</description>
+<link>http://www.nhc.noaa.gov/</link>
+<copyright>none</copyright>
+<managingEditor>nhcwebmaster@noaa.gov (NHC Webmaster)</managingEditor>
+<language>en-us</language>
+<webMaster>nhcwebmaster@noaa.gov (NHC Webmaster)</webMaster>
+<image>
+<url>http://www.nhc.noaa.gov/gifs/xml_logo_nhc.gif</url>
+<link>http://www.nhc.noaa.gov/</link>
+<title>NHC Atlantic</title>
+<description>NOAA logo</description>
+<width>95</width>
+<height>45</height>
+</image>
+<item>
+<title>Atlantic Tropical Weather Outlook</title>
+<description>
+<![CDATA[
+<br/>
+000<br/>
+ABNT20 KNHC 141726<br/>
+TWOAT <br/>
+<br/>
+TROPICAL WEATHER OUTLOOK<br/>
+NWS NATIONAL HURRICANE CENTER MIAMI FL<br/>
+200 PM EDT TUE JUL 14 2015<br/>
+<br/>
+For the North Atlantic...Caribbean Sea and the Gulf of Mexico:<br/>
+<br/>
+The National Hurricane Center is issuing advisories on Tropical<br/>
+Storm Claudette, located a few hundred miles south-southeast of<br/>
+Halifax, Nova Scotia.<br/>
+<br/>
+Tropical cyclone formation is not expected during the next 5 days.<br/>
+<br/>
+$$<br/>
+Forecaster Avila<br/>
+]]>
+</description>
+<pubDate>Tue, 14 Jul 2015 17:26:31 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gtwo.php?basin=atlc</link>
+<guid>http://www.nhc.noaa.gov/gtwo.php?basin=atlc&amp;201507141726</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+ <title>Summary for Tropical Storm CLAUDETTE (AT3/AL032015)</title>
+ <guid isPermaLink="false">summary-al032015-201507141449</guid>
+ <pubDate>Tue, 14 Jul 2015 14:49:00 GMT</pubDate>
+ <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+ <link>http://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/141447.shtml</link>
+ <description>
+  ...CLAUDETTE WEAKENING... ...EXPECTED TO BECOME POST-TROPICAL TONIGHT...
+ As of 11:00 AM AST Tue Jul 14
+ the center of CLAUDETTE was located near 41.4, -61.3
+ with movement NE at 21 mph.
+ The minimum central pressure was 1005 mb
+ with maximum sustained winds of about 40 mph.
+ </description>
+ <gml:Point>
+  <gml:pos>41.4 -61.3</gml:pos>
+ </gml:Point>
+ <nhc:Cyclone>
+  <nhc:center>41.4, -61.3</nhc:center>
+  <nhc:type>TROPICAL STORM</nhc:type>
+  <nhc:name>CLAUDETTE</nhc:name>
+  <nhc:wallet>AT3</nhc:wallet>
+  <nhc:atcf>AL032015</nhc:atcf>
+  <nhc:datetime>11:00 AM AST Tue Jul 14</nhc:datetime>
+  <nhc:movement>NE at 21 mph</nhc:movement>
+  <nhc:pressure>1005 mb</nhc:pressure>
+  <nhc:wind>40 mph</nhc:wind>
+  <nhc:headline> ...CLAUDETTE WEAKENING... ...EXPECTED TO BECOME POST-TROPICAL TONIGHT...</nhc:headline>
+ </nhc:Cyclone>
+</item>
+<item>
+<title>Tropical Storm CLAUDETTE Public Advisory Number 5</title>
+<description>Issued at 1100 AM AST TUE JUL 14 2015  <![CDATA[<pre>
+
+000
+WTNT33 KNHC 141447
+TCPAT3
+
+BULLETIN
+TROPICAL STORM CLAUDETTE ADVISORY NUMBER   5
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL032015
+1100 AM AST TUE JUL 14 2015
+
+...CLAUDETTE WEAKENING...
+...EXPECTED TO BECOME POST-TROPICAL TONIGHT...
+
+
+SUMMARY OF 1100 AM AST...1500 UTC...INFORMATION
+-----------------------------------------------
+LOCATION...41.4N 61.3W
+ABOUT 250 MI...400 KM SSE OF HALIFAX NOVA SCOTIA
+MAXIMUM SUSTAINED WINDS...40 MPH...65 KM/H
+PRESENT MOVEMENT...NE OR 50 DEGREES AT 21 MPH...33 KM/H
+MINIMUM CENTRAL PRESSURE...1005 MB...29.68 INCHES
+
+
+WATCHES AND WARNINGS
+--------------------
+There are no coastal watches or warnings in effect.
+
+
+DISCUSSION AND 48-HOUR OUTLOOK
+------------------------------
+At 1100 AM AST (1500 UTC), the center of Tropical Storm Claudette
+was located near latitude 41.4 North, longitude 61.3 West. Claudette
+is moving toward the northeast near 21 mph (33 km/h).  A turn
+toward the north-northeast with some further increase in forward
+speed is expected through Wednesday.
+
+Maximum sustained winds have decreased to near 40 mph (65 km/h) with
+higher gusts. Additional weakening is likely, and Claudette is
+expected to become a post-tropical cyclone tonight.  Dissipation is
+forecast on Wednesday.
+
+Tropical storm force winds extend outward up to 70 miles (110 km)
+from the center.
+
+The estimated minimum central pressure is 1005 mb (29.68 inches).
+
+
+HAZARDS AFFECTING LAND
+----------------------
+None
+
+
+NEXT ADVISORY
+-------------
+Next complete advisory at 500 PM AST.
+
+$$
+Forecaster Kimberlain
+
+</pre>]]></description>
+<pubDate>Tue, 14 Jul 2015 14:49:00 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/141447.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/141447.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm CLAUDETTE Forecast Advisory Number 6</title>
+<description>Issued at 2100 UTC TUE JUL 14 2015  <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM CLAUDETTE FORECAST/ADVISORY NUMBER   6
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL032015
+2100 UTC TUE JUL 14 2015
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+TROPICAL STORM CENTER LOCATED NEAR 42.5N  59.8W AT 14/2100Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE NORTHEAST OR  50 DEGREES AT  18 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1005 MB
+MAX SUSTAINED WINDS  40 KT WITH GUSTS TO  50 KT.
+34 KT....... 60NE  70SE  60SW   0NW.
+12 FT SEAS.. 60NE 120SE  60SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 42.5N  59.8W AT 14/2100Z
+AT 14/1800Z CENTER WAS LOCATED NEAR 41.8N  60.4W
+
+FORECAST VALID 15/0600Z 44.8N  57.6W...POST-TROP/EXTRATROP
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 60NE  70SE  60SW   0NW.
+
+FORECAST VALID 15/1800Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 42.5N  59.8W
+
+NEXT ADVISORY AT 15/0300Z
+
+$$
+FORECASTER KIMBERLAIN
+
+
+NNNN
+</pre>]]></description>
+<pubDate>Tue, 14 Jul 2015 20:40:30 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCMAT3+shtml/DDHHMM.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCMAT3+shtml/DDHHMM.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm CLAUDETTE Forecast Discussion Number 5</title>
+<description>Issued at 1100 AM AST TUE JUL 14 2015  <![CDATA[<pre>
+
+000
+WTNT43 KNHC 141451
+TCDAT3
+
+TROPICAL STORM CLAUDETTE DISCUSSION NUMBER   5
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL032015
+1100 AM AST TUE JUL 14 2015
+
+Claudette's cloud pattern is rapidly becoming less organized. Deep
+convection continues to burst northeast of the low-level center,
+with the latter becoming increasingly exposed and diffuse this
+morning. The cyclone's current structure is symptomatic of deep
+layer of southwesterly shear of over 30 kt, as diagnosed by SHIPS
+model analyses. Dvorak classifications were T2.0/30 kt and T2.5/35
+kt from SAB and TAFB at 1200 UTC, respectively. The initial
+intensity is lowered to 35 kt, at the higher end of these estimates
+due to the storm's increasing forward speed. Claudette has already
+passed the northern wall of the Gulf Stream and will be moving
+over sea surface temperatures below 20 deg C soon.  Cooler waters, a
+much more stable and drier atmosphere, and continued strong
+southwesterly shear should contribute to Claudette's weakening.
+Global models suggest that extratropical transition should occur in
+about 24 hours, with the system opening up into a trough shortly
+after that.  The official intensity forecast is in excellent
+agreement with the multi-model consensus.
+
+The initial motion estimate is 050/18.  Prior to dissipation
+tomorrow, Claudette's track should turn north-northeastward with
+some additional acceleration while it rotates around large
+deep-layer cyclone over eastern Canada.  The latest track forecast
+has changed little from the previous one.
+
+
+FORECAST POSITIONS AND MAX WINDS
+
+INIT  14/1500Z 41.4N  61.3W   35 KT  40 MPH
+ 12H  15/0000Z 43.6N  59.0W   30 KT  35 MPH
+ 24H  15/1200Z 46.7N  56.8W   30 KT  35 MPH...POST-TROP/EXTRATROP
+ 36H  16/0000Z...DISSIPATED
+
+$$
+Forecaster Kimberlain
+
+</pre>]]></description>
+<pubDate>Tue, 14 Jul 2015 14:52:34 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCDAT3+shtml/141451.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCDAT3+shtml/141451.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm CLAUDETTE Wind Speed Probabilities Number 5</title>
+<description>Issued at 1500 UTC TUE JUL 14 2015                                              <![CDATA[<pre>
+
+000
+FONT13 KNHC 141450
+PWSAT3
+                                                                    
+TROPICAL STORM CLAUDETTE WIND SPEED PROBABILITIES NUMBER   5        
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL032015               
+1500 UTC TUE JUL 14 2015                                            
+                                                                    
+AT 1500Z THE CENTER OF TROPICAL STORM CLAUDETTE WAS LOCATED NEAR    
+LATITUDE 41.4 NORTH...LONGITUDE 61.3 WEST WITH MAXIMUM SUSTAINED    
+WINDS NEAR 35 KTS...40 MPH...65 KM/H.                               
+                                                                    
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)                  
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME      
+   EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME      
+   CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME      
+                                                                    
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS                 
+                                                                    
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST     
+   ...34 KT (39 MPH... 63 KM/H)...                                  
+   ...50 KT (58 MPH... 93 KM/H)...                                  
+   ...64 KT (74 MPH...119 KM/H)...                                  
+FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS               
+                                                                    
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE               
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING            
+        AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)               
+   (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN           
+        12Z TUE AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)      
+                                                                    
+PROBABILITIES ARE GIVEN IN PERCENT                                  
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT                       
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.             
+PROBABILITIES FOR 64 KT ARE SHOWN WHEN THE 5-DAY CUMULATIVE         
+PROBABILITY IS AT LEAST 1 PERCENT.                                  
+                                                                    
+                                                                    
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -   
+                                                                    
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM 
+  TIME       12Z TUE 00Z WED 12Z WED 00Z THU 12Z THU 12Z FRI 12Z SAT
+PERIODS         TO      TO      TO      TO      TO      TO      TO  
+             00Z WED 12Z WED 00Z THU 12Z THU 12Z FRI 12Z SAT 12Z SUN
+                                                                    
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+LOCATION       KT                                                   
+                                                                    
+CAPE RACE NFLD 34  X   5( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+ILE ST PIERRE  34  X  24(24)   X(24)   X(24)   X(24)   X(24)   X(24)
+ 
+BURGEO NFLD    34  X  16(16)   X(16)   X(16)   X(16)   X(16)   X(16)
+ 
+PTX BASQUES    34  X   6( 6)   X( 6)   X( 6)   X( 6)   X( 6)   X( 6)
+ 
+SYDNEY NS      34  X   4( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+SABLE ISLAND   34  6   1( 7)   X( 7)   X( 7)   X( 7)   X( 7)   X( 7)
+ 
+$$                                                                  
+FORECASTER KIMBERLAIN                                               
+</pre>]]></description>
+<pubDate>Tue, 14 Jul 2015 14:52:01 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIAPWSAT3+shtml/141450.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIAPWSAT3+shtml/141450.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm CLAUDETTE Graphics</title>
+<description>
+<![CDATA[
+<a href="http://www.nhc.noaa.gov/refresh/graphics_at3+shtml/145405.shtml?5-daynl">
+<img src="http://www.nhc.noaa.gov/storm_graphics/AT03/AL0315W5_NL_sm2.gif"
+alt="Tropical Storm CLAUDETTE 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Tue, 14 Jul 2015 14:54:05 GMT
+<br /><br /><a href="http://www.nhc.noaa.gov/refresh/graphics_at3+shtml/145405.shtml?tswind120">
+<img src="http://www.nhc.noaa.gov/storm_graphics/AT03/AL0315_PROB34_F120_sm2.gif"
+alt="Tropical Storm CLAUDETTE 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Tue, 14 Jul 2015 18:56:48 GMT
+]]>
+</description>
+<pubDate>Tue, 14 Jul 2015 18:57:33 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/refresh/graphics_at3+shtml/145405.shtml?5-daynl</link>
+<guid>http://www.nhc.noaa.gov/refresh/graphics_at3+shtml/145405.shtml?5-daynl</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+</channel>
+</rss>
