@@ -30,6 +30,8 @@ print ("5. NODAL ELEVATION")
 print ("6. NODAL WIND VELOCITY")
 print ("7. NODAL WAVE HEIGHT")
 print ("8. PEAK WAVE PERIOD")
+print ("9. NODAL PEAK WAVE PERIOD")
+print ("10. NODAL AVERAGE WAVE PERIOD")
 print ("A. POLYLINE")
 print ("B. POLYGON")
 print ("X. GIS SHAPEFILE")
@@ -39,7 +41,7 @@ print (30 * '-')
      
 ## ACCEPTING USER INPUT ##
 storm = raw_input('Enter name of storm :')
-choice = raw_input('Enter your choice of ADCIRC output to be visualized [1-8] : ')
+choice = raw_input('Enter your choice of ADCIRC output to be visualized [1-10] : ')
 filechoice = int(choice)
 choice = raw_input('Enter your choice of vector shape (Polyline or Polygon) (A/B): ')
 if choice == 'A':
@@ -78,9 +80,16 @@ if filechoice == 1:
     #nc=netCDF4.Dataset('http://opendap.renci.org:1935/thredds/dodsC/ASGS/arthur/10/nc_inundation_v9.99/hatteras.renci.org/nchi/nhcConsensus/maxele.63.nc').variables
     vname='depth'
     var = nc[vname][:]
+    #np.place(var,var > 500,[499.99])
     #num = int(raw_input('Enter number of levels : (multiple of 4 for kml)'))
     palettename = 'mesh-bathy.pal'
     levels = range(0,8500,500)
+    #levels = range(0,550,25)
+    #var = np.multiply(-1,var)
+    print min(var)
+    #var = np.multiply(-1,var)
+    #levels = [-40,-30,-20,-10,-5,0,2,4,6,8,10,15,20,30,40,50,100,200,300,400,500,550]
+    #levels = [-600, -400, -200, -100, -50,-30,-10,-6,-4,-2,-1,-0.8, -0.4, 0, 0.4, 0.8, 1, 2, 4, 8, 10,30,40]
     if vchoice == 'X':
         outputname = 'mesh-bathy'
     else:    
@@ -91,14 +100,16 @@ elif filechoice == 2:
     nc=netCDF4.Dataset('maxele.63.nc').variables
     #nc=netCDF4.Dataset('http://opendap.renci.org:1935/thredds/dodsC/ASGS/arthur/10/nc_inundation_v9.99/hatteras.renci.org/nchi/nhcConsensus/maxele.63.nc').variables
     vname='zeta_max'
-    #palettename = 'water-level.pal' !jgf20150508: use cold->warm instead
-    palettename = 'wavht.pal'
+    palettename = 'water-level.pal'
     var = nc[vname][:]
-    var = var.filled(-100)
+    print type(var)
+    if vchoice == 'Y':
+        var = var.filled(-99999)
+    # Converting water levels in meter to feet 
     var = np.multiply(3.28084,var)
-    np.place(var,var > 8,[7.99])
-    np.place(var, (-100 < var) & (var < 0),[0])    
+    np.place(var,var > 8,[7.99])    
     levels = [0,1,2,3,4,5,6,7,8]
+    #levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2.0,2.25,2.5,2.75,3,3.25,3.5,3.75,4,4.25]  
     print levels
     if vchoice == 'X':
         outputname = 'water-level'
@@ -111,9 +122,11 @@ elif filechoice == 3:
     #nc=netCDF4.Dataset('http://opendap.renci.org:1935/thredds/dodsC/ASGS/arthur/10/nc_inundation_v9.99/hatteras.renci.org/nchi/nhcConsensus/maxwvel.63.nc').variables
     vname='wind_max'
     var = nc[vname][:]
+    print type(var)
     palettename = 'wavht.pal' 
     #levels = range(0,int(max(nc[vname][:])+ 1),1)
     levels = [0,5,10,15,20,25,30,35,40,45]
+    print levels
     if vchoice == 'X':
         outputname = 'wind-speed'
     else:
@@ -124,13 +137,16 @@ elif filechoice == 4:
     nc=netCDF4.Dataset('swan_HS_max.63.nc').variables
     #nc=netCDF4.Dataset('http://opendap.renci.org:1935/thredds/dodsC/ASGS/arthur/10/nc_inundation_v9.99/hatteras.renci.org/nchi/nhcConsensus/swan_HS_max.63.nc').variables
     vname='swan_HS_max'
-    palettename = 'wavht.pal'
+    #palettename = 'wavht.pal'
+    palettename = 'water-level.pal'
     var = nc[vname][:]
-    var = var.filled(-100)
+    if vchoice == 'Y':
+        var = var.filled(-99999)
+    # converting wave heights in meter to feet
     var = np.multiply(3.28084,var)
     np.place(var,var > 32,[31.99])
-    np.place(var, (-100 < var) & (var < 0),[0])
     levels = [0,4,8,12,16,20,24,28,32]
+##    levels = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]
     print levels
     if vchoice == 'X':
         outputname = 'wave-height'
@@ -142,18 +158,16 @@ elif filechoice == 5:
     nc=netCDF4.Dataset('fort.63.nc').variables
     #nc=netCDF4.Dataset('http://opendap.renci.org:1935/thredds/dodsC/ASGS/arthur/10/nc_inundation_v9.99/hatteras.renci.org/nchi/nhcConsensus/fort.63.nc').variables
     vname='zeta'
-    outputname = 'nodalelev'+'_'+ shape + '_'+ str(storm)
+    outputname = 'nodalelev'+'_'+ shape + '_'+ str(storm)   
     if vchoice == 'Y':
         print 'KMZ files cannot be created for fort.63.nc'
 ## 6 - NODAL WIND VELOCITY ##
 elif filechoice == 6:
     nc=netCDF4.Dataset('fort.74.nc').variables
-    #nc=netCDF4.Dataset('http://opendap.renci.org:1935/thredds/dodsC/ASGS/arthur/10/nc_inundation_v9.99/hatteras.renci.org/nchi/nhcConsensus/fort.74.nc').variables
-    print nc.keys()
+    #nc=netCDF4.Dataset('http://opendap.renci.org:1935/thredds/dodsC/ASGS/arthur/10/nc_inundation_v9.99/hatteras.renci.org/nchi/nhcConsensus/fort.74.nc').variables   
     # Trying to read in data using the opendap url created an unresolved runtime error
     windx = nc['windx'][:]
     windy = nc['windy'][:]
-    #num = int(raw_input('Enter number of levels : '))
     wind = [[None for i in range(len(windx[j]))]for j in range(len(windx))]
     outputname = 'nodalwvel'+'_'+ shape + '_'+ str(storm)
     if vchoice == 'Y':
@@ -163,7 +177,6 @@ elif filechoice == 7:
     nc=netCDF4.Dataset('swan_HS.63.nc').variables
     #nc=netCDF4.Dataset('http://opendap.renci.org:1935/thredds/dodsC/ASGS/arthur/12/nc_inundation_v9.99/hatteras.renci.org/nchi/nhcConsensus/swan_HS.63.nc').variables
     vname = 'swan_HS'
-    #num = int(raw_input('Enter number of levels : '))
     outputname = 'nodalwavht'+'_'+ shape + '_'+ str(storm)
     if vchoice == 'Y':
         print 'KMZ files cannot be created for swan_HS.63.nc'
@@ -174,17 +187,25 @@ elif filechoice == 8:
     vname = 'swan_TPS_max'
     palettename = 'wavht.pal'
     var = nc[vname][:]
-    var = var.filled(-100)
+    if vchoice == 'Y':
+        var = var.filled(-100)
     levels = [0,5,10,15,20,25]
     if vchoice == 'X':
         outputname = 'wave-period'
     else:
        foldname = 'Maximum-Wave-Period'
        lonlatbuffer = float(raw_input('enter long/lat buffer: '))
-
+elif filechoice == 9:
+    nc = netCDF4.Dataset('swan_TPS.63.nc').variables
+    vname = 'swan_TPS'
+    outputname = 'nodalpeakpd'+'_'+shape+'_'+str(storm)
+elif filechoice == 10:
+    nc = netCDF4.Dataset('swan_TMM10.63.nc').variables
+    vname = 'swan_TMM10'
+    outputname = 'avgpd'+'_'+shape+'_'+str(storm)
+    
 else:
     print "Error in input"
-
 ## Timestep variable ##
 timestep = 'time'
     
@@ -402,6 +423,23 @@ tri = matplotlib.tri.Triangulation(lon,lat,triangles=nv)
 ## geoms is an ordered dictionary which stores the details of geometry of the polygons which describe the individual contour levels ##
 geoms = collections.OrderedDict()
 
+def classify_polygons(polys):
+    outer = []
+    inner = []
+    for p in polys:
+        if signed_area(p) >= 0:
+            outer.append(p)
+        else:
+            inner.append(p)
+    return outer,inner
+
+def points_inside_poly(points, polygon):
+    p = matplotlib.path.Path(polygon)
+    return p.contains_points(points)
+
+def reverse_geometry(p):
+  return np.flipud(p)
+
 ## To calculate the signed area of an irregular polyon ##
 def signed_area(ring):
     """Return the signed area enclosed by a ring in linear time using the 
@@ -445,10 +483,11 @@ for i in range(len(time_var)):
                 continue
             ## Triangulating for each local mesh ##
             tri = matplotlib.tri.Triangulation(localx,localy,triangles=localelements)
+                      
             ## Plotting filled contour for each local mesh ##
             contour = pplot.tricontourf(tri, localvar,levels=levels,shading='faceted')
-            pplot.show()
-            m = 0
+          
+            m = 0           
             for colli,coll in enumerate(contour.collections):
                 vmin,vmax = contour.levels[colli:colli+2]
                 print 'Level %d' %m
@@ -558,27 +597,75 @@ for i in range(len(time_var)):
                     ## To create POLYGON files ##
                     if filechoice == 5:
                         #levels = np.linspace(-1,var[i].data.max(),num)
-                        levels = [0,1,2,3,4,5,6,7,8]
+                        levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2.0,2.25,2.5]
                         var = nc[vname][i][:]
-                        print len(var)
-                        var = np.multiply(3.28084,var)
-                        np.place(var,var > 8,[7.99])
+                        print levels
+                        #var = np.multiply(3.28084,var)
+                        #np.place(var,var > 8,[7.99])
+                        if var.mask.any():
+                            point_mask_indices = np.where(var.mask)
+                            tri_mask = np.any(np.in1d(nv,point_mask_indices).reshape(-1,3),axis=1)
+                            print len(tri_mask)
+                            tri.set_mask(tri_mask)                
+                        np.place(var,var > 2.5,[2.49])
                         np.place(var, (-100 < var) & (var < 0),[0])    
                         contour = pplot.tricontourf(tri, var,levels=levels)                    
                     elif filechoice == 6:
                         #levels = np.linspace(min(wind[i]),max(wind[i]),num)
-                        levels = [0,5,10,15,20,25,30,35,40,45]
+                        #levels = [0,2.5,5,7.5,10,12.5,15,17.5,20,22.5,25,27.5,30,32.5,35,37.5,40,42.5,45]
+                        levels = [0,5,10,15,20,25,30,35,40]
                         print levels
                         contour = pplot.tricontourf(tri,wind[i],levels=levels)
                     elif filechoice == 7:
                         var = nc[vname][i][:]
+                        print type(var)                     
+                        #var = np.multiply(3.28084,var)
+                        # np.place(var,var > 10,[9.99])
                         #levels = np.linspace(0,var[i].data.max(),num)
                         levels = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+                        print type(var)
+                        #print stop
+                        if var.mask.any():
+                            print "yes"
+                            point_mask_indices = np.where(var.mask)
+                            tri_mask = np.any(np.in1d(nv,point_mask_indices).reshape(-1,3),axis=1)
+                            print len(tri_mask)
+                            tri.set_mask(tri_mask)                
                         contour = pplot.tricontourf(tri, var,levels=levels)
+                    elif filechoice == 9:
+                        var = nc[vname][i][:]
+                        print 'Maximum = {0}'.format(var.data.max())
+                        np.place(var,var > 20,[19.99])
+                        levels = [0,2,4,6,8,10,12,14,16,18,20]
+                        #levels = [0,4,8,12,16,20,24,28,32]
+                        if var.mask.any():
+                            print "yes"
+                            point_mask_indices = np.where(var.mask)
+                            tri_mask = np.any(np.in1d(nv,point_mask_indices).reshape(-1,3),axis=1)
+                            print len(tri_mask)
+                            tri.set_mask(tri_mask)                                       
+                        contour = pplot.tricontourf(tri, var,levels=levels)
+                        pplot.show()
+                    elif filechoice == 10:
+                        var = nc[vname][i][:]
+                        np.place(var,var > 15,[14.99])
+                        print 'Maximum = {0}'.format(var.data.max())
+                        #levels = [0,30,60,90,120,150,180,210,240]
+                        #levels = [0,2,4,6,8,10,12,14,16]
+                        levels = [0,4,8,16,20,24,28,32]
+                        contour = pplot.tricontourf(tri, var,levels=levels)                       
                     else :
-                        contour = pplot.tricontourf(tri, var,levels = levels) 
+                        print var.dtype
+                        # Identifying elements with masked values
+                        if  filechoice != 1 and filechoice != 3 and var.mask.any():
+                            point_mask_indices = np.where(var.mask)
+                            tri_mask = np.any(np.in1d(nv,point_mask_indices).reshape(-1,3),axis=1)
+                            tri.set_mask(tri_mask)
+
+                        contour = pplot.tricontourf(tri, var,levels = levels)
                     geoms[time_var[i]] = []
                     m = 0
+                    l = len(contour.collections)
                     for colli,coll in enumerate(contour.collections):
                         print 'Level %d'%m
                         vmin,vmax = contour.levels[colli:colli+2]
@@ -587,17 +674,45 @@ for i in range(len(time_var)):
                            multipol = fol.newmultigeometry(name= 'Level' + str(m))                         
                         for p in coll.get_paths():
                             p.simplify_threshold = 0.0
-                            polys = p.to_polygons()
-                            j = -1                    
-                            for k in polys:
-                                j = j+1
-                                if k.shape[0]<3:
-                                    polys.pop(j)
-                            ## Extracting the vertices of each of the paths corrsponding to each contour level ##
-                            ## and wrapping them up in a shapely Polygon object ##
-                            ## The geometry information with the contour levels is stored in geoms       
-                            if len(polys)>0:
-                                geoms[time_var[i]].append((Polygon(polys[0],polys[1:]),vmin,vmax))
+                            # Removing polygons which have less than threee coordinates to describe its boundary
+                            polys = [g for g in p.to_polygons() if g.shape[0] >=3] 
+                            ''' Extracting the vertices of each of the paths corrsponding to each contour level
+                             and wrapping them up in shapely Polygon objects. These Polygons are classified into
+                            outer and inner polygons and grouped accordingly. Some are classified as outer with
+                            corresponding inner polygons that occur within them. Other self existing polygons (outer/inner)
+                            are stored as separate outer polygons. Finally, the geometry information with the contour
+                            levels is stored in geoms and later on written into the corresponding shapefile'''
+                            outer,inner = classify_polygons(polys)
+                            if len(inner)>0:
+                                inner_points = [pts[0] for pts in inner]
+                            overall_inout = np.zeros((len(inner),),dtype = np.bool)
+                            
+                            for out in outer:
+                                if len(inner) > 0:
+                                    inout = points_inside_poly(inner_points,out)
+                                    overall_inout = np.logical_or(overall_inout, inout)
+                                    out_inner = [g for f, g in enumerate(inner) if inout[f]]
+                                    poly = Polygon(out, out_inner)
+                                else:
+                                    poly = Polygon(out)
+
+                                # clean-up polygons (remove intersections)
+                                if not poly.is_valid:
+                                    poly = poly.buffer(0.0)
+                                if poly.is_empty:
+                                    continue
+                                geoms[time_var[i]].append((poly,vmin,vmax))
+                            # collect all interiors which do not belong to any of the exteriors
+                            outer_interiors = [interior for s,interior in enumerate(inner) if not overall_inout[s]]
+                            for k in outer_interiors:
+                                poly = Polygon(reverse_geometry(k))
+                                # clean-up polygons (remove intersections)
+                                if not poly.is_valid:
+                                    poly = poly.buffer(0.0)
+                                if poly.is_empty:
+                                    continue
+                                geoms[time_var[i]].append((poly,vmin,vmax))
+                            print len(geoms[time_var[i]])
                             if vchoice == 'Y':
                                 ## Creating kml files for the whole domain - this is not recommended for very fne meshes ##
                                 ## due to the restrictions on the maximum number of vertices (31000) for a kml polygon object. ##
@@ -715,6 +830,7 @@ if vchoice == 'X':
                 k = list(time_var).index(geom)
                 print k
                 for g in geoms[geom]:
+                    print type(g)
                     c.write({'geometry': mapping(g[0]),'properties': {'wavht': g[1],'timestep':a[k]}})
 
     elif filechoice == 7 and choice == 'B':                
@@ -724,13 +840,34 @@ if vchoice == 'X':
                     k = list(time_var).index(geom)
                     print k
                     for g in geoms[geom]:
-                        c.write({'geometry': mapping(g[0]),'properties': {'wavhtmin': g[1], 'wavhtmax': g[2],'wavhtavg': (g[1]+g[2])/2.0,'timestep':a[k],'t':time_var[k]}})                          
+                        
+                        c.write({'geometry': mapping(g[0]),'properties': {'wavhtmin': g[1], 'wavhtmax': g[2],'wavhtavg': (g[1]+g[2])/2.0,'timestep':a[k],'t':time_var[k]}})
+                        
     elif filechoice == 8 and choice == 'B':
             schema = { 'geometry': 'Polygon', 'properties': { 'wvpdmin': 'float', 'wvpdmax': 'float', 'wvpdavg': 'float' } }
             with fiona.open(outputname, 'w', 'ESRI Shapefile', schema,crs) as c:
                 for geom in geoms:
                     for g in geoms[geom]:
                         c.write({'geometry': mapping(g[0]),'properties': {'wvpdmin': g[1], 'wvpdmax': g[2], 'wvpdavg': (g[1]+g[2])/2.0}})
+
+    elif filechoice == 9 and choice == 'B':                
+            schema = { 'geometry': 'Polygon', 'properties': { 'peakpdmin': 'float', 'peakpdmax': 'float','peakpdavg':'float','timestep':'str' ,'t' : 'float'} }
+            with fiona.open(outputname, 'w', 'ESRI Shapefile', schema,crs) as c:
+                for geom in geoms:
+                    k = list(time_var).index(geom)
+                    print k
+                    for g in geoms[geom]:
+                        c.write({'geometry': mapping(g[0]),'properties': {'peakpdmin': g[1], 'peakpdmax': g[2],'peakpdavg': (g[1]+g[2])/2.0,'timestep':a[k],'t':time_var[k]}})                          
+    elif filechoice == 10 and choice == 'B':                
+            schema = { 'geometry': 'Polygon', 'properties': { 'meanpdmin': 'float', 'meanpdmax': 'float','meanpdavg':'float','timestep':'str' ,'t' : 'float'} }
+            with fiona.open(outputname, 'w', 'ESRI Shapefile', schema,crs) as c:
+                for geom in geoms:
+                    k = list(time_var).index(geom)
+                    print k
+                    for g in geoms[geom]:
+                        c.write({'geometry': mapping(g[0]),'properties': {'meanpdmin': g[1], 'meanpdmax': g[2],'meanpdavg': (g[1]+g[2])/2.0,'timestep':a[k],'t':time_var[k]}})                          
+
+
     
 elif vchoice == 'Y':
     ## Specifying the kml file name and saving file ##
