@@ -7,7 +7,7 @@ asgs_swan.prt                                   print file name
     4                                   test file ref. number
                                         test file name
     6                                   screen ref. number
-   99                                   highest file ref. number
+   999                                  highest file ref. number
 $                                       comment identifier
 	                                       TAB character
 \                                       dir sep char in input file
