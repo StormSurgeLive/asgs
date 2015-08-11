@@ -204,7 +204,7 @@ prep()
     # this is a   C O L D S T A R T
     if [ $START = coldstart ]; then
        # if we have variable river flux, link the fort.20 and fort.88 files
-       if [[ $VARFLUX = on ]]; then
+       if [[ $VARFLUX = on || $VARFLUX = default ]]; then
           # jgf20110525: For now, just copy a static file to this location
           # and adcprep it. TODO: When real time flux data become available,
           # grab those instead of relying on a static file.
@@ -221,7 +221,7 @@ prep()
        else
           logMessage "Running adcprep to prepare new fort.15 file."
           prepFile prep15 $NCPU $ACCOUNT $WALLTIME
-          if [[ $VARFLUX = on ]]; then
+          if [[ $VARFLUX = on || $VARFLUX = default ]]; then
              logMessage "Running adcprep to prepare new fort.20 file."
              prepFile prep20 $NCPU $ACCOUNT $WALLTIME
              logMessage "Running adcprep to prepare fort.88 file."
@@ -245,7 +245,7 @@ prep()
        else
           logMessage "Running adcprep to prepare new fort.15 file."
           prepFile prep15 $NCPU $ACCOUNT $WALLTIME
-          if [[ $VARFLUX = on ]]; then
+          if [[ $VARFLUX = on || $VARFLUX = default ]]; then
              logMessage "Running adcprep to prepare new fort.20 file."
              prepFile prep20 $NCPU $ACCOUNT $WALLTIME
           fi
@@ -1086,7 +1086,7 @@ if [[ $WAVES = on ]]; then
 else
    JOBTYPE=padcirc
 fi
-if [[ $VARFLUX = on ]]; then
+if [[ $VARFLUX = on || $VARFLUX = default ]]; then
    checkFileExistence $INPUTDIR "River elevation initialization file " $RIVERINIT
    checkFileExistence $INPUTDIR "River flux default file " $RIVERFLUX
 fi
@@ -1393,6 +1393,9 @@ while [ true ]; do
       if [[ $VARFLUX = on ]]; then
          downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $RIVERUSER $RIVERDATAPROTOCOL $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX} $USERIVERFILEONLY
       fi
+      if [[ $VARFLUX = default ]]; then
+         ln -s ${INPUTDIR}/${RIVERFLUX} ./fort.20 2>> ${SYSLOG}
+      fi
       # preprocess
       logMessage "Nowcast preprocessing."
       logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
@@ -1606,6 +1609,9 @@ while [ true ]; do
       # get river flux nowcast data, if configured to do so
       if [[ $VARFLUX = on ]]; then
          downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $RIVERUSER $RIVERDATAPROTOCOL $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX} $USERIVERFILEONLY
+      fi
+      if [[ $VARFLUX = default ]]; then
+         ln -s ${INPUTDIR}/${RIVERFLUX} ./fort.20 2>> ${SYSLOG}
       fi
       echo "hostname : $HOSTNAME" >> ${STORMDIR}/run.properties
       echo "instance : $INSTANCENAME" >> ${STORMDIR}/run.properties

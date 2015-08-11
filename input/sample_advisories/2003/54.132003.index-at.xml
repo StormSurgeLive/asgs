@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Fri, 19 Sep 2003 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression ISABEL Forecast/Advisory Number 54</title>
+      <description>Issued at 1500Z FRI SEP 19 2003 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+TROPICAL DEPRESSION ISABEL FORECAST/ADVISORY NUMBER  54
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL132003
+1500Z FRI SEP 19 2003
+ 
+AT 11 AM EDT...1500Z...ALL COASTAL TROPICAL STORM WARNINGS HAVE BEEN
+DISCONTINUED.  HOWEVER...STORM SURGE FLOODING IS STILL OCCURRING IN
+MANY AREAS.  PLEASE CONSULT STATEMENTS ISSUED BY YOUR LOCAL
+NATIONAL WEATHER SERVICE FORECAST OFFICE FOR INFORMATION CONCERNING
+HAZARDOUS CONDITIONS IN YOUR AREA.
+ 
+TROPICAL DEPRESSION CENTER LOCATED NEAR 42.0N  80.7W AT 19/1500Z
+POSITION ACCURATE WITHIN  45 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH OR 350 DEGREES AT  26 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  997 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 42.0N  80.7W AT 19/1500Z
+AT 19/1200Z CENTER WAS LOCATED NEAR 40.9N  80.4W
+ 
+FORECAST VALID 20/0000Z 47.0N  80.5W...EXTRATROPICAL
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...350NE   0SE   0SW 350NW.
+ 
+FORECAST VALID 20/1200Z 54.0N  79.0W...EXTRATROPICAL
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...450NE   0SE   0SW 450NW.
+ 
+FORECAST VALID 21/0000Z 60.0N  77.0W...EXTRATROPICAL
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...500NE   0SE 500SW 500NW.
+ 
+FORECAST VALID 21/1200Z...MERGED WITH EXTRATROPICAL LOW
+ 
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE
+NATIONAL HURRICANE CENTER ON THIS SYSTEM
+ 
+FORECASTER FRANKLIN
+
+</pre>]]></description>
+      <pubDate>Fri, 19 Sep 2003 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2003/13/54.132003.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2003/13/54.132003.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

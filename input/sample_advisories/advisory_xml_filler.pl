@@ -51,7 +51,7 @@
 #----------------------------------------------------------------
 #
 # Sample shell script using this file:
-#advisoryM=1 ; advisoryMax=39 ; advisory=$advisoryMin ; while [[ $advisory -le $advisoryMax ]]; do advisoryNum=`printf "%03d\n" $advisory`; perl ~/asgs/2014stable/input/sample_advisories/advisory_xml_filler.pl --input al092012.fstadv.$advisoryNum.shtml --template ../template.index.xml --best bal092012.dat  ; advisory=`expr $advisory + 1` ; done
+#advisoryMin=1 ; advisoryMax=39 ; advisory=$advisoryMin ; while [[ $advisory -le $advisoryMax ]]; do advisoryNum=`printf "%03d\n" $advisory`; perl ~/asgs/2014stable/input/sample_advisories/advisory_xml_filler.pl --input al092012.fstadv.$advisoryNum.shtml --template ../template.index.xml --best bal092012.dat  ; advisory=`expr $advisory + 1` ; done
 
 use strict;
 use warnings;
