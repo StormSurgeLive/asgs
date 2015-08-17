@@ -80,10 +80,16 @@ ifeq ($(NETCDF),enable)
    ifeq ($(MACHINENAME),garnet)
       NETCDFPATH  := /opt/cray/netcdf/4.3.0/pgi/121
    endif
+   # jgf20150817: Added compiler flags for spirit at AFRL.
+   ifeq ($(MACHINENAME),spirit)
+      NETCDFPATH  := /app/wpostool/COST/netcdf-fortran-4.4.2/intel
+      LIBS        := -L/app/wpostool/COST/netcdf-c-4.3.1.1/intel/lib -L/app/wpostool/COST/hdf5-mpi/1.8.12/intel/sgimpt/lib
+      LDFLAGS     :=  -lnetcdf -lhdf5 -lhdf5_hl
+   endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
-   LDFLAGS     := -lnetcdff
+   LDFLAGS     := $(LDFLAGS) -lnetcdff
    INCLUDES    := -I. -I$(NETCDFPATH)/include
-   LIBS        := -L$(NETCDFPATH)/lib
+   LIBS        := $(LIBS) -L$(NETCDFPATH)/lib
 endif
 ifeq ($(NETCDF4),enable)
    FFLAGS      := $(FFLAGS) -DHAVE_NETCDF4
