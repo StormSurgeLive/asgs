@@ -43,12 +43,11 @@
       IMPLICIT NONE
       CHARACTER(2048)               :: dataFileBase
       character(2048)               :: netCDFFile, AttFile
-      character(120)                :: datenum
       character(120)                :: dataRank
       character(120),   allocatable :: att(:,:)
       character(1000)               :: Line
       character(1)                  :: JunkC, Tadj
-      real(8)                        :: temp1, temp2, time(1)
+      real(8)                        :: temp1, temp2
       real(8), ALLOCATABLE         :: Global1(:), Global2(:), Global3(:)
       integer                       :: yy, mo, dd, hh, mi
       integer                       :: i, j, k, N, SS
@@ -105,7 +104,7 @@
       ! if command line options provide all needed input, menu will not
       ! be presented to user; programs with command line options are
       ! slightly easier to automate than menu-based programs
-      argcount = iargc() ! count up command line options
+      argcount = command_argument_count() ! count up command line options
       if (argcount.gt.0) then
          i=0
          do while (i.lt.argcount)
