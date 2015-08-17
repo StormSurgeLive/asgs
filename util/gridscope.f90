@@ -50,100 +50,109 @@ module subgrid
  integer, allocatable :: nms(:,:)
 end module subgrid
 
-  program main
-      implicit none
-      integer :: imode, ifile
-      character(120) :: fort14, fort13, project_name
+program gridscope
+implicit none
+character(len=1024) :: fort14 ! mesh fle name
+character(len=1024) :: fort13 ! nodal attributes file name
+character(len=1024) :: project_name
+character(len=1024) :: cmdlineopt
+character(len=1024) :: cmdlinearg
+logical :: checkgrid = .false.
+logical :: pullsubgrid = .false.
+logical :: recombinesubgrid = .false.
+logical :: pullnodalattributes = .false.
+logical :: leveeeditor = .false.
+logical :: attributeeditor = .false.
+logical :: bathymetryeditor = .false.
+integer :: argcount  ! number of command line arguments
+integer :: i         ! command line argument counter
 !
-      open(10,file='file.dat',status='old',action='read')
-      read(10,*) ifile
-      read(10,'(a)') project_name
-      select case ( ifile )
-        case(0)
-           read(10,'(a)') fort14
-        case(1)
-           read(10,'(a)') fort14
-           read(10,'(a)') fort13
-        case default
-           write(6,*)
-           write(6,*)
-           write(6,*) 'You have to select file parameter 0 or 1 in file.dat'
-           write(6,*) 'Your file parameter is', ifile
-           write(6,*) 'Program will stop!'
-           write(6,*)
-           write(6,*) '**** Hit the Enter-Key to stop ****'
-           read(5,*)
-           stop
-      end select
+fort14 = 'null'
+fort13 = 'null'
+project_name = 'project_name'
 !
-      write(6,*)
-      write(6,*)
-      write(6,*)
-      write(6,*) 'GRID SCOPE ver.1.20'
-      write(6,*)
-      write(6,*) 'Select the phase'
-      write(6,*) ' 0. Check Grid (Renumbering, Overlapping Element, River Location) '
-      write(6,*) ' 1. Pull the sub-grid out from the global grid '
-      write(6,*) ' 2. Pull out the nodal attributes and rezone to the sub-grid '
-      write(6,*) ' 3. Recombine the sub-grid on global grid '
-!!-PCK-!!
-      write(6,*) ' or'
-      write(6,*) ' Special Features'
-      write(6,*) ' 4. Levee Editor (fort.14)'
-      write(6,*) ' 5. Attribute Editor (fort.13)'
-      write(6,*) ' 6. Bathymetry Editor (fort.14)'
-!!-PCK-!!
-      read(5,*) imode
-      write(6,*)
+! process command line options
+argcount = iargc() ! count up command line options
+write(6,'(a,i0,a)') 'INFO: There are ',argcount,' command line options.'
+i=0
+do while (i.lt.argcount)
+   i = i + 1
+   call getarg(i, cmdlineopt)
+   select case(trim(cmdlineopt))
+   case("--meshfile")
+      i = i + 1
+      call getarg(i, cmdlinearg)
+      write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
+      fort14 = trim(cmdlinearg)
+   case("--nodalattributesfile")
+      i = i + 1
+      call getarg(i, cmdlinearg)
+      write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
+      fort13 = trim(cmdlinearg)
+   case("--projectname")
+      i = i + 1
+      call getarg(i, cmdlinearg)
+      write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
+      project_name = trim(cmdlinearg)
+   case("--checkgrid")
+      write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+      checkgrid = .true.
+   case("--pullsubgrid")
+      write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+      pullsubgrid = .true.
+   case("--pullnodalattributes")
+      write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+      pullnodalattributes = .true.
+   case("--recombinesubgrid")
+      write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+      recombinesubgrid = .true.
+   case("--leveeeditor")
+      write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+      leveeeditor = .true.
+   case("--attributeeditor")
+      write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+      attributeeditor = .true.
+   case("--bathymetryeditor")
+      write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+      bathymetryeditor = .true.
+   case default
+      write(6,'(a,i0,a,a)') 'WARNING: Command line option ',i,' "',TRIM(cmdlineopt),'" was not recognized.'
+   end select
+end do      
 !
-      select case (imode)
-         case(0)
-            call grid_check( ifile, fort14, fort13 )
-         case(1)
-            write(6,*) 'You Select',imode,'.'
-            call pull_out_subgrid ( ifile, fort14, project_name )
-         case(2)
-            write(6,*) 'You Select',imode
-            if( ifile /= 1 ) then
-                write(6,*)'Phase2 need fort.13 file. You has to select file-parameter=1.'
-                write(6,*)
-                write(6,*) '**** Hit the Enter-Key to stop ****'
-                read(5,*)
-                stop
-            endif
-            call pull_out_nodals ( fort14, project_name, fort13 )
-         case(3)
-            write(6,*) 'You Select',imode,'.'
-            call merge_domain ( ifile, fort14, project_name, fort13 )
-!!-PCK-
-         case(4)
-            write(6,*) 'You Select',imode,'.'
-            call levee_editor (ifile, fort14, project_name,fort13 )
-         case(5)
-            write(6,*) 'You Select',imode,'.'
-            call fort13_editor (ifile, fort14, project_name,fort13 )
-         case(6)
-            write(6,*) 'You Select',imode,'.'
-            call bath_editor (ifile, fort14, project_name,fort13 )
-!!-PCK-
-         case default
-!!-PCK-
-!           write(6,*) 'Please select, 1,2 or 3.'
-            write(6,*) 'Please select, 1, 2, 3, 4, 5, or 6.'
-!!-PCK-
-            write(6,*)
-            write(6,*) '**** Hit the Enter-Key to stop ****'
-            read(5,*)
-            stop
-      end select
+if (checkgrid.eqv..true.) then
+   call grid_check(fort14, fort13)
+endif
+if (pullsubgrid.eqv..true.) then
+   call pull_out_subgrid (fort14, project_name)
+endif
+if (pullnodalattributes.eqv..true.) then
+   if (trim(fort13).eq.'null') then
+      write(6,'(a)') 'ERROR: Please provide the fort.13 file for pulling nodal attributes.'
+   else
+      call pull_out_nodals (fort14, project_name, fort13)
+   endif
+endif
+if (recombinesubgrid.eqv..true.) then
+   call merge_domain (fort14, project_name, fort13)
+endif
+if (leveeeditor.eqv..true.) then
+   call levee_editor(fort14, project_name, fort13)
+endif
+if (attributeeditor.eqv..true.) then
+   call fort13_editor(fort14, project_name, fort13)
+endif   
+if (bathymetryeditor.eqv..true.) then
+   call bath_editor(fort14, project_name,fort13 )
+endif
 !
-  end program main
+!
+end program gridscope
 !
 !-----+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+
-  subroutine pull_out_subgrid ( ifile, fort14, project_name )
+subroutine pull_out_subgrid(fort14, project_name )
 !-----+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+
       implicit none
-      integer, intent(in) :: ifile
       character(120), intent(in) :: fort14, project_name
 !
       character(120) :: agrid
@@ -769,7 +778,7 @@ end module subgrid
       write(6,*) 'you have to designate the center and diameter.'
       write(6,*) '  ===> Input center of sub-grid (x,y) ;'
       read(5,*) xc(1), xc(2)
-      write(6,*) '  ===> Input the diameter of sub-grid:'
+      write(6,*) '  ===> Input the diameter of sub-grid (degrees):'
       read(5,*) dx
         dx = dx * 0.5d0
         dx = dx * dx
@@ -894,12 +903,11 @@ end module subgrid
    end subroutine select_arbitr
 !
 !-----+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+
-   subroutine merge_domain ( ifile, fort14, project_name, fort13 )
+   subroutine merge_domain (fort14, project_name, fort13 )
 !-----+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+
       use gblgrid
       use subgrid
       implicit none
-      integer, intent(in) :: ifile
       character(120), intent(in) :: fort14, project_name, fort13
 !
       character(120) :: agrid, gridname
@@ -978,7 +986,7 @@ end module subgrid
                     agrid, nvdll,  nbdv,  nvell,  ibtype,  nbvv,  ibconn,  bar, &
                     nopes, nbous, nvdls_max, nvels_max,                          &
                            nvdlls, nbdvs, nvells, ibtypes, nbvvs, ibconns, bars,&
-                    ifile, project_name, fort14, fort13, nodemax, nsequencer )
+                    project_name, fort14, fort13, nodemax, nsequencer )
 !
    end subroutine merge_domain
 !
@@ -987,7 +995,7 @@ end module subgrid
                        agrid, nvdll,  nbdv,  nvell,  ibtype,  nbvv,  ibconn,  bar, &
                        nopes, nbous, nvdls_max, nvels_max,                          &
                               nvdlls, nbdvs, nvells, ibtypes, nbvvs, ibconns, bars,&
-                       ifile, project_name, fort14, fort13, nodemax, nsequencer )
+                       project_name, fort14, fort13, nodemax, nsequencer )
 !-----+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+
       use gblgrid
       use subgrid
@@ -996,7 +1004,6 @@ end module subgrid
       integer, intent(in) :: nope, nbou, nvdl_max, nvel_max
 !      double precision, intent(in) :: xyd(3,np)
 !      integer, intent(in) :: nm(ne,3)
-      integer, intent(in) :: ifile
       character(120), intent(in) :: agrid, project_name, fort14, fort13
       integer, intent(in) :: nvdll(nope), nbdv(nope,nvdl_max)
       integer, intent(in) :: nvell(nbou), nbvv(nbou,nvel_max), ibtype(nbou), ibconn(nbou,nvel_max)
@@ -1781,7 +1788,7 @@ deallocate( nvdlln, nbdvn )
 !
   write(6,*) '     Finish!! GRID'
 !
-  if(ifile == 1) then
+  if(trim(fort13).ne.'null') then
       call merge_nodals( npn, nps, np, nmaps, nmap, nptable, project_name, fort13,&
                          nodemax, nsequencer )
   endif
@@ -2771,10 +2778,9 @@ deallocate( nvdlln, nbdvn )
    end subroutine readetab
 !
 !-----+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+
-   subroutine grid_check( ifile, fort14, fort13 )
+   subroutine grid_check(fort14, fort13 )
 !-----+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+
       implicit none
-      integer, intent(in) :: ifile
       character(120), intent(in) :: fort14, fort13
 !
       integer :: ne, np
@@ -2815,19 +2821,19 @@ deallocate( nvdlln, nbdvn )
       write(6,*)
 !
 !Check Grid
-      call checkgrd ( ne, np, nope, nbou, nvdl_max, nvel_max, nodemax, nsequencer, ifile, fort13, &
+      call checkgrd ( ne, np, nope, nbou, nvdl_max, nvel_max, nodemax, nsequencer, fort13, &
                       xyd, nm, neta, nvdll, nbdv, nvel, nvell, ibtype, nbvv, ibconn, bar )
 
 !
    end subroutine grid_check
 
 !-----+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+
-   subroutine checkgrd ( ne, np, nope, nbou, nvdl_max, nvel_max, nodemax, nsequencer, ifile, fort13,&
+   subroutine checkgrd ( ne, np, nope, nbou, nvdl_max, nvel_max, nodemax, nsequencer, fort13,&
                          xyd, nm, neta, nvdll, nbdv, nvel, nvell, ibtype, nbvv, ibconn, bar )
 !-----+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+
       implicit none
       integer, intent(in) :: ne, np, nope, nbou, nvdl_max, nvel_max
-      integer, intent(in) :: ifile, nodemax, nsequencer(nodemax)
+      integer, intent(in) :: nodemax, nsequencer(nodemax)
       character(120), intent(in) :: fort13
       double precision, intent(inout) :: xyd(3,np)
       integer, intent(inout) :: nm(ne,3)
@@ -3034,7 +3040,7 @@ deallocate( nvdlln, nbdvn )
  510  format( i10, 2f15.6)
  511  format(2i10, 3f15.6)
 !
-      if( ifile==1 ) then
+      if(trim(fort13).ne.'null') then
          call renum13( fort13, nodemax, nsequencer, np, npn, nmap_l1, nmap_l2 )
       endif
 !
@@ -3569,13 +3575,12 @@ deallocate( nvdlln, nbdvn )
 !   12) read1314
 !
 !-----+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+
-   subroutine levee_editor (ifile, fort14, project_name, fort13 )
+   subroutine levee_editor(fort14, project_name, fort13)
 !-----+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+
 !
       implicit none
 !
       character(120), intent(in)    :: fort14, fort13, project_name
-      integer, intent(in)           :: ifile
 !
       character(120)                :: agrid, gridname
       integer                       :: ne, np, nope, nbou, nvdl_max, nvel_max, neta, nvel, nodemax
@@ -5674,11 +5679,10 @@ deallocate( nvdlln, nbdvn )
    end subroutine levee_editor
 !
 !-----+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+
-   subroutine fort13_editor (ifile, fort14, project_name, fort13 )
+   subroutine fort13_editor(fort14, project_name, fort13 )
 !-----+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+
 !
       implicit none
-      integer, intent(in) :: ifile
       character(120), intent(in) :: fort14, fort13, project_name
 !
       character(120) :: agrid, gridname, fort1314
@@ -5879,11 +5883,10 @@ deallocate( nvdlln, nbdvn )
 !
 !
 !-----+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+
-   subroutine bath_editor  (ifile, fort14, project_name, fort13 )
+   subroutine bath_editor(fort14, project_name, fort13)
 !-----+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+
 !
       implicit none
-      integer, intent(in) :: ifile
       character(120), intent(in) :: fort14, fort13, project_name
 !
       character(120) :: agrid, gridname
