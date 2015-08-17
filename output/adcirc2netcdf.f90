@@ -48,7 +48,7 @@
       character(120),   allocatable :: att(:,:)
       character(1000)               :: Line
       character(1)                  :: JunkC, Tadj
-      double precision              :: temp1, temp2, time(1)
+      double precision              :: temp1, temp2 
       DOUBLE PRECISION, ALLOCATABLE :: Global1(:), Global2(:), Global3(:)
       integer                       :: yy, mo, dd, hh, mi
       integer                       :: i, j, k, N, SS
@@ -100,7 +100,7 @@
       ! if command line options provide all needed input, menu will not
       ! be presented to user; programs with command line options are
       ! slightly easier to automate than menu-based programs
-      argcount = iargc() ! count up command line options
+      argcount = command_argument_count() ! count up command line options
       if (argcount.gt.0) then
          i=0
          do while (i.lt.argcount)

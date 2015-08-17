@@ -65,7 +65,7 @@ agrid = 'null'
 write(6,*) "INFO: adcirc2netcdf was compiled with the following " &
    // "netcdf library: ",trim(nf90_inq_libvers())
 
-argcount = iargc() ! count up command line options
+argcount = command_argument_count() ! count up command line options
 if (argcount.gt.0) then
    i=0
    do while (i.lt.argcount)
