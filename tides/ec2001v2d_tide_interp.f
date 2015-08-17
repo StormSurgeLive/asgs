@@ -238,7 +238,8 @@ C     Process command line options, if any
                   write(*,*) "-s sourcemesh"
                   write(*,*) "-t targetmesh"
                   write(*,*) "-d tidaldb"
-                  write(*,*) "-n number of constitutents followed by their names"
+                  write(*,*)
+     &             "-n number of constitutents followed by their names"
                   write(*,*) "-f full or -f adcirc"
                   write(*,*) "-v show version"
                   write(*,*) "-h this message"
