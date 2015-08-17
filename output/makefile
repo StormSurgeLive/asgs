@@ -47,6 +47,15 @@ ifeq ($(compiler),intel)
    endif
 endif
 #
+# specify compiler=pgf90 on make command line
+ifeq ($(compiler),pgf90)
+   FC := pgf90
+   FFLAGS := -Mpreprocess -Mextend -Minform,inform -tp=shanghai-64 -fast
+   ifeq ($(DEBUG),full)
+      FFLAGS := -Mextend -g -O0 -traceback -Mbounds -Mchkfpstk -Mchkptr -Mchkstk -DALL_TRACE -DFLUSH_MESSAGES -DFULL_STACK -tp=shanghai-64
+   endif
+endif
+#
 INCLUDES := -I. 
 #
 # if netcdf libraries are available on the target platform, 
@@ -66,6 +75,10 @@ ifeq ($(NETCDF),enable)
    # jgf20150720: Added compiler flags for queenbee at LONI.
    ifeq ($(MACHINENAME),queenbee)
       NETCDFPATH  := /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0
+   endif
+   # jgf20150817: Added compiler flags for garnet at ERDC.
+   ifeq ($(MACHINENAME),garnet)
+      NETCDFPATH  := /opt/cray/netcdf/4.3.0/pgi/121
    endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := -lnetcdff

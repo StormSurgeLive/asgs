@@ -18,7 +18,7 @@ stationFileName = 'stations.txt'
 outputFile = 'stations_timeseries.txt'
 fileFormat = ASCIIG
 
-argcount = iargc() ! count up command line options
+argcount = command_argument_count() ! count up command line options
 if (argcount.gt.0) then
    i=0
    do while (i.lt.argcount)

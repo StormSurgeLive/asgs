@@ -32,7 +32,7 @@ findMin = .false.
 dataFileFormat = ASCIIG
 !
 ! process command line options
-argcount = iargc() ! count up command line options
+argcount = command_argument_count() ! count up command line options
 write(6,'(a,i0,a)') 'INFO: There are ',argcount,' command line options.'
 i=0
 do while (i.lt.argcount)
