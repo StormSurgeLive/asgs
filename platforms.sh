@@ -214,6 +214,30 @@ init_garnet()
   PPN=32
   IMAGEMAGICKBINPATH=/usr/local/usp/ImageMagick/default/bin 
 }
+
+init_spirit()
+{ #<- can replace the following with a custom script
+  # This requires the user to have a .personal.bashrc file in the $HOME 
+  # directory with the following contents:
+  # echo "Loading modules in .personal.bashrc ..."
+  # module load netcdf-fortran/intel/4.4.2
+  # module load hdf5/intel/1.8.12
+  # module load hdf5-mpi/intel/sgimpt/1.8.12
+  # echo "... modules loaded."
+  HOSTNAME=spirit.afrl.hpc.mil
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  ACCOUNT=erdcvhsp
+  SUBMITSTRING="mpiexec_mpt"
+  SCRATCHDIR=$WORKDIR 
+  SSHKEY=~/.ssh/id_rsa_spirit
+  QSCRIPT=spirit.template.pbs
+  PREPCONTROLSCRIPT=spirit.adcprep.template.pbs
+  PREPHOTSTARTSCRIPT=spirit.adcprep.template.pbs
+  QSCRIPTGEN=erdc.pbs.pl
+  PPN=1
+  IMAGEMAGICKBINPATH=/usr/local/usp/ImageMagick/default/bin 
+}
 init_tezpur()
 { #<- can replace the following with a custom script
   HOSTNAME=tezpur.hpc.lsu.edu
@@ -333,6 +357,9 @@ env_dispatch(){
   "garnet") consoleMessage "Garnet (ERDC) configuration found."
           init_garnet
           ;;
+  "spirit") consoleMessage "Spirit (AFRL) configuration found."
+          init_spirit
+          ;;
   "queenbee") consoleMessage "Queenbee (LONI) configuration found."
           init_queenbee
           ;;
@@ -363,7 +390,7 @@ env_dispatch(){
   "test") consoleMessage "test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "'$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, queenbee, topsail, desktop, arete"
+  *) fatal "'$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, queenbee, topsail, desktop, arete, spirit"
      ;;
   esac
 }
