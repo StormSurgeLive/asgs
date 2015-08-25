@@ -1,4 +1,6 @@
 #!/bin/bash
+## Specify the shell for PBS 
+#PBS -S /bin/sh
 # Specify the queue explicitly
 #PBS -q %queuename%
 # Specify email address
@@ -16,22 +18,35 @@
 #PBS -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out
 # Specify the account that the time should be taken from 
 #PBS -A %account%
+# Request mail when job ends, or is aborted (optional, default is "a" only)
+# (commented out)
+#PBS -m ea
 #PBS -V
-#---------------------------------------------------------------------
+
+# this is where the necessary netcdf share libraries are
+export LD_LIBRARY_PATH=/home/nate/install/lib:$LD_LIBRARY_PATH
+
 # The directory to start in 
 cd %advisdir%/%enstorm%
 # These are the actual commands to be executed.
-DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-echo "[${DATETIME}] : %jobtype% starting in %advisdir%/%enstorm%." >> %jobtype%.%enstorm%.run.start
-echo "%jobtype% job starting at $DATETIME."
-mpirun -np %ncpu% -machinefile $PBS_NODEFILE %adcircdir%/%jobtype% %cloptions% > %jobtype%.%enstorm%.stdout.stderr 2>&1
-ERROVALUE=$?
-DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-if [ $ERROVALUE == 0 ] ; then
-   RUNSUFFIX="finish"
-else
-   RUNSUFFIX="error"
-fi
-echo "[${DATETIME}] : %jobtype%.%enstorm% finished in %advisdir%/%enstorm% with return value = $ERROVALUE" > %jobtype%.%enstorm%.run.${RUNSUFFIX}
-echo "Job finished at $DATETIME."
+echo "Test job starting at `date`"
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+    echo "[${DATETIME}] : Job starting"          >> %jobtype%.%enstorm%.run.start
+    echo "[${DATETIME}] : %advisdir%  %enstorm%" >> %jobtype%.%enstorm%.run.start
+    echo "[${DATETIME}] : padcirc"               >> %jobtype%.%enstorm%.run.start
+
+mpirun -machinefile $PBS_NODEFILE -np %ncpu% %adcircdir%/%jobtype% %cloptions% >> %syslog%
+
+    ERROVALUE=$?
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+    if [ $ERROVALUE == 0 ] ; then
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> %jobtype%.%enstorm%.run.finish
+    echo "[${DATETIME}] :  %advisdir%  %enstorm%"               >> %jobtype%.%enstorm%.run.finish
+    echo "[${DATETIME}] :  padcirc"                             >> %jobtype%.%enstorm%.run.finish
+    else
+    echo "[${DATETIME}] : Job finished with return value = $ERROVALUE" >> run.error
+    echo "[${DATETIME}] :  %advisdir%  %enstorm%"               >> %jobtype%.%enstorm%.run.error
+    echo "[${DATETIME}] :  padcirc"                             >> %jobtype%.%enstorm%.run.error
+    fi
+echo "Test job finished at `date`"
 # You don't need anything special at the end of the script.
