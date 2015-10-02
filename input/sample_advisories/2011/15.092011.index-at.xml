@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 24 Aug 2011 03:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane IRENE Forecast/Advisory Number 15</title>
+      <description>Issued at 0300 UTC WED AUG 24 2011 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+ 
+HURRICANE IRENE FORECAST/ADVISORY NUMBER  15
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL092011
+0300 UTC WED AUG 24 2011
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+NONE.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A HURRICANE WARNING IS IN EFFECT FOR...
+* TURKS AND CAICOS ISLANDS
+* THE SOUTHEASTERN...CENTRAL...AND NORTHWESTERN BAHAMAS
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* NORTH COAST OF HAITI FROM LE MOLE ST. NICHOLAS EASTWARD TO THE
+DOMINICAN REPUBLIC BORDER
+ 
+HURRICANE CENTER LOCATED NEAR 21.3N  72.4W AT 24/0300Z
+POSITION ACCURATE WITHIN  15 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST-NORTHWEST OR 295 DEGREES AT   8 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  969 MB
+EYE DIAMETER  20 NM
+MAX SUSTAINED WINDS  80 KT WITH GUSTS TO 100 KT.
+64 KT....... 35NE  30SE  25SW  35NW.
+50 KT....... 70NE  70SE  40SW  75NW.
+34 KT.......180NE 180SE  90SW 150NW.
+12 FT SEAS..240NE 150SE  90SW 210NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 21.3N  72.4W AT 24/0300Z
+AT 24/0000Z CENTER WAS LOCATED NEAR 21.1N  72.0W
+ 
+FORECAST VALID 24/1200Z 22.0N  73.5W
+MAX WIND  85 KT...GUSTS 105 KT.
+64 KT... 40NE  30SE  20SW  35NW.
+50 KT... 80NE  60SE  50SW  70NW.
+34 KT...180NE 130SE 100SW 130NW.
+ 
+FORECAST VALID 25/0000Z 23.5N  75.0W
+MAX WIND  95 KT...GUSTS 115 KT.
+64 KT... 40NE  30SE  20SW  35NW.
+50 KT... 80NE  60SE  50SW  70NW.
+34 KT...180NE 130SE 100SW 130NW.
+ 
+FORECAST VALID 25/1200Z 25.5N  76.5W
+MAX WIND 105 KT...GUSTS 130 KT.
+64 KT... 45NE  35SE  25SW  35NW.
+50 KT... 90NE  70SE  60SW  70NW.
+34 KT...190NE 150SE 110SW 150NW.
+ 
+FORECAST VALID 26/0000Z 27.5N  77.0W
+MAX WIND 110 KT...GUSTS 135 KT.
+50 KT... 90NE  70SE  60SW  70NW.
+34 KT...190NE 160SE 120SW 160NW.
+ 
+FORECAST VALID 27/0000Z 31.0N  77.0W
+MAX WIND 110 KT...GUSTS 135 KT.
+50 KT... 90NE  80SE  60SW  70NW.
+34 KT...200NE 170SE 130SW 160NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 175 NM
+ON DAY 4 AND 225 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 28/0000Z 36.0N  76.0W
+MAX WIND 100 KT...GUSTS 120 KT.
+ 
+OUTLOOK VALID 29/0000Z 40.5N  73.5W
+MAX WIND  75 KT...GUSTS  90 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 21.3N  72.4W
+ 
+NEXT ADVISORY AT 24/0900Z
+ 
+$$
+FORECASTER AVILA
+
+</pre>]]></description>
+      <pubDate>Wed, 24 Aug 2011 03:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2011/09/15.092011.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2011/09/15.092011.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

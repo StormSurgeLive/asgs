@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 24 Aug 2011 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane IRENE Forecast/Advisory Number 18</title>
+      <description>Issued at 2100 UTC WED AUG 24 2011 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+ 
+HURRICANE IRENE FORECAST/ADVISORY NUMBER  18
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL092011
+2100 UTC WED AUG 24 2011
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+NONE
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A HURRICANE WARNING IS IN EFFECT FOR...
+* THE SOUTHEASTERN...CENTRAL...AND NORTHWESTERN BAHAMAS
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* THE TURKS AND CAICOS ISLANDS
+ 
+INTERESTS FROM THE CAROLINAS NORTHWARD THROUGH NEW ENGLAND
+SHOULD MONITOR THE PROGRESS OF IRENE.
+ 
+HURRICANE CENTER LOCATED NEAR 23.1N  74.7W AT 24/2100Z
+POSITION ACCURATE WITHIN  15 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTHWEST OR 310 DEGREES AT  10 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  954 MB
+EYE DIAMETER  20 NM
+MAX SUSTAINED WINDS 105 KT WITH GUSTS TO 130 KT.
+64 KT....... 50NE  45SE  25SW  40NW.
+50 KT.......100NE  70SE  50SW  80NW.
+34 KT.......200NE 180SE 100SW 150NW.
+12 FT SEAS..320NE 270SE  90SW 300NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 23.1N  74.7W AT 24/2100Z
+AT 24/1800Z CENTER WAS LOCATED NEAR 22.7N  74.3W
+ 
+FORECAST VALID 25/0600Z 24.3N  75.8W
+MAX WIND 110 KT...GUSTS 135 KT.
+64 KT... 50NE  45SE  25SW  40NW.
+50 KT...100NE  70SE  50SW  80NW.
+34 KT...200NE 180SE 100SW 150NW.
+ 
+FORECAST VALID 25/1800Z 26.1N  76.8W
+MAX WIND 115 KT...GUSTS 140 KT.
+64 KT... 50NE  45SE  25SW  40NW.
+50 KT...100NE  70SE  50SW  80NW.
+34 KT...200NE 180SE 100SW 150NW.
+ 
+FORECAST VALID 26/0600Z 28.2N  77.3W
+MAX WIND 115 KT...GUSTS 140 KT.
+64 KT... 60NE  50SE  30SW  50NW.
+50 KT...100NE  80SE  60SW  80NW.
+34 KT...200NE 180SE 125SW 160NW.
+ 
+FORECAST VALID 26/1800Z 30.1N  77.3W
+MAX WIND 110 KT...GUSTS 135 KT.
+50 KT...100NE  80SE  60SW  80NW.
+34 KT...200NE 200SE 125SW 160NW.
+ 
+FORECAST VALID 27/1800Z 34.3N  75.8W
+MAX WIND 100 KT...GUSTS 120 KT.
+50 KT...100NE 100SE  60SW  80NW.
+34 KT...225NE 225SE 140SW 140NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 175 NM
+ON DAY 4 AND 225 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 28/1800Z 39.5N  73.0W
+MAX WIND  85 KT...GUSTS 105 KT.
+ 
+OUTLOOK VALID 29/1800Z 47.0N  69.0W...POST-TROP/EXTRATROP
+MAX WIND  55 KT...GUSTS  65 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 23.1N  74.7W
+ 
+NEXT ADVISORY AT 25/0300Z
+ 
+$$
+FORECASTER BROWN
+
+</pre>]]></description>
+      <pubDate>Wed, 24 Aug 2011 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2011/09/18.092011.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2011/09/18.092011.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
