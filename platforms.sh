@@ -220,9 +220,11 @@ init_spirit()
   # This requires the user to have a .personal.bashrc file in the $HOME 
   # directory with the following contents:
   # echo "Loading modules in .personal.bashrc ..."
+  # module load intel-compilers/12.1.0
   # module load netcdf-fortran/intel/4.4.2
   # module load hdf5/intel/1.8.12
   # module load hdf5-mpi/intel/sgimpt/1.8.12
+  # module load mpt/2.12
   # echo "... modules loaded."
   HOSTNAME=spirit.afrl.hpc.mil
   QUEUESYS=PBS
@@ -235,7 +237,7 @@ init_spirit()
   PREPCONTROLSCRIPT=spirit.adcprep.template.pbs
   PREPHOTSTARTSCRIPT=spirit.adcprep.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
-  PPN=1
+  PPN=16
   IMAGEMAGICKBINPATH=/usr/local/usp/ImageMagick/default/bin 
 }
 init_tezpur()
