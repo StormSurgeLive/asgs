@@ -34,7 +34,8 @@ init_queenbee()
   QCHECKCMD=qstat
   ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
   SUBMITSTRING=qsub
-  SCRATCHDIR=/work/$USER
+  #SCRATCHDIR=/work/$USER
+  SCRATCHDIR=/work/cera
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=queenbee.template.pbs
   PREPCONTROLSCRIPT=queenbee.adcprep.template.pbs
