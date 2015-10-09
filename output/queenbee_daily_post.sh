@@ -105,7 +105,7 @@ ssh $OPENDAPHOST -l $OPENDAPUSER -p 2525 "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
 for file in `ls *.nc ${ADVISDIR}/al*.fst ${ADVISDIR}/bal*.dat fort.15 fort.22 run.properties`; do 
    chmod +r $file 2>> $SYSLOG
    logMessage "Transferring $file."
-   scp -p 2525 $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG
+   scp -P 2525 $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG
    ssh $OPENDAPHOST -l $OPENDAPUSER -p 2525 "chmod +r $OPENDAPDIR/$file"
 done
 #
