@@ -10,7 +10,9 @@ ASGS %StormName%          ! 30 CHARACTER ALPHANUM RUN DESCRIPTION
 2                         ! NOLIFA - FINITE AMPLITUDE TERM 
 1                         ! NOLICA - SPATIAL DERIVATIVE PORTION OF CONV. TERM
 1                         ! NOLICAT - TIME DERIVATIVE PORTION OF CONVECTIVE TERM
-5                         ! NWP jgf20140502:turned off wave refraction in swan
+7                         ! NWP jgf20140502:turned off wave refraction in swan
+surface_directional_effective_roughness_length
+surface_canopy_coefficient
 mannings_n_at_sea_floor
 primitive_weighting_in_continuity_equation
 average_horizontal_eddy_viscosity_in_sea_water_wrt_depth

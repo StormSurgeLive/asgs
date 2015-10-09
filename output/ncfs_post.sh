@@ -109,13 +109,13 @@ ln -s ${OUTPUTDIR}/kalpana_logo.png ${STORMDIR}/logo.png 2>> ${SYSLOG}
 # Kalpana to generate the product, then package up the result.
 if [[ -e maxele.63.nc ]]; then
    # maxele kmz
-   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 2 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxele 2>> ${SYSLOG}
-   python ${OUTPUTDIR}/kalpana.py < input-kml.maxele 2>> ${SYSLOG}
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 2 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxele 2>> kalpana.log
+   python ${OUTPUTDIR}/kalpana.py < input-kml.maxele 2>> kalpana.log
    zip Maximum-Water-Levels.kmz Maximum-Water-Levels.kml Colorbar-water-levels.png logo.png 2>> ${SYSLOG}
    rm Maximum-Water-Levels.kml 2>> ${SYSLOG}
    # maxele shapefile
-   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 2 --shape B --vchoice X --domain N > input-shp.maxele 2>> ${SYSLOG}
-   python ${OUTPUTDIR}/kalpana.py < input-shp.maxele 2>> ${SYSLOG}
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 2 --shape B --vchoice X --domain N > input-shp.maxele 2>> kalpana.log
+   python ${OUTPUTDIR}/kalpana.py < input-shp.maxele 2>> kalpana.log
    zip -r Maximum-Water-Levels-gis.zip water-level 2>> ${SYSLOG}
    rm -rf water-level 2>> ${SYSLOG}
 fi
@@ -123,13 +123,13 @@ fi
 # Maximum significant wave height
 if [[ -e swan_HS_max.63.nc ]]; then
    # swan hs max kmz
-   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 4 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxhs 2>> ${SYSLOG}
-   python ${OUTPUTDIR}/kalpana.py < input-kml.maxhs 2>> ${SYSLOG}
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 4 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxhs 2>> kalpana.log
+   python ${OUTPUTDIR}/kalpana.py < input-kml.maxhs 2>> kalpana.log
    zip Maximum-Wave-Heights.kmz Maximum-Wave-Heights.kml Colorbar-wave-heights.png logo.png 2>> ${SYSLOG}
    rm Maximum-Wave-Heights.kml 2>> ${SYSLOG}
    # swan hs max shapefile
-   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 4 --shape B --vchoice X --domain N > input-shp.maxhs 2>> ${SYSLOG}
-   python ${OUTPUTDIR}/kalpana.py < input-shp.maxhs 2>> ${SYSLOG}
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 4 --shape B --vchoice X --domain N > input-shp.maxhs 2>> kalpana.log
+   python ${OUTPUTDIR}/kalpana.py < input-shp.maxhs 2>> kalpana.log
    zip -r Maximum-Wave-Heights-gis.zip wave-height 2>> ${SYSLOG}
    rm -rf wave-height 2>> ${SYSLOG}
 fi
@@ -137,13 +137,13 @@ fi
 # Maximum wave periods
 if [[ -e swan_TPS_max.63.nc ]]; then
    # swan tps max kmz
-   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 8 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxTPS 2>> ${SYSLOG}
-   python ${OUTPUTDIR}/kalpana.py < input-kml.maxTPS 2>> ${SYSLOG}
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 8 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxTPS 2>> kalpana.log
+   python ${OUTPUTDIR}/kalpana.py < input-kml.maxTPS 2>> kalpana.log
    zip Maximum-Wave-Period.kmz Maximum-Wave-Period.kml Colorbar-wave-periods.png logo.png 2>> ${SYSLOG}
    rm Maximum-Wave-Period.kml 2>> ${SYSLOG}
    # maxele shapefile
-   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 8 --shape B --vchoice X --domain N > input-shp.maxTPS 2>> ${SYSLOG}
-   python ${OUTPUTDIR}/kalpana.py < input-shp.maxTPS 2>> ${SYSLOG}
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 8 --shape B --vchoice X --domain N > input-shp.maxTPS 2>> kalpana.log
+   python ${OUTPUTDIR}/kalpana.py < input-shp.maxTPS 2>> kalpana.log
    zip -r Maximum-Wave-Periods-gis.zip wave-period 2>> ${SYSLOG}
    rm -rf wave-period 2>> ${SYSLOG}
 fi
@@ -164,10 +164,12 @@ if [[ $BACKGROUNDMET = on ]]; then
    # for NAM, the "advisory number" is actually the cycle time 
    STORMNAMEPATH=tc/nam
 fi
+currentDir=NCFS_CURRENT_DAILY
 if [[ $TROPICALCYCLONE = on ]]; then
    STORMNAME=`grep "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//g' | tail -n 1` 2>> ${SYSLOG}
    STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
    STORMNAMEPATH=tc/$STORMNAMELC
+   currentDir=NCFS_CURRENT_TROPICAL
 fi
 OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HOSTNAME/$INSTANCENAME/$ENSTORM
 # put the opendap download url in the run.properties file for CERA to find
@@ -211,11 +213,29 @@ for file in `ls ${ADVISDIR}/${ENSTORM}/*.kmz 2>> ${SYSLOG}`; do
    ln -s $file . 2>> ${SYSLOG}
 done
 #
+# 20150826: Make symbolic links to a single location on the opendap server
+# to reflect the "latest" results. There are actually two locations, one for 
+# daily results, and one for tropical cyclone results. 
+if [[ $ENSTORM = namforecast || $ENSTORM = nhcConsensus ]]; then
+   currentResultsPath=/projects/ncfs/opendap/data/$currentDir
+   cd $currentResultsPath 2>> ${SYSLOG}
+   # get rid of the old symbolic links
+   rm -rf * 2>> ${SYSLOG}
+   # make new symbolic links
+   for file in $STORMDIR/fort.*.nc $STORMDIR/swan*.nc $STORMDIR/max*.nc $STORMDIR/min*.nc $STORMDIR/run.properties $STORMDIR/fort.14 $STORMDIR/fort.15 $STORMDIR/fort.13 $STORMDIR/fort.22 $STORMDIR/fort.26 $STORMDIR/fort.221 $STORMDIR/fort.222 $ADVISDIR/al*.fst $ADVISDIR/bal*.dat $STORMDIR/*.zip $STORMDIR/*.kmz ; do 
+      if [ -e $file ]; then
+         ln -s $file . 2>> ${SYSLOG}
+      else
+         logMessage "The directory does not have ${file}."
+      fi
+   done
+fi
+#
 # Copy the latest run.properties file to a consistent location in opendap
 cp run.properties /projects/ncfs/opendap/data/NCFS_CURRENT/run.properties.${HOSTNAME}.${INSTANCENAME} 2>> ${SYSLOG}
 #
 # send an email to CERA web application to notify it that results are ready
-COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com,nc.cera.renci2@gmail.com"
+COMMA_SEP_LIST="jason.g.fleming@gmail.com,nc.cera.renci2@gmail.com"
 #COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com"
 runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'`
 subject="ADCIRC NCFS $runStartTime $HOSTNAME.$INSTANCENAME $ENMEMNUM"

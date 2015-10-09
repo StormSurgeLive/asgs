@@ -10,11 +10,10 @@ ASGS %StormName%          ! 30 CHARACTER ALPHANUM RUN DESCRIPTION
 2                         ! NOLIFA - FINITE AMPLITUDE TERM 
 1                         ! NOLICA - SPATIAL DERIVATIVE PORTION OF CONV. TERM
 1                         ! NOLICAT - TIME DERIVATIVE PORTION OF CONVECTIVE TERM
-5                         ! NWP jgf20140502:turned off wave refraction in swan
+4                         ! NWP jgf20140502:turned off wave refraction in swan
 mannings_n_at_sea_floor
 primitive_weighting_in_continuity_equation
 average_horizontal_eddy_viscosity_in_sea_water_wrt_depth
-elemental_slope_limiter
 sea_surface_height_above_geoid
 1                         ! NCOR - VARIABLE CORIOLIS IN SPACE 
 1                         ! NTIP - TIDAL POTENTIAL 
@@ -925,3 +924,5 @@ RENCI HPC
 CF
 jason.fleming@seahorsecoastal.com
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
+&wetDryControl outputNodeCode=.true. outputNOFF=.true. noffActive=.false.  /
+&inundationOutputControl inundationOutput=.true. /
