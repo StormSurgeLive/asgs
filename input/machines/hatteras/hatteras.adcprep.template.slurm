@@ -2,9 +2,9 @@
 
 #SBATCH -J %jobtype%.%enstorm%
 #SBATCH -t %wallminutes%
-#SBATCH -p %account%
 #SBATCH -n 1 
 #SBATCH -c 1
+#SBATCH --partition=ncfs
 
 cd %advisdir%/%enstorm%
 
