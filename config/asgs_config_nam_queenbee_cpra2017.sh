@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=dailyla     # "name" of this ASGS process
-COLDSTARTDATE=2015083100 # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2015091500 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -64,6 +64,7 @@ CYCLETIMELIMIT="05:00:00"
 QUEUENAME=workq
 SERQUEUE=single
 ACCOUNT=loni_cera_2015
+SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones
 
@@ -152,10 +153,12 @@ INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
 POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
-TARGET=queenbee
+TARGET=queenbee  # used in post processing to pick up platform.sh config
 OPENDAPHOST=fortytwo.cct.lsu.edu
 OPENDAPUSER=jgflemin
 OPENDAPBASEDIR=/scratch/opendap
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
+TDS=(lsu_tds renci_tds)
 NUMCERASERVERS=2
 WEBHOST=webserver.hostingco.com
 WEBUSER=remoteuser

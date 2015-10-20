@@ -7,7 +7,7 @@
 # is platform dependent. 
 #
 #----------------------------------------------------------------
-# Copyright(C) 2012--2013 Jason Fleming
+# Copyright(C) 2012--2015 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -324,6 +324,26 @@ init_topsail()
   SCRATCHDIR=/ifs1/scr/$USER
   SSHKEY=id_rsa_topsail
 }
+init_renci_tds()
+{
+   OPENDAPHOST=ht1.renci.org
+   DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
+   CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
+   OPENDAPBASEDIR=/projects/ncfs/opendap/data
+   OPENDAPUSER=ncfs
+   SSHPORT=22
+   LINKABLEHOSTS=(hatteras) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
+}
+init_lsu_tds()
+{
+   OPENDAPHOST=fortytwo.cct.lsu.edu
+   DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer"
+   CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog"
+   OPENDAPBASEDIR=/scratch/opendap
+   OPENDAPUSER=jgflemin
+   SSHPORT=2525
+   LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links
+}
 init_test()
 { #<- can replace the following with a custom script
   QUEUESYS=Test
@@ -335,6 +355,12 @@ env_dispatch(){
  case $1 in
   "camellia") consoleMessage "Camellia(WorldWinds) configuration found."
           init_camellia
+          ;;
+  "lsu_tds") consoleMessage "LSU THREDDS Data Server configuration found."
+          init_lsu_tds
+          ;;
+  "renci_tds") consoleMessage "RENCI THREDDS Data Server configuration found."
+          init_renci_tds
           ;;
   "kittyhawk") consoleMessage "Kittyhawk (RENCI) configuration found."
           init_kittyhawk
@@ -393,7 +419,7 @@ env_dispatch(){
   "test") consoleMessage "test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "'$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, queenbee, topsail, desktop, arete, spirit"
+  *) fatal "'$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, queenbee, topsail, desktop, arete, spirit, lsu_tds, renci_tds"
      ;;
   esac
 }
