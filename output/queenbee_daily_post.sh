@@ -1,6 +1,8 @@
 #!/bin/bash
 #------------------------------------------------------------------------
-# Copyright(C) 2008--2015 Jason Fleming
+# queenbee_daily_post.sh : Posting to opendap from queenbee. 
+#------------------------------------------------------------------------
+# Copyright(C) 2015 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -80,52 +82,11 @@ fi
 #
 #  O P E N  D A P    P U B L I C A T I O N 
 #
-STORMNAMEPATH=null
-DOWNLOADPREFIX="http://fortytwo.cct.lsu.edu:8080/thredds/fileServer"
-CATALOGPREFIX="http://fortytwo.cct.lsu.edu:8080/thredds/catalog"
-if [[ $BACKGROUNDMET = on ]]; then
-   # for NAM, the "advisory number" is actually the cycle time 
-   STORMNAMEPATH=tc/nam
-fi
-if [[ $TROPICALCYCLONE = on ]]; then
-   STORMNAME=`grep -m 1 "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
-   STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
-   STORMNAMEPATH=tc/$STORMNAMELC
-fi
-OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HOSTNAME/$INSTANCENAME/$ENSTORM
-# put the opendap download url in the run.properties file for CERA to find
-downloadURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
-echo "downloadurl : $downloadURL" >> run.properties
-# now actually make the directory (OPENDAPBASEDIR is specified in CONFIG)
-OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
+logMessage "Creating list of files to post to opendap."
+FILES=(`ls *.nc ${ADVISDIR}/al*.fst ${ADVISDIR}/bal*.dat fort.15 fort.22 run.properties`)
 #
-# /projects/ncfs/opendap/data/tc/phil phil/38/HSDRRS2014_MRGO_leveeupdate_fixSTC_MX/garnet.erdc.hpc.mil/philtest/nhcConsensus
-logMessage "Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
-ssh $OPENDAPHOST -l $OPENDAPUSER -p 2525 "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
-for file in `ls *.nc ${ADVISDIR}/al*.fst ${ADVISDIR}/bal*.dat fort.15 fort.22 run.properties`; do 
-   chmod +r $file 2>> $SYSLOG
-   logMessage "Transferring $file."
-   scp -P 2525 $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG
-   ssh $OPENDAPHOST -l $OPENDAPUSER -p 2525 "chmod +r $OPENDAPDIR/$file"
+# For each opendap server in the list in ASGS config file.
+for server in ${TDS[*]}; do 
+   logMessage "Posting to $server opendap with opendap_post.sh using the following command: ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server \"${FILES[*]}\" $OPENDAPNOTIFY"
+   ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server "${FILES[*]}" $OPENDAPNOTIFY >> ${SYSLOG} 2>&1
 done
-#
-COMMA_SEP_LIST="jason.g.fleming@seahorsecoastal.com,asgs.cera.lsu@gmail.com"
-runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'`
-subject="ADCIRC NCFS POSTED for $runStartTime"
-if [[ $TROPICALCYCLONE = on ]]; then
-   subject=${subject}" (TROPICAL CYCLONE)"
-fi
-subject="${subject} $CERASERVER"
-subject="${subject} $HOSTNAME.$INSTANCENAME $ENMEMNUM"
-cat <<END > ${STORMDIR}/cera_results_notify.txt 
-
-The ADCIRC NCFS solutions for $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
-
-The run.properties file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
-   
-or wget the file with the following command
-
-wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
-END
-echo "INFO: queenbee_daily_post.sh: Sending 'results available' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/cera_results_notify.txt | mail -s "$subject" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
