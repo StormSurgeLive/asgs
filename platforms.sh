@@ -330,7 +330,6 @@ init_renci_tds()
    DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
    CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
    OPENDAPBASEDIR=/projects/ncfs/opendap/data
-   OPENDAPUSER=ncfs
    SSHPORT=22
    LINKABLEHOSTS=(hatteras) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
 }
@@ -340,7 +339,6 @@ init_lsu_tds()
    DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer"
    CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog"
    OPENDAPBASEDIR=/scratch/opendap
-   OPENDAPUSER=jgflemin
    SSHPORT=2525
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links
 }

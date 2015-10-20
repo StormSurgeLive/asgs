@@ -153,12 +153,25 @@ INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
 POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
-TARGET=queenbee  # used in post processing to pick up platform.sh config
-OPENDAPHOST=fortytwo.cct.lsu.edu
-OPENDAPUSER=jgflemin
-OPENDAPBASEDIR=/scratch/opendap
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
+# opendap
 TDS=(lsu_tds renci_tds)
+TARGET=queenbee  # used in post processing to pick up HPC platform config
+# You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
+# on the opendap server machine in order to scp files there via
+# opendap_post.sh. OPENDAPHOST is set to each value in the TDS array specified
+# above and used by your post processing script to successively trigger 
+# configuration via platforms.sh. The OPENDAPUSER parameter needs to be set
+# here, rather than in platforms.sh or your post processing script,
+# because multiple Operators may be posting to a particular opendap server
+# using different usernames. 
+OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
+if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
+   OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
+fi
+# OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
+# other notification parameters above. 
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
+
 NUMCERASERVERS=2
 WEBHOST=webserver.hostingco.com
 WEBUSER=remoteuser
