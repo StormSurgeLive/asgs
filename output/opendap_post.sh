@@ -30,7 +30,7 @@ SYSLOG=$7
 SERVER=$8
 FILES=($9) # array of files to post to opendap
 #
-logMessage "SERVER is $SERVER"
+echo "SERVER is $SERVER" >> ${SYSLOG}
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR}
 # get the forecast ensemble member number for use in 
@@ -47,6 +47,9 @@ si=$ENMEMNUM
 . ${SCRIPTDIR}/platforms.sh
 # dispatch environment (using the functions in platforms.sh)
 env_dispatch ${TARGET}
+# pick up config of the thredds data server where the files are to be posted
+logMessage "Setting opendap server parameters with env_dispatch ${SERVER}."
+env_dispatch $SERVER   # from platforms.sh
 # grab all config info (again, last, so the CONFIG file takes precedence)
 . ${CONFIG}
 #
@@ -54,9 +57,6 @@ env_dispatch ${TARGET}
 #
 STORMNAMEPATH=null
 #
-# pick up config of the thredds data server where the files are to be posted
-logMessage "Setting opendap server parameters with env_dispatch ${SERVER}."
-env_dispatch $SERVER   # from platforms.sh
 #
 # form path to results on tds based on type of forcing or name of storm
 if [[ $BACKGROUNDMET != off ]]; then
