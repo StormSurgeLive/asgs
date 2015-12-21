@@ -3,7 +3,7 @@
 # get_flux.pl: downloads fort.20 files representing variable river
 # flux data for ASGS nowcasts and forecasts.
 #--------------------------------------------------------------
-# Copyright(C) 2011, 2012 Jason Fleming
+# Copyright(C) 2011--2015 Jason Fleming
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 # 
@@ -27,6 +27,17 @@
 #
 # If forecast data is requested, the script will grab the 
 # forecast data corresponding to the current ADCIRC time.
+#
+# jgf20150218: The script expects to find directories containing 
+# fort.20 files. It expects these directories to be named according
+# to the date, e.g., 20150218. Within these directories, it expects
+# to find hindcast and forecast data with filenames formatted as
+# follows:
+#
+# RHLRv9-OKU_20150218T0000_20150218T0000_20150218T0000_00_Zfort.20HC.txt
+# RHLRv9-OKU_20150218T0000_20150218T0000_20150225T0000_00_Zfort.20FC.txt
+#
+#
 #--------------------------------------------------------------
 $^W++;
 use strict;
@@ -59,7 +70,7 @@ our $defaultfile; # file containing the default fluxes if none can be downloaded
 our $lastDateNeeded; # date of last flux data required to fully cover the run
 our $startingPointFound = 0;
 our $enough_data = 0; 
-my $rdp = "scp";       # river data protocol; either scp or ftp 
+my $rdp = "scp"; # river data protocol: scp, ftp, or filesystem 
 my $riveruser = "ldm"; # username on river data machine when using scp
 #
 GetOptions(
@@ -82,6 +93,8 @@ GetOptions(
 #
 our $dl;
 our $ftp;
+#
+# establish an ftp connection if we are supposed to be using ftp
 if ( $rdp eq "ftp" ) {
    $dl = 0;   # true if we were able to download the file(s) successfully
    $ftp = Net::FTP->new($riversite, Debug => 0, Passive => 1); 
@@ -196,8 +209,13 @@ my @fluxFiles;
 my @allFiles;
 if ( $rdp eq "ftp" ) {
    @allFiles = $ftp->ls();
-} else {
+} elsif ( $rdp eq "scp" ) {
    @allFiles = `ssh -l $riveruser $riversite "find $riverdir"`;
+} elsif ( $rdp eq "filesystem" ) {
+   @allFiles = `find $riverdir`;
+} else {
+   stderrMessage("ERROR","The river data protocol was specified as $rdp but this is not a valid protocol for collecting river data. The ASGS supports scp, ftp, and data collection from the local filesystem.");
+   die;
 }
 # get a list of actual files, get rid of empty directories etc
 for (my $i=0; $i<@allFiles; $i++) {
@@ -214,14 +232,20 @@ chomp(@fluxFiles);
 #}
 # now sort the files from earliest to most recent (it appears that ls() does
 # not automatically do this for us)
-my @sortedFluxFiles = sort by_start_date @fluxFiles;
-# determine the most recent date/hour ... this is the cycle time
-$sortedFluxFiles[-1] =~ /OKU_(\d+)T(\d\d)/;
-my $cycledate = $1; 
-my $cyclehour = $2;
-# grab the date portion from the start of the adcirc run date/time
-$now =~ /(\d{8})/; 
-stderrMessage("DEBUG","The most recent available flux cycle date and hour is '$cycledate$cyclehour'.");
+my @sortedFluxFiles;
+my $numFluxFiles = @fluxFiles;
+if ( $numFluxFiles > 0 ) {
+   @sortedFluxFiles = sort by_start_date @fluxFiles;
+   # determine the most recent date/hour ... this is the cycle time
+   $sortedFluxFiles[-1] =~ /OKU_(\d+)T(\d\d)/;
+   my $cycledate = $1; 
+   my $cyclehour = $2;
+   # grab the date portion from the start of the adcirc run date/time
+   $now =~ /(\d{8})/; 
+   stderrMessage("INFO","The most recent available river flux cycle date and hour is '$cycledate$cyclehour'.");
+} else {
+   stderrMessage("WARNING","There are no river flux boundary condition files on the $rdp site.");
+}
 #if ( $cycledate < $1 ) { 
 #   # something strange has happened here ... the most recent files
 #   # available on the ftp site actually earlier than the current state
@@ -242,7 +266,7 @@ foreach my $file (@sortedFluxFiles) {
 }
 my $numNowcast = @nowcastFluxFiles;
 my $numForecast = @forecastFluxFiles;
-stderrMessage("DEBUG","There are '$numNowcast' nowcast fort.20 files and '$numForecast' forecast fort.20 files on the ftp site.");
+stderrMessage("INFO","There are '$numNowcast' nowcast fort.20 files and '$numForecast' forecast fort.20 files on the $rdp site.");
 #for (my $i=0; $i<$numNowcast; $i++) {
 #   stderrMessage("DEBUG",$nowcastFluxFiles[$i]);
 #}
@@ -324,11 +348,94 @@ if ( $enough_data == 1 ) {
    stderrMessage("ERROR","There was not enough nowcast data on the ftp site to provide full coverage for the simulation run."); 
    die;
 }
-
-
-
+#
+# jgf20150416: getFluxData Compares the time period of the available
+# river boundary condition data with the required time range of this 
+# simulation. It then loads fort.20 data of the proper type (nowcast or
+# forecast) into the @flux_data array to cover the required time period.
+#
+# It contains logic to cover gaps and issues with the available data as
+# follows:
+#
+# a. All available river b.c. data are later than the time period of
+# interest. In this case, our first set of flux data comes from the 
+# default river flux file b.c. file (whose name is set in the asgs 
+# config file), and then we cover the gap between the starting time and
+# the first available set of river b.c. data by generating data at the 
+# correct time increment by linearly interpolating in time to the the first
+# available set of river b.c. data. 
+#
+# b. The required time period of the simulation is within the start and
+# end dates of the available river b.c. data. The available river flux data
+# in each file may cover a longer period of time than required, or may not
+# fully cover the time period. Or there may be gaps in time during the required
+# period. There is logic to only select the portions of the available
+# b.c. files that are pertinent, and to linearly interpolate in time over
+# gaps in the data. 
+#
+# c. jgf20150416 adding capability to handle the case where the time 
+# period of the available data is completely before or completely after
+# the time period of interest, and simply using the default flux file in 
+# this case. 
 sub getFluxData() {
    my $numFiles = @_;
+   # Check to see if the time period of the ADCIRC run is wholly
+   # outside the time period of the available data. Start by
+   # finding the date of the last available data. 
+   # If the files are forecast files, the last date encoded in the
+   # filename is the end date of the data.
+   $_[-1] =~ /OKU_\d{8}T\d{4}_\d{8}T\d{4}_(\d{8})T(\d{4})/;
+   my $dataEndDate = $1.$2."00"; # include seconds
+   # However, if these files are "HC" files, used for a nowcast,
+   # then all the dates encoded in the file name will be the same, and we
+   # have to actually open the file and parse to find out when the data
+   # end. 
+   if ( $_[-1] =~ /HC/ ) {
+      unless (open(FLUX,"<$_[-1]") ) { 
+         stderrMessage("ERROR","Could not open '$_[-1]' for reading: $!.");
+         die;
+      }
+      #stderrMessage("DEBUG","Opened $_[-1]");
+      $line = <FLUX>; # read the first line
+      @fields = split(" ",$line);
+      $inc = $fields[0];
+      #stderrMessage("DEBUG","inc is $inc");
+      @flux_data = <FLUX>;
+      close(FLUX);
+      my $numLines = @flux_data;
+      #stderrMessage("DEBUG","numLines is $numLines");
+      my $numIncs = $numLines / $varflux_nodes;
+      #stderrMessage("DEBUG","numIncs is $numIncs");
+      my $numSecs = $numIncs * $inc;
+      #stderrMessage("DEBUG","numSecs is $numSecs");
+      $dataEndDate = &incDate($dataEndDate,$numSecs);
+   }
+   # now find the start date of the first available data
+   $_[0] =~ /OKU_(\d{8})T(\d{4})/;
+   my $dataStartDate = $1.$2."00"; # include seconds
+   # if the data end before the simulation starts or the data start
+   # after the simulation ends, then just use the default flux
+   if ( $dataEndDate < $dateNeeded || $end < $dataStartDate ) {
+      stderrMessage("WARNING","The available river boundary condition flux files all pertain to a time period that is not within the time period of the ADCIRC run. The available river boundary condition flux data start at $dataStartDate and end at $dataEndDate while the ADCIRC simulation starts at $dateNeeded and ends at $end. As a result, the default river boundary flux data from the file $defaultfile will be used for this simulation.");
+      unless (open(FLUX,"<$defaultfile") ) { 
+         stderrMessage("ERROR","Could not open '$defaultfile' for reading: $!.");
+         die;
+      }
+      # read the time increment from the file
+      $line = <FLUX>; 
+      @fields = split(" ",$line);
+      $inc = $fields[0]; # this should never change
+      stderrMessage("INFO","The time increment in the default fort.20 file is $inc seconds.");
+      # use the increment to calculate the last date we will need data 
+      # for, which is one time increment beyond the end date of the 
+      # simulation
+      $lastDateNeeded = &incDate($end,$inc);
+      # read the flux data from the file
+      @flux_data = <FLUX>;
+      close(FLUX);
+      $enough_data = 1; # we've made sure the default data file is really long
+      return $enough_data; # ************EARLY RETURN************
+   }
    # Find a starting point to construct a fort.20 file.
    my $startingPoint = 0;  # index of the file name to start with
    # establish a starting point: find a file that starts on or before
@@ -347,7 +454,7 @@ sub getFluxData() {
    # we have an outage and the file(s) we need get too stale and are removed
    # from the site before we have a chance to download them 
    if ($startingPointFound == 0) {
-      stderrMessage("WARNING","All the data files are later than the time of interest. The simulation will start with a default flux value, then linearly interpolate to the first available flux value.");
+      stderrMessage("WARNING","All the river flux boundary condition data files are later than the start time of the simulation. The simulation will start with a default flux value, then linearly interpolate to the first available flux value.");
       # open up the file containing default flux values
       unless (open(FLUX,"<$defaultfile") ) { 
          stderrMessage("ERROR","Could not open '$defaultfile' for reading: $!.");
@@ -391,10 +498,14 @@ sub getFluxData() {
             } else {
                stderrMessage("INFO","Download complete.");
             }
-         } else {
+         } elsif ( $rdp eq "scp" ) {
             my $scp_command="scp $riveruser\@$riversite:$_[$i] $advisdir/$enstorm";
-            stderrMessage("DEBUG","Downloading file with $scp_command");
+            stderrMessage("INFO","Downloading file with $scp_command");
             my $status = `$scp_command`;
+         } else {  # $rdp eq filesystem
+            my $cp_command = `cp $_[$i] $advisdir/$enstorm`;
+            stderrMessage("INFO","Copying file from filesystem.");
+            my $status = `$cp_command`; 
          }
          my $baseFileName = `basename $_[$i]`;
          unless (open(FLUX,"<$advisdir/$enstorm/$baseFileName") ) { 
@@ -408,7 +519,8 @@ sub getFluxData() {
          $line = <FLUX>; 
          @fields = split(" ",$line);
          $inc = $fields[0]; # this should never change
-         stderrMessage("INFO","The time increment in the fort.20 file is $inc seconds.");
+         stderrMessage("INFO","The start date for this dataset is '$thisStartDate'.\n");
+         stderrMessage("INFO","The time increment in the fort.20 file is '$inc' seconds.");
          # use the increment to calculate the last date we will need data 
          # for, which is one time increment beyond the end date of the 
          # simulation
@@ -425,7 +537,7 @@ sub getFluxData() {
             # the dataset in the fort.20 file is earlier than the date
             # we are looking for
             if ( $dataDate < $dateNeeded ) {
-               stderrMessage("DEBUG","This data set is earlier than the data required. Skipping this dataset.");
+               #stderrMessage("DEBUG","This data set is earlier than the data required. Skipping this dataset.");
                for (my $i=0; $i<$varflux_nodes-1; $i++) {
                   $line = <FLUX>; # skip this dataset
                }
