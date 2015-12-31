@@ -138,12 +138,12 @@ MINMAX=reset
 # Notification
 
 EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
-NOTIFY_SCRIPT=null_notify.sh
-ACTIVATE_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
-NEW_ADVISORY_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
-POST_INIT_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
-POST_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
-JOB_FAILED_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
+NOTIFY_SCRIPT=corps_nam_notify.sh
+ACTIVATE_LIST=""
+NEW_ADVISORY_LIST=""
+POST_INIT_LIST=""
+POST_LIST=""
+JOB_FAILED_LIST="jason.g.fleming@gmail.com"
 NOTIFYUSER=jason.fleming@seahorsecoasatal.com
 ASGSADMIN=jason.fleming@seahorsecoastal.com
 
