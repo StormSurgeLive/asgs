@@ -850,10 +850,10 @@ handleFailedJob()
    if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then
       warn "The job has failed."
       FAILDATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-      warn "Moving failed cycle to 'failed.${FAILDATETIME}'."
-      mv $ADVISDIR/$ENSTORM $RUNDIR/failed.${FAILDATETIME} 2>> ${SYSLOG}
       # send an email to notify the operator that a job has failed
       $NOTIFYSCRIPT $HOSTNAME $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE jobfailed $EMAILNOTIFY $SYSLOG "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+      warn "Moving failed cycle to 'failed.${FAILDATETIME}'."
+      mv $ADVISDIR/$ENSTORM $RUNDIR/failed.${FAILDATETIME} 2>> ${SYSLOG}
    fi
    # roll back the latest advisory number if the nowcast failed
    if [[ $ENSTORM = nowcast ]]; then
