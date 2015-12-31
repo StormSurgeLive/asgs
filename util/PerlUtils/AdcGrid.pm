@@ -1,4 +1,4 @@
-package AdcGrid;
+#!/usr/bin/env perl
 #######################################################################
 #
 # This is a Perl module for dealing with adcirc grids in a OO fashion.
@@ -47,7 +47,7 @@ package AdcGrid;
 # what they do.  
 # 
 ####################################################################### 
-# Author: Nathan Dill, natedill(AT)gmail.com
+# Author: Nathan Dill, natedill@gmail.com
 #
 # Copyright (C) 2014 Nathan Dill
 #
@@ -67,6 +67,9 @@ package AdcGrid;
 # USA.
 #                                       
 #######################################################################
+
+package AdcGrid;
+
 use warnings;
 use strict;
 
@@ -483,6 +486,357 @@ sub getFluxBnd {
 }
 
 
+
+#######################################################################
+# sub load13($fort13)
+#
+# loads the nodal attribute data into the object so you can get it out
+# 
+#
+# attributes are stored as a hash of hashes using the attribute 
+# name as the key. within each attribute hash we have the units, 
+# values per node, default value, data etc..
+#
+# data are stored as binary strings of doubles (like the dp data) 
+# with nothing useful at the first (zero) offset.
+#
+# if there are more than one value per node, the data are stored in 
+# an array of these strings
+#
+#######################################################################
+sub load13{
+   my $obj=shift;
+   my $fort13=shift;
+   
+   open my $fh, "<$fort13" or die "AdcGrid can't open $fort13\n";
+  
+   ###########################################################
+   # read AGRID
+   my $agrid = readCleanLine($fh);
+   print "reading: $agrid\n";
+   $obj->{AGRID_13}=$agrid;
+
+   ###########################################################
+   # read NumOfNodes
+   my $nn =  readCleanLine($fh);
+   die "!!! Danger, Will Robinson !!! NumOfNodes does not match NP\n" if ($nn != $obj->{NP});
+   
+   ###########################################################
+   # read NAttr
+   my $nattr = readCleanLine($fh);
+   print "$fort13 has $nattr nodal attributes\n";
+   $obj->{NATTR}=$nattr;
+
+
+   # 1st loop over the attributes
+   # 
+   $obj->{ATTRNAME}=[];   # a list of the attributes, 
+
+   my $cnt=$nattr;
+   while ($cnt--) {
+       
+      # AttrName
+      my $attrName = readCleanLine($fh);
+      $attrName=uc($attrName);
+      push (@{$obj->{ATTRNAME}},$attrName);
+     
+      # units
+      my $units = readCleanLine($fh);
+      my $valuesPerNode = readCleanLine($fh);
+      my $tmp = readCleanLine($fh);
+      my @defaultAttrVal = split(/\s+/,$tmp);
+      
+       $obj->{$attrName}{UNITS}=$units;
+       $obj->{$attrName}{VALUESPERNODE} = $valuesPerNode;
+       $obj->{$attrName}{DEFAULTATTRVAL} = \@defaultAttrVal;
+       $obj->{$attrName}{ATTRVAL} = ();   # an array that will hold the attribute values 
+                                            # (one binary string for each value per node)
+    }
+
+   # 2nd loop over the attributes (set all to default values)
+   foreach my $attrName (@{$obj->{ATTRNAME}}){
+       print "setting default values for $attrName\n";
+       my $kk=1;
+       foreach my $val (@{$obj->{$attrName}{DEFAULTATTRVAL}}){
+            print "   $attrName $kk of $obj->{$attrName}{VALUESPERNODE} = $val\n";
+            my $str='123455678';
+            foreach my $n (1..$obj->{NP}){   #loop to fill in the string with defaults
+                my $packed=pack("d1",$val);
+                my $offset=($n*8);
+                substr ($str,$offset,8,$packed); 
+            }
+        push (@{$obj->{$attrName}{ATTRVAL}},$str);
+        $kk++;
+       }
+   }
+
+   # 3rd loop (set non default values)
+   $cnt=$nattr;
+   while($cnt--){
+      my $attrName = readCleanLine($fh);
+       print "setting non-default values for $attrName\n";
+      $attrName=uc($attrName);
+      my $numNotDefault = readCleanLine($fh);
+      $obj->{$attrName}{NUMNODESNOTDEFAULTVAL} = $numNotDefault;
+     foreach my $ii (1..$numNotDefault){
+         my $tmp = readCleanLine($fh);
+         my @data=split(/\s+/,$tmp);
+         my $nid=shift (@data);
+         foreach my $kk (0..$obj->{$attrName}{VALUESPERNODE}-1){
+            my $val=shift(@data);
+            my $packed=pack("d1",$val);
+            my $offset=$nid*8;
+            substr (${$obj->{$attrName}{ATTRVAL}}[$kk],$offset,8,$packed);
+         }
+      }        
+   }
+
+}
+
+
+#######################################################################
+# sub getNodalAttributeValue ($attrName,$whichVal,\@NIDS)
+#
+# returns the value or reference to a list values for a node or referenced
+# list of nodes.  $whichVal is one from 1 to the number of values per node
+# only can get one value per node at a time
+#
+# e.g.
+#      my ($ValRef,$min,$max)=$adcGrid->getNodalAttributeValue('Mannings_n_at_sea_floor',1,\@NIDS)
+#
+# also returns the minimum and maximum if a referenced list is given
+#######################################################################
+sub getNodalAttributeValue{
+   my $obj = shift;
+   my $attrName= shift;
+   $attrName=uc($attrName);
+   my $whichVal=shift;  # only gives one value per node, this specifies which one
+   my $nid=shift;
+
+    my $min;
+    my $max;
+ 
+    if (ref($nid) eq 'ARRAY') {
+       my @NIDS=@{$nid};
+       my @VALS;
+       my $ii=0;
+       foreach $nid (@NIDS){
+	       # print "getting nid $nid\n";
+          
+          my $val=unpack("d1", substr(${$obj->{$attrName}{ATTRVAL}}[$whichVal-1],$nid*8,8) );
+          if ($ii==0) {
+               $min=$val;
+               $max=$val;
+               $ii=1;
+          }
+          $min = $val if ($val < $min);
+          $max = $val if ($val > $max);          
+
+	  push (@VALS,$val);
+       }
+       return (\@VALS, $min, $max);
+    }else{
+        my $val=unpack("d1", substr($obj->{$attrName}{ATTRVAL}[$whichVal-1],$nid*8,8) );
+        return $val;
+    }
+   
+
+}
+
+
+#######################################################################
+# sub setNodalAttributeValue ($attrName,$whichVal,\@NIDS,\@VALS)
+#
+# sets nodal attribute value, can only set one value per node (i.e. $whichVal)
+#
+# e.g.
+#      $adcGrid->setNodalAttributeValue('Mannings_n_at_sea_floor',$whichVal,\@NIDS,\@ManningNVals)
+# 
+#
+#######################################################################
+sub setNodalAttributeValue{
+
+   my $obj = shift;
+   my $attrName= shift;
+   $attrName=uc($attrName);
+   my $whichVal=shift;  # only gives one value per node, this specifies which one
+   $whichVal--;   # since we expect user to provide 1 indexed value (like Fortran)
+   my $nid=shift;
+   my $val=shift;
+
+
+   if (ref($nid) eq 'ARRAY') {
+       my @NIDS=@{$nid};
+       my @VALS=@{$val};
+       my $ii=0;
+       foreach $nid (@NIDS){
+	       # print "getting nid $nid\n";
+          
+          #my $val=unpack("d1", substr(${$obj->{$attrName}{ATTRVAL}}[$whichVal-1],$nid*8,8) );
+         
+          my $packed=pack("d1",$VALS[$ii]);
+          my $offset=($nid*8);
+          substr (${$obj->{$attrName}{ATTRVAL}}[$whichVal],$offset,8,$packed); 
+          $ii++;
+        }
+    }else{
+        my $packed=pack("d1",$val);
+        my $offset=($nid*8);
+        substr (${$obj->{$attrName}{ATTRVAL}}[$whichVal],$offset,8,$packed); 
+    }
+}
+
+
+#############################################################################3
+#  sub writeFort13('fort.13');
+#
+#  
+#   e.g.   $adcGrid->writeFort13('newfort.13');
+#
+#  write the fort.13 file
+#
+################################################################################
+sub writeFort13{
+   my $obj=shift;
+   my $fort13=shift;
+   
+   open F13, ">$fort13" or die "cant open $fort13 for writing";
+   print F13 "$obj->{AGRID_13} by AdcGrid.pm\n";
+   print F13 " $obj->{NP}\n";
+   print F13 "$obj->{NATTR}\n";
+  
+   my $nattr=$obj->{NATTR};
+
+   foreach my $attrName (@{$obj->{ATTRNAME}}){
+      print "writing $attrName 1\n";
+      my $lcname=lc($attrName);
+      print F13 "$lcname\n";
+      print F13 " $obj->{$attrName}{UNITS}\n";
+      print F13 "$obj->{$attrName}{VALUESPERNODE}\n";
+      my @defValues=@{$obj->{$attrName}{DEFAULTATTRVAL}};
+      foreach my $defVal (@defValues){
+         print F13 "$defVal ";
+      }
+      print F13 "\n";
+   }
+  
+   foreach my $attrName (@{$obj->{ATTRNAME}}){
+      print "writing $attrName 2\n";
+       my @defValues=@{$obj->{$attrName}{DEFAULTATTRVAL}};
+       my @NotDef=();
+       foreach my $n (1..$obj->{NP}){
+          $NotDef[$n]=0;
+       }
+       my $numValsPerNode=$obj->{$attrName}{VALUESPERNODE};
+  
+       # count up the non default values
+       my $numNotDefault=0;
+       my $whichVal=0;
+       foreach my $defVal (@defValues){
+           foreach my $nid (1..$obj->{NP}){
+               my $val=unpack("d1", substr($obj->{$attrName}{ATTRVAL}[$whichVal],$nid*8,8) ); 
+               if ($val != $defVal){
+                   if ($NotDef[$nid] == 0){
+                      $NotDef[$nid]=1;
+                      $numNotDefault++;
+                   }
+               }            
+
+           }
+           $whichVal++;
+       }
+      
+       #write the non default values
+       my $lcname=lc($attrName);
+       print F13 "$lcname\n";
+       print F13 "$numNotDefault\n";
+
+       foreach my $nid (1..$obj->{NP}){
+           next if ($NotDef[$nid] == 0);
+           
+           #print F13 "$nid ";
+           my $str= sprintf("%10d",$nid);
+           print F13 "$str";
+
+           foreach my $ii (0..$numValsPerNode-1){
+               my $val=unpack("d1", substr($obj->{$attrName}{ATTRVAL}[$ii],$nid*8,8) ); 
+              # print F13 "$val ";
+               my $str=sprintf("%15.6f",$val);
+               print F13 "$str";
+           }
+           print F13 "\n";
+       }
+    }
+           
+    close F13;
+
+} 
+
+
+
+
+
+#######################################################################
+# sub findNodesInPoly
+#
+# returns a list of nodes found within a polygon
+#
+# e.g.
+#      my (@foundNodes)=$adcGrid->findNodesInPoly(\@px,\@py,$printFound);
+#
+#     where @px and @py are lists of the x and y coordinates 
+#     of the polygon verticies (not necessarily closed)
+#
+#     if $printFound is defined the found nodes (id, x, y, z) 
+#     will be printed to stdout 
+#
+####################################################################### 
+sub findNodesInPoly{
+
+   my ($obj,$pxref,$pyref,$printFound)=@_;
+
+   $printFound=0 unless (defined $printFound);
+
+   # dereference arrays
+   my @PX=@{$pxref};
+   my @PY=@{$pyref};
+
+   #find min/max coordinates to exclude points
+
+   my $minx=$PX[0];
+   my $maxx=$PX[0];
+   foreach my $x (@PX){
+      $minx=$x if $x < $minx;
+      $maxx=$x if $x > $maxx;
+   }
+   my $miny=$PY[0];
+   my $maxy=$PY[0];
+   foreach my $y (@PX){
+      $miny=$y if $y < $miny;
+      $maxy=$y if $y > $maxy;
+   }
+
+
+   my @foundNodes=();
+
+   # loop over the nodes and see if they are in the polygon
+
+   foreach my $nid (1..$obj->{NP}){
+       my ($x, $y, $dp) = $obj->getNode($nid);
+       next if $x < $minx;
+       next if $x > $maxx;
+       next if $y < $miny;
+       next if $y > $maxy;
+       my $inpoly=pointInPoly($x,$y,$pxref,$pyref);
+       push (@foundNodes, $nid ) if $inpoly;
+       print "$nid $x $y $dp\n" if ($inpoly & $printFound);
+   }
+
+
+   return @foundNodes;
+}
+
+
 #######################################################################
 # reads the next line from $fh (which must be already open)
 # removes trailing and leading white space and new line
@@ -506,6 +860,57 @@ sub readCleanLine
    $line=~ s/\s+$//; 
    return ($line);
 }
+
+
+#########################################################################
+# sub pointInPoly     
+#
+# the subroutine will determine if a point ($x,$y) is in a polygon 
+# described by arrays @px,@py, note: polygon must be closed
+#
+# usage:
+#
+# $inpoly=PolyTools::pointInPoly($x,$y,\@px,\@py);
+#
+# returns $inpoly=1 if the point is in the polygon, $inpoly=0 otherwise
+#
+#########################################################################
+sub pointInPoly {  # $x $y \@px \@py    note: polygon described by vectors px,py must be closed 
+   
+   my $crs;
+   my $inPoly=0;
+	
+   my $x = $_[0];
+   my $y = $_[1];
+   my @px = @{$_[2]}; # dereference to get arrays from argument
+   my @py = @{$_[3]};
+   
+   my $nsegs=@px;
+
+   my $wn=0;   # the winding number
+
+   my $i=0;
+   while ($i<$nsegs-1) {
+        
+     # test if at least one vertex is right of the point
+     if ( ($px[$i] > $x) ||  ($px[$i+1] > $x) ) {
+
+	 if (     ($py[$i] < $y) && ($py[$i+1] > $y) ) {  # this one crosses
+            $crs= ($px[$i]-$x)*($py[$i+1]-$y) - ($px[$i+1]-$x)*($py[$i]-$y) ;
+	    $wn++ if ($crs > 0) ; # upward cross on the right
+         }elsif (($py[$i] > $y) && ($py[$i+1] < $y) ) {
+            $crs= ($px[$i]-$x)*($py[$i+1]-$y) - ($px[$i+1]-$x)*($py[$i]-$y) ;
+	    $wn-- if ($crs < 0); #downward cross on the right
+         }
+      }
+      $i++;
+   }
+   $inPoly=1 if ($wn !=  0);
+
+   return $inPoly;
+
+}
+
 
 
 
