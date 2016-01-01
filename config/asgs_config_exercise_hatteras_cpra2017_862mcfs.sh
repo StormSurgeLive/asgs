@@ -29,7 +29,7 @@
 # Fundamental 
 #
 INSTANCENAME=cpra862mcfs # name of this ASGS process
-COLDSTARTDATE=2015041412
+COLDSTARTDATE=2015120200
 HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0        # length of initial hindcast, from cold (days)

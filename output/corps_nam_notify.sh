@@ -88,7 +88,7 @@ END
 #
 "results")
 #
-cat <<END > ${STORMDIR}/${ADVISORY}/post_notify.txt 
+cat <<END > ${STORMDIR}/post_notify.txt 
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
@@ -110,14 +110,14 @@ Environmental Prediction (NCEP) to issue the next cycle.
 END
 #
 logMessage "Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/${ADVISORY}/post_notify.txt | mail -s "ASGS results available for cycle $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/post_notify.txt | mail -s "ASGS results available for cycle $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
 #          J O B   F A I L E D 
 #
 "jobfailed")
 #
-cat <<END > ${STORMDIR}/${ADVISORY}/job_failed_notify.txt 
+cat <<END > ${STORMDIR}/job_failed_notify.txt 
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
@@ -127,7 +127,7 @@ NAM cycle $ADVISORY on the $GRIDFILE grid.
 END
 #
 logMessage "Sending 'job_failed' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/${ADVISORY}/job_failed_notify.txt | mail -s "ASGS job failed for cycle $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/job_failed_notify.txt | mail -s "ASGS job failed for cycle $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 *)
 logMessage "ERROR: corps_nam_notify.sh: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."
