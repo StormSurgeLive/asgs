@@ -1020,33 +1020,33 @@ K2
  STEADY               ! CONSTITUENT. 1  ALPHA DESCRIPTOR
  0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
  STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
-31.16417084 0.0   !...River 1 Node 1    !..12210*3.47 cms or 1,500,000 cfs
-42.20965496 0.0   !...River 1 Node 2
-52.95802974 0.0   !...River 1 Node 3 
-57.94829304 0.0   !...River 1 Node 4
-65.45442816 0.0   !...River 1 Node 5
-63.4137944  0.0   !...River 1 Node 6
-59.82903432 0.0   !...River 1 Node 7
-53.16029268 0.0   !...River 1 Node 8
-34.24443484 0.0   !...River 1 Node 9
-13.72642084 0.0   !...River 1 Node 10
-10.816267   0.0   !...River 1 Node 11
-9.45325018  0.0   !...River 1 Node 12
-9.45325018  0.0   !...River 1 Node 13
-26.66974926 0.0   !...River 2 Node 1    !..5233*3.74 cms or 691,143 cfs
-26.66974926 0.0   !...River 2 Node 2
-26.66974926 0.0   !...River 2 Node 3
-26.66974926 0.0   !...River 2 Node 4
-26.66974926 0.0   !...River 2 Node 5
-26.66974926 0.0   !...River 2 Node 6
-26.66974926 0.0   !...River 2 Node 7
-26.66974926 0.0   !...River 2 Node 8
-26.66974926 0.0   !...River 2 Node 9
-26.66974926 0.0   !...River 2 Node 10
-26.66974926 0.0   !...River 2 Node 11
-26.66974926 0.0   !...River 2 Node 12
-26.66974926 0.0   !...River 2 Node 13
-26.66974926 0.0   !...River 2 Node 14
+18.7672657658   0.0  !...River 1 Node 1 !..12210*2.252252252 cms or 27.5 kcms
+25.4189279279   0.0  !...River 1 Node 2
+31.8916689189   0.0  !...River 1 Node 3
+34.8968378378   0.0  !...River 1 Node 4
+39.4170810811   0.0  !...River 1 Node 5
+38.1881981982   0.0  !...River 1 Node 6
+36.0294324324   0.0  !...River 1 Node 7
+32.013472973   0.0  !...River 1 Node 8
+20.6222207207   0.0  !...River 1 Node 9 
+8.2661396396   0.0  !...River 1 Node 10
+6.5136261261   0.0  !...River 1 Node 11
+5.6928085586   0.0  !...River 1 Node 12
+5.6928085586   0.0  !...River 1 Node 13
+16.0606959459   0.0  !...River 2 Node 1  !..5233*2.252252252 cms or 11786 cfs
+16.0606959459   0.0  !...River 2 Node 2
+16.0606959459   0.0  !...River 2 Node 3
+16.0606959459   0.0  !...River 2 Node 4
+16.0606959459   0.0  !...River 2 Node 5
+16.0606959459   0.0  !...River 2 Node 6
+16.0606959459   0.0  !...River 2 Node 7
+16.0606959459   0.0  !...River 2 Node 8
+16.0606959459   0.0  !...River 2 Node 9
+16.0606959459   0.0  !...River 2 Node 10
+16.0606959459   0.0  !...River 2 Node 11
+16.0606959459   0.0  !...River 2 Node 12
+16.0606959459   0.0  !...River 2 Node 13
+16.0606959459   0.0  !...River 2 Node 14
 %FORT61%    ! NOUTE,TOUTSE,TOUTFE,NSPOOLE (UNIT  61)
 %NUMELEVSTATIONS%    ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS
 %FORT62%
