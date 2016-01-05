@@ -22,9 +22,23 @@
 # under development by Jason Fleming (jason.fleming@seahorsecoastal.com). This
 # algorithm is the subject of current research and is subject to change.
 #
+# 4. The code was designed for a real time context, so it assumes that 
+# it wouldn't make sense to apply a perturbation to a nowcast or hindcast, 
+# only to a forecast. So therefore forecast data are required.
+#
+# 5. Also the forecast is being hotstarted from the end of a previous nowcast, 
+# so the forecast track file needs to pick up where the previous nowcast
+# track file left off. The ADCIRC vortex met models need to start with the 
+# track data that correspond to the hotstart time, so at least the first
+# line in the forecast track file has to be the same as the last line in 
+# the previous nowcast track file, i.e., it has to come from BEST track data.
+# The requirements for both hindcast and forecast data could be relaxed in 
+# storm_track_gen.pl to make it more of a generalized ensemble-generating 
+# tool outside the context of real time guidance.
+#
 #---------------------------------------------------------------------
 #
-# Copyright(C) 2006--2015 Jason Fleming
+# Copyright(C) 2006--2016 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -57,15 +71,15 @@ $^W++;
 my $dir;                            # path to raw ATCF hindcast and forecast
 my $storm;                          # number, e.g., 05 or 12 
 my $year;                           # YYYY
-my $coldstartdate;                  # YYYYMMDDHH24
-my $hotstartseconds = 0.0;          # default is not hotstart
+my $coldstartdate;                 # YYYYMMDDHH24
+my $hotstartseconds = 0.0;        # default is not hotstart
 my $nws = 8;                        # the ADCIRC wind model to target
 my $name = "nhcConsensus";          # default track to generate
-my $percent;                        # magnitude of parameter variation
-my $strengthPercent = 20.0;
-my $overlandSpeedPercent = -20.0;
+my $percent = "null";              # magnitude of parameter variation
+my $strengthPercent = "null";
+my $overlandSpeedPercent = "null";
 my $sizePercent = 20.0;
-my $veerPercent = 100.0;
+my $veerPercent = "null";
 my $pi=3.141592653589793;
 my $method="twoslope";              # algorithm for predicting central pressure
 # if the NHC issues a special advisory, there may be incomplete lines in the 
@@ -75,7 +89,10 @@ my %complete_hc_lines = ();
 my $nhcName;  # NHC's current storm name (IKE, KATRINA, INVEST, ONE, etc)
 my $stormClass; # NHC's current storm classification (TD, TS, HU, IN, etc)
 #
-#
+# jgf20160105: Enable direct specification of ensemble variations on the
+# command line, rather than requiring the Operator to name the ensemble
+# members to indicate the type of perturbation applied. This also enables
+# simultaneous use of all three pertubations in a single ensemble member. 
 GetOptions(
            "dir=s" => \$dir,
            "storm=s" => \$storm,
@@ -85,6 +102,9 @@ GetOptions(
            "nws=s" => \$nws,
            "name=s" => \$name,
            "method=s" => \$method,
+           "strengthPercent=s" => \$strengthPercent,
+           "overlandSpeedPercent=s" => \$overlandSpeedPercent,           
+           "veerPercent=s" => \$veerPercent,
            "percent=s" => \$percent
            );
 #
@@ -93,13 +113,17 @@ unless ( $dir ) {
    $dir = cwd();
    stderrMessage("WARNING","The path to the raw ATCF input files was not specified with the --dir argument. It will be assumed that the files are in the directory $dir.");
 } 
+# the storm number is needed to form the file names of the BEST and OFCL track files
 unless ( $storm ) {
    stderrMessage("ERROR","The storm number was not specified using the --storm argument.");
    die;
 }
+# the year is needed to form the file names of the BEST and OFCL track files
 unless ( $year ) {
    stderrMessage("ERROR","The year was not specified using the --year argument.");
 }
+# if the cold start date was not provided on the command line, we use the
+# oldest data in the BEST track file
 unless ( $coldstartdate ) {
    my $hindcastATCF = "$dir/bal$storm$year.dat";
    unless ( open(HCST,"<$hindcastATCF") ) {
@@ -115,42 +139,87 @@ unless ( $coldstartdate ) {
    stderrMessage("INFO","The cold start date was not specified using the --coldstartdate argument. The date/time of the most recent hindcast is '$coldstartdate'. This will be used as the coldstart date/time.");
    printf STDOUT $coldstartdate;
 }
-# 
-# set the percent for variables that can be adjusted by percentages
-if ( $percent ) {
-   unless ( open(PROPS,">>run.properties") ) {
-      stderrMessage("ERROR","Failed to open run.properties file for ensemble member '$name': $!.");
+#
+# Check to make sure that the ensemble member name does not match more than
+# one perturbation. 
+my $match = 0;
+if ( $name =~ /maxWindSpeed/ ) {
+   $match++;
+}
+if ( $name =~ /overlandSpeed/ ) {
+   $match++;
+}
+if ( $name =~ /veer/ ) {
+   $match++;
+}
+if ( $match > 1 ) {
+   stderrMessage("ERROR","The ensemble member name '$name' contains more than one match to  perturbed member names (maxWindSpeed, overlandSpeed, and veer).");
+   die;
+}
+#
+# jgf20160105: If the ensemble member name matches the name of a 
+# perturbation, but the percent was not specified, this is an error.
+if ( $percent eq "null" && $match == 1 ) {
+   stderrMessage("ERROR","The ensemble member name '$name' contains a match to a perturbed member name (either maxWindSpeed, overlandSpeed, or veer) but the percent variation was not specified on the command line.");
+   die;
+}
+#
+# jgf20160105: Check to make sure that the "ensemble member name" method
+# for specifying perturbations and the "direct specification" method are
+# not being simultaneously used, or if they are, they don't conflict.
+if ( $match == 1 ) {
+   if ( ($name =~ /maxWindSpeed/ && $strengthPercent ne "null") ||
+        ($name =~ /overlandSpeed/ && $overlandSpeedPercent ne "null") ||
+        ($name =~ /veer/ && $veerPercent ne "null") ) {      
+      stderrMessage("ERROR","The ensemble member name '$name' contains a match to a perturbed member name (either maxWindSpeed, overlandSpeed, or veer) but the percent variation for this perturbation was also directly specified on the command line.");
       die;
-   }
-   if ( $name =~ /maxWindSpeed/) {
-      $strengthPercent = $percent;
-      printf PROPS "variation maxWindSpeed : $percent\n";
-   } elsif ($name =~ /overlandSpeed/) {
-      $overlandSpeedPercent = $percent;
-      printf PROPS "variation overlandSpeed : $percent\n";
-   } elsif ( $name =~ /veer/ ) {
-      $veerPercent = $percent;
-      my $sign = "";
-      if ($percent > 0.0) { 
-         $sign = "+";
-      }
-      printf PROPS "variation veer : $sign$percent\n";
-   } elsif ( $name =~ /rMax/ ) {  
-      # the rmax variation is controlled by the aswip program
-   } else {
-      stderrMessage("INFO","The option '--percent' was specified at '$percent', but the ensemble member '$name' does not use percentage information. The percentage value will be ignored."); 
    }
 }
 #
-# send a message indicating the percent that will be used
-if ( $name =~ /maxWindSpeed/ ) {
+# open run.properties file for recording track file properties
+unless ( open(PROPS,">>run.properties") ) {
+   stderrMessage("ERROR","Failed to open run.properties file for ensemble member '$name': $!.");
+   die;
+}
+#
+# jgf20160105: Set percentages and write properties for the case where
+# values are set via ensemble member name as well as direct specification.
+if ( $name =~ /maxWindSpeed/ || $strengthPercent ne "null" ) {
+   if ($name =~ /maxWindSpeed/) { 
+      $strengthPercent = $percent;
+   }
+   printf PROPS "variation maxWindSpeed : $strengthPercent\n";
    stderrMessage("INFO","The forecast maximum wind speed will be modified by $strengthPercent percent.");
-} elsif ($name =~ /overlandSpeed/) {
+}
+if ($name =~ /overlandSpeed/ || $overlandSpeedPercent ne "null" ) {
+   if ( $name =~ /overlandSpeed/ ) { 
+      $overlandSpeedPercent = $percent;
+   }
+   printf PROPS "variation overlandSpeed : $overlandSpeedPercent\n";
    stderrMessage("INFO","The forecast overland speed will be modified by $overlandSpeedPercent percent.");
-} elsif ( $name =~ /veer/ ) {
-   stderrMessage("INFO","The forecast track will be modified with a veer of $veerPercent percent.");
-} elsif ( $name =~ /rMax/ ) { 
-   # Rmax variation is implemented in aswip
+}
+if ( $name =~ /veer/ || $veerPercent ne "null" ) {
+   if ( $name =~ /veer/ ) {
+      $veerPercent = $percent;
+   }
+   my $sign = "";
+   if ($veerPercent > 0.0) { 
+      $sign = "+";
+   }
+   printf PROPS "variation veer : $sign$veerPercent\n";
+   stderrMessage("INFO","The track positions will be modified by $sign$veerPercent percent relative to the cone of uncertainty.");
+}
+if ( $name =~ /rMax/ ) {  
+   if ($nws == 8 ) { 
+      # the rmax variation is for symm model uses persistence
+      stderrMessage("INFO","The rMax variation is handled by persisting the last radius to maximum winds value from the hindcast into the forecast, modified by the percent value.");
+   } else {
+      # the rmax variation is controlled by the aswip program for asym models
+      stderrMessage("INFO","The rMax variation is handled by the aswip program for the asymmetric models, and is therefore ignored by storm_track_gen.pl.");
+   }
+}   
+if ( $match == 0 && $percent ne "null" ) {
+   stderrMessage("INFO","The option '--percent' was specified at '$percent', but the ensemble member '$name' does not contain a match for any perturbations (either maxWindSpeed, overlandSpeed, or veer). The percent value will be ignored."); 
 }
 #
 # open ATCF input files
@@ -168,17 +237,6 @@ unless (open(HCST,"<$hindcastATCF")) {
 # create the fort.22 output file, which is the wind input file for ADCIRC
 unless (open(MEMBER,">fort.22")) {
    stderrMessage("ERROR","Failed to open file for ensemble member '$name' fort.22 output file: $!.");
-   die;
-}
-#
-# create the file that holds the current storm class and name ... this is 
-# only used for the title on the hydrographs
-unless (open(PROPS,">>run.properties")) { 
-   stderrMessage("ERROR","Failed to open file 'run.properties' to write NHC storm class and name: $!.");
-   die;
-}
-unless (open(PROPS,">>run.properties")) { 
-   stderrMessage("ERROR","Failed to open file 'run.properties' to write NHC storm class and name: $!.");
    die;
 }
 #
@@ -378,6 +436,7 @@ while(<FCST>) {
    # grab the existing forecast period, i.e., the number of hours beyond the
    # forecast datetime that the forecast applies to
    my $tau=substr($_,29,4);   
+   stderrMessage("INFO","tau is $tau");
    # determine the date and time that the forecast applies to
    ($ftyear,$ftmon,$ftday,$fthour,$ftmin,$ftsec) =
      Date::Pcalc::Add_Delta_DHMS($fyear,$fmon,$fday, $fhour,0,0,0,$tau,0,0); 
@@ -493,7 +552,7 @@ while(<FCST>) {
    #
    # if the requested variation is max wind speed, modify the forecast
    # max wind speed
-   if (($name =~ /maxWindSpeed/) && ($tau != 0)) {
+   if ( ($strengthPercent ne "null") && ($tau != 0)) {
        my $vmax=substr($_,47,4);
        # change it by the indicated percentage
        substr($line,47,4)=sprintf("%4d",$vmax*(1.0+($strengthPercent/100.0))); 
@@ -501,7 +560,7 @@ while(<FCST>) {
    #
    # if the requested variation is overland speed, modify the forecast
    # period and forecastedDate
-   if (($name =~ /overlandSpeed/) && ($tau != 0)) {
+   if (($overlandSpeedPercent ne "null") && ($tau != 0)) {
        my $newtau = $tau*(1.0+(-$overlandSpeedPercent/100.0));
        # determine the date and time that the forecast applies to
        ($ftyear,$ftmon,$ftday,$fthour,$ftmin,$ftsec) =
@@ -524,7 +583,7 @@ while(<FCST>) {
    # the cone of uncertainty
    # +100% will create a track that lies along the right edge of the cone
    # of uncertainty
-   if (($name =~ /veer/) && ($tau != 0)) {
+   if (($veerPercent ne "null") && ($tau != 0)) {
       my $radius;                 # radius of uncertainty
       $radius=interpolateUncertaintyRadius($tau);
       # scale to the percentage requested 
@@ -692,9 +751,6 @@ sub stderrMessage () {
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
    printf STDERR "$theTime $level: storm_track_gen.pl: $message\n";
-   if ($level eq "ERROR") {
-      sleep 60
-   }
 }
 
 
