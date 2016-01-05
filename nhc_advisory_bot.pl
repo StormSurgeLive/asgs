@@ -295,6 +295,8 @@ my $i=0;
 while ($i < $#{$body_ref} ) {
    if ( @{$body_ref}[$i] =~ /^(FORECAST|OUTLOOK) VALID/) {
       my $atcf_line = $template;
+      # jgf20160105: fill in the storm number
+      substr($atcf_line,4,2) = $storm_number_str;      
       # fill in the nowcast time
       substr($atcf_line,8,10) = sprintf("%10d",$nowcast_date_time);
       # fill in the storm name
