@@ -236,6 +236,10 @@ prep()
        if [[ $WAVES = on ]]; then
           cp $INPUTDIR/swaninit.template $ADVISDIR/$ENSTORM/swaninit 2>> ${SYSLOG}
        fi
+       # jgfdebug: TODO: FIXME: Hardcoded the time varying weirs input file 
+       if [[ ~e $INPUTDIR/time-bonnet.in ]]; then
+          cp $INPUTDIR/time-bonnet.in $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+       fi 
        # run adcprep to decompose the new files
        if [[ $HAVEARCHIVE = no ]]; then
           logMessage "Running adcprep to partition the mesh for $NCPU compute processors."

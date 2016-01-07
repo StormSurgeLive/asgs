@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------
 # queenbee_daily_post.sh : Posting to opendap from queenbee. 
 #------------------------------------------------------------------------
-# Copyright(C) 2015 Jason Fleming
+# Copyright(C) 2015,2016 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -57,6 +57,12 @@ env_dispatch ${TARGET}
 #
 # write the intended audience to the run.properties file for CERA
 echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
+#*********************************************
+# MS river properties for CERA, these variables must be set in ASGS config
+#*********************************************
+echo "msRiverBoundaryType : $MSRIVERBOUNDARYTYPE" >> run.properties
+echo "msRiverBoundaryCondition : $MSRIVERBOUNDARYCONDITION" >> run.properties
+echo "remark : $BONNETCARRESPILLWAYOPENPERCENT" >> run.properties
 #
 # write the target area to the run.properties file for the CERA
 # web app
