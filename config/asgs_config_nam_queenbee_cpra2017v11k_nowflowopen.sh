@@ -27,8 +27,8 @@
 
 # Fundamental
 
-INSTANCENAME='27.5kcms'  # "name" of this ASGS process
-COLDSTARTDATE=2015120200 # calendar year month day hour YYYYMMDDHH24
+INSTANCENAME=nowflowopen # "name" of this ASGS process
+COLDSTARTDATE=2015120500 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -36,7 +36,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/trunk/work # ADCIRC executables
+ADCIRCDIR=~/adcirc/latest/trunk/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable        # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/cpra2017_v11k-CurrentConditions # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
@@ -82,7 +82,7 @@ HDIR=${INPUTDIR}/sample_advisories
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06"
+FORECASTCYCLE="06,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -98,7 +98,7 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 GRIDFILE=cpra2017_v11k-CurrentConditions_chk.grd   # mesh (fort.14) file
 GRIDNAME=cpra2017_v11k-CurrentConditions_chk
-CONTROLTEMPLATE=cpra_2017_v07a_27.5kcms.15.template   # fort.15 template
+CONTROLTEMPLATE=cpra_2017_v07a_27.5kcms_open.15.template   # fort.15 template
 ELEVSTATIONS=cpra2017v07_stations.txt    # or substitute your own stations file
 VELSTATIONS=cpra2017v07_stations.txt
 METSTATIONS=cpra2017v07_stations.txt
@@ -149,10 +149,15 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=developers-only
+INTENDEDAUDIENCE=professional
 INITPOST=null_init_post.sh
 POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
+
+MSRIVERBOUNDARYTYPE=52
+MSRIVERBOUNDARYCONDITION='28.5kcms'
+BONNETCARRESPILLWAYOPENPERCENT='Bonnet Carre Spillway open 100%'
+
 # opendap
 TDS=(lsu_tds renci_tds)
 TARGET=queenbee  # used in post processing to pick up HPC platform config

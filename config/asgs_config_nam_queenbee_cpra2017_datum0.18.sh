@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2016 Jason Fleming
+# Copyright(C) 2015 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -27,8 +27,8 @@
 
 # Fundamental
 
-INSTANCENAME='27.5kcms'  # "name" of this ASGS process
-COLDSTARTDATE=2015120200 # calendar year month day hour YYYYMMDDHH24
+INSTANCENAME=daily018    # "name" of this ASGS process
+COLDSTARTDATE=2015092300 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -36,9 +36,9 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/trunk/work # ADCIRC executables
+ADCIRCDIR=~/adcirc/txout/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable        # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/cpra2017_v11k-CurrentConditions # grid and other input files
+INPUTDIR=${SCRIPTDIR}/input/meshes/cpra2017 # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
@@ -82,7 +82,7 @@ HDIR=${INPUTDIR}/sample_advisories
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06"
+FORECASTCYCLE="06,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -96,13 +96,13 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=cpra2017_v11k-CurrentConditions_chk.grd   # mesh (fort.14) file
-GRIDNAME=cpra2017_v11k-CurrentConditions_chk
-CONTROLTEMPLATE=cpra_2017_v07a_27.5kcms.15.template   # fort.15 template
+GRIDFILE=cpra_2017_v07a_chk.grd                     # mesh (fort.14) file
+GRIDNAME=cpra_2017_v07a_chk
+CONTROLTEMPLATE=cpra_2017_v07a.15.template   # fort.15 template
 ELEVSTATIONS=cpra2017v07_stations.txt    # or substitute your own stations file
 VELSTATIONS=cpra2017v07_stations.txt
 METSTATIONS=cpra2017v07_stations.txt
-NAFILE=cpra2017_v11k-CurrentConditions.13
+NAFILE=cpra_2017_v07a_datum0.18.13
 SWANTEMPLATE=cpra_2017_v07a.26.template  # only used if WAVES=on
 RIVERINIT=null                           # this mesh has no rivers ...
 RIVERFLUX=null
@@ -149,7 +149,7 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=developers-only
+INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
 POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
