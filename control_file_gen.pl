@@ -136,6 +136,7 @@ our $wtiminc;   # parameters related to met and wave timing
 our $rundesc;   # description of run, 1st line in fort.15
 our $ensembleid; # run id, 2nd line in fort.15
 our $waves = "off"; # set to "on" if adcirc is coupled with swan is being run
+my $inundationOutput = "off"; # on inundationOutput=.true. in fort.15 template
 my ($m2nf, $s2nf, $n2nf, $k2nf, $k1nf, $o1nf, $p1nf, $q1nf); # nodal factors
 my ($m2eqarg, $s2eqarg, $n2eqarg, $k2eqarg, $k1eqarg, $o1eqarg, $p1eqarg, $q1eqarg); # equilibrium arguments
 #
@@ -426,6 +427,9 @@ while(<TEMPLATE>) {
     s/%CSHOUR%/$ch/;
     s/%CSMIN%/$cmin/;
     s/%CSSEC%/$cs/;
+    if (/inundationOutput=.[tT]/) {
+       $inundationOutput = "on";
+    }
     unless (/NO LINE HERE/) {
        print STORM $_;
     }
@@ -571,6 +575,13 @@ if ( $waves eq "on" ) {
    &writeFileName("swan_TPS.63",$fort7374specifier);
    &writeFileName("swan_TPS_max.63",$fort7374specifier);
 }
+if ($inundationOutput eq "on") {
+   &writeFileName("initiallydry.63",$fort63specifier);
+   &writeFileName("inundationtime.63",$fort63specifier);
+   &writeFileName("maxinundepth.63",$fort63specifier);
+   &writeFileName("everdried.63",$fort63specifier); 
+   &writeFileName("endrisinginun.63",$fort63specifier);
+}
 close(RUNPROPS);
 stderrMessage("INFO","Wrote run.properties file $stormDir/run.properties.");
 exit;
@@ -592,13 +603,7 @@ sub writeFileName () {
    # if there won't be any output of this type, just return without
    # writing anything to the run.properties file
    if ( $specifier == 0 ) {
-      if ( $identifier eq "maxele.63" || $identifier eq "maxvel.63" ||
-         $identifier eq "maxwvel.63" || $identifier eq "minpr.63" ||
-         $identifier eq "maxrs.63" ) {
-            $specifier = 1; # these files will always be there
-      } else {
-         return;
-      }
+      return;
    }
    # create the hash for relating the basic file identifier with the
    # long winded file type description
@@ -624,6 +629,11 @@ sub writeFileName () {
    $ids_descs{"swan_TMM10_max.63"} = "Maximum Mean Wave Period";
    $ids_descs{"swan_TPS.63"} = "Peak Wave Period";
    $ids_descs{"swan_TPS_max.63"} = "Maximum Peak Wave Period";
+   $ids_descs{"initiallydry.63"} = "Initially Dry";
+   $ids_descs{"inundationtime.63"} = "Inundation Time";
+   $ids_descs{"maxinundepth.63"} = "Maximum Inundation Depth";
+   $ids_descs{"everdried.63"} = "Ever Dried"; 
+   $ids_descs{"endrisinginun.63"} = "End Rising Inundation";
    #
    if ( abs($specifier) == 3 || abs($specifier) == 5 ) {
       $filename = $filename . ".nc";

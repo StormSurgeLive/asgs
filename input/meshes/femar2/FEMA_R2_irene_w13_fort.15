@@ -1,32 +1,33 @@
-ASGS %StormName%       ! 32 CHARACTER ALPHANUMERIC RUN DESCRIPTION
-%EnsembleID%           ! 24 CHARACTER ALPANUMERIC RUN IDENTIFICATION
+ r2_ny_nj              ! 32 CHARACTER ALPHANUMERIC RUN DESCRIPTION
+ sandy                 ! 24 CHARACTER ALPANUMERIC RUN IDENTIFICATION
  1                     ! NFOVER - NONFATAL ERROR OVERRIDE OPTION
- 1                     ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
- -1                    ! NSCREEN - UNIT 6 OUTPUT OPTION PARAMETER
-%IHOT%                 !  IHOT - HOT START PARAMETER
+ 0                     ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
+ -1000                 ! NSCREEN - UNIT 6 OUTPUT OPTION PARAMETER
+ 68                     !  IHOT - HOT START PARAMETER
  2                     ! ICS - COORDINATE SYSTEM SELECTION PARAMETER
  0                     ! IM - MODEL SELECTION PARAMETER 
  1                     ! NOLIBF - BOTTOM FRICTION TERM SELECTION PARAMETER
  2                     ! NOLIFA - FINITE AMPLITUDE TERM SELECTION PARAMETER
  1                     ! NOLICA - SPATIAL DERIVATIVE CONVECTIVE SELECTION PARAMETER
  1                     ! NOLICAT - TIME DERIVATIVE CONVECTIVE TERM SELECTION PARAMETER
- 4                     ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
+ 5                     ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
 surface_canopy_coefficient
 primitive_weighting_in_continuity_equation
 surface_directional_effective_roughness_length
 mannings_n_at_sea_floor
+wave_refraction_in_swan
  1                     ! NCOR - VARIABLE CORIOLIS IN SPACE OPTION PARAMETER
  1                     ! NTIP - TIDAL POTENTIAL OPTION PARAMETER (Chris changed from 0 to 1)
-%NWS%                  !  NWS - WIND STRESS AND BAROMETRIC PRESSURE PARAMETER
+ 19                    !  NWS - WIND STRESS AND BAROMETRIC PRESSURE OPTION PARAMETER
  1                     ! NRAMP - RAMP FUNCTION OPTION
  9.81                  ! G - ACCELERATION DUE TO GRAVITY - DETERMINES UNITS
  -3.0                  ! TAU0 - WEIGHTING FACTOR IN GWCE
- %DT%                  ! DT - TIME STEP (IN SECONDS)
+ 1.00                  ! DT - TIME STEP (IN SECONDS)
  0.00                  ! STATIM - STARTING TIME (IN DAYS)
  0.00                  ! REFTIM - REFERENCE TIME (IN DAYS)
-%WTIMINC%              ! wtiminc
-%RNDAY%                !  RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
- 7.0                   ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS) 
+ 2012 10 11 12 1 0.9   ! wtiminc
+ 21.0000000            !  RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
+ 2.0                   ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS) (Changed everything to a 2 day ramp)
  0.35 0.30 0.35        ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
  0.10 0 0 0.01         ! H0, NODEDRYMIN, NODEWETMIN, VELMIN
  -79.0 35.0            ! SLAM0,SFEA0 - CENTER OF CPP PROJECTION (NOT USED IF ICS=1, NTIP=0, NCOR=0)
@@ -35,34 +36,34 @@ mannings_n_at_sea_floor
  0.0                   ! CORI - CORIOLIS PARAMETER - IGNORED IF NCOR = 1
  7                     ! NTIF - TOTAL NUMBER OF TIDAL POTENTIAL CONSTITUENTS BE
  M2                    ! ALPHANUMERIC DATA FOR TIDAL POTENTIAL
-   0.242334   0.000140518902509   0.692  %M2NF%  %M2EQARG%
+   0.242334   0.000140518902509   0.692  1.02036  97.62   ! (21 Day run, start date 10/11/2012 1200 GMT)
  N2
-   0.046398   0.000137879699487   0.692  %N2NF%  %N2EQARG%
+   0.046398   0.000137879699487   0.692  1.02036  188.33
  K2
-   0.030704   0.000145842317201   0.692  %K2NF%  %K2EQARG%
+   0.030704   0.000145842317201   0.692  0.86436  56.53
  S2
-   0.112841   0.000145444104333   0.692  %S2NF%  %S2EQARG%
+   0.112841   0.000145444104333   0.692  1.00000   0.00
  K1
-   0.141565   0.000072921158358   0.730  %K1NF%  %K1EQARG%
+   0.141565   0.000072921158358   0.730  0.94829  118.57
  O1
-   0.100514   0.000067597744151   0.689  %O1NF%  %O1EQARG%
+   0.100514   0.000067597744151   0.689  0.91590  335.03
  Q1
-   0.019256   0.000064958541129   0.689  %Q1NF%  %Q1EQARG%
+   0.019256   0.000064958541129   0.689  0.91590   65.74
  7                     ! NBFR - TOTAL NUMBER OF FORCING FREQUENCIES ON OPEN BOU
  M2                    ! ALPHANUMERIC DATA FOR OPEN OCEAN FORCING
-   0.000140518902509   %M2NF%  %M2EQARG%
+   0.000140518902509   1.02036  97.62    ! (21 Day run, start date 10/11/2012 1200 GMT)
  N2
-   0.000137879699487   %N2NF%  %N2EQARG%
+   0.000137879699487   1.02036  188.33
  K2
-   0.000145842317201   %K2NF%  %K2EQARG%
+   0.000145842317201   0.86436  56.53
  S2
-   0.000145444104333   %S2NF%  %S2EQARG%
+   0.000145444104333   1.00000    0.00
  K1
-   0.000072921158358   %K1NF%  %K1EQARG%
+   0.000072921158358   0.94829  118.57
  O1
-   0.000067597744151   %O1NF%  %O1EQARG%
+   0.000067597744151   0.91590  335.03
  Q1
-   0.000064958541129   %Q1NF%  %Q1EQARG%
+   0.000064958541129   0.91590   65.74
  M2        ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING 
 0.55410	223.45000
 0.53730	222.97002
@@ -791,29 +792,169 @@ mannings_n_at_sea_floor
 0.01819	307.14057
 0.01920	307.39997
 0.01990	307.57998
- 110.0              ! ANGINN : INNER ANGLE THRESHOLD
-%FORT61%            ! NOUTE etc ELEV STATION OUTPUT INFO (UNIT  61)
- %NUMELEVSTATIONS%  ! NSTAE
-%FORT62%            ! NOUTV etc VEL STATION OUTPUT INFO (UNIT  62)
- %NUMVELSTATIONS%   ! NSTAV
-%FORT7172%          ! NOUTM etc MET STATION OUTPUT INFO (UNITS 71 and 72)
- %NUMMETSTATIONS%   ! NSTAM
-%FORT63%            ! NOUTGE,TOUTSGE,TOUTFGE,NSPOOLGE : GLOBAL ELEVATION OUTPUT INFO (UNIT  63)
-%FORT64%            ! NOUTGV,TOUTSGV,TOUTFGV,NSPOOLGV : GLOBAL VELOCITY  OUTPUT INFO (UNIT  64)
-%FORT7374%          ! NOUTGM,TOUTSGM,TOUTGM,NSPOOLGM  : Global Meterology Output Info (Unit 73/74)
-0                    ! NHARFR - NUMBER OF CONSTITUENTS TO BE INCLUDED IN THE HARMONIC ANALYSIS
+ 110.0                ! ANGINN : INNER ANGLE THRESHOLD
+-1 16.0 21.0 900       ! NOUTE,TOUTSE,TOUTFE,NSPOOLE:ELEV STATION OUTPUT INFO (UNIT  61)
+50                     ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS, FOLLOWED BY LOCATIONS ON PROCEEDING LINES
+-68.205000      44.391667       ! 8413320 =  Bar Harbor, ME
+-70.246667      43.656667       ! 8418150 =  Portland, ME
+-70.563333      43.320000       ! 8419317 =  Wells, ME
+-70.711667      43.071667       ! 8423898 =  Fort Point, NH
+-71.053333      42.353333       ! 8443970 =  Boston, MA
+-71.400000      41.806667       ! 8454000 =  Providence, RI
+-71.343333      41.716667       ! 8452944 =  Conimicut Light, RI
+-71.163333      41.703333       ! 8447386 =  Fall River, MA
+-69.950000      41.688333       ! 8447435 =  Chatham, MA
+-70.671667      41.523333       ! 8447930 =  Woods Hole, MA
+-71.326667      41.505000       ! 8452660 =  Newport, RI
+-72.090000      41.360000       ! 8461490 =  New London, CT
+-70.766667      41.353333       ! 8448725 =  Menemsha Harbor, MA
+-70.096667      41.285000       ! 8449130 =  Nantucket Island, MA
+-72.908333      41.283333       ! 8465705 =  New Haven, CT
+-73.181667      41.173333       ! 8467150 =  Bridegport, CT
+-72.306667      41.136667       ! 8511671 =  Orient Harbor, NY
+-71.960000      41.048333       ! 8510560 =  Montauk, NY
+-73.763333      40.810000       ! 8516945 =  Kings Point, NY
+-74.013333      40.700000       ! 8518750 =  The Battery, NY
+-74.141667      40.636667       ! 8519483 =  Bergen Point West Reach, NY
+-74.008333      40.466667       ! 8531680 =  Sandy Hook, NJ
+-74.418333      39.355000       ! 8534720 =  Atlantic City, NJ
+-76.578333      39.266667       ! 8574680 =  Baltimore, MD
+-76.245000      39.213333       ! 8573364 =  Tolchester Beach, MD
+-75.113333      38.986667       ! 8555889 =  Brandywine Shoal Light, DE
+-76.480000      38.983333       ! 8575512 =  Annapolis, MD
+-74.960000      38.968333       ! 8536110 =  Cape May, NJ
+-77.021667      38.873333       ! 8594900 =  Washington, DC
+-75.120000      38.781667       ! 8557380 =  Lewes, DE
+-76.068333      38.573333       ! 8571892 =  Cambridge, MD
+-75.091667      38.328333       ! 8570283 =  Ocean City Inlet, MD
+-76.038333      38.220000       ! 8571421 =  Bishops Head, MD
+-76.463333      37.995000       ! 8635750 =  Lewisetta, VA
+-76.478333      37.226667       ! 8637689 =  Yorktown USCG Training Center, VA
+-75.988333      37.165000       ! 8632200 =  Kiptopeke, VA
+-76.113333      36.966667       ! 8638863 =  Chesapeake Bay Bridge Tunnel, VA
+-76.275000      36.883333       ! 8638671 =  Lafayette River, VA
+-76.381667      36.821667       ! 8638339 =  Western Branch, VA
+-76.301667      36.778333       ! 8639348 =  Money Point, VA
+-75.746667      36.183333       ! 8651370 =  Duck, NC
+-75.548333      35.795000       ! 8652587 =  Oregon Inlet Marina, NC
+-75.703333      35.208333       ! 8654467 =  Uscg Station Hatteras, NC
+-76.670000      34.720000       ! 8656483 =  Beaufort, NC
+-77.953333      34.226667       ! 8658120 =  Wilmington, NC
+-77.786667      34.213333       ! 8658163 =  Wrightsville Beach, NC
+-79.186667      33.351667       ! 8662245 =  Oyster Landing (N. Inlet Estuary), SC
+-79.925000      32.781667       ! 8665530 =  Charleston, SC
+-80.783333      32.335000       ! 8667633 =  Clarendon Plantation, SC
+-80.901667      32.033333       ! 8670870 =  Fort Pulaski, GA
+-1 16.0 21.0 900       ! NOUTV,TOUTSV,TOUTFV,NSPOOLV:VEL STATION OUTPUT INFO (UNIT  62)
+50                     ! NSTAV - NUMBER OF Vel RECORDING STATIONS, FOLLOWED BY LOCATIONS ON PROCEEDING LINES
+-68.205000      44.391667       ! 8413320 =  Bar Harbor, ME
+-70.246667      43.656667       ! 8418150 =  Portland, ME
+-70.563333      43.320000       ! 8419317 =  Wells, ME
+-70.711667      43.071667       ! 8423898 =  Fort Point, NH
+-71.053333      42.353333       ! 8443970 =  Boston, MA
+-71.400000      41.806667       ! 8454000 =  Providence, RI
+-71.343333      41.716667       ! 8452944 =  Conimicut Light, RI
+-71.163333      41.703333       ! 8447386 =  Fall River, MA
+-69.950000      41.688333       ! 8447435 =  Chatham, MA
+-70.671667      41.523333       ! 8447930 =  Woods Hole, MA
+-71.326667      41.505000       ! 8452660 =  Newport, RI
+-72.090000      41.360000       ! 8461490 =  New London, CT
+-70.766667      41.353333       ! 8448725 =  Menemsha Harbor, MA
+-70.096667      41.285000       ! 8449130 =  Nantucket Island, MA
+-72.908333      41.283333       ! 8465705 =  New Haven, CT
+-73.181667      41.173333       ! 8467150 =  Bridegport, CT
+-72.306667      41.136667       ! 8511671 =  Orient Harbor, NY
+-71.960000      41.048333       ! 8510560 =  Montauk, NY
+-73.763333      40.810000       ! 8516945 =  Kings Point, NY
+-74.013333      40.700000       ! 8518750 =  The Battery, NY
+-74.141667      40.636667       ! 8519483 =  Bergen Point West Reach, NY
+-74.008333      40.466667       ! 8531680 =  Sandy Hook, NJ
+-74.418333      39.355000       ! 8534720 =  Atlantic City, NJ
+-76.578333      39.266667       ! 8574680 =  Baltimore, MD
+-76.245000      39.213333       ! 8573364 =  Tolchester Beach, MD
+-75.113333      38.986667       ! 8555889 =  Brandywine Shoal Light, DE
+-76.480000      38.983333       ! 8575512 =  Annapolis, MD
+-74.960000      38.968333       ! 8536110 =  Cape May, NJ
+-77.021667      38.873333       ! 8594900 =  Washington, DC
+-75.120000      38.781667       ! 8557380 =  Lewes, DE
+-76.068333      38.573333       ! 8571892 =  Cambridge, MD
+-75.091667      38.328333       ! 8570283 =  Ocean City Inlet, MD
+-76.038333      38.220000       ! 8571421 =  Bishops Head, MD
+-76.463333      37.995000       ! 8635750 =  Lewisetta, VA
+-76.478333      37.226667       ! 8637689 =  Yorktown USCG Training Center, VA
+-75.988333      37.165000       ! 8632200 =  Kiptopeke, VA
+-76.113333      36.966667       ! 8638863 =  Chesapeake Bay Bridge Tunnel, VA
+-76.275000      36.883333       ! 8638671 =  Lafayette River, VA
+-76.381667      36.821667       ! 8638339 =  Western Branch, VA
+-76.301667      36.778333       ! 8639348 =  Money Point, VA
+-75.746667      36.183333       ! 8651370 =  Duck, NC
+-75.548333      35.795000       ! 8652587 =  Oregon Inlet Marina, NC
+-75.703333      35.208333       ! 8654467 =  Uscg Station Hatteras, NC
+-76.670000      34.720000       ! 8656483 =  Beaufort, NC
+-77.953333      34.226667       ! 8658120 =  Wilmington, NC
+-77.786667      34.213333       ! 8658163 =  Wrightsville Beach, NC
+-79.186667      33.351667       ! 8662245 =  Oyster Landing (N. Inlet Estuary), SC
+-79.925000      32.781667       ! 8665530 =  Charleston, SC
+-80.783333      32.335000       ! 8667633 =  Clarendon Plantation, SC
+-80.901667      32.033333       ! 8670870 =  Fort Pulaski, GA
+-1 16.0 21.0 900       ! NOUTV,TOUTSV,TOUTFV,NSPOOLV:MET STATION OUTPUT INFO (UNIT  72)
+50                     ! NSTAV - NUMBER OF Met RECORDING STATIONS, FOLLOWED BY LOCATIONS ON PROCEEDING LINES
+-68.205000      44.391667       ! 8413320 =  Bar Harbor, ME
+-70.246667      43.656667       ! 8418150 =  Portland, ME
+-70.563333      43.320000       ! 8419317 =  Wells, ME
+-70.711667      43.071667       ! 8423898 =  Fort Point, NH
+-71.053333      42.353333       ! 8443970 =  Boston, MA
+-71.400000      41.806667       ! 8454000 =  Providence, RI
+-71.343333      41.716667       ! 8452944 =  Conimicut Light, RI
+-71.163333      41.703333       ! 8447386 =  Fall River, MA
+-69.950000      41.688333       ! 8447435 =  Chatham, MA
+-70.671667      41.523333       ! 8447930 =  Woods Hole, MA
+-71.326667      41.505000       ! 8452660 =  Newport, RI
+-72.090000      41.360000       ! 8461490 =  New London, CT
+-70.766667      41.353333       ! 8448725 =  Menemsha Harbor, MA
+-70.096667      41.285000       ! 8449130 =  Nantucket Island, MA
+-72.908333      41.283333       ! 8465705 =  New Haven, CT
+-73.181667      41.173333       ! 8467150 =  Bridegport, CT
+-72.306667      41.136667       ! 8511671 =  Orient Harbor, NY
+-71.960000      41.048333       ! 8510560 =  Montauk, NY
+-73.763333      40.810000       ! 8516945 =  Kings Point, NY
+-74.013333      40.700000       ! 8518750 =  The Battery, NY
+-74.141667      40.636667       ! 8519483 =  Bergen Point West Reach, NY
+-74.008333      40.466667       ! 8531680 =  Sandy Hook, NJ
+-74.418333      39.355000       ! 8534720 =  Atlantic City, NJ
+-76.578333      39.266667       ! 8574680 =  Baltimore, MD
+-76.245000      39.213333       ! 8573364 =  Tolchester Beach, MD
+-75.113333      38.986667       ! 8555889 =  Brandywine Shoal Light, DE
+-76.480000      38.983333       ! 8575512 =  Annapolis, MD
+-74.960000      38.968333       ! 8536110 =  Cape May, NJ
+-77.021667      38.873333       ! 8594900 =  Washington, DC
+-75.120000      38.781667       ! 8557380 =  Lewes, DE
+-76.068333      38.573333       ! 8571892 =  Cambridge, MD
+-75.091667      38.328333       ! 8570283 =  Ocean City Inlet, MD
+-76.038333      38.220000       ! 8571421 =  Bishops Head, MD
+-76.463333      37.995000       ! 8635750 =  Lewisetta, VA
+-76.478333      37.226667       ! 8637689 =  Yorktown USCG Training Center, VA
+-75.988333      37.165000       ! 8632200 =  Kiptopeke, VA
+-76.113333      36.966667       ! 8638863 =  Chesapeake Bay Bridge Tunnel, VA
+-76.275000      36.883333       ! 8638671 =  Lafayette River, VA
+-76.381667      36.821667       ! 8638339 =  Western Branch, VA
+-76.301667      36.778333       ! 8639348 =  Money Point, VA
+-75.746667      36.183333       ! 8651370 =  Duck, NC
+-75.548333      35.795000       ! 8652587 =  Oregon Inlet Marina, NC
+-75.703333      35.208333       ! 8654467 =  Uscg Station Hatteras, NC
+-76.670000      34.720000       ! 8656483 =  Beaufort, NC
+-77.953333      34.226667       ! 8658120 =  Wilmington, NC
+-77.786667      34.213333       ! 8658163 =  Wrightsville Beach, NC
+-79.186667      33.351667       ! 8662245 =  Oyster Landing (N. Inlet Estuary), SC
+-79.925000      32.781667       ! 8665530 =  Charleston, SC
+-80.783333      32.335000       ! 8667633 =  Clarendon Plantation, SC
+-80.901667      32.033333       ! 8670870 =  Fort Pulaski, GA
+-1 16.0 21.0 3600    !  NOUTGE,TOUTSGE,TOUTFGE,NSPOOLGE : GLOBAL ELEVATION OUTPUT INFO (UNIT  63)
+-1 16.0 21.0 3600    !  NOUTGV,TOUTSGV,TOUTFGV,NSPOOLGV : GLOBAL VELOCITY  OUTPUT INFO (UNIT  64)
+-1 16.0 21.0 3600    !  NOUTGM,TOUTSGM,TOUTGM,NSPOOLGM  : Global Meterology Output Info (Unit 73/74)
+ 0                          ! NHARFR - NUMBER OF CONSTITUENTS TO BE INCLUDED IN THE HARMONIC ANALYSIS
  40.0  50.0  5  0.0         ! THAS,THAF,NHAINC,FMV - HARMONIC ANALYSIS PARAMETERS
-0 0 0 0                    ! NHASE,NHASV,NHAGE,NHAGV - CONTROL HARMONIC ANALYSIS AND OUTPUT TO UNITS 51,52,53,54
-%NHSTAR%  %NHSINC%         ! NHSTAR,NHSINC - HOT START FILE GENERATION PARAMETERS
-1  0  1.E-8  50 0          ! ITITER, ISLDIA, CONVCR, ITMAX & ILUMP
-ASGS
-UNC-CH IMS,SeahorseCoastal
-Seahorse Coastal Consulting
-ASGS Nowcast/Forecast
-http://www.seahorsecoastal.com
-No Comment
-Seahorse Coastal Consulting
-CF
-jason.fleming@seahorsecoastal.com
-varies
-%CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
+ 1 1 1 1                    ! NHASE,NHASV,NHAGE,NHAGV - CONTROL HARMONIC ANALYSIS AND OUTPUT TO UNITS 51,52,53,54
+ 1 3600                     ! NHSTAR,NHSINC - HOT START FILE GENERATION PARAMETERS
+ 1  0  1.E-8  50 0          ! ITITER, ISLDIA, CONVCR, ITMAX & ILUMP
+

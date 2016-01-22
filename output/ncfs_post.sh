@@ -58,9 +58,16 @@ CERASERVERNUM=`expr $ENMEMNUM % $NUMCERASERVERS + 1`
 CERASERVER=cera$CERASERVERNUM
 echo "ceraServer : $CERASERVER" >> run.properties
 #
-# write the target area to the run.properties file for the CERA
-# web app
-echo "asgs : nc" >> run.properties
+# write the target area to the run.properties file for the CERA web app
+if [[ $GRIDNAME = nc6b ]]; then
+   echo "asgs : nc" >> run.properties
+fi
+if [[ $GRIDNAME = "FEMA_R2_norivers_gcs_mNAVD.grd" ]]; then 
+   echo "asgs : nynj" >> run.properties
+fi
+if [[ $GRIDNAME = "FEMA_R3" ]]; then 
+   echo "asgs : delmarva" >> run.properties
+fi
 #
 # write the intended audience to the run.properties file for CERA
 echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
