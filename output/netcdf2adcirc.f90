@@ -385,7 +385,7 @@ case(1,2)
                endif
             end do
          endif
-      write(6,advance='no',fmt='(i4)') i
+         write(6,advance='no',fmt='(i4)') i
       end do
    endif
 case(3)

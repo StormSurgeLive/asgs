@@ -128,7 +128,7 @@ case(ASCIIG)
    read(63,'(a1024)') line
    write(61,*) trim(adjustl(line))
    read(63,*) numSnaps, numNodes, snapR, snapI, num_components
-   write(61,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') numSnaps, numNodes, snapR, snapI, num_components
+   write(61,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') numSnaps, numStations, snapR, snapI, num_components
    SS=1  ! jgf: initialize the dataset counter
    !
    ! jgf: loop until we run out of data
@@ -155,6 +155,7 @@ case(ASCIIG)
             adcirc_data(j,2) = temp2
          end do     
       end select
+      write(61,*) snapR, snapI
       do s=1, numStations   
          call writeStationValue(stations(s), s)
       end do

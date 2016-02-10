@@ -39,6 +39,7 @@
       use netcdf
       use asgsio
       use adcmesh
+      use nodalattr
       use adcircdata
       IMPLICIT NONE
       CHARACTER(2048)               :: dataFileBase
@@ -48,7 +49,9 @@
       character(1000)               :: Line
       character(1)                  :: JunkC, Tadj
       real(8)                        :: temp1, temp2
-      real(8), ALLOCATABLE         :: Global1(:), Global2(:), Global3(:)
+      real(8), ALLOCATABLE         :: Global1(:), Global2(:)
+      integer, allocatable         :: idata(:)
+      integer                       :: numValuesPerDataset
       integer                       :: yy, mo, dd, hh, mi
       integer                       :: i, j, k, N, SS
       integer                       :: unitnumber
@@ -61,10 +64,14 @@
       INTEGER                       :: NC_DimID(2)
       integer                       :: NC_DimID_single
       integer                       :: NC_VarID_zeta
+      integer                       :: NC_VarID_nodecode
+      integer                       :: NC_VarID_noff            
       integer                       :: NC_VarID_u_vel
       integer                       :: NC_VarID_v_vel
       integer                       :: NC_VarID_maxele
       integer                       :: NC_VarID_timeOfmaxele
+      integer                       :: NC_VarID_minpr
+      integer                       :: NC_VarID_timeOfminpr
       integer                       :: NC_VarID_maxwvel
       integer                       :: NC_VarID_timeOfmaxwvel
       integer                       :: NC_VarID_maxvel
@@ -85,6 +92,10 @@
       integer, parameter            :: version = 4
       integer                       :: varid(3) ! varids for netcdf4 compression
       integer                       :: lastSlashPosition ! used for trimming full path from a filename
+      integer                       :: lastDotPosition ! to determine file extension
+      character(2048)               :: dataFileExtension ! something like 13, 14, 15, 63, 222 etc
+      integer                       :: iret !jgfdebug
+      integer                       :: lineNum
       ! initializations
       meshFileName = "null"
       attFile = "null"
@@ -94,6 +105,9 @@
       useNetCDF4 = .false.
       meshonly = .false.
       dataonly = .false.
+      dataCenter = 'Node'
+      lineNum=1
+      SS=1
       !
       !write(6,*) "INFO: adcirc2netcdf version ",version,"."
       ! Report netcdf version
@@ -128,7 +142,7 @@
                case("--attfile")
                   i = i + 1
                   call getarg(i, cmdlinearg)
-                  write(6,'(a,a,a,a)') "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
+                  write(6,'(a,a,a,a,a)') "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
                   attFile = trim(cmdlinearg)
                case("--datafile")
                   i = i + 1
@@ -153,16 +167,22 @@
          netCDFFile = trim(dataFile(lastSlashPosition+1:))//'.nc'
       endif
       dataFileBase = trim(dataFile(lastSlashPosition+1:))
+      lastDotPosition = index(trim(dataFileBase),'.',.true.)
+      dataFileExtension = trim(dataFileBase(lastDotPosition+1:))
       !
       ! Load netCDF Attributes
       call openFileForRead(100,AttFile)
-      read(100,*) natt
+      read(100,*,end=246,err=248,iostat=errorio) natt
+      lineNum=lineNum+1
       allocate(att(1:2,1:natt))
-      read(100,'(A)') datenum !seconds since 2008-07-31 12:00:00 +00:00
+      read(100,'(A)',end=246,err=248,iostat=errorio) datenum !seconds since 2008-07-31 12:00:00 +00:00
+      lineNum=lineNum+1
       do i = 1,natt
-        read(100,*) att(1,i), att(2,i)
+         read(100,*,end=246,err=248,iostat=errorio) att(1,i), att(2,i)
+         lineNum=lineNum+1
       enddo
       close(100)
+      lineNum=1
       write(6,'(a)') "INFO: Finished reading metadata/attributes file."
       !
       ! create netcdf file
@@ -174,33 +194,47 @@
       endif
 #endif
       !
-      !
       CALL Check(NF90_CREATE(TRIM(netCDFFile),ncFileType,NC_ID))
-      ! create time dimension and create global attributes
-      CALL Check(NF90_DEF_DIM(NC_ID,'time',NF90_UNLIMITED,NC_DimID_time))
-      CALL Check(NF90_DEF_VAR(NC_ID,'time',NF90_DOUBLE,NC_DimID_time,NC_VarID_time))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_time,'long_name','model time'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_time,'standard_name','time'))
-      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_time,'units',datenum))
+      ! create global attributes 
       do i = 1,natt
         CALL Check(NF90_PUT_ATT(NC_ID,NF90_GLOBAL,att(1,i),att(2,i)))
       enddo
       !
       ! write the mesh definitions to the netcdf file unless the 
       ! dataonly command line option was specified
-      write(6,'(a)') 'INFO: Checking number of nodes in data file.' 
-      call openFileForRead(20, trim(dataFile))
-      read(20,'(a)') JunkC
-      read(20,*) numSnaps, NumNodes, tInterval, Interval, nCol
-      close(20)
+      if ( (meshonly.eqv..false.).and.(trim(dataFileExtension).ne.'88').and.(trim(dataFileExtension).ne.'13')) then
+         write(6,'(a)') 'INFO: Checking number of nodes in data file.' 
+         call openFileForRead(20, trim(dataFile))
+         read(20,'(a)',end=246,err=248,iostat=errorio) JunkC
+         lineNum=lineNum+1
+         read(20,*,end=246,err=248,iostat=errorio) numSnaps, numValuesPerDataset, tInterval, Interval, nCol
+         lineNum=lineNum+1
+         close(20)
+         lineNum=1
+      endif
       if (dataonly.eqv..false.) then
          call read14()
          call writeMeshDefinitionsToNetCDF(NC_ID, useNetCDF4)
       else       
-         np = NumNodes
+         np = numValuesPerDataset
          call check(NF90_PUT_ATT(NC_ID,NF90_GLOBAL,'description',trim(JunkC)))
          call check(NF90_DEF_DIM(NC_ID,'node',np,NC_DimID_node))
       endif
+      !
+      ! if this is a nodal attributes file, then read it and convert it
+      ! using subroutines from the nodal attributes module and then stop
+      if (trim(dataFileExtension).eq.'13') then
+         call readNodalAttributesFile(dataFile)
+         call writeNodalAttributesFileNetCDF(nc_id, useNetCDF4)
+         stop
+      endif
+      !
+      ! Create time dimension and units attributes       
+      CALL Check(NF90_DEF_DIM(NC_ID,'time',NF90_UNLIMITED,NC_DimID_time))
+      CALL Check(NF90_DEF_VAR(NC_ID,'time',NF90_DOUBLE,NC_DimID_time,NC_VarID_time))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_time,'long_name','model time'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_time,'standard_name','time'))
+      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_time,'units',datenum))
       !
       ! Determine if the dataFile is time varying or not. 
       !write(6,*) 'DEBUG: dataFileBase: ',trim(dataFileBase)
@@ -215,6 +249,7 @@
       !      
       ! create adcirc output variables and associated attributes
       NC_DimID = (/ NC_DimID_node, NC_DimID_Time /)
+
 
       select case(trim(dataFileBase))
       case('fort.63') !63
@@ -310,6 +345,29 @@
             CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_timeOfmaxele,'units','s'))
          endif
          varid(2) = NC_VarID_timeOfmaxele
+
+      case('minpr.63') ! minimum barometric pressure
+         CALL Check(NF90_DEF_VAR(NC_ID,'pressure_min',NF90_DOUBLE,NC_DimID_node,NC_VarID_minpr))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_minpr,'_FillValue',FillValue))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_minpr,'long_name','minimum air pressure at sea level'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_minpr,'standard_name','minimum_air_pressure_at_sea_level'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_minpr,'coordinates','y x'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_minpr,'location','node'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_minpr,'mesh','adcirc_mesh'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_minpr,'units','meters of water'))
+         varid(1) = NC_VarID_minpr
+         if ( num_components.eq.2) then
+            CALL Check(NF90_DEF_VAR(NC_ID,'time_of_pressure_min',NF90_DOUBLE,NC_DimID_node,NC_VarID_timeOfMinpr))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_timeOfminpr,'_FillValue',FillValue))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_timeOfminpr,'long_name','time of minimum air pressure at sea level'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_timeOfminpr,'standard_name','time_of_minimum_air_pressure_at_sea_level'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_timeOfminpr,'coordinates','y x'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_timeOfminpr,'location','node'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_timeOfminpr,'mesh','adcirc_mesh'))
+            CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_timeOfminpr,'units','s'))
+         endif
+         varid(2) = NC_VarID_timeOfminpr
+
       case('swan_DIR.63') !DIR
          CALL Check(NF90_DEF_VAR(NC_ID,'swan_DIR',NF90_DOUBLE,NC_DimID,NC_VarID_dir))         
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dir,'_FillValue',FillValue))
@@ -353,11 +411,36 @@
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tps,'mesh','adcirc_mesh'))
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tps,'units','s'))
          num_components = 1
-         varid(1) = NC_VarID_tps
+         varid(1) = NC_VarID_tps        
+      case('nodecode.63') 
+         netCDFDataType = NF90_INT
+         call check(NF90_DEF_VAR(NC_ID,'nodecode',netCDFDataType,NC_DimID,NC_VarID_nodecode))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nodecode,'_FillValue',-99999))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nodecode,'long_name','node wet or dry'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nodecode,'standard_name','node_wet_or_dry'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nodecode,'coordinates','time y x'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nodecode,'location','node'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nodecode,'mesh','adcirc_mesh'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nodecode,'units','unitless'))
+         num_components = 1
+         varid(1) = NC_VarID_nodecode
+      case('noff.100') 
+         netCDFDataType = NF90_INT
+         call check(NF90_DEF_VAR(NC_ID,'noff',netCDFDataType,(/ NC_DimID_nele, NC_DimID_Time /),NC_VarID_noff))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_noff,'_FillValue',-99999))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_noff,'long_name','element wet or dry'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_noff,'standard_name','element_wet_or_dry'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_noff,'coordinates','time y x'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_noff,'location','element'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_noff,'mesh','adcirc_mesh'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_noff,'units','unitless'))
+         num_components = 1
+         dataCenter = 'Element'
+         varid(1) = NC_VarID_noff
       case('null') ! just the mesh
          ! do nothing, data set meta data not required
       case('maxwvel.63') ! maxwvel
-         CALL Check(NF90_DEF_VAR(NC_ID,'wind_max',NF90_DOUBLE,NC_DimID_node,NC_VarID_maxwvel))
+         CALL Check(NF90_DEF_VAR(NC_ID,'wind_max',netCDFDataType,NC_DimID_node,NC_VarID_maxwvel))
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'_FillValue',FillValue))
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'long_name','maximum wind speed at sea level'))
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'standard_name','maximum_wind_speed_at_sea_level'))
@@ -456,6 +539,21 @@
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_eslnodes,'units','1'))
          num_components = 1
          varid(1) = NC_VarID_eslnodes                        
+
+      case('fort.88') !MAXELE
+         CALL Check(NF90_DEF_VAR(NC_ID,'initial_river_elevation',NF90_DOUBLE,NC_DimID_node,NC_VarID_maxele))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'_FillValue',FillValue))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'long_name','initial river elevation'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'standard_name','initial_river_elevation'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'coordinates','y x'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'location','node'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'mesh','adcirc_mesh'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxele,'units','m'))
+         varid(1) = NC_VarID_maxele
+
+      case default
+         write(6,'(a)') 'ERROR: Unable to convert '//trim(dataFileBase)//' files.'
+
       end select
 #ifdef NETCDF_CAN_DEFLATE
       if (useNetCDF4.eqv..true.) then
@@ -468,7 +566,7 @@
       !----------------------------------------------------------------
       ! end variable and attributes definitions
       !----------------------------------------------------------------
-      CALL Check(NF90_ENDDEF(NC_ID))
+      call check(nf90_enddef(nc_id))
 
       ! place mesh-related data into the file, unless this is a data 
       ! only file
@@ -485,40 +583,84 @@
 
       UnitNumber = 20
       call openFileForRead(UnitNumber, trim(dataFile))
-      READ(UnitNumber,'(A)') JunkC
-      ! jgf: Can't rely on the NumSnaps value; in general, it will not
-      ! actually reflect the number of datasets in the file.
-      READ(UnitNumber,*) NumSnaps, NumNodes, tInterval, Interval, nCol
-
-      if (np.ne.NumNodes) then
-         write(6,'(a,i0,a,i0,a)') 'ERROR: The output file contains ',NumNodes,        &
-           ' nodes, but the mesh file contains ',np,' nodes.'
-          write(6,'(a)') 'ERROR: The output file does not correspond to the mesh file.'
-         close(UnitNumber)
-         stop
+      if (trim(dataFileBase).ne.'fort.88') then
+         READ(UnitNumber,'(A)',end=246,err=248,iostat=errorio) JunkC
+         lineNum=lineNum+1
+         ! jgf: Can't rely on the NumSnaps value; in general, it will not
+         ! actually reflect the number of datasets in the file.
+         READ(UnitNumber,*,end=246,err=248,iostat=errorio) NumSnaps, numValuesPerDataset, tInterval, Interval, nCol
+         lineNum=lineNum+1
+         if ( (np.ne.numValuesPerDataset).and.(trim(dataCenter).eq.'Node') ) then
+            write(6,'(a,i0,a,i0,a)') 'ERROR: The output file contains ',numValuesPerDataset,        &
+              ' nodes, but the mesh file contains ',np,' nodes.'
+             write(6,'(a)') 'ERROR: The output file does not correspond to the mesh file.'
+            close(UnitNumber)
+            stop
+         endif
+         
+         if ( (ne.ne.numValuesPerDataset).and.(trim(dataCenter).eq.'Cell') ) then
+            write(6,'(a,i0,a,i0,a)') 'ERROR: The output file contains ',numValuesPerDataset,        &
+              ' elements, but the mesh file contains ',ne,' elements.'
+             write(6,'(a)') 'ERROR: The output file does not correspond to the mesh file.'
+            close(UnitNumber)
+            stop
+         endif
+      else
+         numValuesPerDataset = np
+         tInterval = -99999.d0
+         Interval = -99999 
+         nCol = 1
       endif
-      ALLOCATE(Global1(1:NumNodes))
-      ALLOCATE(Global2(1:NumNodes))
-      ALLOCATE(Global3(1:1))
+      
+      select case(netCDFDataType)
+      case(NF90_DOUBLE)
+         ALLOCATE(Global1(1:numValuesPerDataset))
+         ALLOCATE(Global2(1:numValuesPerDataset))
+      case(NF90_INT)
+         allocate(idata(1:numValuesPerDataset))      
+      case default
+         write(6,'(a)') 'ERROR: Unsupported data type.'
+      end select
+          
       SS=1 ! jgf: initialize the dataset counter
+      lineNum = 1 ! initialize the line number counter
       DO   ! jgf: loop until we run out of data
-         read(UnitNumber,'(A)',END=123,ERR=123) Line
-         read(Line,*) SnapR, SnapI
-         read(Line,*,ERR=907,END=907) SnapR, SnapI, NumNodesNonDefault, DefaultValue
-         goto 908  ! jgf: this file is sparse ascii
- 907     NumNodesNonDefault = NumNodes
+         if (trim(dataFileBase).ne.'fort.88') then
+            read(UnitNumber,'(A)',END=123,ERR=123) Line
+            lineNum = lineNum + 1
+            read(Line,*,end=246,err=248,iostat=errorio) SnapR, SnapI
+            read(Line,*,ERR=907,END=907) SnapR, SnapI, NumNodesNonDefault, DefaultValue
+            goto 908  ! jgf: this file is sparse ascii
+         endif
+ 907     NumNodesNonDefault = numValuesPerDataset
          DefaultValue = -99999.0d0
- 908     DO N=1,NumNodes
-            Global1(N)=DefaultValue
-            Global2(N)=DefaultValue
-         ENDDO
+ 908     if (netCDFDataType.eq.NF90_DOUBLE) then
+            DO N=1,numValuesPerDataset
+               Global1(N)=DefaultValue
+               Global2(N)=DefaultValue
+            ENDDO
+         endif
+         j=0
          do N=1,NumNodesNonDefault
            select case(trim(dataRank))
              case("Scalar")                    ! scalar data
-               READ(UnitNumber,*) j,Temp1
-               Global1(j) = Temp1
+               if (netCDFDataType.eq.NF90_DOUBLE) then
+                  if (trim(dataFileBase).eq.'fort.88') then
+                     READ(UnitNumber,*,end=246,err=248,iostat=errorio) Temp1
+                     lineNum = lineNum + 1
+                     j = j + 1
+                  else                  
+                     READ(UnitNumber,*,end=246,err=248,iostat=errorio) j,Temp1
+                     lineNum = lineNum + 1
+                  endif
+                  Global1(j) = Temp1
+               else
+                  READ(UnitNumber,*,end=246,err=248,iostat=errorio) j,idata(n)
+                  lineNum = lineNum + 1
+               endif
              case("2DVector")                  ! 2D vector data
-               READ(UnitNumber,*) j,Temp1,Temp2
+               READ(UnitNumber,*,end=246,err=248,iostat=errorio) j,Temp1,Temp2
+               lineNum = lineNum + 1
                Global1(j) = Temp1
                Global2(j) = Temp2
             case default
@@ -526,9 +668,9 @@
                stop
            end select
          enddo
-         Global3(1) = SnapR
-         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_time,Global3,(/SS/),(/1/)))
-         NC_Count = (/ NumNodes, 1 /)
+         
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_time,(/SnapR/),(/SS/),(/1/)))
+         NC_Count = (/ numValuesPerDataset, 1 /)
          NC_Start = (/ 1, SS /)
          timeOfNC_Start = (/ 1, 1 /)
          ! write the dataset to the netcdf file
@@ -543,6 +685,10 @@
             case('fort.74') !74
                CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_windx,Global1,NC_Start,NC_Count))
                CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_windy,Global2,NC_Start,NC_Count))
+            case('nodecode.63') 
+               CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nodecode,idata,NC_Start,NC_Count))
+            case('noff.100') 
+               CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_noff,idata,NC_Start,NC_Count))           
             case('maxele.63') !MAXELE
                select case(ss)
                case(1)
@@ -550,6 +696,15 @@
                case(2)
                   CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_timeOfmaxele,Global1,timeOfNC_Start,NC_Count))
                end select
+            case('minpr.63') ! minimum barometric pressure at sea level
+               select case(ss)
+               case(1)
+                  CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_minpr,Global1,NC_Start,NC_Count))
+               case(2)
+                  CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_timeOfminpr,Global1,timeOfNC_Start,NC_Count))
+               end select 
+            case('fort.88') ! initial river elevation
+               CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_maxele,Global1,NC_Start,NC_Count))
             case('swan_DIR.63') !DIR
                CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_dir,Global1,NC_Start,NC_Count))
             case('swan_HS.63') !HS
@@ -582,16 +737,31 @@
            case('ESLNodes.63') ! ESLNodes
              CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_eslnodes,Global1,NC_Start,NC_Count))
          end select
+         write(6,advance='no',fmt='(i4)') ss
          SS = SS + 1 ! jgf: Increment the dataset counter
+         !
+         if (trim(dataFileBase).eq.'fort.88') then
+            exit
+         endif
       ENDDO
 
 123   CONTINUE  ! jgf: When we've run out of datasets in the current file,
                 ! we jump to here.
+      write(6,'(/,a,i0,a)') 'INFO: Wrote ',ss-1,' dataset(s).'
+
       CLOSE(UnitNumber)
-      DEALLOCATE(Global1,Global2,Global3)
 
       CALL Check(NF90_CLOSE(NC_ID))
       write(6,'(a)') 'INFO: adcirc2netcdf finished.'
+      stop
+      
+      
+      ! We jump to this section if there was an error reading a file.
+246   write(6,'(a)') 'ERROR: Unexpectedly reached end-of-file.' ! END jumps here
+248   write(6,'(a)') 'ERROR: I/O error during file access.'     ! ERR jumps here
+      write(6,'(a,i0,a,i0,a)') 'INFO: Attempted to read line ',lineNum,' in dataset ',SS,'.' ! ERR jumps here      
+      write(6,'(a,i0,a)') 'The numerical code of the i/o error was ',errorio,'.'
+          
 !----------------------------------------------------------------------
    end program adcirc2netcdf
 !----------------------------------------------------------------------

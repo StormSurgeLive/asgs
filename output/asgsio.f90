@@ -42,7 +42,10 @@ integer, parameter :: XDMF = 7
 integer, parameter :: NETCDFG = 35
 integer, parameter :: ASCIIG = 14
 !
+integer :: netCDFDataType = NF90_DOUBLE ! NF90_INT NF90_FLOAT 
+!
 integer :: nc_id ! netcdf id of file
+integer :: errorIO  ! zero if the file opened or read successfully
 !
 ! This derived data type is used to map NetCDF4 variables in various
 ! ADCIRC files so that they can be represented in XDMF XML files. It
@@ -82,10 +85,9 @@ contains
 !     from openFileForRead so that I could use it on NetCDF files 
 !     as well.  
 !-----------------------------------------------------------------------
-SUBROUTINE checkFileExistence(filename, errorIO)
+SUBROUTINE checkFileExistence(filename)
 IMPLICIT NONE
 CHARACTER(*), intent(in) :: filename ! full pathname of file
-INTEGER, intent(out) :: errorIO  ! zero if the file opened successfully
 LOGICAL :: fileFound    ! .true. if the file is present
 errorIO = 0
 !
@@ -111,11 +113,11 @@ endif
       IMPLICIT NONE
       INTEGER, intent(in) :: lun   ! fortran logical unit number
       CHARACTER(*), intent(in) :: filename ! full pathname of file
-      INTEGER :: errorIO  ! zero if the file opened successfully
+
        errorIO = 0
 !
 !     Check to see if file exists
-      call checkFileExistence(filename, errorIO)
+      call checkFileExistence(filename)
       if ( errorIO.ne.0) then
          stop
       endif

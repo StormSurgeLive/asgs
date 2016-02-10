@@ -53,7 +53,7 @@ integer :: ndset
 integer :: num_components
 real(8) :: time_increment
 real(8) :: defaultValue
-real(8) :: fillValue
+real(8) :: fillValue = -99999.d0
 real(8), allocatable :: timesec(:)  ! time in seconds associated with each dataset
 real(8), allocatable :: adcirc_data(:,:) ! generic holder for converted data
 real(8), allocatable :: gold_data(:,:)   ! holder for expected outputd data
@@ -86,6 +86,7 @@ character(len=1024) :: header2  ! 2nd line in ascii adcirc output file
 character(len=80) :: rundes  ! 1st line in adcirc fort.15 input file
 character(len=80) :: runid   ! 2nd line in adcirc fort.15 input file
 logical :: isInteger = .false.  ! .true. for integer data
+character(len=20) :: dataCenter ! "Node" or "Element"
 
 !-----------
 !-----------
