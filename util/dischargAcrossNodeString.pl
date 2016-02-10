@@ -12,8 +12,20 @@ my $gridFileName="fort.14";
 # will attempt to calculate the flux across this string of nodes,
 # this will be grid specific, and ther is no check to see if this string
 # is well formed (i.e. adjacent nodes in  order) 
-my @nodestring=(3772,3771,3770,3768,3767,3757,3756,3748,3747,3746,3742,3741,3740);  # for the Miss R boundry in sl15_2010_HSDRRS_2012_v9.grd
+#my @nodestring=(3772,3771,3770,3768,3767,3757,3756,3748,3747,3746,3742,3741,3740);  
+# for the Miss R boundry in sl15_2010_HSDRRS_2012_v9.grd
 #my @nodestring=(3940,3921,3920,3919,3918,3917,3899,3881,3879,3863,3860,3859,3858,3839,3822); # just a bit downstream from the boundary
+
+# boundary my @nodestring=(604786,604790);
+
+#my @nodestring=(604374,604379);
+
+#my @nodestring=(286682,286693,286714,286729,286749,286735);
+
+#my @nodestring=(601350,601379,601410,601442,601475,601425);
+
+my @nodestring=(601324,601350,601379,601409,601410,601411,601442,601475);
+
 #####################################################
 #
 # read in the grid node position table
@@ -72,7 +84,7 @@ my @normalY;
 
 # convert coordinates to meters
 foreach my $node (@nodestring) {
-   my ($nx,$ny)= &cppd($X[$node],$Y[$node],-91.,30.);
+   my ($nx,$ny)= &cppd($X[$node],$Y[$node],-72.,42.);
     push(@NX,$nx);
     push(@NY,$ny); 
    print "xy $nx $ny\n";
@@ -176,10 +188,15 @@ while (1==1) {
    foreach my $node (@nodestring) {
       my $depth = $ETA[$node]+$Z[$node];
       my $vnormal = $VX[$node]*$normalX[$i] + $VY[$node]*$normalY[$i];
-      my $q = $depth*$vnormal;
+      my $q=0.0;
+      if ( $ETA[$node] > -99998 ) {
+         $q = $depth*$vnormal;
+      }
       my $speed =  ($VX[$node]**2+$VY[$node]**2)**0.5;
-      my $q2=$depth*$speed;
-
+      my $q2=0.0;
+      if ( $ETA[$node] > -99998 ) {   
+         $q2=$depth*$speed;
+      }
 
    #   print "$i node $node speed is $speed vnormal is $vnormal, vx,vy $VX[$node] $VY[$node]\n";
 

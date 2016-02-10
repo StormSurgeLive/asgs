@@ -45,6 +45,7 @@ integer :: nSnaps   ! number of snapshots in time (length of netcdf time dimensi
 integer :: iSnap    ! snapshot counter
 real(8), allocatable :: timesec(:)  ! time in seconds associated with each dataset
 character(NF90_MAX_NAME) :: thisVarName ! netcdf variable names
+logical :: nodalAttributesFile ! .true. if the netcdf file contains nodal attributes
 !
 ! XDMF XML related variables.
 character(1024) :: xmf ! name of XDMF xml file
@@ -117,12 +118,23 @@ endif
 write(6,'(a)') 'INFO: generateXDMF.f90: Read mesh dimensions from netCDF successfully.'
 !
 ! Have a look at how much data is in the netcdf file.
-call check(nf90_inquire(nc_id, unlimitedDimId=NC_DimID_time))
-call check(nf90_inquire_dimension(nc_id, NC_DimID_time, len=nSnaps))
-!
-call check(nf90_inq_varid(nc_id, 'time', NC_VarID_time))
 ! determine the type of data stored in the file
 call check(nf90_inquire(nc_id, ndim, nvar, natt, nc_dimid_time, ncformat))
+!
+! determine whether this is a nodal attributes file
+nodalAttributesFile = .false.
+do i=1,natt
+   call check(nf90_inq_attname(nc_id, NF90_GLOBAL, i, thisVarName))
+   if (trim(thisVarName).eq.'nodalAttributesComment') then
+      nodalAttributesFile = .true.
+      exit
+   endif
+end do
+if (nodalAttributesFile.eqv..false.) then
+   call check(nf90_inquire(nc_id, unlimitedDimId=NC_DimID_time))
+   call check(nf90_inquire_dimension(nc_id, NC_DimID_time, len=nSnaps))
+   call check(nf90_inq_varid(nc_id, 'time', NC_VarID_time))
+endif
 !
 ! Determine the type of netCDF file that we have based on the name(s) 
 ! of the variable(s) in the file. Set the number of variables, number
@@ -143,6 +155,17 @@ do i=1,nvar
       call initFileMetaData(fileMetaData, thisVarName, 1, 1)     
       call initNamesXDMF(fileMetaData, nc_id)
       exit
+   case("nodecode")
+      fileMetaData % fileTypeDesc = 'a node wet/dry state file (nodecode.63)'
+      call initFileMetaData(fileMetaData, thisVarName, 1, 1)     
+      call initNamesXDMF(fileMetaData, nc_id)
+      exit  
+   case("noff")
+      fileMetaData % fileTypeDesc = 'an element wet/dry state file (noff.100)'
+      call initFileMetaData(fileMetaData, thisVarName, 1, 1)     
+      call initNamesXDMF(fileMetaData, nc_id)
+      fileMetaData % dataCenter(1) = 'Cell' ! noff
+      exit          
    case("zetad")
       fileMetaData % fileTypeDesc = 'a 2D ADCIRC hotstart file (fort.67/fort.68)'
       fileMetaData % timeVarying = .false. 
@@ -196,6 +219,11 @@ do i=1,nvar
       call initMinMaxFileMetaData(fileMetaData, thisVarName, nvar, nc_id)
       call initNamesXDMF(fileMetaData, nc_id)
       exit
+   case("initial_river_elevation")
+      fileMetaData % fileTypeDesc = "an ADCIRC initial river elevation (fort.88) file"
+      call initFileMetaData(fileMetaData, thisVarName, 1, 1)
+      call initNamesXDMF(fileMetaData, nc_id)
+      exit    
    case("maxwvel","wind_max")
       fileMetaData % fileTypeDesc = "an ADCIRC maximum wind speed (maxwvel.63) file"
       call initMinMaxFileMetaData(fileMetaData, thisVarName, nvar, nc_id)
@@ -216,6 +244,26 @@ do i=1,nvar
       call initMinMaxFileMetaData(fileMetaData, thisVarName, nvar, nc_id)
       call initNamesXDMF(fileMetaData, nc_id)      
       exit
+   case("endrisinginun")
+      fileMetaData % fileTypeDesc = "an ADCIRC nodes with inundation rising at end of simulation (endrisinginun.63) file"
+      call initMinMaxFileMetaData(fileMetaData, thisVarName, nvar, nc_id)
+      call initNamesXDMF(fileMetaData, nc_id)
+      exit
+   case("initiallydry")
+      fileMetaData % fileTypeDesc = "an ADCIRC dry nodes at cold start (initiallydry.63) file"
+      call initMinMaxFileMetaData(fileMetaData, thisVarName, nvar, nc_id)
+      call initNamesXDMF(fileMetaData, nc_id)
+      exit 
+   case("inun_time")
+      fileMetaData % fileTypeDesc = "an ADCIRC total time inundated (inundationtime.63) file"
+      call initMinMaxFileMetaData(fileMetaData, thisVarName, nvar, nc_id)
+      call initNamesXDMF(fileMetaData, nc_id)
+      exit
+   case("inun_max")
+      fileMetaData % fileTypeDesc = "an ADCIRC maximum inundation depth (maxinundepth.63) file"
+      call initMinMaxFileMetaData(fileMetaData, thisVarName, nvar, nc_id)
+      call initNamesXDMF(fileMetaData, nc_id)
+      exit      
    case("radstress_x","radstress_y")
       fileMetaData % fileTypeDesc = "an ADCIRC wave radiation stress gradient (rads.64) file"
       call initFileMetaData(fileMetaData, thisVarName, 2, 1)
@@ -355,7 +403,7 @@ end program generateXDMF
 ! appropriately written to the XDMF XML. Also initialize the newly
 ! allocated variables to reasonable values. 
 !----------------------------------------------------------------------
-subroutine initFileMetadata(fmd, firstVarName, numNC, numXDMF)
+subroutine initFileMetaData(fmd, firstVarName, numNC, numXDMF)
 use netcdf
 use asgsio, only : fileMetaData_t
 implicit none
@@ -364,7 +412,7 @@ character(NF90_MAX_NAME), intent(in) :: firstVarName
 integer, intent(in) :: numNC
 integer, intent(in) :: numXDMF
 !
-fmd % timeVarying = .true. ! initialize to most common value
+fmd % timeVarying = .true.       ! initialize to most common value
 fmd % timeOfOccurrence = .false. ! only relevant to min/max files
 !
 ! NetCDF
@@ -414,6 +462,9 @@ character(NF90_MAX_NAME) aVarName
 integer :: j
 !     
 timeOfVarName = 'time_of_'//trim(someVarName)
+if (trim(someVarName).eq."inun_time") then
+   timeOfVarName = 'last_'//trim(someVarName)
+endif
 do j=1,nvar
    call check(nf90_inquire_variable(ncid, j, aVarName))
    if (trim(aVarName).eq.trim(timeOfVarName)) then
@@ -465,7 +516,7 @@ do
       ! the standard_name attribute is missing for noff in some netcdf hotstart files   
       call check(nf90_get_att(ncid, fmd % nc_varID(i), 'standard_name', fmd % varNameXDMF(j)))
    endif
- 
+   !
    ! Apply a fix for old versions of ADCIRC that misnamed nodecode and 
    ! noff in the netcdf hotstart files (nodecode was given the standard_name
    ! of "element_wet_or_dry" while noff was given no standard name at all). 

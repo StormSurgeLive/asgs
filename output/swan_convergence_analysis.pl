@@ -107,7 +107,7 @@ while(<SWANSCREEN>) {
       $num_iterations[$step] = $iteration;
    }
 }
-close(SWANPRINT);
+close(SWANSCREEN);
 print "SWAN used $total_iterations iterations in $total_steps time steps over the course of the run.\n";
 my $mean_it_per_step = $total_iterations / $total_steps;
 print "The mean number of iterations per swan time step was $mean_it_per_step.\n";

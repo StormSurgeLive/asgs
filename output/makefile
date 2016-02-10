@@ -4,7 +4,7 @@
 # A system to build ASGS-related utilities for processing ADCIRC output.
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2014-2015 Jason Fleming
+# Copyright(C) 2014--2016 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -50,7 +50,7 @@
 # specify compiler=gfortran on the make command line
 ifeq ($(compiler),gfortran)
    FC := gfortran
-   FFLAGS := -cpp -ffree-line-length-none
+   FFLAGS := -O2 -cpp -ffree-line-length-none
    ifeq ($(DEBUG),full)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal #-Wall
    endif
@@ -100,7 +100,6 @@ ifeq ($(NETCDF),enable)
       NETCDFPATH  := /opt/cray/netcdf/4.3.0/pgi/121
    endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
-   LDFLAGS     := -lnetcdff
    INCLUDES    := -I. -I$(NETCDFPATH)/include
    LIBS        := -L$(NETCDFPATH)/lib
 endif
@@ -112,8 +111,8 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := adcmesh.o asgsio.o adcircdata.o
-MODS := adcmesh.mod asgsio.mod adcircdata.mod
+OBJ := adcmesh.o asgsio.o adcircdata.o nodalattr.o
+MODS := adcmesh.mod asgsio.mod adcircdata.mod nodalattr.mod
 #
 # targets
 all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries
@@ -121,7 +120,7 @@ all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries
 clean :
 	rm -f *.o *.mod *.x
 #
-adcirc2netcdf : $(MODS) adcirc2netcdf.f90
+adcirc2netcdf : $(MODS) adcirc2netcdf.f90 nodalattr.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
 netcdf2adcirc : $(MODS) netcdf2adcirc.f90
@@ -150,3 +149,6 @@ wetDryCheck : adcmesh.mod asgsio.mod wetDryCheck.f90
 #
 diffAdcircNetCDF : adcmesh.mod adcircdata.mod asgsio.mod diffAdcircNetCDF.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o adcircdata.o $(LDFLAGS)
+#
+nodalattr.mod : ../util/nodalattr/nodalattr.f90 adcmesh.mod adcircdata.mod asgsio.mod
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c ../util/nodalattr/nodalattr.f90 $(LDFLAGS)

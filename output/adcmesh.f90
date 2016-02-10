@@ -1246,7 +1246,6 @@ if (useNetCDF4.eqv..true.) then
    call check(nf90_def_var_deflate(NC_ID, NC_VarID_y, 0, 1, 2))
    call check(nf90_def_var_deflate(NC_ID, NC_VarID_element, 0, 1, 2))
    call check(nf90_def_var_deflate(NC_ID, NC_VarID_depth, 0, 1, 2))
-   call check(nf90_def_var_deflate(NC_ID, NC_VarID_depth, 0, 1, 2))
    call check(nf90_def_var_deflate(NC_ID, NC_VarID_Mesh, 0, 1, 2))
 endif
 #endif
