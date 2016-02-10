@@ -10,11 +10,12 @@ ASGS %StormName%       ! 32 CHARACTER ALPHANUMERIC RUN DESCRIPTION
  2                     ! NOLIFA - FINITE AMPLITUDE TERM SELECTION PARAMETER
  1                     ! NOLICA - SPATIAL DERIVATIVE CONVECTIVE SELECTION PARAMETER
  1                     ! NOLICAT - TIME DERIVATIVE CONVECTIVE TERM SELECTION PARAMETER
- 4                     ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
+ 5                     ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
 surface_canopy_coefficient
 primitive_weighting_in_continuity_equation
 surface_directional_effective_roughness_length
 mannings_n_at_sea_floor
+wave_refraction_in_swan
  1                     ! NCOR - VARIABLE CORIOLIS IN SPACE OPTION PARAMETER
  1                     ! NTIP - TIDAL POTENTIAL OPTION PARAMETER (Chris changed from 0 to 1)
 %NWS%                  !  NWS - WIND STRESS AND BAROMETRIC PRESSURE PARAMETER
