@@ -64,9 +64,11 @@ if [[ $GRIDNAME = nc6b ]]; then
 fi
 if [[ $GRIDNAME = "FEMA_R2_norivers_gcs_mNAVD.grd" ]]; then 
    echo "asgs : nynj" >> run.properties
+   #echo "remark : Winter Storm Jonas" >> run.properties
 fi
 if [[ $GRIDNAME = "FEMA_R3" ]]; then 
    echo "asgs : delmarva" >> run.properties
+   #echo "remark : Winter Storm Jonas" >> run.properties
 fi
 #
 # write the intended audience to the run.properties file for CERA

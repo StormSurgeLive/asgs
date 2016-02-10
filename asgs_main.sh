@@ -573,7 +573,7 @@ downloadRiverFluxData()
       done
    fi
    if [[ $SUCCESS = no ]]; then
-      warn "Using default river flux boundary condition file '$DEFAULTFILE'."
+      error "Using default river flux boundary condition file '$DEFAULTFILE'."
       ln -s $DEFAULTFILE ./fort.20 2>> ${SYSLOG}
    fi
 }

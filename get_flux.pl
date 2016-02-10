@@ -3,7 +3,7 @@
 # get_flux.pl: downloads fort.20 files representing variable river
 # flux data for ASGS nowcasts and forecasts.
 #--------------------------------------------------------------
-# Copyright(C) 2011--2015 Jason Fleming
+# Copyright(C) 2011--2016 Jason Fleming
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 # 
