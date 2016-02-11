@@ -237,7 +237,8 @@ prep()
           cp $INPUTDIR/swaninit.template $ADVISDIR/$ENSTORM/swaninit 2>> ${SYSLOG}
        fi
        # jgfdebug: TODO: FIXME: Hardcoded the time varying weirs input file 
-       if [[ -e $INPUTDIR/time-bonnet.in ]]; then
+       if [ -e $INPUTDIR/time-bonnet.in ]; then 
+          logMessage "Copying $INPUTDIR/time-bonnet.in to $ADVISDIR/$ENSTORM."
           cp $INPUTDIR/time-bonnet.in $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
        fi 
        # run adcprep to decompose the new files
