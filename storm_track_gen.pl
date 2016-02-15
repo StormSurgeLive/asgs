@@ -281,7 +281,7 @@ while(<HCST>) {
     my $line_length = length($line);
     #jgfdebug printf STDERR "length of line $. is $line_length\n";
     my $isotach_kts = substr($line,63,3);
-    if ( $line_length >= 159 ) { # this is a complete line
+    if ( $line_length >= 112 ) { # this is a complete line
        # the first isotach is 34, but can be 0 in the source data in some cases
        if ( $isotach_kts == 34 || $isotach_kts == 0 ) {
           # clear out hash so that this data is always fresh
