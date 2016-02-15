@@ -1073,5 +1073,5 @@ jason.fleming@seahorsecoastal.com
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
  &SWANOutputControl SWAN_OutputTPS=T, SWAN_OutputTMM10=T, SWAN_OutputTM01=T, SWAN_OutputHS=T, SWAN_OutputTM02=T SWAN_OutputDIR=T /
  &MetControl DragLawString='Powell' WindDragLimit=0.002 /
- &inundationOutput inundationOutput=.true. /
+ &inundationOutputControl inundationOutput=.true. /
 &TVWControl USE_TVW=.TRUE. TVW_FILE='time-bonnet.in' NOUT_TVW=4 TOUTS_TVW=0 TOUTF_TVW=999 NSPOOL_TVW=3600 /
