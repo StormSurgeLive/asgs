@@ -626,12 +626,13 @@ monitorJobs()
       sleep 10
       if ! checkTimeLimit $startTime $WALLTIME ; then
          echo "The ${ENSTORM_TEMP} job exceeded its wall clock time limit of '$WALLTIME'." > ${ENSTORM_TEMP}.run.error
-         # if this job was submitted by mpiexec, then terminate it; otherwise, it could 
-         # run for a long time, delaying the continued execution of the ASGS (the ASGS won't
-         # start the next cycle until all forecast ensemble members in the current cycle 
-         # have completed); this also prevents cpus from being tied up unnecessarily ...
-         # if the job was submitted through a queueing system, then the queueing system will
-         # terminate it
+         # if this job was submitted by mpiexec, then terminate it; otherwise,
+         # it could run for a long time, delaying the continued execution
+         # of the ASGS (the ASGS won't start the next cycle until all forecast
+         # ensemble members in the current cycle have completed); this also
+         # prevents cpus from being tied up unnecessarily ...
+         # if the job was submitted through a queueing system, then the
+         # queueing system will terminate it
          if [[ $QUEUESYS = mpiexec ]]; then
             pid=`grep 'mpiexec subshell pid' ${ADVISDIR}/${ENSTORM}/run.properties | sed 's/mpiexec subshell pid.*://' | sed 's/^\s//'`
             #logMessage "Terminating the $ENSTORM_TEMP job with the command 'kill -TERM `ps --ppid $pid -o pid --no-headers'."
@@ -1228,6 +1229,11 @@ if [[ $START = coldstart ]]; then
    echo "storm : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
    echo "stormnumber : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
    echo "pseudostorm : $PSEUDOSTORM" >> $ADVISDIR/$ENSTORM/run.properties
+   for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
+      if [[ -e ${INPUTDIR}/$inputProperties ]]; then
+         cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
+      fi
+   done
    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
    # check to see that adcprep did not conspicuously fail
@@ -1332,6 +1338,11 @@ while [ true ]; do
       echo "storm : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
       echo "stormnumber : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
       echo "pseudostorm : $PSEUDOSTORM" >> $ADVISDIR/$ENSTORM/run.properties
+      for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
+         if [[ -e ${INPUTDIR}/$inputProperties ]]; then
+            cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
+         fi
+      done
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE"
       CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
@@ -1624,6 +1635,11 @@ while [ true ]; do
       if [[ -e $RUNDIR/forecast.properties ]]; then
          cat $RUNDIR/forecast.properties >> ${STORMDIR}/run.properties
       fi
+      for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
+         if [[ -e ${INPUTDIR}/$inputProperties ]]; then
+            cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
+         fi
+      done
       # recording the ensemble member number may come in handy for load
       # balancing the postprocessing, particularly for CERA
       echo "forecastEnsembleMemberNumber : $si" >> ${STORMDIR}/run.properties
