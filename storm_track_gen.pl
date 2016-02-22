@@ -281,7 +281,7 @@ while(<HCST>) {
     my $line_length = length($line);
     #jgfdebug printf STDERR "length of line $. is $line_length\n";
     my $isotach_kts = substr($line,63,3);
-    if ( $line_length >= 159 ) { # this is a complete line
+    if ( $line_length >= 112 ) { # this is a complete line
        # the first isotach is 34, but can be 0 in the source data in some cases
        if ( $isotach_kts == 34 || $isotach_kts == 0 ) {
           # clear out hash so that this data is always fresh
@@ -494,9 +494,22 @@ while(<FCST>) {
    substr($line,92,3)=sprintf("%3d",$rad[3]);
    my $forecast_windspeed=substr($_,48,3);
    my $forecast_pressure=substr($_,53,4);
+   my $vmax = $forecast_windspeed; # vmax is the perturbed max wind speed
+   #
+   # if the requested variation is max wind speed, modify the forecast
+   # max wind speed
+   #
+   # jgf20160216: perturb the max wind speed before computing Pc so that
+   # the Pc can take the new max wind speed into account 
+   if ( ($strengthPercent ne "null") && ($tau != 0)) {
+       # change it by the indicated percentage
+       $vmax=$vmax*(1.0+($strengthPercent/100.0));
+       # write it into the ATCF line
+       substr($line,47,4)=sprintf("%4d",$vmax); 
+   } 
    #
    # set the tsflag if the storm has achieved TS-force winds
-   if ( $forecast_windspeed > 39.0 ) { 
+   if ( $vmax > 39.0 ) { 
       $tsflag = 1;
    }
    # 
@@ -505,41 +518,41 @@ while(<FCST>) {
       # same as last time by default
       $forecast_pressure = sprintf("%4d",$last_pressure);
       # if stronger
-      if ( $forecast_windspeed > $last_windspeed ) {
-         $forecast_pressure = sprintf("%4d",(1040.0-0.877*$forecast_windspeed));
+      if ( $vmax > $last_windspeed ) {
+         $forecast_pressure = sprintf("%4d",(1040.0-0.877*$vmax));
          # the resulting pressure should be lower than the last ... if it isn't,
          # just use the slope
          if ($forecast_pressure > $last_pressure ) {
             $forecast_pressure = sprintf("%4d",($last_pressure 
-               - 0.877*($forecast_windspeed-$last_windspeed))); 
+               - 0.877*($vmax-$last_windspeed))); 
          }
       }
       # if weaker
-      if ( $forecast_windspeed < $last_windspeed ) {
-         $forecast_pressure = sprintf("%4d",(1000.0-0.65*$forecast_windspeed));
+      if ( $vmax < $last_windspeed ) {
+         $forecast_pressure = sprintf("%4d",(1000.0-0.65*$vmax));
          # the resulting pressure should be higher than the last ... if it isn't,
          # just use the slope
          if ($forecast_pressure < $last_pressure ) {
             $forecast_pressure = sprintf("%4d",($last_pressure 
-               + 0.65*($last_windspeed-$forecast_windspeed))); 
+               + 0.65*($last_windspeed-$vmax))); 
          }
       }
       # slower windspeeds can be strange 
       if ( $method eq "twoslope" ) {
          # just use the last pressure
-         if ( $forecast_windspeed <= 30 ) {
+         if ( $vmax <= 30 ) {
             $forecast_pressure = sprintf("%4d",$last_pressure);
          }
       } elsif ( $method eq "asgs2012" ) { 
          # slower windspeeds can be strange ... use Dvorak if the storm is
          # early in its history, or use ah77 if it is late in its history
-         if ( $forecast_windspeed <= 35 ) {
+         if ( $vmax <= 35 ) {
             if ( $tsflag == 0 ) {
                # use Dvorak
-               $forecast_pressure = 1015 - ($forecast_windspeed/3.92*0.51444444)**(1.0/0.644);
+               $forecast_pressure = 1015 - ($vmax/3.92*0.51444444)**(1.0/0.644);
             } else {
                # its later in the storm's history -- use AH77
-               $forecast_pressure = 1010 - ($forecast_windspeed/3.4*0.51444444)**(1.0/0.644);
+               $forecast_pressure = 1010 - ($vmax/3.4*0.51444444)**(1.0/0.644);
             }
             $forecast_pressure = sprintf("%4d",$forecast_pressure);
          }
@@ -548,15 +561,7 @@ while(<FCST>) {
       substr($line,53,4) = $forecast_pressure;
    }
    $last_pressure = $forecast_pressure;
-   $last_windspeed = $forecast_windspeed;
-   #
-   # if the requested variation is max wind speed, modify the forecast
-   # max wind speed
-   if ( ($strengthPercent ne "null") && ($tau != 0)) {
-       my $vmax=substr($_,47,4);
-       # change it by the indicated percentage
-       substr($line,47,4)=sprintf("%4d",$vmax*(1.0+($strengthPercent/100.0))); 
-   }
+   $last_windspeed = $vmax;
    #
    # if the requested variation is overland speed, modify the forecast
    # period and forecastedDate
