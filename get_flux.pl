@@ -391,8 +391,14 @@ sub getFluxData() {
    # have to actually open the file and parse to find out when the data
    # end. 
    if ( $_[-1] =~ /HC/ ) {
-      unless (open(FLUX,"<$_[-1]") ) { 
-         stderrMessage("ERROR","Could not open '$_[-1]' for reading: $!.");
+      &getFluxFile($_[-1], $rdp); 
+      #unless (open(FLUX,"<$_[-1]") ) { 
+      #   stderrMessage("ERROR","Could not open '$_[-1]' for reading: $!.");
+      #   die;
+      #}
+      my $baseFileName = `basename $_[-1]`;
+      unless (open(FLUX,"<$advisdir/$enstorm/$baseFileName") ) { 
+         stderrMessage("ERROR","Could not open '$advisdir/$enstorm/$baseFileName' for reading: $!.");
          die;
       }
       #stderrMessage("DEBUG","Opened $_[-1]");
@@ -662,6 +668,28 @@ sub by_start_date {
    $b =~ /OKU_(\d{8})T(\d{4})/;
    my $datetime_b = $1.$2;
    $datetime_a <=> $datetime_b;
+}
+
+sub getFluxFile {
+   my $fluxFileTarget = shift;
+   my $protocol = shift;
+   stderrMessage("INFO","Getting '$fluxFileTarget' via $protocol and writing to directory '$advisdir'.");
+   if ( $protocol eq "ftp" ) {
+      my $success = $ftp->get($fluxFileTarget,$advisdir."/".$enstorm."/".$fluxFileTarget);
+      unless ( $success ) {
+         stderrMessage("INFO","ftp: Get '$fluxFileTarget' failed: " . $ftp->message);
+      } else {
+         stderrMessage("INFO","Download complete.");
+      }
+   } elsif ( $protocol eq "scp" ) {
+      my $scp_command="scp $riveruser\@$riversite:$fluxFileTarget $advisdir/$enstorm";
+      stderrMessage("INFO","Downloading file with $scp_command");
+      my $status = `$scp_command`;
+   } else {  # $rdp eq filesystem
+      my $cp_command = `cp $fluxFileTarget $advisdir/$enstorm`;
+      stderrMessage("INFO","Copying $fluxFileTarget from filesystem.");
+      my $status = `$cp_command`; 
+   }
 }
 
 #
