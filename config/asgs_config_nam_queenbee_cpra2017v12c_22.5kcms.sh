@@ -98,11 +98,14 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 GRIDFILE=cpra2017_v12c-CurrentConditions-WithUpperAtch_chk.grd   # mesh (fort.14) file
 GRIDNAME=cpra2017_v12c-CurrentConditions-WithUpperAtch_chk
+MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=cpra_2017_v12c_CurrentConditions-WithUpperAtch_closed.15.template   # fort.15 template
+CONTROLPROPERTIES=cpra_2017_v12c_CurrentConditions-WithUpperAtch_closed.15.properties
 ELEVSTATIONS=cpra2017v07_stations.txt    # or substitute your own stations file
 VELSTATIONS=cpra2017v07_stations.txt
 METSTATIONS=cpra2017v07_stations.txt
 NAFILE=cpra2017_v12c-CurrentConditions-WithUpperAtch.13
+NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=cpra_2017_v07a.26.template  # only used if WAVES=on
 RIVERINIT=null                           # this mesh has no rivers ...
 RIVERFLUX=null
@@ -153,10 +156,6 @@ INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
 POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
-
-MSRIVERBOUNDARYTYPE=52
-MSRIVERBOUNDARYCONDITION='28.5kcms'
-BONNETCARRESPILLWAYOPENPERCENT='Bonnet Carre Spillway open 0%'
 
 # opendap
 TDS=(lsu_tds renci_tds)

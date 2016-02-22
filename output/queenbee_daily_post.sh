@@ -62,7 +62,7 @@ echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
 #*********************************************
 echo "msRiverBoundaryType : $MSRIVERBOUNDARYTYPE" >> run.properties
 echo "msRiverBoundaryCondition : $MSRIVERBOUNDARYCONDITION" >> run.properties
-echo "remark : $BONNETCARRESPILLWAYOPENPERCENT" >> run.properties
+#echo "remark : $BONNETCARRESPILLWAYOPENPERCENT" >> run.properties
 #
 # write the target area to the run.properties file for the CERA
 # web app
