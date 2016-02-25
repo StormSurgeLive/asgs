@@ -34,6 +34,12 @@ ADDRESS_LIST=${11}
 if [[ $EMAILNOTIFY != yes && $EMAILNOTIFY != YES ]]; then
    exit
 fi
+#
+# simply return if there are no email addresses to send email to
+if [[ $ADDRESS_LIST = null ]]; then
+   exit
+fi
+#
 STORMCLASSNAME=`cat nhcClassName`
 # find the space between the storm class (TD, TS, HU, etc) and the NHC name
 ind=`expr index "$STORMCLASSNAME" ' '`

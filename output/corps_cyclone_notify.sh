@@ -33,6 +33,12 @@ ADDRESS_LIST=${11}
 if [[ $EMAILNOTIFY != yes && $EMAILNOTIFY != YES ]]; then
    exit
 fi
+#
+# simply return if there are no email addresses to send email to
+if [[ $ADDRESS_LIST = null ]]; then
+   exit
+fi
+#
 # load storm's name 
 STORMNAME=`grep "storm name" ${STORMDIR}/run.properties | sed 's/storm name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 COMMA_SEP_LIST=${ADDRESS_LIST// /,}
