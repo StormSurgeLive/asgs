@@ -987,6 +987,9 @@ SERQSCRIPT=null
 SERQSCRIPTGEN=null
 VORTEXMODEL=GAHM
 PSEUDOSTORM=n
+MESHPROPERTIES=null
+CONTROLPROPERTIES=null 
+NAPROPERTIES=null
 #
 # first - look for SCRIPTDIR
 while getopts "c:e:s:h" optname; do    #<- first getopts for SCRIPTDIR
@@ -1229,9 +1232,12 @@ if [[ $START = coldstart ]]; then
    echo "storm : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
    echo "stormnumber : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
    echo "pseudostorm : $PSEUDOSTORM" >> $ADVISDIR/$ENSTORM/run.properties
+   #debugMessage "MESHPROPERTIES is $MESHPROPERTIES CONTROLPROPERTIES is $CONTROLPROPERTIES NAPROPERTIES is $NAPROPERTIES"
    for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
       if [[ -e ${INPUTDIR}/$inputProperties ]]; then
          cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
+      else 
+         logMessage "The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
       fi
    done
    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
@@ -1338,11 +1344,6 @@ while [ true ]; do
       echo "storm : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
       echo "stormnumber : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
       echo "pseudostorm : $PSEUDOSTORM" >> $ADVISDIR/$ENSTORM/run.properties
-      for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
-         if [[ -e ${INPUTDIR}/$inputProperties ]]; then
-            cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
-         fi
-      done
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE"
       CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
@@ -1403,6 +1404,14 @@ while [ true ]; do
    fi
    echo "hostname : $HOSTNAME" >> $NOWCASTDIR/run.properties
    echo "instance : $INSTANCENAME" >> $NOWCASTDIR/run.properties
+   #debugMessage "MESHPROPERTIES is $MESHPROPERTIES CONTROLPROPERTIES is $CONTROLPROPERTIES NAPROPERTIES is $NAPROPERTIES"
+   for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
+      if [[ -e ${INPUTDIR}/$inputProperties ]]; then
+         cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
+      else 
+         logMessage "The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
+      fi
+   done
    if [[ $RUNNOWCAST = yes ]]; then
       allMessage "Starting nowcast for cycle '$ADVISORY'."
       # get river flux nowcast data, if configured to do so
@@ -1635,9 +1644,12 @@ while [ true ]; do
       if [[ -e $RUNDIR/forecast.properties ]]; then
          cat $RUNDIR/forecast.properties >> ${STORMDIR}/run.properties
       fi
+      #debugMessage "MESHPROPERTIES is $MESHPROPERTIES CONTROLPROPERTIES is $CONTROLPROPERTIES NAPROPERTIES is $NAPROPERTIES"
       for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
          if [[ -e ${INPUTDIR}/$inputProperties ]]; then
             cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
+         else
+            logMessage "The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
          fi
       done
       # recording the ensemble member number may come in handy for load
