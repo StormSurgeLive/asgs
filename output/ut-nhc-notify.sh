@@ -44,6 +44,12 @@ ARCHIVEDIR=${13}
 if [[ $EMAILNOTIFY != yes && $EMAILNOTIFY != YES ]]; then
    exit
 fi
+#
+# simply return if there are no email addresses to send email to
+if [[ $ADDRESS_LIST = null ]]; then
+   exit
+fi
+#
 STORMNAME=`grep "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//g' | tail -n 1`
 STORMCLASS=`grep "storm class" ${STORMDIR}/run.properties | sed 's/storm class.*://' | sed 's/^\s//g' | tail -n 1`
 COMMA_SEP_LIST=${ADDRESS_LIST// /,}

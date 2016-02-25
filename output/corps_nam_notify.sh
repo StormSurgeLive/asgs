@@ -40,6 +40,12 @@ ADDRESS_LIST=${11}
 if [[ $EMAILNOTIFY != yes && $EMAILNOTIFY != YES ]]; then
    exit
 fi
+#
+# simply return if there are no email addresses to send email to
+if [[ $ADDRESS_LIST = null ]]; then
+   exit
+fi
+#
 COMMA_SEP_LIST=${ADDRESS_LIST// /,}
 case $PHASE in
 #

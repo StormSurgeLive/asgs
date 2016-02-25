@@ -990,6 +990,15 @@ PSEUDOSTORM=n
 MESHPROPERTIES=null
 CONTROLPROPERTIES=null 
 NAPROPERTIES=null
+EMAILNOTIFY=no # set to yes to have host platform email notifications
+NOTIFY_SCRIPT=null_notify.sh
+ACTIVATE_LIST=null
+NEW_ADVISORY_LIST=null
+POST_INIT_LIST=null
+POST_LIST=null
+JOB_FAILED_LIST=null
+NOTIFYUSER=null
+ASGSADMIN=null
 #
 # first - look for SCRIPTDIR
 while getopts "c:e:s:h" optname; do    #<- first getopts for SCRIPTDIR
