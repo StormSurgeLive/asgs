@@ -128,7 +128,7 @@ case(ASCIIG)
    read(63,'(a1024)') line
    write(61,*) trim(adjustl(line))
    read(63,*) numSnaps, numNodes, snapR, snapI, num_components
-   write(61,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') numSnaps, numNodes, snapR, snapI, num_components
+   write(61,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') numSnaps, numStations, snapR, snapI, num_components
    SS=1  ! jgf: initialize the dataset counter
    !
    ! jgf: loop until we run out of data
@@ -155,6 +155,7 @@ case(ASCIIG)
             adcirc_data(j,2) = temp2
          end do     
       end select
+      write(61,*) snapR, snapI
       do s=1, numStations   
          call writeStationValue(stations(s), s)
       end do
@@ -164,6 +165,11 @@ case(ASCIIG)
                   ! we jump to here.     
 case(NETCDFG)
    call determineNetCDFFileCharacteristics(datafile)
+   line = trim(rundes) // ' ' // trim(runid) // ' ' // trim(agrid)
+   snapR = time_increment
+   write(61,*) trim(adjustl(line))
+   numSnaps = ndset
+   write(61,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') numSnaps, numStations, snapR, nspool, num_components
    ! get netcdf variable IDs for the the data 
    do j=1,num_components
       !write(6,'(a,i0,a,a,a,i0,a)') 'DEBUG: The variable name for component ',j,' is ',trim(varname(j)),' and the variable ID is ',nc_varid(j),'.'
@@ -178,8 +184,10 @@ case(NETCDFG)
       do j=1,num_components
          nc_start = (/ 1, i /)
          nc_count = (/ np, 1 /)
+         ! get data
          call check(nf90_get_var(nc_id,nc_varid(j),adcirc_data(:,j),nc_start,nc_count))
       end do
+      write(61,*) timesec(i), it      
       do s=1, numStations   
          call writeStationValue(stations(s), s)
       end do
@@ -190,7 +198,7 @@ case default
    stop
 end select
 close(61)
-write(6,'(/,a)') 'INFO: Wrote station values successfully.'
+write(6,'(a)') 'INFO: Wrote station values successfully.'
 !-----------------------------------------------------------------------
 end program pullStationTimeSeries
 !-----------------------------------------------------------------------
