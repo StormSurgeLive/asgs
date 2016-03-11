@@ -259,6 +259,11 @@ do i=1,nvar
       call initMinMaxFileMetaData(fileMetaData, thisVarName, nvar, nc_id)
       call initNamesXDMF(fileMetaData, nc_id)
       exit
+   case("everdried")
+      fileMetaData % fileTypeDesc = "an ADCIRC ever dried (everdried.63) file"
+      call initMinMaxFileMetaData(fileMetaData, thisVarName, nvar, nc_id)
+      call initNamesXDMF(fileMetaData, nc_id)
+      exit   
    case("inun_max")
       fileMetaData % fileTypeDesc = "an ADCIRC maximum inundation depth (maxinundepth.63) file"
       call initMinMaxFileMetaData(fileMetaData, thisVarName, nvar, nc_id)
