@@ -10,7 +10,7 @@
 !------------------------------------------------------------------
 ! adcirc2netcdf: Convert ADCIRC ascii output files to netcdf format.
 !------------------------------------------------------------------
-! Copyright(C) 2012--2015 Jason Fleming
+! Copyright(C) 2012--2016 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !

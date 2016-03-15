@@ -41,7 +41,7 @@
 #   [--dt timestep] [--nowcast] [--controltemplate templatefile] < storm1_fort.22
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2006, 2007, 2008, 2009, 2010, 2011, 2012 Jason Fleming
+# Copyright(C) 2006--2016 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -129,7 +129,6 @@ my $particles;  # flag to produce fulldomain current velocity files at an
 our $NHSINC;    # time step increment at which to write hot start files
 our $NHSTAR;    # writing and format of ADCIRC hotstart output file
 our $RNDAY;     # total run length from cold start, in days
-our $stormnumber = "00"; # 2 digit integer uniquely identifying a storm
 my $nffr = -1;  # for flux boundaries; -1: top of fort.20 corresponds to hs
 my $ihot;       # whether or not ADCIRC should READ a hotstart file
 my $fdcv;       # line that controls full domain current velocity output
@@ -138,6 +137,7 @@ our $rundesc;   # description of run, 1st line in fort.15
 our $ensembleid; # run id, 2nd line in fort.15
 our $waves = "off"; # set to "on" if adcirc is coupled with swan is being run
 our $specifiedRunLength; # time in days for run if there is no externally specified forcing
+my $inundationOutput = "off"; # on inundationOutput=.true. in fort.15 template
 my ($m2nf, $s2nf, $n2nf, $k2nf, $k1nf, $o1nf, $p1nf, $q1nf); # nodal factors
 my ($m2eqarg, $s2eqarg, $n2eqarg, $k2eqarg, $k1eqarg, $o1eqarg, $p1eqarg, $q1eqarg); # equilibrium arguments
 #
@@ -218,7 +218,7 @@ stderrMessage("DEBUG","nws is $nws and waves digit is $waves_digit.");
 #
 # open template file for fort.15
 unless (open(TEMPLATE,"<$controltemplate")) {
-   stderrMessage("ERROR","Failed to open the fort.15 template file $controltemplate for reading.");
+   stderrMessage("ERROR","Failed to open the fort.15 template file $controltemplate for reading: $!.");
    die;
 }
 #
@@ -227,7 +227,7 @@ if ( $stormDir eq "null" ) {
    $stormDir = $advisdir."/".$enstorm;
 }
 unless (open(STORM,">$stormDir/fort.15")) {
-   stderrMessage("ERROR","Failed to open the output control file $stormDir/fort.15.");
+   stderrMessage("ERROR","Failed to open the output control file $stormDir/fort.15: $!");
    die;
 }
 stderrMessage("INFO","The fort.15 file will be written to the directory $stormDir.");
@@ -238,6 +238,8 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
    stderrMessage("DEBUG","Setting parameters appropriately for tropical cyclone vortex model.");
    &vortexModelParameters($nws);
 } elsif ( abs($nws) == 12 || abs($nws) == 312 ) {
+
+if ( abs($nws) == 12 || abs($nws) == 312 ) {
    &owiParameters();
 } elsif ( defined $specifiedRunLength ) {
    stderrMessage("DEBUG","The duration of this $enstorm run is specially defined.");
@@ -323,7 +325,7 @@ if ( -e "$scriptdir/tides/tide_fac.x" && -x "$scriptdir/tides/tide_fac.x" ) {
       stderrMessage("INFO","Nodal factors and equilibrium arguments were written to the file $stormDir/tide_fac.out.");
       # open data file
       unless (open(TIDEFAC,"<$stormDir/tide_fac.out")) {
-         stderrMessage("ERROR","Failed to open the file '$advisdir/$enstorm/tide_fac.out' for reading.");
+         stderrMessage("ERROR","Failed to open the file '$advisdir/$enstorm/tide_fac.out' for reading: $!.");
          die;
       }
       # parse out nodal factors and equilibrium arguments from the
@@ -429,6 +431,9 @@ while(<TEMPLATE>) {
     s/%CSHOUR%/$ch/;
     s/%CSMIN%/$cmin/;
     s/%CSSEC%/$cs/;
+    if (/inundationOutput=.[tT]/) {
+       $inundationOutput = "on";
+    }
     unless (/NO LINE HERE/) {
        print STORM $_;
     }
@@ -442,13 +447,13 @@ close(STORM);
 if ( $waves eq "on" ) {
    # open template file for fort.26
    unless (open(TEMPLATE,"<$swantemplate")) {
-      stderrMessage("ERROR","Failed to open the swan template file $swantemplate for reading.");
+      stderrMessage("ERROR","Failed to open the swan template file $swantemplate for reading: $!.");
       die;
    }
    #
    # open output fort.26 file
    unless (open(STORM,">$stormDir/fort.26")) {
-      stderrMessage("ERROR","Failed to open the output control file $stormDir/fort.26.");
+      stderrMessage("ERROR","Failed to open the output control file $stormDir/fort.26: $!.");
       die;
    }
    stderrMessage("INFO","The fort.26 file will be written to the directory $stormDir.");
@@ -519,7 +524,7 @@ my $rp_fname = $model_type . $gridname . "-UNC_" . $wind_model . "_" . $date1 . 
 my $prodid = $model_type . $gridname . "-UNC_" . $wind_model . "_" . $date1 . "_" . $date2 . "_" . $date3 . "_" . $cycle_hour . "<field>_Z.nc.gz";
 stderrMessage("INFO","Opening run.properties file for writing.");
 unless (open(RUNPROPS,">>$stormDir/run.properties")) {
-   stderrMessage("ERROR","Failed to open the run.properties file for writing.");
+   stderrMessage("ERROR","Failed to open the $stormDir/run.properties file for writing: $!.");
    die;
 }
 # If we aren't using a vortex met model, we don't have a track
@@ -532,12 +537,10 @@ if ( abs($nws) != 19 && abs($nws) != 319 && abs($nws) != 20 && abs($nws) != 320 
    printf RUNPROPS "track_modified : notrack\n"; 
 }
 printf RUNPROPS "year : $ny\n";
-printf RUNPROPS "storm : $stormnumber\n";
 printf RUNPROPS "directory storm : $stormDir\n";
 printf RUNPROPS "mesh : $gridname\n";
 printf RUNPROPS "RunType : $run_type\n";
 printf RUNPROPS "ADCIRCgrid : $gridname\n";
-printf RUNPROPS "stormnumber : $stormnumber\n";
 printf RUNPROPS "stormname : $nhcName\n";
 printf RUNPROPS "currentcycle : $cycle_hour\n";
 printf RUNPROPS "currentdate : $currentdate\n";
@@ -576,6 +579,13 @@ if ( $waves eq "on" ) {
    &writeFileName("swan_TPS.63",$fort7374specifier);
    &writeFileName("swan_TPS_max.63",$fort7374specifier);
 }
+if ($inundationOutput eq "on") {
+   &writeFileName("initiallydry.63",$fort63specifier);
+   &writeFileName("inundationtime.63",$fort63specifier);
+   &writeFileName("maxinundepth.63",$fort63specifier);
+   &writeFileName("everdried.63",$fort63specifier); 
+   &writeFileName("endrisinginun.63",$fort63specifier);
+}
 close(RUNPROPS);
 stderrMessage("INFO","Wrote run.properties file $stormDir/run.properties.");
 exit;
@@ -597,13 +607,7 @@ sub writeFileName () {
    # if there won't be any output of this type, just return without
    # writing anything to the run.properties file
    if ( $specifier == 0 ) {
-      if ( $identifier eq "maxele.63" || $identifier eq "maxvel.63" ||
-         $identifier eq "maxwvel.63" || $identifier eq "minpr.63" ||
-         $identifier eq "maxrs.63" ) {
-            $specifier = 1; # these files will always be there
-      } else {
-         return;
-      }
+      return;
    }
    # create the hash for relating the basic file identifier with the
    # long winded file type description
@@ -629,6 +633,11 @@ sub writeFileName () {
    $ids_descs{"swan_TMM10_max.63"} = "Maximum Mean Wave Period";
    $ids_descs{"swan_TPS.63"} = "Peak Wave Period";
    $ids_descs{"swan_TPS_max.63"} = "Maximum Peak Wave Period";
+   $ids_descs{"initiallydry.63"} = "Initially Dry";
+   $ids_descs{"inundationtime.63"} = "Inundation Time";
+   $ids_descs{"maxinundepth.63"} = "Maximum Inundation Depth";
+   $ids_descs{"everdried.63"} = "Ever Dried"; 
+   $ids_descs{"endrisinginun.63"} = "End Rising Inundation";
    #
    if ( abs($specifier) == 3 || abs($specifier) == 5 ) {
       $filename = $filename . ".nc";
@@ -719,7 +728,7 @@ sub getStations () {
    my $number = $1;
    stderrMessage("INFO","There are $number $station_type stations in the file '$station_file'.");
    unless (open(STATIONS,"<$station_file")) {
-      stderrMessage("ERROR","Failed to open the $station_type stations file $station_file for reading.");
+      stderrMessage("ERROR","Failed to open the $station_type stations file $station_file for reading: $!.");
       die;
    }
    chomp($numstations);
@@ -808,7 +817,7 @@ sub customParameters () {
 sub owiParameters () {
    #
    # open met file
-   open(METFILE,"<$stormDir/fort.22") || die "ERROR: control_file_gen.pl: Failed to open OWI (NWS12) fort.22 file for reading.";
+   open(METFILE,"<$stormDir/fort.22") || die "ERROR: control_file_gen.pl: Failed to open OWI (NWS12) file $stormDir/fort.22 for reading: $!.";
    my $line = <METFILE>;
    close(METFILE);
    $line =~ /^# (\d+)/;
@@ -832,7 +841,7 @@ sub owiParameters () {
    }
    #
    # open file that will contain the hotstartdate
-   open(HSD,">$stormDir/hotstartdate") || die "ERROR: control_file_gen.pl: Failed to open the HOTSTARTDATE file $stormDir/hotstartdate.";
+   open(HSD,">$stormDir/hotstartdate") || die "ERROR: control_file_gen.pl: Failed to open the HOTSTARTDATE file $stormDir/hotstartdate: $!.";
    my $hotstartdate = sprintf("%4d%02d%02d%02d",$ny,$nm,$nd,$nh);
    stderrMessage("INFO","The file containing the hotstartdate '$hotstartdate' will be written to the directory $stormDir.");
    printf HSD $hotstartdate;
@@ -866,7 +875,7 @@ sub owiParameters () {
    stderrMessage("INFO","nwbs is '$nwbs'");
    #
    # create the fort.22 output file, which is the wind input file for ADCIRC
-   open(MEMBER,">$stormDir/fort.22") || die "ERROR: control_file_gen.pl: Failed to open file for ensemble member '$enstorm' to write fort.22 file: $!.";
+   open(MEMBER,">$stormDir/fort.22") || die "ERROR: control_file_gen.pl: Failed to open file for ensemble member '$enstorm' to write $stormDir/fort.22 file: $!.";
    printf MEMBER "1\n";     # nwset
    printf MEMBER "$nwbs\n"; # nwbs
    printf MEMBER "1.0\n";   # dwm
@@ -919,10 +928,11 @@ sub vortexModelParameters () {
    my $nws = shift;
    my $geofactor = 1; # turns on Coriolis for GAHM; this is the default
    $ensembleid = $enstorm;
+   my $geofactor = 1; # turns on Coriolis for GAHM; this is the default
    #
    # open met file containing datetime data
    unless (open(METFILE,"<$metfile")) {
-      stderrMessage("ERROR","Failed to open meteorological (ATCF-formatted) fort.22 file '$metfile' for reading.");
+      stderrMessage("ERROR","Failed to open meteorological (ATCF-formatted) fort.22 file '$metfile' for reading: $!.");
       die;
    }
    stderrMessage("DEBUG","Successfully opened meteorological (ATCF-formatted) fort.22 file '$metfile' for reading.");
@@ -958,8 +968,6 @@ sub vortexModelParameters () {
          }
          # also grab the last hindcast time; this will be the nowcast time
          $nowcast = $track->[2]; # yyyymmddhh
-         # also grab the storm number for the run.properties file
-         $stormnumber = $track->[1]; # zero padded two digit integer
          last;
       }
    }

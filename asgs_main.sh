@@ -6,7 +6,7 @@
 # loop which is executed once per advisory cycle.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2006--2014 Jason Fleming
+# Copyright(C) 2006--2015 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -87,7 +87,7 @@ checkHotstart()
    HOTSTARTFORMAT=$2
    LUN=$3
 #
-   HOTSTARTFILE=
+   HOTSTARTFILE=''
    # set name and specific file location based on format (netcdf or binary)
    if [[ $HOTSTARTFORMAT = netcdf ]]; then
       HOTSTARTFILE=$FROMDIR/fort.$LUN.nc
@@ -106,14 +106,15 @@ checkHotstart()
          logMessage "The hotstart file '$HOTSTARTFILE' was found and it contains $hotstartSize bytes."
          # check time in hotstart file to be sure it can be found and that
          # it is nonzero
-         HSTIME=
+         HSTIME=''
          if [[ $HOTSTARTFORMAT = netcdf ]]; then
-            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE -n` 2>> ${SYSLOG}
+            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE -n 2>> ${SYSLOG}`
          else
-            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE` 2>> ${SYSLOG}
+            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE 2>> ${SYSLOG}`
          fi
+         failureOccurred=$?
          errorOccurred=`expr index "$HSTIME" ERROR`
-         if [[ $errorOccurred != 0 ]]; then
+         if [[ $failureOccurred != 0 || $errorOccurred != 0 ]]; then
             fatal "The hstime utility could not read the ADCIRC time from the file '$HOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
          else
             if float_cond '$HSTIME == 0.0'; then
@@ -333,7 +334,7 @@ prep()
     # this is a   C O L D S T A R T
     if [ $START = coldstart ]; then
        # if we have variable river flux, link the fort.20 and fort.88 files
-       if [[ $VARFLUX = on ]]; then
+       if [[ $VARFLUX = on || $VARFLUX = default ]]; then
           # jgf20110525: For now, just copy a static file to this location
           # and adcprep it. TODO: When real time flux data become available,
           # grab those instead of relying on a static file.
@@ -350,7 +351,7 @@ prep()
        else
           logMessage "Running adcprep to prepare new fort.15 file."
           prepFile prep15 $NCPU $ACCOUNT $WALLTIME
-          if [[ $VARFLUX = on ]]; then
+          if [[ $VARFLUX = on || $VARFLUX = default ]]; then
              logMessage "Running adcprep to prepare new fort.20 file."
              prepFile prep20 $NCPU $ACCOUNT $WALLTIME
              logMessage "Running adcprep to prepare fort.88 file."
@@ -365,6 +366,11 @@ prep()
        if [[ $WAVES = on ]]; then
           cp $INPUTDIR/swaninit.template $ADVISDIR/$ENSTORM/swaninit 2>> ${SYSLOG}
        fi
+       # jgfdebug: TODO: FIXME: Hardcoded the time varying weirs input file 
+       if [ -e $INPUTDIR/time-bonnet.in ]; then 
+          logMessage "Copying $INPUTDIR/time-bonnet.in to $ADVISDIR/$ENSTORM."
+          cp $INPUTDIR/time-bonnet.in $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+       fi 
        # run adcprep to decompose the new files
        if [[ $HAVEARCHIVE = no ]]; then
           logMessage "Running adcprep to partition the mesh for $NCPU compute processors."
@@ -374,7 +380,7 @@ prep()
        else
           logMessage "Running adcprep to prepare new fort.15 file."
           prepFile prep15 $NCPU $ACCOUNT $WALLTIME
-          if [[ $VARFLUX = on ]]; then
+          if [[ $VARFLUX = on || $VARFLUX = default ]]; then
              logMessage "Running adcprep to prepare new fort.20 file."
              prepFile prep20 $NCPU $ACCOUNT $WALLTIME
           fi
@@ -654,7 +660,7 @@ downloadBackgroundMet()
    newAdvisoryNum=0
    while [[ $newAdvisoryNum -lt 2 ]]; do
       OPTIONS="--rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle $FORECASTCYCLE --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
-      newAdvisoryNum=`perl ${SCRIPTDIR}/get_nam.pl $OPTIONS` 2>> ${SYSLOG} 
+      newAdvisoryNum=`perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}` 
       if [[ $newAdvisoryNum -lt 2 ]]; then
          sleep 60
       fi
@@ -701,7 +707,7 @@ downloadRiverFluxData()
       done
    fi
    if [[ $SUCCESS = no ]]; then
-      warn "Using default river flux boundary condition file '$DEFAULTFILE'."
+      error "Using default river flux boundary condition file '$DEFAULTFILE'."
       ln -s $DEFAULTFILE ./fort.20 2>> ${SYSLOG}
    fi
 }
@@ -753,12 +759,13 @@ monitorJobs()
       sleep 10
       if ! checkTimeLimit $startTime $WALLTIME ; then
          echo "The ${ENSTORM_TEMP} job exceeded its wall clock time limit of '$WALLTIME'." > ${ENSTORM_TEMP}.run.error
-         # if this job was submitted by mpiexec, then terminate it; otherwise, it could 
-         # run for a long time, delaying the continued execution of the ASGS (the ASGS won't
-         # start the next cycle until all forecast ensemble members in the current cycle 
-         # have completed); this also prevents cpus from being tied up unnecessarily ...
-         # if the job was submitted through a queueing system, then the queueing system will
-         # terminate it
+         # if this job was submitted by mpiexec, then terminate it; otherwise,
+         # it could run for a long time, delaying the continued execution
+         # of the ASGS (the ASGS won't start the next cycle until all forecast
+         # ensemble members in the current cycle have completed); this also
+         # prevents cpus from being tied up unnecessarily ...
+         # if the job was submitted through a queueing system, then the
+         # queueing system will terminate it
          if [[ $QUEUESYS = mpiexec ]]; then
             pid=`grep 'mpiexec subshell pid' ${ADVISDIR}/${ENSTORM}/run.properties | sed 's/mpiexec subshell pid.*://' | sed 's/^\s//'`
             #logMessage "Terminating the $ENSTORM_TEMP job with the command 'kill -TERM `ps --ppid $pid -o pid --no-headers'."
@@ -982,10 +989,10 @@ handleFailedJob()
    if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then
       warn "The job has failed."
       FAILDATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-      warn "Moving failed cycle to 'failed.${FAILDATETIME}'."
-      mv $ADVISDIR/$ENSTORM $RUNDIR/failed.${FAILDATETIME} 2>> ${SYSLOG}
       # send an email to notify the operator that a job has failed
       $NOTIFYSCRIPT $HOSTNAME $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE jobfailed $EMAILNOTIFY $SYSLOG "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+      warn "Moving failed cycle to 'failed.${FAILDATETIME}'."
+      mv $ADVISDIR/$ENSTORM $RUNDIR/failed.${FAILDATETIME} 2>> ${SYSLOG}
    fi
    # roll back the latest advisory number if the nowcast failed
    if [[ $ENSTORM = nowcast ]]; then
@@ -1039,6 +1046,7 @@ HPCENV=null
 # create directories with default permissions of "775" and
 # files with the default permssion of "664"
 umask 002
+#
 #
 while getopts "c:e:s:h" optname; do    
   case $optname in
@@ -1135,7 +1143,7 @@ if [[ $WAVES = on ]]; then
 else
    JOBTYPE=padcirc
 fi
-if [[ $VARFLUX = on ]]; then
+if [[ $VARFLUX = on || $VARFLUX = default ]]; then
    checkFileExistence $INPUTDIR "River elevation initialization file " $RIVERINIT
    checkFileExistence $INPUTDIR "River flux default file " $RIVERFLUX
 fi
@@ -1192,6 +1200,12 @@ checkFileExistence $OUTPUTDIR "data archival script" $ARCHIVE
 #
 checkDirExistence ${PERL5LIB}/Date "subdirectory for the Pcalc.pm perl module"
 checkFileExistence ${PERL5LIB}/Date "perl module for date calculations" Pcalc.pm
+#
+# Check for any issues or inconsistencies in 
+# configuration parameters. 
+if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
+   fatal "NCPUCAPACITY must be greater than or equal to NCPU plus NUMWRITERS, however NCPUCAPACITY=$NCPUCAPACITY and NUMWRITERS=$NUMWRITERS and NCPU=$NCPU."
+fi
 #
 # initialize the directory where this instance of the ASGS will run and
 # keep all its files
@@ -1286,8 +1300,19 @@ if [[ $START = coldstart ]]; then
    logMessage "Starting $ENSTORM preprocessing."
     echo "hostname : $HOSTNAME" >> $ADVISDIR/$ENSTORM/run.properties
    echo "instance : $INSTANCENAME" >> $ADVISDIR/$ENSTORM/run.properties
-   logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $HPCENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
-   prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $HPCENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
+   echo "storm : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
+   echo "stormnumber : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
+   echo "pseudostorm : $PSEUDOSTORM" >> $ADVISDIR/$ENSTORM/run.properties
+   #debugMessage "MESHPROPERTIES is $MESHPROPERTIES CONTROLPROPERTIES is $CONTROLPROPERTIES NAPROPERTIES is $NAPROPERTIES"
+   for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
+      if [[ -e ${INPUTDIR}/$inputProperties ]]; then
+         cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
+      else 
+         logMessage "The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
+      fi
+   done
+   logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
+   prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
    # check to see that adcprep did not conspicuously fail
    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME hindcast $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
@@ -1363,6 +1388,7 @@ while [ true ]; do
       logMessage "hotstart format is binary"
       HSTIME=`$ADCIRCDIR/hstime -f ${FROMDIR}/PE0000/fort.67` 2>> ${SYSLOG}
    fi
+   
    logMessage "The time in the hotstart file is '$HSTIME' seconds."
    cd $RUNDIR 2>> ${SYSLOG}
    #
@@ -1372,11 +1398,9 @@ while [ true ]; do
    logMessage "Checking for new meteorological data every 60 seconds ..."
    # TROPICAL CYCLONE ONLY
    if [[ $TROPICALCYCLONE = on ]]; then
+      BASENWS=20
       if [[ $VORTEXMODEL = ASYMMETRIC ]]; then
          BASENWS=19
-      fi
-      if [[ $VORTEXMODEL = GAHM ]]; then
-         BASENWS=20
       fi
       NWS=$BASENWS
       if [[ $WAVES = on ]]; then
@@ -1402,15 +1426,18 @@ while [ true ]; do
       #
       # prepare nowcast met (fort.22) and control (fort.15) files
       cd $NOWCASTDIR 2>> ${SYSLOG}
+      echo "storm : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
+      echo "stormnumber : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
+      echo "pseudostorm : $PSEUDOSTORM" >> $ADVISDIR/$ENSTORM/run.properties
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE"
       CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
       STORMNAME=`grep "storm name" run.properties | sed 's/storm name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}    
-      # create an ASYMMETRIC or GAHM fort.22 file from the existing NWS9 fort.22 file
+      # create a GAHM or ASYMMETRIC fort.22 file from the existing track file
       $ADCIRCDIR/aswip -n $BASENWS >> ${SYSLOG} 2>&1
-      if [ -e NWS_${BASENWS}_fort.22 ]; then
+      if [[ -e NWS_${BASENWS}_fort.22 ]]; then
          mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
          cp NWS_${BASENWS}_fort.22 fort.22 >> ${SYSLOG} 2>&1
       fi
@@ -1480,11 +1507,22 @@ while [ true ]; do
    fi
    echo "hostname : $HOSTNAME" >> $NOWCASTDIR/run.properties
    echo "instance : $INSTANCENAME" >> $NOWCASTDIR/run.properties
+   #debugMessage "MESHPROPERTIES is $MESHPROPERTIES CONTROLPROPERTIES is $CONTROLPROPERTIES NAPROPERTIES is $NAPROPERTIES"
+   for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
+      if [[ -e ${INPUTDIR}/$inputProperties ]]; then
+         cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
+      else 
+         logMessage "The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
+      fi
+   done
    if [[ $RUNNOWCAST = yes ]]; then
       allMessage "Starting nowcast for cycle '$ADVISORY'."
       # get river flux nowcast data, if configured to do so
       if [[ $VARFLUX = on ]]; then
          downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $RIVERUSER $RIVERDATAPROTOCOL $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX} $USERIVERFILEONLY
+      fi
+      if [[ $VARFLUX = default ]]; then
+         ln -s ${INPUTDIR}/${RIVERFLUX} ./fort.20 2>> ${SYSLOG}
       fi
       # preprocess
       logMessage "Nowcast preprocessing."
@@ -1565,8 +1603,16 @@ while [ true ]; do
          si=$[$si + 1];
          continue # just go on to the next ensemble member
       fi      
+      # Check for a misconfiguration where the Operator has set the  
+      # number of CPUs and number of writers greater than the total
+      # number of CPUs that will ever be available.
+      if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
+         error "The requested number of CPUs for $ENSTORM is set to $NCPU and the number of writer processors has been set to $NUMWRITERS but the total number of requested CPUs exceeds the NCPUCAPACITY parameter value of ${NCPUCAPACITY}; therefore this forecast ensemble member will never be able to execute. This forecast ensemble member is being abandoned."
+         continue 
+      fi
       subDirs=`find ${ADVISDIR} -maxdepth 1 -type d -print`
-      if [[ ! -z subDirs ]]; then  # see if we have any ensemble member directories 
+      #debugMessage "subDirs is $subDirs" # jgfdebug
+      if [[ ! -z $subDirs ]]; then  # see if we have any ensemble member directories 
          # continuously loop to see if conditions are right to submit the next job
          while [ true ]; do
             # check to see if the deadline has passed for submitting 
@@ -1578,7 +1624,11 @@ while [ true ]; do
             # total up the number of cpus currently engaged and compare with capacity
             cpusEngaged=0         
             for ensembleMemDir in $subDirs; do
-               if [[ $ensembleMemDir = $ADVISDIR ]]; then continue ; fi
+               # break out of the for loop if the subdirectory is the same as the advisory directory
+               if [[ $ensembleMemDir = $ADVISDIR ]]; then 
+                  #debugMessage "ensembleMemDir $ensembleMemDir is the same as ADVISDIR $ADVISDIR" #jgfdebug
+                  continue 
+               fi
                # parse the run.properties to see what the cpu request is for this job
                # ... if the was never submitted, there won't be a cpurequest property 
                cpuRequest=`grep 'cpurequest' $ensembleMemDir/run.properties | sed 's/cpurequest.*://' | sed 's/^\s//'`
@@ -1593,12 +1643,12 @@ while [ true ]; do
                   cpusEngaged=`expr $cpusEngaged + $cpuRequest`
                fi
             done
-            # debugMessage "The next ensemble member ('$ENSTORM') requires $NCPU compute cores and $NUMWRITERS dedicated writer cores. The number of CPUs currently engaged is $cpusEngaged. The max number of cores that can be engaged is $NCPUCAPACITY."
+            #debugMessage "The next ensemble member ('$ENSTORM') requires $NCPU compute cores and $NUMWRITERS dedicated writer cores. The number of CPUs currently engaged is $cpusEngaged. The max number of cores that can be engaged is $NCPUCAPACITY."
             if [[ `expr $NCPU + $NUMWRITERS + $cpusEngaged` -le $NCPUCAPACITY ]]; then
-               # debugMessage "Sufficient capacity exists to run the next job."
+               #debugMessage "Sufficient capacity exists to run the next job."
                break      # we now have the spare capacity to run this ensemble member
             else 
-               # debugMessage "Insufficient capacity to submit the next job. Sleeping for 1 minute."
+               logMessage "Insufficient capacity to submit the next job. Sleeping for 1 minute."
                sleep 60   # not enough cores available; sleep for a minute, then recheck/recalculate
             fi
          done
@@ -1617,11 +1667,9 @@ while [ true ]; do
       RUNFORECAST=yes
       # TROPICAL CYCLONE ONLY
       if [[ $TROPICALCYCLONE = on ]]; then
+         BASENWS=20
          if [[ $VORTEXMODEL = ASYMMETRIC ]]; then
             BASENWS=19
-         fi
-         if [[ $VORTEXMODEL = GAHM ]]; then
-            BASENWS=20
          fi
          NWS=$BASENWS
          if [[ $WAVES = on ]]; then
@@ -1637,6 +1685,9 @@ while [ true ]; do
          else
             echo "modified : n" >> run.properties 2>> ${SYSLOG}
          fi
+         echo "storm : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
+         echo "stormnumber : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
+         echo "pseudostorm : $PSEUDOSTORM" >> $ADVISDIR/$ENSTORM/run.properties
          CONTROLOPTIONS="--cst $CSDATE --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile ${STORMDIR}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          logMessage "Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
          ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
@@ -1708,12 +1759,23 @@ while [ true ]; do
       if [[ $VARFLUX = on ]]; then
          downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $RIVERUSER $RIVERDATAPROTOCOL $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX} $USERIVERFILEONLY
       fi
+      if [[ $VARFLUX = default ]]; then
+         ln -s ${INPUTDIR}/${RIVERFLUX} ./fort.20 2>> ${SYSLOG}
+      fi
       echo "hostname : $HOSTNAME" >> ${STORMDIR}/run.properties
       echo "instance : $INSTANCENAME" >> ${STORMDIR}/run.properties
       # write the start and end dates of the forecast to the run.properties file
       if [[ -e $RUNDIR/forecast.properties ]]; then
          cat $RUNDIR/forecast.properties >> ${STORMDIR}/run.properties
       fi
+      #debugMessage "MESHPROPERTIES is $MESHPROPERTIES CONTROLPROPERTIES is $CONTROLPROPERTIES NAPROPERTIES is $NAPROPERTIES"
+      for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
+         if [[ -e ${INPUTDIR}/$inputProperties ]]; then
+            cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
+         else
+            logMessage "The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
+         fi
+      done
       # recording the ensemble member number may come in handy for load
       # balancing the postprocessing, particularly for CERA
       echo "forecastEnsembleMemberNumber : $si" >> ${STORMDIR}/run.properties

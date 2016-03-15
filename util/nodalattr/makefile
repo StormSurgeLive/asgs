@@ -47,18 +47,38 @@ INCLUDES := -I. -I$(OUTPUTDIR)
 # use NETCDF=enable on the make command line
 ifeq ($(NETCDF),enable)
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
+<<<<<<< HEAD
    LDFLAGS     := -lnetcdff
    ifeq ($(MACHINENAME),jason-desktop)
       NETCDFPATH  := /usr
    endif
    ifeq ($(MACHINENAME),hatteras)
       NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
+=======
+   NETCDFPATH  := /usr
+   #
+   #   # jgf20150616: Added netcdf paths for stampede at TACC.
+   ifeq ($(MACHINENAME),stampede) 
+      NETCDFPATH := /opt/apps/intel13/netcdf/4.3.2/x86_64
+   endif
+   # jgf20150716: Added compiler flags for hatteras at RENCI.
+   ifeq ($(MACHINENAME),hatteras)
+       NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
+   endif
+   # jgf20150720: Added compiler flags for queenbee at LONI.
+   ifeq ($(MACHINENAME),queenbee)
+      NETCDFPATH  := /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0
+>>>>>>> 2014stable
    endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := -lnetcdff
    INCLUDES    := -I. -I$(NETCDFPATH)/include
    LIBS        := -L$(NETCDFPATH)/lib
+<<<<<<< HEAD
 endif
+=======
+endif 
+>>>>>>> 2014stable
 ifeq ($(NETCDF4),enable)
    FFLAGS      := $(FFLAGS) -DHAVE_NETCDF4
 endif
@@ -67,14 +87,38 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
+<<<<<<< HEAD
 OBJ := adcmesh.o asgsio.o
 MODS := adcmesh.mod asgsio.mod
+=======
+OBJ := adcmesh.o asgsio.o landuse.o
+MODS := adcmesh.mod asgsio.mod landuse.mod
+
+>>>>>>> 2014stable
 #
 # targets
-all : tau0_gen
+all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyvis convertna
 #
 clean :
 	rm -f *.o *.mod *.x
+#
+nodalattr.mod : $(MODS) nodalattr.f90 asgsio.mod
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c nodalattr.f90 $(LDFLAGS)
+#
+convertna : $(MODS) convertna.f90 nodalattr.mod
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
+#
+submergence_eddyvis : $(MODS) submergence_eddyvis.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+#
+submergence : $(MODS) submergence.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+#
+surface_roughness : $(MODS) surface_roughness.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+#
+mannings_n_finder : $(MODS) mannings_n_finder.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
 tau0_gen : $(MODS) tau0_gen.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
@@ -84,3 +128,6 @@ adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod
 #
 asgsio.mod : $(OUTPUTDIR)/asgsio.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/asgsio.f90 $(LDFLAGS)
+#
+landuse.mod : landuse.f90 asgsio.mod
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c landuse.f90 $(LDFLAGS)

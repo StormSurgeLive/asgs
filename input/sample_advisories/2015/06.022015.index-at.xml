@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 17 Jun 2015 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression BILL Forecast/Advisory Number 6</title>
+      <description>Issued at 0900 UTC WED JUN 17 2015 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL DEPRESSION BILL FORECAST/ADVISORY NUMBER   6
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL022015
+0900 UTC WED JUN 17 2015
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+TROPICAL DEPRESSION CENTER LOCATED NEAR 31.0N  97.1W AT 17/0900Z
+POSITION ACCURATE WITHIN  20 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH OR 360 DEGREES AT  11 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1000 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 31.0N  97.1W AT 17/0900Z...INLAND
+AT 17/0600Z CENTER WAS LOCATED NEAR 30.4N  97.1W...INLAND
+
+FORECAST VALID 17/1800Z 32.6N  97.2W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 18/0600Z 34.3N  96.8W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+
+FORECAST VALID 18/1800Z 35.5N  95.2W...POST-TROP/INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+
+FORECAST VALID 19/0600Z 36.5N  93.6W...POST-TROP/INLAND
+MAX WIND  20 KT...GUSTS  30 KT.
+
+FORECAST VALID 20/0600Z 38.5N  89.5W...POST-TROP/INLAND
+MAX WIND  20 KT...GUSTS  30 KT.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 200 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 21/0600Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 31.0N  97.1W
+
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE
+CENTER ON THIS SYSTEM.  FUTURE INFORMATION ON THIS SYSTEM CAN BE
+FOUND IN PUBLIC ADVISORIES ISSUED BY THE WEATHER PREDICTION CENTER
+BEGINNING AT 10 AM CDT, UNDER AWIPS HEADER TCPAT2, WMO HEADER
+WTNT32 KWNH, AND ON THE WEB AT
+HTTP://WWW.HPC.NCEP.NOAA.GOV/TROPICAL/.
+
+$$
+FORECASTER BEVEN
+
+</pre>]]></description>
+      <pubDate>Wed, 17 Jun 2015 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2015/02/06.022015.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2015/02/06.022015.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

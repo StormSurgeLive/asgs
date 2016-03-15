@@ -1232,6 +1232,7 @@ CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'node_coordinates','x y'))
 CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'face_node_connectivity','element'))
 
 #ifdef NETCDF_CAN_DEFLATE
+
 if (useNetCDF4.eqv..true.) then
    if (nope.ne.0) then
       call check(nf90_def_var_deflate(NC_ID, NC_VarID_nvdll, 0, 1, 2))
@@ -1248,6 +1249,7 @@ if (useNetCDF4.eqv..true.) then
    call check(nf90_def_var_deflate(NC_ID, NC_VarID_depth, 0, 1, 2))
    call check(nf90_def_var_deflate(NC_ID, NC_VarID_Mesh, 0, 1, 2))
 endif
+
 #endif
 
 !----------------------------------------------------------------------

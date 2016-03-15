@@ -62,9 +62,33 @@ OPTIONS
     that are written using this option are only suitable for 2DDI runs without
     harmonic analysis. 
 
+*-M*::
+    When running in parallel, write subdomain harmonic analysis files.
+    This option is useful for tidal analyses with many consituents (e.g.,
+    more than approximately 30) because writing fulldomain harmonic 
+    analysis output files with this many constituents can exhaust the 
+    physical memory of the host computer. 
+    
+*-Mft* 'MESH_FILE_TYPE'::
+    The 'MESH_FILE_TYPE' can be specified as 'ascii' (the default) or
+    'xdmf' (introduced in ADCIRC v51).
+    
+*-Mfn* 'MESH_FILE_NAME'::
+    Search for a full domain mesh file named 'MESH_FILE_NAME' rather than
+    the default mesh file name 'fort.14'.
+    
+*-Nft* 'NODAL_ATTRIBUTES_FILE_TYPE'::
+    The 'NODAL_ATTRIBUTES_FILE_TYPE' can be specified as 'ascii' (the default) or
+    'xdmf' (introduced in ADCIRC v51).
+    
+*-Nfn* 'NODAL_ATTRIBUTES_FILE_NAME'::
+    Search for a full domain nodal attributes file named 
+    'NODAL_ATTRIBUTES_FILE_NAME' rather than the default nodal attributes 
+    file name 'fort.14'.
+
 AUTHOR
 ------
-The ADCIRC code is copyrighted by R. A. Luettich, Jr., and J. J. Westerink, 1994--2012.
+The ADCIRC code is copyrighted by R. A. Luettich, Jr., and J. J. Westerink, 1994--2015.
 
 RESOURCES
 ---------

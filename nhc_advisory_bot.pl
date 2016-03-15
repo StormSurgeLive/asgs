@@ -6,7 +6,7 @@
 # them to ATCF format for use within ADCIRC.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2009--2013: Jason Fleming
+# Copyright(C) 2009--2015: Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -237,7 +237,7 @@ if (@match) {
 }
 # Carola Kaiser 19 July 2011
 open(PLOT,">>$metadata") || die "ERROR: nhc_advisory_bot.pl: Failed to open run.properties file for appending storm name and vmax: $!.";
-print PLOT "stormname:$storm_name\nstormclass:$storm_class\nwind:$vmax\nadvisory time: $date_time\ngusts : $gusts";
+print PLOT "stormname:$storm_name\nstormclass:$storm_class\nwind:$vmax\nadvisory time: $date_time\ngusts : $gusts\n";
 print PLOT "forecastValidStart : $nowcast_date_time" . "0000\n";
 #
 substr($atcf_line,47,4) = sprintf("%4d",$vmax);
@@ -295,6 +295,8 @@ my $i=0;
 while ($i < $#{$body_ref} ) {
    if ( @{$body_ref}[$i] =~ /^(FORECAST|OUTLOOK) VALID/) {
       my $atcf_line = $template;
+      # jgf20160105: fill in the storm number
+      substr($atcf_line,4,2) = $storm_number_str;      
       # fill in the nowcast time
       substr($atcf_line,8,10) = sprintf("%10d",$nowcast_date_time);
       # fill in the storm name

@@ -33,6 +33,12 @@ ADDRESS_LIST=${11}
 if [[ $EMAILNOTIFY != yes && $EMAILNOTIFY != YES ]]; then
    exit
 fi
+#
+# simply return if there are no email addresses to send email to
+if [[ $ADDRESS_LIST = null ]]; then
+   exit
+fi
+#
 # load storm's name 
 STORMNAME=`grep "storm name" ${STORMDIR}/run.properties | sed 's/storm name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 COMMA_SEP_LIST=${ADDRESS_LIST// /,}
@@ -53,7 +59,7 @@ You will receive an email from the ASGS on $HOSTNAME
 as soon as the results of this guidance become available.
 
 END
-    echo "INFO: ncfs_cyclone_notify.sh: Sending activation email to the following addresses: $COMMA_SEP_LIST."
+    echo "INFO: NOTIFY_SCRIPT: Sending activation email to the following addresses: $COMMA_SEP_LIST."
     cat $STORMDIR/activate.txt | mail -s "ASGS Activated on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
@@ -76,7 +82,7 @@ as soon as the resulting storm surge guidance becomes available.
 
 
 END
-    echo "INFO: ncfs_cyclone_notify.sh: Sending 'new advisory detected' email to the following addresses: $COMMA_SEP_LIST."
+    echo "INFO: NOTIFY_SCRIPT: Sending 'new advisory detected' email to the following addresses: $COMMA_SEP_LIST."
      cat $STORMDIR/new_advisory.txt | mail -s "ASGS: $STORMNAME advisory $ADVISOORY detected by ASGS on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 
 ;;
@@ -98,7 +104,7 @@ issue the next advisory.
 
 END
 #
-echo "INFO: ncfs_cyclone_notify.sh: Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
+echo "INFO: NOTIFY_SCRIPT: Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
 cat ${STORMDIR}/post_notify.txt | mail -s "ASGS results available for $STORM advisory $ADVISORY from $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
@@ -118,10 +124,10 @@ issue the next advisory.
 
 END
 #
-echo "INFO: ncfs_cyclone_notify.sh: Sending 'job failed' email to the following addresses: $COMMA_SEP_LIST."
+echo "INFO: NOTIFY_SCRIPT: Sending 'job failed' email to the following addresses: $COMMA_SEP_LIST."
 cat ${STORMDIR}/jobfailed_notify.txt | mail -s "ASGS job failure for $STORMNAME advisory $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 *)
-echo "ERROR: ncfs_cyclone_notify.sh: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."
+echo "ERROR: NOTIFY_SCRIPT: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."
 ;;
 esac

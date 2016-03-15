@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Fri, 19 Sep 2003 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm ISABEL Forecast/Advisory Number 53</title>
+      <description>Issued at 0900Z FRI SEP 19 2003 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+TROPICAL STORM ISABEL FORECAST/ADVISORY NUMBER  53
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL132003
+0900Z FRI SEP 19 2003
+ 
+AT 5 AM EDT...0900Z...THE TROPICAL STORM WARNING HAS BEEN
+DISCONTINUED FROM CHINCOTEAGUE VIRGINIA SOUTHWWARD...AND FOR
+CHESAPEAKE BAY FROM SMITH POINT SOUTHWARD.
+ 
+A TROPICAL STORM WARNING REMAINS IN EFFECT NORTH OF CHINCOTEAGUE TO
+MORICHES INLET NEW YORK...AND FOR CHESAPEAKE BAY NORTH OF SMITH
+POINT...THE TIDAL POTOMAC...AND DELAWARE BAY.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 39.2N  78.7W AT 19/0900Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHWEST OR 335 DEGREES AT  18 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  987 MB
+MAX SUSTAINED WINDS  45 KT WITH GUSTS TO  55 KT.
+34 KT.......300NE 200SE   0SW   0NW.
+12 FT SEAS..600NE 600SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 39.2N  78.7W AT 19/0900Z...INLAND
+AT 19/0600Z CENTER WAS LOCATED NEAR 38.3N  78.4W
+ 
+FORECAST VALID 19/1800Z 42.8N  79.2W... BECOMING EXTRATROPICAL
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...150NE 150SE   0SW   0NW.
+ 
+FORECAST VALID 20/0600Z 49.4N  79.0W...EXTRATROPICAL
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 20/1800Z 56.0N  77.0W...EXTRATROPICAL
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 21/0600Z 61.1N  75.0W...EXTRATROPICAL
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 22/0600Z...ABSORBED BY EXTRATROPICAL LOW
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 39.2N  78.7W
+ 
+NEXT ADVISORY AT 19/1500Z
+ 
+FORECASTER BEVEN
+
+</pre>]]></description>
+      <pubDate>Fri, 19 Sep 2003 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2003/13/53.132003.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2003/13/53.132003.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

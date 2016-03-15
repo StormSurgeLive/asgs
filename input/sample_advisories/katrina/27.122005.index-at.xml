@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Mon, 29 Aug 2005 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane KATRINA Forecast/Advisory Number 27</title>
+      <description>Issued at 1500Z MON AUG 29 2005 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+HURRICANE KATRINA FORECAST/ADVISORY NUMBER  27
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL122005
+1500Z MON AUG 29 2005
+ 
+A HURRICANE WARNING IS IN EFFECT FOR THE NORTH CENTRAL GULF COAST
+FROM MORGAN CITY LOUISIANA EASTWARD TO THE ALABAMA/FLORIDA
+BORDER...INCLUDING THE CITY OF NEW ORLEANS AND LAKE PONTCHARTRAIN.
+ 
+AT 10 AM CDT...1500Z..ALL HURRICANE WATCHES ARE DISCONTINUED.
+A TROPICAL STORM WARNING REMAINS IN EFFECT FROM EAST OF THE
+ALABAMA/FLORIDA BORDER TO INDIAN PASS FLORIDA...AND FROM WEST OF
+MORGAN CITY TO CAMERON LOUISIANA.
+ 
+HURRICANE CENTER LOCATED NEAR 30.2N  89.6W AT 29/1500Z
+POSITION ACCURATE WITHIN  10 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH OR 360 DEGREES AT  14 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  927 MB
+EYE DIAMETER  30 NM
+MAX SUSTAINED WINDS 110 KT WITH GUSTS TO 135 KT.
+64 KT.......110NE 110SE  60SW  60NW.
+50 KT.......140NE 140SE  75SW  75NW.
+34 KT.......200NE 200SE 150SW 100NW.
+12 FT SEAS..325NE 250SE 250SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 30.2N  89.6W AT 29/1500Z
+AT 29/1200Z CENTER WAS LOCATED NEAR 29.5N  89.6W
+ 
+FORECAST VALID 30/0000Z 32.3N  89.3W
+MAX WIND  65 KT...GUSTS  80 KT.
+64 KT... 75NE  75SE  25SW  25NW.
+50 KT...100NE 125SE  75SW  75NW.
+34 KT...125NE 150SE 125SW 100NW.
+ 
+FORECAST VALID 30/1200Z 35.4N  88.3W...INLAND
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 50NE  50SE  25SW  25NW.
+ 
+FORECAST VALID 31/0000Z 39.0N  86.0W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 31/1200Z 42.0N  82.5W...EXTRATROPICAL
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 01/1200Z 47.5N  72.5W...EXTRATROPICAL
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 250 NM
+ON DAY 4 AND 325 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 02/1200Z 51.5N  67.0W...EXTRATROPICAL
+MAX WIND  20 KT...GUSTS  25 KT.
+ 
+OUTLOOK VALID 03/1200Z...ABSORBED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 30.2N  89.6W
+ 
+NEXT ADVISORY AT 29/2100Z
+ 
+FORECASTER PASCH
+
+</pre>]]></description>
+      <pubDate>Mon, 29 Aug 2005 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2005/12/27.122005.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2005/12/27.122005.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

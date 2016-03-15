@@ -7,7 +7,7 @@
 # is platform dependent. 
 #
 #----------------------------------------------------------------
-# Copyright(C) 2012--2013 Jason Fleming
+# Copyright(C) 2012--2015 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -27,6 +27,25 @@
 #
 # initialization subroutines for the various machines/architectures
 #
+init_queenbee()
+{ #<- can replace the following with a custom script
+  HOSTNAME=queenbee.loni.org
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
+  SUBMITSTRING=qsub
+  #SCRATCHDIR=/work/$USER
+  SCRATCHDIR=/work/cera
+  SSHKEY=~/.ssh/id_rsa.pub
+  QSCRIPT=queenbee.template.pbs
+  PREPCONTROLSCRIPT=queenbee.adcprep.template.pbs
+  QSCRIPTGEN=tezpur.pbs.pl
+  PPN=20
+  module load intel
+  module load netcdf
+  module load netcdf_fortran
+  module load gcc
+}
 init_arete()
 { #<- can replace the following with a custom script
   HOSTNAME=arete.cct.lsu.edu
@@ -96,6 +115,22 @@ init_hatteras()
   PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=16
+}
+init_stampede()
+{ #<- can replace the following with a custom script
+  HOSTNAME=stampede.tacc.utexas.edu
+  QUEUESYS=SLURM
+  QCHECKCMD=sacct
+  ACCOUNT=PleaseSpecifyACCOUNTInYourAsgsConfigFile
+  SUBMITSTRING=sbatch
+  SCRATCHDIR=$SCRATCH
+  SSHKEY=~/.ssh/id_rsa_stampede
+  QSCRIPT=stampede.template.slurm
+  PREPCONTROLSCRIPT=stampede.adcprep.template.slurm
+  QSCRIPTGEN=hatteras.slurm.pl
+  PPN=16
+  module load netcdf/4.3.2
+  #jgf20150610: Most likely QUEUENAME=normal SERQUEUENAME=serial
 }
 init_kittyhawk()
 { #<- can replace the following with a custom script
@@ -179,18 +214,31 @@ init_garnet()
   PPN=32
   IMAGEMAGICKBINPATH=/usr/local/usp/ImageMagick/default/bin 
 }
-init_queenbee()
+
+init_spirit()
 { #<- can replace the following with a custom script
-  HOSTNAME=queenbee.loni.org
+  # This requires the user to have a .personal.bashrc file in the $HOME 
+  # directory with the following contents:
+  # echo "Loading modules in .personal.bashrc ..."
+  # module load intel-compilers/12.1.0
+  # module load netcdf-fortran/intel/4.4.2
+  # module load hdf5/intel/1.8.12
+  # module load hdf5-mpi/intel/sgimpt/1.8.12
+  # module load mpt/2.12
+  # echo "... modules loaded."
+  HOSTNAME=spirit.afrl.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
-  ACCOUNT=loni_asgs2009
-  SUBMITSTRING="mpirun"
-  SCRATCHDIR=/work/$USER
-  SSHKEY=id_rsa_queenbee
-  QSCRIPT=queenbee.template.pbs
-  QSCRIPTGEN=queenbee.pbs.pl
-  PPN=8
+  ACCOUNT=erdcvhsp
+  SUBMITSTRING="mpiexec_mpt"
+  SCRATCHDIR=$WORKDIR 
+  SSHKEY=~/.ssh/id_rsa_spirit
+  QSCRIPT=spirit.template.pbs
+  PREPCONTROLSCRIPT=spirit.adcprep.template.pbs
+  PREPHOTSTARTSCRIPT=spirit.adcprep.template.pbs
+  QSCRIPTGEN=erdc.pbs.pl
+  PPN=16
+  IMAGEMAGICKBINPATH=/usr/local/usp/ImageMagick/default/bin 
 }
 init_tezpur()
 { #<- can replace the following with a custom script
@@ -212,17 +260,17 @@ init_mike()
   HOSTNAME=mike.hpc.lsu.edu
   QUEUESYS=PBS
   QCHECKCMD=qstat
-  ACCOUNT=hpc_cera_2013
+  ACCOUNT=pleaseSetAccountParamToHPCAllocationInASGSConfig
   SUBMITSTRING="mpirun"
-  SCRATCHDIR=/work/cera
+  SCRATCHDIR=/work/$USER
   SSHKEY=id_rsa_mike
   QSCRIPT=mike.template.pbs
   PREPCONTROLSCRIPT=mike.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=16
+  soft add +netcdf-4.1.3-Intel-13.0.0 
+  #/usr/local/packages/netcdf/4.1.3/Intel-13.0.0
 }
-
-
 init_ranger()
 { #<- can replace the following with a custom script
   HOSTNAME=ranger.tacc.utexas.edu
@@ -277,6 +325,24 @@ init_topsail()
   SCRATCHDIR=/ifs1/scr/$USER
   SSHKEY=id_rsa_topsail
 }
+init_renci_tds()
+{
+   OPENDAPHOST=ht1.renci.org
+   DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
+   CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
+   OPENDAPBASEDIR=/projects/ncfs/opendap/data
+   SSHPORT=22
+   LINKABLEHOSTS=(hatteras) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
+}
+init_lsu_tds()
+{
+   OPENDAPHOST=fortytwo.cct.lsu.edu
+   DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer"
+   CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog"
+   OPENDAPBASEDIR=/scratch/opendap
+   SSHPORT=2525
+   LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links
+}
 init_test()
 { #<- can replace the following with a custom script
   QUEUESYS=Test
@@ -288,6 +354,12 @@ env_dispatch(){
  case $1 in
   "camellia") consoleMessage "Camellia(WorldWinds) configuration found."
           init_camellia
+          ;;
+  "lsu_tds") consoleMessage "LSU THREDDS Data Server configuration found."
+          init_lsu_tds
+          ;;
+  "renci_tds") consoleMessage "RENCI THREDDS Data Server configuration found."
+          init_renci_tds
           ;;
   "kittyhawk") consoleMessage "Kittyhawk (RENCI) configuration found."
           init_kittyhawk
@@ -309,16 +381,19 @@ env_dispatch(){
           ;;
   "jade") consoleMessage "Jade (ERDC) configuration found."
           init_jade
-     ;;
+          ;;
   "diamond") consoleMessage "Diamond (ERDC) configuration found."
           init_diamond
-     ;;
+          ;;
   "garnet") consoleMessage "Garnet (ERDC) configuration found."
           init_garnet
-     ;;
+          ;;
+  "spirit") consoleMessage "Spirit (AFRL) configuration found."
+          init_spirit
+          ;;
   "queenbee") consoleMessage "Queenbee (LONI) configuration found."
           init_queenbee
-     ;;
+          ;;
   "tezpur") consoleMessage "Tezpur (LSU) configuration found."
           init_tezpur
           ;;
@@ -326,24 +401,27 @@ env_dispatch(){
           init_mike
           ;;
   "topsail") consoleMessage "Topsail (UNC) configuration found."
-             init_topsail
-             ;;
+          init_topsail
+          ;;
   "ranger") consoleMessage "Ranger (TACC) configuration found."
           init_ranger
-             ;;
+          ;;
   "lonestar") consoleMessage "Lonestar (TACC) configuration found."
           init_lonestar
-             ;;
+          ;;
+  "stampede") consoleMessage "Stampede (TACC) configuration found."
+          init_stampede
+          ;;
   "arete") consoleMessage "Arete (CCT) configuration found."
           init_arete
-             ;;
+          ;;
   "desktop") consoleMessage "desktop configuration found."
           init_desktop
            ;;
   "test") consoleMessage "test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "'$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, queenbee, topsail, desktop, arete"
+  *) fatal "'$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, queenbee, topsail, desktop, arete, spirit, lsu_tds, renci_tds"
      ;;
   esac
 }

@@ -1,17 +1,32 @@
+!--------------------------------------------------------------------------
+! convertna.f90
 !
-! Example of compilation with gfortran:
-! gfortran -ffree-line-length-none -o convertna.x -I/home/jason/asgs/trunk/output -I/usr/include  convertna.f90  -lnetcdff
+! A program to write a nodal attribute in fort.63 format, or to reinterpolate
+! a nodal attribute from one mesh to another.
 !
-! Example of compiling with gfortran with debugging turned on:
-! gfortran -g -O0 -Wall -ffree-line-length-none -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal -o convertna.x -I/home/jason/asgs/trunk/output -I/usr/include  convertna.f90  -lnetcdff
+!--------------------------------------------------------------------------
+! Copyright(C) 2012-2015 Jason Fleming
 !
-! Example of compiling with gfortran with profiling and test coverage turned on:
-! gfortran -pg -O0 -fprofile-arcs -ftest-coverage -Wall -ffree-line-length-none -o convertna.x -I/home/jason/asgs/trunk/output -I/usr/include convertna.f90 -lnetcdff
-!-----------------------------------------------------------------------
-include 'adcmesh.f90'
-include 'nodalattr.f90'
+! This file is part of the ADCIRC Surge Guidance System (ASGS).
+!
+! The ASGS is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+!
+! ASGS is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+!--------------------------------------------------------------------------
+! Compile with accompanying makefile.
+!--------------------------------------------------------------------------
 program convertna
 use adcmesh
+use asgsio, only : openFileForRead
 use nodalattr
 implicit none
 character(len=1024) :: outputfile

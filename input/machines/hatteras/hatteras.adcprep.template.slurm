@@ -2,9 +2,9 @@
 
 #SBATCH -J %jobtype%.%enstorm%
 #SBATCH -t %wallminutes%
-#SBATCH -p %account%
 #SBATCH -n 1 
 #SBATCH -c 1
+#SBATCH --partition=ncfs
 
 cd %advisdir%/%enstorm%
 
@@ -28,7 +28,8 @@ hostname
 #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/projects/ncfs/apps/croatan/netcdf/lib
 module load intelc/14.0.3
 module load intelfort/14.0.3
-module load mvapich2/2.0_intel-14.0.3_nemesis
+#module load mvapich2/2.0_intel-14.0.3_nemesis
+module load mvapich2/2.0_intel-14.0.3_ch3_ofed-3.1
 module load netcdf/4.1.3_intel-14.0.3
 #
 echo "%enstorm% job starting at `date`"

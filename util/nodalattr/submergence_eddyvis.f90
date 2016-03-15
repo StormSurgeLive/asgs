@@ -5,9 +5,9 @@
 ! gfortran -O3 -ffree-line-length-none -o submergence_eddyvis.x -I/home/jason/asgs/trunk/output -I/usr/include  submergence_eddyvis.f90  -lnetcdff
 !
 !
-include 'adcmesh.f90'
 program submergence_eddyvis
 use adcmesh
+use asgsio, only : openFileForRead
 implicit none
 character(len=1024) :: outputfile
 character(len=1024) :: seedfile

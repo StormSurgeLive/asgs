@@ -57,9 +57,22 @@ the user to allow the selection of the task to be performed.
     Only redecompose the non-periodic, normal flux boundary condition file (fort.20).
     Requires that *prepall* step has already been performed.
 
-*--prep88*::
-    Only redecompose the upland river initialization file (fort.88).
-    Requires that *prepall* step has already been performed.
+*-Mft* 'MESH_FILE_TYPE'::
+    The 'MESH_FILE_TYPE' can be specified as 'ascii' (the default) or
+    'xdmf' (introduced in ADCIRC v51).
+    
+*-Mfn* 'MESH_FILE_NAME'::
+    Search for a full domain mesh file named 'MESH_FILE_NAME' rather than
+    the default mesh file name 'fort.14'.
+    
+*-Nft* 'NODAL_ATTRIBUTES_FILE_TYPE'::
+    The 'NODAL_ATTRIBUTES_FILE_TYPE' can be specified as 'ascii' (the default) or
+    'xdmf' (introduced in ADCIRC v51).
+    
+*-Nfn* 'NODAL_ATTRIBUTES_FILE_NAME'::
+    Search for a full domain nodal attributes file named 
+    'NODAL_ATTRIBUTES_FILE_NAME' rather than the default nodal attributes 
+    file name 'fort.14'.
 
 AUTHOR
 ------

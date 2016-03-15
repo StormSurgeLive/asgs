@@ -1,8 +1,8 @@
 FOR BEST RESULTS, PLEASE KEEP COMMENTS OUT OF THE FIRST 50 CHARACTERS ON EACH LINE.
 12345678901234567890123456789012345678901234567890
 4                                                  ! Level of screen output.
-/home1/00675/jdietri1/GMT/GMT4.5.5/bin/            ! Path where GMT executables are located.
-/home1/00675/jdietri1/GS/ghostscript-9.00/bin/     ! Path where GhostScript executable is located.
+/opt/apps/intel14/gmt/5.1.1/bin/                   ! Path where GMT executables are located.
+/usr/bin/     ! Path where GhostScript executable is located.
 Temp/                                              ! Path where temporary files will be created.
 MaxHS_LATEX_%al%                                   ! Alphanumeric label for these plots.
 1,%plotlabel% Maximum Significant Wave Heights

@@ -219,7 +219,7 @@ while (<STAFILE>) {
    if ($. == 1 ) {
       chomp;
       printf TRANSPOSE "# " . $_ . "\n";
-
+      next;
    } 
    #
    # 2nd line in the file contains the number of stations;
@@ -241,64 +241,14 @@ while (<STAFILE>) {
       foreach (@sta_names) {
           printf TRANSPOSE "\"$_\"" . $separator;
       }
+      printf TRANSPOSE "\n";
+      next;
+   }
    #
    # there is a header line with the time, at the start of each dataset
-   } elsif ($. > 2 && ($.-3) % ($total_stations+1) == 0) {
+   if ($. > 2 && ($.-3) % ($total_stations+1) == 0) {
       #
-      # if we have collected a complete dataset, write it now
-      if (@station_val || @vector_tuple_1 ) {
-         printf TRANSPOSE $time . "$timezone" . $separator;
-         if ( $fileType eq "scalar" ) { 
-            # scalar data
-            foreach (@station_val) {
-               printf TRANSPOSE ("%20s",$_);
-               printf TRANSPOSE $separator;
-            }
-            @station_val = ();
-         } else {
-            # vector data
-            for (my $i=0; $i<$total_stations; $i++ ) {
-               if ( $vectorOutput eq "raw" ) {
-                  printf TRANSPOSE ("%20s %20s",$vector_tuple_1[$i], $vector_tuple_2[$i]);
-               # we have two valid values
-               } elsif ( $vector_tuple_1[$i] != -99999 
-                      && $vector_tuple_2[$i] != -99999 ) {
-                  if ( $vectorOutput eq "magnitude" ) {
-                     printf TRANSPOSE ("%20s",sqrt($vector_tuple_1[$i]*$vector_tuple_1[$i] + $vector_tuple_2[$i]*$vector_tuple_2[$i]));
-                  } elsif ( $vectorOutput eq "direction" ) {
-                     # assumes vectors are in east and north components
-                     my $direction = 0.0;
-                     # if north component is zero
-                     #if ( $vector_tuple_2[$i] ) {
-                     #   # if east component is negative
-                     #   if ( $vector_tuple_1[$i] < 0.0 ) {
-                     #      $direction = 270.0;
-                     #   } else { # east component is negative or zero
-                     #      $direction = 90.0;
-                     #   }
-                     #} 
-                     # if both components are nonzero
-                     if ( $vector_tuple_1[$i] == 0.0 && $vector_tuple_2[$i] == 0.0 ) {  
-                       $direction = -99999;
-                     } else {
-                       # my $direction = 360.0 - atan($vector_tuple_2[$i]/$vector_tuple_1[$i])*(360.0/(2.0*$pi));
-                        $direction = (180.0+(atan2($vector_tuple_1[$i],$vector_tuple_2[$i])*180.0/$pi ) ) % 360.0;
-                     }
-                     printf TRANSPOSE ("%20s",$direction);
-                  }
-               } else {
-                  # we have invalid values
-                  printf TRANSPOSE "-99999";
-               }
-               printf TRANSPOSE $separator;
-            }
-            @vector_tuple_1 = ();
-            @vector_tuple_2 = ();
-         }
-      }
-      printf TRANSPOSE "\n";
-      #
-      # now grab the new time (assumed to be in gmt), converting to 
+      # grab the new time (assumed to be in gmt), converting to 
       # specified local time 
       m/^\s*([^\s]*)\s*([^\s]*)\s*$/;
       ($year,$month,$day,$hour,$min,$sec)
@@ -307,62 +257,124 @@ while (<STAFILE>) {
       
       $time = sprintf("%4s-%02s-%02s$separator%02s:%02s:%02d$separator",
                 $year,$month,$day,$hour,$min,$sec);
+      next;
+   }
    #
    # this is data (not the file header or the individual dataset header)
-   } elsif ($. > 2) {
-      if ( $fileType eq "scalar" ) {
-         my $scalar;
-         m/^\s*(\d*)\s*(.*)\s*$/;
-         if ( $2 == "-0.9999900000E+05" || $2 =~/NaN/) {
-            $scalar = -99999;
-         } else {
-            $scalar = $2; 
-         }
-         #
-         # units in output file are assumed to be SI; convert to english
-         # if requested 
-         if ( $scalar != -99999 && $units eq "english" ) {
-            if ( $fileToTranspose eq "elevation" ) {
-               # convert m to ft
-               $scalar *= (100.0 / (2.54 * 12.0));
-            }
-            if ( $fileToTranspose eq "barometricpressure" ) {
-               stderrMessage("ERROR","Output in english units is not available for barometric pressure.");
-            }
-         } 
-         if ( $scalar != -99999 && $fileToTranspose eq "barometricpressure" ) {
-             # convert from m of water to mb: multiply by rho_0 g to get 
-             # Pascals, then divide by 100 to get mb
-             $scalar *= (1000.0 * 9.81 / 100.0);
-         }
-         $station_val[$1-1] = $scalar;
+   my $stationNumber;
+   if ( $fileType eq "scalar" ) {
+      my $scalar;
+      # parse out the station number and the value
+      m/^\s*(\d*)\s*(.*)\s*$/;
+      $stationNumber = $1;
+      # set missing value or station value
+      if ( $2 == "-0.9999900000E+05" || $2 =~/NaN/) {
+         $scalar = -99999;
       } else {
-        # this is vector data
-        my $tuple_1;
-        my $tuple_2;
-        my $multiplier = 1.0;
-        if ( $units eq "english" ) {
-           $multiplier = 1.0/0.514444444; # convert m/s to kts 
-        }
-        if ( $fileToTranspose eq "windvelocity" ) {
-           $multiplier *= 1.136; # convert 10 minute winds to 1 minute winds
-        }
-        m/^\s*([^\s]*)\s*([^\s]*)\s*([^\s]*)\s*$/;
-        if ( !($2 =~ /NaN/) && !($2 =~/Inf/) && !($2 == -99999 ) ) {
-           $tuple_1 = $2 * $multiplier;
-        } else {
-           $tuple_1 = -99999;
-        }
-        if ( !($3 =~ /NaN/) && !($3 =~/Inf/) && !($3 == -99999 ) ) {
-           $tuple_2 = $3 * $multiplier;
-        } else {
-           $tuple_2 = -99999;
-        }
+         $scalar = $2; 
+      }
+      #
+      # units in output file are assumed to be SI; convert to english
+      # if requested 
+      if ( $scalar != -99999 && $units eq "english" ) {
+         if ( $fileToTranspose eq "elevation" ) {
+            # convert m to ft
+            $scalar *= (100.0 / (2.54 * 12.0));
+         }
+         if ( $fileToTranspose eq "barometricpressure" ) {
+            stderrMessage("ERROR","Output in english units is not available for barometric pressure.");
+         }
+      } 
+      if ( $scalar != -99999 && $fileToTranspose eq "barometricpressure" ) {
+         # convert from m of water to mb: multiply by rho_0 g to get 
+         # Pascals, then divide by 100 to get mb
+         $scalar *= (1000.0 * 9.81 / 100.0);
+      }
+      $station_val[$1-1] = $scalar;
+   } else {
+      # this is vector data
+      my $tuple_1;
+      my $tuple_2;
+      my $multiplier = 1.0;
+      if ( $units eq "english" ) {
+         $multiplier = 1.0/0.514444444; # convert m/s to kts 
+      }
+      if ( $fileToTranspose eq "windvelocity" ) {
+         $multiplier *= 1.136; # convert 10 minute winds to 1 minute winds
+      }
+      m/^\s*([^\s]*)\s*([^\s]*)\s*([^\s]*)\s*$/;
+      $stationNumber = $1;
+      if ( !($2 =~ /NaN/) && !($2 =~/Inf/) && !($2 == -99999 ) ) {
+         $tuple_1 = $2 * $multiplier;
+      } else {
+         $tuple_1 = -99999;
+      }
+      if ( !($3 =~ /NaN/) && !($3 =~/Inf/) && !($3 == -99999 ) ) {
+         $tuple_2 = $3 * $multiplier;
+      } else {
+         $tuple_2 = -99999;
+      }
       $vector_tuple_1[$1-1] = $tuple_1;
       $vector_tuple_2[$1-1] = $tuple_2;
+   }   
+   #
+   # if we have collected a complete dataset, write it now
+   if ( $stationNumber == $total_stations ) {
+      printf TRANSPOSE $time . "$timezone" . $separator;
+      # write scalar data 
+      if ( $fileType eq "scalar" ) { 
+         # scalar data
+         foreach (@station_val) {
+            printf TRANSPOSE ("%20s",$_);
+            printf TRANSPOSE $separator;
+         }
+         @station_val = ();
+      } else {
+         # write vector data
+         for (my $i=0; $i<$total_stations; $i++ ) {
+            if ( $vectorOutput eq "raw" ) {
+               printf TRANSPOSE ("%20s %20s",$vector_tuple_1[$i], $vector_tuple_2[$i]);
+            # we have two valid values
+            } elsif ( $vector_tuple_1[$i] != -99999 
+                   && $vector_tuple_2[$i] != -99999 ) {
+               if ( $vectorOutput eq "magnitude" ) {
+                  printf TRANSPOSE ("%20s",sqrt($vector_tuple_1[$i]*$vector_tuple_1[$i] + $vector_tuple_2[$i]*$vector_tuple_2[$i]));
+               } elsif ( $vectorOutput eq "direction" ) {
+                  # assumes vectors are in east and north components
+                  my $direction = 0.0;
+                  # if north component is zero
+                  #if ( $vector_tuple_2[$i] ) {
+                  #   # if east component is negative
+                  #   if ( $vector_tuple_1[$i] < 0.0 ) {
+                  #      $direction = 270.0;
+                  #   } else { # east component is negative or zero
+                  #      $direction = 90.0;
+                  #   }
+                  #} 
+                  # if both components are nonzero
+                  if ( $vector_tuple_1[$i] == 0.0 && $vector_tuple_2[$i] == 0.0 ) {  
+                    $direction = -99999;
+                  } else {
+                    # my $direction = 360.0 - atan($vector_tuple_2[$i]/$vector_tuple_1[$i])*(360.0/(2.0*$pi));
+                     $direction = (180.0+(atan2($vector_tuple_1[$i],$vector_tuple_2[$i])*180.0/$pi ) ) % 360.0;
+                  }
+                  printf TRANSPOSE ("%20s",$direction);
+               }
+            } else {
+               # we have invalid values
+               printf TRANSPOSE "-99999";
+            }
+            printf TRANSPOSE $separator;
+         }
+         @vector_tuple_1 = ();
+         @vector_tuple_2 = ();
       }
+      printf TRANSPOSE "\n";
    }
 }
+close(STAFILE);
+close(TRANSPOSE);
+
 # General subroutine used to test if an element is already in an array
 sub is_member {
   my $test = shift;

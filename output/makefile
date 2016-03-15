@@ -57,11 +57,21 @@ ifeq ($(compiler),gfortran)
 endif
 #
 # specify compiler=intel on the make command line
+#
+# For ifort 13.0.0 add -heap-arrays flag to prevent segmentation fault 
+# due possible compiler bug. Flag not needed for ifort version 13.1.3 and later. -nld
 ifeq ($(compiler),intel)
    FC := ifort
-   FFLAGS := -fpp
+   FFLAGS := -cpp -i-dynamic
+   ifeq ($(DEBUG),trace)
+      FFLAGS := -g -O0 -fpp -traceback 
+   endif
    ifeq ($(DEBUG),full)
-      FFLAGS := -g -O0 -fpp -traceback -debug -check all
+      FFLAGS := -cpp -g -O0 -traceback -debug all -check all -ftrapuv -fpe0 -i-dynamic  
+   endif
+   # jgf20150616: Added to implement nld's -heap-arrays fix.
+   ifeq ($(HEAP_ARRAYS),fix)
+      FFLAGS := $(FFLAGS) -heap-arrays
    endif
 endif
 #
@@ -80,16 +90,15 @@ INCLUDES := -I.
 # use NETCDF=enable on the make command line
 ifeq ($(NETCDF),enable)
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
-   LDFLAGS     := -lnetcdff
-   ifeq ($(MACHINENAME),jason-desktop)
-      NETCDFPATH  := /usr
+   NETCDFPATH  := /usr
+   #
+   # jgf20150616: Added netcdf paths for stampede at TACC.
+   ifeq ($(MACHINENAME),stampede) 
+      NETCDFPATH := /opt/apps/intel13/netcdf/4.3.2/x86_64
    endif
+   # jgf20150716: Added compiler flags for hatteras at RENCI.
    ifeq ($(MACHINENAME),hatteras)
       NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
-   endif
-   # jgf20150616: Added netcdf paths for stampede at TACC.
-   ifeq ($(MACHINENAME),stampede)
-      NETCDFPATH := /opt/apps/intel13/netcdf/4.3.2/x86_64
    endif
    # jgf20150720: Added compiler flags for queenbee at LONI.
    ifeq ($(MACHINENAME),queenbee)
@@ -99,9 +108,16 @@ ifeq ($(NETCDF),enable)
    ifeq ($(MACHINENAME),garnet)
       NETCDFPATH  := /opt/cray/netcdf/4.3.0/pgi/121
    endif
+   # jgf20150817: Added compiler flags for spirit at AFRL.
+   ifeq ($(MACHINENAME),spirit)
+      NETCDFPATH  := /app/wpostool/COST/netcdf-fortran-4.4.2/intel
+      LIBS        := -L/app/wpostool/COST/netcdf-c-4.3.1.1/intel/lib -L/app/wpostool/COST/hdf5-mpi/1.8.12/intel/sgimpt/lib
+      LDFLAGS     :=  -lnetcdf -lhdf5 -lhdf5_hl
+   endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
+   LDFLAGS     := $(LDFLAGS) -lnetcdff
    INCLUDES    := -I. -I$(NETCDFPATH)/include
-   LIBS        := -L$(NETCDFPATH)/lib
+   LIBS        := $(LIBS) -L$(NETCDFPATH)/lib
 endif
 ifeq ($(NETCDF4),enable)
    FFLAGS      := $(FFLAGS) -DHAVE_NETCDF4
@@ -115,7 +131,7 @@ OBJ := adcmesh.o asgsio.o adcircdata.o nodalattr.o
 MODS := adcmesh.mod asgsio.mod adcircdata.mod nodalattr.mod
 #
 # targets
-all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries
+all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP
 #
 clean :
 	rm -f *.o *.mod *.x
@@ -140,6 +156,9 @@ makeMax : asgsio.mod adcmesh.mod adcircdata.mod ../util/makeMax.f90
 #
 generateXDMF : adcmesh.mod asgsio.mod generateXDMF.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o $(LDFLAGS)
+#
+generateCPP : adcmesh.mod generateCPP.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
 pullStationTimeSeries : asgsio.mod adcmesh.mod adcircdata.mod pullStationTimeSeries.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)

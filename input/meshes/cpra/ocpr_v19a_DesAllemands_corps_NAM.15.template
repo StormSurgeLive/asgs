@@ -46,7 +46,7 @@ N2                                                       ! ALPHANUMERIC DESCRIPT
 K2                                                       ! ALPHANUMERIC DESCRIPTION
  0.030704  1.458408E-004 0.693000  %K2NF%  %K2EQARG%
 K1                                                       ! ALPHANUMERIC DESCRIPTION
- 0.141565  7.292040E-005 0.736000  %K1NF%  %K2EQARG%
+ 0.141565  7.292040E-005 0.736000  %K1NF%  %K1EQARG%
 O1                                                       ! ALPHANUMERIC DESCRIPTION
  0.100514  6.759704E-005 0.695000  %O1NF%  %O1EQARG%
 P1                                                       ! ALPHANUMERIC DESCRIPTION
@@ -63,7 +63,7 @@ N2                                       ! ALPHANUMERIC DESCRIPTION
 K2                                       ! ALPHANUMERIC DESCRIPTION
    1.458408E-004  %K2NF%  %K2EQARG%
 K1                                       ! ALPHANUMERIC DESCRIPTION
-   7.292040E-005  %K1NF%  %K2EQARG%
+   7.292040E-005  %K1NF%  %K1EQARG%
 O1                                       ! ALPHANUMERIC DESCRIPTION
    6.759704E-005  %O1NF%  %O1EQARG%
 Q1                                       ! ALPHANUMERIC DESCRIPTION
