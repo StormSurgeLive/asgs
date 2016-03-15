@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 10 Sep 2003 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane ISABEL Forecast/Advisory Number 17</title>
+      <description>Issued at 0900Z WED SEP 10 2003 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+HURRICANE ISABEL FORECAST/ADVISORY NUMBER  17
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL132003
+0900Z WED SEP 10 2003
+ 
+HURRICANE CENTER LOCATED NEAR 20.9N  50.2W AT 10/0900Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST OR 275 DEGREES AT  12 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  948 MB
+EYE DIAMETER  15 NM
+MAX SUSTAINED WINDS 115 KT WITH GUSTS TO 140 KT.
+64 KT....... 40NE  30SE  30SW  40NW.
+50 KT.......100NE  50SE  50SW 100NW.
+34 KT.......150NE 100SE 100SW 150NW.
+12 FT SEAS..250NE 175SE 175SW 225NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 20.9N  50.2W AT 10/0900Z
+AT 10/0600Z CENTER WAS LOCATED NEAR 20.9N  49.6W
+ 
+FORECAST VALID 10/1800Z 21.5N  52.1W
+MAX WIND 115 KT...GUSTS 140 KT.
+64 KT... 40NE  30SE  30SW  40NW.
+50 KT...100NE  50SE  50SW 100NW.
+34 KT...150NE 100SE 100SW 150NW.
+ 
+FORECAST VALID 11/0600Z 21.5N  54.2W
+MAX WIND 115 KT...GUSTS 140 KT.
+64 KT... 40NE  30SE  30SW  40NW.
+50 KT...100NE  50SE  50SW 100NW.
+34 KT...150NE 100SE 100SW 150NW.
+ 
+FORECAST VALID 11/1800Z 21.5N  56.0W
+MAX WIND 115 KT...GUSTS 140 KT.
+64 KT... 40NE  30SE  30SW  40NW.
+50 KT...100NE  50SE  50SW 100NW.
+34 KT...150NE 100SE 100SW 150NW.
+ 
+FORECAST VALID 12/0600Z 21.5N  58.0W
+MAX WIND 115 KT...GUSTS 140 KT.
+50 KT...100NE  50SE  50SW 100NW.
+34 KT...150NE 100SE 100SW 150NW.
+ 
+FORECAST VALID 13/0600Z 21.5N  60.5W
+MAX WIND 115 KT...GUSTS 140 KT.
+50 KT...100NE  50SE  50SW 100NW.
+34 KT...150NE 100SE 100SW 150NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 275 NM
+ON DAY 4 AND 375 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 14/0600Z 22.0N  63.5W
+MAX WIND 110 KT...GUSTS 135 KT.
+ 
+OUTLOOK VALID 15/0600Z 23.0N  67.0W
+MAX WIND 110 KT...GUSTS 135 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 20.9N  50.2W
+ 
+NEXT ADVISORY AT 10/1500Z
+ 
+FORECASTER AVILA
+
+</pre>]]></description>
+      <pubDate>Wed, 10 Sep 2003 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2003/13/17.132003.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2003/13/17.132003.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

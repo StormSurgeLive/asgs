@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Thu, 18 Sep 2003 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane ISABEL Forecast/Advisory Number 50</title>
+      <description>Issued at 1500Z THU SEP 18 2003 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+HURRICANE ISABEL FORECAST/ADVISORY NUMBER  50
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL132003
+1500Z THU SEP 18 2003
+ 
+A HURRICANE WARNING REMAINS IN EFFECT FROM CAPE FEAR NORTH CAROLINA
+TO CHINCOTEAGUE VIRGINIA...INCLUDING PAMLICO AND ALBEMARLE SOUNDS...
+AND THE CHESAPEAKE BAY SOUTH OF SMITH POINT.
+ 
+A TROPICAL STORM WARNING REMAINS IN EFFECT NORTH OF CHINCOTEAGUE TO
+MORICHES INLET NEW YORK...INCLUDING DELAWARE BAY. A TROPICAL STORM
+WARNING REMAINS IN EFFECT SOUTH OF CAPE FEAR TO SOUTH SANTEE RIVER
+SOUTH CAROLINA...FOR THE CHESAPEAKE BAY FROM SMITH POINT
+NORTHWARD...AND FOR THE TIDAL POTOMAC.
+ 
+HURRICANE CENTER LOCATED NEAR 34.4N  75.7W AT 18/1500Z
+POSITION ACCURATE WITHIN  25 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTHWEST OR 325 DEGREES AT  16 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  956 MB
+MAX SUSTAINED WINDS  85 KT WITH GUSTS TO 105 KT.
+64 KT.......100NE  80SE  60SW  90NW.
+50 KT.......150NE 100SE  80SW 125NW.
+34 KT.......300NE 200SE 150SW 225NW.
+12 FT SEAS..650NE 500SE 400SW 200NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 34.4N  75.7W AT 18/1500Z
+AT 18/1200Z CENTER WAS LOCATED NEAR 33.7N  75.2W
+ 
+FORECAST VALID 19/0000Z 36.5N  77.3W...INLAND
+MAX WIND  65 KT...GUSTS  85 KT.
+64 KT... 75NE   0SE   0SW   0NW.
+50 KT...150NE 100SE  60SW  60NW.
+34 KT...300NE 200SE 125SW 140NW.
+ 
+FORECAST VALID 19/1200Z 39.7N  78.7W...INLAND
+MAX WIND  45 KT...GUSTS  65 KT.
+34 KT...200NE 200SE  60SW  60NW.
+ 
+FORECAST VALID 20/0000Z 44.5N  78.7W...EXTRATROPICAL
+MAX WIND  30 KT...GUSTS  45 KT.
+ 
+FORECAST VALID 20/1200Z 50.5N  77.0W...EXTRATROPICAL
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 21/1200Z...ABSORBED BY EXTRATROPICAL LOW
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 275 NM
+ON DAY 4 AND 375 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 34.4N  75.7W
+ 
+NEXT ADVISORY AT 18/2100Z
+ 
+FORECASTER FRANKLIN
+
+</pre>]]></description>
+      <pubDate>Thu, 18 Sep 2003 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2003/13/50.132003.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2003/13/50.132003.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

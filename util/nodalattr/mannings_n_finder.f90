@@ -7,8 +7,6 @@
 ! Example of compiling with gfortran with profiling and test coverage turned on:
 ! gfortran -pg -O0 -fprofile-arcs -ftest-coverage -Wall -ffree-line-length-none -o mannings_n_finder.x -I/home/jason/asgs/trunk/output -I/usr/include mannings_n_finder.f90 -lnetcdff
 !-----------------------------------------------------------------------
-include 'adcmesh.f90'
-include 'landuse.f90'
 program mannings_n_finder
 use adcmesh
 use landuse

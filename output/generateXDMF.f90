@@ -354,6 +354,7 @@ if ( fileMetaData % initialized.eqv..false. ) then
    ! Write mesh portion of XDMF xml file.
    call writeMeshTopologyGeometryDepth(fileMetaData)
    ! finish off the xml so the user can at least look at the mesh
+   write(fileMetaData%xmfUnit,'(A)') '      </Grid>'
    call writeFooterXML(fileMetaData%xmfUnit)
    write(6,'(a)') "INFO: generateXDMF.f90: Terminating after writing mesh-related into to xml file."
    stop

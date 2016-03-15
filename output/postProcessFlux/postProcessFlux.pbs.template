@@ -1,0 +1,28 @@
+#!/bin/bash
+#PBS -V
+#PBS -N %jobname%
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=%walltime%
+#PBS -M %useremail% 
+#PBS -j oe
+#PBS -o %oefile% 
+#PBS -q single
+#PBS -A %account%
+##PBS -I
+
+# this is where the necessary netcdf share libraries are
+export LD_LIBRARY_PATH=/home/nate/install/lib:$LD_LIBRARY_PATH
+
+cd %postdir%
+
+cat $PBS_NODEFILE
+hostname
+echo "%jobname% starting at `date`" > %jobname%.start
+%executeline% 2>&1
+
+if [ $? -eq 0 ]
+then
+  echo "%jobname% finished at `date` " > %jobname%.finish
+else
+  echo "%jobname% errored at `date` " > %jobname%.error
+fi

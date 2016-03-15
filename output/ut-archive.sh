@@ -5,7 +5,7 @@
 # Copies all files to corral.
 #--------------------------------------------------------------------------
 # 
-# Copyright(C) 2010 Jason Fleming
+# Copyright(C) 2010--2015 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #

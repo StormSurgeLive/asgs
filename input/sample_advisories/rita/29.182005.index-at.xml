@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sat, 24 Sep 2005 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm RITA Forecast/Advisory Number 29</title>
+      <description>Issued at 2100Z SAT SEP 24 2005 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+TROPICAL STORM RITA FORECAST/ADVISORY NUMBER  29
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL182005
+2100Z SAT SEP 24 2005
+ 
+A TROPICAL STORM WARNING REMAINS IN EFECT FROM HIGH ISLAND TEXAS
+TO MORGAN CITY LOUISIANA.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 32.1N  94.0W AT 24/2100Z
+POSITION ACCURATE WITHIN  15 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH OR 360 DEGREES AT  10 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  980 MB
+MAX SUSTAINED WINDS  45 KT WITH GUSTS TO  55 KT.
+34 KT....... 40NE 140SE  50SW  50NW.
+12 FT SEAS..  0NE 175SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 32.1N  94.0W AT 24/2100Z
+AT 24/1800Z CENTER WAS LOCATED NEAR 31.6N  94.0W
+ 
+FORECAST VALID 25/0600Z 33.5N  93.8W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 25/1800Z 35.0N  93.0W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 26/0600Z 35.0N  91.5W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 26/1800Z 35.0N  90.0W...INLAND
+MAX WIND  20 KT...GUSTS  25 KT.
+ 
+FORECAST VALID 27/1800Z 34.5N  89.0W...REMNANT LOW
+MAX WIND  20 KT...GUSTS  25 KT.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 250 NM
+ON DAY 4 AND 325 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 28/1800Z 34.5N  89.0W...REMNANT LOW
+MAX WIND  20 KT...GUSTS  25 KT.
+ 
+OUTLOOK VALID 29/1800Z 34.5N  89.0W...DISSIPATING
+MAX WIND  20 KT...GUSTS  25 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 32.1N  94.0W
+ 
+NEXT ADVISORY AT 25/0300Z
+ 
+FORECASTER AVILA
+
+</pre>]]></description>
+      <pubDate>Sat, 24 Sep 2005 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2005/18/29.182005.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2005/18/29.182005.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

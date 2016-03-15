@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Fri, 26 Aug 2005 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane KATRINA Forecast/Advisory Number 14</title>
+      <description>Issued at 2100Z FRI AUG 26 2005 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+HURRICANE KATRINA FORECAST/ADVISORY NUMBER  14
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL122005
+2100Z FRI AUG 26 2005
+ 
+AT 5 PM EDT...2100Z...ALL WARNINGS AND WATCHES FOR PENINSULAR
+FLORIDA HAVE BEEN DISCONTINUED.
+ 
+A TROPICAL STORM WARNING REMAINS IN EFFECT FOR THE FLORIDA KEYS
+AND FLORIDA BAY FROM KEY LARGO SOUTH AND WESTWARD TO KEY WEST AND
+THE DRY TORTUGAS.
+ 
+HURRICANE CENTER LOCATED NEAR 24.8N  82.9W AT 26/2100Z
+POSITION ACCURATE WITHIN  15 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST-SOUTHWEST OR 255 DEGREES AT   7 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  965 MB
+EYE DIAMETER  15 NM
+MAX SUSTAINED WINDS  85 KT WITH GUSTS TO 105 KT.
+64 KT....... 20NE  20SE  15SW  10NW.
+50 KT....... 60NE  60SE  35SW  20NW.
+34 KT....... 75NE  75SE  55SW  35NW.
+12 FT SEAS.. 80NE  80SE  70SW  70NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 24.8N  82.9W AT 26/2100Z
+AT 26/1800Z CENTER WAS LOCATED NEAR 24.9N  82.6W
+ 
+FORECAST VALID 27/0600Z 24.9N  83.9W
+MAX WIND  90 KT...GUSTS 110 KT.
+64 KT... 20NE  20SE  15SW  15NW.
+50 KT... 60NE  60SE  40SW  30NW.
+34 KT... 80NE  80SE  60SW  50NW.
+ 
+FORECAST VALID 27/1800Z 25.2N  85.1W
+MAX WIND  95 KT...GUSTS 115 KT.
+64 KT... 25NE  25SE  15SW  15NW.
+50 KT... 60NE  60SE  40SW  40NW.
+34 KT... 90NE  90SE  70SW  60NW.
+ 
+FORECAST VALID 28/0600Z 25.8N  86.4W
+MAX WIND 100 KT...GUSTS 120 KT.
+64 KT... 30NE  30SE  20SW  20NW.
+50 KT... 60NE  60SE  50SW  50NW.
+34 KT...100NE 100SE  80SW  80NW.
+ 
+FORECAST VALID 28/1800Z 26.9N  87.7W
+MAX WIND 105 KT...GUSTS 130 KT.
+50 KT... 65NE  65SE  50SW  50NW.
+34 KT...110NE 110SE  80SW  90NW.
+ 
+FORECAST VALID 29/1800Z 30.0N  88.5W
+MAX WIND 115 KT...GUSTS 140 KT.
+50 KT... 65NE  65SE  50SW  50NW.
+34 KT...120NE 120SE  80SW 100NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 250 NM
+ON DAY 4 AND 325 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 30/1800Z 35.0N  86.5W...INLAND
+MAX WIND  35 KT...GUSTS  45 KT.
+ 
+OUTLOOK VALID 31/1800Z 40.5N  79.0W...DISSIPATING INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 24.8N  82.9W
+ 
+NEXT ADVISORY AT 27/0300Z
+ 
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Fri, 26 Aug 2005 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2005/12/14.122005.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2005/12/14.122005.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

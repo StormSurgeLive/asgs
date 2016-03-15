@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 21 Sep 2005 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane RITA Forecast/Advisory Number 15</title>
+      <description>Issued at 0900Z WED SEP 21 2005 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+HURRICANE RITA FORECAST/ADVISORY NUMBER  15
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL182005
+0900Z WED SEP 21 2005
+ 
+AT 5 AM EDT...0900Z...THE TROPICAL STORM WARNING FOR PORTIONS OF THE
+FLORIDA KEYS IS DISCONTINUED EAST OF THE MARQUESAS KEYS...INCLUDING
+KEY WEST.  A TROPICAL STORM WARNING REMAINS IN EFFECT FOR THE
+FLORIDA KEYS FROM THE MARQUESAS KEYS WESTWARD TO THE DRY TORTUGAS.
+ 
+INTERESTS IN THE NORTHWESTERN GULF OF MEXICO SHOULD MONITOR THE
+PROGRESS OF RITA.
+ 
+HURRICANE CENTER LOCATED NEAR 24.3N  84.6W AT 21/0900Z
+POSITION ACCURATE WITHIN  15 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST OR 280 DEGREES AT  12 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  956 MB
+EYE DIAMETER  25 NM
+MAX SUSTAINED WINDS 105 KT WITH GUSTS TO 130 KT.
+64 KT....... 40NE  30SE  25SW  40NW.
+50 KT....... 60NE  45SE  40SW  60NW.
+34 KT.......120NE 100SE  60SW 105NW.
+12 FT SEAS..150NE 100SE 100SW 120NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 24.3N  84.6W AT 21/0900Z
+AT 21/0600Z CENTER WAS LOCATED NEAR 24.2N  84.0W
+ 
+FORECAST VALID 21/1800Z 24.4N  86.5W
+MAX WIND 115 KT...GUSTS 140 KT.
+64 KT... 40NE  30SE  25SW  40NW.
+50 KT... 70NE  60SE  50SW  70NW.
+34 KT...130NE 110SE  85SW 130NW.
+ 
+FORECAST VALID 22/0600Z 24.7N  88.7W
+MAX WIND 125 KT...GUSTS 155 KT.
+64 KT... 40NE  30SE  25SW  40NW.
+50 KT... 80NE  70SE  60SW  80NW.
+34 KT...140NE 110SE  90SW 140NW.
+ 
+FORECAST VALID 22/1800Z 25.2N  90.8W
+MAX WIND 125 KT...GUSTS 155 KT.
+64 KT... 40NE  30SE  25SW  40NW.
+50 KT... 80NE  70SE  60SW  80NW.
+34 KT...140NE 110SE  90SW 140NW.
+ 
+FORECAST VALID 23/0600Z 25.9N  92.8W
+MAX WIND 125 KT...GUSTS 155 KT.
+50 KT... 80NE  70SE  60SW  80NW.
+34 KT...150NE 120SE 100SW 150NW.
+ 
+FORECAST VALID 24/0600Z 28.0N  95.5W
+MAX WIND 120 KT...GUSTS 145 KT.
+50 KT... 80NE  70SE  60SW  80NW.
+34 KT...160NE 130SE 100SW 150NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 250 NM
+ON DAY 4 AND 325 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 25/0600Z 31.5N  97.0W...INLAND
+MAX WIND  50 KT...GUSTS  60 KT.
+ 
+OUTLOOK VALID 26/0600Z 35.5N  96.5W...INLAND DISSIPATING
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 24.3N  84.6W
+ 
+NEXT ADVISORY AT 21/1500Z
+ 
+FORECASTER BEVEN
+
+</pre>]]></description>
+      <pubDate>Wed, 21 Sep 2005 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2005/18/15.182005.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2005/18/15.182005.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

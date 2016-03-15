@@ -52,7 +52,7 @@ my $hour;     # hour (UTC) corresponding to current ADCIRC time
 my @targetDirs; # directories to download NAM data from 
 our $forecastLength = 84; # keeps retrying until it has enough forecast files 
                     # to go for the requested time period
-our $max_retries = 10; # max number of times to attempt download of forecast file
+our $max_retries = 20; # max number of times to attempt download of forecast file
 our $num_retries = 0;      
 our $had_enough = 0;
 my @nowcasts_downloaded;  # list of nowcast files that were 
@@ -162,7 +162,7 @@ my @sortedNamDirs = sort { lc($a) cmp lc($b) } @namDirs;
 # narrow the list to the target date and any later dates
 my @targetDirs;
 foreach my $dir (@sortedNamDirs) {
-   stderrMessage("DEBUG","Found the directory '$dir' on the NCEP ftp site.");
+   #stderrMessage("DEBUG","Found the directory '$dir' on the NCEP ftp site.");
    $dir =~ /nam.(\d+)/;
    if ( $1 < $date ) { 
       next; 
@@ -173,7 +173,7 @@ foreach my $dir (@sortedNamDirs) {
 # determine the most recent date/hour ... this is the cycle time
 $targetDirs[-1] =~ /nam.(\d+)/;
 my $cycledate = $1; 
-stderrMessage("DEBUG","The cycledate is '$cycledate'.");
+#stderrMessage("DEBUG","The cycledate is '$cycledate'.");
 if ( $cycledate < $date ) { 
    stderrMessage("ERROR","The cycledate is '$cycledate' but the ADCIRC hotstart date is '$date'; therefore an error has occurred. get_nam.pl is halting this attempted download.");
    printf STDOUT $dl;

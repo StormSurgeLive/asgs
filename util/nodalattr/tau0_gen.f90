@@ -2,7 +2,7 @@ program tau0_gen
 use adcmesh
 implicit none
 character(1024) :: nodal_attr_name 
-character(1024) :: outputfile
+character(1024) :: outputfile 
 double precision, allocatable ::  dx_avg(:)  !(np)
 double precision, allocatable ::  tau0_min(:) !(nodes)
 double precision :: dx_crit = 1750.d0
@@ -16,6 +16,7 @@ integer :: argcount
 integer :: i, j
 !
 i=0
+outputfile = 'tau0_fort.13'
 argcount = iargc() ! count up command line options
 write(6,'(a,i0,a)') 'There are ',argcount,' command line options.'
 do while (i.lt.argcount)
@@ -23,24 +24,23 @@ do while (i.lt.argcount)
    call getarg(i, cmdlineopt)
    select case(trim(cmdlineopt))
    case("--verbose")
-      write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+      write(6,'(a)') "INFO: Processing "//trim(cmdlineopt)//"."
       verbose = .true.
    case("--meshfile")
       i = i + 1
       call getarg(i, meshFileName)
-      write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(meshFileName),"."
+      write(6,'(a)') "INFO: Processing "//trim(cmdlineopt)//" "//trim(meshFileName)//"."
    case("--outputfile")
       i = i + 1
-      call getarg(i, cmdlinearg)
-      write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
-      outputfile = trim(cmdlinearg)
+      call getarg(i, outputfile)
+      write(6,'(a)') "INFO: Processing "//trim(cmdlineopt)//" "//trim(outputfile)//"."
    case("--default-tau0")
       i = i + 1
       call getarg(i, cmdlinearg)
-      write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
+      write(6,'(a)') "INFO: Processing "//trim(cmdlineopt)//" "//trim(cmdlinearg)//"."
       read(cmdlinearg,*) tau0_default   
    case default
-      write(6,*) "WARNING: Command line option ",i," '",TRIM(cmdlineopt),"' was not recognized."
+      write(6,'(a,i0,a)') "WARNING: Command line option ",i," '"//TRIM(cmdlineopt)//"' was not recognized."
    end select
 end do
 !
@@ -48,9 +48,10 @@ end do
 nodal_attr_name = 'primitive_weighting_in_continuity_equation'
 !
 ! Load fort.14
-write(6,*) 'mesh file name is ',trim(meshfilename)
+write(6,'(a)') 'INFO: Mesh file name is  "'//trim(meshfilename)//'".'
 call read14()
 CALL computeNeighborTable()
+write(6,'(a)') 'INFO: Tau0 results file is named  "'//trim(outputfile)//'".'
 !
 ! compute the distance from every node to each of its neighbors and then
 ! divide by the total number of neighbors for that node
@@ -80,9 +81,10 @@ elsewhere
 end where
 
 ! write output in fort.13 format for one attribute
-open(unit=13,file=outputfile,status='unknown')
-write(13,'(A)') trim(nodal_attr_name)
-write(13,'(I8)') count(tau0_min.ne.tau0_default)
+
+open(unit=13,file=trim(outputfile),status='unknown')
+write(13,'(a)') trim(nodal_attr_name)
+write(13,'(i0)') count(tau0_min.ne.tau0_default)
 do i=1, np
    if ( tau0_min(i).ne.tau0_default ) then
       write(13,'(i8,f13.6)') i, tau0_min(i)

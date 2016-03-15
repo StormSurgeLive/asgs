@@ -1,6 +1,8 @@
 #!/bin/bash
-#
-# Copyright(C) 2008, 2009, 2010 Jason Fleming
+#-------------------------------------------------------------------------
+# ut-nhc-notify.sh: Send emails for TC-forced model runs for Texas
+#-------------------------------------------------------------------------
+# Copyright(C) 2008-2015 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -16,7 +18,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#-------------------------------------------------------------------------
 #
+logMessage()
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+  MSG="[${DATETIME}] INFO: $@"
+  echo ${MSG} >> ${SYSLOG}
+}
+
 HOSTNAME=$1
 STORM=$2
 YEAR=$3
@@ -35,11 +44,14 @@ ARCHIVEDIR=${13}
 if [[ $EMAILNOTIFY != yes && $EMAILNOTIFY != YES ]]; then
    exit
 fi
-STORMCLASSNAME=`cat nhcClassName`
-# find the space between the storm class (TD, TS, HU, etc) and the NHC name
-ind=`expr index "$STORMCLASSNAME" ' '`
-# just use the storm's name 
-STORMNAME=${STORMCLASSNAME:$ind}
+#
+# simply return if there are no email addresses to send email to
+if [[ $ADDRESS_LIST = null ]]; then
+   exit
+fi
+#
+STORMNAME=`grep "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//g' | tail -n 1`
+STORMCLASS=`grep "storm class" ${STORMDIR}/run.properties | sed 's/storm class.*://' | sed 's/^\s//g' | tail -n 1`
 COMMA_SEP_LIST=${ADDRESS_LIST// /,}
 case $PHASE in
 #
@@ -50,14 +62,14 @@ case $PHASE in
 cat <<END > $STORMDIR/activate.txt 2>> ${SYSLOG}
 This is an automated message from the ADCIRC Surge Guidance System (ASGS) running on ${HOSTNAME}.
 
-This message is to let you know that the ASGS has been ACTIVATED for $STORMCLASSNAME ${YEAR} on the $GRIDFILE grd.  The ASGS was activated on $HOSTNAME because the storm is forecast to impact the Texas Coast.
+This message is to let you know that the ASGS has been ACTIVATED for $STORMCLASS $STORMNAME (${YEAR}) on the $GRIDFILE mesh.  The ASGS was activated on $HOSTNAME because the storm is forecast to impact the Texas Coast.
 
 The supercomputer $HOSTNAME has downloaded a hurricane forecast from the National Hurricane Center, and is performing calculations with SWAN+ADCIRC to predict the storm surge and wind speed along the complete Texas Coast as well as Galveston Bay.
 
 You will receive an email from the ASGS on $HOSTNAME as soon as the results of this guidance become available. You will also continue to receive storm surge guidance for each forecast that the NHC issues for this storm, until the storm has passed through Texas.
 
 END
-    echo "Sending activation email to the following addresses: $COMMA_SEP_LIST."
+    logMessage "Sending activation email to the following addresses: $COMMA_SEP_LIST."
     cat $STORMDIR/activate.txt | mail -s "ASGS Activated on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
@@ -68,14 +80,14 @@ END
 cat <<END > $STORMDIR/new_advisory.txt 2>> ${SYSLOG}
 This is an automated message from the ADCIRC Surge Guidance System (ASGS) running on ${HOSTNAME}.
 
-The supercomputer $HOSTNAME has detected a new advisory (number $ADVISORY) from the National Hurricane Center for $STORMCLASSNAME ${YEAR}. This advisory has been downloaded; SWAN+ADCIRC wave and storm surge calculations are about to begin on the $GRIDFILE mesh. 
+The supercomputer $HOSTNAME has detected a new advisory (number $ADVISORY) from the National Hurricane Center for $STORMCLASS $STORMNAME (${YEAR}). This advisory has been downloaded; SWAN+ADCIRC wave and storm surge calculations are about to begin on the $GRIDFILE mesh. 
 
 You will receive another email from the ASGS on $HOSTNAME as soon as the resulting storm surge guidance becomes available.
 
-You may also receive emails notifying you of the detection of advisory $ADVISORY for storm $STORM from ASGS instances that are running on supercomputers OTHER THAN ${HOSTNAME}. The other instances are running for redundancy purposes.  
+You may also receive emails notifying you of the detection of advisory $ADVISORY for storm $STORMCLASS $STORMNAME from ASGS instances that are running on supercomputers OTHER THAN ${HOSTNAME}. The other instances are running for redundancy purposes.  
 
 END
-    echo "Sending 'new advisory detected' email to the following addresses: $COMMA_SEP_LIST."
+    logMessage "Sending 'new advisory detected' email to the following addresses: $COMMA_SEP_LIST."
      cat $STORMDIR/new_advisory.txt | mail -s "$STORMNAME advisory $ADVISORY detected by ASGS on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 
 ;;
@@ -87,16 +99,13 @@ END
 cat <<END > ${STORMDIR}/post_notify.txt 
 This is an automated message from the ADCIRC Surge Guidance System (ASGS) running on ${HOSTNAME}.
 
-The supercomputer $HOSTNAME has produced SWAN+ADCIRC results for storm surge guidance for advisory $ADVISORY for $STORMCLASSNAME $YEAR on the $GRIDFILE mesh. 
-
-The results have been posted on Corral:
-$ARCHIVEBASE/$ARCHIVEDIR/$ADVISORY
+The supercomputer $HOSTNAME has produced SWAN+ADCIRC results for storm surge guidance for advisory $ADVISORY for $STORMCLASS $STORMNAME ($YEAR) on the $GRIDFILE mesh. 
 
 The ASGS on $HOSTNAME is now waiting for the National Hurricane Center to issue the next advisory. 
 
 END
 #
-echo "Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
+logMessage "Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
 cat ${STORMDIR}/post_notify.txt | mail -s "ASGS results available for $STORMNAME advisory $ADVISORY from $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
@@ -107,14 +116,14 @@ cat ${STORMDIR}/post_notify.txt | mail -s "ASGS results available for $STORMNAME
 cat <<END > ${STORMDIR}/job_failed_notify.txt 
 This is an automated message from the ADCIRC Surge Guidance System (ASGS) running on ${HOSTNAME}.
 
-A job running on the supercomputer $HOSTNAME has failed when running storm surge guidance for advisory $ADVISORY for $STORMCLASSNAME $YEAR on the $GRIDFILE mesh. 
+A job running on the supercomputer $HOSTNAME has failed when running storm surge guidance for advisory $ADVISORY for $STORMCLASS $STORMNAME ($YEAR) on the $GRIDFILE mesh. 
 
 END
 #
-echo "Sending 'job failed' email to the following addresses: $COMMA_SEP_LIST."
+logMessage "Sending 'job failed' email to the following addresses: $COMMA_SEP_LIST."
 cat ${STORMDIR}/job_failed_notify.txt | mail -s "ASGS job $STORMNAME $ADVISORY failed on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 *)
-echo "ERROR: corps_cyclone_notify.sh: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."
+logMessage "ERROR: ut-nhc-notify.sh: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."
 ;;
 esac

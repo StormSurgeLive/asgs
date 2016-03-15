@@ -13,12 +13,17 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-The aswip(1) command reads an ADCIRC fort.22 file for the HWind format
-(NWS=15 in the ADCIRC fort.15) or an ATCF formatted BEST track file with the hours column filled
-in as described for the dynamic asymmetric vortex model (NWS=19 in the ADCIRC fort.15)
-In the case of ATCF formatted input, it generates an output file suitable for
-use in the asymmetric vortex model in ADCIRC. It can also perform vortex wind
-field analyses as described below.
+The aswip(1) command reads an ATCF-formatted ADCIRC fort.22 file 
+with the hours column filled in as described for the dynamic 
+asymmetric vortex model (NWS=19 in the ADCIRC fort.15). It also
+reads an ADCIRC fort.22 file formatted for use with HWind (NWS=15), 
+but only for visualzation purposes. 
+
+In the case of ATCF formatted input, aswip produces an ADCIRC 
+fort.22 file suitable for use in the asymmetric vortex model 
+(NWS=19) or Generalized Asymmetric Holland Model (GAHM, NWS=20) in 
+ADCIRC. It can also perform vortex wind field analyses as described 
+below.
 
 OPTIONS
 -------
@@ -61,6 +66,12 @@ OPTIONS
     if provided by the '-o' option. If the '-o' option was not given,
     each snapshot or time period in the raw data is considered a frame.
 
+*-g, -G* 'GEOFACTOR'::
+    Use the this geofactor when developing NWS_20_fort.22 files; geofactor
+    should be 0 or 1. Geostrophic balance is recommended and is specified
+    with a geofactor of 1. Cyclostrophic balance is specified by zero and
+    is only used for comparison purposes.
+
 *-i, -I* 'MESH_FILE'::
     Generate spatial wind velocity and barometric pressures on the mesh
     in the file 'MESH_FILE'. This option requires that the 'MESH_FILE'
@@ -73,7 +84,13 @@ OPTIONS
     at the center of that storm quadrant at that point in time. Possible
     values of 'ISOTACH_SELECTION_METHOD' are 1, meaning that the 34kt
     isotach should always be used; or 2, meaning that the highest isotach
-    should always be used.
+    should always be used. For NWS19, 2 is the recommended value, whereas
+    for NWS20, 4 is the recommended value (use all available isotachs).
+
+*-z, -Z* 'APPROACH'::
+    Use 'APPROACH' to define the direction of the radial wind velocity.
+    If set to 2, this sets both Vr and quadrantVr tangential to the
+    azimuth. This should be set to 1 for NWS19 and set to 2 for NWS20.
 
 *-o, -O* 'TIME_INCREMENT'::
     Use 'TIME_INCREMENT' (in seconds) when performing wind analyses. If
@@ -85,7 +102,7 @@ OPTIONS
 *-n, -N* 'NWS'::
     The input fort.22 file is set up in the format required for the
     ADCIRC wind model corresponding to the 'NWS' value. The NWS values
-    15 and 19 are supported. If 'NWS' is set to 19, the fort.22 is expected
+    15 and 19 are supported. If 'NWS' is set to 19 or 20, the fort.22 is expected
     to be in ATCF format with the hours column set to monotonically increasing
     values, and an input file will be generated for ADCIRC's asymmetric vortex
     model. If 'NWS' is set to 15 (HWind), only wind analysis features are supported.
@@ -118,10 +135,10 @@ ADCIRC modules be available during compilation.
 
 AUTHOR
 ------
-Aswip was originally created by Robert Weaver and Rick Luettich.
-Jason Fleming reorganized it for modularity and brevity and added
-the meteorological analysis features. This man page was written by
-Jason Fleming.
+Aswip was originally created by Robert Weaver and Rick Luettich. 
+Jason Fleming reorganized it for modularity and brevity and added 
+the meteorological analysis features. It was extended for use with 
+the GAHM by Jie Gao. This man page was written by Jason Fleming.
 
 RESOURCES
 ---------
@@ -132,4 +149,3 @@ COPYING
 -------
 The aswip code is distributed with ADCIRC and is covered by the same
 license.
-:w

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Tue, 30 Aug 2005 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm KATRINA Forecast/Advisory Number 30</title>
+      <description>Issued at 0900Z TUE AUG 30 2005 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+TROPICAL STORM KATRINA FORECAST/ADVISORY NUMBER  30
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL122005
+0900Z TUE AUG 30 2005
+ 
+TROPICAL STORM CENTER LOCATED NEAR 34.7N  88.4W AT 30/0900Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHEAST OR  15 DEGREES AT  16 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  981 MB
+MAX SUSTAINED WINDS  45 KT WITH GUSTS TO  55 KT.
+34 KT....... 75NE  90SE  75SW  50NW.
+12 FT SEAS..  0NE 350SE 300SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 34.7N  88.4W AT 30/0900Z
+AT 30/0600Z CENTER WAS LOCATED NEAR 34.1N  88.6W
+ 
+FORECAST VALID 30/1800Z 37.2N  86.7W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 31/0600Z 40.3N  82.8W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 31/1800Z 43.7N  77.0W...INLAND EXTRATROPICAL
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 01/0600Z 47.5N  71.4W...INLAND EXTRATROPICAL
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 02/0600Z 53.0N  68.5W...INLAND EXTRATROPICAL
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 250 NM
+ON DAY 4 AND 325 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 03/0600Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 34.7N  88.4W
+ 
+NEXT ADVISORY AT 30/1500Z
+ 
+FORECASTER BEVEN
+
+</pre>]]></description>
+      <pubDate>Tue, 30 Aug 2005 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2005/12/30.122005.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2005/12/30.122005.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

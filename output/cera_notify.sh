@@ -34,6 +34,12 @@ ADDRESS_LIST=${11}
 if [[ $EMAILNOTIFY != yes && $EMAILNOTIFY != YES ]]; then
    exit
 fi
+#
+# simply return if there are no email addresses to send email to
+if [[ $ADDRESS_LIST = null ]]; then
+   exit
+fi
+#
 STORMCLASSNAME=`cat nhcClassName`
 # find the space between the storm class (TD, TS, HU, etc) and the NHC name
 ind=`expr index "$STORMCLASSNAME" ' '`
@@ -152,12 +158,13 @@ CERASERVER=`grep "ceraServer" ${STORMDIR}/run.properties | sed 's/ceraServer.*:/
 INSTANCENAME=`grep "instance" ${STORMDIR}/run.properties | sed 's/instance.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 
 
-subject="ADCIRC POSTED for $runStartTime"
+#subject="ADCIRC POSTED for $runStartTime"
+subject="ADCIRC NG $runStartTime $HOSTNAME.$INSTANCENAME $ENMEMNUM"
 if [[ $TROPICALCYCLONE = on ]]; then
-   subject=${subject}" (TROPICAL CYCLONE)"
+   subject=${subject}" (TC)"
 fi
-subject="${subject} $CERASERVER"
-subject="${subject} $HOSTNAME.$INSTANCENAME $ENMEMNUM"
+#subject="${subject} $CERASERVER"
+#subject="${subject} $HOSTNAME.$INSTANCENAME $ENMEMNUM"
 #
 echo "INFO: cera_notify.sh: Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
 cat ${STORMDIR}/post_notify.txt | mail -s "$subject" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1

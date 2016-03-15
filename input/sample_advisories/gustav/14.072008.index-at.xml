@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Thu, 28 Aug 2008 11:30:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm GUSTAV Forecast/Advisory Number 14</title>
+      <description>Issued at 1130 UTC THU AUG 28 2008 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+TROPICAL STORM GUSTAV SPECIAL FORECAST/ADVISORY NUMBER  14
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL072008
+1130 UTC THU AUG 28 2008
+ 
+AT 8 AM EDT...1200 UTC...THE GOVERNMENT OF JAMAICA HAS ISSUED A
+HURRICANE WARNING FOR JAMAICA.
+ 
+A TROPICAL STORM WARNING REMAINS IN EFFECT FOR THE CUBAN PROVINCE OF
+GRANMA.
+ 
+A HURRICANE WATCH REMAINS IN EFFECT FOR ALL OF THE CAYMAN ISLANDS.
+ 
+INTERESTS IN CENTRAL AND WESTERN CUBA SHOULD CLOSELY MONITOR THE
+PROGRESS OF GUSTAV.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 17.8N  75.6W AT 28/1130Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST-SOUTHWEST OR 245 DEGREES AT   5 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  988 MB
+EYE DIAMETER  15 NM
+MAX SUSTAINED WINDS  60 KT WITH GUSTS TO  75 KT.
+50 KT....... 15NE   0SE   0SW   0NW.
+34 KT....... 45NE  30SE  30SW  30NW.
+12 FT SEAS.. 30NE  30SE  30SW  60NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 17.8N  75.6W AT 28/1130Z
+AT 28/0600Z CENTER WAS LOCATED NEAR 18.0N  75.5W
+ 
+FORECAST VALID 28/1800Z 17.5N  76.1W
+MAX WIND  65 KT...GUSTS  80 KT.
+64 KT... 15NE   0SE   0SW   0NW.
+50 KT... 20NE  20SE   0SW  20NW.
+34 KT... 60NE  60SE  45SW  60NW.
+ 
+FORECAST VALID 29/0600Z 17.8N  78.3W
+MAX WIND  65 KT...GUSTS  80 KT.
+64 KT... 20NE  20SE   0SW  20NW.
+50 KT... 30NE  30SE  20SW  30NW.
+34 KT... 75NE  75SE  60SW  75NW.
+ 
+FORECAST VALID 29/1800Z 18.5N  80.3W
+MAX WIND  70 KT...GUSTS  85 KT.
+64 KT... 20NE  20SE   0SW  20NW.
+50 KT... 30NE  30SE  20SW  30NW.
+34 KT... 75NE  75SE  60SW  75NW.
+ 
+FORECAST VALID 30/0600Z 19.5N  82.0W
+MAX WIND  75 KT...GUSTS  90 KT.
+50 KT... 45NE  45SE  30SW  45NW.
+34 KT... 90NE  90SE  75SW  90NW.
+ 
+FORECAST VALID 31/0600Z 22.0N  85.5W
+MAX WIND  95 KT...GUSTS 115 KT.
+50 KT... 60NE  60SE  50SW  60NW.
+34 KT...120NE 120SE 100SW 120NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 225 NM
+ON DAY 4 AND 300 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 01/0600Z 26.0N  89.0W
+MAX WIND 100 KT...GUSTS 120 KT.
+ 
+OUTLOOK VALID 02/0600Z 28.5N  91.0W
+MAX WIND 100 KT...GUSTS 120 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 17.8N  75.6W
+ 
+NEXT ADVISORY AT 28/1500Z
+ 
+$$
+FORECASTER BLAKE/AVILA
+
+</pre>]]></description>
+      <pubDate>Thu, 28 Aug 2008 11:30:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2008/07/14.072008.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2008/07/14.072008.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

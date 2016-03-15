@@ -1,0 +1,41 @@
+#!/bin/bash
+# The queue should be workq for parallel jobs
+#PBS -q %queuename%
+# Specify number of cpus in a machine-specific way (ppn=20 for parallel jobs)
+#PBS -l nodes=%nnodes%:ppn=%ppn%
+# estimated wall clock time
+#PBS -l walltime=%walltime%
+# Merge stderr to stdout (optional, otherwise they're in separate files)
+#PBS -j oe
+# Specify the output filename explicitly (optional; the default is named
+# from the job ID, in the directory where qsub was run.)
+#PBS -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out
+# the LONI allocation that the time should be taken from 
+#PBS -A %account%
+# Name the job (this will appear in the output from the qstat command)
+#PBS -N %enstorm%
+# Specify email address
+#PBS -M %notifyuser%
+#PBS -V
+#-----------------------------------------------------------------------
+# go to the directory with the input files
+cd %advisdir%/%enstorm%
+# load netcdf modules, in case they are needed
+module load intel
+module load netcdf
+module load netcdf_fortran
+#
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+echo "[${DATETIME}] : %jobtype% starting in %advisdir%/%enstorm%." >> %jobtype%.%enstorm%.run.start
+echo "%jobtype% job starting at $DATETIME."
+mpirun -np %ncpu% -machinefile $PBS_NODEFILE %adcircdir%/%jobtype% %cloptions% > %jobtype%.%enstorm%.out 2>&1
+ERROVALUE=$?
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+if [ $ERROVALUE == 0 ] ; then
+   RUNSUFFIX="finish"
+else
+   RUNSUFFIX="error"
+fi
+echo "[${DATETIME}] : %jobtype%.%enstorm% finished in %advisdir%/%enstorm% with return value = $ERROVALUE" > %jobtype%.%enstorm%.run.${RUNSUFFIX}
+echo "Job finished at $DATETIME."
+# You don't need anything special at the end of the script.

@@ -35,22 +35,20 @@ primitive_weighting_in_continuity_equation
  0.0030 2.0 10 1.33333 ! FFACTOR,HBREAK,FTHETA,FGAMMA
  50.0                  ! ESL - LATERAL EDDY VISCOSITY COEFFICIENT; IGNORED IF NWP =1
  0.0                   ! CORI - CORIOLIS PARAMETER - IGNORED IF NCOR = 1
- 8                     ! NTIF - TOTAL NUMBER OF TIDAL POTENTIAL CONSTITUENTS BE
+ 7                     ! NTIF - TOTAL NUMBER OF TIDAL POTENTIAL CONSTITUENTS BE
 M2                     ! ALPHANUMERIC DESCRIPTION   24.25 day simulation Begin 7-Aug-2012 at 1200 UTC
  0.242334  1.405174E-004 0.693000  %M2NF%  %M2EQARG%
-S2                                                       ! ALPHANUMERIC DESCRIPTION
+S2                                       ! ALPHANUMERIC DESCRIPTION
  0.112841  1.454426E-004 0.693000  %S2NF%  %S2EQARG%
-N2                                                       ! ALPHANUMERIC DESCRIPTION
+N2                                       ! ALPHANUMERIC DESCRIPTION
  0.046398  1.378783E-004 0.693000  %N2NF%  %N2EQARG%
-K2                                                       ! ALPHANUMERIC DESCRIPTION
+K2                                       ! ALPHANUMERIC DESCRIPTION
  0.030704  1.458408E-004 0.693000  %K2NF%  %K2EQARG%
-K1                                                       ! ALPHANUMERIC DESCRIPTION
+K1                                       ! ALPHANUMERIC DESCRIPTION
  0.141565  7.292040E-005 0.736000  %K1NF%  %K1EQARG%
-O1                                                       ! ALPHANUMERIC DESCRIPTION
+O1                                       ! ALPHANUMERIC DESCRIPTION
  0.100514  6.759704E-005 0.695000  %O1NF%  %O1EQARG%
-P1                                                       ! ALPHANUMERIC DESCRIPTION
- 0.046843  7.252219E-005 0.706000  %P1NF%  %P1EQARG%
-Q1                                                       ! ALPHANUMERIC DESCRIPTION
+Q1                                       ! ALPHANUMERIC DESCRIPTION
  0.019256 6.495787E-005 0.695000   %Q1NF%  %Q1EQARG% 
 7                      ! NBFR      jgf20110607: tidal b.c.s interpolated from tpx0 7.2 
 M2                                       ! ALPHANUMERIC DESCRIPTION
