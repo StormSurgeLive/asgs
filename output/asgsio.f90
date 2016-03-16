@@ -4,7 +4,7 @@
 ! A module that provides helper subroutines for opening and reading 
 ! ADCIRC files in ascii and netcdf format. 
 !--------------------------------------------------------------------------
-! Copyright(C) 2014 Jason Fleming
+! Copyright(C) 2014--2016 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -52,13 +52,24 @@ integer :: errorIO  ! zero if the file opened or read successfully
 ! is used in generateXDMF.f90.
 type fileMetaData_t
    logical :: initialized  ! .true. if memory has been allocated 
-   character(len=2048) :: netCDFFile ! name of targetted netCDF file
+   integer :: nc_id        ! netcdf ID for the file
+   character(len=2048) :: netCDFFile ! name of netCDF file
    character(len=1024) :: fileTypeDesc
    logical :: timeVarying  ! .true. if we have datasets at different times
    integer :: numVarNetCDF ! number of variables targetted in NetCDF4 file
    integer, allocatable :: nc_varID(:) ! netcdf variable ID for targetted variables
    integer, allocatable :: nc_type(:) ! netcdf variable type for targetted variables
-   character(NF90_MAX_NAME), allocatable :: varNameNetCDF(:) 
+   character(NF90_MAX_NAME), allocatable :: varNameNetCDF(:)
+   integer :: nvar         ! number of variables in the netcdf file
+   logical :: nodalAttributesFile ! true if the file is a nodal attributes file  
+   integer :: nc_dimid_node ! netcdf ID for the dimension for number of nodes
+   integer :: nc_dimid_nele ! netcdf ID for the dimension of the number of elements
+   integer :: nc_dimid_time ! netcdf ID for the time dimension
+   integer :: nc_varid_time ! netcdf ID for the time variable
+   integer :: ndim          ! number of dimensions in the netcdf file
+   integer :: natt          ! number of attributes in the netcdf file
+   integer :: nSnaps        ! number of datasets in the time varying netcdf file
+   real(8), allocatable :: timesec(:)  ! time in seconds associated with each dataset
    !
    character(len=2048) :: xmfFile ! name of XDMF XML file
    integer :: xmfUnit      ! logical unit number of XDMF XML file
