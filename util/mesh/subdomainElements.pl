@@ -4,7 +4,7 @@
 # reads element mapping tables, and tallies which subdomains claim 
 # which elements.
 #--------------------------------------------------------------------------
-# Copyright(C) 2015 Jason Fleming
+# Copyright(C) 2015--2016 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
