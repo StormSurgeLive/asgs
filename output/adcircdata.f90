@@ -53,7 +53,7 @@ integer :: ndset
 integer :: num_components
 real(8) :: time_increment
 real(8) :: defaultValue
-real(8) :: fillValue
+real(8) :: fillValue = -99999.d0
 real(8), allocatable :: timesec(:)  ! time in seconds associated with each dataset
 real(8), allocatable :: adcirc_data(:,:) ! generic holder for converted data
 real(8), allocatable :: adcirc_data3D(:,:,:) ! generic holder for converted data
