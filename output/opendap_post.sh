@@ -161,7 +161,8 @@ wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
 END
 #
 if [[ threddsPostStatus != ok ]]; then
-   error "opendap_post.sh: A failure occurred when attempting to post data to the THREDDS Data Server ${SERVER}. Downstream data consumers will not receive an email for these results."
+   error "opendap_post.sh: A failure occurred when attempting to post data to the THREDDS Data Server ${SERVER}. Downstream data consumers will not receive an email for these results. However, the opendap results notification will be sent to ${ASGSADMIN}."
+   cat ${STORMDIR}/opendap_results_notify.txt | mail -s "$subject" $ASGSADMIN 2>> ${SYSLOG} 2>&1
 else
    logMessage "opendap_post.sh: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
    cat ${STORMDIR}/opendap_results_notify.txt | mail -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
