@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------
 # opendap_post.sh : Makes results available to thredds data server.
 #------------------------------------------------------------------------
-# Copyright(C) 2015 Jason Fleming
+# Copyright(C) 2015--2016 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -87,18 +87,35 @@ done
 #
 # If the HPC and TDS do not share a common filesystem, use scp with 
 # public key authentication to copy the files to the server hosting THREDDS.
+#
+# jgf20160317: Added status check for posting to opendap so that if 
+# there is a failure, the Operator is notified rather than downstream
+# data consumers.
+threddsPostStatus=ok
 if [[ $OPENDAPPOSTMETHOD = scp ]]; then
    logMessage "Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
    ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
+   if [[ $? != 0 ]]; then
+      threddsPostStatus=fail
+   fi
    for file in ${FILES[*]}; do 
       chmod +r $file 2>> $SYSLOG
       logMessage "Transferring $file."
       scp -P $SSHPORT $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG
+      if [[ $? != 0 ]]; then
+         threddsPostStatus=fail
+      fi
       ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod +r $OPENDAPDIR/$file"
+      if [[ $? != 0 ]]; then
+         threddsPostStatus=fail
+      fi      
       # We must add this new property to the run.properties after copying it
       # to the remote server so we don't contaminate the original
       # run.properties with this downloadurl property.
       ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "echo downloadurl : $downloadURL >> $OPENDAPDIR/run.properties"
+      if [[ $? != 0 ]]; then
+         threddsPostStatus=fail
+      fi      
    done
 else
    #
@@ -112,10 +129,16 @@ else
       if [[ $file = run.properties ]]; then
          logMessage "Copying $file."
          cp ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
+         if [[ $? != 0 ]]; then
+            threddsPostStatus=fail
+         fi         
          echo downloadurl : $downloadurl >> $file 2>> ${SYSLOG}
       else
          logMessage "Symbolically linking to $file."
          ln -s ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
+         if [[ $? != 0 ]]; then
+           threddsPostStatus=fail
+         fi
       fi
    done
 fi
@@ -136,5 +159,10 @@ or wget the file with the following command
 
 wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
 END
-echo "INFO: queenbee_daily_post.sh: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
-cat ${STORMDIR}/opendap_results_notify.txt | mail -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+#
+if [[ threddsPostStatus != ok ]]; then
+   error "opendap_post.sh: A failure occurred when attempting to post data to the THREDDS Data Server ${SERVER}. Downstream data consumers will not receive an email for these results."
+else
+   logMessage "opendap_post.sh: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
+   cat ${STORMDIR}/opendap_results_notify.txt | mail -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+fi
