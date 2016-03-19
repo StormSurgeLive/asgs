@@ -924,5 +924,5 @@ RENCI HPC
 CF
 jason.fleming@seahorsecoastal.com
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
-&wetDryControl outputNodeCode=.true. outputNOFF=.true. noffActive=.false.  /
+&wetDryControl outputNodeCode=.false. outputNOFF=.false. noffActive=.false.  /
 &inundationOutputControl inundationOutput=.true. /
