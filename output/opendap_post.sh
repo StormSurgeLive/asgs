@@ -121,9 +121,10 @@ else
    #
    # if the HPC and TDS do share a common filesystem, create symbolic links
    # to the actual results files in a place where TDS can find them
+   mkdir -p $OPENDAPDIR 2>> $SYSLOG
    cd $OPENDAPDIR 2>> ${SYSLOG}
    for file in ${FILES[*]}; do 
-      chmod +r $file 2>> $SYSLOG
+      chmod +r ${ADVISDIR}/${ENSTORM}/$file 2>> $SYSLOG
       # We must copy the run.properties so we don't contaminate the
       # original run.properties with this downloadurl property.
       if [[ $file = run.properties ]]; then
@@ -132,7 +133,7 @@ else
          if [[ $? != 0 ]]; then
             threddsPostStatus=fail
          fi         
-         echo downloadurl : $downloadurl >> $file 2>> ${SYSLOG}
+         echo downloadurl : $downloadURL >> $file 2>> ${SYSLOG}
       else
          logMessage "Symbolically linking to $file."
          ln -s ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
@@ -161,7 +162,7 @@ wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
 END
 #
 if [[ threddsPostStatus != ok ]]; then
-   error "opendap_post.sh: A failure occurred when attempting to post data to the THREDDS Data Server ${SERVER}. Downstream data consumers will not receive an email for these results. However, the opendap results notification will be sent to ${ASGSADMIN}."
+   error "opendap_post.sh: A failure occurred when the ASGS instance $INSTANCENAME attempted to post data to the THREDDS Data Server ${SERVER}. Downstream data consumers will not receive an email for these results. However, the opendap results notification will be sent to ${ASGSADMIN}."
    cat ${STORMDIR}/opendap_results_notify.txt | mail -s "$subject" $ASGSADMIN 2>> ${SYSLOG} 2>&1
 else
    logMessage "opendap_post.sh: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
