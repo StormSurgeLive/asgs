@@ -20,7 +20,8 @@ primitive_weighting_in_continuity_equation
 -3                        ! TAU0 - WEIGHTING FACTOR IN GWCE
 %DT%                      ! DT - TIME STEP (IN SECONDS)
 0.0                       ! STATIM - STARTING TIME (IN DAYS)
-%WTIMINC%                 ! REFTIM - REFERENCE TIME (IN DAYS)
+0.0                       ! REFTIM - REFERENCE TIME (IN DAYS)
+%WTIMINC%                 ! WTIMINC - met, wave, and ice parameters
 %RNDAY%                   ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
 10.0                      ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
 0.0 1.0 0.0               ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
@@ -39,7 +40,7 @@ N2                                         ! ALPHANUMERIC DESCRIPTION
 K2                                         ! ALPHANUMERIC DESCRIPTION
  0.030704  1.458408E-004 0.693 %K2NF%  %K2EQARG%
 K1                                         ! ALPHANUMERIC DESCRIPTION
- 0.141565  7.292040E-005 0.736 %K1NF%  %K2EQARG% 
+ 0.141565  7.292040E-005 0.736 %K1NF%  %K1EQARG% 
 O1                                         ! ALPHANUMERIC DESCRIPTION
  0.100514  6.759704E-005 0.695 %O1NF%  %O1EQARG%
 P1                                         ! ALPHANUMERIC DESCRIPTION
@@ -56,7 +57,7 @@ N2                                         ! ALPHANUMERIC DESCRIPTION
 K2                                         ! ALPHANUMERIC DESCRIPTION
  1.458408E-004  1.31701 198.45 %K2NF%  %K2EQARG%
 K1                                         ! ALPHANUMERIC DESCRIPTION
- 7.292040E-005  1.11275 189.21 %K1NF%  %K2EQARG%
+ 7.292040E-005  1.11275 189.21 %K1NF%  %K1EQARG%
 O1                                         ! ALPHANUMERIC DESCRIPTION
  6.759704E-005  1.18306  49.92 %O1NF%  %O1EQARG%
 P1                                         ! ALPHANUMERIC DESCRIPTION

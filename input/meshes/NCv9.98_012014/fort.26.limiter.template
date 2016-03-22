@@ -1,7 +1,7 @@
 $*************************HEADING************************
 $
 $ comment lines:
-PROJ 'ASGS' '2014'
+PROJ 'ASGS' 'limi'
 'StormName: %StormName%'
 'EnsembleID: %EnsembleID%'
 'WTIMINC Line in ADCIRC fort.15: %WTIMINC%'
