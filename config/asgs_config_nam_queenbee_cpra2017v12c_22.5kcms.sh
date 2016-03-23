@@ -142,10 +142,10 @@ MINMAX=reset
 
 EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
 NOTIFY_SCRIPT=corps_nam_notify.sh
-ACTIVATE_LIST=""
-NEW_ADVISORY_LIST=""
-POST_INIT_LIST=""
-POST_LIST=""
+ACTIVATE_LIST=null
+NEW_ADVISORY_LIST=null
+POST_INIT_LIST=null
+POST_LIST=null
 JOB_FAILED_LIST="jason.g.fleming@gmail.com"
 NOTIFYUSER=jason.g.fleming@gmail.com
 ASGSADMIN=jason.g.fleming@gmail.com
