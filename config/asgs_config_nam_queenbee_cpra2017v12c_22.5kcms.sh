@@ -37,7 +37,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 # Source file paths
 
 ADCIRCDIR=~/adcirc/txout/work # ADCIRC executables
-SCRIPTDIR=~/git/asgs          # ASGS executables
+SCRIPTDIR=~/asgs/2014stable          # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/cpra2017_v11k-CurrentConditions # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
