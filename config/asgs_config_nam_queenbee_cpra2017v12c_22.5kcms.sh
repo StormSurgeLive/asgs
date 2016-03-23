@@ -37,7 +37,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 # Source file paths
 
 ADCIRCDIR=~/adcirc/txout/work # ADCIRC executables
-SCRIPTDIR=~/git/asgs          # ASGS executables
+SCRIPTDIR=~/asgs/2014stable          # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/cpra2017_v11k-CurrentConditions # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
@@ -142,10 +142,10 @@ MINMAX=reset
 
 EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
 NOTIFY_SCRIPT=corps_nam_notify.sh
-ACTIVATE_LIST=""
-NEW_ADVISORY_LIST=""
-POST_INIT_LIST=""
-POST_LIST=""
+ACTIVATE_LIST=null
+NEW_ADVISORY_LIST=null
+POST_INIT_LIST=null
+POST_LIST=null
 JOB_FAILED_LIST="jason.g.fleming@gmail.com"
 NOTIFYUSER=jason.g.fleming@gmail.com
 ASGSADMIN=jason.g.fleming@gmail.com
