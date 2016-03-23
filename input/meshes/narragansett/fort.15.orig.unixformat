@@ -1,72 +1,68 @@
-ASGS %StormName%          ! 30 CHARACTER ALPHANUM RUN DESCRIPTION
-%EnsembleID%              ! 20 CHARACTER ALPANUMERIC RUN IDENTIFICATION
-1 20.0 1 20 100.0         ! NFOVER - NONFATAL ERROR OVERRIDE 
-1                         ! NABOUT - ABREVIATED OUTPUT
--1000                     ! NSCREEN - UNIT 6 
-%IHOT%                    ! IHOT - HOT START 
-2                         ! ICS - COORDINATE SYSTEM 
-111112                    ! IM - MODEL TYPE  jgf20140502: corrected 111122 
-1                         ! NOLIBF - BOTTOM FRICTION TERM 
-2                         ! NOLIFA - FINITE AMPLITUDE TERM 
-1                         ! NOLICA - SPATIAL DERIVATIVE PORTION OF CONV. TERM
-1                         ! NOLICAT - TIME DERIVATIVE PORTION OF CONVECTIVE TERM
-4                         ! NWP jgf20140502:turned off wave refraction in swan
-mannings_n_at_sea_floor
+naragansett_bay_ec_95d.grd tides run    ! 30 CHARACTER ALPHANUM RUN DESCRIPTION
+adc51.52.32 11/30/15        ! 20 CHARACTER ALPANUMERIC RUN IDENTIFICATION
+1                         ! NFOVER - NONFATAL ERROR OVERRIDE OPTION
+1                         ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
+1                         ! NSCREEN - UNIT 6 OUTPUT OPTION PARAMETER
+0                         ! IHOT - HOT START PARAMETER
+2                         ! ICS - COORDINATE SYSTEM SELECTION PARAMETER
+111112                         ! IM - MODEL TYPE (0 INDICATES STANDARD DEPTH INTEGRATED MODEL)
+1                         ! NOLIBF - BOTTOM FRICTION TERM SELECTION PARAMETER
+2                         ! NOLIFA - FINITE AMPLITUDE TERM SELECTION PARAMETER
+0                         ! NOLICA - SPATIAL DERIVATIVE PORTION OF CONV. TERM SELECTION PARAMETER
+0                         ! NOLICAT - TIME DERIVATIVE PORTION OF CONVECTIVE TERM SELECTION PARAMETER
+1                         ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
 primitive_weighting_in_continuity_equation
-average_horizontal_eddy_viscosity_in_sea_water_wrt_depth
-sea_surface_height_above_geoid
-1                         ! NCOR - VARIABLE CORIOLIS IN SPACE 
-1                         ! NTIP - TIDAL POTENTIAL 
-%NWS%                     ! NWS - WIND STRESS AND BAROMETRIC PRESSURE 
+1                         ! NCOR - VARIABLE CORIOLIS IN SPACE OPTION PARAMETER
+1                         ! NTIP - TIDAL POTENTIAL OPTION PARAMETER
+0                         ! NWS - WIND STRESS AND BAROMETRIC PRESSURE OPTION PARAMETER
 1                         ! NRAMP - RAMP FUNCTION OPTION
 9.81                      ! G - ACCELERATION DUE TO GRAVITY - DETERMINES UNITS
 -3                        ! TAU0 - WEIGHTING FACTOR IN GWCE
-%DT%                      ! DT - TIME STEP (IN SECONDS) jgf20140502: 0.5s
+0.5                         ! DT - TIME STEP (IN SECONDS)
 0.0                       ! STATIM - STARTING TIME (IN DAYS)
 0.0                       ! REFTIM - REFERENCE TIME (IN DAYS)
-%WTIMINC%                 ! WTIMINC, RSTIMINC (IN SECONDS)
-%RNDAY%                   ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
-7.0                       ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
-0.0 1.0 0.0               ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
-0.1 0 0 .01               ! H0 - MINIMUM CUTOFF DEPTH
--79.0 35.0                ! SLAM0,SFEA0 - CENTER OF CPP DEGREES LONG/LAT
+15.0                       ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
+10.0                       ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
+0.0 1.0 0.0            ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
+0.1 0 0 .05            ! H0 - MINIMUM CUTOFF DEPTH
+-79.0 35.0                ! SLAM0,SFEA0 - CENTER OF CPP PROJECTION IN DEGREES LONG/LAT
 0.003  1. 10. 0.33333     ! FFACTOR - BOTTOM FRICTION COEFFICIENT
-2.0                       ! ESL - LATERAL EDDY VISCOSITY COEFFICIENT
+2.0                       ! ESL - LATERAL EDDY VISCOSITY COEFFICIENT; IGNORED IF NWP =1
 0.0                       ! CORI - CORIOLIS PARAMETER - IGNORED IF NCOR = 1
-8                         ! NTIF
-M2      
- 0.242334  1.405174E-004 0.693000 %M2NF%  %M2EQARG%
-S2  
- 0.112841  1.454426E-004 0.693000 %S2NF%  %S2EQARG%
-N2 
- 0.046398  1.378783E-004 0.693000 %N2NF%  %N2EQARG%
-K2 
- 0.030704  1.458408E-004 0.693000 %K2NF%  %K2EQARG%
-K1  
- 0.141565  7.292040E-005 0.736000 %K1NF%  %K2EQARG%
-O1   
- 0.100514  6.759704E-005 0.695000 %O1NF%  %O1EQARG%
-P1 
- 0.046843  7.252219E-005 0.706000 %P1NF%  %P1EQARG%
-Q1 
- 0.019256 6.495787E-005 0.695000  %Q1NF%  %Q1EQARG% 
-8  !  NBFR - TOTAL NUMBER OF FORCING FREQUENCIES ON OPEN BOUNDARIES
-M2 
- 1.405174E-004  %M2NF%  %M2EQARG%
-S2 
- 1.454426E-004  %S2NF%  %S2EQARG%
-N2 
- 1.378783E-004  %N2NF%  %N2EQARG%
-K2 
- 1.458408E-004  %K2NF%  %K2EQARG%
-K1 
- 7.292040E-005  %K1NF%  %K2EQARG% 
-O1 
- 6.759704E-005  %O1NF%  %O1EQARG%
-P1 
- 7.252219E-005  %P1NF%  %P1EQARG%
-Q1 
- 6.495787E-005  %Q1NF%  %Q1EQARG%
+8                         ! NTIF - TOTAL NUMBER OF TIDAL POTENTIAL CONSTITUENTS
+M2                        ! ALPHANUMERIC DESCRIPTION
+ 0.242334  1.405174E-004 0.693000  0.96320     239.25
+S2                                                       ! ALPHANUMERIC DESCRIPTION
+ 0.112841  1.454426E-004 0.693000  1.000   0.000 
+N2                                                       ! ALPHANUMERIC DESCRIPTION
+ 0.046398  1.378783E-004 0.693000  0.96320      67.58
+K2                                                       ! ALPHANUMERIC DESCRIPTION
+ 0.030704  1.458408E-004 0.693000  1.31701     198.45
+K1                                                       ! ALPHANUMERIC DESCRIPTION
+ 0.141565  7.292040E-005 0.736000  1.11275     189.21
+O1                                                       ! ALPHANUMERIC DESCRIPTION
+ 0.100514  6.759704E-005 0.695000  1.18306      49.92
+P1                                                       ! ALPHANUMERIC DESCRIPTION
+ 0.046843  7.252219E-005 0.706000  1.00000     171.09
+Q1                                                       ! ALPHANUMERIC DESCRIPTION
+ 0.019256 6.495787E-005 0.695000   1.18306     238.26
+8                !  NBFR - TOTAL NUMBER OF FORCING FREQUENCIES ON OPEN BOUNDARIES
+M2                                                       ! ALPHANUMERIC DESCRIPTION
+ 1.405174E-004  0.96320     239.25
+S2                                                       ! ALPHANUMERIC DESCRIPTION
+ 1.454426E-004  1.000  0.000 
+N2                                                       ! ALPHANUMERIC DESCRIPTION
+ 1.378783E-004  0.96320      67.58
+K2                                                       ! ALPHANUMERIC DESCRIPTION
+ 1.458408E-004  1.31701     198.45
+K1                                                       ! ALPHANUMERIC DESCRIPTION
+ 7.292040E-005  1.11275     189.21
+O1                                                       ! ALPHANUMERIC DESCRIPTION
+ 6.759704E-005  1.18306      49.92
+P1                                                       ! ALPHANUMERIC DESCRIPTION
+ 7.252219E-005  1.00000     171.09
+Q1                                                       ! ALPHANUMERIC DESCRIPTION
+ 6.495787E-005  1.18306     238.26
 M2
   0.534000   -139.0000
   0.525000   -138.5000
@@ -900,29 +896,120 @@ Q1
   0.005000    -59.6000
   0.005000    -58.9000
 100.0                      ! ANGINN : INNER ANGLE THRESHOLD
-%FORT61%                   ! NOUTE,TOUTSE,TOUTFE,NSPOOLE (UNIT  61)
-%NUMELEVSTATIONS%          ! TOTAL NUMBER OF ELEVATION RECORDING STATIONS    
-%FORT62%                   ! NOUTV,TOUTSV,TOUTFV,NSPOOLV (UNIT 62)
-%NUMVELSTATIONS%           ! TOTAL NUMBER OF VELOCITY RECORDING STATIONS
-%FORT7172%
-%NUMMETSTATIONS%           ! NSTAM - NUMBER OF MET RECORDING STATIONS
-%FORT63%                   ! NOUTGE,TOUTSGE,TOUTFGE,NSPOOLGE : (UNIT  63)
-%FORT64%                   ! NOUTGV,TOUTSGV,TOUTFGV,NSPOOLGV : (UNIT  64)
-%FORT7374%                 ! NOUTGM,TOUTSGM,TOUTFGM,NSPOOLGM (UNIT  73,74)
-0                          ! NHARF - NUMBER OF FREQENCIES IN HARMONIC ANALYSIS
-1.0 2.0 3 0.0              ! THAS, THAF, NHAINC,FMV
-0  0  0  0                 ! NHASE,NHASV,NHAGE,NHAGV
-%NHSTAR%  %NHSINC%         ! NHSTAR,NHSINC
- -1  0  1e-10  25  1       ! ITITER,ISLDIA,CONVCR,ITMAX,ILUMP
-NCFS
-UNC-CH IMS, RENCI, SeahorseCoastal
-RENCI HPC
-NCFS Nowcast/Forecast
-http://www.renci.org
-Model time is relative to UTC.
-RENCI HPC
-CF
-jason.fleming@seahorsecoastal.com
-%CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
-&wetDryControl outputNodeCode=.false. outputNOFF=.false. noffActive=.false.  /
-&inundationOutputControl inundationOutput=.true. /
+3  0  500  600            ! NOUTE,TOUTSE,TOUTFE,NSPOOLE:ELEV STATION OUTPUT INFO (UNIT  61)
+  26                       ! TOTAL NUMBER OF ELEVATION RECORDING STATIONS    
+ -66.98500     44.90333      !Eastport Passamaquoddy Bay, ME   (NOS Station ID 841014)               
+ -67.29666     44.64166      !Cutler Naval Base, ME            (NOS Station ID 8411250)              
+ -68.20000     44.40000      !Bar Harbor, ME                   (NOS Station ID 8413320)              
+ -70.24666     43.65666      !Portland, ME                     (NOS Station ID 8418150)              
+ -71.05166     42.35500      !Boston, MA                       (NOS Station ID 8443970)              
+ -70.67000     41.51333      !Woods Hole, MA                   (NOS Station ID 8447930)              
+ -70.09500     41.28666      !Nantucket Island, MA             (NOS Station ID 8449130)              
+ -71.39710     41.80990      !Providence, RI                   (NOS Station ID 8454000)              
+ -71.36290     41.46960      !Newport, RI		       (NOS Station ID 8452660)
+ -71.96666     41.05000      !Montauk, NY                      (NOS Station ID 8510560)              
+ -74.01166     40.46833      !Sandy Hook, NJ                   (NOS Station ID 8531680)              
+ -74.41833     39.35166      !Atlantic City, NJ                (NOS Station ID 8534720)              
+ -74.96000     38.96833      !Cape May Ferry Terminal, NJ      (NOS Station ID 8536110)              
+ -75.12000     38.78166      !Lewes, DE                        (NOS Station ID 8557380)              
+ -75.98833     37.16666      !Kiptopeke, VA                    (NOS Station ID 8632200)              
+ -76.29000     37.61500      !Windmill Pt., VA                 (NOS Station ID 8636580)              
+ -76.50000     37.24666      !Gloucester Pt., VA               (NOS Station ID 8637624)              
+ -76.11333     36.96666      !Chesapeake Bay Bridge Tunnel, VA (NOS Station ID 8638863)              
+ -75.74666     36.18333      !Duck Pier, NC                    (NOS Station ID 8651370)              
+ -75.550       35.797        !Oregon Inlet Marina, NC          (NOS Station ID 8652587)
+ -75.63500     35.22333      !Cape Hatteras Fishing Pier, NC   (NOS Station ID 8654400)              
+ -76.67000     34.72000      !Beaufort, NC                     (NOS Station ID 8656483)              
+ -77.953    34.227           !Wilmington, NC                   (NOS Station ID 8658120)
+ -77.7859   34.213           !Wrightsville Beach, NC           (NOS Station ID 8658163)
+ -78.018    33.915           !Southport, NC                    (NOS Station ID 8659084)
+ -78.507    33.865           !Sunset Beach, NC                 (NOS Station ID 8659897)
+0 0.00 55.0 16             ! NOUTV,TOUTSV,TOUTFV,NSPOOLV:VEL STATION OUTPUT INFO (UNIT 62)
+0                          ! TOTAL NUMBER OF VELOCITY RECORDING STATIONS
+3  0  30  7200           ! NOUTGE,TOUTSGE,TOUTFGE,NSPOOLGE : GLOBAL ELEV OUTPUT (UNIT  63)
+0   10  40  3600           ! NOUTGV,TOUTSGV,TOUTFGV,NSPOOLGV : GLOBAL VEL  OUTPUT (UNIT  64)
+ 35                                     ! NHARF - NUMBER OF FREQENCIES IN HARMONIC ANALYSIS
+ STEADY                                 ! HAFNAM - ALPHA DESCRIPTOR FOR CONSTITUENT NAME
+  0.000000000000000E-000 1.0 0.0        ! FREQUENCY, NODAL FACTOR, EQUILIBRIUM ARGUMENT (DEG)
+ MN    
+  2.639203022099004E-006 1.0 0.0
+ SM    
+  4.925201824217165E-006 1.0 0.0
+ O1    
+  6.759774415077308E-005 1.0 0.0
+ K1    
+  7.292115835787053E-005 1.0 0.0
+ SO1   
+  7.784636018208770E-005 1.0 0.0
+ MNS2  
+  1.329544976623275E-004 1.0 0.0
+ 2MS2  
+  1.355937006844265E-004 1.0 0.0
+ N2    
+  1.378796994865446E-004 1.0 0.0
+ M2    
+  1.405189025086436E-004 1.0 0.0
+ 2MN2  
+  1.431581055307426E-004 1.0 0.0
+ S2    
+  1.454441043328608E-004 1.0 0.0
+ MSN2  
+  1.480833073549598E-004 1.0 0.0
+ 2SM2  
+  1.503693061570779E-004 1.0 0.0
+ MO3   
+  2.081166466594167E-004 1.0 0.0
+ KO3   
+  2.134400613513279E-004 1.0 0.0
+ SK3   
+  2.183652626907314E-004 1.0 0.0
+ 2MNS4 
+  2.734734001709711E-004 1.0 0.0
+ 3MS4  
+  2.761126031930701E-004 1.0 0.0
+ MN4   
+  2.783986019951882E-004 1.0 0.0
+ M4    
+  2.810378050172872E-004 1.0 0.0
+ 3MN4  
+  2.836770080393862E-004 1.0 0.0
+ MS4   
+  2.859630068415044E-004 1.0 0.0
+ 2MSN4 
+  2.886022098636035E-004 1.0 0.0
+ 2NM6  
+  4.162783014817329E-004 1.0 0.0
+ 2MN6  
+  4.189175045038319E-004 1.0 0.0
+ M6    
+  4.215567075259309E-004 1.0 0.0
+ MSN6  
+  4.238427063280490E-004 1.0 0.0
+ 2MS6  
+  4.264819093501481E-004 1.0 0.0
+ 2SM6  
+  4.314071111743652E-004 1.0 0.0
+ M8    
+  5.620756100345745E-004 1.0 0.0
+ M10   
+  7.025945125432182E-004 1.0 0.0
+ Q1    
+  6.495854112867408E-005 1.0 0.0
+ P1    
+  7.252294597499024E-005 1.0 0.0
+ K2    
+  1.458423172005548E-004 1.0 0.0
+ 20.0  90.0   900  0.0000000    ! THAS, THAF, NHAINC,FMV
+ 0 0 0 0                    ! NHASE,NHASV,NHAGE,NHAGV
+ 0  172800                   ! NHSTAR,NHSINC
+ -1  0  1e-10  25            ! ITITER,ISLDIA,CONVCR,ITMAX
+narragansett_bay_ec95d_v2
+URI
+padcirc	
+padcirc-test
+dum 
+netcdftest
+hatteras
+unknown
+D.Ullman
+2006-07-01 00:00:00
