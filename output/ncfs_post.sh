@@ -2,7 +2,7 @@
 #-----------------------------------------------------------------------
 # ncfs_post.sh : Post processing for North Carolina.
 #-----------------------------------------------------------------------
-# Copyright(C) 2011--2015 Jason Fleming
+# Copyright(C) 2011--2016 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -189,11 +189,11 @@ OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
 mkdir -p $OPENDAPDIR 2>> ${SYSLOG}
 # make symbolic links from the opendap dir to the important files for the run
 cd $OPENDAPDIR 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/fort.*.nc . 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/swan*.nc . 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/max*.nc . 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/min*.nc . 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/run.properties . 2>> ${SYSLOG}
+for file in `ls ${STORMDIR}/*.nc ${STORMDIR}/run.properties`; do  
+   if [ -e $file ]; then
+      ln -s $file . 2>> ${SYSLOG}
+   fi
+done
 #ln -s ${ADVISDIR}/${ENSTORM}/*.xmf . 2>> ${SYSLOG}
 #ln -s ${ADVISDIR}/${ENSTORM}/*.kmz . 2>> ${SYSLOG}
 #
