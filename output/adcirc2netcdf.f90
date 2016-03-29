@@ -41,8 +41,9 @@
       use adcmesh
       use nodalattr
       use adcircdata
-      IMPLICIT NONE
-      CHARACTER(2048)               :: dataFileBase
+      implicit none
+      character(2048)               :: dataFileBase
+      integer :: convertedFileFormat ! netcdf3 or netcdf4
       character(2048)               :: netCDFFile, AttFile
       character(120)                :: dataRank
       character(120),   allocatable :: att(:,:)
@@ -55,8 +56,6 @@
       integer                       :: yy, mo, dd, hh, mi
       integer                       :: i, j, k, N, SS
       integer                       :: unitnumber
-      logical                       :: useNetCDF4 ! .true. if user wants netcdf classic model
-                                                  ! files formatted in hdf5 format
       logical                       :: meshonly   ! .true. if user just wants to convert the mesh
       logical                       :: dataonly   ! .true. if user just wants to convert the data
       logical                       :: timeVarying ! .true. for time varying data
@@ -102,7 +101,7 @@
       dataFile = "null"
       dataFileBase = "null"
       dataRank = "Scalar"
-      useNetCDF4 = .false.
+      convertedFileFormat = NETCDF4
       meshonly = .false.
       dataonly = .false.
       dataCenter = 'Node'
@@ -126,7 +125,10 @@
             call getarg(i, cmdlineopt)
             select case(trim(cmdlineopt))
                case("--netcdf4")
-                  useNetCDF4 = .true.
+                  convertedFileFormat = NETCDF4
+                  write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
+               case("--netcdf3")
+                  convertedFileFormat = NETCDF3
                   write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
                case("--meshonly")
                   meshonly = .true.
@@ -189,7 +191,7 @@
       write(6,'(a,a,a)') "INFO: Creating NetCDF file '"//trim(netCDFFile)//"'."
       ncFileType = NF90_CLOBBER ! netcdf3 format, netcdf classic model
 #ifdef HAVE_NETCDF4
-      if (useNetCDF4.eqv..true.) then
+      if (convertedFileFormat.eq.NETCDF4) then
          ncFileType = ior(NF90_HDF5,NF90_CLASSIC_MODEL) ! netcdf4 (i.e., hdf5) format, netcdf classic model
       endif
 #endif
@@ -214,7 +216,7 @@
       endif
       if (dataonly.eqv..false.) then
          call read14()
-         call writeMeshDefinitionsToNetCDF(NC_ID, useNetCDF4)
+         call writeMeshDefinitionsToNetCDF(NC_ID, convertedFileFormat)
       else       
          np = numValuesPerDataset
          call check(NF90_PUT_ATT(NC_ID,NF90_GLOBAL,'description',trim(JunkC)))
@@ -225,7 +227,7 @@
       ! using subroutines from the nodal attributes module and then stop
       if (trim(dataFileExtension).eq.'13') then
          call readNodalAttributesFile(dataFile)
-         call writeNodalAttributesFileNetCDF(nc_id, useNetCDF4)
+         call writeNodalAttributesFileNetCDF(nc_id, convertedFileFormat)
          stop
       endif
       !
@@ -556,7 +558,7 @@
 
       end select
 #ifdef NETCDF_CAN_DEFLATE
-      if (useNetCDF4.eqv..true.) then
+      if (convertedFileFormat.eq.NETCDF4) then
          do j=1,num_components
             call check(nf90_def_var_deflate(NC_ID, varid(j), 1, 1, 2))
          enddo

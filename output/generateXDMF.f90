@@ -126,7 +126,7 @@ do fi=1,numFiles
    call check(nf90_inquire_dimension(fileMetaData(fi)%nc_id, fileMetaData(fi)%NC_DimID_nele, len=ne))
    agrid = "mesh"
    ! Some netcdf files have the comment line at the top of the fort.14 in
-   ! an attribute named "agrid" while in others the attribute is named "grid".
+   ! an attribute named "agrid" while in others the attribute is named "grid".  
    ncStatus = nf90_get_att(fileMetaData(fi)%nc_id, NF90_GLOBAL, 'agrid', agrid)
    if ( ncStatus.ne.NF90_NOERR ) then
       call check(nf90_get_att(fileMetaData(fi)%nc_id, NF90_GLOBAL, 'grid', agrid))
@@ -151,8 +151,10 @@ do fi=1,numFiles
    call check(nf90_inquire(fileMetaData(fi)%nc_id, fileMetaData(fi)%ndim, fileMetaData(fi)%nvar, fileMetaData(fi)%natt, fileMetaData(fi)%nc_dimid_time, ncformat))
 end do 
 !
-! determine whether any of the files is a nodal attributes file
+! determine whether any of the files is a nodal attributes file or otherwise
+! time invariant
 fileMetaData(:)%nodalAttributesFile = .false.
+fileMetaData(:)%timeVarying = .true.
 do fi=1,numFiles
    do i=1,fileMetaData(fi)%natt
       call check(nf90_inq_attname(fileMetaData(fi)%nc_id, NF90_GLOBAL, i, thisVarName))
@@ -162,7 +164,16 @@ do fi=1,numFiles
          exit
       endif
    end do
-   if (fileMetaData(fi) % nodalAttributesFile.eqv..false.) then
+   do i=1,fileMetaData(fi)%nvar
+      call check(nf90_inquire_variable(fileMetaData(fi) % nc_id, i, thisVarName))
+      if (trim(thisVarName).eq.'inundationmask') then
+         fileMetaData(fi) % timeVarying = .false.
+         exit
+      endif
+   end do
+   ! get information about the time dimension and values if the data
+   ! are time varying
+   if (fileMetaData(fi) % timeVarying.eqv..true.) then
       call check(nf90_inquire(fileMetaData(fi) % nc_id, unlimitedDimId=fileMetaData(fi) % NC_DimID_time))
       call check(nf90_inquire_dimension(fileMetaData(fi) % nc_id, fileMetaData(fi) % NC_DimID_time, len=fileMetaData(fi) % nSnaps))
       call check(nf90_inq_varid(fileMetaData(fi) % nc_id, 'time', fileMetaData(fi) % NC_VarID_time))
@@ -287,6 +298,12 @@ do fi=1,numFiles
          call initMinMaxFileMetaData(fileMetaData(fi), thisVarName, fileMetaData(fi) % nvar, fileMetaData(fi) % nc_id)
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          exit 
+      case("inundationmask")
+         fileMetaData(fi) % fileTypeDesc = "an ADCIRC inundation mask (inundationmask.63) file"
+         call initMinMaxFileMetaData(fileMetaData(fi), thisVarName, fileMetaData(fi) % nvar, fileMetaData(fi) % nc_id)
+         call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
+         fileMetaData(fi) % timeVarying = .false.
+         exit          
       case("inun_time")
          fileMetaData(fi) % fileTypeDesc = "an ADCIRC total time inundated (inundationtime.63) file"
          call initMinMaxFileMetaData(fileMetaData(fi), thisVarName, fileMetaData(fi) % nvar, fileMetaData(fi) % nc_id)

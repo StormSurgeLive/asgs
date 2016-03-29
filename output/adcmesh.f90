@@ -39,13 +39,15 @@ real(8), allocatable :: centroids(:,:) ! (2,ne) x and y coordinates of the eleme
 real(8), allocatable          :: sigma(:)
 character(80)                 :: agrid
 integer                       :: ne, np
+integer, allocatable         :: nmnc(:,:) ! element table in netcdf (3,ne)
+integer, allocatable         :: nm(:,:)   ! element table in adcirc (ne,3)
 integer                       :: nfen
 integer                       :: mnei = 15  ! maximum number of neighbors for a node
 integer                       :: neta_count ! count of open boundary nodes
 integer                       :: nvel_count ! count of land boundary nodes
 integer                       :: nope, neta
 integer                       :: nbou, nvel
-integer,          allocatable :: nm(:,:)   ! element table (ne,3)
+
 integer,          allocatable :: nvdll(:)  ! number of nodes on each open boundary
 integer,          allocatable :: nbdv(:,:) ! node numbers on each open boundary
 integer,          allocatable :: nvell(:)  ! number of nodes on each flux boundary
@@ -372,6 +374,8 @@ integer :: ndim ! number of dimensions in the netcdf file
 integer :: nc_dimid_time ! id of the time dimension
 integer :: ncformat ! netcdf3, netcdf4, netcdf4 classic model, etc
 !
+write(6,'(a)') 'INFO: Reading mesh dimensions from the netCDF file.'
+!
 ! open the netcdf file
 call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
 !
@@ -391,10 +395,12 @@ call check(nf90_inq_dimid(nc_id, 'node', nc_dimid_node))
 call check(nf90_inquire_dimension(nc_id, nc_dimid_node, len=np))
 call check(nf90_inq_dimid(nc_id, 'nele', nc_dimid_nele))
 call check(nf90_inquire_dimension(nc_id, nc_dimid_nele, len=ne))
+
 !
 ! determine which other dimensions are present and find their lengths 
 !
 ! open boundaries
+write(6,'(a)') 'INFO: Reading boundary dimensions.'
 dimPres = nf90_inq_dimid(nc_id, 'nope', nc_dimid_nope)
 if (dimPres.eq.NF90_NOERR) then
    call check(nf90_inquire_dimension(nc_id, nc_dimid_nope, len=nope))
@@ -472,6 +478,9 @@ endif
 ! arrays have been allocated. The actual data are read in the
 ! subroutine readMeshNetCDF().
 call check(nf90_close(nc_id))
+
+write(6,'(a)') 'INFO: Finished reading mesh dimensions from the netCDF file.'
+
 !----------------------------------------------------------------------
 end subroutine findMeshDimsNetCDF
 !----------------------------------------------------------------------
@@ -491,15 +500,18 @@ use asgsio, only : nc_id, check
 implicit none
 character(len=1024), intent(in) :: datafile
 integer :: dimPres ! return code from netcdf to determine if the dimension is present in the file
-integer :: i
+integer :: i, j ! loop counter
 integer :: natt ! number of attributes in the netcdf file
 integer :: nvar ! number of variables in the netcdf file
 integer :: ndim ! number of dimensions in the netcdf file
 integer :: nc_dimid_time ! id of the time dimension
 integer :: ncformat ! netcdf3, netcdf4, netcdf4 classic model, etc
-integer, allocatable :: nmnc(:,:) ! connectivity table to satisfy netcdf's expectations
+
 integer :: nc_count(2)
 integer :: nc_start(2)
+!
+write(6,'(a)') 'INFO: Reading mesh from the netCDF file.'
+call allocateNodalAndElementalArrays()
 !
 ! open the netcdf file
 call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
@@ -507,22 +519,32 @@ call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
 ! read mesh lon, lat, depth data from the file
 nc_count = (/ np, 1 /)
 nc_start = (/ 1, 1 /)
+call check(nf90_inq_varid(nc_id, 'x', nc_varid_x))
 call check(nf90_get_var(nc_id,nc_varid_x,xyd(1,1:np),nc_start,nc_count))     
+call check(nf90_inq_varid(nc_id, 'y', nc_varid_y))
 call check(nf90_get_var(nc_id,nc_varid_y,xyd(2,1:np),nc_start,nc_count))
+call check(nf90_inq_varid(nc_id, 'depth', nc_varid_depth))
 call check(nf90_get_var(nc_id,nc_varid_depth,xyd(3,1:np),nc_start,nc_count))
 !
 ! element table
 NC_Count = (/ 3, ne /)
-allocate(nmnc(3,ne))
+call check(nf90_inq_varid(nc_id, 'element', nc_varid_element))
 call check(nf90_get_var(nc_id,nc_varid_element,nmnc,nc_start,nc_count))
+!
+! populate the adcirc-style element table
+!
+! we must reverse the order of the dimensions because netcdf writes
+! them to disk in column major order, according to the way C interprets
+! the data, rather than row major order, the way Fortran would interpret
+! the data
+do i=1, ne
+   do j=1, 3
+      nm(i,j)= nmnc(j,i)
+   end do
+end do
 !
 ! open (i.e., elevation specified) boundaries
 if (nope.ne.0) then
-   call check(nf90_get_var(nc_id,nc_varid_nope,nope))
-   call check(nf90_get_var(nc_id,nc_varid_max_nvell,nvell_max))
-   call check(nf90_get_var(nc_id,nc_varid_max_nvdll,nvdll_max))
-   call check(nf90_get_var(nc_id,nc_varid_neta,neta))
-   call check(nf90_get_var(nc_id,nc_varid_nvel,nvel))
    nc_count = (/ nope, 1 /)
    call check(nf90_get_var(nc_id,nc_varid_nvdll,nvdll,nc_start,nc_count))
    nc_count = (/ nope, nvdll_max /)   
@@ -569,7 +591,7 @@ if (agold.EQ.NF90_NOERR) then
 elseif(agnew.EQ.NF90_NOERR) then
    ag = nf90_get_att(nc_id,nf90_global,'agrid',agrid)
 else
-   call check(agnew)
+   call check(ag)
 endif
 !----------------------------------------------------------------------
 end subroutine readMeshCommentLineNetCDF
@@ -621,6 +643,14 @@ do k = 1, ne
    read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) je, nhy, ( nm(k,j), j = 1, 3 )
    lineNum = lineNum + 1
 enddo
+!
+! populate netcdf-style element table
+do i=1, ne
+   do j=1, 3
+      nmnc(j,i) = nm(i,j)
+   end do
+end do
+
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nope
 lineNum = lineNum + 1
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) neta
@@ -728,6 +758,7 @@ subroutine allocateNodalAndElementalArrays()
 implicit none
 allocate(xyd(3,np))
 allocate(nm(ne,3))
+allocate(nmnc(3,ne))
 !
 ! initialize to something troublesome to make it easy to spot issues
 xyd = -99999.d0
@@ -765,11 +796,13 @@ end subroutine allocateElevationBoundaryLengths
 !------------------------------------------------------------------
 subroutine allocateFluxBoundaryLengths()
 implicit none
+
 allocate(nvell(nbou)) ! number of nodes on each flux boundary segment
 allocate(ibtype_orig(nbou))
 allocate(ibtype(nbou))
 !
 ! initialize to something troublesome to make it easy to spot issues
+
 nvell = -99999
 ibtype_orig = -99999
 ibtype = -99999
@@ -786,7 +819,7 @@ end subroutine allocateFluxBoundaryLengths
 !------------------------------------------------------------------
 subroutine allocateAdcircElevationBoundaryArrays()
 implicit none
-allocate(nbdv(nope,neta))
+allocate(nbdv(nope,nvdll_max))
 allocate(nbd(neta))
 !
 ! initialize to something troublesome to make it easy to spot issues
@@ -806,7 +839,7 @@ end subroutine allocateAdcircElevationBoundaryArrays
 subroutine allocateAdcircFluxBoundaryArrays()
 implicit none
 allocate ( nbv(nvel),lbcodei(nvel))
-allocate ( nbvv(nbou,0:nvel))
+allocate ( nbvv(nbou,nvell_max))
 !
 ! jgf20150723: These are never used so I commented them out because
 ! they are memory hogs.
@@ -1144,12 +1177,12 @@ end subroutine writeMesh
 !----------------------------------------------------------------------
 !     This subroutine writes the mesh parameters to the netcdf file. 
 !----------------------------------------------------------------------
-subroutine writeMeshDefinitionsToNetCDF(nc_id, useNetCDF4)
+subroutine writeMeshDefinitionsToNetCDF(nc_id, fileFormat)
 use netcdf
-use asgsio, only : check
+use asgsio, only : check, NETCDF4
 implicit none
 integer, intent(in) :: nc_id
-logical, intent(in) :: useNetCDF4
+integer, intent(in) :: fileFormat
 integer              :: NC_DimID_single
 !
 ! create and store mesh dimensions 
@@ -1233,7 +1266,8 @@ CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'face_node_connectivity','element'))
 
 #ifdef NETCDF_CAN_DEFLATE
 
-if (useNetCDF4.eqv..true.) then
+! automatically turn on compression if it is available
+if (fileFormat.eq.NETCDF4) then
    if (nope.ne.0) then
       call check(nf90_def_var_deflate(NC_ID, NC_VarID_nvdll, 0, 1, 2))
       call check(nf90_def_var_deflate(NC_ID, NC_VarID_nbdv, 0, 1, 2))
@@ -1267,7 +1301,6 @@ endif
       use asgsio, only : check
       implicit none
       integer, intent(in) :: nc_id
-      integer, allocatable :: nmnc(:,:) ! connectivity table to satisfy netcdf's expectations
       integer :: nc_count(2)
       integer :: nc_start(2)
       integer :: i, j
@@ -1279,19 +1312,8 @@ endif
       CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_y,xyd(2,1:np),NC_Start,NC_Count))
       CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_depth,xyd(3,1:np),NC_Start,NC_Count))
       NC_Count = (/ 3, ne /)
-      !
-      ! we must reverse the order of the dimensions because netcdf writes
-      ! them to disk in column major order, according to the way C interprets
-      ! the data, rather than row major order, the way Fortran would interpret
-      ! the data
-      allocate(nmnc(3,ne))
-      do i=1, ne
-         do j=1, 3
-            nmnc(j,i)= nm(i,j)
-         end do
-      end do
+
       CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_element,nmnc,NC_Start,NC_Count))
-      deallocate(nmnc)
       
       if (nope.ne.0) then
          CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nope,nope))

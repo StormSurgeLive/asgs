@@ -322,14 +322,14 @@ end subroutine writeNodalAttribute63
 !-----------------------------------------------------------------------
 ! jgf: Writes all the nodal attribute data to a netcdf file.
 !-----------------------------------------------------------------------
-subroutine writeNodalAttributesFileNetCDF(ncid, useNetCDF4)
+subroutine writeNodalAttributesFileNetCDF(ncid, fileFormat)
 use netcdf
 use adcmesh
 use adcircdata, only : fillValue
-use asgsio, only : check
+use asgsio, only : check, NETCDF4
 implicit none
 integer, intent(in) :: ncid ! netcdf id of the file to write
-logical, intent(in) :: useNetCDF4 ! .true. turns on compression if compiled w/suitable libs 
+integer, intent(in) :: fileFormat ! NETCDF4 turns on compression if compiled w/suitable libs 
 integer :: nc_start(2) ! element of array where writing begins (each dimension)
 integer :: nc_count(2) ! number of elements of array to write (each dimension)
 character(len=2048) :: nameStr
@@ -365,7 +365,7 @@ do i=1,numNodalAttributes
    call check(nf90_put_att(ncid,na(i)%nc_varid,'valuesPerNode',na(i)%numVals))
 
 #ifdef NETCDF_CAN_DEFLATE
-   if (useNetCDF4.eqv..true.) then
+   if (fileFormat.eq.NETCDF4) then
       call check(nf90_def_var_deflate(ncid, na(i)%nc_varid, 1, 1, 2))
    endif
 #endif
