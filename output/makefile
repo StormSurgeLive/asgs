@@ -54,6 +54,9 @@ ifeq ($(compiler),gfortran)
    ifeq ($(DEBUG),full)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal #-Wall
    endif
+   ifeq ($(DEBUG),trace)
+      FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace 
+   endif
 endif
 #
 # specify compiler=intel on the make command line
@@ -131,7 +134,7 @@ OBJ := adcmesh.o asgsio.o adcircdata.o nodalattr.o
 MODS := adcmesh.mod asgsio.mod adcircdata.mod nodalattr.mod
 #
 # targets
-all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP
+all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN
 #
 clean :
 	rm -f *.o *.mod *.x
@@ -153,6 +156,9 @@ adcircdata.mod : adcircdata.f90 adcmesh.mod asgsio.mod
 # 
 makeMax : asgsio.mod adcmesh.mod adcircdata.mod ../util/makeMax.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o ../util/$@.x ../util/$@.f90 $(OBJ) $(LDFLAGS)
+# 
+inundationMask : $(MODS) inundationMask.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
 generateXDMF : adcmesh.mod asgsio.mod generateXDMF.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o $(LDFLAGS)
@@ -168,6 +174,9 @@ wetDryCheck : adcmesh.mod asgsio.mod wetDryCheck.f90
 #
 diffAdcircNetCDF : adcmesh.mod adcircdata.mod asgsio.mod diffAdcircNetCDF.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o adcircdata.o $(LDFLAGS)
+#
+HottifySWAN : HottifySWAN.F90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.F90 $(LDFLAGS)
 #
 nodalattr.mod : ../util/nodalattr/nodalattr.f90 adcmesh.mod adcircdata.mod asgsio.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c ../util/nodalattr/nodalattr.f90 $(LDFLAGS)

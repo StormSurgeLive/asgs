@@ -230,6 +230,14 @@ do i=1,nvar
       num_components = 1
       ndset = 1     
       exit      
+   case("everdried")
+      write(6,'(a)') "INFO: Preparing to write an ADCIRC " &
+         // "ever dried node file."
+      ascii_datafile_name = "everdried.63"
+      varname(2) = 'time_of_'//trim(varname(1))
+      call checkForTimeOfOccurrence(nc_id, varname(2), nvar, extremesWithTime, &
+         num_components, ndset)       
+      exit            
    case("endrisinginun")
       write(6,'(a)') "INFO: Preparing to write an ADCIRC " &
          // "rising inundation at end of simulation file."
@@ -476,21 +484,3 @@ end do
 !-----------------------------------------------------------------------
 end subroutine checkForTimeOfOccurrence
 !-----------------------------------------------------------------------
-
-!----------------------------------------------------------------------
-!  CHECK
-!---------------------------------------------------------------------
-SUBROUTINE Check(ncStatus)
-
-USE netcdf
-IMPLICIT NONE
-INTEGER,INTENT(IN) :: ncStatus
-IF(ncStatus.NE.NF90_NOERR)THEN
-   WRITE(*,'(A,A)') "ERROR: NetCDF: ",TRIM(NF90_STRERROR(ncStatus))
-   STOP
-ENDIF
-!---------------------------------------------------------------------
-END SUBROUTINE check
-!---------------------------------------------------------------------
-
-
