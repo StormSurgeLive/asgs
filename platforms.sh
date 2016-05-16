@@ -115,7 +115,6 @@ init_hatteras()
   PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=16
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/projects/ncfs/apps/croatan/netcdf/lib
 }
 init_stampede()
 { #<- can replace the following with a custom script
@@ -215,7 +214,6 @@ init_garnet()
   PPN=32
   IMAGEMAGICKBINPATH=/usr/local/usp/ImageMagick/default/bin 
 }
-
 init_spirit()
 { #<- can replace the following with a custom script
   # This requires the user to have a .personal.bashrc file in the $HOME 
@@ -240,6 +238,29 @@ init_spirit()
   QSCRIPTGEN=erdc.pbs.pl
   PPN=16
   IMAGEMAGICKBINPATH=/usr/local/usp/ImageMagick/default/bin 
+}
+init_topaz()
+{ #<- can replace the following with a custom script
+  # This requires the user to have a ~/.bash_profile file in the $HOME 
+  # directory with the following contents:
+  echo "Loading modules in .bash_profile ..."
+  module load usp-netcdf/intel-15.0.3/4.3.3.1
+  module load imagemagick/6.9.2-5
+  echo "... modules loaded."
+  HOSTNAME=topaz.erdc.hpc.mil
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  ACCOUNT=ERDCV00898N10
+  #ACCOUNT=ERDCV00898HSP
+  SUBMITSTRING="qstat"
+  SCRATCHDIR=$WORKDIR 
+  SSHKEY=~/.ssh/id_rsa_topaz
+  QSCRIPT=topaz.template.pbs
+  PREPCONTROLSCRIPT=topaz.adcprep.template.pbs
+  PREPHOTSTARTSCRIPT=topaz.adcprep.template.pbs
+  QSCRIPTGEN=erdc.pbs.pl
+  PPN=16
+  IMAGEMAGICKBINPATH=/app/unsupported/ImageMagick/6.9.2-5/bin/convert
 }
 init_tezpur()
 { #<- can replace the following with a custom script
@@ -315,6 +336,8 @@ init_desktop()
   SUBMITSTRING="mpiexec -n"
   SCRATCHDIR=/srv/asgs
   SSHKEY=id_rsa_jason-desktop
+  ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
+  SWANMACROSINC=macros.inc.gfortran
 }
 init_topsail()
 { #<- can replace the following with a custom script
@@ -372,6 +395,9 @@ env_dispatch(){
   "hatteras") consoleMessage "Hatteras (RENCI) configuration found."
           init_hatteras
           ;;
+  "hatteras14") consoleMessage "Hatteras (RENCI) configuration found."
+          init_hatteras14
+          ;;
   "sapphire") consoleMessage "Sapphire (ERDC) configuration found."
           init_sapphire
           ;;
@@ -386,6 +412,9 @@ env_dispatch(){
           ;;
   "spirit") consoleMessage "Spirit (AFRL) configuration found."
           init_spirit
+          ;;
+  "topaz") consoleMessage "Topaz (ERDC) configuration found."
+          init_topaz
           ;;
   "queenbee") consoleMessage "Queenbee (LONI) configuration found."
           init_queenbee
