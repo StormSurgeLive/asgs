@@ -4,7 +4,7 @@
 # A system to build ASGS-related utilities for processing ADCIRC output.
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2014 Jason Fleming
+# Copyright(C) 2014--2016 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -79,6 +79,10 @@ ifeq ($(NETCDF),enable)
    # jgf20150817: Added compiler flags for garnet at ERDC.
    ifeq ($(MACHINENAME),garnet)
       NETCDFPATH  := /opt/cray/netcdf/4.3.0/pgi/121
+   endif
+   # jgf20160428: Added compiler flags for topaz at ERDC.
+   ifeq ($(MACHINENAME),topaz)
+      NETCDFPATH  := /apps/unsupported/netcdf/4.3.3.1-intel-15.0.3
    endif
    # jgf20150817: Added compiler flags for spirit at AFRL.
    ifeq ($(MACHINENAME),spirit)
