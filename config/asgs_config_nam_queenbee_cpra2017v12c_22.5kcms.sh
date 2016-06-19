@@ -56,14 +56,14 @@ TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="00:30:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
+NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=480                     # number of compute CPUs for all simulations
 NCPUCAPACITY=480
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=workq
 SERQUEUE=single
-ACCOUNT=loni_cera_2015
+ACCOUNT=loni_cera_2016
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones
