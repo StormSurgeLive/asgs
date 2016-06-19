@@ -41,7 +41,7 @@
 #   [--dt timestep] [--nowcast] [--controltemplate templatefile] < storm1_fort.22
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2006, 2007, 2008, 2009, 2010, 2011, 2012 Jason Fleming
+# Copyright(C) 2006--2016 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -232,7 +232,7 @@ stderrMessage("INFO","The fort.15 file will be written to the directory $stormDi
 #
 # call subroutine that knows how to fill in the fort.15 for each particular
 # type of forcing
-if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 ) {
+if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 308 ) {
    stderrMessage("DEBUG","Setting parameters appropriately for vortex model.");
    &vortexModelParameters($nws);
 }
@@ -243,7 +243,6 @@ if ( $enstorm eq "hindcast" ) {
    stderrMessage("DEBUG","This is a hindcast.");
    &hindcastParameters();
 }
-
 #
 # we want a hotstart file if this is a nowcast or hindcast
 if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
