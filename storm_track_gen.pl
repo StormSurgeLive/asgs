@@ -352,7 +352,11 @@ while(<HCST>) {
     # for NWS 8, put all lines in the file, it will figure out which one 
     # it needs
     # jgf20110720: Added possibility of swan coupling
-    if ( $nws == 20 || $nws == 19 || $nws == 320 || $nws == 319 ) {
+    # jgf20160515: Skip lines that are before the hotstartdate, even
+    # for NWS8, because it will be easiest for control_file_gen.pl to
+    # calculate the run length if there aren't any extra lines in the
+    # fort.22 file. 
+    if ( $nws == 20 || $nws == 19 || $nws == 8 || $nws == 320 || $nws == 319 || $nws == 308 ) {
        if ( $fields[2] < $zeroDate ) {
           next;
        }
@@ -361,7 +365,7 @@ while(<HCST>) {
     if ( $fields[2] == $zeroDate ) {
        $zdFound = 1;
     }
-    if ( $nws == 20 || $nws == 19 || $nws == 320 || $nws == 319 ) {	
+    if ( $nws == 20 || $nws == 19 || $nws == 8 || $nws == 320 || $nws == 319 || $nws == 308 ) {	
        if ( ($zdFound == 0) && ($fields[2] > $zeroDate) ) {
           stderrMessage("ERROR","The date '$fields[2]' was encountered in the hindcast file '$hindcastATCF'; however an exact match of the starting date '$zeroDate' should have preceded it somewhere. Therefore, the file does not contain the proper starting date (i.e., the zero date). The fort.22 file will not be written.");
           die;
@@ -457,7 +461,7 @@ while(<FCST>) {
    if ( $forecastedDate == $zeroDate ) {
       $zdFound = 1;
    }
-   if ( $nws == 20 || $nws == 19 || $nws == 320 || $nws == 319 ) {
+   if ( $nws == 20 || $nws == 19 || $nws == 8 || $nws == 320 || $nws == 319 || $nws == 308 ) {
       if ( ($zdFound == 0) && ($forecastedDate > $zeroDate) ) {
          stderrMessage("ERROR","The date found in the forecast file '$forecastATCF' is after the zero hour of '$zeroDate', but exact zero date was never found.");
          die;
@@ -465,8 +469,10 @@ while(<FCST>) {
    }
    # 
    # fill in the forecasted date for metadata purposes (i.e., this is
-   # not used by ADCIRC)
-   substr($line,8,10)=sprintf("%10d",$forecastedDate);
+   # not used by ADCIRC unless NWS=8, symmetric vortex)
+   unless ( $nws == 8 || $nws == 308 ) {
+      substr($line,8,10)=sprintf("%10d",$forecastedDate);
+   }
    #
    # next, calculate the difference between the forecasted date and the zero
    # hour so that we can fill in the forecast period
