@@ -61,6 +61,40 @@ checkFileExistence()
   fi
 }
 #
+# compare the modification times of the input files with the archive of
+# subdomain files to avoid using a stale archive
+checkArchiveFreshness()
+{  PREPPEDARCHIVE=$1
+   HINDCASTARCHIVE=$2
+   GRIDFILE=$3
+   CONTROLTEMPLATE=$4
+   ELEVSTATIONS=$5
+   VELSTATIONS=$6
+   METSTATIONS=$7
+   NAFILE=$8
+   INPUTDIR=$9
+   
+   logMessage "Checking to see if the archive of preprocessed subdomain files is up to date."   
+   for archiveFile in $PREPPEDARCHIVE $HINDCASTARCHIVE; do
+      if [ ! -e $INPUTDIR/$archiveFile ]; then
+         logMessage "The subdomain archive file $INPUTDIR/$archiveFile does not exist."
+         continue
+      fi
+      for inputFile in $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE; do
+         if [ ! -e $INPUTDIR/$inputFile ]; then
+            warning "The input file $INPUTDIR/$inputFile does not exist."
+            continue
+         fi
+         # see if the archiveFile is older than inputFile 
+         if [ $INPUTDIR/$archiveFile -ot $INPUTDIR/$inputFile ]; then 
+            logMessage "A change in the input files has been detected. The archive file $archiveFile is older than the last modification time of the input file ${inputFile}. The archive file is therefore stale and will be deleted. A fresh one will automatically be created the next time adcprep is run." 
+            rm $INPUTDIR/$archiveFile 2>> $SYSLOG 
+            break
+         fi
+      done
+   done
+}
+#
 # subroutine to check for the existence of required directories
 # that have been specified in config.sh
 checkDirExistence()
@@ -646,7 +680,7 @@ monitorJobs()
             # to write the job log file, or until 5 minutes  have passed
             overLimitTime=`date +%s`
             until [[ ! -e ${ENSTORM_TEMP}.out ]]; do
-               logMessage "Waiting for queueing system to wrtite out the job log file ${ENSTORM_TEMP}.out."
+               logMessage "Waiting for queueing system to write out the job log file ${ENSTORM_TEMP}.out."
                sleep 60
                nowTime=`date +%s`
                if [[ `expr $nowTime - $overLimitTime` -gt 300 ]]; then
@@ -1249,6 +1283,8 @@ if [[ $START = coldstart ]]; then
          logMessage "The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
       fi
    done
+   # make sure the archive of subdomain files is up to date 
+   checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
    # check to see that adcprep did not conspicuously fail
@@ -1431,6 +1467,7 @@ while [ true ]; do
          ln -s ${INPUTDIR}/${RIVERFLUX} ./fort.20 2>> ${SYSLOG}
       fi
       # preprocess
+      checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
       logMessage "Nowcast preprocessing."
       logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
       prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
@@ -1669,6 +1706,7 @@ while [ true ]; do
          # of real time post processing
          ${OUTPUTDIR}/${INITPOST} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
          # preprocess
+         checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
          logMessage "Starting $ENSTORM preprocessing with the following command: prep $ADVISDIR $INPUTDIR $ENSTORM $START $NOWCASTDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
          prep $ADVISDIR $INPUTDIR $ENSTORM $START $NOWCASTDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
          handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
