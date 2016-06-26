@@ -1326,6 +1326,9 @@ while [ true ]; do
       if [[ $VORTEXMODEL = ASYMMETRIC ]]; then
          BASENWS=19
       fi
+      if [[ $VORTEXMODEL = SYMMETRIC ]]; then
+         BASENWS=8
+      fi
       NWS=$BASENWS
       if [[ $WAVES = on ]]; then
          NWS=`expr $BASENWS + 300`
@@ -1360,10 +1363,12 @@ while [ true ]; do
       # get the storm's name (e.g. BERTHA) from the run.properties
       STORMNAME=`grep "storm name" run.properties | sed 's/storm name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}    
       # create a GAHM or ASYMMETRIC fort.22 file from the existing track file
-      $ADCIRCDIR/aswip -n $BASENWS >> ${SYSLOG} 2>&1
-      if [[ -e NWS_${BASENWS}_fort.22 ]]; then
-         mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
-         cp NWS_${BASENWS}_fort.22 fort.22 >> ${SYSLOG} 2>&1
+      if [[ $VORTEXMODEL = GAHM || $VORTEXMODEL = ASYMMETRIC ]]; then
+         $ADCIRCDIR/aswip -n $BASENWS >> ${SYSLOG} 2>&1
+         if [[ -e NWS_${BASENWS}_fort.22 ]]; then
+            mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
+            cp NWS_${BASENWS}_fort.22 fort.22 >> ${SYSLOG} 2>&1
+         fi
       fi
    fi
    # BACKGROUND METEOROLOGY
@@ -1561,6 +1566,9 @@ while [ true ]; do
          BASENWS=20
          if [[ $VORTEXMODEL = ASYMMETRIC ]]; then
             BASENWS=19
+         fi
+         if [[ $VORTEXMODEL = SYMMETRIC ]]; then
+            BASENWS=8
          fi
          NWS=$BASENWS
          if [[ $WAVES = on ]]; then
