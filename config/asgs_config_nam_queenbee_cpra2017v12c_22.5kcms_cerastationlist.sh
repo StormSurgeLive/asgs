@@ -27,16 +27,16 @@
 
 # Fundamental
 
-INSTANCENAME=dailylsu     # "name" of this ASGS process
+INSTANCENAME=cerastat     # "name" of this ASGS process
 COLDSTARTDATE=2016011400 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+LASTSUBDIR=/work/jgflemin/asgs48727/2016061006       # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/txout/work # ADCIRC executables
+ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable          # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/cpra2017_v11k-CurrentConditions # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
@@ -101,9 +101,9 @@ GRIDNAME=cpra2017_v12c-CurrentConditions-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=cpra_2017_v12c_CurrentConditions-WithUpperAtch_closed.15.template   # fort.15 template
 CONTROLPROPERTIES=cpra_2017_v12c_CurrentConditions-WithUpperAtch_closed.15.properties
-ELEVSTATIONS=cpra2017v07_stations.txt    # or substitute your own stations file
-VELSTATIONS=cpra2017v07_stations.txt
-METSTATIONS=cpra2017v07_stations.txt
+ELEVSTATIONS=cpra2017v12.cera_stations.20160621    # or substitute your own stations file
+VELSTATIONS=cpra2017v12.cera_stations.20160621
+METSTATIONS=cpra2017v12.cera_stations.20160621
 NAFILE=cpra2017_v12c-CurrentConditions-WithUpperAtch.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=cpra_2017_v07a.26.template  # only used if WAVES=on
@@ -152,7 +152,7 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general
+INTENDEDAUDIENCE=developers-only
 INITPOST=null_init_post.sh
 POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
