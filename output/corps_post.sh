@@ -60,50 +60,50 @@ export PATH=$PATH:$IMAGEMAGICKBINPATH # if ImageMagick is in nonstd location
 # are with CERASERVERNUM and assume they are consecutively named 
 # cera1, cera2, etc. We alternate the forecast ensemble members evenly 
 # among them
-CERASERVERNUM=`expr $ENMEMNUM % $NUMCERASERVERS + 1`
-CERASERVER=cera$CERASERVERNUM
-echo "ceraServer : $CERASERVER" >> run.properties
+#CERASERVERNUM=`expr $ENMEMNUM % $NUMCERASERVERS + 1`
+#CERASERVER=cera$CERASERVERNUM
+#echo "ceraServer : $CERASERVER" >> run.properties
 #
 # write the intended audience to the run.properties file for CERA
 echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
 #
 # write the target area to the run.properties file for the CERA
 # web app
-echo "asgs : ng" >> run.properties 2>> $SYSLOG
+#echo "asgs : ng" >> run.properties 2>> $SYSLOG
 echo "enstorm : $ENSTORM" >> run.properties 2>> $SYSLOG
 #
 # record the sea_surface_height_above_geoid nodal attribute to the
 # run.properties file
-isUsed=`grep -c sea_surface_height_above_geoid fort.15`
-if [[ $isUsed = 0 ]]; then
-   # this nodal attribute is not being used; report this to run.properties file
-   echo "sea_surface_height_above_geoid : null" >> run.properties
-else
-   # get the line number where the start of this nodal attribute is specified
-   # in the header of the fort.13 (nodal attributes) file
-   linenum=`grep --line-number --max-count 1 sea_surface_height_above_geoid fort.13 | awk 'BEGIN { FS=":" } { print $1 }'`
-   # get the actual default value, which is specified three lines after the
-   # the name of the nodal attribute in the fort.13 header
-   datumOffsetDefaultValueLine=`expr $linenum + 3`
-   datumOffsetDefaultValue=`awk -v linenum=$datumOffsetDefaultValueLine 'NR==linenum { print $0 }' fort.13`
-   echo "sea_surface_height_above_geoid : $datumOffsetDefaultValue" >> run.properties
-fi
+#isUsed=`grep -c sea_surface_height_above_geoid fort.15`
+#if [[ $isUsed = 0 ]]; then
+#   # this nodal attribute is not being used; report this to run.properties file
+#   echo "sea_surface_height_above_geoid : null" >> run.properties
+#else
+#   # get the line number where the start of this nodal attribute is specified
+#   # in the header of the fort.13 (nodal attributes) file
+#   linenum=`grep --line-number --max-count 1 sea_surface_height_above_geoid fort.13 | awk 'BEGIN { FS=":" } { print $1 }'`
+#   # get the actual default value, which is specified three lines after the
+#   # the name of the nodal attribute in the fort.13 header
+#   datumOffsetDefaultValueLine=`expr $linenum + 3`
+#   datumOffsetDefaultValue=`awk -v linenum=$datumOffsetDefaultValueLine 'NR==linenum { print $0 }' fort.13`
+#   echo "sea_surface_height_above_geoid : $datumOffsetDefaultValue" >> run.properties
+#fi
 #
 #  R E F O R M A T T I N G
 #
 #
 # add CPP projection to netcdf files 
 # generate XDMF xml files 
-for file in `ls *.nc`; do
-   # don't try to write XDMF xml files for station files or hotstart files
-   if [[ $file = fort.61.nc || $file = fort.71.nc || $file = fort.72.nc || $file = fort.67.nc || $file = fort.68.nc ]]; then
-      continue
-   fi
-   logMessage "Adding CPP coordinates to $file."
-   ${OUTPUTDIR}/generateCPP.x --datafile $file --cpp $SLAM0 $SFEA0 2>> $SYSLOG
-   logMessage "Generating XDMF xml file to accompany $file."
-   ${OUTPUTDIR}/generateXDMF.x --use-cpp --datafile $file 2>> $SYSLOG
-done
+#for file in `ls *.nc`; do
+#   # don't try to write XDMF xml files for station files or hotstart files
+#   if [[ $file = fort.61.nc || $file = fort.71.nc || $file = fort.72.nc || $file = fort.67.nc || $file = fort.68.nc ]]; then
+#      continue
+#   fi
+#   logMessage "Adding CPP coordinates to $file."
+#   ${OUTPUTDIR}/generateCPP.x --datafile $file --cpp $SLAM0 $SFEA0 2>> $SYSLOG
+#   logMessage "Generating XDMF xml file to accompany $file."
+#   ${OUTPUTDIR}/generateXDMF.x --use-cpp --datafile $file 2>> $SYSLOG
+#done
 #
 #  O P E N  D A P    P U B L I C A T I O N 
 #
@@ -136,17 +136,18 @@ for file in `ls *.nc *.xmf ${ADVISDIR}/al*.fst ${ADVISDIR}/bal*.dat fort.15 fort
    ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "chmod +r $OPENDAPDIR/$file"
 done
 #
-COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com,asgs.cera.lsu@gmail.com"
+#COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com,asgs.cera.lsu@gmail.com"
+COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com"
 runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'`
-subject="ADCIRC NCFS POSTED for $runStartTime"
+subject="ADCIRC ASGS POSTED for $runStartTime"
 if [[ $TROPICALCYCLONE = on ]]; then
    subject=${subject}" (TROPICAL CYCLONE)"
 fi
-subject="${subject} $CERASERVER"
+#subject="${subject} $CERASERVER"
 subject="${subject} $HOSTNAME.$INSTANCENAME $ENMEMNUM"
 cat <<END > ${STORMDIR}/cera_results_notify.txt 
 
-The ADCIRC NCFS solutions for $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
+The ADCIRC ASGS solutions for $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
 
 The run.properties file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
    
@@ -230,15 +231,15 @@ fi
 #
 # name of bounding box for contour plots (see config_simple_gmt_pp.sh
 # for choices)
-BOX=LA
+#BOX=LA
 # FigureGen executable to use for making JPG files (assumed to be located
 # in $OUTPUTDIR/POSTPROC_KMZGIS/FigGen/
-FIGUREGENEXECUTABLE=FigureGen32_prompt_inp.x
+#FIGUREGENEXECUTABLE=FigureGen32_prompt_inp.x
 # The full path and name for the FigureGen template file.
-FIGUREGENTEMPLATE=$OUTPUTDIR/POSTPROC_KMZGIS/FigGen/FG_asgs.inp.orig
+#FIGUREGENTEMPLATE=$OUTPUTDIR/POSTPROC_KMZGIS/FigGen/FG_asgs.inp.orig
 #
 #  now create the Google Earth (kmz), jpg, and GIS contour plots
-${OUTPUTDIR}/POSTPROC_KMZGIS/POST_SCRIPT_Corps.sh $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $GRIDFILE $CONFIG $BOX $FIGUREGENEXECUTABLE $FIGUREGENTEMPLATE
+#${OUTPUTDIR}/POSTPROC_KMZGIS/POST_SCRIPT_Corps.sh $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $GRIDFILE $CONFIG $BOX $FIGUREGENEXECUTABLE $FIGUREGENTEMPLATE
 #
 #  P U B L I C A T I O N
 #
