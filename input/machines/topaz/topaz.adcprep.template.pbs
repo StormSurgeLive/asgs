@@ -44,7 +44,7 @@ cd %advisdir%/%enstorm%
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 echo "[${DATETIME}] : %jobtype%.%enstorm% starting in %advisdir%/%enstorm%." > %jobtype%.%enstorm%.run.start
 echo "%jobtype%.%enstorm% starting at $DATETIME."
-mpiexec_mpt -n 1 %adcircdir%/adcprep --np %ncpu% --%jobtype% >> adcprep.log 2>&1
+%adcircdir%/adcprep --np %ncpu% --%jobtype% >> adcprep.log 2>&1
 ERROVALUE=$?
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 if [ $ERROVALUE == 0 ] ; then
