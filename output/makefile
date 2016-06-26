@@ -111,6 +111,10 @@ ifeq ($(NETCDF),enable)
    ifeq ($(MACHINENAME),garnet)
       NETCDFPATH  := /opt/cray/netcdf/4.3.0/pgi/121
    endif
+   # jgf20160612: Added compiler flags for topaz at ERDC.
+   ifeq ($(MACHINENAME),topaz)
+      NETCDFPATH  := /apps/unsupported/netcdf/4.3.3.1-intel-15.0.3
+   endif
    # jgf20150817: Added compiler flags for spirit at AFRL.
    ifeq ($(MACHINENAME),spirit)
       NETCDFPATH  := /app/wpostool/COST/netcdf-fortran-4.4.2/intel
@@ -166,7 +170,7 @@ generateXDMF : adcmesh.mod asgsio.mod generateXDMF.f90
 generateCPP : adcmesh.mod generateCPP.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-pullStationTimeSeries : asgsio.mod adcmesh.mod adcircdata.mod pullStationTimeSeries.f90
+pullStationTimeSeries : asgsio.mod adcmesh.mod adcircdata.mod nodalattr.mod pullStationTimeSeries.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
 wetDryCheck : adcmesh.mod asgsio.mod wetDryCheck.f90
