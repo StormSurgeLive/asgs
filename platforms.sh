@@ -313,17 +313,17 @@ init_ranger()
 init_lonestar()
 { #<- can replace the following with a custom script
   HOSTNAME=lonestar.tacc.utexas.edu
-  QUEUESYS=SGE
-  QCHECKCMD=qstat
-  NCPUDIVISOR=12
+  QUEUESYS=slurm
+  QCHECKCMD=squeue
+  PPN=12
   ACCOUNT=ADCIRC
-  SUBMITSTRING="ibrun tacc_affinity"
+  SUBMITSTRING="ibrun"
   SCRATCHDIR=$SCRATCH
   SSHKEY=id_rsa_lonestar
-  QSCRIPT=lonestar.template.sge
-  QSCRIPTGEN=lonestar.sge.pl
-  SERQSCRIPT=lonestar.template.serial
-  SERQSCRIPTGEN=lonestar.serial.pl
+  QSCRIPT=lonestar.template.slurm
+  QSCRIPTGEN=hatteras.slurm.pl
+  SERQSCRIPT=lonestar.template.serial.slurm
+  SERQSCRIPTGEN=hatteras.slurm.pl
   UMASK=006
   GROUP="G-803086"
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/apps/intel11_1/netcdf/4.2.1.1/lib:/opt/apps/intel11_1/hdf5/1.8.8/lib

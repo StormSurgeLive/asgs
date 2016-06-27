@@ -90,6 +90,16 @@ ifeq ($(NETCDF),enable)
       LIBS        := -L/app/wpostool/COST/netcdf-c-4.3.1.1/intel/lib -L/app/wpostool/COST/hdf5-mpi/1.8.12/intel/sgimpt/lib
       LDFLAGS     :=  -lnetcdf -lhdf5 -lhdf5_hl
    endif
+   # jgf20160627: Added compiler flags for lonestar 5 at TACC.
+   ifeq ($(MACHINENAME),lonestar)
+     NETCDFHOME=/opt/apps/intel11_1/netcdf/4.2.1.1/
+     HDF5HOME=/opt/apps/intel11_1/hdf5/1.8.8/
+     TACC_NETCDF_INC=${NETCDFHOME}include
+     TACC_NETCDF_LIB=${NETCDFHOME}lib
+     TACC_HDF5_LIB=${HDF5HOME}lib
+     LIBS      := -I${TACC_NETCDF_INC} -L${TACC_NETCDF_LIB} -L${TACC_HDF5_LIB}
+     LDFLAGS   := -lnetcdf -lnetcdff -lhdf5 -lhdf5 -lz -lm
+   endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := $(LDFLAGS) -lnetcdff
    INCLUDES    := -I. -I$(NETCDFPATH)/include
