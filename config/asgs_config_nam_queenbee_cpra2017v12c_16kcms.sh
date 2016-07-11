@@ -101,9 +101,9 @@ GRIDNAME=cpra2017_v12c-CurrentConditions-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=cpra_2017_v12c_CurrentConditions-WithUpperAtch_closed_16kcms.15.template   # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=cpra2017v07_stations.txt    # or substitute your own stations file
-VELSTATIONS=cpra2017v07_stations.txt
-METSTATIONS=cpra2017v07_stations.txt
+ELEVSTATIONS=cpra2017v12.cera_stations.20160702
+VELSTATIONS=cpra2017v12.cera_stations.20160702
+METSTATIONS=cpra2017v12.cera_stations.20160702
 NAFILE=cpra2017_v12c-CurrentConditions-WithUpperAtch.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=cpra_2017_v07a.26.template  # only used if WAVES=on
