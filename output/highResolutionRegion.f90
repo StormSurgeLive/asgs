@@ -139,11 +139,15 @@ endif
 !
 ! write the output properties file with the high resolution region properties
 open(unit=12,file=trim(outputfile),status='replace')
-write(12,'("highResolutionBoundingBox : ",4(f15.7))') lowerLeftLon, lowerLeftLat, upperRightLon, upperRightLat
-write(12,'("highResolutionLonLatDegrees : ",2(f15.7))') highestResLon, highestResLat
+write(12,'("highResolutionRectangleLowerLeftLonDegreesWest : ",f15.7)') lowerLeftLon
+write(12,'("highResolutionRectangleLowerLeftLatDegreesNorth : ",f15.7)') lowerLeftLat
+write(12,'("highResolutionRectangleUpperRightLonDegreesWest : ",f15.7)') upperRightLon
+write(12,'("highResolutionRectangleUpperRightLatDegreesNorth : ",f15.7)') upperRightLat
+write(12,'("highResolutionCenterLonDegreesWest : ",f15.7)') highestResLon
+write(12,'("highResolutionCenterLatDegreesNorth : ",f15.7)') highestResLat
 write(12,'("highResolutionCircleDiameterDegrees : ",f15.7)') highResCircleDiameterDegrees
-write(12,'("distanceToThresholdResolutionMeters :",f18.7)') furthestHighRes
-write(12,'("resolutionThresholdMeters : ",f15.7)') resolutionThreshold
+write(12,'("highResolutionCircleDiameterMeters :",f18.7)') furthestHighRes
+write(12,'("highResolutionThresholdMeters : ",f15.7)') resolutionThreshold
 close(12)
 !-------------------------------------------------------------------
 end program highResolutionRegion
