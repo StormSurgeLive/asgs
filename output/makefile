@@ -134,7 +134,7 @@ OBJ := adcmesh.o asgsio.o adcircdata.o nodalattr.o
 MODS := adcmesh.mod asgsio.mod adcircdata.mod nodalattr.mod
 #
 # targets
-all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN
+all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN checkAdcircMesh resultScope highResolutionRegion
 #
 clean :
 	rm -f *.o *.mod *.x
@@ -160,6 +160,12 @@ makeMax : asgsio.mod adcmesh.mod adcircdata.mod ../util/makeMax.f90
 inundationMask : $(MODS) inundationMask.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
+highResolutionRegion : adcmesh.mod highResolutionRegion.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+#
+checkAdcircMesh : $(MODS) checkAdcircMesh.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+#
 generateXDMF : adcmesh.mod asgsio.mod generateXDMF.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o $(LDFLAGS)
 #
@@ -177,6 +183,9 @@ diffAdcircNetCDF : adcmesh.mod adcircdata.mod asgsio.mod diffAdcircNetCDF.f90
 #
 HottifySWAN : HottifySWAN.F90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.F90 $(LDFLAGS)
+#
+resultScope : adcmesh.mod adcircdata.mod asgsio.mod resultScope.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o adcircdata.o asgsio.o $(LDFLAGS)
 #
 nodalattr.mod : ../util/nodalattr/nodalattr.f90 adcmesh.mod adcircdata.mod asgsio.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c ../util/nodalattr/nodalattr.f90 $(LDFLAGS)

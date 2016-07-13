@@ -102,9 +102,9 @@ CHARACTER(*), intent(in) :: filename ! full pathname of file
 LOGICAL :: fileFound    ! .true. if the file is present
 errorIO = 0
 !
-!     Check to see if file exists
+! Check to see if file exists
 write(6,'("INFO: Searching for file ",A," ...")') trim(filename)
-inquire(FILE=filename,EXIST=fileFound)
+inquire(file=trim(filename),exist=fileFound,iostat=errorIO)
 if (fileFound.eqv..false.) then
    write(6,'("ERROR: The file ",A," was not found.")') trim(filename)
 else
@@ -120,28 +120,35 @@ endif
 !     jgf: Added general subroutine for opening an existing
 !     file for reading. Includes error checking.
 !-----------------------------------------------------------------------
-   SUBROUTINE openFileForRead(lun, filename)
-      IMPLICIT NONE
-      INTEGER, intent(in) :: lun   ! fortran logical unit number
-      CHARACTER(*), intent(in) :: filename ! full pathname of file
-
-       errorIO = 0
+subroutine openFileForRead(lun, filename)
+implicit none
+integer, intent(in) :: lun   ! fortran logical unit number
+character(*), intent(in) :: filename ! full pathname of file
+logical unitConnected !.true. if this lun is already being used
+errorIO = 0
 !
-!     Check to see if file exists
-      call checkFileExistence(filename)
-      if ( errorIO.ne.0) then
-         stop
-      endif
+!  Check to see if file exists
+call checkFileExistence(filename)
+if (errorIO.ne.0) then
+   return
+endif
 !
-!     Open existing file
-      OPEN(lun,FILE=trim(filename),STATUS='OLD',ACTION='READ',IOSTAT=errorIO)
-      if (errorIO.ne.0) then
-          write(6,'("ERROR: Could not open the file ",A,".")') trim(filename)
-          stop
-      else
-         write(6,'("INFO: The file ",A," was opened successfully.")') trim(filename)
-      endif
-      return
+! Check to see if the unit number is already in use
+inquire(unit=lun,opened=unitConnected)
+if (unitConnected.eqv..true.) then
+   write(6,'("ERROR: The i/o unit ",i0," is already connected.")') lun
+   errorIO = 1
+   return
+endif
+!
+! Open existing file
+OPEN(lun,FILE=trim(filename),STATUS='OLD',ACTION='READ',IOSTAT=errorIO)
+if (errorIO.ne.0) then
+    write(6,'("ERROR: Could not open the file ",A,".")') trim(filename)
+else
+   write(6,'("INFO: The file ",A," was opened successfully.")') trim(filename)
+endif
+return
 !-----------------------------------------------------------------------
    END SUBROUTINE openFileForRead
 !-----------------------------------------------------------------------
