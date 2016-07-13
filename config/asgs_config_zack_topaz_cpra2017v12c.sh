@@ -27,8 +27,8 @@
 
 # Fundamental
 
-INSTANCENAME=dailylsu     # "name" of this ASGS process
-COLDSTARTDATE=2016011400 # calendar year month day hour YYYYMMDDHH24
+INSTANCENAME=zaxercise   # "name" of this ASGS process
+COLDSTARTDATE=2016031103 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -36,7 +36,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/txout/work # ADCIRC executables
+ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable          # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/cpra2017_v11k-CurrentConditions # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
@@ -44,9 +44,9 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on     # NAM download/forcing
+BACKGROUNDMET=off    # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
-TROPICALCYCLONE=off  # tropical cyclone forcing
+TROPICALCYCLONE=on   # tropical cyclone forcing
 WAVES=off            # wave forcing
 VARFLUX=off          # variable river flux forcing
 
@@ -56,25 +56,23 @@ TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="00:30:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
+NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=480                     # number of compute CPUs for all simulations
-NCPUCAPACITY=480
+NCPUCAPACITY=1500
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=workq
-SERQUEUE=single
-ACCOUNT=loni_cera_2016
-SCRATCHDIR=/work/$USER    # vs default /work/cera
+QUEUENAME=standard
+SERQUEUE=standard
 
 # External data sources : Tropical cyclones
 
-STORM=02                         # storm number, e.g. 05=ernesto in 2006
-YEAR=2012                        # year of the storm
+STORM=99                         # storm number, e.g. 05=ernesto in 2006
+YEAR=2016                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 RSSSITE=filesystem
 FTPSITE=filesystem
-FDIR=${INPUTDIR}/sample_advisories
-HDIR=${INPUTDIR}/sample_advisories
+FDIR=${SCRIPTDIR}/input/sample_advisories
+HDIR=${SCRIPTDIR}/input/sample_advisories
 #RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 #FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
 #FDIR=/atcf/afst                  # forecast dir on nhc ftp site
@@ -141,7 +139,7 @@ MINMAX=reset
 # Notification
 
 EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
-NOTIFY_SCRIPT=corps_nam_notify.sh
+NOTIFY_SCRIPT=corps_cyclone_notify.sh
 ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
@@ -154,12 +152,12 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=queenbee_daily_post.sh
+POSTPROCESS=corps_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
 TDS=(lsu_tds renci_tds)
-TARGET=queenbee  # used in post processing to pick up HPC platform config
+TARGET=topaz  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
 # opendap_post.sh. OPENDAPHOST is set to each value in the TDS array specified
@@ -169,12 +167,13 @@ TARGET=queenbee  # used in post processing to pick up HPC platform config
 # because multiple Operators may be posting to a particular opendap server
 # using different usernames. 
 OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
-if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
-   OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
-fi
+#if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
+#   OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
+#fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
+#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
+OPENDAPNOTIFY="jason.g.fleming@gmail.com"
 
 NUMCERASERVERS=2
 WEBHOST=webserver.hostingco.com
@@ -191,13 +190,21 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=1 # number of storms in the ensemble
+ENSEMBLESIZE=3 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
+   ;;
+1)
+   ENSTORM=veerRight50
+   PERCENT=50
+   ;;
+2)
+   ENSTORM=veerLeft50
+   PERCENT=-50
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."

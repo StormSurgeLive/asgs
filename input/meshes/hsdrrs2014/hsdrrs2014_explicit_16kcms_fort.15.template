@@ -2122,38 +2122,38 @@ M2               ! jgf: interpolated 2014 04 21 from ec2001 v2e tidal database
  STEADY         ! CONSTITUENT. 1  ALPHA DESCRIPTOR
  0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
   STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
-  4.47911940 0.00
-  7.78411088 0.00
- 11.01916930 0.00
- 13.83453417 0.00
- 15.57571970 0.00
- 16.65239836 0.00
- 17.14202496 0.00
- 17.07709053 0.00   ! mississippi = 400,000 cfs
- 16.20773551 0.00
- 14.38911902 0.00
- 12.74535896 0.00
- 10.05238883 0.00
-  6.69243635 0.00
-  4.05192793 0.00
-  2.47312610 0.00
-  1.64875391 0.00
-  1.64875391 0.00
-  1.51385547 0.00
-  1.35647515 0.00
-  5.46636811 0.00
-  5.46636811 0.00
-  5.46636811 0.00
-  5.46636811 0.00
-  5.11531695 0.00
-  5.01501662 0.00   ! atchafalaya = 170,000 cfs
-  4.76426578 0.00
-  4.53859004 0.00
-  4.33798937 0.00
-  4.11231363 0.00
-  3.96186312 0.00
-  3.83648771 0.00
-  3.66096213 0.00
+  6.4  0.00   ! node 1  ms river 16kcms or 565kcfs 
+ 11.0  0.00   ! node 2
+ 15.5  0.00   ! node 3
+ 19.5  0.00   ! node 4
+ 21.9  0.00   ! node 5
+ 23.6  0.00   ! node 6
+ 24.2  0.00   ! node 7
+ 24.2  0.00   ! node 8 
+ 22.9  0.00   ! node 9
+ 20.3  0.00   ! node 10
+ 17.9  0.00   ! node 11
+ 14.3  0.00   ! node 12
+  9.5  0.00   ! node 13
+  5.8  0.00   ! node 14 
+  3.5  0.00   ! node 15
+  2.3  0.00   ! node 16
+  2.3  0.00   ! node 17
+  2.1  0.00   ! node 18
+  2.0  0.00   ! node 19
+  7.8  0.00   ! node 1  atchafalaya river 6.8kcms or 240kcfs
+  7.8  0.00   ! node 2
+  7.8  0.00   ! node 3
+  7.8  0.00   ! node 4
+  7.2  0.00   ! node 5 
+  7.1  0.00   ! node 6 
+  6.8  0.00   ! node 7
+  6.4  0.00   ! node 8
+  6.1  0.00   ! node 9
+  5.8  0.00   ! node 10
+  5.7  0.00   ! node 11
+  5.4  0.00   ! node 12
+  5.2  0.00   ! node 13
 %FORT61%    ! NOUTE,TOUTSE,TOUTFE,NSPOOLE (UNIT  61)
 %NUMELEVSTATIONS%    ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS
 %FORT62%
@@ -2174,7 +2174,7 @@ ERDC
 ASGS Nowcast/Forecast
 http://www.seahorsecoastal.com
 Model time is relative to UTC.
-garnet.erdc.hpc.mil
+topaz.erdc.hpc.mil
 CF
 jason.fleming@seahorsecoastal.com
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
