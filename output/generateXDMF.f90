@@ -191,29 +191,70 @@ end do
 !   write(6,'(a)') trim(thisVarName)
 !end do 
 do fi=1,numFiles
+   if ( fileMetaData(fi) % nodalAttributesFile.eqv..true. ) then
+      fileMetaData(fi) % fileTypeDesc = 'an ADCIRC nodal attributes file (fort.13)'
+      fileMetaData(fi) % timeVarying = .false. 
+      ! determine which nodal attributes are present in the file
+      
+      call initFileMetaData(fileMetaData(fi), thisVarName, 7, 6)
+      fileMetaData(fi) % varNameNetCDF(1) = "zeta1"  ! eta1 
+      fileMetaData(fi) % varNameNetCDF(2) = "zeta2"  ! eta2 
+      fileMetaData(fi) % varNameNetCDF(3) = "zetad"  ! EtaDisc 
+      fileMetaData(fi) % varNameNetCDF(4) = "u-vel"  ! uu2 \_combine as vector in XDMF_
+      fileMetaData(fi) % varNameNetCDF(5) = "v-vel"  ! vv2 /
+      fileMetaData(fi) % varNameNetCDF(6) = "nodecode"  ! nodecode                   
+      fileMetaData(fi) % varNameNetCDF(7) = "noff"   ! noff<---element/cell centered
+      !
+      fileMetaData(fi) % numComponentsXDMF(4) = 2  ! velocity (uu2,vv2)
+      call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
+      fileMetaData(fi) % varNameXDMF(4) = 'hot_start_velocity'
+      fileMetaData(fi) % dataCenter(6) = 'Cell' ! noff
+      fileMetaData(fi) % timeVarying = .false.
+      exit
+      cycle
+   endif
    do i=1,fileMetaData(fi) % nvar
       call check(nf90_inquire_variable(fileMetaData(fi) % nc_id, i, thisVarName))
       select case(trim(thisVarName))
       case("zeta")
          fileMetaData(fi) % fileTypeDesc = 'a time varying 2D ADCIRC water surface elevation file (fort.63)'
-         call initfileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          exit
       case("nodecode")
          fileMetaData(fi) % fileTypeDesc = 'a node wet/dry state file (nodecode.63)'
-         call initfileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          exit  
       case("noff")
          fileMetaData(fi) % fileTypeDesc = 'an element wet/dry state file (noff.100)'
-         call initfileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          fileMetaData(fi) % dataCenter(1) = 'Cell' ! noff
+         exit          
+      case("nneighele")
+         fileMetaData(fi) % fileTypeDesc = 'a number of elemental neighbors attached to each node file (nneighele.63)'
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
+         fileMetaData(fi) % timeVarying = .false.
+         exit  
+      case("nodeids")
+         fileMetaData(fi) % fileTypeDesc = 'a fortran indexed node IDs file (nodeids.63)'
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
+         fileMetaData(fi) % timeVarying = .false.
+         exit  
+      case("elementids")
+         fileMetaData(fi) % fileTypeDesc = 'a fortran indexed element IDs file (elementids.100)'
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
+         fileMetaData(fi) % dataCenter(1) = 'Cell' ! element IDs
+         fileMetaData(fi) % timeVarying = .false.
          exit          
       case("zetad")
          fileMetaData(fi) % fileTypeDesc = 'a 2D ADCIRC hotstart file (fort.67/fort.68)'
          fileMetaData(fi) % timeVarying = .false. 
-         call initfileMetaData(fileMetaData(fi), thisVarName, 7, 6)
+         call initFileMetaData(fileMetaData(fi), thisVarName, 7, 6)
          fileMetaData(fi) % varNameNetCDF(1) = "zeta1"  ! eta1 
          fileMetaData(fi) % varNameNetCDF(2) = "zeta2"  ! eta2 
          fileMetaData(fi) % varNameNetCDF(3) = "zetad"  ! EtaDisc 
@@ -230,7 +271,7 @@ do fi=1,numFiles
          exit
       case("u-vel","v-vel")
          fileMetaData(fi) % fileTypeDesc = 'a 2D ADCIRC water current velocity file (fort.64)'     
-         call initfileMetaData(fileMetaData(fi), thisVarName, 2, 1)
+         call initFileMetaData(fileMetaData(fi), thisVarName, 2, 1)
          fileMetaData(fi) % varNameNetCDF(1) = "u-vel"  ! uu2 in ADCIRC
          fileMetaData(fi) % varNameNetCDF(2) = "v-vel"  ! vv2 in ADCIRC
          fileMetaData(fi) % numComponentsXDMF(1) = 2
@@ -243,12 +284,12 @@ do fi=1,numFiles
       !   useMag = .true.
       case("pressure")
          fileMetaData(fi) % fileTypeDesc = "an ADCIRC barometric pressure file (fort.73)"
-         call initfileMetaData(fileMetaData(fi), thisVarName, 1, 1)
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          exit 
       case("windx","windy")
          fileMetaData(fi) % fileTypeDesc = "an ADCIRC wind velocity file (fort.74)"
-         call initfileMetaData(fileMetaData(fi), thisVarName, 2, 1)
+         call initFileMetaData(fileMetaData(fi), thisVarName, 2, 1)
          fileMetaData(fi) % varNameNetCDF(1) = "windx"  
          fileMetaData(fi) % varNameNetCDF(2) = "windy"  
          fileMetaData(fi) % numComponentsXDMF(1) = 2
@@ -265,7 +306,7 @@ do fi=1,numFiles
          exit
       case("initial_river_elevation")
          fileMetaData(fi) % fileTypeDesc = "an ADCIRC initial river elevation (fort.88) file"
-         call initfileMetaData(fileMetaData(fi), thisVarName, 1, 1)
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          exit    
       case("maxwvel","wind_max")
@@ -329,12 +370,12 @@ do fi=1,numFiles
          fileMetaData(fi) % varNameXDMF(1) = 'wave_radiation_stress_gradient'      
       case("swan_DIR")
          fileMetaData(fi) % fileTypeDesc = "a SWAN wave direction (swan_DIR.63) file"
-         call initfileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          exit   
       case("swan_HS")
          fileMetaData(fi) % fileTypeDesc = "a SWAN significant wave height (swan_HS.63) file"
-         call initfileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          exit
       case("swan_HS_max")
@@ -344,22 +385,22 @@ do fi=1,numFiles
          exit
       case("swan_TMM10")
          fileMetaData(fi) % fileTypeDesc = "a SWAN mean absolute wave period (swan_TMM10.63) file"
-         call initfileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          exit
       case("swan_TM01")
          fileMetaData(fi) % fileTypeDesc = "SWAN mean absolute wave period (swan_TM01.63) file"
-         call initfileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          exit
       case("swan_TM02")
          fileMetaData(fi) % fileTypeDesc = "a SWAN mean absolute zero crossing period (swan_TM02.63) file"
-         call initfileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          exit
       case("swan_TPS")
          fileMetaData(fi) % fileTypeDesc = "a SWAN smoothed peak period (swan_TPS.63) file"
-         call initfileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          exit
       case("swan_TPS_max")
@@ -369,12 +410,12 @@ do fi=1,numFiles
          exit
       case("ESLNodes")
          fileMetaData(fi) % fileTypeDesc = "an elemental slope limiter active nodes (ESLNodes.63) file"
-         call initfileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          exit
       case("swan_windx","swan_windy")
          fileMetaData(fi) % fileTypeDesc = "a SWAN wind velocity (swan_WIND.64) file"
-         call initfileMetaData(fileMetaData(fi), thisVarName, 2, 1)
+         call initFileMetaData(fileMetaData(fi), thisVarName, 2, 1)
          fileMetaData(fi) % varNameNetCDF(1) = "swan_windx"  
          fileMetaData(fi) % varNameNetCDF(2) = "swan_windy"  
          fileMetaData(fi) % numComponentsXDMF(1) = 2

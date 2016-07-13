@@ -4,7 +4,7 @@
 # A system to build ASGS-related utilities for processing ADCIRC output.
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2014 Jason Fleming
+# Copyright(C) 2014--2016 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -47,14 +47,6 @@ INCLUDES := -I. -I$(OUTPUTDIR)
 # use NETCDF=enable on the make command line
 ifeq ($(NETCDF),enable)
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
-<<<<<<< HEAD
-   LDFLAGS     := -lnetcdff
-   ifeq ($(MACHINENAME),jason-desktop)
-      NETCDFPATH  := /usr
-   endif
-   ifeq ($(MACHINENAME),hatteras)
-      NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
-=======
    NETCDFPATH  := /usr
    #
    #   # jgf20150616: Added netcdf paths for stampede at TACC.
@@ -68,17 +60,12 @@ ifeq ($(NETCDF),enable)
    # jgf20150720: Added compiler flags for queenbee at LONI.
    ifeq ($(MACHINENAME),queenbee)
       NETCDFPATH  := /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0
->>>>>>> 2014stable
    endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := -lnetcdff
    INCLUDES    := -I. -I$(NETCDFPATH)/include
    LIBS        := -L$(NETCDFPATH)/lib
-<<<<<<< HEAD
-endif
-=======
 endif 
->>>>>>> 2014stable
 ifeq ($(NETCDF4),enable)
    FFLAGS      := $(FFLAGS) -DHAVE_NETCDF4
 endif
@@ -87,14 +74,8 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-<<<<<<< HEAD
-OBJ := adcmesh.o asgsio.o
-MODS := adcmesh.mod asgsio.mod
-=======
-OBJ := adcmesh.o asgsio.o landuse.o
-MODS := adcmesh.mod asgsio.mod landuse.mod
-
->>>>>>> 2014stable
+OBJ := adcmesh.o asgsio.o landuse.o adcircdata.o
+MODS := adcmesh.mod asgsio.mod landuse.mod adcircdata.mod
 #
 # targets
 all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyvis convertna
@@ -102,7 +83,7 @@ all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyv
 clean :
 	rm -f *.o *.mod *.x
 #
-nodalattr.mod : $(MODS) nodalattr.f90 asgsio.mod
+nodalattr.mod : $(MODS) nodalattr.f90 asgsio.mod adcircdata.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c nodalattr.f90 $(LDFLAGS)
 #
 convertna : $(MODS) convertna.f90 nodalattr.mod
@@ -128,6 +109,9 @@ adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod
 #
 asgsio.mod : $(OUTPUTDIR)/asgsio.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/asgsio.f90 $(LDFLAGS)
+
+adcircdata.mod : $(OUTPUTDIR)/adcircdata.f90 
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcircdata.f90 $(LDFLAGS)
 #
 landuse.mod : landuse.f90 asgsio.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c landuse.f90 $(LDFLAGS)

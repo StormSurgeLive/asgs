@@ -60,33 +60,36 @@
       logical                       :: dataonly   ! .true. if user just wants to convert the data
       logical                       :: timeVarying ! .true. for time varying data
       integer                       :: ncFileType
-      INTEGER                       :: NC_DimID(2)
-      integer                       :: NC_DimID_single
-      integer                       :: NC_VarID_zeta
-      integer                       :: NC_VarID_nodecode
-      integer                       :: NC_VarID_noff            
-      integer                       :: NC_VarID_u_vel
-      integer                       :: NC_VarID_v_vel
-      integer                       :: NC_VarID_maxele
-      integer                       :: NC_VarID_timeOfmaxele
-      integer                       :: NC_VarID_minpr
-      integer                       :: NC_VarID_timeOfminpr
-      integer                       :: NC_VarID_maxwvel
-      integer                       :: NC_VarID_timeOfmaxwvel
-      integer                       :: NC_VarID_maxvel
-      integer                       :: NC_VarID_timeOfmaxvel
-      integer                       :: NC_VarID_p
-      integer                       :: NC_VarID_windx
-      integer                       :: NC_VarID_windy
-      integer                       :: NC_VarID_dir
-      integer                       :: NC_VarID_hs
-      integer                       :: NC_VarID_tmm10
-      integer                       :: NC_VarID_tps
-      integer                       :: NC_VarID_swantpsmax
-      integer                       :: NC_VarID_timeOfswantpsmax
-      integer                       :: NC_VarID_swanhsmax
-      integer                       :: NC_VarID_timeOfswanhsmax
-      integer                       :: NC_VarID_eslnodes
+      INTEGER                       :: NC_DimID(2) = (/ -99, -99 /)
+      integer                       :: NC_DimID_single = -99
+      integer                       :: NC_VarID_zeta = -99
+      integer                       :: NC_VarID_nodecode = -99
+      integer                       :: NC_VarID_noff = -99            
+      integer                       :: NC_VarID_nneighele = -99
+      integer                       :: NC_VarID_nodeids = -99
+      integer                       :: NC_VarID_elementids = -99         
+      integer                       :: NC_VarID_u_vel = -99
+      integer                       :: NC_VarID_v_vel = -99
+      integer                       :: NC_VarID_maxele = -99
+      integer                       :: NC_VarID_timeOfmaxele = -99
+      integer                       :: NC_VarID_minpr = -99
+      integer                       :: NC_VarID_timeOfminpr = -99
+      integer                       :: NC_VarID_maxwvel = -99
+      integer                       :: NC_VarID_timeOfmaxwvel = -99
+      integer                       :: NC_VarID_maxvel = -99
+      integer                       :: NC_VarID_timeOfmaxvel = -99
+      integer                       :: NC_VarID_p = -99
+      integer                       :: NC_VarID_windx = -99
+      integer                       :: NC_VarID_windy = -99
+      integer                       :: NC_VarID_dir = -99
+      integer                       :: NC_VarID_hs = -99
+      integer                       :: NC_VarID_tmm10 = -99
+      integer                       :: NC_VarID_tps = -99
+      integer                       :: NC_VarID_swantpsmax = -99
+      integer                       :: NC_VarID_timeOfswantpsmax = -99
+      integer                       :: NC_VarID_swanhsmax = -99
+      integer                       :: NC_VarID_timeOfswanhsmax = -99
+      integer                       :: NC_VarID_eslnodes = -99
       integer, dimension(2)        :: timeOfNC_Start
       integer, parameter            :: version = 4
       integer                       :: varid(3) ! varids for netcdf4 compression
@@ -439,8 +442,46 @@
          num_components = 1
          dataCenter = 'Element'
          varid(1) = NC_VarID_noff
-      case('null') ! just the mesh
+      case('nneighele.63') 
+         netCDFDataType = NF90_INT
+         call check(NF90_DEF_VAR(NC_ID,'nneighele',netCDFDataType,NC_DimID,NC_VarID_nneighele))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nneighele,'_FillValue',-99999))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nneighele,'long_name','number of element neighbors for each node'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nneighele,'standard_name','num_element_neighbors'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nneighele,'coordinates','y x'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nneighele,'location','node'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nneighele,'mesh','adcirc_mesh'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nneighele,'units','unitless'))
+         num_components = 1
+         varid(1) = NC_VarID_nneighele
+      case('nodeids.63') 
+         netCDFDataType = NF90_INT
+         call check(NF90_DEF_VAR(NC_ID,'nodeids',netCDFDataType,NC_DimID,NC_VarID_nodeids))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nodeids,'_FillValue',-99999))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nodeids,'long_name','fortran indexed node ids'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nodeids,'standard_name','fortran_indexed_node_ids'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nodeids,'coordinates','y x'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nodeids,'location','node'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nodeids,'mesh','adcirc_mesh'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nodeids,'units','unitless'))
+         num_components = 1
+         varid(1) = NC_VarID_nodeids
+      case('elementids.100') 
+         netCDFDataType = NF90_INT
+         call check(NF90_DEF_VAR(NC_ID,'elementids',netCDFDataType,NC_DimID_nele,NC_VarID_elementids))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_elementids,'_FillValue',-99999))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_elementids,'long_name','fortran indexed element ids'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_elementids,'standard_name','fortran_indexed_element_ids'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_elementids,'coordinates','y x'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_elementids,'location','element'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_elementids,'mesh','adcirc_mesh'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_elementids,'units','unitless'))
+         num_components = 1
+         dataCenter = 'Element'
+         varid(1) = NC_VarID_elementids
+      case('null','none') ! just the mesh
          ! do nothing, data set meta data not required
+         meshonly = .true.
       case('maxwvel.63') ! maxwvel
          CALL Check(NF90_DEF_VAR(NC_ID,'wind_max',netCDFDataType,NC_DimID_node,NC_VarID_maxwvel))
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_maxwvel,'_FillValue',FillValue))
@@ -579,7 +620,7 @@
       !
       if (meshonly.eqv..true.) then
          call Check(NF90_CLOSE(NC_ID))
-         write(6,'(a)') "INFO: The --meshonly option was specified; only mesh data were written."
+         write(6,'(a)') 'INFO: Only mesh data were written.'
          stop
       endif
 
@@ -691,6 +732,12 @@
                CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nodecode,idata,NC_Start,NC_Count))
             case('noff.100') 
                CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_noff,idata,NC_Start,NC_Count))           
+            case('nneighele.63') 
+               CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nneighele,idata,NC_Start,NC_Count))
+            case('nodeids.63') 
+               CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nodeids,idata,NC_Start,NC_Count))
+            case('elementids.100') 
+               CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_elementids,idata,NC_Start,NC_Count))           
             case('maxele.63') !MAXELE
                select case(ss)
                case(1)

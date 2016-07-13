@@ -211,7 +211,8 @@ C     count the number of stations
                tmpstr(j:j) = " "
                unprintableCharacters = .true.
                badLine = .true.
-               write(*,'("ERROR: Unprintable character with ascii decimal code ",i0,".")') asciiCode
+               write(*,
+     & '("ERROR: Unprintable character with ascii decimal code ",i0,".")') asciiCode
             endif
          end do         
          if ( badLine.eqv..true. ) then
