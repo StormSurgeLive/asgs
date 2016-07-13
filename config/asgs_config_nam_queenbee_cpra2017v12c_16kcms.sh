@@ -27,8 +27,8 @@
 
 # Fundamental
 
-INSTANCENAME=dailylsu     # "name" of this ASGS process
-COLDSTARTDATE=2016011400 # calendar year month day hour YYYYMMDDHH24
+INSTANCENAME=dailylsu    # "name" of this ASGS process
+COLDSTARTDATE=2016052400 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -36,7 +36,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/txout/work # ADCIRC executables
+ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable          # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/cpra2017_v11k-CurrentConditions # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
@@ -99,11 +99,11 @@ RIVERDIR=/projects/ciflow/adcirc_info
 GRIDFILE=cpra2017_v12c-CurrentConditions-WithUpperAtch_chk.grd   # mesh (fort.14) file
 GRIDNAME=cpra2017_v12c-CurrentConditions-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=cpra_2017_v12c_CurrentConditions-WithUpperAtch_closed.15.template   # fort.15 template
-CONTROLPROPERTIES=cpra_2017_v12c_CurrentConditions-WithUpperAtch_closed.15.properties
-ELEVSTATIONS=cpra2017v07_stations.txt    # or substitute your own stations file
-VELSTATIONS=cpra2017v07_stations.txt
-METSTATIONS=cpra2017v07_stations.txt
+CONTROLTEMPLATE=cpra_2017_v12c_CurrentConditions-WithUpperAtch_closed_16kcms.15.template   # fort.15 template
+CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+ELEVSTATIONS=cpra2017v12.cera_stations.20160702
+VELSTATIONS=cpra2017v12.cera_stations.20160702
+METSTATIONS=cpra2017v12.cera_stations.20160702
 NAFILE=cpra2017_v12c-CurrentConditions-WithUpperAtch.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=cpra_2017_v07a.26.template  # only used if WAVES=on

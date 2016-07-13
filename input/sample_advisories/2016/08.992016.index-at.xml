@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:georss="http://www.georss.org/georss"
+ xmlns:gml="http://www.opengis.net/gml"
+ xmlns:nhc="http://www.nhc.noaa.gov">
+<channel>
+<pubDate>Tue, 14 Jul 2015 20:40:45 GMT</pubDate>
+<title>NHC Atlantic</title>
+<description>Active tropical cyclones in the Atlantic, Caribbean, and the Gulf of Mexico</description>
+<link>http://www.nhc.noaa.gov/</link>
+<copyright>none</copyright>
+<managingEditor>nhcwebmaster@noaa.gov (NHC Webmaster)</managingEditor>
+<language>en-us</language>
+<webMaster>nhcwebmaster@noaa.gov (NHC Webmaster)</webMaster>
+<image>
+<url>http://www.nhc.noaa.gov/gifs/xml_logo_nhc.gif</url>
+<link>http://www.nhc.noaa.gov/</link>
+<title>NHC Atlantic</title>
+<description>NOAA logo</description>
+<width>95</width>
+<height>45</height>
+</image>
+<item>
+<title>Hurricane ZACK Forecast Advisory Number 8</title>
+<description>Issued at 2100 UTC TUE JUL 14 2015  <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+
+HURRICANE ZACK FORECAST/ADVISORY NUMBER   8
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL992016
+2100 UTC MON APR 11 2016
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+TROPICAL STORM CENTER LOCATED NEAR 25.5N  73.0W AT 11/2100Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE NORTHEAST OR  50 DEGREES AT  18 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 980 MB
+MAX SUSTAINED WINDS 75 KT WITH GUSTS TO 95 KT.
+34 KT.......150NE 150SE 150SW 150NW.
+12 FT SEAS..220NE 180SE 100SW 180NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 25.5N  73.0W AT 11/2100Z
+AT 11/1800Z CENTER WAS LOCATED NEAR 25.5N  73.0W
+
+FORECAST VALID 12/0600Z 25.5N  74.9W
+MAX WIND  75 KT...GUSTS  85 KT.
+34 KT...150NE 150SE 150SW 150NW.
+
+FORECAST VALID 12/1800Z 25.4N  77.2W
+MAX WIND  75 KT...GUSTS  95 KT.
+34 KT...150NE 150SE 150SW 150NW.
+
+FORECAST VALID 13/0600Z 25.6N  80.2W
+MAX WIND  80 KT...GUSTS 95 KT.
+34 KT...160NE 160SE 160SW 160NW.
+
+FORECAST VALID 13/1800Z 26.0N  82.6W
+MAX WIND  92 KT...GUSTS 110 KT.
+34 KT...180NE 180SE 180SW 180NW.
+
+FORECAST VALID 14/1800Z 27.3N  86.4W
+MAX WIND 115 KT...GUSTS 125 KT.
+34 KT...230NE 230SE 230SW 230NW.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 200 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 15/1800Z 29.9N  90.9W
+MAX WIND 126 KT...GUSTS 140 KT.
+
+OUTLOOK VALID 16/1800Z 32.2N  94.3W
+MAX WIND  86 KT...GUSTS 100 KT.
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 23.4N  73.7W
+
+NEXT ADVISORY AT 01/1500Z
+
+
+NNNN
+</pre>]]></description>
+<pubDate>Tue, 14 Jul 2015 20:40:30 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCMAT3+shtml/DDHHMM.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCMAT3+shtml/DDHHMM.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+</channel>
+</rss>
