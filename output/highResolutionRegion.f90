@@ -90,14 +90,10 @@ enddo
 ! mesh spacing) and the distance to the farthest node that has 
 ! a resolution above the resolution threshold
 highestResNodeNumber(:) = minloc(dx_avg)
-write(6,*) 'highestResNodeNumber is ',highestResNodeNumber(1) ! jgfdebug
 highestResLon = xyd(1,highestResNodeNumber(1))
 highestResLat = xyd(2,highestResNodeNumber(1))
-write(6,*) 'highestResLon is ',highestResLon ! jgfdebug
-write(6,*) 'highestResLat is ',highestResLat ! jgfdebug
 furthestHighRes = 0.0d0
 highResCircleDiameterDegrees = 0.d0
-open(unit=12,file='stuff.log',status='replace') !jgfdebug
 do i=1, np
    if ( dx_avg(i).lt.resolutionThreshold) then
    ! meters
@@ -105,11 +101,9 @@ do i=1, np
       furthestHighRes = max(testDist,furthestHighRes)
       ! degrees
       testDist = sqrt((highestResLon-xyd(1,i))**2 + (highestResLat-xyd(2,i))**2)
-      write(12,*) 'testDist is ',testDist
       highResCircleDiameterDegrees = max(testDist,highResCircleDiameterDegrees)
    endif
 enddo
-close(12)
 !
 ! now we have average dx for each node, test to see if greater than 
 ! resolutionThreshold
@@ -139,12 +133,12 @@ endif
 !
 ! write the output properties file with the high resolution region properties
 open(unit=12,file=trim(outputfile),status='replace')
-write(12,'("highResolutionRectangleLowerLeftLonDegreesWest : ",f15.7)') lowerLeftLon
-write(12,'("highResolutionRectangleLowerLeftLatDegreesNorth : ",f15.7)') lowerLeftLat
-write(12,'("highResolutionRectangleUpperRightLonDegreesWest : ",f15.7)') upperRightLon
-write(12,'("highResolutionRectangleUpperRightLatDegreesNorth : ",f15.7)') upperRightLat
-write(12,'("highResolutionCenterLonDegreesWest : ",f15.7)') highestResLon
-write(12,'("highResolutionCenterLatDegreesNorth : ",f15.7)') highestResLat
+write(12,'("highResolutionRectangleLowerLeftLonDegrees : ",f15.7)') lowerLeftLon
+write(12,'("highResolutionRectangleLowerLeftLatDegrees : ",f15.7)') lowerLeftLat
+write(12,'("highResolutionRectangleUpperRightLonDegrees : ",f15.7)') upperRightLon
+write(12,'("highResolutionRectangleUpperRightLatDegrees : ",f15.7)') upperRightLat
+write(12,'("highResolutionCenterLonDegrees : ",f15.7)') highestResLon
+write(12,'("highResolutionCenterLatDegrees : ",f15.7)') highestResLat
 write(12,'("highResolutionCircleDiameterDegrees : ",f15.7)') highResCircleDiameterDegrees
 write(12,'("highResolutionCircleDiameterMeters :",f18.7)') furthestHighRes
 write(12,'("highResolutionThresholdMeters : ",f15.7)') resolutionThreshold
