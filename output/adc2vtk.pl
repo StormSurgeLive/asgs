@@ -235,6 +235,7 @@ $line = <MESH>;        # read number of elements and number of points line
 my @fields = split(' ',$line);
 my $ne = $fields[0];
 my $np = $fields[1];
+# read the node table
 for (my $i=0; $i<$np; $i++) {
    $line = <MESH>;
    @fields = split(' ',$line);
@@ -249,7 +250,7 @@ if ( defined $cpp ) {
       $y[$i] = $y[$i]*$deg2rad*$R;
    }
 }
-
+# read the element table
 for (my $i=0; $i<$ne; $i++) {
    $line = <MESH>;
    @fields = split(' ',$line);
@@ -259,6 +260,121 @@ for (my $i=0; $i<$ne; $i++) {
    my $i3 = $fields[4]-1;
    $conn[$i] = " $i1 $i2 $i3 ";
 }
+# 
+# Now read the elevation-specified boundary tables and write out as vtkPoints
+my $vtkElevationBoundaryFileName = $meshfile . "_elevBoundaries.vtp";
+unless (open(VTKELEVBOUNDARY,">$vtkElevationBoundaryFileName")) {
+   stderrMessage("ERROR","Failed to open $vtkElevationBoundaryFileName for writing: $!.");
+   die;
+}
+
+$line = <MESH>;
+@fields = split(' ',$line);
+my $nope = $fields[0];
+$line = <MESH>;
+@fields = split(' ',$line);
+my $neta = $fields[0];
+# write header for boundaries file   
+printf VTKELEVBOUNDARY "<?xml version=\"1.0\"?>\n";
+printf VTKELEVBOUNDARY "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+printf VTKELEVBOUNDARY "   <PolyData>\n";
+printf VTKELEVBOUNDARY "      <Piece NumberOfPoints=\"$neta\">\n";
+printf VTKELEVBOUNDARY "         <Points>\n";
+printf VTKELEVBOUNDARY "            <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+my @elevBoundaryTypes;
+my @elevBoundaryElevs; 
+my $elevBoundaryCount = 0;
+for (my $i=0; $i<$nope; $i++) {
+   $line = <MESH>;
+   my @fields = split(' ',$line); 
+   my $nvdll = $fields[0];
+   my $ibtypee = $fields[1];
+   for (my $j=0; $j<$nvdll; $j++) {
+      my $nbdv = <MESH>;
+      printf VTKELEVBOUNDARY "$x[$nbdv-1] $y[$nbdv-1] 0.0 ";
+      $elevBoundaryTypes[$elevBoundaryCount] = $ibtypee;
+      $elevBoundaryElevs[$elevBoundaryCount] = $z[$nbdv-1];      
+      $elevBoundaryCount++;
+   }
+}        
+printf VTKELEVBOUNDARY "\n";
+printf VTKELEVBOUNDARY "            </DataArray>\n";
+printf VTKELEVBOUNDARY "         </Points>\n";
+printf VTKELEVBOUNDARY "         <PointData>\n";
+printf VTKELEVBOUNDARY "            <DataArray Name=\"IBTYPEE\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">";
+for (my $i=0; $i<$elevBoundaryCount; $i++) {
+   printf VTKELEVBOUNDARY " $elevBoundaryTypes[$i]";
+}
+printf VTKELEVBOUNDARY "            </DataArray>\n";
+printf VTKELEVBOUNDARY "            <DataArray Name=\"Elevation\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">";
+for (my $i=0; $i<$elevBoundaryCount; $i++) {
+   printf VTKELEVBOUNDARY " $elevBoundaryElevs[$i]";
+}
+printf VTKELEVBOUNDARY "            </DataArray>\n";
+printf VTKELEVBOUNDARY "         </PointData>\n";
+printf VTKELEVBOUNDARY "      </Piece>\n";
+printf VTKELEVBOUNDARY "   </PolyData>\n";
+printf VTKELEVBOUNDARY "</VTKFile>\n";
+close(VTKELEVBOUNDARY);
+# 
+# Now read the flux-specified boundary tables and write out as vtkPoints
+my $vtkFluxBoundaryFileName = $meshfile . "_fluxBoundaries.vtp";
+unless (open(VTKFLUXBOUNDARY,">$vtkFluxBoundaryFileName")) {
+   stderrMessage("ERROR","Failed to open $vtkFluxBoundaryFileName for writing: $!.");
+   die;
+}
+$line = <MESH>;
+@fields = split(' ',$line);
+my $nbou = $fields[0];
+$line = <MESH>;
+@fields = split(' ',$line);
+my $nvel = $fields[0];
+# write header for boundaries file   
+printf VTKFLUXBOUNDARY "<?xml version=\"1.0\"?>\n";
+printf VTKFLUXBOUNDARY "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+printf VTKFLUXBOUNDARY "   <PolyData>\n";
+printf VTKFLUXBOUNDARY "      <Piece NumberOfPoints=\"$nvel\">\n";
+printf VTKFLUXBOUNDARY "         <Points>\n";
+printf VTKFLUXBOUNDARY "            <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+my @fluxBoundaryTypes;
+my @fluxBoundaryElevs; 
+my $fluxBoundaryCount = 0;
+for (my $i=0; $i<$nbou; $i++) {
+   $line = <MESH>;
+   my @fields = split(' ',$line); 
+   my $nvell = $fields[0];
+   my $ibtype = $fields[1];
+   for (my $j=0; $j<$nvell; $j++) {
+      $line = <MESH>;
+      @fields = split(' ',$line);
+      my $nbvv = $fields[0];
+      printf VTKFLUXBOUNDARY "$x[$nbvv-1] $y[$nbvv-1] 0.0 ";
+      $fluxBoundaryTypes[$fluxBoundaryCount] = $ibtype;
+      $fluxBoundaryElevs[$fluxBoundaryCount] = $z[$nbvv-1];      
+      $fluxBoundaryCount++;
+   }
+}        
+print "fluxBoundaryCount is $fluxBoundaryCount\n";
+printf VTKFLUXBOUNDARY "\n";
+printf VTKFLUXBOUNDARY "            </DataArray>\n";
+printf VTKFLUXBOUNDARY "         </Points>\n";
+printf VTKFLUXBOUNDARY "         <PointData>\n";
+printf VTKFLUXBOUNDARY "            <DataArray Name=\"IBTYPE\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">";
+for (my $i=0; $i<$fluxBoundaryCount; $i++) {
+   printf VTKFLUXBOUNDARY " $fluxBoundaryTypes[$i]";
+}
+printf VTKFLUXBOUNDARY "            </DataArray>\n";
+printf VTKFLUXBOUNDARY "            <DataArray Name=\"Elevation\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">";
+for (my $i=0; $i<$fluxBoundaryCount; $i++) {
+   printf VTKFLUXBOUNDARY " $fluxBoundaryElevs[$i]";
+}
+printf VTKFLUXBOUNDARY "            </DataArray>\n";
+printf VTKFLUXBOUNDARY "         </PointData>\n";
+printf VTKFLUXBOUNDARY "      </Piece>\n";
+printf VTKFLUXBOUNDARY "   </PolyData>\n";
+printf VTKFLUXBOUNDARY "</VTKFile>\n";
+close(VTKFLUXBOUNDARY);
+#
 close(MESH);
 #
 # write data from adcirc file(s)
