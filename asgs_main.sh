@@ -1541,6 +1541,8 @@ while [ true ]; do
       # number of CPUs that will ever be available.
       if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
          error "The requested number of CPUs for $ENSTORM is set to $NCPU and the number of writer processors has been set to $NUMWRITERS but the total number of requested CPUs exceeds the NCPUCAPACITY parameter value of ${NCPUCAPACITY}; therefore this forecast ensemble member will never be able to execute. This forecast ensemble member is being abandoned."
+         # increment the ensemble member counter
+         si=$[$si + 1];
          continue 
       fi
       subDirs=`find ${ADVISDIR} -maxdepth 1 -type d -print`
