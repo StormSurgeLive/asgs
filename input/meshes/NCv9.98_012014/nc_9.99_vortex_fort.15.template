@@ -15,7 +15,7 @@ mannings_n_at_sea_floor
 primitive_weighting_in_continuity_equation
 average_horizontal_eddy_viscosity_in_sea_water_wrt_depth
 sea_surface_height_above_geoid
-urface_directional_effective_roughness_length
+surface_directional_effective_roughness_length
 surface_canopy_coefficient
 1                         ! NCOR - VARIABLE CORIOLIS IN SPACE 
 1                         ! NTIP - TIDAL POTENTIAL 
@@ -45,7 +45,7 @@ N2
 K2 
  0.030704  1.458408E-004 0.693000 %K2NF%  %K2EQARG%
 K1  
- 0.141565  7.292040E-005 0.736000 %K1NF%  %K2EQARG%
+ 0.141565  7.292040E-005 0.736000 %K1NF%  %K1EQARG%
 O1   
  0.100514  6.759704E-005 0.695000 %O1NF%  %O1EQARG%
 P1 
@@ -62,7 +62,7 @@ N2
 K2 
  1.458408E-004  %K2NF%  %K2EQARG%
 K1 
- 7.292040E-005  %K1NF%  %K2EQARG% 
+ 7.292040E-005  %K1NF%  %K1EQARG% 
 O1 
  6.759704E-005  %O1NF%  %O1EQARG%
 P1 
