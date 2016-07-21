@@ -29,6 +29,8 @@ real(8), allocatable :: yalbers(:)
 ! parameters related to the neighbor edge length table (np,neimax)
 logical :: neighborEdgeLengthTableComputed = .false. ! .true. when mem is allocated for this
 real(8), allocatable :: neighborEdgeLengthTable(:,:)
+real(8)                :: minEdgeLength ! shortest edge length in the whole mesh (m)
+real(8)                :: maxEdgeLength ! longest edge length in the whole mesh (m)
 real(8), allocatable :: areas(:) ! (ne) 2x element areas in square meters
 real(8), allocatable :: sfac(:) ! (np)
 real(8), allocatable :: sfacAvg(:) ! (ne)
@@ -39,13 +41,15 @@ real(8), allocatable :: centroids(:,:) ! (2,ne) x and y coordinates of the eleme
 real(8), allocatable          :: sigma(:)
 character(80)                 :: agrid
 integer                       :: ne, np
+integer, allocatable         :: nmnc(:,:) ! element table in netcdf (3,ne)
+integer, allocatable         :: nm(:,:)   ! element table in adcirc (ne,3)
 integer                       :: nfen
 integer                       :: mnei = 15  ! maximum number of neighbors for a node
 integer                       :: neta_count ! count of open boundary nodes
 integer                       :: nvel_count ! count of land boundary nodes
 integer                       :: nope, neta
 integer                       :: nbou, nvel
-integer,          allocatable :: nm(:,:)   ! element table (ne,3)
+
 integer,          allocatable :: nvdll(:)  ! number of nodes on each open boundary
 integer,          allocatable :: nbdv(:,:) ! node numbers on each open boundary
 integer,          allocatable :: nvell(:)  ! number of nodes on each flux boundary
@@ -79,7 +83,10 @@ integer                       :: NEIMIN
 integer                       :: NEIMAX 
 integer,         allocatable :: NNeigh(:)
 integer,         allocatable :: NeiTab(:,:)
+integer,         allocatable :: NeiTabGenerated(:,:)
 integer,         allocatable :: NeiTabEle(:,:)
+integer,         allocatable :: NeiTabEleGenerated(:,:)
+integer,         allocatable :: nneighele(:)
 !
 integer                       :: NC_DimID_node
 integer                       :: NC_DimID_vnode
@@ -272,8 +279,8 @@ read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nope  ! total number of elevatio
 lineNum = lineNum + 1
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) neta  ! total number of nodes on elevation boundaries
 lineNum = lineNum + 1
+write(6,'(a)') 'INFO: Allocating memory for elevation specified boundaries.'
 call allocateElevationBoundaryLengths()
-call allocateAdcircElevationBoundaryArrays() 
 neta_count = 0
 nvdll_max = 0
 do k = 1, nope         
@@ -286,15 +293,17 @@ do k = 1, nope
       neta_count = neta_count + 1
    enddo
 enddo
+! need nvdll_max to allocate nbdv 
+call allocateAdcircElevationBoundaryArrays() 
 if ( neta_count.ne.neta ) then
-   write(6,'("WARNING: Number of open boundary nodes was set to ",I6," but ",I6," were found.")') neta, neta_count
+   write(6,'("WARNING: Number of open boundary nodes was set to ",i0," but ",i0," were found.")') neta, neta_count
 endif
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nbou ! total number of flux boundaries
 lineNum = lineNum + 1
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nvel ! total number of nodes on flux boundaries
 lineNum = lineNum + 1
+write(6,'(a)') 'INFO: Allocating memory for flux specified boundaries.'
 call allocateFluxBoundaryLengths()
-call allocateAdcircFluxBoundaryArrays()
 nvel_count = 0
 nvell_max = 0
 do k = 1, nbou
@@ -304,26 +313,31 @@ do k = 1, nbou
    do j = 1, nvell(k)
       read(unit=iunit,fmt=*,err=10,end=20,iostat=ios)
       lineNum = lineNum + 1
-      nvel_count = nvel_count + 1
    enddo
    ! count the total number of each type of boundary for later
    ! use in memory allocation
    select case(ibtype_orig(k))
    case(0,1,2,10,11,12,20,21,22,30,52)
        numSimpleFluxBoundaries = numSimpleFluxBoundaries + 1
+       nvel_count = nvel_count + nvell(k)
    case(3,13,23)
        numExternalFluxBoundaries = numExternalFluxBoundaries + 1 
+       nvel_count = nvel_count + nvell(k)
    case(4,24)
        numInternalFluxBoundaries = numInternalFluxBoundaries + 1 
+       nvel_count = nvel_count + 2*nvell(k)
    case(5,25)
        numInternalFluxBoundariesWithPipes = numInternalFluxBoundariesWithPipes + 1
+       nvel_count = nvel_count + 2*nvell(k)
    case default
        write(6,'("ERROR: The boundary type ",i0," was found in the file but is not valid.")') ibtype_orig(k)
        stop
    end select
 enddo
+! need nvell_max to allocate nbvv
+call allocateAdcircFluxBoundaryArrays()
 if ( nvel_count.ne.nvel) then
-   write(6,'("WARNING: Number of land boundary nodes was set to ",I6," but ",I6," were found.")') nvel, nvel_count
+   write(6,'("WARNING: Number of flux boundary nodes was set to ",i0," but ",i0," were found.")') nvel, nvel_count
    if (verbose.eqv..true.) then
       write(6,*) 'WARNING: Here is the summary of land boundary node information:'
       write(6,'("NVEL (specified number of land boundary nodes) = ",i0,".")') nvel
@@ -369,6 +383,8 @@ integer :: ndim ! number of dimensions in the netcdf file
 integer :: nc_dimid_time ! id of the time dimension
 integer :: ncformat ! netcdf3, netcdf4, netcdf4 classic model, etc
 !
+write(6,'(a)') 'INFO: Reading mesh dimensions from the netCDF file.'
+!
 ! open the netcdf file
 call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
 !
@@ -388,10 +404,12 @@ call check(nf90_inq_dimid(nc_id, 'node', nc_dimid_node))
 call check(nf90_inquire_dimension(nc_id, nc_dimid_node, len=np))
 call check(nf90_inq_dimid(nc_id, 'nele', nc_dimid_nele))
 call check(nf90_inquire_dimension(nc_id, nc_dimid_nele, len=ne))
+
 !
 ! determine which other dimensions are present and find their lengths 
 !
 ! open boundaries
+write(6,'(a)') 'INFO: Reading boundary dimensions.'
 dimPres = nf90_inq_dimid(nc_id, 'nope', nc_dimid_nope)
 if (dimPres.eq.NF90_NOERR) then
    call check(nf90_inquire_dimension(nc_id, nc_dimid_nope, len=nope))
@@ -426,7 +444,6 @@ if (nope.ne.0) then
       call check(nf90_get_var(nc_id, nc_varid_nbdv, nbdv(i,:), (/ i, 1 /), (/ 1, nvdll(i) /) ))  
    end do
 endif
-!
 !
 ! flux boundaries
 dimPres = nf90_inq_dimid(nc_id, 'nbou', nc_dimid_nbou)
@@ -465,16 +482,98 @@ if (nbou.ne.0) then
       call check(nf90_get_var(nc_id, nc_varid_nbvv, nbvv(i,:), (/ i, 1 /), (/ 1, nvell(i) /) ))  
    end do
 endif
-
-! TODO: Finish this subroutine, and write a subroutine to actually
-! read the mesh data (coordinates, bathy/topo, element table).
 !
-! TODO: The NetCDF files written by ADCIRC don't actually contain the
-! levee heights, coefficients of sub/supercritical flow, etc. 
+! Close the file once the mesh dimensions have been determined and the 
+! arrays have been allocated. The actual data are read in the
+! subroutine readMeshNetCDF().
+call check(nf90_close(nc_id))
+
+write(6,'(a)') 'INFO: Finished reading mesh dimensions from the netCDF file.'
 
 !----------------------------------------------------------------------
 end subroutine findMeshDimsNetCDF
 !----------------------------------------------------------------------
+
+!------------------------------------------------------------------
+!    S U B R O U T I N E     R E A D   M E S H   N E T C D F
+!------------------------------------------------------------------
+! Read the mesh data (coordinates, bathy/topo, element table).
+! The subroutine findMeshDimsNetCDF() must be called before this 
+! one. 
+! TODO: The NetCDF files written by ADCIRC don't actually contain the
+! levee heights, coefficients of sub/supercritical flow, etc. 
+!------------------------------------------------------------------
+subroutine readMeshNetCDF(datafile)
+use netcdf
+use asgsio, only : nc_id, check
+implicit none
+character(len=1024), intent(in) :: datafile
+integer :: dimPres ! return code from netcdf to determine if the dimension is present in the file
+integer :: i, j ! loop counter
+integer :: natt ! number of attributes in the netcdf file
+integer :: nvar ! number of variables in the netcdf file
+integer :: ndim ! number of dimensions in the netcdf file
+integer :: nc_dimid_time ! id of the time dimension
+integer :: ncformat ! netcdf3, netcdf4, netcdf4 classic model, etc
+
+integer :: nc_count(2)
+integer :: nc_start(2)
+!
+write(6,'(a)') 'INFO: Reading mesh from the netCDF file.'
+call allocateNodalAndElementalArrays()
+!
+! open the netcdf file
+call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
+!
+! read mesh lon, lat, depth data from the file
+nc_count = (/ np, 1 /)
+nc_start = (/ 1, 1 /)
+call check(nf90_inq_varid(nc_id, 'x', nc_varid_x))
+call check(nf90_get_var(nc_id,nc_varid_x,xyd(1,1:np),nc_start,nc_count))     
+call check(nf90_inq_varid(nc_id, 'y', nc_varid_y))
+call check(nf90_get_var(nc_id,nc_varid_y,xyd(2,1:np),nc_start,nc_count))
+call check(nf90_inq_varid(nc_id, 'depth', nc_varid_depth))
+call check(nf90_get_var(nc_id,nc_varid_depth,xyd(3,1:np),nc_start,nc_count))
+!
+! element table
+NC_Count = (/ 3, ne /)
+call check(nf90_inq_varid(nc_id, 'element', nc_varid_element))
+call check(nf90_get_var(nc_id,nc_varid_element,nmnc,nc_start,nc_count))
+!
+! populate the adcirc-style element table
+!
+! we must reverse the order of the dimensions because netcdf writes
+! them to disk in column major order, according to the way C interprets
+! the data, rather than row major order, the way Fortran would interpret
+! the data
+do i=1, ne
+   do j=1, 3
+      nm(i,j)= nmnc(j,i)
+   end do
+end do
+!
+! open (i.e., elevation specified) boundaries
+if (nope.ne.0) then
+   nc_count = (/ nope, 1 /)
+   call check(nf90_get_var(nc_id,nc_varid_nvdll,nvdll,nc_start,nc_count))
+   nc_count = (/ nope, nvdll_max /)   
+   call check(nf90_get_var(nc_id,nc_varid_nbdv,nbdv,nc_start,nc_count))
+endif
+if (nbou.ne.0) then
+   nc_count = (/ nbou, 1 /)
+   call check(nf90_get_var(nc_id,nc_varid_nvell,nvell,nc_start,nc_count))  
+   nc_count = (/ nbou, 1 /)
+   call check(nf90_get_var(nc_id,nc_varid_ibtype,ibtype,nc_start,nc_count))     
+   nc_count = (/ nbou, nvell_max /)
+   call check(nf90_get_var(nc_id,nc_varid_nbvv,nbvv,nc_start,nc_count))     
+end if
+call check(nf90_close(nc_id))
+write(6,'(a)') 'INFO: Mesh has been read from the netCDF file.'
+
+!----------------------------------------------------------------------
+end subroutine readMeshNetCDF
+!----------------------------------------------------------------------
+
 
 !------------------------------------------------------------------
 !                   S U B R O U T I N E    
@@ -501,7 +600,7 @@ if (agold.EQ.NF90_NOERR) then
 elseif(agnew.EQ.NF90_NOERR) then
    ag = nf90_get_att(nc_id,nf90_global,'agrid',agrid)
 else
-   call check(agnew)
+   call check(ag)
 endif
 !----------------------------------------------------------------------
 end subroutine readMeshCommentLineNetCDF
@@ -553,6 +652,14 @@ do k = 1, ne
    read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) je, nhy, ( nm(k,j), j = 1, 3 )
    lineNum = lineNum + 1
 enddo
+!
+! populate netcdf-style element table
+do i=1, ne
+   do j=1, 3
+      nmnc(j,i) = nm(i,j)
+   end do
+end do
+
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nope
 lineNum = lineNum + 1
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) neta
@@ -563,6 +670,7 @@ do k = 1, nope
    elevationBoundaries(k)%indexNum = k
    do j = 1, nvdll(k)
       read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) elevationBoundaries(k)%nodes(j)
+      nbdv(k,j) = elevationBoundaries(k)%nodes(j)
       lineNum = lineNum + 1
    enddo
 enddo
@@ -583,6 +691,7 @@ do k = 1, nbou
       do j = 1, nvell(k)
          read(unit=iunit,fmt=*,err=10,end=20,iostat=ios)  &
             simpleFluxBoundaries(sfCount)%nodes(j)
+         nbvv(k,j) = simpleFluxBoundaries(sfCount)%nodes(j)
          lineNum = lineNum + 1
       end do
       sfCount = sfCount + 1
@@ -593,6 +702,7 @@ do k = 1, nbou
                        externalFluxBoundaries(efCount)%nodes(j), &
                        externalFluxBoundaries(efCount)%barlanht(j), &
                        externalFluxBoundaries(efCount)%barlancfsp(j)
+         nbvv(k,j) = externalFluxBoundaries(efCount)%nodes(j)
          lineNum = lineNum + 1
       end do
       efCount = efCount + 1
@@ -605,6 +715,7 @@ do k = 1, nbou
                        internalFluxBoundaries(ifCount)%barinht(j), &
                        internalFluxBoundaries(ifCount)%barincfsb(j), &
                        internalFluxBoundaries(ifCount)%barincfsp(j)
+         nbvv(k,j) = internalFluxBoundaries(ifCount)%nodes(j)
          lineNum = lineNum + 1
       end do
       ifCount = ifCount + 1
@@ -612,14 +723,15 @@ do k = 1, nbou
       internalFluxBoundaries(ifwpCount)%indexNum = k
       do j = 1, nvell(k)
          read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) &
-                       internalFluxBoundariesWithPipes(ifCount)%nodes(j), &
-                       internalFluxBoundariesWithPipes(ifCount)%ibconn(j), &
-                       internalFluxBoundariesWithPipes(ifCount)%barinht(j), &
-                       internalFluxBoundariesWithPipes(ifCount)%barincfsb(j), &
-                       internalFluxBoundariesWithPipes(ifCount)%barincfsp(j), &
-                       internalFluxBoundariesWithPipes(ifCount)%pipeht(j), &
-                       internalFluxBoundariesWithPipes(ifCount)%pipecoef(j), &
-                       internalFluxBoundariesWithPipes(ifCount)%pipediam(j)
+                       internalFluxBoundariesWithPipes(ifwpCount)%nodes(j), &
+                       internalFluxBoundariesWithPipes(ifwpCount)%ibconn(j), &
+                       internalFluxBoundariesWithPipes(ifwpCount)%barinht(j), &
+                       internalFluxBoundariesWithPipes(ifwpCount)%barincfsb(j), &
+                       internalFluxBoundariesWithPipes(ifwpCount)%barincfsp(j), &
+                       internalFluxBoundariesWithPipes(ifwpCount)%pipeht(j), &
+                       internalFluxBoundariesWithPipes(ifwpCount)%pipecoef(j), &
+                       internalFluxBoundariesWithPipes(ifwpCount)%pipediam(j)
+         nbvv(k,j) = internalFluxBoundariesWithPipes(ifwpCount)%nodes(j)
          lineNum = lineNum + 1                                           
       end do
       ifwpCount = ifwpCount + 1
@@ -660,6 +772,7 @@ subroutine allocateNodalAndElementalArrays()
 implicit none
 allocate(xyd(3,np))
 allocate(nm(ne,3))
+allocate(nmnc(3,ne))
 !
 ! initialize to something troublesome to make it easy to spot issues
 xyd = -99999.d0
@@ -697,11 +810,13 @@ end subroutine allocateElevationBoundaryLengths
 !------------------------------------------------------------------
 subroutine allocateFluxBoundaryLengths()
 implicit none
+
 allocate(nvell(nbou)) ! number of nodes on each flux boundary segment
 allocate(ibtype_orig(nbou))
 allocate(ibtype(nbou))
 !
 ! initialize to something troublesome to make it easy to spot issues
+
 nvell = -99999
 ibtype_orig = -99999
 ibtype = -99999
@@ -718,7 +833,7 @@ end subroutine allocateFluxBoundaryLengths
 !------------------------------------------------------------------
 subroutine allocateAdcircElevationBoundaryArrays()
 implicit none
-allocate(nbdv(nope,neta))
+allocate(nbdv(nope,nvdll_max))
 allocate(nbd(neta))
 !
 ! initialize to something troublesome to make it easy to spot issues
@@ -738,30 +853,38 @@ end subroutine allocateAdcircElevationBoundaryArrays
 subroutine allocateAdcircFluxBoundaryArrays()
 implicit none
 allocate ( nbv(nvel),lbcodei(nvel))
-allocate ( barlanht(nbou,nvel),barlancfsp(nbou,nvel))
-allocate ( barinht(nbou,nvel),barincfsb(nbou,nvel),barincfsp(nbou,nvel))
-allocate ( pipeht(nbou,nvel),pipecoef(nbou,nvel),pipediam(nbou,nvel))
-allocate ( ibconn(nbou,nvel))
-allocate ( nbvv(nbou,0:nvel))
+allocate ( nbvv(nbou,nvell_max))
+!
+! jgf20150723: These are never used so I commented them out because
+! they are memory hogs.
+!allocate ( barlanht(nbou,nvel),barlancfsp(nbou,nvel))
+!allocate ( barinht(nbou,nvel),barincfsb(nbou,nvel),barincfsp(nbou,nvel))
+!allocate ( pipeht(nbou,nvel),pipecoef(nbou,nvel),pipediam(nbou,nvel))
+!allocate ( ibconn(nbou,nvel))
 ! kmd - added for rivers in baroclinic simulation
-allocate (bcrnbvv(nbou,0:nvel))
-allocate (bcrnvell(nbou))
+!allocate (bcrnbvv(nbou,0:nvel))
+!allocate (bcrnvell(nbou))
+
 !
 ! initialize to something troublesome to make it easy to spot issues
 nbv = -99999
 lbcodei = -99999
-barlanht = -99999.d0
-barlancfsp = -99999.d0
-barinht = -99999.d0
-barincfsb = -99999.d0
-barincfsp = -99999.d0
-pipeht = -99999.d0
-pipecoef = -99999.d0
-pipediam = -99999.d0
-ibconn = -99999
 nbvv = -99999
-bcrnbvv = -99999
-bcrnvell = -99999
+!
+! jgf20150723: These are never used so I commented them out because
+! they are memory hogs.
+!barlanht = -99999.d0
+!barlancfsp = -99999.d0
+!barinht = -99999.d0
+!barincfsb = -99999.d0
+!barincfsp = -99999.d0
+!pipeht = -99999.d0
+!pipecoef = -99999.d0
+!pipediam = -99999.d0
+!ibconn = -99999
+
+!bcrnbvv = -99999
+!bcrnvell = -99999
 !------------------------------------------------------------------
 end subroutine allocateAdcircFluxBoundaryArrays
 !------------------------------------------------------------------
@@ -1068,12 +1191,12 @@ end subroutine writeMesh
 !----------------------------------------------------------------------
 !     This subroutine writes the mesh parameters to the netcdf file. 
 !----------------------------------------------------------------------
-subroutine writeMeshDefinitionsToNetCDF(nc_id, useNetCDF4)
+subroutine writeMeshDefinitionsToNetCDF(nc_id, fileFormat)
 use netcdf
-use asgsio, only : check
+use asgsio, only : check, NETCDF4
 implicit none
 integer, intent(in) :: nc_id
-logical, intent(in) :: useNetCDF4
+integer, intent(in) :: fileFormat
 integer              :: NC_DimID_single
 !
 ! create and store mesh dimensions 
@@ -1157,7 +1280,8 @@ CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'face_node_connectivity','element'))
 
 #ifdef NETCDF_CAN_DEFLATE
 
-if (useNetCDF4.eqv..true.) then
+! automatically turn on compression if it is available
+if (fileFormat.eq.NETCDF4) then
    if (nope.ne.0) then
       call check(nf90_def_var_deflate(NC_ID, NC_VarID_nvdll, 0, 1, 2))
       call check(nf90_def_var_deflate(NC_ID, NC_VarID_nbdv, 0, 1, 2))
@@ -1170,7 +1294,6 @@ if (useNetCDF4.eqv..true.) then
    call check(nf90_def_var_deflate(NC_ID, NC_VarID_x, 0, 1, 2))
    call check(nf90_def_var_deflate(NC_ID, NC_VarID_y, 0, 1, 2))
    call check(nf90_def_var_deflate(NC_ID, NC_VarID_element, 0, 1, 2))
-   call check(nf90_def_var_deflate(NC_ID, NC_VarID_depth, 0, 1, 2))
    call check(nf90_def_var_deflate(NC_ID, NC_VarID_depth, 0, 1, 2))
    call check(nf90_def_var_deflate(NC_ID, NC_VarID_Mesh, 0, 1, 2))
 endif
@@ -1192,7 +1315,6 @@ endif
       use asgsio, only : check
       implicit none
       integer, intent(in) :: nc_id
-      integer, allocatable :: nmnc(:,:) ! connectivity table to satisfy netcdf's expectations
       integer :: nc_count(2)
       integer :: nc_start(2)
       integer :: i, j
@@ -1204,19 +1326,8 @@ endif
       CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_y,xyd(2,1:np),NC_Start,NC_Count))
       CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_depth,xyd(3,1:np),NC_Start,NC_Count))
       NC_Count = (/ 3, ne /)
-      !
-      ! we must reverse the order of the dimensions because netcdf writes
-      ! them to disk in column major order, according to the way C interprets
-      ! the data, rather than row major order, the way Fortran would interpret
-      ! the data
-      allocate(nmnc(3,ne))
-      do i=1, ne
-         do j=1, 3
-            nmnc(j,i)= nm(i,j)
-         end do
-      end do
+
       CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_element,nmnc,NC_Start,NC_Count))
-      deallocate(nmnc)
       
       if (nope.ne.0) then
          CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nope,nope))
@@ -1238,59 +1349,60 @@ endif
          CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nbvv,nbvv,NC_Start,NC_Count))
       end if
 
-      write(6,*) 'INFO: Mesh has been written to NETCDF'
+      write(6,'(a)') 'INFO: Mesh has been written to the netCDF file.'
 !----------------------------------------------------------------------
       end subroutine writeMeshDataToNetCDF
 !----------------------------------------------------------------------
 
-
-!******************************************************************************
-!                                                                             *
-!      Subroutine to generate neighbor tables from a connectivity table.      *
-!                                                                             *
-!      NOTES                                                                  *
-!      a node neighbor table is generated with the node itself is listed as   *
-!         neighbor #1 and all other neighbors are sorted and placed in cw     *
-!         order from east                                                     *
-!      a neighbor element table is generated with:                            *
-!         entry 1 = element # defined by neighbors 1,2,3                      *
-!         entry 2 = element # defined by neighbors 1,3,4                      *
-!         entry 3 = element # defined by neighbors 1,4,5                      *
-!          .......                                                            *
-!         entry last = element # defined by neighbors 1,nneigh,2              *
-!         a zero area means that the defined triangle lies outside the domain *
-!                                                                             *
-!                                                                             *
-!    v1.0   R.L.   6/29/99  used in 3D code                                   *
-!    v2.0   R.L.   5/23/02  adapted to provide neighbor el table              *
-!******************************************************************************
-!                                                                             *
-!     -  PARAMETERS WHICH MUST BE SET TO CONTROL THE DIMENSIONING OF ARRAYS   *
-!           ARE AS FOLLOWS:                                                   *
-!                                                                             *
-!          MNP = MAXIMUM NUMBER OF NODAL POINTS                               *
-!          MNE = MAXIMUM NUMBER OF ELEMENTS                                   *
-!          MNEI= 1+MAXIMUM NUMBER OF NODES CONNECTED TO ANY ONE NODE IN THE   *
-!                  FINITE ELEMENT GRID                                        *
-!                                                                             *
-!******************************************************************************
-!                                                                             *
-!    VARIABLE DEFINITIONS:                                                    *
-!       NE - NUMBER OF ELEMENTS                                               *
-!       NP - NUMBER OF NODES                                                  *
-!       NM(MNE,3) - NODE NUMBERS ASSOCIATED WITH EACH ELEMENT                 *
-!       NNeigh(MNP) NUMBER OF NEIGHBORS FOR EACH NODE                         *
-!       NeiTab(MNP,NEIMAX) 2D ARRAY OF NEIGHBORS FOR EACH NODE                *
-!       NeiTabEle(MNP,NEIMAX) 2D ARRAY OF NEIGHBOR ELEMENTS FOR EACH NODE     *
-!       NEIMIN - 1+MINIMUM NUMBER OF NEIGHBORS FOR ANY NODE                   *
-!       NEIMAX - 1+MAXIMUM NUMBER OF NEIGHBORS FOR ANY NODE                   *
-!                                                                             *
-!******************************************************************************
+!----------------------------------------------------------------------
+! S U B R O U T I N E    C O M P U T E   N E I G H B O R   T A B L E
+!-----------------------------------------------------------------------
+!
+!  Subroutine to generate neighbor tables from a connectivity table.   
+!                                                                     
+!  NOTES                                                               
+!  a node neighbor table is generated with the node itself is listed as
+!     neighbor #1 and all other neighbors are sorted and placed in cw  
+!     order from east                                                  
+!  a neighbor element table is generated with:                         
+!     entry 1 = element # defined by neighbors 1,2,3                   
+!     entry 2 = element # defined by neighbors 1,3,4                   
+!     entry 3 = element # defined by neighbors 1,4,5                   
+!      .......                                                         
+!     entry last = element # defined by neighbors 1,nneigh,2           
+!     a zero area means that the defined triangle lies outside the domain 
+!                                                                      
+!                                                                      
+!    v1.0   R.L.   6/29/99  used in 3D code                            
+!    v2.0   R.L.   5/23/02  adapted to provide neighbor el table       
+!-----------------------------------------------------------------------
+!                                                                      
+! -  PARAMETERS WHICH MUST BE SET TO CONTROL THE DIMENSIONING OF ARRAYS
+!       ARE AS FOLLOWS:                                                
+!                                                                      
+!     MNP = MAXIMUM NUMBER OF NODAL POINTS                             
+!     MNE = MAXIMUM NUMBER OF ELEMENTS                                 
+!     MNEI= 1+MAXIMUM NUMBER OF NODES CONNECTED TO ANY ONE NODE IN THE 
+!              FINITE ELEMENT GRID                                     
+!                                                                      
+!-----------------------------------------------------------------------
+!                                                                      
+! VARIABLE DEFINITIONS:                                                
+!   NE - NUMBER OF ELEMENTS                                            
+!   NP - NUMBER OF NODES                                               
+!   NM(MNE,3) - NODE NUMBERS ASSOCIATED WITH EACH ELEMENT              
+!   NNeigh(MNP) NUMBER OF NEIGHBORS FOR EACH NODE                      
+!   NeiTab(MNP,NEIMAX) 2D ARRAY OF NEIGHBORS FOR EACH NODE             
+!   NeiTabEle(MNP,NEIMAX) 2D ARRAY OF NEIGHBOR ELEMENTS FOR EACH NODE
+!   nNeighEle(MNP) Number of neighbor elements at each node
+!   NEIMIN - 1+MINIMUM NUMBER OF NEIGHBORS FOR ANY NODE                
+!   NEIMAX - 1+MAXIMUM NUMBER OF NEIGHBORS FOR ANY NODE               
+!                                                                     
+!-----------------------------------------------------------------------
 subroutine computeNeighborTable()
 implicit none
 double precision, allocatable :: angle(:)
 integer, allocatable :: neitem(:)
-integer, allocatable :: nneighele(:)
 double precision :: anglelow
 double precision :: anglemore
 double precision :: delx
@@ -1315,7 +1427,7 @@ allocate(nneigh(np))
 nneigh = 0
 do i=1,ne
    do j=1,3
-      ! count the number of elements that include each node
+      ! increment the number of nodal neighbors this node has
       nneigh(nm(i,j)) = nneigh(nm(i,j)) + 1 
    end do
 end do
@@ -1325,31 +1437,39 @@ mnei = mnei + 2 ! +1 to include the node itself, +1 in case its a boundary node
 allocate(neitab(np,mnei))
 allocate(neitabele(np,mnei))
 allocate(angle(mnei))
-allocate(neitem(np))
 allocate(nneighele(np))
 neighborTableComputed = .true.
-! initialize neighbor table to zeroes
+allocate(neiTabGenerated(np,mnei))
+allocate(neiTabEleGenerated(np,mnei))
+!
+! initialize neighbor tables to invalid values to make it easy to 
+! spot issues
 NNeigh=0
 NNeighEle=0
-NeiTab=0
-NeiTabEle=0
+NeiTab=-99
+NeiTabEle=-99
+write(6,'("DEBUG: Generating initial node and element tables.")') !jgfdebug
 DO 10 N=1,NE
    NN1 = NM(N,1)
    NN2 = NM(N,2)
    NN3 = NM(N,3)
-   NNeighEle(NN1)=NNeighEle(NN1)+1
+   NNeighEle(NN1)=NNeighEle(NN1)+1 ! increment the number of elements that neighbor this node
    NNeighEle(NN2)=NNeighEle(NN2)+1
    NNeighEle(NN3)=NNeighEle(NN3)+1
-   NeiTabEle(NN1,NNeighEle(NN1))=N
+   NeiTabEle(NN1,NNeighEle(NN1))=N ! add element n to the neighboring elements list for this node
    NeiTabEle(NN2,NNeighEle(NN2))=N
    NeiTabEle(NN3,NNeighEle(NN3))=N
-
+   ! 
+   ! repeat for the number of nodal neighbors of node 1 on element n
    DO J=1,NNeigh(NN1)
+      ! check to see if node 2 is already in node 1's neighbor list; if so skip adding it
       IF(NN2.EQ.NeiTab(NN1,J)) GOTO 25
    END DO
-   NNeigh(NN1)=NNeigh(NN1)+1
-   NNeigh(NN2)=NNeigh(NN2)+1
+   NNeigh(NN1)=NNeigh(NN1)+1 ! increment the number of neighbors of node 1 on element n
+   NNeigh(NN2)=NNeigh(NN2)+1 ! increment the number of neighbors of node 2 on element n
+   ! if the number of neighbors on node 1 or node 2 of element n exceeds the limit, terminate
    IF((NNeigh(NN1).GT.MNEI-1).OR.(NNeigh(NN2).GT.MNEI-1)) GOTO 999
+   ! add node 1 and node 2 to each other's neighbor lists
    NeiTab(NN1,NNeigh(NN1))=NN2
    NeiTab(NN2,NNeigh(NN2))=NN1
 
@@ -1374,17 +1494,28 @@ DO 10 N=1,NE
    NeiTab(NN3,NNeigh(NN3))=NN2
 
 10   CONTINUE
+neiTabGenerated = neiTab
+neiTabEleGenerated = neiTabEle
 !
 !     INSERT NODE ITSELF IN PLACE #1 and SORT other NEIGHBORS by
 !     increasing cw angle from East
 !
+! loop over nodes
+write(6,'("DEBUG: Sorting node table.")') ! jgfdebug
+allocate(neitem(mnei))
 DO I=1,NP
+   ! loop over nodal neighbors of node i
    DO J=1,NNeigh(I)
+      ! save the node number of the jth neighbor of node i
       NEITEM(J)=NeiTab(I,J)
+      ! compute the distance from the jth neighbor of node i to node i
       DELX=x_cpp(NEITEM(J))-x_cpp(I)
       DELY=y_cpp(NEITEM(J))-y_cpp(I)
       DIST=SQRT(DELX*DELX+DELY*DELY)
-      IF(DIST.EQ.0.0d0) GOTO 998
+      ! check for identical coordinates 
+      IF(DIST.EQ.0.0d0) GOTO 998  
+      ! compute the trigonometric angle between node i and
+      ! its jth neighbor in degrees
       IF(DELY.NE.0.0d0) THEN
          ANGLE(J)=RAD2DEG*ACOS(DELX/DIST)
          IF(DELY.GT.0.0) ANGLE(J)=360.0d0-ANGLE(J)
@@ -1395,9 +1526,13 @@ DO I=1,NP
       ENDIF
    END DO
    ANGLEMORE=-1.d0
+   ! repeat for the number of neighbors of node i
    DO JJ=1,NNeigh(I)
+      ! initialize the value of the low angle???
       ANGLELOW=400.d0
+      ! loop over the neighbors of node i
       DO J=1,NNeigh(I)
+         
          IF((ANGLE(J).LT.ANGLELOW).AND.(ANGLE(J).GT.ANGLEMORE)) THEN
             ANGLELOW=ANGLE(J)
             JLOW=J
@@ -1413,37 +1548,63 @@ ENDDO
 !     MATCH EACH SET OF 3 NODES WITH CORRESPONDING ELEMENT AND REORDER
 !     ELEMENTS ACCORDINGLY
 !
+write(6,'("DEBUG: Sorting element table.")') ! jgfdebug
+
 DO I=1,NP
+   ! temporarily save the existing array of neighboring elements for this node
+   neiTem(:)=-99
    DO K=1,NNeighEle(I)
       NEITEM(K)=NeiTabEle(I,K)
-      NeiTabEle(I,K)=0
+      NeiTabEle(I,K)=-99
    END DO
+   ! loop over the nodal neighbors of node i
    DO J=2,NNeigh(I)
-      NN1=NeiTab(I,1)
-      NN3=NeiTab(I,J)
-      IF(J.NE.NNeigh(I)) NN2=NeiTab(I,J+1)
-      IF(J.EQ.NNeigh(I)) NN2=NeiTab(I,2)
-      DO K=1,NNeighEle(I)
-         IF(NEITEM(K).NE.0) THEN
+      NN1=NeiTab(I,1) ! node 1 is the node itself (node i)
+      NN3=NeiTab(I,J) ! node 3 is the Jth nodal neighbor of this node
+      !
+      ! if j is not the last neighbor then node 2 is the J+1th nodal neighbor
+      if (J.NE.NNeigh(I)) then
+         NN2=NeiTab(I,J+1)
+      endif
+      ! 
+      ! if j is the last neighbor, then node 2 is the first nodal neighbor 
+      if (J.EQ.NNeigh(I)) then 
+         NN2=NeiTab(I,2)
+      endif
+      !
+      ! loop over the elemental neighbors of node i
+      DO K=1,nNeighEle(I)
+         ! if the neighboring element number is not uninitialized
+         ! (why do we need to check this??)
+         IF((NEITEM(K).NE.-99).and.(neitem(k).ne.0)) THEN
+            ! if resident node 1 of the kth elemental neighbor is the same
+            ! as node i, then set the node order 1, 2, 3 
             IF(NM(NEITEM(K),1).EQ.NN1) THEN
                NE1=NM(NEITEM(K),1)
                NE2=NM(NEITEM(K),2)
                NE3=NM(NEITEM(K),3)
             ENDIF
+            ! if resident node 2 of the kth elemental neighbor is the same
+            ! as node i, then set the node order 2, 3, 1            
             IF(NM(NEITEM(K),2).EQ.NN1) THEN
                NE1=NM(NEITEM(K),2)
                NE2=NM(NEITEM(K),3)
                NE3=NM(NEITEM(K),1)
             ENDIF
+            ! if resident node 3 of the kth elemental neighbor is the same
+            ! as node i, then set the node order 3, 1, 2
             IF(NM(NEITEM(K),3).EQ.NN1) THEN
                NE1=NM(NEITEM(K),3)
                NE2=NM(NEITEM(K),1)
                NE3=NM(NEITEM(K),2)
             ENDIF
+            ! if 
             IF((NE2.EQ.NN2).AND.(NE3.EQ.NN3)) THEN
                NeiTabEle(I,J-1)=NEITEM(K)
                NEITEM(K)=0
             ENDIF
+         else
+            !write(6,'("ERROR: Somehow there is a -99 in the neighboring elements table for node number ",i0)') i
          ENDIF
       END DO
    END DO
@@ -1453,40 +1614,50 @@ END DO
 NEIMAX = maxval(NNeigh)
 NEIMIN = minval(NNeigh)
 !  Deallocate local work arrays
-DEALLOCATE ( ANGLE )
-DEALLOCATE ( NEITEM )
-DEALLOCATE ( NNEIGHELE )
-RETURN
+deallocate ( angle )
+deallocate ( neitem )
+return
 
 999  CONTINUE
-WRITE(6,*) 'ERROR: Computation of neighbor table failed.'
+WRITE(6,'("ERROR: Computation of neighbor table failed.")')
 STOP
 998  CONTINUE
-WRITE(6,*) 'ERROR: Nodes ',I,' and ',NEITEM(J),' have the same coordinates.'
+WRITE(6,'("ERROR: Nodes ",i0," and ",i0," have the same coordinates.")') i, neiTem(j)
 STOP
 !-----------------------------------------------------------------------
 END SUBROUTINE computeNeighborTable
 !-----------------------------------------------------------------------
+
 
 !-----------------------------------------------------------------------
 !                         S U B R O U T I N E   
 !   C O M P U T E   N E I G H B O R   E D G E   L E N G T H   T A B L E 
 !-----------------------------------------------------------------------
 !     jgf: Very short subroutine to compute the length of each edge
-!     attached to a node. 
+!     attached to a node. Also finds the minimum edge length in the mesh.
 !-----------------------------------------------------------------------
 subroutine computeNeighborEdgeLengthTable()
 implicit none
 integer i,j
 allocate(neighborEdgeLengthTable(np,neimax))
 neighborEdgeLengthTableComputed = .true.
+minEdgeLength = huge(1.d0)
+maxEdgeLength = tiny(1.d0)
 do i=1,np
    neighborEdgeLengthTable(i,1) = 0.d0 ! distance from this node to itself...
    do j=2,nneigh(i)
       neighborEdgeLengthTable(i,j) = sqrt( (x_cpp(i)-x_cpp(NeiTab(i,j)))**2 &
                   + (y_cpp(i)-y_cpp(NeiTab(i,j)))**2 )
+      if ( neighborEdgeLengthTable(i,j).lt.minEdgeLength ) then
+         minEdgeLength = neighborEdgeLengthTable(i,j)
+      endif
+      if ( neighborEdgeLengthTable(i,j).gt.maxEdgeLength ) then
+         maxEdgeLength = neighborEdgeLengthTable(i,j)
+      endif
    end do
 end do
+
+
 !-----------------------------------------------------------------------
 end subroutine computeNeighborEdgeLengthTable
 !-----------------------------------------------------------------------
