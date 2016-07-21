@@ -5,7 +5,7 @@
 # Compresses files that should be saved and deletes everything else.
 #--------------------------------------------------------------------------
 # 
-# Copyright(C) 2010, 2011 Jason Fleming
+# Copyright(C) 2010-2016 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -37,46 +37,18 @@ startDir=`pwd`
 cd $ADVISDIR 2>&1
 for dir in `ls -d */`; do 
    cd $dir
-   echo "ncfs_archive.sh: Deleting *.nc.gz files in ${ADVISDIR}/${dir}."
-   # get rid of any compressed netcdf files ... those have already been
-   # copied to an alternate location
-   rm -rf *.nc.gz 2>&1
-   #
-   # tar up the swan output logs
-   if [[ -e PE0000/asgs_swan.prt ]]; then
-      echo "ncfs_archive.sh: Archiving asgs_swan.prt files in ${ADVISDIR}/${dir}."
-      tar cvzf asgs_swan.prt.tar.gz PE*/asgs_swan.prt > asgs_swan.prt.log 2>&1
-   fi
-   #
-   # compress the fort.63, swan files, and all the min/max files
-   for file in `ls *.63`; do
-      echo "ncfs_archive.sh: Compressing $file file in ${ADVISDIR}/${dir}."
-       gzip $file 2>&1
-   done
-   # gunzip files that will be needed for the next cycle TODO: fix this hack
-   gunzip maxele.63.gz 2>&1
-   gunzip maxwvel.63.gz 2>&1
-   gunzip minpr.63.gz 2>&1
-   #
-   # compress the remaining fulldomain output files
-   for file in fort.64 fort.73 fort.74; do 
-      echo "ncfs_archive.sh: Compressing the $file file in ${ADVISDIR}/${dir}."
-      gzip $file 2>&1
-   done
    #
    # globalize and compress the swan hotstart file that was used to 
    # hotstart this nowcast run
    if [[ $dir = "nowcast/" ]]; then
-      echo "ncfs_archive.sh: Globalizing the swan.68 file in ${ADVISDIR}/${dir}."
-      ${OUTPUTDIR}/HottifySWAN.x -g -u 68 2>&1
-      echo "ncfs_archive.sh: Compressing the swan.68 file in ${ADVISDIR}/${dir}."
-      gzip swan.68 2>&1
+      # 
+      # check to see if SWAN was used, and if so, re-compose a fulldomain
+      # SWAN hotstart file from subdomain SWAN hotstart files
+      if [[ -e PE0000/swan.68 ]]; then
+         echo "ncfs_archive.sh: Globalizing the swan.68 file in ${ADVISDIR}/${dir}."
+         ${OUTPUTDIR}/HottifySWAN.x -g -u 68 2>&1
+      fi
    fi
-   #
-   # now get rid of the subdomain directories
-   #if [[ $dir != "nowcast/" ]]; then
-   #  rm -rf PE* 2>&1
-   #fi
    cd ..
 done
 cd $startDir

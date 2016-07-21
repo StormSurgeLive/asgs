@@ -111,7 +111,7 @@ ifeq ($(NETCDF),enable)
    ifeq ($(MACHINENAME),garnet)
       NETCDFPATH  := /opt/cray/netcdf/4.3.0/pgi/121
    endif
-   # jgf20160612: Added compiler flags for topaz at ERDC.
+   # jgf20160428: Added compiler flags for topaz at ERDC.
    ifeq ($(MACHINENAME),topaz)
       NETCDFPATH  := /apps/unsupported/netcdf/4.3.3.1-intel-15.0.3
    endif
@@ -120,6 +120,16 @@ ifeq ($(NETCDF),enable)
       NETCDFPATH  := /app/wpostool/COST/netcdf-fortran-4.4.2/intel
       LIBS        := -L/app/wpostool/COST/netcdf-c-4.3.1.1/intel/lib -L/app/wpostool/COST/hdf5-mpi/1.8.12/intel/sgimpt/lib
       LDFLAGS     :=  -lnetcdf -lhdf5 -lhdf5_hl
+   endif
+   # jgf20160627: Added compiler flags for lonestar 5 at TACC.
+   ifeq ($(MACHINENAME),lonestar)
+     NETCDFHOME=/opt/apps/intel11_1/netcdf/4.2.1.1/
+     HDF5HOME=/opt/apps/intel11_1/hdf5/1.8.8/
+     TACC_NETCDF_INC=${NETCDFHOME}include
+     TACC_NETCDF_LIB=${NETCDFHOME}lib
+     TACC_HDF5_LIB=${HDF5HOME}lib
+     LIBS      := -I${TACC_NETCDF_INC} -L${TACC_NETCDF_LIB} -L${TACC_HDF5_LIB}
+     LDFLAGS   := -lnetcdf -lnetcdff -lhdf5 -lhdf5 -lz -lm
    endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := $(LDFLAGS) -lnetcdff

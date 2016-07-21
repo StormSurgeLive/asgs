@@ -234,8 +234,8 @@ stderrMessage("INFO","The fort.15 file will be written to the directory $stormDi
 #
 # call subroutine that knows how to fill in the fort.15 for each particular
 # type of forcing
-if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 ) {
-   stderrMessage("DEBUG","Setting parameters appropriately for tropical cyclone vortex model.");
+if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 308 ) {
+   stderrMessage("DEBUG","Setting parameters appropriately for vortex model.");
    &vortexModelParameters($nws);
 } elsif ( abs($nws) == 12 || abs($nws) == 312 ) {
 
@@ -1049,6 +1049,20 @@ sub vortexModelParameters () {
            if ( $time_inland >= 2.0 ) {
               last; # jump out of loop with current track as last track
            }
+        }
+        # compute the end date and time using the yyyymmdd date and the 
+        # tau from the track file when using the symmetric vortex model
+        if ( $nws == 8 || $nws == 308 ) { 
+           $end =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+           $ey = $1;
+           $em = $2;
+           $ed = $3;
+           $eh = $4;
+           $emin = 0.0;
+           $es = 0.0;
+           ($ey,$em,$ed,$eh,$emin,$es) =
+              Date::Pcalc::Add_Delta_DHMS($ey,$em,$ed,$eh,$emin,$es,0,$tau,0,0);
+           $end = sprintf("%4d%02d%02d%02d",$ey,$em,$ed,$eh);
         }
       }
    }

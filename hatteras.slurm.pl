@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Copyright(C) 2006--2013 Jason Fleming
+# Copyright(C) 2006--2016 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -113,6 +113,8 @@ while(<TEMPLATE>) {
     s/%cloptions%/$cloptions/;
     # the type of job that is being submitted
     s/%jobtype%/$jobtype/g;
+    # the email address of the ASGS Operator
+    s/%notifyuser%/$notifyuser/g;
     # fills in the number of nodes
     s/%nnodes%/$nnodes/g;
     print $_;
