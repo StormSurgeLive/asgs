@@ -37,7 +37,7 @@ xyz = .false.
 outputfile = 'boundaries.txt'
 !
 argcount = iargc() ! count up command line options
-write(6,*) 'There are ',argcount,' command line options.'
+write(6,'(a,i0,a)') 'There are ',argcount,' command line options.'
 do while (i.lt.argcount)
    i = i + 1
    call getarg(i, cmdlineopt)
@@ -68,12 +68,17 @@ do while (i.lt.argcount)
 end do
 !
 ! Load fort.14
-write(6,*) 'mesh file name is ',trim(meshfilename)
+write(6,'(a,a,a)') 'The mesh file name is ',trim(meshfilename),'.'
 call read14()
+!
+! Check to see if an output format has been specified, and if not, 
+! set the default to withCoordinates
+if ((withCoordinates.eqv..false.).and.(xyz.eqv..false.)) then
+   withCoordinates = .true.
+endif
 !
 ! open output file
 open(unit=99, file=trim(adjustl(outputfile)), status='replace', action='write')
-!
 select case(trim(adjustl(boundaryType)))
 case("inflow_flux")  ! ibtype 2, 12, 22, 52
    do i = 1, numSimpleFluxBoundaries
