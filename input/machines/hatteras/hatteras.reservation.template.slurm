@@ -36,7 +36,7 @@ echo "%enstorm% job starting at `date`"
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 RUNSUFFIX="start"
 echo $CMD
-echo "${DATETIME}" > %jobtype%.%enstorm%.run.start
+echo "[${DATETIME}] : %jobtype%.%enstorm% starting in %advisdir%/%enstorm%" > %jobtype%.%enstorm%.run.start
 $CMD 
 ERROVALUE=$?
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`

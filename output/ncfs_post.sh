@@ -2,7 +2,7 @@
 #-----------------------------------------------------------------------
 # ncfs_post.sh : Post processing for North Carolina.
 #-----------------------------------------------------------------------
-# Copyright(C) 2011--2015 Jason Fleming
+# Copyright(C) 2011--2016 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -73,6 +73,34 @@ fi
 #
 # write the intended audience to the run.properties file for CERA
 echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
+#
+#--------------------------------------------------------------------------
+#              I N U N D A T I O N    M  A S K  
+#--------------------------------------------------------------------------
+# When presenting inundation data on Google Maps, the ADCIRC extent of
+# initially dry area is often landward of the Google Maps shoreline, 
+# resulting in the erroneous depiction of non-inundated land areas 
+# seaward of inundated areas. The inundationMask program expands the 
+# inundation area presented on Google Maps to cover the full land area
+# as depicted by Google Maps. 
+# 
+if [ -e ${STORMDIR}/initiallydry.63.nc ]; then
+   logMessage "Creating an inundationmask.63.nc file from the initiallydry.63.nc file."
+   if [ -e ${OUTPUTDIR}/inundationMask.x ]; then
+      ${OUTPUTDIR}/inundationMask.x --filename initiallydry.63.nc --netcdf4 --numpasses 2 2>> ${SYSLOG} 2>&1
+      ERROVALUE=$?
+      if [ $ERROVALUE == 0 ]; then
+         echo "Inundation Mask File Name : inundationmask.63.nc" >> run.properties
+         echo "Inundation Mask Format : netcdf" >> run.properties
+      else
+         error "Failed to create inundationMask.63.nc file."
+      fi
+   else
+      error "The initiallydry.63.nc file was found in $STORMDIR but the inundationMask.x executable was not found in ${OUTPUTDIR}."
+   fi
+else
+   logMessage "The initiallydry.63.nc file was not found, so an inundationmask.63.nc file will not be created."
+fi
 #
 # generate XDMF xml files 
 #for file in `ls *.nc`; do
@@ -189,11 +217,11 @@ OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
 mkdir -p $OPENDAPDIR 2>> ${SYSLOG}
 # make symbolic links from the opendap dir to the important files for the run
 cd $OPENDAPDIR 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/fort.*.nc . 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/swan*.nc . 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/max*.nc . 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/min*.nc . 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/run.properties . 2>> ${SYSLOG}
+for file in `ls ${STORMDIR}/*.nc ${STORMDIR}/run.properties`; do  
+   if [ -e $file ]; then
+      ln -s $file . 2>> ${SYSLOG}
+   fi
+done
 #ln -s ${ADVISDIR}/${ENSTORM}/*.xmf . 2>> ${SYSLOG}
 #ln -s ${ADVISDIR}/${ENSTORM}/*.kmz . 2>> ${SYSLOG}
 #

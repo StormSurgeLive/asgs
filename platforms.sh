@@ -214,7 +214,6 @@ init_garnet()
   PPN=32
   IMAGEMAGICKBINPATH=/usr/local/usp/ImageMagick/default/bin 
 }
-
 init_spirit()
 { #<- can replace the following with a custom script
   # This requires the user to have a .personal.bashrc file in the $HOME 
@@ -239,6 +238,29 @@ init_spirit()
   QSCRIPTGEN=erdc.pbs.pl
   PPN=16
   IMAGEMAGICKBINPATH=/usr/local/usp/ImageMagick/default/bin 
+}
+init_topaz()
+{ #<- can replace the following with a custom script
+  # This requires the user to have a ~/.bash_profile file in the $HOME 
+  # directory with the following contents:
+  echo "Loading modules in .bash_profile ..."
+  module load usp-netcdf/intel-15.0.3/4.3.3.1
+  module load imagemagick/6.9.2-5
+  echo "... modules loaded."
+  HOSTNAME=topaz.erdc.hpc.mil
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  ACCOUNT=ERDCV00898N10
+  #ACCOUNT=ERDCV00898HSP
+  SUBMITSTRING="qstat"
+  SCRATCHDIR=$WORKDIR 
+  SSHKEY=~/.ssh/id_rsa_topaz
+  QSCRIPT=topaz.template.pbs
+  PREPCONTROLSCRIPT=topaz.adcprep.template.pbs
+  PREPHOTSTARTSCRIPT=topaz.adcprep.template.pbs
+  QSCRIPTGEN=erdc.pbs.pl
+  PPN=36
+  IMAGEMAGICKBINPATH=/app/unsupported/ImageMagick/6.9.2-5/bin/convert
 }
 init_tezpur()
 { #<- can replace the following with a custom script
@@ -291,17 +313,17 @@ init_ranger()
 init_lonestar()
 { #<- can replace the following with a custom script
   HOSTNAME=lonestar.tacc.utexas.edu
-  QUEUESYS=SGE
-  QCHECKCMD=qstat
-  NCPUDIVISOR=12
+  QUEUESYS=slurm
+  QCHECKCMD=squeue
+  PPN=12
   ACCOUNT=ADCIRC
-  SUBMITSTRING="ibrun tacc_affinity"
+  SUBMITSTRING="ibrun"
   SCRATCHDIR=$SCRATCH
   SSHKEY=id_rsa_lonestar
-  QSCRIPT=lonestar.template.sge
-  QSCRIPTGEN=lonestar.sge.pl
-  SERQSCRIPT=lonestar.template.serial
-  SERQSCRIPTGEN=lonestar.serial.pl
+  QSCRIPT=lonestar.template.slurm
+  QSCRIPTGEN=hatteras.slurm.pl
+  SERQSCRIPT=lonestar.template.serial.slurm
+  SERQSCRIPTGEN=hatteras.slurm.pl
   UMASK=006
   GROUP="G-803086"
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/apps/intel11_1/netcdf/4.2.1.1/lib:/opt/apps/intel11_1/hdf5/1.8.8/lib
@@ -390,6 +412,9 @@ env_dispatch(){
           ;;
   "spirit") consoleMessage "Spirit (AFRL) configuration found."
           init_spirit
+          ;;
+  "topaz") consoleMessage "Topaz (ERDC) configuration found."
+          init_topaz
           ;;
   "queenbee") consoleMessage "Queenbee (LONI) configuration found."
           init_queenbee

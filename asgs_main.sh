@@ -61,6 +61,40 @@ checkFileExistence()
   fi
 }
 #
+# compare the modification times of the input files with the archive of
+# subdomain files to avoid using a stale archive
+checkArchiveFreshness()
+{  PREPPEDARCHIVE=$1
+   HINDCASTARCHIVE=$2
+   GRIDFILE=$3
+   CONTROLTEMPLATE=$4
+   ELEVSTATIONS=$5
+   VELSTATIONS=$6
+   METSTATIONS=$7
+   NAFILE=$8
+   INPUTDIR=$9
+   
+   logMessage "Checking to see if the archive of preprocessed subdomain files is up to date."   
+   for archiveFile in $PREPPEDARCHIVE $HINDCASTARCHIVE; do
+      if [ ! -e $INPUTDIR/$archiveFile ]; then
+         logMessage "The subdomain archive file $INPUTDIR/$archiveFile does not exist."
+         continue
+      fi
+      for inputFile in $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE; do
+         if [ ! -e $INPUTDIR/$inputFile ]; then
+            warning "The input file $INPUTDIR/$inputFile does not exist."
+            continue
+         fi
+         # see if the archiveFile is older than inputFile 
+         if [ $INPUTDIR/$archiveFile -ot $INPUTDIR/$inputFile ]; then 
+            logMessage "A change in the input files has been detected. The archive file $archiveFile is older than the last modification time of the input file ${inputFile}. The archive file is therefore stale and will be deleted. A fresh one will automatically be created the next time adcprep is run." 
+            rm $INPUTDIR/$archiveFile 2>> $SYSLOG 
+            break
+         fi
+      done
+   done
+}
+#
 # subroutine to check for the existence of required directories
 # that have been specified in config.sh
 checkDirExistence()
@@ -313,8 +347,7 @@ prep()
     fi
     # symbolically link nodal attributes
     if [ ! -e $ADVISDIR/$ENSTORM/fort.13 ]; then
-      if [[ ! -z $NAFILE ]]; then # this is here due to historical blunder
-        if [[ $NAFILE != null ]]; then
+        if [[ ! -z $NAFILE  && $NAFILE != null ]]; then
            ln -s $INPUTDIR/$NAFILE $ADVISDIR/$ENSTORM/fort.13 2>> ${SYSLOG}
         fi
       fi
@@ -466,10 +499,8 @@ prep()
     if [[ $HAVEARCHIVE = no ]]; then
        logMessage "Creating an archive of preprocessed files and saving to ${INPUTDIR}/${PREPPED} to avoid having to run prepall again."
        FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18'
-       if [[ ! -z $NAFILE ]]; then # this is here due to historical blunder
-          if [[ $NAFILE != null ]]; then
-             FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18 PE*/fort.13'
-          fi
+       if [[ ! -z $NAFILE && $NAFILE != null ]]; then
+          FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18 PE*/fort.13'
        fi
        tar cvzf ${INPUTDIR}/${PREPPED} ${FILELIST} 2>> ${SYSLOG}
        # check status of tar operation; if it failed, delete the file
@@ -779,7 +810,7 @@ monitorJobs()
             # to write the job log file, or until 5 minutes  have passed
             overLimitTime=`date +%s`
             until [[ ! -e ${ENSTORM_TEMP}.out ]]; do
-               logMessage "Waiting for queueing system to wrtite out the job log file ${ENSTORM_TEMP}.out."
+               logMessage "Waiting for queueing system to write out the job log file ${ENSTORM_TEMP}.out."
                sleep 60
                nowTime=`date +%s`
                if [[ `expr $nowTime - $overLimitTime` -gt 300 ]]; then
@@ -1160,10 +1191,8 @@ if [[ $METSTATIONS && $METSTATIONS != null ]]; then
    checkFileExistence $INPUTDIR "ADCIRC meteorological stations file" $METSTATIONS
 fi
 # fort.13 (nodal attributes) file is optional
-if [[ ! -z $NAFILE ]]; then # this is here due to historical blunder
-   if [[ $NAFILE != null ]]; then
-      checkFileExistence $INPUTDIR "ADCIRC nodal attributes (fort.13) file" $NAFILE
-   fi
+if [[ ! -z $NAFILE && $NAFILE != null ]]; then
+   checkFileExistence $INPUTDIR "ADCIRC nodal attributes (fort.13) file" $NAFILE
 fi
 if [[ $HOTORCOLD = hotstart ]]; then
    if [[ $HOTSTARTFORMAT = netcdf ]]; then
@@ -1311,6 +1340,8 @@ if [[ $START = coldstart ]]; then
          logMessage "The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
       fi
    done
+   # make sure the archive of subdomain files is up to date 
+   checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
    logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
    # check to see that adcprep did not conspicuously fail
@@ -1402,6 +1433,9 @@ while [ true ]; do
       if [[ $VORTEXMODEL = ASYMMETRIC ]]; then
          BASENWS=19
       fi
+      if [[ $VORTEXMODEL = SYMMETRIC ]]; then
+         BASENWS=8
+      fi
       NWS=$BASENWS
       if [[ $WAVES = on ]]; then
          NWS=`expr $BASENWS + 300`
@@ -1436,10 +1470,12 @@ while [ true ]; do
       # get the storm's name (e.g. BERTHA) from the run.properties
       STORMNAME=`grep "storm name" run.properties | sed 's/storm name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}    
       # create a GAHM or ASYMMETRIC fort.22 file from the existing track file
-      $ADCIRCDIR/aswip -n $BASENWS >> ${SYSLOG} 2>&1
-      if [[ -e NWS_${BASENWS}_fort.22 ]]; then
-         mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
-         cp NWS_${BASENWS}_fort.22 fort.22 >> ${SYSLOG} 2>&1
+      if [[ $VORTEXMODEL = GAHM || $VORTEXMODEL = ASYMMETRIC ]]; then
+         $ADCIRCDIR/aswip -n $BASENWS >> ${SYSLOG} 2>&1
+         if [[ -e NWS_${BASENWS}_fort.22 ]]; then
+            mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
+            cp NWS_${BASENWS}_fort.22 fort.22 >> ${SYSLOG} 2>&1
+         fi
       fi
    fi
    # BACKGROUND METEOROLOGY
@@ -1525,6 +1561,7 @@ while [ true ]; do
          ln -s ${INPUTDIR}/${RIVERFLUX} ./fort.20 2>> ${SYSLOG}
       fi
       # preprocess
+      checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
       logMessage "Nowcast preprocessing."
       logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $HPCENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
       prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $HPCENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
@@ -1608,6 +1645,8 @@ while [ true ]; do
       # number of CPUs that will ever be available.
       if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
          error "The requested number of CPUs for $ENSTORM is set to $NCPU and the number of writer processors has been set to $NUMWRITERS but the total number of requested CPUs exceeds the NCPUCAPACITY parameter value of ${NCPUCAPACITY}; therefore this forecast ensemble member will never be able to execute. This forecast ensemble member is being abandoned."
+         # increment the ensemble member counter
+         si=$[$si + 1];
          continue 
       fi
       subDirs=`find ${ADVISDIR} -maxdepth 1 -type d -print`
@@ -1670,6 +1709,9 @@ while [ true ]; do
          BASENWS=20
          if [[ $VORTEXMODEL = ASYMMETRIC ]]; then
             BASENWS=19
+         fi
+         if [[ $VORTEXMODEL = SYMMETRIC ]]; then
+            BASENWS=8
          fi
          NWS=$BASENWS
          if [[ $WAVES = on ]]; then
@@ -1784,8 +1826,9 @@ while [ true ]; do
          # of real time post processing
          ${OUTPUTDIR}/${INITPOST} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
          # preprocess
-         logMessage "Starting $ENSTORM preprocessing with the following command: prep $ADVISDIR $INPUTDIR $ENSTORM $START $NOWCASTDIR $HPCENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
-         prep $ADVISDIR $INPUTDIR $ENSTORM $START $NOWCASTDIR $HPCENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
+         checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
+         logMessage "Starting $ENSTORM preprocessing with the following command: prep $ADVISDIR $INPUTDIR $ENSTORM $START $NOWCASTDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
+         prep $ADVISDIR $INPUTDIR $ENSTORM $START $NOWCASTDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
          handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
          # if the prep task was successful, the ensemble member directory will still be there
          if [[ -d $STORMDIR ]]; then

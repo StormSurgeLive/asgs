@@ -1,6 +1,8 @@
 #!/bin/bash
-#
-# Copyright(C) 2008--2012 Jason Fleming
+#-----------------------------------------------------------------------
+# fl_post.sh : Post processing for North Carolina.
+#-----------------------------------------------------------------------
+# Copyright(C) 2016 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -16,6 +18,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#-----------------------------------------------------------------------
 #
 CONFIG=$1
 ADVISDIR=$2
@@ -31,9 +34,14 @@ OUTPUTDIR=${11}
 SYSLOG=${12}
 SSHKEY=${13}
 #
+STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
+cd ${STORMDIR} 2>> ${SYSLOG}
+# get the forecast ensemble member number 
+ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+#
 # grab all config info
-si=-1
-. ${CONFIG} 
+si=$ENMEMNUM
+. ${CONFIG}
 # Bring in logging functions
 . ${SCRIPTDIR}/logging.sh
 # Bring in platform-specific configuration
@@ -43,187 +51,133 @@ env_dispatch ${TARGET}
 # grab all config info (again, last, so the CONFIG file takes precedence)
 . ${CONFIG}
 #
-export PATH=$PATH:$IMAGEMAGICKBINPATH # if ImageMagick is in nonstd location
-#
-STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
-#
-# write the target area to the run.properties file for the CERA
-# web app
-echo "asgs : fl" >> run.properties 2>> $SYSLOG
+# write the target area to the run.properties file for the CERA web app
+echo "asgs : wfl" >> run.properties
+# write the intended audience to the run.properties file for CERA
+echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
 echo "enstorm : $ENSTORM" >> run.properties 2>> $SYSLOG
 #
-# grab storm class and name from file
-STORMNAME=null
+# record the sea_surface_height_above_geoid nodal attribute to the
+# run.properties file
+isUsed=`grep -c sea_surface_height_above_geoid fort.15`
+if [[ $isUsed = 0 ]]; then
+   # this nodal attribute is not being used; report this to run.properties file
+   echo "sea_surface_height_above_geoid : null" >> run.properties
+else
+   # get the line number where the start of this nodal attribute is specified
+   # in the header of the fort.13 (nodal attributes) file
+   linenum=`grep --line-number --max-count 1 sea_surface_height_above_geoid fort.13 | awk 'BEGIN { FS=":" } { print $1 }'`
+   # get the actual default value, which is specified three lines after the
+   # the name of the nodal attribute in the fort.13 header
+   datumOffsetDefaultValueLine=`expr $linenum + 3`
+   datumOffsetDefaultValue=`awk -v linenum=$datumOffsetDefaultValueLine 'NR==linenum { print $0 }' fort.13`
+   echo "sea_surface_height_above_geoid : $datumOffsetDefaultValue" >> run.properties
+fi
+
+
+#--------------------------------------------------------------------------
+#          O P E N D A P   P U B L I C A T I O N
+#--------------------------------------------------------------------------
+#
+# construct the opendap directory path where the results will be posted
+#
+STORMNAMEPATH=null
+DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
+CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
 if [[ $BACKGROUNDMET = on ]]; then
-   # the NAM cycle time is the last two digits of the "advisory"
-   namcyclehour=${ADVISORY:8:2}
-   STORMNAME="NAM${namcyclehour}Z"
+   # for NAM, the "advisory number" is actually the cycle time 
+   STORMNAMEPATH=tc/nam
 fi
-if [[ $TROPICALCYCLONE = on ]]; then 
-   STORMNAME=`grep "storm name" ${STORMDIR}/run.properties | sed 's/storm name.*://' | sed 's/\s//g'` 2>> ${SYSLOG}
+currentDir=NCFS_CURRENT_DAILY
+if [[ $TROPICALCYCLONE = on ]]; then
+   STORMNAME=`grep "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//g' | tail -n 1` 2>> ${SYSLOG}
+   STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
+   STORMNAMEPATH=tc/$STORMNAMELC
+   currentDir=NCFS_CURRENT_TROPICAL
 fi
-#
-#  R E F O R M A T T I N G
-#
-#
-# add CPP projection to netcdf files 
-# generate XDMF xml files 
-for file in `ls *.nc`; do
-   # don't try to write XDMF xml files for station files or hotstart files
-   if [[ $file = fort.61.nc || $file = fort.71.nc || $file = fort.72.nc || $file = fort.67.nc || $file = fort.68.nc ]]; then
-      continue
+OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HOSTNAME/$INSTANCENAME/$ENSTORM
+# put the opendap download url in the run.properties file for CERA to find
+downloadURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
+echo "downloadurl : $downloadURL" >> run.properties
+# now actually make the directory (OPENDAPBASEDIR is specified in CONFIG)
+OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
+mkdir -p $OPENDAPDIR 2>> ${SYSLOG}
+# make symbolic links from the opendap dir to the important files for the run
+cd $OPENDAPDIR 2>> ${SYSLOG}
+for file in `ls ${STORMDIR}/*.nc ${STORMDIR}/run.properties`; do  
+   if [ -e $file ]; then
+      ln -s $file . 2>> ${SYSLOG}
    fi
-   logMessage "Adding CPP coordinates to $file."
-   ${OUTPUTDIR}/generateCPP.x --datafile $file 2>> $SYSLOG
-   logMessage "Generating XDMF xml file to accompany $file."
-   ${OUTPUTDIR}/generateXDMF.x --use-cpp --datafile $file 2>> $SYSLOG
 done
-# Convert max elevation file from netcdf to ascii if necessary
-if [[ -e ${STORMDIR}/maxele.63.nc ]]; then
-   logMessage "Converting maxele.63.nc from netcdf to ascii."
-   ${OUTPUTDIR}/netcdf2adcirc.x --datafile ${STORMDIR}/maxele.63.nc 2>> ${SYSLOG}
-fi
-# transpose elevation output file so that we can graph it with gnuplot
-STATIONELEVATION=${STORMDIR}/fort.61
-if [[ -e $STATIONELEVATION || -e ${STATIONELEVATION}.nc ]]; then
-   if [[ -e $STATIONELEVATION.nc ]]; then
-      ${OUTPUTDIR}/netcdf2adcirc.x --datafile ${STATIONELEVATION}.nc 2>> ${SYSLOG}
+#ln -s ${ADVISDIR}/${ENSTORM}/*.xmf . 2>> ${SYSLOG}
+#ln -s ${ADVISDIR}/${ENSTORM}/*.kmz . 2>> ${SYSLOG}
+#
+# Link to input files to document how the run was performed.
+ln -s ${ADVISDIR}/${ENSTORM}/fort.14 .  2>> ${SYSLOG}
+ln -s ${ADVISDIR}/${ENSTORM}/fort.15 . 2>> ${SYSLOG}
+for file in fort.13 fort.22 fort.26 fort.221 fort.222 ; do 
+   if [ -e ${ADVISDIR}/${ENSTORM}/$file ]; then
+      ln -s ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
    fi
-   perl ${OUTPUTDIR}/station_transpose.pl --filetotranspose elevation --controlfile ${STORMDIR}/fort.15 --stationfile ${STATIONELEVATION} --format space --coldstartdate $CSDATE --gmtoffset -5 --timezone CDT --units english 2>> ${SYSLOG}
-   # now create csv files that can easily be imported into excel
-   perl ${OUTPUTDIR}/station_transpose.pl --filetotranspose elevation --controlfile ${STORMDIR}/fort.15 --stationfile ${STATIONELEVATION} --format comma --coldstartdate $CSDATE --gmtoffset -5 --timezone CDT --units english 2>> ${SYSLOG}
-   # rename csv files to something more intuitive
-   mv ${STORMDIR}/fort.61_transpose.csv ${STORMDIR}/${STORMNAME}.${ADVISORY}.hydrographs.csv 2>> ${SYSLOG} 2>&1 
-fi
-# transpose wind velocity output file so that we can graph it with gnuplot
-STATIONVELOCITY=${STORMDIR}/fort.72
-if [[ -e $STATIONVELOCITY || -e ${STATIONVELOCITY}.nc ]]; then
-   if [[ -e $STATIONVELOCITY.nc ]]; then
-      ${OUTPUTDIR}/netcdf2adcirc.x --datafile ${STATIONVELOCITY}.nc 2>> ${SYSLOG}
-   fi
-   perl ${OUTPUTDIR}/station_transpose.pl --filetotranspose windvelocity --controlfile ${STORMDIR}/fort.15 --stationfile ${STATIONVELOCITY} --format space --vectorOutput magnitude --coldstartdate $CSDATE --gmtoffset -5 --timezone CDT --units english 2>> ${SYSLOG}
-   # now create csv files that can easily be imported into excel
-   perl ${OUTPUTDIR}/station_transpose.pl --filetotranspose windvelocity --controlfile ${STORMDIR}/fort.15 --stationfile ${STATIONVELOCITY} --format comma --vectorOutput magnitude --coldstartdate $CSDATE --gmtoffset -5 --timezone CDT --units english 2>> ${SYSLOG}
-   # rename csv files to something more intuitive
-   mv ${ADVISDIR}/${ENSTORM}/fort.72_transpose.csv ${ADVISDIR}/${ENSTORM}/${STORMNAME}.${ADVISORY}.station.windspeed.csv 2>> ${SYSLOG} 2>&1
-fi
-#
-# G N U P L O T   F O R   L I N E   G R A P H S
-# 
-# switch to plots directory
-if [[ -e ${STORMDIR}/fort.61_transpose.txt || -e ${STORMDIR}/fort.72_transpose.txt ]]; then
-   initialDirectory=`pwd`;
-   mkdir ${STORMDIR}/plots 2>> ${SYSLOG}
-   mv *.txt *.csv ${STORMDIR}/plots 2>> ${SYSLOG}
-   cd ${STORMDIR}/plots
-   # generate gnuplot scripts for elevation datai
-   if [[ -e ${STORMDIR}/plots/fort.61_transpose.txt ]]; then
-      logMessage "Generating gnuplot script for $ENSTORM hydrographs."
-      perl ${OUTPUTDIR}/autoplot.pl --filetoplot ${STORMDIR}/plots/fort.61_transpose.txt --plotType elevation --plotdir ${STORMDIR}/plots --outputdir ${OUTPUTDIR} --timezone CDT --units english --stormname "$STORMNAME" --enstorm $ENSTORM --advisory $ADVISORY --datum NAVD88
-   fi
-   # plot wind speed data with gnuplot 
-   if [[ -e ${STORMDIR}/plots/fort.72_transpose.txt ]]; then
-      logMessage "Generating gnuplot script for $ENSTORM wind speed stations."
-      perl ${OUTPUTDIR}/autoplot.pl --filetoplot ${STORMDIR}/plots/fort.72_transpose.txt --plotType windvelocity --plotdir ${STORMDIR}/plots --outputdir ${OUTPUTDIR} --timezone CDT --units english --stormname "$STORMNAME" --enstorm $ENSTORM --advisory $ADVISORY --datum NAVD88
-   fi
-   # execute gnuplot scripts to actually generate the plots
-   for plotfile in `ls *.gp`; do
-      gnuplot $plotfile 2>> ${SYSLOG}
-   done
-   # convert them all to png
-   for plotfile in `ls *.ps`; do
-      pngname=${plotfile%.ps}.png
-      convert -rotate 90 $plotfile $pngname 2>> ${SYSLOG}
-   done
-   plotarchive=${ADVISORY}.plots.tar.gz
-   if [[ $TROPICALCYCLONE = on ]]; then
-      plotarchive=${YEAR}${STORM}.${plotarchive}
-   fi
-   # tar up the plots and the csv files
-   # also include the maxele.63 file and the original fort.61 and fort.72
-   # as requested by Max Agnew and David Ramirez at the New Orleans District
-   tar cvzf ${STORMDIR}/${plotarchive} *.png *.csv ../maxele.63 ../fort.61 ../fort.72
-   cd $initialDirectory 2>> ${SYSLOG}
-fi
-#
-#  G I S     K M Z      J P G 
-#
-# name of bounding box for contour plots (see config_simple_gmt_pp.sh
-# for choices)
-BOX=WFL
-# FigureGen executable to use for making JPG files (assumed to be located
-# in $OUTPUTDIR/POSTPROC_KMZGIS/FigGen/
-FIGUREGENEXECUTABLE=FigureGen32_prompt_inp.x
-# The full path and name for the FigureGen template file.
-FIGUREGENTEMPLATE=$OUTPUTDIR/POSTPROC_KMZGIS/FigGen/FG_asgs.inp.orig
-#
-#  now create the Google Earth (kmz), jpg, and GIS contour plots
-${OUTPUTDIR}/POSTPROC_KMZGIS/POST_SCRIPT_Corps.sh $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $GRIDFILE $CONFIG $BOX $FIGUREGENEXECUTABLE $FIGUREGENTEMPLATE
-#
-#  P U B L I C A T I O N
-#
-# grab the names of the output files
-GISKMZJPG=`ls *KMZ_GIS.tar.gz`
-PLOTS=`ls *plots.tar.gz`
-#
-# now create the index.html file to go with the output
-perl ${OUTPUTDIR}/corps_index.pl --stormname $STORMNAME --advisory $ADVISORY --templatefile ${OUTPUTDIR}/corps_index_template.html --giskmzjpgarchive $GISKMZJPG --plotsarchive $PLOTS > index.html
-#
-# now copy plots and visualizations to the website, based on the forcing
-# (i.e., NAM or NHC tropical cyclone), machine on which they were run, the 
-# grid name, and the advisory 
-if [[ $BACKGROUNDMET = on ]]; then
-   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "mkdir -p ${WEBPATH}/NAM/$GRIDFILE/$HOSTNAME/$ADVISORY"
-   scp -i $SSHKEY index.html ${WEBUSER}@${WEBHOST}:${WEBPATH}/NAM/$GRIDFILE/$HOSTNAME/$ADVISORY
-   scp -i $SSHKEY $GISKMZJPG ${WEBUSER}@${WEBHOST}:${WEBPATH}/NAM/$GRIDFILE/$HOSTNAME/$ADVISORY
-   scp -i $SSHKEY $PLOTS ${WEBUSER}@${WEBHOST}:${WEBPATH}/NAM/$GRIDFILE/$HOSTNAME/$ADVISORY
-   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/NAM"
-fi
-if [[ $TROPICALCYCLONE = on ]]; then 
-   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "mkdir -p ${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}"
-   scp -i $SSHKEY index.html ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
-   scp -i $SSHKEY $GISKMZJPG ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
-   scp -i $SSHKEY $PLOTS ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
-   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}"
-fi
-#
-# OpenDAP Publication
-#
-# TODO: make sure there is enough disk space on target server (manually)
-STORMNAMEPATH=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
-# make opendap directory
-OPENDAPTYPE=tc
-if [[ $BACKGROUNDMET = on ]]; then
-   OPENDAPTYPE=nam
-   STORMNAMEPATH=nam218
-fi
-OPENDAPDIR=$OPENDAPBASEDIR/$OPENDAPTYPE/$STORMNAMEPATH/$ADVISORY/$GRIDNAME/$HOSTNAME/$INSTANCENAME/$ENSTORM
-logMessage "Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER with the ssh key in $SSHKEY."
-ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
-for file in `ls *.nc *.xmf fort.15 fort.22 run.properties`; do 
-   chmod +r $file 2>> $SYSLOG
-   logMessage "Transferring $file."
-   scp -i $SSHKEY $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG
-   ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "chmod +r $OPENDAPDIR/$file"
 done
 #
-# make symbolic links to directory structure that CERA web app uses
-#$openDAPDirectory = "$OPENDAPBASEDIR/blueridge.renci.org:2/$model/$ADCIRCgrid/$windtag/$year/$mon/$mday/$cycle"
-# RunStartTime : 2012080812
-if [[ $ENSTORM = nhcConsensus || $ENSTORM = namforecast ]]; then
-   runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'` 
-   year=${runStartTime:0:4} 
-   month=${runStartTime:4:2} 
-   day=${runStartTime:6:2} 
-   currentCycle=`grep currentcycle run.properties | sed 's/currentcycle.*://' | sed 's/\s//g'`
-   model=`grep ^Model run.properties | sed 's/Model.*://' | sed 's/\s//g'`
-   mesh=`grep mesh run.properties | sed 's/mesh.*://' | sed 's/\s//g'`
-   windtag=`grep WindModel run.properties | sed 's/WindModel.*://' | sed 's/\s//g'`
-   # CERA web app is hard coded to look for blueridge.renci.org:2
-   openDapDirectory=$OPENDAPBASEDIR/blueridge.renci.org:2/$model/$mesh/$windtag/$year/$month/$day/$currentCycle
-   ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "mkdir -p $openDapDirectory" 2>> $SYSLOG 
-   for file in `ls *.nc *.xmf fort.15 fort.22 run.properties`; do
-      logMessage "Making symbolic link on OpenDAP server for $file."
-      ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "ln -s $OPENDAPDIR/$file $openDapDirectory/$file"
+# Link to the tropical cyclone forecast/advisory and tc best track
+# file, if available. 
+for file in al*.fst bal*.dat ; do 
+   if [ -e ${ADVISDIR}/$file ]; then
+      ln -s ${ADVISDIR}/$file . 2>> ${SYSLOG}
+   fi
+done
+#
+# Link to the shapefile zip and the kmz files if present.
+for file in `ls ${ADVISDIR}/${ENSTORM}/*.zip 2>> ${SYSLOG}`; do 
+   ln -s $file . 2>> ${SYSLOG}
+done
+for file in `ls ${ADVISDIR}/${ENSTORM}/*.kmz 2>> ${SYSLOG}`; do 
+   ln -s $file . 2>> ${SYSLOG}
+done
+#
+# 20150826: Make symbolic links to a single location on the opendap server
+# to reflect the "latest" results. There are actually two locations, one for 
+# daily results, and one for tropical cyclone results. 
+if [[ $ENSTORM = namforecast || $ENSTORM = nhcConsensus ]]; then
+   currentResultsPath=/projects/ncfs/opendap/data/$currentDir
+   cd $currentResultsPath 2>> ${SYSLOG}
+   # get rid of the old symbolic links
+   rm -rf * 2>> ${SYSLOG}
+   # make new symbolic links
+   for file in $STORMDIR/fort.*.nc $STORMDIR/swan*.nc $STORMDIR/max*.nc $STORMDIR/min*.nc $STORMDIR/run.properties $STORMDIR/fort.14 $STORMDIR/fort.15 $STORMDIR/fort.13 $STORMDIR/fort.22 $STORMDIR/fort.26 $STORMDIR/fort.221 $STORMDIR/fort.222 $ADVISDIR/al*.fst $ADVISDIR/bal*.dat $STORMDIR/*.zip $STORMDIR/*.kmz ; do 
+      if [ -e $file ]; then
+         ln -s $file . 2>> ${SYSLOG}
+      else
+         logMessage "The directory does not have ${file}."
+      fi
    done
 fi
+#
+# Copy the latest run.properties file to a consistent location in opendap
+cp run.properties /projects/ncfs/opendap/data/NCFS_CURRENT/run.properties.${HOSTNAME}.${INSTANCENAME} 2>> ${SYSLOG}
+#
+# send an email to CERA web application to notify it that results are ready
+COMMA_SEP_LIST="jason.g.fleming@gmail.com,nc.cera.renci2@gmail.com"
+#COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com"
+runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'`
+subject="ADCIRC NCFS $runStartTime $HOSTNAME.$INSTANCENAME $ENMEMNUM"
+if [[ $TROPICALCYCLONE = on ]]; then
+   subject=${subject}" (TC)"
+fi
+#subject="${subject} $CERASERVER"
+echo "INFO: ncfs_post.sh: The cera_results_notify.txt email subject line is '$subject'." >> ${SYSLOG}
+cat <<END > ${STORMDIR}/cera_results_notify.txt 
+
+The ADCIRC NCFS solutions for $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
+
+The run.properties file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
+   
+or wget the file with the following command
+
+wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
+END
+#
+echo "INFO: ncfs_post.sh: Sending 'results available' email to the following addresses: $COMMA_SEP_LIST." >> $SYSLOG
+cat ${STORMDIR}/cera_results_notify.txt | mail -s "$subject" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
