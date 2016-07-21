@@ -13,3 +13,8 @@ output/inundationMask.f90
 output/netcdf2adcirc.f90
 output/resultScope.f90
 util/mesh/boundaryFinder.f90
+output/makefile
+util/nodalattr/makefile
+util/nodalattr/nodalattr.f90
+util/nodalattr/submergence_eddyvis.f90
+util/nodalattr/tau0_gen.f90
