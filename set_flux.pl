@@ -1,14 +1,13 @@
 #!/usr/bin/perl
-#----------------------------------------------------------------
+#------------------------------------------------------------------------
 # set_flux.pl
 #
-# Takes a set of flux values for the flux specified boundaries
-# of a particular mesh along with information about the boundaries
-# themselves and calculates a corresponding flux per unit width
-# for use with ADCIRC.
+# Reads a mesh.properties file and a boundary information file 
+# writes out the flux per unit width boundary condition for the 
+# ADCIRC fort.15 file. 
 #
-#----------------------------------------------------------------
-# Copyright(C) 2013 Jason Fleming
+#------------------------------------------------------------------------
+# Copyright(C) 2013--2016 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -24,20 +23,102 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
-#----------------------------------------------------------------
+#------------------------------------------------------------------------
+#
+# The flux boundary condition is set via the following algorithm:
+#
+# 0. Add properties from mesh.properties file manually when the mesh 
+#    is installed in ASGS, for example:
+#
+#    mississippiRiverBoundaryMeshFilePosition : 1
+#    atchafalayaRiverBoundaryMeshFilePosition : 2
+#    mississippiRiverBoundaryType : 52
+#    atchafalayaRiverBoundaryType : 52
+#
+# 1. When the mesh is installed in ASGS, run the boundaryFinder.f90
+#    program to create a boundaries xyz file; example invokation is as follows:
+#
+# ~/asgs/master/util/mesh/boundaryFinder.x --meshfile HSDRRS2014_MRGO_leveeupdate_fixSTC_MX.grd --outputfile boundaries_xyz.txt --boundarytype inflow_flux --xyz
+#
+# The boundary data are produced in the following example format:
+#
+# 19 52
+#     -91.1940310      30.4222130       8.5000000
+#     -91.1945900      30.4225390      10.4000000
+#     -91.1950730      30.4228250      12.2600000
+#     -91.1955410      30.4230930      14.1200000
+#     -91.1961210      30.4234320      13.0400000
+#     -91.1966730      30.4237520      13.8631070
+#     -91.1972630      30.4240960      16.9561900
+#     -91.1979580      30.4245010      16.6091390
+#     -91.1985320      30.4248380      16.8379350
+#     -91.1991150      30.4251810      15.9140560
+#     -91.1996650      30.4255000      14.6089820
+#     -91.2001900      30.4258020      12.0605730
+#     -91.2007380      30.4261190       9.4094670
+#     -91.2012640      30.4264270       7.2902380
+#     -91.2017640      30.4267210       5.8460780
+#     -91.2022920      30.4270240       2.9112060
+#     -91.2028160      30.4273340       2.6700000
+#     -91.2033510      30.4276410       2.5700000
+#     -91.2038910      30.4279610       2.5700000
+# 13 52
+#     -91.7997400      30.9802500       7.2250000
+#     -91.8004550      30.9802350       7.2250000
+#     -91.8011700      30.9802200       7.2250000
+#     -91.8018850      30.9802050       7.2250000
+#     -91.8027340      30.9801800       7.2250000
+#     -91.8037000      30.9801170       7.2250000
+#     -91.8048000      30.9800450       7.2250000
+#     -91.8059000      30.9799730       7.2250000
+#     -91.8070000      30.9799000       7.2250000
+#     -91.8078700      30.9798700       7.2250000
+#     -91.8087400      30.9798400       7.2250000
+#     -91.8096100      30.9798100       7.2250000
+#     -91.8104800      30.9797800       7.2250000
+#
+# 2. the stage_discharge.pl script 
+#    a. reads the mesh.properties file to find how many river flux 
+#       boundaries are in the mesh file, and in what order; 
+#    b. it either uses statically configured fluxes from
+#       the ASGS config file or 
+#    c. uses a web service to get the relevant water surface elevation
+#    d. if using water surface elevation, it interpolates a stage
+#       discharge curve to get the total flux at that boundary
+#    e. the total flux at each boundary is written to the run.properties
+#       file, as in the following example:
+#
+#    mississippiRiverBoundaryConditionFlux : 16kcms
+#    mississippiRiverBoundaryPeriodicity : periodic
+#    atchafalayaRiverBoundaryConditionFlux : 8kcms
+#    atchafalayaRiverBoundaryPeriodicity : periodic
+#
+# 3. set_flux.pl 
+#    a. reads the control.properties file to determine the 
+#       flux(es) at the boundaries, and periodicity (periodic boundaries, 
+#       e.g. steady boundaries, are specified in the fort.15 while 
+#       aperiodic boundaries are specified in the fort.20) ... only periodic
+#       (steady) boundaries are currently supported; 
+#    b. reads the boundaries_xyz.txt file to find the edge lengths and 
+#       depths at each node;
+#    c. computes the flux per unit widths along the boundary nodes;
+#    d. writes out the periodic (steady) flux per unit width(s) suitable
+#       for direct inclusion in the fort.15 file
+#
+#------------------------------------------------------------------------
 use strict;
 use warnings;
 use Getopt::Long;
 #
 sub stderrMessage($$);
 #
-my $boundaryFile = "boundary.txt";
+my $boundaryFile = "boundaries_xyz.txt";
 my @inputFluxValues;
-my $outputFile = "flux_per_unit_width.txt";
+my $outputFile = "periodicFluxPerUnitWidth.txt";
 my $fluxProfile = "proportional";
 my @supported_profiles = qw(uniform proportional);
-my $inputFluxUnits = "cumecs";
-my @supported_units = qw(cumecs cumec m^3/s m^3s^-1 cfs kcfs);
+my $inputFluxUnits = "kcms";
+my @supported_units = qw(m^3/s m^3s^-1 cfs kcfs cms kcms);
 my $numNodes; # the number of nodes on a boundary
 my $sumDepths; # the sum of the depth values at each node on the boundary (m)
 my $sumLengths; # the sum of the distances corresponding to each node on the boundary (m)
