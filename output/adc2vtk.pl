@@ -1,9 +1,28 @@
 #!/usr/bin/perl
+#--------------------------------------------------------------------------
 #
 # adc2vtk.pl
 #
 # This script reformats ADCIRC input or output files to vtk xml format for
 # visualization and/or analysis.
+#--------------------------------------------------------------------------
+# Copyright(C) 2010--2016 Jason Fleming
+#
+# This file is part of the ADCIRC Surge Guidance System (ASGS).
+#
+# The ASGS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# ASGS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#--------------------------------------------------------------------------
 #
 use strict;
 $^W++;
@@ -17,7 +36,21 @@ my %adcirctypes = ("maxele.63", "MaximumElevation",
                    "fort.73", "BarometricPressure",
                    "fort.74", "WindVelocity",
                    "gradient.txt","WaterSurfaceElevationGradient",
-                   "maxgradient.txt","MaxWaterSurfaceElevationGradient");
+                   "maxgradient.txt","MaxWaterSurfaceElevationGradient",
+                   "positives.100","PositiveElementNumbers",
+                   "negatives.100","NegativeElementNumbers",
+                   "absolutes.100","AbsoluteElementNumbers",
+                   "fdrepeats.100","RepeatedElementNumbersWithinSubdomain",
+                   "subdomains.100","SubdomainNumbers",
+                   "noff.100","ElementWetDryState",
+                   "noffornot.100","InconsistentElementWetDryState",
+                   "nodecode.63","NodeWetDryState",
+                   "residents.63","ResidentNodeNumbers",
+                   "ghosts.63","GhostNodeNumbers",
+                   "ghostmem.63","GhostNodeSubdomainMembership",
+                   "absolutes.63","AbsoluteNodeNumbers",
+                   "subdomains.63","SubdomainsFromFort18",
+                   "psubdomains.63","SubdomainsFromPartmesh");
 my $R = 6378206.4;           # radius of the earth
 my $pi = 3.141592653589793;
 my $deg2rad = 2*$pi/360.0;
@@ -42,7 +75,7 @@ my $cpp;  # 1 to reproject to cpp (carte parallelogrammatique projection)
    
 my $slam0 = 265.5; # longitude at center of projection
 my $sfea0 = 29.0;  # latitude at center of projection
-my $datacentered = "node";
+my $datacentered = "PointData";
 #
 # If the storm characteristics change, but the track does not, the 
 # track lines will plot right on top of each other. The jitter is
@@ -202,6 +235,7 @@ $line = <MESH>;        # read number of elements and number of points line
 my @fields = split(' ',$line);
 my $ne = $fields[0];
 my $np = $fields[1];
+# read the node table
 for (my $i=0; $i<$np; $i++) {
    $line = <MESH>;
    @fields = split(' ',$line);
@@ -216,7 +250,7 @@ if ( defined $cpp ) {
       $y[$i] = $y[$i]*$deg2rad*$R;
    }
 }
-
+# read the element table
 for (my $i=0; $i<$ne; $i++) {
    $line = <MESH>;
    @fields = split(' ',$line);
@@ -226,6 +260,121 @@ for (my $i=0; $i<$ne; $i++) {
    my $i3 = $fields[4]-1;
    $conn[$i] = " $i1 $i2 $i3 ";
 }
+# 
+# Now read the elevation-specified boundary tables and write out as vtkPoints
+my $vtkElevationBoundaryFileName = $meshfile . "_elevBoundaries.vtp";
+unless (open(VTKELEVBOUNDARY,">$vtkElevationBoundaryFileName")) {
+   stderrMessage("ERROR","Failed to open $vtkElevationBoundaryFileName for writing: $!.");
+   die;
+}
+
+$line = <MESH>;
+@fields = split(' ',$line);
+my $nope = $fields[0];
+$line = <MESH>;
+@fields = split(' ',$line);
+my $neta = $fields[0];
+# write header for boundaries file   
+printf VTKELEVBOUNDARY "<?xml version=\"1.0\"?>\n";
+printf VTKELEVBOUNDARY "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+printf VTKELEVBOUNDARY "   <PolyData>\n";
+printf VTKELEVBOUNDARY "      <Piece NumberOfPoints=\"$neta\">\n";
+printf VTKELEVBOUNDARY "         <Points>\n";
+printf VTKELEVBOUNDARY "            <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+my @elevBoundaryTypes;
+my @elevBoundaryElevs; 
+my $elevBoundaryCount = 0;
+for (my $i=0; $i<$nope; $i++) {
+   $line = <MESH>;
+   my @fields = split(' ',$line); 
+   my $nvdll = $fields[0];
+   my $ibtypee = $fields[1];
+   for (my $j=0; $j<$nvdll; $j++) {
+      my $nbdv = <MESH>;
+      printf VTKELEVBOUNDARY "$x[$nbdv-1] $y[$nbdv-1] 0.0 ";
+      $elevBoundaryTypes[$elevBoundaryCount] = $ibtypee;
+      $elevBoundaryElevs[$elevBoundaryCount] = $z[$nbdv-1];      
+      $elevBoundaryCount++;
+   }
+}        
+printf VTKELEVBOUNDARY "\n";
+printf VTKELEVBOUNDARY "            </DataArray>\n";
+printf VTKELEVBOUNDARY "         </Points>\n";
+printf VTKELEVBOUNDARY "         <PointData>\n";
+printf VTKELEVBOUNDARY "            <DataArray Name=\"IBTYPEE\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">";
+for (my $i=0; $i<$elevBoundaryCount; $i++) {
+   printf VTKELEVBOUNDARY " $elevBoundaryTypes[$i]";
+}
+printf VTKELEVBOUNDARY "            </DataArray>\n";
+printf VTKELEVBOUNDARY "            <DataArray Name=\"Elevation\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">";
+for (my $i=0; $i<$elevBoundaryCount; $i++) {
+   printf VTKELEVBOUNDARY " $elevBoundaryElevs[$i]";
+}
+printf VTKELEVBOUNDARY "            </DataArray>\n";
+printf VTKELEVBOUNDARY "         </PointData>\n";
+printf VTKELEVBOUNDARY "      </Piece>\n";
+printf VTKELEVBOUNDARY "   </PolyData>\n";
+printf VTKELEVBOUNDARY "</VTKFile>\n";
+close(VTKELEVBOUNDARY);
+# 
+# Now read the flux-specified boundary tables and write out as vtkPoints
+my $vtkFluxBoundaryFileName = $meshfile . "_fluxBoundaries.vtp";
+unless (open(VTKFLUXBOUNDARY,">$vtkFluxBoundaryFileName")) {
+   stderrMessage("ERROR","Failed to open $vtkFluxBoundaryFileName for writing: $!.");
+   die;
+}
+$line = <MESH>;
+@fields = split(' ',$line);
+my $nbou = $fields[0];
+$line = <MESH>;
+@fields = split(' ',$line);
+my $nvel = $fields[0];
+# write header for boundaries file   
+printf VTKFLUXBOUNDARY "<?xml version=\"1.0\"?>\n";
+printf VTKFLUXBOUNDARY "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+printf VTKFLUXBOUNDARY "   <PolyData>\n";
+printf VTKFLUXBOUNDARY "      <Piece NumberOfPoints=\"$nvel\">\n";
+printf VTKFLUXBOUNDARY "         <Points>\n";
+printf VTKFLUXBOUNDARY "            <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+my @fluxBoundaryTypes;
+my @fluxBoundaryElevs; 
+my $fluxBoundaryCount = 0;
+for (my $i=0; $i<$nbou; $i++) {
+   $line = <MESH>;
+   my @fields = split(' ',$line); 
+   my $nvell = $fields[0];
+   my $ibtype = $fields[1];
+   for (my $j=0; $j<$nvell; $j++) {
+      $line = <MESH>;
+      @fields = split(' ',$line);
+      my $nbvv = $fields[0];
+      printf VTKFLUXBOUNDARY "$x[$nbvv-1] $y[$nbvv-1] 0.0 ";
+      $fluxBoundaryTypes[$fluxBoundaryCount] = $ibtype;
+      $fluxBoundaryElevs[$fluxBoundaryCount] = $z[$nbvv-1];      
+      $fluxBoundaryCount++;
+   }
+}        
+print "fluxBoundaryCount is $fluxBoundaryCount\n";
+printf VTKFLUXBOUNDARY "\n";
+printf VTKFLUXBOUNDARY "            </DataArray>\n";
+printf VTKFLUXBOUNDARY "         </Points>\n";
+printf VTKFLUXBOUNDARY "         <PointData>\n";
+printf VTKFLUXBOUNDARY "            <DataArray Name=\"IBTYPE\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">";
+for (my $i=0; $i<$fluxBoundaryCount; $i++) {
+   printf VTKFLUXBOUNDARY " $fluxBoundaryTypes[$i]";
+}
+printf VTKFLUXBOUNDARY "            </DataArray>\n";
+printf VTKFLUXBOUNDARY "            <DataArray Name=\"Elevation\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">";
+for (my $i=0; $i<$fluxBoundaryCount; $i++) {
+   printf VTKFLUXBOUNDARY " $fluxBoundaryElevs[$i]";
+}
+printf VTKFLUXBOUNDARY "            </DataArray>\n";
+printf VTKFLUXBOUNDARY "         </PointData>\n";
+printf VTKFLUXBOUNDARY "      </Piece>\n";
+printf VTKFLUXBOUNDARY "   </PolyData>\n";
+printf VTKFLUXBOUNDARY "</VTKFile>\n";
+close(VTKFLUXBOUNDARY);
+#
 close(MESH);
 #
 # write data from adcirc file(s)
@@ -249,11 +398,30 @@ foreach my $file (@adcircfiles) {
       close(OUT);
       next;
    }
-   $datacentered = "node";
-   if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" ) {
+   $datacentered = "PointData";
+   my $datatype = "Float64";
+   if ( $file eq "positives.100"  || $file eq "negatives.100" || $file eq "absolutes.100" || $file eq "subdomains.100" || $file eq "fdrepeats.100" ) {
       $num_components = 1;
       $num_datasets = 1;
+      $datacentered = "CellData";
+      $datatype = "Int32";
    }
+   if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" || $file eq "residents.63" || $file eq "ghosts.63" || $file eq "absolutes.63" || $file eq "subdomains.63" || $file eq "psubdomains.63" || $file eq "ghostmem.63" ) {
+      $num_components = 1;
+      $num_datasets = 1;
+      $datatype = "Int32";
+   }
+   if ( $file eq "noff.100" || $file eq "noffornot.100" ) {
+      $num_components = 1;
+      $num_datasets = 0;
+      $datatype = "Int32";
+      $datacentered = "CellData"; 
+   }
+   if ( $file eq "nodecode.63" ) {
+      $num_components = 1;
+      $num_datasets = 0;
+      $datatype = "Int32";
+   }  
    if ( $file eq "fort.63" || $file eq "fort.73" ) {
       $num_components = 1;
       $num_datasets = 0;
@@ -265,12 +433,12 @@ foreach my $file (@adcircfiles) {
    if ( $file eq "gradient.txt" ) {
       $num_components = 1;
       $num_datasets = 0;
-      $datacentered = "cell"; 
+      $datacentered = "CellData"; 
    }
    if ( $file eq "maxgradient.txt" ) {
       $num_components = 1;
       $num_datasets = 1;
-      $datacentered = "cell"; 
+      $datacentered = "CellData"; 
    }
    # make sure we can actually open the adcirc file before going further
    unless (open(ADCIRCFILE,"<$file")) {
@@ -369,7 +537,11 @@ foreach my $file (@adcircfiles) {
       #stderrMessage("DEBUG","time is $time[$dataset], timestep is $timestep[$dataset]");
       my @mag; # for holding vector magnitudes
       my $io_success = "true";
-      for (my $i=0; $i<$np; $i++) {
+      my $lim=$np; # nodal values are the default
+      if ( $datacentered eq "CellData" ) {
+         $lim=$ne;
+      }
+      for (my $i=0; $i<$lim; $i++) {
          $line = <ADCIRCFILE>;
          if ( defined $line ) {
             @fields = split(' ',$line);
@@ -408,24 +580,28 @@ foreach my $file (@adcircfiles) {
          printf PVD "         <DataSet timestep=\"$time[$dataset]\" group=\"\" part=\"0\" file=\"$outfile\"/>\n";
       }
       &writeHeader($ne, $np);
-      printf OUT "         <PointData $scalars_name $vectors_name>\n"; # set default dataset
+      printf OUT "         <$datacentered $scalars_name $vectors_name>\n"; 
       # write out dataset from ADCIRC file
       my $vtk_components = $num_components;
       if ( $num_components == 2 ) {
          $vtk_components = $num_components + 1; # for vtk all vectors are 3D
       }
-      printf OUT "            <DataArray Name=\"$adcirctypes{$file}\" type=\"Float64\" NumberOfComponents=\"$vtk_components\" format=\"ascii\">\n";
-      for (my $i=0; $i<$np; $i++) {
+      printf OUT "            <DataArray Name=\"$adcirctypes{$file}\" type=\"$datatype\" NumberOfComponents=\"$vtk_components\" format=\"ascii\">\n";
+      for (my $i=0; $i<$lim; $i++) {
          printf OUT "$comp[$i]\n";
       }
       printf OUT "            </DataArray>\n";
       # write vector magnitude if this is a vector dataset
       if ( $num_components > 1 ) {
-         printf OUT "            <DataArray Name=\"$adcirctypes{$file}Magnitude\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
-         for (my $i=0; $i<$np; $i++) {
+         printf OUT "            <DataArray Name=\"$adcirctypes{$file}Magnitude\" type=\"$datatype\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+         for (my $i=0; $i<$lim; $i++) {
             printf OUT "$mag[$i]\n";
          }
          printf OUT "            </DataArray>\n";
+      }
+      if ($datacentered eq "CellData") {
+         printf OUT "         </CellData>\n";
+         printf OUT "         <PointData>\n";
       }
       &writeMesh($ne, $np);    # write out bathymetric depth as a dataset
       &writeFooter();
