@@ -76,7 +76,8 @@ real(8), allocatable :: barincfsp(:,:)
 real(8), allocatable :: pipediam(:,:)
 real(8), allocatable :: pipecoef(:,:)
 
-
+logical :: elementAreasComputed = .false.
+logical :: weightingCoefficientsComputed = .false.
 logical                       :: neighborTableComputed = .false.
 logical                       :: allLeveesOK ! .false. if there are any issues
 integer                       :: NEIMIN
@@ -1448,7 +1449,6 @@ NNeigh=0
 NNeighEle=0
 NeiTab=-99
 NeiTabEle=-99
-write(6,'("DEBUG: Generating initial node and element tables.")') !jgfdebug
 DO 10 N=1,NE
    NN1 = NM(N,1)
    NN2 = NM(N,2)
@@ -1501,7 +1501,6 @@ neiTabEleGenerated = neiTabEle
 !     increasing cw angle from East
 !
 ! loop over nodes
-write(6,'("DEBUG: Sorting node table.")') ! jgfdebug
 allocate(neitem(mnei))
 DO I=1,NP
    ! loop over nodal neighbors of node i
@@ -1531,8 +1530,7 @@ DO I=1,NP
       ! initialize the value of the low angle???
       ANGLELOW=400.d0
       ! loop over the neighbors of node i
-      DO J=1,NNeigh(I)
-         
+      DO J=1,NNeigh(I)       
          IF((ANGLE(J).LT.ANGLELOW).AND.(ANGLE(J).GT.ANGLEMORE)) THEN
             ANGLELOW=ANGLE(J)
             JLOW=J
@@ -1548,8 +1546,6 @@ ENDDO
 !     MATCH EACH SET OF 3 NODES WITH CORRESPONDING ELEMENT AND REORDER
 !     ELEMENTS ACCORDINGLY
 !
-write(6,'("DEBUG: Sorting element table.")') ! jgfdebug
-
 DO I=1,NP
    ! temporarily save the existing array of neighboring elements for this node
    neiTem(:)=-99
@@ -1604,7 +1600,7 @@ DO I=1,NP
                NEITEM(K)=0
             ENDIF
          else
-            !write(6,'("ERROR: Somehow there is a -99 in the neighboring elements table for node number ",i0)') i
+            ! there is no element corresponding to these nodes
          ENDIF
       END DO
    END DO
@@ -1767,9 +1763,14 @@ IMPLICIT NONE
 real(8) :: nx(3)
 real(8) :: ny(3)
 integer :: i, j
+!
+if (elementAreasComputed.eqv..true.) then
+   return
+endif
 if (cppComputed.eqv..false.) then
    call computeCPP()
 endif
+allocate(areas(ne))
 write(6,'("INFO: Computing 2x the elemental areas.")')
 do i=1,ne
    do j=1,3
@@ -1778,6 +1779,7 @@ do i=1,ne
    end do
    areas(i)=(nx(1)-nx(3))*(ny(2)-ny(3))+(nx(3)-nx(2))*(ny(1)-ny(3))
 end do
+elementAreasComputed = .true.
 write(6,'("INFO: Finished computing 2x the elemental areas.")')
 !-----------------------------------------------------------------------
 END SUBROUTINE compute2xAreas
@@ -1793,10 +1795,14 @@ SUBROUTINE computeWeightingCoefficients()
 IMPLICIT NONE
 integer :: myNodes(0:4)
 integer :: i, j
+if (weightingCoefficientsComputed.eqv..true.) then
+   return
+endif
 if (cppComputed.eqv..false.) then
    call computeCPP()
 endif
 allocate(sfac(np))
+allocate(sfacAvg(ne))
 allocate(fdx(3,ne))
 allocate(fdy(3,ne))
 sfac(:)=cos(sfea0*deg2rad)/cos(xyd(2,:)*deg2rad)
@@ -1814,6 +1820,7 @@ do i=1,ne
       fdx(j,i) = ( y_cpp(myNodes(j+1))-y_cpp(myNodes(j-1)) ) * sFacAvg(i) ! b1, b2, b3
    end do        
 end do
+weightingCoefficientsComputed = .true.
 write(6,'("INFO: Finished computing weighting coefficients.")')
 !-----------------------------------------------------------------------
       END SUBROUTINE computeWeightingCoefficients

@@ -19,3 +19,4 @@ util/nodalattr/nodalattr.f90
 util/nodalattr/submergence_eddyvis.f90
 util/nodalattr/tau0_gen.f90
 output/checkAdcircMesh.f90
+set_flux.pl
