@@ -64,7 +64,10 @@
       integer                       :: NC_DimID_single = -99
       integer                       :: NC_VarID_zeta = -99
       integer                       :: NC_VarID_nodecode = -99
-      integer                       :: NC_VarID_noff = -99            
+      integer                       :: NC_VarID_noff = -99
+      integer                       :: NC_VarID_dryelementareacheck = -99
+      integer                       :: NC_VarID_coefdiagonal = -99
+      integer                       :: NC_VarID_coefele = -99                   
       integer                       :: NC_VarID_nneighele = -99
       integer                       :: NC_VarID_nodeids = -99
       integer                       :: NC_VarID_elementids = -99         
@@ -416,7 +419,18 @@
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tps,'mesh','adcirc_mesh'))
          CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tps,'units','s'))
          num_components = 1
-         varid(1) = NC_VarID_tps        
+         varid(1) = NC_VarID_tps
+      case('coefdiagonal.63') 
+         CALL Check(NF90_DEF_VAR(NC_ID,'coefdiagonal',NF90_DOUBLE,NC_DimID,NC_VarID_coefdiagonal))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_coefdiagonal,'_FillValue',FillValue))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_coefdiagonal,'long_name','adcirc fully consistent left hand side matrix diagonal coefficients'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_coefdiagonal,'standard_name','adcirc_fully_consistent_lhs_diagonal '))            
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_coefdiagonal,'coordinates','time y x'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_coefdiagonal,'location','node'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_coefdiagonal,'mesh','adcirc_mesh'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_coefdiagonal,'units','unitless'))
+         num_components = 1
+         varid(1) = NC_VarID_coefdiagonal
       case('nodecode.63') 
          netCDFDataType = NF90_INT
          call check(NF90_DEF_VAR(NC_ID,'nodecode',netCDFDataType,NC_DimID,NC_VarID_nodecode))
@@ -442,6 +456,31 @@
          num_components = 1
          dataCenter = 'Element'
          varid(1) = NC_VarID_noff
+      case('dryelementareacheck.100') 
+         netCDFDataType = NF90_INT
+         call check(NF90_DEF_VAR(NC_ID,'dryelementareacheck',netCDFDataType,NC_DimID_nele,NC_VarID_dryelementareacheck))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dryelementareacheck,'_FillValue',-99999))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dryelementareacheck,'long_name','dry element area check'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dryelementareacheck,'standard_name','dry_element_area_check'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dryelementareacheck,'coordinates','y x'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dryelementareacheck,'location','element'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dryelementareacheck,'mesh','adcirc_mesh'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_dryelementareacheck,'units','unitless'))
+         num_components = 1
+         dataCenter = 'Element'
+         varid(1) = NC_VarID_dryelementareacheck
+      case('coefele.100') 
+         call check(NF90_DEF_VAR(NC_ID,'coefele',netCDFDataType,(/ NC_DimID_nele, NC_DimID_Time /),NC_VarID_coefele))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_coefele,'_FillValue',-99999.d0))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_coefele,'long_name','element contribution to mass matrix diagonal'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_coefele,'standard_name','element_coef'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_coefele,'coordinates','time y x'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_coefele,'location','element'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_coefele,'mesh','adcirc_mesh'))
+         CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_coefele,'units','unitless'))
+         num_components = 1
+         dataCenter = 'Element'
+         varid(1) = NC_VarID_coefele
       case('nneighele.63') 
          netCDFDataType = NF90_INT
          call check(NF90_DEF_VAR(NC_ID,'nneighele',netCDFDataType,NC_DimID,NC_VarID_nneighele))
@@ -731,7 +770,13 @@
             case('nodecode.63') 
                CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nodecode,idata,NC_Start,NC_Count))
             case('noff.100') 
-               CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_noff,idata,NC_Start,NC_Count))           
+               CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_noff,idata,NC_Start,NC_Count))
+            case('dryelementareacheck.100') 
+               CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_dryelementareacheck,idata,NC_Start,NC_Count))
+            case('coefele.100') 
+               CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_coefele,Global1,NC_Start,NC_Count))
+            case('coefdiagonal.63') 
+               CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_coefdiagonal,Global1,NC_Start,NC_Count))
             case('nneighele.63') 
                CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nneighele,idata,NC_Start,NC_Count))
             case('nodeids.63') 

@@ -7,6 +7,10 @@
 !    (c) overlapping elements
 !    (d) disjoint nodes
 !    (e) nodes that have too many or too few connected elements for SWAN
+!    (f) nodes repeated within a boundary (unless it is a closed boundary
+!        and last node is the same as first)
+!    (g) compute max time step assuming 1m total water depth in normally
+!        dry areas 
 !
 !--------------------------------------------------------------------------
 ! Copyright(C) 2013--2016 Jason Fleming
@@ -49,6 +53,7 @@ integer :: nodeNumbers(2)
 logical :: shortBoundary
 !
 real(8) :: dx_crit ! used to create a bounding box around a high resolution area
+logical :: negativeDepthsFound ! true if the mesh contains dry land areas
 !
 ! The following are used to keep track of nodal connectedness to elements
 ! as it relates to SWAN's requirements. 
@@ -61,8 +66,7 @@ integer :: highConnectedNodes
 !
 ! set .true. if there are nodes with too many or not enough connected 
 ! elements for SWAN; this will cause                     
-logical writeNNeighEle
-                               
+logical :: writeNNeighEle
 !
 ! The following is used to find disjoint nodes. 
 logical, allocatable :: used(:) ! (np) .true. if a node is resident on any element 
@@ -90,7 +94,36 @@ logical :: writeNodeIDs
 ! visualization with ParaView because ParaView assumes 0-index ordering
 ! which is clumsy for labelling node and cell IDs
 logical :: writeElementIDs
-
+!
+logical :: computeMaxTimestepSizes ! true to compute max time step at different levels of inundation
+real(8), allocatable :: maxTimeStepSizes(:,:) ! (np,nincr) maximum time step at each node (seconds) for different levels of inundation
+real(8) :: minTimeStepSize ! smallest time step constraint (s) at a particular level of inundation
+real(8) :: effectiveDepth ! total water column depth when checking courant number
+real(8) :: minEdge ! shortest edge a node is connected to (m)
+real(8) :: inundationDepth ! total water column depth (m) used to check courant number in normally dry areas
+real(8) :: inundationDepthIncrement ! how much depth (m) to add each time courant number is checked
+real(8) :: maxInundationDepth ! greatest inundation (m) to consider for courant number check
+logical :: inundationAboveLocalGround ! true if the inundation used to check courant number is relative to local ground level
+!
+logical :: checkDryElementArea ! true if the area of elements above msl should be checked
+real(8) :: dt  ! used to compute the constraint on element size for elements above msl
+real(8) :: tau0  ! used to compute the constraint on element size for elements above msl
+real(8) :: minArea ! minimum area for a dry element at this topographic height
+real(8) :: MsFacLOnDiag ! term in equation for minimum dry element area
+real(8) :: onDiag ! multiplier for fully consistent diagonal terms in GWCE LHS
+real(8) :: areaIE ! element area (m2)
+real(8) :: areaIE4 ! 4x element area (m2)
+real(8) :: dpAvg ! average bathymetric depth (m) of an element
+real(8) :: g ! gravitational acceleration (m/s2)
+real(8) :: a00 ! adcirc time weighting coefficient 
+real(8) :: GA00DPAvgOAreaIE4 ! term in equation for minimum dry element area
+real(8) :: pMinArea(3) ! minimum element area (m2) constraint considering each of 3 nodes
+integer, allocatable :: areaOK(:) ! 1 if dry element area is ok, 0 if not, -99999 if element is normally wet 
+!
+logical :: computeImplicitDiagonalCoefficient ! true if coef(:,:) should be computed
+real(8), allocatable :: coef(:,:) ! adcirc implicit lhs matrix
+real(8) :: ep ! scaling factor for gwce
+!
 integer :: residentNodes(4) ! node numbers around an element, indices wrap around
 integer :: m ! element counter
 integer :: l ! counter for nodes around an element
@@ -99,16 +132,26 @@ integer :: m1, m2 ! element number neighboring a node
 integer :: icount ! counter for number of times two nodes have an element in common
 !
 integer :: i, j, k
+integer :: ie ! element loop counter
 !
 ! initializations
 verbose = .false.
 writeNNeighEle = .false.
 writeNeighborTables = .false.
 writeNodeIDs = .false.
-writeElementIDs = .false. 
-neitabContainsUninitializedValues = .false.
-neiTabEleContainsUninitializedValues = .false.
+writeElementIDs = .false.
+computeMaxTimestepSizes = .false.
+computeImplicitDiagonalCoefficient = .false.
+inundationAboveLocalGround = .false. 
+checkDryElementArea = .false.
 dx_crit = 1750.d0
+dt = 1.d0
+tau0 = 0.03d0
+sfea0 = 30.d0
+a00 = 0.35d0  ! implicit mode
+onDiag = 2.d0 ! fully consistent LHS
+g = 9.81d0    ! gravitational acceleration
+
 !
 ! Report netcdf version
 write(6,*) "INFO: checkAdcircMesh was compiled with the following netcdf library: ", trim(nf90_inq_libvers())
@@ -131,6 +174,21 @@ if (argcount.gt.0) then
             call getarg(i, cmdlinearg)
             write(6,'(a)') "INFO: Processing "//trim(cmdlineopt)//" "//trim(cmdlinearg)//"."
             read(cmdlinearg,*) dx_crit   
+         case("--dt")
+            i = i + 1
+            call getarg(i, cmdlinearg)
+            write(6,'(a)') "INFO: Processing "//trim(cmdlineopt)//" "//trim(cmdlinearg)//"."
+            read(cmdlinearg,*) dt
+         case("--tau0")
+            i = i + 1
+            call getarg(i, cmdlinearg)
+            write(6,'(a)') "INFO: Processing "//trim(cmdlineopt)//" "//trim(cmdlinearg)//"."
+            read(cmdlinearg,*) tau0
+         case("--sfea0")
+            i = i + 1
+            call getarg(i, cmdlinearg)
+            write(6,'(a)') "INFO: Processing "//trim(cmdlineopt)//" "//trim(cmdlinearg)//"."
+            read(cmdlinearg,*) sfea0
          case("--write-neighbor-tables")
             write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
             writeNeighborTables = .true.                              
@@ -143,6 +201,15 @@ if (argcount.gt.0) then
          case("--write-nneighele")
             write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
             writeNNeighEle = .true.
+         case("--check-dry-element-area")
+            write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
+            checkDryElementArea = .true.
+         case("--compute-max-timestep-sizes")
+            write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
+            computeMaxTimestepSizes = .true.
+         case("--compute-implicit-diagonal-coefficient")
+            write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
+            computeImplicitDiagonalCoefficient = .true.
          case("--verbose")
             write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
             verbose = .true.                              
@@ -199,11 +266,11 @@ endif
 !
 ! Create mesh.properties file and bounding box properties
 write(6,'("INFO: Creating mesh.properties file to record the properties of this mesh.")')
-inquire(file='mesh.properties',exist=fileFound)
+inquire(file=trim(adjustl(meshfileName))//'.properties',exist=fileFound)
 if (fileFound.eqv..true.) then
-   open(12,file='mesh.properties',status='old',position='append',action='write')
+   open(12,file=trim(adjustl(meshfileName))//'.properties',status='old',position='append',action='write')
 else
-   open(12,file='mesh.properties',status='new',action='write')
+   open(12,file=trim(adjustl(meshfileName))//'.properties',status='new',action='write')
 endif
 write(6,'("INFO: Recording full domain extents.")')
 ! report the domain extents
@@ -216,18 +283,26 @@ lonmin = huge(1.d0)
 lonmax = tiny(1.d0)
 latmin = huge(1.d0)
 latmax = tiny(1.d0)
+negativeDepthsFound = .false.
 do i=1,np
    if (xyd(3,i).lt.0.d0) then
+      negativeDepthsFound = .true.
       lonmin = min(lonmin,xyd(1,i))
       lonmax = max(lonmax,xyd(1,i))
       latmin = min(latmin,xyd(2,i))
       latmax = max(latmax,xyd(2,i))
    endif
 end do
-write(12,'("fullDomainNegativeDepthMinimumLongitudeDegrees : ",f15.7)') lonmin 
-write(12,'("fullDomainNegativeDepthMaximumLongitudeDegrees : ",f15.7)') lonmax 
-write(12,'("fullDomainNegativeDepthMinimumLatitudeDegrees : ",f15.7)') latmin
-write(12,'("fullDomainNegativeDepthMaximumLatitudeDegrees : ",f15.7)') latmax
+if (negativeDepthsFound.eqv..false.) then
+   lonmin = -99999.d0
+   lonmax = -99999.d0
+   latmin = -99999.d0
+   latmax = -99999.d0
+endif
+write(12,'("fullDomainNegativeDepthMinimumLongitudeDegrees : ",f20.7)') lonmin 
+write(12,'("fullDomainNegativeDepthMaximumLongitudeDegrees : ",f20.7)') lonmax 
+write(12,'("fullDomainNegativeDepthMinimumLatitudeDegrees : ",f20.7)') latmin
+write(12,'("fullDomainNegativeDepthMaximumLatitudeDegrees : ",f20.7)') latmax
 !
 write(6,'("INFO: Recording bounding box for high resolution area.")')
 write(12,'("highResolutionRegionMaximumEdgeLengthMeters : ",f15.7)') dx_crit
@@ -256,33 +331,6 @@ write(12,'("minimumEdgeLengthMeters : ",f15.7)') minEdgeLength
 write(6,'("INFO: The maximum edge length is ",f15.7," meters.")') maxEdgeLength
 write(12,'("maximumEdgeLengthMeters : ",f15.7)') maxEdgeLength
 ! leave unit 12 open so we can write more mesh properties to it...
-!
-!
-!     C H E C K   N E I G H B O R   T A B L E S   F O R   
-!          U N I N I T I A L I Z E D   V A L U E S
-! 
-do i=1,np
-   do j=1, nneigh(i)
-      if ((neitab(i,j).eq.-99).or.(neitab(i,j).eq.0)) then
-         neitabContainsUninitializedValues = .true.
-      endif
-   end do
-end do
-if (neitabContainsUninitializedValues.eqv..true.) then
-   write(6,'("ERROR: The table of the nodal neighbors for each node contains uninitialized values.")')
-   writeNeighborTables = .true.
-endif
-do i=1,np
-   do j=1, nNeighEle(i)
-      if ((neiTabEle(i,j).eq.-99).or.(neiTabEle(i,j).eq.0)) then
-         neiTabEleContainsUninitializedValues = .true.
-      endif
-   end do
-end do
-if (neiTabEleContainsUninitializedValues.eqv..true.) then
-   write(6,'("ERROR: The table of the elemental neighbors for each node contains uninitialized values.")')
-   writeNeighborTables = .true.
-endif
 !
 !         W R I T E   N E I G H B O R   T A B L E S 
 !
@@ -474,10 +522,18 @@ do m=1, ne
       do i1=1, nNeighEle(residentNodes(l))
          ! get the element number
          m1 = neiTabEle(residentNodes(l),i1)
+         ! if there is not an element here, go to the next one
+         if (m1.eq.-99) then
+            cycle
+         endif
          ! loop over the elements around the other node
          do i2 = 1, nNeighEle(residentNodes(l+1))
             ! get the element number
             m2 = neiTabEle(residentNodes(l+1),i2)
+            ! if there is not an element here, go to the next one
+            if (m2.eq.-99) then
+               cycle
+            endif
             ! we should only have two in common at most?
             if( m1.eq.m2 ) then
                icount = icount + 1
@@ -488,27 +544,35 @@ do m=1, ne
       if ( icount.gt.2 ) then
 !         write(6,'(/)') 
          overlappingElements(m) = .true.
-!         icount=0
-!         ! now go back and figure out what element was overlapping it
-!         do i1=1, nNeighEle(residentNodes(l))
-!            ! get the element number
-!            m1 = neiTabEle(residentNodes(l),i1)
-!            ! loop over the elements around the other node
-!            do i2 = 1, nNeighEle(residentNodes(l+1))
-!               ! get the element number
-!               m2 = neiTabEle(residentNodes(l+1),i2)
-!               ! we should only have two in common at most?
-!               if( m1.eq.m2 ) then            
-!                  icount = icount + 1                   
-!                  write(6,'("m=",i0," l=",i0," residentNodes(l)=",i0," residentNodes(l+1)=",i0," icount=",i0," i1=",i0," i2=",i0," m2=",i0)') m, l, residentNodes(l), residentNodes(l+1),icount, i1, i2, m2
-!                  write(6,'("node residentNodes(l)=",i0," has ",i0," neighboring elements: ")') residentNodes(l), nNeighEle(residentNodes(l))
-!                  do k=1, nNeighEle(residentNodes(l))
-!                     write(6,'(20(i0,2x))') neiTabEle(residentNodes(l),k)
-!                  end do
+         icount=0
+         ! now go back and figure out what element was overlapping it
+         do i1=1, nNeighEle(residentNodes(l))
+            ! get the element number
+            m1 = neiTabEle(residentNodes(l),i1)
+            ! if there is not an element here, go to the next one
+            if (m1.eq.-99) then
+               cycle
+            endif
+            ! loop over the elements around the other node
+            do i2 = 1, nNeighEle(residentNodes(l+1))
+               ! get the element number
+               m2 = neiTabEle(residentNodes(l+1),i2)
+               ! if there is not an element here, go to the next one
+               if (m2.eq.-99) then
+                  cycle
+               endif               
+               ! we should only have two in common at most?
+               if( m1.eq.m2 ) then            
+                  icount = icount + 1                   
+                  write(6,'("m=",i0," l=",i0," residentNodes(l)=",i0," residentNodes(l+1)=",i0," icount=",i0," i1=",i0," i2=",i0," m2=",i0)') m, l, residentNodes(l), residentNodes(l+1),icount, i1, i2, m2
+                  write(6,'("node residentNodes(l)=",i0," has ",i0," neighboring elements: ")') residentNodes(l), nNeighEle(residentNodes(l))
+                  do k=1, nNeighEle(residentNodes(l))
+                     write(6,'(20(i0,2x))') neiTabEle(residentNodes(l),k)
+                  end do
                   !exit ! why are we exiting here?
-!               endif
-!            enddo
-!         enddo
+               endif
+            enddo
+         enddo
      endif
    enddo
 enddo
@@ -522,6 +586,191 @@ if( any(overlappingElements) ) then
    enddo
 else 
    write(6,'("INFO: There are no overlapping elements.")')
+endif
+!------------------------------------------------------------------------
+!       C H E C K   F O R   R E P E A T E D   N O D E S   
+!              W I T H I N   A   B O U N D A R Y
+!------------------------------------------------------------------------
+! land, island, and river boundaries
+do k=1,numSimpleFluxBoundaries
+   do j=1,size(simpleFluxBoundaries(k)%nodes)
+      nodeNumber = simpleFluxBoundaries(k)%nodes(j)
+      do i=j+1,size(simpleFluxBoundaries(k)%nodes)
+         if ((nodeNumber.eq.simpleFluxBoundaries(k)%nodes(i))) then
+            if ((j.eq.1).and.(i.eq.size(simpleFluxBoundaries(k)%nodes))) then
+               ! first node matches the last node, this is a closed boundary
+               ! which is ok
+               cycle
+            endif
+            write(6,'("The node number ",i0," is erroneously repeated on flux boundary number ",i0," (ibtype=",i0,", contains ",i0," nodes).")') nodeNumber, simpleFluxBoundaries(k)%indexNum, ibtype(simpleFluxBoundaries(k)%indexNum),size(simpleFluxBoundaries(k)%nodes) 
+         endif
+      end do
+   end do
+end do
+! elevation specified boundaries
+do k=1,nope
+   do j=1,size(elevationBoundaries(k)%nodes)
+      nodeNumber = elevationBoundaries(k)%nodes(j)
+      do i=j+1,size(elevationBoundaries(k)%nodes)
+         if ((nodeNumber.eq.elevationBoundaries(k)%nodes(i))) then
+            if ((j.eq.1).and.(i.eq.size(elevationBoundaries(k)%nodes))) then
+               ! first node matches the last node, this is a closed boundary
+               ! which is ok
+               cycle
+            endif
+            write(6,'("The node number ",i0," is erroneously repeated on elevation boundary number ",i0," (ibtypee=",i0,", contains ",i0," nodes).")') nodeNumber, elevationBoundaries(k)%indexNum, ibtypee(elevationBoundaries(k)%indexNum),size(elevationBoundaries(k)%nodes) 
+         endif
+      end do
+   end do
+end do
+!------------------------------------------------------------------------ 
+!         C O M P U T E   M A X   T I M E   S T E P   S I Z E S
+!------------------------------------------------------------------------
+! The courant number C = u dt/dx and assuming 
+!    1. C can be no larger than unity
+!    2. u is shallow water wave speed sqrt(gh)
+!    3. we can apply a range of inundation depths to see how the max time
+!       step varies as the water gets deeper
+! then dt = C dx/u = 1 * dx / sqrt(gh)  where e.g. h = 0.0, 0.5, ..., 10.0m
+!------------------------------------------------------------------------
+if (computeMaxTimestepSizes.eqv..true.) then
+   maxInundationDepth = 10.d0
+   inundationDepthIncrement = 0.5d0
+   inundationDepth = 0.d0
+   j = 1
+   allocate(maxTimeStepSizes(np,int(maxInundationDepth/inundationDepthIncrement)+1))
+   maxTimeStepSizes = 99999.d0
+   open(11,file='maxtimestepsizes.63',status='replace',action='write')
+   ! write header info 
+   write(11,'(a)') trim(agrid)
+   write(11,1010) 1, np, 0.d0, 1, 1
+   write(11,2120) 0.d0, 0
+   do while(inundationDepth.le.maxInundationDepth)
+      do i=1,np
+         ! at each node, determine min connected edge length
+         minEdge = minval(neighborEdgeLengthTable(i,2:nneigh(i)))
+         effectiveDepth = xyd(3,i) + inundationDepth ! inundation depth above msl
+         if (inundationAboveLocalGround.eqv..true.) then
+            ! if the node is normally dry, use the inundation depth directly
+            if (xyd(3,i).lt.0.d0) then
+               effectiveDepth = inundationDepth
+            endif
+         endif
+         if (effectiveDepth.gt.0.d0) then
+            maxTimeStepSizes(i,j) = minEdge / sqrt(9.81d0*effectiveDepth)
+         endif
+      end do
+      write(6,'("INFO: At an inundation depth of ",f19.15,"m, the smallest time step is ",1pE20.10E3," seconds.")') inundationDepth, minval(maxTimeStepSizes(:,j))
+      ! write max time step sizes 
+      write(11,2120) inundationDepth, j
+      do i=1,np
+         write(11,2453) i, maxTimeStepSizes(i,j)
+      end do
+      j = j + 1
+      inundationDepth = inundationDepth + inundationDepthIncrement
+   end do
+   close(11)
+endif
+!------------------------------------------------------------------------ 
+!    C O M P U T E   I M P L I C I T   D R Y   E L E M E N T
+!                  A R E A   C O N S T R A I N T
+!------------------------------------------------------------------------
+! When running ADCIRC in implicit mode, there is a minimum element area
+! for elements with negative average depths (i.e., out of the water or
+! normally dry). 
+!------------------------------------------------------------------------
+if (checkDryElementArea.eqv..true.) then
+   ! need to compute the weighting coefficients for the basis function
+   ! and the coversion for spherical coordinates
+   call computeWeightingCoefficients()
+   call compute2xAreas()
+   allocate(areaOK(ne))
+   areaOK = -99999
+   do ie=1,ne
+      areaIE = 0.5d0 * areas(ie)
+      areaIE4 = 2.d0 * areas(ie)
+      dpAvg = sum(xyd(3,nm(ie,:)))/3.d0
+      if (dpAvg.lt.0.d0) then
+         GA00DPAvgOAreaIE4 = G * A00 * DPAvg / AreaIE4
+         MsFacLOnDiag = OnDiag * AreaIE * (1.d0/DT+Tau0/2.d0)/DT/12.d0
+         do j=1,3
+            ! find the value of the area constraint for this node   
+            pMinArea(j) = (-g * a00 * ( fdx(j,ie)**2 + fdy(j,ie)**2 ) * dpAvg ) &
+              / (4.d0 * MsFacLOnDiag )
+         end do
+         ! use the most conservative (largest) value of the minimum area constraint
+         minArea = maxval(pMinArea) 
+         areaOK(ie) = 1
+         if ( areaIE.lt.minArea ) then
+            areaOK(ie) = 0
+         endif
+      endif
+   end do  
+   if (any(areaOK.eq.0)) then
+      write(6,'("WARNING: One or more dry elements are too small for the time step size and topographic height where they are found.")')
+   endif  
+   write(6,'("INFO: Writing dryelementareacheck.100 file assuming an implicit ADCIRC simulation with a time step dt=",f19.15," and tau0=",f19.15,".")') dt, tau0 
+   ! now write the file
+   open(11,file='dryelementareacheck.100',status='replace',action='write')
+   ! write header info 
+   write(11,'(a)') trim(agrid)
+   write(11,1010) 1, ne, 0.d0, 1, 1
+   write(11,2120) 0.d0, 0
+   ! write element IDs 
+   do ie=1,ne
+      write(11,'(20(i0,2x))') ie, areaOK(ie)
+   end do
+   close(11)
+endif
+!
+!------------------------------------------------------------------------ 
+!    C O M P U T E   D I A G O N A L   O F   A D C I R C   
+!          I M P L I C I T   L H S   M A T R I X 
+!------------------------------------------------------------------------
+! When running ADCIRC in implicit mode, there may be an interest in 
+! visualizing the diagonal coefficients of the LHS matrix.
+! This assumes the mesh is wet everywhere.  
+! TODO: This does not include boundary conditions.
+!------------------------------------------------------------------------
+if (computeImplicitDiagonalCoefficient.eqv..true.) then
+   ! need to compute the weighting coefficients for the basis function
+   ! and the coversion for spherical coordinates
+   call computeWeightingCoefficients()
+   call compute2xAreas()
+   allocate(coef(np,1))
+   coef = 0.d0
+   do ie=1,ne
+      areaIE = 0.5d0 * areas(ie)
+      areaIE4 = 2.d0 * areas(ie)
+      dpAvg = sum(xyd(3,nm(ie,:)))/3.d0
+   
+      GA00DPAvgOAreaIE4 = G * A00 * DPAvg / AreaIE4
+      MsFacLOnDiag = OnDiag * AreaIE * (1.d0/DT+Tau0/2.d0)/DT/12.d0   
+      coef(nm(ie,1),1) = coef(nm(ie,1),1) + MsFacLOnDiag  &
+         + GA00DPAvgOAreaIE4 * (fdx(1,ie)**2 + fdy(1,ie)**2)
+      coef(nm(ie,2),1) = coef(nm(ie,2),1) + MsFacLOnDiag &
+         + GA00DPAvgOAreaIE4 * (fdx(2,ie)**2 + fdy(2,ie)**2)
+      coef(nm(ie,3),1) = coef(nm(ie,3),1) + MsFacLOnDiag &
+         + GA00DPAvgOAreaIE4 * (fdx(3,ie)**2 + fdy(3,ie)**2)
+   end do
+   if (any(coef(:,1).lt.0.d0)) then
+      write(6,'("WARNING: One or more nodes will have a negative value on the diagonal of the left hand side matrix in a fully consistent (implicit mode) ADCIRC simulation.")')
+   endif
+   ! compute scaling factor 
+   ! TODO: handle elevation specified boundaries
+   ep = 0.0d0
+   do i=1,np
+      ep = ep + coef(i,1)**2
+   enddo
+   ep = sqrt(ep/np)
+   open(11,file='coefdiagonal.63',status='replace',action='write')
+   ! write header info 
+   write(11,'(a)') trim(agrid)
+   write(11,1010) 1, np, 0.d0, 1, 1
+   write(11,2120) 0.d0, 0
+   do i=1,np
+      write(11,2453) i, coef(i,1)
+   end do
 endif
 
 !----------------------------------------------------------------------

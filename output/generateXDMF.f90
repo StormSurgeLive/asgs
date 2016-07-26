@@ -194,24 +194,10 @@ do fi=1,numFiles
    if ( fileMetaData(fi) % nodalAttributesFile.eqv..true. ) then
       fileMetaData(fi) % fileTypeDesc = 'an ADCIRC nodal attributes file (fort.13)'
       fileMetaData(fi) % timeVarying = .false. 
-      ! determine which nodal attributes are present in the file
-      
-      call initFileMetaData(fileMetaData(fi), thisVarName, 7, 6)
-      fileMetaData(fi) % varNameNetCDF(1) = "zeta1"  ! eta1 
-      fileMetaData(fi) % varNameNetCDF(2) = "zeta2"  ! eta2 
-      fileMetaData(fi) % varNameNetCDF(3) = "zetad"  ! EtaDisc 
-      fileMetaData(fi) % varNameNetCDF(4) = "u-vel"  ! uu2 \_combine as vector in XDMF_
-      fileMetaData(fi) % varNameNetCDF(5) = "v-vel"  ! vv2 /
-      fileMetaData(fi) % varNameNetCDF(6) = "nodecode"  ! nodecode                   
-      fileMetaData(fi) % varNameNetCDF(7) = "noff"   ! noff<---element/cell centered
-      !
-      fileMetaData(fi) % numComponentsXDMF(4) = 2  ! velocity (uu2,vv2)
-      call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
-      fileMetaData(fi) % varNameXDMF(4) = 'hot_start_velocity'
-      fileMetaData(fi) % dataCenter(6) = 'Cell' ! noff
-      fileMetaData(fi) % timeVarying = .false.
-      exit
-      cycle
+      ! Count the number of nodal attributes in the file
+      write(6,'("ERROR: Nodal attributes files are not yet supported by adcirc2netcdf.")')
+      stop
+      ! TODO: structure this like the hotstart file setup below.
    endif
    do i=1,fileMetaData(fi) % nvar
       call check(nf90_inquire_variable(fileMetaData(fi) % nc_id, i, thisVarName))
@@ -220,6 +206,17 @@ do fi=1,numFiles
          fileMetaData(fi) % fileTypeDesc = 'a time varying 2D ADCIRC water surface elevation file (fort.63)'
          call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
+         exit
+      case("coefdiagonal")
+         fileMetaData(fi) % fileTypeDesc = 'a fully consistent ADCIRC LHS matrix diagonal file (coefdiagonal.63)'
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
+         exit         
+      case("coefele")
+         fileMetaData(fi) % fileTypeDesc = 'an element mass matrix coefficient file (coefele.100)'
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
+         fileMetaData(fi) % dataCenter(1) = 'Cell' ! noff
          exit
       case("nodecode")
          fileMetaData(fi) % fileTypeDesc = 'a node wet/dry state file (nodecode.63)'
@@ -232,6 +229,12 @@ do fi=1,numFiles
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          fileMetaData(fi) % dataCenter(1) = 'Cell' ! noff
          exit          
+      case("dryelementareacheck")
+         fileMetaData(fi) % fileTypeDesc = 'a dry element area check (dryelementareacheck.100)'
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
+         fileMetaData(fi) % dataCenter(1) = 'Cell' ! noff
+         exit
       case("nneighele")
          fileMetaData(fi) % fileTypeDesc = 'a number of elemental neighbors attached to each node file (nneighele.63)'
          call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
@@ -630,6 +633,8 @@ integer :: i, j
 
 ! find the netcdf variable IDs
 do i=1,fmd % numVarNetCDF
+   ! jgfdebug
+   !write(6,'("fmd % varNameNetCDF(i) is ",a)') fmd % varNameNetCDF(i)
    call check(nf90_inq_varid(ncid, fmd % varNameNetCDF(i), fmd % nc_varID(i)))
    call check(nf90_inquire_variable(ncid, fmd%nc_varID(i), fmd%varNameNetCDF(i), fmd%nc_type(i)))
 end do
