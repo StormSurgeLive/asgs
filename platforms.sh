@@ -259,7 +259,7 @@ init_topaz()
   PREPCONTROLSCRIPT=topaz.adcprep.template.pbs
   PREPHOTSTARTSCRIPT=topaz.adcprep.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
-  PPN=16
+  PPN=36
   IMAGEMAGICKBINPATH=/app/unsupported/ImageMagick/6.9.2-5/bin/convert
 }
 init_tezpur()

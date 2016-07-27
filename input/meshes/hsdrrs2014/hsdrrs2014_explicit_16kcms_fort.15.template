@@ -2174,7 +2174,7 @@ ERDC
 ASGS Nowcast/Forecast
 http://www.seahorsecoastal.com
 Model time is relative to UTC.
-garnet.erdc.hpc.mil
+topaz.erdc.hpc.mil
 CF
 jason.fleming@seahorsecoastal.com
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00

@@ -4,7 +4,7 @@
 # A system to build ASGS-related utilities for processing ADCIRC output.
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2014 Jason Fleming
+# Copyright(C) 2014--2016 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -28,6 +28,15 @@ ifeq ($(compiler),gfortran)
    FFLAGS := -cpp -ffree-line-length-none
    ifeq ($(DEBUG),full)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal #-Wall
+   endif
+endif
+#
+# specify compiler=intel on the make command line
+ifeq ($(compiler),intel)
+   FC := ifort
+   FFLAGS := -fpp
+   ifeq ($(DEBUG),full)
+      FFLAGS := -g -O0 -fpp -traceback -debug -check all 
    endif
 endif
 #
@@ -65,9 +74,8 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := adcmesh.o asgsio.o landuse.o
-MODS := adcmesh.mod asgsio.mod landuse.mod
-
+OBJ := adcmesh.o asgsio.o landuse.o adcircdata.o
+MODS := adcmesh.mod asgsio.mod landuse.mod adcircdata.mod
 #
 # targets
 all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyvis convertna
@@ -75,7 +83,7 @@ all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyv
 clean :
 	rm -f *.o *.mod *.x
 #
-nodalattr.mod : $(MODS) nodalattr.f90 asgsio.mod
+nodalattr.mod : $(MODS) nodalattr.f90 asgsio.mod adcircdata.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c nodalattr.f90 $(LDFLAGS)
 #
 convertna : $(MODS) convertna.f90 nodalattr.mod
@@ -101,6 +109,9 @@ adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod
 #
 asgsio.mod : $(OUTPUTDIR)/asgsio.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/asgsio.f90 $(LDFLAGS)
+#
+adcircdata.mod : $(OUTPUTDIR)/adcircdata.f90 
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcircdata.f90 $(LDFLAGS)
 #
 landuse.mod : landuse.f90 asgsio.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c landuse.f90 $(LDFLAGS)
