@@ -4,7 +4,7 @@
 ! A module that provides helper subroutines when dealing with ADCIRC 
 ! output files in ascii and netcdf format. 
 !--------------------------------------------------------------------------
-! Copyright(C) 2014 Jason Fleming
+! Copyright(C) 2014--2015 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -56,7 +56,12 @@ real(8) :: defaultValue
 real(8) :: fillValue = -99999.d0
 real(8), allocatable :: timesec(:)  ! time in seconds associated with each dataset
 real(8), allocatable :: adcirc_data(:,:) ! generic holder for converted data
+real(8), allocatable :: gold_data(:,:)   ! holder for expected outputd data
+real(8), allocatable :: test_data(:,:)   ! generic holder for converted data
+real(8), allocatable :: result_data(:,:) ! generic holder for converted data
+integer, allocatable :: adcirc_idata(:,:) ! generic holder for converted integer data
 real(8), allocatable :: adcirc_data3D(:,:,:) ! generic holder for converted data
+character(len=120) :: datenum !seconds since 2008-07-31 12:00:00 +00:00
 integer :: nspool
 integer :: it
 character(1024) :: datafile
@@ -80,6 +85,9 @@ character(len=1024) :: header1  ! 1st line in ascii adcirc output file
 character(len=1024) :: header2  ! 2nd line in ascii adcirc output file
 character(len=80) :: rundes  ! 1st line in adcirc fort.15 input file
 character(len=80) :: runid   ! 2nd line in adcirc fort.15 input file
+logical :: isInteger = .false.  ! .true. for integer data
+character(len=20) :: dataCenter ! "Node" or "Element"
+
 !-----------
 !-----------
 contains
@@ -126,6 +134,7 @@ endif
 allocate(timesec(ndset))
 call check(nf90_inq_varid(nc_id, "time", NC_VarID_time))
 call check(nf90_get_var(nc_id, NC_VarID_time, timesec, (/ 1 /), (/ ndset /) ))
+call check(nf90_get_att(nc_id,nc_varid_time,'units',datenum))
 !
 ! determine the type of file that we have
 do i=1,3

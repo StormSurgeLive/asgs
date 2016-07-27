@@ -18,7 +18,7 @@ real(8), allocatable :: seedx(:) ! (nseed) x coordinate locations of seed nodes
 real(8), allocatable :: seedy(:) ! (nseed) x coordinate locations of seed nodes
 real(8), allocatable :: localDryElevation(:) ! (m) (+upward) in viscinity of seed 
 real(8), allocatable :: dist(:) ! (np) distance (m) from seed to each node 
-real(8), allocatable :: minEdgeLength(:) ! (np) distance (m) from a node to nearest neighbor  
+real(8), allocatable :: minEdgeLengthNode(:) ! (np) distance (m) from a node to nearest neighbor  
 integer, allocatable :: frontNodes(:) ! (np) node numbers along the wet front
 integer, allocatable :: newFrontNodes(:) ! (np) newly discovered wet nodes numbers
 integer :: numFrontNodes ! number of nodes along the wet front
@@ -219,13 +219,13 @@ if (genEddyViscosity.eqv..true.) then
    ! compute the lengths of the edges that connect each node to its neighbor
    call computeNeighborEdgeLengthTable()
    ! find the min edge length attached to each node
-   allocate(minEdgeLength(np))
+   allocate(minEdgeLengthNode(np))
    do i=1,np
-      minEdgeLength(i) = minval(neighborEdgeLengthTable(i,2:nneigh(i)))
+      minEdgeLengthNode(i) = minval(neighborEdgeLengthTable(i,2:nneigh(i)))
    end do
    ! areas with really small elements (<10-12m) set to 1.0 to prevent
    ! some instabilities related to eddy viscosity on small elements 
-   where (minEdgeLength.lt.10.d0)
+   where (minEdgeLengthNode.lt.10.d0)
       eddyViscosity = 1.d0
    end where
    write(6,*) 'INFO: Finished computing horizontal eddy viscosity.'      

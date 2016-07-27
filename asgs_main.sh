@@ -219,7 +219,7 @@ prep()
     fi
     # symbolically link nodal attributes
     if [ ! -e $ADVISDIR/$ENSTORM/fort.13 ]; then
-        if [[ ! -z $NAFILE ]]; then
+        if [[ ! -z $NAFILE  && $NAFILE != null ]]; then
            ln -s $INPUTDIR/$NAFILE $ADVISDIR/$ENSTORM/fort.13 2>> ${SYSLOG}
         fi
     fi
@@ -370,7 +370,7 @@ prep()
     if [[ $HAVEARCHIVE = no ]]; then
        logMessage "Creating an archive of preprocessed files and saving to ${INPUTDIR}/${PREPPED} to avoid having to run prepall again."
        FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18'
-       if [[ ! -z $NAFILE ]]; then
+       if [[ ! -z $NAFILE && $NAFILE != null ]]; then
           FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18 PE*/fort.13'
        fi
        tar cvzf ${INPUTDIR}/${PREPPED} ${FILELIST} 2>> ${SYSLOG}
@@ -1157,7 +1157,7 @@ if [[ $METSTATIONS && $METSTATIONS != null ]]; then
    checkFileExistence $INPUTDIR "ADCIRC meteorological stations file" $METSTATIONS
 fi
 # fort.13 (nodal attributes) file is optional
-if [[ ! -z $NAFILE ]]; then
+if [[ ! -z $NAFILE && $NAFILE != null ]]; then
    checkFileExistence $INPUTDIR "ADCIRC nodal attributes (fort.13) file" $NAFILE
 fi
 if [[ $HOTORCOLD = hotstart ]]; then
@@ -1543,6 +1543,8 @@ while [ true ]; do
       # number of CPUs that will ever be available.
       if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
          error "The requested number of CPUs for $ENSTORM is set to $NCPU and the number of writer processors has been set to $NUMWRITERS but the total number of requested CPUs exceeds the NCPUCAPACITY parameter value of ${NCPUCAPACITY}; therefore this forecast ensemble member will never be able to execute. This forecast ensemble member is being abandoned."
+         # increment the ensemble member counter
+         si=$[$si + 1];
          continue 
       fi
       subDirs=`find ${ADVISDIR} -maxdepth 1 -type d -print`
