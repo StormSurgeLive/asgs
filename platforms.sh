@@ -313,20 +313,22 @@ init_ranger()
 init_lonestar()
 { #<- can replace the following with a custom script
   HOSTNAME=lonestar.tacc.utexas.edu
-  QUEUESYS=slurm
+  QUEUESYS=SLURM
+  QUEUENAME=normal
+  SERQUEUE=normal
   QCHECKCMD=squeue
-  PPN=12
+  PPN=24
   ACCOUNT=ADCIRC
   SUBMITSTRING="ibrun"
   SCRATCHDIR=$SCRATCH
   SSHKEY=id_rsa_lonestar
   QSCRIPT=lonestar.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
-  SERQSCRIPT=lonestar.template.serial.slurm
+  PREPCONTROLSCRIPT=lonestar.template.serial.slurm
   SERQSCRIPTGEN=hatteras.slurm.pl
   UMASK=006
   GROUP="G-803086"
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/apps/intel11_1/netcdf/4.2.1.1/lib:/opt/apps/intel11_1/hdf5/1.8.8/lib
+  module load netcdf/4.3.3.1 
 }
 init_desktop()
 {
