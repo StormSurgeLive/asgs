@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sat, 13 Sep 2008 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm IKE Forecast/Advisory Number 51</title>
+      <description>Issued at 2100 UTC SAT SEP 13 2008 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+TROPICAL STORM IKE FORECAST/ADVISORY NUMBER  51
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL092008
+2100 UTC SAT SEP 13 2008
+ 
+AT 4 PM CDT...2100 UTC...THE TROPICAL STORM WARNING ALONG THE TEXAS
+AND LOUISIANA COASTLINES HAVE BEEN DISCONTINUED.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 32.4N  95.3W AT 13/2100Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH OR  10 DEGREES AT  16 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  980 MB
+MAX SUSTAINED WINDS  40 KT WITH GUSTS TO  55 KT.
+34 KT....... 60NE  90SE  30SW  20NW.
+12 FT SEAS..  0NE 425SE 150SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 32.4N  95.3W AT 13/2100Z
+AT 13/1800Z CENTER WAS LOCATED NEAR 31.6N  95.4W
+ 
+FORECAST VALID 14/0600Z 35.1N  93.9W...INLAND
+MAX WIND  30 KT...GUSTS  45 KT.
+ 
+FORECAST VALID 14/1800Z 38.9N  88.9W...EXTRATROPICAL INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 15/0600Z 43.0N  80.3W...EXTRATROPICAL INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 16/1800Z...ABSORBED BY FRONTAL ZONE
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 32.4N  95.3W
+ 
+NEXT ADVISORY AT 14/0300Z
+ 
+$$
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Sat, 13 Sep 2008 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2008/09/51.092008.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2008/09/51.092008.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
