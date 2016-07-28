@@ -685,6 +685,8 @@ if (checkDryElementArea.eqv..true.) then
    call computeWeightingCoefficients()
    call compute2xAreas()
    allocate(areaOK(ne))
+   allocate(coef(np,1))
+   coef = 0.d0
    areaOK = -99999
    do ie=1,ne
       areaIE = 0.5d0 * areas(ie)
@@ -693,17 +695,14 @@ if (checkDryElementArea.eqv..true.) then
       if (dpAvg.lt.0.d0) then
          GA00DPAvgOAreaIE4 = G * A00 * DPAvg / AreaIE4
          MsFacLOnDiag = OnDiag * AreaIE * (1.d0/DT+Tau0/2.d0)/DT/12.d0
-         do j=1,3
-            ! find the value of the area constraint for this node   
-            pMinArea(j) = (-g * a00 * ( fdx(j,ie)**2 + fdy(j,ie)**2 ) * dpAvg ) &
-              / (4.d0 * MsFacLOnDiag )
-         end do
-         ! use the most conservative (largest) value of the minimum area constraint
-         minArea = maxval(pMinArea) 
          areaOK(ie) = 1
-         if ( areaIE.lt.minArea ) then
-            areaOK(ie) = 0
-         endif
+         do j=1,3
+            coef(nm(ie,j),1) = coef(nm(ie,j),1) + MsFacLOnDiag  &
+               + GA00DPAvgOAreaIE4 * (fdx(j,ie)**2 + fdy(j,ie)**2)
+            if ( coef(nm(ie,j),1).lt.0.d0 ) then
+               areaOK(ie) = 0
+            endif            
+         end do
       endif
    end do  
    if (any(areaOK.eq.0)) then
@@ -721,6 +720,7 @@ if (checkDryElementArea.eqv..true.) then
       write(11,'(20(i0,2x))') ie, areaOK(ie)
    end do
    close(11)
+   deallocate(coef)
 endif
 !
 !------------------------------------------------------------------------ 
