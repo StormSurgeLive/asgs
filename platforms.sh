@@ -261,6 +261,7 @@ init_topaz()
   QSCRIPTGEN=erdc.pbs.pl
   PPN=36
   IMAGEMAGICKBINPATH=/app/unsupported/ImageMagick/6.9.2-5/bin/convert
+  # fyi topaz has a 4hr time limit for the background queue
 }
 init_tezpur()
 { #<- can replace the following with a custom script
