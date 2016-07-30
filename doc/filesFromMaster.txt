@@ -1,0 +1,22 @@
+# jgf20160721: These files were being developed on the master branch but 
+# are needed on the 2014stable branch. I brought them over manually, which
+# means that there will be issues merging the 2014stable branch back to 
+# master.  
+output/adc2vtk.pl
+output/adcirc2netcdf.f90
+output/adcircdata.f90
+output/adcmesh.f90
+output/asgsio.f90
+output/generateXDMF.f90
+output/highResolutionRegion.f90
+output/inundationMask.f90
+output/netcdf2adcirc.f90
+output/resultScope.f90
+util/mesh/boundaryFinder.f90
+output/makefile
+util/nodalattr/makefile
+util/nodalattr/nodalattr.f90
+util/nodalattr/submergence_eddyvis.f90
+util/nodalattr/tau0_gen.f90
+output/checkAdcircMesh.f90
+set_flux.pl

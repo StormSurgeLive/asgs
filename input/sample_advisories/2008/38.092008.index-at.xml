@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 10 Sep 2008 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane IKE Forecast/Advisory Number 38</title>
+      <description>Issued at 1500 UTC WED SEP 10 2008 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+HURRICANE IKE FORECAST/ADVISORY NUMBER  38
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL092008
+1500 UTC WED SEP 10 2008
+ 
+A TROPICAL STORM WARNING REMAINS IN EFFECT FOR THE CUBAN PROVINCES
+OF MATANZAS...LA HABANA...CIUDAD DE HABANA...PINAR DEL RIO...AND
+THE ISLE OF YOUTH.
+ 
+A TROPICAL STORM WARNING REMAINS IN EFFECT FROM WEST OF KEY WEST TO
+THE DRY TORTUGAS.
+ 
+HURRICANE CENTER LOCATED NEAR 23.9N  85.3W AT 10/1500Z
+POSITION ACCURATE WITHIN  15 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST-NORTHWEST OR 300 DEGREES AT   7 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  957 MB
+MAX SUSTAINED WINDS  80 KT WITH GUSTS TO 100 KT.
+64 KT....... 70NE  10SE  10SW  50NW.
+50 KT.......110NE  80SE  75SW 100NW.
+34 KT.......180NE 150SE 120SW 150NW.
+12 FT SEAS..240NE 180SE  90SW 240NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 23.9N  85.3W AT 10/1500Z
+AT 10/1200Z CENTER WAS LOCATED NEAR 23.8N  85.3W
+ 
+FORECAST VALID 11/0000Z 24.5N  86.8W
+MAX WIND  90 KT...GUSTS 110 KT.
+64 KT... 70NE  20SE  20SW  50NW.
+50 KT...110NE  80SE  75SW 100NW.
+34 KT...180NE 150SE 120SW 150NW.
+ 
+FORECAST VALID 11/1200Z 25.2N  88.6W
+MAX WIND  95 KT...GUSTS 115 KT.
+64 KT... 75NE  50SE  50SW  60NW.
+50 KT...120NE 100SE  75SW 100NW.
+34 KT...200NE 150SE 125SW 175NW.
+ 
+FORECAST VALID 12/0000Z 25.7N  90.7W
+MAX WIND 105 KT...GUSTS 130 KT.
+64 KT... 75NE  50SE  50SW  60NW.
+50 KT...120NE 100SE  75SW 100NW.
+34 KT...200NE 150SE 125SW 175NW.
+ 
+FORECAST VALID 12/1200Z 26.3N  93.1W
+MAX WIND 110 KT...GUSTS 135 KT.
+50 KT...120NE 100SE  75SW 100NW.
+34 KT...200NE 150SE 125SW 175NW.
+ 
+FORECAST VALID 13/1200Z 28.5N  97.0W...INLAND
+MAX WIND 105 KT...GUSTS 130 KT.
+50 KT... 90NE 100SE  50SW  75NW.
+34 KT...200NE 150SE  75SW 125NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 225 NM
+ON DAY 4 AND 300 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 14/1200Z 31.5N  98.0W...INLAND
+MAX WIND  35 KT...GUSTS  45 KT.
+ 
+OUTLOOK VALID 15/1200Z 34.5N  96.0W...EXTRATROPICAL
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 23.9N  85.3W
+ 
+NEXT ADVISORY AT 10/2100Z
+ 
+$$
+FORECASTER FRANKLIN
+
+</pre>]]></description>
+      <pubDate>Wed, 10 Sep 2008 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2008/09/38.092008.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2008/09/38.092008.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

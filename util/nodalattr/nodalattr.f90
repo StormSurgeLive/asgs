@@ -18,10 +18,18 @@ type nodalAttr_t
    integer :: numVals  ! number of values at each node for this nodal attr
    integer :: numNodesNotDefault ! number of nodes with values different from the default
    real(8), allocatable :: defaultVals(:) ! default value(s) for real valued attributes 
-   real(8), allocatable :: nonDefaultVals(:,:) ! nondefault value(s) for real valued attributes 
+   real(8), allocatable :: nonDefaultVals(:,:) ! nondefault vals (numVals x numNodesNotDefault) 
    integer, allocatable :: nonDefaultNodes(:) ! node numbers where nondefault vals occur
+   ! xdmf related
    real(8), allocatable :: xdmfArray(:)
    real(8), allocatable :: xdmfMatrix(:,:)
+   ! netcdf related
+   integer :: nc_dimid(2) ! dimensions of the full dataset (numNodes x numVals)
+   integer :: nc_dimid_values_per_node ! dimensions of default values
+   integer :: nc_varid    ! full nodal attribute variable id (numNodes x numVals)
+   integer :: nc_varid_defaults ! just default values
+   real(8), allocatable :: ncData(:,:)  ! full array of values in netcdf file
+   
 end type nodalAttr_t
 ! variable capable of holding all nodal attributes in the file
 type(nodalAttr_t), allocatable :: na(:)
@@ -116,23 +124,36 @@ end subroutine loadNodalAttribute
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
+!                   S U B R O U T I N E   
+!   S E T   N O D A L   A T T R I B U T E S   F I L E   N A M E  
+!-----------------------------------------------------------------------
+subroutine setNodalAttributesFileName(asciiFile)
+implicit none
+character(len=1024), intent(in) :: asciiFile
+nodalAttributesFile = trim(asciiFile)
+!-----------------------------------------------------------------------
+end subroutine setNodalAttributesFileName
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
 !                    S U B R O U T I N E    
 !    R E A D   N O D A L   A T T R I B U T E S   F I L E 
 !-----------------------------------------------------------------------
 ! jgf: Reads all the nodal attribute data from an ascii adcirc nodal
 ! attributes file. 
 !-----------------------------------------------------------------------
-subroutine readNodalAttributesFile(datafilebase)
+subroutine readNodalAttributesFile(asciiFile)
 use asgsio, only : openFileForRead
 implicit none
-character(len=1024), intent(in) :: datafilebase  ! name of the nodal attributes fileg
+character(len=1024), intent(in) :: asciiFile  ! name of the nodal attributes file
 character(len=1024) :: line
 integer :: w ! array index of the nodal attribute we are to write
 integer :: i, j, k, m
 integer :: naIndex
 logical :: foundIt
 !
-nodalAttributesFile = datafilebase
+call setNodalAttributesFileName(asciiFile)
+
 write(6,'(a)') 'INFO: Reading nodal attributes from "' // trim(nodalAttributesFile) // '".'
 call openFileForRead(13,nodalAttributesFile)
 read(13,'(a1024)') nodalAttributesComment
@@ -293,6 +314,94 @@ close(63)
 write(6,'(a)') 'INFO: Finished writing nodal attribute data.'
 !-----------------------------------------------------------------------
 end subroutine writeNodalAttribute63
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+!                    S U B R O U T I N E    
+!   W R I T E   N O D A L   A T T R I B U T E S   F I L E   N E T C D F 
+!-----------------------------------------------------------------------
+! jgf: Writes all the nodal attribute data to a netcdf file.
+!-----------------------------------------------------------------------
+subroutine writeNodalAttributesFileNetCDF(ncid, fileFormat)
+use netcdf
+use adcmesh
+use adcircdata, only : fillValue
+use asgsio, only : check, NETCDF4
+implicit none
+integer, intent(in) :: ncid ! netcdf id of the file to write
+integer, intent(in) :: fileFormat ! NETCDF4 turns on compression if compiled w/suitable libs 
+integer :: nc_start(2) ! element of array where writing begins (each dimension)
+integer :: nc_count(2) ! number of elements of array to write (each dimension)
+character(len=2048) :: nameStr
+integer :: i, j, k, m
+!
+write(6,'(a)') 'INFO: Writing nodal attributes to netCDF.'
+call check(nf90_put_att(ncid,nf90_global,'nodalAttributesComment',trim(adjustl(nodalAttributesComment))))
+write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') np 
+write(6,'("INFO: There are ",i0," nodal attributes in the file.")') numNodalAttributes 
+!
+! define dimensions, variables, and metadata for each nodal attribute
+do i=1,numNodalAttributes
+   ! number of values per node : dimension
+   nameStr = trim(adjustl(na(i)%attrName))//'_valuesPerNode'
+   call check(nf90_def_dim(ncid,trim(nameStr),na(i)%numVals,na(i)%nc_dimid_values_per_node))
+   ! default value(s) : variable definition
+   nameStr = trim(adjustl(na(i)%attrName))//'_defaultValues'
+   call check(nf90_def_var(ncid,trim(nameStr),nf90_double,na(i)%nc_dimid_values_per_node,na(i)%nc_varid_defaults))
+   ! nodal values : dimensions
+   na(i)%nc_dimid(1) = nc_dimid_node
+   na(i)%nc_dimid(2) = na(i)%nc_dimid_values_per_node  
+   ! nodal values : variable definition   
+   call check(nf90_def_var(ncid,trim(adjustl(na(i)%attrName)),nf90_double,na(i)%nc_dimid,na(i)%nc_varid))
+   !
+   ! netcdf metadata for each nodal attribute
+   call check(nf90_put_att(ncid,na(i)%nc_varid,'_FillValue',fillvalue))
+   call check(nf90_put_att(ncid,na(i)%nc_varid,'long_name',trim(adjustl(na(i)%attrName))))
+   call check(nf90_put_att(ncid,na(i)%nc_varid,'standard_name',trim(adjustl(na(i)%attrName))))
+   call check(nf90_put_att(ncid,na(i)%nc_varid,'coordinates','y x'))
+   call check(nf90_put_att(ncid,na(i)%nc_varid,'location','node'))
+   call check(nf90_put_att(ncid,na(i)%nc_varid,'mesh','adcirc_mesh'))
+   call check(nf90_put_att(ncid,na(i)%nc_varid,'units',trim(adjustl(na(i)%units))))
+   call check(nf90_put_att(ncid,na(i)%nc_varid,'valuesPerNode',na(i)%numVals))
+
+#ifdef NETCDF_CAN_DEFLATE
+   if (fileFormat.eq.NETCDF4) then
+      call check(nf90_def_var_deflate(ncid, na(i)%nc_varid, 1, 1, 2))
+   endif
+#endif
+
+end do
+! end definitions mode of netcdf
+call check(nf90_enddef(ncid))
+! write mesh data to netcdf; mesh definitions were written by the calling routine
+call writeMeshDataToNetCDF(ncid)
+!
+! now populate default value(s) and value(s) at each node
+do i=1,numNodalAttributes
+   ! default values
+   call check(nf90_put_var(ncid,na(i)%nc_varid_defaults,na(i)%defaultVals,(/ 1 /),(/ na(i)%numVals /) ))
+   !
+   ! nodal attribute values
+   allocate(na(i)%ncData(np, na(i)%numVals))
+   ! set default values throughout
+   do j=1,np
+      na(i)%ncData(j,:) = na(i)%defaultVals(:)
+   end do
+   ! selectively set nondefault values    
+   do j=1,na(i)%numNodesNotDefault
+      do k=1,na(i)%numVals
+         na(i)%ncData( na(i)%nonDefaultNodes(j),k ) = na(i)%nonDefaultVals(k,j) 
+      end do
+   end do
+   nc_start = (/ 1, 1 /)
+   nc_count = (/ np, na(i)%numVals /)
+   ! write nodal values to netcdf
+   call check(nf90_put_var(ncid,na(i)%nc_varid,na(i)%ncData,nc_start,nc_count))
+end do
+call check(nf90_close(ncid))
+write(6,'(a)') 'INFO: Finished writing nodal attribute data to netcdf.'
+!-----------------------------------------------------------------------
+end subroutine writeNodalAttributesFileNetCDF
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
