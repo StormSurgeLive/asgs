@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Fri, 12 Sep 2008 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane IKE Forecast/Advisory Number 46</title>
+      <description>Issued at 1500 UTC FRI SEP 12 2008 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM  CCA
+HURRICANE IKE FORECAST/ADVISORY NUMBER  46...CORRECTED
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL092008
+1500 UTC FRI SEP 12 2008
+
+...TO SHOW INLAND AT 24 HOURS
+ 
+A HURRICANE WARNING REMAINS IN EFFECT FROM MORGAN CITY LOUISIANA TO
+BAFFIN BAY TEXAS.  HURRICANE CONDITIONS ARE EXPECTED TO REACH THE
+COAST IN THE WARNING AREA LATER TODAY.
+ 
+A TROPICAL STORM WARNING REMAINS IN EFFECT SOUTH OF BAFFIN BAY TO
+PORT MANSFIELD TEXAS.  A TROPICAL STORM WARNING IS ALSO IN EFFECT
+FROM EAST OF MORGAN CITY TO THE MISSISSIPPI-ALABAMA BORDER...
+INCLUDING THE CITY OF NEW ORLEANS AND LAKE PONTCHARTRAIN.
+ 
+HURRICANE CENTER LOCATED NEAR 27.2N  92.6W AT 12/1500Z
+POSITION ACCURATE WITHIN  15 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST-NORTHWEST OR 300 DEGREES AT  10 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  954 MB
+MAX SUSTAINED WINDS  90 KT WITH GUSTS TO 110 KT.
+64 KT.......105NE  75SE  60SW  60NW.
+50 KT.......150NE 150SE 100SW 140NW.
+34 KT.......240NE 200SE 150SW 180NW.
+12 FT SEAS..390NE 360SE 270SW 240NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 27.2N  92.6W AT 12/1500Z
+AT 12/1200Z CENTER WAS LOCATED NEAR 26.9N  92.2W
+ 
+FORECAST VALID 13/0000Z 28.2N  94.0W
+MAX WIND  95 KT...GUSTS 115 KT.
+64 KT...105NE  75SE  60SW  60NW.
+50 KT...150NE 150SE 100SW 140NW.
+34 KT...240NE 200SE 150SW 180NW.
+ 
+FORECAST VALID 13/1200Z 30.0N  95.5W...INLAND
+MAX WIND  80 KT...GUSTS 100 KT.
+64 KT...105NE  75SE  60SW  60NW.
+50 KT...150NE 150SE 100SW 140NW.
+34 KT...240NE 200SE 150SW 180NW.
+ 
+FORECAST VALID 14/0000Z 32.5N  96.0W...INLAND
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT...175NE 175SE  50SW  50NW.
+ 
+FORECAST VALID 14/1200Z 36.0N  93.5W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 15/1200Z...ABSORBED BY EXTRATROPICAL LOW 
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 27.2N  92.6W
+ 
+NEXT ADVISORY AT 12/2100Z
+ 
+$$
+FORECASTER AVILA
+
+</pre>]]></description>
+      <pubDate>Fri, 12 Sep 2008 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2008/09/46.092008.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2008/09/46.092008.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

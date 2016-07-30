@@ -86,8 +86,34 @@ else
    echo "sea_surface_height_above_geoid : $datumOffsetDefaultValue" >> run.properties
 fi
 #
-#  O P E N  D A P    P U B L I C A T I O N 
+#--------------------------------------------------------------------------
+#              I N U N D A T I O N    M  A S K  
+#--------------------------------------------------------------------------
+# When presenting inundation data on Google Maps, the ADCIRC extent of
+# initially dry area is often landward of the Google Maps shoreline, 
+# resulting in the erroneous depiction of non-inundated land areas 
+# seaward of inundated areas. The inundationMask program expands the 
+# inundation area presented on Google Maps to cover the full land area
+# as depicted by Google Maps. 
+# 
+if [ -e ${STORMDIR}/initiallyDry.63.nc ]; then
+   if [ -e ${OUTPUTDIR}/inundationMask.x ]; then
+      ${OUTPUTDIR}/inundationMask.x --filename initiallyDry.63.nc --netcdf4 --numpasses 2 2>> ${SYSLOG} 2>&1
+      ERROVALUE=$?
+      if [ $ERROVALUE == 0 ]; then
+         echo "Inundation Mask File Name : inundationMask.63.nc" >> run.properties
+         echo "Inundation Mask Format : netcdf" >> run.properties
+      else
+         error "Failed to create inundationMask.63.nc file."
+      fi
+   else
+      error "The initiallyDry.63.nc file was found in $STORMDIR but the inundationMask.x executable was not found in ${OUTPUTDIR}."
+   fi
+fi
 #
+#-----------------------------------------------------------------------
+#         O P E N  D A P    P U B L I C A T I O N 
+#-----------------------------------------------------------------------
 logMessage "Creating list of files to post to opendap."
 FILES=(`ls *.nc ${ADVISDIR}/al*.fst ${ADVISDIR}/bal*.dat fort.15 fort.22 run.properties`)
 #

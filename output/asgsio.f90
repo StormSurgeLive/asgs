@@ -4,7 +4,7 @@
 ! A module that provides helper subroutines for opening and reading 
 ! ADCIRC files in ascii and netcdf format. 
 !--------------------------------------------------------------------------
-! Copyright(C) 2014 Jason Fleming
+! Copyright(C) 2014--2016 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -25,6 +25,7 @@
 module asgsio
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
+use netcdf
 implicit none
 !
 integer :: argcount
@@ -40,8 +41,47 @@ integer, parameter :: NETCDF4 = 5
 integer, parameter :: XDMF = 7
 integer, parameter :: NETCDFG = 35
 integer, parameter :: ASCIIG = 14
-
+!
+integer :: netCDFDataType = NF90_DOUBLE ! NF90_INT NF90_FLOAT 
+!
 integer :: nc_id ! netcdf id of file
+integer :: errorIO  ! zero if the file opened or read successfully
+!
+! This derived data type is used to map NetCDF4 variables in various
+! ADCIRC files so that they can be represented in XDMF XML files. It
+! is used in generateXDMF.f90.
+type fileMetaData_t
+   logical :: initialized  ! .true. if memory has been allocated 
+   integer :: nc_id        ! netcdf ID for the file
+   character(len=2048) :: netCDFFile ! name of netCDF file
+   character(len=1024) :: fileTypeDesc
+   logical :: timeVarying  ! .true. if we have datasets at different times
+   integer :: numVarNetCDF ! number of variables targetted in NetCDF4 file
+   integer, allocatable :: nc_varID(:) ! netcdf variable ID for targetted variables
+   integer, allocatable :: nc_type(:) ! netcdf variable type for targetted variables
+   character(NF90_MAX_NAME), allocatable :: varNameNetCDF(:)
+   integer :: nvar         ! number of variables in the netcdf file
+   logical :: nodalAttributesFile ! true if the file is a nodal attributes file  
+   integer :: nc_dimid_node ! netcdf ID for the dimension for number of nodes
+   integer :: nc_dimid_nele ! netcdf ID for the dimension of the number of elements
+   integer :: nc_dimid_time ! netcdf ID for the time dimension
+   integer :: nc_varid_time ! netcdf ID for the time variable
+   integer :: ndim          ! number of dimensions in the netcdf file
+   integer :: natt          ! number of attributes in the netcdf file
+   integer :: nSnaps        ! number of datasets in the time varying netcdf file
+   real(8), allocatable :: timesec(:)  ! time in seconds associated with each dataset
+   !
+   character(len=2048) :: xmfFile ! name of XDMF XML file
+   integer :: xmfUnit      ! logical unit number of XDMF XML file
+   integer :: numVarXDMF   ! number of variables as represented in XDMF XML
+   character(len=2048), allocatable :: varNameXDMF(:)
+   integer, allocatable :: numComponentsXDMF(:) ! rank of the data array
+   character(len=20), allocatable :: dataCenter(:) ! "Node" or "Element"
+   character(len=20), allocatable :: typeXDMF(:) ! "Int" or "Float"
+   integer, allocatable :: precisionXDMF(:) ! 4 or 8   
+   logical :: timeOfOccurrence ! .true. if min/max file has time of occurrence data
+   logical :: useCPP  ! .true. if metadata should refer to CPP coordinates
+end type fileMetaData_t
 
 !-----------
 !-----------
@@ -56,16 +96,15 @@ contains
 !     from openFileForRead so that I could use it on NetCDF files 
 !     as well.  
 !-----------------------------------------------------------------------
-SUBROUTINE checkFileExistence(filename, errorIO)
+SUBROUTINE checkFileExistence(filename)
 IMPLICIT NONE
 CHARACTER(*), intent(in) :: filename ! full pathname of file
-INTEGER, intent(out) :: errorIO  ! zero if the file opened successfully
 LOGICAL :: fileFound    ! .true. if the file is present
 errorIO = 0
 !
-!     Check to see if file exists
+! Check to see if file exists
 write(6,'("INFO: Searching for file ",A," ...")') trim(filename)
-inquire(FILE=filename,EXIST=fileFound)
+inquire(file=trim(filename),exist=fileFound,iostat=errorIO)
 if (fileFound.eqv..false.) then
    write(6,'("ERROR: The file ",A," was not found.")') trim(filename)
 else
@@ -81,33 +120,39 @@ endif
 !     jgf: Added general subroutine for opening an existing
 !     file for reading. Includes error checking.
 !-----------------------------------------------------------------------
-   SUBROUTINE openFileForRead(lun, filename)
-      IMPLICIT NONE
-      INTEGER, intent(in) :: lun   ! fortran logical unit number
-      CHARACTER(*), intent(in) :: filename ! full pathname of file
-      INTEGER :: errorIO  ! zero if the file opened successfully
-       errorIO = 0
+subroutine openFileForRead(lun, filename)
+implicit none
+integer, intent(in) :: lun   ! fortran logical unit number
+character(*), intent(in) :: filename ! full pathname of file
+logical unitConnected !.true. if this lun is already being used
+errorIO = 0
 !
-!     Check to see if file exists
-      call checkFileExistence(filename, errorIO)
-      if ( errorIO.ne.0) then
-         stop
-      endif
+!  Check to see if file exists
+call checkFileExistence(filename)
+if (errorIO.ne.0) then
+   return
+endif
 !
-!     Open existing file
-      OPEN(lun,FILE=trim(filename),STATUS='OLD',ACTION='READ',IOSTAT=errorIO)
-      if (errorIO.ne.0) then
-          write(6,'("ERROR: Could not open the file ",A,".")') trim(filename)
-          stop
-      else
-         write(6,'("INFO: The file ",A," was opened successfully.")') trim(filename)
-      endif
-      return
+! Check to see if the unit number is already in use
+inquire(unit=lun,opened=unitConnected)
+if (unitConnected.eqv..true.) then
+   write(6,'("ERROR: The i/o unit ",i0," is already connected.")') lun
+   errorIO = 1
+   return
+endif
+!
+! Open existing file
+OPEN(lun,FILE=trim(filename),STATUS='OLD',ACTION='READ',IOSTAT=errorIO)
+if (errorIO.ne.0) then
+    write(6,'("ERROR: Could not open the file ",A,".")') trim(filename)
+else
+   write(6,'("INFO: The file ",A," was opened successfully.")') trim(filename)
+endif
+return
 !-----------------------------------------------------------------------
    END SUBROUTINE openFileForRead
 !-----------------------------------------------------------------------
 
-#ifdef ASGSNETCDF
 !----------------------------------------------------------------------
 !  CHECK
 !---------------------------------------------------------------------
@@ -116,13 +161,12 @@ use netcdf
 implicit none
 integer,intent(in) :: ncstatus
 if(ncstatus.ne.nf90_noerr)then
-   write(*,'(a,a)') "error: ",trim(nf90_strerror(ncstatus))
+   write(*,'(a,a)') "ERROR: ",trim(nf90_strerror(ncstatus))
    stop 1
 endif
 !---------------------------------------------------------------------      
 end subroutine check
 !---------------------------------------------------------------------
-#endif
 
 
 !----------------------------------------------------------------------
