@@ -2169,3 +2169,4 @@ CF
 jason.fleming@seahorsecoastal.com
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
 &wetDryControl noffActive=.false.  /
+&inundationOutputControl inundationOutput=.true. /

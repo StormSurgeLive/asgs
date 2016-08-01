@@ -27,8 +27,8 @@
 
 # Fundamental
 
-INSTANCENAME=readyextend  # "name" of this ASGS process
-COLDSTARTDATE=2016063000  # calendar year month day hour YYYYMMDDHH24
+INSTANCENAME=readyhsofs   # "name" of this ASGS process
+COLDSTARTDATE=2016070200  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null           # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
@@ -38,7 +38,7 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable          # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/sl15_extend # grid and other input files
+INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
@@ -63,10 +63,10 @@ NCPU=960                    # number of compute CPUs for all simulations
 NUMWRITERS=36
 NCPUCAPACITY=1500
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=background
-SERQUEUE=background
-#QUEUENAME=standard
-#SERQUEUE=standard
+#QUEUENAME=background
+#SERQUEUE=background
+QUEUENAME=standard
+SERQUEUE=standard
 # topaz has a limit of 4hrs max wall clock time for the background queue
 if [[ $QUEUENAME = background ]]; then
     HINDCASTWALLTIME="04:00:00" 
@@ -104,17 +104,17 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=extend_v6_levee_mx_smoothedPlaq.grd  # mesh (fort.14) file
-GRIDNAME=extend_v6_levee_mx_smoothedPlaq
+GRIDFILE=hsofs.14 # mesh (fort.14) file
+GRIDNAME=hsofs
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=sl15_extend_fort.15.template  # fort.15 template
+CONTROLTEMPLATE=hsofs.15.template  # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=cpra2017v12.cera_stations.20160702 # or substitute your own stations file
-VELSTATIONS=cpra2017v12.cera_stations.20160702
-METSTATIONS=cpra2017v12.cera_stations.20160702
-NAFILE=extend_v6_levee_mx_smoothedPlaq.13
+ELEVSTATIONS=hsofs_cera_stations_20160801.txt # or substitute your own stations file
+VELSTATIONS=hsofs_cera_stations_20160801.txt
+METSTATIONS=hsofs_cera_stations_20160801.txt
+NAFILE=hsofs.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=fort.26.limiter.template    # only used if WAVES=on
+SWANTEMPLATE=fort.26.template    # only used if WAVES=on
 RIVERINIT=null                           # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
