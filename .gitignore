@@ -1,0 +1,7 @@
+# ignore grid and nodal attribute files
+*.grd
+*.14
+*.13
+*.x
+wgrib2
+*.tar.gz
