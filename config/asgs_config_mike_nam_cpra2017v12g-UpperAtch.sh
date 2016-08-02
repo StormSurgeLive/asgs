@@ -33,8 +33,8 @@ export LD_LIBRARY_PATH=/home/nate/install/lib:$LD_LIBRARY_PATH
 
 # Fundamental
 
-INSTANCENAME=mike_nam  # "name" of this ASGS process
-COLDSTARTDATE=2016071400 # calendar year month day hour YYYYMMDDHH24
+INSTANCENAME=mike_nam2  # "name" of this ASGS process
+COLDSTARTDATE=2016071600 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null      # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=18.0      # length of initial hindcast, from cold (days)
@@ -110,14 +110,14 @@ MSRIVERBOUHDARYCONDITION=380000  #cfs
 
 # Input files and templates
 
-GRIDFILE=LA_v12g_chk.grd         # mesh (fort.14) file
-GRIDNAME=LA_v12g
-CONTROLTEMPLATE=LA_v12g.15.template  # fort.15 template
+GRIDFILE=LA_v12g-WithUpperAtch_chk.grd         # mesh (fort.14) file
+GRIDNAME=LA_v12g-WithUpperAtch
+CONTROLTEMPLATE=LA_v12g-WithUpperAtch.15.template  # fort.15 template
 ELEVSTATIONS=LA_v12gAtch_stations.txt   # or substitute your own stations file
 VELSTATIONS=${ELEVSTATIONS}
 METSTATIONS=${ELEVSTATIONS}
-NAFILE=LA_v12g.13
-SWANTEMPLATE=LA_v12g.26.template # only used if WAVES=on
+NAFILE=LA_v12g-WithUpperAtch.13
+SWANTEMPLATE=LA_v12g-WithUpperAtch.26.template # only used if WAVES=on
 RIVERINIT=null                          # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
