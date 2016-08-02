@@ -1,3 +1,5 @@
+# 29-Jul-2016, 12:04 CDT, mesh: cpra2017v12
+# Longitude Latitude ! Station ID ! Agency ! Station Name ! Vertical Datum
 -88.07500000 30.25073500 ! 8735180 ! NOAA NOS ! Dauphin Island ! NAVD88 
 -89.31666700 30.32500000 ! 8747437 ! NOAA NOS ! Bay Waveland Yacht Club ! NAVD88 
 -93.87000000 29.72833300 ! SBPT2 ! NOAA RFC ! Tide Station near Sabine Pass ! NAVD88 
