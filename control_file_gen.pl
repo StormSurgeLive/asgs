@@ -718,23 +718,23 @@ sub getStations () {
       stderrMessage("INFO","There are no $station_type stations.");
       return $numstations; # early return
    }
-   $numstations = `wc -l $station_file`;
-   $numstations =~ /^(\d+)/;
-   my $number = $1;
-   stderrMessage("INFO","There are $number $station_type stations in the file '$station_file'.");
    unless (open(STATIONS,"<$station_file")) {
       stderrMessage("ERROR","Failed to open the $station_type stations file $station_file for reading: $!.");
       die;
    }
+   my $number=0;
+   while (<STATIONS>) {
+      $_ =~ s/^\s+//;
+      next if (substr($_,0,1) eq '#');  # skip comment lines in the stations file
+      $numstations.=$_;
+      $number++;
+   }
+   close(STATIONS);
+   stderrMessage("INFO","There are $number $station_type stations in the file '$station_file'.");
    chomp($numstations);
    # need to add this as a sort of comment in the fort.15 for the post
    # processing script station_transpose.pl to find
-   $numstations = $numstations . " " . $station_var . "\n";
-   while (<STATIONS>) {
-      $numstations.=$_;
-   }
-   close(STATIONS);
-   chomp($numstations);
+   $numstations = $number . " " . $station_file . " " . $station_var . "\n" . $numstations;
    return $numstations;
 }
 #
