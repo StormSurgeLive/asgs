@@ -99,6 +99,13 @@ if [[ $OPENDAPPOSTMETHOD = scp ]]; then
       warn "Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
       threddsPostStatus=fail
    fi
+   # add code to create write permissions on directories so that other 
+   # Operators can post results to the same directories
+   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+w $OPENDAPBASEDIR" 2>> $SYSLOG
+   if [[ $? != 0 ]]; then
+      warn "Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
+      threddsPostStatus=fail
+   fi
    for file in ${FILES[*]}; do 
       chmod +r $file 2>> $SYSLOG
       logMessage "Transferring $file."
@@ -127,6 +134,9 @@ else
    # if the HPC and TDS do share a common filesystem, create symbolic links
    # to the actual results files in a place where TDS can find them
    mkdir -p $OPENDAPDIR 2>> $SYSLOG
+   # add code to create write permissions on directories so that other 
+   # Operators can post results to the same directories
+   chmod -R a+w $OPENDAPBASEDIR 2>> $SYSLOG
    cd $OPENDAPDIR 2>> ${SYSLOG}
    for file in ${FILES[*]}; do 
       chmod +r ${ADVISDIR}/${ENSTORM}/$file 2>> $SYSLOG
