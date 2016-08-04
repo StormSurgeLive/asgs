@@ -27,26 +27,28 @@
 
 # Fundamental
 
-INSTANCENAME=readytx      # "name" of this ASGS process
-COLDSTARTDATE=2016062000  # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart       # "hotstart" or "coldstart"
-LASTSUBDIR=null           # path to previous execution (if HOTORCOLD=hotstart)
+INSTANCENAME=testearl${USER}   # "name" of this ASGS process
+COLDSTARTDATE=2016062000       # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart        # "hotstart" or "coldstart"
+LASTSUBDIR=/scratch/00976/jgflemin/asgs111754/2016080200  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=20.0       # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
 ADCIRCDIR=$WORK/ASGS2016/adcirc-cg-52release/work # ADCIRC executables
-SCRIPTDIR=$WORK/ASGS2016/asgs         # ASGS executables
+SCRIPTDIR=$WORK/ASGS2016/asgs                     # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/texas2008_r35h # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
+QSCRIPT=lonestar.template.earl.slurm
+PREPCONTROLSCRIPT=lonestar.template.serial.earl.slurm
 
 # Physical forcing
 
-BACKGROUNDMET=on      # NAM download/forcing
+BACKGROUNDMET=off     # NAM download/forcing
 TIDEFAC=on            # tide factor recalc
-TROPICALCYCLONE=off   # tropical cyclone forcing
+TROPICALCYCLONE=on    # tropical cyclone forcing
 WAVES=off             # wave forcing
 VARFLUX=off           # variable river flux forcing
 VORTEXMODEL=GAHM
@@ -57,29 +59,34 @@ TIMESTEPSIZE=1.0             # adcirc time step size (seconds)
 SWANDT=1200                  # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00"  # hindcast wall clock time
 ADCPREPWALLTIME="00:30:00"   # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="08:00:00"   # longest nowcast wall clock time
+NOWCASTWALLTIME="01:00:00"   # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00"  # forecast wall clock time
-NCPU=2400                     # number of compute CPUs for all simulations
-NCPUCAPACITY=2424
+NCPU=2400                    # number of compute CPUs for all simulations
 NUMWRITERS=24
+NCPUCAPACITY=2424
 CYCLETIMELIMIT="05:00:00"
 
 # External data sources : Tropical cyclones
 
-STORM=99                         # storm number, e.g. 05=ernesto in 2006
+STORM=05                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2016                        # year of the storm
-TRIGGER=rssembedded              # either "ftp" or "rss"
-RSSSITE=filesystem
-FTPSITE=filesystem
-FDIR=${SCRIPTDIR}/input/sample_advisories
-HDIR=${SCRIPTDIR}/input/sample_advisories
-#RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
-#FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
-#FDIR=/atcf/afst                  # forecast dir on nhc ftp site
-#HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
+#
+# read advisories from file system (comment these out for real event)
+#TRIGGER=rssembedded              # either "ftp" or "rss"
+#RSSSITE=filesystem
+#FTPSITE=filesystem
+#FDIR=${SCRIPTDIR}/input/sample_advisories
+#HDIR=${SCRIPTDIR}/input/sample_advisories
+#
+# uncomment these for real event
+RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
+FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
+FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
-
+#
+# These are ignored if the forcing is from tropical cyclone
 FORECASTCYCLE="06"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
@@ -88,7 +95,8 @@ PTFILE=ptFile_oneEighth.txt         # the lat/lons for the OWI background met
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
 
 # External data sources : River Flux
-
+#
+# ignored if there is no river flux forcing
 RIVERSITE=ftp.nssl.noaa.gov
 RIVERDIR=/projects/ciflow/adcirc_info
 
@@ -137,26 +145,29 @@ HOTSTARTFORMAT=netcdf
 MINMAX=reset                               
 
 # Notification
-
+#
+# if a parameter should have more than one email address, they should be 
+# enclosed in quotes and separated by spaces 
 EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
-NOTIFY_SCRIPT=ut-nam-notify.sh
+NOTIFY_SCRIPT=ut-nhc-notify.sh
 ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
 POST_LIST=null
-JOB_FAILED_LIST="jason.g.fleming@gmail.com"
+JOB_FAILED_LIST=jason.g.fleming@gmail.com
 NOTIFYUSER=jason.g.fleming@gmail.com
-ASGSADMIN=jason.g.fleming@gmail.com
+ASGSADMIN=jason.g.fleming@gmail.com	
 
 # Post processing and publication
-
+#
 INTENDEDAUDIENCE=developers-only
 INITPOST=null_init_post.sh
-POSTPROCESS=null_post.sh
+POSTPROCESS=ut-post2015.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
-TDS=(lsu_tds renci_tds)
+#
+TDS=(tacc_tds)
 TARGET=lonestar  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
@@ -166,15 +177,16 @@ TARGET=lonestar  # used in post processing to pick up HPC platform config
 # here, rather than in platforms.sh or your post processing script,
 # because multiple Operators may be posting to a particular opendap server
 # using different usernames. 
-OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
+OPENDAPUSER=jgflemin        # not sure this is needed on TACC TDS 
 #if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 #   OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
 #fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
-OPENDAPNOTIFY="jason.g.fleming@gmail.com"
-
+OPENDAPNOTIFY="jason.fleming@seahorsecoastal.com,asgs.cera.lsu@gmail.com,clint@ices.utexas.edu,jennifer@ices.utexas.edu,gwells.mte@gmail.com,howard@csr.utexas.edu,rick_luettich@unc.edu,bblanton@renci.org"
+#
+# The following are deprecated and ignored
 NUMCERASERVERS=2
 WEBHOST=webserver.hostingco.com
 WEBUSER=remoteuser
@@ -184,19 +196,27 @@ WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts
 
 ARCHIVE=ut-archive.sh
 ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS/2016
-ARCHIVEDIR="${INSTANCENAME}_NAM"
+ARCHIVEDIR="${INSTANCENAME}_${STORM}${YEAR}"
 
 # Forecast ensemble members
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=1 # number of storms in the ensemble
+ENSEMBLESIZE=2 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
+   ;;
+1)
+   ENSTORM=veerRight100
+   PERCENT=100
+   ;;
+2)
+   ENSTORM=veerLeft100
+   PERCENT=-100
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
