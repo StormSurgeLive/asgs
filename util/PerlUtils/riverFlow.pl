@@ -149,7 +149,7 @@ foreach my $bndId (1..$nbou){
       }
       my $cms;
       if (lc ($units) eq 'cfs'){
-         $cms=$disc/3.280833333**2.0;
+         $cms=$disc/3.280833333**3.0;
       }elsif (lc ($units) eq 'cms'){
          $cms=$disc;
       }else{
