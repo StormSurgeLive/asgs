@@ -135,11 +135,16 @@ foreach my $bndId (1..$nbou){
       }
       # If the discharge array was specified at the cmd line use it
       my $disc=shift(@Discharge);
- 
+      
+      print "INFO: riverFlow.pl: using discharge $disc $units for boundary $bndId, fluxbnd $cnt\n";
+      print "INFO: riverFlow.pl:  ... ibtype $ibtype with $nvell nodes, length $bndLen m, area $A m^2\n";
+      print "INFO: riverFlow.pl:  ...  starting on node $nbvv[0]: $X[0] $Y[0]\n"; 
+      print "INFO: riverFlow.pl:  ...  ending on node $nbvv[$#nbvv]: $X[$nvell-1] $Y[$nvell-1]\n";
+
       # if no discharge specified, prompt the user to enter it
       # also report some basic stats on the boundary to help
       # user identify which boundary it is.     
-      unless ($disc){
+      unless (defined ($disc)){
          print "Please specify discharge for boundary $bndId, flux bnd # $cnt\n";  
          print "   ibtype $ibtype with $nvell nodes, length $bndLen m, area $A m^2\n";
          print "   starting on node $nbvv[0]: $X[0] $Y[0]\n"; 
@@ -165,24 +170,8 @@ foreach my $bndId (1..$nbou){
 
 }
           
-
-      
-
- 
-
-
-      
-   
-
-
-
-
-
-
-
-
-
-
+# sub to calculate distance between two points given in degrees longitude,latitude
+# using cpp projection
 sub cppdist { # lat lon lat0 lon0
  my $twoPiOver360=8*atan2(1,1)/360.;
  my $R=6378206.4;

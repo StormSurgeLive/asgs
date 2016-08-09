@@ -1020,48 +1020,7 @@ K2
  STEADY               ! CONSTITUENT. 1  ALPHA DESCRIPTOR
  0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
   STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
-29.5479766777294 0.0     ! unitFlux for bndId 1, node 183536, 370000 cfs
-34.4674700625498 0.0     ! unitFlux for bndId 1, node 183535, 370000 cfs
-39.6893267246825 0.0     ! unitFlux for bndId 1, node 183534, 370000 cfs
-42.5079450298529 0.0     ! unitFlux for bndId 1, node 183532, 370000 cfs
-45.1507935510527 0.0     ! unitFlux for bndId 1, node 183531, 370000 cfs
-46.570155658984 0.0     ! unitFlux for bndId 1, node 183521, 370000 cfs
-44.8938230695655 0.0     ! unitFlux for bndId 1, node 183520, 370000 cfs
-40.2312995567777 0.0     ! unitFlux for bndId 1, node 183512, 370000 cfs
-29.4533079454315 0.0     ! unitFlux for bndId 1, node 183511, 370000 cfs
-21.4952669072391 0.0     ! unitFlux for bndId 1, node 183510, 370000 cfs
-11.8182262699678 0.0     ! unitFlux for bndId 1, node 183506, 370000 cfs
-8.75246737823448 0.0     ! unitFlux for bndId 1, node 183505, 370000 cfs
-7.9869977548266 0.0     ! unitFlux for bndId 1, node 183504, 370000 cfs
-0 0.0     ! unitFlux for bndId 2, node 1461681, 0 cfs
-0 0.0     ! unitFlux for bndId 2, node 1461606, 0 cfs
-0 0.0     ! unitFlux for bndId 2, node 1461544, 0 cfs
-0 0.0     ! unitFlux for bndId 2, node 1461543, 0 cfs
-0 0.0     ! unitFlux for bndId 2, node 1461539, 0 cfs
-0 0.0     ! unitFlux for bndId 2, node 1461537, 0 cfs
-0 0.0     ! unitFlux for bndId 2, node 1461484, 0 cfs
-7.72221318211693 0.0     ! unitFlux for bndId 20, node 1437440, 160000 cfs
-8.23702826944222 0.0     ! unitFlux for bndId 20, node 1437439, 160000 cfs
-8.99196125122605 0.0     ! unitFlux for bndId 20, node 1437441, 160000 cfs
-9.45371871066392 0.0     ! unitFlux for bndId 20, node 1437443, 160000 cfs
-10.0834387856965 0.0     ! unitFlux for bndId 20, node 1437448, 160000 cfs
-10.8110984549637 0.0     ! unitFlux for bndId 20, node 1437447, 160000 cfs
-10.8110984549637 0.0     ! unitFlux for bndId 20, node 1437446, 160000 cfs
-10.8110984549637 0.0     ! unitFlux for bndId 20, node 1437451, 160000 cfs
-10.8454792924931 0.0     ! unitFlux for bndId 20, node 1437450, 160000 cfs
-11.0250516378301 0.0     ! unitFlux for bndId 20, node 1437449, 160000 cfs
-11.149510393242 0.0     ! unitFlux for bndId 20, node 1437452, 160000 cfs
-11.1582613596642 0.0     ! unitFlux for bndId 20, node 1437453, 160000 cfs
-11.1584927171712 0.0     ! unitFlux for bndId 20, node 1437454, 160000 cfs
-11.1584482372232 0.0     ! unitFlux for bndId 20, node 1437464, 160000 cfs
-11.1584697049759 0.0     ! unitFlux for bndId 20, node 1437465, 160000 cfs
-11.1198989490181 0.0     ! unitFlux for bndId 20, node 1437474, 160000 cfs
-10.9267926528582 0.0     ! unitFlux for bndId 20, node 1437475, 160000 cfs
-10.8110984549637 0.0     ! unitFlux for bndId 20, node 1437476, 160000 cfs
-10.8110984549637 0.0     ! unitFlux for bndId 20, node 1437479, 160000 cfs
-10.36039766036 0.0     ! unitFlux for bndId 20, node 1437478, 160000 cfs
-9.4903791455247 0.0     ! unitFlux for bndId 20, node 1437477, 160000 cfs
-8.75184057677077 0.0     ! unitFlux for bndId 20, node 1437460, 160000 cfs
+%PERIODICFLUX% !PERIODICFLUX data
 %FORT61%    ! NOUTE,TOUTSE,TOUTFE,NSPOOLE (UNIT  61)
 %NUMELEVSTATIONS%    ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS
 %FORT62%
