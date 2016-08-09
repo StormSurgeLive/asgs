@@ -104,7 +104,7 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Fixed River Flux Info
 MSRIVERBOUNDARYTYPE=52
-MSRIVERBOUHDARYCONDITION=380000  #cfs
+MSRIVERBOUNDARYCONDITION=380000  #cfs
 
 
 
@@ -123,6 +123,15 @@ RIVERFLUX=null
 HINDCASTRIVERFLUX=null
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+
+# Fixed River Flux Info
+MSRIVERBOUNDARYTYPE=52
+MSRIVERBOUNDARYCONDITION="400000,170000"  #cfs you can determine order by running FLUXCALCULATOR manually first
+RIVERDISCHARGE="400000,170000"  # whats used in asgs_main and passed to FLUXCALCULATOR
+FLUXUNITS=cfs
+FLUXCALCULATOR=${SCRIPTDIR}/util/PerlUtils/riverFlow.pl # path the script that calculates the periodic river flow data
+PERIODICFLUX=${INPUTDIR}/unitDischarge.txt
+
 
 # Output files
 

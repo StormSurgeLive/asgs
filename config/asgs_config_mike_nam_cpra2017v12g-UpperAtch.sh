@@ -33,8 +33,8 @@ export LD_LIBRARY_PATH=/home/nate/install/lib:$LD_LIBRARY_PATH
 
 # Fundamental
 
-INSTANCENAME=mike_nam2  # "name" of this ASGS process
-COLDSTARTDATE=2016071600 # calendar year month day hour YYYYMMDDHH24
+INSTANCENAME=mike_daily # "name" of this ASGS process
+COLDSTARTDATE=2016071700 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null      # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=18.0      # length of initial hindcast, from cold (days)
@@ -48,7 +48,7 @@ SCRIPTDIR=/home/nate/cera/asgs   # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/cpra2017 # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
-SCRATCHDIR=/work/cera/cpra2017/mike_nam #overides setting in platforms.sh -where state file will be written
+SCRATCHDIR=/work/cera   #overides setting in platforms.sh -where state file will be written
 
 # Physical forcing
 
@@ -102,11 +102,6 @@ RIVERSITE=ftp.nssl.noaa.gov
 RIVERDIR=/projects/ciflow/adcirc_info
 
 
-# Fixed River Flux Info
-MSRIVERBOUNDARYTYPE=52
-MSRIVERBOUHDARYCONDITION=380000  #cfs
-
-
 
 # Input files and templates
 
@@ -123,6 +118,21 @@ RIVERFLUX=null
 HINDCASTRIVERFLUX=null
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+
+
+
+# Fixed River Flux Info
+MSRIVERBOUNDARYTYPE=52
+MSRIVERBOUNDARYCONDITION="400000,0,170000"  #cfs you can determine order by running FLUXCALCULATOR manually first
+RIVERDISCHARGE="400000,0,170000"  # whats used in asgs_main and passed to FLUXCALCULATOR
+FLUXUNITS=cfs  # can be cfs or cms depending on the units for the RIVERDISCHARGE
+FLUXCALCULATOR=${SCRIPTDIR}/util/PerlUtils/riverFlow.pl # path the script that calculates the periodic river flow data
+PERIODICFLUX=${INPUTDIR}/unitDischarge.txt # the name of the output file from FLUXCALCULATOR, which contains QNAM QNPH data
+
+# To create the flux file run the followin. only needs to be done once.  maybe move this to asgs main before the coldstart
+#perl $FLUXCALCULATOR --gridfile ${INPUTDIR}/${GRIDFILE} --units $FLUXUNITS --discharge $MSRIVERBOUNDARYCONDITION --outfile $PERIODICFLUX
+
+
 
 # Output files
 
