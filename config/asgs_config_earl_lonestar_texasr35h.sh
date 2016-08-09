@@ -71,8 +71,9 @@ CYCLETIMELIMIT="05:00:00"
 STORM=05                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2016                        # year of the storm
 #
+TRIGGER=rssembedded              # either "ftp", "rss", or rssembedded
+#
 # read advisories from file system (comment these out for real event)
-#TRIGGER=rssembedded              # either "ftp" or "rss"
 #RSSSITE=filesystem
 #FTPSITE=filesystem
 #FDIR=${SCRIPTDIR}/input/sample_advisories
