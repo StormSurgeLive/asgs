@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME=isaactest   # "name" of this ASGS process
+INSTANCENAME=isaachsofs   # "name" of this ASGS process
 COLDSTARTDATE=2012072212 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
@@ -38,7 +38,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable        # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v12g-WithUpperAtch # grid and other input files
+INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
@@ -52,7 +52,7 @@ VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
 
-TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
@@ -97,17 +97,17 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=LA_v12h-WithUpperAtch_chk.grd       # mesh (fort.14) file
-GRIDNAME=LA_v12h-WithUpperAtch_chk
+GRIDFILE=hsofs.14  # mesh (fort.14) file
+GRIDNAME=hsofs
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=LA_v12g-WithUpperAtch_chk_14kcms.15.template  # fort.15 template
+CONTROLTEMPLATE=hsofs.15.template  # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=cpra2017v12.cera_stations.20160702   # or substitute your own stations file
-VELSTATIONS=cpra2017v12.cera_stations.20160702
-METSTATIONS=cpra2017v12.cera_stations.20160702
-NAFILE=LA_v12g-WithUpperAtch-updated.13
+ELEVSTATIONS=hsofs_cera_stations_20160801.txt   # or substitute your own stations file
+VELSTATIONS=hsofs_cera_stations_20160801.txt
+METSTATIONS=hsofs_cera_stations_20160801.txt
+NAFILE=hsofs.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=LA_v12g-WithUpperAtch.26.template # only used if WAVES=on
+SWANTEMPLATE=fort.26.template # only used if WAVES=on
 RIVERINIT=null                          # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
