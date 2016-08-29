@@ -27,8 +27,8 @@
 
 # Fundamental
 
-INSTANCENAME=readyhsofs   # "name" of this ASGS process
-COLDSTARTDATE=2016070200  # calendar year month day hour YYYYMMDDHH24
+INSTANCENAME=hsdrrstd9     # "name" of this ASGS process
+COLDSTARTDATE=2016072800  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null           # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
@@ -38,38 +38,37 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable          # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs # grid and other input files
+INPUTDIR=${SCRIPTDIR}/input/meshes/hsdrrs2014 # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on      # NAM download/forcing
+BACKGROUNDMET=off      # NAM download/forcing
 TIDEFAC=on            # tide factor recalc
-TROPICALCYCLONE=off   # tropical cyclone forcing
+TROPICALCYCLONE=on   # tropical cyclone forcing
 WAVES=off             # wave forcing
 VARFLUX=off           # variable river flux forcing
 VORTEXMODEL=GAHM
 
 # Computational Resources
 
-TIMESTEPSIZE=1.0             # adcirc time step size (seconds)
+TIMESTEPSIZE=0.5             # adcirc time step size (seconds)
 SWANDT=1200                  # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00"  # hindcast wall clock time
 ADCPREPWALLTIME="00:30:00"   # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="05:00:00"   # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00"  # forecast wall clock time
-NCPU=960                    # number of compute CPUs for all simulations
+NCPU=1080                    # number of compute CPUs for all simulations
 NUMWRITERS=36
-NCPUCAPACITY=1500
+NCPUCAPACITY=4400
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=background
-SERQUEUE=background
-#QUEUENAME=standard
-#SERQUEUE=standard
+#QUEUENAME=background
+QUEUENAME=standard
+#SERQUEUE=background
+SERQUEUE=standard
 # topaz has a limit of 4hrs max wall clock time for the background queue
 if [[ $QUEUENAME = background ]]; then
-    HINDCASTWALLTIME="04:00:00" 
     NOWCASTWALLTIME="04:00:00"
     FORECASTWALLTIME="04:00:00"
 fi
@@ -79,14 +78,14 @@ fi
 STORM=99                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2016                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
-RSSSITE=filesystem
-FTPSITE=filesystem
-FDIR=${SCRIPTDIR}/input/sample_advisories
-HDIR=${SCRIPTDIR}/input/sample_advisories
-#RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
-#FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
-#FDIR=/atcf/afst                  # forecast dir on nhc ftp site
-#HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
+#RSSSITE=filesystem
+#FTPSITE=filesystem
+#FDIR=${SCRIPTDIR}/input/sample_advisories
+#HDIR=${SCRIPTDIR}/input/sample_advisories
+RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
+FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
+FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
@@ -104,17 +103,17 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=hsofs.14 # mesh (fort.14) file
-GRIDNAME=hsofs
+GRIDFILE=HSDRRS2014_MRGO_leveeupdate_fixSTC_MX_smoothedPlaquemines.grd  # mesh (fort.14) file
+GRIDNAME=HSDRRS2014_MRGO_leveeupdate_fixSTC_MX_smoothedPlaquemines
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=hsofs.15.template  # fort.15 template
+CONTROLTEMPLATE=hsdrrs2014_explicit_14kcms_fort.15.template   # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=hsofs_cera_stations_20160801.txt # or substitute your own stations file
-VELSTATIONS=hsofs_cera_stations_20160801.txt
-METSTATIONS=hsofs_cera_stations_20160801.txt
-NAFILE=hsofs.13
+ELEVSTATIONS=cpra2017v12.cera_stations.20160624 # or substitute your own stations file
+VELSTATIONS=cpra2017v12.cera_stations.20160624
+METSTATIONS=cpra2017v12.cera_stations.20160624
+NAFILE=HSDRRS2014_MRGO_leveeupdate_fixSTC13_MX_ADDSWAN.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=fort.26.template    # only used if WAVES=on
+SWANTEMPLATE=hsdrrs_fort.26.template  # only used if WAVES=on
 RIVERINIT=null                           # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
@@ -149,7 +148,7 @@ MINMAX=reset
 # Notification
 
 EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
-NOTIFY_SCRIPT=corps_nam_notify.sh
+NOTIFY_SCRIPT=corps_cyclone_notify.sh
 ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
@@ -200,13 +199,23 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=1 # number of storms in the ensemble
+ENSEMBLESIZE=3 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
+   ;;
+1)
+   ENSTORM=veerLeft100
+   PERCENT=-100
+   INTENDEDAUDIENCE=developers-only
+   ;;
+2)
+   ENSTORM=veerLeft120
+   PERCENT=-120
+   INTENDEDAUDIENCE=professional
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
