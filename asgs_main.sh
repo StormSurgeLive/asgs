@@ -82,7 +82,7 @@ checkArchiveFreshness()
       fi
       for inputFile in $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE; do
          if [ ! -e $INPUTDIR/$inputFile ]; then
-            warning "The input file $INPUTDIR/$inputFile does not exist."
+            warn "The input file $INPUTDIR/$inputFile does not exist."
             continue
          fi
          # see if the archiveFile is older than inputFile 
@@ -861,7 +861,7 @@ rangerResubmit()
    if [[ $success = 0 ]]; then
       date > $ADVISDIR/$ENSTORM/run.error
       msg="The job '$ADVISDIR/$ENSTORM/$SCRIPTNAME' was not accepted by SGE after it was resubmitted $num_retries times."
-      warning $msg
+      warn $msg
       echo $msg >> $ADVISDIR/$ENSTORM/run.error
    fi
 }

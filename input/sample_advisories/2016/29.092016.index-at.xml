@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sun, 04 Sep 2016 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Post-Tropical Cyclone HERMINE Forecast/Advisory Number 29</title>
+      <description>Issued at 1500 UTC SUN SEP 04 2016 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+ 
+POST-TROPICAL CYCLONE HERMINE FORECAST/ADVISORY NUMBER  29
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL092016
+1500 UTC SUN SEP 04 2016
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+THE TROPICAL STORM WARNING SOUTH OF CAPE CHARLES LIGHT HAS BEEN
+DISCONTINUED.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* CAPE CHARLES LIGHT TO WEST OF WATCH HILL
+* DELAWARE BAY
+ 
+A TROPICAL STORM WATCH IS IN EFFECT FOR...
+* WATCH HILL TO SAGAMORE BEACH
+* BLOCK ISLAND
+* MARTHA'S VINEYARD
+* NANTUCKET
+ 
+POST-TROPICAL CYCLONE CENTER LOCATED NEAR 37.2N  69.6W AT 04/1500Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE EAST-NORTHEAST OR  60 DEGREES AT   9 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  999 MB
+MAX SUSTAINED WINDS  60 KT WITH GUSTS TO  75 KT.
+50 KT.......160NE   0SE   0SW  70NW.
+34 KT.......180NE 180SE 170SW 150NW.
+12 FT SEAS..210NE 280SE 300SW 210NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 37.2N  69.6W AT 04/1500Z
+AT 04/1200Z CENTER WAS LOCATED NEAR 37.0N  70.0W
+ 
+FORECAST VALID 05/0000Z 37.6N  69.4W...POST-TROPICAL
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT...120NE   0SE   0SW 100NW.
+34 KT...210NE 180SE 170SW 160NW.
+ 
+FORECAST VALID 05/1200Z 38.3N  69.8W...POST-TROPICAL
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT...120NE   0SE  70SW 100NW.
+34 KT...240NE 150SE 170SW 180NW.
+ 
+FORECAST VALID 06/0000Z 38.7N  70.0W...POST-TROPICAL
+MAX WIND  65 KT...GUSTS  80 KT.
+64 KT...  0NE   0SE  60SW  60NW.
+50 KT... 90NE  70SE  80SW  90NW.
+34 KT...220NE 150SE 160SW 180NW.
+ 
+FORECAST VALID 06/1200Z 39.0N  70.0W...POST-TROPICAL
+MAX WIND  65 KT...GUSTS  80 KT.
+50 KT... 60NE  60SE  70SW  90NW.
+34 KT...150NE 150SE 150SW 190NW.
+ 
+FORECAST VALID 07/1200Z 40.0N  68.0W...POST-TROPICAL
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 60NE  60SE  70SW  90NW.
+34 KT...120NE  90SE  90SW 120NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 200 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 08/1200Z 41.0N  66.0W...POST-TROPICAL
+MAX WIND  55 KT...GUSTS  65 KT.
+ 
+OUTLOOK VALID 09/1200Z 42.0N  60.5W...POST-TROPICAL
+MAX WIND  50 KT...GUSTS  60 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 37.2N  69.6W
+ 
+NEXT ADVISORY AT 04/2100Z
+ 
+$$
+FORECASTER PASCH
+
+</pre>]]></description>
+      <pubDate>Sun, 04 Sep 2016 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2016/09/29.092016.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2016/09/29.092016.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
