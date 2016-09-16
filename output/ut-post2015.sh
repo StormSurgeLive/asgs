@@ -59,7 +59,6 @@ env_dispatch ${TARGET}
 . ${CONFIG}
 #
 # write the target area to the run.properties file for the CERA
-echo "asgs : ng" >> run.properties 2>> ${SYSLOG}
 echo "enstorm : $ENSTORM" >> run.properties 2>> ${SYSLOG}
 #
 # grab storm class and name from file
@@ -74,23 +73,6 @@ if [[ $TROPICALCYCLONE = on ]]; then
    ind=`expr index "$STORMCLASSNAME" ' '`
    # just use the storm's name 
    STORMNAME=${STORMCLASSNAME:$ind}
-fi
-#
-# record the sea_surface_height_above_geoid nodal attribute to the
-# run.properties file
-isUsed=`grep -c sea_surface_height_above_geoid fort.15 2>>${SYSLOG}`
-if [[ $isUsed = 0 ]]; then
-   # this nodal attribute is not being used; report this to run.properties file
-   echo "sea_surface_height_above_geoid : null" >> run.properties 2>>${SYSLOG}
-else
-   # get the line number where the start of this nodal attribute is specified
-   # in the header of the fort.13 (nodal attributes) file
-   linenum=`grep --line-number --max-count 1 sea_surface_height_above_geoid fort.13 2>> ${SYSLOG} | awk 'BEGIN { FS=":" } { print $1 }' 2>> ${SYSLOG}`
-   # get the actual default value, which is specified three lines after the
-   # the name of the nodal attribute in the fort.13 header
-   datumOffsetDefaultValueLine=`expr $linenum + 3 2>> ${SYSLOG}`
-   datumOffsetDefaultValue=`awk -v linenum=$datumOffsetDefaultValueLine 'NR==linenum { print $0 }' fort.13 2>>${SYSLOG}`
-   echo "sea_surface_height_above_geoid : $datumOffsetDefaultValue" >> run.properties 2>> ${SYSLOG}
 fi
 #
 #  R E F O R M A T T I N G
@@ -154,56 +136,40 @@ fi
 # tar up the plots and the csv files
 cd $InitialDirectory 2>> ${SYSLOG} 2>&1
 #
-#  O P E N  D A P    P U B L I C A T I O N 
-#
-STORMNAMEPATH=null
-DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
-CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
-if [[ $BACKGROUNDMET = on ]]; then
-   # for NAM, the "advisory number" is actually the cycle time 
-   STORMNAMEPATH=tc/nam
+#--------------------------------------------------------------------------
+#              I N U N D A T I O N    M  A S K  
+#--------------------------------------------------------------------------
+# When presenting inundation data on Google Maps, the ADCIRC extent of
+# initially dry area is often landward of the Google Maps shoreline, 
+# resulting in the erroneous depiction of non-inundated land areas 
+# seaward of inundated areas. The inundationMask program expands the 
+# inundation area presented on Google Maps to cover the full land area
+# as depicted by Google Maps. 
+# 
+if [ -e ${STORMDIR}/initiallydry.63.nc ]; then
+   if [ -e ${OUTPUTDIR}/inundationMask.x ]; then
+      ${OUTPUTDIR}/inundationMask.x --filename initiallydry.63.nc --netcdf4 --numpasses 2 2>> ${SYSLOG} 2>&1
+      ERROVALUE=$?
+      if [ $ERROVALUE == 0 ]; then
+         echo "Inundation Mask File Name : inundationmask.63.nc" >> run.properties
+         echo "Inundation Mask Format : netcdf" >> run.properties
+      else
+         error "Failed to create inundationmask.63.nc file."
+      fi
+   else
+      error "The initiallydry.63.nc file was found in $STORMDIR but the inundationMask.x executable was not found in ${OUTPUTDIR}."
+   fi
 fi
-if [[ $TROPICALCYCLONE = on ]]; then
-   STORMNAME=`grep -m 1 "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
-   STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
-   STORMNAMEPATH=tc/$STORMNAMELC
-fi
-OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HOSTNAME/$INSTANCENAME/$ENSTORM
-# put the opendap download url in the run.properties file for CERA to find
-downloadURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
-echo "downloadurl : $downloadURL" >> run.properties
-# now actually make the directory (OPENDAPBASEDIR is specified in CONFIG)
-OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
 #
-logMessage "Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER with the ssh key in $SSHKEY."
-debugMessage "The actual transfer has been commented out, pending the activation of a suitable thredds server."
-#ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
-for file in `ls *.nc ${ADVISDIR}/al*.fst ${ADVISDIR}/bal*.dat fort.15 fort.22 run.properties`; do
-   chmod +r $file 2>> $SYSLOG
-   logMessage "Transferring $file."
-   debugMessage "(not actually transferring the file)"
-   #scp -i $SSHKEY $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG
-   #ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "chmod +r $OPENDAPDIR/$file"
+#-----------------------------------------------------------------------
+#         O P E N  D A P    P U B L I C A T I O N 
+#-----------------------------------------------------------------------
+logMessage "Creating list of files to post to opendap."
+FILES=(`ls *.nc ../al*.fst ../bal*.dat run.properties`)
+#
+# For each opendap server in the list in ASGS config file.
+for server in ${TDS[*]}; do
+   logMessage "Posting to $server opendap with opendap_post.sh using the following command: ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server \"${FILES[*]}\" $OPENDAPNOTIFY"
+   ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server "${FILES[*]}" $OPENDAPNOTIFY >> ${SYSLOG} 2>&1
 done
-#
-COMMA_SEP_LIST="jason.g.fleming@gmail.com" #,asgs.cera.lsu@gmail.com"
-runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'`
-subject="ADCIRC NCFS POSTED for $runStartTime"
-if [[ $TROPICALCYCLONE = on ]]; then
-   subject=${subject}" (TROPICAL CYCLONE)"
-fi
-subject="${subject} $CERASERVER"
-subject="${subject} $HOSTNAME.$INSTANCENAME $ENMEMNUM"
-cat <<END > ${STORMDIR}/cera_results_notify.txt 
-
-The ADCIRC NCFS solutions for $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
-
-The run.properties file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
-   
-or wget the file with the following command
-
-wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
-END
-echo "INFO: ut-post2015.sh: Sending 'results available' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/cera_results_notify.txt | mail -s "$subject" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 
