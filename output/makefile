@@ -21,13 +21,41 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------
+# 
+# This makefile contains support for several different machines, but perhaps
+# not yours, although that will be easy to add. All you have to do is add a 
+# line that shows where the netCDF library is installed.
+#
+# For example, have a look at the following lines for the queenbee machine:
+#
+#  ifeq ($(MACHINENAME),queenbee)
+#      NETCDFPATH  := /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0
+#  endif
+#
+# In order to support your machine, you'll have to add something similar to 
+# define the NETCDFPATH variable. I do this by typing
+#
+# which ncdump
+#
+# and that gives me an answer like
+#
+# /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0/bin
+#
+# so I set the NETCDFPATH to that but without the "/bin" at the end. 
+# Then I compile by using the following command line:
+#
+#  make netcdf2adcirc compiler=intel MACHINENAME=queenbee NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable
+#
 #
 # specify compiler=gfortran on the make command line
 ifeq ($(compiler),gfortran)
    FC := gfortran
-   FFLAGS := -cpp -ffree-line-length-none
+   FFLAGS := -O2 -cpp -ffree-line-length-none
    ifeq ($(DEBUG),full)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal #-Wall
+   endif
+   ifeq ($(DEBUG),trace)
+      FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace 
    endif
 endif
 #
@@ -38,6 +66,9 @@ endif
 ifeq ($(compiler),intel)
    FC := ifort
    FFLAGS := -cpp -i-dynamic
+   ifeq ($(DEBUG),trace)
+      FFLAGS := -g -O0 -fpp -traceback 
+   endif
    ifeq ($(DEBUG),full)
       FFLAGS := -cpp -g -O0 -traceback -debug all -check all -ftrapuv -fpe0 -i-dynamic  
    endif
@@ -91,14 +122,9 @@ ifeq ($(NETCDF),enable)
       LDFLAGS     :=  -lnetcdf -lhdf5 -lhdf5_hl
    endif
    # jgf20160627: Added compiler flags for lonestar 5 at TACC.
+   # jgf20160803: Updared compiler flags for lonestar 5 at TACC.
    ifeq ($(MACHINENAME),lonestar)
-     NETCDFHOME=/opt/apps/intel11_1/netcdf/4.2.1.1/
-     HDF5HOME=/opt/apps/intel11_1/hdf5/1.8.8/
-     TACC_NETCDF_INC=${NETCDFHOME}include
-     TACC_NETCDF_LIB=${NETCDFHOME}lib
-     TACC_HDF5_LIB=${HDF5HOME}lib
-     LIBS      := -I${TACC_NETCDF_INC} -L${TACC_NETCDF_LIB} -L${TACC_HDF5_LIB}
-     LDFLAGS   := -lnetcdf -lnetcdff -lhdf5 -lhdf5 -lz -lm
+      NETCDFPATH=/opt/apps/intel16/netcdf/4.3.3.1/x86_64
    endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := $(LDFLAGS) -lnetcdff
@@ -113,16 +139,16 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := adcmesh.o asgsio.o adcircdata.o
-MODS := adcmesh.mod asgsio.mod adcircdata.mod
+OBJ := adcmesh.o asgsio.o adcircdata.o nodalattr.o
+MODS := adcmesh.mod asgsio.mod adcircdata.mod nodalattr.mod
 #
 # targets
-all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP
+all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN checkAdcircMesh resultScope highResolutionRegion
 #
 clean :
 	rm -f *.o *.mod *.x
 #
-adcirc2netcdf : $(MODS) adcirc2netcdf.f90
+adcirc2netcdf : $(MODS) adcirc2netcdf.f90 nodalattr.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
 netcdf2adcirc : $(MODS) netcdf2adcirc.f90
@@ -139,15 +165,36 @@ adcircdata.mod : adcircdata.f90 adcmesh.mod asgsio.mod
 # 
 makeMax : asgsio.mod adcmesh.mod adcircdata.mod ../util/makeMax.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o ../util/$@.x ../util/$@.f90 $(OBJ) $(LDFLAGS)
-#
-generateXDMF : adcmesh.mod generateXDMF.f90
+# 
+inundationMask : $(MODS) inundationMask.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+#
+highResolutionRegion : adcmesh.mod highResolutionRegion.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+#
+checkAdcircMesh : $(MODS) checkAdcircMesh.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+#
+generateXDMF : adcmesh.mod asgsio.mod generateXDMF.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o $(LDFLAGS)
 #
 generateCPP : adcmesh.mod generateCPP.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-pullStationTimeSeries : asgsio.mod adcmesh.mod adcircdata.mod pullStationTimeSeries.f90
+pullStationTimeSeries : asgsio.mod adcmesh.mod adcircdata.mod nodalattr.mod pullStationTimeSeries.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-totalWaterDepthGradient : adcmesh.mod totalWaterDepthGradient.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+wetDryCheck : adcmesh.mod asgsio.mod wetDryCheck.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o $(LDFLAGS)
+#
+diffAdcircNetCDF : adcmesh.mod adcircdata.mod asgsio.mod diffAdcircNetCDF.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o adcircdata.o $(LDFLAGS)
+#
+HottifySWAN : HottifySWAN.F90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.F90 $(LDFLAGS)
+#
+resultScope : adcmesh.mod adcircdata.mod asgsio.mod resultScope.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o adcircdata.o asgsio.o $(LDFLAGS)
+#
+nodalattr.mod : ../util/nodalattr/nodalattr.f90 adcmesh.mod adcircdata.mod asgsio.mod
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c ../util/nodalattr/nodalattr.f90 $(LDFLAGS)
