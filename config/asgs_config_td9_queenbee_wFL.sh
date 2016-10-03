@@ -27,10 +27,10 @@
 
 # Fundamental
 
-INSTANCENAME=td9hsofs    # "name" of this ASGS process
-COLDSTARTDATE=2016072700 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=hotstart       # "hotstart" or "coldstart"
-LASTSUBDIR=/work/jgflemin/asgs22319/2016082900  # path to previous execution (if HOTORCOLD=hotstart)
+INSTANCENAME=td9wFL      # "name" of this ASGS process
+COLDSTARTDATE=2016072900 # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=coldstart      # "hotstart" or "coldstart"
+LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -38,7 +38,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable        # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs # grid and other input files
+INPUTDIR=${SCRIPTDIR}/input/meshes/wFL # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
@@ -52,14 +52,14 @@ VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
 
-TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
+TIMESTEPSIZE=1.0            # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=480                    # number of compute CPUs for all simulations
-NCPUCAPACITY=2000
+NCPUCAPACITY=480
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=workq
 SERQUEUE=single
@@ -97,15 +97,16 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=hsofs.14  # mesh (fort.14) file
-GRIDNAME=hsofs
+GRIDFILE=wFL_v4.1.0.grd  # mesh (fort.14) file
+GRIDNAME=wFL_v4.1.0
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=hsofs.15.template  # fort.15 template
+CONTROLTEMPLATE=wFL_fort.15.template   # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=hsofs_cera_stations_20160801.txt   # or substitute your own stations file
-VELSTATIONS=hsofs_cera_stations_20160801.txt
-METSTATIONS=hsofs_cera_stations_20160801.txt
-NAFILE=hsofs.13
+#http://jupiter.cct.lsu.edu/cera_stations/stations/mesh=wFlv41.cera_stations
+ELEVSTATIONS=wFL_cera_stations_20160829.txt   # or substitute your own stations file
+VELSTATIONS=wFL_cera_stations_20160829.txt
+METSTATIONS=wFL_cera_stations_20160829.txt
+NAFILE=wFL_v4.0.0.varmann_and_zob_fort.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=fort.26.template # only used if WAVES=on
 RIVERINIT=null                          # this mesh has no rivers ...
@@ -137,7 +138,7 @@ HOTSTARTCOMP=fulldomain
 # binary or netcdf hotstart files
 HOTSTARTFORMAT=netcdf                      
 # "continuous" or "reset" for maxele.63 etc files
-MINMAX=reset                             
+MINMAX=reset                              
 
 # Notification
 

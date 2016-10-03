@@ -27,10 +27,10 @@
 
 # Fundamental
 
-INSTANCENAME=td9hsofs    # "name" of this ASGS process
-COLDSTARTDATE=2016072700 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=hotstart       # "hotstart" or "coldstart"
-LASTSUBDIR=/work/jgflemin/asgs22319/2016082900  # path to previous execution (if HOTORCOLD=hotstart)
+INSTANCENAME=mattqhsofs    # "name" of this ASGS process
+COLDSTARTDATE=2016082912 # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=coldstart       # "hotstart" or "coldstart"
+LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -47,7 +47,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=off     # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=on  # tropical cyclone forcing
-WAVES=off            # wave forcing
+WAVES=on            # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
@@ -59,6 +59,7 @@ ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=480                    # number of compute CPUs for all simulations
+NUMWRITERS=20
 NCPUCAPACITY=2000
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=workq
@@ -69,7 +70,7 @@ SCRATCHDIR=/work/$USER
 # External data sources : Tropical cyclones
 
 PSEUDOSTORM=n 
-STORM=09                         # storm number, e.g. 05=ernesto in 2006
+STORM=14                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2016                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 #RSSSITE=filesystem
@@ -153,7 +154,7 @@ ASGSADMIN=jason.fleming@seahorsecoastal.com
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=professional
+INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
 POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
@@ -168,7 +169,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,zbyerly@cct.lsu.edu,jason.fleming@seahorsecoastal.com"
+OPENDAPNOTIFY="nc.cera.renci2.@gmail.com,asgs.cera.lsu@gmail.com,zbyerly@cct.lsu.edu,jason.fleming@seahorsecoastal.com"
 
 # Archiving
 
@@ -180,7 +181,7 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=3 # number of storms in the ensemble
+ENSEMBLESIZE=1 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
