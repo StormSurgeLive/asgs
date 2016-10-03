@@ -65,7 +65,7 @@ echo "enstorm : $ENSTORM" >> run.properties 2>> $SYSLOG
 #  O P E N  D A P    P U B L I C A T I O N 
 #
 logMessage "Creating list of files to post to opendap."
-FILES=(`ls *.nc ${ADVISDIR}/al*.fst ${ADVISDIR}/bal*.dat fort.15 fort.22 run.properties`)
+FILES=(`ls *.nc ../al*.fst ../bal*.dat fort.15 fort.22 run.properties`)
 #
 # For each opendap server in the list in ASGS config file.
 for server in ${TDS[*]}; do 
