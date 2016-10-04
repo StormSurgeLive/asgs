@@ -3,7 +3,7 @@
 #SBATCH -J %jobtype%.%enstorm%
 #SBATCH -t %wallminutes%
 #SBATCH -n 1 
-#SBATCH -c 1
+#jgf20161003: commented out per Chris Rutledge #SBATCH -c 1
 #SBATCH --partition=ncfs
 #SBATCH --reservation=ncfs
 

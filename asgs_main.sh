@@ -1022,6 +1022,7 @@ IMAGEMAGICKBINPATH=null
 SERQSCRIPT=null
 SERQSCRIPTGEN=null
 VORTEXMODEL=GAHM
+STORMTRACKOPTIONS="--strengthPercent null"
 PSEUDOSTORM=n
 MESHPROPERTIES=null
 CONTROLPROPERTIES=null 
@@ -1394,7 +1395,7 @@ while [ true ]; do
       echo "storm : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
       echo "stormnumber : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
       echo "pseudostorm : $PSEUDOSTORM" >> $ADVISDIR/$ENSTORM/run.properties
-      METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE"
+      METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE $STORMTRACKOPTIONS"
       CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
@@ -1615,7 +1616,7 @@ while [ true ]; do
          if [[ $WAVES = on ]]; then
             NWS=`expr $BASENWS + 300`
          fi
-         METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $CSDATE --hotstartseconds $HSTIME --nws $NWS --name $ENSTORM"
+         METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $CSDATE --hotstartseconds $HSTIME --nws $NWS --name $ENSTORM $STORMTRACKOPTIONS"
          if [[ ${PERCENT} != default ]]; then
             echo "modified : y" >> run.properties 2>> ${SYSLOG}
             echo "track_modified : fort.22" >> run.properties 2>> ${SYSLOG}
