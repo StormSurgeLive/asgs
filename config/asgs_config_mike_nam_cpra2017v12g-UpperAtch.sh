@@ -34,7 +34,7 @@ export LD_LIBRARY_PATH=/home/nate/install/lib:$LD_LIBRARY_PATH
 # Fundamental
 
 INSTANCENAME=mike_daily # "name" of this ASGS process
-COLDSTARTDATE=2016071700 # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2016080100 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null      # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=18.0      # length of initial hindcast, from cold (days)

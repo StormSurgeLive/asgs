@@ -5,11 +5,16 @@
 # a script get data from the NOAA CO-OPS API for data retrieval
 #
 # can be run interactively or with command line options
-#
-# right now it only gets data for whole days (i.e. dates must
-# be in yyyymmdd format without the HH:MM)
 # 
-# it overcomes the one month limitation of the CO-OPs API
+#  e.g.
+#
+#  getCOOPSdata.pl  (and it will prompt you)
+#
+#  or  
+#
+#  getCOOPSdata.pl --station 8770613 --begin "20080824 01:30" --end "20080909 13:30" --product water_level --timezone GMT --datum MSL --units metric --format csv --outfile output.csv
+# 
+# It overcomes the one month limitation of the CO-OPs API
 # by grabing data in month long chunks and appending them to he 
 # output. Thus it is good for getting long records (e.g. 30 years)
 # 
@@ -20,7 +25,7 @@
 ####################################################################### 
 # Author: Nate Dill, natedill@gmail.com
 #
-# Copyright (C) 2015 Nathan Dill
+# Copyright (C) 2015-2016 Nathan Dill
 # 
 # This program  is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -194,24 +199,39 @@ $form {'application'}=$application if ($application);
 
 # now get the data
 $outFileName="$station"."_"."$product-$beginDate-$endDate"."."."$format" unless (defined $outFileName);
+$outFileName =~ s/://g;  # remove colons from time format since you cant use them in file names
+$outFileName =~ s/\s//g;  # remove spaces too
+
 open FILE, ">$outFileName" or die "can't open $outFileName\n";
 
-my $bd=$beginDate;
-my $ed=$endDate;
-my $nextMonth=advanceMonth($beginDate);
-   $ed=$nextMonth if ($nextMonth < $endDate);
+my $bd=substr($beginDate,0,8);
+my $beginTime=$beginDate;  
+$beginTime =~ s/$bd//;         # will be HH:MM if it was included in the input
+my $ed=substr($endDate,0,8);
+my $endTime=$endDate;
+$endTime =~ s/$ed//;
+my $endDate_noTime=$ed;
+
+my $nextMonth=advanceMonth($bd);
+$ed=$nextMonth if ($nextMonth < $ed);
+
+$beginTime=' 00:00' unless ($beginTime =~ m/\d\d:\d\d/);
+$endTime=' 23:54' unless ($endTime =~ m/\d\d:\d\d/);  
 
 my $cntnt='';
 my $iter=1;
 while (1==1){
   
   if ($iter==1){
-     $form {'begin_date'} = "$bd"." 00:00";
+     $form {'begin_date'} = "$bd"."$beginTime";
   }else{
-     $form {'begin_date'} = "$bd"." 00:06";
+     $form {'begin_date'} = "$bd"." 00:06";   # 2,3,4... iteration always starts after midnight
   }
-
-  $form {'end_date'} = "$ed"." 00:00";
+  if ($endDate =~m/$ed/) { # this is last iter, go to endTime
+     $form {'end_date'} = "$ed"."$endTime";
+  }else{                   # there will be more iterations, just get zerotime, next iter will get rest of day
+     $form {'end_date'} = "$ed"." 00:00";
+  }
 
   $url->query_form(%form);
 
@@ -254,8 +274,8 @@ while (1==1){
 
   $bd=$ed;
   $ed=advanceMonth($bd);
-  $ed=$endDate if ($endDate < $ed);
-  last if ($bd==$endDate);
+  $ed=$endDate_noTime if ($endDate_noTime < $ed);
+  last if ($bd==$endDate_noTime);
   $iter++;
 }
 
@@ -347,9 +367,9 @@ sub advanceDay { # adds one day to yyyy/mm/dd
 
 #################################################
 # subroutine to advance the date to the next month
-# input and output are both in yyyy/mm/dd format
+# input and output are both in yyyymmdd format
 #################################################
-sub advanceMonth { # adds one Month to yyyy/mm/dd
+sub advanceMonth { # adds one Month to yyyymmdd 
  my $ymd=$_[0];
  my $yyyy=substr($ymd,0,4);
  my $mm=substr($ymd,4,2);
