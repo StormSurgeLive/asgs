@@ -117,9 +117,9 @@ case $OPENDAPPOSTMETHOD in
    fi
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories
-   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+w $OPENDAPBASEDIR" 2>> $SYSLOG
+   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
    if [[ $? != 0 ]]; then
-      warn "Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
+      warn "Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
       threddsPostStatus=fail
    fi
    for file in ${FILES[*]}; do 
@@ -131,7 +131,8 @@ case $OPENDAPPOSTMETHOD in
          warn "Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
       fi
       # give the file read permissions
-      ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod +r $OPENDAPDIR/$file"
+      fname=`basename $file` 
+      ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod +r $OPENDAPDIR/$fname"
       if [[ $? != 0 ]]; then
          threddsPostStatus=fail
          warn "Failed to give the file $file read permissions in ${OPENDAPHOST}:${OPENDAPDIR}."
