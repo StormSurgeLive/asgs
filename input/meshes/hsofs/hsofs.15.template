@@ -1590,3 +1590,4 @@ CF-1.1                     ! NCCONV - CONVENTIONS
 jason.fleming@seahorsecoastal.com    ! NCCONT - CONTACT INFORMATION
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
 &inundationOutputControl inundationOutput=.true. /
+&metControl WindDragLimit=0.0028 / 
