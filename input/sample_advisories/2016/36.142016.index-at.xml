@@ -1,0 +1,1195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:georss="http://www.georss.org/georss"
+   xmlns:gml="http://www.opengis.net/gml"
+    xmlns:nhc="http://www.nhc.noaa.gov">
+    <channel>
+    <pubDate>Fri, 07 Oct 2016 03:09:24 GMT</pubDate>
+    <title>NHC Atlantic</title>
+    <description>Active tropical cyclones in the Atlantic, Caribbean, and the Gulf of Mexico</description>
+    <link>http://www.nhc.noaa.gov/</link>
+    <copyright>none</copyright>
+    <managingEditor>nhcwebmaster@noaa.gov (NHC Webmaster)</managingEditor>
+    <language>en-us</language>
+    <webMaster>nhcwebmaster@noaa.gov (NHC Webmaster)</webMaster>
+    <image>
+    <url>http://www.nhc.noaa.gov/gifs/xml_logo_nhc.gif</url>
+    <link>http://www.nhc.noaa.gov/</link>
+    <title>NHC Atlantic</title>
+    <description>NOAA logo</description>
+    <width>95</width>
+    <height>45</height>
+    </image>
+    <item>
+    <title>Atlantic Tropical Weather Outlook</title>
+    <description>
+    <![CDATA[
+    <br/>
+    000<br/>
+    ABNT20 KNHC 062333<br/>
+    TWOAT <br/>
+    <br/>
+    TROPICAL WEATHER OUTLOOK<br/>
+    NWS NATIONAL HURRICANE CENTER MIAMI FL<br/>
+    800 PM EDT THU OCT 6 2016<br/>
+    <br/>
+    For the North Atlantic...Caribbean Sea and the Gulf of Mexico:<br/>
+    <br/>
+    The National Hurricane Center is issuing advisories on Hurricane<br/>
+    Matthew, located near the Bahamas, and on Hurricane Nicole, located<br/>
+    a few hundred miles south of Bermuda.<br/>
+    <br/>
+    Tropical cyclone formation is not expected during the next 5 days.<br/>
+    <br/>
+    $$<br/>
+    Forecaster Blake<br/>
+    ]]>
+    </description>
+    <pubDate>Thu, 06 Oct 2016 23:34:07 GMT</pubDate>
+    <link>http://www.nhc.noaa.gov/gtwo.php?basin=atlc</link>
+    <guid>http://www.nhc.noaa.gov/gtwo.php?basin=atlc&amp;201610062334</guid>
+    <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+    </item>
+    <item>
+     <title>Summary for Hurricane MATTHEW (AT4/AL142016)</title>
+      <guid isPermaLink="false">summary-al142016-201610070158</guid>
+       <pubDate>Fri, 07 Oct 2016 01:58:02 GMT</pubDate>
+        <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+         <link>http://www.nhc.noaa.gov/text/refresh/MIATCPAT4+shtml/070256.shtml</link>
+          <description>
+            ...EYE OF EXTREMELY DANGEROUS HURRICANE MATTHEW MOVING AWAY FROM THE BAHAMAS AND TOWARD THE EAST COAST OF FLORIDA...
+             As of 11:00 PM EDT Thu Oct 6
+              the center of MATTHEW was located near 27.1, -79.2
+               with movement NW at 13 mph.
+                The minimum central pressure was 939 mb
+                 with maximum sustained winds of about 130 mph.
+                  </description>
+                   <nhc:Cyclone>
+                     <nhc:center>27.1, -79.2</nhc:center>
+                       <nhc:type>HURRICANE</nhc:type>
+                         <nhc:name>MATTHEW</nhc:name>
+                           <nhc:wallet>AT4</nhc:wallet>
+                             <nhc:atcf>AL142016</nhc:atcf>
+                               <nhc:datetime>11:00 PM EDT Thu Oct 6</nhc:datetime>
+                                 <nhc:movement>NW at 13 mph</nhc:movement>
+                                   <nhc:pressure>939 mb</nhc:pressure>
+                                     <nhc:wind>130 mph</nhc:wind>
+                                       <nhc:headline> ...EYE OF EXTREMELY DANGEROUS HURRICANE MATTHEW MOVING AWAY FROM THE BAHAMAS AND TOWARD THE EAST COAST OF FLORIDA...</nhc:headline>
+                                        </nhc:Cyclone>
+                                        </item>
+                                        <item>
+                                        <title>Hurricane MATTHEW Public Advisory Number 36</title>
+                                        <description>Issued at 1100 PM EDT THU OCT 06 2016  <![CDATA[<pre>
+
+000
+WTNT34 KNHC 070256
+TCPAT4
+
+BULLETIN
+HURRICANE MATTHEW ADVISORY NUMBER  36
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL142016
+1100 PM EDT THU OCT 06 2016
+
+...EYE OF EXTREMELY DANGEROUS HURRICANE MATTHEW MOVING AWAY FROM
+THE BAHAMAS AND TOWARD THE EAST COAST OF FLORIDA...
+
+
+SUMMARY OF 1100 PM EDT...0300 UTC...INFORMATION
+-----------------------------------------------
+LOCATION...27.1N 79.2W
+ABOUT 50 MI...80 KM NNW OF FREEPORT GRAND BAHAMA ISLAND
+ABOUT 125 MI...200 KM SE OF CAPE CANAVERAL FLORIDA
+MAXIMUM SUSTAINED WINDS...130 MPH...215 KM/H
+PRESENT MOVEMENT...NW OR 325 DEGREES AT 13 MPH...20 KM/H
+MINIMUM CENTRAL PRESSURE...939 MB...27.73 INCHES
+
+
+WATCHES AND WARNINGS
+--------------------
+CHANGES WITH THIS ADVISORY:
+
+The Tropical Storm Warning has been discontinued for Florida Bay
+and the Florida Keys.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT:
+
+A Hurricane Warning is in effect for...
+* Northwestern Bahamas, including the Abacos, Andros Island, Berry
+Islands, Bimini, Eleuthera, Grand Bahama Island, and New Providence
+* Boca Raton to South Santee River
+* Lake Okeechobee
+
+A Tropical Storm Warning is in effect for...
+* Ocean Reef to south of Boca Raton
+* Anclote River to Suwannee River
+* North of South Santee River to Surf City
+
+A Tropical Storm Watch is in effect for...
+* Englewood to Anclote River
+
+Interests elsewhere in the Florida Peninsula and in the Carolinas
+should monitor the progress of Matthew.
+
+A Hurricane Warning means that hurricane conditions are expected
+somewhere within the warning area.  A warning is typically issued
+36 hours before the anticipated first occurrence of tropical-storm-
+force winds, conditions that make outside preparations difficult or
+dangerous.  Preparations to protect life and property should be
+rushed to completion.
+
+A Tropical Storm Warning means that tropical storm conditions are
+expected somewhere within the warning area within 36 hours.
+
+For storm information specific to your area in the United
+States, including possible inland watches and warnings, please
+monitor products issued by your local National Weather Service
+forecast office. For storm information specific to your area outside
+the United States, please monitor products issued by your national
+meteorological service.
+
+
+DISCUSSION AND 48-HOUR OUTLOOK
+------------------------------
+At 1100 PM EDT (0300 UTC), the eye of Hurricane Matthew was
+located by NOAA Doppler weather radars and an Air Force Reserve
+reconnaissance aircraft near latitude 27.1 North, longitude 79.2
+West. Matthew is moving toward the northwest near 13 mph (20 km/h).
+A turn toward the north-northwest is expected on Friday, and a turn
+toward the north expected Friday night or Saturday.  On the forecast
+track, the center of Matthew will be moving near or over the east
+coast of the Florida peninsula through Friday night, and near or
+over the coasts of Georgia and South Carolina on Saturday.
+
+Maximum sustained winds are near 130 mph (215 km/h) with higher
+gusts.  Matthew is a category 4 hurricane on the Saffir-Simpson
+Hurricane Wind Scale.  A gradual weakening is forecast during the
+next 48 hours.  However, Matthew is expected to be a category 3 or
+stronger hurricane as it moves near the coast of Florida.
+
+Hurricane-force winds extend outward up to 60 miles (95 km) from the
+center and tropical-storm-force winds extend outward up to 185 miles
+(295 km).
+
+The latest minimum central pressure reported by the reconnaissance
+aircraft was 939 mb (27.73 inches). An automated station on the west
+end of Grand Bahama Island recently reported a pressure of 943.1 mb
+(27.85 inches).
+
+
+HAZARDS AFFECTING LAND
+----------------------
+WIND:  Hurricane conditions should diminish over portions of the
+northwestern Bahamas tonight.
+
+Hurricane conditions are expected to first reach the hurricane
+warning area in Florida during the next several hours and will
+spread northward within the warning area through Friday.  Tropical
+storm conditions will continue to spread northward in the warning
+area along the Florida east coast tonight and Friday.
+
+Hurricane conditions are expected to spread northward in the warning
+area in Georgia and South Carolina Friday night and Saturday with
+tropical storm conditions expected on Friday.
+
+Winds increase rapidly in elevation in a tropical cyclone.
+Residents in high-rise buildings should be aware that the winds at
+the top of a 30-story building will be, on average, about one
+Saffir-Simpson category higher than the winds near the surface.
+
+Tropical storm conditions are expected in the tropical storm warning
+area in the Carolinas on Friday night and Saturday.
+
+STORM SURGE:  The combination of a dangerous storm surge and large
+and destructive waves could raise water levels by as much as the
+following amounts above normal tide levels...
+
+Northwestern Bahamas...10 to 15 feet
+
+The water could reach the following heights above ground if the peak
+surge occurs at the time of high tide...
+
+Sebastian Inlet, Florida, to Edisto Beach, South Carolina, including
+portions of the St. Johns River...7 to 11 ft
+Edisto Beach to South Santee River, South Carolina...4 to 6 ft
+Boca Raton to Sebastian Inlet, Florida...4 to 6 ft
+South Santee River, South Carolina, to Cape Fear, North Carolina...2
+to 4 ft
+Virginia Key to Boca Raton, Florida...1 to 3 ft
+
+Surge-related flooding depends on the relative timing of the surge
+and the tidal cycle, and can vary greatly over short distances.
+Large waves generated by Matthew will cause water rises to occur
+well in advance of and well away from the track of the center.
+
+The combination of a dangerous storm surge and the tide will cause
+normally dry areas near the coast to be flooded by rising waters
+moving inland from the shoreline.  There is a danger of life-
+threatening inundation during the next 36 hours along the Florida
+east coast, the Georgia coast, and the South Carolina coast from
+Boca Raton, Florida, to South Santee River, South Carolina.
+There is the possibility of life-threatening inundation during the
+next 48 hours from north of South Santee River, South Carolina, to
+Cape Fear, North Carolina. For a depiction of areas at risk, please
+see the Prototype National Weather Service Storm Surge Watch/Warning
+Graphic. For information specific to your area, please see products
+issued by your local National Weather Service forecast office.
+
+The Prototype Storm Surge Watch/Warning Graphic is a depiction of
+areas that would qualify for inclusion under a storm surge watch or
+warning currently under development by the National Weather Service
+and planned for operational use in 2017.  The Prototype Graphic is
+available at hurricanes.gov.
+
+RAINFALL:  Matthew is expected to produce total rainfall amounts in
+the following areas:
+
+The northern Bahamas...8 to 12 inches, isolated 15 inches
+The Atlantic coast of the United States from Central Florida to
+eastern North Carolina...6 to 12 inches with isolated totals near
+15 inches along the coasts
+
+TORNADOES:  An isolated tornado or two is possible along the
+east-central Florida coast tonight.
+
+SURF:  Swells generated by Matthew will continue to affect portions
+of the north coast of Cuba and the Bahamas during the next few days,
+and will spread northward along the east coast of Florida and the
+southeast U.S. coast through the weekend.  These swells will likely
+cause life-threatening surf and rip current conditions.  Please
+consult products from your local weather office.
+
+
+NEXT ADVISORY
+-------------
+Next intermediate advisory at 200 AM EDT.
+Next complete advisory at 500 AM EDT.
+Tropical cyclone updates at 1200 AM, 100 AM, 300 AM, and 400 AM EDT.
+
+$$
+Forecaster Beven
+
+</pre>]]></description>
+<pubDate>Fri, 07 Oct 2016 02:56:31 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCPAT4+shtml/070256.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCPAT4+shtml/070256.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane MATTHEW Forecast Advisory Number 36</title>
+<description>Issued at 0300 UTC FRI OCT 07 2016  <![CDATA[<pre>
+
+000
+WTNT24 KNHC 070255
+TCMAT4
+
+HURRICANE MATTHEW FORECAST/ADVISORY NUMBER  36
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL142016
+0300 UTC FRI OCT 07 2016
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+THE TROPICAL STORM WARNING HAS BEEN DISCONTINUED FOR FLORIDA BAY
+AND THE FLORIDA KEYS.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A HURRICANE WARNING IS IN EFFECT FOR...
+* NORTHWESTERN BAHAMAS...INCLUDING THE ABACOS...ANDROS ISLAND...
+BERRY
+ISLANDS...BIMINI...ELEUTHERA...GRAND BAHAMA ISLAND...AND NEW
+PROVIDENCE
+* BOCA RATON TO SOUTH SANTEE RIVER
+* LAKE OKEECHOBEE
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* OCEAN REEF TO SOUTH OF BOCA RATON
+* ANCLOTE RIVER TO SUWANNEE RIVER
+* NORTH OF SOUTH SANTEE RIVER TO SURF CITY
+
+A TROPICAL STORM WATCH IS IN EFFECT FOR...
+* ENGLEWOOD TO ANCLOTE RIVER
+
+INTERESTS ELSEWHERE IN THE FLORIDA PENINSULA AND IN THE CAROLINAS
+SHOULD MONITOR THE PROGRESS OF MATTHEW.
+
+A HURRICANE WARNING MEANS THAT HURRICANE CONDITIONS ARE EXPECTED
+SOMEWHERE WITHIN THE WARNING AREA.  A WARNING IS TYPICALLY ISSUED
+36 HOURS BEFORE THE ANTICIPATED FIRST OCCURRENCE OF TROPICAL-STORM-
+FORCE WINDS...CONDITIONS THAT MAKE OUTSIDE PREPARATIONS DIFFICULT
+OR DANGEROUS.  PREPARATIONS TO PROTECT LIFE AND PROPERTY SHOULD BE
+RUSHED TO COMPLETION.
+
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA WITHIN 36 HOURS.
+
+HURRICANE CENTER LOCATED NEAR 27.1N  79.2W AT 07/0300Z
+POSITION ACCURATE WITHIN  15 NM
+
+PRESENT MOVEMENT TOWARD THE NORTHWEST OR 325 DEGREES AT  11 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  939 MB
+EYE DIAMETER  10 NM
+MAX SUSTAINED WINDS 115 KT WITH GUSTS TO 140 KT.
+64 KT....... 50NE  40SE  30SW  50NW.
+50 KT....... 70NE  70SE  50SW  70NW.
+34 KT.......160NE 140SE  90SW 120NW.
+12 FT SEAS..180NE 150SE 120SW 120NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 27.1N  79.2W AT 07/0300Z
+AT 07/0000Z CENTER WAS LOCATED NEAR 26.6N  78.9W
+
+FORECAST VALID 07/1200Z 28.5N  80.2W
+MAX WIND 110 KT...GUSTS 135 KT.
+64 KT... 50NE  40SE  30SW  50NW.
+50 KT... 70NE  70SE  50SW  70NW.
+34 KT...160NE 140SE  90SW 120NW.
+
+FORECAST VALID 08/0000Z 30.3N  80.8W
+MAX WIND 105 KT...GUSTS 130 KT.
+64 KT... 50NE  40SE  30SW  40NW.
+50 KT... 80NE  70SE  50SW  70NW.
+34 KT...180NE 160SE  90SW 110NW.
+
+FORECAST VALID 08/1200Z 31.8N  80.2W
+MAX WIND  90 KT...GUSTS 110 KT.
+64 KT... 40NE  40SE  20SW  20NW.
+50 KT... 80NE  70SE  40SW  40NW.
+34 KT...200NE 160SE  90SW  90NW.
+
+FORECAST VALID 09/0000Z 32.6N  78.7W
+MAX WIND  75 KT...GUSTS  90 KT.
+50 KT... 60NE  60SE  40SW  30NW.
+34 KT...150NE 150SE 120SW  90NW.
+
+FORECAST VALID 10/0000Z 31.5N  75.5W
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 40NE  60SE  60SW  40NW.
+34 KT...120NE 150SE 150SW 120NW.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 200 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 11/0000Z 29.0N  75.5W
+MAX WIND  50 KT...GUSTS  60 KT.
+
+OUTLOOK VALID 12/0000Z 27.0N  77.0W
+MAX WIND  40 KT...GUSTS  50 KT.
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 27.1N  79.2W
+
+NEXT ADVISORY AT 07/0900Z
+
+$$
+FORECASTER BEVEN
+
+
+</pre>]]></description>
+<pubDate>Fri, 07 Oct 2016 02:55:59 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCMAT4+shtml/070255.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCMAT4+shtml/070255.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane MATTHEW Forecast Discussion Number 36</title>
+<description>Issued at 1100 PM EDT THU OCT 06 2016  <![CDATA[<pre>
+
+000
+WTNT44 KNHC 070257
+TCDAT4
+
+HURRICANE MATTHEW DISCUSSION NUMBER  36
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL142016
+1100 PM EDT THU OCT 06 2016
+
+The satellite appearance of Matthew has improved during the past
+several hours, with an eye embedded within a more circular central
+dense overcast and an increase in the outer banding.  Reports from
+a NOAA Hurricane Hunter aircraft and coastal radar data show the
+presence of centric eyewalls with diameters of about 8 and 60 n mi
+respectively.  The NOAA aircraft earlier reported a minimum pressure
+of 937 mb, and an Air Force Reserve Hurricane Hunter just reported
+estimated surface winds of 109 kt from the SFMR and a pressure of
+939 mb. Based on these data, the initial intensity is 115 kt.
+
+The initial motion is 325/11 kt. For the next 24-48 hours, Matthew
+should move around the western end of the subtropical ridge, with
+the motion gradually turning northward and then northeastward.
+During this time, the center of the guidance envelope and the
+various consensus models have shifted a little to the east. However,
+the ECMWF, GFS, and UKMET continue to suggest the possibility of the
+hurricane making landfall in Florida and then moving near the coasts
+of Georgia and South Carolina.  This part of the forecast is nudged
+a little to the east and lies between the model consensus and the
+previous forecast. After 48 hours, a mid- to upper-level ridge is
+forecast to build north and west of Matthew, and the track guidance
+forecasts a southeasterly to southerly motion in response. While
+there is still a large spread, the GFS, ECMWF, and UKMET are in
+better agreement that Matthew should move south between the ridge
+and Hurricane Nicole to the east.  This part of the forecast follows
+this guidance and lies between the GFS and ECMWF.
+
+During the next 12-24 hours, Matthew will likely weaken a little as
+it undergoes an eyewall replacement cycle.  After that time, it is
+expected to encounter strong southwesterly vertical shear, and later
+in the forecast period dry air is likely to entrain into the
+cyclone.  This combination should cause steady weakening, and
+Matthew is forecast to drop below hurricane strength by 72 hours.
+The new intensity forecast is in best agreement with the SHIPS
+model.
+
+KEY MESSAGES:
+
+1.  Matthew is likely to produce devastating impacts from storm
+surge, extreme winds, and heavy rains in the northwestern Bahamas
+today, and along extensive portions of the east coast of Florida
+tonight.
+
+2.  Evacuations are not just a coastal event.  Strong winds will
+occur well inland from the coast, and residents of mobile
+homes under evacuation orders are urged to heed those orders.
+
+3.  Hurricane winds increase very rapidly with height, and residents
+of high-rise buildings are at particular risk of strong winds. Winds
+at the top of a 30-story building will average one Saffir-Simpson
+category higher than the winds near the surface.
+
+4.  When a hurricane is forecast to take a track roughly parallel to
+a coastline, as Matthew is forecast to do from Florida through South
+Carolina, it becomes very difficult to specify impacts at any one
+location.  Only a small deviation of the track to the left of the
+NHC forecast could bring the core of a major hurricane onshore
+within the hurricane warning area in Florida and Georgia.  Modest
+deviations to the right could keep much of the hurricane-force winds
+offshore.  Similarly large variations in impacts are possible in the
+hurricane watch and warning areas in northeast Georgia and South
+Carolina.
+
+5.  The National Hurricane Center is issuing Potential Storm Surge
+Flooding Maps, and Prototype Storm Surge Watch/Warning Graphics for
+Matthew.  It is important to remember that the Potential Storm Surge
+Flooding Map does not represent a forecast of expected inundation,
+but rather depicts a reasonable worst-case scenario -- the amount of
+inundation that has a 10 percent chance of being exceeded.
+
+
+FORECAST POSITIONS AND MAX WINDS
+
+INIT  07/0300Z 27.1N  79.2W  115 KT 130 MPH
+ 12H  07/1200Z 28.5N  80.2W  110 KT 125 MPH
+  24H  08/0000Z 30.3N  80.8W  105 KT 120 MPH
+   36H  08/1200Z 31.8N  80.2W   90 KT 105 MPH
+    48H  09/0000Z 32.6N  78.7W   75 KT  85 MPH
+     72H  10/0000Z 31.5N  75.5W   60 KT  70 MPH
+      96H  11/0000Z 29.0N  75.5W   50 KT  60 MPH
+      120H  12/0000Z 27.0N  77.0W   40 KT  45 MPH
+
+$$
+Forecaster Beven
+
+</pre>]]></description>
+<pubDate>Fri, 07 Oct 2016 02:57:55 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCDAT4+shtml/070257.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCDAT4+shtml/070257.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane MATTHEW Wind Speed Probabilities Number 36</title>
+<description>Issued at 0300 UTC FRI OCT 07 2016  <![CDATA[<pre>
+
+000
+FONT14 KNHC 070256
+PWSAT4
+
+HURRICANE MATTHEW WIND SPEED PROBABILITIES NUMBER  36
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL142016
+0300 UTC FRI OCT 07 2016
+
+AT 0300Z THE CENTER OF HURRICANE MATTHEW WAS LOCATED NEAR LATITUDE
+27.1 NORTH...LONGITUDE 79.2 WEST WITH MAXIMUM SUSTAINED WINDS NEAR
+115 KTS...130 MPH...215 KM/H.
+
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME
+      EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME
+         CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME
+
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS
+
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST
+   ...34 KT (39 MPH... 63 KM/H)...
+      ...50 KT (58 MPH... 93 KM/H)...
+         ...64 KT (74 MPH...119 KM/H)...
+         FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS
+
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING
+            AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)
+               (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN
+                       00Z FRI AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)
+
+PROBABILITIES ARE GIVEN IN PERCENT
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.
+PROBABILITIES FOR 64 KT ARE SHOWN WHEN THE 5-DAY CUMULATIVE
+PROBABILITY IS AT LEAST 1 PERCENT.
+
+
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -
+
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM
+                 TIME       00Z FRI 12Z FRI 00Z SAT 12Z SAT 00Z SUN 00Z MON 00Z TUE
+                 PERIODS         TO      TO      TO      TO      TO      TO      TO
+                              12Z FRI 00Z SAT 12Z SAT 00Z SUN 00Z MON 00Z TUE 00Z WED
+
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+LOCATION       KT
+
+RICHMOND VA    34  X   X( X)   X( X)   1( 1)   2( 3)   X( 3)   X( 3)
+
+DANVILLE VA    34  X   X( X)   2( 2)   3( 5)   3( 8)   X( 8)   X( 8)
+
+NORFOLK NAS    34  X   X( X)   X( X)   3( 3)   2( 5)   1( 6)   X( 6)
+
+NORFOLK VA     34  X   X( X)   X( X)   3( 3)   3( 6)   1( 7)   X( 7)
+
+OCEANA NAS VA  34  X   X( X)   X( X)   3( 3)   3( 6)   1( 7)   X( 7)
+
+ELIZABETH CTY  34  X   X( X)   1( 1)   4( 5)   5(10)   1(11)   X(11)
+
+GREENSBORO NC  34  X   X( X)   4( 4)   3( 7)   3(10)   1(11)   X(11)
+
+RALEIGH NC     34  X   X( X)   5( 5)   5(10)   4(14)   1(15)   X(15)
+
+ROCKY MT NC    34  X   X( X)   4( 4)   6(10)   5(15)   1(16)   X(16)
+
+CAPE HATTERAS  34  X   X( X)   2( 2)   9(11)  10(21)   2(23)   X(23)
+CAPE HATTERAS  50  X   X( X)   X( X)   1( 1)   2( 3)   X( 3)   X( 3)
+
+FAYETTEVILLE   34  X   2( 2)  11(13)  14(27)   6(33)   X(33)   X(33)
+
+CHARLOTTE NC   34  X   2( 2)   6( 8)   4(12)   3(15)   X(15)   X(15)
+
+CHERRY PT NC   34  X   1( 1)   7( 8)  16(24)  11(35)   2(37)   X(37)
+CHERRY PT NC   50  X   X( X)   X( X)   3( 3)   2( 5)   1( 6)   X( 6)
+
+NEW RIVER NC   34  X   1( 1)   6( 7)  16(23)  14(37)   2(39)   X(39)
+NEW RIVER NC   50  X   X( X)   X( X)   3( 3)   4( 7)   1( 8)   X( 8)
+NEW RIVER NC   64  X   X( X)   X( X)   1( 1)   1( 2)   X( 2)   X( 2)
+
+MOREHEAD CITY  34  X   1( 1)   7( 8)  18(26)  13(39)   2(41)   X(41)
+MOREHEAD CITY  50  X   X( X)   X( X)   4( 4)   3( 7)   1( 8)   X( 8)
+MOREHEAD CITY  64  X   X( X)   X( X)   1( 1)   1( 2)   X( 2)   X( 2)
+
+SURF CITY NC   34  X   2( 2)  14(16)  23(39)  11(50)   1(51)   X(51)
+SURF CITY NC   50  X   X( X)   1( 1)   6( 7)   5(12)   X(12)   X(12)
+SURF CITY NC   64  X   X( X)   X( X)   2( 2)   1( 3)   X( 3)   X( 3)
+
+WILMINGTON NC  34  X   3( 3)  16(19)  24(43)  10(53)   2(55)   X(55)
+WILMINGTON NC  50  X   X( X)   1( 1)   8( 9)   6(15)   X(15)   X(15)
+WILMINGTON NC  64  X   X( X)   X( X)   2( 2)   1( 3)   X( 3)   X( 3)
+
+BALD HEAD ISL  34  X   5( 5)  23(28)  26(54)  11(65)   2(67)   X(67)
+BALD HEAD ISL  50  X   X( X)   3( 3)  14(17)   9(26)   X(26)   X(26)
+BALD HEAD ISL  64  X   X( X)   1( 1)   4( 5)   3( 8)   X( 8)   X( 8)
+
+FLORENCE SC    34  X   5( 5)  26(31)  15(46)   6(52)   1(53)   X(53)
+FLORENCE SC    50  X   X( X)   3( 3)   4( 7)   1( 8)   X( 8)   X( 8)
+
+COLUMBIA SC    34  X   6( 6)  22(28)   9(37)   3(40)   X(40)   X(40)
+COLUMBIA SC    50  X   X( X)   2( 2)   1( 3)   X( 3)   X( 3)   X( 3)
+
+LITTLE RIVER   34  X   6( 6)  29(35)  22(57)   8(65)   1(66)   X(66)
+LITTLE RIVER   50  X   X( X)   5( 5)  13(18)   6(24)   X(24)   X(24)
+LITTLE RIVER   64  X   X( X)   1( 1)   4( 5)   2( 7)   X( 7)   X( 7)
+
+MYRTLE BEACH   34  X   8( 8)  36(44)  18(62)   7(69)   1(70)   X(70)
+MYRTLE BEACH   50  X   X( X)   7( 7)  16(23)   6(29)   X(29)   X(29)
+MYRTLE BEACH   64  X   X( X)   1( 1)   6( 7)   2( 9)   X( 9)   X( 9)
+
+GEORGETOWN SC  34  1  14(15)  39(54)  17(71)   5(76)   1(77)   X(77)
+GEORGETOWN SC  50  X   X( X)  15(15)  17(32)   5(37)   X(37)   X(37)
+GEORGETOWN SC  64  X   X( X)   4( 4)   9(13)   1(14)   X(14)   X(14)
+
+CHARLESTON SC  34  2  30(32)  37(69)   9(78)   3(81)   X(81)   X(81)
+CHARLESTON SC  50  X   2( 2)  28(30)  14(44)   3(47)   X(47)   X(47)
+CHARLESTON SC  64  X   X( X)  14(14)  10(24)   1(25)   X(25)   X(25)
+
+BEAUFORT MCAS  34  2  45(47)  30(77)   5(82)   2(84)   X(84)   X(84)
+BEAUFORT MCAS  50  X   5( 5)  37(42)   6(48)   1(49)   X(49)   X(49)
+BEAUFORT MCAS  64  X   1( 1)  18(19)   5(24)   X(24)   X(24)   X(24)
+
+ATLANTA GA     34  X   3( 3)   3( 6)   1( 7)   X( 7)   X( 7)   X( 7)
+
+AUGUSTA GA     34  1   8( 9)  19(28)   5(33)   2(35)   X(35)   X(35)
+AUGUSTA GA     50  X   X( X)   2( 2)   1( 3)   X( 3)   X( 3)   X( 3)
+
+SAVANNAH GA    34  3  55(58)  23(81)   3(84)   1(85)   X(85)   X(85)
+SAVANNAH GA    50  X  11(11)  33(44)   4(48)   1(49)   X(49)   X(49)
+SAVANNAH GA    64  X   3( 3)  17(20)   2(22)   X(22)   X(22)   X(22)
+
+KINGS BAY GA   34 12  77(89)   5(94)   X(94)   X(94)   X(94)   X(94)
+KINGS BAY GA   50  1  54(55)  13(68)   1(69)   X(69)   X(69)   X(69)
+KINGS BAY GA   64  X  29(29)  12(41)   1(42)   X(42)   X(42)   X(42)
+
+WAYCROSS GA    34  3  56(59)  13(72)   2(74)   X(74)   X(74)   1(75)
+WAYCROSS GA    50  X  11(11)   6(17)   X(17)   1(18)   X(18)   X(18)
+WAYCROSS GA    64  X   1( 1)   X( 1)   X( 1)   X( 1)   X( 1)   X( 1)
+
+MAYPORT NS FL  34 27  67(94)   2(96)   X(96)   X(96)   X(96)   X(96)
+MAYPORT NS FL  50  2  64(66)   8(74)   1(75)   X(75)   X(75)   X(75)
+MAYPORT NS FL  64  X  41(41)  10(51)   X(51)   X(51)   X(51)   X(51)
+
+JACKSONVILLE   34 17  73(90)   3(93)   1(94)   X(94)   X(94)   X(94)
+JACKSONVILLE   50  2  54(56)   9(65)   X(65)   X(65)   X(65)   X(65)
+JACKSONVILLE   64  X  25(25)   6(31)   X(31)   X(31)   X(31)   X(31)
+
+GAINESVILLE FL 34 19  55(74)   3(77)   1(78)   1(79)   X(79)   X(79)
+GAINESVILLE FL 50  2  12(14)   2(16)   X(16)   X(16)   X(16)   X(16)
+GAINESVILLE FL 64  X   2( 2)   X( 2)   X( 2)   X( 2)   X( 2)   X( 2)
+
+DAYTONA BEACH  34 93   6(99)   X(99)   X(99)   1(99)   X(99)   X(99)
+DAYTONA BEACH  50 46  41(87)   1(88)   X(88)   X(88)   X(88)   X(88)
+DAYTONA BEACH  64 15  49(64)   1(65)   X(65)   X(65)   X(65)   X(65)
+
+THE VILLAGES   34 58  22(80)   1(81)   1(82)   1(83)   X(83)   X(83)
+THE VILLAGES   50  4  14(18)   1(19)   X(19)   X(19)   X(19)   X(19)
+THE VILLAGES   64  1   1( 2)   X( 2)   X( 2)   X( 2)   X( 2)   X( 2)
+
+ORLANDO FL     34 93   2(95)   X(95)   1(96)   X(96)   X(96)   X(96)
+ORLANDO FL     50 43  10(53)   1(54)   X(54)   X(54)   X(54)   X(54)
+ORLANDO FL     64  9   9(18)   X(18)   X(18)   X(18)   X(18)   X(18)
+
+COCOA BEACH FL 34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+COCOA BEACH FL 50 90   2(92)   X(92)   X(92)   X(92)   X(92)   X(92)
+COCOA BEACH FL 64 64   4(68)   X(68)   X(68)   X(68)   X(68)   X(68)
+
+PATRICK AFB    34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+PATRICK AFB    50 90   2(92)   X(92)   X(92)   X(92)   X(92)   X(92)
+PATRICK AFB    64 62   3(65)   X(65)   X(65)   X(65)   1(66)   X(66)
+
+FT PIERCE FL   34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+FT PIERCE FL   50 89   1(90)   X(90)   X(90)   X(90)   X(90)   X(90)
+FT PIERCE FL   64 41   X(41)   X(41)   X(41)   X(41)   1(42)   X(42)
+
+W PALM BEACH   34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+W PALM BEACH   50 25   X(25)   X(25)   X(25)   X(25)   X(25)   1(26)
+W PALM BEACH   64  1   X( 1)   X( 1)   X( 1)   X( 1)   X( 1)   X( 1)
+
+FT LAUDERDALE  34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+
+MIAMI FL       34  8   2(10)   1(11)   X(11)   X(11)   2(13)   2(15)
+
+MARATHON FL    34  2   1( 3)   X( 3)   X( 3)   X( 3)   X( 3)   3( 6)
+
+KEY WEST FL    34  2   X( 2)   X( 2)   X( 2)   X( 2)   1( 3)   1( 4)
+
+NAPLES FL      34  3   2( 5)   1( 6)   X( 6)   X( 6)   1( 7)   2( 9)
+
+FT MYERS FL    34  3   4( 7)   1( 8)   X( 8)   X( 8)   1( 9)   2(11)
+
+VENICE FL      34  3   4( 7)   1( 8)   1( 9)   X( 9)   1(10)   X(10)
+
+TAMPA FL       34 12   7(19)   3(22)   1(23)   X(23)   1(24)   1(25)
+TAMPA FL       50  2   1( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+
+CEDAR KEY FL   34  5  20(25)   3(28)   1(29)   1(30)   X(30)   X(30)
+CEDAR KEY FL   50  1   2( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+
+TALLAHASSEE FL 34  2   4( 6)   3( 9)   1(10)   X(10)   1(11)   X(11)
+
+ST MARKS FL    34  2   4( 6)   3( 9)   1(10)   X(10)   1(11)   X(11)
+
+APALACHICOLA   34  2   3( 5)   2( 7)   X( 7)   X( 7)   1( 8)   X( 8)
+
+GFMX 290N 850W 34  2   3( 5)   1( 6)   X( 6)   X( 6)   1( 7)   X( 7)
+
+PANAMA CITY FL 34  1   3( 4)   2( 6)   X( 6)   X( 6)   X( 6)   X( 6)
+
+COLUMBUS GA    34  X   4( 4)   2( 6)   1( 7)   X( 7)   1( 8)   X( 8)
+
+GRAND BAHAMA   34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+GRAND BAHAMA   50 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+GRAND BAHAMA   64 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+
+NEW PROVIDENCE 34  2   1( 3)   X( 3)   X( 3)   X( 3)   5( 8)   5(13)
+
+ANDROS         34  1   X( 1)   X( 1)   X( 1)   X( 1)   3( 4)   4( 8)
+
+GREAT EXUMA    34  X   X( X)   X( X)   X( X)   X( X)   3( 3)   3( 6)
+
+SAN SALVADOR   34  X   X( X)   X( X)   X( X)   X( X)   3( 3)   3( 6)
+
+CIENFUEGOS     34  X   X( X)   X( X)   X( X)   X( X)   X( X)   3( 3)
+
+CAMAGUEY       34  X   X( X)   X( X)   X( X)   X( X)   X( X)   3( 3)
+
+$$
+FORECASTER BEVEN
+</pre>]]></description>
+<pubDate>Fri, 07 Oct 2016 02:56:55 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIAPWSAT4+shtml/070256.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIAPWSAT4+shtml/070256.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane MATTHEW Graphics</title>
+<description>
+<![CDATA[
+<a href="http://www.nhc.noaa.gov/refresh/graphics_at4+shtml/214535.shtml?5-daynl">
+<img src="http://www.nhc.noaa.gov/storm_graphics/AT14/AL1416W5_NL_sm2.gif"
+alt="Hurricane MATTHEW 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Fri, 07 Oct 2016 02:57:45 GMT
+<br /><br /><a href="http://www.nhc.noaa.gov/refresh/graphics_at4+shtml/214535.shtml?tswind120">
+<img src="http://www.nhc.noaa.gov/storm_graphics/AT14/AL1416_PROB34_F120_sm2.gif"
+alt="Hurricane MATTHEW 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Fri, 07 Oct 2016 03:05:36 GMT
+]]>
+</description>
+<pubDate>Fri, 07 Oct 2016 03:09:23 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/refresh/graphics_at4+shtml/214535.shtml?5-daynl</link>
+<guid>http://www.nhc.noaa.gov/refresh/graphics_at4+shtml/214535.shtml?5-daynl</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane MATTHEW Probabilistic Storm Surge Graphics</title>
+<description>
+<![CDATA[
+<a href="http://www.nhc.noaa.gov/refresh/graphics_at4+shtml/214535.shtml?gm_psurge">
+<img src="http://www.nhc.noaa.gov/storm_graphics/AT14/AL1416_psurge2_m1_sm2.png"
+alt="Hurricane MATTHEW Probabilistic Storm Surge Graphics Image"
+width="500" height="400" /></a><br/>
+Probabilistic Storm Surge Graphics last updated Thu, 06 Oct 2016 21:45:35 GMT
+]]>
+</description>
+<pubDate>Thu, 06 Oct 2016 21:45:35 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/refresh/graphics_at4+shtml/214535.shtml?gm_psurge</link>
+<guid>http://www.nhc.noaa.gov/refresh/graphics_at4+shtml/214535.shtml?gm_psurge</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane MATTHEW Potential Storm Surge Flooding Map</title>
+<description>
+<![CDATA[
+<a href="http://www.nhc.noaa.gov/refresh/graphics_at4+shtml/214535.shtml?inundation">
+<img src="http://www.nhc.noaa.gov/images/inundation_thumb.png"
+alt="Hurricane MATTHEW Link to Potential Storm Surge Flooding Map"
+width="60" height="48" /></a><br/>
+Potential Storm Surge Flooding Map last updated Thu, 06 Oct 2016 22:05:15 GMT
+]]>
+</description>
+<pubDate>Thu, 06 Oct 2016 22:05:15 GMT</pubDate>
+<validAdvisory>35</validAdvisory>
+<link>http://www.nhc.noaa.gov/refresh/graphics_at4+shtml/214535.shtml?inundation</link>
+<guid>http://www.nhc.noaa.gov/refresh/graphics_at4+shtml/214535.shtml?inundation</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Atlanta, GA</title>
+<description>Issued at  523 PM EDT THU OCT 6 2016</description>
+<pubDate>Thu, 06 Oct 2016 21:23:54 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS82-KFFC.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS82-KFFC.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Jacksonville, FL</title>
+<description>Issued at  551 PM EDT THU OCT 6 2016</description>
+<pubDate>Thu, 06 Oct 2016 21:51:23 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS82-KJAX.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS82-KJAX.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Melbourne, FL</title>
+<description>Issued at  601 PM EDT THU OCT 6 2016</description>
+<pubDate>Thu, 06 Oct 2016 22:02:06 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS82-KMLB.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS82-KMLB.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Charleston, SC</title>
+<description>Issued at  807 PM EDT THU OCT 6 2016</description>
+<pubDate>Fri, 07 Oct 2016 00:08:17 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS82-KCHS.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS82-KCHS.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Miami, FL</title>
+<description>Issued at  839 PM EDT THU OCT 6 2016</description>
+<pubDate>Fri, 07 Oct 2016 00:39:59 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS82-KMFL.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS82-KMFL.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Tampa Bay Area, FL</title>
+<description>Issued at  848 PM EDT THU OCT 6 2016</description>
+<pubDate>Fri, 07 Oct 2016 00:48:43 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS82-KTBW.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS82-KTBW.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Wilmington, NC</title>
+<description>Issued at  912 PM EDT THU OCT 6 2016</description>
+<pubDate>Fri, 07 Oct 2016 01:13:12 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS82-KILM.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS82-KILM.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Key West, FL</title>
+<description>Issued at  1106 PM EDT THU OCT 6 2016</description>
+<pubDate>Fri, 07 Oct 2016 03:06:13 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS82-KKEY.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS82-KKEY.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+ <title>Summary for Hurricane NICOLE (AT5/AL152016)</title>
+  <guid isPermaLink="false">summary-al152016-201610070236</guid>
+   <pubDate>Fri, 07 Oct 2016 02:36:34 GMT</pubDate>
+    <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+     <link>http://www.nhc.noaa.gov/text/refresh/MIATCPAT5+shtml/070236.shtml</link>
+      <description>
+        ...NICOLE BECOMES A CATEGORY TWO HURRICANE...
+         As of 11:00 PM AST Thu Oct 6
+          the center of NICOLE was located near 27.4, -65.2
+           with movement Stationary.
+            The minimum central pressure was 968 mb
+             with maximum sustained winds of about 105 mph.
+              </description>
+               <nhc:Cyclone>
+                 <nhc:center>27.4, -65.2</nhc:center>
+                   <nhc:type>HURRICANE</nhc:type>
+                     <nhc:name>NICOLE</nhc:name>
+                       <nhc:wallet>AT5</nhc:wallet>
+                         <nhc:atcf>AL152016</nhc:atcf>
+                           <nhc:datetime>11:00 PM AST Thu Oct 6</nhc:datetime>
+                             <nhc:movement>Stationary</nhc:movement>
+                               <nhc:pressure>968 mb</nhc:pressure>
+                                 <nhc:wind>105 mph</nhc:wind>
+                                   <nhc:headline> ...NICOLE BECOMES A CATEGORY TWO HURRICANE...</nhc:headline>
+                                    </nhc:Cyclone>
+                                    </item>
+                                    <item>
+                                    <title>Hurricane NICOLE Public Advisory Number 12</title>
+                                    <description>Issued at 1100 PM AST THU OCT 06 2016  <![CDATA[<pre>
+
+000
+WTNT35 KNHC 070236
+TCPAT5
+
+BULLETIN
+HURRICANE NICOLE ADVISORY NUMBER  12
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL152016
+1100 PM AST THU OCT 06 2016
+
+...NICOLE BECOMES A CATEGORY TWO HURRICANE...
+
+
+SUMMARY OF 1100 PM AST...0300 UTC...INFORMATION
+-----------------------------------------------
+LOCATION...27.4N 65.2W
+ABOUT 340 MI...545 KM S OF BERMUDA
+MAXIMUM SUSTAINED WINDS...105 MPH...165 KM/H
+PRESENT MOVEMENT...STATIONARY
+MINIMUM CENTRAL PRESSURE...968 MB...28.59 INCHES
+
+
+WATCHES AND WARNINGS
+--------------------
+There are no coastal watches or warnings in effect.
+
+
+DISCUSSION AND 48-HOUR OUTLOOK
+------------------------------
+At 1100 PM AST (0300 UTC), the center of Hurricane Nicole was
+located near latitude 27.4 North, longitude 65.2 West. Nicole is
+currently stationary but is expected to drift generally southward on
+Friday and Saturday.
+
+Maximum sustained winds have increased to near 105 mph (165
+km/h) with higher gusts.  Some weakening is likely to begin on
+Friday with Nicole.
+
+Nicole is a small tropical cyclone.  Hurricane-force winds extend
+outward up to 15 miles (30 km) from the center and tropical-storm-
+force winds extend outward up to 90 miles (150 km).
+
+The estimated minimum central pressure is 968 mb (28.59 inches).
+
+
+HAZARDS AFFECTING LAND
+----------------------
+SURF: Swells associated with Nicole, along with rough surf
+conditions, will affect Bermuda for the next few days.
+
+
+NEXT ADVISORY
+-------------
+Next complete advisory at 500 AM AST.
+
+$$
+Forecaster Blake
+
+</pre>]]></description>
+<pubDate>Fri, 07 Oct 2016 02:36:34 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCPAT5+shtml/070236.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCPAT5+shtml/070236.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane NICOLE Forecast Advisory Number 12</title>
+<description>Issued at 0300 UTC FRI OCT 07 2016  <![CDATA[<pre>
+
+000
+WTNT25 KNHC 070236
+TCMAT5
+ 
+HURRICANE NICOLE FORECAST/ADVISORY NUMBER  12
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL152016
+0300 UTC FRI OCT 07 2016
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+HURRICANE CENTER LOCATED NEAR 27.4N  65.2W AT 07/0300Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH OR 360 DEGREES AT   0 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  968 MB
+MAX SUSTAINED WINDS  90 KT WITH GUSTS TO 110 KT.
+64 KT....... 15NE  15SE  10SW  10NW.
+50 KT....... 30NE  30SE  20SW  20NW.
+34 KT....... 80NE  80SE  50SW  50NW.
+12 FT SEAS..120NE 120SE  30SW  30NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 27.4N  65.2W AT 07/0300Z
+AT 07/0000Z CENTER WAS LOCATED NEAR 27.4N  65.2W
+ 
+FORECAST VALID 07/1200Z 27.3N  65.2W
+MAX WIND  85 KT...GUSTS 105 KT.
+64 KT... 15NE  15SE  10SW  10NW.
+50 KT... 30NE  30SE  20SW  20NW.
+34 KT... 80NE  80SE  50SW  50NW.
+ 
+FORECAST VALID 08/0000Z 26.8N  65.1W
+MAX WIND  80 KT...GUSTS 100 KT.
+64 KT... 15NE  15SE  10SW  10NW.
+50 KT... 30NE  30SE  20SW  20NW.
+34 KT... 80NE  80SE  50SW  50NW.
+ 
+FORECAST VALID 08/1200Z 26.1N  64.7W
+MAX WIND  75 KT...GUSTS  90 KT.
+64 KT... 15NE  15SE  10SW  10NW.
+50 KT... 30NE  30SE  20SW  20NW.
+34 KT... 90NE  90SE  60SW  60NW.
+ 
+FORECAST VALID 09/0000Z 25.5N  64.7W
+MAX WIND  70 KT...GUSTS  85 KT.
+50 KT... 40NE  40SE  20SW  20NW.
+34 KT...100NE 100SE  80SW  80NW.
+ 
+FORECAST VALID 10/0000Z 26.0N  66.0W
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 40NE  40SE  20SW  20NW.
+34 KT...100NE 100SE  80SW  80NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 200 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 11/0000Z 27.5N  67.0W
+MAX WIND  60 KT...GUSTS  75 KT.
+ 
+OUTLOOK VALID 12/0000Z 29.0N  68.0W
+MAX WIND  65 KT...GUSTS  80 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 27.4N  65.2W
+ 
+NEXT ADVISORY AT 07/0900Z
+ 
+$$
+FORECASTER BLAKE
+ 
+ 
+</pre>]]></description>
+<pubDate>Fri, 07 Oct 2016 02:36:34 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCMAT5+shtml/070236.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCMAT5+shtml/070236.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane NICOLE Forecast Discussion Number 12</title>
+<description>Issued at 1100 PM AST THU OCT 06 2016  <![CDATA[<pre>
+
+000
+WTNT45 KNHC 070241
+TCDAT5
+
+HURRICANE NICOLE DISCUSSION NUMBER  12
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL152016
+1100 PM AST THU OCT 06 2016
+
+Nicole has rapidly intensified during the day, with a pinhole eye
+apparent in satellite and microwave imagery.  Although the eye has
+recently become obscured, Dvorak satellite estimates support an
+initial intensity of 90 kt for this advisory.  All of the guidance
+suggests that the shear near Nicole should increase during the next
+couple of days since the tropical cyclone will be in an environment
+of increasingly strong upper-level northerly winds.  Thus Nicole
+is probably near its peak intensity, and slow weakening is forecast
+from Friday through the weekend.  The large-scale environment
+could become more conducive for re-intensification by days 4 or 5,
+and some restrengthening is shown around that time.  The new
+intensity forecast is very close to the previous one, slightly above
+the model consensus.
+
+Nicole has moved very little during the past several hours.  The
+hurricane will likely begin to drift southward by tomorrow
+afternoon due to steering from the western side of a mid-level
+trough.  Thereafter, Nicole could gradually turn toward the
+southwest, west, and northwest over the next few days around a
+ridge over the western Atlantic Ocean.  There is better agreement in
+the guidance than yesterday, although the ECMWF remains a bit of an
+outlier solution to the east.  Since a stronger system would likely
+respond more to the deep-layer northerly flow, the new NHC track is
+shifted a bit to the south of the previous forecast in a couple of
+days, but ends up close to the last NHC advisory by day 5.
+
+A climate note:  This is the first time since September 10, 1964
+that two Category 2 (or stronger) hurricanes have occurred
+simultaneously in the Atlantic basin west of 65W.  Interestingly,
+those hurricanes in 1964, Dora and Ethel, were in similar positions
+as Matthew and Nicole are now.
+
+
+FORECAST POSITIONS AND MAX WINDS
+
+INIT  07/0300Z 27.4N  65.2W   90 KT 105 MPH
+ 12H  07/1200Z 27.3N  65.2W   85 KT 100 MPH
+  24H  08/0000Z 26.8N  65.1W   80 KT  90 MPH
+   36H  08/1200Z 26.1N  64.7W   75 KT  85 MPH
+    48H  09/0000Z 25.5N  64.7W   70 KT  80 MPH
+     72H  10/0000Z 26.0N  66.0W   60 KT  70 MPH
+      96H  11/0000Z 27.5N  67.0W   60 KT  70 MPH
+      120H  12/0000Z 29.0N  68.0W   65 KT  75 MPH
+
+$$
+Forecaster Blake
+
+</pre>]]></description>
+<pubDate>Fri, 07 Oct 2016 02:42:00 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCDAT5+shtml/070241.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCDAT5+shtml/070241.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane NICOLE Wind Speed Probabilities Number 12</title>
+<description>Issued at 0300 UTC FRI OCT 07 2016                                              <![CDATA[<pre>
+
+000
+FONT15 KNHC 070236
+PWSAT5
+                                                                    
+HURRICANE NICOLE WIND SPEED PROBABILITIES NUMBER  12                
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL152016               
+0300 UTC FRI OCT 07 2016                                            
+                                                                    
+AT 0300Z THE CENTER OF HURRICANE NICOLE WAS LOCATED NEAR LATITUDE   
+27.4 NORTH...LONGITUDE 65.2 WEST WITH MAXIMUM SUSTAINED WINDS NEAR  
+90 KTS...105 MPH...165 KM/H.                                        
+                                                                    
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)                  
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME      
+      EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME      
+         CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME      
+                                                                             
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS                 
+                                                                    
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST     
+   ...34 KT (39 MPH... 63 KM/H)...                                  
+      ...50 KT (58 MPH... 93 KM/H)...                                  
+         ...64 KT (74 MPH...119 KM/H)...                                  
+         FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS               
+                                                                             
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE               
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING            
+            AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)               
+               (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN           
+                       00Z FRI AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)      
+                                                                                           
+PROBABILITIES ARE GIVEN IN PERCENT                                  
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT                       
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.             
+PROBABILITIES FOR 64 KT ARE SHOWN WHEN THE 5-DAY CUMULATIVE         
+PROBABILITY IS AT LEAST 1 PERCENT.                                  
+                                                                    
+                                                                    
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -   
+                                                                      
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM 
+                 TIME       00Z FRI 12Z FRI 00Z SAT 12Z SAT 00Z SUN 00Z MON 00Z TUE
+                 PERIODS         TO      TO      TO      TO      TO      TO      TO  
+                              12Z FRI 00Z SAT 12Z SAT 00Z SUN 00Z MON 00Z TUE 00Z WED
+                                                                                                  
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+LOCATION       KT                                                   
+                                                                    
+CAPE HATTERAS  34  X   X( X)   X( X)   X( X)   X( X)   X( X)   4( 4)
+ 
+CHERRY PT NC   34  X   X( X)   X( X)   X( X)   X( X)   X( X)   3( 3)
+ 
+NEW RIVER NC   34  X   X( X)   X( X)   X( X)   X( X)   X( X)   3( 3)
+ 
+MOREHEAD CITY  34  X   X( X)   X( X)   X( X)   X( X)   X( X)   3( 3)
+ 
+BERMUDA        34  1   X( 1)   X( 1)   X( 1)   1( 2)   4( 6)   5(11)
+ 
+GRAND TURK     34  X   X( X)   X( X)   X( X)   1( 1)   1( 2)   1( 3)
+ 
+$$                                                                  
+FORECASTER BLAKE                                                    
+</pre>]]></description>
+<pubDate>Fri, 07 Oct 2016 02:36:56 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIAPWSAT5+shtml/070236.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIAPWSAT5+shtml/070236.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane NICOLE Graphics</title>
+<description>
+<![CDATA[
+<a href="http://www.nhc.noaa.gov/refresh/graphics_at5+shtml/023716.shtml?5-daynl">
+<img src="http://www.nhc.noaa.gov/storm_graphics/AT15/AL1516W5_NL_sm2.gif"
+alt="Hurricane NICOLE 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Fri, 07 Oct 2016 02:37:16 GMT
+<br /><br /><a href="http://www.nhc.noaa.gov/refresh/graphics_at5+shtml/023716.shtml?tswind120">
+<img src="http://www.nhc.noaa.gov/storm_graphics/AT15/AL1516_PROB34_F120_sm2.gif"
+alt="Hurricane NICOLE 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Fri, 07 Oct 2016 03:06:09 GMT
+]]>
+</description>
+<pubDate>Fri, 07 Oct 2016 03:06:14 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/refresh/graphics_at5+shtml/023716.shtml?5-daynl</link>
+<guid>http://www.nhc.noaa.gov/refresh/graphics_at5+shtml/023716.shtml?5-daynl</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+</channel>
+</rss>
+
