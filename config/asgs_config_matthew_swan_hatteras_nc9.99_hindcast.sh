@@ -28,10 +28,10 @@
 #
 # Fundamental 
 #
-INSTANCENAME=mattec95d   # name of this ASGS process, used in differentiating results
-COLDSTARTDATE=2016083000
-HOTORCOLD=coldstart            # "hotstart" or "coldstart" 
-LASTSUBDIR=null
+INSTANCENAME=hindmatt   # name of this ASGS process, used in differentiating results
+COLDSTARTDATE=2016061300
+HOTORCOLD=hotstart            # "hotstart" or "coldstart" 
+LASTSUBDIR=/projects/ncfs/data/asgs7144/34
 HINDCASTLENGTH=30.0            # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -39,7 +39,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables 
 SCRIPTDIR=~/asgs/2014stable  # ASGS scripts/executables  
-INPUTDIR=${SCRIPTDIR}/input/meshes/ec95d # dir containing grid and other input files 
+INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v9.99_w_rivers # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 
@@ -48,8 +48,8 @@ PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 BACKGROUNDMET=off    # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
 TROPICALCYCLONE=on   # [de]activate tropical cyclone forcing (temp. broken)
-WAVES=off            # [de]activate wave forcing 
-VARFLUX=off           # [de]activate variable river flux forcing
+WAVES=on            # [de]activate wave forcing 
+VARFLUX=on           # [de]activate variable river flux forcing
 
 # Computational Resources
 
@@ -57,11 +57,11 @@ TIMESTEPSIZE=0.5
 SWANDT=1200
 HINDCASTWALLTIME="24:00:00"
 ADCPREPWALLTIME="00:30:00"
-NOWCASTWALLTIME="02:00:00"  # must have leading zero, e.g., 05:00:00
+NOWCASTWALLTIME="05:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=54
-NUMWRITERS=1
-NCPUCAPACITY=256
+NCPU=580
+NUMWRITERS=8
+NCPUCAPACITY=588
 CYCLETIMELIMIT="05:00:00"
 # queue
 QUEUENAME=null
@@ -69,7 +69,7 @@ SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
 ACCOUNT=ncfs # or "ncfs" on hatteras to use pre-empt capability
 
-QSCRIPT=hatteras.reservation.debug.template.slurm
+QSCRIPT=hatteras.reservation.template.slurm
 PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm # jgf20160322
 
 
@@ -104,16 +104,14 @@ RIVERDATAPROTOCOL=scp
 
 # Input files and templates
 
-GRIDFILE=ec_95d.grd
-GRIDNAME=ec_95d
+GRIDFILE=nc_inundation_v9.99_rivers.14
+GRIDNAME=nc_inundation_v9.99_w_rivers
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=ec_95_fort.15_template
-CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=cera_stations.txt
-VELSTATIONS=${ELEVSTATIONS}
-METSTATIONS=${ELEVSTATIONS}
-NAFILE=null
-NAPROPERTIES=nodalattributes.properties
+CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
+ELEVSTATIONS=cera.ncv999stations.20160713
+VELSTATIONS=cera.ncv999stations.20160713
+METSTATIONS=cera.ncv999stations.20160713
+NAFILE=nc_inundation_v9.99_rivers.13
 SWANTEMPLATE=fort.26.limiter.template
 RIVERINIT=v6brivers.88
 RIVERFLUX=v6brivers_fort.20_default
@@ -144,16 +142,16 @@ HOTSTARTCOMP=fulldomain
 # binary or netcdf hotstart files
 HOTSTARTFORMAT=netcdf
 # "continuous" or "reset" for maxele.63 etc files
-MINMAX=reset
+MINMAX=continuous
 
 # Notification
 
-EMAILNOTIFY=yes # set to yes to have host platform email notifications
+EMAILNOTIFY=no # set to yes to have host platform email notifications
 NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
-ACTIVATE_LIST=null
-NEW_ADVISORY_LIST=null
-POST_INIT_LIST=null
-POST_LIST=null
+ACTIVATE_LIST="jason.g.fleming@gmail.com"
+NEW_ADVISORY_LIST="jason.g.fleming@gmail.com"
+POST_INIT_LIST="jason.g.fleming@gmail.com"
+POST_LIST="jason.g.fleming@gmail.com"
 JOB_FAILED_LIST="jason.g.fleming@gmail.com"
 NOTIFYUSER=jason.g.fleming@gmail.com
 ASGSADMIN=jason.g.fleming@gmail.com
@@ -162,7 +160,7 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 INTENDEDAUDIENCE=developers-only
 INITPOST=null_init_post.sh
-POSTPROCESS=renci_ensemble_post.sh
+POSTPROCESS=null_post.sh
 TARGET=hatteras
 POSTPROCESS2=null_post.sh
 WEBHOST=alpha.he.net
@@ -183,82 +181,132 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-STORMTRACKOPTIONS="--strengthPercent null"
-ENSEMBLESIZE=9 # number of storms in the ensemble
+ENSEMBLESIZE=1 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 0)
    ENSTORM=nhcConsensus
-   NCPU=54
-   NUMWRITERS=1
-   ;;
-1)
-   # 
-   ENSTORM=veerLeft100
-   PERCENT=-100
-   NCPU=27
-   NUMWRITERS=1
+   INTENDEDAUDIENCE=general
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
+1)
+   ENSTORM=veerLeft50
+   INTENDEDAUDIENCE=general
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   PERCENT=-50
+   ;;
 2)
-   ENSTORM=veerRight100
-   PERCENT=100
-   NCPU=27
-   NUMWRITERS=1
+   ENSTORM=nhcConsensus
+   WAVES=off
+   INTENDEDAUDIENCE=developers-only
+   POSTPROCESS=renci_ensemble_post.sh 
+   NCPU=248
+   NUMWRITERS=8 
+   NCPUCAPACITY=2304
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
 3)
-   ENSTORM=overlandSpeedFaster10
-   PERCENT=10
-   NCPU=27
-   NUMWRITERS=1
-   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   ENSTORM=veerLeft100
+   PERCENT=-100
+   WAVES=off
+   INTENDEDAUDIENCE=developers-only
+   POSTPROCESS=renci_ensemble_post.sh 
+   NCPU=248
+   NUMWRITERS=8 
+   NCPUCAPACITY=2304
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
 4)
-   ENSTORM=overlandSpeedSlower10
-   PERCENT=-10
-   NCPU=27
-   NUMWRITERS=1
-   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   ENSTORM=veerRight100
+   PERCENT=100
+   WAVES=off
+   INTENDEDAUDIENCE=developers-only
+   POSTPROCESS=renci_ensemble_post.sh 
+   NCPU=248
+   NUMWRITERS=8 
+   NCPUCAPACITY=2304
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
 5)
-   ENSTORM=left100faster10
-   STORMTRACKOPTIONS="--overlandSpeedPercent 10 --veerPercent -100"
-   NCPU=27
-   NUMWRITERS=1
-   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   ENSTORM=overlandSpeedFaster10
+   PERCENT=10
+   WAVES=off
+   INTENDEDAUDIENCE=developers-only
+   POSTPROCESS=renci_ensemble_post.sh 
+   NCPU=248
+   NUMWRITERS=8 
+   NCPUCAPACITY=2304
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
 6)
-   ENSTORM=right100faster10
-   STORMTRACKOPTIONS="--overlandSpeedPercent 10 --veerPercent 100"
-   NCPU=27
-   NUMWRITERS=1
-   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   ENSTORM=overlandSpeedSlower10
+   PERCENT=-10
+   WAVES=off
+   INTENDEDAUDIENCE=developers-only
+   POSTPROCESS=renci_ensemble_post.sh 
+   NCPU=248
+   NUMWRITERS=8 
+   NCPUCAPACITY=2304
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
 7)
-   ENSTORM=left100slower10
-   STORMTRACKOPTIONS="--overlandSpeedPercent -10 --veerPercent -100"
-   NCPU=27
-   NUMWRITERS=1
-   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   ENSTORM=left100faster10
+   STORMTRACKOPTIONS="--overlandSpeedPercent 10 --veerPercent -100"
+   WAVES=off
+   INTENDEDAUDIENCE=developers-only
+   POSTPROCESS=renci_ensemble_post.sh 
+   NCPU=248
+   NUMWRITERS=8 
+   NCPUCAPACITY=2304
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
 8)
+   ENSTORM=right100faster10
+   STORMTRACKOPTIONS="--overlandSpeedPercent 10 --veerPercent 100"
+   WAVES=off
+   INTENDEDAUDIENCE=developers-only
+   POSTPROCESS=renci_ensemble_post.sh 
+   NCPU=248
+   NUMWRITERS=8 
+   NCPUCAPACITY=2304
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   ;;
+9)
+   ENSTORM=left100slower10
+   STORMTRACKOPTIONS="--overlandSpeedPercent -10 --veerPercent -100"
+   WAVES=off
+   INTENDEDAUDIENCE=developers-only
+   POSTPROCESS=renci_ensemble_post.sh 
+   NCPU=248
+   NUMWRITERS=8 
+   NCPUCAPACITY=2304
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   ;;
+10)
    ENSTORM=right100slower10
    STORMTRACKOPTIONS="--overlandSpeedPercent -10 --veerPercent 100"
-   NCPU=27
-   NUMWRITERS=1
-   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   WAVES=off
+   INTENDEDAUDIENCE=developers-only
+   POSTPROCESS=renci_ensemble_post.sh 
+   NCPU=248
+   NUMWRITERS=8 
+   NCPUCAPACITY=2304
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
+
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
    ;;
