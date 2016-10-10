@@ -27,10 +27,10 @@
 
 # Fundamental
 
-INSTANCENAME=mattqhsofs    # "name" of this ASGS process
+INSTANCENAME=hindmatthq    # "name" of this ASGS process
 COLDSTARTDATE=2016082912 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart       # "hotstart" or "coldstart"
-LASTSUBDIR=null   # path to previous execution (if HOTORCOLD=hotstart)
+HOTORCOLD=hotstart       # "hotstart" or "coldstart"
+LASTSUBDIR=/work/jgflemin/asgs25382/02   # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no     # used to bounce the wave solution
 
@@ -56,7 +56,7 @@ TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="03:00:00"  # longest nowcast wall clock time
+NOWCASTWALLTIME="08:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=960                    # number of compute CPUs for all simulations
 NUMWRITERS=20
@@ -144,7 +144,7 @@ MINMAX=continuous
 
 # Notification
 
-EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
+EMAILNOTIFY=no         # yes to have host HPC platform email notifications
 NOTIFY_SCRIPT=corps_cyclone_notify.sh
 ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
@@ -156,9 +156,9 @@ ASGSADMIN=jason.fleming@seahorsecoastal.com
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general
+INTENDEDAUDIENCE=developers-only
 INITPOST=null_init_post.sh
-POSTPROCESS=queenbee_daily_post.sh
+POSTPROCESS=null_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
@@ -183,7 +183,7 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=3 # number of storms in the ensemble
+ENSEMBLESIZE=1 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
