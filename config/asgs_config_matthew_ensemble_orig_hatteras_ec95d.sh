@@ -28,40 +28,40 @@
 #
 # Fundamental 
 #
-INSTANCENAME=dailyv6c      # name of this ASGS process
-COLDSTARTDATE=2016090400
-HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
+INSTANCENAME=mattec95dorig   # name of this ASGS process, used in differentiating results
+COLDSTARTDATE=2016083000
+HOTORCOLD=coldstart            # "hotstart" or "coldstart" 
 LASTSUBDIR=null
-HINDCASTLENGTH=30.0        # length of initial hindcast, from cold (days)
-REINITIALIZESWAN=no        # used to bounce the wave solution
+HINDCASTLENGTH=30.0            # length of initial hindcast, from cold (days)
+REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
 ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables 
-SCRIPTDIR=~/asgs/2014stable        # ASGS scripts/executables  
-INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v6b   # dir containing grid and other input files 
+SCRIPTDIR=~/asgs/2014stable  # ASGS scripts/executables  
+INPUTDIR=${SCRIPTDIR}/input/meshes/ec95d # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on     # [de]activate NAM download/forcing 
+BACKGROUNDMET=off    # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
-TROPICALCYCLONE=off  # [de]activate tropical cyclone forcing (temp. broken)
-WAVES=on             # [de]activate wave forcing 
-VARFLUX=on           # [de]activate variable river flux forcing
+TROPICALCYCLONE=on   # [de]activate tropical cyclone forcing (temp. broken)
+WAVES=off            # [de]activate wave forcing 
+VARFLUX=off           # [de]activate variable river flux forcing
 
 # Computational Resources
 
 TIMESTEPSIZE=0.5
 SWANDT=1200
 HINDCASTWALLTIME="24:00:00"
-ADCPREPWALLTIME="00:15:00"
-NOWCASTWALLTIME="05:00:00"  # must have leading zero, e.g., 05:00:00
+ADCPREPWALLTIME="00:30:00"
+NOWCASTWALLTIME="02:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=480
-NUMWRITERS=8
-NCPUCAPACITY=1920
+NCPU=54
+NUMWRITERS=1
+NCPUCAPACITY=256
 CYCLETIMELIMIT="05:00:00"
 # queue
 QUEUENAME=null
@@ -69,13 +69,14 @@ SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
 ACCOUNT=ncfs # or "ncfs" on hatteras to use pre-empt capability
 
-QSCRIPT=hatteras.reservation.template.slurm # jgf20160224
+QSCRIPT=hatteras.reservation.template.slurm
 PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm # jgf20160322
+
 
 # External data sources : Tropical cyclones
 
-STORM=12  # storm number, e.g. 05=ernesto in 2006 
-YEAR=2013 # year of the storm (useful for historical storms) 
+STORM=14   # storm number, e.g. 05=ernesto in 2006 
+YEAR=2016  # year of the storm (useful for historical storms) 
 TRIGGER=rssembedded    # either "ftp" or "rss"
 RSSSITE=www.nhc.noaa.gov 
 FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files
@@ -103,17 +104,17 @@ RIVERDATAPROTOCOL=scp
 
 # Input files and templates
 
-GRIDFILE=nc_inundation_v6c_rivers_msl.grd
-GRIDNAME=nc6b
+GRIDFILE=ec_95d.grd
+GRIDNAME=ec_95d
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=v6brivers_explicit_rlevel51_fort.15_template
-CONTROLPROPERTIES=v6brivers_fort.15.properties
-ELEVSTATIONS=v6brivers_elev_stations.txt
-VELSTATIONS=null
-METSTATIONS=v6brivers_met_stations.txt
-NAFILE=v6brivers_rlevel.13
-NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=fort.26.v6b.limiter.template
+CONTROLTEMPLATE=ec_95_fort.15_template
+CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+ELEVSTATIONS=cera_stations.txt
+VELSTATIONS=${ELEVSTATIONS}
+METSTATIONS=${ELEVSTATIONS}
+NAFILE=null
+NAPROPERTIES=nodalattributes.properties
+SWANTEMPLATE=fort.26.limiter.template
 RIVERINIT=v6brivers.88
 RIVERFLUX=v6brivers_fort.20_default
 HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
@@ -148,26 +149,26 @@ MINMAX=reset
 # Notification
 
 EMAILNOTIFY=yes # set to yes to have host platform email notifications
-NOTIFY_SCRIPT=ncfs_nam_notify.sh
-ACTIVATE_LIST=""
-NEW_ADVISORY_LIST=""
-POST_INIT_LIST=""
-POST_LIST=""
+NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
+ACTIVATE_LIST=null
+NEW_ADVISORY_LIST=null
+POST_INIT_LIST=null
+POST_LIST=null
 JOB_FAILED_LIST="jason.g.fleming@gmail.com"
 NOTIFYUSER=jason.g.fleming@gmail.com
 ASGSADMIN=jason.g.fleming@gmail.com
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general
+INTENDEDAUDIENCE=developers-only
 INITPOST=null_init_post.sh
-POSTPROCESS=ncfs_post.sh
+POSTPROCESS=renci_ensemble_post.sh
 TARGET=hatteras
 POSTPROCESS2=null_post.sh
 WEBHOST=alpha.he.net
 WEBUSER=seahrse
 WEBPATH=/home/seahrse/public_html/ASGS
-OPENDAPHOST=br0.renci.org
+OPENDAPHOST=ht1.renci.org
 OPENDAPUSER=ncfs
 OPENDAPBASEDIR=/projects/ncfs/opendap/data
 NUMCERASERVERS=2
@@ -182,13 +183,81 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=1 # number of storms in the ensemble
+STORMTRACKOPTIONS="--strengthPercent null"
+ENSEMBLESIZE=9 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
+   NCPU=54
+   NUMWRITERS=1
+   ;;
+1)
+   # 
+   ENSTORM=veerLeft100
+   PERCENT=-100
+   NCPU=27
+   NUMWRITERS=1
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   ;;
+2)
+   ENSTORM=veerRight100
+   PERCENT=100
+   NCPU=27
+   NUMWRITERS=1
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   ;;
+3)
+   ENSTORM=overlandSpeedFaster10
+   PERCENT=10
+   NCPU=27
+   NUMWRITERS=1
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   ;;
+4)
+   ENSTORM=overlandSpeedSlower10
+   PERCENT=-10
+   NCPU=27
+   NUMWRITERS=1
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   ;;
+5)
+   ENSTORM=left100faster10
+   STORMTRACKOPTIONS="--overlandSpeedPercent 10 --veerPercent -100"
+   NCPU=27
+   NUMWRITERS=1
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   ;;
+6)
+   ENSTORM=right100faster10
+   STORMTRACKOPTIONS="--overlandSpeedPercent 10 --veerPercent 100"
+   NCPU=27
+   NUMWRITERS=1
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   ;;
+7)
+   ENSTORM=left100slower10
+   STORMTRACKOPTIONS="--overlandSpeedPercent -10 --veerPercent -100"
+   NCPU=27
+   NUMWRITERS=1
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   ;;
+8)
+   ENSTORM=right100slower10
+   STORMTRACKOPTIONS="--overlandSpeedPercent -10 --veerPercent 100"
+   NCPU=27
+   NUMWRITERS=1
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
