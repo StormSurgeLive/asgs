@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sun, 09 Oct 2016 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Post-Tropical Cyclone MATTHEW Forecast/Advisory Number 45</title>
+      <description>Issued at 0900 UTC SUN OCT 09 2016 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+
+POST-TROPICAL CYCLONE MATTHEW FORECAST/ADVISORY NUMBER  45
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL142016
+0900 UTC SUN OCT 09 2016
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+THE HURRICANE WARNING FROM LITTLE RIVER INLET TO SOUTH OF CAPE
+FEAR HAS BEEN DISCONTINUED. THE HURRICANE WARNING FROM CAPE FEAR TO
+SURF CITY HAS BEEN REPLACED WITH A TROPICAL STORM WARNING.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A HURRICANE WATCH IS IN EFFECT FOR...
+* NORTH OF SURF CITY TO DUCK
+* PAMLICO AND ALBEMARLE SOUNDS
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* CAPE FEAR TO DUCK
+* PAMLICO AND ALBEMARLE SOUNDS
+
+A HURRICANE WATCH MEANS THAT HURRICANE CONDITIONS ARE POSSIBLE
+WITHIN THE WATCH AREA...IN THIS CASE WITHIN THE NEXT 6 TO 12 HOURS.
+
+POST-TROPICAL CYCLONE CENTER LOCATED NEAR 34.9N  75.1W AT 09/0900Z
+POSITION ACCURATE WITHIN  20 NM
+
+PRESENT MOVEMENT TOWARD THE EAST OR  80 DEGREES AT  12 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  983 MB
+MAX SUSTAINED WINDS  65 KT WITH GUSTS TO  80 KT.
+64 KT.......  0NE   0SE  60SW   0NW.
+50 KT....... 70NE  80SE 110SW  30NW.
+34 KT.......210NE 180SE 150SW  90NW.
+12 FT SEAS..240NE 240SE 270SW  60NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 34.9N  75.1W AT 09/0900Z
+AT 09/0600Z CENTER WAS LOCATED NEAR 34.8N  75.8W
+
+FORECAST VALID 09/1800Z 35.2N  73.0W...POST-TROP/EXTRATROP
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 70NE  80SE 100SW  80NW.
+34 KT...210NE 180SE 180SW 150NW.
+
+FORECAST VALID 10/0600Z 35.4N  70.0W...POST-TROP/EXTRATROP
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT...  0NE   0SE  80SW  80NW.
+34 KT...180NE 180SE 200SW 180NW.
+
+FORECAST VALID 10/1800Z 35.9N  66.5W...POST-TROP/EXTRATROP
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT...150NE 150SE 190SW 210NW.
+
+FORECAST VALID 11/0600Z 36.5N  62.5W...POST-TROP/EXTRATROP
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...120NE 120SE 180SW 210NW.
+
+FORECAST VALID 12/0600Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 34.9N  75.1W
+
+NEXT ADVISORY AT 09/1500Z
+
+$$
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Sun, 09 Oct 2016 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2016/14/45.142016.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2016/14/45.142016.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
