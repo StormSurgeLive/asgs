@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Thu, 29 Sep 2016 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm MATTHEW Forecast/Advisory Number 5</title>
+      <description>Issued at 1500 UTC THU SEP 29 2016 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM MATTHEW FORECAST/ADVISORY NUMBER   5
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL142016
+1500 UTC THU SEP 29 2016
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+NONE.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A TROPICAL STORM WATCH IS IN EFFECT FOR...
+* BONAIRE...CURACAO...AND ARUBA
+
+A TROPICAL STORM WATCH MEANS THAT TROPICAL STORM CONDITIONS ARE
+POSSIBLE WITHIN THE WATCH AREA.
+
+INTERESTS ALONG THE COAST OF VENEZUELA AND COLOMBIA SHOULD MONITOR
+THE PROGRESS OF MATTHEW.
+
+TROPICAL STORM CENTER LOCATED NEAR 14.2N  66.3W AT 29/1500Z
+POSITION ACCURATE WITHIN  20 NM
+
+PRESENT MOVEMENT TOWARD THE WEST OR 275 DEGREES AT  13 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  996 MB
+MAX SUSTAINED WINDS  60 KT WITH GUSTS TO  75 KT.
+50 KT.......100NE   0SE   0SW  50NW.
+34 KT.......180NE 120SE  50SW 150NW.
+12 FT SEAS..480NE 150SE  60SW 180NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 14.2N  66.3W AT 29/1500Z
+AT 29/1200Z CENTER WAS LOCATED NEAR 14.1N  65.5W
+
+FORECAST VALID 30/0000Z 14.3N  68.0W
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 90NE   0SE   0SW  50NW.
+34 KT...160NE 100SE  50SW 150NW.
+
+FORECAST VALID 30/1200Z 14.1N  70.2W
+MAX WIND  65 KT...GUSTS  80 KT.
+64 KT... 30NE  20SE   0SW  20NW.
+50 KT... 70NE  40SE  20SW  40NW.
+34 KT...140NE  90SE  50SW 140NW.
+
+FORECAST VALID 01/0000Z 13.9N  71.8W
+MAX WIND  70 KT...GUSTS  85 KT.
+64 KT... 30NE  20SE  10SW  20NW.
+50 KT... 70NE  40SE  20SW  40NW.
+34 KT...140NE  90SE  50SW 140NW.
+
+FORECAST VALID 01/1200Z 13.9N  72.8W
+MAX WIND  75 KT...GUSTS  90 KT.
+50 KT... 70NE  40SE  20SW  40NW.
+34 KT...140NE  90SE  50SW 140NW.
+
+FORECAST VALID 02/1200Z 15.3N  74.4W
+MAX WIND  80 KT...GUSTS 100 KT.
+50 KT... 70NE  40SE  30SW  40NW.
+34 KT...140NE  90SE  60SW 140NW.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 200 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 03/1200Z 18.0N  75.2W
+MAX WIND  85 KT...GUSTS 105 KT.
+
+OUTLOOK VALID 04/1200Z 21.5N  75.5W
+MAX WIND  80 KT...GUSTS 100 KT.
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 14.2N  66.3W
+
+NEXT ADVISORY AT 29/2100Z
+
+$$
+FORECASTER BROWN
+
+</pre>]]></description>
+      <pubDate>Thu, 29 Sep 2016 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2016/14/05.142016.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2016/14/05.142016.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
