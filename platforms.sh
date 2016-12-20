@@ -111,8 +111,8 @@ init_hatteras()
   SUBMITSTRING=sbatch
   SCRATCHDIR=/projects/ncfs/data
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=hatteras.template.slurm
-  PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
+  QSCRIPT=hatteras.reservation.template.slurm
+  PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=16
 }
