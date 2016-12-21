@@ -41,7 +41,7 @@ character(NF90_MAX_NAME) :: thisVarName ! netcdf variable names
 logical :: nodalAttributesFile ! .true. if the netcdf file contains nodal attributes
 !
 ! XDMF XML related variables.
-character(1024) :: xmf ! name of XDMF xml file
+character(2048) :: xdmfFile ! netcdf variable names
 type(fileMetaData_t), allocatable :: fileMetaData(:)
 !
 integer argcount
@@ -51,6 +51,7 @@ integer oldnp ! used to detect differences in number of nodes between data files
 integer oldne ! used to detect differences in number of elements between data files
 integer i, j ! loop counters
 !
+xdmfFile = 'null'
 numFiles = 0
 argcount = iargc() ! count up command line options
 if (argcount.gt.0) then
@@ -84,13 +85,19 @@ if (argcount.gt.0) then
          case("--datafile")
             i = i + 1
             call getarg(i, cmdlinearg)
-            write(6,'(a,a,a,a,a)') "INFO: generateXDMF.f90: Processing '",trim(cmdlineopt)," ",trim(cmdlinearg),"'."
+            write(6,'(a,a,a,a,a)') 'INFO: generateXDMF.f90: Processing "',trim(cmdlineopt),' ',trim(cmdlinearg),'".'
             fileMetaData(fi)%netCDFFile = trim(cmdlinearg)
             fi = fi + 1
+         case("--xdmffile")
+            i = i + 1
+            call getarg(i, cmdlinearg)
+            write(6,'(a,a,a,a,a)') 'INFO: generateXDMF.f90: Processing "',trim(cmdlineopt),' ',trim(cmdlinearg),'".'
+            xdmfFile = trim(cmdlinearg)
          case("--use-cpp")
             fileMetaData(:) % useCPP = .true.
-            write(6,'(a,a,a)') "INFO: generateXDMF.f90: Processing ",trim(cmdlineopt),"."
+            write(6,'(a,a,a)') 'INFO: generateXDMF.f90: Processing ',trim(cmdlineopt),'.'
          case default
+            write(6,'(a,a,a)') 'WARNING: generateXDMF.f90: Command line option ',trim(cmdlineopt),' was not recognized.'  
       end select
    end do
 end if
@@ -207,6 +214,26 @@ do fi=1,numFiles
          call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          exit
+      case("eta1")
+         fileMetaData(fi) % fileTypeDesc = 'a time varying 2D ADCIRC water surface elevation at previous time step file (eta1.63)'
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
+         exit         
+      case("eta2")
+         fileMetaData(fi) % fileTypeDesc = 'a time varying 2D ADCIRC water surface elevation at current time step file (eta2.63)'
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
+         exit
+      case("tk")
+         fileMetaData(fi) % fileTypeDesc = 'a time varying 2D bottom friction file (tk.63)'
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
+         exit
+      case("tau0")
+         fileMetaData(fi) % fileTypeDesc = 'a time varying tau0 file (fort.90)'
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
+         exit
       case("coefdiagonal")
          fileMetaData(fi) % fileTypeDesc = 'a fully consistent ADCIRC LHS matrix diagonal file (coefdiagonal.63)'
          call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
@@ -281,10 +308,15 @@ do fi=1,numFiles
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          fileMetaData(fi) % varNameXDMF(1) = 'water_current_velocity'
          exit
-      !case("vel_mag","wind_mag","radstress_mag","swan_wind_mag") 
-      !   write(6,'(a)') "INFO: generateXDMF.f90:  The file contains vector magnitude data."
-      !   varMagName = trim(thisVarName)
-      !   useMag = .true.
+      case("uu1-vel","vv1-vel")
+         fileMetaData(fi) % fileTypeDesc = 'a 2D ADCIRC water current velocity at previous time step file (uu1vv1.64)'     
+         call initFileMetaData(fileMetaData(fi), thisVarName, 2, 1)
+         fileMetaData(fi) % varNameNetCDF(1) = "uu1-vel"  ! uu1 in ADCIRC
+         fileMetaData(fi) % varNameNetCDF(2) = "vv1-vel"  ! vv1 in ADCIRC
+         fileMetaData(fi) % numComponentsXDMF(1) = 2
+         call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
+         fileMetaData(fi) % varNameXDMF(1) = 'water_current_velocity_at_previous_timestep'
+         exit
       case("pressure")
          fileMetaData(fi) % fileTypeDesc = "an ADCIRC barometric pressure file (fort.73)"
          call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)
@@ -442,12 +474,14 @@ end do
 !
 ! Form the file name of XDMF xml file and open it.
 write(6,'(a)') 'INFO: generateXDMF.f90: Writing XDMF xml header for this NetCDF file.'
-xmf = trim(fileMetaData(1)%netCDFFile)
-do fi=2,numFiles
-   xmf = trim(xmf) // '_' // trim(fileMetaData(fi)%netCDFFile)
-end do
-xmf = trim(xmf)//".xmf"
-open(fileMetaData(1)%xmfUnit,file=xmf,status='replace')
+if (trim(xdmfFile).eq.'null') then
+   xdmfFile = trim(fileMetaData(1)%netCDFFile)
+   do fi=2,numFiles
+      xdmfFile = trim(xdmfFile) // '_' // trim(fileMetaData(fi)%netCDFFile)
+   end do
+   xdmfFile = trim(xdmfFile)//".xmf"
+endif
+open(fileMetaData(1)%xmfUnit,file=xdmfFile,status='replace')
 do fi=2,numFiles
    fileMetaData(fi)%xmfUnit = fileMetaData(1)%xmfUnit
 end do

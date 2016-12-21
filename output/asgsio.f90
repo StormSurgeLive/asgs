@@ -160,8 +160,15 @@ subroutine check(ncstatus)
 use netcdf
 implicit none
 integer,intent(in) :: ncstatus
+real(8), allocatable :: intentionalSegFault(:)
+real(8) :: triggerSegFaultIntentionallyForStackTrace
 if(ncstatus.ne.nf90_noerr)then
    write(*,'(a,a)') "ERROR: ",trim(nf90_strerror(ncstatus))
+
+#ifdef DEBUGSEGFAULT
+   triggerSegFaultIntentionallyForStackTrace = intentionalSegFault(1)
+#endif
+
    stop 1
 endif
 !---------------------------------------------------------------------      
