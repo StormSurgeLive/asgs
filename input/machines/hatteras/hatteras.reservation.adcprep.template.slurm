@@ -21,15 +21,11 @@ echo $SLURM_JOB_NODELIST >> "CONTROL.TXT"
 echo "----------------" >> "CONTROL.TXT"
 
 hostname
+#export MV2_ENABLE_AFFINITY=0 # per Chris Rutledge 21 Oct 2016
 
 # Load modules
-#module load intelc/11.1_046
-#module load intelfort/11.1_046
-#module load mvapich2/1.9_intel-11.1_046
-#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/projects/ncfs/apps/croatan/netcdf/lib
 module load intelc/14.0.3
 module load intelfort/14.0.3
-#module load mvapich2/2.0_intel-14.0.3_nemesis
 module load mvapich2/2.0_intel-14.0.3_ch3_ofed-3.1
 module load netcdf/4.1.3_intel-14.0.3
 #

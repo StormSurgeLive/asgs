@@ -142,7 +142,7 @@ HOTSTARTCOMP=fulldomain
 # binary or netcdf hotstart files
 HOTSTARTFORMAT=netcdf
 # "continuous" or "reset" for maxele.63 etc files
-MINMAX=reset
+MINMAX=continuous
 
 # Notification
 
@@ -181,7 +181,7 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=1 # number of storms in the ensemble
+ENSEMBLESIZE=2 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
@@ -193,6 +193,13 @@ case $si in
    HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
 1)
+   ENSTORM=veerLeft50
+   INTENDEDAUDIENCE=general
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+   PERCENT=-50
+   ;;
+2)
    ENSTORM=nhcConsensus
    WAVES=off
    INTENDEDAUDIENCE=developers-only
@@ -203,7 +210,7 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
-2)
+3)
    ENSTORM=veerLeft100
    PERCENT=-100
    WAVES=off
@@ -215,7 +222,7 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
-3)
+4)
    ENSTORM=veerRight100
    PERCENT=100
    WAVES=off
@@ -227,7 +234,7 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
-4)
+5)
    ENSTORM=overlandSpeedFaster10
    PERCENT=10
    WAVES=off
@@ -239,7 +246,7 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
-5)
+6)
    ENSTORM=overlandSpeedSlower10
    PERCENT=-10
    WAVES=off
@@ -251,7 +258,7 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
-6)
+7)
    ENSTORM=left100faster10
    STORMTRACKOPTIONS="--overlandSpeedPercent 10 --veerPercent -100"
    WAVES=off
@@ -263,7 +270,7 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
-7)
+8)
    ENSTORM=right100faster10
    STORMTRACKOPTIONS="--overlandSpeedPercent 10 --veerPercent 100"
    WAVES=off
@@ -275,7 +282,7 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
-8)
+9)
    ENSTORM=left100slower10
    STORMTRACKOPTIONS="--overlandSpeedPercent -10 --veerPercent -100"
    WAVES=off
@@ -287,7 +294,7 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
-9)
+10)
    ENSTORM=right100slower10
    STORMTRACKOPTIONS="--overlandSpeedPercent -10 --veerPercent 100"
    WAVES=off

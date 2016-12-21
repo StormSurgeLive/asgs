@@ -56,7 +56,7 @@ TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
+NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=480                    # number of compute CPUs for all simulations
 NUMWRITERS=8
@@ -65,7 +65,7 @@ CYCLETIMELIMIT="05:00:00"
 QUEUENAME=null
 SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data
-ACCOUNT=batch
+ACCOUNT=ncfs
 
 QSCRIPT=hatteras.reservation.template.slurm
 PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm # jgf20160322
@@ -141,7 +141,7 @@ HOTSTARTCOMP=fulldomain
 # binary or netcdf hotstart files
 HOTSTARTFORMAT=netcdf                      
 # "continuous" or "reset" for maxele.63 etc files
-MINMAX=reset                              
+MINMAX=continuous                             
 
 # Notification
 

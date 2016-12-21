@@ -1201,6 +1201,7 @@ integer, intent(in) :: fileFormat
 integer              :: NC_DimID_single
 !
 ! create and store mesh dimensions 
+write(6,'(a)') 'INFO: adcirc2netcdf.f90: Writing mesh definitions to netcdf.'
 CALL Check(NF90_PUT_ATT(NC_ID,NF90_GLOBAL,'agrid',trim(agrid)))
 CALL Check(NF90_DEF_DIM(NC_ID,'node',np,NC_DimID_node))
 CALL Check(NF90_DEF_DIM(NC_ID,'nele',ne,NC_DimID_nele))
@@ -1301,6 +1302,7 @@ endif
 
 #endif
 
+write(6,'(a)') 'INFO: adcirc2netcdf.f90: Finished writing mesh definitions to netcdf.'
 !----------------------------------------------------------------------
       end subroutine writeMeshDefinitionsToNetCDF
 !----------------------------------------------------------------------

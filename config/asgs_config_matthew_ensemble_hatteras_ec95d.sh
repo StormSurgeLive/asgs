@@ -69,7 +69,7 @@ SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
 ACCOUNT=ncfs # or "ncfs" on hatteras to use pre-empt capability
 
-QSCRIPT=hatteras.reservation.template.slurm
+QSCRIPT=hatteras.reservation.debug.template.slurm
 PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm # jgf20160322
 
 
