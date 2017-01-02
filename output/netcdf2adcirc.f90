@@ -420,7 +420,7 @@ case(3)
       do k=1,np
          write(11,2454) k,(adcirc_data3D(k,j,1),adcirc_data3D(k,j,2),adcirc_data3D(k,j,3),j=1,nfen)
       end do
-      write(6,advance='no',fmt='(i4)') i
+      write(6,advance='no',fmt='(i6)') i
    end do
 case default
    write(6,'(a,i0,a)') 'ERROR Cannot convert files with ',num_components,' components.'

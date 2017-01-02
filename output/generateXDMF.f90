@@ -229,6 +229,11 @@ do fi=1,numFiles
          call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
          call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
          exit
+      case("offset")
+         fileMetaData(fi) % fileTypeDesc = 'a time varying water level offset file (offset.63)'
+         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
+         call initNamesXDMF(fileMetaData(fi), fileMetaData(fi) % nc_id)
+         exit
       case("tau0")
          fileMetaData(fi) % fileTypeDesc = 'a time varying tau0 file (fort.90)'
          call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     

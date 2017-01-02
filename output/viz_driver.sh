@@ -51,3 +51,8 @@ HandBrakeCLI --input anim_${TIMESTEP}_all.mp4 --output anim_${TIMESTEP}_all_264.
 ffmpeg2theora --videoquality 10 --output anim_${TIMESTEP}_all.ogv --seek-index --speedlevel 0 anim_${TIMESTEP}_all.mp4
 # create webm file 
 #ffmpeg -r 5 -sameq -i montage_geom_%03d.jpg anim_${TIMESTEP}_all.webm
+#
+# YouTube: use 1280x720 image size and the following command line; numbers in
+# file name must be sequential starting from zero or ffmpeg will not be able
+# to find them
+#FRAMERATE=15; ffmpeg -r $FRAMERATE -sameq -i youtube_test.%04d.jpg -vcodec libx264 -preset slow -crf 18 -pix_fmt yuv420p  yt_vel_anim.mp4
