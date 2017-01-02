@@ -27,6 +27,11 @@
 #
 # initialization subroutines for the various machines/architectures
 #
+# Suggested aliases to support the Operator's tasks. Add these
+# to .bashrc, .bash_profile or similar
+#
+# alias lsta='ls -lth *.state | head'
+#
 init_queenbee()
 { #<- can replace the following with a custom script
   HOSTNAME=queenbee.loni.org
@@ -34,8 +39,8 @@ init_queenbee()
   QCHECKCMD=qstat
   ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
   SUBMITSTRING=qsub
-  #SCRATCHDIR=/work/$USER
-  SCRATCHDIR=/work/cera
+  SCRATCHDIR=/work/$USER
+  #SCRATCHDIR=/work/cera
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=queenbee.template.pbs
   PREPCONTROLSCRIPT=queenbee.adcprep.template.pbs
@@ -45,6 +50,8 @@ init_queenbee()
   module load netcdf
   module load netcdf_fortran
   module load gcc
+  # alias cdwo='cd /work/jgflemin'
+  # alias cdasgs='cd ~/asgs/2014stable'
 }
 init_arete()
 { #<- can replace the following with a custom script
