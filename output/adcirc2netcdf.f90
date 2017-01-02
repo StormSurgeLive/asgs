@@ -99,6 +99,7 @@ integer :: NC_VarID_tau0 = -99
 integer :: NC_VarID_eta1 = -99
 integer :: NC_VarID_eta2 = -99
 integer :: NC_VarID_tk = -99
+integer :: NC_VarID_offset = -99
 integer :: NC_VarID_uu1_vel = -99
 integer :: NC_VarID_vv1_vel = -99
 integer :: NC_VarID_nodecode = -99
@@ -140,7 +141,7 @@ character(2048) :: dataFileExtension ! something like 13, 14, 15, 63, 222 etc
 integer :: iret !jgfdebug
 integer :: lineNum
 ! initializations
-meshFileName = "null"
+meshFileName = "fort.14"
 attFile = "null"
 dataFile = "null"
 dataFileType = "null"
@@ -519,6 +520,17 @@ case('fort.90')
    CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_tau0,'units','1'))
    num_components = 1
    varid(1) = NC_VarID_tau0
+case('offset.63') !63
+   CALL Check(NF90_DEF_VAR(NC_ID,'offset',NF90_DOUBLE,NC_DimID,NC_VarID_offset))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_offset,'_FillValue',FillValue))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_offset,'long_name','water level offset'))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_offset,'standard_name','water_level_offset'))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_offset,'coordinates','time y x'))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_offset,'location','node'))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_offset,'mesh','adcirc_mesh'))
+   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_offset,'units','m H2O'))
+   num_components = 1
+   varid(1) = NC_VarID_offset
 case('fort.64') 
    dataRank = "2DVector"
    CALL Check(NF90_DEF_VAR(NC_ID,'u-vel',NF90_DOUBLE,NC_DimID,NC_VarID_u_vel))
@@ -1104,6 +1116,8 @@ DO   ! jgf: loop until we run out of mesh data
          CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_eta2,Global1,NC_Start,NC_Count))
       case('tk.63') 
          CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_tk,Global1,NC_Start,NC_Count))
+      case('offset.63') 
+         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_offset,Global1,NC_Start,NC_Count))         
       case('uu1vv1.64') 
          CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_uu1_vel,Global1,NC_Start,NC_Count))
          CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_vv1_vel,Global2,NC_Start,NC_Count))
@@ -1182,7 +1196,7 @@ DO   ! jgf: loop until we run out of mesh data
          write(6,'(a,a,a)') 'ERROR: Unable to write netcdf files for ',trim(dataFileType),'.'
          stop
    end select
-   write(6,advance='no',fmt='(i4)') ss
+   write(6,advance='no',fmt='(i6)') ss
    SS = SS + 1 ! jgf: Increment the dataset counter
    !
    if (trim(dataFileType).eq.'fort.88') then
