@@ -78,7 +78,7 @@ unless(open(XDMFFILE,">$xdmffile")) {
    printf XDMFFILE "      <Grid Name=\"TimeSeries\" GridType=\"Collection\" CollectionType=\"Temporal\">\n";
 }
 my $nd; # number of datasets in the file
-my $npart; # number of particles in the file
+my $npart; # number of particles in the dataset
 if ( $pathfile ne "null" ) {
    unless(open(PATHFILE,"<$pathfile")) {
       stderrMessage("ERROR","Could not open pathfile $pathfile for reading: $!");

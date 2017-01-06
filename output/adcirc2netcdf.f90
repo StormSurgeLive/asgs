@@ -1,16 +1,8 @@
-! This program will convert ADCIRC+SWAN ASCII Output to NETCDF
-! Copyleft by Patrick C. Kerr
-! University of Notre Dame
-! pkerr@nd.edu
-
-! 2012-01-12:   v1 - Original
-! 2012-01-16:   v2 - Fixed Time Bug, Made CF Compliant
-! 2012-01-17:   v3 - Added maxele
-! 2012-02-27:   v4 ...
 !------------------------------------------------------------------
 ! adcirc2netcdf: Convert ADCIRC ascii output files to netcdf format.
 !------------------------------------------------------------------
-! Copyright(C) 2012--2016 Jason Fleming
+! Copyright(C) 2012 Patrick C. Kerr 
+! Copyright(C) 2012--2017 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !

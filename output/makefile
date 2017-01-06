@@ -139,7 +139,7 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := adcmesh.o asgsio.o adcircdata.o nodalattr.o
+OBJ := adcmesh.o asgsio.o adcircdata.o nodalattr.o logging.o
 MODS := adcmesh.mod asgsio.mod adcircdata.mod nodalattr.mod
 #
 # targets
@@ -154,14 +154,17 @@ adcirc2netcdf : $(MODS) adcirc2netcdf.f90 nodalattr.mod
 netcdf2adcirc : $(MODS) netcdf2adcirc.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-asgsio.mod : asgsio.f90 
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c asgsio.f90 $(LDFLAGS)
+asgsio.mod : logging.mod asgsio.f90 
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c asgsio.f90 logging.o $(LDFLAGS)
 #
 adcmesh.mod : adcmesh.f90 asgsio.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c adcmesh.f90 $(LDFLAGS)
 #
 adcircdata.mod : adcircdata.f90 adcmesh.mod asgsio.mod 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c adcircdata.f90 $(LDFLAGS)
+#
+logging.mod : logging.f90 
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c logging.f90 $(LDFLAGS)
 # 
 makeMax : asgsio.mod adcmesh.mod adcircdata.mod ../util/makeMax.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o ../util/$@.x ../util/$@.f90 $(OBJ) $(LDFLAGS)
@@ -175,8 +178,8 @@ highResolutionRegion : adcmesh.mod highResolutionRegion.f90
 checkAdcircMesh : $(MODS) checkAdcircMesh.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-generateXDMF : adcmesh.mod asgsio.mod generateXDMF.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o $(LDFLAGS)
+generateXDMF : adcmesh.mod asgsio.mod logging.mod generateXDMF.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o logging.o $(LDFLAGS)
 #
 generateCPP : adcmesh.mod generateCPP.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
@@ -194,7 +197,7 @@ HottifySWAN : HottifySWAN.F90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.F90 $(LDFLAGS)
 #
 resultScope : adcmesh.mod adcircdata.mod asgsio.mod resultScope.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o adcircdata.o asgsio.o $(LDFLAGS)
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
 nodalattr.mod : ../util/nodalattr/nodalattr.f90 adcmesh.mod adcircdata.mod asgsio.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c ../util/nodalattr/nodalattr.f90 $(LDFLAGS)
