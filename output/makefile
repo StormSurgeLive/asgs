@@ -187,6 +187,9 @@ generateCPP : adcmesh.mod generateCPP.f90
 pullStationTimeSeries : asgsio.mod adcmesh.mod adcircdata.mod nodalattr.mod pullStationTimeSeries.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
+stationProcessor : asgsio.mod adcmesh.mod adcircdata.mod stationProcessor.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+#
 wetDryCheck : adcmesh.mod asgsio.mod wetDryCheck.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o $(LDFLAGS)
 #

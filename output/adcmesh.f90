@@ -231,9 +231,12 @@ type station_t
    integer :: elementIndex   ! where station is located in a particular mesh
    integer :: n(3) ! nodes that surround the station
    real(8) :: w(3)     ! weights used to interpolate station values based on nodal values
-   integer :: iID            ! simple numerical ID 
+   real(8), allocatable :: d(:,:)   ! station data (num_components, ntime)
+   integer :: iID            ! simple numerical ID
    character(len=1024) :: stationID   ! generally a number assigned by govt agency 
-   character(len=1025) :: description ! human readable 
+   character(len=1024) :: description ! human readable 
+   character(len=1024) :: agency  ! organization responsible for the station
+   character(len=1024) :: datum   ! relevant vertical datum (MSL, NAVD88, etc)
 end type station_t
       
 !-----+---------+---------+---------+---------+---------+---------+
