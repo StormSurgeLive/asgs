@@ -66,6 +66,7 @@ integer, parameter :: MAX_DATASETS = 1e8
 integer, allocatable :: numParticles(:) ! temporarily hold number of particles per dataset
 integer, allocatable :: pTimesec(:) ! temporarily hold time stamp of particle datasets in seconds
 logical :: meshInitialized = .false. ! true if the associated mesh has been read in
+logical :: meshOnly = .false. ! true if only the mesh xml will be written
 !
 integer oldnp ! used to detect differences in number of nodes between data files
 integer oldne ! used to detect differences in number of elements between data files
@@ -613,11 +614,12 @@ endif
 ! Bomb out if we did not recognize any of the variable names in the file.
 do fi=1,numFiles
    if ( fileMetaData(fi) % initialized.eqv..false. ) then
+      meshonly = .true.
       call allMessage(INFO,'Did not recognize any of the variables in the file '//trim(fileMetaData(fi)%dataFileName)//'.')
       call allMessage(INFO,'The xml file will only contain mesh-related information.')
       write(olun,'('//ind('+')//',a)') '<Grid Name="'//adjustl(trim(agrid))//'" GridType="Uniform">'
       ! Write mesh portion of XDMF xml file.
-      call writeMeshTopologyGeometryDepth(fileMetaData(fi), olun)
+      call writeMeshTopologyGeometryDepth(fileMetaData(fi), olun, meshonly)
       ! finish off the xml so the user can at least look at the mesh
       write(olun,'('//ind('-')//',a)') '</Grid>'
       call writeFooterXML(olun)
@@ -636,7 +638,7 @@ end do
 ! be done with it
 if ( fileMetaData(1)%timeVarying.eqv..false. ) then
    write(olun,'('//ind('+')//',A)') '<Grid GridType="Uniform">'
-   call writeMeshTopologyGeometryDepth(fileMetaData(1), olun)
+   call writeMeshTopologyGeometryDepth(fileMetaData(1), olun, meshonly)
    do fi=1,numFiles
       call writeAttributesXML(fileMetaData(fi), 1, 1, olun)
    end do
@@ -722,7 +724,7 @@ else
    ! writing XDMF xml for ADCIRC meshed data
    do iSnap=1,fileMetaData(1)%nSnaps      
       call writeTimeVaryingGrid(fileMetaData(1), iSnap, olun)
-      call writeMeshTopologyGeometryDepth(fileMetaData(1), olun)
+      call writeMeshTopologyGeometryDepth(fileMetaData(1), olun, meshonly)
       do fi=1,numFiles
          call writeTimeVaryingAttributesXML(fileMetaData(fi), iSnap, fileMetaData(1)%nSnaps, olun)
       end do
@@ -1087,14 +1089,20 @@ end subroutine initNamesXDMF
 !----------------------------------------------------------------------
 ! Writes the mesh portion of the XML. 
 !----------------------------------------------------------------------
-subroutine writeMeshTopologyGeometryDepth(fmd, olun)
+subroutine writeMeshTopologyGeometryDepth(fmd, olun, meshonly)
 use asgsio, only : fileMetaData_t, ind
 use adcmesh, only : agrid, ne, np
 implicit none
 type(fileMetaData_t), intent(in) :: fmd
 integer, intent(in) :: olun ! i/o unit number to write XDMF xml to
+logical, intent(in) :: meshonly ! true if only the mesh xml are being written
+character(len=1) :: indent
 !
-write(olun,'('//ind('|')//',a)') '<Topology Name="ADCIRCMesh"'
+indent = '|'
+if (meshonly.eqv..true.) then
+   indent = '+'
+endif
+write(olun,'('//ind(indent)//',a)') '<Topology Name="ADCIRCMesh"'
 write(olun,'('//ind('|')//',A)')     '  TopologyType="Triangle"'
 write(olun,'('//ind('|')//',A)')     '  NodesPerElement="3"'
 write(olun,'('//ind('|')//',A,i0,A)')'  NumberOfElements="',ne,'"'
