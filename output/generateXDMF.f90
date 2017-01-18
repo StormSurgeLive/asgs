@@ -601,9 +601,10 @@ endif
 olun = availableUnitNumber()
 open(olun,file=xdmfFile,status='replace')
 ! write the beginning of the XDMF xml file
-write(olun,'(a)') '<?xml version="1.0" ?>'
-write(olun,'(a)') '<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>'
-write(olun,'(a)') '<Xdmf Version="2.0">'
+write(olun,'(a)') '<?xml version="1.0" encoding="utf-8"?>'
+!write(olun,'(a)') '<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>' ! not needed?
+!write(olun,'(a)') '<Xdmf Version="2.0">'                 ! deprecated
+write(olun,'(a)') '<Xdmf xmlns:xi="http://www.w3.org/2001/XInclude" Version="2.1">'
 !
 if (writeParticleFile.eqv..true.) then
    write(olun,'('//ind('+')//',a)') '<Domain Name="maureparticle">'
@@ -724,7 +725,11 @@ else
    ! writing XDMF xml for ADCIRC meshed data
    do iSnap=1,fileMetaData(1)%nSnaps      
       call writeTimeVaryingGrid(fileMetaData(1), iSnap, olun)
-      call writeMeshTopologyGeometryDepth(fileMetaData(1), olun, meshonly)
+      if (iSnap.eq.1) then
+         call writeMeshTopologyGeometryDepth(fileMetaData(1), olun, meshonly)
+      else
+         call writeMeshTopologyGeometryDepthByReference(fileMetaData(1), olun, meshonly)
+      endif
       do fi=1,numFiles
          call writeTimeVaryingAttributesXML(fileMetaData(fi), iSnap, fileMetaData(1)%nSnaps, olun)
       end do
@@ -747,182 +752,6 @@ stop
 end program generateXDMF
 !----------------------------------------------------------------------
 
-! read one dataset of particle positions from the maureparticle file
-subroutine readTimeVaryingParticlePositions(fmd, p, mp, isnap)
-use asgsio
-use adcmesh, only : station_t
-use logging
-implicit none
-type(fileMetaData_t), intent(inout) :: fmd
-integer, intent(in) :: iSnap ! dataset counter
-integer, intent(in) :: mp ! max number of particles 
-type(station_t), intent(inout) :: p(mp) ! particles
-integer :: lineNum ! line number counter
-integer :: ip ! particle counter
-!
-lineNum=0
-do ip=1,fmd%numParticlesPerSnap(iSnap)
-   lineNum = lineNum + 1
-   read(unit=fmd%fun,fmt=*,end=482,err=802,iostat=errorIO) p(ip)%iID, p(ip)%lon, p(ip)%lat, fmd%timesec(iSnap), p(ip)%elementIndex
-   p(ip)%elementFound = .true.
-   p(ip)%z = 0.d0 ! TODO: could provide options for setting this
-end do
-return
-
-! jump to here when end of file is reached unexpectedly
-482 write(scratchMessage,'("Unexpectedly encountered end-of-file when reading from the Maureparticle file ",a,".")') trim(fmd%dataFileName)
-! jump to here when encountering i/o error when reading Maureparticle file
-call allMessage(ERROR,scratchMessage)
-802 write(scratchMessage,'("Attempted to read line ",i0," from the maureparticle file ",a," when an i/o error occurred. The Fortran error code was ",i0,".")') lineNum, trim(fmd%dataFileName), errorIO
-call allMessage(ERROR,scratchMessage)
-stop
-
-end subroutine ReadTimeVaryingParticlePositions
-
-
-! write one dataset of particle positions to the XDMF xml file
-subroutine writeTimeVaryingParticlePositions(fmd, p, mp, iSnap, olun)
-use asgsio, only : fileMetaData_t, ind
-use adcmesh, only : station_t
-implicit none
-type(fileMetaData_t), intent(inout) :: fmd
-integer, intent(in) :: mp ! max number of particles 
-type(station_t), intent(inout) :: p(mp) ! particles
-integer, intent(in) :: iSnap  ! dataset to work on
-integer, intent(in) :: olun   ! i/o unit number of xdmf xml file 
-integer :: ip ! particle counter
-
-write(olun,'('//ind('|')//',a,i0,a)') '<Topology TopologyType="POLYVERTEX" NumberOfElements="',fmd%numParticlesPerSnap(iSnap),'" NodesPerElement="1"/>'
-write(olun,'('//ind('|')//',a)') '<Geometry GeometryType="XYZ">'
-write(olun,'('//ind('+')//',a,i0,a)') '<DataItem ItemType="Uniform" Dimensions="',fmd%numParticlesPerSnap(iSnap),' 3" Format="XML">'
-do ip=1,fmd%numParticlesPerSnap(iSnap)
-   write(olun,'('//ind('|')//',f15.7,f15.7,f15.7)') p(ip)%lon, p(ip)%lat, p(ip)%z
-end do
-write(olun,'('//ind('|')//',a)')      '</DataItem>'
-write(olun,'('//ind('-')//',a)') '</Geometry>'
-
-end subroutine writeTimeVaryingParticlePositions
-
-
-! reads data array(s) defined on an adcirc mesh at a particular time, 
-! interpolates them to the current particle positions, and writes the 
-! interpolated data set(s) to XDMF xml
-subroutine interpolateAndWriteTimeVaryingAttributesXML(afmd, pfmd, p, mp, iSnap, olun)
-use asgsio
-use adcmesh
-implicit none
-! TODO: this assumes the same number of datasets in each file and that 
-! the datasets correspond to the same times in seconds
-type(fileMetaData_t), intent(inout) :: afmd ! datafile containing attribute values on mesh
-type(fileMetaData_t), intent(inout) :: pfmd ! datafile containing particle positions
-integer, intent(in) :: mp ! max number of particles 
-type(station_t), intent(inout) :: p(mp) ! particles
-integer, intent(in) :: iSnap  ! dataset to work on
-integer, intent(in) :: olun   ! i/o unit number of xdmf xml file 
-real(8), allocatable :: adcirc_data(:,:) ! (np,numComponents)
-real(8), allocatable :: interpVals(:,:)  ! interpolated values (numComp,numParticles)
-real(8), allocatable :: sp(:) ! particle speeds for 2D velocity
-integer :: nc_start(2) ! node number and dataset to start the reading
-integer :: nc_count(2) ! number of nodes and datasets to read in 
-character(len=100) :: attributeType
-logical :: dryNode ! true if the node is dry and values there are undefined
-integer :: i ! netcdf variable counter
-integer :: k ! particle counter
-integer :: v ! variable counter
-integer :: n ! node counter
-!
-! read the attribute values: assume multiple attribute values in a single
-! netcdf file are a multicomponent dataset (i.e., a vector)
-allocate(adcirc_data(np,afmd%numVarNetCDF))
-nc_start = (/ 1, iSnap /)
-nc_count = (/ np, 1 /)
-call check(nf90_open(trim(afmd%dataFileName), NF90_NOWRITE, afmd%nc_id))
-do v=1,afmd%numVarNetCDF
-   !write(6,*) 'afmd%nc_id=',afmd%nc_id,' afmd%varID(v)=',afmd%nc_varID(v),' v=',v,' afmd%numVarNetCDF=',afmd%numVarNetCDF,' iSnap=',iSnap
-   call check(nf90_get_var(afmd%nc_id,afmd%nc_varID(v),adcirc_data(:,v),nc_start,nc_count))
-end do
-call check(nf90_close(afmd%nc_id))
-if (trim(afmd%varNameNetCDF(1)).eq.'u-vel') then
-   allocate(sp(pfmd%numParticlesPerSnap(iSnap))) ! for computing velocity magnitudes
-endif 
-!
-! compute the interpolation weights for all particles in this snap
-do k=1,pfmd%numParticlesPerSnap(iSnap)
-   call computeStationWeights(p(k))
-end do
-!
-! for each component, look up the data values at the three nodes of 
-! the resident element and linearly interpolate them at the particle
-! position
-allocate(interpVals(afmd%numVarNetCDF,pfmd%numParticlesPerSnap(iSnap)))
-do v=1,afmd%numVarNetCDF
-   do k=1,pfmd%numParticlesPerSnap(iSnap)
-      ! look up the three nodes that make up this element
-      do n=1,3
-         p(k)%n(n) = nm(p(k)%elementIndex,n)
-      end do
-      dryNode = .false.
-      ! search for dry or undefined nodal values
-      if (p(k)%elementIndex.ne.0) then
-         do n=1,3
-            if ( adcirc_data(p(k)%n(n),v).eq.-99999 ) then
-               dryNode = .true. ! at least one of the three nodes has an undefined value
-            endif
-         end do
-      endif
-      if (p(k)%elementIndex.eq.0 .or. dryNode.eqv..true.) then
-         interpVals(v,k) = -99999.0
-      else
-         interpVals(v,k) = 0.d0
-         ! now interpolate this variable using the weights at the three nodes
-         do n=1,3
-            interpVals(v,k) = interpVals(v,k) + adcirc_data(p(k)%n(n),v) * p(k)%w(n) 
-         enddo
-      endif
-   end do
-end do
-!
-! now write the interpolated values to XDMF xml
-attributeType = "Scalar"
-if (afmd%numVarNetCDF.gt.1) then
-   attributeType = "Vector"
-endif
-!
-! TODO: This assumes that if the netcdf contains a multicomponent quantity
-! (e.g., a 2D vector) that there is only one XDMF variable name to describe
-! this quantity 
-write(olun,'('//ind('|')//',A)') '<Attribute Name="'//trim(afmd%varNameXDMF(1))//'" AttributeType="'//trim(attributeType)//'" Center="Node">'
-write(olun,'('//ind('+')//',a,i0,a)')    '<DataItem DataType="Float" Dimensions="',pfmd%numParticlesPerSnap(iSnap),' 3" Format="XML">'
-do k=1,pfmd%numParticlesPerSnap(iSnap)
-   ! TODO: Fix this hack for 2D velocity
-   if (trim(afmd%varNameNetCDF(1)).eq.'u-vel') then
-      ! fill in zero for the third component : velocity in the z direction
-      write(olun,'('//ind('|')//',f15.7,f15.7,f15.7)') (interpVals(v,k), v=1,afmd%numVarNetCDF), 0.d0
-      ! compute particle speeds while we're at it
-      sp(k) = sqrt(interpVals(1,k)**2 + interpVals(2,k)**2)
-   else
-      write(olun,'('//ind('|')//',f15.7,f15.7,f15.7)') (interpVals(v,k), v=1,afmd%numVarNetCDF)
-   endif
-end do
-write(olun,'('//ind('|')//',a)')    '</DataItem>'
-write(olun,'('//ind('-')//',a)') '</Attribute>'
-! write an extra attribute containing the particle speeds
-if (trim(afmd%varNameNetCDF(1)).eq.'u-vel') then
-   write(olun,'('//ind('|')//',a)') '<Attribute AttributeType="Scalar" Center="Node" Name="particle_speed">'
-   write(olun,'('//ind('+')//',a,i0,a)')  '<DataItem DataType="Float" Dimensions="',pfmd%numParticlesPerSnap(iSnap),' 1" Format="XML">'
-   do k=1,pfmd%numParticlesPerSnap(iSnap)
-      write(olun,'('//ind('|')//',f15.7)') sp(k)   
-   end do
-   write(olun,'('//ind('|')//',a)')    '</DataItem>'
-   write(olun,'('//ind('-')//',a)') '</Attribute>'
-endif
-deallocate(adcirc_data)
-if (trim(afmd%varNameNetCDF(1)).eq.'u-vel') then
-   deallocate(sp)
-endif
-deallocate(interpVals)
-
-end subroutine interpolateAndWriteTimeVaryingAttributesXML
 
 
 !----------------------------------------------------------------------
@@ -1145,6 +974,41 @@ write(olun,'('//ind('-')//',A)')   '</Attribute>'
 !----------------------------------------------------------------------
 end subroutine writeMeshTopologyGeometryDepth
 !----------------------------------------------------------------------
+
+
+!----------------------------------------------------------------------
+!                   S U B R O U T I N E     
+! W R I T E   M E S H   T O P O L O G Y   G E O M E T R Y   D E P T H    
+!                 B Y   R E F E R E N C E
+!----------------------------------------------------------------------
+! Writes the mesh portion of the XML in time varying output files where
+! the mesh is unchanging by referring to the Geometry, Topology, and
+! Depth Attribute elements that defined previously using xinclude. 
+!----------------------------------------------------------------------
+subroutine writeMeshTopologyGeometryDepthByReference(fmd, olun, meshonly)
+use asgsio, only : fileMetaData_t, ind
+use adcmesh, only : agrid, ne, np
+implicit none
+type(fileMetaData_t), intent(in) :: fmd
+integer, intent(in) :: olun ! i/o unit number to write XDMF xml to
+logical, intent(in) :: meshonly ! true if only the mesh xml are being written
+character(len=1) :: indent
+!
+indent = '|'
+if (meshonly.eqv..true.) then
+   indent = '+'
+endif
+! Topology
+write(olun,'('//ind(indent)//',a)') '<xi:include xpointer="element(/1/1/1/1/2)"/>'
+! Geometry
+write(olun,'('//ind('|')//',a)') '<xi:include xpointer="element(/1/1/1/1/3)"/>'
+! Depth Attribute
+write(olun,'('//ind('|')//',a)') '<xi:include xpointer="element(/1/1/1/1/4)"/>'
+      
+!----------------------------------------------------------------------
+end subroutine writeMeshTopologyGeometryDepthByReference
+!----------------------------------------------------------------------
+
 
 !----------------------------------------------------------------------
 !  S U B R O U T I NE   W R I T E   T I M E   V A R Y I N G   G R I D 
@@ -1372,3 +1236,201 @@ write(olun,'(a)') '</Xdmf>'
 end subroutine writeFooterXML
 !----------------------------------------------------------------------
 
+
+!----------------------------------------------------------------------
+!                     S U B R O U T I N E     
+!              R E A D   T I M E   V A R Y I N G
+!             P A R T I C L E   P O S I T I O N S  
+!----------------------------------------------------------------------
+! Read one dataset of particle positions from the maureparticle file.
+!----------------------------------------------------------------------
+subroutine readTimeVaryingParticlePositions(fmd, p, mp, isnap)
+use asgsio
+use adcmesh, only : station_t
+use logging
+implicit none
+type(fileMetaData_t), intent(inout) :: fmd
+integer, intent(in) :: iSnap ! dataset counter
+integer, intent(in) :: mp ! max number of particles 
+type(station_t), intent(inout) :: p(mp) ! particles
+integer :: lineNum ! line number counter
+integer :: ip ! particle counter
+!
+lineNum=0
+do ip=1,fmd%numParticlesPerSnap(iSnap)
+   lineNum = lineNum + 1
+   read(unit=fmd%fun,fmt=*,end=482,err=802,iostat=errorIO) p(ip)%iID, p(ip)%lon, p(ip)%lat, fmd%timesec(iSnap), p(ip)%elementIndex
+   p(ip)%elementFound = .true.
+   p(ip)%z = 0.d0 ! TODO: could provide options for setting this
+end do
+return
+
+! jump to here when end of file is reached unexpectedly
+482 write(scratchMessage,'("Unexpectedly encountered end-of-file when reading from the Maureparticle file ",a,".")') trim(fmd%dataFileName)
+! jump to here when encountering i/o error when reading Maureparticle file
+call allMessage(ERROR,scratchMessage)
+802 write(scratchMessage,'("Attempted to read line ",i0," from the maureparticle file ",a," when an i/o error occurred. The Fortran error code was ",i0,".")') lineNum, trim(fmd%dataFileName), errorIO
+call allMessage(ERROR,scratchMessage)
+stop
+!----------------------------------------------------------------------
+end subroutine ReadTimeVaryingParticlePositions
+!----------------------------------------------------------------------
+
+
+!----------------------------------------------------------------------
+!                     S U B R O U T I N E     
+!             W R I T E   T I M E   V A R Y I N G
+!             P A R T I C L E   P O S I T I O N S  
+!----------------------------------------------------------------------
+! Writes one dataset of particle positions to the XDMF xml file.
+!----------------------------------------------------------------------
+subroutine writeTimeVaryingParticlePositions(fmd, p, mp, iSnap, olun)
+use asgsio, only : fileMetaData_t, ind
+use adcmesh, only : station_t
+implicit none
+type(fileMetaData_t), intent(inout) :: fmd
+integer, intent(in) :: mp ! max number of particles 
+type(station_t), intent(inout) :: p(mp) ! particles
+integer, intent(in) :: iSnap  ! dataset to work on
+integer, intent(in) :: olun   ! i/o unit number of xdmf xml file 
+integer :: ip ! particle counter
+
+write(olun,'('//ind('|')//',a,i0,a)') '<Topology TopologyType="POLYVERTEX" NumberOfElements="',fmd%numParticlesPerSnap(iSnap),'" NodesPerElement="1"/>'
+write(olun,'('//ind('|')//',a)') '<Geometry GeometryType="XYZ">'
+write(olun,'('//ind('+')//',a,i0,a)') '<DataItem ItemType="Uniform" Dimensions="',fmd%numParticlesPerSnap(iSnap),' 3" Format="XML">'
+do ip=1,fmd%numParticlesPerSnap(iSnap)
+   write(olun,'('//ind('|')//',f15.7,f15.7,f15.7)') p(ip)%lon, p(ip)%lat, p(ip)%z
+end do
+write(olun,'('//ind('|')//',a)')      '</DataItem>'
+write(olun,'('//ind('-')//',a)') '</Geometry>'
+!----------------------------------------------------------------------
+end subroutine writeTimeVaryingParticlePositions
+!----------------------------------------------------------------------
+
+
+!----------------------------------------------------------------------
+!                     S U B R O U T I N E     
+!            I N T E R P O L A T E   A N D   W R I T E  
+!     T I M E   V A R Y I N G   A T T R I B U T E S   X M L
+!----------------------------------------------------------------------
+! Reads data array(s) defined on an adcirc mesh at a particular time, 
+! interpolates them to the current particle positions, and writes the 
+! interpolated data set(s) to XDMF xml.
+!----------------------------------------------------------------------
+subroutine interpolateAndWriteTimeVaryingAttributesXML(afmd, pfmd, p, mp, iSnap, olun)
+use asgsio
+use adcmesh
+implicit none
+! TODO: this assumes the same number of datasets in each file and that 
+! the datasets correspond to the same times in seconds
+type(fileMetaData_t), intent(inout) :: afmd ! datafile containing attribute values on mesh
+type(fileMetaData_t), intent(inout) :: pfmd ! datafile containing particle positions
+integer, intent(in) :: mp ! max number of particles 
+type(station_t), intent(inout) :: p(mp) ! particles
+integer, intent(in) :: iSnap  ! dataset to work on
+integer, intent(in) :: olun   ! i/o unit number of xdmf xml file 
+real(8), allocatable :: adcirc_data(:,:) ! (np,numComponents)
+real(8), allocatable :: interpVals(:,:)  ! interpolated values (numComp,numParticles)
+real(8), allocatable :: sp(:) ! particle speeds for 2D velocity
+integer :: nc_start(2) ! node number and dataset to start the reading
+integer :: nc_count(2) ! number of nodes and datasets to read in 
+character(len=100) :: attributeType
+logical :: dryNode ! true if the node is dry and values there are undefined
+integer :: i ! netcdf variable counter
+integer :: k ! particle counter
+integer :: v ! variable counter
+integer :: n ! node counter
+!
+! read the attribute values: assume multiple attribute values in a single
+! netcdf file are a multicomponent dataset (i.e., a vector)
+allocate(adcirc_data(np,afmd%numVarNetCDF))
+nc_start = (/ 1, iSnap /)
+nc_count = (/ np, 1 /)
+call check(nf90_open(trim(afmd%dataFileName), NF90_NOWRITE, afmd%nc_id))
+do v=1,afmd%numVarNetCDF
+   !write(6,*) 'afmd%nc_id=',afmd%nc_id,' afmd%varID(v)=',afmd%nc_varID(v),' v=',v,' afmd%numVarNetCDF=',afmd%numVarNetCDF,' iSnap=',iSnap
+   call check(nf90_get_var(afmd%nc_id,afmd%nc_varID(v),adcirc_data(:,v),nc_start,nc_count))
+end do
+call check(nf90_close(afmd%nc_id))
+if (trim(afmd%varNameNetCDF(1)).eq.'u-vel') then
+   allocate(sp(pfmd%numParticlesPerSnap(iSnap))) ! for computing velocity magnitudes
+endif 
+!
+! compute the interpolation weights for all particles in this snap
+do k=1,pfmd%numParticlesPerSnap(iSnap)
+   call computeStationWeights(p(k))
+end do
+!
+! for each component, look up the data values at the three nodes of 
+! the resident element and linearly interpolate them at the particle
+! position
+allocate(interpVals(afmd%numVarNetCDF,pfmd%numParticlesPerSnap(iSnap)))
+do v=1,afmd%numVarNetCDF
+   do k=1,pfmd%numParticlesPerSnap(iSnap)
+      ! look up the three nodes that make up this element
+      do n=1,3
+         p(k)%n(n) = nm(p(k)%elementIndex,n)
+      end do
+      dryNode = .false.
+      ! search for dry or undefined nodal values
+      if (p(k)%elementIndex.ne.0) then
+         do n=1,3
+            if ( adcirc_data(p(k)%n(n),v).eq.-99999 ) then
+               dryNode = .true. ! at least one of the three nodes has an undefined value
+            endif
+         end do
+      endif
+      if (p(k)%elementIndex.eq.0 .or. dryNode.eqv..true.) then
+         interpVals(v,k) = -99999.0
+      else
+         interpVals(v,k) = 0.d0
+         ! now interpolate this variable using the weights at the three nodes
+         do n=1,3
+            interpVals(v,k) = interpVals(v,k) + adcirc_data(p(k)%n(n),v) * p(k)%w(n) 
+         enddo
+      endif
+   end do
+end do
+!
+! now write the interpolated values to XDMF xml
+attributeType = "Scalar"
+if (afmd%numVarNetCDF.gt.1) then
+   attributeType = "Vector"
+endif
+!
+! TODO: This assumes that if the netcdf contains a multicomponent quantity
+! (e.g., a 2D vector) that there is only one XDMF variable name to describe
+! this quantity 
+write(olun,'('//ind('|')//',A)') '<Attribute Name="'//trim(afmd%varNameXDMF(1))//'" AttributeType="'//trim(attributeType)//'" Center="Node">'
+write(olun,'('//ind('+')//',a,i0,a)')    '<DataItem DataType="Float" Dimensions="',pfmd%numParticlesPerSnap(iSnap),' 3" Format="XML">'
+do k=1,pfmd%numParticlesPerSnap(iSnap)
+   ! TODO: Fix this hack for 2D velocity
+   if (trim(afmd%varNameNetCDF(1)).eq.'u-vel') then
+      ! fill in zero for the third component : velocity in the z direction
+      write(olun,'('//ind('|')//',f15.7,f15.7,f15.7)') (interpVals(v,k), v=1,afmd%numVarNetCDF), 0.d0
+      ! compute particle speeds while we're at it
+      sp(k) = sqrt(interpVals(1,k)**2 + interpVals(2,k)**2)
+   else
+      write(olun,'('//ind('|')//',f15.7,f15.7,f15.7)') (interpVals(v,k), v=1,afmd%numVarNetCDF)
+   endif
+end do
+write(olun,'('//ind('|')//',a)')    '</DataItem>'
+write(olun,'('//ind('-')//',a)') '</Attribute>'
+! write an extra attribute containing the particle speeds
+if (trim(afmd%varNameNetCDF(1)).eq.'u-vel') then
+   write(olun,'('//ind('|')//',a)') '<Attribute AttributeType="Scalar" Center="Node" Name="particle_speed">'
+   write(olun,'('//ind('+')//',a,i0,a)')  '<DataItem DataType="Float" Dimensions="',pfmd%numParticlesPerSnap(iSnap),' 1" Format="XML">'
+   do k=1,pfmd%numParticlesPerSnap(iSnap)
+      write(olun,'('//ind('|')//',f15.7)') sp(k)   
+   end do
+   write(olun,'('//ind('|')//',a)')    '</DataItem>'
+   write(olun,'('//ind('-')//',a)') '</Attribute>'
+endif
+deallocate(adcirc_data)
+if (trim(afmd%varNameNetCDF(1)).eq.'u-vel') then
+   deallocate(sp)
+endif
+deallocate(interpVals)
+!----------------------------------------------------------------------
+end subroutine interpolateAndWriteTimeVaryingAttributesXML
+!----------------------------------------------------------------------
