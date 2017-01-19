@@ -137,7 +137,7 @@ for file in `ls *.nc *.xmf ${ADVISDIR}/al*.fst ${ADVISDIR}/bal*.dat fort.15 fort
 done
 #
 #COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com,asgs.cera.lsu@gmail.com"
-COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com"
+COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com,maxwell.e.agnew@usace.army.mil"
 runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'`
 subject="ADCIRC ASGS POSTED for $runStartTime"
 if [[ $TROPICALCYCLONE = on ]]; then
