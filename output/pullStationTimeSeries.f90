@@ -1,3 +1,26 @@
+!------------------------------------------------------------------
+! pullStationTimeSeries.f90: Create ADCIRC ascii elevation station
+! file (fort.61) from ADCIRC fort.63 file.
+!------------------------------------------------------------------
+! Copyright(C) 2015--2017 Jason Fleming
+!
+! This file is part of the ADCIRC Surge Guidance System (ASGS).
+!
+! The ASGS is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+!
+! ASGS is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+!------------------------------------------------------------------
+! Compile with accompanying makefile. 
+!------------------------------------------------------------------
 program pullStationTimeSeries
 use asgsio
 use adcmesh
@@ -91,12 +114,13 @@ allocate(adcirc_data(np,2))
 write(6,'(a,i0,a)') 'INFO: Finding element containing each station and computing interpolation weights for ',numStations,' station(s).'
 do s=1, numStations
    write(6,'(i0,1x)',advance='no') s    ! update progress bar
+   stations(s)%elementFound = .false.
    call computeStationWeights(stations(s))
 end do
 ! write the station weights to a text file for reference or troubleshooting
 open(unit=62,file='station_weights.txt',status='replace',action='write')
 do s=1,numStations 
-   write(62,'(3(f15.7,3x))') (stations(s)%weights(i),i=1,3)
+   write(62,'(3(f15.7,3x))') (stations(s)%w(i),i=1,3)
 end do
 close(62)
 write(6,'(/,a)') 'INFO: Finished finding element(s) and computing interpolation weights.'
@@ -107,9 +131,9 @@ do s=1,numStations
    if (stations(s)%elementIndex.eq.0) then
       stationVal = -99999.0
    else
-      stationVal = xyd(3,nm(stations(s)%elementIndex,1)) * stations(s)%weights(1) &
-                 + xyd(3,nm(stations(s)%elementIndex,2)) * stations(s)%weights(2) &
-                 + xyd(3,nm(stations(s)%elementIndex,3)) * stations(s)%weights(3) 
+      stationVal = xyd(3,nm(stations(s)%elementIndex,1)) * stations(s)%w(1) &
+                 + xyd(3,nm(stations(s)%elementIndex,2)) * stations(s)%w(2) &
+                 + xyd(3,nm(stations(s)%elementIndex,3)) * stations(s)%w(3) 
    endif
    write(14,'(i10,2x,e17.10)') s, stationVal
 end do
@@ -231,9 +255,9 @@ if (num_components.eq.1) then
    if (station%elementIndex.eq.0 .or. dryNode.eqv..true.) then
       stationVal = -99999.0
    else
-      stationVal = adcirc_data(nm(station%elementIndex,1),1) * station%weights(1) &
-                 + adcirc_data(nm(station%elementIndex,2),1) * station%weights(2) &
-                 + adcirc_data(nm(station%elementIndex,3),1) * station%weights(3) 
+      stationVal = adcirc_data(nm(station%elementIndex,1),1) * station%w(1) &
+                 + adcirc_data(nm(station%elementIndex,2),1) * station%w(2) &
+                 + adcirc_data(nm(station%elementIndex,3),1) * station%w(3) 
    endif
    write(61,'(i10,2x,e17.10)') s, stationVal 
 else
@@ -241,12 +265,12 @@ else
       temp1 = -99999.0
       temp2 = -99999.0
    else
-      temp1 = adcirc_data(nm(station%elementIndex,1),1) * station%weights(1) &
-            + adcirc_data(nm(station%elementIndex,2),1) * station%weights(2) &
-            + adcirc_data(nm(station%elementIndex,3),1) * station%weights(3) 
-      temp2 = adcirc_data(nm(station%elementIndex,1),2) * station%weights(1) &
-            + adcirc_data(nm(station%elementIndex,2),2) * station%weights(2) &
-            + adcirc_data(nm(station%elementIndex,3),2) * station%weights(3) 
+      temp1 = adcirc_data(nm(station%elementIndex,1),1) * station%w(1) &
+            + adcirc_data(nm(station%elementIndex,2),1) * station%w(2) &
+            + adcirc_data(nm(station%elementIndex,3),1) * station%w(3) 
+      temp2 = adcirc_data(nm(station%elementIndex,1),2) * station%w(1) &
+            + adcirc_data(nm(station%elementIndex,2),2) * station%w(2) &
+            + adcirc_data(nm(station%elementIndex,3),2) * station%w(3) 
       write(61,'(i10,2(2x,e17.10))') s, temp1, temp2
    endif
 endif

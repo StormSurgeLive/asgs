@@ -40,6 +40,10 @@ character(NF90_MAX_NAME) :: timeOfVarName
 integer :: NC_VarID(3)
 integer :: NC_DimID_time
 integer :: NC_VarID_time
+
+integer :: agold ! netcdf i/o status for old agrid attribute
+integer :: agnew ! netcdf i/o status for new agrid attribute
+
 integer :: nc_count(2)
 integer :: nc_start(2)
 integer :: nc_count3D(3)
@@ -61,6 +65,7 @@ real(8), allocatable :: test_data(:,:)   ! generic holder for converted data
 real(8), allocatable :: result_data(:,:) ! generic holder for converted data
 integer, allocatable :: adcirc_idata(:,:) ! generic holder for converted integer data
 real(8), allocatable :: adcirc_data3D(:,:,:) ! generic holder for converted data
+character(len=50), allocatable :: dataFileStationIDs(:) ! namelen from adcirc is 50
 character(len=120) :: datenum !seconds since 2008-07-31 12:00:00 +00:00
 integer :: nspool
 integer :: it
@@ -73,6 +78,11 @@ real(8), allocatable :: extremes(:)
 real(8), allocatable :: extremeTimes(:)
 real(8), allocatable :: dataValues(:)
 integer :: numNodes
+integer :: nc_dimid_station
+integer :: nc_varid_station_name
+integer :: nc_dimid_namelen
+integer :: station_namelen
+integer :: nStations  ! number of stations in the data file
 integer :: numSnaps
 real(8) :: snapR ! time in seconds
 integer :: snapI ! time step
@@ -143,15 +153,11 @@ end do
 num_components = 1
 ! is it a station file?
 do i=1,nvar
-call check(nf90_inquire_variable(nc_id, i, thisVarName))
-select case(trim(thisVarName))
-case("station_name")
-   stationFile = .true.
-   call check(nf90_inq_dimid(nc_id, "station", nc_dimid_node))
-   exit
-case default
-   ! do nothing
-end select
+   call check(nf90_inquire_variable(nc_id, i, thisVarName))
+   if (trim(thisVarName).eq.'station_name') then
+      stationFile = .true.
+      call check(nf90_inq_dimid(nc_id, "station", nc_dimid_station))
+   endif 
 end do
 ! if this is not a station file, find the mesh node dimension and
 ! comment 
@@ -163,10 +169,17 @@ endif
 ! 
 ! find the rundes and runid attributes in case they need to be written
 ! to ascii output
-!call check(nf90_get_att(nc_id,nf90_global,'rundes',rundes))
-rundes = 'rundes' !TODO: make adcirc write this value to netcdf output files
-!call check(nf90_get_att(nc_id,nf90_global,'runid',runid)) 
-runid = 'runid' !TODO: make adcirc write this value to netcdf output files 
+agnew = nf90_get_att(nc_id,nf90_global,'agrid',agrid)
+if (agnew.ne.NF90_NOERR) then
+   agold = nf90_get_att(nc_id,nf90_global,'grid',agrid)
+   if (agold.ne.NF90_NOERR) then
+      agrid = 'agrid_not_found'
+   endif
+endif
+call check(nf90_get_att(nc_id,nf90_global,'rundes',rundes))
+!rundes = 'rundes' !TODO: make adcirc write this value to netcdf output files
+call check(nf90_get_att(nc_id,nf90_global,'runid',runid)) 
+!runid = 'runid' !TODO: make adcirc write this value to netcdf output files 
 !   
 ! determine the type of data in the file, and set the output
 ! filename accordingly
@@ -326,8 +339,17 @@ end do
 if ( stationfile.eqv..false.) then
    ! determine the number of nodes
    call check(nf90_inq_dimid(nc_id, "node", nc_dimid_node))
-endif
-call check(nf90_inquire_dimension(nc_id, nc_dimid_node, len=np))
+   call check(nf90_inquire_dimension(nc_id, nc_dimid_node, len=np))
+else
+   ! determine the number of stations
+   call check(nf90_inq_dimid(nc_id, "station", nc_dimid_station))
+   call check(nf90_inquire_dimension(nc_id, nc_dimid_station, len=nStations))
+
+   call check(nf90_inq_dimid(nc_id, "namelen", nc_dimid_namelen))
+   call check(nf90_inquire_dimension(nc_id, nc_dimid_namelen, len=station_namelen))
+endif                                                             
+
+
 ! determine time increment between output writes
 if ( (ndset.gt.1).and.(extremesWithTime.eqv..false.) ) then
    time_increment = timesec(2) - timesec(1)

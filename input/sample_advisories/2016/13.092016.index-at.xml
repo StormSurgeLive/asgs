@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 31 Aug 2016 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm HERMINE Forecast/Advisory Number 13</title>
+      <description>Issued at 2100 UTC WED AUG 31 2016 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL STORM HERMINE FORECAST/ADVISORY NUMBER  13
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL092016
+2100 UTC WED AUG 31 2016
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+THE HURRICANE WATCH AND TROPICAL STORM WARNING HAVE BEEN EXTENDED
+WESTWARD ALONG THE FLORIDA PANHANDLE TO DESTIN.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A HURRICANE WATCH IS IN EFFECT FOR...
+* ANCLOTE RIVER TO DESTIN
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* ANCLOTE RIVER TO DESTIN
+ 
+A TROPICAL STORM WATCH IS IN EFFECT FOR...
+* MARINELAND FLORIDA TO ALTAMAHA SOUND GEORGIA
+ 
+INTERESTS ALONG THE UNITED STATES EAST COAST FROM GEORGIA THROUGH
+THE CAROLINAS SHOULD MONITOR THE PROGRESS OF THIS SYSTEM.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 25.5N  87.4W AT 31/2100Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHEAST OR  30 DEGREES AT   6 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1004 MB
+MAX SUSTAINED WINDS  40 KT WITH GUSTS TO  50 KT.
+34 KT.......110NE 110SE   0SW   0NW.
+12 FT SEAS..120NE 120SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 25.5N  87.4W AT 31/2100Z
+AT 31/1800Z CENTER WAS LOCATED NEAR 25.3N  87.8W
+ 
+FORECAST VALID 01/0600Z 26.5N  87.3W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT...110NE 120SE   0SW  40NW.
+ 
+FORECAST VALID 01/1800Z 28.1N  86.3W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 60NE  80SE   0SW   0NW.
+34 KT...110NE 120SE   0SW  40NW.
+ 
+FORECAST VALID 02/0600Z 30.0N  85.0W
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 60NE  80SE   0SW   0NW.
+34 KT...110NE 120SE   0SW  40NW.
+ 
+FORECAST VALID 02/1800Z 32.0N  82.9W...INLAND
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 60NE  80SE   0SW   0NW.
+34 KT...110NE 140SE   0SW   0NW.
+ 
+FORECAST VALID 03/1800Z 36.5N  77.5W...POST-TROP/EXTRATROP
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 60NE  80SE   0SW   0NW.
+34 KT...110NE 140SE   0SW   0NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 200 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 04/1800Z 39.0N  74.5W...POST-TROP/EXTRATROP
+MAX WIND  45 KT...GUSTS  55 KT.
+ 
+OUTLOOK VALID 05/1800Z 39.5N  72.0W...POST-TROP/EXTRATROP
+MAX WIND  40 KT...GUSTS  50 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 25.5N  87.4W
+ 
+NEXT ADVISORY AT 01/0300Z
+ 
+$$
+FORECASTER PASCH
+
+</pre>]]></description>
+      <pubDate>Wed, 31 Aug 2016 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2016/09/13.092016.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2016/09/13.092016.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
