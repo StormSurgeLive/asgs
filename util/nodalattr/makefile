@@ -74,8 +74,8 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := adcmesh.o asgsio.o landuse.o adcircdata.o
-MODS := adcmesh.mod asgsio.mod landuse.mod adcircdata.mod
+OBJ := adcmesh.o asgsio.o landuse.o adcircdata.o logging.o
+MODS := adcmesh.mod asgsio.mod landuse.mod adcircdata.mod logging.mod
 #
 # targets
 all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyvis convertna
@@ -107,8 +107,11 @@ tau0_gen : $(MODS) tau0_gen.f90
 adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcmesh.f90 $(LDFLAGS)
 #
-asgsio.mod : $(OUTPUTDIR)/asgsio.f90 
+asgsio.mod : $(OUTPUTDIR)/asgsio.f90 logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/asgsio.f90 $(LDFLAGS)
+#
+logging.mod : $(OUTPUTDIR)/logging.f90 
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/logging.f90 $(LDFLAGS)
 #
 adcircdata.mod : $(OUTPUTDIR)/adcircdata.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcircdata.f90 $(LDFLAGS)

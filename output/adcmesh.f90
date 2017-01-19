@@ -89,34 +89,34 @@ integer,         allocatable :: NeiTabEle(:,:)
 integer,         allocatable :: NeiTabEleGenerated(:,:)
 integer,         allocatable :: nneighele(:)
 !
-integer                       :: NC_DimID_node
-integer                       :: NC_DimID_vnode
-integer                       :: NC_DimID_nele
-integer                       :: NC_DimID_nvertex
-integer                       :: NC_DimID_nope
-integer                       :: NC_DimID_max_nvdll
-integer                       :: NC_DimID_nbou
-integer                       :: NC_DimID_neta
-integer                       :: NC_DimID_nvel
-integer                       :: NC_DimID_max_nvell
+integer                       :: NC_DimID_node = -99
+integer                       :: NC_DimID_vnode = -99
+integer                       :: NC_DimID_nele = -99
+integer                       :: NC_DimID_nvertex = -99
+integer                       :: NC_DimID_nope = -99
+integer                       :: NC_DimID_max_nvdll = -99
+integer                       :: NC_DimID_nbou = -99
+integer                       :: NC_DimID_neta = -99
+integer                       :: NC_DimID_nvel = -99
+integer                       :: NC_DimID_max_nvell = -99
 !
-integer                       :: NC_VarID_Mesh
-integer                       :: NC_VarID_x
-integer                       :: NC_VarID_y
-integer                       :: NC_VarID_sigma
-integer                       :: NC_VarID_element
-integer                       :: NC_VarID_neta
-integer                       :: NC_VarID_nvdll
-integer                       :: NC_VarID_max_nvdll
-integer                       :: NC_VarID_ibtypee
-integer                       :: NC_VarID_nbdv
-integer                       :: NC_VarID_nvel
-integer                       :: NC_VarID_nope 
-integer                       :: NC_VarID_nvell
-integer                       :: NC_VarID_max_nvell
-integer                       :: NC_VarID_ibtype
-integer                       :: NC_VarID_nbvv
-integer                       :: NC_VarID_depth
+integer                       :: NC_VarID_Mesh = -99
+integer                       :: NC_VarID_x = -99
+integer                       :: NC_VarID_y = -99
+integer                       :: NC_VarID_sigma = -99
+integer                       :: NC_VarID_element = -99
+integer                       :: NC_VarID_neta = -99
+integer                       :: NC_VarID_nvdll = -99
+integer                       :: NC_VarID_max_nvdll = -99
+integer                       :: NC_VarID_ibtypee = -99
+integer                       :: NC_VarID_nbdv = -99
+integer                       :: NC_VarID_nvel = -99
+integer                       :: NC_VarID_nope  = -99
+integer                       :: NC_VarID_nvell = -99
+integer                       :: NC_VarID_max_nvell = -99
+integer                       :: NC_VarID_ibtype = -99
+integer                       :: NC_VarID_nbvv = -99
+integer                       :: NC_VarID_depth = -99
 
 logical                       :: projectCPP ! .true. if user wants to project mesh coordinates with CPP to aid in visualization
 logical                       :: cppUpdated ! .true. if we've already computed/written CPP on this execution
@@ -226,11 +226,17 @@ end type xdmfMetaData_t
 type station_t
    real(8) :: lon             ! decimal degrees east 
    real(8) :: lat             ! decimal degrees north
+   real(8) :: z               ! vertical position (m) relative to mesh zero
+   logical :: elementFound   ! true if the element number is known
    integer :: elementIndex   ! where station is located in a particular mesh
-   integer :: nodeIndices(3) ! nodes that surround the station
-   real(8) :: weights(3)     ! used to interpolate station values based on nodal values
+   integer :: n(3) ! nodes that surround the station
+   real(8) :: w(3)     ! weights used to interpolate station values based on nodal values
+   real(8), allocatable :: d(:,:)   ! station data (num_components, ntime)
+   integer :: iID            ! simple numerical ID
    character(len=1024) :: stationID   ! generally a number assigned by govt agency 
-   character(len=1025) :: description ! human readable 
+   character(len=1024) :: description ! human readable 
+   character(len=1024) :: agency  ! organization responsible for the station
+   character(len=1024) :: datum   ! relevant vertical datum (MSL, NAVD88, etc)
 end type station_t
       
 !-----+---------+---------+---------+---------+---------+---------+
@@ -371,11 +377,12 @@ end subroutine read14_findDims
 ! Unfinished routine to read the dimensions of mesh data from
 ! a netcdf file. See TODO comments at the end of the subroutine.
 !------------------------------------------------------------------
-subroutine findMeshDimsNetCDF(datafile)
+subroutine findMeshDimsNetCDF(datafile, open_ncID)
 use netcdf
 use asgsio, only : nc_id, check
 implicit none
 character(len=1024), intent(in) :: datafile
+integer, optional, intent(in) :: open_ncID ! used if file already open
 integer :: dimPres ! return code from netcdf to determine if the dimension is present in the file
 integer :: i
 integer :: natt ! number of attributes in the netcdf file
@@ -387,13 +394,16 @@ integer :: ncformat ! netcdf3, netcdf4, netcdf4 classic model, etc
 write(6,'(a)') 'INFO: Reading mesh dimensions from the netCDF file.'
 !
 ! open the netcdf file
-call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
+if (present(open_ncID).eqv..true.) then
+   nc_id = open_ncID
+else
+   call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
+endif
+
 !
 ! determine the type of data stored in the file
-call check(nf90_inquire(nc_id, ndim, nvar, natt, &
-                        nc_dimid_time, ncformat))
-if ( (ncformat.eq.nf90_format_netcdf4).or. &
-   (ncformat.eq.nf90_format_netcdf4_classic) ) then
+call check(nf90_inquire(nc_id, ndim, nvar, natt, nc_dimid_time, ncformat))
+if ( (ncformat.eq.nf90_format_netcdf4).or.(ncformat.eq.nf90_format_netcdf4_classic) ) then
    write(6,'(a)') 'INFO: The data file uses netcdf4 formatting.'
 endif
 !
@@ -487,7 +497,9 @@ endif
 ! Close the file once the mesh dimensions have been determined and the 
 ! arrays have been allocated. The actual data are read in the
 ! subroutine readMeshNetCDF().
-call check(nf90_close(nc_id))
+if (present(open_ncID).eqv..false.) then
+   call check(nf90_close(nc_id))
+endif
 
 write(6,'(a)') 'INFO: Finished reading mesh dimensions from the netCDF file.'
 
@@ -504,11 +516,12 @@ end subroutine findMeshDimsNetCDF
 ! TODO: The NetCDF files written by ADCIRC don't actually contain the
 ! levee heights, coefficients of sub/supercritical flow, etc. 
 !------------------------------------------------------------------
-subroutine readMeshNetCDF(datafile)
+subroutine readMeshNetCDF(datafile, open_ncID)
 use netcdf
 use asgsio, only : nc_id, check
 implicit none
 character(len=1024), intent(in) :: datafile
+integer, optional, intent(in) :: open_ncID
 integer :: dimPres ! return code from netcdf to determine if the dimension is present in the file
 integer :: i, j ! loop counter
 integer :: natt ! number of attributes in the netcdf file
@@ -516,19 +529,30 @@ integer :: nvar ! number of variables in the netcdf file
 integer :: ndim ! number of dimensions in the netcdf file
 integer :: nc_dimid_time ! id of the time dimension
 integer :: ncformat ! netcdf3, netcdf4, netcdf4 classic model, etc
-
-integer :: nc_count(2)
-integer :: nc_start(2)
+!
+integer :: nc_count(1) ! x, y, and depth are 1D
+integer :: nc_start(1)
+!
+integer :: nc_ele_count(2) ! element table is 2D
+integer :: nc_ele_start(2)
+!
+integer :: nc_boundmax_count(2) ! max boundary nodes table is 2D 
+integer :: nc_boundmax_start(2)
 !
 write(6,'(a)') 'INFO: Reading mesh from the netCDF file.'
 call allocateNodalAndElementalArrays()
 !
 ! open the netcdf file
-call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
+if (present(open_ncID).eqv..true.) then
+   nc_id = open_ncID
+else
+   call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
+endif
 !
 ! read mesh lon, lat, depth data from the file
-nc_count = (/ np, 1 /)
-nc_start = (/ 1, 1 /)
+nc_start = (/ 1 /)
+nc_count = (/ np /)
+
 call check(nf90_inq_varid(nc_id, 'x', nc_varid_x))
 call check(nf90_get_var(nc_id,nc_varid_x,xyd(1,1:np),nc_start,nc_count))     
 call check(nf90_inq_varid(nc_id, 'y', nc_varid_y))
@@ -537,9 +561,10 @@ call check(nf90_inq_varid(nc_id, 'depth', nc_varid_depth))
 call check(nf90_get_var(nc_id,nc_varid_depth,xyd(3,1:np),nc_start,nc_count))
 !
 ! element table
-NC_Count = (/ 3, ne /)
+nc_ele_start = (/ 1, 1 /)
+nc_ele_count = (/ 3, ne /)
 call check(nf90_inq_varid(nc_id, 'element', nc_varid_element))
-call check(nf90_get_var(nc_id,nc_varid_element,nmnc,nc_start,nc_count))
+call check(nf90_get_var(nc_id,nc_varid_element,nmnc,nc_ele_start,nc_ele_count))
 !
 ! populate the adcirc-style element table
 !
@@ -555,20 +580,24 @@ end do
 !
 ! open (i.e., elevation specified) boundaries
 if (nope.ne.0) then
-   nc_count = (/ nope, 1 /)
+   nc_count = (/ nope /)
    call check(nf90_get_var(nc_id,nc_varid_nvdll,nvdll,nc_start,nc_count))
-   nc_count = (/ nope, nvdll_max /)   
-   call check(nf90_get_var(nc_id,nc_varid_nbdv,nbdv,nc_start,nc_count))
+   nc_boundmax_start = (/ 1, 1 /)
+   nc_boundmax_count = (/ nope, nvdll_max /)   
+   call check(nf90_get_var(nc_id,nc_varid_nbdv,nbdv,nc_boundmax_start,nc_boundmax_count))
 endif
 if (nbou.ne.0) then
-   nc_count = (/ nbou, 1 /)
+   nc_count = (/ nbou /)
    call check(nf90_get_var(nc_id,nc_varid_nvell,nvell,nc_start,nc_count))  
-   nc_count = (/ nbou, 1 /)
+   nc_count = (/ nbou /)
    call check(nf90_get_var(nc_id,nc_varid_ibtype,ibtype,nc_start,nc_count))     
-   nc_count = (/ nbou, nvell_max /)
-   call check(nf90_get_var(nc_id,nc_varid_nbvv,nbvv,nc_start,nc_count))     
+   nc_boundmax_start = (/ 1, 1 /)
+   nc_boundmax_count = (/ nbou, nvell_max /)
+   call check(nf90_get_var(nc_id,nc_varid_nbvv,nbvv,nc_boundmax_start,nc_boundmax_count))     
 end if
-call check(nf90_close(nc_id))
+if (present(open_ncID).eqv..false.) then
+   call check(nf90_close(nc_id))
+endif
 write(6,'(a)') 'INFO: Mesh has been read from the netCDF file.'
 
 !----------------------------------------------------------------------
@@ -593,16 +622,17 @@ implicit none
 ! used in writing this file
 integer :: agold
 integer :: agnew
-integer :: ag
-agold = nf90_get_att(nc_id,nf90_global,'grid',agrid)
+
 agnew = nf90_get_att(nc_id,nf90_global,'agrid',agrid)
-if (agold.EQ.NF90_NOERR) then
-   ag = nf90_get_att(nc_id,nf90_global,'grid',agrid)
-elseif(agnew.EQ.NF90_NOERR) then
-   ag = nf90_get_att(nc_id,nf90_global,'agrid',agrid)
-else
-   call check(ag)
+if (agnew.EQ.NF90_NOERR) then
+   return
 endif
+agold = nf90_get_att(nc_id,nf90_global,'grid',agrid)
+if (agold.EQ.NF90_NOERR) then
+   return
+endif
+call check(agold)
+
 !----------------------------------------------------------------------
 end subroutine readMeshCommentLineNetCDF
 !----------------------------------------------------------------------
@@ -1201,6 +1231,7 @@ integer, intent(in) :: fileFormat
 integer              :: NC_DimID_single
 !
 ! create and store mesh dimensions 
+write(6,'(a)') 'INFO: adcirc2netcdf.f90: Writing mesh definitions to netcdf.'
 CALL Check(NF90_PUT_ATT(NC_ID,NF90_GLOBAL,'agrid',trim(agrid)))
 CALL Check(NF90_DEF_DIM(NC_ID,'node',np,NC_DimID_node))
 CALL Check(NF90_DEF_DIM(NC_ID,'nele',ne,NC_DimID_nele))
@@ -1301,6 +1332,7 @@ endif
 
 #endif
 
+write(6,'(a)') 'INFO: adcirc2netcdf.f90: Finished writing mesh definitions to netcdf.'
 !----------------------------------------------------------------------
       end subroutine writeMeshDefinitionsToNetCDF
 !----------------------------------------------------------------------
@@ -1865,51 +1897,64 @@ real(8) :: y1, y2, y3 ! latitude temporary variables
 real(8) :: subArea1, subArea2, subArea3, TotalArea
 integer :: e
 
-do e=1,ne
-   X1 = station%lon
-   X2 = xyd(1,nm(e,2))
-   X3 = xyd(1,nm(e,3))
-   Y1 = station%lat
-   Y2 = xyd(2,nm(e,2))
-   Y3 = xyd(2,nm(E,3))
-   SubArea1 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+if (station%elementFound.eqv..false.) then
 
-   X1 = xyd(1,nm(e,1))
-   X2 = station%lon
-   X3 = xyd(1,nm(e,3))
-   Y1 = xyd(2,nm(e,1))
-   Y2 = station%lat
-   Y3 = xyd(2,nm(e,3))
-   SubArea2 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+   do e=1,ne
+      X1 = station%lon
+      X2 = xyd(1,nm(e,2))
+      X3 = xyd(1,nm(e,3))
+      Y1 = station%lat
+      Y2 = xyd(2,nm(e,2))
+      Y3 = xyd(2,nm(E,3))
+      SubArea1 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+   
+      X1 = xyd(1,nm(e,1))
+      X2 = station%lon
+      X3 = xyd(1,nm(e,3))
+      Y1 = xyd(2,nm(e,1))
+      Y2 = station%lat
+      Y3 = xyd(2,nm(e,3))
+      SubArea2 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+   
+      X1 = xyd(1,nm(e,1))
+      X2 = xyd(1,nm(e,2))
+      X3 = station%lon
+      Y1 = xyd(2,nm(e,1))
+      Y2 = xyd(2,nm(e,2))
+      Y3 = station%lat
+      SubArea3 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+   
+      X1 = xyd(1,nm(e,1))
+      X2 = xyd(1,nm(e,2))
+      X3 = xyd(1,nm(e,3))
+      Y1 = xyd(2,nm(e,1))
+      Y2 = xyd(2,nm(e,2))
+      Y3 = xyd(2,nm(e,3))
+      TotalArea = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+   
+      if ((SubArea1+SubArea2+SubArea3).LE.(1.01*TotalArea))THEN
+         station%elementIndex = e
+         station%elementFound = .true.
+         exit
+      endif
+   end do
+endif
 
-   X1 = xyd(1,nm(e,1))
-   X2 = xyd(1,nm(e,2))
-   X3 = station%lon
-   Y1 = xyd(2,nm(e,1))
-   Y2 = xyd(2,nm(e,2))
-   Y3 = station%lat
-   SubArea3 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-
-   X1 = xyd(1,nm(e,1))
-   X2 = xyd(1,nm(e,2))
-   X3 = xyd(1,nm(e,3))
-   Y1 = xyd(2,nm(e,1))
-   Y2 = xyd(2,nm(e,2))
-   Y3 = xyd(2,nm(e,3))
+if (station%elementFound.eqv..true.) then
+   X1 = xyd(1,nm(station%elementIndex,1))
+   X2 = xyd(1,nm(station%elementIndex,2))
+   X3 = xyd(1,nm(station%elementIndex,3))
+   Y1 = xyd(2,nm(station%elementIndex,1))
+   Y2 = xyd(2,nm(station%elementIndex,2))
+   Y3 = xyd(2,nm(station%elementIndex,3))
    TotalArea = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-
-   IF ((SubArea1+SubArea2+SubArea3).LE.(1.01*TotalArea))THEN
-      station%elementIndex = e
-      station%weights(1) = ( (station%lon-X3)*(Y2-Y3)+(X2-X3)*(Y3-station%lat) )/TotalArea
-      station%weights(2) = ( (station%lon-X1)*(Y3-Y1)-(station%lat-Y1)*(X3-X1))/TotalArea
-      station%weights(3) = (-(station%lon-X1)*(Y2-Y1)+(station%lat-Y1)*(X2-X1))/TotalArea
-      exit
-   else  
-      station%elementIndex = 0
-      station%weights = -99999.0
-   endif    
-
-enddo
+   station%w(1) = ( (station%lon-X3)*(Y2-Y3)+(X2-X3)*(Y3-station%lat) )/TotalArea
+   station%w(2) = ( (station%lon-X1)*(Y3-Y1)-(station%lat-Y1)*(X3-X1))/TotalArea
+   station%w(3) = (-(station%lon-X1)*(Y2-Y1)+(station%lat-Y1)*(X2-X1))/TotalArea
+else  
+   station%elementIndex = 0
+   station%w = -99999.0
+endif    
 
 !-----------------------------------------------------------------------
 END SUBROUTINE computeStationWeights

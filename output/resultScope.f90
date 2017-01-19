@@ -28,7 +28,10 @@
 !        Trial  2009. 7.21. Kick Off
 !               2009. 7.10. Minimum Composition
 !----------------------------------------------------------------------
-!
+! TODO: Add support for processing netCDF output files.
+! TODO: Add support for producing netCDF subresults files. 
+! TODO: Write submesh to local directory by default (instead of 
+! writing it to the same directory where the fulldomain mesh is found.
 !----------------------------------------------------------------------
 program resultScope
 !----------------------------------------------------------------------
@@ -43,17 +46,27 @@ character(1000) :: polygonFile ! name of file with polygon vertices
 character(1000) :: resultShape ! shape of extraction from full domain data
 character(1000) :: resultShapeMeshFileName ! name of mesh file extracted full domain mesh
 character(1000) :: resultShapeOutputFileName ! name of output data file extracted full domain data file
+character(1000) :: dataFileType ! output data file type, useful if name not recognized
+character(2048) :: dataFileBase ! output file name sans full path, if any
+character(2048) :: dataFileExtension ! output file name after . something like 13, 14, 15, 63, 222 etc
+integer :: lastSlashPosition ! used for trimming full path from a filename
+integer :: lastSlashPositionMesh ! used for trimming full path from a mesh filename
+character(2048) :: meshFileBase ! mesh file name sans full path, if any
+integer :: lastDotPosition   ! to determine file extension
 character(80) :: dataFileCommentLine
-integer :: numValuesPerDataset
+integer :: numValuesPerDataset  ! number of vals in full domain dataset (np or ne)
+integer :: numValuesPerSubset  ! number of vals in subset (nps or nes)
 integer :: i, j, k, m, n, SS
 integer :: unitnumber ! i/o unit for the fulldomain output file
 logical :: timeVarying ! .true. for time varying data
 logical :: meshonly    ! .true. if we are just subsetting the mesh
 logical, allocatable :: within(:) ! (np) .true. if a node is within the resultshape
+logical, allocatable :: elementWithin(:) ! (ne) .true. if an element is within the resultshape
 integer inOnOut ! 1 if a node is within the polygon, 0 if it is on the polygon, and -1 if it is outside
 integer, allocatable :: sub2fullNodes(:) ! (nps) subdomain -> fulldomain index number mapping of each resultshape node
 integer, allocatable :: full2subNodes(:) ! (np) fulldomain -> subdomain index mapping of the resultshape nodes 
 integer, allocatable :: sub2fullElements(:) ! (nes) subdomain -> fulldomain index number mapping of element in resultshape
+integer, allocatable :: full2subElements(:) ! (ne) fulldomain -> subdomain index mapping
 integer :: nps ! number of nodes in the resultshape
 integer :: nes ! number of elements in the resultshape 
 real(8), allocatable :: polygonx(:) ! x coordinates of polygon vertices
@@ -72,9 +85,13 @@ integer :: lineNum, vertex
 !
 meshFileName = "null"
 dataFile = "null"
+dataFileType = "null"
 resultShapeMeshFileName = "null"
 meshonly = .false.
-
+dataFileBase = "null"
+dataCenter = "Node"
+!
+!
 argcount = command_argument_count() ! count up command line options
 if (argcount.gt.0) then
    i=0
@@ -92,6 +109,11 @@ if (argcount.gt.0) then
          call getarg(i, cmdlinearg)
          write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
          dataFile = trim(cmdlinearg)
+      case('--datafiletype')
+         i = i + 1
+         call getarg(i, cmdlinearg)
+         write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
+         dataFileType = trim(cmdlinearg)
       case('--submeshfilename')
          i = i + 1
          call getarg(i, cmdlinearg)
@@ -148,16 +170,39 @@ if (argcount.gt.0) then
    end do
 end if
 !
+! trim off the full path so we just have the file name
+lastSlashPosition = index(trim(dataFile),"/",.true.) 
+! now set NETCDF file name for files containing only one type of data
+if (meshonly.eqv..true.) then
+   ! trim off the full path so we just have the file name
+   lastSlashPosition = index(trim(meshFileName),"/",.true.)
+endif
+dataFileBase = trim(dataFile(lastSlashPosition+1:))
+lastDotPosition = index(trim(dataFileBase),'.',.true.)
+dataFileExtension = trim(dataFileBase(lastDotPosition+1:))
+!
+! get mesh file name without full path (if any)
+lastSlashPositionMesh = index(trim(meshFileName),"/",.true.)
+meshFileBase = trim(meshFileName(lastSlashPositionMesh+1:))
+!
+! If the data file type was not supplied, then use the file name 
+! as the file type.
+if ( trim(dataFileType).eq.'null') then
+   dataFileType = trim(dataFile)
+endif
+!
 !
 call read14()
 allocate(within(np))
+allocate(elementWithin(ne))
+elementWithin(:) = .false.
 within(:) = .false.
 !
 ! Characteristics of output data
 !
 ! Determine if the dataFile is time varying or not. 
 !write(6,*) 'DEBUG: dataFile: ',trim(dataFile)
-select case(trim(dataFile))
+select case(trim(dataFileType))
 case('maxele.63','maxvel.63','maxwvel.63','maxrs.63','minpr.63','swan_HS_max.63','swan_TPS_max.63')
    timeVarying = .false.
 case default
@@ -165,12 +210,15 @@ case default
 end select
 !
 ! Determine datatype
-select case(trim(dataFile))
+select case(trim(dataFileType))
 case('nodecode.63','noff.100')
    netCDFDataType = NF90_INT
+   isInteger = .true.
 case default
    netCDFDataType = NF90_DOUBLE
+   isInteger = .false.
 end select
+
 !
 ! Select nodes inside the resultShape
 select case(trim(resultShape))
@@ -232,15 +280,19 @@ nes = 0                 ! counter for elements that are included in the resultSh
 do m = 1, ne
    if (any(within(nm(m,:))).eqv..true.) then
       nes = nes + 1     ! increment the number of elements included in the resultShape
+      elementWithin(m) = .true.
    endif 
 enddo
 ! now allocate an array to hold the element numbers of the selected elements 
 allocate(sub2fullElements(nes))
+allocate(full2subElements(ne))
+full2subElements(:) = 0
 nes = 0                 
 do m = 1, ne
    if (any(within(nm(m,:)))) then
       nes = nes + 1     ! increment the number of elements included in the resultShape
       sub2fullElements(nes) = m  ! record the element number mapping
+      full2subElements(m) = nes
    endif 
 enddo
 !
@@ -275,9 +327,9 @@ do n=1,np
    end if
 enddo
 !
-! Output sub-grid
+! Output sub-mesh
 if (trim(resultShapeMeshFileName).eq."null") then
-   resultShapeMeshFileName = trim(meshfileName) // '_' // trim(resultShape) // '-sub.14'
+   resultShapeMeshFileName = trim(meshFileBase) // '_' // trim(resultShape) // '-sub.14'
 endif
 open(14,file=trim(resultShapeMeshFileName), status="replace",action='write')
 write(14,'(a)') trim(agrid) // trim(resultShapeMeshFileName)
@@ -297,20 +349,26 @@ if (meshonly.eqv..true.) then
    stop
 endif
 !
-! Examine the fulldomin output file to determine its properties
+! set data centeredness
+select case(trim(dataFileType))
+case('noff.100')
+   dataCenter = 'Cell'
+   numValuesPerSubset = nes
+case default
+   dataCenter = 'Node'
+   numValuesPerSubset = nps
+end select
 UnitNumber = 20
 call openFileForRead(UnitNumber, trim(dataFile))
 read(unitNumber,'(A)',end=246,err=248,iostat=errorio) dataFileCommentLine
-lineNum=lineNum+1
-! jgfdebug
-write(*,*) 'datafile comment line is ' // trim(dataFileCommentLine)
+lineNum = lineNum + 1
 !
 ! jgf: Can't rely on the NumSnaps value; in general, it will not
 ! actually reflect the number of datasets in the file.
-write(*,*) 'About to read numSnaps' !jgfdebug
+!
+! Examine the fulldomain output file to determine its properties
 read(unitNumber,*,end=246,err=248,iostat=errorio) numSnaps, numValuesPerDataset, tInterval, Interval, nCol
 lineNum=lineNum+1
-write(*,*) 'Just read numSnaps' !jgfdebug
 if ( (np.ne.numValuesPerDataset).and.(trim(dataCenter).eq.'Node') ) then
    write(6,'(a,i0,a,i0,a)') 'ERROR: The output file contains ',numValuesPerDataset,        &
      ' nodes, but the mesh file contains ',np,' nodes.'
@@ -321,7 +379,7 @@ endif
 if ( (ne.ne.numValuesPerDataset).and.(trim(dataCenter).eq.'Cell') ) then
    write(6,'(a,i0,a,i0,a)') 'ERROR: The output file contains ',numValuesPerDataset,        &
      ' elements, but the mesh file contains ',ne,' elements.'
-    write(6,'(a)') 'ERROR: The output file does not correspond to the mesh file.'
+   write(6,'(a)') 'ERROR: The output file does not correspond to the mesh file.'
    close(UnitNumber)
    stop
 endif
@@ -329,9 +387,9 @@ endif
 ! Allocate arrays to hold the data from the fulldomain file
 select case(netCDFDataType)
 case(NF90_DOUBLE)
-   allocate(adcirc_data(np,nCol))
+   allocate(adcirc_data(numValuesPerDataSet,nCol))
 case(NF90_INT)
-   allocate(adcirc_idata(np,nCol))      
+   allocate(adcirc_idata(numValuesPerDataSet,nCol))      
 case default
    write(6,'(a)') 'ERROR: Unsupported data type.'
 end select
@@ -353,10 +411,10 @@ open(11,file=trim(resultShapeOutputFileName),status='replace',action='write')
 ! write header info
 write(11,'(a)') trim(agrid) // trim(resultShapeOutputFileName) // ' ' // trim(dataFileCommentLine)
 ! write the header data to the resultshape file
-write(11,1010) numSnaps, nps, tInterval, Interval, nCol
+write(11,1010) numSnaps, numValuesPerSubset, tInterval, Interval, nCol
 !
 !  R E A D   I N   F U L L D O M A I N   D A T A   
-!      A N D   W R I T E   O U T   R E S U L T S H A P E   D A T A
+!      A N D   W R I T E   O U T   R E S U L T  S H A P E   D A T A
 !           
 SS=1 ! jgf: initialize the dataset counter
 lineNum = 1 ! initialize the line number counter
@@ -387,22 +445,30 @@ DO   ! jgf: loop until we run out of data
    !
    ! nonsparse ascii output to resultshape output file
    write(11,2120) SnapR, SnapI
-   do k=1,np
-      if (within(k).eqv..true.) then
+   do k=1,numValuesPerDataSet
+      if ( (trim(dataCenter).eq.'Node').and.(within(k).eqv..true.) ) then
          if (isInteger.eqv..true.) then
             write(11,2452) full2subNodes(k), (adcirc_idata(k,j),j=1,nCol)
          else
             write(11,2453) full2subNodes(k), (adcirc_data(k,j),j=1,nCol)
          endif
       end if
+      if ( (trim(dataCenter).eq.'Cell').and.(elementWithin(k).eqv..true.) ) then
+         if (isInteger.eqv..true.) then
+            write(11,2452) full2subElements(k), (adcirc_idata(k,j),j=1,nCol)
+         else
+            write(11,2453) full2subElements(k), (adcirc_data(k,j),j=1,nCol)
+         endif
+      end if
    end do
-   write(6,advance='no',fmt='(i4)') i
+   write(6,advance='no',fmt='(i4)') SS
+   SS = SS + 1
 end do
 244 close(unitNumber)
 close(11)
 
 write(6,'(a)') 'INFO: resultScope.f90: Finished writing file.'
-write(6,'(a,i0,a)') 'INFO: resultScope.f90: Wrote ',i-1,' data sets.'
+write(6,'(a,i0,a)') 'INFO: resultScope.f90: Wrote ',SS-1,' data sets.'
 stop
  1010 format(1x,i10,1x,i10,1x,e15.7e3,1x,i8,1x,i5,1x,'FileFmtVersion: ',i10)
  1011 format(1x,i10,1x,i10,1x,e15.7e3,1x,i8,1x,i5,1x,i2,1x,'FileFmtVersion: ',i10)

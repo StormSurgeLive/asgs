@@ -1,0 +1,37 @@
+-75.83444444 36.37444444 ! 02043433 ! USGS ! Currituck Sound on East Bank at Corolla ! NAVD88
+-76.3425 36.42138889 ! 0204382800 ! USGS ! Pasquotank River Near South Mills ! NAVD88
+-76.218561 36.298522 ! EMWN7 ! NCEM ! Pasquotank River at Elizabeth City Mariners' Wharf Park ! NAVD88
+-76.611386 36.05651 ! EWPN7 ! NCEM ! Chowan R. at Edenton Waterfront Park ! NAVD88
+-77.02555556 36.37083333 ! 02053200 ! USGS ! Potecasi Creek near Union ! NGVD29
+-76.99944444 36.28027778 ! 02053500 ! USGS ! Ahoskie Creek at Ahoskie ! NGVD29
+-76.98416667 36.04777778 ! 0208111310 ! USGS ! Cashie R at SR1257 nr Windsor ! NAVD88
+-77.38388889 36.20916667 ! 02081000 ! USGS ! Roanoke River near Scotland Neck  ! NGVD29
+-77.21527778 36.01361111 ! 02081022 ! USGS ! Roanoke River near Oak City ! NGVD29
+-77.2025 35.9475 ! 02081028 ! USGS ! Roanoke River at Hamilton ! NGVD29
+-77.04027778 35.85972222 ! 02081054 ! USGS ! Roanoke River at Williamston ! NGVD29
+-76.89277778 35.81305556 ! 02081094 ! USGS ! Roanaoke River At Jamesville ! NGVD29
+-76.72277778 35.915 ! 0208114150 ! USGS ! Roankoke River at NC 45 near Westover ! NGVD29
+-77.53305556 35.89444444 ! 02083500 ! USGS ! Tar River at Tarboro ! NAVD88
+-77.37277778 35.61666667 ! 02084000 ! USGS ! Tar River at Greenville ! NAVD88
+-77.23083333 35.56166667 ! 02084160 ! USGS ! Chicod Cr @ SR1760 nr Simpson ! NAVD88
+-77.06194444 35.54333333 ! 02084472 ! USGS ! Pamlico River at Washington ! NAVD88
+-76.74611111 35.73083333 ! 02084557 ! USGS ! Van Swamp near Hoke ! NAVD88
+-77.1758 35.5739 ! GRMN7 ! NCEM ! Tar River at SR 1565 nr Grimesland ! NAVD88
+-76.254359 35.917504 ! COLN7 ! NCEM ! Scuppernong R. At Columba Town Hall ! NAVD88
+-76.6228111 35.5372926 ! BLHN7 ! NCEM ! Pungo R at Belhaven - Vidant Health (Hospital) ! NAVD88
+-76.25388889 35.50583333 ! 0208458892 ! USGS ! Lake Mattamuskeet W of NC Hwy 94 Nr Fairfield ! NAVD88
+-76.18388889 35.50638889 ! 0208458893 ! USGS ! Lake Mattamuskeet E of NC Hwy 94 near Fairfield ! NAVD88
+-77.58555556 35.25777778 ! 02089500 ! USGS ! Neuse River at Kinston ! NGVD29
+-77.5825 35.42888889 ! 02091500 ! USGS ! Contentnea Creek at Hookerton ! NGVD29
+-77.30277778 35.31388889 ! 02091814 ! USGS ! Neuse River Near Fort Barnwell ! NGVD29
+-77.11388889 35.23083333 ! 0209205053 ! USGS ! Swift Creek at Hwy 43 Nr Streets Ferry ! NGVD29
+-77.46138889 35.06416667 ! 02092500 ! USGS ! Trent R Near Trenton ! NGVD29
+-77.21888889 35.0100 ! 02092554 ! USGS ! Trent R At Pollocksville ! NGVD29
+-76.6919377 35.0244328 ! ORLN7 ! NCEM ! Neuse R. at Oriental Town Pier ! NAVD88
+-76.3144792 35.018312 ! CTIN7 ! NCEM ! Pamlico Sound at Cedar Island Ferry Terminal ! NAVD88
+-77.51944444 34.84916667 ! 02093000 ! USGS ! New River Near Gum Branch ! NAVD88
+-78.29361111 34.40444444 ! 02105769 ! USGS ! Cape Fear R @ Lock #1 Nr Kelly ! NGVD29
+-78.28861111 34.755 ! 02106500 ! USGS ! Black River Near Tomahawk ! NGVD29
+-77.83222222 34.82888889 ! 02108000 ! USGS ! NE Cape Fear Rvr Nr Chinquapin ! NGVD29
+-77.87527778 34.59833333 ! 02108566 ! USGS ! Northeast Cape Fear R Nr Burgaw ! NGVD29
+-78.54833333 34.095 ! 02109500 ! USGS ! Waccamaw River at Freeland ! NGVD29

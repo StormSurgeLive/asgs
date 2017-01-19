@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=testv12hAtch  # "name" of this ASGS process
-COLDSTARTDATE=2016072500 # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2016081500   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -56,7 +56,7 @@ TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="00:30:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
+NOWCASTWALLTIME="1:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=480                     # number of compute CPUs for all simulations
 NCPUCAPACITY=480
@@ -101,9 +101,9 @@ GRIDNAME=LA_v12h-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=LA_v12g-WithUpperAtch_chk_14kcms.15.template   # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=cpra2017v12.cera_stations.20160702
-VELSTATIONS=cpra2017v12.cera_stations.20160702
-METSTATIONS=cpra2017v12.cera_stations.20160702
+ELEVSTATIONS=cpra2017v12.cera_stations.20161222
+VELSTATIONS=cpra2017v12.cera_stations.20161222
+METSTATIONS=cpra2017v12.cera_stations.20161222
 NAFILE=LA_v12g-WithUpperAtch-updated.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=LA_v12g-WithUpperAtch.26.template   # only used if WAVES=on

@@ -66,7 +66,7 @@ echo "msRiverBoundaryCondition : $MSRIVERBOUNDARYCONDITION" >> run.properties
 #
 # write the target area to the run.properties file for the CERA
 # web app
-echo "asgs : ng" >> run.properties 2>> $SYSLOG
+#echo "asgs : ng" >> run.properties 2>> $SYSLOG
 echo "enstorm : $ENSTORM" >> run.properties 2>> $SYSLOG
 #
 # record the sea_surface_height_above_geoid nodal attribute to the
@@ -96,18 +96,18 @@ fi
 # inundation area presented on Google Maps to cover the full land area
 # as depicted by Google Maps. 
 # 
-if [ -e ${STORMDIR}/initiallyDry.63.nc ]; then
+if [ -e ${STORMDIR}/initiallydry.63.nc ]; then
    if [ -e ${OUTPUTDIR}/inundationMask.x ]; then
-      ${OUTPUTDIR}/inundationMask.x --filename initiallyDry.63.nc --netcdf4 --numpasses 2 2>> ${SYSLOG} 2>&1
+      ${OUTPUTDIR}/inundationMask.x --filename initiallydry.63.nc --netcdf4 --numpasses 2 2>> ${SYSLOG} 2>&1
       ERROVALUE=$?
       if [ $ERROVALUE == 0 ]; then
-         echo "Inundation Mask File Name : inundationMask.63.nc" >> run.properties
+         echo "Inundation Mask File Name : inundationmask.63.nc" >> run.properties
          echo "Inundation Mask Format : netcdf" >> run.properties
       else
-         error "Failed to create inundationMask.63.nc file."
+         error "Failed to create inundationmask.63.nc file."
       fi
    else
-      error "The initiallyDry.63.nc file was found in $STORMDIR but the inundationMask.x executable was not found in ${OUTPUTDIR}."
+      error "The initiallydry.63.nc file was found in $STORMDIR but the inundationMask.x executable was not found in ${OUTPUTDIR}."
    fi
 fi
 #
