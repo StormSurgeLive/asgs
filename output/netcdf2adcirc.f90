@@ -31,8 +31,6 @@ use adcmesh
 use adcircdata
 implicit none
 integer :: ag
-integer :: agnew
-integer :: agold
 integer :: i, j, k, m, n
 logical :: meshonly
 integer :: ncstatus
