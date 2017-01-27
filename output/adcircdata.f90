@@ -43,7 +43,7 @@ integer :: NC_VarID_time
 
 integer :: agold ! netcdf i/o status for old agrid attribute
 integer :: agnew ! netcdf i/o status for new agrid attribute
-
+integer :: nerr ! netcdf i/o status
 integer :: nc_count(2)
 integer :: nc_start(2)
 integer :: nc_count3D(3)
@@ -176,10 +176,14 @@ if (agnew.ne.NF90_NOERR) then
       agrid = 'agrid_not_found'
    endif
 endif
-call check(nf90_get_att(nc_id,nf90_global,'rundes',rundes))
-!rundes = 'rundes' !TODO: make adcirc write this value to netcdf output files
-call check(nf90_get_att(nc_id,nf90_global,'runid',runid)) 
-!runid = 'runid' !TODO: make adcirc write this value to netcdf output files 
+nerr = nf90_get_att(nc_id,nf90_global,'rundes',rundes)
+if ( nerr.ne.NF90_NOERR ) then
+   rundes = 'rundes' !TODO: make adcirc write this value to netcdf output files
+endif
+nerr = nf90_get_att(nc_id,nf90_global,'runid',runid) 
+if ( nerr.ne.NF90_NOERR ) then
+   runid = 'runid'   !TODO: make adcirc write this value to netcdf output files 
+endif
 !   
 ! determine the type of data in the file, and set the output
 ! filename accordingly

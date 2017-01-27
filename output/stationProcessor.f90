@@ -64,7 +64,7 @@ character(len=40) :: coordString ! holds lon lat values for stations
 stationFileName = 'stations.txt'
 outputFile = 'station_averages.txt'
 operation = 'mean'
-call initLogging(availableUnitNumber(),'stationAverage.f90')
+call initLogging(availableUnitNumber(),'stationProcessor.f90')
 !
 argcount = command_argument_count() ! count up command line options
 if (argcount.gt.0) then
@@ -248,7 +248,11 @@ do tdata=firstDataSetInTimeRange, lastDataSetInTimeRange
       ! go through the specified list of stations and store the 
       ! values from the corresponding station index 
       do s=1,numStationsInList
-         stations(s)%d(c,t) = stationData(stations(s)%iID)
+         if ( stations(s)%iID.ne.0 ) then
+            stations(s)%d(c,t) = stationData(stations(s)%iID)
+         else
+            stations(s)%d(c,t) = -99999.d0
+         endif
       end do
    end do
    t = t + 1
@@ -306,7 +310,11 @@ select case(trim(operation))
 case("mean","average","avg")
    do s=1, numStationsInList
       do c=1, num_components
-         resultVal(c,s) = resultVal(c,s) / dble(numObs(c,s))
+         if ( numObs(c,s).ne.0 ) then
+            resultVal(c,s) = resultVal(c,s) / dble(numObs(c,s))
+         else
+            resultVal(c,s) = -99999.d0
+         endif
       end do
    end do
 end select
