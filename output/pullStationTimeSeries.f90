@@ -104,7 +104,12 @@ close(12)
 write(6,'(a)') 'INFO: Finished reading station file.'
 !
 ! read in the mesh
-call read14()
+if ( fileFormat.eq.NETCDFG ) then
+   call findMeshDimsNetCDF(dataFile)
+   call readMeshNetCDF(dataFile)
+else
+   call read14()
+endif
 ! 
 ! grab memory for holding a single data set for 1 or 2 component data
 allocate(adcirc_data(np,2))
