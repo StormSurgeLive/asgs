@@ -30,7 +30,8 @@
 #
 INSTANCENAME=hiresr       # name of this ASGS process, to differentiate results
 #COLDSTARTDATE=2016061300
-COLDSTARTDATE=2016111500
+#COLDSTARTDATE=2016111500
+COLDSTARTDATE=2017010100
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
