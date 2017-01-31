@@ -217,7 +217,8 @@ case $si in
    NETCDF4="--netcdf4"
    OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
    INTENDEDAUDIENCE=developers-only
-   ALTNAMDIR="../namforecast"  # will this work??
+   # prevent collisions in prepped archives
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
