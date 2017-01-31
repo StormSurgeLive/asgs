@@ -140,11 +140,13 @@ checkHotstart()
          logMessage "The hotstart file '$HOTSTARTFILE' was found and it contains $hotstartSize bytes."
          # check time in hotstart file to be sure it can be found and that
          # it is nonzero
+         # jgf20170131: hstime reports errors to stderr so we must capture
+         # that with backticks and tee to the log file
          HSTIME=''
          if [[ $HOTSTARTFORMAT = netcdf ]]; then
-            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE -n 2>> ${SYSLOG}`
+            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE -n 2>&1 | tee --append ${SYSLOG}`
          else
-            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE 2>> ${SYSLOG}`
+            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE 2>&1 | tee --append ${SYSLOG}`
          fi
          failureOccurred=$?
          errorOccurred=`expr index "$HSTIME" ERROR`
