@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2006--2016 Jason Fleming
+# Copyright(C) 2006--2017 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade 
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -30,7 +30,8 @@
 #
 INSTANCENAME=hiresr       # name of this ASGS process, to differentiate results
 #COLDSTARTDATE=2016061300
-COLDSTARTDATE=2016111500
+#COLDSTARTDATE=2016111500
+COLDSTARTDATE=2017010100
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
@@ -63,6 +64,7 @@ FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
 NCPU=480
 NCPUCAPACITY=1920
 NUMWRITERS=8
+
 CYCLETIMELIMIT="05:00:00"
 # queue
 QUEUENAME=null
@@ -183,7 +185,7 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=1 # number of storms in the ensemble
+ENSEMBLESIZE=2 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
@@ -192,8 +194,31 @@ case $si in
    ENSTORM=namforecast
    ;;
 1)
-   ENSTORM=namforecastNOFF
-   CONTROLTEMPLATE=nc_9.99_noffactive_nam_fort.15.template
+   ENSTORM=namforecastMetonly
+   CONTROLTEMPLATE=nc_9.99wrivers_metonly_fort.15.template
+   TIMESTEPSIZE=3600.0   # 1 hour time steps
+   NCPU=487              # so total cpus match with other ensemble members
+   NUMWRITERS=1          # multiple writer procs might collide
+   WAVES=off             # deactivate wave forcing 
+   # turn off water surface elevation station output
+   FORT61="--fort61freq 0"
+   # turn off water current velocity station output
+   FORT62="--fort62freq 0"
+   # turn off full domain water surface elevation output
+   FORT63="--fort63freq 0"
+   # turn off full domain water current velocity output
+   FORT64="--fort64freq 0"
+   # met station output
+   FORT7172="--fort7172freq 3600.0 --fort7172netcdf"
+   # full domain meteorological output
+   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
+   #SPARSE="--sparse-output"
+   SPARSE=""
+   NETCDF4="--netcdf4"
+   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+   INTENDEDAUDIENCE=developers-only
+   # prevent collisions in prepped archives
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
