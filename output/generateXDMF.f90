@@ -27,6 +27,7 @@ program generateXDMF
 use netcdf
 use asgsio
 use adcmesh
+use ioutil
 use logging
 implicit none
 integer :: iargc
@@ -68,6 +69,7 @@ integer, allocatable :: pTimesec(:) ! temporarily hold time stamp of particle da
 logical :: meshInitialized = .false. ! true if the associated mesh has been read in
 logical :: meshOnly = .false. ! true if only the mesh xml will be written
 !
+integer :: errorIO
 integer oldnp ! used to detect differences in number of nodes between data files
 integer oldne ! used to detect differences in number of elements between data files
 integer i, j ! loop counters
@@ -162,7 +164,7 @@ endif
 !
 ! Check to see if each file exists; if the file exists, initialize dimensions
 do fi=1,numFiles
-   call checkFileExistence(fileMetaData(fi)%dataFileName)
+   call checkFileExistence(fileMetaData(fi)%dataFileName,errorIO)
    if (errorIO.gt.0) then
       stop
    endif
@@ -201,7 +203,7 @@ do fi=1,numFiles
       ! open the file and determine the number of datasets as well as
       ! the number of particles in each dataset
       fileMetaData(fi)%fun = availableUnitNumber()
-      call openFileForRead(fileMetaData(fi)%fun,fileMetaData(fi)%dataFileName)
+      call openFileForRead(fileMetaData(fi)%fun,fileMetaData(fi)%dataFileName,errorIO)
       fileMetaData(fi) % nSnaps = 1
       fileMetaData(fi) % maxParticles = 0 
       allocate(numParticles(MAX_DATASETS)) ! allocate temporary space for num particles per dataset
@@ -266,9 +268,7 @@ do fi=1,numFiles
    if (fileMetaData(fi)%fileFormat.ne.NETCDF4) then
       cycle
    endif
-   call check(nf90_open(trim(fileMetaData(fi)%dataFileName), NF90_NOWRITE, fileMetaData(fi)%nc_id))
-   call check(nf90_inquire(fileMetaData(fi)%nc_id, fileMetaData(fi)%ndim, fileMetaData(fi)%nvar, fileMetaData(fi)%natt, fileMetaData(fi)%nc_dimid_time, ncformat))
-   call check(nf90_close(fileMetaData(fi)%nc_id))
+   call determineNetCDFFileCharacteristics(fileMetaData(fi))
 end do 
 !
 ! determine whether any of the files is a nodal attributes file or otherwise
@@ -294,14 +294,6 @@ do fi=1,numFiles
          exit
       endif
    end do
-   ! get information about the time dimension and values if the data
-   ! are time varying
-   if (fileMetaData(fi) % timeVarying.eqv..true.) then
-      call check(nf90_inquire(fileMetaData(fi) % nc_id, unlimitedDimId=fileMetaData(fi) % NC_DimID_time))
-      call check(nf90_inquire_dimension(fileMetaData(fi) % nc_id, fileMetaData(fi) % NC_DimID_time, len=fileMetaData(fi) % nSnaps))
-      call check(nf90_inq_varid(fileMetaData(fi) % nc_id, 'time', fileMetaData(fi) % NC_VarID_time))
-   endif
-   call check(nf90_close(fileMetaData(fi)%nc_id))
 end do 
 !
 ! Determine the type of netCDF file that we have based on the name(s) 
@@ -321,270 +313,9 @@ do fi=1,numFiles
       fileMetaData(fi) % dataFileType = 'maureparticle'
       cycle ! go to the next file
    endif
-   call check(nf90_open(trim(fileMetaData(fi)%dataFileName), NF90_NOWRITE, fileMetaData(fi)%nc_id))
-   do i=1,fileMetaData(fi) % nvar
-      call check(nf90_inquire_variable(fileMetaData(fi) % nc_id, i, thisVarName))
-      select case(trim(thisVarName))
-      case("zeta")
-         fileMetaData(fi) % fileTypeDesc = 'a time varying 2D ADCIRC water surface elevation file (fort.63)'
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("eta1")
-         fileMetaData(fi) % fileTypeDesc = 'a time varying 2D ADCIRC water surface elevation at previous time step file (eta1.63)'
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         exit         
-      case("eta2")
-         fileMetaData(fi) % fileTypeDesc = 'a time varying 2D ADCIRC water surface elevation at current time step file (eta2.63)'
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("tk")
-         fileMetaData(fi) % fileTypeDesc = 'a time varying 2D bottom friction file (tk.63)'
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("offset")
-         fileMetaData(fi) % fileTypeDesc = 'a time varying water level offset file (offset.63)'
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("tau0")
-         fileMetaData(fi) % fileTypeDesc = 'a time varying tau0 file (fort.90)'
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("coefdiagonal")
-         fileMetaData(fi) % fileTypeDesc = 'a fully consistent ADCIRC LHS matrix diagonal file (coefdiagonal.63)'
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         exit         
-      case("coefele")
-         fileMetaData(fi) % fileTypeDesc = 'an element mass matrix coefficient file (coefele.100)'
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         fileMetaData(fi) % dataCenter(1) = 'Cell' ! noff
-         exit
-      case("nodecode")
-         fileMetaData(fi) % fileTypeDesc = 'a node wet/dry state file (nodecode.63)'
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         exit  
-      case("noff")
-         fileMetaData(fi) % fileTypeDesc = 'an element wet/dry state file (noff.100)'
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         fileMetaData(fi) % dataCenter(1) = 'Cell' ! noff
-         exit          
-      case("dryelementareacheck")
-         fileMetaData(fi) % fileTypeDesc = 'a dry element area check (dryelementareacheck.100)'
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         fileMetaData(fi) % dataCenter(1) = 'Cell' ! noff
-         exit
-      case("nneighele")
-         fileMetaData(fi) % fileTypeDesc = 'a number of elemental neighbors attached to each node file (nneighele.63)'
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         fileMetaData(fi) % timeVarying = .false.
-         exit  
-      case("nodeids")
-         fileMetaData(fi) % fileTypeDesc = 'a fortran indexed node IDs file (nodeids.63)'
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         fileMetaData(fi) % timeVarying = .false.
-         exit  
-      case("elementids")
-         fileMetaData(fi) % fileTypeDesc = 'a fortran indexed element IDs file (elementids.100)'
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         fileMetaData(fi) % dataCenter(1) = 'Cell' ! element IDs
-         fileMetaData(fi) % timeVarying = .false.
-         exit          
-      case("zetad")
-         fileMetaData(fi) % fileTypeDesc = 'a 2D ADCIRC hotstart file (fort.67/fort.68)'
-         fileMetaData(fi) % timeVarying = .false. 
-         call initFileMetaData(fileMetaData(fi), thisVarName, 7, 6)
-         fileMetaData(fi) % varNameNetCDF(1) = "zeta1"  ! eta1 
-         fileMetaData(fi) % varNameNetCDF(2) = "zeta2"  ! eta2 
-         fileMetaData(fi) % varNameNetCDF(3) = "zetad"  ! EtaDisc 
-         fileMetaData(fi) % varNameNetCDF(4) = "u-vel"  ! uu2 \_combine as vector in XDMF_
-         fileMetaData(fi) % varNameNetCDF(5) = "v-vel"  ! vv2 /
-         fileMetaData(fi) % varNameNetCDF(6) = "nodecode"  ! nodecode                   
-         fileMetaData(fi) % varNameNetCDF(7) = "noff"   ! noff<---element/cell centered
-         !
-         fileMetaData(fi) % numComponents(4) = 2  ! velocity (uu2,vv2)
-         call initNamesXDMF(fileMetaData(fi))
-         fileMetaData(fi) % varNameXDMF(4) = 'hot_start_velocity'
-         fileMetaData(fi) % dataCenter(6) = 'Cell' ! noff
-         fileMetaData(fi) % timeVarying = .false.
-         exit
-      case("u-vel","v-vel")
-         fileMetaData(fi) % fileTypeDesc = 'a 2D ADCIRC water current velocity file (fort.64)'     
-         call initFileMetaData(fileMetaData(fi), thisVarName, 2, 1)
-         fileMetaData(fi) % varNameNetCDF(1) = "u-vel"  ! uu2 in ADCIRC
-         fileMetaData(fi) % varNameNetCDF(2) = "v-vel"  ! vv2 in ADCIRC
-         fileMetaData(fi) % numComponents(1) = 2
-         call initNamesXDMF(fileMetaData(fi))
-         fileMetaData(fi) % varNameXDMF(1) = 'water_current_velocity'
-         exit
-      case("uu1-vel","vv1-vel")
-         fileMetaData(fi) % fileTypeDesc = 'a 2D ADCIRC water current velocity at previous time step file (uu1vv1.64)'     
-         call initFileMetaData(fileMetaData(fi), thisVarName, 2, 1)
-         fileMetaData(fi) % varNameNetCDF(1) = "uu1-vel"  ! uu1 in ADCIRC
-         fileMetaData(fi) % varNameNetCDF(2) = "vv1-vel"  ! vv1 in ADCIRC
-         fileMetaData(fi) % numComponents(1) = 2
-         call initNamesXDMF(fileMetaData(fi))
-         fileMetaData(fi) % varNameXDMF(1) = 'water_current_velocity_at_previous_timestep'
-         exit
-      case("pressure")
-         fileMetaData(fi) % fileTypeDesc = "an ADCIRC barometric pressure file (fort.73)"
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)
-         call initNamesXDMF(fileMetaData(fi))
-         exit 
-      case("windx","windy")
-         fileMetaData(fi) % fileTypeDesc = "an ADCIRC wind velocity file (fort.74)"
-         call initFileMetaData(fileMetaData(fi), thisVarName, 2, 1)
-         fileMetaData(fi) % varNameNetCDF(1) = "windx"  
-         fileMetaData(fi) % varNameNetCDF(2) = "windy"  
-         fileMetaData(fi) % numComponents(1) = 2
-         call initNamesXDMF(fileMetaData(fi))
-         fileMetaData(fi) % varNameXDMF(1) = 'wind_velocity'
-         exit
-      case("maxele","zeta_max")
-         fileMetaData(fi) % fileTypeDesc = "an ADCIRC maximum water surface elevation (maxele.63) file"
-         ! Check to see if this is a newer-style min/max file that records
-         ! the time of the min or max, and if so, prepare to convert the
-         ! time of occurrence metadata as well.     
-         call initMinMaxFileMetaData(fileMetaData(fi), thisVarName, fileMetaData(fi) % nvar)
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("initial_river_elevation")
-         fileMetaData(fi) % fileTypeDesc = "an ADCIRC initial river elevation (fort.88) file"
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)
-         call initNamesXDMF(fileMetaData(fi))
-         exit    
-      case("maxwvel","wind_max")
-         fileMetaData(fi) % fileTypeDesc = "an ADCIRC maximum wind speed (maxwvel.63) file"
-         call initMinMaxFileMetaData(fileMetaData(fi), thisVarName, fileMetaData(fi) % nvar)
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("maxvel","vel_max")
-         fileMetaData(fi) % fileTypeDesc = "an ADCIRC maximum current speed (maxvel.63) file"
-         call initMinMaxFileMetaData(fileMetaData(fi), thisVarName, fileMetaData(fi) % nvar)
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("maxrs","radstress_max")
-         fileMetaData(fi) % fileTypeDesc = "an ADCIRC maximum wave radiation stress gradient (maxrs.63) file"
-         call initMinMaxFileMetaData(fileMetaData(fi), thisVarName, fileMetaData(fi) % nvar)
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("minpr","pressure_min")
-         fileMetaData(fi) % fileTypeDesc = "an ADCIRC minimum barometric pressure (minpr.63) file"
-         call initMinMaxFileMetaData(fileMetaData(fi), thisVarName, fileMetaData(fi) % nvar)
-         call initNamesXDMF(fileMetaData(fi))      
-         exit
-      case("endrisinginun")
-         fileMetaData(fi) % fileTypeDesc = "an ADCIRC nodes with inundation rising at end of simulation (endrisinginun.63) file"
-         call initMinMaxFileMetaData(fileMetaData(fi), thisVarName, fileMetaData(fi) % nvar)
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("initiallydry")
-         fileMetaData(fi) % fileTypeDesc = "an ADCIRC dry nodes at cold start (initiallydry.63) file"
-         call initMinMaxFileMetaData(fileMetaData(fi), thisVarName, fileMetaData(fi) % nvar)
-         call initNamesXDMF(fileMetaData(fi))
-         exit 
-      case("inundationmask")
-         fileMetaData(fi) % fileTypeDesc = "an ADCIRC inundation mask (inundationmask.63) file"
-         call initMinMaxFileMetaData(fileMetaData(fi), thisVarName, fileMetaData(fi) % nvar)
-         call initNamesXDMF(fileMetaData(fi))
-         fileMetaData(fi) % timeVarying = .false.
-         exit          
-      case("inun_time")
-         fileMetaData(fi) % fileTypeDesc = "an ADCIRC total time inundated (inundationtime.63) file"
-         call initMinMaxFileMetaData(fileMetaData(fi), thisVarName, fileMetaData(fi) % nvar)
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("everdried")
-         fileMetaData(fi) % fileTypeDesc = "an ADCIRC ever dried (everdried.63) file"
-         call initMinMaxFileMetaData(fileMetaData(fi), thisVarName, fileMetaData(fi) % nvar)
-         call initNamesXDMF(fileMetaData(fi))
-         exit   
-      case("inun_max")
-         fileMetaData(fi) % fileTypeDesc = "an ADCIRC maximum inundation depth (maxinundepth.63) file"
-         call initMinMaxFileMetaData(fileMetaData(fi), thisVarName, fileMetaData(fi) % nvar)
-         call initNamesXDMF(fileMetaData(fi))
-         exit      
-      case("radstress_x","radstress_y")
-         fileMetaData(fi) % fileTypeDesc = "an ADCIRC wave radiation stress gradient (rads.64) file"
-         call initfileMetaData(fileMetaData(fi), thisVarName, 2, 1)
-         fileMetaData(fi) % varNameNetCDF(1) = "radstress_x"  
-         fileMetaData(fi) % varNameNetCDF(2) = "radstress_y"  
-         fileMetaData(fi) % numComponents(1) = 2
-         call initNamesXDMF(fileMetaData(fi))
-         fileMetaData(fi) % varNameXDMF(1) = 'wave_radiation_stress_gradient'      
-      case("swan_DIR")
-         fileMetaData(fi) % fileTypeDesc = "a SWAN wave direction (swan_DIR.63) file"
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         exit   
-      case("swan_HS")
-         fileMetaData(fi) % fileTypeDesc = "a SWAN significant wave height (swan_HS.63) file"
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("swan_HS_max")
-         fileMetaData(fi) % fileTypeDesc = "a SWAN maximum significant wave height (swan_HS_max.63) file"
-         call initMinMaxFileMetaData(fileMetaData(fi), thisVarName, fileMetaData(fi) % nvar)
-         call initNamesXDMF(fileMetaData(fi))      
-         exit
-      case("swan_TMM10")
-         fileMetaData(fi) % fileTypeDesc = "a SWAN mean absolute wave period (swan_TMM10.63) file"
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("swan_TM01")
-         fileMetaData(fi) % fileTypeDesc = "SWAN mean absolute wave period (swan_TM01.63) file"
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("swan_TM02")
-         fileMetaData(fi) % fileTypeDesc = "a SWAN mean absolute zero crossing period (swan_TM02.63) file"
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("swan_TPS")
-         fileMetaData(fi) % fileTypeDesc = "a SWAN smoothed peak period (swan_TPS.63) file"
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("swan_TPS_max")
-         fileMetaData(fi) % fileTypeDesc = "a SWAN maximum smoothed peak period (swan_TPS_max.63) file"
-         call initMinMaxFileMetaData(fileMetaData(fi), thisVarName, fileMetaData(fi) % nvar)
-         call initNamesXDMF(fileMetaData(fi))      
-         exit
-      case("ESLNodes")
-         fileMetaData(fi) % fileTypeDesc = "an elemental slope limiter active nodes (ESLNodes.63) file"
-         call initFileMetaData(fileMetaData(fi), thisVarName, 1, 1)     
-         call initNamesXDMF(fileMetaData(fi))
-         exit
-      case("swan_windx","swan_windy")
-         fileMetaData(fi) % fileTypeDesc = "a SWAN wind velocity (swan_WIND.64) file"
-         call initFileMetaData(fileMetaData(fi), thisVarName, 2, 1)
-         fileMetaData(fi) % varNameNetCDF(1) = "swan_windx"  
-         fileMetaData(fi) % varNameNetCDF(2) = "swan_windy"  
-         fileMetaData(fi) % numComponents(1) = 2
-         call initNamesXDMF(fileMetaData(fi))
-         fileMetaData(fi) % varNameXDMF(1) = 'swan_wind_velocity' 
-         exit
-      case default
-         cycle     ! did not recognize this variable name
-      end select
-   end do
+   call initNamesXDMF(fileMetaData(fi))
    call check(nf90_close(fileMetaData(fi)%nc_id))
 end do
-
 !
 ! Form the file name of XDMF xml file and open it.
 call allMessage(INFO,'Writing XDMF xml header.')
@@ -755,97 +486,6 @@ end program generateXDMF
 
 
 !----------------------------------------------------------------------
-!  S U B R O U T I N E     I N I T   F I L E   M E T A  D A T A 
-!----------------------------------------------------------------------
-! Allocate memory to hold variable names, variable IDs, etc for
-! variables in the targetted NetCDF4 files so the metadata can be
-! appropriately written to the XDMF XML. Also initialize the newly
-! allocated variables to reasonable values. 
-!----------------------------------------------------------------------
-subroutine initFileMetaData(fmd, firstVarName, numNC, numXDMF)
-use netcdf
-use asgsio, only : fileMetaData_t
-implicit none
-type(fileMetaData_t), intent(inout) :: fmd
-character(NF90_MAX_NAME), intent(in) :: firstVarName
-integer, intent(in) :: numNC
-integer, intent(in) :: numXDMF
-!
-fmd % timeVarying = .true.       ! initialize to most common value
-fmd % timeOfOccurrence = .false. ! only relevant to min/max files
-!
-! NetCDF
-fmd % numVarNetCDF = numNC
-allocate(fmd % varNameNetCDF(numNC))
-fmd % varNameNetCDF(:) = 'error: not_set'
-fmd % varNameNetCDF(1) = trim(firstVarName) ! initialize to most common value
-allocate(fmd % nc_varID(numNC))
-fmd % nc_varID(:) = -999
-allocate(fmd % nc_type(numNC))
-fmd % nc_type(:) = -999
-!
-! XDMF
-fmd % numVarXDMF = numXDMF
-allocate(fmd % varNameXDMF(numXDMF))
-fmd % varNameXDMF(:) = 'error: not_set'
-allocate(fmd % numComponents(numXDMF))
-fmd % numComponents(:) = 1         ! initialize to most common value
-allocate(fmd % dataCenter(numXDMF))
-fmd%dataCenter(:) = 'Node'                 ! initialize to most common value
-allocate(fmd % numberType(numXDMF))
-fmd%numberType(:) = 'Float'                 ! initialize to most common value
-allocate(fmd % numberPrecision(numXDMF))
-fmd%numberPrecision(:) = 8                 ! initialize to most common value
-fmd%initialized = .true. 
-
-!----------------------------------------------------------------------
-end subroutine initFileMetaData
-!----------------------------------------------------------------------
-
-!----------------------------------------------------------------------
-! S U B R O U T I N E   I N I T  M I N  M A X  F I L E  M E T A D A T A
-!----------------------------------------------------------------------
-! Checks for the existence of time of occurrence data in the min max
-! file before initializing the file metadata. 
-!----------------------------------------------------------------------
-subroutine initMinMaxFileMetaData(fmd, someVarName, nvar)
-use netcdf
-use asgsio, only : check, fileMetaData_t
-use logging, only : allMessage, INFO
-implicit none
-type(fileMetaData_t), intent(inout) :: fmd 
-character(NF90_MAX_NAME), intent(in) :: someVarName 
-integer, intent(in) :: nvar
-!
-character(NF90_MAX_NAME) timeOfVarName 
-character(NF90_MAX_NAME) aVarName
-integer :: j
-!     
-timeOfVarName = 'time_of_'//trim(someVarName)
-if (trim(someVarName).eq."inun_time") then
-   timeOfVarName = 'last_'//trim(someVarName)
-endif
-do j=1,nvar
-   call check(nf90_inquire_variable(fmd%nc_id, j, aVarName))
-   if (trim(aVarName).eq.trim(timeOfVarName)) then
-      call allMessage(INFO,'The file contains time of occurrence data.')
-      fmd % timeOfOccurrence = .true.
-      exit
-   endif 
-end do
-if (fmd % timeOfOccurrence.eqv..true.) then
-   call initFileMetaData(fmd, someVarName, 2, 2)
-   fmd % varNameNetCDF(2) = trim(timeOfVarName)
-   fmd % timeOfOccurrence = .true. ! was reset in initFileMetaData   
-else
-   call initFileMetaData(fmd, someVarName, 1, 1)
-endif
-fmd % timeVarying = .false. ! was reset in initFileMetaData     
-!----------------------------------------------------------------------
-end subroutine initMinMaxFileMetaData
-!----------------------------------------------------------------------
-
-!----------------------------------------------------------------------
 !  S U B R O U T I N E     I N I T   N A M E S   X D M F
 !----------------------------------------------------------------------
 ! Initialize the names of the variables in the XMDF files to reasonable
@@ -855,8 +495,9 @@ end subroutine initMinMaxFileMetaData
 !----------------------------------------------------------------------
 subroutine initNamesXDMF(fmd)
 use netcdf
-use asgsio, only : check, fileMetaData_t
+use asgsio, only : fileMetaData_t
 use logging, only : allMessage, ERROR
+use ioutil, only : check
 implicit none
 type(fileMetaData_t) :: fmd
 integer :: i, j
@@ -919,7 +560,8 @@ end subroutine initNamesXDMF
 ! Writes the mesh portion of the XML. 
 !----------------------------------------------------------------------
 subroutine writeMeshTopologyGeometryDepth(fmd, olun, meshonly)
-use asgsio, only : fileMetaData_t, ind
+use asgsio, only : fileMetaData_t
+use ioutil, only : ind
 use adcmesh, only : agrid, ne, np
 implicit none
 type(fileMetaData_t), intent(in) :: fmd
@@ -986,7 +628,8 @@ end subroutine writeMeshTopologyGeometryDepth
 ! Depth Attribute elements that defined previously using xinclude. 
 !----------------------------------------------------------------------
 subroutine writeMeshTopologyGeometryDepthByReference(fmd, olun, meshonly)
-use asgsio, only : fileMetaData_t, ind
+use asgsio, only : fileMetaData_t
+use ioutil, only : ind
 use adcmesh, only : agrid, ne, np
 implicit none
 type(fileMetaData_t), intent(in) :: fmd
@@ -1017,7 +660,8 @@ end subroutine writeMeshTopologyGeometryDepthByReference
 ! each time snap.  
 !----------------------------------------------------------------------
 subroutine writeTimeVaryingGrid(fmd, isnap, olun)
-use asgsio, only : fileMetaData_t, ind
+use asgsio, only : fileMetaData_t
+use ioutil, only : ind
 implicit none
 type(fileMetaData_t), intent(in) :: fmd
 integer, intent(in) :: isnap ! the dataset number from the file
@@ -1044,7 +688,8 @@ end subroutine writeTimeVaryingGrid
 !----------------------------------------------------------------------
 subroutine writeAttributesXML(fmd, iSnap, nSnaps, olun)
 use adcmesh, only : np, ne
-use asgsio, only : fileMetaData_t, ind
+use asgsio, only : fileMetaData_t
+use ioutil, only : ind
 implicit none
 type(fileMetaData_t), intent(in) :: fmd
 integer, intent(in) :: iSnap
@@ -1132,7 +777,8 @@ end subroutine writeAttributesXML
 !----------------------------------------------------------------------
 subroutine writeTimeVaryingAttributesXML(fmd, iSnap, nSnaps, olun)
 use adcmesh, only : np, ne
-use asgsio, only : fileMetaData_t, ind
+use asgsio, only : fileMetaData_t
+use ioutil, only : ind
 implicit none
 type(fileMetaData_t), intent(in) :: fmd
 integer, intent(in) :: iSnap
@@ -1225,7 +871,7 @@ end subroutine writeTimeVaryingAttributesXML
 !  S U B R O U T I N E     W R I T E   F O O T E R   X M L  
 !----------------------------------------------------------------------
 subroutine writeFooterXML(olun)
-use asgsio, only : ind
+use ioutil, only : ind
 implicit none
 integer, intent(in) :: olun
 
@@ -1255,6 +901,7 @@ integer, intent(in) :: mp ! max number of particles
 type(station_t), intent(inout) :: p(mp) ! particles
 integer :: lineNum ! line number counter
 integer :: ip ! particle counter
+integer :: errorIO
 !
 lineNum=0
 do ip=1,fmd%numParticlesPerSnap(iSnap)
@@ -1285,7 +932,8 @@ end subroutine ReadTimeVaryingParticlePositions
 ! Writes one dataset of particle positions to the XDMF xml file.
 !----------------------------------------------------------------------
 subroutine writeTimeVaryingParticlePositions(fmd, p, mp, iSnap, olun)
-use asgsio, only : fileMetaData_t, ind
+use asgsio, only : fileMetaData_t
+use ioutil, only : ind
 use adcmesh, only : station_t
 implicit none
 type(fileMetaData_t), intent(inout) :: fmd
@@ -1320,6 +968,7 @@ end subroutine writeTimeVaryingParticlePositions
 subroutine interpolateAndWriteTimeVaryingAttributesXML(afmd, pfmd, p, mp, iSnap, olun)
 use asgsio
 use adcmesh
+use ioutil, only : ind, check
 implicit none
 ! TODO: this assumes the same number of datasets in each file and that 
 ! the datasets correspond to the same times in seconds

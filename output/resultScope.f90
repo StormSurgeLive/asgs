@@ -28,17 +28,13 @@
 !        Trial  2009. 7.21. Kick Off
 !               2009. 7.10. Minimum Composition
 !----------------------------------------------------------------------
-! TODO: Add support for processing netCDF output files.
-! TODO: Add support for producing netCDF subresults files. 
-! TODO: Write submesh to local directory by default (instead of 
-! writing it to the same directory where the fulldomain mesh is found.
-!----------------------------------------------------------------------
 program resultScope
 !----------------------------------------------------------------------
 use netcdf
 use adcmesh
 use adcircdata
 use asgsio
+use logging
 implicit none
 character(120) :: dataRank
 character(1000) :: Line
@@ -49,6 +45,7 @@ character(1000) :: resultShapeOutputFileName ! name of output data file extracte
 character(1000) :: dataFileType ! output data file type, useful if name not recognized
 character(2048) :: dataFileBase ! output file name sans full path, if any
 character(2048) :: dataFileExtension ! output file name after . something like 13, 14, 15, 63, 222 etc
+integer :: dataFileFormat ! ASCII, NETCDF3, NETCDF4, NETCDFG, XDMF, etc
 integer :: lastSlashPosition ! used for trimming full path from a filename
 integer :: lastSlashPositionMesh ! used for trimming full path from a mesh filename
 character(2048) :: meshFileBase ! mesh file name sans full path, if any
@@ -90,6 +87,8 @@ resultShapeMeshFileName = "null"
 meshonly = .false.
 dataFileBase = "null"
 dataCenter = "Node"
+dataFileFormat = ASCII
+subResultFileFormat = ASCII
 !
 !
 argcount = command_argument_count() ! count up command line options
@@ -122,6 +121,30 @@ if (argcount.gt.0) then
       case('--meshonly')
          write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),'.'
          meshonly = .true.
+      case('--datafileformat')
+         i = i + 1
+         call getarg(i, cmdlinearg)
+         write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
+         select case(trim(downcase(cmdlinearg)))
+         case("netcdf")
+            dataFileFormat = NETCDFG
+         case("adcirc","ascii","text")
+            dataFileFormat = ASCII         
+         case default
+            call allMessage(WARNING,'Command line option "'//trim(cmdlineopt)//'" was not recognized.')
+         end select
+      case('--subresultfileformat')
+         i = i + 1
+         call getarg(i, cmdlinearg)
+         write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
+         select case(trim(downcase(cmdlinearg)))
+         case("netcdf")
+            subResultFileFormat = NETCDFG
+         case("adcirc","ascii","text")
+            subResultFileFormat = ASCII         
+         case default
+            call allMessage(WARNING,'Command line option "'//trim(cmdlineopt)//'" was not recognized.')
+         end select
       case('--resultshape')
          i = i + 1
          call getarg(i, cmdlinearg)
@@ -172,7 +195,6 @@ end if
 !
 ! trim off the full path so we just have the file name
 lastSlashPosition = index(trim(dataFile),"/",.true.) 
-! now set NETCDF file name for files containing only one type of data
 if (meshonly.eqv..true.) then
    ! trim off the full path so we just have the file name
    lastSlashPosition = index(trim(meshFileName),"/",.true.)
@@ -185,14 +207,38 @@ dataFileExtension = trim(dataFileBase(lastDotPosition+1:))
 lastSlashPositionMesh = index(trim(meshFileName),"/",.true.)
 meshFileBase = trim(meshFileName(lastSlashPositionMesh+1:))
 !
-! If the data file type was not supplied, then use the file name 
-! as the file type.
-if ( trim(dataFileType).eq.'null') then
+! If the data file type was not supplied, and the file is ascii, 
+! then use the file name as the file type.
+if ( (dataFileFormat.eq.ASCII).and.(trim(dataFileType).eq.'null') ) then
    dataFileType = trim(dataFile)
 endif
 !
-!
-call read14()
+! open and read mesh in appropriate format
+select case(dataFileFormat)
+case(ASCII)
+   call read14()
+case(NETCDFG)
+   call findMeshDimsNetCDF(dataFile)
+   call readMeshNetCDF(dataFile)
+   ! also determine file type of netcdf files
+case default
+   call allMessage(ERROR,'Cannot read mesh from files formatted as "'//trim(dataFileFormat)'".')
+end select
+
+
+
+   call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
+   ! determine the type of data stored in the file
+   call check(nf90_inquire(nc_id, ndim, nvar, natt, nc_dimid_time, ncformat))
+   ! determine the number of snapshots in the file
+   call check(nf90_inquire_dimension(nc_id,nc_dimid_time,len=ndset))
+   ! load up the time values (in seconds)
+   allocate(timesec(ndset))
+   call check(nf90_inq_varid(nc_id, "time", NC_VarID_time))
+   call check(nf90_get_var(nc_id, NC_VarID_time, timesec, (/ 1 /), (/ ndset /) ))
+
+
+   
 allocate(within(np))
 allocate(elementWithin(ne))
 elementWithin(:) = .false.
