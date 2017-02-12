@@ -104,7 +104,7 @@ mannings_n_finder : $(MODS) mannings_n_finder.f90
 tau0_gen : $(MODS) tau0_gen.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod
+adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcmesh.f90 $(LDFLAGS)
 #
 asgsio.mod : $(OUTPUTDIR)/asgsio.f90 logging.mod

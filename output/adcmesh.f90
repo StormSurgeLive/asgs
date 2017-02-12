@@ -247,12 +247,13 @@ contains
 !  READ14_FindDims
 !-----+---------+---------+---------+---------+---------+---------+
 subroutine read14_findDims()
-use asgsio
+use ioutil, only : openFileForRead
 implicit none
 integer :: ios ! i/o status 
 integer :: lineNum ! line number currently being read
 integer :: i, j, k
 integer, parameter :: iunit = 14
+integer :: errorIO
 ! initializations
 lineNum = 1
 numSimpleFluxBoundaries = 0
@@ -260,7 +261,7 @@ numExternalFluxBoundaries = 0
 numInternalFluxBoundaries = 0 
 numInternalFluxBoundariesWithPipes = 0
 !
-call openFileForRead(iunit, meshFileName)
+call openFileForRead(iunit, meshFileName, errorIO)
 read(iunit,'(A80)',err=10,end=20,iostat=ios) agrid
 lineNum = lineNum + 1
 write(6,'(A)') "INFO: Mesh file comment line: "//trim(agrid)
@@ -379,17 +380,13 @@ end subroutine read14_findDims
 !------------------------------------------------------------------
 subroutine findMeshDimsNetCDF(datafile, open_ncID)
 use netcdf
-use asgsio, only : nc_id, check
+use ioutil, only : check
 implicit none
 character(len=1024), intent(in) :: datafile
 integer, optional, intent(in) :: open_ncID ! used if file already open
+integer :: nc_id  ! netcdf ID of the file to read from
 integer :: dimPres ! return code from netcdf to determine if the dimension is present in the file
 integer :: i
-integer :: natt ! number of attributes in the netcdf file
-integer :: nvar ! number of variables in the netcdf file
-integer :: ndim ! number of dimensions in the netcdf file
-integer :: nc_dimid_time ! id of the time dimension
-integer :: ncformat ! netcdf3, netcdf4, netcdf4 classic model, etc
 !
 write(6,'(a)') 'INFO: Reading mesh dimensions from the netCDF file.'
 !
@@ -399,15 +396,8 @@ if (present(open_ncID).eqv..true.) then
 else
    call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
 endif
-
 !
-! determine the type of data stored in the file
-call check(nf90_inquire(nc_id, ndim, nvar, natt, nc_dimid_time, ncformat))
-if ( (ncformat.eq.nf90_format_netcdf4).or.(ncformat.eq.nf90_format_netcdf4_classic) ) then
-   write(6,'(a)') 'INFO: The data file uses netcdf4 formatting.'
-endif
-!
-call readMeshCommentLineNetCDF()
+call readMeshCommentLineNetCDF(nc_id)
 !
 ! read the lengths of the dimensions that will always be present in 
 ! an adcirc netcdf file that contains a mesh
@@ -518,17 +508,12 @@ end subroutine findMeshDimsNetCDF
 !------------------------------------------------------------------
 subroutine readMeshNetCDF(datafile, open_ncID)
 use netcdf
-use asgsio, only : nc_id, check
+use ioutil, only : check
 implicit none
 character(len=1024), intent(in) :: datafile
 integer, optional, intent(in) :: open_ncID
-integer :: dimPres ! return code from netcdf to determine if the dimension is present in the file
+integer :: nc_id ! netcdf ID of the file to read from
 integer :: i, j ! loop counter
-integer :: natt ! number of attributes in the netcdf file
-integer :: nvar ! number of variables in the netcdf file
-integer :: ndim ! number of dimensions in the netcdf file
-integer :: nc_dimid_time ! id of the time dimension
-integer :: ncformat ! netcdf3, netcdf4, netcdf4 classic model, etc
 !
 integer :: nc_count(1) ! x, y, and depth are 1D
 integer :: nc_start(1)
@@ -614,10 +599,11 @@ end subroutine readMeshNetCDF
 ! two different variable names at different times by different 
 ! programs. 
 !------------------------------------------------------------------
-subroutine readMeshCommentLineNetCDF()
+subroutine readMeshCommentLineNetCDF(nc_id)
 use netcdf
-use asgsio, only : nc_id, check
+use ioutil, only : check
 implicit none
+integer, intent(in) :: nc_id ! netcdf id of the file to read from
 ! return codes to determine which of the variable names were
 ! used in writing this file
 integer :: agold
@@ -641,7 +627,6 @@ end subroutine readMeshCommentLineNetCDF
 ! READ14
 !-----+---------+---------+---------+---------+---------+---------+
 subroutine read14()
-use asgsio
 implicit none
 integer :: i, j, k, jn, je, nhy
 integer, parameter :: iunit = 14
@@ -1222,12 +1207,12 @@ end subroutine writeMesh
 !----------------------------------------------------------------------
 !     This subroutine writes the mesh parameters to the netcdf file. 
 !----------------------------------------------------------------------
-subroutine writeMeshDefinitionsToNetCDF(nc_id, fileFormat)
+subroutine writeMeshDefinitionsToNetCDF(nc_id, deflate)
 use netcdf
-use asgsio, only : check, NETCDF4
+use ioutil, only : check
 implicit none
 integer, intent(in) :: nc_id
-integer, intent(in) :: fileFormat
+logical, intent(in) :: deflate
 integer              :: NC_DimID_single
 !
 ! create and store mesh dimensions 
@@ -1313,7 +1298,7 @@ CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'face_node_connectivity','element'))
 #ifdef NETCDF_CAN_DEFLATE
 
 ! automatically turn on compression if it is available
-if (fileFormat.eq.NETCDF4) then
+if (deflate.eqv..true.) then
    if (nope.ne.0) then
       call check(nf90_def_var_deflate(NC_ID, NC_VarID_nvdll, 0, 1, 2))
       call check(nf90_def_var_deflate(NC_ID, NC_VarID_nbdv, 0, 1, 2))
@@ -1345,7 +1330,7 @@ write(6,'(a)') 'INFO: adcirc2netcdf.f90: Finished writing mesh definitions to ne
 !----------------------------------------------------------------------
       subroutine writeMeshDataToNetCDF(nc_id)
       use netcdf
-      use asgsio, only : check
+      use ioutil, only : check
       implicit none
       integer, intent(in) :: nc_id
       integer :: nc_count(2)
@@ -1959,7 +1944,6 @@ endif
 !-----------------------------------------------------------------------
 END SUBROUTINE computeStationWeights
 !-----------------------------------------------------------------------
-
 
 !-----+---------+---------+---------+---------+---------+---------+
    end module adcmesh

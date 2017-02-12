@@ -24,22 +24,25 @@
 program pullStationTimeSeries
 use asgsio
 use adcmesh
-use adcircdata
+use ioutil
 implicit none
 type(station_t), allocatable :: stations(:)
 character(len=1024) :: line
 character(len=1024) :: stationFileName ! name of file containing list of stations
-character(len=1024) :: outputfile ! time series data at stations 
+type(fileMetaData_t) :: ft ! full domain time series data file to pull from
+type(fileMetaData_t) :: fs ! time series data file at stations
+real(8), allocatable :: adcirc_data(:,:) ! (np,num_components)
 real(8) :: stationVal, temp1, temp2
 integer :: numStations
 integer :: fileFormat
 integer :: i, j, n, ss, s
+integer :: errorIO
 
 ! initializations
 meshFileName = 'fort.14'
 stationFileName = 'stations.txt'
-outputFile = 'stations_timeseries.txt'
-fileFormat = ASCIIG
+fs%dataFileName = 'stations_timeseries.txt'
+fs%fileFormat = ASCIIG
 
 argcount = command_argument_count() ! count up command line options
 if (argcount.gt.0) then
@@ -57,10 +60,10 @@ if (argcount.gt.0) then
          i = i + 1
          call getarg(i, cmdlinearg)
          write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
-         dataFile = trim(cmdlinearg)
+         ft%dataFileName = trim(cmdlinearg)
       case("--netcdf")
          write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt),"."
-         fileFormat = NETCDFG
+         ft%fileFormat = NETCDFG
       case("--stationfile")
          i = i + 1
          call getarg(i, cmdlinearg)
@@ -70,7 +73,7 @@ if (argcount.gt.0) then
          i = i + 1
          call getarg(i, cmdlinearg)
          write(6,'(99(a))') "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
-         outputFile = trim(cmdlinearg)
+         fs%dataFileName = trim(cmdlinearg)
       case default
          write(6,'(99(a))') "WARNING: Command line option '",TRIM(cmdlineopt),"' was not recognized."
       end select
@@ -85,28 +88,29 @@ else
 end if    
 !
 !  count the number of stations
-call openFileForRead(12, stationFileName)
+sfUnit = availableUnitNumber()
+call openFileForRead(sfUnit, stationFileName, errorIO)
 numStations = 0
 do
-   read(12,*,end=7)
+   read(sfUnit,*,end=7)
    numStations = numStations + 1
 end do
 7 write(6,'(a,i0,a,a)') 'INFO: There are ',numStations,' station(s) in ',trim(stationFileName),'.'
-rewind(12)
+rewind(sfUnit)
 allocate(stations(numStations))
 !
 ! read station file
 write(6,'(a)') 'INFO: Reading station file.'
 do i=1, numStations
-   read(12,*) stations(i)%lon, stations(i)%lat
+   read(sfUnit,*) stations(i)%lon, stations(i)%lat
 end do
-close(12)
+close(sfUnit)
 write(6,'(a)') 'INFO: Finished reading station file.'
 !
 ! read in the mesh
-if ( fileFormat.eq.NETCDFG ) then
-   call findMeshDimsNetCDF(dataFile)
-   call readMeshNetCDF(dataFile)
+if ( ft%fileFormat.eq.NETCDFG ) then
+   call findMeshDimsNetCDF(ft%dataFileName)
+   call readMeshNetCDF(ft%dataFileName)
 else
    call read14()
 endif
@@ -240,7 +244,6 @@ end program pullStationTimeSeries
 !-----------------------------------------------------------------------
 subroutine writeStationValue(station, s)
 use adcmesh
-use adcircdata
 implicit none
 type(station_t), intent(in) :: station
 integer, intent(in) :: s 
