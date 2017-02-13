@@ -34,7 +34,14 @@ type(fileMetaData_t) :: fs ! time series data file at stations
 real(8), allocatable :: adcirc_data(:,:) ! (np,num_components)
 real(8) :: stationVal, temp1, temp2
 integer :: numStations
-integer :: fileFormat
+integer :: nc_start(2)
+integer :: nc_count(2)
+integer :: sbtUnit
+integer :: sfUnit
+integer :: swUnit
+integer :: snapi
+integer :: snapr
+integer :: numNodesNonDefault
 integer :: i, j, n, ss, s
 integer :: errorIO
 
@@ -127,15 +134,17 @@ do s=1, numStations
    call computeStationWeights(stations(s))
 end do
 ! write the station weights to a text file for reference or troubleshooting
-open(unit=62,file='station_weights.txt',status='replace',action='write')
+swUnit = availableUnitNumber()
+open(unit=swUnit,file='station_weights.txt',status='replace',action='write')
 do s=1,numStations 
-   write(62,'(3(f15.7,3x))') (stations(s)%w(i),i=1,3)
+   write(swUnit,'(3(f15.7,3x))') (stations(s)%w(i),i=1,3)
 end do
-close(62)
+close(swUnit)
 write(6,'(/,a)') 'INFO: Finished finding element(s) and computing interpolation weights.'
 !
 ! use station weights to interpolate bathy/topo at station locations
-open(unit=14,file='station_bathytopo.txt',status='replace',action='write')
+sbtUnit = availableUnitNumber()
+open(unit=sbtUnit,file='station_bathytopo.txt',status='replace',action='write')
 do s=1,numStations
    if (stations(s)%elementIndex.eq.0) then
       stationVal = -99999.0
@@ -144,88 +153,89 @@ do s=1,numStations
                  + xyd(3,nm(stations(s)%elementIndex,2)) * stations(s)%w(2) &
                  + xyd(3,nm(stations(s)%elementIndex,3)) * stations(s)%w(3) 
    endif
-   write(14,'(i10,2x,e17.10)') s, stationVal
+   write(sbtUnit,'(i10,2x,e17.10)') s, stationVal
 end do
-close(14)
+close(sbtUnit)
 !
 ! open the text file for writing time series data
-open(unit=61,file=trim(outputfile),status='replace',action='write')
-defaultValue = -99999.
+fs%fun = availableUnitNumber()
+open(unit=fs%fun,file=trim(fs%dataFileName),status='replace',action='write')
+fs%defaultValue = -99999.
 !
 ! open the data file (netcdf or ascii)
-select case(fileFormat)
+select case(ft%fileFormat)
 case(ASCIIG)
-   call openFileForRead(63,datafile)
+   ft%fun = availableUnitNumber()
+   call openFileForRead(ft%fun,ft%dataFileName,errorIO)
    !
    ! read header lines and write them to time series file
-   read(63,'(a1024)') line
-   write(61,*) trim(adjustl(line))
-   read(63,*) numSnaps, numNodes, snapR, snapI, num_components
-   write(61,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') numSnaps, numStations, snapR, snapI, num_components
+   read(ft%fun,'(a1024)') line
+   write(fs%fun,*) trim(adjustl(line))
+   read(ft%fun,*) ft%nSnaps, ft%numValuesPerDataSet, ft%time_increment, ft%nspool, ft%num_components
+   write(61,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, ft%nStations, ft%time_increment, ft%nspool, ft%num_components
    SS=1  ! jgf: initialize the dataset counter
    !
    ! jgf: loop until we run out of data
    do    
       write(6,'(i0,1x)',advance='no') ss    ! update progress bar
-      read(63,'(a80)',END=123,ERR=123) Line
+      read(ft%fun,'(a80)',END=123,ERR=123) Line
       read(line,*) SnapR, SnapI
-      read(line,*,ERR=907,END=907) SnapR, SnapI, NumNodesNonDefault, defaultValue
+      read(line,*,ERR=907,END=907) SnapR, SnapI, NumNodesNonDefault, ft%defaultValue
       goto 908  ! jgf: this file is sparse ascii
- 907  NumNodesNonDefault = numNodes !jgf: this file is full ascii
+ 907  NumNodesNonDefault = ft%numValuesPerDataset !jgf: this file is full ascii
 
- 908  adcirc_data = defaultValue
-      select case(num_components)
+ 908  adcirc_data = ft%defaultValue
+      select case(ft%num_components)
       case(1) ! scalar data
          do n=1,numNodesNonDefault
-            read(63,*) j, temp1
+            read(ft%fun,*) j, temp1
             adcirc_data(j,1) = temp1
          end do
       case(2) ! 2D vector data
-         adcirc_data = defaultValue
+         adcirc_data = ft%defaultValue
          do n=1,numNodesNonDefault
-            read(63,*) j, temp1, temp2
+            read(ft%fun,*) j, temp1, temp2
             adcirc_data(j,1) = temp1
             adcirc_data(j,2) = temp2
          end do     
       end select
-      write(61,*) snapR, snapI
+      write(fs%fun,*) snapR, snapI
       do s=1, numStations   
-         call writeStationValue(stations(s), s)
+         call writeStationValue(adcirc_data, ft%numValuesPerDataset, ft%num_components, stations(s), s, fs%fun)
       end do
       ss = ss + 1
    end do
-123 close(63) ! jgf: When we've run out of datasets in the current file,
+123 close(ft%fun) ! jgf: When we've run out of datasets in the current file,
                   ! we jump to here.     
 case(NETCDFG)
-   call determineNetCDFFileCharacteristics(datafile)
+   call determineNetCDFFileCharacteristics(ft)
    line = trim(rundes) // ' ' // trim(runid) // ' ' // trim(agrid)
-   snapR = time_increment
-   write(61,*) trim(adjustl(line))
-   numSnaps = ndset
-   write(61,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') numSnaps, numStations, snapR, nspool, num_components
+   snapR = ft%time_increment
+   write(fs%fun,*) trim(adjustl(line))
+   write(fs%fun,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, numStations, ft%time_increment, ft%nspool, ft%num_components
    ! get netcdf variable IDs for the the data 
-   do j=1,num_components
+   do j=1,ft%num_components
       !write(6,'(a,i0,a,a,a,i0,a)') 'DEBUG: The variable name for component ',j,' is ',trim(varname(j)),' and the variable ID is ',nc_varid(j),'.'
-      call check(nf90_inq_varid(nc_id, trim(adjustl(varname(j))), nc_varid(j)))
+      call check(nf90_inq_varid(ft%nc_id, trim(adjustl(ft%varNameNetCDF(j))), ft%nc_varid(j)))
    end do   
    write(6,'(a)') 'INFO: Compiling a record of station values across all data sets.'
    ! loop over datasets   
-   do i=1,ndset
+   do i=1,ft%nSnaps
       write(6,advance='no',fmt='(i0,1x)') i  ! update progress bar
       !
       ! read the dataset from netcdf
-      do j=1,num_components
+      do j=1,ft%num_components
          nc_start = (/ 1, i /)
          nc_count = (/ np, 1 /)
          ! get data
-         call check(nf90_get_var(nc_id,nc_varid(j),adcirc_data(:,j),nc_start,nc_count))
+         call check(nf90_get_var(ft%nc_id,ft%nc_varid(j),adcirc_data(:,j),nc_start,nc_count))
       end do
-      write(61,*) timesec(i), it      
+      write(fs%fun,*) ft%timesec(i), ft%it(i)      
       do s=1, numStations   
-         call writeStationValue(stations(s), s)
+         call writeStationValue(adcirc_data, ft%numValuesPerDataset, ft%num_components, stations(s), s, fs%fun)
       end do
    end do
-   call check(nf90_close(nc_id))
+   call check(nf90_close(ft%nc_id))
 case default
    write(6,*) "ERROR: File format '",TRIM(cmdlineopt),"' was not recognized."
    stop
@@ -242,11 +252,15 @@ end program pullStationTimeSeries
 ! Writes the interpolated time series value at the station location,
 ! or -99999 if the station is outside the mesh.
 !-----------------------------------------------------------------------
-subroutine writeStationValue(station, s)
+subroutine writeStationValue(adcirc_data, numValuesPerDataset, num_components, station, s, slun)
 use adcmesh
 implicit none
+real(8), intent(in) :: adcirc_data(numValuesPerDataSet,num_components)
+integer, intent(in) :: num_components ! number of vector components, 1 is scalar etc
+integer, intent(in) :: numValuesPerDataSet ! number of vector components, 1 is scalar etc
 type(station_t), intent(in) :: station
-integer, intent(in) :: s 
+integer, intent(in) :: s   ! station index
+integer, intent(in) :: slun ! logical unit number to write to
 real(8) :: stationVal, temp1, temp2
 logical :: dryNode
 integer :: i
@@ -267,7 +281,7 @@ if (num_components.eq.1) then
                  + adcirc_data(nm(station%elementIndex,2),1) * station%w(2) &
                  + adcirc_data(nm(station%elementIndex,3),1) * station%w(3) 
    endif
-   write(61,'(i10,2x,e17.10)') s, stationVal 
+   write(slun,'(i10,2x,e17.10)') s, stationVal 
 else
    if (station%elementIndex.eq.0 .or. dryNode.eqv..true.) then
       temp1 = -99999.0
@@ -279,7 +293,7 @@ else
       temp2 = adcirc_data(nm(station%elementIndex,1),2) * station%w(1) &
             + adcirc_data(nm(station%elementIndex,2),2) * station%w(2) &
             + adcirc_data(nm(station%elementIndex,3),2) * station%w(3) 
-      write(61,'(i10,2(2x,e17.10))') s, temp1, temp2
+      write(slun,'(i10,2(2x,e17.10))') s, temp1, temp2
    endif
 endif
 !-----------------------------------------------------------------------
