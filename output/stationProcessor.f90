@@ -24,7 +24,7 @@
 program stationProcessor
 use asgsio
 use adcmesh
-use adcircdata
+use ioutil
 use logging
 implicit none
 type(station_t), allocatable :: stations(:)
@@ -33,6 +33,7 @@ character(len=20) :: operation  ! min, max, mean, median, range, maxtime, mintim
 real(8) :: timesecStart = -99999.d0  ! beginning of time range (s) to use from fort.61.nc file
 real(8) :: timesecEnd = -99999.d0  ! end of time range (s) to use from fort.61.nc file 
 character(len=1024) :: stationFileName ! name of file containing list of stations in standard metadata format
+character(len=50), allocatable :: dataFileStationIDs(:) ! holder for netcdf IDs array
 character(len=1024) :: outputfile      ! average data at stations 
 integer :: numStationsInList ! number of stations in the list of interest (not the fort.61)
 real(8), allocatable :: stationData(:) ! one component of one complete dataset from fort.61
@@ -59,6 +60,12 @@ integer :: nc_start_station_names(2) ! index to start reading station name array
 integer :: nc_count_station_names(2) ! number of station name array items to read from netcdf
 character(len=1024) :: line ! comment line at top of result file
 character(len=40) :: coordString ! holds lon lat values for stations
+type(fileMetaData_t) :: sf ! file containing station data (e.g., fort.61)
+integer :: errorIO
+integer :: nc_start(2)
+integer :: nc_count(2)
+integer :: nc_varid_station_name
+
 ! 
 ! initializations
 stationFileName = 'stations.txt'
@@ -78,7 +85,7 @@ if (argcount.gt.0) then
          call getarg(i, cmdlinearg)
          write(scratchMessage,'(99(a))') 'Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
          call allMessage(INFO,scratchMessage)
-         dataFile = trim(cmdlinearg)
+         sf%dataFileName = trim(cmdlinearg)
       case("--stationfile")
          i = i + 1
          call getarg(i, cmdlinearg)
@@ -118,7 +125,7 @@ endif
 !
 !  count the number of stations
 stu = availableUnitNumber()
-call openFileForRead(stu, stationFileName)
+call openFileForRead(stu, stationFileName, errorIO)
 ! count the stations
 numStationsInList = 0
 lineNum = 1
@@ -177,25 +184,25 @@ call allMessage(INFO,'Finished reading station file.')
 ! report the results
 !
 ! open the netcdf station file, get dimensions, etc
-call determineNetCDFFileCharacteristics(datafile)
-write(scratchMessage,'("There are ",i0," stations in the file.")') nStations
+call determineNetCDFFileCharacteristics(sf)
+write(scratchMessage,'("There are ",i0," stations in the file.")') sf%nStations
 call allMessage(INFO,scratchMessage) 
 !write(scratchMessage,'("The station names are ",i0," characters long.")') station_namelen !jgfdebug
 !call allMessage(INFO,scratchMessage) 
-allocate(dataFileStationIDs(nStations)) 
+allocate(dataFileStationIDs(sf%nStations)) 
 !
 ! read the station_name array which actually contains the stationID instead
 ! of the description
 nc_start_station_names = (/ 1, 1 /)
-nc_count_station_names = (/ station_namelen, nStations /)
-call check(nf90_inq_varid(nc_id, "station_name", NC_VarID_station_name))
-call check(nf90_get_var(nc_id,nc_varid_station_name,dataFileStationIDs,nc_start_station_names,nc_count_station_names))
+nc_count_station_names = (/ sf%station_namelen, sf%nStations /)
+call check(nf90_inq_varid(sf%nc_id, "station_name", NC_VarID_station_name))
+call check(nf90_get_var(sf%nc_id,nc_varid_station_name,dataFileStationIDs,nc_start_station_names,nc_count_station_names))
 !
 ! for each station in the given list, determine the array index in the station
 ! data file that corresponds to that station
 do ista=1,numStationsInList
    stationFound = .false.
-   do dsta=1,nStations
+   do dsta=1,sf%nStations
       if (trim(adjustl(stations(ista)%stationID)).eq.trim(adjustl(dataFileStationIDs(dsta)))) then
          stations(ista)%iID = dsta
          stationFound = .true.
@@ -211,13 +218,13 @@ end do
 ! determine the number of datasets that fall in the specified time range
 numDataSetsInTimeRange = 0
 firstDataSetInTimeRange = 0
-do t=1,ndset
+do t=1,sf%nSnaps
    ! exclude datasets after the specified end time (if any)
-   if ( (timesecEnd.gt.0).and.(timesec(t).gt.timesecEnd) ) then
+   if ( (timesecEnd.gt.0).and.(sf%timesec(t).gt.timesecEnd) ) then
        cycle
    endif
    ! exclude datasets before the specified start time (if any)
-   if ( (timesecStart.gt.0).and.(timesec(t).lt.timesecStart) ) then
+   if ( (timesecStart.gt.0).and.(sf%timesec(t).lt.timesecStart) ) then
       cycle
    endif
    if ( firstDataSetInTimeRange.eq.0 ) then
@@ -229,22 +236,22 @@ lastDataSetInTimeRange = firstDataSetInTimeRange + numDataSetsInTimeRange - 1
 !
 ! memory for holding data for each station
 do ista=1,numStationsInList
-   allocate(stations(ista)%d(num_components,numDataSetsInTimeRange))
+   allocate(stations(ista)%d(sf%num_components,numDataSetsInTimeRange))
 end do
 !
 ! loop over datasets loading data if they fall within the specified 
 ! time range
-allocate(stationData(nStations))
+allocate(stationData(sf%nStations))
 t=1
 do tdata=firstDataSetInTimeRange, lastDataSetInTimeRange
    write(6,advance='no',fmt='(i0,1x)') tdata  ! update progress bar
    !
    ! read one dataset from netcdf, one component at a time
    nc_start = (/ 1, tdata /)
-   nc_count = (/ nStations, 1 /)
-   do c=1,num_components
+   nc_count = (/ sf%nStations, 1 /)
+   do c=1,sf%num_components
       ! get data
-      call check(nf90_get_var(nc_id,nc_varid(c),stationData,nc_start,nc_count))
+      call check(nf90_get_var(sf%nc_id,sf%nc_varid(c),stationData,nc_start,nc_count))
       ! go through the specified list of stations and store the 
       ! values from the corresponding station index 
       do s=1,numStationsInList
@@ -257,11 +264,11 @@ do tdata=firstDataSetInTimeRange, lastDataSetInTimeRange
    end do
    t = t + 1
 end do 
-call check(nf90_close(nc_id))
+call check(nf90_close(sf%nc_id))
 !
 ! now perform the specified operation on the data obtained for the
 ! stations during the specified time interval
-allocate(resultVal(num_components,numStationsInList))
+allocate(resultVal(sf%num_components,numStationsInList))
 ! initialize values
 select case(trim(operation))
 case("min")
@@ -277,10 +284,10 @@ end select
 !
 ! perform the specified operation on each component of each specified station
 ! FIXME: this may not do the right thing for multicomponent (i.e., vector) quantities
-allocate(numObs(num_components,numStationsInList))
+allocate(numObs(sf%num_components,numStationsInList))
 numObs(:,:) = numDataSetsInTimeRange
 do s=1, numStationsInList
-   do c=1, num_components
+   do c=1, sf%num_components
       do t=1, numDataSetsInTimeRange
          ! avoid use of a missing value into the avg
          if ( stations(s)%d(c,t).lt.-9999.d0 ) then
@@ -309,7 +316,7 @@ end do
 select case(trim(operation))
 case("mean","average","avg")
    do s=1, numStationsInList
-      do c=1, num_components
+      do c=1, sf%num_components
          if ( numObs(c,s).ne.0 ) then
             resultVal(c,s) = resultVal(c,s) / dble(numObs(c,s))
          else
@@ -326,7 +333,7 @@ line = 'rundes: '//trim(rundes)//' runid: '//trim(runid)//' agrid:'//trim(agrid)
 write(outu,'("# ",a)') trim(line) ! comment line
 write(outu,'(a)') '# stationID ! operationType ! timestart(s) ! timeend(s) ! (result ! numObservations (c=1,num_components))'
 do s=1,numStationsInList
-   write(outu,fmt='(a,1x,a,1x,2(f21.7,1x),3(f21.7,1x,i0,1x))') trim(stations(s)%stationID), trim(operation), timesecStart, timesecEnd, (resultVal(c,s), numObs(c,s), c=1,num_components)
+   write(outu,fmt='(a,1x,a,1x,2(f21.7,1x),3(f21.7,1x,i0,1x))') trim(stations(s)%stationID), trim(operation), timesecStart, timesecEnd, (resultVal(c,s), numObs(c,s), c=1,sf%num_components)
 end do
 
 stop
