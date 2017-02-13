@@ -26,6 +26,10 @@ use ioutil
 use asgsio
 use netcdf
 implicit none
+type(mesh_t) :: m
+type(meshNetCDF_t) :: n
+type(fileMetaData_t) :: im ! inundation mask file
+type(fileMetaData_t) :: ed ! everdried or initially dry file
 logical dataFound ! .true. if file contains either initiallydry or everdried data
 integer, allocatable :: nnodecode(:) ! nodal wet/dry state, 0=dry, 1=wet
 integer, allocatable :: newnodecode(:) ! nodal wet/dry state, 0=dry, 1=wet at end of expansion
@@ -42,8 +46,6 @@ integer :: nc_start(2)
 integer :: nc_count(2)
 integer :: imUnit
 logical :: deflate
-type(fileMetaData_t) :: im ! inundation mask file
-type(fileMetaData_t) :: ed ! everdried or initially dry file
 !
 numPasses = 1
 ed%dataFileName = 'null'
@@ -90,8 +92,8 @@ if ( trim(ed%dataFileName).eq.'null' ) then
 endif
 !
 ! open the file and read the mesh
-call findMeshDimsNetCDF(ed%dataFileName)
-call readMeshNetCDF(ed%dataFileName)
+call findMeshDimsNetCDF(m, n)
+call readMeshNetCDF(m, n)
 !jgfdebug write the element table as a check
 !do i=1,10
 !   write(6,'(i0,1x,i0,1x,i0,1x,i0)') i, (nmnc(j,i), j=1,3)
@@ -99,16 +101,16 @@ call readMeshNetCDF(ed%dataFileName)
 !stop
 !
 ! compute the neighbor table
-call computeNeighborTable()
+call computeNeighborTable(m)
 !
 ! allocate the nnodecode array (nodal wet/dry state, 0=dry 1=wet)
-allocate(nnodecode(np))
+allocate(nnodecode(m%np))
 ! initialize to all wet
 nnodecode=1  
 !
 ! load the wet/dry states of the nodes
 !
-call determineNetCDFFileCharacteristics(ed)
+call determineNetCDFFileCharacteristics(ed, m, n)
 dataFound = .false.
 do i=1,ed%nvar
    call check(nf90_inquire_variable(ed%nc_id, i, thisVarName))
@@ -116,11 +118,11 @@ do i=1,ed%nvar
    case("initiallydry")
       write(6,'(a)') 'INFO: inundationMask: Creating an inundation mask from an ADCIRC initially dry file.'
       call check(nf90_inq_varid(ed%nc_id, thisVarName, varid))
-      allocate(adcirc_idata(np,1))
+      allocate(adcirc_idata(m%np,1))
       nc_start = (/ 1, 1 /)
-      nc_count = (/ np, 1 /)      
+      nc_count = (/ m%np, 1 /)      
       call check(nf90_get_var(ed%nc_id,varid,adcirc_idata(:,1),nc_start,nc_count))      
-      do j=1,np
+      do j=1,m%np
          if ( adcirc_idata(j,1).eq.1 ) then
             nnodecode(j) = 0
          endif
@@ -131,11 +133,11 @@ do i=1,ed%nvar
    case("everdried")
       write(6,'(a)') 'INFO: inundationMask: Creating an inundation mask from an ADCIRC ever dried file.'
       call check(nf90_inq_varid(ed%nc_id, thisVarName, varid))
-      allocate(adcirc_data(np,1))
+      allocate(adcirc_data(m%np,1))
       nc_start = (/ 1, 1 /)
-      nc_count = (/ np, 1 /)      
+      nc_count = (/ m%np, 1 /)      
       call check(nf90_get_var(ed%nc_id,varid,adcirc_data(:,1),nc_start,nc_count))      
-      do j=1,np
+      do j=1,m%np
          if ( adcirc_data(j,1)-(-99999d0).lt.1.e-6 ) then
             nnodecode(j) = 0
          endif
@@ -159,17 +161,17 @@ call check(nf90_close(ed%nc_id))
 ! now that the neighbor table and the data are loaded, expand the 
 ! mask by a single layer of elements for each of the passes specified
 ! in the command line options
-allocate(newnodecode(np))
+allocate(newnodecode(m%np))
 do i=1,numPasses
    write(6,'(a,i0,a)') 'INFO: Pass number ',i,'.'
    ! set the new value equal to the existing value
    newnodecode = nnodecode
-   do j=1,np
+   do j=1,m%np
       ! if node j is dry
       if ( nnodecode(j).eq.0 ) then    
          ! make all its neighbors dry too
-         do k=2,nNeigh(j)
-            newnodecode(neitab(j,k)) = 0
+         do k=2,m%nNeigh(j)
+            newnodecode(m%neitab(j,k)) = 0
          end do
       end if
    end do
@@ -193,10 +195,10 @@ case(ASCII)
    imUnit = availableUnitNumber()
    open(imUnit,file='inundationmask.63',status='replace',action='write')
    ! write header info
-   write(imUnit,'(a)') trim(agrid)
-   write(imUnit,1010) 1, np, -99999.0, -99999, 1 ! ndset, np, time_increment, nspool, itype
+   write(imUnit,'(a)') trim(m%agrid)
+   write(imUnit,1010) 1, m%np, -99999.0, -99999, 1 ! ndset, np, time_increment, nspool, itype
    write(imUnit,2120) -99999.0, -99999
-   do i=1,np
+   do i=1,m%np
       write(imUnit,2452) i, nnodecode(i)
    end do
    close(imUnit)
@@ -210,8 +212,8 @@ case(NETCDF3,NETCDF4)
       im%ncFileType = NF90_CLOBBER ! netcdf3 format, netcdf classic model
    endif
    call check(nf90_create('inundationmask.63.nc',im%ncFileType,im%NC_ID))
-   call writeMeshDefinitionsToNetCDF(im%NC_ID, deflate)
-   call check(nf90_def_var(im%nc_id,'inundationmask',nf90_int,nc_dimid_node,nc_varid_inundationmask))
+   call writeMeshDefinitionsToNetCDF(m, n, im%NC_ID, deflate)
+   call check(nf90_def_var(im%nc_id,'inundationmask',nf90_int,n%nc_dimid_node,nc_varid_inundationmask))
    call check(nf90_put_att(im%nc_id,nc_varid_inundationmask,'_FillValue',-99999))
    call check(nf90_put_att(im%nc_id,nc_varid_inundationmask,'long_name','inundation mask for visualization purposes'))
    call check(nf90_put_att(im%nc_id,nc_varid_inundationmask,'standard_name','inundation_mask'))
@@ -225,9 +227,9 @@ case(NETCDF3,NETCDF4)
       endif
 #endif
    call check(nf90_enddef(im%nc_id))
-   call writeMeshDataToNetCDF(im%nc_id)
+   call writeMeshDataToNetCDF(m, n, im%nc_id)
    mask_start = (/ 1 /)
-   mask_count = (/ np /)
+   mask_count = (/ m%np /)
    ! write the dataset to the netcdf file
    call check(nf90_put_var(im%nc_id,nc_varid_inundationmask,nnodecode,nc_start,nc_count))
    case default

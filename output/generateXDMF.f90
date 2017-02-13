@@ -34,6 +34,8 @@ integer :: iargc
 character(len=20) :: logLevelOpt
 logical :: setLogLevel = .false.
 !
+type(mesh_t) :: m
+type(meshNetCDF_t) :: n
 type(fileMetaData_t), allocatable :: fileMetaData(:)
 logical :: fileFound = .false.
 integer :: iSnap    ! snapshot counter
@@ -175,8 +177,8 @@ do fi=1,numFiles
       !
       ! Make sure the file is NetCDF4 formatted (i.e., HDF5 underneath) because
       ! this is required for XDMF.
-      call check(nf90_inquire(fileMetaData(fi)%nc_id, formatNum=ncformat))
-      if ( (ncformat.ne.nf90_format_netcdf4).and.(ncformat.ne.nf90_format_netcdf4_classic) ) then
+      call check(nf90_inquire(fileMetaData(fi)%nc_id, formatNum=fileMetaData(fi)%ncformat))
+      if ( (fileMetaData(fi)%ncformat.ne.nf90_format_netcdf4).and.(fileMetaData(fi)%ncformat.ne.nf90_format_netcdf4_classic) ) then
          call allMessage(ERROR,'The file '//trim(fileMetaData(fi)%dataFileName)//' is netcdf3 format; XDMF requires netcdf4 formatted files.')
          call check(nf90_close(fileMetaData(fi)%nc_id))
          stop
@@ -185,17 +187,17 @@ do fi=1,numFiles
       endif
       !
       ! Inquire netCDF file about mesh dimensions, variables, and attributes.
-      call check(nf90_inq_dimid(fileMetaData(fi)%nc_id, "node", fileMetaData(fi)%NC_DimID_node))
-      call check(nf90_inquire_dimension(fileMetaData(fi)%nc_id, fileMetaData(fi)%NC_DimID_node, len=np))
-      call check(nf90_inq_dimid(fileMetaData(fi)%nc_id, "nele", fileMetaData(fi)%NC_DimID_nele))
-      call check(nf90_inquire_dimension(fileMetaData(fi)%nc_id, fileMetaData(fi)%NC_DimID_nele, len=ne))
-      agrid = "mesh"
+      call check(nf90_inq_dimid(fileMetaData(fi)%nc_id, "node", n%NC_DimID_node))
+      call check(nf90_inquire_dimension(fileMetaData(fi)%nc_id, n%NC_DimID_node, len=m%np))
+      call check(nf90_inq_dimid(fileMetaData(fi)%nc_id, "nele", n%NC_DimID_nele))
+      call check(nf90_inquire_dimension(fileMetaData(fi)%nc_id, n%NC_DimID_nele, len=m%ne))
+      m%agrid = "mesh"
       call allMessage(INFO,'Read mesh dimensions from netCDF successfully.')
       ! Some netcdf files have the comment line at the top of the fort.14 in
       ! an attribute named "agrid" while in others the attribute is named "grid".  
-      ncStatus = nf90_get_att(fileMetaData(fi)%nc_id, NF90_GLOBAL, 'agrid', agrid)
+      ncStatus = nf90_get_att(fileMetaData(fi)%nc_id, NF90_GLOBAL, 'agrid', m%agrid)
       if ( ncStatus.ne.NF90_NOERR ) then
-         call check(nf90_get_att(fileMetaData(fi)%nc_id, NF90_GLOBAL, 'grid', agrid))
+         call check(nf90_get_att(fileMetaData(fi)%nc_id, NF90_GLOBAL, 'grid', m%agrid))
       endif
       call check(nf90_close(fileMetaData(fi)%nc_id))
    case(MAUREPT)
@@ -268,7 +270,7 @@ do fi=1,numFiles
    if (fileMetaData(fi)%fileFormat.ne.NETCDF4) then
       cycle
    endif
-   call determineNetCDFFileCharacteristics(fileMetaData(fi))
+   call determineNetCDFFileCharacteristics(fileMetaData(fi), m, n)
 end do 
 !
 ! determine whether any of the files is a nodal attributes file or otherwise
@@ -340,7 +342,7 @@ write(olun,'(a)') '<Xdmf xmlns:xi="http://www.w3.org/2001/XInclude" Version="2.1
 if (writeParticleFile.eqv..true.) then
    write(olun,'('//ind('+')//',a)') '<Domain Name="maureparticle">'
 else
-   write(olun,'('//ind('+')//',a)') '<Domain Name="'//adjustl(trim(agrid))//'">'
+   write(olun,'('//ind('+')//',a)') '<Domain Name="'//adjustl(trim(m%agrid))//'">'
 endif
 !    
 ! Bomb out if we did not recognize any of the variable names in the file.
@@ -349,9 +351,9 @@ do fi=1,numFiles
       meshonly = .true.
       call allMessage(INFO,'Did not recognize any of the variables in the file '//trim(fileMetaData(fi)%dataFileName)//'.')
       call allMessage(INFO,'The xml file will only contain mesh-related information.')
-      write(olun,'('//ind('+')//',a)') '<Grid Name="'//adjustl(trim(agrid))//'" GridType="Uniform">'
+      write(olun,'('//ind('+')//',a)') '<Grid Name="'//adjustl(trim(m%agrid))//'" GridType="Uniform">'
       ! Write mesh portion of XDMF xml file.
-      call writeMeshTopologyGeometryDepth(fileMetaData(fi), olun, meshonly)
+      call writeMeshTopologyGeometryDepth(fileMetaData(fi), m, olun, meshonly)
       ! finish off the xml so the user can at least look at the mesh
       write(olun,'('//ind('-')//',a)') '</Grid>'
       call writeFooterXML(olun)
@@ -370,9 +372,9 @@ end do
 ! be done with it
 if ( fileMetaData(1)%timeVarying.eqv..false. ) then
    write(olun,'('//ind('+')//',A)') '<Grid GridType="Uniform">'
-   call writeMeshTopologyGeometryDepth(fileMetaData(1), olun, meshonly)
+   call writeMeshTopologyGeometryDepth(fileMetaData(1), m, olun, meshonly)
    do fi=1,numFiles
-      call writeAttributesXML(fileMetaData(fi), 1, 1, olun)
+      call writeAttributesXML(fileMetaData(fi), m, 1, 1, olun)
    end do
    write(olun,'('//ind('|')//',A)') '</Grid>'
    call writeFooterXML(olun)
@@ -392,8 +394,8 @@ do fi=1,numFiles
       call check(nf90_open(trim(fileMetaData(fi)%dataFileName), NF90_NOWRITE, fileMetaData(fi)%nc_id))
       call check(nf90_get_var(fileMetaData(fi)%nc_id, fileMetaData(fi)%NC_VarID_time, fileMetaData(fi)%timesec, (/ 1 /), (/ fileMetaData(fi)%nSnaps /) ))
       if ((writeParticleFile.eqv..true.).and.(meshInitialized.eqv..false.)) then
-         call findMeshDimsNetCDF(fileMetaData(fi)%dataFileName,fileMetaData(fi)%nc_id)
-         call readMeshNetCDF(fileMetaData(fi)%dataFileName,fileMetaData(fi)%nc_id)
+         call findMeshDimsNetCDF(m, n)
+         call readMeshNetCDF(m, n)
          meshInitialized = .true.
       endif
       call check(nf90_close(fileMetaData(fi)%nc_id))
@@ -447,7 +449,7 @@ if (writeParticleFile.eqv..true.) then
             if (fi.eq.maureIndex) then
                cycle
             endif
-            call interpolateAndWriteTimeVaryingAttributesXML(fileMetaData(fi), fileMetaData(maureIndex), particles, fileMetaData(maureIndex)%maxParticles, iSnap, olun)
+            call interpolateAndWriteTimeVaryingAttributesXML(fileMetaData(fi), fileMetaData(maureIndex), m, particles, fileMetaData(maureIndex)%maxParticles, iSnap, olun)
          end do
       endif
       write(olun,'('//ind('-')//',A)') '</Grid>' ! closing element for time varying grid
@@ -457,12 +459,12 @@ else
    do iSnap=1,fileMetaData(1)%nSnaps      
       call writeTimeVaryingGrid(fileMetaData(1), iSnap, olun)
       if (iSnap.eq.1) then
-         call writeMeshTopologyGeometryDepth(fileMetaData(1), olun, meshonly)
+         call writeMeshTopologyGeometryDepth(fileMetaData(1), m, olun, meshonly)
       else
          call writeMeshTopologyGeometryDepthByReference(fileMetaData(1), olun, meshonly)
       endif
       do fi=1,numFiles
-         call writeTimeVaryingAttributesXML(fileMetaData(fi), iSnap, fileMetaData(1)%nSnaps, olun)
+         call writeTimeVaryingAttributesXML(fileMetaData(fi), m, iSnap, fileMetaData(1)%nSnaps, olun)
       end do
       write(olun,'('//ind('-')//',A)') '</Grid>' ! closing element for time varying grid
    end do
@@ -559,12 +561,13 @@ end subroutine initNamesXDMF
 !----------------------------------------------------------------------
 ! Writes the mesh portion of the XML. 
 !----------------------------------------------------------------------
-subroutine writeMeshTopologyGeometryDepth(fmd, olun, meshonly)
+subroutine writeMeshTopologyGeometryDepth(fmd, m, olun, meshonly)
 use asgsio, only : fileMetaData_t
 use ioutil, only : ind
-use adcmesh, only : agrid, ne, np
+use adcmesh
 implicit none
 type(fileMetaData_t), intent(in) :: fmd
+type(mesh_t), intent(in) :: m
 integer, intent(in) :: olun ! i/o unit number to write XDMF xml to
 logical, intent(in) :: meshonly ! true if only the mesh xml are being written
 character(len=1) :: indent
@@ -576,16 +579,16 @@ endif
 write(olun,'('//ind(indent)//',a)') '<Topology Name="ADCIRCMesh"'
 write(olun,'('//ind('|')//',A)')     '  TopologyType="Triangle"'
 write(olun,'('//ind('|')//',A)')     '  NodesPerElement="3"'
-write(olun,'('//ind('|')//',A,i0,A)')'  NumberOfElements="',ne,'"'
+write(olun,'('//ind('|')//',A,i0,A)')'  NumberOfElements="',m%ne,'"'
 write(olun,'('//ind('|')//',A)')     '  BaseOffset="1">'
-write(olun,'('//ind('+')//',A,i0,A)') '<DataItem Dimensions="',ne,'  3"'
+write(olun,'('//ind('+')//',A,i0,A)') '<DataItem Dimensions="',m%ne,'  3"'
 write(olun,'('//ind('|')//',A)')       '  DataType="Int"'
 write(olun,'('//ind('|')//',A)')       '  Format="HDF">'//trim(fmd%dataFileName)//':/element'
 write(olun,'('//ind('|')//',A)')      '</DataItem>'
 write(olun,'('//ind('-')//',A)') '</Topology>'
 write(olun,'('//ind('|')//',A)') '<Geometry Name="NodeLocations"'
 write(olun,'('//ind('|')//',A)') '  GeometryType="X_Y">'
-write(olun,'('//ind('+')//',A,i0,A)') '<DataItem Dimensions="',np,'"'
+write(olun,'('//ind('+')//',A,i0,A)') '<DataItem Dimensions="',m%np,'"'
 write(olun,'('//ind('|')//',A)')      '   NumberType="Float"'
 write(olun,'('//ind('|')//',A)')      '   Precision="8"'
 if (fmd%useCPP.eqv..true.) then
@@ -594,7 +597,7 @@ else
    write(olun,'('//ind('|')//',A)')   '   Format="HDF">'//trim(fmd%dataFileName)//':/x'
 endif
 write(olun,'('//ind('|')//',A)')      '</DataItem>'
-write(olun,'('//ind('|')//',A,i0,A)') '<DataItem Dimensions="',np,'"'
+write(olun,'('//ind('|')//',A,i0,A)') '<DataItem Dimensions="',m%np,'"'
 write(olun,'('//ind('|')//',A)')      '  NumberType="Float"'
 write(olun,'('//ind('|')//',A)')      '  Precision="8"'
 if (fmd%useCPP.eqv..true.) then
@@ -607,7 +610,7 @@ write(olun,'('//ind('-')//',A)')   '</Geometry>'
 write(olun,'('//ind('|')//',A)')   '<Attribute Name="BathymetricDepth"'
 write(olun,'('//ind('|')//',A)')   '  AttributeType="Scalar"'
 write(olun,'('//ind('|')//',A)')   '  Center="Node">'
-write(olun,'('//ind('+')//',A,i0,A)') '<DataItem Dimensions="',np,'"'
+write(olun,'('//ind('+')//',A,i0,A)') '<DataItem Dimensions="',m%np,'"'
 write(olun,'('//ind('|')//',A)')      '  NumberType="Float"'
 write(olun,'('//ind('|')//',A)')      '  Precision="8"'
 write(olun,'('//ind('|')//',A)')      '  Format="HDF">'//trim(fmd%dataFileName)//':/depth'
@@ -630,7 +633,7 @@ end subroutine writeMeshTopologyGeometryDepth
 subroutine writeMeshTopologyGeometryDepthByReference(fmd, olun, meshonly)
 use asgsio, only : fileMetaData_t
 use ioutil, only : ind
-use adcmesh, only : agrid, ne, np
+use adcmesh
 implicit none
 type(fileMetaData_t), intent(in) :: fmd
 integer, intent(in) :: olun ! i/o unit number to write XDMF xml to
@@ -686,12 +689,13 @@ end subroutine writeTimeVaryingGrid
 !----------------------------------------------------------------------
 ! Writes the Attribute(s) metadata to an XML file.
 !----------------------------------------------------------------------
-subroutine writeAttributesXML(fmd, iSnap, nSnaps, olun)
-use adcmesh, only : np, ne
+subroutine writeAttributesXML(fmd, m, iSnap, nSnaps, olun)
+use adcmesh
 use asgsio, only : fileMetaData_t
 use ioutil, only : ind
 implicit none
 type(fileMetaData_t), intent(in) :: fmd
+type(mesh_t), intent(inout) :: m
 integer, intent(in) :: iSnap
 integer, intent(in) :: nSnaps
 integer, intent(in) :: olun ! i/o unit number to write XDMF xml to
@@ -707,9 +711,9 @@ do
    if (fmd%numComponents(j).gt.1) then
       attributeType = "Vector"
    endif
-   dataItemDimensions = np
+   dataItemDimensions = m%np
    if (trim(fmd%dataCenter(j)).eq."Cell") then
-      dataItemDimensions = ne
+      dataItemDimensions = m%ne
    endif
    !
    write(olun,'('//ind('|')//',A)') '<Attribute Name="'//trim(fmd%varNameXDMF(j))//'"'
@@ -775,12 +779,13 @@ end subroutine writeAttributesXML
 ! in a NetCDF file are held in one large m x t matrix (where t is the 
 ! time dimension). 
 !----------------------------------------------------------------------
-subroutine writeTimeVaryingAttributesXML(fmd, iSnap, nSnaps, olun)
-use adcmesh, only : np, ne
+subroutine writeTimeVaryingAttributesXML(fmd, m, iSnap, nSnaps, olun)
+use adcmesh
 use asgsio, only : fileMetaData_t
 use ioutil, only : ind
 implicit none
 type(fileMetaData_t), intent(in) :: fmd
+type(mesh_t), intent(in) :: m
 integer, intent(in) :: iSnap
 integer, intent(in) :: nSnaps
 integer, intent(in) :: olun ! i/o unit number to write XDMF xml to
@@ -790,7 +795,7 @@ character(len=20) :: attributeType
 integer :: i, j, k
 !
 attributeType = "Scalar"
-domainExtent = np
+domainExtent = m%np
 !
 i=1 ! netCDF variable counter
 j=1 ! XDMF variable counter
@@ -799,7 +804,7 @@ do
       attributeType = "Vector"
    endif
    if (trim(fmd%dataCenter(j)).eq."Cell") then
-      domainExtent = ne
+      domainExtent = m%ne
    endif
    !
    write(olun,'('//ind('|')//',A)') '<Attribute Name="'//trim(fmd%varNameXDMF(j))//'"'
@@ -920,7 +925,7 @@ call allMessage(ERROR,scratchMessage)
 call allMessage(ERROR,scratchMessage)
 stop
 !----------------------------------------------------------------------
-end subroutine ReadTimeVaryingParticlePositions
+end subroutine readTimeVaryingParticlePositions
 !----------------------------------------------------------------------
 
 
@@ -965,7 +970,7 @@ end subroutine writeTimeVaryingParticlePositions
 ! interpolates them to the current particle positions, and writes the 
 ! interpolated data set(s) to XDMF xml.
 !----------------------------------------------------------------------
-subroutine interpolateAndWriteTimeVaryingAttributesXML(afmd, pfmd, p, mp, iSnap, olun)
+subroutine interpolateAndWriteTimeVaryingAttributesXML(afmd, pfmd, m, p, mp, iSnap, olun)
 use asgsio
 use adcmesh
 use ioutil, only : ind, check
@@ -974,6 +979,7 @@ implicit none
 ! the datasets correspond to the same times in seconds
 type(fileMetaData_t), intent(inout) :: afmd ! datafile containing attribute values on mesh
 type(fileMetaData_t), intent(inout) :: pfmd ! datafile containing particle positions
+type(mesh_t), intent(inout) :: m
 integer, intent(in) :: mp ! max number of particles 
 type(station_t), intent(inout) :: p(mp) ! particles
 integer, intent(in) :: iSnap  ! dataset to work on
@@ -988,13 +994,13 @@ logical :: dryNode ! true if the node is dry and values there are undefined
 integer :: i ! netcdf variable counter
 integer :: k ! particle counter
 integer :: v ! variable counter
-integer :: n ! node counter
+integer :: node ! node counter
 !
 ! read the attribute values: assume multiple attribute values in a single
 ! netcdf file are a multicomponent dataset (i.e., a vector)
-allocate(adcirc_data(np,afmd%numVarNetCDF))
+allocate(adcirc_data(m%np,afmd%numVarNetCDF))
 nc_start = (/ 1, iSnap /)
-nc_count = (/ np, 1 /)
+nc_count = (/ m%np, 1 /)
 call check(nf90_open(trim(afmd%dataFileName), NF90_NOWRITE, afmd%nc_id))
 do v=1,afmd%numVarNetCDF
    !write(6,*) 'afmd%nc_id=',afmd%nc_id,' afmd%varID(v)=',afmd%nc_varID(v),' v=',v,' afmd%numVarNetCDF=',afmd%numVarNetCDF,' iSnap=',iSnap
@@ -1007,7 +1013,7 @@ endif
 !
 ! compute the interpolation weights for all particles in this snap
 do k=1,pfmd%numParticlesPerSnap(iSnap)
-   call computeStationWeights(p(k))
+   call computeStationWeights(p(k), m)
 end do
 !
 ! for each component, look up the data values at the three nodes of 
@@ -1017,14 +1023,14 @@ allocate(interpVals(afmd%numVarNetCDF,pfmd%numParticlesPerSnap(iSnap)))
 do v=1,afmd%numVarNetCDF
    do k=1,pfmd%numParticlesPerSnap(iSnap)
       ! look up the three nodes that make up this element
-      do n=1,3
-         p(k)%n(n) = nm(p(k)%elementIndex,n)
+      do node=1,3
+         p(k)%n(node) = m%nm(p(k)%elementIndex,node)
       end do
       dryNode = .false.
       ! search for dry or undefined nodal values
       if (p(k)%elementIndex.ne.0) then
-         do n=1,3
-            if ( adcirc_data(p(k)%n(n),v).eq.-99999 ) then
+         do node=1,3
+            if ( adcirc_data(p(k)%n(node),v).eq.-99999 ) then
                dryNode = .true. ! at least one of the three nodes has an undefined value
             endif
          end do
@@ -1034,8 +1040,8 @@ do v=1,afmd%numVarNetCDF
       else
          interpVals(v,k) = 0.d0
          ! now interpolate this variable using the weights at the three nodes
-         do n=1,3
-            interpVals(v,k) = interpVals(v,k) + adcirc_data(p(k)%n(n),v) * p(k)%w(n) 
+         do node=1,3
+            interpVals(v,k) = interpVals(v,k) + adcirc_data(p(k)%n(node),v) * p(k)%w(node) 
          enddo
       endif
    end do

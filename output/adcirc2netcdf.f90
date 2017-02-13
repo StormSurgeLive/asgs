@@ -29,11 +29,16 @@
 !-----+---------+---------+---------+---------+---------+---------+
 program adcirc2netcdf
 use netcdf
-use asgsio, only : fileMetaData_t, addDataAttributesNetCDF
-use ioutil, only : ASCII, NETCDF3, NETCDF4, cmdlinearg, cmdlineopt, argcount, availableUnitNumber, check, openFileForRead
+use asgsio
+use ioutil
+use logging
 use adcmesh
 use nodalattr
 implicit none
+type(mesh_t) :: m
+type(meshNetCDF_t) :: n
+type(fileMetaData_t) :: fa  ! adcirc file to be read and converted
+type(fileMetaData_t) :: fn  ! corresponding netcdf file to be written
 character(2048) :: dataFileBase
 character(2048) :: attFile
 character(120), allocatable :: att(:,:)
@@ -67,7 +72,7 @@ integer :: NC_VarID_owirvx
 integer :: NC_VarID_owirvy
 ! ^^^ end owi or gridded dataset variables ^^^ 
 integer :: yy, mo, dd, hh, mi
-integer :: i, j, k, N, SS
+integer :: i, j, k, SS, node
 logical :: meshonly   ! .true. if user just wants to convert the mesh
 logical :: dataonly   ! .true. if user just wants to convert the data
 integer :: ncStartMinMax(1)
@@ -81,8 +86,6 @@ integer :: lastDotPosition ! to determine file extension
 character(2048) :: dataFileExtension ! something like 13, 14, 15, 63, 222 etc
 integer :: iret !jgfdebug
 integer :: lineNum
-type(fileMetaData_t) :: fa  ! adcirc file to be read and converted
-type(fileMetaData_t) :: fn  ! corresponding netcdf file to be written
 real(8), allocatable :: adcirc_data(:,:)
 integer, allocatable :: adcirc_idata(:) 
 logical :: deflate ! true if compiled with support for internal file compression in netcdf files
@@ -95,7 +98,7 @@ integer :: snapr ! time (s) associated with a particular dataset
 integer :: errorIO
 !
 ! initializations
-meshFileName = "fort.14"
+m%meshFileName = "fort.14"
 attFile = "null"
 !
 fa%fileFormat = ASCII
@@ -154,7 +157,7 @@ if (argcount.gt.0) then
             i = i + 1
             call getarg(i, cmdlinearg)
             write(6,'(a,a,a,a,a)') "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
-            meshFileName = trim(cmdlinearg)
+            m%meshFileName = trim(cmdlinearg)
          case("--attfile")
             i = i + 1
             call getarg(i, cmdlinearg)
@@ -181,8 +184,8 @@ lastSlashPosition = index(trim(fa%dataFileName),"/",.true.)
 ! now set NETCDF file name for files containing only one type of data
 if (meshonly.eqv..true.) then
    ! trim off the full path so we just have the file name
-   lastSlashPosition = index(trim(meshFileName),"/",.true.)
-   fn%dataFileName = trim(meshFileName(lastSlashPosition+1:))//'.nc'
+   lastSlashPosition = index(trim(m%meshFileName),"/",.true.)
+   fn%dataFileName = trim(m%meshFileName(lastSlashPosition+1:))//'.nc'
    write(6,'(a,a,a)') 'DEBUG: The name of the netCDF file will be ',trim(fn%dataFileName),'.'
 else
    fn%dataFileName = trim(fa%dataFileName(lastSlashPosition+1:))//'.nc'
@@ -342,12 +345,12 @@ if (fa%griddedData.eqv..true.) then
 else
    ! meshed data, the common case
    if (dataonly.eqv..false.) then
-      call read14()
-      call writeMeshDefinitionsToNetCDF(fn%nc_id, deflate)
+      call read14(m)
+      call writeMeshDefinitionsToNetCDF(m, n, fn%nc_id, deflate)
    else       
-      np = fa%numValuesPerDataset
+      m%np = fa%numValuesPerDataset
       call check(nf90_put_att(fn%nc_id,nf90_global,'description',trim(JunkC)))
-      call check(nf90_def_dim(fn%nc_id,'node',np,NC_DimID_node))
+      call check(nf90_def_dim(fn%nc_id,'node',m%np,n%NC_DimID_node))
    endif
 endif
 !
@@ -355,7 +358,7 @@ endif
 ! using subroutines from the nodal attributes module and then stop
 if (trim(dataFileExtension).eq.'13') then
    call readNodalAttributesFile(fa%dataFileName)
-   call writeNodalAttributesFileNetCDF(fn%nc_id, deflate)
+   call writeNodalAttributesFileNetCDF(fn%nc_id, m, n, deflate)
    stop
 endif
 !
@@ -380,7 +383,7 @@ if (fa%timeVarying.eqv..true.) then
 endif
 !
 ! add attributes for CF compliance
-call addDataAttributesNetCDF(fn)
+call addDataAttributesNetCDF(fn, m, n)
 !      
 ! create adcirc output variables and associated attributes
 fn%num_components = 1
@@ -400,7 +403,7 @@ call check(nf90_enddef(fn%nc_id))
 ! place mesh-related data into the file, unless this is a data 
 ! only file
 if ( (dataonly.eqv..false.).and.(fa%griddedData.eqv..false.) ) then
-   call writeMeshDataToNetCDF(fn%nc_id)
+   call writeMeshDataToNetCDF(m, n, fn%nc_id)
 endif
 !
 ! finish up if only mesh data are to be converted
@@ -424,7 +427,7 @@ select case(trim(fa%dataFileType))
 case('fort.221','fort.222','fort.223','fort.224')
    fa%numValuesPerDataset = iLonOWI * iLatOWI 
 case('fort.88') 
-   fa%numValuesPerDataset = np
+   fa%numValuesPerDataset = m%np
    fa%time_increment = -99999.d0
    fa%nspool = -99999 
    fa%num_components = 1
@@ -436,16 +439,16 @@ case default
    ! actually reflect the number of datasets in the file.
    READ(fa%fun,*,end=246,err=248,iostat=errorio) fa%nSnaps, fa%numValuesPerDataset, fa%time_increment, fa%nspool, fa%num_components
    lineNum=lineNum+1
-   if ( (np.ne.fa%numValuesPerDataset).and.(trim(fa%dataCenter(1)).eq.'Node') ) then
+   if ( (m%np.ne.fa%numValuesPerDataset).and.(trim(fa%dataCenter(1)).eq.'Node') ) then
       write(6,'(a,i0,a,i0,a)') 'ERROR: The output file contains ',fa%numValuesPerDataset,        &
-        ' nodes, but the mesh file contains ',np,' nodes.'
+        ' nodes, but the mesh file contains ',m%np,' nodes.'
        write(6,'(a)') 'ERROR: The output file does not correspond to the mesh file.'
       close(fa%fun)
       stop
    endif
-   if ( (ne.ne.fa%numValuesPerDataset).and.(trim(fa%dataCenter(1)).eq.'Cell') ) then
+   if ( (m%ne.ne.fa%numValuesPerDataset).and.(trim(fa%dataCenter(1)).eq.'Cell') ) then
       write(6,'(a,i0,a,i0,a)') 'ERROR: The output file contains ',fa%numValuesPerDataset,        &
-        ' elements, but the mesh file contains ',ne,' elements.'
+        ' elements, but the mesh file contains ',m%ne,' elements.'
        write(6,'(a)') 'ERROR: The output file does not correspond to the mesh file.'
       close(fa%fun)
       stop
@@ -524,7 +527,7 @@ DO   ! jgf: loop until we run out of mesh data
          adcirc_data(:,:) = fa%defaultValue
    endif
    j=0
-   do n=1,fa%numNodesNonDefault
+   do node=1,fa%numNodesNonDefault
      select case(trim(fa%dataRank))
        case("Scalar")                    ! scalar data
          if (fn%netCDFDataType.eq.NF90_DOUBLE) then
@@ -538,7 +541,7 @@ DO   ! jgf: loop until we run out of mesh data
             endif
             adcirc_data(1,j) = Temp1
          else
-            read(fa%fun,*,end=246,err=248,iostat=errorio) j,adcirc_idata(n)
+            read(fa%fun,*,end=246,err=248,iostat=errorio) j,adcirc_idata(node)
             lineNum = lineNum + 1
          endif
        case("2DVector")                  ! 2D vector data

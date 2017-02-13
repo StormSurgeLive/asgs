@@ -27,6 +27,8 @@ use adcmesh
 use ioutil
 use logging
 implicit none
+type(mesh_t) :: m
+type(meshNetCDF_t) :: n
 type(station_t), allocatable :: stations(:)
 character(len=1024) :: metadataLine
 character(len=20) :: operation  ! min, max, mean, median, range, maxtime, mintime, etc
@@ -65,7 +67,6 @@ integer :: errorIO
 integer :: nc_start(2)
 integer :: nc_count(2)
 integer :: nc_varid_station_name
-
 ! 
 ! initializations
 stationFileName = 'stations.txt'
@@ -184,7 +185,7 @@ call allMessage(INFO,'Finished reading station file.')
 ! report the results
 !
 ! open the netcdf station file, get dimensions, etc
-call determineNetCDFFileCharacteristics(sf)
+call determineNetCDFFileCharacteristics(sf, m, n)
 write(scratchMessage,'("There are ",i0," stations in the file.")') sf%nStations
 call allMessage(INFO,scratchMessage) 
 !write(scratchMessage,'("The station names are ",i0," characters long.")') station_namelen !jgfdebug
@@ -329,7 +330,7 @@ end select
 ! now write values to the output file
 outu = availableUnitNumber()
 open(unit=outu,file='processedStations.dat',status='replace',action='write')
-line = 'rundes: '//trim(rundes)//' runid: '//trim(runid)//' agrid:'//trim(agrid)
+line = 'rundes: '//trim(rundes)//' runid: '//trim(runid)//' agrid:'//trim(m%agrid)
 write(outu,'("# ",a)') trim(line) ! comment line
 write(outu,'(a)') '# stationID ! operationType ! timestart(s) ! timeend(s) ! (result ! numObservations (c=1,num_components))'
 do s=1,numStationsInList

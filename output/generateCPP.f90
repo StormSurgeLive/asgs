@@ -29,14 +29,14 @@ use adcmesh
 use asgsio
 use ioutil
 implicit none
-
+type(mesh_t) :: m
+type(meshNetCDF_t) :: n
 integer :: NC_Count(2)
 integer :: NC_Start(2)
-integer :: NC_VarID_x_cpp
-integer :: NC_VarID_y_cpp
 character(len=NF90_MAX_NAME) :: varname
 type(fileMetaData_t) :: fn ! netcdf file 
 logical :: foundCPP
+logical :: projectCPP
 logical :: fileFound
 integer :: errorIO
 integer :: i  ! loop counter
@@ -59,11 +59,11 @@ if (argcount.gt.0) then
             projectCPP = .true.
             i = i + 1
             call getarg(i, cmdlinearg)
-            read(cmdlinearg,*) slam0
+            read(cmdlinearg,*) m%slam0
             i = i + 1
             call getarg(i, cmdlinearg)
-            read(cmdlinearg,*) sfea0
-            write(6,*) "INFO: slam0=",slam0," and sfea0=",sfea0,"."
+            read(cmdlinearg,*) m%sfea0
+            write(6,*) "INFO: slam0=",m%slam0," and sfea0=",m%sfea0,"."
          case default
             write(6,*) "WARNING: The command line option ",trim(cmdlineopt)," was not recognized."
       end select
@@ -73,9 +73,9 @@ end if
 ! Check to see if file exists
 call checkFileExistence(fn%dataFileName, errorIO)
 ! netcdf file exists
-call determineNetCDFFileCharacteristics(fn)
-call findMeshDimsNetCDF(fn%dataFileName)
-call readMeshNetCDF(fn%dataFileName)
+call determineNetCDFFileCharacteristics(fn, m, n)
+call findMeshDimsNetCDF(m, n)
+call readMeshNetCDF(m, n)
 !
 ! check to see if we have already created netcdf variables for the
 ! CPP coordinates
@@ -86,8 +86,8 @@ do i=1,fn%nvar
    if ( trim(varname).eq."x_cpp" ) then
       foundCPP = .true.
       write(6,'("INFO: CPP coordinates are already present in the file. They will be updated.")')
-      NC_VarID_x_cpp = i
-      call check(nf90_inq_varid(fn%nc_id, "y_cpp", NC_VarID_y_cpp))
+      n%NC_VarID_x_cpp = i
+      call check(nf90_inq_varid(fn%nc_id, "y_cpp", n%NC_VarID_y_cpp))
       exit
    endif
 end do
@@ -95,27 +95,27 @@ end do
 if ( foundCPP.eqv..false. ) then
    write(6,'("INFO: CPP coordinates were not present in the file. They will be created.")')
    call check(nf90_redef(fn%nc_id))
-   call check(nf90_def_var(fn%nc_id, "x_cpp", NF90_DOUBLE, NC_DimID_node, NC_VarID_x_cpp))
-   call check(nf90_def_var(fn%nc_id, "y_cpp", NF90_DOUBLE, NC_DimID_node, NC_VarID_y_cpp))
+   call check(nf90_def_var(fn%nc_id, "x_cpp", NF90_DOUBLE, n%NC_DimID_node, n%NC_VarID_x_cpp))
+   call check(nf90_def_var(fn%nc_id, "y_cpp", NF90_DOUBLE, n%NC_DimID_node, n%NC_VarID_y_cpp))
 #ifdef HAVE_NETCDF4
 #ifdef NETCDF_CAN_DEFLATE
-         call check(nf90_def_var_deflate(fn%nc_id, NC_VarID_x_cpp, 1, 1, 2))
-         call check(nf90_def_var_deflate(fn%nc_id, NC_VarID_y_cpp, 1, 1, 2))
+         call check(nf90_def_var_deflate(fn%nc_id, n%NC_VarID_x_cpp, 1, 1, 2))
+         call check(nf90_def_var_deflate(fn%nc_id, n%NC_VarID_y_cpp, 1, 1, 2))
 #endif
 #endif
    call check(nf90_enddef(fn%nc_id))
 endif
 !
 ! compute the projection to cartesian coordinates
-call computeCPP()
+call computeCPP(m)
 !
 ! write the projected coordinates to the file
 write(6,'("INFO: Adding CPP coordinates to the NetCDF file.")')
-call check(nf90_put_var(fn%nc_id, NC_VarID_x_cpp, x_cpp))
-call check(nf90_put_var(fn%nc_id, NC_VarID_y_cpp, y_cpp))
+call check(nf90_put_var(fn%nc_id, n%NC_VarID_x_cpp, m%x_cpp))
+call check(nf90_put_var(fn%nc_id, n%NC_VarID_y_cpp, m%y_cpp))
 !
 ! clean up
-deallocate(x_cpp, y_cpp)
+deallocate(m%x_cpp, m%y_cpp)
 write(6,'("INFO: Finished generating CPP coordinates. Variable names are x_cpp and y_cpp.")')
 !----------------------------------------------------------------------
 end program generateCPP

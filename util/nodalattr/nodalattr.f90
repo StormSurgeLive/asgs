@@ -325,21 +325,23 @@ end subroutine writeNodalAttribute63
 !-----------------------------------------------------------------------
 ! jgf: Writes all the nodal attribute data to a netcdf file.
 !-----------------------------------------------------------------------
-subroutine writeNodalAttributesFileNetCDF(ncid, deflate)
+subroutine writeNodalAttributesFileNetCDF(ncid, m, n, deflate)
 use netcdf
 use adcmesh
 use ioutil, only : check
 implicit none
 integer, intent(in) :: ncid ! netcdf id of the file to write
+type(mesh_t), intent(inout) :: m ! mesh to operate on
+type(meshNetCDF_t), intent(inout) :: n ! netcdf IDs for mesh
 logical, intent(in) :: deflate ! turns on compression if compiled w/suitable libs 
 integer :: nc_start(2) ! element of array where writing begins (each dimension)
 integer :: nc_count(2) ! number of elements of array to write (each dimension)
 character(len=2048) :: nameStr
-integer :: i, j, k, m
+integer :: i, j, k
 !
 write(6,'(a)') 'INFO: Writing nodal attributes to netCDF.'
 call check(nf90_put_att(ncid,nf90_global,'nodalAttributesComment',trim(adjustl(nodalAttributesComment))))
-write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') np 
+write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') m%np 
 write(6,'("INFO: There are ",i0," nodal attributes in the file.")') numNodalAttributes 
 !
 ! define dimensions, variables, and metadata for each nodal attribute
@@ -351,7 +353,7 @@ do i=1,numNodalAttributes
    nameStr = trim(adjustl(na(i)%attrName))//'_defaultValues'
    call check(nf90_def_var(ncid,trim(nameStr),nf90_double,na(i)%nc_dimid_values_per_node,na(i)%nc_varid_defaults))
    ! nodal values : dimensions
-   na(i)%nc_dimid(1) = nc_dimid_node
+   na(i)%nc_dimid(1) = n%nc_dimid_node
    na(i)%nc_dimid(2) = na(i)%nc_dimid_values_per_node  
    ! nodal values : variable definition   
    call check(nf90_def_var(ncid,trim(adjustl(na(i)%attrName)),nf90_double,na(i)%nc_dimid,na(i)%nc_varid))
@@ -376,7 +378,7 @@ end do
 ! end definitions mode of netcdf
 call check(nf90_enddef(ncid))
 ! write mesh data to netcdf; mesh definitions were written by the calling routine
-call writeMeshDataToNetCDF(ncid)
+call writeMeshDataToNetCDF(m, n, ncid)
 !
 ! now populate default value(s) and value(s) at each node
 do i=1,numNodalAttributes
@@ -384,9 +386,9 @@ do i=1,numNodalAttributes
    call check(nf90_put_var(ncid,na(i)%nc_varid_defaults,na(i)%defaultVals,(/ 1 /),(/ na(i)%numVals /) ))
    !
    ! nodal attribute values
-   allocate(na(i)%ncData(np, na(i)%numVals))
+   allocate(na(i)%ncData(m%np, na(i)%numVals))
    ! set default values throughout
-   do j=1,np
+   do j=1,m%np
       na(i)%ncData(j,:) = na(i)%defaultVals(:)
    end do
    ! selectively set nondefault values    
@@ -396,7 +398,7 @@ do i=1,numNodalAttributes
       end do
    end do
    nc_start = (/ 1, 1 /)
-   nc_count = (/ np, na(i)%numVals /)
+   nc_count = (/ m%np, na(i)%numVals /)
    ! write nodal values to netcdf
    call check(nf90_put_var(ncid,na(i)%nc_varid,na(i)%ncData,nc_start,nc_count))
 end do

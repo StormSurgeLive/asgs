@@ -26,7 +26,7 @@
 !--------------------------------------------------------------------------
 program convertna
 use adcmesh
-use asgsio, only : openFileForRead
+use ioutil
 use nodalattr
 implicit none
 character(len=1024) :: outputfile
@@ -50,9 +50,7 @@ logical :: write63 ! .true. if the n.a. data should be written to ascii fort.63 
 integer :: chunk ! reporting 10% for progress bar
 integer :: step  ! reporting 3.33% for progress bar
 integer :: progress ! percent progress reading file
-character(1024) :: cmdlinearg
-character(1024) :: cmdlineopt
-integer :: argcount
+integer :: errorIO
 integer :: i, j, jn
 !
 ! initializations
@@ -136,7 +134,7 @@ if (interpolate.eqv..true.) then
    ! read the node table from the target mesh file so we can use the node
    ! locations for interpolations
    write(6,*) 'INFO: Reading target mesh file.'
-   call openFileForRead(144,targetMeshFileName)
+   call openFileForRead(144,targetMeshFileName,errorIO)
    read(144,*) targetAgrid
    read(144,*) targetNE, targetNP
    allocate(targetXYD(3,targetNP))
