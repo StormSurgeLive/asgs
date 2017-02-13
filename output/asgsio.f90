@@ -73,8 +73,6 @@ type fileMetaData_t
    character(NF90_MAX_NAME), allocatable :: varNameNetCDF(:) ! variable names inside files   
    integer, allocatable :: nc_type(:) ! netcdf variable type for targetted variables
    integer :: nvar         ! number of variables in the netcdf file
-   integer :: nc_dimid_node ! netcdf ID for the dimension for number of nodes
-   integer :: nc_dimid_nele ! netcdf ID for the dimension of the number of elements
    integer :: nc_dimid_time ! netcdf ID for the time dimension
    integer :: nc_varid_time ! netcdf ID for the time variable
    integer :: nc_dimid_station ! netcdf ID for the time dimension
@@ -120,12 +118,14 @@ contains
 !----------------------------------------------------------------------
 ! jgf: Determine type and contents of adcirc data (output) files.
 !----------------------------------------------------------------------
-subroutine determineNetCDFFileCharacteristics(f)
-use adcmesh, only : np, nc_dimid_node, agrid, readMeshCommentLineNetCDF
+subroutine determineNetCDFFileCharacteristics(f, m, n)
+use adcmesh
 use logging
-use ioutil, only : check
+use ioutil
 implicit none
 type(fileMetaData_t), intent(inout) :: f
+type(mesh_t), intent(inout) :: m
+type(meshNetCDF_t), intent(inout) :: n
 character(len=NF90_MAX_NAME) :: thisVarName
 integer :: i, j
 integer :: errorIO
@@ -171,9 +171,9 @@ end do
 ! if this is not a station file, find the mesh node dimension and
 ! comment 
 if ( f%isStationfile.eqv..false.) then
-   call readMeshCommentLineNetCDF(f%nc_id)
+   call readMeshCommentLineNetCDF(m, f%nc_id)
    ! determine the number of nodes
-   call check(nf90_inq_dimid(f%nc_id, "node", f%nc_dimid_node))
+   call check(nf90_inq_dimid(f%nc_id, "node", n%nc_dimid_node))
 endif
 ! 
 ! find the rundes and runid attributes in case they need to be written
@@ -443,8 +443,8 @@ call check(nf90_close(f%nc_id))
 ! comment 
 if ( f%isStationfile.eqv..false.) then
    ! determine the number of nodes
-   call check(nf90_inq_dimid(f%nc_id, "node", f%nc_dimid_node))
-   call check(nf90_inquire_dimension(f%nc_id, f%nc_dimid_node, len=np))
+   call check(nf90_inq_dimid(f%nc_id, "node", n%nc_dimid_node))
+   call check(nf90_inquire_dimension(f%nc_id, n%nc_dimid_node, len=m%np))
 else
    ! determine the number of stations
    call check(nf90_inq_dimid(f%nc_id, "station", f%nc_dimid_station))
@@ -481,15 +481,18 @@ end subroutine determineNetCDFFileCharacteristics
 ! jgf : Adds attributes for netcdf cf compliance based on the type 
 ! of data to be written into the file. 
 !----------------------------------------------------------------------
-subroutine addDataAttributesNetCDF(fn)
+subroutine addDataAttributesNetCDF(fn, m, n)
 use ioutil, only : check
+use adcmesh
 implicit none
 type(fileMetaData_t), intent(inout) :: fn ! netcdf file to write metadata attributes to 
+type(mesh_t), intent(inout) :: m
+type(meshNetCDF_t), intent(inout) :: n
 integer :: nc_dimID(2) = (/ -99, -99 /)
 integer :: nc_dimid_grid(3) = (/ -99, -99, -99 /)
 character(NF90_MAX_NAME) :: thisVarName
 !
-nc_dimid = (/ fn%nc_dimID_node, fn%nc_dimID_Time /)
+nc_dimid = (/ n%nc_dimid_node, fn%nc_dimID_Time /)
 select case(trim(fn%dataFileType))
 case('fort.221') 
    thisVarName = 'basinpressure'
@@ -703,7 +706,7 @@ case('fort.74') !74
 case('maxele.63') !maxele
    thisVarName = 'zeta_max'
    call initMinMaxFileMetaData(fn, thisVarName, .false.)
-   call check(nf90_def_var(fn%nc_id,'zeta_max',nf90_double,fn%nc_dimid_node,fn%nc_varID(1)))
+   call check(nf90_def_var(fn%nc_id,'zeta_max',nf90_double,n%nc_dimid_node,fn%nc_varID(1)))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'_fillValue',fn%fillValue))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'long_name','maximum sea surface elevation above datum'))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'standard_name','maximum_sea_surface_elevation_above_datum'))
@@ -712,7 +715,7 @@ case('maxele.63') !maxele
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'mesh','adcirc_mesh'))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'units','m'))
    if ( fn%timeOfOccurrence.eqv..true.) then
-      call check(nf90_def_var(fn%nc_id,'time_of_zeta_max',nf90_double,fn%nc_dimid_node,fn%nc_varID(2)))
+      call check(nf90_def_var(fn%nc_id,'time_of_zeta_max',nf90_double,n%nc_dimid_node,fn%nc_varID(2)))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'_fillValue',fn%fillValue))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'long_name','time of maximum sea surface elevation above datum'))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'standard_name','time_of_maximum_sea_surface_elevation_above_datum'))
@@ -723,7 +726,7 @@ case('maxele.63') !maxele
    endif
 case('minpr.63') ! minimum barometric pressure
    thisVarName = 'pressure_min'
-   call check(nf90_def_var(fn%nc_id,'pressure_min',nf90_double,fn%nc_dimid_node,fn%nc_varID(1)))
+   call check(nf90_def_var(fn%nc_id,'pressure_min',nf90_double,n%nc_dimid_node,fn%nc_varID(1)))
    call initMinMaxFileMetaData(fn, thisVarName, .false.)
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'_fillValue',fn%fillValue))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'long_name','minimum air pressure at sea level'))
@@ -733,7 +736,7 @@ case('minpr.63') ! minimum barometric pressure
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'mesh','adcirc_mesh'))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'units','meters of water'))
    if ( fn%timeOfOccurrence.eqv..true.) then
-      call check(nf90_def_var(fn%nc_id,'time_of_pressure_min',nf90_double,fn%nc_dimid_node,fn%nc_varID(2)))
+      call check(nf90_def_var(fn%nc_id,'time_of_pressure_min',nf90_double,n%nc_dimid_node,fn%nc_varID(2)))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'_fillValue',fn%fillValue))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'long_name','time of minimum air pressure at sea level'))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'standard_name','time_of_minimum_air_pressure_at_sea_level'))
@@ -814,7 +817,7 @@ case('noff.100')
    fn%datacenter = 'element'
    thisVarName = 'noff'
    call initFileMetaData(fn, thisVarName, 1, 1)
-   call check(nf90_def_var(fn%nc_id,'noff',fn%netcdfdatatype,(/ fn%nc_dimid_nele, fn%nc_dimid_time /),fn%nc_varID(1)))
+   call check(nf90_def_var(fn%nc_id,'noff',fn%netcdfdatatype,(/ n%nc_dimid_nele, fn%nc_dimid_time /),fn%nc_varID(1)))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'_fillValue',-99999))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'long_name','element wet or dry'))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'standard_name','element_wet_or_dry'))
@@ -827,7 +830,7 @@ case('dryelementareacheck.100')
    fn%datacenter = 'element'
    thisVarName = 'dryelementareacheck'
    call initFileMetaData(fn, thisVarName, 1, 1)
-   call check(nf90_def_var(fn%nc_id,'dryelementareacheck',fn%netcdfdatatype,fn%nc_dimid_nele,fn%nc_varID(1)))
+   call check(nf90_def_var(fn%nc_id,'dryelementareacheck',fn%netcdfdatatype,n%nc_dimid_nele,fn%nc_varID(1)))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'_fillValue',-99999))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'long_name','dry element area check'))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'standard_name','dry_element_area_check'))
@@ -839,7 +842,7 @@ case('coefele.100')
    fn%datacenter = 'element'
    thisVarName = 'coefele'   
    call initFileMetaData(fn, thisVarName, 1, 1)
-   call check(nf90_def_var(fn%nc_id,'coefele',nf90_double,(/ fn%nc_dimid_nele, fn%nc_dimid_time /),fn%nc_varID(1)))
+   call check(nf90_def_var(fn%nc_id,'coefele',nf90_double,(/ n%nc_dimid_nele, fn%nc_dimid_time /),fn%nc_varID(1)))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'_fillValue',-99999.d0))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'long_name','element contribution to mass matrix diagonal'))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'standard_name','element_coef'))
@@ -876,7 +879,7 @@ case('elementids.100')
    fn%datacenter = 'element'
    thisVarName = 'elementids'
    call initFileMetaData(fn, thisVarName, 1, 1)   
-   call check(nf90_def_var(fn%nc_id,'elementids',fn%netcdfdatatype,fn%nc_dimid_nele,fn%nc_varID(1)))
+   call check(nf90_def_var(fn%nc_id,'elementids',fn%netcdfdatatype,n%nc_dimid_nele,fn%nc_varID(1)))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'_fillValue',-99999))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'long_name','fortran indexed element ids'))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'standard_name','fortran_indexed_element_ids'))
@@ -887,7 +890,7 @@ case('elementids.100')
 case('maxwvel.63') ! maxwvel
    thisVarName = 'wind_max'
    call initMinMaxFileMetaData(fn, thisVarName, .false.)
-   call check(nf90_def_var(fn%nc_id,'wind_max',nf90_double,fn%nc_dimid_node,fn%nc_varID(1)))
+   call check(nf90_def_var(fn%nc_id,'wind_max',nf90_double,n%nc_dimid_node,fn%nc_varID(1)))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'_fillValue',fn%fillValue))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'long_name','maximum wind speed at sea level'))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'standard_name','maximum_wind_speed_at_sea_level'))
@@ -896,7 +899,7 @@ case('maxwvel.63') ! maxwvel
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'mesh','adcirc_mesh'))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'units','m s-1'))
    if ( fn%timeOfOccurrence.eqv..true.) then
-      call check(nf90_def_var(fn%nc_id,'time_of_wind_max',nf90_double,fn%nc_dimid_node,fn%nc_varID(2)))
+      call check(nf90_def_var(fn%nc_id,'time_of_wind_max',nf90_double,n%nc_dimid_node,fn%nc_varID(2)))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'_fillValue',fn%fillValue))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'long_name','time of maximum wind speed at sea level'))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'standard_name','time_of_maximum_wind_speed_at_sea_level'))
@@ -908,7 +911,7 @@ case('maxwvel.63') ! maxwvel
 case('maxvel.63') ! max water current velocity 
    thisVarName = 'vel_max'
    call initMinMaxFileMetaData(fn, thisVarName, .false.)
-   call check(nf90_def_var(fn%nc_id,'vel_max',nf90_double,fn%nc_dimid_node,fn%nc_varID(1)))
+   call check(nf90_def_var(fn%nc_id,'vel_max',nf90_double,n%nc_dimid_node,fn%nc_varID(1)))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'_fillValue',fn%fillValue))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'long_name','maximum water column vertically averaged velocity'))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'standard_name','maximum_water column_vertically_averaged_velocity'))
@@ -917,7 +920,7 @@ case('maxvel.63') ! max water current velocity
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'mesh','adcirc_mesh'))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'units','m s-1'))
    if (fn%timeOfOccurrence.eqv..true.) then
-      call check(nf90_def_var(fn%nc_id,'time_of_vel_max',nf90_double,fn%nc_dimid_node,fn%nc_varID(2)))
+      call check(nf90_def_var(fn%nc_id,'time_of_vel_max',nf90_double,n%nc_dimid_node,fn%nc_varID(2)))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'_fillValue',fn%fillValue))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'long_name','time of maximum water column vertically averaged velocity'))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'standard_name','time_of_maximum_water_column_vertically_averaged_velocity'))
@@ -939,7 +942,7 @@ case('swan_hs_max.63') ! swan_hs_max
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'mesh','adcirc_mesh'))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'units','m'))
    if (fn%timeOfOccurrence.eqv..true.) then
-      call check(nf90_def_var(fn%nc_id,'time_of_swan_hs_max',nf90_double,fn%nc_dimid_node,fn%nc_varID(2)))
+      call check(nf90_def_var(fn%nc_id,'time_of_swan_hs_max',nf90_double,n%nc_dimid_node,fn%nc_varID(2)))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'_fillValue',fn%fillValue))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'long_name','time of maximum significant wave height'))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'standard_name', & 
@@ -952,7 +955,7 @@ case('swan_hs_max.63') ! swan_hs_max
 case('swan_tps_max.63') ! swan_tps_max
    thisVarName = 'swan_tps_max'
    call initMinMaxFileMetaData(fn, thisVarName, .false.)
-   call check(nf90_def_var(fn%nc_id,'swan_tps_max',nf90_double,fn%nc_dimid_node,fn%nc_varID(1)))
+   call check(nf90_def_var(fn%nc_id,'swan_tps_max',nf90_double,n%nc_dimid_node,fn%nc_varID(1)))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'_fillValue',fn%fillValue))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'long_name','maximum smoothed peak period'))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'standard_name', &
@@ -962,7 +965,7 @@ case('swan_tps_max.63') ! swan_tps_max
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'mesh','adcirc_mesh'))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'units','s'))
    if ( fn%timeOfOccurrence.eqv..true.) then
-      call check(nf90_def_var(fn%nc_id,'swan_tps_max',nf90_double,fn%nc_dimid_node,fn%nc_varID(2)))
+      call check(nf90_def_var(fn%nc_id,'swan_tps_max',nf90_double,n%nc_dimid_node,fn%nc_varID(2)))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'_fillValue',fn%fillValue))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'long_name','time of maximum smoothed peak period'))
       call check(nf90_put_att(fn%nc_id,fn%nc_varID(2),'standard_name', &
@@ -987,7 +990,7 @@ case('eslnodes.63') ! eslnodes.63
 case('fort.88') 
    thisVarName = 'initial_river_elevation'
    call initFileMetaData(fn, thisVarName, 1, 1)   
-   call check(nf90_def_var(fn%nc_id,'initial_river_elevation',nf90_double,fn%nc_dimid_node,fn%nc_varID(1)))
+   call check(nf90_def_var(fn%nc_id,'initial_river_elevation',nf90_double,n%nc_dimid_node,fn%nc_varID(1)))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'_fillValue',fn%fillValue))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'long_name','initial river elevation'))
    call check(nf90_put_att(fn%nc_id,fn%nc_varID(1),'standard_name','initial_river_elevation'))

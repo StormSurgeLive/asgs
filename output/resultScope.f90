@@ -36,9 +36,14 @@ use ioutil
 use asgsio
 use logging
 implicit none
+type(mesh_t) :: fm ! full domain mesh
+type(meshNetCDF_t) :: fn ! fulldomain mesh netcdf IDs
 type(fileMetaData_t) :: fd   ! fulldomain data file
-type(fileMetaData_t) :: rs   ! resultShape data file
-type(fileMetaData_t) :: rm   ! resultShape mesh file
+!
+type(mesh_t) :: rm ! resultShape mesh 
+type(meshNetCDF_t) :: rn ! resultShape mesh netcdf IDs
+type(fileMetaData_t) :: rd   ! resultShape data file
+!
 real(8), allocatable :: adcirc_data(:,:)
 integer, allocatable :: adcirc_idata(:,:)
 integer :: snapi
@@ -55,7 +60,7 @@ integer :: lastSlashPositionMesh ! used for trimming full path from a mesh filen
 character(2048) :: meshFileBase ! mesh file name sans full path, if any
 integer :: lastDotPosition   ! to determine file extension
 character(80) :: dataFileCommentLine
-integer :: i, j, k, m, n, SS
+integer :: i, j, k, e, n, SS
 logical :: meshonly    ! .true. if we are just subsetting the mesh
 logical, allocatable :: within(:) ! (np) .true. if a node is within the resultshape
 logical, allocatable :: elementWithin(:) ! (ne) .true. if an element is within the resultshape
@@ -82,8 +87,8 @@ integer :: lineNum, vertex
 integer :: pvUnit 
 integer :: errorIO
 !
-meshFileName = "null"
-resultShapeMeshFileName = "null"
+fm%meshFileName = "null"
+rm%meshFileName = "null"
 meshonly = .false.
 dataFileBase = "null"
 !
@@ -99,7 +104,7 @@ if (argcount.gt.0) then
          i = i + 1
          call getarg(i, cmdlinearg)
          write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
-         meshFileName = trim(cmdlinearg)
+         fm%meshFileName = trim(cmdlinearg)
       case('--datafile')
          i = i + 1
          call getarg(i, cmdlinearg)
@@ -114,7 +119,7 @@ if (argcount.gt.0) then
          i = i + 1
          call getarg(i, cmdlinearg)
          write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
-         rm%dataFileName = trim(cmdlinearg)
+         rm%meshFileName = trim(cmdlinearg)
       case('--meshonly')
          write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),'.'
          meshonly = .true.
@@ -136,9 +141,9 @@ if (argcount.gt.0) then
          write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
          select case(trim(downcase(cmdlinearg)))
          case("netcdf")
-            rs%fileFormat = NETCDFG
+            rd%fileFormat = NETCDFG
          case("adcirc","ascii","text")
-            rs%fileFormat = ASCII         
+            rd%fileFormat = ASCII         
          case default
             call allMessage(WARNING,'Command line option "'//trim(cmdlineopt)//'" was not recognized.')
          end select
@@ -194,15 +199,15 @@ end if
 lastSlashPosition = index(trim(fd%dataFileName),"/",.true.) 
 if (meshonly.eqv..true.) then
    ! trim off the full path so we just have the file name
-   lastSlashPosition = index(trim(meshFileName),"/",.true.)
+   lastSlashPosition = index(trim(fm%meshFileName),"/",.true.)
 endif
 dataFileBase = trim(fd%dataFileName(lastSlashPosition+1:))
 lastDotPosition = index(trim(dataFileBase),'.',.true.)
 dataFileExtension = trim(dataFileBase(lastDotPosition+1:))
 !
 ! get mesh file name without full path (if any)
-lastSlashPositionMesh = index(trim(meshFileName),"/",.true.)
-meshFileBase = trim(meshFileName(lastSlashPositionMesh+1:))
+lastSlashPositionMesh = index(trim(fm%meshFileName),"/",.true.)
+meshFileBase = trim(fm%meshFileName(lastSlashPositionMesh+1:))
 !
 ! If the data file type was not supplied, and the file is ascii, 
 ! then use the file name as the file type.
@@ -213,17 +218,17 @@ endif
 ! open and read mesh in appropriate format
 select case(fd%fileFormat)
 case(ASCII)
-   call read14()
+   call read14(fm)
 case(NETCDFG)
-   call findMeshDimsNetCDF(fd%dataFileName)
-   call readMeshNetCDF(fd%dataFileName)
-   call determineNetCDFFileCharacteristics(fd)
+   call findMeshDimsNetCDF(fm, fn)
+   call readMeshNetCDF(fm, fn)
+   call determineNetCDFFileCharacteristics(fd, fm, fn)
 case default
    call allMessage(ERROR,'Cannot read mesh.')
 end select
 !   
-allocate(within(np))
-allocate(elementWithin(ne))
+allocate(within(fm%np))
+allocate(elementWithin(fm%ne))
 elementWithin(:) = .false.
 within(:) = .false.
 !
@@ -251,17 +256,17 @@ end select
 ! Select nodes inside the resultShape
 select case(trim(resultShape))
 case('circle')
-   do n=1, np 
-      if ( sqrt((circleCenterLongitude-xyd(1,n))**2 + (circleCenterLatitude-xyd(2,n))**2).lt.(0.5*circleDiameterDegrees) ) then
+   do n=1, fm%np 
+      if ( sqrt((circleCenterLongitude-fm%xyd(1,n))**2 + (circleCenterLatitude-fm%xyd(2,n))**2).lt.(0.5*circleDiameterDegrees) ) then
          within(n) = .true.
       end if
    end do
 case('rectangle')
-   do n=1, np
-      if ( xyd(2,n).le.upperRightLatitude ) then
-         if ( xyd(2,n).ge.lowerLeftLatitude ) then
-            if ( xyd(1,n).le.upperRightLongitude ) then      
-               if ( xyd(1,n).ge.lowerLeftLongitude ) then      
+   do n=1, fm%np
+      if ( fm%xyd(2,n).le.upperRightLatitude ) then
+         if ( fm%xyd(2,n).ge.lowerLeftLatitude ) then
+            if ( fm%xyd(1,n).le.upperRightLongitude ) then      
+               if ( fm%xyd(1,n).ge.lowerLeftLongitude ) then      
                   within(n) = .true.
                endif
             endif
@@ -292,8 +297,8 @@ case('polygon')
    end do
    close(pvUnit)
    ! determine whether each mesh node is inside, on, or outside the polygon
-   do n=1, np
-      call pnpoly(xyd(1,n),xyd(2,n),polygonx,polygony,numVertices,inOnOut)
+   do n=1, fm%np
+      call pnpoly(fm%xyd(1,n),fm%xyd(2,n),polygonx,polygony,numVertices,inOnOut)
       if (inOnOut.ge.0) then
          within(n) = .true.
       endif
@@ -305,75 +310,63 @@ end select
 !
 ! Select elements inside the resultShape; first we need to count them
 ! so we can allocate an array of the proper size
-nes = 0                 ! counter for elements that are included in the resultShape
-do m = 1, ne
-   if (any(within(nm(m,:))).eqv..true.) then
-      nes = nes + 1     ! increment the number of elements included in the resultShape
-      elementWithin(m) = .true.
+rm%ne = 0                 ! counter for elements that are included in the resultShape
+do e = 1, fm%ne
+   if (any(within(fm%nm(e,:))).eqv..true.) then
+      rm%ne = rm%ne + 1     ! increment the number of elements included in the resultShape
+      elementWithin(e) = .true.
    endif 
 enddo
 ! now allocate an array to hold the element numbers of the selected elements 
-allocate(sub2fullElements(nes))
-allocate(full2subElements(ne))
+allocate(sub2fullElements(rm%ne))
+allocate(full2subElements(fm%ne))
 full2subElements(:) = 0
-nes = 0                 
-do m = 1, ne
-   if (any(within(nm(m,:)))) then
-      nes = nes + 1     ! increment the number of elements included in the resultShape
-      sub2fullElements(nes) = m  ! record the element number mapping
-      full2subElements(m) = nes
+rm%ne = 0                 
+do e = 1, fm%ne
+   if (any(within(fm%nm(e,:)))) then
+      rm%ne = rm%ne + 1     ! increment the number of elements included in the resultShape
+      sub2fullElements(rm%ne) = e  ! record the element number mapping
+      full2subElements(e) = rm%ne
    endif 
 enddo
 !
 ! For each selected element, make sure that all 3 nodes on that element
 ! have been selected, even if they did not originally fall in the shape specified
 ! by the analyst
-do m = 1, nes
+do e = 1, rm%ne
    do i = 1, 3
-      within(nm(sub2fullElements(m),i)) = .true.
+      within(fm%nm(sub2fullElements(e),i)) = .true.
    enddo
 enddo
 !
 ! Count and record nodes on elements that have been selected into the
 ! resultShape
-allocate(full2subNodes(np))
+allocate(full2subNodes(fm%np))
 full2subNodes(:) = 0
-nps = 0  ! counter for nodes on elements that are included in the resultShape
-do n = 1, np
+rm%np = 0  ! counter for nodes on elements that are included in the resultShape
+do n = 1, fm%np
    if ( within(n).eqv..true. ) then
-      nps = nps + 1   ! increment total number of nodes selected
-      full2subNodes(n) = nps  ! record the index of node numbers that have been selected 
+      rm%np = rm%np + 1   ! increment total number of nodes selected
+      full2subNodes(n) = rm%np  ! record the index of node numbers that have been selected 
    endif
 enddo
-allocate(sub2fullNodes(nps))
+allocate(sub2fullNodes(rm%np))
 !
 ! record the fulldomain node number of the sequential nodes in the selection
-nps = 0
-do n=1,np
+rm%np = 0
+do n=1,fm%np
    if (within(n).eqv..true.) then
-      nps = nps + 1
-      sub2fullNodes(nps) = n ! record the node number of the selected node
+      rm%np = rm%np + 1
+      sub2fullNodes(rm%np) = n ! record the node number of the selected node
    end if
 enddo
 !
 ! Output sub-mesh
-if (trim(rm%dataFileName).eq."null") then
-   rm%dataFileName = trim(meshFileBase) // '_' // trim(resultShape) // '-sub.14'
+if (trim(rm%meshFileName).eq."null") then
+   rm%meshFileName = trim(meshFileBase) // '_' // trim(resultShape) // '-sub.14'
 endif
-rm%fun = availableUnitNumber()
-open(rm%fun,file=trim(rm%dataFileName), status="replace",action='write')
-write(rm%fun,'(a)') trim(agrid) // trim(rm%dataFileName)
-write(rm%fun,'(i0,2x,i0)') nes, nps
-do n = 1, nps
-   write(rm%fun,'(i0,2x,3(g17.10,2x))') n, (xyd(i,sub2fullNodes(n)), i=1,3) 
-enddo
-do m = 1, nes
-   write(rm%fun,'(5(i0,2x))') m, 3, (full2subNodes(nm(sub2fullElements(m),i)), i=1,3)
-enddo
-do i = 1, 4
-   write(rm%fun,'(i0)') 0
-enddo
-close(rm%fun)
+call writeMesh(rm)
+!
 if (meshonly.eqv..true.) then
    write(6,'("INFO: The --meshonly command line option was specified; the subdomain mesh has been written and execution is complete.")')
    stop
@@ -385,18 +378,18 @@ if (fd%fileFormat.eq.ASCII) then
    select case(trim(fd%dataFileType))
    case('noff.100')
       fd%dataCenter(1) = 'Cell'
-      rs%numValuesPerDataset = nes
+      rd%numValuesPerDataset = rm%ne
    case default
       fd%dataCenter(1) = 'Node'
-      rs%numValuesPerDataset = nps
+      rd%numValuesPerDataset = rm%np
    end select
 endif
-if (rs%fileFormat.eq.ASCII) then
-   allocate(rs%dataCenter(1))
+if (rd%fileFormat.eq.ASCII) then
+   allocate(rd%dataCenter(1))
 endif
-rs%numValuesPerDataset = nps
-if (trim(rs%dataCenter(1)).eq.'Cell') then
-   rs%numValuesPerDataset = nes
+rd%numValuesPerDataset = rm%np
+if (trim(rd%dataCenter(1)).eq.'Cell') then
+   rd%numValuesPerDataset = rm%ne
 endif
 fd%fun = availableUnitNumber()
 call openFileForRead(fd%fun, trim(fd%dataFileName),errorIO)
@@ -410,16 +403,16 @@ lineNum = lineNum + 1
 ! FIXME: provide support for netcdf formatted full domain files
 read(fd%fun,*,end=246,err=248,iostat=errorio) fd%nSnaps, fd%numValuesPerDataset, fd%time_increment, fd%nspool, fd%num_components
 lineNum=lineNum+1
-if ( (np.ne.fd%numValuesPerDataset).and.(trim(fd%dataCenter(1)).eq.'Node') ) then
+if ( (fm%np.ne.fd%numValuesPerDataset).and.(trim(fd%dataCenter(1)).eq.'Node') ) then
    write(6,'(a,i0,a,i0,a)') 'ERROR: The output file contains ',fd%numValuesPerDataset,        &
-     ' nodes, but the mesh file contains ',np,' nodes.'
+     ' nodes, but the mesh file contains ',fm%np,' nodes.'
     write(6,'(a)') 'ERROR: The output file does not correspond to the mesh file.'
    close(fd%fun)
    stop
 endif
-if ( (ne.ne.fd%numValuesPerDataset).and.(trim(fd%dataCenter(1)).eq.'Cell') ) then
+if ( (fm%ne.ne.fd%numValuesPerDataset).and.(trim(fd%dataCenter(1)).eq.'Cell') ) then
    write(6,'(a,i0,a,i0,a)') 'ERROR: The output file contains ',fd%numValuesPerDataset,        &
-     ' elements, but the mesh file contains ',ne,' elements.'
+     ' elements, but the mesh file contains ',fm%ne,' elements.'
    write(6,'(a)') 'ERROR: The output file does not correspond to the mesh file.'
    close(fd%fun)
    stop
@@ -447,13 +440,13 @@ case default
 end select
 !
 ! open the subdomain ascii adcirc file that will hold the data
-rs%dataFileName = 'sub-' // trim(resultShape) // '_' // trim(fd%dataFileName) 
-rs%fun = availableUnitNumber()
-open(rs%fun,file=trim(rs%dataFileName),status='replace',action='write')
+rd%dataFileName = 'sub-' // trim(resultShape) // '_' // trim(fd%dataFileName) 
+rd%fun = availableUnitNumber()
+open(rd%fun,file=trim(rd%dataFileName),status='replace',action='write')
 ! write header info
-write(rs%fun,'(a)') trim(agrid) // trim(rs%dataFileName) // ' ' // trim(dataFileCommentLine)
+write(rd%fun,'(a)') trim(rm%agrid) // trim(rd%dataFileName) // ' ' // trim(dataFileCommentLine)
 ! write the header data to the resultshape file
-write(rs%fun,1010) fd%nSnaps, rs%numValuesPerDataSet, fd%time_increment, fd%nspool, fd%num_components
+write(rd%fun,1010) fd%nSnaps, rd%numValuesPerDataSet, fd%time_increment, fd%nspool, fd%num_components
 !
 !  R E A D   I N   F U L L D O M A I N   D A T A   
 !      A N D   W R I T E   O U T   R E S U L T  S H A P E   D A T A
@@ -486,17 +479,17 @@ DO   ! jgf: loop until we run out of data
    enddo 
    !
    ! nonsparse ascii output to resultshape output file
-   write(rs%fun,2120) SnapR, SnapI
-   do k=1,rs%numValuesPerDataSet
-      if ( (trim(rs%dataCenter(1)).eq.'Node').and.(within(k).eqv..true.) ) then
+   write(rd%fun,2120) SnapR, SnapI
+   do k=1,rd%numValuesPerDataSet
+      if ( (trim(rd%dataCenter(1)).eq.'Node').and.(within(k).eqv..true.) ) then
          if (fd%isInteger.eqv..true.) then
             write(11,2452) full2subNodes(k), (adcirc_idata(k,j),j=1,fd%num_components)
          else
             write(11,2453) full2subNodes(k), (adcirc_data(k,j),j=1,fd%num_components)
          endif
       end if
-      if ( (trim(rs%dataCenter(1)).eq.'Cell').and.(elementWithin(k).eqv..true.) ) then
-         if (rs%isInteger.eqv..true.) then
+      if ( (trim(rd%dataCenter(1)).eq.'Cell').and.(elementWithin(k).eqv..true.) ) then
+         if (rd%isInteger.eqv..true.) then
             write(11,2452) full2subElements(k), (adcirc_idata(k,j),j=1,fd%num_components)
          else
             write(11,2453) full2subElements(k), (adcirc_data(k,j),j=1,fd%num_components)
@@ -506,7 +499,7 @@ DO   ! jgf: loop until we run out of data
    write(6,advance='no',fmt='(i4)') SS
    SS = SS + 1
 end do
-244 close(rs%fun)
+244 close(rd%fun)
 close(fd%fun)
 
 write(6,'(a)') 'INFO: resultScope.f90: Finished writing file.'

@@ -7,7 +7,7 @@
 !
 program submergence_eddyvis
 use adcmesh
-use asgsio, only : openFileForRead
+use ioutil
 implicit none
 character(len=1024) :: outputfile
 character(len=1024) :: seedfile
@@ -31,9 +31,7 @@ real(8), allocatable :: eddyViscosity(:) ! the nodal attribute
 real(8) :: dryElevationAnyway ! (m) threshold elevation that forces nodes dry (+upward) 
 real(8) :: defaultEddyViscosity 
 logical :: genEddyViscosity
-character(1024) :: cmdlinearg
-character(1024) :: cmdlineopt
-integer :: argcount
+integer :: errorIO
 integer :: i, j, k
 !
 ! initializations
@@ -100,7 +98,7 @@ endif
 !
 ! read seed file containing x/y coordinates and wet limits of seed locations
 write(6,*) 'INFO: Loading seed coordinates file.'
-call openFileForRead(15,seedfile)
+call openFileForRead(15,seedfile,errorIO)
 read(15,*) nseed
 allocate(seedx(nseed))
 allocate(seedy(nseed))

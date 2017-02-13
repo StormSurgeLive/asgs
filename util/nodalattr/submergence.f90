@@ -7,7 +7,7 @@
 !
 program submergence
 use adcmesh
-use asgsio, only : openFileForRead
+use ioutil
 implicit none
 character(len=1024) :: outputfile
 character(len=1024) :: seedfile
@@ -27,10 +27,8 @@ integer :: thisNode     ! wet node whose neighbors are currently under considera
 logical, allocatable :: wet(:) ! (np) .true. for nodes found to be wet in the current round
 logical, allocatable :: startdry(:) ! (np) .true. for nodes that are to start dry (including those that would do so purely as a result of topography)
 real(8) :: dryElevationAnyway ! (m) threshold elevation that forces nodes dry (+upward) 
-character(1024) :: cmdlinearg
-character(1024) :: cmdlineopt
-integer :: argcount
 integer :: i, j, k
+integer :: errorIO
 !
 ! initializations
 dryElevationAnyway = 0.d0
@@ -86,7 +84,7 @@ endif
 !
 ! read seed file containing x/y coordinates and wet limits of seed locations
 write(6,*) 'INFO: Loading seed coordinates file.'
-call openFileForRead(15,seedfile)
+call openFileForRead(15,seedfile,errorIO)
 read(15,*) nseed
 allocate(seedx(nseed))
 allocate(seedy(nseed))

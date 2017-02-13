@@ -33,6 +33,8 @@ use ioutil
 implicit none
 logical :: meshonly
 integer :: ncstatus
+type(mesh_t) :: m ! mesh to operate on
+type(meshNetCDF_t) :: n ! mesh netcdf IDs
 type(fileMetaData_t) :: fn ! netcdf file to be converted
 type(fileMetaData_t) :: fa ! ascii file to be created
 integer :: nc_start(2)
@@ -42,10 +44,10 @@ integer :: nc_count3D(3)
 real(8), allocatable :: adcirc_data(:,:)
 real(8), allocatable :: adcirc_data3D(:,:,:)
 integer, allocatable :: adcirc_idata(:)
-integer :: i, j, k, m
+integer :: i, j, k, l
 meshonly = .false.
 fa%isSparse = .false.
-agrid = 'null'
+m%agrid = 'null'
 
 write(6,'(a,a)') "INFO: adcirc2netcdf was compiled with the following " &
    // "netcdf library: ",trim(nf90_inq_libvers())
@@ -77,7 +79,7 @@ if (argcount.gt.0) then
 end if
 !
 ! determine the number of snapshots in the file
-call determineNetCDFFileCharacteristics(fn)
+call determineNetCDFFileCharacteristics(fn, m, n)
 !
 write(6,'(a,i0,a)') 'INFO: The file contains ',fn%nSnaps,' datasets.'
 write(6,'(a)') "INFO: Commence writing file ..."
@@ -87,20 +89,20 @@ fa%dataFileName = fn%dataFileType
 fa%fun = availableUnitNumber()
 open(fa%fun,file=trim(fa%dataFileName),status='replace',action='write')
 ! write header info
-write(fa%fun,'(a)') trim(agrid)
+write(fa%fun,'(a)') trim(m%agrid)
 !
-nc_count = (/ np, 1 /)
+nc_count = (/ m%np, 1 /)
 !
 ! integer nodal data
 ! TODO: handle multicomponent integer data
 if ( (fn%isInteger.eqv..true.).and.(trim(fn%dataCenter(1)).eq.'Node') ) then
-   allocate(adcirc_idata(np))
+   allocate(adcirc_idata(m%np))
    stop
 endif
 !
 ! allocate space to hold a single dataset
 if (fn%isStationFile.eqv..true.) then
-   fn%numValuesPerDataset = np
+   fn%numValuesPerDataset = m%np
 else   
    fn%numValuesPerDataset = fn%nStations
 endif
@@ -108,18 +110,18 @@ allocate(adcirc_data(fn%numValuesPerDataset,fn%num_components))
 !
 ! handle min/max files with time of occurrence   
 if (fn%timeOfOccurrence.eqv..true.) then
-   write(fa%fun,1010) fn%nSnaps, np, fn%time_increment, fn%nspool, 1
+   write(fa%fun,1010) fn%nSnaps, m%np, fn%time_increment, fn%nspool, 1
    write(fa%fun,2120) fn%timesec(1), fn%it(1)
    nc_start = (/ 1, 1 /)
    call check(nf90_get_var(fn%nc_id,fn%nc_varid(1),adcirc_data(:,1),nc_start,nc_count))
-   do k=1,np
+   do k=1,m%np
       write(fa%fun,2453) k,adcirc_data(k,1)
    end do
    ! time of occurrence data
    write(fa%fun,2120) fn%timesec(1), fn%it(1)
    nc_start = (/ 1, 2 /)      
    call check(nf90_get_var(fn%nc_id,fn%nc_varid(2),adcirc_data(:,2),nc_start,nc_count))
-   do k=1,np
+   do k=1,m%np
       write(fa%fun,2453) k,adcirc_data(k,2)
    end do
    stop
@@ -150,7 +152,7 @@ if (fn%num_components.le.2) then
       else
          ! nonsparse ascii output
          write(fa%fun,2120) fn%timesec(i), fn%it(i)
-         do k=1,np
+         do k=1,m%np
             write(fa%fun,2453) k,(adcirc_data(k,j),j=1,fn%num_components)
          end do
       endif
@@ -162,14 +164,14 @@ endif
 ! loop over 3D datasets FIXME: this code is unfinished 
 if (fn%num_components.eq.3) then
    deallocate(adcirc_data)
-   call check(nf90_inq_dimid(fn%nc_id, "num_v_nodes", nc_dimid_vnode))
-   call check(nf90_inquire_dimension(fn%nc_id, nc_dimid_vnode, len=nfen))
-   nc_count3D = (/ np, nfen, 1 /)
-   allocate(adcirc_data3D(np,nfen,fn%num_components))
-   allocate(sigma(nfen))
-   call check(nf90_inq_varid(fn%nc_id, "sigma", nc_varid_sigma))
-   call check(nf90_get_var(fn%nc_id, nc_varid_sigma, sigma))
-   write(11,1011) fn%nSnaps, np, fn%time_increment, fn%nspool, nfen, fn%num_components
+   call check(nf90_inq_dimid(fn%nc_id, "num_v_nodes", n%nc_dimid_vnode))
+   call check(nf90_inquire_dimension(fn%nc_id, n%nc_dimid_vnode, len=m%nfen))
+   nc_count3D = (/ m%np, m%nfen, 1 /)
+   allocate(adcirc_data3D(m%np,m%nfen,fn%num_components))
+   allocate(m%sigma(m%nfen))
+   call check(nf90_inq_varid(fn%nc_id, "sigma", n%nc_varid_sigma))
+   call check(nf90_get_var(fn%nc_id, n%nc_varid_sigma, m%sigma))
+   write(11,1011) fn%nSnaps, m%np, fn%time_increment, fn%nspool, m%nfen, fn%num_components
    !
    ! loop over datasets   
    do i=1,fn%nSnaps
@@ -181,9 +183,9 @@ if (fn%num_components.eq.3) then
       end do
       !
       ! write 3D data to ascii
-      write(11,2121) fn%timesec(i), fn%it(i), (sigma(m),sigma(m),sigma(m),m=1,nfen-1),sigma(nfen),sigma(nfen)
-      do k=1,np
-         write(11,2454) k,(adcirc_data3D(k,j,1),adcirc_data3D(k,j,2),adcirc_data3D(k,j,3),j=1,nfen)
+      write(11,2121) fn%timesec(i), fn%it(i), (m%sigma(l),m%sigma(l),m%sigma(l),l=1,m%nfen-1),m%sigma(m%nfen),m%sigma(m%nfen)
+      do k=1,m%np
+         write(11,2454) k,(adcirc_data3D(k,j,1),adcirc_data3D(k,j,2),adcirc_data3D(k,j,3),j=1,m%nfen)
       end do
       write(6,advance='no',fmt='(i6)') i
    end do

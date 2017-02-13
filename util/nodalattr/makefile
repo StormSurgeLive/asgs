@@ -74,8 +74,8 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := adcmesh.o asgsio.o landuse.o adcircdata.o logging.o
-MODS := adcmesh.mod asgsio.mod landuse.mod adcircdata.mod logging.mod
+OBJ := adcmesh.o asgsio.o landuse.o logging.o
+MODS := adcmesh.mod asgsio.mod landuse.mod logging.mod ioutil.mod
 #
 # targets
 all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyvis convertna
@@ -83,7 +83,7 @@ all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyv
 clean :
 	rm -f *.o *.mod *.x
 #
-nodalattr.mod : $(MODS) nodalattr.f90 asgsio.mod adcircdata.mod
+nodalattr.mod : $(MODS) nodalattr.f90 asgsio.mod 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c nodalattr.f90 $(LDFLAGS)
 #
 convertna : $(MODS) convertna.f90 nodalattr.mod

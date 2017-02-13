@@ -26,16 +26,18 @@ use adcmesh
 use logging
 use ioutil
 implicit none
+type(mesh_t) :: m
+type(meshNetCDF_t) :: n
+type(fileMetaData_t) :: ft ! time varying fulldomain ascii adcirc output file
+type(fileMetaData_t) :: fm ! full domain ascii min/max file
 logical :: findMin
 logical :: writeMaxTimes 
 character(len=80) :: line
 character(len=1000) :: header1
 character(len=1000) :: header2
-integer :: i, j, n
+integer :: i, j, node
 real(8) :: temp1, temp2
 integer :: ss ! dataset counter
-type(fileMetaData_t) :: ft ! time varying fulldomain ascii adcirc output file
-type(fileMetaData_t) :: fm ! full domain ascii min/max file
 real(8), allocatable :: extremes(:)
 real(8), allocatable :: extremeTimes(:)
 real(8), allocatable :: dataValues(:)
@@ -83,9 +85,9 @@ end do
 ! open time varying data file and extract info
 select case(ft%fileFormat)
    case(NETCDFG)
-      call determineNetCDFFileCharacteristics(ft)
+      call determineNetCDFFileCharacteristics(ft, m, n)
       write(6,'(a,i0,a)') 'INFO: There are ',ft%nSnaps,' datasets in the file.'
-      write(header1,'(a,1x,a,1x,a)') trim(rundes), trim(runid), trim(agrid)
+      write(header1,'(a,1x,a,1x,a)') trim(rundes), trim(runid), trim(m%agrid)
    case(ASCIIG)
       ft%fun = availableUnitNumber()
       call openFileForRead(ft%fun,ft%dataFileName,errorIO)
@@ -95,15 +97,15 @@ select case(ft%fileFormat)
       ! accurate; it will be incorrect after a hotstart
       read(header2,*) ft%nSnaps, ft%numValuesPerDataset, ft%time_increment, ft%nspool, ft%num_components
       write(*,'(a,i0,a)') 'INFO: There are ',ft%numValuesPerDataset,' in the associated mesh.'
-      np = ft%numValuesPerDataSet
+      m%np = ft%numValuesPerDataSet
    case default
       write(6,'(a)') 'ERROR: The data file format option is not valid.'
 end select
 !
-allocate(extremes(np))
-allocate(extremeTimes(np))
-allocate(dataValues(np))
-allocate(adcirc_data(np,2))
+allocate(extremes(m%np))
+allocate(extremeTimes(m%np))
+allocate(dataValues(m%np))
+allocate(adcirc_data(m%np,2))
 
 if (findMin.eqv..false.) then
    extremes = -99999.
@@ -133,12 +135,12 @@ case(ASCIIG)
  908  dataValues = ft%defaultValue
       select case(ft%num_components)
       case(1) ! scalar data
-         do n=1,numNodesNonDefault
+         do node=1,numNodesNonDefault
             read(ft%fun,*) j, temp1
             dataValues(j) = temp1
          end do
       case(2) ! 2D vector data
-         do n=1,numNodesNonDefault
+         do node=1,numNodesNonDefault
             read(ft%fun,*) j, temp1, temp2
             dataValues(j) = sqrt(temp1**2+temp2**2)         
          end do     
@@ -146,17 +148,17 @@ case(ASCIIG)
       ! check to see if each value exceeds the recorded extreme value
       ! at that node
       if (findMin.eqv..false.) then
-         do n=1,np
-            if (dataValues(n).gt.extremes(n)) then
-               extremes(n) = dataValues(n)
-               extremeTimes(n) = snapR
+         do node=1,m%np
+            if (dataValues(node).gt.extremes(node)) then
+               extremes(node) = dataValues(node)
+               extremeTimes(node) = snapR
             endif
          end do
       else
-         do n=1,np
-            if (dataValues(n).lt.extremes(n)) then
-               extremes(n) = dataValues(n)
-               extremeTimes(n) = snapR
+         do node=1,m%np
+            if (dataValues(node).lt.extremes(node)) then
+               extremes(node) = dataValues(node)
+               extremeTimes(node) = snapR
             endif
          end do
       endif
@@ -173,7 +175,7 @@ case(NETCDFG)
       ! read the dataset from netcdf
       do j=1,ft%num_components
          nc_start = (/ 1, i /)
-         nc_count = (/ np, 1 /)
+         nc_count = (/ m%np, 1 /)
          call check(nf90_get_var(ft%nc_id,ft%nc_varid(j),adcirc_data(:,j),nc_start,nc_count))
       end do
       ! check to see if each value exceeds the recorded extreme value
@@ -183,18 +185,18 @@ case(NETCDFG)
             dataValues = sqrt(adcirc_data(:,1)**2+adcirc_data(:,2)**2)
          endif
          ! find max 
-         do n=1,np
-            if (adcirc_data(n,1).gt.extremes(n)) then
-               extremes(n) = adcirc_data(n,1)
-               extremeTimes(n) = snapR
+         do node=1,m%np
+            if (adcirc_data(node,1).gt.extremes(node)) then
+               extremes(node) = adcirc_data(node,1)
+               extremeTimes(node) = snapR
             endif
          end do
       else
          ! find min
-         do n=1,np
-            if (adcirc_data(n,1).lt.extremes(n)) then
-               extremes(n) = adcirc_data(n,1)
-               extremeTimes(n) = snapR
+         do node=1,m%np
+            if (adcirc_data(node,1).lt.extremes(node)) then
+               extremes(node) = adcirc_data(node,1)
+               extremeTimes(node) = snapR
             endif
          end do
       endif
@@ -227,8 +229,8 @@ else
    snapI = minloc(extremes,1)
 endif
 write(fm%fun,'(f15.7,2x,i0)') snapR, snapI
-do n=1,np
-   write(fm%fun,'(i0,2x,f15.7)') n, extremes(n)
+do node=1,m%np
+   write(fm%fun,'(i0,2x,f15.7)') node, extremes(node)
 end do
 !
 ! write the times that the extreme values occurred if specified
@@ -243,8 +245,8 @@ if (writeMaxTimes.eqv..true.) then
       snapI = minloc(extremeTimes,1)
    endif
    write(fm%fun,'(f15.7,2x,i0)') snapR, snapI
-   do n=1,np
-      write(fm%fun,'(i0,2x,f15.7)') n, extremeTimes(n)
+   do node=1,m%np
+      write(fm%fun,'(i0,2x,f15.7)') node, extremeTimes(node)
    end do
 endif
 close(fm%fun)
