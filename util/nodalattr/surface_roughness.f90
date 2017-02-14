@@ -1,17 +1,33 @@
+!------------------------------------------------------------------
+! surface_roughness.f90: Reads ADCIRC mesh file and land use data
+! and produces surface roughness values.
+!------------------------------------------------------------------
+! Copyright(C) 2017 Jason Fleming
 !
-! Example of compilation with gfortran:
-! gfortran -O3 -ffree-line-length-none -o surface_roughness.x -I/home/jason/asgs/trunk/output -I/usr/include  surface_roughness.f90  -lnetcdff
+! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
-! Example of compiling with gfortran with debugging turned on:
-! gfortran -g -O0 -Wall -ffree-line-length-none -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal -o surface_roughness.x -I/home/jason/asgs/trunk/output -I/usr/include  surface_roughness.f90  -lnetcdff
+! The ASGS is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
 !
-! Example of compiling with gfortran with profiling and test coverage turned on:
-! gfortran -pg -O0 -fprofile-arcs -ftest-coverage -Wall -ffree-line-length-none -o surface_roughness.x -I/home/jason/asgs/trunk/output -I/usr/include surface_roughness.f90 -lnetcdff
-!-----------------------------------------------------------------------
+! ASGS is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+!------------------------------------------------------------------
+! Compile with accompanying makefile. 
+!------------------------------------------------------------------
 program surface_roughness
 use adcmesh
+use ioutil
+use logging
 use landuse
 implicit none
+type(mesh_t) :: m
 character(len=1024) :: outputfile
 character(len=1024) :: nodal_attr_name = 'surface_directional_effective_roughness_length'
 character(len=1024) :: canopyLookupTableName
@@ -38,10 +54,9 @@ real(8) :: thisx, thisy ! albers coordinates of a point along a line for wt avg 
 integer :: chunk ! reporting 10% for progress bar
 integer :: step  ! reporting 3.33% for progress bar
 integer :: progress ! percent progress reading file
-character(1024) :: cmdlinearg
-character(1024) :: cmdlineopt
-integer :: argcount
-integer :: i, j, k, m
+integer :: sfUnit
+integer :: ccUnit
+integer :: i, j, k, c
 ! new bounding box in albers equal area conic that takes into account 
 !the averaging radius
 real(8) avgxmax, avgymax, avgxmin, avgymin
@@ -65,7 +80,7 @@ do while (i.lt.argcount)
       i = i + 1
       call getarg(i, cmdlinearg)
       write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
-      meshFileName = trim(cmdlinearg)
+      m%meshFileName = trim(cmdlinearg)
    case("--outputfile")
       i = i + 1
       call getarg(i, cmdlinearg)
@@ -112,11 +127,11 @@ call loadLandUse()
 !
 ! Open and read the mesh file.
 write(6,*) 'INFO: Reading mesh file.'
-call read14()
+call read14(m)
 write(6,*) 'INFO: Finished reading mesh file.'
 !
 ! Project each mesh node into albers equal area conic. 
-call computeAlbersEqualAreaConic()
+call computeAlbersEqualAreaConic(m)
 
 ! Figure out the NLCD row and column that corresponds to each mesh node
 ! location. Then convert the NLCD classification to an equivalent 
@@ -125,7 +140,7 @@ call computeAlbersEqualAreaConic()
 ! If the mesh node is outside the area covered by the NLCD data,
 ! the land use classification is set to -9999 for that node, and the 
 ! lookup table is used to convert the -9999 value to a default manning's n.
-allocate(surfruf(12,np))
+allocate(surfruf(12,m%np))
 surfruf = 0.d0                ! initialize all values to zero
 !
 ! we use the same number of points in all directions, and all are
@@ -161,10 +176,10 @@ avgymin = ymin + avgDist
 avgymax = ymax - avgDist
 ! compute parameters related to printing a progress bar
 progress=10
-chunk=np/10
-step=np/30
+chunk=m%np/10
+step=m%np/30
 write(6,'(a)',advance='no') 'INFO: Computing directional surface roughness for each node in the mesh.'
-do i=1,np
+do i=1,m%np
    ! update progress bar
    if (mod(i,chunk).eq.0) then
       write(6,'(i0,"%")',advance='no') progress
@@ -174,16 +189,16 @@ do i=1,np
    endif
    ! make sure this node as well as the the area around it (used for averaging) 
    ! is fully inside our NLCD area
-   if ( (xalbers(i).gt.avgxmin).and.(xalbers(i).lt.avgxmax).and. &
-        (yalbers(i).gt.avgymin).and.(yalbers(i).lt.avgymax) ) then
+   if ( (m%xalbers(i).gt.avgxmin).and.(m%xalbers(i).lt.avgxmax).and. &
+        (m%yalbers(i).gt.avgymin).and.(m%yalbers(i).lt.avgymax) ) then
       ! loop over the 12 directions
       do j=1,12
          ! loop over the points on the line where the weighted average
          ! is calculated; compute the land use row and column associated 
          ! with each point 
          do k=1,numPoints
-            thisx = xalbers(i) + (k-1)*(myCos(j)*res)
-            thisy = yalbers(i) + (k-1)*(mySin(j)*res)
+            thisx = m%xalbers(i) + (k-1)*(myCos(j)*res)
+            thisy = m%yalbers(i) + (k-1)*(mySin(j)*res)
             n_col = nint(abs((thisx-xmin)/res)) + 1 ! count columns from left
             n_row = nint(abs((ymax-thisy)/res)) + 1 ! count rows from top
             luclass = nlcd_class(n_row,n_col)
@@ -194,9 +209,9 @@ do i=1,np
                cycle
             endif
             ! use the lookup table to convert land use code 
-            do m=1,nlc
-               if (lookupTableKey(m).eq.luclass) then
-                  surf_rough_l(k) = lookupTableValue(m)
+            do c=1,nlc
+               if (lookupTableKey(c).eq.luclass) then
+                  surf_rough_l(k) = lookupTableValue(c)
                   weight_factor(k) = std_weight_factor(k)
                   exit
                endif
@@ -212,7 +227,7 @@ do i=1,np
    else
       if (verbose.eqv..true.) then
          write(6,*) 'WARNING: Node ',i,' is outside the area covered by NLCD data.'
-         write(6,*) 'xalbers=',xalbers(i),' yalbers=',yalbers(i)
+         write(6,*) 'xalbers=',m%xalbers(i),' yalbers=',m%yalbers(i)
       endif
    endif
 end do
@@ -225,23 +240,24 @@ write(6,*) 'INFO: Finished computing directional surface roughness for each node
 ! write the nondefault values
 write(6,*) 'INFO: Writing nondefault surface roughness values.'
 ! count the nondefault values
-allocate(areDefaultValues(np))
+allocate(areDefaultValues(m%np))
 areDefaultValues = .true.
-do i=1,np  
+do i=1,m%np  
    if (any(surfruf(:,i).ne.0.d0)) then
       areDefaultValues(i) = .false.
    endif
 end do
-open(12,file='surface_roughness.'//trim(outputfile),action='write',status='replace')
-write(12,'(A)') trim(nodal_attr_name)
+sfUnit = availableUnitNumber()
+open(sfUnit,file='surface_roughness.'//trim(outputfile),action='write',status='replace')
+write(sfUnit,'(A)') trim(nodal_attr_name)
 ! write the number of nondefault values
-write(12,*) count(areDefaultValues.eqv..false.)
-do i=1,np
+write(sfUnit,*) count(areDefaultValues.eqv..false.)
+do i=1,m%np
    if (areDefaultValues(i).eqv..false.) then
-      write(12,130) i,(surfruf(j,i), j=10,1,-1),(surfruf(j,i), j=12,11,-1) 
+      write(sfUnit,130) i,(surfruf(j,i), j=10,1,-1),(surfruf(j,i), j=12,11,-1) 
    endif
 end do
-close(12)
+close(sfUnit)
 write(6,*) 'INFO: Finished writing nondefault surface roughness values.'
 130   format(i7,12(2x,f13.6))
 !
@@ -254,22 +270,22 @@ if (genCanopy.eqv..true.) then
    lookupTableName = canopyLookupTableName
    call loadLookupTable()
    !
-   allocate(canopy(np))
+   allocate(canopy(m%np))
    canopy = 1
-   do i=1,np
+   do i=1,m%np
       ! make sure this node is inside our NLCD area
-      if ( (xalbers(i).gt.xmin).and.(xalbers(i).lt.xmax).and. &
-           (yalbers(i).gt.ymin).and.(yalbers(i).lt.ymax) ) then
-         n_col = nint(abs((xalbers(i)-xmin)/res)) + 1 ! count columns from left
-         n_row = nint(abs((ymax-yalbers(i))/res)) + 1 ! count rows from top
+      if ( (m%xalbers(i).gt.xmin).and.(m%xalbers(i).lt.xmax).and. &
+           (m%yalbers(i).gt.ymin).and.(m%yalbers(i).lt.ymax) ) then
+         n_col = nint(abs((m%xalbers(i)-xmin)/res)) + 1 ! count columns from left
+         n_row = nint(abs((ymax-m%yalbers(i))/res)) + 1 ! count rows from top
          luclass = nlcd_class(n_row,n_col)
          ! if we encounter a "missing" value, set it to the default of 1 
          if ((luclass.eq.127).or.(luclass.eq.-9999)) then
             canopy(i) = 1.0
          else
-            do m=1,nlc
-               if (lookupTableKey(m).eq.luclass) then
-                  canopy(i) = lookupTableValue(m)
+            do c=1,nlc
+               if (lookupTableKey(c).eq.luclass) then
+                  canopy(i) = lookupTableValue(c)
                   exit
                endif
                ! if we got to here, we didn't jump out of the loop, and
@@ -281,16 +297,17 @@ if (genCanopy.eqv..true.) then
    end do    
    write(6,*) 'INFO: Finished computing canopy coefficient values.'
    write(6,*) 'INFO: Writing canopy coefficient values.'
-   open(12,file='canopy.'//trim(outputfile),action='write',status='replace')
-   write(12,'(A)') trim(nodal_attr_name)
+   ccUnit = availableUnitNumber()
+   open(ccUnit,file='canopy.'//trim(outputfile),action='write',status='replace')
+   write(ccUnit,'(A)') trim(nodal_attr_name)
    ! write the number of nondefault values
-   write(12,*) count(canopy.eq.0.0)
-   do i=1,np
+   write(ccUnit,*) count(canopy.eq.0.0)
+   do i=1,m%np
       if (canopy(i).eq.0.0) then
-         write(12,'(i0," ",f3.1)') i,canopy(i)
+         write(ccUnit,'(i0," ",f3.1)') i,canopy(i)
       endif
    end do
-   close(12)
+   close(ccUnit)
    write(6,*) 'INFO: Finished writing canopy coefficient values.'
 endif
 
