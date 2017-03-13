@@ -44,10 +44,18 @@ type(mesh_t) :: rm ! resultShape mesh
 type(meshNetCDF_t) :: rn ! resultShape mesh netcdf IDs
 type(fileMetaData_t) :: rd   ! resultShape data file
 !
-real(8), allocatable :: adcirc_data(:,:)
-integer, allocatable :: adcirc_idata(:,:)
+type(netCDFMetaDataFromExternalFile_t) :: a ! attribute data file
+!
+type(realVector1D_t) :: timesec
+type(integerVector1D_t) :: it
+!
+integer :: attI  ! integer metadata attribute value
+real(8) :: attR   ! real number metadata attribute value
+character(len=NF90_MAX_NAME) :: attC ! character string metadata attribute value
 integer :: snapi
 real(8) :: snapr
+integer :: nc_count(2)
+integer :: nc_start(2)
 character(120) :: dataRank
 character(1000) :: Line
 character(1000) :: polygonFile ! name of file with polygon vertices
@@ -60,17 +68,12 @@ integer :: lastSlashPositionMesh ! used for trimming full path from a mesh filen
 character(2048) :: meshFileBase ! mesh file name sans full path, if any
 integer :: lastDotPosition   ! to determine file extension
 character(80) :: dataFileCommentLine
-integer :: i, j, k, e, n, SS
+integer :: i, j, k, c, e, n, SS
 logical :: meshonly    ! .true. if we are just subsetting the mesh
 logical, allocatable :: within(:) ! (np) .true. if a node is within the resultshape
 logical, allocatable :: elementWithin(:) ! (ne) .true. if an element is within the resultshape
 integer inOnOut ! 1 if a node is within the polygon, 0 if it is on the polygon, and -1 if it is outside
-integer, allocatable :: sub2fullNodes(:) ! (nps) subdomain -> fulldomain index number mapping of each resultshape node
-integer, allocatable :: full2subNodes(:) ! (np) fulldomain -> subdomain index mapping of the resultshape nodes 
-integer, allocatable :: sub2fullElements(:) ! (nes) subdomain -> fulldomain index number mapping of element in resultshape
-integer, allocatable :: full2subElements(:) ! (ne) fulldomain -> subdomain index mapping
-integer :: nps ! number of nodes in the resultshape
-integer :: nes ! number of elements in the resultshape 
+!
 real(8), allocatable :: polygonx(:) ! x coordinates of polygon vertices
 real(8), allocatable :: polygony(:) ! y coordinates of polygon vertices
 integer :: numVertices ! number of vertices in the polygon file
@@ -82,16 +85,25 @@ real(8) :: upperRightLongitude
 real(8) :: lowerLeftLatitude
 real(8) :: lowerLeftLongitude
 real(8) :: temp1, temp2
+logical :: deflate
 character(1) :: junkc
 integer :: lineNum, vertex
 integer :: pvUnit 
 integer :: errorIO
+integer :: h ! horizontal node counter
+!
+deflate = .true.
+#ifndef NETCDF_CAN_DEFLATE
+deflate =.false.
+#endif
 !
 fm%meshFileName = "null"
 rm%meshFileName = "null"
 meshonly = .false.
 dataFileBase = "null"
 !
+call initLogging(availableUnitNumber(),'resultScope.f90')
+
 !
 argcount = command_argument_count() ! count up command line options
 if (argcount.gt.0) then
@@ -114,8 +126,8 @@ if (argcount.gt.0) then
          i = i + 1
          call getarg(i, cmdlinearg)
          write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
-         fd%dataFileType = trim(cmdlinearg)
-      case('--submeshfilename')
+         fd%defaultFileName = trim(cmdlinearg)
+      case('--resultmeshfilename')
          i = i + 1
          call getarg(i, cmdlinearg)
          write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
@@ -123,27 +135,35 @@ if (argcount.gt.0) then
       case('--meshonly')
          write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),'.'
          meshonly = .true.
+      case('--attfile')
+         i = i + 1
+         call getarg(i, cmdlinearg)
+         write(6,'(a,a,a,a,a)') "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
+         a%nmattFileName = trim(cmdlinearg)
       case('--datafileformat')
          i = i + 1
          call getarg(i, cmdlinearg)
          write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
-         select case(trim(downcase(cmdlinearg)))
+         call downcase(cmdlinearg)
+         select case(trim(adjustl(cmdlinearg)))
          case("netcdf")
-            fd%fileFormat = NETCDFG
+            fd%dataFileFormat = NETCDFG
          case("adcirc","ascii","text")
-            fd%fileFormat = ASCII         
+            fd%dataFileFormat = ASCII 
          case default
-            call allMessage(WARNING,'Command line option "'//trim(cmdlineopt)//'" was not recognized.')
+            call allMessage(ERROR,'Command line argument "'//trim(adjustl(cmdlinearg))//'" was not recognized.')
+            stop
          end select
-      case('--subresultfileformat')
+      case('--resultfileformat')
          i = i + 1
          call getarg(i, cmdlinearg)
          write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
-         select case(trim(downcase(cmdlinearg)))
+         call downcase(cmdlinearg)
+         select case(trim(cmdlinearg))
          case("netcdf")
-            rd%fileFormat = NETCDFG
+            rd%dataFileFormat = NETCDFG
          case("adcirc","ascii","text")
-            rd%fileFormat = ASCII         
+            rd%dataFileFormat = ASCII         
          case default
             call allMessage(WARNING,'Command line option "'//trim(cmdlineopt)//'" was not recognized.')
          end select
@@ -211,15 +231,17 @@ meshFileBase = trim(fm%meshFileName(lastSlashPositionMesh+1:))
 !
 ! If the data file type was not supplied, and the file is ascii, 
 ! then use the file name as the file type.
-if ( (fd%fileFormat.eq.ASCII).and.(trim(fd%dataFileType).eq.'null') ) then
-   fd%dataFileType = trim(fd%dataFileName)
+if ( (fd%dataFileFormat.eq.ASCII).and.(fd%defaultFileName.eq.'null') ) then
+   fd%defaultFileName = trim(fd%dataFileName)
 endif
 !
 ! open and read mesh in appropriate format
-select case(fd%fileFormat)
-case(ASCII)
+select case(fd%dataFileFormat)
+case(ASCIIG)
    call read14(fm)
+   call determineASCIIFileCharacteristics(fd)
 case(NETCDFG)
+   fm%meshFileName = fd%dataFileName
    call findMeshDimsNetCDF(fm, fn)
    call readMeshNetCDF(fm, fn)
    call determineNetCDFFileCharacteristics(fd, fm, fn)
@@ -231,27 +253,6 @@ allocate(within(fm%np))
 allocate(elementWithin(fm%ne))
 elementWithin(:) = .false.
 within(:) = .false.
-!
-! Characteristics of output data
-!
-! Determine if the dataFile is time varying or not. 
-!write(6,*) 'DEBUG: dataFile: ',trim(dataFile)
-select case(trim(fd%dataFileType))
-case('maxele.63','maxvel.63','maxwvel.63','maxrs.63','minpr.63','swan_HS_max.63','swan_TPS_max.63')
-   fd%timeVarying = .false.
-case default
-   fd%timeVarying = .true.
-end select
-!
-! Determine datatype
-select case(trim(fd%dataFileType))
-case('nodecode.63','noff.100')
-   fd%netCDFDataType = NF90_INT
-   fd%isInteger = .true.
-case default
-   fd%netCDFDataType = NF90_DOUBLE
-   fd%isInteger = .false.
-end select
 !
 ! Select nodes inside the resultShape
 select case(trim(resultShape))
@@ -361,147 +362,294 @@ do n=1,fm%np
    end if
 enddo
 !
-! Output sub-mesh
-if (trim(rm%meshFileName).eq."null") then
-   rm%meshFileName = trim(meshFileBase) // '_' // trim(resultShape) // '-sub.14'
+! Output sub-mesh as fort.14 if the output format is ascii
+if (rd%dataFileFormat.eq.ASCII) then
+   if (trim(rm%meshFileName).eq."null") then
+      rm%meshFileName = trim(meshFileBase) // '_' // trim(resultShape) // '-sub.14'
+   endif
+   call writeMesh(rm)
 endif
-call writeMesh(rm)
 !
 if (meshonly.eqv..true.) then
    write(6,'("INFO: The --meshonly command line option was specified; the subdomain mesh has been written and execution is complete.")')
    stop
 endif
 !
-! set data centeredness for ascii fulldomain data files
-if (fd%fileFormat.eq.ASCII) then
-   allocate(fd%dataCenter(1)) 
-   select case(trim(fd%dataFileType))
-   case('noff.100')
-      fd%dataCenter(1) = 'Cell'
-      rd%numValuesPerDataset = rm%ne
+! set up subdomain result file
+select case(rd%dataFileFormat) 
+!
+! result file (subdomain) in ascii format
+case(ASCII)
+   ! open the subdomain ascii adcirc file that will hold the data and
+   ! write the header
+   rd%dataFileName = 'sub-' // trim(resultShape) // '_' // trim(fd%dataFileName) 
+   rd%fun = availableUnitNumber()
+   open(rd%fun,file=trim(rd%dataFileName),status='replace',action='write')
+   ! write header info
+   write(rd%fun,'(a)') trim(rm%agrid) // trim(rd%dataFileName) // ' ' // trim(dataFileCommentLine)
+   ! write the header data to the resultshape file
+   write(rd%fun,1010) fd%nSnaps, rd%numValuesPerDataSet, fd%time_increment, fd%nspool, fd%irtype
+!
+! result file in netcdf format
+case(NETCDFG)
+   ! create netcdf file
+   rd%dataFileName = 'sub-' // trim(resultShape) // '_' // trim(fd%dataFileName) 
+   write(6,'(a,a,a)') "INFO: Creating NetCDF file '"//trim(rd%dataFileName)//"'."
+   rd%ncFileType = NF90_CLOBBER ! netcdf3 format, netcdf classic model  
+#ifdef HAVE_NETCDF4
+   rd%ncFileType = ior(NF90_HDF5,NF90_CLASSIC_MODEL) ! netcdf4 (i.e., hdf5) format, netcdf classic model
+#endif
+   call check(nf90_create(trim(rd%dataFileName), rd%ncFileType, rd%nc_id))
+   !
+   ! add time variable and associated metadata
+   if (fd%timeVarying.eqv..true.) then      
+      rd%timeVarying = .true. 
+      call check(nf90_def_dim(rd%nc_id,'time',nf90_unlimited,rd%nc_dimid_time))
+      call check(nf90_def_var(rd%nc_id,'time',nf90_double,rd%nc_dimid_time,rd%nc_varid_time))
+      call check(nf90_put_att(rd%nc_id,rd%nc_varid_time,'long_name','model time'))
+      call check(nf90_put_att(rd%nc_id,rd%nc_varid_time,'standard_name','time'))
+      ! time units added from external file or from fulldomain netcdf file below
+   endif
+   !
+   ! add metadata to result (subdomain) file
+   select case(fd%dataFileFormat)
+   ! ascii full domain file
+   case(ASCII)
+      ! metadata from external file
+      do i = 1,a%nmatt
+         call check(nf90_put_att(rd%nc_id,nf90_global,a%matt(1,i),a%matt(2,i)))
+      enddo
+      call check(nf90_put_att(rd%nc_id,rd%nc_varid_time,'units',a%datenum))      
+   ! netcdf full domain file
+   case(NETCDFG)  
+      ! read netcdf global metadata from fulldomain file and write to 
+      ! result file
+      call check(nf90_open(trim(fd%dataFileName), NF90_NOWRITE, fd%nc_id))
+      do i=1, fd%natt
+         select case(fd%nc_attType(i))
+         case(NF90_DOUBLE)
+            call check(nf90_get_att(fd%nc_id,nf90_global,fd%nc_attName(i),attR))
+            ! put key/value pair into subdomain file
+            call check(nf90_put_att(rd%nc_id,nf90_global,fd%nc_attName(i),attR))
+         case(NF90_INT)
+            call check(nf90_get_att(fd%nc_id,nf90_global,fd%nc_attName(i),attI))
+            ! put key/value pair into subdomain file
+            call check(nf90_put_att(rd%nc_id,nf90_global,fd%nc_attName(i),attI))
+         case(NF90_CHAR)
+            call check(nf90_get_att(fd%nc_id,nf90_global,fd%nc_attName(i),attC))
+            ! put key/value pair into subdomain file
+            call check(nf90_put_att(rd%nc_id,nf90_global,fd%nc_attName(i),attC))
+         case default
+            call allMessage(ERROR,'Cannot store metadata attribute "'//trim(fd%nc_attName(i))//'" because its datatype is unsupported.')
+         end select
+      end do
+      ! add time metadata from full domain file 
+      call check(nf90_put_att(rd%nc_id,rd%nc_varid_time,'units',fd%datenum))          
+      ! add mesh definitions     
+      call writeMeshDefinitionsToNetCDF(rm, rn, rd%nc_id, deflate)
+      ! define variables and variable-associated metadata
+      rd%dataFileCategory = fd%dataFileCategory
+      call addDataAttributesNetCDF(rd, rm, rn)
+      ! deflate arrays if applicable
+#ifdef NETCDF_CAN_DEFLATE
+      if (rd%dataFileFormat.eq.NETCDF4) then
+         do j=1,rd%irtype
+            call check(nf90_def_var_deflate(rd%nc_id, rd%ncds(j)%nc_varID, 1, 1, 2))
+         enddo
+      endif
+#endif
    case default
-      fd%dataCenter(1) = 'Node'
-      rd%numValuesPerDataset = rm%np
+      ! should be unreachable
+      call allMessage(ERROR,'Only NETCDF and ASCII full domain file formats are supported.')
    end select
-endif
-if (rd%fileFormat.eq.ASCII) then
-   allocate(rd%dataCenter(1))
-endif
-rd%numValuesPerDataset = rm%np
-if (trim(rd%dataCenter(1)).eq.'Cell') then
-   rd%numValuesPerDataset = rm%ne
-endif
-fd%fun = availableUnitNumber()
-call openFileForRead(fd%fun, trim(fd%dataFileName),errorIO)
-read(fd%fun,'(A)',end=246,err=248,iostat=errorio) dataFileCommentLine
-lineNum = lineNum + 1
-!
-! jgf: Can't rely on the NumSnaps value; in general, it will not
-! actually reflect the number of datasets in the file.
-!
-! Examine the fulldomain output file to determine its properties
-! FIXME: provide support for netcdf formatted full domain files
-read(fd%fun,*,end=246,err=248,iostat=errorio) fd%nSnaps, fd%numValuesPerDataset, fd%time_increment, fd%nspool, fd%num_components
-lineNum=lineNum+1
-if ( (fm%np.ne.fd%numValuesPerDataset).and.(trim(fd%dataCenter(1)).eq.'Node') ) then
-   write(6,'(a,i0,a,i0,a)') 'ERROR: The output file contains ',fd%numValuesPerDataset,        &
-     ' nodes, but the mesh file contains ',fm%np,' nodes.'
-    write(6,'(a)') 'ERROR: The output file does not correspond to the mesh file.'
-   close(fd%fun)
-   stop
-endif
-if ( (fm%ne.ne.fd%numValuesPerDataset).and.(trim(fd%dataCenter(1)).eq.'Cell') ) then
-   write(6,'(a,i0,a,i0,a)') 'ERROR: The output file contains ',fd%numValuesPerDataset,        &
-     ' elements, but the mesh file contains ',fm%ne,' elements.'
-   write(6,'(a)') 'ERROR: The output file does not correspond to the mesh file.'
-   close(fd%fun)
-   stop
-endif
-!
-! Allocate arrays to hold the data from the fulldomain file
-select case(fd%netCDFDataType)
-case(NF90_DOUBLE)
-   allocate(adcirc_data(fd%numValuesPerDataSet,fd%num_components))
-case(NF90_INT)
-   allocate(adcirc_idata(fd%numValuesPerDataSet,fd%num_components))      
+   !
+   call check(nf90_enddef(rd%nc_id))
 case default
-   write(6,'(a)') 'ERROR: Unsupported data type.'
+   ! should not be reachable 
+   call allMessage(ERROR,'Cannot create result file.')
 end select
 !
-! Set the number of components
-select case(fd%num_components)
-case(1)
-   fd%dataRank = 'Scalar'
-case(2)           
-   fd%dataRank = '2DVector'
-case default 
-   write(6,'("ERROR: resultScope.f90: ADCIRC output files with ",i0," columns are not supported.")') fd%num_components
-   stop
-end select
+! ALLOCATE ARRAYS FOR TRANSFERRING DATA
 !
-! open the subdomain ascii adcirc file that will hold the data
-rd%dataFileName = 'sub-' // trim(resultShape) // '_' // trim(fd%dataFileName) 
-rd%fun = availableUnitNumber()
-open(rd%fun,file=trim(rd%dataFileName),status='replace',action='write')
-! write header info
-write(rd%fun,'(a)') trim(rm%agrid) // trim(rd%dataFileName) // ' ' // trim(dataFileCommentLine)
-! write the header data to the resultshape file
-write(rd%fun,1010) fd%nSnaps, rd%numValuesPerDataSet, fd%time_increment, fd%nspool, fd%num_components
+! Allocate arrays to hold the data from the full domain file and the
+! result shape data file
+call allocateDataSetMemory(fd, fm)
+call allocateDataSetMemory(rd, rm)
+call initR1D(timesec)
+call initI1D(it) 
+!
+! set pointers to relevant mappings
+select case(rd%dataFileFormat)  
+case(NETCDFG) 
+   do i=1,rd%numVarNetCDF
+      ! establish mapping from subdomain to fulldomain
+      if (rd%ncds(i)%isElemental.eqv..true.) then
+         rd%ncds(i)%mapping => sub2fullElements
+      else
+         rd%ncds(i)%mapping => sub2fullNodes
+      endif
+   end do 
+case(ASCIIG) 
+   ! establish mapping from subdomain to fulldomain
+   if (rd%isElemental.eqv..true.) then
+      rd%mapping => sub2fullElements
+   else
+      rd%mapping => sub2fullNodes
+   endif
+case default
+   ! should be unreacable
+   call allMessage(ERROR,'Only NETCDF and ASCII full domain file formats are supported.')
+end select  
+!
 !
 !  R E A D   I N   F U L L D O M A I N   D A T A   
 !      A N D   W R I T E   O U T   R E S U L T  S H A P E   D A T A
 !           
 SS=1 ! jgf: initialize the dataset counter
 lineNum = 1 ! initialize the line number counter
-DO   ! jgf: loop until we run out of data 
-   read(fd%fun,*,end=244,err=248,iostat=errorio) SnapR, SnapI
-   j=0
-   do n=1,fd%numValuesPerDataSet
-      select case(trim(fd%dataRank))
-      case("Scalar")                    ! scalar data
-         if (fd%netCDFDataType.eq.NF90_DOUBLE) then
-            read(fd%fun,*,end=246,err=248,iostat=errorio) j,Temp1
-            lineNum = lineNum + 1
-            adcirc_data(j,1) = Temp1
-         else
-            read(fd%fun,*,end=246,err=248,iostat=errorio) j,adcirc_idata(n,fd%num_components)
-            lineNum = lineNum + 1
-         endif
-      case("2DVector")                  ! 2D vector data
-         read(fd%fun,*,end=246,err=248,iostat=errorio) j,Temp1,Temp2
-         lineNum = lineNum + 1
-         adcirc_data(j,1) = Temp1
-         adcirc_data(j,2) = Temp2
-      case default
-         write(6,'(a,a,a)') 'ERROR: resultScope.f90: ',trim(fd%dataRank),' data rank is not supported.'
-         stop
-      end select
-   enddo 
+call allMessage(INFO,'Begin reading full domain data and writing result data.')
+DO   ! jgf: loop until we run out of data (can't trust the nSnaps at top of ascii file)
    !
-   ! nonsparse ascii output to resultshape output file
-   write(rd%fun,2120) SnapR, SnapI
-   do k=1,rd%numValuesPerDataSet
-      if ( (trim(rd%dataCenter(1)).eq.'Node').and.(within(k).eqv..true.) ) then
+   !  R E A D   I N   O N E   D A T A S E T
+   !  
+
+!subroutine readOneDataSet(f, m, s, l, snapr, snapi)
+
+   call readOneDataset(fd, fm, ss, lineNum, snapr, snapi)
+   call appendR1D(timesec, snapr)
+   call appendI1D(it, snapi)
+   call allMessage(INFO,"read one data file") !jgfdebug
+   !
+   !  P O P U L A T E   R E S U L T   A R R A Y ( S ) 
+   !        F O R   T H I S   S I N G L E   D A T A S E T
+   ! 
+   ! ASCII FULLDOMAIN FILE and ASCII SUBDOMAIN FILE
+   if ( (fd%dataFileFormat.eq.ASCIIG).and.(rd%dataFileFormat.eq.ASCIIG) ) then
+      ! map 3D real data  ascii->ascii
+      if ( (fm%is3D.eqv..true.).and.(fd%is3D.eqv..true.) ) then
+         do h=1,rd%numValuesPerDataSet
+            rd%rdata3D(:,h,:) = fd%rdata3D(:,rd%mapping(h),:)
+         end do
+      else
+         ! map 2DDI integer data   ascii->ascii
          if (fd%isInteger.eqv..true.) then
-            write(11,2452) full2subNodes(k), (adcirc_idata(k,j),j=1,fd%num_components)
+            do h=1,rd%numValuesPerDataSet
+               rd%idata(:,h) = fd%idata(:,rd%mapping(h))
+            end do            
          else
-            write(11,2453) full2subNodes(k), (adcirc_data(k,j),j=1,fd%num_components)
+         ! map 2DDI real data   ascii->ascii
+            do h=1,rd%numValuesPerDataSet
+               rd%rdata(:,h) = fd%rdata(:,rd%mapping(h))
+            end do
          endif
-      end if
-      if ( (trim(rd%dataCenter(1)).eq.'Cell').and.(elementWithin(k).eqv..true.) ) then
-         if (rd%isInteger.eqv..true.) then
-            write(11,2452) full2subElements(k), (adcirc_idata(k,j),j=1,fd%num_components)
+      endif   
+   endif
+   ! NETCDF FULLDOMAIN FILE and NETCDF SUBDOMAIN FILE
+   if ( (fd%dataFileFormat.eq.NETCDFG).and.(rd%dataFileFormat.eq.NETCDFG) ) then
+      do i=1,fd%numVarNetCDF
+         ! map 3D real data  netcdf->netcdf      
+         if ( (fm%is3D.eqv..true.).and.(fd%ncds(i)%is3D.eqv..true.) ) then
+            do h=1,rd%ncds(i)%numValuesPerDataSet
+               rd%ncds(i)%rdata3D(h,:) = fd%ncds(i)%rdata3D(rd%ncds(i)%mapping(h),:)
+            end do
          else
-            write(11,2453) full2subElements(k), (adcirc_data(k,j),j=1,fd%num_components)
+            ! map 2DDI integer data   netcdf->netcdf
+            if (fd%ncds(i)%isInteger.eqv..true.) then
+               do h=1,rd%ncds(i)%numValuesPerDataSet
+                  rd%ncds(i)%idata(h) = fd%ncds(i)%idata(rd%ncds(i)%mapping(h))
+               end do            
+            else
+            ! map 2DDI real data   netcdf->netcdf
+               do h=1,rd%ncds(i)%numValuesPerDataSet
+                  rd%ncds(i)%rdata(h) = fd%ncds(i)%rdata(rd%ncds(i)%mapping(h))
+               end do
+            endif
+         endif   
+      end do
+      rd%timesec(ss) = fd%timesec(ss)
+   endif
+   ! ASCII FULLDOMAIN FILE and NETCDF SUBDOMAIN FILE
+   if ( (fd%dataFileFormat.eq.ASCIIG).and.(rd%dataFileFormat.eq.NETCDFG) ) then
+      ! map 3D real data  ascii->netcdf
+      if ( (fm%is3D.eqv..true.).and.(fd%is3D.eqv..true.) ) then
+         do i=1,fd%irtype
+            do h=1,rd%ncds(i)%numValuesPerDataSet
+               rd%rdata3D(i,h,:) = fd%ncds(i)%rdata3D(rd%mapping(h),:)
+            end do 
+         end do
+      else
+         ! map 2DDI integer data   ascii->netcdf
+         if (fd%isInteger.eqv..true.) then
+            do i=1,fd%irtype
+               do h=1,rd%ncds(i)%numValuesPerDataSet
+                  rd%idata(i,h) = fd%ncds(i)%idata(rd%ncds(i)%mapping(h))
+               end do
+            end do            
+         else
+         ! map 2DDI real data   ascii->netcdf
+            do i=1,fd%irtype
+               do h=1,rd%ncds(i)%numValuesPerDataSet
+                  rd%ncds(i)%rdata(h) = fd%rdata(i,rd%ncds(i)%mapping(h))
+               end do
+            end do
          endif
-      end if
-   end do
-   write(6,advance='no',fmt='(i4)') SS
+      endif   
+   endif
+   ! NETCDF FULLDOMAIN FILE and ASCII SUBDOMAIN FILE
+   if ( (fd%dataFileFormat.eq.NETCDFG).and.(rd%dataFileFormat.eq.ASCIIG) ) then
+      snapr = fd%timesec(ss)
+      snapi = fd%it(ss)
+      do i=1,fd%numVarNetCDF
+         ! map 3D real data  netcdf->ascii
+         if ( (fm%is3D.eqv..true.).and.(fd%ncds(i)%is3D.eqv..true.) ) then
+            do h=1,rd%numValuesPerDataSet
+               rd%rdata3D(i,h,:) = fd%ncds(i)%rdata3D(rd%mapping(h),:)
+            end do
+         else
+            ! map 2DDI integer data   netcdf->ascii
+            if (fd%ncds(i)%isInteger.eqv..true.) then
+               do h=1,rd%numValuesPerDataSet
+                  rd%idata(i,h) = fd%ncds(i)%idata(rd%mapping(h))
+               end do            
+            else
+            ! map 2DDI real data   netcdf->ascii
+               do h=1,rd%numValuesPerDataSet
+                  rd%rdata(i,h) = fd%ncds(i)%rdata(rd%mapping(h))
+               end do
+            endif
+         endif   
+      end do
+   endif
+   !
+   !   W R I T E   O U T   O N E   R E S U L T   D A T A S E T
+   !  
+   !call readOneDataset(fd, fm, ss, lineNum, snapr, snapi)   
+   call writeOneDataSet(rd, rm, ss, lineNum, snapr, snapi)
+   !
+   write(6,advance='no',fmt='(i6)') SS
    SS = SS + 1
 end do
-244 close(rd%fun)
-close(fd%fun)
+244 continue
+!
+!   F I N I S H E D   - -   C L O S E   F I L E S  
+!  
+call closeFile(rd)
+call closeFile(fd)
 
+
+!
+! close full domain file
+select case(fd%dataFileFormat)
+case(ASCII)
+   close(fd%fun)
+case(NETCDFG)
+   call check(nf90_close(fd%nc_id))
+case default
+   ! should be unreachable
+   call allMessage(ERROR,'Only ASCII or NETCDF result file formats are supported.')   
+   stop
+end select
+!
 write(6,'(a)') 'INFO: resultScope.f90: Finished writing file.'
 write(6,'(a,i0,a)') 'INFO: resultScope.f90: Wrote ',SS-1,' data sets.'
 stop
