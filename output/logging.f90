@@ -237,14 +237,23 @@ integer, parameter :: NETCDF4 = 5
 integer, parameter :: XDMF = 7
 integer, parameter :: NETCDFG = 35  ! either NETCDF3 or NETCDF4
 integer, parameter :: ASCIIG = 14   ! either ASCII or SPARSE_ASCII
+!
+! file category integers
+integer, parameter :: UNKNOWN = -1
+integer, parameter :: MESH = 0     ! fort.14
+integer, parameter :: STATION = 1  ! fort.61, fort.72, etc
+integer, parameter :: DOMAIN = 2   ! fort.63, fort.64, fort.73, fort.74, etc
+integer, parameter :: HOTSTART = 3 ! fort.67, fort.68 (2D)
+integer, parameter :: NODALATTRIBF = 4 ! fort.13
+integer, parameter :: INITRIVER = 5 ! fort.88
+integer, parameter :: MINMAX = 6    ! maxele.63, maxwvel.63, etc
+integer, parameter :: OWI = 7       ! fort.221, fort.222, fort.223, fort.224
 integer, parameter :: MAUREPT = 108 ! output from maureparticle
-
 !-----------
 !-----------
 contains
 !-----------
 !-----------
-
 !-----------------------------------------------------------------------
 !     S U B R O U T I N E   O P E N  F I L E  F O R  R E A D
 !-----------------------------------------------------------------------
@@ -289,11 +298,11 @@ return
 !-----------------------------------------------------------------------
 
 !----------------------------------------------------------------------
-!              F U N C T I O N    D O W N C A S E  
+!           S U B R O U T I N E    D O W N C A S E  
 !----------------------------------------------------------------------
 ! jgf: return a downcased version of the input string 
 !----------------------------------------------------------------------
-character function downcase(string)
+subroutine downcase(string)
 implicit none
 character(*), intent(inout) :: string ! character array to downcase
 integer :: asciiCode ! decimal ascii code for a particular character
@@ -311,7 +320,7 @@ do i=1,len_trim(string)
    endif
 end do
 !----------------------------------------------------------------------
-end function downcase
+end subroutine downcase
 !----------------------------------------------------------------------
 
 

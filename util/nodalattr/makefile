@@ -29,6 +29,12 @@ ifeq ($(compiler),gfortran)
    ifeq ($(DEBUG),full)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal #-Wall
    endif
+   ifeq ($(DEBUG),trace)
+      FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace 
+   endif
+   ifeq ($(MACHINENAME),jason-desktop)
+      FFLAGS := $(FFLAGS) -DOLDGFORTRAN 
+   endif
 endif
 #
 # specify compiler=intel on the make command line
