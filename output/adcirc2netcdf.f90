@@ -260,23 +260,14 @@ call openFileForRead(fa%fun, trim(fa%dataFileName), errorIO)
 ! FIXME: ! pop off the 2 header liness *************
 !
 ! Allocate space to hold the data
-select case(fn%ncds(1)%nc_varType)
-case(NF90_DOUBLE)
-   if (fa%isGridded.eqv..true.) then
+if (fa%isGridded.eqv..true.) then
+   ! y before x according to netcdf specification in fortran api
+   allocate(owi1(1:fa%iLatOWI,1:fa%iLonOWI))
+   if (fa%irtype.eq.2) then
       ! y before x according to netcdf specification in fortran api
-      allocate(owi1(1:fa%iLatOWI,1:fa%iLonOWI))
-      if (fa%irtype.eq.2) then
-         ! y before x according to netcdf specification in fortran api
-         allocate(owi2(1:fa%iLatOWI,1:fa%iLonOWI))
-      endif
-   else
-      allocate(adcirc_data(1:2,fa%numvaluesperdataset))
+      allocate(owi2(1:fa%iLatOWI,1:fa%iLonOWI))
    endif
-case(NF90_INT)
-   allocate(adcirc_idata(1:fa%numValuesPerDataset))      
-case default
-   write(6,'(a,i0)') 'ERROR: Unsupported data type: ',fn%ncds(1)%nc_varType
-end select
+endif
 !
 ! Read ascii data and write to netcdf file
 SS=1        ! initialize the dataset counter
@@ -313,80 +304,14 @@ if (fa%isGridded.eqv..true.) then
 endif
 !
 ! meshed data
+ss=1 ! dataset counter
+lineNum=1  ! ascii data file line counter
 DO   ! jgf: loop until we run out of mesh data
-
-
-
-   if (fa%dataFileCategory.ne.INITRIVER) then
-      ! see if the file is sparse, and if so, the number of nondefault values
-      read(fa%fun,'(a)',end=123,err=123) line
-      lineNum = lineNum + 1
-      read(Line,*,end=246,err=248,iostat=errorio) SnapR, SnapI
-      read(line,*,err=907,end=907) snapr, snapi, numNodesNonDefault, fa%defaultValue
-      fa%isSparse = .true.
-      goto 908  ! jgf: this file is sparse ascii
-   endif
-907     numNodesNonDefault = fa%numValuesPerDataset
-   fa%defaultValue = -99999.0d0
-908 if (fn%ncds(1)%nc_varType.eq.NF90_DOUBLE) then
-         adcirc_data(:,:) = fa%defaultValue
-   endif
-   j=0
-   select case(fa%irtype)
-   case(1)                    ! scalar data
-      if (fn%ncds(1)%nc_varType.eq.NF90_DOUBLE) then
-         if (fa%dataFileCategory.eq.INITRIVER) then
-            do node=1,numNodesNonDefault
-               read(fa%fun,*,end=246,err=248,iostat=errorio) Temp1
-               lineNum = lineNum + 1
-               j = j + 1
-               adcirc_data(1,j) = Temp1               
-            end do
-         else                  
-            do node=1,numNodesNonDefault
-               read(fa%fun,*,end=246,err=248,iostat=errorio) j,Temp1
-               lineNum = lineNum + 1
-               adcirc_data(1,j) = Temp1
-            end do
-         endif
-      else
-         do node=1,numNodesNonDefault
-            read(fa%fun,*,end=246,err=248,iostat=errorio) j,adcirc_idata(node)
-            lineNum = lineNum + 1
-            adcirc_idata(j) = Temp1
-         end do
-      endif
-   case(2)                  ! 2D vector data
-      do node=1,numNodesNonDefault   
-         read(fa%fun,*,end=246,err=248,iostat=errorio) j,Temp1,Temp2
-         lineNum = lineNum + 1
-         adcirc_data(1,j) = temp1
-         adcirc_data(2,j) = temp2
-      end do
-   case default
-      write(scratchMessage,'(a,i0,a)') 'Rank ',fa%irtype,' data is are supported.'
-      call allMessage(ERROR,scratchMessage)
-      stop
-   end select
-
-   call check(nf90_put_var(fn%nc_id,fn%nc_varid_time,(/snapr/),(/ss/),(/1/)))
-   NC_Count = (/ fa%numValuesPerDataset, 1 /)
-   NC_Start = (/ 1, SS /) 
+   call readOneDataSet(fa, m, ss, lineNum, snapr, snapi)
+   call writeOneDataSet(fn, m, ss, lineNum, snapr, snapi)
    !
-   ncStartMinMax = (/ 1 /)
-   ncCountMinMax = (/ SS /)
-   ! write the dataset to the netcdf file
-   if (fn%ncds(1)%isInteger.eqv..true.) then
-      call check(nf90_put_var(fn%nc_id,fn%ncds(1)%nc_varID,adcirc_idata,nc_start,nc_count))
-   else
-      do c=1,fa%irtype
-         write(6,*) 'c=',c
-         call check(nf90_put_var(fn%nc_id,fn%ncds(c)%nc_varID,adcirc_data(c,:),nc_start,nc_count))
-      end do
-   endif
    write(6,advance='no',fmt='(i6)') ss
    SS = SS + 1 ! jgf: Increment the dataset counter
-   !
    if (fa%dataFileCategory.eq.INITRIVER) then
       exit
    endif

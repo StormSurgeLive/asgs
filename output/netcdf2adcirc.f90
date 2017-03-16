@@ -36,14 +36,8 @@ integer :: ncstatus
 type(mesh_t) :: m ! mesh to operate on
 type(meshNetCDF_t) :: n ! mesh netcdf IDs
 type(fileMetaData_t) :: fn ! netcdf file to be converted
-type(fileMetaData_t) :: fa ! ascii file to be created
 integer :: snapi ! time step 
 real(8) :: snapr ! time (s)
-integer :: nc_start(2)
-integer :: nc_count(2)
-integer :: nc_start3D(3)
-integer :: nc_count3D(3)
-integer :: numNodesNonDefault ! number of nodes in a sparse ascii dataset .ne. defaultVal
 integer :: lineNum
 integer :: i
 
@@ -51,7 +45,10 @@ meshonly = .false.
 
 call initLogging(availableUnitNumber(),'netcdf2adcirc.f90')
 call allmessage(INFO,'Compiled with netcdf library version '//trim(nf90_inq_libvers())//'.')
-
+!
+! initializations
+m%is3D = .false.
+!
 argcount = command_argument_count() ! count up command line options
 if (argcount.gt.0) then
    i=0
@@ -63,7 +60,7 @@ if (argcount.gt.0) then
             meshonly = .true.
             write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
          case("--sparse")
-            fa%isSparse = .true.
+            fn%isSparse = .true.
             write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
          case("--datafile")
             i = i + 1
@@ -86,20 +83,20 @@ if (fn%dataFileCategory.eq.OWI) then
 endif
 !
 ! allocate memory to hold single dataset from each netcdf variable
+fn%dataFileFormat = NETCDFG
 call allocateDataSetMemory(fn, m)
 !
 ! open the ascii adcirc file that will hold the data and write header
-fa%dataFileName = fn%defaultFileName
-fa%fun = availableUnitNumber()
-open(fa%fun,file=trim(fa%dataFileName),status='replace',action='write')
+fn%fun = availableUnitNumber()
+open(fn%fun,file=trim(fn%defaultFileName),status='replace',action='write')
 ! write header info
-write(fa%fun,'(a)') trim(m%agrid)//' '//trim(rundes)//' '//trim(runid)
+write(fn%fun,'(a)') trim(m%agrid)//' '//trim(rundes)//' '//trim(runid)
 if (m%is3D.eqv..true.) then
    ! 3D header
-   write(fa%fun,1011) fn%nSnaps, fn%numValuesPerDataSet, fn%time_increment, fn%nspool, m%nfen, fn%irtype
+   write(fn%fun,1011) fn%nSnaps, fn%numValuesPerDataSet, fn%time_increment, fn%nspool, m%nfen, fn%irtype
 else
    ! 2D header
-   write(fa%fun,1010) fn%nSnaps, fn%numValuesPerDataset, fn%time_increment, fn%nspool, fn%irtype
+   write(fn%fun,1010) fn%nSnaps, fn%numValuesPerDataset, fn%time_increment, fn%nspool, fn%irtype
 endif
 !
 ! open the netcdf file
@@ -111,11 +108,16 @@ do i=1,fn%nSnaps
    !
    ! READ ONE COMPLETE DATASET FROM NETCDF
    ! 
+   write(6,*) 'about to call read dataset' ! jgfdebug
+   fn%dataFileFormat = NETCDFG
    call readOneDataset(fn, m, i, lineNum, snapr, snapi)   
    !
+   write(6,*) 'snapr=',snapr,' snapi=',snapi
    ! WRITE ONE COMPLETE DATASET TO ASCII
    ! 
-   call writeOneDataset(fa, m, i, lineNum, snapr, snapi)
+   write(6,*) 'about to call write dataset' ! jgfdebug
+   fn%dataFileFormat = ASCIIG
+   call writeOneDataset(fn, m, i, lineNum, snapr, snapi)
    
    write(6,advance='no',fmt='(i4)') i
 end do
@@ -123,12 +125,12 @@ write(6,*)
 call allMessage(INFO,'Finished writing file.')
 write(scratchMessage,'(a,i0,a)') 'Wrote ',i-1,' data sets.'
 call allMessage(INFO,scratchMessage)
-close(fa%fun)
+close(fn%fun)
 call check(nf90_close(fn%nc_id))
 !
  1010 FORMAT(1X,I10,1X,I10,1X,E15.7E3,1X,I8,1X,I5,1X,'FileFmtVersion: ',I10)
  1011 FORMAT(1X,I10,1X,I10,1X,E15.7E3,1X,I8,1X,I5,1X,I2,1X,'FileFmtVersion: ',I10)
 !---------------------------------------------------------------------
-      end program netcdf2adcirc
+end program netcdf2adcirc
 !---------------------------------------------------------------------
 
