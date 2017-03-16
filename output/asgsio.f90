@@ -266,6 +266,8 @@ character(len=NF90_MAX_NAME) :: thisVarName
 integer :: i, j
 integer :: errorIO
 !
+call allMessage(INFO,'Determining netCDF file characteristics.')
+!
 ! set some defaults
 f%isGridded = .false.        ! true if e.g. OWI
 f%timeVarying = .true.       ! initialize to most common value
@@ -326,7 +328,6 @@ do i=1,f%nvar
    call check(nf90_inquire_variable(f%nc_id, i, thisVarName))
    if (trim(thisVarName).eq.'station_name') then
       f%dataFileCategory = STATION
-
       call check(nf90_inq_dimid(f%nc_id, "station", f%nc_dimid_station))
    endif 
 end do
@@ -343,6 +344,7 @@ endif
 ! file metadata accordingly
 do i=1,f%nvar
    call check(nf90_inquire_variable(f%nc_id, i, thisVarName))
+   write(6,*) i, trim(thisVarName) ! jgfdebug
    select case(trim(thisVarName))
    case("u-vel3D","v-vel3D","w-vel3D")
       f%defaultFileName = 'fort.45'
@@ -694,6 +696,9 @@ runid = 'runid'   !TODO: make adcirc write this value to netcdf output files
 ! Get all the global metadata attribute names and their netcdf data types.
 ! This depends on initialization of file metadata and memory allocation
 ! performed for the file in the select case construct above. 
+allocate(f%nc_attName(f%natt))
+allocate(f%nc_attType(f%natt))
+
 do i=1, f%natt
    ! determine netcdf attribute types
    call check(nf90_inq_attname(f%nc_id, nf90_global, i, f%nc_attName(i)))
@@ -730,6 +735,8 @@ f%it(:) = -99999
 f%defaultValue = -99999.d0
 
 call check(nf90_close(f%nc_id))
+
+call allMessage(INFO,'Finished determining netCDF file characteristics.')
 !----------------------------------------------------------------------
 end subroutine determineNetCDFFileCharacteristics
 !----------------------------------------------------------------------
@@ -1541,12 +1548,11 @@ integer, intent(in) :: numNC
 integer, intent(in) :: numXDMF
 integer :: n
 !
+write(6,*) 'initFileMetaData : enter' ! jgfdebug
 if ( fmd % initialized .eqv..true. ) then
    return
 endif
 allocate(fmd%ncds(numNC))
-allocate(fmd%xds(numXDMF))
-!
 !
 ! NetCDF
 fmd % numVarNetCDF = numNC
@@ -1554,27 +1560,35 @@ do n=1, numNC
    fmd % ncds(n) % varNameNetCDF = 'error: not_set'
    fmd % ncds(n) % nc_varID = -999
    fmd % ncds(n) % nc_varType = -999
-   fmd % ncds(n) % nc_varAttType = -999
-   fmd % ncds(n) % nc_varAttName = 'error: not_set'
+   !fmd % ncds(n) % nc_varAttType = -999 ! commented out b/c unknown number of var atts
+   !fmd % ncds(n) % nc_varAttName = 'error: not_set'
    fmd % ncds(n) % numValuesPerDataSet = -99
    fmd % ncds(n) % isElemental = .false.
    fmd % ncds(n) % isInteger = .false.
    fmd % ncds(n) % is3D = .false.
 end do
+
 !
 ! XDMF
 fmd % numVarXDMF = numXDMF
-do n=1,numXDMF
-   fmd % xds(n) % varNameXDMF = 'error: not_set'
-   fmd % xds(n) % numComponents = 1    ! initialize to most common value
-   fmd % xds(n) % dataCenter = 'Node'  ! initialize to most common value
-   fmd % xds(n) % numberType = 'Float' ! initialize to most common value
-   fmd % xds(n) % numberPrecision = 8  ! initialize to most common value
-end do 
+write(6,*) 'num xdmf=',numXDMF ! jgfdebug
+!allocate(fmd%xds(numXDMF))
+!allocate(fmd%xds(2))
+!do n=1,fmd%numVarXDMF
+!   fmd % xds(n) % varNameXDMF = 'error: not_set'
+!   fmd % xds(n) % numComponents = 1    ! initialize to most common value
+!   fmd % xds(n) % dataCenter = 'Node'  ! initialize to most common value
+!   fmd % xds(n) % numberType = 'Float' ! initialize to most common value
+!   fmd % xds(n) % numberPrecision = 8  ! initialize to most common value
+!end do 
+write(6,*) 'xdmf init finished' ! jgfdebug
 fmd % ncds(1) % nc_varType = NF90_DOUBLE ! initialize to most common value
-fmd % ncds(1) % varNameNetCDF = trim(firstVarName) ! initialize to most common value
-fmd % xds(1) % varNameXDMF = trim(firstVarName) ! initialize to most common value
+write(6,*) 'netcdf vartype init finished' ! jgfdebug
+fmd % ncds(1) % varNameNetCDF = firstVarName ! initialize to most common value
+write(6,*) 'netcdf init(1) finished' ! jgfdebug
+!fmd % xds(1) % varNameXDMF = trim(firstVarName) ! initialize to most common value
 fmd % initialized = .true. 
+write(6,*) 'initFileMetaData : return' ! jgfdebug
 !----------------------------------------------------------------------
 end subroutine initFileMetaData
 !----------------------------------------------------------------------
@@ -1740,6 +1754,13 @@ case default
    stop
 end select
 
+snapr = f%timesec(s)
+if (allocated(f%it).eqv..true.) then
+   snapi = f%it(s)
+else
+   snapi = -99
+endif
+
 return
       ! We jump to this section if there was an error reading a file.
 246  call allMessage(ERROR,'Unexpectedly reached end-of-file.') ! END jumps here
@@ -1757,7 +1778,7 @@ use logging
 use ioutil
 use adcmesh
 implicit none
-type(fileMetaData_t), intent(in) :: f  ! file to read data from
+type(fileMetaData_t), intent(in) :: f  ! file to write data to
 type(mesh_t), intent(in) :: m ! mesh data structure associated with data
 integer, intent(in) :: s      ! dataset number to write
 integer, intent(in) :: l  ! line number in ascii file
@@ -1776,9 +1797,11 @@ integer :: ncCountMinMax(1)
 integer :: ncStartMinMax(1)
 !
 select case(f%dataFileFormat)
-case(ASCII)
+case(ASCII,SPARSE_ASCII,ASCIIG)
    if (f%is3D.eqv..true.) then
-      ! write 3D dataset header
+      !
+      ! WRITE 3D DATA
+      !
       select case(f%irtype)
       case(1)
          write(f%fun,2121) snapr, snapi, (m%sigma(v),v=1,m%nfen-1)
@@ -1790,50 +1813,84 @@ case(ASCII)
          call allMessage(ERROR,'Cannot convert 3D data with more than 3 components.')
          stop
       end select
-      ! write 3D dataset
-      do h=1,f%numValuesPerDataSet
-         write(f%fun,2454) h,((f%rdata3D(c,h,v),c=1,f%irtype),v=1,m%nfen)
-      end do
+      ! write 3D dataset, depending on how it was stored
+      if (allocated(f%rdata3D).eqv..true.) then ! came from ascii file
+         do h=1,f%numValuesPerDataSet
+            write(f%fun,2454) h,((f%rdata3D(c,h,v),c=1,f%irtype),v=1,m%nfen)
+         end do
+      else                     ! came from netcdf file
+         do h=1,f%numValuesPerDataSet
+            write(f%fun,2454) h,((f%ncds(c)%rdata3D(h,v),c=1,f%irtype),v=1,m%nfen)
+         end do
+      endif
    else    
-      ! integer data - only full ascii, not sparse
+      !
+      !  2D INTEGER DATA
+      !
       if ( f%isInteger.eqv..true.) then
          ! write integer dataset header
          write(f%fun,2120) snapr, snapi
          ! write integer dataset
-         do h=1,f%numValuesPerDataSet 
-            write(f%fun,2452) h, (f%idata(c,h), c=1,f%irtype)
-         end do
-      endif
-      ! sparse ascii - only valid for scalar real(8) data
-      if ( f%isSparse.eqv..true.) then
-         numNodesNonDefault = count(f%rdata(1,:).ne.f%defaultValue)
-         ! write sparse dataset header
-         write(f%fun,2119) snapr, snapi, numNodesNonDefault, f%defaultValue
-         ! write sparse dataset
-         do h=1,f%numValuesPerDataSet
-            if ( f%rdata(1,h).ne.f%defaultValue) then
-               write(f%fun,2453) n, f%rdata(1,h)
-            endif
-         end do
-      else
-      !
-      ! full ascii 
-         ! write full dataset header
-         write(f%fun,2120) snapr, snapi
-         ! write full dataset
-         do h=1,f%numValuesPerDataset
-            write(f%fun,2453) h, (f%rdata(c,h), c=1,f%irtype)
-         end do      
-         ! write minmax time of occurrence if necessary
-         if ( (f%dataFileCategory.eq.MINMAX).and.(f%timeOfOccurrence.eqv..true.) ) then
-            do h=1,f%numValuesPerDataset
-               write(f%fun,2453) h, (f%rdata(c,h), c=1,f%irtype)
+         if (allocated(f%idata).eqv..true.) then
+            do h=1,f%numValuesPerDataSet  ! came from ascii file
+               write(f%fun,2452) h, (f%idata(c,h), c=1,f%irtype)
             end do
-            !exit
+         else
+            do h=1,f%numValuesPerDataSet  ! came from ascii file
+               write(f%fun,2452) h, (f%ncds(c)%idata(h), c=1,f%irtype)
+            end do
          endif
-      endif
-   endif            
-case(NETCDFG)
+      else
+         !
+         !  2D SPARSE REAL DATA
+         !
+         if ( f%isSparse.eqv..true.) then
+            numNodesNonDefault = count(f%rdata(1,:).ne.f%defaultValue)
+            ! write sparse dataset header
+            write(f%fun,2119) snapr, snapi, numNodesNonDefault, f%defaultValue
+            ! write sparse dataset
+            n=1
+            if (allocated(f%rdata).eqv..true.) then ! came from ascii
+               do h=1,f%numValuesPerDataSet
+                  if ( f%rdata(1,h).ne.f%defaultValue) then
+                     write(f%fun,2453) n, f%rdata(1,h)
+                  endif
+                  n=n+1
+               end do
+            else
+               do h=1,f%numValuesPerDataSet            ! came from netcdf
+                  if ( f%ncds(1)%rdata(h).ne.f%defaultValue) then
+                     write(f%fun,2453) n, f%ncds(1)%rdata(h)
+                  endif
+                  n=n+1               
+               end do 
+            endif
+         else
+         !
+         ! 2D FULL REAL DATA 
+         ! 
+            write(f%fun,2120) snapr, snapi
+            ! write full dataset
+            if (allocated(f%rdata).eqv..true.) then
+               do h=1,f%numValuesPerDataset       ! came from ascii
+                  write(f%fun,2453) h, (f%rdata(c,h), c=1,f%irtype)
+               end do
+            else
+               do h=1,f%numValuesPerDataset       ! came from netcdf
+                  write(f%fun,2453) h, (f%ncds(c)%rdata(h), c=1,f%irtype)
+               end do
+            endif
+            ! write minmax time of occurrence if necessary
+            !if ( (f%dataFileCategory.eq.MINMAX).and.(f%timeOfOccurrence.eqv..true.) ) then
+            !   do h=1,f%numValuesPerDataset
+            !      write(f%fun,2453) h, (f%rdata(c,h), c=1,f%irtype)
+            !   end do
+            !  !exit
+            !endif
+         endif
+      endif        
+   endif
+case(NETCDFG,NETCDF3,NETCDF4)
    call check(nf90_put_var(f%nc_id, f%nc_varid_time, (/snapr/), (/s/), (/1/)))
    call check(nf90_put_var(f%nc_id, f%nc_varid_it, (/snapi/), (/s/), (/1/)))
    NC_Count = (/ f%numValuesPerDataset, 1 /)
@@ -1844,15 +1901,35 @@ case(NETCDFG)
    ! write the dataset to the netcdf file
    do c=1,f%numVarNetCDF
       if (m%is3D.eqv..true.) then
-         ! read 3D data set
+         ! write 3D data set
          nc_start3D = (/ 1, 1, s /)
          nc_count3D = (/ f%ncds(c)%numValuesPerDataSet, m%nfen, 1 /)
-         call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%ncds(c)%rdata3D,nc_start3D,nc_count3D))
-      else    
-         if (f%ncds(1)%isInteger.eqv..true.) then
-            call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%ncds(c)%idata,nc_start,nc_count))
+         if (allocated(f%ncds(c)%rdata3D).eqv..true.) then 
+            ! data came from netcdf
+            call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%ncds(c)%rdata3D,nc_start3D,nc_count3D))
          else
-            call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%ncds(c)%rdata,nc_start,nc_count))
+            ! data came from ascii file
+            call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%rdata3D(c,:,:),nc_start3D,nc_count3D))
+         endif
+      else    
+         ! integer data
+         if (f%ncds(1)%isInteger.eqv..true.) then
+            if (allocated(f%ncds(c)%idata).eqv..true.) then
+               ! data came from netcdf
+               call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%ncds(c)%idata,nc_start,nc_count))
+            else 
+               ! data came from ascii
+               call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%idata(c,:),nc_start,nc_count))
+            endif
+         else
+            ! real data
+            if (allocated(f%ncds(c)%rdata).eqv..true.) then         
+               ! data came from netcdf
+               call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%ncds(c)%rdata,nc_start,nc_count))
+            else
+               ! data came from ascii
+               call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%rdata(c,:),nc_start,nc_count))
+            endif
          endif
       endif
    end do
@@ -1870,6 +1947,9 @@ end select
  2454 format(2x, i8, 2x, 99(1pe20.10e3))
 
 end subroutine writeOneDataSet
+
+
+
 
 
 
