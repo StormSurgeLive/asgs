@@ -102,6 +102,7 @@ type fileMetaData_t
    character(NF90_MAX_NAME), allocatable :: nc_attName(:) ! netcdf attribute name for global metadata  
    ! 
    ! ascii adcirc files only
+   character(len=1000) :: agridRunIDRunDesLine ! 1st header line in time varying output files
    logical :: isSparse    ! true for sparse ascii
    logical :: isInteger     ! true for integer variable
    logical :: isElemental   ! true if the variable is defined on elements
@@ -743,7 +744,7 @@ end subroutine determineNetCDFFileCharacteristics
 
 !----------------------------------------------------------------------
 !                S U B R O U T I N E 
-!  D E T E R M I N E   A S C I I   F I L E   C A T E G O R Y 
+!  D E T E R M I N E   A S C I I   F I L E   C H A R A C T E R I S T I C S
 !----------------------------------------------------------------------
 ! Uses the default file name to determine file category and 
 ! characteristics.
@@ -775,6 +776,11 @@ character(len=160) :: line
 integer :: lineNum
 !
 ! set some defaults
+fn%nSnaps = -99
+fn%numValuesPerDataSet = -99   
+fn%time_increment = -99.d0   
+fn%nspool = -99
+fn%irtype = -99
 fn%dataFileCategory = DOMAIN
 fn%timeVarying = .true.
 fn%isGridded = .false.
@@ -844,7 +850,7 @@ case(MINMAX,STATION,DOMAIN)
    fn%fun = availableUnitNumber()
    call allMessage(INFO,'Checking number of nodes in data file.') 
    call openFileForRead(fn%fun, trim(fn%dataFileName), errorIO)
-   read(fn%fun,*,end=246,err=248,iostat=errorio) line
+   read(fn%fun,*,end=246,err=248,iostat=errorio) fn%agridRunIDRunDesLine
    lineNum=lineNum+1
    read(fn%fun,*,end=246,err=248,iostat=errorio) fn%nSnaps, fn%numValuesPerDataset, fn%time_increment, fn%nspool, fn%irtype
    lineNum=lineNum+1
@@ -860,6 +866,7 @@ case(MINMAX,STATION,DOMAIN)
 907 continue
    close(fn%fun)
 case(INITRIVER)
+   fn%agridRunIDRunDesLine = 'null'
    fn%irtype = 1
 case(MAUREPT)
    fn%fileTypeDesc = 'a time varying maureparticle output file'
@@ -1351,7 +1358,7 @@ case(DOMAIN)
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','m'))
    case default
-      call allMessage(ERROR,'Domain output data file type not recognized.')
+      call allMessage(ERROR,'Domain output data file type not recognized. Default data file name is '//trim(fn%defaultFileName)//'.')
       stop
    end select
 case(MINMAX)
@@ -1679,7 +1686,9 @@ endif
 !
 select case(f%dataFileFormat)
 case(ASCII)
-   ! READ ASCII DATASET HEADER
+   !
+   ! READ 3D ASCII DATASET HEADER
+   !
    ! assumes there are no sparse integer datasets, 3D integer datasets,
    ! or 3D sparse datasets
    if (f%is3D.eqv..true.) then
@@ -1696,14 +1705,19 @@ case(ASCII)
       end select
       l = l + 1
    else
-      ! read 2DDI dataset header
+      !
+      ! READ 2DDI ASCII DATASET HEADER
+      !
       if (f%isSparse) then        
          read(f%fun,fmt=*,end=246,err=248,iostat=errorio) snapr, snapi, numNodesNonDefault, f%defaultValue
+         l = l + 1
       else
-         read(f%fun,fmt=*,end=246,err=248,iostat=errorio) SnapR, SnapI
-         numNodesNonDefault = f%numValuesPerDataSet
+         if (f%dataFileCategory.ne.INITRIVER) then
+            read(f%fun,fmt=*,end=246,err=248,iostat=errorio) SnapR, SnapI
+            numNodesNonDefault = f%numValuesPerDataSet
+            l = l + 1
+         endif
       endif
-      l = l + 1
    endif
    !
    ! READ ONE ASCII DATASET
@@ -1753,17 +1767,24 @@ case default
    call allMessage(ERROR,'Only ASCII and NetCDF fulldoman file formats are supported.')
    stop
 end select
-
+!
 snapr = f%timesec(s)
 if (allocated(f%it).eqv..true.) then
    snapi = f%it(s)
 else
    snapi = -99
 endif
-
+!
+if (f%dataFileCategory.eq.INITRIVER) then
+   l = -99 ! fort.88 files always contain only a single dataset
+endif
+!
 return
-      ! We jump to this section if there was an error reading a file.
-246  call allMessage(ERROR,'Unexpectedly reached end-of-file.') ! END jumps here
+!
+! We jump to this section if there are no more datasets to read
+246  l = -99  ! indicate to calling routine that the ascii file has ended
+return
+
 248  call allMessage(ERROR,'I/O error during file access.')     ! ERR jumps here
 write(6,'(a,i0,a,i0,a)') 'INFO: Attempted to read line ',l,' in dataset ',s,'.' 
 write(6,'(a,i0,a)') 'The numerical code of the i/o error was ',errorio,'.'
