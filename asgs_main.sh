@@ -490,10 +490,27 @@ downloadCycloneData()
        logMessage "Checking remote site for new advisory..."
     fi
     while [ $newAdvisory = false ]; do
-       newAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
+       if [ $TRIGGER != atcf ]; then 
+          newAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
+       fi
        # check to see if we have a new one, and if so, determine the
        # new advisory number correctly
        case $TRIGGER in
+       "atcf") 
+          # if the forecast is already in ATCF format, then simply copy it 
+          # to the run directory
+          cp $HDIR/$hindcastFileName . 2>> ${SYSLOG}
+          cp $FDIR/$forecastFileName . 2>> ${SYSLOG}
+          linkTarget=`readlink $FDIR/$forecastFileName`
+          # assume the advisory number is the first two characters in the
+          # symbolic link target of the forecast file name
+          newAdvisoryNum=${linkTarget:0:2}
+          if [ $newAdvisoryNum -gt $ADVISORY ]; then 
+             newAdvisory="true" 
+          else 
+             newAdvisory="false" 
+          fi
+          ;;
        "ftp")
           if [ $START = hotstart ]; then
              if ! diff $OLDADVISDIR/$forecastFileName ./$forecastFileName > /dev/null 2>> ${SYSLOG}; then
@@ -514,7 +531,7 @@ downloadCycloneData()
           fi
           ;;
        *)
-          fatal "Invalid 'TRIGGER' type: '$TRIGGER'; must be ftp, rss or rssembedded."
+          fatal "Invalid 'TRIGGER' type: '$TRIGGER'; must be ftp, rss, rssembedded, or atcf."
           ;;
        esac
        if [ $START = coldstart ]; then
@@ -1757,7 +1774,8 @@ while [ true ]; do
    wait   
    # copy results to archive location
    logMessage "Initiating archival process, if any."
-   ${OUTPUTDIR}/${ARCHIVE} $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $ARCHIVEBASE $ARCHIVEDIR  2>> ${SYSLOG} &
+   #jgf: FIXME: Reconcile post processing arguments and archiving arguments ${OUTPUTDIR}/${ARCHIVE} $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $ARCHIVEBASE $ARCHIVEDIR  2>> ${SYSLOG} &
+   ${OUTPUTDIR}/${ARCHIVE} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME    $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
    allMessage "Forecast complete for advisory '$ADVISORY.'"
    LASTSUBDIR=null # don't need this any longer
    # if we ran the nowcast on this cycle, then this cycle's nowcast becomes 
