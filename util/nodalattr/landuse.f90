@@ -80,7 +80,8 @@ contains
 ! jgf: Loads up a set of land use data and echoes the metadata to stdout.
 !-----------------------------------------------------------------------
 subroutine loadLandUse()
-use asgsio, only : openFileForRead
+use logging
+use ioutil, only : openFileForRead
 implicit none
 integer :: j, k
 integer :: chunk ! reporting 10% for progress bar
@@ -91,10 +92,11 @@ character(len=10) :: c_nrows
 character(len=10) :: c_xllcorner  
 character(len=10) :: c_yllcorner            
 character(len=10) :: c_cellsize            
-character(len=10) :: c_nodata                   
+character(len=10) :: c_nodata             
+integer :: errorIO      
 !
 write(6,*) 'INFO: Reading land use metadata.'
-call openFileForRead(13,landUseFile)
+call openFileForRead(13,landUseFile,errorIO)
 read(13,*) c_ncols,ncols     ! e.g. ncols 23268
 read(13,*) c_nrows,nrows     !      nrows 10416
 read(13,*) c_xllcorner,xmin  !      xllcorner 502000
@@ -152,13 +154,17 @@ end subroutine loadLandUse
 ! is expected to be a real number. 
 !-----------------------------------------------------------------------
 subroutine loadLookupTable()
-use asgsio, only : openFileForRead
+use logging
+use ioutil, only : openFileForRead, availableUnitNumber
 implicit none
 integer :: i, j
+integer :: ltUnit
+integer :: errorIO
 ! 
 write(6,*) 'INFO: Reading lookup table.'
-call openFileForRead(20,lookupTableName)
-read(20,*) nlc ! total number of rows in the lookup table
+ltUnit = availableUnitNumber()
+call openFileForRead(ltUnit,lookupTableName,errorIO)
+read(ltUnit,*) nlc ! total number of rows in the lookup table
 if (lookupTableInitialized.eqv..true.) then
    deallocate(lookupTableKey)
    deallocate(lookupTableValue)
@@ -166,9 +172,9 @@ endif
 allocate(lookupTableKey(nlc))
 allocate(lookupTableValue(nlc))
 do j=1,nlc
-   read(20,*) lookupTableKey(j), lookupTableValue(j)
+   read(ltUnit,*) lookupTableKey(j), lookupTableValue(j)
 enddo
-close(20)
+close(ltUnit)
 write(6,*) 'INFO: Finished reading lookup table.'
 write(6,*) 'INFO: Checking lookup table for duplicate values.'
 ! check the lookup table to be sure that each code is only listed once

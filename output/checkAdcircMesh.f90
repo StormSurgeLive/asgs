@@ -38,13 +38,11 @@
 !-----+---------+---------+---------+---------+---------+---------+
 program checkAdcircMesh
 use adcmesh
+use ioutil
 use netcdf
 implicit none
-integer         :: argcount  ! number of command line arguments
-integer         :: iargc     ! function to return command line arguments
-character(2048) :: cmdlineopt ! command line option
-character(2048) :: cmdlinearg ! content of command line argument
-
+type(mesh_t) :: m
+type(meshNetCDF_t) :: n
 integer :: nodeNumber
 logical :: ok  ! .true. if a test passes
 real :: leveeHeight
@@ -125,10 +123,10 @@ real(8), allocatable :: coef(:,:) ! adcirc implicit lhs matrix
 real(8) :: ep ! scaling factor for gwce
 !
 integer :: residentNodes(4) ! node numbers around an element, indices wrap around
-integer :: m ! element counter
+integer :: e ! element counter
 integer :: l ! counter for nodes around an element
 integer :: i1, i2 ! counters for elements around a node
-integer :: m1, m2 ! element number neighboring a node 
+integer :: e1, e2 ! element number neighboring a node 
 integer :: icount ! counter for number of times two nodes have an element in common
 !
 integer :: i, j, k
@@ -147,11 +145,10 @@ checkDryElementArea = .false.
 dx_crit = 1750.d0
 dt = 1.d0
 tau0 = 0.03d0
-sfea0 = 30.d0
+m%sfea0 = 30.d0
 a00 = 0.35d0  ! implicit mode
 onDiag = 2.d0 ! fully consistent LHS
 g = 9.81d0    ! gravitational acceleration
-
 !
 ! Report netcdf version
 write(6,*) "INFO: checkAdcircMesh was compiled with the following netcdf library: ", trim(nf90_inq_libvers())
@@ -168,7 +165,7 @@ if (argcount.gt.0) then
             i = i + 1
             call getarg(i, cmdlinearg)
             write(6,'(a,a,a,a,a)') "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
-            meshFileName = trim(cmdlinearg)
+            m%meshFileName = trim(cmdlinearg)
          case("--dx-crit")
             i = i + 1
             call getarg(i, cmdlinearg)
@@ -188,7 +185,7 @@ if (argcount.gt.0) then
             i = i + 1
             call getarg(i, cmdlinearg)
             write(6,'(a)') "INFO: Processing "//trim(cmdlineopt)//" "//trim(cmdlinearg)//"."
-            read(cmdlinearg,*) sfea0
+            read(cmdlinearg,*) m%sfea0
          case("--write-neighbor-tables")
             write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
             writeNeighborTables = .true.                              
@@ -220,11 +217,11 @@ if (argcount.gt.0) then
 end if    
 !
 ! Load fort.14
-call read14()
+call read14(m)
 write(6,'("INFO: Computing nodal and elemental neighbor tables.")')
-call computeNeighborTable() 
+call computeNeighborTable(m) 
 write(6,'("INFO: Computing the neighbor edge length table and finding the minimum edge length.")')
-call computeNeighborEdgeLengthTable()
+call computeNeighborEdgeLengthTable(m)
 !
 !              W R I T E   N O D E   I D S
 ! 
@@ -234,11 +231,11 @@ if (writeNodeIDs.eqv..true.) then
    write(6,'("INFO: Writing nodeids.63 file.")')
    open(11,file='nodeids.63',status='replace',action='write')
    ! write header info 
-   write(11,'(a)') trim(agrid)
-   write(11,1010) 1, np, 0.d0, 1, 1
+   write(11,'(a)') trim(m%agrid)
+   write(11,1010) 1, m%np, 0.d0, 1, 1
    write(11,2120) 0.d0, 0
    ! write node IDs 
-   do i=1,np
+   do i=1,m%np
       write(11,'(20(i0,2x))') i, i
    end do
    close(11)
@@ -252,11 +249,11 @@ if (writeElementIDs.eqv..true.) then
    write(6,'("INFO: Writing elementids.100 file.")')
    open(11,file='elementids.100',status='replace',action='write')
    ! write header info 
-   write(11,'(a)') trim(agrid)
-   write(11,1010) 1, ne, 0.d0, 1, 1
+   write(11,'(a)') trim(m%agrid)
+   write(11,1010) 1, m%ne, 0.d0, 1, 1
    write(11,2120) 0.d0, 0
    ! write element IDs 
-   do i=1,ne
+   do i=1,m%ne
       write(11,'(20(i0,2x))') i, i
    end do
    close(11)
@@ -266,70 +263,70 @@ endif
 !
 ! Create mesh.properties file and bounding box properties
 write(6,'("INFO: Creating mesh.properties file to record the properties of this mesh.")')
-inquire(file=trim(adjustl(meshfileName))//'.properties',exist=fileFound)
+inquire(file=trim(adjustl(m%meshfileName))//'.properties',exist=fileFound)
 if (fileFound.eqv..true.) then
-   open(12,file=trim(adjustl(meshfileName))//'.properties',status='old',position='append',action='write')
+   open(12,file=trim(adjustl(m%meshfileName))//'.properties',status='old',position='append',action='write')
 else
-   open(12,file=trim(adjustl(meshfileName))//'.properties',status='new',action='write')
+   open(12,file=trim(adjustl(m%meshfileName))//'.properties',status='new',action='write')
 endif
 write(6,'("INFO: Recording full domain extents.")')
 ! report the domain extents
-write(12,'("fullDomainMinimumLongitudeDegrees : ",f15.7)') minval(xyd(1,:))
-write(12,'("fullDomainMaximumLongitudeDegrees : ",f15.7)') maxval(xyd(1,:)) 
-write(12,'("fullDomainMinimumLatitudeDegrees : ",f15.7)') minval(xyd(2,:))
-write(12,'("fullDomainMaximumLatitudeDegrees : ",f15.7)') maxval(xyd(2,:))
+write(12,'("fullDomainMinimumLongitudeDegrees : ",f15.7)') minval(m%xyd(1,:))
+write(12,'("fullDomainMaximumLongitudeDegrees : ",f15.7)') maxval(m%xyd(1,:)) 
+write(12,'("fullDomainMinimumLatitudeDegrees : ",f15.7)') minval(m%xyd(2,:))
+write(12,'("fullDomainMaximumLatitudeDegrees : ",f15.7)') maxval(m%xyd(2,:))
 ! report the lat and lon boundaries of the negative depths
-lonmin = huge(1.d0)
-lonmax = tiny(1.d0)
-latmin = huge(1.d0)
-latmax = tiny(1.d0)
+m%lonmin = huge(1.d0)
+m%lonmax = tiny(1.d0)
+m%latmin = huge(1.d0)
+m%latmax = tiny(1.d0)
 negativeDepthsFound = .false.
-do i=1,np
-   if (xyd(3,i).lt.0.d0) then
+do i=1,m%np
+   if (m%xyd(3,i).lt.0.d0) then
       negativeDepthsFound = .true.
-      lonmin = min(lonmin,xyd(1,i))
-      lonmax = max(lonmax,xyd(1,i))
-      latmin = min(latmin,xyd(2,i))
-      latmax = max(latmax,xyd(2,i))
+      m%lonmin = min(m%lonmin,m%xyd(1,i))
+      m%lonmax = max(m%lonmax,m%xyd(1,i))
+      m%latmin = min(m%latmin,m%xyd(2,i))
+      m%latmax = max(m%latmax,m%xyd(2,i))
    endif
 end do
 if (negativeDepthsFound.eqv..false.) then
-   lonmin = -99999.d0
-   lonmax = -99999.d0
-   latmin = -99999.d0
-   latmax = -99999.d0
+   m%lonmin = -99999.d0
+   m%lonmax = -99999.d0
+   m%latmin = -99999.d0
+   m%latmax = -99999.d0
 endif
-write(12,'("fullDomainNegativeDepthMinimumLongitudeDegrees : ",f20.7)') lonmin 
-write(12,'("fullDomainNegativeDepthMaximumLongitudeDegrees : ",f20.7)') lonmax 
-write(12,'("fullDomainNegativeDepthMinimumLatitudeDegrees : ",f20.7)') latmin
-write(12,'("fullDomainNegativeDepthMaximumLatitudeDegrees : ",f20.7)') latmax
+write(12,'("fullDomainNegativeDepthMinimumLongitudeDegrees : ",f20.7)') m%lonmin 
+write(12,'("fullDomainNegativeDepthMaximumLongitudeDegrees : ",f20.7)') m%lonmax 
+write(12,'("fullDomainNegativeDepthMinimumLatitudeDegrees : ",f20.7)') m%latmin
+write(12,'("fullDomainNegativeDepthMaximumLatitudeDegrees : ",f20.7)') m%latmax
 !
 write(6,'("INFO: Recording bounding box for high resolution area.")')
 write(12,'("highResolutionRegionMaximumEdgeLengthMeters : ",f15.7)') dx_crit
-lonmin = huge(1.d0)
-lonmax = tiny(1.d0)
-latmin = huge(1.d0)
-latmax = tiny(1.d0)
-do i=1,np
-   do j=2,nneigh(i)
-      if ( neighborEdgeLengthTable(i,j).lt.dx_crit ) then
-         lonmin = min(lonmin,xyd(1,i))
-         lonmax = max(lonmax,xyd(1,i))
-         latmin = min(latmin,xyd(2,i))
-         latmax = max(latmax,xyd(2,i))
+m%lonmin = huge(1.d0)
+m%lonmax = tiny(1.d0)
+m%latmin = huge(1.d0)
+m%latmax = tiny(1.d0)
+do i=1,m%np
+   do j=2,m%nneigh(i)
+      if ( m%neighborEdgeLengthTable(i,j).lt.dx_crit ) then
+         m%lonmin = min(m%lonmin,m%xyd(1,i))
+         m%lonmax = max(m%lonmax,m%xyd(1,i))
+         m%latmin = min(m%latmin,m%xyd(2,i))
+         m%latmax = max(m%latmax,m%xyd(2,i))
          exit
       endif
    end do
 end do
-write(12,'("fullDomainHighResolutionRegionMinimumLongitudeDegrees : ",f15.7)') lonmin 
-write(12,'("fullDomainHighResolutionRegionMaximumLongitudeDegrees : ",f15.7)') lonmax 
-write(12,'("fullDomainHighResolutionRegionMinimumLatitudeDegrees : ",f15.7)') latmin
-write(12,'("fullDomainHighResolutionRegionMaximumLatitudeDegrees : ",f15.7)') latmax
+write(12,'("fullDomainHighResolutionRegionMinimumLongitudeDegrees : ",f15.7)') m%lonmin 
+write(12,'("fullDomainHighResolutionRegionMaximumLongitudeDegrees : ",f15.7)') m%lonmax 
+write(12,'("fullDomainHighResolutionRegionMinimumLatitudeDegrees : ",f15.7)') m%latmin
+write(12,'("fullDomainHighResolutionRegionMaximumLatitudeDegrees : ",f15.7)') m%latmax
 !
-write(6,'("INFO: The minimum edge length is ",f15.7," meters.")') minEdgeLength
-write(12,'("minimumEdgeLengthMeters : ",f15.7)') minEdgeLength
-write(6,'("INFO: The maximum edge length is ",f15.7," meters.")') maxEdgeLength
-write(12,'("maximumEdgeLengthMeters : ",f15.7)') maxEdgeLength
+write(6,'("INFO: The minimum edge length is ",f15.7," meters.")') m%minEdgeLength
+write(12,'("minimumEdgeLengthMeters : ",f15.7)') m%minEdgeLength
+write(6,'("INFO: The maximum edge length is ",f15.7," meters.")') m%maxEdgeLength
+write(12,'("maximumEdgeLengthMeters : ",f15.7)') m%maxEdgeLength
 ! leave unit 12 open so we can write more mesh properties to it...
 !
 !         W R I T E   N E I G H B O R   T A B L E S 
@@ -337,26 +334,26 @@ write(12,'("maximumEdgeLengthMeters : ",f15.7)') maxEdgeLength
 if (writeNeighborTables.eqv..true.) then
    write(6,'("INFO: Writing neitab.generated file.")')
    open(11,file='neitab.generated',status='replace')
-   do i=1,np
-      write(11,'(20(i0,2x))') i, (neiTabGenerated(i,j),j=1,nneigh(i))
+   do i=1,m%np
+      write(11,'(20(i0,2x))') i, (m%neiTabGenerated(i,j),j=1,m%nneigh(i))
    end do
    close(11)
    write(6,'("INFO: Writing neitab.sorted file.")')
    open(11,file='neitab.sorted',status='replace')
-   do i=1,np
-      write(11,'(20(i0,2x))') i, (neiTab(i,j),j=1,nneigh(i))
+   do i=1,m%np
+      write(11,'(20(i0,2x))') i, (m%neiTab(i,j),j=1,m%nneigh(i))
    end do
    close(11)
    write(6,'("INFO: Writing neitabele.generated file.")')
    open(11,file='neitabele.generated',status='replace')
-   do i=1,np
-      write(11,'(20(i0,2x))') i, (neiTabEleGenerated(i,j),j=1,nneighele(i))
+   do i=1,m%np
+      write(11,'(20(i0,2x))') i, (m%neiTabEleGenerated(i,j),j=1,m%nneighele(i))
    end do
    close(11)
    write(6,'("INFO: Writing neitabele.sorted file.")')
    open(11,file='neitabele.sorted',status='replace')
-   do i=1,np
-      write(11,'(20(i0,2x))') i, (neiTabEle(i,j),j=1,nneighele(i))
+   do i=1,m%np
+      write(11,'(20(i0,2x))') i, (m%neiTabEle(i,j),j=1,m%nneighele(i))
    end do
    close(11)
 endif
@@ -366,8 +363,8 @@ endif
 ! O R   M O R E   T H A N   1 0   C O N N E C T E D   E L E M E N T S
 !                  ( B A D   F O R   S W A N  )
 !
-lowConnectedNodes = count(nNeighEle.lt.4)
-highConnectedNodes = count(nNeighEle.gt.10)
+lowConnectedNodes = count(m%nNeighEle.lt.4)
+highConnectedNodes = count(m%nNeighEle.gt.10)
 if (lowConnectedNodes.gt.0) then
    write(6,'("WARNING: There are ",i0," nodes with less than 4 connected elements. This will cause SWAN to generate an error messaage.")') lowConnectedNodes
    writeNNeighEle = .true.
@@ -381,11 +378,11 @@ if (writeNNeighEle.eqv..true.) then
    ! open the ascii adcirc file that will hold the data
    open(11,file='nneighele.63',status='replace',action='write')
    ! write header info 
-   write(11,'(a)') trim(agrid)
-   write(11,1010) 1, np, 0.d0, 1, 1
+   write(11,'(a)') trim(m%agrid)
+   write(11,1010) 1, m%np, 0.d0, 1, 1
    write(11,2120) 0.d0, 0
-   do i=1,np
-      write(11,2452) i,nNeighEle(i)
+   do i=1,m%np
+      write(11,2452) i,m%nNeighEle(i)
    end do   
 else
    write(6,'("INFO: All nodes have at least 4 and no more than 10 connected elements. These are important criteria for SWAN.")') 
@@ -398,46 +395,46 @@ close(11)
 !
 !   C H E C K   L E V E E   H E I G H T S 
 !
-allLeveesOK = .true.
-do k=1,numExternalFluxBoundaries
-   do j=1,size(externalFluxBoundaries(k)%nodes)
-      nodeNumber = externalFluxBoundaries(k)%nodes(j)
-      leveeHeight = externalFluxBoundaries(k)%barlanht(j)
-      call checkLeveeHeightAtNode(nodeNumber, leveeHeight, ok)
+m%allLeveesOK = .true.
+do k=1,m%numExternalFluxBoundaries
+   do j=1,size(m%externalFluxBoundaries(k)%nodes)
+      nodeNumber = m%externalFluxBoundaries(k)%nodes(j)
+      leveeHeight = m%externalFluxBoundaries(k)%barlanht(j)
+      call checkLeveeHeightAtNode(m, nodeNumber, leveeHeight, ok)
       if (ok.eqv..false.) then
-         write(6,'("There is an error on land boundary number ",i0," (external flux boundary).")') externalFluxBoundaries(k)%indexNum
+         write(6,'("There is an error on land boundary number ",i0," (external flux boundary).")') m%externalFluxBoundaries(k)%indexNum
       endif
    end do
 end do
-do k=1,numInternalFluxBoundaries
-   do j=1,size(internalFluxBoundaries(k)%nodes)
-      nodeNumbers(1) = internalFluxBoundaries(k)%nodes(j)
-      nodeNumbers(2) = internalFluxBoundaries(k)%ibconn(j)
-      leveeHeight = internalFluxBoundaries(k)%barinht(j)
+do k=1,m%numInternalFluxBoundaries
+   do j=1,size(m%internalFluxBoundaries(k)%nodes)
+      nodeNumbers(1) = m%internalFluxBoundaries(k)%nodes(j)
+      nodeNumbers(2) = m%internalFluxBoundaries(k)%ibconn(j)
+      leveeHeight = m%internalFluxBoundaries(k)%barinht(j)
       do i=1,2        
-         call checkLeveeHeightAtNode(nodeNumbers(i), leveeHeight, ok)
+         call checkLeveeHeightAtNode(m, nodeNumbers(i), leveeHeight, ok)
          if (ok.eqv..false.) then
-            write(6,'("There is an error on land boundary number ",i0," (internal flux boundary).")') internalFluxBoundaries(k)%indexNum
+            write(6,'("There is an error on land boundary number ",i0," (internal flux boundary).")') m%internalFluxBoundaries(k)%indexNum
             write(6,'("Node ",i0," is paired with node ",i0,".")') nodeNumbers(1), nodeNumbers(2)
          endif            
       end do
    end do
 end do
-do k=1,numInternalFluxBoundariesWithPipes
-   do j=1,size(internalFluxBoundariesWithPipes(k)%nodes)
-      nodeNumbers(1) = internalFluxBoundariesWithPipes(k)%nodes(j)
-      nodeNumbers(2) = internalFluxBoundariesWithPipes(k)%ibconn(j)
-      leveeHeight = internalFluxBoundariesWithPipes(k)%barinht(j)
+do k=1,m%numInternalFluxBoundariesWithPipes
+   do j=1,size(m%internalFluxBoundariesWithPipes(k)%nodes)
+      nodeNumbers(1) = m%internalFluxBoundariesWithPipes(k)%nodes(j)
+      nodeNumbers(2) = m%internalFluxBoundariesWithPipes(k)%ibconn(j)
+      leveeHeight = m%internalFluxBoundariesWithPipes(k)%barinht(j)
       do i=1,2        
-         call checkLeveeHeightAtNode(nodeNumbers(i), leveeHeight, ok)
+         call checkLeveeHeightAtNode(m, nodeNumbers(i), leveeHeight, ok)
          if (ok.eqv..false.) then
-            write(6,'("There is an error on land boundary number ",i0," (internal flux boundary with pipes).")') internalFluxBoundaries(k)%indexNum
+            write(6,'("There is an error on land boundary number ",i0," (internal flux boundary with pipes).")') m%internalFluxBoundaries(k)%indexNum
             write(6,'("Node ",i0," is paired with node ",i0,".")') nodeNumbers(1), nodeNumbers(2)
          endif            
       end do
    end do
 end do
-if (allLeveesOK.eqv..true.) then
+if (m%allLeveesOK.eqv..true.) then
    write(6,'("INFO: Successfully tested levee heights: all levee heights are above the bathy/topo elevation at that node, as expected.")')
 endif
 !
@@ -445,33 +442,33 @@ endif
 !
 ! check to see if any boundary is two nodes long, and if so, 
 ! output the data for that boundary
-if (any(nvdll.lt.3)) then
-   write(6,'("WARNING: The mesh file contains ",i0," elevation specified boundaries that are less than three nodes long.")') count(nvdll.lt.3)
+if (any(m%nvdll.lt.3)) then
+   write(6,'("WARNING: The mesh file contains ",i0," elevation specified boundaries that are less than three nodes long.")') count(m%nvdll.lt.3)
    write(6,'("INFO: Identifying information for these short boundaries will now be written to the short_elevation_boundaries.txt file.")')
    open(11,file='short_elevation_boundaries.txt',status='replace',action='write')
-   do i=1, nope
-      if ( nvdll(i).lt.3 ) then
+   do i=1, m%nope
+      if ( m%nvdll(i).lt.3 ) then
          shortBoundary = .true.
-         write(11,'("WARNING: The mesh file ",a," has an open boundary (number ",i0,") that consists of only 2 nodes:")') trim(meshFileName), i
-         write(11,'(i0," ! nvdll, number of nodes on the boundary")') nvdll(i)
-         do j=1, nvdll(i)
-            write(11,'(i0," ! nbdv, node number")') nbdv(i,j)
+         write(11,'("WARNING: The mesh file ",a," has an open boundary (number ",i0,") that consists of only 2 nodes:")') trim(m%meshFileName), i
+         write(11,'(i0," ! nvdll, number of nodes on the boundary")') m%nvdll(i)
+         do j=1, m%nvdll(i)
+            write(11,'(i0," ! nbdv, node number")') m%nbdv(i,j)
          end do
       end if 
    end do
    close(11)
 endif
-if (any(nvell.lt.3)) then
-   write(6,'("WARNING: The mesh file contains ",i0," flux specified boundaries that are less than three nodes long.")') count(nvell.lt.3)
+if (any(m%nvell.lt.3)) then
+   write(6,'("WARNING: The mesh file contains ",i0," flux specified boundaries that are less than three nodes long.")') count(m%nvell.lt.3)
    write(6,'("INFO: Identifying information for these short boundaries will now be written to the short_flux_boundaries.txt file.")')
    open(11,file='short_flux_boundaries.txt',status='replace',action='write')
-   do i=1, nbou
-      if ( nvell(i).lt.3 ) then
+   do i=1, m%nbou
+      if ( m%nvell(i).lt.3 ) then
          shortBoundary = .true.
-         write(11,'("WARNING: The mesh file ",a," has a flux boundary (number ",i0,") that consists of less than 3 nodes:")') trim(meshFileName), i
-         write(11,'(i0,2x,i0," ! nvell (number of nodes on the boundary) ibtype (boundary type)")') nvell(i), ibtype(i)
-         do j=1, nvell(i)
-            write(11,'(i0," ! nbvv, node number")') nbvv(i,j)
+         write(11,'("WARNING: The mesh file ",a," has a flux boundary (number ",i0,") that consists of less than 3 nodes:")') trim(m%meshFileName), i
+         write(11,'(i0,2x,i0," ! nvell (number of nodes on the boundary) ibtype (boundary type)")') m%nvell(i), m%ibtype(i)
+         do j=1, m%nvell(i)
+            write(11,'(i0," ! nbvv, node number")') m%nbvv(i,j)
          end do
       end if
    end do
@@ -491,15 +488,15 @@ write(6,'("INFO: Finished checking boundary information.")')
 !      endif
 !   end do
 !end do
-allocate(used(np))
+allocate(used(m%np))
 used = .false.
-do i=1,ne
+do i=1,m%ne
    do j=1,3
-      used(nm(i,j)) = .true.
+      used(m%nm(i,j)) = .true.
    end do
 end do 
 if (any(used.eqv..false.)) then
-   do i=1,np
+   do i=1,m%np
       if (used(i).eqv..false.) then
          write(6,'("ERROR: Node ",i0," is not resident on any element.")') i
       endif
@@ -510,32 +507,32 @@ endif
 !
 !   C H E C K   F O R   O V E R L A P P I N G   E L E M E N T S   
 !
-allocate(overlappingElements(ne))
+allocate(overlappingElements(m%ne))
 overlappingElements(:) = .false.
 ! loop over elements
-do m=1, ne
-   residentNodes(1:3) = nm(m,1:3)
+do e=1, m%ne
+   residentNodes(1:3) = m%nm(e,1:3)
    residentNodes(4) = residentNodes(1)
    do l=1, 3
       icount = 0
       ! loop over the elements around the first node
-      do i1=1, nNeighEle(residentNodes(l))
+      do i1=1, m%nNeighEle(residentNodes(l))
          ! get the element number
-         m1 = neiTabEle(residentNodes(l),i1)
+         e1 = m%neiTabEle(residentNodes(l),i1)
          ! if there is not an element here, go to the next one
-         if (m1.eq.-99) then
+         if (e1.eq.-99) then
             cycle
          endif
          ! loop over the elements around the other node
-         do i2 = 1, nNeighEle(residentNodes(l+1))
+         do i2 = 1, m%nNeighEle(residentNodes(l+1))
             ! get the element number
-            m2 = neiTabEle(residentNodes(l+1),i2)
+            e2 = m%neiTabEle(residentNodes(l+1),i2)
             ! if there is not an element here, go to the next one
-            if (m2.eq.-99) then
+            if (e2.eq.-99) then
                cycle
             endif
             ! we should only have two in common at most?
-            if( m1.eq.m2 ) then
+            if( e1.eq.e2 ) then
                icount = icount + 1
                !exit ! why are we exiting here?
             endif
@@ -543,31 +540,31 @@ do m=1, ne
       enddo
       if ( icount.gt.2 ) then
 !         write(6,'(/)') 
-         overlappingElements(m) = .true.
+         overlappingElements(e) = .true.
          icount=0
          ! now go back and figure out what element was overlapping it
-         do i1=1, nNeighEle(residentNodes(l))
+         do i1=1, m%nNeighEle(residentNodes(l))
             ! get the element number
-            m1 = neiTabEle(residentNodes(l),i1)
+            e1 = m%neiTabEle(residentNodes(l),i1)
             ! if there is not an element here, go to the next one
-            if (m1.eq.-99) then
+            if (e1.eq.-99) then
                cycle
             endif
             ! loop over the elements around the other node
-            do i2 = 1, nNeighEle(residentNodes(l+1))
+            do i2 = 1, m%nNeighEle(residentNodes(l+1))
                ! get the element number
-               m2 = neiTabEle(residentNodes(l+1),i2)
+               e2 = m%neiTabEle(residentNodes(l+1),i2)
                ! if there is not an element here, go to the next one
-               if (m2.eq.-99) then
+               if (e2.eq.-99) then
                   cycle
                endif               
                ! we should only have two in common at most?
-               if( m1.eq.m2 ) then            
+               if( e1.eq.e2 ) then            
                   icount = icount + 1                   
-                  write(6,'("m=",i0," l=",i0," residentNodes(l)=",i0," residentNodes(l+1)=",i0," icount=",i0," i1=",i0," i2=",i0," m2=",i0)') m, l, residentNodes(l), residentNodes(l+1),icount, i1, i2, m2
-                  write(6,'("node residentNodes(l)=",i0," has ",i0," neighboring elements: ")') residentNodes(l), nNeighEle(residentNodes(l))
-                  do k=1, nNeighEle(residentNodes(l))
-                     write(6,'(20(i0,2x))') neiTabEle(residentNodes(l),k)
+                  write(6,'("e=",i0," l=",i0," residentNodes(l)=",i0," residentNodes(l+1)=",i0," icount=",i0," i1=",i0," i2=",i0," m2=",i0)') e, l, residentNodes(l), residentNodes(l+1),icount, i1, i2, e2
+                  write(6,'("node residentNodes(l)=",i0," has ",i0," neighboring elements: ")') residentNodes(l), m%nNeighEle(residentNodes(l))
+                  do k=1, m%nNeighEle(residentNodes(l))
+                     write(6,'(20(i0,2x))') m%neiTabEle(residentNodes(l),k)
                   end do
                   !exit ! why are we exiting here?
                endif
@@ -579,8 +576,8 @@ enddo
 !
 if( any(overlappingElements) ) then
    write(6,'("ERROR: There are ",i0," overlapping elements.")') count(overlappingElements)
-   do m=1, ne
-      if( overlappingElements(m).eqv..true. ) then
+   do e=1, m%ne
+      if( overlappingElements(e).eqv..true. ) then
          !write(6,'("ERROR: Element ",i0," is overlapping. Its resident node numbers are ",i0," ",i0," ",i0,".")') m, nm(m,1), nm(m,2), nm(m,3)            
       endif
    enddo
@@ -592,33 +589,33 @@ endif
 !              W I T H I N   A   B O U N D A R Y
 !------------------------------------------------------------------------
 ! land, island, and river boundaries
-do k=1,numSimpleFluxBoundaries
-   do j=1,size(simpleFluxBoundaries(k)%nodes)
-      nodeNumber = simpleFluxBoundaries(k)%nodes(j)
-      do i=j+1,size(simpleFluxBoundaries(k)%nodes)
-         if ((nodeNumber.eq.simpleFluxBoundaries(k)%nodes(i))) then
-            if ((j.eq.1).and.(i.eq.size(simpleFluxBoundaries(k)%nodes))) then
+do k=1,m%numSimpleFluxBoundaries
+   do j=1,size(m%simpleFluxBoundaries(k)%nodes)
+      nodeNumber = m%simpleFluxBoundaries(k)%nodes(j)
+      do i=j+1,size(m%simpleFluxBoundaries(k)%nodes)
+         if ((nodeNumber.eq.m%simpleFluxBoundaries(k)%nodes(i))) then
+            if ((j.eq.1).and.(i.eq.size(m%simpleFluxBoundaries(k)%nodes))) then
                ! first node matches the last node, this is a closed boundary
                ! which is ok
                cycle
             endif
-            write(6,'("The node number ",i0," is erroneously repeated on flux boundary number ",i0," (ibtype=",i0,", contains ",i0," nodes).")') nodeNumber, simpleFluxBoundaries(k)%indexNum, ibtype(simpleFluxBoundaries(k)%indexNum),size(simpleFluxBoundaries(k)%nodes) 
+            write(6,'("The node number ",i0," is erroneously repeated on flux boundary number ",i0," (ibtype=",i0,", contains ",i0," nodes).")') nodeNumber, m%simpleFluxBoundaries(k)%indexNum, m%ibtype(m%simpleFluxBoundaries(k)%indexNum),size(m%simpleFluxBoundaries(k)%nodes) 
          endif
       end do
    end do
 end do
 ! elevation specified boundaries
-do k=1,nope
-   do j=1,size(elevationBoundaries(k)%nodes)
-      nodeNumber = elevationBoundaries(k)%nodes(j)
-      do i=j+1,size(elevationBoundaries(k)%nodes)
-         if ((nodeNumber.eq.elevationBoundaries(k)%nodes(i))) then
-            if ((j.eq.1).and.(i.eq.size(elevationBoundaries(k)%nodes))) then
+do k=1,m%nope
+   do j=1,size(m%elevationBoundaries(k)%nodes)
+      nodeNumber = m%elevationBoundaries(k)%nodes(j)
+      do i=j+1,size(m%elevationBoundaries(k)%nodes)
+         if ((nodeNumber.eq.m%elevationBoundaries(k)%nodes(i))) then
+            if ((j.eq.1).and.(i.eq.size(m%elevationBoundaries(k)%nodes))) then
                ! first node matches the last node, this is a closed boundary
                ! which is ok
                cycle
             endif
-            write(6,'("The node number ",i0," is erroneously repeated on elevation boundary number ",i0," (ibtypee=",i0,", contains ",i0," nodes).")') nodeNumber, elevationBoundaries(k)%indexNum, ibtypee(elevationBoundaries(k)%indexNum),size(elevationBoundaries(k)%nodes) 
+            write(6,'("The node number ",i0," is erroneously repeated on elevation boundary number ",i0," (ibtypee=",i0,", contains ",i0," nodes).")') nodeNumber, m%elevationBoundaries(k)%indexNum, m%ibtypee(m%elevationBoundaries(k)%indexNum),size(m%elevationBoundaries(k)%nodes) 
          endif
       end do
    end do
@@ -638,21 +635,21 @@ if (computeMaxTimestepSizes.eqv..true.) then
    inundationDepthIncrement = 0.5d0
    inundationDepth = 0.d0
    j = 1
-   allocate(maxTimeStepSizes(np,int(maxInundationDepth/inundationDepthIncrement)+1))
+   allocate(maxTimeStepSizes(m%np,int(maxInundationDepth/inundationDepthIncrement)+1))
    maxTimeStepSizes = 99999.d0
    open(11,file='maxtimestepsizes.63',status='replace',action='write')
    ! write header info 
-   write(11,'(a)') trim(agrid)
-   write(11,1010) 1, np, 0.d0, 1, 1
+   write(11,'(a)') trim(m%agrid)
+   write(11,1010) 1, m%np, 0.d0, 1, 1
    write(11,2120) 0.d0, 0
    do while(inundationDepth.le.maxInundationDepth)
-      do i=1,np
+      do i=1,m%np
          ! at each node, determine min connected edge length
-         minEdge = minval(neighborEdgeLengthTable(i,2:nneigh(i)))
-         effectiveDepth = xyd(3,i) + inundationDepth ! inundation depth above msl
+         minEdge = minval(m%neighborEdgeLengthTable(i,2:m%nneigh(i)))
+         effectiveDepth = m%xyd(3,i) + inundationDepth ! inundation depth above msl
          if (inundationAboveLocalGround.eqv..true.) then
             ! if the node is normally dry, use the inundation depth directly
-            if (xyd(3,i).lt.0.d0) then
+            if (m%xyd(3,i).lt.0.d0) then
                effectiveDepth = inundationDepth
             endif
          endif
@@ -663,7 +660,7 @@ if (computeMaxTimestepSizes.eqv..true.) then
       write(6,'("INFO: At an inundation depth of ",f19.15,"m, the smallest time step is ",1pE20.10E3," seconds.")') inundationDepth, minval(maxTimeStepSizes(:,j))
       ! write max time step sizes 
       write(11,2120) inundationDepth, j
-      do i=1,np
+      do i=1,m%np
          write(11,2453) i, maxTimeStepSizes(i,j)
       end do
       j = j + 1
@@ -682,24 +679,24 @@ endif
 if (checkDryElementArea.eqv..true.) then
    ! need to compute the weighting coefficients for the basis function
    ! and the coversion for spherical coordinates
-   call computeWeightingCoefficients()
-   call compute2xAreas()
-   allocate(areaOK(ne))
-   allocate(coef(np,1))
+   call computeWeightingCoefficients(m)
+   call compute2xAreas(m)
+   allocate(areaOK(m%ne))
+   allocate(coef(m%np,1))
    coef = 0.d0
    areaOK = -99999
-   do ie=1,ne
-      areaIE = 0.5d0 * areas(ie)
-      areaIE4 = 2.d0 * areas(ie)
-      dpAvg = sum(xyd(3,nm(ie,:)))/3.d0
+   do ie=1,m%ne
+      areaIE = 0.5d0 * m%areas(ie)
+      areaIE4 = 2.d0 * m%areas(ie)
+      dpAvg = sum(m%xyd(3,m%nm(ie,:)))/3.d0
       if (dpAvg.lt.0.d0) then
          GA00DPAvgOAreaIE4 = G * A00 * DPAvg / AreaIE4
          MsFacLOnDiag = OnDiag * AreaIE * (1.d0/DT+Tau0/2.d0)/DT/12.d0
          areaOK(ie) = 1
          do j=1,3
-            coef(nm(ie,j),1) = coef(nm(ie,j),1) + MsFacLOnDiag  &
-               + GA00DPAvgOAreaIE4 * (fdx(j,ie)**2 + fdy(j,ie)**2)
-            if ( coef(nm(ie,j),1).lt.0.d0 ) then
+            coef(m%nm(ie,j),1) = coef(m%nm(ie,j),1) + MsFacLOnDiag  &
+               + GA00DPAvgOAreaIE4 * (m%fdx(j,ie)**2 + m%fdy(j,ie)**2)
+            if ( coef(m%nm(ie,j),1).lt.0.d0 ) then
                areaOK(ie) = 0
             endif            
          end do
@@ -712,11 +709,11 @@ if (checkDryElementArea.eqv..true.) then
    ! now write the file
    open(11,file='dryelementareacheck.100',status='replace',action='write')
    ! write header info 
-   write(11,'(a)') trim(agrid)
-   write(11,1010) 1, ne, 0.d0, 1, 1
+   write(11,'(a)') trim(m%agrid)
+   write(11,1010) 1, m%ne, 0.d0, 1, 1
    write(11,2120) 0.d0, 0
    ! write element IDs 
-   do ie=1,ne
+   do ie=1,m%ne
       write(11,'(20(i0,2x))') ie, areaOK(ie)
    end do
    close(11)
@@ -735,23 +732,23 @@ endif
 if (computeImplicitDiagonalCoefficient.eqv..true.) then
    ! need to compute the weighting coefficients for the basis function
    ! and the coversion for spherical coordinates
-   call computeWeightingCoefficients()
-   call compute2xAreas()
-   allocate(coef(np,1))
+   call computeWeightingCoefficients(m)
+   call compute2xAreas(m)
+   allocate(coef(m%np,1))
    coef = 0.d0
-   do ie=1,ne
-      areaIE = 0.5d0 * areas(ie)
-      areaIE4 = 2.d0 * areas(ie)
-      dpAvg = sum(xyd(3,nm(ie,:)))/3.d0
+   do ie=1,m%ne
+      areaIE = 0.5d0 * m%areas(ie)
+      areaIE4 = 2.d0 * m%areas(ie)
+      dpAvg = sum(m%xyd(3,m%nm(ie,:)))/3.d0
    
       GA00DPAvgOAreaIE4 = G * A00 * DPAvg / AreaIE4
       MsFacLOnDiag = OnDiag * AreaIE * (1.d0/DT+Tau0/2.d0)/DT/12.d0   
-      coef(nm(ie,1),1) = coef(nm(ie,1),1) + MsFacLOnDiag  &
-         + GA00DPAvgOAreaIE4 * (fdx(1,ie)**2 + fdy(1,ie)**2)
-      coef(nm(ie,2),1) = coef(nm(ie,2),1) + MsFacLOnDiag &
-         + GA00DPAvgOAreaIE4 * (fdx(2,ie)**2 + fdy(2,ie)**2)
-      coef(nm(ie,3),1) = coef(nm(ie,3),1) + MsFacLOnDiag &
-         + GA00DPAvgOAreaIE4 * (fdx(3,ie)**2 + fdy(3,ie)**2)
+      coef(m%nm(ie,1),1) = coef(m%nm(ie,1),1) + MsFacLOnDiag  &
+         + GA00DPAvgOAreaIE4 * (m%fdx(1,ie)**2 + m%fdy(1,ie)**2)
+      coef(m%nm(ie,2),1) = coef(m%nm(ie,2),1) + MsFacLOnDiag &
+         + GA00DPAvgOAreaIE4 * (m%fdx(2,ie)**2 + m%fdy(2,ie)**2)
+      coef(m%nm(ie,3),1) = coef(m%nm(ie,3),1) + MsFacLOnDiag &
+         + GA00DPAvgOAreaIE4 * (m%fdx(3,ie)**2 + m%fdy(3,ie)**2)
    end do
    if (any(coef(:,1).lt.0.d0)) then
       write(6,'("WARNING: One or more nodes will have a negative value on the diagonal of the left hand side matrix in a fully consistent (implicit mode) ADCIRC simulation.")')
@@ -759,16 +756,16 @@ if (computeImplicitDiagonalCoefficient.eqv..true.) then
    ! compute scaling factor 
    ! TODO: handle elevation specified boundaries
    ep = 0.0d0
-   do i=1,np
+   do i=1,m%np
       ep = ep + coef(i,1)**2
    enddo
-   ep = sqrt(ep/np)
+   ep = sqrt(ep/m%np)
    open(11,file='coefdiagonal.63',status='replace',action='write')
    ! write header info 
-   write(11,'(a)') trim(agrid)
-   write(11,1010) 1, np, 0.d0, 1, 1
+   write(11,'(a)') trim(m%agrid)
+   write(11,1010) 1, m%np, 0.d0, 1, 1
    write(11,2120) 0.d0, 0
-   do i=1,np
+   do i=1,m%np
       write(11,2453) i, coef(i,1)
    end do
 endif
@@ -784,27 +781,25 @@ end program checkAdcircMesh
 ! jgf: Checks the levee height against the bathy/topo at a particular
 ! node. 
 !----------------------------------------------------------------------
-subroutine checkLeveeHeightAtNode(nodeNumber, leveeHeight, ok)
+subroutine checkLeveeHeightAtNode(m, nodeNumber, leveeHeight, ok)
 use adcmesh
 implicit none
 integer, intent(in) :: nodeNumber
 real, intent(in) :: leveeHeight
+type(mesh_t), intent(inout) :: m
 logical, intent(out) :: ok
 real :: topo    ! topo/bathy height 
 real(8) :: lat  ! latitude of the levee node
 real(8) :: lon  ! longitude of the levee node
 ok = .true.
 ! topography and levee height have opposite sign conventions
-topo = -xyd(3,nodeNumber)
+topo = - m%xyd(3,nodeNumber)
 if (topo.gt.leveeHeight) then
-   lat = xyd(2,nodeNumber)
-   lon = xyd(1,nodeNumber)
+   lat = m%xyd(2,nodeNumber)
+   lon = m%xyd(1,nodeNumber)
    write(6,'("ERROR: The levee height is ",F15.7," at node ",i0," (lat=",F15.7," lon=",F15.7,"), which is below its bathy/topo value of ",F15.7,".")') leveeHeight, nodeNumber, lat, lon, -topo
-   allLeveesOK = .false.
+   m%allLeveesOK = .false.
 endif
 !----------------------------------------------------------------------
 end subroutine checkLeveeHeightAtNode
 !----------------------------------------------------------------------
-
-
-
