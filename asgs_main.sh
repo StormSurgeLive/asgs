@@ -140,11 +140,13 @@ checkHotstart()
          logMessage "The hotstart file '$HOTSTARTFILE' was found and it contains $hotstartSize bytes."
          # check time in hotstart file to be sure it can be found and that
          # it is nonzero
+         # jgf20170131: hstime reports errors to stderr so we must capture
+         # that with backticks and tee to the log file
          HSTIME=''
          if [[ $HOTSTARTFORMAT = netcdf ]]; then
-            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE -n 2>> ${SYSLOG}`
+            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE -n 2>&1 | tee --append ${SYSLOG}`
          else
-            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE 2>> ${SYSLOG}`
+            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE 2>&1 | tee --append ${SYSLOG}`
          fi
          failureOccurred=$?
          errorOccurred=`expr index "$HSTIME" ERROR`
@@ -441,11 +443,11 @@ prepFile()
        allMessage "adcprep finished."
        ;;
     *)
-       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
+       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log 2>&1
        # check to see if adcprep completed successfully
        if [[ $? != 0 ]]; then
-         warn "The adcprep ${JOBTYPE} failed. See the file $ADVISDIR/$ENSTORM/adcprep.log for details."
-         echo "The adcprep ${JOBTYPE} failed. See the file $ADVISDIR/$ENSTORM/adcprep.log for details." >> jobFailed
+          error "The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log for details."
+          echo "The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log for details." >> jobFailed
        fi
        ;;
     esac
@@ -694,7 +696,7 @@ monitorJobs()
       fi
    done
    if [[ -e ${ENSTORM_TEMP}.run.error ]]; then
-     warn "The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
+     error "The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
      cat ${ENSTORM_TEMP}.run.error >> jobFailed
    fi
    if [[ -e ${ENSTORM_TEMP}.run.finish ]]; then
@@ -742,13 +744,13 @@ submitJob()
    #
    #  Load Sharing Facility (LSF); used on topsail at UNC
    "LSF")
-      bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/padcirc $CLOPTION >> ${SYSLOG}
+      bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${SYSLOG}
       ;;
    #
    #  LoadLeveler (often used on IBM systems)
    "LoadLeveler")
-      perl $SCRIPTDIR/loadleveler.pl --jobtype $JOBTYPE --ncpu $NCPU --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --numwriters $NUMWRITERS $LOCALHOTSTART > $ADVISDIR/$ENSTORM/padcirc.ll 2>> ${SYSLOG}
-      llsubmit $ADVISDIR/$ENSTORM/padcirc.ll >> ${SYSLOG} 2>&1
+      perl $SCRIPTDIR/loadleveler.pl --jobtype $JOBTYPE --ncpu $NCPU --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --numwriters $NUMWRITERS $LOCALHOTSTART > $ADVISDIR/$ENSTORM/${JOBTYPE}.ll 2>> ${SYSLOG}
+      llsubmit $ADVISDIR/$ENSTORM/${JOBTYPE}.ll >> ${SYSLOG} 2>&1
       ;;
    #
    #  Portable Batch System (PBS); widely used
@@ -761,15 +763,15 @@ submitJob()
          QSCRIPTOPTIONS="$QSCRIPTOPTIONS --numwriters $NUMWRITERS"
       fi
       logMessage "QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
-      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.pbs 2>> ${SYSLOG}
-      logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.pbs"
+      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs 2>> ${SYSLOG}
+      logMessage "Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs"
       # submit job, check to make sure qsub succeeded, and if not, retry
       while [ true ];  do
-         qsub $ADVISDIR/$ENSTORM/padcirc.pbs >> ${SYSLOG} 2>&1
+         qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs >> ${SYSLOG} 2>&1
          if [[ $? = 0 ]]; then
             break # qsub returned a "success" status
          else
-            warn "qsub $ADVISDIR/$ENSTORM/padcirc.pbs failed; will retry in 60 seconds."
+            warn "qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs failed; will retry in 60 seconds."
             sleep 60
          fi
       done
@@ -785,15 +787,15 @@ submitJob()
          QSCRIPTOPTIONS="$QSCRIPTOPTIONS --numwriters $NUMWRITERS"
       fi
       logMessage "QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
-      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.slurm 2>> ${SYSLOG}
-      logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.slurm"
+      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm 2>> ${SYSLOG}
+      logMessage "Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm"
       # submit job, check to make sure qsub succeeded, and if not, retry
       while [ true ];  do
-         sbatch $ADVISDIR/$ENSTORM/padcirc.slurm >> ${SYSLOG} 2>&1
+         sbatch $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm >> ${SYSLOG} 2>&1
          if [[ $? = 0 ]]; then
             break # sbatch returned a "success" status
          else
-            warn "sbatch $ADVISDIR/$ENSTORM/padcirc.slurm failed; will retry in 60 seconds."
+            warn "sbatch $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm failed; will retry in 60 seconds."
             sleep 60
          fi
       done
@@ -823,12 +825,12 @@ submitJob()
 #  Sun Grid Engine (SGE); used on Sun and many Linux clusters
    "SGE")
       QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --ncpudivisor $NCPUDIVISOR --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$ENV/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
-      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.sge 2>> ${SYSLOG}
-      logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.sge"
-      qsub $ADVISDIR/$ENSTORM/padcirc.sge >> ${SYSLOG} 2>&1
+      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/${JOBTYPE}.sge 2>> ${SYSLOG}
+      logMessage "Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.sge"
+      qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.sge >> ${SYSLOG} 2>&1
       # if qsub failed, resubmit the job 5 times before giving up
       if [[ $? = 1 ]]; then
-         rangerResubmit $ADVISDIR $ENSTORM padcirc.sge $SYSLOG
+         rangerResubmit $ADVISDIR $ENSTORM ${JOBTYPE}.sge $SYSLOG
       fi
       ;;
    *)
@@ -1591,7 +1593,7 @@ while [ true ]; do
                # parse out the name of the ensemble member
                ensembleMemName=`basename $ensembleMemDir`
                # look to see if the job is complete
-               if [[ ! -e $ensembleMemDir/padcirc.${ensembleMemName}.run.finish && ! -e $ensembleMemDir/padcswan.${ensembleMemName}.run.finish ]]; then 
+               if [[ ! -e $ensembleMemDir/${JOBTYPE}.${ensembleMemName}.run.finish ]]; then 
                   # job is still going, add its cpus to the total that are currently engaged
                   cpusEngaged=`expr $cpusEngaged + $cpuRequest`
                fi

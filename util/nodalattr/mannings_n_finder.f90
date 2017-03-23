@@ -1,32 +1,45 @@
-! Example of compilation with gfortran with optimization:
-! gfortran -O3 -ffree-line-length-none -o mannings_n_finder.x -I/home/jason/asgs/trunk/output -I/usr/include  mannings_n_finder.f90  -lnetcdff
+!------------------------------------------------------------------
+! mannings_n_finder.f90: Reads ADCIRC mesh file and land use data
+! and produces manning's n values.
+!------------------------------------------------------------------
+! Copyright(C) 2017 Jason Fleming
 !
-! Example of compiling with gfortran with debugging turned on:
-! gfortran -g -O0 -Wall -ffree-line-length-none -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal -o mannings_n_finder.x -I/home/jason/asgs/trunk/output -I/usr/include  mannings_n_finder.f90  -lnetcdff
+! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
-! Example of compiling with gfortran with profiling and test coverage turned on:
-! gfortran -pg -O0 -fprofile-arcs -ftest-coverage -Wall -ffree-line-length-none -o mannings_n_finder.x -I/home/jason/asgs/trunk/output -I/usr/include mannings_n_finder.f90 -lnetcdff
-!-----------------------------------------------------------------------
+! The ASGS is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+!
+! ASGS is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+!------------------------------------------------------------------
+! Compile with accompanying makefile. 
+!------------------------------------------------------------------
 program mannings_n_finder
 use adcmesh
+use ioutil
+use logging
 use landuse
 implicit none
-character(len=1024) :: outputfile
-! 
+type(mesh_t) :: m
+character(len=1024) :: outputfile 
 integer :: luclass   ! land use code at a particular mesh node
 real, allocatable :: manningsn(:) ! (np) Manning's n vale at each mesh node
 real, allocatable :: diff(:)      ! (np) difference between land use mannings n and the default
 real :: defaultManningsN ! expected to be the most common value
-
 logical :: classFound ! .true. if the mesh node is in the area covered by NLCD data
 logical :: codeFound ! .true. if lookup table contains the NLCD code
 integer :: n_col  ! column number in the land cover data file 
 integer :: n_row  ! row number in the land cover data file 
-character(1024) :: cmdlinearg
-character(1024) :: cmdlineopt
-integer :: argcount
 integer :: i, j
 character(len=1024) :: nodal_attr_name = 'mannings_n_at_sea_floor'
+integer :: mnUnit
 !
 ! process command line options
 argcount = iargc() ! count up command line options
@@ -43,7 +56,7 @@ do while (i.lt.argcount)
       i = i + 1
       call getarg(i, cmdlinearg)
       write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
-      meshFileName = trim(cmdlinearg)
+      m%meshFileName = trim(cmdlinearg)
    case("--outputfile")
       i = i + 1
       call getarg(i, cmdlinearg)
@@ -78,11 +91,11 @@ call loadLandUse()
 !
 ! Open and read the mesh file.
 write(6,*) 'INFO: Reading mesh file.'
-call read14()
+call read14(m)
 write(6,*) 'INFO: Finished reading mesh file.'
 !
 ! Project each mesh node into albers equal area conic. 
-call computeAlbersEqualAreaConic()
+call computeAlbersEqualAreaConic(m)
 
 ! Figure out the NLCD row and column that corresponds to each mesh node
 ! location. Then convert the NLCD classification to an equivalent 
@@ -91,16 +104,16 @@ call computeAlbersEqualAreaConic()
 ! If the mesh node is outside the area covered by the NLCD data,
 ! the land use classification is set to -9999 for that node, and the 
 ! lookup table is used to convert the -9999 value to a default manning's n.
-allocate(manningsn(np))
+allocate(manningsn(m%np))
 manningsn = defaultManningsN
-do i=1,np
+do i=1,m%np
    classFound = .false.
    codeFound = .false.
    ! make sure this node is in our NLCD area
-   if ( (xalbers(i).gt.xmin).and.(xalbers(i).lt.xmax).and. &
-        (yalbers(i).gt.ymin).and.(yalbers(i).lt.ymax) ) then
-      n_col = nint(abs((xalbers(i)-xmin)/res)) + 1 ! count columns from left
-      n_row = nint(abs((ymax-yalbers(i))/res)) + 1 ! count rows from top
+   if ( (m%xalbers(i).gt.xmin).and.(m%xalbers(i).lt.xmax).and. &
+        (m%yalbers(i).gt.ymin).and.(m%yalbers(i).lt.ymax) ) then
+      n_col = nint(abs((m%xalbers(i)-xmin)/res)) + 1 ! count columns from left
+      n_row = nint(abs((ymax-m%yalbers(i))/res)) + 1 ! count rows from top
       luclass = nlcd_class(n_row,n_col)
       classFound = .true.
       ! use the lookup table to convert land use code to mannings n
@@ -114,7 +127,7 @@ do i=1,np
    else
       if (verbose.eqv..true.) then
          write(6,*) 'WARNING: Node ',i,' is outside the area covered by NLCD data.'
-         write(6,*) 'xalbers=',xalbers(i),' yalbers=',yalbers(i)
+         write(6,*) 'xalbers=',m%xalbers(i),' yalbers=',m%yalbers(i)
       endif
    endif
    ! deal with the case where the land use data contains codes not found
@@ -125,19 +138,21 @@ do i=1,np
    end if
 end do
 ! write the nondefault values
-allocate(diff(np))
+allocate(diff(m%np))
 ! machine precision prevents us from simply checking whether the 
 ! mannings n .ne. the default value
 diff = abs(manningsn(:) - defaultManningsN)
-open(12,file=trim(outputfile),action='write',status='replace')
+mnUnit = availableUnitNumber()
+open(mnUnit,file=trim(outputfile),action='write',status='replace')
 ! write the number of nondefault values
-write(12,'(A)') trim(nodal_attr_name)
-write(12,*) count(diff.gt.1.e-6)
-do i=1,np
+write(mnUnit,'(A)') trim(nodal_attr_name)
+write(mnUnit,*) count(diff.gt.1.e-6)
+do i=1,m%np
    if (diff(i).gt.1.e-6) then
-      write(12,*) i,manningsn(i)
+      write(mnUnit,*) i,manningsn(i)
    endif
 end do
+close(mnUnit)
 !-----------------------------------------------------------------------      
 end program mannings_n_finder
 !-----------------------------------------------------------------------

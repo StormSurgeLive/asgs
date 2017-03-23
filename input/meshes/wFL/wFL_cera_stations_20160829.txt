@@ -1,0 +1,45 @@
+-81.10698800 24.71932300 ! 8723970 ! NOAA NOS ! Vaca Key ! NAVD88 
+-81.80833300 24.55500000 ! 8724580 ! NOAA NOS ! Key West ! NAVD88 
+-81.80914100 26.12986900 ! 8725110 ! NOAA NOS ! Naples ! NAVD88 
+-81.88277800 26.65052300 ! 8725520 ! NOAA NOS ! Fort Myers ! NAVD88 
+-82.57129000 27.64278200 ! 8726384 ! NOAA NOS ! Port Manatee ! NAVD88 
+-82.61927700 27.75760200 ! 8726520 ! NOAA NOS ! St. Petersburg Tampa Bay ! NAVD88 
+-82.42621000 27.91592800 ! 8726667 ! NOAA NOS ! Mckay Bay Entrance ! NAVD88 
+-82.83607300 27.97833700 ! 8726724 ! NOAA NOS ! Clearwater Beach ! NAVD88 
+-83.03219600 29.13215300 ! 8727520 ! NOAA NOS ! CedarKey ! NAVD88 
+-87.23091400 30.36457700 ! 8729840 ! NOAA NOS ! Pensacola ! NAVD88 
+-81.89472200 26.99027800 ! 02298170 ! USGS ! Prairie creek on CR 764 near Punta Gorda ! NAVD88 
+-82.34009300 27.28838100 ! 02298760 ! USGS ! Howard Creek near Sarasota ! NAVD88 
+-82.35564900 27.18560700 ! 02298880 ! USGS ! Myakka River at Control near Laurel ! NAVD88 
+-82.29306500 27.04519600 ! 02299230 ! USGS ! Myakka River at North Port Charlotte ! NAVD88 
+-82.19342400 27.12116500 ! 02299450 ! USGS ! Big Slough at Tropicaire Blvd near North Port ! NAVD88 
+-82.44741100 27.11271900 ! 02299734 ! USGS ! Curry Creek at HWY 41 at Nokomis ! NAVD88 
+-82.46555600 27.11222200 ! 02299735 ! USGS ! Venice Inlet at Crow&#39;s Nest Marina at Venice ! NAVD88 
+-82.42815000 27.51837200 ! 02300021 ! USGS ! Manatee River at Fort Hamer ! NAVD88 
+-82.42611100 27.42055600 ! 02300033 ! USGS ! Braden River at Lakewood Ranch nr Lorraine ! NAVD88 
+-82.34620400 27.83502600 ! 02300703 ! USGS ! Bullfrog Creek near Riverview ! NAVD88 
+-82.36426000 27.92585600 ! 02301750 ! USGS ! Delaney Creek near Tampa ! NAVD88 
+-82.45231700 28.02113000 ! 023060003 ! USGS ! Sulphur Springs Run at Sulphur Springs ! NAVD88 
+-82.54509600 28.01390800 ! 02306647 ! USGS ! Sweetwater Creek near Tampa ! NAVD88 
+-82.72944400 27.97319400 ! 02307669 ! USGS ! Alligator Creek at HWY 19 at Clearwater ! NAVD88 
+-82.67565500 27.90752200 ! 02308866 ! USGS ! Rooseelt Canal below Str 23-8 near Pinellas Park ! NAVD88 
+-82.73704500 27.87224600 ! 02308870 ! USGS ! Pinebrook CN at Bryan Dairy Road at Pinellas Park ! NAVD88 
+-82.81677000 27.90752200 ! 02309110 ! USGS ! McKay Creek near Largo ! NAVD88 
+-82.74750000 28.04000000 ! 02309421 ! USGS ! Curlew Creek at Belcher Road near Ozona ! NAVD88 
+-82.71930600 28.17447200 ! 02310075 ! USGS ! Anclote River ner Holiday ! NAVD88 
+-82.64290400 28.25731500 ! 02310300 ! USGS ! Pithlachascotee River near New Port Richey ! NAVD88 
+-82.72260100 28.25028800 ! 02310308 ! USGS ! Pithlachascotee River at main street at New Port Richey ! NAVD88 
+-82.69877800 28.33877800 ! 02310368 ! USGS ! Bear Creek near Bayonet Point ! NAVD88 
+-82.62472200 28.70263900 ! 02310673 ! USGS ! Chassahowitzka River at Dog Island near Chassahowitzka ! NAVD88 
+-82.60260000 28.80137200 ! 02310690 ! USGS ! Halls River near Homosassa ! NAVD88 
+-82.69565700 28.77165000 ! 02310712 ! USGS ! Homosassa River at Shell Island near Homosassa ! NAVD88 
+-82.64580600 28.90155600 ! 02310752 ! USGS ! Salt River near Crystal River ! NAVD88 
+-82.76578800 29.00110900 ! 02313272 ! USGS ! Withlacoochee River at Chambers near Yankeetown ! NAVD88 
+-84.98166700 29.69900000 ! APCF1 ! NOAA RFC ! Apalachicola ! NAVD88 
+-84.50250000 29.98833300 ! CTMF1 ! NOAA RFC ! Ochlockonee River at Curtis Mill (US-319) ! NAVD88 
+-84.21055600 30.15055600 ! MRKF1 ! NOAA RFC ! St. Marks River at St. Marks ! NAVD88 
+-83.98000000 30.06100000 ! NUTF1 ! NOAA RFC ! Aucilla River near Nutall Rise ! NAVD88 
+-85.66694400 30.15194400 ! PACF1 ! NOAA RFC ! Panama City ! NAVD88 
+-85.87805600 30.13800000 ! PCBF1 ! NOAA RFC ! Panama City Beach ! NAVD88 
+-84.32750000 30.07250000 ! SBIF1 ! NOAA RFC ! Tide Gauge near Spring Creek Boat Ramp ! NAVD88 
+-83.08666700 29.33916700 ! SUWF1 ! NOAA RFC ! Suwannee River above Gopher River Confluence ! NAVD88 

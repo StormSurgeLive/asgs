@@ -30,9 +30,9 @@
 INSTANCENAME=mattqhsofs    # "name" of this ASGS process
 COLDSTARTDATE=2016082912 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
-LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
+LASTSUBDIR=null   # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
-REINITIALIZESWAN=no      # used to bounce the wave solution
+REINITIALIZESWAN=no     # used to bounce the wave solution
 
 # Source file paths
 
@@ -56,14 +56,15 @@ TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
+NOWCASTWALLTIME="03:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
-NCPU=480                    # number of compute CPUs for all simulations
+NCPU=960                    # number of compute CPUs for all simulations
 NUMWRITERS=20
-NCPUCAPACITY=2000
+NCPUCAPACITY=3000
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=workq
-SERQUEUE=single
+QUEUENAME=priority
+SERQUEUE=priority
+PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs
 ACCOUNT=loni_cera_2016
 SCRATCHDIR=/work/$USER
 
@@ -80,6 +81,7 @@ TRIGGER=rssembedded              # either "ftp" or "rss"
 RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
 FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+#FDIR=~/asgs/2014stable/input/sample_advisories
 HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
@@ -138,7 +140,7 @@ HOTSTARTCOMP=fulldomain
 # binary or netcdf hotstart files
 HOTSTARTFORMAT=netcdf                      
 # "continuous" or "reset" for maxele.63 etc files
-MINMAX=reset                             
+MINMAX=continuous                            
 
 # Notification
 
@@ -181,7 +183,7 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=1 # number of storms in the ensemble
+ENSEMBLESIZE=3 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
@@ -190,12 +192,12 @@ case $si in
    ENSTORM=nhcConsensus
    ;;
 1)
-   ENSTORM=veerRight50
-   PERCENT=50
-   ;;
-2)
    ENSTORM=veerLeft50
    PERCENT=-50
+   ;;
+2)
+   ENSTORM=veerRight50
+   PERCENT=50
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."

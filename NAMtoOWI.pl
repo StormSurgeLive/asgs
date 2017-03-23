@@ -606,7 +606,7 @@ sub getGrib2
               `$scriptDir/wgrib -v $file | grep "UGRD:10 m above gnd"` =~ m/^(\d+):/;
               my $record_number = $1;
               # now decode the data for that record number to an external file
-              system("wgrib -d $record_number -o ugrd.txt -text $file");
+              system("$scriptDir/wgrib -d $record_number -o ugrd.txt -text $file");
               # read in the data from the resulting file
               @rawU = `cat ugrd.txt`;
               #
@@ -614,7 +614,7 @@ sub getGrib2
               `$scriptDir/wgrib -v $file | grep "VGRD:10 m above gnd"` =~ m/^(\d+):/;
               $record_number = $1;
               # now decode the data for that record number to an external file
-              system("wgrib -d $record_number -o vgrd.txt -text $file");
+              system("$scriptDir/wgrib -d $record_number -o vgrd.txt -text $file");
               # read in the data from the resulting file
               @rawV = `cat vgrd.txt`;
               #
@@ -622,7 +622,7 @@ sub getGrib2
               `$scriptDir/wgrib -v $file | grep PRMSL` =~ m/^(\d+):/;
               $record_number = $1;
               # now decode the data for that record number to an external file
-              system("wgrib -d $record_number -o prmsl.txt -text $file");
+              system("$scriptDir/wgrib -d $record_number -o prmsl.txt -text $file");
               # read in the data from the resulting file
               @rawP = `cat prmsl.txt`;
            }

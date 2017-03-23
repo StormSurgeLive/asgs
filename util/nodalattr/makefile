@@ -29,6 +29,12 @@ ifeq ($(compiler),gfortran)
    ifeq ($(DEBUG),full)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal #-Wall
    endif
+   ifeq ($(DEBUG),trace)
+      FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace 
+   endif
+   ifeq ($(MACHINENAME),jason-desktop)
+      FFLAGS := $(FFLAGS) -DOLDGFORTRAN 
+   endif
 endif
 #
 # specify compiler=intel on the make command line
@@ -74,8 +80,8 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := adcmesh.o asgsio.o landuse.o adcircdata.o
-MODS := adcmesh.mod asgsio.mod landuse.mod adcircdata.mod
+OBJ := adcmesh.o asgsio.o landuse.o logging.o
+MODS := adcmesh.mod asgsio.mod landuse.mod logging.mod ioutil.mod
 #
 # targets
 all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyvis convertna
@@ -83,7 +89,7 @@ all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyv
 clean :
 	rm -f *.o *.mod *.x
 #
-nodalattr.mod : $(MODS) nodalattr.f90 asgsio.mod adcircdata.mod
+nodalattr.mod : $(MODS) nodalattr.f90 asgsio.mod 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c nodalattr.f90 $(LDFLAGS)
 #
 convertna : $(MODS) convertna.f90 nodalattr.mod
@@ -104,11 +110,14 @@ mannings_n_finder : $(MODS) mannings_n_finder.f90
 tau0_gen : $(MODS) tau0_gen.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod
+adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcmesh.f90 $(LDFLAGS)
 #
-asgsio.mod : $(OUTPUTDIR)/asgsio.f90 
+asgsio.mod : $(OUTPUTDIR)/asgsio.f90 logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/asgsio.f90 $(LDFLAGS)
+#
+logging.mod : $(OUTPUTDIR)/logging.f90 
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/logging.f90 $(LDFLAGS)
 #
 adcircdata.mod : $(OUTPUTDIR)/adcircdata.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcircdata.f90 $(LDFLAGS)
