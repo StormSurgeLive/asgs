@@ -34,7 +34,7 @@ COLDSTARTDATE=2016082912 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=hotstart       # "hotstart" or "coldstart"
 LASTSUBDIR=/projects/ncfs/opendap/data/tc/matthew/27/hsofs/queenbee.loni.org/mattqhsofs/nhcConsensus # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
-REINITIALIZESWAN=yes      # used to bounce the wave solution
+REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 

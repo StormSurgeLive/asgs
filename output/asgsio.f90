@@ -4,7 +4,7 @@
 ! A module that provides helper subroutines for opening and reading 
 ! ADCIRC files in ascii and netcdf format. 
 !--------------------------------------------------------------------------
-! Copyright(C) 2014--2016 Jason Fleming
+! Copyright(C) 2014--2017 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -437,7 +437,7 @@ do i=1,f%nvar
       cycle     ! did not recognize this variable name
    end select
 end do
-call check(nf90_close(f%nc_id))
+
 !
 ! if this is not a station file, find the mesh node dimension and
 ! comment 
@@ -453,8 +453,7 @@ else
    call check(nf90_inq_dimid(f%nc_id, "namelen", f%nc_dimid_namelen))
    call check(nf90_inquire_dimension(f%nc_id, f%nc_dimid_namelen, len=f%station_namelen))
 endif                                                             
-
-
+!
 ! determine time increment between output writes
 if ( (f%nSnaps.gt.1).and.(f%timeOfOccurrence.eqv..false.) ) then
    f%time_increment = f%timesec(2) - f%timesec(1)
@@ -469,7 +468,9 @@ f%defaultValue = -99999.d0
 do i=1,f%num_components
    call check(nf90_inq_varid(f%nc_id, f%varNameNetCDF(i), f%nc_varid(i)))
 end do
-
+!
+call check(nf90_close(f%nc_id))
+!
 !----------------------------------------------------------------------
 end subroutine determineNetCDFFileCharacteristics
 !----------------------------------------------------------------------
