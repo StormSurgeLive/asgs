@@ -1,93 +1,126 @@
-% clear
+%--------------------------------------------------------------------------
+% offsetSurfaceGen.m
+%
+% Computes water level offset surface for data assimilation with ADCIRC.
+%--------------------------------------------------------------------------
+% Copyright(C) 2016--2017 Taylor Asher
+% Copyright(C) 2017 Jason Fleming
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU Lesser General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU Lesser General Public License for more details.
+%
+% You should have received a copy of the GNU Lesser General Public License
+% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%--------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 close all
 clearvars -except grd
 clc
-% mypath='C:\Users\Taylor';
-% mypath='C:\Users\T';
 mypath='.';
-% addpath([mypath,'\Documents\MATLAB\ADCIRC'])
-%% Input
-%For downloading NOAA data
-dodownload=1;                   %whether to download NOAA data or load the differences in from a file
-if dodownload==1
-    stopafterdownload=0;        %whether to stop the program after downloading data (in order to save the data out to a file)
-    stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8661070;8658120;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];
-    stationid=mat2cell(num2str(stationnum),ones(numel(stationnum),1),7);
+%
+% jgf: List of command line options required
+% parameters
+%   dodownload
+%   refwlmode
+%   dographs
+%   approxres
+%   offblendmode
+%   interptomesh
+%   stopafterdownload
+% files
+%   filfaroff
+%   filinl
+%   filwldata
+%   filrefwl
+%   filmesh
+%   filout
+%   filoffshfixpnts
+%-----------------------------------------------------------------------
+%        I N I T I A L I Z E   P A R A M E T E R S
+%               A N D   F I L E   N A M E S
+%-----------------------------------------------------------------------
+% initialize parameters to default values
+dodownload=1;   % =1 to download gage data, =0 to load differences from a file
+refwlmode=1;    % water level comparison: 0=0.0+const., 1=load in file with adcirc avg at gages
+dographs=1;     % whether to plot stuff
+approxres=0.04; % x-y grid resolution for interpolation
+offshorepointmode=3; % whether to close off with exterior points 0=no, 1=circles of points, 2=offshore points, 3=2 plus attempt to draw a box of zeroes
+offblendmode=1; % whether to blend interpolant surface in a specific area (0=no, 1=yes linear)
+interptomesh=1; % whether to calculate values on mesh (1=yes)
+stopafterdownload=0; %whether to stop the program after downloading data (in order to save the data out to a file)
+writeoutfil=1;  % whether to write oi output file (1=yes in Jason's format, -63=yes as a sparse .63 file)
+constrefwl=0;   % constant reference water level value
+%
+% initialize file names to default values
+filfaroff='FarOffV1.mat';  % file containing outer line for blending
+filinl='InlandV1.mat';     % file containing other line for defining bounds of non-zeroed areas
+filrefwl=[mypath,'\refwl_adcircAvgTo18Z4Oct2016.txt'];  % ref (adcirc) wl file
+% file with measured wl data
+% jgf: question: "Taylor the comment and file name imply that these are measured
+% water levels but I think you mentioned in an email that this is 
+% actually water level differences. Can you clarify?"
+filwldata=[mypath,'\MeasWLsForTwoM2CycleMatthewOct5_23colon15Z_OIRun1.mat'];    
+filmesh='../NOMAD1e.grd';          % mesh file
+filoffshfixpnts=[mypath,'\CloseOffV1.mat'];% for bounding offshore/inland values
+filout=[mypath,'\renamemebrah'];   % oi output file name
+%
+% initialize parameters related to gage data
+% TODO: set start and stop dates/times on command line
+start=datenum([2016,08,29,12,00,00])+3042576/86400;
+stop=datenum([2016,08,29,12,00,00])+3132000/86400;
+% TODO: load stations from file
+stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8661070;8658120;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];
+stationid=mat2cell(num2str(stationnum),ones(numel(stationnum),1),7);
 %     stationname={'Springmaid';'Wilmington';'Wrightsville';'Beaufort';'Hatteras';'Oregon' ;'Duck'   ;'ChesaBridge';'Sewells'};
-    start=datenum([2016,08,29,12,00,00])+3042576/86400;
-    stop=datenum([2016,08,29,12,00,00])+3132000/86400;
-    datatype='VerifiedSixMinute';           %'PreliminarySixMinute', 'VerifiedHourlyHeight', etc.
-    units='Meters';
-    vertdatum='MSL';
-    timefmt='yyyy-mm-ddTHH:MM:SSZ';
-    nstat=numel(stationnum);
-elseif dodownload==0
-    filwldata=[mypath,'\MeasWLsForTwoM2CycleMatthewOct5_23colon15Z_OIRun1.mat'];    %file with measured wl data
-else
-    error('Invalid value for dodownload parameter')
+datatype='VerifiedSixMinute';           %'PreliminarySixMinute', 'VerifiedHourlyHeight', etc.
+units='Meters';
+vertdatum='MSL';
+timefmt='yyyy-mm-ddTHH:MM:SSZ';
+nstat=numel(stationnum);
+%
+% For bounding offshore/inland values
+if offshorepointmode==1
+    circledist=4;  % how far out the circle should be (same units as input data)
 end
-
-refwlmode=1;            %what to compare measured wls to, 0=assume 0, 1=load in file with values
-if refwlmode==0
-    constrefwl=0;       %constant ref. wl value
-elseif refwlmode==1
-    filrefwl=[mypath,'\refwl_adcircAvgTo18Z4Oct2016.txt'];  %ref wl file
+%
+% initialize blending of interpolant surface in a specific area if specified
+filfaroff='FarOffV1.mat';       % outer line for blending
+filinl='InlandV1.mat';          % other line for defining bounds of non-zeroed areas
+outsideblendz=0;                % value to blend to at the faroff boundary
+outsidedefaultz=outsideblendz;  % default elevation value for areas that aren't to be interpolated
+%
+% For RegularizeData3D
+rd.smoothness=0.001;    %weight between smoothness and fitting data (lower equals less smooth)
+rd.interp='bilinear';   %method to interpolate data (triangle, bicubic, bilinear, nearest)
+rd.solver='\';          %'%solver method (normal, \, symlq, lsqr)
+% rd.npntgrid=200;      %number of points (in each direction) for underlying gridding of data
+rd.approxres=approxres; %approximate resolution (in each direction) for underlying gridding of data
+%
+% For optimalInterp
+oi.Lx=1.0;              %radius of influence in x (help says Gaussian function, so this is prob a stdev or var)
+oi.Ly=oi.Lx;            %same, in y
+oi.obsNoise=0.001;      %signal to noise ratio
+%
+% For mesh
+meshdefaultz=outsidedefaultz;           %default value for mesh
+meshinterpmethod='oi';                  %which method to use ('oi' or 'rd')
+if any(writeoutfil==[1,-63])
+   timeinterval=0;
 end
-
-dographs=1;                         %whether to plot stuff
-
-approxres=0.04;                     %x-y grid resolution for interpolation
-
-%For bounding offshore/inland values
-offshorepointmode=3;                %whether to close off with exterior points 0=no, 1=circles of points, 2=offshore points, 3=2 plus attempt to draw a box of zeroes
-if any(offshorepointmode==[2,3])
-    filoffshfixpnts=[mypath,'\CloseOffV1.mat'];%OffshFixPointsBy500mDepContourV*
-elseif offshorepointmode==1
-    circledist=4;                   %how far out the circle should be (same units as input data)
-end
-offblendmode=1;                     %whether to blend interpolant surface in a specific area (0=no, 1=yes linear)
-if offblendmode==1
-    filfaroff='FarOffV1.mat';       %outer line for blending
-    filinl='InlandV1.mat';          %other line for defining bounds of non-zeroed areas
-    outsideblendz=0;                %value to blend to at the faroff boundary
-    outsidedefaultz=outsideblendz;  %default elevation value for areas that aren't to be interpolated
-end
-
-%For RegularizeData3D
-rd.smoothness=0.001;                %weight between smoothness and fitting data (lower equals less smooth)
-rd.interp='bilinear';               %method to interpolate data (triangle, bicubic, bilinear, nearest)
-rd.solver='\';                      %solver method (normal, \, symlq, lsqr)
-% rd.npntgrid=200;                  %number of points (in each direction) for underlying gridding of data
-rd.approxres=approxres;             %approximate resolution (in each direction) for underlying gridding of data
-
-%For optimalInterp
-oi.Lx=1.0;                          %radius of influence in x (help says Gaussian function, so this is prob a stdev or var)
-oi.Ly=oi.Lx;                        %same, in y
-oi.obsNoise=0.001;                  %signal to noise ratio
-
-%For mesh
-interptomesh=1;                     %whether to calculate values on mesh (1=yes)
-if interptomesh==1
-    filmesh='../NOMAD1e.grd';                  %mesh file
-    meshdefaultz=outsidedefaultz;           %default value for mesh
-    meshinterpmethod='oi';                  %which method to use ('oi' or 'rd')
-    writeoutfil=1;                          %whether to write the output file (1=yes in Jason's format, -63=yes as a sparse .63 file)
-    if any(writeoutfil==[1,-63])
-        filout=[mypath,'\renamemebrah'];    %output file name
-        timeinterval=0;
-    end
-end
-
-
-
+%
 %% Error checking (this prob needs to be filled out more)
 if offblendmode==1&&~any(offshorepointmode==[2,3])
-    error('I don''t think this''ll work...')
+    error('offblendmode=1 and offshorepointmode=2 or =3')
 end
-
-
-
-%% Load/download data
+%
+%% Load/download measured data
 disp('Loading data')
 if dodownload==1
     nodata=zeros(nstat,1);
@@ -100,30 +133,29 @@ if dodownload==1
         end
     end
     if stopafterdownload==1
-        return%so you can save the data, rather than re-downloading every time
+        return % so you can save the data, rather than re-downloading every time
     end
 elseif dodownload==0
     load(filwldata)
     nstat=numel(dat);
 end
-
-%Set or load reference water level data
+%
+% Set or load reference water level data
 if refwlmode==0
     refwl=zeros(nstat,1)+constrefwl;
 elseif refwlmode==1
     refwl=load(filrefwl,'-ascii');
 end
-
-
-%load mesh only if it hasn't been done previously
+%
+% load mesh only if it hasn't been done previously
 if interptomesh==1
     if ~exist('grd','var')==1||~isfield(grd,'filmesh')||~strcmp(grd.filmesh,filmesh)
         grd=readfort14(filmesh);
 %         grd.fil=filmesh;
     end
 end
-
-%Load in offshore points if that's the chosen mode of operation
+%
+% Load in offshore points if that's the chosen mode of operation
 if offblendmode==1
     load(filfaroff)         %has variable faroffpnts   that's a *x2 array of x-y data
     load(filinl)            %has variable inlpnts      that's a *x2 array of x-y data
@@ -131,21 +163,19 @@ end
 if any(offshorepointmode==[2,3,4])
     load(filoffshfixpnts)   %has variable offshfixpnts that's a *x2 array of x-y data
 end
-
-
-
-%% Ansys
+%
+% Ansys
 disp('Analyzing')
-
-%Define input points
+%
+% Define input points
 xpin=[dat(:).lon];
 ypin=[dat(:).lat];
 zpin=zeros(1,numel(dat));
 for cnt=1:nstat
    zpin(cnt)=mean([dat(cnt).wl])-refwl(cnt);
 end
-
-%Add offshore points to dataset, if desired
+%
+% Add offshore points to dataset, if desired
 if offshorepointmode==0                 %no offshore points
    xp=xpin;
    yp=ypin;
@@ -172,8 +202,8 @@ elseif any(offshorepointmode==[2,3])    %user-specified offshore points, loaded 
     yp=[ypin,offshfixpnts(:,2).'];
     zp=[zpin,offshfixpnts(:,3).'];
 end
-
-%Define x-y coordinate bounds and arrays based on data bounds and resolution
+% 
+% Define x-y coordinate bounds and arrays based on data bounds and resolution
 xvlo=min(xp)-1;%min(xpin)-2;
 xvhi=max(xp)+1;%max(xpin)+2;
 yvlo=min(yp)-1;%min(ypin)-2;
@@ -184,7 +214,8 @@ xv=linspace(xvlo,xvhi,ceil((xvhi-xvlo)/approxres)+1);
 yv=linspace(yvlo,yvhi,ceil((yvhi-yvlo)/approxres)+1);
 nxv=numel(xv);
 nyv=numel(yv);
-
+%
+%
 if offshorepointmode==3
     xp=[xp, linspace(xvlo,xvhi,10), repmat(xv(end),1,12),   linspace(xvhi,xvlo,10), repmat(xv(1),1,12)];
     yp=[yp, repmat(yv(1),1,10),     linspace(yvlo,yvhi,12), repmat(yv(end),1,10),   linspace(yvhi,yvlo,12)];
@@ -194,9 +225,8 @@ end
 [rd.zg,xg,yg]=RegularizeData3D(xp,yp,zp,xv,yv,'interp',rd.interp,'smoothness',rd.smoothness,...
                                'solver',rd.solver,'extend','warning','tilesize',inf);
 [oi.zg,erroi]=optimalInterp(xp.',yp.',zp.',xg(:),yg(:),oi.Lx,oi.Ly,oi.obsNoise);oi.zg=reshape(oi.zg,size(xg));
-
-
-
+%
+%
 %% Blend interpolants to zero (or other specified value)
 %In the area between the inner and outer bounding lines, for each vertex,
 %compute the shortest distance between the point and each line and use that
@@ -255,9 +285,7 @@ if offblendmode==1
         end
     end
 end
-
-
-
+%
 %% Interpolate to mesh
 if interptomesh==1
     disp('Interpolating to mesh')
@@ -266,8 +294,8 @@ if interptomesh==1
     elseif strcmp(meshinterpmethod,'oi')
         zmesh=interp2(xg,yg,oi.zg,grd.x,grd.y,'linear',meshdefaultz);
     end
-    
-    %write out file
+    %   
+    % write out file
     if any(writeoutfil==[1,-63])
         disp('Saving out')
         nondefaultvals=find(zmesh~=meshdefaultz);
@@ -283,14 +311,12 @@ if interptomesh==1
             fprintf(fidout,'1 1 %i %f\n',numel(nondefaultvals),meshdefaultz);
             fprintf(fidout,'%i  %f\n',[nondefaultvals,zmesh(nondefaultvals)].');
         else
-            error('not sure how you got here, maybe forgot to code up something')
+            error('writeoutfil must be set to either 1 or -63 if interptomesh is set to 1')
         end
         fclose(fidout);
     end
 end
-
-
-
+%
 %% Plots
 if dographs==1
     thecoast=shaperead(['C:\Users\T\Documents\Data\GIS\DetailedAtlGulfCounty']);

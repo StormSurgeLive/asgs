@@ -11,6 +11,9 @@ executed with the following command line:
 
 matlab -nodisplay -nosplash -nodesktop -r "try, run('./datacollectandsurffitV2.m'), catch me, fprintf('%s / %s\n',me.identifier,me.message), end, exit"
 
+Something else to try, with command line options:
+
+matlab -nodisplay -nosplash -nodesktop -r "dodownload=1; try, run('./datacollectandsurffitV2.m'), catch me, fprintf('%s / %s\n',me.identifier,me.message), end, exit"
 
 optimalInterp.m
 
