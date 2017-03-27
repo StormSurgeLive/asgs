@@ -59,7 +59,7 @@ end type netCDFVar_t
 ! Derived data type to represent an xdmf variable within an ADCIRC-related
 ! data file.
 type xdmfVar_t
-   character(NF90_MAX_NAME), allocatable :: varNameXDMF   ! as represented in XDMF XML
+   character(NF90_MAX_NAME) :: varNameXDMF   ! as represented in XDMF XML
    ! the following refer to scalar or vector quantities in XDMF files
    character(len=20) :: dataCenter ! "Node" or "Element" 
    character(len=20) :: dataRank ! e.g. "2DVector" 
@@ -220,7 +220,7 @@ type(mesh_t), intent(in) :: m
 integer :: c ! component counter
 !
 select case(f%dataFileFormat)
-case(NETCDFG) 
+case(NETCDFG,NETCDF3,NETCDF4) 
    do c=1,f%numVarNetCDF
       if ( (m%is3D.eqv..true.).and.(f%ncds(c)%is3D.eqv..true.) ) then
          allocate(f%ncds(c)%rdata3D(f%ncds(c)%numValuesPerDataSet,m%nfen))
@@ -232,18 +232,20 @@ case(NETCDFG)
          endif
       endif
    end do 
-case(ASCIIG) ! memory allocation for subdomain ascii datasets
+case(ASCII,SPARSE_ASCII,ASCIIG) ! memory allocation for subdomain ascii datasets
    if ( (m%is3D.eqv..true.).and.(f%is3D.eqv..true.) ) then
       allocate(f%rdata3D(f%irtype,f%numValuesPerDataSet,m%nfen))
    else
       if (f%isInteger.eqv..true.) then
          allocate(f%idata(f%irtype,f%numValuesPerDataset))
       else
+         write(6,*) 'allocating f%rdata' ! jgfdebug
          allocate(f%rdata(f%irtype,f%numValuesPerDataset))
       endif
    endif
 case default
    call allMessage(ERROR,'Cannot convert full domain files with this format.')
+   stop
 end select
 !----------------------------------------------------------------------
 end subroutine allocateDatasetMemory
@@ -845,6 +847,7 @@ case default
 end select
 !
 ! open the file and determine the number of datasets, sparseness, etc
+lineNum=1 
 select case(fn%dataFileCategory)
 case(MINMAX,STATION,DOMAIN)
    fn%fun = availableUnitNumber()
@@ -935,26 +938,16 @@ character(NF90_MAX_NAME) :: thisVarName
 integer :: nc_dimid(2)
 integer :: i
 !
-write(6,*) 'INFO: Adding data attributes to netCDF file.'
+write(6,*) 'INFO: Adding data attributes to netCDF file.' !jgfdebug
 write(6,*) 'fn%numVarNetCDF=',fn%numVarNetCDF !jgfdebug
-
 !
 ! set the number of values per dataset 
 if ( fn % dataFileCategory .eq. STATION ) then
-   do i=1, fn%numVarNetCDF
-      fn%ncds(i)%numValuesPerDataSet = fn%nStations
-      nc_dimid = (/ fn%nc_dimid_station, fn%nc_dimID_Time /)
-   end do 
+   nc_dimid = (/ fn%nc_dimid_station, fn%nc_dimID_Time /)
 else
-   do i=1, fn%numVarNetCDF
-      fn%ncds(i)%numValuesPerDataSet = m%np ! general case
-      nc_dimid = (/ n%nc_dimid_node, fn%nc_dimID_Time /)
-      if (fn%ncds(i)%isElemental) then
-         nc_dimid = (/ n%nc_dimid_nele, fn%nc_dimID_Time /)
-         fn%ncds(i)%numValuesPerDataSet = m%ne
-      endif
-   end do
+   nc_dimid = (/ n%nc_dimid_node, fn%nc_dimID_Time /)
 endif 
+write(6,*) 'nc_dimid =',nc_dimid ! jgfdebug
 !
 select case(fn%dataFileCategory)
 case(OWI) 
@@ -1479,6 +1472,24 @@ case(MINMAX)
 case default
    write(6,'(a)') 'ERROR: Unable to convert '//trim(fn%defaultFileName)//' files.'
 end select
+!
+! set the number of values per dataset 
+if ( fn % dataFileCategory .eq. STATION ) then
+   do i=1, fn%numVarNetCDF
+      fn%ncds(i)%numValuesPerDataSet = fn%nStations
+      nc_dimid = (/ fn%nc_dimid_station, fn%nc_dimID_Time /)
+   end do 
+else
+   do i=1, fn%numVarNetCDF
+      fn%ncds(i)%numValuesPerDataSet = m%np ! general case
+      nc_dimid = (/ n%nc_dimid_node, fn%nc_dimID_Time /)
+      if (fn%ncds(i)%isElemental) then
+         nc_dimid = (/ n%nc_dimid_nele, fn%nc_dimID_Time /)
+         fn%ncds(i)%numValuesPerDataSet = m%ne
+      endif
+   end do
+endif 
+!
 write(6,*) 'INFO: Finished adding data attributes to netCDF file.'
 !----------------------------------------------------------------------
 end subroutine addDataAttributesNetCDF
@@ -1579,22 +1590,28 @@ end do
 ! XDMF
 fmd % numVarXDMF = numXDMF
 write(6,*) 'num xdmf=',numXDMF ! jgfdebug
-!allocate(fmd%xds(numXDMF))
+allocate(fmd%xds(numXDMF))
 !allocate(fmd%xds(2))
-!do n=1,fmd%numVarXDMF
-!   fmd % xds(n) % varNameXDMF = 'error: not_set'
-!   fmd % xds(n) % numComponents = 1    ! initialize to most common value
-!   fmd % xds(n) % dataCenter = 'Node'  ! initialize to most common value
-!   fmd % xds(n) % numberType = 'Float' ! initialize to most common value
-!   fmd % xds(n) % numberPrecision = 8  ! initialize to most common value
-!end do 
+do n=1,fmd%numVarXDMF
+   fmd % xds(n) % varNameXDMF = 'error: not_set'
+   fmd % xds(n) % numComponents = 1    ! initialize to most common value
+   fmd % xds(n) % dataCenter = 'Node'  ! initialize to most common value
+   fmd % xds(n) % numberType = 'Float' ! initialize to most common value
+   fmd % xds(n) % numberPrecision = 8  ! initialize to most common value
+end do 
 write(6,*) 'xdmf init finished' ! jgfdebug
 fmd % ncds(1) % nc_varType = NF90_DOUBLE ! initialize to most common value
 write(6,*) 'netcdf vartype init finished' ! jgfdebug
 fmd % ncds(1) % varNameNetCDF = firstVarName ! initialize to most common value
 write(6,*) 'netcdf init(1) finished' ! jgfdebug
 !fmd % xds(1) % varNameXDMF = trim(firstVarName) ! initialize to most common value
+
+
+
+
 fmd % initialized = .true. 
+
+
 write(6,*) 'initFileMetaData : return' ! jgfdebug
 !----------------------------------------------------------------------
 end subroutine initFileMetaData
@@ -1685,7 +1702,7 @@ if ( (f%dataFileFormat.eq.NETCDFG).and.(s.gt.f%nSnaps) ) then
 endif
 !
 select case(f%dataFileFormat)
-case(ASCII)
+case(ASCII,ASCIIG)
    !
    ! READ 3D ASCII DATASET HEADER
    !
@@ -1741,10 +1758,16 @@ case(ASCII)
       do n=1,numNodesNonDefault
          read(unit=f%fun,fmt=*,end=246,err=248,iostat=errorio) h, (dtemp(c), c=1,f%irtype)
          l = l + 1
+         !if (allocated(f%rdata).eqv..true.) then
+         !   write(6,*) allocated(f%rdata),'allocated' ! jgfdebug
+         !else
+         !   write(6,*) allocated(f%rdata),'not allocated'! jgfdebug
+         !endif
          f%rdata(1:f%irtype,h) = dtemp(1:f%irtype)
       end do
    endif
-case(NETCDFG)
+case(NETCDFG,NETCDF3,NETCDF4)
+   snapr = f%timesec(s)
    do c=1,f%numVarNetCDF
       ! read single dataset from netcdf
       if (m%is3D.eqv..true.) then
@@ -1768,7 +1791,6 @@ case default
    stop
 end select
 !
-snapr = f%timesec(s)
 if (allocated(f%it).eqv..true.) then
    snapi = f%it(s)
 else
@@ -1913,7 +1935,9 @@ case(ASCII,SPARSE_ASCII,ASCIIG)
    endif
 case(NETCDFG,NETCDF3,NETCDF4)
    call check(nf90_put_var(f%nc_id, f%nc_varid_time, (/snapr/), (/s/), (/1/)))
-   call check(nf90_put_var(f%nc_id, f%nc_varid_it, (/snapi/), (/s/), (/1/)))
+   if (allocated(f%it).eqv..true.) then
+      call check(nf90_put_var(f%nc_id, f%nc_varid_it, (/snapi/), (/s/), (/1/)))
+   endif
    NC_Count = (/ f%numValuesPerDataset, 1 /)
    NC_Start = (/ 1, s /) 
    !
