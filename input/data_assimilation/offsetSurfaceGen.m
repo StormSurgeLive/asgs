@@ -21,8 +21,8 @@
 %--------------------------------------------------------------------------
 %--------------------------------------------------------------------------
 close all
-clearvars -except grd
-clc
+%clearvars -except grd %jgf: this erases variables specified on the command line
+%clc
 mypath='.';
 %
 % jgf: List of command line options required
@@ -44,39 +44,58 @@ mypath='.';
 %   filoffshfixpnts
 %-----------------------------------------------------------------------
 %        I N I T I A L I Z E   P A R A M E T E R S
-%               A N D   F I L E   N A M E S
 %-----------------------------------------------------------------------
 % initialize parameters to default values
 dodownload=1;   % =1 to download gage data, =0 to load differences from a file
 refwlmode=1;    % water level comparison: 0=0.0+const., 1=load in file with adcirc avg at gages
-dographs=1;     % whether to plot stuff
+dographs=0;     % whether to plot stuff
 approxres=0.04; % x-y grid resolution for interpolation
 offshorepointmode=3; % whether to close off with exterior points 0=no, 1=circles of points, 2=offshore points, 3=2 plus attempt to draw a box of zeroes
 offblendmode=1; % whether to blend interpolant surface in a specific area (0=no, 1=yes linear)
 interptomesh=1; % whether to calculate values on mesh (1=yes)
 stopafterdownload=0; %whether to stop the program after downloading data (in order to save the data out to a file)
-writeoutfil=1;  % whether to write oi output file (1=yes in Jason's format, -63=yes as a sparse .63 file)
+writeoutfil=63;  % whether to write oi output file (1=yes in Jason's format, -63=yes as a sparse .63 file, 63=yes as a full .63 file)
 constrefwl=0;   % constant reference water level value
-%
-% initialize file names to default values
+%-----------------------------------------------------------------------
+%        I N I T I A L I Z E   F I L E   N A M E S
+%-----------------------------------------------------------------------
 filfaroff='FarOffV1.mat';  % file containing outer line for blending
 filinl='InlandV1.mat';     % file containing other line for defining bounds of non-zeroed areas
-filrefwl=[mypath,'\refwl_adcircAvgTo18Z4Oct2016.txt'];  % ref (adcirc) wl file
+filrefwl=[mypath,'/adcircAvg.dat'];  % ref (adcirc) wl file
 % file with measured wl data
 % jgf: question: "Taylor the comment and file name imply that these are measured
 % water levels but I think you mentioned in an email that this is 
 % actually water level differences. Can you clarify?"
-filwldata=[mypath,'\MeasWLsForTwoM2CycleMatthewOct5_23colon15Z_OIRun1.mat'];    
-filmesh='../NOMAD1e.grd';          % mesh file
-filoffshfixpnts=[mypath,'\CloseOffV1.mat'];% for bounding offshore/inland values
-filout=[mypath,'\renamemebrah'];   % oi output file name
-%
+filwldata=[mypath,'/MeasWLsForTwoM2CycleMatthewOct5_23colon15Z_OIRun1.mat'];    
+filmesh='./fort.14';          % mesh file
+filoffshfixpnts=[mypath,'/CloseOffV1.mat'];% for bounding offshore/inland values
+filout=[mypath,'/oi_surface.dat'];   % oi output file name
+%-----------------------------------------------------------------------
+%      I N I T I A L I Z E   G A G E   P A R A M E T E R S
+%-----------------------------------------------------------------------
 % initialize parameters related to gage data
 % TODO: set start and stop dates/times on command line
-start=datenum([2016,08,29,12,00,00])+3042576/86400;
-stop=datenum([2016,08,29,12,00,00])+3132000/86400;
+% startSeconds=2902188; stopSeconds=2991600; % matthew adv20 2xM2
+%startSeconds=2923788; stopSeconds=3013200; % matthew adv21 2xM2
+%startSeconds=2945388; stopSeconds=3034800; % matthew adv22 2xM2
+%startSeconds=2966988; stopSeconds=3056400; % matthew adv23 2xM2
+% 2x m2 tidal cycles
+%filrefwl=[mypath,['/col5.filtered.' num2str(adv) '.adcircAvg.dat']];  % ref (adcirc) wl file
+% 14x m2 tidal cycles
+%filrefwl=[mypath,['/col5.filtered.' num2str(adv) '.14x.adcircAvg.dat']];  % ref (adcirc) wl file
+% 2x m2 tidal cycles without cape fear river
+%filrefwl=[mypath,['/col5.filtered.' num2str(adv) '.nocfr.adcircAvg.dat']];  % ref (adcirc) wl file
+% 2x m2 tidal cycles without springmaid pier
+filrefwl=[mypath,['/col5.filtered.' num2str(adv) '.nosmp.adcircAvg.dat']];  % ref (adcirc) wl file
+%
+start=datenum([2016,08,29,12,00,00])+startSeconds/86400;
+stop=datenum([2016,08,29,12,00,00])+stopSeconds/86400;
 % TODO: load stations from file
-stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8661070;8658120;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];
+%stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8661070;8658120;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];
+% without the cape fear river
+%stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8661070;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];
+% without springmaid pier
+stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8658120;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];
 stationid=mat2cell(num2str(stationnum),ones(numel(stationnum),1),7);
 %     stationname={'Springmaid';'Wilmington';'Wrightsville';'Beaufort';'Hatteras';'Oregon' ;'Duck'   ;'ChesaBridge';'Sewells'};
 datatype='VerifiedSixMinute';           %'PreliminarySixMinute', 'VerifiedHourlyHeight', etc.
@@ -111,7 +130,7 @@ oi.obsNoise=0.001;      %signal to noise ratio
 % For mesh
 meshdefaultz=outsidedefaultz;           %default value for mesh
 meshinterpmethod='oi';                  %which method to use ('oi' or 'rd')
-if any(writeoutfil==[1,-63])
+if any(writeoutfil==[1,-63,63])
    timeinterval=0;
 end
 %
@@ -120,12 +139,21 @@ if offblendmode==1&&~any(offshorepointmode==[2,3])
     error('offblendmode=1 and offshorepointmode=2 or =3')
 end
 %
+% load mesh only if it hasn't been done previously
+if interptomesh==1
+    if ~exist('grd','var')==1||~isfield(grd,'filmesh')||~strcmp(grd.filmesh,filmesh)
+        grd=readfort14(filmesh);
+%         grd.fil=filmesh;
+    end
+end
+%
 %% Load/download measured data
 disp('Loading data')
 if dodownload==1
     nodata=zeros(nstat,1);
     for cnt=1:nstat
-        tmp=GetNosWaterLevelViaSOSv4_8('station',stationid{cnt},'start',start,'stop',stop,'datatype',datatype,'units',units,'vertdatum',vertdatum);
+%        tmp=GetNosWaterLevelViaSOSv4_8('station',stationid{cnt},'start',start,'stop',stop,'datatype',datatype,'units',units,'vertdatum',vertdatum);
+        tmp=GetNosWaterLevelViaSOSv4_6('station',stationid{cnt},'start',start,'stop',stop,'datatype',datatype,'units',units,'vertdatum',vertdatum);
         if ~isempty(tmp)
             dat(cnt)=tmp;
         else
@@ -145,14 +173,6 @@ if refwlmode==0
     refwl=zeros(nstat,1)+constrefwl;
 elseif refwlmode==1
     refwl=load(filrefwl,'-ascii');
-end
-%
-% load mesh only if it hasn't been done previously
-if interptomesh==1
-    if ~exist('grd','var')==1||~isfield(grd,'filmesh')||~strcmp(grd.filmesh,filmesh)
-        grd=readfort14(filmesh);
-%         grd.fil=filmesh;
-    end
 end
 %
 % Load in offshore points if that's the chosen mode of operation
@@ -296,9 +316,8 @@ if interptomesh==1
     end
     %   
     % write out file
-    if any(writeoutfil==[1,-63])
+    if any(writeoutfil==[1,-63,63])
         disp('Saving out')
-        nondefaultvals=find(zmesh~=meshdefaultz);
         fidout=fopen(filout,'w');
         if writeoutfil==1
             fprintf(fidout,'header\n');
@@ -306,9 +325,17 @@ if interptomesh==1
             fprintf(fidout,'%f    !default value\n',meshdefaultz);
             fprintf(fidout,'%i  %f\n',[nondefaultvals,zmesh(nondefaultvals)].');
         elseif writeoutfil==-63
+            nondefaultvals=find(zmesh~=meshdefaultz);
             fprintf(fidout,'header\n');
             fprintf(fidout,'1 %i 1 %f 1\n',grd.np,timeinterval);
             fprintf(fidout,'1 1 %i %f\n',numel(nondefaultvals),meshdefaultz);
+            fprintf(fidout,'%i  %f\n',[nondefaultvals,zmesh(nondefaultvals)].');
+        elseif writeoutfil==63
+            meshdefaultz=-99999;
+            nondefaultvals=find(zmesh~=meshdefaultz);
+            fprintf(fidout,'header\n');
+            fprintf(fidout,'1 %i -99999.0 1 1\n',grd.np);
+            fprintf(fidout,'%f -99999\n',stopSeconds);
             fprintf(fidout,'%i  %f\n',[nondefaultvals,zmesh(nondefaultvals)].');
         else
             error('writeoutfil must be set to either 1 or -63 if interptomesh is set to 1')
