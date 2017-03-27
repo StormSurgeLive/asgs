@@ -207,9 +207,6 @@ if (f%dataFileCategory.eq.NODALATTRIBF) then
    call readNodalAttributesFile(adataFileName)
    call writeNodalAttributesFileNetCDF(f%nc_id, m, n, deflate)
    stop
-else
-   ! now that the mesh has been read, add associated metadata to the new netcdf file
-   call addDataAttributesNetCDF(f, m, n)
 endif
 !
 ! Create time dimension and units attributes
@@ -220,6 +217,9 @@ if ((meshonly.eqv..false.).and.(f%timeVarying.eqv..true.)) then
    call check(nf90_put_att(f%nc_id,f%nc_varid_time,'standard_name','time'))
    call check(nf90_put_att(f%nc_id,f%nc_varid_time,'units',f%datenum))
 endif
+
+! now that the mesh has been read, add associated metadata to the new netcdf file
+call addDataAttributesNetCDF(f, m, n)
 !      
 ! create adcirc output variables and associated attributes
 #ifdef NETCDF_CAN_DEFLATE
@@ -269,6 +269,9 @@ if (f%isGridded.eqv..true.) then
       ! y before x according to netcdf specification in fortran api
       allocate(owi2(1:f%iLatOWI,1:f%iLonOWI))
    endif
+else
+   f%dataFileFormat = ASCIIG
+   call allocateDataSetMemory(f, m)
 endif
 !
 ! Read ascii data and write to netcdf file
