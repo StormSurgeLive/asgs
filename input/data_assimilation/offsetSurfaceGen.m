@@ -21,123 +21,247 @@
 %--------------------------------------------------------------------------
 %--------------------------------------------------------------------------
 close all
-%clearvars -except grd %jgf: this erases variables specified on the command line
-%clc
+%
+% jgf: Check to see if command line options were specified; if so, 
+% assume this script is being run in batch mode on an HPC system.
+% If not, assume the script is being run in interactive mode on a
+% Windows or Mac system.
+if exist('commandLineOptions','var')==0
+   pathSep='/'; % linux-style path separator
+else
+   pathSep='\'; %'% windows-style path separator
+   clearvars -except grd %jgf: this uninitializes variables specified on the command line
+   clc
+end
 mypath='.';
 %
-% jgf: List of command line options required
-% parameters
-%   dodownload
-%   refwlmode
-%   dographs
-%   approxres
-%   offblendmode
-%   interptomesh
-%   stopafterdownload
-% files
-%   filfaroff
-%   filinl
-%   filwldata
-%   filrefwl
-%   filmesh
-%   filout
-%   filoffshfixpnts
 %-----------------------------------------------------------------------
 %        I N I T I A L I Z E   P A R A M E T E R S
 %-----------------------------------------------------------------------
-% initialize parameters to default values
-dodownload=1;   % =1 to download gage data, =0 to load differences from a file
-refwlmode=1;    % water level comparison: 0=0.0+const., 1=load in file with adcirc avg at gages
-dographs=0;     % whether to plot stuff
-approxres=0.04; % x-y grid resolution for interpolation
-offshorepointmode=3; % whether to close off with exterior points 0=no, 1=circles of points, 2=offshore points, 3=2 plus attempt to draw a box of zeroes
-offblendmode=1; % whether to blend interpolant surface in a specific area (0=no, 1=yes linear)
-interptomesh=1; % whether to calculate values on mesh (1=yes)
-stopafterdownload=0; %whether to stop the program after downloading data (in order to save the data out to a file)
-writeoutfil=63;  % whether to write oi output file (1=yes in Jason's format, -63=yes as a sparse .63 file, 63=yes as a full .63 file)
-constrefwl=0;   % constant reference water level value
+% dodownload=1 : download gage data and compute difference from reference water level 
+% dodownload=0 : load differences from a file
+if exist('dodownload','var')==0
+   dodownload=1;   
+end 
+% water level comparison: 
+%   refwlmode=0 : reference water level set to 0.0 + constrefwl 
+%   refwlmode=1 : load in file with adcirc average at gage locations
+if exist('refwlmode','var')==0
+   refwlmode=1;    
+end
+% only show the plots if dographs=1
+if exist('dographs','var')==0
+   if exist('commandLineOptions','var')==0
+      dographs=1;  % show plots by default in interactive execution
+   else
+      dographs=0;  % suppress plots by default in HPC execution   
+   end
+end
+% x-y grid resolution for interpolation
+if exist('approxres','var')==0
+   approxres=0.04; 
+end
+% offshorepointmode : whether to close off with exterior points 
+% =0 : no
+% =1 : circles of points
+% =2 : offshore points
+% =3 : same as 2 plus attempt to draw a box of zeroes
+if exist('offshorepointmode','var')==0
+   offshorepointmode=3; 
+end
+% offblendmode % whether to blend interpolant surface in a specific area
+% =0 : no
+% =1 : yes, linear
+if exist('offblendmode','var')==0
+   offblendmode=1; 
+end
+% interptomesh : whether to produce offset surface values at mesh nodes
+% =1 : yes
+if exist('interptomesh','var')==0
+   interptomesh=1; 
+end
+% stopafterdownload : whether to stop the program after downloading data 
+% and save the data out to a file rather than proceeding with the calculation
+% =1 : yes
+if exist('stopafterdownload','var')==0
+   stopafterdownload=0; 
+end
+% writeoutfil : whether to write oi output file
+% =0 : no
+% =1 : yes in format suitable for reading into ADCIRC as offset surface
+% =-63 : yes as a sparse .63 file
+% =63 : yes as a "full" .63 file
+if exist('writeoutfil','var')==0
+   writeoutfil=1;  
+end
+if any(writeoutfil==[1,-63,63])
+   timeinterval=-99999.0;  % time interval between datasets in fort.63 file 
+end
+% constrefwl : constant reference water level value, only used if refwlmode
+% is set to 0 
+if exist('constrefwl','var')==0
+   constrefwl=0;   
+end
 %-----------------------------------------------------------------------
 %        I N I T I A L I Z E   F I L E   N A M E S
 %-----------------------------------------------------------------------
-filfaroff='FarOffV1.mat';  % file containing outer line for blending
-filinl='InlandV1.mat';     % file containing other line for defining bounds of non-zeroed areas
-filrefwl=[mypath,'/adcircAvg.dat'];  % ref (adcirc) wl file
+% jgf: TODO: need to document the data are in these mat files
+%
+% file containing outer line for blending
+if exist('filfaroff','var')==0
+   filfaroff=[mypath,[pathSep,'FarOffV1.mat']]; 
+end
+% file containing other line for defining bounds of non-zeroed areas
+if exist('filinl','var')==0
+   filinl=[mypath,[pathSep,'InlandV1.mat']]; 
+end
+% reference (adcirc) water level file
+if exist('filrefwl','var')==0
+   filrefwl=[mypath,[pathSep,'adcircAvg.dat']];  
+end
 % file with measured wl data
-% jgf: question: "Taylor the comment and file name imply that these are measured
-% water levels but I think you mentioned in an email that this is 
-% actually water level differences. Can you clarify?"
-filwldata=[mypath,'/MeasWLsForTwoM2CycleMatthewOct5_23colon15Z_OIRun1.mat'];    
-filmesh='./fort.14';          % mesh file
-filoffshfixpnts=[mypath,'/CloseOffV1.mat'];% for bounding offshore/inland values
-filout=[mypath,'/oi_surface.dat'];   % oi output file name
+if exist('filwldata','var')==0
+   filwldata=[mypath,[pathSep,'MeasWLsForTwoM2CycleMatthewOct5_23colon15Z_OIRun1.mat']];
+end
+% mesh file
+if exist('filmesh','var')==0
+   filmesh=[mypath,[pathSep,'fort.14']]; 
+end
+% text file containing stations of interest, in standard ADCIRC station metadata format
+if exist('filstations','var')==0
+   filstations=[mypath,[pathSep,'stations.txt']]; 
+end
+% for bounding offshore/inland values
+if exist('filoffshfixpnts','var')==0
+   filoffshfixpnts=[mypath,[pathSep,'CloseOffV1.mat']]; 
+end
+% oi output file name
+if exist('filout','var')==0
+   filout=[mypath,[pathSep,'oi_surface.dat']];
+end
 %-----------------------------------------------------------------------
 %      I N I T I A L I Z E   G A G E   P A R A M E T E R S
 %-----------------------------------------------------------------------
-% initialize parameters related to gage data
-% TODO: set start and stop dates/times on command line
-% startSeconds=2902188; stopSeconds=2991600; % matthew adv20 2xM2
-%startSeconds=2923788; stopSeconds=3013200; % matthew adv21 2xM2
-%startSeconds=2945388; stopSeconds=3034800; % matthew adv22 2xM2
-%startSeconds=2966988; stopSeconds=3056400; % matthew adv23 2xM2
-% 2x m2 tidal cycles
-%filrefwl=[mypath,['/col5.filtered.' num2str(adv) '.adcircAvg.dat']];  % ref (adcirc) wl file
-% 14x m2 tidal cycles
-%filrefwl=[mypath,['/col5.filtered.' num2str(adv) '.14x.adcircAvg.dat']];  % ref (adcirc) wl file
-% 2x m2 tidal cycles without cape fear river
-%filrefwl=[mypath,['/col5.filtered.' num2str(adv) '.nocfr.adcircAvg.dat']];  % ref (adcirc) wl file
-% 2x m2 tidal cycles without springmaid pier
-filrefwl=[mypath,['/col5.filtered.' num2str(adv) '.nosmp.adcircAvg.dat']];  % ref (adcirc) wl file
+% If the time range of the averaged ADCIRC data is expressed as 
+% a cold start date/time and number of seconds since cold start to 
+% start and end the comparison period, then these timing parameters
+% may also be supplied here to define the period of measured data
+% to be downloaded. 
+if exist('timesecStart','var')==0
+   timesecStart=0;  % seconds from adcirc cold start to start of averaging period
+end
+if exist('timesecEnd','var')==0
+   timesecEnd=86400; % seconds from adcirc cold start to end of averaging period
+end
+if exist('csyear','var')==0
+   csyear=2000; % year of cold start
+end
+if exist('csmonth','var')==0
+   csmonth=1; % month of cold start
+end
+if exist('csday','var')==0
+   csday=1; % day of cold start
+end
+if exist('cshour','var')==0
+   cshour=0; % hour of cold start
+end
+if exist('csmin','var')==0
+   csmin=0; % minute of cold start
+end
+if exist('cssec','var')==0
+   cssec=0 ; % second of cold start
+end
+if exist('datatype','var')==0
+   datatype='VerifiedSixMinute'; %'PreliminarySixMinute', 'VerifiedHourlyHeight', etc.
+end
+if exist('units','var')==0
+   units='Meters';
+end
+if exist('vertdatum','var')==0
+   vertdatum='MSL';
+end
+if exist('timefmt','var')==0
+   timefmt='yyyy-mm-ddTHH:MM:SSZ';
+end
+%-----------------------------------------------------------------------
+%           I N I T I A L I Z E   S U R F A C E   
+%         G E N E R A T I O N   P A R A M E T E R S
+%-----------------------------------------------------------------------
 %
-start=datenum([2016,08,29,12,00,00])+startSeconds/86400;
-stop=datenum([2016,08,29,12,00,00])+stopSeconds/86400;
-% TODO: load stations from file
-%stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8661070;8658120;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];
-% without the cape fear river
-%stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8661070;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];
-% without springmaid pier
-stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8658120;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];
-stationid=mat2cell(num2str(stationnum),ones(numel(stationnum),1),7);
-%     stationname={'Springmaid';'Wilmington';'Wrightsville';'Beaufort';'Hatteras';'Oregon' ;'Duck'   ;'ChesaBridge';'Sewells'};
-datatype='VerifiedSixMinute';           %'PreliminarySixMinute', 'VerifiedHourlyHeight', etc.
-units='Meters';
-vertdatum='MSL';
-timefmt='yyyy-mm-ddTHH:MM:SSZ';
-nstat=numel(stationnum);
+% For RegularizeData3D
+if exist('rdsmoothness=','var')==0
+   rd.smoothness=0.001; %weight between smoothness and fitting data (lower equals less smooth)
+else
+   rd.smoothness=rdsmoothness;
+end
+if exist('rdinterp','var')==0
+   rd.interp='bilinear';   %method to interpolate data (triangle, bicubic, bilinear, nearest) 
+else
+   rd.interp=rdinterp;
+end
+if exist('rdsolver','var')==0
+   rd.solver='\';          %'%solver method (normal, \, symlq, lsqr)
+else
+   rd.solver=rdsolver;
+end
+% rd.npntgrid=200;      %number of points (in each direction) for underlying gridding of data
+if exist('approxres','var')==0
+   rd.approxres=approxres; %approximate resolution (in each direction) for underlying gridding of data
+end
+%
+% For optimalInterp
+if exist('oilx','var')==0
+   oi.Lx=1.0;   %radius of influence in x (help says Gaussian function, so this is prob a stdev or var)
+else
+   oi.Lx=oiLx;
+end
+oi.Ly=oi.Lx;    %same, in y
+if exist('oiobsnoise','var')==0
+   oi.obsNoise=0.001;      %signal to noise ratio
+else
+   oi.obsNoise=oiobsnoise;      %signal to noise ratio
+end
+%
+% For mesh
+meshdefaultz=outsidedefaultz;           %default value for mesh
+if exist('meshinterpmethod','var')==0
+   meshinterpmethod='oi';                  %which method to use ('oi' or 'rd')
+end
+%-----------------------------------------------------------------------
+%             B E G I N   E X E C U T I O N
+%-----------------------------------------------------------------------
 %
 % For bounding offshore/inland values
 if offshorepointmode==1
     circledist=4;  % how far out the circle should be (same units as input data)
 end
-%
-% initialize blending of interpolant surface in a specific area if specified
-filfaroff='FarOffV1.mat';       % outer line for blending
-filinl='InlandV1.mat';          % other line for defining bounds of non-zeroed areas
 outsideblendz=0;                % value to blend to at the faroff boundary
 outsidedefaultz=outsideblendz;  % default elevation value for areas that aren't to be interpolated
 %
-% For RegularizeData3D
-rd.smoothness=0.001;    %weight between smoothness and fitting data (lower equals less smooth)
-rd.interp='bilinear';   %method to interpolate data (triangle, bicubic, bilinear, nearest)
-rd.solver='\';          %'%solver method (normal, \, symlq, lsqr)
-% rd.npntgrid=200;      %number of points (in each direction) for underlying gridding of data
-rd.approxres=approxres; %approximate resolution (in each direction) for underlying gridding of data
-%
-% For optimalInterp
-oi.Lx=1.0;              %radius of influence in x (help says Gaussian function, so this is prob a stdev or var)
-oi.Ly=oi.Lx;            %same, in y
-oi.obsNoise=0.001;      %signal to noise ratio
-%
-% For mesh
-meshdefaultz=outsidedefaultz;           %default value for mesh
-meshinterpmethod='oi';                  %which method to use ('oi' or 'rd')
-if any(writeoutfil==[1,-63,63])
-   timeinterval=0;
-end
-%
-%% Error checking (this prob needs to be filled out more)
+% Error checking (this prob needs to be filled out more)
 if offblendmode==1&&~any(offshorepointmode==[2,3])
     error('offblendmode=1 and offshorepointmode=2 or =3')
 end
+%
+% TODO: load stations from file
+%
+%stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8661070;8658120;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];
+% without the cape fear river
+%stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8661070;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];
+% without springmaid pier
+%
+% jgf: TODO: parse station IDs from station file in adcirc standard format
+stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8658120;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];
+%     stationname={'Springmaid';'Wilmington';'Wrightsville';'Beaufort';'Hatteras';'Oregon' ;'Duck'   ;'ChesaBridge';'Sewells'};
+
+% jgf: FIXME: This assumes all station IDs are seven digit integers
+stationid=mat2cell(num2str(stationnum),ones(numel(stationnum),1),7);
+nstat=numel(stationnum); % compute number of stations
+%start=datenum([2016,08,29,12,00,00])+startSeconds/86400;
+%stop=datenum([2016,08,29,12,00,00])+stopSeconds/86400;
+% compute start and end dates
+start=datenum([csyear,csmonth,csday,cshour,csmin,cssec])+timesecStart/86400;
+stop=datenum([csyear,csmonth,csday,cshour,csmin,cssec])+timesecEnd/86400;
 %
 % load mesh only if it hasn't been done previously
 if interptomesh==1
@@ -148,12 +272,11 @@ if interptomesh==1
 end
 %
 %% Load/download measured data
-disp('Loading data')
 if dodownload==1
+    disp('INFO: offsetSurfaceGen.m: Downloading measured gage data.')
     nodata=zeros(nstat,1);
     for cnt=1:nstat
-%        tmp=GetNosWaterLevelViaSOSv4_8('station',stationid{cnt},'start',start,'stop',stop,'datatype',datatype,'units',units,'vertdatum',vertdatum);
-        tmp=GetNosWaterLevelViaSOSv4_6('station',stationid{cnt},'start',start,'stop',stop,'datatype',datatype,'units',units,'vertdatum',vertdatum);
+    tmp=GetNosWaterLevelViaSOSv4_8('station',stationid{cnt},'start',start,'stop',stop,'datatype',datatype,'units',units,'vertdatum',vertdatum);
         if ~isempty(tmp)
             dat(cnt)=tmp;
         else
@@ -164,14 +287,19 @@ if dodownload==1
         return % so you can save the data, rather than re-downloading every time
     end
 elseif dodownload==0
+    disp('INFO: offsetSurfaceGen.m: Loading measured gage data from file.')
     load(filwldata)
     nstat=numel(dat);
 end
 %
 % Set or load reference water level data
 if refwlmode==0
+    disp('INFO: offsetSurfaceGen.m: Setting constant reference water level.')
     refwl=zeros(nstat,1)+constrefwl;
 elseif refwlmode==1
+    % jgf: TODO: make this read the file written by stationProcessor.f90 also
+    % may have to add a file format parameter to command line options
+    disp('INFO: offsetSurfaceGen.m: Loading reference (adcirc) water level data from file.')
     refwl=load(filrefwl,'-ascii');
 end
 %
@@ -185,7 +313,7 @@ if any(offshorepointmode==[2,3,4])
 end
 %
 % Ansys
-disp('Analyzing')
+disp('INFO: offsetSurfaceGen.m: Computing offset surface.')
 %
 % Define input points
 xpin=[dat(:).lon];
@@ -270,8 +398,7 @@ end
 %You now have an updated lattice of values ready for bi-whatever
 %interpolation that gives a smooth answer that goes to zero.  
 if offblendmode==1
-    disp('Blending')
-    
+    disp('INFO: offsetSurfaceGen.m: Blending interpolants to zero or other specified value.')   
     %Make big polygon that surrounds all non-default points
     if all(faroffpnts(1,:)==inlpnts(end,:)&faroffpnts(end,:)==inlpnts(1,:))
         nondefpoly=[faroffpnts;inlpnts(2:end-1,:)];
@@ -308,7 +435,7 @@ end
 %
 %% Interpolate to mesh
 if interptomesh==1
-    disp('Interpolating to mesh')
+    disp('INFO: offsetSurfaceGen.m: Interpolating offset surface to mesh.')
     if strcmp(meshinterpmethod,'rd')
         zmesh=interp2(xg,yg,rd.zg,grd.x,grd.y,'linear',meshdefaultz);
     elseif strcmp(meshinterpmethod,'oi')
@@ -317,6 +444,7 @@ if interptomesh==1
     %   
     % write out file
     if any(writeoutfil==[1,-63,63])
+        disp('INFO: offsetSurfaceGen.m: Saving offset surface to file.')
         disp('Saving out')
         fidout=fopen(filout,'w');
         if writeoutfil==1
@@ -338,7 +466,7 @@ if interptomesh==1
             fprintf(fidout,'%f -99999\n',stopSeconds);
             fprintf(fidout,'%i  %f\n',[nondefaultvals,zmesh(nondefaultvals)].');
         else
-            error('writeoutfil must be set to either 1 or -63 if interptomesh is set to 1')
+            error('writeoutfil must be set to either 1, 63, or -63 if interptomesh is set to 1')
         end
         fclose(fidout);
     end
