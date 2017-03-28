@@ -129,7 +129,8 @@ if exist('filmesh','var')==0
 end
 % text file containing stations of interest, in standard ADCIRC station metadata format
 if exist('filstations','var')==0
-   filstations=[mypath,[pathSep,'stations.txt']]; 
+   useDefaultStationList=true
+   disp('INFO: Stations file name was not specified. Using a default stations list.')
 end
 % for bounding offshore/inland values
 if exist('filoffshfixpnts','var')==0
@@ -243,64 +244,91 @@ if offblendmode==1&&~any(offshorepointmode==[2,3])
     error('offblendmode=1 and offshorepointmode=2 or =3')
 end
 %
-% TODO: load stations from file
-%
-%stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8661070;8658120;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];
-% without the cape fear river
-%stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8661070;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];
-% without springmaid pier
-%
-% jgf: TODO: parse station IDs from station file in adcirc standard format
-stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8658120;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];
-%     stationname={'Springmaid';'Wilmington';'Wrightsville';'Beaufort';'Hatteras';'Oregon' ;'Duck'   ;'ChesaBridge';'Sewells'};
-
-% jgf: FIXME: This assumes all station IDs are seven digit integers
-stationid=mat2cell(num2str(stationnum),ones(numel(stationnum),1),7);
-nstat=numel(stationnum); % compute number of stations
-%start=datenum([2016,08,29,12,00,00])+startSeconds/86400;
-%stop=datenum([2016,08,29,12,00,00])+stopSeconds/86400;
+% load stations from file in standard ADCIRC station metadata format, e.g.:
+%   lon deg E   lat deg N  ! stationID ! agency   ! description ! datum 
+% -81.80867700 24.55500000 ! 8724580 ! NOAA NOS ! Key West ! MSL
+if useDefaultStationsList==false
+   if exist('filstations','file')==0
+      error(['offsetSurfaceGen.m: The stations file' filstations 'was not found.'])
+   end
+   stationFileID=fopen(filstations)
+   if stationFileID==-1
+      error(['offsetSurfaceGen.m: Failed to open station file ' filstations '.'])
+   end
+   % read the station data 
+   [stationLon,stationLat,bang1,stationid,bang2,agency,bang3,description,bang4,datum] = textscan(stationFileID,'%f %f %s %s %s %s %s %s %s %s') % lo la !  id !  ag !  ds !  da 
+   status = fclose(stationFileID)
+   if status==-1
+      error(['offsetSurfaceGen.m: Failed to close station file ' filstations '.'])
+   end
+   nstat=numel(stationid); % compute number of stations
+else
+   stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8661070;8658120;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];   
+   stationid=mat2cell(num2str(stationnum),ones(numel(stationnum),1),7);
+   nstat=numel(stationnum); % compute number of stations
+end
 % compute start and end dates
 start=datenum([csyear,csmonth,csday,cshour,csmin,cssec])+timesecStart/86400;
 stop=datenum([csyear,csmonth,csday,cshour,csmin,cssec])+timesecEnd/86400;
 %
 % load mesh only if it hasn't been done previously
 if interptomesh==1
-    if ~exist('grd','var')==1||~isfield(grd,'filmesh')||~strcmp(grd.filmesh,filmesh)
-        grd=readfort14(filmesh);
+   if ~exist('grd','var')==1||~isfield(grd,'filmesh')||~strcmp(grd.filmesh,filmesh)
+      grd=readfort14(filmesh);
 %         grd.fil=filmesh;
-    end
+   end
 end
 %
 %% Load/download measured data
 if dodownload==1
-    disp('INFO: offsetSurfaceGen.m: Downloading measured gage data.')
-    nodata=zeros(nstat,1);
-    for cnt=1:nstat
-    tmp=GetNosWaterLevelViaSOSv4_8('station',stationid{cnt},'start',start,'stop',stop,'datatype',datatype,'units',units,'vertdatum',vertdatum);
-        if ~isempty(tmp)
-            dat(cnt)=tmp;
-        else
-            nodata(cnt)=1;
-        end
-    end
-    if stopafterdownload==1
-        return % so you can save the data, rather than re-downloading every time
-    end
+   disp('INFO: offsetSurfaceGen.m: Downloading measured gage data.')
+   nodata=zeros(nstat,1);
+   for cnt=1:nstat
+      tmp=GetNosWaterLevelViaSOSv4_8('station',stationid{cnt},'start',start,'stop',stop,'datatype',datatype,'units',units,'vertdatum',vertdatum);
+      if ~isempty(tmp)
+         dat(cnt)=tmp;
+      else
+         nodata(cnt)=1;
+      end
+   end
+   if stopafterdownload==1
+      return % so you can save the data, rather than re-downloading every time
+   end
 elseif dodownload==0
-    disp('INFO: offsetSurfaceGen.m: Loading measured gage data from file.')
-    load(filwldata)
-    nstat=numel(dat);
+   disp('INFO: offsetSurfaceGen.m: Loading measured gage data from file.')
+   load(filwldata)
+   nstat=numel(dat);
 end
 %
 % Set or load reference water level data
 if refwlmode==0
-    disp('INFO: offsetSurfaceGen.m: Setting constant reference water level.')
-    refwl=zeros(nstat,1)+constrefwl;
+   disp('INFO: offsetSurfaceGen.m: Setting constant reference water level.')
+   refwl=zeros(nstat,1)+constrefwl;
 elseif refwlmode==1
-    % jgf: TODO: make this read the file written by stationProcessor.f90 also
-    % may have to add a file format parameter to command line options
-    disp('INFO: offsetSurfaceGen.m: Loading reference (adcirc) water level data from file.')
-    refwl=load(filrefwl,'-ascii');
+   % read a single column of unadorned numbers in ascii format and use as-is
+   disp('INFO: offsetSurfaceGen.m: Loading single column of reference (adcirc) water level data from file.')
+   refwl=load(filrefwl,'-ascii');
+elseif refwlmode=2
+   % read the file as written by stationProcessor.f90
+   disp('INFO: offsetSurfaceGen.m: Loading reference (adcirc) water level data from file as written by stationProcessor.f90.')
+   %# rundes: cy:MATTHEW47 ASGS runid:nowcast agrid:not_set
+   %# stationID ! operationType ! timestart(s) ! timeend(s) ! (result ! numObservations (c=1,num_components))
+   if exist('filstations','file')==0
+      error(['offsetSurfaceGen.m: The stations file' filstations 'was not found.'])
+   end
+   stationFileID=fopen(filstations)
+   if stationFileID==-1
+      error(['offsetSurfaceGen.m: Failed to open station file ' filstations '.'])
+   end
+   % read the station data 
+   [stationLon,stationLat,bang1,stationid,bang2,agency,bang3,description,bang4,datum] = textscan(stationFileID,'%f %f %s %s %s %s %s %s %s %s') % lo la !  id !  ag !  ds !  da 
+   status = fclose(stationFileID)
+   if status==-1
+      error(['offsetSurfaceGen.m: Failed to close station file ' filstations '.'])
+   end
+   nstat=numel(stationid); % compute number of stations
+else
+   error('offsetSurfaceGen.m: The refwlmode parameter must be set to 0, 1, or 2.')
 end
 %
 % Load in offshore points if that's the chosen mode of operation
