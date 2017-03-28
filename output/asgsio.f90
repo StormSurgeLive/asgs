@@ -133,6 +133,10 @@ integer :: errorIO
 ! open the netcdf file
 call check(nf90_open(trim(f%dataFileName), NF90_NOWRITE, f%nc_id))
 !
+! set the agrid value (mesh comment line)
+m%agrid='agrid:not_set'
+call readMeshCommentLineNetCDF(m, f%nc_id)
+!
 ! determine the type of data stored in the file
 call check(nf90_inquire(f%nc_id, f%ndim, f%nvar, f%natt, f%nc_dimid_time, f%ncformat))
 if ( (f%ncformat.eq.nf90_format_netcdf4).or. &
