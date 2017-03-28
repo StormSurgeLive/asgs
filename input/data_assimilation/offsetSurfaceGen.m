@@ -244,14 +244,15 @@ if offblendmode==1&&~any(offshorepointmode==[2,3])
     error('offblendmode=1 and offshorepointmode=2 or =3')
 end
 %
-% load stations from file in standard ADCIRC station metadata format, e.g.:
+% load stations list from file in standard ADCIRC station metadata format, e.g.:
 %   lon deg E   lat deg N  ! stationID ! agency   ! description ! datum 
 % -81.80867700 24.55500000 ! 8724580 ! NOAA NOS ! Key West ! MSL
+% This station list will be used to download measured data.
 if useDefaultStationsList==false
    if exist('filstations','file')==0
       error(['offsetSurfaceGen.m: The stations file' filstations 'was not found.'])
    end
-   stationFileID=fopen(filstations)
+   stationFileID=fopen(filstations,'r')
    if stationFileID==-1
       error(['offsetSurfaceGen.m: Failed to open station file ' filstations '.'])
    end
@@ -263,6 +264,7 @@ if useDefaultStationsList==false
    end
    nstat=numel(stationid); % compute number of stations
 else
+   % set some default list of stations
    stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8661070;8658120;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];   
    stationid=mat2cell(num2str(stationnum),ones(numel(stationnum),1),7);
    nstat=numel(stationnum); % compute number of stations
@@ -310,31 +312,43 @@ elseif refwlmode==1
    refwl=load(filrefwl,'-ascii');
 elseif refwlmode=2
    % read the file as written by stationProcessor.f90
-   disp('INFO: offsetSurfaceGen.m: Loading reference (adcirc) water level data from file as written by stationProcessor.f90.')
+   disp(['INFO: offsetSurfaceGen.m: Loading reference (adcirc) water level data from the file ' filrefwl ' (specified by the parameter filrefwl, as written by stationProcessor.f90.'])
    %# rundes: cy:MATTHEW47 ASGS runid:nowcast agrid:not_set
    %# stationID ! operationType ! timestart(s) ! timeend(s) ! (result ! numObservations (c=1,num_components))
-   if exist('filstations','file')==0
-      error(['offsetSurfaceGen.m: The stations file' filstations 'was not found.'])
+   if exist('filrefwl','file')==0
+      error(['offsetSurfaceGen.m: The reference (adcirc) water level file' filrefwl ', specified by the filrefwl parameter, was not found.'])
    end
-   stationFileID=fopen(filstations)
-   if stationFileID==-1
-      error(['offsetSurfaceGen.m: Failed to open station file ' filstations '.'])
+   waterLevelFileID=fopen(filrefwl,'r')
+   if waterLevelFileID==-1
+      error(['offsetSurfaceGen.m: Failed to open reference (adcirc) water level file ' filrefwl '.'])
    end
-   % read the station data 
-   [stationLon,stationLat,bang1,stationid,bang2,agency,bang3,description,bang4,datum] = textscan(stationFileID,'%f %f %s %s %s %s %s %s %s %s') % lo la !  id !  ag !  ds !  da 
-   status = fclose(stationFileID)
+   % first two lines are header lines
+   header1 = fgetl(waterLevelFileID);
+   disp(['The first header line from the file ' filrefwl ' is ' header1 '.']);
+   header2 = fgetl(waterLevelFileID);
+   disp(['The second header line from the file ' filrefwl ' is ' header2 '.']);   
+   % read the average adcirc water level data
+   [rstationid,operationtype,timestart,timeend,refwl,numobs] = textscan(stationFileID,'%s %s %f %f %f %d'); 
+   status = fclose(waterLevelFileID)
    if status==-1
-      error(['offsetSurfaceGen.m: Failed to close station file ' filstations '.'])
+      error(['offsetSurfaceGen.m: Failed to close a file ' filrefwl '.'])
    end
-   nstat=numel(stationid); % compute number of stations
+   %
+   % TODO: Remove reference stations that don't have enough observations.
+   % It is an open question how many observations are enough. 
+   % Most of the time, nearly all stations will have the same number of
+   % observations, using the median number as the criterion will 
+   % effectively remove all stations that have anything less than the
+   % full set of observations. 
+   nrstat=numel(rstationid); % compute number of stations where reference (adcirc) water level data are available
 else
    error('offsetSurfaceGen.m: The refwlmode parameter must be set to 0, 1, or 2.')
 end
 %
 % Load in offshore points if that's the chosen mode of operation
 if offblendmode==1
-    load(filfaroff)         %has variable faroffpnts   that's a *x2 array of x-y data
-    load(filinl)            %has variable inlpnts      that's a *x2 array of x-y data
+    load(filfaroff)     % has variable faroffpnts   that's a *x2 array of x-y data
+    load(filinl)        % has variable inlpnts      that's a *x2 array of x-y data
 end
 if any(offshorepointmode==[2,3,4])
     load(filoffshfixpnts)   %has variable offshfixpnts that's a *x2 array of x-y data
