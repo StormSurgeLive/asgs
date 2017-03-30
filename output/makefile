@@ -57,6 +57,9 @@ ifeq ($(compiler),gfortran)
    ifeq ($(DEBUG),trace)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace 
    endif
+   ifeq ($(MACHINENAME),jason-desktop)
+      FFLAGS := $(FFLAGS) -DOLDGFORTRAN 
+   endif
 endif
 #
 # specify compiler=intel on the make command line
@@ -154,13 +157,16 @@ adcirc2netcdf : $(MODS) adcirc2netcdf.f90 nodalattr.mod logging.mod
 netcdf2adcirc : $(MODS) netcdf2adcirc.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-asgsio.mod : logging.mod adcmesh.mod asgsio.f90 
+asgsio.mod : logging.mod ioutil.mod adcmesh.mod asgsio.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c asgsio.f90 $(LDFLAGS)
 #
 adcmesh.mod : adcmesh.f90 logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c adcmesh.f90 $(LDFLAGS)
 #
 logging.mod : logging.f90 
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c logging.f90 $(LDFLAGS)
+#
+ioutil.mod : logging.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c logging.f90 $(LDFLAGS)
 # 
 makeMax : asgsio.mod adcmesh.mod ../util/makeMax.f90

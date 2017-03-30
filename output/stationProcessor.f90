@@ -41,8 +41,8 @@ character(len=50), allocatable :: dataFileStationIDs(:) ! holder for netcdf IDs 
 character(len=1024) :: outputfile      ! average data at stations 
 integer :: numStationsInList ! number of stations in the list of interest (not the fort.61)
 real(8), allocatable :: stationData(:) ! one component of one complete dataset from fort.61
-real(8), allocatable :: resultVal(:,:) ! (num_components,numStationsInList)
-integer, allocatable :: numObs(:,:) ! number of non-missing values at each station (num_component,numStationsInList)
+real(8), allocatable :: resultVal(:,:) ! (irtype,numStationsInList)
+integer, allocatable :: numObs(:,:) ! number of non-missing values at each station (irtype,numStationsInList)
 logical :: stationFound ! true if a station in the specified list was found in the fort.61
 integer :: outu ! i/o unit number for results file
 integer :: stu ! i/o unit number for specified station list file
@@ -187,7 +187,6 @@ end do
 close(stu)
 call allMessage(INFO,'Finished reading station file.')
 !
-!
 ! make a list of which array indices from fort.61 match each station in the station file
 ! pull the data for those stations and store in an array
 ! once all data has been pulled for those stations perform the specified operation on the stations
@@ -272,7 +271,7 @@ endif
 !
 ! memory for holding data for each station
 do ista=1,numStationsInList
-   allocate(stations(ista)%d(sf%num_components,numDataSetsInTimeRange))
+   allocate(stations(ista)%d(sf%irtype,numDataSetsInTimeRange))
 end do
 !
 ! loop over datasets loading data if they fall within the specified 
@@ -285,9 +284,9 @@ do tdata=firstDataSetInTimeRange, lastDataSetInTimeRange
    ! read one dataset from netcdf, one component at a time
    nc_start = (/ 1, tdata /)
    nc_count = (/ sf%nStations, 1 /)
-   do c=1,sf%num_components
+   do c=1,sf%irtype
       ! get data
-      call check(nf90_get_var(sf%nc_id,sf%nc_varid(c),stationData,nc_start,nc_count))
+      call check(nf90_get_var(sf%nc_id,sf%ncds(c)%nc_varid,stationData,nc_start,nc_count))
       ! go through the specified list of stations and store the 
       ! values from the corresponding station index 
       do s=1,numStationsInList
@@ -304,7 +303,7 @@ call check(nf90_close(sf%nc_id))
 !
 ! now perform the specified operation on the data obtained for the
 ! stations during the specified time interval
-allocate(resultVal(sf%num_components,numStationsInList))
+allocate(resultVal(sf%irtype,numStationsInList))
 ! initialize values
 select case(trim(operation))
 case("min")
@@ -320,10 +319,10 @@ end select
 !
 ! perform the specified operation on each component of each specified station
 ! FIXME: this may not do the right thing for multicomponent (i.e., vector) quantities
-allocate(numObs(sf%num_components,numStationsInList))
+allocate(numObs(sf%irtype,numStationsInList))
 numObs(:,:) = numDataSetsInTimeRange
 do s=1, numStationsInList
-   do c=1, sf%num_components
+   do c=1, sf%irtype
       do t=1, numDataSetsInTimeRange
          ! avoid use of a missing value into the avg
          if ( stations(s)%d(c,t).lt.-9999.d0 ) then
@@ -352,7 +351,7 @@ end do
 select case(trim(operation))
 case("mean","average","avg")
    do s=1, numStationsInList
-      do c=1, sf%num_components
+      do c=1, sf%irtype ! iterate over components
          if ( numObs(c,s).ne.0 ) then
             resultVal(c,s) = resultVal(c,s) / dble(numObs(c,s))
          else
@@ -367,9 +366,9 @@ outu = availableUnitNumber()
 open(unit=outu,file='processedStations.dat',status='replace',action='write')
 line = 'rundes: '//trim(rundes)//' runid: '//trim(runid)//' agrid:'//trim(m%agrid)
 write(outu,'("# ",a)') trim(line) ! comment line
-write(outu,'(a)') '# stationID ! operationType ! timestart(s) ! timeend(s) ! (result ! numObservations (c=1,num_components))'
+write(outu,'(a)') '# stationID ! operationType ! timestart(s) ! timeend(s) ! (result ! numObservations (c=1,irtype))'
 do s=1,numStationsInList
-   write(outu,fmt='(a,1x,a,1x,2(f21.7,1x),3(f21.7,1x,i0,1x))') trim(stations(s)%stationID), trim(operation), timesecStart, timesecEnd, (resultVal(c,s), numObs(c,s), c=1,sf%num_components)
+   write(outu,fmt='(a,1x,a,1x,2(f21.7,1x),3(f21.7,1x,i0,1x))') trim(stations(s)%stationID), trim(operation), timesecStart, timesecEnd, (resultVal(c,s), numObs(c,s), c=1,sf%irtype)
 end do
 
 stop

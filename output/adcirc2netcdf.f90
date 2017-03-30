@@ -37,83 +37,48 @@ use nodalattr
 implicit none
 type(mesh_t) :: m
 type(meshNetCDF_t) :: n
-type(fileMetaData_t) :: fa  ! adcirc file to be read and converted
-type(fileMetaData_t) :: fn  ! corresponding netcdf file to be written
+type(fileMetaData_t) :: f  ! adcirc file to be read and converted
+type(netCDFMetaDataFromExternalFile_t) :: a
 character(2048) :: dataFileBase
-character(2048) :: attFile
-character(120), allocatable :: att(:,:)
-character(1000) :: Line
+character(len=1000) :: Line
 character(1) :: JunkC, Tadj
-real(8) :: temp1, temp2
-! owi or gridded dataset associated variables
-character(len=1000) :: owiheader
-character(len=2048) :: errorVar
 real(8), allocatable :: owi1(:,:)
 real(8), allocatable :: owi2(:,:)
-integer(8) :: date1
-integer(8) :: date2
-real(8) :: dxOWI
-real(8) :: dyOWI
-real(8) :: swLatOWI
-real(8) :: swLonOWI
-integer :: iLatOWI
-integer :: iLonOWI
-integer :: iMinOWI
-integer :: iCYMDHOWI
-integer :: NC_DimID_x
-integer :: NC_DimID_y
-integer :: NC_Start_OWI(3)
-integer :: NC_Count_OWI(3)
-integer :: NC_VarID_owibp
-integer :: NC_VarID_owibvx
-integer :: NC_VarID_owibvy
-integer :: NC_VarID_owirp
-integer :: NC_VarID_owirvx
-integer :: NC_VarID_owirvy
-! ^^^ end owi or gridded dataset variables ^^^ 
 integer :: yy, mo, dd, hh, mi
 integer :: i, j, k, SS, node
 logical :: meshonly   ! .true. if user just wants to convert the mesh
 logical :: dataonly   ! .true. if user just wants to convert the data
-integer :: ncStartMinMax(1)
-integer :: ncCountMinMax(1)
-integer :: NC_DimID(2) = (/ -99, -99 /)
-integer :: NC_DimID_grid(3) = (/ -99, -99, -99 /)
+character(len=2048) :: errorVar
 integer, dimension(2) :: timeOfNC_Start
 integer, parameter :: version = 4
 integer :: lastSlashPosition ! used for trimming full path from a filename
 integer :: lastDotPosition ! to determine file extension
 character(2048) :: dataFileExtension ! something like 13, 14, 15, 63, 222 etc
-integer :: iret !jgfdebug
 integer :: lineNum
-real(8), allocatable :: adcirc_data(:,:)
-integer, allocatable :: adcirc_idata(:) 
 logical :: deflate ! true if compiled with support for internal file compression in netcdf files
 integer :: c ! number of components
 integer :: attUnit ! unit number for attributes file
-integer :: nc_count(2) ! number of values to read along each dimension of netcdf file data
-integer :: nc_start(2) ! index to start reading along each dimension
 integer :: snapi ! time step number associated with a particular dataset
-integer :: snapr ! time (s) associated with a particular dataset
+real(8) :: snapr ! time (s) associated with a particular dataset
 integer :: errorIO
+integer :: specifiedFileFormat ! format of netcdf file to create
+integer :: asciiFileFormat  ! format of source data (ascii or sparse ascii)
+character(len=2048) :: adataFileName ! ascii file name, full path
+character(len=2048) :: ndataFileName ! netcdf file name, full path
 !
 ! initializations
+if (loggingInitialized.eqv..false.) then
+   call initLogging(availableUnitNumber(),'adcirc2netcdf.f90')
+endif
 m%meshFileName = "fort.14"
-attFile = "null"
+a%nmattFileName = "null"
+f%dataFileFormat = ASCII
+f%dataFileName = "null"
+f%defaultFileName = "null"
+specifiedFileFormat = NETCDF4
 !
-fa%fileFormat = ASCII
-fa%dataFileName = "null"
-fa%dataFileType = "null"
-fa%dataRank = "Scalar"
-fa%timeVarying = .true.
-fa%griddedData = .false.
-fa%dataCenter = 'Node'
-fa%num_components = 1
-!
-fn%fileFormat = NETCDF4
-fn%fillValue = -99999.d0
-fn%ifillValue = -99999
-!
+adataFileName = "null"
+ndataFileName = "null"
 dataFileBase = "null"
 meshonly = .false.
 dataonly = .false.
@@ -142,10 +107,10 @@ if (argcount.gt.0) then
       call getarg(i, cmdlineopt)
       select case(trim(cmdlineopt))
          case("--netcdf4")
-            fn%fileFormat = NETCDF4
+            specifiedFileFormat = NETCDF4
             write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
          case("--netcdf3")
-            fn%fileFormat = NETCDF3
+            specifiedFileFormat = NETCDF3
             write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
          case("--meshonly")
             meshonly = .true.
@@ -162,17 +127,17 @@ if (argcount.gt.0) then
             i = i + 1
             call getarg(i, cmdlinearg)
             write(6,'(a,a,a,a,a)') "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
-            attFile = trim(cmdlinearg)
+            a%nmattFileName = trim(cmdlinearg)
          case("--datafile")
             i = i + 1
             call getarg(i, cmdlinearg)
             write(6,'(a,a,a,a,a)') "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
-            fa%dataFileName = trim(cmdlinearg)
-         case("--datafiletype")
+            adataFileName = trim(cmdlinearg)
+         case("--defaultfilename")
             i = i + 1
             call getarg(i, cmdlinearg)
             write(6,'(a,a,a,a,a)') "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
-            fa%dataFileType = trim(cmdlinearg)
+            f%defaultFileName = trim(cmdlinearg)
          case default
             write(6,'(a,a,a)') "WARNING: Command line option '",TRIM(cmdlineopt),"' was not recognized."
       end select
@@ -180,471 +145,202 @@ if (argcount.gt.0) then
 end if
 !
 ! trim off the full path so we just have the file name
-lastSlashPosition = index(trim(fa%dataFileName),"/",.true.) 
+lastSlashPosition = index(trim(adataFileName),"/",.true.) 
 ! now set NETCDF file name for files containing only one type of data
 if (meshonly.eqv..true.) then
    ! trim off the full path so we just have the file name
    lastSlashPosition = index(trim(m%meshFileName),"/",.true.)
-   fn%dataFileName = trim(m%meshFileName(lastSlashPosition+1:))//'.nc'
-   write(6,'(a,a,a)') 'DEBUG: The name of the netCDF file will be ',trim(fn%dataFileName),'.'
+   ndataFileName = trim(m%meshFileName(lastSlashPosition+1:))//'.nc'
+   write(6,'(a,a,a)') 'DEBUG: The name of the netCDF file will be ',trim(ndataFileName),'.'
 else
-   fn%dataFileName = trim(fa%dataFileName(lastSlashPosition+1:))//'.nc'
+   ndataFileName = trim(adataFileName(lastSlashPosition+1:))//'.nc'
 endif
-dataFileBase = trim(fa%dataFileName(lastSlashPosition+1:))
+dataFileBase = trim(adataFileName(lastSlashPosition+1:))
 lastDotPosition = index(trim(dataFileBase),'.',.true.)
 dataFileExtension = trim(dataFileBase(lastDotPosition+1:))
 !
 ! If the data file type was not supplied, then use the file name 
-! as the file type.
-if ( trim(fa%dataFileType).eq.'null') then
-   fa%dataFileType = trim(dataFileBase)
-   fn%dataFileType = fa%dataFileType
+! as the default adcirc file name.
+if ( trim(f%defaultFileName).eq.'null') then
+   f%defaultFileName = dataFileBase
 endif      
 !
-! Set characteristics based on file type of ascii data.
-select case(trim(fa%dataFileType))
-case('maxele.63','maxvel.63','maxwvel.63','maxrs.63','minpr.63','swan_HS_max.63','swan_TPS_max.63')
-   fa%num_components = 1 ! set to default
-   fn%num_components = 1 ! set to default
-   ! determine whether 
-case('fort.13','fort.88')
-   fa%timeVarying = .false.
-   fn%timeVarying = .false.
-case('fort.221','fort.223')
-   fa%griddedData = .true.
-   fa%timeVarying = .true.
-   fn%griddedData = .true.
-   fn%timeVarying = .true.   
-case('fort.222','fort.224')
-   fa%griddedData = .true.
-   fa%num_components = 2
-   fn%griddedData = .true.
-   fn%num_components = 2
-case default
-   fa%timeVarying = .true.
-   fa%griddedData = .false.
-   fn%timeVarying = .true.
-   fn%griddedData = .false.
-end select
-!
-! Load netCDF Attributes if they have been provided by an external file
-if (trim(attfile).eq.'null') then
-   ! set default netcdf metadata in case they were not provided
-   write(6,'(a)') 'INFO: adcirc2netcdf.f90: Setting default netcdf metadata/attributes.'
-   fn%natt = 10
-   allocate(att(1:2,1:fn%natt))
-   fn%datenum = 'seconds since 2008-07-31 12:00:00 +00:00'
-   att(1:2,1) = 'NCPROJ'
-   att(1:2,2) = 'NCINST' 
-   att(1:2,3) = 'NCSOUR' 
-   att(1:2,4) = 'NCHIST'  
-   att(1:2,5) = 'NCREF' 
-   att(1:2,6) = 'NCCOM' 
-   att(1:2,7) = 'NCHOST'
-   att(1:2,8) = 'NCCONV' 
-   att(1:2,9) = 'NCCONT' 
-   att(1:2,10) = 'NCDATE' 
-   lineNum=1
-else  
-   write(6,'(a)') 'INFO: adcirc2netcdf.f90: Opening netcdf metadata/attributes file.'
-   attUnit = availableUnitNumber()
-   call openFileForRead(attUnit,attFile,errorIO)
-   read(attUnit,*,end=246,err=248,iostat=errorio) fn%natt
-   lineNum=lineNum+1
-   allocate(att(1:2,1:fn%natt))
-   read(attUnit,'(A)',end=246,err=248,iostat=errorio) fn%datenum !seconds since 2008-07-31 12:00:00 +00:00
-   lineNum=lineNum+1
-   do i = 1,fn%natt
-      read(attUnit,*,end=246,err=248,iostat=errorio) att(1,i), att(2,i)
-      lineNum=lineNum+1
-   enddo
-   close(attUnit)
-   lineNum=1
-   write(6,'(a)') "INFO: Finished reading metadata/attributes file."
-endif
+! set up basic characteristics based on canonical ascii file name
+f%dataFileName = adataFileName
+call determineASCIIFileCharacteristics(f)
 !
 ! create netcdf file
-write(6,'(a,a,a)') "INFO: Creating NetCDF file '"//trim(fn%dataFileName)//"'."
-fn%ncFileType = NF90_CLOBBER ! netcdf3 format, netcdf classic model
+write(6,'(a,a,a)') "INFO: Creating NetCDF file '"//trim(ndataFileName)//"'."
+f%ncFileType = NF90_CLOBBER ! netcdf3 format, netcdf classic model
+f%dataFileFormat = specifiedFileFormat
 
 #ifdef HAVE_NETCDF4
-if (fn%fileFormat.eq.NETCDF4) then
-   fn%ncFileType = ior(NF90_HDF5,NF90_CLASSIC_MODEL) ! netcdf4 (i.e., hdf5) format, netcdf classic model
+if (specifiedFileFormat.eq.NETCDF4) then
+   f%ncFileType = ior(NF90_HDF5,NF90_CLASSIC_MODEL) ! netcdf4 (i.e., hdf5) format, netcdf classic model
 endif
 #endif
 
-call check(nf90_create(trim(fn%dataFileName), fn%ncFileType, fn%nc_id))
+f%dataFileName = ndataFileName
+call check(nf90_create(trim(f%dataFileName), f%ncFileType, f%nc_id))
 !
-! add netcdf metadata as global attributes 
-do i = 1,fn%natt
-   call check(nf90_put_att(fn%nc_id,nf90_global,att(1,i),att(2,i)))
+! add netcdf metadata from external file (if any) as global attributes
+! if no external file was provided, dummy metadata will be added 
+call loadNetCDFMetadataFromExternalFile(a)
+do i = 1,a%nmatt
+   call check(nf90_put_att(f%nc_id,nf90_global,a%matt(1,i),a%matt(2,i)))
 enddo
 !
-! write the mesh definitions to the netcdf file unless the 
-! dataonly command line option was specified
-if ( (meshonly.eqv..false.).and.(trim(dataFileExtension).ne.'88').and.(trim(dataFileExtension).ne.'13').and.(fa%griddedData.eqv..false.) ) then
-   write(6,'(a)') 'INFO: Checking number of nodes in data file.' 
-   call openFileForRead(20, trim(fa%dataFileName), errorIO)
-   read(20,'(a)',end=246,err=248,iostat=errorio) JunkC
-   lineNum=lineNum+1
-   read(20,*,end=246,err=248,iostat=errorio) fa%nSnaps, fa%numValuesPerDataset, fa%time_increment, fa%nspool, fa%num_components
-   lineNum=lineNum+1
-   close(20)
-   lineNum=1
-   !
-   ! for min/max files, we now know the number of components based on the
-   ! numSnaps 
-   select case(trim(fa%dataFileType))
-   case('maxele.63','maxvel.63','maxwvel.63','maxrs.63','minpr.63','swan_HS_max.63','swan_TPS_max.63')
-      if (fa%nSnaps.eq.2) then
-         fa%timeOfOccurrence  = .true.
-         fn%timeOfOccurrence = .true. 
-         write(6,'(a)') 'INFO: adcirc2netcdf.f90: Time of occurrence data were found in this min/max file.'
-      endif
-   end select
-endif
-!
-! Define spatial dimensions and write to netcdf
-if (fa%griddedData.eqv..true.) then
-   ! only owi gridded data currently supported
-   select case(trim(fa%dataFileType)) 
-   case('fort.221','fort.222','fort.223','fort.224')   
-      ! open the file and read the header
-      fa%fun = 22
-      write(6,'(a)') 'INFO: adcirc2netcdf.f90: Opening data file "',trim(fa%dataFileName),'".' 
-      call openFileForRead(fa%fun, trim(fa%dataFileName), errorIO)
-      owiheader(:) = ' '  !set owiheader to blanks before read
-      errorVar = "owiheader"
-      read(fa%fun, fmt='(a80)',end=99998,err=99999,iostat=errorIO) owiheader
-      call checkErrOWI(errorIO,errorVar,fa%dataFileType)
-      errorVar = "start date"
-      read(owiheader(56:65),'(i10)',end=99998,err=99999,iostat=errorIO) date1
-      call checkErrOWI(errorIO,errorVar,fa%dataFileType)
-      write(6,'("INFO: adcirc2netcdf.x: ",a," in ",a," is ",i10,".")') trim(errorVar), trim(fa%dataFileName), date1
-      errorVar = "end date"
-      read(owiheader(71:80),'(i10)',end=99998,err=99999,iostat=errorIO) date2
-      call checkErrOWI(errorIO,errorVar,fa%dataFileType)
-      write(6,'("INFO: adcirc2netcdf.x: ",a," in ",a," is ",i10,".")') trim(errorVar), trim(fa%dataFileName), date2 
-      !     
-      ! Read grid specifications/date 
-      errorVar = "grid specifications/date"
-      read (fa%fun,11,end=99998,err=99999,iostat=errorIO) iLatOWI,iLonOWI,dxOWI,dyOWI,swlatOWI,swlonOWI,iCYMDHOWI,iMinOWI
- 11  format(t6,i4,t16,i4,t23,f6.0,t32,f6.0,t44,f8.0,t58,f8.0,t69,i10,i2)
-      write(6,'("INFO: adicrc2netcdf.x: iLatOWI=",i0," iLonOWI=",i0" dxOWI=",f6.0," dyOWI=",f6.0," swlatOWI=",f8.0," swlonOWI=",f8.0," iCYMDHOWI=",i0," iMinOWI=",i0)') iLatOWI,iLonOWI,dxOWI,dyOWI,swlatOWI,swlonOWI,iCYMDHOWI,iMinOWI
-      call check(nf90_def_dim(fn%nc_id,'lon',iLonOWI,NC_DimID_x))
-      call check(nf90_def_dim(fn%nc_id,'lat',iLatOWI,NC_DimID_y))
-         ! END jumps here
-   99998 write(6,'("ERROR: adcirc2netcdf.x: Unexpectedly reached end-of-file.")')
-         !  ERR jumps here
-   99999 call checkErrOWI(1,errorVar,fa%dataFileType) 
-   case default
-      write(6,'(a,a,a)') 'ERROR: adcirc2netcdf.x: Data files of type "',trim(fa%dataFileType),'" are not supported.'
-      stop
-   end select
-
-else
-   ! meshed data, the common case
-   if (dataonly.eqv..false.) then
-      call read14(m)
-      call writeMeshDefinitionsToNetCDF(m, n, fn%nc_id, deflate)
+! meshed data, the common case
+if (f%isGridded.eqv..false.) then
+   if (dataonly.eqv..true.) then
+      call check(nf90_put_att(f%nc_id,nf90_global,'description',trim(JunkC)))
+      call check(nf90_def_dim(f%nc_id,'node',m%np,n%NC_DimID_node))
    else       
-      m%np = fa%numValuesPerDataset
-      call check(nf90_put_att(fn%nc_id,nf90_global,'description',trim(JunkC)))
-      call check(nf90_def_dim(fn%nc_id,'node',m%np,n%NC_DimID_node))
+      call read14(m)
+      call writeMeshDefinitionsToNetCDF(m, n, f%nc_id, deflate)
    endif
 endif
 !
 ! if this is a nodal attributes file, then read it and convert it
 ! using subroutines from the nodal attributes module and then stop
-if (trim(dataFileExtension).eq.'13') then
-   call readNodalAttributesFile(fa%dataFileName)
-   call writeNodalAttributesFileNetCDF(fn%nc_id, m, n, deflate)
+if (f%dataFileCategory.eq.NODALATTRIBF) then
+   call readNodalAttributesFile(adataFileName)
+   call writeNodalAttributesFileNetCDF(f%nc_id, m, n, deflate)
    stop
 endif
 !
 ! Create time dimension and units attributes
-if (fa%timeVarying.eqv..true.) then      
-   fn%timeVarying = .true. 
-   call check(nf90_def_dim(fn%nc_id,'time',nf90_unlimited,fn%nc_dimid_time))
-   call check(nf90_def_var(fn%nc_id,'time',nf90_double,fn%nc_dimid_time,fn%nc_varid_time))
-   call check(nf90_put_att(fn%nc_id,fn%nc_varid_time,'long_name','model time'))
-   call check(nf90_put_att(fn%nc_id,fn%nc_varid_time,'standard_name','time'))
-   call check(nf90_put_att(fn%nc_id,fn%nc_varid_time,'units',fn%datenum))
-   !
-   ! Create space dimensions and units attributes   
-   if (fa%griddedData.eqv..true.) then
-      fn%griddedData = .true.
-      ! fortran's row major order in memory and netcdf's column major
-      ! order on disk means that we have to re-order the y dimension 
-      ! before the x dimension  so that the data are passed the way 
-      ! netcdf expects
-      NC_DimID_grid = (/ NC_DimID_y, NC_DimID_x, fn%NC_DimID_Time /)
-   endif
+if ((meshonly.eqv..false.).and.(f%timeVarying.eqv..true.)) then      
+   call check(nf90_def_dim(f%nc_id,'time',nf90_unlimited,f%nc_dimid_time))
+   call check(nf90_def_var(f%nc_id,'time',nf90_double,f%nc_dimid_time,f%nc_varid_time))
+   call check(nf90_put_att(f%nc_id,f%nc_varid_time,'long_name','model time'))
+   call check(nf90_put_att(f%nc_id,f%nc_varid_time,'standard_name','time'))
+   call check(nf90_put_att(f%nc_id,f%nc_varid_time,'units',f%datenum))
 endif
-!
-! add attributes for CF compliance
-call addDataAttributesNetCDF(fn, m, n)
+
+! now that the mesh has been read, add associated metadata to the new netcdf file
+call addDataAttributesNetCDF(f, m, n)
 !      
 ! create adcirc output variables and associated attributes
-fn%num_components = 1
 #ifdef NETCDF_CAN_DEFLATE
-      if (fn%fileFormat.eq.NETCDF4) then
-         do j=1,fn%num_components
-            call check(nf90_def_var_deflate(fn%nc_id, fn%nc_varid(j), 1, 1, 2))
+   if (meshonly.eqv..false.) then
+      if (specifiedFileFormat.eq.NETCDF4) then
+         do j=1,f%irtype
+            call check(nf90_def_var_deflate(f%nc_id, f%ncds(j)%nc_varid, 1, 1, 2))
          enddo
       endif
+   endif
 #endif
 
 !----------------------------------------------------------------
 ! end variable and attributes definitions
 !----------------------------------------------------------------
-call check(nf90_enddef(fn%nc_id))
-
+call check(nf90_enddef(f%nc_id))
+!----------------------------------------------------------------
+!
 ! place mesh-related data into the file, unless this is a data 
 ! only file
-if ( (dataonly.eqv..false.).and.(fa%griddedData.eqv..false.) ) then
-   call writeMeshDataToNetCDF(m, n, fn%nc_id)
+if ( (dataonly.eqv..false.).and.(f%isGridded.eqv..false.) ) then
+   call writeMeshDataToNetCDF(m, n, f%nc_id)
 endif
 !
 ! finish up if only mesh data are to be converted
 if (meshonly.eqv..true.) then
-   call check(nf90_close(fn%nc_id))
+   call check(nf90_close(f%nc_id))
    write(6,'(a)') 'INFO: Only mesh data were written.'
    stop
 endif
 !
-! write grid coordinates if appropriate
-if (fa%griddedData.eqv..true.) then
-
-  ! <write grid coordinates>
-
+! read ascii header
+f%fun = availableUnitNumber()
+call openFileForRead(f%fun, trim(adataFileName), errorIO)
+! read and discard two header lines unless this is fort.88 initial 
+! river elevation file (which has no header)
+if (f%dataFileCategory.ne.INITRIVER) then
+   read(f%fun,*) line
+   read(f%fun,*) line
 endif
-fa%fun = availableUnitNumber()
-write(6,'(a,a,a)') 'INFO: adcirc2netcdf.f90: Opening data file "',trim(fa%dataFileName),'".'
-call openFileForRead(fa%fun, trim(fa%dataFileName), errorIO)
-
-select case(trim(fa%dataFileType))
-case('fort.221','fort.222','fort.223','fort.224')
-   fa%numValuesPerDataset = iLonOWI * iLatOWI 
-case('fort.88') 
-   fa%numValuesPerDataset = m%np
-   fa%time_increment = -99999.d0
-   fa%nspool = -99999 
-   fa%num_components = 1
-case default
-   ! fort.63 etc
-   READ(fa%fun,'(A)',end=246,err=248,iostat=errorio) JunkC
-   lineNum=lineNum+1
-   ! jgf: Can't rely on the NumSnaps value; in general, it will not
-   ! actually reflect the number of datasets in the file.
-   READ(fa%fun,*,end=246,err=248,iostat=errorio) fa%nSnaps, fa%numValuesPerDataset, fa%time_increment, fa%nspool, fa%num_components
-   lineNum=lineNum+1
-   if ( (m%np.ne.fa%numValuesPerDataset).and.(trim(fa%dataCenter(1)).eq.'Node') ) then
-      write(6,'(a,i0,a,i0,a)') 'ERROR: The output file contains ',fa%numValuesPerDataset,        &
-        ' nodes, but the mesh file contains ',m%np,' nodes.'
-       write(6,'(a)') 'ERROR: The output file does not correspond to the mesh file.'
-      close(fa%fun)
-      stop
-   endif
-   if ( (m%ne.ne.fa%numValuesPerDataset).and.(trim(fa%dataCenter(1)).eq.'Cell') ) then
-      write(6,'(a,i0,a,i0,a)') 'ERROR: The output file contains ',fa%numValuesPerDataset,        &
-        ' elements, but the mesh file contains ',m%ne,' elements.'
-       write(6,'(a)') 'ERROR: The output file does not correspond to the mesh file.'
-      close(fa%fun)
-      stop
-   endif
-end select
 !
 ! Allocate space to hold the data
-select case(fn%netCDFDataType)
-case(NF90_DOUBLE)
-   if (fa%griddedData.eqv..true.) then
+if (f%isGridded.eqv..true.) then
+   ! y before x according to netcdf specification in fortran api
+   allocate(owi1(1:f%iLatOWI,1:f%iLonOWI))
+   if (f%irtype.eq.2) then
       ! y before x according to netcdf specification in fortran api
-      allocate(owi1(1:iLatOWI,1:iLonOWI))
-      if (fa%num_components.eq.2) then
-         ! y before x according to netcdf specification in fortran api
-         allocate(owi2(1:iLatOWI,1:iLonOWI))
-      endif
-   else
-      allocate(adcirc_data(1:2,fa%numvaluesperdataset))
+      allocate(owi2(1:f%iLatOWI,1:f%iLonOWI))
    endif
-case(NF90_INT)
-   allocate(adcirc_idata(1:fa%numValuesPerDataset))      
-case default
-   write(6,'(a,i0)') 'ERROR: Unsupported data type: ',fn%netCDFDataType
-end select
+else
+   f%dataFileFormat = ASCIIG
+   call allocateDataSetMemory(f, m)
+endif
 !
 ! Read ascii data and write to netcdf file
 SS=1        ! initialize the dataset counter
 lineNum = 1 ! initialize the line number counter
 !
 ! gridded data
-if (fa%griddedData.eqv..true.) then
+if (f%isGridded.eqv..true.) then
    do   ! loop until we run out of gridded data
-      owi1(:,:) = fa%fillValue
-      owi2(:,:) = fa%fillValue
+      owi1(:,:) = -99999.d0
+      owi2(:,:) = -99999.d0
       errorVar = "first component"
-      read(fa%fun,22,end=321,err=9999,iostat=errorIO) ((owi1(j,i),i=1,iLonOWI),j=1,iLatOWI)
-      call checkErrOWI(errorIO,errorVar,fa%dataFileType)
-      if (fa%num_components.eq.2) then
+      read(f%fun,22,end=321,err=9999,iostat=errorIO) ((owi1(j,i),i=1,f%iLonOWI),j=1,f%iLatOWI)
+      call checkErrOWI(errorIO,errorVar,f%defaultFileName)
+      if (f%irtype.eq.2) then
          errorVar = "second component"
-         read(fa%fun,22,end=123,err=9999,iostat=errorIO) ((owi2(j,i),i=1,iLonOWI),j=1,iLatOWI)
-         call checkErrOWI(errorIO,errorVar,fa%dataFileType)
+         read(f%fun,22,end=123,err=9999,iostat=errorIO) ((owi2(j,i),i=1,f%iLonOWI),j=1,f%iLatOWI)
+         call checkErrOWI(errorIO,errorVar,f%defaultFileName)
       endif
-      call check(nf90_put_var(fn%nc_id,fn%nc_varid_time,(/snapr/),(/ss/),(/1/)))
-      NC_Count_OWI = (/ iLatOWI, iLonOWI, 1 /)
-      NC_Start_OWI = (/ 1, 1, SS /)
+      call check(nf90_put_var(f%nc_id,f%nc_varid_time,(/snapr/),(/ss/),(/1/)))
+      f%NC_Count_OWI = (/ f%iLatOWI, f%iLonOWI, 1 /)
+      f%NC_Start_OWI = (/ 1, 1, SS /)
       timeOfNC_Start = (/ 1, 1 /)
       ! write the dataset to the netcdf file
-      select case(trim(fa%dataFileType))
-         case('fort.63') !63
-            call check(nf90_put_var(fn%nc_id,fn%nc_varid(1),adcirc_data(1,:),nc_start_owi,nc_count_owi))
-         case default
-      end select
+      ! TODO : finish implementing gridded data
 22    format(8f10.0)
    end do
-9999  call checkErrOWI(1,errorVar,fa%dataFileType) ! ERR during read jumps to here
+9999  call checkErrOWI(1,errorVar,f%defaultFileName) ! ERR during read jumps to here
 321 continue  ! jgf: jump here when no data left in gridded ascii file
    write(6,'(/,a,i0,a)') 'INFO: Wrote ',ss-1,' dataset(s).'
-   close(fa%fun)
-   call check(nf90_close(fn%nc_id))
+   close(f%fun)
+   call check(nf90_close(f%nc_id))
    write(6,'(a)') 'INFO: adcirc2netcdf.x: Finished writing gridded data to netcdf.'
    stop !
 endif
 !
-! mesh data
+! meshed data
+ss=1 ! dataset counter
+lineNum=1  ! ascii data file line counter
 DO   ! jgf: loop until we run out of mesh data
-   if (trim(fa%dataFileType).ne.'fort.88') then
-      read(fa%fun,'(a)',end=123,err=123) line
-      lineNum = lineNum + 1
-      read(Line,*,end=246,err=248,iostat=errorio) SnapR, SnapI
-      read(line,*,err=907,end=907) snapr, snapi, fa%numNodesNonDefault, fa%defaultValue
-      goto 908  ! jgf: this file is sparse ascii
-   endif
-907     fa%numNodesNonDefault = fa%numValuesPerDataset
-   fa%defaultValue = -99999.0d0
-908 if (fn%netCDFDataType.eq.NF90_DOUBLE) then
-         adcirc_data(:,:) = fa%defaultValue
-   endif
-   j=0
-   do node=1,fa%numNodesNonDefault
-     select case(trim(fa%dataRank))
-       case("Scalar")                    ! scalar data
-         if (fn%netCDFDataType.eq.NF90_DOUBLE) then
-            if (trim(fa%dataFileType).eq.'fort.88') then
-               read(fa%fun,*,end=246,err=248,iostat=errorio) Temp1
-               lineNum = lineNum + 1
-               j = j + 1
-            else                  
-               read(fa%fun,*,end=246,err=248,iostat=errorio) j,Temp1
-               lineNum = lineNum + 1
-            endif
-            adcirc_data(1,j) = Temp1
-         else
-            read(fa%fun,*,end=246,err=248,iostat=errorio) j,adcirc_idata(node)
-            lineNum = lineNum + 1
-         endif
-       case("2DVector")                  ! 2D vector data
-         read(fa%fun,*,end=246,err=248,iostat=errorio) j,Temp1,Temp2
-         lineNum = lineNum + 1
-         adcirc_data(1,j) = temp1
-         adcirc_data(2,j) = temp2
-      case default
-         write(6,'(a,a,a)') 'ERROR: adcirc2netcdf: ',trim(fa%dataRank),' data rank is not supported.'
-         stop
-     end select
-   enddo
-   
-   call check(nf90_put_var(fn%nc_id,fn%nc_varid_time,(/snapr/),(/ss/),(/1/)))
-   NC_Count = (/ fa%numValuesPerDataset, 1 /)
-   NC_Start = (/ 1, SS /)
-   !
-   ncStartMinMax = (/ 1 /)
-   ncCountMinMax = (/ SS /)
-   ! write the dataset to the netcdf file
-   if (fn%isInteger.eqv..true.) then
-      call check(nf90_put_var(fn%nc_id,fn%nc_varid(1),adcirc_idata,nc_start,nc_count))
-   else
-      do c=1,fa%num_components
-         call check(nf90_put_var(fn%nc_id,fn%nc_varid(c),adcirc_data(c,:),nc_start,nc_count))
-      end do
-   endif
-   write(6,advance='no',fmt='(i6)') ss
-   SS = SS + 1 ! jgf: Increment the dataset counter
-   !
-   if (trim(fa%dataFileType).eq.'fort.88') then
+   f%dataFileFormat = ASCIIG
+   call readOneDataSet(f, m, ss, lineNum, snapr, snapi)
+   ! break out of the loop if we've run out of ascii data
+   if (lineNum.eq.-99) then
       exit
    endif
+   f%dataFileFormat = NETCDFG
+   call writeOneDataSet(f, m, ss, lineNum, snapr, snapi)
+   !
+   write(6,advance='no',fmt='(i6)') ss
+   ss = ss + 1 ! jgf: Increment the dataset counter
 ENDDO
 
 123   CONTINUE  ! jgf: When we've run out of datasets in the current file,
                 ! we jump to here.
 write(6,'(/,a,i0,a)') 'INFO: Wrote ',ss-1,' dataset(s).'
 
-close(fa%fun)
-call check(nf90_close(fn%nc_id))
+close(f%fun)
+call check(nf90_close(f%nc_id))
 write(6,'(a)') 'INFO: adcirc2netcdf finished.'
 stop
-      
-      
       ! We jump to this section if there was an error reading a file.
 246   write(6,'(a)') 'ERROR: Unexpectedly reached end-of-file.' ! END jumps here
 248   write(6,'(a)') 'ERROR: I/O error during file access.'     ! ERR jumps here
 write(6,'(a,i0,a,i0,a)') 'INFO: Attempted to read line ',lineNum,' in dataset ',SS,'.' ! ERR jumps here      
 write(6,'(a,i0,a)') 'The numerical code of the i/o error was ',errorio,'.'
-          
+stop
 !----------------------------------------------------------------------
 end program adcirc2netcdf
 !----------------------------------------------------------------------
 
 
-!-----------------------------------------------------------------------
-!  S U B R O U T I N E   C H E C K  E R R  O W I 
-!-----------------------------------------------------------------------
-! Checks the return value from subroutine calls; if there
-! was an error, it writes a termination message and exits.
-!-----------------------------------------------------------------------
-subroutine checkErrOWI(iret,errorVar,dataFileType)
-implicit none
-integer, intent(in) :: iret
-character(len=2048), intent(in) :: errorVar
-character(len=20), intent(in) :: dataFileType
-
-if (iret.ne.0) then
-   if (trim(errorVar).ne."") then
-      write(6,'("ERROR: adcirc2netcdf.x: Failed to read ",a," from ",a,".")') trim(errorVar), trim(dataFileType)
-   else
-      write(6,'("ERROR: adcirc2netcdf.x: Failed to read ",a,".")') trim(dataFileType)
-      stop
-   endif
-endif
-!-----------------------------------------------------------------------
-end subroutine checkErrOWI
-!-----------------------------------------------------------------------
-
-
-!----------------------------------------------------------------------
-!  GETMONTHDAY
-!----------------------------------------------------------------------
-subroutine getmonthday(dy,yy,mo,dd)
-
-implicit none
-integer, intent(out)           :: mo, dd
-integer, intent(in)            :: yy, dy
-integer                       :: i
-integer, allocatable          :: cd(:)
-
-allocate(cd(1:13))
-cd = (/ 0,31,59,90,120,151,181,212,243,273,304,334,365 /)
-if( mod(yy,4) == 0 ) then
-   cd = (/ 0,31,60,91,121,152,182,213,244,274,305,335,366 /)
-endif
-do i = 1,12
-   if (dy.gt.cd(i)) then
-      mo = i
-      dd = dy-cd(i)
-   endif
-enddo
-!----------------------------------------------------------------------
-end subroutine getmonthday
-!----------------------------------------------------------------------

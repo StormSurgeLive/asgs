@@ -50,7 +50,7 @@ logical :: deflate
 numPasses = 1
 ed%dataFileName = 'null'
 dataFound = .false.
-im%fileFormat = NETCDF4
+im%dataFileFormat = NETCDF4
 !
 ! Report netcdf version
 write(6,'(a,a)') 'INFO: inundationMask: compiled with the following netcdf library: ', trim(nf90_inq_libvers())
@@ -69,10 +69,10 @@ if (argcount.gt.0) then
             write(6,'(a,a,a,a,a)') 'INFO: inundationMask: Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
             ed%dataFileName = trim(cmdlinearg)
          case("--netcdf4")
-             im%fileFormat = NETCDF4
+             im%dataFileFormat = NETCDF4
              write(6,'(a,a,a)') 'INFO: Processing "',trim(cmdlineopt),'".'            
          case("--ascii")
-             im%fileFormat = ASCII
+             im%dataFileFormat = ASCII
              write(6,'(a,a,a)') 'INFO: Processing "',trim(cmdlineopt),'".'
          case("--numpasses")
             i = i + 1
@@ -183,12 +183,12 @@ end do
 deflate = .true.
 #ifndef HAVE_NETCDF4
    deflate = .false.
-   if (im%fileFormat.eq.NETCDF4) then
+   if (im%dataFileFormat.eq.NETCDF4) then
       write(6,'(a)') 'WARNING: This executable only supports NetCDF3, so the mask file will be written in NetCDF3 format.'
-      im%fileFormat = NETCDF3
+      im%dataFileFormat = NETCDF3
    endif
 #endif
-select case(im%fileFormat)
+select case(im%dataFileFormat)
 case(ASCII)
    write(6,'(a,a,a)') 'INFO: Creating ascii file "inundationmask.63".'
    ! write the inundation mask file with 0=dry 1=wet
@@ -208,7 +208,7 @@ case(ASCII)
 case(NETCDF3,NETCDF4)
    write(6,'(a,a,a)') 'INFO: Creating NetCDF file "inundationmask.63.nc".'
    im%ncFileType = ior(NF90_HDF5,NF90_CLASSIC_MODEL) ! netcdf4 (i.e., hdf5) format, netcdf
-   if (im%fileFormat.eq.NETCDF3) then
+   if (im%dataFileFormat.eq.NETCDF3) then
       im%ncFileType = NF90_CLOBBER ! netcdf3 format, netcdf classic model
    endif
    call check(nf90_create('inundationmask.63.nc',im%ncFileType,im%NC_ID))
@@ -222,7 +222,7 @@ case(NETCDF3,NETCDF4)
    call check(nf90_put_att(im%nc_id,nc_varid_inundationmask,'mesh','adcirc_mesh'))
    call check(nf90_put_att(im%nc_id,nc_varid_inundationmask,'units','unitless'))
 #ifdef NETCDF_CAN_DEFLATE
-      if (im%fileFormat.eq.NETCDF4) then
+      if (im%dataFileFormat.eq.NETCDF4) then
          call check(nf90_def_var_deflate(im%NC_ID, nc_varid_inundationmask, 1, 1, 2))
       endif
 #endif

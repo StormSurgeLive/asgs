@@ -33,7 +33,7 @@ character(len=1024) :: line
 character(len=1024) :: stationFileName ! name of file containing list of stations
 type(fileMetaData_t) :: ft ! full domain time series data file to pull from
 type(fileMetaData_t) :: fs ! time series data file at stations
-real(8), allocatable :: adcirc_data(:,:) ! (np,num_components)
+real(8), allocatable :: adcirc_data(:,:) ! (np,irtype)
 real(8) :: stationVal, temp1, temp2
 integer :: numStations
 integer :: nc_start(2)
@@ -51,7 +51,7 @@ integer :: errorIO
 m%meshFileName = 'fort.14'
 stationFileName = 'stations.txt'
 fs%dataFileName = 'stations_timeseries.txt'
-fs%fileFormat = ASCIIG
+fs%dataFileFormat = ASCIIG
 
 argcount = command_argument_count() ! count up command line options
 if (argcount.gt.0) then
@@ -72,7 +72,7 @@ if (argcount.gt.0) then
          ft%dataFileName = trim(cmdlinearg)
       case("--netcdf")
          write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt),"."
-         ft%fileFormat = NETCDFG
+         ft%dataFileFormat = NETCDFG
       case("--stationfile")
          i = i + 1
          call getarg(i, cmdlinearg)
@@ -117,7 +117,7 @@ close(sfUnit)
 write(6,'(a)') 'INFO: Finished reading station file.'
 !
 ! read in the mesh
-if ( ft%fileFormat.eq.NETCDFG ) then
+if ( ft%dataFileFormat.eq.NETCDFG ) then
    call findMeshDimsNetCDF(m, n)
    call readMeshNetCDF(m, n)
 else
@@ -165,7 +165,7 @@ open(unit=fs%fun,file=trim(fs%dataFileName),status='replace',action='write')
 fs%defaultValue = -99999.
 !
 ! open the data file (netcdf or ascii)
-select case(ft%fileFormat)
+select case(ft%dataFileFormat)
 case(ASCIIG)
    ft%fun = availableUnitNumber()
    call openFileForRead(ft%fun,ft%dataFileName,errorIO)
@@ -173,8 +173,8 @@ case(ASCIIG)
    ! read header lines and write them to time series file
    read(ft%fun,'(a1024)') line
    write(fs%fun,*) trim(adjustl(line))
-   read(ft%fun,*) ft%nSnaps, ft%numValuesPerDataSet, ft%time_increment, ft%nspool, ft%num_components
-   write(61,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, ft%nStations, ft%time_increment, ft%nspool, ft%num_components
+   read(ft%fun,*) ft%nSnaps, ft%numValuesPerDataSet, ft%time_increment, ft%nspool, ft%irtype
+   write(61,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, ft%nStations, ft%time_increment, ft%nspool, ft%irtype
    SS=1  ! jgf: initialize the dataset counter
    !
    ! jgf: loop until we run out of data
@@ -182,12 +182,12 @@ case(ASCIIG)
       write(6,'(i0,1x)',advance='no') ss    ! update progress bar
       read(ft%fun,'(a80)',END=123,ERR=123) Line
       read(line,*) SnapR, SnapI
-      read(line,*,ERR=907,END=907) SnapR, SnapI, NumNodesNonDefault, ft%defaultValue
+      read(line,*,ERR=907,END=907) SnapR, SnapI, numNodesNonDefault, ft%defaultValue
       goto 908  ! jgf: this file is sparse ascii
- 907  NumNodesNonDefault = ft%numValuesPerDataset !jgf: this file is full ascii
+ 907  numNodesNonDefault = ft%numValuesPerDataset !jgf: this file is full ascii
 
  908  adcirc_data = ft%defaultValue
-      select case(ft%num_components)
+      select case(ft%irtype)
       case(1) ! scalar data
          do node=1,numNodesNonDefault
             read(ft%fun,*) j, temp1
@@ -203,7 +203,7 @@ case(ASCIIG)
       end select
       write(fs%fun,*) snapR, snapI
       do s=1, numStations   
-         call writeStationValue(adcirc_data, m, ft%numValuesPerDataset, ft%num_components, stations(s), s, fs%fun)
+         call writeStationValue(adcirc_data, m, ft%numValuesPerDataset, ft%irtype, stations(s), s, fs%fun)
       end do
       ss = ss + 1
    end do
@@ -214,11 +214,11 @@ case(NETCDFG)
    line = trim(rundes) // ' ' // trim(runid) // ' ' // trim(m%agrid)
    snapR = ft%time_increment
    write(fs%fun,*) trim(adjustl(line))
-   write(fs%fun,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, numStations, ft%time_increment, ft%nspool, ft%num_components
+   write(fs%fun,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, numStations, ft%time_increment, ft%nspool, ft%irtype
    ! get netcdf variable IDs for the the data 
-   do j=1,ft%num_components
+   do j=1,ft%irtype
       !write(6,'(a,i0,a,a,a,i0,a)') 'DEBUG: The variable name for component ',j,' is ',trim(varname(j)),' and the variable ID is ',nc_varid(j),'.'
-      call check(nf90_inq_varid(ft%nc_id, trim(adjustl(ft%varNameNetCDF(j))), ft%nc_varid(j)))
+      call check(nf90_inq_varid(ft%nc_id, trim(adjustl(ft%ncds(j)%varNameNetCDF)), ft%ncds(j)%nc_varid))
    end do   
    write(6,'(a)') 'INFO: Compiling a record of station values across all data sets.'
    ! loop over datasets   
@@ -226,15 +226,15 @@ case(NETCDFG)
       write(6,advance='no',fmt='(i0,1x)') i  ! update progress bar
       !
       ! read the dataset from netcdf
-      do j=1,ft%num_components
+      do j=1,ft%irtype
          nc_start = (/ 1, i /)
          nc_count = (/ m%np, 1 /)
          ! get data
-         call check(nf90_get_var(ft%nc_id,ft%nc_varid(j),adcirc_data(:,j),nc_start,nc_count))
+         call check(nf90_get_var(ft%nc_id,ft%ncds(j)%nc_varID,adcirc_data(:,j),nc_start,nc_count))
       end do
       write(fs%fun,*) ft%timesec(i), ft%it(i)      
       do s=1, numStations   
-         call writeStationValue(adcirc_data, m, ft%numValuesPerDataset, ft%num_components, stations(s), s, fs%fun)
+         call writeStationValue(adcirc_data, m, ft%numValuesPerDataset, ft%irtype, stations(s), s, fs%fun)
       end do
    end do
    call check(nf90_close(ft%nc_id))
@@ -254,11 +254,11 @@ end program pullStationTimeSeries
 ! Writes the interpolated time series value at the station location,
 ! or -99999 if the station is outside the mesh.
 !-----------------------------------------------------------------------
-subroutine writeStationValue(adcirc_data, m, numValuesPerDataset, num_components, station, s, slun)
+subroutine writeStationValue(adcirc_data, m, numValuesPerDataset, irtype, station, s, slun)
 use adcmesh
 implicit none
-real(8), intent(in) :: adcirc_data(numValuesPerDataSet,num_components)
-integer, intent(in) :: num_components ! number of vector components, 1 is scalar etc
+real(8), intent(in) :: adcirc_data(numValuesPerDataSet,irtype)
+integer, intent(in) :: irtype ! number of vector components, 1 is scalar etc
 integer, intent(in) :: numValuesPerDataSet ! number of vector components, 1 is scalar etc
 type(mesh_t), intent(inout) :: m 
 type(station_t), intent(in) :: station
@@ -276,7 +276,7 @@ if (station%elementIndex.ne.0) then
       endif
    end do
 endif
-if (num_components.eq.1) then
+if (irtype.eq.1) then
    if (station%elementIndex.eq.0 .or. dryNode.eqv..true.) then
       stationVal = -99999.0
    else

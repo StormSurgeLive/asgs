@@ -33,8 +33,6 @@ type(fileMetaData_t) :: fm ! full domain ascii min/max file
 logical :: findMin
 logical :: writeMaxTimes 
 character(len=80) :: line
-character(len=1000) :: header1
-character(len=1000) :: header2
 integer :: i, j, node
 real(8) :: temp1, temp2
 integer :: ss ! dataset counter
@@ -52,8 +50,8 @@ integer :: errorIO
 ! initializations
 writeMaxTimes = .false.
 findMin = .false.
-ft%fileFormat = ASCIIG
-fm%fileFormat = ASCIIG
+ft%dataFileFormat = ASCIIG
+fm%dataFileFormat = ASCIIG
 !
 ! process command line options
 argcount = command_argument_count() ! count up command line options
@@ -76,28 +74,21 @@ do while (i.lt.argcount)
       findMin = .true.
    case("--netcdf-timeseries")
       write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
-      ft%fileFormat = NETCDFG
+      ft%dataFileFormat = NETCDFG
    case default
       write(6,*) "WARNING: Command line option ",i," '",TRIM(cmdlineopt),"' was not recognized."
    end select
 end do
 !
 ! open time varying data file and extract info
-select case(ft%fileFormat)
+select case(ft%dataFileFormat)
    case(NETCDFG)
       call determineNetCDFFileCharacteristics(ft, m, n)
       write(6,'(a,i0,a)') 'INFO: There are ',ft%nSnaps,' datasets in the file.'
-      write(header1,'(a,1x,a,1x,a)') trim(rundes), trim(runid), trim(m%agrid)
+
    case(ASCIIG)
       ft%fun = availableUnitNumber()
-      call openFileForRead(ft%fun,ft%dataFileName,errorIO)
-      read(ft%fun,'(a80)') header1                ! 1st header line
-      read(ft%fun,'(a80)') header2                ! 2nd header line
-      ! can't trust the number of datasets listed in the header as being
-      ! accurate; it will be incorrect after a hotstart
-      read(header2,*) ft%nSnaps, ft%numValuesPerDataset, ft%time_increment, ft%nspool, ft%num_components
-      write(*,'(a,i0,a)') 'INFO: There are ',ft%numValuesPerDataset,' in the associated mesh.'
-      m%np = ft%numValuesPerDataSet
+      call determineASCIIFileCharacteristics(ft)
    case default
       write(6,'(a)') 'ERROR: The data file format option is not valid.'
 end select
@@ -119,7 +110,7 @@ if ( writeMaxTimes.eqv..true.) then
 endif
 !
 ! open data file; find and compute extremes
-select case(ft%fileFormat)
+select case(ft%dataFileFormat)
 case(ASCIIG)
    SS=1  ! jgf: initialize the dataset counter
    !
@@ -130,10 +121,10 @@ case(ASCIIG)
       read(line,*) SnapR, SnapI
       read(line,*,ERR=907,END=907) SnapR, SnapI, NumNodesNonDefault, ft%defaultValue
       goto 908  ! jgf: this file is sparse ascii
- 907  NumNodesNonDefault = ft%numValuesPerDataset !jgf: this file is full ascii
+ 907  numNodesNonDefault = ft%numValuesPerDataset !jgf: this file is full ascii
          ft%defaultValue = -99999.
  908  dataValues = ft%defaultValue
-      select case(ft%num_components)
+      select case(ft%irtype)
       case(1) ! scalar data
          do node=1,numNodesNonDefault
             read(ft%fun,*) j, temp1
@@ -173,15 +164,15 @@ case(NETCDFG)
       write(6,advance='no',fmt='(i0,1x)') i  ! update progress bar
       !
       ! read the dataset from netcdf
-      do j=1,ft%num_components
+      do j=1,ft%irtype
          nc_start = (/ 1, i /)
          nc_count = (/ m%np, 1 /)
-         call check(nf90_get_var(ft%nc_id,ft%nc_varid(j),adcirc_data(:,j),nc_start,nc_count))
+         call check(nf90_get_var(ft%nc_id,ft%ncds(j)%nc_varid,adcirc_data(:,j),nc_start,nc_count))
       end do
       ! check to see if each value exceeds the recorded extreme value
       ! at that node
       if (findMin.eqv..false.) then
-         if (ft%num_components.eq.2) then
+         if (ft%irtype.eq.2) then
             dataValues = sqrt(adcirc_data(:,1)**2+adcirc_data(:,2)**2)
          endif
          ! find max 
@@ -215,8 +206,8 @@ write(6,'(a,a,a)') 'INFO: Writing min/max data to ',trim(fm%dataFileName),'.'
 ! open file to write maxes
 fm%fun = availableUnitNumber()
 open(unit=fm%fun, file=trim(adjustl(fm%dataFileName)), status='replace', action='write')
-write(fm%fun,'(a)') trim(adjustl(header1))
-write(fm%fun,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') fm%nSnaps, ft%numValuesPerDataSet, ft%time_increment, ft%nspool, ft%num_components
+write(fm%fun,'(a,1x,a,1x,a)') trim(rundes), trim(runid), trim(m%agrid)
+write(fm%fun,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') fm%nSnaps, ft%numValuesPerDataSet, ft%time_increment, ft%nspool, ft%irtype
 !
 ! write extreme values to output file             
 !
