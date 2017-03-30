@@ -4,7 +4,7 @@
 ! A module that provides helper subroutines for opening and reading 
 ! ADCIRC files in ascii and netcdf format. 
 !--------------------------------------------------------------------------
-! Copyright(C) 2014--2016 Jason Fleming
+! Copyright(C) 2014--2017 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -286,6 +286,10 @@ f%numValuesPerDataSet = -99
 !
 ! open the netcdf file
 call check(nf90_open(trim(f%dataFileName), NF90_NOWRITE, f%nc_id))
+!
+! set the agrid value (mesh comment line)
+m%agrid='agrid:not_set'
+call readMeshCommentLineNetCDF(m, f%nc_id)
 !
 ! determine the type of data stored in the file
 call check(nf90_inquire(f%nc_id, f%ndim, f%nvar, f%natt, f%nc_dimid_time, f%ncformat))
@@ -737,9 +741,15 @@ f%nspool = -99999
 f%it(:) = -99999
 f%defaultValue = -99999.d0
 
+!
+! get the variable id(s) of the data we want to convert
+do i=1,f%num_components
+   call check(nf90_inq_varid(f%nc_id, f%varNameNetCDF(i), f%nc_varid(i)))
+end do
+!
 call check(nf90_close(f%nc_id))
-
 call allMessage(INFO,'Finished determining netCDF file characteristics.')
+
 !----------------------------------------------------------------------
 end subroutine determineNetCDFFileCharacteristics
 !----------------------------------------------------------------------
