@@ -27,11 +27,11 @@ close all
 % If not, assume the script is being run in interactive mode on a
 % Windows or Mac system.
 if exist('commandLineOptions','var')==0
-   pathSep='/'; % linux-style path separator
-else
    pathSep='\'; %'% windows-style path separator
    clearvars -except grd %jgf: this uninitializes variables specified on the command line
    clc
+else
+   pathSep='/'; % linux-style path separator
 end
 mypath='.';
 %
@@ -95,7 +95,7 @@ if exist('writeoutfil','var')==0
    writeoutfil=1;  
 end
 if any(writeoutfil==[1,-63,63])
-   timeinterval=-99999.0;  % time interval between datasets in fort.63 file 
+   timeinterval=-99999.0;  % reported time interval between datasets in fort.63-formatted file 
 end
 % constrefwl : constant reference water level value, only used if refwlmode
 % is set to 0 
@@ -129,8 +129,10 @@ if exist('filmesh','var')==0
 end
 % text file containing stations of interest, in standard ADCIRC station metadata format
 if exist('filstations','var')==0
-   useDefaultStationList=true
+   useDefaultStationList=true;
    disp('INFO: Stations file name was not specified. Using a default stations list.')
+else
+   useDefaultStationList=false;
 end
 % for bounding offshore/inland values
 if exist('filoffshfixpnts','var')==0
@@ -224,9 +226,14 @@ else
 end
 %
 % For mesh
+outsideblendz=0;                % value to blend to at the faroff boundary
+outsidedefaultz=outsideblendz;  % default elevation value for areas that aren't to be interpolated
 meshdefaultz=outsidedefaultz;           %default value for mesh
 if exist('meshinterpmethod','var')==0
    meshinterpmethod='oi';                  %which method to use ('oi' or 'rd')
+end
+if commandLineOptions==true
+   disp('INFO: offsetSurfaceGen.m: Finished parsing command line options.')
 end
 %-----------------------------------------------------------------------
 %             B E G I N   E X E C U T I O N
@@ -236,8 +243,6 @@ end
 if offshorepointmode==1
     circledist=4;  % how far out the circle should be (same units as input data)
 end
-outsideblendz=0;                % value to blend to at the faroff boundary
-outsidedefaultz=outsideblendz;  % default elevation value for areas that aren't to be interpolated
 %
 % Error checking (this prob needs to be filled out more)
 if offblendmode==1&&~any(offshorepointmode==[2,3])
@@ -248,22 +253,40 @@ end
 %   lon deg E   lat deg N  ! stationID ! agency   ! description ! datum 
 % -81.80867700 24.55500000 ! 8724580 ! NOAA NOS ! Key West ! MSL
 % This station list will be used to download measured data.
-if useDefaultStationsList==false
-   if exist('filstations','file')==0
-      error(['offsetSurfaceGen.m: The stations file' filstations 'was not found.'])
-   end
-   stationFileID=fopen(filstations,'r')
+if useDefaultStationList==false
+   stationFileID=fopen(filstations,'r');
    if stationFileID==-1
-      error(['offsetSurfaceGen.m: Failed to open station file ' filstations '.'])
+      error(['ERROR: offsetSurfaceGen.m: Failed to open station file "' filstations '".'])
    end
-   % read the station data 
-   [stationLon,stationLat,bang1,stationid,bang2,agency,bang3,description,bang4,datum] = textscan(stationFileID,'%f %f %s %s %s %s %s %s %s %s') % lo la !  id !  ag !  ds !  da 
-   status = fclose(stationFileID)
+   field1 = 'refStationLon';
+   field2 = 'refStationLat';
+   field3 = 'refStationID';
+   field4 = 'refAgency';
+   field5 = 'refDescription';
+   field6 = 'refDatum';
+   tline = fgetl(stationFileID);
+   numRefStations = 0;
+   while ischar(tline)
+      c = strsplit(tline); % split on spaces
+      lat = str2double(c(1));
+      lon = str2double(c(2));
+      c = strsplit(tline,'!'); % split on field separator           
+      if numRefStations==0
+         refStations = struct(field1,lat,field2,lon,field3,strtrim(c(2)),field4,strtrim(c(3)),field5,strtrim(c(4)),field6,strtrim(c(5)));      
+      else
+         refStations(end+1) = struct(field1,lat,field2,lon,field3,strtrim(c(2)),field4,strtrim(c(3)),field5,strtrim(c(4)),field6,strtrim(c(5)));     
+      end
+      numRefStations = numRefStations + 1;
+      tline = fgetl(stationFileID);
+   end
+   status = fclose(stationFileID);
+   stationid = string({refStations.refStationID});
    if status==-1
       error(['offsetSurfaceGen.m: Failed to close station file ' filstations '.'])
    end
    nstat=numel(stationid); % compute number of stations
 else
+   disp('INFO: offsetSurfaceGen.m: Using default station list for measured gage data.')
    % set some default list of stations
    stationnum=[8724580;8723970;8723214;8722670;8721604;8720218;8720030;8670870;8665530;8661070;8658120;8658163;8656483;8654467;8651370;8638863;8638610;8637689;8635750;8577330;8575512;8574680;8573364;8632200;8570283];   
    stationid=mat2cell(num2str(stationnum),ones(numel(stationnum),1),7);
@@ -310,15 +333,12 @@ elseif refwlmode==1
    % read a single column of unadorned numbers in ascii format and use as-is
    disp('INFO: offsetSurfaceGen.m: Loading single column of reference (adcirc) water level data from file.')
    refwl=load(filrefwl,'-ascii');
-elseif refwlmode=2
+elseif refwlmode==2
    % read the file as written by stationProcessor.f90
    disp(['INFO: offsetSurfaceGen.m: Loading reference (adcirc) water level data from the file ' filrefwl ' (specified by the parameter filrefwl, as written by stationProcessor.f90.'])
    %# rundes: cy:MATTHEW47 ASGS runid:nowcast agrid:not_set
    %# stationID ! operationType ! timestart(s) ! timeend(s) ! (result ! numObservations (c=1,num_components))
-   if exist('filrefwl','file')==0
-      error(['offsetSurfaceGen.m: The reference (adcirc) water level file' filrefwl ', specified by the filrefwl parameter, was not found.'])
-   end
-   waterLevelFileID=fopen(filrefwl,'r')
+   waterLevelFileID=fopen(filrefwl,'r');
    if waterLevelFileID==-1
       error(['offsetSurfaceGen.m: Failed to open reference (adcirc) water level file ' filrefwl '.'])
    end
@@ -326,10 +346,29 @@ elseif refwlmode=2
    header1 = fgetl(waterLevelFileID);
    disp(['The first header line from the file ' filrefwl ' is ' header1 '.']);
    header2 = fgetl(waterLevelFileID);
-   disp(['The second header line from the file ' filrefwl ' is ' header2 '.']);   
-   % read the average adcirc water level data
-   [rstationid,operationtype,timestart,timeend,refwl,numobs] = textscan(stationFileID,'%s %s %f %f %f %d'); 
-   status = fclose(waterLevelFileID)
+   disp(['The second header line from the file ' filrefwl ' is ' header2 '.']); 
+   field1 = 'refStationID';
+   field2 = 'refOperationType';
+   field3 = 'refTimeStart';
+   field4 = 'refTimeEnd';
+   field5 = 'refWaterLevel';
+   field6 = 'refNumObs';
+   tline = fgetl(waterLevelFileID);
+   tline
+   numRefStations = 0;
+   while ischar(tline)
+      tlineTrimmed = strtrim(tline); % trim leading and trailing spaces
+      c = strsplit(tlineTrimmed); % split on spaces
+      if numRefStations==0
+         refStations = struct(field1,strtrim(c(1)),field2,strtrim(c(2)),field3,str2double(c(3)),field4,str2double(c(4)),field5,str2double(c(5)),field6,str2double(c(6)));  
+      else
+         refStations(end+1) =  struct(field1,strtrim(c(1)),field2,strtrim(c(2)),field3,str2double(c(3)),field4,str2double(c(4)),field5,str2double(c(5)),field6,str2double(c(6))); 
+      end
+      numRefStations = numRefStations + 1;
+      tline = fgetl(waterLevelFileID);
+   end
+   status = fclose(waterLevelFileID);
+   refwl = cell2mat({refStations.refWaterLevel});
    if status==-1
       error(['offsetSurfaceGen.m: Failed to close a file ' filrefwl '.'])
    end
@@ -340,13 +379,15 @@ elseif refwlmode=2
    % observations, using the median number as the criterion will 
    % effectively remove all stations that have anything less than the
    % full set of observations. 
-   nrstat=numel(rstationid); % compute number of stations where reference (adcirc) water level data are available
+   nrstat=numel(refwl); % compute number of stations where reference (adcirc) water level data are available
 else
    error('offsetSurfaceGen.m: The refwlmode parameter must be set to 0, 1, or 2.')
 end
+disp('INFO: offsetSurfaceGen.m: Finished loading reference (adcirc) water level data.')
 %
 % Load in offshore points if that's the chosen mode of operation
 if offblendmode==1
+    disp(['About to load file ' filfaroff '.'])
     load(filfaroff)     % has variable faroffpnts   that's a *x2 array of x-y data
     load(filinl)        % has variable inlpnts      that's a *x2 array of x-y data
 end
@@ -505,7 +546,7 @@ if interptomesh==1
             nondefaultvals=find(zmesh~=meshdefaultz);
             fprintf(fidout,'header\n');
             fprintf(fidout,'1 %i -99999.0 1 1\n',grd.np);
-            fprintf(fidout,'%f -99999\n',stopSeconds);
+            fprintf(fidout,'%f -99999\n',timesecEnd);
             fprintf(fidout,'%i  %f\n',[nondefaultvals,zmesh(nondefaultvals)].');
         else
             error('writeoutfil must be set to either 1, 63, or -63 if interptomesh is set to 1')
