@@ -35,6 +35,8 @@ character(len=20) :: operation  ! min, max, mean, median, range, maxtime, mintim
 real(8) :: timesecStart = -99999.d0  ! beginning of time range (s) to use from fort.61.nc file
 real(8) :: timesecEnd = -99999.d0  ! end of time range (s) to use from fort.61.nc file 
 character(len=1024) :: stationFileName ! name of file containing list of stations in standard metadata format
+logical :: outOfRange      ! true if requested start or end times are out of data range in file
+logical :: strictTimeRange ! true if output should not be written when data are not available for the full requested range
 character(len=50), allocatable :: dataFileStationIDs(:) ! holder for netcdf IDs array
 character(len=1024) :: outputfile      ! average data at stations 
 integer :: numStationsInList ! number of stations in the list of interest (not the fort.61)
@@ -58,6 +60,8 @@ integer :: tdata ! dataset counter for indexing datasets in fort.61
 integer :: lastDataSetInTimeRange ! index of last dataset from fort.61
 integer :: firstDataSetInTimeRange ! index of first dataset from fort.61
 integer :: numDataSetsInTimeRange ! number of datasets in time range from fort.61
+integer :: numDataSetsBeforeStart  !  
+integer :: numDataSetsAfterEnd     !
 integer :: nc_start_station_names(2) ! index to start reading station name array from netcdf
 integer :: nc_count_station_names(2) ! number of station name array items to read from netcdf
 character(len=1024) :: line ! comment line at top of result file
@@ -72,6 +76,7 @@ integer :: nc_varid_station_name
 stationFileName = 'stations.txt'
 outputFile = 'station_averages.txt'
 operation = 'mean'
+strictTimeRange = .false.
 call initLogging(availableUnitNumber(),'stationProcessor.f90')
 !
 argcount = command_argument_count() ! count up command line options
@@ -81,6 +86,10 @@ if (argcount.gt.0) then
       i = i + 1
       call getarg(i, cmdlineopt)
       select case(trim(cmdlineopt))
+      case("--strict-time-range")
+         write(scratchMessage,'(99(a))') 'Processing ',trim(cmdlineopt),'.'
+         call allMessage(INFO,scratchMessage)
+         strictTimeRange = .true.
       case("--datafile")
          i = i + 1
          call getarg(i, cmdlinearg)
@@ -193,6 +202,7 @@ allocate(dataFileStationIDs(sf%nStations))
 !
 ! read the station_name array which actually contains the stationID instead
 ! of the description
+call check(nf90_open(trim(sf%dataFileName), NF90_NOWRITE, sf%nc_id))
 nc_start_station_names = (/ 1, 1 /)
 nc_count_station_names = (/ sf%station_namelen, sf%nStations /)
 call check(nf90_inq_varid(sf%nc_id, "station_name", NC_VarID_station_name))
@@ -218,13 +228,30 @@ end do
 ! determine the number of datasets that fall in the specified time range
 numDataSetsInTimeRange = 0
 firstDataSetInTimeRange = 0
+numDataSetsAfterEnd = 0
+numDataSetsBeforeStart = 0
+outOfRange = .false.
+!
+! check to see if data are available for the full requested time range
+if ( (timesecStart.gt.0).and.(timesecStart.lt.sf%timesec(1)) ) then
+   write(scratchMessage,'("The data file starts at time t=",e17.8," (s) but the requested start time is t=",e17.8," (s).")') sf%timesec(1), timesecStart 
+   call allMessage(WARNING,scratchMessage)
+   outOfRange = .true.
+endif
+if ( (timesecEnd.gt.0).and.(timesecEnd.gt.sf%timesec(sf%nSnaps)) ) then
+   write(scratchMessage,'("The data file ends at time t=",e17.8," (s) but the requested end time is t=",e17.8," (s).")') sf%timesec(sf%nSnaps), timesecEnd
+   call allMessage(WARNING,scratchMessage)
+   outOfRange = .true.
+endif
 do t=1,sf%nSnaps
    ! exclude datasets after the specified end time (if any)
    if ( (timesecEnd.gt.0).and.(sf%timesec(t).gt.timesecEnd) ) then
+       numDataSetsAfterEnd = numDataSetsAfterEnd + 1
        cycle
    endif
    ! exclude datasets before the specified start time (if any)
    if ( (timesecStart.gt.0).and.(sf%timesec(t).lt.timesecStart) ) then
+       numDataSetsBeforeStart = numDataSetsBeforeStart + 1
       cycle
    endif
    if ( firstDataSetInTimeRange.eq.0 ) then
@@ -233,6 +260,14 @@ do t=1,sf%nSnaps
    numDataSetsInTimeRange = numDataSetsInTimeRange + 1
 end do 
 lastDataSetInTimeRange = firstDataSetInTimeRange + numDataSetsInTimeRange - 1  
+!
+if ( (outOfRange.eqv..true.).and.(strictTimeRange.eqv..true.) ) then
+   call allMessage(INFO,'The file does not have data for the full time range, and the command line option --strict-time-range was set.')
+   write(scratchMessage,'("The first data set in the time range is data set ",i0," and the last is data set ",i0,"; there are ",i0," data sets in the given time range.")') firstDataSetInTimeRange, lastDataSetInTimeRange, numDataSetsInTimeRange
+   call allMessage(INFO,scratchMessage)
+   call allMessage(INFO,'Output will not be written because of the unavailability of some of the data in the requested time range. Execution complete.')
+   stop
+endif 
 !
 ! memory for holding data for each station
 do ista=1,numStationsInList
