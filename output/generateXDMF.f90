@@ -25,10 +25,10 @@
 !--------------------------------------------------------------------------
 program generateXDMF
 use netcdf
-use asgsio
-use adcmesh
 use ioutil
 use logging
+use asgsio
+use adcmesh
 implicit none
 integer :: iargc
 character(len=20) :: logLevelOpt
@@ -36,13 +36,19 @@ logical :: setLogLevel = .false.
 !
 type(mesh_t) :: m
 type(meshNetCDF_t) :: n
+!
+#ifdef OLDGFORTRAN
+! gfortran v4.6.3 (2011) chokes on an allocatable array of fileMetaData_t
+type(fileMetaData_t) :: fileMetaData(10)
+#else
 type(fileMetaData_t), allocatable :: fileMetaData(:)
+#endif
+!
 logical :: fileFound = .false.
 integer :: iSnap    ! snapshot counter
 integer :: numFiles ! number of data files to refer to from the xml file
 integer :: fi       ! file counter
 integer :: olun     ! i/o unit number where xdmf xml will be written 
-integer :: nSnaps
 !
 ! NetCDF related variables
 integer :: ncStatus
@@ -113,7 +119,13 @@ if (argcount.gt.0) then
    endif
    ! allocate space to hold metadata for each of the data files
    ! we will refer to
+   if (numFiles.eq.0) then
+      call allMessage(ERROR,'Must specify at least one data file with "--datafile ...".')
+   endif
+#ifndef OLDGFORTRAN
+   ! gfortran v4.6.3 (2011) chokes on this allocate statement
    allocate(fileMetaData(numFiles))
+#endif
    fileMetaData(:) % useCPP = .false.
    fileMetaData(:) % initialized = .false.
    i=0
@@ -128,7 +140,7 @@ if (argcount.gt.0) then
             write(scratchMessage,'(a,a,a,a,a)') 'Processing "',trim(cmdlineopt),' ',trim(cmdlinearg),'".'
             call allMessage(INFO,scratchMessage)
             fileMetaData(fi)%dataFileName = trim(cmdlinearg)
-            fileMetaData(fi)%fileFormat = NETCDFG
+            fileMetaData(fi)%dataFileFormat = NETCDFG
             fi = fi + 1
          case("--maureparticle")
             i = i + 1
@@ -136,7 +148,7 @@ if (argcount.gt.0) then
             write(scratchMessage,'(a,a,a,a,a)') 'Processing "',trim(cmdlineopt),' ',trim(cmdlinearg),'".'
             call allMessage(INFO,scratchMessage)
             fileMetaData(fi)%dataFileName = trim(cmdlinearg)
-            fileMetaData(fi)%fileFormat = MAUREPT
+            fileMetaData(fi)%dataFileCategory = MAUREPT
             writeParticleFile = .true.
             fi = fi + 1
          case("--xdmffile")
@@ -170,9 +182,11 @@ do fi=1,numFiles
    if (errorIO.gt.0) then
       stop
    endif
-   select case(fileMetaData(fi)%fileFormat)
-   case(NETCDFG)
-      ! netcdf file exists; open it
+      write(6,*) 'data file category is ',fileMetaData(fi)%dataFileCategory !jgfdebug
+      write(6,*) 'data file format is ',fileMetaData(fi)%dataFileFormat !jgfdebug
+   if (fileMetaData(fi)%dataFileFormat.eq.NETCDFG) then
+      call determineNetCDFFileCharacteristics(fileMetaData(fi), m, n)
+       ! netcdf file exists; open it
       call check(nf90_open(trim(fileMetaData(fi)%dataFileName), NF90_NOWRITE, fileMetaData(fi)%nc_id))
       !
       ! Make sure the file is NetCDF4 formatted (i.e., HDF5 underneath) because
@@ -183,7 +197,7 @@ do fi=1,numFiles
          call check(nf90_close(fileMetaData(fi)%nc_id))
          stop
       else    
-         fileMetaData(fi)%fileFormat = NETCDF4
+         fileMetaData(fi)%dataFileFormat = NETCDF4
       endif
       !
       ! Inquire netCDF file about mesh dimensions, variables, and attributes.
@@ -200,8 +214,10 @@ do fi=1,numFiles
          call check(nf90_get_att(fileMetaData(fi)%nc_id, NF90_GLOBAL, 'grid', m%agrid))
       endif
       call check(nf90_close(fileMetaData(fi)%nc_id))
-   case(MAUREPT)
+   endif
+   if (fileMetaData(fi)%dataFileCategory.eq.MAUREPT) then
       maureIndex = fi  ! record which of the files is a maureparticle file
+      call determineASCIIFileCharacteristics(fileMetaData(fi))
       ! open the file and determine the number of datasets as well as
       ! the number of particles in each dataset
       fileMetaData(fi)%fun = availableUnitNumber()
@@ -257,67 +273,9 @@ do fi=1,numFiles
       deallocate(pTimesec)
       ! rewind back to the beginning for one more read to actually process the data
       rewind(fileMetaData(fi)%fun) 
+   endif
  246  fileMetaData(fi) % initialized = .true.
-   case default
-      ! should be unreachable
-      call allMessage(ERROR,'Only able to read netCDF4 files from ADCIRC and output files from Maureparticle.')
-      stop            
-   end select
 end do 
-!
-! Have a look at how much data is in each netcdf file.
-do fi=1,numFiles
-   if (fileMetaData(fi)%fileFormat.ne.NETCDF4) then
-      cycle
-   endif
-   call determineNetCDFFileCharacteristics(fileMetaData(fi), m, n)
-end do 
-!
-! determine whether any of the files is a nodal attributes file or otherwise
-! time invariant
-fileMetaData(:)%timeVarying = .true.
-do fi=1,numFiles
-   if (fileMetaData(fi)%fileFormat.ne.NETCDF4) then
-      cycle
-   endif
-   call check(nf90_open(trim(fileMetaData(fi)%dataFileName), NF90_NOWRITE, fileMetaData(fi)%nc_id))
-   do i=1,fileMetaData(fi)%natt
-      call check(nf90_inq_attname(fileMetaData(fi)%nc_id, NF90_GLOBAL, i, thisVarName))
-      if (trim(thisVarName).eq.'nodalAttributesComment') then
-         fileMetaData(fi) % dataFileType = 'fort.13' ! adcirc nodal attributes file
-         fileMetaData(fi) % timeVarying = .false.
-         exit
-      endif
-   end do
-   do i=1,fileMetaData(fi)%nvar
-      call check(nf90_inquire_variable(fileMetaData(fi) % nc_id, i, thisVarName))
-      if (trim(thisVarName).eq.'inundationmask') then
-         fileMetaData(fi) % timeVarying = .false.
-         exit
-      endif
-   end do
-end do 
-!
-! Determine the type of netCDF file that we have based on the name(s) 
-! of the variable(s) in the file. Set the number of variables, number
-! of components for each one and their names for the XML file. 
-do fi=1,numFiles
-   if ( trim(fileMetaData(fi) % dataFileType).eq.'fort.13') then
-      fileMetaData(fi) % fileTypeDesc = 'an ADCIRC nodal attributes file (fort.13)'
-      fileMetaData(fi) % timeVarying = .false. 
-      ! Count the number of nodal attributes in the file
-      call allMessage(ERROR,'Nodal attributes files are not yet supported by adcirc2netcdf.")')
-      stop
-      ! TODO: structure this like the hotstart file setup below.
-   endif
-   if ( fileMetaData(fi) % fileFormat .eq. MAUREPT ) then
-      fileMetaData(fi) % fileTypeDesc = 'a time varying maureparticle output file'
-      fileMetaData(fi) % dataFileType = 'maureparticle'
-      cycle ! go to the next file
-   endif
-   call initNamesXDMF(fileMetaData(fi))
-   call check(nf90_close(fileMetaData(fi)%nc_id))
-end do
 !
 ! Form the file name of XDMF xml file and open it.
 call allMessage(INFO,'Writing XDMF xml header.')
@@ -345,15 +303,14 @@ else
    write(olun,'('//ind('+')//',a)') '<Domain Name="'//adjustl(trim(m%agrid))//'">'
 endif
 !    
-! Bomb out if we did not recognize any of the variable names in the file.
+! Bomb out if we did not recognize any of the variable names in the file
+! or if only the mesh should be written. 
 do fi=1,numFiles
-   if ( fileMetaData(fi) % initialized.eqv..false. ) then
-      meshonly = .true.
-      call allMessage(INFO,'Did not recognize any of the variables in the file '//trim(fileMetaData(fi)%dataFileName)//'.')
-      call allMessage(INFO,'The xml file will only contain mesh-related information.')
+   if ( (meshonly.eqv..true.).or.(fileMetaData(fi) % dataFileCategory.eq.MESH) ) then
+      call allMessage(INFO,'The '//trim(xdmfFile)//' xml file will only contain mesh-related information.')      
       write(olun,'('//ind('+')//',a)') '<Grid Name="'//adjustl(trim(m%agrid))//'" GridType="Uniform">'
       ! Write mesh portion of XDMF xml file.
-      call writeMeshTopologyGeometryDepth(fileMetaData(fi), m, olun, meshonly)
+      call writeMeshTopologyGeometryDepth(fileMetaData(fi), m, olun, .true.)
       ! finish off the xml so the user can at least look at the mesh
       write(olun,'('//ind('-')//',a)') '</Grid>'
       call writeFooterXML(olun)
@@ -389,10 +346,8 @@ endif
 ! Load up the node and element tables if we are writing a maureparticle 
 ! file. 
 do fi=1,numFiles
-   if (fileMetaData(fi)%fileFormat.eq.NETCDF4) then
-      allocate(fileMetaData(fi)%timesec(fileMetaData(fi)%nSnaps))
+   if (fileMetaData(fi)%dataFileFormat.eq.NETCDF4) then
       call check(nf90_open(trim(fileMetaData(fi)%dataFileName), NF90_NOWRITE, fileMetaData(fi)%nc_id))
-      call check(nf90_get_var(fileMetaData(fi)%nc_id, fileMetaData(fi)%NC_VarID_time, fileMetaData(fi)%timesec, (/ 1 /), (/ fileMetaData(fi)%nSnaps /) ))
       if ((writeParticleFile.eqv..true.).and.(meshInitialized.eqv..false.)) then
          call findMeshDimsNetCDF(m, n)
          call readMeshNetCDF(m, n)
@@ -416,10 +371,9 @@ do fi=2,numFiles
       call allMessage(ERROR,'The files do not all have the same number of datasets.')
       stop
    endif   
-   nSnaps = fileMetaData(fi)%nSnaps
    !
    ! Check to make sure all the datasets have the same time stamp
-   do iSnap=1,nSnaps
+   do iSnap=1,fileMetaData(fi)%nSnaps
       if ( fileMetaData(fi)%timesec(iSnap).ne.fileMetaData(fi-1)%timesec(iSnap) ) then
          call allMessage(ERROR,'Corresponding datasets from different files have different time stamps.')
          stop
@@ -486,7 +440,6 @@ end program generateXDMF
 !----------------------------------------------------------------------
 
 
-
 !----------------------------------------------------------------------
 !  S U B R O U T I N E     I N I T   N A M E S   X D M F
 !----------------------------------------------------------------------
@@ -503,51 +456,49 @@ use ioutil, only : check
 implicit none
 type(fileMetaData_t) :: fmd
 integer :: i, j
-
+!
 ! find the netcdf variable IDs
 do i=1,fmd % numVarNetCDF
-   call check(nf90_inq_varid(fmd%nc_id, fmd % varNameNetCDF(i), fmd % nc_varID(i)))
-   call check(nf90_inquire_variable(fmd % nc_id, fmd%nc_varID(i), fmd%varNameNetCDF(i), fmd%nc_type(i)))
+   call check(nf90_inq_varid(fmd%nc_id, fmd%ncds(i)%varNameNetCDF, fmd%ncds(i)%nc_varID))
+   call check(nf90_inquire_variable(fmd%nc_id, fmd%ncds(i)%nc_varID, fmd%ncds(i)%varNameNetCDF, fmd%ncds(i)%nc_varType))
 end do
 ! set the names of the XDMF data 
 i=1 ! netcdf variable counter
 j=1 ! xdmf variable counter
 do 
    ! for vector data, the name will be replaced in the calling routine anyway
-   if (trim(fmd%varNameNetCDF(i)).ne."noff") then
+   if (trim(fmd%ncds(i)%varNameNetCDF).ne."noff") then
       !write(6,'(a,a)') 'DEBUG: generateXDMF: seeking NetCDF variable ID for ',trim(fmd%varNameNetCDF(i))
       ! the standard_name attribute is missing for noff in some netcdf hotstart files   
-      call check(nf90_get_att(fmd%nc_id, fmd % nc_varID(i), 'standard_name', fmd % varNameXDMF(j)))
+      call check(nf90_get_att(fmd%nc_id, fmd%ncds(i)%nc_varID, 'standard_name', fmd%xds(j)%varNameXDMF))
    endif
    !
    ! Apply a fix for old versions of ADCIRC that misnamed nodecode and 
    ! noff in the netcdf hotstart files (nodecode was given the standard_name
    ! of "element_wet_or_dry" while noff was given no standard name at all). 
-   if (trim(fmd%varNameNetCDF(i)).eq."nodecode") then
-      fmd%varNameXDMF(j) = "node_wet_or_dry"
+   if (trim(fmd%ncds(i)%varNameNetCDF).eq."nodecode") then
+      fmd%xds(j)%varNameXDMF = "node_wet_or_dry"
    endif
-   if (trim(fmd%varNameNetCDF(i)).eq."noff") then
-      fmd%varNameXDMF(j) = "element_wet_or_dry"
+   if (trim(fmd%ncds(i)%varNameNetCDF).eq."noff") then
+      fmd%xds(j)%varNameXDMF = "element_wet_or_dry"
    endif
    !write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameNetCDF(',i,')=',trim(fmd%varNameNetCDF(i))
    !write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameXDMF(',j,')=',trim(fmd%varNameXDMF(j))
-
-   select case(fmd%nc_type(i))
+   select case(fmd%ncds(i)%nc_varType)
    case(NF90_INT)
-      fmd%numberType(j) = "Int"
-      fmd%numberPrecision(j) = 4
+      fmd%xds(j)%numberType = "Int"
+      fmd%xds(j)%numberPrecision = 4
    case(NF90_FLOAT)
-      fmd%numberType(j) = "Float"
-      fmd%numberPrecision(j) = 4
+      fmd%xds(j)%numberType = "Float"
+      fmd%xds(j)%numberPrecision = 4
    case(NF90_DOUBLE)
-      fmd%numberType(j) = "Float"
-      fmd%numberPrecision(j) = 8
+      fmd%xds(j)%numberType = "Float"
+      fmd%xds(j)%numberPrecision = 8
    case default
-      call allMessage(ERROR,'The netCDF variable '//trim(fmd%varNameNetCDF(i))//' uses an unknown data type.')
+      call allMessage(ERROR,'The netCDF variable '//trim(fmd%ncds(i)%varNameNetCDF)//' uses an unknown data type.')
       stop
    end select
-
-   i = i + fmd % numComponents(j) ! multi component (vector) data only need 1 name
+   i = i + fmd % irtype ! multi component (vector) data only need 1 name
    j = j + 1
    if (j.gt.fmd % numVarXDMF) exit
 end do
@@ -708,24 +659,24 @@ i=1 ! netCDF variable counter
 j=1 ! XDMF variable counter
 do 
    attributeType = "Scalar"
-   if (fmd%numComponents(j).gt.1) then
+   if (fmd%xds(j)%numComponents.gt.1) then
       attributeType = "Vector"
    endif
    dataItemDimensions = m%np
-   if (trim(fmd%dataCenter(j)).eq."Cell") then
+   if (trim(fmd%xds(j)%dataCenter).eq."Cell") then
       dataItemDimensions = m%ne
    endif
    !
-   write(olun,'('//ind('|')//',A)') '<Attribute Name="'//trim(fmd%varNameXDMF(j))//'"'
-   write(olun,'('//ind('|')//',A)') '  Center="'//trim(fmd%dataCenter(j))//'"'
+   write(olun,'('//ind('|')//',A)') '<Attribute Name="'//trim(fmd%xds(j)%varNameXDMF)//'"'
+   write(olun,'('//ind('|')//',A)') '  Center="'//trim(fmd%xds(j)%dataCenter)//'"'
    write(olun,'('//ind('|')//',A)') '  AttributeType="'//trim(attributeType)//'">'
    !
    ! Scalar attribute
    if (trim(attributeType).eq."Scalar") then
       write(olun,'('//ind('+')//',A,i0,A)') '<DataItem Dimensions="',dataItemDimensions,'"'
-      write(olun,'('//ind('|')//',a,a,a)')  '  NumberType="',trim(fmd%numberType(j)),'"'
-      write(olun,'('//ind('|')//',a,i0,a)') '  Precision="',fmd%numberPrecision(j),'"'
-      write(olun,'('//ind('|')//',A)')      '  Format="HDF">'//trim(fmd%dataFileName)//':/'//trim(fmd%varNameNetCDF(i))
+      write(olun,'('//ind('|')//',a,a,a)')  '  NumberType="',trim(fmd%xds(j)%numberType),'"'
+      write(olun,'('//ind('|')//',a,i0,a)') '  Precision="',fmd%xds(j)%numberPrecision,'"'
+      write(olun,'('//ind('|')//',A)')      '  Format="HDF">'//trim(fmd%dataFileName)//':/'//trim(fmd%ncds(i)%varNameNetCDF)
       write(olun,'('//ind('|')//',A)')      '</DataItem>'
       write(olun,'('//ind('-')//',A)')   '</Attribute>' ! end of scalar attribute
    !
@@ -734,7 +685,7 @@ do
       write(olun,'('//ind('|')//',A)')      '<DataItem ItemType="Function"'
       write(olun,'('//ind('|')//',A,i0,A)') '  Dimensions="',dataItemDimensions,' 3"'
       write(olun,'('//ind('|')//',A)')      '  Function="JOIN($0, $1, 0*$0)">'
-      do k=0,fmd%numComponents(j)-1
+      do k=0,fmd%xds(j)%numComponents-1
          if (k.eq.0) then
             write(olun,'('//ind('+')//',A)')   '<DataItem ItemType="HyperSlab"'
          else 
@@ -751,15 +702,15 @@ do
          ! a steady vector attribute still has to have a first 
          ! dimension of 1 instead of nSnaps-1
          write(olun,'('//ind('|')//',A,i0,A)')    '<DataItem Dimensions="1 ',dataItemDimensions,'"' 
-         write(olun,'('//ind('|')//',a,a,a)')     '  NumberType="',trim(fmd%numberType(j)),'"'
-         write(olun,'('//ind('|')//',a,i0,a)')    '  Precision="',fmd%numberPrecision(j),'" Format="HDF">'//trim(fmd%dataFileName)//':/'//trim(fmd%varNameNetCDF(i+k))
+         write(olun,'('//ind('|')//',a,a,a)')     '  NumberType="',trim(fmd%xds(j)%numberType),'"'
+         write(olun,'('//ind('|')//',a,i0,a)')    '  Precision="',fmd%xds(j)%numberPrecision,'" Format="HDF">'//trim(fmd%dataFileName)//':/'//trim(fmd%ncds(i+k)%varNameNetCDF)
          write(olun,'('//ind('|')//',A)')         '</DataItem>' ! end of Dimensions
          write(olun,'('//ind('-')//',A)')      '</DataItem>' ! end of HyperSlab
       enddo
       write(olun,'('//ind('-')//',A)')      '</DataItem>' ! end of FUNCTION
       write(olun,'('//ind('-')//',A)')   '</Attribute>' ! end of Vector Attribute
    endif
-   i = i + fmd%numComponents(j)
+   i = i + fmd%xds(j)%numComponents
    j = j + 1
    if (j.gt.fmd%numVarXDMF) then
       exit
@@ -800,15 +751,15 @@ domainExtent = m%np
 i=1 ! netCDF variable counter
 j=1 ! XDMF variable counter
 do 
-   if (fmd%numComponents(j).gt.1) then
+   if (fmd%xds(j)%numComponents.gt.1) then
       attributeType = "Vector"
    endif
-   if (trim(fmd%dataCenter(j)).eq."Cell") then
+   if (trim(fmd%xds(j)%dataCenter).eq."Cell") then
       domainExtent = m%ne
    endif
    !
-   write(olun,'('//ind('|')//',A)') '<Attribute Name="'//trim(fmd%varNameXDMF(j))//'"'
-   write(olun,'('//ind('|')//',A)') '  Center="'//trim(fmd%dataCenter(j))//'"'
+   write(olun,'('//ind('|')//',A)') '<Attribute Name="'//trim(fmd%xds(j)%varNameXDMF)//'"'
+   write(olun,'('//ind('|')//',A)') '  Center="'//trim(fmd%xds(j)%dataCenter)//'"'
    write(olun,'('//ind('|')//',A)') '  AttributeType="'//trim(attributeType)//'">'
    !
    ! Scalar attribute
@@ -825,9 +776,9 @@ do
       write(olun,'('//ind('|')//',A)')    '</DataItem>'
             
       write(olun,'('//ind('|')//',A,i0,1x,i0,A)') '<DataItem Dimensions="',nSnaps-1,domainExtent,'"'
-      write(olun,'('//ind('|')//',a,a,a)')        '  NumberType="',trim(fmd%numberType(j)),'"'
-      write(olun,'('//ind('|')//',a,i0,a)')       '  Precision="',fmd%numberPrecision(j),'"'
-      write(olun,'('//ind('|')//',A)')            '  Format="HDF">'//trim(fmd%dataFileName)//':/'//trim(fmd%varNameNetCDF(i))
+      write(olun,'('//ind('|')//',a,a,a)')        '  NumberType="',trim(fmd%xds(j)%numberType),'"'
+      write(olun,'('//ind('|')//',a,i0,a)')       '  Precision="',fmd%xds(j)%numberPrecision,'"'
+      write(olun,'('//ind('|')//',A)')            '  Format="HDF">'//trim(fmd%dataFileName)//':/'//trim(fmd%ncds(i)%varNameNetCDF)
       write(olun,'('//ind('|')//',A)')            '</DataItem>'
       write(olun,'('//ind('-')//',A)')         '</DataItem>'
       write(olun,'('//ind('-')//',A)')      '</Attribute>' ! end of scalar attribute
@@ -837,7 +788,7 @@ do
       write(olun,'('//ind('+')//',A)')      '<DataItem ItemType="Function"'
       write(olun,'('//ind('|')//',A,i0,A)') '  Dimensions="',domainExtent,' 3"'
       write(olun,'('//ind('|')//',A)')      '  Function="JOIN($0, $1, 0*$0)">'
-      do k=0,fmd%numComponents(j)-1
+      do k=0,fmd%xds(j)%numComponents-1
          if (k.eq.0) then
             write(olun,'('//ind('+')//',A)')   '<DataItem ItemType="HyperSlab"'
          else      
@@ -852,16 +803,16 @@ do
          write(olun,'('//ind('|')//',A,i0)')      '  1 ',domainExtent
          write(olun,'('//ind('|')//',A)')         '</DataItem>' ! end of dimensions
          write(olun,'('//ind('|')//',A,i0,1x,i0,A)') '<DataItem Dimensions="',nSnaps-1,domainExtent,'"'
-         write(olun,'('//ind('|')//',a,a,a)')        '  NumberType="',trim(fmd%numberType(j)),'"'
-         write(olun,'('//ind('|')//',a,i0,a)')       '  Precision="',fmd%numberPrecision(j),'"' 
-         write(olun,'('//ind('|')//',A)')            '  Format="HDF">'//trim(fmd%dataFileName)//':/'//trim(fmd%varNameNetCDF(i+k))
+         write(olun,'('//ind('|')//',a,a,a)')        '  NumberType="',trim(fmd%xds(j)%numberType),'"'
+         write(olun,'('//ind('|')//',a,i0,a)')       '  Precision="',fmd%xds(j)%numberPrecision,'"' 
+         write(olun,'('//ind('|')//',A)')            '  Format="HDF">'//trim(fmd%dataFileName)//':/'//trim(fmd%ncds(i+k)%varNameNetCDF)
          write(olun,'('//ind('|')//',A)')            '</DataItem>' ! end of Dimensions
          write(olun,'('//ind('-')//',A)')         '</DataItem>' ! end of HyperSlab
       enddo
       write(olun,'('//ind('-')//',A)')         '</DataItem>' ! end of FUNCTION
       write(olun,'('//ind('-')//',A)')      '</Attribute>' ! end of Vector Attribute
    endif
-   i = i + fmd%numComponents(j)
+   i = i + fmd%xds(j)%numComponents
    j = j + 1
    if (j.gt.fmd%numVarXDMF) then
       exit
@@ -1004,10 +955,10 @@ nc_count = (/ m%np, 1 /)
 call check(nf90_open(trim(afmd%dataFileName), NF90_NOWRITE, afmd%nc_id))
 do v=1,afmd%numVarNetCDF
    !write(6,*) 'afmd%nc_id=',afmd%nc_id,' afmd%varID(v)=',afmd%nc_varID(v),' v=',v,' afmd%numVarNetCDF=',afmd%numVarNetCDF,' iSnap=',iSnap
-   call check(nf90_get_var(afmd%nc_id,afmd%nc_varID(v),adcirc_data(:,v),nc_start,nc_count))
+   call check(nf90_get_var(afmd%nc_id,afmd%ncds(v)%nc_varID,adcirc_data(:,v),nc_start,nc_count))
 end do
 call check(nf90_close(afmd%nc_id))
-if (trim(afmd%varNameNetCDF(1)).eq.'u-vel') then
+if (trim(afmd%ncds(1)%varNameNetCDF).eq.'u-vel') then
    allocate(sp(pfmd%numParticlesPerSnap(iSnap))) ! for computing velocity magnitudes
 endif 
 !
@@ -1056,11 +1007,11 @@ endif
 ! TODO: This assumes that if the netcdf contains a multicomponent quantity
 ! (e.g., a 2D vector) that there is only one XDMF variable name to describe
 ! this quantity 
-write(olun,'('//ind('|')//',A)') '<Attribute Name="'//trim(afmd%varNameXDMF(1))//'" AttributeType="'//trim(attributeType)//'" Center="Node">'
+write(olun,'('//ind('|')//',A)') '<Attribute Name="'//trim(afmd%xds(1)%varNameXDMF)//'" AttributeType="'//trim(attributeType)//'" Center="Node">'
 write(olun,'('//ind('+')//',a,i0,a)')    '<DataItem DataType="Float" Dimensions="',pfmd%numParticlesPerSnap(iSnap),' 3" Format="XML">'
 do k=1,pfmd%numParticlesPerSnap(iSnap)
    ! TODO: Fix this hack for 2D velocity
-   if (trim(afmd%varNameNetCDF(1)).eq.'u-vel') then
+   if (trim(afmd%ncds(1)%varNameNetCDF).eq.'u-vel') then
       ! fill in zero for the third component : velocity in the z direction
       write(olun,'('//ind('|')//',f15.7,f15.7,f15.7)') (interpVals(v,k), v=1,afmd%numVarNetCDF), 0.d0
       ! compute particle speeds while we're at it
@@ -1072,7 +1023,7 @@ end do
 write(olun,'('//ind('|')//',a)')    '</DataItem>'
 write(olun,'('//ind('-')//',a)') '</Attribute>'
 ! write an extra attribute containing the particle speeds
-if (trim(afmd%varNameNetCDF(1)).eq.'u-vel') then
+if (trim(afmd%ncds(1)%varNameNetCDF).eq.'u-vel') then
    write(olun,'('//ind('|')//',a)') '<Attribute AttributeType="Scalar" Center="Node" Name="particle_speed">'
    write(olun,'('//ind('+')//',a,i0,a)')  '<DataItem DataType="Float" Dimensions="',pfmd%numParticlesPerSnap(iSnap),' 1" Format="XML">'
    do k=1,pfmd%numParticlesPerSnap(iSnap)
@@ -1082,7 +1033,7 @@ if (trim(afmd%varNameNetCDF(1)).eq.'u-vel') then
    write(olun,'('//ind('-')//',a)') '</Attribute>'
 endif
 deallocate(adcirc_data)
-if (trim(afmd%varNameNetCDF(1)).eq.'u-vel') then
+if (trim(afmd%ncds(1)%varNameNetCDF).eq.'u-vel') then
    deallocate(sp)
 endif
 deallocate(interpVals)

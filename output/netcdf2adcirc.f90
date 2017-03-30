@@ -4,7 +4,7 @@
 ! A program to convert adcirc files that are in netcdf format to
 ! adcirc ascii format.
 !--------------------------------------------------------------------------
-! Copyright(C) 2012--2015 Jason Fleming
+! Copyright(C) 2012--2017 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -36,22 +36,19 @@ integer :: ncstatus
 type(mesh_t) :: m ! mesh to operate on
 type(meshNetCDF_t) :: n ! mesh netcdf IDs
 type(fileMetaData_t) :: fn ! netcdf file to be converted
-type(fileMetaData_t) :: fa ! ascii file to be created
-integer :: nc_start(2)
-integer :: nc_count(2)
-integer :: nc_start3D(3)
-integer :: nc_count3D(3)
-real(8), allocatable :: adcirc_data(:,:)
-real(8), allocatable :: adcirc_data3D(:,:,:)
-integer, allocatable :: adcirc_idata(:)
-integer :: i, j, k, l
+integer :: snapi ! time step 
+real(8) :: snapr ! time (s)
+integer :: lineNum
+integer :: i
+
 meshonly = .false.
-fa%isSparse = .false.
-m%agrid = 'null'
 
-write(6,'(a,a)') "INFO: adcirc2netcdf was compiled with the following " &
-   // "netcdf library: ",trim(nf90_inq_libvers())
-
+call initLogging(availableUnitNumber(),'netcdf2adcirc.f90')
+call allmessage(INFO,'Compiled with netcdf library version '//trim(nf90_inq_libvers())//'.')
+!
+! initializations
+m%is3D = .false.
+!
 argcount = command_argument_count() ! count up command line options
 if (argcount.gt.0) then
    i=0
@@ -63,7 +60,7 @@ if (argcount.gt.0) then
             meshonly = .true.
             write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
          case("--sparse")
-            fa%isSparse = .true.
+            fn%isSparse = .true.
             write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
          case("--datafile")
             i = i + 1
@@ -78,132 +75,62 @@ if (argcount.gt.0) then
    end do
 end if
 !
-! determine the number of snapshots in the file
+! determine the number of snapshots in the file, type of data, etc etc
 call determineNetCDFFileCharacteristics(fn, m, n)
+if (fn%dataFileCategory.eq.OWI) then
+   call allMessage(ERROR,'Unable to convert OWI files.')
+   stop
+endif
 !
-write(6,'(a,i0,a)') 'INFO: The file contains ',fn%nSnaps,' datasets.'
-write(6,'(a)') "INFO: Commence writing file ..."
+! allocate memory to hold single dataset from each netcdf variable
+fn%dataFileFormat = NETCDFG
+call allocateDataSetMemory(fn, m)
 !
-! open the ascii adcirc file that will hold the data
-fa%dataFileName = fn%dataFileType
-fa%fun = availableUnitNumber()
-open(fa%fun,file=trim(fa%dataFileName),status='replace',action='write')
+! open the ascii adcirc file that will hold the data and write header
+fn%fun = availableUnitNumber()
+open(fn%fun,file=trim(fn%defaultFileName),status='replace',action='write')
 ! write header info
-write(fa%fun,'(a)') trim(m%agrid)
-!
-nc_count = (/ m%np, 1 /)
-!
-! integer nodal data
-! TODO: handle multicomponent integer data
-if ( (fn%isInteger.eqv..true.).and.(trim(fn%dataCenter(1)).eq.'Node') ) then
-   allocate(adcirc_idata(m%np))
-   stop
+write(fn%fun,'(a)') trim(m%agrid)//' '//trim(rundes)//' '//trim(runid)
+if (m%is3D.eqv..true.) then
+   ! 3D header
+   write(fn%fun,1011) fn%nSnaps, fn%numValuesPerDataSet, fn%time_increment, fn%nspool, m%nfen, fn%irtype
+else
+   ! 2D header
+   write(fn%fun,1010) fn%nSnaps, fn%numValuesPerDataset, fn%time_increment, fn%nspool, fn%irtype
 endif
 !
-! allocate space to hold a single dataset
-if (fn%isStationFile.eqv..true.) then
-   fn%numValuesPerDataset = m%np
-else   
-   fn%numValuesPerDataset = fn%nStations
-endif
-allocate(adcirc_data(fn%numValuesPerDataset,fn%num_components))
+! open the netcdf file
+call check(nf90_open(trim(fn%dataFileName), NF90_NOWRITE, fn%nc_id))
 !
-! handle min/max files with time of occurrence   
-if (fn%timeOfOccurrence.eqv..true.) then
-   write(fa%fun,1010) fn%nSnaps, m%np, fn%time_increment, fn%nspool, 1
-   write(fa%fun,2120) fn%timesec(1), fn%it(1)
-   nc_start = (/ 1, 1 /)
-   call check(nf90_get_var(fn%nc_id,fn%nc_varid(1),adcirc_data(:,1),nc_start,nc_count))
-   do k=1,m%np
-      write(fa%fun,2453) k,adcirc_data(k,1)
-   end do
-   ! time of occurrence data
-   write(fa%fun,2120) fn%timesec(1), fn%it(1)
-   nc_start = (/ 1, 2 /)      
-   call check(nf90_get_var(fn%nc_id,fn%nc_varid(2),adcirc_data(:,2),nc_start,nc_count))
-   do k=1,m%np
-      write(fa%fun,2453) k,adcirc_data(k,2)
-   end do
-   stop
-endif
-!
-! typical nodal or station data 
-! TODO: handle elemental data 
-write(fa%fun,1010) fn%nSnaps, fn%numValuesPerDataset, fn%time_increment, fn%nspool, fn%num_components
-!
-! loop over 2D datasets (either a time varying file or a min max file
-! without time of occurrence information
-if (fn%num_components.le.2) then
-   do i=1,fn%nSnaps
-      nc_start = (/ 1, i /)
-      do j=1,fn%num_components
-         ! read the dataset from netcdf
-         call check(nf90_get_var(fn%nc_id,fn%nc_varid(j),adcirc_data(:,j),nc_start,nc_count))
-      end do 
-      ! write the dataset to ascii
-      if ( fn%isSparse.eqv..true. ) then
-         fn%numNodesNonDefault = count( adcirc_data(:,1).eq.fn%defaultValue )
-         write(fa%fun,*) fn%timesec(i), fn%it(i), fn%numNodesNonDefault, fn%defaultValue
-         do k=1,fn%numValuesPerDataset
-            if ( adcirc_data(k,1).ne.fn%defaultValue) then
-               write(fa%fun,*) k,(adcirc_data(k,j),j=1,fn%num_components)
-            endif
-         end do
-      else
-         ! nonsparse ascii output
-         write(fa%fun,2120) fn%timesec(i), fn%it(i)
-         do k=1,m%np
-            write(fa%fun,2453) k,(adcirc_data(k,j),j=1,fn%num_components)
-         end do
-      endif
-      write(6,advance='no',fmt='(i4)') i
-   end do
-   stop
-endif
-!
-! loop over 3D datasets FIXME: this code is unfinished 
-if (fn%num_components.eq.3) then
-   deallocate(adcirc_data)
-   call check(nf90_inq_dimid(fn%nc_id, "num_v_nodes", n%nc_dimid_vnode))
-   call check(nf90_inquire_dimension(fn%nc_id, n%nc_dimid_vnode, len=m%nfen))
-   nc_count3D = (/ m%np, m%nfen, 1 /)
-   allocate(adcirc_data3D(m%np,m%nfen,fn%num_components))
-   allocate(m%sigma(m%nfen))
-   call check(nf90_inq_varid(fn%nc_id, "sigma", n%nc_varid_sigma))
-   call check(nf90_get_var(fn%nc_id, n%nc_varid_sigma, m%sigma))
-   write(11,1011) fn%nSnaps, m%np, fn%time_increment, fn%nspool, m%nfen, fn%num_components
+! loop over netcdf datasets 
+lineNum = 1
+do i=1,fn%nSnaps
    !
-   ! loop over datasets   
-   do i=1,fn%nSnaps
-      !
-      ! read 3D data from netcdf
-      do j=1,fn%num_components
-         nc_start3D = (/ 1, 1, i /)
-         call check(nf90_get_var(fn%nc_id,fn%nc_varid(j),adcirc_data3D(:,:,j),nc_start3D,nc_count3D))   
-      end do
-      !
-      ! write 3D data to ascii
-      write(11,2121) fn%timesec(i), fn%it(i), (m%sigma(l),m%sigma(l),m%sigma(l),l=1,m%nfen-1),m%sigma(m%nfen),m%sigma(m%nfen)
-      do k=1,m%np
-         write(11,2454) k,(adcirc_data3D(k,j,1),adcirc_data3D(k,j,2),adcirc_data3D(k,j,3),j=1,m%nfen)
-      end do
-      write(6,advance='no',fmt='(i6)') i
-   end do
-endif
-
-write(6,'(/,A)') "INFO: ... finished writing file."
-write(6,'(a,i0,a)') "INFO: Wrote ",i-1," data sets."
-close(11)
+   ! READ ONE COMPLETE DATASET FROM NETCDF
+   ! 
+   write(6,*) 'about to call read dataset' ! jgfdebug
+   fn%dataFileFormat = NETCDFG
+   call readOneDataset(fn, m, i, lineNum, snapr, snapi)   
+   !
+   write(6,*) 'snapr=',snapr,' snapi=',snapi
+   ! WRITE ONE COMPLETE DATASET TO ASCII
+   ! 
+   write(6,*) 'about to call write dataset' ! jgfdebug
+   fn%dataFileFormat = ASCIIG
+   call writeOneDataset(fn, m, i, lineNum, snapr, snapi)
+   
+   write(6,advance='no',fmt='(i4)') i
+end do
+write(6,*)
+call allMessage(INFO,'Finished writing file.')
+write(scratchMessage,'(a,i0,a)') 'Wrote ',i-1,' data sets.'
+call allMessage(INFO,scratchMessage)
+close(fn%fun)
 call check(nf90_close(fn%nc_id))
 !
  1010 FORMAT(1X,I10,1X,I10,1X,E15.7E3,1X,I8,1X,I5,1X,'FileFmtVersion: ',I10)
  1011 FORMAT(1X,I10,1X,I10,1X,E15.7E3,1X,I8,1X,I5,1X,I2,1X,'FileFmtVersion: ',I10)
- 2120 FORMAT(2X,1pE20.10E3,5X,I10)
- 2121 FORMAT(2X,1pE20.10E3,5X,I10,99(1pE20.10E3,2X))
- 2452 FORMAT(2x, i8, 2x, i0, 5x, i0, 5x, i0, 5x, i0)
- 2453 FORMAT(2x, i8, 2x, 1pE20.10E3, 1pE20.10E3, 1pE20.10E3, 1pE20.10E3)
- 2454 FORMAT(2x, i8, 2x, 99(1pE20.10E3))
 !---------------------------------------------------------------------
-      end program netcdf2adcirc
+end program netcdf2adcirc
 !---------------------------------------------------------------------
 

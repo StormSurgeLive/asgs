@@ -102,7 +102,6 @@ type mesh_t
    real(8), allocatable :: fdy(:,:) ! (3,ne)
    real(8), allocatable :: centroids(:,:) ! (2,ne) x and y coordinates of the element centroids
    !
-   real(8), allocatable :: sigma(:)
    character(80) :: agrid
    integer :: ne   ! number of elements
    integer :: np   ! number of nodes
@@ -116,6 +115,8 @@ type mesh_t
    integer :: neta ! total number of nodes on open (ocean) elevation specified boundary nodes
    integer :: nbou ! number of flux specified boundaries
    integer :: nvel ! total number of nodes on flux specified boundaries
+   real(8), allocatable :: sigma(:)
+   logical :: is3D  ! true if the mesh is 3D
    
    integer, allocatable :: nvdll(:)  ! number of nodes on each open boundary
    integer, allocatable :: nbdv(:,:) ! node numbers on each open boundary
@@ -193,7 +194,7 @@ end type mesh_t
 
 type meshNetCDF_t   
    integer :: NC_DimID_node = -99
-   integer :: NC_DimID_vnode = -99
+   integer :: NC_DimID_nfen = -99
    integer :: NC_DimID_nele = -99
    integer :: NC_DimID_nvertex = -99
    integer :: NC_DimID_nope = -99
@@ -206,6 +207,7 @@ type meshNetCDF_t
    integer :: NC_VarID_x = -99
    integer :: NC_VarID_y = -99
    integer :: NC_VarID_sigma = -99
+   integer :: NC_VarID_nfen = -99
    integer :: NC_VarID_element = -99
    integer :: NC_VarID_neta = -99
    integer :: NC_VarID_nvdll = -99
@@ -276,12 +278,14 @@ integer :: lineNum ! line number currently being read
 integer :: i, j, k
 integer :: iunit 
 integer :: errorIO
+
 ! initializations
 lineNum = 1
 m%numSimpleFluxBoundaries = 0
 m%numExternalFluxBoundaries = 0 
 m%numInternalFluxBoundaries = 0 
 m%numInternalFluxBoundariesWithPipes = 0
+m%is3D = .false.
 !
 iunit = availableUnitNumber()
 call openFileForRead(iunit, m%meshFileName, errorIO)
@@ -413,6 +417,9 @@ integer :: i
 !
 write(6,'(a)') 'INFO: Reading mesh dimensions from the netCDF file.'
 !
+! initializations
+m%is3D = .false.
+!
 ! open the netcdf file
 call check(nf90_open(trim(m%meshFileName), NF90_NOWRITE, nc_id))
 !
@@ -424,7 +431,6 @@ call check(nf90_inq_dimid(nc_id, 'node', n%nc_dimid_node))
 call check(nf90_inquire_dimension(nc_id, n%nc_dimid_node, len=m%np))
 call check(nf90_inq_dimid(nc_id, 'nele', n%nc_dimid_nele))
 call check(nf90_inquire_dimension(nc_id, n%nc_dimid_nele, len=m%ne))
-
 !
 ! determine which other dimensions are present and find their lengths 
 !
@@ -502,8 +508,19 @@ if (m%nbou.ne.0) then
       call check(nf90_get_var(nc_id, n%nc_varid_nbvv, m%nbvv(i,:), (/ i, 1 /), (/ 1, m%nvell(i) /) ))  
    end do
 endif
+!
+! get 3D mesh dimensions if the data are 3D
+i = nf90_inq_dimid(nc_id, "num_v_nodes", n%nc_dimid_nfen)
+if (i.eq.NF90_NOERR) then
+   m%is3D = .true.
+   call check(nf90_inquire_dimension(nc_id, n%nc_dimid_nfen, len=m%nfen))
+   call check(nf90_inq_varid(nc_id, "sigma", n%nc_varid_sigma))
+   allocate(m%sigma(m%nfen))
+   call check(nf90_get_var(nc_id, n%nc_varid_sigma, m%sigma))
+endif
+!
+! close netcdf file
 call check(nf90_close(nc_id))
-
 write(6,'(a)') 'INFO: Finished reading mesh dimensions from the netCDF file.'
 
 !----------------------------------------------------------------------
@@ -644,7 +661,6 @@ integer :: lineNum ! line number currently being read
 !
 ! initialization
 m%nfluxf = 0
-iunit = availableUnitNumber() 
 !
 if (trim(m%meshFileName).eq."null") then
    write(6,'(a)',advance='no') "Enter name of the mesh file: "
@@ -665,6 +681,8 @@ if (verbose.eqv..true.) then
 endif
 
 write(6,'(A)') 'INFO: Reading mesh file coordinates, connectivity, and boundary data.'
+iunit = availableUnitNumber() 
+call openFileForRead(iunit, m%meshFileName, ios)
 lineNum = 1
 read(unit=iunit,fmt='(a80)',err=10,end=20,iostat=ios) m%agrid
 lineNum = lineNum + 1
@@ -1236,7 +1254,7 @@ logical, intent(in) :: deflate
 integer              :: NC_DimID_single
 !
 ! create and store mesh dimensions 
-write(6,'(a)') 'INFO: adcirc2netcdf.f90: Writing mesh definitions to netcdf.'
+write(6,'(a)') 'INFO: Writing mesh definitions to netcdf.'
 CALL Check(NF90_PUT_ATT(NC_ID,NF90_GLOBAL,'agrid',trim(m%agrid)))
 CALL Check(NF90_DEF_DIM(NC_ID,'node',m%np,n%NC_DimID_node))
 CALL Check(NF90_DEF_DIM(NC_ID,'nele',m%ne,n%NC_DimID_nele))
@@ -1337,7 +1355,7 @@ endif
 
 #endif
 
-write(6,'(a)') 'INFO: adcirc2netcdf.f90: Finished writing mesh definitions to netcdf.'
+write(6,'(a)') 'INFO: Finished writing mesh definitions to netcdf.'
 !----------------------------------------------------------------------
 end subroutine writeMeshDefinitionsToNetCDF
 !----------------------------------------------------------------------
