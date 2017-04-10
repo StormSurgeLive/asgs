@@ -56,14 +56,14 @@ TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="00:30:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="1:00:00"  # longest nowcast wall clock time
+NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=480                     # number of compute CPUs for all simulations
 NCPUCAPACITY=480
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=workq
 SERQUEUE=single
-ACCOUNT=loni_cera_2016
+ACCOUNT=loni_cera_2017
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones
@@ -82,7 +82,7 @@ HDIR=${INPUTDIR}/sample_advisories
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06,18"
+FORECASTCYCLE="00,06,12,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -158,7 +158,7 @@ POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
-TDS=(lsu_tds renci_tds)
+TDS=(renci_tds lsu_tds)
 TARGET=queenbee  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
