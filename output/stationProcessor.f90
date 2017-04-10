@@ -1,5 +1,5 @@
 !------------------------------------------------------------------
-! stationProcessor.f90: Reads ADCIRC netCDF station file and 
+! stationProcessor.f90: Reads ADCIRC netCDF station file(s) and 
 ! performs specified operation for given station list
 !------------------------------------------------------------------
 ! Copyright(C) 2017 Jason Fleming
@@ -20,6 +20,8 @@
 ! along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 !------------------------------------------------------------------
 ! Compile with accompanying makefile. 
+! FIXME: This code assumes that the station files are provided in 
+! chronological order. 
 !------------------------------------------------------------------
 program stationProcessor
 use asgsio
@@ -66,17 +68,20 @@ integer :: nc_start_station_names(2) ! index to start reading station name array
 integer :: nc_count_station_names(2) ! number of station name array items to read from netcdf
 character(len=1024) :: line ! comment line at top of result file
 character(len=40) :: coordString ! holds lon lat values for stations
-type(fileMetaData_t) :: sf ! file containing station data (e.g., fort.61)
+type(fileMetaData_t), allocatable :: sf(:) ! file containing station data (e.g., fort.61)
 integer :: errorIO
 integer :: nc_start(2)
 integer :: nc_count(2)
 integer :: nc_varid_station_name
+type(realVector1D_t) :: dataFileNames
+character(len=2000) :: tempName
 ! 
 ! initializations
 stationFileName = 'stations.txt'
 outputFile = 'station_averages.txt'
 operation = 'mean'
 strictTimeRange = .false.
+call initC1D(stationFileNames)
 call initLogging(availableUnitNumber(),'stationProcessor.f90')
 !
 argcount = command_argument_count() ! count up command line options
@@ -92,10 +97,10 @@ if (argcount.gt.0) then
          strictTimeRange = .true.
       case("--datafile")
          i = i + 1
-         call getarg(i, cmdlinearg)
-         write(scratchMessage,'(99(a))') 'Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
+         call getarg(i, tempName)
+         call appendC1D(dataFileNames,tempName)
+         write(scratchMessage,'(99(a))') 'Processing ',trim(cmdlineopt),' ',trim(tempName),'.'
          call allMessage(INFO,scratchMessage)
-         sf%dataFileName = trim(cmdlinearg)
       case("--stationfile")
          i = i + 1
          call getarg(i, cmdlinearg)
@@ -192,75 +197,170 @@ call allMessage(INFO,'Finished reading station file.')
 ! once all data has been pulled for those stations perform the specified operation on the stations
 ! report the results
 !
-! open the netcdf station file, get dimensions, etc
-call determineNetCDFFileCharacteristics(sf, m, n)
-write(scratchMessage,'("There are ",i0," stations in the file.")') sf%nStations
-call allMessage(INFO,scratchMessage) 
-!write(scratchMessage,'("The station names are ",i0," characters long.")') station_namelen !jgfdebug
-!call allMessage(INFO,scratchMessage) 
-allocate(dataFileStationIDs(sf%nStations)) 
+! allocate space for holding and reading data file(s)
+allocate(sf(dataFileNames%n))
+! allocate space for recording which files have data in the specified time range
+allocate(outOfRange(dataFileNames%n))
+do f=1,dataFileName%n
+   sf(f)%dataFileName = dataFileNames(f)
+end do
+outOfRange(:) = .false.
 !
-! read the station_name array which actually contains the stationID instead
-! of the description
-call check(nf90_open(trim(sf%dataFileName), NF90_NOWRITE, sf%nc_id))
-nc_start_station_names = (/ 1, 1 /)
-nc_count_station_names = (/ sf%station_namelen, sf%nStations /)
-call check(nf90_inq_varid(sf%nc_id, "station_name", NC_VarID_station_name))
-call check(nf90_get_var(sf%nc_id,nc_varid_station_name,dataFileStationIDs,nc_start_station_names,nc_count_station_names))
-!
-! for each station in the given list, determine the array index in the station
-! data file that corresponds to that station
-do ista=1,numStationsInList
-   stationFound = .false.
-   do dsta=1,sf%nStations
-      if (trim(adjustl(stations(ista)%stationID)).eq.trim(adjustl(dataFileStationIDs(dsta)))) then
-         stations(ista)%iID = dsta
-         stationFound = .true.
-         exit
-      endif
-   end do
-   if (stationFound.eqv..false.) then
-      write(scratchMessage,'("Station ID ",a," was not found in the station data file. All data for this station will be written as undefined values (-99999.0).")') trim(stations(ista)%stationID)
-      call allMessage(WARNING,scratchMessage)
+! open station file, determine if it contains data in the time period of interest
+numDataSetsInTimeRange = 0
+do f=1, dataFileNames%n 
+   ! assume the station files are all in netcdf format
+   f%dataFileFormat = NETCDFG
+   ! open the netcdf station file(s), get dimensions, etc
+   call determineNetCDFFileCharacteristics(sf(f), m, n)
+   ! check to see if data are available for the full requested time range
+   if ( (timesecStart.gt.0).and.(timesecStart.gt.sf%timesec(sf%nSnaps)) ) then
+      write(scratchMessage,'("The data file ends at time t=",e17.8," (s) but the requested start time is t=",e17.8," (s).")') timesecStart, sf%timesec(sf%nSnaps)  
+      call allMessage(INFO,scratchMessage)
+      outOfRange(f) = .true.
    endif
+   if ( (timesecEnd.gt.0).and.(timesecEnd.lt.sf%timesec(1)) ) then
+      write(scratchMessage,'("The data file starts at time t=",e17.8," (s) but the requested end time is t=",e17.8," (s).")') , timesecEnd, sf%timesec(1)
+      call allMessage(WARNING,scratchMessage)
+      outOfRange(f) = .true.
+   endif
+   ! count the total number of datasets in the file within the specified time range
+   if (outOfRange(f).eqv..false.) then
+      do t=1,sf(f)%nSnaps
+         if ( (timesecEnd.gt.0).and.(sf(f)%timesec(t).gt.timesecEnd) ) then
+            cycle
+         endif
+         if ( (timesecStart.gt.0).and.(sf(f)%timesec(t).lt.timesecStart) ) then
+            cycle
+         endif
+         numDataSetsInTimeRange = numDataSetsInTimeRange + 1
+      end do
+   endif   
 end do
 !
-! determine the number of datasets that fall in the specified time range
-numDataSetsInTimeRange = 0
-firstDataSetInTimeRange = 0
-numDataSetsAfterEnd = 0
-numDataSetsBeforeStart = 0
-outOfRange = .false.
+! allocate memory for holding data for each station
+do ista=1,numStationsInList
+   allocate(stations(ista)%d(sf%irtype,numDataSetsInTimeRange))
+end do
 !
-! check to see if data are available for the full requested time range
-if ( (timesecStart.gt.0).and.(timesecStart.lt.sf%timesec(1)) ) then
-   write(scratchMessage,'("The data file starts at time t=",e17.8," (s) but the requested start time is t=",e17.8," (s).")') sf%timesec(1), timesecStart 
-   call allMessage(WARNING,scratchMessage)
-   outOfRange = .true.
-endif
-if ( (timesecEnd.gt.0).and.(timesecEnd.gt.sf%timesec(sf%nSnaps)) ) then
-   write(scratchMessage,'("The data file ends at time t=",e17.8," (s) but the requested end time is t=",e17.8," (s).")') sf%timesec(sf%nSnaps), timesecEnd
-   call allMessage(WARNING,scratchMessage)
-   outOfRange = .true.
-endif
-do t=1,sf%nSnaps
-   ! exclude datasets after the specified end time (if any)
-   if ( (timesecEnd.gt.0).and.(sf%timesec(t).gt.timesecEnd) ) then
-       numDataSetsAfterEnd = numDataSetsAfterEnd + 1
-       cycle
-   endif
-   ! exclude datasets before the specified start time (if any)
-   if ( (timesecStart.gt.0).and.(sf%timesec(t).lt.timesecStart) ) then
-       numDataSetsBeforeStart = numDataSetsBeforeStart + 1
+! for files that contain data in the time period of interest, check to 
+! see if all the specified stations are present in the file
+!
+! allocate space to record which stations were found in all data files
+allocate(stationFound(numStationsInList))
+stationFound(:) = .true.
+do f=1, dataFileNames%n 
+   if (outOfRange(f).eqv..true.) then
+      ! no data of interest in this file
       cycle
    endif
-   if ( firstDataSetInTimeRange.eq.0 ) then
-      firstDataSetInTimeRange = t
+   write(scratchMessage,'("There are ",i0," stations in the file ",a,".")') sf(f)%nStations,trim(sf(i)%dataFileName)
+   call allMessage(INFO,scratchMessage)
+   !
+   ! allocate space to record the station IDs in the station file 
+   allocate(dataFileStationIDs(sf(f)%nStations)) 
+   !
+   ! read the station_name array (which actually contains the stationID instead
+   ! of the description) from this netcdf file
+   call check(nf90_open(trim(sf(f)%dataFileName), NF90_NOWRITE, sf(f)%nc_id))
+   nc_start_station_names = (/ 1, 1 /)
+   nc_count_station_names = (/ sf(f)%station_namelen, sf(f)%nStations /)
+   call check(nf90_inq_varid(sf(f)%nc_id, "station_name", sf(f)%NC_VarID_station_name))
+   call check(nf90_get_var(sf(f)%nc_id,sf(f)%nc_varid_station_name,dataFileStationIDs,nc_start_station_names,nc_count_station_names))
+   !
+   ! for each station in the list of interest, determine the array index in the station
+   ! data file that corresponds to that station
+   do ista=1,numStationsInList
+      if (stationFound(ista).eqv..false.) then
+         cycle ! if it was not found in a previous file, exclude it from consideration
+      endif
+      do dsta=1,sf(f)%nStations
+         stationFound(ista)= .false.
+         if (trim(adjustl(stations(ista)%stationID)).eq.trim(adjustl(dataFileStationIDs(dsta)))) then
+            stations(ista)%iID = dsta
+            stationFound(ista) = .true.
+            exit
+         endif
+      end do
+      if (stationFound(ista).eqv..false.) then
+         write(scratchMessage,'("Station ID ",a," was not found in the station data file. All data for this station will be written as undefined values (-99999.0).")') trim(stations(ista)%stationID)
+         call allMessage(WARNING,scratchMessage)
+      endif
+   end do
+end do
+
+do f=1, dataFileNames%n 
+   if (outOfRange(f).eqv..true.) then
+      ! no data of interest in this file
+      cycle
    endif
-   numDataSetsInTimeRange = numDataSetsInTimeRange + 1
-end do 
-lastDataSetInTimeRange = firstDataSetInTimeRange + numDataSetsInTimeRange - 1  
-!
+   !
+   ! determine which datasets fall in the specified time range
+   firstDataSetInTimeRange = 0
+   numDataSetsAfterEnd = 0
+   numDataSetsBeforeStart = 0
+   !
+   ! check to see if data are available for the full requested time range
+   if ( (timesecStart.gt.0).and.(timesecStart.lt.sf(f)%timesec(1)) ) then
+      write(scratchMessage,'("The data file starts at time t=",e17.8," (s) before the requested start time t=",e17.8," (s).")') sf(f)%timesec(1), timesecStart 
+      call allMessage(INFO,scratchMessage)
+   endif
+   if ( (timesecEnd.gt.0).and.(timesecEnd.gt.sf(f)%timesec(sf(f)%nSnaps)) ) then
+      write(scratchMessage,'("The data file ends at time t=",e17.8," (s) after the requested end time t=",e17.8," (s).")') sf(f)%timesec(sf%nSnaps), timesecEnd
+      call allMessage(WARNING,scratchMessage)
+   endif
+   do t=1,sf(f)%nSnaps
+      ! exclude datasets after the specified end time (if any)
+      if ( (timesecEnd.gt.0).and.(sf(f)%timesec(t).gt.timesecEnd) ) then
+         numDataSetsAfterEnd = numDataSetsAfterEnd + 1
+         cycle
+      endif
+      ! exclude datasets before the specified start time (if any)
+      if ( (timesecStart.gt.0).and.(sf(f)%timesec(t).lt.timesecStart) ) then
+         numDataSetsBeforeStart = numDataSetsBeforeStart + 1
+         cycle
+      endif
+      if ( firstDataSetInTimeRange.eq.0 ) then
+         firstDataSetInTimeRange = t
+      endif
+   end do 
+   lastDataSetInTimeRange = firstDataSetInTimeRange + numDataSetsInTimeRange - 1 
+   !
+   ! loop over datasets in this file, loading data if they fall within the specified time range
+   allocate(stationData(sf(f)%nStations))
+   t=1
+   do tdata=firstDataSetInTimeRange, lastDataSetInTimeRange
+      write(6,advance='no',fmt='(i0,1x)') tdata  ! update progress bar
+      !
+      ! read one dataset from netcdf, one component at a time
+      nc_start = (/ 1, tdata /)
+      nc_count = (/ sf(f)%nStations, 1 /)
+      do c=1,sf(f)%irtype
+         ! get data
+         call check(nf90_get_var(sf(f)%nc_id,sf(f)%ncds(c)%nc_varid,stationData,nc_start,nc_count))
+         ! go through the specified list of stations and store the 
+         ! values from the corresponding station index 
+         do s=1,numStationsInList
+            if ( (stations(s)%iID.ne.0).and.(stationFound(s).eqv..true.) ) then
+               stations(s)%d(c,t) = stationData(stations(s)%iID)
+            else
+               stations(s)%d(c,t) = -99999.d0
+            endif
+         end do
+      end do
+      t = t + 1
+   end do 
+   call check(nf90_close(sf%nc_id))
+
+
+
+
+
+
+   deallocate(dataFileStationIDs) 
+end do
+
+
 if ( (outOfRange.eqv..true.).and.(strictTimeRange.eqv..true.) ) then
    call allMessage(INFO,'The file does not have data for the full time range, and the command line option --strict-time-range was set.')
    write(scratchMessage,'("The first data set in the time range is data set ",i0," and the last is data set ",i0,"; there are ",i0," data sets in the given time range.")') firstDataSetInTimeRange, lastDataSetInTimeRange, numDataSetsInTimeRange
@@ -268,38 +368,12 @@ if ( (outOfRange.eqv..true.).and.(strictTimeRange.eqv..true.) ) then
    call allMessage(INFO,'Output will not be written because of the unavailability of some of the data in the requested time range. Execution complete.')
    stop
 endif 
+
+ 
 !
-! memory for holding data for each station
-do ista=1,numStationsInList
-   allocate(stations(ista)%d(sf%irtype,numDataSetsInTimeRange))
-end do
-!
-! loop over datasets loading data if they fall within the specified 
-! time range
-allocate(stationData(sf%nStations))
-t=1
-do tdata=firstDataSetInTimeRange, lastDataSetInTimeRange
-   write(6,advance='no',fmt='(i0,1x)') tdata  ! update progress bar
-   !
-   ! read one dataset from netcdf, one component at a time
-   nc_start = (/ 1, tdata /)
-   nc_count = (/ sf%nStations, 1 /)
-   do c=1,sf%irtype
-      ! get data
-      call check(nf90_get_var(sf%nc_id,sf%ncds(c)%nc_varid,stationData,nc_start,nc_count))
-      ! go through the specified list of stations and store the 
-      ! values from the corresponding station index 
-      do s=1,numStationsInList
-         if ( stations(s)%iID.ne.0 ) then
-            stations(s)%d(c,t) = stationData(stations(s)%iID)
-         else
-            stations(s)%d(c,t) = -99999.d0
-         endif
-      end do
-   end do
-   t = t + 1
-end do 
-call check(nf90_close(sf%nc_id))
+
+
+
 !
 ! now perform the specified operation on the data obtained for the
 ! stations during the specified time interval

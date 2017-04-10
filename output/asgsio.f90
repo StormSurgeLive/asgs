@@ -188,6 +188,14 @@ type integerVector1D_t
    integer, allocatable :: vtemp(:) ! temp array of values during reallocation
 end type integerVector1D_t
 
+type characterVector1D_t 
+   integer :: n    ! current number of elements
+   integer :: s    ! total number of memory slots to hold elements
+   integer :: ninc ! number of elements to add when more memory is needed
+   character(len=2000), allocatable :: v(:) ! array of values in the vector
+   character(len=2000), allocatable :: vtemp(:) ! temp array of values during reallocation
+end type characterVector1D_t
+
 character(len=80) :: rundes  ! 1st line in adcirc fort.15 input file
 character(len=80) :: runid   ! 2nd line in adcirc fort.15 input file
 !
@@ -740,12 +748,6 @@ endif
 f%nspool = -99999
 f%it(:) = -99999
 f%defaultValue = -99999.d0
-
-!
-! get the variable id(s) of the data we want to convert
-do i=1,f%num_components
-   call check(nf90_inq_varid(f%nc_id, f%varNameNetCDF(i), f%nc_varid(i)))
-end do
 !
 call check(nf90_close(f%nc_id))
 call allMessage(INFO,'Finished determining netCDF file characteristics.')
@@ -2097,15 +2099,23 @@ endif
 end subroutine checkErrOWI
 !-----------------------------------------------------------------------
 
+!-----------------------------------------------------------------------
+! Initialize a 1D vector of real numbers
+!-----------------------------------------------------------------------
 subroutine initR1D(vec)
 implicit none
 type(realVector1D_t), intent(inout) :: vec
 vec%n = 0
 vec%ninc = 100
 vec%s = vec%ninc
-allocate(vec%v(vec%s))
+allocate(vec%v(0:vec%s+1))
+!-----------------------------------------------------------------------
 end subroutine initR1D
+!-----------------------------------------------------------------------
 
+!-----------------------------------------------------------------------
+! Append a real number to a 1D vector of real numbers.
+!-----------------------------------------------------------------------
 subroutine appendR1D(vec, rval)
 implicit none
 type(realVector1D_t), intent(inout) :: vec
@@ -2126,19 +2136,27 @@ if (vec%n.eq.vec%s) then
 endif
 vec%v(vec%n+1) = rval
 vec%n = vec%n + 1
+!-----------------------------------------------------------------------
 end subroutine appendR1D
+!-----------------------------------------------------------------------
 
-
+!-----------------------------------------------------------------------
+! Initialize a 1D vector of integers.
+!-----------------------------------------------------------------------
 subroutine initI1D(vec)
 implicit none
 type(integerVector1D_t), intent(inout) :: vec
 vec%n = 0
 vec%ninc = 100
 vec%s = vec%ninc
-allocate(vec%v(vec%s))
+allocate(vec%v(0:vec%s+1))
+!-----------------------------------------------------------------------
 end subroutine initI1D
+!-----------------------------------------------------------------------
 
-
+!-----------------------------------------------------------------------
+! Append an integer to a 1D vector of integers.
+!-----------------------------------------------------------------------
 subroutine appendI1D(vec, ival)
 implicit none
 type(integerVector1D_t), intent(inout) :: vec
@@ -2159,10 +2177,57 @@ if (vec%n.eq.vec%s) then
 endif
 vec%v(vec%n+1) = ival
 vec%n = vec%n + 1
+!-----------------------------------------------------------------------
 end subroutine appendI1D
+!-----------------------------------------------------------------------
 
 
+!-----------------------------------------------------------------------
+! Initialize a 1D vector of character strings.
+!-----------------------------------------------------------------------
+subroutine initC1D(vec)
+implicit none
+type(characterVector1D_t), intent(inout) :: vec
+vec%n = 0
+vec%ninc = 100
+vec%s = vec%ninc
+allocate(vec%v(0:vec%s+1))
+!-----------------------------------------------------------------------
+end subroutine initC1D
+!-----------------------------------------------------------------------
 
+!-----------------------------------------------------------------------
+! Append an integer to a 1D vector of character strings.
+!-----------------------------------------------------------------------
+subroutine appendC1D(vec, cstr)
+implicit none
+type(characterVector1D_t), intent(inout) :: vec
+character(len=2000), intent(in) :: cstr
+! allocate more memory if necessary
+if (vec%n.eq.vec%s) then
+   ! create temp variable
+   allocate(vec%vtemp(vec%n))
+   ! copy array values to temp space
+   vec%vtemp(1:vec%n) = vec%v(1:vec%n)   
+   deallocate(vec%v)
+   ! increase size of array by the given increment
+   vec%s = vec%n + vec%ninc
+   allocate(vec%v(vec%s))
+   ! copy the values back from the temp array
+   vec%v(1:vec%n) = vec%vtemp(1:vec%n)
+   deallocate(vec%vtemp)
+endif
+vec%v(vec%n+1) = cstr
+vec%n = vec%n + 1
+!-----------------------------------------------------------------------
+end subroutine appendC1D
+!-----------------------------------------------------------------------
+
+
+!-----------------------------------------------------------------------
+! Call the right subroutine to close a file, taking into account the
+! file type (ascii or netcdf). 
+!-----------------------------------------------------------------------
 subroutine closeFile(f)
 use ioutil
 use logging
@@ -2178,7 +2243,9 @@ case default
    call allMessage(ERROR,'Only ASCII or NETCDF result file formats are supported.')   
    stop
 end select
+!-----------------------------------------------------------------------
 end subroutine closeFile
+!-----------------------------------------------------------------------
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
