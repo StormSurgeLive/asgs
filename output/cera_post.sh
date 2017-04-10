@@ -93,7 +93,7 @@ fi
 echo "asgs : ng" >> run.properties
 
 # AUDIENCE  must be set in config file
-echo "intendedAudience : $AUDIENCE" >> run.properties
+echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
 
 #download path for scping files
 DOWNLOADURL=${HOSTNAME}:$STORMDIR

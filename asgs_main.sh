@@ -490,10 +490,27 @@ downloadCycloneData()
        logMessage "Checking remote site for new advisory..."
     fi
     while [ $newAdvisory = false ]; do
-       newAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
+       if [ $TRIGGER != atcf ]; then 
+          newAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
+       fi
        # check to see if we have a new one, and if so, determine the
        # new advisory number correctly
        case $TRIGGER in
+       "atcf") 
+          # if the forecast is already in ATCF format, then simply copy it 
+          # to the run directory
+          cp $HDIR/$hindcastFileName . 2>> ${SYSLOG}
+          cp $FDIR/$forecastFileName . 2>> ${SYSLOG}
+          linkTarget=`readlink $FDIR/$forecastFileName`
+          # assume the advisory number is the first two characters in the
+          # symbolic link target of the forecast file name
+          newAdvisoryNum=${linkTarget:0:2}
+          if [ $newAdvisoryNum -gt $ADVISORY ]; then 
+             newAdvisory="true" 
+          else 
+             newAdvisory="false" 
+          fi
+          ;;
        "ftp")
           if [ $START = hotstart ]; then
              if ! diff $OLDADVISDIR/$forecastFileName ./$forecastFileName > /dev/null 2>> ${SYSLOG}; then
@@ -514,7 +531,7 @@ downloadCycloneData()
           fi
           ;;
        *)
-          fatal "Invalid 'TRIGGER' type: '$TRIGGER'; must be ftp, rss or rssembedded."
+          fatal "Invalid 'TRIGGER' type: '$TRIGGER'; must be ftp, rss, rssembedded, or atcf."
           ;;
        esac
        if [ $START = coldstart ]; then
@@ -1038,6 +1055,7 @@ POST_LIST=null
 JOB_FAILED_LIST=null
 NOTIFYUSER=null
 ASGSADMIN=null
+PERIODICFLUX=null
 #
 # first - look for SCRIPTDIR
 while getopts "c:e:s:h" optname; do    #<- first getopts for SCRIPTDIR
@@ -1199,6 +1217,12 @@ checkFileExistence $OUTPUTDIR "data archival script" $ARCHIVE
 checkDirExistence ${PERL5LIB}/Date "subdirectory for the Pcalc.pm perl module"
 checkFileExistence ${PERL5LIB}/Date "perl module for date calculations" Pcalc.pm
 #
+if [[ $PERIODICFLUX != null ]]; then
+   logMessage "checking for FLUXCALCULATOR script"
+   checkFileExistence "" "perl script for calculating periodic flux boundary" $FLUXCALCULATOR
+   checkFileExistence ${PERL5LIB} "AdcGrid perl module used by flux calculator" AdcGrid.pm
+fi
+#
 # Check for any issues or inconsistencies in 
 # configuration parameters. 
 if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
@@ -1267,9 +1291,16 @@ if [[ $START = coldstart ]]; then
    logMessage "Coldstart time is '$CSDATE'."
    logMessage "The initial hindcast duration is '$HINDCASTLENGTH' days."
    # prepare hindcast control (fort.15) file
+   # calculate periodic fux data for insertion in fort.15 if necessary
+   if [[ $PERIODICFLUX != null ]]; then
+      FLUXOPTIONS="--gridfile ${INPUTDIR}/${GRIDFILE} --outfile $PERIODICFLUX --discharge $RIVERDISCHARGE --units $FLUXUNITS"
+      logMessage "Running $FLUXCALCULATOR with options $FLUXOPTIONS."
+      perl $FLUXCALCULATOR $FLUXOPTIONS >> ${SYSLOG} 2>&1 
+   fi
    CONTROLOPTIONS="--name $ENSTORM --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --cst $CSDATE --endtime $HINDCASTLENGTH --dt $TIMESTEPSIZE --nws $NWS --hsformat $HOTSTARTFORMAT --advisorynum 0 --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
    CONTROLOPTIONS="$CONTROLOPTIONS --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
+   CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
    logMessage "Constructing control file with the following options: $CONTROLOPTIONS."
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
    # don't have a meterological forcing (fort.22) file in this case
@@ -1448,6 +1479,7 @@ while [ true ]; do
    fi
    CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
+   CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
    # generate fort.15 file
    logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
@@ -1689,6 +1721,7 @@ while [ true ]; do
       fi
       CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
       CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
+      CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
       logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
       perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
       if [[ ! -d $STORMDIR ]]; then continue; fi
@@ -1757,7 +1790,8 @@ while [ true ]; do
    wait   
    # copy results to archive location
    logMessage "Initiating archival process, if any."
-   ${OUTPUTDIR}/${ARCHIVE} $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $ARCHIVEBASE $ARCHIVEDIR  2>> ${SYSLOG} &
+   #jgf: FIXME: Reconcile post processing arguments and archiving arguments ${OUTPUTDIR}/${ARCHIVE} $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $ARCHIVEBASE $ARCHIVEDIR  2>> ${SYSLOG} &
+   ${OUTPUTDIR}/${ARCHIVE} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME    $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
    allMessage "Forecast complete for advisory '$ADVISORY.'"
    LASTSUBDIR=null # don't need this any longer
    # if we ran the nowcast on this cycle, then this cycle's nowcast becomes 
