@@ -50,7 +50,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 BACKGROUNDMET=on     # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
 TROPICALCYCLONE=off  # [de]activate tropical cyclone forcing (temp. broken)
-WAVES=off            # [de]activate wave forcing 
+WAVES=on            # [de]activate wave forcing 
 VARFLUX=on           # [de]activate variable river flux forcing
 
 # Computational Resources
