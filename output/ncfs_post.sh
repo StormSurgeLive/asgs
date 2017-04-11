@@ -106,88 +106,6 @@ fi
 #for file in `ls *.nc`; do
 #   ${OUTPUTDIR}/generateXDMF.x --datafile $file 2>> $SYSLOG
 #done
-#
-#--------------------------------------------------------------------------
-#             K A L P A N A    K M Z   A N D   G I S 
-#--------------------------------------------------------------------------
-# Create Google Earth images and shapefiles of water surface elevation 
-# and significant wave height using Kalpana.
-#--------------------------------------------------------------------------
-#
-# First, load the GDAL system module, since it is used by the fiona python
-# module in Kalpana.
-module load gdal/1.11.1_gcc
-#
-# Now enter the python environment created for Kalpana using virtualenv.
-source /projects/ncfs/apps/kalpana/env/bin/activate
-#
-# Grab the name of the storm from the run.properties file if this is 
-# a tropical cyclone; otherwise set the storm name to NAM.
-STORMNAMELC=nam
-if [[ $TROPICALCYCLONE = on ]]; then
-   STORMNAME=`grep "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//g' | tail -n 1` 2>> ${SYSLOG}
-   # make the storm name lower case
-   STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'` 2>> ${SYSLOG}
-fi
-#
-# Format/construct the name of the storm as Kalpana expects to receive it.
-KALPANANAME=asgs.${STORMNAMELC}.${ADVISORY}.${ENSTORM}.${GRIDNAME}.${INSTANCENAME}
-#
-# Link in the palette file(s) that Kalpana expects to find in the 
-# local directory.
-ln -s ${OUTPUTDIR}/water-level.pal ${STORMDIR} 2>> ${SYSLOG}
-ln -s ${OUTPUTDIR}/wavht.pal ${STORMDIR} 2>> ${SYSLOG}
-#
-# Link in the logo bar that Kalpana expects to find in the local directory
-# for the top of the Google Earth visualization. 
-ln -s ${OUTPUTDIR}/kalpana_logo.png ${STORMDIR}/logo.png 2>> ${SYSLOG}
-#
-# Call the script to generate the input files for Kalpana. Then call
-# Kalpana to generate the product, then package up the result.
-if [[ -e maxele.63.nc ]]; then
-   # maxele kmz
-   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 2 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxele 2>> kalpana.log
-   python ${OUTPUTDIR}/kalpana.py < input-kml.maxele 2>> kalpana.log
-   zip Maximum-Water-Levels.kmz Maximum-Water-Levels.kml Colorbar-water-levels.png logo.png 2>> ${SYSLOG}
-   rm Maximum-Water-Levels.kml 2>> ${SYSLOG}
-   # maxele shapefile
-   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 2 --shape B --vchoice X --domain N > input-shp.maxele 2>> kalpana.log
-   python ${OUTPUTDIR}/kalpana.py < input-shp.maxele 2>> kalpana.log
-   zip -r Maximum-Water-Levels-gis.zip water-level 2>> ${SYSLOG}
-   rm -rf water-level 2>> ${SYSLOG}
-fi
-#
-# Maximum significant wave height
-if [[ -e swan_HS_max.63.nc ]]; then
-   # swan hs max kmz
-   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 4 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxhs 2>> kalpana.log
-   python ${OUTPUTDIR}/kalpana.py < input-kml.maxhs 2>> kalpana.log
-   zip Maximum-Wave-Heights.kmz Maximum-Wave-Heights.kml Colorbar-wave-heights.png logo.png 2>> ${SYSLOG}
-   rm Maximum-Wave-Heights.kml 2>> ${SYSLOG}
-   # swan hs max shapefile
-   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 4 --shape B --vchoice X --domain N > input-shp.maxhs 2>> kalpana.log
-   python ${OUTPUTDIR}/kalpana.py < input-shp.maxhs 2>> kalpana.log
-   zip -r Maximum-Wave-Heights-gis.zip wave-height 2>> ${SYSLOG}
-   rm -rf wave-height 2>> ${SYSLOG}
-fi
-#
-# Maximum wave periods
-if [[ -e swan_TPS_max.63.nc ]]; then
-   # swan tps max kmz
-   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 8 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxTPS 2>> kalpana.log
-   python ${OUTPUTDIR}/kalpana.py < input-kml.maxTPS 2>> kalpana.log
-   zip Maximum-Wave-Period.kmz Maximum-Wave-Period.kml Colorbar-wave-periods.png logo.png 2>> ${SYSLOG}
-   rm Maximum-Wave-Period.kml 2>> ${SYSLOG}
-   # maxele shapefile
-   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 8 --shape B --vchoice X --domain N > input-shp.maxTPS 2>> kalpana.log
-   python ${OUTPUTDIR}/kalpana.py < input-shp.maxTPS 2>> kalpana.log
-   zip -r Maximum-Wave-Periods-gis.zip wave-period 2>> ${SYSLOG}
-   rm -rf wave-period 2>> ${SYSLOG}
-fi
-#
-# Unload the GDAL module since we no longer need it.
-module unload gdal/1.11.1_gcc
-
 #--------------------------------------------------------------------------
 #          O P E N D A P   P U B L I C A T I O N
 #--------------------------------------------------------------------------
@@ -294,3 +212,112 @@ END
 #
 echo "INFO: ncfs_post.sh: Sending 'results available' email to the following addresses: $COMMA_SEP_LIST." >> $SYSLOG
 cat ${STORMDIR}/cera_results_notify.txt | mail -s "$subject" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+#
+#--------------------------------------------------------------------------
+#             K A L P A N A    K M Z   A N D   G I S 
+#--------------------------------------------------------------------------
+# Create Google Earth images and shapefiles of water surface elevation 
+# and significant wave height using Kalpana.
+#--------------------------------------------------------------------------
+cd $STORMDIR 2>> ${SYSLOG}
+#
+# First, load the GDAL system module, since it is used by the fiona python
+# module in Kalpana.
+module load gdal/1.11.1_gcc
+#
+# Now enter the python environment created for Kalpana using virtualenv.
+source /projects/ncfs/apps/kalpana/env/bin/activate
+#
+# Grab the name of the storm from the run.properties file if this is 
+# a tropical cyclone; otherwise set the storm name to NAM.
+STORMNAMELC=nam
+if [[ $TROPICALCYCLONE = on ]]; then
+   STORMNAME=`grep "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//g' | tail -n 1` 2>> ${SYSLOG}
+   # make the storm name lower case
+   STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'` 2>> ${SYSLOG}
+fi
+#
+# Format/construct the name of the storm as Kalpana expects to receive it.
+KALPANANAME=asgs.${STORMNAMELC}.${ADVISORY}.${ENSTORM}.${GRIDNAME}.${INSTANCENAME}
+#
+# Link in the palette file(s) that Kalpana expects to find in the 
+# local directory.
+ln -s ${OUTPUTDIR}/water-level.pal ${STORMDIR} 2>> ${SYSLOG}
+ln -s ${OUTPUTDIR}/wavht.pal ${STORMDIR} 2>> ${SYSLOG}
+#
+# Link in the logo bar that Kalpana expects to find in the local directory
+# for the top of the Google Earth visualization. 
+ln -s ${OUTPUTDIR}/kalpana_logo.png ${STORMDIR}/logo.png 2>> ${SYSLOG}
+#
+# Call the script to generate the input files for Kalpana. Then call
+# Kalpana to generate the product, then package up the result.
+if [[ -e maxele.63.nc ]]; then
+   # maxele kmz
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 2 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxele 2>> kalpana.log
+   python ${OUTPUTDIR}/kalpana.py < input-kml.maxele 2>> kalpana.log
+   zip Maximum-Water-Levels.kmz Maximum-Water-Levels.kml Colorbar-water-levels.png logo.png 2>> ${SYSLOG}
+   rm Maximum-Water-Levels.kml 2>> ${SYSLOG}
+   # maxele shapefile
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 2 --shape B --vchoice X --domain N > input-shp.maxele 2>> kalpana.log
+   python ${OUTPUTDIR}/kalpana.py < input-shp.maxele 2>> kalpana.log
+   zip -r Maximum-Water-Levels-gis.zip water-level 2>> ${SYSLOG}
+   rm -rf water-level 2>> ${SYSLOG}
+fi
+#
+# Maximum significant wave height
+if [[ -e swan_HS_max.63.nc ]]; then
+   # swan hs max kmz
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 4 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxhs 2>> kalpana.log
+   python ${OUTPUTDIR}/kalpana.py < input-kml.maxhs 2>> kalpana.log
+   zip Maximum-Wave-Heights.kmz Maximum-Wave-Heights.kml Colorbar-wave-heights.png logo.png 2>> ${SYSLOG}
+   rm Maximum-Wave-Heights.kml 2>> ${SYSLOG}
+   # swan hs max shapefile
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 4 --shape B --vchoice X --domain N > input-shp.maxhs 2>> kalpana.log
+   python ${OUTPUTDIR}/kalpana.py < input-shp.maxhs 2>> kalpana.log
+   zip -r Maximum-Wave-Heights-gis.zip wave-height 2>> ${SYSLOG}
+   rm -rf wave-height 2>> ${SYSLOG}
+fi
+#
+# Maximum wave periods
+if [[ -e swan_TPS_max.63.nc ]]; then
+   # swan tps max kmz
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 8 --shape B --vchoice Y --domain Y --l '36 33.5 -60 -100' --lonlatbuffer 0 > input-kml.maxTPS 2>> kalpana.log
+   python ${OUTPUTDIR}/kalpana.py < input-kml.maxTPS 2>> kalpana.log
+   zip Maximum-Wave-Period.kmz Maximum-Wave-Period.kml Colorbar-wave-periods.png logo.png 2>> ${SYSLOG}
+   rm Maximum-Wave-Period.kml 2>> ${SYSLOG}
+   # maxele shapefile
+   perl ${OUTPUTDIR}/kalpana_input.pl --template ${OUTPUTDIR}/kalpana_input.template --name $KALPANANAME --filechoice 8 --shape B --vchoice X --domain N > input-shp.maxTPS 2>> kalpana.log
+   python ${OUTPUTDIR}/kalpana.py < input-shp.maxTPS 2>> kalpana.log
+   zip -r Maximum-Wave-Periods-gis.zip wave-period 2>> ${SYSLOG}
+   rm -rf wave-period 2>> ${SYSLOG}
+fi
+#
+# Unload the GDAL module since we no longer need it.
+module unload gdal/1.11.1_gcc
+#
+# Post links to shapefiles
+cd $OPENDAPDIR 2>> ${SYSLOG}
+#
+# Link to the shapefile zip and the kmz files if present.
+for file in `ls ${ADVISDIR}/${ENSTORM}/*.zip 2>> ${SYSLOG}`; do 
+   ln -s $file . 2>> ${SYSLOG}
+done
+for file in `ls ${ADVISDIR}/${ENSTORM}/*.kmz 2>> ${SYSLOG}`; do 
+   ln -s $file . 2>> ${SYSLOG}
+done
+#
+# 20150826: Make symbolic links to a single location on the opendap server
+# to reflect the "latest" shapefile and kmz results. There are actually two
+# locations, one for daily results, and one for tropical cyclone results. 
+if [[ $ENSTORM = namforecast || $ENSTORM = nhcConsensus ]]; then
+   currentResultsPath=/projects/ncfs/opendap/data/$currentDir
+   cd $currentResultsPath 2>> ${SYSLOG}
+   # make new symbolic links
+   for file in $STORMDIR/*.zip $STORMDIR/*.kmz ; do 
+      if [ -e $file ]; then
+         ln -s $file . 2>> ${SYSLOG}
+      else
+         logMessage "The directory does not have ${file}."
+      fi
+   done
+fi

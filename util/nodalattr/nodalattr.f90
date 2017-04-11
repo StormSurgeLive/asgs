@@ -17,6 +17,7 @@ type nodalAttr_t
    character(len=1024) :: units    ! physical units of the nodal attr
    integer :: numVals  ! number of values at each node for this nodal attr
    integer :: numNodesNotDefault ! number of nodes with values different from the default
+   real(8), allocatable :: fillValue(:)  ! missing data value for each nodal attr 
    real(8), allocatable :: defaultVals(:) ! default value(s) for real valued attributes 
    real(8), allocatable :: nonDefaultVals(:,:) ! nondefault vals (numVals x numNodesNotDefault) 
    integer, allocatable :: nonDefaultNodes(:) ! node numbers where nondefault vals occur
@@ -47,12 +48,13 @@ contains
 ! file. 
 !-----------------------------------------------------------------------
 subroutine loadNodalAttribute(naName)
-use asgsio, only : openFileForRead
+use ioutil, only : openFileForRead
 implicit none
 character(len=1024), intent(in) :: naName   ! name of the nodal attribute
 character(len=80) :: line    ! throwaway line
 logical :: foundIt  ! .true. if the specified nodal attribute is in the file
 integer :: nondef ! number of non default values to be skipped
+integer :: errorIO
 integer :: i, j, k
 !
 numLoadedAttributes = 1
@@ -61,7 +63,7 @@ na(1)%attrName = trim(adjustl(naName))
 !
 foundIt = .false.
 write(6,*) 'INFO: Reading nodal attribute.'
-call openFileForRead(13,nodalAttributesFile)
+call openFileForRead(13,nodalAttributesFile, errorIO)
 read(13,*) nodalAttributesComment
 read(13,*) numMeshNodes
 write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') numMeshNodes 
@@ -143,7 +145,7 @@ end subroutine setNodalAttributesFileName
 ! attributes file. 
 !-----------------------------------------------------------------------
 subroutine readNodalAttributesFile(asciiFile)
-use asgsio, only : openFileForRead
+use ioutil, only : openFileForRead
 implicit none
 character(len=1024), intent(in) :: asciiFile  ! name of the nodal attributes file
 character(len=1024) :: line
@@ -151,11 +153,12 @@ integer :: w ! array index of the nodal attribute we are to write
 integer :: i, j, k, m
 integer :: naIndex
 logical :: foundIt
+integer :: errorIO
 !
 call setNodalAttributesFileName(asciiFile)
 
 write(6,'(a)') 'INFO: Reading nodal attributes from "' // trim(nodalAttributesFile) // '".'
-call openFileForRead(13,nodalAttributesFile)
+call openFileForRead(13,nodalAttributesFile, errorIO)
 read(13,'(a1024)') nodalAttributesComment
 read(13,*) numMeshNodes
 write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') numMeshNodes 
@@ -322,6 +325,25 @@ end subroutine writeNodalAttribute63
 !-----------------------------------------------------------------------
 ! jgf: Writes all the nodal attribute data to a netcdf file.
 !-----------------------------------------------------------------------
+<<<<<<< HEAD
+subroutine writeNodalAttributesFileNetCDF(ncid, m, n, deflate)
+use netcdf
+use adcmesh
+use ioutil, only : check
+implicit none
+integer, intent(in) :: ncid ! netcdf id of the file to write
+type(mesh_t), intent(inout) :: m ! mesh to operate on
+type(meshNetCDF_t), intent(inout) :: n ! netcdf IDs for mesh
+logical, intent(in) :: deflate ! turns on compression if compiled w/suitable libs 
+integer :: nc_start(2) ! element of array where writing begins (each dimension)
+integer :: nc_count(2) ! number of elements of array to write (each dimension)
+character(len=2048) :: nameStr
+integer :: i, j, k
+!
+write(6,'(a)') 'INFO: Writing nodal attributes to netCDF.'
+call check(nf90_put_att(ncid,nf90_global,'nodalAttributesComment',trim(adjustl(nodalAttributesComment))))
+write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') m%np 
+=======
 subroutine writeNodalAttributesFileNetCDF(ncid, fileFormat)
 use netcdf
 use adcmesh
@@ -338,6 +360,7 @@ integer :: i, j, k, m
 write(6,'(a)') 'INFO: Writing nodal attributes to netCDF.'
 call check(nf90_put_att(ncid,nf90_global,'nodalAttributesComment',trim(adjustl(nodalAttributesComment))))
 write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') np 
+>>>>>>> master
 write(6,'("INFO: There are ",i0," nodal attributes in the file.")') numNodalAttributes 
 !
 ! define dimensions, variables, and metadata for each nodal attribute
@@ -349,13 +372,13 @@ do i=1,numNodalAttributes
    nameStr = trim(adjustl(na(i)%attrName))//'_defaultValues'
    call check(nf90_def_var(ncid,trim(nameStr),nf90_double,na(i)%nc_dimid_values_per_node,na(i)%nc_varid_defaults))
    ! nodal values : dimensions
-   na(i)%nc_dimid(1) = nc_dimid_node
+   na(i)%nc_dimid(1) = n%nc_dimid_node
    na(i)%nc_dimid(2) = na(i)%nc_dimid_values_per_node  
    ! nodal values : variable definition   
    call check(nf90_def_var(ncid,trim(adjustl(na(i)%attrName)),nf90_double,na(i)%nc_dimid,na(i)%nc_varid))
    !
    ! netcdf metadata for each nodal attribute
-   call check(nf90_put_att(ncid,na(i)%nc_varid,'_FillValue',fillvalue))
+   call check(nf90_put_att(ncid,na(i)%nc_varid,'_FillValue',na(i)%fillvalue))
    call check(nf90_put_att(ncid,na(i)%nc_varid,'long_name',trim(adjustl(na(i)%attrName))))
    call check(nf90_put_att(ncid,na(i)%nc_varid,'standard_name',trim(adjustl(na(i)%attrName))))
    call check(nf90_put_att(ncid,na(i)%nc_varid,'coordinates','y x'))
@@ -365,7 +388,7 @@ do i=1,numNodalAttributes
    call check(nf90_put_att(ncid,na(i)%nc_varid,'valuesPerNode',na(i)%numVals))
 
 #ifdef NETCDF_CAN_DEFLATE
-   if (fileFormat.eq.NETCDF4) then
+   if (deflate.eqv..true.) then
       call check(nf90_def_var_deflate(ncid, na(i)%nc_varid, 1, 1, 2))
    endif
 #endif
@@ -374,7 +397,7 @@ end do
 ! end definitions mode of netcdf
 call check(nf90_enddef(ncid))
 ! write mesh data to netcdf; mesh definitions were written by the calling routine
-call writeMeshDataToNetCDF(ncid)
+call writeMeshDataToNetCDF(m, n, ncid)
 !
 ! now populate default value(s) and value(s) at each node
 do i=1,numNodalAttributes
@@ -382,9 +405,9 @@ do i=1,numNodalAttributes
    call check(nf90_put_var(ncid,na(i)%nc_varid_defaults,na(i)%defaultVals,(/ 1 /),(/ na(i)%numVals /) ))
    !
    ! nodal attribute values
-   allocate(na(i)%ncData(np, na(i)%numVals))
+   allocate(na(i)%ncData(m%np, na(i)%numVals))
    ! set default values throughout
-   do j=1,np
+   do j=1,m%np
       na(i)%ncData(j,:) = na(i)%defaultVals(:)
    end do
    ! selectively set nondefault values    
