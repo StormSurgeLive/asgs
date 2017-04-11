@@ -236,7 +236,6 @@ case(NETCDF3,NETCDF4)
       ! this should be impossible to reach
       write(6,'(a)') 'ERROR: inundationMask: invalid file format specification.'
 end select
-
 !----------------------------------------------------------------------
 end program inundationMask
 !----------------------------------------------------------------------

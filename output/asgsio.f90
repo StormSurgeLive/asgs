@@ -1617,13 +1617,7 @@ write(6,*) 'netcdf vartype init finished' ! jgfdebug
 fmd % ncds(1) % varNameNetCDF = firstVarName ! initialize to most common value
 write(6,*) 'netcdf init(1) finished' ! jgfdebug
 !fmd % xds(1) % varNameXDMF = trim(firstVarName) ! initialize to most common value
-
-
-
-
 fmd % initialized = .true. 
-
-
 write(6,*) 'initFileMetaData : return' ! jgfdebug
 !----------------------------------------------------------------------
 end subroutine initFileMetaData

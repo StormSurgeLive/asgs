@@ -73,7 +73,6 @@ logical :: meshonly    ! .true. if we are just subsetting the mesh
 logical, allocatable :: within(:) ! (np) .true. if a node is within the resultshape
 logical, allocatable :: elementWithin(:) ! (ne) .true. if an element is within the resultshape
 integer inOnOut ! 1 if a node is within the polygon, 0 if it is on the polygon, and -1 if it is outside
-!
 real(8), allocatable :: polygonx(:) ! x coordinates of polygon vertices
 real(8), allocatable :: polygony(:) ! y coordinates of polygon vertices
 integer :: numVertices ! number of vertices in the polygon file
@@ -103,7 +102,6 @@ meshonly = .false.
 dataFileBase = "null"
 !
 call initLogging(availableUnitNumber(),'resultScope.f90')
-
 !
 argcount = command_argument_count() ! count up command line options
 if (argcount.gt.0) then
@@ -635,23 +633,10 @@ end do
 !  
 call closeFile(rd)
 call closeFile(fd)
-
-
-!
-! close full domain file
-select case(fd%dataFileFormat)
-case(ASCII)
-   close(fd%fun)
-case(NETCDFG)
-   call check(nf90_close(fd%nc_id))
-case default
-   ! should be unreachable
-   call allMessage(ERROR,'Only ASCII or NETCDF result file formats are supported.')   
-   stop
-end select
 !
 write(6,'(a)') 'INFO: resultScope.f90: Finished writing file.'
 write(6,'(a,i0,a)') 'INFO: resultScope.f90: Wrote ',SS-1,' data sets.'
+
 stop
  1010 format(1x,i10,1x,i10,1x,e15.7e3,1x,i8,1x,i5,1x,'FileFmtVersion: ',i10)
  1011 format(1x,i10,1x,i10,1x,e15.7e3,1x,i8,1x,i5,1x,i2,1x,'FileFmtVersion: ',i10)

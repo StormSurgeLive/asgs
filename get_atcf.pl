@@ -8,7 +8,7 @@
 #   file system.
 #
 #--------------------------------------------------------------
-# Copyright(C) 2006--2015 Jason Fleming
+# Copyright(C) 2006--2016 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -263,8 +263,10 @@ while (!$dl) {
       # look for the advisory by storm number, not name. 
       while ($i<$cnt) {
          # TROPICAL STORM BERTHA FORECAST/ADVISORY NUMBER  22
+         # example line:
          # NWS NATIONAL HURRICANE CENTER MIAMI FL       AL032014
-         # pre-2006:
+         #
+         # pre-2006 example line:
          # NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL       AL182005
          if ( $lines[$i] =~ /NATIONAL HURRICANE CENTER MIAMI FL\s+AL(\d{2})(\d{4})/ ) {
             if ($1 == $storm && $2 == $year && $lines[$i-1] =~ /FORECAST.ADVISORY/ ) {

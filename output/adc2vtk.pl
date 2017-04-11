@@ -323,6 +323,7 @@ printf VTKELEVBOUNDARY "      </Piece>\n";
 printf VTKELEVBOUNDARY "   </PolyData>\n";
 printf VTKELEVBOUNDARY "</VTKFile>\n";
 close(VTKELEVBOUNDARY);
+
 #-----------------------------------------------------------------------
 #                         F O R T  1 9 
 #                        X D M F   X M L 
@@ -749,5 +750,3 @@ sub stderrMessage () {
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
    printf STDERR "$theTime $level: adc2vtk.pl: $message\n";
 }
-
-
