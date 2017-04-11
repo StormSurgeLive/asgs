@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sat, 13 Sep 2008 03:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane IKE Forecast/Advisory Number 48</title>
+      <description>Issued at 0300 UTC SAT SEP 13 2008 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+HURRICANE IKE FORECAST/ADVISORY NUMBER  48
+NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL   AL092008
+0300 UTC SAT SEP 13 2008
+ 
+A HURRICANE WARNING REMAINS IN EFFECT FROM MORGAN CITY LOUISIANA TO
+NORTH OF PORT ARANSAS TEXAS. HURRICANE CONDITIONS ARE EXPECTED TO
+REACH THE COAST IN THE WARNING AREA LATER TODAY.
+ 
+A TROPICAL STORM WARNING REMAINS IN EFFECT FROM PORT ARANSAS TO
+PORT MANSFIELD TEXAS.  A TROPICAL STORM WARNING IS ALSO IN EFFECT
+FROM EAST OF MORGAN CITY TO THE MISSISSIPPI-ALABAMA BORDER...
+INCLUDING THE CITY OF NEW ORLEANS AND LAKE PONTCHARTRAIN.
+ 
+HURRICANE CENTER LOCATED NEAR 28.6N  94.4W AT 13/0300Z
+POSITION ACCURATE WITHIN  15 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTHWEST OR 315 DEGREES AT  10 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  952 MB
+EYE DIAMETER  40 NM
+MAX SUSTAINED WINDS  95 KT WITH GUSTS TO 115 KT.
+64 KT.......110NE  90SE  55SW  75NW.
+50 KT.......160NE 160SE  80SW 100NW.
+34 KT.......240NE 200SE 150SW 170NW.
+12 FT SEAS..425NE 425SE 270SW 150NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 28.6N  94.4W AT 13/0300Z
+AT 13/0000Z CENTER WAS LOCATED NEAR 28.3N  94.1W
+ 
+FORECAST VALID 13/1200Z 30.3N  95.4W...INLAND
+MAX WIND  70 KT...GUSTS  85 KT.
+64 KT... 40NE  50SE  30SW  20NW.
+50 KT...100NE 150SE 100SW  60NW.
+34 KT...175NE 200SE 150SW 125NW.
+ 
+FORECAST VALID 14/0000Z 33.2N  95.3W...INLAND
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 75NE  90SE  50SW  30NW.
+ 
+FORECAST VALID 14/1200Z 36.6N  92.3W...BECOMING EXTRATROPICAL INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 15/0000Z 40.5N  86.0W...EXTRATROPICAL INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 16/0000Z...ABSORBED BY FRONTAL ZONE INLAND
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 250 NM
+ON DAY 4 AND 325 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 28.6N  94.4W
+ 
+NEXT ADVISORY AT 13/0900Z
+ 
+$$
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Sat, 13 Sep 2008 03:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2008/09/48.092008.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2008/09/48.092008.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

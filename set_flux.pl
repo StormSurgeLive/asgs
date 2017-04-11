@@ -25,6 +25,46 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #------------------------------------------------------------------------
 #
+# Operator's choices in specifying river flux forcing:
+#
+# 0. hard code steady fluxes in fort.15 template 
+# 1. configure steady fluxes via asgs config file (how to do this 
+#    in a general way?) and let asgs propagate to fort.15 ... this
+#    can be different for different ensemble members
+# 2. configure steady river *stage* in asgs config file and let asgs 
+#    set steady flux via stage-discharge curve in fort.15
+# 3. configure the gage station where asgs should get the stage, and 
+#    perhaps the corresponding date, and let asgs get the stage, 
+#    compute the discharge, and set it in fort.15; if performed
+#    dynamically for type 52 boundary, it will require changing the 
+#    EtaDisc in the hotstart file according to stage discharge curve
+# 4. same as 1 but time series of discharges (requires stage-discharge code in ADCIRC)
+# 5. same as 2 but time series of stages (requires stage-discharge code in ADCIRC)
+# 6. fort.20 files ready-to-use
+#
+# Constraints / Assumptions
+#
+# 0. boundary must be placed in location where we have a stage discharge
+#    curve available if stage is to be used
+# 1. asgs should only use fort.20 to set fluxes, never fort.15
+# 2. operator only needs to touch asgs config
+# 3. must allow different fluxes for different ensemble members
+# 
+#
+#
+#
+# If VARFLUX=on then ASGS looks at another parameter: FLUXSOURCE
+#
+# if [[ $FLUXSOURCE = nssl.ou.fort.20 ]]; then
+#     # these are hindcast and forecast fort.20 files provided by hydrologic model
+# fi
+# if [[ $FLUXSOURCE = boundary.properties ]]; then
+#     # the asgs config file has code in it to write the boundaries.properties file
+# fi
+# 
+#
+#
+#
 # The flux boundary condition is set via the following algorithm:
 #
 # 0. Add properties from mesh.properties file manually when the mesh 
@@ -80,13 +120,13 @@
 # 2. the stage_discharge.pl script 
 #    a. reads the mesh.properties file to find how many river flux 
 #       boundaries are in the mesh file, and in what order; 
-#    b. it either uses statically configured fluxes from
-#       the ASGS config file or 
+#    b. it either uses statically configured total fluxes from
+#       the control.properties or run.properties file, or
 #    c. uses a web service to get the relevant water surface elevation
 #    d. if using water surface elevation, it interpolates a stage
-#       discharge curve to get the total flux at that boundary
-#    e. the total flux at each boundary is written to the run.properties
-#       file, as in the following example:
+#       discharge curve to get the total flux at each boundary
+#    e. if a web service was used, the total flux at each boundary is 
+#       written to the run.properties file, as in the following example:
 #
 #    mississippiRiverBoundaryConditionFlux : 16kcms
 #    mississippiRiverBoundaryPeriodicity : periodic
