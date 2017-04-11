@@ -2,7 +2,7 @@
 #--------------------------------------------------------------------------
 # null_post.sh 
 #--------------------------------------------------------------------------
-# Copies output from the ASGS to /dev/null.
+# Does nothing.
 #--------------------------------------------------------------------------
 # 
 # Copyright(C) 2008, 2009, 2010 Jason Fleming
@@ -33,7 +33,4 @@ ENSTORM=$7
 COLDSTARTDATE=$8
 HSTIME=$9
 #
-POSTDIR=/dev/null
-#
-cp $ASGSADVISORYDIR/$ENSTORM/maxele.63 $POSTDIR
-cp $ASGSADVISORYDIR/$ENSTORM/maxwvel.63 $POSTDIR
+# do nothing

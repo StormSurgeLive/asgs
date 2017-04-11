@@ -46,6 +46,15 @@ ifeq ($(compiler),intel)
    endif
 endif
 #
+# specify compiler=intel on the make command line
+ifeq ($(compiler),intel)
+   FC := ifort
+   FFLAGS := -fpp
+   ifeq ($(DEBUG),full)
+      FFLAGS := -g -O0 -fpp -traceback -debug -check all 
+   endif
+endif
+#
 OUTPUTDIR := ../../output
 INCLUDES := -I. -I$(OUTPUTDIR)
 #
@@ -118,9 +127,6 @@ asgsio.mod : $(OUTPUTDIR)/asgsio.f90 logging.mod
 #
 logging.mod : $(OUTPUTDIR)/logging.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/logging.f90 $(LDFLAGS)
-#
-adcircdata.mod : $(OUTPUTDIR)/adcircdata.f90 
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcircdata.f90 $(LDFLAGS)
 #
 landuse.mod : landuse.f90 asgsio.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c landuse.f90 $(LDFLAGS)

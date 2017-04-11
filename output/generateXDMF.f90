@@ -135,6 +135,25 @@ if (argcount.gt.0) then
       call getarg(i, cmdlineopt)
       select case(trim(cmdlineopt))
          case("--datafile")
+            numFiles = numFiles + 1
+         case default
+            ! skip it
+      end select
+   end do
+   !
+   ! allocate space to hold metadata for each of the data files
+   ! we will refer to
+   allocate(fileMetaData(numFiles))
+   fileMetaData(:) % useCPP = .false.
+   fileMetaData(:) % initialized = .false.
+   fileMetaData(:) % xmfUnit = 10 
+   i=0
+   fi=1  ! file index
+   do while (i.lt.argcount)
+      i = i + 1
+      call getarg(i, cmdlineopt)
+      select case(trim(cmdlineopt))
+         case("--datafile")
             i = i + 1
             call getarg(i, cmdlinearg)
             write(scratchMessage,'(a,a,a,a,a)') 'Processing "',trim(cmdlineopt),' ',trim(cmdlinearg),'".'
@@ -630,10 +649,10 @@ endif
 ! now write XDMF XML data for this dataset
 write(olun,'('//ind(indent)//',A,E22.15,A)') '<Grid Name="Time=',fmd%timesec(isnap),'" GridType="Uniform">'
 write(olun,'('//ind('+')//',A,E22.15,A)') '<Time Value="',fmd%timesec(isnap),'"/>'
+
 !----------------------------------------------------------------------
 end subroutine writeTimeVaryingGrid
 !----------------------------------------------------------------------
-
 
 !----------------------------------------------------------------------
 !  S U B R O U T I N E    W R I T E   A T T R I B U T E S   X M L 

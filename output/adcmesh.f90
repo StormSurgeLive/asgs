@@ -420,6 +420,8 @@ write(6,'(a)') 'INFO: Reading mesh dimensions from the netCDF file.'
 ! initializations
 m%is3D = .false.
 !
+write(6,'(a)') 'INFO: Reading mesh dimensions from the netCDF file.'
+!
 ! open the netcdf file
 call check(nf90_open(trim(m%meshFileName), NF90_NOWRITE, nc_id))
 !
@@ -522,7 +524,6 @@ endif
 ! close netcdf file
 call check(nf90_close(nc_id))
 write(6,'(a)') 'INFO: Finished reading mesh dimensions from the netCDF file.'
-
 !----------------------------------------------------------------------
 end subroutine findMeshDimsNetCDF
 !----------------------------------------------------------------------
@@ -582,9 +583,9 @@ call check(nf90_get_var(nc_id,n%nc_varid_element,m%nmnc,nc_ele_start,nc_ele_coun
 ! them to disk in column major order, according to the way C interprets
 ! the data, rather than row major order, the way Fortran would interpret
 ! the data
-do i=1, m%ne
+do i=1, ne
    do j=1, 3
-      m%nm(i,j)= m%nmnc(j,i)
+      nm(i,j)= nmnc(j,i)
    end do
 end do
 !
@@ -1711,8 +1712,6 @@ do i=1,m%np
       endif
    end do
 end do
-
-
 !-----------------------------------------------------------------------
 end subroutine computeNeighborEdgeLengthTable
 !-----------------------------------------------------------------------

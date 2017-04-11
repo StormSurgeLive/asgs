@@ -94,7 +94,6 @@ SS=1
 ! Report netcdf version
 write(6,'(a,a)') "INFO: adcirc2netcdf was compiled with the following netcdf library: ", &
    trim(nf90_inq_libvers())
-
 ! jgf: Process command line options; can be used along with menu choices;
 ! if command line options provide all needed input, menu will not
 ! be presented to user; programs with command line options are

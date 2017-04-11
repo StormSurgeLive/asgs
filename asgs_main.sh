@@ -103,7 +103,7 @@ checkDirExistence()
   if [[ -z $DIR ]]; then
       fatal "The $TYPE was not specified in the configuration file."
   fi
-  if [ -e $DIR ]; then
+  if [[ -e $DIR ]]; then
      logMessage "The $TYPE '$DIR' was found."
   else
      fatal "The $TYPE '$DIR' does not exist."
@@ -175,6 +175,135 @@ function float_cond()
     return $stat
 }
 #
+# Retrieve and build ADCIRC(+SWAN) executables. This function will set
+# the value of ADCIRCDIR if ADCIRCBUILD = "dynamic".
+get_adcirc()
+{
+   ADCIRCDIR=$1 # this value may be changed in this function
+   DEBUG=$2
+   SWAN=$3
+   NETCDF=$4
+   NETCDF4=$5
+   NETCDF4_COMPRESSION=$6
+   XDMF=$7
+   SOURCEURL=$8
+   AUTOUPDATE=$9
+   EXEBASEPATH=${10}
+   SCRIPTDIR=${11}
+   SWANMACROSINC=${12}
+   ADCOPTIONS="${13}"
+   SYSLOG=${14}
+   #
+   # If the path to the ADCIRC executables is hard coded, just verify
+   # their existence and return.
+   if [[ $ADCIRCBUILD = static ]]; then
+      for executable in adcirc padcirc padcswan adcprep hstime aswip; do
+         if [[ ! -e $ADCIRCDIR/$executable ]]; then
+            warn "Could not find the executable file $ADCIRCDIR/${executable}."
+            return 1
+         fi
+      done
+      # leave the value of ADCIRCDIR as-is
+      logMessage "All ADCIRC(+SWAN) executable files were found successfully."
+      return 0
+   fi
+   #
+   # Set the name of the properties file that describes the executables that
+   # we're about to generate.
+   PROPERTIES=executables.properties
+   #
+   logMessage "Checking for suitable ADCIRC(+SWAN) executables."
+   #
+   # Check to see if we already have executables in a directory that
+   # matches the specification.
+   #
+   # Start by generating the path that is specified by this combination of
+   # parameters.  Assume the SOURCEURL is an http URL for an svn repository;
+   # extract the end of the path for use in naming the directory where the
+   # executables will be compiled.
+   EXEPATH=`basename $SOURCEURL`
+   #
+   # Add the first letter of each of the arguments to the path name 
+   EXEPATH="${EXEPATH}_D${DEBUG:0:1}S${SWAN:0:1}N${NETCDF:0:1}N4${NETCDF4:0:1}N4C${NETCDF4_COMPRESSION:0:1}X${XDMF:0:1}"
+   #
+   # Prepend the base executables path to the path we've constructed.
+   EXEPATH=$EXEBASEPATH/$EXEPATH
+   #
+   # Check for existence of executables.
+   EXEFOUND=t
+   for executable in adcirc padcirc padcswan adcprep hstime aswip; do
+      if [[ ! -e $EXEPATH/work/$executable ]]; then
+         EXEFOUND=f
+      fi
+   done
+   #
+   # If we found all the executables, and we aren't supposed to try to 
+   # update and recompile them, then we're done.
+   if [[ $EXEFOUND = t && $AUTOUPDATE = off ]]; then
+      logMessage "Existing ADCIRC(+SWAN) executables were successfully found."
+      ADCIRCDIR=$EXEPATH/work # <-- setting the value of ADCIRCDIR
+      return 0  
+   fi
+   #
+   logMessage "ADCIRC(+SWAN) executables were not found. They will be (re)built."
+   #
+   # Check the code out of svn and into the specified directory. 
+   # TODO: Deal with svn username/password.
+   if [[ ! -d $EXEPATH ]]; then
+      mkdir -p $EXEPATH 2>> $SYSLOG
+   fi
+   cd $EXEPATH 2>> $SYSLOG
+   #
+   # Check the source code out of the repository. TODO: Enable other sources
+   # of source code, e.g., a tar.gz file on the local file system. 
+   logMessage "Retrieving source code."
+   # TODO: Figure out how/when to 'svn update' source code already in place if
+   # AUTOUPDATE is on.
+   svn checkout $SOURCEURL . >> build.log 2>> $SYSLOG
+   mv build.log $EXEPATH/work 2>> $SYSLOG
+   #
+   # Now build the ADCIRC and ADCIRC+SWAN executables.
+   cd $EXEPATH/work 2>> $SYSLOG
+   #
+   # Write properties file to record what this script is attempting to do
+   # and make it easy to look in the executables directory to see how the 
+   # code was compiled.
+   echo "DEBUG : $DEBUG" > $PROPERTIES
+   echo "SWAN : $SWAN" >> $PROPERTIES
+   echo "NETCDF : $NETCDF" >> $PROPERTIES
+   echo "NETCDF4 : $NETCDF4" >> $PROPERTIES
+   echo "NETCDF4_COMPRESSION : $NETCDF4_COMPRESSION" >> $PROPERTIES
+   echo "XDMF : $XDMF" >> $PROPERTIES
+   echo "SOURCEURL : $SOURCEURL" >> $PROPERTIES
+   echo "AUTOUPDATE : $AUTOUPDATE" >> $PROPERTIES
+   echo "EXEBASEPATH : $EXEBASEPATH" >> $PROPERTIES
+   echo "SCRIPTDIR : $SCRIPTDIR" >> $PROPERTIES
+   echo "SWANMACROSINC : $SWANMACROSINC" >> $PROPERTIES
+   echo "ADCOPTIONS : $ADCOPTIONS" >> $PROPERTIES
+   echo "SYSLOG : $SYSLOG" >> $PROPERTIES
+   #
+   # Set the correct SWAN compiler flags for this HPC platform.
+   cp ../swan/$SWANMACROSINC ../swan/macros.inc 2>> $SYSLOG
+   #
+   # Build the executables using the settings listed in the platforms.sh file.
+   logMessage "Building executables."
+   for executable in adcirc padcirc padcswan adcprep hstime aswip; do 
+      logMessage "Building ${executable}."
+      MAKECMDLINE="make $executable $ADCOPTIONS DEBUG=$DEBUG SWAN=$SWAN NETCDF=$NETCDF NETCDF4=$NETCDF4 NETCDF4_COMPRESSION=$NETCDF4_COMPRESSION XDMF=$XDMF"
+      echo "MAKECMDLINE is $MAKECMDLINE" >> build.log 2>> $SYSLOG
+      $MAKECMDLINE >> build.log 2>&1
+      if [[ $? == 0 ]]; then
+         logMessage "Successfully built ${executable}."
+      else
+         warn "Failed to build $EXEPATH/work/${executable}."
+         return 1
+      fi
+   done
+   # All executables were built successfully; set the value of ADCIRCDIR.
+   ADCIRCDIR=$EXEPATH/work
+}
+#
+#
 # subroutine to run adcprep, using a pre-prepped archive of fort.13,
 # fort.14 and fort.18 files
 prep()
@@ -183,7 +312,7 @@ prep()
     ENSTORM=$3  # ensemble member (nowcast, storm1, storm5, etc)
     START=$4    # coldstart or hotstart
     FROMDIR=$5 # directory containing files to hotstart this run from 
-    ENV=$6     # machine to run on (jade, desktop, queenbee, etc)
+    HPCENV=$6     # machine to run on (jade, desktop, queenbee, etc)
     NCPU=$7     # number of CPUs to request in parallel jobs
     PREPPEDARCHIVE=$8 # preprocessed fort.13 and fort.14 package
     GRIDFILE=$9 # fulldomain grid
@@ -194,8 +323,7 @@ prep()
     HOTSTARTFORMAT=${14}   # "binary" or "netcdf"
     MINMAX=${15}           # "continuous" or "reset"
     HOTSWAN=${16} # "yes" or "no" to reinitialize SWAN only
-    NAFILE=${17}  # full domain nodal attributes file, must be last in the
-                  # argument list, since it may be undefined
+    NAFILE=${17}  # full domain nodal attributes file
     TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
 #
     # set the name of the archive of preprocessed input files
@@ -224,6 +352,7 @@ prep()
         if [[ ! -z $NAFILE  && $NAFILE != null ]]; then
            ln -s $INPUTDIR/$NAFILE $ADVISDIR/$ENSTORM/fort.13 2>> ${SYSLOG}
         fi
+      fi
     fi
     if [[ $HAVEARCHIVE = yes ]]; then
         # copy in the files that have already been preprocessed
@@ -395,7 +524,7 @@ prepFile()
     #
     case $QUEUESYS in
     "PBS")
-       QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$ENV/$PREPCONTROLSCRIPT --enstorm ${ENSTORM} --notifyuser $NOTIFYUSER --syslog $SYSLOG"
+       QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$HPCENV/$PREPCONTROLSCRIPT --enstorm ${ENSTORM} --notifyuser $NOTIFYUSER --syslog $SYSLOG"
        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.pbs 2>> ${SYSLOG}
        # submit adcprep job, check to make sure qsub succeeded, and if not, retry
        while [ true ];  do
@@ -430,7 +559,7 @@ prepFile()
        ;;
     "SGE")
        cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-       SERQSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --account $ACCOUNT --adcircdir $ADCIRCDIR --walltime $WALLTIME --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $SCRIPTDIR/input/machines/$ENV/$SERQSCRIPT"
+       SERQSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --account $ACCOUNT --adcircdir $ADCIRCDIR --walltime $WALLTIME --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $SCRIPTDIR/input/machines/$HPCENV/$SERQSCRIPT"
        perl $SCRIPTDIR/$SERQSCRIPTGEN $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
        logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge."
        qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
@@ -443,7 +572,8 @@ prepFile()
        allMessage "adcprep finished."
        ;;
     *)
-       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log 2>&1
+       logMessage "Submitting job with $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1"
+       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1
        # check to see if adcprep completed successfully
        if [[ $? != 0 ]]; then
           error "The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log for details."
@@ -731,8 +861,8 @@ submitJob()
    SCRIPTDIR=$5
    INPUTDIR=$6
    ENSTORM=$7
-   NOTIFYUSER="$8"
-   ENV=$9
+   NOTIFYSER=$8
+   HPCENV=$9
    ACCOUNT=${10}
    PPN=${11}
    NUMWRITERS=${12}
@@ -761,7 +891,7 @@ submitJob()
    #
    #  Load Sharing Facility (LSF); used on topsail at UNC
    "LSF")
-      bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${SYSLOG}
+      bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/padcirc $CLOPTIONS >> ${SYSLOG}
       ;;
    #
    #  LoadLeveler (often used on IBM systems)
@@ -772,7 +902,7 @@ submitJob()
    #
    #  Portable Batch System (PBS); widely used
    "PBS")
-      QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$ENV/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING $LOCALHOTSTART --syslog $SYSLOG"
+      QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$HPCENV/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING $LOCALHOTSTART --syslog $SYSLOG"
       if [[ $PPN -ne 0 ]]; then
          QSCRIPTOPTIONS="$QSCRIPTOPTIONS --ppn $PPN"
       fi
@@ -796,7 +926,7 @@ submitJob()
    #
    #  SLURM
    "SLURM")
-      QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$ENV/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING $LOCALHOTSTART --syslog $SYSLOG"
+      QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$HPCENV/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING $LOCALHOTSTART --syslog $SYSLOG"
       if [[ $PPN -ne 0 ]]; then
          QSCRIPTOPTIONS="$QSCRIPTOPTIONS --ppn $PPN"
       fi
@@ -822,10 +952,10 @@ submitJob()
    "mpiexec")
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
       echo "[${DATETIME}] Starting ${JOBTYPE}.${ENSTORM} job in $PWD." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start
-      logMessage "Submitting job via $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${SYSLOG} 2>&1"
+      logMessage "Submitting job via $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
       # submit the parallel job in a subshell
       (
-         $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${ADVISDIR}/${ENSTORM}/adcirc.log 2>&1
+         $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${ADVISDIR}/${ENSTORM}/adcirc.log 2>&1
          ERROVALUE=$?
          RUNSUFFIX="finish"
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
@@ -841,10 +971,10 @@ submitJob()
 #
 #  Sun Grid Engine (SGE); used on Sun and many Linux clusters
    "SGE")
-      QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --ncpudivisor $NCPUDIVISOR --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$ENV/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
-      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/${JOBTYPE}.sge 2>> ${SYSLOG}
-      logMessage "Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.sge"
-      qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.sge >> ${SYSLOG} 2>&1
+      QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --ncpudivisor $NCPUDIVISOR --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$HPCENV/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
+      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/padcirc.sge 2>> ${SYSLOG}
+      logMessage "Submitting $ADVISDIR/$ENSTORM/padcirc.sge"
+      qsub $ADVISDIR/$ENSTORM/padcirc.sge >> ${SYSLOG} 2>&1
       # if qsub failed, resubmit the job 5 times before giving up
       if [[ $? = 1 ]]; then
          rangerResubmit $ADVISDIR $ENSTORM ${JOBTYPE}.sge $SYSLOG
@@ -947,93 +1077,20 @@ ASGSADMIN=
 EXIT_NOT_OK=1
 EXIT_OK=0
 #
+# get the value of SCRIPTDIR
+SCRIPTDIR=${0%%/asgs_main.sh}  # ASGS scripts/executables        
+si=-2  # storm index for forecast ensemble; -1 indicates nowcast, -2 forecast
 # need to determine standard time format to be used for pasting log files
 STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-
-# create directories with default permissions of "775" and
-# files with the default permssion of "664"
-umask 002
+# name asgs log file here
+SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG must be defined before logging.sh is run.
 #
-# Initialize variables accessed from config.sh to reasonable values
-INSTANCENAME=1
-BACKGROUNDMET=on
-TIDEFAC=off
-TROPICALCYCLONE=off
-WAVES=off
-VARFLUX=off
-MINMAX=continuous
-REINITIALIZESWAN=no
-USERIVERFILEONLY=no
-STORMNAME=stormname
-RIVERSITE=ftp.nssl.noaa.gov
-RIVERDIR=/projects/ciflow/adcirc_info
-RIVERUSER=null
-RIVERDATAPROTOCOL=null
-ELEVSTATIONS=null
-VELSTATIONS=null
-METSTATIONS=null
-GRIDFILE=fort.14
-GRIDNAME=fort14
-OUTPUTOPTIONS=
-ARCHIVEBASE=/dev/null
-ARCHIVEDIR=null
-FORECASTCYCLE="00,06,12,18"
-TRIGGER="rss"
+# Initialize dynamic state variables
 LASTADVISORYNUM=0
-ADVISORY=0
-FORECASTLENGTH=84
-ALTNAMDIR=null
-HOTSTARTCOMP=fulldomain
-HINDCASTWALLTIME="10:00:00"
-ADCPREPWALLTIME="00:30:00"
-NOWCASTWALLTIME="02:00:00"
-FORECASTWALLTIME="05:00:00"
-TIMESTEPSIZE=1.0
-SWANDT=600
-UMASK=002
-GROUP=""
-DRY=1
-DEMO=
-STORM=0
-YEAR=null
-CSDATE=null
-HOTORCOLD=coldstart
 LASTSUBDIR=null
-FTPSITE=null
-FTPFCSTDIR=null
-FTPHCSTDIR=null
-ADCIRCDIR=null
-SCRATCHDIR=null
-MAILINGLIST=null
-ENV=null
-QUEUESYS=null
-QUEUENAME=null
-SERQUEUE=null
-QCHECKCMD=null
-NCPU=null
-JOBTYPE=null
-NUMWRITERS=0
-ACCOUNT=desktop
-SUBMITSTRING=null
-INTERSTRING=null
-RESULTSHOST=null
-RESULTSPATH=null
-RESULTSUSERNAME=null
-RESULTSPROMPT=null
-RESULTSPASSWORD=null
-NOTIFYUSER=null
+ADVISORY=0
+CSDATE=null
 RUNDIR=null
-INPUTDIR=null
-PERL5LIB=
-HOTSTARTFORMAT=null
-STORMDIR=stormdir
-SSHKEY=null
-PPN=1
-VELOCITYMULTIPLIER=1.0
-HOTSWAN=off
-ONESHOT=no      # yes if ASGS is launched by cron
-NCPUCAPACITY=2  # total number of CPUs available to run jobs
-let si=-1       # storm index for forecast ensemble; -1 indicates non-forecast
 STATEFILE=null
 ENSTORM=hindcast
 CYCLETIMELIMIT="05:00:00"
@@ -1056,9 +1113,14 @@ JOB_FAILED_LIST=null
 NOTIFYUSER=null
 ASGSADMIN=null
 PERIODICFLUX=null
+HPCENV=null
 #
-# first - look for SCRIPTDIR
-while getopts "c:e:s:h" optname; do    #<- first getopts for SCRIPTDIR
+# create directories with default permissions of "775" and
+# files with the default permssion of "664"
+umask 002
+#
+#
+while getopts "c:e:s:h" optname; do    
   case $optname in
     c) CONFIG=${OPTARG}
        if [[ ! -e $CONFIG ]]; then
@@ -1066,7 +1128,7 @@ while getopts "c:e:s:h" optname; do    #<- first getopts for SCRIPTDIR
           exit $EXIT_NOT_OK
        fi 
        ;;
-    e) ENV=${OPTARG}
+    e) HPCENV=${OPTARG}
        ;;
     s) STATEFILE=${OPTARG}
        ONESHOT=yes
@@ -1075,24 +1137,25 @@ while getopts "c:e:s:h" optname; do    #<- first getopts for SCRIPTDIR
        ;;
   esac
 done
-
-# set the file and directory permissions, which are platform dependent
-umask $UMASK
-# read config file just to get the location of $SCRIPTDIR
-. ${CONFIG}
-# name asgs log file here
-SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG must be defined before logging.sh is run.
+#
+# Initialize variables accessed from ASGS config parameters to reasonable values
+. ${SCRIPTDIR}/config_defaults.sh
+# Initialize model parameters to appropriate values
+. ${SCRIPTDIR}/model_defaults.sh
 # Bring in logging functions
 . ${SCRIPTDIR}/logging.sh
-# Bring in platform-specific configuration
+# Bring in platform-specific configuration functions
 . ${SCRIPTDIR}/platforms.sh
-# dispatch environment (using the functions in platforms.sh)
-env_dispatch ${ENV}
-# Re-read the config file, so that the variables can take precedence over
+# HPC environment defaults (using the functions in platforms.sh)
+env_dispatch ${HPCENV}
+# Read the config file, so that the variables can take precedence over
 # the values in the platform-specific functions called by env_dispatch
 . ${CONFIG}
+#
+# set the file and directory permissions, which are platform dependent
+umask $UMASK
+#
 RUNDIR=$SCRATCHDIR/asgs$$
-#SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log #nld moved to before logging function is called
 # if we are starting from cron, look for a state file
 if [[ $ONESHOT = yes ]]; then
    # if it is there, read it
@@ -1124,38 +1187,29 @@ else
       echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
    fi
 fi
-
 consoleMessage "Please see ASGS log file for detailed information regarding system progress."
 consoleMessage "ASGS Start Up MSG: [SYSLOG] The log file is ${SYSLOG}"
 logMessage "ASGS Start Up MSG: [PROCID] $$"
 logMessage "ASGS Start Up MSG: [SYSLOG] ${SYSLOG}"
 logMessage "The ADCIRC Surge/Spill Guidance System is activated."
 logMessage "Set permissions with the following umask: $UMASK."
-logMessage "Configured the ASGS for the '${ENV}' platform."
+logMessage "Configured the ASGS for the '${HPCENV}' platform."
 logMessage "Configured the ASGS according to the file ${CONFIG}."
 logMessage "ASGS state file is ${STATEFILE}."
 # set a trap for a signal to reread the ASGS config file
 trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; . $CONFIG' USR1
 #
 # check existence of all required files and directories
-checkDirExistence $ADCIRCDIR "ADCIRC executables directory"
 checkDirExistence $INPUTDIR "directory for input files"
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
 checkDirExistence $PERL5LIB "directory for the Date::Pcalc perl module"
 #
-checkFileExistence $ADCIRCDIR "ADCIRC preprocessing executable" adcprep
-checkFileExistence $ADCIRCDIR "ADCIRC parallel executable" padcirc
-checkFileExistence $ADCIRCDIR "hotstart time extraction executable" hstime
-if [[ $TROPICALCYCLONE = on ]]; then
-   checkFileExistence $ADCIRCDIR "asymmetric metadata generation executable" aswip
-fi
 if [[ $BACKGROUNDMET = on ]]; then
    checkFileExistence $SCRIPTDIR "NAM output reprojection executable (from lambert to geographic)" awip_lambert_interp.x
    checkFileExistence $SCRIPTDIR "GRIB2 manipulation and extraction executable" wgrib2
 fi
 if [[ $WAVES = on ]]; then
    JOBTYPE=padcswan
-   checkFileExistence $ADCIRCDIR "ADCIRC+SWAN parallel executable" padcswan
    checkFileExistence $INPUTDIR "SWAN initialization template file " swaninit.template
    checkFileExistence $INPUTDIR "SWAN control template file" $SWANTEMPLATE
 else
@@ -1263,6 +1317,12 @@ if [[ $BACKGROUNDMET = on && $TROPICALCYCLONE = on ]]; then
    # not ready for this yet
    fatal "Background meteorology and tropical cyclone forcing are both turned on in ${CONFIG} but simultaneous use of these two forcing types is not yet supported in ASGS."
 fi
+NOFORCING=false
+# If there is no forcing from an external data source, set a flag; this
+# is most often used in running test cases for ADCIRC.
+if [[ $BACKGROUNDMET = off && $TIDEFAC = off && $TROPICALCYCLONE = off && $WAVES = off && $VARFLUX = off ]]; then
+   NOFORCING=true
+fi
 #
 # If we are coldstarting, perform a hindcast ... this is necessary
 # to ramp up forcing and allow transient signals to die away before
@@ -1276,8 +1336,15 @@ if [[ $START = coldstart ]]; then
    logMessage "Starting hindcast."
    HOTSWAN=off
    ENSTORM=hindcast
+   si=-2      # represents a hindcast 
    # pick up config info that is specific to the hindcast
    . ${CONFIG}
+   # Obtain and/or verify ADCIRC(+SWAN) executables
+   get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG 
+   if [[ $? = 1 ]]; then
+      warn "Failed to find or build ADCIRC(+SWAN) executables for hindcast."
+      exit ${EXIT_NOT_OK} # can't really come back from this
+   fi
    ADVISDIR=$RUNDIR/initialize
    mkdir -p $ADVISDIR 2>> ${SYSLOG}
    STORMDIR=$ADVISDIR/$ENSTORM
@@ -1301,12 +1368,20 @@ if [[ $START = coldstart ]]; then
    CONTROLOPTIONS="$CONTROLOPTIONS --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
+   if [[ $NOFORCING = true ]]; then
+      CONTROLOPTIONS="$CONTROLOPTIONS --specifiedRunLength $HINDCASTLENGTH"
+   else
+      CONTROLOPTIONS="$CONTROLOPTIONS --endtime $HINDCASTLENGTH  --nws $NWS  --advisorynum 0" 
+   fi
+   if [[ $DEFAULTSFILE != null ]]; then
+      CONTROLOPTIONS="$CONTROLOPTIONS --defaultsfile $DEFAULTSFILE"
+   fi
    logMessage "Constructing control file with the following options: $CONTROLOPTIONS."
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
    # don't have a meterological forcing (fort.22) file in this case
    # preprocess
    logMessage "Starting $ENSTORM preprocessing."
-   echo "hostname : $HOSTNAME" >> $ADVISDIR/$ENSTORM/run.properties
+    echo "hostname : $HOSTNAME" >> $ADVISDIR/$ENSTORM/run.properties
    echo "instance : $INSTANCENAME" >> $ADVISDIR/$ENSTORM/run.properties
    echo "storm : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
    echo "stormnumber : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
@@ -1332,8 +1407,8 @@ if [[ $START = coldstart ]]; then
    logMessage "Submitting ADCIRC $ENSTORM job."
    cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
    JOBTYPE=padcirc  # we won't run waves during the spinup hindcast
-   logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
-   submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE
+   logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
+   submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE
    # check once per minute until all jobs have finished
    monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $HINDCASTWALLTIME
    # check to see that the nowcast job did not conspicuously fail
@@ -1357,11 +1432,25 @@ else
 fi
 #
 # B E G I N   N O W C A S T / F O R E C A S T   L O O P
+#
 while [ true ]; do
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
    ENSTORM=nowcast
-   let si=-1
+   si=-1
+   # Initialize variables accessed from ASGS config parameters to reasonable values
+   . ${SCRIPTDIR}/config_defaults.sh
+   # Initialize model parameters to appropriate values
+   . ${SCRIPTDIR}/model_defaults.sh
+   # HPC environment defaults (using the functions in platforms.sh)
+   env_dispatch ${HPCENV}   
+   # grab the config specified by the operator
    . ${CONFIG}
+   # Obtain and/or verify ADCIRC(+SWAN) executables
+   get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG
+   if [[ $? = 1 ]]; then
+      warn "Failed to find or build ADCIRC(+SWAN) executables for hindcast."
+      exit ${EXIT_NOT_OK} # can't really come back from this
+   fi      
    FROMDIR=null
    LUN=null       # logical unit number; either 67 or 68
    if [[ -d $OLDADVISDIR/nowcast ]]; then
@@ -1473,6 +1562,21 @@ while [ true ]; do
    # send out an email alerting end users that a new cycle has been issued
    cycleStartTime=`date +%s`  # epoch seconds
    ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORM $YEAR $NOWCASTDIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
+   # if there is no forcing from an external data source, set control options
+   if [[ $NOFORCING = true ]]; then
+      logMessage "NOFORCING is $NOFORCING"
+            # pull the latest advisory number from the statefile
+      ADVISORY=99999
+      ADVISDIR=$RUNDIR/${ADVISORY}
+      NOWCASTDIR=$ADVISDIR/$ENSTORM
+      if [ ! -d $NOWCASTDIR ]; then
+          mkdir -p $NOWCASTDIR 2>> ${SYSLOG}
+      fi
+      CONTROLOPTIONS="--nws 0 --advisorynum $ADVISORY"
+      CONTROLOPTIONS="$CONTROLOPTIONS --specifiedRunLength $NOWCASTDAYS"
+      CONTROLOPTIONS="$CONTROLOPTIONS --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+      logMessage "CONTROLOPTIONS is $CONTROLOPTIONS"
+   fi
    # activate padcswan based on ASGS configuration
    if [[ $WAVES = on ]]; then
       CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
@@ -1480,6 +1584,9 @@ while [ true ]; do
    CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
+   if [[ $DEFAULTSFILE != null ]]; then
+      CONTROLOPTIONS="$CONTROLOPTIONS --defaultsfile $DEFAULTSFILE"
+   fi   
    # generate fort.15 file
    logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
@@ -1511,8 +1618,8 @@ while [ true ]; do
       # preprocess
       checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
       logMessage "Nowcast preprocessing."
-      logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
-      prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
+      logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $HPCENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
+      prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $HPCENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
       # check to see that adcprep did not conspicuously fail
       handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
       # if handleFailedJob has detected a problem, it will rename the 
@@ -1529,8 +1636,8 @@ while [ true ]; do
       # then submit the job
       logMessage "Submitting $ENSTORM job."
       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-      logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE"
-      submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE
+      logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE"
+      submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE
       # check once per minute until all jobs have finished
       monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $NOWCASTWALLTIME
       # check to see that the nowcast job did not conspicuously fail
@@ -1551,6 +1658,7 @@ while [ true ]; do
    fi
    # write the ASGS state file
    LASTSUBDIR=`echo $NOWCASTDIR | sed 's/\/nowcast//g ; s/\/hindcast//g'`
+   logMessage "RUNDIR is $RUNDIR STATEFILE is $STATEFILE SYSLOG is $SYSLOG" #jgfdebug
    echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
    echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
@@ -1571,8 +1679,22 @@ while [ true ]; do
       # source config file to pick up any configuration changes, or any
       # config that is specific to forecasts, and set up the current 
       # ensemble member
-      ENSTORM=forecast  # to pick up forecast-related config from config file
+      ENSTORM=forecast  
+      # Initialize variables accessed from ASGS config parameters to reasonable values
+      . ${SCRIPTDIR}/config_defaults.sh
+      # Initialize model parameters to appropriate values
+      . ${SCRIPTDIR}/model_defaults.sh
+      # HPC environment defaults (using the functions in platforms.sh)
+      env_dispatch ${HPCENV}
+      # grab the config specified by the operator
       . ${CONFIG}
+      # Obtain and/or verify ADCIRC(+SWAN) executables
+      get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG
+      if [[ $? = 1 ]]; then
+         warn "Failed to find or build ADCIRC(+SWAN) executables for $ENSTORM."
+         si=$[$si + 1];
+         continue # just go on to the next ensemble member
+      fi      
       # Check for a misconfiguration where the Operator has set the  
       # number of CPUs and number of writers greater than the total
       # number of CPUs that will ever be available.
@@ -1686,7 +1808,7 @@ while [ true ]; do
             logMessage "Running aswip fort.22 preprocessor for $ENSTORM with the following options: $ASWIPOPTIONS."
             $ADCIRCDIR/aswip -n $BASENWS $ASWIPOPTIONS >> ${SYSLOG} 2>&1
             if [[ -e NWS_${BASENWS}_fort.22 ]]; then
-               mv fort.22 fort.22.orig 2>> ${SYSLOG} 
+               mv fort.22 fort.22.orig 2>> ${SYSLOG}
                cp NWS_${BASENWS}_fort.22 fort.22 2>> ${SYSLOG}
             fi
          fi
@@ -1715,6 +1837,12 @@ while [ true ]; do
          if [[ ! -e $STORMDIR/runme ]]; then
             RUNFORECAST=no
          fi
+      fi
+      # if there is no forcing from an external data source, set control options
+      if [[ $NOFORCING = true ]]; then
+         CONTROLOPTIONS="--nws 0 --advisorynum $ADVISORY"
+         CONTROLOPTIONS="${CONTROLOPTIONS} --specifiedRunLength $FORECASTDAYS"
+         CONTROLOPTIONS="${CONTROLOPTIONS} --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       fi
       if [[ $WAVES = on ]]; then
          CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
@@ -1766,7 +1894,7 @@ while [ true ]; do
             fi
             # then submit the job
             allMessage "Submitting ensemble member $ENSTORM for forecast."
-            submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
+            submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
             # monitor for completion and post process in a subshell running in the background
             # ... this allows us to go on to the next ensemble member
             (            
@@ -1775,7 +1903,7 @@ while [ true ]; do
                # only attempt post processing if this ensemble member ended successfully
                if [[ -d $STORMDIR ]]; then
                   logMessage "The $ENSTORM job ended successfully. Starting postprocessing."
-                  ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
+                  ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY $SCRIPTDIR >> ${SYSLOG} 2>&1
                   # notify analysts that new results are available
                   ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1  
                fi
@@ -1801,8 +1929,8 @@ while [ true ]; do
    if [[ $RUNNOWCAST = yes ]]; then
       OLDADVISDIR=$ADVISDIR
    fi
-   if [[ $ONESHOT = yes ]]; then
+   if [[ $ONESHOT = yes || $NOFORCING = true ]]; then
       wait      # allow any background processes to complete
-      exit $OK  # exit because the ASGS will be started once again by cron
+      exit $OK  # exit because the ASGS will be started again later
    fi
 done

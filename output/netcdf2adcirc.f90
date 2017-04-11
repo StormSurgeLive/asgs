@@ -40,9 +40,7 @@ integer :: snapi ! time step
 real(8) :: snapr ! time (s)
 integer :: lineNum
 integer :: i
-
 meshonly = .false.
-
 call initLogging(availableUnitNumber(),'netcdf2adcirc.f90')
 call allmessage(INFO,'Compiled with netcdf library version '//trim(nf90_inq_libvers())//'.')
 !
@@ -133,4 +131,5 @@ call check(nf90_close(fn%nc_id))
 !---------------------------------------------------------------------
 end program netcdf2adcirc
 !---------------------------------------------------------------------
+
 

@@ -163,8 +163,7 @@ elif filechoice == 5:
         print 'KMZ files cannot be created for fort.63.nc'
 ## 6 - NODAL WIND VELOCITY ##
 elif filechoice == 6:
-    nc=netCDF4.Dataset('fort.74.nc').variables
-    #nc=netCDF4.Dataset('http://opendap.renci.org:1935/thredds/dodsC/ASGS/arthur/10/nc_inundation_v9.99/hatteras.renci.org/nchi/nhcConsensus/fort.74.nc').variables   
+    nc=netCDF4.Dataset('fort.74.nc').variables#nc=netCDF4.Dataset('http://opendap.renci.org:1935/thredds/dodsC/ASGS/arthur/10/nc_inundation_v9.99/hatteras.renci.org/nchi/nhcConsensus/fort.74.nc').variables   
     # Trying to read in data using the opendap url created an unresolved runtime error
     windx = nc['windx'][:]
     windy = nc['windy'][:]
@@ -206,6 +205,7 @@ elif filechoice == 10:
     
 else:
     print "Error in input"
+
 ## Timestep variable ##
 timestep = 'time'
     
@@ -440,6 +440,7 @@ def points_inside_poly(points, polygon):
 def reverse_geometry(p):
   return np.flipud(p)
 
+
 ## To calculate the signed area of an irregular polyon ##
 def signed_area(ring):
     """Return the signed area enclosed by a ring in linear time using the 
@@ -483,11 +484,12 @@ for i in range(len(time_var)):
                 continue
             ## Triangulating for each local mesh ##
             tri = matplotlib.tri.Triangulation(localx,localy,triangles=localelements)
-                      
+                     
             ## Plotting filled contour for each local mesh ##
             contour = pplot.tricontourf(tri, localvar,levels=levels,shading='faceted')
           
             m = 0           
+
             for colli,coll in enumerate(contour.collections):
                 vmin,vmax = contour.levels[colli:colli+2]
                 print 'Level %d' %m
@@ -840,16 +842,15 @@ if vchoice == 'X':
                     k = list(time_var).index(geom)
                     print k
                     for g in geoms[geom]:
-                        
+                       
                         c.write({'geometry': mapping(g[0]),'properties': {'wavhtmin': g[1], 'wavhtmax': g[2],'wavhtavg': (g[1]+g[2])/2.0,'timestep':a[k],'t':time_var[k]}})
-                        
+                      
     elif filechoice == 8 and choice == 'B':
             schema = { 'geometry': 'Polygon', 'properties': { 'wvpdmin': 'float', 'wvpdmax': 'float', 'wvpdavg': 'float' } }
             with fiona.open(outputname, 'w', 'ESRI Shapefile', schema,crs) as c:
                 for geom in geoms:
                     for g in geoms[geom]:
                         c.write({'geometry': mapping(g[0]),'properties': {'wvpdmin': g[1], 'wvpdmax': g[2], 'wvpdavg': (g[1]+g[2])/2.0}})
-
     elif filechoice == 9 and choice == 'B':                
             schema = { 'geometry': 'Polygon', 'properties': { 'peakpdmin': 'float', 'peakpdmax': 'float','peakpdavg':'float','timestep':'str' ,'t' : 'float'} }
             with fiona.open(outputname, 'w', 'ESRI Shapefile', schema,crs) as c:
@@ -866,7 +867,6 @@ if vchoice == 'X':
                     print k
                     for g in geoms[geom]:
                         c.write({'geometry': mapping(g[0]),'properties': {'meanpdmin': g[1], 'meanpdmax': g[2],'meanpdavg': (g[1]+g[2])/2.0,'timestep':a[k],'t':time_var[k]}})                          
-
 
     
 elif vchoice == 'Y':
