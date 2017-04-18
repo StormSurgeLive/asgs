@@ -583,9 +583,9 @@ call check(nf90_get_var(nc_id,n%nc_varid_element,m%nmnc,nc_ele_start,nc_ele_coun
 ! them to disk in column major order, according to the way C interprets
 ! the data, rather than row major order, the way Fortran would interpret
 ! the data
-do i=1, ne
+do i=1, m%ne
    do j=1, 3
-      nm(i,j)= nmnc(j,i)
+      m%nm(i,j)= m%nmnc(j,i)
    end do
 end do
 !
