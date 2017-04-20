@@ -325,7 +325,6 @@ end subroutine writeNodalAttribute63
 !-----------------------------------------------------------------------
 ! jgf: Writes all the nodal attribute data to a netcdf file.
 !-----------------------------------------------------------------------
-<<<<<<< HEAD
 subroutine writeNodalAttributesFileNetCDF(ncid, m, n, deflate)
 use netcdf
 use adcmesh
@@ -343,24 +342,6 @@ integer :: i, j, k
 write(6,'(a)') 'INFO: Writing nodal attributes to netCDF.'
 call check(nf90_put_att(ncid,nf90_global,'nodalAttributesComment',trim(adjustl(nodalAttributesComment))))
 write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') m%np 
-=======
-subroutine writeNodalAttributesFileNetCDF(ncid, fileFormat)
-use netcdf
-use adcmesh
-use adcircdata, only : fillValue
-use asgsio, only : check, NETCDF4
-implicit none
-integer, intent(in) :: ncid ! netcdf id of the file to write
-integer, intent(in) :: fileFormat ! NETCDF4 turns on compression if compiled w/suitable libs 
-integer :: nc_start(2) ! element of array where writing begins (each dimension)
-integer :: nc_count(2) ! number of elements of array to write (each dimension)
-character(len=2048) :: nameStr
-integer :: i, j, k, m
-!
-write(6,'(a)') 'INFO: Writing nodal attributes to netCDF.'
-call check(nf90_put_att(ncid,nf90_global,'nodalAttributesComment',trim(adjustl(nodalAttributesComment))))
-write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') np 
->>>>>>> master
 write(6,'("INFO: There are ",i0," nodal attributes in the file.")') numNodalAttributes 
 !
 ! define dimensions, variables, and metadata for each nodal attribute
@@ -417,7 +398,7 @@ do i=1,numNodalAttributes
       end do
    end do
    nc_start = (/ 1, 1 /)
-   nc_count = (/ np, na(i)%numVals /)
+   nc_count = (/ m%np, na(i)%numVals /)
    ! write nodal values to netcdf
    call check(nf90_put_var(ncid,na(i)%nc_varid,na(i)%ncData,nc_start,nc_count))
 end do
