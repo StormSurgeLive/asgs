@@ -121,9 +121,10 @@ type fileMetaData_t
    integer, pointer :: mapping(:) ! used for mapping fulldomain<-->subdomain
    ! 
    ! netcdf adcirc files only
-   integer :: nc_dimid_station ! netcdf ID for the time dimension
-   integer :: nc_dimid_namelen ! netcdf ID for the time dimension
+   integer :: nc_dimid_station ! netcdf ID for the station dimension
+   integer :: nc_dimid_namelen ! netcdf ID for the station length dimension
    integer :: station_namelen  ! length of netcdf station name variable
+   integer :: nc_varid_station ! netcdf ID for the station IDs
    character(len=120) :: datenum ! e.g. seconds since 2008-07-31 12:00:00 +00:00
    integer, allocatable :: it(:) ! time step number associated with each dataset
    type(netCDFVar_t), allocatable :: ncds(:)
