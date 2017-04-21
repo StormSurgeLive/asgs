@@ -37,7 +37,7 @@ character(len=20) :: operation  ! min, max, mean, median, range, maxtime, mintim
 real(8) :: timesecStart = -99999.d0  ! beginning of time range (s) to use from fort.61.nc file
 real(8) :: timesecEnd = -99999.d0  ! end of time range (s) to use from fort.61.nc file 
 character(len=1024) :: stationFileName ! name of file containing list of stations in standard metadata format
-logical :: outOfRange      ! true if requested start or end times are out of data range in file
+logical, allocatable :: outOfRange(:)      ! true if requested start or end times are out of data range in file
 logical :: strictTimeRange ! true if output should not be written when data are not available for the full requested range
 character(len=50), allocatable :: dataFileStationIDs(:) ! holder for netcdf IDs array
 character(len=1024) :: outputfile      ! average data at stations 
@@ -45,7 +45,8 @@ integer :: numStationsInList ! number of stations in the list of interest (not t
 real(8), allocatable :: stationData(:) ! one component of one complete dataset from fort.61
 real(8), allocatable :: resultVal(:,:) ! (irtype,numStationsInList)
 integer, allocatable :: numObs(:,:) ! number of non-missing values at each station (irtype,numStationsInList)
-logical :: stationFound ! true if a station in the specified list was found in the fort.61
+logical, allocatable :: stationFound(:) ! true if a station in the specified list was found in the fort.61
+type(characterVector1D_t) :: stationFileNames ! expandable list of station files to be processed
 integer :: outu ! i/o unit number for results file
 integer :: stu ! i/o unit number for specified station list file
 integer :: bangCounter ! counts the record separators ("!") in the station metadata
@@ -58,6 +59,7 @@ integer :: j ! character index position counter
 integer :: s ! station counter
 integer :: t ! dataset counter
 integer :: c ! station data component counter 
+integer :: f ! data file counter
 integer :: tdata ! dataset counter for indexing datasets in fort.61
 integer :: lastDataSetInTimeRange ! index of last dataset from fort.61
 integer :: firstDataSetInTimeRange ! index of first dataset from fort.61
@@ -73,7 +75,7 @@ integer :: errorIO
 integer :: nc_start(2)
 integer :: nc_count(2)
 integer :: nc_varid_station_name
-type(realVector1D_t) :: dataFileNames
+type(characterVector1D_t) :: dataFileNames
 character(len=2000) :: tempName
 ! 
 ! initializations
@@ -201,8 +203,8 @@ call allMessage(INFO,'Finished reading station file.')
 allocate(sf(dataFileNames%n))
 ! allocate space for recording which files have data in the specified time range
 allocate(outOfRange(dataFileNames%n))
-do f=1,dataFileName%n
-   sf(f)%dataFileName = dataFileNames(f)
+do f=1,dataFileNames%n
+   sf(f)%dataFileName = dataFileNames%v(f)
 end do
 outOfRange(:) = .false.
 !
@@ -210,17 +212,17 @@ outOfRange(:) = .false.
 numDataSetsInTimeRange = 0
 do f=1, dataFileNames%n 
    ! assume the station files are all in netcdf format
-   f%dataFileFormat = NETCDFG
+   sf(f)%dataFileFormat = NETCDFG
    ! open the netcdf station file(s), get dimensions, etc
    call determineNetCDFFileCharacteristics(sf(f), m, n)
    ! check to see if data are available for the full requested time range
-   if ( (timesecStart.gt.0).and.(timesecStart.gt.sf%timesec(sf%nSnaps)) ) then
-      write(scratchMessage,'("The data file ends at time t=",e17.8," (s) but the requested start time is t=",e17.8," (s).")') timesecStart, sf%timesec(sf%nSnaps)  
+   if ( (timesecStart.gt.0).and.(timesecStart.gt. sf(f)%timesec(sf(f)%nSnaps) ) ) then
+      write(scratchMessage,'("The data file ends at time t=",e17.8," (s) but the requested start time is t=",e17.8," (s).")') timesecStart, sf(f)%timesec(sf(f)%nSnaps)  
       call allMessage(INFO,scratchMessage)
       outOfRange(f) = .true.
    endif
-   if ( (timesecEnd.gt.0).and.(timesecEnd.lt.sf%timesec(1)) ) then
-      write(scratchMessage,'("The data file starts at time t=",e17.8," (s) but the requested end time is t=",e17.8," (s).")') , timesecEnd, sf%timesec(1)
+   if ( (timesecEnd.gt.0).and.(timesecEnd.lt.sf(f)%timesec(1)) ) then
+      write(scratchMessage,'("The data file starts at time t=",e17.8," (s) but the requested end time is t=",e17.8," (s).")') , timesecEnd, sf(f)%timesec(1)
       call allMessage(WARNING,scratchMessage)
       outOfRange(f) = .true.
    endif
@@ -240,7 +242,7 @@ end do
 !
 ! allocate memory for holding data for each station
 do ista=1,numStationsInList
-   allocate(stations(ista)%d(sf%irtype,numDataSetsInTimeRange))
+   allocate(stations(ista)%d(sf(1)%irtype,numDataSetsInTimeRange))
 end do
 !
 ! for files that contain data in the time period of interest, check to 
@@ -265,8 +267,8 @@ do f=1, dataFileNames%n
    call check(nf90_open(trim(sf(f)%dataFileName), NF90_NOWRITE, sf(f)%nc_id))
    nc_start_station_names = (/ 1, 1 /)
    nc_count_station_names = (/ sf(f)%station_namelen, sf(f)%nStations /)
-   call check(nf90_inq_varid(sf(f)%nc_id, "station_name", sf(f)%NC_VarID_station_name))
-   call check(nf90_get_var(sf(f)%nc_id,sf(f)%nc_varid_station_name,dataFileStationIDs,nc_start_station_names,nc_count_station_names))
+   call check(nf90_inq_varid(sf(f)%nc_id, "station_name", sf(f)%NC_VarID_station))
+   call check(nf90_get_var(sf(f)%nc_id,sf(f)%nc_varid_station,dataFileStationIDs,nc_start_station_names,nc_count_station_names))
    !
    ! for each station in the list of interest, determine the array index in the station
    ! data file that corresponds to that station
@@ -350,34 +352,20 @@ do f=1, dataFileNames%n
       end do
       t = t + 1
    end do 
-   call check(nf90_close(sf%nc_id))
-
-
-
-
-
-
+   call check(nf90_close(sf(f)%nc_id))
    deallocate(dataFileStationIDs) 
+   if ( (outOfRange(f).eqv..true.).and.(strictTimeRange.eqv..true.) ) then
+      call allMessage(INFO,'The file does not have data for the full time range, and the command line option --strict-time-range was set.')
+      write(scratchMessage,'("The first data set in the time range is data set ",i0," and the last is data set ",i0,"; there are ",i0," data sets in the given time range.")') firstDataSetInTimeRange, lastDataSetInTimeRange, numDataSetsInTimeRange
+      call allMessage(INFO,scratchMessage)
+      call allMessage(INFO,'Output will not be written because of the unavailability of some of the data in the requested time range. Execution complete.')
+      stop
+   endif 
 end do
-
-
-if ( (outOfRange.eqv..true.).and.(strictTimeRange.eqv..true.) ) then
-   call allMessage(INFO,'The file does not have data for the full time range, and the command line option --strict-time-range was set.')
-   write(scratchMessage,'("The first data set in the time range is data set ",i0," and the last is data set ",i0,"; there are ",i0," data sets in the given time range.")') firstDataSetInTimeRange, lastDataSetInTimeRange, numDataSetsInTimeRange
-   call allMessage(INFO,scratchMessage)
-   call allMessage(INFO,'Output will not be written because of the unavailability of some of the data in the requested time range. Execution complete.')
-   stop
-endif 
-
- 
-!
-
-
-
 !
 ! now perform the specified operation on the data obtained for the
 ! stations during the specified time interval
-allocate(resultVal(sf%irtype,numStationsInList))
+allocate(resultVal(sf(1)%irtype,numStationsInList))
 ! initialize values
 select case(trim(operation))
 case("min")
@@ -393,10 +381,10 @@ end select
 !
 ! perform the specified operation on each component of each specified station
 ! FIXME: this may not do the right thing for multicomponent (i.e., vector) quantities
-allocate(numObs(sf%irtype,numStationsInList))
+allocate(numObs(sf(1)%irtype,numStationsInList))
 numObs(:,:) = numDataSetsInTimeRange
 do s=1, numStationsInList
-   do c=1, sf%irtype
+   do c=1, sf(1)%irtype
       do t=1, numDataSetsInTimeRange
          ! avoid use of a missing value into the avg
          if ( stations(s)%d(c,t).lt.-9999.d0 ) then
@@ -425,7 +413,7 @@ end do
 select case(trim(operation))
 case("mean","average","avg")
    do s=1, numStationsInList
-      do c=1, sf%irtype ! iterate over components
+      do c=1, sf(1)%irtype ! iterate over components
          if ( numObs(c,s).ne.0 ) then
             resultVal(c,s) = resultVal(c,s) / dble(numObs(c,s))
          else
@@ -442,7 +430,7 @@ line = 'rundes: '//trim(rundes)//' runid: '//trim(runid)//' agrid:'//trim(m%agri
 write(outu,'("# ",a)') trim(line) ! comment line
 write(outu,'(a)') '# stationID ! operationType ! timestart(s) ! timeend(s) ! (result ! numObservations (c=1,irtype))'
 do s=1,numStationsInList
-   write(outu,fmt='(a,1x,a,1x,2(f21.7,1x),3(f21.7,1x,i0,1x))') trim(stations(s)%stationID), trim(operation), timesecStart, timesecEnd, (resultVal(c,s), numObs(c,s), c=1,sf%irtype)
+   write(outu,fmt='(a,1x,a,1x,2(f21.7,1x),3(f21.7,1x,i0,1x))') trim(stations(s)%stationID), trim(operation), timesecStart, timesecEnd, (resultVal(c,s), numObs(c,s), c=1,sf(1)%irtype)
 end do
 
 stop
