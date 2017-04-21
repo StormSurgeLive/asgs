@@ -140,13 +140,6 @@ if (argcount.gt.0) then
             ! skip it
       end select
    end do
-   !
-   ! allocate space to hold metadata for each of the data files
-   ! we will refer to
-   allocate(fileMetaData(numFiles))
-   fileMetaData(:) % useCPP = .false.
-   fileMetaData(:) % initialized = .false.
-   fileMetaData(:) % xmfUnit = 10 
    i=0
    fi=1  ! file index
    do while (i.lt.argcount)
