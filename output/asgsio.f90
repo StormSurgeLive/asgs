@@ -248,7 +248,6 @@ case(ASCII,SPARSE_ASCII,ASCIIG) ! memory allocation for subdomain ascii datasets
       if (f%isInteger.eqv..true.) then
          allocate(f%idata(f%irtype,f%numValuesPerDataset))
       else
-         write(6,*) 'allocating f%rdata' ! jgfdebug
          allocate(f%rdata(f%irtype,f%numValuesPerDataset))
       endif
    endif
@@ -360,7 +359,6 @@ endif
 ! file metadata accordingly
 do i=1,f%nvar
    call check(nf90_inquire_variable(f%nc_id, i, thisVarName))
-   write(6,*) i, trim(thisVarName) ! jgfdebug
    select case(trim(thisVarName))
    case("u-vel3D","v-vel3D","w-vel3D")
       f%defaultFileName = 'fort.45'
@@ -395,8 +393,13 @@ do i=1,f%nvar
       call initFileMetaData(f, thisVarName, 1, 1)     
       exit
    case("offset")
-      f%defaultFileName = 'offset.63'
-      f % fileTypeDesc = 'a time varying water level offset file (offset.63)'
+      if ( f%dataFileCategory.eq.STATION ) then
+         f%defaultFileName = 'offset.61'
+         f % fileTypeDesc = 'a time varying water level offset station file (offset.61)'
+      else
+         f%defaultFileName = 'offset.63'
+         f % fileTypeDesc = 'a time varying water level offset file (offset.63)'
+      endif
       call initFileMetaData(f, thisVarName, 1, 1)     
       exit
    case("tau0")
@@ -952,7 +955,6 @@ integer :: nc_dimid(2)
 integer :: i
 !
 write(6,*) 'INFO: Adding data attributes to netCDF file.' !jgfdebug
-write(6,*) 'fn%numVarNetCDF=',fn%numVarNetCDF !jgfdebug
 !
 ! set the number of values per dataset 
 if ( fn % dataFileCategory .eq. STATION ) then
@@ -960,7 +962,6 @@ if ( fn % dataFileCategory .eq. STATION ) then
 else
    nc_dimid = (/ n%nc_dimid_node, fn%nc_dimID_Time /)
 endif 
-write(6,*) 'nc_dimid =',nc_dimid ! jgfdebug
 !
 select case(fn%dataFileCategory)
 case(OWI) 
@@ -1579,7 +1580,6 @@ integer, intent(in) :: numNC
 integer, intent(in) :: numXDMF
 integer :: n
 !
-write(6,*) 'initFileMetaData : enter' ! jgfdebug
 if ( fmd % initialized .eqv..true. ) then
    return
 endif
@@ -1602,7 +1602,6 @@ end do
 !
 ! XDMF
 fmd % numVarXDMF = numXDMF
-write(6,*) 'num xdmf=',numXDMF ! jgfdebug
 allocate(fmd%xds(numXDMF))
 !allocate(fmd%xds(2))
 do n=1,fmd%numVarXDMF
@@ -1612,20 +1611,10 @@ do n=1,fmd%numVarXDMF
    fmd % xds(n) % numberType = 'Float' ! initialize to most common value
    fmd % xds(n) % numberPrecision = 8  ! initialize to most common value
 end do 
-write(6,*) 'xdmf init finished' ! jgfdebug
 fmd % ncds(1) % nc_varType = NF90_DOUBLE ! initialize to most common value
-write(6,*) 'netcdf vartype init finished' ! jgfdebug
 fmd % ncds(1) % varNameNetCDF = firstVarName ! initialize to most common value
-write(6,*) 'netcdf init(1) finished' ! jgfdebug
 !fmd % xds(1) % varNameXDMF = trim(firstVarName) ! initialize to most common value
-
-
-
-
 fmd % initialized = .true. 
-
-
-write(6,*) 'initFileMetaData : return' ! jgfdebug
 !----------------------------------------------------------------------
 end subroutine initFileMetaData
 !----------------------------------------------------------------------
