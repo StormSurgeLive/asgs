@@ -27,9 +27,9 @@ close all
 % If not, assume the script is being run in interactive mode on a
 % Windows or Mac system.
 if exist('commandLineOptions','var')==0
-   pathSep='\'; %'% windows-style path separator
    clearvars -except grd %jgf: this uninitializes variables specified on the command line
    clc
+   pathSep='\'; %'% windows-style path separator
 else
    pathSep='/'; % linux-style path separator
 end
@@ -101,6 +101,12 @@ end
 % is set to 0 
 if exist('constrefwl','var')==0
    constrefwl=0;   
+end
+% misspropcutoff : maximum proportion of data that can be missing from a
+% gage; a gage is ignored if it's missing this much data or less
+% is set to 0 
+if exist('misspropcutoff','var')==0
+   misspropcutoff=0.01;
 end
 %-----------------------------------------------------------------------
 %        I N I T I A L I Z E   F I L E   N A M E S
@@ -208,7 +214,7 @@ else
    rd.solver=rdsolver;
 end
 % rd.npntgrid=200;      %number of points (in each direction) for underlying gridding of data
-if exist('approxres','var')==0
+if exist('approxres','var')==1
    rd.approxres=approxres; %approximate resolution (in each direction) for underlying gridding of data
 end
 %
@@ -232,8 +238,8 @@ meshdefaultz=outsidedefaultz;           %default value for mesh
 if exist('meshinterpmethod','var')==0
    meshinterpmethod='oi';                  %which method to use ('oi' or 'rd')
 end
-if commandLineOptions==true
-   disp('INFO: offsetSurfaceGen.m: Finished parsing command line options.')
+if exist('commandLineOptions','var')&&commandLineOptions==true
+    disp('INFO: offsetSurfaceGen.m: Finished parsing command line options.')
 end
 %-----------------------------------------------------------------------
 %             B E G I N   E X E C U T I O N
@@ -280,7 +286,13 @@ if useDefaultStationList==false
       tline = fgetl(stationFileID);
    end
    status = fclose(stationFileID);
-   stationid = string({refStations.refStationID});
+   %tga: I changed how stationid was defined here so that I think it'll be
+   %     consistent with how it's defined if useDefaultStationList==true,
+   %     and added the assignment to stationnumbut this has NOT been
+   %     tested.
+%    stationid = string({refStations.refStationID});
+   stationid = {refStations.refStationID}.';
+   stationnum=str2double(stationid);
    if status==-1
       error(['offsetSurfaceGen.m: Failed to close station file ' filstations '.'])
    end
@@ -304,7 +316,7 @@ if interptomesh==1
    end
 end
 %
-%% Load/download measured data
+%% Load/download data
 if dodownload==1
    disp('INFO: offsetSurfaceGen.m: Downloading measured gage data.')
    nodata=zeros(nstat,1);
@@ -315,6 +327,12 @@ if dodownload==1
       else
          nodata(cnt)=1;
       end
+   end
+   %if the last dataset(s) is empty, then the dat array will be too small,
+   %so use the following trick to make sure it has the right # of elements
+   if nodata(end)==1
+       dat(nstat+1)=dat(1);
+       dat=dat(1:nstat);
    end
    if stopafterdownload==1
       return % so you can save the data, rather than re-downloading every time
@@ -395,13 +413,37 @@ if any(offshorepointmode==[2,3,4])
     load(filoffshfixpnts)   %has variable offshfixpnts that's a *x2 array of x-y data
 end
 %
-% Ansys
+%Cleanup
+%Revise number of data in arrays subject to missing NOAA gage data
+if any(nodata==1)
+    disp(['INFO: offsetSurfaceGen.m: Removing gages with no data:  ',stationid(nodata==1).'])
+    disp(['INFO: offsetSurfaceGen.m: New station count:  ',num2str(sum(~nodata))])
+    nstat=sum(~nodata);
+    dat=dat(~nodata);
+    refwl=refwl(~nodata);
+    stationid=stationid(~nodata);
+    stationnum=stationnum(~nodata);
+end
+nmissratio=([dat(:).nmiss]./[dat(:).navail]).';     %fraction of data missing
+missingdata=nmissratio>misspropcutoff;
+if any(missingdata==1)
+    disp(['INFO: offsetSurfaceGen.m: Removing gages with partial data:  ',stationid(missingdata==1).'])
+    disp(['INFO: offsetSurfaceGen.m: New station count:  ',num2str(sum(~missingdata))])
+    nstat=sum(~missingdata);
+    dat=dat(~missingdata);
+    refwl=refwl(~missingdata);
+    stationid=stationid(~missingdata);
+    stationnum=stationnum(~missingdata);
+end
+%
+%% Ansys
 disp('INFO: offsetSurfaceGen.m: Computing offset surface.')
+%
 %
 % Define input points
 xpin=[dat(:).lon];
 ypin=[dat(:).lat];
-zpin=zeros(1,numel(dat));
+zpin=zeros(size(xpin));
 for cnt=1:nstat
    zpin(cnt)=mean([dat(cnt).wl])-refwl(cnt);
 end
@@ -531,6 +573,7 @@ if interptomesh==1
         disp('Saving out')
         fidout=fopen(filout,'w');
         if writeoutfil==1
+            nondefaultvals=find(zmesh~=meshdefaultz);
             fprintf(fidout,'header\n');
             fprintf(fidout,'%f    !time interval\n',timeinterval);
             fprintf(fidout,'%f    !default value\n',meshdefaultz);
