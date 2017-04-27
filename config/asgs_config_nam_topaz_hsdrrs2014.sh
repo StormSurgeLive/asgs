@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=readyhs      # "name" of this ASGS process
-COLDSTARTDATE=2016052700  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2016061600  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null           # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
@@ -49,7 +49,7 @@ TIDEFAC=on            # tide factor recalc
 TROPICALCYCLONE=off   # tropical cyclone forcing
 WAVES=off             # wave forcing
 VARFLUX=off           # variable river flux forcing
-VORTEXMODEL=SYMMETRIC
+VORTEXMODEL=GAHM
 
 # Computational Resources
 
@@ -62,8 +62,13 @@ FORECASTWALLTIME="05:00:00"  # forecast wall clock time
 NCPU=480                     # number of compute CPUs for all simulations
 NCPUCAPACITY=1500
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=standard
-SERQUEUE=standard
+QUEUENAME=background
+SERQUEUE=background
+# topaz has a limit of 4hrs max wall clock time for the background queue
+if [[ $QUEUENAME = background ]]; then
+    NOWCASTWALLTIME="04:00:00"
+    FORECASTWALLTIME="04:00:00"
+fi
 
 # External data sources : Tropical cyclones
 
@@ -95,8 +100,8 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=HSDRRS2014_MRGO_leveeupdate_fixSTC_MX.grd # mesh (fort.14) file
-GRIDNAME=HSDRRS2014_MRGO_leveeupdate_fixSTC_MX
+GRIDFILE=HSDRRS2014_MRGO_leveeupdate_fixSTC_MX_smoothedPlaquemines.grd  # mesh (fort.14) file
+GRIDNAME=HSDRRS2014_MRGO_leveeupdate_fixSTC_MX_smoothedPlaquemines
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=hsdrrs2014_explicit_16kcms_fort.15.template   # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
@@ -105,7 +110,7 @@ VELSTATIONS=cpra2017v12.cera_stations.20160624
 METSTATIONS=cpra2017v12.cera_stations.20160624
 NAFILE=HSDRRS2014_MRGO_leveeupdate_fixSTC13_MX_ADDSWAN.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=cpra_2017_v07a.26.template  # only used if WAVES=on
+SWANTEMPLATE=hsdrrs_fort.26.template  # only used if WAVES=on
 RIVERINIT=null                           # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null

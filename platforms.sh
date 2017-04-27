@@ -27,6 +27,11 @@
 #
 # initialization subroutines for the various machines/architectures
 #
+# Suggested aliases to support the Operator's tasks. Add these
+# to .bashrc, .bash_profile or similar
+#
+# alias lsta='ls -lth *.state | head'
+#
 init_queenbee()
 { #<- can replace the following with a custom script
   HOSTNAME=queenbee.loni.org
@@ -34,8 +39,8 @@ init_queenbee()
   QCHECKCMD=qstat
   ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
   SUBMITSTRING=qsub
-  #SCRATCHDIR=/work/$USER
-  SCRATCHDIR=/work/cera
+  SCRATCHDIR=/work/$USER
+  #SCRATCHDIR=/work/cera
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=queenbee.template.pbs
   PREPCONTROLSCRIPT=queenbee.adcprep.template.pbs
@@ -45,6 +50,8 @@ init_queenbee()
   module load netcdf
   module load netcdf_fortran
   module load gcc
+  # alias cdwo='cd /work/jgflemin'
+  # alias cdasgs='cd ~/asgs/2014stable'
 }
 init_arete()
 { #<- can replace the following with a custom script
@@ -111,8 +118,8 @@ init_hatteras()
   SUBMITSTRING=sbatch
   SCRATCHDIR=/projects/ncfs/data
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=hatteras.template.slurm
-  PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
+  QSCRIPT=hatteras.reservation.template.slurm
+  PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=16
 }
@@ -261,6 +268,7 @@ init_topaz()
   QSCRIPTGEN=erdc.pbs.pl
   PPN=36
   IMAGEMAGICKBINPATH=/app/unsupported/ImageMagick/6.9.2-5/bin/convert
+  # fyi topaz has a 4hr time limit for the background queue
 }
 init_tezpur()
 { #<- can replace the following with a custom script
@@ -313,20 +321,22 @@ init_ranger()
 init_lonestar()
 { #<- can replace the following with a custom script
   HOSTNAME=lonestar.tacc.utexas.edu
-  QUEUESYS=slurm
+  QUEUESYS=SLURM
+  QUEUENAME=normal
+  SERQUEUE=normal
   QCHECKCMD=squeue
-  PPN=12
+  PPN=24
   ACCOUNT=ADCIRC
   SUBMITSTRING="ibrun"
   SCRATCHDIR=$SCRATCH
   SSHKEY=id_rsa_lonestar
   QSCRIPT=lonestar.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
-  SERQSCRIPT=lonestar.template.serial.slurm
+  PREPCONTROLSCRIPT=lonestar.template.serial.slurm
   SERQSCRIPTGEN=hatteras.slurm.pl
   UMASK=006
   GROUP="G-803086"
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/apps/intel11_1/netcdf/4.2.1.1/lib:/opt/apps/intel11_1/hdf5/1.8.8/lib
+  module load netcdf/4.3.3.1 
 }
 init_desktop()
 {
@@ -355,6 +365,7 @@ init_renci_tds()
    OPENDAPBASEDIR=/projects/ncfs/opendap/data
    SSHPORT=22
    LINKABLEHOSTS=(hatteras) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
+   COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
 }
 init_lsu_tds()
 {
@@ -364,6 +375,17 @@ init_lsu_tds()
    OPENDAPBASEDIR=/scratch/opendap
    SSHPORT=2525
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links
+   COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+}
+init_tacc_tds()
+{
+   OPENDAPHOST=adcircvis.tacc.utexas.edu
+   DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer/asgs"
+   CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog/asgs"
+   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS/2016
+   SSHPORT=null
+   LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
+   COPYABLEHOSTS=(lonestar) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
 }
 init_test()
 { #<- can replace the following with a custom script
@@ -382,6 +404,9 @@ env_dispatch(){
           ;;
   "renci_tds") consoleMessage "RENCI THREDDS Data Server configuration found."
           init_renci_tds
+          ;;
+  "tacc_tds") consoleMessage "TACC THREDDS Data Server configuration found."
+          init_tacc_tds
           ;;
   "kittyhawk") consoleMessage "Kittyhawk (RENCI) configuration found."
           init_kittyhawk
@@ -446,7 +471,7 @@ env_dispatch(){
   "test") consoleMessage "test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "'$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, queenbee, topsail, desktop, arete, spirit, lsu_tds, renci_tds"
+  *) fatal "'$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, queenbee, topsail, desktop, arete, spirit, lsu_tds, renci_tds, tacc_tds"
      ;;
   esac
 }

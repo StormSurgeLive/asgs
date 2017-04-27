@@ -36,8 +36,8 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=$WORK/adcirc/v52release/work # ADCIRC executables
-SCRIPTDIR=$WORK/asgs/2014stable          # ASGS executables
+ADCIRCDIR=$WORK/ASGS2016/adcirc-cg-52release/work # ADCIRC executables
+SCRIPTDIR=$WORK/ASGS2016/asgs         # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/texas2008_r35h # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
@@ -57,7 +57,7 @@ TIMESTEPSIZE=1.0             # adcirc time step size (seconds)
 SWANDT=1200                  # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00"  # hindcast wall clock time
 ADCPREPWALLTIME="00:30:00"   # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="01:00:00"   # longest nowcast wall clock time
+NOWCASTWALLTIME="08:00:00"   # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00"  # forecast wall clock time
 NCPU=2400                     # number of compute CPUs for all simulations
 NCPUCAPACITY=2424
@@ -139,7 +139,7 @@ MINMAX=reset
 # Notification
 
 EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
-NOTIFY_SCRIPT=corps_nam_notify.sh
+NOTIFY_SCRIPT=ut-nam-notify.sh
 ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
@@ -182,9 +182,9 @@ WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts
 
 # Archiving
 
-ARCHIVE=null_archive.sh
-ARCHIVEBASE=/projects/ncfs/data
-ARCHIVEDIR=archive
+ARCHIVE=ut-archive.sh
+ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS/2016
+ARCHIVEDIR="${INSTANCENAME}_NAM"
 
 # Forecast ensemble members
 

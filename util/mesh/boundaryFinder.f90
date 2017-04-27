@@ -26,8 +26,9 @@ character(1024) :: outputfile
 character(1024) :: cmdlinearg
 character(1024) :: cmdlineopt
 character(1024) :: boundaryType
-logical :: withCoordinates
-logical :: xyz
+logical :: withCoordinates  ! true if lon lat should be written for boundary nodes
+logical :: xyz              ! true if lon lat depth should be written for boundary nodes
+logical :: writeBoundary    ! true if the boundary was requested
 integer :: argcount
 integer :: i, j, k, m, n
 !
@@ -80,28 +81,42 @@ endif
 ! open output file
 open(unit=99, file=trim(adjustl(outputfile)), status='replace', action='write')
 select case(trim(adjustl(boundaryType)))
-case("inflow_flux")  ! ibtype 2, 12, 22, 52
+case("inflow_flux","land","island")
    do i = 1, numSimpleFluxBoundaries
       k = simpleFluxBoundaries(i)%indexNum
+      writeBoundary = .false.
       select case(ibtype_orig(k))
       case(2,12,22,52)
-         write(99,'(i0,1x,i0)') nvell(k), ibtype_orig(k)
-         if (withCoordinates.eqv..true.) then
-            do j=1,nvell(k)
-               n = simpleFluxBoundaries(i)%nodes(j)
-               write(99,'(i0,1x,f15.7,1x, f15.7)') n, xyd(1,n), xyd(2,n)
-            end do 
-         else if (xyz.eqv..true.) then
-            do j=1,nvell(k)
-               n = simpleFluxBoundaries(i)%nodes(j)
-               write(99,'(3(f15.7,1x))') (xyd(m,n), m=1,3)
-            end do
-         else
-            write(99,'(i0)') n
+         if (trim(adjustl(boundaryType)).eq."inflow_flux") then
+            writeBoundary = .true.
+         endif
+      case(0,20)
+         if (trim(adjustl(boundaryType)).eq."land") then
+            writeBoundary = .true.
+         endif
+      case(1,21)
+         if (trim(adjustl(boundaryType)).eq."island") then
+            writeBoundary = .true.
          endif
       case default
          ! ignore the other boundary types
       end select
+      if (writeBoundary.eqv..true.) then
+         write(99,'(i0,1x,i0)') nvell(k), ibtype_orig(k)
+         if (withCoordinates.eqv..true.) then
+            do j=1,nvell(k)
+               n = simpleFluxBoundaries(i)%nodes(j)
+               write(99,'(i0,1x,f19.15,1x, f19.15)') n, xyd(1,n), xyd(2,n)
+            end do 
+         else if (xyz.eqv..true.) then
+            do j=1,nvell(k)
+               n = simpleFluxBoundaries(i)%nodes(j)
+               write(99,'(3(f19.15,1x))') (xyd(m,n), m=1,3)
+            end do
+         else
+            write(99,'(i0)') n
+         endif
+      endif
    enddo
 case("internal_barrier") ! ibtype 4, 24, 5, 25
    do i = 1, numInternalFluxBoundaries
