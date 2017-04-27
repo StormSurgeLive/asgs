@@ -100,7 +100,11 @@ C.....PI and degrees to radians conversions
 C...
 C...DECLARE ALL ARRAYS
 C...
-      REAL(SZ),ALLOCATABLE ::  XPTS(:),YPTS(:)
+      !
+      ! XPTS and YPTS are the lambert conformal coordinates associated
+      ! with the grid points in the target grid 
+      REAL(SZ),ALLOCATABLE ::  XPTS(:),YPTS(:) 
+            
       REAL(SZ),ALLOCATABLE ::  RLON(:),RLAT(:)
       REAL(SZ),ALLOCATABLE ::  CROT(:),SROT(:)
       REAL(SZ),ALLOCATABLE ::  XLON(:),XLAT(:),YLON(:),YLAT(:)
@@ -122,7 +126,9 @@ C...
       REAL(SZ) CORR,skip,Cd,q
       REAL(SZ) u10_awip,v10_awip
       INTEGER  IOPT,LROT,LMAP
-      INTEGER  NE,NP,NPTS,NN,NF,NF1
+      INTEGER :: NE,NP
+      INTEGER :: NPTS  ! number of points in target lat/lon grid
+      INTEGER :: NN,NF,NF1
       INTEGER  I,J,iskip
       !
       ! jgf20100324 GRID coordinates surrounding interpolated point:
@@ -288,7 +294,7 @@ C...Open file of lls to interpolate to
          STOP
       ENDIF  
       OPEN(14,file=TARGPTNAME,STATUS='OLD')
-      read(14,*)NPTS
+      read(14,*) NPTS
 20    FORMAT('ERROR: FileNotFound: ',(A))  
 
 C...Allocate input and output arrays based on number of pairs
@@ -305,8 +311,8 @@ C...Allocate input and output arrays based on number of pairs
       ALLOCATE (VAReta(NXP,NYP,NCOL-2))
       ALLOCATE (Ueta(NXP,NYP))
       ALLOCATE (Veta(NXP,NYP))
-C...Read in the Lon,Lat of FE nodes
-
+      !
+      ! Read in the Lon,Lat of FE nodes for target grid
       DO NP=1,NPTS
          READ(14,*) NN,RLON(NP),RLAT(NP)
       ENDDO
@@ -317,12 +323,10 @@ C...Locate these points in AWIP grid and compute the velocity rotation factors
       IOPT=-1
       LROT=1
       LMAP=0
-
       CALL GDSWZD03(KGDS,IOPT,NPTS,FILL,XPTS,YPTS,RLON,RLAT,NRET,
      &          LROT,CROT,SROT,LMAP,XLON,XLAT,YLON,YLAT,AREA,IOBFLAG)
-
-
-C...Read in AWIP grid met file
+      !
+      ! Read in AWIP grid meteorological data file
       INQUIRE(file=MET_F_NAME,EXIST=FileFound)
       IF (FileFound.eqv..false.) THEN
          WRITE(*,20) MET_F_NAME
@@ -343,14 +347,18 @@ c      WRITE(*,*) 'Finished reading file ',MET_F_NAME
 c      WRITE(1,*) 'Finished reading file ',MET_F_NAME
 
 
-C...Interpolate the Met info to the Lon,Lat locations, rotate wind
+C...Interpolate the Met data to the Lon,Lat locations, rotate wind
 C... velocity into E and N directions, convert to wind stress 
 C... and write output
 C23456+
       OPEN(22,file=MET_F_NAME_OUT,STATUS='REPLACE')
 
-      DO NP=1,NPTS     
+      DO NP=1,NPTS     ! loop over target grid points
+         ! 
+         ! if the target grid point has undefined lambert conformal 
+         ! coordinates
          IF((XPTS(NP).EQ.FILL).OR.(YPTS(NP).EQ.FILL)) THEN
+            ! then the values at that grid point are undefined as well 
             VARfe(NP,:)=FILL
             Ufe(NP)=FILL
             Vfe(NP)=FILL
@@ -375,19 +383,22 @@ C23456+
             X1Y2RATIOp = X1Y2RATIO
             X2Y2RATIOp = X2Y2RATIO
             ! use nearest neighbor GRID lines as array indices
-            I1 = INT(GX1)
-            I2 = INT(GX2)
-            J1 = INT(GY1)
-            J2 = INT(GY2)
-            IF(VAReta(I1,J1,1).eq.FILL) THEN
-               CORR=1.0e0-X1Y1RATIOP
-               IF(CORR.EQ.0.) CORR=FILL*FILL
-               X1Y1RATIOp = 0.e0
-               X2Y1RATIOp = X2Y1RATIOp/CORR
+            I1 = INT(GX1) ! west
+            I2 = INT(GX2) ! east
+            J1 = INT(GY1) ! south
+            J2 = INT(GY2) ! north
+            IF(VAReta(I1,J1,1).eq.FILL) THEN ! SW corner undefined value
+               CORR=1.0e0-X1Y1RATIOP          
+               ! if up against S or W border, make CORR a large positive
+               ! number, making all ratio values very small after dividing
+               ! by this number 
+               IF (CORR.EQ.0.) CORR=FILL*FILL 
+               X1Y1RATIOp = 0.e0              ! no contribution from SW corner
+               X2Y1RATIOp = X2Y1RATIOp/CORR    
                X1Y2RATIOp = X1Y2RATIOp/CORR
                X2Y2RATIOp = X2Y2RATIOp/CORR
             ENDIF
-            IF(VAReta(I2,J1,1).eq.FILL) THEN
+            IF(VAReta(I2,J1,1).eq.FILL) THEN ! SE corner undefined value
                CORR=1.0e0-X2Y1RATIOP
                IF(CORR.EQ.0.) CORR=FILL*FILL
                X1Y1RATIOp = X1Y1RATIOp/CORR
@@ -395,7 +406,7 @@ C23456+
                X1Y2RATIOp = X1Y2RATIOp/CORR
                X2Y2RATIOp = X2Y2RATIOp/CORR
             ENDIF
-            IF(VAReta(I1,J2,1).eq.FILL) THEN
+            IF(VAReta(I1,J2,1).eq.FILL) THEN ! NW corner undefined value
                CORR=1.0e0-X1Y2RATIOP
                IF(CORR.EQ.0.) CORR=FILL*FILL
                X1Y1RATIOp = X1Y1RATIOp/CORR
@@ -403,7 +414,7 @@ C23456+
                X1Y2RATIOp = 0.e0
                X2Y2RATIOp = X2Y2RATIOp/CORR
             ENDIF
-            IF(VAReta(I2,J2,1).eq.FILL) THEN
+            IF(VAReta(I2,J2,1).eq.FILL) THEN ! NE corner undefined value
                CORR=1.0e0-X2Y2RATIOP
                IF(CORR.EQ.0.) CORR=FILL*FILL
                X1Y1RATIOp = X1Y1RATIOp/CORR
@@ -414,7 +425,7 @@ C23456+
       
             XYRATIOp_sum=X1Y1RATIOp+X2Y1RATIOp+X1Y2RATIOp+X2Y2RATIOp
             IF(XYRATIOp_sum.eq.0.0) THEN
-               VARfe(NP,:) = FILL
+               VARfe(NP,:) = FILL ! if all four corners have undefined values
             ELSE
                VARfe(NP,:) = VAReta(I1,J1,:)*X1Y1RATIOp
      &                     + VAReta(I1,J2,:)*X1Y2RATIOp
