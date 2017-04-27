@@ -75,10 +75,29 @@ OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HOSTNAME/$INSTANCENAME/$ENSTORM
 OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
 # create the opendap download url for the run.properties file 
 downloadURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
+# write the downloadurl to a file for later reference as well as 
+# for retrieving and writing backup urls 
+echo $downloadURL >> $STORMDIR/downloadurl.log 2>> ${SYSLOG}
+# write the opendap dir to a file for later reference as well as
+# for retrieving and writing backup urls
+echo $OPENDAPDIR >> $STORMDIR/opendapdir.log 2>> ${SYSLOG}
 #
-# Determine whether to create symbolic links or use scp by looking at the
-# list of HPC machines that share a common filesystem with this TDS. 
+# Establish the default method of posting results for service via opendap
 OPENDAPPOSTMETHOD=scp
+#
+# Determine whether to copy files instead of using scp by looking at the
+# list of HPC machines that share a common filesystem with this TDS. 
+for hpc in ${COPYABLEHOSTS[*]}; do 
+   if [[ $hpc = $TARGET ]]; then
+      OPENDAPPOSTMETHOD=copy
+   fi
+done
+
+#
+# Determine whether to create symbolic links by looking at the
+# list of HPC machines that share a common filesystem with this TDS. 
+# This comes last, so it takes precedence above the others if multiple
+# file delivery mechanisms are possible. 
 for hpc in ${LINKABLEHOSTS[*]}; do 
    if [[ $hpc = $TARGET ]]; then
       OPENDAPPOSTMETHOD=link
@@ -92,11 +111,21 @@ done
 # there is a failure, the Operator is notified rather than downstream
 # data consumers.
 threddsPostStatus=ok
-if [[ $OPENDAPPOSTMETHOD = scp ]]; then
+#
+# jgf20160803: Changed if/then to case-switch to accommodate new "copy" method.
+case $OPENDAPPOSTMETHOD in
+"scp")
    logMessage "Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
    ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
    if [[ $? != 0 ]]; then
       warn "Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
+      threddsPostStatus=fail
+   fi
+   # add code to create write permissions on directories so that other 
+   # Operators can post results to the same directories
+   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
+   if [[ $? != 0 ]]; then
+      warn "Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
       threddsPostStatus=fail
    fi
    for file in ${FILES[*]}; do 
@@ -108,7 +137,8 @@ if [[ $OPENDAPPOSTMETHOD = scp ]]; then
          warn "Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
       fi
       # give the file read permissions
-      ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod +r $OPENDAPDIR/$file"
+      fname=`basename $file` 
+      ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod +r $OPENDAPDIR/$fname"
       if [[ $? != 0 ]]; then
          threddsPostStatus=fail
          warn "Failed to give the file $file read permissions in ${OPENDAPHOST}:${OPENDAPDIR}."
@@ -122,17 +152,30 @@ if [[ $OPENDAPPOSTMETHOD = scp ]]; then
          warn "Failed to add the downloadurl property to run.properties in ${OPENDAPHOST}:${OPENDAPDIR}."
       fi      
    done
-else
+   ;;
+"link"|"copy")
+   #
+   # jgf20160803: link and copy are almost the same procedure and only differ
+   # in the command used to post the data files
+   postCMD='ln -s'
+   postDesc='Symbolically linking'
+   if [[ $OPENDAPPOSTMETHOD = "copy" ]]; then
+      postCMD='cp'
+      postDesc='Copying'
+   fi
    #
    # if the HPC and TDS do share a common filesystem, create symbolic links
    # to the actual results files in a place where TDS can find them
    mkdir -p $OPENDAPDIR 2>> $SYSLOG
+   # add code to create write permissions on directories so that other 
+   # Operators can post results to the same directories
+   chmod -R a+w $OPENDAPBASEDIR 2>> $SYSLOG
    cd $OPENDAPDIR 2>> ${SYSLOG}
    for file in ${FILES[*]}; do 
       chmod +r ${ADVISDIR}/${ENSTORM}/$file 2>> $SYSLOG
       # We must copy the run.properties so we don't contaminate the
       # original run.properties with this downloadurl property.
-      if [[ $file = run.properties ]]; then
+      if [[ $file = 'run.properties' ]]; then
          logMessage "Copying $file."
          cp ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
          if [[ $? != 0 ]]; then
@@ -141,15 +184,20 @@ else
          fi         
          echo downloadurl : $downloadURL >> $file 2>> ${SYSLOG}
       else
-         logMessage "Symbolically linking to $file."
-         ln -s ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
+         logMessage "$postDesc $file."
+         $postCMD ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
          if [[ $? != 0 ]]; then
            threddsPostStatus=fail
-           warn "Failed to make a symbolic link to $file in ${OPENDAPDIR}."
+           warn "$postDesc $file to ${OPENDAPDIR} failed."
          fi
       fi
    done
-fi
+   ;;
+*)
+   threddsPostStatus=fail
+   warn "The opendap post method $OPENDAPPOSTMETHOD was not recognized."
+   ;;
+esac
 #
 runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'`
 subject="ADCIRC POSTED for $runStartTime"

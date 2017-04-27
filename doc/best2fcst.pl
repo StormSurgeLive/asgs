@@ -15,7 +15,7 @@
 #
 #---------------------------------------------------------------------
 #
-# Copyright(C) 2012 Jason Fleming
+# Copyright(C) 2012--2017 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -75,8 +75,8 @@ my @pc;               # mb
 my $cycle = 1;
 my $start_date = "null";
 my $previous_date = "null";
-my $sy; my $sm; my $sd; my $sh;
-my $fy; my $fm; my $fd; my $fh; my $fmin;
+my $sy; my $sm; my $sd; my $sh;  # starting year, month day, hour
+my $fy; my $fm; my $fd; my $fh; my $fmin; # for current BEST track line
 while(<BEST>) {
    my @fields = split(',',$_);
    my $date = $fields[2];
@@ -98,11 +98,21 @@ while(<BEST>) {
       $cycle = $cycle + 1;
    }
    $pc[$cycle] =  $fields[9]; # in mb
+   # compute time difference between start date of file and date on 
+   # current line
    (my $ddays, my $dhrs, my $dmin, my $dsec)
       = Date::Pcalc::Delta_DHMS($sy,$sm,$sd,$sh,0,0,$fy,$fm,$fd,$fh,0,0);
    $time_differences[$cycle] = $ddays*24 + $dhrs; # in hours
    my $line = $_;
+   # fill in the forecast hours (tau) column
    substr($line,30,3) = sprintf("%3d",$time_differences[$cycle]);
+   # change the file type column to OFCL to reflect the fact that 
+   # these data are supposed to represent a forecast
+   substr($line,24,4) = "OFCL";
+   # make the date/time value on this line the same as the first 
+   # date/time value in the file, as specified by the ATCF spec 
+   # for OFCL type files
+   substr($line,8,10) = sprintf("%4d%02d%02d%02d",$sy,$sm,$sd,$sh);
    $previous_date = $date;
    printf FCST $line;
 }

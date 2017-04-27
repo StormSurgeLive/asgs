@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Tue, 06 Sep 2016 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Post-Tropical Cyclone HERMINE Forecast/Advisory Number 36</title>
+      <description>Issued at 0900 UTC TUE SEP 06 2016 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+
+POST-TROPICAL CYCLONE HERMINE FORECAST/ADVISORY NUMBER  36
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL092016
+0900 UTC TUE SEP 06 2016
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+NONE.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* THE COAST OF LONG ISLAND FROM FIRE ISLAND INLET TO PORT JEFFERSON
+HARBOR
+* NEW HAVEN TO SAGAMORE BEACH
+* BLOCK ISLAND
+* MARTHA'S VINEYARD
+* NANTUCKET
+
+POST-TROPICAL CYCLONE CENTER LOCATED NEAR 39.6N  71.6W AT 06/0900Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE WEST OR 270 DEGREES AT   7 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  996 MB
+MAX SUSTAINED WINDS  55 KT WITH GUSTS TO  65 KT.
+50 KT....... 80NE   0SE   0SW  80NW.
+34 KT.......120NE 120SE 120SW 120NW.
+12 FT SEAS..340NE 180SE 260SW 120NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 39.6N  71.6W AT 06/0900Z
+AT 06/0600Z CENTER WAS LOCATED NEAR 39.6N  71.3W
+
+FORECAST VALID 06/1800Z 39.5N  72.2W...POST-TROPICAL
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 80NE   0SE   0SW  80NW.
+34 KT...140NE 120SE 120SW 120NW.
+
+FORECAST VALID 07/0600Z 39.6N  72.6W...POST-TROPICAL
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT...120NE  90SE  90SW  90NW.
+
+FORECAST VALID 07/1800Z 39.8N  72.6W...POST-TROPICAL
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 90NE  90SE  90SW  60NW.
+
+FORECAST VALID 08/0600Z 40.3N  72.0W...POST-TROPICAL
+MAX WIND  35 KT...GUSTS  45 KT.
+
+FORECAST VALID 09/0600Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 39.6N  71.6W
+
+NEXT ADVISORY AT 06/1500Z
+
+$$
+FORECASTER CANGIALOSI
+
+</pre>]]></description>
+      <pubDate>Tue, 06 Sep 2016 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2016/09/36.092016.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2016/09/36.092016.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

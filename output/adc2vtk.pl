@@ -6,7 +6,7 @@
 # This script reformats ADCIRC input or output files to vtk xml format for
 # visualization and/or analysis.
 #--------------------------------------------------------------------------
-# Copyright(C) 2010--2016 Jason Fleming
+# Copyright(C) 2010--2017 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -31,12 +31,27 @@ use Getopt::Long;
 my %adcirctypes = ("maxele.63", "MaximumElevation",
                    "maxwvel.63", "MaximumWindSpeed",
                    "minpr.63", "MinimumBarometricPressure",
+                   "fort.19", "AperiodicElevationBoundary",
                    "fort.63", "WaterSurfaceElevation",
                    "fort.64", "WaterCurrentVelocity",
                    "fort.73", "BarometricPressure",
                    "fort.74", "WindVelocity",
                    "gradient.txt","WaterSurfaceElevationGradient",
-                   "maxgradient.txt","MaxWaterSurfaceElevationGradient");
+                   "maxgradient.txt","MaxWaterSurfaceElevationGradient",
+                   "positives.100","PositiveElementNumbers",
+                   "negatives.100","NegativeElementNumbers",
+                   "absolutes.100","AbsoluteElementNumbers",
+                   "fdrepeats.100","RepeatedElementNumbersWithinSubdomain",
+                   "subdomains.100","SubdomainNumbers",
+                   "noff.100","ElementWetDryState",
+                   "noffornot.100","InconsistentElementWetDryState",
+                   "nodecode.63","NodeWetDryState",
+                   "residents.63","ResidentNodeNumbers",
+                   "ghosts.63","GhostNodeNumbers",
+                   "ghostmem.63","GhostNodeSubdomainMembership",
+                   "absolutes.63","AbsoluteNodeNumbers",
+                   "subdomains.63","SubdomainsFromFort18",
+                   "psubdomains.63","SubdomainsFromPartmesh");
 my $R = 6378206.4;           # radius of the earth
 my $pi = 3.141592653589793;
 my $deg2rad = 2*$pi/360.0;
@@ -61,7 +76,7 @@ my $cpp;  # 1 to reproject to cpp (carte parallelogrammatique projection)
    
 my $slam0 = 265.5; # longitude at center of projection
 my $sfea0 = 29.0;  # latitude at center of projection
-my $datacentered = "node";
+my $datacentered = "PointData";
 #
 # If the storm characteristics change, but the track does not, the 
 # track lines will plot right on top of each other. The jitter is
@@ -216,8 +231,8 @@ unless (open(MESH,"<$meshfile")) {
    die;
 }
 # read number of nodes and number of elements from adcirc mesh file
-my $line = <MESH>;     # read AGRID (comment line in mesh file)
-$line = <MESH>;        # read number of elements and number of points line
+my $agrid = <MESH>;     # read AGRID (comment line in mesh file)
+my $line = <MESH>;        # read number of elements and number of points line
 my @fields = split(' ',$line);
 my $ne = $fields[0];
 my $np = $fields[1];
@@ -253,7 +268,6 @@ unless (open(VTKELEVBOUNDARY,">$vtkElevationBoundaryFileName")) {
    stderrMessage("ERROR","Failed to open $vtkElevationBoundaryFileName for writing: $!.");
    die;
 }
-
 $line = <MESH>;
 @fields = split(' ',$line);
 my $nope = $fields[0];
@@ -267,8 +281,12 @@ printf VTKELEVBOUNDARY "   <PolyData>\n";
 printf VTKELEVBOUNDARY "      <Piece NumberOfPoints=\"$neta\">\n";
 printf VTKELEVBOUNDARY "         <Points>\n";
 printf VTKELEVBOUNDARY "            <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-my @elevBoundaryTypes;
-my @elevBoundaryElevs; 
+# read all boundary data into 1D arrays
+my @elevBoundaryTypes; # ibtypee
+my @elevBoundaryElevs; # bathytopo elevation
+my @elevBoundaryLons;  # longitude (degrees E)
+my @elevBoundaryLats;  # latitude (degrees N)
+my @elevBoundaryNodes; # node number 1-indexed
 my $elevBoundaryCount = 0;
 for (my $i=0; $i<$nope; $i++) {
    $line = <MESH>;
@@ -277,10 +295,13 @@ for (my $i=0; $i<$nope; $i++) {
    my $ibtypee = $fields[1];
    for (my $j=0; $j<$nvdll; $j++) {
       my $nbdv = <MESH>;
-      printf VTKELEVBOUNDARY "$x[$nbdv-1] $y[$nbdv-1] 0.0 ";
+      $elevBoundaryNodes[$elevBoundaryCount] = $nbdv;  
+      $elevBoundaryLons[$elevBoundaryCount] = $x[$nbdv-1];
+      $elevBoundaryLats[$elevBoundaryCount] = $y[$nbdv-1];
+      $elevBoundaryElevs[$elevBoundaryCount] = $z[$nbdv-1];
       $elevBoundaryTypes[$elevBoundaryCount] = $ibtypee;
-      $elevBoundaryElevs[$elevBoundaryCount] = $z[$nbdv-1];      
       $elevBoundaryCount++;
+      printf VTKELEVBOUNDARY "$x[$nbdv-1] $y[$nbdv-1] 0.0 ";
    }
 }        
 printf VTKELEVBOUNDARY "\n";
@@ -302,6 +323,70 @@ printf VTKELEVBOUNDARY "      </Piece>\n";
 printf VTKELEVBOUNDARY "   </PolyData>\n";
 printf VTKELEVBOUNDARY "</VTKFile>\n";
 close(VTKELEVBOUNDARY);
+
+#-----------------------------------------------------------------------
+#                         F O R T  1 9 
+#                        X D M F   X M L 
+#-----------------------------------------------------------------------
+# if a fort.19 supplied, write the time varying positions of the elevation
+# specified boundary nodes in XDMF xml format
+# write data from adcirc file(s)
+my $haveFort19 = "null";
+foreach my $file (@adcircfiles) {
+   if ($file eq "fort.19" ) {
+      stderrMessage("INFO","Writing time varying aperiodic elevation boundary position.");
+      $haveFort19 = $file;
+      #TODO: remove this file from the list so the script can continue
+      # after writing the time varying elev boundary pts
+   }
+}
+if ($haveFort19 ne "null") {   
+   my $fort19BoundaryFileName = $meshfile . "_timeVaryingElevBoundaries.xmf";
+   unless (open(FORT19BOUNDARY,">$fort19BoundaryFileName")) {
+      stderrMessage("ERROR","Failed to open $fort19BoundaryFileName for writing: $!.");
+      die;
+   }
+   printf FORT19BOUNDARY "<?xml version=\"1.0\"?>\n";
+   printf FORT19BOUNDARY "<!DOCTYPE Xdmf SYSTEM \"Xdmf.dtd\" []>\n";
+   printf FORT19BOUNDARY "<Xdmf Version=\"2.0\">\n";
+   printf FORT19BOUNDARY "   <Domain Name=\"$agrid\">\n";
+   printf FORT19BOUNDARY "      <Grid Name=\"TimeSeries\" GridType=\"Collection\" CollectionType=\"Temporal\">\n";
+   # open and start reading fort.19 file
+   unless (open(FORT19DATA,"<fort.19")) {
+      stderrMessage("ERROR","Failed to open $fort19BoundaryFileName for writing: $!.");
+      die;
+   }
+   my $timeinc19 = <FORT19DATA>; # time step for fort.19 data in seconds
+   my $timesec = 0.0;
+   my @eta19;    
+   while(<FORT19DATA>) {
+      # read one dataset from fort.19
+      $eta19[0] = $_;
+      for (my $i=1; $i<$neta; $i++ ) {
+         $eta19[$i] = <FORT19DATA>;
+      }
+      chomp(@eta19);
+      # write one dataset to XDMF xml file 
+      printf FORT19BOUNDARY "         <Grid Name=\"Time=$timesec\" GridType=\"Uniform\">\n";
+      printf FORT19BOUNDARY "            <Time Value=\"$timesec\"/>\n";
+      printf FORT19BOUNDARY "            <Topology TopologyType=\"POLYVERTEX\" NumberOfElements=\"$neta\" NodesPerElement=\"1\"/>\n";
+      printf FORT19BOUNDARY "            <Geometry GeometryType=\"XYZ\">\n";
+      printf FORT19BOUNDARY "               <DataItem ItemType=\"Uniform\" Dimensions=\"$neta 3\" Format=\"XML\">\n"; 
+      for (my $i=0; $i<$neta; $i++ ) {
+         printf FORT19BOUNDARY "                  $elevBoundaryLons[$i] $elevBoundaryLats[$i] $eta19[$i]\n";
+      }
+      printf FORT19BOUNDARY "               </DataItem>\n";
+      printf FORT19BOUNDARY "            </Geometry>\n";
+      printf FORT19BOUNDARY "         </Grid>\n";
+      $timesec = $timesec + $timeinc19;
+   }
+   close(FORT19DATA);
+   printf FORT19BOUNDARY "      </Grid>\n";
+   printf FORT19BOUNDARY "   </Domain>\n";   
+   printf FORT19BOUNDARY "</Xdmf>\n";
+   close(FORT19BOUNDARY);
+   exit;
+}
 # 
 # Now read the flux-specified boundary tables and write out as vtkPoints
 my $vtkFluxBoundaryFileName = $meshfile . "_fluxBoundaries.vtp";
@@ -384,11 +469,30 @@ foreach my $file (@adcircfiles) {
       close(OUT);
       next;
    }
-   $datacentered = "node";
-   if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" ) {
+   $datacentered = "PointData";
+   my $datatype = "Float64";
+   if ( $file eq "positives.100"  || $file eq "negatives.100" || $file eq "absolutes.100" || $file eq "subdomains.100" || $file eq "fdrepeats.100" ) {
       $num_components = 1;
       $num_datasets = 1;
+      $datacentered = "CellData";
+      $datatype = "Int32";
    }
+   if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" || $file eq "residents.63" || $file eq "ghosts.63" || $file eq "absolutes.63" || $file eq "subdomains.63" || $file eq "psubdomains.63" || $file eq "ghostmem.63" ) {
+      $num_components = 1;
+      $num_datasets = 1;
+      $datatype = "Int32";
+   }
+   if ( $file eq "noff.100" || $file eq "noffornot.100" ) {
+      $num_components = 1;
+      $num_datasets = 0;
+      $datatype = "Int32";
+      $datacentered = "CellData"; 
+   }
+   if ( $file eq "nodecode.63" ) {
+      $num_components = 1;
+      $num_datasets = 0;
+      $datatype = "Int32";
+   }  
    if ( $file eq "fort.63" || $file eq "fort.73" ) {
       $num_components = 1;
       $num_datasets = 0;
@@ -400,12 +504,12 @@ foreach my $file (@adcircfiles) {
    if ( $file eq "gradient.txt" ) {
       $num_components = 1;
       $num_datasets = 0;
-      $datacentered = "cell"; 
+      $datacentered = "CellData"; 
    }
    if ( $file eq "maxgradient.txt" ) {
       $num_components = 1;
       $num_datasets = 1;
-      $datacentered = "cell"; 
+      $datacentered = "CellData"; 
    }
    # make sure we can actually open the adcirc file before going further
    unless (open(ADCIRCFILE,"<$file")) {
@@ -504,7 +608,11 @@ foreach my $file (@adcircfiles) {
       #stderrMessage("DEBUG","time is $time[$dataset], timestep is $timestep[$dataset]");
       my @mag; # for holding vector magnitudes
       my $io_success = "true";
-      for (my $i=0; $i<$np; $i++) {
+      my $lim=$np; # nodal values are the default
+      if ( $datacentered eq "CellData" ) {
+         $lim=$ne;
+      }
+      for (my $i=0; $i<$lim; $i++) {
          $line = <ADCIRCFILE>;
          if ( defined $line ) {
             @fields = split(' ',$line);
@@ -543,24 +651,28 @@ foreach my $file (@adcircfiles) {
          printf PVD "         <DataSet timestep=\"$time[$dataset]\" group=\"\" part=\"0\" file=\"$outfile\"/>\n";
       }
       &writeHeader($ne, $np);
-      printf OUT "         <PointData $scalars_name $vectors_name>\n"; # set default dataset
+      printf OUT "         <$datacentered $scalars_name $vectors_name>\n"; 
       # write out dataset from ADCIRC file
       my $vtk_components = $num_components;
       if ( $num_components == 2 ) {
          $vtk_components = $num_components + 1; # for vtk all vectors are 3D
       }
-      printf OUT "            <DataArray Name=\"$adcirctypes{$file}\" type=\"Float64\" NumberOfComponents=\"$vtk_components\" format=\"ascii\">\n";
-      for (my $i=0; $i<$np; $i++) {
+      printf OUT "            <DataArray Name=\"$adcirctypes{$file}\" type=\"$datatype\" NumberOfComponents=\"$vtk_components\" format=\"ascii\">\n";
+      for (my $i=0; $i<$lim; $i++) {
          printf OUT "$comp[$i]\n";
       }
       printf OUT "            </DataArray>\n";
       # write vector magnitude if this is a vector dataset
       if ( $num_components > 1 ) {
-         printf OUT "            <DataArray Name=\"$adcirctypes{$file}Magnitude\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
-         for (my $i=0; $i<$np; $i++) {
+         printf OUT "            <DataArray Name=\"$adcirctypes{$file}Magnitude\" type=\"$datatype\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+         for (my $i=0; $i<$lim; $i++) {
             printf OUT "$mag[$i]\n";
          }
          printf OUT "            </DataArray>\n";
+      }
+      if ($datacentered eq "CellData") {
+         printf OUT "         </CellData>\n";
+         printf OUT "         <PointData>\n";
       }
       &writeMesh($ne, $np);    # write out bathymetric depth as a dataset
       &writeFooter();
@@ -638,5 +750,3 @@ sub stderrMessage () {
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
    printf STDERR "$theTime $level: adc2vtk.pl: $message\n";
 }
-
-
