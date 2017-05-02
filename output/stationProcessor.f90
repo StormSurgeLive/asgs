@@ -84,6 +84,7 @@ outputFile = 'station_averages.txt'
 operation = 'mean'
 strictTimeRange = .false.
 call initC1D(stationFileNames)
+call initC1D(dataFileNames)
 call initLogging(availableUnitNumber(),'stationProcessor.f90')
 !
 argcount = command_argument_count() ! count up command line options
@@ -256,7 +257,7 @@ do f=1, dataFileNames%n
       ! no data of interest in this file
       cycle
    endif
-   write(scratchMessage,'("There are ",i0," stations in the file ",a,".")') sf(f)%nStations,trim(sf(i)%dataFileName)
+   write(scratchMessage,'("There are ",i0," stations in the file ",a,".")') sf(f)%nStations,trim(sf(f)%dataFileName)
    call allMessage(INFO,scratchMessage)
    !
    ! allocate space to record the station IDs in the station file 
