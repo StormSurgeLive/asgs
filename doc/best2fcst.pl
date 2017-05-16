@@ -7,7 +7,7 @@
 # column, starting at zero.
 #
 # The resulting file will be used as input to aswip and ultimately
-# ADCIRC's NWS19.
+# ADCIRC's NWS19 or NWS20.
 #
 # Also has the capability to time-interpolate the central pressure
 # values from the BEST track data into an ADCIRC fort.22 for HWind
@@ -39,22 +39,30 @@ use Getopt::Long;
 use Date::Pcalc;
 $^W++;
 #
-my $input = "null"; # name of the BEST track file
+my $input = "null";   # name of the BEST track file
+my $issued = "null";  # yyyymmddhh24Z time of issue of corresponding advisory
+my $forecastlength = "null"; # max forecast length (hours)
+my $output = "null"; # name of output file
+#
+# for HWind data 
 my $hwind = "null"; # name of the ADCIRC HWind fort.22 file, if any
 my $csdate = "null";  # date/time of cold start, if HWind hours should
                       # be relative to that or to a hot start time (yyyymmddhh24)
 my $hstime = "null";  # hot start time (sec), if the HWind hours should
                       # be relative to the hotstart time
-
+#
 # if csdate is specified on the command line, but the hstime is not, then
 # the HWind hours column will be relative to the cold start time.
 # if both csdate and hstime are specified on the command line, then
 # the HWind hours column will be relative to the hot start time.
-
+#
 #
 GetOptions(
 
            "input=s" => \$input,
+           "output=s" => \$output,
+           "issued=s" => \$issued,
+           "forecastlength=s" => \$forecastlength,
            "hwind=s" => \$hwind,
            "csdate=s" => \$csdate,
            "hstime=s" => \$hstime
@@ -64,8 +72,9 @@ unless(open(BEST,"<$input")) {
    stderrMessage("ERROR","Failed to open BEST track file $input: $!.");
    die;
 }
-
-my $output = "fcst_$input";
+if ( $output eq "null" ) {
+   $output = "fcst_$input";
+}
 unless(open(FCST,">$output")) {
    stderrMessage("ERROR","Failed to open forecast track file $output: $!.");
    die;
@@ -80,6 +89,13 @@ my $fy; my $fm; my $fd; my $fh; my $fmin; # for current BEST track line
 while(<BEST>) {
    my @fields = split(',',$_);
    my $date = $fields[2];
+   # if the date on the BEST line is before the "issued" advisory time,
+   # just skip this line
+   if ( $issued ne "null" ) {
+      if ( $date < $issued ) { 
+         next;
+      }
+   }
    # determine difference in hours between this date and the
    # best track start date
    $date =~ /(\d{4})(\d{2})(\d{2})(\d{2})/;
@@ -103,6 +119,13 @@ while(<BEST>) {
    (my $ddays, my $dhrs, my $dmin, my $dsec)
       = Date::Pcalc::Delta_DHMS($sy,$sm,$sd,$sh,0,0,$fy,$fm,$fd,$fh,0,0);
    $time_differences[$cycle] = $ddays*24 + $dhrs; # in hours
+   # if the BEST line has gone beyond the max forecast length specified
+   # on the command line, exit the loop
+   if ( $forecastlength ne "null" ) {
+      if ( $time_differences[$cycle] > $forecastlength ) {
+         exit;
+      }
+   }
    my $line = $_;
    # fill in the forecast hours (tau) column
    substr($line,30,3) = sprintf("%3d",$time_differences[$cycle]);
