@@ -10,6 +10,9 @@ function fort14=readfort14(fort14file)
 % clear all;close all;clc
 % % fort14file='C:\Users\Taylor_Asher\Documents\FEMA FIS Great Lakes\ProdRun\Files\Fort14\Erie_mesh_03192012_modified.grd';
 % fort14file='C:\Users\taylor_asher\Documents\Info\ADCIRC,SWAN\Grids\CubaIkeModNOMAD1enoflux.grd'
+if exist(fort14file,'file')==0
+   disp('ERROR: readfort14.m: mesh file not found.')
+end
 if nargin==0||exist(fort14file,'file')==0
    [filename,pathname,~]=uigetfile('*.14;*.grd');
    fort14file=fullfile(pathname,filename);
