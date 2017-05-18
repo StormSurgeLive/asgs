@@ -311,6 +311,7 @@ stop=datenum([csyear,csmonth,csday,cshour,csmin,cssec])+timesecEnd/86400;
 % load mesh only if it hasn't been done previously
 if interptomesh==1
    if ~exist('grd','var')==1||~isfield(grd,'filmesh')||~strcmp(grd.filmesh,filmesh)
+      filmesh
       grd=readfort14(filmesh);
 %         grd.fil=filmesh;
    end
