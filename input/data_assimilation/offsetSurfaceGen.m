@@ -34,6 +34,7 @@ else
    pathSep='/'; % linux-style path separator
 end
 mypath='.';
+useOffsetWL=false;
 %
 %-----------------------------------------------------------------------
 %        I N I T I A L I Z E   P A R A M E T E R S
@@ -121,9 +122,16 @@ end
 if exist('filinl','var')==0
    filinl=[mypath,[pathSep,'InlandV1.mat']]; 
 end
-% reference (adcirc) water level file
+% reference (adcirc) water level file (e.g., from fort.61, may include offset)
 if exist('filrefwl','var')==0
    filrefwl=[mypath,[pathSep,'adcircAvg.dat']];  
+end
+% processed offset output file (e.g., station averages from offset.61)
+if exist('filoffsetwl','var')==0
+   useOffsetWL=false;
+   filoffsetwl='null';
+else
+   useOffsetWL=true;
 end
 % file with measured wl data
 if exist('filwldata','var')==0
@@ -354,55 +362,17 @@ elseif refwlmode==1
    refwl=load(filrefwl,'-ascii');
 elseif refwlmode==2
    % read the file as written by stationProcessor.f90
-   disp(['INFO: offsetSurfaceGen.m: Loading reference (adcirc) water level data from the file ' filrefwl ' (specified by the parameter filrefwl, as written by stationProcessor.f90.'])
-   %# rundes: cy:MATTHEW47 ASGS runid:nowcast agrid:not_set
-   %# stationID ! operationType ! timestart(s) ! timeend(s) ! (result ! numObservations (c=1,num_components))
-   waterLevelFileID=fopen(filrefwl,'r');
-   if waterLevelFileID==-1
-      error(['offsetSurfaceGen.m: Failed to open reference (adcirc) water level file ' filrefwl '.'])
-   end
-   % first two lines are header lines
-   header1 = fgetl(waterLevelFileID);
-   disp(['The first header line from the file ' filrefwl ' is ' header1 '.']);
-   header2 = fgetl(waterLevelFileID);
-   disp(['The second header line from the file ' filrefwl ' is ' header2 '.']); 
-   field1 = 'refStationID';
-   field2 = 'refOperationType';
-   field3 = 'refTimeStart';
-   field4 = 'refTimeEnd';
-   field5 = 'refWaterLevel';
-   field6 = 'refNumObs';
-   tline = fgetl(waterLevelFileID);
-   tline
-   numRefStations = 0;
-   while ischar(tline)
-      tlineTrimmed = strtrim(tline); % trim leading and trailing spaces
-      c = strsplit(tlineTrimmed); % split on spaces
-      if numRefStations==0
-         refStations = struct(field1,strtrim(c(1)),field2,strtrim(c(2)),field3,str2double(c(3)),field4,str2double(c(4)),field5,str2double(c(5)),field6,str2double(c(6)));  
-      else
-         refStations(end+1) =  struct(field1,strtrim(c(1)),field2,strtrim(c(2)),field3,str2double(c(3)),field4,str2double(c(4)),field5,str2double(c(5)),field6,str2double(c(6))); 
-      end
-      numRefStations = numRefStations + 1;
-      tline = fgetl(waterLevelFileID);
-   end
-   status = fclose(waterLevelFileID);
-   refwl = cell2mat({refStations.refWaterLevel});
-   if status==-1
-      error(['offsetSurfaceGen.m: Failed to close a file ' filrefwl '.'])
-   end
-   %
-   % TODO: Remove reference stations that don't have enough observations.
-   % It is an open question how many observations are enough. 
-   % Most of the time, nearly all stations will have the same number of
-   % observations, using the median number as the criterion will 
-   % effectively remove all stations that have anything less than the
-   % full set of observations. 
-   nrstat=numel(refwl); % compute number of stations where reference (adcirc) water level data are available
+   [refStations,refwl,nrstat] = loadProcessedStations(filrefwl)
 else
    error('offsetSurfaceGen.m: The refwlmode parameter must be set to 0, 1, or 2.')
 end
 disp('INFO: offsetSurfaceGen.m: Finished loading reference (adcirc) water level data.')
+if useOffsetWL==true
+   % read the file as written by stationProcessor.f90
+   [offsetStations,offwl,norstat] = loadProcessedStations(filoffsetwl) 
+   % subtract the offset values (offset.61) from the station values (fort.61)
+   refwl = refwl - offwl;
+end
 %
 % Load in offshore points if that's the chosen mode of operation
 if offblendmode==1
