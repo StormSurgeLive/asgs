@@ -8,7 +8,7 @@
 # different stations and the rows represent time. 
 #
 #----------------------------------------------------------------
-# Copyright(C) 2009,2010 Jason Fleming
+# Copyright(C) 2009--2017 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -49,15 +49,25 @@ my $coldstartdate; # yyyymmddhh24 when the simulation was coldstarted
 my $gmtoffset=-5; # number of hours between gmt and local time
 my $timezone="CDT"; # time zone designation to be placed on graphs
 my $units = "english"; # output units, english or si
-my $stationlabel = "after exclamation point"; # how to parse the station label from fort.15
+my $stationlabel = "full"; # how to parse the station label from fort.15
 # on command line, use 
+# --stationlabel full
+# uses the entire line from fort.15 and copies it to the header in the 
+# transposed file
+# --stationlabel std
+# assumes that the fort.15 station metadata are in the standard adcirc
+# metadata format and that the stations will be labeled with the ID 
+# and description
+# --stationlabel 'after exclamation point' 
+# to use everything after the first exclamation point as the station label
 # --stationlabel betweenbangs
 # if the station comment line has the station ID between two exclamation 
 # points and only the station ID should be used on the plots; e.g., the
 # station line in the fort.15 looks like this
 # -88.55779 30.43825 ! SSS-MS-JAC-051WL ! storm tide, water level Jackson Mississippi hwm: 5.42 ft NAVD88 at 16:30:28 8/29/2012 GMT
-my $firstBang;   # string location where first exclamation point appears
-my $secondBang;  # string location where second exclamation point appears
+my $firstBang;  # where first "!" appears in station metadata in fort.15 
+my $secondBang; # where second "!" appears in station metadata in fort.15  
+my $thirdBang;  # where third "!" appears in station metadata in fort.15 
 my $labelLength; # length of station label string
 my $stationPlotLabel; # the string that is pulled from the fort.15 for each station to be used in labeling the associated plot
 my @supported_files = qw(elevation velocity windvelocity barometricpressure);
@@ -137,11 +147,22 @@ unless(open(FORT15,"<$controlFile")) {
          for ( my $i=0; $i<$num_sta; $i++ ) {
             my $line =<FORT15>; 
             chomp($line);
-            #
+            # 
             # determine the location(s) of the exclamation point(s) that
             # are used to mark out the station name and/or station ID 
             $firstBang = index($line,"!") + 1;
             $secondBang = index($line,"!",$firstBang+1);
+            $thirdBang = index($line,"!",$secondBang+1);
+            # make an educated guess as to whether the station definition
+            # line is in adcirc-standard format as follows:
+            # lon lat ! stationID ! agency ! description
+            my $standardMetaData = 0; 
+            if ( $firstBang ne -1 && $secondBang ne -1 && $thirdBang ne -1 ) {
+               $standardMetaData = 1;
+               if ( $stationlabel eq "std" ) {
+                  $stationPlotLabel = substr($line,$firstBang,($secondBang - $firstBang)) . substr($line,($thirdBang + 1),(length($line) - ($thirdBang + 1)));
+               }
+            } 
             $labelLength = -1;
             if ( $stationlabel eq "betweenbangs" && $firstBang ne -1 && $secondBang ne -1 ) {
                $labelLength = $secondBang - $firstBang;
@@ -154,6 +175,9 @@ unless(open(FORT15,"<$controlFile")) {
             }
             if ( $stationlabel eq "numbered" ) { 
                $stationPlotLabel = sprintf("%d",$i + 1);
+            }
+            if ( $stationlabel eq "full" ) {
+               $stationPlotLabel = $line;
             }
             if ( $station_type eq "NSTAE" ) {
                $num_elev_sta = $num_sta;

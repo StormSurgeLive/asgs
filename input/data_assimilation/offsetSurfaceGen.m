@@ -371,7 +371,7 @@ if useOffsetWL==true
    % read the file as written by stationProcessor.f90
    [offsetStations,offwl,norstat] = loadProcessedStations(filoffsetwl) 
    % subtract the offset values (offset.61) from the station values (fort.61)
-   refwl = refwl - offwl;
+   refwl = refwl - offwl
 end
 %
 % Load in offshore points if that's the chosen mode of operation
