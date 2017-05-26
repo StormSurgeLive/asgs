@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=hsdrrstd9     # "name" of this ASGS process
-COLDSTARTDATE=2016072800  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2016072900  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null           # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
@@ -75,7 +75,7 @@ fi
 
 # External data sources : Tropical cyclones
 
-STORM=99                         # storm number, e.g. 05=ernesto in 2006
+STORM=09                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2016                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 #RSSSITE=filesystem
@@ -199,22 +199,19 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=3 # number of storms in the ensemble
+ENSEMBLESIZE=2 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=nhcConsensus
-   ;;
-1)
-   ENSTORM=veerLeft100
-   PERCENT=-100
+   ENSTORM=veerLeft300
+   PERCENT=-300
    INTENDEDAUDIENCE=developers-only
    ;;
-2)
-   ENSTORM=veerLeft120
-   PERCENT=-120
+1)
+   ENSTORM=veerLeft200
+   PERCENT=-200
    INTENDEDAUDIENCE=professional
    ;;
 *)
