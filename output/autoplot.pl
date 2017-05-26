@@ -42,12 +42,14 @@ my $plotType; # type of data to be plotted (elevation, velocity, etc)
 my $gpscript; # name of script file to create
 my @supported_files = qw(elevation velocity windvelocity barometricpressure);
 my $datum = "MSL";
+my $stationsOfInterest = "all"; # std format subset of stations to actually plot
 my $enstorm = "Consensus Forecast"; # name of the storm in the ensemble
 my $stormname; # NHC name, e.g., Ike, Katrina, Camille, etc
 my $advisory;  # advisory number
 #
 GetOptions(
            "filetoplot=s" => \$fileToPlot,
+           "stationsofinterest=s" => \$stationsOfInterest,
            "plotType=s" => \$plotType,
            "plotdir=s" => \$plotDir,
            "outputdir=s" => \$outputDir,
@@ -64,6 +66,39 @@ GetOptions(
 unless ( is_member($plotType,@supported_files)) {
    my $sf = join(",",@supported_files);
    stderrMessage("ERROR","The file type to plot ($plotType) is not one of the supported file types, which are as follows: $sf.");
+}
+# 
+# If there is a subset of stations of interest to plot, instead of simply
+# plotting all the stations found in the file, read in the list of stations
+# of interest
+my @stationLons;
+my @stationLats;
+my @stationIDs;
+my @stationAgencies;
+my @stationDescriptions;
+my $num_sta = 0;
+if ( $stationsOfInterest ne "all" ) {
+   unless (open(STATIONS,"<$stationsOfInterest")) {
+      stderrMessage("ERROR","Could not open $stationsOfInterest: $!.");
+      exit(1);
+   }
+   # pop off the header line and report
+   # commented out b/c there is no header line
+   #my $line = <STATIONS>; 
+   #chomp($line);
+   #&stderrMessage("INFO","First header line in stations-of-interest file '$stationsOfInterest' is '$line'.");
+   # now read stations and record ID etc   
+   while(<STATIONS>) {
+      my @fields = split("!");
+      my $latlon = $fields[0];
+      my @coords = split(" ",$latlon);
+      $stationLons[$num_sta] = $coords[0];
+      $stationLats[$num_sta] = $coords[1];
+      $stationIDs[$num_sta] = $fields[1];
+      $stationAgencies[$num_sta] = $fields[2];
+      $stationDescriptions[$num_sta] = $fields[3];
+      $num_sta++;
+   }
 }
 #
 # form label of y axis on plot based on command line arguments
@@ -152,6 +187,7 @@ while (<TRANSPOSE>) {
       @stanames = ($_ =~ /(".*?"|\S+)/g);
       $numCol = @stanames;    
    }
+   # parse non-header lines
    if ( ($. != 1) && ($. != 2) ) { 
       @station_vals = split;
       if ( $. == 3 ) {
@@ -179,13 +215,26 @@ for (my $i=3; $i<$numCol; $i++ ) {
    #
    # Open template file 
    unless (open(TEMPLATE,"<$outputDir/template.gp")) {
-      stderrMessage("ERROR","Could not open $outputDir/template.gp: $!.");
+      &stderrMessage("ERROR","Could not open $outputDir/template.gp: $!.");
       exit(1);
    }
    #
    # form plot title and filename
    $stanames[$i] =~ /\"\s*(.+)\s*\"/; # strip quotes and any surrounding space
    my $stationName = $1; 
+   # if the header is in std station metadata format, pull out the ID and desc
+   my @fields = split("!",$stationName);
+   my $numFields = @fields;
+   print $numFields;
+   # if station name is in standard metadata format
+   if ( $numFields >= 3 ) {
+      my $id = $fields[1];
+      print $id;
+      unless ( is_member($id,@stationIDs)) {
+         next;
+      }
+      $stationName = $fields[1] . ' ' . $fields[3];
+   }   
    my $plottitle = $stormname . ", " . "advisory " . $advisory . ", " . $titlePrefix . " at " . $stationName;
    my @titleWords = split(" ",$stationName);
    my $stanameUnderscore = join("_",@titleWords);
@@ -197,7 +246,9 @@ for (my $i=3; $i<$numCol; $i++ ) {
    my @stormnameWords = split(" ",$stormname);
    my $stormnameUnderscore = join("_",@stormnameWords);
    my $gpscript = $stormnameUnderscore . "." . $advisory . "." . $enstormUnderscore . "." . $titlePrefixUnderscore . "." . $stanameUnderscore . ".gp";
+   $gpscript =~ s/\///g; # strip forward slashes from file name
    my $psplotName =  $stormnameUnderscore . "." . $advisory . "." . $titlePrefixUnderscore . "." . $shortnameUnderscore . ".ps";  
+   $psplotName =~ s/\///g; # strip forward slashes from file name
    #
    my $col = $i + 1;
    #

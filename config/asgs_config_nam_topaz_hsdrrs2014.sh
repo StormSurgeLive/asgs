@@ -27,8 +27,8 @@
 
 # Fundamental
 
-INSTANCENAME=readyhs      # "name" of this ASGS process
-COLDSTARTDATE=2016061600  # calendar year month day hour YYYYMMDDHH24
+INSTANCENAME=readymatt    # "name" of this ASGS process
+COLDSTARTDATE=2016090300  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null           # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
@@ -62,8 +62,8 @@ FORECASTWALLTIME="05:00:00"  # forecast wall clock time
 NCPU=480                     # number of compute CPUs for all simulations
 NCPUCAPACITY=1500
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=background
-SERQUEUE=background
+QUEUENAME=standard
+SERQUEUE=standard
 # topaz has a limit of 4hrs max wall clock time for the background queue
 if [[ $QUEUENAME = background ]]; then
     NOWCASTWALLTIME="04:00:00"
@@ -103,7 +103,7 @@ RIVERDIR=/projects/ciflow/adcirc_info
 GRIDFILE=HSDRRS2014_MRGO_leveeupdate_fixSTC_MX_smoothedPlaquemines.grd  # mesh (fort.14) file
 GRIDNAME=HSDRRS2014_MRGO_leveeupdate_fixSTC_MX_smoothedPlaquemines
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=hsdrrs2014_explicit_16kcms_fort.15.template   # fort.15 template
+CONTROLTEMPLATE=hsdrrs2014_explicit_14kcmsMS_3.8kcmsATCH_fort.15.template  # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
 ELEVSTATIONS=cpra2017v12.cera_stations.20160624 # or substitute your own stations file
 VELSTATIONS=cpra2017v12.cera_stations.20160624
