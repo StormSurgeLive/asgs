@@ -26,6 +26,7 @@ character(1024) :: outputfile
 character(1024) :: cmdlinearg
 character(1024) :: cmdlineopt
 character(1024) :: boundaryType
+type(mesh_t) :: mesh
 logical :: withCoordinates  ! true if lon lat should be written for boundary nodes
 logical :: xyz              ! true if lon lat depth should be written for boundary nodes
 logical :: writeBoundary    ! true if the boundary was requested
@@ -45,8 +46,8 @@ do while (i.lt.argcount)
    select case(trim(cmdlineopt))
    case("--meshfile")
       i = i + 1
-      call getarg(i, meshFileName)
-      write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(meshFileName),"."
+      call getarg(i, mesh % meshFileName)
+      write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(mesh % meshFileName),"."
    case("--outputfile")
       i = i + 1
       call getarg(i, cmdlinearg)
@@ -69,8 +70,8 @@ do while (i.lt.argcount)
 end do
 !
 ! Load fort.14
-write(6,'(a,a,a)') 'The mesh file name is ',trim(meshfilename),'.'
-call read14()
+write(6,'(a,a,a)') 'The mesh file name is ',trim(mesh % meshfilename),'.'
+call read14(mesh)
 !
 ! Check to see if an output format has been specified, and if not, 
 ! set the default to withCoordinates
@@ -82,10 +83,10 @@ endif
 open(unit=99, file=trim(adjustl(outputfile)), status='replace', action='write')
 select case(trim(adjustl(boundaryType)))
 case("inflow_flux","land","island")
-   do i = 1, numSimpleFluxBoundaries
-      k = simpleFluxBoundaries(i)%indexNum
+   do i = 1, mesh % numSimpleFluxBoundaries
+      k = mesh % simpleFluxBoundaries(i)%indexNum
       writeBoundary = .false.
-      select case(ibtype_orig(k))
+      select case(mesh % ibtype_orig(k))
       case(2,12,22,52)
          if (trim(adjustl(boundaryType)).eq."inflow_flux") then
             writeBoundary = .true.
@@ -102,16 +103,16 @@ case("inflow_flux","land","island")
          ! ignore the other boundary types
       end select
       if (writeBoundary.eqv..true.) then
-         write(99,'(i0,1x,i0)') nvell(k), ibtype_orig(k)
+         write(99,'(i0,1x,i0)') mesh % nvell(k), mesh % ibtype_orig(k)
          if (withCoordinates.eqv..true.) then
-            do j=1,nvell(k)
-               n = simpleFluxBoundaries(i)%nodes(j)
-               write(99,'(i0,1x,f19.15,1x, f19.15)') n, xyd(1,n), xyd(2,n)
+            do j=1, mesh % nvell(k)
+               n = mesh % simpleFluxBoundaries(i)%nodes(j)
+               write(99,'(i0,1x,f19.15,1x, f19.15)') n, mesh % xyd(1,n), mesh % xyd(2,n)
             end do 
          else if (xyz.eqv..true.) then
-            do j=1,nvell(k)
-               n = simpleFluxBoundaries(i)%nodes(j)
-               write(99,'(3(f19.15,1x))') (xyd(m,n), m=1,3)
+            do j=1,mesh % nvell(k)
+               n = mesh % simpleFluxBoundaries(i)%nodes(j)
+               write(99,'(3(f19.15,1x))') (mesh % xyd(m,n), m=1,3)
             end do
          else
             write(99,'(i0)') n
@@ -119,24 +120,24 @@ case("inflow_flux","land","island")
       endif
    enddo
 case("internal_barrier") ! ibtype 4, 24, 5, 25
-   do i = 1, numInternalFluxBoundaries
-      k = internalFluxBoundaries(i)%indexNum
-      select case(ibtype_orig(k))
+   do i = 1, mesh % numInternalFluxBoundaries
+      k = mesh % internalFluxBoundaries(i)%indexNum
+      select case(mesh %ibtype_orig(k))
       case(4,24,5,25)
          if (withCoordinates.eqv..true.) then
-            write(99,'(i0,1x,i0)') nvell(k), ibtype_orig(k)
-            do j=1,nvell(k)
-               n = internalFluxBoundaries(i)%nodes(j)
-               write(99,'(i0,1x,f15.7,1x, f15.7)') n, xyd(1,n), xyd(2,n)
+            write(99,'(i0,1x,i0)') mesh %nvell(k), mesh %ibtype_orig(k)
+            do j=1,mesh %nvell(k)
+               n = mesh %internalFluxBoundaries(i)%nodes(j)
+               write(99,'(i0,1x,f15.7,1x, f15.7)') n, mesh %xyd(1,n), mesh %xyd(2,n)
             end do
          else if (xyz.eqv..true.) then
-            do j=1,nvell(k)
-               n = internalFluxBoundaries(i)%nodes(j)
-               write(99,'(3(f15.7,1x))') (xyd(m,n), m=1,3)
+            do j=1,mesh %nvell(k)
+               n =mesh % internalFluxBoundaries(i)%nodes(j)
+               write(99,'(3(f15.7,1x))') (mesh %xyd(m,n), m=1,3)
             end do
          else
-            do j=1,nvell(k)
-               n = internalFluxBoundaries(i)%nodes(j)
+            do j=1,mesh %nvell(k)
+               n =mesh % internalFluxBoundaries(i)%nodes(j)
                write(99,'(i0)') n
             end do
          endif
@@ -145,24 +146,24 @@ case("internal_barrier") ! ibtype 4, 24, 5, 25
       end select
    enddo
 case("external_overflow") ! ibtype 3, 13, 23
-   do i = 1, numExternalFluxBoundaries
-      k = externalFluxBoundaries(i)%indexNum
-      select case(ibtype_orig(k))
+   do i = 1,mesh % numExternalFluxBoundaries
+      k =mesh % externalFluxBoundaries(i)%indexNum
+      select case(mesh %ibtype_orig(k))
       case(3,13,23)
          if (withCoordinates.eqv..true.) then
-            write(99,'(i0,1x,i0)') nvell(k), ibtype_orig(k)
-            do j=1,nvell(k)
-               n = externalFluxBoundaries(i)%nodes(j)
-               write(99,'(i0,1x,f15.7,1x, f15.7)') n, xyd(1,n), xyd(2,n)
+            write(99,'(i0,1x,i0)')mesh % nvell(k),mesh % ibtype_orig(k)
+            do j=1,mesh %nvell(k)
+               n =mesh % externalFluxBoundaries(i)%nodes(j)
+               write(99,'(i0,1x,f15.7,1x, f15.7)') n,mesh % xyd(1,n),mesh % xyd(2,n)
             end do
          else if (xyz.eqv..true.) then
-            do j=1,nvell(k)
-               n = externalFluxBoundaries(i)%nodes(j)
-               write(99,'(3(f15.7,1x))') (xyd(m,n), m=1,3)
+            do j=1,mesh %nvell(k)
+               n =mesh % externalFluxBoundaries(i)%nodes(j)
+               write(99,'(3(f15.7,1x))') (mesh %xyd(m,n), m=1,3)
             end do
          else
-            do j=1,nvell(k)
-               n = externalFluxBoundaries(i)%nodes(j)
+            do j=1,mesh %nvell(k)
+               n =mesh % externalFluxBoundaries(i)%nodes(j)
                write(99,'(i0)') n
             end do
          endif
