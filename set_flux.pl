@@ -111,7 +111,7 @@
 #    b. it either uses statically configured total fluxes from
 #       asgs config file that have been written to run.properties, or
 #    c. it uses statically configured stages from the 
-#       asgs config file file that have been written to run.properties, or
+#       asgs config file that have been written to run.properties, or
 #    d. uses a web service to get the relevant water surface elevation
 #       and or discharge at a gage location
 #    e. if using water surface elevation, it interpolates a stage
@@ -354,7 +354,14 @@ my $meshFilePosition;
 my @bcBoundaryEqualsValue;
 my $autoFluxWasSpecified = 0;
 foreach my $bc (@fluxbcs) { 
-   @bcBoundaryEqualsValue = split("=",$bc);
+   print "$bc\n";
+   @bcBoundaryEqualsValue = split(":",$bc);
+   # strip leading and trailing spaces
+   foreach my $props (@bcBoundaryEqualsValue) {
+      $props =~ s/^\s+//g;
+      $props =~ s/\s+$//g; 
+   }
+   print "'$bcBoundaryEqualsValue[1]'\n";
    # parse out the name of the associated river boundary
    $bcBoundaryEqualsValue[0] =~ /(\w+)RiverBoundaryCondition/;
    # determine order of this boundary condition as it would appear in the mesh file
@@ -405,10 +412,10 @@ foreach my $bc (@fluxbcs) {
       }
       # only USACE web service is currently supported
       my $gageDataTypeKey = $riverBoundaryName[$meshFilePosition] . "RiverBoundary" . $gageDataType . "GageAgency"; 
-      unless ( $properties{$gageDataTypeKey} =~ /USACE/ ) {
-         stderrMessage("ERROR","The river boundary property '$gageDataTypeKey' is set to $properties{$gageDataTypeKey} but only USACE gages are supported.");
-         die;
-      }
+      #unless ( $properties{$gageDataType} =~ /USACE/ ) {
+      #   stderrMessage("ERROR","The river boundary property '$gageDataTypeKey' is set to $properties{$gageDataTypeKey} but only USACE gages are supported.");
+      #   die;
+      #}
       # look for the mesh properties related to getting data from gages for this boundary
       my $gageIDKey = $riverBoundaryName[$meshFilePosition] . "RiverBoundary" . $gageDataType . "GageID";
       my $gageID = $properties{$gageIDKey};
@@ -516,8 +523,9 @@ foreach my $bc (@fluxbcs) {
          # mississippiRiverBoundaryStageDischargeRelationshipName : "Mississippi River at Baton Rouge"
          my $stageDischargeName = "null";
          my $stageDischargeNameFound = 0;   
-         #stderrMessage("DEBUG","Looking for the key $riverBoundaryNames[$meshFilePosition-1]RiverBoundaryStageDischargeRelationship");
+         &stderrMessage("DEBUG","Looking for the key '$riverBoundaryNames[$meshFilePosition-1]RiverBoundaryStageDischargeRelationshipName'");
          while (my ($key, $value) = each(%properties)) {
+             print "'$key'\n";
             if ( $key =~ /$riverBoundaryNames[$meshFilePosition-1]RiverBoundaryStageDischargeRelationship/ ) {
                $stageDischargeName = $value;
                $stageDischargeNameFound = 1; 
@@ -527,7 +535,7 @@ foreach my $bc (@fluxbcs) {
             # call subroutine with stage in m to get discharge in kcms
             $bcvalues[$meshFilePosition-1] = &getDischarge($bcvalues[$meshFilePosition-1], $stageDischargeName);
          } else {
-            stderrMessage("ERROR","Could not find stage discharge curve named '$stageDischargeName' in the mesh properties file named '$meshfile.properties'.");
+            &stderrMessage("ERROR","Could not find stage discharge curve named '$stageDischargeName' in the mesh properties file named '$meshfile.properties'.");
             die;
          }
       }
@@ -748,7 +756,10 @@ sub loadProperty {
    #stderrMessage("DEBUG","propertyString is $propertyString");
    my $k;  # property key
    my $v;  # property value
-   ($k,$v)=split(':',$_);
+   my $colon = index($propertyString,":");
+   #($k,$v)=split(':',$_);
+   $k = substr($propertyString,0,$colon);
+   $v = substr($propertyString,$colon+1,length($propertyString));
    chomp($k);
    chomp($v);
    # remove leading and trailing whitespaces from the key and value
@@ -756,7 +767,7 @@ sub loadProperty {
    $k =~ s/\s+$//g; 
    $v =~ s/^\s+//g;
    $v =~ s/\s+$//g; 
-   #stderrMessage("DEBUG","loadProperty: key is $k and value is $v");
+   &stderrMessage("DEBUG","loadProperty: key is '$k' and value is '$v'");
    $properties{$k}=$v;
 }
 #
