@@ -1,8 +1,8 @@
 !--------------------------------------------------------------------------
-! boundaryFinder.f90: Pulls boundaries out of ADCIRC mesh and optionally 
+! boundaryFinder.f90: Pulls boundaries out of ADCIRC m and optionally 
 ! computes flux per unit width if a total flux is given.
 !--------------------------------------------------------------------------
-! Copyright(C) 2015--2016 Jason Fleming
+! Copyright(C) 2015--2017 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -21,11 +21,12 @@
 !--------------------------------------------------------------------------
 program boundaryFinder
 use adcmesh
+use logging
+use ioutil
 implicit none
 character(1024) :: outputfile
-character(1024) :: cmdlinearg
-character(1024) :: cmdlineopt
 character(1024) :: boundaryType
+type(mesh_t) :: m
 real(8), allocatable :: dist(:)
 real(8), allocatable :: dep(:)
 real(8) :: nextdist    ! (m) from node under consideration to next node
@@ -41,8 +42,11 @@ logical :: xyz              ! true if lon lat depth should be written for bounda
 logical :: lengthsDepths    ! true if to write depths and lengths along the boundaries 
 logical :: writeBoundary    ! true if the boundary was requested
 logical :: foundBoundary    ! true if the requested boundary was found at least once
-integer :: argcount
-integer :: i, j, k, m, n
+integer :: i, j, k, n, d
+!
+if (loggingInitialized.eqv..false.) then
+   call initLogging(availableUnitNumber(),'boundaryFinder.f90')
+endif
 !
 i=0
 withCoordinates = .false.
@@ -61,8 +65,8 @@ do while (i.lt.argcount)
    select case(trim(cmdlineopt))
    case('--meshfile')
       i = i + 1
-      call getarg(i, meshFileName)
-      write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),' ',trim(meshFileName),'.'
+      call getarg(i, m % meshFileName)
+      write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),' ',trim(m % meshFileName),'.'
    case("--outputfile")
       i = i + 1
       call getarg(i, cmdlinearg)
@@ -80,11 +84,11 @@ do while (i.lt.argcount)
    case("--cpp")
       i = i + 1
       call getarg(i, cmdlinearg)
-      read(cmdlinearg,*) slam0
+      read(cmdlinearg,*) m % slam0
       i = i + 1
       call getarg(i, cmdlinearg)
-      read(cmdlinearg,*) sfea0
-      write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",slam0," ",sfea0,"."
+      read(cmdlinearg,*) m % sfea0
+      write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",m % slam0," ",m % sfea0,"."
    case("--nominal-wse")
       i = i + 1
       call getarg(i, cmdlinearg)
@@ -101,14 +105,14 @@ do while (i.lt.argcount)
 end do
 !
 ! Load fort.14
-write(6,'(a,a,a)') 'INFO: boundaryFinder.x: The mesh file name is ',trim(meshfilename),'.'
-call read14()
+write(6,'(a,a,a)') 'INFO: boundaryFinder.x: The m file name is ',trim(m % meshfilename),'.'
+call read14(m)
 !
 ! if lengths between nodes are required, must convert lon/lat differences
 ! to distances in meters, which requires cpp reprojection
 if (lengthsDepths.eqv..true.) then
-   write(6,'("INFO: boundaryFinder.x: The center of the projection is lon=",f20.10," lat=",f20.10,".")') slam0, sfea0
-   call computeCPP() ! get the mesh coords in the same sys adcirc uses
+   write(6,'("INFO: boundaryFinder.x: The center of the projection is lon=",f20.10," lat=",f20.10,".")') m % slam0, m % sfea0
+   call computeCPP(m) ! get the m coords in the same sys adcirc uses
 endif
 !
 ! Check to see if an output format has been specified, and if not, 
@@ -122,10 +126,10 @@ open(unit=99, file=trim(adjustl(outputfile)), status='replace', action='write')
 
 select case(trim(adjustl(boundaryType)))
 case("inflow_flux","land","island")
-   do i = 1, numSimpleFluxBoundaries
-      k = simpleFluxBoundaries(i)%indexNum
+   do i = 1, m % numSimpleFluxBoundaries
+      k = m % simpleFluxBoundaries(i)%indexNum
       writeBoundary = .false.
-      select case(ibtype_orig(k))
+      select case(m % ibtype_orig(k))
       case(2,12,22,52)
          if (trim(adjustl(boundaryType)).eq."inflow_flux") then
             writeBoundary = .true.
@@ -145,57 +149,57 @@ case("inflow_flux","land","island")
          ! ignore the other boundary types
       end select
       if (writeBoundary.eqv..true.) then
-         write(99,'(i0,1x,i0)') nvell(k), ibtype_orig(k)
+         write(99,'(i0,1x,i0)') m % nvell(k), m % ibtype_orig(k)
          if (withCoordinates.eqv..true.) then
-            do j=1,nvell(k)
-               n = simpleFluxBoundaries(i)%nodes(j)
-               write(99,'(i0,1x,f19.15,1x, f19.15)') n, xyd(1,n), xyd(2,n)
+            do j=1, m % nvell(k)
+               n = m % simpleFluxBoundaries(i)%nodes(j)
+               write(99,'(i0,1x,f19.15,1x, f19.15)') n, m % xyd(1,n), m % xyd(2,n)
             end do 
          else if (xyz.eqv..true.) then
-            do j=1,nvell(k)
-               n = simpleFluxBoundaries(i)%nodes(j)
-               write(99,'(3(f19.15,1x))') (xyd(m,n), m=1,3)
+            do j=1,m % nvell(k)
+               n = m % simpleFluxBoundaries(i)%nodes(j)
+               write(99,'(3(f19.15,1x))') (m % xyd(d,n), d=1,3)
             end do
          else if (lengthsDepths.eqv..true.) then
             !
             ! now find the location of the boundary nodes, how far apart they
             ! are, and the depth at each one, for use in calculating the flux
             ! per unit width
-            allocate(dep(nvell(k)))
-            allocate(dist(nvell(k)))                
+            allocate(dep(m % nvell(k)))
+            allocate(dist(m % nvell(k)))                
             ! 
             ! handle first node; use only half the distance to the next node
-            thisNodeNum = simpleFluxBoundaries(i)%nodes(1)
-            nextNodeNum = simpleFluxBoundaries(i)%nodes(2)
+            thisNodeNum = m % simpleFluxBoundaries(i)%nodes(1)
+            nextNodeNum = m % simpleFluxBoundaries(i)%nodes(2)
             dist(1) = 0.5d0 &
-               * sqrt( (x_cpp(nextNodeNum)-x_cpp(thisNodeNum))**2 + &
-                        (y_cpp(nextNodeNum)-y_cpp(thisNodeNum))**2 )
-            dep(1) = 0.5d0 * (nominalWSE + xyd(3,thisNodeNum)) ! half the total water depth
+               * sqrt( (m % x_cpp(nextNodeNum)-m % x_cpp(thisNodeNum))**2 + &
+                        (m % y_cpp(nextNodeNum)-m % y_cpp(thisNodeNum))**2 )
+            dep(1) = 0.5d0 * (nominalWSE +m %  xyd(3,thisNodeNum)) ! half the total water depth
             sumDepths = sumDepths + dep(1) ! accumulate total depth
             sumLengths = sumLengths + dist(1) ! accumulate total length
-            do j=2, nvell(k)-1
-               prevNodeNum = simpleFluxBoundaries(i)%nodes(j-1)
-               thisNodeNum = simpleFluxBoundaries(i)%nodes(j)
-               nextNodeNum = simpleFluxBoundaries(i)%nodes(j+1)
-               prevdist = sqrt( (x_cpp(thisNodeNum)-x_cpp(prevNodeNum))**2 + &
-                                 (y_cpp(thisNodeNum)-y_cpp(prevNodeNum))**2 )
-               nextdist = sqrt( (x_cpp(nextNodeNum)-x_cpp(thisNodeNum))**2 + &
-                                 (y_cpp(nextNodeNum)-y_cpp(thisNodeNum))**2 )
+            do j=2,m %  nvell(k)-1
+               prevNodeNum =m %  simpleFluxBoundaries(i)%nodes(j-1)
+               thisNodeNum =m %  simpleFluxBoundaries(i)%nodes(j)
+               nextNodeNum =m %  simpleFluxBoundaries(i)%nodes(j+1)
+               prevdist = sqrt( (m % x_cpp(thisNodeNum)-m % x_cpp(prevNodeNum))**2 + &
+                                 (m % y_cpp(thisNodeNum)-m % y_cpp(prevNodeNum))**2 )
+               nextdist = sqrt( (m % x_cpp(nextNodeNum)-m % x_cpp(thisNodeNum))**2 + &
+                                 (m % y_cpp(nextNodeNum)-m % y_cpp(thisNodeNum))**2 )
                dist(j) = 0.5d0 * prevdist + 0.5d0 * nextdist
-               dep(j) = nominalWSE + xyd(3,thisNodeNum) ! use the whole total water depth here
+               dep(j) = nominalWSE +m %  xyd(3,thisNodeNum) ! use the whole total water depth here
                sumDepths = sumDepths + dep(j) ! accumulate total depth
                sumLengths = sumLengths + dist(j) ! accumulate total length
             end do
             ! handle last node; use only half the distance from the previous node
-            thisNodeNum = simpleFluxBoundaries(i)%nodes(nvell(k))
-            prevNodeNum = simpleFluxBoundaries(i)%nodes(nvell(k)-1)
-            dist(nvell(k)) = 0.5d0 * sqrt( (x_cpp(thisNodeNum)-x_cpp(prevNodeNum))**2 + &
-                              (y_cpp(thisNodeNum)-y_cpp(prevNodeNum))**2 )
-            dep(nvell(k)) = 0.5d0 * (nominalWSE + xyd(3,thisNodeNum)) ! use only half the total water depth
-            sumDepths = sumDepths + dep(nvell(k)) ! accumulate total depth
-            sumLengths = sumLengths + dist(nvell(k)) ! accumulate total length
+            thisNodeNum =m %  simpleFluxBoundaries(i)%nodes(m % nvell(k))
+            prevNodeNum =m %  simpleFluxBoundaries(i)%nodes(m % nvell(k)-1)
+            dist(m % nvell(k)) = 0.5d0 * sqrt( (m % x_cpp(thisNodeNum)-m % x_cpp(prevNodeNum))**2 + &
+                              (m % y_cpp(thisNodeNum)-m % y_cpp(prevNodeNum))**2 )
+            dep(m % nvell(k)) = 0.5d0 * (nominalWSE +m %  xyd(3,thisNodeNum)) ! use only half the total water depth
+            sumDepths = sumDepths + dep(m % nvell(k)) ! accumulate total depth
+            sumLengths = sumLengths + dist(m % nvell(k)) ! accumulate total length
             write(99,'(f20.10,f20.10," # totalEffDepth(m) totalLength(m)")') sumDepths, sumLengths
-            do j=1,nvell(k)
+            do j=1,m % nvell(k)
                write(99,'(f20.10,f20.10," # effDepth(m) effLength(m)")') dep(j), dist(j)
             end do
             deallocate(dep)
@@ -207,24 +211,24 @@ case("inflow_flux","land","island")
       endif
    enddo
 case("internal_barrier") ! ibtype 4, 24, 5, 25
-   do i = 1, numInternalFluxBoundaries
-      k = internalFluxBoundaries(i)%indexNum
-      select case(ibtype_orig(k))
+   do i = 1, m % numInternalFluxBoundaries
+      k = m % internalFluxBoundaries(i)%indexNum
+      select case(m %ibtype_orig(k))
       case(4,24,5,25)
          if (withCoordinates.eqv..true.) then
-            write(99,'(i0,1x,i0)') nvell(k), ibtype_orig(k)
-            do j=1,nvell(k)
-               n = internalFluxBoundaries(i)%nodes(j)
-               write(99,'(i0,1x,f15.7,1x, f15.7)') n, xyd(1,n), xyd(2,n)
+            write(99,'(i0,1x,i0)') m %nvell(k), m %ibtype_orig(k)
+            do j=1,m %nvell(k)
+               n = m %internalFluxBoundaries(i)%nodes(j)
+               write(99,'(i0,1x,f15.7,1x, f15.7)') n, m %xyd(1,n), m %xyd(2,n)
             end do
          else if (xyz.eqv..true.) then
-            do j=1,nvell(k)
-               n = internalFluxBoundaries(i)%nodes(j)
-               write(99,'(3(f15.7,1x))') (xyd(m,n), m=1,3)
+            do j=1,m %nvell(k)
+               n =m % internalFluxBoundaries(i)%nodes(j)
+               write(99,'(3(f15.7,1x))') (m %xyd(d,n), d=1,3)
             end do
          else
-            do j=1,nvell(k)
-               n = internalFluxBoundaries(i)%nodes(j)
+            do j=1,m %nvell(k)
+               n =m % internalFluxBoundaries(i)%nodes(j)
                write(99,'(i0)') n
             end do
          endif
@@ -233,24 +237,24 @@ case("internal_barrier") ! ibtype 4, 24, 5, 25
       end select
    enddo
 case("external_overflow") ! ibtype 3, 13, 23
-   do i = 1, numExternalFluxBoundaries
-      k = externalFluxBoundaries(i)%indexNum
-      select case(ibtype_orig(k))
+   do i = 1,m % numExternalFluxBoundaries
+      k =m % externalFluxBoundaries(i)%indexNum
+      select case(m %ibtype_orig(k))
       case(3,13,23)
          if (withCoordinates.eqv..true.) then
-            write(99,'(i0,1x,i0)') nvell(k), ibtype_orig(k)
-            do j=1,nvell(k)
-               n = externalFluxBoundaries(i)%nodes(j)
-               write(99,'(i0,1x,f15.7,1x, f15.7)') n, xyd(1,n), xyd(2,n)
+            write(99,'(i0,1x,i0)')m % nvell(k),m % ibtype_orig(k)
+            do j=1,m %nvell(k)
+               n =m % externalFluxBoundaries(i)%nodes(j)
+               write(99,'(i0,1x,f15.7,1x, f15.7)') n,m % xyd(1,n),m % xyd(2,n)
             end do
          else if (xyz.eqv..true.) then
-            do j=1,nvell(k)
-               n = externalFluxBoundaries(i)%nodes(j)
-               write(99,'(3(f15.7,1x))') (xyd(m,n), m=1,3)
+            do j=1,m %nvell(k)
+               n =m % externalFluxBoundaries(i)%nodes(j)
+               write(99,'(3(f15.7,1x))') (m %xyd(d,n), d=1,3)
             end do
          else
-            do j=1,nvell(k)
-               n = externalFluxBoundaries(i)%nodes(j)
+            do j=1,m %nvell(k)
+               n =m % externalFluxBoundaries(i)%nodes(j)
                write(99,'(i0)') n
             end do
          endif
@@ -263,8 +267,8 @@ case default
    stop
 end select
 if (foundBoundary.eqv..false.) then
-   write(6,'(a,a,a)') 'INFO: There are no boundaries of type "',trim(boundaryType),'" in the mesh file.'
-   write(99,'(a,a,a)') 'INFO: There are no boundaries of type "',trim(boundaryType),'" in the mesh file.'
+   write(6,'(a,a,a)') 'INFO: There are no boundaries of type "',trim(boundaryType),'" in the m file.'
+   write(99,'(a,a,a)') 'INFO: There are no boundaries of type "',trim(boundaryType),'" in the m file.'
 endif
 close(99)
 !-------------------------------------------------------------------

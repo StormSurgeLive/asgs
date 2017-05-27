@@ -74,8 +74,8 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := adcmesh.o asgsio.o
-MODS := adcmesh.mod asgsio.mod
+OBJ := adcmesh.o asgsio.o logging.o
+MODS := adcmesh.mod asgsio.mod logging.o
 #
 # targets
 all : boundaryFinder
@@ -86,8 +86,11 @@ clean :
 boundaryFinder : $(MODS) boundaryFinder.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod
+adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcmesh.f90 $(LDFLAGS)
 #
-asgsio.mod : $(OUTPUTDIR)/asgsio.f90 
+asgsio.mod : $(OUTPUTDIR)/asgsio.f90 logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/asgsio.f90 $(LDFLAGS)
+#
+logging.mod : $(OUTPUTDIR)/logging.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/logging.f90 $(LDFLAGS)
