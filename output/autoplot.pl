@@ -225,11 +225,9 @@ for (my $i=3; $i<$numCol; $i++ ) {
    # if the header is in std station metadata format, pull out the ID and desc
    my @fields = split("!",$stationName);
    my $numFields = @fields;
-   print $numFields;
    # if station name is in standard metadata format
    if ( $numFields >= 3 ) {
       my $id = $fields[1];
-      print $id;
       unless ( is_member($id,@stationIDs)) {
          next;
       }
