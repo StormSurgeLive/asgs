@@ -1,0 +1,85 @@
+31536000  ! number of seconds in a year
+26.0   ! mississippi node 1; total flux set to 32.2 kcms
+30.3   ! mississippi node 2
+34.9   ! mississippi node 3
+37.4   ! mississippi node 4
+39.7   ! mississippi node 5
+41.0   ! mississippi node 6
+39.5   ! mississippi node 7
+35.4   ! mississippi node 8
+25.9   ! mississippi node 9
+18.9   ! mississippi node 10
+10.4   ! mississippi node 11
+7.7   ! mississippi node 12
+7.0   ! mississippi node 13
+0.0   ! morganza node 1; total flux set to 0.0 kcms
+0.0   ! morganza node 2
+0.0   ! morganza node 3
+0.0   ! morganza node 4
+0.0   ! morganza node 5
+0.0   ! morganza node 6
+0.0   ! morganza node 7
+6.2   ! atchafalaya node 1; total flux set to 16.1 kcms
+6.6   ! atchafalaya node 2
+7.2   ! atchafalaya node 3
+7.5   ! atchafalaya node 4
+8.0   ! atchafalaya node 5
+8.6   ! atchafalaya node 6
+8.6   ! atchafalaya node 7
+8.6   ! atchafalaya node 8
+8.6   ! atchafalaya node 9
+8.8   ! atchafalaya node 10
+8.9   ! atchafalaya node 11
+8.9   ! atchafalaya node 12
+8.9   ! atchafalaya node 13
+8.9   ! atchafalaya node 14
+8.9   ! atchafalaya node 15
+8.9   ! atchafalaya node 16
+8.7   ! atchafalaya node 17
+8.6   ! atchafalaya node 18
+8.6   ! atchafalaya node 19
+8.3   ! atchafalaya node 20
+7.6   ! atchafalaya node 21
+7.0   ! atchafalaya node 22
+26.0   ! mississippi node 1; total flux set to 32.2 kcms
+30.3   ! mississippi node 2
+34.9   ! mississippi node 3
+37.4   ! mississippi node 4
+39.7   ! mississippi node 5
+41.0   ! mississippi node 6
+39.5   ! mississippi node 7
+35.4   ! mississippi node 8
+25.9   ! mississippi node 9
+18.9   ! mississippi node 10
+10.4   ! mississippi node 11
+7.7   ! mississippi node 12
+7.0   ! mississippi node 13
+0.0   ! morganza node 1; total flux set to 0.0 kcms
+0.0   ! morganza node 2
+0.0   ! morganza node 3
+0.0   ! morganza node 4
+0.0   ! morganza node 5
+0.0   ! morganza node 6
+0.0   ! morganza node 7
+6.2   ! atchafalaya node 1; total flux set to 16.1 kcms
+6.6   ! atchafalaya node 2
+7.2   ! atchafalaya node 3
+7.5   ! atchafalaya node 4
+8.0   ! atchafalaya node 5
+8.6   ! atchafalaya node 6
+8.6   ! atchafalaya node 7
+8.6   ! atchafalaya node 8
+8.6   ! atchafalaya node 9
+8.8   ! atchafalaya node 10
+8.9   ! atchafalaya node 11
+8.9   ! atchafalaya node 12
+8.9   ! atchafalaya node 13
+8.9   ! atchafalaya node 14
+8.9   ! atchafalaya node 15
+8.9   ! atchafalaya node 16
+8.7   ! atchafalaya node 17
+8.6   ! atchafalaya node 18
+8.6   ! atchafalaya node 19
+8.3   ! atchafalaya node 20
+7.6   ! atchafalaya node 21
+7.0   ! atchafalaya node 22

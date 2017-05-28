@@ -1,22 +1,22 @@
 The ASGS Operators Guide
 ========================
 Jason Fleming <jason.fleming@seahorsecoastal.com>
-v2.0, June 2014, Seahorse Coastal Consulting:
-
-image::http://www.seahorsecoastal.com/figures/SCC_logo.png["Seahorse Coastal Consulting",align="center",link="http://www.seahorsecoastal.com", width=400]
+v3.0, April 2017, Seahorse Coastal Consulting:
 
 Executive Summary
 -----------------
 
-The ADCIRC Surge Guidance System (ASGS) is a software system for generating
-storm surge and wave guidance from ADCIRC + SWAN in real time on high
-resolution grids. The ASGS constructs meteorological forcing from a parametric
-wind / pressure model using storm parameters extracted from National Hurricane
-Center (NHC) Forecast Advisories. During nor'easters or for day-to-day
-generation of tidal forecasts and other results, the system uses gridded wind
-and pressure fields (e.g., NCEP’s NAM model) as input forcing. In both cases,
-hydrologically-driven river forecast data from NSSL can also be used to account
-for the effects of precipitation and upland river flooding.
+The ADCIRC Surge Guidance System (ASGS) is a software system for 
+generating storm surge and wave guidance from ADCIRC + SWAN in real 
+time on high resolution grids. The ASGS constructs meteorological 
+forcing from a parametric wind / pressure model using storm 
+parameters extracted from National Hurricane Center (NHC) Forecast 
+Advisories. During nor'easters or for day-to-day generation of tidal 
+forecasts and other results, the system uses gridded wind and 
+pressure fields (e.g., NCEP’s NAM model) as input forcing. In both 
+cases, hydrologically-driven river forecast data from NSSL can also 
+be used to account for the effects of precipitation and upland river 
+flooding.
 
 System Structure
 ----------------
@@ -35,12 +35,15 @@ system behavior specified by the Operator in the system configuration files; and
 . output visualization, publication, and interaction (in blue) for use by
 clients and end users. 
 
-.The overall structure of the ASGS divides the various features into their own modules. The configuration and static physical data that are common to all simulation runs are shown at the top in purple, the dynamic data acquisition modules are shown in red, the internal data processing and input file generation are shown in green, and output modules are shown in blue at the bottom. Arrows are conceptual and indicate data flow.
+. The overall structure of the ASGS divides the various features into 
+their own modules. The configuration and static physical data that 
+are common to all simulation runs are shown at the top in purple, 
+the dynamic data acquisition modules are shown in red, the internal 
+data processing and input file generation are shown in green, and 
+output modules are shown in blue at the bottom. Arrows are 
+conceptual and indicate data flow.
 
-[caption="Figure 1. "]
-image::http://www.seahorsecoastal.com/figures/asgs_structure_color.png[align="center",width=500]
-These categories and associated modules will be described in greater detail
-below. 
+image::figures/asgs_structure_color.png[]
 
 Reference Information
 ~~~~~~~~~~~~~~~~~~~~~
@@ -123,10 +126,8 @@ hindcast and/or decomposition tasks are required, they must only be performed
 once at the start of the system's execution (processes that occur at most one
 time during an execution of the system are shown in blue in Figure 2).
 
-.The overview of the logic of the ASGS divides the one-time start up process for an initially "cold" simulation state in blue, with the bulk of the time being spent in the nowcast/forecast cycle, indicated by green.
-[caption="Figure 2. "]
-image::http://www.seahorsecoastal.com/figures/asgs_overview_color.png[align="center"]
-/
+image::figures/asgs_overview_color.png[]
+
 The nowcast occurs next if the simulation state is already "hot" when the
 system starts up, or if the system has already performed the decomposition and
 warm up phases. The first step in the nowcast is to determine if there are new
@@ -196,10 +197,13 @@ Modifications and additions were made to the published model to account for the
 dynamic changes in the hurricane parameters along the hurricane's track, as
 well as its adaptation to the data available from the NHC advisory, as
 described below. This modified model was referred to as the Dynamic Asymmetric
-Holland Model.
+Holland Model. 
 
-Dynamic Asymmetric Holland Model
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The Dynamic Asymmetric Holland Model was then superseded by the latest 
+Generalized Asymmetric Holland Model (GAHM).
+
+Hurricane Vortex Model
+^^^^^^^^^^^^^^^^^^^^^^
 
 The hurricane advisory contained at least the following information for each
 forecast increment: date, time, latitude and longitude of the center of the
@@ -261,10 +265,6 @@ degrees beyond 1.2 times the radius to maximum winds; and the rotation angle
 was linearly interpolated from the ten degree value at Rmax and the 25 degree
 value at 1.2 times Rmax.
 
-.The hurricane vortex model embedded in ADCIRC was used to generate wind velocity and barometric pressure at each timestep of the simulation using isotach radii (depicted at top left) extracted from the National Hurricane Center Forecast/Advisories. A streamline visualization of the surface wind speeds is shown at top right, and the profiles of wind speed in each quadrant and barometric pressure in each quadrant are shown at bottom left and bottom right respectively.  
-[caption="Figure 3. "]
-image::http://www.seahorsecoastal.com/figures/irene25_vortex_analysis.png[align="center",width=700]
-
 Output Visualization, Publication, and Interaction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -306,10 +306,6 @@ this level, the Coastal Emergency Risks Assessment (CERA) interactive web
 application was deployed and used to provide an interactive interface that
 served the needs of non-technical as well as experienced clients. 
 
-.The CERA interactive web visualization of maximum wind speed for Irene advisory 25 in real time shows the swath of maximum wind speeds along the consensus forecast track. The storm name and year dropdown menus are visible at the top of the interface, with accordion type menus for each type of output data along the right side.
-[caption="Figure 4. "]
-image::http://www.seahorsecoastal.com/figures/irene25_maxwind.png[align="center",width=700]
-
 The CERA application integrates visualization ADCIRC and ADCIRC+SWAN results
 with Google Maps to provide the context for the results as well as practical
 features such as panning and the ability to zoom in more closely at various
@@ -317,10 +313,6 @@ areas of interest to see greater resolution and detail. The application
 organizes results by storm and advisory (for tropical cyclone results) or by
 cycle (for NCEP NAM results). It presents these options concisely via dropdown
 boxes across the top of its interface.
-
-.The maximum significant wave height from SWAN for Irene advisory 23 in real time shows the tremendous open water wave heights that were being generated by the storm at its peak intensity, as well as the size of the waves that were actually impinging on the coastline.
-[caption="Figure 5. "]
-image::http://www.seahorsecoastal.com/figures/irene23_maxwaveheight.png[align="center",width=700]
 
 The right side of the interface is an accordion-type menu that presents the
 various types of data that are available, including water surface elevation,
@@ -330,19 +322,11 @@ values that occurred over the course of the forecast (e.g., high water marks)
 as well as a zoomable, stoppable animation that illustrates the evolution of
 the data through time. 
 
-.The maximum water surface elevation from Irene advisory 28 in real time provided emergency managers with high water mark data that indicated the hardest hit areas that required immediate attention.
-[caption="Figure 6. "]
-image::http://www.seahorsecoastal.com/figures/irene28_maxele.png[align="center",width=700]
-
 Furthermore, the interface allowed the user to click on any point of the storm
 track to view the data that are relevant to the time when the storm was at that
 point in the track. It is also capable of presenting the nodes of the
 underlying ADCIRC mesh, and displaying detailed summary information for any
 particular node the user selects. 
-
-.This close-up of the maximum wind speed from Irene advisory 28 in real time shows the consensus forecast track of the storm as well as the local wind speeds. The dark blue colors show the results of the land use data described previously, and the resulting surface roughness lengths that knock down the force of the wind. The directionality of the roughness lengths can be seen by carefully examining the wind shadows on the Neuse and Pamlico rivers.
-[caption="Figure 7. "]
-image::http://www.seahorsecoastal.com/figures/irene28_maxwind_closeup.png[align="center",width=700]
 
 The CERA application works by using the OpenDAP server as a staging area for
 raw data. The CERA application received notification email from the NCFS that
@@ -354,7 +338,6 @@ ability to zoom in and examine results in greater detail. These image tiles
 were then stored on the web server where the data were published, and sent to
 web clients as required by the user interaction with the web application and
 its menu system.
-
 
 Configuration
 -------------
@@ -578,6 +561,7 @@ values, to provide a degree of dynamic configurability.
  QUEUENAME=armycore          # dedicated queue name on this machine
  SERQUEUE=armycore           # dedicated queue name for serial jobs
  NCPUCAPACITY=360            # total CPUs available to this ASGS instance
+ NUMWRITERS=8                # number of dedicated writer cores used by ADCIRC
  CYCLETIMELIMIT=05:00:00     # deadline for submitting forecast ensemble 
  #
  # the number of processors per node must be specified in the
@@ -931,17 +915,20 @@ on the filesystem path specifed in the 'INPUTDIR' parameter.
 
  GRIDFILE=nc_inundation_v6c_rivers_msl.grd # mesh (fort.14) file
  GRIDNAME=nc6b
+ MESHPROPERTIES=${GRIDFILE}.nc.properties
  CONTROLTEMPLATE=v6brivers_nowindreduction_explicit_fort.15_template # fort.15 template
+ CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
  ELEVSTATIONS=v6brivers_elev_stations.txt
  VELSTATIONS=null
  METSTATIONS=v6brivers_met_stations.txt
  NAFILE=v6brivers_newrough.13
+ NAPROPERTIES=${NAFILE}.properties
  SWANTEMPLATE=fort.26.v6b.limiter.template
  RIVERINIT=v6brivers.88
  RIVERFLUX=v6brivers_fort.20_default
  HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
- PREPPEDARCHIVE=prepped_ncv6b_${INSTANCENAME}_${NCPU}.tar.gz
- HINDCASTARCHIVE=prepped_ncv6b_hc_${INSTANCENAME}_${NCPU}.tar.gz
+ PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+ HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
 
 .Definitions
 GRIDFILE::
@@ -950,13 +937,19 @@ GRIDFILE::
 GRIDNAME::
     The grid name is just a short and human-readable name to identify the 
     mesh; it is used in postprocessing to label the output. 
+MESHPROPERTIES::
+    Contains the asgs property, used by CERA to determine the geographical
+    area of interest.
 CONTROLTEMPLATE::
     The control template is an adcirc fort.15 file (control file) that
     has been converted into a template by replacing key input values with
     special characters. During execution, the ASGS looks for the special 
     characters and replaces them with the appropriate values for an actual
     simulation run. More information about this is provided in the ASGS
-    Developers Guide.    
+    Developers Guide.
+CONTROLPROPERTIES::
+    Contains the h0 value from the fort.15 to aid in visualizing
+    inundation. 
 ELEVSTATIONS::
     The elevation stations file is a list of the elevation recording stations
     that should be output to the adcirc fort.61 file. The file format is the
@@ -972,6 +965,9 @@ NAFILE::
     The nodal attributes file parameter provides the name of the nodal
     attributes file (fort.13 file) that should be used with the simulation. 
     If there is no nodal attributes file, this parameter can be left blank.
+NAPROPERTIES::
+    Contains the default value of the sea_surface_height_above_geoid 
+    nodal attribute for use in downstream post processing. 
 SWANTEMPLATE::
     The swan template file is an adcirc fort.26 file (swan control file)
     that has been converted into a template using the same type of process
@@ -1018,11 +1014,14 @@ to use these example files, use the following configuration settings:
 
  GRIDFILE=ec_95d.grd                     # mesh (fort.14) file
  GRIDNAME=ec95d
- CONTROLTEMPLAT1E=ec_95_fort.15_template # fort.15 template
+ MESHPROPERTIES=${GRIDFILE}.nc.properties
+ CONTROLTEMPLATE=ec_95_fort.15_template # fort.15 template
+ CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
  ELEVSTATIONS=corps_elev_stations.txt    # or substitute your own stations file
  VELSTATIONS=corps_vel_stations.txt
  METSTATIONS=corps_vel_stations.txt
  NAFILE=null                             # no nodal attributes for ec95d
+ NAPROPERTIES=${NAFILE}.properties
  SWANTEMPLATE=fort.26.ec95.template      # only used if WAVES=on
  RIVERINIT=null                          # this mesh has no rivers ...
  RIVERFLUX=null
@@ -1030,8 +1029,6 @@ to use these example files, use the following configuration settings:
  PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
  HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
  
-
-
 Output Files
 ~~~~~~~~~~~~
 
@@ -1339,12 +1336,6 @@ of the ASGS on the same machine might be posted to the folllowing path:
 
 This shows how the opendap path would differ if the instance name,
 meteorological forcing type, and forecast time were to change. 
-
-As stated previously, this is an ad hoc hierarchy. It is subject to change,
-and most likely will change as a set of best practices are developed.  
-
-
-
 
 Archiving
 ~~~~~~~~~
@@ -1677,144 +1668,6 @@ updated. This will just cause the ASGS to use the old hindcast/nowcast data.  
 
 A shell script could be written to update these links periodically to issue the
 mock advisories; the process of issuing advisories doesn't have to be manual.
-
-Performance During Hurricane Irene
-----------------------------------
-
-Hurricane Irene 2011 provided an oppportunity to use the ASGS 
-technology to assist officials in the NWS and USCG with real-life operational
-and emergency management decisions. The implementation 
-for the North Carolina and US East Coast that provided the basis for this real
-life application are described below, including the static physical data, use
-of dynamic meteorological and river flow data, operational configuration,
-interaction with web-based results, and feedback from official end users. 
-
-During Hurricane Irene of 2011 (please see Figure 8), the ADCIRC+SWAN results
-that were produced in real time by the ASGS were actively and heavily utilized
-by National Weather Service (NWS) offices, emergency managers, and the US Coast
-Guard. 
-
-.Hurricane Irene of 2011 strengthened into a major (Category 3) hurricane and threatened almost the entire US Atlantic coast at one point or another. It made its initial landfall on Cape Lookout, North Carolina.
-[caption="Figure 8. "]
-image::http://www.seahorsecoastal.com/figures/irene_track.png[align="center",width=400]
-
-In one example of the real benefit for emergency management officials, US Coast
-Guard Admirals used the real time results results in their decision to evacuate
-their command center near Norfolk, VA, relocating to their secondary command
-center in Missouri. Subsequently, the predicted flooding did occur, rendering
-the abandoned USCG command center useless. In summary, the USCG was able to
-maintain uninterrupted command and control over the course of Hurricane Irene
-from their alternate command center, and have lauded the ASGS system for its
-real time contribution to this successful operational decision.
-
-North Carolina Physical Data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The discretization of the North Carolina domain (the mesh) that was used for
-both ADCIRC and SWAN is shown below in figure 4. The mesh contained 295328
-nodes and 575512 with a minimum element size of 13m. 
-
-.The domain discretization for the North Carolina coast consists of 295328 nodes and 575512 elements with approximately 90% of the nodes lying near, on, or inland of the North Carolina coastline.
-[caption="Figure 9. "]
-image::http://www.seahorsecoastal.com/figures/ncv6b_mesh.png[align="center",width=400]
-
-The land cover data that were used to derive directional wind roughness
-lengths, canopy coefficients, and Manning's n friction values are shown in
-Figure 10. The system set 127 points throughout the domain for sampling the
-model output for comparison with tide gauges and water levels in river flood
-plains and other locations. It also specified 99 locations for point sampling
-of model meteorological data for comparison with physical meteorological data
-collected at land based and buoy-based meteorological data collected by various
-state and federal agencies and universities.
-
-.The land cover data for North Carolina were used to construct a complete map of directional wind reduction factors, canopy coefficients, and Manning's n friction parameters at every node in the mesh.
-[caption="Figure 10. "]
-image::http://www.seahorsecoastal.com/figures/nc_landcover.png[align="center",width=400]
-
-The bathymetry contours are shown below in Figure 11. 
-
-.The bathymetry of the ADCIRC+SWAN mesh shows the wide range of elevations that are present; the inland extent of the mesh provide detailed coastal inundation coverage as well as river flood plain coverage.
-[caption="Figure 11. "]
-image::http://www.seahorsecoastal.com/figures/ncv6b_bathy.png[align="center",width=400]
-
-Dynamic Input Data
-~~~~~~~~~~~~~~~~~~
-
-As the storm that would eventually become Irene was forming, the ASGS
-had already been running for months at RENCI on the blueridge machine, a
-1408 core Dell High Performance Computing cluster, producing daily forecasts
-using NCEP NAM meteorology, river flow data from NSSL, and tidal forcing. 
-
-When Irene formed and the decision was made to start running vortex-forced
-tropical cyclone forecasts, a new instance of the ASGS was started up from the
-most recent hotstart file from the existing NAM results. 
-
-The new instance was configured to run on 384 processors, rather than the 180
-that were used in the NAM runs. Both ASGS instances then ran side by side for
-several days, sending their output to the CERA web application for post
-processing and presentation, until the NAM instance of the ASGS was shut down
-to conserve processor time.
-
-Internally Generated Input Files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-On 384 processors, the ASGS was able to perform all file manipulations for the
-nowcast and forecast cycle for the consensus track, submit the jobs, and
-generate results for a 5 day forecast in 1 hour 15 minutes from the time the
-NHC forecast/advisory was issued. 
-
-As hurricane Irene approached the North Carolina coast, the team member that
-operates of the ASGS system lost electric power and could therefore no longer
-oversee the operation of the ASGS during this critical period. However, since
-the ASGS itself was actually executing at the RENCI facility, which is located
-in Durham, North Carolina and that facility never lost power, the ASGS was able
-to continue operating autonomously without interruption and without interaction
-or oversight for the remainder of the storm.  
-
-Output Visualization and Interaction
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The results produced by the ASGS were converted in-situ to Google Earth (kmz)
-graphics and posted to the OpenDAP server at RENCI for use by the Newport NWS
-forecast office. The raw data in NetCDF format were also posted to the OpenDAP
-server and then a notification email was sent to the CERA web application. 
-
-The web application picked up the latest raw data, generated the image tiles
-for the animations and maximum values visualizations at all levels of detail,
-and sent email notification to selected official end users at NOAA and the USCG
-to notify them that new results were available for interaction over the web.
-The CERA website itself was not password protected, but end users were
-instructed not to publicize the availability of the site. The CERA web
-processing required another 1 hour and 15 minutes to generate image tiles for a
-particular advisory, for a total turn around time of 2 hours and 30 minutes.
-
-Fidelity to Measured Data
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-A few comparisons with measured data are provided here; these particular plots
-and comparisons were developed by Kendra Dresback. 
- 
-.The track of hurricane Irene was well forecast, with minor variations from advisory to advisory. The numbers on this plot indicate the locations where measured data were collected and compared with point samples of model output. 
-[caption="Figure 12. "]
-image::http://www.seahorsecoastal.com/figures/irene_track_comparisons.png[align="center",width=400]
-
-.Comparison of the forecast results from several advisories to the measured data at Oregon Inlet, NC.
-[caption="Figure 13. "]
-image::http://www.seahorsecoastal.com/figures/irene_oregoninlet.png[align="center",width=400]
-
-.Comparison of the forecast results from several advisories to the measured data at Beaufort, NC.
-[caption="Figure 14. "]
-image::http://www.seahorsecoastal.com/figures/irene_beaufort.png[align="center",width=400]
-
-.Comparison of forecast results from several advisories to the measured data, illustrating the convergence of storm surge guidance so to the measured values as the uncertainty in the meteorological forecast is reduced.
-[caption="Figure 15. "]
-image::http://www.seahorsecoastal.com/figures/irene_advisory_comparisons_scatter_45deg.png[align="center",width=400]
-
-
-Performance During the Deepwater Horizon Event
-----------------------------------------------
-
-Discuss configuration, operation, and performance during Deepwater Horizon.
 
 Refs
 ----
