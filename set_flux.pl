@@ -640,6 +640,8 @@ while(<BF>) {
 # Now write the full set of flux per unit width values twice: one data
 # set to represent the simulation start time and another set to represent the
 # simulation end time. This assumes a constant flux.
+# Include an extra 0.0 on every line in case these values are cut and pasted
+# into the fort.15 as a periodic boundary condition. 
 for (my $j=0; $j<2; $j++ ) {
    my $thisNodeCounter = 1;
    my $boundaryCounter = 0;
@@ -651,9 +653,9 @@ for (my $j=0; $j<2; $j++ ) {
       my $formattedTotalFlux = sprintf("%.1f",$bcvalues[$boundaryCounter]);
       my $formattedNodalFlux = sprintf("%.1f",$nodalFluxPerUnitWidth[$i]);
       if ($thisNodeCounter == 1) {
-         printf OUT "$formattedNodalFlux   ! $boundaryNames[$i] node $thisNodeCounter; total flux set to $formattedTotalFlux kcms\n";
+         printf OUT "$formattedNodalFlux 0.0   ! $boundaryNames[$i] node $thisNodeCounter; total flux set to $formattedTotalFlux kcms\n";
       } else {
-         printf OUT "$formattedNodalFlux   ! $boundaryNames[$i] node $thisNodeCounter\n";         
+         printf OUT "$formattedNodalFlux 0.0  ! $boundaryNames[$i] node $thisNodeCounter\n";         
       }      
       $thisNodeCounter++;
    }   
