@@ -24,6 +24,7 @@
 program pullStationTimeSeries
 use asgsio
 use adcmesh
+use logging
 use ioutil
 implicit none
 type(station_t), allocatable :: stations(:)
@@ -48,6 +49,7 @@ integer :: i, j, node, ss, s
 integer :: errorIO
 
 ! initializations
+call initLogging(availableUnitNumber(),'pullStationTimeSeries.f90')
 m%meshFileName = 'fort.14'
 stationFileName = 'stations.txt'
 fs%dataFileName = 'stations_timeseries.txt'
@@ -118,6 +120,7 @@ write(6,'(a)') 'INFO: Finished reading station file.'
 !
 ! read in the mesh
 if ( ft%dataFileFormat.eq.NETCDFG ) then
+   m%meshFileName = ft%dataFileName
    call findMeshDimsNetCDF(m, n)
    call readMeshNetCDF(m, n)
 else
@@ -215,6 +218,8 @@ case(NETCDFG)
    snapR = ft%time_increment
    write(fs%fun,*) trim(adjustl(line))
    write(fs%fun,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, numStations, ft%time_increment, ft%nspool, ft%irtype
+   ! open the netcdf file
+   call check(nf90_open(trim(ft%dataFileName), NF90_NOWRITE, ft%nc_id))   
    ! get netcdf variable IDs for the the data 
    do j=1,ft%irtype
       !write(6,'(a,i0,a,a,a,i0,a)') 'DEBUG: The variable name for component ',j,' is ',trim(varname(j)),' and the variable ID is ',nc_varid(j),'.'
