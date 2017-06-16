@@ -276,7 +276,8 @@ type(meshNetCDF_t), intent(inout) :: n
 character(len=NF90_MAX_NAME) :: thisVarName
 integer :: i, j
 integer :: errorIO
-!
+logical :: exists ! true if the file exists
+
 call allMessage(INFO,'Determining netCDF file characteristics.')
 !
 ! set some defaults
@@ -293,6 +294,10 @@ f%timeOfOccurrence = .false. ! only relevant to min/max files
 f%numValuesPerDataSet = -99
 !
 ! open the netcdf file
+call checkFileExistence(f%dataFilename, errorIO)
+if (errorIO.ne.0) then
+   stop
+endif
 call check(nf90_open(trim(f%dataFileName), NF90_NOWRITE, f%nc_id))
 !
 ! set the agrid value (mesh comment line)
