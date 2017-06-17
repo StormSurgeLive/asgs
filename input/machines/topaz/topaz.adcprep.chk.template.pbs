@@ -1,0 +1,60 @@
+#!/bin/bash
+#---------------------------------------------------------------------------
+#      P B S   D I R E C T I V E S 
+#---------------------------------------------------------------------------
+#PBS -q %queuename%
+#PBS -M %notifyuser%
+#PBS -l select=1:ncpus=36:mpiprocs=1
+#PBS -V
+#PBS -l walltime=%walltime%
+#PBS -j oe
+#PBS -N %jobtype%
+#PBS -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out
+#PBS -A %account%
+#
+#----------------------------------------------------------------------------
+#        L O G   M E S S A G E S   T O   S T A R T   T H E   J O B
+#----------------------------------------------------------------------------
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+echo "[${DATETIME}] INFO: adcprep.%jobtype%.pbs: Executing %jobtype%.%enstorm% in %advisdir%/%enstorm% with Job ID ${PBS_JOBID}; submitted from directory ${PBS_O_WORKDIR}; and submit host ${HOST}." | tee --append %syslog% %jobtype%.%enstorm%.run.start
+#
+echo "Job Run on Nodes"  | tee --append CONTROL.TXT
+echo "----------------"  | tee --append CONTROL.TXT
+cat $PBS_NODEFILE        | tee --append CONTROL.TXT
+echo "----------------"  | tee --append CONTROL.TXT
+#
+# log the command used to run adcprep
+CMD="%adcircdir%/adcprep --np %ncpu% --%jobtype%"
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+echo "[${DATETIME}] INFO: adcprep.%jobtype%.pbs: Executing %jobtype%.%enstorm% with the command $CMD" | tee --append %syslog% 
+#
+#----------------------------------------------------------------------------
+#                      L O A D   M O D U L E S
+#----------------------------------------------------------------------------
+# Export the login environment to the compute job
+# This requires the user to have a .personal.bashrc file in the $HOME 
+# directory with the following contents:
+#echo "Loading modules in .bash_profile ..."
+#module load usp-netcdf/intel-15.0.3/4.3.3.1
+#module load imagemagick/6.9.2-5
+#echo "... modules loaded."
+#
+#----------------------------------------------------------------------------
+#                  E X E C U T E   T H E   J O B
+#----------------------------------------------------------------------------
+cd %advisdir%/%enstorm%
+$CMD 2>&1
+# 
+#----------------------------------------------------------------------------
+#           C H E C K   S T A T U S   O F   R E S U L T S
+#----------------------------------------------------------------------------
+ERROVALUE=$?
+# FIXME: insert code to detect failures in adcprep that still allow it to 
+# finish with a normal exit code
+if [ $ERROVALUE == 0 ] ; then
+   RUNSUFFIX="finish"
+else
+   RUNSUFFIX="error"
+fi
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+echo "[${DATETIME}] INFO: adcprep.%jobtype%.pbs: Finished in %advisdir%/%enstorm% with return value = $ERROVALUE" | tee --append %jobtype%.%enstorm%.run.${RUNSUFFIX}

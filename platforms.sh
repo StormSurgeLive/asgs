@@ -251,6 +251,8 @@ init_topaz()
   # This requires the Operator to have a ~/.bash_profile file in the $HOME 
   # directory with the following contents:
   echo "Loading modules in .bash_profile ..."
+  module unload compiler/intel/16.0.0
+  module load compiler/intel/15.0.3
   module load usp-netcdf/intel-15.0.3/4.3.3.1
   module load imagemagick/6.9.2-5
   echo "... modules loaded."
