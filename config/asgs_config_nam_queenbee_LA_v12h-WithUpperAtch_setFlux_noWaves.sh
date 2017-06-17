@@ -27,8 +27,8 @@
 
 # Fundamental
 
-INSTANCENAME=v12hSetFlux  # "name" of this ASGS process
-COLDSTARTDATE=2017042600   # calendar year month day hour YYYYMMDDHH24
+INSTANCENAME=v12hSetFluxNoWaves  # "name" of this ASGS process
+COLDSTARTDATE=2017050500   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -47,7 +47,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=on     # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=off  # tropical cyclone forcing
-WAVES=on             # wave forcing
+WAVES=off             # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
