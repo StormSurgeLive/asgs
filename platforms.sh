@@ -248,7 +248,7 @@ init_spirit()
 }
 init_topaz()
 { #<- can replace the following with a custom script
-  # This requires the user to have a ~/.bash_profile file in the $HOME 
+  # This requires the Operator to have a ~/.bash_profile file in the $HOME 
   # directory with the following contents:
   echo "Loading modules in .bash_profile ..."
   module load usp-netcdf/intel-15.0.3/4.3.3.1
@@ -269,6 +269,30 @@ init_topaz()
   PPN=36
   IMAGEMAGICKBINPATH=/app/unsupported/ImageMagick/6.9.2-5/bin/convert
   # fyi topaz has a 4hr time limit for the background queue
+}
+init_thunder()
+{ #<- can replace the following with a custom script
+  # This requires the Operator to have a ~/.personal.bashrc file in the $HOME 
+  # directory with the following contents:
+  echo "Loading modules in .bash_profile ..."
+  module load costinit
+  module load git
+  module load netcdf-fortran/intel/4.4.2
+  echo "... modules loaded."
+  HOSTNAME=thunder.afrl.hpc.mil
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  ACCOUNT=ERDCV00898N10
+  #ACCOUNT=ERDCV00898HSP
+  SUBMITSTRING="qstat"
+  SCRATCHDIR=$WORKDIR 
+  SSHKEY=~/.ssh/id_rsa_thunder
+  QSCRIPT=thunder.template.pbs
+  PREPCONTROLSCRIPT=thunder.adcprep.template.pbs
+  PREPHOTSTARTSCRIPT=thunder.adcprep.template.pbs
+  QSCRIPTGEN=erdc.pbs.pl
+  PPN=36
+  IMAGEMAGICKBINPATH=/app/unsupported/ImageMagick/6.9.2-5/bin/convert
 }
 init_tezpur()
 { #<- can replace the following with a custom script
@@ -441,6 +465,9 @@ env_dispatch(){
   "topaz") consoleMessage "Topaz (ERDC) configuration found."
           init_topaz
           ;;
+  "thunder") consoleMessage "Thunder (AFRL) configuration found."
+          init_thunder
+          ;;
   "queenbee") consoleMessage "Queenbee (LONI) configuration found."
           init_queenbee
           ;;
@@ -471,7 +498,7 @@ env_dispatch(){
   "test") consoleMessage "test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "'$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, queenbee, topsail, desktop, arete, spirit, lsu_tds, renci_tds, tacc_tds"
+  *) fatal "'$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, queenbee, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
      ;;
   esac
 }
