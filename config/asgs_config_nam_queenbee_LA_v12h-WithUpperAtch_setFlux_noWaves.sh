@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=v12hSetFluxNoWaves  # "name" of this ASGS process
-COLDSTARTDATE=2017050500   # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2017052000   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -59,6 +59,7 @@ ADCPREPWALLTIME="00:30:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="07:00:00" # forecast wall clock time
 NCPU=480                     # number of compute CPUs for all simulations
+NUMWRITERS=20
 NCPUCAPACITY=480
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=workq
@@ -99,7 +100,7 @@ RIVERDIR=/projects/ciflow/adcirc_info
 GRIDFILE=LA_v12h-WithUpperAtch_chk.grd   # mesh (fort.14) file
 GRIDNAME=LA_v12h-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.15.template   # fort.15 template
+CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux35ft.15.template   # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
 ELEVSTATIONS=cpra2017v12.cera_stations.20161222
 VELSTATIONS=cpra2017v12.cera_stations.20161222
