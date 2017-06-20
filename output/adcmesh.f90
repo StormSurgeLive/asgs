@@ -7,125 +7,13 @@
 !-----+---------+---------+---------+---------+---------+---------+
 module adcmesh
 !-----+---------+---------+---------+---------+---------+---------+
-character(1024) :: meshFileName ! full pathname of file
+use netcdf, only : NF90_MAX_NAME
 real(8), parameter :: R = 6378206.4d0 ! radius of the earth
 real(8), parameter :: pi = 3.141592653589793d0
 real(8), parameter :: deg2rad = pi/180.d0
 real(8), parameter :: rad2deg = 180.d0/pi
 real(8), parameter :: oneThird = 1.d0/3.d0
 logical :: verbose
-real(8), allocatable, target :: xyd(:,:), bar(:,:,:)
-!
-! parameters related to carte parallelogrammatique projection (CPP)
-logical                          :: cppComputed = .false.
-real(8), allocatable :: x_cpp(:)
-real(8), allocatable :: y_cpp(:)
-!
-! parameters related to Albers Equal Area Conic projection
-logical :: albersComputed = .false.
-real(8), allocatable :: xalbers(:)
-real(8), allocatable :: yalbers(:)
-!
-! parameters related to the neighbor edge length table (np,neimax)
-logical :: neighborEdgeLengthTableComputed = .false. ! .true. when mem is allocated for this
-real(8), allocatable :: neighborEdgeLengthTable(:,:)
-real(8)                :: minEdgeLength ! shortest edge length in the whole mesh (m)
-real(8)                :: maxEdgeLength ! longest edge length in the whole mesh (m)
-real(8), allocatable :: areas(:) ! (ne) 2x element areas in square meters
-real(8), allocatable :: sfac(:) ! (np)
-real(8), allocatable :: sfacAvg(:) ! (ne)
-real(8), allocatable :: fdx(:,:) ! (3,ne)
-real(8), allocatable :: fdy(:,:) ! (3,ne)
-real(8), allocatable :: centroids(:,:) ! (2,ne) x and y coordinates of the element centroids
-!
-real(8), allocatable          :: sigma(:)
-character(80)                 :: agrid
-integer                       :: ne, np
-integer, allocatable         :: nmnc(:,:) ! element table in netcdf (3,ne)
-integer, allocatable         :: nm(:,:)   ! element table in adcirc (ne,3)
-integer                       :: nfen
-integer                       :: mnei = 15  ! maximum number of neighbors for a node
-integer                       :: neta_count ! count of open boundary nodes
-integer                       :: nvel_count ! count of land boundary nodes
-integer                       :: nope, neta
-integer                       :: nbou, nvel
-
-integer,          allocatable :: nvdll(:)  ! number of nodes on each open boundary
-integer,          allocatable :: nbdv(:,:) ! node numbers on each open boundary
-integer,          allocatable :: nvell(:)  ! number of nodes on each flux boundary
-integer,          allocatable :: ibtype(:) ! boundary type of each flux boundary
-integer,          allocatable :: ibtypee(:) ! boundary type of each elevation boundary
-integer,          allocatable :: nbvv(:,:) ! node numbers on each flux boundary
-integer,          allocatable :: lbcodei(:) ! bound. type array for flux boundaries 
-integer                       :: nvdll_max  ! longest elevation boundary
-integer                       :: nvell_max  ! longest flux boundary     
-integer, allocatable :: nbd(:)
-integer, allocatable :: nbv(:)
-integer, allocatable :: ibconn(:,:)
-
-integer, allocatable :: ibtype_orig(:)
-integer, allocatable :: bcrnbvv(:,:)
-integer, allocatable :: bcrnvell(:)
-real(8), allocatable :: barlanht(:,:)
-real(8), allocatable :: barinht(:,:)
-real(8), allocatable :: pipeht(:,:)
-real(8), allocatable :: barlancfsp(:,:)
-real(8), allocatable :: barlancfsb(:,:)
-real(8), allocatable :: barincfsb(:,:)
-real(8), allocatable :: barincfsp(:,:)
-real(8), allocatable :: pipediam(:,:)
-real(8), allocatable :: pipecoef(:,:)
-
-logical :: elementAreasComputed = .false.
-logical :: weightingCoefficientsComputed = .false.
-logical                       :: neighborTableComputed = .false.
-logical                       :: allLeveesOK ! .false. if there are any issues
-integer                       :: NEIMIN
-integer                       :: NEIMAX 
-integer,         allocatable :: NNeigh(:)
-integer,         allocatable :: NeiTab(:,:)
-integer,         allocatable :: NeiTabGenerated(:,:)
-integer,         allocatable :: NeiTabEle(:,:)
-integer,         allocatable :: NeiTabEleGenerated(:,:)
-integer,         allocatable :: nneighele(:)
-!
-integer                       :: NC_DimID_node
-integer                       :: NC_DimID_vnode
-integer                       :: NC_DimID_nele
-integer                       :: NC_DimID_nvertex
-integer                       :: NC_DimID_nope
-integer                       :: NC_DimID_max_nvdll
-integer                       :: NC_DimID_nbou
-integer                       :: NC_DimID_neta
-integer                       :: NC_DimID_nvel
-integer                       :: NC_DimID_max_nvell
-!
-integer                       :: NC_VarID_Mesh
-integer                       :: NC_VarID_x
-integer                       :: NC_VarID_y
-integer                       :: NC_VarID_sigma
-integer                       :: NC_VarID_element
-integer                       :: NC_VarID_neta
-integer                       :: NC_VarID_nvdll
-integer                       :: NC_VarID_max_nvdll
-integer                       :: NC_VarID_ibtypee
-integer                       :: NC_VarID_nbdv
-integer                       :: NC_VarID_nvel
-integer                       :: NC_VarID_nope 
-integer                       :: NC_VarID_nvell
-integer                       :: NC_VarID_max_nvell
-integer                       :: NC_VarID_ibtype
-integer                       :: NC_VarID_nbvv
-integer                       :: NC_VarID_depth
-
-logical                       :: projectCPP ! .true. if user wants to project mesh coordinates with CPP to aid in visualization
-logical                       :: cppUpdated ! .true. if we've already computed/written CPP on this execution
-real(8) :: slam0  ! longitude on which cpp projection is centered (degrees)
-real(8) :: sfea0  ! latitude on which cpp projection is centered (degrees)
-real(8) :: lonmin   ! domain extents (degrees)
-real(8) :: lonmax
-real(8) :: latmin
-real(8) :: latmax 
 !
 ! elevation boundaries and flux boundaries where
 ! ibtype = 0,1,2,10,11,12,20,21,22,30,52
@@ -136,16 +24,8 @@ type simpleBoundary_t
    integer, allocatable :: nodes(:) ! node numbers on boundary
    real(8), allocatable :: bGeom(:)  ! coordinates for visualization
 end type simpleBoundary_t
-! variable holding elevation boundaries
-type(simpleBoundary_t), allocatable :: elevationBoundaries(:)
-
-! variable holding flux boundaries with ibtype = 0, 1, 2, 10, 11, 12, 20, 21, 22, 30, 52
-type(simpleBoundary_t), allocatable :: simpleFluxBoundaries(:)
-integer :: numSimpleFluxBoundaries ! for memory allocation
-integer :: sfCount   ! index into the simpleFluxBoundaries array
-
+!
 ! flux boundaries where ibtype = 3, 13, 23
-
 type externalFluxBoundary_t
    integer :: indexNum               ! order within the fort.14 file
    integer :: informationID              ! xdmf ID for IBTYPE info
@@ -157,10 +37,7 @@ type externalFluxBoundary_t
    real(8), allocatable :: barlancfsp(:)
    real(8), allocatable :: leveeGeom(:)
 end type externalFluxBoundary_t
-type(externalFluxBoundary_t), allocatable :: externalFluxBoundaries(:)
-integer :: numExternalFluxBoundaries 
-integer :: efCount   ! index into the externalFluxBoundaries array
-
+!
 ! flux boundaries where ibtype = 4, 24
 type internalFluxBoundary_t
    integer :: indexNum               ! order within the fort.14 file
@@ -176,10 +53,7 @@ type internalFluxBoundary_t
    real(8), allocatable :: leveeGeom(:)         
    integer, allocatable :: ibTypeAttribute(:) ! used for visualization
 end type internalFluxBoundary_t
-type(internalFluxBoundary_t), allocatable :: internalFluxBoundaries(:)
-integer :: numInternalFluxBoundaries    
-integer :: ifCount   ! index into the internalFluxBoundaries array
-
+!
 ! flux boundaries where ibtype = 5, 25
 type internalFluxBoundaryWithPipes_t
    integer :: indexNum               ! order within the fort.14 file
@@ -197,12 +71,161 @@ type internalFluxBoundaryWithPipes_t
    real(8), allocatable :: pipediam(:)
    real(8), allocatable :: leveeGeom(:)
 end type internalFluxBoundaryWithPipes_t      
-type(internalFluxBoundaryWithPipes_t), allocatable :: internalFluxBoundariesWithPipes(:)
-integer :: numInternalFluxBoundariesWithPipes
-integer :: ifwpCount ! index into the internalFluxBoundariesWithPipes array
+!
+!
+type mesh_t
+   !
+   character(NF90_MAX_NAME) :: meshFileName ! full pathname of file
+   !
+   real(8), allocatable :: xyd(:,:)
+   real(8), allocatable :: bar(:,:,:)
+   !
+   ! parameters related to carte parallelogrammatique projection (CPP)
+   logical :: cppComputed = .false.
+   real(8), allocatable :: x_cpp(:)
+   real(8), allocatable :: y_cpp(:)
+   !
+   ! parameters related to Albers Equal Area Conic projection
+   logical :: albersComputed = .false.
+   real(8), allocatable :: xalbers(:)
+   real(8), allocatable :: yalbers(:)
+   !
+   ! parameters related to the neighbor edge length table (np,neimax)
+   logical :: neighborEdgeLengthTableComputed = .false. ! .true. when mem is allocated for this
+   real(8), allocatable :: neighborEdgeLengthTable(:,:)
+   real(8)  :: minEdgeLength ! shortest edge length in the whole mesh (m)
+   real(8)  :: maxEdgeLength ! longest edge length in the whole mesh (m)
+   real(8), allocatable :: areas(:) ! (ne) 2x element areas in square meters
+   real(8), allocatable :: sfac(:) ! (np)
+   real(8), allocatable :: sfacAvg(:) ! (ne)
+   real(8), allocatable :: fdx(:,:) ! (3,ne)
+   real(8), allocatable :: fdy(:,:) ! (3,ne)
+   real(8), allocatable :: centroids(:,:) ! (2,ne) x and y coordinates of the element centroids
+   !
+   character(80) :: agrid
+   integer :: ne   ! number of elements
+   integer :: np   ! number of nodes
+   integer, allocatable :: nmnc(:,:) ! element table in netcdf (3,ne)
+   integer, allocatable :: nm(:,:)   ! element table in adcirc (ne,3)
+   integer :: nfen
+   integer :: mnei = 15  ! maximum number of neighbors for a node
+   integer :: neta_count ! count of open boundary nodes
+   integer :: nvel_count ! count of land boundary nodes
+   integer :: nope ! number of open (ocean) elevation specified boundaries
+   integer :: neta ! total number of nodes on open (ocean) elevation specified boundary nodes
+   integer :: nbou ! number of flux specified boundaries
+   integer :: nvel ! total number of nodes on flux specified boundaries
+   real(8), allocatable :: sigma(:)
+   logical :: is3D  ! true if the mesh is 3D
+   
+   integer, allocatable :: nvdll(:)  ! number of nodes on each open boundary
+   integer, allocatable :: nbdv(:,:) ! node numbers on each open boundary
+   integer, allocatable :: nvell(:)  ! number of nodes on each flux boundary
+   integer, allocatable :: ibtype(:) ! boundary type of each flux boundary
+   integer, allocatable :: ibtypee(:) ! boundary type of each elevation boundary
+   integer, allocatable :: nbvv(:,:) ! node numbers on each flux boundary
+   integer, allocatable :: lbcodei(:) ! bound. type array for flux boundaries 
+   integer :: nvdll_max  ! longest elevation boundary
+   integer :: nvell_max  ! longest flux boundary     
+   integer, allocatable :: nbd(:)
+   integer, allocatable :: nbv(:)
+   integer, allocatable :: ibconn(:,:)
+   
+   integer, allocatable :: ibtype_orig(:)
+   integer, allocatable :: bcrnbvv(:,:)
+   integer, allocatable :: bcrnvell(:)
+   real(8), allocatable :: barlanht(:,:)
+   real(8), allocatable :: barinht(:,:)
+   real(8), allocatable :: pipeht(:,:)
+   real(8), allocatable :: barlancfsp(:,:)
+   real(8), allocatable :: barlancfsb(:,:)
+   real(8), allocatable :: barincfsb(:,:)
+   real(8), allocatable :: barincfsp(:,:)
+   real(8), allocatable :: pipediam(:,:)
+   real(8), allocatable :: pipecoef(:,:)
+   
+   logical :: elementAreasComputed = .false.
+   logical :: weightingCoefficientsComputed = .false.
+   logical :: neighborTableComputed = .false.
+   logical :: allLeveesOK ! .false. if there are any issues
+   integer :: NEIMIN
+   integer :: NEIMAX 
+   integer, allocatable :: NNeigh(:)
+   integer, allocatable :: NeiTab(:,:)
+   integer, allocatable :: NeiTabGenerated(:,:)
+   integer, allocatable :: NeiTabEle(:,:)
+   integer, allocatable :: NeiTabEleGenerated(:,:)
+   integer, allocatable :: nneighele(:)
+   real(8) :: slam0  ! longitude on which cpp projection is centered (degrees)
+   real(8) :: sfea0  ! latitude on which cpp projection is centered (degrees)
+   real(8) :: lonmin   ! domain extents (degrees)
+   real(8) :: lonmax
+   real(8) :: latmin
+   real(8) :: latmax 
+   !
+   ! elevation boundaries
+   type(simpleBoundary_t), allocatable :: elevationBoundaries(:)
+   integer :: numElevationBoundaries ! for memory allocation
+   !
+   ! mainland and island boundaries
+   type(simpleBoundary_t), allocatable :: simpleFluxBoundaries(:)
+   integer :: numSimpleFluxBoundaries ! for memory allocation
+   ! variable holding flux boundaries with ibtype = 0, 1, 2, 10, 11, 12, 20, 21, 22, 30, 52
+   integer :: sfCount   ! index into the simpleFluxBoundaries array
+   ! 
+   ! external overflow boundary and river boundary
+   type(externalFluxBoundary_t), allocatable :: externalFluxBoundaries(:)
+   integer :: numExternalFluxBoundaries 
+   integer :: efCount   ! index into the externalFluxBoundaries array
+   ! 
+   ! levee boundaries
+   type(internalFluxBoundary_t), allocatable :: internalFluxBoundaries(:)
+   integer :: numInternalFluxBoundaries    
+   integer :: ifCount   ! index into the internalFluxBoundaries array
+   !
+   ! levees with cross barrier pipes
+   type(internalFluxBoundaryWithPipes_t), allocatable :: internalFluxBoundariesWithPipes(:)
+   integer :: numInternalFluxBoundariesWithPipes
+   integer :: ifwpCount ! index into the internalFluxBoundariesWithPipes array
+
+   integer :: nfluxf ! =1 if there are any specified flux boundaries in the mesh
+
+end type mesh_t
+
+type meshNetCDF_t   
+   integer :: NC_DimID_node = -99
+   integer :: NC_DimID_nfen = -99
+   integer :: NC_DimID_nele = -99
+   integer :: NC_DimID_nvertex = -99
+   integer :: NC_DimID_nope = -99
+   integer :: NC_DimID_max_nvdll = -99
+   integer :: NC_DimID_nbou = -99
+   integer :: NC_DimID_neta = -99
+   integer :: NC_DimID_nvel = -99
+   integer :: NC_DimID_max_nvell = -99
+   integer :: NC_VarID_Mesh = -99
+   integer :: NC_VarID_x = -99
+   integer :: NC_VarID_y = -99
+   integer :: NC_VarID_sigma = -99
+   integer :: NC_VarID_nfen = -99
+   integer :: NC_VarID_element = -99
+   integer :: NC_VarID_neta = -99
+   integer :: NC_VarID_nvdll = -99
+   integer :: NC_VarID_max_nvdll = -99
+   integer :: NC_VarID_ibtypee = -99
+   integer :: NC_VarID_nbdv = -99
+   integer :: NC_VarID_nvel = -99
+   integer :: NC_VarID_nope  = -99
+   integer :: NC_VarID_nvell = -99
+   integer :: NC_VarID_max_nvell = -99
+   integer :: NC_VarID_ibtype = -99
+   integer :: NC_VarID_nbvv = -99
+   integer :: NC_VarID_depth = -99
+   integer :: NC_VarID_x_cpp = -99
+   integer :: NC_VarID_y_cpp = -99   
+end type meshNetCDF_t
 
 integer, parameter :: specifiedFluxBoundaryTypes(5) = (/ 2, 12, 22, 32, 52 /)
-integer :: nfluxf ! =1 if there are any specified flux boundaries in the mesh
 ! 
 ! all info needed for self describing dataset in XDMF
 type xdmfMetaData_t
@@ -226,11 +249,18 @@ end type xdmfMetaData_t
 type station_t
    real(8) :: lon             ! decimal degrees east 
    real(8) :: lat             ! decimal degrees north
+   real(8) :: z               ! vertical position (m) relative to mesh zero
+   integer :: irtype         ! number of components; 1=scalar, 2=2D vector, 3=3D vector
+   logical :: elementFound   ! true if the element number is known
    integer :: elementIndex   ! where station is located in a particular mesh
-   integer :: nodeIndices(3) ! nodes that surround the station
-   real(8) :: weights(3)     ! used to interpolate station values based on nodal values
+   integer :: n(3) ! nodes that surround the station
+   real(8) :: w(3)     ! weights used to interpolate station values based on nodal values
+   real(8), allocatable :: d(:,:)   ! station data (irtype, ntime)
+   integer :: iID            ! simple numerical ID
    character(len=1024) :: stationID   ! generally a number assigned by govt agency 
-   character(len=1025) :: description ! human readable 
+   character(len=1024) :: description ! human readable 
+   character(len=1024) :: agency  ! organization responsible for the station
+   character(len=1024) :: datum   ! relevant vertical datum (MSL, NAVD88, etc)
 end type station_t
       
 !-----+---------+---------+---------+---------+---------+---------+
@@ -240,27 +270,32 @@ contains
 !-----+---------+---------+---------+---------+---------+---------+
 !  READ14_FindDims
 !-----+---------+---------+---------+---------+---------+---------+
-subroutine read14_findDims()
-use asgsio
+subroutine read14_findDims(m)
+use ioutil
 implicit none
+type(mesh_t), intent(inout) :: m ! mesh to operate on  
 integer :: ios ! i/o status 
 integer :: lineNum ! line number currently being read
 integer :: i, j, k
-integer, parameter :: iunit = 14
+integer :: iunit 
+integer :: errorIO
+
 ! initializations
 lineNum = 1
-numSimpleFluxBoundaries = 0
-numExternalFluxBoundaries = 0 
-numInternalFluxBoundaries = 0 
-numInternalFluxBoundariesWithPipes = 0
+m%numSimpleFluxBoundaries = 0
+m%numExternalFluxBoundaries = 0 
+m%numInternalFluxBoundaries = 0 
+m%numInternalFluxBoundariesWithPipes = 0
+m%is3D = .false.
 !
-call openFileForRead(iunit, meshFileName)
-read(iunit,'(A80)',err=10,end=20,iostat=ios) agrid
+iunit = availableUnitNumber()
+call openFileForRead(iunit, m%meshFileName, errorIO)
+read(iunit,'(A80)',err=10,end=20,iostat=ios) m%agrid
 lineNum = lineNum + 1
-write(6,'(A)') "INFO: Mesh file comment line: "//trim(agrid)
+write(6,'(A)') "INFO: Mesh file comment line: "//trim(m%agrid)
 write(6,'(A)') "INFO: Reading mesh file dimensions."
-read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) ne, np
-do k = 1, np
+read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%ne, m%np
+do k = 1, m%np
    read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) i
    lineNum = lineNum + 1
    if (i.ne.k) then
@@ -268,7 +303,7 @@ do k = 1, np
       stop
    endif
 enddo
-do k = 1, ne
+do k = 1, m%ne
    read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) i
    lineNum = lineNum + 1
    if (i.ne.k) then
@@ -276,79 +311,79 @@ do k = 1, ne
       stop
    endif 
 enddo
-read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nope  ! total number of elevation boundaries
+read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%nope  ! total number of elevation boundaries
 lineNum = lineNum + 1
-read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) neta  ! total number of nodes on elevation boundaries
+read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%neta  ! total number of nodes on elevation boundaries
 lineNum = lineNum + 1
 write(6,'(a)') 'INFO: Allocating memory for elevation specified boundaries.'
-call allocateElevationBoundaryLengths()
-neta_count = 0
-nvdll_max = 0
-do k = 1, nope         
-   read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nvdll(k) ! number of nodes on the kth elevation boundary segment
+call allocateElevationBoundaryLengths(m)
+m%neta_count = 0
+m%nvdll_max = 0
+do k = 1, m%nope         
+   read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%nvdll(k) ! number of nodes on the kth elevation boundary segment
    lineNum = lineNum + 1
-   nvdll_max = max(nvdll_max,nvdll(k))
-   do j = 1, nvdll(k)
+   m%nvdll_max = max(m%nvdll_max,m%nvdll(k))
+   do j = 1, m%nvdll(k)
       read(unit=iunit,fmt=*,err=10,end=20,iostat=ios)
       lineNum = lineNum + 1
-      neta_count = neta_count + 1
+      m%neta_count = m%neta_count + 1
    enddo
 enddo
 ! need nvdll_max to allocate nbdv 
-call allocateAdcircElevationBoundaryArrays() 
-if ( neta_count.ne.neta ) then
-   write(6,'("WARNING: Number of open boundary nodes was set to ",i0," but ",i0," were found.")') neta, neta_count
+call allocateAdcircElevationBoundaryArrays(m) 
+if ( m%neta_count.ne.m%neta ) then
+   write(6,'("WARNING: Number of open boundary nodes was set to ",i0," but ",i0," were found.")') m%neta, m%neta_count
 endif
-read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nbou ! total number of flux boundaries
+read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%nbou ! total number of flux boundaries
 lineNum = lineNum + 1
-read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nvel ! total number of nodes on flux boundaries
+read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%nvel ! total number of nodes on flux boundaries
 lineNum = lineNum + 1
 write(6,'(a)') 'INFO: Allocating memory for flux specified boundaries.'
-call allocateFluxBoundaryLengths()
-nvel_count = 0
-nvell_max = 0
-do k = 1, nbou
-   read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nvell(k), ibtype_orig(k)  ! number of nodes and type of kth flux boundary 
+call allocateFluxBoundaryLengths(m)
+m%nvel_count = 0
+m%nvell_max = 0
+do k = 1, m%nbou
+   read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%nvell(k), m%ibtype_orig(k)  ! number of nodes and type of kth flux boundary 
    lineNum = lineNum + 1
-   nvell_max = max(nvell_max,nvell(k))
-   do j = 1, nvell(k)
+   m%nvell_max = max(m%nvell_max,m%nvell(k))
+   do j = 1, m%nvell(k)
       read(unit=iunit,fmt=*,err=10,end=20,iostat=ios)
       lineNum = lineNum + 1
    enddo
    ! count the total number of each type of boundary for later
    ! use in memory allocation
-   select case(ibtype_orig(k))
+   select case(m%ibtype_orig(k))
    case(0,1,2,10,11,12,20,21,22,30,52)
-       numSimpleFluxBoundaries = numSimpleFluxBoundaries + 1
-       nvel_count = nvel_count + nvell(k)
+       m%numSimpleFluxBoundaries = m%numSimpleFluxBoundaries + 1
+       m%nvel_count = m%nvel_count + m%nvell(k)
    case(3,13,23)
-       numExternalFluxBoundaries = numExternalFluxBoundaries + 1 
-       nvel_count = nvel_count + nvell(k)
+       m%numExternalFluxBoundaries = m%numExternalFluxBoundaries + 1 
+       m%nvel_count = m%nvel_count + m%nvell(k)
    case(4,24)
-       numInternalFluxBoundaries = numInternalFluxBoundaries + 1 
-       nvel_count = nvel_count + 2*nvell(k)
+       m%numInternalFluxBoundaries = m%numInternalFluxBoundaries + 1 
+       m%nvel_count = m%nvel_count + 2*m%nvell(k)
    case(5,25)
-       numInternalFluxBoundariesWithPipes = numInternalFluxBoundariesWithPipes + 1
-       nvel_count = nvel_count + 2*nvell(k)
+       m%numInternalFluxBoundariesWithPipes = m%numInternalFluxBoundariesWithPipes + 1
+       m%nvel_count = m%nvel_count + 2*m%nvell(k)
    case default
-       write(6,'("ERROR: The boundary type ",i0," was found in the file but is not valid.")') ibtype_orig(k)
+       write(6,'("ERROR: The boundary type ",i0," was found in the file but is not valid.")') m%ibtype_orig(k)
        stop
    end select
 enddo
 ! need nvell_max to allocate nbvv
-call allocateAdcircFluxBoundaryArrays()
-if ( nvel_count.ne.nvel) then
-   write(6,'("WARNING: Number of flux boundary nodes was set to ",i0," but ",i0," were found.")') nvel, nvel_count
+call allocateAdcircFluxBoundaryArrays(m)
+if ( m%nvel_count.ne.m%nvel) then
+   write(6,'("WARNING: Number of flux boundary nodes was set to ",i0," but ",i0," were found.")') m%nvel, m%nvel_count
    if (verbose.eqv..true.) then
       write(6,*) 'WARNING: Here is the summary of land boundary node information:'
-      write(6,'("NVEL (specified number of land boundary nodes) = ",i0,".")') nvel
-      write(6,'("Counted number of land boundary nodes = ",i0,".")') nvel_count
-      do k=1,nbou
-         write(6,'("ibtype(",i0,")=",i0,", nvell(",i0,")=",i0,", total=",i0,".")') k, ibtype_orig(k), k, nvell(k), sum(nvell(1:k))
+      write(6,'("NVEL (specified number of land boundary nodes) = ",i0,".")') m%nvel
+      write(6,'("Counted number of land boundary nodes = ",i0,".")') m%nvel_count
+      do k=1,m%nbou
+         write(6,'("ibtype(",i0,")=",i0,", nvell(",i0,")=",i0,", total=",i0,".")') k, m%ibtype_orig(k), k, m%nvell(k), sum(m%nvell(1:k))
       end do
    endif
 endif
-rewind(iunit)
+close(iunit)
 write(6,'(A)') 'INFO: Finished reading mesh file dimensions.'
 return
    !
@@ -371,124 +406,122 @@ end subroutine read14_findDims
 ! Unfinished routine to read the dimensions of mesh data from
 ! a netcdf file. See TODO comments at the end of the subroutine.
 !------------------------------------------------------------------
-subroutine findMeshDimsNetCDF(datafile)
+subroutine findMeshDimsNetCDF(m, n)
 use netcdf
-use asgsio, only : nc_id, check
+use ioutil
 implicit none
-character(len=1024), intent(in) :: datafile
+type(mesh_t), intent(inout) :: m ! mesh to operate on
+type(meshNetCDF_t), intent(inout) :: n ! netcdf IDs to operate on
+integer :: nc_id  ! netcdf ID of the file to read from
 integer :: dimPres ! return code from netcdf to determine if the dimension is present in the file
 integer :: i
-integer :: natt ! number of attributes in the netcdf file
-integer :: nvar ! number of variables in the netcdf file
-integer :: ndim ! number of dimensions in the netcdf file
-integer :: nc_dimid_time ! id of the time dimension
-integer :: ncformat ! netcdf3, netcdf4, netcdf4 classic model, etc
 !
 write(6,'(a)') 'INFO: Reading mesh dimensions from the netCDF file.'
 !
+! initializations
+m%is3D = .false.
+!
 ! open the netcdf file
-call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
+call check(nf90_open(trim(m%meshFileName), NF90_NOWRITE, nc_id))
 !
-! determine the type of data stored in the file
-call check(nf90_inquire(nc_id, ndim, nvar, natt, &
-                        nc_dimid_time, ncformat))
-if ( (ncformat.eq.nf90_format_netcdf4).or. &
-   (ncformat.eq.nf90_format_netcdf4_classic) ) then
-   write(6,'(a)') 'INFO: The data file uses netcdf4 formatting.'
-endif
-!
-call readMeshCommentLineNetCDF()
+call readMeshCommentLineNetCDF(m, nc_id)
 !
 ! read the lengths of the dimensions that will always be present in 
 ! an adcirc netcdf file that contains a mesh
-call check(nf90_inq_dimid(nc_id, 'node', nc_dimid_node))
-call check(nf90_inquire_dimension(nc_id, nc_dimid_node, len=np))
-call check(nf90_inq_dimid(nc_id, 'nele', nc_dimid_nele))
-call check(nf90_inquire_dimension(nc_id, nc_dimid_nele, len=ne))
-
+call check(nf90_inq_dimid(nc_id, 'node', n%nc_dimid_node))
+call check(nf90_inquire_dimension(nc_id, n%nc_dimid_node, len=m%np))
+call check(nf90_inq_dimid(nc_id, 'nele', n%nc_dimid_nele))
+call check(nf90_inquire_dimension(nc_id, n%nc_dimid_nele, len=m%ne))
 !
 ! determine which other dimensions are present and find their lengths 
 !
 ! open boundaries
 write(6,'(a)') 'INFO: Reading boundary dimensions.'
-dimPres = nf90_inq_dimid(nc_id, 'nope', nc_dimid_nope)
+dimPres = nf90_inq_dimid(nc_id, 'nope', n%nc_dimid_nope)
 if (dimPres.eq.NF90_NOERR) then
-   call check(nf90_inquire_dimension(nc_id, nc_dimid_nope, len=nope))
+   call check(nf90_inquire_dimension(nc_id, n%nc_dimid_nope, len=m%nope))
 else 
-   nope = 0
+   m%nope = 0
 endif
 ! total number of open boundary nodes
-dimPres = nf90_inq_dimid(nc_id, 'neta', nc_dimid_neta)
+dimPres = nf90_inq_dimid(nc_id, 'neta', n%nc_dimid_neta)
 if (dimPres.eq.NF90_NOERR) then
-   call check(nf90_inquire_dimension(nc_id, nc_dimid_neta, len=neta))
+   call check(nf90_inquire_dimension(nc_id, n%nc_dimid_neta, len=m%neta))
 else
-   neta = 0
+   m%neta = 0
 endif
 ! longest open boundary segment
-dimPres = nf90_inq_dimid(nc_id, 'max_nvdll', nc_dimid_max_nvdll)
+dimPres = nf90_inq_dimid(nc_id, 'max_nvdll', n%nc_dimid_max_nvdll)
 if (dimPres.eq.NF90_NOERR) then
-   call check(nf90_inquire_dimension(nc_id, nc_dimid_max_nvdll, len=nvdll_max))
+   call check(nf90_inquire_dimension(nc_id, n%nc_dimid_max_nvdll, len=m%nvdll_max))
 else
-   nvdll_max = 0
+   m%nvdll_max = 0
 endif
 ! allocate arrays to hold the data
-call allocateElevationBoundaryLengths()
-call allocateAdcircElevationBoundaryArrays() 
+call allocateElevationBoundaryLengths(m)
+call allocateAdcircElevationBoundaryArrays(m) 
 !
 ! now read in the lengths of the open boundary segments and the node
 ! numbers on each segment
-if (nope.ne.0) then
-   call check(nf90_inq_varid(nc_id, 'nvdll', nc_varid_nvdll))
-   call check(nf90_get_var(nc_id, nc_varid_nvdll, nvdll, (/ 1 /), (/ nope /) ))
-   call check(nf90_inq_varid(nc_id, 'nbdv', nc_varid_nbdv))
-   do i=1, nope
-      call check(nf90_get_var(nc_id, nc_varid_nbdv, nbdv(i,:), (/ i, 1 /), (/ 1, nvdll(i) /) ))  
+if (m%nope.ne.0) then
+   call check(nf90_inq_varid(nc_id, 'nvdll', n%nc_varid_nvdll))
+   call check(nf90_get_var(nc_id, n%nc_varid_nvdll, m%nvdll, (/ 1 /), (/ m%nope /) ))
+   call check(nf90_inq_varid(nc_id, 'nbdv', n%nc_varid_nbdv))
+   do i=1, m%nope
+      call check(nf90_get_var(nc_id, n%nc_varid_nbdv, m%nbdv(i,:), (/ i, 1 /), (/ 1, m%nvdll(i) /) ))  
    end do
 endif
 !
 ! flux boundaries
-dimPres = nf90_inq_dimid(nc_id, 'nbou', nc_dimid_nbou)
+dimPres = nf90_inq_dimid(nc_id, 'nbou', n%nc_dimid_nbou)
 if (dimPres.eq.NF90_NOERR) then
-   call check(nf90_inquire_dimension(nc_id, nc_dimid_nbou, len=nbou))
+   call check(nf90_inquire_dimension(nc_id, n%nc_dimid_nbou, len=m%nbou))
 else
-   nbou = 0
+   m%nbou = 0
 endif
 ! total number of flux boundary nodes
-dimPres = nf90_inq_dimid(nc_id, 'nvel', nc_dimid_nvel)
+dimPres = nf90_inq_dimid(nc_id, 'nvel', n%nc_dimid_nvel)
 if (dimPres.eq.NF90_NOERR) then
-   call check(nf90_inquire_dimension(nc_id, nc_dimid_nvel, len=nvel))
+   call check(nf90_inquire_dimension(nc_id, n%nc_dimid_nvel, len=m%nvel))
 else 
-   nvel = 0
+   m%nvel = 0
 endif
 ! longest flux boundary segment
-dimPres = nf90_inq_dimid(nc_id, 'max_nvell', nc_dimid_max_nvell)
+dimPres = nf90_inq_dimid(nc_id, 'max_nvell', n%nc_dimid_max_nvell)
 if (dimPres.eq.NF90_NOERR) then
-   call check(nf90_inquire_dimension(nc_id, nc_dimid_max_nvell, len=nvell_max))
+   call check(nf90_inquire_dimension(nc_id, n%nc_dimid_max_nvell, len=m%nvell_max))
 else
-   nvell_max = 0
+   m%nvell_max = 0
 endif
 !
-call allocateFluxBoundaryLengths()
-call allocateAdcircFluxBoundaryArrays()
+call allocateFluxBoundaryLengths(m)
+call allocateAdcircFluxBoundaryArrays(m)
 !
 ! now read in the lengths of the open boundary segments and the node
 ! numbers on each segment
-if (nbou.ne.0) then
-   call check(nf90_inq_varid(nc_id, 'nvell', nc_varid_nvell))
-   call check(nf90_get_var(nc_id, nc_varid_nvell, nvell, (/ 1 /), (/ nbou /) ))
-   call check(nf90_inq_varid(nc_id, 'ibtype', nc_varid_ibtype))
-   call check(nf90_get_var(nc_id, nc_varid_ibtype, ibtype, (/ 1 /) , (/ nbou /) ))
-   call check(nf90_inq_varid(nc_id, 'nbvv', nc_varid_nbvv))
-   do i=1, nbou
-      call check(nf90_get_var(nc_id, nc_varid_nbvv, nbvv(i,:), (/ i, 1 /), (/ 1, nvell(i) /) ))  
+if (m%nbou.ne.0) then
+   call check(nf90_inq_varid(nc_id, 'nvell', n%nc_varid_nvell))
+   call check(nf90_get_var(nc_id, n%nc_varid_nvell, m%nvell, (/ 1 /), (/ m%nbou /) ))
+   call check(nf90_inq_varid(nc_id, 'ibtype', n%nc_varid_ibtype))
+   call check(nf90_get_var(nc_id, n%nc_varid_ibtype, m%ibtype, (/ 1 /) , (/ m%nbou /) ))
+   call check(nf90_inq_varid(nc_id, 'nbvv', n%nc_varid_nbvv))
+   do i=1, m%nbou
+      call check(nf90_get_var(nc_id, n%nc_varid_nbvv, m%nbvv(i,:), (/ i, 1 /), (/ 1, m%nvell(i) /) ))  
    end do
 endif
 !
-! Close the file once the mesh dimensions have been determined and the 
-! arrays have been allocated. The actual data are read in the
-! subroutine readMeshNetCDF().
+! get 3D mesh dimensions if the data are 3D
+i = nf90_inq_dimid(nc_id, "num_v_nodes", n%nc_dimid_nfen)
+if (i.eq.NF90_NOERR) then
+   m%is3D = .true.
+   call check(nf90_inquire_dimension(nc_id, n%nc_dimid_nfen, len=m%nfen))
+   call check(nf90_inq_varid(nc_id, "sigma", n%nc_varid_sigma))
+   allocate(m%sigma(m%nfen))
+   call check(nf90_get_var(nc_id, n%nc_varid_sigma, m%sigma))
+endif
+!
+! close netcdf file
 call check(nf90_close(nc_id))
-
 write(6,'(a)') 'INFO: Finished reading mesh dimensions from the netCDF file.'
 
 !----------------------------------------------------------------------
@@ -504,42 +537,45 @@ end subroutine findMeshDimsNetCDF
 ! TODO: The NetCDF files written by ADCIRC don't actually contain the
 ! levee heights, coefficients of sub/supercritical flow, etc. 
 !------------------------------------------------------------------
-subroutine readMeshNetCDF(datafile)
+subroutine readMeshNetCDF(m, n)
 use netcdf
-use asgsio, only : nc_id, check
+use ioutil
 implicit none
-character(len=1024), intent(in) :: datafile
-integer :: dimPres ! return code from netcdf to determine if the dimension is present in the file
+type(mesh_t), intent(inout) :: m ! mesh to operate on 
+type(meshNetCDF_t), intent(inout) :: n ! netcdf IDs to operate on
+integer :: nc_id ! netcdf ID of the file to read from
 integer :: i, j ! loop counter
-integer :: natt ! number of attributes in the netcdf file
-integer :: nvar ! number of variables in the netcdf file
-integer :: ndim ! number of dimensions in the netcdf file
-integer :: nc_dimid_time ! id of the time dimension
-integer :: ncformat ! netcdf3, netcdf4, netcdf4 classic model, etc
-
-integer :: nc_count(2)
-integer :: nc_start(2)
+!
+integer :: nc_count(1) ! x, y, and depth are 1D
+integer :: nc_start(1)
+!
+integer :: nc_ele_count(2) ! element table is 2D
+integer :: nc_ele_start(2)
+!
+integer :: nc_boundmax_count(2) ! max boundary nodes table is 2D 
+integer :: nc_boundmax_start(2)
 !
 write(6,'(a)') 'INFO: Reading mesh from the netCDF file.'
-call allocateNodalAndElementalArrays()
+call allocateNodalAndElementalArrays(m)
 !
-! open the netcdf file
-call check(nf90_open(trim(datafile), NF90_NOWRITE, nc_id))
+call check(nf90_open(trim(m%meshFileName), NF90_NOWRITE, nc_id))
 !
 ! read mesh lon, lat, depth data from the file
-nc_count = (/ np, 1 /)
-nc_start = (/ 1, 1 /)
-call check(nf90_inq_varid(nc_id, 'x', nc_varid_x))
-call check(nf90_get_var(nc_id,nc_varid_x,xyd(1,1:np),nc_start,nc_count))     
-call check(nf90_inq_varid(nc_id, 'y', nc_varid_y))
-call check(nf90_get_var(nc_id,nc_varid_y,xyd(2,1:np),nc_start,nc_count))
-call check(nf90_inq_varid(nc_id, 'depth', nc_varid_depth))
-call check(nf90_get_var(nc_id,nc_varid_depth,xyd(3,1:np),nc_start,nc_count))
+nc_start = (/ 1 /)
+nc_count = (/ m%np /)
+
+call check(nf90_inq_varid(nc_id, 'x', n%nc_varid_x))
+call check(nf90_get_var(nc_id,n%nc_varid_x,m%xyd(1,1:m%np),nc_start,nc_count))     
+call check(nf90_inq_varid(nc_id, 'y', n%nc_varid_y))
+call check(nf90_get_var(nc_id,n%nc_varid_y,m%xyd(2,1:m%np),nc_start,nc_count))
+call check(nf90_inq_varid(nc_id, 'depth', n%nc_varid_depth))
+call check(nf90_get_var(nc_id,n%nc_varid_depth,m%xyd(3,1:m%np),nc_start,nc_count))
 !
 ! element table
-NC_Count = (/ 3, ne /)
-call check(nf90_inq_varid(nc_id, 'element', nc_varid_element))
-call check(nf90_get_var(nc_id,nc_varid_element,nmnc,nc_start,nc_count))
+nc_ele_start = (/ 1, 1 /)
+nc_ele_count = (/ 3, m%ne /)
+call check(nf90_inq_varid(nc_id, 'element', n%nc_varid_element))
+call check(nf90_get_var(nc_id,n%nc_varid_element,m%nmnc,nc_ele_start,nc_ele_count))
 !
 ! populate the adcirc-style element table
 !
@@ -547,26 +583,28 @@ call check(nf90_get_var(nc_id,nc_varid_element,nmnc,nc_start,nc_count))
 ! them to disk in column major order, according to the way C interprets
 ! the data, rather than row major order, the way Fortran would interpret
 ! the data
-do i=1, ne
+do i=1, m%ne
    do j=1, 3
-      nm(i,j)= nmnc(j,i)
+      m%nm(i,j)= m%nmnc(j,i)
    end do
 end do
 !
 ! open (i.e., elevation specified) boundaries
-if (nope.ne.0) then
-   nc_count = (/ nope, 1 /)
-   call check(nf90_get_var(nc_id,nc_varid_nvdll,nvdll,nc_start,nc_count))
-   nc_count = (/ nope, nvdll_max /)   
-   call check(nf90_get_var(nc_id,nc_varid_nbdv,nbdv,nc_start,nc_count))
+if (m%nope.ne.0) then
+   nc_count = (/ m%nope /)
+   call check(nf90_get_var(nc_id,n%nc_varid_nvdll,m%nvdll,nc_start,nc_count))
+   nc_boundmax_start = (/ 1, 1 /)
+   nc_boundmax_count = (/ m%nope, m%nvdll_max /)   
+   call check(nf90_get_var(nc_id,n%nc_varid_nbdv,m%nbdv,nc_boundmax_start,nc_boundmax_count))
 endif
-if (nbou.ne.0) then
-   nc_count = (/ nbou, 1 /)
-   call check(nf90_get_var(nc_id,nc_varid_nvell,nvell,nc_start,nc_count))  
-   nc_count = (/ nbou, 1 /)
-   call check(nf90_get_var(nc_id,nc_varid_ibtype,ibtype,nc_start,nc_count))     
-   nc_count = (/ nbou, nvell_max /)
-   call check(nf90_get_var(nc_id,nc_varid_nbvv,nbvv,nc_start,nc_count))     
+if (m%nbou.ne.0) then
+   nc_count = (/ m%nbou /)
+   call check(nf90_get_var(nc_id,n%nc_varid_nvell,m%nvell,nc_start,nc_count))  
+   nc_count = (/ m%nbou /)
+   call check(nf90_get_var(nc_id,n%nc_varid_ibtype,m%ibtype,nc_start,nc_count))     
+   nc_boundmax_start = (/ 1, 1 /)
+   nc_boundmax_count = (/ m%nbou, m%nvell_max /)
+   call check(nf90_get_var(nc_id,n%nc_varid_nbvv,m%nbvv,nc_boundmax_start,nc_boundmax_count))     
 end if
 call check(nf90_close(nc_id))
 write(6,'(a)') 'INFO: Mesh has been read from the netCDF file.'
@@ -585,24 +623,27 @@ end subroutine readMeshNetCDF
 ! two different variable names at different times by different 
 ! programs. 
 !------------------------------------------------------------------
-subroutine readMeshCommentLineNetCDF()
+subroutine readMeshCommentLineNetCDF(m, nc_id)
 use netcdf
-use asgsio, only : nc_id, check
+use ioutil
 implicit none
+type(mesh_t), intent(inout) :: m ! mesh to operate on
+integer, intent(in) :: nc_id ! netcdf id of the file to read from
 ! return codes to determine which of the variable names were
 ! used in writing this file
 integer :: agold
 integer :: agnew
-integer :: ag
-agold = nf90_get_att(nc_id,nf90_global,'grid',agrid)
-agnew = nf90_get_att(nc_id,nf90_global,'agrid',agrid)
-if (agold.EQ.NF90_NOERR) then
-   ag = nf90_get_att(nc_id,nf90_global,'grid',agrid)
-elseif(agnew.EQ.NF90_NOERR) then
-   ag = nf90_get_att(nc_id,nf90_global,'agrid',agrid)
-else
-   call check(ag)
+
+agnew = nf90_get_att(nc_id,nf90_global,'agrid',m%agrid)
+if (agnew.EQ.NF90_NOERR) then
+   return
 endif
+agold = nf90_get_att(nc_id,nf90_global,'grid',m%agrid)
+if (agold.EQ.NF90_NOERR) then
+   return
+endif
+call check(agold)
+
 !----------------------------------------------------------------------
 end subroutine readMeshCommentLineNetCDF
 !----------------------------------------------------------------------
@@ -610,141 +651,144 @@ end subroutine readMeshCommentLineNetCDF
 !-----+---------+---------+---------+---------+---------+---------+
 ! READ14
 !-----+---------+---------+---------+---------+---------+---------+
-subroutine read14()
-use asgsio
+subroutine read14(m)
+use ioutil
 implicit none
+type(mesh_t), intent(inout) :: m
 integer :: i, j, k, jn, je, nhy
-integer, parameter :: iunit = 14
+integer :: iunit 
 integer :: ios     ! i/o status
 integer :: lineNum ! line number currently being read
 !
 ! initialization
-nfluxf = 0 
+m%nfluxf = 0
 !
-if (trim(meshFileName).eq."null") then
+if (trim(m%meshFileName).eq."null") then
    write(6,'(a)',advance='no') "Enter name of the mesh file: "
-   read(5,'(A)') meshFileName
+   read(5,'(A)') m%meshFileName
 endif
 !
-call read14_findDims()
+call read14_findDims(m)
 !
-call allocateNodalAndElementalArrays()
-call allocateBoundaryArrays()
+call allocateNodalAndElementalArrays(m)
+call allocateBoundaryArrays(m)
 !
 if (verbose.eqv..true.) then 
-   write(6,'("Number of elevation specified boundaries (nope): ",i0,".")') nope
-   write(6,'("Number of simple flux specified boundaries (0,1,2,etc): ",i0,".")') numSimpleFluxBoundaries
-   write(6,'("Number of external flux boundaries (3,etc): ",i0,".")') numExternalFluxBoundaries         
-   write(6,'("Number of internal flux boundaries (4,etc): ",i0,".")') numInternalFluxBoundaries
-   write(6,'("Number of internal flux boundaries with pipes (5,etc): ",i0,".")') numInternalFluxBoundariesWithPipes
+   write(6,'("Number of elevation specified boundaries (nope): ",i0,".")') m%nope
+   write(6,'("Number of simple flux specified boundaries (0,1,2,etc): ",i0,".")') m%numSimpleFluxBoundaries
+   write(6,'("Number of external flux boundaries (3,etc): ",i0,".")') m%numExternalFluxBoundaries         
+   write(6,'("Number of internal flux boundaries (4,etc): ",i0,".")') m%numInternalFluxBoundaries
+   write(6,'("Number of internal flux boundaries with pipes (5,etc): ",i0,".")') m%numInternalFluxBoundariesWithPipes
 endif
 
 write(6,'(A)') 'INFO: Reading mesh file coordinates, connectivity, and boundary data.'
+iunit = availableUnitNumber() 
+call openFileForRead(iunit, m%meshFileName, ios)
 lineNum = 1
-read(unit=iunit,fmt='(a80)',err=10,end=20,iostat=ios) agrid
+read(unit=iunit,fmt='(a80)',err=10,end=20,iostat=ios) m%agrid
 lineNum = lineNum + 1
-read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) ne, np
+read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%ne, m%np
 lineNum = lineNum + 1
-do k = 1, np
-   read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) jn, (xyd(j,k), j=1,3)
+do k = 1, m%np
+   read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) jn, (m%xyd(j,k), j=1,3)
    lineNum = lineNum + 1
 enddo
-do k = 1, ne
-   read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) je, nhy, ( nm(k,j), j = 1, 3 )
+do k = 1, m%ne
+   read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) je, nhy, ( m%nm(k,j), j = 1, 3 )
    lineNum = lineNum + 1
 enddo
 !
 ! populate netcdf-style element table
-do i=1, ne
+do i=1, m%ne
    do j=1, 3
-      nmnc(j,i) = nm(i,j)
+      m%nmnc(j,i) = m%nm(i,j)
    end do
 end do
 
-read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nope
+read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%nope
 lineNum = lineNum + 1
-read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) neta
+read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%neta
 lineNum = lineNum + 1
-do k = 1, nope
-   read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nvdll(k)
+do k = 1, m%nope
+   read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%nvdll(k)
    lineNum = lineNum + 1
-   elevationBoundaries(k)%indexNum = k
-   do j = 1, nvdll(k)
-      read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) elevationBoundaries(k)%nodes(j)
-      nbdv(k,j) = elevationBoundaries(k)%nodes(j)
+   m%elevationBoundaries(k)%indexNum = k
+   do j = 1, m%nvdll(k)
+      read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%elevationBoundaries(k)%nodes(j)
+      m%nbdv(k,j) = m%elevationBoundaries(k)%nodes(j)
       lineNum = lineNum + 1
    enddo
 enddo
-read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nbou
+read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%nbou
 lineNum = lineNum + 1
-read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nvel
+read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%nvel
 lineNum = lineNum + 1
-sfCount = 1
-efCount = 1
-ifCount = 1
-ifwpCount = 1      
-do k = 1, nbou
-   read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) nvell(k), ibtype_orig(k)
+m%sfCount = 1
+m%efCount = 1
+m%ifCount = 1
+m%ifwpCount = 1      
+do k = 1, m%nbou
+   read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%nvell(k), m%ibtype_orig(k)
    lineNum = lineNum + 1
-   select case(ibtype_orig(k))
+   select case(m%ibtype_orig(k))
    case(0,1,2,10,11,12,20,21,22,30,52)
-      simpleFluxBoundaries(sfCount)%indexNum = k
-      do j = 1, nvell(k)
+      m%simpleFluxBoundaries(m%sfCount)%indexNum = k
+      do j = 1, m%nvell(k)
          read(unit=iunit,fmt=*,err=10,end=20,iostat=ios)  &
-            simpleFluxBoundaries(sfCount)%nodes(j)
-         nbvv(k,j) = simpleFluxBoundaries(sfCount)%nodes(j)
+            m%simpleFluxBoundaries(m%sfCount)%nodes(j)
+         m%nbvv(k,j) = m%simpleFluxBoundaries(m%sfCount)%nodes(j)
          lineNum = lineNum + 1
       end do
-      sfCount = sfCount + 1
+      m%sfCount = m%sfCount + 1
    case(3,13,23)
-      externalFluxBoundaries(efCount)%indexNum = k         
-      do j = 1, nvell(k)
+      m%externalFluxBoundaries(m%efCount)%indexNum = k         
+      do j = 1, m%nvell(k)
          read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) & 
-                       externalFluxBoundaries(efCount)%nodes(j), &
-                       externalFluxBoundaries(efCount)%barlanht(j), &
-                       externalFluxBoundaries(efCount)%barlancfsp(j)
-         nbvv(k,j) = externalFluxBoundaries(efCount)%nodes(j)
+                       m%externalFluxBoundaries(m%efCount)%nodes(j), &
+                       m%externalFluxBoundaries(m%efCount)%barlanht(j), &
+                       m%externalFluxBoundaries(m%efCount)%barlancfsp(j)
+         m%nbvv(k,j) = m%externalFluxBoundaries(m%efCount)%nodes(j)
          lineNum = lineNum + 1
       end do
-      efCount = efCount + 1
+      m%efCount = m%efCount + 1
    case(4,24)
-      internalFluxBoundaries(ifCount)%indexNum = k
-      do j = 1, nvell(k)
+      m%internalFluxBoundaries(m%ifCount)%indexNum = k
+      do j = 1, m%nvell(k)
          read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) &
-                       internalFluxBoundaries(ifCount)%nodes(j), &
-                       internalFluxBoundaries(ifCount)%ibconn(j), &
-                       internalFluxBoundaries(ifCount)%barinht(j), &
-                       internalFluxBoundaries(ifCount)%barincfsb(j), &
-                       internalFluxBoundaries(ifCount)%barincfsp(j)
-         nbvv(k,j) = internalFluxBoundaries(ifCount)%nodes(j)
+                       m%internalFluxBoundaries(m%ifCount)%nodes(j), &
+                       m%internalFluxBoundaries(m%ifCount)%ibconn(j), &
+                       m%internalFluxBoundaries(m%ifCount)%barinht(j), &
+                       m%internalFluxBoundaries(m%ifCount)%barincfsb(j), &
+                       m%internalFluxBoundaries(m%ifCount)%barincfsp(j)
+         m%nbvv(k,j) = m%internalFluxBoundaries(m%ifCount)%nodes(j)
          lineNum = lineNum + 1
       end do
-      ifCount = ifCount + 1
+      m%ifCount = m%ifCount + 1
    case(5,25)
-      internalFluxBoundaries(ifwpCount)%indexNum = k
-      do j = 1, nvell(k)
+      m%internalFluxBoundaries(m%ifwpCount)%indexNum = k
+      do j = 1, m%nvell(k)
          read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) &
-                       internalFluxBoundariesWithPipes(ifwpCount)%nodes(j), &
-                       internalFluxBoundariesWithPipes(ifwpCount)%ibconn(j), &
-                       internalFluxBoundariesWithPipes(ifwpCount)%barinht(j), &
-                       internalFluxBoundariesWithPipes(ifwpCount)%barincfsb(j), &
-                       internalFluxBoundariesWithPipes(ifwpCount)%barincfsp(j), &
-                       internalFluxBoundariesWithPipes(ifwpCount)%pipeht(j), &
-                       internalFluxBoundariesWithPipes(ifwpCount)%pipecoef(j), &
-                       internalFluxBoundariesWithPipes(ifwpCount)%pipediam(j)
-         nbvv(k,j) = internalFluxBoundariesWithPipes(ifwpCount)%nodes(j)
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%nodes(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%ibconn(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%barinht(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%barincfsb(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%barincfsp(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipeht(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipecoef(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipediam(j)
+         m%nbvv(k,j) = m%internalFluxBoundariesWithPipes(m%ifwpCount)%nodes(j)
          lineNum = lineNum + 1                                           
       end do
-      ifwpCount = ifwpCount + 1
+      m%ifwpCount = m%ifwpCount + 1
    case default
-      write(6,*) 'ERROR: IBTYPE ',ibtype_orig(k),' is not allowed.'
+      write(6,*) 'ERROR: IBTYPE ',m%ibtype_orig(k),' is not allowed.'
       stop
    end select
 end do
-close(14)
+close(iunit)
 ! 
 ! initialize ibtype array
-ibtype = ibtype_orig
+m%ibtype = m%ibtype_orig
 !
 write(6,'(A)') 'INFO: Finished reading mesh file coordinates, connectivity, and boundary data.'
 return
@@ -769,15 +813,16 @@ end subroutine read14
 ! elements in the mesh. Mirrors the subroutine of the same name in 
 ! the mesh module in adcirc.
 !------------------------------------------------------------------
-subroutine allocateNodalAndElementalArrays()
+subroutine allocateNodalAndElementalArrays(m)
 implicit none
-allocate(xyd(3,np))
-allocate(nm(ne,3))
-allocate(nmnc(3,ne))
+type(mesh_t), intent(inout) :: m ! mesh to operate on
+allocate(m%xyd(3,m%np))
+allocate(m%nm(m%ne,3))
+allocate(m%nmnc(3,m%ne))
 !
 ! initialize to something troublesome to make it easy to spot issues
-xyd = -99999.d0
-nm = 0
+m%xyd = -99999.d0
+m%nm = 0
 !------------------------------------------------------------------
 end subroutine allocateNodalAndElementalArrays
 !------------------------------------------------------------------
@@ -789,14 +834,15 @@ end subroutine allocateNodalAndElementalArrays
 ! Allocate the arrays that hold the number of nodes on each elevation
 ! boundary segment
 !------------------------------------------------------------------
-subroutine allocateElevationBoundaryLengths()
+subroutine allocateElevationBoundaryLengths(m)
 implicit none
-allocate(nvdll(nope)) ! number of nodes on each elevation boundary segment
-allocate(ibtypee(nope)) ! type of each elevation boundary segment
+type(mesh_t), intent(inout) :: m ! mesh to operate on
+allocate(m%nvdll(m%nope)) ! number of nodes on each elevation boundary segment
+allocate(m%ibtypee(m%nope)) ! type of each elevation boundary segment
 !
 ! initialize to something troublesome to make it easy to spot issues
-ibtypee = -99999
-nvdll = -99999
+m%ibtypee = -99999
+m%nvdll = -99999
 !------------------------------------------------------------------
 end subroutine allocateElevationBoundaryLengths
 !------------------------------------------------------------------
@@ -809,18 +855,17 @@ end subroutine allocateElevationBoundaryLengths
 ! in the case of paired node boundaries like levees) on each flux
 ! boundary segment
 !------------------------------------------------------------------
-subroutine allocateFluxBoundaryLengths()
+subroutine allocateFluxBoundaryLengths(m)
 implicit none
-
-allocate(nvell(nbou)) ! number of nodes on each flux boundary segment
-allocate(ibtype_orig(nbou))
-allocate(ibtype(nbou))
+type(mesh_t), intent(inout) :: m ! mesh to operate on
+allocate(m%nvell(m%nbou)) ! number of nodes on each flux boundary segment
+allocate(m%ibtype_orig(m%nbou))
+allocate(m%ibtype(m%nbou))
 !
 ! initialize to something troublesome to make it easy to spot issues
-
-nvell = -99999
-ibtype_orig = -99999
-ibtype = -99999
+m%nvell = -99999
+m%ibtype_orig = -99999
+m%ibtype = -99999
 !------------------------------------------------------------------
 end subroutine allocateFluxBoundaryLengths
 !------------------------------------------------------------------
@@ -832,14 +877,15 @@ end subroutine allocateFluxBoundaryLengths
 !------------------------------------------------------------------
 ! Allocate space for elevation boundary-related variables
 !------------------------------------------------------------------
-subroutine allocateAdcircElevationBoundaryArrays()
+subroutine allocateAdcircElevationBoundaryArrays(m)
 implicit none
-allocate(nbdv(nope,nvdll_max))
-allocate(nbd(neta))
+type(mesh_t), intent(inout) :: m ! mesh to operate on
+allocate(m%nbdv(m%nope,m%nvdll_max))
+allocate(m%nbd(m%neta))
 !
 ! initialize to something troublesome to make it easy to spot issues
-nbdv = -99999
-nbd = -99999
+m%nbdv = -99999
+m%nbd = -99999
 !------------------------------------------------------------------
 end subroutine allocateAdcircElevationBoundaryArrays
 !------------------------------------------------------------------
@@ -851,10 +897,11 @@ end subroutine allocateAdcircElevationBoundaryArrays
 !------------------------------------------------------------------
 !     jgf51.21.11 Allocate space for flux boundary-related variables
 !------------------------------------------------------------------
-subroutine allocateAdcircFluxBoundaryArrays()
+subroutine allocateAdcircFluxBoundaryArrays(m)
 implicit none
-allocate ( nbv(nvel),lbcodei(nvel))
-allocate ( nbvv(nbou,nvell_max))
+type(mesh_t), intent(inout) :: m ! mesh to operate on
+allocate ( m%nbv(m%nvel),m%lbcodei(m%nvel))
+allocate ( m%nbvv(m%nbou,m%nvell_max))
 !
 ! jgf20150723: These are never used so I commented them out because
 ! they are memory hogs.
@@ -868,9 +915,9 @@ allocate ( nbvv(nbou,nvell_max))
 
 !
 ! initialize to something troublesome to make it easy to spot issues
-nbv = -99999
-lbcodei = -99999
-nbvv = -99999
+m%nbv = -99999
+m%lbcodei = -99999
+m%nbvv = -99999
 !
 ! jgf20150723: These are never used so I commented them out because
 ! they are memory hogs.
@@ -896,85 +943,86 @@ end subroutine allocateAdcircFluxBoundaryArrays
 !------------------------------------------------------------------
 ! Allocate space for boundary-related variables
 !------------------------------------------------------------------
-subroutine allocateBoundaryArrays()
+subroutine allocateBoundaryArrays(m)
 implicit none
+type(mesh_t), intent(inout) :: m ! mesh to operate on
 integer :: i
 !
-allocate(elevationBoundaries(nope))
-do i=1,nope
-   allocate(elevationBoundaries(i)%nodes(nvdll(i)))
+allocate(m%elevationBoundaries(m%nope))
+do i=1,m%nope
+   allocate(m%elevationBoundaries(i)%nodes(m%nvdll(i)))
 end do   
-allocate(simpleFluxBoundaries(numSimpleFluxBoundaries))
-allocate(externalFluxBoundaries(numExternalFluxBoundaries))
-allocate(internalFluxBoundaries(numInternalFluxBoundaries))
-allocate(internalFluxBoundariesWithPipes(numInternalFluxBoundariesWithPipes))
-sfCount = 1
-efCount = 1
-ifCount = 1
-ifwpCount = 1      
-do i=1,nbou
+allocate(m%simpleFluxBoundaries(m%numSimpleFluxBoundaries))
+allocate(m%externalFluxBoundaries(m%numExternalFluxBoundaries))
+allocate(m%internalFluxBoundaries(m%numInternalFluxBoundaries))
+allocate(m%internalFluxBoundariesWithPipes(m%numInternalFluxBoundariesWithPipes))
+m%sfCount = 1
+m%efCount = 1
+m%ifCount = 1
+m%ifwpCount = 1      
+do i=1,m%nbou
    if (verbose.eqv..true.) then
       write(6,'("i=",i0)') i
    endif
-   select case(ibtype_orig(i))
+   select case(m%ibtype_orig(i))
    case(0,1,2,10,11,12,20,21,22,30,52)
-      allocate(simpleFluxBoundaries(sfCount)%nodes(nvell(i)))
-      sfCount = sfCount + 1
+      allocate(m%simpleFluxBoundaries(m%sfCount)%nodes(m%nvell(i)))
+      m%sfCount = m%sfCount + 1
    case(3,13,23)
-      allocate(externalFluxBoundaries(efCount)%nodes(nvell(i)))
-      allocate(externalFluxBoundaries(efCount)%barlanht(nvell(i)))
-      allocate(externalFluxBoundaries(efCount)%barlancfsp(nvell(i)))
-      efCount = efCount + 1
+      allocate(m%externalFluxBoundaries(m%efCount)%nodes(m%nvell(i)))
+      allocate(m%externalFluxBoundaries(m%efCount)%barlanht(m%nvell(i)))
+      allocate(m%externalFluxBoundaries(m%efCount)%barlancfsp(m%nvell(i)))
+      m%efCount = m%efCount + 1
    case(4,24)        
-      allocate(internalFluxBoundaries(ifCount)%nodes(nvell(i)))
-      allocate(internalFluxBoundaries(ifCount)%ibconn(nvell(i)))
-      allocate(internalFluxBoundaries(ifCount)%barinht(nvell(i)))
-      allocate(internalFluxBoundaries(ifCount)%barincfsb(nvell(i)))
-      allocate(internalFluxBoundaries(ifCount)%barincfsp(nvell(i)))
-      ifCount = ifCount + 1
+      allocate(m%internalFluxBoundaries(m%ifCount)%nodes(m%nvell(i)))
+      allocate(m%internalFluxBoundaries(m%ifCount)%ibconn(m%nvell(i)))
+      allocate(m%internalFluxBoundaries(m%ifCount)%barinht(m%nvell(i)))
+      allocate(m%internalFluxBoundaries(m%ifCount)%barincfsb(m%nvell(i)))
+      allocate(m%internalFluxBoundaries(m%ifCount)%barincfsp(m%nvell(i)))
+      m%ifCount = m%ifCount + 1
    case(5,25)
-      allocate(internalFluxBoundariesWithPipes(ifwpCount)%nodes(nvell(i)))
-      allocate(internalFluxBoundariesWithPipes(ifwpCount)%ibconn(nvell(i)))
-      allocate(internalFluxBoundariesWithPipes(ifwpCount)%barinht(nvell(i)))
-      allocate(internalFluxBoundariesWithPipes(ifwpCount)%barincfsb(nvell(i)))
-      allocate(internalFluxBoundariesWithPipes(ifwpCount)%barincfsp(nvell(i)))
-      allocate(internalFluxBoundariesWithPipes(ifwpCount)%pipeht(nvell(i)))
-      allocate(internalFluxBoundariesWithPipes(ifwpCount)%pipecoef(nvell(i)))
-      allocate(internalFluxBoundariesWithPipes(ifwpCount)%pipediam(nvell(i)))
-      ifwpCount = ifwpCount + 1            
+      allocate(m%internalFluxBoundariesWithPipes(m%ifwpCount)%nodes(m%nvell(i)))
+      allocate(m%internalFluxBoundariesWithPipes(m%ifwpCount)%ibconn(m%nvell(i)))
+      allocate(m%internalFluxBoundariesWithPipes(m%ifwpCount)%barinht(m%nvell(i)))
+      allocate(m%internalFluxBoundariesWithPipes(m%ifwpCount)%barincfsb(m%nvell(i)))
+      allocate(m%internalFluxBoundariesWithPipes(m%ifwpCount)%barincfsp(m%nvell(i)))
+      allocate(m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipeht(m%nvell(i)))
+      allocate(m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipecoef(m%nvell(i)))
+      allocate(m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipediam(m%nvell(i)))
+      m%ifwpCount = m%ifwpCount + 1            
    case default
-       write(6,'("ERROR: The boundary type ",i0," was found in the file but is not valid.")') ibtype_orig(i)
+       write(6,'("ERROR: The boundary type ",i0," was found in the file but is not valid.")') m%ibtype_orig(i)
        stop
    end select
 end do
 ! initialize to something troublesome to make it easy to spot issues
-do i=1,nope
-   elevationBoundaries(i)%nodes(:) = -99999
+do i=1,m%nope
+   m%elevationBoundaries(i)%nodes(:) = -99999
 end do
-do i=1,numSimpleFluxBoundaries
-   simpleFluxBoundaries(i)%nodes(:) = -99999
+do i=1,m%numSimpleFluxBoundaries
+   m%simpleFluxBoundaries(i)%nodes(:) = -99999
 end do
-do i=1,numExternalFluxBoundaries
-   externalFluxBoundaries(i)%nodes(:) = -99999
-   externalFluxBoundaries(i)%barlanht(:) = -99999.d0
-   externalFluxBoundaries(i)%barlancfsp(:) = -99999.d0
+do i=1,m%numExternalFluxBoundaries
+   m%externalFluxBoundaries(i)%nodes(:) = -99999
+   m%externalFluxBoundaries(i)%barlanht(:) = -99999.d0
+   m%externalFluxBoundaries(i)%barlancfsp(:) = -99999.d0
 end do
-do i=1,numInternalFluxBoundaries
-   internalFluxBoundaries(i)%nodes(:) = -99999
-   internalFluxBoundaries(i)%ibconn(:) = -99999
-   internalFluxBoundaries(i)%barinht(:) = -99999.d0
-   internalFluxBoundaries(i)%barincfsb(:) = -99999.d0
-   internalFluxBoundaries(i)%barincfsp(:) = -99999.d0
+do i=1,m%numInternalFluxBoundaries
+   m%internalFluxBoundaries(i)%nodes(:) = -99999
+   m%internalFluxBoundaries(i)%ibconn(:) = -99999
+   m%internalFluxBoundaries(i)%barinht(:) = -99999.d0
+   m%internalFluxBoundaries(i)%barincfsb(:) = -99999.d0
+   m%internalFluxBoundaries(i)%barincfsp(:) = -99999.d0
 end do
-do i=1,numInternalFluxBoundariesWithPipes
-   internalFluxBoundariesWithPipes(i)%nodes(:) = -99999
-   internalFluxBoundariesWithPipes(i)%ibconn(:) = -99999
-   internalFluxBoundariesWithPipes(i)%barinht(:) = -99999.d0
-   internalFluxBoundariesWithPipes(i)%barincfsb(:) = -99999.d0
-   internalFluxBoundariesWithPipes(i)%barincfsp(:) = -99999.d0
-   internalFluxBoundariesWithPipes(i)%pipeht(:) = -99999.d0
-   internalFluxBoundariesWithPipes(i)%pipecoef(:) = -99999.d0
-   internalFluxBoundariesWithPipes(i)%pipediam(:) = -99999.d0
+do i=1,m%numInternalFluxBoundariesWithPipes
+   m%internalFluxBoundariesWithPipes(i)%nodes(:) = -99999
+   m%internalFluxBoundariesWithPipes(i)%ibconn(:) = -99999
+   m%internalFluxBoundariesWithPipes(i)%barinht(:) = -99999.d0
+   m%internalFluxBoundariesWithPipes(i)%barincfsb(:) = -99999.d0
+   m%internalFluxBoundariesWithPipes(i)%barincfsp(:) = -99999.d0
+   m%internalFluxBoundariesWithPipes(i)%pipeht(:) = -99999.d0
+   m%internalFluxBoundariesWithPipes(i)%pipecoef(:) = -99999.d0
+   m%internalFluxBoundariesWithPipes(i)%pipediam(:) = -99999.d0
 end do
 
 !------------------------------------------------------------------
@@ -985,24 +1033,25 @@ end subroutine allocateBoundaryArrays
 !                   S U B R O U T I N E     
 !  C O N S T R U C T   F L U X   B O U N D A R I E S   A R R A Y
 !-----+---------+---------+---------+---------+---------+---------+
-subroutine constructFluxBoundaryTypesArray()
+subroutine constructFluxBoundaryTypesArray(m)
 implicit none
+type(mesh_t), intent(inout) :: m ! mesh to operate on
 integer :: i
 integer :: j
 integer :: k
 integer :: jgw
 !
 jgw = 1
-do k=1,nbou
-   do j=1,nvell(k)
-      lbcodei(jgw) = ibtype(k)
+do k=1,m%nbou
+   do j=1,m%nvell(k)
+      m%lbcodei(jgw) = m%ibtype(k)
       jgw = jgw + 1
    end do
 end do
 ! determine if there are any specified flux boundaries in the mesh
 do i=1,size(specifiedFluxBoundaryTypes)
-   if (any(lbcodei.eq.specifiedFluxBoundaryTypes(i))) then
-      nfluxf = 1 ! => must find b.c.s in fort.15 or fort.20
+   if (any(m%lbcodei.eq.specifiedFluxBoundaryTypes(i))) then
+      m%nfluxf = 1 ! => must find b.c.s in fort.15 or fort.20
       exit
    endif
 end do
@@ -1015,166 +1064,169 @@ end subroutine constructFluxBoundaryTypesArray
 !------------------------------------------------------------------
 !  Writes the mesh file data to adcirc ascii fort.14 format. 
 !------------------------------------------------------------------
-subroutine writeMesh()
+subroutine writeMesh(m)
+use ioutil
 implicit none
+type(mesh_t), intent(inout) :: m ! mesh to operate on
 integer :: i, j, k, jn, je, nhy
-integer, parameter :: iunit = 14
+integer :: iunit
 integer :: ios     ! i/o status
 integer :: lineNum ! line number currently being read
 !
 ! initialization
-nfluxf = 0 
+m%nfluxf = 0 
 nhy = 3
 !
-if (trim(meshFileName).eq."null") then
+if (trim(m%meshFileName).eq."null") then
    write(6,'(a)',advance='no') "Enter name of the mesh file: "
-   read(5,'(a)') meshFileName
+   read(5,'(a)') m%meshFileName
 endif
-open(unit=iunit,file=trim(meshFileName),status='replace',action='write')
+iunit = availableUnitNumber()
+open(unit=iunit,file=trim(m%meshFileName),status='replace',action='write')
 if (verbose.eqv..true.) then 
-   write(6,'("Number of elevation specified boundaries (NOPE): ",i0,".")') nope
-   write(6,'("Number of simple flux specified boundaries (0,1,2,etc): ",i0,".")') numSimpleFluxBoundaries
-   write(6,'("Number of external flux boundaries (3,etc): ",i0,".")') numExternalFluxBoundaries         
-   write(6,'("Number of internal flux boundaries (4,etc): ",i0,".")') numInternalFluxBoundaries
-   write(6,'("Number of internal flux boundaries with pipes (5,etc): ",i0,".")') numInternalFluxBoundariesWithPipes
+   write(6,'("Number of elevation specified boundaries (m%nope): ",i0,".")') m%nope
+   write(6,'("Number of simple flux specified boundaries (0,1,2,etc): ",i0,".")') m%numSimpleFluxBoundaries
+   write(6,'("Number of external flux boundaries (3,etc): ",i0,".")') m%numExternalFluxBoundaries         
+   write(6,'("Number of internal flux boundaries (4,etc): ",i0,".")') m%numInternalFluxBoundaries
+   write(6,'("Number of internal flux boundaries with pipes (5,etc): ",i0,".")') m%numInternalFluxBoundariesWithPipes
 endif
-write(6,'(a)') 'INFO: Writing node table to "' // trim(meshFileName) // '".'
+write(6,'(a)') 'INFO: Writing node table to "' // trim(m%meshFileName) // '".'
 lineNum = 1
-write(unit=iunit,fmt='(a80)',err=10,iostat=ios) agrid
+write(unit=iunit,fmt='(a80)',err=10,iostat=ios) m%agrid
 lineNum = lineNum + 1
-write(unit=iunit,fmt='(2(i0,1x),a)',err=10,iostat=ios) ne, np, &
+write(unit=iunit,fmt='(2(i0,1x),a)',err=10,iostat=ios) m%ne, m%np, &
   '! number of elements (ne), number of nodes (np)'
 lineNum = lineNum + 1
 write(unit=iunit,fmt='(i0,3(1x,f15.7),a)',err=10,iostat=ios) &
-   1, (xyd(j,1), j=1,3), ' ! node table: node number, x, y, depth'
+   1, (m%xyd(j,1), j=1,3), ' ! node table: node number, x, y, depth'
 lineNum = lineNum + 1
-do k = 2, np
+do k = 2, m%np
    write(unit=iunit,fmt='(i0,3(1x,f15.7))',err=10,iostat=ios) &
-      k, (xyd(j,k), j=1,3)
+      k, (m%xyd(j,k), j=1,3)
    lineNum = lineNum + 1
 enddo
-write(6,'(a)') 'INFO: Writing element table to ' // trim(meshFileName) // '".'
-write(unit=iunit,fmt='(5(i0,2x),a)',err=10,iostat=ios) 1, nhy, ( nm(1,j), j = 1, 3 ), &
+write(6,'(a)') 'INFO: Writing element table to ' // trim(m%meshFileName) // '".'
+write(unit=iunit,fmt='(5(i0,2x),a)',err=10,iostat=ios) 1, nhy, ( m%nm(1,j), j = 1, 3 ), &
    '! element table : element number, number of nodes per element, node numbers counter clockwise around the element ' 
 lineNum = lineNum + 1
-do k = 2, ne
-   write(unit=iunit,fmt='(5(i0,2x))',err=10,iostat=ios) k, nhy, ( nm(k,j), j = 1, 3 )
+do k = 2, m%ne
+   write(unit=iunit,fmt='(5(i0,2x))',err=10,iostat=ios) k, nhy, ( m%nm(k,j), j = 1, 3 )
    lineNum = lineNum + 1
 enddo
-write(6,'(a)') 'INFO: Writing boundaries to '  // trim(meshFileName) // '".'
-write(unit=iunit,fmt='(i0,a)',err=10,iostat=ios) nope, &
+write(6,'(a)') 'INFO: Writing boundaries to '  // trim(m%meshFileName) // '".'
+write(unit=iunit,fmt='(i0,a)',err=10,iostat=ios) m%nope, &
    ' ! total number of elevation specified boundary segments (nope)'  
 lineNum = lineNum + 1
-write(unit=iunit,fmt='(i0,a)',err=10,iostat=ios) neta, &
+write(unit=iunit,fmt='(i0,a)',err=10,iostat=ios) m%neta, &
    ' ! total number of nodes on elevation specified boundaries (neta) (consistency check)' 
 lineNum = lineNum + 1
-do k = 1, nope
-   write(unit=iunit,fmt='(i0,1x,i0,a,i0)',err=10,iostat=ios) nvdll(k), 0, &
+do k = 1, m%nope
+   write(unit=iunit,fmt='(i0,1x,i0,a,i0)',err=10,iostat=ios) m%nvdll(k), 0, &
    ' ! number of nodes and boundary type of elevation specified boundary (nvdll, ibtypee) segment number ', k 
    lineNum = lineNum + 1
-   write(unit=iunit,fmt='(i0,a)',err=10,iostat=ios) elevationBoundaries(k)%nodes(1), &
+   write(unit=iunit,fmt='(i0,a)',err=10,iostat=ios) m%elevationBoundaries(k)%nodes(1), &
       ' ! list of nodes on this elevation specified boundary segment (nbdv)'
    lineNum = lineNum + 1
-   do j = 2, nvdll(k)
-      write(unit=iunit,fmt='(i0)',err=10,iostat=ios) elevationBoundaries(k)%nodes(j)
+   do j = 2, m%nvdll(k)
+      write(unit=iunit,fmt='(i0)',err=10,iostat=ios) m%elevationBoundaries(k)%nodes(j)
       lineNum = lineNum + 1
    enddo
 enddo
-write(unit=iunit,fmt='(i0,a)',err=10,iostat=ios) nbou, &
+write(unit=iunit,fmt='(i0,a)',err=10,iostat=ios) m%nbou, &
    ' ! total number of flux boundary segments (nbou)'
 lineNum = lineNum + 1
-write(unit=iunit,fmt='(i0,a)',err=10,iostat=ios) nvel, &
+write(unit=iunit,fmt='(i0,a)',err=10,iostat=ios) m%nvel, &
    ' ! total number of nodes on flux boundaries (nvel) (consistency check)'
 lineNum = lineNum + 1
-sfCount = 1
-efCount = 1
-ifCount = 1
-ifwpCount = 1      
-do k = 1, nbou
-   write(unit=iunit,fmt='(2(i0,2x),a)',err=10,iostat=ios) nvell(k), ibtype_orig(k), &
-      '! number of nodes and boundary type of flux boundary (nvell, ibtype)'
+m%sfCount = 1
+m%efCount = 1
+m%ifCount = 1
+m%ifwpCount = 1      
+do k = 1, m%nbou
+   write(unit=iunit,fmt='(2(i0,2x),a)',err=10,iostat=ios) m%nvell(k), m%ibtype_orig(k), &
+      '! number of nodes and boundary type of flux boundary (m%nvell, ibtype)'
    lineNum = lineNum + 1
-   select case(ibtype_orig(k))
+   select case(m%ibtype_orig(k))
    case(0,1,2,10,11,12,20,21,22,30,52)
       write(unit=iunit,fmt='(i0,a)',err=10,iostat=ios)  &
-         simpleFluxBoundaries(sfCount)%nodes(1), ' ! nodes on this boundary (nbvv)' 
+         m%simpleFluxBoundaries(m%sfCount)%nodes(1), ' ! nodes on this boundary (nbvv)' 
          lineNum = lineNum + 1
-      do j = 2, nvell(k)
+      do j = 2, m%nvell(k)
          write(unit=iunit,fmt='(i0)',err=10,iostat=ios)  &
-            simpleFluxBoundaries(sfCount)%nodes(j)
+            m%simpleFluxBoundaries(m%sfCount)%nodes(j)
          lineNum = lineNum + 1
       end do
-      sfCount = sfCount + 1
+      m%sfCount = m%sfCount + 1
    case(3,13,23)
       write(unit=iunit,fmt='(i0,1x,f8.3,1x,f8.3,a)',err=10,iostat=ios) & 
-                       externalFluxBoundaries(efCount)%nodes(1), &
-                       externalFluxBoundaries(efCount)%barlanht(1), &
-                       externalFluxBoundaries(efCount)%barlancfsp(1), &
+                       m%externalFluxBoundaries(m%efCount)%nodes(1), &
+                       m%externalFluxBoundaries(m%efCount)%barlanht(1), &
+                       m%externalFluxBoundaries(m%efCount)%barlancfsp(1), &
       ' ! boundary node (nbvv), barrier height (barlanht), and coef of. supercritical flow (barlancfsp)'
       lineNum = lineNum + 1
-      do j = 2, nvell(k)
+      do j = 2, m%nvell(k)
          write(unit=iunit,fmt='(i0,1x,f8.3,1x,f8.3)',err=10,iostat=ios) & 
-                       externalFluxBoundaries(efCount)%nodes(j), &
-                       externalFluxBoundaries(efCount)%barlanht(j), &
-                       externalFluxBoundaries(efCount)%barlancfsp(j)
+                       m%externalFluxBoundaries(m%efCount)%nodes(j), &
+                       m%externalFluxBoundaries(m%efCount)%barlanht(j), &
+                       m%externalFluxBoundaries(m%efCount)%barlancfsp(j)
          lineNum = lineNum + 1
       end do
-      efCount = efCount + 1
+      m%efCount = m%efCount + 1
    case(4,24)
       write(unit=iunit,fmt=*,err=10,iostat=ios) &
-                       internalFluxBoundaries(ifCount)%nodes(1), &
-                       internalFluxBoundaries(ifCount)%ibconn(1), &
-                       internalFluxBoundaries(ifCount)%barinht(1), &
-                       internalFluxBoundaries(ifCount)%barincfsb(1), &
-                       internalFluxBoundaries(ifCount)%barincfsp(1), &
+                       m%internalFluxBoundaries(m%ifCount)%nodes(1), &
+                       m%internalFluxBoundaries(m%ifCount)%ibconn(1), &
+                       m%internalFluxBoundaries(m%ifCount)%barinht(1), &
+                       m%internalFluxBoundaries(m%ifCount)%barincfsb(1), &
+                       m%internalFluxBoundaries(m%ifCount)%barincfsp(1), &
       ' ! boundary node (nbvv), connected backface node (ibconn), ' // &
       'barrier height (barinht), coef. of subcrit. flow (barincfsb), ' // &
       'coef. of supercrit. flow (barincfsp) '
       lineNum = lineNum + 1
-      do j = 2, nvell(k)
+      do j = 2, m%nvell(k)
          write(unit=iunit,fmt='(2(i0,1x),3(f8.3,1x))',err=10,iostat=ios) &
-                       internalFluxBoundaries(ifCount)%nodes(j), &
-                       internalFluxBoundaries(ifCount)%ibconn(j), &
-                       internalFluxBoundaries(ifCount)%barinht(j), &
-                       internalFluxBoundaries(ifCount)%barincfsb(j), &
-                       internalFluxBoundaries(ifCount)%barincfsp(j)
+                       m%internalFluxBoundaries(m%ifCount)%nodes(j), &
+                       m%internalFluxBoundaries(m%ifCount)%ibconn(j), &
+                       m%internalFluxBoundaries(m%ifCount)%barinht(j), &
+                       m%internalFluxBoundaries(m%ifCount)%barincfsb(j), &
+                       m%internalFluxBoundaries(m%ifCount)%barincfsp(j)
          lineNum = lineNum + 1
       end do
-      ifCount = ifCount + 1
+      m%ifCount = m%ifCount + 1
    case(5,25)
       write(unit=iunit,fmt='(2(i0,1x),6(f8.3),a)',err=10,iostat=ios) &
-                    internalFluxBoundariesWithPipes(ifCount)%nodes(1), &
-                    internalFluxBoundariesWithPipes(ifCount)%ibconn(1), &
-                    internalFluxBoundariesWithPipes(ifCount)%barinht(1), &
-                    internalFluxBoundariesWithPipes(ifCount)%barincfsb(1), &
-                    internalFluxBoundariesWithPipes(ifCount)%barincfsp(1), &
-                    internalFluxBoundariesWithPipes(ifCount)%pipeht(1), &
-                    internalFluxBoundariesWithPipes(ifCount)%pipecoef(1), &
-                    internalFluxBoundariesWithPipes(ifCount)%pipediam(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifCount)%nodes(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifCount)%ibconn(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifCount)%barinht(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifCount)%barincfsb(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifCount)%barincfsp(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifCount)%pipeht(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifCount)%pipecoef(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifCount)%pipediam(1), &
       ' ! boundary node (nbvv), connected backface node (ibconn), ' // &
       'barrier height (barinht), coef. of subcrit. flow (barincfsb), ' // &
       'coef. of supercrit. flow (barincfsp), pipe height (pipeht), ' // &
       ' pipe coef. (pipecoef), pipediameter(pipediam)' 
       lineNum = lineNum + 1                                              
-      do j = 2, nvell(k)
+      do j = 2, m%nvell(k)
          write(unit=iunit,fmt='(2(i0,1x),6(f8.3))',err=10,iostat=ios) &
-                       internalFluxBoundariesWithPipes(ifCount)%nodes(j), &
-                       internalFluxBoundariesWithPipes(ifCount)%ibconn(j), &
-                       internalFluxBoundariesWithPipes(ifCount)%barinht(j), &
-                       internalFluxBoundariesWithPipes(ifCount)%barincfsb(j), &
-                       internalFluxBoundariesWithPipes(ifCount)%barincfsp(j), &
-                       internalFluxBoundariesWithPipes(ifCount)%pipeht(j), &
-                       internalFluxBoundariesWithPipes(ifCount)%pipecoef(j), &
-                       internalFluxBoundariesWithPipes(ifCount)%pipediam(j)
+                       m%internalFluxBoundariesWithPipes(m%ifCount)%nodes(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifCount)%ibconn(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifCount)%barinht(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifCount)%barincfsb(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifCount)%barincfsp(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifCount)%pipeht(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifCount)%pipecoef(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifCount)%pipediam(j)
          lineNum = lineNum + 1                                           
       end do
-      ifwpCount = ifwpCount + 1
+      m%ifwpCount = m%ifwpCount + 1
    case default
-      write(6,'("ERROR: IBTYPE ",i0," is not allowed.")') ibtype_orig(k)
+      write(6,'("ERROR: IBTYPE ",i0," is not allowed.")') m%ibtype_orig(k)
       stop
    end select
 end do
-close(14)
+close(iunit)
 write(6,'(a)') 'INFO: Finished writing ascii mesh file.'
 return
       !
@@ -1192,117 +1244,121 @@ end subroutine writeMesh
 !----------------------------------------------------------------------
 !     This subroutine writes the mesh parameters to the netcdf file. 
 !----------------------------------------------------------------------
-subroutine writeMeshDefinitionsToNetCDF(nc_id, fileFormat)
+subroutine writeMeshDefinitionsToNetCDF(m, n, nc_id, deflate)
 use netcdf
-use asgsio, only : check, NETCDF4
+use ioutil
 implicit none
+type(mesh_t), intent(inout) :: m ! mesh to operate on 
+type(meshNetCDF_t), intent(inout) :: n ! netcdf IDs for the target file 
 integer, intent(in) :: nc_id
-integer, intent(in) :: fileFormat
+logical, intent(in) :: deflate
 integer              :: NC_DimID_single
 !
 ! create and store mesh dimensions 
-CALL Check(NF90_PUT_ATT(NC_ID,NF90_GLOBAL,'agrid',trim(agrid)))
-CALL Check(NF90_DEF_DIM(NC_ID,'node',np,NC_DimID_node))
-CALL Check(NF90_DEF_DIM(NC_ID,'nele',ne,NC_DimID_nele))
-CALL Check(NF90_DEF_DIM(NC_ID,'nvertex',3,NC_DimID_nvertex))
+write(6,'(a)') 'INFO: Writing mesh definitions to netcdf.'
+CALL Check(NF90_PUT_ATT(NC_ID,NF90_GLOBAL,'agrid',trim(m%agrid)))
+CALL Check(NF90_DEF_DIM(NC_ID,'node',m%np,n%NC_DimID_node))
+CALL Check(NF90_DEF_DIM(NC_ID,'nele',m%ne,n%NC_DimID_nele))
+CALL Check(NF90_DEF_DIM(NC_ID,'nvertex',3,n%NC_DimID_nvertex))
 CALL Check(NF90_DEF_DIM(NC_ID,'single',1,NC_DimID_single))
 
-if (nope.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nope',nope,NC_DimID_nope))
-if (nvdll_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_nvdll',nvdll_max,NC_DimID_max_nvdll))
-if (neta.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'neta',neta,NC_DimID_neta))
-if (nbou.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nbou',nbou,NC_DimID_nbou))
-if (nvel.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nvel',nvel,NC_DimID_nvel))
-if (nvell_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_nvell',nvell_max,NC_DimID_max_nvell))
+if (m%nope.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'m%nope',m%nope,n%NC_DimID_nope))
+if (m%nvdll_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_nvdll',m%nvdll_max,n%NC_DimID_max_nvdll))
+if (m%neta.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'neta',m%neta,n%NC_DimID_neta))
+if (m%nbou.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nbou',m%nbou,n%NC_DimID_nbou))
+if (m%nvel.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nvel',m%nvel,n%NC_DimID_nvel))
+if (m%nvell_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_m%nvell',m%nvell_max,n%NC_DimID_max_nvell))
 
 ! ibtypee, ibconn, bars are ignored
-CALL Check(NF90_DEF_VAR(NC_ID,'x',NF90_DOUBLE,NC_DimID_node,NC_VarID_x))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_x,'long_name','longitude'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_x,'standard_name','longitude'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_x,'units','degrees_east'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_x,'positive','east'))
+CALL Check(NF90_DEF_VAR(NC_ID,'x',NF90_DOUBLE,n%NC_DimID_node,n%NC_VarID_x))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_x,'long_name','longitude'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_x,'standard_name','longitude'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_x,'units','degrees_east'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_x,'positive','east'))
 
-CALL Check(NF90_DEF_VAR(NC_ID,'y',NF90_DOUBLE,NC_DimID_node,NC_VarID_y))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_y,'long_name','latitude'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_y,'standard_name','latitude'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_y,'units','degrees_north'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_y,'positive','north'))
+CALL Check(NF90_DEF_VAR(NC_ID,'y',NF90_DOUBLE,n%NC_DimID_node,n%NC_VarID_y))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_y,'long_name','latitude'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_y,'standard_name','latitude'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_y,'units','degrees_north'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_y,'positive','north'))
 
-CALL Check(NF90_DEF_VAR(NC_ID,'element',NF90_int,(/NC_DimID_nvertex, NC_DimID_nele /),NC_VarID_element))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_element,'long_name','element'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_element,'standard_name','face_node_connectivity'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_element,'units','nondimensional'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_element,'start_index',1))
+CALL Check(NF90_DEF_VAR(NC_ID,'element',NF90_int,(/ n%NC_DimID_nvertex, n%NC_DimID_nele /), n%NC_VarID_element))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_element,'long_name','element'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_element,'standard_name','face_node_connectivity'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_element,'units','nondimensional'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_element,'start_index',1))
 
-if (nope.ne.0) then
-   CALL Check(NF90_DEF_VAR(NC_ID,'nvdll',NF90_DOUBLE,NC_DimID_nope,NC_VarID_nvdll))
-   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvdll,'long_name','total number of nodes in each elevation specified & boundary segment'))
-   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvdll,'units','nondimensional'))
+if (m%nope.ne.0) then
+   CALL Check(NF90_DEF_VAR(NC_ID,'nvdll',NF90_DOUBLE,n%NC_DimID_nope,n%NC_VarID_nvdll))
+   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nvdll,'long_name','total number of nodes in each elevation specified & boundary segment'))
+   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nvdll,'units','nondimensional'))
 
-   CALL Check(NF90_DEF_VAR(NC_ID,'max_nvdll',NF90_int,NC_DimID_single,NC_VarID_max_nvdll))
-   CALL Check(NF90_DEF_VAR(NC_ID,'max_nvell',NF90_int,NC_DimID_single,NC_VarID_max_nvell))      
-   CALL Check(NF90_DEF_VAR(NC_ID,'neta',NF90_int,NC_DimID_single,NC_VarID_neta))
-   CALL Check(NF90_DEF_VAR(NC_ID,'nope',NF90_int,NC_DimID_single,NC_VarID_nope))
-   CALL Check(NF90_DEF_VAR(NC_ID,'nvel',NF90_int,NC_DimID_single,NC_VarID_nvel))
+   CALL Check(NF90_DEF_VAR(NC_ID,'max_nvdll',NF90_int,NC_DimID_single,n%NC_VarID_max_nvdll))
+   CALL Check(NF90_DEF_VAR(NC_ID,'max_m%nvell',NF90_int,NC_DimID_single,n%NC_VarID_max_nvell))      
+   CALL Check(NF90_DEF_VAR(NC_ID,'neta',NF90_int,NC_DimID_single,n%NC_VarID_neta))
+   CALL Check(NF90_DEF_VAR(NC_ID,'m%nope',NF90_int,NC_DimID_single,n%NC_VarID_nope))
+   CALL Check(NF90_DEF_VAR(NC_ID,'nvel',NF90_int,NC_DimID_single,n%NC_VarID_nvel))
 
-   CALL Check(NF90_DEF_VAR(NC_ID,'nbdv',NF90_DOUBLE,(/ NC_DimID_nope, NC_DimID_max_nvdll /),NC_VarID_nbdv))
-   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbdv,'long_name','node numbers on each elevation specified boundary & segment'))
-   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbdv,'units','nondimensional'))
+   CALL Check(NF90_DEF_VAR(NC_ID,'nbdv',NF90_DOUBLE,(/ n%NC_DimID_nope, n%NC_DimID_max_nvdll /), n%NC_VarID_nbdv))
+   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nbdv,'long_name','node numbers on each elevation specified boundary & segment'))
+   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nbdv,'units','nondimensional'))
 endif
 
-if (nbou.ne.0) then
-   CALL Check(NF90_DEF_VAR(NC_ID,'nvell',NF90_DOUBLE,NC_DimID_nbou,NC_VarID_nvell))
-   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvell,'long_name','number of nodes in each normal flow specified boundary segment'))
-   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nvell,'units','nondimensional'))
+if (m%nbou.ne.0) then
+   CALL Check(NF90_DEF_VAR(NC_ID,'nvell',NF90_DOUBLE,n%NC_DimID_nbou,n%NC_VarID_nvell))
+   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nvell,'long_name','number of nodes in each normal flow specified boundary segment'))
+   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nvell,'units','nondimensional'))
 
-   CALL Check(NF90_DEF_VAR(NC_ID,'ibtype',NF90_DOUBLE,NC_DimID_nbou,NC_VarID_ibtype))
-   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_ibtype,'long_name','type of normal flow (discharge) boundary'))
-   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_ibtype,'units','nondimensional'))
+   CALL Check(NF90_DEF_VAR(NC_ID,'ibtype',NF90_DOUBLE,n%NC_DimID_nbou,n%NC_VarID_ibtype))
+   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_ibtype,'long_name','type of normal flow (discharge) boundary'))
+   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_ibtype,'units','nondimensional'))
 
-   CALL Check(NF90_DEF_VAR(NC_ID,'nbvv',NF90_DOUBLE,(/ NC_DimID_nbou, NC_DimID_max_nvell /),NC_VarID_nbvv))
-   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbvv,'long_name','node numbers on normal flow boundary segment'))
-   CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_nbvv,'units','nondimensional'))
+   CALL Check(NF90_DEF_VAR(NC_ID,'nbvv',NF90_DOUBLE,(/ n%NC_DimID_nbou, n%NC_DimID_max_nvell /),n%NC_VarID_nbvv))
+   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nbvv,'long_name','node numbers on normal flow boundary segment'))
+   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nbvv,'units','nondimensional'))
 endif
 
-CALL Check(NF90_DEF_VAR(NC_ID,'depth',NF90_DOUBLE,NC_DimID_node,NC_VarID_depth))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'long_name','distance from geoid'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'standard_name','depth_below_geoid'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'coordinates','time y x'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'location','node'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'mesh','adcirc_mesh'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'units','m'))
+CALL Check(NF90_DEF_VAR(NC_ID,'depth',NF90_DOUBLE,n%NC_DimID_node,n%NC_VarID_depth))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_depth,'long_name','distance from geoid'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_depth,'standard_name','depth_below_geoid'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_depth,'coordinates','time y x'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_depth,'location','node'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_depth,'mesh','adcirc_mesh'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_depth,'units','m'))
 !      CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_depth,'positive','down')) !DO NOT USE?
 
-CALL Check(NF90_DEF_VAR(NC_ID,'adcirc_mesh',NF90_INT,NC_DimID_single,NC_VarID_mesh))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'long_name','mesh topology'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'standard_name','mesh_topology'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'dimension',2))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'node_coordinates','x y'))
-CALL Check(NF90_PUT_ATT(NC_ID,NC_VarID_mesh,'face_node_connectivity','element'))
+CALL Check(NF90_DEF_VAR(NC_ID,'adcirc_mesh',NF90_INT,NC_DimID_single,n%NC_VarID_mesh))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_mesh,'long_name','mesh topology'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_mesh,'standard_name','mesh_topology'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_mesh,'dimension',2))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_mesh,'node_coordinates','x y'))
+CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_mesh,'face_node_connectivity','element'))
 
 #ifdef NETCDF_CAN_DEFLATE
 
 ! automatically turn on compression if it is available
-if (fileFormat.eq.NETCDF4) then
-   if (nope.ne.0) then
-      call check(nf90_def_var_deflate(NC_ID, NC_VarID_nvdll, 0, 1, 2))
-      call check(nf90_def_var_deflate(NC_ID, NC_VarID_nbdv, 0, 1, 2))
+if (deflate.eqv..true.) then
+   if (m%nope.ne.0) then
+      call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_nvdll, 0, 1, 2))
+      call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_nbdv, 0, 1, 2))
    endif
-   if (nbou.ne.0) then
-      call check(nf90_def_var_deflate(NC_ID, NC_VarID_nvell, 0, 1, 2))
-      call check(nf90_def_var_deflate(NC_ID, NC_VarID_ibtype, 0, 1, 2))
-      call check(nf90_def_var_deflate(NC_ID, NC_VarID_nbvv, 0, 1, 2))
+   if (m%nbou.ne.0) then
+      call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_nvell, 0, 1, 2))
+      call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_ibtype, 0, 1, 2))
+      call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_nbvv, 0, 1, 2))
    endif
-   call check(nf90_def_var_deflate(NC_ID, NC_VarID_x, 0, 1, 2))
-   call check(nf90_def_var_deflate(NC_ID, NC_VarID_y, 0, 1, 2))
-   call check(nf90_def_var_deflate(NC_ID, NC_VarID_element, 0, 1, 2))
-   call check(nf90_def_var_deflate(NC_ID, NC_VarID_depth, 0, 1, 2))
-   call check(nf90_def_var_deflate(NC_ID, NC_VarID_Mesh, 0, 1, 2))
+   call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_x, 0, 1, 2))
+   call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_y, 0, 1, 2))
+   call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_element, 0, 1, 2))
+   call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_depth, 0, 1, 2))
+   call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_Mesh, 0, 1, 2))
 endif
 
 #endif
 
+write(6,'(a)') 'INFO: Finished writing mesh definitions to netcdf.'
 !----------------------------------------------------------------------
-      end subroutine writeMeshDefinitionsToNetCDF
+end subroutine writeMeshDefinitionsToNetCDF
 !----------------------------------------------------------------------
 
 !----------------------------------------------------------------------
@@ -1311,48 +1367,50 @@ endif
 !----------------------------------------------------------------------
 !     This subroutine writes the mesh parameters to the netcdf file. 
 !----------------------------------------------------------------------
-      subroutine writeMeshDataToNetCDF(nc_id)
-      use netcdf
-      use asgsio, only : check
-      implicit none
-      integer, intent(in) :: nc_id
-      integer :: nc_count(2)
-      integer :: nc_start(2)
-      integer :: i, j
-     
-      ! place mesh-related data into the file
-      NC_Count = (/ np, 1 /)
-      NC_Start = (/ 1, 1 /)
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_x,xyd(1,1:np),NC_Start,NC_Count))
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_y,xyd(2,1:np),NC_Start,NC_Count))
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_depth,xyd(3,1:np),NC_Start,NC_Count))
-      NC_Count = (/ 3, ne /)
+subroutine writeMeshDataToNetCDF(m, n, nc_id)
+use netcdf
+use ioutil
+implicit none
+type(mesh_t), intent(inout) :: m ! mesh to operate on
+type(meshNetCDF_t), intent(inout) :: n ! netcdf IDs to operate on
+integer, intent(in) :: nc_id
+integer :: nc_count(2)
+integer :: nc_start(2)
+integer :: i, j
 
-      CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_element,nmnc,NC_Start,NC_Count))
-      
-      if (nope.ne.0) then
-         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nope,nope))
-         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_max_nvell,nvell_max))
-         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_max_nvdll,nvdll_max))
-         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_neta,neta))      
-         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvel,nvel))            
-         NC_Count = (/ nope, 1 /)
-         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvdll,nvdll,NC_Start,NC_Count))
-         NC_Count = (/ nope, nvdll_max /)
-         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nbdv,nbdv,NC_Start,NC_Count))
-      endif
-      if (nbou.ne.0) then
-         NC_Count = (/ nbou, 1 /)
-         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nvell,nvell,NC_Start,NC_Count))
-         NC_Count = (/ nbou, 1 /)
-         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_ibtype,ibtype,NC_Start,NC_Count))
-         NC_Count = (/ nbou, nvell_max /)
-         CALL Check(NF90_PUT_VAR(NC_ID,NC_VarID_nbvv,nbvv,NC_Start,NC_Count))
-      end if
+! place mesh-related data into the file
+NC_Count = (/ m%np, 1 /)
+NC_Start = (/ 1, 1 /)
+CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_x,m%xyd(1,1:m%np),NC_Start,NC_Count))
+CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_y,m%xyd(2,1:m%np),NC_Start,NC_Count))
+CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_depth,m%xyd(3,1:m%np),NC_Start,NC_Count))
+NC_Count = (/ 3, m%ne /)
 
-      write(6,'(a)') 'INFO: Mesh has been written to the netCDF file.'
+CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_element,m%nmnc,NC_Start,NC_Count))
+
+if (m%nope.ne.0) then
+   CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_nope,m%nope))
+   CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_max_nvell,m%nvell_max))
+   CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_max_nvdll,m%nvdll_max))
+   CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_neta,m%neta))      
+   CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_nvel,m%nvel))            
+   NC_Count = (/ m%nope, 1 /)
+   CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_nvdll,m%nvdll,NC_Start,NC_Count))
+   NC_Count = (/ m%nope, m%nvdll_max /)
+   CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_nbdv,m%nbdv,NC_Start,NC_Count))
+endif
+if (m%nbou.ne.0) then
+   NC_Count = (/ m%nbou, 1 /)
+   CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_nvell,m%nvell,NC_Start,NC_Count))
+   NC_Count = (/ m%nbou, 1 /)
+   CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_ibtype,m%ibtype,NC_Start,NC_Count))
+   NC_Count = (/ m%nbou, m%nvell_max /)
+   CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_nbvv,m%nbvv,NC_Start,NC_Count))
+end if
+
+write(6,'(a)') 'INFO: Mesh has been written to the netCDF file.'
 !----------------------------------------------------------------------
-      end subroutine writeMeshDataToNetCDF
+end subroutine writeMeshDataToNetCDF
 !----------------------------------------------------------------------
 
 !----------------------------------------------------------------------
@@ -1400,8 +1458,9 @@ endif
 !   NEIMAX - 1+MAXIMUM NUMBER OF NEIGHBORS FOR ANY NODE               
 !                                                                     
 !-----------------------------------------------------------------------
-subroutine computeNeighborTable()
+subroutine computeNeighborTable(m)
 implicit none
+type(mesh_t), intent(inout) :: m ! mesh to operate on
 double precision, allocatable :: angle(:)
 integer, allocatable :: neitem(:)
 double precision :: anglelow
@@ -1414,8 +1473,8 @@ integer :: ne1, ne2, ne3 ! element numbers
 integer :: i, j, jj, jlow, k, n  ! loop counters
 !
 ! Initialization
-if (cppComputed.eqv..false.) then
-   call computeCPP()
+if (m%cppComputed.eqv..false.) then
+   call computeCPP(m)
 endif
 jlow = 0
 ne2 = 0
@@ -1424,92 +1483,92 @@ ne3 = 0
 ! For interior nodes, the number of neighbor nodes around any node is
 ! equal to the number of elements that contain that node. Boundary nodes
 ! will have one additional neighboring node.
-allocate(nneigh(np))
-nneigh = 0
-do i=1,ne
+allocate(m%nneigh(m%np))
+m%nneigh = 0
+do i=1,m%ne
    do j=1,3
       ! increment the number of nodal neighbors this node has
-      nneigh(nm(i,j)) = nneigh(nm(i,j)) + 1 
+      m%nneigh(m%nm(i,j)) = m%nneigh(m%nm(i,j)) + 1 
    end do
 end do
-mnei = maxval(nneigh)
-mnei = mnei + 2 ! +1 to include the node itself, +1 in case its a boundary node
+m%mnei = maxval(m%nneigh)
+m%mnei = m%mnei + 2 ! +1 to include the node itself, +1 in case its a boundary node
 !
-allocate(neitab(np,mnei))
-allocate(neitabele(np,mnei))
-allocate(angle(mnei))
-allocate(nneighele(np))
-neighborTableComputed = .true.
-allocate(neiTabGenerated(np,mnei))
-allocate(neiTabEleGenerated(np,mnei))
+allocate(m%neitab(m%np,m%mnei))
+allocate(m%neitabele(m%np,m%mnei))
+allocate(angle(m%mnei))
+allocate(m%nneighele(m%np))
+m%neighborTableComputed = .true.
+allocate(m%neiTabGenerated(m%np,m%mnei))
+allocate(m%neiTabEleGenerated(m%np,m%mnei))
 !
 ! initialize neighbor tables to invalid values to make it easy to 
 ! spot issues
-NNeigh=0
-NNeighEle=0
-NeiTab=-99
-NeiTabEle=-99
-DO 10 N=1,NE
-   NN1 = NM(N,1)
-   NN2 = NM(N,2)
-   NN3 = NM(N,3)
-   NNeighEle(NN1)=NNeighEle(NN1)+1 ! increment the number of elements that neighbor this node
-   NNeighEle(NN2)=NNeighEle(NN2)+1
-   NNeighEle(NN3)=NNeighEle(NN3)+1
-   NeiTabEle(NN1,NNeighEle(NN1))=N ! add element n to the neighboring elements list for this node
-   NeiTabEle(NN2,NNeighEle(NN2))=N
-   NeiTabEle(NN3,NNeighEle(NN3))=N
+m%NNeigh=0
+m%NNeighEle=0
+m%NeiTab=-99
+m%NeiTabEle=-99
+DO 10 N=1,m%NE
+   NN1 = m%NM(N,1)
+   NN2 = m%NM(N,2)
+   NN3 = m%NM(N,3)
+   m%NNeighEle(NN1)=m%NNeighEle(NN1)+1 ! increment the number of elements that neighbor this node
+   m%NNeighEle(NN2)=m%NNeighEle(NN2)+1
+   m%NNeighEle(NN3)=m%NNeighEle(NN3)+1
+   m%NeiTabEle(NN1,m%NNeighEle(NN1))=N ! add element n to the neighboring elements list for this node
+   m%NeiTabEle(NN2,m%NNeighEle(NN2))=N
+   m%NeiTabEle(NN3,m%NNeighEle(NN3))=N
    ! 
    ! repeat for the number of nodal neighbors of node 1 on element n
-   DO J=1,NNeigh(NN1)
+   DO J=1,m%NNeigh(NN1)
       ! check to see if node 2 is already in node 1's neighbor list; if so skip adding it
-      IF(NN2.EQ.NeiTab(NN1,J)) GOTO 25
+      IF(NN2.EQ.m%NeiTab(NN1,J)) GOTO 25
    END DO
-   NNeigh(NN1)=NNeigh(NN1)+1 ! increment the number of neighbors of node 1 on element n
-   NNeigh(NN2)=NNeigh(NN2)+1 ! increment the number of neighbors of node 2 on element n
+   m%NNeigh(NN1)=m%NNeigh(NN1)+1 ! increment the number of neighbors of node 1 on element n
+   m%NNeigh(NN2)=m%NNeigh(NN2)+1 ! increment the number of neighbors of node 2 on element n
    ! if the number of neighbors on node 1 or node 2 of element n exceeds the limit, terminate
-   IF((NNeigh(NN1).GT.MNEI-1).OR.(NNeigh(NN2).GT.MNEI-1)) GOTO 999
+   IF((m%NNeigh(NN1).GT.m%MNEI-1).OR.(m%NNeigh(NN2).GT.m%MNEI-1)) GOTO 999
    ! add node 1 and node 2 to each other's neighbor lists
-   NeiTab(NN1,NNeigh(NN1))=NN2
-   NeiTab(NN2,NNeigh(NN2))=NN1
+   m%NeiTab(NN1,m%NNeigh(NN1))=NN2
+   m%NeiTab(NN2,m%NNeigh(NN2))=NN1
 
 25      CONTINUE
-   DO J=1,NNeigh(NN1)
-      IF(NN3.EQ.NeiTab(NN1,J)) GOTO 35
+   DO J=1,m%NNeigh(NN1)
+      IF(NN3.EQ.m%NeiTab(NN1,J)) GOTO 35
    END DO
-   NNeigh(NN1)=NNeigh(NN1)+1
-   NNeigh(NN3)=NNeigh(NN3)+1
-   IF((NNeigh(NN1).GT.MNEI-1).OR.(NNeigh(NN3).GT.MNEI-1)) GOTO 999
-   NeiTab(NN1,NNeigh(NN1))=NN3
-   NeiTab(NN3,NNeigh(NN3))=NN1
+   m%NNeigh(NN1)=m%NNeigh(NN1)+1
+   m%NNeigh(NN3)=m%NNeigh(NN3)+1
+   IF((m%NNeigh(NN1).GT.m%MNEI-1).OR.(m%NNeigh(NN3).GT.m%MNEI-1)) GOTO 999
+   m%NeiTab(NN1,m%NNeigh(NN1))=NN3
+   m%NeiTab(NN3,m%NNeigh(NN3))=NN1
 
 35      CONTINUE
-   DO J=1,NNeigh(NN2)
-      IF(NN3.EQ.NeiTab(NN2,J)) GOTO 10
+   DO J=1,m%NNeigh(NN2)
+      IF(NN3.EQ.m%NeiTab(NN2,J)) GOTO 10
    END DO
-   NNeigh(NN2)=NNeigh(NN2)+1
-   NNeigh(NN3)=NNeigh(NN3)+1
-   IF((NNeigh(NN2).GT.MNEI-1).OR.(NNeigh(NN3).GT.MNEI-1)) GOTO 999
-   NeiTab(NN2,NNeigh(NN2))=NN3
-   NeiTab(NN3,NNeigh(NN3))=NN2
+   m%NNeigh(NN2)=m%NNeigh(NN2)+1
+   m%NNeigh(NN3)=m%NNeigh(NN3)+1
+   IF((m%NNeigh(NN2).GT.m%MNEI-1).OR.(m%NNeigh(NN3).GT.m%MNEI-1)) GOTO 999
+   m%NeiTab(NN2,m%NNeigh(NN2))=NN3
+   m%NeiTab(NN3,m%NNeigh(NN3))=NN2
 
 10   CONTINUE
-neiTabGenerated = neiTab
-neiTabEleGenerated = neiTabEle
+m%neiTabGenerated = m%neiTab
+m%neiTabEleGenerated = m%neiTabEle
 !
 !     INSERT NODE ITSELF IN PLACE #1 and SORT other NEIGHBORS by
 !     increasing cw angle from East
 !
 ! loop over nodes
-allocate(neitem(mnei))
-DO I=1,NP
+allocate(neitem(m%mnei))
+DO I=1,m%NP
    ! loop over nodal neighbors of node i
-   DO J=1,NNeigh(I)
+   DO J=1,m%NNeigh(I)
       ! save the node number of the jth neighbor of node i
-      NEITEM(J)=NeiTab(I,J)
+      NEITEM(J)=m%NeiTab(I,J)
       ! compute the distance from the jth neighbor of node i to node i
-      DELX=x_cpp(NEITEM(J))-x_cpp(I)
-      DELY=y_cpp(NEITEM(J))-y_cpp(I)
+      DELX=m%x_cpp(NEITEM(J))-m%x_cpp(I)
+      DELY=m%y_cpp(NEITEM(J))-m%y_cpp(I)
       DIST=SQRT(DELX*DELX+DELY*DELY)
       ! check for identical coordinates 
       IF(DIST.EQ.0.0d0) GOTO 998  
@@ -1526,77 +1585,77 @@ DO I=1,NP
    END DO
    ANGLEMORE=-1.d0
    ! repeat for the number of neighbors of node i
-   DO JJ=1,NNeigh(I)
+   DO JJ=1,m%NNeigh(I)
       ! initialize the value of the low angle???
       ANGLELOW=400.d0
       ! loop over the neighbors of node i
-      DO J=1,NNeigh(I)       
+      DO J=1,m%NNeigh(I)       
          IF((ANGLE(J).LT.ANGLELOW).AND.(ANGLE(J).GT.ANGLEMORE)) THEN
             ANGLELOW=ANGLE(J)
             JLOW=J
          ENDIF
       END DO
-      NeiTab(I,JJ+1)=NEITEM(JLOW)
+      m%NeiTab(I,JJ+1)=NEITEM(JLOW)
       ANGLEMORE=ANGLELOW
    END DO
-   NeiTab(I,1)=I
-   NNeigh(I)=NNeigh(I)+1
+   m%NeiTab(I,1)=I
+   m%NNeigh(I)=m%NNeigh(I)+1
 ENDDO
 !
 !     MATCH EACH SET OF 3 NODES WITH CORRESPONDING ELEMENT AND REORDER
 !     ELEMENTS ACCORDINGLY
 !
-DO I=1,NP
+DO I=1,m%NP
    ! temporarily save the existing array of neighboring elements for this node
    neiTem(:)=-99
-   DO K=1,NNeighEle(I)
-      NEITEM(K)=NeiTabEle(I,K)
-      NeiTabEle(I,K)=-99
+   DO K=1,m%NNeighEle(I)
+      NEITEM(K)=m%NeiTabEle(I,K)
+      m%NeiTabEle(I,K)=-99
    END DO
    ! loop over the nodal neighbors of node i
-   DO J=2,NNeigh(I)
-      NN1=NeiTab(I,1) ! node 1 is the node itself (node i)
-      NN3=NeiTab(I,J) ! node 3 is the Jth nodal neighbor of this node
+   DO J=2,m%NNeigh(I)
+      NN1=m%NeiTab(I,1) ! node 1 is the node itself (node i)
+      NN3=m%NeiTab(I,J) ! node 3 is the Jth nodal neighbor of this node
       !
       ! if j is not the last neighbor then node 2 is the J+1th nodal neighbor
-      if (J.NE.NNeigh(I)) then
-         NN2=NeiTab(I,J+1)
+      if (J.NE.m%NNeigh(I)) then
+         NN2=m%NeiTab(I,J+1)
       endif
       ! 
       ! if j is the last neighbor, then node 2 is the first nodal neighbor 
-      if (J.EQ.NNeigh(I)) then 
-         NN2=NeiTab(I,2)
+      if (J.EQ.m%NNeigh(I)) then 
+         NN2=m%NeiTab(I,2)
       endif
       !
       ! loop over the elemental neighbors of node i
-      DO K=1,nNeighEle(I)
+      DO K=1,m%nNeighEle(I)
          ! if the neighboring element number is not uninitialized
          ! (why do we need to check this??)
          IF((NEITEM(K).NE.-99).and.(neitem(k).ne.0)) THEN
             ! if resident node 1 of the kth elemental neighbor is the same
             ! as node i, then set the node order 1, 2, 3 
-            IF(NM(NEITEM(K),1).EQ.NN1) THEN
-               NE1=NM(NEITEM(K),1)
-               NE2=NM(NEITEM(K),2)
-               NE3=NM(NEITEM(K),3)
+            IF(m%NM(NEITEM(K),1).EQ.NN1) THEN
+               NE1=m%NM(NEITEM(K),1)
+               NE2=m%NM(NEITEM(K),2)
+               NE3=m%NM(NEITEM(K),3)
             ENDIF
             ! if resident node 2 of the kth elemental neighbor is the same
             ! as node i, then set the node order 2, 3, 1            
-            IF(NM(NEITEM(K),2).EQ.NN1) THEN
-               NE1=NM(NEITEM(K),2)
-               NE2=NM(NEITEM(K),3)
-               NE3=NM(NEITEM(K),1)
+            IF(m%NM(NEITEM(K),2).EQ.NN1) THEN
+               NE1=m%NM(NEITEM(K),2)
+               NE2=m%NM(NEITEM(K),3)
+               NE3=m%NM(NEITEM(K),1)
             ENDIF
             ! if resident node 3 of the kth elemental neighbor is the same
             ! as node i, then set the node order 3, 1, 2
-            IF(NM(NEITEM(K),3).EQ.NN1) THEN
-               NE1=NM(NEITEM(K),3)
-               NE2=NM(NEITEM(K),1)
-               NE3=NM(NEITEM(K),2)
+            IF(m%NM(NEITEM(K),3).EQ.NN1) THEN
+               NE1=m%NM(NEITEM(K),3)
+               NE2=m%NM(NEITEM(K),1)
+               NE3=m%NM(NEITEM(K),2)
             ENDIF
             ! if 
             IF((NE2.EQ.NN2).AND.(NE3.EQ.NN3)) THEN
-               NeiTabEle(I,J-1)=NEITEM(K)
+               m%NeiTabEle(I,J-1)=NEITEM(K)
                NEITEM(K)=0
             ENDIF
          else
@@ -1607,8 +1666,8 @@ DO I=1,NP
 END DO
 !
 !  DETERMINE THE MAXIMUM AND MINIMUM NUMBER OF NEIGHBORS
-NEIMAX = maxval(NNeigh)
-NEIMIN = minval(NNeigh)
+m%NEIMAX = maxval(m%NNeigh)
+m%NEIMIN = minval(m%NNeigh)
 !  Deallocate local work arrays
 deallocate ( angle )
 deallocate ( neitem )
@@ -1632,23 +1691,24 @@ END SUBROUTINE computeNeighborTable
 !     jgf: Very short subroutine to compute the length of each edge
 !     attached to a node. Also finds the minimum edge length in the mesh.
 !-----------------------------------------------------------------------
-subroutine computeNeighborEdgeLengthTable()
+subroutine computeNeighborEdgeLengthTable(m)
 implicit none
+type(mesh_t), intent(inout) :: m  ! mesh to operate on
 integer i,j
-allocate(neighborEdgeLengthTable(np,neimax))
-neighborEdgeLengthTableComputed = .true.
-minEdgeLength = huge(1.d0)
-maxEdgeLength = tiny(1.d0)
-do i=1,np
-   neighborEdgeLengthTable(i,1) = 0.d0 ! distance from this node to itself...
-   do j=2,nneigh(i)
-      neighborEdgeLengthTable(i,j) = sqrt( (x_cpp(i)-x_cpp(NeiTab(i,j)))**2 &
-                  + (y_cpp(i)-y_cpp(NeiTab(i,j)))**2 )
-      if ( neighborEdgeLengthTable(i,j).lt.minEdgeLength ) then
-         minEdgeLength = neighborEdgeLengthTable(i,j)
+allocate(m%neighborEdgeLengthTable(m%np,m%neimax))
+m%neighborEdgeLengthTableComputed = .true.
+m%minEdgeLength = huge(1.d0)
+m%maxEdgeLength = tiny(1.d0)
+do i=1,m%np
+   m%neighborEdgeLengthTable(i,1) = 0.d0 ! distance from this node to itself...
+   do j=2,m%nneigh(i)
+      m%neighborEdgeLengthTable(i,j) = sqrt( (m%x_cpp(i)-m%x_cpp(m%NeiTab(i,j)))**2 &
+                  + (m%y_cpp(i)-m%y_cpp(m%NeiTab(i,j)))**2 )
+      if ( m%neighborEdgeLengthTable(i,j).lt.m%minEdgeLength ) then
+         m%minEdgeLength = m%neighborEdgeLengthTable(i,j)
       endif
-      if ( neighborEdgeLengthTable(i,j).gt.maxEdgeLength ) then
-         maxEdgeLength = neighborEdgeLengthTable(i,j)
+      if ( m%neighborEdgeLengthTable(i,j).gt.m%maxEdgeLength ) then
+         m%maxEdgeLength = m%neighborEdgeLengthTable(i,j)
       endif
    end do
 end do
@@ -1667,8 +1727,9 @@ end subroutine computeNeighborEdgeLengthTable
 !     in the process if necessary, and not overwriting the 
 !     original lat/lon data.
 !-----------------------------------------------------------------------
-SUBROUTINE computeAlbersEqualAreaConic()
+SUBROUTINE computeAlbersEqualAreaConic(m)
 IMPLICIT NONE
+type(mesh_t), intent(inout) :: m ! mesh to operate on
 real(8), parameter :: PHI1 = 29.5d0
 real(8), parameter :: PHI2 = 45.5d0       
 real(8), parameter :: LON0 = -96.0d0                 
@@ -1697,9 +1758,9 @@ real(8) :: theta
 real(8) :: n
 integer :: i ! loop counter
 !
-if (albersComputed.eqv..false.) then
-   allocate(xalbers(np),yalbers(np))
-   albersComputed = .true.
+if (m%albersComputed.eqv..false.) then
+   allocate(m%xalbers(m%np),m%yalbers(m%np))
+   m%albersComputed = .true.
 endif
 write(6,'("INFO: Generating Albers Equal Area Conic coordinates.")')
 e1 = 1.d0-ee                                            
@@ -1715,14 +1776,14 @@ alpha2 = e1*sin(phi2*deg2rad)/(1.d0-ee*dsin(phi2*deg2rad)**2)-e1*alphac
 n = (m1**2-m2**2)/(alpha2-alpha1)
 c = m1**2+n*alpha1
 rho0 = r*((c-n*alpha0)**(0.5d0))/n
-do i=1,np
+do i=1,m%np
    ! project mesh node locations into albers equal area conic
-   P = O*DLOG((1.d0-E*DSIN(xyd(2,i)*deg2rad))/(1.d0+E*DSIN(xyd(2,i)*deg2rad)))
-   ALPHA = E1*DSIN(xyd(2,i)*deg2rad)/(1.d0-EE*DSIN(xyd(2,i)*deg2rad)**2)-P      
-   THETA = N*(xyd(1,i)-LON0) 
+   P = O*DLOG((1.d0-E*DSIN(m%xyd(2,i)*deg2rad))/(1.d0+E*DSIN(m%xyd(2,i)*deg2rad)))
+   ALPHA = E1*DSIN(m%xyd(2,i)*deg2rad)/(1.d0-EE*DSIN(m%xyd(2,i)*deg2rad)**2)-P      
+   THETA = N*(m%xyd(1,i)-LON0) 
    RHO = R*(sqrt(C-N*ALPHA))/N
-   xalbers(i) = RHO*DSIN(THETA*deg2rad)
-   yalbers(i) = RHO0-RHO*DCOS(THETA*deg2rad)
+   m%xalbers(i) = RHO*DSIN(THETA*deg2rad)
+   m%yalbers(i) = RHO0-RHO*DCOS(THETA*deg2rad)
 end do
 write(6,'("INFO: Finished generating Albers Equal Area Conic coordinates.")')
 return
@@ -1737,15 +1798,16 @@ END SUBROUTINE computeAlbersEqualAreaConic
 !     allocating memory in the process, and not overwriting the 
 !     original lat/lon data.
 !-----------------------------------------------------------------------
-SUBROUTINE computeCPP()
+SUBROUTINE computeCPP(m)
 IMPLICIT NONE
-if (cppComputed.eqv..false.) then
-   allocate(x_cpp(np),y_cpp(np))
-   cppComputed = .true.
+type(mesh_t), intent(inout) :: m  ! mesh to operate on
+if (m%cppComputed.eqv..false.) then
+   allocate(m%x_cpp(m%np),m%y_cpp(m%np))
+   m%cppComputed = .true.
 endif
 write(6,'("INFO: Generating CPP coordinates.")')
-x_cpp = R * (xyd(1,:)*deg2rad - slam0*deg2rad) * cos(sfea0*deg2rad)
-y_cpp = xyd(2,:)*deg2rad * R
+m%x_cpp = R * (m%xyd(1,:)*deg2rad - m%slam0*deg2rad) * cos(m%sfea0*deg2rad)
+m%y_cpp = m%xyd(2,:)*deg2rad * R
 return
 !-----------------------------------------------------------------------
 END SUBROUTINE computeCPP
@@ -1758,28 +1820,29 @@ END SUBROUTINE computeCPP
 !     jgf: Compute 2x the elemental areas ... requires that the 
 !     the CPP projection has already been computed.
 !-----------------------------------------------------------------------
-SUBROUTINE compute2xAreas()
+SUBROUTINE compute2xAreas(m)
 IMPLICIT NONE
+type(mesh_t), intent(inout) :: m ! mesh to operate on
 real(8) :: nx(3)
 real(8) :: ny(3)
 integer :: i, j
 !
-if (elementAreasComputed.eqv..true.) then
+if (m%elementAreasComputed.eqv..true.) then
    return
 endif
-if (cppComputed.eqv..false.) then
-   call computeCPP()
+if (m%cppComputed.eqv..false.) then
+   call computeCPP(m)
 endif
-allocate(areas(ne))
+allocate(m%areas(m%ne))
 write(6,'("INFO: Computing 2x the elemental areas.")')
-do i=1,ne
+do i=1,m%ne
    do j=1,3
-      nx(j) = x_cpp(nm(i,j))
-      ny(j) = y_cpp(nm(i,j))
+      nx(j) = m%x_cpp(m%nm(i,j))
+      ny(j) = m%y_cpp(m%nm(i,j))
    end do
-   areas(i)=(nx(1)-nx(3))*(ny(2)-ny(3))+(nx(3)-nx(2))*(ny(1)-ny(3))
+   m%areas(i)=(nx(1)-nx(3))*(ny(2)-ny(3))+(nx(3)-nx(2))*(ny(1)-ny(3))
 end do
-elementAreasComputed = .true.
+m%elementAreasComputed = .true.
 write(6,'("INFO: Finished computing 2x the elemental areas.")')
 !-----------------------------------------------------------------------
 END SUBROUTINE compute2xAreas
@@ -1791,36 +1854,37 @@ END SUBROUTINE compute2xAreas
 !-----------------------------------------------------------------------
 !     jgf: Compute the solution weighting coefficients.
 !-----------------------------------------------------------------------
-SUBROUTINE computeWeightingCoefficients()
+SUBROUTINE computeWeightingCoefficients(m)
 IMPLICIT NONE
+type(mesh_t), intent(inout) :: m ! mesh to operate on
 integer :: myNodes(0:4)
 integer :: i, j
-if (weightingCoefficientsComputed.eqv..true.) then
+if (m%weightingCoefficientsComputed.eqv..true.) then
    return
 endif
-if (cppComputed.eqv..false.) then
-   call computeCPP()
+if (m%cppComputed.eqv..false.) then
+   call computeCPP(m)
 endif
-allocate(sfac(np))
-allocate(sfacAvg(ne))
-allocate(fdx(3,ne))
-allocate(fdy(3,ne))
-sfac(:)=cos(sfea0*deg2rad)/cos(xyd(2,:)*deg2rad)
+allocate(m%sfac(m%np))
+allocate(m%sfacAvg(m%ne))
+allocate(m%fdx(3,m%ne))
+allocate(m%fdy(3,m%ne))
+m%sfac(:)=cos(m%sfea0*deg2rad)/cos(m%xyd(2,:)*deg2rad)
 write(6,'("INFO: Computing weighting coefficients.")')
-do i=1,ne
-   myNodes(1:3) = nm(i,1:3)
+do i=1,m%ne
+   myNodes(1:3) = m%nm(i,1:3)
    ! wrap the values around so we can easily implement a loop 
    ! around the element
    myNodes(0) = myNodes(3)
    myNodes(4) = myNodes(1)
-   sfacAvg(i) = oneThird * sum(sfac(myNodes(1:3)))
+   m%sfacAvg(i) = oneThird * sum(m%sfac(myNodes(1:3)))
    ! loop over the nodes on this element
    do j=1,3
-      fdy(j,i) = x_cpp(myNodes(j-1))-x_cpp(myNodes(j+1))         ! a1, a2, a3
-      fdx(j,i) = ( y_cpp(myNodes(j+1))-y_cpp(myNodes(j-1)) ) * sFacAvg(i) ! b1, b2, b3
+      m%fdy(j,i) = m%x_cpp(myNodes(j-1))-m%x_cpp(myNodes(j+1))         ! a1, a2, a3
+      m%fdx(j,i) = ( m%y_cpp(myNodes(j+1))-m%y_cpp(myNodes(j-1)) ) * m%sFacAvg(i) ! b1, b2, b3
    end do        
 end do
-weightingCoefficientsComputed = .true.
+m%weightingCoefficientsComputed = .true.
 write(6,'("INFO: Finished computing weighting coefficients.")')
 !-----------------------------------------------------------------------
       END SUBROUTINE computeWeightingCoefficients
@@ -1832,17 +1896,18 @@ write(6,'("INFO: Finished computing weighting coefficients.")')
 !-----------------------------------------------------------------------
 !     jgf: Compute the solution weighting coefficients.
 !-----------------------------------------------------------------------
-SUBROUTINE computeElementCentroids()
+SUBROUTINE computeElementCentroids(m)
 IMPLICIT NONE
+type(mesh_t), intent(inout) :: m ! mesh to operate on
 integer :: i
-if (cppComputed.eqv..false.) then
-   call computeCPP()
+if (m%cppComputed.eqv..false.) then
+   call computeCPP(m)
 endif
-allocate(centroids(2,ne))
+allocate(m%centroids(2,m%ne))
 write(6,'("INFO: Computing element centroids.")')
-do i=1,ne
-   centroids(1,i) = oneThird * sum(x_cpp(nm(i,1:3)))
-   centroids(2,i) = oneThird * sum(y_cpp(nm(i,1:3)))
+do i=1,m%ne
+   m%centroids(1,i) = oneThird * sum(m%x_cpp(m%nm(i,1:3)))
+   m%centroids(2,i) = oneThird * sum(m%y_cpp(m%nm(i,1:3)))
 end do
 write(6,'("INFO: Finished computing element centroids.")')
 !-----------------------------------------------------------------------
@@ -1856,65 +1921,78 @@ write(6,'("INFO: Finished computing element centroids.")')
 ! the interpolation weights for evaluating the solution at the
 ! station location.
 !-----------------------------------------------------------------------
-subroutine computeStationWeights(station)
+subroutine computeStationWeights(station, m)
 implicit none
 type(station_t), intent(inout) :: station
+type(mesh_t), intent(in) :: m ! mesh to operate on
 !
 real(8) :: x1, x2, x3 ! longitude temporary variables
 real(8) :: y1, y2, y3 ! latitude temporary variables
 real(8) :: subArea1, subArea2, subArea3, TotalArea
 integer :: e
 
-do e=1,ne
-   X1 = station%lon
-   X2 = xyd(1,nm(e,2))
-   X3 = xyd(1,nm(e,3))
-   Y1 = station%lat
-   Y2 = xyd(2,nm(e,2))
-   Y3 = xyd(2,nm(E,3))
-   SubArea1 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+if (station%elementFound.eqv..false.) then
 
-   X1 = xyd(1,nm(e,1))
-   X2 = station%lon
-   X3 = xyd(1,nm(e,3))
-   Y1 = xyd(2,nm(e,1))
-   Y2 = station%lat
-   Y3 = xyd(2,nm(e,3))
-   SubArea2 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+   do e=1,m%ne
+      X1 = station%lon
+      X2 = m%xyd(1,m%nm(e,2))
+      X3 = m%xyd(1,m%nm(e,3))
+      Y1 = station%lat
+      Y2 = m%xyd(2,m%nm(e,2))
+      Y3 = m%xyd(2,m%nm(E,3))
+      SubArea1 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+   
+      X1 = m%xyd(1,m%nm(e,1))
+      X2 = station%lon
+      X3 = m%xyd(1,m%nm(e,3))
+      Y1 = m%xyd(2,m%nm(e,1))
+      Y2 = station%lat
+      Y3 = m%xyd(2,m%nm(e,3))
+      SubArea2 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+   
+      X1 = m%xyd(1,m%nm(e,1))
+      X2 = m%xyd(1,m%nm(e,2))
+      X3 = station%lon
+      Y1 = m%xyd(2,m%nm(e,1))
+      Y2 = m%xyd(2,m%nm(e,2))
+      Y3 = station%lat
+      SubArea3 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+   
+      X1 = m%xyd(1,m%nm(e,1))
+      X2 = m%xyd(1,m%nm(e,2))
+      X3 = m%xyd(1,m%nm(e,3))
+      Y1 = m%xyd(2,m%nm(e,1))
+      Y2 = m%xyd(2,m%nm(e,2))
+      Y3 = m%xyd(2,m%nm(e,3))
+      TotalArea = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+   
+      if ((SubArea1+SubArea2+SubArea3).LE.(1.01*TotalArea))THEN
+         station%elementIndex = e
+         station%elementFound = .true.
+         exit
+      endif
+   end do
+endif
 
-   X1 = xyd(1,nm(e,1))
-   X2 = xyd(1,nm(e,2))
-   X3 = station%lon
-   Y1 = xyd(2,nm(e,1))
-   Y2 = xyd(2,nm(e,2))
-   Y3 = station%lat
-   SubArea3 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-
-   X1 = xyd(1,nm(e,1))
-   X2 = xyd(1,nm(e,2))
-   X3 = xyd(1,nm(e,3))
-   Y1 = xyd(2,nm(e,1))
-   Y2 = xyd(2,nm(e,2))
-   Y3 = xyd(2,nm(e,3))
+if (station%elementFound.eqv..true.) then
+   X1 = m%xyd(1,m%nm(station%elementIndex,1))
+   X2 = m%xyd(1,m%nm(station%elementIndex,2))
+   X3 = m%xyd(1,m%nm(station%elementIndex,3))
+   Y1 = m%xyd(2,m%nm(station%elementIndex,1))
+   Y2 = m%xyd(2,m%nm(station%elementIndex,2))
+   Y3 = m%xyd(2,m%nm(station%elementIndex,3))
    TotalArea = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-
-   IF ((SubArea1+SubArea2+SubArea3).LE.(1.01*TotalArea))THEN
-      station%elementIndex = e
-      station%weights(1) = ( (station%lon-X3)*(Y2-Y3)+(X2-X3)*(Y3-station%lat) )/TotalArea
-      station%weights(2) = ( (station%lon-X1)*(Y3-Y1)-(station%lat-Y1)*(X3-X1))/TotalArea
-      station%weights(3) = (-(station%lon-X1)*(Y2-Y1)+(station%lat-Y1)*(X2-X1))/TotalArea
-      exit
-   else  
-      station%elementIndex = 0
-      station%weights = -99999.0
-   endif    
-
-enddo
+   station%w(1) = ( (station%lon-X3)*(Y2-Y3)+(X2-X3)*(Y3-station%lat) )/TotalArea
+   station%w(2) = ( (station%lon-X1)*(Y3-Y1)-(station%lat-Y1)*(X3-X1))/TotalArea
+   station%w(3) = (-(station%lon-X1)*(Y2-Y1)+(station%lat-Y1)*(X2-X1))/TotalArea
+else  
+   station%elementIndex = 0
+   station%w = -99999.0
+endif    
 
 !-----------------------------------------------------------------------
 END SUBROUTINE computeStationWeights
 !-----------------------------------------------------------------------
-
 
 !-----+---------+---------+---------+---------+---------+---------+
    end module adcmesh

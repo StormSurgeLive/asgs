@@ -66,6 +66,8 @@ C    On garnet at ERDC, be sure to add the -tp=shanghai-64 flag to the
 C    fortran compiler flags; otherwise the executable will fail with
 C    an opaque "Illegal instruction" error message. 
 C
+C    gfortran -ffixed-line-length-none -o awip_lambert_interp.x awip_lampbert_interp.F
+C
 C
 C***********************************************************************
 
@@ -702,158 +704,158 @@ c       RLATI1=KGDS(12)*1.E-3           !commented out by RL 9/01
 c       RLATI2=KGDS(13)*1.E-3           !commented out by RL 9/01
 
      
-        H=(-1.)**IPROJ
-        HI=(-1.)**ISCAN
-        HJ=(-1.)**(1-JSCAN)
-        DXS=DX*HI
-        DYS=DY*HJ
-        IF(RLATI1.EQ.RLATI2) THEN
-          AN=SIN(H*RLATI1/DPR)
-        ELSE
-          AN=LOG(COS(RLATI1/DPR)/COS(RLATI2/DPR))/
-     &       LOG(TAN((H*90-RLATI1)/2/DPR)/TAN((H*90-RLATI2)/2/DPR))
-        ENDIF
-        DE=RERTH*COS(RLATI1/DPR)*TAN((H*RLATI1+90)/2/DPR)**AN/AN
-        IF(H*RLAT1.EQ.90) THEN
-          XP=1
-          YP=1
-        ELSE
-          DR=DE/TAN((H*RLAT1+90)/2/DPR)**AN
-          DLON1=MOD(RLON1-ORIENT+180+3600,360.)-180
-          XP=1-H*SIN(AN*DLON1/DPR)*DR/DXS
-          YP=1+COS(AN*DLON1/DPR)*DR/DYS
-        ENDIF
-        ANTR=1/(2*AN)
-        DE2=DE**2
-c       XMIN=0                          !commented out by RL 9/01
-c       XMAX=IM+1                       !commented out by RL 9/01
-c       YMIN=0                          !commented out by RL 9/01
-c       YMAX=JM+1                       !commented out by RL 9/01
-        XMIN=1                          !added by RL 9/01
-        YMIN=1                          !added by RL 9/01
-        XMAX=IM                         !added by RL 9/01
-        YMAX=JM                         !added by RL 9/01
-        NRET=0
+         H=(-1.)**IPROJ
+         HI=(-1.)**ISCAN
+         HJ=(-1.)**(1-JSCAN)
+         DXS=DX*HI
+         DYS=DY*HJ
+         IF(RLATI1.EQ.RLATI2) THEN
+            AN=SIN(H*RLATI1/DPR)
+         ELSE
+            AN=LOG(COS(RLATI1/DPR)/COS(RLATI2/DPR))/
+     &           LOG(TAN((H*90-RLATI1)/2/DPR)/TAN((H*90-RLATI2)/2/DPR))
+         ENDIF
+         DE=RERTH*COS(RLATI1/DPR)*TAN((H*RLATI1+90)/2/DPR)**AN/AN
+         IF(H*RLAT1.EQ.90) THEN
+            XP=1
+            YP=1
+         ELSE
+            DR=DE/TAN((H*RLAT1+90)/2/DPR)**AN
+            DLON1=MOD(RLON1-ORIENT+180+3600,360.)-180
+            XP=1-H*SIN(AN*DLON1/DPR)*DR/DXS
+            YP=1+COS(AN*DLON1/DPR)*DR/DYS
+         ENDIF
+         ANTR=1/(2*AN)
+         DE2=DE**2
+c        XMIN=0                          !commented out by RL 9/01
+c        XMAX=IM+1                       !commented out by RL 9/01
+c        YMIN=0                          !commented out by RL 9/01
+c        YMAX=JM+1                       !commented out by RL 9/01
+         XMIN=1                          !added by RL 9/01
+         YMIN=1                          !added by RL 9/01
+         XMAX=IM                         !added by RL 9/01
+         YMAX=JM                         !added by RL 9/01
+         NRET=0
 
 C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 C  TRANSLATE GRID COORDINATES TO EARTH COORDINATES
-        IF(IOPT.EQ.0.OR.IOPT.EQ.1) THEN
-          DO N=1,NPTS
-            IF(XPTS(N).GE.XMIN.AND.XPTS(N).LE.XMAX.AND.
-     &         YPTS(N).GE.YMIN.AND.YPTS(N).LE.YMAX) THEN
-              DI=(XPTS(N)-XP)*DXS
-              DJ=(YPTS(N)-YP)*DYS
-              DR2=DI**2+DJ**2
-              IF(DR2.LT.DE2*1.E-6) THEN
-                RLON(N)=0.
-                RLAT(N)=H*90.
-              ELSE
-                RLON(N)=MOD(ORIENT+H/AN*DPR*ATAN2(DI,-DJ)+3600,360.)
-                RLAT(N)=H*(2*DPR*ATAN((DE2/DR2)**ANTR)-90)
-              ENDIF
-              NRET=NRET+1
-              IF(LROT.EQ.1) THEN
-                IF(IROT.EQ.1) THEN
-                  DLON=MOD(RLON(N)-ORIENT+180+3600,360.)-180
-                  CROT(N)=H*COS(AN*DLON/DPR)
-                  SROT(N)=SIN(AN*DLON/DPR)
-                ELSE
-                  CROT(N)=1
-                  SROT(N)=0
-                ENDIF
-              ENDIF
-              IF(LMAP.EQ.1) THEN
-                DR=SQRT(DR2)
-                DLON=MOD(RLON(N)-ORIENT+180+3600,360.)-180
-                CLAT=COS(RLAT(N)/DPR)
-                IF(CLAT.LE.0.OR.DR.LE.0) THEN
-                  XLON(N)=FILL
-                  XLAT(N)=FILL
-                  YLON(N)=FILL
-                  YLAT(N)=FILL
-                  AREA(N)=FILL
-                ELSE
-                  XLON(N)=H*COS(AN*DLON/DPR)*AN/DPR*DR/DXS
-                  XLAT(N)=-SIN(AN*DLON/DPR)*AN/DPR*DR/DXS/CLAT
-                  YLON(N)=SIN(AN*DLON/DPR)*AN/DPR*DR/DYS
-                  YLAT(N)=H*COS(AN*DLON/DPR)*AN/DPR*DR/DYS/CLAT
-                  AREA(N)=RERTH**2*CLAT**2*DXS*DYS/(AN*DR)**2
-                ENDIF
-              ENDIF
-            ELSE
-              RLON(N)=FILL
-              RLAT(N)=FILL
-            ENDIF
-          ENDDO
-C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-C  TRANSLATE EARTH COORDINATES TO GRID COORDINATES
-        ELSEIF(IOPT.EQ.-1) THEN
-          DO N=1,NPTS
-            IF(ABS(RLON(N)).LE.360.AND.ABS(RLAT(N)).LE.90.AND.
-     &                                 H*RLAT(N).NE.-90) THEN
-              DR=DE*TAN((90-H*RLAT(N))/2/DPR)**AN
-              DLON=MOD(RLON(N)-ORIENT+180+3600,360.)-180
-              XPTS(N)=XP+H*SIN(AN*DLON/DPR)*DR/DXS
-              YPTS(N)=YP-COS(AN*DLON/DPR)*DR/DYS
-              IF(XPTS(N).LE.XMIN) XPTS(N)=XMIN+0.0001          !added by RL 9/01
-              IF(XPTS(N).GE.XMAX) XPTS(N)=XMAX-0.0001          !added by RL 9/01
-              IF(YPTS(N).LE.YMIN) YPTS(N)=YMIN+0.0001          !added by RL 9/01
-              IF(YPTS(N).GE.YMAX) YPTS(N)=YMAX-0.0001          !added by RL 9/01
-              IF(XPTS(N).GE.XMIN.AND.XPTS(N).LE.XMAX.AND.
-     &           YPTS(N).GE.YMIN.AND.YPTS(N).LE.YMAX) THEN
-
-                NRET=NRET+1
-                IF(LROT.EQ.1) THEN
-                  IF(IROT.EQ.1) THEN
-                    CROT(N)=H*COS(AN*DLON/DPR)
-                    SROT(N)=SIN(AN*DLON/DPR)
-                    ELSE
-                    CROT(N)=1
-                    SROT(N)=0
-                    ENDIF
+         IF(IOPT.EQ.0.OR.IOPT.EQ.1) THEN ! unreachable b/c iopt was hardcoded to -1
+            DO N=1,NPTS
+               IF(XPTS(N).GE.XMIN.AND.XPTS(N).LE.XMAX.AND.
+     &             YPTS(N).GE.YMIN.AND.YPTS(N).LE.YMAX) THEN
+                  DI=(XPTS(N)-XP)*DXS
+                  DJ=(YPTS(N)-YP)*DYS
+                  DR2=DI**2+DJ**2
+                  IF(DR2.LT.DE2*1.E-6) THEN
+                     RLON(N)=0.
+                     RLAT(N)=H*90.
+                  ELSE
+                     RLON(N)=MOD(ORIENT+H/AN*DPR*ATAN2(DI,-DJ)+3600,360.)
+                     RLAT(N)=H*(2*DPR*ATAN((DE2/DR2)**ANTR)-90)
                   ENDIF
-                IF(LMAP.EQ.1) THEN
-                  CLAT=COS(RLAT(N)/DPR)
-                  IF(CLAT.LE.0.OR.DR.LE.0) THEN
-                    XLON(N)=FILL
-                    XLAT(N)=FILL
-                    YLON(N)=FILL
-                    YLAT(N)=FILL
-                    AREA(N)=FILL
-                    ELSE
-                    XLON(N)=H*COS(AN*DLON/DPR)*AN/DPR*DR/DXS
-                    XLAT(N)=-SIN(AN*DLON/DPR)*AN/DPR*DR/DXS/CLAT
-                    YLON(N)=SIN(AN*DLON/DPR)*AN/DPR*DR/DYS
-                    YLAT(N)=H*COS(AN*DLON/DPR)*AN/DPR*DR/DYS/CLAT
-                    AREA(N)=RERTH**2*CLAT**2*DXS*DYS/(AN*DR)**2
-                    ENDIF
+                  NRET=NRET+1
+                  IF(LROT.EQ.1) THEN
+                     IF(IROT.EQ.1) THEN
+                        DLON=MOD(RLON(N)-ORIENT+180+3600,360.)-180
+                        CROT(N)=H*COS(AN*DLON/DPR)
+                        SROT(N)=SIN(AN*DLON/DPR)
+                     ELSE
+                        CROT(N)=1
+                       SROT(N)=0
+                     ENDIF
                   ENDIF
-                ELSE
-                XPTS(N)=FILL
-                YPTS(N)=FILL
-                ENDIF
-              ELSE
-              XPTS(N)=FILL
-              YPTS(N)=FILL
-              ENDIF
+                  IF(LMAP.EQ.1) THEN
+                     DR=SQRT(DR2)
+                     DLON=MOD(RLON(N)-ORIENT+180+3600,360.)-180
+                     CLAT=COS(RLAT(N)/DPR)
+                     IF(CLAT.LE.0.OR.DR.LE.0) THEN
+                        XLON(N)=FILL
+                        XLAT(N)=FILL
+                        YLON(N)=FILL
+                        YLAT(N)=FILL
+                        AREA(N)=FILL
+                     ELSE
+                        XLON(N)=H*COS(AN*DLON/DPR)*AN/DPR*DR/DXS
+                        XLAT(N)=-SIN(AN*DLON/DPR)*AN/DPR*DR/DXS/CLAT
+                        YLON(N)=SIN(AN*DLON/DPR)*AN/DPR*DR/DYS
+                        YLAT(N)=H*COS(AN*DLON/DPR)*AN/DPR*DR/DYS/CLAT
+                        AREA(N)=RERTH**2*CLAT**2*DXS*DYS/(AN*DR)**2
+                     ENDIF
+                  ENDIF
+               ELSE
+                  RLON(N)=FILL
+                  RLAT(N)=FILL
+               ENDIF
             ENDDO
-          ENDIF
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+C           TRANSLATE EARTH COORDINATES TO GRID COORDINATES
+         ELSEIF(IOPT.EQ.-1) THEN ! always executed b/c iopt hardcoded to -1 above
+            DO N=1,NPTS
+               IF(ABS(RLON(N)).LE.360.AND.ABS(RLAT(N)).LE.90.AND.
+     &                                 H*RLAT(N).NE.-90) THEN
+                  DR=DE*TAN((90-H*RLAT(N))/2/DPR)**AN
+                  DLON=MOD(RLON(N)-ORIENT+180+3600,360.)-180
+                  XPTS(N)=XP+H*SIN(AN*DLON/DPR)*DR/DXS
+                  YPTS(N)=YP-COS(AN*DLON/DPR)*DR/DYS
+                  IF(XPTS(N).LE.XMIN) XPTS(N)=XMIN+0.0001  ! added by RL 9/01
+                  IF(XPTS(N).GE.XMAX) XPTS(N)=XMAX-0.0001  ! added by RL 9/01
+                  IF(YPTS(N).LE.YMIN) YPTS(N)=YMIN+0.0001  ! added by RL 9/01
+                  IF(YPTS(N).GE.YMAX) YPTS(N)=YMAX-0.0001  ! added by RL 9/01
+                  IF(XPTS(N).GE.XMIN.AND.XPTS(N).LE.XMAX.AND.
+     &               YPTS(N).GE.YMIN.AND.YPTS(N).LE.YMAX) THEN
+
+                     NRET=NRET+1
+                     IF (LROT.EQ.1) THEN
+                        IF(IROT.EQ.1) THEN
+                           CROT(N)=H*COS(AN*DLON/DPR)
+                           SROT(N)=SIN(AN*DLON/DPR)
+                        ELSE
+                           CROT(N)=1
+                           SROT(N)=0
+                        ENDIF
+                     ENDIF
+                     IF (LMAP.EQ.1) THEN
+                        CLAT=COS(RLAT(N)/DPR)
+                        IF (CLAT.LE.0.OR.DR.LE.0) THEN
+                           XLON(N)=FILL
+                           XLAT(N)=FILL
+                           YLON(N)=FILL
+                           YLAT(N)=FILL
+                           AREA(N)=FILL
+                        ELSE
+                           XLON(N)=H*COS(AN*DLON/DPR)*AN/DPR*DR/DXS
+                           XLAT(N)=-SIN(AN*DLON/DPR)*AN/DPR*DR/DXS/CLAT
+                           YLON(N)=SIN(AN*DLON/DPR)*AN/DPR*DR/DYS
+                           YLAT(N)=H*COS(AN*DLON/DPR)*AN/DPR*DR/DYS/CLAT
+                           AREA(N)=RERTH**2*CLAT**2*DXS*DYS/(AN*DR)**2
+                        ENDIF
+                     ENDIF
+                  ELSE
+                     XPTS(N)=FILL
+                     YPTS(N)=FILL
+                  ENDIF
+               ELSE
+                  XPTS(N)=FILL
+                  YPTS(N)=FILL
+               ENDIF
+            ENDDO
+         ENDIF
 C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 C  PROJECTION UNRECOGNIZED
       ELSE
-        NRET=-1 ! jgf20100324 changed this from the nonexistent variable IRET
-        IF(IOPT.GE.0) THEN
-          DO N=1,NPTS
-            RLON(N)=FILL
-            RLAT(N)=FILL
-          ENDDO
-        ENDIF
-        IF(IOPT.LE.0) THEN
-          DO N=1,NPTS
-            XPTS(N)=FILL
-            YPTS(N)=FILL
-          ENDDO
-        ENDIF
+         NRET=-1 ! jgf20100324 changed this from the nonexistent variable IRET
+         IF(IOPT.GE.0) THEN
+            DO N=1,NPTS
+               RLON(N)=FILL
+               RLAT(N)=FILL
+            ENDDO
+         ENDIF
+         IF(IOPT.LE.0) THEN
+            DO N=1,NPTS
+               XPTS(N)=FILL
+               YPTS(N)=FILL
+            ENDDO
+         ENDIF
       ENDIF
 C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

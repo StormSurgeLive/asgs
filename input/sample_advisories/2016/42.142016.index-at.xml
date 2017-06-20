@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sat, 08 Oct 2016 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane MATTHEW Forecast/Advisory Number 42</title>
+      <description>Issued at 1500 UTC SAT OCT 08 2016 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+ 
+HURRICANE MATTHEW FORECAST/ADVISORY NUMBER  42
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL142016
+1500 UTC SAT OCT 08 2016
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+NONE.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A HURRICANE WARNING IS IN EFFECT FOR...
+* NORTH OF ALTAMAHA SOUND TO SURF CITY
+ 
+A HURRICANE WATCH IS IN EFFECT FOR...
+* NORTH OF SURF CITY TO CAPE LOOKOUT
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* NORTH OF SURF CITY TO DUCK
+* PAMLICO AND ALBEMARLE SOUNDS
+ 
+HURRICANE CENTER LOCATED NEAR 33.0N  79.4W AT 08/1500Z
+POSITION ACCURATE WITHIN  15 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTHEAST OR  55 DEGREES AT  10 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  967 MB
+MAX SUSTAINED WINDS  65 KT WITH GUSTS TO  80 KT.
+64 KT....... 20NE  20SE   0SW   0NW.
+50 KT....... 60NE  50SE  30SW  30NW.
+34 KT.......160NE 140SE  80SW  70NW.
+12 FT SEAS..300NE 240SE  60SW  30NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 33.0N  79.4W AT 08/1500Z
+AT 08/1200Z CENTER WAS LOCATED NEAR 32.5N  79.9W
+ 
+FORECAST VALID 09/0000Z 33.6N  78.0W
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 60NE  50SE  20SW  30NW.
+34 KT...170NE 140SE  60SW  60NW.
+ 
+FORECAST VALID 09/1200Z 34.0N  75.5W
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 30NE  75SE  75SW  40NW.
+34 KT...200NE 150SE 200SW  75NW.
+ 
+FORECAST VALID 10/0000Z 34.0N  73.0W...POST-TROP/EXTRATROP
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT...  0NE   0SE  80SW  80NW.
+34 KT...175NE 175SE 200SW 200NW.
+ 
+FORECAST VALID 10/1200Z 33.0N  72.0W...POST-TROP/EXTRATROP
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT...300NE   0SE   0SW 300NW.
+ 
+FORECAST VALID 11/1200Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 33.0N  79.4W
+ 
+NEXT ADVISORY AT 08/2100Z
+ 
+$$
+FORECASTER AVILA
+
+</pre>]]></description>
+      <pubDate>Sat, 08 Oct 2016 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2016/14/42.142016.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2016/14/42.142016.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

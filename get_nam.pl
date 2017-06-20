@@ -228,9 +228,9 @@ unless ( -e $cycletime."/nowcast" ) {
       die;
    }
 }
-unless ( -e $cycletime."/namforecast" ) { 
-   unless ( mkdir($cycletime."/namforecast",0777) ) {
-      stderrMessage("ERROR","Could not make directory '$cycletime/namforecast': $!.");
+unless ( -e $cycletime."/$enstorm" ) { 
+   unless ( mkdir($cycletime."/$enstorm",0777) ) {
+      stderrMessage("ERROR","Could not make directory '$cycletime/$enstorm': $!.");
       die;
    }
 }
@@ -409,7 +409,7 @@ sub getForecastData() {
    stderrMessage("DEBUG","The cycle time for the forecast is '$cycletime'.");
    close(CYCLENUM);
    printf FP "forecastValidStart : $cycletime" . "0000\n";
-   my $localDir = $cycletime."/namforecast";
+   my $localDir = $cycletime."/$enstorm"; 
    my $cycledate = substr($cycletime,0,8);
    my $cyclehour = substr($cycletime,-2,2);
    $cycledate =~ /(\d\d\d\d)(\d\d)(\d\d)/;
@@ -484,7 +484,7 @@ sub getForecastData() {
          push(@prev_dirs,$rundir);
          push(@prev_dirs,$archivedruns);
          foreach my $dir (@prev_dirs) {
-            if ( -e "$dir/$previous_cycle/namforecast/padcswan.namforecast.run.finish" || -e "$dir/$previous_cycle/namforecast/padcirc.namforecast.run.finish" ) {
+            if ( -e "$dir/$previous_cycle/$enstorm/padcswan.$enstorm.run.finish" || -e "$dir/$previous_cycle/$enstorm/padcirc.$enstorm.run.finish" ) {
                $earlier_success = 1; 
                stderrMessage("DEBUG","The previous cycle completed successfully and was found at '$dir/$previous_cycle'.");
                last;
