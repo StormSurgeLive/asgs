@@ -52,10 +52,13 @@ ifeq ($(compiler),gfortran)
    FC := gfortran
    FFLAGS := -O2 -cpp -ffree-line-length-none
    ifeq ($(DEBUG),full)
-      FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal #-Wall
+      FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal -DDEBUGSEGFAULT
    endif
    ifeq ($(DEBUG),trace)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace 
+   endif
+   ifeq ($(MACHINENAME),jason-desktop)
+      FFLAGS := $(FFLAGS) -DOLDGFORTRAN 
    endif
 endif
 #
@@ -70,7 +73,7 @@ ifeq ($(compiler),intel)
       FFLAGS := -g -O0 -fpp -traceback 
    endif
    ifeq ($(DEBUG),full)
-      FFLAGS := -cpp -g -O0 -traceback -debug all -check all -ftrapuv -fpe0 -i-dynamic  
+      FFLAGS := -cpp -g -O0 -traceback -debug all -check all -ftrapuv -fpe0 -i-dynamic -DDEBUGSEGFAULT
    endif
    # jgf20150616: Added to implement nld's -heap-arrays fix.
    ifeq ($(HEAP_ARRAYS),fix)
@@ -83,7 +86,7 @@ ifeq ($(compiler),pgf90)
    FC := pgf90
    FFLAGS := -Mpreprocess -Mextend -Minform,inform -tp=shanghai-64 -fast
    ifeq ($(DEBUG),full)
-      FFLAGS := -Mextend -g -O0 -traceback -Mbounds -Mchkfpstk -Mchkptr -Mchkstk -DALL_TRACE -DFLUSH_MESSAGES -DFULL_STACK -tp=shanghai-64
+      FFLAGS := -Mextend -g -O0 -traceback -Mbounds -Mchkfpstk -Mchkptr -Mchkstk -DALL_TRACE -DFLUSH_MESSAGES -DFULL_STACK -tp=shanghai-64 -DDEBUGSEGFAULT
    endif
 endif
 #
@@ -142,31 +145,34 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := adcmesh.o asgsio.o adcircdata.o nodalattr.o
-MODS := adcmesh.mod asgsio.mod adcircdata.mod nodalattr.mod
+OBJ := adcmesh.o asgsio.o nodalattr.o logging.o 
+MODS := adcmesh.mod asgsio.mod nodalattr.mod logging.mod
 #
 # targets
-all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN checkAdcircMesh resultScope highResolutionRegion
+all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN checkAdcircMesh resultScope highResolutionRegion stationProcessor
 #
 clean :
 	rm -f *.o *.mod *.x
 #
-adcirc2netcdf : $(MODS) adcirc2netcdf.f90 nodalattr.mod
+adcirc2netcdf : $(MODS) adcirc2netcdf.f90 nodalattr.mod logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
 netcdf2adcirc : $(MODS) netcdf2adcirc.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-asgsio.mod : asgsio.f90 
+asgsio.mod : logging.mod ioutil.mod adcmesh.mod asgsio.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c asgsio.f90 $(LDFLAGS)
 #
-adcmesh.mod : adcmesh.f90 asgsio.mod
+adcmesh.mod : adcmesh.f90 logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c adcmesh.f90 $(LDFLAGS)
 #
-adcircdata.mod : adcircdata.f90 adcmesh.mod asgsio.mod 
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c adcircdata.f90 $(LDFLAGS)
+logging.mod : logging.f90 
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c logging.f90 $(LDFLAGS)
+#
+ioutil.mod : logging.f90 
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c logging.f90 $(LDFLAGS)
 # 
-makeMax : asgsio.mod adcmesh.mod adcircdata.mod ../util/makeMax.f90
+makeMax : asgsio.mod adcmesh.mod ../util/makeMax.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o ../util/$@.x ../util/$@.f90 $(OBJ) $(LDFLAGS)
 # 
 inundationMask : $(MODS) inundationMask.f90
@@ -178,26 +184,29 @@ highResolutionRegion : adcmesh.mod highResolutionRegion.f90
 checkAdcircMesh : $(MODS) checkAdcircMesh.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-generateXDMF : adcmesh.mod asgsio.mod generateXDMF.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o $(LDFLAGS)
+generateXDMF : adcmesh.mod asgsio.mod logging.mod generateXDMF.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o logging.o $(LDFLAGS)
 #
 generateCPP : adcmesh.mod generateCPP.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-pullStationTimeSeries : asgsio.mod adcmesh.mod adcircdata.mod nodalattr.mod pullStationTimeSeries.f90
+pullStationTimeSeries : asgsio.mod adcmesh.mod nodalattr.mod pullStationTimeSeries.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+#
+stationProcessor : asgsio.mod adcmesh.mod stationProcessor.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 asgsio.o adcmesh.o logging.o $(LDFLAGS)
 #
 wetDryCheck : adcmesh.mod asgsio.mod wetDryCheck.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o $(LDFLAGS)
 #
-diffAdcircNetCDF : adcmesh.mod adcircdata.mod asgsio.mod diffAdcircNetCDF.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o adcircdata.o $(LDFLAGS)
+diffAdcircNetCDF : adcmesh.mod asgsio.mod diffAdcircNetCDF.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o $(LDFLAGS)
 #
 HottifySWAN : HottifySWAN.F90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.F90 $(LDFLAGS)
 #
-resultScope : adcmesh.mod adcircdata.mod asgsio.mod resultScope.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o adcircdata.o asgsio.o $(LDFLAGS)
+resultScope : adcmesh.mod asgsio.mod resultScope.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-nodalattr.mod : ../util/nodalattr/nodalattr.f90 adcmesh.mod adcircdata.mod asgsio.mod
+nodalattr.mod : ../util/nodalattr/nodalattr.f90 adcmesh.mod asgsio.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c ../util/nodalattr/nodalattr.f90 $(LDFLAGS)

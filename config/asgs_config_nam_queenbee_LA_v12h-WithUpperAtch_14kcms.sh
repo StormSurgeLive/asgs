@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2016 Jason Fleming
+# Copyright(C) 2016--2017 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -47,7 +47,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=on     # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=off  # tropical cyclone forcing
-WAVES=off            # wave forcing
+WAVES=on             # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
@@ -63,7 +63,7 @@ NCPUCAPACITY=480
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=workq
 SERQUEUE=single
-ACCOUNT=loni_cera_2016
+ACCOUNT=loni_cera_2017
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones
@@ -82,7 +82,7 @@ HDIR=${INPUTDIR}/sample_advisories
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06,18"
+FORECASTCYCLE="00,06,12,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -101,9 +101,9 @@ GRIDNAME=LA_v12h-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=LA_v12g-WithUpperAtch_chk_14kcms.15.template   # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=cpra2017v12.cera_stations.20160702
-VELSTATIONS=cpra2017v12.cera_stations.20160702
-METSTATIONS=cpra2017v12.cera_stations.20160702
+ELEVSTATIONS=cpra2017v12.cera_stations.20161222
+VELSTATIONS=cpra2017v12.cera_stations.20161222
+METSTATIONS=cpra2017v12.cera_stations.20161222
 NAFILE=LA_v12g-WithUpperAtch-updated.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=LA_v12g-WithUpperAtch.26.template   # only used if WAVES=on
@@ -158,7 +158,7 @@ POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
-TDS=(lsu_tds renci_tds)
+TDS=(renci_tds lsu_tds)
 TARGET=queenbee  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via

@@ -41,7 +41,7 @@ this way you end up effective only replacing the values where you
 have newer/better data, while values at points where you don't have 
 new data get preserved.  
 
-email if you have questions or run into any problems ndill(AT)whgrp.com
+email if you have questions or run into any problems natedill(AT)gmail.com
 
 -Nate Dill
 
@@ -54,3 +54,25 @@ INSERT_GRID.f - (uses GRIDSTUFF.f module) will insert one grid into another
 STATIONS2KML.f - (uses GRIDSTUFF.f module) makes a kml file showing a small
  cutoutof the grid around each specified station location. helps to identify
  if stations are in the proper place.
+
+indx_interp.f - A program that indexes one grid to another. It first 
+ attempts to find a node-to-node corresponding index between nodes in the two 
+ grids using a nearest-neighbor type search within a specified search distance. 
+ If a node is found within the initial search distance then the nodes are 
+ assumed to be in essentiall the same location and the node number from the 
+ "original" grid corresponding to the node number in the "new" grid is recorded.
+ If a node is not found within the initial search distance the grid elements 
+ are searched in an attempt to find an element in the original grid that 
+ contains the new node. If the new node is found within an origiinal grid element
+ the corresponding original grid element number is recorded and linear
+ interpoaltion coefficients are determine that can be used later interpolate
+ scalar values from the original grid element onto the new node position.  If 
+ a new node is not found with the initial search distance or within a grid 
+ element the inital search distance in increased (to a point) until a nearest-
+ neighbor can be found.
+
+interp_13.f - This program uses the output from indx_interp.f (INDX.OUT
+ renamed to INDX.IN) to interpolate the nodal attributes from the "original"
+ grid onto the "new" grid. It creates a new nodal attribute file named
+ newfort.13 as output.    
+

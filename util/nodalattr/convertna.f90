@@ -5,7 +5,7 @@
 ! a nodal attribute from one mesh to another.
 !
 !--------------------------------------------------------------------------
-! Copyright(C) 2012-2015 Jason Fleming
+! Copyright(C) 2012-2017 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -26,18 +26,14 @@
 !--------------------------------------------------------------------------
 program convertna
 use adcmesh
-use asgsio, only : openFileForRead
+use ioutil
+use logging
 use nodalattr
 implicit none
+type(mesh_t) :: tm  ! target mesh
+type(mesh_t) :: sm  ! source mesh
 character(len=1024) :: outputfile
-character(len=1024) :: targetMeshFileName
 character(len=1024) :: naName
-character(len=1024) :: targetAgrid ! comment line from the target mesh file
-integer :: targetNE ! number of elements in target mesh
-integer :: targetNP ! number of nodes in target mesh
-real(8), allocatable :: targetXYD(:,:) ! node table for the target mesh
-real(8), allocatable :: targetXCPP(:) ! (m) x coords of target mesh nodes in CPP
-real(8), allocatable :: targetYCPP(:) ! (m) y coords of targen mesh nodes in CPP
 real(8), allocatable :: targetNodalAttribute(:,:) ! (numVals,targetNP)
 real(8), allocatable :: sourceNodalAttribute(:,:) ! (numVals, np)
 real(8), allocatable :: dist(:) ! (np) distance (deg) from target node to each source node
@@ -50,9 +46,8 @@ logical :: write63 ! .true. if the n.a. data should be written to ascii fort.63 
 integer :: chunk ! reporting 10% for progress bar
 integer :: step  ! reporting 3.33% for progress bar
 integer :: progress ! percent progress reading file
-character(1024) :: cmdlinearg
-character(1024) :: cmdlineopt
-integer :: argcount
+integer :: errorIO
+integer :: naUnit
 integer :: i, j, jn
 !
 ! initializations
@@ -67,11 +62,11 @@ do while (i.lt.argcount)
    i = i + 1
    call getarg(i, cmdlineopt)
    select case(trim(cmdlineopt))
-   case("--meshfile")
+   case("--source-meshfile")
       i = i + 1
       call getarg(i, cmdlinearg)
       write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
-      meshFileName = trim(cmdlinearg)
+      sm%meshFileName = trim(cmdlinearg)
    case("--nodal-attributes-file")
       i = i + 1
       call getarg(i, cmdlinearg)
@@ -91,7 +86,7 @@ do while (i.lt.argcount)
       i = i + 1
       call getarg(i, cmdlinearg)
       write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
-      targetMeshFileName = trim(cmdlinearg)
+      tm%MeshFileName = trim(cmdlinearg)
    case("--write63")
       write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
       write63 = .true.
@@ -102,11 +97,13 @@ do while (i.lt.argcount)
       write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
       i = i + 1
       call getarg(i, cmdlinearg)
-      read(cmdlinearg,*) slam0
+      read(cmdlinearg,*) sm%slam0
+      tm%slam0 = sm%slam0
       i = i + 1
       call getarg(i, cmdlinearg)
-      read(cmdlinearg,*) sfea0
-      write(6,*) "INFO: slam0=",slam0," and sfea0=",sfea0,"."
+      read(cmdlinearg,*) sm%sfea0
+      tm%sfea0 = sm%sfea0
+      write(6,*) "INFO: slam0=",sm%slam0," and sfea0=",sm%sfea0,"."
    case default
       write(6,*) "WARNING: Command line option ",i," '",TRIM(cmdlineopt),"' was not recognized."
    end select
@@ -125,40 +122,30 @@ endif
 if (interpolate.eqv..true.) then
    ! Open and read the mesh file.
    write(6,'(a)') 'INFO: Reading source mesh file.'
-   call read14()
+   call read14(sm)
    write(6,'(a)') 'INFO: Finished reading source mesh file.'
    write(6,'(a)') 'INFO: Computing neighbor table for source mesh file.'
-   call computeNeighborTable()
+   call computeNeighborTable(sm)
    write(6,'(a)') 'INFO: Finished computing neighbor table for source mesh file.'
    write(6,'(a)') 'INFO: Computing neighbor edge length table for source mesh file.'
-   call computeNeighborEdgeLengthTable()
+   call computeNeighborEdgeLengthTable(sm)
    write(6,'(a)') 'INFO: Finished computing neighbor edge length table for source mesh file.'
    ! read the node table from the target mesh file so we can use the node
    ! locations for interpolations
    write(6,*) 'INFO: Reading target mesh file.'
-   call openFileForRead(144,targetMeshFileName)
-   read(144,*) targetAgrid
-   read(144,*) targetNE, targetNP
-   allocate(targetXYD(3,targetNP))
-   do i=1, targetNP
-      read(144,*) jn, (targetXYD(j,i), j=1,3)
-   end do
-   close(144)
+   call read14(tm)
    write(6,*) 'INFO: Finished reading target mesh file.'
    ! compute the cpp projection
-   allocate(targetXCPP(targetNP))
-   allocate(targetYCPP(targetNP))
-   targetXCPP = R * (targetXYD(1,:)*deg2rad - slam0*deg2rad) * cos(sfea0*deg2rad)
-   targetYCPP = targetXYD(2,:)*deg2rad * R
+   call computeCPP(tm)
    !
    ! now go through the target nodes and match the nodal attributes
    ! to the ones from the source mesh
-   allocate(targetNodalAttribute(na(1)%numVals,targetNP))
-   allocate(sourceNodalAttribute(na(1)%numVals,np))
+   allocate(targetNodalAttribute(na(1)%numVals,tm%np))
+   allocate(sourceNodalAttribute(na(1)%numVals,sm%np))
    ! populate full array of source nodal attribute so we can grab data
    ! from it at any location
    write(6,*) 'INFO: Fully populating source nodal attribute array.'
-   do i=1,np
+   do i=1,sm%np
       sourceNodalAttribute(:,i) = na(1)%defaultVals(:)
    end do
    do i=1,na(1)%numNodesNotDefault
@@ -168,9 +155,9 @@ if (interpolate.eqv..true.) then
    write(6,*) 'INFO: Assigning target nodal attributes.'
    ! compute parameters related to printing a progress bar
    progress=10
-   chunk=targetNP/10
-   step=targetNP/30
-   do i=1,targetNP
+   chunk=tm%np/10
+   step=tm%np/30
+   do i=1,tm%np
       ! update progress bar
       !write(*,*) i
       if (mod(i,chunk).eq.0) then
@@ -182,8 +169,8 @@ if (interpolate.eqv..true.) then
       ! calculate the distance between this node and each node in the source
       ! mesh that does not have a default nodal attribute value
       do j=1,na(1)%numNodesNotDefault
-         dist(j) = sqrt( (targetXCPP(i)-x_cpp(na(1)%nonDefaultNodes(j)))**2 & 
-           + (targetYCPP(i)-y_cpp(na(1)%nonDefaultNodes(j)))**2 )
+         dist(j) = sqrt( (tm%x_cpp(i)-sm%x_cpp(na(1)%nonDefaultNodes(j)))**2 & 
+           + (tm%y_cpp(i)-sm%y_cpp(na(1)%nonDefaultNodes(j)))**2 )
       end do
       ! find the node number of the closest node
       sourceNodeNumber = na(1)%nonDefaultNodes(minloc(dist,1))
@@ -192,7 +179,7 @@ if (interpolate.eqv..true.) then
       ! to the source node's nearest neighbor, then the target node has
       ! the same nodal attribute value as the source node; otherwise the
       ! target node has the default value
-      closestSourceNeighbor = minval(neighborEdgeLengthTable(sourceNodeNumber,2:nneigh(sourceNodeNumber)))
+      closestSourceNeighbor = minval(sm%neighborEdgeLengthTable(sourceNodeNumber,2:sm%nneigh(sourceNodeNumber)))
       if (proximity.lt.closestSourceNeighbor) then
          targetNodalAttribute(:,i) = sourceNodalAttribute(:,sourceNodeNumber)
       else 
@@ -202,9 +189,9 @@ if (interpolate.eqv..true.) then
    write(6,*) 'INFO: Finished assigning target nodal attributes.'
    write(6,*) 'INFO: Writing target nodal attributes.'
    ! count the nondefault values
-   allocate(areDefaultValues(np))
+   allocate(areDefaultValues(sm%np))
    areDefaultValues = .true.
-   do i=1,np  
+   do i=1,sm%np  
       do j=1,na(1)%numVals
         ! if any of the nodal attribute values at this node are different
         ! from the default value(s), then this is a non default node
@@ -214,16 +201,17 @@ if (interpolate.eqv..true.) then
          endif
       end do
    enddo
-   open(12,file=trim(outputfile),action='write',status='replace')
-   write(12,'(A)') trim(naName)
+   naUnit = availableUnitNumber()
+   open(naUnit,file=trim(outputfile),action='write',status='replace')
+   write(naUnit,'(A)') trim(naName)
    ! write the number of nondefault values
-   write(12,*) count(areDefaultValues.eqv..false.)
-   do i=1,np
+   write(naUnit,*) count(areDefaultValues.eqv..false.)
+   do i=1,sm%np
       if (areDefaultValues(i).eqv..false.) then
-         write(12,130) i,(targetNodalAttribute(j,i), j=1,na(1)%numVals) 
+         write(naUnit,130) i,(targetNodalAttribute(j,i), j=1,na(1)%numVals) 
       endif
    end do
-   close(12)
+   close(naUnit)
    write(6,*) 'INFO: Finished writing nondefault surface roughness values.'
    130   format(i0,12(2x,f15.7))
 endif

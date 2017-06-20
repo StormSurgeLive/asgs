@@ -54,6 +54,48 @@ env_dispatch ${TARGET}
 . ${CONFIG}
 #
 export PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
+#-----------------------------------------------------------------------
+# O P E N  D A P    P U B L I C A T I O N 
+#-----------------------------------------------------------------------
+logMessage "Creating list of files to post to opendap."
+FILES=(`ls *.nc ${ADVISDIR}/al*.fst ${ADVISDIR}/bal*.dat fort.15 fort.22 run.properties`)
+#
+# For each opendap server in the list in ASGS config file.
+primaryCount=0
+for server in ${TDS[*]}; do
+   logMessage "Posting to $server opendap with opendap_post.sh using the following command: ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server \"${FILES[*]}\" $OPENDAPNOTIFY"
+   ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server "${FILES[*]}" $OPENDAPNOTIFY >> ${SYSLOG} 2>&1
+   # add downloadurl_backup propert(ies) to 
+
+   # add downloadurl_backup propert(ies) to the properties file that refer to previously 
+   # posted results
+   backupCount=0
+   for backup in ${TDS[*]}; do
+      # don't list the same server as primary and backup and don't list
+      # a server as a backup if nothing has been posted there yet
+      if [[ $backupCount -ge $primaryCount ]]; then
+         break
+      fi
+      # opendap_post.sh writes each primary download URL to the file
+      # downloadurl.txt as it posts the results. Use these to populate
+      # the downloadurl_backupX properties.
+      # add +1 b/c the 0th backup url is on 1st line of the file
+      backupURL=`sed -n $(($backupCount+1))p downloadurl.log`
+      OPENDAPDIR=`sed -n $(($backupCount+1))p opendapdir.log`
+      propertyName="downloadurl_backup"$(($backupServer+1))
+      # need to grab the SSHPORT from the configuration
+      env_dispatch $backup
+      if [[ $SSHPORT != "null" ]]; then
+         ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties"
+      else
+         ssh $OPENDAPHOST -l $OPENDAPUSER "echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties"
+      fi
+      backupCount=$(($backupCount+1))
+   done
+   primaryCount=$((primaryCount+1))
+done
+#
+#
 export PATH=$PATH:$IMAGEMAGICKBINPATH # if ImageMagick is in nonstd location
 #
 # we expect the ASGS config file to tell us how many cera servers there
@@ -104,66 +146,26 @@ echo "enstorm : $ENSTORM" >> run.properties 2>> $SYSLOG
 #   logMessage "Generating XDMF xml file to accompany $file."
 #   ${OUTPUTDIR}/generateXDMF.x --use-cpp --datafile $file 2>> $SYSLOG
 #done
-#
-#  O P E N  D A P    P U B L I C A T I O N 
-#
-STORMNAMEPATH=null
-DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
-CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
-if [[ $BACKGROUNDMET = on ]]; then
-   # for NAM, the "advisory number" is actually the cycle time 
-   STORMNAMEPATH=tc/nam
-fi
-if [[ $TROPICALCYCLONE = on ]]; then
-   STORMNAME=`grep -m 1 "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
-   STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
-   STORMNAMEPATH=tc/$STORMNAMELC
-fi
-OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HOSTNAME/$INSTANCENAME/$ENSTORM
-# put the opendap download url in the run.properties file for CERA to find
-downloadURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
-echo "downloadurl : $downloadURL" >> run.properties
-# now actually make the directory (OPENDAPBASEDIR is specified in CONFIG)
-OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
-#
-# /projects/ncfs/opendap/data/tc/phil phil/38/HSDRRS2014_MRGO_leveeupdate_fixSTC_MX/garnet.erdc.hpc.mil/philtest/nhcConsensus
-logMessage "Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER with the ssh key in $SSHKEY."
-ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
-for file in `ls *.nc *.xmf ${ADVISDIR}/al*.fst ${ADVISDIR}/bal*.dat fort.15 fort.22 run.properties`; do 
-   chmod +r $file 2>> $SYSLOG
-   logMessage "Transferring $file."
-   scp -i $SSHKEY $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG
-   ssh $OPENDAPHOST -l $OPENDAPUSER -i $SSHKEY "chmod +r $OPENDAPDIR/$file"
-done
-#
-#COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com,asgs.cera.lsu@gmail.com"
-COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com"
-runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'`
-subject="ADCIRC ASGS POSTED for $runStartTime"
-if [[ $TROPICALCYCLONE = on ]]; then
-   subject=${subject}" (TROPICAL CYCLONE)"
-fi
-#subject="${subject} $CERASERVER"
-subject="${subject} $HOSTNAME.$INSTANCENAME $ENMEMNUM"
-cat <<END > ${STORMDIR}/cera_results_notify.txt 
 
-The ADCIRC ASGS solutions for $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
-
-The run.properties file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
-   
-or wget the file with the following command
-
-wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
-END
-echo "INFO: corps_post.sh: Sending 'results available' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/cera_results_notify.txt | mail -s "$subject" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
-#
-# Convert max elevation file from netcdf to ascii if necessary for KMZ
-# JPG and GIS post processing
-if [[ -e ${STORMDIR}/maxele.63.nc ]]; then
-   logMessage "Converting maxele.63.nc from netcdf to ascii."
-   ${OUTPUTDIR}/netcdf2adcirc.x --datafile ${STORMDIR}/maxele.63.nc 2>> ${SYSLOG}
+# record the sea_surface_height_above_geoid nodal attribute to the
+# run.properties file
+isUsed=`grep -c sea_surface_height_above_geoid fort.15`
+if [[ $isUsed = 0 ]]; then
+   # this nodal attribute is not being used; report this to run.properties file
+   echo "sea_surface_height_above_geoid : null" >> run.properties
+else
+   # get the line number where the start of this nodal attribute is specified
+   # in the header of the fort.13 (nodal attributes) file
+   linenum=`grep --line-number --max-count 1 sea_surface_height_above_geoid fort.13 | awk 'BEGIN { FS=":" } { print $1 }'`
+   # get the actual default value, which is specified three lines after the
+   # the name of the nodal attribute in the fort.13 header
+   datumOffsetDefaultValueLine=`expr $linenum + 3`
+   datumOffsetDefaultValue=`awk -v linenum=$datumOffsetDefaultValueLine 'NR==linenum { print $0 }' fort.13`
+   echo "sea_surface_height_above_geoid : $datumOffsetDefaultValue" >> run.properties
 fi
+
+
+
 #
 # G N U P L O T   F O R   L I N E   G R A P H S
 # 

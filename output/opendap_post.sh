@@ -75,6 +75,12 @@ OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HOSTNAME/$INSTANCENAME/$ENSTORM
 OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
 # create the opendap download url for the run.properties file 
 downloadURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
+# write the downloadurl to a file for later reference as well as 
+# for retrieving and writing backup urls 
+echo $downloadURL >> $STORMDIR/downloadurl.log 2>> ${SYSLOG}
+# write the opendap dir to a file for later reference as well as
+# for retrieving and writing backup urls
+echo $OPENDAPDIR >> $STORMDIR/opendapdir.log 2>> ${SYSLOG}
 #
 # Establish the default method of posting results for service via opendap
 OPENDAPPOSTMETHOD=scp
