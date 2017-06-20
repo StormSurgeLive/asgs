@@ -27,11 +27,11 @@
 
 # Fundamental
 
-INSTANCENAME=v12hTopaz    # "name" of this ASGS process
+INSTANCENAME=v12hThreeTopaz    # "name" of this ASGS process
 COLDSTARTDATE=2017052000    # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart        # "hotstart" or "coldstart"
+HOTORCOLD=hotstart        # "hotstart" or "coldstart"
 #LASTSUBDIR=/p/work1/jgflemin/v12hsetFlux/2017061618  # path to previous execution (if HOTORCOLD=hotstart)
-LASTSUBDIR=null
+LASTSUBDIR=$WORKDIR/initialize
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -45,9 +45,9 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on      # NAM download/forcing
+BACKGROUNDMET=off      # NAM download/forcing
 TIDEFAC=on            # tide factor recalc
-TROPICALCYCLONE=off   # tropical cyclone forcing
+TROPICALCYCLONE=on   # tropical cyclone forcing
 WAVES=off             # wave forcing
 VARFLUX=off           # variable river flux forcing
 VORTEXMODEL=GAHM
@@ -58,11 +58,11 @@ TIMESTEPSIZE=1.0             # adcirc time step size (seconds)
 SWANDT=1200                  # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00"  # hindcast wall clock time
 ADCPREPWALLTIME="00:30:00"   # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="05:00:00"   # longest nowcast wall clock time
-FORECASTWALLTIME="05:00:00"  # forecast wall clock time
+NOWCASTWALLTIME="01:00:00"   # longest nowcast wall clock time
+FORECASTWALLTIME="01:00:00"  # forecast wall clock time
 NCPU=960                    # number of compute CPUs for all simulations
 NUMWRITERS=36
-NCPUCAPACITY=1500
+NCPUCAPACITY=996
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=standard
 SERQUEUE=standard
@@ -75,17 +75,17 @@ fi
 
 # External data sources : Tropical cyclones
 
-STORM=99                         # storm number, e.g. 05=ernesto in 2006
-YEAR=2016                        # year of the storm
+STORM=03                         # storm number, e.g. 05=ernesto in 2006
+YEAR=2017                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
-RSSSITE=filesystem
-FTPSITE=filesystem
-FDIR=${SCRIPTDIR}/input/sample_advisories
-HDIR=${SCRIPTDIR}/input/sample_advisories
-#RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
-#FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
-#FDIR=/atcf/afst                  # forecast dir on nhc ftp site
-#HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
+#RSSSITE=filesystem
+#FTPSITE=filesystem
+#FDIR=${SCRIPTDIR}/input/sample_advisories
+#HDIR=${SCRIPTDIR}/input/sample_advisories
+RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
+FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
+FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
@@ -148,7 +148,7 @@ MINMAX=reset
 # Notification
 
 EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
-NOTIFY_SCRIPT=corps_nam_notify.sh
+NOTIFY_SCRIPT=corps_cyclone_notify.sh
 ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
@@ -159,7 +159,7 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=developers-only
+INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
 POSTPROCESS=corps_post.sh
 POSTPROCESS2=null_post.sh
@@ -205,7 +205,7 @@ case $si in
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
