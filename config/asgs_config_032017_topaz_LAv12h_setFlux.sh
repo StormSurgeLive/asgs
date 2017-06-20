@@ -58,8 +58,8 @@ TIMESTEPSIZE=1.0             # adcirc time step size (seconds)
 SWANDT=1200                  # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00"  # hindcast wall clock time
 ADCPREPWALLTIME="00:30:00"   # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="01:00:00"   # longest nowcast wall clock time
-FORECASTWALLTIME="01:00:00"  # forecast wall clock time
+NOWCASTWALLTIME="01:30:00"   # longest nowcast wall clock time
+FORECASTWALLTIME="01:30:00"  # forecast wall clock time
 NCPU=960                    # number of compute CPUs for all simulations
 NUMWRITERS=36
 NCPUCAPACITY=996
@@ -199,13 +199,21 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=1 # number of storms in the ensemble
+ENSEMBLESIZE=3 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 0)
    ENSTORM=nhcConsensus
+   ;;
+1)
+   ENSTORM=veerRight50
+   PERCENT=50
+   ;;
+2)
+   ENSTORM=veerRight100
+   PERCENT=100
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
