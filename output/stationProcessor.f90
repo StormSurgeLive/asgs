@@ -217,12 +217,12 @@ do f=1, dataFileNames%n
    call determineNetCDFFileCharacteristics(sf(f), m, n)
    ! check to see if data are available for the full requested time range
    if ( (timesecStart.gt.0).and.(timesecStart.gt. sf(f)%timesec(sf(f)%nSnaps) ) ) then
-      write(scratchMessage,'("The data file ends at time t=",e17.8," (s) but the requested start time is t=",e17.8," (s).")') timesecStart, sf(f)%timesec(sf(f)%nSnaps)  
+      write(scratchMessage,'("The data file ends at time t=",e17.8," (s) but the requested start time is t=",e17.8," (s).")') sf(f)%timesec(sf(f)%nSnaps), timesecStart  
       call allMessage(INFO,scratchMessage)
       outOfRange(f) = .true.
    endif
    if ( (timesecEnd.gt.0).and.(timesecEnd.lt.sf(f)%timesec(1)) ) then
-      write(scratchMessage,'("The data file starts at time t=",e17.8," (s) but the requested end time is t=",e17.8," (s).")') , timesecEnd, sf(f)%timesec(1)
+      write(scratchMessage,'("The data file starts at time t=",e17.8," (s) but the requested end time is t=",e17.8," (s).")') , sf(f)%timesec(1), timesecEnd
       call allMessage(WARNING,scratchMessage)
       outOfRange(f) = .true.
    endif
