@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME=readytx      # "name" of this ASGS process
+INSTANCENAME=cindytx      # "name" of this ASGS process
 COLDSTARTDATE=2017052900  # calendar year month day hour YYYYMMDDHH24
 
 HOTORCOLD=hotstart       # "hotstart" or "coldstart"
@@ -45,9 +45,9 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on      # NAM download/forcing
+BACKGROUNDMET=off      # NAM download/forcing
 TIDEFAC=on            # tide factor recalc
-TROPICALCYCLONE=off   # tropical cyclone forcing
+TROPICALCYCLONE=on  # tropical cyclone forcing
 WAVES=on              # wave forcing
 VARFLUX=off           # variable river flux forcing
 VORTEXMODEL=GAHM
@@ -67,21 +67,21 @@ CYCLETIMELIMIT="05:00:00"
 
 # External data sources : Tropical cyclones
 
-STORM=99                         # storm number, e.g. 05=ernesto in 2006
-YEAR=2016                        # year of the storm
+STORM=03                         # storm number, e.g. 05=ernesto in 2006
+YEAR=2017                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
-RSSSITE=filesystem
-FTPSITE=filesystem
-FDIR=${SCRIPTDIR}/input/sample_advisories
-HDIR=${SCRIPTDIR}/input/sample_advisories
-#RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
-#FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
-#FDIR=/atcf/afst                  # forecast dir on nhc ftp site
-#HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
+#RSSSITE=filesystem
+#FTPSITE=filesystem
+#FDIR=${SCRIPTDIR}/input/sample_advisories
+#HDIR=${SCRIPTDIR}/input/sample_advisories
+RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
+FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
+FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="00"
+FORECASTCYCLE="00,06,12,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -140,7 +140,7 @@ MINMAX=reset
 # Notification
 
 EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
-NOTIFY_SCRIPT=ut-nam-notify.sh
+NOTIFY_SCRIPT=ut-nhc-notify.sh
 ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
@@ -151,7 +151,7 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=developers-only
+INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
 POSTPROCESS=null_post.sh
 POSTPROCESS2=null_post.sh
@@ -168,9 +168,9 @@ TARGET=lonestar  # used in post processing to pick up HPC platform config
 # because multiple Operators may be posting to a particular opendap server
 # using different usernames. 
 OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
-#if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
-#   OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
-#fi
+if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
+   OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
+fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
@@ -197,7 +197,7 @@ case $si in
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
