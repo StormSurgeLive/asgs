@@ -144,6 +144,13 @@ if (argcount.gt.0) then
    end do
 end if
 !
+! if there were no data files specified on the command line, just 
+! convert the mesh
+if ( trim(aDataFileName).eq.'null' ) then
+   meshonly = .true.
+   aDataFileName = m%meshFileName
+endif
+!
 ! trim off the full path so we just have the file name
 lastSlashPosition = index(trim(adataFileName),"/",.true.) 
 ! now set NETCDF file name for files containing only one type of data
