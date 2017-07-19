@@ -200,6 +200,11 @@ end
 if exist('timefmt','var')==0
    timefmt='yyyy-mm-ddTHH:MM:SSZ';
 end
+if exist('webtimeout','var')==0
+   specifiedwebopts=weboptions;
+else
+   specifiedwebopts=weboptions('Timeout',webtimeout);
+end
 %-----------------------------------------------------------------------
 %           I N I T I A L I Z E   S U R F A C E   
 %         G E N E R A T I O N   P A R A M E T E R S
@@ -330,7 +335,7 @@ if dodownload==1
    disp('INFO: offsetSurfaceGen.m: Downloading measured gage data.')
    nodata=zeros(nstat,1);
    for cnt=1:nstat
-      tmp=GetNosWaterLevelViaSOSv4_8('station',stationid{cnt},'start',start,'stop',stop,'datatype',datatype,'units',units,'vertdatum',vertdatum);
+      tmp=GetNosWaterLevelViaSOSv4_8('station',stationid{cnt},'start',start,'stop',stop,'datatype',datatype,'units',units,'vertdatum',vertdatum,'webopts',specifiedwebopts);
       if ~isempty(tmp)
          dat(cnt)=tmp;
       else

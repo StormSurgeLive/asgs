@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2017 Jason Fleming
+# Copyright(C) 2016 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -27,54 +27,54 @@
 
 # Fundamental
 
-INSTANCENAME=namhsofs    # "name" of this ASGS process
-COLDSTARTDATE=2017061700 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart       # "hotstart" or "coldstart"
-LASTSUBDIR=null  # path to previous execution (if HOTORCOLD=hotstart)
+INSTANCENAME=v12hSetFluxHat    # "name" of this ASGS process
+COLDSTARTDATE=2017052000 # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart       # "hotstart" or "coldstart"
+LASTSUBDIR=/projects/ncfs/data/input/v12hThree/initialize  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables
+ADCIRCDIR=~/adcirc/branches/v52release/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable        # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs # grid and other input files
+INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v12g-WithUpperAtch # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on     # NAM download/forcing
+BACKGROUNDMET=off     # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
-TROPICALCYCLONE=off  # tropical cyclone forcing
-WAVES=on            # wave forcing
+TROPICALCYCLONE=on  # tropical cyclone forcing
+WAVES=off            # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
 
-TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
+TIMESTEPSIZE=1.0            # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
-ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
-FORECASTWALLTIME="05:00:00" # forecast wall clock time
-NCPU=624                    # number of compute CPUs for all simulations
-NUMWRITERS=16
-NCPUCAPACITY=640
+ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
+NOWCASTWALLTIME="02:00:00"  # longest nowcast wall clock time
+FORECASTWALLTIME="02:00:00" # forecast wall clock time
+NCPU=480                    # number of compute CPUs for all simulations
+NUMWRITERS=8
+NCPUCAPACITY=2000
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=null
 SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data
-ACCOUNT=batch
+ACCOUNT=ncfs
 
-QSCRIPT=hatteras.partition.template.slurm
-PREPCONTROLSCRIPT=hatteras.partition.adcprep.template.slurm 
+QSCRIPT=hatteras.reservation.template.slurm
+PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm # jgf20160322
 
 # External data sources : Tropical cyclones
 
 PSEUDOSTORM=n 
-STORM=14                         # storm number, e.g. 05=ernesto in 2006
-YEAR=2016                        # year of the storm
+STORM=03                         # storm number, e.g. 05=ernesto in 2006
+YEAR=2017                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 #RSSSITE=filesystem
 #FTPSITE=filesystem
@@ -87,7 +87,7 @@ HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="00,12"
+FORECASTCYCLE="06"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -101,17 +101,17 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=hsofs.14  # mesh (fort.14) file
-GRIDNAME=hsofs
+GRIDFILE=LA_v12h-WithUpperAtch_chk.grd  # mesh (fort.14) file
+GRIDNAME=LA_v12h-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.nc.properties
-CONTROLTEMPLATE=hsofs.15.template  # fort.15 template
+CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux35ft.15.template  # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=hsofs.all_cera_stations_20170717.txt
-VELSTATIONS=hsofs.all_cera_stations_20170717.txt
-METSTATIONS=hsofs.all_cera_stations_20170717.txt
-NAFILE=hsofs.13
+ELEVSTATIONS=cpra2017v12.cera_stations.20161222   # or substitute your own stations file
+VELSTATIONS=cpra2017v12.cera_stations.20161222
+METSTATIONS=cpra2017v12.cera_stations.20161222
+NAFILE=LA_v12g-WithUpperAtch-updated.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=fort.26.template # only used if WAVES=on
+SWANTEMPLATE=LA_v12g-WithUpperAtch.26.template # only used if WAVES=on
 RIVERINIT=null                          # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
@@ -141,12 +141,12 @@ HOTSTARTCOMP=fulldomain
 # binary or netcdf hotstart files
 HOTSTARTFORMAT=netcdf                      
 # "continuous" or "reset" for maxele.63 etc files
-MINMAX=reset                              
+MINMAX=continuous                             
 
 # Notification
 
 EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
-NOTIFY_SCRIPT=ncfs_nam_notify.sh
+NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
@@ -157,7 +157,7 @@ ASGSADMIN=jason.fleming@seahorsecoastal.com
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=developers-only
+INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
 POSTPROCESS=ncfs_post.sh
 POSTPROCESS2=null_post.sh
@@ -187,13 +187,21 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=1 # number of storms in the ensemble
+ENSEMBLESIZE=3 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
+   ;;
+1)
+   ENSTORM=veerRight50
+   PERCENT=50
+   ;;
+2)
+   ENSTORM=veerRight100
+   PERCENT=100
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
