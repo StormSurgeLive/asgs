@@ -1573,6 +1573,11 @@ while [ true ]; do
       # ensemble member
       ENSTORM=forecast  # to pick up forecast-related config from config file
       . ${CONFIG}
+      JOBTYPE=padcirc
+      HOTSWAN=on
+      if [[ $WAVES = on ]]; then
+         JOBTYPE=padcswan
+      fi
       # Check for a misconfiguration where the Operator has set the  
       # number of CPUs and number of writers greater than the total
       # number of CPUs that will ever be available.
@@ -1596,8 +1601,8 @@ while [ true ]; do
             # total up the number of cpus currently engaged and compare with capacity
             cpusEngaged=0         
             for ensembleMemDir in $subDirs; do
-               # break out of the for loop if the subdirectory is the same as the advisory directory
-               if [[ $ensembleMemDir = $ADVISDIR ]]; then 
+               # ignore the nowcast and the advisory directory itself
+               if [[ $ensembleMemDir = $ADVISDIR || $ensembleMemDir = "./nowcast" || $ensembleMemDir = "." ]]; then 
                   #debugMessage "ensembleMemDir $ensembleMemDir is the same as ADVISDIR $ADVISDIR" #jgfdebug
                   continue 
                fi

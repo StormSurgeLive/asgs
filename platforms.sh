@@ -383,6 +383,7 @@ init_topsail()
   SCRATCHDIR=/ifs1/scr/$USER
   SSHKEY=id_rsa_topsail
 }
+# THREDDS Data Server (TDS, i.e., OPeNDAP server) at RENCI
 init_renci_tds()
 {
    OPENDAPHOST=ht1.renci.org
@@ -390,9 +391,10 @@ init_renci_tds()
    CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
    OPENDAPBASEDIR=/projects/ncfs/opendap/data
    SSHPORT=22
-   LINKABLEHOSTS=(hatteras) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
+   LINKABLEHOSTS=(hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
    COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
 }
+# THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU
 init_lsu_tds()
 {
    OPENDAPHOST=fortytwo.cct.lsu.edu
@@ -403,15 +405,17 @@ init_lsu_tds()
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links
    COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
 }
+# THREDDS Data Server (TDS, i.e., OPeNDAP server) at Texas
+# Advanced Computing Center (TACC)
 init_tacc_tds()
 {
    OPENDAPHOST=adcircvis.tacc.utexas.edu
    DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer/asgs"
    CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog/asgs"
-   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS/2016
+   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS/2017
    SSHPORT=null
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
-   COPYABLEHOSTS=(lonestar) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+   COPYABLEHOSTS=(lonestar lonestar.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
 }
 init_test()
 { #<- can replace the following with a custom script
