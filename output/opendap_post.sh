@@ -52,9 +52,9 @@ logMessage "Setting opendap server parameters with env_dispatch ${SERVER}."
 env_dispatch $SERVER   # from platforms.sh
 # grab all config info (again, last, so the CONFIG file takes precedence)
 . ${CONFIG}
-#
-#  O P E N  D A P    P U B L I C A T I O N 
-#
+#--------------------------------------------------------------------
+#  O P E N  D A P    P A T H   F O R M A T I O N
+#--------------------------------------------------------------------
 STORMNAMEPATH=null
 #
 #
@@ -81,7 +81,9 @@ echo $downloadURL >> $STORMDIR/downloadurl.log 2>> ${SYSLOG}
 # write the opendap dir to a file for later reference as well as
 # for retrieving and writing backup urls
 echo $OPENDAPDIR >> $STORMDIR/opendapdir.log 2>> ${SYSLOG}
-#
+#-----------------------------------------------------------------------
+#           D E T E R M I N E   M E T H O D
+#-----------------------------------------------------------------------
 # Establish the default method of posting results for service via opendap
 OPENDAPPOSTMETHOD=scp
 #
@@ -114,6 +116,9 @@ threddsPostStatus=ok
 #
 # jgf20160803: Changed if/then to case-switch to accommodate new "copy" method.
 case $OPENDAPPOSTMETHOD in
+#-------------------------------------------------------------------
+#                P O S T   V I A   S C P
+#-------------------------------------------------------------------
 "scp")
    logMessage "Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
    ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
@@ -123,7 +128,9 @@ case $OPENDAPPOSTMETHOD in
    fi
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories
-   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
+   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR" 2>> $SYSLOG
+   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
+   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
    if [[ $? != 0 ]]; then
       warn "Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
       threddsPostStatus=fail
@@ -153,6 +160,10 @@ case $OPENDAPPOSTMETHOD in
       fi      
    done
    ;;
+#-------------------------------------------------------------------
+#        P O S T   V I A   S Y M B O L I C   L I N K 
+#           O R   F I L E S Y S T E M   C O P Y
+#-------------------------------------------------------------------
 "link"|"copy")
    #
    # jgf20160803: link and copy are almost the same procedure and only differ
@@ -169,7 +180,9 @@ case $OPENDAPPOSTMETHOD in
    mkdir -p $OPENDAPDIR 2>> $SYSLOG
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories
-   chmod -R a+w $OPENDAPBASEDIR 2>> $SYSLOG
+   chmod a+w $OPENDAPBASEDIR 2>> $SYSLOG
+   chmod a+w $OPENDAPBASEDIR/$STORMNAMEPATH 2>> $SYSLOG
+   chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY 2>> $SYSLOG
    cd $OPENDAPDIR 2>> ${SYSLOG}
    for file in ${FILES[*]}; do 
       chmod +r ${ADVISDIR}/${ENSTORM}/$file 2>> $SYSLOG
@@ -199,6 +212,9 @@ case $OPENDAPPOSTMETHOD in
    ;;
 esac
 #
+#-------------------------------------------------------------------
+#      S E N D   N O T I F I C A T I O N   E M A I L
+#-------------------------------------------------------------------
 runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'`
 subject="ADCIRC POSTED for $runStartTime"
 if [[ $TROPICALCYCLONE = on ]]; then
