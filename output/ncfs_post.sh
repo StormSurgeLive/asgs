@@ -36,6 +36,7 @@ SSHKEY=${13}
 #
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR} 2>> ${SYSLOG}
+THIS=ncfs_post.sh
 # get the forecast ensemble member number 
 ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 #
@@ -89,71 +90,195 @@ else
    logMessage "The initiallydry.63.nc file was not found, so an inundationmask.63.nc file will not be created."
 fi
 #
+#-----------------------------------------------------------------------
+#          G E N E R A T E   C E R A   C O N T O U R S     
+#-----------------------------------------------------------------------
+# list the files and time steps that should be contoured
+FILES="maxele.63.nc maxwvel.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc fort.74.nc fort.63.nc swan_HS.63.nc swan_TPS.63.nc"
+# pass these to the cera_contour_post.sh script
+${OUTPUTDIR}/cera_contour_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG "$FILES"
+# wait until the cera contours are finished, or at least until the 
+# total wait time has elapsed 
+CERACONTOURWAIT=5 # minutes
+ceraContoursFinished=no
+minutesElapsed=0
+while [[ $ceraContoursFinished = no && $minutesElapsed -lt $CERACONTOURWAIT ]]; do
+   contoursHeld=`ls ./cera_contour/*.held 2>> /dev/null | wc -l`
+   logMessage "$ENSTORM: $THIS: There are $contoursHeld .held files for the CERA contours."
+   contoursStart=`ls ./cera_contour/*.start 2>> /dev/null | wc -l`
+   logMessage "$ENSTORM: $THIS: There are $contoursStart .start files for the CERA contours."
+   contoursFinish=`ls ./cera_contour/*.finish 2>> /dev/null | wc -l`
+   logMessage "$ENSTORM: $THIS: There are $contoursFinish .finish files for the CERA contours."
+   if [[ $contoursStart -eq 0 && $contoursHeld -eq 0 ]]; then
+      ceraContoursFinished=yes
+   fi
+   sleep 60
+   minutesElapsed=`expr $minutesElapsed + 1`
+done
+#
+# the cera contour wait time has passed, determine which contour sets are
+# are complete and available 
+layersFinished=""
+for layer in wvel elev hsign tps maxelev maxwvel maxhsign maxtps ; do
+   if [[ -d $layer ]]; then
+      ln -s $PWD/$layer ./CERA/$layer 2>> $SYSLOG
+   fi
+   contoursHeld=`ls ./cera_contour/${layer}*.held 2>> /dev/null | wc -l`
+   contoursStart=`ls ./cera_contour/${layer}*.start 2>> /dev/null | wc -l`
+   contoursFinish=`ls ./cera_contour/${layer}*.finish 2>> /dev/null | wc -l`
+   if [[ $contoursHeld -eq 0 && $contoursStart -eq 0 ]]; then
+      if [[ $contoursFinish -gt 0 ]]; then
+         logMessage "$ENSTORM: $THIS: The contours for the $layer layer are finished."
+         case $layer in
+         "wvel")
+            echo "Wind Velocity Contour Tar File Path : CERA/wvel" >> run.properties
+
+            layersFinished="$layersFinished $layer"
+            ;;
+         "elev")
+            echo "Water Surface Elevation Contour Tar File Path : CERA/elev" >> run.properties
+            layersFinished="$layersFinished $layer"
+            ;;
+         "hsign")
+            echo "Significant Wave Height Contour Tar File Path : CERA/hsign" >> run.properties
+            layersFinished="$layersFinished $layer"
+            ;;
+         "tps")
+            echo "Peak Wave Period Contour Tar File Path : CERA/tps" >> run.properties
+            layersFinished="$layersFinished $layer"
+            ;;
+         "maxelev")
+            echo "Maximum Water Surface Elevation Contour Tar File Path : CERA/maxelevshp" >> run.properties
+            layersFinished="$layersFinished maxelevshp"
+            ;;
+         "maxwvel")
+            echo "Maximum Wind Speed Tar File Path : CERA/maxwvelshp" >> run.properties
+            layersFinished="$layersFinished maxwvelshp"
+            ;;
+         "maxhsign")
+            echo "Maximum Significant Wave Height Contour Tar File Path : CERA/maxhsignshp" >> run.properties
+            layersFinished="$layersFinished maxhsignshp"
+            ;;
+         "maxtps")
+            echo "Maximum Peak Wave Period Contour Tar File Path : CERA/maxtpsshp" >> run.properties
+            layersFinished="$layersFinished maxtpsshp"
+            ;;
+         *)
+            error "Files named $file are not supported."
+            break
+         esac
+      else
+         logMessage "$ENSTORM: $THIS: The contours for the $layer layer were never started."
+      fi
+   else
+      logMessage "$ENSTORM: $THIS: The contours for the $layer layer have not finished."
+   fi
+done
+#
+#-----------------------------------------------------------------------
+#          I N C L U S I O N   O F   10 M   W I N D S
+#-----------------------------------------------------------------------
+# If winds at 10m (i.e., wind velocities that do not include the effect
+# of land interaction from nodal attributes line directional wind roughness
+# and canopy coefficient) were produced by another ensemble member, 
+# then include these winds in the post processing
+wind10mFound=no
+wind10mContoursFinished=no
+dirWind10m=$ADVISDIR/${ENSTORM}Wind10m
+if [[ -d $dirWind10m ]]; then
+   logMessage "Corresponding 10m wind ensemble member was found."
+   wind10mFound=yes
+   # determine whether the CERA contours are complete for the 10m wind
+   # ensemble member 
+   wind10mContoursHeld=`ls $dirWind10m/cera_contour/*.held 2>> /dev/null | wc -l`
+   logMessage "hsofs_renci_post.sh: There are $wind10mContoursHeld .held files for the CERA contours for the 10m winds."
+   wind10mContoursStart=`ls $dirWind10m/cera_contour/*.start 2>> /dev/null | wc -l`
+   logMessage "hsofs_renci_post.sh: There are $wind10mContoursStart .start files for the CERA contours for the 10m winds."
+   wind10mContoursFinish=`ls $dirWind10m/cera_contour/*.finish 2>> /dev/null | wc -l`
+   logMessage "hsofs_renci_post.sh: There are $wind10mContoursFinish .finish files for the CERA contours for the 10m winds."
+   if [[ $wind10mContoursHeld -eq 0 && $wind10mContoursStart -eq 0 && $wind10mContoursFinish -ne 0 ]]; then
+      wind10mContoursFinished=yes
+   fi
+   for file in fort.72.nc fort.74.nc maxwvel.63.nc ; do
+      if [[ -e $dirWind10m/$file ]]; then
+         logMessage "Found $dirWind10m/${file}."
+         ln -s $dirWind10m/${file} ./wind10m.${file}
+         # update the run.properties file
+         case $file in
+         "fort.72.nc")
+            echo "Wind Velocity 10m Stations File Name : wind10m.fort.72.nc" >> run.properties
+            echo "Wind Velocity 10m Stations Format : netcdf" >> run.properties
+            ;;
+         "fort.74.nc")
+            echo "Wind Velocity 10m File Name : wind10m.fort.74.nc" >> run.properties
+            echo "Wind Velocity 10m Format : netcdf" >> run.properties
+            # if the CERA contours are available, link to them
+            if [[ -d $dirWind10m/wvel ]]; then
+               ln -s $dirWind10m/wvel ./CERA/wind10m.wvel 2>> $SYSLOG
+               # notify downstream processors via run.properties
+               if [[ $wind10mContoursFinished = yes ]]; then
+                  echo "Wind Velocity 10m Contour Tar File Path : CERA/wind10m.wvel" >> run.properties
+                  layersFinished="$layersFinished wind10m.wvel"
+               fi
+            fi
+            ;;
+         "maxwvel.63.nc")
+            echo "Maximum Wind Speed 10m File Name : wind10m.maxwvel.63.nc" >> run.properties
+            echo "Maximum Wind Speed 10m Format : netcdf" >> run.properties
+            if [[ -d $dirWind10m/CERA/maxwvelshp ]]; then
+               ln -s $dirWind10m/CERA/maxwvelshp ./CERA/wind10m.maxwvelshp 2>> $SYSLOG
+               # notify downstream processors via run.properties
+               if [[ $wind10mContoursFinished = yes ]]; then
+                  echo "Maximum Wind Velocity 10m Contour Tar File Path : CERA/wind10m.maxwvelshp" >> run.properties
+                  layersFinished="$layersFinished wind10m.maxwvelshp"
+               fi
+            fi
+            ;;
+         *)
+            warn "$ENSTORM: $THIS: The file $file was not recognized."
+         ;;
+         esac
+      else
+         logMessage "$ENSTORM: $THIS: The file $dirWind10m/${file} was not found."
+      fi
+   done
+else
+   logMessage "$ENSTORM: $THIS: Corresponding 10m wind ensemble member was not found."
+fi
+#
+#-----------------------------------------------------------------------
+#      T A R   U P   C E R A   C O N T O U R S      
+#-----------------------------------------------------------------------
+# form list of directories that should go into the tar file
+shapeDirs=""
+for layer in $layersFinished; do
+   shapeDirs="$shapeDirs CERA/$layer"
+done
+tar cvhf CERA.tar $shapeDirs > CERAtar.log 2>> $SYSLOG
+# if the CERA.tar file was created successfully, add a property for it
+# to the run.properties file
+ERROVALUE=$?  # capture exit status
+if [[ $ERROVALUE == 0 ]] ; then
+   logMessage "$ENSTORM: $THIS: Created CERA tar file correctly."
+   echo "Contour Tar File : CERA.tar" >> run.properties
+else
+   error "$ENSTORM: $THIS: Could not create CERA tar file."
+fi
+#
 # generate XDMF xml files 
 #for file in `ls *.nc`; do
 #   ${OUTPUTDIR}/generateXDMF.x --datafile $file 2>> $SYSLOG
 #done
 #--------------------------------------------------------------------------
-#          O P E N D A P   P U B L I C A T I O N
+#        N C F S   _   C U R R E N T   P U B L I C A T I O N
 #--------------------------------------------------------------------------
 #
 # construct the opendap directory path where the results will be posted
 #
-STORMNAMEPATH=null
-DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
-CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
-if [[ $BACKGROUNDMET = on ]]; then
-   # for NAM, the "advisory number" is actually the cycle time 
-   STORMNAMEPATH=tc/nam
-fi
 currentDir=NCFS_CURRENT_DAILY
 if [[ $TROPICALCYCLONE = on ]]; then
-   STORMNAME=`grep "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//g' | tail -n 1` 2>> ${SYSLOG}
-   STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
-   STORMNAMEPATH=tc/$STORMNAMELC
    currentDir=NCFS_CURRENT_TROPICAL
 fi
-OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HOSTNAME/$INSTANCENAME/$ENSTORM
-# put the opendap download url in the run.properties file for CERA to find
-downloadURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
-echo "downloadurl : $downloadURL" >> run.properties
-# now actually make the directory (OPENDAPBASEDIR is specified in CONFIG)
-OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
-mkdir -p $OPENDAPDIR 2>> ${SYSLOG}
-# make symbolic links from the opendap dir to the important files for the run
-cd $OPENDAPDIR 2>> ${SYSLOG}
-for file in `ls ${STORMDIR}/*.nc ${STORMDIR}/run.properties`; do  
-   if [ -e $file ]; then
-      ln -s $file . 2>> ${SYSLOG}
-   fi
-done
-#ln -s ${ADVISDIR}/${ENSTORM}/*.xmf . 2>> ${SYSLOG}
-#ln -s ${ADVISDIR}/${ENSTORM}/*.kmz . 2>> ${SYSLOG}
-#
-# Link to input files to document how the run was performed.
-ln -s ${ADVISDIR}/${ENSTORM}/fort.14 .  2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/fort.15 . 2>> ${SYSLOG}
-for file in fort.13 fort.22 fort.26 fort.221 fort.222 ; do 
-   if [ -e ${ADVISDIR}/${ENSTORM}/$file ]; then
-      ln -s ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
-   fi
-done
-#
-# Link to the tropical cyclone forecast/advisory and tc best track
-# file, if available. 
-for file in al*.fst bal*.dat ; do 
-   if [ -e ${ADVISDIR}/$file ]; then
-      ln -s ${ADVISDIR}/$file . 2>> ${SYSLOG}
-   fi
-done
-#
-# Link to the shapefile zip and the kmz files if present.
-for file in `ls ${ADVISDIR}/${ENSTORM}/*.zip 2>> ${SYSLOG}`; do 
-   ln -s $file . 2>> ${SYSLOG}
-done
-for file in `ls ${ADVISDIR}/${ENSTORM}/*.kmz 2>> ${SYSLOG}`; do 
-   ln -s $file . 2>> ${SYSLOG}
-done
 #
 # 20150826: Make symbolic links to a single location on the opendap server
 # to reflect the "latest" results. There are actually two locations, one for 
@@ -172,33 +297,73 @@ if [[ $ENSTORM = namforecast || $ENSTORM = nhcConsensus ]]; then
       fi
    done
 fi
-#
 # Copy the latest run.properties file to a consistent location in opendap
 cp run.properties /projects/ncfs/opendap/data/NCFS_CURRENT/run.properties.${HOSTNAME}.${INSTANCENAME} 2>> ${SYSLOG}
+# switch back to the directory where the results were produced 
+cd $STORMDIR 2>> ${SYSLOG}
 #
-# send an email to CERA web application to notify it that results are ready
-COMMA_SEP_LIST="jason.g.fleming@gmail.com,nc.cera.renci2@gmail.com"
-#COMMA_SEP_LIST="jason.fleming@seahorsecoastal.com"
-runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'`
-subject="ADCIRC NCFS $runStartTime $HOSTNAME.$INSTANCENAME $ENMEMNUM"
-if [[ $TROPICALCYCLONE = on ]]; then
-   subject=${subject}" (TC)"
-fi
-#subject="${subject} $CERASERVER"
-echo "INFO: ncfs_post.sh: The cera_results_notify.txt email subject line is '$subject'." >> ${SYSLOG}
-cat <<END > ${STORMDIR}/cera_results_notify.txt 
-
-The ADCIRC NCFS solutions for $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
-
-The run.properties file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
-   
-or wget the file with the following command
-
-wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
-END
+#-----------------------------------------------------------------------
+#         O P E N  D A P    P U B L I C A T I O N 
+#-----------------------------------------------------------------------
 #
-echo "INFO: ncfs_post.sh: Sending 'results available' email to the following addresses: $COMMA_SEP_LIST." >> $SYSLOG
-cat ${STORMDIR}/cera_results_notify.txt | mail -s "$subject" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+OPENDAPDIR=""
+logMessage "Creating list of files to post to opendap."
+FILES=(`ls *.nc ${ADVISDIR}/al*.fst ${ADVISDIR}/bal*.dat fort.15 fort.22 CERA.tar run.properties 2>> /dev/null`)
+#
+# For each opendap server in the list in ASGS config file.
+primaryCount=0
+for server in ${TDS[*]}; do
+   logMessage "Posting to $server opendap with opendap_post.sh using the following command: ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server \"${FILES[*]}\" $OPENDAPNOTIFY"
+   ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server "${FILES[*]}" $OPENDAPNOTIFY >> ${SYSLOG} 2>&1
+   # add downloadurl_backup propert(ies) to the properties file that refer to previously 
+   # posted results
+   backupCount=0
+  for backup in ${TDS[*]}; do
+      # don't list the same server as primary and backup and don't list
+      # a server as a backup if nothing has been posted there yet
+      if [[ $backupCount -ge $primaryCount ]]; then
+         break
+      fi
+      # opendap_post.sh writes each primary download URL to the file
+      # downloadurl.txt as it posts the results. Use these to populate
+      # the downloadurl_backupX properties.
+      # add +1 b/c the 0th backup url is on 1st line of the file
+      backupURL=`sed -n $(($backupCount+1))p downloadurl.log`
+      OPENDAPDIR=`sed -n $(($backupCount+1))p opendapdir.log`
+      propertyName="downloadurl_backup"$(($backupServer+1))
+      # need to grab the SSHPORT from the configuration
+      env_dispatch $backup
+      # Establish the method of posting results for service via opendap
+      OPENDAPPOSTMETHOD=scp
+      for hpc in ${COPYABLEHOSTS[*]}; do
+         if [[ $hpc = $TARGET ]]; then
+            OPENDAPPOSTMETHOD=copy
+         fi
+      done
+      for hpc in ${LINKABLEHOSTS[*]}; do
+         if [[ $hpc = $TARGET ]]; then
+            OPENDAPPOSTMETHOD=link
+         fi
+      done
+      case $OPENDAPPOSTMETHOD in
+      "scp")
+         if [[ $SSHPORT != "null" ]]; then
+            ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties"
+         else
+            ssh $OPENDAPHOST -l $OPENDAPUSER "echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties"
+        fi
+        ;;
+      "copy"|"link")
+         echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties 2>> $SYSLOG
+         ;;
+      *)
+         warn "$ENSTORM: $THIS: OPeNDAP post method unrecogrnized."
+         ;;
+      esac
+      backupCount=$(($backupCount+1))
+   done
+   primaryCount=$((primaryCount+1))
+done
 #
 #--------------------------------------------------------------------------
 #             K A L P A N A    K M Z   A N D   G I S 
@@ -206,7 +371,6 @@ cat ${STORMDIR}/cera_results_notify.txt | mail -s "$subject" "$COMMA_SEP_LIST" 2
 # Create Google Earth images and shapefiles of water surface elevation 
 # and significant wave height using Kalpana.
 #--------------------------------------------------------------------------
-cd $STORMDIR 2>> ${SYSLOG}
 #
 # First, load the GDAL system module, since it is used by the fiona python
 # module in Kalpana.
