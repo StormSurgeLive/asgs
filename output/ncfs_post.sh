@@ -20,6 +20,12 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------
 #
+# example invokation:
+# grep -i cold run.properties
+# grep -i hot run.properties
+# bash ~/asgs/2014stable/output/ncfs_post.sh ~/asgs/2014stable/config/2017/asgs_config_nam_swan_river_hatteras_nc9.99wrivers.sh /projects/ncfs/data/asgs10124/2017073100 99 2017 2017073100 hatteras.renci.org namforecast 2017012400 16243200.0 fort.14 ~/asgs/2014stable/output stuff.log ~/.ssh/id_rsa.pub
+#
+#
 CONFIG=$1
 ADVISDIR=$2
 STORM=$3
@@ -191,11 +197,11 @@ if [[ -d $dirWind10m ]]; then
    # determine whether the CERA contours are complete for the 10m wind
    # ensemble member 
    wind10mContoursHeld=`ls $dirWind10m/cera_contour/*.held 2>> /dev/null | wc -l`
-   logMessage "hsofs_renci_post.sh: There are $wind10mContoursHeld .held files for the CERA contours for the 10m winds."
+   logMessage "$ENSTORM: $THIS: There are $wind10mContoursHeld .held files for the CERA contours for the 10m winds."
    wind10mContoursStart=`ls $dirWind10m/cera_contour/*.start 2>> /dev/null | wc -l`
-   logMessage "hsofs_renci_post.sh: There are $wind10mContoursStart .start files for the CERA contours for the 10m winds."
+   logMessage "$ENSTORM: $THIS: There are $wind10mContoursStart .start files for the CERA contours for the 10m winds."
    wind10mContoursFinish=`ls $dirWind10m/cera_contour/*.finish 2>> /dev/null | wc -l`
-   logMessage "hsofs_renci_post.sh: There are $wind10mContoursFinish .finish files for the CERA contours for the 10m winds."
+   logMessage "$ENSTORM: $THIS: There are $wind10mContoursFinish .finish files for the CERA contours for the 10m winds."
    if [[ $wind10mContoursHeld -eq 0 && $wind10mContoursStart -eq 0 && $wind10mContoursFinish -ne 0 ]]; then
       wind10mContoursFinished=yes
    fi
