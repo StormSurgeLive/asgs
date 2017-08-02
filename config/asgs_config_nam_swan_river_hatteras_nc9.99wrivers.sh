@@ -166,15 +166,17 @@ ASGSADMIN=jason.g.fleming@gmail.com
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
 POSTPROCESS=ncfs_post.sh
-TARGET=hatteras
 POSTPROCESS2=null_post.sh
-WEBHOST=alpha.he.net
-WEBUSER=seahrse
-WEBPATH=/home/seahrse/public_html/ASGS
-OPENDAPHOST=br0.renci.org
-OPENDAPUSER=ncfs
-OPENDAPBASEDIR=/projects/ncfs/opendap/data
-NUMCERASERVERS=2
+
+TDS=(renci_tds lsu_tds)
+TARGET=hatteras  # used in post processing to pick up HPC platform config
+OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
+if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
+   OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
+fi
+# OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
+# other notification parameters above. 
+OPENDAPNOTIFY="nc.cera.renci2@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
 
 # Archiving
 
