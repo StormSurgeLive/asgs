@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=v12hSetFluxNoWaves  # "name" of this ASGS process
-COLDSTARTDATE=2017052000   # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2017062900   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -58,10 +58,10 @@ HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="00:30:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="07:00:00" # forecast wall clock time
-NCPU=480                     # number of compute CPUs for all simulations
+NCPU=860                     # number of compute CPUs for all simulations
 NUMWRITERS=20
-NCPUCAPACITY=480
-CYCLETIMELIMIT="05:00:00"
+NCPUCAPACITY=900
+CYCLETIMELIMIT="99:00:00"
 QUEUENAME=workq
 SERQUEUE=single
 ACCOUNT=loni_cera_2017
@@ -69,8 +69,8 @@ SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones
 
-STORM=02                         # storm number, e.g. 05=ernesto in 2006
-YEAR=2012                        # year of the storm
+STORM=99                         # storm number, e.g. 05=ernesto in 2006
+YEAR=2017                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 RSSSITE=filesystem
 FTPSITE=filesystem
@@ -83,7 +83,7 @@ HDIR=${INPUTDIR}/sample_advisories
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06,18"
+FORECASTCYCLE="06"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -100,7 +100,7 @@ RIVERDIR=/projects/ciflow/adcirc_info
 GRIDFILE=LA_v12h-WithUpperAtch_chk.grd   # mesh (fort.14) file
 GRIDNAME=LA_v12h-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux35ft.15.template   # fort.15 template
+CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.15.template   # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
 ELEVSTATIONS=cpra2017v12.cera_stations.20161222
 VELSTATIONS=cpra2017v12.cera_stations.20161222
@@ -125,7 +125,7 @@ FORT63="--fort63freq 3600.0 --fort63netcdf"
 # full domain water current velocity output
 FORT64="--fort64freq 3600.0 --fort64netcdf" 
 # met station output
-FORT7172="--fort7172freq 3600.0 --fort7172netcdf"           
+FORT7172="--fort7172freq 900.0 --fort7172netcdf"           
 # full domain meteorological output
 FORT7374="--fort7374freq 3600.0 --fort7374netcdf"           
 #SPARSE="--sparse-output"
@@ -159,7 +159,7 @@ POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
-TDS=(renci_tds lsu_tds)
+TDS=(lsu_tds renci_tds)
 TARGET=queenbee  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
@@ -192,12 +192,43 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=1 # number of storms in the ensemble
+ENSEMBLESIZE=2 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
+
 0)
+   ENSTORM=namforecastWind10m
+   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.nowindreduction.15.template
+   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+   TIMESTEPSIZE=900.0    # 15 minute time steps
+   NCPU=19               # dramatically reduced resource requirements
+   NUMWRITERS=1          # multiple writer procs might collide
+   WAVES=off             # deactivate wave forcing 
+   # turn off water surface elevation station output
+   FORT61="--fort61freq 0"
+   # turn off water current velocity station output
+   FORT62="--fort62freq 0"
+   # turn off full domain water surface elevation output
+   FORT63="--fort63freq 0"
+   # turn off full domain water current velocity output
+   FORT64="--fort64freq 0"
+   # met station output
+   FORT7172="--fort7172freq 900.0 --fort7172netcdf"
+   # full domain meteorological output
+   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
+   #SPARSE="--sparse-output"
+   SPARSE=""
+   NETCDF4="--netcdf4"
+   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+   # prevent collisions in prepped archives
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   POSTPROCESS=null_post.sh
+   ;;
+1)
    ENSTORM=namforecast
    ;;
 *)
