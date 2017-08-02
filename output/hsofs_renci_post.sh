@@ -250,9 +250,13 @@ fi
 # bal*.fst
 # fort.22
 logMessage "Creating list of files to post to opendap."
-cp ../al*.fst . 2>> $SYSLOG
-cp ../bal*.dat . 2>> $SYSLOG
-FILES=(`ls *.nc al*.fst bal*.dat fort.15 fort.22 CERA.tar run.properties 2>> /dev/null`)
+if [[ -e ../al${STORM}${YEAR}.fst ]]; then
+   cp ../al${STORM}${YEAR}.fst . 2>> $SYSLOG
+fi
+if [[ -e ../bal${STORM}${YEAR}.dat ]]; then
+   cp ../bal${STORM}${YEAR}.dat . 2>> $SYSLOG
+fi
+FILES=(`ls *.nc al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat fort.15 fort.22 CERA.tar run.properties 2>> /dev/null`)
 #
 # For each opendap server in the list in ASGS config file.
 primaryCount=0

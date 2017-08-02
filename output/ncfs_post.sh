@@ -2,7 +2,7 @@
 #-----------------------------------------------------------------------
 # ncfs_post.sh : Post processing for North Carolina.
 #-----------------------------------------------------------------------
-# Copyright(C) 2011--2016 Jason Fleming
+# Copyright(C) 2011--2017 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -314,7 +314,13 @@ cd $STORMDIR 2>> ${SYSLOG}
 #
 OPENDAPDIR=""
 logMessage "Creating list of files to post to opendap."
-FILES=(`ls *.nc ${ADVISDIR}/al*.fst ${ADVISDIR}/bal*.dat fort.15 fort.22 CERA.tar run.properties 2>> /dev/null`)
+if [[ -e ../al${STORM}${YEAR}.fst ]]; then
+   cp ../al${STORM}${YEAR}.fst . 2>> $SYSLOG
+fi
+if [[ -e ../bal${STORM}${YEAR}.dat ]]; then
+   cp ../bal${STORM}${YEAR}.dat . 2>> $SYSLOG
+fi
+FILES=(`ls *.nc al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat fort.15 fort.22 CERA.tar run.properties 2>> /dev/null`)
 #
 # For each opendap server in the list in ASGS config file.
 primaryCount=0
