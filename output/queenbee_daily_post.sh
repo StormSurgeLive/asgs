@@ -38,6 +38,7 @@ SSHKEY=${13}
 #
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR}
+THIS=queenbee_daily_post.sh
 # get the forecast ensemble member number for use in CERA load balancing
 # as well as picking up any bespoke configuration for this ensemble
 # member in the configuration files
@@ -57,34 +58,7 @@ env_dispatch ${TARGET}
 #
 # write the intended audience to the run.properties file for CERA
 echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
-#*********************************************
-# MS river properties for CERA, these variables must be set in ASGS config
-#*********************************************
-echo "msRiverBoundaryType : $MSRIVERBOUNDARYTYPE" >> run.properties
-echo "msRiverBoundaryCondition : $MSRIVERBOUNDARYCONDITION" >> run.properties
-#echo "remark : $BONNETCARRESPILLWAYOPENPERCENT" >> run.properties
-#
-# write the target area to the run.properties file for the CERA
-# web app
-#echo "asgs : ng" >> run.properties 2>> $SYSLOG
 echo "enstorm : $ENSTORM" >> run.properties 2>> $SYSLOG
-#
-# record the sea_surface_height_above_geoid nodal attribute to the
-# run.properties file
-isUsed=`grep -c sea_surface_height_above_geoid fort.15`
-if [[ $isUsed = 0 ]]; then
-   # this nodal attribute is not being used; report this to run.properties file
-   echo "sea_surface_height_above_geoid : null" >> run.properties
-else
-   # get the line number where the start of this nodal attribute is specified
-   # in the header of the fort.13 (nodal attributes) file
-   linenum=`grep --line-number --max-count 1 sea_surface_height_above_geoid fort.13 | awk 'BEGIN { FS=":" } { print $1 }'`
-   # get the actual default value, which is specified three lines after the
-   # the name of the nodal attribute in the fort.13 header
-   datumOffsetDefaultValueLine=`expr $linenum + 3`
-   datumOffsetDefaultValue=`awk -v linenum=$datumOffsetDefaultValueLine 'NR==linenum { print $0 }' fort.13`
-   echo "sea_surface_height_above_geoid : $datumOffsetDefaultValue" >> run.properties
-fi
 #
 #--------------------------------------------------------------------------
 #              I N U N D A T I O N    M  A S K  
@@ -110,7 +84,50 @@ if [ -e ${STORMDIR}/initiallydry.63.nc ]; then
       error "The initiallydry.63.nc file was found in $STORMDIR but the inundationMask.x executable was not found in ${OUTPUTDIR}."
    fi
 fi
+
 #
+#-----------------------------------------------------------------------
+#          I N C L U S I O N   O F   10 M   W I N D S
+#-----------------------------------------------------------------------
+# If winds at 10m (i.e., wind velocities that do not include the effect
+# of land interaction from nodal attributes line directional wind roughness
+# and canopy coefficient) were produced by another ensemble member, 
+# then include these winds in the post processing
+wind10mFound=no
+wind10mContoursFinished=no
+dirWind10m=$ADVISDIR/${ENSTORM}Wind10m
+if [[ -d $dirWind10m ]]; then
+   logMessage "Corresponding 10m wind ensemble member was found."
+   wind10mFound=yes
+   for file in fort.72.nc fort.74.nc maxwvel.63.nc ; do
+      if [[ -e $dirWind10m/$file ]]; then
+         logMessage "Found $dirWind10m/${file}."
+         ln -s $dirWind10m/${file} ./wind10m.${file}
+         # update the run.properties file
+         case $file in
+         "fort.72.nc")
+            echo "Wind Velocity 10m Stations File Name : wind10m.fort.72.nc" >> run.properties
+            echo "Wind Velocity 10m Stations Format : netcdf" >> run.properties
+            ;;
+         "fort.74.nc")
+            echo "Wind Velocity 10m File Name : wind10m.fort.74.nc" >> run.properties
+            echo "Wind Velocity 10m Format : netcdf" >> run.properties
+            ;;
+       "maxwvel.63.nc")
+            echo "Maximum Wind Speed 10m File Name : wind10m.maxwvel.63.nc" >> run.properties
+            echo "Maximum Wind Speed 10m Format : netcdf" >> run.properties
+            ;;
+         *)
+            warn "$ENSTORM: $THIS: The file $file was not recognized."
+         ;;
+         esac
+      else
+         logMessage "$ENSTORM: $THIS: The file $dirWind10m/${file} was not found."
+      fi
+   done
+else
+   logMessage "$ENSTORM: $THIS: Corresponding 10m wind ensemble member was not found."
+fi
 #-----------------------------------------------------------------------
 #         O P E N  D A P    P U B L I C A T I O N 
 #-----------------------------------------------------------------------
