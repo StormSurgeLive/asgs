@@ -67,8 +67,10 @@ SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data
 ACCOUNT=batch
 
-QSCRIPT=hatteras.partition.template.slurm
-PREPCONTROLSCRIPT=hatteras.partition.adcprep.template.slurm 
+#QSCRIPT=hatteras.partition.template.slurm
+#PREPCONTROLSCRIPT=hatteras.partition.adcprep.template.slurm 
+QSCRIPT=hatteras.reservation.template.slurm
+PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm 
 
 # External data sources : Tropical cyclones
 
