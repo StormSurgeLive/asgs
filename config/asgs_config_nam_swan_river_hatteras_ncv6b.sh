@@ -39,7 +39,7 @@ REINITIALIZESWAN=no        # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables 
+ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables 
 SCRIPTDIR=~/asgs/2014stable        # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v6b   # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
@@ -115,7 +115,7 @@ VELSTATIONS=null
 METSTATIONS=v6brivers_met_stations.txt
 NAFILE=v6brivers_rlevel.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=fort.26.v6b.limiter.template
+SWANTEMPLATE=fort.26.v6b.template
 RIVERINIT=v6brivers.88
 RIVERFLUX=v6brivers_fort.20_default
 HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
