@@ -100,7 +100,11 @@ fi
 #          G E N E R A T E   C E R A   C O N T O U R S     
 #-----------------------------------------------------------------------
 # list the files and time steps that should be contoured
-FILES="maxele.63.nc maxwvel.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc fort.74.nc fort.63.nc swan_HS.63.nc swan_TPS.63.nc"
+#FILES="maxele.63.nc maxwvel.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc fort.74.nc fort.63.nc swan_HS.63.nc swan_TPS.63.nc"
+#
+# @jasonfleming: removed wind velocity at ground level (fort.74.nc) because 
+# it is not the default for display and it takes a long time (30+ minutes)
+FILES="maxele.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc fort.63.nc swan_HS.63.nc swan_TPS.63.nc"
 # pass these to the cera_contour_post.sh script
 ${OUTPUTDIR}/cera_contour_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG "$FILES"
 # wait until the cera contours are finished, or at least until the 
@@ -459,6 +463,7 @@ fi
 module unload gdal/1.11.1_gcc
 #
 # Post links to shapefiles
+OPENDAPDIR=`head -n 1 ${STORMDIR}/opendapdir.log`
 cd $OPENDAPDIR 2>> ${SYSLOG}
 #
 # Link to the shapefile zip and the kmz files if present.

@@ -67,5 +67,6 @@ echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
 FILES="maxwvel.63.nc fort.74.nc"
 # pass these to the cera_contour_post.sh script
 ${OUTPUTDIR}/cera_contour_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $SERVER "$FILES"
+#
 # no need to monitor these, they will be passed along if they are complete
 # according to the post processing for the ensemble member that they match
