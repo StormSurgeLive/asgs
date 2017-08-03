@@ -79,7 +79,7 @@ echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
 # as depicted by Google Maps. 
 # 
 if [ -e ${STORMDIR}/initiallydry.63.nc ]; then
-   logMessage "Creating an inundationmask.63.nc file from the initiallydry.63.nc file."
+   logMessage "$ENSTORM: $THIS: Creating an inundationmask.63.nc file from the initiallydry.63.nc file."
    if [ -e ${OUTPUTDIR}/inundationMask.x ]; then
       ${OUTPUTDIR}/inundationMask.x --filename initiallydry.63.nc --netcdf4 --numpasses 2 2>> ${SYSLOG} 2>&1
       ERROVALUE=$?
@@ -87,13 +87,13 @@ if [ -e ${STORMDIR}/initiallydry.63.nc ]; then
          echo "Inundation Mask File Name : inundationmask.63.nc" >> run.properties
          echo "Inundation Mask Format : netcdf" >> run.properties
       else
-         error "Failed to create inundationMask.63.nc file."
+         error "$ENSTORM: $THIS: Failed to create inundationMask.63.nc file."
       fi
    else
-      error "The initiallydry.63.nc file was found in $STORMDIR but the inundationMask.x executable was not found in ${OUTPUTDIR}."
+      error "$ENSTORM: $THIS: The initiallydry.63.nc file was found in $STORMDIR but the inundationMask.x executable was not found in ${OUTPUTDIR}."
    fi
 else
-   logMessage "The initiallydry.63.nc file was not found, so an inundationmask.63.nc file will not be created."
+   logMessage "$ENSTORM: $THIS: The initiallydry.63.nc file was not found, so an inundationmask.63.nc file will not be created."
 fi
 #
 #-----------------------------------------------------------------------
@@ -211,7 +211,7 @@ if [[ -d $dirWind10m ]]; then
    fi
    for file in fort.72.nc fort.74.nc maxwvel.63.nc ; do
       if [[ -e $dirWind10m/$file ]]; then
-         logMessage "Found $dirWind10m/${file}."
+         logMessage "$ENSTORM: $THIS: Found $dirWind10m/${file}."
          ln -s $dirWind10m/${file} ./wind10m.${file}
          # update the run.properties file
          case $file in
@@ -303,7 +303,7 @@ if [[ $ENSTORM = namforecast || $ENSTORM = nhcConsensus ]]; then
       if [ -e $file ]; then
          ln -s $file . 2>> ${SYSLOG}
       else
-         logMessage "The directory does not have ${file}."
+         logMessage "$ENSTORM: $THIS: The directory does not have ${file}."
       fi
    done
 fi
@@ -312,29 +312,55 @@ cp run.properties /projects/ncfs/opendap/data/NCFS_CURRENT/run.properties.${HOST
 # switch back to the directory where the results were produced 
 cd $STORMDIR 2>> ${SYSLOG}
 #
-#-----------------------------------------------------------------------
-#         O P E N  D A P    P U B L I C A T I O N 
-#-----------------------------------------------------------------------
+#-------------------------------------------------------------------
+#               C E R A   F I L E   P R I O R I T Y
+#-------------------------------------------------------------------
+# @jasonfleming: Hack in a notification email once the bare minimum files
+# needed by CERA have been posted. 
 #
-OPENDAPDIR=""
-logMessage "Creating list of files to post to opendap."
+#FILES=(`ls *.nc al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat fort.15 fort.22 CERA.tar run.properties 2>> /dev/null`)
+logMessage "$ENSTORM: $THIS: Creating list of files to post to opendap."
 if [[ -e ../al${STORM}${YEAR}.fst ]]; then
    cp ../al${STORM}${YEAR}.fst . 2>> $SYSLOG
 fi
 if [[ -e ../bal${STORM}${YEAR}.dat ]]; then
    cp ../bal${STORM}${YEAR}.dat . 2>> $SYSLOG
 fi
-FILES=(`ls *.nc al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat fort.15 fort.22 CERA.tar run.properties 2>> /dev/null`)
+ceraNonPriorityFiles=( `ls endrisinginun.63.nc everdried.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc` )
+ceraPriorityFiles=(`ls run.properties maxele.63.nc fort.63.nc fort.61.nc fort.15 fort.22`)
+if [[ $ceraContoursAvailable = yes ]]; then
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} "CERA.tar" )
+fi
+if [[ $TROPICALCYCLONE = on ]]; then
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat` )
+fi
+if [[ $WAVES = on ]]; then
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls swan_HS_max.63.nc swan_TPS_max.63.nc swan_HS.63.nc swan_TPS.63.nc` )
+fi
+dirWind10m=$ADVISDIR/${ENSTORM}Wind10m
+if [[ -d $dirWind10m ]]; then
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls wind10m.maxwvel.63.nc wind10m.fort.74.nc` )
+   ceraNonPriorityFiles=( ${ceraNonPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc` )
+else
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc` )
+fi
+FILES=( ${ceraPriorityFiles[*]} "sendNotification" ${ceraNonPriorityFiles[*]} )
+#
+#-----------------------------------------------------------------------
+#         O P E N  D A P    P U B L I C A T I O N 
+#-----------------------------------------------------------------------
+#
+OPENDAPDIR=""
 #
 # For each opendap server in the list in ASGS config file.
 primaryCount=0
 for server in ${TDS[*]}; do
-   logMessage "Posting to $server opendap with opendap_post.sh using the following command: ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server \"${FILES[*]}\" $OPENDAPNOTIFY"
+   logMessage "$ENSTORM: $THIS: Posting to $server opendap using the following command: ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server \"${FILES[*]}\" $OPENDAPNOTIFY"
    ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server "${FILES[*]}" $OPENDAPNOTIFY >> ${SYSLOG} 2>&1
    # add downloadurl_backup propert(ies) to the properties file that refer to previously 
    # posted results
    backupCount=0
-  for backup in ${TDS[*]}; do
+   for backup in ${TDS[*]}; do
       # don't list the same server as primary and backup and don't list
       # a server as a backup if nothing has been posted there yet
       if [[ $backupCount -ge $primaryCount ]]; then
@@ -485,7 +511,7 @@ if [[ $ENSTORM = namforecast || $ENSTORM = nhcConsensus ]]; then
       if [ -e $file ]; then
          ln -s $file . 2>> ${SYSLOG}
       else
-         logMessage "The directory does not have ${file}."
+         logMessage "$ENSTORM: $THIS: The directory does not have ${file}."
       fi
    done
 fi
