@@ -60,7 +60,11 @@ echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
 #          G E N E R A T E   C E R A   C O N T O U R S     
 #-----------------------------------------------------------------------
 # list the files and time steps that should be contoured
-FILES="maxele.63.nc maxwvel.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc fort.74.nc fort.63.nc swan_HS.63.nc swan_TPS.63.nc"
+#FILES="maxele.63.nc maxwvel.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc fort.74.nc fort.63.nc swan_HS.63.nc swan_TPS.63.nc"
+#
+# @jasonfleming: removed fort.74.nc (wind velocity at ground level) because 
+# it is not the default display and because it takes a long time (30+ minutes)
+FILES="maxele.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc fort.74.nc fort.63.nc swan_HS.63.nc swan_TPS.63.nc"
 # pass these to the cera_contour_post.sh script
 ${OUTPUTDIR}/cera_contour_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG "$FILES"
 # wait until the cera contours are finished, or at least until the 
@@ -153,13 +157,14 @@ dirWind10m=$ADVISDIR/${ENSTORM}Wind10m
 if [[ -d $dirWind10m ]]; then
    logMessage "Corresponding 10m wind ensemble member was found."
    wind10mFound=yes
+   #
    # determine whether the CERA contours are complete for the 10m wind
    # ensemble member 
-   wind10mContoursHeld=`ls $dirWind10m/cera_contour/*.held 2>> /dev/null | wc -l`
+   wind10mContoursHeld=`ls $dirWind10m/cera_contour/*.held 2>> /dev/null | wc -l` # count the number of tasks that haven't started (.held files)
    logMessage "hsofs_renci_post.sh: There are $wind10mContoursHeld .held files for the CERA contours for the 10m winds."
-   wind10mContoursStart=`ls $dirWind10m/cera_contour/*.start 2>> /dev/null | wc -l`
+   wind10mContoursStart=`ls $dirWind10m/cera_contour/*.start 2>> /dev/null | wc -l` # count the number of number of tasks that have started but not completed (.start files)
    logMessage "hsofs_renci_post.sh: There are $wind10mContoursStart .start files for the CERA contours for the 10m winds."
-   wind10mContoursFinish=`ls $dirWind10m/cera_contour/*.finish 2>> /dev/null | wc -l`
+   wind10mContoursFinish=`ls $dirWind10m/cera_contour/*.finish 2>> /dev/null | wc -l` # count the number of tasks that have finished (.finish files)
    logMessage "hsofs_renci_post.sh: There are $wind10mContoursFinish .finish files for the CERA contours for the 10m winds."
    if [[ $wind10mContoursHeld -eq 0 && $wind10mContoursStart -eq 0 && $wind10mContoursFinish -ne 0 ]]; then
       wind10mContoursFinished=yes
@@ -215,10 +220,12 @@ fi
 #      T A R   U P   C E R A   C O N T O U R S      
 #-----------------------------------------------------------------------
 # form list of directories that should go into the tar file
+ceraContoursAvailable=no
 shapeDirs=""
 for layer in $layersFinished; do
    shapeDirs="$shapeDirs CERA/$layer"
 done
+# the h parameter tells tar to dereference symbolic links
 tar cvhf CERA.tar $shapeDirs > CERAtar.log 2>> $SYSLOG
 # if the CERA.tar file was created successfully, add a property for it
 # to the run.properties file
@@ -226,6 +233,7 @@ ERROVALUE=$?  # capture exit status
 if [[ $ERROVALUE == 0 ]] ; then
    logMessage "$ENSTORM: $THIS: Created CERA tar file correctly."
    echo "Contour Tar File : CERA.tar" >> run.properties
+   ceraContoursAvailable=yes
 else
    error "$ENSTORM: $THIS: Could not create CERA tar file."
 fi
@@ -235,20 +243,7 @@ fi
 #-----------------------------------------------------------------------
 # jgf20170726: The following files are required by CERA, so they will
 # be posted first.
-# run.properties
-# maxele.63.nc
-# wind10m.maxwvel.63.nc
-# swan_HS_max.63.nc
-# swan_TPS_max.63.nc
-# fort.63
-# wind10m.fort.74.nc
-# swan_HS.63.nc
-# swan_TPS.63.nc
-# fort.61.nc
-# fort.15
-# al*.fst
-# bal*.fst
-# fort.22
+# run.properties maxele.63.nc wind10m.maxwvel.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc fort.63 wind10m.fort.74.nc swan_HS.63.nc swan_TPS.63.nc fort.61.nc fort.15 al*.fst bal*.fst fort.22
 logMessage "Creating list of files to post to opendap."
 if [[ -e ../al${STORM}${YEAR}.fst ]]; then
    cp ../al${STORM}${YEAR}.fst . 2>> $SYSLOG
@@ -257,6 +252,31 @@ if [[ -e ../bal${STORM}${YEAR}.dat ]]; then
    cp ../bal${STORM}${YEAR}.dat . 2>> $SYSLOG
 fi
 FILES=(`ls *.nc al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat fort.15 fort.22 CERA.tar run.properties 2>> /dev/null`)
+#
+#-------------------------------------------------------------------
+#               C E R A   F I L E   P R I O R I T Y
+#-------------------------------------------------------------------
+# @jasonfleming: Hack in a notification email once the bare minimum files
+# needed by CERA have been posted. 
+ceraPriorityFiles=(`ls run.properties maxele.63.nc fort.63.nc fort.61.nc fort.15 fort.22`)
+if [[ $ceraContoursAvailable = yes ]]; then
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} "CERA.tar" )
+fi
+if [[ $TROPICALCYCLONE = on ]]; then
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat` )
+fi
+if [[ $WAVES = on ]]; then
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls swan_HS_max.63.nc swan_TPS_max.63.nc swan_HS.63.nc swan_TPS.63.nc` )
+fi
+dirWind10m=$ADVISDIR/${ENSTORM}Wind10m
+if [[ -d $dirWind10m && $wind10mContoursFinished = yes ]]; then
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls wind10m.maxwvel.63.nc wind10m.fort.74.nc` )
+else
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc` )
+fi
+ceraPriorityFiles=( ${ceraPriorityFiles[*]} "sendNotification" )
+ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls endrisinginun.63.nc everdried.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc` )
+FILES=( ${ceraPriorityFiles[*]} )
 #
 # For each opendap server in the list in ASGS config file.
 primaryCount=0
