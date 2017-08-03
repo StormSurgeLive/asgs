@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------
 # opendap_post.sh : Makes results available to thredds data server.
 #------------------------------------------------------------------------
-# Copyright(C) 2015--2016 Jason Fleming
+# Copyright(C) 2015--2017 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -30,6 +30,7 @@ SYSLOG=$7
 SERVER=$8
 FILES=($9) # array of files to post to opendap
 #
+THIS=opendap_post.sh
 echo "SERVER is $SERVER" >> ${SYSLOG}
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR}
@@ -120,10 +121,10 @@ case $OPENDAPPOSTMETHOD in
 #                P O S T   V I A   S C P
 #-------------------------------------------------------------------
 "scp")
-   logMessage "Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
+   logMessage "$ENSTORM: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
    ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
    if [[ $? != 0 ]]; then
-      warn "Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
+      warn "$ENSTORM: $THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
       threddsPostStatus=fail
    fi
    # add code to create write permissions on directories so that other 
@@ -132,23 +133,23 @@ case $OPENDAPPOSTMETHOD in
    ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
    ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
    if [[ $? != 0 ]]; then
-      warn "Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
+      warn "$ENSTORM: $THIS: Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
       threddsPostStatus=fail
    fi
    for file in ${FILES[*]}; do 
       chmod +r $file 2>> $SYSLOG
-      logMessage "Transferring $file."
+      logMessage "$ENSTORM: $THIS: Transferring $file."
       scp -P $SSHPORT $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG
       if [[ $? != 0 ]]; then
          threddsPostStatus=fail
-         warn "Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
+         warn "$ENSTORM: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
       fi
       # give the file read permissions
       fname=`basename $file` 
       ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod +r $OPENDAPDIR/$fname"
       if [[ $? != 0 ]]; then
          threddsPostStatus=fail
-         warn "Failed to give the file $file read permissions in ${OPENDAPHOST}:${OPENDAPDIR}."
+         warn "$ENSTORM: $THIS: Failed to give the file $file read permissions in ${OPENDAPHOST}:${OPENDAPDIR}."
       fi      
       # We must add this new property to the run.properties after copying it
       # to the remote server so we don't contaminate the original
@@ -156,7 +157,7 @@ case $OPENDAPPOSTMETHOD in
       ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "echo downloadurl : $downloadURL >> $OPENDAPDIR/run.properties"
       if [[ $? != 0 ]]; then
          threddsPostStatus=fail
-         warn "Failed to add the downloadurl property to run.properties in ${OPENDAPHOST}:${OPENDAPDIR}."
+         warn "$ENSTORM: $THIS: Failed to add the downloadurl property to run.properties in ${OPENDAPHOST}:${OPENDAPDIR}."
       fi      
    done
    ;;
@@ -189,26 +190,26 @@ case $OPENDAPPOSTMETHOD in
       # We must copy the run.properties so we don't contaminate the
       # original run.properties with this downloadurl property.
       if [[ $file = 'run.properties' ]]; then
-         logMessage "Copying $file."
+         logMessage "$ENSTORM: $THIS: Copying $file."
          cp ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
          if [[ $? != 0 ]]; then
             threddsPostStatus=fail
-            warn "Failed to copy the run.properties file to ${OPENDAPDIR}."
+            warn "$ENSTORM: $THIS: Failed to copy the run.properties file to ${OPENDAPDIR}."
          fi         
          echo downloadurl : $downloadURL >> $file 2>> ${SYSLOG}
       else
-         logMessage "$postDesc $file."
+         logMessage "$ENSTORM: $THIS: $postDesc $file."
          $postCMD ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
          if [[ $? != 0 ]]; then
            threddsPostStatus=fail
-           warn "$postDesc $file to ${OPENDAPDIR} failed."
+           warn "$ENSTORM: $THIS: $postDesc $file to ${OPENDAPDIR} failed."
          fi
       fi
    done
    ;;
 *)
    threddsPostStatus=fail
-   warn "The opendap post method $OPENDAPPOSTMETHOD was not recognized."
+   warn "$ENSTORM: $THIS: The opendap post method $OPENDAPPOSTMETHOD was not recognized."
    ;;
 esac
 #
@@ -238,6 +239,6 @@ END
 #   error "opendap_post.sh: A failure occurred when the ASGS instance $INSTANCENAME attempted to post data to the THREDDS Data Server ${SERVER}. Downstream data consumers will not receive an email for these results. However, the opendap results notification will be sent to ${ASGSADMIN}."
 #   cat ${STORMDIR}/opendap_results_notify.txt | mail -s "$subject" $ASGSADMIN 2>> ${SYSLOG} 2>&1
 #else
-   logMessage "opendap_post.sh: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
+   logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
    cat ${STORMDIR}/opendap_results_notify.txt | mail -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
 #fi
