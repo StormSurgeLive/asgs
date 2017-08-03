@@ -124,7 +124,7 @@ HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
 # Output files
 
 # water surface elevation station output
-FORT61="--fort61freq 900.0 --fort61netcdf" 
+FORT61="--fort61freq 300.0 --fort61netcdf" 
 # water current velocity station output
 FORT62="--fort62freq 0"                    
 # full domain water surface elevation output
@@ -132,7 +132,7 @@ FORT63="--fort63freq 3600.0 --fort63netcdf"
 # full domain water current velocity output
 FORT64="--fort64freq 3600.0 --fort64netcdf" 
 # met station output
-FORT7172="--fort7172freq 900.0 --fort7172netcdf"           
+FORT7172="--fort7172freq 300.0 --fort7172netcdf"           
 # full domain meteorological output
 FORT7374="--fort7374freq 3600.0 --fort7374netcdf"           
 #SPARSE="--sparse-output"
@@ -193,12 +193,15 @@ case $si in
       # do nothing ... this is not a forecast
    ;;
 0)
+   ENSTORM=namforecast
+   ;;
+1)
    ENSTORM=namforecastWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-   TIMESTEPSIZE=900.0    # 15 minute time steps
+   TIMESTEPSIZE=300.0    # 5 minute time steps
    NCPU=15               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
@@ -222,9 +225,6 @@ case $si in
    # prevent collisions in prepped archives
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=wind10m_post.sh
-   ;;
-1)
-   ENSTORM=namforecast
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
