@@ -505,7 +505,7 @@ downloadCycloneData()
           # assume the advisory number is the first two characters in the
           # symbolic link target of the forecast file name
           newAdvisoryNum=${linkTarget:0:2}
-          if [ $newAdvisoryNum -gt $ADVISORY ]; then 
+          if [[ $newAdvisoryNum -gt $ADVISORY ]]; then 
              newAdvisory="true" 
           else 
              newAdvisory="false" 
@@ -1033,7 +1033,7 @@ VELOCITYMULTIPLIER=1.0
 HOTSWAN=off
 ONESHOT=no      # yes if ASGS is launched by cron
 NCPUCAPACITY=2  # total number of CPUs available to run jobs
-let si=-1       # storm index for forecast ensemble; -1 indicates non-forecast
+si=-1       # storm index for forecast ensemble; -1 indicates non-forecast
 STATEFILE=null
 ENSTORM=hindcast
 CYCLETIMELIMIT="05:00:00"
@@ -1360,7 +1360,7 @@ fi
 while [ true ]; do
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
    ENSTORM=nowcast
-   let si=-1
+   si=-1
    . ${CONFIG}
    FROMDIR=null
    LUN=null       # logical unit number; either 67 or 68
@@ -1566,7 +1566,7 @@ while [ true ]; do
       HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/PE0000/fort.67` 2>> ${SYSLOG}
    fi
    logMessage "The time in the hotstart file is '$HSTIME' seconds."
-   let si=0
+   si=0
    while [ $si -lt $ENSEMBLESIZE ]; do    
       # source config file to pick up any configuration changes, or any
       # config that is specific to forecasts, and set up the current 
@@ -1782,7 +1782,7 @@ while [ true ]; do
             ) &
          fi
       fi
-      si=$[$si + 1];
+      si=`expr $si + 1`
    done
    # allow all ensemble members and associated post processing to complete
    logMessage "All forecast ensemble members have been submitted."

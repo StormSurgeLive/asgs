@@ -27,10 +27,11 @@
 
 # Fundamental
 
-INSTANCENAME=readytx      # "name" of this ASGS process
-COLDSTARTDATE=2017061700  # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart       # "hotstart" or "coldstart"
-LASTSUBDIR=null  # path to previous execution (if HOTORCOLD=hotstart)
+INSTANCENAME=cicitx      # "name" of this ASGS process
+COLDSTARTDATE=2017052900  # calendar year month day hour YYYYMMDDHH24
+
+HOTORCOLD=hotstart       # "hotstart" or "coldstart"
+LASTSUBDIR=/scratch/00976/jgflemin/asgs58495/2017070212   # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=20.0       # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
@@ -44,12 +45,12 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on      # NAM download/forcing
+BACKGROUNDMET=off      # NAM download/forcing
 TIDEFAC=on            # tide factor recalc
-TROPICALCYCLONE=off   # tropical cyclone forcing
+TROPICALCYCLONE=on  # tropical cyclone forcing
 WAVES=on              # wave forcing
 VARFLUX=off           # variable river flux forcing
-VORTEXMODEL=GAHM
+VORTEXMODEL=SYMMETRIC
 
 # Computational Resources
 
@@ -59,20 +60,20 @@ HINDCASTWALLTIME="18:00:00"  # hindcast wall clock time
 ADCPREPWALLTIME="00:30:00"   # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="08:00:00"   # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00"  # forecast wall clock time
-NCPU=3600                    # number of compute CPUs for all simulations
-NCPUCAPACITY=3624
+NCPU=2400                     # number of compute CPUs for all simulations
+NCPUCAPACITY=2424
 NUMWRITERS=24
-CYCLETIMELIMIT="99:00:00"
+CYCLETIMELIMIT="05:00:00"
 
 # External data sources : Tropical cyclones
 
-STORM=99                         # storm number, e.g. 05=ernesto in 2006
-YEAR=2016                        # year of the storm
-TRIGGER=rssembedded              # either "ftp" or "rss"
+STORM=99                        # storm number, e.g. 05=ernesto in 2006
+YEAR=2017                        # year of the storm
+TRIGGER=atcf              # either "ftp" or "rss"
 RSSSITE=filesystem
 FTPSITE=filesystem
-FDIR=${SCRIPTDIR}/input/sample_advisories
-HDIR=${SCRIPTDIR}/input/sample_advisories
+FDIR=${SCRIPTDIR}/input/sample_advisories/2017
+HDIR=${SCRIPTDIR}/input/sample_advisories/2017
 #RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 #FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
 #FDIR=/atcf/afst                  # forecast dir on nhc ftp site
@@ -80,7 +81,7 @@ HDIR=${SCRIPTDIR}/input/sample_advisories
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="00"
+FORECASTCYCLE="00,06,12,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -96,7 +97,6 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 #QSCRIPT=lonestar.reservation.template.slurm
 #PREPCONTROLSCRIPT=lonestar.reservation.template.serial.slurm
-
 
 GRIDFILE=tx2008_r35h.grd # mesh (fort.14) file
 GRIDNAME=tx2008_r35h
@@ -143,7 +143,7 @@ MINMAX=reset
 # Notification
 
 EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
-NOTIFY_SCRIPT=ut-nam-notify.sh
+NOTIFY_SCRIPT=ut-nhc-notify.sh
 ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
@@ -154,13 +154,14 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 # Post processing and publication
 
+PSEUDOSTORM=y
 INTENDEDAUDIENCE=developers-only
 INITPOST=null_init_post.sh
 POSTPROCESS=ut-post2017.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
-TDS=(tacc_tds lsu_tds renci_tds)
+TDS=(lsu_tds tacc_tds renci_tds)
 TARGET=lonestar  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
@@ -180,7 +181,7 @@ fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
-OPENDAPNOTIFY="jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,howard@csr.utexas.edu,jennifer@ices.utexas.edu"
 
 NUMCERASERVERS=2
 WEBHOST=webserver.hostingco.com
@@ -197,14 +198,22 @@ ARCHIVEDIR="${INSTANCENAME}_NAM"
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=1 # number of storms in the ensemble
-echo "si is $si"
+ENSEMBLESIZE=3 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=namforecast
+   ENSTORM=rMax10
+   PERCENT=10
+   ;;
+1)
+   ENSTORM=veerRight100
+   PERCENT=100
+   ;;
+2)
+   ENSTORM=veerLeft100
+   PERCENT=-100
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
