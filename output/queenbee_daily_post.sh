@@ -78,10 +78,10 @@ if [ -e ${STORMDIR}/initiallydry.63.nc ]; then
          echo "Inundation Mask File Name : inundationmask.63.nc" >> run.properties
          echo "Inundation Mask Format : netcdf" >> run.properties
       else
-         error "Failed to create inundationmask.63.nc file."
+         error "$ENSTORM: $THIS: Failed to create inundationmask.63.nc file."
       fi
    else
-      error "The initiallydry.63.nc file was found in $STORMDIR but the inundationMask.x executable was not found in ${OUTPUTDIR}."
+      error "$ENSTORM: $THIS: The initiallydry.63.nc file was found in $STORMDIR but the inundationMask.x executable was not found in ${OUTPUTDIR}."
    fi
 fi
 
@@ -97,7 +97,7 @@ wind10mFound=no
 wind10mContoursFinished=no
 dirWind10m=$ADVISDIR/${ENSTORM}Wind10m
 if [[ -d $dirWind10m ]]; then
-   logMessage "Corresponding 10m wind ensemble member was found."
+   logMessage "$ENSTORM: $THIS: Corresponding 10m wind ensemble member was found."
    wind10mFound=yes
    for file in fort.72.nc fort.74.nc maxwvel.63.nc ; do
       if [[ -e $dirWind10m/$file ]]; then
@@ -132,17 +132,21 @@ fi
 #         O P E N  D A P    P U B L I C A T I O N 
 #-----------------------------------------------------------------------
 logMessage "Creating list of files to post to opendap."
-FILES=(`ls *.nc ${ADVISDIR}/al*.fst ${ADVISDIR}/bal*.dat fort.15 fort.22 run.properties`)
+if [[ -e ../al${STORM}${YEAR}.fst ]]; then
+   cp ../al${STORM}${YEAR}.fst . 2>> $SYSLOG
+fi
+if [[ -e ../bal${STORM}${YEAR}.dat ]]; then
+   cp ../bal${STORM}${YEAR}.dat . 2>> $SYSLOG
+fi
+FILES=(`ls *.nc al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat fort.15 fort.22 CERA.tar run.properties 2>> /dev/null`)
 #
 # For each opendap server in the list in ASGS config file.
 primaryCount=0
 for server in ${TDS[*]}; do 
-   logMessage "Posting to $server opendap with opendap_post.sh using the following command: ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server \"${FILES[*]}\" $OPENDAPNOTIFY"
+   logMessage "$ENSTORM: $THIS: Posting to $server opendap using the following command: ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server \"${FILES[*]}\" $OPENDAPNOTIFY"
    ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server "${FILES[*]}" $OPENDAPNOTIFY >> ${SYSLOG} 2>&1
-   # add downloadurl_backup propert(ies) to 
-
-   # add downloadurl_backup propert(ies) to the properties file that refer to previously 
-   # posted results
+   # add downloadurl_backup propert(ies) to the properties file that 
+   # refer to previously posted results
    backupCount=0
    for backup in ${TDS[*]}; do
       # don't list the same server as primary and backup and don't list
@@ -158,12 +162,34 @@ for server in ${TDS[*]}; do
       OPENDAPDIR=`sed -n $(($backupCount+1))p opendapdir.log`
       propertyName="downloadurl_backup"$(($backupServer+1))
       # need to grab the SSHPORT from the configuration
-      env_dispatch $backup    
-      if [[ $SSHPORT != "null" ]]; then
-         ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties"
-      else
-         ssh $OPENDAPHOST -l $OPENDAPUSER "echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties" 
-      fi
+      env_dispatch $backup
+      # Establish the method of posting results for service via opendap
+      OPENDAPPOSTMETHOD=scp
+      for hpc in ${COPYABLEHOSTS[*]}; do
+         if [[ $hpc = $TARGET ]]; then
+            OPENDAPPOSTMETHOD=copy
+         fi
+      done
+      for hpc in ${LINKABLEHOSTS[*]}; do
+         if [[ $hpc = $TARGET ]]; then
+            OPENDAPPOSTMETHOD=link
+         fi
+      done
+      case $OPENDAPPOSTMETHOD in
+      "scp")
+         if [[ $SSHPORT != "null" ]]; then
+            ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties"
+         else
+            ssh $OPENDAPHOST -l $OPENDAPUSER "echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties"
+        fi
+        ;;
+      "copy"|"link")
+         echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties 2>> $SYSLOG
+         ;;
+      *)
+         warn "$ENSTORM: $THIS: OPeNDAP post method unrecogrnized."
+         ;;
+      esac
       backupCount=$(($backupCount+1))
    done
    primaryCount=$((primaryCount+1))
