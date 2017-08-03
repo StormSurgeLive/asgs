@@ -200,14 +200,6 @@ case $si in
 0)
    ENSTORM=nhcConsensus
    ;;
-1)
-   ENSTORM=veerRight50
-   PERCENT=50
-   ;;
-2)
-   ENSTORM=veerRight100
-   PERCENT=100
-   ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
    ;;

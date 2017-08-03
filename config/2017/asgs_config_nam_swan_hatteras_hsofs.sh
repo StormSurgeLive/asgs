@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=namhsofs    # "name" of this ASGS process
-COLDSTARTDATE=2017052900 # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2017061700 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -36,7 +36,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables
+ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable        # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
@@ -55,20 +55,22 @@ VARFLUX=off          # variable river flux forcing
 TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
-ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
+ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
-NCPU=480                    # number of compute CPUs for all simulations
-NUMWRITERS=8
-NCPUCAPACITY=2000
+NCPU=608                    # number of compute CPUs for all simulations
+NUMWRITERS=16
+NCPUCAPACITY=640
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=null
 SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data
 ACCOUNT=batch
 
+#QSCRIPT=hatteras.partition.template.slurm
+#PREPCONTROLSCRIPT=hatteras.partition.adcprep.template.slurm 
 QSCRIPT=hatteras.reservation.template.slurm
-PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm # jgf20160322
+PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm 
 
 # External data sources : Tropical cyclones
 
@@ -91,7 +93,7 @@ FORECASTCYCLE="00,12"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
-PTFILE=ptFile_oneEighth.txt         # the lat/lons for the OWI background met
+PTFILE=ptFile_hsofs.txt         # the lat/lons for the OWI background met
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
 
 # External data sources : River Flux
@@ -106,12 +108,13 @@ GRIDNAME=hsofs
 MESHPROPERTIES=${GRIDFILE}.nc.properties
 CONTROLTEMPLATE=hsofs.15.template  # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=hsofs.all_cera_stations_20170618.txt
-VELSTATIONS=hsofs.all_cera_stations_20170618.txt
-METSTATIONS=hsofs.all_cera_stations_20170618.txt
+ELEVSTATIONS=hsofs.all_cera_stations_20170717.txt
+VELSTATIONS=hsofs.all_cera_stations_20170717.txt
+METSTATIONS=hsofs.all_cera_stations_20170717.txt
 NAFILE=hsofs.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=fort.26.template # only used if WAVES=on
+#SWANTEMPLATE=fort.26.template # only used if WAVES=on
+SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
 RIVERINIT=null                          # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
@@ -121,7 +124,7 @@ HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
 # Output files
 
 # water surface elevation station output
-FORT61="--fort61freq 900.0 --fort61netcdf" 
+FORT61="--fort61freq 300.0 --fort61netcdf" 
 # water current velocity station output
 FORT62="--fort62freq 0"                    
 # full domain water surface elevation output
@@ -129,7 +132,7 @@ FORT63="--fort63freq 3600.0 --fort63netcdf"
 # full domain water current velocity output
 FORT64="--fort64freq 3600.0 --fort64netcdf" 
 # met station output
-FORT7172="--fort7172freq 3600.0 --fort7172netcdf"           
+FORT7172="--fort7172freq 300.0 --fort7172netcdf"           
 # full domain meteorological output
 FORT7374="--fort7374freq 3600.0 --fort7374netcdf"           
 #SPARSE="--sparse-output"
@@ -159,12 +162,12 @@ ASGSADMIN=jason.fleming@seahorsecoastal.com
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=ncfs_post.sh
+POSTPROCESS=hsofs_renci_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
 
-TDS=(lsu_tds renci_tds)
+TDS=(renci_tds lsu_tds)
 TARGET=hatteras  # used in post processing to pick up HPC platform config
 OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
 if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
@@ -172,10 +175,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="jason.fleming@seahorsecoastal.com"
-OPENDAPHOST=ht1.renci.org
-OPENDAPUSER=ncfs
-OPENDAPBASEDIR=/projects/ncfs/opendap/data
+OPENDAPNOTIFY="nc.cera.renci2@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
 
 # Archiving
 
@@ -187,13 +187,44 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=1 # number of storms in the ensemble
+ENSEMBLESIZE=2 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 0)
    ENSTORM=namforecast
+   ;;
+1)
+   ENSTORM=namforecastWind10m
+   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
+   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+   TIMESTEPSIZE=300.0    # 5 minute time steps
+   NCPU=15               # dramatically reduced resource requirements
+   NUMWRITERS=1          # multiple writer procs might collide
+   WAVES=off             # deactivate wave forcing 
+   # turn off water surface elevation station output
+   FORT61="--fort61freq 0"
+   # turn off water current velocity station output
+   FORT62="--fort62freq 0"
+   # turn off full domain water surface elevation output
+   FORT63="--fort63freq 0"
+   # turn off full domain water current velocity output
+   FORT64="--fort64freq 0"
+   # met station output
+   FORT7172="--fort7172freq 900.0 --fort7172netcdf"
+   # full domain meteorological output
+   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
+   #SPARSE="--sparse-output"
+   SPARSE=""
+   NETCDF4="--netcdf4"
+   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+   INTENDEDAUDIENCE=general
+   # prevent collisions in prepped archives
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   POSTPROCESS=wind10m_post.sh
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
