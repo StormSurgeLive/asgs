@@ -161,7 +161,7 @@ ASGSADMIN="jason.g.fleming@gmail.com"
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=hsofs_renci_post.sh
+POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
