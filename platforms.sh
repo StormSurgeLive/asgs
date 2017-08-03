@@ -408,7 +408,7 @@ init_tacc_tds()
    OPENDAPHOST=adcircvis.tacc.utexas.edu
    DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer/asgs"
    CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog/asgs"
-   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS/2016
+   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS/2017
    SSHPORT=null
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
    COPYABLEHOSTS=(lonestar) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
