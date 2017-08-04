@@ -1395,7 +1395,14 @@ if [[ $START = coldstart ]]; then
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
 else
    # start from   H O T S T A R T   file
-   logMessage "$ENSTORM: $THIS: Starting nowcast from the hotstart file under '$LASTSUBDIR'."
+   if [[ `basename $LASTSUBDIR` = nowcast || `basename $LASTSUBDIR` = hindcast ]]; then
+      logMessage "$THIS: The LASTSUBDIR path is $LASTSUBDIR but ASGS looks in this path to find either a nowcast or hindcast subdirectory. The LASTSUBDIR parameter is being reset to to remove either nowcast or hindcast from the end of it." 
+      LASTSUBDIR=`dirname $LASTSUBDIR`
+   fi 
+   if [[ $LASTSUBDIR = null ]]; then
+      fatal "LASTSUBDIR is set to null, but the ASGS is trying to hotstart. Is the STATEFILE $STATEFILE up to date and correct? If not, perhaps it should be deleted. Otherwise, the HOTORCOLD parameter in the ASGS config file has been set to $HOTORCOLD and yet the LASTSUBDIR parameter is still set to null."
+   fi
+   logMessage "$ENSTORM: $THIS: Starting from the hindcast or nowcast subdirectory under '$LASTSUBDIR'."
    OLDADVISDIR=$LASTSUBDIR
 fi
 #
@@ -1407,11 +1414,14 @@ while [ true ]; do
    . ${CONFIG}
    FROMDIR=null
    LUN=null       # logical unit number; either 67 or 68
+   logMessage "$ENSTORM: $THIS: Looking for the directory $OLDADVISDIR/nowcast."
    if [[ -d $OLDADVISDIR/nowcast ]]; then
        FROMDIR=$OLDADVISDIR/nowcast
-   fi
-   if [[ -d $OLDADVISDIR/hindcast ]]; then
-       FROMDIR=$OLDADVISDIR/hindcast
+   else 
+      logMessage "$ENSTORM: $THIS: Looking for the directory $OLDADVISDIR/hindcast."
+      if [[ -d $OLDADVISDIR/hindcast ]]; then
+          FROMDIR=$OLDADVISDIR/hindcast
+      fi
    fi
    # turn SWAN hotstarting on or off as appropriate
    if [[ $WAVES = on && -e $FROMDIR/PE0000/swan.67 && $REINITIALIZESWAN = no ]]; then
@@ -1421,11 +1431,18 @@ while [ true ]; do
    fi
    checkHotstart $FROMDIR $HOTSTARTFORMAT  67
    THIS="asgs_main.sh"
+   logMessage "$ENSTORM $THIS: Checking the time in seconds since cold start in the hotstart file."
    if [[ $HOTSTARTFORMAT = netcdf ]]; then
-      logMessage "$ENSTORM: $THIS: hotstart format is netcdf"
+      logMessage "$ENSTORM: $THIS: The hotstart format is netcdf."
+      if [[ ! -e ${FROMDIR}/fort.67.nc ]]; then
+         fatal "$ENSTORM: $THIS: The hotstart file ${FROMDIR}/fort.67.nc was not found."
+      fi
       HSTIME=`$ADCIRCDIR/hstime -f ${FROMDIR}/fort.67.nc -n` 2>> ${SYSLOG}
    else
-      logMessage "$ENSTORM: $THIS: hotstart format is binary"
+      logMessage "$ENSTORM: $THIS: The hotstart format is binary."
+      if [[ ! -e ${FROMDIR}/PE0000/fort.67 ]]; then
+         fatal "$ENSTORM: $THIS: The hotstart file ${FROMDIR}/PE0000/fort.67.nc was not found."
+      fi
       HSTIME=`$ADCIRCDIR/hstime -f ${FROMDIR}/PE0000/fort.67` 2>> ${SYSLOG}
    fi
    logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
