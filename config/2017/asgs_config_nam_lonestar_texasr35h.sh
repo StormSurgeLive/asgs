@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=readytx      # "name" of this ASGS process
-COLDSTARTDATE=2017061700  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2017071200  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=20.0       # length of initial hindcast, from cold (days)
@@ -36,7 +36,7 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=$WORK/adcirc/v52release/work # ADCIRC executables
+ADCIRCDIR=$WORK/adcirc/forks/adcirc/master/work # ADCIRC executables
 SCRIPTDIR=$WORK/asgs/2014stable        # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/texas2008_r35h # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
@@ -56,11 +56,11 @@ VORTEXMODEL=GAHM
 TIMESTEPSIZE=1.0             # adcirc time step size (seconds)
 SWANDT=1200                  # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00"  # hindcast wall clock time
-ADCPREPWALLTIME="00:30:00"   # adcprep wall clock time, including partmesh
+ADCPREPWALLTIME="01:30:00"   # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="08:00:00"   # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00"  # forecast wall clock time
 NCPU=3600                    # number of compute CPUs for all simulations
-NCPUCAPACITY=3624
+NCPUCAPACITY=3648
 NUMWRITERS=24
 CYCLETIMELIMIT="99:00:00"
 
@@ -69,14 +69,14 @@ CYCLETIMELIMIT="99:00:00"
 STORM=99                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2016                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
-RSSSITE=filesystem
-FTPSITE=filesystem
-FDIR=${SCRIPTDIR}/input/sample_advisories
-HDIR=${SCRIPTDIR}/input/sample_advisories
-#RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
-#FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
-#FDIR=/atcf/afst                  # forecast dir on nhc ftp site
-#HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
+#RSSSITE=filesystem
+#FTPSITE=filesystem
+#FDIR=${SCRIPTDIR}/input/sample_advisories
+#HDIR=${SCRIPTDIR}/input/sample_advisories
+RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
+FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
+FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
@@ -86,6 +86,8 @@ BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
 PTFILE=ptFile_oneEighth.txt         # the lat/lons for the OWI background met
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
+SPATIALEXTRAPOLATIONRAMP=yes
+SPATIALEXTRAPOLATIONRAMPDISTANCE=5.0
 
 # External data sources : River Flux
 
@@ -108,8 +110,8 @@ VELSTATIONS=tx2008r35h_stations_20170618.txt
 METSTATIONS=tx2008r35h_stations_20170618.txt
 NAFILE=tx2008_r35h.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=fort.26.ut.template    # only used if WAVES=on
-RIVERINIT=null                           # this mesh has no rivers ...
+SWANTEMPLATE=nolimiter.fort.26.ut.template  # only used if WAVES=on
+RIVERINIT=null                              # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
@@ -154,7 +156,7 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=developers-only
+INTENDEDAUDIENCE=professional
 INITPOST=null_init_post.sh
 POSTPROCESS=ut-post2017.sh
 POSTPROCESS2=null_post.sh
@@ -182,11 +184,6 @@ fi
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
 OPENDAPNOTIFY="jason.g.fleming@gmail.com"
 
-NUMCERASERVERS=2
-WEBHOST=webserver.hostingco.com
-WEBUSER=remoteuser
-WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts
-
 # Archiving
 
 ARCHIVE=ut-archive.sh
@@ -197,14 +194,44 @@ ARCHIVEDIR="${INSTANCENAME}_NAM"
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=1 # number of storms in the ensemble
-echo "si is $si"
+ENSEMBLESIZE=2 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 0)
    ENSTORM=namforecast
+   ;;
+1)
+   ENSTORM=namforecastWind10m
+   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   CONTROLTEMPLATE=tx2008r35h_norough_template.15  # fort.15 template
+   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+   TIMESTEPSIZE=300.0    # 5 minute time steps
+   NCPU=23               # dramatically reduced resource requirements
+   NUMWRITERS=1          # multiple writer procs might collide
+   WAVES=off             # deactivate wave forcing 
+   # turn off water surface elevation station output
+   FORT61="--fort61freq 0"
+   # turn off water current velocity station output
+   FORT62="--fort62freq 0"
+   # turn off full domain water surface elevation output
+   FORT63="--fort63freq 0"
+   # turn off full domain water current velocity output
+   FORT64="--fort64freq 0"
+   # met station output
+   FORT7172="--fort7172freq 900.0 --fort7172netcdf"
+   # full domain meteorological output
+   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
+   #SPARSE="--sparse-output"
+   SPARSE=""
+   NETCDF4="--netcdf4"
+   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+   INTENDEDAUDIENCE=professional
+   # prevent collisions in prepped archives
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   POSTPROCESS=null_post.sh
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."

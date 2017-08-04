@@ -1,8 +1,8 @@
  ASGS %StormName%    ! 32 CHARACTER ALPHANUMERIC RUN DESCRIPTION
  %EnsembleID%        ! 24 CHARACTER ALPANUMERIC RUN IDENTIFICATION
  1                   ! NFOVER - NONFATAL ERROR OVERRIDE OPTION
- 1                   ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
- -100                ! NSCREEN - UNIT 6 OUTPUT OPTION PARAMETER
+ 0                   ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
+ -1000                 ! NSCREEN - UNIT 6 OUTPUT OPTION PARAMETER
  %IHOT%              ! IHOT - HOT START PARAMETER
  2                   ! ICS - COORDINATE SYSTEM SELECTION PARAMETER
  0                   ! IM - MODEL SELECTION PARAMETER 
@@ -10,9 +10,8 @@
  2                   ! NOLIFA - FINITE AMPLITUDE TERM SELECTION PARAMETER
  0                   ! NOLICA - SPATIAL DERIVATIVE CONVECTIVE SELECTION PARAMETER
  0                   ! NOLICAT - TIME DERIVATIVE CONVECTIVE TERM SELECTION PARAMETER
- 6                   ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
+ 5                   ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
 surface_submergence_state
-surface_canopy_coefficient
 mannings_n_at_sea_floor
 sea_surface_height_above_geoid
 primitive_weighting_in_continuity_equation
@@ -2131,7 +2130,6 @@ average_horizontal_eddy_viscosity_in_sea_water_wrt_depth
  0  0  0  0          ! NHASE,NHASV,NHAGE,NHAGV - CONTROL HARMONIC ANALYSIS AND OUTPUT TO UNITS 51,52,53,54
  %NHSTAR%  %NHSINC%  ! NHSTAR,NHSINC - HOT START FILE GENERATION PARAMETERS 
  1  0  1.E-7  25  0  ! ITITER, ISLDIA, CONVCR, ITMAX & ILUMP
-&metControl WindDragLimit=0.002 DragLawString='Garratt' /
 Texas ASGS
 Computational Hydraulics Group, SeahorseCoastal Consulting LLC
 Texas Advanced Computing Center
@@ -2142,3 +2140,5 @@ TACC
 CF
 jason.fleming@seahorsecoastal.com
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
+&metControl WindDragLimit=0.002 DragLawString='Garratt' /
+&inundationOutputControl inundationOutput=.true. inunThresh=0.6 /
