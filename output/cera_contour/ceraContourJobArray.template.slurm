@@ -6,6 +6,8 @@
 #SBATCH -t %TASKTIMELIMITMINUTES%
 #SBATCH -n 1
 #SBATCH --array=1-%TOTALNUMTASKS%%%CONCURRENTNUMTASKS%
+#SBATCH --reservation=ncfs
+#SBATCH --partition=ncfs
 #SBATCH -o %STORMDIR%/%TASKTYPE%.out
 #
 #----------------------------------------------------------------------------

@@ -67,10 +67,10 @@ SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data
 ACCOUNT=batch
 
-QSCRIPT=hatteras.partition.template.slurm
-PREPCONTROLSCRIPT=hatteras.partition.adcprep.template.slurm 
-#QSCRIPT=hatteras.reservation.template.slurm
-#PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm # jgf20160322
+#QSCRIPT=hatteras.partition.template.slurm
+#PREPCONTROLSCRIPT=hatteras.partition.adcprep.template.slurm 
+QSCRIPT=hatteras.reservation.template.slurm
+PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm # jgf20160322
 
 # External data sources : Tropical cyclones
 
@@ -175,7 +175,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
+OPENDAPNOTIFY="nc.cera.renci2@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
 
 # Archiving
 

@@ -31,7 +31,8 @@
 INSTANCENAME=dailyv6c      # name of this ASGS process
 #COLDSTARTDATE=2016090400
 #COLDSTARTDATE=2017010100
-COLDSTARTDATE=2017012400
+#COLDSTARTDATE=2017012400
+COLDSTARTDATE=2017070100
 HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0        # length of initial hindcast, from cold (days)
@@ -39,7 +40,7 @@ REINITIALIZESWAN=no        # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables 
+ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables 
 SCRIPTDIR=~/asgs/2014stable        # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v6b   # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
@@ -61,15 +62,15 @@ HINDCASTWALLTIME="24:00:00"
 ADCPREPWALLTIME="00:15:00"
 NOWCASTWALLTIME="05:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=480
-NUMWRITERS=8
-NCPUCAPACITY=1920
+NCPU=608
+NUMWRITERS=16
+NCPUCAPACITY=640
 CYCLETIMELIMIT="05:00:00"
 # queue
 QUEUENAME=null
 SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
-ACCOUNT=ncfs # or "ncfs" on hatteras to use pre-empt capability
+ACCOUNT=batch # or "ncfs" on hatteras to use pre-empt capability
 
 QSCRIPT=hatteras.reservation.template.slurm # jgf20160224
 PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm # jgf20160322
@@ -115,7 +116,7 @@ VELSTATIONS=null
 METSTATIONS=v6brivers_met_stations.txt
 NAFILE=v6brivers_rlevel.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=fort.26.v6b.limiter.template
+SWANTEMPLATE=fort.26.v6b.template
 RIVERINIT=v6brivers.88
 RIVERFLUX=v6brivers_fort.20_default
 HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
@@ -125,7 +126,7 @@ HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
 # Output files
 
 # water surface elevation station output
-FORT61="--fort61freq 900.0 --fort61netcdf"
+FORT61="--fort61freq 300.0 --fort61netcdf"
 # water current velocity station output
 FORT62="--fort62freq 0"
 # full domain water surface elevation output
@@ -133,7 +134,7 @@ FORT63="--fort63freq 3600.0 --fort63netcdf"
 # full domain water current velocity output
 FORT64="--fort64freq 3600.0 --fort64netcdf"
 # met station output
-FORT7172="--fort7172freq 3600.0 --fort7172netcdf"
+FORT7172="--fort7172freq 300.0 --fort7172netcdf"
 # full domain meteorological output
 FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
 #SPARSE="--sparse-output"
@@ -192,12 +193,15 @@ case $si in
       # do nothing ... this is not a forecast
    ;;
 0)
+   ENSTORM=namforecast
+   ;;
+1)
    ENSTORM=namforecastWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=nv6brivers_explicit_rlevel51.nowindreduction.fort.15_template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-   TIMESTEPSIZE=900.0   # 1 hour time steps
+   TIMESTEPSIZE=300.0    # 5 minute time steps
    NCPU=15               # so total cpus match with other ensemble members
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
@@ -210,7 +214,7 @@ case $si in
    # turn off full domain water current velocity output
    FORT64="--fort64freq 0"
    # met station output
-   FORT7172="--fort7172freq 900.0 --fort7172netcdf"
+   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
    # full domain meteorological output
    FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
    #SPARSE="--sparse-output"
@@ -220,9 +224,6 @@ case $si in
    # prevent collisions in prepped archives
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=wind10m_post.sh
-   ;;
-1)
-   ENSTORM=namforecast
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."

@@ -17,9 +17,6 @@ $
 $ any depths shallower than "DEPMIN" will be set to this value
 SET DEPMIN 0.1
 $
-$ specify output to be based on "true energy" not variance
-SET INRHOG 1
-$
 $ specify nonstationary computations (can be 1D or 2D; default is 2D)
 MODE NONSTATIONARY
 $
@@ -32,13 +29,14 @@ $ in theta-space (10 degree spectral directional resolution);
 $ FLOW indicates lowest descrete frequency to be used in the calculation
 $ is 0.031384 Hz; MSC is equal to one less than the number of
 $ frequencies ... SWAN calculates the resulting high frequency
-$ and writes it to its log file ... for FLOW=0.031384 and MSC=30 it had 
+$ and writes it to its log file ... for FLOW=0.031384 and MSC=30 it had
 $ the following log entry: FHIGH =  0.5476.
-CGRID UNSTRUCTURED CIRCLE MDC=36 FLOW=0.031384 MSC=30
+CGRID UNSTRUCTURED CIRCLE MDC=36 FLOW=0.031384 MSC=40
 READ UNSTRUCTURED
 $
 $ specify initial wave field ... this may be overridden later in this file
 INIT ZERO
+$
 $
 $ Define dimension of water level mesh relative to datum level, positive up
 $ EXCEPTION causes SWAN to ignore dry nodes and not perform computations there.
@@ -58,6 +56,10 @@ $ define mesh for wind field
 INPGRID WIND UNSTRUCTURED EXCEPTION 0.   NONSTAT %startdatetime% %swandt% SEC %enddatetime%
 READINP ADCWIND
 $
+INPGRID FRIC UNSTRUCTURED EXCEPTION 0.05 NONSTAT %startdatetime% %swandt% SEC %enddatetime%
+READINP ADCFRIC
+$
+$
 $ specify initial wave field and associated hot start file;
 $ may override previous 'INIT ZERO'
 %hotstart%
@@ -76,13 +78,7 @@ $ activate dissipation by depth-induced breaking; default is
 $ CONSTANT with alpha=1.0 and gamma=0.73
 BREAKING
 $
-$ activate dissipation by bottom friction, default is JONSWAP with
-$ default cfjon=0.067
-FRICTION
-$
-$ activate three wave-wave interactions (triads)
-$jgf20120321: turned this off per Rick's instruction
-$ TRIADS 
+FRICTION MADSEN KN=0.05
 $
 $ choose numerical propagation scheme, BSBT is first order
 $ Backward Space Backward Time
@@ -102,11 +98,13 @@ NUM STOPC DABS=0.005 DREL=0.01 CURVAT=0.005 NPNTS=95 NONSTAT MXITNS=20
 $
 $*************************************************************
 $
+$
 $ define properties of output quantities
 $ HS significant wave height
 $ DIR mean wave direction
 $ TM01 mean absolute wave period
-QUANTITY HS DIR TM01 FMIN=0.031384 FMAX=0.547632
+QUANTITY HS DIR TM01 TM02 TMM10 TPS FMIN=0.031384 FMAX=1.420416
+$
 $
 $ request an output of intermediate results for testing purposes ...
 $ itest=1 prints timings data to log file, 0 turns off tracing
