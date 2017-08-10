@@ -35,5 +35,4 @@ HSTIME=$9
 #
 POSTDIR=/dev/null
 #
-cp $ASGSADVISORYDIR/$ENSTORM/maxele.63 $POSTDIR
-cp $ASGSADVISORYDIR/$ENSTORM/maxwvel.63 $POSTDIR
+# do nothing and return
