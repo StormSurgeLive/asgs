@@ -95,6 +95,8 @@ BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
 PTFILE=ptFile_hsofs.txt         # the lat/lons for the OWI background met
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
+SPATIALEXTRAPOLATIONRAMP=yes
+SPATIALEXTRAPOLATIONRAMPDISTANCE=5.0
 
 # External data sources : River Flux
 

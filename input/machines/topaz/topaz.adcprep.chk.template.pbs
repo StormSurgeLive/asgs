@@ -24,7 +24,7 @@ cat $PBS_NODEFILE        | tee --append CONTROL.TXT
 echo "----------------"  | tee --append CONTROL.TXT
 #
 # log the command used to run adcprep
-CMD="%adcircdir%/adcprep --np %ncpu% --%jobtype%"
+CMD="%adcircdir%/adcprep --np %ncpu% --%jobtype% --strict-boundaries"
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 echo "[${DATETIME}] INFO: adcprep.%jobtype%.pbs: Executing %jobtype%.%enstorm% with the command $CMD" | tee --append %syslog% 
 #
