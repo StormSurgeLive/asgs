@@ -173,8 +173,10 @@ if ( trim(f%defaultFileName).eq.'null') then
 endif      
 !
 ! set up basic characteristics based on canonical ascii file name
-f%dataFileName = adataFileName
-call determineASCIIFileCharacteristics(f)
+if ( meshonly.eqv..false.) then
+   f%dataFileName = adataFileName
+   call determineASCIIFileCharacteristics(f)
+endif
 !
 ! create netcdf file
 write(6,'(a,a,a)') "INFO: Creating NetCDF file '"//trim(ndataFileName)//"'."
@@ -226,7 +228,9 @@ if ((meshonly.eqv..false.).and.(f%timeVarying.eqv..true.)) then
 endif
 
 ! now that the mesh has been read, add associated metadata to the new netcdf file
-call addDataAttributesNetCDF(f, m, n)
+if (meshonly.eqv..false.) then
+   call addDataAttributesNetCDF(f, m, n)
+endif
 !      
 ! create adcirc output variables and associated attributes
 #ifdef NETCDF_CAN_DEFLATE

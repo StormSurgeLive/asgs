@@ -463,7 +463,7 @@ prepFile()
        allMessage "$ENSTORM: $THIS: adcprep finished."
        ;;
     *)
-       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log 2>&1
+       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} --strict-boundaries >> $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log 2>&1
        # check to see if adcprep completed successfully
        if [[ $? != 0 ]]; then
           error "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log for details."
@@ -526,7 +526,7 @@ downloadCycloneData()
           # assume the advisory number is the first two characters in the
           # symbolic link target of the forecast file name
           newAdvisoryNum=${linkTarget:0:2}
-          if [ $newAdvisoryNum -gt $ADVISORY ]; then 
+          if [[ $newAdvisoryNum -gt $ADVISORY ]]; then 
              newAdvisory="true" 
           else 
              newAdvisory="false" 
@@ -1064,7 +1064,7 @@ VELOCITYMULTIPLIER=1.0
 HOTSWAN=off
 ONESHOT=no      # yes if ASGS is launched by cron
 NCPUCAPACITY=2  # total number of CPUs available to run jobs
-let si=-1       # storm index for forecast ensemble; -1 indicates non-forecast
+si=-1       # storm index for forecast ensemble; -1 indicates non-forecast
 STATEFILE=null
 ENSTORM=hindcast
 CYCLETIMELIMIT="05:00:00"
@@ -1087,6 +1087,8 @@ JOB_FAILED_LIST=null
 NOTIFYUSER=null
 ASGSADMIN=null
 PERIODICFLUX=null
+SPATIALEXTRAPOLATIONRAMP=yes
+SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
 #
 # first - look for SCRIPTDIR
 while getopts "c:e:s:h" optname; do    #<- first getopts for SCRIPTDIR
@@ -1182,6 +1184,7 @@ if [[ $TROPICALCYCLONE = on ]]; then
 fi
 if [[ $BACKGROUNDMET = on ]]; then
    checkFileExistence $SCRIPTDIR "NAM output reprojection executable (from lambert to geographic)" awip_lambert_interp.x
+   checkFileExistence $SCRIPTDIR "NAM output reprojection with spatial extrapolation ramp executable (from lambert to geographic)" lambertInterpRamp.x
    checkFileExistence $SCRIPTDIR "GRIB2 manipulation and extraction executable" wgrib2
 fi
 if [[ $WAVES = on ]]; then
@@ -1392,7 +1395,14 @@ if [[ $START = coldstart ]]; then
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
 else
    # start from   H O T S T A R T   file
-   logMessage "$ENSTORM: $THIS: Starting nowcast from the hotstart file under '$LASTSUBDIR'."
+   if [[ `basename $LASTSUBDIR` = nowcast || `basename $LASTSUBDIR` = hindcast ]]; then
+      logMessage "$THIS: The LASTSUBDIR path is $LASTSUBDIR but ASGS looks in this path to find either a nowcast or hindcast subdirectory. The LASTSUBDIR parameter is being reset to to remove either nowcast or hindcast from the end of it." 
+      LASTSUBDIR=`dirname $LASTSUBDIR`
+   fi 
+   if [[ $LASTSUBDIR = null ]]; then
+      fatal "LASTSUBDIR is set to null, but the ASGS is trying to hotstart. Is the STATEFILE $STATEFILE up to date and correct? If not, perhaps it should be deleted. Otherwise, the HOTORCOLD parameter in the ASGS config file has been set to $HOTORCOLD and yet the LASTSUBDIR parameter is still set to null."
+   fi
+   logMessage "$ENSTORM: $THIS: Starting from the hindcast or nowcast subdirectory under '$LASTSUBDIR'."
    OLDADVISDIR=$LASTSUBDIR
 fi
 #
@@ -1404,11 +1414,14 @@ while [ true ]; do
    . ${CONFIG}
    FROMDIR=null
    LUN=null       # logical unit number; either 67 or 68
+   logMessage "$ENSTORM: $THIS: Looking for the directory $OLDADVISDIR/nowcast."
    if [[ -d $OLDADVISDIR/nowcast ]]; then
        FROMDIR=$OLDADVISDIR/nowcast
-   fi
-   if [[ -d $OLDADVISDIR/hindcast ]]; then
-       FROMDIR=$OLDADVISDIR/hindcast
+   else 
+      logMessage "$ENSTORM: $THIS: Looking for the directory $OLDADVISDIR/hindcast."
+      if [[ -d $OLDADVISDIR/hindcast ]]; then
+          FROMDIR=$OLDADVISDIR/hindcast
+      fi
    fi
    # turn SWAN hotstarting on or off as appropriate
    if [[ $WAVES = on && -e $FROMDIR/PE0000/swan.67 && $REINITIALIZESWAN = no ]]; then
@@ -1418,11 +1431,18 @@ while [ true ]; do
    fi
    checkHotstart $FROMDIR $HOTSTARTFORMAT  67
    THIS="asgs_main.sh"
+   logMessage "$ENSTORM $THIS: Checking the time in seconds since cold start in the hotstart file."
    if [[ $HOTSTARTFORMAT = netcdf ]]; then
-      logMessage "$ENSTORM: $THIS: hotstart format is netcdf"
+      logMessage "$ENSTORM: $THIS: The hotstart format is netcdf."
+      if [[ ! -e ${FROMDIR}/fort.67.nc ]]; then
+         fatal "$ENSTORM: $THIS: The hotstart file ${FROMDIR}/fort.67.nc was not found."
+      fi
       HSTIME=`$ADCIRCDIR/hstime -f ${FROMDIR}/fort.67.nc -n` 2>> ${SYSLOG}
    else
-      logMessage "$ENSTORM: $THIS: hotstart format is binary"
+      logMessage "$ENSTORM: $THIS: The hotstart format is binary."
+      if [[ ! -e ${FROMDIR}/PE0000/fort.67 ]]; then
+         fatal "$ENSTORM: $THIS: The hotstart file ${FROMDIR}/PE0000/fort.67.nc was not found."
+      fi
       HSTIME=`$ADCIRCDIR/hstime -f ${FROMDIR}/PE0000/fort.67` 2>> ${SYSLOG}
    fi
    logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
@@ -1501,9 +1521,9 @@ while [ true ]; do
       cd $ADVISDIR 2>> ${SYSLOG}
       allMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
       # convert met files to OWI format
-      NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --awipGridNumber 218 --dataDir $NOWCASTDIR --outDir ${NOWCASTDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
+      NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --applyRamp $SPATIALEXTRAPOLATIONRAMP --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE --awipGridNumber 218 --dataDir $NOWCASTDIR --outDir ${NOWCASTDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
       logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format with the following options : $NAMOPTIONS"
-      perl ${SCRIPTDIR}/NAMtoOWI.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
+      perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
       CONTROLOPTIONS=" --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       # create links to the OWI files
       cd $ENSTORM 2>> ${SYSLOG}
@@ -1762,9 +1782,9 @@ while [ true ]; do
          downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
          THIS="asgs_main.sh"
          cd $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
-         NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --awipGridNumber 218 --dataDir ${STORMDIR} --outDir ${STORMDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
+         NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --applyRamp $SPATIALEXTRAPOLATIONRAMP --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE --awipGridNumber 218 --dataDir ${STORMDIR} --outDir ${STORMDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
          logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format with the following options : $NAMOPTIONS"
-         perl ${SCRIPTDIR}/NAMtoOWI.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
+         perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
          CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          # create links to the OWI files
          NAM221=`ls NAM*.221`;
@@ -1848,7 +1868,7 @@ while [ true ]; do
             ) &
          fi
       fi
-      si=$[$si + 1];
+      si=`expr $si + 1`
    done
    # allow all ensemble members and associated post processing to complete
    logMessage "$ENSTORM: $THIS: All forecast ensemble members have been submitted."

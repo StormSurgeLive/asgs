@@ -713,7 +713,7 @@ sub stderrMessage () {
    my $year = 1900 + $yearOffset;
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-   printf STDERR "$theTime $level: NAMtoOWI.pl: $message\n";
+   printf STDERR "$theTime $level: $namType: NAMtoOWI.pl: $message\n";
    if ($level eq "ERROR") {
       sleep 60
    }
