@@ -24,7 +24,7 @@ echo $SLURM_JOB_NODELIST | tee --append CONTROL.TXT
 echo "----------------"  | tee --append CONTROL.TXT
 #
 # log the command used to run adcprep
-CMD="srun %adcircdir%/adcprep --np %ncpu% --%jobtype%"
+CMD="srun %adcircdir%/adcprep --np %ncpu% --%jobtype% --strict-boundaries"
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 echo "[${DATETIME}] INFO: adcprep.%jobtype%.slurm: Executing %jobtype%.%enstorm% with the command $CMD" | tee --append %syslog% 
 #

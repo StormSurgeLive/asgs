@@ -32,7 +32,7 @@ INSTANCENAME=dailyv6c      # name of this ASGS process
 #COLDSTARTDATE=2016090400
 #COLDSTARTDATE=2017010100
 #COLDSTARTDATE=2017012400
-COLDSTARTDATE=2017070100
+COLDSTARTDATE=2017070900
 HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0        # length of initial hindcast, from cold (days)
@@ -40,7 +40,7 @@ REINITIALIZESWAN=no        # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables 
+ADCIRCDIR=~/adcirc/forks/jasonfleming/master/work # ADCIRC executables 
 SCRIPTDIR=~/asgs/2014stable        # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v6b   # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
