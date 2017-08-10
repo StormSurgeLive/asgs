@@ -463,7 +463,7 @@ prepFile()
        allMessage "$ENSTORM: $THIS: adcprep finished."
        ;;
     *)
-       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log 2>&1
+       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} --strict-boundaries >> $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log 2>&1
        # check to see if adcprep completed successfully
        if [[ $? != 0 ]]; then
           error "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log for details."
@@ -1087,7 +1087,7 @@ JOB_FAILED_LIST=null
 NOTIFYUSER=null
 ASGSADMIN=null
 PERIODICFLUX=null
-SPATIALEXTRAPOLATIONRAMP=no
+SPATIALEXTRAPOLATIONRAMP=yes
 SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
 #
 # first - look for SCRIPTDIR
