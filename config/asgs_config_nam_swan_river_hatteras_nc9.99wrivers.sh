@@ -33,7 +33,7 @@ INSTANCENAME=hiresr       # name of this ASGS process, to differentiate results
 #COLDSTARTDATE=2016111500
 #COLDSTARTDATE=2017010100
 #COLDSTARTDATE=2017012400
-COLDSTARTDATE=2017070100
+COLDSTARTDATE=2017071000
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
@@ -108,7 +108,7 @@ RIVERDATAPROTOCOL=scp
 
 # Input files and templates
 
-GRIDFILE=nc_inundation_v9.99_rivers.14
+GRIDFILE=nc_inundation_v9.99a_w_rivers.grd
 GRIDNAME=nc_inundation_v9.99_w_rivers
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
