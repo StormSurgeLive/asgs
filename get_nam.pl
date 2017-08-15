@@ -194,7 +194,13 @@ foreach my $file (@allFiles) {
 #      stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
    }
 }
-my $cycletime = $cycledate . $cyclehour;
+my $cycletime;
+unless (defined $cyclehour ) {
+   stderrMessage("WARNING","Could not download the list of NAM files from NCEP.");
+   exit; 
+} else {
+   $cycletime = $cycledate . $cyclehour;
+}
 #stderrMessage("DEBUG","The cycletime is '$cycletime'.");
 #
 # we need to have at least one set of files beyond the current nowcast

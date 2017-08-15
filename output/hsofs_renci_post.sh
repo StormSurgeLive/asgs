@@ -64,7 +64,7 @@ echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
 #
 # @jasonfleming: removed fort.74.nc (wind velocity at ground level) because 
 # it is not the default display and because it takes a long time (30+ minutes)
-FILES="maxele.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc fort.74.nc fort.63.nc swan_HS.63.nc swan_TPS.63.nc"
+FILES="maxele.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc fort.63.nc swan_HS.63.nc swan_TPS.63.nc"
 # pass these to the cera_contour_post.sh script
 ${OUTPUTDIR}/cera_contour_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG "$FILES"
 # wait until the cera contours are finished, or at least until the 
