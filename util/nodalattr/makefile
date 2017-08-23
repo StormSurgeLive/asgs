@@ -67,6 +67,11 @@ ifeq ($(NETCDF),enable)
    ifeq ($(MACHINENAME),queenbee)
       NETCDFPATH  := /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0
    endif
+   # jgf20160627: Added compiler flags for lonestar 5 at TACC.
+   # jgf20160803: Updared compiler flags for lonestar 5 at TACC.
+   ifeq ($(MACHINENAME),lonestar)
+      NETCDFPATH=/opt/apps/intel16/netcdf/4.3.3.1/x86_64
+   endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := -lnetcdff
    INCLUDES    := -I. -I$(NETCDFPATH)/include
@@ -122,5 +127,8 @@ logging.mod : $(OUTPUTDIR)/logging.f90
 adcircdata.mod : $(OUTPUTDIR)/adcircdata.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcircdata.f90 $(LDFLAGS)
 #
-landuse.mod : landuse.f90 asgsio.mod
+landuse.mod : landuse.f90 asgsio.mod ioutil.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c landuse.f90 $(LDFLAGS)
+#
+ioutil.mod : ${OUTPUTDIR}/logging.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c ${OUTPUTDIR}/logging.f90 $(LDFLAGS)

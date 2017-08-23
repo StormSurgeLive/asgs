@@ -42,7 +42,8 @@ $^W++;
 my $input = "null";   # name of the BEST track file
 my $issued = "null";  # yyyymmddhh24Z time of issue of corresponding advisory
 my $forecastlength = "null"; # max forecast length (hours)
-my $output = "null"; # name of output file
+my $output = "null"; # name of OFCL output file
+my $bestoutput = "null"; # name of BEST output file (if any)
 #
 # for HWind data 
 my $hwind = "null"; # name of the ADCIRC HWind fort.22 file, if any
@@ -61,6 +62,7 @@ GetOptions(
 
            "input=s" => \$input,
            "output=s" => \$output,
+           "bestoutput=s" => \$bestoutput,
            "issued=s" => \$issued,
            "forecastlength=s" => \$forecastlength,
            "hwind=s" => \$hwind,
@@ -68,6 +70,7 @@ GetOptions(
            "hstime=s" => \$hstime
            );
 #
+
 unless(open(BEST,"<$input")) {
    stderrMessage("ERROR","Failed to open BEST track file $input: $!.");
    die;
@@ -75,9 +78,18 @@ unless(open(BEST,"<$input")) {
 if ( $output eq "null" ) {
    $output = "fcst_$input";
 }
+
 unless(open(FCST,">$output")) {
-   stderrMessage("ERROR","Failed to open forecast track file $output: $!.");
+   &stderrMessage("ERROR","Failed to open forecast track file $output: $!.");
    die;
+} else {
+   &stderrMessage("INFO","Opened forecast track file $output.");
+}
+unless ( $bestoutput eq "null" ) {
+   unless(open(BESTOUT,">$bestoutput")) {
+      stderrMessage("ERROR","Failed to open BEST track file $bestoutput: $!.");
+      die;
+   }
 }
 my @time_differences; # hours from the start of the best track data to the line in question
 my @pc;               # mb
@@ -90,9 +102,12 @@ while(<BEST>) {
    my @fields = split(',',$_);
    my $date = $fields[2];
    # if the date on the BEST line is before the "issued" advisory time,
-   # just skip this line
+   # just skip this line, or write to the bestoutput file if specified
    if ( $issued ne "null" ) {
       if ( $date < $issued ) { 
+         if ( $bestoutput ne "null" ) {
+            printf BESTOUT $_;
+         }            
          next;
       }
    }
@@ -139,8 +154,12 @@ while(<BEST>) {
    $previous_date = $date;
    printf FCST $line;
 }
+#
 close(BEST);
 close(FCST);
+unless ( $bestoutput eq "null" ) {
+   close(BESTOUT);
+}
 #
 # we're done unless there is HWind data to interpolate to
 if ( $hwind eq "null" ) {

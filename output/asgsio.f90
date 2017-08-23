@@ -371,6 +371,7 @@ do i=1,f%nvar
       call initFileMetaData(f, thisVarName, 3, 1)
       f%ncds(2)%varNameNetCDF = "v-vel3D"
       f%ncds(3)%varNameNetCDF = "w-vel3D"
+      f%irtype = 3
       exit
    case("zeta")
       if ( f%dataFileCategory.eq.STATION ) then
@@ -496,6 +497,7 @@ do i=1,f%nvar
       call initFileMetaData(f, thisVarName, 2, 1)
       f%ncds(1)%varNameNetCDF = "u-vel"  ! uu2 in ADCIRC
       f%ncds(2)%varNameNetCDF = "v-vel"  ! vv2 in ADCIRC
+      f%irtype = 2
       exit
    case("uu1-vel","vv1-vel")
       f%defaultFileName = 'uu1vv1.64'
@@ -504,6 +506,7 @@ do i=1,f%nvar
       f % ncds(1)%varNameNetCDF = "uu1-vel"  ! uu1 in ADCIRC
       f % ncds(2)%varNameNetCDF = "vv1-vel"  ! vv1 in ADCIRC
       f % xds(1) % varNameXDMF = 'water_current_velocity_at_previous_timestep'
+      f%irtype = 2
       exit
    case("pressure")
       if ( f%dataFileCategory.eq.STATION ) then
@@ -526,6 +529,7 @@ do i=1,f%nvar
       call initFileMetaData(f, thisVarName, 2, 1)
       f % ncds(1)%varNameNetCDF = "windx"  
       f % ncds(2)%varNameNetCDF = "windy"  
+      f%irtype = 2
       exit
    case("maxele","zeta_max")
       f % dataFileCategory = MINMAX
@@ -609,6 +613,7 @@ do i=1,f%nvar
       call initfileMetaData(f, thisVarName, 2, 1)
       f % ncds(1)%varNameNetCDF = "radstress_x"  
       f % ncds(2)%varNameNetCDF = "radstress_y"  
+      f%irtype = 2
    case("swan_DIR")
       f%defaultFileName = 'swan_DIR.63' 
       f % fileTypeDesc = "a SWAN wave direction (swan_DIR.63) file"
@@ -662,6 +667,7 @@ do i=1,f%nvar
       call initFileMetaData(f, thisVarName, 2, 1)
       f % ncds(1)%varNameNetCDF = "swan_windx"  
       f % ncds(2)%varNameNetCDF = "swan_windy"  
+      f%irtype = 2
       exit
    case default
       cycle     ! did not recognize this variable name
@@ -810,7 +816,6 @@ fn%isGridded = .false.
 fn%isElemental = .false.
 fn%is3D = .false.
 fn%isInteger = .false.
-fn%irtype = 1
 fn%dataFileCategory = UNKNOWN
 fn%fileTypeDesc = 'null description'
 fn%isBasin = .false.

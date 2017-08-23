@@ -294,6 +294,7 @@ read(iunit,'(A80)',err=10,end=20,iostat=ios) m%agrid
 lineNum = lineNum + 1
 write(6,'(A)') "INFO: Mesh file comment line: "//trim(m%agrid)
 write(6,'(A)') "INFO: Reading mesh file dimensions."
+
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%ne, m%np
 do k = 1, m%np
    read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) i
