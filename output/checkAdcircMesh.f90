@@ -39,6 +39,7 @@
 program checkAdcircMesh
 use adcmesh
 use ioutil
+use logging
 use netcdf
 implicit none
 type(mesh_t) :: m
@@ -133,6 +134,9 @@ integer :: i, j, k
 integer :: ie ! element loop counter
 !
 ! initializations
+if (loggingInitialized.eqv..false.) then
+   call initLogging(availableUnitNumber(),'checkAdcircMesh.f90')
+endif
 verbose = .false.
 writeNNeighEle = .false.
 writeNeighborTables = .false.

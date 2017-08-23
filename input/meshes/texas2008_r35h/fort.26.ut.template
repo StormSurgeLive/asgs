@@ -1,6 +1,6 @@
 $*************************HEADING************************
 $
-PROJ 'ASGS' '2011'
+PROJ 'ASGS' '2017'
 'StormName: %StormName%'
 'EnsembleID: %EnsembleID%'
 'WTIMINC Line in ADCIRC fort.15: %WTIMINC%'

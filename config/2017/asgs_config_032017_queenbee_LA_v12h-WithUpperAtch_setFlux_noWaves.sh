@@ -36,7 +36,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables
+ADCIRCDIR=~/adcirc/forks/jasonfleming/master/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable          # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v12g-WithUpperAtch # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
@@ -199,14 +199,6 @@ case $si in
    ;;
 0)
    ENSTORM=nhcConsensus
-   ;;
-1)
-   ENSTORM=veerRight50
-   PERCENT=50
-   ;;
-2)
-   ENSTORM=veerRight100
-   PERCENT=100
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
