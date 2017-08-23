@@ -176,9 +176,9 @@ TARGET=topaz  # used in post processing to pick up HPC platform config
 # because multiple Operators may be posting to a particular opendap server
 # using different usernames. 
 OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
-#if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
-#   OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
-#fi
+if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
+   OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
+fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
