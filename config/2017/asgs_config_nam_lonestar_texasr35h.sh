@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=readytx      # "name" of this ASGS process
-COLDSTARTDATE=2017071200  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2017080200  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=20.0       # length of initial hindcast, from cold (days)
@@ -36,7 +36,7 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=$WORK/adcirc/forks/adcirc/master/work # ADCIRC executables
+ADCIRCDIR=$WORK/adcirc/forks/jasonfleming/master/work # ADCIRC executables
 SCRIPTDIR=$WORK/asgs/2014stable        # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/texas2008_r35h # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
