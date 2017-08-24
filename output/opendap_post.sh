@@ -130,6 +130,10 @@ fi
 subject="${subject} $HOSTNAME.$INSTANCENAME $ENMEMNUM"
 cat <<END > ${STORMDIR}/opendap_results_notify.txt 
 
+Click on the link: 
+
+$CATALOGPREFIX/$STORMNAMEPATH/${OPENDAPSUFFIX}/catalog.html
+
 The results for cycle $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
 
 The run.properties file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties

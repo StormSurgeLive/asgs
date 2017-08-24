@@ -37,7 +37,7 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=$WORK/adcirc/forks/adcirc/master/work # ADCIRC executables
+ADCIRCDIR=$WORK/adcirc/forks/jasonfleming/master/work # ADCIRC executables
 SCRIPTDIR=$WORK/asgs/2014stable        # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
