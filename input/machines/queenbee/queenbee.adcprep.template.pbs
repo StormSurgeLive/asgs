@@ -7,7 +7,7 @@
 #PBS -A %account%
 #PBS -j oe
 #PBS -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out
-#PBS -q single
+#PBS -q %queuename%
 cd %advisdir%/%enstorm%
 # load netcdf modules in case they are needed
 module load intel
