@@ -37,6 +37,8 @@ init_queenbee()
   HOSTNAME=queenbee.loni.org
   QUEUESYS=PBS
   QCHECKCMD=qstat
+  QUEUENAME=workq
+  SERQUEUE=single
   ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
   SUBMITSTRING=qsub
   SCRATCHDIR=/work/$USER
