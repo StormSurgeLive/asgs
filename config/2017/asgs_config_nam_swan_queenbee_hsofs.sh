@@ -60,10 +60,12 @@ NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=1200                    # number of compute CPUs for all simulations
 NUMWRITERS=20
-NCPUCAPACITY=1240
+NCPUCAPACITY=3648
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=workq
-SERQUEUE=single
+#QUEUENAME=workq
+#SERQUEUE=single
+QUEUENAME=admin
+SERQUEUE=admin
 SCRATCHDIR=/work/$USER
 ACCOUNT=loni_cera_2017
 
