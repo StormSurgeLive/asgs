@@ -64,8 +64,8 @@ NCPU=1200                    # number of compute CPUs for all simulations
 NCPUCAPACITY=1248
 NUMWRITERS=24
 CYCLETIMELIMIT="05:00:00"
-QSCRIPT=lonestar.reservation.template.slurm
-PREPCONTROLSCRIPT=lonestar.reservation.template.serial.slurm
+#QSCRIPT=lonestar.reservation.template.slurm
+#PREPCONTROLSCRIPT=lonestar.reservation.template.serial.slurm
 
 # External data sources : Tropical cyclones
 
@@ -197,7 +197,7 @@ ARCHIVEDIR="${INSTANCENAME}_092017"
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=6 # number of storms in the ensemble
+ENSEMBLESIZE=2 # number of storms in the ensemble
 echo "si is $si"
 case $si in
 -1)
