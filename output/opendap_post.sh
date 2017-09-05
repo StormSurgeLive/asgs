@@ -127,7 +127,7 @@ subject="ADCIRC POSTED for $runStartTime"
 if [[ $TROPICALCYCLONE = on ]]; then
    subject=${subject}" (TC)"
 fi
-subject="${subject} $HOSTNAME.$INSTANCENAME $ENMEMNUM"
+subject="${subject} $ENMEMNUM $HOSTNAME.$INSTANCENAME"
 cat <<END > ${STORMDIR}/opendap_results_notify.txt 
 
 Click on the link: 
