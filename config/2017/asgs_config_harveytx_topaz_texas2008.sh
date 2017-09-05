@@ -27,19 +27,19 @@
 
 # Fundamental
 
-INSTANCENAME=v12hThreeTopaz    # "name" of this ASGS process
-COLDSTARTDATE=2017052000    # calendar year month day hour YYYYMMDDHH24
+INSTANCENAME=harveytx     # "name" of this ASGS process
+COLDSTARTDATE=2017080200  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=hotstart        # "hotstart" or "coldstart"
 #LASTSUBDIR=/p/work1/jgflemin/v12hsetFlux/2017061618  # path to previous execution (if HOTORCOLD=hotstart)
-LASTSUBDIR=$WORKDIR/initialize
+LASTSUBDIR=$WORKDIR/asgs36552/16
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
-REINITIALIZESWAN=no      # used to bounce the wave solution
+REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables
+ADCIRCDIR=~/adcirc/forks/jasonfleming/master/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable          # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v12g-WithUpperAtch # grid and other input files
+INPUTDIR=${SCRIPTDIR}/input/meshes/texas2008_r35h # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
@@ -48,7 +48,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=off      # NAM download/forcing
 TIDEFAC=on            # tide factor recalc
 TROPICALCYCLONE=on   # tropical cyclone forcing
-WAVES=off             # wave forcing
+WAVES=on             # wave forcing
 VARFLUX=off           # variable river flux forcing
 VORTEXMODEL=GAHM
 
@@ -57,12 +57,12 @@ VORTEXMODEL=GAHM
 TIMESTEPSIZE=1.0             # adcirc time step size (seconds)
 SWANDT=1200                  # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00"  # hindcast wall clock time
-ADCPREPWALLTIME="00:30:00"   # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="01:30:00"   # longest nowcast wall clock time
-FORECASTWALLTIME="01:30:00"  # forecast wall clock time
-NCPU=960                    # number of compute CPUs for all simulations
-NUMWRITERS=36
-NCPUCAPACITY=996
+ADCPREPWALLTIME="01:00:00"   # adcprep wall clock time, including partmesh
+NOWCASTWALLTIME="05:00:00"   # longest nowcast wall clock time
+FORECASTWALLTIME="05:00:00"  # forecast wall clock time
+NCPU=3600                    # number of compute CPUs for all simulations
+NUMWRITERS=24
+NCPUCAPACITY=3648
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=standard
 SERQUEUE=standard
