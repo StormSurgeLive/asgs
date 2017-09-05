@@ -325,7 +325,7 @@ for server in ${TDS[*]}; do
          echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties 2>> $SYSLOG
          ;;
       *)
-         warn "$ENSTORM: $THIS: OPeNDAP post method unrecogrnized."  
+         warn "$ENSTORM: $THIS: OPeNDAP post method $OPENDAPPOSTMETHOD is not available."  
          ;;
       esac
       backupCount=$(($backupCount+1))
