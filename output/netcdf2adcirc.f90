@@ -108,18 +108,15 @@ do i=1,fn%nSnaps
    !
    ! READ ONE COMPLETE DATASET FROM NETCDF
    ! 
-   write(6,*) 'about to call read dataset' ! jgfdebug
    fn%dataFileFormat = NETCDFG
    call readOneDataset(fn, m, i, lineNum, snapr, snapi)   
    !
-   write(6,*) 'snapr=',snapr,' snapi=',snapi
    ! WRITE ONE COMPLETE DATASET TO ASCII
    ! 
-   write(6,*) 'about to call write dataset' ! jgfdebug
    fn%dataFileFormat = ASCIIG
    call writeOneDataset(fn, m, i, lineNum, snapr, snapi)
    
-   write(6,advance='no',fmt='(i4)') i
+   write(6,advance='no',fmt='(i6)') i
 end do
 write(6,*)
 call allMessage(INFO,'Finished writing file.')

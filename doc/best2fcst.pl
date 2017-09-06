@@ -7,7 +7,7 @@
 # column, starting at zero.
 #
 # The resulting file will be used as input to aswip and ultimately
-# ADCIRC's NWS19.
+# ADCIRC's NWS19 or NWS20.
 #
 # Also has the capability to time-interpolate the central pressure
 # values from the BEST track data into an ADCIRC fort.22 for HWind
@@ -15,7 +15,7 @@
 #
 #---------------------------------------------------------------------
 #
-# Copyright(C) 2012 Jason Fleming
+# Copyright(C) 2012--2017 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -39,47 +39,78 @@ use Getopt::Long;
 use Date::Pcalc;
 $^W++;
 #
-my $input = "null"; # name of the BEST track file
+my $input = "null";   # name of the BEST track file
+my $issued = "null";  # yyyymmddhh24Z time of issue of corresponding advisory
+my $forecastlength = "null"; # max forecast length (hours)
+my $output = "null"; # name of OFCL output file
+my $bestoutput = "null"; # name of BEST output file (if any)
+#
+# for HWind data 
 my $hwind = "null"; # name of the ADCIRC HWind fort.22 file, if any
 my $csdate = "null";  # date/time of cold start, if HWind hours should
                       # be relative to that or to a hot start time (yyyymmddhh24)
 my $hstime = "null";  # hot start time (sec), if the HWind hours should
                       # be relative to the hotstart time
-
+#
 # if csdate is specified on the command line, but the hstime is not, then
 # the HWind hours column will be relative to the cold start time.
 # if both csdate and hstime are specified on the command line, then
 # the HWind hours column will be relative to the hot start time.
-
+#
 #
 GetOptions(
 
            "input=s" => \$input,
+           "output=s" => \$output,
+           "bestoutput=s" => \$bestoutput,
+           "issued=s" => \$issued,
+           "forecastlength=s" => \$forecastlength,
            "hwind=s" => \$hwind,
            "csdate=s" => \$csdate,
            "hstime=s" => \$hstime
            );
 #
+
 unless(open(BEST,"<$input")) {
    stderrMessage("ERROR","Failed to open BEST track file $input: $!.");
    die;
 }
+if ( $output eq "null" ) {
+   $output = "fcst_$input";
+}
 
-my $output = "fcst_$input";
 unless(open(FCST,">$output")) {
-   stderrMessage("ERROR","Failed to open forecast track file $output: $!.");
+   &stderrMessage("ERROR","Failed to open forecast track file $output: $!.");
    die;
+} else {
+   &stderrMessage("INFO","Opened forecast track file $output.");
+}
+unless ( $bestoutput eq "null" ) {
+   unless(open(BESTOUT,">$bestoutput")) {
+      stderrMessage("ERROR","Failed to open BEST track file $bestoutput: $!.");
+      die;
+   }
 }
 my @time_differences; # hours from the start of the best track data to the line in question
 my @pc;               # mb
 my $cycle = 1;
 my $start_date = "null";
 my $previous_date = "null";
-my $sy; my $sm; my $sd; my $sh;
-my $fy; my $fm; my $fd; my $fh; my $fmin;
+my $sy; my $sm; my $sd; my $sh;  # starting year, month day, hour
+my $fy; my $fm; my $fd; my $fh; my $fmin; # for current BEST track line
 while(<BEST>) {
    my @fields = split(',',$_);
    my $date = $fields[2];
+   # if the date on the BEST line is before the "issued" advisory time,
+   # just skip this line, or write to the bestoutput file if specified
+   if ( $issued ne "null" ) {
+      if ( $date < $issued ) { 
+         if ( $bestoutput ne "null" ) {
+            printf BESTOUT $_;
+         }            
+         next;
+      }
+   }
    # determine difference in hours between this date and the
    # best track start date
    $date =~ /(\d{4})(\d{2})(\d{2})(\d{2})/;
@@ -98,16 +129,37 @@ while(<BEST>) {
       $cycle = $cycle + 1;
    }
    $pc[$cycle] =  $fields[9]; # in mb
+   # compute time difference between start date of file and date on 
+   # current line
    (my $ddays, my $dhrs, my $dmin, my $dsec)
       = Date::Pcalc::Delta_DHMS($sy,$sm,$sd,$sh,0,0,$fy,$fm,$fd,$fh,0,0);
    $time_differences[$cycle] = $ddays*24 + $dhrs; # in hours
+   # if the BEST line has gone beyond the max forecast length specified
+   # on the command line, exit the loop
+   if ( $forecastlength ne "null" ) {
+      if ( $time_differences[$cycle] > $forecastlength ) {
+         exit;
+      }
+   }
    my $line = $_;
+   # fill in the forecast hours (tau) column
    substr($line,30,3) = sprintf("%3d",$time_differences[$cycle]);
+   # change the file type column to OFCL to reflect the fact that 
+   # these data are supposed to represent a forecast
+   substr($line,24,4) = "OFCL";
+   # make the date/time value on this line the same as the first 
+   # date/time value in the file, as specified by the ATCF spec 
+   # for OFCL type files
+   substr($line,8,10) = sprintf("%4d%02d%02d%02d",$sy,$sm,$sd,$sh);
    $previous_date = $date;
    printf FCST $line;
 }
+#
 close(BEST);
 close(FCST);
+unless ( $bestoutput eq "null" ) {
+   close(BESTOUT);
+}
 #
 # we're done unless there is HWind data to interpolate to
 if ( $hwind eq "null" ) {

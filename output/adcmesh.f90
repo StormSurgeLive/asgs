@@ -250,11 +250,12 @@ type station_t
    real(8) :: lon             ! decimal degrees east 
    real(8) :: lat             ! decimal degrees north
    real(8) :: z               ! vertical position (m) relative to mesh zero
+   integer :: irtype         ! number of components; 1=scalar, 2=2D vector, 3=3D vector
    logical :: elementFound   ! true if the element number is known
    integer :: elementIndex   ! where station is located in a particular mesh
    integer :: n(3) ! nodes that surround the station
    real(8) :: w(3)     ! weights used to interpolate station values based on nodal values
-   real(8), allocatable :: d(:,:)   ! station data (num_components, ntime)
+   real(8), allocatable :: d(:,:)   ! station data (irtype, ntime)
    integer :: iID            ! simple numerical ID
    character(len=1024) :: stationID   ! generally a number assigned by govt agency 
    character(len=1024) :: description ! human readable 
@@ -293,6 +294,7 @@ read(iunit,'(A80)',err=10,end=20,iostat=ios) m%agrid
 lineNum = lineNum + 1
 write(6,'(A)') "INFO: Mesh file comment line: "//trim(m%agrid)
 write(6,'(A)') "INFO: Reading mesh file dimensions."
+
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%ne, m%np
 do k = 1, m%np
    read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) i
