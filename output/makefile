@@ -133,6 +133,9 @@ ifeq ($(NETCDF),enable)
    ifeq ($(MACHINENAME),lonestar)
       NETCDFPATH=/opt/apps/intel16/netcdf/4.3.3.1/x86_64
    endif
+   ifeq ($(MACHINENAME),mike)
+      NETCDFPATH := /home/nate/install
+   endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := $(LDFLAGS) -lnetcdff
    INCLUDES    := -I. -I$(NETCDFPATH)/include
