@@ -106,6 +106,10 @@ ifeq ($(NETCDF),enable)
    ifeq ($(MACHINENAME),hatteras)
       NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
    endif
+   # nld20170829: Added compiler flags for seadog at Ransom.
+   ifeq ($(MACHINENAME),seadog)
+      NETCDFPATH  := /home/nate/install
+   endif
    # jgf20150720: Added compiler flags for queenbee at LONI.
    ifeq ($(MACHINENAME),queenbee)
       NETCDFPATH  := /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0
