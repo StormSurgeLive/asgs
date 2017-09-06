@@ -78,6 +78,8 @@ do i=1,numNodalAttributes
       foundIt = .true.
       read(13,*) na(1)%units
       read(13,*) na(1)%numVals
+      allocate(na(1)%fillValue(na(1)%numVals))
+      na(1)%fillValue(:) = -99999.d0      
       ! allocate memory for the default values and read them
       allocate(na(1)%defaultVals(na(1)%numVals))
       read(13,*) (na(1)%defaultVals(j), j=1,na(1)%numVals)
@@ -171,6 +173,8 @@ do i=1,numNodalAttributes
    na(i)%attrName = trim(adjustl(line))
    read(13,*) na(i)%units
    read(13,*) na(i)%numVals
+   allocate(na(i)%fillValue(na(i)%numVals))
+   na(i)%fillValue(:) = -99999.d0
    ! allocate memory for the default values and read them
    allocate(na(i)%defaultVals(na(i)%numVals))
    read(13,*) (na(i)%defaultVals(j), j=1,na(i)%numVals)

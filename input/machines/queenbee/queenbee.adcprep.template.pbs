@@ -7,7 +7,7 @@
 #PBS -A %account%
 #PBS -j oe
 #PBS -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out
-#PBS -q single
+#PBS -q %queuename%
 cd %advisdir%/%enstorm%
 # load netcdf modules in case they are needed
 module load intel
@@ -17,7 +17,7 @@ module load netcdf_fortran
 echo "%enstorm% job starting at `date`"
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 echo "[${DATETIME}] : %jobtype%.%enstorm% starting in %advisdir%/%enstorm%" > %jobtype%.%enstorm%.run.start
-%adcircdir%/adcprep --np %ncpu% --%jobtype% >> adcprep.log 2>&1
+%adcircdir%/adcprep --np %ncpu% --%jobtype% --strict-boundaries >> adcprep.log 2>&1
 ERROVALUE=$?
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 if [ $ERROVALUE == 0 ] ; then

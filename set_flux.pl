@@ -320,6 +320,9 @@ while (<RP>) {
    if ($_ =~ /varflux/) {
       &loadProperty($_);
    }
+   if ($_ =~ /RiverBoundary/) {
+      &loadProperty($_);
+   }
 }
 close(RP);
 $varflux = $properties{"varflux"};

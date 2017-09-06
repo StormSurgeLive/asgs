@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2017 Jason Fleming
+# Copyright(C) 2016--2017 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -27,17 +27,16 @@
 
 # Fundamental
 
-INSTANCENAME=v12hThreeTopaz    # "name" of this ASGS process
-COLDSTARTDATE=2017052000    # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=hotstart        # "hotstart" or "coldstart"
-#LASTSUBDIR=/p/work1/jgflemin/v12hsetFlux/2017061618  # path to previous execution (if HOTORCOLD=hotstart)
-LASTSUBDIR=$WORKDIR/initialize
-HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
+INSTANCENAME=v12hThree40ft  # "name" of this ASGS process
+COLDSTARTDATE=2017050500   # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart       # "hotstart" or "coldstart"
+LASTSUBDIR=/work/jgflemin/asgs31185/2017061912          # path to previous execution (if HOTORCOLD=hotstart)
+HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables
+ADCIRCDIR=~/adcirc/forks/jasonfleming/master/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable          # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v12g-WithUpperAtch # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
@@ -45,33 +44,28 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=off      # NAM download/forcing
-TIDEFAC=on            # tide factor recalc
+BACKGROUNDMET=off    # NAM download/forcing
+TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=on   # tropical cyclone forcing
-WAVES=off             # wave forcing
-VARFLUX=off           # variable river flux forcing
-VORTEXMODEL=GAHM
+WAVES=off            # wave forcing
+VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
 
-TIMESTEPSIZE=1.0             # adcirc time step size (seconds)
-SWANDT=1200                  # swan time step size (seconds)
-HINDCASTWALLTIME="18:00:00"  # hindcast wall clock time
-ADCPREPWALLTIME="00:30:00"   # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="01:30:00"   # longest nowcast wall clock time
-FORECASTWALLTIME="01:30:00"  # forecast wall clock time
-NCPU=960                    # number of compute CPUs for all simulations
-NUMWRITERS=36
-NCPUCAPACITY=996
+TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+SWANDT=1200                 # swan time step size (seconds)
+HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+ADCPREPWALLTIME="00:30:00"  # adcprep wall clock time, including partmesh
+NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+FORECASTWALLTIME="07:00:00" # forecast wall clock time
+NCPU=480                    # number of compute CPUs for all simulations
+NUMWRITERS=20
+NCPUCAPACITY=500
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=standard
-SERQUEUE=standard
-# topaz has a limit of 4hrs max wall clock time for the background queue
-if [[ $QUEUENAME = background ]]; then
-    HINDCASTWALLTIME="04:00:00" 
-    NOWCASTWALLTIME="04:00:00"
-    FORECASTWALLTIME="05:00:00"  # forecast wall clock time
-fi
+QUEUENAME=workq
+SERQUEUE=single
+ACCOUNT=loni_cera_2017
+SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones
 
@@ -80,8 +74,8 @@ YEAR=2017                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 #RSSSITE=filesystem
 #FTPSITE=filesystem
-#FDIR=${SCRIPTDIR}/input/sample_advisories
-#HDIR=${SCRIPTDIR}/input/sample_advisories
+#FDIR=${INPUTDIR}/sample_advisories
+#HDIR=${INPUTDIR}/sample_advisories
 RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
 FDIR=/atcf/afst                  # forecast dir on nhc ftp site
@@ -89,7 +83,7 @@ HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="00,06,12,18"
+FORECASTCYCLE="06,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -103,17 +97,17 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=LA_v12h-WithUpperAtch_chk.grd # mesh (fort.14) file
+GRIDFILE=LA_v12h-WithUpperAtch_chk.grd   # mesh (fort.14) file
 GRIDNAME=LA_v12h-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux35ft.15.template  # fort.15 template
+CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.15.template   # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=cpra2017v12.cera_stations.20161222 # or substitute your own stations file
+ELEVSTATIONS=cpra2017v12.cera_stations.20161222
 VELSTATIONS=cpra2017v12.cera_stations.20161222
 METSTATIONS=cpra2017v12.cera_stations.20161222
 NAFILE=LA_v12g-WithUpperAtch-updated.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=LA_v12g-WithUpperAtch.26.template  # only used if WAVES=on
+SWANTEMPLATE=LA_v12g-WithUpperAtch.26.template   # only used if WAVES=on
 RIVERINIT=null                           # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
@@ -161,12 +155,12 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=corps_post.sh
+POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
-TDS=(lsu_tds renci_tds)
-TARGET=topaz  # used in post processing to pick up HPC platform config
+TDS=(renci_tds lsu_tds)
+TARGET=queenbee  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
 # opendap_post.sh. OPENDAPHOST is set to each value in the TDS array specified
@@ -176,13 +170,12 @@ TARGET=topaz  # used in post processing to pick up HPC platform config
 # because multiple Operators may be posting to a particular opendap server
 # using different usernames. 
 OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
-#if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
-#   OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
-#fi
+if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
+   OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
+fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
-OPENDAPNOTIFY="jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
 
 NUMCERASERVERS=2
 WEBHOST=webserver.hostingco.com
@@ -206,14 +199,6 @@ case $si in
    ;;
 0)
    ENSTORM=nhcConsensus
-   ;;
-1)
-   ENSTORM=veerRight50
-   PERCENT=50
-   ;;
-2)
-   ENSTORM=veerRight100
-   PERCENT=100
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."

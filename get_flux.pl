@@ -49,7 +49,7 @@ use Cwd;
 our $advisdir;   # directory where the ASGS is running
 my $riversite; # site for variable flux b.c. data
 my $riverdir;  # dir on site for variable flux b.c. data
-my $enstorm;  # hindcast, nowcast, or other
+our $enstorm;  # hindcast, nowcast, or other
 my $csdate;   # UTC date and hour (YYYYMMDDHH) of ADCIRC cold start
 my $hstime;   # hotstart time, i.e., time since ADCIRC cold start (in seconds)
 my @altnamdirs; # alternate directories to look in for flux b.c. data 
@@ -703,5 +703,5 @@ sub stderrMessage () {
    my $year = 1900 + $yearOffset;
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-   printf STDERR "$theTime $level: get_flux.pl: $message\n";
+   printf STDERR "$theTime $level: $enstorm: get_flux.pl: $message\n";
 }

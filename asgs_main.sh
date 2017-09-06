@@ -49,14 +49,15 @@ checkFileExistence()
 { FPATH=$1
   FTYPE=$2
   FNAME=$3
+  THIS="asgs_main.sh>checkFileExistence()"
   if [[ -z $FNAME ]]; then
-     fatal "The $FTYPE was not specified in the configuration file. When it is specified, the ASGS will look for it in the path ${FPATH}."
+     fatal "$THIS: The $FTYPE was not specified in the configuration file. When it is specified, the ASGS will look for it in the path ${FPATH}."
   fi
   if [ $FNAME ]; then
      if [ -e "${FPATH}/${FNAME}" ]; then
-        logMessage "The $FTYPE '${FPATH}/${FNAME}' was found."
+        logMessage "$THIS: The $FTYPE '${FPATH}/${FNAME}' was found."
      else
-        fatal "The $FTYPE '${FPATH}/${FNAME}' does not exist."
+        fatal "$THIS: The $FTYPE '${FPATH}/${FNAME}' does not exist."
      fi
   fi
 }
@@ -73,21 +74,21 @@ checkArchiveFreshness()
    METSTATIONS=$7
    NAFILE=$8
    INPUTDIR=$9
-   
-   logMessage "Checking to see if the archive of preprocessed subdomain files is up to date."   
+   THIS="asgs_main.sh>checkArchiveFreshness()" 
+   logMessage "$THIS: Checking to see if the archive of preprocessed subdomain files is up to date."   
    for archiveFile in $PREPPEDARCHIVE $HINDCASTARCHIVE; do
       if [ ! -e $INPUTDIR/$archiveFile ]; then
-         logMessage "The subdomain archive file $INPUTDIR/$archiveFile does not exist."
+         logMessage "$THIS: The subdomain archive file $INPUTDIR/$archiveFile does not exist."
          continue
       fi
       for inputFile in $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE; do
          if [ ! -e $INPUTDIR/$inputFile ]; then
-            warn "The input file $INPUTDIR/$inputFile does not exist."
+            warn "$THIS: The input file $INPUTDIR/$inputFile does not exist."
             continue
          fi
          # see if the archiveFile is older than inputFile 
          if [ $INPUTDIR/$archiveFile -ot $INPUTDIR/$inputFile ]; then 
-            logMessage "A change in the input files has been detected. The archive file $archiveFile is older than the last modification time of the input file ${inputFile}. The archive file is therefore stale and will be deleted. A fresh one will automatically be created the next time adcprep is run." 
+            logMessage "$THIS: A change in the input files has been detected. The archive file $archiveFile is older than the last modification time of the input file ${inputFile}. The archive file is therefore stale and will be deleted. A fresh one will automatically be created the next time adcprep is run." 
             rm $INPUTDIR/$archiveFile 2>> $SYSLOG 
             break
          fi
@@ -100,13 +101,14 @@ checkArchiveFreshness()
 checkDirExistence()
 { DIR=$1
   TYPE=$2
+  THIS="asgs_main.sh>checkDirExistence()"
   if [[ -z $DIR ]]; then
-      fatal "The $TYPE was not specified in the configuration file."
+      fatal "$THIS: The $TYPE was not specified in the configuration file."
   fi
   if [ -e $DIR ]; then
-     logMessage "The $TYPE '$DIR' was found."
+     logMessage "$THIS: The $TYPE '$DIR' was found."
   else
-     fatal "The $TYPE '$DIR' does not exist."
+     fatal "$THIS: The $TYPE '$DIR' does not exist."
   fi
 }
 #
@@ -121,6 +123,7 @@ checkHotstart()
    HOTSTARTFORMAT=$2
    LUN=$3
 #
+   THIS="asgs_main.sh>checkHotstart()"
    HOTSTARTFILE=''
    # set name and specific file location based on format (netcdf or binary)
    if [[ $HOTSTARTFORMAT = netcdf ]]; then
@@ -130,14 +133,14 @@ checkHotstart()
    fi
    # check for existence of hotstart file
    if [ ! -e $HOTSTARTFILE ]; then
-      fatal "The hotstart file '$HOTSTARTFILE' was not found. The preceding simulation run must have failed to produce it."
+      fatal "$THIS: The hotstart file '$HOTSTARTFILE' was not found. The preceding simulation run must have failed to produce it."
    # if it exists, check size to be sure its nonzero
    else
       hotstartSize=`stat -c %s $HOTSTARTFILE`
       if [ $hotstartSize == "0" ]; then
-         fatal "The hotstart file '$HOTSTARTFILE' is of zero length. The preceding simulation run must have failed to produce it properly."
+         fatal "$THIS: The hotstart file '$HOTSTARTFILE' is of zero length. The preceding simulation run must have failed to produce it properly."
       else
-         logMessage "The hotstart file '$HOTSTARTFILE' was found and it contains $hotstartSize bytes."
+         logMessage "$THIS: The hotstart file '$HOTSTARTFILE' was found and it contains $hotstartSize bytes."
          # check time in hotstart file to be sure it can be found and that
          # it is nonzero
          # jgf20170131: hstime reports errors to stderr so we must capture
@@ -151,10 +154,11 @@ checkHotstart()
          failureOccurred=$?
          errorOccurred=`expr index "$HSTIME" ERROR`
          if [[ $failureOccurred != 0 || $errorOccurred != 0 ]]; then
-            fatal "The hstime utility could not read the ADCIRC time from the file '$HOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
+            fatal "$THIS: The hstime utility could not read the ADCIRC time from the file '$HOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
          else
             if float_cond '$HSTIME == 0.0'; then
-               fatal "The time in the hotstart file '$HOTSTARTFILE' is zero. The preceding simulation run must have failed to produce a proper hotstart file."
+               THIS="asgs_main.sh>checkHotstart()"
+               fatal "$THIS: The time in the hotstart file '$HOTSTARTFILE' is zero. The preceding simulation run must have failed to produce a proper hotstart file."
             fi
          fi
       fi
@@ -165,6 +169,7 @@ checkHotstart()
 # From http://www.linuxjournal.com/content/floating-point-math-bash
 function float_cond()
 {
+    THIS="asgs_main.sh>float_cond()"
     local cond=0
     if [[ $# -gt 0 ]]; then
         cond=$(echo "$*" | bc -q 2>/dev/null)
@@ -197,6 +202,7 @@ prep()
     NAFILE=${17}  # full domain nodal attributes file, must be last in the
                   # argument list, since it may be undefined
     TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
+    THIS="asgs_main.sh>prep()"
 #
     # set the name of the archive of preprocessed input files
     PREPPED=$PREPPEDARCHIVE
@@ -212,7 +218,7 @@ prep()
     if [ ! -d $ADVISDIR/$ENSTORM ]; then
       mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
     fi
-    echo "$TIMESTAMP adcprep.log entry for $FILE for ensemble member $ENSTORM in $ADVISDIR as follows: " >> $ADVISDIR/$ENSTORM/adcprep.log
+    echo "$TIMESTAMP INFO: $ENSTORM: $THIS: adcprep.log entry for $FILE for ensemble member $ENSTORM in $ADVISDIR as follows: " >> $ADVISDIR/$ENSTORM/adcprep.log
     cd $ADVISDIR/$ENSTORM
     logMessage "Linking to full domain input files."
     # symbolically link grid
@@ -227,13 +233,13 @@ prep()
     fi
     if [[ $HAVEARCHIVE = yes ]]; then
         # copy in the files that have already been preprocessed
-        logMessage "Copying input files that have already been decomposed."
+        logMessage "$ENSTORM: $THIS: Copying input files that have already been decomposed."
         cp $INPUTDIR/${PREPPED} . 2>> ${SYSLOG}
         gunzip -f ${PREPPED} 2>> ${SYSLOG}
         # untar the uncompressed archive
         UNCOMPRESSEDARCHIVE=${PREPPED%.gz}
         tar xvf $UNCOMPRESSEDARCHIVE > untarred_files.log 2>> ${SYSLOG}
-        logMessage "Removing $UNCOMPRESSEDARCHIVE"
+        logMessage "$ENSTORM: $THIS: Removing $UNCOMPRESSEDARCHIVE"
         rm $UNCOMPRESSEDARCHIVE 2>> ${SYSLOG}
     fi
     #
@@ -250,18 +256,23 @@ prep()
        fi
        # now run adcprep to decompose the files
        if [[ $HAVEARCHIVE = no ]]; then
-          logMessage "Running adcprep to partition the mesh for $NCPU compute processors."
+          logMessage "$ENSTORM: $THIS: Running adcprep to partition the mesh for $NCPU compute processors."
           prepFile partmesh $NCPU $ACCOUNT $WALLTIME
-          logMessage "Running adcprep to prepare all files."
+          THIS="asgs_main.sh>prep()"
+          logMessage "$ENSTORM: $THIS: Running adcprep to prepare all files."
           prepFile prepall $NCPU $ACCOUNT $WALLTIME
+          THIS="asgs_main.sh>prep()"
        else
-          logMessage "Running adcprep to prepare new fort.15 file."
+          logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.15 file."
           prepFile prep15 $NCPU $ACCOUNT $WALLTIME
+          THIS="asgs_main.sh>prep()"
           if [[ $VARFLUX = on || $VARFLUX = default ]]; then
-             logMessage "Running adcprep to prepare new fort.20 file."
+             logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.20 file."
              prepFile prep20 $NCPU $ACCOUNT $WALLTIME
-             logMessage "Running adcprep to prepare fort.88 file."
+             THIS="asgs_main.sh>prep()"
+             logMessage "$ENSTORM: $THIS: Running adcprep to prepare fort.88 file."
              prepFile prep88 $NCPU $ACCOUNT $WALLTIME
+             THIS="asgs_main.sh>prep()"
           fi
        fi
     else
@@ -274,21 +285,25 @@ prep()
        fi
        # jgfdebug: TODO: FIXME: Hardcoded the time varying weirs input file 
        if [ -e $INPUTDIR/time-bonnet.in ]; then 
-          logMessage "Copying $INPUTDIR/time-bonnet.in to $ADVISDIR/$ENSTORM."
+          logMessage "$ENSTORM: $THIS: Copying $INPUTDIR/time-bonnet.in to $ADVISDIR/$ENSTORM."
           cp $INPUTDIR/time-bonnet.in $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
        fi 
        # run adcprep to decompose the new files
        if [[ $HAVEARCHIVE = no ]]; then
-          logMessage "Running adcprep to partition the mesh for $NCPU compute processors."
+          logMessage "$ENSTORM: $THIS: Running adcprep to partition the mesh for $NCPU compute processors."
           prepFile partmesh $NCPU $ACCOUNT $WALLTIME
-          logMessage "Running adcprep to prepare all files."
+          THIS="asgs_main.sh>prep()"
+          logMessage "$ENSTORM: $THIS: Running adcprep to prepare all files."
           prepFile prepall $NCPU $ACCOUNT $WALLTIME
+          THIS="asgs_main.sh>prep()"
        else
-          logMessage "Running adcprep to prepare new fort.15 file."
+          logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.15 file."
           prepFile prep15 $NCPU $ACCOUNT $WALLTIME
+          THIS="asgs_main.sh>prep()"
           if [[ $VARFLUX = on || $VARFLUX = default ]]; then
-             logMessage "Running adcprep to prepare new fort.20 file."
+             logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.20 file."
              prepFile prep20 $NCPU $ACCOUNT $WALLTIME
+             THIS="asgs_main.sh>prep()"
           fi
           if [[ $WAVES = on ]]; then
              PE=0
@@ -300,18 +315,18 @@ prep()
              done
           fi
        fi
-       logMessage "Copying existing output files to this directory."
+       logMessage "$ENSTORM: $THIS: Copying existing output files to this directory."
        if [[ $MINMAX = continuous ]]; then
           # copy max and min files so that the max values will be
           # preserved across hotstarts
           for file in maxele.63 maxwvel.63 minpr.63 maxrs.63 maxvel.63 elemaxdry.63 nodeflag.63 rising.63 tinun.63; do
              if  [ -e $FROMDIR/$file ]; then
-                logMessage "Copying $FROMDIR/$file to $ADVISDIR/$ENSTORM/$file so that its values will be preserved across the hotstart."
+                logMessage "$ENSTORM: $THIS: Copying $FROMDIR/$file to $ADVISDIR/$ENSTORM/$file so that its values will be preserved across the hotstart."
                 cp $FROMDIR/$file $ADVISDIR/$ENSTORM/$file 2>> ${SYSLOG}
              fi
           done
        else
-          logMessage "MINMAX was set to '$MINMAX' in the ASGS config file; as a result, the maxele.63 etc files will not be from the previous run to the current run. ADCIRC will start the record of max and min values anew."
+          logMessage "$ENSTORM: $THIS: MINMAX was set to '$MINMAX' in the ASGS config file; as a result, the maxele.63 etc files will not be from the previous run to the current run. ADCIRC will start the record of max and min values anew."
        fi
        # copy existing fulldomain files if they are supposed to be appended
        for file in fort.61 fort.62 fort.63 fort.64 fort.71 fort.72 fort.73 fort.74; do
@@ -333,7 +348,7 @@ prep()
                    fi
                 done
                 if [ -e $FROMDIR/$file ]; then
-                   logMessage "Copying $FROMDIR/$file to $ADVISDIR/$ENSTORM/$file so that it will be appended during the upcoming run."
+                   logMessage "$ENSTORM: $THIS: Copying $FROMDIR/$file to $ADVISDIR/$ENSTORM/$file so that it will be appended during the upcoming run."
                    cp $FROMDIR/$file $ADVISDIR/$ENSTORM/$file 2>> ${SYSLOG}
                 fi
              fi
@@ -349,7 +364,7 @@ prep()
           fi
        fi
        if [[ $HOTSTARTCOMP = subdomain || $WAVES = on ]]; then
-          logMessage "Starting copy of subdomain hotstart files."
+          logMessage "$ENSTORM: $THIS: Starting copy of subdomain hotstart files."
           # copy the subdomain hotstart files over
           # subdomain hotstart files are always binary formatted
           PE=0
@@ -364,13 +379,13 @@ prep()
              fi
              PE=`expr $PE + 1`
           done
-          logMessage "Completed copy of subdomain hotstart files."
+          logMessage "$ENSTORM: $THIS: Completed copy of subdomain hotstart files."
        fi
     fi
     # if we don't have an archive of our preprocessed files, create
     # one so that we don't have to do another prepall
     if [[ $HAVEARCHIVE = no ]]; then
-       logMessage "Creating an archive of preprocessed files and saving to ${INPUTDIR}/${PREPPED} to avoid having to run prepall again."
+       logMessage "$ENSTORM: $THIS: Creating an archive of preprocessed files and saving to ${INPUTDIR}/${PREPPED} to avoid having to run prepall again."
        FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18'
        if [[ ! -z $NAFILE && $NAFILE != null ]]; then
           FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18 PE*/fort.13'
@@ -379,7 +394,7 @@ prep()
        # check status of tar operation; if it failed, delete the file
        # it attempted to make and alert the operator
        if [[ $? != 0 ]]; then
-          warn "The construction of a tar archive of the preprocessed input files has failed."
+          warn "$ENSTORM: $THIS: The construction of a tar archive of the preprocessed input files has failed."
           rm ${INPUTDIR}/${PREPPED} 2>> ${SYSLOG} 2>&1
        fi
     fi
@@ -392,6 +407,7 @@ prepFile()
     NCPU=$2
     ACCOUNT=$3
     WALLTIME=$4
+    THIS="asgs_main.sh>prepFile()"
     #
     case $QUEUESYS in
     "PBS")
@@ -403,17 +419,18 @@ prepFile()
           if [[ $? = 0 ]]; then
              break # qsub returned a "success" status
           else
-             warn "qsub $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.pbs failed; will retry in 60 seconds."
+             warn "$ENSTORM: $THIS: qsub $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.pbs failed; will retry in 60 seconds."
              sleep 60
           fi
        done
        monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $WALLTIME
-       logMessage "Finished adcprepping file ($JOBTYPE)."
+       THIS="asgs_main.sh>prepFile()"
+       logMessage "$ENSTORM: $THIS: Finished adcprepping file ($JOBTYPE)."
        ;;
     "SLURM")
        QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$ENV/$PREPCONTROLSCRIPT --enstorm ${ENSTORM} --notifyuser $NOTIFYUSER --syslog $SYSLOG"
        #jgfdebug
-       logMessage "Preparing queue script for adcprep with the following: perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.slurm 2>> ${SYSLOG}"
+       logMessage "$ENSTORM: $THIS: Preparing queue script for adcprep with the following: perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.slurm 2>> ${SYSLOG}"
        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.slurm 2>> ${SYSLOG}
        # submit adcprep job, check to make sure sbatch succeeded, and if not, retry
        while [ true ];  do
@@ -421,33 +438,36 @@ prepFile()
           if [[ $? = 0 ]]; then
              break # qsub returned a "success" status
           else
-             warn "sbatch $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.slurm failed; will retry in 60 seconds."
+             warn "$ENSTORM: $THIS: sbatch $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.slurm failed; will retry in 60 seconds."
              sleep 60
           fi
        done
        monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $WALLTIME
-       logMessage "Finished adcprepping file ($JOBTYPE)."
+       THIS="asgs_main.sh>prepFile()"
+       logMessage "$ENSTORM: $THIS: Finished adcprepping file ($JOBTYPE)."
        ;;
     "SGE")
        cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
        SERQSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --account $ACCOUNT --adcircdir $ADCIRCDIR --walltime $WALLTIME --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $SCRIPTDIR/input/machines/$ENV/$SERQSCRIPT"
        perl $SCRIPTDIR/$SERQSCRIPTGEN $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
-       logMessage "Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge."
+       logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge."
        qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
        # if qsub succeeded, monitor the job, otherwise an error is indicated
        if [[ $? = 1 ]]; then
           rangerResubmit $ADVISDIR $ENSTORM adcprep.serial.sge $SYSLOG
+          THIS="asgs_main.sh>prepFile()"
        fi
        # check once per minute until all jobs have finished
        monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $WALLTIME
-       allMessage "adcprep finished."
+       THIS="asgs_main.sh>prepFile()"
+       allMessage "$ENSTORM: $THIS: adcprep finished."
        ;;
     *)
-       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log 2>&1
+       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} --strict-boundaries >> $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log 2>&1
        # check to see if adcprep completed successfully
        if [[ $? != 0 ]]; then
-          error "The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log for details."
-          echo "The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log for details." >> jobFailed
+          error "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log for details."
+          echo "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log for details." >> jobFailed
        fi
        ;;
     esac
@@ -468,8 +488,9 @@ downloadCycloneData()
     FDIR=${10}
     HDIR=${11}
     STATEFILE=${12}
+    THIS="asgs_main.sh>downloadCycloneData()"
 #    activity_indicator "Checking remote site for new advisory..." &
-    echo "Checking remote site for new advisory..." 
+    echo "$THIS: Checking remote site for new advisory..." 
 #    pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
     cd $RUNDIR 2>> ${SYSLOG}
     newAdvisory=false
@@ -483,11 +504,11 @@ downloadCycloneData()
        rm forecast.properties 2>> ${SYSLOG}
     fi
     OPTIONS="--storm $STORM --year $YEAR --ftpsite $FTPSITE --fdir $FDIR --hdir $HDIR --rsssite $RSSSITE --trigger $TRIGGER --adv $ADVISORY"
-    logMessage "Options for get_atcf.pl are as follows : $OPTIONS"
+    logMessage "$THIS: Options for get_atcf.pl are as follows : $OPTIONS"
     if [ "$START" = coldstart ]; then
-       logMessage "Downloading initial hindcast/forecast."
+       logMessage "$THIS: Downloading initial hindcast/forecast."
     else
-       logMessage "Checking remote site for new advisory..."
+       logMessage "$THIS: Checking remote site for new advisory..."
     fi
     while [ $newAdvisory = false ]; do
        if [ $TRIGGER != atcf ]; then 
@@ -505,7 +526,7 @@ downloadCycloneData()
           # assume the advisory number is the first two characters in the
           # symbolic link target of the forecast file name
           newAdvisoryNum=${linkTarget:0:2}
-          if [ $newAdvisoryNum -gt $ADVISORY ]; then 
+          if [[ $newAdvisoryNum -gt $ADVISORY ]]; then 
              newAdvisory="true" 
           else 
              newAdvisory="false" 
@@ -531,7 +552,7 @@ downloadCycloneData()
           fi
           ;;
        *)
-          fatal "Invalid 'TRIGGER' type: '$TRIGGER'; must be ftp, rss, rssembedded, or atcf."
+          fatal "$THIS: Invalid 'TRIGGER' type: '$TRIGGER'; must be ftp, rss, rssembedded, or atcf."
           ;;
        esac
        if [ $START = coldstart ]; then
@@ -544,7 +565,7 @@ downloadCycloneData()
           sleep 60 # we are hotstarting, the advisory is same as last one
        fi
     done
-    logMessage "New forecast detected."
+    logMessage "$THIS: New forecast detected."
     cp -f $STATEFILE ${STATEFILE}.old
     sed 's/ADVISORY=.*/ADVISORY='$newAdvisoryNum'/' $STATEFILE > ${STATEFILE}.new
     cp -f ${STATEFILE}.new $STATEFILE >> ${SYSLOG} 2>&1 
@@ -575,6 +596,8 @@ downloadBackgroundMet()
    ARCHIVEDIR=${12}
    STATEFILE=${13}
    #
+   THIS="asgs_main.sh>downloadBackgroundMet()"
+   logMessage "$ENSTORM: $THIS: Downloading meteorological data."
    cd $RUNDIR 2>> ${SYSLOG}
    if [[ $ENSTORM != "nowcast" ]]; then
       grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//' > currentCycle 2>> ${SYSLOG}
@@ -611,6 +634,7 @@ downloadRiverFluxData()
    DEFAULTFILE=${11}
    USERIVERFILEONLY=${12}
 #
+   THIS="asgs_main.sh>downloadRiverFluxData()"
    OPTIONS="--advisdir $ADVISDIR --meshfile $MESHFILE --riversite $RIVERSITE --riverdir $RIVERDIR --riveruser $RIVERUSER --riverdataprotocol $RIVERDATAPROTOCOL --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --scriptdir $SCRIPTDIR --defaultfile $DEFAULTFILE"
    TRIES=0
    SUCCESS=no
@@ -618,18 +642,18 @@ downloadRiverFluxData()
       while [[ $TRIES -lt 2 ]]; do
          perl ${SCRIPTDIR}/get_flux.pl $OPTIONS 2>> ${SYSLOG}
          if [[ $? = 0 ]]; then
-            logMessage "Completed construction of river flux boundary condition (fort.20 file)."
+            logMessage "$ENSTORM: $THIS: Completed construction of river flux boundary condition (fort.20 file)."
             SUCCESS=yes
             break
          else
             TRIES=$[$TRIES + 1]
-            warn "Attempt $TRIES at constructing river flux boundary condition (fort.20) file has failed. After 2 attempts, the default flux boundary condition file '$DEFAULTFILE' will be used."
+            warn "$ENSTORM: $THIS: Attempt $TRIES at constructing river flux boundary condition (fort.20) file has failed. After 2 attempts, the default flux boundary condition file '$DEFAULTFILE' will be used."
             sleep 60
          fi
       done
    fi
    if [[ $SUCCESS = no ]]; then
-      error "Using default river flux boundary condition file '$DEFAULTFILE'."
+      error "$ENSTORM: $THIS: Using default river flux boundary condition file '$DEFAULTFILE'."
       ln -s $DEFAULTFILE ./fort.20 2>> ${SYSLOG}
    fi
 }
@@ -639,6 +663,7 @@ checkTimeLimit()
 {
    STARTTIME=$1
    TIMELIMIT=$2
+   THIS="asgs_main.sh>checkTimeLimit()"
    #
    # convert time limit to seconds, assuming it is in the format HH:MM:SS
    hours=${TIMELIMIT:0:2}   # requires leading zero! e.g., 05:00:00
@@ -656,7 +681,7 @@ checkTimeLimit()
       secondsEnd=$(($remainder % 60))
       format="%02d:%02d:%02d"
       hms=`printf "$format" $hoursEnd $minutesEnd $secondsEnd`
-      warn "The time limit is $TIMELIMIT but the total time used so far is $hms. Therefore, the time limit has been exceeded."
+      warn "$ENSTORM: $THIS: The time limit is $TIMELIMIT but the total time used so far is $hms. Therefore, the time limit has been exceeded."
       return 1
    else
       return 0
@@ -670,17 +695,19 @@ monitorJobs()
 {  QUEUESYS=$1
    ENSTORM_TEMP=$2
    WALLTIME=$3
+   THIS="asgs_main.sh>monitorJobs()"
    #
-   logMessage "Waiting for $ENSTORM_TEMP job to start."
+   logMessage "$ENSTORM_TEMP: $THIS: Waiting for $ENSTORM_TEMP job to start."
    until [[ -e ${ENSTORM_TEMP}.run.start ]]; do
      sleep 10
    done
-   logMessage "The $ENSTORM_TEMP job has started."
+   logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job has started."
    startTime=`date +%s`  # epoch seconds
    until [[ -e ${ENSTORM_TEMP}.run.finish || -e ${ENSTORM_TEMP}.run.error ]]; do
       sleep 10
       if ! checkTimeLimit $startTime $WALLTIME ; then
-         echo "The ${ENSTORM_TEMP} job exceeded its wall clock time limit of '$WALLTIME'." > ${ENSTORM_TEMP}.run.error
+         THIS="asgs_main.sh>monitorJobs()"
+         echo "$THIS: The ${ENSTORM_TEMP} job exceeded its wall clock time limit of '$WALLTIME'." > ${ENSTORM_TEMP}.run.error
          # if this job was submitted by mpiexec, then terminate it; otherwise,
          # it could run for a long time, delaying the continued execution
          # of the ASGS (the ASGS won't start the next cycle until all forecast
@@ -695,17 +722,17 @@ monitorJobs()
             # ... but we do have the process ID of its parent subshell
             kill -TERM `ps --ppid $pid -o pid --no-headers` >> ${SYSLOG} 2>&1
             DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
-            logMessage "$ENSTORM_TEMP job in $PWD terminated by ASGS for exceeding expected wall clock time." >> ${ENSTORM_TEMP}.run.error
+            logMessage "$THIS: $ENSTORM_TEMP job in $PWD terminated by ASGS for exceeding expected wall clock time." >> ${ENSTORM_TEMP}.run.error
          else 
             # if we are over the wall clock limit, wait until the operating system has had a chance
             # to write the job log file, or until 5 minutes  have passed
             overLimitTime=`date +%s`
             until [[ ! -e ${ENSTORM_TEMP}.out ]]; do
-               logMessage "Waiting for queueing system to write out the job log file ${ENSTORM_TEMP}.out."
+               logMessage "$ENSTORM_TEMP: $THIS: Waiting for queueing system to write out the job log file ${ENSTORM_TEMP}.out."
                sleep 60
                nowTime=`date +%s`
                if [[ `expr $nowTime - $overLimitTime` -gt 300 ]]; then
-                  warn "After 5 minutes, the ${ENSTORM_TEMP}.out file did not appear. Proceeding with error recovery." 
+                  warn "$ENSTORM_TEMP: $THIS: After 5 minutes, the ${ENSTORM_TEMP}.out file did not appear. Proceeding with error recovery." 
                    break
                fi
             done
@@ -713,13 +740,13 @@ monitorJobs()
       fi
    done
    if [[ -e ${ENSTORM_TEMP}.run.error ]]; then
-     error "The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
+     error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
      cat ${ENSTORM_TEMP}.run.error >> jobFailed
    fi
    if [[ -e ${ENSTORM_TEMP}.run.finish ]]; then
-     logMessage "The $ENSTORM_TEMP job appears to have run to completion successfully."
+     logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job appears to have run to completion successfully."
    fi
-   logMessage "Finished monitoring $ENSTORM_TEMP job."
+   logMessage "$ENSTORM_TEMP: $THIS: Finished monitoring $ENSTORM_TEMP job."
 }
 #
 # submits a job to the local queueing system
@@ -740,7 +767,7 @@ submitJob()
    WALLTIME=${14}
    JOBTYPE=${15}
    #
-
+   THIS="asgs_main.sh>submitJob()"
    #
    CLOPTIONS=""     # command line options
    LOCALHOTSTART=""
@@ -779,16 +806,16 @@ submitJob()
       if [[ $NUMWRITERS != "0" ]]; then
          QSCRIPTOPTIONS="$QSCRIPTOPTIONS --numwriters $NUMWRITERS"
       fi
-      logMessage "QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
+      logMessage "$ENSTORM: $THIS: QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
       perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs 2>> ${SYSLOG}
-      logMessage "Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs"
+      logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs"
       # submit job, check to make sure qsub succeeded, and if not, retry
       while [ true ];  do
          qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs >> ${SYSLOG} 2>&1
          if [[ $? = 0 ]]; then
             break # qsub returned a "success" status
          else
-            warn "qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs failed; will retry in 60 seconds."
+            warn "$ENSTORM: $THIS: qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs failed; will retry in 60 seconds."
             sleep 60
          fi
       done
@@ -803,16 +830,16 @@ submitJob()
       if [[ $NUMWRITERS != "0" ]]; then
          QSCRIPTOPTIONS="$QSCRIPTOPTIONS --numwriters $NUMWRITERS"
       fi
-      logMessage "QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
+      logMessage "$ENSTORM: $THIS: QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
       perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm 2>> ${SYSLOG}
-      logMessage "Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm"
+      logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm"
       # submit job, check to make sure qsub succeeded, and if not, retry
       while [ true ];  do
          sbatch $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm >> ${SYSLOG} 2>&1
          if [[ $? = 0 ]]; then
             break # sbatch returned a "success" status
          else
-            warn "sbatch $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm failed; will retry in 60 seconds."
+            warn "$ENSTORM: $THIS: sbatch $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm failed; will retry in 60 seconds."
             sleep 60
          fi
       done
@@ -822,7 +849,7 @@ submitJob()
    "mpiexec")
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
       echo "[${DATETIME}] Starting ${JOBTYPE}.${ENSTORM} job in $PWD." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start
-      logMessage "Submitting job via $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${SYSLOG} 2>&1"
+      logMessage "$ENSTORM: $THIS: Submitting job via $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${SYSLOG} 2>&1"
       # submit the parallel job in a subshell
       (
          $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${ADVISDIR}/${ENSTORM}/adcirc.log 2>&1
@@ -843,15 +870,16 @@ submitJob()
    "SGE")
       QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --ncpudivisor $NCPUDIVISOR --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$ENV/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
       perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/${JOBTYPE}.sge 2>> ${SYSLOG}
-      logMessage "Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.sge"
+      logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.sge"
       qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.sge >> ${SYSLOG} 2>&1
       # if qsub failed, resubmit the job 5 times before giving up
       if [[ $? = 1 ]]; then
          rangerResubmit $ADVISDIR $ENSTORM ${JOBTYPE}.sge $SYSLOG
+         THIS="asgs_main.sh>submitJob()"
       fi
       ;;
    *)
-      fatal "Queueing system $QUEUESYS unrecognized."
+      fatal "$ENSTORM: $THIS: Queueing system $QUEUESYS unrecognized."
       ;;
    esac
 }
@@ -865,23 +893,24 @@ rangerResubmit()
    SCRIPTNAME=$3
    SYSLOG=$4
 #
+   THIS="asgs_main.sh>rangerResubmit():"
    num_retries=0
    success=0
    while [[ $num_retries -le 5 ]]; do
-      logMessage "SGE rejected the job; will resubmit after 60 seconds."
+      logMessage "$ENSTORM: $THIS: SGE rejected the job; will resubmit after 60 seconds."
       sleep 60
       qsub $ADVISDIR/$ENSTORM/$SCRIPTNAME >> ${SYSLOG} 2>&1
       num_retries=`expr $num_retries + 1`
-      logMessage "The number of retries is $num_retries."
+      logMessage "$ENSTORM: $THIS: The number of retries is $num_retries."
       if [[ $? = 0 ]]; then
          success=1
-         logMessage "The job was successfully resubmitted."
+         logMessage "$ENSTORM: $THIS: The job was successfully resubmitted."
          break
       fi
    done
    if [[ $success = 0 ]]; then
       date > $ADVISDIR/$ENSTORM/run.error
-      msg="The job '$ADVISDIR/$ENSTORM/$SCRIPTNAME' was not accepted by SGE after it was resubmitted $num_retries times."
+      msg="$ENSTORM: $THIS: The job '$ADVISDIR/$ENSTORM/$SCRIPTNAME' was not accepted by SGE after it was resubmitted $num_retries times."
       warn $msg
       echo $msg >> $ADVISDIR/$ENSTORM/run.error
    fi
@@ -907,13 +936,14 @@ handleFailedJob()
    JOB_FAILED_LIST="${14}"
    ARCHIVEBASE=${15}
    ARCHIVEDIR=${16}
+   THIS="asgs_main.sh>handleFailedJob()"
    # check to see that the job did not conspicuously fail
    if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then
-      warn "The job has failed."
+      warn "$ENSTOR: $THIS: The job has failed."
       FAILDATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
       # send an email to notify the operator that a job has failed
       $NOTIFYSCRIPT $HOSTNAME $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE jobfailed $EMAILNOTIFY $SYSLOG "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
-      warn "Moving failed cycle to 'failed.${FAILDATETIME}'."
+      warn "$ENSTORM: $THIS: Moving failed cycle to 'failed.${FAILDATETIME}'."
       mv $ADVISDIR/$ENSTORM $RUNDIR/failed.${FAILDATETIME} 2>> ${SYSLOG}
    fi
    # roll back the latest advisory number if the nowcast failed
@@ -929,6 +959,7 @@ handleFailedJob()
 #####################################################################
 #               B E G I N     E X E C U T I O N
 #####################################################################
+THIS="asgs_main.sh"
 #
 #
 # Option Summary
@@ -1033,7 +1064,7 @@ VELOCITYMULTIPLIER=1.0
 HOTSWAN=off
 ONESHOT=no      # yes if ASGS is launched by cron
 NCPUCAPACITY=2  # total number of CPUs available to run jobs
-let si=-1       # storm index for forecast ensemble; -1 indicates non-forecast
+si=-1       # storm index for forecast ensemble; -1 indicates non-forecast
 STATEFILE=null
 ENSTORM=hindcast
 CYCLETIMELIMIT="05:00:00"
@@ -1056,6 +1087,8 @@ JOB_FAILED_LIST=null
 NOTIFYUSER=null
 ASGSADMIN=null
 PERIODICFLUX=null
+SPATIALEXTRAPOLATIONRAMP=yes
+SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
 #
 # first - look for SCRIPTDIR
 while getopts "c:e:s:h" optname; do    #<- first getopts for SCRIPTDIR
@@ -1097,12 +1130,12 @@ RUNDIR=$SCRATCHDIR/asgs$$
 if [[ $ONESHOT = yes ]]; then
    # if it is there, read it
    if [[ -e $STATEFILE ]]; then
-      consoleMessage "Reading $STATEFILE for previous ASGS state."
+      consoleMessage "$THIS: Reading $STATEFILE for previous ASGS state."
       HOTORCOLD=hotstart
       . $STATEFILE # contains RUNDIR, LASTSUBDIR, ADVISORY and SYSLOG values
    else
       # if the state file is not there, just start from cold
-      consoleMessage "The statefile '$STATEFILE' was not found. The ASGS will start cold and create a new statefile."
+      consoleMessage "$THIS: The statefile '$STATEFILE' was not found. The ASGS will start cold and create a new statefile."
       HOTORCOLD=coldstart
    fi
 else
@@ -1111,7 +1144,7 @@ else
    # info in the config file
    STATEFILE=${SCRATCHDIR}/${INSTANCENAME}.state
    if [[ -e $STATEFILE ]]; then
-      consoleMessage "Reading $STATEFILE for previous ASGS state."
+      consoleMessage "$THIS: Reading $STATEFILE for previous ASGS state."
       HOTORCOLD=hotstart
       . $STATEFILE # contains RUNDIR, LASTSUBDIR, ADVISORY and SYSLOG values
    else
@@ -1125,15 +1158,15 @@ else
    fi
 fi
 
-consoleMessage "Please see ASGS log file for detailed information regarding system progress."
-consoleMessage "ASGS Start Up MSG: [SYSLOG] The log file is ${SYSLOG}"
-logMessage "ASGS Start Up MSG: [PROCID] $$"
-logMessage "ASGS Start Up MSG: [SYSLOG] ${SYSLOG}"
-logMessage "The ADCIRC Surge/Spill Guidance System is activated."
-logMessage "Set permissions with the following umask: $UMASK."
-logMessage "Configured the ASGS for the '${ENV}' platform."
-logMessage "Configured the ASGS according to the file ${CONFIG}."
-logMessage "ASGS state file is ${STATEFILE}."
+consoleMessage "$THIS: Please see ASGS log file for detailed information regarding system progress."
+consoleMessage "$THIS: ASGS Start Up MSG: [SYSLOG] The log file is ${SYSLOG}"
+logMessage "$THIS: ASGS Start Up MSG: [PROCID] $$"
+logMessage "$THIS: ASGS Start Up MSG: [SYSLOG] ${SYSLOG}"
+logMessage "$THIS: The ADCIRC Surge/Spill Guidance System is activated."
+logMessage "$THIS: Set permissions with the following umask: $UMASK."
+logMessage "$THIS: Configured the ASGS for the '${ENV}' platform."
+logMessage "$THIS: Configured the ASGS according to the file ${CONFIG}."
+logMessage "$THIS: ASGS state file is ${STATEFILE}."
 # set a trap for a signal to reread the ASGS config file
 trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; . $CONFIG' USR1
 #
@@ -1151,6 +1184,7 @@ if [[ $TROPICALCYCLONE = on ]]; then
 fi
 if [[ $BACKGROUNDMET = on ]]; then
    checkFileExistence $SCRIPTDIR "NAM output reprojection executable (from lambert to geographic)" awip_lambert_interp.x
+   checkFileExistence $SCRIPTDIR "NAM output reprojection with spatial extrapolation ramp executable (from lambert to geographic)" lambertInterpRamp.x
    checkFileExistence $SCRIPTDIR "GRIB2 manipulation and extraction executable" wgrib2
 fi
 if [[ $WAVES = on ]]; then
@@ -1198,15 +1232,16 @@ if [[ $HOTORCOLD = hotstart ]]; then
       fi
    fi
 fi
+THIS="asgs_main.sh"
 if [[ -e ${INPUTDIR}/${PREPPEDARCHIVE} ]]; then
-   logMessage "Found archive of preprocessed input files ${INPUTDIR}/${PREPPEDARCHIVE}."
+   logMessage "$THIS: Found archive of preprocessed input files ${INPUTDIR}/${PREPPEDARCHIVE}."
 else
-   warn "Could not find archive of preprocessed input files ${INPUTDIR}/${PREPPEDARCHIVE}. It will be recreated."
+   warn "$THIS: Could not find archive of preprocessed input files ${INPUTDIR}/${PREPPEDARCHIVE}. It will be recreated."
 fi
 if [[ -e ${INPUTDIR}/${HINDCASTARCHIVE} ]]; then
-   logMessage "Found archive of preprocessed input files ${INPUTDIR}/${HINDCASTARCHIVE}."
+   logMessage "$THIS: Found archive of preprocessed input files ${INPUTDIR}/${HINDCASTARCHIVE}."
 else
-   warn "Could not find archive of preprocessed input files ${INPUTDIR}/${HINDCASTARCHIVE}. It will be recreated."
+   warn "$THIS: Could not find archive of preprocessed input files ${INPUTDIR}/${HINDCASTARCHIVE}. It will be recreated."
 fi
 #
 checkFileExistence $OUTPUTDIR "postprocessing initialization script" $INITPOST
@@ -1216,22 +1251,24 @@ checkFileExistence $OUTPUTDIR "data archival script" $ARCHIVE
 #
 checkDirExistence ${PERL5LIB}/Date "subdirectory for the Pcalc.pm perl module"
 checkFileExistence ${PERL5LIB}/Date "perl module for date calculations" Pcalc.pm
+THIS="asgs_main.sh"
 #
 if [[ $PERIODICFLUX != null ]]; then
-   logMessage "checking for FLUXCALCULATOR script"
+   logMessage "$THIS: checking for FLUXCALCULATOR script"
    checkFileExistence "" "perl script for calculating periodic flux boundary" $FLUXCALCULATOR
    checkFileExistence ${PERL5LIB} "AdcGrid perl module used by flux calculator" AdcGrid.pm
 fi
+THIS="asgs_main.sh"
 #
 # Check for any issues or inconsistencies in 
 # configuration parameters. 
 if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
-   fatal "NCPUCAPACITY must be greater than or equal to NCPU plus NUMWRITERS, however NCPUCAPACITY=$NCPUCAPACITY and NUMWRITERS=$NUMWRITERS and NCPU=$NCPU."
+   fatal "$THIS: NCPUCAPACITY must be greater than or equal to NCPU plus NUMWRITERS, however NCPUCAPACITY=$NCPUCAPACITY and NUMWRITERS=$NUMWRITERS and NCPU=$NCPU."
 fi
 #
 # initialize the directory where this instance of the ASGS will run and
 # keep all its files
-logMessage "The directory $RUNDIR will be used for all files associated with this execution of the ASGS."
+logMessage "$THIS: The directory $RUNDIR will be used for all files associated with this execution of the ASGS."
 # add the run directory to the list of alternate directories to look for
 # NAM data in
 ALTNAMDIR="${ALTNAMDIR},$RUNDIR"
@@ -1261,7 +1298,7 @@ fi
 if [[ $BACKGROUNDMET = on && $TROPICALCYCLONE = on ]]; then
    NWS=29
    # not ready for this yet
-   fatal "Background meteorology and tropical cyclone forcing are both turned on in ${CONFIG} but simultaneous use of these two forcing types is not yet supported in ASGS."
+   fatal "$THIS: Background meteorology and tropical cyclone forcing are both turned on in ${CONFIG} but simultaneous use of these two forcing types is not yet supported in ASGS."
 fi
 #
 # If we are coldstarting, perform a hindcast ... this is necessary
@@ -1273,7 +1310,7 @@ HSTIME=null     # determined below
 #       H I N D C A S T
 #
 if [[ $START = coldstart ]]; then
-   logMessage "Starting hindcast."
+   logMessage "$THIS: Starting hindcast."
    HOTSWAN=off
    ENSTORM=hindcast
    # pick up config info that is specific to the hindcast
@@ -1287,25 +1324,25 @@ if [[ $START = coldstart ]]; then
    # initialize rivers ... therefore no met forcing.
    NWS=0
    OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
-   logMessage "Coldstarting."
-   logMessage "Coldstart time is '$CSDATE'."
-   logMessage "The initial hindcast duration is '$HINDCASTLENGTH' days."
+   logMessage "$ENSTORM: $THIS: Coldstarting."
+   logMessage "$ENSTORM: $THIS: Coldstart time is '$CSDATE'."
+   logMessage "$ENSTORM: $THIS: The initial hindcast duration is '$HINDCASTLENGTH' days."
    # prepare hindcast control (fort.15) file
    # calculate periodic fux data for insertion in fort.15 if necessary
    if [[ $PERIODICFLUX != null ]]; then
       FLUXOPTIONS="--gridfile ${INPUTDIR}/${GRIDFILE} --outfile $PERIODICFLUX --discharge $RIVERDISCHARGE --units $FLUXUNITS"
-      logMessage "Running $FLUXCALCULATOR with options $FLUXOPTIONS."
+      logMessage "$ENSTORM: $THIS: Running $FLUXCALCULATOR with options $FLUXOPTIONS."
       perl $FLUXCALCULATOR $FLUXOPTIONS >> ${SYSLOG} 2>&1 
    fi
    CONTROLOPTIONS="--name $ENSTORM --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --cst $CSDATE --endtime $HINDCASTLENGTH --dt $TIMESTEPSIZE --nws $NWS --hsformat $HOTSTARTFORMAT --advisorynum 0 --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
    CONTROLOPTIONS="$CONTROLOPTIONS --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
-   logMessage "Constructing control file with the following options: $CONTROLOPTIONS."
+   logMessage "$ENSTORM: $THIS: Constructing control file with the following options: $CONTROLOPTIONS."
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
    # don't have a meterological forcing (fort.22) file in this case
    # preprocess
-   logMessage "Starting $ENSTORM preprocessing."
+   logMessage "$ENSTORM: $THIS: Starting $ENSTORM preprocessing."
    echo "hostname : $HOSTNAME" >> $ADVISDIR/$ENSTORM/run.properties
    echo "instance : $INSTANCENAME" >> $ADVISDIR/$ENSTORM/run.properties
    echo "storm : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
@@ -1316,32 +1353,38 @@ if [[ $START = coldstart ]]; then
       if [[ -e ${INPUTDIR}/$inputProperties ]]; then
          cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
       else 
-         logMessage "The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
+         logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
       fi
    done
    # make sure the archive of subdomain files is up to date 
    checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
-   logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
+   THIS="asgs_main.sh"
+   logMessage "$THIS: prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
+   THIS="asgs_main.sh"
    # check to see that adcprep did not conspicuously fail
    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME hindcast $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+   THIS="asgs_main.sh"
    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
-      fatal "The prep for the hindcast run has failed."
+      fatal "$ENSTORM: $THIS: The prep for the hindcast run has failed."
    fi
    # then submit the job
-   logMessage "Submitting ADCIRC $ENSTORM job."
+   logMessage "$ENSTORM: $THIS: Submitting ADCIRC $ENSTORM job."
    cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
    JOBTYPE=padcirc  # we won't run waves during the spinup hindcast
-   logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
+   logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE
+   THIS="asgs_main.sh"
    # check once per minute until all jobs have finished
    monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $HINDCASTWALLTIME
+   THIS="asgs_main.sh"
    # check to see that the nowcast job did not conspicuously fail
    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME hindcast $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+   THIS="asgs_main.sh"
    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
-      fatal "The hindcast run has failed."
+      fatal "$ENSTORM: $THIS: The hindcast run has failed."
    fi
-   allMessage "$ENSTORM run finished."
+   allMessage "$ENSTORM: $THIS: $ENSTORM run finished."
    cd $ADVISDIR 2>> ${SYSLOG}
    OLDADVISDIR=$ADVISDIR
    START=hotstart
@@ -1352,7 +1395,14 @@ if [[ $START = coldstart ]]; then
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
 else
    # start from   H O T S T A R T   file
-   logMessage "Starting nowcast from the hotstart file under '$LASTSUBDIR'."
+   if [[ `basename $LASTSUBDIR` = nowcast || `basename $LASTSUBDIR` = hindcast ]]; then
+      logMessage "$THIS: The LASTSUBDIR path is $LASTSUBDIR but ASGS looks in this path to find either a nowcast or hindcast subdirectory. The LASTSUBDIR parameter is being reset to to remove either nowcast or hindcast from the end of it." 
+      LASTSUBDIR=`dirname $LASTSUBDIR`
+   fi 
+   if [[ $LASTSUBDIR = null ]]; then
+      fatal "LASTSUBDIR is set to null, but the ASGS is trying to hotstart. Is the STATEFILE $STATEFILE up to date and correct? If not, perhaps it should be deleted. Otherwise, the HOTORCOLD parameter in the ASGS config file has been set to $HOTORCOLD and yet the LASTSUBDIR parameter is still set to null."
+   fi
+   logMessage "$ENSTORM: $THIS: Starting from the hindcast or nowcast subdirectory under '$LASTSUBDIR'."
    OLDADVISDIR=$LASTSUBDIR
 fi
 #
@@ -1360,15 +1410,18 @@ fi
 while [ true ]; do
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
    ENSTORM=nowcast
-   let si=-1
+   si=-1
    . ${CONFIG}
    FROMDIR=null
    LUN=null       # logical unit number; either 67 or 68
+   logMessage "$ENSTORM: $THIS: Looking for the directory $OLDADVISDIR/nowcast."
    if [[ -d $OLDADVISDIR/nowcast ]]; then
        FROMDIR=$OLDADVISDIR/nowcast
-   fi
-   if [[ -d $OLDADVISDIR/hindcast ]]; then
-       FROMDIR=$OLDADVISDIR/hindcast
+   else 
+      logMessage "$ENSTORM: $THIS: Looking for the directory $OLDADVISDIR/hindcast."
+      if [[ -d $OLDADVISDIR/hindcast ]]; then
+          FROMDIR=$OLDADVISDIR/hindcast
+      fi
    fi
    # turn SWAN hotstarting on or off as appropriate
    if [[ $WAVES = on && -e $FROMDIR/PE0000/swan.67 && $REINITIALIZESWAN = no ]]; then
@@ -1377,21 +1430,28 @@ while [ true ]; do
        HOTSWAN=off
    fi
    checkHotstart $FROMDIR $HOTSTARTFORMAT  67
+   THIS="asgs_main.sh"
+   logMessage "$ENSTORM $THIS: Checking the time in seconds since cold start in the hotstart file."
    if [[ $HOTSTARTFORMAT = netcdf ]]; then
-      logMessage "hotstart format is netcdf"
+      logMessage "$ENSTORM: $THIS: The hotstart format is netcdf."
+      if [[ ! -e ${FROMDIR}/fort.67.nc ]]; then
+         fatal "$ENSTORM: $THIS: The hotstart file ${FROMDIR}/fort.67.nc was not found."
+      fi
       HSTIME=`$ADCIRCDIR/hstime -f ${FROMDIR}/fort.67.nc -n` 2>> ${SYSLOG}
    else
-      logMessage "hotstart format is binary"
+      logMessage "$ENSTORM: $THIS: The hotstart format is binary."
+      if [[ ! -e ${FROMDIR}/PE0000/fort.67 ]]; then
+         fatal "$ENSTORM: $THIS: The hotstart file ${FROMDIR}/PE0000/fort.67.nc was not found."
+      fi
       HSTIME=`$ADCIRCDIR/hstime -f ${FROMDIR}/PE0000/fort.67` 2>> ${SYSLOG}
    fi
-   
-   logMessage "The time in the hotstart file is '$HSTIME' seconds."
+   logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
    cd $RUNDIR 2>> ${SYSLOG}
    #
    # N O W C A S T
    RUNNOWCAST=yes 
    NOWCASTDIR=null    # directory with hotstart files to be used in forecast
-   logMessage "Checking for new meteorological data every 60 seconds ..."
+   logMessage "$ENSTORM: $THIS: Checking for new meteorological data every 60 seconds ..."
    # TROPICAL CYCLONE ONLY
    if [[ $TROPICALCYCLONE = on ]]; then
       BASENWS=20
@@ -1408,6 +1468,7 @@ while [ true ]; do
       # download wind data from ftp site every 60 seconds to see if
       # there is a new advisory
       downloadCycloneData $STORM $YEAR $RUNDIR $SCRIPTDIR $OLDADVISDIR $TRIGGER $ADVISORY $FTPSITE $RSSSITE $FDIR $HDIR $STATEFILE
+      THIS="asgs_main.sh"
       LASTADVISORYNUM=$ADVISORY
       # pull the latest advisory number from the statefile
       ADVISORY=`grep "ADVISORY" $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
@@ -1419,7 +1480,7 @@ while [ true ]; do
       if [ ! -d $NOWCASTDIR ]; then
           mkdir $NOWCASTDIR 2>> ${SYSLOG}
       fi
-      allMessage "$START Storm $STORM advisory $ADVISORY in $YEAR"
+      allMessage "$ENSTORM: $THIS: $START Storm $STORM advisory $ADVISORY in $YEAR"
       # move raw ATCF files into advisory directory
       mv *.fst *.dat *.xml *.html $ADVISDIR 2>> ${SYSLOG}
       #
@@ -1430,7 +1491,7 @@ while [ true ]; do
       echo "pseudostorm : $PSEUDOSTORM" >> $ADVISDIR/$ENSTORM/run.properties
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE $STORMTRACKOPTIONS"
       CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
-      logMessage "Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
+      logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
       STORMNAME=`grep "storm name" run.properties | sed 's/storm name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}    
@@ -1449,19 +1510,20 @@ while [ true ]; do
       if [[ $WAVES = on ]]; then
          NWS=-312
       fi
-      logMessage "NWS is $NWS. Downloading background meteorology."
-      logMessage "downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
+      logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading background meteorology."
+      logMessage "$ENSTORM: $THIS: downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
       downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+      THIS="asgs_main.sh"
       LASTADVISORYNUM=$ADVISORY
       ADVISORY=`grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
       ADVISDIR=$RUNDIR/${ADVISORY}
       NOWCASTDIR=$ADVISDIR/$ENSTORM
       cd $ADVISDIR 2>> ${SYSLOG}
-      allMessage "$START $ENSTORM cycle $ADVISORY."
+      allMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
       # convert met files to OWI format
-      NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --awipGridNumber 218 --dataDir $NOWCASTDIR --outDir ${NOWCASTDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
-      logMessage "Converting NAM data to OWI format with the following options : $NAMOPTIONS"
-      perl ${SCRIPTDIR}/NAMtoOWI.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
+      NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --applyRamp $SPATIALEXTRAPOLATIONRAMP --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE --awipGridNumber 218 --dataDir $NOWCASTDIR --outDir ${NOWCASTDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
+      logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format with the following options : $NAMOPTIONS"
+      perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
       CONTROLOPTIONS=" --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       # create links to the OWI files
       cd $ENSTORM 2>> ${SYSLOG}
@@ -1481,7 +1543,7 @@ while [ true ]; do
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
    # generate fort.15 file
-   logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
+   logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
    # if current nowcast ends at same time as last nowcast, don't run it,
    # we'll just use the previous nowcast hotstart file(s) ... to signal that
@@ -1496,25 +1558,29 @@ while [ true ]; do
       if [[ -e ${INPUTDIR}/$inputProperties ]]; then
          cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
       else 
-         logMessage "The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
+         logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
       fi
    done
    if [[ $RUNNOWCAST = yes ]]; then
-      allMessage "Starting nowcast for cycle '$ADVISORY'."
+      allMessage "$ENSTORM: $THIS: Starting nowcast for cycle '$ADVISORY'."
       # get river flux nowcast data, if configured to do so
       if [[ $VARFLUX = on ]]; then
          downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $RIVERUSER $RIVERDATAPROTOCOL $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX} $USERIVERFILEONLY
+         THIS="asgs_main.sh"
       fi
       if [[ $VARFLUX = default ]]; then
          ln -s ${INPUTDIR}/${RIVERFLUX} ./fort.20 2>> ${SYSLOG}
       fi
       # preprocess
       checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
-      logMessage "Nowcast preprocessing."
-      logMessage "prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
+      THIS="asgs_main.sh"
+      logMessage "$ENSTORM: $THIS: Nowcast preprocessing."
+      logMessage "$ENSTORM: $THIS: prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
       prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
+      THIS="asgs_main.sh"
       # check to see that adcprep did not conspicuously fail
       handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+      THIS="asgs_main.sh"
       # if handleFailedJob has detected a problem, it will rename the 
       # nowcast directory; therefore, the non-existence of the nowcast
       # directory is evidence that something has gone wrong in prep
@@ -1527,26 +1593,29 @@ while [ true ]; do
          JOBTYPE=padcswan
       fi
       # then submit the job
-      logMessage "Submitting $ENSTORM job."
+      logMessage "$ENSTORM: $THIS: Submitting $ENSTORM job."
       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-      logMessage "submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE"
+      logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE"
       submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE
+      THIS="asgs_main.sh"
       # check once per minute until all jobs have finished
       monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $NOWCASTWALLTIME
+      THIS="asgs_main.sh"
       # check to see that the nowcast job did not conspicuously fail
       handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+      THIS="asgs_main.sh"
       if [[ ! -d $NOWCASTDIR ]]; then
          continue # abandon this nowcast and wait for the next one
       fi
       # nowcast finished, get on with it
-      allMessage "Nowcast run finished."
+      allMessage "$ENSTORM: $THIS: Nowcast run finished."
       cd $ADVISDIR 2>> ${SYSLOG}
    else
       # we didn't run the nowcast, because our latest nowcast data end 
       # at the same time as the previous nowcast data, so we can just use
       # the prior cycle's nowcast hotstart file
-      logMessage "The nowcast data end at the same time as the hindcast/nowcast data from the previous cycle. As a result, a nowcast will not be run on this cycle; this cycle's forecast(s) will be hotstarted from the hindcast/nowcast of the previous cycle."
-      logMessage "Skipping the submission of the nowcast job and proceeding directly to the forecast(s)."
+      logMessage "$ENSTORM: $THIS: The nowcast data end at the same time as the hindcast/nowcast data from the previous cycle. As a result, a nowcast will not be run on this cycle; this cycle's forecast(s) will be hotstarted from the hindcast/nowcast of the previous cycle."
+      logMessage "$ENSTORM: $THIS: Skipping the submission of the nowcast job and proceeding directly to the forecast(s)."
       NOWCASTDIR=$FROMDIR
    fi
    # write the ASGS state file
@@ -1558,26 +1627,33 @@ while [ true ]; do
    #
    # F O R E C A S T
    #
-   allMessage "Starting forecast for advisory '$ADVISORY'."
+   ENSTORM="forecast"
+   allMessage "$ENSTORM: $THIS: Starting forecast for advisory '$ADVISORY'."
    checkHotstart $NOWCASTDIR $HOTSTARTFORMAT 67
+   THIS="asgs_main.sh"
    if [[ $HOTSTARTFORMAT = netcdf ]]; then
       HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/fort.67.nc -n` 2>> ${SYSLOG}
    else
       HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/PE0000/fort.67` 2>> ${SYSLOG}
    fi
-   logMessage "The time in the hotstart file is '$HSTIME' seconds."
-   let si=0
+   logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
+   si=0
    while [ $si -lt $ENSEMBLESIZE ]; do    
       # source config file to pick up any configuration changes, or any
       # config that is specific to forecasts, and set up the current 
       # ensemble member
       ENSTORM=forecast  # to pick up forecast-related config from config file
       . ${CONFIG}
+      JOBTYPE=padcirc
+      HOTSWAN=on
+      if [[ $WAVES = on ]]; then
+         JOBTYPE=padcswan
+      fi
       # Check for a misconfiguration where the Operator has set the  
       # number of CPUs and number of writers greater than the total
       # number of CPUs that will ever be available.
       if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
-         error "The requested number of CPUs for $ENSTORM is set to $NCPU and the number of writer processors has been set to $NUMWRITERS but the total number of requested CPUs exceeds the NCPUCAPACITY parameter value of ${NCPUCAPACITY}; therefore this forecast ensemble member will never be able to execute. This forecast ensemble member is being abandoned."
+         error "$ENSTORM: $THIS: The requested number of CPUs for $ENSTORM is set to $NCPU and the number of writer processors has been set to $NUMWRITERS but the total number of requested CPUs exceeds the NCPUCAPACITY parameter value of ${NCPUCAPACITY}; therefore this forecast ensemble member will never be able to execute. This forecast ensemble member is being abandoned."
          # increment the ensemble member counter
          si=$[$si + 1];
          continue 
@@ -1590,14 +1666,15 @@ while [ true ]; do
             # check to see if the deadline has passed for submitting 
             # forecast jobs for this cycle.
             if ! checkTimeLimit $cycleStartTime $CYCLETIMELIMIT ; then
-               warn "[${DATETIME}] The deadline for submitting jobs ($CYCLETIMELIMIT) has passed for this cycle." 
+               THIS="asgs_main.sh"
+               warn "[${DATETIME}] $ENSTORM: $THIS: The deadline for submitting jobs ($CYCLETIMELIMIT) has passed for this cycle." 
                break 2
             fi
             # total up the number of cpus currently engaged and compare with capacity
             cpusEngaged=0         
             for ensembleMemDir in $subDirs; do
-               # break out of the for loop if the subdirectory is the same as the advisory directory
-               if [[ $ensembleMemDir = $ADVISDIR ]]; then 
+               # ignore the nowcast and the advisory directory itself
+               if [[ $ensembleMemDir = $ADVISDIR || $ensembleMemDir = "./nowcast" || $ensembleMemDir = "." || $ensembleMemDir = "$ADVISDIR/nowcast" ]]; then 
                   #debugMessage "ensembleMemDir $ensembleMemDir is the same as ADVISDIR $ADVISDIR" #jgfdebug
                   continue 
                fi
@@ -1609,18 +1686,19 @@ while [ true ]; do
                fi
                # parse out the name of the ensemble member
                ensembleMemName=`basename $ensembleMemDir`
+               runType=`awk '$1 == "Model" { print tolower($3) }' ${ensembleMemDir}/run.properties`
                # look to see if the job is complete
-               if [[ ! -e $ensembleMemDir/${JOBTYPE}.${ensembleMemName}.run.finish ]]; then 
+               if [[ ! -e $ensembleMemDir/${runType}.${ensembleMemName}.run.finish ]]; then 
                   # job is still going, add its cpus to the total that are currently engaged
                   cpusEngaged=`expr $cpusEngaged + $cpuRequest`
                fi
             done
-            #debugMessage "The next ensemble member ('$ENSTORM') requires $NCPU compute cores and $NUMWRITERS dedicated writer cores. The number of CPUs currently engaged is $cpusEngaged. The max number of cores that can be engaged is $NCPUCAPACITY."
+            debugMessage "$ENSTORM: $THIS: The next ensemble member ('$ENSTORM') requires $NCPU compute cores and $NUMWRITERS dedicated writer cores. The number of CPUs currently engaged is $cpusEngaged. The max number of cores that can be engaged is $NCPUCAPACITY."
             if [[ `expr $NCPU + $NUMWRITERS + $cpusEngaged` -le $NCPUCAPACITY ]]; then
                #debugMessage "Sufficient capacity exists to run the next job."
                break      # we now have the spare capacity to run this ensemble member
             else 
-               logMessage "Insufficient capacity to submit the next job. Sleeping for 1 minute."
+               logMessage "$ENSTORM: $THIS: Insufficient capacity to submit the next job. Sleeping for 1 minute."
                sleep 60   # not enough cores available; sleep for a minute, then recheck/recalculate
             fi
          done
@@ -1664,7 +1742,7 @@ while [ true ]; do
          echo "stormnumber : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
          echo "pseudostorm : $PSEUDOSTORM" >> $ADVISDIR/$ENSTORM/run.properties
          CONTROLOPTIONS="--cst $CSDATE --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile ${STORMDIR}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
-         logMessage "Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
+         logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
          ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
          if [[ $BASENWS = 19 || $BASENWS = 20 ]]; then
             # create a new file that contains metadata and has the Rmax
@@ -1683,7 +1761,7 @@ while [ true ]; do
                echo "variation constant rMax : ${PERCENT}" >> run.properties 2>> ${SYSLOG}
                echo "modified : y" >> run.properties 2>> ${SYSLOG}
             fi
-            logMessage "Running aswip fort.22 preprocessor for $ENSTORM with the following options: $ASWIPOPTIONS."
+            logMessage "$ENSTORM: $THIS: Running aswip fort.22 preprocessor for $ENSTORM with the following options: $ASWIPOPTIONS."
             $ADCIRCDIR/aswip -n $BASENWS $ASWIPOPTIONS >> ${SYSLOG} 2>&1
             if [[ -e NWS_${BASENWS}_fort.22 ]]; then
                mv fort.22 fort.22.orig 2>> ${SYSLOG} 
@@ -1697,15 +1775,16 @@ while [ true ]; do
          if [[ $WAVES = on ]]; then
             NWS=-312
          fi
-         allMessage "$START $ENSTORM cycle $ADVISORY."
+         allMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
          # download and convert met files to OWI format
-         logMessage "Downloading background meteorology."
-         logMessage "downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR" $STATEFILE
+         logMessage "$ENSTORM: $THIS: Downloading background meteorology."
+         logMessage "$ENSTORM: $THIS: downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR" $STATEFILE
          downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+         THIS="asgs_main.sh"
          cd $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
-         NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --awipGridNumber 218 --dataDir ${STORMDIR} --outDir ${STORMDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
-         logMessage "Converting NAM data to OWI format with the following options : $NAMOPTIONS"
-         perl ${SCRIPTDIR}/NAMtoOWI.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
+         NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --applyRamp $SPATIALEXTRAPOLATIONRAMP --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE --awipGridNumber 218 --dataDir ${STORMDIR} --outDir ${STORMDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
+         logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format with the following options : $NAMOPTIONS"
+         perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
          CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          # create links to the OWI files
          NAM221=`ls NAM*.221`;
@@ -1722,12 +1801,13 @@ while [ true ]; do
       CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
       CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
       CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
-      logMessage "Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
+      logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
       perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
       if [[ ! -d $STORMDIR ]]; then continue; fi
       # get river flux nowcast data, if configured to do so
       if [[ $VARFLUX = on ]]; then
          downloadRiverFluxData $ADVISDIR ${INPUTDIR}/${GRIDFILE} $RIVERSITE $RIVERDIR $RIVERUSER $RIVERDATAPROTOCOL $ENSTORM $CSDATE $HSTIME $SCRIPTDIR ${INPUTDIR}/${RIVERFLUX} $USERIVERFILEONLY
+         THIS="asgs_main.sh"
       fi
       if [[ $VARFLUX = default ]]; then
          ln -s ${INPUTDIR}/${RIVERFLUX} ./fort.20 2>> ${SYSLOG}
@@ -1743,7 +1823,7 @@ while [ true ]; do
          if [[ -e ${INPUTDIR}/$inputProperties ]]; then
             cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
          else
-            logMessage "The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
+            logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
          fi
       done
       # recording the ensemble member number may come in handy for load
@@ -1755,9 +1835,12 @@ while [ true ]; do
          ${OUTPUTDIR}/${INITPOST} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
          # preprocess
          checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
-         logMessage "Starting $ENSTORM preprocessing with the following command: prep $ADVISDIR $INPUTDIR $ENSTORM $START $NOWCASTDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
+         THIS="asgs_main.sh"
+         logMessage "$ENSTORM: $THIS: Starting $ENSTORM preprocessing with the following command: prep $ADVISDIR $INPUTDIR $ENSTORM $START $NOWCASTDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
          prep $ADVISDIR $INPUTDIR $ENSTORM $START $NOWCASTDIR $ENV $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
+         THIS="asgs_main.sh"
          handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+         THIS="asgs_main.sh"
          # if the prep task was successful, the ensemble member directory will still be there
          if [[ -d $STORMDIR ]]; then
             JOBTYPE=padcirc
@@ -1765,16 +1848,19 @@ while [ true ]; do
                JOBTYPE=padcswan
             fi
             # then submit the job
-            allMessage "Submitting ensemble member $ENSTORM for forecast."
+            allMessage "$ENSTORM: $THIS: Submitting ensemble member $ENSTORM for forecast."
             submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $ENV $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
+            THIS="asgs_main.sh"
             # monitor for completion and post process in a subshell running in the background
             # ... this allows us to go on to the next ensemble member
             (            
                monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $FORECASTWALLTIME
+               THIS="asgs_main.sh"
                handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+               THIS="asgs_main.sh"
                # only attempt post processing if this ensemble member ended successfully
                if [[ -d $STORMDIR ]]; then
-                  logMessage "The $ENSTORM job ended successfully. Starting postprocessing."
+                  logMessage "$ENSTORM: $THIS: The $ENSTORM job ended successfully. Starting postprocessing."
                   ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
                   # notify analysts that new results are available
                   ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1  
@@ -1782,17 +1868,17 @@ while [ true ]; do
             ) &
          fi
       fi
-      si=$[$si + 1];
+      si=`expr $si + 1`
    done
    # allow all ensemble members and associated post processing to complete
-   logMessage "All forecast ensemble members have been submitted."
-   logMessage "Waiting for completion of the remaining forecast ensemble members (and their associated post processing)."
+   logMessage "$ENSTORM: $THIS: All forecast ensemble members have been submitted."
+   logMessage "$ENSTORM: $THIS: Waiting for completion of the remaining forecast ensemble members (and their associated post processing)."
    wait   
    # copy results to archive location
-   logMessage "Initiating archival process, if any."
+   logMessage "$ENSTORM: $THIS: Initiating archival process, if any."
    #jgf: FIXME: Reconcile post processing arguments and archiving arguments ${OUTPUTDIR}/${ARCHIVE} $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $ARCHIVEBASE $ARCHIVEDIR  2>> ${SYSLOG} &
    ${OUTPUTDIR}/${ARCHIVE} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME    $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
-   allMessage "Forecast complete for advisory '$ADVISORY.'"
+   allMessage "$ENSTORM: $THIS: Forecast complete for advisory '$ADVISORY.'"
    LASTSUBDIR=null # don't need this any longer
    # if we ran the nowcast on this cycle, then this cycle's nowcast becomes 
    # the basis for the next cycle; on the other hand, if we used a previous 

@@ -39,7 +39,7 @@ our $rundir;   # directory where the ASGS is running
 my $statefile = "null"; # file that holds the current simulation state
 my $backsite; # ncep ftp site for nam data
 my $backdir;  # dir on ncep ftp site
-my $enstorm;  # hindcast, nowcast, or forecast
+our $enstorm;  # hindcast, nowcast, or forecast
 my $csdate;   # UTC date and hour (YYYYMMDDHH) of ADCIRC cold start
 my $hstime;   # hotstart time, i.e., time since ADCIRC cold start (in seconds)
 my @altnamdirs; # alternate directories to look in for NAM data 
@@ -194,7 +194,13 @@ foreach my $file (@allFiles) {
 #      stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
    }
 }
-my $cycletime = $cycledate . $cyclehour;
+my $cycletime;
+unless (defined $cyclehour ) {
+   stderrMessage("WARNING","Could not download the list of NAM files from NCEP.");
+   exit; 
+} else {
+   $cycletime = $cycledate . $cyclehour;
+}
 #stderrMessage("DEBUG","The cycletime is '$cycletime'.");
 #
 # we need to have at least one set of files beyond the current nowcast
@@ -597,7 +603,7 @@ sub stderrMessage () {
    my $year = 1900 + $yearOffset;
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-   printf STDERR "$theTime $level: get_nam.pl: $message\n";
+   printf STDERR "$theTime $level: $enstorm: get_nam.pl: $message\n";
    if ($level eq "ERROR") {
       sleep 60
    }
