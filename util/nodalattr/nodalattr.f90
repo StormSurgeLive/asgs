@@ -90,7 +90,8 @@ end do
 if (foundIt.eqv..false.) then
    write(6,*) 'ERROR: The nodal attribute "',trim(naName),'" was not found in the file "',trim(nodalAttributesFile),'".'
    close(13)
-   error stop 1 
+!nld   error stop 1 
+   stop 1 
 endif
 ! finished reading header
 !
