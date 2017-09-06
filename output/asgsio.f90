@@ -4,7 +4,7 @@
 ! A module that provides helper subroutines for opening and reading 
 ! ADCIRC files in ascii and netcdf format. 
 !--------------------------------------------------------------------------
-! Copyright(C) 2014--2016 Jason Fleming
+! Copyright(C) 2014--2017 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -61,6 +61,7 @@ end type netCDFVar_t
 type xdmfVar_t
    character(NF90_MAX_NAME), allocatable :: varNameXDMF(:)   ! as represented in XDMF XML
 !nld  character(NF90_MAX_NAME), allocatable :: varNameXDMF   ! as represented in XDMF XML
+!   character(NF90_MAX_NAME) :: varNameXDMF   ! as represented in XDMF XML
    ! the following refer to scalar or vector quantities in XDMF files
    character(len=20) :: dataCenter ! "Node" or "Element" 
    character(len=20) :: dataRank ! e.g. "2DVector" 
@@ -122,9 +123,10 @@ type fileMetaData_t
    integer, pointer :: mapping(:) ! used for mapping fulldomain<-->subdomain
    ! 
    ! netcdf adcirc files only
-   integer :: nc_dimid_station ! netcdf ID for the time dimension
-   integer :: nc_dimid_namelen ! netcdf ID for the time dimension
+   integer :: nc_dimid_station ! netcdf ID for the station dimension
+   integer :: nc_dimid_namelen ! netcdf ID for the station length dimension
    integer :: station_namelen  ! length of netcdf station name variable
+   integer :: nc_varid_station ! netcdf ID for the station IDs
    character(len=120) :: datenum ! e.g. seconds since 2008-07-31 12:00:00 +00:00
    integer, allocatable :: it(:) ! time step number associated with each dataset
    type(netCDFVar_t), allocatable :: ncds(:)
@@ -189,6 +191,14 @@ type integerVector1D_t
    integer, allocatable :: vtemp(:) ! temp array of values during reallocation
 end type integerVector1D_t
 
+type characterVector1D_t 
+   integer :: n    ! current number of elements
+   integer :: s    ! total number of memory slots to hold elements
+   integer :: ninc ! number of elements to add when more memory is needed
+   character(len=2000), allocatable :: v(:) ! array of values in the vector
+   character(len=2000), allocatable :: vtemp(:) ! temp array of values during reallocation
+end type characterVector1D_t
+
 character(len=80) :: rundes  ! 1st line in adcirc fort.15 input file
 character(len=80) :: runid   ! 2nd line in adcirc fort.15 input file
 !
@@ -221,7 +231,7 @@ type(mesh_t), intent(in) :: m
 integer :: c ! component counter
 !
 select case(f%dataFileFormat)
-case(NETCDFG) 
+case(NETCDFG,NETCDF3,NETCDF4) 
    do c=1,f%numVarNetCDF
       if ( (m%is3D.eqv..true.).and.(f%ncds(c)%is3D.eqv..true.) ) then
          allocate(f%ncds(c)%rdata3D(f%ncds(c)%numValuesPerDataSet,m%nfen))
@@ -233,7 +243,7 @@ case(NETCDFG)
          endif
       endif
    end do 
-case(ASCIIG) ! memory allocation for subdomain ascii datasets
+case(ASCII,SPARSE_ASCII,ASCIIG) ! memory allocation for subdomain ascii datasets
    if ( (m%is3D.eqv..true.).and.(f%is3D.eqv..true.) ) then
       allocate(f%rdata3D(f%irtype,f%numValuesPerDataSet,m%nfen))
    else
@@ -245,6 +255,7 @@ case(ASCIIG) ! memory allocation for subdomain ascii datasets
    endif
 case default
    call allMessage(ERROR,'Cannot convert full domain files with this format.')
+   stop
 end select
 !----------------------------------------------------------------------
 end subroutine allocateDatasetMemory
@@ -267,7 +278,8 @@ type(meshNetCDF_t), intent(inout) :: n
 character(len=NF90_MAX_NAME) :: thisVarName
 integer :: i, j
 integer :: errorIO
-!
+logical :: exists ! true if the file exists
+
 call allMessage(INFO,'Determining netCDF file characteristics.')
 !
 ! set some defaults
@@ -284,7 +296,15 @@ f%timeOfOccurrence = .false. ! only relevant to min/max files
 f%numValuesPerDataSet = -99
 !
 ! open the netcdf file
+call checkFileExistence(f%dataFilename, errorIO)
+if (errorIO.ne.0) then
+   stop
+endif
 call check(nf90_open(trim(f%dataFileName), NF90_NOWRITE, f%nc_id))
+!
+! set the agrid value (mesh comment line)
+m%agrid='agrid:not_set'
+call readMeshCommentLineNetCDF(m, f%nc_id)
 !
 ! determine the type of data stored in the file
 call check(nf90_inquire(f%nc_id, f%ndim, f%nvar, f%natt, f%nc_dimid_time, f%ncformat))
@@ -346,7 +366,6 @@ endif
 ! file metadata accordingly
 do i=1,f%nvar
    call check(nf90_inquire_variable(f%nc_id, i, thisVarName))
-   write(6,*) i, trim(thisVarName) ! jgfdebug
    select case(trim(thisVarName))
    case("u-vel3D","v-vel3D","w-vel3D")
       f%defaultFileName = 'fort.45'
@@ -354,6 +373,7 @@ do i=1,f%nvar
       call initFileMetaData(f, thisVarName, 3, 1)
       f%ncds(2)%varNameNetCDF = "v-vel3D"
       f%ncds(3)%varNameNetCDF = "w-vel3D"
+      f%irtype = 3
       exit
    case("zeta")
       if ( f%dataFileCategory.eq.STATION ) then
@@ -381,8 +401,13 @@ do i=1,f%nvar
       call initFileMetaData(f, thisVarName, 1, 1)     
       exit
    case("offset")
-      f%defaultFileName = 'offset.63'
-      f % fileTypeDesc = 'a time varying water level offset file (offset.63)'
+      if ( f%dataFileCategory.eq.STATION ) then
+         f%defaultFileName = 'offset.61'
+         f % fileTypeDesc = 'a time varying water level offset station file (offset.61)'
+      else
+         f%defaultFileName = 'offset.63'
+         f % fileTypeDesc = 'a time varying water level offset file (offset.63)'
+      endif
       call initFileMetaData(f, thisVarName, 1, 1)     
       exit
    case("tau0")
@@ -474,6 +499,7 @@ do i=1,f%nvar
       call initFileMetaData(f, thisVarName, 2, 1)
       f%ncds(1)%varNameNetCDF = "u-vel"  ! uu2 in ADCIRC
       f%ncds(2)%varNameNetCDF = "v-vel"  ! vv2 in ADCIRC
+      f%irtype = 2
       exit
    case("uu1-vel","vv1-vel")
       f%defaultFileName = 'uu1vv1.64'
@@ -482,6 +508,7 @@ do i=1,f%nvar
       f % ncds(1)%varNameNetCDF = "uu1-vel"  ! uu1 in ADCIRC
       f % ncds(2)%varNameNetCDF = "vv1-vel"  ! vv1 in ADCIRC
       f % xds(1) % varNameXDMF = 'water_current_velocity_at_previous_timestep'
+      f%irtype = 2
       exit
    case("pressure")
       if ( f%dataFileCategory.eq.STATION ) then
@@ -504,6 +531,7 @@ do i=1,f%nvar
       call initFileMetaData(f, thisVarName, 2, 1)
       f % ncds(1)%varNameNetCDF = "windx"  
       f % ncds(2)%varNameNetCDF = "windy"  
+      f%irtype = 2
       exit
    case("maxele","zeta_max")
       f % dataFileCategory = MINMAX
@@ -587,6 +615,7 @@ do i=1,f%nvar
       call initfileMetaData(f, thisVarName, 2, 1)
       f % ncds(1)%varNameNetCDF = "radstress_x"  
       f % ncds(2)%varNameNetCDF = "radstress_y"  
+      f%irtype = 2
    case("swan_DIR")
       f%defaultFileName = 'swan_DIR.63' 
       f % fileTypeDesc = "a SWAN wave direction (swan_DIR.63) file"
@@ -640,6 +669,7 @@ do i=1,f%nvar
       call initFileMetaData(f, thisVarName, 2, 1)
       f % ncds(1)%varNameNetCDF = "swan_windx"  
       f % ncds(2)%varNameNetCDF = "swan_windy"  
+      f%irtype = 2
       exit
    case default
       cycle     ! did not recognize this variable name
@@ -735,10 +765,10 @@ endif
 f%nspool = -99999
 f%it(:) = -99999
 f%defaultValue = -99999.d0
-
+!
 call check(nf90_close(f%nc_id))
-
 call allMessage(INFO,'Finished determining netCDF file characteristics.')
+
 !----------------------------------------------------------------------
 end subroutine determineNetCDFFileCharacteristics
 !----------------------------------------------------------------------
@@ -788,7 +818,6 @@ fn%isGridded = .false.
 fn%isElemental = .false.
 fn%is3D = .false.
 fn%isInteger = .false.
-fn%irtype = 1
 fn%dataFileCategory = UNKNOWN
 fn%fileTypeDesc = 'null description'
 fn%isBasin = .false.
@@ -846,6 +875,7 @@ case default
 end select
 !
 ! open the file and determine the number of datasets, sparseness, etc
+lineNum=1 
 select case(fn%dataFileCategory)
 case(MINMAX,STATION,DOMAIN)
    fn%fun = availableUnitNumber()
@@ -936,25 +966,13 @@ character(NF90_MAX_NAME) :: thisVarName
 integer :: nc_dimid(2)
 integer :: i
 !
-write(6,*) 'INFO: Adding data attributes to netCDF file.'
-write(6,*) 'fn%numVarNetCDF=',fn%numVarNetCDF !jgfdebug
-
+write(6,*) 'INFO: Adding data attributes to netCDF file.' !jgfdebug
 !
 ! set the number of values per dataset 
 if ( fn % dataFileCategory .eq. STATION ) then
-   do i=1, fn%numVarNetCDF
-      fn%ncds(i)%numValuesPerDataSet = fn%nStations
-      nc_dimid = (/ fn%nc_dimid_station, fn%nc_dimID_Time /)
-   end do 
+   nc_dimid = (/ fn%nc_dimid_station, fn%nc_dimID_Time /)
 else
-   do i=1, fn%numVarNetCDF
-      fn%ncds(i)%numValuesPerDataSet = m%np ! general case
-      nc_dimid = (/ n%nc_dimid_node, fn%nc_dimID_Time /)
-      if (fn%ncds(i)%isElemental) then
-         nc_dimid = (/ n%nc_dimid_nele, fn%nc_dimID_Time /)
-         fn%ncds(i)%numValuesPerDataSet = m%ne
-      endif
-   end do
+   nc_dimid = (/ n%nc_dimid_node, fn%nc_dimID_Time /)
 endif 
 !
 select case(fn%dataFileCategory)
@@ -1480,6 +1498,24 @@ case(MINMAX)
 case default
    write(6,'(a)') 'ERROR: Unable to convert '//trim(fn%defaultFileName)//' files.'
 end select
+!
+! set the number of values per dataset 
+if ( fn % dataFileCategory .eq. STATION ) then
+   do i=1, fn%numVarNetCDF
+      fn%ncds(i)%numValuesPerDataSet = fn%nStations
+      nc_dimid = (/ fn%nc_dimid_station, fn%nc_dimID_Time /)
+   end do 
+else
+   do i=1, fn%numVarNetCDF
+      fn%ncds(i)%numValuesPerDataSet = m%np ! general case
+      nc_dimid = (/ n%nc_dimid_node, fn%nc_dimID_Time /)
+      if (fn%ncds(i)%isElemental) then
+         nc_dimid = (/ n%nc_dimid_nele, fn%nc_dimID_Time /)
+         fn%ncds(i)%numValuesPerDataSet = m%ne
+      endif
+   end do
+endif 
+!
 write(6,*) 'INFO: Finished adding data attributes to netCDF file.'
 !----------------------------------------------------------------------
 end subroutine addDataAttributesNetCDF
@@ -1556,7 +1592,6 @@ integer, intent(in) :: numNC
 integer, intent(in) :: numXDMF
 integer :: n
 !
-write(6,*) 'initFileMetaData : enter' ! jgfdebug
 if ( fmd % initialized .eqv..true. ) then
    return
 endif
@@ -1579,24 +1614,19 @@ end do
 !
 ! XDMF
 fmd % numVarXDMF = numXDMF
-write(6,*) 'num xdmf=',numXDMF ! jgfdebug
-!allocate(fmd%xds(numXDMF))
+allocate(fmd%xds(numXDMF))
 !allocate(fmd%xds(2))
-!do n=1,fmd%numVarXDMF
-!   fmd % xds(n) % varNameXDMF = 'error: not_set'
-!   fmd % xds(n) % numComponents = 1    ! initialize to most common value
-!   fmd % xds(n) % dataCenter = 'Node'  ! initialize to most common value
-!   fmd % xds(n) % numberType = 'Float' ! initialize to most common value
-!   fmd % xds(n) % numberPrecision = 8  ! initialize to most common value
-!end do 
-write(6,*) 'xdmf init finished' ! jgfdebug
+do n=1,fmd%numVarXDMF
+   fmd % xds(n) % varNameXDMF = 'error: not_set'
+   fmd % xds(n) % numComponents = 1    ! initialize to most common value
+   fmd % xds(n) % dataCenter = 'Node'  ! initialize to most common value
+   fmd % xds(n) % numberType = 'Float' ! initialize to most common value
+   fmd % xds(n) % numberPrecision = 8  ! initialize to most common value
+end do 
 fmd % ncds(1) % nc_varType = NF90_DOUBLE ! initialize to most common value
-write(6,*) 'netcdf vartype init finished' ! jgfdebug
 fmd % ncds(1) % varNameNetCDF = firstVarName ! initialize to most common value
-write(6,*) 'netcdf init(1) finished' ! jgfdebug
 !fmd % xds(1) % varNameXDMF = trim(firstVarName) ! initialize to most common value
 fmd % initialized = .true. 
-write(6,*) 'initFileMetaData : return' ! jgfdebug
 !----------------------------------------------------------------------
 end subroutine initFileMetaData
 !----------------------------------------------------------------------
@@ -1686,7 +1716,7 @@ if ( (f%dataFileFormat.eq.NETCDFG).and.(s.gt.f%nSnaps) ) then
 endif
 !
 select case(f%dataFileFormat)
-case(ASCII)
+case(ASCII,ASCIIG)
    !
    ! READ 3D ASCII DATASET HEADER
    !
@@ -1742,10 +1772,16 @@ case(ASCII)
       do n=1,numNodesNonDefault
          read(unit=f%fun,fmt=*,end=246,err=248,iostat=errorio) h, (dtemp(c), c=1,f%irtype)
          l = l + 1
+         !if (allocated(f%rdata).eqv..true.) then
+         !   write(6,*) allocated(f%rdata),'allocated' ! jgfdebug
+         !else
+         !   write(6,*) allocated(f%rdata),'not allocated'! jgfdebug
+         !endif
          f%rdata(1:f%irtype,h) = dtemp(1:f%irtype)
       end do
    endif
-case(NETCDFG)
+case(NETCDFG,NETCDF3,NETCDF4)
+   snapr = f%timesec(s)
    do c=1,f%numVarNetCDF
       ! read single dataset from netcdf
       if (m%is3D.eqv..true.) then
@@ -1769,7 +1805,6 @@ case default
    stop
 end select
 !
-snapr = f%timesec(s)
 if (allocated(f%it).eqv..true.) then
    snapi = f%it(s)
 else
@@ -1914,7 +1949,9 @@ case(ASCII,SPARSE_ASCII,ASCIIG)
    endif
 case(NETCDFG,NETCDF3,NETCDF4)
    call check(nf90_put_var(f%nc_id, f%nc_varid_time, (/snapr/), (/s/), (/1/)))
-   call check(nf90_put_var(f%nc_id, f%nc_varid_it, (/snapi/), (/s/), (/1/)))
+   if (allocated(f%it).eqv..true.) then
+      call check(nf90_put_var(f%nc_id, f%nc_varid_it, (/snapi/), (/s/), (/1/)))
+   endif
    NC_Count = (/ f%numValuesPerDataset, 1 /)
    NC_Start = (/ 1, s /) 
    !
@@ -2064,15 +2101,23 @@ endif
 end subroutine checkErrOWI
 !-----------------------------------------------------------------------
 
+!-----------------------------------------------------------------------
+! Initialize a 1D vector of real numbers
+!-----------------------------------------------------------------------
 subroutine initR1D(vec)
 implicit none
 type(realVector1D_t), intent(inout) :: vec
 vec%n = 0
 vec%ninc = 100
 vec%s = vec%ninc
-allocate(vec%v(vec%s))
+allocate(vec%v(0:vec%s+1))
+!-----------------------------------------------------------------------
 end subroutine initR1D
+!-----------------------------------------------------------------------
 
+!-----------------------------------------------------------------------
+! Append a real number to a 1D vector of real numbers.
+!-----------------------------------------------------------------------
 subroutine appendR1D(vec, rval)
 implicit none
 type(realVector1D_t), intent(inout) :: vec
@@ -2093,19 +2138,27 @@ if (vec%n.eq.vec%s) then
 endif
 vec%v(vec%n+1) = rval
 vec%n = vec%n + 1
+!-----------------------------------------------------------------------
 end subroutine appendR1D
+!-----------------------------------------------------------------------
 
-
+!-----------------------------------------------------------------------
+! Initialize a 1D vector of integers.
+!-----------------------------------------------------------------------
 subroutine initI1D(vec)
 implicit none
 type(integerVector1D_t), intent(inout) :: vec
 vec%n = 0
 vec%ninc = 100
 vec%s = vec%ninc
-allocate(vec%v(vec%s))
+allocate(vec%v(0:vec%s+1))
+!-----------------------------------------------------------------------
 end subroutine initI1D
+!-----------------------------------------------------------------------
 
-
+!-----------------------------------------------------------------------
+! Append an integer to a 1D vector of integers.
+!-----------------------------------------------------------------------
 subroutine appendI1D(vec, ival)
 implicit none
 type(integerVector1D_t), intent(inout) :: vec
@@ -2126,10 +2179,57 @@ if (vec%n.eq.vec%s) then
 endif
 vec%v(vec%n+1) = ival
 vec%n = vec%n + 1
+!-----------------------------------------------------------------------
 end subroutine appendI1D
+!-----------------------------------------------------------------------
 
 
+!-----------------------------------------------------------------------
+! Initialize a 1D vector of character strings.
+!-----------------------------------------------------------------------
+subroutine initC1D(vec)
+implicit none
+type(characterVector1D_t), intent(inout) :: vec
+vec%n = 0
+vec%ninc = 100
+vec%s = vec%ninc
+allocate(vec%v(0:vec%s+1))
+!-----------------------------------------------------------------------
+end subroutine initC1D
+!-----------------------------------------------------------------------
 
+!-----------------------------------------------------------------------
+! Append an integer to a 1D vector of character strings.
+!-----------------------------------------------------------------------
+subroutine appendC1D(vec, cstr)
+implicit none
+type(characterVector1D_t), intent(inout) :: vec
+character(len=2000), intent(in) :: cstr
+! allocate more memory if necessary
+if (vec%n.eq.vec%s) then
+   ! create temp variable
+   allocate(vec%vtemp(vec%n))
+   ! copy array values to temp space
+   vec%vtemp(1:vec%n) = vec%v(1:vec%n)   
+   deallocate(vec%v)
+   ! increase size of array by the given increment
+   vec%s = vec%n + vec%ninc
+   allocate(vec%v(vec%s))
+   ! copy the values back from the temp array
+   vec%v(1:vec%n) = vec%vtemp(1:vec%n)
+   deallocate(vec%vtemp)
+endif
+vec%v(vec%n+1) = cstr
+vec%n = vec%n + 1
+!-----------------------------------------------------------------------
+end subroutine appendC1D
+!-----------------------------------------------------------------------
+
+
+!-----------------------------------------------------------------------
+! Call the right subroutine to close a file, taking into account the
+! file type (ascii or netcdf). 
+!-----------------------------------------------------------------------
 subroutine closeFile(f)
 use ioutil
 use logging
@@ -2145,7 +2245,9 @@ case default
    call allMessage(ERROR,'Only ASCII or NETCDF result file formats are supported.')   
    stop
 end select
+!-----------------------------------------------------------------------
 end subroutine closeFile
+!-----------------------------------------------------------------------
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------

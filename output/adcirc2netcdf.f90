@@ -144,6 +144,13 @@ if (argcount.gt.0) then
    end do
 end if
 !
+! if there were no data files specified on the command line, just 
+! convert the mesh
+if ( trim(aDataFileName).eq.'null' ) then
+   meshonly = .true.
+   aDataFileName = m%meshFileName
+endif
+!
 ! trim off the full path so we just have the file name
 lastSlashPosition = index(trim(adataFileName),"/",.true.) 
 ! now set NETCDF file name for files containing only one type of data
@@ -166,8 +173,10 @@ if ( trim(f%defaultFileName).eq.'null') then
 endif      
 !
 ! set up basic characteristics based on canonical ascii file name
-f%dataFileName = adataFileName
-call determineASCIIFileCharacteristics(f)
+if ( meshonly.eqv..false.) then
+   f%dataFileName = adataFileName
+   call determineASCIIFileCharacteristics(f)
+endif
 !
 ! create netcdf file
 write(6,'(a,a,a)') "INFO: Creating NetCDF file '"//trim(ndataFileName)//"'."
@@ -207,9 +216,6 @@ if (f%dataFileCategory.eq.NODALATTRIBF) then
    call readNodalAttributesFile(adataFileName)
    call writeNodalAttributesFileNetCDF(f%nc_id, m, n, deflate)
    stop
-else
-   ! now that the mesh has been read, add associated metadata to the new netcdf file
-   call addDataAttributesNetCDF(f, m, n)
 endif
 !
 ! Create time dimension and units attributes
@@ -219,6 +225,11 @@ if ((meshonly.eqv..false.).and.(f%timeVarying.eqv..true.)) then
    call check(nf90_put_att(f%nc_id,f%nc_varid_time,'long_name','model time'))
    call check(nf90_put_att(f%nc_id,f%nc_varid_time,'standard_name','time'))
    call check(nf90_put_att(f%nc_id,f%nc_varid_time,'units',f%datenum))
+endif
+
+! now that the mesh has been read, add associated metadata to the new netcdf file
+if (meshonly.eqv..false.) then
+   call addDataAttributesNetCDF(f, m, n)
 endif
 !      
 ! create adcirc output variables and associated attributes
@@ -269,6 +280,9 @@ if (f%isGridded.eqv..true.) then
       ! y before x according to netcdf specification in fortran api
       allocate(owi2(1:f%iLatOWI,1:f%iLonOWI))
    endif
+else
+   f%dataFileFormat = ASCIIG
+   call allocateDataSetMemory(f, m)
 endif
 !
 ! Read ascii data and write to netcdf file

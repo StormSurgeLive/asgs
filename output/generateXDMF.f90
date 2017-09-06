@@ -182,9 +182,11 @@ do fi=1,numFiles
    if (errorIO.gt.0) then
       stop
    endif
-   if (fileMetaData(fi)%dataFileFormat.eq.NETCDF4) then
+      write(6,*) 'data file category is ',fileMetaData(fi)%dataFileCategory !jgfdebug
+      write(6,*) 'data file format is ',fileMetaData(fi)%dataFileFormat !jgfdebug
+   if (fileMetaData(fi)%dataFileFormat.eq.NETCDFG) then
       call determineNetCDFFileCharacteristics(fileMetaData(fi), m, n)
-      ! netcdf file exists; open it
+       ! netcdf file exists; open it
       call check(nf90_open(trim(fileMetaData(fi)%dataFileName), NF90_NOWRITE, fileMetaData(fi)%nc_id))
       !
       ! Make sure the file is NetCDF4 formatted (i.e., HDF5 underneath) because

@@ -31,7 +31,9 @@
 INSTANCENAME=hiresr       # name of this ASGS process, to differentiate results
 #COLDSTARTDATE=2016061300
 #COLDSTARTDATE=2016111500
-COLDSTARTDATE=2017010100
+#COLDSTARTDATE=2017010100
+#COLDSTARTDATE=2017012400
+COLDSTARTDATE=2017071000
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
@@ -39,7 +41,7 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables 
+ADCIRCDIR=~/adcirc/forks/jasonfleming/master/work # ADCIRC executables 
 SCRIPTDIR=~/asgs/2014stable     # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v9.99_w_rivers # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
@@ -59,11 +61,11 @@ TIMESTEPSIZE=0.5
 SWANDT=1200
 HINDCASTWALLTIME="12:00:00"
 ADCPREPWALLTIME="00:15:00"
-NOWCASTWALLTIME="01:00:00"  # must have leading zero, e.g., 05:00:00
+NOWCASTWALLTIME="05:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=480
-NCPUCAPACITY=1920
-NUMWRITERS=8
+NCPU=608
+NCPUCAPACITY=640
+NUMWRITERS=16
 
 CYCLETIMELIMIT="05:00:00"
 # queue
@@ -106,7 +108,7 @@ RIVERDATAPROTOCOL=scp
 
 # Input files and templates
 
-GRIDFILE=nc_inundation_v9.99_rivers.14
+GRIDFILE=nc_inundation_v9.99a_w_rivers.grd
 GRIDNAME=nc_inundation_v9.99_w_rivers
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
@@ -116,7 +118,7 @@ VELSTATIONS=cera.ncv999stations.20161105
 METSTATIONS=cera.ncv999stations.20161105
 NAFILE=nc_inundation_v9.99_rivers.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=fort.26.limiter.template
+SWANTEMPLATE=fort.26.template
 RIVERINIT=v6brivers.88
 RIVERFLUX=v6brivers_fort.20_default
 HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
@@ -126,7 +128,7 @@ HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
 # Output files
 
 # water surface elevation station output
-FORT61="--fort61freq 900.0 --fort61netcdf"
+FORT61="--fort61freq 300.0 --fort61netcdf"
 # water current velocity station output
 FORT62="--fort62freq 0"
 # full domain water surface elevation output
@@ -134,7 +136,7 @@ FORT63="--fort63freq 3600.0 --fort63netcdf"
 # full domain water current velocity output
 FORT64="--fort64freq 3600.0 --fort64netcdf"
 # met station output
-FORT7172="--fort7172freq 3600.0 --fort7172netcdf"
+FORT7172="--fort7172freq 300.0 --fort7172netcdf"
 # full domain meteorological output
 FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
 #SPARSE="--sparse-output"
@@ -165,15 +167,17 @@ ASGSADMIN=jason.g.fleming@gmail.com
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
 POSTPROCESS=ncfs_post.sh
-TARGET=hatteras
 POSTPROCESS2=null_post.sh
-WEBHOST=alpha.he.net
-WEBUSER=seahrse
-WEBPATH=/home/seahrse/public_html/ASGS
-OPENDAPHOST=br0.renci.org
-OPENDAPUSER=ncfs
-OPENDAPBASEDIR=/projects/ncfs/opendap/data
-NUMCERASERVERS=2
+
+TDS=(renci_tds lsu_tds)
+TARGET=hatteras  # used in post processing to pick up HPC platform config
+OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
+if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
+   OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
+fi
+# OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
+# other notification parameters above. 
+OPENDAPNOTIFY="nc.cera.renci2@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
 
 # Archiving
 
@@ -194,10 +198,13 @@ case $si in
    ENSTORM=namforecast
    ;;
 1)
-   ENSTORM=namforecastMetonly
-   CONTROLTEMPLATE=nc_9.99wrivers_metonly_fort.15.template
-   TIMESTEPSIZE=3600.0   # 1 hour time steps
-   NCPU=487              # so total cpus match with other ensemble members
+   ENSTORM=namforecastWind10m
+   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   CONTROLTEMPLATE=nc_9.99wrivers.nowindreduction.fort.15.template
+   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+   TIMESTEPSIZE=300.0   # 5 minute time steps
+   NCPU=15               # so total cpus match with other ensemble members
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output
@@ -209,18 +216,19 @@ case $si in
    # turn off full domain water current velocity output
    FORT64="--fort64freq 0"
    # met station output
-   FORT7172="--fort7172freq 3600.0 --fort7172netcdf"
+   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
    # full domain meteorological output
    FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
    #SPARSE="--sparse-output"
    SPARSE=""
    NETCDF4="--netcdf4"
    OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
-   INTENDEDAUDIENCE=developers-only
    # prevent collisions in prepped archives
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   POSTPROCESS=wind10m_post.sh
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
    ;;
 esac
+

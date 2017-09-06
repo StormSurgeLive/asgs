@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# Specify the queue explicitly
+#PBS -q %queuename%
+
+# Specify email address
+#PBS -M %notifyuser%
+
+# Specify number of cpus in a machine-specific way
+#PBS -l select=1:ncpus=36:mpiprocs=1
+
+# Export the login environment to the compute job
+# This requires the user to have a .personal.bashrc file in the $HOME 
+# directory with the following contents:
+#echo "Loading modules in .bash_profile ..."
+#module load usp-netcdf/intel-15.0.3/4.3.3.1
+#module load imagemagick/6.9.2-5
+#echo "... modules loaded."
+#PBS -V
+
+# Specify the wall clock time
+#PBS -l walltime=%walltime%
+
+# Merge stderr to stdout (optional, otherwise they're in separate files)
+#PBS -j oe
+
+# Name the job (this will appear in the output from the qstat command)
+#PBS -N %jobtype%
+
+# Specify the output filename explicitly (optional; the default is named
+# from the job ID, in the directory where qsub was run.)
+#PBS -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out
+
+# Specify the account that the time should be taken from 
+#PBS -A %account%
+
+# Request mail when job ends, or is aborted (optional, default is "a" only)
+# (commented out)
+##PBS -m ea
+
+# The directory to start in 
+cd %advisdir%/%enstorm%
+
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+echo "[${DATETIME}] : %jobtype%.%enstorm% starting in %advisdir%/%enstorm%." > %jobtype%.%enstorm%.run.start
+echo "%jobtype%.%enstorm% starting at $DATETIME."
+%adcircdir%/adcprep --np %ncpu% --%jobtype% --strict-boundaries >> adcprep.log 2>&1
+ERROVALUE=$?
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+if [ $ERROVALUE == 0 ] ; then
+   RUNSUFFIX="finish"
+else 
+   RUNSUFFIX="error"
+fi
+echo "[${DATETIME}] : %jobtype%.%enstorm% finished in %advisdir%/%enstorm% with return value = $ERROVALUE" > %jobtype%.%enstorm%.run.${RUNSUFFIX}
+echo "%jobtype%.%enstorm% finished at $DATETIME."
+# You don't need anything special at the end of the script.
