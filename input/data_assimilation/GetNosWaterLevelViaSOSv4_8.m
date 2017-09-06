@@ -216,6 +216,9 @@ while k<length(varargin)
         case 'fileout'
             fileout=varargin{k+1};
             varargin([k k+1])=[];
+        case 'webopts'
+            specifiedwebopts=varargin{k+1};
+            varargin([k k+1])=[];
         otherwise
             error(['Input not recognized: ',varargin{k}])
     end
@@ -241,6 +244,9 @@ if exist('Timezone','var')==0
 end
 if exist('writeout','var')==0
     writeout='no';
+end
+if exist('specifiedwebopts','var')==0
+    specifiedwebopts=weboptions;
 end
 
 
@@ -483,7 +489,7 @@ while curstop<datenum(Stop,timefmt)
     end
     
     %Download data
-    [f]=websave(['tempdataGetNosWaterLevelViaSOS',num2str(cnt),'.csv'],turl);
+    [f]=websave(['tempdataGetNosWaterLevelViaSOS',num2str(cnt),'.csv'],turl,specifiedwebopts);
 %     [f,status]=urlwrite(turl,['tempdataGetNosWaterLevelViaSOS',num2str(cnt),'.csv']);
 %     [f,status]=urlwrite(turl,'tempdataGetNosWaterLevelViaSOS.csv');
 %     if status~=1

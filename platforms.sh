@@ -37,6 +37,8 @@ init_queenbee()
   HOSTNAME=queenbee.loni.org
   QUEUESYS=PBS
   QCHECKCMD=qstat
+  QUEUENAME=workq
+  SERQUEUE=single
   ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
   SUBMITSTRING=qsub
   SCRATCHDIR=/work/$USER
@@ -383,6 +385,7 @@ init_topsail()
   SCRATCHDIR=/ifs1/scr/$USER
   SSHKEY=id_rsa_topsail
 }
+# THREDDS Data Server (TDS, i.e., OPeNDAP server) at RENCI
 init_renci_tds()
 {
    OPENDAPHOST=ht1.renci.org
@@ -390,9 +393,10 @@ init_renci_tds()
    CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
    OPENDAPBASEDIR=/projects/ncfs/opendap/data
    SSHPORT=22
-   LINKABLEHOSTS=(hatteras) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
+   LINKABLEHOSTS=(hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
    COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
 }
+# THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU
 init_lsu_tds()
 {
    OPENDAPHOST=fortytwo.cct.lsu.edu
@@ -403,15 +407,17 @@ init_lsu_tds()
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links
    COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
 }
+# THREDDS Data Server (TDS, i.e., OPeNDAP server) at Texas
+# Advanced Computing Center (TACC)
 init_tacc_tds()
 {
    OPENDAPHOST=adcircvis.tacc.utexas.edu
    DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer/asgs"
    CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog/asgs"
-   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS/2016
+   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS/2017
    SSHPORT=null
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
-   COPYABLEHOSTS=(lonestar) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+   COPYABLEHOSTS=(lonestar lonestar.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
 }
 init_test()
 { #<- can replace the following with a custom script
@@ -422,85 +428,85 @@ init_test()
 # such as queue interactions
 env_dispatch(){
  case $1 in
-  "camellia") consoleMessage "Camellia(WorldWinds) configuration found."
+  "camellia") consoleMessage "platforms.sh: Camellia(WorldWinds) configuration found."
           init_camellia
           ;;
-  "lsu_tds") consoleMessage "LSU THREDDS Data Server configuration found."
+  "lsu_tds") consoleMessage "platforms.sh: LSU THREDDS Data Server configuration found."
           init_lsu_tds
           ;;
-  "renci_tds") consoleMessage "RENCI THREDDS Data Server configuration found."
+  "renci_tds") consoleMessage "platforms.sh: RENCI THREDDS Data Server configuration found."
           init_renci_tds
           ;;
-  "tacc_tds") consoleMessage "TACC THREDDS Data Server configuration found."
+  "tacc_tds") consoleMessage "platforms.sh: TACC THREDDS Data Server configuration found."
           init_tacc_tds
           ;;
-  "kittyhawk") consoleMessage "Kittyhawk (RENCI) configuration found."
+  "kittyhawk") consoleMessage "platforms.sh: Kittyhawk (RENCI) configuration found."
           init_kittyhawk
           ;;
-  "blueridge") consoleMessage "Blueridge (RENCI) configuration found."
+  "blueridge") consoleMessage "platforms.sh: Blueridge (RENCI) configuration found."
           init_blueridge
           ;;
-  "croatan") consoleMessage "Croatan (RENCI) configuration found."
+  "croatan") consoleMessage "platforms.sh: Croatan (RENCI) configuration found."
           init_croatan
           ;;
-  "hatteras") consoleMessage "Hatteras (RENCI) configuration found."
+  "hatteras") consoleMessage "platforms.sh: Hatteras (RENCI) configuration found."
           init_hatteras
           ;;
-  "hatteras14") consoleMessage "Hatteras (RENCI) configuration found."
+  "hatteras14") consoleMessage "platforms.sh: Hatteras (RENCI) configuration found."
           init_hatteras14
           ;;
-  "sapphire") consoleMessage "Sapphire (ERDC) configuration found."
+  "sapphire") consoleMessage "platforms.sh: Sapphire (ERDC) configuration found."
           init_sapphire
           ;;
-  "jade") consoleMessage "Jade (ERDC) configuration found."
+  "jade") consoleMessage "platforms.sh: Jade (ERDC) configuration found."
           init_jade
           ;;
-  "diamond") consoleMessage "Diamond (ERDC) configuration found."
+  "diamond") consoleMessage "platforms.sh: Diamond (ERDC) configuration found."
           init_diamond
           ;;
-  "garnet") consoleMessage "Garnet (ERDC) configuration found."
+  "garnet") consoleMessage "platforms.sh: Garnet (ERDC) configuration found."
           init_garnet
           ;;
-  "spirit") consoleMessage "Spirit (AFRL) configuration found."
+  "spirit") consoleMessage "platforms.sh: Spirit (AFRL) configuration found."
           init_spirit
           ;;
-  "topaz") consoleMessage "Topaz (ERDC) configuration found."
+  "topaz") consoleMessage "platforms.sh: Topaz (ERDC) configuration found."
           init_topaz
           ;;
-  "thunder") consoleMessage "Thunder (AFRL) configuration found."
+  "thunder") consoleMessage "platforms.sh: Thunder (AFRL) configuration found."
           init_thunder
           ;;
-  "queenbee") consoleMessage "Queenbee (LONI) configuration found."
+  "queenbee") consoleMessage "platforms.sh: Queenbee (LONI) configuration found."
           init_queenbee
           ;;
-  "tezpur") consoleMessage "Tezpur (LSU) configuration found."
+  "tezpur") consoleMessage "platforms.sh: Tezpur (LSU) configuration found."
           init_tezpur
           ;;
-  "mike") consoleMessage "SuperMike-II (LSU) configuration found."
+  "mike") consoleMessage "platforms.sh: SuperMike-II (LSU) configuration found."
           init_mike
           ;;
-  "topsail") consoleMessage "Topsail (UNC) configuration found."
+  "topsail") consoleMessage "platforms.sh: Topsail (UNC) configuration found."
           init_topsail
           ;;
-  "ranger") consoleMessage "Ranger (TACC) configuration found."
+  "ranger") consoleMessage "platforms.sh: Ranger (TACC) configuration found."
           init_ranger
           ;;
-  "lonestar") consoleMessage "Lonestar (TACC) configuration found."
+  "lonestar") consoleMessage "platforms.sh: Lonestar (TACC) configuration found."
           init_lonestar
           ;;
-  "stampede") consoleMessage "Stampede (TACC) configuration found."
+  "stampede") consoleMessage "platforms.sh: Stampede (TACC) configuration found."
           init_stampede
           ;;
-  "arete") consoleMessage "Arete (CCT) configuration found."
+  "arete") consoleMessage "platforms.sh: Arete (CCT) configuration found."
           init_arete
           ;;
-  "desktop") consoleMessage "desktop configuration found."
+  "desktop") consoleMessage "platforms.sh: desktop configuration found."
           init_desktop
            ;;
-  "test") consoleMessage "test environment (default) configuration found."
+  "test") consoleMessage "platforms.sh: test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "'$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, queenbee, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
+  *) fatal "platforms.sh: '$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, queenbee, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
      ;;
   esac
 }

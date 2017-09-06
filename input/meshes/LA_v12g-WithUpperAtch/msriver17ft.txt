@@ -1,0 +1,85 @@
+31536000  ! number of seconds in a year
+10.7 0.0   ! mississippi node 1; total flux set to 13.3 kcms
+12.5 0.0  ! mississippi node 2
+14.4 0.0  ! mississippi node 3
+15.4 0.0  ! mississippi node 4
+16.4 0.0  ! mississippi node 5
+16.9 0.0  ! mississippi node 6
+16.3 0.0  ! mississippi node 7
+14.6 0.0  ! mississippi node 8
+10.7 0.0  ! mississippi node 9
+7.8 0.0  ! mississippi node 10
+4.3 0.0  ! mississippi node 11
+3.2 0.0  ! mississippi node 12
+2.9 0.0  ! mississippi node 13
+0.0 0.0   ! morganza node 1; total flux set to 0.0 kcms
+0.0 0.0  ! morganza node 2
+0.0 0.0  ! morganza node 3
+0.0 0.0  ! morganza node 4
+0.0 0.0  ! morganza node 5
+0.0 0.0  ! morganza node 6
+0.0 0.0  ! morganza node 7
+2.5 0.0   ! atchafalaya node 1; total flux set to 6.6 kcms
+2.7 0.0  ! atchafalaya node 2
+3.0 0.0  ! atchafalaya node 3
+3.1 0.0  ! atchafalaya node 4
+3.3 0.0  ! atchafalaya node 5
+3.6 0.0  ! atchafalaya node 6
+3.6 0.0  ! atchafalaya node 7
+3.6 0.0  ! atchafalaya node 8
+3.6 0.0  ! atchafalaya node 9
+3.6 0.0  ! atchafalaya node 10
+3.7 0.0  ! atchafalaya node 11
+3.7 0.0  ! atchafalaya node 12
+3.7 0.0  ! atchafalaya node 13
+3.7 0.0  ! atchafalaya node 14
+3.7 0.0  ! atchafalaya node 15
+3.7 0.0  ! atchafalaya node 16
+3.6 0.0  ! atchafalaya node 17
+3.6 0.0  ! atchafalaya node 18
+3.6 0.0  ! atchafalaya node 19
+3.4 0.0  ! atchafalaya node 20
+3.1 0.0  ! atchafalaya node 21
+2.9 0.0  ! atchafalaya node 22
+10.7 0.0   ! mississippi node 1; total flux set to 13.3 kcms
+12.5 0.0  ! mississippi node 2
+14.4 0.0  ! mississippi node 3
+15.4 0.0  ! mississippi node 4
+16.4 0.0  ! mississippi node 5
+16.9 0.0  ! mississippi node 6
+16.3 0.0  ! mississippi node 7
+14.6 0.0  ! mississippi node 8
+10.7 0.0  ! mississippi node 9
+7.8 0.0  ! mississippi node 10
+4.3 0.0  ! mississippi node 11
+3.2 0.0  ! mississippi node 12
+2.9 0.0  ! mississippi node 13
+0.0 0.0   ! morganza node 1; total flux set to 0.0 kcms
+0.0 0.0  ! morganza node 2
+0.0 0.0  ! morganza node 3
+0.0 0.0  ! morganza node 4
+0.0 0.0  ! morganza node 5
+0.0 0.0  ! morganza node 6
+0.0 0.0  ! morganza node 7
+2.5 0.0   ! atchafalaya node 1; total flux set to 6.6 kcms
+2.7 0.0  ! atchafalaya node 2
+3.0 0.0  ! atchafalaya node 3
+3.1 0.0  ! atchafalaya node 4
+3.3 0.0  ! atchafalaya node 5
+3.6 0.0  ! atchafalaya node 6
+3.6 0.0  ! atchafalaya node 7
+3.6 0.0  ! atchafalaya node 8
+3.6 0.0  ! atchafalaya node 9
+3.6 0.0  ! atchafalaya node 10
+3.7 0.0  ! atchafalaya node 11
+3.7 0.0  ! atchafalaya node 12
+3.7 0.0  ! atchafalaya node 13
+3.7 0.0  ! atchafalaya node 14
+3.7 0.0  ! atchafalaya node 15
+3.7 0.0  ! atchafalaya node 16
+3.6 0.0  ! atchafalaya node 17
+3.6 0.0  ! atchafalaya node 18
+3.6 0.0  ! atchafalaya node 19
+3.4 0.0  ! atchafalaya node 20
+3.1 0.0  ! atchafalaya node 21
+2.9 0.0  ! atchafalaya node 22
