@@ -60,7 +60,7 @@ NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=608                    # number of compute CPUs for all simulations
 NUMWRITERS=16
-NCPUCAPACITY=640
+NCPUCAPACITY=1280
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=null
 SERQUEUE=null
@@ -230,12 +230,12 @@ case $si in
    POSTPROCESS=wind10m_post.sh
    ;;
 2)
-   ENSTORM=veerRight50
-   PERCENT=50
+   ENSTORM=veerRight100
+   PERCENT=100
    ;;
 3)
-   ENSTORM=veerRight50Wind10m
-   PERCENT=50
+   ENSTORM=veerRight100Wind10m
+   PERCENT=100
    ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:60:00" # forecast wall clock time
    CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
@@ -266,12 +266,12 @@ case $si in
    POSTPROCESS=wind10m_post.sh
    ;;
 4)
-   ENSTORM=rMax10
-   PERCENT=10
+   ENSTORM=rMaxSmaller10
+   PERCENT=-10
    ;;
 5)
-   ENSTORM=rMax10Wind10m
-   PERCENT=10
+   ENSTORM=rMaxSmaller10Wind10m
+   PERCENT=-10
    ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:60:00" # forecast wall clock time
    CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
