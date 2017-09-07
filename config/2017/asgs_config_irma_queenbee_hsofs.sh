@@ -27,18 +27,18 @@
 
 # Fundamental
 
-INSTANCENAME=harveyla  # "name" of this ASGS process
-COLDSTARTDATE=2017072200   # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=/work/jgflemin/asgs40584/2017082312   # path to previous execution (if HOTORCOLD=hotstart)
-HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
-REINITIALIZESWAN=no      # used to bounce the wave solution
+INSTANCENAME=irmahsofs    # "name" of this ASGS process
+COLDSTARTDATE=2017081200  # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart        # "hotstart" or "coldstart"
+LASTSUBDIR=/work/jgflemin/asgs89828/27   # path to previous execution (if HOTORCOLD=hotstart)
+HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
+REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
 ADCIRCDIR=~/adcirc/forks/jasonfleming/master/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable          # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v12g-WithUpperAtch # grid and other input files
+INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs 
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
@@ -47,17 +47,17 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=off     # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=on  # tropical cyclone forcing
-WAVES=off             # wave forcing
+WAVES=on             # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
 
-TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+TIMESTEPSIZE=2.0           # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
-ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
-FORECASTWALLTIME="07:00:00" # forecast wall clock time
+ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
+FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=1200                     # number of compute CPUs for all simulations
 NUMWRITERS=20
 NCPUCAPACITY=3648
@@ -71,7 +71,7 @@ SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones
 
-STORM=09                         # storm number, e.g. 05=ernesto in 2006
+STORM=11                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2017                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 #RSSSITE=filesystem
@@ -99,18 +99,19 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=LA_v12h-WithUpperAtch_chk.grd   # mesh (fort.14) file
-GRIDNAME=LA_v12h-WithUpperAtch_chk
-MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.15.template   # fort.15 template
+GRIDFILE=hsofs.14  # mesh (fort.14) file
+GRIDNAME=hsofs
+MESHPROPERTIES=${GRIDFILE}.nc.properties
+CONTROLTEMPLATE=hsofs.15.template  # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=cpra2017v12.cera_stations.20161222
-VELSTATIONS=cpra2017v12.cera_stations.20161222
-METSTATIONS=cpra2017v12.cera_stations.20161222
-NAFILE=LA_v12g-WithUpperAtch-updated.13
+ELEVSTATIONS=hsofs.all_cera_stations_20170717.txt
+VELSTATIONS=hsofs.all_cera_stations_20170717.txt
+METSTATIONS=hsofs.all_cera_stations_20170717.txt
+NAFILE=hsofs.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=LA_v12g-WithUpperAtch.nolimiter.26.template   # only used if WAVES=on
-RIVERINIT=null                           # this mesh has no rivers ...
+#SWANTEMPLATE=fort.26.template # only used if WAVES=on
+SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
+RIVERINIT=null                          # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
@@ -139,7 +140,7 @@ HOTSTARTCOMP=fulldomain
 # binary or netcdf hotstart files
 HOTSTARTFORMAT=netcdf                      
 # "continuous" or "reset" for maxele.63 etc files
-MINMAX=continuous                               
+MINMAX=reset                              
 
 # Notification
 
@@ -177,7 +178,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
+OPENDAPNOTIFY="nc.cera.renci2@gmail.com,asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
 
 NUMCERASERVERS=2
 WEBHOST=webserver.hostingco.com
@@ -204,9 +205,9 @@ case $si in
    ;;
 1)
    ENSTORM=nhcConsensusWind10m
-   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
-   FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.nowindreduction.15.template
+   ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:60:00" # forecast wall clock time
+   CONTROLTEMPLATE=hsofs.nowindreduction.15.template 
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements
@@ -233,15 +234,15 @@ case $si in
    POSTPROCESS=null_post.sh
    ;;
 2)
-   ENSTORM=veerRight50
-   PERCENT=50
+   ENSTORM=veerLeft50
+   PERCENT=-50
    ;;
 3)
-   ENSTORM=veerRight50Wind10m
-   PERCENT=50
-   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
-   FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.nowindreduction.15.template
+   ENSTORM=veerLeft50Wind10m
+   PERCENT=-50
+   ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:60:00" # forecast wall clock time
+   CONTROLTEMPLATE=hsofs.nowindreduction.15.template 
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements
@@ -268,15 +269,15 @@ case $si in
    POSTPROCESS=null_post.sh
    ;;
 4)
-   ENSTORM=veerRight100
-   PERCENT=100
+   ENSTORM=veerLeft100
+   PERCENT=-100
    ;;
 5)
-   ENSTORM=veerRight100Wind10m
-   PERCENT=100
-   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
-   FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.nowindreduction.15.template
+   ENSTORM=veerLeft100Wind10m
+   PERCENT=-100
+   ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:60:00" # forecast wall clock time
+   CONTROLTEMPLATE=hsofs.nowindreduction.15.template 
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements
