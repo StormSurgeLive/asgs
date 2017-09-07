@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=v12hSetFluxNoWaves  # "name" of this ASGS process
-COLDSTARTDATE=2017072200   # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2017073100   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
