@@ -27,10 +27,10 @@
 
 # Fundamental
 
-INSTANCENAME=irmahsofs     # "name" of this ASGS process
+INSTANCENAME=irmahsofsx     # "name" of this ASGS process
 COLDSTARTDATE=2017081200  # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart        # "hotstart" or "coldstart"
-LASTSUBDIR=null  # path to previous execution (if HOTORCOLD=hotstart)
+HOTORCOLD=hotstart        # "hotstart" or "coldstart"
+LASTSUBDIR=/scratch/00976/jgflemin/asgs89828/21  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=20.0       # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -56,10 +56,10 @@ VORTEXMODEL=GAHM
 TIMESTEPSIZE=2.0             # adcirc time step size (seconds)
 SWANDT=1200                  # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00"  # hindcast wall clock time
-ADCPREPWALLTIME="01:30:00"   # adcprep wall clock time, including partmesh
+ADCPREPWALLTIME="01:00:00"   # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="05:00:00"   # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00"  # forecast wall clock time
-NCPU=1200                    # number of compute CPUs for all simulations
+NCPU=2424                    # number of compute CPUs for all simulations
 NCPUCAPACITY=2640
 NUMWRITERS=24
 CYCLETIMELIMIT="05:00:00"
@@ -98,13 +98,10 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-#QSCRIPT=lonestar.reservation.template.slurm
-#PREPCONTROLSCRIPT=lonestar.reservation.template.serial.slurm
-
 GRIDFILE=hsofs.14  # mesh (fort.14) file
 GRIDNAME=hsofs
 MESHPROPERTIES=${GRIDFILE}.nc.properties
-CONTROLTEMPLATE=hsofs.15.template  # fort.15 template
+CONTROLTEMPLATE=hsofs_explicit.15.template  # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
 ELEVSTATIONS=hsofs.all_cera_stations_20170717.txt
 VELSTATIONS=hsofs.all_cera_stations_20170717.txt
@@ -197,19 +194,17 @@ ARCHIVEDIR="${INSTANCENAME}_112017"
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=4 # number of storms in the ensemble
 echo "si is $si"
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=rMax20
-   PERCENT=20
+   ENSTORM=nhcConsensus
    ;;
 1)
-   ENSTORM=rMax20Wind10m
-   PERCENT=20
+   ENSTORM=nhcConsensusWind10m
    ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:60:00" # forecast wall clock time
    CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
