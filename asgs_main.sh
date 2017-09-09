@@ -1873,7 +1873,7 @@ while [ true ]; do
    # allow all ensemble members and associated post processing to complete
    logMessage "$ENSTORM: $THIS: All forecast ensemble members have been submitted."
    logMessage "$ENSTORM: $THIS: Waiting for completion of the remaining forecast ensemble members (and their associated post processing)."
-   wait   
+   wait   # @jasonfleming: I suppose I put this here so that the archive script would have a complete set of results, but now (20170823) I am thinking that the archive script needs to be resilient to having not all the results available so that it doesn't hold up the whole show
    # copy results to archive location
    logMessage "$ENSTORM: $THIS: Initiating archival process, if any."
    #jgf: FIXME: Reconcile post processing arguments and archiving arguments ${OUTPUTDIR}/${ARCHIVE} $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $ARCHIVEBASE $ARCHIVEDIR  2>> ${SYSLOG} &
