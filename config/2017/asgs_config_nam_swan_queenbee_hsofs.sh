@@ -36,7 +36,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables
+ADCIRCDIR=~/adcirc/forks/jasonfleming/master/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable        # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
@@ -60,10 +60,12 @@ NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=1200                    # number of compute CPUs for all simulations
 NUMWRITERS=20
-NCPUCAPACITY=1240
+NCPUCAPACITY=3648
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=workq
-SERQUEUE=single
+#QUEUENAME=workq
+#SERQUEUE=single
+QUEUENAME=admin
+SERQUEUE=admin
 SCRATCHDIR=/work/$USER
 ACCOUNT=loni_cera_2017
 
@@ -101,7 +103,8 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 GRIDFILE=hsofs.14  # mesh (fort.14) file
 GRIDNAME=hsofs
-MESHPROPERTIES=${GRIDFILE}.nc.properties
+#MESHPROPERTIES=${GRIDFILE}.nc.properties
+MESHPROPERTIES=${GRIDFILE}.ng.properties     
 if [[ $TROPICALCYCLONE = on ]]; then 
    if [[ $HOSTNAME = "queenbee.loni.org" || $HOSTNAME = "thunder.afrl.hpc.mil" || $HOSTNAME = "topaz.erdc.hpc.mil" ]]; then
       MESHPROPERTIES=${GRIDFILE}.ng.properties     

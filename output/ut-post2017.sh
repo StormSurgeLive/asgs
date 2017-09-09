@@ -160,6 +160,7 @@ if [[ -d $dirWind10m ]]; then
    done
 else
    logMessage "$ENSTORM: $THIS: Corresponding 10m wind ensemble member was not found."
+fi
 #
 #-------------------------------------------------------------------
 #               C E R A   F I L E   P R I O R I T Y
@@ -255,4 +256,3 @@ for server in ${TDS[*]}; do
    done
    primaryCount=$((primaryCount+1))
 done
-
