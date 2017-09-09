@@ -36,7 +36,7 @@ COLDSTARTDATE=2017070900
 HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0        # length of initial hindcast, from cold (days)
-REINITIALIZESWAN=no        # used to bounce the wave solution
+REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
@@ -106,8 +106,8 @@ RIVERDATAPROTOCOL=scp
 
 # Input files and templates
 
-GRIDFILE=nc_inundation_v6c_rivers_msl.grd
-GRIDNAME=nc6b
+GRIDFILE=nc_inundation_v6d_rivers_msl.grd
+GRIDNAME=nc6b  # @jasonfleming 20170814: should be nc6d
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=v6brivers_explicit_rlevel51_fort.15_template
 CONTROLPROPERTIES=v6brivers_fort.15.properties

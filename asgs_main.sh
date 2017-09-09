@@ -1686,7 +1686,7 @@ while [ true ]; do
                fi
                # parse out the name of the ensemble member
                ensembleMemName=`basename $ensembleMemDir`
-               runType=`awk '$1 == "Model" { print tolower($3) }' run.properties`
+               runType=`awk '$1 == "Model" { print tolower($3) }' ${ensembleMemDir}/run.properties`
                # look to see if the job is complete
                if [[ ! -e $ensembleMemDir/${runType}.${ensembleMemName}.run.finish ]]; then 
                   # job is still going, add its cpus to the total that are currently engaged
