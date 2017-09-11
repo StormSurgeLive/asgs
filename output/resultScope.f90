@@ -247,6 +247,7 @@ case(NETCDFG)
    call determineNetCDFFileCharacteristics(fd, fm, fn)
 case default
    call allMessage(ERROR,'Cannot read mesh.')
+   stop
 end select
 !   
 allocate(within(fm%np))
