@@ -319,7 +319,8 @@ prep()
        if [[ $MINMAX = continuous ]]; then
           # copy max and min files so that the max values will be
           # preserved across hotstarts
-          for file in maxele.63 maxwvel.63 minpr.63 maxrs.63 maxvel.63 elemaxdry.63 nodeflag.63 rising.63 tinun.63; do
+          # @jasonfleming: Applying netcdf fix from @mattbilskie
+          for file in maxele.63 maxwvel.63 minpr.63 maxrs.63 maxvel.63 elemaxdry.63 nodeflag.63 rising.63 tinun.63 maxele.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc maxwvel.63.nc minpr.63.nc elemaxdry.63.nc nodeflag.63.nc rising.63.nc tinun.63.nc swan_*_max.*; do
              if  [ -e $FROMDIR/$file ]; then
                 logMessage "$ENSTORM: $THIS: Copying $FROMDIR/$file to $ADVISDIR/$ENSTORM/$file so that its values will be preserved across the hotstart."
                 cp $FROMDIR/$file $ADVISDIR/$ENSTORM/$file 2>> ${SYSLOG}
