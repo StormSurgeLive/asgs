@@ -319,7 +319,8 @@ prep()
        if [[ $MINMAX = continuous ]]; then
           # copy max and min files so that the max values will be
           # preserved across hotstarts
-          for file in maxele.63 maxwvel.63 minpr.63 maxrs.63 maxvel.63 elemaxdry.63 nodeflag.63 rising.63 tinun.63; do
+          # @jasonfleming: Applying netcdf fix from @mattbilskie
+          for file in maxele.63 maxwvel.63 minpr.63 maxrs.63 maxvel.63 elemaxdry.63 nodeflag.63 rising.63 tinun.63 maxele.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc maxwvel.63.nc minpr.63.nc elemaxdry.63.nc nodeflag.63.nc rising.63.nc tinun.63.nc swan_*_max.*; do
              if  [ -e $FROMDIR/$file ]; then
                 logMessage "$ENSTORM: $THIS: Copying $FROMDIR/$file to $ADVISDIR/$ENSTORM/$file so that its values will be preserved across the hotstart."
                 cp $FROMDIR/$file $ADVISDIR/$ENSTORM/$file 2>> ${SYSLOG}
@@ -1873,7 +1874,7 @@ while [ true ]; do
    # allow all ensemble members and associated post processing to complete
    logMessage "$ENSTORM: $THIS: All forecast ensemble members have been submitted."
    logMessage "$ENSTORM: $THIS: Waiting for completion of the remaining forecast ensemble members (and their associated post processing)."
-   wait   
+   wait   # @jasonfleming: I suppose I put this here so that the archive script would have a complete set of results, but now (20170823) I am thinking that the archive script needs to be resilient to having not all the results available so that it doesn't hold up the whole show
    # copy results to archive location
    logMessage "$ENSTORM: $THIS: Initiating archival process, if any."
    #jgf: FIXME: Reconcile post processing arguments and archiving arguments ${OUTPUTDIR}/${ARCHIVE} $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $ARCHIVEBASE $ARCHIVEDIR  2>> ${SYSLOG} &

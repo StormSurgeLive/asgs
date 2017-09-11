@@ -244,6 +244,10 @@ my $np = $fields[1];
 for (my $i=0; $i<$np; $i++) {
    $line = <MESH>;
    @fields = split(' ',$line);
+   # if node labels were specified
+   if ( defined $getNodeIDs ) {
+      $nodeIDs[$i] = $fields[0];
+   }
    $x[$i] = $fields[1];
    $y[$i] = $fields[2];
    $z[$i] = $fields[3];
@@ -296,7 +300,8 @@ for (my $i=0; $i<$nope; $i++) {
    $line = <MESH>;
    my @fields = split(' ',$line); 
    my $nvdll = $fields[0];
-   my $ibtypee = $fields[1];
+   # my $ibtypee = $fields[1]; # many mesh files don't have this field
+   my $ibtypee = 0;
    for (my $j=0; $j<$nvdll; $j++) {
       my $nbdv = <MESH>;
       $elevBoundaryNodes[$elevBoundaryCount] = $nbdv;  
@@ -625,10 +630,7 @@ foreach my $file (@adcircfiles) {
             stderrMessage("ERROR","Ran out of data: $!.");
             die;
          }
-         # if node labels were specified
-         if ( defined $getNodeIDs ) {
-            $nodeIDs[$i] = $fields[0];
-         }
+
          # get rid of the node number or node ID
          shift(@fields);
          if ( $num_components == 2 ) {
