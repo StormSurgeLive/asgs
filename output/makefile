@@ -146,7 +146,7 @@ OBJ := adcmesh.o asgsio.o nodalattr.o logging.o
 MODS := adcmesh.mod asgsio.mod nodalattr.mod logging.mod
 #
 # targets
-all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN checkAdcircMesh resultScope highResolutionRegion stationProcessor
+all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN checkAdcircMesh resultScope highResolutionRegion stationProcessor collectMinMax
 #
 clean :
 	rm -f *.o *.mod *.x
@@ -202,6 +202,9 @@ diffAdcircNetCDF : adcmesh.mod asgsio.mod diffAdcircNetCDF.f90
 HottifySWAN : HottifySWAN.F90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.F90 $(LDFLAGS)
 #
+collectMinMax : adcmesh.mod asgsio.mod collectMinMax.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+
 resultScope : adcmesh.mod asgsio.mod resultScope.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
