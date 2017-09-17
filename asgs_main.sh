@@ -512,7 +512,7 @@ downloadCycloneData()
        logMessage "$THIS: Checking remote site for new advisory..."
     fi
     while [ $newAdvisory = false ]; do
-       if [ $TRIGGER != atcf ]; then 
+       if [[ $TRIGGER != "atcf" ]]; then 
           newAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
        fi
        # check to see if we have a new one, and if so, determine the

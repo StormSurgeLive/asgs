@@ -27,12 +27,12 @@
 
 # Fundamental
 
-INSTANCENAME=irmahsofsx     # "name" of this ASGS process
+INSTANCENAME=irmahsofsxh     # "name" of this ASGS process
 COLDSTARTDATE=2017081200  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=hotstart        # "hotstart" or "coldstart"
 LASTSUBDIR=/scratch/00976/jgflemin/asgs89828/21  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=20.0       # length of initial hindcast, from cold (days)
-REINITIALIZESWAN=no      # used to bounce the wave solution
+REINITIALIZESWAN=yes      # used to bounce the wave solution
 
 # Source file paths
 
@@ -63,22 +63,25 @@ NCPU=2424                    # number of compute CPUs for all simulations
 NCPUCAPACITY=2640
 NUMWRITERS=24
 CYCLETIMELIMIT="05:00:00"
-QSCRIPT=lonestar.reservation.template.slurm
-PREPCONTROLSCRIPT=lonestar.reservation.template.serial.slurm
+#QSCRIPT=lonestar.reservation.template.slurm
+#PREPCONTROLSCRIPT=lonestar.reservation.template.serial.slurm
 
 # External data sources : Tropical cyclones
 
 STORM=11                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2017                        # year of the storm
-TRIGGER=rssembedded              # either "ftp" or "rss"
-#RSSSITE=filesystem
-#FTPSITE=filesystem
+#TRIGGER=rssembedded              # either "ftp" or "rss"
+TRIGGER=atcf
+RSSSITE=filesystem
+FTPSITE=filesystem
+FDIR=/scratch/00976/jgflemin/asgs53788
+HDIR=/scratch/00976/jgflemin/asgs53788
 #FDIR=${SCRIPTDIR}/input/sample_advisories
 #HDIR=${SCRIPTDIR}/input/sample_advisories
-RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
-FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
-FDIR=/atcf/afst                  # forecast dir on nhc ftp site
-HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
+#RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
+#FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
+#FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+#HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
@@ -157,7 +160,8 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=ut-post2017.sh
+#POSTPROCESS=ut-post2017.sh
+POSTPROCESS=null_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
@@ -194,7 +198,7 @@ ARCHIVEDIR="${INSTANCENAME}_112017"
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=4 # number of storms in the ensemble
+ENSEMBLESIZE=0 # number of storms in the ensemble
 echo "si is $si"
 case $si in
 -1)
