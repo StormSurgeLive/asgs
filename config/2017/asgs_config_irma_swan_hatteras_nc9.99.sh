@@ -189,12 +189,12 @@ case $si in
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=veerRight100
-   PERCENT=100
+   ENSTORM=veerRight50
+   PERCENT=50
    ;;
 1)
-   ENSTORM=veerRight100
-   PERCENT=100
+   ENSTORM=veerRight50Wind10m
+   PERCENT=50
    ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:60:00" # forecast wall clock time
    CONTROLTEMPLATE=nc_9.99wrivers.nowindreduction.fort.15.template  # fort.15 template

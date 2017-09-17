@@ -232,11 +232,23 @@ tar cvhf CERA.tar $shapeDirs > CERAtar.log 2>> $SYSLOG
 ERROVALUE=$?  # capture exit status
 if [[ $ERROVALUE == 0 ]] ; then
    logMessage "$ENSTORM: $THIS: Created CERA tar file correctly."
-   echo "Contour Tar File : CERA.tar" >> run.properties
-   ceraContoursAvailable=yes
+   #@jasonfleming debug 20170915: don't post CERA tar file
+   #echo "Contour Tar File : CERA.tar" >> run.properties
+   #ceraContoursAvailable=yes
 else
    error "$ENSTORM: $THIS: Could not create CERA tar file."
 fi
+#------------------------------------------------------------------------
+# accumulate min/max
+#previousAdvisory=`expr $ADVISORY - 1`
+#for file in maxele.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc maxwvel.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc ; do
+#   if [[ -e $file ]]; then
+#      ${OUTPUTDIR}/collectMinMax.x --source ../../$previousAdvisory/nowcast/$file --destination $file
+#   fi
+#done
+# 
+# produce csv file of maximum data
+${OUTPUTDIR}/make_max_csv.sh $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG >> ${SYSLOG} 2>&1
 #
 #-----------------------------------------------------------------------
 #         O P E N  D A P    P U B L I C A T I O N 
