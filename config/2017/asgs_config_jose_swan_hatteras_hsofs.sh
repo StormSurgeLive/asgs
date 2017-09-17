@@ -27,10 +27,10 @@
 
 # Fundamental
 
-INSTANCENAME=irmahsofs    # "name" of this ASGS process
+INSTANCENAME=josehsofs    # "name" of this ASGS process
 COLDSTARTDATE=2017071600    # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=hotstart       # "hotstart" or "coldstart"
-LASTSUBDIR=/projects/ncfs/data/asgs7800/2017090212  # path to previous execution (if HOTORCOLD=hotstart)
+LASTSUBDIR=/projects/ncfs/data/asgs7800/2017091500  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -75,7 +75,7 @@ PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm # jgf20160322
 # External data sources : Tropical cyclones
 
 PSEUDOSTORM=n 
-STORM=11                         # storm number, e.g. 05=ernesto in 2006
+STORM=12                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2017                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 #RSSSITE=filesystem
@@ -230,12 +230,12 @@ case $si in
    POSTPROCESS=wind10m_post.sh
    ;;
 2)
-   ENSTORM=rMax20
-   PERCENT=20
+   ENSTORM=veerLeft100
+   PERCENT=-100
    ;;
 3)
-   ENSTORM=rMax20Wind10m
-   PERCENT=20
+   ENSTORM=veerLeft100Wind10m
+   PERCENT=-100
    ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:60:00" # forecast wall clock time
    CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template

@@ -27,10 +27,10 @@
 
 # Fundamental
 
-INSTANCENAME=irmahsofs    # "name" of this ASGS process
+INSTANCENAME=irmahsofsh    # "name" of this ASGS process
 COLDSTARTDATE=2017071600    # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=hotstart       # "hotstart" or "coldstart"
-LASTSUBDIR=/projects/ncfs/data/asgs7800/2017090212  # path to previous execution (if HOTORCOLD=hotstart)
+LASTSUBDIR=/projects/ncfs/data/asgs31802/21  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -77,15 +77,16 @@ PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm # jgf20160322
 PSEUDOSTORM=n 
 STORM=11                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2017                        # year of the storm
-TRIGGER=rssembedded              # either "ftp" or "rss"
-#RSSSITE=filesystem
-#FTPSITE=filesystem
-#FDIR=~/asgs/2014stable/input/sample_advisories/isaac
-#HDIR=$FDIR
-RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
-FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
-FDIR=/atcf/afst                  # forecast dir on nhc ftp site
-HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
+#TRIGGER=rssembedded              # either "ftp" or "rss"
+TRIGGER=atcf
+RSSSITE=filesystem
+FTPSITE=filesystem
+FDIR=~/asgs/2014stable/input/sample_advisories/2017
+HDIR=$FDIR
+#RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
+#FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
+#FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+#HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
@@ -164,7 +165,8 @@ ASGSADMIN=jason.fleming@seahorsecoastal.com
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=hsofs_renci_post.sh
+#POSTPROCESS=hsofs_renci_post.sh
+POSTPROCESS=null_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
@@ -190,7 +192,7 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=4 # number of storms in the ensemble
+ENSEMBLESIZE=0 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
