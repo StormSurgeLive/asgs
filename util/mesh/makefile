@@ -51,7 +51,7 @@ ifeq ($(NETCDF),enable)
    #
    #   # jgf20150616: Added netcdf paths for stampede at TACC.
    ifeq ($(MACHINENAME),stampede) 
-      NETCDFPATH := /opt/apps/intel13/netcdf/4.3.2/x86_64
+      NETCDFPATH := /opt/apps/intel17/netcdf/4.3.3.1/x86_64
    endif
    # jgf20150716: Added compiler flags for hatteras at RENCI.
    ifeq ($(MACHINENAME),hatteras)
@@ -80,7 +80,7 @@ endif
 #
 #
 OBJ := adcmesh.o asgsio.o logging.o
-MODS := adcmesh.mod asgsio.mod logging.o
+MODS := adcmesh.mod asgsio.mod logging.mod
 #
 # targets
 all : boundaryFinder
