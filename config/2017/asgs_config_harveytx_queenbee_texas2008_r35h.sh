@@ -27,51 +27,51 @@
 
 # Fundamental
 
-INSTANCENAME=irmahsofsx    # "name" of this ASGS process
-COLDSTARTDATE=2017081200  # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=hotstart        # "hotstart" or "coldstart"
-LASTSUBDIR=/work/jgflemin/asgs89828/27   # path to previous execution (if HOTORCOLD=hotstart)
-HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
-REINITIALIZESWAN=no       # used to bounce the wave solution
+INSTANCENAME=harveytx    # "name" of this ASGS process
+COLDSTARTDATE=2017080200 # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart       # "hotstart" or "coldstart"
+LASTSUBDIR=/work/jgflemin/asgs36552/16  # path to previous execution (if HOTORCOLD=hotstart)
+HINDCASTLENGTH=20.0      # length of initial hindcast, from cold (days)
+REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
 ADCIRCDIR=~/adcirc/forks/jasonfleming/master/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable          # ASGS executables
-INPUTDIR=/work/jgflemin/asgs/2014stable/input/meshes/hsofs 
+INPUTDIR=/work/jgflemin/asgs/2014stable/input/meshes/texas2008_r35h # mesh and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=off     # NAM download/forcing
+BACKGROUNDMET=off    # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
-TROPICALCYCLONE=on  # tropical cyclone forcing
+TROPICALCYCLONE=on   # tropical cyclone forcing
 WAVES=on             # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
 
-TIMESTEPSIZE=2.0           # adcirc time step size (seconds)
+TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
-FORECASTWALLTIME="05:00:00" # forecast wall clock time
-NCPU=2424                   # number of compute CPUs for all simulations
-NUMWRITERS=16
-NCPUCAPACITY=3720
-CYCLETIMELIMIT="05:00:00"
-QUEUENAME=workq
-SERQUEUE=single
-#QUEUENAME=admin
-#SERQUEUE=admin
+NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+FORECASTWALLTIME="07:00:00" # forecast wall clock time
+NCPU=3600                    # number of compute CPUs for all simulations
+NUMWRITERS=24
+NCPUCAPACITY=3648
+CYCLETIMELIMIT="04:00:00"
+#QUEUENAME=workq
+#SERQUEUE=single
+QUEUENAME=admin
+SERQUEUE=admin
 ACCOUNT=loni_cera_2017
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones
 
-STORM=11                         # storm number, e.g. 05=ernesto in 2006
+STORM=09                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2017                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 #RSSSITE=filesystem
@@ -99,19 +99,18 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=hsofs.14  # mesh (fort.14) file
-GRIDNAME=hsofs
-MESHPROPERTIES=${GRIDFILE}.nc.properties
-CONTROLTEMPLATE=hsofs_explicit.15.template  # fort.15 template
+GRIDFILE=tx2008_r35h.grd # mesh (fort.14) file
+GRIDNAME=tx2008_r35h
+MESHPROPERTIES=${GRIDFILE}.properties
+CONTROLTEMPLATE=tx2008r35h_template.15   # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=hsofs.all_cera_stations_20170717.txt
-VELSTATIONS=hsofs.all_cera_stations_20170717.txt
-METSTATIONS=hsofs.all_cera_stations_20170717.txt
-NAFILE=hsofs.13
+ELEVSTATIONS=tx2008r35h_stations_20170618.txt
+VELSTATIONS=tx2008r35h_stations_20170618.txt
+METSTATIONS=tx2008r35h_stations_20170618.txt
+NAFILE=tx2008_r35h.13
 NAPROPERTIES=${NAFILE}.properties
-#SWANTEMPLATE=fort.26.template # only used if WAVES=on
-SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
-RIVERINIT=null                          # this mesh has no rivers ...
+SWANTEMPLATE=nolimiter.fort.26.ut.template    # only used if WAVES=on
+RIVERINIT=null                           # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
@@ -120,7 +119,7 @@ HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
 # Output files
 
 # water surface elevation station output
-FORT61="--fort61freq 900.0 --fort61netcdf" 
+FORT61="--fort61freq 300.0 --fort61netcdf" 
 # water current velocity station output
 FORT62="--fort62freq 0"                    
 # full domain water surface elevation output
@@ -128,7 +127,7 @@ FORT63="--fort63freq 3600.0 --fort63netcdf"
 # full domain water current velocity output
 FORT64="--fort64freq 3600.0 --fort64netcdf" 
 # met station output
-FORT7172="--fort7172freq 900.0 --fort7172netcdf"           
+FORT7172="--fort7172freq 300.0 --fort7172netcdf"           
 # full domain meteorological output
 FORT7374="--fort7374freq 3600.0 --fort7374netcdf"           
 #SPARSE="--sparse-output"
@@ -140,7 +139,7 @@ HOTSTARTCOMP=fulldomain
 # binary or netcdf hotstart files
 HOTSTARTFORMAT=netcdf                      
 # "continuous" or "reset" for maxele.63 etc files
-MINMAX=reset                             
+MINMAX=reset                               
 
 # Notification
 
@@ -158,7 +157,7 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=queenbee_daily_post.sh
+POSTPROCESS=ut-post2017.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
@@ -178,7 +177,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="nc.cera.renci2@gmail.com,asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
 
 NUMCERASERVERS=2
 WEBHOST=webserver.hostingco.com
@@ -195,7 +194,7 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=4 # number of storms in the ensemble
+ENSEMBLESIZE=0 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
@@ -205,12 +204,12 @@ case $si in
    ;;
 1)
    ENSTORM=nhcConsensusWind10m
-   ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
-   FORECASTWALLTIME="00:60:00" # forecast wall clock time
-   CONTROLTEMPLATE=hsofs.nowindreduction.15.template 
+   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0    # 15 minute time steps
-   NCPU=23               # dramatically reduced resource requirements
+   NCPU=19               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output
@@ -234,20 +233,53 @@ case $si in
    POSTPROCESS=null_post.sh
    ;;
 2)
-   ENSTORM=veerLeft50
-   PERCENT=-50
-   CONTROLTEMPLATE=hsofs_explicit.15.template  # fort.15 template
-   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+   ENSTORM=veerRight50
+   PERCENT=50
    ;;
 3)
-   ENSTORM=veerLeft50Wind10m
-   PERCENT=-50
-   ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
-   FORECASTWALLTIME="00:60:00" # forecast wall clock time
-   CONTROLTEMPLATE=hsofs.nowindreduction.15.template 
+   ENSTORM=veerRight50Wind10m
+   PERCENT=50
+   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0    # 15 minute time steps
-   NCPU=23               # dramatically reduced resource requirements
+   NCPU=19               # dramatically reduced resource requirements
+   NUMWRITERS=1          # multiple writer procs might collide
+   WAVES=off             # deactivate wave forcing 
+   # turn off water surface elevation station output
+   FORT61="--fort61freq 0"
+   # turn off water current velocity station output
+   FORT62="--fort62freq 0"
+   # turn off full domain water surface elevation output
+   FORT63="--fort63freq 0"
+   # turn off full domain water current velocity output
+   FORT64="--fort64freq 0"
+   # met station output
+   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
+   # full domain meteorological output
+   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
+   #SPARSE="--sparse-output"
+   SPARSE=""
+   NETCDF4="--netcdf4"
+   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+   # prevent collisions in prepped archives
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   POSTPROCESS=null_post.sh
+   ;;
+4)
+   ENSTORM=veerRight100
+   PERCENT=100
+   ;;
+5)
+   ENSTORM=veerRight100Wind10m
+   PERCENT=100
+   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.nowindreduction.15.template
+   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+   TIMESTEPSIZE=60.0    # 15 minute time steps
+   NCPU=19               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output
