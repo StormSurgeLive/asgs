@@ -32,6 +32,25 @@
 #
 # alias lsta='ls -lth *.state | head'
 #
+init_supermike()
+{ #<- can replace the following with a custom script
+  HOSTNAME=mike.hpc.lsu.edu
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  QUEUENAME=workq
+  SERQUEUE=single
+  #ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
+  SUBMITSTRING=qsub
+  SCRATCHDIR=/work/$USER
+  #SCRATCHDIR=/work/cera
+  SSHKEY=~/.ssh/id_rsa.pub
+  QSCRIPT=supermike.template.pbs
+  PREPCONTROLSCRIPT=supermike.adcprep.template.pbs
+  QSCRIPTGEN=tezpur.pbs.pl
+  PPN=16
+  # alias cdwo='cd /work/jgflemin'
+  # alias cdasgs='cd ~/asgs/2014stable'
+}
 init_queenbee()
 { #<- can replace the following with a custom script
   HOSTNAME=queenbee.loni.org
@@ -129,21 +148,17 @@ init_stampede()
 { #<- can replace the following with a custom script
   HOSTNAME=stampede.tacc.utexas.edu
   QUEUESYS=SLURM
-  QUEUENAME=normal
-  SERQUEUENAME=normal
-  SERQUEUE=normal
-  QCHECKCMD=squeue
-  ACCOUNT=TG-DMS080016N
+  QCHECKCMD=sacct
+  ACCOUNT=PleaseSpecifyACCOUNTInYourAsgsConfigFile
   SUBMITSTRING=sbatch
   SCRATCHDIR=$SCRATCH
-  SSHKEY=~/.ssh/id_rsa.pub
+  SSHKEY=~/.ssh/id_rsa_stampede
   QSCRIPT=stampede.template.slurm
   PREPCONTROLSCRIPT=stampede.adcprep.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
-  PPN=64 # apparently this is changeable ... up to 64 processes per node
-  UMASK=006
-  GROUP="G-803086"
-  module load netcdf
+  PPN=16
+  module load netcdf/4.3.2
+  #jgf20150610: Most likely QUEUENAME=normal SERQUEUENAME=serial
 }
 init_kittyhawk()
 { #<- can replace the following with a custom script
@@ -480,6 +495,9 @@ env_dispatch(){
   "thunder") consoleMessage "platforms.sh: Thunder (AFRL) configuration found."
           init_thunder
           ;;
+  "supermike") consoleMessage "platforms.sh: Supermike (LSU) configuration found."
+          init_supermike
+          ;;
   "queenbee") consoleMessage "platforms.sh: Queenbee (LONI) configuration found."
           init_queenbee
           ;;
@@ -510,7 +528,7 @@ env_dispatch(){
   "test") consoleMessage "platforms.sh: test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "platforms.sh: '$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, queenbee, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
+  *) fatal "platforms.sh: '$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
      ;;
   esac
 }
