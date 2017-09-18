@@ -128,6 +128,14 @@ if [[ -d $dirWind10m ]]; then
 else
    logMessage "$ENSTORM: $THIS: Corresponding 10m wind ensemble member was not found."
 fi
+#------------------------------------------------------------------------
+# accumulate min/max
+#previousAdvisory=`expr $ADVISORY - 1`
+#for file in maxele.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc maxwvel.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc ; do
+#   if [[ -e $file ]]; then
+#      ${OUTPUTDIR}/collectMinMax.x --source ../../$previousAdvisory/nowcast/$file --destination $file
+#   fi
+#done
 #
 #-------------------------------------------------------------------
 #               C E R A   F I L E   P R I O R I T Y
