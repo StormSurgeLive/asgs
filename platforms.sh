@@ -129,17 +129,21 @@ init_stampede()
 { #<- can replace the following with a custom script
   HOSTNAME=stampede.tacc.utexas.edu
   QUEUESYS=SLURM
-  QCHECKCMD=sacct
-  ACCOUNT=PleaseSpecifyACCOUNTInYourAsgsConfigFile
+  QUEUENAME=normal
+  SERQUEUENAME=normal
+  SERQUEUE=normal
+  QCHECKCMD=squeue
+  ACCOUNT=TG-DMS080016N
   SUBMITSTRING=sbatch
   SCRATCHDIR=$SCRATCH
-  SSHKEY=~/.ssh/id_rsa_stampede
+  SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=stampede.template.slurm
   PREPCONTROLSCRIPT=stampede.adcprep.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
-  PPN=16
-  module load netcdf/4.3.2
-  #jgf20150610: Most likely QUEUENAME=normal SERQUEUENAME=serial
+  PPN=64 # apparently this is changeable ... up to 64 processes per node
+  UMASK=006
+  GROUP="G-803086"
+  module load netcdf
 }
 init_kittyhawk()
 { #<- can replace the following with a custom script
