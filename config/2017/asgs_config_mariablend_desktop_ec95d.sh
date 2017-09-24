@@ -29,8 +29,8 @@
 
 INSTANCENAME=mariablend      # "name" of this ASGS process
 COLDSTARTDATE=2017091500 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+LASTSUBDIR=/srv/asgs/asgs12005/initialize     # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=1.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -64,7 +64,6 @@ NCPUCAPACITY=3
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=null
 SERQUEUE=null
-SCRATCHDIR=/projects/ncfs/data
 
 # External data sources : Tropical cyclones
 

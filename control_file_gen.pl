@@ -251,10 +251,10 @@ if ( abs($nws) == 30 || abs($nws) == 330 ) {
    stderrMessage("DEBUG","Setting hotstart timing and run length parameters appropriately for blended vortex and OWI meteorological forcing.");
    &vortexModelParameters($nws);
    my $vortexWTIMINC=$wtiminc;
-   my $vortexRNDAY=$RNDAY
-   my $vortexNHSINC=$NHSINC
+   my $vortexRNDAY=$RNDAY;
+   my $vortexNHSINC=$NHSINC;
    &owiParameters();   
-   $wtiminc = "$blendWTIMINC $wtiminc";
+   $wtiminc = "$vortexWTIMINC $wtiminc";
    # use the shorter of the two computed run lengths
    if ( $vortexRNDAY < $RNDAY ) {
       $RNDAY = $vortexRNDAY;

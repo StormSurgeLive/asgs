@@ -847,7 +847,7 @@ submitJob()
       logMessage "$ENSTORM: $THIS: Submitting job via $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${SYSLOG} 2>&1"
       # submit the parallel job in a subshell
       (
-         $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${ADVISDIR}/${ENSTORM}/adcirc.log 2>&1
+         $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${ADVISDIR}/${ENSTORM}/adcirc.log 2>&1
          ERROVALUE=$?
          RUNSUFFIX="finish"
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
@@ -1290,11 +1290,6 @@ fi
 ###############################
 #   BODY OF ASGS STARTS HERE
 ###############################
-if [[ $BACKGROUNDMET = on && $TROPICALCYCLONE = on ]]; then
-   NWS=29
-   # not ready for this yet
-   fatal "$THIS: Background meteorology and tropical cyclone forcing are both turned on in ${CONFIG} but simultaneous use of these two forcing types is not yet supported in ASGS."
-fi
 #
 # If we are coldstarting, perform a hindcast ... this is necessary
 # to ramp up forcing and allow transient signals to die away before
