@@ -141,6 +141,9 @@ my ($m2nf, $s2nf, $n2nf, $k2nf, $k1nf, $o1nf, $p1nf, $q1nf); # nodal factors
 my ($m2eqarg, $s2eqarg, $n2eqarg, $k2eqarg, $k1eqarg, $o1eqarg, $p1eqarg, $q1eqarg); # equilibrium arguments
 my $periodicflux="null";  # the name of a file containing the periodic flux unit discharge data for constant inflow boundaries
 my $fluxdata;
+my $pureVortex="5.0";      # used for vortex/owi blended winds
+my $pureBackground="7.0";  # used for vortex/owi blended winds
+
 GetOptions("controltemplate=s" => \$controltemplate,
            "stormdir=s" => \$stormDir,
            "swantemplate=s" => \$swantemplate,
@@ -235,11 +238,36 @@ stderrMessage("INFO","The fort.15 file will be written to the directory $stormDi
 # call subroutine that knows how to fill in the fort.15 for each particular
 # type of forcing
 if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 308 ) {
-   stderrMessage("DEBUG","Setting parameters appropriately for vortex model.");
+   stderrMessage("DEBUG","Setting hotstart timing and run length parameters appropriately for vortex model.");
    &vortexModelParameters($nws);
 }
-if ( abs($nws) == 12 || abs($nws) == 312 ) {
+if ( abs($nws) == 12 || abs($nws) == 312  ) {
+   stderrMessage("DEBUG","Setting hotstart timing and run length parameters appropriately for OWI meteorological forcing.");
    &owiParameters();
+}
+# set run length based on the shorter of the two run lengths; set WTIMINC line
+# as the sum of both WTIMINC lines
+if ( abs($nws) == 30 || abs($nws) == 330 ) {
+   stderrMessage("DEBUG","Setting hotstart timing and run length parameters appropriately for blended vortex and OWI meteorological forcing.");
+   &vortexModelParameters($nws);
+   my $vortexWTIMINC=$wtiminc;
+   my $vortexRNDAY=$RNDAY
+   my $vortexNHSINC=$NHSINC
+   &owiParameters();   
+   $wtiminc = "$blendWTIMINC $wtiminc";
+   # use the shorter of the two computed run lengths
+   if ( $vortexRNDAY < $RNDAY ) {
+      $RNDAY = $vortexRNDAY;
+      $NHSINC = $vortexNHSINC;
+   }
+}
+# add swan time step to WTIMINC line if waves have been activated
+if ( $nws != 0 && $waves eq "on" ) {
+   $wtiminc.=" $swandt"
+}
+# add the radii where vortex met is blended into backgroundmet
+if ( abs($nws) == 30 || abs($nws) == 330 ) {
+   $wtiminc.=" $pureVortex $pureBackground";
 }
 if ( $enstorm eq "hindcast" ) {
    stderrMessage("DEBUG","This is a hindcast.");
@@ -306,10 +334,7 @@ if ( $nws eq "0" ) {
    $fort7172 = "NO LINE HERE";
    $fort7374 = "NO LINE HERE";
 }
-# add swan time step to WTIMINC line if waves have been activated
-if ( $waves eq "on" ) {
-   $wtiminc.=" $swandt"
-}
+
 #
 # determine if tide_fac.x executable is present, and if so, generate
 # nodal factors and equilibrium arguments
@@ -1152,6 +1177,13 @@ sub vortexModelParameters () {
    #
    # create run description
    $rundesc = "cs:$csdate"."0000 cy:$nhcName$advisorynum ASGS";
+   # determine the number of hours of this run, from hotstart to end
+   (my $ddays, my $dhrs, my $dmin, my $dsec)
+           = Date::Pcalc::Delta_DHMS(
+                $ny,$nm,$nd,$nh,0,0,
+                $ey,$em,$ed,$eh,0,0);
+   my $addHours = $ddays*24.0 + $dhrs + $dmin/60.0 + $dsec/3600.0;
+   $ensembleid = $addHours . " hour " . $enstorm . " run";
    # create the WTIMINC line
    $wtiminc = $cy." ".$cm." ".$cd." ".$ch." 1 ".$bladj;
    if ( abs($nws) == 20 || abs($nws) == 320 ) {

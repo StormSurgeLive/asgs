@@ -600,9 +600,6 @@ downloadBackgroundMet()
    THIS="asgs_main.sh>downloadBackgroundMet()"
    logMessage "$ENSTORM: $THIS: Downloading meteorological data."
    cd $RUNDIR 2>> ${SYSLOG}
-   if [[ $ENSTORM != "nowcast" ]]; then
-      grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//' > currentCycle 2>> ${SYSLOG}
-   fi
    newAdvisoryNum=0
    while [[ $newAdvisoryNum -lt 2 ]]; do
       OPTIONS="--rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle $FORECASTCYCLE --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
@@ -611,10 +608,7 @@ downloadBackgroundMet()
          sleep 60
       fi
    done
-   # record the new advisory number to the statefile
-   cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG}
-   sed 's/ADVISORY=.*/ADVISORY='$newAdvisoryNum'/' $STATEFILE > ${STATEFILE}.new
-   cp -f ${STATEFILE}.new $STATEFILE >> ${SYSLOG} 2>&1          
+
 }
 #
 # subroutine that downloads river flux data from an external ftp site
@@ -1453,8 +1447,8 @@ while [ true ]; do
    RUNNOWCAST=yes 
    NOWCASTDIR=null    # directory with hotstart files to be used in forecast
    logMessage "$ENSTORM: $THIS: Checking for new meteorological data every 60 seconds ..."
-   # TROPICAL CYCLONE ONLY
-   if [[ $TROPICALCYCLONE = on ]]; then
+   # set met model type (BASENWS) and actual NWS value for fort.15
+   if [[ $TROPICALCYCLONE = on && $BACKGROUNDMET = off ]]; then
       BASENWS=20
       if [[ $VORTEXMODEL = ASYMMETRIC ]]; then
          BASENWS=19
@@ -1462,10 +1456,26 @@ while [ true ]; do
       if [[ $VORTEXMODEL = SYMMETRIC ]]; then
          BASENWS=8
       fi
-      NWS=$BASENWS
-      if [[ $WAVES = on ]]; then
-         NWS=`expr $BASENWS + 300`
-      fi
+   fi
+   if [[ $TROPICALCYCLONE = off && $BACKGROUNDMET = on ]]; then
+      BASENWS=-12   
+   fi
+   if [[ $TROPICALCYCLONE = on && $BACKGROUNDMET = on ]]; then
+      BASENWS=30
+   fi
+   NWS=$BASENWS
+   if [[ $WAVES = on ]]; then
+      NWS=`expr $BASENWS + 300`
+   fi
+   # set command line options for control_file_gen.pl that are valid
+   # for any forcing type or forecast length
+   if [[ $WAVES = on ]]; then
+      CONTROLOPTIONS="--swandt $SWANDT --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
+   fi
+   CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
+   CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
+   CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
+   if [[ $TROPICALCYCLONE = on ]]; then
       # download wind data from ftp site every 60 seconds to see if
       # there is a new advisory
       downloadCycloneData $STORM $YEAR $RUNDIR $SCRIPTDIR $OLDADVISDIR $TRIGGER $ADVISORY $FTPSITE $RSSSITE $FDIR $HDIR $STATEFILE
@@ -1491,7 +1501,7 @@ while [ true ]; do
       echo "stormnumber : $STORM" >> $ADVISDIR/$ENSTORM/run.properties
       echo "pseudostorm : $PSEUDOSTORM" >> $ADVISDIR/$ENSTORM/run.properties
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE $STORMTRACKOPTIONS"
-      CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+      CONTROLOPTIONS="${CONTROLOPTIONS} --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
@@ -1504,48 +1514,49 @@ while [ true ]; do
             cp NWS_${BASENWS}_fort.22 fort.22 >> ${SYSLOG} 2>&1
          fi
       fi
+      # generate fort.15 file
+      logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
+      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
    fi
    # BACKGROUND METEOROLOGY
    if [[ $BACKGROUNDMET = on ]]; then
-      NWS=-12
-      if [[ $WAVES = on ]]; then
-         NWS=-312
-      fi
       logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading background meteorology."
       logMessage "$ENSTORM: $THIS: downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
+      # need the date/time where the last tropical cyclone nowcast left off
       downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
       THIS="asgs_main.sh"
-      LASTADVISORYNUM=$ADVISORY
-      ADVISORY=`grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
-      ADVISDIR=$RUNDIR/${ADVISORY}
-      NOWCASTDIR=$ADVISDIR/$ENSTORM
-      cd $ADVISDIR 2>> ${SYSLOG}
-      allMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
+      if [[ $TROPICALCYCLONE = off ]]; then
+         # record the new advisory number to the statefile
+         cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG}
+         sed 's/ADVISORY=.*/ADVISORY='$newAdvisoryNum'/' $STATEFILE > ${STATEFILE}.new
+         cp -f ${STATEFILE}.new $STATEFILE >> ${SYSLOG} 2>&1          
+         LASTADVISORYNUM=$ADVISORY
+         ADVISORY=`grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
+         ADVISDIR=$RUNDIR/${ADVISORY}
+         NOWCASTDIR=$ADVISDIR/$ENSTORM
+         cd $ADVISDIR 2>> ${SYSLOG}
+         allMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
+      fi
       # convert met files to OWI format
       NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --applyRamp $SPATIALEXTRAPOLATIONRAMP --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE --awipGridNumber 218 --dataDir $NOWCASTDIR --outDir ${NOWCASTDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
       logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format with the following options : $NAMOPTIONS"
       perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
-      CONTROLOPTIONS=" --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+      if [[ $TROPICALCYCLONE = off ]]; then
+         CONTROLOPTIONS=" --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+      fi
       # create links to the OWI files
       cd $ENSTORM 2>> ${SYSLOG}
       NAM221=`ls NAM*.221`;
       NAM222=`ls NAM*.222`;
       ln -s $NAM221 fort.221 2>> ${SYSLOG}
       ln -s $NAM222 fort.222 2>> ${SYSLOG}
+      # generate fort.15 file
+      logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
+      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
    fi
    # send out an email alerting end users that a new cycle has been issued
    cycleStartTime=`date +%s`  # epoch seconds
    ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORM $YEAR $NOWCASTDIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
-   # activate padcswan based on ASGS configuration
-   if [[ $WAVES = on ]]; then
-      CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
-   fi
-   CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
-   CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
-   CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
-   # generate fort.15 file
-   logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
-   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
    # if current nowcast ends at same time as last nowcast, don't run it,
    # we'll just use the previous nowcast hotstart file(s) ... to signal that
    # this is the case, control_file_gen.pl won't write the 'runme' file
@@ -1625,6 +1636,9 @@ while [ true ]; do
    echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
+   # jgfdebug
+   exit
+
    #
    # F O R E C A S T
    #
@@ -1779,7 +1793,9 @@ while [ true ]; do
          allMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
          # download and convert met files to OWI format
          logMessage "$ENSTORM: $THIS: Downloading background meteorology."
-         logMessage "$ENSTORM: $THIS: downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR" $STATEFILE
+         logMessage "$ENSTORM: $THIS: downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
+         # find out when the nowcast left off
+         grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//' > currentCycle 2>> ${SYSLOG}
          downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
          THIS="asgs_main.sh"
          cd $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
