@@ -7,10 +7,10 @@ Temp/                                              ! Path where temporary files 
 %FileName%                                         ! Alphanumeric label for these plots.
 1,%Title%                                          ! Plot label flag and plot label.
 0,2005,8,23,18,0,0                                 ! Time bar flag: 0 to ignore, 1 to plot time bar.
--88.0                                              ! Lat/lon box.
--76.0                                              !
-20.0                                               !
-35.0                                               !
+-98.0                                              ! Lat/lon box.
+-79.9187                                           !
+18.0953                                            !
+31.3144                                            !
 fort.14                                            ! Name of grid file.
 0                                                  ! Plot grid flag: 0 to ignore, 1 to plot triangular grid on figure.
 PARAMETERS FOR CONTOURS:
@@ -23,7 +23,7 @@ m                                                  ! Alphanumeric label for unit
 SMS                                                ! Color palette flag: RGB, SMS(+INTERVALS), CPT(+INTERVALS).
 Default2.pal                                       ! Name of SMS color palette.
 DEFAULT                                            ! Color lines flag: DEFAULT, CONTOUR-LINES, GRID-BATH/SIZE/DECOMP-#.  Requires GMT4.3.0.
-0,4.0                                              ! Minimum,maximum in contour range (or FIND to determine from file).
+0,3.0                                              ! Minimum,maximum in contour range (or FIND to determine from file).
 0.1                                                ! Interval in contour range.
 100                                                ! Number of times to split contour interval (for smoother plots).
 1                                                  ! Label every xth contour line on the plot (or 0 for no labels).
@@ -51,12 +51,12 @@ PARAMETERS FOR OVERALL PLOT(S):
 0,Gray,4,4,0.5                                     ! Coastline flag: 0 to ignore, 1 to plot coastline with color, resolution (1[Least]-4[Most]), water bodies (1[Least]-4[Most]).
 2,Black,%TrackFile%,1.0                            ! Dots/lines flag: 0 to ignore, 1 to plot unconnected dots, 2 to plot connected line segments from an external file.
 0,labels.txt                                       ! Labels flag: 0 to ignore, 1 to plot labels from external file.
-1,TR,1.75,Coastal_Resiliency_ppl_RGB.eps           ! Logo flag: 0 to ignore, 1 to plot logo at position (TL,TR,BL,BR) and width (inches) from an external file.
+1,TL,1.75,LSU_UCF.eps                              ! Logo flag: 0 to ignore, 1 to plot logo at position (TL,TR,BL,BR) and width (inches) from an external file.
 0,MSAL-Oceans.txt                                  ! Background images: 0 to ignore, 1 to plot geo-referenced images from a list in an external file.
 8.00                                               ! Width (inches) of plot.
 0.25                                               ! Distance (inches) between edge of plot and contour scale, vector scale, time bar, plot label, etc.
-2.0                                                ! Alternate black and white boxes on the border at every xth degree.
-2.0                                                ! Annotate on the border at every xth degree.
+5.0                                                ! Alternate black and white boxes on the border at every xth degree.
+5.0                                                ! Annotate on the border at every xth degree.
 1                                                  ! Image trim flag: 0 to ignore, 1 to trim image close to plot.
 300                                                ! Resolution (dpi) of images.
 JPG                                                ! Raster file format(s): PNG, JPG, BMP, TIFF, EPS, PDF.

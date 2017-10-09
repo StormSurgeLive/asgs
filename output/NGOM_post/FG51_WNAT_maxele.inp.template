@@ -23,7 +23,7 @@ m                                                  ! Alphanumeric label for unit
 SMS                                                ! Color palette flag: RGB, SMS(+INTERVALS), CPT(+INTERVALS).
 Default2.pal                                       ! Name of SMS color palette.
 DEFAULT                                            ! Color lines flag: DEFAULT, CONTOUR-LINES, GRID-BATH/SIZE/DECOMP-#.  Requires GMT4.3.0.
-0,4                                                ! Minimum,maximum in contour range (or FIND to determine from file).
+0,3                                                ! Minimum,maximum in contour range (or FIND to determine from file).
 0.1                                                ! Interval in contour range.
 100                                                ! Number of times to split contour interval (for smoother plots).
 1                                                  ! Label every xth contour line on the plot (or 0 for no labels).
@@ -51,7 +51,7 @@ PARAMETERS FOR OVERALL PLOT(S):
 0,Gray,4,4,0.5                                     ! Coastline flag: 0 to ignore, 1 to plot coastline with color, resolution (1[Least]-4[Most]), water bodies (1[Least]-4[Most]).
 2,Black,%TrackFile%,1.0                            ! Dots/lines flag: 0 to ignore, 1 to plot unconnected dots, 2 to plot connected line segments from an external file.
 0,labels.txt                                       ! Labels flag: 0 to ignore, 1 to plot labels from external file.
-1,TL,2.5,Coastal_Resiliency_ppl_RGB.eps            ! Logo flag: 0 to ignore, 1 to plot logo at position (TL,TR,BL,BR) and width (inches) from an external file.
+1,TL,1.75,LSU_UCF.eps                              ! Logo flag: 0 to ignore, 1 to plot logo at position (TL,TR,BL,BR) and width (inches) from an external file.
 0,MSAL-Oceans.txt                                  ! Background images: 0 to ignore, 1 to plot geo-referenced images from a list in an external file.
 8.00                                               ! Width (inches) of plot.
 0.25                                               ! Distance (inches) between edge of plot and contour scale, vector scale, time bar, plot label, etc.

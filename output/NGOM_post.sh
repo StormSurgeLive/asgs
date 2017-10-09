@@ -50,7 +50,6 @@ cd $STORMDIR
 cp ${SCRIPTDIR}/output/NGOM_post/Extract_latlon.sh ${STORMDIR}/
 ./Extract_latlon.sh fort.22 fort.22.trk
 
-
 if [ -f maxele.63.nc ]; then
     fname="NGOM_WNAT_${STORM}_${ADVISORY}_${ENSTORM}_maxele_"
     title="NGOM_${STORM}_${ADVISORY}_${ENSTORM}_maxele_"
@@ -70,6 +69,48 @@ if [ -f maxele.63.nc ]; then
     sed -i "s/%FileName%/${fname}/g" FG51_NGOM_maxele.inp 
     sed -i "s/%Title%/${title}/g" FG51_NGOM_maxele.inp 
     sed -i "s/%TrackFile%/fort.22.trk/g" FG51_NGOM_maxele.inp
+
+    fname="NGOM_MS_${STORM}_${ADVISORY}_${ENSTORM}_maxele_"
+    cp ${SCRIPTDIR}/output/NGOM_post/FG51_MS_maxele.inp.template ${STORMDIR}/FG51_MS_maxele.inp
+    sed -i "s/%FileName%/${fname}/g" FG51_MS_maxele.inp 
+    sed -i "s/%Title%/${title}/g" FG51_MS_maxele.inp 
+    sed -i "s/%TrackFile%/fort.22.trk/g" FG51_MS_maxele.inp
+
+    fname="NGOM_AL_${STORM}_${ADVISORY}_${ENSTORM}_maxele_"
+    cp ${SCRIPTDIR}/output/NGOM_post/FG51_AL_maxele.inp.template ${STORMDIR}/FG51_AL_maxele.inp
+    sed -i "s/%FileName%/${fname}/g" FG51_AL_maxele.inp 
+    sed -i "s/%Title%/${title}/g" FG51_AL_maxele.inp 
+    sed -i "s/%TrackFile%/fort.22.trk/g" FG51_AL_maxele.inp
+
+    fname="NGOM_Pensacola_${STORM}_${ADVISORY}_${ENSTORM}_maxele_"
+    cp ${SCRIPTDIR}/output/NGOM_post/FG51_Pensacola_maxele.inp.template ${STORMDIR}/FG51_Pensacola_maxele.inp
+    sed -i "s/%FileName%/${fname}/g" FG51_Pensacola_maxele.inp 
+    sed -i "s/%Title%/${title}/g" FG51_Pensacola_maxele.inp 
+    sed -i "s/%TrackFile%/fort.22.trk/g" FG51_Pensacola_maxele.inp
+
+    fname="NGOM_Choc_${STORM}_${ADVISORY}_${ENSTORM}_maxele_"
+    cp ${SCRIPTDIR}/output/NGOM_post/FG51_Choc_maxele.inp.template ${STORMDIR}/FG51_Choc_maxele.inp
+    sed -i "s/%FileName%/${fname}/g" FG51_Choc_maxele.inp 
+    sed -i "s/%Title%/${title}/g" FG51_Choc_maxele.inp 
+    sed -i "s/%TrackFile%/fort.22.trk/g" FG51_Choc_maxele.inp
+
+    fname="NGOM_StAndrews_${STORM}_${ADVISORY}_${ENSTORM}_maxele_"
+    cp ${SCRIPTDIR}/output/NGOM_post/FG51_StAndrews_maxele.inp.template ${STORMDIR}/FG51_StAndrews_maxele.inp
+    sed -i "s/%FileName%/${fname}/g" FG51_StAndrews_maxele.inp 
+    sed -i "s/%Title%/${title}/g" FG51_StAndrews_maxele.inp 
+    sed -i "s/%TrackFile%/fort.22.trk/g" FG51_StAndrews_maxele.inp
+
+    fname="NGOM_Apalachicola_${STORM}_${ADVISORY}_${ENSTORM}_maxele_"
+    cp ${SCRIPTDIR}/output/NGOM_post/FG51_Apalachicola_maxele.inp.template ${STORMDIR}/FG51_Apalachicola_maxele.inp
+    sed -i "s/%FileName%/${fname}/g" FG51_Apalachicola_maxele.inp 
+    sed -i "s/%Title%/${title}/g" FG51_Apalachicola_maxele.inp 
+    sed -i "s/%TrackFile%/fort.22.trk/g" FG51_Apalachicola_maxele.inp
+
+    fname="NGOM_Apalachee_${STORM}_${ADVISORY}_${ENSTORM}_maxele_"
+    cp ${SCRIPTDIR}/output/NGOM_post/FG51_Apalachee_maxele.inp.template ${STORMDIR}/FG51_Apalachee_maxele.inp
+    sed -i "s/%FileName%/${fname}/g" FG51_Apalachee_maxele.inp 
+    sed -i "s/%Title%/${title}/g" FG51_Apalachee_maxele.inp 
+    sed -i "s/%TrackFile%/fort.22.trk/g" FG51_Apalachee_maxele.inp
 fi
 
 if [ -f swan_HS_max.63.nc ]; then
@@ -95,7 +136,8 @@ if [ -f swan_HS_max.63.nc ]; then
 fi
 
 cp ${SCRIPTDIR}/output/NGOM_post/Default2.pal ${STORMDIR}/
-cp ${SCRIPTDIR}/output/NGOM_post/Coastal_Resiliency_ppl_RGB.eps ${STORMDIR}/
+#cp ${SCRIPTDIR}/output/NGOM_post/Coastal_Resiliency_ppl_RGB.eps ${STORMDIR}/
+cp ${SCRIPTDIR}/output/NGOM_post/LSU_UCF.eps ${STORMDIR}/
 
 cp ${SCRIPTDIR}/output/NGOM_post/submit-postproc.qb ${STORMDIR}/
 qsub submit-postproc.qb
@@ -105,6 +147,88 @@ do
     sleep 5
 done
 
+# Copy files to chenier
+sdir=/data/CCR_data/ACTIVE/SHARE/asgs/NGOM/nate # Base directory
+# Create new directory for the current advisory and ensemble member
+ssh chenier.cct.lsu.edu "mkdir -p ${sdir}/${ADVISORY}"
+ssh chenier.cct.lsu.edu "mkdir -p ${sdir}/${ADVISORY}/${ENSTORM}"
+# Clear the current directory and create new ensemble memmber directory
+ssh chenier.cct.lsu.edu "rm ${sdir}/Current/*"
+ssh chenier.cct.lsu.edu "mkdir -p ${sdir}/Current/${ENSTORM}"
+# Copy images for current advisory - Doesn't seem to work
+#scp  "*.jpg" mbilskie@chenier.cct.lsu.edu:${sdir}/${ADVISORY}/${ENSTORM}
+
+fname="NGOM_WNAT_${STORM}_${ADVISORY}_${ENSTORM}_maxele_0001.jpg"
+scp ${fname} mbilskie@chenier.cct.lsu.edu:${sdir}/${ADVISORY}/${ENSTORM}/
+fname2="NGOM_WNAT_${STORM}_${ENSTORM}_maxele_0001.jpg"
+cp ${fname} ${fname2}
+scp ${fname2} mbilskie@chenier.cct.lsu.edu:${sdir}/Current/${ENSTORM}/
+rm ${fname2}
+
+fname="NGOM_GoM_${STORM}_${ADVISORY}_${ENSTORM}_maxele_0001.jpg"
+scp ${fname} mbilskie@chenier.cct.lsu.edu:${sdir}/${ADVISORY}/${ENSTORM}/
+fname2="NGOM_GoM_${STORM}_${ENSTORM}_maxele_0001.jpg"
+cp ${fname} ${fname2}
+scp ${fname2} mbilskie@chenier.cct.lsu.edu:${sdir}/Current/${ENSTORM}/
+rm ${fname2}
+
+fname="NGOM_NGOM_${STORM}_${ADVISORY}_${ENSTORM}_maxele_0001.jpg"
+scp ${fname} mbilskie@chenier.cct.lsu.edu:${sdir}/${ADVISORY}/${ENSTORM}/
+fname2="NGOM_NGOM_${STORM}_${ENSTORM}_maxele_0001.jpg"
+cp ${fname} ${fname2}
+scp ${fname2} mbilskie@chenier.cct.lsu.edu:${sdir}/Current/${ENSTORM}/
+rm ${fname2}
+
+fname="NGOM_MS_${STORM}_${ADVISORY}_${ENSTORM}_maxele_0001.jpg"
+scp ${fname} mbilskie@chenier.cct.lsu.edu:${sdir}/${ADVISORY}/${ENSTORM}/
+fname2="NGOM_MS_${STORM}_${ENSTORM}_maxele_0001.jpg"
+cp ${fname} ${fname2}
+scp ${fname2} mbilskie@chenier.cct.lsu.edu:${sdir}/Current/${ENSTORM}/
+rm ${fname2}
+
+fname="NGOM_AL_${STORM}_${ADVISORY}_${ENSTORM}_maxele_0001.jpg"
+scp ${fname} mbilskie@chenier.cct.lsu.edu:${sdir}/${ADVISORY}/${ENSTORM}/
+fname2="NGOM_AL_${STORM}_${ENSTORM}_maxele_0001.jpg"
+cp ${fname} ${fname2}
+scp ${fname2} mbilskie@chenier.cct.lsu.edu:${sdir}/Current/${ENSTORM}/
+rm ${fname2}
+
+fname="NGOM_StAndrews_${STORM}_${ADVISORY}_${ENSTORM}_maxele_0001.jpg"
+scp ${fname} mbilskie@chenier.cct.lsu.edu:${sdir}/${ADVISORY}/${ENSTORM}/
+fname2="NGOM_StAndrews_${STORM}_${ENSTORM}_maxele_0001.jpg"
+cp ${fname} ${fname2}
+scp ${fname2} mbilskie@chenier.cct.lsu.edu:${sdir}/Current/${ENSTORM}/
+rm ${fname2}
+
+fname="NGOM_Pensacola_${STORM}_${ADVISORY}_${ENSTORM}_maxele_0001.jpg"
+scp ${fname} mbilskie@chenier.cct.lsu.edu:${sdir}/${ADVISORY}/${ENSTORM}/
+fname2="NGOM_Pensacola_${STORM}_${ENSTORM}_maxele_0001.jpg"
+cp ${fname} ${fname2}
+scp ${fname2} mbilskie@chenier.cct.lsu.edu:${sdir}/Current/${ENSTORM}/
+rm ${fname2}
+
+fname="NGOM_Choc_${STORM}_${ADVISORY}_${ENSTORM}_maxele_0001.jpg"
+scp ${fname} mbilskie@chenier.cct.lsu.edu:${sdir}/${ADVISORY}/${ENSTORM}/
+fname2="NGOM_Choc_${STORM}_${ENSTORM}_maxele_0001.jpg"
+cp ${fname} ${fname2}
+scp ${fname2} mbilskie@chenier.cct.lsu.edu:${sdir}/Current/${ENSTORM}/
+rm ${fname2}
+
+fname="NGOM_Apalachicola_${STORM}_${ADVISORY}_${ENSTORM}_maxele_0001.jpg"
+scp ${fname} mbilskie@chenier.cct.lsu.edu:${sdir}/${ADVISORY}/${ENSTORM}/
+fname2="NGOM_Apalachicola_${STORM}_${ENSTORM}_maxele_0001.jpg"
+cp ${fname} ${fname2}
+scp ${fname2} mbilskie@chenier.cct.lsu.edu:${sdir}/Current/${ENSTORM}/
+rm ${fname2}
+
+fname="NGOM_Apalachee_${STORM}_${ADVISORY}_${ENSTORM}_maxele_0001.jpg"
+scp ${fname} mbilskie@chenier.cct.lsu.edu:${sdir}/${ADVISORY}/${ENSTORM}/
+fname2="NGOM_Apalachee_${STORM}_${ENSTORM}_maxele_0001.jpg"
+cp ${fname} ${fname2}
+scp ${fname2} mbilskie@chenier.cct.lsu.edu:${sdir}/Current/${ENSTORM}/
+rm ${fname2}
+
+sleep 5
 
 #
 #POSTDIR=/dev/null
