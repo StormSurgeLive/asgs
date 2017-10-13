@@ -171,8 +171,9 @@ $ylabel = $titlePrefix . $labelUnits;
 # ymax
 unless (open(TRANSPOSE,"<$fileToPlot")) {
    stderrMessage("ERROR","Could not open $fileToPlot: $!.");
-   exit(1);
+   die;
 }
+stderrMessage("INFO","Opened $fileToPlot.");
 #
 # assume that the format is space-delimited since that is what gnuplot needs
 my $startgraph = "not implemented";  # date on which the graph should start 
@@ -209,6 +210,7 @@ while (<TRANSPOSE>) {
       }
    }
 }
+stderrMessage("INFO","Finished reading station names from $fileToPlot.");
 #
 # create a gnuplot script file for each column
 for (my $i=3; $i<$numCol; $i++ ) {
@@ -216,8 +218,9 @@ for (my $i=3; $i<$numCol; $i++ ) {
    # Open template file 
    unless (open(TEMPLATE,"<$outputDir/template.gp")) {
       &stderrMessage("ERROR","Could not open $outputDir/template.gp: $!.");
-      exit(1);
+      die;
    }
+   #&stderrMessage("DEBUG","Opened $outputDir/template.gp.");
    #
    # form plot title and filename
    $stanames[$i] =~ /\"\s*(.+)\s*\"/; # strip quotes and any surrounding space
@@ -228,8 +231,12 @@ for (my $i=3; $i<$numCol; $i++ ) {
    # if station name is in standard metadata format
    if ( $numFields >= 3 ) {
       my $id = $fields[1];
-      unless ( is_member($id,@stationIDs)) {
-         next;
+      # only include the specified stations if only certain stations were 
+      # specified
+      if ( $stationsOfInterest ne "all" ) {
+         unless ( is_member($id,@stationIDs)) {
+           next;
+         }
       }
       $stationName = $fields[1] . ' ' . $fields[3];
    }   
@@ -269,8 +276,9 @@ for (my $i=3; $i<$numCol; $i++ ) {
    # Create gnuplotscript file 
    unless (open(GPSCRIPT,">$plotDir/$gpscript")) {
       stderrMessage("ERROR","Could not create $plotDir/$gpscript: $!.");
-      exit(1);
+      die;
    }
+   #&stderrMessage("DEBUG","Opened $plotDir/$gpscript.");
    while(<TEMPLATE>) {
       s/%ymin%/$myYmin/;
       s/%ymax%/$myYmax/;

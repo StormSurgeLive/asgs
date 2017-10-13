@@ -62,10 +62,10 @@ NCPU=1200                     # number of compute CPUs for all simulations
 NUMWRITERS=20
 NCPUCAPACITY=3648
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=workq
-SERQUEUE=single
-#QUEUENAME=admin
-#SERQUEUE=admin
+#QUEUENAME=workq
+#SERQUEUE=single
+QUEUENAME=admin
+SERQUEUE=admin
 ACCOUNT=loni_cera_2017
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 

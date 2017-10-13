@@ -21,6 +21,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------
 #
+# bash ~/asgs/2014stable/output/hsofs_renci_post.sh ~/asgs/2014stable/config/2017/asgs_config_natehsofsNG60cm_hatteras_hsofsx.sh /projects/ncfs/data/asgs19488/15 16 2017 15 hatteras.renci.org nhcConsensus 2017071600 7257600.0 /home/ncfs/asgs/2014stable/input/meshes/hsofs/hsofs.14 ~/asgs/2014stable/output stuff.log ~/.ssh/id_rsa.pub
 CONFIG=$1
 ADVISDIR=$2
 STORM=$3

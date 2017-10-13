@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Thu, 22 Jun 2017 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression CINDY Forecast/Advisory Number 12</title>
+      <description>Issued at 1500 UTC THU JUN 22 2017 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL DEPRESSION CINDY FORECAST/ADVISORY NUMBER  12
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL032017
+1500 UTC THU JUN 22 2017
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+THE TROPICAL STORM WARNING FROM HIGH ISLAND TEXAS TO MORGAN CITY
+LOUISIANA HAS BEEN DISCONTINUED.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+THERE ARE NO COASTAL WATCHES OF WARNINGS IN EFFECT.
+
+TROPICAL DEPRESSION CENTER LOCATED NEAR 31.0N  93.5W AT 22/1500Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH OR  10 DEGREES AT  11 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  997 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+12 FT SEAS..  0NE 180SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 31.0N  93.5W AT 22/1500Z
+AT 22/1200Z CENTER WAS LOCATED NEAR 30.5N  93.6W
+
+FORECAST VALID 23/0000Z 32.8N  93.2W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+
+FORECAST VALID 23/1200Z 35.0N  90.5W...POST-TROP/REMNT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+
+FORECAST VALID 24/0000Z 37.0N  86.0W...POST-TROP/REMNT LOW
+MAX WIND  20 KT...GUSTS  30 KT.
+
+FORECAST VALID 24/1200Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 31.0N  93.5W
+
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE
+CENTER ON THIS SYSTEM. FUTURE INFORMATION ON THIS SYSTEM CAN BE
+FOUND IN PUBLIC ADVISORIES ISSUED BY THE WEATHER PREDICTION CENTER
+BEGINNING AT 4 PM CDT, UNDER AWIPS HEADER TCPAT3, WMO HEADER
+WTNT33 KWNH, AND ON THE WEB AT HTTP://WWW.WPC.NCEP.NOAA.GOV.
+
+$$
+FORECASTER AVILA
+
+</pre>]]></description>
+      <pubDate>Thu, 22 Jun 2017 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2017/03/12.032017.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2017/03/12.032017.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
