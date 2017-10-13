@@ -166,7 +166,7 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=ncfs_post.sh
+POSTPROCESS=ncfs_post_min.sh
 POSTPROCESS2=null_post.sh
 
 TDS=(renci_tds lsu_tds)

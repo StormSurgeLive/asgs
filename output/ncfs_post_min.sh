@@ -25,6 +25,9 @@
 # grep -i hot run.properties
 # bash ~/asgs/2014stable/output/ncfs_post_min.sh ~/asgs/2014stable/config/2017/asgs_config_nam_swan_river_hatteras_nc9.99wrivers.sh /projects/ncfs/data/asgs10124/2017073100 99 2017 2017073100 hatteras.renci.org namforecast 2017012400 16243200.0 fort.14 ~/asgs/2014stable/output stuff.log ~/.ssh/id_rsa.pub
 #
+# nate advisory 15
+# bash ~/asgs/2014stable/output/ncfs_post_min.sh ~/asgs/2014stable/config/2017/asgs_config_natelaNG60cm_hatteras_LAv12h.sh /projects/ncfs/data/asgs14359/15 16 2017 15 hatteras.renci.org nhcConsensus 2017090412 2894400.0 /home/ncfs/asgs/2014stable/input/meshes/LA_v12g-WithUpperAtch/LA_v12h-WithUpperAtch_chk.grd ~/asgs/2014stable/output stuff.log ~/.ssh/id_rsa.pub
+#
 #
 CONFIG=$1
 ADVISDIR=$2
@@ -67,6 +70,14 @@ echo "ceraServer : $CERASERVER" >> run.properties
 #
 # write the intended audience to the run.properties file for CERA
 echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
+#
+# accumulate min/max
+#previousAdvisory=`expr $ADVISORY - 1`
+#for file in maxele.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc maxwvel.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc ; do
+#   if [[ -e $file ]]; then
+#      ${OUTPUTDIR}/collectMinMax.x --source ../../$previousAdvisory/nowcast/$file --destination $file
+#   fi
+#done
 #
 #-----------------------------------------------------------------------
 #          I N C L U S I O N   O F   10 M   W I N D S
