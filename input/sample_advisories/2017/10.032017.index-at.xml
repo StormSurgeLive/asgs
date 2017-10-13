@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Thu, 22 Jun 2017 03:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm CINDY Forecast/Advisory Number 10</title>
+      <description>Issued at 0300 UTC THU JUN 22 2017 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM CINDY FORECAST/ADVISORY NUMBER  10
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL032017
+0300 UTC THU JUN 22 2017
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+THE TROPICAL STORM HAS BEEN DISCONTINUED EAST OF GRAND ISLE...
+LOUISIANA.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* SAN LUIS PASS TEXAS TO GRAND ISLE
+
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA...IN THIS CASE WITHIN
+THE NEXT 12 HOURS.
+
+INTERESTS ELSEWHERE ALONG THE U.S. GULF COAST FROM THE CENTRAL TEXAS
+COAST TO THE WESTERN FLORIDA PANHANDLE SHOULD MONITOR THE PROGRESS
+OF THIS SYSTEM.
+
+TROPICAL STORM CENTER LOCATED NEAR 28.6N  93.4W AT 22/0300Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHWEST OR 340 DEGREES AT   6 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  992 MB
+MAX SUSTAINED WINDS  45 KT WITH GUSTS TO  55 KT.
+34 KT.......100NE 100SE  50SW 100NW.
+12 FT SEAS..300NE   0SE   0SW  60NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 28.6N  93.4W AT 22/0300Z
+AT 22/0000Z CENTER WAS LOCATED NEAR 28.3N  93.3W
+
+FORECAST VALID 22/1200Z 30.1N  93.6W...INLAND
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT...100NE 100SE  50SW  50NW.
+
+FORECAST VALID 23/0000Z 32.2N  93.0W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 23/1200Z 34.2N  90.6W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+
+FORECAST VALID 24/0000Z 36.1N  85.6W...POST-TROP/REMNT LOW
+MAX WIND  20 KT...GUSTS  30 KT.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 200 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 26/0000Z...MERGED WITH FRONTAL SYSTEM
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 28.6N  93.4W
+
+NEXT ADVISORY AT 22/0900Z
+
+$$
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Thu, 22 Jun 2017 03:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2017/03/10.032017.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2017/03/10.032017.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
