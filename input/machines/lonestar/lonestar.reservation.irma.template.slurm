@@ -8,7 +8,7 @@
 # The next line is required if the user has more than one project
 #SBATCH -A %account%     # Project/allocation number
 #SBATCH --mail-user=%notifyuser%
-#SBATCH --reservation=Nate
+#SBATCH --reservation=Irma
 
 #Note:  ibrun does not bind tasks or threads by default
 #       To bind task/threads to sockets or cores, you must use

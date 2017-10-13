@@ -206,7 +206,7 @@ case $si in
    ENSTORM=nhcConsensusWind10m
    ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:60:00" # forecast wall clock time
-   CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
+   CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.nowindreduction.15.template  # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0     # 1 minute time steps
    NCPU=23               # dramatically reduced resource requirements
@@ -241,7 +241,7 @@ case $si in
    PERCENT=-100
    ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:60:00" # forecast wall clock time
-   CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
+   CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.nowindreduction.15.template  # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0     # 1 minute time steps
    NCPU=23               # dramatically reduced resource requirements
