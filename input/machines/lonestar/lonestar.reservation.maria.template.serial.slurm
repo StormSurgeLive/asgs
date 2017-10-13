@@ -7,7 +7,7 @@
 #SBATCH -t %walltime%                   # Run time (hh:mm:ss) - 1.5 hours
 #SBATCH -A %account%                    # Project/allocation name
 #SBATCH --mail-user=%notifyuser%
-#SBATCH --reservation=Nate
+#SBATCH --reservation=Maria
 #
 echo "%enstorm% adcprep job script starting at `date`"
 cd %advisdir%/%enstorm%
