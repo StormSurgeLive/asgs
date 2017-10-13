@@ -146,7 +146,7 @@ HOTSTARTCOMP=fulldomain
 # binary or netcdf hotstart files
 HOTSTARTFORMAT=netcdf                      
 # "continuous" or "reset" for maxele.63 etc files
-MINMAX=continuous                             
+MINMAX=reset                             
 
 # Notification
 

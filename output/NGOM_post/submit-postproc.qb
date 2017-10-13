@@ -13,6 +13,13 @@ if [ -f maxele.63.nc ]; then
     FigureGen -I FG51_WNAT_maxele.inp > $PBS_JOBNAME.out 
     FigureGen -I FG51_GoM_maxele.inp > $PBS_JOBNAME.out
     FigureGen -I FG51_NGOM_maxele.inp > $PBS_JOBNAME.out
+    FigureGen -I FG51_AL_maxele.inp > $PBS_JOBNAME.out
+    FigureGen -I FG51_MS_maxele.inp > $PBS_JOBNAME.out
+    FigureGen -I FG51_Pensacola_maxele.inp > $PBS_JOBNAME.out
+    FigureGen -I FG51_Choc_maxele.inp > $PBS_JOBNAME.out
+    FigureGen -I FG51_StAndrews_maxele.inp > $PBS_JOBNAME.out
+    FigureGen -I FG51_Apalachicola_maxele.inp > $PBS_JOBNAME.out
+    FigureGen -I FG51_Apalachee_maxele.inp > $PBS_JOBNAME.out
 fi
 if [ -f swan_HS_max.63.nc ]; then
     FigureGen -I FG51_WNAT_maxHS.inp > $PBS_JOBNAME.out
