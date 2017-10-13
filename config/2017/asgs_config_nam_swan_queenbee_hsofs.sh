@@ -27,8 +27,8 @@
 
 # Fundamental
 
-INSTANCENAME=namhsofs    # "name" of this ASGS process
-COLDSTARTDATE=2017070100 # calendar year month day hour YYYYMMDDHH24
+INSTANCENAME=namhsofsx    # "name" of this ASGS process
+COLDSTARTDATE=2017090400 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -62,10 +62,10 @@ NCPU=1200                    # number of compute CPUs for all simulations
 NUMWRITERS=20
 NCPUCAPACITY=3648
 CYCLETIMELIMIT="05:00:00"
-#QUEUENAME=workq
-#SERQUEUE=single
-QUEUENAME=admin
-SERQUEUE=admin
+QUEUENAME=workq
+SERQUEUE=single
+#QUEUENAME=admin
+#SERQUEUE=admin
 SCRATCHDIR=/work/$USER
 ACCOUNT=loni_cera_2017
 
@@ -103,14 +103,8 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 GRIDFILE=hsofs.14  # mesh (fort.14) file
 GRIDNAME=hsofs
-#MESHPROPERTIES=${GRIDFILE}.nc.properties
 MESHPROPERTIES=${GRIDFILE}.ng.properties     
-if [[ $TROPICALCYCLONE = on ]]; then 
-   if [[ $HOSTNAME = "queenbee.loni.org" || $HOSTNAME = "thunder.afrl.hpc.mil" || $HOSTNAME = "topaz.erdc.hpc.mil" ]]; then
-      MESHPROPERTIES=${GRIDFILE}.ng.properties     
-   fi
-fi
-CONTROLTEMPLATE=hsofs.15.template  # fort.15 template
+CONTROLTEMPLATE=hsofs_explicit.15.template  # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
 ELEVSTATIONS=hsofs.all_cera_stations_20170717.txt
 VELSTATIONS=hsofs.all_cera_stations_20170717.txt
@@ -202,7 +196,7 @@ case $si in
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-   TIMESTEPSIZE=900.0    # 15 minute time steps
+   TIMESTEPSIZE=60.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
@@ -215,7 +209,7 @@ case $si in
    # turn off full domain water current velocity output
    FORT64="--fort64freq 0"
    # met station output
-   FORT7172="--fort7172freq 900.0 --fort7172netcdf"
+   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
    # full domain meteorological output
    FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
    #SPARSE="--sparse-output"
