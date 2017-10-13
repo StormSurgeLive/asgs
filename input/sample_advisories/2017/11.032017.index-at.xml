@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Thu, 22 Jun 2017 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm CINDY Forecast/Advisory Number 11</title>
+      <description>Issued at 0900 UTC THU JUN 22 2017 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL STORM CINDY FORECAST/ADVISORY NUMBER  11
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL032017
+0900 UTC THU JUN 22 2017
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+THE TROPICAL STORM WARNING IS DISCONTINUED EAST OF MORGAN CITY
+LOUISIANA AND WEST OF HIGH ISLAND TEXAS.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* HIGH ISLAND TEXAS TO MORGAN CITY LOUISIANA
+ 
+INTERESTS ELSEWHERE ALONG THE U.S. GULF COAST FROM THE CENTRAL TEXAS
+COAST TO THE WESTERN FLORIDA PANHANDLE SHOULD MONITOR THE PROGRESS
+OF THIS SYSTEM.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 29.9N  93.6W AT 22/0900Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH OR 360 DEGREES AT  10 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  994 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT....... 0NE   0SE  60SW  60NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 29.9N  93.6W AT 22/0900Z
+AT 22/0600Z CENTER WAS LOCATED NEAR 29.4N  93.6W
+ 
+FORECAST VALID 22/1800Z 31.4N  93.5W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 23/0600Z 33.4N  92.4W...POST-TROP/REMNT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 23/1800Z 35.4N  89.0W...POST-TROP/REMNT LOW
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 24/0600Z 37.0N  83.0W...POST-TROP/REMNT LOW
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 25/0600Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 29.9N  93.6W
+ 
+NEXT ADVISORY AT 22/1500Z
+ 
+$$
+FORECASTER PASCH
+
+</pre>]]></description>
+      <pubDate>Thu, 22 Jun 2017 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2017/03/11.032017.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2017/03/11.032017.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
