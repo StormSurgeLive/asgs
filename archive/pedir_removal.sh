@@ -1,6 +1,46 @@
 #!/bin/bash
-HOTTIFYPATH=$1
-logFile="subdomaindir_removal.log"
+#----------------------------------------------------------------
+# pedir_removal.sh: Removes the PE* subdirectories that were
+# created by adcprep for use in a parallel adcirc simulation.  
+#----------------------------------------------------------------
+# Copyright(C) 2017 Jason Fleming
+#
+# This file is part of the ADCIRC Surge Guidance System (ASGS).
+#
+# The ASGS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# ASGS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#----------------------------------------------------------------
+# This script expects that when it starts, PWD points to an 
+# asgs run directory with subdirectories representing various
+# advisories
+HOTTIFYPATH=~/adcirc/swan
+MACHINE=jason-desktop
+REMOVALCMD="rm"
+while getopts "p:e" optname; do   
+  case $optname in
+    h) HOTTIFYPATH=${OPTARG} # -h /path/to/HottifySWAN.x
+       ;;
+    e) MACHINE=${OPTARG}     # e.g., -e queenbee 
+       ;;
+  esac
+done
+case $MACHINE in
+  queenbee) REMOVALCMD="rmpurge"
+       ;;
+  *) REMOVALCMD="rm"
+       ;;
+esac
+logFile="pedir_removal.log"
 instancedir=$PWD
 for advisdir in `ls`; do
    # operate on advisory directories
