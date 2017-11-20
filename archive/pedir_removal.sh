@@ -26,9 +26,22 @@
 HOTTIFYPATH=~/adcirc/swan
 MACHINE=jason-desktop
 REMOVALCMD="rm"
-while getopts "p:e" optname; do   
+while getopts "h:e" optname; do   
   case $optname in
-    h) HOTTIFYPATH=${OPTARG} # -h /path/to/HottifySWAN.x
+    h) HOTTIFYPATH=${OPTARG} # -h /path/to/HottifySWAN.x (or unhcat.exe)
+       # set name of SWAN executable that knits together the subdomain
+       # SWAN hotstart files into a fulldomain SWAN hotstart file
+       hSWANExe=null
+       if [[ -e ${HOTTIFYPATH}/HottifySWAN.x ]]; then
+          hSWANExe=HottifySWAN.x
+       fi
+       if [[ -e ${HOTTIFYPATH}/unhcat.exe ]]; then
+          hSWANExe=unhcat.exe
+       fi
+       if [[ $hSWANExe = null ]]; then
+          echo "ERROR: Could not find HottifySWAN.x or unhcat.exe in the directory ${HOTTIFYPATH}."
+          exit
+       fi
        ;;
     e) MACHINE=${OPTARG}     # e.g., -e queenbee 
        ;;
