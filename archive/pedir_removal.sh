@@ -23,6 +23,7 @@
 # This script expects that when it starts, PWD points to an 
 # asgs run directory with subdirectories representing various
 # advisories
+#----------------------------------------------------------------
 HOTTIFYPATH=~/adcirc/swan
 MACHINE=jason-desktop
 REMOVALCMD="rm"
@@ -72,8 +73,16 @@ for advisdir in `ls`; do
             # if it is a nowcast, archive the swan hotstart file if any
             if [[ $stormdir = nowcast ]]; then
                # construct fulldomain swan hotstart file and compress
+               if [[ -e ./PE0000/swan.67 ]]; then
+                  ${HOTTIFYPATH}/$hSWANExe <<EOF >> $instancedir/$logFile 2>&1 
+1
+swan.67
+F
+EOF
+                  bzip2 swan.67 >> $instancedir/$logFile 2>&1
+               fi
                if [[ -e ./PE0000/swan.68 ]]; then
-                  ${HOTTIFYPATH}/HottifySWAN.x <<EOF >> $instancedir/$logFile 2>&1 
+                  ${HOTTIFYPATH}/$hSWANExe <<EOF >> $instancedir/$logFile 2>&1 
 1
 swan.68
 F
