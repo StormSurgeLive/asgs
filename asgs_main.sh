@@ -1479,10 +1479,23 @@ while [ true ]; do
       fi
    fi
    # turn SWAN hotstarting on or off as appropriate
-   if [[ $WAVES = on && -e $FROMDIR/PE0000/swan.67 && $REINITIALIZESWAN = no ]]; then
-       HOTSWAN=on # doesn't do anything unless WAVES=on
-   else 
-       HOTSWAN=off
+   HOTSWAN=off
+   if [[ $WAVES = on && $REINITIALIZESWAN = no ]]; then
+      # look for a swan hotstart file
+      for swanhsfile in PE0000/swan.67 swan.67; do
+         if [[ -e $FROMDIR/$swanhsfile ]]; then 
+            HOTSWAN=on
+            logMessage "Found SWAN hotstart file $FROMDIR/${swanhsfile}."
+            break
+         fi
+         for swanhssuffix in tar.gz tar.bz2 gz bz2; do
+            if [[ -e $FROMDIR/${swanhsfile}.${swanhssuffix} ]]; then
+               HOTSWAN=on
+               logMessage "Found SWAN hotstart file $FROMDIR/${swanhsfile}."
+               break
+            fi
+         done
+      done
    fi
    checkHotstart $FROMDIR $HOTSTARTFORMAT  67
    THIS="asgs_main.sh"
@@ -1765,10 +1778,23 @@ while [ true ]; do
          done
       fi
       # turn SWAN hotstarting on or off as appropriate
-      if [[ $WAVES = on && -e $NOWCASTDIR/PE0000/swan.67 && $REINITIALIZESWAN = no ]]; then
-         HOTSWAN=on # doesn't do anything unless WAVES=on
-      else 
-         HOTSWAN=off
+      HOTSWAN=off
+      if [[ $WAVES = on && $REINITIALIZESWAN = no ]]; then
+         # look for a swan hotstart file
+         for swanhsfile in PE0000/swan.67 swan.67; do
+            if [[ -e $FROMDIR/$swanhsfile ]]; then 
+               HOTSWAN=on
+               logMessage "Found SWAN hotstart file $FROMDIR/${swanhsfile}."
+               break
+            fi
+            for swanhssuffix in tar.gz tar.bz2 gz bz2; do
+               if [[ -e $FROMDIR/${swanhsfile}.${swanhssuffix} ]]; then
+                  HOTSWAN=on
+                  logMessage "Found SWAN hotstart file $FROMDIR/${swanhsfile}."
+                  break
+               fi
+            done
+         done
       fi
       STORMDIR=$ADVISDIR/$ENSTORM
       if [ ! -d $STORMDIR ]; then
