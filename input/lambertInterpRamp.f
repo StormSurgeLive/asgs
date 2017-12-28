@@ -58,9 +58,9 @@ C    +changed the format from A30 to A132 for writing file names to the log
 C     file so that the full value of the file name would be captured there
 C
 C    Build Instructions:
-C    g95 -ffixed-form -Wall -o awip_lambert_interp.x awip_lambert_interp.f90
+C    g95 -ffixed-form -Wall -o lamberInterpRamp.x awip_lambert_interp.f90
 C
-C    ifort -o awip_lambert_interp.x awip_lambert_interp.F
+C    ifort -o lamberInterpRamp.x awip_lambert_interp.F
 C
 C    On garnet at ERDC, be sure to add the -tp=shanghai-64 flag to the 
 C    fortran compiler flags; otherwise the executable will fail with
@@ -228,7 +228,7 @@ C-----------------------------------------------------------------------
                   i = i + 1
                   call getarg(i, cmdlinearg)
                   write(6,'(a,a,a,a,a)') 
-     &               'INFO: awip_lambert_interp.x: Processing "',
+     &               'INFO: lamberInterpRamp.x: Processing "',
      &               trim(cmdlineopt),' ',trim(cmdlinearg),'".'
                   read(cmdlinearg,*) GNUM
 
@@ -236,7 +236,7 @@ C-----------------------------------------------------------------------
                   i = i + 1
                   call getarg(i, cmdlinearg)
                   write(6,'(a,a,a,a,a)') 
-     &               'INFO: awip_lambert_interp.x: Processing "',
+     &               'INFO: lamberInterpRamp.x: Processing "',
      &               trim(cmdlineopt),' ',trim(cmdlinearg),'".'
                   read(cmdlinearg,*) NCOL
 
@@ -244,7 +244,7 @@ C-----------------------------------------------------------------------
                   i = i + 1
                   call getarg(i, cmdlinearg)
                   write(6,'(a,a,a,a,a)') 
-     &               'INFO: awip_lambert_interp.x: Processing"',
+     &               'INFO: lamberInterpRamp.x: Processing"',
      &               trim(cmdlineopt),' ',trim(cmdlinearg),'".'
                   MET_F_NAME = trim(cmdlinearg)
 
@@ -252,7 +252,7 @@ C-----------------------------------------------------------------------
                   i = i + 1
                   call getarg(i, cmdlinearg)
                   write(6,'(a,a,a,a,a)') 
-     &               'INFO: awip_lambert_interp.x: Processing"',
+     &               'INFO: lamberInterpRamp.x: Processing"',
      &               trim(cmdlineopt),' ',trim(cmdlinearg),'".'
                   MET_F_NAME_OUT = trim(cmdlinearg)
 
@@ -260,7 +260,7 @@ C-----------------------------------------------------------------------
                   i = i + 1
                   call getarg(i, cmdlinearg)
                   write(6,'(a,a,a,a,a)') 
-     &               'INFO: awip_lambert_interp.x: Processing"',
+     &               'INFO: lamberInterpRamp.x: Processing"',
      &               trim(cmdlineopt),' ',trim(cmdlinearg),'".'
                   TARGPTNAME = trim(cmdlinearg)
 
@@ -268,7 +268,7 @@ C-----------------------------------------------------------------------
                   i = i + 1
                   call getarg(i, cmdlinearg)
                   write(6,'(a,a,a,a,a)') 
-     &               'INFO: awip_lambert_interp.x: Processing"',
+     &               'INFO: lamberInterpRamp.x: Processing"',
      &               trim(cmdlineopt),' ',trim(cmdlinearg),'".'
                   windUnitsString = trim(cmdlinearg)
                   SELECT CASE (trim(windUnitsString))
@@ -287,7 +287,7 @@ C-----------------------------------------------------------------------
                   i = i + 1
                   call getarg(i, cmdlinearg)
                   write(6,'(a,a,a,a,a)') 
-     &               'INFO: awip_lambert_interp.x: Processing "',
+     &               'INFO: lamberInterpRamp.x: Processing "',
      &               trim(cmdlineopt),' ',trim(cmdlinearg),'".'
                   read(cmdlinearg,*) windMult 
 
@@ -295,7 +295,7 @@ C-----------------------------------------------------------------------
                   i = i + 1
                   call getarg(i, cmdlinearg)
                   write(6,'(a,a,a,a,a)') 
-     &               'INFO: awip_lambert_interp.x: Processing "',
+     &               'INFO: lamberInterpRamp.x: Processing "',
      &               trim(cmdlineopt),' ',trim(cmdlinearg),'".'
                   read(cmdlinearg,*) rampDistance
                   ! -99999.0 means no ramp; need a positive distance
@@ -307,7 +307,7 @@ C-----------------------------------------------------------------------
                   i = i + 1
                   call getarg(i, cmdlinearg)
                   write(6,'(a,a,a,a,a)') 
-     &               'INFO: awip_lambert_interp.x: Processing "',
+     &               'INFO: lamberInterpRamp.x: Processing "',
      &               trim(cmdlineopt),' ',trim(cmdlinearg),'".'
                   read(cmdlinearg,*) backgroundPressure
 
@@ -315,23 +315,23 @@ C-----------------------------------------------------------------------
                   i = i + 1
                   call getarg(i, cmdlinearg)
                   write(6,'(a,a,a,a,a)') 
-     &               'INFO: awip_lambert_interp.x: Processing "',
+     &               'INFO: lamberInterpRamp.x: Processing "',
      &               trim(cmdlineopt),' ',trim(cmdlinearg),'".'
                   read(cmdlinearg,*) pressureColumn
 
                case default
                   write(6,'(a,a,a)') 
-     &           'WARNING: awip_lambert_interp.x: Command line option ',
+     &           'WARNING: lamberInterpRamp.x: Command line option ',
      &           trim(cmdlineopt),' was not recognized.'
             end select
          end do
       else
          ! Provide useful error message with definitions of command
          ! line arguments. 
-         WRITE(*,'(a)') 'ERROR: awip_lambert_interp.x: ' //
+         WRITE(*,'(a)') 'ERROR: lamberInterpRamp.x: ' //
      &                  'Need command-line arguments.'
          WRITE(*,'(a)') 'Sample usage indicating default values:'
-         write(*,'(a)') './awip_lambert_interp.x --grid-number 218   '//
+         write(*,'(a)') './lamberInterpRamp.x --grid-number 218   '//
      &                  '--num-columns 3   ' // 
      &                  '--lambert-data-inputfile nam.in   ' //
      &                  '--target-point-file ptFile.txt   ' //

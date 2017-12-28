@@ -1,0 +1,939 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:georss="http://www.georss.org/georss"
+ xmlns:gml="http://www.opengis.net/gml"
+ xmlns:nhc="http://www.nhc.noaa.gov">
+<channel>
+<pubDate>Sat, 07 Oct 2017 20:43:18 GMT</pubDate>
+<title>NHC Atlantic</title>
+<description>Active tropical cyclones in the Atlantic, Caribbean, and the Gulf of Mexico</description>
+<link>http://www.nhc.noaa.gov/</link>
+<copyright>none</copyright>
+<managingEditor>nhcwebmaster@noaa.gov (NHC Webmaster)</managingEditor>
+<language>en-us</language>
+<webMaster>nhcwebmaster@noaa.gov (NHC Webmaster)</webMaster>
+<image>
+<url>http://www.nhc.noaa.gov/gifs/xml_logo_nhc.gif</url>
+<link>http://www.nhc.noaa.gov/</link>
+<title>NHC Atlantic</title>
+<description>NOAA logo</description>
+<width>95</width>
+<height>45</height>
+</image>
+<item>
+<title>Atlantic Tropical Weather Outlook</title>
+<description>
+<![CDATA[
+<br/>
+000<br/>
+ABNT20 KNHC 071742<br/>
+TWOAT <br/>
+<br/>
+Tropical Weather Outlook<br/>
+NWS National Hurricane Center Miami FL<br/>
+200 PM EDT Sat Oct 7 2017<br/>
+<br/>
+For the North Atlantic...Caribbean Sea and the Gulf of Mexico:<br/>
+<br/>
+The National Hurricane Center is issuing advisories on Hurricane<br/>
+Nate, located over the central Gulf of Mexico.<br/>
+<br/>
+A non-tropical low pressure system has been nearly stationary about<br/>
+700 miles southwest of the Azores during the past several hours.<br/>
+This system is gradually acquiring subtropical characteristics,<br/>
+and environmental conditions are expected to be conducive for the<br/>
+development of a tropical or subtropical cyclone during the next<br/>
+day or so while the low drifts toward the southwest or south.<br/>
+Thereafter, the atmosphere is expected to become hostile for<br/>
+further development.<br/>
+* Formation chance through 48 hours...high...70 percent.<br/>
+* Formation chance through 5 days...high...70 percent.<br/>
+<br/>
+$$<br/>
+Forecaster Stewart<br/>
+]]>
+</description>
+<pubDate>Sat, 07 Oct 2017 17:42:36 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/gtwo.php?basin=atlc</link>
+<guid>http://www.nhc.noaa.gov/gtwo.php?basin=atlc&amp;201710071742</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+ <title>Summary for Hurricane Nate (AT1/AL162017)</title>
+ <guid isPermaLink="false">summary-al162017-201710071737</guid>
+ <pubDate>Sat, 07 Oct 2017 17:37:36 GMT</pubDate>
+ <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+ <link>http://www.nhc.noaa.gov/text/refresh/MIATCPAT1+shtml/071737.shtml</link>
+ <description>
+  ...OUTER RAINBANDS OF NATE MOVING ONSHORE IN SOUTHEASTERN LOUISIANA...
+ As of 1:00 PM CDT Sat Oct 7
+ the center of Nate was located near 27.6, -88.9
+ with movement NNW at 25 mph.
+ The minimum central pressure was 982 mb
+ with maximum sustained winds of about 90 mph.
+ </description>
+ <nhc:Cyclone>
+  <nhc:center>27.6, -88.9</nhc:center>
+  <nhc:type>Hurricane</nhc:type>
+  <nhc:name>Nate</nhc:name>
+  <nhc:wallet>AT1</nhc:wallet>
+  <nhc:atcf>AL162017</nhc:atcf>
+  <nhc:datetime>1:00 PM CDT Sat Oct 7</nhc:datetime>
+  <nhc:movement>NNW at 25 mph</nhc:movement>
+  <nhc:pressure>982 mb</nhc:pressure>
+  <nhc:wind>90 mph</nhc:wind>
+  <nhc:headline> ...OUTER RAINBANDS OF NATE MOVING ONSHORE IN SOUTHEASTERN LOUISIANA...</nhc:headline>
+ </nhc:Cyclone>
+</item>
+<item>
+<title>Hurricane Nate Public Advisory Number 13A</title>
+<description>Issued at 100 PM CDT Sat Oct 07 2017  <![CDATA[<pre>
+
+000
+WTNT31 KNHC 071737
+TCPAT1
+
+BULLETIN
+Hurricane Nate Intermediate Advisory Number 13A
+NWS National Hurricane Center Miami FL       AL162017
+100 PM CDT Sat Oct 07 2017
+
+...OUTER RAINBANDS OF NATE MOVING ONSHORE IN SOUTHEASTERN
+LOUISIANA...
+
+
+SUMMARY OF 100 PM CDT...1800 UTC...INFORMATION
+----------------------------------------------
+LOCATION...27.6N 88.9W
+ABOUT 105 MI...170 KM S OF THE MOUTH OF THE MISSISSIPPI RIVER
+ABOUT 195 MI...315 KM S OF BILOXI MISSISSIPPI
+MAXIMUM SUSTAINED WINDS...90 MPH...150 KM/H
+PRESENT MOVEMENT...NNW OR 340 DEGREES AT 25 MPH...40 KM/H
+MINIMUM CENTRAL PRESSURE...982 MB...29.00 INCHES
+
+
+WATCHES AND WARNINGS
+--------------------
+CHANGES WITH THIS ADVISORY:
+
+None.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT:
+
+A Hurricane Warning is in effect for...
+* Grand Isle Louisiana to the Alabama/Florida border
+* Metropolitan New Orleans and Lake Pontchartrain
+
+A Storm Surge Warning is in effect for...
+* Morgan City Louisiana to the Okaloosa/Walton County Line Florida
+* Northern and western shores of Lake Pontchartrain
+
+A Tropical Storm Warning is in effect for...
+* Lake Maurepas
+* West of Grand Isle to Morgan City Louisiana
+* East of the Alabama/Florida border to Indian Pass Florida
+
+A Hurricane Watch is in effect for...
+* Lake Maurepas
+* East of the Alabama/Florida border to the Okaloosa/Walton County
+Line
+* West of Grand Isle to Morgan City Louisiana
+
+A Storm Surge Watch is in effect for...
+* East of the Okaloosa/Walton County Line to Indian Pass Florida
+
+A Tropical Storm Watch is in effect for...
+* West of Morgan City to Intracoastal City Louisiana
+
+A Hurricane Warning means that hurricane conditions are expected
+somewhere within the warning area, in this case within the next 24
+hours. Preparations to protect life and property should be rushed to
+completion.
+
+A Storm Surge Warning means there is a danger of life-threatening
+inundation, from rising water moving inland from the coastline,
+during the next 36 hours in the indicated locations. For a
+depiction of areas at risk, please see the National Weather Service
+Storm Surge Watch/Warning Graphic, available at hurricanes.gov.
+This is a life-threatening situation.  Persons located within these
+areas should take all necessary actions to protect life and property
+from rising water and the potential for other dangerous conditions.
+Promptly follow evacuation and other instructions from local
+officials.
+
+A Tropical Storm Warning means that tropical storm conditions are
+expected somewhere within the warning area.
+
+A Storm Surge Watch means there is a possibility of life-
+threatening inundation, from rising water moving inland from the
+coastline, in the indicated locations during the next 48 hours.
+For a depiction of areas at risk, please see the National Weather
+Service Storm Surge Watch/Warning Graphic, available at
+hurricanes.gov.
+
+A Hurricane Watch means that hurricane conditions are possible
+within the watch area.
+
+A Tropical Storm Watch means that tropical storm conditions are
+possible within the watch area.
+
+For storm information specific to your area, including possible
+inland watches and warnings, please monitor products issued by your
+local National Weather Service forecast office.
+
+DISCUSSION AND 48-HOUR OUTLOOK
+------------------------------
+At 100 PM CDT (1800 UTC), the center of Hurricane Nate was located
+near latitude 27.6 North, longitude 88.9 West.  Nate is moving
+rapidly toward the north-northwest near 25 mph (40 km/h), and this
+general motion is expected to continue through this evening.  A turn
+toward the north is forecast tonight, followed by a turn toward the
+northeast on Sunday.  On the forecast track, the center of Nate will
+approach the mouth of the Mississippi during the next several hours
+and will make landfall along the central U.S. Gulf Coast tonight.
+
+Reports from an Air Force Reserve Hurricane Hunter aircraft indicate
+that maximum sustained winds are near 90 mph (150 km/h) with higher
+gusts.  Strengthening is expected before landfall, and Nate is
+forecast to be a category 2 hurricane on the Saffir-Simpson
+Hurricane Wind Scale when the center reaches the Gulf Coast.
+
+Hurricane-force winds extend outward up to 35 miles (55 km),
+primarily to the east of the center and tropical-storm-force winds
+extend outward up to 125 miles (205 km).
+
+The minimum central pressure estimated from the Hurricane Hunter
+aircraft data is 982 mb (29.00 inches).
+
+
+HAZARDS AFFECTING LAND
+----------------------
+WIND:  Along the northern Gulf Coast, hurricane conditions are
+expected in the hurricane warning area beginning in the next several
+hours, with tropical storm conditions expected to begin during the
+next few hours.  Tropical storm conditions are expected in the
+tropical storm warning area tonight and Sunday.  Hurricane
+conditions are possible in the hurricane watch area tonight, and
+tropical storm conditions are possible in the tropical storm watch
+area tonight and Sunday.
+
+STORM SURGE: The combination of a dangerous storm surge and the tide
+will cause normally dry areas near the coast to be flooded by rising
+waters moving inland from the shoreline.  The water is expected to
+reach the following heights above ground if the peak surge occurs at
+the time of high tide...
+
+Mouth of the Mississippi River to the Mississippi/Alabama border...7
+to 11 ft
+Mississippi/Alabama border to the Alabama/Florida border, including
+Mobile Bay...6 to 9 ft
+Morgan City, Louisiana to the mouth of the Mississippi River...4 to
+6 ft
+Alabama/Florida border to the Okaloosa/Walton County Line...4 to 6
+ft
+Okaloosa/Walton County Line to Indian Pass, Florida...2 to 4 ft
+Indian Pass to Crystal River, Florida...1 to 3 ft
+
+The deepest water will occur along the immediate coast near and to
+the east of the landfall location, where the surge will be
+accompanied by large and destructive waves.  Surge-related
+flooding depends on the relative timing of the surge and the tidal
+cycle, and can vary greatly over short distances.  For information
+specific to your area, please see products issued by your local
+National Weather Service forecast office.
+
+RAINFALL:  Nate is expected to produce the following rain
+accumulations through Monday:
+
+Western Cuba: 2 to 4 inches, max 6 inches.
+Cayman Islands: 1 to 3 inches.
+
+East of the Mississippi River from the central Gulf Coast into the
+Deep South, eastern Tennessee Valley, and southern Appalachians:
+3 to 6 inches, max 10 inches.
+
+Across the Ohio Valley into the central Appalachians:
+2 to 4 inches, max 6 inches.
+
+TORNADOES:  A couple of tornadoes will be possible beginning late
+this afternoon over parts of the central Gulf Coast region.
+
+SURF:  Swells generated by Nate will affect land areas around the
+Gulf of Mexico during the next day or so.  These swells are likely
+to cause life-threatening surf and rip current conditions. Please
+consult products from your local weather office.
+
+
+NEXT ADVISORY
+-------------
+Next complete advisory at 400 PM CDT.
+
+$$
+Forecaster Beven
+
+</pre>]]></description>
+<pubDate>Sat, 07 Oct 2017 17:37:36 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCPAT1+shtml/071737.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCPAT1+shtml/071737.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Nate Forecast Advisory Number 13</title>
+<description>Issued at 1500 UTC SAT OCT 07 2017  <![CDATA[<pre>
+
+000
+WTNT21 KNHC 071454
+TCMAT1
+
+HURRICANE NATE FORECAST/ADVISORY NUMBER  13
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL162017
+1500 UTC SAT OCT 07 2017
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+A TROPICAL STORM WARNING IS NOW IN EFFECT EAST OF THE
+OKALOOSA/WALTON COUNTY LINE TO INDIAN PASS FLORIDA.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A HURRICANE WARNING IS IN EFFECT FOR...
+* GRAND ISLE LOUISIANA TO THE ALABAMA/FLORIDA BORDER
+* METROPOLITAN NEW ORLEANS AND LAKE PONTCHARTRAIN
+
+A STORM SURGE WARNING IS IN EFFECT FOR...
+* MORGAN CITY LOUISIANA TO THE OKALOOSA/WALTON COUNTY LINE FLORIDA
+* NORTHERN AND WESTERN SHORES OF LAKE PONTCHARTRAIN
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* LAKE MAUREPAS
+* WEST OF GRAND ISLE TO MORGAN CITY LOUISIANA
+* EAST OF THE ALABAMA/FLORIDA BORDER TO INDIAN PASS FLORIDA
+
+A HURRICANE WATCH IS IN EFFECT FOR...
+* LAKE MAUREPAS
+* EAST OF THE ALABAMA/FLORIDA BORDER TO THE OKALOOSA/WALTON COUNTY
+LINE
+* WEST OF GRAND ISLE TO MORGAN CITY LOUISIANA
+
+A STORM SURGE WATCH IS IN EFFECT FOR...
+* EAST OF THE OKALOOSA/WALTON COUNTY LINE TO INDIAN PASS FLORIDA
+
+A TROPICAL STORM WATCH IS IN EFFECT FOR...
+* WEST OF MORGAN CITY TO INTRACOASTAL CITY LOUISIANA
+
+A HURRICANE WARNING MEANS THAT HURRICANE CONDITIONS ARE EXPECTED
+SOMEWHERE WITHIN THE WARNING AREA...IN THIS CASE WITHIN THE NEXT 24
+HOURS. PREPARATIONS TO PROTECT LIFE AND PROPERTY SHOULD BE RUSHED TO
+COMPLETION.
+
+A STORM SURGE WARNING MEANS THERE IS A DANGER OF LIFE-THREATENING
+INUNDATION, FROM RISING WATER MOVING INLAND FROM THE COASTLINE,
+DURING THE NEXT 36 HOURS IN THE INDICATED LOCATIONS. FOR A
+DEPICTION OF AREAS AT RISK, PLEASE SEE THE NATIONAL WEATHER
+SERVICE STORM SURGE WATCH/WARNING GRAPHIC, AVAILABLE AT
+HURRICANES.GOV.  THIS IS A LIFE-THREATENING SITUATION.  PERSONS
+LOCATED WITHIN THESE AREAS SHOULD TAKE ALL NECESSARY ACTIONS TO
+PROTECT LIFE AND PROPERTY FROM RISING WATER AND THE POTENTIAL FOR
+OTHER DANGEROUS CONDITIONS.  PROMPTLY FOLLOW EVACUATION AND OTHER
+INSTRUCTIONS FROM LOCAL OFFICIALS.
+
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA.
+
+A STORM SURGE WATCH MEANS THERE IS A POSSIBILITY OF LIFE-
+THREATENING INUNDATION...FROM RISING WATER MOVING INLAND FROM THE
+COASTLINE...IN THE INDICATED LOCATIONS DURING THE NEXT 48 HOURS.
+FOR A DEPICTION OF AREAS AT RISK...PLEASE SEE THE NATIONAL WEATHER
+SERVICE STORM SURGE WATCH/WARNING GRAPHIC...AVAILABLE AT
+HURRICANES.GOV.
+
+A HURRICANE WATCH MEANS THAT HURRICANE CONDITIONS ARE POSSIBLE
+WITHIN THE WATCH AREA.
+
+A TROPICAL STORM WATCH MEANS THAT TROPICAL STORM CONDITIONS ARE
+POSSIBLE WITHIN THE WATCH AREA.
+
+HURRICANE CENTER LOCATED NEAR 26.6N  88.4W AT 07/1500Z
+POSITION ACCURATE WITHIN  15 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHWEST OR 340 DEGREES AT  23 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  984 MB
+EYE DIAMETER  25 NM
+MAX SUSTAINED WINDS  80 KT WITH GUSTS TO  95 KT.
+64 KT....... 30NE  30SE   0SW   0NW.
+50 KT....... 60NE  50SE   0SW   0NW.
+34 KT.......110NE  90SE  50SW  40NW.
+12 FT SEAS..180NE 180SE  60SW  60NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 26.6N  88.4W AT 07/1500Z
+AT 07/1200Z CENTER WAS LOCATED NEAR 25.7N  87.9W
+
+FORECAST VALID 08/0000Z 29.1N  89.0W
+MAX WIND  90 KT...GUSTS 110 KT.
+64 KT... 30NE  30SE   0SW   0NW.
+50 KT... 60NE  60SE  30SW  30NW.
+34 KT...100NE 100SE  50SW  60NW.
+
+FORECAST VALID 08/1200Z 32.1N  88.3W...INLAND
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 30NE  40SE  30SW   0NW.
+34 KT... 70NE  80SE  60SW  40NW.
+
+FORECAST VALID 09/0000Z 35.7N  85.5W...INLAND
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 30NE  40SE   0SW   0NW.
+
+FORECAST VALID 09/1200Z 39.2N  80.6W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 10/1200Z 44.5N  67.5W...POST-TROP/EXTRATROP
+MAX WIND  25 KT...GUSTS  35 KT.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 200 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 11/1200Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 26.6N  88.4W
+
+NEXT ADVISORY AT 07/2100Z
+
+$$
+FORECASTER BEVEN
+
+
+</pre>]]></description>
+<pubDate>Sat, 07 Oct 2017 14:54:35 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCMAT1+shtml/071454.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCMAT1+shtml/071454.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Nate Forecast Discussion Number 13</title>
+<description>Issued at 1000 AM CDT Sat Oct 07 2017  <![CDATA[<pre>
+
+000
+WTNT41 KNHC 071504 CCA
+TCDAT1
+
+Hurricane Nate Discussion Number  13...Corrected
+NWS National Hurricane Center Miami FL       AL162017
+1000 AM CDT Sat Oct 07 2017
+
+Corrected 24 kt motion to 23 kt motion in third paragraph
+
+Nate is showing improved organization in satellite imagery this
+morning, with the formation of a symmetric central dense overcast
+with cloud tops colder than -80C.  In addition, Air Force Reserve
+and NOAA Hurricane Hunter aircraft have reported a central pressure
+near 984 mb inside a 25 n mi wide eye that is starting to form under
+the overcast.  The planes have reported 700-mb flight level winds of
+up to 88 kt and surface wind estimates from the SFMR instrument
+between 75-85 kt.  Based on these data, the initial intensity is
+increased to a possibly conservative 80 kt.
+
+Conditions appear favorable for Nate to continue strengthening for
+the next 12 h or so before it encounters land and increasing shear.
+The new intensity forecast thus follows the SHIPS model in showing
+Nate become a Category 2 hurricane before landfall on the central
+Gulf Coast.  After landfall, Nate should weaken rapidly as it moves
+through the eastern United States.  The cyclone is now forecast to
+become extratropical near the 72 hr point and dissipate completely
+by 96 h.
+
+The initial motion is toward the north-northwest at a very rapid 23
+kt.  The hurricane is being steered by the flow between a large
+cyclonic gyre over the southwestern Gulf of Mexico and a mid-level
+ridge over the western Atlantic.  In addition, a mid-latitude trough
+in the westerlies is moving eastward through the central United
+States.  This pattern is expected to cause Nate to turn northward
+during the next 12-18 h as it rounds the western end of the ridge,
+followed by a turn toward the northeast as it enters the westerlies.
+The new forecast track is nudged a little to the left of the
+previous track, and it lies near the center of the tightly clustered
+guidance.
+
+KEY MESSAGES:
+
+1. Nate is expected to bring life-threatening storm surge flooding
+near and well east of where the center makes landfall, and a storm
+surge warning is in effect from Morgan City, Louisiana, to the
+Okaloosa/Walton county line in Florida.  Maximum flooding of 7 to 11
+feet above ground level is expected in portions of southeastern
+Louisiana and along the Mississippi coast.  Residents in these areas
+should immediately heed any evacuation instructions given by local
+officials.
+
+2. Nate is forecast to reach Category 2 intensity before landfall.
+A hurricane warning is in effect for portions of the northern Gulf
+Coast from Louisiana to Alabama, with the strongest winds expected
+to occur primarily to the east of the center.  Preparations to
+protect life and property should be rushed to completion in these
+areas, as tropical storm conditions will first arrive in the warning
+area this afternoon.
+
+3. Nate's fast forward speed after landfall will bring tropical-
+storm-force winds well inland across portions of the southeastern
+U.S.  Tropical storm watches and warnings are in effect for portions
+of southeastern Mississippi, Alabama, and western Georgia.
+
+4. Nate will bring heavy rainfall of 3 to 6 inches with isolated
+totals of 10 inches east of the Mississippi River from the central
+Gulf Coast into the Deep South, eastern Tennessee Valley, and
+southern Appalachians through Monday, resulting in the potential for
+flash flooding in these areas.
+
+5. Moisture from Nate interacting with a frontal zone will also
+bring 2 to 4 inches of rain with isolated totals of 6 inches across
+the Ohio Valley and central Appalachians Sunday and Monday, which
+will increase the risk for flash flooding across these locations.
+
+FORECAST POSITIONS AND MAX WINDS
+
+INIT  07/1500Z 26.6N  88.4W   80 KT  90 MPH
+ 12H  08/0000Z 29.1N  89.0W   90 KT 105 MPH
+ 24H  08/1200Z 32.1N  88.3W   60 KT  70 MPH...INLAND
+ 36H  09/0000Z 35.7N  85.5W   35 KT  40 MPH...INLAND
+ 48H  09/1200Z 39.2N  80.6W   30 KT  35 MPH...INLAND
+ 72H  10/1200Z 44.5N  67.5W   25 KT  30 MPH...POST-TROP/EXTRATROP
+ 96H  11/1200Z...DISSIPATED
+
+$$
+Forecaster Beven
+
+</pre>]]></description>
+<pubDate>Sat, 07 Oct 2017 15:04:35 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIATCDAT1+shtml/071504.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIATCDAT1+shtml/071504.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Nate Wind Speed Probabilities Number 13</title>
+<description>Issued at 1500 UTC SAT OCT 07 2017                                              <![CDATA[<pre>
+
+000
+FONT11 KNHC 071454
+PWSAT1
+                                                                    
+HURRICANE NATE WIND SPEED PROBABILITIES NUMBER  13                  
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL162017               
+1500 UTC SAT OCT 07 2017                                            
+                                                                    
+AT 1500Z THE CENTER OF HURRICANE NATE WAS LOCATED NEAR LATITUDE 26.6
+NORTH...LONGITUDE 88.4 WEST WITH MAXIMUM SUSTAINED WINDS NEAR 80 KTS
+...90 MPH...150 KM/H.                                               
+                                                                    
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)                  
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME      
+   EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME      
+   CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME      
+                                                                    
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS                 
+                                                                    
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST     
+   ...34 KT (39 MPH... 63 KM/H)...                                  
+   ...50 KT (58 MPH... 93 KM/H)...                                  
+   ...64 KT (74 MPH...119 KM/H)...                                  
+FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS               
+                                                                    
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE               
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING            
+        AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)               
+   (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN           
+        12Z SAT AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)      
+                                                                    
+PROBABILITIES ARE GIVEN IN PERCENT                                  
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT                       
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.             
+PROBABILITIES FOR 34...50...64 KT SHOWN WHEN THE 5-DAY              
+64-KT CUMULATIVE PROBABILITY IS AT LEAST 1 PERCENT.                 
+                                                                    
+                                                                    
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -   
+                                                                    
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM 
+  TIME       12Z SAT 00Z SUN 12Z SUN 00Z MON 12Z MON 12Z TUE 12Z WED
+PERIODS         TO      TO      TO      TO      TO      TO      TO  
+             00Z SUN 12Z SUN 00Z MON 12Z MON 12Z TUE 12Z WED 12Z THU
+                                                                    
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+LOCATION       KT                                                   
+                                                                    
+HALIFAX NS     34  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+ 
+YARMOUTH NS    34  X   X( X)   X( X)   X( X)   9( 9)   X( 9)   X( 9)
+YARMOUTH NS    50  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+YARMOUTH NS    64  X   X( X)   X( X)   X( X)   1( 1)   X( 1)   X( 1)
+ 
+ST JOHN NB     34  X   X( X)   X( X)   X( X)   5( 5)   X( 5)   X( 5)
+ 
+EASTPORT ME    34  X   X( X)   X( X)   X( X)   7( 7)   X( 7)   X( 7)
+ 
+BAR HARBOR ME  34  X   X( X)   X( X)   X( X)   9( 9)   X( 9)   X( 9)
+BAR HARBOR ME  50  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+BAR HARBOR ME  64  X   X( X)   X( X)   X( X)   1( 1)   X( 1)   X( 1)
+ 
+AUGUSTA ME     34  X   X( X)   X( X)   X( X)   7( 7)   X( 7)   X( 7)
+AUGUSTA ME     50  X   X( X)   X( X)   X( X)   2( 2)   X( 2)   X( 2)
+AUGUSTA ME     64  X   X( X)   X( X)   X( X)   1( 1)   X( 1)   X( 1)
+ 
+PORTLAND ME    34  X   X( X)   X( X)   X( X)   9( 9)   X( 9)   X( 9)
+PORTLAND ME    50  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+PORTLAND ME    64  X   X( X)   X( X)   X( X)   1( 1)   X( 1)   X( 1)
+ 
+CONCORD NH     34  X   X( X)   X( X)   X( X)   9( 9)   X( 9)   X( 9)
+CONCORD NH     50  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+CONCORD NH     64  X   X( X)   X( X)   X( X)   2( 2)   X( 2)   X( 2)
+ 
+PORTSMOUTH NH  34  X   X( X)   X( X)   X( X)  12(12)   X(12)   X(12)
+PORTSMOUTH NH  50  X   X( X)   X( X)   X( X)   6( 6)   X( 6)   X( 6)
+PORTSMOUTH NH  64  X   X( X)   X( X)   X( X)   2( 2)   X( 2)   X( 2)
+ 
+WORCESTER MA   34  X   X( X)   X( X)   X( X)  14(14)   X(14)   X(14)
+WORCESTER MA   50  X   X( X)   X( X)   X( X)   6( 6)   X( 6)   X( 6)
+WORCESTER MA   64  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+SPRINGFIELD MA 34  X   X( X)   X( X)   X( X)  14(14)   X(14)   X(14)
+SPRINGFIELD MA 50  X   X( X)   X( X)   X( X)   5( 5)   X( 5)   X( 5)
+SPRINGFIELD MA 64  X   X( X)   X( X)   X( X)   2( 2)   X( 2)   X( 2)
+ 
+BOSTON MA      34  X   X( X)   X( X)   X( X)  14(14)   X(14)   X(14)
+BOSTON MA      50  X   X( X)   X( X)   X( X)   8( 8)   X( 8)   X( 8)
+BOSTON MA      64  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+ 
+HYANNIS MA     34  X   X( X)   X( X)   X( X)  15(15)   X(15)   X(15)
+HYANNIS MA     50  X   X( X)   X( X)   X( X)   9( 9)   X( 9)   X( 9)
+HYANNIS MA     64  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+ 
+NANTUCKET MA   34  X   X( X)   X( X)   X( X)  15(15)   X(15)   X(15)
+NANTUCKET MA   50  X   X( X)   X( X)   X( X)   9( 9)   X( 9)   X( 9)
+NANTUCKET MA   64  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+ 
+PROVIDENCE RI  34  X   X( X)   X( X)   X( X)  16(16)   X(16)   X(16)
+PROVIDENCE RI  50  X   X( X)   X( X)   X( X)   9( 9)   X( 9)   X( 9)
+PROVIDENCE RI  64  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+ 
+BRIDGEPORT CT  34  X   X( X)   X( X)   X( X)  15(15)   X(15)   X(15)
+BRIDGEPORT CT  50  X   X( X)   X( X)   X( X)   7( 7)   X( 7)   X( 7)
+BRIDGEPORT CT  64  X   X( X)   X( X)   X( X)   2( 2)   X( 2)   X( 2)
+ 
+NEW HAVEN CT   34  X   X( X)   X( X)   X( X)  16(16)   X(16)   X(16)
+NEW HAVEN CT   50  X   X( X)   X( X)   X( X)   8( 8)   X( 8)   X( 8)
+NEW HAVEN CT   64  X   X( X)   X( X)   X( X)   2( 2)   X( 2)   X( 2)
+ 
+HARTFORD CT    34  X   X( X)   X( X)   X( X)  16(16)   X(16)   X(16)
+HARTFORD CT    50  X   X( X)   X( X)   X( X)   7( 7)   X( 7)   X( 7)
+HARTFORD CT    64  X   X( X)   X( X)   X( X)   1( 1)   X( 1)   X( 1)
+ 
+NEW LONDON CT  34  X   X( X)   X( X)   X( X)  16(16)   X(16)   X(16)
+NEW LONDON CT  50  X   X( X)   X( X)   X( X)   9( 9)   X( 9)   X( 9)
+NEW LONDON CT  64  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+ALBANY NY      34  X   X( X)   X( X)   X( X)   7( 7)   X( 7)   X( 7)
+ 
+POUGHKEEPSIE   34  X   X( X)   X( X)   X( X)  13(13)   X(13)   X(13)
+POUGHKEEPSIE   50  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+ 
+MONTAUK POINT  34  X   X( X)   X( X)   X( X)  15(15)   X(15)   X(15)
+MONTAUK POINT  50  X   X( X)   X( X)   X( X)   9( 9)   X( 9)   X( 9)
+MONTAUK POINT  64  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+ 
+ISLIP NY       34  X   X( X)   X( X)   X( X)  15(15)   X(15)   X(15)
+ISLIP NY       50  X   X( X)   X( X)   X( X)   8( 8)   X( 8)   X( 8)
+ISLIP NY       64  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+NYC JFK AIRPRT 34  X   X( X)   X( X)   X( X)  15(15)   X(15)   X(15)
+NYC JFK AIRPRT 50  X   X( X)   X( X)   X( X)   7( 7)   X( 7)   X( 7)
+NYC JFK AIRPRT 64  X   X( X)   X( X)   X( X)   2( 2)   X( 2)   X( 2)
+ 
+NYC CNTRL PARK 34  X   X( X)   X( X)   X( X)  15(15)   X(15)   X(15)
+NYC CNTRL PARK 50  X   X( X)   X( X)   X( X)   6( 6)   X( 6)   X( 6)
+NYC CNTRL PARK 64  X   X( X)   X( X)   X( X)   2( 2)   X( 2)   X( 2)
+ 
+NEWARK NJ      34  X   X( X)   X( X)   X( X)  15(15)   X(15)   X(15)
+NEWARK NJ      50  X   X( X)   X( X)   X( X)   5( 5)   X( 5)   X( 5)
+NEWARK NJ      64  X   X( X)   X( X)   X( X)   1( 1)   X( 1)   X( 1)
+ 
+TRENTON NJ     34  X   X( X)   X( X)   X( X)  14(14)   X(14)   X(14)
+TRENTON NJ     50  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+TRENTON NJ     64  X   X( X)   X( X)   X( X)   1( 1)   X( 1)   X( 1)
+ 
+NWS EARLE NJ   34  X   X( X)   X( X)   X( X)  14(14)   X(14)   X(14)
+NWS EARLE NJ   50  X   X( X)   X( X)   X( X)   6( 6)   X( 6)   X( 6)
+NWS EARLE NJ   64  X   X( X)   X( X)   X( X)   2( 2)   X( 2)   X( 2)
+ 
+ALLENTOWN PA   34  X   X( X)   X( X)   X( X)  14(14)   X(14)   X(14)
+ 
+PHILADELPHIA   34  X   X( X)   X( X)   X( X)  13(13)   X(13)   X(13)
+PHILADELPHIA   50  X   X( X)   X( X)   X( X)   5( 5)   X( 5)   X( 5)
+ 
+ATLANTIC CITY  34  X   X( X)   X( X)   X( X)  11(11)   X(11)   X(11)
+ATLANTIC CITY  50  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+ATLANTIC CITY  64  X   X( X)   X( X)   X( X)   2( 2)   X( 2)   X( 2)
+ 
+BALTIMORE MD   34  X   X( X)   X( X)   1( 1)   8( 9)   X( 9)   X( 9)
+ 
+DOVER DE       34  X   X( X)   X( X)   X( X)  10(10)   X(10)   X(10)
+DOVER DE       50  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+ANNAPOLIS MD   34  X   X( X)   X( X)   X( X)   9( 9)   X( 9)   X( 9)
+ 
+WASHINGTON DC  34  X   X( X)   X( X)   1( 1)   7( 8)   X( 8)   X( 8)
+ 
+CAPE HENLOPEN  34  X   X( X)   X( X)   X( X)   9( 9)   X( 9)   X( 9)
+CAPE HENLOPEN  50  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+OCEAN CITY MD  34  X   X( X)   X( X)   X( X)   8( 8)   X( 8)   X( 8)
+ 
+PAX RIVER NAS  34  X   X( X)   X( X)   X( X)   7( 7)   X( 7)   X( 7)
+ 
+WALLOPS CDA    34  X   X( X)   X( X)   X( X)   6( 6)   X( 6)   X( 6)
+ 
+CHARLOTTESVIL  34  X   X( X)   X( X)   2( 2)   3( 5)   X( 5)   X( 5)
+ 
+RICHMOND VA    34  X   X( X)   X( X)   1( 1)   3( 4)   X( 4)   X( 4)
+ 
+NORFOLK NAS    34  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+NORFOLK VA     34  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+OCEANA NAS VA  34  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+ATLANTA GA     34  X   6( 6)   9(15)   X(15)   X(15)   X(15)   X(15)
+ 
+WAYCROSS GA    34  X   2( 2)   1( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+TALLAHASSEE FL 34  3   4( 7)   1( 8)   X( 8)   X( 8)   X( 8)   X( 8)
+ 
+ST MARKS FL    34  3   4( 7)   1( 8)   X( 8)   X( 8)   X( 8)   X( 8)
+ 
+APALACHICOLA   34  4   4( 8)   1( 9)   X( 9)   X( 9)   X( 9)   X( 9)
+ 
+GFMX 290N 850W 34  4   3( 7)   1( 8)   X( 8)   X( 8)   X( 8)   X( 8)
+ 
+PANAMA CITY FL 34  4   7(11)   1(12)   X(12)   X(12)   X(12)   X(12)
+ 
+COLUMBUS GA    34  2  10(12)   7(19)   X(19)   X(19)   X(19)   X(19)
+ 
+BIRMINGHAM AL  34  1  28(29)  42(71)   X(71)   X(71)   X(71)   X(71)
+BIRMINGHAM AL  50  X   2( 2)  12(14)   X(14)   X(14)   X(14)   X(14)
+ 
+MONTGOMERY AL  34  3  41(44)  12(56)   X(56)   X(56)   X(56)   X(56)
+MONTGOMERY AL  50  X   6( 6)   4(10)   X(10)   X(10)   X(10)   X(10)
+MONTGOMERY AL  64  X   1( 1)   X( 1)   X( 1)   X( 1)   X( 1)   X( 1)
+ 
+WHITING FLD FL 34 24  48(72)   X(72)   X(72)   X(72)   X(72)   X(72)
+WHITING FLD FL 50  2  10(12)   X(12)   X(12)   X(12)   X(12)   X(12)
+WHITING FLD FL 64  X   1( 1)   X( 1)   X( 1)   X( 1)   X( 1)   X( 1)
+ 
+PENSACOLA FL   34 49  32(81)   X(81)   X(81)   X(81)   X(81)   X(81)
+PENSACOLA FL   50  2  13(15)   X(15)   X(15)   X(15)   X(15)   X(15)
+PENSACOLA FL   64  X   2( 2)   X( 2)   X( 2)   X( 2)   X( 2)   X( 2)
+ 
+GFMX 290N 870W 34 75   1(76)   X(76)   X(76)   X(76)   X(76)   X(76)
+GFMX 290N 870W 50  4   1( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+GFMX 290N 870W 64  1   X( 1)   X( 1)   X( 1)   X( 1)   X( 1)   X( 1)
+ 
+MOBILE AL      34 60  40(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+MOBILE AL      50  4  80(84)   X(84)   X(84)   X(84)   X(84)   X(84)
+MOBILE AL      64  X  47(47)   X(47)   X(47)   X(47)   X(47)   X(47)
+ 
+GULFPORT MS    34 69  30(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+GULFPORT MS    50  6  70(76)   X(76)   X(76)   X(76)   X(76)   X(76)
+GULFPORT MS    64  1  52(53)   X(53)   X(53)   X(53)   X(53)   X(53)
+ 
+STENNIS MS     34 48  42(90)   X(90)   X(90)   X(90)   X(90)   X(90)
+STENNIS MS     50  3  27(30)   X(30)   X(30)   X(30)   X(30)   X(30)
+STENNIS MS     64  1  10(11)   X(11)   X(11)   X(11)   X(11)   X(11)
+ 
+BURAS LA       34 90   5(95)   X(95)   X(95)   X(95)   X(95)   X(95)
+BURAS LA       50 21  13(34)   X(34)   X(34)   X(34)   X(34)   X(34)
+BURAS LA       64  6   8(14)   X(14)   X(14)   X(14)   X(14)   X(14)
+ 
+GFMX 280N 890W 34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+GFMX 280N 890W 50 53   X(53)   X(53)   X(53)   X(53)   X(53)   X(53)
+GFMX 280N 890W 64 30   X(30)   X(30)   X(30)   X(30)   X(30)   X(30)
+ 
+JACKSON MS     34  3  16(19)   X(19)   X(19)   X(19)   X(19)   X(19)
+ 
+NEW ORLEANS LA 34 16  36(52)   X(52)   X(52)   X(52)   X(52)   X(52)
+NEW ORLEANS LA 50  2   2( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+GFMX 280N 910W 34  4   2( 6)   X( 6)   X( 6)   X( 6)   X( 6)   X( 6)
+ 
+BATON ROUGE LA 34  3   5( 8)   X( 8)   X( 8)   X( 8)   X( 8)   X( 8)
+ 
+MORGAN CITY LA 34  4   4( 8)   X( 8)   X( 8)   X( 8)   X( 8)   X( 8)
+ 
+ALEXANDRIA LA  34  2   3( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+LAFAYETTE LA   34  3   2( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+NEW IBERIA LA  34  3   3( 6)   X( 6)   X( 6)   X( 6)   X( 6)   X( 6)
+ 
+GFMX 280N 930W 34  2   2( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+SHREVEPORT LA  34  X   3( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+FORT POLK LA   34  2   2( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+LAKE CHARLES   34  2   2( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+CAMERON LA     34  2   2( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+JASPER TX      34  1   3( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+KOUNTZE TX     34  1   2( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+PORT ARTHUR TX 34  2   1( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+$$                                                                  
+FORECASTER BEVEN                                                    
+</pre>]]></description>
+<pubDate>Sat, 07 Oct 2017 14:55:07 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/refresh/MIAPWSAT1+shtml/071454.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/refresh/MIAPWSAT1+shtml/071454.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Nate Graphics</title>
+<description>
+<![CDATA[
+<a href="http://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152016.shtml?cone">
+<img src="http://www.nhc.noaa.gov/storm_graphics/AT16/AL162017_5day_cone_with_line_and_wind_sm2.png"
+alt="Hurricane Nate 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Sat, 07 Oct 2017 17:39:13 GMT
+<br /><br /><a href="http://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152016.shtml?tswind120">
+<img src="http://www.nhc.noaa.gov/storm_graphics/AT16/AL162017_wind_probs_34_F120_sm2.png"
+alt="Hurricane Nate 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Sat, 07 Oct 2017 15:23:50 GMT
+]]>
+</description>
+<pubDate>Sat, 07 Oct 2017 17:39:13 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152016.shtml?cone</link>
+<guid>http://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152016.shtml?cone</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Nate Probabilistic Storm Surge Graphics</title>
+<description>
+<![CDATA[
+<a href="http://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152016.shtml?gm_psurge">
+<img src="http://www.nhc.noaa.gov/storm_graphics/AT16/AL1617_psurge2_m1_sm2.png"
+alt="Hurricane Nate Probabilistic Storm Surge Graphics Image"
+width="500" height="400" /></a><br/>
+Probabilistic Storm Surge Graphics last updated Sat, 07 Oct 2017 15:20:16 GMT
+]]>
+</description>
+<pubDate>Sat, 07 Oct 2017 15:20:16 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152016.shtml?gm_psurge</link>
+<guid>http://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152016.shtml?gm_psurge</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Nate Potential Storm Surge Flooding Map</title>
+<description>
+<![CDATA[
+<a href="http://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152016.shtml?inundation">
+<img src="http://www.nhc.noaa.gov/images/inundation_thumb.png"
+alt="Hurricane Nate Link to Potential Storm Surge Flooding Map"
+width="60" height="48" /></a><br/>
+Potential Storm Surge Flooding Map last updated Sat, 07 Oct 2017 15:33:45 GMT
+]]>
+</description>
+<pubDate>Sat, 07 Oct 2017 15:33:45 GMT</pubDate>
+<validAdvisory>13</validAdvisory>
+<link>http://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152016.shtml?inundation</link>
+<guid>http://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152016.shtml?inundation</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Nate Storm Surge Watch/Warning Map</title>
+<description>
+<![CDATA[
+<a href="http://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152016.shtml?wsurge">
+<img src="http://www.nhc.noaa.gov/images/wsurge_thumb.png"
+alt="Hurricane Nate Link to Storm Surge Watch/Warning Map"
+width="60" height="48" /></a><br/>
+Storm Surge Watch/Warning Map last updated Sat, 07 Oct 2017 14:56:08 GMT
+]]>
+</description>
+<pubDate>Sat, 07 Oct 2017 14:56:08 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152016.shtml?wsurge</link>
+<guid>http://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152016.shtml?wsurge</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Tallahassee, FL</title>
+<description>Issued at  1137 AM EDT Sat Oct 7 2017 /1037 AM CDT Sat Oct 7 2017/</description>
+<pubDate>Sat, 07 Oct 2017 15:37:13 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS82-KTAE.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS82-KTAE.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Atlanta, GA</title>
+<description>Issued at  1148 AM EDT Sat Oct 7 2017</description>
+<pubDate>Sat, 07 Oct 2017 15:49:01 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS82-KFFC.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS82-KFFC.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Huntsville, AL</title>
+<description>Issued at  1056 AM CDT Sat Oct 7 2017</description>
+<pubDate>Sat, 07 Oct 2017 15:56:58 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS84-KHUN.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS84-KHUN.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Jackson, MS</title>
+<description>Issued at  1118 AM CDT Sat Oct 7 2017</description>
+<pubDate>Sat, 07 Oct 2017 16:18:48 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS84-KJAN.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS84-KJAN.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Mobile, AL / Pensacola, FL</title>
+<description>Issued at  1132 AM CDT Sat Oct 7 2017</description>
+<pubDate>Sat, 07 Oct 2017 16:32:21 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS84-KMOB.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS84-KMOB.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Birmingham, AL</title>
+<description>Issued at  1219 PM CDT Sat Oct 7 2017</description>
+<pubDate>Sat, 07 Oct 2017 17:19:30 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS84-KBMX.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS84-KBMX.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for New Orleans / Baton Rouge, LA</title>
+<description>Issued at  1248 PM CDT Sat Oct 7 2017</description>
+<pubDate>Sat, 07 Oct 2017 17:48:34 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS84-KLIX.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS84-KLIX.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Lake Charles, LA</title>
+<description>Issued at  100 PM CDT Sat Oct 7 2017</description>
+<pubDate>Sat, 07 Oct 2017 18:00:19 GMT</pubDate>
+<link>http://www.nhc.noaa.gov/text/WTUS84-KLCH.shtml</link>
+<guid>http://www.nhc.noaa.gov/text/WTUS84-KLCH.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+</channel>
+</rss>
