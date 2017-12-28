@@ -27,16 +27,16 @@
 
 # Fundamental
 
-INSTANCENAME=namhsofs    # "name" of this ASGS process
-COLDSTARTDATE=2017091000 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart       # "hotstart" or "coldstart"
-LASTSUBDIR=null  # path to previous execution (if HOTORCOLD=hotstart)
+INSTANCENAME=philippehsofs  # "name" of this ASGS process
+COLDSTARTDATE=2017091000    # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart          # "hotstart" or "coldstart"
+LASTSUBDIR=/projects/ncfs/data/asgs3428/2017102718  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
-REINITIALIZESWAN=no      # used to bounce the wave solution
+REINITIALIZESWAN=yes      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/jasonfleming/master/work # ADCIRC executables
+ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable        # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
@@ -44,11 +44,11 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on     # NAM download/forcing
-TIDEFAC=on           # tide factor recalc
-TROPICALCYCLONE=off  # tropical cyclone forcing
-WAVES=on             # wave forcing
-VARFLUX=off          # variable river flux forcing
+BACKGROUNDMET=off   # NAM download/forcing
+TIDEFAC=on          # tide factor recalc
+TROPICALCYCLONE=on  # tropical cyclone forcing
+WAVES=on            # wave forcing
+VARFLUX=off         # variable river flux forcing
 
 # Computational Resources
 
@@ -70,13 +70,13 @@ ACCOUNT=batch
 #QSCRIPT=hatteras.partition.template.slurm
 #PREPCONTROLSCRIPT=hatteras.partition.adcprep.template.slurm 
 QSCRIPT=hatteras.reservation.template.slurm
-PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm 
+PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm # jgf20160322
 
 # External data sources : Tropical cyclones
 
 PSEUDOSTORM=n 
-STORM=14                         # storm number, e.g. 05=ernesto in 2006
-YEAR=2016                        # year of the storm
+STORM=18                         # storm number, e.g. 05=ernesto in 2006
+YEAR=2017                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 #RSSSITE=filesystem
 #FTPSITE=filesystem
@@ -146,12 +146,12 @@ HOTSTARTCOMP=fulldomain
 # binary or netcdf hotstart files
 HOTSTARTFORMAT=netcdf                      
 # "continuous" or "reset" for maxele.63 etc files
-MINMAX=reset                              
+MINMAX=reset                           
 
 # Notification
 
 EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
-NOTIFY_SCRIPT=ncfs_nam_notify.sh
+NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
@@ -177,7 +177,8 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="nc.cera.renci2@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
+OPENDAPNOTIFY="nc.cera.renci2@gmail.com,jason.g.fleming@gmail.com,rick_luettich@unc.edu"
+#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
 
 # Archiving
 
@@ -195,15 +196,51 @@ case $si in
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
    ;;
 1)
-   ENSTORM=namforecastWind10m
-   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
-   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   ENSTORM=nhcConsensusWind10m
+   ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:60:00" # forecast wall clock time
    CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-   TIMESTEPSIZE=300.0    # 5 minute time steps
+   TIMESTEPSIZE=60.0    # 15 minute time steps
+   NCPU=15               # dramatically reduced resource requirements
+   NUMWRITERS=1          # multiple writer procs might collide
+   WAVES=off             # deactivate wave forcing 
+   # turn off water surface elevation station output
+   FORT61="--fort61freq 0"
+   # turn off water current velocity station output
+   FORT62="--fort62freq 0"
+   # turn off full domain water surface elevation output
+   FORT63="--fort63freq 0"
+   # turn off full domain water current velocity output
+   FORT64="--fort64freq 0"
+   # met station output
+   FORT7172="--fort7172freq 900.0 --fort7172netcdf"
+   # full domain meteorological output
+   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
+   #SPARSE="--sparse-output"
+   SPARSE=""
+   NETCDF4="--netcdf4"
+   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+   INTENDEDAUDIENCE=general
+   # prevent collisions in prepped archives
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   POSTPROCESS=wind10m_post.sh
+   ;;
+2)
+   ENSTORM=rMax20
+   PERCENT=20
+   ;;
+3)
+   ENSTORM=rMax20Wind10m
+   PERCENT=20
+   ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:60:00" # forecast wall clock time
+   CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
+   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+   TIMESTEPSIZE=60.0    # 15 minute time steps
    NCPU=15               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
