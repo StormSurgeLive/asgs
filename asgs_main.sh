@@ -1506,33 +1506,74 @@ while [ true ]; do
       fi
    fi
    # BACKGROUND METEOROLOGY
-   if [[ $BACKGROUNDMET = on ]]; then
+   if [[ $BACKGROUNDMET != off ]]; then
       NWS=-12
       if [[ $WAVES = on ]]; then
          NWS=-312
       fi
-      logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading background meteorology."
-      logMessage "$ENSTORM: $THIS: downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
-      downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
-      THIS="asgs_main.sh"
-      LASTADVISORYNUM=$ADVISORY
-      ADVISORY=`grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
-      ADVISDIR=$RUNDIR/${ADVISORY}
-      NOWCASTDIR=$ADVISDIR/$ENSTORM
-      cd $ADVISDIR 2>> ${SYSLOG}
-      allMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
-      # convert met files to OWI format
-      NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --applyRamp $SPATIALEXTRAPOLATIONRAMP --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE --awipGridNumber 218 --dataDir $NOWCASTDIR --outDir ${NOWCASTDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
-      logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format with the following options : $NAMOPTIONS"
-      perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
-      CONTROLOPTIONS=" --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
-      # create links to the OWI files
-      cd $ENSTORM 2>> ${SYSLOG}
-      NAM221=`ls NAM*.221`;
-      NAM222=`ls NAM*.222`;
-      ln -s $NAM221 fort.221 2>> ${SYSLOG}
-      ln -s $NAM222 fort.222 2>> ${SYSLOG}
    fi
+   case $BACKGROUNDMET in
+      "on","NAM")
+         logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading background meteorology."
+         logMessage "$ENSTORM: $THIS: downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
+         downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+         THIS="asgs_main.sh"
+         LASTADVISORYNUM=$ADVISORY
+         ADVISORY=`grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
+         ADVISDIR=$RUNDIR/${ADVISORY}
+         NOWCASTDIR=$ADVISDIR/$ENSTORM
+         cd $ADVISDIR 2>> ${SYSLOG}
+         allMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
+         # convert met files to OWI format
+         NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --applyRamp $SPATIALEXTRAPOLATIONRAMP --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE --awipGridNumber 218 --dataDir $NOWCASTDIR --outDir ${NOWCASTDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
+         logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format with the following options : $NAMOPTIONS"
+         perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
+         # create links to the OWI files
+         cd $ENSTORM 2>> ${SYSLOG}
+         NAM221=`ls NAM*.221`;
+         NAM222=`ls NAM*.222`;
+         ln -s $NAM221 fort.221 2>> ${SYSLOG}
+         ln -s $NAM222 fort.222 2>> ${SYSLOG}
+         ;;
+   "OWI")
+         # this is a hack to enable running pre-existing OWI files for hindcast
+         #
+         # hard code the file location and assume the names of the files have
+         # been prepended with the datetime as follows: 2017110100
+         #
+         # fort.22 is a symbolic link to the actual file with datatime filename
+         if [[ -e ${HDIR}/fort.22 ]]; then
+            linkTarget=`readlink ${HDIR}/fort.22`
+            newAdvisoryNum=${linkTarget:0:10}
+            # record the advisory number to the statefile
+            cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG}
+            sed 's/ADVISORY=.*/ADVISORY='$newAdvisoryNum'/' $STATEFILE > ${STATEFILE}.new
+            cp -f ${STATEFILE}.new $STATEFILE >> ${SYSLOG} 2>&1 
+            LASTADVISORYNUM=$ADVISORY
+            ADVISORY=$newAdvisoryNum
+         else
+            fatal "${HDIR}/fort.22 file was not found."           
+         fi
+         ADVISDIR=$RUNDIR/${ADVISORY}
+         NOWCASTDIR=$ADVISDIR/$ENSTORM
+         mkdir -p $NOWCASTDIR 2>> ${SYSLOG}
+         cd $ADVISDIR 2>> ${SYSLOG}
+         allMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
+         # create links to the OWI files, assuming they already have the
+         # adcirc 221, 222, etc file name extensions
+         cd $ENSTORM 2>> ${SYSLOG}
+         owiFiles=`ls ${HDIR}/${ADVISORY}*.22*`
+         for file in $owiFiles; do
+            ext=${file##*.}
+            if [[ $ext = 22 ]]; then
+               cp $file fort.${ext} 2>> ${SYSLOG} # copy fort.22
+            else
+               ln -s $file fort.${ext} 2>> ${SYSLOG} # symbolically link data
+            fi
+         done
+      ;;
+   esac
+   CONTROLOPTIONS=" --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
    # send out an email alerting end users that a new cycle has been issued
    cycleStartTime=`date +%s`  # epoch seconds
    ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORM $YEAR $NOWCASTDIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
