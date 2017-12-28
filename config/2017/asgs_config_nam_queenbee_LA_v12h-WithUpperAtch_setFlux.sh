@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=v12hSetFlux  # "name" of this ASGS process
-COLDSTARTDATE=2017042600   # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2017091500   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -36,7 +36,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/v52release/work # ADCIRC executables
+ADCIRCDIR=~/adcirc/forks/jasonfleming/master/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable          # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v12g-WithUpperAtch # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts

@@ -364,7 +364,8 @@ prep()
              ln -s $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG 2>&1
           fi
        fi
-       if [[ $HOTSTARTCOMP = subdomain || $WAVES = on ]]; then
+       # jgfdebug
+       if [[ $HOTSTARTCOMP = subdomain ]]; then
           logMessage "$ENSTORM: $THIS: Starting copy of subdomain hotstart files."
           # copy the subdomain hotstart files over
           # subdomain hotstart files are always binary formatted
@@ -375,13 +376,65 @@ prep()
              if [[ $HOTSTARTCOMP = subdomain ]]; then            
                 cp $FROMDIR/PE${PESTRING}/fort.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.68 2>> ${SYSLOG}
              fi
-             if [[ $WAVES = on && $HOTSWAN = on ]]; then
-                cp $FROMDIR/PE${PESTRING}/swan.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/swan.68 2>> ${SYSLOG}
-             fi
              PE=`expr $PE + 1`
           done
           logMessage "$ENSTORM: $THIS: Completed copy of subdomain hotstart files."
        fi
+
+       if [[ $WAVES = on && $HOTSWAN = on ]]; then
+          # subdomain swan hotstart file
+          if [[ -e $FROMDIR/PE0000/swan.67 ]]; then
+             logMessage "$ENSTORM: $THIS: Starting copy of subdomain swan hotstart files."
+             # copy the subdomain hotstart files over
+             # subdomain hotstart files are always binary formatted
+             PE=0
+             format="%04d"
+             while [ $PE -lt $NCPU ]; do
+                PESTRING=`printf "$format" $PE`
+                cp $FROMDIR/PE${PESTRING}/swan.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/swan.68 2>> ${SYSLOG}
+                PE=`expr $PE + 1`
+             done
+             logMessage "$ENSTORM: $THIS: Completed copy of subdomain hotstart files."
+          else
+             # fulldomain swan hotstart file or archive of subdomain
+             # swan hotstart files
+             if [[ -e $FROMDIR/swan.67 ]]; then
+                cp $FROMDIR/swan.67 ./swan.68 2>> $SYSLOG
+             fi
+             if [[ -e $FROMDIR/swan.67.gz ]]; then
+                cp $FROMDIR/swan.67.gz ./swan.68.gz 2>> $SYSLOG
+                gunzip swan.68.gz 2>> $SYSLOG
+             fi
+             if [[ -e $FROMDIR/swan.67.bz2 ]]; then
+                cp $FROMDIR/swan.67.bz2 ./swan.68.bz2 2>> $SYSLOG
+                bunzip2 swan.68.bz2 2>> $SYSLOG
+             fi
+             if [[ -e $FROMDIR/swan.67.tar.gz ]]; then
+                cp $FROMDIR/swan.67.tar.gz ./swan.68.tar.gz 2>> $SYSLOG
+                tar xvzf swan.68.tar.gz 2>> $SYSLOG
+                for dir in `ls -d PE*`; do
+                   mv $dir/swan.67 $dir/swan.68 2>> $SYSLOG
+                done
+             fi
+             if [[ -e $FROMDIR/swan.67.tar.bz2 ]]; then
+                cp $FROMDIR/swan.67.tar.bz2 ./swan.68.tar.bz2 2>> $SYSLOG
+                tar xvjf swan.68.tar.bz2 2>> $SYSLOG
+                for dir in `ls -d PE*`; do
+                   mv $dir/swan.67 $dir/swan.68 2>> $SYSLOG
+                done
+             fi
+             if [[ -e  swan.68 ]]; then
+                logMessage "$ENSTORM: $THIS: Starting dcomposition of fulldomain swan hotstart file to subdomains."
+                ${ADCIRCDIR}/../swan/unhcat.exe <<EOF 2>> ${SYSLOG}
+2
+swan.68
+F
+EOF
+             fi
+                logMessage "$ENSTORM: $THIS: Completed decomposition of fulldomain swan hotstart file."
+          fi             
+       fi
+
     fi
     # if we don't have an archive of our preprocessed files, create
     # one so that we don't have to do another prepall
@@ -1191,6 +1244,7 @@ fi
 if [[ $WAVES = on ]]; then
    JOBTYPE=padcswan
    checkFileExistence $ADCIRCDIR "ADCIRC+SWAN parallel executable" padcswan
+   checkFileExistence $ADCIRCDIR/../swan "SWAN fulldomain hotstart file decomposition executable " unhcat.exe
    checkFileExistence $INPUTDIR "SWAN initialization template file " swaninit.template
    checkFileExistence $INPUTDIR "SWAN control template file" $SWANTEMPLATE
 else
@@ -1248,7 +1302,7 @@ fi
 checkFileExistence $OUTPUTDIR "postprocessing initialization script" $INITPOST
 checkFileExistence $OUTPUTDIR "postprocessing script" $POSTPROCESS
 checkFileExistence $OUTPUTDIR "email notification script" $NOTIFY_SCRIPT
-checkFileExistence $OUTPUTDIR "data archival script" $ARCHIVE
+checkFileExistence ${SCRIPTDIR}/archive "data archival script" $ARCHIVE
 #
 checkDirExistence ${PERL5LIB}/Date "subdirectory for the Pcalc.pm perl module"
 checkFileExistence ${PERL5LIB}/Date "perl module for date calculations" Pcalc.pm
@@ -1425,10 +1479,23 @@ while [ true ]; do
       fi
    fi
    # turn SWAN hotstarting on or off as appropriate
-   if [[ $WAVES = on && -e $FROMDIR/PE0000/swan.67 && $REINITIALIZESWAN = no ]]; then
-       HOTSWAN=on # doesn't do anything unless WAVES=on
-   else 
-       HOTSWAN=off
+   HOTSWAN=off
+   if [[ $WAVES = on && $REINITIALIZESWAN = no ]]; then
+      # look for a swan hotstart file
+      for swanhsfile in PE0000/swan.67 swan.67; do
+         if [[ -e $FROMDIR/$swanhsfile ]]; then 
+            HOTSWAN=on
+            logMessage "Found SWAN hotstart file $FROMDIR/${swanhsfile}."
+            break
+         fi
+         for swanhssuffix in tar.gz tar.bz2 gz bz2; do
+            if [[ -e $FROMDIR/${swanhsfile}.${swanhssuffix} ]]; then
+               HOTSWAN=on
+               logMessage "Found SWAN hotstart file $FROMDIR/${swanhsfile}."
+               break
+            fi
+         done
+      done
    fi
    checkHotstart $FROMDIR $HOTSTARTFORMAT  67
    THIS="asgs_main.sh"
@@ -1651,6 +1718,12 @@ while [ true ]; do
       fi
       # nowcast finished, get on with it
       allMessage "$ENSTORM: $THIS: Nowcast run finished."
+      #
+      # archive nowcast
+      logMessage "$ENSTORM: $THIS: Initiating nowcast archival process, if any."
+      ${SCRIPTDIR}/archive/${ARCHIVE} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
+      THIS="asgs_main.sh"
+      allMessage "$ENSTORM: $THIS: Nowcast complete for advisory '$ADVISORY.'"
       cd $ADVISDIR 2>> ${SYSLOG}
    else
       # we didn't run the nowcast, because our latest nowcast data end 
@@ -1746,10 +1819,23 @@ while [ true ]; do
          done
       fi
       # turn SWAN hotstarting on or off as appropriate
-      if [[ $WAVES = on && -e $NOWCASTDIR/PE0000/swan.67 && $REINITIALIZESWAN = no ]]; then
-         HOTSWAN=on # doesn't do anything unless WAVES=on
-      else 
-         HOTSWAN=off
+      HOTSWAN=off
+      if [[ $WAVES = on && $REINITIALIZESWAN = no ]]; then
+         # look for a swan hotstart file
+         for swanhsfile in PE0000/swan.67 swan.67; do
+            if [[ -e $FROMDIR/$swanhsfile ]]; then 
+               HOTSWAN=on
+               logMessage "Found SWAN hotstart file $FROMDIR/${swanhsfile}."
+               break
+            fi
+            for swanhssuffix in tar.gz tar.bz2 gz bz2; do
+               if [[ -e $FROMDIR/${swanhsfile}.${swanhssuffix} ]]; then
+                  HOTSWAN=on
+                  logMessage "Found SWAN hotstart file $FROMDIR/${swanhsfile}."
+                  break
+               fi
+            done
+         done
       fi
       STORMDIR=$ADVISDIR/$ENSTORM
       if [ ! -d $STORMDIR ]; then
@@ -1916,10 +2002,11 @@ while [ true ]; do
    logMessage "$ENSTORM: $THIS: All forecast ensemble members have been submitted."
    logMessage "$ENSTORM: $THIS: Waiting for completion of the remaining forecast ensemble members (and their associated post processing)."
    wait   # @jasonfleming: I suppose I put this here so that the archive script would have a complete set of results, but now (20170823) I am thinking that the archive script needs to be resilient to having not all the results available so that it doesn't hold up the whole show
-   # copy results to archive location
+   # 
+   # ARCHIVE FORECAST
    logMessage "$ENSTORM: $THIS: Initiating archival process, if any."
-   #jgf: FIXME: Reconcile post processing arguments and archiving arguments ${OUTPUTDIR}/${ARCHIVE} $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $ARCHIVEBASE $ARCHIVEDIR  2>> ${SYSLOG} &
-   ${OUTPUTDIR}/${ARCHIVE} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME    $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
+   ${SCRIPTDIR}/archive/${ARCHIVE} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME    $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
+   THIS="asgs_main.sh"
    allMessage "$ENSTORM: $THIS: Forecast complete for advisory '$ADVISORY.'"
    LASTSUBDIR=null # don't need this any longer
    # if we ran the nowcast on this cycle, then this cycle's nowcast becomes 
