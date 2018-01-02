@@ -1608,7 +1608,6 @@ do n=1, numNC
    fmd % ncds(n) % isInteger = .false.
    fmd % ncds(n) % is3D = .false.
 end do
-
 !
 ! XDMF
 fmd % numVarXDMF = numXDMF
@@ -1622,8 +1621,8 @@ do n=1,fmd%numVarXDMF
    fmd % xds(n) % numberPrecision = 8  ! initialize to most common value
 end do 
 fmd % ncds(1) % nc_varType = NF90_DOUBLE ! initialize to most common value
-fmd % ncds(1) % varNameNetCDF = firstVarName ! initialize to most common value
-!fmd % xds(1) % varNameXDMF = trim(firstVarName) ! initialize to most common value
+fmd % ncds(1) % varNameNetCDF = trim(firstVarName) ! initialize to most common value
+fmd % xds(1) % varNameXDMF = trim(firstVarName) ! initialize to most common value
 fmd % initialized = .true. 
 !----------------------------------------------------------------------
 end subroutine initFileMetaData
@@ -1651,7 +1650,7 @@ integer :: j
 if ( fmd % initialized .eqv..true. ) then
    return
 endif
-!     
+!
 timeOfVarName = 'time_of_'//trim(someVarName)
 if (trim(someVarName).eq."inun_time") then
    timeOfVarName = 'last_'//trim(someVarName)
