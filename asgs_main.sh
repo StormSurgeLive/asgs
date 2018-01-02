@@ -1580,7 +1580,7 @@ while [ true ]; do
       fi
    fi
    case $BACKGROUNDMET in
-      "on","NAM")
+      on|NAM)
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading background meteorology."
          logMessage "$ENSTORM: $THIS: downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
          downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
@@ -1602,7 +1602,7 @@ while [ true ]; do
          ln -s $NAM221 fort.221 2>> ${SYSLOG}
          ln -s $NAM222 fort.222 2>> ${SYSLOG}
          ;;
-   "OWI")
+   OWI)
          # this is a hack to enable running pre-existing OWI files for hindcast
          #
          # hard code the file location and assume the names of the files have
@@ -1638,6 +1638,9 @@ while [ true ]; do
                ln -s $file fort.${ext} 2>> ${SYSLOG} # symbolically link data
             fi
          done
+      ;;
+     *) # should be unreachable
+        fatal "BACKGROUNDMET did not match an allowable value."
       ;;
    esac
    CONTROLOPTIONS=" --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
