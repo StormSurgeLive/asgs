@@ -1,19 +1,17 @@
  ASGS %StormName%
- %EnsembleID%       
+ %EnsembleID%
  1   20.0   1   50   1000.0  ! NFOVER - NONFATAL ERROR OVERRIDE OPTION
  1  ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
- -1000 ! NSCREEN - UNIT 6 OUTPUT OPTION PARAMETER
-%IHOT%  ! IHOT - HOT START PARAMETER
+-1000 ! NSCREEN - UNIT 6 OUTPUT OPTION PARAMETER
+%IHOT% ! IHOT - HOT START PARAMETER
  2  ! ICS - COORDINATE SYSTEM SELECTION PARAMETER
  0  ! IM - MODEL SELECTION PARAMETER 
  1  ! NOLIBF - BOTTOM FRICTION TERM SELECTION PARAMETER
  2  ! NOLIFA - FINITE AMPLITUDE TERM SELECTION PARAMETER
  0  ! NOLICA - SPATIAL DERIVATIVE CONVECTIVE SELECTION PARAMETER
  0  ! NOLICAT - TIME DERIVATIVE CONVECTIVE TERM SELECTION PARAMETER
- 8  ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
+ 6  ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
 surface_submergence_state
-surface_directional_effective_roughness_length
-surface_canopy_coefficient
 mannings_n_at_sea_floor
 sea_surface_height_above_geoid
 primitive_weighting_in_continuity_equation
@@ -28,16 +26,16 @@ elemental_slope_limiter
 %DT%  ! DT - TIME STEP (IN SECONDS)
  0.00  ! STATIM - STARTING TIME (IN DAYS)
  0.00   ! REFTIM - REFERENCE TIME (IN DAYS)
-%WTIMINC%  ! WTIMINC, SWANTIMINC
-%RNDAY%    ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
- 7.0 5.0 5.0  ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
+%WTIMINC%    ! WTIMINC
+%RNDAY%      ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
+ 7.0 5.0 5.0     ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
  0.35 0.30 0.35  ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
  0.10 0 0 0.01    ! H0, NODEDRYMIN, NODEWETMIN, VELMIN
- 265.5 29.0 ! SLAM0,SFEA0 - CENTER OF CPP PROJECTION 
+ 265.5 29.0 ! SLAM0,SFEA0 - CENTER OF CPP PROJECTION (NOT USED IF ICS=1, NTIP=0, NCOR=0)
  0.000 2.0 10 1.33333 !  FFACTOR,HBREAK,FTHETA,FGAMMA
  50.0 ! ESL - LATERAL EDDY VISCOSITY COEFFICIENT; IGNORED IF NWP =1
- 0.0  ! CORI - CORIOLIS PARAMETER - IGNORED IF NCOR = 1
- 8    ! NTIF - TOTAL NUMBER OF TIDAL POTENTIAL CONSTITUENTS
+ 0.0    ! CORI - CORIOLIS PARAMETER - IGNORED IF NCOR = 1
+ 8   ! NTIF - TOTAL NUMBER OF TIDAL POTENTIAL CONSTITUENTS
  Q1   ! ALPHANUMERIC DESCRIPTION
  0.019256  0.000064958541129   0.695  %Q1NF% %Q1EQARG%
  O1  
@@ -1015,53 +1013,53 @@ K2
     0.033000       23.100000         8   115
     0.033000       23.100000         8   116
     0.033000       23.100000         8   117
-110.0   ! ANGINN : INNER ANGLE THRESHOLD
-1       ! NFFR - TOTAL NUMBER OF FORCING FREQUENCIES ON FLUX BOUNDARIES
+ 110.0 ! ANGINN : INNER ANGLE THRESHOLD
+1                     ! NFFR - TOTAL NUMBER OF FORCING FREQUENCIES ON FLUX BOUNDARIES
  STEADY               ! CONSTITUENT. 1  ALPHA DESCRIPTOR
  0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
- STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
-10.2 0.0   ! ms node 1; total flux set to 12.6 kcms; MS@BR15ft; 20180102
-11.8 0.0  ! mississippi node 2
-13.6 0.0  ! mississippi node 3
-14.6 0.0  ! mississippi node 4
-15.5 0.0  ! mississippi node 5
-16.0 0.0  ! mississippi node 6
-15.4 0.0  ! mississippi node 7
-13.8 0.0  ! mississippi node 8
-10.1 0.0  ! mississippi node 9
-7.4 0.0  ! mississippi node 10
-4.1 0.0  ! mississippi node 11
-3.0 0.0  ! mississippi node 12
-2.7 0.0  ! mississippi node 13
-0.0 0.0   ! morganza node 1; total flux set to 0.0 kcms
-0.0 0.0  ! morganza node 2
-0.0 0.0  ! morganza node 3
-0.0 0.0  ! morganza node 4
-0.0 0.0  ! morganza node 5
-0.0 0.0  ! morganza node 6
-0.0 0.0  ! morganza node 7
-2.4 0.0   ! atchafalaya node 1; total flux set to 6.3 kcms
-2.6 0.0  ! atchafalaya node 2
-2.8 0.0  ! atchafalaya node 3
-2.9 0.0  ! atchafalaya node 4
-3.1 0.0  ! atchafalaya node 5
-3.4 0.0  ! atchafalaya node 6
-3.4 0.0  ! atchafalaya node 7
-3.4 0.0  ! atchafalaya node 8
-3.4 0.0  ! atchafalaya node 9
-3.4 0.0  ! atchafalaya node 10
-3.5 0.0  ! atchafalaya node 11
-3.5 0.0  ! atchafalaya node 12
-3.5 0.0  ! atchafalaya node 13
-3.5 0.0  ! atchafalaya node 14
-3.5 0.0  ! atchafalaya node 15
-3.5 0.0  ! atchafalaya node 16
-3.4 0.0  ! atchafalaya node 17
-3.4 0.0  ! atchafalaya node 18
-3.4 0.0  ! atchafalaya node 19
-3.2 0.0  ! atchafalaya node 20
-3.0 0.0  ! atchafalaya node 21
-2.7 0.0  ! atchafalaya node 22
+  STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
+15.3550356265  0.0 ! MS River @Baton Rouge  Node 1 !..12210*1.843 cms or 22.5 kcms
+20.7973046683  0.0 ! MS River @Baton Rouge  Node 2
+26.0931836609  0.0 ! MS River @Baton Rouge  Node 3 
+28.551958231   0.0 ! MS River @Baton Rouge  Node 4
+32.2503390663  0.0 ! MS River @Baton Rouge  Node 5
+31.2448894349  0.0 ! MS River @Baton Rouge  Node 6
+29.4786265356  0.0 ! MS River @Baton Rouge  Node 7
+26.1928415233  0.0 ! MS River @Baton Rouge  Node 8
+16.8727260442  0.0 ! MS River @Baton Rouge  Node 9
+6.7632051597   0.0 ! MS River @Baton Rouge  Node 10
+5.3293304668   0.0 ! MS River @Baton Rouge  Node 11
+4.657752457    0.0 ! MS River @Baton Rouge  Node 12
+4.657752457    0.0 ! MS River @Baton Rouge  Node 13
+0.0   0.0 ! Morganza Floodway  Node 1
+0.0   0.0 ! Morganza Floodway  Node 2
+0.0   0.0 ! Morganza Floodway  Node 3
+0.0   0.0 ! Morganza Floodway  Node 4
+0.0   0.0 ! Morganza Floodway  Node 5
+0.0   0.0 ! Morganza Floodway  Node 6
+0.0   0.0 ! Morganza Floodway  Node 7
+8.3621805338  0.0 ! Atchafalaya River @Simmesport  Node 1 !..5233*1.843 cms or 9.64kcms
+8.3621805338  0.0 ! Atchafalaya River  Node 2
+8.3621805338  0.0 ! Atchafalaya River  Node 3
+8.3621805338  0.0 ! Atchafalaya River  Node 4
+8.3621805338  0.0 ! Atchafalaya River  Node 5
+8.3621805338  0.0 ! Atchafalaya River  Node 6
+8.3621805338  0.0 ! Atchafalaya River  Node 7
+8.3621805338  0.0 ! Atchafalaya River  Node 8
+8.3621805338  0.0 ! Atchafalaya River  Node 9
+8.3621805338  0.0 ! Atchafalaya River  Node 10
+8.3621805338  0.0 ! Atchafalaya River  Node 11
+8.3621805338  0.0 ! Atchafalaya River  Node 12
+8.3621805338  0.0 ! Atchafalaya River  Node 13
+8.3621805338  0.0 ! Atchafalaya River  Node 14
+8.3621805338  0.0 ! Atchafalaya River  Node 15
+8.3621805338  0.0 ! Atchafalaya River  Node 16
+8.3621805338  0.0 ! Atchafalaya River  Node 17
+8.3621805338  0.0 ! Atchafalaya River  Node 18
+8.3621805338  0.0 ! Atchafalaya River  Node 19
+8.3621805338  0.0 ! Atchafalaya River  Node 20
+8.3621805338  0.0 ! Atchafalaya River  Node 21
+8.3621805338  0.0 ! Atchafalaya River  Node 22
 %FORT61%    ! NOUTE,TOUTSE,TOUTFE,NSPOOLE (UNIT  61)
 %NUMELEVSTATIONS%    ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS
 %FORT62%
@@ -1082,7 +1080,7 @@ ERDC
 ASGS Nowcast/Forecast
 http://www.seahorsecoastal.com
 Model time is relative to UTC.
-garnet.erdc.hpc.mil
+mike.hpc.lsu.edu   
 CF
 jason.fleming@seahorsecoastal.com
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
