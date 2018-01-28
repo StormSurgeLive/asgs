@@ -55,7 +55,7 @@
 # 1. When the mesh is installed in ASGS, it will run the boundaryFinder.f90
 #    program to create a boundaries xyz file; example invokation is as follows:
 #
-# ${SCRIPTDIR}/util/mesh/boundaryFinder.x --meshfile ${GRIDFILE} --outputfile    ${GRIDFILE}.inflow_flux_boundaries_lengthsdepths.txt --boundarytype inflow_flux --lengthsdepths
+# ${SCRIPTDIR}/util/mesh/boundaryFinder.x --meshfile ${GRIDFILE} --outputfile    ${GRIDFILE}.inflow_flux_boundaries_lengthsdepths.txt --boundarytype inflow_flux --lengths-depths
 #
 # If the mesh file is changed, the ASGS will detect this and automatically 
 # rerun the boundaryFinder.x program. 
