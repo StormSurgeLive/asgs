@@ -44,6 +44,7 @@ my $issued = "null";  # yyyymmddhh24Z time of issue of corresponding advisory
 my $forecastlength = "null"; # max forecast length (hours)
 my $output = "null"; # name of OFCL output file
 my $bestoutput = "null"; # name of BEST output file (if any)
+my $rezeroHoursColumn; # used to reset the hours column of a BEST track file so it starts at zero
 #
 # for HWind data 
 my $hwind = "null"; # name of the ADCIRC HWind fort.22 file, if any
@@ -62,6 +63,7 @@ GetOptions(
 
            "input=s" => \$input,
            "output=s" => \$output,
+           "rezero-hours-column" => \$rezeroHoursColumn,
            "bestoutput=s" => \$bestoutput,
            "issued=s" => \$issued,
            "forecastlength=s" => \$forecastlength,
@@ -78,12 +80,13 @@ unless(open(BEST,"<$input")) {
 if ( $output eq "null" ) {
    $output = "fcst_$input";
 }
-
-unless(open(FCST,">$output")) {
-   &stderrMessage("ERROR","Failed to open forecast track file $output: $!.");
-   die;
-} else {
-   &stderrMessage("INFO","Opened forecast track file $output.");
+unless ( $rezeroHoursColumn ) { 
+   unless(open(FCST,">$output")) {
+      &stderrMessage("ERROR","Failed to open forecast track file $output: $!.");
+      die;
+   } else {
+      &stderrMessage("INFO","Opened forecast track file $output.");
+   }
 }
 unless ( $bestoutput eq "null" ) {
    unless(open(BESTOUT,">$bestoutput")) {
@@ -98,6 +101,29 @@ my $start_date = "null";
 my $previous_date = "null";
 my $sy; my $sm; my $sd; my $sh;  # starting year, month day, hour
 my $fy; my $fm; my $fd; my $fh; my $fmin; # for current BEST track line
+#
+# compute the starting date for re-zeroing the hours column in a BEST 
+# track file
+my $newStartDate = "null";
+if ( $rezeroHoursColumn ) {
+   # parse date given on command line
+   $csdate =~ /(\d{4})(\d{2})(\d{2})(\d{2})/;
+   my $csy = $1;
+   my $csm = $2;
+   my $csd = $3;
+   my $csh = $4;
+   my $csmin = 0;
+   my $css = 0; 
+   my $ddays = 0;
+   my $dhours = 0;
+   my $dminutes = 0;
+   my $dseconds = $hstime; 
+   my ($sdy,$sdm,$sdd,$sdh,$sdmin,$sds) =
+       Date::Pcalc::Add_Delta_DHMS($csy,$csm,$csd,$csh,$csmin,$css,$ddays,$dhours,$dminutes,$dseconds);
+   $newStartDate = sprintf("%04d%02d%02d%02d",$sdy,$sdm,$sdd,$sdh);
+}
+#
+# read each line of BEST track file
 while(<BEST>) {
    my @fields = split(',',$_);
    my $date = $fields[2];
@@ -111,13 +137,22 @@ while(<BEST>) {
          next;
       }
    }
-   # determine difference in hours between this date and the
-   # best track start date
+   # for re-zeroing the hours column in a BEST track file to match 
+   # a hotstart time, compare the date of this line with the cold start 
+   # date plus the hot start time and skip if it is before the hotstart
+   # time   
+   if ( $rezeroHoursColumn ) {
+      if ( $date < $newStartDate ) {
+         next; 
+      }
+   }
+   # parse the date on the current line
    $date =~ /(\d{4})(\d{2})(\d{2})(\d{2})/;
    $fy = $1;
    $fm = $2;
    $fd = $3;
    $fh = $4;
+   # if the start date has not been set yet
    if ( $start_date eq "null" ) {
       $previous_date = $date;
       $start_date = $date;
@@ -146,13 +181,17 @@ while(<BEST>) {
    substr($line,30,3) = sprintf("%3d",$time_differences[$cycle]);
    # change the file type column to OFCL to reflect the fact that 
    # these data are supposed to represent a forecast
-   substr($line,24,4) = "OFCL";
-   # make the date/time value on this line the same as the first 
-   # date/time value in the file, as specified by the ATCF spec 
-   # for OFCL type files
-   substr($line,8,10) = sprintf("%4d%02d%02d%02d",$sy,$sm,$sd,$sh);
+   unless ( $rezeroHoursColumn ) {
+      substr($line,24,4) = "OFCL";
+      # make the date/time value on this line the same as the first 
+      # date/time value in the file, as specified by the ATCF spec 
+      # for OFCL type files
+      substr($line,8,10) = sprintf("%4d%02d%02d%02d",$sy,$sm,$sd,$sh);
+      printf FCST $line;
+   } else {
+      printf BESTOUT $line;
+   }
    $previous_date = $date;
-   printf FCST $line;
 }
 #
 close(BEST);

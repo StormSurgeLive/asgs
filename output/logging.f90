@@ -425,6 +425,7 @@ if(ncstatus.ne.nf90_noerr)then
    write(*,'(a,a)') "ERROR: ",trim(nf90_strerror(ncstatus))
 
 #ifdef DEBUGSEGFAULT
+   call backtrace
    triggerSegFaultIntentionallyForStackTrace = intentionalSegFault(1)
 #endif
 
