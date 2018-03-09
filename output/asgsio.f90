@@ -276,6 +276,8 @@ type(mesh_t), intent(inout) :: m
 type(meshNetCDF_t), intent(inout) :: n
 character(len=NF90_MAX_NAME) :: thisVarName
 character(len=NF90_MAX_NAME) :: componentName
+character(len=NF90_MAX_NAME) :: nodalAttributesComment ! locally declare this here to avoid dependency on nodalattr module
+integer :: numNodalAttributes  ! locally declare this here to avoid dependency on nodalattr module
 integer :: i, j, k, p, q
 integer :: errorIO
 logical :: exists ! true if the file exists
