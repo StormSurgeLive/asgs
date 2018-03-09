@@ -33,6 +33,12 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
 #---------------------------------------------------------------------
+# Example execution to rezero the hours column in a BEST track file
+# to reflect a later start time (24 hours after cold start):
+#
+# export PERL5LIB=~/asgs/2014stable/PERL
+# perl ~/asgs/2014stable/doc/best2fcst.pl --input fort.22 --csdate 2017082312 --hstime 86400.0 --bestout fort.22.24hr
+#---------------------------------------------------------------------
 #
 use strict;
 use Getopt::Long;
@@ -52,6 +58,9 @@ my $csdate = "null";  # date/time of cold start, if HWind hours should
                       # be relative to that or to a hot start time (yyyymmddhh24)
 my $hstime = "null";  # hot start time (sec), if the HWind hours should
                       # be relative to the hotstart time
+
+
+
 #
 # if csdate is specified on the command line, but the hstime is not, then
 # the HWind hours column will be relative to the cold start time.

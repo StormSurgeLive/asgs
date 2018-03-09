@@ -208,5 +208,5 @@ collectMinMax : adcmesh.mod asgsio.mod collectMinMax.f90
 resultScope : adcmesh.mod asgsio.mod resultScope.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-nodalattr.mod : ../util/nodalattr/nodalattr.f90 adcmesh.mod asgsio.mod
+nodalattr.mod : ../util/nodalattr/nodalattr.f90 adcmesh.mod 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c ../util/nodalattr/nodalattr.f90 $(LDFLAGS)

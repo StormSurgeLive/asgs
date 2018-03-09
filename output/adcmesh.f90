@@ -102,7 +102,7 @@ type mesh_t
    real(8), allocatable :: fdy(:,:) ! (3,ne)
    real(8), allocatable :: centroids(:,:) ! (2,ne) x and y coordinates of the element centroids
    !
-   character(80) :: agrid
+   character(2048) :: agrid
    integer :: ne   ! number of elements
    integer :: np   ! number of nodes
    integer, allocatable :: nmnc(:,:) ! element table in netcdf (3,ne)
@@ -290,7 +290,7 @@ m%is3D = .false.
 !
 iunit = availableUnitNumber()
 call openFileForRead(iunit, m%meshFileName, errorIO)
-read(iunit,'(A80)',err=10,end=20,iostat=ios) m%agrid
+read(iunit,'(a)',err=10,end=20,iostat=ios) m%agrid
 lineNum = lineNum + 1
 write(6,'(A)') "INFO: Mesh file comment line: "//trim(m%agrid)
 write(6,'(A)') "INFO: Reading mesh file dimensions."
@@ -686,7 +686,7 @@ write(6,'(A)') 'INFO: Reading mesh file coordinates, connectivity, and boundary 
 iunit = availableUnitNumber() 
 call openFileForRead(iunit, m%meshFileName, ios)
 lineNum = 1
-read(unit=iunit,fmt='(a80)',err=10,end=20,iostat=ios) m%agrid
+read(unit=iunit,fmt='(a)',err=10,end=20,iostat=ios) m%agrid
 lineNum = lineNum + 1
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%ne, m%np
 lineNum = lineNum + 1
@@ -1093,7 +1093,7 @@ if (verbose.eqv..true.) then
 endif
 write(6,'(a)') 'INFO: Writing node table to "' // trim(m%meshFileName) // '".'
 lineNum = 1
-write(unit=iunit,fmt='(a80)',err=10,iostat=ios) m%agrid
+write(unit=iunit,fmt='(a)',err=10,iostat=ios) trim(m%agrid)
 lineNum = lineNum + 1
 write(unit=iunit,fmt='(2(i0,1x),a)',err=10,iostat=ios) m%ne, m%np, &
   '! number of elements (ne), number of nodes (np)'
