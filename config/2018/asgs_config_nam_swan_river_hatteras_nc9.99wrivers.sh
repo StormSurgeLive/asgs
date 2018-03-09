@@ -34,7 +34,8 @@ INSTANCENAME=hiresr       # name of this ASGS process, to differentiate results
 #COLDSTARTDATE=2017010100
 #COLDSTARTDATE=2017012400
 #COLDSTARTDATE=2017071000
-COLDSTARTDATE=2017112900
+#COLDSTARTDATE=2017121500
+COLDSTARTDATE=2018020400
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
@@ -64,19 +65,18 @@ HINDCASTWALLTIME="12:00:00"
 ADCPREPWALLTIME="00:15:00"
 NOWCASTWALLTIME="05:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=608
-NCPUCAPACITY=640
-NUMWRITERS=16
-
+NCPU=159
+NCPUCAPACITY=500
+NUMWRITERS=1
 CYCLETIMELIMIT="05:00:00"
 # queue
 QUEUENAME=null
 SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
 ACCOUNT=batch # or "ncfs" on hatteras to use pre-empt capability
-
-QSCRIPT=hatteras.reservation.template.slurm
-PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm # jgf20160322
+PARTITION=ncfs
+RESERVATION=null
+CONSTRAINT='sandybridge&hatteras'
 
 # External data sources : Tropical cyclones
 
@@ -170,7 +170,7 @@ INITPOST=null_init_post.sh
 POSTPROCESS=ncfs_post_min.sh
 POSTPROCESS2=null_post.sh
 
-TDS=(renci_tds lsu_tds)
+TDS=(renci_tds)
 TARGET=hatteras  # used in post processing to pick up HPC platform config
 OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
 if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
@@ -178,7 +178,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="nc.cera.renci2@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
@@ -197,9 +197,15 @@ case $si in
    ;;
 0)
    ENSTORM=namforecast
+   PARTITION=ncfs
+   RESERVATION=null
+   CONSTRAINT='sandybridge&hatteras'
    ;;
 1)
    ENSTORM=namforecastWind10m
+   PARTITION=ncfs
+   RESERVATION=null
+   CONSTRAINT='sandybridge&hatteras'
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=nc_9.99wrivers.nowindreduction.fort.15.template

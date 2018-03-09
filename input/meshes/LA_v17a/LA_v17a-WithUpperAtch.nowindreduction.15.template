@@ -1018,48 +1018,48 @@ K2
  STEADY               ! CONSTITUENT. 1  ALPHA DESCRIPTOR
  0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
   STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
-15.3550356265  0.0 ! MS River @Baton Rouge  Node 1 !..12210*1.843 cms or 22.5 kcms
-20.7973046683  0.0 ! MS River @Baton Rouge  Node 2
-26.0931836609  0.0 ! MS River @Baton Rouge  Node 3 
-28.551958231   0.0 ! MS River @Baton Rouge  Node 4
-32.2503390663  0.0 ! MS River @Baton Rouge  Node 5
-31.2448894349  0.0 ! MS River @Baton Rouge  Node 6
-29.4786265356  0.0 ! MS River @Baton Rouge  Node 7
-26.1928415233  0.0 ! MS River @Baton Rouge  Node 8
-16.8727260442  0.0 ! MS River @Baton Rouge  Node 9
-6.7632051597   0.0 ! MS River @Baton Rouge  Node 10
-5.3293304668   0.0 ! MS River @Baton Rouge  Node 11
-4.657752457    0.0 ! MS River @Baton Rouge  Node 12
-4.657752457    0.0 ! MS River @Baton Rouge  Node 13
-0.0   0.0 ! Morganza Floodway  Node 1
-0.0   0.0 ! Morganza Floodway  Node 2
-0.0   0.0 ! Morganza Floodway  Node 3
-0.0   0.0 ! Morganza Floodway  Node 4
-0.0   0.0 ! Morganza Floodway  Node 5
-0.0   0.0 ! Morganza Floodway  Node 6
-0.0   0.0 ! Morganza Floodway  Node 7
-8.3621805338  0.0 ! Atchafalaya River @Simmesport  Node 1 !..5233*1.843 cms or 9.64kcms
-8.3621805338  0.0 ! Atchafalaya River  Node 2
-8.3621805338  0.0 ! Atchafalaya River  Node 3
-8.3621805338  0.0 ! Atchafalaya River  Node 4
-8.3621805338  0.0 ! Atchafalaya River  Node 5
-8.3621805338  0.0 ! Atchafalaya River  Node 6
-8.3621805338  0.0 ! Atchafalaya River  Node 7
-8.3621805338  0.0 ! Atchafalaya River  Node 8
-8.3621805338  0.0 ! Atchafalaya River  Node 9
-8.3621805338  0.0 ! Atchafalaya River  Node 10
-8.3621805338  0.0 ! Atchafalaya River  Node 11
-8.3621805338  0.0 ! Atchafalaya River  Node 12
-8.3621805338  0.0 ! Atchafalaya River  Node 13
-8.3621805338  0.0 ! Atchafalaya River  Node 14
-8.3621805338  0.0 ! Atchafalaya River  Node 15
-8.3621805338  0.0 ! Atchafalaya River  Node 16
-8.3621805338  0.0 ! Atchafalaya River  Node 17
-8.3621805338  0.0 ! Atchafalaya River  Node 18
-8.3621805338  0.0 ! Atchafalaya River  Node 19
-8.3621805338  0.0 ! Atchafalaya River  Node 20
-8.3621805338  0.0 ! Atchafalaya River  Node 21
-8.3621805338  0.0 ! Atchafalaya River  Node 22
+23.8 0.0   ! mississippi node 1; total flux set to 32.6 kcms; jgf20180309
+27.9 0.0  ! mississippi node 2
+32.4 0.0  ! mississippi node 3
+34.8 0.0  ! mississippi node 4
+36.8 0.0  ! mississippi node 5
+37.8 0.0  ! mississippi node 6
+36.3 0.0  ! mississippi node 7
+32.5 0.0  ! mississippi node 8
+23.8 0.0  ! mississippi node 9
+17.3 0.0  ! mississippi node 10
+9.5 0.0  ! mississippi node 11
+7.0 0.0  ! mississippi node 12
+6.4 0.0  ! mississippi node 13
+0.0 0.0   ! morganza node 1; total flux set to 0.0 kcms
+0.0 0.0  ! morganza node 2
+0.0 0.0  ! morganza node 3
+0.0 0.0  ! morganza node 4
+0.0 0.0  ! morganza node 5
+0.0 0.0  ! morganza node 6
+0.0 0.0  ! morganza node 7
+5.5 0.0   ! atchafalaya node 1; total flux set to 16.3 kcms
+5.8 0.0  ! atchafalaya node 2
+6.4 0.0  ! atchafalaya node 3
+6.7 0.0  ! atchafalaya node 4
+7.1 0.0  ! atchafalaya node 5
+7.6 0.0  ! atchafalaya node 6
+7.6 0.0  ! atchafalaya node 7
+7.6 0.0  ! atchafalaya node 8
+7.7 0.0  ! atchafalaya node 9
+7.8 0.0  ! atchafalaya node 10
+7.9 0.0  ! atchafalaya node 11
+7.9 0.0  ! atchafalaya node 12
+7.9 0.0  ! atchafalaya node 13
+7.9 0.0  ! atchafalaya node 14
+7.9 0.0  ! atchafalaya node 15
+7.9 0.0  ! atchafalaya node 16
+7.7 0.0  ! atchafalaya node 17
+7.6 0.0  ! atchafalaya node 18
+7.6 0.0  ! atchafalaya node 19
+7.3 0.0  ! atchafalaya node 20
+6.7 0.0  ! atchafalaya node 21
+6.2 0.0  ! atchafalaya node 22
 %FORT61%    ! NOUTE,TOUTSE,TOUTFE,NSPOOLE (UNIT  61)
 %NUMELEVSTATIONS%    ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS
 %FORT62%
