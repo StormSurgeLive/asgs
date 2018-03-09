@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2006--2017 Jason Fleming
+# Copyright(C) 2006--2016 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade 
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -28,24 +28,24 @@
 #
 # Fundamental 
 #
-INSTANCENAME=hiresr       # name of this ASGS process, to differentiate results
-#COLDSTARTDATE=2016061300
-#COLDSTARTDATE=2016111500
+INSTANCENAME=dailyv6d      # name of this ASGS process
+#COLDSTARTDATE=2016090400
 #COLDSTARTDATE=2017010100
 #COLDSTARTDATE=2017012400
-#COLDSTARTDATE=2017071000
+#COLDSTARTDATE=2017070900
 #COLDSTARTDATE=2017121500
 COLDSTARTDATE=2018020400
-HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
+
+HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
 LASTSUBDIR=null
-HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
+HINDCASTLENGTH=30.0        # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
 ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables 
-SCRIPTDIR=~/asgs/2014stable     # ASGS scripts/executables  
-INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v9.99_w_rivers # dir containing grid and other input files 
+SCRIPTDIR=~/asgs/2014stable        # ASGS scripts/executables  
+INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v6b   # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 
@@ -54,29 +54,28 @@ PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 BACKGROUNDMET=on     # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
 TROPICALCYCLONE=off  # [de]activate tropical cyclone forcing (temp. broken)
-WAVES=on             # [de]activate wave forcing 
+WAVES=on            # [de]activate wave forcing 
 VARFLUX=on           # [de]activate variable river flux forcing
 
 # Computational Resources
 
 TIMESTEPSIZE=0.5
 SWANDT=1200
-HINDCASTWALLTIME="12:00:00"
+HINDCASTWALLTIME="24:00:00"
 ADCPREPWALLTIME="00:15:00"
 NOWCASTWALLTIME="05:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
 NCPU=159
-NCPUCAPACITY=500
 NUMWRITERS=1
+NCPUCAPACITY=500
 CYCLETIMELIMIT="05:00:00"
 # queue
 QUEUENAME=null
 SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
-ACCOUNT=batch # or "ncfs" on hatteras to use pre-empt capability
 PARTITION=ncfs
 RESERVATION=null
-CONSTRAINT='sandybridge&hatteras'
+CONSTRAINT='sandybridge&hatteras' # sandybridge=512wide max, ivybridge=640wide max
 
 # External data sources : Tropical cyclones
 
@@ -109,17 +108,17 @@ RIVERDATAPROTOCOL=scp
 
 # Input files and templates
 
-GRIDFILE=nc_inundation_v9.99a_w_rivers.grd
-GRIDNAME=nc_inundation_v9.99_w_rivers
+GRIDFILE=nc_inundation_v6d_rivers_msl.grd
+GRIDNAME=nc6b  # @jasonfleming 20170814: should be nc6d
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
-CONTROLPROPERTIES=fort.15.properties
-ELEVSTATIONS=cera.ncv999stations.20161105
-VELSTATIONS=cera.ncv999stations.20161105
-METSTATIONS=cera.ncv999stations.20161105
-NAFILE=nc_inundation_v9.99_rivers.13
+CONTROLTEMPLATE=v6brivers_explicit_rlevel51_fort.15_template
+CONTROLPROPERTIES=v6brivers_fort.15.properties
+ELEVSTATIONS=v6brivers_elev_stations.txt
+VELSTATIONS=null
+METSTATIONS=v6brivers_met_stations.txt
+NAFILE=v6brivers_rlevel.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=fort.26.template
+SWANTEMPLATE=fort.26.v6b.template
 RIVERINIT=v6brivers.88
 RIVERFLUX=v6brivers_fort.20_default
 HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
@@ -155,11 +154,11 @@ MINMAX=reset
 
 EMAILNOTIFY=yes # set to yes to have host platform email notifications
 NOTIFY_SCRIPT=ncfs_nam_notify.sh
-ACTIVATE_LIST=null
-NEW_ADVISORY_LIST=null
-POST_INIT_LIST=null
-POST_LIST=null
-JOB_FAILED_LIST=jason.g.fleming@gmail.com
+ACTIVATE_LIST=""
+NEW_ADVISORY_LIST=""
+POST_INIT_LIST=""
+POST_LIST=""
+JOB_FAILED_LIST="jason.g.fleming@gmail.com"
 NOTIFYUSER=jason.g.fleming@gmail.com
 ASGSADMIN=jason.g.fleming@gmail.com
 
@@ -197,20 +196,20 @@ case $si in
    ;;
 0)
    ENSTORM=namforecast
-   PARTITION=ncfs
    RESERVATION=null
+   PARTITION=ncfs
    CONSTRAINT='sandybridge&hatteras'
    ;;
 1)
    ENSTORM=namforecastWind10m
-   PARTITION=ncfs
    RESERVATION=null
+   PARTITION=ncfs
    CONSTRAINT='sandybridge&hatteras'
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=nc_9.99wrivers.nowindreduction.fort.15.template
+   CONTROLTEMPLATE=nv6brivers_explicit_rlevel51.nowindreduction.fort.15_template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-   TIMESTEPSIZE=300.0   # 5 minute time steps
+   TIMESTEPSIZE=300.0    # 5 minute time steps
    NCPU=15               # so total cpus match with other ensemble members
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
@@ -238,4 +237,3 @@ case $si in
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
    ;;
 esac
-

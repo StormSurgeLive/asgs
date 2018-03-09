@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Copyright(C) 2006--2016 Jason Fleming
+# Copyright(C) 2006--2018 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -44,6 +44,9 @@ my $ppn;      # the number of processors per node
 my $cloptions=""; # command line options for adcirc, if any
 my $jobtype;  # e.g., prep15, padcirc, padcswan, etc
 my $localhotstart; # present if subdomain hotstart files should be written
+my $reservation="null"; # name of SLURM reservation where the job should be submitted
+my $partition="null";   # name of SLURM partition the job should use
+my $constraint="null";  # name of SLURM constraint the job should use
 my $numwriters=0;  # number of writer processors, if any
 
 # initialize to the log file that adcirc uses, just in case
@@ -51,6 +54,9 @@ $syslog="adcirc.log";
 
 GetOptions("ncpu=s" => \$ncpu,
            "queuename=s" => \$queuename,
+           "partition=s" => \$partition,
+           "reservation=s" => \$reservation,
+           "constraint=s" => \$constraint,
            "account=s" => \$account,
            "adcircdir=s" => \$adcircdir,
            "advisdir=s" => \$advisdir,
@@ -115,8 +121,28 @@ while(<TEMPLATE>) {
     s/%jobtype%/$jobtype/g;
     # the email address of the ASGS Operator
     s/%notifyuser%/$notifyuser/g;
-    # fills in the number of nodes
+    # the SLURM partition
+    if ( $partition ne "null" ) {
+       s/%partition%/$partition/g;
+    } else {
+       s/%partition%/noLineHere/g;
+    }
+    # the SLURM reservation
+    if ( $reservation ne "null" ) {
+       s/%reservation%/$reservation/g;
+    } else {
+       s/%reservation%/noLineHere/g;
+    }
+    # the SLURM constraint
+    if ( $constraint ne "null" ) {
+       s/%constraint%/$constraint/g;
+    } else {
+       s/%constraint%/noLineHere/g;
+    }
+    # fills in the number of nodes on platforms that require it
     s/%nnodes%/$nnodes/g;
-    print $_;
+    unless ( $_ =~ /noLineHere/ ) {
+       print $_;
+    }
 }
 close(TEMPLATE);
