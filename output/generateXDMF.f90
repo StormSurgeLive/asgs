@@ -29,6 +29,7 @@ use ioutil
 use logging
 use asgsio
 use adcmesh
+use nodalattr
 implicit none
 integer :: iargc
 character(len=20) :: logLevelOpt
@@ -182,8 +183,6 @@ do fi=1,numFiles
    if (errorIO.gt.0) then
       stop
    endif
-      write(6,*) 'data file category is ',fileMetaData(fi)%dataFileCategory !jgfdebug
-      write(6,*) 'data file format is ',fileMetaData(fi)%dataFileFormat !jgfdebug
    if (fileMetaData(fi)%dataFileFormat.eq.NETCDFG) then
       call determineNetCDFFileCharacteristics(fileMetaData(fi), m, n)
        ! netcdf file exists; open it
@@ -214,6 +213,9 @@ do fi=1,numFiles
          call check(nf90_get_att(fileMetaData(fi)%nc_id, NF90_GLOBAL, 'grid', m%agrid))
       endif
       call check(nf90_close(fileMetaData(fi)%nc_id))
+      if ( fileMetaData(fi)%dataFileCategory.eq.NODALATTRIBF ) then 
+      
+      endif
    endif
    if (fileMetaData(fi)%dataFileCategory.eq.MAUREPT) then
       maureIndex = fi  ! record which of the files is a maureparticle file
@@ -644,6 +646,7 @@ subroutine writeAttributesXML(fmd, m, iSnap, nSnaps, olun)
 use adcmesh
 use asgsio, only : fileMetaData_t
 use ioutil, only : ind
+use logging
 implicit none
 type(fileMetaData_t), intent(in) :: fmd
 type(mesh_t), intent(inout) :: m
@@ -653,35 +656,44 @@ integer, intent(in) :: olun ! i/o unit number to write XDMF xml to
 !
 integer :: dataItemDimensions
 character(len=20) :: attributeType
-integer :: i, j, k
+integer :: i, j, k, p
 !
 i=1 ! netCDF variable counter
 j=1 ! XDMF variable counter
+p = 0 ! hyperslab component counter
 do 
-   attributeType = "Scalar"
-   if (fmd%xds(j)%numComponents.gt.1) then
-      attributeType = "Vector"
-   endif
    dataItemDimensions = m%np
    if (trim(fmd%xds(j)%dataCenter).eq."Cell") then
       dataItemDimensions = m%ne
    endif
+   select case(fmd%xds(j)%numComponents)
+   case(:0) ! multicomponent nodal attribute
+      attributeType = "HyperSlab"
+   case(2:)
+      attributeType = "Vector"
+   case default
+      attributeType = "Scalar"
+   end select
    !
    write(olun,'('//ind('|')//',A)') '<Attribute Name="'//trim(fmd%xds(j)%varNameXDMF)//'"'
    write(olun,'('//ind('|')//',A)') '  Center="'//trim(fmd%xds(j)%dataCenter)//'"'
-   write(olun,'('//ind('|')//',A)') '  AttributeType="'//trim(attributeType)//'">'
+
+   select case(trim(attributeType)) 
    !
    ! Scalar attribute
-   if (trim(attributeType).eq."Scalar") then
+   case("Scalar")
+      write(olun,'('//ind('|')//',A)') '  AttributeType="'//trim(attributeType)//'">'
       write(olun,'('//ind('+')//',A,i0,A)') '<DataItem Dimensions="',dataItemDimensions,'"'
       write(olun,'('//ind('|')//',a,a,a)')  '  NumberType="',trim(fmd%xds(j)%numberType),'"'
       write(olun,'('//ind('|')//',a,i0,a)') '  Precision="',fmd%xds(j)%numberPrecision,'"'
       write(olun,'('//ind('|')//',A)')      '  Format="HDF">'//trim(fmd%dataFileName)//':/'//trim(fmd%ncds(i)%varNameNetCDF)
       write(olun,'('//ind('|')//',A)')      '</DataItem>'
       write(olun,'('//ind('-')//',A)')   '</Attribute>' ! end of scalar attribute
+      i = i + 1
    !
    ! Vector attribute
-   else 
+   case("Vector")
+      write(olun,'('//ind('|')//',A)') '  AttributeType="'//trim(attributeType)//'">'
       write(olun,'('//ind('|')//',A)')      '<DataItem ItemType="Function"'
       write(olun,'('//ind('|')//',A,i0,A)') '  Dimensions="',dataItemDimensions,' 3"'
       write(olun,'('//ind('|')//',A)')      '  Function="JOIN($0, $1, 0*$0)">'
@@ -709,8 +721,38 @@ do
       enddo
       write(olun,'('//ind('-')//',A)')      '</DataItem>' ! end of FUNCTION
       write(olun,'('//ind('-')//',A)')   '</Attribute>' ! end of Vector Attribute
-   endif
-   i = i + fmd%xds(j)%numComponents
+      i = i + fmd%xds(j)%numComponents
+   !
+   ! multicomponent nodal attribute
+   case("HyperSlab")
+      write(olun,'('//ind('|')//',a,a,a)')  '  NumberType="',trim(fmd%xds(j)%numberType),'"'
+      write(olun,'('//ind('|')//',a,i0,a)') '  Precision="',fmd%xds(j)%numberPrecision,'"'
+      write(olun,'('//ind('|')//',A)') '  AttributeType="Scalar">'
+      write(olun,'('//ind('+')//',A)')   '<DataItem ItemType="HyperSlab"'
+      write(olun,'('//ind('|')//',A,i0,A)') '  Dimensions="1 ',dataItemDimensions,'"'
+      write(olun,'('//ind('|')//',A,i0,A)') '  Type="HyperSlab">'
+      write(olun,'('//ind('+')//',A)')         '<DataItem Dimensions="3 2"'
+      write(olun,'('//ind('|')//',A)')         '  Format="XML">'
+      write(olun,'('//ind('|')//'a,i0,a)')     '  ',abs(p),' 0'
+      write(olun,'('//ind('|')//',A)')         '  1 1'
+      write(olun,'('//ind('|')//',A,i0)')      '  1 ',dataItemDimensions
+      write(olun,'('//ind('-')//',A)')      '</DataItem>' ! end of HyperSlab dimensions
+      write(olun,'('//ind('+')//',A,i0,X,i0,A)') '<DataItem Dimensions="',abs(fmd%xds(j)%numComponents),dataItemDimensions,'"'
+      write(olun,'('//ind('|')//',a,a,a)') '   Name="',trim(fmd%ncds(i)%varNameNetCDF),'"'
+
+      write(olun,'('//ind('|')//',A)')      '  Format="HDF">'//trim(fmd%dataFileName)//':/'//trim(fmd%ncds(i)%varNameNetCDF)
+      write(olun,'('//ind('|')//',A)')      '</DataItem>' ! end of overall dimensions
+      write(olun,'('//ind('-')//',A)')      '</DataItem>' ! end of HyperSlab      
+      write(olun,'('//ind('-')//',A)')   '</Attribute>' ! end of Vector Attribute
+      p = p - 1
+      ! check to see if this is the last section of the hyperslab
+      if ( p.eq.fmd%xds(j)%numComponents ) then
+         i = i + 1 ! increment the netcdf variable we are pointing to 
+         p = 0     ! reset the hyperslab component counter
+      endif
+   case default
+      call allMessage(WARNING,'XDMF Attribute type '//trim(attributeType)//' was not recognized.')  
+   end select   
    j = j + 1
    if (j.gt.fmd%numVarXDMF) then
       exit
