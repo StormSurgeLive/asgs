@@ -157,7 +157,7 @@ adcirc2netcdf : $(MODS) adcirc2netcdf.f90 nodalattr.mod logging.mod
 netcdf2adcirc : $(MODS) netcdf2adcirc.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-asgsio.mod : logging.mod ioutil.mod adcmesh.mod asgsio.f90 
+asgsio.mod : logging.mod ioutil.mod adcmesh.mod nodalattr.mod asgsio.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c asgsio.f90 $(LDFLAGS)
 #
 adcmesh.mod : adcmesh.f90 logging.mod
@@ -181,8 +181,8 @@ highResolutionRegion : adcmesh.mod highResolutionRegion.f90
 checkAdcircMesh : $(MODS) checkAdcircMesh.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-generateXDMF : adcmesh.mod asgsio.mod logging.mod generateXDMF.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o logging.o $(LDFLAGS)
+generateXDMF : adcmesh.mod asgsio.mod logging.mod nodalattr.mod generateXDMF.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o logging.o nodalattr.o $(LDFLAGS)
 #
 generateCPP : adcmesh.mod generateCPP.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
@@ -190,8 +190,8 @@ generateCPP : adcmesh.mod generateCPP.f90
 pullStationTimeSeries : asgsio.mod adcmesh.mod nodalattr.mod pullStationTimeSeries.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-stationProcessor : asgsio.mod adcmesh.mod stationProcessor.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 asgsio.o adcmesh.o logging.o $(LDFLAGS)
+stationProcessor : asgsio.mod adcmesh.mod nodalattr.mod stationProcessor.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 asgsio.o adcmesh.o logging.o nodalattr.o $(LDFLAGS)
 #
 wetDryCheck : adcmesh.mod asgsio.mod wetDryCheck.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o $(LDFLAGS)
