@@ -29,8 +29,7 @@ type nodalAttr_t
    integer :: nc_dimid_values_per_node ! dimensions of default values
    integer :: nc_varid    ! full nodal attribute variable id (numNodes x numVals)
    integer :: nc_varid_defaults ! just default values
-   real(8), allocatable :: ncData(:,:)  ! full array of values in netcdf file
-   
+   real(8), allocatable :: ncData(:,:)  ! full array of values in netcdf file   
 end type nodalAttr_t
 ! variable capable of holding all nodal attributes in the file
 type(nodalAttr_t), allocatable :: na(:)
@@ -148,6 +147,7 @@ end subroutine setNodalAttributesFileName
 !-----------------------------------------------------------------------
 subroutine readNodalAttributesFile(asciiFile)
 use ioutil, only : openFileForRead
+use logging
 implicit none
 character(len=1024), intent(in) :: asciiFile  ! name of the nodal attributes file
 character(len=1024) :: line
@@ -179,6 +179,7 @@ do i=1,numNodalAttributes
    allocate(na(i)%defaultVals(na(i)%numVals))
    read(13,*) (na(i)%defaultVals(j), j=1,na(i)%numVals)
 end do
+call allMessage(INFO,'Finished reading nodal attributes header.')
 !
 ! finished reading header
 !
@@ -203,6 +204,7 @@ do i=1,numNodalAttributes
       !'properly formatted.'
       stop 
    endif
+   call allMessage(INFO,'Reading nodal attribute data for '//trim(adjustl(line))//'.')
    ! read the number of nondefault nodes
    read(13,*) na(naIndex)%numNodesNotDefault
    ! allocate memory for the node numbers of the non default nodes
@@ -359,11 +361,12 @@ do i=1,numNodalAttributes
    ! nodal values : dimensions
    na(i)%nc_dimid(1) = n%nc_dimid_node
    na(i)%nc_dimid(2) = na(i)%nc_dimid_values_per_node  
-   ! nodal values : variable definition   
+   ! nodal values : variable definition
+   !jgfdebug
    call check(nf90_def_var(ncid,trim(adjustl(na(i)%attrName)),nf90_double,na(i)%nc_dimid,na(i)%nc_varid))
    !
    ! netcdf metadata for each nodal attribute
-   call check(nf90_put_att(ncid,na(i)%nc_varid,'_FillValue',na(i)%fillvalue))
+   call check(nf90_put_att(ncid,na(i)%nc_varid,'_FillValue',na(i)%fillvalue(1)))
    call check(nf90_put_att(ncid,na(i)%nc_varid,'long_name',trim(adjustl(na(i)%attrName))))
    call check(nf90_put_att(ncid,na(i)%nc_varid,'standard_name',trim(adjustl(na(i)%attrName))))
    call check(nf90_put_att(ncid,na(i)%nc_varid,'coordinates','y x'))
