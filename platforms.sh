@@ -410,7 +410,7 @@ init_topsail()
 # THREDDS Data Server (TDS, i.e., OPeNDAP server) at RENCI
 init_renci_tds()
 {
-   OPENDAPHOST=ht1.renci.org
+   OPENDAPHOST=ht4.renci.org
    DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
    CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
    OPENDAPBASEDIR=/projects/ncfs/opendap/data

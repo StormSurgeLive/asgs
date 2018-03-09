@@ -1,3 +1,4 @@
+<ColorMaps>
 <ColorMap name="FigureGenBathyTopoFlip2" space="RGB">
 <Point x="100.0" o="1" r="0.000" g="0.000" b="0.510"/>  
 <Point x="50.0" o="1" r="0.000" g="0.000" b="1.000"/> 
@@ -20,3 +21,4 @@
 <Point x="-10.0" o="1" r="0.000" g="0.500" b="0.000"/> 
 <Point x="-20.0" o="1" r="0.000" g="0.250" b="0.000"/>
 </ColorMap>
+</ColorMaps>

@@ -100,20 +100,20 @@ nodalattr.mod : $(MODS) nodalattr.f90 asgsio.mod
 convertna : $(MODS) convertna.f90 nodalattr.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
 #
-submergence_eddyvis : $(MODS) submergence_eddyvis.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+submergence_eddyvis : $(MODS) nodalattr.mod submergence_eddyvis.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
 #
-submergence : $(MODS) submergence.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+submergence : $(MODS) nodalattr.mod submergence.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
 #
-surface_roughness : $(MODS) surface_roughness.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+surface_roughness : $(MODS) nodalattr.mod surface_roughness.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
 #
-mannings_n_finder : $(MODS) mannings_n_finder.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+mannings_n_finder : $(MODS) nodalattr.mod mannings_n_finder.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
 #
-tau0_gen : $(MODS) tau0_gen.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+tau0_gen : $(MODS) nodalattr.mod tau0_gen.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
 #
 adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcmesh.f90 $(LDFLAGS)
