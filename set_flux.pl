@@ -719,12 +719,14 @@ sub getDischarge {
       if ( $stage<$stages[0] ) {
          stderrMessage("WARNING","River stage of $stage meters is lower than the lowest value in the stage/discharge curve. Setting river stage to lowest available value of $stages[0].");
          $stage = $stages[0];
+         $discharge = $discharges[0];
       } elsif ( $stage > $stages[-1] ) {
          # if the specified river stage is higher than the highest value of
          # the stage discharge curve 
          # extrapolate the radius
          stderrMessage("WARNING","Specified river stage of $stage meters is higher than the highest river stage in the stage discharge curve. Setting the stage to the highest value in the stage discharge curve: $stages[-1].");
          $stage = $stages[-1];
+         $discharge = $discharges[-1];
       } elsif ( $stage >= $stages[0] && $stage <= $stages[-1]) {
          # stage is within our stage discharge curve, find the values that bracket
          # it and perform linear interpolation
