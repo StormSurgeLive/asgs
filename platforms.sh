@@ -139,10 +139,13 @@ init_hatteras()
   SUBMITSTRING=sbatch
   SCRATCHDIR=/projects/ncfs/data
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=hatteras.reservation.template.slurm
-  PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm
+  QSCRIPT=hatteras.template.slurm
+  PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
+  RESERVATION=ncfs     # ncfs or null
+  PARTITION=ncfs       # ncfs or batch
+  CONSTRAINT=ivybridge # ivybridge or sandybridge
   QSCRIPTGEN=hatteras.slurm.pl
-  PPN=16
+  PPN=20
 }
 init_stampede()
 { #<- can replace the following with a custom script
