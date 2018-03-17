@@ -34,9 +34,7 @@ INSTANCENAME=dailyv6d      # name of this ASGS process
 #COLDSTARTDATE=2017012400
 #COLDSTARTDATE=2017070900
 #COLDSTARTDATE=2017121500
-#COLDSTARTDATE=2018020900
-COLDSTARTDATE=2018021400
-#
+COLDSTARTDATE=20180201200
 HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0        # length of initial hindcast, from cold (days)
@@ -70,13 +68,10 @@ NCPU=159
 NUMWRITERS=1
 NCPUCAPACITY=500
 CYCLETIMELIMIT="05:00:00"
-# queue
-QUEUENAME=null
-SERQUEUE=null
-SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
-PARTITION=ncfs
-RESERVATION=null
-CONSTRAINT='sandybridge&hatteras' # sandybridge=512wide max, ivybridge=640wide max
+QUEUENAME=workq
+SERQUEUE=single
+ACCOUNT=loni_cera_2018
+SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones
 
@@ -167,11 +162,11 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=ncfs_post_min.sh
+POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
 
 TDS=(renci_tds)
-TARGET=hatteras  # used in post processing to pick up HPC platform config
+TARGET=queenbee  # used in post processing to pick up HPC platform config
 OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
 if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
    OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
@@ -182,9 +177,9 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
-ARCHIVE=ncfs_archive.sh
-ARCHIVEBASE=/projects/ncfs/data
-ARCHIVEDIR=archive
+ARCHIVE=queenbee_archive.sh
+ARCHIVEBASE=/work/jgflemin
+ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
 # Forecast ensemble members
 
@@ -197,21 +192,15 @@ case $si in
    ;;
 0)
    ENSTORM=namforecast
-   RESERVATION=null
-   PARTITION=ncfs
-   CONSTRAINT='sandybridge&hatteras'
    ;;
 1)
    ENSTORM=namforecastWind10m
-   RESERVATION=null
-   PARTITION=ncfs
-   CONSTRAINT='sandybridge&hatteras'
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=nv6brivers_explicit_rlevel51.nowindreduction.fort.15_template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0    # 5 minute time steps
-   NCPU=15               # so total cpus match with other ensemble members
+   NCPU=19               # so total cpus match with other ensemble members
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output
@@ -232,7 +221,7 @@ case $si in
    OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
    # prevent collisions in prepped archives
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
-   POSTPROCESS=wind10m_post.sh
+   POSTPROCESS=null_post.sh
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."

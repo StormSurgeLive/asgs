@@ -59,14 +59,16 @@ HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="07:00:00" # forecast wall clock time
-NCPU=1200                     # number of compute CPUs for all simulations
-NUMWRITERS=20
+NCPU=479                     # number of compute CPUs for all simulations
+NUMWRITERS=1
 NCPUCAPACITY=1240
 CYCLETIMELIMIT="99:00:00"
-QUEUENAME=workq
-SERQUEUE=single
-ACCOUNT=loni_cera_2018
-SCRATCHDIR=/work/$USER    # vs default /work/cera
+QUEUENAME=null
+SERQUEUE=null
+SCRATCHDIR=/projects/ncfs/data
+PARTITION=ncfs
+RESERVATION=null
+CONSTRAINT='hatteras&sandybridge'
 
 # External data sources : Tropical cyclones
 
@@ -206,7 +208,7 @@ case $si in
    CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=900.0    # 15 minute time steps
-   NCPU=19               # dramatically reduced resource requirements
+   NCPU=15               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output
