@@ -170,6 +170,7 @@ C
       CHARACTER(1024) :: targetmesh ! where the tides should be interpolated
       CHARACTER(1024) :: sourcemesh ! where the tidal data is interpolated from
       CHARACTER(1024) :: tidaldb    ! tidal harmonic data file
+      CHARACTER(len=1024), dimension(7) :: defaultTidalConstituents ! basic set of 7
       LOGICAL :: FOUND ! true if file exists
 C
 C     Set reasonable defaults
@@ -180,7 +181,14 @@ C     Set reasonable defaults
       tidaldb = 'ec2001_v2d.tdb'
       adcircFormat = .false.
       includeVelocity = .false.
-      numTidalConstituents = 0
+      numTidalConstituents = 7
+      defaultTidalConstituents(1) = 'M2'
+      defaultTidalConstituents(2) = 'S2'
+      defaultTidalConstituents(3) = 'N2'
+      defaultTidalConstituents(4) = 'K1'
+      defaultTidalConstituents(5) = 'K2'
+      defaultTidalConstituents(6) = 'O1'
+      defaultTidalConstituents(7) = 'Q1'
 C
 C     Process command line options, if any
       argcount = iargc()
@@ -189,23 +197,23 @@ C     Process command line options, if any
          do while(i.lt.argcount)
             i = i + 1
             call getarg(i, cmdlinearg)
-            select case(cmdlinearg(1:2))
-               case("-o") ! output file name
+            select case(trim(cmdlinearg))
+               case("-o","--outputfile") ! output file name
                   i = i + 1
                   call getarg(i,outfile)
-               case("-l") ! log file
+               case("-l","--logfile") ! log file
                   i = i + 1
                   call getarg(i,logfile)
-               case("-t") ! target mesh
+               case("-t","--targetmesh") ! target mesh
                   i = i + 1
                   call getarg(i,targetmesh)
-               case("-s") ! source mesh
+               case("-s","--sourcemesh") ! source mesh
                   i = i + 1
                   call getarg(i,sourcemesh)
-               case("-d") ! data for harmonic tides
+               case("-d","--tidaldb") ! data for harmonic tides
                   i = i + 1
                   call getarg(i,tidaldb)
-               case("-f") ! format: either full or adcirc-style
+               case("-f","--format") ! format: either full or adcirc-style
                   i = i + 1
                   call getarg(i,cmdlinearg)
                   select case(trim(cmdlinearg))
@@ -218,7 +226,7 @@ C     Process command line options, if any
      &                     trim(cmdlinearg),"' not recognized."
                         stop
                   end select
-               case("-n") ! number of tidal constituents to interpolate
+               case("-n","--numtidalconstituents") ! number of tidal constituents to interpolate
                   i = i + 1
                   call getarg(i,cmdlinearg)
                   read(cmdlinearg,*) numTidalConstituents
@@ -228,11 +236,11 @@ C     Process command line options, if any
                      i = i + 1
                      call getarg(i,interpTidalConstituents(j))
                   end do
-               case("-e") ! include velocity harmonics in the output
+               case("-e","--includevelocity") ! include velocity harmonics in the output
                   includeVelocity = .true.
-               case("-v") ! show version information
+               case("-v","--version") ! show version information
                   write(*,*) "ec2001v2d_tide_interp version ",version
-               case("-h") ! show a help message
+               case("-h","--help") ! show a help message
                   write(*,*) "-o outfile"
                   write(*,*) "-l logfile"
                   write(*,*) "-s sourcemesh"
@@ -295,8 +303,14 @@ C
       ! in the database as one of their dimensions
       ALLOCATE(FREQ(NHC),NFACT(NHC),EQARG(NHC),HCNAME(NHC))
       ALLOCATE(EAMP(3,NHC),EPHA(3,NHC))
-      ALLOCATE(UAMP(3,NHC),UPHA(3,NHC))
-      ALLOCATE(VAMP(3,NHC),VPHA(3,NHC))
+      if (includeVelocity.eqv..true.) then     
+         ALLOCATE(UAMP(3,NHC),UPHA(3,NHC))
+         ALLOCATE(VAMP(3,NHC),VPHA(3,NHC))
+      endif
+      if (.not.allocated(interpTidalConstituents)) then
+         allocate(interpTidalConstituents(numTidalConstituents))
+         interpTidalConstituents(1:7) = defaultTidalConstituents(1:7)
+      endif
 C...
 C...  OUTPUT FILE HEADER
       if (adcircFormat.eqv..false.) then
@@ -363,8 +377,10 @@ C...  read source mesh where tidal data are stored
       READ(14,*) NE,NP
       ALLOCATE(X(NP),Y(NP))
       ALLOCATE(ETAMP(NHC,NOUT),ETPHA(NHC,NOUT))
-      ALLOCATE(UTAMP(NHC,NOUT),UTPHA(NHC,NOUT))
-      ALLOCATE(VTAMP(NHC,NOUT),VTPHA(NHC,NOUT))
+      if (includeVelocity.eqv..true.) then
+         ALLOCATE(UTAMP(NHC,NOUT),UTPHA(NHC,NOUT))
+         ALLOCATE(VTAMP(NHC,NOUT),VTPHA(NHC,NOUT))
+      endif
       ALLOCATE(NM1(NE),NM2(NE),NM3(NE))
 C
 C...  NODAL COORDINATES
@@ -516,13 +532,19 @@ C......  Read tidal constituent information from tidal database
             IBEG=1
             IF(K.GE.2) IBEG=NN(K-1)+1
             DO II=IBEG,NN(K)-1 ! skip down through the tidal database file
-               READ(105,3200)  ! skip two lines (for u and v)
+               if (includeVelocity.eqv..true.) then
+                  READ(105,3200)  ! skip two lines (for u and v)
+               else
+                  read(105,'(a)') cmdlinearg ! skip one line (for eta)
+               endif
             END DO
             ! the code above skips down to the line just before the line 
             ! we want; now read the data we are interested in
             READ(105,*) SNODE,(EAMP(NO(K),J),EPHA(NO(K),J),J=1,NHC) ! source node
-            READ(105,*)       (UAMP(NO(K),J),UPHA(NO(K),J),J=1,NHC)
-            READ(105,*)       (VAMP(NO(K),J),VPHA(NO(K),J),J=1,NHC)
+            if (includeVelocity.eqv..true.) then
+               READ(105,*)       (UAMP(NO(K),J),UPHA(NO(K),J),J=1,NHC)
+               READ(105,*)       (VAMP(NO(K),J),VPHA(NO(K),J),J=1,NHC)
+            endif
             IF(SNODE.NE.NN(K)) THEN ! failed to skip to the right node
               WRITE(*,'(a,i0,a,i0,a)') 'ERROR: While searching for node ',
      &           NN(K),', the node ',SNODE,' was found instead.'
@@ -530,8 +552,10 @@ C......  Read tidal constituent information from tidal database
             ENDIF
             DO J=1,NHC
                EPHA(NO(K),J)=PI*EPHA(NO(K),J)/180.
-               UPHA(NO(K),J)=PI*UPHA(NO(K),J)/180.
-               VPHA(NO(K),J)=PI*VPHA(NO(K),J)/180.
+               if (includeVelocity.eqv..true.) then
+                  UPHA(NO(K),J)=PI*UPHA(NO(K),J)/180.
+                  VPHA(NO(K),J)=PI*VPHA(NO(K),J)/180.
+               endif
             END DO
          END DO
 
@@ -546,45 +570,47 @@ C......  COMPUTE HARMONIC CONSTITUENTS AT THE OUTPUT LOCATION
             E2I=EAMP(2,J)*SIN(EPHA(2,J))
             E3R=EAMP(3,J)*COS(EPHA(3,J))
             E3I=EAMP(3,J)*SIN(EPHA(3,J))
-            U1R=UAMP(1,J)*COS(UPHA(1,J))
-            U1I=UAMP(1,J)*SIN(UPHA(1,J))
-            U2R=UAMP(2,J)*COS(UPHA(2,J))
-            U2I=UAMP(2,J)*SIN(UPHA(2,J))
-            U3R=UAMP(3,J)*COS(UPHA(3,J))
-            U3I=UAMP(3,J)*SIN(UPHA(3,J))
-            V1R=VAMP(1,J)*COS(VPHA(1,J))
-            V1I=VAMP(1,J)*SIN(VPHA(1,J))
-            V2R=VAMP(2,J)*COS(VPHA(2,J))
-            V2I=VAMP(2,J)*SIN(VPHA(2,J))
-            V3R=VAMP(3,J)*COS(VPHA(3,J))
-            V3I=VAMP(3,J)*SIN(VPHA(3,J))
             ETR=E1R*STA1+E2R*STA2+E3R*STA3
             ETI=E1I*STA1+E2I*STA2+E3I*STA3
-            UTR=U1R*STA1+U2R*STA2+U3R*STA3
-            UTI=U1I*STA1+U2I*STA2+U3I*STA3
-            VTR=V1R*STA1+V2R*STA2+V3R*STA3
-            VTI=V1I*STA1+V2I*STA2+V3I*STA3
             ETAMP(J,I)=SQRT(ETR*ETR+ETI*ETI)
-            UTAMP(J,I)=SQRT(UTR*UTR+UTI*UTI)
-            VTAMP(J,I)=SQRT(VTR*VTR+VTI*VTI)
             IF(ETAMP(J,I).EQ.0.) THEN
                ETPHA(J,I)=0.
             ELSE
                ETPHA(J,I)=180.*ACOS(ETR/ETAMP(J,I))/PI
                IF(ETI.LT.0.) ETPHA(J,I)=360.-ETPHA(J,I)
             ENDIF
-            IF(UTAMP(J,I).EQ.0.) THEN
-               UTPHA(J,I)=0.
-            ELSE
-               UTPHA(J,I)=180.*ACOS(UTR/UTAMP(J,I))/PI
-               IF(UTI.LT.0.) UTPHA(J,I)=360.-UTPHA(J,I)
-            ENDIF
-            IF(VTAMP(J,I).EQ.0.) THEN
-               VTPHA(J,I)=0.
-            ELSE
-               VTPHA(J,I)=180.*ACOS(VTR/VTAMP(J,I))/PI
-               IF(VTI.LT.0.) VTPHA(J,I)=360.-VTPHA(J,I)
-            ENDIF
+            if (includeVelocity.eqv..true.) then
+               U1R=UAMP(1,J)*COS(UPHA(1,J))
+               U1I=UAMP(1,J)*SIN(UPHA(1,J))
+               U2R=UAMP(2,J)*COS(UPHA(2,J))
+               U2I=UAMP(2,J)*SIN(UPHA(2,J))
+               U3R=UAMP(3,J)*COS(UPHA(3,J))
+               U3I=UAMP(3,J)*SIN(UPHA(3,J))
+               V1R=VAMP(1,J)*COS(VPHA(1,J))
+               V1I=VAMP(1,J)*SIN(VPHA(1,J))
+               V2R=VAMP(2,J)*COS(VPHA(2,J))
+               V2I=VAMP(2,J)*SIN(VPHA(2,J))
+               V3R=VAMP(3,J)*COS(VPHA(3,J))
+               V3I=VAMP(3,J)*SIN(VPHA(3,J))
+               UTR=U1R*STA1+U2R*STA2+U3R*STA3
+               UTI=U1I*STA1+U2I*STA2+U3I*STA3
+               VTR=V1R*STA1+V2R*STA2+V3R*STA3
+               VTI=V1I*STA1+V2I*STA2+V3I*STA3
+               UTAMP(J,I)=SQRT(UTR*UTR+UTI*UTI)
+               VTAMP(J,I)=SQRT(VTR*VTR+VTI*VTI)
+               IF(UTAMP(J,I).EQ.0.) THEN
+                  UTPHA(J,I)=0.
+               ELSE
+                  UTPHA(J,I)=180.*ACOS(UTR/UTAMP(J,I))/PI
+                  IF(UTI.LT.0.) UTPHA(J,I)=360.-UTPHA(J,I)
+               ENDIF
+               IF(VTAMP(J,I).EQ.0.) THEN
+                  VTPHA(J,I)=0.
+               ELSE
+                  VTPHA(J,I)=180.*ACOS(VTR/VTAMP(J,I))/PI
+                  IF(VTI.LT.0.) VTPHA(J,I)=360.-VTPHA(J,I)
+               ENDIF
+            endif
          END DO
       END DO
 
@@ -610,9 +636,13 @@ C......WRITE THE RESULTS
             end do
          end do
       endif
+      if (adcircFormat.eqv..true.) then
+         write(1,'(i0,6x,"! NBFR: num freqencies on ocean boundary")') 
+     &      numTidalConstituents
+      endif
       do k=1,numTidalConstituents
          j = constituentList(k)
-         write(1,3999) hcname(j)
+         write(1,'(a)') trim(adjustl(hcname(j)))
          do i=1,nout
             if (adcircFormat.eqv..true.) then
                if (includeVelocity.eqv..true.) then
@@ -636,7 +666,6 @@ C......WRITE THE RESULTS
       CLOSE(1)
       CLOSE(2)
       CLOSE(105)
- 3999 FORMAT(1X,A10)
  4000 FORMAT(1X,2(F11.6,2X),3(E12.5,2X,F8.3,3X))
  4010 FORMAT(1X,3(E12.5,2X,F8.3,3X))
  5010 FORMAT(1X,E12.5,2X,F8.3) 
