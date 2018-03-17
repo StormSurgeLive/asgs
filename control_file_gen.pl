@@ -834,7 +834,7 @@ sub owiParameters () {
    my $owiend = "nullend";
    # if converted from NAM output
    my @fort221 = glob($stormDir."/NAM*.221");
-   if (defined @fort221) {
+   if (@fort221) {
       $fort221[0] =~ /NAM_(\d+)/;
       $owistart = $1;
       $fort221[0] =~ /(\d+).221$/;
@@ -842,7 +842,7 @@ sub owiParameters () {
    } else {
       # owi files supplied as-is
       my @fort221 = glob($stormDir."/*.221");
-      if (defined @fort221) {
+      if (@fort221) {
          open(FORT221,"<$fort221[0]") || die "ERROR: control_file_gen.pl: Failed to open the fort.221 file $stormDir/$fort221[0]: $!.";
          my $header221 = <FORT221>;
          close(FORT221);
@@ -878,7 +878,7 @@ sub owiParameters () {
    # hack to see if there is an additional, optional region scale set of
    # win/pre files
    my @fort223 = glob($stormDir."/*.223");
-   if ( defined @fort223 ) {
+   if (@fort223) {
       $nwset = 2;
    }
    stderrMessage("INFO","nwset is '$nwset'");
