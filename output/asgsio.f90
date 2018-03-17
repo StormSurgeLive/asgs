@@ -66,6 +66,7 @@ type xdmfVar_t
    character(len=20) :: numberType   ! "Int" or "Float"
    integer :: numberPrecision         ! 4 or 8
    integer :: numComponents
+   integer :: xmlReference  ! for use in XInclude statements
    ! corresponding netcdf variable names for each xdmf component
    character(NF90_MAX_NAME), allocatable :: ncVarName(:) ! (numComponents)   
 end type xdmfVar_t
@@ -446,6 +447,8 @@ do i=1,f%nvar
       f%ncds(2)%varNameNetCDF = "v-vel3D"
       f%ncds(3)%varNameNetCDF = "w-vel3D"
       f%irtype = 3
+      f%xds(1)%numComponents = 3
+      f%xds(1)%varNameXDMF = "currentVel3D"
       exit
    case("zeta")
       if ( f%dataFileCategory.eq.STATION ) then
@@ -559,6 +562,8 @@ do i=1,f%nvar
       f % ncds(7)%isElemental = .true.  ! noff<---element/cell centered
       !
       f % timeVarying = .false.
+      f % xds(4) % numComponents = 2
+      f%xds(4)%varNameXDMF = "currentVel2D"
       exit
    case("u-vel","v-vel")
       if ( f%dataFileCategory.eq.STATION ) then
@@ -572,6 +577,8 @@ do i=1,f%nvar
       f%ncds(1)%varNameNetCDF = "u-vel"  ! uu2 in ADCIRC
       f%ncds(2)%varNameNetCDF = "v-vel"  ! vv2 in ADCIRC
       f%irtype = 2
+      f%xds(1)%numComponents = 2
+      f%xds(1)%varNameXDMF = "currentVel2D"
       exit
    case("uu1-vel","vv1-vel")
       f%defaultFileName = 'uu1vv1.64'
@@ -581,6 +588,8 @@ do i=1,f%nvar
       f % ncds(2)%varNameNetCDF = "vv1-vel"  ! vv1 in ADCIRC
       f % xds(1) % varNameXDMF = 'water_current_velocity_at_previous_timestep'
       f%irtype = 2
+      f%xds(1)%numComponents = 2
+      f%xds(1)%varNameXDMF = "prevCurrentVel2D"      
       exit
    case("pressure")
       if ( f%dataFileCategory.eq.STATION ) then
@@ -604,6 +613,8 @@ do i=1,f%nvar
       f % ncds(1)%varNameNetCDF = "windx"  
       f % ncds(2)%varNameNetCDF = "windy"  
       f%irtype = 2
+      f%xds(1)%numComponents = 2
+      f%xds(1)%varNameXDMF = "windVel"      
       exit
    case("maxele","zeta_max")
       f % dataFileCategory = MINMAX
@@ -688,6 +699,8 @@ do i=1,f%nvar
       f % ncds(1)%varNameNetCDF = "radstress_x"  
       f % ncds(2)%varNameNetCDF = "radstress_y"  
       f%irtype = 2
+      f%xds(1)%numComponents = 2
+      f%xds(1)%varNameXDMF = "radstress"
    case("swan_DIR")
       f%defaultFileName = 'swan_DIR.63' 
       f % fileTypeDesc = "a SWAN wave direction (swan_DIR.63) file"
@@ -742,6 +755,8 @@ do i=1,f%nvar
       f % ncds(1)%varNameNetCDF = "swan_windx"  
       f % ncds(2)%varNameNetCDF = "swan_windy"  
       f%irtype = 2
+      f%xds(1)%numComponents = 2
+      f%xds(1)%varNameXDMF = "swan_wind"
       exit
    case default
       cycle     ! did not recognize this variable name
@@ -1113,6 +1128,18 @@ case(OWI)
 case(DOMAIN)
    select case(trim(fn%defaultFileName))
    case('fort.63') !63
+      thisVarName = 'zeta'
+      call initFileMetaData(fn, thisVarName, 1, 1)
+      !write(6,*) nc_dimid(1), nc_dimid(2), fn%ncds(1)%nc_varID ! jgfdebug
+      call check(nf90_def_var(fn%nc_id,'zeta',nf90_double,nc_dimid,fn%ncds(1)%nc_varID))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',fn%ncds(1)%fillValue))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'long_name','water surface elevation above geoid'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'standard_name','water_surface_elevation'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'coordinates','time y x'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','node'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','m'))
+   case('fort.69') !63
       thisVarName = 'zeta'
       call initFileMetaData(fn, thisVarName, 1, 1)
       !write(6,*) nc_dimid(1), nc_dimid(2), fn%ncds(1)%nc_varID ! jgfdebug
@@ -1635,8 +1662,6 @@ select case(trim(adjustl(fileNameBase)))
       maxFileName = 'swan_TMM10_max.63'
    case("swan_TPS.63")
       maxFileName = 'swan_TPS_max.63'
-   case("fort.69")
-      maxFileName = 'maxwarnelev.63'
    case default
       write(6,'(a,a,a)') 'WARNING: File name ',trim(adjustl(datafile)),' was not recognized.'
       maxFileName = trim(adjustl(fileNameBase)) // '_maxfile.63'
