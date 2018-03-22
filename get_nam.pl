@@ -3,7 +3,7 @@
 # get_nam.pl: downloads background meteorology data from NCEP
 # for ASGS nowcasts and forecasts
 #--------------------------------------------------------------
-# Copyright(C) 2010, 2011, 2012 Jason Fleming
+# Copyright(C) 2010--2018 Jason Fleming
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 # 
@@ -107,7 +107,7 @@ if ( defined $enstorm ) {
 #
 # if alternate directories for NAM data were supplied, then remove the
 # commas from these directories
-if ( defined @altnamdirs ) { 
+if ( @altnamdirs ) { 
    @altnamdirs = split(/,/,join(',',@altnamdirs));
 }
 #
@@ -328,7 +328,7 @@ while ($datetime_needed <= $cycletime) {
    unless ( $already_haveit == 1 ) {
       # don't have it, look in alternate directories for it
       stderrMessage("DEBUG","Don't have nowcast data for '$datetime_needed', searching alternate directories.");
-      if (defined @altnamdirs) {
+      if (@altnamdirs) {
          # loop through all the alternative directories
          foreach my $andir (@altnamdirs) {
             #stderrMessage("DEBUG","Checking '$andir'.");

@@ -1020,19 +1020,19 @@ K2
  STEADY               ! CONSTITUENT. 1  ALPHA DESCRIPTOR
  0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
  STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
-5.8 0.0   ! mississippi node 1; total flux set to 7.2 kcms
-6.8 0.0  ! mississippi node 2
-7.8 0.0  ! mississippi node 3
-8.4 0.0  ! mississippi node 4
-8.9 0.0  ! mississippi node 5
-9.2 0.0  ! mississippi node 6
-8.9 0.0  ! mississippi node 7
-7.9 0.0  ! mississippi node 8
-5.8 0.0  ! mississippi node 9
-4.2 0.0  ! mississippi node 10
-2.3 0.0  ! mississippi node 11
-1.7 0.0  ! mississippi node 12
-1.6 0.0  ! mississippi node 13
+10.2 0.0   ! ms node 1; total flux set to 12.6 kcms; MS@BR15ft; 20180102
+11.8 0.0  ! mississippi node 2
+13.6 0.0  ! mississippi node 3
+14.6 0.0  ! mississippi node 4
+15.5 0.0  ! mississippi node 5
+16.0 0.0  ! mississippi node 6
+15.4 0.0  ! mississippi node 7
+13.8 0.0  ! mississippi node 8
+10.1 0.0  ! mississippi node 9
+7.4 0.0  ! mississippi node 10
+4.1 0.0  ! mississippi node 11
+3.0 0.0  ! mississippi node 12
+2.7 0.0  ! mississippi node 13
 0.0 0.0   ! morganza node 1; total flux set to 0.0 kcms
 0.0 0.0  ! morganza node 2
 0.0 0.0  ! morganza node 3
@@ -1040,28 +1040,28 @@ K2
 0.0 0.0  ! morganza node 5
 0.0 0.0  ! morganza node 6
 0.0 0.0  ! morganza node 7
-1.4 0.0   ! atchafalaya node 1; total flux set to 3.6 kcms
-1.5 0.0  ! atchafalaya node 2
-1.6 0.0  ! atchafalaya node 3
-1.7 0.0  ! atchafalaya node 4
-1.8 0.0  ! atchafalaya node 5
-1.9 0.0  ! atchafalaya node 6
-1.9 0.0  ! atchafalaya node 7
-1.9 0.0  ! atchafalaya node 8
-1.9 0.0  ! atchafalaya node 9
-2.0 0.0  ! atchafalaya node 10
-2.0 0.0  ! atchafalaya node 11
-2.0 0.0  ! atchafalaya node 12
-2.0 0.0  ! atchafalaya node 13
-2.0 0.0  ! atchafalaya node 14
-2.0 0.0  ! atchafalaya node 15
-2.0 0.0  ! atchafalaya node 16
-2.0 0.0  ! atchafalaya node 17
-1.9 0.0  ! atchafalaya node 18
-1.9 0.0  ! atchafalaya node 19
-1.9 0.0  ! atchafalaya node 20
-1.7 0.0  ! atchafalaya node 21
-1.6 0.0  ! atchafalaya node 22
+2.4 0.0   ! atchafalaya node 1; total flux set to 6.3 kcms
+2.6 0.0  ! atchafalaya node 2
+2.8 0.0  ! atchafalaya node 3
+2.9 0.0  ! atchafalaya node 4
+3.1 0.0  ! atchafalaya node 5
+3.4 0.0  ! atchafalaya node 6
+3.4 0.0  ! atchafalaya node 7
+3.4 0.0  ! atchafalaya node 8
+3.4 0.0  ! atchafalaya node 9
+3.4 0.0  ! atchafalaya node 10
+3.5 0.0  ! atchafalaya node 11
+3.5 0.0  ! atchafalaya node 12
+3.5 0.0  ! atchafalaya node 13
+3.5 0.0  ! atchafalaya node 14
+3.5 0.0  ! atchafalaya node 15
+3.5 0.0  ! atchafalaya node 16
+3.4 0.0  ! atchafalaya node 17
+3.4 0.0  ! atchafalaya node 18
+3.4 0.0  ! atchafalaya node 19
+3.2 0.0  ! atchafalaya node 20
+3.0 0.0  ! atchafalaya node 21
+2.7 0.0  ! atchafalaya node 22
 %FORT61%    ! NOUTE,TOUTSE,TOUTFE,NSPOOLE (UNIT  61)
 %NUMELEVSTATIONS%    ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS
 %FORT62%

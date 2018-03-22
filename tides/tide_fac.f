@@ -24,6 +24,7 @@ C     TODO: IMPLICIT NONE
       CHARACTER(2048) :: OUTPUTFORMAT ! "simple" to output just the nf and eqar
       CHARACTER(2048) :: OUTPUTDIR ! directory to place output file
       LOGICAL :: SIMPLE_OUTPUT ! .true. to output just the nf and eq args
+      logical :: adcircFormat ! .true. to produce the output in format ready for insertion into fort.15
 
       SIMPLE_OUTPUT = .FALSE.
       OUTPUTDIR = "."
@@ -58,13 +59,16 @@ C     TODO: IMPLICIT NONE
             CASE("--outputformat")
                I = I + 1
                CALL GETARG(I,CMDLINEARG)
-               READ(CMDLINEARG,*) OUTPUTFORMAT 
-               IF (TRIM(OUTPUTFORMAT).eq."simple") THEN
+               READ(CMDLINEARG,*) OUTPUTFORMAT
+               select case(trim(outputformat))
+               case("simple")
                   SIMPLE_OUTPUT = .TRUE.
-               ELSE
+               case("adcirc")
+                  adcircFormat = .true.
+               case default
                   WRITE(*,*) "ERROR: tide_fac.f: '",TRIM(CMDLINEARG),
      &               "' was not recognized as an output format."
-               ENDIF
+               end select
             CASE("--outputdir")
                I = I + 1
                CALL GETARG(I,OUTPUTDIR)
@@ -93,7 +97,7 @@ C     TODO: IMPLICIT NONE
 
       OPEN(UNIT=11,FILE=TRIM(OUTPUTDIR)//'/tide_fac.out',
      &   STATUS='UNKNOWN')
-      IF (SIMPLE_OUTPUT.eqv..FALSE.) THEN
+      IF ((SIMPLE_OUTPUT.eqv..FALSE.).and.(adcircFormat.eqv..false.)) THEN
          WRITE(11,10) BHR,IDAY,IMO,IYR
   10     FORMAT(' TIDAL FACTORS STARTING: ', 
      &       ' HR-',F5.2,',  DAY-',I3,',  MONTH-',I3,'  YEAR-',I5,/)
@@ -122,6 +126,10 @@ C-- DETERMINE GREENWICH EQUIL. TERMS AT BEGINNING OF RECORD
       NCON(6)=1
       NCON(7)=2
       NCON(8)=35
+
+      if (adcircFormat.eqv..true.) then
+         write(11,'(i0, 6x,"! NTIF: num tidal potential constituents; start date is :,i0,"Z ",i0,1x,i0,1x,i0,"  run length ",f8.2," days")') numcon, bhr,iday,imo,iyr 
+      endif
 
       DO 20 NC=1,NUMCON
         IC=NCON(NC)

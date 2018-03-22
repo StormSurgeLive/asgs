@@ -39,6 +39,7 @@ type(mesh_t) :: m
 type(meshNetCDF_t) :: n
 type(fileMetaData_t) :: f  ! adcirc file to be read and converted
 type(netCDFMetaDataFromExternalFile_t) :: a
+type(nodalAttrFile_t) :: naFile
 character(2048) :: dataFileBase
 character(len=1000) :: Line
 character(1) :: JunkC, Tadj
@@ -213,8 +214,9 @@ endif
 ! if this is a nodal attributes file, then read it and convert it
 ! using subroutines from the nodal attributes module and then stop
 if (f%dataFileCategory.eq.NODALATTRIBF) then
-   call readNodalAttributesFile(adataFileName)
-   call writeNodalAttributesFileNetCDF(f%nc_id, m, n, deflate)
+   naFile%nodalAttributesFile = trim(adataFileName)
+   call readNodalAttributesFile(naFile)
+   call writeNodalAttributesFileNetCDF(naFile, f%nc_id, m, n, deflate)
    stop
 endif
 !
