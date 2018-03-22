@@ -829,10 +829,28 @@ sub owiParameters () {
    stderrMessage("INFO","The file containing the hotstartdate '$hotstartdate' will be written to the directory $stormDir.");
    printf HSD $hotstartdate;
    close(HSD);
-   # determine the date time of the start of the OWI files
+   # determine the date time of the start and end of the OWI files
+   my $owistart = $hotstartdate; # reasonable default
+   my $owiend = "nullend";
+   # if converted from NAM output
    my @fort221 = glob($stormDir."/NAM*.221");
-   $fort221[0] =~ /NAM_(\d+)/;
-   my $owistart = $1;
+   if (@fort221) {
+      $fort221[0] =~ /NAM_(\d+)/;
+      $owistart = $1;
+      $fort221[0] =~ /(\d+).221$/;
+      $owiend = $1;
+   } else {
+      # owi files supplied as-is
+      my @fort221 = glob($stormDir."/*.221");
+      if (@fort221) {
+         open(FORT221,"<$fort221[0]") || die "ERROR: control_file_gen.pl: Failed to open the fort.221 file $stormDir/$fort221[0]: $!.";
+         my $header221 = <FORT221>;
+         close(FORT221);
+         my @fields221 = split(" ",$header221);
+         $owistart = $fields221[-2];
+         $owiend = $fields221[-1];
+      }
+   } 
    # create run description
    $rundesc = "cs:$csdate"."0000 cy:$owistart ASGS NAM";
    $owistart =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
@@ -856,17 +874,21 @@ sub owiParameters () {
    # current time in the ADCIRC run)
    my $nwbs = int($blank_time/$wtiminc);
    stderrMessage("INFO","nwbs is '$nwbs'");
+   my $nwset = 1;
+   # hack to see if there is an additional, optional region scale set of
+   # win/pre files
+   my @fort223 = glob($stormDir."/*.223");
+   if (@fort223) {
+      $nwset = 2;
+   }
+   stderrMessage("INFO","nwset is '$nwset'");
    #
    # create the fort.22 output file, which is the wind input file for ADCIRC
    open(MEMBER,">$stormDir/fort.22") || die "ERROR: control_file_gen.pl: Failed to open file for ensemble member '$enstorm' to write $stormDir/fort.22 file: $!.";
-   printf MEMBER "1\n";     # nwset
+   printf MEMBER "$nwset\n"; # nwset
    printf MEMBER "$nwbs\n"; # nwbs
    printf MEMBER "1.0\n";   # dwm
    close(MEMBER);
-   #
-   # determine the date time of the end of the OWI files
-   $fort221[0] =~ /(\d+).221$/;
-   my $owiend = $1;
    stderrMessage("INFO","The OWI file ends at '$owiend'.");
    $owiend =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
    $ey = $1;

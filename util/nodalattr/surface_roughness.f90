@@ -64,6 +64,7 @@ real(8) avgxmax, avgymax, avgxmin, avgymin
 avgDist = 10000.d0
 wtDist = 3000.d0
 genCanopy = .false.
+call initLogging(availableUnitNumber(),'surface_roughness.f90')
 !
 ! process command line options
 argcount = iargc() ! count up command line options

@@ -23,25 +23,26 @@
 # This script expects that when it starts, PWD points to an 
 # asgs run directory with subdirectories representing various
 # advisories
-HOTTIFYPATH=~/adcirc/swan
-MACHINE=jason-desktop
-REMOVALCMD="rm"
-while getopts "p:e" optname; do   
+#----------------------------------------------------------------
+logFile=pedir_removal.log
+instancedir=$PWD
+COMPRESSION=""
+#
+while getopts ":h:e:a:c" optname; do
   case $optname in
-    h) HOTTIFYPATH=${OPTARG} # -h /path/to/HottifySWAN.x
+    h) HOTTIFYPATH=${OPTARG} 
        ;;
     e) MACHINE=${OPTARG}     # e.g., -e queenbee 
        ;;
+    a) ARCHIVEPATH=${OPTARG}     
+       ;;
+    c) COMPRESSION="-c"
+       ;;
+    \?) echo "$THIS: The command line option $optname ${OPTARG} was not recognized." >> $instancedir/$logFile
+       ;;
   esac
 done
-case $MACHINE in
-  queenbee) REMOVALCMD="rmpurge"
-       ;;
-  *) REMOVALCMD="rm"
-       ;;
-esac
-logFile="pedir_removal.log"
-instancedir=$PWD
+#
 for advisdir in `ls`; do
    # operate on advisory directories
    if [[ -d $advisdir ]]; then
@@ -52,24 +53,7 @@ for advisdir in `ls`; do
          if [[ -d $stormdir ]]; then
             echo "stormdir is $stormdir" >> $instancedir/$logFile 
             cd $stormdir 2>> $instancedir/$logFile
-            # preserve the swan log file so we can see 
-            if [[ -e ./PE0000/asgs_swan.prt ]]; then
-               cp ./PE0000/asgs_swan.prt . 2>> $instancedir/$logFile
-            fi
-            # if it is a nowcast, archive the swan hotstart file if any
-            if [[ $stormdir = nowcast ]]; then
-               # construct fulldomain swan hotstart file and compress
-               if [[ -e ./PE0000/swan.68 ]]; then
-                  ${HOTTIFYPATH}/HottifySWAN.x <<EOF >> $instancedir/$logFile 2>&1 
-1
-swan.68
-F
-EOF
-                  bzip2 swan.68 >> $instancedir/$logFile 2>&1
-               fi
-            fi
-            # now delete the subdomain directories
-            rm -rf PE* 2>> $instancedir/$logFile
+            ${ARCHIVEPATH}/enstorm_pedir_removal.sh -h $HOTTIFYPATH -e $MACHINE $COMPRESSION >> $instancedir/$logFile 2>&1
             # switch back to advisory directory
             cd ..
          fi

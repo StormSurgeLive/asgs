@@ -45,6 +45,7 @@ integer :: mnUnit
 argcount = iargc() ! count up command line options
 write(6,*) 'There are ',argcount,' command line options.'
 i=0
+call initLogging(availableUnitNumber(),'mannings_n_finder.f90')
 do while (i.lt.argcount)
    i = i + 1
    call getarg(i, cmdlineopt)

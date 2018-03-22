@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=namhsofs    # "name" of this ASGS process
-COLDSTARTDATE=2017091500 # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2017100100 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -177,9 +177,9 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu
 
 # Archiving
 
-ARCHIVE=null_archive.sh
-ARCHIVEBASE=/projects/ncfs/data
-ARCHIVEDIR=archive
+ARCHIVE=queenbee_archive.sh
+ARCHIVEBASE=/work/jgflemin
+ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
 # Forecast ensemble members
 

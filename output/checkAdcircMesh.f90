@@ -190,6 +190,11 @@ if (argcount.gt.0) then
             call getarg(i, cmdlinearg)
             write(6,'(a)') "INFO: Processing "//trim(cmdlineopt)//" "//trim(cmdlinearg)//"."
             read(cmdlinearg,*) m%sfea0
+         case("--slam0")
+            i = i + 1
+            call getarg(i, cmdlinearg)
+            write(6,'(a)') "INFO: Processing "//trim(cmdlineopt)//" "//trim(cmdlinearg)//"."
+            read(cmdlinearg,*) m%slam0
          case("--write-neighbor-tables")
             write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
             writeNeighborTables = .true.                              
