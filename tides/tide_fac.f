@@ -1,4 +1,4 @@
-C PROGRAM TO COMPUTE NODAL FACTORS AND EQUILIBRIUM ARGUEMENTS
+C PROGRAM TO COMPUTE NODAL FACTORS AND EQUILIBRIUM ARGUMENTS
 C
 C     jgf20110526: Added command line option processing to bypass menu
 C     driven interface; menu driven interface is still the default and is
@@ -13,6 +13,7 @@ C     TODO: IMPLICIT NONE
 
       CHARACTER CNAME(NCNST)*8
       COMMON /CNSNAM/ CNAME
+      ! EQUILIBRIUM ARGUMENT IS REFERENCED TO THE GRENWICH MERIDIAN
       REAL NODFAC,MONTH
       DIMENSION NCON(NCNST)
       COMMON /CNST/ NODFAC(NCNST),GRTERM(NCNST),SPEED(NCNST),P(NCNST)
@@ -24,8 +25,14 @@ C     TODO: IMPLICIT NONE
       CHARACTER(2048) :: OUTPUTFORMAT ! "simple" to output just the nf and eqar
       CHARACTER(2048) :: OUTPUTDIR ! directory to place output file
       LOGICAL :: SIMPLE_OUTPUT ! .true. to output just the nf and eq args
+      CHARACTER(len=3), dimension(12) :: monthChar ! string to represent month
       logical :: adcircFormat ! .true. to produce the output in format ready for insertion into fort.15
+      INTEGER :: numTidalConstituents  ! number of tidal const. to interpolate
+      CHARACTER(len=10), ALLOCATABLE :: interpTidalConstituents(:)
+      CHARACTER(len=1024), dimension(7) :: defaultTidalConstituents ! basic set of 7
+      INTEGER, ALLOCATABLE :: constituentList(:)
 
+      numTidalConstituents = 7
       SIMPLE_OUTPUT = .FALSE.
       OUTPUTDIR = "."
       ARGCOUNT = IARGC() ! count up command line options
@@ -52,6 +59,16 @@ C     TODO: IMPLICIT NONE
                I = I + 1
                CALL GETARG(I,CMDLINEARG)
                READ(CMDLINEARG,*) IDAY
+            case("-n","--numtidalconstituents") ! number of tidal constituents to interpolate
+               i = i + 1
+               call getarg(i,cmdlinearg)
+               read(cmdlinearg,*) numTidalConstituents
+               allocate(interpTidalConstituents(numTidalConstituents))
+               ! then read this many space-separated strings on the command line
+               do j=1, numTidalConstituents
+                  i = i + 1
+                  call getarg(i,interpTidalConstituents(j))
+               end do
             CASE("--hour")
                I = I + 1
                CALL GETARG(I,CMDLINEARG)
@@ -85,6 +102,17 @@ C     TODO: IMPLICIT NONE
      &      ' ENTER START TIME - BHR,IDAY,IMO,IYR (IYR e.g. 1992)'
          READ(*,*) BHR,IDAY,IMO,IYR
       ENDIF
+      defaultTidalConstituents(1) = 'M2'
+      defaultTidalConstituents(2) = 'S2'
+      defaultTidalConstituents(3) = 'N2'
+      defaultTidalConstituents(4) = 'K1'
+      defaultTidalConstituents(5) = 'K2'
+      defaultTidalConstituents(6) = 'O1'
+      defaultTidalConstituents(7) = 'Q1'
+      if (.not.allocated(interpTidalConstituents)) then
+         allocate(interpTidalConstituents(numTidalConstituents))
+         interpTidalConstituents(1:7) = defaultTidalConstituents(1:7)
+      endif
 
       RHRS=XDAYS*24.
       YR=IYR
@@ -117,36 +145,96 @@ C-- DETERMINE NODE FACTORS AT MIDDLE OF RECORD
 C-- DETERMINE GREENWICH EQUIL. TERMS AT BEGINNING OF RECORD
       CALL GTERMS(YR,DAYJ,BHR,DAYJ,HRM)
 
-      NUMCON=8
-      NCON(1)=4
-      NCON(2)=6
-      NCON(3)=30
-      NCON(4)=26
-      NCON(5)=3
-      NCON(6)=1
-      NCON(7)=2
-      NCON(8)=35
-
+      data monthChar/'JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'/
       if (adcircFormat.eqv..true.) then
-         write(11,'(i0, 6x,"! NTIF: num tidal potential constituents; start date is :,i0,"Z ",i0,1x,i0,1x,i0,"  run length ",f8.2," days")') numcon, bhr,iday,imo,iyr 
+         numLoops = 2
+      else
+         numLoops = 1
       endif
+      do i=1,numLoops
+         if (adcircFormat.eqv..true.) then
+            ! tidal potential nodal factors and equilibrium arguments
+            if (i.eq.1) then
+               write(11,'(i0, 6x,"! NTIF number of tidal potential constituents ! start date is ",i0,"Z ",i0,1x,a,1x,i0," ! run length is ",f6.2," days")') numTidalConstituents, int(BHR),iday,monthChar(imo),iyr, xdays
+            ! boundary forcing nodal factors and equilibrium arguments
+            else
+               write(11,'(i0, 6x,"! NBFR number of tidal boundary constituents")') numTidalConstituents
+            endif
+         endif
+         do nc=1,numTidalConstituents
+            select case(trim(interpTidalConstituents(nc)))
+            case("k1","K1")
+                ic=4
+                tidalPotentialAmplitude = 0.141565d0
+                tidalFrequency = 0.000072921158358d0
+                earthTidePotentialReductionFactor = 0.736
+            case("o1","O1")
+                ic=6
+                tidalPotentialAmplitude = 0.100514d0
+                tidalFrequency = 0.000067597744151d0
+                earthTidePotentialReductionFactor = 0.695
+            case("p1","P1")
+                ic=30
+                tidalPotentialAmplitude = 0.046843d0
+                tidalFrequency = 0.000072522945975d0
+                earthTidePotentialReductionFactor = 0.706            
+            case("q1","Q1")
+                ic=26
+                tidalPotentialAmplitude = 0.019256d0
+                tidalFrequency = 0.000064958541129d0
+                earthTidePotentialReductionFactor = 0.695         
+            case("n2","N2")
+                ic=3
+                tidalPotentialAmplitude = 0.046398d0
+                tidalFrequency = 0.000137879699487d0
+                earthTidePotentialReductionFactor =  0.693          
+            case("m2","M2")
+                ic=1
+                tidalPotentialAmplitude = 0.242334d0
+                tidalFrequency = 0.000140518902509d0
+                earthTidePotentialReductionFactor = 0.693        
+            case("s2","S2")
+                ic=2
+                tidalPotentialAmplitude = 0.112841d0
+                tidalFrequency = 0.000145444104333d0
+                earthTidePotentialReductionFactor = 0.693           
+            case("k2","K2")
+                ic=35
+                tidalPotentialAmplitude = 0.030704
+                tidalFrequency = 0.000145842317201d0
+                earthTidePotentialReductionFactor = 0.693                         
+            case default
+                write(6,*) 'ERROR: The tidal constituent '//trim(cname(ic))//' was not recognized.'
+            end select
+            if (adcircFormat.eqv..true.) then
+               if (i.eq.1) then
+                  ! tidal potential constituents
+                  write(11,'(a)') trim(cname(ic))
+                  write(11,'(f8.6,2x,f16.14,2x,f5.3,2x,f7.5,2x,f7.2)') 
+     &               tidalPotentialAmplitude,tidalFrequency,
+     &               earthTidePotentialReductionFactor, nodfac(ic), grterm(ic)
+                  ! tidal boundary constituents
+               else
+                  write(11,'(a)') trim(cname(ic))
+                  write(11,'(f16.14,2x,f7.5,2x,f7.2)') 
+     &               tidalFrequency, nodfac(ic), grterm(ic)
+               endif
+            else
+               WRITE(11,2001) CNAME(IC),NODFAC(IC),GRTERM(IC)
+            endif
+         end do
+      end do
 
-      DO 20 NC=1,NUMCON
-        IC=NCON(NC)
-
-C EQUILIBRIUM ARGUEMENT IS REFERENCED TO THE GRENWICH MERIDIAN
-
-        WRITE(11,2001) CNAME(IC),NODFAC(IC),GRTERM(IC)
- 2001   FORMAT(1X,A4,2x,F7.5,4x,F7.2,2x,F7.4)
-   20   CONTINUE
+ 2001 FORMAT(1X,A4,2x,F7.5,4x,F7.2,2x,F7.4)
 
       STOP
+C---------------------------------------------------------------------      
       END PROGRAM TIDE_FAC
+C---------------------------------------------------------------------      
 
 
 
-      SUBROUTINE NFACS(YR,DAYJ,HR)
-
+C---------------------------------------------------------------------
 C-- CALCULATES NODE FACTORS FOR CONSTITUENT TIDAL SIGNAL
 
 C-- THE EQUATIONS USED IN THIS ROUTINE COME FROM:
@@ -157,7 +245,7 @@ C         AND GEODETIC SURVEY, DEPARTMENT OF COMMERCE (1958).
 C-- IF DAYM AND HRM CORRESPOND TO MIDYEAR, THEN THIS ROUTINE
 C-- RETURNS THE SAME VALUES AS FOUND IN TABLE 14 OF SCHUREMAN.
 C---------------------------------------------------------------------
-
+      SUBROUTINE NFACS(YR,DAYJ,HR)
       CHARACTER*8   CST(37)
       REAL          I,N,NU
 
@@ -263,19 +351,23 @@ C     FNDCST(33)=EQ215
       FNDCST(35)=EQ235
       FNDCST(36)=FNDCST(1)**4
       FNDCST(37)=EQ78
-      END
+C---------------------------------------------------------------------
+      END SUBROUTINE NFACS
+C---------------------------------------------------------------------      
 
-      SUBROUTINE GTERMS(YR,DAYJ,HR,DAYM,HRM)
+
+C---------------------------------------------------------------------
 C-- CALCULATES EQUILIBRIUM ARGUMENTS V0+U FOR CONSTITUENT TIDE
-
+C
 C-- THE EQUATIONS USED IN THIS ROUTINE COME FROM:
 C         "MANUAL OF HARMONIC ANALYSIS AND PREDICTION OF TIDES"
 C         BY PAUL SCHUREMAN, SPECIAL PUBLICATION #98, US COAST
 C         AND GEODETIC SURVEY, DEPARTMENT OF COMMERCE (1958).
-
+C
 C-- IF DAYM AND HRM CORRESPOND TO MIDYEAR, THEN THIS ROUTINE
 C-- RETURNS THE SAME VALUES AS FOUND IN TABLE 15 OF SCHUREMAN.
 C---------------------------------------------------------------------
+      SUBROUTINE GTERMS(YR,DAYJ,HR,DAYM,HRM)
       REAL NU,NUP,NUP2,I
       COMMON /ORBITF/DS,DP,DH,DP1,DN,DI,DNU,DXI,DNUP,DNUP2,DPC
       COMMON /CNST/ FNDCST(37),EQCST(37),ACST(37),PCST(37)
@@ -340,21 +432,21 @@ C* SUMMING TERMS TO OBTAIN EQUILIBRIUM ARGUMENTS
       EQCST(37)=2.*(2.*T-S+H)+2.*(XI-NU)
       DO 1 IH=1,37
     1 EQCST(IH)=ANGLE(EQCST(IH))
-      END
+C---------------------------------------------------------------------
+      END SUBROUTINE GTERMS
+C---------------------------------------------------------------------
+ 
 
-
-      SUBROUTINE ORBIT(YR,DAYJ,HR)
-
+C---------------------------------------------------------------------
 C-- DETERMINATION OF PRIMARY AND SECONDARY ORBITAL FUNCTIONS
-
+C
 C-- THE EQUATIONS PROGRAMMED HERE ARE NOT REPRESENTED BY EQUATIONS IN
 C   SCHUREMAN.  THE CODING IN THIS ROUTINE DERIVES FROM A PROGRAM BY
 C   THE NATIONAL OCEANIC AND ATMOSPHERIC ADMINISTRATION (NOAA).
 C   HOWEVER, TABULAR VALUES OF THE ORBITAL FUNCTIONS CAN BE FOUND IN
 C   TABLE 1 OF SCHUREMAN.
-
-
 C---------------------------------------------------------------------
+      SUBROUTINE ORBIT(YR,DAYJ,HR)
       REAL I,N,NU,NUP,NUP2
       COMMON /ORBITF/DS,DP,DH,DP1,DN,DI,DNU,DXI,DNUP,DNUP2,DPC
 
@@ -390,21 +482,30 @@ C-- DS IS THE MEAN LONGITUDE OF THE MOON (SMALL S, TABLE 1)
       DNUP=NUP/PI180
       NUP2=ATAN(SIN(2.*NU)/(COS(2.*NU)+.0726184/SIN(I)**2))/2.
       DNUP2=NUP2/PI180
-      END
+C---------------------------------------------------------------------
+      END SUBROUTINE ORBIT
+C---------------------------------------------------------------------
 
-      FUNCTION ANGLE(ARG)
+C---------------------------------------------------------------------
 C
 C*** THIS ROUTINE PLACES AN ANGLE IN 0-360 (+) FORMAT
 C
+C---------------------------------------------------------------------
+      FUNCTION ANGLE(ARG)
       M=-IFIX(ARG/360.)
       ANGLE=ARG+FLOAT(M)*360.
       IF(ANGLE .LT. 0.) ANGLE=ANGLE+360.
+C---------------------------------------------------------------------
       END
-      FUNCTION ARCTAN(TOP,BOTTOM,KEY)
+C---------------------------------------------------------------------      
+      
+
+C---------------------------------------------------------------------
 C** DETERMINE ARCTANGENT AND PLACE IN CORRECT QUADRANT
 C   IF KEY EQ 0  NO QUADRANT SELECTION MADE
 C   IF KEY .NE. 0 PROPER QUADRANT IS SELECTED
-
+C---------------------------------------------------------------------
+      FUNCTION ARCTAN(TOP,BOTTOM,KEY)
       IF(BOTTOM .NE. 0.0) GO TO 4
       IF(TOP) 2,9,3
     2 ARCTAN=270.
@@ -422,13 +523,17 @@ C   IF KEY .NE. 0 PROPER QUADRANT IS SELECTED
       RETURN
     9 ARCTAN=0.
    10 RETURN
+C---------------------------------------------------------------------
       END
+C---------------------------------------------------------------------
 
 
-      FUNCTION DAYJUL(YR,XMONTH,DAY)
+C---------------------------------------------------------------------
 C
 C*** THIS ROUTINE COMPUTES THE JULIAN DAY (AS A REAL VARIABLE)
 C
+C---------------------------------------------------------------------
+      FUNCTION DAYJUL(YR,XMONTH,DAY)
       DIMENSION DAYT(12),DAYS(12)
       DATA DAYT/0.,31.,59.,90.,120.,151.,181.,212.,243.,273.,304.,334./
       DATA DAYS(1),DAYS(2) /0.,31./
@@ -438,5 +543,6 @@ C
       DO 1 I=3,12
     1 DAYS(I)=DAYT(I)+DINC
       DAYJUL=DAYS(IFIX(XMONTH))+DAY
+C---------------------------------------------------------------------
       END
-
+C---------------------------------------------------------------------
