@@ -106,9 +106,9 @@ GRIDNAME=hsofs
 MESHPROPERTIES=${GRIDFILE}.ng.properties     
 CONTROLTEMPLATE=hsofs_explicit.15.template  # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=hsofs.all_cera_stations_20170717.txt
-VELSTATIONS=hsofs.all_cera_stations_20170717.txt
-METSTATIONS=hsofs.all_cera_stations_20170717.txt
+ELEVSTATIONS=hsofs.combined_station_list_20180329.txt
+VELSTATIONS=hsofs.combined_station_list_20180329.txt
+METSTATIONS=hsofs.combined_station_list_20180329.txt
 NAFILE=hsofs.13
 NAPROPERTIES=${NAFILE}.properties
 #SWANTEMPLATE=fort.26.template # only used if WAVES=on
