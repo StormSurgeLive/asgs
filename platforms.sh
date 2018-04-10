@@ -399,6 +399,18 @@ init_desktop()
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
   SWANMACROSINC=macros.inc.gfortran
 }
+init_Poseidon()
+{
+  HOSTNAME=poseidon.vsnet.gmu.edu
+  QUEUESYS=mpiexec
+  QCHECKCMD="ps -aux | grep mpiexec "
+  SUBMITSTRING="mpiexec -n"
+  SCRATCHDIR=/home/fhrl/Documents/asgs_processing
+  SSHKEY=id_rsa_jason-desktop
+  ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
+  SWANMACROSINC=macros.inc.gfortran
+}
+
 init_topsail()
 { #<- can replace the following with a custom script
   HOSTNAME=topsail.unc.edu
@@ -527,6 +539,9 @@ env_dispatch(){
           ;;
   "desktop") consoleMessage "platforms.sh: desktop configuration found."
           init_desktop
+           ;;
+  "poseidon") consoleMessage "platforms.sh: desktop configuration found."
+          init_Poseidon
            ;;
   "test") consoleMessage "platforms.sh: test environment (default) configuration found."
           init_test

@@ -126,6 +126,11 @@ ifeq ($(NETCDF),enable)
       LIBS        := -L/app/wpostool/COST/netcdf-c-4.3.1.1/intel/lib -L/app/wpostool/COST/hdf5-mpi/1.8.12/intel/sgimpt/lib
       LDFLAGS     :=  -lnetcdf -lhdf5 -lhdf5_hl
    endif
+   ifeq ($(MACHINENAME),poseidon)
+      NETCDFPATH  := /home/fhrl/Documents/Surge/scripts/netcdf
+      LIBS        := -L/home/fhrl/Documents/Surge/scripts/netcdf/lib
+      LDFLAGS     :=  -lnetcdf
+   endif
    # jgf20160627: Added compiler flags for lonestar 5 at TACC.
    # jgf20160803: Updared compiler flags for lonestar 5 at TACC.
    ifeq ($(MACHINENAME),lonestar)
