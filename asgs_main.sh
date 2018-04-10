@@ -906,7 +906,7 @@ submitJob()
       logMessage "$ENSTORM: $THIS: Submitting job via $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${SYSLOG} 2>&1"
       # submit the parallel job in a subshell
       (
-         $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${ADVISDIR}/${ENSTORM}/adcirc.log 2>&1
+         $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${ADVISDIR}/${ENSTORM}/adcirc.log 2>&1
          ERROVALUE=$?
          RUNSUFFIX="finish"
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
