@@ -444,7 +444,7 @@ EOF
        if [[ ! -z $NAFILE && $NAFILE != null ]]; then
           FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18 PE*/fort.13'
        fi
-       tar cvzf ${INPUTDIR}/${PREPPED} ${FILELIST} 2>> ${SYSLOG}
+       tar czf ${INPUTDIR}/${PREPPED} ${FILELIST} 2>> ${SYSLOG}
        # check status of tar operation; if it failed, delete the file
        # it attempted to make and alert the operator
        if [[ $? != 0 ]]; then
@@ -1353,6 +1353,7 @@ fi
 ###############################
 #   BODY OF ASGS STARTS HERE
 ###############################
+echo "BOB: here"
 if [[ $BACKGROUNDMET = on && $TROPICALCYCLONE = on ]]; then
    NWS=29
    # not ready for this yet
