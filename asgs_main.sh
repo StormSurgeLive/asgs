@@ -424,7 +424,7 @@ prep()
                 done
              fi
              if [[ -e  swan.68 ]]; then
-                logMessage "$ENSTORM: $THIS: Starting dcomposition of fulldomain swan hotstart file to subdomains."
+                logMessage "$ENSTORM: $THIS: Starting decomposition of fulldomain swan hotstart file to subdomains."
                 ${ADCIRCDIR}/../swan/unhcat.exe <<EOF 2>> ${SYSLOG}
 2
 swan.68
@@ -1218,6 +1218,7 @@ fi
 consoleMessage "$THIS: Please see ASGS log file for detailed information regarding system progress."
 consoleMessage "$THIS: ASGS Start Up MSG: [SYSLOG] The log file is ${SYSLOG}"
 logMessage "$THIS: ASGS Start Up MSG: [PROCID] $$"
+
 logMessage "$THIS: ASGS Start Up MSG: [SYSLOG] ${SYSLOG}"
 logMessage "$THIS: The ADCIRC Surge/Spill Guidance System is activated."
 logMessage "$THIS: Set permissions with the following umask: $UMASK."
@@ -1309,6 +1310,8 @@ checkFileExistence ${SCRIPTDIR}/archive "data archival script" $ARCHIVE
 #
 checkDirExistence ${PERL5LIB}/Date "subdirectory for the Pcalc.pm perl module"
 checkFileExistence ${PERL5LIB}/Date "perl module for date calculations" Pcalc.pm
+
+
 THIS="asgs_main.sh"
 #
 if [[ $PERIODICFLUX != null ]]; then
@@ -1316,6 +1319,8 @@ if [[ $PERIODICFLUX != null ]]; then
    checkFileExistence "" "perl script for calculating periodic flux boundary" $FLUXCALCULATOR
    checkFileExistence ${PERL5LIB} "AdcGrid perl module used by flux calculator" AdcGrid.pm
 fi
+
+
 THIS="asgs_main.sh"
 #
 # Check for any issues or inconsistencies in 
@@ -1353,7 +1358,6 @@ fi
 ###############################
 #   BODY OF ASGS STARTS HERE
 ###############################
-echo "BOB: here"
 if [[ $BACKGROUNDMET = on && $TROPICALCYCLONE = on ]]; then
    NWS=29
    # not ready for this yet

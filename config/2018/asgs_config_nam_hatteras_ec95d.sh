@@ -63,7 +63,7 @@ NCPUCAPACITY=24
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=null
 SERQUEUE=null
-SCRATCHDIR=/scratch/bblanton/asgs
+SCRATCHDIR=/scratch/bblanton/asgs-scratch
 
 # External data sources : Tropical cyclones
 
@@ -156,7 +156,7 @@ POSTPROCESS2=null_post.sh
 TARGET=hatteras
 OPENDAPHOST=tds.renci.org
 OPENDAPUSER=ncfs
-OPENDAPBASEDIR=/scratch/bblanton/asgs/data
+OPENDAPBASEDIR=/scratch/bblanton/asgs-data
 NUMCERASERVERS=2
 WEBHOST=webserver.hostingco.com
 WEBUSER=remoteuser
@@ -165,7 +165,7 @@ WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts
 # Archiving
 
 ARCHIVE=null_archive.sh
-ARCHIVEBASE=/scratch/bblanton/asgs
+ARCHIVEBASE=/scratch/bblanton/asgs-scratch
 ARCHIVEDIR=archive
 
 # Forecast ensemble members

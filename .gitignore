@@ -5,3 +5,4 @@
 *.x
 wgrib2
 *.tar.gz
+/.project

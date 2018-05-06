@@ -25,10 +25,20 @@
 #----------------------------------------------------------------
 #
 # Log file will be in the directory where the asgs was executed
+RENCIPY="/projects/storm_surge/anaconda/bin/python"
 logMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
   MSG="[${DATETIME}] INFO: $@"
   echo ${MSG} >> ${SYSLOG}
+  # also send message to RabbitMQ queue.   The queue parameters are in the asgs_msgr.py code
+  $RENCIPY asgs-msgr.py --Uid $$ \
+                        --LocationName RENCI \
+                        --ClusterName Hatteras \
+                        --RunType weather \
+                        --StormName NAM \
+                        --AdvisoryNumber 0 \
+                        --Message "$MSG"  \
+                        --MessageType TESTFROMBRIAN
 }
 #
 # send a message to the console (i.e., window where the script was started)
