@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=namhsofs    # "name" of this ASGS process
-COLDSTARTDATE=2017120100 # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2018032400 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -38,7 +38,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable        # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs # grid and other input files
+INPUTDIR=${SCRATCHDIR}/asgs/2014stable/input/meshes/hsofs # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
