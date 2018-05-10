@@ -6,3 +6,8 @@
 wgrib2
 *.tar.gz
 /.project
+*~
+null/
+*.mod
+a.out
+asgs*log
