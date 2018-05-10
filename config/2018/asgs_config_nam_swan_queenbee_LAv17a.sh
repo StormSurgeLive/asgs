@@ -39,7 +39,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable          # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v17a # grid and other input files
+INPUTDIR=${SCRATCHDIR}/asgs/2014stable/input/meshes/LA_v17a # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
@@ -48,7 +48,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=on     # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=off  # tropical cyclone forcing
-WAVES=on             # wave forcing
+WAVES=off            # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
@@ -59,7 +59,7 @@ HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="07:00:00" # forecast wall clock time
-NCPU=1200                     # number of compute CPUs for all simulations
+NCPU=600                    # number of compute CPUs for all simulations
 NUMWRITERS=20
 NCPUCAPACITY=1240
 CYCLETIMELIMIT="99:00:00"
