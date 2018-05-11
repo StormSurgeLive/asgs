@@ -32,6 +32,7 @@ program resultScope
 !----------------------------------------------------------------------
 use netcdf
 use adcmesh
+use nodalattr
 use ioutil
 use asgsio
 use logging
@@ -43,6 +44,9 @@ type(fileMetaData_t) :: fd   ! fulldomain data file
 type(mesh_t) :: rm ! resultShape mesh 
 type(meshNetCDF_t) :: rn ! resultShape mesh netcdf IDs
 type(fileMetaData_t) :: rd   ! resultShape data file
+!
+type(nodalAttrFile_t) :: fna ! full size nodal attributes file
+type(nodalAttrFile_t) :: rna ! resultShape nodal attributes file
 !
 type(netCDFMetaDataFromExternalFile_t) :: a ! attribute data file
 !
@@ -229,13 +233,13 @@ meshFileBase = trim(fm%meshFileName(lastSlashPositionMesh+1:))
 !
 ! If the data file type was not supplied, and the file is ascii, 
 ! then use the file name as the file type.
-if ( (fd%dataFileFormat.eq.ASCII).and.(fd%defaultFileName.eq.'null') ) then
+if ( (fd%dataFileFormat.eq.ASCII).and.(trim(fd%defaultFileName).eq.'null') ) then
    fd%defaultFileName = trim(fd%dataFileName)
 endif
 !
 ! open and read mesh in appropriate format
 select case(fd%dataFileFormat)
-case(ASCIIG)
+case(ASCII,ASCIIG)
    call read14(fm)
    call determineASCIIFileCharacteristics(fd)
 case(NETCDFG)
@@ -245,7 +249,9 @@ case(NETCDFG)
    call determineNetCDFFileCharacteristics(fd, fm, fn)
 case default
    call allMessage(ERROR,'Cannot read mesh.')
+   stop
 end select
+call allMessage(INFO,'Finished reading mesh.')
 !   
 allocate(within(fm%np))
 allocate(elementWithin(fm%ne))
@@ -341,7 +347,7 @@ enddo
 ! Count and record nodes on elements that have been selected into the
 ! resultShape
 allocate(full2subNodes(fm%np))
-full2subNodes(:) = 0
+full2subNodes(:) = -99999
 rm%np = 0  ! counter for nodes on elements that are included in the resultShape
 do n = 1, fm%np
    if ( within(n).eqv..true. ) then
@@ -359,6 +365,25 @@ do n=1,fm%np
       sub2fullNodes(rm%np) = n ! record the node number of the selected node
    end if
 enddo
+call allMessage(INFO,'Finished selecting nodes and elements in the result mesh.')
+!
+! allocate and populate submesh arrays
+call get_command(cmdlinearg)
+rm%agrid = trim(fm%agrid) // ' ! command line used to make this result mesh: ' // trim(cmdlinearg)
+allocate(rm%xyd(3,rm%np))
+! node table
+do i=1,rm%np
+   do j=1,3
+      rm%xyd(j,i) = fm%xyd(j,sub2fullNodes(i)) 
+   end do
+end do
+! element table
+allocate(rm%nm(rm%ne,3))
+do i=1,rm%ne
+   do j=1,3
+      rm%nm(i,j) = full2subNodes(fm%nm(sub2fullElements(i),j))
+   end do
+end do
 !
 ! Output sub-mesh as fort.14 if the output format is ascii
 if (rd%dataFileFormat.eq.ASCII) then
@@ -371,6 +396,56 @@ endif
 if (meshonly.eqv..true.) then
    write(6,'("INFO: The --meshonly command line option was specified; the subdomain mesh has been written and execution is complete.")')
    stop
+endif
+!
+! if the data file is a nodal attributes file, process that separately
+if (trim(fd%defaultFileName).eq.'fort.13') then
+   fna%nodalAttributesFile = fd%dataFileName
+   call readNodalAttributesFile(fna)
+   ! populate result result shape fort.13
+   call allMessage(INFO,'Subsetting nodal attributes for subdomain.') 
+   rna%nodalAttributesFile = 'subdomain_fort.13'
+   rna%nodalAttributesComment = trim(fna%nodalAttributesComment) // ' ! command line used to make this subdomain nodal attributes file: ' // trim(cmdlinearg)
+   rna%numMeshNodes = rm%np     
+   rna%numNodalAttributes = fna%numNodalAttributes
+   allocate(rna%na(rna%numNodalAttributes))
+   do i=1,rna%numNodalAttributes   
+      rna%na(i)%attrName = fna%na(i)%attrName
+      rna%na(i)%units = fna%na(i)%units
+      rna%na(i)%numVals = fna%na(i)%numVals
+      rna%na(i)%numNodesNotDefault = 0  ! need to count these
+      allocate(rna%na(i)%fillValue(rna%na(i)%numVals))
+      rna%na(i)%fillValue(:) = -99999.d0
+      allocate(rna%na(i)%defaultVals(rna%na(i)%numVals))
+      rna%na(i)%defaultVals = fna%na(i)%defaultVals
+      ! count non default values in the subdomain mesh
+      do j=1,fna%na(i)%numNodesNotDefault
+         h = full2subNodes(fna%na(i)%nonDefaultNodes(j))
+         if (h.ne.-99999 ) then
+            rna%na(i)%numNodesNotDefault = rna%na(i)%numNodesNotDefault + 1
+         endif
+      end do
+      ! now allocate memory for these and populate the nondefault array
+      allocate(rna%na(i)%nonDefaultNodes(rna%na(i)%numNodesNotDefault))
+      allocate(rna%na(i)%nonDefaultVals(rna%na(i)%numVals,rna%na(i)%numNodesNotDefault))
+      ! now populate the non default nodes and their values in the subdomain
+      k=1
+      do j=1,fna%na(i)%numNodesNotDefault
+         h = full2subNodes(fna%na(i)%nonDefaultNodes(j))
+         if (h.ne.-99999) then
+            rna%na(i)%nonDefaultNodes(k) = h
+            do n=1,rna%na(i)%numVals
+               rna%na(i)%nonDefaultVals(n,k) = fna%na(i)%nonDefaultVals(n,h)
+            end do
+            k=k+1   
+         endif
+      end do      
+   end do
+   call writeNodalAttributesFile(rna)   
+   stop
+else
+   call allMessage(INFO,'Not a nodal attributes file:'//trim(fd%defaultFileName))
+   
 endif
 !
 ! set up subdomain result file

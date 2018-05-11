@@ -51,6 +51,7 @@ numPasses = 1
 ed%dataFileName = 'null'
 dataFound = .false.
 im%dataFileFormat = NETCDF4
+call initLogging(availableUnitNumber(),'inundationMask.f90')
 !
 ! Report netcdf version
 write(6,'(a,a)') 'INFO: inundationMask: compiled with the following netcdf library: ', trim(nf90_inq_libvers())
@@ -66,29 +67,37 @@ if (argcount.gt.0) then
          case("--filename")
             i = i + 1
             call getarg(i, cmdlinearg)
-            write(6,'(a,a,a,a,a)') 'INFO: inundationMask: Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
+            write(scratchMessage,'(a,a,a,a,a)') 'Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
+            call allMessage(INFO,scratchMessage)
             ed%dataFileName = trim(cmdlinearg)
          case("--netcdf4")
              im%dataFileFormat = NETCDF4
-             write(6,'(a,a,a)') 'INFO: Processing "',trim(cmdlineopt),'".'            
+             write(scratchMessage,'(a,a,a)') 'Processing "',trim(cmdlineopt),'".'            
+            call allMessage(INFO,scratchMessage)
          case("--ascii")
              im%dataFileFormat = ASCII
-             write(6,'(a,a,a)') 'INFO: Processing "',trim(cmdlineopt),'".'
+             write(scratchMessage,'(a,a,a)') 'Processing "',trim(cmdlineopt),'".'
+             call allMessage(INFO,scratchMessage)
          case("--numpasses")
             i = i + 1
             call getarg(i, cmdlinearg)
-            write(6,'(a,a,a,a)') 'INFO: inundationMask: Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
+            write(scratchMessage,'(a,a,a,a,a)') 'Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
+            call allMessage(INFO,scratchMessage)
             read(cmdlinearg,*) numPasses
          case default
-            write(6,'(a,a,a,a)') 'WARNING: inundationMask: Command line option "',trim(cmdlineopt),'" was not recognized.'
+            write(scratchMessage,'(a,a,a,a)') 'Command line option "',trim(cmdlineopt),'" was not recognized.'
+            call allMessage(WARNING,scratchMessage)
       end select
    end do
 end if
 !
 ! quit if we don't have a filename to use    
 if ( trim(ed%dataFileName).eq.'null' ) then
-   write(6,'(a,a,a,a)') 'ERROR: inundationMask: Either an initiallydry.63.nc or everdried.63.nc file must be provided.'
+   write(scratchMessage,'(a,a,a,a)') 'Either an initiallydry.63.nc or everdried.63.nc file must be provided.'
+   call allMessage(ERROR,scratchMessage)
    stop
+else
+   m%meshFileName = trim(ed%dataFileName)
 endif
 !
 ! open the file and read the mesh
@@ -112,11 +121,15 @@ nnodecode=1
 !
 call determineNetCDFFileCharacteristics(ed, m, n)
 dataFound = .false.
+! open the netcdf file so that we can read the data 
+call check(nf90_open(trim(ed%dataFileName), NF90_NOWRITE, ed%nc_id))
+! determine file type and load data 
 do i=1,ed%nvar
    call check(nf90_inquire_variable(ed%nc_id, i, thisVarName))
    select case(trim(thisVarName))   
    case("initiallydry")
-      write(6,'(a)') 'INFO: inundationMask: Creating an inundation mask from an ADCIRC initially dry file.'
+      write(scratchMessage,'(a)') 'Creating an inundation mask from an ADCIRC initially dry file.'
+      call allMessage(INFO,scratchMessage)
       call check(nf90_inq_varid(ed%nc_id, thisVarName, varid))
       allocate(adcirc_idata(m%np,1))
       nc_start = (/ 1, 1 /)
@@ -131,7 +144,8 @@ do i=1,ed%nvar
       deallocate(adcirc_idata)
       exit      
    case("everdried")
-      write(6,'(a)') 'INFO: inundationMask: Creating an inundation mask from an ADCIRC ever dried file.'
+      write(scratchMessage,'(a)') 'Creating an inundation mask from an ADCIRC ever dried file.'
+      call allMessage(INFO,scratchMessage)
       call check(nf90_inq_varid(ed%nc_id, thisVarName, varid))
       allocate(adcirc_data(m%np,1))
       nc_start = (/ 1, 1 /)
@@ -153,7 +167,8 @@ end do
 !
 ! make sure this is one of the files we know how to process
 if ( dataFound.eqv..false. ) then
-   write(6,'(a,a,a,a)') 'ERROR: inundationMask: Either an initiallydry.63.nc or everdried.63.nc file must be provided.'
+   write(scratchMessage,'(a,a,a,a)') 'Either an initiallydry.63.nc or everdried.63.nc file must be provided.'
+   call allMessage(ERROR,scratchMessage)
    stop
 endif
 call check(nf90_close(ed%nc_id))
@@ -163,7 +178,8 @@ call check(nf90_close(ed%nc_id))
 ! in the command line options
 allocate(newnodecode(m%np))
 do i=1,numPasses
-   write(6,'(a,i0,a)') 'INFO: Pass number ',i,'.'
+   write(scratchMessage,'(a,i0,a)') 'Pass number ',i,'.'
+   call allMessage(INFO,scratchMessage)
    ! set the new value equal to the existing value
    newnodecode = nnodecode
    do j=1,m%np
@@ -184,13 +200,15 @@ deflate = .true.
 #ifndef HAVE_NETCDF4
    deflate = .false.
    if (im%dataFileFormat.eq.NETCDF4) then
-      write(6,'(a)') 'WARNING: This executable only supports NetCDF3, so the mask file will be written in NetCDF3 format.'
+      write(scratchMessage,'(a)') 'This executable only supports NetCDF3, so the mask file will be written in NetCDF3 format.'
+      call allMessage(WARNING,scratchMessage)
       im%dataFileFormat = NETCDF3
    endif
 #endif
 select case(im%dataFileFormat)
 case(ASCII)
-   write(6,'(a,a,a)') 'INFO: Creating ascii file "inundationmask.63".'
+   write(scratchMessage,'(a,a,a)') 'Creating ascii file "inundationmask.63".'
+   call allMessage(INFO,scratchMessage)
    ! write the inundation mask file with 0=dry 1=wet
    imUnit = availableUnitNumber()
    open(imUnit,file='inundationmask.63',status='replace',action='write')
@@ -206,7 +224,8 @@ case(ASCII)
    2120 FORMAT(2X,1pE20.10E3,5X,I10)
    2452 FORMAT(2x, i8, 2x, i0, 5x, i0, 5x, i0, 5x, i0)
 case(NETCDF3,NETCDF4)
-   write(6,'(a,a,a)') 'INFO: Creating NetCDF file "inundationmask.63.nc".'
+   write(scratchMessage,'(a,a,a)') 'Creating NetCDF file "inundationmask.63.nc".'
+   call allMessage(INFO, scratchMessage)
    im%ncFileType = ior(NF90_HDF5,NF90_CLASSIC_MODEL) ! netcdf4 (i.e., hdf5) format, netcdf
    if (im%dataFileFormat.eq.NETCDF3) then
       im%ncFileType = NF90_CLOBBER ! netcdf3 format, netcdf classic model
@@ -234,7 +253,8 @@ case(NETCDF3,NETCDF4)
    call check(nf90_put_var(im%nc_id,nc_varid_inundationmask,nnodecode,nc_start,nc_count))
    case default
       ! this should be impossible to reach
-      write(6,'(a)') 'ERROR: inundationMask: invalid file format specification.'
+      write(scratchMessage,'(a)') 'Invalid file format specification.'
+      call allMessage(ERROR,scratchMessage)
 end select
 !----------------------------------------------------------------------
 end program inundationMask

@@ -66,7 +66,7 @@ ifeq ($(NETCDF),enable)
    #
    #   # jgf20150616: Added netcdf paths for stampede at TACC.
    ifeq ($(MACHINENAME),stampede) 
-      NETCDFPATH := /opt/apps/intel13/netcdf/4.3.2/x86_64
+      NETCDFPATH := /opt/apps/intel17/netcdf/4.3.3.1/x86_64
    endif
    # jgf20150716: Added compiler flags for hatteras at RENCI.
    ifeq ($(MACHINENAME),hatteras)
@@ -75,6 +75,11 @@ ifeq ($(NETCDF),enable)
    # jgf20150720: Added compiler flags for queenbee at LONI.
    ifeq ($(MACHINENAME),queenbee)
       NETCDFPATH  := /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0
+   endif
+   # jgf20160627: Added compiler flags for lonestar 5 at TACC.
+   # jgf20160803: Updared compiler flags for lonestar 5 at TACC.
+   ifeq ($(MACHINENAME),lonestar)
+      NETCDFPATH=/opt/apps/intel16/netcdf/4.3.3.1/x86_64
    endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := -lnetcdff
@@ -104,20 +109,20 @@ nodalattr.mod : $(MODS) nodalattr.f90 asgsio.mod
 convertna : $(MODS) convertna.f90 nodalattr.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
 #
-submergence_eddyvis : $(MODS) submergence_eddyvis.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+submergence_eddyvis : $(MODS) nodalattr.mod submergence_eddyvis.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
 #
-submergence : $(MODS) submergence.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+submergence : $(MODS) nodalattr.mod submergence.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
 #
-surface_roughness : $(MODS) surface_roughness.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+surface_roughness : $(MODS) nodalattr.mod surface_roughness.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
 #
-mannings_n_finder : $(MODS) mannings_n_finder.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+mannings_n_finder : $(MODS) nodalattr.mod mannings_n_finder.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
 #
-tau0_gen : $(MODS) tau0_gen.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+tau0_gen : $(MODS) nodalattr.mod tau0_gen.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
 #
 adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcmesh.f90 $(LDFLAGS)
@@ -128,5 +133,11 @@ asgsio.mod : $(OUTPUTDIR)/asgsio.f90 logging.mod
 logging.mod : $(OUTPUTDIR)/logging.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/logging.f90 $(LDFLAGS)
 #
-landuse.mod : landuse.f90 asgsio.mod
+adcircdata.mod : $(OUTPUTDIR)/adcircdata.f90 
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcircdata.f90 $(LDFLAGS)
+#
+landuse.mod : landuse.f90 asgsio.mod ioutil.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c landuse.f90 $(LDFLAGS)
+#
+ioutil.mod : ${OUTPUTDIR}/logging.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c ${OUTPUTDIR}/logging.f90 $(LDFLAGS)
