@@ -24,6 +24,15 @@ offsetOptions="$offsetOptions csyear=2016; csmonth=8; csday=29; cshour=12; csmin
 offsetOptions="$offsetOptions timesecStart=2902188.0; timesecEnd=2991600.0;"
 # execute offset surface generator with previously defined options
 matlab -nodisplay -nosplash -nodesktop -r "${offsetOptions} try, run('./offsetSurfaceGen.m'), catch me, fprintf('%s / %s\n',me.identifier,me.message), end, exit"
+matlab -nodisplay -nosplash -nodesktop -r "${offsetOptions} try, run('/home/ncfs/asgs/2014stable/input/data_assimilation/offsetSurfaceGen.m'), catch me, fprintf('%s / %s\n',me.identifier,me.message), end, exit"
+
+# jgf20160517:
+offsetOptions="commandLineOptions=true; refwlmode=2; writeoutfil=63;  filrefwl='23.adcircAvg.dat'; filstations='/home/ncfs/offset_source_stations.txt'; csyear=2016; csmonth=8; csday=29; cshour=12; csmin=0; cssec=0; timesecStart=2912988 ; timesecEnd=3002400 ; filmesh='fort.14'; "
+matlab -nodisplay -nosplash -nodesktop -r "${offsetOptions} try, run('/home/ncfs/asgs/2014stable/input/data_assimilation/offsetSurfaceGen.m'), catch me, fprintf('%s / %s\n',me.identifier,me.message), end, exit"
+offsetOptions="commandLineOptions=true; refwlmode=2; writeoutfil=63;  filrefwl='23.adcircAvg.dat'; filstations='/home/ncfs/offset_source_stations.txt'; csyear=2016; csmonth=8; csday=29; cshour=12; csmin=0; cssec=0; timesecStart=2912988 ; timesecEnd=3002400 ; filmesh='/projects/ncfs/data/asgs24614/23/nowcast/fort.14'; filrefwl='/projects/ncfs/data/asgs24614/23/nowcast/23.adcircAvg.dat'; filfaroff='/home/ncfs/asgs/2014stable/input/data_assimilation/FarOffV1.mat'; filinl='/home/ncfs/asgs/2014stable/input/data_assimilation/InlandV1.mat';  filout='/projects/ncfs/data/asgs24614/23/nowcast/oi_surface.dat'; "
+
+
+
 
 on hatteras:
 

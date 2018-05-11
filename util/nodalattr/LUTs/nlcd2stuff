@@ -30,3 +30,5 @@ NLCD code   mnasf         scc        sderl          Description
 99          0.015         1          0.03          !Estuarine Aquatic Bed
 127                       1          -9999         !No data class
 -9999                     1          -9999         !No data class
+0                         1          -9999         !No data class 
+255                       1          -9999         !No data class  

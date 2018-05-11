@@ -70,6 +70,8 @@ my %namesNumValues; # how many values at each node
 my %namesDefaultValues; # the value(s) of the attribute at most nodes
 my %namesNumNonDefaults; # how many of the nodes have nondefault values
 my @attrValues; # at every node in the mesh
+our $getNodeIDs;     # defined if the node labels should be recorded
+our @nodeIDs;         # array of node labels from data file 
 #
 my $meshfile = "null";
 my $cpp;  # 1 to reproject to cpp (carte parallelogrammatique projection)
@@ -83,7 +85,8 @@ my $datacentered = "PointData";
 # a kludge to bump up the overlandSpeed and vmax tracks in the z 
 # direction to differentiate them visually. 
 my $jitter;
-my @adcircfiles;    # fulldomain adcirc output file names
+my @adcircfiles;    # fulldomain adcirc output file names, comma separated
+                    # with no spaces
 my @trackfiles;     # storm track files (fort.22) 
 #
 GetOptions(
@@ -92,6 +95,7 @@ GetOptions(
            "cpp" => \$cpp,
            "slam0=s" => \$slam0,
            "sfea0=s" => \$sfea0,
+           "getNodeIDs" => \$getNodeIDs,
            "trackfiles=s" => \@trackfiles,
            "adcircfiles=s" => \@adcircfiles
          );
@@ -240,6 +244,10 @@ my $np = $fields[1];
 for (my $i=0; $i<$np; $i++) {
    $line = <MESH>;
    @fields = split(' ',$line);
+   # if node labels were specified
+   if ( defined $getNodeIDs ) {
+      $nodeIDs[$i] = $fields[0];
+   }
    $x[$i] = $fields[1];
    $y[$i] = $fields[2];
    $z[$i] = $fields[3];
@@ -292,9 +300,10 @@ for (my $i=0; $i<$nope; $i++) {
    $line = <MESH>;
    my @fields = split(' ',$line); 
    my $nvdll = $fields[0];
-   my $ibtypee = $fields[1];
+   # my $ibtypee = $fields[1]; # many mesh files don't have this field
+   my $ibtypee = 0;
    for (my $j=0; $j<$nvdll; $j++) {
-      my $nbdv = <MESH>;
+      my $nbdv = split(' ',<MESH>);
       $elevBoundaryNodes[$elevBoundaryCount] = $nbdv;  
       $elevBoundaryLons[$elevBoundaryCount] = $x[$nbdv-1];
       $elevBoundaryLats[$elevBoundaryCount] = $y[$nbdv-1];
@@ -425,7 +434,7 @@ for (my $i=0; $i<$nbou; $i++) {
       $fluxBoundaryCount++;
    }
 }        
-print "fluxBoundaryCount is $fluxBoundaryCount\n";
+#print "fluxBoundaryCount is $fluxBoundaryCount\n"; # @jasonfleming debug
 printf VTKFLUXBOUNDARY "\n";
 printf VTKFLUXBOUNDARY "            </DataArray>\n";
 printf VTKFLUXBOUNDARY "         </Points>\n";
@@ -612,6 +621,8 @@ foreach my $file (@adcircfiles) {
       if ( $datacentered eq "CellData" ) {
          $lim=$ne;
       }
+      #
+      # read adcirc data file
       for (my $i=0; $i<$lim; $i++) {
          $line = <ADCIRCFILE>;
          if ( defined $line ) {
@@ -620,7 +631,8 @@ foreach my $file (@adcircfiles) {
             stderrMessage("ERROR","Ran out of data: $!.");
             die;
          }
-         # get rid of the node number
+
+         # get rid of the node number or node ID
          shift(@fields);
          if ( $num_components == 2 ) {
             # calculate vector magnitude
@@ -629,6 +641,8 @@ foreach my $file (@adcircfiles) {
          }
          $comp[$i] = join(' ',@fields);
       }
+      #
+      # create data set characteristics
       my $outfile = $file;
       my $dataset_ext = "";
       if ( $num_datasets == 0 ) {
@@ -705,7 +719,17 @@ sub writeFooter () {
 sub writeMesh () {
    my $ne = shift;
    my $np = shift;
-
+   #
+   # write node IDs if specified
+   if ( defined $getNodeIDs ) {
+      printf OUT "         <DataArray Name=\"NodeIDs\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+      for (my $i=0; $i<$np; $i++) {
+         printf OUT "$nodeIDs[$i]\n";
+      }
+      printf OUT "            </DataArray>\n";
+   }
+   #
+   # write the BathymetricDepth
    printf OUT "            <DataArray Name=\"BathymetricDepth\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
    for (my $i=0; $i<$np; $i++) {
       printf OUT "$z[$i]\n";

@@ -34,9 +34,22 @@ my @absolutes;
 my @subdomain;  # viz subdomain node membership according to fort.18 
 my @psubdomain; # viz subdomain node membership according to partmesh.txt 
 my @repeats;
+my $agrid = "mesh comment line not found"; # first line from fort.14 mesh file
 my $np_g;      # number of fulldomain nodes
 # 
 GetOptions("fulldomaindir=s" => \$fulldomainDir);
+#
+# see if we can get the agrid header line from the mesh file for use
+# in filling out the headers in the .63 files 
+if ( -e "$fulldomainDir/fort.14" ) {
+   unless (open(FDMESH,"<$fulldomainDir/fort.14")) {
+      stderrMessage("WARNING","Could not open mesh file (fort.14) to extract comment line: $!");
+   } else {
+      $agrid = <FDMESH>;
+      chomp($agrid);
+      close(FDMESH);
+   }
+}
 #
 # make a list of subdomain directories
 my @subdomainDirs = glob("$fulldomainDir/PE*");
@@ -127,51 +140,52 @@ foreach my $dir (@subdomainDirs) {
 unless (open(RESIDENTS,">residents.63")) {
    stderrMessage("ERROR","Failed to open the residents.63 file for writing: $!.");
    die;
+} else {
+   printf RESIDENTS "# " . $agrid . " ! residents.63 is the number of fort.18 files that have this full domain node number listed as a resident (positive value) ... should be just 1\n";
+   printf RESIDENTS "1 $np_g -99999.0 -99 1\n";
+   printf RESIDENTS "0.000000    0\n";    # faux time and timestep
 }
 #
 # open file for negatives 
 unless (open(GHOSTS,">ghosts.63")) {
    stderrMessage("ERROR","Failed to open the ghosts.63 file for writing: $!.");
    die;
+} else {
+   printf GHOSTS "# " . $agrid . " ghosts.63 is the number of fort.18 files that have this full domain node number listed as a ghost (negative value)\n";
+   printf GHOSTS "1 $np_g -99999.0 -99 1\n";
+   printf GHOSTS "0.000000    0\n";    # faux time and timestep
 }
 #
 # open file for negatives 
 unless (open(GHOSTMEM,">ghostmem.63")) {
    stderrMessage("ERROR","Failed to open the ghostmem.63 file for writing: $!.");
    die;
+} else {
+   printf GHOSTMEM "# " . $agrid . " ghostmem.63 is the subdomain in which this full domain node number is a ghost\n";
+   printf GHOSTMEM "1 $np_g -99999.0 -99 1\n";
+   printf GHOSTMEM "0.000000    0\n";    # faux time and timestep
 }
 #
 # open file for absolutes 
 unless (open(ABSOLUTES,">absolutes.63")) {
    stderrMessage("ERROR","Failed to open the absolutes.63 file for writing: $!.");
    die;
+} else {
+   printf ABSOLUTES "# " . $agrid . " absolutes.63 shows the number of subdomains in which this full domain node appears, either as a resident or a ghost\n";
+   printf ABSOLUTES "1 $np_g -99999.0 -99 1\n";
+   printf ABSOLUTES "0.000000    0\n";    # faux time and timestep
 }
+
 #
 # open file for subdomain numbers
 unless (open(SUBDOMAINS,">subdomains.63")) {
    stderrMessage("ERROR","Failed to open the subdomains.63 file for writing: $!.");
    die;
+} else {
+   printf SUBDOMAINS "# " . $agrid . " subdomains.63 shows the subdomain number where this fulldomain node number is a resident according to fort.18\n";
+   printf SUBDOMAINS "1 $np_g -99999.0 -99 1\n";
+   printf SUBDOMAINS "0.000000    0\n";    # faux time and timestep
 }
-#
-printf RESIDENTS "# comment line\n";
-printf RESIDENTS "# header line\n";
-printf RESIDENTS "0.000000    0\n";    # faux time and timestep
-#
-printf GHOSTS "# comment line\n";
-printf GHOSTS "# header line\n";
-printf GHOSTS "0.000000    0\n";    # faux time and timestep
-#
-printf GHOSTMEM "# comment line\n";
-printf GHOSTMEM "# header line\n";
-printf GHOSTMEM "0.000000    0\n";    # faux time and timestep
-#
-printf ABSOLUTES "# comment line\n";
-printf ABSOLUTES "# header line\n";
-printf ABSOLUTES "0.000000    0\n";    # faux time and timestep
-#
-printf SUBDOMAINS "# comment line\n";
-printf SUBDOMAINS "# header line\n";
-printf SUBDOMAINS "0.000000    0\n";    # faux time and timestep
 #
 # write positives and negatives to file
 for (my $i=0; $i<$np_g; $i++) {
@@ -205,8 +219,8 @@ unless (open(PSUBDOMAINS,">psubdomains.63")) {
    die;
 }
 #
-printf PSUBDOMAINS "# comment line\n";
-printf PSUBDOMAINS "# header line\n";
+printf PSUBDOMAINS "# " . $agrid . " psubdomains.63 shows the subdomain number where this fulldomain node number is a resident according to partmesh.txt\n";
+printf PSUBDOMAINS "1 $np_g -99999.0 -99 1\n";
 printf PSUBDOMAINS "0.000000    0\n";    # faux time and timestep
 #
 my $i = 1; 

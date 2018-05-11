@@ -80,10 +80,11 @@ character(len=2000) :: tempName
 ! 
 ! initializations
 stationFileName = 'stations.txt'
-outputFile = 'station_averages.txt'
+outputFile = 'processedStations.dat'
 operation = 'mean'
 strictTimeRange = .false.
 call initC1D(stationFileNames)
+call initC1D(dataFileNames)
 call initLogging(availableUnitNumber(),'stationProcessor.f90')
 !
 argcount = command_argument_count() ! count up command line options
@@ -256,10 +257,10 @@ do f=1, dataFileNames%n
       ! no data of interest in this file
       cycle
    endif
-   write(scratchMessage,'("There are ",i0," stations in the file ",a,".")') sf(f)%nStations,trim(sf(i)%dataFileName)
+   write(scratchMessage,'("There are ",i0," stations in the file ",a,".")') sf(f)%nStations,trim(sf(f)%dataFileName)
    call allMessage(INFO,scratchMessage)
    !
-   ! allocate space to record the station IDs in the station file 
+   ! allocate space to record the station IDs in this station file 
    allocate(dataFileStationIDs(sf(f)%nStations)) 
    !
    ! read the station_name array (which actually contains the stationID instead
@@ -289,8 +290,12 @@ do f=1, dataFileNames%n
          call allMessage(WARNING,scratchMessage)
       endif
    end do
+   deallocate(dataFileStationIDs) 
 end do
-
+if (all(stationFound.eqv..true.)) then
+   call allMessage(INFO, "All stations of interest were found in the station data file(s).")
+endif
+t=1 ! initialize the counter for station array counter
 do f=1, dataFileNames%n 
    if (outOfRange(f).eqv..true.) then
       ! no data of interest in this file
@@ -304,33 +309,32 @@ do f=1, dataFileNames%n
    !
    ! check to see if data are available for the full requested time range
    if ( (timesecStart.gt.0).and.(timesecStart.lt.sf(f)%timesec(1)) ) then
-      write(scratchMessage,'("The data file starts at time t=",e17.8," (s) before the requested start time t=",e17.8," (s).")') sf(f)%timesec(1), timesecStart 
+      write(scratchMessage,'("The data file starts at time t=",e17.8," (s) which is later than the requested process start time t=",e17.8," (s).")') sf(f)%timesec(1), timesecStart 
       call allMessage(INFO,scratchMessage)
    endif
    if ( (timesecEnd.gt.0).and.(timesecEnd.gt.sf(f)%timesec(sf(f)%nSnaps)) ) then
-      write(scratchMessage,'("The data file ends at time t=",e17.8," (s) after the requested end time t=",e17.8," (s).")') sf(f)%timesec(sf%nSnaps), timesecEnd
+      write(scratchMessage,'("The data file ends at time t=",e17.8," (s) which is earlier than the requested process end time t=",e17.8," (s).")')                sf(f)%timesec(sf(f)%nSnaps), timesecEnd
       call allMessage(WARNING,scratchMessage)
    endif
-   do t=1,sf(f)%nSnaps
+   do tdata=1,sf(f)%nSnaps
       ! exclude datasets after the specified end time (if any)
-      if ( (timesecEnd.gt.0).and.(sf(f)%timesec(t).gt.timesecEnd) ) then
+      if ( (timesecEnd.gt.0).and.(sf(f)%timesec(tdata).gt.timesecEnd) ) then
          numDataSetsAfterEnd = numDataSetsAfterEnd + 1
          cycle
       endif
       ! exclude datasets before the specified start time (if any)
-      if ( (timesecStart.gt.0).and.(sf(f)%timesec(t).lt.timesecStart) ) then
+      if ( (timesecStart.gt.0).and.(sf(f)%timesec(tdata).lt.timesecStart) ) then
          numDataSetsBeforeStart = numDataSetsBeforeStart + 1
          cycle
       endif
       if ( firstDataSetInTimeRange.eq.0 ) then
-         firstDataSetInTimeRange = t
+         firstDataSetInTimeRange = tdata
       endif
+      lastDataSetInTimeRange = tdata 
    end do 
-   lastDataSetInTimeRange = firstDataSetInTimeRange + numDataSetsInTimeRange - 1 
    !
    ! loop over datasets in this file, loading data if they fall within the specified time range
    allocate(stationData(sf(f)%nStations))
-   t=1
    do tdata=firstDataSetInTimeRange, lastDataSetInTimeRange
       write(6,advance='no',fmt='(i0,1x)') tdata  ! update progress bar
       !
@@ -353,7 +357,7 @@ do f=1, dataFileNames%n
       t = t + 1
    end do 
    call check(nf90_close(sf(f)%nc_id))
-   deallocate(dataFileStationIDs) 
+
    if ( (outOfRange(f).eqv..true.).and.(strictTimeRange.eqv..true.) ) then
       call allMessage(INFO,'The file does not have data for the full time range, and the command line option --strict-time-range was set.')
       write(scratchMessage,'("The first data set in the time range is data set ",i0," and the last is data set ",i0,"; there are ",i0," data sets in the given time range.")') firstDataSetInTimeRange, lastDataSetInTimeRange, numDataSetsInTimeRange
@@ -361,6 +365,7 @@ do f=1, dataFileNames%n
       call allMessage(INFO,'Output will not be written because of the unavailability of some of the data in the requested time range. Execution complete.')
       stop
    endif 
+   deallocate(stationData)
 end do
 !
 ! now perform the specified operation on the data obtained for the
@@ -425,12 +430,13 @@ end select
 !
 ! now write values to the output file
 outu = availableUnitNumber()
-open(unit=outu,file='processedStations.dat',status='replace',action='write')
+open(unit=outu,file=trim(outputfile),status='replace',action='write')
 line = 'rundes: '//trim(rundes)//' runid: '//trim(runid)//' agrid:'//trim(m%agrid)
 write(outu,'("# ",a)') trim(line) ! comment line
 write(outu,'(a)') '# stationID ! operationType ! timestart(s) ! timeend(s) ! (result ! numObservations (c=1,irtype))'
 do s=1,numStationsInList
    write(outu,fmt='(a,1x,a,1x,2(f21.7,1x),3(f21.7,1x,i0,1x))') trim(stations(s)%stationID), trim(operation), timesecStart, timesecEnd, (resultVal(c,s), numObs(c,s), c=1,sf(1)%irtype)
+!   write(outu,fmt=*) trim(stations(s)%stationID), trim(operation), timesecStart, timesecEnd, (resultVal(c,s), numObs(c,s), c=1,sf(1)%irtype)
 end do
 
 stop

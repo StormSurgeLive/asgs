@@ -300,7 +300,7 @@ return
 !----------------------------------------------------------------------
 !           S U B R O U T I N E    D O W N C A S E  
 !----------------------------------------------------------------------
-! jgf: return a downcased version of the input string 
+! @jasonfleming: return a downcased version of the input string 
 !----------------------------------------------------------------------
 subroutine downcase(string)
 implicit none
@@ -309,7 +309,7 @@ integer :: asciiCode ! decimal ascii code for a particular character
 integer :: i ! character counter
 !
 ! go through the character array looking for ascii codes between
-! 41 (uppercase A) and 90 (uppercase Z); replace these characters 
+! 65 (uppercase A) and 90 (uppercase Z); replace these characters 
 ! with lowercase 
 do i=1,len_trim(string)
    asciiCode = ichar(string(i:i))
@@ -322,7 +322,6 @@ end do
 !----------------------------------------------------------------------
 end subroutine downcase
 !----------------------------------------------------------------------
-
 
 !-----------------------------------------------------------------------
 ! S U B R O U T I N E   F I N D   U N U S E D   U N I T   N U M B E R
@@ -426,6 +425,7 @@ if(ncstatus.ne.nf90_noerr)then
    write(*,'(a,a)') "ERROR: ",trim(nf90_strerror(ncstatus))
 
 #ifdef DEBUGSEGFAULT
+   call backtrace
    triggerSegFaultIntentionallyForStackTrace = intentionalSegFault(1)
 #endif
 

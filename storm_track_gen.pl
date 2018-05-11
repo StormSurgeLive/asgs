@@ -74,7 +74,7 @@ my $year;                           # YYYY
 my $coldstartdate;                 # YYYYMMDDHH24
 my $hotstartseconds = 0.0;        # default is not hotstart
 my $nws = 8;                        # the ADCIRC wind model to target
-my $name = "nhcConsensus";          # default track to generate
+our $name = "nhcConsensus";          # default track to generate
 my $percent = "null";              # magnitude of parameter variation
 my $strengthPercent = "null";
 my $overlandSpeedPercent = "null";
@@ -762,7 +762,7 @@ sub stderrMessage () {
    my $year = 1900 + $yearOffset;
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-   printf STDERR "$theTime $level: storm_track_gen.pl: $message\n";
+   printf STDERR "$theTime $level: $name: storm_track_gen.pl: $message\n";
 }
 
 
