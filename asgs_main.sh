@@ -1700,8 +1700,8 @@ while [ true ]; do
          perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
          # create links to the OWI files
          cd $ENSTORM 2>> ${SYSLOG}
-         NAM221=`ls NAM*.221`;
-         NAM222=`ls NAM*.222`;
+         NAM221=`ls NAM*.221`
+         NAM222=`ls NAM*.222`
          ln -s $NAM221 fort.221 2>> ${SYSLOG}
          ln -s $NAM222 fort.222 2>> ${SYSLOG}
          ;;
