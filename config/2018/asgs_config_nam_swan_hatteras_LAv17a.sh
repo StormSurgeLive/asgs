@@ -29,7 +29,7 @@
 
 INSTANCENAME=dailyv17a   # "name" of this ASGS process
 #COLDSTARTDATE=2017120100 # calendar year month day hour YYYYMMDDHH24
-COLDSTARTDATE=2018020900 # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2018040800 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -163,7 +163,7 @@ POSTPROCESS2=null_post.sh
 
 # opendap
 TDS=(renci_tds)
-TARGET=queenbee  # used in post processing to pick up HPC platform config
+TARGET=hatteras  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
 # opendap_post.sh. OPENDAPHOST is set to each value in the TDS array specified
