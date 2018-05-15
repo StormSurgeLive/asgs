@@ -59,9 +59,9 @@ HINDCASTWALLTIME="18:00:00"  # hindcast wall clock time
 ADCPREPWALLTIME="01:00:00"   # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="05:00:00"   # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00"  # forecast wall clock time
-NCPU=608                    # number of compute CPUs for all simulations
-NCPUCAPACITY=3640
-NUMWRITERS=24
+NCPU=1800                    # number of compute CPUs for all simulations
+NCPUCAPACITY=9999
+NUMWRITERS=8
 CYCLETIMELIMIT="05:00:00"
 #QSCRIPT=lonestar.reservation.jose.template.slurm
 #PREPCONTROLSCRIPT=lonestar.reservation.jose.template.serial.slurm
@@ -210,7 +210,7 @@ case $si in
    CONTROLTEMPLATE=FEMA_R2.noswanrefrac.fort.15.template  # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0     # 1 minute time steps
-   NCPU=23               # dramatically reduced resource requirements
+   NCPU=60               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output
@@ -246,7 +246,7 @@ case $si in
    CONTROLTEMPLATE=FEMA_R2.noswanrefrac.fort.15.template # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0     # 1 minute time steps
-   NCPU=23               # dramatically reduced resource requirements
+   NCPU=60               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output
