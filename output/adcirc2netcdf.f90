@@ -221,7 +221,7 @@ endif
 ! if this is a nodal attributes file, then read it and convert it
 ! using subroutines from the nodal attributes module and then stop
 if (f%dataFileCategory.eq.NODALATTRIBF) then
-   naFile%nodalAttributesFile = trim(adataFileName)
+   naFile%nodalAttributesFileName = trim(adataFileName)
    call readNodalAttributesFile(naFile)
    call writeNodalAttributesFileNetCDF(naFile, f%nc_id, m, n, deflate)
    stop
