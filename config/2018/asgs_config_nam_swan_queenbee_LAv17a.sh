@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2016--2017 Jason Fleming
+# Copyright(C) 2016--2018 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -29,7 +29,7 @@
 
 INSTANCENAME=dailyv17a   # "name" of this ASGS process
 #COLDSTARTDATE=2017120100 # calendar year month day hour YYYYMMDDHH24
-COLDSTARTDATE=2018020900 # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2018040800 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
