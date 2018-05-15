@@ -94,8 +94,8 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := adcmesh.o asgsio.o landuse.o logging.o
-MODS := adcmesh.mod asgsio.mod landuse.mod logging.mod ioutil.mod
+OBJ := adcmesh.o landuse.o logging.o nodalattr.o asgsio.o 
+MODS := adcmesh.mod landuse.mod logging.mod ioutil.mod nodalattr.mod asgsio.mod 
 #
 # targets
 all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyvis convertna
@@ -103,28 +103,28 @@ all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyv
 clean :
 	rm -f *.o *.mod *.x
 #
-nodalattr.mod : $(MODS) nodalattr.f90 asgsio.mod 
+nodalattr.mod : adcmesh.mod nodalattr.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c nodalattr.f90 $(LDFLAGS)
 #
-convertna : $(MODS) convertna.f90 nodalattr.mod
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
+convertna : $(MODS) convertna.f90 
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-submergence_eddyvis : $(MODS) nodalattr.mod submergence_eddyvis.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
+submergence_eddyvis : $(MODS) submergence_eddyvis.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-submergence : $(MODS) nodalattr.mod submergence.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
+submergence : $(MODS) submergence.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-surface_roughness : $(MODS) nodalattr.mod surface_roughness.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
+surface_roughness : $(MODS) surface_roughness.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-mannings_n_finder : $(MODS) nodalattr.mod mannings_n_finder.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
+mannings_n_finder : $(MODS) mannings_n_finder.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-tau0_gen : $(MODS) nodalattr.mod tau0_gen.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
+tau0_gen : $(MODS) tau0_gen.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod logging.mod
+adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcmesh.f90 $(LDFLAGS)
 #
 asgsio.mod : $(OUTPUTDIR)/asgsio.f90 logging.mod
@@ -136,7 +136,7 @@ logging.mod : $(OUTPUTDIR)/logging.f90
 adcircdata.mod : $(OUTPUTDIR)/adcircdata.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcircdata.f90 $(LDFLAGS)
 #
-landuse.mod : landuse.f90 asgsio.mod ioutil.mod
+landuse.mod : landuse.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c landuse.f90 $(LDFLAGS)
 #
 ioutil.mod : ${OUTPUTDIR}/logging.f90
