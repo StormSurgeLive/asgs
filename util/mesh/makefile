@@ -91,11 +91,14 @@ clean :
 boundaryFinder : $(MODS) boundaryFinder.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod logging.mod
+adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcmesh.f90 $(LDFLAGS)
 #
-asgsio.mod : $(OUTPUTDIR)/asgsio.f90 logging.mod
+asgsio.mod : $(OUTPUTDIR)/asgsio.f90 nodalattr.mod logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/asgsio.f90 $(LDFLAGS)
+#
+nodalattr.mod : ../nodalattr/nodalattr.f90 adcmesh.mod 
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c ../nodalattr/nodalattr.f90 $(LDFLAGS)
 #
 logging.mod : $(OUTPUTDIR)/logging.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/logging.f90 $(LDFLAGS)
