@@ -4,31 +4,38 @@ from pptx.util import Inches
 
 prs = Presentation('LSU_template.pptx')
 
+slide_layout = prs.slide_layouts[5]
+
 # Create a title slide
 title_slide_layout = prs.slide_layouts[0]
 slide = prs.slides.add_slide(title_slide_layout)
 title = slide.shapes.title
 subtitle = slide.placeholders[1]
 title.text = "Hurricane Isaac"
-subtitle.text = "Advisory #25 - 09:00 UTC Aug-27-2012"
+subtitle.text = "Advisory #25 - Issued on 09:00 UTC Aug-27-2012"
 
 # Set slide layout
-slide_layout = prs.slide_layouts[5]
-left = Inches(0.42)
-top = Inches(1.15)
-
+left = Inches(1.94)
+top = Inches(1.14)
 
 img_path = 'LA_v17a_09_25_nhcOfficial_maxele_0001.jpg'
 slide = prs.slides.add_slide(slide_layout)
 title = slide.shapes.title
+subtitle = slide.placeholders[1]
 title.text = "NHC Advisory 25 Consensus"
+subtitle.text = "Simulated maximum water level (ft, NAVD88)"
 pic = slide.shapes.add_picture(img_path,left,top)
 
 img_path = 'LA_v17a_09_25_veerRight50_maxele_0001.jpg'
 slide = prs.slides.add_slide(slide_layout)
 title = slide.shapes.title
+subtitle = slide.placeholders[1]
 title.text = "NHC Advisory 25 veerRight50"
+subtitle.text = "Simulated maximum water level (ft, NAVD88)"
 pic = slide.shapes.add_picture(img_path,left,top)
+
+left = Inches(0.42)
+top = Inches(1.15)
 
 # Add image to slide
 img_path = '1_WSE_85625.png'
