@@ -315,7 +315,7 @@ if ( $waves eq "on" ) {
 # nodal factors and equilibrium arguments
 my $tides = "off";
 if ( -e "$scriptdir/tides/tide_fac.x" && -x "$scriptdir/tides/tide_fac.x" ) {
-   my $tide_fac_message = `$scriptdir/tides/tide_fac.x --length $RNDAY --year $cy --month $cm --day $cd --hour $ch --outputformat simple --outputdir $stormDir`;
+   my $tide_fac_message = `$scriptdir/tides/tide_fac.x --length $RNDAY --year $cy --month $cm --day $cd --hour $ch -n 8 m2 s2 n2 k1 k2 o1 q1 p1 --outputformat simple --outputdir $stormDir`;
    if ( $tide_fac_message =~ /ERROR|WARNING/ ) {
       stderrMessage("WARNING","There was an issue when running $scriptdir/tides/tide_fac.x: $tide_fac_message.");
    } else {
