@@ -197,17 +197,19 @@ ARCHIVEDIR="${INSTANCENAME}_112017"
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=6 # number of storms in the ensemble
+ENSEMBLESIZE=2 # number of storms in the ensemble
 echo "si is $si"
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=nhcConsensus
+   ENSTORM=rMax20
+   PERCENT=20
    ;;
 1)
-   ENSTORM=nhcConsensusWind10m
+   ENSTORM=rMax20Wind10m
+   PERCENT=20
    ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:60:00" # forecast wall clock time
    CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
@@ -238,48 +240,12 @@ case $si in
    POSTPROCESS=null_post.sh
    ;;
 2)
-   ENSTORM=veerRight100
-   PERCENT=100
+   ENSTORM=veerRight50
+   PERCENT=50
    ;;
 3)
-   ENSTORM=veerRight100Wind10m
-   PERCENT=100
-   ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
-   FORECASTWALLTIME="00:60:00" # forecast wall clock time
-   CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
-   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-   TIMESTEPSIZE=60.0     # 1 minute time steps
-   NCPU=23               # dramatically reduced resource requirements
-   NUMWRITERS=1          # multiple writer procs might collide
-   WAVES=off             # deactivate wave forcing 
-   # turn off water surface elevation station output
-   FORT61="--fort61freq 0"
-   # turn off water current velocity station output
-   FORT62="--fort62freq 0"
-   # turn off full domain water surface elevation output
-   FORT63="--fort63freq 0"
-   # turn off full domain water current velocity output
-   FORT64="--fort64freq 0"
-   # met station output
-   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
-   # full domain meteorological output
-   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
-   #SPARSE="--sparse-output"
-   SPARSE=""
-   NETCDF4="--netcdf4"
-   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
-   INTENDEDAUDIENCE=general
-   # prevent collisions in prepped archives
-   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
-   POSTPROCESS=null_post.sh
-   ;;
-4)
-   ENSTORM=rMax20
-   PERCENT=20
-   ;;
-5)
-   ENSTORM=rMax20Wind10m
-   PERCENT=20
+   ENSTORM=veerRight50Wind10m
+   PERCENT=50
    ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:60:00" # forecast wall clock time
    CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template

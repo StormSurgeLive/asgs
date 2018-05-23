@@ -100,11 +100,13 @@ ifeq ($(NETCDF),enable)
    #
    # jgf20150616: Added netcdf paths for stampede at TACC.
    ifeq ($(MACHINENAME),stampede) 
-      NETCDFPATH := /opt/apps/intel13/netcdf/4.3.2/x86_64
+      NETCDFPATH := /opt/apps/intel17/netcdf/4.3.3.1/x86_64
    endif
    # jgf20150716: Added compiler flags for hatteras at RENCI.
    ifeq ($(MACHINENAME),hatteras)
-      NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
+      #NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
+      # jgf20180105
+      NETCDFPATH := /usr/share/Modules/software/CentOS-7/netcdf-Fortran/4.4.0_intel-18.0.0
    endif
    # nld20170829: Added compiler flags for seadog at Ransom.
    ifeq ($(MACHINENAME),seadog)
@@ -127,6 +129,11 @@ ifeq ($(NETCDF),enable)
       NETCDFPATH  := /app/wpostool/COST/netcdf-fortran-4.4.2/intel
       LIBS        := -L/app/wpostool/COST/netcdf-c-4.3.1.1/intel/lib -L/app/wpostool/COST/hdf5-mpi/1.8.12/intel/sgimpt/lib
       LDFLAGS     :=  -lnetcdf -lhdf5 -lhdf5_hl
+   endif
+   ifeq ($(MACHINENAME),poseidon)
+      NETCDFPATH  := /home/fhrl/Documents/Surge/scripts/netcdf
+      LIBS        := -L/home/fhrl/Documents/Surge/scripts/netcdf/lib
+      LDFLAGS     :=  -lnetcdf
    endif
    # jgf20160627: Added compiler flags for lonestar 5 at TACC.
    # jgf20160803: Updared compiler flags for lonestar 5 at TACC.
@@ -153,7 +160,7 @@ OBJ := adcmesh.o asgsio.o nodalattr.o logging.o
 MODS := adcmesh.mod asgsio.mod nodalattr.mod logging.mod
 #
 # targets
-all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN checkAdcircMesh resultScope highResolutionRegion stationProcessor
+all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN checkAdcircMesh resultScope highResolutionRegion stationProcessor collectMinMax
 #
 clean :
 	rm -f *.o *.mod *.x
@@ -164,7 +171,7 @@ adcirc2netcdf : $(MODS) adcirc2netcdf.f90 nodalattr.mod logging.mod
 netcdf2adcirc : $(MODS) netcdf2adcirc.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-asgsio.mod : logging.mod ioutil.mod adcmesh.mod asgsio.f90 
+asgsio.mod : logging.mod ioutil.mod adcmesh.mod nodalattr.mod asgsio.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c asgsio.f90 $(LDFLAGS)
 #
 adcmesh.mod : adcmesh.f90 logging.mod
@@ -188,8 +195,8 @@ highResolutionRegion : adcmesh.mod highResolutionRegion.f90
 checkAdcircMesh : $(MODS) checkAdcircMesh.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-generateXDMF : adcmesh.mod asgsio.mod logging.mod generateXDMF.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o logging.o $(LDFLAGS)
+generateXDMF : adcmesh.mod asgsio.mod logging.mod nodalattr.mod generateXDMF.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o logging.o nodalattr.o $(LDFLAGS)
 #
 generateCPP : adcmesh.mod generateCPP.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
@@ -197,8 +204,8 @@ generateCPP : adcmesh.mod generateCPP.f90
 pullStationTimeSeries : asgsio.mod adcmesh.mod nodalattr.mod pullStationTimeSeries.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-stationProcessor : asgsio.mod adcmesh.mod stationProcessor.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 asgsio.o adcmesh.o logging.o $(LDFLAGS)
+stationProcessor : asgsio.mod adcmesh.mod nodalattr.mod stationProcessor.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 asgsio.o adcmesh.o logging.o nodalattr.o $(LDFLAGS)
 #
 wetDryCheck : adcmesh.mod asgsio.mod wetDryCheck.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o $(LDFLAGS)
@@ -209,8 +216,11 @@ diffAdcircNetCDF : adcmesh.mod asgsio.mod diffAdcircNetCDF.f90
 HottifySWAN : HottifySWAN.F90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.F90 $(LDFLAGS)
 #
+collectMinMax : adcmesh.mod asgsio.mod collectMinMax.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+
 resultScope : adcmesh.mod asgsio.mod resultScope.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-nodalattr.mod : ../util/nodalattr/nodalattr.f90 adcmesh.mod asgsio.mod
+nodalattr.mod : ../util/nodalattr/nodalattr.f90 adcmesh.mod 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c ../util/nodalattr/nodalattr.f90 $(LDFLAGS)

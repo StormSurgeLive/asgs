@@ -1,0 +1,6 @@
+-76.62281  35.53729 ! BLHN7 ! NCEM ! Pungo River at Belhaven - Vidant Health (Hospital)
+-76.25436  35.91750 ! COLN7 ! NCEM ! Scuppernong R. at Columbia Town Hall
+-76.31448  35.01831 ! CTIN7 ! NCEM ! Pamlico Sound at Cedar Island Ferry Terminal
+-76.21856  36.29852 ! EMWN7 ! NCEM ! Pasquotank R. at Elizabeth City Mariners Wharf Park
+-76.61057  36.05635 ! EWPN7 ! NCEM ! Chowan R. at Edenton Waterfront Park
+-75.98735  35.11537 ! OCAN7 ! NCEM ! Pamlico Sound at Ocracoke - NCCAT Campus

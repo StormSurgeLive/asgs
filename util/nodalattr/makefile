@@ -57,11 +57,12 @@ ifeq ($(NETCDF),enable)
    #
    #   # jgf20150616: Added netcdf paths for stampede at TACC.
    ifeq ($(MACHINENAME),stampede) 
-      NETCDFPATH := /opt/apps/intel13/netcdf/4.3.2/x86_64
+      NETCDFPATH := /opt/apps/intel17/netcdf/4.3.3.1/x86_64
    endif
    # jgf20150716: Added compiler flags for hatteras at RENCI.
    ifeq ($(MACHINENAME),hatteras)
-       NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
+       #NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
+       NETCDFPATH := /usr/share/Modules/software/CentOS-7/netcdf-Fortran/4.4.0_intel-18.0.0
    endif
    # jgf20150720: Added compiler flags for queenbee at LONI.
    ifeq ($(MACHINENAME),queenbee)
@@ -85,8 +86,8 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := adcmesh.o asgsio.o landuse.o logging.o
-MODS := adcmesh.mod asgsio.mod landuse.mod logging.mod ioutil.mod
+OBJ := adcmesh.o landuse.o logging.o nodalattr.o asgsio.o 
+MODS := adcmesh.mod landuse.mod logging.mod ioutil.mod nodalattr.mod asgsio.mod 
 #
 # targets
 all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyvis convertna
@@ -94,11 +95,11 @@ all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyv
 clean :
 	rm -f *.o *.mod *.x
 #
-nodalattr.mod : $(MODS) nodalattr.f90 asgsio.mod 
+nodalattr.mod : adcmesh.mod nodalattr.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c nodalattr.f90 $(LDFLAGS)
 #
-convertna : $(MODS) convertna.f90 nodalattr.mod
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) nodalattr.o $(LDFLAGS)
+convertna : $(MODS) convertna.f90 
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
 submergence_eddyvis : $(MODS) submergence_eddyvis.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
@@ -115,7 +116,7 @@ mannings_n_finder : $(MODS) mannings_n_finder.f90
 tau0_gen : $(MODS) tau0_gen.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod logging.mod
+adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcmesh.f90 $(LDFLAGS)
 #
 asgsio.mod : $(OUTPUTDIR)/asgsio.f90 logging.mod
@@ -127,7 +128,7 @@ logging.mod : $(OUTPUTDIR)/logging.f90
 adcircdata.mod : $(OUTPUTDIR)/adcircdata.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcircdata.f90 $(LDFLAGS)
 #
-landuse.mod : landuse.f90 asgsio.mod ioutil.mod
+landuse.mod : landuse.f90 
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c landuse.f90 $(LDFLAGS)
 #
 ioutil.mod : ${OUTPUTDIR}/logging.f90

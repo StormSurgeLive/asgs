@@ -51,11 +51,13 @@ ifeq ($(NETCDF),enable)
    #
    #   # jgf20150616: Added netcdf paths for stampede at TACC.
    ifeq ($(MACHINENAME),stampede) 
-      NETCDFPATH := /opt/apps/intel13/netcdf/4.3.2/x86_64
+      NETCDFPATH := /opt/apps/intel17/netcdf/4.3.3.1/x86_64
    endif
    # jgf20150716: Added compiler flags for hatteras at RENCI.
    ifeq ($(MACHINENAME),hatteras)
-       NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
+       #NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
+       #jgf20180105
+       NETCDFPATH := /usr/share/Modules/software/CentOS-7/netcdf-Fortran/4.4.0_intel-18.0.0
    endif
    # jgf20150720: Added compiler flags for queenbee at LONI.
    ifeq ($(MACHINENAME),queenbee)
@@ -80,7 +82,7 @@ endif
 #
 #
 OBJ := adcmesh.o asgsio.o logging.o
-MODS := adcmesh.mod asgsio.mod logging.o
+MODS := adcmesh.mod asgsio.mod logging.mod
 #
 # targets
 all : boundaryFinder
@@ -91,11 +93,14 @@ clean :
 boundaryFinder : $(MODS) boundaryFinder.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod logging.mod
+adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcmesh.f90 $(LDFLAGS)
 #
-asgsio.mod : $(OUTPUTDIR)/asgsio.f90 logging.mod
+asgsio.mod : $(OUTPUTDIR)/asgsio.f90 nodalattr.mod logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/asgsio.f90 $(LDFLAGS)
+#
+nodalattr.mod : ../nodalattr/nodalattr.f90 adcmesh.mod 
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c ../nodalattr/nodalattr.f90 $(LDFLAGS)
 #
 logging.mod : $(OUTPUTDIR)/logging.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/logging.f90 $(LDFLAGS)

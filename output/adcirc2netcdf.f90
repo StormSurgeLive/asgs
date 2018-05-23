@@ -39,6 +39,7 @@ type(mesh_t) :: m
 type(meshNetCDF_t) :: n
 type(fileMetaData_t) :: f  ! adcirc file to be read and converted
 type(netCDFMetaDataFromExternalFile_t) :: a
+type(nodalAttrFile_t) :: naFile
 character(2048) :: dataFileBase
 character(len=1000) :: Line
 character(1) :: JunkC, Tadj
@@ -48,6 +49,7 @@ integer :: yy, mo, dd, hh, mi
 integer :: i, j, k, SS, node
 logical :: meshonly   ! .true. if user just wants to convert the mesh
 logical :: dataonly   ! .true. if user just wants to convert the data
+logical :: noBoundaries   ! .true. if the mesh file does not contain a boundary table
 character(len=2048) :: errorVar
 integer, dimension(2) :: timeOfNC_Start
 integer, parameter :: version = 4
@@ -118,6 +120,9 @@ if (argcount.gt.0) then
          case("--dataonly")
             dataonly = .true.
             write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
+         case("--no-boundaries")
+            noBoundaries = .true.
+            write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
          case("--meshfile")
             i = i + 1
             call getarg(i, cmdlinearg)
@@ -143,6 +148,10 @@ if (argcount.gt.0) then
       end select
    end do
 end if
+!
+! notify mesh file reader that there is no boundary table in the
+! mesh file
+m%readBoundaryTable = .false.
 !
 ! if there were no data files specified on the command line, just 
 ! convert the mesh
@@ -213,8 +222,9 @@ endif
 ! if this is a nodal attributes file, then read it and convert it
 ! using subroutines from the nodal attributes module and then stop
 if (f%dataFileCategory.eq.NODALATTRIBF) then
-   call readNodalAttributesFile(adataFileName)
-   call writeNodalAttributesFileNetCDF(f%nc_id, m, n, deflate)
+   naFile%nodalAttributesFileName = trim(adataFileName)
+   call readNodalAttributesFile(naFile)
+   call writeNodalAttributesFileNetCDF(naFile, f%nc_id, m, n, deflate)
    stop
 endif
 !

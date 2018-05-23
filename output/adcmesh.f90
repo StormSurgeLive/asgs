@@ -14,6 +14,7 @@ real(8), parameter :: deg2rad = pi/180.d0
 real(8), parameter :: rad2deg = 180.d0/pi
 real(8), parameter :: oneThird = 1.d0/3.d0
 logical :: verbose
+
 !
 ! elevation boundaries and flux boundaries where
 ! ibtype = 0,1,2,10,11,12,20,21,22,30,52
@@ -101,23 +102,24 @@ type mesh_t
    real(8), allocatable :: fdx(:,:) ! (3,ne)
    real(8), allocatable :: fdy(:,:) ! (3,ne)
    real(8), allocatable :: centroids(:,:) ! (2,ne) x and y coordinates of the element centroids
+   integer :: mnei = 15  ! maximum number of neighbors for a node
    !
-   character(80) :: agrid
+   character(2048) :: agrid
    integer :: ne   ! number of elements
    integer :: np   ! number of nodes
    integer, allocatable :: nmnc(:,:) ! element table in netcdf (3,ne)
    integer, allocatable :: nm(:,:)   ! element table in adcirc (ne,3)
    integer :: nfen
-   integer :: mnei = 15  ! maximum number of neighbors for a node
+   real(8), allocatable :: sigma(:)
+   logical :: is3D  ! true if the mesh is 3D
+   ! boundary related parameters
+   logical :: readBoundaryTable = .true.
    integer :: neta_count ! count of open boundary nodes
    integer :: nvel_count ! count of land boundary nodes
    integer :: nope ! number of open (ocean) elevation specified boundaries
    integer :: neta ! total number of nodes on open (ocean) elevation specified boundary nodes
    integer :: nbou ! number of flux specified boundaries
    integer :: nvel ! total number of nodes on flux specified boundaries
-   real(8), allocatable :: sigma(:)
-   logical :: is3D  ! true if the mesh is 3D
-   
    integer, allocatable :: nvdll(:)  ! number of nodes on each open boundary
    integer, allocatable :: nbdv(:,:) ! node numbers on each open boundary
    integer, allocatable :: nvell(:)  ! number of nodes on each flux boundary
@@ -130,7 +132,6 @@ type mesh_t
    integer, allocatable :: nbd(:)
    integer, allocatable :: nbv(:)
    integer, allocatable :: ibconn(:,:)
-   
    integer, allocatable :: ibtype_orig(:)
    integer, allocatable :: bcrnbvv(:,:)
    integer, allocatable :: bcrnvell(:)
@@ -290,7 +291,7 @@ m%is3D = .false.
 !
 iunit = availableUnitNumber()
 call openFileForRead(iunit, m%meshFileName, errorIO)
-read(iunit,'(A80)',err=10,end=20,iostat=ios) m%agrid
+read(iunit,'(a)',err=10,end=20,iostat=ios) m%agrid
 lineNum = lineNum + 1
 write(6,'(A)') "INFO: Mesh file comment line: "//trim(m%agrid)
 write(6,'(A)') "INFO: Reading mesh file dimensions."
@@ -312,6 +313,15 @@ do k = 1, m%ne
       stop
    endif 
 enddo
+!
+! return if not reading boundary table
+if (m%readBoundaryTable.eqv..false.) then
+   close(iunit)
+   write(6,'(A)') 'INFO: Finished reading mesh file dimensions.'
+   return
+endif
+!
+!
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%nope  ! total number of elevation boundaries
 lineNum = lineNum + 1
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%neta  ! total number of nodes on elevation boundaries
@@ -672,21 +682,22 @@ endif
 call read14_findDims(m)
 !
 call allocateNodalAndElementalArrays(m)
-call allocateBoundaryArrays(m)
-!
-if (verbose.eqv..true.) then 
-   write(6,'("Number of elevation specified boundaries (nope): ",i0,".")') m%nope
-   write(6,'("Number of simple flux specified boundaries (0,1,2,etc): ",i0,".")') m%numSimpleFluxBoundaries
-   write(6,'("Number of external flux boundaries (3,etc): ",i0,".")') m%numExternalFluxBoundaries         
-   write(6,'("Number of internal flux boundaries (4,etc): ",i0,".")') m%numInternalFluxBoundaries
-   write(6,'("Number of internal flux boundaries with pipes (5,etc): ",i0,".")') m%numInternalFluxBoundariesWithPipes
+if (m%readBoundaryTable.eqv..true.) then
+   call allocateBoundaryArrays(m)
+   !
+   if (verbose.eqv..true.) then 
+      write(6,'("Number of elevation specified boundaries (nope): ",i0,".")') m%nope
+      write(6,'("Number of simple flux specified boundaries (0,1,2,etc): ",i0,".")') m%numSimpleFluxBoundaries
+      write(6,'("Number of external flux boundaries (3,etc): ",i0,".")') m%numExternalFluxBoundaries         
+      write(6,'("Number of internal flux boundaries (4,etc): ",i0,".")') m%numInternalFluxBoundaries
+      write(6,'("Number of internal flux boundaries with pipes (5,etc): ",i0,".")') m%numInternalFluxBoundariesWithPipes
+   endif
 endif
-
 write(6,'(A)') 'INFO: Reading mesh file coordinates, connectivity, and boundary data.'
 iunit = availableUnitNumber() 
 call openFileForRead(iunit, m%meshFileName, ios)
 lineNum = 1
-read(unit=iunit,fmt='(a80)',err=10,end=20,iostat=ios) m%agrid
+read(unit=iunit,fmt='(a)',err=10,end=20,iostat=ios) m%agrid
 lineNum = lineNum + 1
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%ne, m%np
 lineNum = lineNum + 1
@@ -705,7 +716,14 @@ do i=1, m%ne
       m%nmnc(j,i) = m%nm(i,j)
    end do
 end do
-
+!
+! return if not reading boundary table
+if (m%readBoundaryTable.eqv..false.) then
+   write(6,'(A)') 'INFO: Finished reading mesh file coordinates and connectivity.'
+   return
+endif
+!
+! read boundary table
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%nope
 lineNum = lineNum + 1
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%neta
@@ -1093,7 +1111,7 @@ if (verbose.eqv..true.) then
 endif
 write(6,'(a)') 'INFO: Writing node table to "' // trim(m%meshFileName) // '".'
 lineNum = 1
-write(unit=iunit,fmt='(a80)',err=10,iostat=ios) m%agrid
+write(unit=iunit,fmt='(a)',err=10,iostat=ios) trim(m%agrid)
 lineNum = lineNum + 1
 write(unit=iunit,fmt='(2(i0,1x),a)',err=10,iostat=ios) m%ne, m%np, &
   '! number of elements (ne), number of nodes (np)'
@@ -1253,7 +1271,7 @@ type(mesh_t), intent(inout) :: m ! mesh to operate on
 type(meshNetCDF_t), intent(inout) :: n ! netcdf IDs for the target file 
 integer, intent(in) :: nc_id
 logical, intent(in) :: deflate
-integer              :: NC_DimID_single
+integer             :: NC_DimID_single
 !
 ! create and store mesh dimensions 
 write(6,'(a)') 'INFO: Writing mesh definitions to netcdf.'
@@ -1262,14 +1280,15 @@ CALL Check(NF90_DEF_DIM(NC_ID,'node',m%np,n%NC_DimID_node))
 CALL Check(NF90_DEF_DIM(NC_ID,'nele',m%ne,n%NC_DimID_nele))
 CALL Check(NF90_DEF_DIM(NC_ID,'nvertex',3,n%NC_DimID_nvertex))
 CALL Check(NF90_DEF_DIM(NC_ID,'single',1,NC_DimID_single))
-
-if (m%nope.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'m%nope',m%nope,n%NC_DimID_nope))
-if (m%nvdll_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_nvdll',m%nvdll_max,n%NC_DimID_max_nvdll))
-if (m%neta.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'neta',m%neta,n%NC_DimID_neta))
-if (m%nbou.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nbou',m%nbou,n%NC_DimID_nbou))
-if (m%nvel.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nvel',m%nvel,n%NC_DimID_nvel))
-if (m%nvell_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_m%nvell',m%nvell_max,n%NC_DimID_max_nvell))
-
+! boundary parameters
+if (m%readBoundaryTable.eqv..true.) then
+   if (m%nope.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'m%nope',m%nope,n%NC_DimID_nope))
+   if (m%nvdll_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_nvdll',m%nvdll_max,n%NC_DimID_max_nvdll))
+   if (m%neta.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'neta',m%neta,n%NC_DimID_neta))
+   if (m%nbou.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nbou',m%nbou,n%NC_DimID_nbou))
+   if (m%nvel.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'nvel',m%nvel,n%NC_DimID_nvel))
+   if (m%nvell_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_m%nvell',m%nvell_max,n%NC_DimID_max_nvell))
+endif
 ! ibtypee, ibconn, bars are ignored
 CALL Check(NF90_DEF_VAR(NC_ID,'x',NF90_DOUBLE,n%NC_DimID_node,n%NC_VarID_x))
 CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_x,'long_name','longitude'))
@@ -1289,34 +1308,36 @@ CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_element,'standard_name','face_node_conn
 CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_element,'units','nondimensional'))
 CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_element,'start_index',1))
 
-if (m%nope.ne.0) then
-   CALL Check(NF90_DEF_VAR(NC_ID,'nvdll',NF90_DOUBLE,n%NC_DimID_nope,n%NC_VarID_nvdll))
-   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nvdll,'long_name','total number of nodes in each elevation specified & boundary segment'))
-   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nvdll,'units','nondimensional'))
-
-   CALL Check(NF90_DEF_VAR(NC_ID,'max_nvdll',NF90_int,NC_DimID_single,n%NC_VarID_max_nvdll))
-   CALL Check(NF90_DEF_VAR(NC_ID,'max_m%nvell',NF90_int,NC_DimID_single,n%NC_VarID_max_nvell))      
-   CALL Check(NF90_DEF_VAR(NC_ID,'neta',NF90_int,NC_DimID_single,n%NC_VarID_neta))
-   CALL Check(NF90_DEF_VAR(NC_ID,'m%nope',NF90_int,NC_DimID_single,n%NC_VarID_nope))
-   CALL Check(NF90_DEF_VAR(NC_ID,'nvel',NF90_int,NC_DimID_single,n%NC_VarID_nvel))
-
-   CALL Check(NF90_DEF_VAR(NC_ID,'nbdv',NF90_DOUBLE,(/ n%NC_DimID_nope, n%NC_DimID_max_nvdll /), n%NC_VarID_nbdv))
-   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nbdv,'long_name','node numbers on each elevation specified boundary & segment'))
-   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nbdv,'units','nondimensional'))
-endif
-
-if (m%nbou.ne.0) then
-   CALL Check(NF90_DEF_VAR(NC_ID,'nvell',NF90_DOUBLE,n%NC_DimID_nbou,n%NC_VarID_nvell))
-   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nvell,'long_name','number of nodes in each normal flow specified boundary segment'))
-   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nvell,'units','nondimensional'))
-
-   CALL Check(NF90_DEF_VAR(NC_ID,'ibtype',NF90_DOUBLE,n%NC_DimID_nbou,n%NC_VarID_ibtype))
-   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_ibtype,'long_name','type of normal flow (discharge) boundary'))
-   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_ibtype,'units','nondimensional'))
-
-   CALL Check(NF90_DEF_VAR(NC_ID,'nbvv',NF90_DOUBLE,(/ n%NC_DimID_nbou, n%NC_DimID_max_nvell /),n%NC_VarID_nbvv))
-   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nbvv,'long_name','node numbers on normal flow boundary segment'))
-   CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nbvv,'units','nondimensional'))
+if (m%readBoundaryTable.eqv..true.) then
+   if (m%nope.ne.0) then
+      CALL Check(NF90_DEF_VAR(NC_ID,'nvdll',NF90_DOUBLE,n%NC_DimID_nope,n%NC_VarID_nvdll))
+      CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nvdll,'long_name','total number of nodes in each elevation specified & boundary segment'))
+      CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nvdll,'units','nondimensional'))
+   
+      CALL Check(NF90_DEF_VAR(NC_ID,'max_nvdll',NF90_int,NC_DimID_single,n%NC_VarID_max_nvdll))
+      CALL Check(NF90_DEF_VAR(NC_ID,'max_m%nvell',NF90_int,NC_DimID_single,n%NC_VarID_max_nvell))      
+      CALL Check(NF90_DEF_VAR(NC_ID,'neta',NF90_int,NC_DimID_single,n%NC_VarID_neta))
+      CALL Check(NF90_DEF_VAR(NC_ID,'m%nope',NF90_int,NC_DimID_single,n%NC_VarID_nope))
+      CALL Check(NF90_DEF_VAR(NC_ID,'nvel',NF90_int,NC_DimID_single,n%NC_VarID_nvel))
+   
+      CALL Check(NF90_DEF_VAR(NC_ID,'nbdv',NF90_DOUBLE,(/ n%NC_DimID_nope, n%NC_DimID_max_nvdll /), n%NC_VarID_nbdv))
+      CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nbdv,'long_name','node numbers on each elevation specified boundary & segment'))
+      CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nbdv,'units','nondimensional'))
+   endif
+   
+   if (m%nbou.ne.0) then
+      CALL Check(NF90_DEF_VAR(NC_ID,'nvell',NF90_DOUBLE,n%NC_DimID_nbou,n%NC_VarID_nvell))
+      CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nvell,'long_name','number of nodes in each normal flow specified boundary segment'))
+      CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nvell,'units','nondimensional'))
+   
+      CALL Check(NF90_DEF_VAR(NC_ID,'ibtype',NF90_DOUBLE,n%NC_DimID_nbou,n%NC_VarID_ibtype))
+      CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_ibtype,'long_name','type of normal flow (discharge) boundary'))
+      CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_ibtype,'units','nondimensional'))
+   
+      CALL Check(NF90_DEF_VAR(NC_ID,'nbvv',NF90_DOUBLE,(/ n%NC_DimID_nbou, n%NC_DimID_max_nvell /),n%NC_VarID_nbvv))
+      CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nbvv,'long_name','node numbers on normal flow boundary segment'))
+      CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nbvv,'units','nondimensional'))
+   endif
 endif
 
 CALL Check(NF90_DEF_VAR(NC_ID,'depth',NF90_DOUBLE,n%NC_DimID_node,n%NC_VarID_depth))
@@ -1339,14 +1360,16 @@ CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_mesh,'face_node_connectivity','element'
 
 ! automatically turn on compression if it is available
 if (deflate.eqv..true.) then
-   if (m%nope.ne.0) then
-      call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_nvdll, 0, 1, 2))
-      call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_nbdv, 0, 1, 2))
-   endif
-   if (m%nbou.ne.0) then
-      call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_nvell, 0, 1, 2))
-      call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_ibtype, 0, 1, 2))
-      call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_nbvv, 0, 1, 2))
+   if (m%readBoundaryTable.eqv..true.) then
+      if (m%nope.ne.0) then
+         call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_nvdll, 0, 1, 2))
+         call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_nbdv, 0, 1, 2))
+      endif
+      if (m%nbou.ne.0) then
+         call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_nvell, 0, 1, 2))
+         call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_ibtype, 0, 1, 2))
+         call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_nbvv, 0, 1, 2))
+      endif
    endif
    call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_x, 0, 1, 2))
    call check(nf90_def_var_deflate(NC_ID, n%NC_VarID_y, 0, 1, 2))
@@ -1388,7 +1411,12 @@ CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_depth,m%xyd(3,1:m%np),NC_Start,NC_Count
 NC_Count = (/ 3, m%ne /)
 
 CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_element,m%nmnc,NC_Start,NC_Count))
-
+!
+! boundary parameters
+if (m%readBoundaryTable.eqv..false.) then
+   write(6,'(a)') 'INFO: Mesh has been written to the netCDF file.'
+   return
+endif
 if (m%nope.ne.0) then
    CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_nope,m%nope))
    CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_max_nvell,m%nvell_max))

@@ -68,6 +68,7 @@ type xdmfVar_t
    character(len=20) :: numberType   ! "Int" or "Float"
    integer :: numberPrecision         ! 4 or 8
    integer :: numComponents
+   integer :: xmlReference  ! for use in XInclude statements
    ! corresponding netcdf variable names for each xdmf component
    character(NF90_MAX_NAME), allocatable :: ncVarName(:) ! (numComponents)   
 end type xdmfVar_t
@@ -271,12 +272,16 @@ subroutine determineNetCDFFileCharacteristics(f, m, n)
 use adcmesh
 use logging
 use ioutil
+use nodalattr
 implicit none
 type(fileMetaData_t), intent(inout) :: f
 type(mesh_t), intent(inout) :: m
 type(meshNetCDF_t), intent(inout) :: n
 character(len=NF90_MAX_NAME) :: thisVarName
-integer :: i, j
+character(len=NF90_MAX_NAME) :: componentName
+character(len=NF90_MAX_NAME) :: nodalAttributesComment ! locally declare this here to avoid dependency on nodalattr module
+integer :: numNodalAttributes  ! locally declare this here to avoid dependency on nodalattr module
+integer :: i, j, k, p, q
 integer :: errorIO
 logical :: exists ! true if the file exists
 
@@ -312,9 +317,17 @@ if ( (f%ncformat.eq.nf90_format_netcdf4).or. &
    (f%ncformat.eq.nf90_format_netcdf4_classic) ) then
    call allMessage(INFO,'The data file uses netcdf4 formatting.')
    if (f%nc_dimid_time.lt.0) then
-      call allMessage(INFO,'The netcdf file '//trim(f%dataFileName)// &
-      ' only contains mesh data.')
-      f%dataFileCategory = MESH !FIXME: Could also be a nodal attributes file? Or fort.88?
+	   ! check to see if it is a nodal attributes file
+	   errorIO = nf90_get_att(f%nc_id,nf90_global,'nodalAttributesComment',nodalAttributesComment)
+	   if (errorIO.eq.0) then
+	      f%defaultFileName = 'fort.13'
+	      f%dataFileCategory = NODALATTRIBF
+	      f%fileTypeDesc = 'an ADCIRC nodal attributes ('//trim(f%defaultFileName)//') file.'      
+          call allMessage(INFO,'Examining '//trim(f%fileTypeDesc)//' file.')
+	   else 
+          call allMessage(INFO,'The netcdf file '//trim(f%dataFileName)//' only contains mesh data.')
+          f%dataFileCategory = MESH !FIXME: Could also be a fort.88?
+	   endif
    endif
 endif
 !
@@ -326,45 +339,107 @@ if (f%dataFileCategory.eq.MESH) then
 endif
 !
 ! determine the number of snapshots in the file
-call check(nf90_inquire_dimension(f%nc_id,f%nc_dimid_time,len=f%nSnaps))
-write(scratchMessage,'(a,i0,a)') 'There is/are ',f%nSnaps,' dataset(s) in the file.'
-call allMessage(INFO,scratchMessage)
-if (f%nSnaps.eq.0) then
-   write(scratchMessage,'(a,a,a)') 'The file "',trim(f%dataFileName),'" does not contain any data sets.'
-   call allMessage(ERROR,scratchMessage)
-   stop 1
+if (f%dataFileCategory.ne.NODALATTRIBF) then
+   call check(nf90_inquire_dimension(f%nc_id,f%nc_dimid_time,len=f%nSnaps))
+   write(scratchMessage,'(a,i0,a)') 'There is/are ',f%nSnaps,' dataset(s) in the file.'
+   call allMessage(INFO,scratchMessage)
+   if (f%nSnaps.eq.0) then
+     write(scratchMessage,'(a,a,a)') 'The file "',trim(f%dataFileName),'" does not contain any data sets.'
+     call allMessage(ERROR,scratchMessage)
+     stop 1
+   endif
+   !
+   !  get time 
+   !
+   ! load up the time values (in seconds)
+   allocate(f%timesec(f%nSnaps))
+   allocate(f%it(f%nSnaps))
+   call check(nf90_inq_varid(f%nc_id, "time", f%NC_VarID_time))
+   call check(nf90_get_var(f%nc_id, f%NC_VarID_time, f%timesec, (/ 1 /), (/ f%nSnaps /) ))
+   call check(nf90_get_att(f%nc_id,f%nc_varid_time,'units',f%datenum))  
+   !
+   ! is it a station file?
+   f%dataFileCategory = UNKNOWN
+   do i=1,f%nvar
+      call check(nf90_inquire_variable(f%nc_id, i, thisVarName))
+      if (trim(thisVarName).eq.'station_name') then
+         f%dataFileCategory = STATION
+         call check(nf90_inq_dimid(f%nc_id, "station", f%nc_dimid_station))
+      endif 
+   end do
 endif
-!
-!  get time
-!
-! load up the time values (in seconds)
-allocate(f%timesec(f%nSnaps))
-allocate(f%it(f%nSnaps))
-call check(nf90_inq_varid(f%nc_id, "time", f%NC_VarID_time))
-call check(nf90_get_var(f%nc_id, f%NC_VarID_time, f%timesec, (/ 1 /), (/ f%nSnaps /) ))
-call check(nf90_get_att(f%nc_id,f%nc_varid_time,'units',f%datenum))
-!
-! is it a station file?
-f%dataFileCategory = UNKNOWN
-do i=1,f%nvar
-   call check(nf90_inquire_variable(f%nc_id, i, thisVarName))
-   if (trim(thisVarName).eq.'station_name') then
-      f%dataFileCategory = STATION
-      call check(nf90_inq_dimid(f%nc_id, "station", f%nc_dimid_station))
-   endif 
-end do
-! if this is not a station file, find the mesh node dimension and
-! comment 
-if (f%dataFileCategory.ne.STATION) then
-   f%dataFileCategory = DOMAIN ! most common value, can be changed below
+! if this is not a station file, find the mesh node dimension and comment 
+if ( f%dataFileCategory.ne.STATION ) then
    call readMeshCommentLineNetCDF(m, f%nc_id)
    ! determine the number of nodes
    call check(nf90_inq_dimid(f%nc_id, "node", n%nc_dimid_node))
+   if (f%dataFileCategory.ne.NODALATTRIBF) then   
+      f%dataFileCategory = DOMAIN ! most common value, can be changed below
+   endif
 endif
 !   
 ! determine the type of data in the netcdf file, and set the 
 ! file metadata accordingly
 do i=1,f%nvar
+   if ( f%dataFileCategory.eq.NODALATTRIBF ) then
+      f%timeVarying = .false. 
+      numNodalAttributes = 0
+      ! count the number of nodal attributes
+      do j=1, f%nvar
+         call check(nf90_inquire_variable(f%nc_id, j, thisVarName))
+         select case(trim(thisVarName))
+         case('mannings_n_at_sea_floor')
+            numNodalAttributes = numNodalAttributes + 1
+            f%numVarNetCDF = f%numVarNetCDF + 1 
+            f%numVarXDMF = f%numVarXDMF + 1
+         case('primitive_weighting_in_continuity_equation')
+            numNodalAttributes = numNodalAttributes + 1
+            f%numVarNetCDF = f%numVarNetCDF + 1 
+            f%numVarXDMF = f%numVarXDMF + 1
+         case('surface_canopy_coefficient')
+            numNodalAttributes = numNodalAttributes + 1
+            f%numVarNetCDF = f%numVarNetCDF + 1 
+            f%numVarXDMF = f%numVarXDMF + 1
+         case('surface_directional_effective_roughness_length')
+            numNodalAttributes = numNodalAttributes + 1
+            f%numVarNetCDF = f%numVarNetCDF + 1 
+            f%numVarXDMF = f%numVarXDMF + 12 ! hardcoded to 12
+         case('surface_submergence_state')
+            numNodalAttributes = numNodalAttributes + 1
+            f%numVarNetCDF = f%numVarNetCDF + 1 
+            f%numVarXDMF = f%numVarXDMF + 1
+         case default
+            ! something other than a nodal attribute
+         end select
+      end do 
+      ! allocate space to hold the metadata for all the nodal attributes
+      call initFileMetaData(f, thisVarName, f%numVarNetCDF, f%numVarXDMF)
+      k=1
+      p=1
+      do j=1, f%nvar
+         call check(nf90_inquire_variable(f%nc_id, j, thisVarName))
+         select case(trim(thisVarName))
+         case('mannings_n_at_sea_floor','primitive_weighting_in_continuity_equation','surface_canopy_coefficient','surface_submergence_state')
+            f%ncds(k)%varNameNetCDF = trim(thisVarName)
+            k = k + 1 
+            f%xds(p)%varNameXDMF = trim(thisVarName)
+            p = p + 1
+         case('surface_directional_effective_roughness_length')
+            f%ncds(k)%varNameNetCDF = trim(thisVarName)
+            k = k + 1 
+            do q=1,12 ! hardcoded to 12
+               ! form component name
+               write(componentName,'(a,"[",i2.2,"]")') trim(thisVarName), q
+               f%xds(p)%varNameXDMF = trim(componentName)
+               f%xds(p)%numComponents = -12  ! negative indicates hyperslab, not vector
+               p = p + 1 
+            end do
+         case default
+            ! something other than a nodal attribute
+         end select            
+      end do
+      exit
+   endif
    call check(nf90_inquire_variable(f%nc_id, i, thisVarName))
    select case(trim(thisVarName))
    case("u-vel3D","v-vel3D","w-vel3D")
@@ -374,6 +449,8 @@ do i=1,f%nvar
       f%ncds(2)%varNameNetCDF = "v-vel3D"
       f%ncds(3)%varNameNetCDF = "w-vel3D"
       f%irtype = 3
+      f%xds(1)%numComponents = 3
+      f%xds(1)%varNameXDMF = "currentVel3D"
       exit
    case("zeta")
       if ( f%dataFileCategory.eq.STATION ) then
@@ -487,6 +564,8 @@ do i=1,f%nvar
       f % ncds(7)%isElemental = .true.  ! noff<---element/cell centered
       !
       f % timeVarying = .false.
+      f % xds(4) % numComponents = 2
+      f%xds(4)%varNameXDMF = "currentVel2D"
       exit
    case("u-vel","v-vel")
       if ( f%dataFileCategory.eq.STATION ) then
@@ -500,6 +579,8 @@ do i=1,f%nvar
       f%ncds(1)%varNameNetCDF = "u-vel"  ! uu2 in ADCIRC
       f%ncds(2)%varNameNetCDF = "v-vel"  ! vv2 in ADCIRC
       f%irtype = 2
+      f%xds(1)%numComponents = 2
+      f%xds(1)%varNameXDMF = "currentVel2D"
       exit
    case("uu1-vel","vv1-vel")
       f%defaultFileName = 'uu1vv1.64'
@@ -509,6 +590,8 @@ do i=1,f%nvar
       f % ncds(2)%varNameNetCDF = "vv1-vel"  ! vv1 in ADCIRC
       f % xds(1) % varNameXDMF = 'water_current_velocity_at_previous_timestep'
       f%irtype = 2
+      f%xds(1)%numComponents = 2
+      f%xds(1)%varNameXDMF = "prevCurrentVel2D"      
       exit
    case("pressure")
       if ( f%dataFileCategory.eq.STATION ) then
@@ -532,6 +615,8 @@ do i=1,f%nvar
       f % ncds(1)%varNameNetCDF = "windx"  
       f % ncds(2)%varNameNetCDF = "windy"  
       f%irtype = 2
+      f%xds(1)%numComponents = 2
+      f%xds(1)%varNameXDMF = "windVel"      
       exit
    case("maxele","zeta_max")
       f % dataFileCategory = MINMAX
@@ -616,6 +701,8 @@ do i=1,f%nvar
       f % ncds(1)%varNameNetCDF = "radstress_x"  
       f % ncds(2)%varNameNetCDF = "radstress_y"  
       f%irtype = 2
+      f%xds(1)%numComponents = 2
+      f%xds(1)%varNameXDMF = "radstress"
    case("swan_DIR")
       f%defaultFileName = 'swan_DIR.63' 
       f % fileTypeDesc = "a SWAN wave direction (swan_DIR.63) file"
@@ -670,6 +757,8 @@ do i=1,f%nvar
       f % ncds(1)%varNameNetCDF = "swan_windx"  
       f % ncds(2)%varNameNetCDF = "swan_windy"  
       f%irtype = 2
+      f%xds(1)%numComponents = 2
+      f%xds(1)%varNameXDMF = "swan_wind"
       exit
    case default
       cycle     ! did not recognize this variable name
@@ -757,14 +846,15 @@ do i=1, f%numVarNetCDF
 end do
 !
 ! determine time increment between output writes
-if ( (f%nSnaps.gt.1).and.(f%timeOfOccurrence.eqv..false.) ) then
-   f%time_increment = f%timesec(2) - f%timesec(1)
-else
-   f%time_increment = -99999.d0
-endif
-f%nspool = -99999
-f%it(:) = -99999
+f%time_increment = -99999.d0
 f%defaultValue = -99999.d0
+f%nspool = -99999
+if ( f%dataFileCategory.ne.NODALATTRIBF ) then
+   if ( (f%nSnaps.gt.1).and.(f%timeOfOccurrence.eqv..false.) ) then
+      f%time_increment = f%timesec(2) - f%timesec(1)
+   endif
+   f%it(:) = -99999
+endif
 !
 call check(nf90_close(f%nc_id))
 call allMessage(INFO,'Finished determining netCDF file characteristics.')
@@ -1040,6 +1130,18 @@ case(OWI)
 case(DOMAIN)
    select case(trim(fn%defaultFileName))
    case('fort.63') !63
+      thisVarName = 'zeta'
+      call initFileMetaData(fn, thisVarName, 1, 1)
+      !write(6,*) nc_dimid(1), nc_dimid(2), fn%ncds(1)%nc_varID ! jgfdebug
+      call check(nf90_def_var(fn%nc_id,'zeta',nf90_double,nc_dimid,fn%ncds(1)%nc_varID))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',fn%ncds(1)%fillValue))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'long_name','water surface elevation above geoid'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'standard_name','water_surface_elevation'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'coordinates','time y x'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','node'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','m'))
+   case('fort.69') !63
       thisVarName = 'zeta'
       call initFileMetaData(fn, thisVarName, 1, 1)
       !write(6,*) nc_dimid(1), nc_dimid(2), fn%ncds(1)%nc_varID ! jgfdebug
@@ -1562,8 +1664,6 @@ select case(trim(adjustl(fileNameBase)))
       maxFileName = 'swan_TMM10_max.63'
    case("swan_TPS.63")
       maxFileName = 'swan_TPS_max.63'
-   case("fort.69")
-      maxFileName = 'maxwarnelev.63'
    case default
       write(6,'(a,a,a)') 'WARNING: File name ',trim(adjustl(datafile)),' was not recognized.'
       maxFileName = trim(adjustl(fileNameBase)) // '_maxfile.63'
@@ -1572,8 +1672,6 @@ write(6,'(a,a,a)') 'INFO: The max file name is set to ',trim(adjustl(maxFileName
 !----------------------------------------------------------------------
 end subroutine formMaxFileName
 !----------------------------------------------------------------------
-
-
 
 !----------------------------------------------------------------------
 !  S U B R O U T I N E     I N I T   F I L E   M E T A  D A T A 
@@ -1610,7 +1708,6 @@ do n=1, numNC
    fmd % ncds(n) % isInteger = .false.
    fmd % ncds(n) % is3D = .false.
 end do
-
 !
 ! XDMF
 fmd % numVarXDMF = numXDMF
@@ -1624,8 +1721,8 @@ do n=1,fmd%numVarXDMF
    fmd % xds(n) % numberPrecision = 8  ! initialize to most common value
 end do 
 fmd % ncds(1) % nc_varType = NF90_DOUBLE ! initialize to most common value
-fmd % ncds(1) % varNameNetCDF = firstVarName ! initialize to most common value
-!fmd % xds(1) % varNameXDMF = trim(firstVarName) ! initialize to most common value
+fmd % ncds(1) % varNameNetCDF = trim(firstVarName) ! initialize to most common value
+fmd % xds(1) % varNameXDMF = trim(firstVarName) ! initialize to most common value
 fmd % initialized = .true. 
 !----------------------------------------------------------------------
 end subroutine initFileMetaData
@@ -1653,7 +1750,7 @@ integer :: j
 if ( fmd % initialized .eqv..true. ) then
    return
 endif
-!     
+!
 timeOfVarName = 'time_of_'//trim(someVarName)
 if (trim(someVarName).eq."inun_time") then
    timeOfVarName = 'last_'//trim(someVarName)

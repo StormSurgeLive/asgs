@@ -269,8 +269,9 @@ tar cvhf CERA.tar $shapeDirs > CERAtar.log 2>> $SYSLOG
 # to the run.properties file
 ERROVALUE=$?  # capture exit status
 if [[ $ERROVALUE == 0 ]] ; then
-   logMessage "$ENSTORM: $THIS: Created CERA tar file correctly."
-   echo "Contour Tar File : CERA.tar" >> run.properties
+   # @jasonfleming debug: don't post CERA.tar file 20170915
+   #logMessage "$ENSTORM: $THIS: Created CERA tar file correctly."
+   #echo "Contour Tar File : CERA.tar" >> run.properties
 else
    error "$ENSTORM: $THIS: Could not create CERA tar file."
 fi

@@ -5,16 +5,37 @@
 !
 ! Example grass script to convert binary NLCD img to ArcGrid ascii that
 ! is readable by this utility program
-! set the boundaries of the subregion of interest
+! set the boundaries of the subregion of interest (this is for southern louisiana)
 ! g.region n=1028000 s=715500 w=502000 e=1200000 -ba
+! output from grass gis:
+! north latitude:   32:11:53.090189N
+! south latitude:   28:48:41.864475N
+! west longitude:   90:49:37.812644W
+! east longitude:   83:15:52.815807W
+! center longitude: 87:02:45.314225W
+! center latitude:  30:30:17.477332N
+!
+! this region is for south carolina
+! g.region n=1428000 s=915500 w=1202000 e=1800000 -ba
+! output from grass gis:
+! north latitude:   35:08:55.385768N
+! south latitude:   29:42:46.449034N
+! west longitude:   83:24:03.761388W
+! east longitude:   76:10:13.538411W
+! center longitude: 79:47:08.6499W
+! center latitude:  32:25:50.917401N
+!
 ! get the boundaries as shell script variables
-!eval `g.region -g`
+! eval `g.region -g`
 ! create the subregion image
-! gdal_translate -projwin $w $n $e $s /home/jason/adcirc/util/fort13/NLCD2006_landcover_4-20-11_se5/nlcd2006_landcover_4-20-11_se5.img nlcd2006_cut.img
+! gdal_translate -projwin $w $n $e $s /home/jason/adcirc/util/fort13/nlcd2006_landcover_4-20-11_se5.img nlcd2006_cut.img
 ! import the subregion image
 ! r.in.gdal --overwrite nlcd2006_cut.img out=myLandUseLarge
 ! write out the subregion as ascii ArcGrid file
 ! r.out.arc --verbose input=myLandUseLarge output=myLandUseLargeAscii.grd
+! 20180218: alternative
+! r.out.gdal format=AAIGrid input=myLandUseLarge output=myLandUseLargeAscii.grd
+! ^now have a file that can be processed for manning's n etc
 !
 ! example of grass WMS general capabilities request
 !r.in.wms mapserver="http://mapserver.flightgear.org/ms" -l
@@ -45,9 +66,7 @@
 !g.region save=drg-resolution
 !r.in.wms output=terraserver-drg mapserver="http://terraserver.microsoft.com/ogcmap6.ashx" \
 !         layers=DRG region=drg-resolution format=jpeg srs=EPSG:26910
-
-
-
+!
 !-----------------------------------------------------------------------
 module landuse
 !-----------------------------------------------------------------------
