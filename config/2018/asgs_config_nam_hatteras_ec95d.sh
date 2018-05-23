@@ -59,13 +59,13 @@ HINDCASTWALLTIME="01:00:00"   # river inital and tidal spinup time in machine
 ADCPREPWALLTIME="00:05:00"
 NOWCASTWALLTIME="01:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="01:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=32
+NCPU=128
 NUMWRITERS=0
-NCPUCAPACITY=32
+NCPUCAPACITY=128
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=batch
 SERQUEUE=single
-ACCOUNT=loni_cera_2018
+ACCOUNT=null
 SCRATCHDIR=/scratch/bblanton/asgs/
 
 # External data sources : Tropical cyclones
@@ -156,17 +156,14 @@ ASGSADMIN="$ems"
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general # meta data audience
+INTENDEDAUDIENCE=testingOnly # meta data audience
 INITPOST=null_init_post.sh
-POSTPROCESS=null_post.sh
+POSTPROCESS=blanton_rmq_test_post.sh
 POSTPROCESS2=null_post.sh
 
 TDS=(renci_tds)
-TARGET=hatteras  # used in post processing to pick up HPC platform config
+TARGET=hatteras              # used in post processing to pick up HPC platform config
 OPENDAPUSER=bblanton         # default value that works for RENCI opendap 
-if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
-   OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
-fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
 OPENDAPNOTIFY="bblanton@renci.org"
@@ -174,15 +171,14 @@ OPENDAPNOTIFY="bblanton@renci.org"
 # Archiving
 
 ARCHIVE=null_archive.sh # if null no data gets save
-ARCHIVEBASE=/scratch/bblanton
-ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
+ARCHIVEBASE=/scratch/bblanton/asgs/
+ARCHIVEDIR=archive
 
 # Forecast ensemble members
 
 RMAX=default
 PERCENT=default
 ENSEMBLESIZE=1 # number of storms in the ensemble
-si=-1
 case $si in
 -1)
       # do nothing ... this is not a forecast
