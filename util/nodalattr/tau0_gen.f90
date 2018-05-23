@@ -41,6 +41,7 @@ integer :: i, j
 i=0
 outputfile = 'tau0_fort.13'
 argcount = iargc() ! count up command line options
+call initLogging(availableUnitNumber(),'tau0_gen.f90')
 write(6,'(a,i0,a)') 'There are ',argcount,' command line options.'
 do while (i.lt.argcount)
    i = i + 1
@@ -73,6 +74,8 @@ nodal_attr_name = 'primitive_weighting_in_continuity_equation'
 ! Load fort.14
 write(6,'(a)') 'INFO: Mesh file name is  "'//trim(m%meshfilename)//'".'
 call read14(m)
+m%slam0 = 0.d0
+m%sfea0 = 0.d0
 CALL computeNeighborTable(m)
 write(6,'(a)') 'INFO: Tau0 results file is named  "'//trim(outputfile)//'".'
 !

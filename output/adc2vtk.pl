@@ -244,6 +244,10 @@ my $np = $fields[1];
 for (my $i=0; $i<$np; $i++) {
    $line = <MESH>;
    @fields = split(' ',$line);
+   # if node labels were specified
+   if ( defined $getNodeIDs ) {
+      $nodeIDs[$i] = $fields[0];
+   }
    $x[$i] = $fields[1];
    $y[$i] = $fields[2];
    $z[$i] = $fields[3];
@@ -296,9 +300,10 @@ for (my $i=0; $i<$nope; $i++) {
    $line = <MESH>;
    my @fields = split(' ',$line); 
    my $nvdll = $fields[0];
-   my $ibtypee = $fields[1];
+   # my $ibtypee = $fields[1]; # many mesh files don't have this field
+   my $ibtypee = 0;
    for (my $j=0; $j<$nvdll; $j++) {
-      my $nbdv = <MESH>;
+      my $nbdv = split(' ',<MESH>);
       $elevBoundaryNodes[$elevBoundaryCount] = $nbdv;  
       $elevBoundaryLons[$elevBoundaryCount] = $x[$nbdv-1];
       $elevBoundaryLats[$elevBoundaryCount] = $y[$nbdv-1];
@@ -428,7 +433,7 @@ for (my $i=0; $i<$nbou; $i++) {
       $fluxBoundaryCount++;
    }
 }        
-print "fluxBoundaryCount is $fluxBoundaryCount\n";
+#print "fluxBoundaryCount is $fluxBoundaryCount\n"; # @jasonfleming debug
 printf VTKFLUXBOUNDARY "\n";
 printf VTKFLUXBOUNDARY "            </DataArray>\n";
 printf VTKFLUXBOUNDARY "         </Points>\n";
@@ -625,10 +630,7 @@ foreach my $file (@adcircfiles) {
             stderrMessage("ERROR","Ran out of data: $!.");
             die;
          }
-         # if node labels were specified
-         if ( defined $getNodeIDs ) {
-            $nodeIDs[$i] = $fields[0];
-         }
+
          # get rid of the node number or node ID
          shift(@fields);
          if ( $num_components == 2 ) {

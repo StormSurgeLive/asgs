@@ -28,7 +28,7 @@ ADVISORY=$1
 MAXADVISORY=$2
 STORMNUMBER=$3
 YEAR=$4
-BASIN=$5
+BASIN=$5 # e.g. lowercase al for Atlantic basin
 #
 FSTORMNUMBER=`printf "%02d" $STORMNUMBER`
 #

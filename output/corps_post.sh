@@ -54,19 +54,123 @@ env_dispatch ${TARGET}
 . ${CONFIG}
 #
 export PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
+#
+#
 #-----------------------------------------------------------------------
-# O P E N  D A P    P U B L I C A T I O N 
+#          I N C L U S I O N   O F   10 M   W I N D S
 #-----------------------------------------------------------------------
-logMessage "Creating list of files to post to opendap."
-FILES=(`ls *.nc ${ADVISDIR}/al*.fst ${ADVISDIR}/bal*.dat fort.15 fort.22 run.properties`)
+# If winds at 10m (i.e., wind velocities that do not include the effect
+# of land interaction from nodal attributes line directional wind roughness
+# and canopy coefficient) were produced by another ensemble member,
+# then include these winds in the post processing
+wind10mFound=no
+wind10mContoursFinished=no
+dirWind10m=$ADVISDIR/${ENSTORM}Wind10m
+if [[ -d $dirWind10m ]]; then
+   logMessage "Corresponding 10m wind ensemble member was found."
+   wind10mFound=yes
+   # determine whether the CERA contours are complete for the 10m wind
+   # ensemble member
+   wind10mContoursHeld=`ls $dirWind10m/cera_contour/*.held 2>> /dev/null | wc -l`
+   logMessage "$ENSTORM: $THIS: There are $wind10mContoursHeld .held files for the CERA contours for the 10m winds."
+   wind10mContoursStart=`ls $dirWind10m/cera_contour/*.start 2>> /dev/null | wc -l`
+   logMessage "$ENSTORM: $THIS: There are $wind10mContoursStart .start files for the CERA contours for the 10m winds."
+   wind10mContoursFinish=`ls $dirWind10m/cera_contour/*.finish 2>> /dev/null | wc -l`
+   logMessage "$ENSTORM: $THIS: There are $wind10mContoursFinish .finish files for the CERA contours for the 10m winds."
+   if [[ $wind10mContoursHeld -eq 0 && $wind10mContoursStart -eq 0 && $wind10mContoursFinish -ne 0 ]]; then
+      wind10mContoursFinished=yes
+   fi
+  for file in fort.72.nc fort.74.nc maxwvel.63.nc ; do
+      if [[ -e $dirWind10m/$file ]]; then
+         logMessage "$ENSTORM: $THIS: Found $dirWind10m/${file}."
+         ln -s $dirWind10m/${file} ./wind10m.${file}
+         # update the run.properties file
+         case $file in
+         "fort.72.nc")
+            echo "Wind Velocity 10m Stations File Name : wind10m.fort.72.nc" >> run.properties
+            echo "Wind Velocity 10m Stations Format : netcdf" >> run.properties
+            ;;
+         "fort.74.nc")
+            echo "Wind Velocity 10m File Name : wind10m.fort.74.nc" >> run.properties
+            echo "Wind Velocity 10m Format : netcdf" >> run.properties
+            # if the CERA contours are available, link to them
+            if [[ -d $dirWind10m/wvel ]]; then
+               ln -s $dirWind10m/wvel ./CERA/wind10m.wvel 2>> $SYSLOG
+               # notify downstream processors via run.properties
+               if [[ $wind10mContoursFinished = yes ]]; then
+                  echo "Wind Velocity 10m Contour Tar File Path : CERA/wind10m.wvel" >> run.properties
+                  layersFinished="$layersFinished wind10m.wvel"
+               fi
+            fi
+            ;;
+         "maxwvel.63.nc")
+            echo "Maximum Wind Speed 10m File Name : wind10m.maxwvel.63.nc" >> run.properties
+            echo "Maximum Wind Speed 10m Format : netcdf" >> run.properties
+            if [[ -d $dirWind10m/CERA/maxwvelshp ]]; then
+               ln -s $dirWind10m/CERA/maxwvelshp ./CERA/wind10m.maxwvelshp 2>> $SYSLOG
+               # notify downstream processors via run.properties
+               if [[ $wind10mContoursFinished = yes ]]; then
+                  echo "Maximum Wind Velocity 10m Contour Tar File Path : CERA/wind10m.maxwvelshp" >> run.properties
+                  layersFinished="$layersFinished wind10m.maxwvelshp"
+               fi
+            fi
+            ;;
+         *)
+            warn "$ENSTORM: $THIS: The file $file was not recognized."
+         ;;
+         esac
+      else
+         logMessage "$ENSTORM: $THIS: The file $dirWind10m/${file} was not found."
+      fi
+   done
+else
+   logMessage "$ENSTORM: $THIS: Corresponding 10m wind ensemble member was not found."
+
+#-------------------------------------------------------------------
+#               C E R A   F I L E   P R I O R I T Y
+#-------------------------------------------------------------------
+# @jasonfleming: Hack in a notification email once the bare minimum files
+# needed by CERA have been posted. 
+#
+#FILES=(`ls *.nc al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat fort.15 fort.22 CERA.tar run.properties 2>> /dev/null`)
+logMessage "$ENSTORM: $THIS: Creating list of files to post to opendap."
+if [[ -e ../al${STORM}${YEAR}.fst ]]; then
+   cp ../al${STORM}${YEAR}.fst . 2>> $SYSLOG
+fi
+if [[ -e ../bal${STORM}${YEAR}.dat ]]; then
+   cp ../bal${STORM}${YEAR}.dat . 2>> $SYSLOG
+fi
+ceraNonPriorityFiles=( `ls endrisinginun.63.nc everdried.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc` )
+ceraPriorityFiles=(`ls run.properties maxele.63.nc fort.63.nc fort.61.nc fort.15 fort.22`)
+if [[ $ceraContoursAvailable = yes ]]; then
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} "CERA.tar" )
+fi
+if [[ $TROPICALCYCLONE = on ]]; then
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat` )
+fi
+if [[ $WAVES = on ]]; then
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls swan_HS_max.63.nc swan_TPS_max.63.nc swan_HS.63.nc swan_TPS.63.nc` )
+fi
+dirWind10m=$ADVISDIR/${ENSTORM}Wind10m
+if [[ -d $dirWind10m ]]; then
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls wind10m.maxwvel.63.nc wind10m.fort.74.nc` )
+   ceraNonPriorityFiles=( ${ceraNonPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc` )
+else
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc` )
+fi
+FILES=( ${ceraPriorityFiles[*]} "sendNotification" ${ceraNonPriorityFiles[*]} )
+#
+#-----------------------------------------------------------------------
+#         O P E N  D A P    P U B L I C A T I O N 
+#-----------------------------------------------------------------------
+#
+OPENDAPDIR=""
 #
 # For each opendap server in the list in ASGS config file.
 primaryCount=0
 for server in ${TDS[*]}; do
-   logMessage "Posting to $server opendap with opendap_post.sh using the following command: ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server \"${FILES[*]}\" $OPENDAPNOTIFY"
+   logMessage "$ENSTORM: $THIS: Posting to $server opendap using the following command: ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server \"${FILES[*]}\" $OPENDAPNOTIFY"
    ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server "${FILES[*]}" $OPENDAPNOTIFY >> ${SYSLOG} 2>&1
-   # add downloadurl_backup propert(ies) to 
-
    # add downloadurl_backup propert(ies) to the properties file that refer to previously 
    # posted results
    backupCount=0
@@ -85,26 +189,38 @@ for server in ${TDS[*]}; do
       propertyName="downloadurl_backup"$(($backupServer+1))
       # need to grab the SSHPORT from the configuration
       env_dispatch $backup
-      if [[ $SSHPORT != "null" ]]; then
-         ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties"
-      else
-         ssh $OPENDAPHOST -l $OPENDAPUSER "echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties"
-      fi
+      # Establish the method of posting results for service via opendap
+      OPENDAPPOSTMETHOD=scp
+      for hpc in ${COPYABLEHOSTS[*]}; do
+         if [[ $hpc = $TARGET ]]; then
+            OPENDAPPOSTMETHOD=copy
+         fi
+      done
+      for hpc in ${LINKABLEHOSTS[*]}; do
+         if [[ $hpc = $TARGET ]]; then
+            OPENDAPPOSTMETHOD=link
+         fi
+      done
+      case $OPENDAPPOSTMETHOD in
+      "scp")
+         if [[ $SSHPORT != "null" ]]; then
+            ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties"
+         else
+            ssh $OPENDAPHOST -l $OPENDAPUSER "echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties"
+        fi
+        ;;
+      "copy"|"link")
+         echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties 2>> $SYSLOG
+         ;;
+      *)
+         warn "$ENSTORM: $THIS: OPeNDAP post method unrecogrnized."
+         ;;
+      esac
       backupCount=$(($backupCount+1))
    done
    primaryCount=$((primaryCount+1))
 done
-#
-#
-export PATH=$PATH:$IMAGEMAGICKBINPATH # if ImageMagick is in nonstd location
-#
-# we expect the ASGS config file to tell us how many cera servers there
-# are with CERASERVERNUM and assume they are consecutively named 
-# cera1, cera2, etc. We alternate the forecast ensemble members evenly 
-# among them
-#CERASERVERNUM=`expr $ENMEMNUM % $NUMCERASERVERS + 1`
-#CERASERVER=cera$CERASERVERNUM
-#echo "ceraServer : $CERASERVER" >> run.properties
+
 #
 # write the intended audience to the run.properties file for CERA
 echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
@@ -113,57 +229,6 @@ echo "intendedAudience : $INTENDEDAUDIENCE" >> run.properties
 # web app
 #echo "asgs : ng" >> run.properties 2>> $SYSLOG
 echo "enstorm : $ENSTORM" >> run.properties 2>> $SYSLOG
-#
-# record the sea_surface_height_above_geoid nodal attribute to the
-# run.properties file
-#isUsed=`grep -c sea_surface_height_above_geoid fort.15`
-#if [[ $isUsed = 0 ]]; then
-#   # this nodal attribute is not being used; report this to run.properties file
-#   echo "sea_surface_height_above_geoid : null" >> run.properties
-#else
-#   # get the line number where the start of this nodal attribute is specified
-#   # in the header of the fort.13 (nodal attributes) file
-#   linenum=`grep --line-number --max-count 1 sea_surface_height_above_geoid fort.13 | awk 'BEGIN { FS=":" } { print $1 }'`
-#   # get the actual default value, which is specified three lines after the
-#   # the name of the nodal attribute in the fort.13 header
-#   datumOffsetDefaultValueLine=`expr $linenum + 3`
-#   datumOffsetDefaultValue=`awk -v linenum=$datumOffsetDefaultValueLine 'NR==linenum { print $0 }' fort.13`
-#   echo "sea_surface_height_above_geoid : $datumOffsetDefaultValue" >> run.properties
-#fi
-#
-#  R E F O R M A T T I N G
-#
-#
-# add CPP projection to netcdf files 
-# generate XDMF xml files 
-#for file in `ls *.nc`; do
-#   # don't try to write XDMF xml files for station files or hotstart files
-#   if [[ $file = fort.61.nc || $file = fort.71.nc || $file = fort.72.nc || $file = fort.67.nc || $file = fort.68.nc ]]; then
-#      continue
-#   fi
-#   logMessage "Adding CPP coordinates to $file."
-#   ${OUTPUTDIR}/generateCPP.x --datafile $file --cpp $SLAM0 $SFEA0 2>> $SYSLOG
-#   logMessage "Generating XDMF xml file to accompany $file."
-#   ${OUTPUTDIR}/generateXDMF.x --use-cpp --datafile $file 2>> $SYSLOG
-#done
-
-# record the sea_surface_height_above_geoid nodal attribute to the
-# run.properties file
-isUsed=`grep -c sea_surface_height_above_geoid fort.15`
-if [[ $isUsed = 0 ]]; then
-   # this nodal attribute is not being used; report this to run.properties file
-   echo "sea_surface_height_above_geoid : null" >> run.properties
-else
-   # get the line number where the start of this nodal attribute is specified
-   # in the header of the fort.13 (nodal attributes) file
-   linenum=`grep --line-number --max-count 1 sea_surface_height_above_geoid fort.13 | awk 'BEGIN { FS=":" } { print $1 }'`
-   # get the actual default value, which is specified three lines after the
-   # the name of the nodal attribute in the fort.13 header
-   datumOffsetDefaultValueLine=`expr $linenum + 3`
-   datumOffsetDefaultValue=`awk -v linenum=$datumOffsetDefaultValueLine 'NR==linenum { print $0 }' fort.13`
-   echo "sea_surface_height_above_geoid : $datumOffsetDefaultValue" >> run.properties
-fi
-
 
 
 #
@@ -228,44 +293,3 @@ if [[ -e ${STORMDIR}/fort.61_transpose.txt || -e ${STORMDIR}/fort.72_transpose.t
    tar cvzf ${STORMDIR}/${plotarchive} *.png *.csv ../maxele.63 ../fort.61 ../fort.72
    cd $initialDirectory 2>> ${SYSLOG}
 fi
-#
-#  G I S     K M Z      J P G 
-#
-# name of bounding box for contour plots (see config_simple_gmt_pp.sh
-# for choices)
-#BOX=LA
-# FigureGen executable to use for making JPG files (assumed to be located
-# in $OUTPUTDIR/POSTPROC_KMZGIS/FigGen/
-#FIGUREGENEXECUTABLE=FigureGen32_prompt_inp.x
-# The full path and name for the FigureGen template file.
-#FIGUREGENTEMPLATE=$OUTPUTDIR/POSTPROC_KMZGIS/FigGen/FG_asgs.inp.orig
-#
-#  now create the Google Earth (kmz), jpg, and GIS contour plots
-#${OUTPUTDIR}/POSTPROC_KMZGIS/POST_SCRIPT_Corps.sh $ADVISDIR $OUTPUTDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $GRIDFILE $CONFIG $BOX $FIGUREGENEXECUTABLE $FIGUREGENTEMPLATE
-#
-#  P U B L I C A T I O N
-#
-# grab the names of the output files
-#GISKMZJPG=`ls *KMZ_GIS.tar.gz`
-#PLOTS=`ls *plots.tar.gz`
-#
-# now create the index.html file to go with the output
-#perl ${OUTPUTDIR}/corps_index.pl --stormname $STORMNAME --advisory $ADVISORY --templatefile ${OUTPUTDIR}/corps_index_template.html --giskmzjpgarchive $GISKMZJPG --plotsarchive $PLOTS > index.html
-#
-# now copy plots and visualizations to the website, based on the forcing
-# (i.e., NAM or NHC tropical cyclone), machine on which they were run, the 
-# grid name, and the advisory 
-#if [[ $BACKGROUNDMET = on ]]; then
-#   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "mkdir -p ${WEBPATH}/NAM/$GRIDFILE/$HOSTNAME/$ADVISORY"
-#   scp -i $SSHKEY index.html ${WEBUSER}@${WEBHOST}:${WEBPATH}/NAM/$GRIDFILE/$HOSTNAME/$ADVISORY
-#   scp -i $SSHKEY $GISKMZJPG ${WEBUSER}@${WEBHOST}:${WEBPATH}/NAM/$GRIDFILE/$HOSTNAME/$ADVISORY
-#   scp -i $SSHKEY $PLOTS ${WEBUSER}@${WEBHOST}:${WEBPATH}/NAM/$GRIDFILE/$HOSTNAME/$ADVISORY
-#   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/NAM"
-#fi
-#if [[ $TROPICALCYCLONE = on ]]; then 
-#   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "mkdir -p ${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}"
-#   scp -i $SSHKEY index.html ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
-#   scp -i $SSHKEY $GISKMZJPG ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
-#   scp -i $SSHKEY $PLOTS ${WEBUSER}@${WEBHOST}:${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}
-#   ssh ${WEBHOST} -l ${WEBUSER} -i $SSHKEY "chmod -R 755 ${WEBPATH}/$STORMNAME$YEAR/$GRIDFILE/$HOSTNAME/$ENSTORM/advisory_${ADVISORY}"
-#fi

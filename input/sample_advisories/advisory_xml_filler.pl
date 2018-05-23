@@ -179,11 +179,13 @@ while(<INPUT>) {
    # HURRICANE FRANCES FORECAST/ADVISORY NUMBER  37
    # HURRICANE FRANCES FORECAST/ADVISORY NUMBER  37...CORRECTED
    # HURRICANE FRANCES SPECIAL FORECAST/ADVISORY NUMBER  37
+   # POTENTIAL TROPICAL CYCLONE THREE FORECAST/ADVISORY NUMBER   1
    if ( $_ =~ /^(.+)\s+FORECAST.+ADVISORY NUMBER\s+(\d{1,3})/ ) {
       $stormName = $1;
       $advisoryNumber  = $2;
       # get rid of the "SPECIAL" 
       $stormName =~ s/SPECIAL//;
+      # break into individual words
       my @tmp = split(' ', $stormName);
       if ($tmp[0] eq 'HURRICANE'){
          $stormClass = $tmp[0];
@@ -192,6 +194,9 @@ while(<INPUT>) {
           # SUBTROPICAL is rare. see 2007 01
           $stormClass = "$tmp[0] $tmp[1]";
           $stormName = $tmp[2];
+      } elsif ($tmp[0] eq 'POTENTIAL') {
+         $stormClass = "$tmp[0] $tmp[1] $tmp[2]";       
+         $stormName = $tmp[3]; 
       }
       $stormClassCase = $stormClass; 
       $stormClassCase =~ s/([\w']+)/\u\L$1/g;

@@ -1,0 +1,50 @@
+-89.366667  30.281667   !  8747766 Waveland
+-89.316667  30.325000   !  8747437 Waveland Yact Club
+-89.245000  30.310000   !  8746819 Pass Christian Yacht Club
+-89.081667  30.360000   !  8745557 Gulfport Harbor
+-89.081680  30.431130   !  8745555 Landon
+-89.026667  30.406667   !  8745101 Handsboro Bridge
+-89.008369  30.434759   !  8744934 Biloxi River ADJ
+-88.974960  30.414965   !  8744671 Popps Ferry ADJ
+-88.971667  30.213333   !  8744756 Mississippi Sound
+-88.973454  30.442991   !  8744663 Tchoutacabouffa River Entrance
+-88.925000  30.418333   !  8744284 Keesler Afb
+-88.903333  30.411667   !  8744117 Biloxi
+-88.866150  30.383959   !  8743812 Deer Island ADJ
+-88.869300  30.424134   !  8743838 Langley Point
+-88.856667  30.390000   !  8743735 Biloxi (Cadet Point)
+-88.848850  30.434480   !  8743639 Bayou Poito ADJ
+-88.828209  30.419641   !  8743495 Ocean Springs Old Fort Bayou ADJ
+-88.799812  30.427563   !  8743301 Bayou Talla ADJ
+-88.798333  30.391667   !  8743281 Ocean Springs
+-88.789909  30.422588   !  8743181 Old Fort Bayou ADJ
+-88.774658  30.386662   !  8743081 Hollingsworth Point ADJ
+-88.705070  30.372679   !  8742523 North Shore ADJ
+-88.663333  30.361667   !  8742205 Graveline Bayou Entrance
+-88.609200  30.383300   !  8741798 Gautier
+-88.666667  30.238333   !  8742221 Horn Island
+-88.565070  30.358170   !  8741533 Pascagoula NOAA Lab
+-88.533333  30.340000   !  8741196 Pascagoula Point
+-88.506830  30.348350   !  8741041 Dock E. Port of Pascagoula
+-88.441667  30.203333   !  8740405 Petit Bois Island
+-88.255610  30.402970   !  8739803 Bayou La Batre Bridge
+-88.158333  30.376667   !  8738043 West Fowl River Bridge
+-88.113333  30.443333   !  8735523 East Fow Riger Bridge
+-88.082310  30.564700   !  8735391 Dog River Bridge
+-88.055240  30.650430   !  8736897 Coast Guart Sector Mobile
+-88.037470  30.704580   !  8737048 Mobile State Docks
+-87.937350  30.664250   !  8733839 Meaher State Park
+-87.942100  30.490200   !  8733821 Point Clear Mobile Bay
+-87.824219  30.416042   !  8732828 Weeks Bay ADJ
+-88.069600  30.251400   !  8735180 Dauphin Island
+-87.614400  30.273950   !  8730667 Alabama Point
+-87.430970  30.387160   !  8729941 Blue Angels Park
+-87.358320  30.421110   !  8729905 Millview
+-87.212560  30.400060   !  8729840 Pensacola
+-86.865000  30.376667   !  8729678 Navarre
+-86.489110  30.500400   !  8729501 Valparaiso
+-85.878333  30.213333   !  8729210 Panama City Beach
+-85.666830  30.151559   !  8729108 Panama City
+-85.313333  29.815000   !  8728912 Port St. Joe
+-85.221667  29.880000   !  8728853 White City
+-84.980000  29.725000   !  8728690 Apalachicola

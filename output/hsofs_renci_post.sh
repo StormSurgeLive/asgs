@@ -21,6 +21,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------
 #
+# bash ~/asgs/2014stable/output/hsofs_renci_post.sh ~/asgs/2014stable/config/2017/asgs_config_natehsofsNG60cm_hatteras_hsofsx.sh /projects/ncfs/data/asgs19488/15 16 2017 15 hatteras.renci.org nhcConsensus 2017071600 7257600.0 /home/ncfs/asgs/2014stable/input/meshes/hsofs/hsofs.14 ~/asgs/2014stable/output stuff.log ~/.ssh/id_rsa.pub
 CONFIG=$1
 ADVISDIR=$2
 STORM=$3
@@ -232,11 +233,25 @@ tar cvhf CERA.tar $shapeDirs > CERAtar.log 2>> $SYSLOG
 ERROVALUE=$?  # capture exit status
 if [[ $ERROVALUE == 0 ]] ; then
    logMessage "$ENSTORM: $THIS: Created CERA tar file correctly."
-   echo "Contour Tar File : CERA.tar" >> run.properties
-   ceraContoursAvailable=yes
+   #@jasonfleming debug 20170915: don't post CERA tar file
+   #echo "Contour Tar File : CERA.tar" >> run.properties
+   #ceraContoursAvailable=yes
 else
    error "$ENSTORM: $THIS: Could not create CERA tar file."
 fi
+#------------------------------------------------------------------------
+# accumulate min/max
+#previousAdvisory=`expr $ADVISORY - 1`
+#for file in maxele.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc maxwvel.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc ; do
+#   if [[ -e $file ]]; then
+#      ${OUTPUTDIR}/collectMinMax.x --source ../../$previousAdvisory/nowcast/$file --destination $file
+#   fi
+#done
+# 
+# produce csv file of maximum data
+${OUTPUTDIR}/make_max_csv.sh $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG >> ${SYSLOG} 2>&1
+# get name of csv file to add it to the list of files to post to opendap
+csvFileName=`grep "Maximum Values Point CSV File Name" ${STORMDIR}/run.properties | sed 's/Maximum Values Point CSV File Name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 #
 #-----------------------------------------------------------------------
 #         O P E N  D A P    P U B L I C A T I O N 
@@ -258,7 +273,7 @@ fi
 # @jasonfleming: Hack in a notification email once the bare minimum files
 # needed by CERA have been posted. 
 #FILES=(`ls *.nc al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat fort.15 fort.22 CERA.tar run.properties 2>> /dev/null`)
-ceraNonPriorityFiles=( `ls endrisinginun.63.nc everdried.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc` )
+ceraNonPriorityFiles=( `ls endrisinginun.63.nc everdried.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc $csvFileName` )
 ceraPriorityFiles=(`ls run.properties maxele.63.nc fort.63.nc fort.61.nc fort.15 fort.22`)
 if [[ $ceraContoursAvailable = yes ]]; then
    ceraPriorityFiles=( ${ceraPriorityFiles[*]} "CERA.tar" )
@@ -325,7 +340,7 @@ for server in ${TDS[*]}; do
          echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties 2>> $SYSLOG
          ;;
       *)
-         warn "$ENSTORM: $THIS: OPeNDAP post method unrecogrnized."  
+         warn "$ENSTORM: $THIS: OPeNDAP post method $OPENDAPPOSTMETHOD is not available."  
          ;;
       esac
       backupCount=$(($backupCount+1))

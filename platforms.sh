@@ -32,6 +32,25 @@
 #
 # alias lsta='ls -lth *.state | head'
 #
+init_supermike()
+{ #<- can replace the following with a custom script
+  HOSTNAME=mike.hpc.lsu.edu
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  QUEUENAME=workq
+  SERQUEUE=single
+  #ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
+  SUBMITSTRING=qsub
+  SCRATCHDIR=/work/$USER
+  #SCRATCHDIR=/work/cera
+  SSHKEY=~/.ssh/id_rsa.pub
+  QSCRIPT=supermike.template.pbs
+  PREPCONTROLSCRIPT=supermike.adcprep.template.pbs
+  QSCRIPTGEN=tezpur.pbs.pl
+  PPN=16
+  # alias cdwo='cd /work/jgflemin'
+  # alias cdasgs='cd ~/asgs/2014stable'
+}
 init_queenbee()
 { #<- can replace the following with a custom script
   HOSTNAME=queenbee.loni.org
@@ -120,10 +139,13 @@ init_hatteras()
   SUBMITSTRING=sbatch
   SCRATCHDIR=/projects/ncfs/data
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=hatteras.reservation.template.slurm
-  PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm
+  QSCRIPT=hatteras.template.slurm
+  PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
+  RESERVATION=ncfs     # ncfs or null
+  PARTITION=ncfs       # ncfs or batch
+  CONSTRAINT=ivybridge # ivybridge or sandybridge
   QSCRIPTGEN=hatteras.slurm.pl
-  PPN=16
+  PPN=20
 }
 init_stampede()
 { #<- can replace the following with a custom script
@@ -261,8 +283,8 @@ init_topaz()
   HOSTNAME=topaz.erdc.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
-  ACCOUNT=ERDCV00898N10
-  #ACCOUNT=ERDCV00898HSP
+  #ACCOUNT=ERDCV00898N10
+  ACCOUNT=ERDCV00898HSP
   SUBMITSTRING="qstat"
   SCRATCHDIR=$WORKDIR 
   SSHKEY=~/.ssh/id_rsa_topaz
@@ -377,6 +399,18 @@ init_desktop()
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
   SWANMACROSINC=macros.inc.gfortran
 }
+init_Poseidon()
+{
+  HOSTNAME=poseidon.vsnet.gmu.edu
+  QUEUESYS=mpiexec
+  QCHECKCMD="ps -aux | grep mpiexec "
+  SUBMITSTRING="mpiexec -n"
+  SCRATCHDIR=/home/fhrl/Documents/asgs_processing
+  SSHKEY=id_rsa_jason-desktop
+  ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
+  SWANMACROSINC=macros.inc.gfortran
+}
+
 init_topsail()
 { #<- can replace the following with a custom script
   HOSTNAME=topsail.unc.edu
@@ -388,7 +422,7 @@ init_topsail()
 # THREDDS Data Server (TDS, i.e., OPeNDAP server) at RENCI
 init_renci_tds()
 {
-   OPENDAPHOST=ht1.renci.org
+   OPENDAPHOST=ht4.renci.org
    DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
    CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
    OPENDAPBASEDIR=/projects/ncfs/opendap/data
@@ -476,6 +510,9 @@ env_dispatch(){
   "thunder") consoleMessage "platforms.sh: Thunder (AFRL) configuration found."
           init_thunder
           ;;
+  "supermike") consoleMessage "platforms.sh: Supermike (LSU) configuration found."
+          init_supermike
+          ;;
   "queenbee") consoleMessage "platforms.sh: Queenbee (LONI) configuration found."
           init_queenbee
           ;;
@@ -503,10 +540,13 @@ env_dispatch(){
   "desktop") consoleMessage "platforms.sh: desktop configuration found."
           init_desktop
            ;;
+  "poseidon") consoleMessage "platforms.sh: desktop configuration found."
+          init_Poseidon
+           ;;
   "test") consoleMessage "platforms.sh: test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "platforms.sh: '$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, queenbee, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
+  *) fatal "platforms.sh: '$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
      ;;
   esac
 }
