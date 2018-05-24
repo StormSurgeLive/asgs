@@ -104,9 +104,9 @@ GRIDNAME=LA_v17a-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=LA_v17a-WithUpperAtch.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=cpra2017v12.cera_stations.20180104
-VELSTATIONS=cpra2017v12.cera_stations.20180104
-METSTATIONS=cpra2017v12.cera_stations.20180104
+ELEVSTATIONS=combined_stations_20180524.txt
+VELSTATIONS=combined_stations_20180524.txt
+METSTATIONS=combined_stations_20180524.txt
 NAFILE=LA_v17a-WithUpperAtch.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=LA_v17a-WithUpperAtch.26.template   # only used if WAVES=on
