@@ -4,11 +4,26 @@ close all
 % All time are in UTC. The USACE values are adjusted from CDT to UTC
 % by adding 5 hours.
 
-dtAdvisory = datenum(2012,8,27,9,0,0);
+% Read cpraHydro.info for specific run-time information
+fileID = fopen('cpraHydro.info','r');
+info = textscan(fileID,'%s\n');
+fclose(fileID);
+storm = info{1}{1}; adcGrid = info{1}{2}; forecastValid = info{1}{3};
 
-% Read in ADCIRC time-series water levels
-adcData = readIMEDS('fort.61.imeds');
-adcData2 = readIMEDS('fort.61.veerRight50.imeds');
+% Need to get this in through some input information...
+%dtAdvisory = datenum(2012,8,27,9,0,0);
+dtAdvisory = datenum(forecastValid,'yyyymmddHHMMSS');
+
+colors = [0.9290 0.6940 0.1250; 175/255 54/255 60/255];
+
+% Loop through the number of ensemble simulations
+numEns = 2;
+ensFileNames = {'fort.61.imeds','fort.61.veerRight50.imeds'};
+for i = 1:numEns
+    % Read in ADCIRC time-series water levels
+    adcData(i) = readIMEDS(char(ensFileNames(i)));
+end
+
 % Must be in the order for the fort.61 file
 adcNames = {'17th St. Outfall Canal',...
     'Seabrook Complex (IHNC-01)',...
@@ -39,8 +54,8 @@ stationsName={'West End',...
     'Mississippi River at Empire',...
     'Mississippi River at Empire'};
 
-sdate = round(adcData.STATION{1}.DATE(1));
-edate = round(adcData.STATION{1}.DATE(length(adcData.STATION{1}.DATE)));
+sdate = round(adcData(1).STATION{1}.DATE(1));
+edate = round(adcData(1).STATION{1}.DATE(length(adcData(1).STATION{1}.DATE)));
             
 ax = gca;
 fig = gcf;
@@ -61,65 +76,36 @@ for f = 1:length(stations)
     
 % -------------------------------------------------------------------------
     
-    % Get ADCIRC data from station f
-    adcData.STATION{f}.DATA(adcData.STATION{f}.DATA < -999) = NaN;
-    % Find min/max water surface elevation from ADCIRC result
-%     if isempty(adcData.STATION{f}.DATA) == 0
-    res = ~any(~isnan(adcData.STATION{f}.DATA(:)));
-    if res == false
-%         maxWL = ceil(max(adcData.STATION{f}.DATA / 0.3048)) + 3;
-%         minWL = floor(min(adcData.STATION{f}.DATA / 0.3048)) - 2;
-        
-        % I want to find this before plotting so all charts have the same
-        % min and max y-axis.
-        maxWL = 18;
-        minWL = -4;
-    else
-        % Create some dummy values so the legned can still be plotted
-        adcData.STATION{f}.DATE(1) = sdate;
-        adcData.STATION{f}.DATE(1) = sdate+0.01;
-        adcData.STATION{f}.DATA(1) = -20;
-        adcData.STATION{f}.DATA(2) = -20;
-        
-        % Force max and min water level bounds
-        maxWL = 18;
-        minWL = -4;
-    end
-    
-    % Plot ADCIRC Simulation
-    plot(adcData.STATION{f}.DATE,adcData.STATION{f}.DATA / 0.3048,...
-        'Linewidth',3,'color',[0.9290,0.6940,0.1250])
- 
-% -------------------------------------------------------------------------
+    % Get ADCIRC data from station f and loop through each available ensemble
+    for i = 1:numEns
+        adcData(i).STATION{f}.DATA(adcData(i).STATION{f}.DATA < -999) = NaN;
+        % Find min/max water surface elevation from ADCIRC result
+        res = ~any(~isnan(adcData(i).STATION{f}.DATA(:)));
+        if res == false
+    %         maxWL = ceil(max(adcData.STATION{f}.DATA / 0.3048)) + 3;
+    %         minWL = floor(min(adcData.STATION{f}.DATA / 0.3048)) - 2;
 
-    % Get ADCIRC data from station f for second ensemble
-    adcData2.STATION{f}.DATA(adcData2.STATION{f}.DATA < -999) = NaN;
-    % Find min/max water surface elevation from ADCIRC result
-%     if isempty(adcData.STATION{f}.DATA) == 0
-    res = ~any(~isnan(adcData2.STATION{f}.DATA(:)));
-    if res == false
-%         maxWL = ceil(max(adcData2.STATION{f}.DATA / 0.3048)) + 3;
-%         minWL = floor(min(adcData2.STATION{f}.DATA / 0.3048)) - 2;
-        
-        % I want to find this before plotting so all charts have the same
-        % min and max y-axis.
-        maxWL = 18;
-        minWL = -4;
-    else
-        % Create some dummy values so the legned can still be plotted
-        adcData2.STATION{f}.DATE(1) = sdate;
-        adcData2.STATION{f}.DATE(1) = sdate+0.01;
-        adcData2.STATION{f}.DATA(1) = -20;
-        adcData2.STATION{f}.DATA(2) = -20;
-        
-        % Force max and min water level bounds
-        maxWL = 18;
-        minWL = -4;
-    end
+            % I want to find this before plotting so all charts have the same
+            % min and max y-axis.
+            maxWL = 18;
+            minWL = -4;
+        else
+            % Create some dummy values so the legned can still be plotted
+            adcData(i).STATION{f}.DATE(1) = sdate;
+            adcData(i).STATION{f}.DATE(1) = sdate+0.01;
+            adcData(i).STATION{f}.DATA(1) = -20;
+            adcData(i).STATION{f}.DATA(2) = -20;
+
+            % Force max and min water level bounds
+            maxWL = 18;
+            minWL = -4;
+        end
     
-    % Plot ADCIRC Simulation
-    plot(adcData2.STATION{f}.DATE,adcData2.STATION{f}.DATA / 0.3048,...
-        'Linewidth',2.5,'color',[175/255,54/255,60/255])
+        % Plot ADCIRC Simulation
+        plot(adcData(i).STATION{f}.DATE,adcData(i).STATION{f}.DATA / 0.3048,...
+            'Linewidth',3,'color',colors(i,:))
+
+    end
     
 % -------------------------------------------------------------------------
     
@@ -149,11 +135,12 @@ for f = 1:length(stations)
     ylabel('Water Level (ft)');
 
     grid on;
-    ax.YMinorGrid = 'on';
+    %ax.YMinorGrid = 'on';
     
 % -------------------------------------------------------------------------
     
-    title1 = 'Storm:Isaac  -  grid:LA_v17a-WithUpperAtch_chk';
+%     title1 = 'Storm:Isaac  -  grid:LA_v17a-WithUpperAtch_chk';
+    title1 = strcat('Storm:',storm,' - grid:',adcGrid);
     title2 = strcat(adcNames(f),'  -  USACE Gage ID ',stations(f));
     
     text(0,1.07,title1,'Units','normalized','Interpreter','None');
