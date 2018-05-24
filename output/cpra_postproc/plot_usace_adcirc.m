@@ -4,8 +4,15 @@ close all
 % All time are in UTC. The USACE values are adjusted from CDT to UTC
 % by adding 5 hours.
 
+% Read cpraHydro.info for specific run-time information
+fileID = fopen('cpraHydro.info','r');
+info = textscan(fileID,'%s\n');
+fclose(fileID);
+storm = info{1}{1}; adcGrid = info{1}{2}; forecastValid = info{1}{3};
+
 % Need to get this in through some input information...
-dtAdvisory = datenum(2012,8,27,9,0,0);
+%dtAdvisory = datenum(2012,8,27,9,0,0);
+dtAdvisory = datenum(forecastValid,'yyyymmddHHMMSS');
 
 colors = [0.9290 0.6940 0.1250; 175/255 54/255 60/255];
 
@@ -132,7 +139,8 @@ for f = 1:length(stations)
     
 % -------------------------------------------------------------------------
     
-    title1 = 'Storm:Isaac  -  grid:LA_v17a-WithUpperAtch_chk';
+%     title1 = 'Storm:Isaac  -  grid:LA_v17a-WithUpperAtch_chk';
+    title1 = strcat('Storm:',storm,' - grid:',adcGrid);
     title2 = strcat(adcNames(f),'  -  USACE Gage ID ',stations(f));
     
     text(0,1.07,title1,'Units','normalized','Interpreter','None');
