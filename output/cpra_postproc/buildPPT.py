@@ -92,5 +92,7 @@ for image in fnames:
 
 #prs.save('Isaac_Adv25_082720180900.pptx')
 pptFile = storm + "_Adv" + advisory + "_" + advisoryTime + ".pptx"
-#prs.save('Isaac_Adv25_082720180900.pptx')
 prs.save(pptFile)
+pFile = open('pptFile.temp','w')
+pFile.write(pptFile)
+pFile.close()
