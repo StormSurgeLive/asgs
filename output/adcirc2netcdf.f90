@@ -178,7 +178,12 @@ dataFileExtension = trim(dataFileBase(lastDotPosition+1:))
 ! as the default adcirc file name.
 if ( trim(f%defaultFileName).eq.'null') then
    f%defaultFileName = dataFileBase
-endif      
+endif
+!
+! recognize nodal attributes files
+if ( trim(dataFileExtension).eq.'13' ) then
+   f%defaultFileName = 'fort.13'
+endif
 !
 ! set up basic characteristics based on canonical ascii file name
 if ( meshonly.eqv..false.) then
