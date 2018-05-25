@@ -77,13 +77,13 @@ SCRATCHDIR=/work/$USER    # vs default /work/cera
 STORM=01                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2018                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
-#RSSSITE=filesystem
+RSSSITE=filesystem
 #FTPSITE=filesystem
-#FDIR=${INPUTDIR}/sample_advisories
+FDIR=${INPUTDIR}/sample_advisories/2018
 #HDIR=${INPUTDIR}/sample_advisories
-RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
+#RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
-FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+#FDIR=/atcf/afst                  # forecast dir on nhc ftp site
 HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
