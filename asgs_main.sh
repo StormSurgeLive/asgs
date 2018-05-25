@@ -424,7 +424,7 @@ prep()
                 done
              fi
              if [[ -e  swan.68 ]]; then
-                logMessage "$ENSTORM: $THIS: Starting dcomposition of fulldomain swan hotstart file to subdomains."
+                logMessage "$ENSTORM: $THIS: Starting decomposition of fulldomain swan hotstart file to subdomains."
                 ${ADCIRCDIR}/../swan/unhcat.exe <<EOF 2>> ${SYSLOG}
 2
 swan.68
