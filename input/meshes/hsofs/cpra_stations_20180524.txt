@@ -10,4 +10,3 @@
 -90.27097 29.90839 ! WBV-72/74 ! CPRA ! Bayou Verret / Western Tie-In Sector Gate - Flood Side (cf USACE 82715)
 -89.60107 29.37341 ! NOV-13    ! CPRA ! Mississippi River at Empire Floodgate (cf USACE 01440) 
 -89.59600 29.38935 ! NOV-14    ! CPRA ! Mississippi River at Empire Lock (cf USACE 01440)
-
