@@ -44,7 +44,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=off    # NAM download/forcing
+BACKGROUNDMET=off   # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=on   # tropical cyclone forcing
 WAVES=on             # wave forcing
@@ -79,7 +79,7 @@ YEAR=2018                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 RSSSITE=filesystem
 #FTPSITE=filesystem
-FDIR=${INPUTDIR}/sample_advisories/2018
+FDIR=~/asgs/2014stable/input/sample_advisories/2018
 #HDIR=${INPUTDIR}/sample_advisories
 #RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files

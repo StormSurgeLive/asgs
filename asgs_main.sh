@@ -1641,10 +1641,13 @@ while [ true ]; do
                ln -s $file fort.${ext} 2>> ${SYSLOG} # symbolically link data
             fi
          done
-      ;;
+         ;;
+     off)
+        # don't need to download any data
+        ;;
      *) # should be unreachable
         fatal "BACKGROUNDMET did not match an allowable value."
-      ;;
+        ;;
    esac
    CONTROLOPTIONS=" --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
    # send out an email alerting end users that a new cycle has been issued
