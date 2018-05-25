@@ -1,0 +1,650 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:georss="http://www.georss.org/georss"
+ xmlns:gml="http://www.opengis.net/gml"
+ xmlns:nhc="https://www.nhc.noaa.gov">
+<channel>
+<pubDate>Fri, 25 May 2018 16:08:30 GMT</pubDate>
+<title>NHC Atlantic</title>
+<description>Active tropical cyclones in the Atlantic, Caribbean, and the Gulf of Mexico</description>
+<link>https://www.nhc.noaa.gov/</link>
+<copyright>none</copyright>
+<managingEditor>nhcwebmaster@noaa.gov (NHC Webmaster)</managingEditor>
+<language>en-us</language>
+<webMaster>nhcwebmaster@noaa.gov (NHC Webmaster)</webMaster>
+<image>
+<url>https://www.nhc.noaa.gov/gifs/xml_logo_nhc.gif</url>
+<link>https://www.nhc.noaa.gov/</link>
+<title>NHC Atlantic</title>
+<description>NOAA logo</description>
+<width>95</width>
+<height>45</height>
+</image>
+<item>
+<title>Atlantic Tropical Weather Outlook</title>
+<description>
+<![CDATA[
+<br/>
+000<br/>
+ABNT20 KNHC 251603<br/>
+TWOAT <br/>
+<br/>
+Special Tropical Weather Outlook<br/>
+NWS National Hurricane Center Miami FL<br/>
+1205 PM EDT Fri May 25 2018<br/>
+<br/>
+For the North Atlantic...Caribbean Sea and the Gulf of Mexico:<br/>
+<br/>
+The National Hurricane Center is issuing advisories on newly formed<br/>
+Subtropical Storm Alberto, located over the northwestern Caribbean<br/>
+Sea just east of the Yucatan Peninsula of Mexico.<br/>
+<br/>
+Tropical cyclone formation is not expected during the next 5 days.<br/>
+<br/>
+Routine issuance of the Tropical Weather Outlook will resume on 1<br/>
+June.<br/>
+<br/>
+&&<br/>
+<br/>
+Public Advisories on Alberto are issued under WMO header WTNT31 KNHC<br/>
+and under AWIPS header MIATCPAT1.<br/>
+Forecast/Advisories on Alberto are issued under WMO header WTNT21<br/>
+KNHC and under AWIPS header MIATCMAT1.<br/>
+<br/>
+$$<br/>
+Forecaster Stewart<br/>
+]]>
+</description>
+<pubDate>Fri, 25 May 2018 16:03:16 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/gtwo.php?basin=atlc</link>
+<guid>https://www.nhc.noaa.gov/gtwo.php?basin=atlc&amp;201805251603</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+ <title>Summary for Subtropical Storm Alberto (AT1/AL012018)</title>
+ <guid isPermaLink="false">summary-al012018-201805251443</guid>
+ <pubDate>Fri, 25 May 2018 14:43:46 GMT</pubDate>
+ <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+ <link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT1+shtml/251443.shtml</link>
+ <description>
+  ...HEAVY RAINFALL EXPECTED TO AFFECT THE YUCATAN PENINSULA...WESTERN CUBA...FLORIDA...AND THE NORTHEASTERN GULF COAST THROUGH THE WEEKEND...
+ As of 10:00 AM CDT Fri May 25
+ the center of Alberto was located near 19.7, -86.8
+ with movement NNE at 6 mph.
+ The minimum central pressure was 1005 mb
+ with maximum sustained winds of about 40 mph.
+ </description>
+ <nhc:Cyclone>
+  <nhc:center>19.7, -86.8</nhc:center>
+  <nhc:type>Subtropical Storm</nhc:type>
+  <nhc:name>Alberto</nhc:name>
+  <nhc:wallet>AT1</nhc:wallet>
+  <nhc:atcf>AL012018</nhc:atcf>
+  <nhc:datetime>10:00 AM CDT Fri May 25</nhc:datetime>
+  <nhc:movement>NNE at 6 mph</nhc:movement>
+  <nhc:pressure>1005 mb</nhc:pressure>
+  <nhc:wind>40 mph</nhc:wind>
+  <nhc:headline> ...HEAVY RAINFALL EXPECTED TO AFFECT THE YUCATAN PENINSULA...WESTERN CUBA...FLORIDA...AND THE NORTHEASTERN GULF COAST THROUGH THE WEEKEND...</nhc:headline>
+ </nhc:Cyclone>
+</item>
+<item>
+<title>Subtropical Storm Alberto Public Advisory Number 1</title>
+<description>Issued at 1000 AM CDT Fri May 25 2018  <![CDATA[<pre>
+
+000
+WTNT31 KNHC 251443
+TCPAT1
+
+BULLETIN
+Subtropical Storm Alberto Advisory Number   1
+NWS National Hurricane Center Miami FL       AL012018
+1000 AM CDT Fri May 25 2018
+
+...PRE-SEASON SUBTROPICAL STORM ALBERTO FORMS OVER THE NORTHWESTERN
+CARIBBEAN SEA...
+...HEAVY RAINFALL EXPECTED TO AFFECT THE YUCATAN PENINSULA...WESTERN
+CUBA...FLORIDA...AND THE NORTHEASTERN GULF COAST THROUGH THE
+WEEKEND...
+
+
+SUMMARY OF 1000 AM CDT...1500 UTC...INFORMATION
+-----------------------------------------------
+LOCATION...19.7N 86.8W
+ABOUT 55 MI...90 KM S OF COZUMEL MEXICO
+ABOUT 195 MI...315 KM SW OF THE WESTERN TIP OF CUBA
+MAXIMUM SUSTAINED WINDS...40 MPH...65 KM/H
+PRESENT MOVEMENT...NNE OR 20 DEGREES AT 6 MPH...9 KM/H
+MINIMUM CENTRAL PRESSURE...1005 MB...29.68 INCHES
+
+
+WATCHES AND WARNINGS
+--------------------
+CHANGES WITH THIS ADVISORY:
+
+The Government of Mexico has issued a Tropical Storm Watch for the
+east coast of the Yucatan Peninsula from Tulum to Cabo Catoche.
+
+The Government of Cuba has issued a Tropical Storm Watch for the
+western Cuban province of Pinar del Rio.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT:
+
+A Tropical Storm Watch is in effect for...
+* Tulum to Cabo Catoche Mexico
+* Cuban province of Pinar del Rio
+
+A Tropical Storm Watch means that tropical storm conditions are
+possible within the watch area, in this case within the next 24
+hours.
+
+Interests along the central and eastern U.S. Gulf Coast should
+monitor the progress of Alberto. Tropical storm and storm surge
+watches could be required for portions of this area later today or
+tonight.
+
+For storm information specific to your area, please monitor
+products issued by your national meteorological service.
+
+
+DISCUSSION AND OUTLOOK
+----------------------
+At 1000 AM CDT (1500 UTC), the center of Subtropical Storm Alberto
+was located near latitude 19.7 North, longitude 86.8 West. The storm
+is moving toward the north-northeast near 6 mph (9 km/h). A general
+slow motion toward the north is expected through the weekend,
+followed by a northwest turn by Monday. On the foreast track,
+Alberto is expected to pass near the eastern coast of the Yucatan
+peninsula tonight, be near the western tip of Cuba Saturday morning,
+emerge over the southeastern Gulf of Mexico by Saturday night, and
+approach the north-central Gulf Coast on Monday.
+
+Maximum sustained winds are near 40 mph (65 km/h) with higher gusts.
+Gradual strengthening is forecast for the next 72 hours.
+
+Winds of 40 mph extend outward up to 115 miles (185 km) from the
+center.
+
+The estimated minimum central pressure is 1005 mb (29.68 inches).
+
+
+HAZARDS AFFECTING LAND
+----------------------
+RAINFALL:  Alberto is expected to produce total rain accumulations
+of 10 to 15 inches with isolated totals of 25 inches across the
+northeastern portions of the Yucatan Peninsula and western Cuba.
+These rains could produce life-threatening flash floods and
+mudslides. Rainfall accmumulations of 4 to 8 inches with maximum
+amounts of 12 inches are possible across the Florida Keys and
+southern and southwestern Florida.  Heavy rain will likely begin
+to affect the central Gulf Coast region and the southeastern Untied
+States later this weekend and continue into early next week.
+Flooding potential will increase across this region early next
+week as Alberto is forecast to slow down after it moves inland.
+
+WIND:  Tropical storm conditions are possible within the watch
+area through Saturday.
+
+SURF:  Swells generated by Alberto are affecting portions of
+the coast of eastern Yucatan Peninsula and western Cuba.  These
+swells are likely to cause life-threatening surf and rip current
+conditions.  Hazardous surf conditions are likely to develop along
+much of the central and eastern U.S. Gulf Coast this weekend. For
+more information, consult products from your local weather office.
+
+
+NEXT ADVISORY
+-------------
+Next intermediate advisory at 100 PM CDT.
+Next complete advisory at 400 PM CDT.
+
+$$
+Forecaster Stewart
+
+</pre>]]></description>
+<pubDate>Fri, 25 May 2018 14:43:46 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT1+shtml/251443.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCPAT1+shtml/251443.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Subtropical Storm Alberto Forecast Advisory Number 1</title>
+<description>Issued at 1500 UTC FRI MAY 25 2018  <![CDATA[<pre>
+
+000
+WTNT21 KNHC 251443
+TCMAT1
+
+SUBTROPICAL STORM ALBERTO FORECAST/ADVISORY NUMBER   1
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL012018
+1500 UTC FRI MAY 25 2018
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+THE GOVERNMENT OF MEXICO HAS ISSUED A TROPICAL STORM WATCH FOR THE
+EAST COAST OF THE YUCATAN PENINSULA FROM TULUM TO CABO CATOCHE.
+
+THE GOVERNMENT OF CUBA HAS ISSUED A TROPICAL STORM WATCH FOR THE
+WESTERN CUBAN PROVINCE OF PINAR DEL RIO.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A TROPICAL STORM WATCH IS IN EFFECT FOR...
+* TULUM TO CABO CATOCHE MEXICO
+* CUBAN PROVINCE OF PINAR DEL RIO
+
+A TROPICAL STORM WATCH MEANS THAT TROPICAL STORM CONDITIONS ARE
+POSSIBLE WITHIN THE WATCH AREA...IN THIS CASE WITHIN THE NEXT 24
+HOURS.
+
+INTERESTS ALONG THE CENTRAL AND EASTERN U.S. GULF COAST SHOULD
+MONITOR THE PROGRESS OF ALBERTO. TROPICAL STORM AND STORM SURGE
+WATCHES COULD BE REQUIRED FOR PORTIONS OF THIS AREA LATER TODAY OR
+TONIGHT.
+
+SUBTROPICAL STORM CENTER LOCATED NEAR 19.7N  86.8W AT 25/1500Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHEAST OR  20 DEGREES AT   5 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1005 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT.......100NE 100SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 19.7N  86.8W AT 25/1500Z
+AT 25/1200Z CENTER WAS LOCATED NEAR 19.4N  87.0W
+
+FORECAST VALID 26/0000Z 20.5N  86.6W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...100NE 100SE   0SW   0NW.
+
+FORECAST VALID 26/1200Z 22.0N  86.2W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT...100NE 100SE   0SW   0NW.
+
+FORECAST VALID 27/0000Z 24.1N  85.8W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT...100NE 100SE   0SW  60NW.
+
+FORECAST VALID 27/1200Z 26.7N  86.1W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 50NE  50SE   0SW   0NW.
+34 KT...100NE 100SE   0SW  80NW.
+
+FORECAST VALID 28/1200Z 29.3N  87.9W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 50NE  50SE   0SW  40NW.
+34 KT...100NE 100SE   0SW  80NW.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 29/1200Z 31.0N  89.1W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+
+OUTLOOK VALID 30/1200Z 33.6N  88.7W...INLAND
+MAX WIND  20 KT...GUSTS  30 KT.
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 19.7N  86.8W
+
+NEXT ADVISORY AT 25/2100Z
+
+$$
+FORECASTER STEWART
+
+
+</pre>]]></description>
+<pubDate>Fri, 25 May 2018 14:43:14 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCMAT1+shtml/251443.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCMAT1+shtml/251443.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Subtropical Storm Alberto Forecast Discussion Number 1</title>
+<description>Issued at 1000 AM CDT Fri May 25 2018  <![CDATA[<pre>
+
+000
+WTNT41 KNHC 251444
+TCDAT1
+
+Subtropical Storm Alberto Discussion Number   1
+NWS National Hurricane Center Miami FL       AL012018
+1000 AM CDT Fri May 25 2018
+
+The broad low pressure system that the NHC has been tracking for
+the past several days over the Yucatan Peninsula has finally moved
+offshore over the waters of the northwestern Caribbean Sea.
+Although the system possesses multiple low-level circulations, the
+overall larger circulation has improved since yesterday. Given that
+the system has been interacting with a sharp upper-level trough,
+the strongly sheared low has been designated a subtropical storm.
+The initial intensity is based on buoy and ship observations of
+30-35 kt. Ship 3ETA7 located just northeast of the center at 1100Z
+reported 45-kt winds at 50 meters elevation. Those winds equate to
+35-40 kt at 10 meters elevation. An Air Force Reserve Hurricane
+Hunter Aircraft is scheduled to investigate Alberto later this
+afternoon and provide more information on the storm's structure and
+intensity.
+
+The initial motion estimate is an uncertain 020/05 kt. The broad
+inner-core wind field and multiple swirls makes the short-term
+motion forecast a little tricky. However, a large subtropical ridge
+to the east should generally induce a slow north to north-
+northeastward motion for the next 24 hours or so. After that, the
+ridge across the western Atlantic and Florida, along with a
+mid/upper-level low forecast to develop over the central Gulf of
+Mexico, should result in a faster northward motion at 36-48 hours,
+followed by a gradual turn toward the northwest around the
+northern fringe of the aforementioned mid/upper-level low. By 96
+hours, the cyclone is forecast to slow down significantly as it
+nears the north-central Gulf Coast due to a large weakness in the
+subtropical ridge forecast to develop over the Deep South. The
+official forecast track closely follows the consensus models TVCN
+and HCCA.
+
+Given the broad inner-core wind field and belligerent westerly wind
+shear forecast to persist for the next 48 hours or so, only gradual
+intensification is expected. By 72 hours, however, when the cyclone
+is forecast to move slowly over above-normal SSTs of 28-29C and into
+an upper-level col and weak wind shear, some additional
+strengthening could occur. For now, the intensity forecast will
+remain conservative due to possible intrusion of dry mid-level air
+before landfall, and closely follows the HCCA consensus model.
+
+KEY MESSAGES:
+
+1. Regardless of its exact track and intensity, Alberto is expected
+to produce heavy rainfall and flash flooding over the northeastern
+Yucatan Peninsula of Mexico, western Cuba, southern Florida and the
+Florida Keys. Rainfall and flooding potential will increase across
+the central Gulf Coast region and the southeastern United States
+later this weekend and early next week when Alberto is expected to
+slow down after it moves inland.
+
+2. Alberto could bring tropical storm conditions and storm surge to
+portions of the central and eastern Gulf Coast later this weekend
+and early next week, although it is too soon to specify the exact
+location and magnitude of these impacts. Residents in these areas
+should monitor the progress of Alberto, as tropical storm and storm
+surge watches may be required later today or tonight.
+
+3. Dangerous surf and rip current conditions are affecting portions
+of the Yucatan Peninsula and western Cuba and will likely spread
+along the eastern and central U.S. Gulf Coast later this weekend.
+
+FORECAST POSITIONS AND MAX WINDS
+
+INIT  25/1500Z 19.7N  86.8W   35 KT  40 MPH
+ 12H  26/0000Z 20.5N  86.6W   35 KT  40 MPH
+ 24H  26/1200Z 22.0N  86.2W   40 KT  45 MPH
+ 36H  27/0000Z 24.1N  85.8W   45 KT  50 MPH
+ 48H  27/1200Z 26.7N  86.1W   50 KT  60 MPH
+ 72H  28/1200Z 29.3N  87.9W   55 KT  65 MPH
+ 96H  29/1200Z 31.0N  89.1W   30 KT  35 MPH...INLAND
+120H  30/1200Z 33.6N  88.7W   20 KT  25 MPH...INLAND
+
+$$
+Forecaster Stewart
+
+</pre>]]></description>
+<pubDate>Fri, 25 May 2018 14:44:13 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCDAT1+shtml/251444.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCDAT1+shtml/251444.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Subtropical Storm Alberto Wind Speed Probabilities Number 1</title>
+<description>Issued at 1500 UTC FRI MAY 25 2018                                              <![CDATA[<pre>
+
+000
+FONT11 KNHC 251444
+PWSAT1
+                                                                    
+SUBTROPICAL STORM ALBERTO WIND SPEED PROBABILITIES NUMBER   1       
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL012018               
+1500 UTC FRI MAY 25 2018                                            
+                                                                    
+AT 1500Z THE CENTER OF SUBTROPICAL STORM ALBERTO WAS LOCATED NEAR   
+LATITUDE 19.7 NORTH...LONGITUDE 86.8 WEST WITH MAXIMUM SUSTAINED    
+WINDS NEAR 35 KTS...40 MPH...65 KM/H.                               
+                                                                    
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)                  
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME      
+   EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME      
+   CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME      
+                                                                    
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS                 
+                                                                    
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST     
+   ...34 KT (39 MPH... 63 KM/H)...                                  
+   ...50 KT (58 MPH... 93 KM/H)...                                  
+   ...64 KT (74 MPH...119 KM/H)...                                  
+FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS               
+                                                                    
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE               
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING            
+        AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)               
+   (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN           
+        12Z FRI AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)      
+                                                                    
+PROBABILITIES ARE GIVEN IN PERCENT                                  
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT                       
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.             
+PROBABILITIES FOR 34...50...64 KT SHOWN WHEN THE 5-DAY              
+64-KT CUMULATIVE PROBABILITY IS AT LEAST 1 PERCENT.                 
+                                                                    
+                                                                    
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -   
+                                                                    
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM 
+  TIME       12Z FRI 00Z SAT 12Z SAT 00Z SUN 12Z SUN 12Z MON 12Z TUE
+PERIODS         TO      TO      TO      TO      TO      TO      TO  
+             00Z SAT 12Z SAT 00Z SUN 12Z SUN 12Z MON 12Z TUE 12Z WED
+                                                                    
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+LOCATION       KT                                                   
+                                                                    
+ATLANTA GA     34  X   X( X)   X( X)   X( X)   1( 1)   2( 3)   1( 4)
+ 
+KINGS BAY GA   34  X   X( X)   X( X)   1( 1)   2( 3)   1( 4)   X( 4)
+ 
+WAYCROSS GA    34  X   X( X)   X( X)   1( 1)   4( 5)   1( 6)   X( 6)
+ 
+MAYPORT NS FL  34  X   X( X)   X( X)   1( 1)   3( 4)   X( 4)   X( 4)
+ 
+JACKSONVILLE   34  X   X( X)   X( X)   1( 1)   3( 4)   1( 5)   X( 5)
+ 
+GAINESVILLE FL 34  X   X( X)   X( X)   4( 4)   6(10)   1(11)   X(11)
+ 
+DAYTONA BEACH  34  X   X( X)   X( X)   2( 2)   3( 5)   X( 5)   X( 5)
+ 
+THE VILLAGES   34  X   X( X)   X( X)   5( 5)   5(10)   X(10)   X(10)
+ 
+ORLANDO FL     34  X   X( X)   X( X)   4( 4)   3( 7)   X( 7)   X( 7)
+ 
+COCOA BEACH FL 34  X   X( X)   X( X)   2( 2)   2( 4)   X( 4)   X( 4)
+ 
+PATRICK AFB    34  X   X( X)   X( X)   2( 2)   2( 4)   X( 4)   X( 4)
+ 
+FT PIERCE FL   34  X   X( X)   X( X)   2( 2)   1( 3)   X( 3)   X( 3)
+ 
+W PALM BEACH   34  X   X( X)   X( X)   2( 2)   1( 3)   X( 3)   X( 3)
+ 
+FT LAUDERDALE  34  X   X( X)   1( 1)   1( 2)   1( 3)   X( 3)   X( 3)
+ 
+MIAMI FL       34  X   X( X)   1( 1)   2( 3)   X( 3)   X( 3)   X( 3)
+ 
+HOMESTEAD ARB  34  X   X( X)   1( 1)   2( 3)   X( 3)   X( 3)   X( 3)
+ 
+MARATHON FL    34  X   X( X)   2( 2)   3( 5)   X( 5)   X( 5)   X( 5)
+ 
+KEY WEST FL    34  X   1( 1)   3( 4)   3( 7)   1( 8)   X( 8)   X( 8)
+ 
+NAPLES FL      34  X   X( X)   3( 3)   5( 8)   1( 9)   X( 9)   X( 9)
+ 
+FT MYERS FL    34  X   X( X)   2( 2)   6( 8)   3(11)   X(11)   X(11)
+ 
+VENICE FL      34  X   X( X)   2( 2)   9(11)   4(15)   X(15)   X(15)
+ 
+TAMPA FL       34  X   X( X)   1( 1)   9(10)   5(15)   X(15)   X(15)
+ 
+CEDAR KEY FL   34  X   X( X)   X( X)   8( 8)   8(16)   1(17)   X(17)
+ 
+TALLAHASSEE FL 34  X   X( X)   X( X)   5( 5)  14(19)   2(21)   X(21)
+ 
+ST MARKS FL    34  X   X( X)   X( X)   6( 6)  15(21)   2(23)   X(23)
+ 
+APALACHICOLA   34  X   X( X)   X( X)   9( 9)  26(35)   2(37)   1(38)
+APALACHICOLA   50  X   X( X)   X( X)   1( 1)   5( 6)   1( 7)   X( 7)
+APALACHICOLA   64  X   X( X)   X( X)   X( X)   1( 1)   X( 1)   X( 1)
+ 
+GFMX 290N 850W 34  X   X( X)   1( 1)  16(17)  25(42)   2(44)   X(44)
+GFMX 290N 850W 50  X   X( X)   X( X)   1( 1)   7( 8)   X( 8)   1( 9)
+GFMX 290N 850W 64  X   X( X)   X( X)   X( X)   1( 1)   X( 1)   1( 2)
+ 
+PANAMA CITY FL 34  X   X( X)   X( X)   8( 8)  28(36)   4(40)   1(41)
+PANAMA CITY FL 50  X   X( X)   X( X)   X( X)   6( 6)   2( 8)   X( 8)
+PANAMA CITY FL 64  X   X( X)   X( X)   X( X)   1( 1)   1( 2)   X( 2)
+ 
+DESTIN EXEC AP 34  X   X( X)   X( X)   5( 5)  30(35)   6(41)   1(42)
+DESTIN EXEC AP 50  X   X( X)   X( X)   X( X)   7( 7)   3(10)   1(11)
+DESTIN EXEC AP 64  X   X( X)   X( X)   X( X)   1( 1)   1( 2)   X( 2)
+ 
+COLUMBUS GA    34  X   X( X)   X( X)   X( X)   7( 7)   3(10)   1(11)
+ 
+BIRMINGHAM AL  34  X   X( X)   X( X)   X( X)   4( 4)   3( 7)   2( 9)
+ 
+MONTGOMERY AL  34  X   X( X)   X( X)   X( X)  11(11)   4(15)   1(16)
+ 
+WHITING FLD FL 34  X   X( X)   X( X)   3( 3)  28(31)   8(39)   2(41)
+WHITING FLD FL 50  X   X( X)   X( X)   X( X)   6( 6)   3( 9)   1(10)
+WHITING FLD FL 64  X   X( X)   X( X)   X( X)   1( 1)   1( 2)   X( 2)
+ 
+PENSACOLA FL   34  X   X( X)   X( X)   3( 3)  32(35)   9(44)   1(45)
+PENSACOLA FL   50  X   X( X)   X( X)   X( X)   8( 8)   4(12)   1(13)
+PENSACOLA FL   64  X   X( X)   X( X)   X( X)   1( 1)   1( 2)   1( 3)
+ 
+GFMX 290N 870W 34  X   X( X)   1( 1)  12(13)  39(52)   4(56)   1(57)
+GFMX 290N 870W 50  X   X( X)   X( X)   1( 1)  15(16)   3(19)   X(19)
+GFMX 290N 870W 64  X   X( X)   X( X)   X( X)   4( 4)   1( 5)   1( 6)
+ 
+MOBILE AL      34  X   X( X)   X( X)   2( 2)  25(27)  14(41)   2(43)
+MOBILE AL      50  X   X( X)   X( X)   X( X)   5( 5)   5(10)   1(11)
+MOBILE AL      64  X   X( X)   X( X)   X( X)   1( 1)   X( 1)   1( 2)
+ 
+GULFPORT MS    34  X   X( X)   X( X)   1( 1)  24(25)  14(39)   3(42)
+GULFPORT MS    50  X   X( X)   X( X)   X( X)   5( 5)   5(10)   1(11)
+GULFPORT MS    64  X   X( X)   X( X)   X( X)   1( 1)   1( 2)   1( 3)
+ 
+STENNIS MS     34  X   X( X)   X( X)   1( 1)  19(20)  14(34)   3(37)
+STENNIS MS     50  X   X( X)   X( X)   X( X)   4( 4)   5( 9)   1(10)
+STENNIS MS     64  X   X( X)   X( X)   X( X)   X( X)   2( 2)   X( 2)
+ 
+BURAS LA       34  X   X( X)   X( X)   2( 2)  24(26)  12(38)   2(40)
+BURAS LA       50  X   X( X)   X( X)   X( X)   6( 6)   6(12)   1(13)
+BURAS LA       64  X   X( X)   X( X)   X( X)   1( 1)   2( 3)   X( 3)
+ 
+GFMX 280N 890W 34  X   X( X)   X( X)   6( 6)  24(30)   6(36)   1(37)
+GFMX 280N 890W 50  X   X( X)   X( X)   X( X)   9( 9)   3(12)   X(12)
+GFMX 280N 890W 64  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   1( 4)
+ 
+JACKSON MS     34  X   X( X)   X( X)   X( X)   5( 5)   7(12)   3(15)
+ 
+NEW ORLEANS LA 34  X   X( X)   X( X)   1( 1)  15(16)  11(27)   2(29)
+NEW ORLEANS LA 50  X   X( X)   X( X)   X( X)   3( 3)   4( 7)   X( 7)
+NEW ORLEANS LA 64  X   X( X)   X( X)   X( X)   X( X)   1( 1)   1( 2)
+ 
+GFMX 280N 910W 34  X   X( X)   X( X)   1( 1)  10(11)   5(16)   1(17)
+GFMX 280N 910W 50  X   X( X)   X( X)   X( X)   1( 1)   3( 4)   X( 4)
+ 
+BATON ROUGE LA 34  X   X( X)   X( X)   X( X)   8( 8)   9(17)   2(19)
+BATON ROUGE LA 50  X   X( X)   X( X)   X( X)   1( 1)   1( 2)   1( 3)
+ 
+MORGAN CITY LA 34  X   X( X)   X( X)   X( X)  10(10)   8(18)   2(20)
+MORGAN CITY LA 50  X   X( X)   X( X)   X( X)   1( 1)   3( 4)   1( 5)
+MORGAN CITY LA 64  X   X( X)   X( X)   X( X)   X( X)   1( 1)   X( 1)
+ 
+ALEXANDRIA LA  34  X   X( X)   X( X)   X( X)   3( 3)   4( 7)   1( 8)
+ 
+LAFAYETTE LA   34  X   X( X)   X( X)   X( X)   6( 6)   6(12)   1(13)
+ 
+NEW IBERIA LA  34  X   X( X)   X( X)   X( X)   7( 7)   6(13)   2(15)
+ 
+GFMX 280N 930W 34  X   X( X)   X( X)   X( X)   3( 3)   3( 6)   1( 7)
+ 
+SHREVEPORT LA  34  X   X( X)   X( X)   X( X)   X( X)   2( 2)   1( 3)
+ 
+FORT POLK LA   34  X   X( X)   X( X)   X( X)   2( 2)   3( 5)   1( 6)
+ 
+LAKE CHARLES   34  X   X( X)   X( X)   X( X)   3( 3)   3( 6)   1( 7)
+ 
+CAMERON LA     34  X   X( X)   X( X)   X( X)   3( 3)   3( 6)   1( 7)
+ 
+JASPER TX      34  X   X( X)   X( X)   X( X)   1( 1)   2( 3)   1( 4)
+ 
+KOUNTZE TX     34  X   X( X)   X( X)   X( X)   1( 1)   2( 3)   X( 3)
+ 
+PORT ARTHUR TX 34  X   X( X)   X( X)   X( X)   1( 1)   2( 3)   1( 4)
+ 
+HIGH ISLAND TX 34  X   X( X)   X( X)   X( X)   1( 1)   2( 3)   X( 3)
+ 
+COZUMEL MX     34 35   5(40)   1(41)   X(41)   X(41)   X(41)   X(41)
+ 
+CP SAN ANTONIO 34  7  36(43)   8(51)   X(51)   X(51)   X(51)   X(51)
+CP SAN ANTONIO 50  X   2( 2)   2( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+HAVANA         34  X   2( 2)   4( 6)   2( 8)   X( 8)   1( 9)   X( 9)
+ 
+ISLE OF PINES  34  1   2( 3)   2( 5)   1( 6)   X( 6)   X( 6)   X( 6)
+ 
+$$                                                                  
+FORECASTER STEWART                                                  
+</pre>]]></description>
+<pubDate>Fri, 25 May 2018 14:44:13 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT1+shtml/251444.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT1+shtml/251444.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Subtropical Storm Alberto Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152536.shtml?cone">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT01/AL012018_5day_cone_with_line_and_wind_sm2.png"
+alt="Subtropical Storm Alberto 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Fri, 25 May 2018 14:45:41 GMT
+<br /><br /><a href="https://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152536.shtml?tswind120">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT01/AL012018_wind_probs_34_F120_sm2.png"
+alt="Subtropical Storm Alberto 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Fri, 25 May 2018 15:25:26 GMT
+]]>
+</description>
+<pubDate>Fri, 25 May 2018 14:45:41 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152536.shtml?cone</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152536.shtml?cone</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Subtropical Storm Alberto Probabilistic Storm Surge Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152536.shtml?gm_psurge">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT01/AL0118_psurge2_m1_sm2.png"
+alt="Subtropical Storm Alberto Probabilistic Storm Surge Graphics Image"
+width="500" height="400" /></a><br/>
+Probabilistic Storm Surge Graphics last updated Fri, 25 May 2018 15:25:36 GMT
+]]>
+</description>
+<pubDate>Fri, 25 May 2018 15:25:36 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152536.shtml?gm_psurge</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at1+shtml/152536.shtml?gm_psurge</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+</channel>
+</rss>
