@@ -30,7 +30,7 @@
 INSTANCENAME=albertoLAv17a  # "name" of this ASGS process
 COLDSTARTDATE=2018040800 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=/work/jgflemin/asgs24763/auto # path to previous execution (if HOTORCOLD=hotstart)
+LASTSUBDIR=/work/jgflemin/asgs24763/2018052506 # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -39,8 +39,8 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable          # ASGS executables
 INPUTDIR=${SCRATCHDIR}/asgs/2014stable/input/meshes/LA_v17a # grid and other input files
-OUTPUTDIR=${SCRATCHDIR}/output # post processing scripts
-PERL5LIB=${SCRATCHDIR}/PERL    # DateCale.pm perl module
+OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
+PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
