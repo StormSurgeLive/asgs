@@ -1,0 +1,13 @@
+ WBV162  	7
+ WBV7274 	10
+ NOV14    	12
+ 17StCanal 	1
+ WBV09b   	5
+ IHNC01   	2
+ IHNC02   	3
+ WBV09a   	6
+ WBV162  	7
+ LPV149   	8
+ LPV144   	9
+ NOV13    	11
+ WBV90    	4
