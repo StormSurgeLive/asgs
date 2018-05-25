@@ -48,7 +48,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=on     # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=off  # tropical cyclone forcing
-WAVES=off            # wave forcing
+WAVES=on            # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
@@ -84,7 +84,7 @@ HDIR=${INPUTDIR}/sample_advisories
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06"
+FORECASTCYCLE="06,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -103,9 +103,9 @@ GRIDNAME=LA_v17a-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=LA_v17a-WithUpperAtch.15.template   # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=cpra2017v12.cera_stations.20180104
-VELSTATIONS=cpra2017v12.cera_stations.20180104
-METSTATIONS=cpra2017v12.cera_stations.20180104
+ELEVSTATIONS=combined_stations_20180524.txt
+VELSTATIONS=combined_stations_20180524.txt
+METSTATIONS=combined_stations_20180524.txt
 NAFILE=LA_v17a-WithUpperAtch.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=LA_v17a-WithUpperAtch.26.template   # only used if WAVES=on

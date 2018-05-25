@@ -145,7 +145,9 @@ C-- DETERMINE NODE FACTORS AT MIDDLE OF RECORD
 C-- DETERMINE GREENWICH EQUIL. TERMS AT BEGINNING OF RECORD
       CALL GTERMS(YR,DAYJ,BHR,DAYJ,HRM)
 
-      data monthChar/'JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'/
+      data monthChar 
+     & /'JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP',
+     & 'OCT','NOV','DEC'/
       if (adcircFormat.eqv..true.) then
          numLoops = 2
       else
@@ -155,12 +157,16 @@ C-- DETERMINE GREENWICH EQUIL. TERMS AT BEGINNING OF RECORD
          if (adcircFormat.eqv..true.) then
             ! tidal potential nodal factors and equilibrium arguments
             if (i.eq.1) then
-               write(11,'(i0, 6x,"! NTIF number of tidal potential constituents ! start date is ",i0,"Z ",i0,1x,a,1x,i0," ! run length is ",f6.2," days")') numTidalConstituents, int(BHR),iday,monthChar(imo),iyr, xdays
+               write(11,fmt=100)
+     & numTidalConstituents, int(BHR),iday,monthChar(imo),iyr, xdays
             ! boundary forcing nodal factors and equilibrium arguments
             else
                write(11,'(i0, 6x,"! NBFR number of tidal boundary constituents")') numTidalConstituents
             endif
          endif
+ 100     format(i0, 6x,
+     &   "! NTIF number of tidal potential constituents ! start date is ",i0,
+     &   "Z ",i0,1x,a,1x,i0," ! run length is ",f6.2," days")
          do nc=1,numTidalConstituents
             select case(trim(interpTidalConstituents(nc)))
             case("k1","K1")
@@ -210,13 +216,13 @@ C-- DETERMINE GREENWICH EQUIL. TERMS AT BEGINNING OF RECORD
                if (i.eq.1) then
                   ! tidal potential constituents
                   write(11,'(a)') trim(cname(ic))
-                  write(11,'(f8.6,2x,f16.14,2x,f5.3,2x,f7.5,2x,f7.2)') 
+                  write(11,'(f9.6,2x,f18.14,2x,f7.3,2x,f9.5,2x,f7.2)') 
      &               tidalPotentialAmplitude,tidalFrequency,
      &               earthTidePotentialReductionFactor, nodfac(ic), grterm(ic)
                   ! tidal boundary constituents
                else
                   write(11,'(a)') trim(cname(ic))
-                  write(11,'(f16.14,2x,f7.5,2x,f7.2)') 
+                  write(11,'(f18.14,2x,f9.5,2x,f7.2)') 
      &               tidalFrequency, nodfac(ic), grterm(ic)
                endif
             else
@@ -225,7 +231,7 @@ C-- DETERMINE GREENWICH EQUIL. TERMS AT BEGINNING OF RECORD
          end do
       end do
 
- 2001 FORMAT(1X,A4,2x,F7.5,4x,F7.2,2x,F7.4)
+ 2001 FORMAT(1X,A4,2x,F9.5,4x,F7.2,2x,F7.4)
 
       STOP
 C---------------------------------------------------------------------      
