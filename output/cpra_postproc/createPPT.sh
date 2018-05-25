@@ -6,6 +6,17 @@ module load matlab/r2015b
 coldStartTime=$(grep ColdStartTime run.properties)
 coldStartTime=${coldStartTime/ColdStartTime : }
 
+# Parse run.properties to get storm name
+storm=$(grep "storm name" run.properties)
+storm=${storm/storm name : }
+
+# Parse run.properties to get advisory
+advisory=$(grep "advisory :" run.properties)
+advisory=${advisory/advisory : }
+
+# Parse run.properties to get forecast advisory start time
+forecastValidStart=$(grep forecastValidStart run.properties)
+forecastValidStart=${forecastValidStart/forecastValidStart : }
 
 # Set asgs directory
 SCRIPTDIR=/work/mbilskie/NGOM_v18/2014stable   # ASGS executables
@@ -43,10 +54,16 @@ matlab -nodisplay -nosplash -nodesktop -r "plot_usace_adcirc, exit"
 python buildPPT.py
 
 
+# E-mail PPT and upload to public-facing URL
+emailList='mbilsk3@lsu.edu matt.bilskie@gmail.com jason.fleming@seahorsecoastal.com ckaiser@cct.lsu.edu'
+subjectLine="$storm Advisory $advisory PPT"
+message="This is an automated message from the ADCIRC Surge Guidance System (ASGS).
+New results are attached for STORM $storm ADVISORY $advisory issued on $forecastValidStart"
+
+attachFile=$(cat pptFile.temp)
+
+echo "$message" | mail -s "$subjectLine" -a "$attachFile" $emailList
+
 # Remove temporary stuff
 rm cpraHydro.info
-
-# E-mail PPT and upload to public-facing URL
-
-
-
+rm pptFile.temp
