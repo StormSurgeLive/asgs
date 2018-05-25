@@ -64,9 +64,12 @@ NCPUCAPACITY=2480
 CYCLETIMELIMIT="05:00:00"
 #QUEUENAME=workq
 #SERQUEUE=single
-QUEUENAME=admin
-SERQUEUE=admin
-ACCOUNT=loni_cera_2017
+QUEUENAME=priority
+SERQUEUE=priority
+if [[ $SERQUEUE = priority ]]; then 
+   PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
+fi
+ACCOUNT=loni_cera_2018
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones

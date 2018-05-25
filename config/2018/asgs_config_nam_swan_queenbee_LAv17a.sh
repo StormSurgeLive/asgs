@@ -66,7 +66,10 @@ CYCLETIMELIMIT="99:00:00"
 #QUEUENAME=workq
 #SERQUEUE=single
 QUEUENAME=priority
-SERQUEUE=single
+SERQUEUE=priority
+if [[ $SERQUEUE = priority ]]; then
+   PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
+fi
 ACCOUNT=loni_cera_2018
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
