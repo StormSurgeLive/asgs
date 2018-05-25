@@ -27,7 +27,7 @@ TOOLSDIR=${OUTPUTDIR}/tools
 
 
 # Convert fort.61.nc -> fort.61
-#./cpra_postproc/tools/netcdf2adcirc.exe --datafile fort.61.nc
+./cpra_postproc/tools/netcdf2adcirc.exe --datafile fort.61.nc
 
 # Convert fort.61 -> fort.61.imeds
 # Jason - Need to grab the station list used in asgs to build the fort.15
@@ -40,7 +40,7 @@ echo "fort.61" > input.temp
 echo "temp.txt" >> input.temp
 echo "fort.61.imeds" >> input.temp
 echo $coldStartTime >> input.temp
-#./cpra_postproc/tools/Fort61ToIMEDS.exe < input.temp
+./cpra_postproc/tools/Fort61ToIMEDS.exe < input.temp
 rm temp.txt input.temp
 
 # Parse run.properties file
@@ -48,14 +48,14 @@ chmod u+x GetInfo4Hydrographs.sh
 ./GetInfo4Hydrographs.sh
 
 # Run matlab script to create hydrographs
-#matlab -nodisplay -nosplash -nodesktop -r "plot_usace_adcirc, exit"
+matlab -nodisplay -nosplash -nodesktop -r "plot_usace_adcirc, exit"
 
 # Runpython script to generate PPT stack
 python buildPPT.py
 
 
 # E-mail PPT and upload to public-facing URL
-emailList='mbilsk3@lsu.edu matt.bilskie@gmail.com'
+emailList='mbilsk3@lsu.edu matt.bilskie@gmail.com jason.fleming@seahorsecoastal.com ckaiser@cct.lsu.edu'
 subjectLine="$storm Advisory $advisory PPT"
 message="This is an automated message from the ADCIRC Surge Guidance System (ASGS).
 New results are attached for STORM $storm ADVISORY $advisory issued on $forecastValidStart"
