@@ -103,9 +103,9 @@ GRIDNAME=LA_v17a-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=LA_v17a-WithUpperAtch.15.template   # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=combined_stations_20180524.txt
-VELSTATIONS=combined_stations_20180524.txt
-METSTATIONS=combined_stations_20180524.txt
+ELEVSTATIONS=combined_stations_20180525.txt
+VELSTATIONS=combined_stations_20180525.txt
+METSTATIONS=combined_stations_20180525.txt
 NAFILE=LA_v17a-WithUpperAtch.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=LA_v17a-WithUpperAtch.26.template   # only used if WAVES=on
