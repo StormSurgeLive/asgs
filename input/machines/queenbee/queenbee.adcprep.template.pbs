@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -V
 #PBS -N %jobtype%.%enstorm%
-#PBS -l nodes=1:ppn=20 # must be 20 for priority queue
+#PBS -l nodes=1:ppn=1
 #PBS -l walltime=%walltime%
 #PBS -M %notifyuser%
 #PBS -A %account%
