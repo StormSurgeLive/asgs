@@ -30,7 +30,7 @@
 INSTANCENAME=albertoLAv17a  # "name" of this ASGS process
 COLDSTARTDATE=2018040800 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=/work/jgflemin/asgs24763/auto # path to previous execution (if HOTORCOLD=hotstart)
+LASTSUBDIR=/work/jgflemin/asgs24763/2018052506 # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -39,12 +39,12 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable          # ASGS executables
 INPUTDIR=${SCRATCHDIR}/asgs/2014stable/input/meshes/LA_v17a # grid and other input files
-OUTPUTDIR=${SCRATCHDIR}/output # post processing scripts
-PERL5LIB=${SCRATCHDIR}/PERL    # DateCale.pm perl module
+OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
+PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=off    # NAM download/forcing
+BACKGROUNDMET=off   # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=on   # tropical cyclone forcing
 WAVES=on             # wave forcing
@@ -64,8 +64,11 @@ NCPUCAPACITY=3660
 CYCLETIMELIMIT="05:00:00"
 #QUEUENAME=workq
 #SERQUEUE=single
-QUEUENAME=workq
-SERQUEUE=single
+QUEUENAME=priority
+SERQUEUE=priority
+if [[ $SERQUEUE = priority ]]; then
+   PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
+fi
 ACCOUNT=loni_cera_2018
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
@@ -74,13 +77,13 @@ SCRATCHDIR=/work/$USER    # vs default /work/cera
 STORM=01                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2018                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
-#RSSSITE=filesystem
+RSSSITE=filesystem
 #FTPSITE=filesystem
-#FDIR=${INPUTDIR}/sample_advisories
+FDIR=~/asgs/2014stable/input/sample_advisories/2018
 #HDIR=${INPUTDIR}/sample_advisories
-RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
+#RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
-FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+#FDIR=/atcf/afst                  # forecast dir on nhc ftp site
 HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
