@@ -169,7 +169,7 @@ for f = 1:length(stations)
     ax.YAxis.TickValues = [minWL:2:maxWL];
     ax.YMinorTick = 'on';
     ax.YAxis.MinorTickValues = [minWL:1:maxWL];
-    ylabel('Water Level (ft)');
+    ylabel('Water Level (ft, NAVD88)');
 
     grid on;
     %ax.YMinorGrid = 'on';
