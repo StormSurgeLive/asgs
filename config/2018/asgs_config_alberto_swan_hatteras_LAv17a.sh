@@ -60,7 +60,7 @@ NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=600                    # number of compute CPUs for all simulations
 NUMWRITERS=20
-NCPUCAPACITY=640
+NCPUCAPACITY=1280
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=null
 SERQUEUE=null
@@ -79,7 +79,7 @@ YEAR=2018                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 RSSSITE=filesystem
 #FTPSITE=filesystem
-FDIR=~/asgs/2014stable/input/sample_advisories/2019
+FDIR=~/asgs/2014stable/input/sample_advisories/2018
 #HDIR=$FDIR
 #RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
@@ -180,7 +180,7 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
-ARCHIVE=null_archive.sh
+ARCHIVE=ncfs_archive.sh
 ARCHIVEBASE=/projects/ncfs/data
 ARCHIVEDIR=archive
 
@@ -188,13 +188,14 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=4 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 3)
    ENSTORM=nhcConsensus
+   RESERVATION=null
    ;;
 2)
    ENSTORM=nhcConsensusWind10m
@@ -203,7 +204,7 @@ case $si in
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0 
-   NCPU=19               # dramatically reduced resource requirements
+   NCPU=15               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output
@@ -226,6 +227,7 @@ case $si in
    # prevent collisions in prepped archives
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
+   RESERVATION=null
    ;;
 1)
    ENSTORM=veerLeft100Wind10m
@@ -235,7 +237,7 @@ case $si in
    CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0  
-   NCPU=19               # dramatically reduced resource requirements
+   NCPU=15               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output

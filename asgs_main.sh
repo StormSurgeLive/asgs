@@ -383,6 +383,9 @@ prep()
 
        if [[ $WAVES = on && $HOTSWAN = on ]]; then
           # subdomain swan hotstart file
+          # FIXME: what if this subdomain swan hotstart file is
+          # present but there are a different number of subdomains 
+          # between different runs??
           if [[ -e $FROMDIR/PE0000/swan.67 ]]; then
              logMessage "$ENSTORM: $THIS: Starting copy of subdomain swan hotstart files."
              # copy the subdomain hotstart files over
