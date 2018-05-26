@@ -190,9 +190,9 @@ WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts
 
 # Archiving
 
-ARCHIVE=null_archive.sh
-ARCHIVEBASE=/projects/ncfs/data
-ARCHIVEDIR=archive
+ARCHIVE=queenbee_archive.sh
+ARCHIVEBASE=/work/jgflemin
+ARCHIVEDIR=${ARCHIVEBASE}/archive
 
 # Forecast ensemble members
 
@@ -203,10 +203,10 @@ case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
-0)
+3)
    ENSTORM=nhcConsensus
    ;;
-1)
+2)
    ENSTORM=nhcConsensusWind10m
    ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:60:00" # forecast wall clock time
@@ -236,13 +236,13 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
    ;;
-2)
+1)
    ENSTORM=veerLeft100
    PERCENT=-100
    CONTROLTEMPLATE=hsofs_explicit.15.template  # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    ;;
-3)
+0)
    ENSTORM=veerLeft100Wind10m
    PERCENT=-100
    ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
@@ -250,7 +250,7 @@ case $si in
    CONTROLTEMPLATE=hsofs.nowindreduction.15.template 
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0    # 15 minute time steps
-   NCPU=23               # dramatically reduced resource requirements
+   NCPU=19               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output
