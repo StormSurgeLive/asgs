@@ -60,7 +60,7 @@ NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=460                    # number of compute CPUs for all simulations
 NUMWRITERS=20
-NCPUCAPACITY=500
+NCPUCAPACITY=1000
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=null
 SERQUEUE=null
@@ -184,7 +184,7 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
-ARCHIVE=null_archive.sh
+ARCHIVE=ncfs_archive.sh
 ARCHIVEBASE=/projects/ncfs/data
 ARCHIVEDIR=archive
 
@@ -192,7 +192,7 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=4 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
