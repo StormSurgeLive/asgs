@@ -67,7 +67,7 @@ QUEUENAME=null
 SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data
 PARTITION=ncfs
-RESERVATION=ncfs
+RESERVATION=null
 CONSTRAINT=ivybridge
 
 # External data sources : Tropical cyclones

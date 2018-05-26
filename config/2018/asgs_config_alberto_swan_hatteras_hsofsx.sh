@@ -67,24 +67,26 @@ SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data
 ACCOUNT=batch
 
-#QSCRIPT=hatteras.partition.template.slurm
 #PREPCONTROLSCRIPT=hatteras.partition.adcprep.template.slurm 
-QSCRIPT=hatteras.reservation.template.slurm
-PREPCONTROLSCRIPT=hatteras.reservation.adcprep.template.slurm # jgf20160322
+QSCRIPT=hatteras.template.slurm
+PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm # jgf20160322
+PARTITION=ncfs
+RESERVATION=null
+CONSTRAINT=null
 
 # External data sources : Tropical cyclones
 
 PSEUDOSTORM=n 
-STORM=15                         # storm number, e.g. 05=ernesto in 2006
-YEAR=2017                        # year of the storm
+STORM=01                         # storm number, e.g. 05=ernesto in 2006
+YEAR=2018                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
-#RSSSITE=filesystem
+RSSSITE=filesystem
 #FTPSITE=filesystem
-#FDIR=~/asgs/2014stable/input/sample_advisories/isaac
+FDIR=~/asgs/2014stable/input/sample_advisories/2018
 #HDIR=$FDIR
-RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
+#RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
-FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+#FDIR=/atcf/afst                  # forecast dir on nhc ftp site
 HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
@@ -110,9 +112,9 @@ GRIDNAME=hsofs
 MESHPROPERTIES=${GRIDFILE}.nc.properties
 CONTROLTEMPLATE=hsofs_explicit.15.template  # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=hsofs.all_cera_stations_20170717.txt
-VELSTATIONS=hsofs.all_cera_stations_20170717.txt
-METSTATIONS=hsofs.all_cera_stations_20170717.txt
+ELEVSTATIONS=hsofs.combined_station_list_20180525.txt
+VELSTATIONS=hsofs.combined_station_list_20180525.txt
+METSTATIONS=hsofs.combined_station_list_20180525.txt
 NAFILE=hsofs.13
 NAPROPERTIES=${NAFILE}.properties
 #SWANTEMPLATE=fort.26.template # only used if WAVES=on
@@ -169,7 +171,7 @@ POSTPROCESS2=null_post.sh
 
 # opendap
 
-TDS=(renci_tds lsu_tds)
+TDS=(renci_tds)
 TARGET=hatteras  # used in post processing to pick up HPC platform config
 OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
 if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
@@ -178,7 +180,7 @@ fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
 #OPENDAPNOTIFY="nc.cera.renci2@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
-OPENDAPNOTIFY="nc.cera.renci2@gmail.com,asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
@@ -190,15 +192,15 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=4 # number of storms in the ensemble
+ENSEMBLESIZE=2 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
-0)
+3)
    ENSTORM=nhcConsensus
    ;;
-1)
+2)
    ENSTORM=nhcConsensusWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
@@ -227,9 +229,9 @@ case $si in
    INTENDEDAUDIENCE=general
    # prevent collisions in prepped archives
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
-   POSTPROCESS=wind10m_post.sh
+   POSTPROCESS=null_post.sh
    ;;
-2)
+1)
    ENSTORM=veerLeft100Wind10m
    PERCENT=-100
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
@@ -259,9 +261,9 @@ case $si in
    INTENDEDAUDIENCE=general
    # prevent collisions in prepped archives
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
-   POSTPROCESS=wind10m_post.sh
+   POSTPROCESS=null_post.sh
    ;;
-3)
+0)
    ENSTORM=veerLeft100
    PERCENT=-100
    ;;
