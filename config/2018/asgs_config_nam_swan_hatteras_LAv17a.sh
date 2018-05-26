@@ -187,9 +187,9 @@ WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts
 
 # Archiving
 
-ARCHIVE=queenbee_archive.sh
-ARCHIVEBASE=/work/jgflemin
-ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
+ARCHIVE=ncfs_archive.sh
+ARCHIVEBASE=/projects/ncfs/data
+ARCHIVEDIR=archive
 
 # Forecast ensemble members
 
