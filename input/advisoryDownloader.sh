@@ -24,10 +24,10 @@ oldBESTEndDate=0
 #
 # hack in a call to curl to actually download the data first because get_atcf.pl
 # does not support https
-curl https://www.nhc.noaa.gov/index-at.xml > $FDIR/index-at.xml
 #
 OPTIONS="--storm $STORMNUMBER --year $YEAR --ftpsite $FTPSITE --fdir $FDIR --hdir $HDIR --rsssite $RSSSITE --trigger $TRIGGER --adv $ADVISORY"
 while [[ 1 ]]; do
+   curl https://www.nhc.noaa.gov/index-at.xml > $FDIR/index-at.xml
    advisoryNum=`perl $ASGSDIR/get_atcf.pl $OPTIONS 2>> advisoryMonitor.log`
    if [[ $advisoryNum != $oldAdvisoryNum ]]; then
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
