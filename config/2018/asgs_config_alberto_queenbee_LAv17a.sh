@@ -189,9 +189,9 @@ WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts
 
 # Archiving
 
-ARCHIVE=null_archive.sh
-ARCHIVEBASE=/projects/ncfs/data
-ARCHIVEDIR=archive
+ARCHIVE=queenbee_archive.sh
+ARCHIVEBASE=/work/jgflemin
+ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
 # Forecast ensemble members
 
@@ -202,10 +202,10 @@ case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
-0)
+3)
    ENSTORM=nhcConsensus
    ;;
-1)
+2)
    ENSTORM=nhcConsensusWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
@@ -235,16 +235,16 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
    ;;
-2)
+0)
    ENSTORM=veerLeft100
    PERCENT=-100
    ;;
-3)
+1)
    ENSTORM=veerLeft100Wind10m
    PERCENT=-100
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.nowindreduction.15.template
+   CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements
@@ -279,7 +279,7 @@ case $si in
    PERCENT=100
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.nowindreduction.15.template
+   CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements
