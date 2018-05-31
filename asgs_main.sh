@@ -780,7 +780,7 @@ monitorJobs()
       sleep 10
       # execute the FortCheck.py code to get a %complete status
       if [[ -e "fort.61.nc" ]] ; then
-        pc=`/home/bblanton/Python/FortCheck.py`
+        pc=`${SCRIPTDIR}/fortcheck.sh fort.61.nc`
         RMQMessage "INFO" "$THIS>$ENSTORM_TEMP" "RUNN" "The $ENSTORM_TEMP job is running..." $pc
       fi
       if ! checkTimeLimit $startTime $WALLTIME ; then
@@ -1260,27 +1260,26 @@ else
    fi
 fi
 
-RMQMessage "INFO" "$THIS" "STRT" "Please see ASGS log file for detailed information regarding system progress." 0
+RMQMessage "INFO" "$THIS" "ONLI" "Please see ASGS log file for detailed information regarding system progress." 0
 consoleMessage "$THIS: Please see ASGS log file for detailed information regarding system progress."
 consoleMessage "$THIS: ASGS Start Up MSG: [SYSLOG] The log file is ${SYSLOG}"
-RMQMessage "INFO" "$THIS" "STRT" "ASGS Start Up MSG: [PROCID] $$" 0
+RMQMessage "INFO" "$THIS" "ONLI" "ASGS Start Up MSG: [PROCID] $$" 0
 logMessage "$THIS: ASGS Start Up MSG: [PROCID] $$"
-RMQMessage "INFO" "$THIS" "STRT" "ASGS Start Up MSG: [SYSLOG] ${SYSLOG}" 0
+RMQMessage "INFO" "$THIS" "ONLI" "ASGS Start Up MSG: [SYSLOG] ${SYSLOG}" 0
 logMessage "$THIS: ASGS Start Up MSG: [SYSLOG] ${SYSLOG}"
 logMessage "$THIS: The ADCIRC Surge/Spill Guidance System is activated."
 logMessage "$THIS: Set permissions with the following umask: $UMASK."
-RMQMessage "INFO" "$THIS" "STRT" "Configured the ASGS for the ${ENV} platform." 0
+RMQMessage "INFO" "$THIS" "ONLI" "Configured the ASGS for the ${ENV} platform." 0
 logMessage "$THIS: Configured the ASGS for the ${ENV} platform."
-RMQMessage "INFO" "$THIS" "STRT" "Configured the ASGS according to the file ${CONFIG}." 0
+RMQMessage "INFO" "$THIS" "ONLI" "Configured the ASGS according to the file ${CONFIG}." 0
 logMessage "$THIS: Configured the ASGS according to the file ${CONFIG}."
 logMessage "$THIS: ASGS state file is ${STATEFILE}."
-RMQMessage "INFO" "$THIS" "STRT" "ASGS state file is ${STATEFILE}." 0
+RMQMessage "INFO" "$THIS" "ONLI" "ASGS state file is ${STATEFILE}." 0
 
 # set a trap for a signal to reread the ASGS config file
 trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; . $CONFIG' USR1
 # catch ^C for a final message
 trap 'sigint' INT
-
 
 #
 # check existence of all required files and directories
