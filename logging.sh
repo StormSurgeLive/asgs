@@ -30,7 +30,7 @@ MSGR_SCRIPT="/home/bblanton/GitHub/renci-unc/asgs/asgs-msgr.py"
 
 sigint(){
    #echo "Received Ctrl-C from console.  Shutting ASGS down...'"
-   RMQMessage "INFO" "asgs_main.sh>sigint()" "TERM" "Received Ctrl-C from console.  Shutting ASGS down..." 0
+   RMQMessage "INFO" "asgs_main.sh>sigint()" "OFLI" "Received Ctrl-C from console.  Shutting ASGS down ..." 0
    exit 0
 }
 
@@ -41,10 +41,12 @@ RMQMessage()  # MTYPE PROCESS STATE MSG PCTCOM
   PROCESS=$2
   STATE=$3
   MSG="RMQ-$MTYPE : $STATE : ${DATETIME} : $4"
-  PCTCOM=$5
+  PCTCOM=0
+  if [ "$#" -eq 5 ] ; then PCTCOM=$5 ; fi
+
   re='^[0-9]+([.][0-9]+)?$' 
   if ! [[ $PCTCOM =~ $re ]] ; then
-      echo "error: PCTCOM ($PCTCOM) Not a number in RMQMessage.  Not sending message." 
+      echo "error: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message." 
   fi
   printf "RMQ-%4s : %21s : %4s : %-50s : %5.1f : %s\n" "$MTYPE" $DATETIME $STATE $PROCESS $PCTCOM "$4"
   # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
