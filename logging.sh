@@ -30,7 +30,7 @@ MSGR_SCRIPT="/home/bblanton/GitHub/renci-unc/asgs/asgs-msgr.py"
 
 sigint(){
    #echo "Received Ctrl-C from console.  Shutting ASGS down...'"
-   RMQMessage "INFO" "asgs_main.sh>sigint()" "OFLI" "Received Ctrl-C from console.  Shutting ASGS down ..." 0
+   RMQMessage "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..." 0
    exit 0
 }
 
@@ -53,7 +53,7 @@ RMQMessage()  # MTYPE PROCESS STATE MSG PCTCOM
   $RENCIPY $MSGR_SCRIPT --Uid $$ \
                         --LocationName RENCI \
                         --ClusterName Hatteras \
-                        --RunType background \
+                        --RunType weather \
                         --StormName NAM \
                         --AdvisoryNumber 0 \
                         --Message "$MSG"  \
