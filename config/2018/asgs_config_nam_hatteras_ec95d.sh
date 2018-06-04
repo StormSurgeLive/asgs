@@ -29,8 +29,8 @@
 # Fundamental 
 #
 INSTANCENAME=bobtest      # name of this ASGS process (Change this for every new instance)
-COLDSTARTDATE=2018040100              # (date to start cold start from )
-HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
+COLDSTARTDATE=2018050100  # (date to start cold start from )
+HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
 REINITIALIZESWAN=no       # used to bounce the wave solution
@@ -55,13 +55,13 @@ VARFLUX=off           # [de]activate variable river flux forcing
 
 TIMESTEPSIZE=30
 SWANDT=1200
-HINDCASTWALLTIME="01:00:00"   # river inital and tidal spinup time in machine
+HINDCASTWALLTIME="06:00:00"   # river inital and tidal spinup time in machine
 ADCPREPWALLTIME="00:05:00"
 NOWCASTWALLTIME="01:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="01:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=128
+NCPU=256
 NUMWRITERS=0
-NCPUCAPACITY=128
+NCPUCAPACITY=256
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=batch
 SERQUEUE=single

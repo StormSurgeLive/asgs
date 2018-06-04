@@ -780,7 +780,7 @@ monitorJobs()
       sleep 10
       # execute the FortCheck.py code to get a %complete status
       if [[ -e "fort.61.nc" ]] ; then
-        pc=`${SCRIPTDIR}/fortcheck.sh fort.61.nc`
+        pc=`${SCRIPTDIR}/fortcheck.sh fort.63.nc`
         RMQMessage "INFO" "$THIS>$ENSTORM_TEMP" "RUNN" "The $ENSTORM_TEMP job is running..." $pc
       fi
       if ! checkTimeLimit $startTime $WALLTIME ; then
@@ -1433,7 +1433,7 @@ HSTIME=null     # determined below
 #
 
 if [[ $START = coldstart ]]; then
-   RMQMessage "INFO" "$THIS" "NONE" "Starting hindcast."  0
+   RMQMessage "INFO" "$THIS" "HIND" "Starting hindcast."  0
    logMessage "$THIS: Starting hindcast."
    HOTSWAN=off
    ENSTORM=hindcast
