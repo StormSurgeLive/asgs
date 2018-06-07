@@ -69,7 +69,7 @@ cd $STORMDIR
 # Generate FigureGen Images
 ${POSTPROCDIR}/cpra_FigureGen.sh -i ${POSTPROCDIR} -s ${STORMDIR}
 # Launch submit script
-cp ${SCRIPTDIR}/output/cpra_postproc/submit-postproc.qb ${STORMDIR}/
+cp ${POSTPROCDIR}/submit-postproc.qb ${STORMDIR}/
 qsub submit-postproc.qb
 
 # Wait until submit-postproc is finished
