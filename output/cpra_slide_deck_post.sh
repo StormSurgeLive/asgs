@@ -88,6 +88,7 @@ cp ${SCRIPTDIR}/output/cpra_postproc/createPPT.sh
 cp ${SCRIPTDIR}/output/cpra_postproc/buildPPT.py
 cp ${SCRIPTDIR}/output/cpra_postproc/LSU_template.pptx
 cp ${SCRIPTDIR}/output/cpra_postproc/GetInfo4Hydrographs.sh
+cp ${SCRIPTDIR}/output/cpra_postproc/Gate_Closure_Trigger.xlsx
 cp ${SCRIPTDIR}/output/cpra_postproc/plot_usace_adcirc.m
 cp ${SCRIPTDIR}/output/cpra_postproc/read61nc.m
 cp ${SCRIPTDIR}/output/cpra_postproc/rivergages2.m
@@ -100,6 +101,7 @@ rm createPPT.sh
 rm buildPPT.py
 rm LSU_template.pptx
 rm GetInfo4Hydrographs.sh
+rm Gate_Closure_Trigger.xlsx
 rm plot_usace_adcirc.m
 rm read61nc.m
 rm rivergages2.m
