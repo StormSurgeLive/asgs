@@ -43,13 +43,16 @@ cpraStationNames = {'17th St. Outfall Canal (17StCanal)',...
     'IHNC  Surge Barrier (IHNC02)',...
     'West Closure Complex (WBV90)',...
     'Hero Canal Stop-Log Gage (WBV09b)',...
-    'Oakville Sluice Gage (WBV09a)',...
+    'Oakville Sluice Gate (WBV09a)',...
     'Bayou Segnette Closure (WBV162)',...
     'Caernarvon Canal Sector Gate (LPV149)',...
     'Bayou Dupre Sector Gate (LPV144)',...
     'Western Tie-In (WBV7274)',...
     'Empire Floodgate (NOV13)',...
     'Empire Lock (NOV14)'};
+% The USACE Gate Closure Trigger (ft, NAVD88)
+[num,txt,raw] = xlsread('Gate_Closure_Trigger.xlsx');
+trigger = num;
 
 %% 
 % -------------------------------------------------------------------------
@@ -156,21 +159,47 @@ for f = 1:adcData(1).NumStations
     
     minWL = min(minOWL,minMWL) - 1;
     maxWL = max(maxOWL,maxMWL) + 3;
+%     maxWL = max([maxOWL,maxMWL,trigger(cpraStationIndex)]) + 3;
 
+    % Set the top location where the text will be located
+    % ttop -> text top
+    if maxWL < 6
+        ttop = maxWL - 1.25;
+    else
+        ttop = maxWL - 1.75;
+    end
+    
+    %% 
+% -----------------------------------------------------------------------
+    % Find out if forecasted water level is above the trigger
+    if (trigger(cpraStationIndex) > 0) && (maxMWL > trigger(cpraStationIndex))
+        % Find the index at which this occurs. Use the first time it
+        % occurs.
+        idx = find(adcData(i).STATION{f}.DATA/.3048 > trigger(cpraStationIndex));
+        if isempty(idx) == 0
+            trigDate = adcData(i).STATION{f}.DATE(idx(1));
+            % Plot gate closure trigger
+            plot([trigDate-0.5 trigDate+0.5],[trigger(cpraStationIndex) trigger(cpraStationIndex)],...
+                '-', 'color', 'green','Linewidth',2.0);
+            plot([trigDate trigDate],[minWL ttop],...
+                '--', 'color', 'black','Linewidth',0.75);
+            tt = text(trigDate,ttop,strcat(datestr(trigDate,'HH:MM'),' UTC'));
+            set(tt,'Rotation',90);
+        end
+    end
     
     %% 
 % -------------------------------------------------------------------------
-    
     % Plot advisory date/time and vertical line
-    plot([dtAdvisory dtAdvisory],[minWL maxWL - 1.25],...
+    plot([dtAdvisory dtAdvisory],[minWL ttop],...
         '--', 'color', 'black','Linewidth',0.75);
-    lf = text(dtAdvisory,maxWL - 1.25,strcat(datestr(dtAdvisory,'HH:MM'),' UTC'));
-    set(lf,'Rotation',90);
+    at = text(dtAdvisory,ttop,strcat(datestr(dtAdvisory,'HH:MM'),' UTC'));
+    set(at,'Rotation',90);
     
     % Plot horizonal line at 0
-    plot([0 0],[sdate-3 edate+1],...
-        '-', 'color', 'black','Linewidth',1.0);
-    
+%     plot([sdate-3 edate+1],[0 0],...
+%         '-', 'color', 'black','Linewidth',1.0);
+     
     %% 
 % -------------------------------------------------------------------------
 
