@@ -1,11 +1,12 @@
 #!/bin/bash
 #--------------------------------------------------------------------------
-# NGOM_post.sh 
+# cpra_slide_deck_post.sh 
 #--------------------------------------------------------------------------
-# Copies output from the ASGS to /dev/null.
+# Driver script for building CPRA hydrograph slide deck.
 #--------------------------------------------------------------------------
 # 
-# Copyright(C) 2008, 2009, 2010 Jason Fleming
+# Copyright(C) 2018 Matthew V Bilskie
+# Copyright(C) 2018 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -41,10 +42,8 @@ HSTIME=$9
 . ${CONFIG}
 #
 umask 002
-
-####################################################
-# JASON - Can we make this seamless pending the machine that is selected when launching asgs?
-
+#
+#--------------------------------------------------------------------------
 # Modules for QB2
 #module load matlab/r2015b
 #module load python/2.7.12-anaconda-tensorflow
@@ -52,59 +51,44 @@ umask 002
 # Modules for hatteras
 #module load python_modules/2.7
 #module load matlab/2017b
-#####################################################
-
-
-# Copy FG51.inp.template and edit.
-
+#--------------------------------------------------------------------------
+#
+#
+#--------------------------------------------------------------------------
+#       SETUP AND ENTER SIMULATION DIRECTORY
+#--------------------------------------------------------------------------
+POSTPROCDIR=${SCRIPTDIR}/output/cpra_postproc/
 STORMDIR=${ADVISDIR}/${ENSTORM} # ensemble member directory for this advisory
 cd $STORMDIR
-
-cp ${SCRIPTDIR}/output/cpra_postproc/Extract_latlon.sh ${STORMDIR}/
-chmod u+x Extrac_latlon.sh
-./Extract_latlon.sh fort.22 fort.22.trk
-
-if [ -f maxele.63.nc ]; then
-    sed -i "s/%FileName%/${fname}/g" FG51_SELA_maxele.inp 
-    sed -i "s/%Title%/${title}/g" FG51_SELA_maxele.inp 
-    sed -i "s/%TrackFile%/fort.22.trk/g" FG51_SELA_maxele.inp
-    # Find Maximum WSE
-    matlab -nodisplay -nosplash -nodesktop -r "FindMaxZ, exit"
-    etaMax=$(head -n 1 etaMax.txt)
-    if [ etaMax -lt 6 ]
-        sed -i "s/%zmax%/6/g" FG51_SELA_maxele.inp
-        sed -i "s/%contourscale%/2/g" FG51_SELA_maxele.inp
-        sed -i "s/%scalelabel%/1/g" FG51_SELA_maxele.inp
-    elif [ etaMax -lt 16 ]
-        sed -i "s/%zmax%/16/g" FG51_SELA_maxele.inp
-        sed -i "s/%contourscale%/4/g" FG51_SELA_maxele.inp
-        sed -i "s/%scalelabel%/2/g" FG51_SELA_maxele.inp
-    elif [ etaMax -lt 32 ]
-        sed -i "s/%zmax%/32/g" FG51_SELA_maxele.inp
-        sed -i "s/%contourscale%/4/g" FG51_SELA_maxele.inp
-        sed -i "s/%scalelabel%/4/g" FG51_SELA_maxele.inp
-    fi
-fi
-
-cp ${SCRIPTDIR}/output/cpra_postproc/Default2.pal ${STORMDIR}/
-
-# Create FigureGen images
+#--------------------------------------------------------------------------
+#
+#
+#--------------------------------------------------------------------------
+#       GENERATE FIGUREGEN IMAGES
+#--------------------------------------------------------------------------
+# Generate FigureGen Images
+${POSTPROCDIR}/cpra_FigureGen.sh -i ${POSTPROCDIR} -s ${STORMDIR}
+# Launch submit script
 cp ${SCRIPTDIR}/output/cpra_postproc/submit-postproc.qb ${STORMDIR}/
 qsub submit-postproc.qb
 
+# Wait until submit-postproc is finished
 until [ -f ${STORMDIR}/postproc.done ]
 do
     sleep 5
 done
-
 sleep 5
-
+#--------------------------------------------------------------------------
+#
+#
+#--------------------------------------------------------------------------
+#       GENERATE HYDROGRAPHS & BUILD PPT
+#--------------------------------------------------------------------------
 # Run createPPT.sh
-POSTPROCDIR=${SCRIPTDIR}/output/cpra_postproc/
 ${POSTPROC}/createPPT.sh -i ${POSTPROCDIR} 
-
 sleep 5
-
+#--------------------------------------------------------------------------
+#
 #
 #POSTDIR=/dev/null
 #
