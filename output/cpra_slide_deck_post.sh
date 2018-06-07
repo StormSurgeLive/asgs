@@ -42,6 +42,18 @@ HSTIME=$9
 #
 umask 002
 
+####################################################
+# JASON - Can we make this seamless pending the machine that is selected when launching asgs?
+
+# Modules for QB2
+#module load matlab/r2015b
+#module load python/2.7.12-anaconda-tensorflow
+
+# Modules for hatteras
+#module load python_modules/2.7
+#module load matlab/2017b
+#####################################################
+
 
 # Copy FG51.inp.template and edit.
 
@@ -53,22 +65,26 @@ chmod u+x Extrac_latlon.sh
 ./Extract_latlon.sh fort.22 fort.22.trk
 
 if [ -f maxele.63.nc ]; then
-    fname="LA_v17a_SELA${STORM}_${ADVISORY}_${ENSTORM}_maxele_"
-    title="SELA_${STORM}_${ADVISORY}_${ENSTORM}_maxele_"
-    cp ${SCRIPTDIR}/output/cpra_postproc/FG51_SELA_maxele.inp.template ${STORMDIR}/FG51_SELA_maxele.inp
     sed -i "s/%FileName%/${fname}/g" FG51_SELA_maxele.inp 
     sed -i "s/%Title%/${title}/g" FG51_SELA_maxele.inp 
     sed -i "s/%TrackFile%/fort.22.trk/g" FG51_SELA_maxele.inp
+    # Find Maximum WSE
+    matlab -nodisplay -nosplash -nodesktop -r "FindMaxZ, exit"
+    etaMax=$(head -n 1 etaMax.txt)
+    if [ etaMax -lt 6 ]
+        sed -i "s/%zmax%/6/g" FG51_SELA_maxele.inp
+        sed -i "s/%contourscale%/2/g" FG51_SELA_maxele.inp
+        sed -i "s/%scalelabel%/1/g" FG51_SELA_maxele.inp
+    elif [ etaMax -lt 16 ]
+        sed -i "s/%zmax%/16/g" FG51_SELA_maxele.inp
+        sed -i "s/%contourscale%/4/g" FG51_SELA_maxele.inp
+        sed -i "s/%scalelabel%/2/g" FG51_SELA_maxele.inp
+    elif [ etaMax -lt 32 ]
+        sed -i "s/%zmax%/32/g" FG51_SELA_maxele.inp
+        sed -i "s/%contourscale%/4/g" FG51_SELA_maxele.inp
+        sed -i "s/%scalelabel%/4/g" FG51_SELA_maxele.inp
+    fi
 fi
-
-#if [ -f swan_HS_max.63.nc ]; then
-#    fname="NGOM_WNAT_${STORM}_${ADVISORY}_${ENSTORM}_maxHS_"
-#    title="NGOM_${STORM}_${ADVISORY}_${ENSTORM}_maxHS_"
-#    cp ${SCRIPTDIR}/output/NGOM_post/FG51_WNAT_maxHS.inp.template ${STORMDIR}/FG51_WNAT_maxHS.inp
-#    sed -i "s/%FileName%/${fname}/g" FG51_WNAT_maxHS_maxele.inp 
-#    sed -i "s/%Title%/${title}/g" FG51_WNAT_maxHS.inp 
-#    sed -i "s/%TrackFile%/fort.22.trk/g" FG51_WNAT_maxHS.inp
-#fi
 
 cp ${SCRIPTDIR}/output/cpra_postproc/Default2.pal ${STORMDIR}/
 
@@ -83,29 +99,9 @@ done
 
 sleep 5
 
-# Copy over files needed to create the hydrographs and PPT file
-cp ${SCRIPTDIR}/output/cpra_postproc/createPPT.sh
-cp ${SCRIPTDIR}/output/cpra_postproc/buildPPT.py
-cp ${SCRIPTDIR}/output/cpra_postproc/LSU_template.pptx
-cp ${SCRIPTDIR}/output/cpra_postproc/GetInfo4Hydrographs.sh
-cp ${SCRIPTDIR}/output/cpra_postproc/Gate_Closure_Trigger.xlsx
-cp ${SCRIPTDIR}/output/cpra_postproc/plot_usace_adcirc.m
-cp ${SCRIPTDIR}/output/cpra_postproc/read61nc.m
-cp ${SCRIPTDIR}/output/cpra_postproc/rivergages2.m
-cp ${SCRIPTDIR}/output/cpra_postproc/xml2struct.m
-chmod u+x createPPT.sh
-./createPPT.sh
-sleep 5
-# Clean up
-rm createPPT.sh
-rm buildPPT.py
-rm LSU_template.pptx
-rm GetInfo4Hydrographs.sh
-rm Gate_Closure_Trigger.xlsx
-rm plot_usace_adcirc.m
-rm read61nc.m
-rm rivergages2.m
-rm xml2struct.m
+# Run createPPT.sh
+POSTPROCDIR=${SCRIPTDIR}/output/cpra_postproc/
+${POSTPROC}/createPPT.sh -i ${POSTPROCDIR} 
 
 sleep 5
 

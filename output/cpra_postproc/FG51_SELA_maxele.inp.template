@@ -23,14 +23,14 @@ ft                                                 ! Alphanumeric label for unit
 SMS                                                ! Color palette flag: RGB, SMS(+INTERVALS), CPT(+INTERVALS).
 Default2.pal                                       ! Name of SMS color palette.
 DEFAULT                                            ! Color lines flag: DEFAULT, CONTOUR-LINES, GRID-BATH/SIZE/DECOMP-#.  Requires GMT4.3.0.
-0,3.0                                              ! Minimum,maximum in contour range (or FIND to determine from file).
-0.1                                                ! Interval in contour range.
+0,%zmax%                                           ! Minimum,maximum in contour range (or FIND to determine from file).
+0.5                                                ! Interval in contour range.
 100                                                ! Number of times to split contour interval (for smoother plots).
-1                                                  ! Label every xth contour line on the plot (or 0 for no labels).
+%contourscale%                                     ! Label every xth contour line on the plot (or 0 for no labels).
 1.0                                                ! Require contour line labels to be more than x inches apart.
 0                                                  ! Rotation angle for contour line labels (or n for normal or p for parallel.)
 10                                                 ! Font size for contour line labels.
-0.5                                                ! Label the scale at intervals of x.
+%scalelabel%                                       ! Label the scale at intervals of x.
 0.25                                               ! Width (inches) of scale.
 PARAMETERS FOR PARTICLES:
 0                                                  ! Particle flag: 0 to ignore, N to plot every Nth particle in the file.
@@ -47,7 +47,7 @@ m/s                                                ! Alphanumeric label for unit
 0.06,0.04,0.01                                     ! Vector head length, head width, tail width.
 60                                                 ! Magnitude of vector to show in the vector scale (or FIND to determine from file).
 PARAMETERS FOR OVERALL PLOT(S):
-1,Black                                            ! Boundaries flag: 0 to ignore, 1 to plot roads/levees from grid.
+1,Brown                                            ! Boundaries flag: 0 to ignore, 1 to plot roads/levees from grid.
 0,Gray,4,4,0.5                                     ! Coastline flag: 0 to ignore, 1 to plot coastline with color, resolution (1[Least]-4[Most]), water bodies (1[Least]-4[Most]).
 2,Black,%TrackFile%,1.0                            ! Dots/lines flag: 0 to ignore, 1 to plot unconnected dots, 2 to plot connected line segments from an external file.
 0,labels.txt                                       ! Labels flag: 0 to ignore, 1 to plot labels from external file.
