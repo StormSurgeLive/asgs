@@ -33,24 +33,23 @@ HOSTNAME=$6
 ENSTORM=$7
 COLDSTARTDATE=$8
 HSTIME=$9
+GRIDFILE=$10
+OUTPUTDIR=$11
+SYSLOG=$12
+SSHKEY=$13
 #
-# grab all static configuration data
+# Grab all static configuration data
 . ${CONFIG}
-#Bring in platform-specific configuration
+# Bring in logging functions
+.${SCRIPTDIR}/logging.sh
+# Bring in platform-specific configuration
 . ${SCRIPTDIR}/platforms.sh
+# Dispatch environment (using the functions in platforms.sh)
+env_dispatch ${TARGET}
 # grab all config info again (so the CONFIG file takes precendence)
 . ${CONFIG}
 #
 umask 002
-#
-#--------------------------------------------------------------------------
-# Modules for QB2
-#module load matlab/r2015b
-#module load python/2.7.12-anaconda-tensorflow
-
-# Modules for hatteras
-#module load python_modules/2.7
-#module load matlab/2017b
 #--------------------------------------------------------------------------
 #
 #
@@ -71,6 +70,7 @@ ${POSTPROCDIR}/cpra_FigureGen.sh -i ${POSTPROCDIR} -s ${STORMDIR}
 # Launch submit script
 cp ${POSTPROCDIR}/submit-postproc.qb ${STORMDIR}/
 qsub submit-postproc.qb
+logMessage "$ENSTORM: Submitting FigureGen runs"
 
 # Wait until submit-postproc is finished
 until [ -f ${STORMDIR}/postproc.done ]
@@ -85,6 +85,7 @@ sleep 5
 #       GENERATE HYDROGRAPHS & BUILD PPT
 #--------------------------------------------------------------------------
 # Run createPPT.sh
+logMessage "$ENSTORM: Creating hydrographs and PPT slides"
 ${POSTPROC}/createPPT.sh -i ${POSTPROCDIR} 
 sleep 5
 #--------------------------------------------------------------------------
