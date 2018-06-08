@@ -5,7 +5,7 @@ FOR BEST RESULTS, PLEASE KEEP COMMENTS OUT OF THE FIRST 50 CHARACTERS ON EACH LI
                                                    ! Path where GhostScript executable is located.
 Temp/                                              ! Path where temporary files will be created.
 %FileName%                                         ! Alphanumeric label for these plots.
-1,%Title%                                          ! Plot label flag and plot label.
+0,%Title%                                          ! Plot label flag and plot label.
 0,2005,8,23,18,0,0                                 ! Time bar flag: 0 to ignore, 1 to plot time bar.
 -92.25                                             ! Lat/lon box.
 -88.3387                                           !
@@ -15,7 +15,7 @@ fort.14                                            ! Name of grid file.
 0                                                  ! Plot grid flag: 0 to ignore, 1 to plot triangular grid on figure.
 PARAMETERS FOR CONTOURS:
 1                                                  ! Contour fill flag: 0 to ignore, 1 to plot filled contours, 2 to plot differences.
-0                                                  ! Contour lines flag: 0 to ignore, 1 to plot contour lines, 2 to plot differences.
+1                                                  ! Contour lines flag: 0 to ignore, 1 to plot contour lines, 2 to plot differences.
 maxele.63.nc                                       ! Name(s) of file(s) to use for contours.
 ADCIRC-OUTPUT                                      ! Contour file format flag: ADCIRC-OUTPUT, GRID-BATH/SIZE/DECOMP-#, 13-MANNING/CANOPY/TAU0/EVIS/WIND-REDUCTION(-#).
 3.280840                                           ! Unit conversion factor for contours.
@@ -24,9 +24,9 @@ SMS                                                ! Color palette flag: RGB, SM
 Default2.pal                                       ! Name of SMS color palette.
 DEFAULT                                            ! Color lines flag: DEFAULT, CONTOUR-LINES, GRID-BATH/SIZE/DECOMP-#.  Requires GMT4.3.0.
 0,%zmax%                                           ! Minimum,maximum in contour range (or FIND to determine from file).
-0.5                                                ! Interval in contour range.
+%contourscaleinterval%\                            ! Interval in contour range.
 100                                                ! Number of times to split contour interval (for smoother plots).
-%contourscale%                                     ! Label every xth contour line on the plot (or 0 for no labels).
+1                                                  ! Label every xth contour line on the plot (or 0 for no labels).
 1.0                                                ! Require contour line labels to be more than x inches apart.
 0                                                  ! Rotation angle for contour line labels (or n for normal or p for parallel.)
 10                                                 ! Font size for contour line labels.
