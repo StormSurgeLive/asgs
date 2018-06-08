@@ -41,6 +41,11 @@ do
             shift # past argument
             shift # past value
             ;;
+        -s)
+            stormDir="$2"
+            shift # past argument
+            shift # past value
+            ;;
     esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
@@ -87,7 +92,9 @@ matlab -nodisplay -nosplash -nodesktop -r "run plot_usace_adcirc.m, exit"
 #--------------------------------------------------------------------------
 #       RUN PYTHON SCRIPT TO GENERATE PPT SLIDE DECK
 #--------------------------------------------------------------------------
+cp ${toolDir}/LSU_template.pptx ${stormDir}/ 
 python ${toolDir}/buildPPT.py
+rm LSU_template.pptx
 #--------------------------------------------------------------------------
 #
 #

@@ -40,9 +40,8 @@ do
             shift # past argument
             shift # past value
             ;;
-    case $key in
         -s)
-            stormDir="$4"
+            stormDir="$2"
             shift # past argument
             shift # past value
             ;;
@@ -61,22 +60,25 @@ export MATLABPATH=${toolDir}
 ${toolDir}/Extract_latlon.sh fort.22 fort.22.trk
 
 if [ -f maxele.63.nc ]; then
-    cp ${toolDir}/FG51_SELA_maxele.inp.template {$stormDir}/FG51_SELA_maxele.inp
+    cp ${toolDir}/FG51_SELA_maxele.inp.template ${stormDir}/FG51_SELA_maxele.inp
+    fname="LA_SELA_${STORM}_${ADVISORY}_${ENSTORM}_maxele_"
     sed -i "s/%FileName%/${fname}/g" FG51_SELA_maxele.inp 
     sed -i "s/%Title%/${title}/g" FG51_SELA_maxele.inp 
     sed -i "s/%TrackFile%/fort.22.trk/g" FG51_SELA_maxele.inp
     # Find Maximum WSE
-    matlab -nodisplay -nosplash -nodesktop -r "run FindMaxZ.m, exit"
+    #matlab -nodisplay -nosplash -nodesktop -r "run FindMaxZ.m, exit"
     etaMax=$(head -n 1 etaMax.txt)
-    if [ etaMax -lt 6 ]
+    etaMax=${etaMax%.*}
+    echo $etaMax
+    if [[ etaMax -lt 6 ]] ; then
         sed -i "s/%zmax%/6/g" FG51_SELA_maxele.inp
         sed -i "s/%contourscale%/2/g" FG51_SELA_maxele.inp
         sed -i "s/%scalelabel%/1/g" FG51_SELA_maxele.inp
-    elif [ etaMax -lt 16 ]
+    elif [[ etaMax -lt 16 ]] ; then
         sed -i "s/%zmax%/16/g" FG51_SELA_maxele.inp
         sed -i "s/%contourscale%/4/g" FG51_SELA_maxele.inp
         sed -i "s/%scalelabel%/2/g" FG51_SELA_maxele.inp
-    elif [ etaMax -lt 32 ]
+    elif [[ etaMax -lt 32 ]] ; then
         sed -i "s/%zmax%/32/g" FG51_SELA_maxele.inp
         sed -i "s/%contourscale%/4/g" FG51_SELA_maxele.inp
         sed -i "s/%scalelabel%/4/g" FG51_SELA_maxele.inp

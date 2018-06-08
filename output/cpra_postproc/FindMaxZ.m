@@ -14,6 +14,8 @@ y = ncread(filename,'y');
 zeta_max = ncread(filename,'zeta_max');
 numNodes = length(zeta_max);
 
+zeta_max = zeta_max * 3.28084;
+
 etaMax = -999;
 for i = 1:numNodes
     if (x(i) < xmax) && (x(i) > xmin) && (y(i) < ymax) && (y(i) > ymin)
@@ -24,10 +26,6 @@ for i = 1:numNodes
 end
 
 ietaMax = ceil(etaMax);
-fileID = fopen('maxEta.txt','w');
+fileID = fopen('etaMax.txt','w');
 fprintf(fileID,'%f\n',ietaMax);
 fclose(fileID);
-
-
-
-
