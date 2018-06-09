@@ -1,7 +1,11 @@
+import sys
 from datetime import datetime
 from pptx import Presentation
 from pptx.util import Inches
 
+
+# Get command line argument
+fname = sys.argv[1]
 
 # Read parsed run.properties
 f = open('cpraHydro.info','r')
@@ -36,13 +40,13 @@ subtitle.text = "Advisory #" + advisory + " Issued on " + advisory_dt_long + " U
 left = Inches(1.94)
 top = Inches(1.14)
 
-#img_path = 'LA_v17a_09_25_nhcOfficial_maxele_0001.jpg'
-#slide = prs.slides.add_slide(slide_layout)
-#title = slide.shapes.title
-#subtitle = slide.placeholders[1]
-#title.text = "NHC Advisory 25 Consensus"
-#subtitle.text = "Simulated maximum water level (ft, NAVD88)"
-#pic = slide.shapes.add_picture(img_path,left,top)
+img_path = fname
+slide = prs.slides.add_slide(slide_layout)
+title = slide.shapes.title
+subtitle = slide.placeholders[1]
+title.text = "NHC Advisory 25 Consensus"
+subtitle.text = "Simulated maximum water level (ft, NAVD88)"
+pic = slide.shapes.add_picture(img_path,left,top)
 #
 #img_path = 'LA_v17a_09_25_veerRight50_maxele_0001.jpg'
 #slide = prs.slides.add_slide(slide_layout)

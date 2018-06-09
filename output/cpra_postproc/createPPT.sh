@@ -46,6 +46,11 @@ do
             shift # past argument
             shift # past value
             ;;
+        -fig)
+            fname="$2"
+            shift
+            shift
+            ;;
     esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
@@ -90,10 +95,18 @@ matlab -nodisplay -nosplash -nodesktop -r "run plot_usace_adcirc.m, exit"
 #
 #
 #--------------------------------------------------------------------------
+#       WAIT UNTIL FIGUREGEN IMAGE(S) ARE FINISHED
+#--------------------------------------------------------------------------
+# Wait until submit-postproc is finished
+until [ -f ${stormDir}/postproc.done ]
+do
+    sleep 5
+done
+#--------------------------------------------------------------------------
 #       RUN PYTHON SCRIPT TO GENERATE PPT SLIDE DECK
 #--------------------------------------------------------------------------
-cp ${toolDir}/LSU_template.pptx ${stormDir}/ 
-python ${toolDir}/buildPPT.py
+cp ${toolDir}/LSU_template.pptx ${stormDir}/
+python ${toolDir}/buildPPT.py ${fname}
 rm LSU_template.pptx
 #--------------------------------------------------------------------------
 #

@@ -24,7 +24,7 @@ SMS                                                ! Color palette flag: RGB, SM
 Default2.pal                                       ! Name of SMS color palette.
 DEFAULT                                            ! Color lines flag: DEFAULT, CONTOUR-LINES, GRID-BATH/SIZE/DECOMP-#.  Requires GMT4.3.0.
 0,%zmax%                                           ! Minimum,maximum in contour range (or FIND to determine from file).
-%contourscaleinterval%\                            ! Interval in contour range.
+%contourscaleinterval%                             ! Interval in contour range.
 100                                                ! Number of times to split contour interval (for smoother plots).
 1                                                  ! Label every xth contour line on the plot (or 0 for no labels).
 1.0                                                ! Require contour line labels to be more than x inches apart.

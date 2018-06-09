@@ -102,14 +102,16 @@ cp ${POSTPROCDIR}/Default2.pal ${STORMDIR}/
 # Launch submit script
 cp ${POSTPROCDIR}/submit-postproc.qb ${STORMDIR}/
 qsub submit-postproc.qb
+sleep 2
 #logMessage "$ENSTORM: Submitting FigureGen runs"
 
+### MOVED THIS TO createPPT.sh SO THE MATLAB HYDROGRAPHS CAN START 
 # Wait until submit-postproc is finished
-until [ -f ${STORMDIR}/postproc.done ]
-do
-    sleep 5
-done
-sleep 5
+#until [ -f ${STORMDIR}/postproc.done ]
+#do
+#    sleep 5
+#done
+#sleep 5
 #--------------------------------------------------------------------------
 #
 #
@@ -117,8 +119,8 @@ sleep 5
 #       GENERATE HYDROGRAPHS & BUILD PPT
 #--------------------------------------------------------------------------
 # Run createPPT.sh
-#logMessage "$ENSTORM: Creating hydrographs and PPT slides ${POSTPROCDIR}/createPPT.sh -i {POSTPROCDIR}"
-${POSTPROCDIR}/createPPT.sh -i ${POSTPROCDIR} -s ${STORMDIR} 
+fname="LA_SELA_${STORM}_${ADVISORY}_${ENSTORM}_maxele_0001.jpg"
+${POSTPROCDIR}/createPPT.sh -i ${POSTPROCDIR} -s ${STORMDIR} -fig ${fname} 
 #--------------------------------------------------------------------------
 #
 #
