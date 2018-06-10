@@ -1,23 +1,22 @@
-%% 
 clear all;
 close all;
 clc;
 
+colors = [0.9290 0.6940 0.1250; 175/255 54/255 60/255];
+
+% -------------------------------------------------------------------------
+
 % All time are in UTC. The USACE values are adjusted from CDT to UTC
 % by adding 5 hours.
 
-% Hydrograph ensemble colors
-colors = [0.9290 0.6940 0.1250; 175/255 54/255 60/255];
-
-%% 
 % -------------------------------------------------------------------------
+
 % Read cpraHydro.info for specific run-time information
 fid = fopen('cpraHydro.info','r');
 info = textscan(fid,'%s\n');
 fclose(fid);
 storm = info{1}{1}; adcGrid = info{1}{2}; forecastValid = info{1}{3};
 
-%% 
 % -------------------------------------------------------------------------
 
 % These lists are used in order to look-up the appropriate name based on
@@ -43,171 +42,123 @@ cpraStationNames = {'17th St. Outfall Canal (17StCanal)',...
     'IHNC  Surge Barrier (IHNC02)',...
     'West Closure Complex (WBV90)',...
     'Hero Canal Stop-Log Gage (WBV09b)',...
-    'Oakville Sluice Gate (WBV09a)',...
+    'Oakville Sluice Gage (WBV09a)',...
     'Bayou Segnette Closure (WBV162)',...
     'Caernarvon Canal Sector Gate (LPV149)',...
     'Bayou Dupre Sector Gate (LPV144)',...
     'Western Tie-In (WBV7274)',...
     'Empire Floodgate (NOV13)',...
     'Empire Lock (NOV14)'};
-% The USACE Gate Closure Trigger (ft, NAVD88)
-[num,txt,raw] = xlsread('Gate_Closure_Trigger.xlsx');
-trigger = num;
 
-%% 
+% Read in table containg the Station ID and index of the cpra stations as
+% contained in the fort.15/61
+% The first column in staID and the second is the index
+fid = fopen('station_index.txt');
+stationIndex = textscan(fid,'%s%s','CollectOutput',1);
+stationIndex = stationIndex{:};
+fid = fclose(fid);
+
+% index = ~cellfun(@isempty,strfind(cpraStationNames,'17StCanal'));
+
 % -------------------------------------------------------------------------
 
-% Get the current date/time of the advisory
+% Need to get this in through some input information...
+% dtAdvisory = datenum(2012,8,27,9,0,0);
 dtAdvisory = datenum(forecastValid,'yyyymmddHHMMSS');
-
-%% 
-% -------------------------------------------------------------------------
 
 % Loop through the number of ensemble simulations
 numEns = 1;
-ensFileNames = {'fort.61.nc','fort.61.veerRight50.61.nc'};
+ensFileNames = {'fort.61.imeds','fort.61.veerRight50.imeds'};
 for i = 1:numEns
     % Read in ADCIRC time-series water levels
-    adcData(i) = read61nc(char(ensFileNames(i)));
+    adcData(i) = readIMEDS(char(ensFileNames(i)));
 end
-% NEED TO ADD CHECK TO MAKE SURE THE NUMBER OF STATIONS ARE THE SAME FOR
-% EACH ENSEMBLE SIMULATION
 
-% Get the start and end date of the ADCIRC simulation and round off
-% Used for plotting purposes and grabbing USACE gage data
 sdate = round(adcData(1).STATION{1}.DATE(1));
 edate = round(adcData(1).STATION{1}.DATE(length(adcData(1).STATION{1}.DATE)));
             
-%% 
 ax = gca;
 fig = gcf;
 
-%% 
-for f = 1:adcData(1).NumStations
-  
-    % This will provide you with the index in the cpraStationNames vector
-    % assigned earlier in the script
-    cpraStationIndex = find(~cellfun(@isempty,strfind(cpraStationNames,adcData.STATION{f}.NAME)));
+for f = 1:length(stations)
     
-    % Check if cpraStationIndex was found -> If not, then cycle to next iteration.
-    if isempty(cpraStationIndex) == 1
-        continue;
-    end
+    % Find the cpraStation name for stations in stationIndex
+    f51Loc = find(~cellfun(@isempty,strfind(cpraStationNames,stationIndex(f))));
        
-    % Get USACE water level data for station cpraStationIndex
+    % Get USACE water level data for station f51Loc
     % If the rivergages function fails, then create a dummy value to plot.
     try
-        display(stations{1,cpraStationIndex})
-        wl=rivergages2(stations{1,cpraStationIndex},datestr(sdate-3),datestr(sdate),'HG');
+        %wl=rivergages2(stations{1,f},datestr(sdate-3),datestr(sdate),'HG');
+        wl=rivergages2(stations{1,f51Loc},datestr(sdate-3),datestr(sdate),'HG');
         
         % Plot USACE Observations
-        if isempty(wl) == 0 % Data was obtained
-            oDataExist = 1;
+        if isempty(wl) == 0
             wl(:,1) = wl(:,1) + 5/24; % Adjust time from CDT to UTC
-            wl(wl < -99) = NaN; % Remove data points that are less than -99
- 
-            % Find the min and max observed water levels
-            maxOWL = ceil(max(wl(:,2)));
-            minOWL = floor(min(wl(:,2)));
         else
             wl(1,1) = sdate; wl(1,2) = -20; % Create a fake point for legend purposes
         end
+        % Plot USACE water levels as scatter points
+%         scatter(wl(:,1),wl(:,2),50,'MarkerEdgeColor','black','Linewidth',1);hold on;
     catch ME
         % USACE is down... :(
         % Create some dummy values so the legned can still be plotted
         wl(1,1) = sdate;
         wl(1,2) = -20;
-        maxOWL = 1;
-        minOWL = 0;
-        oDataExist = 0;
     end
-    
+%         wl(1,1) = sdate;
+%         wl(1,2) = -20;
     % Plot USACE water levels as scatter points
     scatter(wl(:,1),wl(:,2),50,'MarkerEdgeColor','black','Linewidth',1);hold on;
      
-    %% 
 % -------------------------------------------------------------------------
     
     % Get ADCIRC data from station f and loop through each available ensemble
     for i = 1:numEns
-        adcData(i).STATION{f}.DATA(adcData(i).STATION{f}.DATA < -999) = NaN;
+        adcData(i).STATION{f51Loc}.DATA(adcData(i).STATION{f51Loc}.DATA < -999) = NaN;
         % Find min/max water surface elevation from ADCIRC result
-        res = ~any(~isnan(adcData(i).STATION{f}.DATA(:)));
+        res = ~any(~isnan(adcData(i).STATION{f51Loc}.DATA(:)));
         if res == false
-            mDataExist = 1;
-            % Find min/max water surface elevation from ADCIRC result
-            maxMWL = ceil(max(adcData.STATION{f}.DATA / 0.3048));
-            minMWL = floor(min(adcData.STATION{f}.DATA / 0.3048));
+    %         maxWL = ceil(max(adcData.STATION{f}.DATA / 0.3048)) + 3;
+    %         minWL = floor(min(adcData.STATION{f}.DATA / 0.3048)) - 2;
+
+            % I want to find this before plotting so all charts have the same
+            % min and max y-axis.
+            maxWL = 18;
+            minWL = -4;
         else
-            mDataExist = 0;
             % Create some dummy values so the legned can still be plotted
-            adcData(i).STATION{f}.DATE(1) = sdate;
-            adcData(i).STATION{f}.DATE(2) = sdate+0.01;
-            adcData(i).STATION{f}.DATA(1) = -20;
-            adcData(i).STATION{f}.DATA(2) = -20;
+            adcData(i).STATION{f51Loc}.DATE(1) = sdate;
+            adcData(i).STATION{f51Loc}.DATE(2) = sdate+0.01;
+            adcData(i).STATION{f51Loc}.DATA(1) = -20;
+            adcData(i).STATION{f51Loc}.DATA(2) = -20;
 
             % Force max and min water level bounds
-            maxMWL = 1;
-            minMWL = 0;
+            maxWL = 18;
+            minWL = -4;
         end
-
+    
         % Plot ADCIRC Simulation
-        plot(adcData(i).STATION{f}.DATE,...
-            adcData(i).STATION{f}.DATA / 0.3048,...
+        plot(adcData(i).STATION{f51Loc}.DATE,...
+            adcData(i).STATION{f51Loc}.DATA / 0.3048,...
             'Linewidth',3,'color',colors(i,:))
-    end
-    
-    minWL = min(minOWL,minMWL) - 1;
-    maxWL = max(maxOWL,maxMWL) + 3;
-%     maxWL = max([maxOWL,maxMWL,trigger(cpraStationIndex)]) + 3;
 
-    % Set the top location where the text will be located
-    % ttop -> text top
-    if maxWL < 6
-        ttop = maxWL - 1.25;
-    else
-        ttop = maxWL - 1.75;
     end
     
-    %% 
-% -----------------------------------------------------------------------
-    % Find out if forecasted water level is above the trigger
-    if (trigger(cpraStationIndex) > 0) && (maxMWL > trigger(cpraStationIndex))
-        % Find the index at which this occurs. Use the first time it
-        % occurs.
-        idx = find(adcData(i).STATION{f}.DATA/.3048 > trigger(cpraStationIndex));
-        if isempty(idx) == 0
-            trigDate = adcData(i).STATION{f}.DATE(idx(1));
-            % Plot gate closure trigger
-            plot([trigDate-0.5 trigDate+0.5],[trigger(cpraStationIndex) trigger(cpraStationIndex)],...
-                '-', 'color', 'green','Linewidth',2.0);
-            plot([trigDate trigDate],[minWL ttop],...
-                '--', 'color', 'black','Linewidth',0.75);
-            tt = text(trigDate,ttop,strcat(datestr(trigDate,'HH:MM'),' UTC'));
-            set(tt,'Rotation',90);
-        end
-    end
-    
-    %% 
 % -------------------------------------------------------------------------
-    % Plot advisory date/time and vertical line
-    plot([dtAdvisory dtAdvisory],[minWL ttop],...
-        '--', 'color', 'black','Linewidth',0.75);
-    at = text(dtAdvisory,ttop,strcat(datestr(dtAdvisory,'HH:MM'),' UTC'));
-    set(at,'Rotation',90);
     
-    % Plot horizonal line at 0
-%     plot([sdate-3 edate+1],[0 0],...
-%         '-', 'color', 'black','Linewidth',1.0);
-     
-    %% 
+    % Plot advisory date/time and vertical line
+    plot([dtAdvisory dtAdvisory],[-10 maxWL-4.5],...
+        '--', 'color', 'black','Linewidth',0.75);
+    lf = text(dtAdvisory,maxWL-4.3,strcat(datestr(dtAdvisory,'HH:MM'),' UTC'));
+    set(lf,'Rotation',90);
+
 % -------------------------------------------------------------------------
 
 % Setup Axis Properties
     % X-Axis Properties
-    xlim([sdate-3,edate+1]);
-    ax.XAxis.TickValues = [sdate-3:1:edate+1];
-    ax.XAxis.MinorTickValues = [sdate-3:0.25:edate+1];
+    xlim([sdate-3,edate+2]);
+    ax.XAxis.TickValues = [sdate-3:1:edate+2];
+    ax.XAxis.MinorTickValues = [sdate-3:0.25:edate+2];
     datetick('x','mmm-dd','keeplimits','keepticks')
     ax.XMinorTick = 'on';
     ax.XTickLabelRotation = 90;
@@ -215,25 +166,19 @@ for f = 1:adcData(1).NumStations
      
     % Y-Axis Properties
     ylim([minWL,maxWL])
-    if (maxWL - minWL) < 10
-        ax.YAxis.TickValues = [minWL:1:maxWL];
-        ax.YMinorTick = 'on';
-        ax.YAxis.MinorTickValues = [minWL:0.5:maxWL];
-    else
-        ax.YAxis.TickValues = [minWL:2:maxWL];
-        ax.YMinorTick = 'on';
-        ax.YAxis.MinorTickValues = [minWL:1:maxWL];
-    end
+    ax.YAxis.TickValues = [minWL:2:maxWL];
+    ax.YMinorTick = 'on';
+    ax.YAxis.MinorTickValues = [minWL:1:maxWL];
     ylabel('Water Level (ft, NAVD88)');
 
     grid on;
     %ax.YMinorGrid = 'on';
     
-    %% 
 % -------------------------------------------------------------------------
     
+%     title1 = 'Storm:Isaac  -  grid:LA_v17a-WithUpperAtch_chk';
     title1 = strcat('Storm:',storm,' - grid:',adcGrid);
-    title2 = strcat(cpraStationNames(cpraStationIndex),'  -  USACE Gage ID ',stations(cpraStationIndex));
+    title2 = strcat(cpraStationNames(f51Loc),'  -  USACE Gage ID ',stations(f51Loc));
     
     text(0,1.07,title1,'Units','normalized','Interpreter','None');
     text(0,1.03,title2,'Units','normalized','Interpreter','None');
@@ -252,7 +197,7 @@ for f = 1:adcData(1).NumStations
     % Plot Figure
     fig.PaperUnits = 'inches';
     fig.PaperPosition = [0 0 12.5 5];
-    
-    fname = char(strcat('WSE_',adcData.STATION{f}.NAME,'_USACE',stations(cpraStationIndex)));
+    % Image filename is 'WSE_cpraStationID_USACEStationID'
+    fname = char(strcat('WSE_',stationIndex(f),'_USACE',stations(f51Loc)));
     print(fname,'-dpng','-r200');
 end
