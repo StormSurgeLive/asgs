@@ -37,7 +37,8 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 # Source file paths
 
 ADCIRCDIR=/home/mbilskie/src/PADCIRC/adcirc-cg-52.30.14/work # ADCIRC executables
-SCRIPTDIR=/scratch/mbilskie/NGOM_RT_v18j/asgs_2014stable          # ASGS executables
+#SCRIPTDIR=/scratch/mbilskie/NGOM_RT_v18j/asgs_2014stable          # ASGS executables
+SCRIPTDIR=/project/mbilskie/repo/asgs   # ASGS executables
 INPUTDIR=/work/mbilskie/NGOM_RT_v18j/daily/mesh # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
@@ -157,8 +158,8 @@ ASGSADMIN=mbilsk3@lsu.edu
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-#POSTPROCESS=queenbee_daily_post.sh
-POSTPROCESS=null_post.sh
+POSTPROCESS=queenbee_daily_post.sh
+#POSTPROCESS=null_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap

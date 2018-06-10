@@ -30,7 +30,7 @@
 INSTANCENAME=albertoLAv17a  # "name" of this ASGS process
 COLDSTARTDATE=2018040800 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=/work/jgflemin/asgs24763/auto # path to previous execution (if HOTORCOLD=hotstart)
+LASTSUBDIR=/work/jgflemin/asgs24763/2018052506 # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -39,15 +39,15 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable          # ASGS executables
 INPUTDIR=${SCRATCHDIR}/asgs/2014stable/input/meshes/LA_v17a # grid and other input files
-OUTPUTDIR=${SCRATCHDIR}/output # post processing scripts
-PERL5LIB=${SCRATCHDIR}/PERL    # DateCale.pm perl module
+OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
+PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=off    # NAM download/forcing
+BACKGROUNDMET=off   # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=on   # tropical cyclone forcing
-WAVES=on             # wave forcing
+WAVES=off             # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
@@ -64,8 +64,11 @@ NCPUCAPACITY=3660
 CYCLETIMELIMIT="05:00:00"
 #QUEUENAME=workq
 #SERQUEUE=single
-QUEUENAME=workq
-SERQUEUE=single
+QUEUENAME=priority
+SERQUEUE=priority
+if [[ $SERQUEUE = priority ]]; then
+   PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
+fi
 ACCOUNT=loni_cera_2018
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
@@ -74,13 +77,13 @@ SCRATCHDIR=/work/$USER    # vs default /work/cera
 STORM=01                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2018                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
-#RSSSITE=filesystem
+RSSSITE=filesystem
 #FTPSITE=filesystem
-#FDIR=${INPUTDIR}/sample_advisories
+FDIR=~/asgs/2014stable/input/sample_advisories/2018
 #HDIR=${INPUTDIR}/sample_advisories
-RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
+#RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
-FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+#FDIR=/atcf/afst                  # forecast dir on nhc ftp site
 HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
@@ -104,9 +107,9 @@ GRIDNAME=LA_v17a-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=LA_v17a-WithUpperAtch.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=combined_stations_20180524.txt
-VELSTATIONS=combined_stations_20180524.txt
-METSTATIONS=combined_stations_20180524.txt
+ELEVSTATIONS=combined_stations_20180525.txt
+VELSTATIONS=combined_stations_20180525.txt
+METSTATIONS=combined_stations_20180525.txt
 NAFILE=LA_v17a-WithUpperAtch.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=LA_v17a-WithUpperAtch.26.template   # only used if WAVES=on
@@ -186,27 +189,27 @@ WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts
 
 # Archiving
 
-ARCHIVE=null_archive.sh
-ARCHIVEBASE=/projects/ncfs/data
-ARCHIVEDIR=archive
+ARCHIVE=queenbee_archive.sh
+ARCHIVEBASE=/work/jgflemin
+ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
 # Forecast ensemble members
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=4 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
-0)
+3)
    ENSTORM=nhcConsensus
    ;;
-1)
+2)
    ENSTORM=nhcConsensusWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.nowindreduction.15.template
+   CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements
@@ -232,16 +235,16 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
    ;;
-2)
+0)
    ENSTORM=veerLeft100
    PERCENT=-100
    ;;
-3)
+1)
    ENSTORM=veerLeft100Wind10m
    PERCENT=-100
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.nowindreduction.15.template
+   CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements
@@ -276,7 +279,7 @@ case $si in
    PERCENT=100
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.nowindreduction.15.template
+   CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements

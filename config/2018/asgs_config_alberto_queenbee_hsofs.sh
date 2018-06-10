@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2016--2017 Jason Fleming
+# Copyright(C) 2016--2018 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -27,18 +27,18 @@
 
 # Fundamental
 
-INSTANCENAME=natehsofsx    # "name" of this ASGS process
-COLDSTARTDATE=2017090412  # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart        # "hotstart" or "coldstart"
-LASTSUBDIR=null   # path to previous execution (if HOTORCOLD=hotstart)
+INSTANCENAME=albertoHSOFSx    # "name" of this ASGS process
+COLDSTARTDATE=2018032400  # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart        # "hotstart" or "coldstart"
+LASTSUBDIR=/work/jgflemin/asgs24096/2018052506   # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/jasonfleming/master/work # ADCIRC executables
+ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables
 SCRIPTDIR=~/asgs/2014stable          # ASGS executables
-INPUTDIR=/work/jgflemin/asgs/2014stable/input/meshes/hsofs 
+INPUTDIR=${SCRATCHDIR}/asgs/2014stable/input/meshes/hsofs 
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
@@ -47,7 +47,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=off     # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=on  # tropical cyclone forcing
-WAVES=off             # wave forcing
+WAVES=on             # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
@@ -60,27 +60,30 @@ NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=1200                   # number of compute CPUs for all simulations
 NUMWRITERS=20
-NCPUCAPACITY=2480
+NCPUCAPACITY=3660
 CYCLETIMELIMIT="05:00:00"
 #QUEUENAME=workq
 #SERQUEUE=single
-QUEUENAME=admin
-SERQUEUE=admin
-ACCOUNT=loni_cera_2017
+QUEUENAME=priority
+SERQUEUE=priority
+if [[ $SERQUEUE = priority ]]; then 
+   PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
+fi
+ACCOUNT=loni_cera_2018
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones
 
-STORM=16                         # storm number, e.g. 05=ernesto in 2006
-YEAR=2017                        # year of the storm
+STORM=01                         # storm number, e.g. 05=ernesto in 2006
+YEAR=2018                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
-#RSSSITE=filesystem
+RSSSITE=filesystem
 #FTPSITE=filesystem
 #FDIR=${INPUTDIR}/sample_advisories
 #HDIR=${INPUTDIR}/sample_advisories
-RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
+#RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
-FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+FDIR=~/asgs/2014stable/input/sample_advisories/2018
 HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
@@ -104,9 +107,9 @@ GRIDNAME=hsofs
 MESHPROPERTIES=${GRIDFILE}.ng.properties
 CONTROLTEMPLATE=hsofs_explicit.15.template  # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=hsofs.combined_station_list_20180524.txt
-VELSTATIONS=hsofs.combined_station_list_20180524.txt
-METSTATIONS=hsofs.combined_station_list_20180524.txt
+ELEVSTATIONS=hsofs.combined_station_list_20180525.txt
+VELSTATIONS=hsofs.combined_station_list_20180525.txt
+METSTATIONS=hsofs.combined_station_list_20180525.txt
 NAFILE=hsofs.13
 NAPROPERTIES=${NAFILE}.properties
 #SWANTEMPLATE=fort.26.template # only used if WAVES=on
@@ -120,7 +123,7 @@ HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
 # Output files
 
 # water surface elevation station output
-FORT61="--fort61freq 900.0 --fort61netcdf" 
+FORT61="--fort61freq 300.0 --fort61netcdf" 
 # water current velocity station output
 FORT62="--fort62freq 0"                    
 # full domain water surface elevation output
@@ -128,7 +131,7 @@ FORT63="--fort63freq 3600.0 --fort63netcdf"
 # full domain water current velocity output
 FORT64="--fort64freq 3600.0 --fort64netcdf" 
 # met station output
-FORT7172="--fort7172freq 900.0 --fort7172netcdf"           
+FORT7172="--fort7172freq 300.0 --fort7172netcdf"           
 # full domain meteorological output
 FORT7374="--fort7374freq 3600.0 --fort7374netcdf"           
 #SPARSE="--sparse-output"
@@ -162,7 +165,7 @@ POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
-TDS=(lsu_tds renci_tds)
+TDS=(renci_tds)
 TARGET=queenbee  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
@@ -178,7 +181,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 NUMCERASERVERS=2
 WEBHOST=webserver.hostingco.com
@@ -187,23 +190,23 @@ WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts
 
 # Archiving
 
-ARCHIVE=null_archive.sh
-ARCHIVEBASE=/projects/ncfs/data
-ARCHIVEDIR=archive
+ARCHIVE=queenbee_archive.sh
+ARCHIVEBASE=/work/jgflemin
+ARCHIVEDIR=${ARCHIVEBASE}/archive
 
 # Forecast ensemble members
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=4 # number of storms in the ensemble
+ENSEMBLESIZE=2 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
-0)
+3)
    ENSTORM=nhcConsensus
    ;;
-1)
+2)
    ENSTORM=nhcConsensusWind10m
    ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:60:00" # forecast wall clock time
@@ -233,13 +236,13 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
    ;;
-2)
+1)
    ENSTORM=veerLeft100
    PERCENT=-100
    CONTROLTEMPLATE=hsofs_explicit.15.template  # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    ;;
-3)
+0)
    ENSTORM=veerLeft100Wind10m
    PERCENT=-100
    ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
@@ -247,7 +250,7 @@ case $si in
    CONTROLTEMPLATE=hsofs.nowindreduction.15.template 
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0    # 15 minute time steps
-   NCPU=23               # dramatically reduced resource requirements
+   NCPU=19               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output
