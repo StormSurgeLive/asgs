@@ -68,14 +68,17 @@ top = Inches(1.15)
 fnames = ['WSE_17StCanal_USACE85625.png','WSE_IHNC01_USACE76065.png','WSE_IHNC02_USACE76030.png',
         'WSE_LPV144_USACE76010.png','WSE_LPV149_USACE85760.png','WSE_NOV13_USACE01440.png',
         'WSE_NOV14_USACE01440.png','WSE_WBV09a_USACE82770.png','WSE_WBV09b_USACE82762.png',
-        'WSE_WBV162_USACE82742.png','WSE_WBV7274_USACE82715.png','WSE_WBV90_USACE76265.png']
+        'WSE_WBV162_USACE82742.png','WSE_WBV7274_USACE82715.png','WSE_WBV90_USACE76265.png',
+        'WSE_LakefrontAirport_USACE85670.png','WSE_Mandeville_USACE85575.png',
+        'WSE_Rigolets_USACE85700.png','WSE_Lafitte_USACE_82875.png']
 
 # Station names correspond to the order of fnames
 staName = ['17th St. Outfall Canal','Seabrook Complex (IHNC-01)','IHNC Surge Barrier (IHNC-02)',
         'Bayou Dupre Sector Gate (LPV-144)','Caernarvon Canal Sector Gate (LPV-149)',
         'Empire Floodgate (NOV-13)','Empire Lock (NOV-14)','Oakville Sluice Gate (WBV-09a)',
         'Hero Canal stop-log gage (WBV-09b)','Bayou Segnetee closure (WBV-16.2)',
-        'Western Tie-In features (WBV-74-72)','West Closure Complex (WBV-90)']
+        'Western Tie-In features (WBV-74-72)','West Closure Complex (WBV-90)',
+        'Lakefront Airport','Mandeville','Rigolets','Lafitte']
 
 i = 0
 for image in fnames:
