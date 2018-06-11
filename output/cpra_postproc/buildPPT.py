@@ -2,6 +2,7 @@ import sys
 from datetime import datetime
 from pptx import Presentation
 from pptx.util import Inches
+from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE
 
 
 # Get command line argument
@@ -26,15 +27,21 @@ prs = Presentation('LSU_template.pptx')
 slide_layout = prs.slide_layouts[5]
 slide_layout_hydro = prs.slide_layouts[6]
 
+numSlides = 1
+
 # Create a title slide
 title_slide_layout = prs.slide_layouts[0]
+#for shape in title_slide_layout.placeholders:
+#    print('%d %s' % (shape.placeholder_format.idx, shape.name))
 slide = prs.slides.add_slide(title_slide_layout)
 title = slide.shapes.title
 subtitle = slide.placeholders[1]
-#title.text = "Hurricane Isaac"
 title.text = "STORM " + storm
-#subtitle.text = "Advisory #25 - Issued on 09:00 UTC Aug-27-2012"
 subtitle.text = "Advisory #" + advisory + " Issued on " + advisory_dt_long + " UTC"
+statement = 'For Official Use Only. Not For Release. \rModel results were produced by the ADCIRC Surge Guidance System (ASGS) and are based on the National Hurricane Center (NHC) forecast track.'
+fouo = slide.placeholders[10]
+fouo.text = statement
+numSlides = numSlides + 1
 
 # Set slide layout
 left = Inches(1.94)
@@ -47,14 +54,13 @@ subtitle = slide.placeholders[1]
 title.text = "NHC Advisory 25 Consensus"
 subtitle.text = "Simulated maximum water level (ft, NAVD88)"
 pic = slide.shapes.add_picture(img_path,left,top)
-#
-#img_path = 'LA_v17a_09_25_veerRight50_maxele_0001.jpg'
-#slide = prs.slides.add_slide(slide_layout)
-#title = slide.shapes.title
-#subtitle = slide.placeholders[1]
-#title.text = "NHC Advisory 25 veerRight50"
-#subtitle.text = "Simulated maximum water level (ft, NAVD88)"
-#pic = slide.shapes.add_picture(img_path,left,top)
+fouo = slide.placeholders[13]
+fouo.text = statement
+snum = slide.placeholders[14]
+snum.text = str(numSlides)
+numSlides = numSlides + 1
+#for shape in slide.placeholders:
+#    print('%d %s' % (shape.placeholder_format.idx, shape.name))
 
 left = Inches(0.42)
 top = Inches(1.15)
@@ -77,24 +83,18 @@ for image in fnames:
     title = slide.shapes.title
     title.text = staName[i]
     pic = slide.shapes.add_picture(image,left,top)
+    fouo = slide.placeholders[13]
+    fouo.text = statement
+    snum = slide.placeholders[14]
+    snum.text = str(numSlides)
+    numSlides = numSlides + 1
     i = i + 1
 
+# Loop through slides
+#slides = prs.slides
+#for slide in slides:
+        #print('slide number %s' % str(slides.index(slide)+1))
 
-# Add image to slide
-#img_path = '1_WSE_85625.png'
-#slide = prs.slides.add_slide(slide_layout_hydro)
-#title = slide.shapes.title
-#title.text = "17th St. Outfall Canal"
-#pic = slide.shapes.add_picture(img_path,left,top)
-#
-#img_path = '2_WSE_76065.png'
-#slide = prs.slides.add_slide(slide_layout_hydro)
-#title = slide.shapes.title
-#title.text = "Seabrook Complex (IHNC-01)"
-#pic = slide.shapes.add_picture(img_path,left,top)
-
-
-#prs.save('Isaac_Adv25_082720180900.pptx')
 pptFile = storm + "_Adv" + advisory + "_" + advisoryTime + ".pptx"
 prs.save(pptFile)
 pFile = open('pptFile.temp','w')
