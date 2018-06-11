@@ -70,7 +70,7 @@ fnames = ['WSE_17StCanal_USACE85625.png','WSE_IHNC01_USACE76065.png','WSE_IHNC02
         'WSE_NOV14_USACE01440.png','WSE_WBV09a_USACE82770.png','WSE_WBV09b_USACE82762.png',
         'WSE_WBV162_USACE82742.png','WSE_WBV7274_USACE82715.png','WSE_WBV90_USACE76265.png',
         'WSE_LakefrontAirport_USACE85670.png','WSE_Mandeville_USACE85575.png',
-        'WSE_Rigolets_USACE85700.png','WSE_Lafitte_USACE_82875.png']
+        'WSE_Rigolets_USACE85700.png','WSE_Lafitte_USACE82875.png']
 
 # Station names correspond to the order of fnames
 staName = ['17th St. Outfall Canal','Seabrook Complex (IHNC-01)','IHNC Surge Barrier (IHNC-02)',

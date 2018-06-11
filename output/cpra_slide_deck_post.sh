@@ -23,6 +23,8 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
+#/project/mbilskie/repo/asgs/output/cpra_slide_deck_post.sh /scratch/mbilskie/LA_v17a/config/asgs_config_isaac_hindcast_qb2_LA_v17a_postproc_testing.sh /work/mbilskie/LA_v17a/isaac/asgs25945/25_almost/ 09 2012 25 qb.loni.org nhcOfficial 2012081100 2012082706 LA_v17a-WithUpperAtch_chk /work/mbilskie/LA_v17a/isaac/asgs25945/25_almost/nhcOfficial/ /scratch/mbilskie/LA_v17a/isaac/asgs-2018-May-15-T09\:57\:47.25945.log  ~/.ssh/authorized_keys
+#
 #--------------------------------------------------------------------------
 CONFIG=$1
 ADVISDIR=$2
