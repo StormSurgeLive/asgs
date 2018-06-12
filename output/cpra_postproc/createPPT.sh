@@ -126,7 +126,7 @@ rm LSU_template.pptx
 emailList='mbilsk3@lsu.edu'
 subjectLine="$storm Advisory $advisory PPT"
 message="This is an automated message from the ADCIRC Surge Guidance System (ASGS).
-New results are attached for STORM $storm ADVISORY $advisory issued on $forecastValidStart CDT"
+New results are attached for STORM $storm ADVISORY $advisory issued on $forecastValidStartCDT CDT"
 attachFile=$(cat pptFile.temp)
 echo "$message" | mail -s "$subjectLine" -a "$attachFile" $emailList
 #--------------------------------------------------------------------------
