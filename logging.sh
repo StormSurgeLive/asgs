@@ -26,41 +26,44 @@
 #
 # Log file will be in the directory where the asgs was executed
 RENCIPY="/projects/storm_surge/anaconda/bin/python"
-MSGR_SCRIPT="/home/bblanton/GitHub/renci-unc/asgs/asgs-msgr.py"
+#MSGR_SCRIPT="/home/bblanton/GitHub/renci-unc/asgs/asgs-msgr.py"
+MSGR_SCRIPT="/home/bblanton/GitHub/asgs-msgr/asgs-msgr/asgs-msgr.py"
 
 sigint(){
    #echo "Received Ctrl-C from console.  Shutting ASGS down...'"
-   RMQMessage "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..." 0
+   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..." 0
    exit 0
 }
 
-RMQMessage()  # MTYPE PROCESS STATE MSG PCTCOM
+RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
 { 
   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
   MTYPE=$1
-  PROCESS=$2
-  STATE=$3
-  MSG="RMQ-$MTYPE : $STATE : ${DATETIME} : $4"
+  EVENT=$2
+  PROCESS=$3
+  STATE=$4
+  MSG=$5
+  MSG="RMQ-$MTYPE : $EVENT : $STATE : ${DATETIME} : $MSG"
   PCTCOM=0
-  if [ "$#" -eq 5 ] ; then PCTCOM=$5 ; fi
+  if [ "$#" -eq 6 ] ; then PCTCOM=$6 ; fi
 
   re='^[0-9]+([.][0-9]+)?$' 
   if ! [[ $PCTCOM =~ $re ]] ; then
       echo "error: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message." 
   fi
-  printf "RMQ-%4s : %21s : %4s : %-50s : %5.1f : %s\n" "$MTYPE" $DATETIME $STATE $PROCESS $PCTCOM "$4"
+  printf "RMQ-%4s : %4s : %21s : %4s : %-50s : %5.1f : %s\n" "$MTYPE" $EVENT "$DATETIME" $STATE $PROCESS $PCTCOM "$5"
   # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
-  $RENCIPY $MSGR_SCRIPT --Uid $$ \
-                        --LocationName RENCI \
+  $RENCIPY $MSGR_SCRIPT --LocationName RENCI \
                         --ClusterName Hatteras \
-                        --RunType weather \
                         --StormName NAM \
                         --AdvisoryNumber 0 \
                         --Message "$MSG"  \
-                        --MessageType $MTYPE \
+                        --EventType $EVENT \
                         --Process $PROCESS \
                         --PctComplete $PCTCOM \
                         --State $STATE
+                        
+# --RunType weather \
 }
 
 logMessage()
@@ -90,7 +93,7 @@ warn()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
   MSG="[${DATETIME}] WARNING: $@"
   echo ${MSG} >> ${SYSLOG}
-  echo ${MSG}  # send to console
+  #echo ${MSG}  # send to console
 }
 #
 # log an error message, notify Operator 
