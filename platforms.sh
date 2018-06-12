@@ -505,7 +505,7 @@ env_dispatch(){
           ;;
   "hatteras") consoleMessage "platforms.sh: Hatteras (RENCI) configuration found."
           init_hatteras
-          RMQMessage "INFO" "platforms.sh"  "STRT" "Hatteras (RENCI) configuration found."  0
+          RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh"  "RUNN" "Hatteras (RENCI) configuration found."  0
           ;;
   "hatteras14") consoleMessage "platforms.sh: Hatteras (RENCI) configuration found."
           init_hatteras14
