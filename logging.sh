@@ -25,8 +25,6 @@
 #----------------------------------------------------------------
 #
 # Log file will be in the directory where the asgs was executed
-RENCIPY="/projects/storm_surge/anaconda/bin/python"
-MSGR_SCRIPT="/home/bblanton/GitHub/renci-unc/asgs/asgs-msgr.py"
 
 sigint(){
    #echo "Received Ctrl-C from console.  Shutting ASGS down...'"
@@ -36,6 +34,8 @@ sigint(){
 
 RMQMessage()  # MTYPE PROCESS STATE MSG PCTCOM
 { 
+  if [[ ${RMQMessaging} == "off" ]] ; then return; fi
+
   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
   MTYPE=$1
   PROCESS=$2
@@ -49,13 +49,14 @@ RMQMessage()  # MTYPE PROCESS STATE MSG PCTCOM
       echo "error: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message." 
   fi
   printf "RMQ-%4s : %21s : %4s : %-50s : %5.1f : %s\n" "$MTYPE" $DATETIME $STATE $PROCESS $PCTCOM "$4"
+
   # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
-  $RENCIPY $MSGR_SCRIPT --Uid $$ \
-                        --LocationName RENCI \
-                        --ClusterName Hatteras \
-                        --RunType weather \
-                        --StormName NAM \
-                        --AdvisoryNumber 0 \
+  ${RMQMessaging_Python} ${RMQMessaging_Script} --Uid $$ \
+                        --LocationName ${RMQMessaging_LocationName} \
+                        --ClusterName ${RMQMessaging_ClusterName} \
+                        --RunType $RMQ_RunType \
+                        --StormName $RMQ_StormName \
+                        --AdvisoryNumber $RMQ_AdvisoryNumber \
                         --Message "$MSG"  \
                         --MessageType $MTYPE \
                         --Process $PROCESS \
@@ -90,7 +91,7 @@ warn()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
   MSG="[${DATETIME}] WARNING: $@"
   echo ${MSG} >> ${SYSLOG}
-  echo ${MSG}  # send to console
+  #echo ${MSG}  # send to console
 }
 #
 # log an error message, notify Operator 

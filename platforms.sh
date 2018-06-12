@@ -142,6 +142,7 @@ init_pod()
   QSCRIPT=penguin.template.pbs
   PREPCONTROLSCRIPT=penguin.adcprep.template.pbs
   RESERVATION=null
+  SERQUEUE=B30     # aka the partition in SLURM parlance 
   QUEUE=B30     # aka the partition in SLURM parlance 
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=28

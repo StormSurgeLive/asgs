@@ -5,8 +5,9 @@
 # May 2018, for ASGS OAD 
 #
 
-HSTIME="/home/bblanton/ADCIRC/v52release/work/hstime"
-NCKS="/home/bblanton/bin/ncks"
+HSTIME="${ADCIRCDIR}/hstime"
+NCKS="${RMQMessaging_Ncks}"
+
 ##NCDUMP="ncdump"
 
 if [ "$#" -ne 1 ] ; then
