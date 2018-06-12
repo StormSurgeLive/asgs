@@ -3,8 +3,8 @@ clear all;
 close all;
 clc;
 
-% All time are in UTC. The USACE values are adjusted from CDT to UTC
-% by adding 5 hours.
+% All time are in CDT. The model values are adjusted from UTC to CDT
+% by subtracting 5 hours.
 
 % Hydrograph ensemble colors
 colors = [0.9290 0.6940 0.1250; 175/255 54/255 60/255];
@@ -77,6 +77,10 @@ ensFileNames = {'fort.61.nc','fort.61.veerRight50.61.nc'};
 for i = 1:numEns
     % Read in ADCIRC time-series water levels
     adcData(i) = read61nc(char(ensFileNames(i)));
+    % Change from UTC to CDT by subtracting 5 hours
+    for j = 1:adcData(i).NumStations
+        adcData(i).STATION{j}.DATE = adcData(i).STATION{j}.DATE - (5/24);
+    end
 end
 % NEED TO ADD CHECK TO MAKE SURE THE NUMBER OF STATIONS ARE THE SAME FOR
 % EACH ENSEMBLE SIMULATION
@@ -85,6 +89,8 @@ end
 % Used for plotting purposes and grabbing USACE gage data
 sdate = round(adcData(1).STATION{1}.DATE(1));
 edate = round(adcData(1).STATION{1}.DATE(length(adcData(1).STATION{1}.DATE)));
+
+%datetime(adcData(1).STATION{1}.DATE(1),'ConvertFrom','datenum')
             
 %% 
 ax = gca;
@@ -111,7 +117,7 @@ for f = 1:adcData(1).NumStations
         % Plot USACE Observations
         if isempty(wl) == 0 % Data was obtained
             oDataExist = 1;
-            wl(:,1) = wl(:,1) + 5/24; % Adjust time from CDT to UTC
+%             wl(:,1) = wl(:,1) + 5/24; % Adjust time from CDT to UTC
             wl(wl < -99) = NaN; % Remove data points that are less than -99
  
             % Find the min and max observed water levels
@@ -167,16 +173,7 @@ for f = 1:adcData(1).NumStations
     
     minWL = min(minOWL,minMWL) - 1;
     maxWL = max(maxOWL,maxMWL) + 3;
-%     maxWL = max([maxOWL,maxMWL,trigger(cpraStationIndex)]) + 3;
-
-    % Set the top location where the text will be located
-    % ttop -> text top
-    if maxWL < 6
-        ttop = maxWL - 1.25;
-    else
-        ttop = maxWL - 1.75;
-    end
-    
+%     maxWL = max([maxOWL,maxMWL,trigger(cpraStationIndex)]) + 3;    
     %% 
 % -----------------------------------------------------------------------
     % Find out if forecasted water level is above the trigger
@@ -189,9 +186,10 @@ for f = 1:adcData(1).NumStations
             % Plot gate closure trigger
             plot([trigDate-0.5 trigDate+0.5],[trigger(cpraStationIndex) trigger(cpraStationIndex)],...
                 '-', 'color', 'green','Linewidth',2.0);
-            plot([trigDate trigDate],[minWL ttop],...
+            plot([trigDate trigDate],[minWL maxWL],...
                 '--', 'color', 'black','Linewidth',0.75);
-            tt = text(trigDate,ttop,strcat(datestr(trigDate,'HH:MM'),' UTC'));
+            tt = text(trigDate-0.1,maxWL,strcat(datestr(trigDate,'HH:MM'),' CDT'));
+            tt(1).HorizontalAlignment = 'right';
             set(tt,'Rotation',90);
         end
     end
@@ -199,14 +197,20 @@ for f = 1:adcData(1).NumStations
     %% 
 % -------------------------------------------------------------------------
     % Plot advisory date/time and vertical line
-    plot([dtAdvisory dtAdvisory],[minWL ttop],...
+    plot([dtAdvisory dtAdvisory],[minWL maxWL],...
         '--', 'color', 'black','Linewidth',0.75);
-    at = text(dtAdvisory,ttop,strcat(datestr(dtAdvisory,'HH:MM'),' UTC'));
+    at = text(dtAdvisory-0.1,maxWL,...
+        strcat(datestr(dtAdvisory,'HH:MM'),' CDT'));
+    at(1).HorizontalAlignment = 'right';
     set(at,'Rotation',90);
     
-    % Plot horizonal line at 0
-%     plot([sdate-3 edate+1],[0 0],...
-%         '-', 'color', 'black','Linewidth',1.0);
+    % Plot horizonal line at the top
+    plot([sdate-3 edate+1],[maxWL maxWL],...
+        '-', 'color', 'black','Linewidth',1.0);
+    
+    % Plot vertical line to close off the plot
+    plot([edate+1 edate+1],[minWL maxWL],...
+        '-', 'color', 'black','Linewidth',1.0);
      
     %% 
 % -------------------------------------------------------------------------
@@ -216,10 +220,11 @@ for f = 1:adcData(1).NumStations
     xlim([sdate-3,edate+1]);
     ax.XAxis.TickValues = [sdate-3:1:edate+1];
     ax.XAxis.MinorTickValues = [sdate-3:0.25:edate+1];
-    datetick('x','mmm-dd','keeplimits','keepticks')
+    datetick('x','mmm-dd HH:MM','keeplimits','keepticks')
     ax.XMinorTick = 'on';
     ax.XTickLabelRotation = 90;
-    xlabel('Date (UTC)');
+    ax.FontSize = 10;
+    xlabel('Date (CDT)');
      
     % Y-Axis Properties
     ylim([minWL,maxWL])
@@ -259,7 +264,7 @@ for f = 1:adcData(1).NumStations
     
     % Plot Figure
     fig.PaperUnits = 'inches';
-    fig.PaperPosition = [0 0 12.5 5];
+    fig.PaperPosition = [0 0 12.5 6.0];
     
     fname = char(strcat('WSE_',adcData.STATION{f}.NAME,'_USACE',stations(cpraStationIndex)));
     print(fname,'-dpng','-r200');

@@ -69,6 +69,10 @@ export MATLABPATH=${toolDir}
 #--------------------------------------------------------------------------
 coldStartTime=$(grep ColdStartTime run.properties)
 coldStartTime=${coldStartTime/ColdStartTime : }
+temp1=${coldStartTime:0:8}
+temp2=${coldStartTime:8:9}
+coldStartTimeUTC="${temp1} ${temp2} UTC"
+coldStartTimeCDT=$(TZ="America/Chicago" date -d "${coldStartTimeUTC}" "+%Y-%m-%d %H:%M:%S")
 
 # Parse run.properties to get storm name
 storm=$(grep "storm name" run.properties)
@@ -81,6 +85,10 @@ advisory=${advisory/advisory : }
 # Parse run.properties to get forecast advisory start time
 forecastValidStart=$(grep forecastValidStart run.properties)
 forecastValidStart=${forecastValidStart/forecastValidStart : }
+temp1=${forecastValidStart:0:8}
+temp2=${forecastValidStart:8:4}
+forecastValidStartUTC="${temp1} ${temp2} UTC"
+forecastValidStartCDT=$(TZ="America/Chicago" date -d "${forecastValidStartUTC}" "+%Y%m%d%H%M%S")
 
 # Parse run.properties file
 ${toolDir}/GetInfo4Hydrographs.sh
@@ -118,7 +126,7 @@ rm LSU_template.pptx
 emailList='mbilsk3@lsu.edu'
 subjectLine="$storm Advisory $advisory PPT"
 message="This is an automated message from the ADCIRC Surge Guidance System (ASGS).
-New results are attached for STORM $storm ADVISORY $advisory issued on $forecastValidStart"
+New results are attached for STORM $storm ADVISORY $advisory issued on $forecastValidStart CDT"
 attachFile=$(cat pptFile.temp)
 echo "$message" | mail -s "$subjectLine" -a "$attachFile" $emailList
 #--------------------------------------------------------------------------
