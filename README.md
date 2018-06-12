@@ -1,5 +1,5 @@
-This is the RENCI fork of the ASGS code, for instrumenting ASGS with RabbitMQ messaging and porting to Penguin On Demand. 
+# renci-unc/asgs
 
-The following will run ASGS once it is configured, in this case for NAM-driven runs on the ec95d mesh on RENCI's Hatteras cluster. 
+This is the RENCI fork of asgs for instrumenting the code with RabbitMQ messaging and porting to Penguin On Demand resources. 
 
-./asgs_main.sh -c config/2018/asgs_config_nam_bob.sh -e hatteras
+See ASGS_setup.md for detailed "basic setup" notes, which are relevant for any new user.

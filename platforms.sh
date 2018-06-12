@@ -439,9 +439,9 @@ init_topsail()
 init_renci_tds()
 {
    OPENDAPHOST=ht4.renci.org
-   DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
-   CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
-   OPENDAPBASEDIR=/projects/ncfs/opendap/data
+   DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer"
+   CATALOGPREFIX="http://tds.renci.org:8080/thredds/catalog"
+   OPENDAPBASEDIR=/projects/ees/DataLayers/asgs/
    SSHPORT=22
    LINKABLEHOSTS=(hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
    COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
@@ -504,6 +504,7 @@ env_dispatch(){
           ;;
   "hatteras") consoleMessage "platforms.sh: Hatteras (RENCI) configuration found."
           init_hatteras
+          RMQMessage "INFO" "platforms.sh"  "STRT" "Hatteras (RENCI) configuration found."  0
           ;;
   "hatteras14") consoleMessage "platforms.sh: Hatteras (RENCI) configuration found."
           init_hatteras14
