@@ -34,7 +34,8 @@ INSTANCENAME=dailyv6d      # name of this ASGS process
 #COLDSTARTDATE=2017012400
 #COLDSTARTDATE=2017070900
 #COLDSTARTDATE=2017121500
-COLDSTARTDATE=2018022100
+#COLDSTARTDATE=2018022100
+COLDSTARTDATE=2018042700
 HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0        # length of initial hindcast, from cold (days)
@@ -70,7 +71,7 @@ NCPUCAPACITY=500
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=workq
 SERQUEUE=single
-ACCOUNT=loni_cera_2018
+ACCOUNT=loni_cera_2018a
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones

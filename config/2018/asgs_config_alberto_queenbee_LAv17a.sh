@@ -47,7 +47,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=off   # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=on   # tropical cyclone forcing
-WAVES=on             # wave forcing
+WAVES=off             # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
@@ -69,7 +69,7 @@ SERQUEUE=priority
 if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
-ACCOUNT=loni_cera_2018
+ACCOUNT=loni_cera_2018a
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones
@@ -235,11 +235,11 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
    ;;
-0)
+1)
    ENSTORM=veerLeft100
    PERCENT=-100
    ;;
-1)
+0)
    ENSTORM=veerLeft100Wind10m
    PERCENT=-100
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
