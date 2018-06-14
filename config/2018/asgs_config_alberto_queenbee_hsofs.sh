@@ -47,7 +47,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=off     # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=on  # tropical cyclone forcing
-WAVES=on             # wave forcing
+WAVES=off             # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
@@ -69,7 +69,7 @@ SERQUEUE=priority
 if [[ $SERQUEUE = priority ]]; then 
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
-ACCOUNT=loni_cera_2018
+ACCOUNT=loni_cera_2018a
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones
@@ -198,7 +198,7 @@ ARCHIVEDIR=${ARCHIVEBASE}/archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=4 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast

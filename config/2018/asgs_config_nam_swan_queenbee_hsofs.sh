@@ -70,7 +70,7 @@ if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
 SCRATCHDIR=/work/$USER
-ACCOUNT=loni_cera_2018
+ACCOUNT=loni_cera_2018a
 
 # External data sources : Tropical cyclones
 
