@@ -3,6 +3,9 @@
 # independent of the asgs/config details.  Other messaging variables are set in the 
 # config/machine file
 
+
+export PATH=$PATH:${ADCIRCDIR}:${RMQMessaging_NcoHome}/bin
+
 echo "Validating Message Service..."
 
 if [[ ! -e ${RMQMessaging_Python} ]] ; then 

@@ -1,12 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # fortcheck.sh - a fast pct-complete evaluator for ADCIRC/ASGS output
 # Brian Blanton - RENCI
 # May 2018, for ASGS OAD 
 #
 
-HSTIME="${ADCIRCDIR}/hstime"
-NCKS="${RMQMessaging_Ncks}"
+HSTIME="hstime"
+NCKS="ncks"
 
 ##NCDUMP="ncdump"
 

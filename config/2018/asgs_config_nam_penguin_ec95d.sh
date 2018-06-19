@@ -29,7 +29,7 @@
 # Fundamental 
 
 INSTANCENAME=podtest      # name of this ASGS process (Change this for every new instance)
-COLDSTARTDATE=2018050100  # (date to start cold start from )
+COLDSTARTDATE=2018051400  # (date to start cold start from )
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
@@ -158,7 +158,7 @@ ASGSADMIN="$ems"
 # RMQ Messaging
 
 RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
-RMQMessaging_Ncohome="/home/bblanton/"
+RMQMessaging_NcoHome="/home/bblanton/"
 RMQMessaging_Python="/home/bblanton/mypy/bin/python"
 RMQMessaging_LocationName="Penguin"
 RMQMessaging_ClusterName="POD"
