@@ -130,6 +130,23 @@ init_croatan()
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=16
 }
+init_pod()
+{ #<- can replace the following with a custom script
+  HOSTNAME=something.pod.penguin.com
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  ACCOUNT=noaccount
+  SUBMITSTRING=submitstring
+  SCRATCHDIR=/home/bblanton/asgs_scratch
+  SSHKEY=~/.ssh/id_rsa.pub
+  QSCRIPT=penguin.template.pbs
+  PREPCONTROLSCRIPT=penguin.adcprep.template.pbs
+  RESERVATION=null
+  SERQUEUE=B30     # aka the partition in SLURM parlance 
+  QUEUE=B30     # aka the partition in SLURM parlance 
+  QSCRIPTGEN=tezpur.pbs.pl
+  PPN=28
+}
 init_hatteras()
 { #<- can replace the following with a custom script
   HOSTNAME=hatteras.renci.org
@@ -482,6 +499,9 @@ env_dispatch(){
           ;;
   "croatan") consoleMessage "platforms.sh: Croatan (RENCI) configuration found."
           init_croatan
+          ;;
+  "pod") consoleMessage "platforms.sh: POD (Penguin) configuration found."
+          init_pod
           ;;
   "hatteras") consoleMessage "platforms.sh: Hatteras (RENCI) configuration found."
           init_hatteras

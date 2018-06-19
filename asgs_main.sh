@@ -782,8 +782,8 @@ monitorJobs()
       sleep 10
       # execute the FortCheck.py code to get a %complete status
       if [[ -e "fort.61.nc" ]] ; then
-        #pc=`${SCRIPTDIR}/fortcheck.sh fort.63.nc 2>> $SYSLOG`
-        pc=`${SCRIPTDIR}/FortCheck.py fort.63.nc 2>> $SYSLOG`
+        pc=`${SCRIPTDIR}/fortcheck.sh fort.61.nc 2>> $SYSLOG`
+        #pc=`${SCRIPTDIR}/FortCheck.py fort.63.nc 2>> $SYSLOG`
         RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "RUNN" "The $ENSTORM_TEMP job is running..." $pc
       fi
       if ! checkTimeLimit $startTime $WALLTIME ; then
@@ -1152,6 +1152,8 @@ variables_init()
    PERIODICFLUX=null
    SPATIALEXTRAPOLATIONRAMP=yes
    SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
+# RMQMEssaging
+   RMQMessaging="on"  # "on"|"off"
 
 }
 
@@ -1227,6 +1229,11 @@ env_dispatch ${ENV}
 # Re-read the config file, so that the variables can take precedence over
 # the values in the platform-specific functions called by env_dispatch
 . ${CONFIG}
+# RMQMessaging config
+if [[ $RMQMessaging == "on" ]] ; then
+   . ${SCRIPTDIR}/asgs-msgr.sh
+fi
+
 RUNDIR=$SCRATCHDIR/asgs$$
 #SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log #nld moved to before logging function is called
 # if we are starting from cron, look for a state file
@@ -1285,7 +1292,6 @@ trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; . $CONFIG' US
 # catch ^C for a final message
 trap 'sigint' INT
 
-
 #
 # check existence of all required files and directories
 checkDirExistence $ADCIRCDIR "ADCIRC executables directory"
@@ -1296,7 +1302,7 @@ checkDirExistence $PERL5LIB "directory for the Date::Pcalc perl module"
 checkFileExistence $ADCIRCDIR "ADCIRC preprocessing executable" adcprep
 checkFileExistence $ADCIRCDIR "ADCIRC parallel executable" padcirc
 checkFileExistence $ADCIRCDIR "hotstart time extraction executable" hstime
-
+checkFileExistence "$SCRIPTDIR/tides" "tide_factor executable" tide_fac.x
 if [[ $TROPICALCYCLONE = on ]]; then
    checkFileExistence $ADCIRCDIR "asymmetric metadata generation executable" aswip
 fi
@@ -1335,6 +1341,7 @@ fi
 if [[ ! -z $NAFILE && $NAFILE != null ]]; then
    checkFileExistence $INPUTDIR "ADCIRC nodal attributes (fort.13) file" $NAFILE
 fi
+
 if [[ $HOTORCOLD = hotstart ]]; then
    if [[ $HOTSTARTFORMAT = netcdf ]]; then
       if [[ -d $LASTSUBDIR/hindcast ]]; then
@@ -1387,8 +1394,7 @@ fi
 
 THIS="asgs_main.sh"
 #
-# Check for any issues or inconsistencies in 
-# configuration parameters. 
+# Check for any issues or inconsistencies in configuration parameters. 
 if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
    fatal "$THIS: NCPUCAPACITY must be greater than or equal to NCPU plus NUMWRITERS, however NCPUCAPACITY=$NCPUCAPACITY and NUMWRITERS=$NUMWRITERS and NCPU=$NCPU."
 fi
@@ -1420,6 +1426,7 @@ if [[ -d $LASTSUBDIR/hindcast ]]; then
 else
     OLDADVISDIR=$LASTSUBDIR/hindcast
 fi
+
 #
 ###############################
 #   BODY OF ASGS STARTS HERE
@@ -1477,6 +1484,7 @@ if [[ $START = coldstart ]]; then
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "RUNN" "Constructing control file."
    logMessage "$ENSTORM: $THIS: Constructing control file with the following options: $CONTROLOPTIONS."
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
+
    # don't have a meterological forcing (fort.22) file in this case
    # preprocess
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "RUNN" "Starting $ENSTORM preprocessing."
@@ -1541,12 +1549,14 @@ else
       LASTSUBDIR=`dirname $LASTSUBDIR`
    fi 
    if [[ $LASTSUBDIR = null ]]; then
+      RMQMessage "FATL" "$THIS>$ENSTORM" "FAIL"  "LASTSUBDIR is set to null, but the ASGS is trying to hotstart." 0
       fatal "LASTSUBDIR is set to null, but the ASGS is trying to hotstart. Is the STATEFILE $STATEFILE up to date and correct? If not, perhaps it should be deleted. Otherwise, the HOTORCOLD parameter in the ASGS config file has been set to $HOTORCOLD and yet the LASTSUBDIR parameter is still set to null."
    fi
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL"  "Starting from the hindcast or nowcast subdirectory under '$LASTSUBDIR'."
    logMessage "$ENSTORM: $THIS: Starting from the hindcast or nowcast subdirectory under '$LASTSUBDIR'."
    OLDADVISDIR=$LASTSUBDIR
 fi
+
 #
 # B E G I N   N O W C A S T / F O R E C A S T   L O O P
 while [ true ]; do
@@ -1691,6 +1701,7 @@ while [ true ]; do
          NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --applyRamp $SPATIALEXTRAPOLATIONRAMP --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE --awipGridNumber 218 --dataDir $NOWCASTDIR --outDir ${NOWCASTDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WAIT" "Converting NAM data to OWI format."
          logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format with the following options : $NAMOPTIONS"
+         echo perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS 
          perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
          # create links to the OWI files
          cd $ENSTORM 2>> ${SYSLOG}
