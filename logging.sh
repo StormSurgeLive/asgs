@@ -50,7 +50,7 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
   if ! [[ $PCTCOM =~ $re ]] ; then
       echo "error: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message." 
   fi
-  printf "RMQ-%4s : %4s : %21s : %4s : %-50s : %5.1f : %s\n" "$MTYPE" $EVENT "$DATETIME" $STATE $PROCESS $PCTCOM "$5"
+  printf "RMQ-%4s : %4s : %21s : %4s : %5.1f : %s : %s\n" "$MTYPE" $EVENT "$DATETIME" $STATE $PCTCOM $PROCESS  "$5"
 
   # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
   ${RMQMessaging_Python} ${RMQMessaging_Script} --Uid $$ \

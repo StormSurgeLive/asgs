@@ -782,8 +782,8 @@ monitorJobs()
       sleep 10
       # execute the FortCheck.py code to get a %complete status
       if [[ -e "fort.61.nc" ]] ; then
-        #pc=`${SCRIPTDIR}/fortcheck.sh fort.63.nc 2>> $SYSLOG`
-        pc=`${SCRIPTDIR}/FortCheck.py fort.63.nc 2>> $SYSLOG`
+        pc=`${SCRIPTDIR}/fortcheck.sh fort.61.nc 2>> $SYSLOG`
+        #pc=`${SCRIPTDIR}/FortCheck.py fort.63.nc 2>> $SYSLOG`
         RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "RUNN" "The $ENSTORM_TEMP job is running..." $pc
       fi
       if ! checkTimeLimit $startTime $WALLTIME ; then
@@ -1557,8 +1557,6 @@ else
    OLDADVISDIR=$LASTSUBDIR
 fi
 
-echo "here!!"
-
 #
 # B E G I N   N O W C A S T / F O R E C A S T   L O O P
 while [ true ]; do
@@ -1703,6 +1701,7 @@ while [ true ]; do
          NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --applyRamp $SPATIALEXTRAPOLATIONRAMP --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE --awipGridNumber 218 --dataDir $NOWCASTDIR --outDir ${NOWCASTDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WAIT" "Converting NAM data to OWI format."
          logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format with the following options : $NAMOPTIONS"
+         echo perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS 
          perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
          # create links to the OWI files
          cd $ENSTORM 2>> ${SYSLOG}
