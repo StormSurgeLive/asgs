@@ -1,12 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # fortcheck.sh - a fast pct-complete evaluator for ADCIRC/ASGS output
 # Brian Blanton - RENCI
 # May 2018, for ASGS OAD 
 #
 
-HSTIME="/home/bblanton/ADCIRC/v52release/work/hstime"
-NCKS="/home/bblanton/bin/ncks"
+HSTIME="hstime"
+NCKS="ncks"
+
 ##NCDUMP="ncdump"
 
 if [ "$#" -ne 1 ] ; then
