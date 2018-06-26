@@ -11,3 +11,5 @@ null/
 *.mod
 a.out
 asgs*log
+old/
+asgspy/
