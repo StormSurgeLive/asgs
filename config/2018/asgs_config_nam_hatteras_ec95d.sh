@@ -28,8 +28,8 @@
 #
 # Fundamental 
 #
-INSTANCENAME=bobtest      # name of this ASGS process (Change this for every new instance)
-COLDSTARTDATE=2018051100  # (date to start cold start from )
+INSTANCENAME=rmqtest      # name of this ASGS process (Change this for every new instance)
+COLDSTARTDATE=2018051900  # (date to start cold start from )
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
@@ -154,9 +154,17 @@ JOB_FAILED_LIST="$ems"
 NOTIFYUSER="$ems"
 ASGSADMIN="$ems"
 
+# RMQ Messaging
+
+RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
+RMQMessaging_NcoHome="/home/bblanton/"
+RMQMessaging_Python="/projects/storm_surge/anaconda/bin/python"
+RMQMessaging_LocationName="RENCI"
+RMQMessaging_ClusterName="Hatteras"
+
 # Post processing and publication
 
-INTENDEDAUDIENCE=testingOnly # meta data audience
+INTENDEDAUDIENCE=msg_test # meta data audience
 INITPOST=null_init_post.sh
 POSTPROCESS=blanton_rmq_test_post.sh
 POSTPROCESS2=null_post.sh
