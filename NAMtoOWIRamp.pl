@@ -31,7 +31,7 @@
 use strict;
 no strict 'refs';
 #use NetCDF;
-use ArraySub;
+use List::Util qw[min max];
 use Getopt::Long;
 use Date::Pcalc;
 ######################################################
@@ -50,7 +50,8 @@ our ($wndFile,$presFile);                   # names of OWI wind/pre output files
 our @namFormats = qw(grb grib2 netCDF);   # accceptable file types for NAMdata
 our $namFormat = "netCDF";                  # default NAM format is netCDF
 our $namType = "forecast";                  # expect forecast data by default
-our ($nDims,$nVars,$nAtts,$recDim,$dimName,%varId,@dimIds,$name,$dataType,%data,%dimId,%nRec,$nRec,@ugrd,@vgrd,@atmp,@time,@OWI_wnd,@miniOWI_wnd,@OWI_pres,@miniOWI_pres,@zeroOffset,$geoHeader);
+our ($nDims,$nVars,$nAtts,$recDim,$dimName,%varId,@dimIds,$name,$dataType,%data,%dimId,%nRec,$nRec);
+our (@ugrd,@vgrd,@atmp,@time,@OWI_wnd,@miniOWI_wnd,@OWI_pres,@miniOWI_pres,@zeroOffset,$geoHeader);
 our ($OWItimeRef,$startTime,$endTime,$timeStep,$mainHeader,@miniUgrd,@miniVgrd,@miniAtmp,@OWItime,$recordLength);
 our $applyRamp = "no";   # whether or not to apply a spatial extrapolation ramp
 our $rampDistance = 1.0; # distance in lambert coords to ramp vals to zero
@@ -159,8 +160,8 @@ sub processPtFile
 		($null,$lon[$i-1],$lat[$i-1])=split/,/,$pt[$i];
 	}
 	# find SW lat and lon using min
-	($swLat,$null)=&giveMinArray(\@lat);
-	($swLon,$null)=&giveMinArray(\@lon);
+	$swLat=min(@lat);
+	$swLon=min(@lon);
 	#get rid of remaining space (may be important for format of header line)
 	$swLat=~m/(\S+)/;
 	$swLat=sprintf("%3.4f",$1);# first to have the right float format
@@ -714,8 +715,8 @@ sub stderrMessage () {
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
    printf STDERR "$theTime $level: $namType: NAMtoOWI.pl: $message\n";
-   if ($level eq "ERROR") {
-      sleep 60
-   }
+#   if ($level eq "ERROR") {
+#      sleep 60
+#   }
 }
 
