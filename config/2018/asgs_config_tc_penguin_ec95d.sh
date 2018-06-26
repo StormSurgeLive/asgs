@@ -28,8 +28,8 @@
 
 # Fundamental 
 
-INSTANCENAME=podtest      # name of this ASGS process (Change this for every new instance)
-COLDSTARTDATE=2018051400  # (date to start cold start from )
+INSTANCENAME=tc_podtest   # name of this ASGS process (Change this for every new instance)
+COLDSTARTDATE=2003081500  # (date to start cold start from )
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
@@ -46,11 +46,11 @@ PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on     # [de]activate NAM download/forcing 
+BACKGROUNDMET=off    # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
-TROPICALCYCLONE=off  # [de]activate tropical cyclone forcing (temp. broken)
+TROPICALCYCLONE=on   # [de]activate tropical cyclone forcing (temp. broken)
 WAVES=off            # [de]activate wave forcing 
-VARFLUX=off           # [de]activate variable river flux forcing
+VARFLUX=off          # [de]activate variable river flux forcing
 
 # Computational Resources
 
@@ -71,8 +71,8 @@ SCRATCHDIR=/home/bblanton/asgs-scratch
 
 # External data sources : Tropical cyclones
 
-STORM=12  # storm number, e.g. 05=ernesto in 2006 
-YEAR=2013 # year of the storm (useful for historical storms) 
+STORM=13  # storm number, e.g. 05=ernesto in 2006 
+YEAR=2003 # year of the storm (useful for historical storms) 
 TRIGGER=rssembedded    # either "ftp" or "rss"
 RSSSITE=www.nhc.noaa.gov 
 FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files
@@ -165,7 +165,7 @@ RMQMessaging_ClusterName="POD"
 
 # Post processing and publication
 
-INTENDEDAUDIENCE="testrun" # meta data audience
+INTENDEDAUDIENCE="tc_testrun" # meta data audience
 INITPOST=null_init_post.sh
 #POSTPROCESS=blanton_rmq_test_post.sh
 POSTPROCESS=null_post.sh
