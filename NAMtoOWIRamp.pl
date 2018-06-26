@@ -758,6 +758,5 @@ sub stderrMessage () {
    if ($level eq "ERROR") {
       sleep 1
    }
-#   die;
 }
 
