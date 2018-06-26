@@ -159,7 +159,7 @@ ASGSADMIN="$ems"
 
 RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
 RMQMessaging_NcoHome="/home/bblanton/"
-RMQMessaging_Python="/home/bblanton/.conda/envs/asgspy/bin/python"
+RMQMessaging_Python="/home/bblanton/asgs/asgspy/bin/python"
 RMQMessaging_LocationName="Penguin"
 RMQMessaging_ClusterName="POD"
 
