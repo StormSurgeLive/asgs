@@ -29,7 +29,7 @@
 # Fundamental 
 #
 INSTANCENAME=rmqtest      # name of this ASGS process (Change this for every new instance)
-COLDSTARTDATE=2018051900  # (date to start cold start from )
+COLDSTARTDATE=2018052700  # (date to start cold start from )
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
