@@ -785,6 +785,7 @@ monitorJobs()
       # execute the FortCheck.py code to get a %complete status
       if [[ -e "fort.61.nc" ]] ; then
         #pc=`${SCRIPTDIR}/fortcheck.sh fort.61.nc 2>> $SYSLOG`
+        #echo "${RMQMessaging_Python} ${SCRIPTDIR}/FortCheck.py fort.61.nc"
         pc=`${RMQMessaging_Python} ${SCRIPTDIR}/FortCheck.py fort.61.nc 2>> $SYSLOG`
         RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "RUNN" "The $ENSTORM_TEMP job is running..." $pc
       fi
@@ -1553,11 +1554,11 @@ if [[ $START = coldstart ]]; then
 else
    # start from   H O T S T A R T   file
    if [[ `basename $LASTSUBDIR` = nowcast || `basename $LASTSUBDIR` = hindcast ]]; then
-      logMessage "$THIS: The LASTSUBDIR path is $LASTSUBDIR but ASGS looks in this path to find either a nowcast or hindcast subdirectory. The LASTSUBDIR parameter is being reset to to remove either nowcast or hindcast from the end of it." 
+      logMessage "$THIS: The LASTSUBDIR path is $LASTSUBDIR but ASGS looks in this path to find either a nowcast or hindcast subdirectory. The LASTSUBDIR parameter is being reset to remove either nowcast or hindcast from the end of it." 
       LASTSUBDIR=`dirname $LASTSUBDIR`
    fi 
    if [[ $LASTSUBDIR = null ]]; then
-      RMQMessage "FAIL" "$THIS>$ENSTORM" "FAIL"  "LASTSUBDIR is set to null, but the ASGS is trying to hotstart."
+      RMQMessage "FAIL" "$CURRENT_EVENT" "$THIS>$ENSTORM" "FAIL"  "LASTSUBDIR is set to null, but the ASGS is trying to hotstart."
       fatal "LASTSUBDIR is set to null, but the ASGS is trying to hotstart. Is the STATEFILE $STATEFILE up to date and correct? If not, perhaps it should be deleted. Otherwise, the HOTORCOLD parameter in the ASGS config file has been set to $HOTORCOLD and yet the LASTSUBDIR parameter is still set to null."
    fi
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting from the hindcast or nowcast subdirectory under '$LASTSUBDIR'."

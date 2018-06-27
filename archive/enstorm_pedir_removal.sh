@@ -23,8 +23,8 @@
 # This script expects that when it starts, PWD points to a 
 # directory contining subdomain (PE*) directories. 
 #----------------------------------------------------------------
-HOTTIFYPATH=~/adcirc/swan
-MACHINE=jason-desktop
+HOTTIFYPATH=/home/bblanton/adcirc-cg-52release/swan
+MACHINE=pod-login
 COMPRESSION=no
 #
 logFile="enstorm_pedir_removal.log"
