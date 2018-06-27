@@ -48,7 +48,7 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
 
   re='^[0-9]+([.][0-9]+)?$' 
   if ! [[ $PCTCOM =~ $re ]] ; then
-      echo "error: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message." 
+      echo "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message." 
   fi
   printf "RMQ-%4s : %4s : %21s : %4s : %5.1f : %s : %s\n" "$MTYPE" $EVENT "$DATETIME" $STATE $PCTCOM $PROCESS  "$5"
 
