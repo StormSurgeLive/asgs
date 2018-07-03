@@ -7,7 +7,7 @@
 # is platform dependent. 
 #
 #----------------------------------------------------------------
-# Copyright(C) 2012--2015 Jason Fleming
+# Copyright(C) 2012--2018 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -34,7 +34,7 @@
 #
 init_supermike()
 { #<- can replace the following with a custom script
-  HOSTNAME=mike.hpc.lsu.edu
+  HPCENV=mike.hpc.lsu.edu
   QUEUESYS=PBS
   QCHECKCMD=qstat
   QUEUENAME=workq
@@ -48,12 +48,10 @@ init_supermike()
   PREPCONTROLSCRIPT=supermike.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=16
-  # alias cdwo='cd /work/jgflemin'
-  # alias cdasgs='cd ~/asgs/2014stable'
 }
 init_queenbee()
 { #<- can replace the following with a custom script
-  HOSTNAME=queenbee.loni.org
+  HPCENV=queenbee.loni.org
   QUEUESYS=PBS
   QCHECKCMD=qstat
   QUEUENAME=workq
@@ -67,18 +65,17 @@ init_queenbee()
   PREPCONTROLSCRIPT=queenbee.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=20
+  REMOVALCMD="rmpurge"
   module load intel
   module load netcdf
   module load netcdf_fortran
   module load gcc
   module load matlab/r2015b
-  module load python/2.7.12-anaconda-tensorflow
-  # alias cdwo='cd /work/jgflemin'
-  # alias cdasgs='cd ~/asgs/2014stable'
+  module load python/2.7.12-anaconda-tensorflow 
 }
 init_arete()
 { #<- can replace the following with a custom script
-  HOSTNAME=arete.cct.lsu.edu
+  HPCENV=arete.cct.lsu.edu
   QUEUESYS=SLURM
   QCHECKCMD=sacct
   ACCOUNT=null
@@ -92,7 +89,7 @@ init_arete()
 }
 init_camellia()
 { #<- can replace the following with a custom script
-  HOSTNAME=camellia.worldwindsinc.com
+  HPCENV=camellia.worldwindsinc.com
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=bpj
@@ -106,7 +103,7 @@ init_camellia()
 }
 init_blueridge()
 { #<- can replace the following with a custom script
-  HOSTNAME=blueridge.renci.org
+  HPCENV=blueridge.renci.org
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=noaccount
@@ -120,7 +117,7 @@ init_blueridge()
 }
 init_croatan()
 { #<- can replace the following with a custom script
-  HOSTNAME=croatan.renci.org
+  HPCENV=croatan.renci.org
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=noaccount
@@ -134,7 +131,7 @@ init_croatan()
 }
 init_hatteras()
 { #<- can replace the following with a custom script
-  HOSTNAME=hatteras.renci.org
+  HPCENV=hatteras.renci.org
   QUEUESYS=SLURM
   QCHECKCMD=sacct
   ACCOUNT=ncfs
@@ -153,7 +150,7 @@ init_hatteras()
 }
 init_stampede()
 { #<- can replace the following with a custom script
-  HOSTNAME=stampede.tacc.utexas.edu
+  HPCENV=stampede.tacc.utexas.edu
   QUEUESYS=SLURM
   QCHECKCMD=sacct
   ACCOUNT=PleaseSpecifyACCOUNTInYourAsgsConfigFile
@@ -169,7 +166,7 @@ init_stampede()
 }
 init_kittyhawk()
 { #<- can replace the following with a custom script
-  HOSTNAME=kittyhawk.renci.org
+  HPCENV=kittyhawk.renci.org
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=noaccount
@@ -183,7 +180,7 @@ init_kittyhawk()
 }
 init_sapphire()
 { #<- can replace the following with a custom script
-  HOSTNAME=sapphire.erdc.hpc.mil
+  HPCENV=sapphire.erdc.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=erdcvhsp
@@ -200,7 +197,7 @@ init_sapphire()
 
 init_jade()
 { #<- can replace the following with a custom script
-  HOSTNAME=jade.erdc.hpc.mil
+  HPCENV=jade.erdc.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=erdcvhsp
@@ -219,7 +216,7 @@ init_jade()
 
 init_diamond()
 { #<- can replace the following with a custom script
-  HOSTNAME=diamond.erdc.hpc.mil
+  HPCENV=diamond.erdc.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=erdcvhsp
@@ -235,7 +232,7 @@ init_diamond()
 
 init_garnet()
 { #<- can replace the following with a custom script
-  HOSTNAME=garnet.erdc.hpc.mil
+  HPCENV=garnet.erdc.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=erdcvhsp
@@ -260,7 +257,7 @@ init_spirit()
   # module load hdf5-mpi/intel/sgimpt/1.8.12
   # module load mpt/2.12
   # echo "... modules loaded."
-  HOSTNAME=spirit.afrl.hpc.mil
+  HPCENV=spirit.afrl.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=erdcvhsp
@@ -284,7 +281,7 @@ init_topaz()
   module load usp-netcdf/intel-15.0.3/4.3.3.1
   module load imagemagick/6.9.2-5
   echo "... modules loaded."
-  HOSTNAME=topaz.erdc.hpc.mil
+  HPCENV=topaz.erdc.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
   #ACCOUNT=ERDCV00898N10
@@ -309,7 +306,7 @@ init_thunder()
   module load git
   module load netcdf-fortran/intel/4.4.2
   echo "... modules loaded."
-  HOSTNAME=thunder.afrl.hpc.mil
+  HPCENV=thunder.afrl.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=ERDCV00898N10
@@ -326,7 +323,7 @@ init_thunder()
 }
 init_tezpur()
 { #<- can replace the following with a custom script
-  HOSTNAME=tezpur.hpc.lsu.edu
+  HPCENV=tezpur.hpc.lsu.edu
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=loni_asgs2009
@@ -341,7 +338,7 @@ init_tezpur()
 }
 init_mike()
 { #<- can replace the following with a custom script
-  HOSTNAME=mike.hpc.lsu.edu
+  HPCENV=mike.hpc.lsu.edu
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=pleaseSetAccountParamToHPCAllocationInASGSConfig
@@ -357,7 +354,7 @@ init_mike()
 }
 init_ranger()
 { #<- can replace the following with a custom script
-  HOSTNAME=ranger.tacc.utexas.edu
+  HPCENV=ranger.tacc.utexas.edu
   QUEUESYS=SGE
   QCHECKCMD=qstat
   NCPUDIVISOR=16
@@ -374,7 +371,7 @@ init_ranger()
 }
 init_lonestar()
 { #<- can replace the following with a custom script
-  HOSTNAME=lonestar.tacc.utexas.edu
+  HPCENV=lonestar.tacc.utexas.edu
   QUEUESYS=SLURM
   QUEUENAME=normal
   SERQUEUE=normal
@@ -394,7 +391,7 @@ init_lonestar()
 }
 init_desktop()
 {
-  HOSTNAME=jason-desktop
+  HPCENV=jason-desktop
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec -n"
@@ -405,7 +402,7 @@ init_desktop()
 }
 init_Poseidon()
 {
-  HOSTNAME=poseidon.vsnet.gmu.edu
+  HPCENV=poseidon.vsnet.gmu.edu
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec -n"
@@ -417,7 +414,7 @@ init_Poseidon()
 
 init_topsail()
 { #<- can replace the following with a custom script
-  HOSTNAME=topsail.unc.edu
+  HPCENV=topsail.unc.edu
   QUEUESYS=LSF
   INTERSTRING="bsub -q int -Ip"
   SCRATCHDIR=/ifs1/scr/$USER
@@ -465,7 +462,8 @@ init_test()
 # used to dispatch environmentally sensitive actions
 # such as queue interactions
 env_dispatch(){
- case $1 in
+ HPCENVSHORT=$1
+ case $HPCENVSHORT in
   "camellia") consoleMessage "platforms.sh: Camellia(WorldWinds) configuration found."
           init_camellia
           ;;
@@ -550,7 +548,7 @@ env_dispatch(){
   "test") consoleMessage "platforms.sh: test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "platforms.sh: '$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
+  *) fatal "platforms.sh: '$HPCENVSHORT' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
      ;;
   esac
 }
