@@ -557,7 +557,7 @@ downloadCycloneData()
     STATEFILE=${12}
     THIS="asgs_main.sh>downloadCycloneData()"
 #    activity_indicator "Checking remote site for new advisory..." &
-    echo "$THIS: Checking remote site for new advisory..." 
+    logMessage "$THIS: Checking remote site for new advisory..." 
 #    pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
     cd $RUNDIR 2>> ${SYSLOG}
     newAdvisory=false
@@ -579,8 +579,13 @@ downloadCycloneData()
        RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "NONE"  "Checking remote site for new advisory..."
        logMessage "$THIS: Checking remote site for new advisory..."
     fi
+
+echo "\$newAdvisory=$newAdvisory, \$TRIGGER=$TRIGGER"  # BOB
+
     while [ $newAdvisory = false ]; do
        if [[ $TRIGGER != "atcf" ]]; then 
+echo Calling "get_atcf.pl $OPTIONS"  # BOB
+
           newAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
        fi
        # check to see if we have a new one, and if so, determine the
@@ -634,6 +639,7 @@ downloadCycloneData()
           sleep 60 # we are hotstarting, the advisory is same as last one
        fi
     done
+    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "New forecast detected."
     logMessage "$THIS: New forecast detected."
     cp -f $STATEFILE ${STATEFILE}.old
     sed 's/ADVISORY=.*/ADVISORY='$newAdvisoryNum'/' $STATEFILE > ${STATEFILE}.new
@@ -1627,6 +1633,7 @@ while [ true ]; do
       fi
       HSTIME=`$ADCIRCDIR/hstime -f ${FROMDIR}/PE0000/fort.67` 2>> ${SYSLOG}
    fi
+   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$ENSTORM: The time in the hotstart file is '$HSTIME' seconds."
    logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
    cd $RUNDIR 2>> ${SYSLOG}
    #
@@ -1656,6 +1663,8 @@ while [ true ]; do
       LASTADVISORYNUM=$ADVISORY
       # pull the latest advisory number from the statefile
       ADVISORY=`grep "ADVISORY" $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
+echo $STATEFILE, $ADVISORY  # BOB
+
       ADVISDIR=$RUNDIR/${ADVISORY}
       if [ ! -d $ADVISDIR ]; then
           mkdir $ADVISDIR 2>> ${SYSLOG}
@@ -1692,6 +1701,8 @@ while [ true ]; do
       fi
    fi
    # BACKGROUND METEOROLOGY
+echo "\$BACKGROUNDMET=$BACKGROUNDMET"  # BOB
+
    if [[ $BACKGROUNDMET != off ]]; then
       NWS=-12
       if [[ $WAVES = on ]]; then
@@ -1750,6 +1761,7 @@ while [ true ]; do
          NOWCASTDIR=$ADVISDIR/$ENSTORM
          mkdir -p $NOWCASTDIR 2>> ${SYSLOG}
          cd $ADVISDIR 2>> ${SYSLOG}
+         RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
          allMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
          # create links to the OWI files, assuming they already have the
          # adcirc 221, 222, etc file name extensions
@@ -1765,6 +1777,7 @@ while [ true ]; do
          done
       ;;
      *) # should be unreachable
+        RMQMessage "FAIL" "$CURRENT_EVENT" "$THIS>$ENSTORM" FAIL "BACKGROUNDMET ($BACKGROUNDMET) did not match an allowable value."
         fatal "BACKGROUNDMET did not match an allowable value."
       ;;
    esac
