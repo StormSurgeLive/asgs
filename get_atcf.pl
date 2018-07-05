@@ -276,6 +276,8 @@ while (!$dl) {
                $nhcName = $1;
                $advNum = sprintf("%02d",$2);
                printf STDERR "INFO: get_atcf.pl: Advisory '$advNum' for storm $nhcName was found in the index-at.xml file.\n";
+print "$adv, $advNum\n";  # BOB
+
                # compare the advisory number in the index file with the current
                # advisory number on the command line, if any
                if ( defined $adv ) {
