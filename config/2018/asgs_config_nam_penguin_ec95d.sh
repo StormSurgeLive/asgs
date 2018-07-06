@@ -29,9 +29,9 @@
 # Fundamental 
 
 INSTANCENAME=podtest      # name of this ASGS process (Change this for every new instance)
-COLDSTARTDATE=2018060100  # (date to start cold start from )
-HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
-LASTSUBDIR=null
+COLDSTARTDATE=2018052700  # (date to start cold start from )
+HOTORCOLD=hotstart       # "hotstart" or "coldstart" 
+LASTSUBDIR=/home/bblanton/asgs-scratch/kickstart
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
@@ -101,7 +101,7 @@ RIVERDATAPROTOCOL=scp
 # Input files and templates
 
 GRIDFILE=ec_95d.grd
-GRIDNAME=ec_95d   # @jasonfleming 20170814: should be nc6d
+GRIDNAME=ec_95d   
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=ec_95_fort.15_template
 CONTROLPROPERTIES=ec_95_fort.15.properties
@@ -146,7 +146,7 @@ MINMAX=reset
 
 EMAILNOTIFY=no # set to yes to have host platform email notifications
 ems="bblanton@renci.org"
-NOTIFY_SCRIPT=ncfs_nam_notify.sh
+NOTIFY_SCRIPT=pod_nam_notify.sh
 ACTIVATE_LIST="$ems"
 NEW_ADVISORY_LIST="$ems"
 POST_INIT_LIST="$ems"
@@ -167,8 +167,8 @@ RMQMessaging_ClusterName="POD"
 
 INTENDEDAUDIENCE="testrun" # meta data audience
 INITPOST=null_init_post.sh
-#POSTPROCESS=blanton_rmq_test_post.sh
-POSTPROCESS=null_post.sh
+POSTPROCESS=pod_post.sh
+#POSTPROCESS=null_post.sh
 POSTPROCESS2=null_post.sh
 
 TDS=(renci_tds)
