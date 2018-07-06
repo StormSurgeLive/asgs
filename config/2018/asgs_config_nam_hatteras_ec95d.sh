@@ -166,7 +166,7 @@ RMQMessaging_ClusterName="Hatteras"
 
 INTENDEDAUDIENCE=msg_test # meta data audience
 INITPOST=null_init_post.sh
-POSTPROCESS=blanton_rmq_test_post.sh
+POSTPROCESS=blanton_rmq_test_post_hatteras.sh
 POSTPROCESS2=null_post.sh
 
 TDS=(renci_tds)
