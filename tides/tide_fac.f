@@ -22,18 +22,19 @@ C     TODO: IMPLICIT NONE
       INTEGER :: IARGC    ! function to return command line arguments
       INTEGER :: I        ! loop counter for command line arguments
       CHARACTER(2048) :: CMDLINEARG ! content of cmd line arg
-      CHARACTER(2048) :: OUTPUTFORMAT ! "simple" to output just the nf and eqar
       CHARACTER(2048) :: OUTPUTDIR ! directory to place output file
-      LOGICAL :: SIMPLE_OUTPUT ! .true. to output just the nf and eq args
       CHARACTER(len=3), dimension(12) :: monthChar ! string to represent month
-      logical :: adcircFormat ! .true. to produce the output in format ready for insertion into fort.15
       INTEGER :: numTidalConstituents  ! number of tidal const. to interpolate
       CHARACTER(len=10), ALLOCATABLE :: interpTidalConstituents(:)
       CHARACTER(len=1024), dimension(7) :: defaultTidalConstituents ! basic set of 7
       INTEGER, ALLOCATABLE :: constituentList(:)
+      integer :: outputFormat ! SIMPLEOUTPUT or ADCIRCOUTPUT
+      integer, parameter :: WITHHEADER=0 ! to write nodal factor and equilibrium arguments in legacy format
+      integer, parameter :: SIMPLEOUTPUT=1 ! to output just the nf and eq args
+      integer, parameter :: ADCIRCOUTPUT=2 ! to produce the output in format ready for insertion into fort.15 
 
       numTidalConstituents = 7
-      SIMPLE_OUTPUT = .FALSE.
+      outputFormat = WITHHEADER
       OUTPUTDIR = "."
       ARGCOUNT = IARGC() ! count up command line options
       IF (ARGCOUNT.gt.0) THEN
@@ -73,15 +74,14 @@ C     TODO: IMPLICIT NONE
                I = I + 1
                CALL GETARG(I,CMDLINEARG)
                READ(CMDLINEARG,*) BHR
-            CASE("--outputformat")
+            CASE("--outputformat","--outputFormat")
                I = I + 1
                CALL GETARG(I,CMDLINEARG)
-               READ(CMDLINEARG,*) OUTPUTFORMAT
-               select case(trim(outputformat))
-               case("simple")
-                  SIMPLE_OUTPUT = .TRUE.
-               case("adcirc")
-                  adcircFormat = .true.
+               select case(trim(CMDLINEARG))
+               case("simple","SIMPLE","Simple")
+                  outputFormat = SIMPLEOUTPUT
+               case("adcirc","ADCIRC","Adcirc")
+                  outputFormat = ADCIRCOUTPUT
                case default
                   WRITE(*,*) "ERROR: tide_fac.f: '",TRIM(CMDLINEARG),
      &               "' was not recognized as an output format."
@@ -125,7 +125,7 @@ C     TODO: IMPLICIT NONE
 
       OPEN(UNIT=11,FILE=TRIM(OUTPUTDIR)//'/tide_fac.out',
      &   STATUS='UNKNOWN')
-      IF ((SIMPLE_OUTPUT.eqv..FALSE.).and.(adcircFormat.eqv..false.)) THEN
+      IF (outputFormat.eq.WITHHEADER) THEN
          WRITE(11,10) BHR,IDAY,IMO,IYR
   10     FORMAT(' TIDAL FACTORS STARTING: ', 
      &       ' HR-',F5.2,',  DAY-',I3,',  MONTH-',I3,'  YEAR-',I5,/)
@@ -148,13 +148,13 @@ C-- DETERMINE GREENWICH EQUIL. TERMS AT BEGINNING OF RECORD
       data monthChar 
      & /'JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP',
      & 'OCT','NOV','DEC'/
-      if (adcircFormat.eqv..true.) then
+      if (outputFormat.eq.ADCIRCOUTPUT) then
          numLoops = 2
       else
          numLoops = 1
       endif
       do i=1,numLoops
-         if (adcircFormat.eqv..true.) then
+         if (outputFormat.eq.ADCIRCOUTPUT) then
             ! tidal potential nodal factors and equilibrium arguments
             if (i.eq.1) then
                write(11,fmt=100)
@@ -212,7 +212,7 @@ C-- DETERMINE GREENWICH EQUIL. TERMS AT BEGINNING OF RECORD
             case default
                 write(6,*) 'ERROR: The tidal constituent '//trim(cname(ic))//' was not recognized.'
             end select
-            if (adcircFormat.eqv..true.) then
+            if (outputFormat.eq.ADCIRCOUTPUT) then
                if (i.eq.1) then
                   ! tidal potential constituents
                   write(11,'(a)') trim(cname(ic))
