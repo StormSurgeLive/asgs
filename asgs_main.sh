@@ -1010,51 +1010,150 @@ handleFailedJob()
    fi
 }
 #
-# write properties to the run.properties file that are associated with 
-# the ASGS configuration for this ensemble member. 
-writeConfigProperties()
+# Write general properties to the run.properties file that are associated with 
+# the ASGS configuration as well as real time properties specific to this 
+# ensemble member. 
+writeProperties()
 {
    STORMDIR=$1
-   # write properties associated with asgs config
+   echo "config : $CONFIG" >> $STORMDIR/run.properties
+   echo "config.instancename : $INSTANCENAME" >> $STORMDIR/run.properties
+   echo "config.path.adcircdir : $ADCIRCDIR" >> $STORMDIR/run.properties
+   echo "config.path.scriptdir : $SCRIPTDIR" >> $STORMDIR/run.properties
+   echo "config.path.inputdir : $INPUTDIR" >> $STORMDIR/run.properties
+   echo "config.path.outputdir : $OUTPUTDIR" >> $STORMDIR/run.properties
+   echo "config.path.scratchdir : $SCRATCHDIR" >> $STORMDIR/run.properties
+   echo "config.forcing.backgroundmet : $BACKGROUNDMET" >> $STORMDIR/run.properties
+   echo "config.forcing.tidefac : $TIDEFAC" >> $STORMDIR/run.properties
+   echo "config.forcing.tropicalcyclone : $TROPICALCYCLONE" >> $STORMDIR/run.properties
+   echo "config.forcing.varflux : $VARFLUX" >> $STORMDIR/run.properties
+   echo "config.forcing.schedule.cycletimelimit : $CYCLETIMELIMIT" >> $STORMDIR/run.properties
+   echo "config.coupling.waves : $WAVES" >> $STORMDIR/run.properties
+   echo "hpc.hpcenv : $HPCENV" >> $STORMDIR/run.properties
+   echo "hpc.hpcenvshort : $HPCENVSHORT" >> $STORMDIR/run.properties
+   echo "hpc.queuename : $QUEUENAME" >> $STORMDIR/run.properties
+   echo "hpc.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
+   echo "hpc.account : $ACCOUNT" >> $STORMDIR/run.properties
+   echo "hpc.ncpu : $NCPU" >> $STORMDIR/run.properties
+   echo "hpc.numwriters: $NUMWRITERS" >> $STORMDIR/run.properties    
+   echo "hpc.ncpucapacity: $NCPUCAPACITY" >> $STORMDIR/run.properties
+   if [[ $ENSTORM = hindcast ]]; then
+      echo "hpc.hindcastwalltime: $NUMWRITERS" >> $STORMDIR/run.properties    
+   fi
+   echo "hpc.nowcastwalltime: $NOWCASTWALLTIME" >> $STORMDIR/run.properties       
+   echo "hpc.forecastwalltime: $FORECASTWALLTIME" >> $STORMDIR/run.properties       
+   echo "hpc.adcprepwalltime: $ADCPREPWALLTIME" >> $STORMDIR/run.properties       
+   if [[ $QUEUESYS = SLURM ]]; then
+      echo "hpc.slurm.partition : $PARTITION" >> $STORMDIR/run.properties
+      echo "hpc.slurm.reservation : $RESERVATION" >> $STORMDIR/run.properties
+      echo "hpc.slurm.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
+   fi
+   # static input files, templates, and property files 
+   echo "adcirc.input.file.gridfile : $GRIDFILE" >> $STORMDIR/run.properties   
+   echo "adcirc.gridname : $GRIDNAME" >> $STORMDIR/run.properties   
+   echo "adcirc.properties.file.meshproperties : $MESHPROPERTIES" >> $STORMDIR/run.properties   
+   echo "adcirc.input.file.nafile : $NAFILE" >> $STORMDIR/run.properties
+   echo "adcirc.properties.file.naproperties : $NAPROPERTIES" >> $STORMDIR/run.properties
+   echo "adcirc.file.controltemplate : $CONTROLTEMPLATE" >> $STORMDIR/run.properties
+   echo "adcirc.properties.file.controlproperties : $CONTROLPROPERTIES" >> $STORMDIR/run.properties
+   echo "adcirc.file.elevstations : $ELEVSTATIONS" >> $STORMDIR/run.properties
+   echo "adcirc.file.velstations : $VELSTATIONS" >> $STORMDIR/run.properties
+   echo "adcirc.file.metstations : $METSTATIONS" >> $STORMDIR/run.properties
+   # other adcirc specific
+   echo "adcirc.hotstartformat : $HOTSTARTFORMAT" >> $STORMDIR/run.properties   
+   echo "adcirc.timestepsize : $TIMESTEPSIZE" >> $STORMDIR/run.properties
+   echo "asgs.file.preppedarchive : $PREPPEDARCHIVE" >> $STORMDIR/run.properties
+   echo "asgs.file.hindcastarchive : $HINDCASTARCHIVE" >> $STORMDIR/run.properties   
+   echo "config.adcirc.minmax : $MINMAX" >> $STORMDIR/run.properties
+   # notification
+   echo "notification.emailnotify : $EMAILNOTIFY" >> $STORMDIR/run.properties   
+   echo "notification.executable.notify_script : $NOTIFY_SCRIPT" >> $STORMDIR/run.properties   
+   echo "notification.email.activate_list : \"$ACTIVATELIST\"" >> $STORMDIR/run.properties   
+   echo "notification.email.new_advisory_list : \"$NEW_ADVISORY_LIST\"" >> $STORMDIR/run.properties   
+   echo "notification.email.post_init_list : \"$POST_INIT_LIST\"" >> $STORMDIR/run.properties   
+   echo "notification.email.job_failed_list : \"$JOB_FAILED_LIST\"" >> $STORMDIR/run.properties   
+   echo "notification.hpc.email.notifyuser : \"$NOTIFYUSER\"" >> $STORMDIR/run.properties
+   echo "notification.opendap.email.opendapnotify : \"$OPENDAPNOTIFY\"" >> $STORMDIR/run.properties
+   # post processing
+   echo "post.intendedaudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
+   echo "asgs.config.post.executable.initpost : $INITPOST" >> $STORMDIR/run.properties
+   echo "asgs.config.post.executable.postprocess : $POSTPROCESS" >> $STORMDIR/run.properties
+   echo "asgs.config.post.opendap.target : $TARGET" >> $STORMDIR/run.properties
+   THREDDS="("
+   for thredds_data_server in ${TDS[*]}; do
+      THREDDS="$THREDDS $thredds_data_server"
+   done
+   THREDDS="$THREDDS )" 
+   echo "post.opendap.tds : $THREDDS" >> $STORMDIR/run.properties
+   echo "post.opendap.opendapuser : $OPENDAPUSER" >> $STORMDIR/run.properties
+   # archiving
+   echo "archive.executable.archive : $ARCHIVE" >> $STORMDIR/run.properties    
+   echo "archive.path.archivebase : $ARCHIVEBASE" >> $STORMDIR/run.properties    
+   echo "archive.path.archivedir : $ARCHIVEDIR" >> $STORMDIR/run.properties      
+   # forecast ensemble
+   echo "asgs.forecast.ensemblesize : $ENSEMBLESIZE" >> $STORMDIR/run.properties
+   # runtime
+   echo "asgs.syslog : $SYSLOG" >> $STORMDIR/run.properties
+   echo "asgs.path.rundir : $RUNDIR" >> $STORMDIR/run.properties
+   # each ensemble member
+   echo "asgs.path.fromdir : $FROMDIR" >> $STORMDIR/run.properties
+   echo "asgs.path.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
+   echo "asgs.enstorm : $ENSTORM" >> $STORMDIR/run.properties
+   #
+   ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
+   echo "adcirc.version : $ADCIRCVERSION" >> $STORMDIR/run.properties   
+   #
+   # properties for backward compatibility
    echo "hostname : $HPCENVSHORT" >> $STORMDIR/run.properties
-   echo "hpcenv : $HPCENV" >> $STORMDIR/run.properties
-   echo "hpcenvshort : $HPCENVSHORT" >> $STORMDIR/run.properties
    echo "instance : $INSTANCENAME" >> $STORMDIR/run.properties
    echo "storm : $STORM" >> $STORMDIR/run.properties
    echo "stormnumber : $STORM" >> $STORMDIR/run.properties
    echo "pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties
-   echo "asgs.config.instancename : $INSTANCENAME" >> $STORMDIR/run.properties
-   echo "asgs.config.storm : $STORM" >> $STORMDIR/run.properties
-   echo "asgs.config.stormnumber : $STORM" >> $STORMDIR/run.properties
-   echo "asgs.config.pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties
-   echo "asgs.config.enstorm : $ENSTORM" >> $STORMDIR/run.properties
-   echo "asgs.config.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
-   echo "asgs.rundir : $RUNDIR" >> $STORMDIR/run.properties
-   echo "asgs.syslog : $SYSLOG" >> $STORMDIR/run.properties
-   echo "asgs.config : $CONFIG" >> $STORMDIR/run.properties
-   echo "asgs.config.instancename : $INSTANCENAME" >> $STORMDIR/run.properties
-   echo "asgs.config.reinitializeswan : $REINITIALIZESWAN" >> $STORMDIR/run.properties
-   echo "asgs.config.adcircdir : $ADCIRCDIR" >> $STORMDIR/run.properties
-   echo "asgs.config.scriptdir : $SCRIPTDIR" >> $STORMDIR/run.properties
-   echo "asgs.config.inputdir : $INPUTDIR" >> $STORMDIR/run.properties
-   echo "asgs.config.outputdir : $OUTPUTDIR" >> $STORMDIR/run.properties
-   echo "asgs.config.backgroundmet : $BACKGROUNDMET" >> $STORMDIR/run.properties
-   echo "asgs.config.tidefac : $TIDEFAC" >> $STORMDIR/run.properties
-   echo "asgs.config.tropicalcyclone : $TROPICALCYCLONE" >> $STORMDIR/run.properties
-   echo "asgs.config.vortexmodel : $VORTEXMODEL" >> $STORMDIR/run.properties
-   echo "asgs.config.waves : $WAVES" >> $STORMDIR/run.properties
-   echo "asgs.config.varflux : $VARFLUX" >> $STORMDIR/run.properties
-   echo "asgs.config.queuename : $QUEUENAME" >> $STORMDIR/run.properties
-   echo "asgs.config.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
-   echo "asgs.config.account : $ACCOUNT" >> $STORMDIR/run.properties
-   echo "asgs.config.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties
-   if [[ $QUEUESYS = SLURM ]]; then
-      echo "asgs.config.slurm.partition : $PARTITION" >> $STORMDIR/run.properties
-      echo "asgs.config.slurm.reservation : $RESERVATION" >> $STORMDIR/run.properties
-      echo "asgs.config.slurm.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
+   echo "intendedAudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
+}
+#
+# write properties to the run.properties file that are associated with 
+# NAM forcing. 
+writeNAMProperties()
+{
+   echo "asgs.config.forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties 
+   echo "asgs.config.forcing.nam.backsite : $BACKSITE" >> $STORMDIR/run.properties 
+   echo "asgs.config.forcing.nam.backdir : $BACKDIR" >> $STORMDIR/run.properties 
+   echo "asgs.config.forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR/run.properties 
+   echo "asgs.config.forcing.nam.reprojection.ptfile : $PTFILE" >> $STORMDIR/run.properties 
+   echo "asgs.config.forcing.nam.local.altnamdir : $ALTNAMDIR" >> $STORMDIR/run.properties 
+}
+#
+# write properties to the run.properties file that are associated with 
+# tropical cyclone forcing. 
+writeTropicalCycloneProperties()
+{
+   echo "asgs.config.forcing.tropicalcyclone.vortexmodel : $VORTEXMODEL" >> $STORMDIR/run.properties
+   echo "asgs.config.forcing.tropicalcyclone.stormnumber : $STORM" >> $STORMDIR/run.properties
+   echo "asgs.config.forcing.tropicalcyclone.year : $YEAR" >> $STORMDIR/run.properties
+   echo "asgs.config.forcing.tropicalcyclone.pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties   
+   echo "asgs.config.forcing.tropicalcyclone.forecast.trigger : $TRIGGER" >> $STORMDIR/run.properties   
+   echo "asgs.config.forcing.tropicalcyclone.forecast.rsssite : $RSSSITE" >> $STORMDIR/run.properties   
+   echo "asgs.config.forcing.tropicalcyclone.forecast.path.fdir : $FDIR" >> $STORMDIR/run.properties   
+   echo "asgs.config.forcing.tropicalcyclone.best.ftpsite : $FTPSITE" >> $STORMDIR/run.properties   
+   echo "asgs.config.forcing.tropicalcyclone.best.path.hdir : $HDIR" >> $STORMDIR/run.properties
+   # each ensemble member
+   if [[ $RMAX != default ]]; then
+      echo "asgs.config.forcing.tropicalcyclone.enstorm.variation.rmax : $RMAX" >> $STORMDIR/run.properties
    fi
-   echo "asgs.config.minmax : $MINMAX" >> $STORMDIR/run.properties
-   #FIXME: need adcirc version
+   if [[ $PERCENT != default ]]; then
+      echo "asgs.config.forcing.tropicalcyclone.enstorm.variation.percent : $PERCENT" >> $STORMDIR/run.properties
+   fi
+}
+#
+# write properties to the run.properties file that are associated with 
+# swan coupling. 
+writeWaveCouplingProperties()
+{
+   echo "asgs.config.coupling.waves.swan.reinitializeswan : $REINITIALIZESWAN" >> $STORMDIR/run.properties
+   echo "asgs.config.coupling.waves.swan.swandt : $SWANDT" >> $STORMDIR/run.properties
+   echo "asgs.config.coupling.waves.swan.input.file.swantemplate : $SWANTEMPLATE" >> $STORMDIR/run.properties
+   
 }
 #####################################################################
 #                 E N D  F U N C T I O N S
@@ -1284,11 +1383,15 @@ checkDirExistence $INPUTDIR "directory for input files"
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
 checkDirExistence $PERL5LIB "directory for the Date::Pcalc perl module"
 #
+checkFileExistence $ADCIRCDIR "ADCIRC serial executable" adcirc
 checkFileExistence $ADCIRCDIR "ADCIRC preprocessing executable" adcprep
 checkFileExistence $ADCIRCDIR "ADCIRC parallel executable" padcirc
 checkFileExistence $ADCIRCDIR "hotstart time extraction executable" hstime
 if [[ $TROPICALCYCLONE = on ]]; then
    checkFileExistence $ADCIRCDIR "asymmetric metadata generation executable" aswip
+fi
+if [[ $TIDEFAC = on ]]; then
+   checkFileExistence $SCRIPTDIR/tides "tidal nodal factors and equilibrium arguments executable" tide_fac.x
 fi
 if [[ $BACKGROUNDMET = on ]]; then
    checkFileExistence $SCRIPTDIR "NAM output reprojection executable (from lambert to geographic)" awip_lambert_interp.x
@@ -1436,7 +1539,7 @@ if [[ $START = coldstart ]]; then
    logMessage "$ENSTORM: $THIS: Coldstarting."
    logMessage "$ENSTORM: $THIS: Coldstart time is '$CSDATE'."
    logMessage "$ENSTORM: $THIS: The initial hindcast duration is '$HINDCASTLENGTH' days."
-   writeConfigProperties $STORMDIR
+   writeProperties $STORMDIR
    # prepare hindcast control (fort.15) file
    # calculate periodic fux data for insertion in fort.15 if necessary
    if [[ $PERIODICFLUX != null ]]; then
@@ -1512,6 +1615,7 @@ else
 fi
 #
 # B E G I N   N O W C A S T / F O R E C A S T   L O O P
+#
 while [ true ]; do
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
    ENSTORM=nowcast
@@ -1607,7 +1711,8 @@ while [ true ]; do
       STORMDIR=$ADVISDIR/$ENSTORM
       # write the properties associated with asgs configuration to the 
       # run.properties file
-      writeConfigProperties $STORMDIR
+      writeProperties $STORMDIR
+      writeTropicalCycloneProperties $STORMDIR
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE $STORMTRACKOPTIONS"
       CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
@@ -1652,8 +1757,9 @@ while [ true ]; do
          NAM222=`ls NAM*.222`
          ln -s $NAM221 fort.221 2>> ${SYSLOG}
          ln -s $NAM222 fort.222 2>> ${SYSLOG}
+         writeNAMProperties $NOWCASTDIR
          ;;
-   OWI)
+      OWI)
          # this is a hack to enable running pre-existing OWI files for hindcast
          #
          # hard code the file location and assume the names of the files have
@@ -1700,8 +1806,11 @@ while [ true ]; do
    if [[ $BACKGROUNDMET != off ]]; then
       # write the properties associated with asgs configuration to the 
       # run.properties file
-      writeConfigProperties $NOWCASTDIR
+      writeProperties $NOWCASTDIR
       CONTROLOPTIONS="$CONTROLOPTIONS --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+   fi
+   if [[ $WAVES = on ]]; then
+      writeWaveCouplingProperties $NOWCASTDIR
    fi
    # send out an email alerting end users that a new cycle has been issued
    cycleStartTime=`date +%s`  # epoch seconds
@@ -1722,8 +1831,6 @@ while [ true ]; do
    if [[ ! -e $NOWCASTDIR/runme ]]; then
       RUNNOWCAST=no
    fi
-   echo "hostname : $HPCENVSHORT" >> $NOWCASTDIR/run.properties
-   echo "instance : $INSTANCENAME" >> $NOWCASTDIR/run.properties
    #debugMessage "MESHPROPERTIES is $MESHPROPERTIES CONTROLPROPERTIES is $CONTROLPROPERTIES NAPROPERTIES is $NAPROPERTIES"
    for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
       if [[ -e ${INPUTDIR}/$inputProperties ]]; then
@@ -1906,7 +2013,7 @@ while [ true ]; do
       cd $STORMDIR 2>> ${SYSLOG}
       # write the properties associated with asgs configuration to the 
       # run.properties file
-      writeConfigProperties $STORMDIR
+      writeProperties $STORMDIR
       RUNFORECAST=yes
       # TROPICAL CYCLONE ONLY
       if [[ $TROPICALCYCLONE = on ]]; then
@@ -1930,6 +2037,7 @@ while [ true ]; do
             fi
          else
             echo "modified : n" >> run.properties 2>> ${SYSLOG}
+            echo "track_modified : n" >> run.properties 2>> ${SYSLOG}
          fi
          CONTROLOPTIONS="--cst $CSDATE --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile ${STORMDIR}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
@@ -1958,6 +2066,7 @@ while [ true ]; do
                cp NWS_${BASENWS}_fort.22 fort.22 2>> ${SYSLOG}
             fi
          fi
+         writeTropicalCycloneProperties $STORMDIR
       fi
       # BACKGROUND METEOROLOGY ONLY
       if [[ $BACKGROUNDMET = on ]]; then
@@ -1984,9 +2093,11 @@ while [ true ]; do
          if [[ ! -e $STORMDIR/runme ]]; then
             RUNFORECAST=no
          fi
+         writeNAMProperties $STORMDIR
       fi
       if [[ $WAVES = on ]]; then
          CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
+         writeWaveCouplingProperties $STORMDIR
       fi
       CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
       CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
@@ -2002,8 +2113,6 @@ while [ true ]; do
       if [[ $VARFLUX = default ]]; then
          ln -s ${INPUTDIR}/${RIVERFLUX} ./fort.20 2>> ${SYSLOG}
       fi
-      echo "hostname : $HPCENVSHORT" >> ${STORMDIR}/run.properties
-      echo "instance : $INSTANCENAME" >> ${STORMDIR}/run.properties
       # write the start and end dates of the forecast to the run.properties file
       if [[ -e $RUNDIR/forecast.properties ]]; then
          cat $RUNDIR/forecast.properties >> ${STORMDIR}/run.properties
@@ -2019,6 +2128,7 @@ while [ true ]; do
       # recording the ensemble member number may come in handy for load
       # balancing the postprocessing, particularly for CERA
       echo "forecastEnsembleMemberNumber : $si" >> ${STORMDIR}/run.properties
+      echo "asgs.config.forecast.ensemblemembernumber : $si" >> ${STORMDIR}/run.properties
       if [[ $RUNFORECAST = yes ]]; then
          # set up post processing for the forecast, including initiation
          # of real time post processing

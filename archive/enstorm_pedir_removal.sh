@@ -28,12 +28,12 @@ logFile="enstorm_pedir_removal.log"
 stormdir=$PWD
 COMPRESSION=yes
 #
-ENSTORM=`sed -n 's/[ ^]*$//;s/asgs.config.enstorm\s*:\s*//p' run.properties`
+ENSTORM=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
 echo "$ENSTORM: $THIS: stormdir is $stormdir" >> $stormdir/$logFile
 
-WAVES=`sed -n 's/[ ^]*$//;s/asgs.config.waves\s*:\s*//p' run.properties`
+WAVES=`sed -n 's/[ ^]*$//;s/config.coupling.waves\s*:\s*//p' run.properties`
 if [[ $WAVES = on ]]; then
-   ADCIRCDIR=`sed -n 's/[ ^]*$//;s/asgs.config.adcircdir\s*:\s*//p' run.properties`
+   ADCIRCDIR=`sed -n 's/[ ^]*$//;s/config.path.adcircdir\s*:\s*//p' run.properties`
    # FIXME: path to swan executables is a hardcoded path relative to ADCIRCDIR
    HOTTIFYPATH=$ADCIRCDIR/../swan
    #
@@ -66,7 +66,11 @@ if [[ $WAVES = on ]]; then
       # start for hotstarted jobs using the same number of processors;
       # then construct fulldomain swan hotstart file(s) and compress
       if [[ -e ./PE0000/$file ]]; then
-         tar cvjf ${file}.tar.bz2 ./PE*/$file 2>> $stormdir/$logFile 2>&1 &
+         if [[ $COMPRESSION = yes ]]; then 
+            tar cvjf ${file}.tar.bz2 ./PE*/$file 2>> $stormdir/$logFile 2>&1 &
+         else
+            tar cvf ${file}.tar ./PE*/$file 2>> $stormdir/$logFile 2>&1 &
+         fi
          (
             ${HOTTIFYPATH}/$hSWANExe <<EndInput >> $stormdir/$logFile 2>&1 
 1
@@ -89,9 +93,9 @@ wait
 # pull in platform-specific value for the command used to remove directories
 # (some platforms have a special command that is nicer for their filesystem)
 REMOVALCMD="rm -rf"
-SCRIPTDIR=`sed -n 's/[ ^]*$//;s/asgs.config.scriptdir\s*:\s*//p' run.properties`
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties`
 . ${SCRIPTDIR}/platforms.sh # pick up platform specific config
-HPCENVSHORT=`sed -n 's/[ ^]*$//;s/hostname\s*:\s*//p' run.properties`
+HPCENVSHORT=`sed -n 's/[ ^]*$//;s/hpc.hpcenvshort\s*:\s*//p' run.properties`
 env_dispatch ${HPCENVSHORT}
 # now delete the subdomain directories
 for dir in `ls -d PE*`; do 
