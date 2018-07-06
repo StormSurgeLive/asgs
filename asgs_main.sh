@@ -1663,7 +1663,7 @@ while [ true ]; do
       LASTADVISORYNUM=$ADVISORY
       # pull the latest advisory number from the statefile
       ADVISORY=`grep "ADVISORY" $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
-echo $STATEFILE, $ADVISORY  # BOB
+#echo $STATEFILE, $ADVISORY  # BOB
 
       ADVISDIR=$RUNDIR/${ADVISORY}
       if [ ! -d $ADVISDIR ]; then
@@ -1701,7 +1701,7 @@ echo $STATEFILE, $ADVISORY  # BOB
       fi
    fi
    # BACKGROUND METEOROLOGY
-echo "\$BACKGROUNDMET=$BACKGROUNDMET"  # BOB
+#echo "\$BACKGROUNDMET=$BACKGROUNDMET"  # BOB
 
    if [[ $BACKGROUNDMET != off ]]; then
       NWS=-12
@@ -1732,7 +1732,7 @@ echo "\$BACKGROUNDMET=$BACKGROUNDMET"  # BOB
          echo perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS 
 # BOB this process needs to be shoved off onto a compute-node, if the login node running asgs_main.sh is memory limited.  
 # BOB This is a stopgap until we rewrite this perl code in python...
-         DelegateToCompute="true"
+         DelegateToCompute="false"
          if [[ ${DelegateToCompute} == "true" ]] ; then
             QSCRIPTOPTIONS="--jobtype NAMtoOWIRamp --ncpu 1 --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$ENV/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING $LOCALHOTSTART --syslog $SYSLOG"
 echo $QSCRIPTOPTIONS
