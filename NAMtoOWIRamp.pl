@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 ################################################################################
-#                          	netcdfNAMtoOWI                                 #
+#                          	netcdfNAMtoOWIRamp                                 #
 ################################################################################
 # This script is triggered when a netCDF NAM file is received by LDM.
 # Its purpose is to convert the NAM data to OWI formatted data for use in
@@ -20,7 +20,7 @@
 #
 # Example of usage for a set of grib2 files containing nowcast data:
 #
-# perl ~/asgs/NAMtoOWI.pl --ptFile ~/Ida/ptFile.txt --namFormat grib2 --namType nowcast --awipGridNumber 218 --dataDir ~/Ida --outDir ~/Ida/test/ --velocityMultiplier 0.9 --scriptDir ~/asgs
+# perl ~/asgs/NAMtoOWIRamp.pl --ptFile ~/Ida/ptFile.txt --namFormat grib2 --namType nowcast --awipGridNumber 218 --dataDir ~/Ida --outDir ~/Ida/test/ --velocityMultiplier 0.9 --scriptDir ~/asgs
 #
 # jgf20161118: Example for use with spatial extrapolation ramp
 # perl ~/asgs/2014stable/NAMtoOWIRamp.pl --ptFile ~/asgs/2014stable/input/ptFile_hsofs.txt --namFormat grib2 --namType nowcast --awipGridNumber 218 --dataDir ./ --outDir ./ --velocityMultiplier 1.0 --scriptDir ~/asgs/2014stable --applyRamp yes --rampDistance 1.0
@@ -86,7 +86,6 @@ GetOptions(
 &stderrMessage("INFO","Started processing point file.");
 $geoHeader=&processPtFile($ptFile);
 # load NAM data
-print "Here1 \$namFormat=$namFormat\n";  # BOB
 if ( ($namFormat eq "grib2") || ($namFormat eq "grb") ) 
 	{
 	&stderrMessage("INFO","Processing file(s).");
@@ -94,7 +93,6 @@ if ( ($namFormat eq "grib2") || ($namFormat eq "grb") )
 	&addToFort22();# have to add the record length to fort.22
 	&stderrMessage("INFO","Rotate and format each time-step.");
 	# loop through the time-steps to run awips_interp	
-	print "Here2\n";  # BOB
 	&rotateAndFormat();
 	}
 elsif ( $namFormat eq "netCDF" )
@@ -412,7 +410,6 @@ sub getNetCDF
 ################################################################################
 sub rotateAndFormat
 {
-print "\nhere4\n";  # BOB
 	for my $t (0 .. $nRec{'time'}-1)
 		{
 		&stderrMessage("DEBUG","TS=$t");
@@ -433,25 +430,21 @@ print "\nhere4\n";  # BOB
 		close (OUT);
 	
 		# run awip_interp
-		print "\nhere4b \$applyRamp=$applyRamp\n";  # BOB
 		if ( $applyRamp eq "yes" ) {
-		   print "\$uvpFile=$uvpFile\n"; # BOB
                    # NAM pressure data are in Pa
 		   if ( -f "rotataedNAM.txt" ) {
 			print "Deleting old rotated3NAM.txt\n"; 
                         unlink "rotatedNAM.txt";
 		   }
 
-                   #&stderrMessage("DEBUG","1: Reprojecting Lambert Conformal NAM data with the following command: $scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $uvpFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance $rampDistance --background-pressure 101300.0 --pressure-column 3 >> reproject.log 2>&1");
-
-		   my $com="$scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $uvpFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance $rampDistance --background-pressure 101300.0 --pressure-column 3"; # BOB >> reproject.log 2>&1`;
-	 	   print "\$com=$com\n";  # BOB
+		   my $com="$scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $uvpFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance $rampDistance --background-pressure 101300.0 --pressure-column 3 >> reproject.log 2>&1";
+                   &stderrMessage("DEBUG","1: Reprojecting Lambert Conformal NAM data with the following command: $com");
                    my $res=`$com`;
 		   if (! -f "rotatedNAM.txt") {
 	               die "\nrotatedNAM.txt DNE. on TS=$t\n" 
 		   }
 	           else{
-			print "\$res=$res\n";  # BOB
+                        &stderrMessage("DEBUG","$res");
 		   }
 #                   &stderrMessage("DEBUG","Applying spatial ramp.");
 
@@ -461,7 +454,6 @@ print "\nhere4\n";  # BOB
                    `$scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $uvpFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance -99999.0 >> reproject.log 2>&1`;
                    #&stderrMessage("DEBUG","Not applying spatial ramp.");
                 }
-print "Outputting OWI files... \n\n";  # BOB
 		 &toOWIformat('rotatedNAM.txt',$geoHeader."DT=".$OWItime[$t]);
 		}
 }
@@ -473,7 +465,7 @@ print "Outputting OWI files... \n\n";  # BOB
 ################################################################################
 sub addToFort22
 {
-	open(F22,">>$fort22") || die "ERROR: NAMtoOWI.pl: Failed to open OWI (NWS12) fort.22 file to append a comment line with the met time increment.";
+	open(F22,">>$fort22") || die "ERROR: NAMtoOWIRamp.pl: Failed to open OWI (NWS12) fort.22 file to append a comment line with the met time increment.";
 	my $wtiminc=$timeStep*3600; # ts in seconds
         &stderrMessage("INFO","Appending the WTIMINC value of '$wtiminc' to the fort.22 file '$fort22'.");
 	print F22 "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15\n";
@@ -574,18 +566,13 @@ sub getGrib2
            $factors[0] = 1.0;
 	   $endTime="";
            if ( $namType eq "nowcast" ) {
-my $temp="";
+              my $temp="";
               if ( $namFormat eq "grib2" ) {
-my $com="";
-print "\$file=$file\n";  # BOB
+                 my $com="";
                  $com="$scriptDir/wgrib2 $file -match PRMSL";
-print "\$com=$com\n";  # BOB
                  $temp=`$com`;
-print "\$temp=$temp\n";  # BOB
-die if (!$temp);
                  $temp =~ m/d=(\d+)/;
                  $endTime = $1;
-print "\$endTime=$endTime\n";  # BOB
               } 
               if ( $namFormat eq "grb" ) {
                  `$scriptDir/wgrib -v $file | grep PRMSL` =~ m/:D=(\d+):PRMSL:/;
@@ -754,7 +741,7 @@ sub stderrMessage () {
    my $year = 1900 + $yearOffset;
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-   printf STDERR "$theTime $level: $namType: NAMtoOWI.pl: $message\n";
+   printf STDERR "$theTime $level: $namType: NAMtoOWIRamp.pl: $message\n";
    if ($level eq "ERROR") {
       sleep 1
    }
