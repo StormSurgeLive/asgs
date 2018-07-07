@@ -48,7 +48,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=on     # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=off  # tropical cyclone forcing
-WAVES=off            # wave forcing
+WAVES=on             # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
@@ -59,12 +59,12 @@ HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="07:00:00" # forecast wall clock time
-NCPU=600                    # number of compute CPUs for all simulations
+NCPU=1200                   # number of compute CPUs for all simulations
 NUMWRITERS=20
 NCPUCAPACITY=1240
 CYCLETIMELIMIT="99:00:00"
-#QUEUENAME=workq
-QUEUENAME=checkpt
+QUEUENAME=workq
+#QUEUENAME=checkpt
 SERQUEUE=single
 ACCOUNT=loni_cera_2018a
 #SCRATCHDIR=/work/$USER    # vs default /work/cera
