@@ -221,24 +221,24 @@ fi
 #      T A R   U P   C E R A   C O N T O U R S      
 #-----------------------------------------------------------------------
 # form list of directories that should go into the tar file
-ceraContoursAvailable=no
-shapeDirs=""
-for layer in $layersFinished; do
-   shapeDirs="$shapeDirs CERA/$layer"
-done
+#ceraContoursAvailable=no
+#shapeDirs=""
+#for layer in $layersFinished; do
+#   shapeDirs="$shapeDirs CERA/$layer"
+#done
 # the h parameter tells tar to dereference symbolic links
-tar cvhf CERA.tar $shapeDirs > CERAtar.log 2>> $SYSLOG
+#tar cvhf CERA.tar $shapeDirs > CERAtar.log 2>> $SYSLOG
 # if the CERA.tar file was created successfully, add a property for it
 # to the run.properties file
-ERROVALUE=$?  # capture exit status
-if [[ $ERROVALUE == 0 ]] ; then
-   logMessage "$ENSTORM: $THIS: Created CERA tar file correctly."
+#ERROVALUE=$?  # capture exit status
+#if [[ $ERROVALUE == 0 ]] ; then
+#   logMessage "$ENSTORM: $THIS: Created CERA tar file correctly."
    #@jasonfleming debug 20170915: don't post CERA tar file
    #echo "Contour Tar File : CERA.tar" >> run.properties
    #ceraContoursAvailable=yes
-else
-   error "$ENSTORM: $THIS: Could not create CERA tar file."
-fi
+#else
+#   error "$ENSTORM: $THIS: Could not create CERA tar file."
+#fi
 #------------------------------------------------------------------------
 # accumulate min/max
 #previousAdvisory=`expr $ADVISORY - 1`
