@@ -27,7 +27,7 @@ type nodalAttr_t
 end type nodalAttr_t
 !
 type nodalAttrFile_t
-   character(len=2048) :: nodalAttributesFile    ! name of the file
+   character(len=2048) :: nodalAttributesFileName    ! name of the file
    character(len=2048) :: nodalAttributesComment ! comment line at the top
    integer :: numMeshNodes ! expected to be the same as np
    integer :: numNodalAttributes ! number of nodal attributes in the file
@@ -63,7 +63,7 @@ naFile%na(1)%attrName = trim(adjustl(naName))
 !
 foundIt = .false.
 write(6,*) 'INFO: Reading nodal attribute.'
-call openFileForRead(13,naFile%nodalAttributesFile, errorIO)
+call openFileForRead(13,naFile%nodalAttributesFileName, errorIO)
 read(13,'(a)') naFile%nodalAttributesComment
 read(13,*) naFile%numMeshNodes
 write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') naFile%numMeshNodes 
@@ -90,7 +90,7 @@ do i=1,naFile%numNodalAttributes
    endif
 end do
 if (foundIt.eqv..false.) then
-   write(6,*) 'ERROR: The nodal attribute "',trim(naName),'" was not found in the file "',trim(naFile%nodalAttributesFile),'".'
+   write(6,*) 'ERROR: The nodal attribute "',trim(naName),'" was not found in the file "',trim(naFile%nodalAttributesFileName),'".'
    close(13)
    error stop 1 
 endif
@@ -135,7 +135,7 @@ subroutine setNodalAttributesFileName(asciiFile,naFile)
 implicit none
 character(len=1024), intent(in) :: asciiFile
 type(nodalAttrFile_t), intent(inout) :: naFile
-naFile%nodalAttributesFile = trim(asciiFile)
+naFile%nodalAttributesFileName = trim(asciiFile)
 !-----------------------------------------------------------------------
 end subroutine setNodalAttributesFileName
 !-----------------------------------------------------------------------
@@ -159,8 +159,8 @@ integer :: naIndex
 logical :: foundIt
 integer :: errorIO
 !
-write(6,'(a)') 'INFO: Reading nodal attributes from "' // trim(naFile%nodalAttributesFile) // '".'
-call openFileForRead(13,naFile%nodalAttributesFile, errorIO)
+write(6,'(a)') 'INFO: Reading nodal attributes from "' // trim(naFile%nodalAttributesFileName) // '".'
+call openFileForRead(13,naFile%nodalAttributesFileName, errorIO)
 read(13,*) naFile%nodalAttributesComment
 read(13,*) naFile%numMeshNodes
 write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') naFile%numMeshNodes 
@@ -234,8 +234,8 @@ implicit none
 type(nodalAttrFile_t), intent(in) :: naFile ! the nodal attributes file to write
 integer :: i, j, k, m
 !
-write(6,'(a)') 'INFO: Writing nodal attributes to "'//trim(naFile%nodalAttributesFile)//'".'
-open(unit=13,file=trim(adjustl(naFile%nodalAttributesFile)),status='replace',action='write')
+write(6,'(a)') 'INFO: Writing nodal attributes to "'//trim(naFile%nodalAttributesFileName)//'".'
+open(unit=13,file=trim(adjustl(naFile%nodalAttributesFileName)),status='replace',action='write')
 write(13,'(a)') trim(adjustl(naFile%nodalAttributesComment))
 write(13,'(i0)') naFile%numMeshNodes
 write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') naFile%numMeshNodes 

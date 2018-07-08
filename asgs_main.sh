@@ -393,6 +393,9 @@ prep()
 
        if [[ $WAVES = on && $HOTSWAN = on ]]; then
           # subdomain swan hotstart file
+          # FIXME: what if this subdomain swan hotstart file is
+          # present but there are a different number of subdomains 
+          # between different runs??
           if [[ -e $FROMDIR/PE0000/swan.67 ]]; then
              logMessage "$ENSTORM: $THIS: Starting copy of subdomain swan hotstart files."
              # copy the subdomain hotstart files over
@@ -1739,8 +1742,8 @@ exit
          fi
          # create links to the OWI files
          cd $ENSTORM 2>> ${SYSLOG}
-         NAM221=`ls NAM*.221`;
-         NAM222=`ls NAM*.222`;
+         NAM221=`ls NAM*.221`
+         NAM222=`ls NAM*.222`
          ln -s $NAM221 fort.221 2>> ${SYSLOG}
          ln -s $NAM222 fort.222 2>> ${SYSLOG}
          ;;
@@ -1781,13 +1784,18 @@ exit
                ln -s $file fort.${ext} 2>> ${SYSLOG} # symbolically link data
             fi
          done
-      ;;
+         ;;
+     off)
+        # don't need to download any data
+        ;;
      *) # should be unreachable
         RMQMessage "FAIL" "$CURRENT_EVENT" "$THIS>$ENSTORM" FAIL "BACKGROUNDMET ($BACKGROUNDMET) did not match an allowable value."
         fatal "BACKGROUNDMET did not match an allowable value."
-      ;;
+        ;;
    esac
-   CONTROLOPTIONS=" --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+   if [[ $BACKGROUNDMET != off ]]; then
+      CONTROLOPTIONS="$CONTROLOPTIONS --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+   fi
    # send out an email alerting end users that a new cycle has been issued
    cycleStartTime=`date +%s`  # epoch seconds
    ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORM $YEAR $NOWCASTDIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
