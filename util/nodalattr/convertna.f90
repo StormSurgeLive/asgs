@@ -32,6 +32,7 @@ use nodalattr
 implicit none
 type(mesh_t) :: tm  ! target mesh
 type(mesh_t) :: sm  ! source mesh
+type(nodalAttrFile_t) :: naFile
 character(len=1024) :: outputfile
 character(len=1024) :: naName
 real(8), allocatable :: targetNodalAttribute(:,:) ! (numVals,targetNP)
@@ -71,7 +72,7 @@ do while (i.lt.argcount)
       i = i + 1
       call getarg(i, cmdlinearg)
       write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
-      nodalAttributesFile = trim(cmdlinearg)
+      naFile%nodalAttributesFileName = trim(cmdlinearg)
    case("--outputfile")
       i = i + 1
       call getarg(i, cmdlinearg)
@@ -110,11 +111,11 @@ do while (i.lt.argcount)
 end do
 !
 ! load the specified nodal attribute
-call loadNodalAttribute(naName)
+call loadNodalAttribute(naName, naFile)
 !
 ! write in fort.63 format if specified to do so
 if (write63.eqv..true.) then
-   call writeNodalAttribute63(naName, outputfile)
+   call writeNodalAttribute63(naName, outputfile, naFile)
    stop
 endif
 !
@@ -140,18 +141,18 @@ if (interpolate.eqv..true.) then
    !
    ! now go through the target nodes and match the nodal attributes
    ! to the ones from the source mesh
-   allocate(targetNodalAttribute(na(1)%numVals,tm%np))
-   allocate(sourceNodalAttribute(na(1)%numVals,sm%np))
+   allocate(targetNodalAttribute(naFile%na(1)%numVals,tm%np))
+   allocate(sourceNodalAttribute(naFile%na(1)%numVals,sm%np))
    ! populate full array of source nodal attribute so we can grab data
    ! from it at any location
    write(6,*) 'INFO: Fully populating source nodal attribute array.'
    do i=1,sm%np
-      sourceNodalAttribute(:,i) = na(1)%defaultVals(:)
+      sourceNodalAttribute(:,i) = naFile%na(1)%defaultVals(:)
    end do
-   do i=1,na(1)%numNodesNotDefault
-      sourceNodalAttribute(:,na(1)%nonDefaultNodes(i)) = na(1)%nonDefaultVals(:,i)
+   do i=1,naFile%na(1)%numNodesNotDefault
+      sourceNodalAttribute(:,naFile%na(1)%nonDefaultNodes(i)) = naFile%na(1)%nonDefaultVals(:,i)
    end do
-   allocate(dist(na(1)%numNodesNotDefault))
+   allocate(dist(naFile%na(1)%numNodesNotDefault))
    write(6,*) 'INFO: Assigning target nodal attributes.'
    ! compute parameters related to printing a progress bar
    progress=10
@@ -168,12 +169,12 @@ if (interpolate.eqv..true.) then
       endif
       ! calculate the distance between this node and each node in the source
       ! mesh that does not have a default nodal attribute value
-      do j=1,na(1)%numNodesNotDefault
-         dist(j) = sqrt( (tm%x_cpp(i)-sm%x_cpp(na(1)%nonDefaultNodes(j)))**2 & 
-           + (tm%y_cpp(i)-sm%y_cpp(na(1)%nonDefaultNodes(j)))**2 )
+      do j=1,naFile%na(1)%numNodesNotDefault
+         dist(j) = sqrt( (tm%x_cpp(i)-sm%x_cpp(naFile%na(1)%nonDefaultNodes(j)))**2 & 
+           + (tm%y_cpp(i)-sm%y_cpp(naFile%na(1)%nonDefaultNodes(j)))**2 )
       end do
       ! find the node number of the closest node
-      sourceNodeNumber = na(1)%nonDefaultNodes(minloc(dist,1))
+      sourceNodeNumber = naFile%na(1)%nonDefaultNodes(minloc(dist,1))
       proximity = minval(dist)
       ! if the target node is closer to the source node than half the distance
       ! to the source node's nearest neighbor, then the target node has
@@ -183,7 +184,7 @@ if (interpolate.eqv..true.) then
       if (proximity.lt.closestSourceNeighbor) then
          targetNodalAttribute(:,i) = sourceNodalAttribute(:,sourceNodeNumber)
       else 
-         targetNodalAttribute(:,i) = na(1)%defaultVals(:)
+         targetNodalAttribute(:,i) = naFile%na(1)%defaultVals(:)
       endif
    end do
    write(6,*) 'INFO: Finished assigning target nodal attributes.'
@@ -192,10 +193,10 @@ if (interpolate.eqv..true.) then
    allocate(areDefaultValues(sm%np))
    areDefaultValues = .true.
    do i=1,sm%np  
-      do j=1,na(1)%numVals
+      do j=1,naFile%na(1)%numVals
         ! if any of the nodal attribute values at this node are different
         ! from the default value(s), then this is a non default node
-        if ( abs(targetNodalAttribute(j,i)-na(1)%defaultVals(j)).gt.1.d-6 ) then
+        if ( abs(targetNodalAttribute(j,i)-naFile%na(1)%defaultVals(j)).gt.1.d-6 ) then
             areDefaultValues(i) = .false.
             exit
          endif
@@ -208,7 +209,7 @@ if (interpolate.eqv..true.) then
    write(naUnit,*) count(areDefaultValues.eqv..false.)
    do i=1,sm%np
       if (areDefaultValues(i).eqv..false.) then
-         write(naUnit,130) i,(targetNodalAttribute(j,i), j=1,na(1)%numVals) 
+         write(naUnit,130) i,(targetNodalAttribute(j,i), j=1,naFile%na(1)%numVals) 
       endif
    end do
    close(naUnit)

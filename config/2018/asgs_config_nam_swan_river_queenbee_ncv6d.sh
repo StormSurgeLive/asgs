@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2006--2016 Jason Fleming
+# Copyright(C) 2006--2018 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade 
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -34,7 +34,7 @@ INSTANCENAME=dailyv6d      # name of this ASGS process
 #COLDSTARTDATE=2017012400
 #COLDSTARTDATE=2017070900
 #COLDSTARTDATE=2017121500
-COLDSTARTDATE=20180201200
+COLDSTARTDATE=2018022100
 HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0        # length of initial hindcast, from cold (days)
@@ -44,7 +44,7 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables 
 SCRIPTDIR=~/asgs/2014stable        # ASGS scripts/executables  
-INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v6b   # dir containing grid and other input files 
+INPUTDIR=${SCRATCHDIR}/asgs/2014stable/input/meshes/nc_v6b   # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 
@@ -62,7 +62,7 @@ TIMESTEPSIZE=0.5
 SWANDT=1200
 HINDCASTWALLTIME="24:00:00"
 ADCPREPWALLTIME="00:15:00"
-NOWCASTWALLTIME="05:00:00"  # must have leading zero, e.g., 05:00:00
+NOWCASTWALLTIME="08:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
 NCPU=159
 NUMWRITERS=1
@@ -173,7 +173,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="jason.g.fleming@gmail.com"
 
 # Archiving
 
@@ -197,8 +197,6 @@ case $si in
    ENSTORM=namforecastWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=nv6brivers_explicit_rlevel51.nowindreduction.fort.15_template
-   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0    # 5 minute time steps
    NCPU=19               # so total cpus match with other ensemble members
    NUMWRITERS=1          # multiple writer procs might collide
