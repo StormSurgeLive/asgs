@@ -1233,6 +1233,7 @@ SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG must be defined
 . ${SCRIPTDIR}/logging.sh
 # Bring in platform-specific configuration
 . ${SCRIPTDIR}/platforms.sh
+RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh"  "RUNN" "$ENV configuration found."
 # dispatch environment (using the functions in platforms.sh)
 env_dispatch ${ENV}
 # Re-read the config file, so that the variables can take precedence over
