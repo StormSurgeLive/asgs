@@ -28,7 +28,10 @@ ENSTORM=$5
 HSTIME=$6
 SYSLOG=$7
 SERVER=$8
-FILES=($9) # array of files to post to opendap
+FILES=("$9") # array of files to post to opendap
+#OPENDAPNOTIFY=$10
+echo "$FILES"
+#echo $OPENDAPNOTIFY
 #
 THIS=opendap_post.sh
 echo "SERVER is $SERVER" >> ${SYSLOG}
@@ -150,6 +153,7 @@ END
 case $OPENDAPPOSTMETHOD in
 "scp")
    logMessage "$ENSTORM: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
+   #echo ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "mkdir -p $OPENDAPDIR" 
    ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
    if [[ $? != 0 ]]; then
       warn "$ENSTORM: $THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
