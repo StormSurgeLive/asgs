@@ -132,7 +132,7 @@ init_croatan()
 }
 init_pod()
 { #<- can replace the following with a custom script
-  HOSTNAME=something.pod.penguin.com
+  HOSTNAME=pod.penguin.com
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=noaccount
@@ -439,12 +439,17 @@ init_topsail()
 # THREDDS Data Server (TDS, i.e., OPeNDAP server) at RENCI
 init_renci_tds()
 {
+# http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
+# http://tds.renci.org:8080/thredds/dodsC/     DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
+# http://tds.renci.org:8080/thredds/catalog/                   tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/catalog.html
    OPENDAPHOST=ht4.renci.org
-   DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer"
-   CATALOGPREFIX="http://tds.renci.org:8080/thredds/catalog"
+   #DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer"
+   #CATALOGPREFIX="http://tds.renci.org:8080/thredds/catalog"
+   DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/"
+   CATALOGPREFIX="http://tds.renci.org:8080/thredds/dodsC/DataLayers/asgs/"
    OPENDAPBASEDIR=/projects/ees/DataLayers/asgs/
    SSHPORT=22
-   LINKABLEHOSTS=(hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
+   LINKABLEHOSTS=(null) #hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
    COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
 }
 # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU
@@ -505,7 +510,6 @@ env_dispatch(){
           ;;
   "hatteras") consoleMessage "platforms.sh: Hatteras (RENCI) configuration found."
           init_hatteras
-          RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh"  "RUNN" "Hatteras (RENCI) configuration found."  0
           ;;
   "hatteras14") consoleMessage "platforms.sh: Hatteras (RENCI) configuration found."
           init_hatteras14

@@ -28,7 +28,7 @@
 
 sigint(){
    #echo "Received Ctrl-C from console.  Shutting ASGS down...'"
-   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..." 0
+   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..." 
    exit 0
 }
 

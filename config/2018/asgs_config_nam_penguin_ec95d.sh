@@ -172,7 +172,7 @@ POSTPROCESS=pod_post.sh
 POSTPROCESS2=null_post.sh
 
 TDS=(renci_tds)
-TARGET=hatteras              # used in post processing to pick up HPC platform config
+TARGET=pod              # used in post processing to pick up HPC platform config
 OPENDAPUSER=bblanton         # default value that works for RENCI opendap 
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 

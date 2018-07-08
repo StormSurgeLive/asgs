@@ -29,9 +29,9 @@
 # Fundamental 
 
 INSTANCENAME=tc_podtest   # name of this ASGS process (Change this for every new instance)
-COLDSTARTDATE=2003081500  # (date to start cold start from )
-HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
-LASTSUBDIR=null
+COLDSTARTDATE=2018052700 # (date to start cold start from )
+HOTORCOLD=hotstart       # "hotstart" or "coldstart" 
+LASTSUBDIR=/home/bblanton/asgs-scratch/asgs8851/2018070806
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
@@ -71,12 +71,12 @@ SCRATCHDIR=/home/bblanton/asgs-scratch
 
 # External data sources : Tropical cyclones
 
-STORM=13  # storm number, e.g. 05=ernesto in 2006 
-YEAR=2003 # year of the storm (useful for historical storms) 
-TRIGGER=rssembedded    # either "ftp" or "rss"
+STORM=02  # storm number, e.g. 05=ernesto in 2006 
+YEAR=2018 # year of the storm (useful for historical storms) 
+TRIGGER=ftp  # rssembedded    # either "ftp" or "rss"
 RSSSITE=www.nhc.noaa.gov 
 FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files
-FDIR=/atcf/afst     # forecast dir on nhc ftp site 
+FDIR=/atcf/fst     # forecast dir on nhc ftp site 
 HDIR=/atcf/btk      # hindcast dir on nhc ftp site 
 
 # External data sources : Background Meteorology
@@ -144,9 +144,9 @@ MINMAX=reset
 
 # Notification
 
-EMAILNOTIFY=no # set to yes to have host platform email notifications
+EMAILNOTIFY=yes # set to yes to have host platform email notifications
 ems="bblanton@renci.org"
-NOTIFY_SCRIPT=ncfs_nam_notify.sh
+NOTIFY_SCRIPT=pod_nam_notify.sh
 ACTIVATE_LIST="$ems"
 NEW_ADVISORY_LIST="$ems"
 POST_INIT_LIST="$ems"
@@ -167,12 +167,12 @@ RMQMessaging_ClusterName="POD"
 
 INTENDEDAUDIENCE="tc_testrun" # meta data audience
 INITPOST=null_init_post.sh
-#POSTPROCESS=blanton_rmq_test_post.sh
-POSTPROCESS=null_post.sh
+POSTPROCESS=pod_post.sh
+#POSTPROCESS=null_post.sh
 POSTPROCESS2=null_post.sh
 
 TDS=(renci_tds)
-TARGET=hatteras              # used in post processing to pick up HPC platform config
+TARGET=pod              # used in post processing to pick up HPC platform config
 OPENDAPUSER=bblanton         # default value that works for RENCI opendap 
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
