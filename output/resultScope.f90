@@ -401,11 +401,11 @@ endif
 !
 ! if the data file is a nodal attributes file, process that separately
 if (trim(fd%defaultFileName).eq.'fort.13') then
-   fna%nodalAttributesFile = fd%dataFileName
+   fna%nodalAttributesFileName = fd%dataFileName
    call readNodalAttributesFile(fna)
    ! populate result result shape fort.13
    call allMessage(INFO,'Subsetting nodal attributes for subdomain.') 
-   rna%nodalAttributesFile = 'subdomain_fort.13'
+   rna%nodalAttributesFileName = 'subdomain_fort.13'
    rna%nodalAttributesComment = trim(fna%nodalAttributesComment) // ' ! command line used to make this subdomain nodal attributes file: ' // trim(cmdlinearg)
    rna%numMeshNodes = rm%np     
    rna%numNodalAttributes = fna%numNodalAttributes
