@@ -71,6 +71,8 @@ init_queenbee()
   module load netcdf
   module load netcdf_fortran
   module load gcc
+  module load matlab/r2015b
+  module load python/2.7.12-anaconda-tensorflow
   # alias cdwo='cd /work/jgflemin'
   # alias cdasgs='cd ~/asgs/2014stable'
 }
@@ -163,6 +165,8 @@ init_hatteras()
   CONSTRAINT=hatteras # ivybridge or sandybridge
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=20
+  module load python_modules/2.7
+  module load matlab/2017b
 }
 init_stampede()
 { #<- can replace the following with a custom script

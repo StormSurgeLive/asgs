@@ -303,7 +303,7 @@ for (my $i=0; $i<$nope; $i++) {
    # my $ibtypee = $fields[1]; # many mesh files don't have this field
    my $ibtypee = 0;
    for (my $j=0; $j<$nvdll; $j++) {
-      my $nbdv = <MESH>;
+      my $nbdv = split(' ',<MESH>);
       $elevBoundaryNodes[$elevBoundaryCount] = $nbdv;  
       $elevBoundaryLons[$elevBoundaryCount] = $x[$nbdv-1];
       $elevBoundaryLats[$elevBoundaryCount] = $y[$nbdv-1];
@@ -433,7 +433,7 @@ for (my $i=0; $i<$nbou; $i++) {
       $fluxBoundaryCount++;
    }
 }        
-print "fluxBoundaryCount is $fluxBoundaryCount\n";
+#print "fluxBoundaryCount is $fluxBoundaryCount\n"; # @jasonfleming debug
 printf VTKFLUXBOUNDARY "\n";
 printf VTKFLUXBOUNDARY "            </DataArray>\n";
 printf VTKFLUXBOUNDARY "         </Points>\n";
