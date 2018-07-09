@@ -31,7 +31,7 @@
 INSTANCENAME=tc_podtest   # name of this ASGS process (Change this for every new instance)
 COLDSTARTDATE=2018052700 # (date to start cold start from )
 HOTORCOLD=hotstart       # "hotstart" or "coldstart" 
-LASTSUBDIR=/home/bblanton/asgs-scratch/asgs8851/2018070806
+LASTSUBDIR=/home/bblanton/asgs-scratch/asgs8851/2018070912/
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
@@ -62,8 +62,8 @@ NOWCASTWALLTIME="01:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="01:00:00" # must have leading zero, e.g., 05:00:00
 NCPU=24
 NUMWRITERS=0
-NCPUCAPACITY=24
-CYCLETIMELIMIT="05:00:00"
+NCPUCAPACITY=96
+CYCLETIMELIMIT="03:00:00"
 QUEUENAME=B30
 SERQUEUE=B30
 ACCOUNT=bblanton
@@ -71,12 +71,13 @@ SCRATCHDIR=/home/bblanton/asgs-scratch
 
 # External data sources : Tropical cyclones
 
-STORM=02  # storm number, e.g. 05=ernesto in 2006 
+STORM=03  # storm number, e.g. 05=ernesto in 2006 
 YEAR=2018 # year of the storm (useful for historical storms) 
-TRIGGER=ftp  # rssembedded    # either "ftp" or "rss"
-RSSSITE=www.nhc.noaa.gov 
+TRIGGER=rssembedded    # either "ftp" or "rss"
+RSSSITE=filesystem # www.nhc.noaa.gov 
 FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files
-FDIR=/atcf/fst     # forecast dir on nhc ftp site 
+#FDIR=/atcf/fst     # forecast dir on nhc ftp site 
+FDIR=/home/bblanton/asgs-advisories/     # forecast dir on local filesystem 
 HDIR=/atcf/btk      # hindcast dir on nhc ftp site 
 
 # External data sources : Background Meteorology
@@ -146,9 +147,9 @@ MINMAX=reset
 
 EMAILNOTIFY=yes # set to yes to have host platform email notifications
 ems="bblanton@renci.org"
-NOTIFY_SCRIPT=pod_nam_notify.sh
-ACTIVATE_LIST="$ems"
-NEW_ADVISORY_LIST="$ems"
+NOTIFY_SCRIPT=pod_tc_notify.sh
+ACTIVATE_LIST=   #  "$ems"
+NEW_ADVISORY_LIST=   #  "$ems"
 POST_INIT_LIST="$ems"
 POST_LIST="$ems"
 JOB_FAILED_LIST="$ems" 
@@ -180,7 +181,7 @@ OPENDAPNOTIFY="bblanton@renci.org"
 
 # Archiving
 
-ARCHIVE=null_archive.sh # if null no data gets save
+ARCHIVE=pod_archive.sh # if null no data gets save
 ARCHIVEBASE=/home/bblanton/scratch/
 ARCHIVEDIR=archive
 
@@ -188,43 +189,26 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=1 # number of storms in the ensemble
+ENSEMBLESIZE=4 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
    ;;
 1)
-   ENSTORM=namforecastWind10m
-   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
-   FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=nv6brivers_explicit_rlevel51.nowindreduction.fort.15_template
-   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-   TIMESTEPSIZE=300.0    # 5 minute time steps
-   #NCPU=31               # so total cpus match with other ensemble members
-   #NUMWRITERS=1          # multiple writer procs might collide
-   WAVES=off             # deactivate wave forcing 
-   # turn off water surface elevation station output
-   FORT61="--fort61freq 0"
-   # turn off water current velocity station output
-   FORT62="--fort62freq 0"
-   # turn off full domain water surface elevation output
-   FORT63="--fort63freq 0"
-   # turn off full domain water current velocity output
-   FORT64="--fort64freq 0"
-   # met station output
-   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
-   # full domain meteorological output
-   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
-   #SPARSE="--sparse-output"
-   SPARSE=""
-   NETCDF4="--netcdf4"
-   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
-   # prevent collisions in prepped archives
-   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
-   POSTPROCESS=null_post.sh
+   ENSTORM=veerLeft100
+   PERCENT=-100
+   ;;
+2)
+   ENSTORM=veerLeft50
+   PERCENT=-50
+   ;;
+3)
+   ENSTORM=rMax20
+   RMAX=scaled
+   PERCENT=20
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."

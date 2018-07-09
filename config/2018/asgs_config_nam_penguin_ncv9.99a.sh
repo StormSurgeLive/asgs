@@ -180,7 +180,7 @@ OPENDAPNOTIFY="bblanton@renci.org"
 
 # Archiving
 
-ARCHIVE=ncem_archive.sh
+ARCHIVE=pod_archive.sh
 ARCHIVEBASE=/home/bblanton/scratch/
 ARCHIVEDIR=archive
 

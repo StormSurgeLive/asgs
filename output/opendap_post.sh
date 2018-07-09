@@ -30,7 +30,7 @@ SYSLOG=$7
 SERVER=$8
 FILES=("$9") # array of files to post to opendap
 #OPENDAPNOTIFY=$10
-echo "$FILES"
+
 #echo $OPENDAPNOTIFY
 #
 THIS=opendap_post.sh
@@ -60,7 +60,6 @@ env_dispatch $SERVER   # from platforms.sh
 #  O P E N  D A P    P A T H   F O R M A T I O N
 #--------------------------------------------------------------------
 STORMNAMEPATH=null
-#
 #
 # form path to results on tds based on type of forcing or name of storm
 if [[ $BACKGROUNDMET != off ]]; then
@@ -131,13 +130,12 @@ if [[ $TROPICALCYCLONE = on ]]; then
    subject=${subject}" (TC)"
 fi
 subject="${subject} $ENMEMNUM $HOSTNAME.$INSTANCENAME"
+#Click on the link: 
+#
+#$CATALOGPREFIX/$STORMNAMEPATH/${OPENDAPSUFFIX}/catalog.html
 cat <<END > ${STORMDIR}/opendap_results_notify.txt 
 
-Click on the link: 
-
-$CATALOGPREFIX/$STORMNAMEPATH/${OPENDAPSUFFIX}/catalog.html
-
-The results for cycle $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
+The results for cycle $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/catalog.html
 
 The run.properties file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
    
@@ -178,7 +176,7 @@ case $OPENDAPPOSTMETHOD in
       fi
       chmod +r $file 2>> $SYSLOG
       logMessage "$ENSTORM: $THIS: Transferring $file."
-      scp -P $SSHPORT $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG
+      scp -P $SSHPORT $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG  2>&1
       if [[ $? != 0 ]]; then
          threddsPostStatus=fail
          warn "$ENSTORM: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."

@@ -47,7 +47,6 @@ cd ${STORMDIR} 2>> ${SYSLOG}
 THIS=pod_post.sh
 # get the forecast ensemble member number 
 ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
-echo "\$ENMEMNuM=$ENMEMNUM"
 
 #
 # grab all config info
@@ -75,8 +74,7 @@ OPENDAPDIR=""
 primaryCount=0
 CURRENT_EVENT="POST"
 CURRENT_STATE="RUNN"
-FILES="maxvel.63.nc maxele.63.nc fort.15"
-echo "${FILES[*]}"
+FILES="fort.22 fort.61.nc maxvel.63.nc maxele.63.nc fort.15"
 
 for server in ${TDS[*]}; do
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Posting to $server opendap, $ADVISORY $HOSTNAME $ENSTORM $HSTIME"
