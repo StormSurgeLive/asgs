@@ -450,7 +450,7 @@ init_renci_tds()
    #DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer"
    #CATALOGPREFIX="http://tds.renci.org:8080/thredds/catalog"
    DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/"
-   CATALOGPREFIX="http://tds.renci.org:8080/thredds/dodsC/DataLayers/asgs/"
+   CATALOGPREFIX="http://tds.renci.org:8080/thredds/DataLayers/asgs/"
    OPENDAPBASEDIR=/projects/ees/DataLayers/asgs/
    SSHPORT=22
    LINKABLEHOSTS=(null) #hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine

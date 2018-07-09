@@ -180,7 +180,7 @@ OPENDAPNOTIFY="bblanton@renci.org"
 
 # Archiving
 
-ARCHIVE=null_archive.sh # if null no data gets save
+ARCHIVE=pod_archive.sh # if null no data gets save
 ARCHIVEBASE=/home/bblanton/scratch/
 ARCHIVEDIR=archive
 

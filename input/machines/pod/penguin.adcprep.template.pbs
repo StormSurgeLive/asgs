@@ -8,14 +8,17 @@
 #PBS -j oe
 #PBS -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out
 #PBS -q %queuename%
+
+
+
 cd %advisdir%/%enstorm%
 
 # specify modules used to compile ADCIRC
 module purge
-module load intel/2016 
-module load hdf5/1.8.17/intel.2016 
-module load netcdf/4.4.1.1/intel.2016 
-module load openmpi/2.0.1/intel.2016
+module load intel/2017
+module load hdf5/1.8.17/intel.2017      
+module load netcdf/4.4.1.1/intel.2017   
+module load openmpi/2.0.2/intel.2017
 
 #
 echo "%enstorm% job starting at `date`"

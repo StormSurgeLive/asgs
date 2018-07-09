@@ -101,3 +101,4 @@ fi
 for dir in `ls -d PE*`; do 
    $REMOVALCMD $dir 2>> $stormdir/$logFile
 done
+$REMOVALCMD metis_graph.txt partmesh.txt fort.80

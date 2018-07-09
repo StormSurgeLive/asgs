@@ -62,12 +62,11 @@ cat <<END > $STORMDIR/activate.txt 2>> ${SYSLOG}
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
-This message is to let you know that the ASGS has been ACTIVATED and is using
-the North American Mesoscale (NAM) model for meteorological forcing. Results
-will be produced using the $GRIDFILE grid. 
+The ASGS has been ACTIVATED and is using the North American Mesoscale (NAM) model 
+for meteorological forcing. Results will be produced using the $GRIDFILE grid. 
 
-You will continue to receive email from the ASGS on $HOSTNAME
-as the results become available.
+You will continue to receive email from the ASGS on $HOSTNAME as the results 
+become available.
 
 END
     logMessage "Sending activation email to the following addresses: $COMMA_SEP_LIST."
@@ -82,10 +81,10 @@ cat <<END > $STORMDIR/new_advisory.txt 2>> ${SYSLOG}
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
-The supercomputer $HOSTNAME has detected a new NAM cycle
-(number $ADVISORY) from the National Centers for Environmental
-Prediction (NCEP). The forcing data have been downloaded; ADCIRC surge
-calculations are about to begin, using the $GRIDFILE grid. 
+The system $HOSTNAME has detected a new NAM cycle (number $ADVISORY) from 
+the National Centers for Environmental Prediction (NCEP). The forcing data 
+have been downloaded; ADCIRC surge calculations are about to begin, using 
+the $GRIDFILE grid. 
 
 You will receive another email from the ASGS on $HOSTNAME
 as soon as the resulting storm surge guidance becomes available.
@@ -103,7 +102,7 @@ cat <<END > ${STORMDIR}/post_notify.txt
 This is an automated message from the ADCIRC Surge Guidance System (ASGS)
 running on ${HOSTNAME}.
 
-The supercomputer $HOSTNAME has produced ADCIRC results for 
+The system $HOSTNAME has produced ADCIRC results for 
 NAM cycle $ADVISORY on the $GRIDFILE grid.
 
 The ASGS on $HOSTNAME is now waiting for the National Centers for 
