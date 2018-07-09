@@ -49,22 +49,23 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
   re='^[0-9]+([.][0-9]+)?$' 
   if ! [[ $PCTCOM =~ $re ]] ; then
       echo "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message." 
-  fi
-  printf "RMQ-%4s : %4s : %21s : %4s : %5.1f : %s : %s\n" "$MTYPE" $EVENT "$DATETIME" $STATE $PCTCOM $PROCESS  "$5"
+  else
+     printf "RMQ-%4s : %4s : %21s : %4s : %5.1f : %s : %s\n" "$MTYPE" $EVENT "$DATETIME" $STATE $PCTCOM $PROCESS  "$5"
 
-  # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
-  ${RMQMessaging_Python} ${RMQMessaging_Script} --Uid $$ \
-                        --LocationName ${RMQMessaging_LocationName} \
-                        --ClusterName ${RMQMessaging_ClusterName} \
-                        --RunType $RMQ_RunType \
-                        --StormName $RMQ_StormName \
-                        --AdvisoryNumber $RMQ_AdvisoryNumber \
-                        --Message "$MSG"  \
-                        --EventType $EVENT \
-                        --Process $PROCESS \
-                        --PctComplete $PCTCOM \
-                        --State $STATE
-# --RunType weather \
+     # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
+     ${RMQMessaging_Python} ${RMQMessaging_Script} --Uid $$ \
+                           --LocationName ${RMQMessaging_LocationName} \
+                           --ClusterName ${RMQMessaging_ClusterName} \
+                           --RunType $RMQ_RunType \
+                           --StormName $RMQ_StormName \
+                           --AdvisoryNumber $RMQ_AdvisoryNumber \
+                           --Message "$MSG"  \
+                           --EventType $EVENT \
+                           --Process $PROCESS \
+                           --PctComplete $PCTCOM \
+                           --State $STATE
+   # --RunType weather \
+   fi
 }
 
 logMessage()
