@@ -66,7 +66,7 @@ NCPUCAPACITY=96
 CYCLETIMELIMIT="03:00:00"
 QUEUENAME=B30
 SERQUEUE=B30
-ACCOUNT=bblanton
+ACCOUNT=DhsCrcTesting
 SCRATCHDIR=/home/bblanton/asgs-scratch
 
 # External data sources : Tropical cyclones

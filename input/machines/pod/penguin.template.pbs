@@ -9,7 +9,7 @@
 # Specify the output filename explicitly (optional; the default is named
 # from the job ID, in the directory where qsub was run.)
 #PBS -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out
-# the LONI allocation that the time should be taken from 
+# the project name/account for billing 
 #PBS -A %account%
 # Name the job (this will appear in the output from the qstat command)
 #PBS -N %enstorm%
@@ -17,8 +17,10 @@
 #PBS -M %notifyuser%
 #PBS -V
 #-----------------------------------------------------------------------
+
 # go to the directory with the input files
 cd %advisdir%/%enstorm%
+
 # load netcdf modules, in case they are needed
 # specify modules used to compile ADCIRC
 module purge
