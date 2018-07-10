@@ -140,7 +140,7 @@ checkHotstart()
    fi
    # check for existence of hotstart file
    if [ ! -e $HOTSTARTFILE ]; then
-      RMQMessage "FAIL" "$CURRENT_EVENT" "$THIS" "FAIL" "The hotstart file '$HOTSTARTFILE' was not found. The preceding simulation run must have failed to produce it."
+      RMQMessage "FAIL" "$CURRENT_EVENT" "$THIS" "FAIL" "The hotstart file '$HOTSTARTFILE' was not found. The preceding podlation run must have failed to produce it."
       fatal "$THIS: The hotstart file '$HOTSTARTFILE' was not found. The preceding simulation run must have failed to produce it."
    # if it exists, check size to be sure its nonzero
    else
@@ -576,16 +576,16 @@ downloadCycloneData()
     OPTIONS="--storm $STORM --year $YEAR --ftpsite $FTPSITE --fdir $FDIR --hdir $HDIR --rsssite $RSSSITE --trigger $TRIGGER --adv $ADVISORY"
     logMessage "$THIS: Options for get_atcf.pl are as follows : $OPTIONS"
     if [ "$START" = coldstart ]; then
-       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "NONE"  "Downloading initial hindcast/forecast."
+       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE"  "Downloading initial hindcast/forecast."
        logMessage "$THIS: Downloading initial hindcast/forecast."
     else
-       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "NONE"  "Checking remote site for new advisory..."
+       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Checking remote site for new advisory..."
        logMessage "$THIS: Checking remote site for new advisory..."
     fi
 
     while [ $newAdvisory = false ]; do
        if [[ $TRIGGER != "atcf" ]]; then 
-          echo Calling "get_atcf.pl $OPTIONS"  # BOB
+          #echo Calling "get_atcf.pl $OPTIONS"  # BOB
           newAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
        fi
        # check to see if we have a new one, and if so, determine the
@@ -1135,7 +1135,7 @@ variables_init()
    HOTSWAN=off
    ONESHOT=no      # yes if ASGS is launched by cron
    NCPUCAPACITY=2  # total number of CPUs available to run jobs
-   si=-1       # storm index for forecast ensemble; -1 indicates non-forecast
+   si=0       # storm index for forecast ensemble; -1 indicates non-forecast
    STATEFILE=null
    ENSTORM=hindcast
    CYCLETIMELIMIT="05:00:00"
@@ -1231,7 +1231,7 @@ umask $UMASK
 # read config file just to get the location of $SCRIPTDIR
 . ${CONFIG}
 # name asgs log file here
-SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG must be defined before logging.sh is run.
+SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG must be defined before logging.sh is run.
 # Bring in logging functions
 . ${SCRIPTDIR}/logging.sh
 # Bring in platform-specific configuration
@@ -2188,7 +2188,7 @@ exit
 
                   com="${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
                   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL"  "$com"
-                  `$com`
+                  $com
                   # notify analysts that new results are available
                   ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1  
                fi
