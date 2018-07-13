@@ -204,6 +204,8 @@ prep()
     TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
     THIS="asgs_main.sh>prep()"
 #
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+    echo "time.adcprep.start : $DATETIME" >> ${STORMDIR}/run.properties
     # set the name of the archive of preprocessed input files
     PREPPED=$PREPPEDARCHIVE
     if [[ $START = coldstart ]]; then
@@ -380,51 +382,117 @@ prep()
           done
           logMessage "$ENSTORM: $THIS: Completed copy of subdomain hotstart files."
        fi
-
+       #
+       #  H O T S T A R T I N G   S W A N 
+       # 
+       # Globalizing and localizing the SWAN hotstart files can take
+       # a significant amount of time and must be done in serial. If the
+       # number of subdomains for this run is the same as the number of 
+       # subdomains used in the run used as the source of SWAN hotstart files, 
+       # then try to use the SWAN subdomain hotstart files directly. 
        if [[ $WAVES = on && $HOTSWAN = on ]]; then
-          # subdomain swan hotstart file
-          # FIXME: what if this subdomain swan hotstart file is
-          # present but there are a different number of subdomains 
-          # between different runs??
-          if [[ -e $FROMDIR/PE0000/swan.67 ]]; then
-             logMessage "$ENSTORM: $THIS: Starting copy of subdomain swan hotstart files."
-             # copy the subdomain hotstart files over
-             # subdomain hotstart files are always binary formatted
-             PE=0
-             format="%04d"
-             while [ $PE -lt $NCPU ]; do
-                PESTRING=`printf "$format" $PE`
-                cp $FROMDIR/PE${PESTRING}/swan.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/swan.68 2>> ${SYSLOG}
-                PE=`expr $PE + 1`
+          logMessage "$ENSTORM: $THIS: Preparing SWAN hotstart file."
+          swanHotstartOK=false
+          # if archiving of the hotstart source run has started but is not
+          # complete, wait until it is complete so that we don't 
+          # accidentally ingest partially complete tar files or partially
+          # globalized fulldomain swan hotstart files or start to copy 
+          # subdomain swan hotstart files that are being deleted by an
+          # archiving script
+          swanArchiveStart=`sed -n 's/[ ^]*$//;s/time.archive.start\s*:\s*//p' $FROMDIR/run.properties`          
+          if [[ ! -z $swanArchiveStart ]]; then 
+             # archiving process has started
+             logMessage "$ENSTORM: $THIS: The archiving process for the hotstart source run started at $swanArchiveStart. Waiting for it to finish before preparing SWAN hotstart files."
+             waitMinutes=0 # number of minutes waiting for the archiving process to complete
+             waitMinutesMax=60  # max number of minutes to wait for upstream archiving process to finish
+             while [[ $waitMinutes -lt $waitMinutesMax ]]; do
+                # wait until it is finished
+                swanArchiveFinish=`sed -n 's/[ ^]*$//;s/time.archive.finish\s*:\s*//p' $FROMDIR/run.properties`
+                if [[ ! -z $swanArchiveFinish ]]; then
+                   logMessage "$ENSTORM: $THIS: The archiving process for the hotstart source run started at $swanArchiveStart. Waiting for it to finish before preparing SWAN hotstart files."
+                   break
+                fi
+                waitMinutes=`expr $waitMinutes + 1`
+                sleep 60
              done
-             logMessage "$ENSTORM: $THIS: Completed copy of subdomain hotstart files."
+             if [[ $waitMinutes -eq 60 ]]; then
+                warn "$ENSTORM: $THIS: The archiving process for the hotstart source run did not finish within $watiMinutesMax minutes. Attempting to collect SWAN hotstart files anyway."            
+             fi
+          fi
+          hotSubdomains=`sed -n 's/[ ^]*$//;s/hpc.ncpu\s*:\s*//p' $FROMDIR/run.properties`
+          if [[ $hotSubdomains = $NCPU ]]; then
+             logMessage "$ENSTORM: $THIS: The number of subdomains is the same as hotstart source; subdomain SWAN hotstart files will be copied directly."
+             # subdomain swan hotstart files
+             if [[ -e $FROMDIR/PE0000/swan.67 ]]; then
+                logMessage "$ENSTORM: $THIS: Starting copy of subdomain swan hotstart files."
+                # copy the subdomain hotstart files over
+                # subdomain hotstart files are always binary formatted
+                PE=0
+                format="%04d"
+                while [ $PE -lt $NCPU ]; do
+                   PESTRING=`printf "$format" $PE`
+                   cp $FROMDIR/PE${PESTRING}/swan.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/swan.68 2>> ${SYSLOG}
+                   PE=`expr $PE + 1`
+                done
+                logMessage "$ENSTORM: $THIS: Completed copy of subdomain hotstart files."
+                swanHotstartOK=true
+             fi
+             # subdomain SWAN hotstart files in a tar archive
+             if [[ $swanHotstartOK = false ]]; then
+                logMessage "$ENSTORM: $THIS: Could not copy subdomain SWAN hotstart files directly."
+                for suffix in tar tar.gz tar.bz2 ; do 
+                   logMessage "$ENSTORM: $THIS: Looking for ${FROMDIR}/swan.67.${suffix}."
+                   if [[ -e $FROMDIR/swan.67.${suffix} ]]; then
+                      logMessage "$ENSTORM: $THIS: Found $FROMDIR/swan.67.${suffix}."
+                      cp $FROMDIR/swan.67.${suffix} ./swan.68.${suffix} 2>> $SYSLOG
+                      case $suffix in
+                      tar)
+                         tar xvf swan.68.${suffix} 2>> $SYSLOG 1>> untarswan.log
+                         if [[ $? == 0 ]]; then swanHotstartOK=true; fi
+                         ;;
+                      tar.gz)
+                         tar xvzf swan.68.${suffix} 2>> $SYSLOG 1>> untarswan.log
+                         if [[ $? == 0 ]]; then swanHotstartOK=true; fi
+                         ;;
+                      tar.bz2)
+                         tar xvjf swan.68.${suffix} 2>> $SYSLOG 1>> untarswan.log
+                         if [[ $? == 0 ]]; then swanHotstartOK=true; fi                         
+                         ;;
+                      *)
+                         warn "$ENSTORM: $THIS: SWAN hotstart file archive $FROMDIR/swan.67.${suffix} unrecognized."
+                         ;;
+                      esac
+                      for dir in `ls -d PE*`; do
+                         mv $dir/swan.67 $dir/swan.68 2>> $SYSLOG
+                      done
+                      rm swan.68.${suffix} 2>> $SYSLOG
+                      break
+                   fi
+                done
+             fi
+             if [[ $swanHotstartOK = false ]]; then
+                logMessage "$ENSTORM: $THIS: Failed to obtain subdomain SWAN hotstart files."
+             fi
           else
+             logMessage "$ENSTORM: $THIS: The number of subdomains is different from the hotstart source; a fulldomain SWAN hotstart file will be decomposed to the subdomains."
+          fi
+          # 
+          # if copying subdomain SWAN hotstart files did not work
+          # or is not appropriate because the number of subdomains in
+          # this run is different from the hotstart source, try to 
+          # decompose a fulldomain SWAN hotstart file
+          if [[ swanHotstartOK = false ]]; then
+             logMessage "$ENSTORM: $THIS: Decomposing fulldomain SWAN hotstart file."
              # fulldomain swan hotstart file or archive of subdomain
              # swan hotstart files
              if [[ -e $FROMDIR/swan.67 ]]; then
                 cp $FROMDIR/swan.67 ./swan.68 2>> $SYSLOG
-             fi
-             if [[ -e $FROMDIR/swan.67.gz ]]; then
+             elif [[ -e $FROMDIR/swan.67.gz ]]; then
                 cp $FROMDIR/swan.67.gz ./swan.68.gz 2>> $SYSLOG
                 gunzip swan.68.gz 2>> $SYSLOG
-             fi
-             if [[ -e $FROMDIR/swan.67.bz2 ]]; then
+             elif [[ -e $FROMDIR/swan.67.bz2 ]]; then
                 cp $FROMDIR/swan.67.bz2 ./swan.68.bz2 2>> $SYSLOG
                 bunzip2 swan.68.bz2 2>> $SYSLOG
-             fi
-             if [[ -e $FROMDIR/swan.67.tar.gz ]]; then
-                cp $FROMDIR/swan.67.tar.gz ./swan.68.tar.gz 2>> $SYSLOG
-                tar xvzf swan.68.tar.gz 2>> $SYSLOG
-                for dir in `ls -d PE*`; do
-                   mv $dir/swan.67 $dir/swan.68 2>> $SYSLOG
-                done
-             fi
-             if [[ -e $FROMDIR/swan.67.tar.bz2 ]]; then
-                cp $FROMDIR/swan.67.tar.bz2 ./swan.68.tar.bz2 2>> $SYSLOG
-                tar xvjf swan.68.tar.bz2 2>> $SYSLOG
-                for dir in `ls -d PE*`; do
-                   mv $dir/swan.67 $dir/swan.68 2>> $SYSLOG
-                done
              fi
              if [[ -e  swan.68 ]]; then
                 logMessage "$ENSTORM: $THIS: Starting decomposition of fulldomain swan hotstart file to subdomains."
@@ -433,11 +501,17 @@ prep()
 swan.68
 F
 EOF
+                if [[ $? == 0 ]]; then swanHotstartOK=true; fi
              fi
+             if [[ $swanHotstartOK = true ]]; then
                 logMessage "$ENSTORM: $THIS: Completed decomposition of fulldomain swan hotstart file."
+             else
+                error "$ENSTORM: $THIS: Failed to obtain any swan hotstart file."              
+             fi
           fi             
+       else
+          logMessage "$ENSTORM: $THIS: SWAN coupling is not active."
        fi
-
     fi
     # if we don't have an archive of our preprocessed files, create
     # one so that we don't have to do another prepall
@@ -455,6 +529,8 @@ EOF
           rm ${INPUTDIR}/${PREPPED} 2>> ${SYSLOG} 2>&1
        fi
     fi
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+    echo "time.adcprep.finish : $DATETIME" >> ${STORMDIR}/run.properties
 }
 #
 # function to run adcprep in a platform dependent way to decompose
@@ -778,7 +854,7 @@ monitorJobs()
             # need to kill the mpiexec process, but don't know its process ID
             # ... but we do have the process ID of its parent subshell
             kill -TERM `ps --ppid $pid -o pid --no-headers` >> ${SYSLOG} 2>&1
-            DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+            DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
             logMessage "$THIS: $ENSTORM_TEMP job in $PWD terminated by ASGS for exceeding expected wall clock time." >> ${ENSTORM_TEMP}.run.error
          else 
             # if we are over the wall clock limit, wait until the operating system has had a chance
@@ -825,6 +901,7 @@ submitJob()
    JOBTYPE=${15}
    #
    THIS="asgs_main.sh>submitJob()"
+   STORMDIR=${ADVISDIR}/${ENSTORM}
    #
    CLOPTIONS=""     # command line options
    LOCALHOTSTART=""
@@ -834,13 +911,16 @@ submitJob()
       CPUREQUEST=`expr $NCPU + $NUMWRITERS`
    fi
    # record the number of requested CPUs for use in determining capacity to run another job
-   echo "cpurequest : $CPUREQUEST" >> ${ADVISDIR}/${ENSTORM}/run.properties
-   echo "ncpu : $NCPU" >> ${ADVISDIR}/${ENSTORM}/run.properties  # number of compute CPUs
-   echo "numwriters : $NUMWRITERS" >> ${ADVISDIR}/${ENSTORM}/run.properties  # number of dedicated writer CPUs
+   echo "cpurequest : $CPUREQUEST" >> ${STORMDIR}/run.properties
+   echo "hpc.cpurequest : $CPUREQUEST" >> ${STORMDIR}/run.properties
+   echo "ncpu : $NCPU" >> ${STORMDIR}/run.properties  # number of compute CPUs
+   echo "numwriters : $NUMWRITERS" >> ${STORMDIR}/run.properties  # number of dedicated writer CPUs
    if [[ $HOTSTARTCOMP = subdomain ]]; then
       CLOPTIONS="${CLOPTIONS} -S"
       LOCALHOTSTART="--localhotstart"
    fi
+   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+   echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
    case $QUEUESYS in 
    #
    #  Load Sharing Facility (LSF); used on topsail at UNC
@@ -904,7 +984,8 @@ submitJob()
 #
 #  No queueing system, just mpiexec (used on standalone computers)
    "mpiexec")
-      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'%z`
+      echo "time.${JOBTYPE}.start : $DATETIME" >> run.properties
       echo "[${DATETIME}] Starting ${JOBTYPE}.${ENSTORM} job in $PWD." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start
       logMessage "$ENSTORM: $THIS: Submitting job via $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${SYSLOG} 2>&1"
       # submit the parallel job in a subshell
@@ -912,11 +993,12 @@ submitJob()
          $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${ADVISDIR}/${ENSTORM}/adcirc.log 2>&1
          ERROVALUE=$?
          RUNSUFFIX="finish"
-         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          if [ $ERROVALUE != 0 ] ; then
             RUNSUFFIX="error"
          fi
          echo "[${DATETIME}] Finished ${JOBTYPE}.${ENSTORM} job in $PWD with return value = $ERROVALUE." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.${RUNSUFFIX}
+         echo "time.${JOBTYPE}.${RUNSUFFIX} : $DATETIME" >> run.properties
       ) &
       # write the process id for mpiexec to the run.properties file so that monitorJobs()
       # can kill the job if it exceeds the expected wall clock time
@@ -997,7 +1079,7 @@ handleFailedJob()
    # check to see that the job did not conspicuously fail
    if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then
       warn "$ENSTOR: $THIS: The job has failed."
-      FAILDATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+      FAILDATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
       # send an email to notify the operator that a job has failed
       $NOTIFYSCRIPT $HPCENV $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE jobfailed $EMAILNOTIFY $SYSLOG "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
       warn "$ENSTORM: $THIS: Moving failed cycle to 'failed.${FAILDATETIME}'."
@@ -1016,7 +1098,7 @@ handleFailedJob()
 writeProperties()
 {
    STORMDIR=$1
-   echo "config : $CONFIG" >> $STORMDIR/run.properties
+   echo "config.file : $CONFIG" >> $STORMDIR/run.properties
    echo "config.instancename : $INSTANCENAME" >> $STORMDIR/run.properties
    echo "config.path.adcircdir : $ADCIRCDIR" >> $STORMDIR/run.properties
    echo "config.path.scriptdir : $SCRIPTDIR" >> $STORMDIR/run.properties
@@ -1029,6 +1111,7 @@ writeProperties()
    echo "config.forcing.varflux : $VARFLUX" >> $STORMDIR/run.properties
    echo "config.forcing.schedule.cycletimelimit : $CYCLETIMELIMIT" >> $STORMDIR/run.properties
    echo "config.coupling.waves : $WAVES" >> $STORMDIR/run.properties
+
    echo "hpc.hpcenv : $HPCENV" >> $STORMDIR/run.properties
    echo "hpc.hpcenvshort : $HPCENVSHORT" >> $STORMDIR/run.properties
    echo "hpc.queuename : $QUEUENAME" >> $STORMDIR/run.properties
@@ -1076,9 +1159,9 @@ writeProperties()
    echo "notification.opendap.email.opendapnotify : \"$OPENDAPNOTIFY\"" >> $STORMDIR/run.properties
    # post processing
    echo "post.intendedaudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
-   echo "asgs.config.post.executable.initpost : $INITPOST" >> $STORMDIR/run.properties
-   echo "asgs.config.post.executable.postprocess : $POSTPROCESS" >> $STORMDIR/run.properties
-   echo "asgs.config.post.opendap.target : $TARGET" >> $STORMDIR/run.properties
+   echo "post.executable.initpost : $INITPOST" >> $STORMDIR/run.properties
+   echo "post.executable.postprocess : $POSTPROCESS" >> $STORMDIR/run.properties
+   echo "post.opendap.target : $TARGET" >> $STORMDIR/run.properties
    THREDDS="("
    for thredds_data_server in ${TDS[*]}; do
       THREDDS="$THREDDS $thredds_data_server"
@@ -1093,11 +1176,12 @@ writeProperties()
    # forecast ensemble
    echo "asgs.forecast.ensemblesize : $ENSEMBLESIZE" >> $STORMDIR/run.properties
    # runtime
-   echo "asgs.syslog : $SYSLOG" >> $STORMDIR/run.properties
+   echo "asgs.file.syslog : $SYSLOG" >> $STORMDIR/run.properties
    echo "asgs.path.rundir : $RUNDIR" >> $STORMDIR/run.properties
    # each ensemble member
    echo "asgs.path.fromdir : $FROMDIR" >> $STORMDIR/run.properties
    echo "asgs.path.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
+   echo "asgs.path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
    echo "asgs.enstorm : $ENSTORM" >> $STORMDIR/run.properties
    #
    ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
@@ -1116,33 +1200,33 @@ writeProperties()
 # NAM forcing. 
 writeNAMProperties()
 {
-   echo "asgs.config.forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties 
-   echo "asgs.config.forcing.nam.backsite : $BACKSITE" >> $STORMDIR/run.properties 
-   echo "asgs.config.forcing.nam.backdir : $BACKDIR" >> $STORMDIR/run.properties 
-   echo "asgs.config.forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR/run.properties 
-   echo "asgs.config.forcing.nam.reprojection.ptfile : $PTFILE" >> $STORMDIR/run.properties 
-   echo "asgs.config.forcing.nam.local.altnamdir : $ALTNAMDIR" >> $STORMDIR/run.properties 
+   echo "config.forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties 
+   echo "config.forcing.nam.backsite : $BACKSITE" >> $STORMDIR/run.properties 
+   echo "config.forcing.nam.backdir : $BACKDIR" >> $STORMDIR/run.properties 
+   echo "config.forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR/run.properties 
+   echo "config.forcing.nam.reprojection.ptfile : $PTFILE" >> $STORMDIR/run.properties 
+   echo "config.forcing.nam.local.altnamdir : $ALTNAMDIR" >> $STORMDIR/run.properties 
 }
 #
 # write properties to the run.properties file that are associated with 
 # tropical cyclone forcing. 
 writeTropicalCycloneProperties()
 {
-   echo "asgs.config.forcing.tropicalcyclone.vortexmodel : $VORTEXMODEL" >> $STORMDIR/run.properties
-   echo "asgs.config.forcing.tropicalcyclone.stormnumber : $STORM" >> $STORMDIR/run.properties
-   echo "asgs.config.forcing.tropicalcyclone.year : $YEAR" >> $STORMDIR/run.properties
-   echo "asgs.config.forcing.tropicalcyclone.pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties   
-   echo "asgs.config.forcing.tropicalcyclone.forecast.trigger : $TRIGGER" >> $STORMDIR/run.properties   
-   echo "asgs.config.forcing.tropicalcyclone.forecast.rsssite : $RSSSITE" >> $STORMDIR/run.properties   
-   echo "asgs.config.forcing.tropicalcyclone.forecast.path.fdir : $FDIR" >> $STORMDIR/run.properties   
-   echo "asgs.config.forcing.tropicalcyclone.best.ftpsite : $FTPSITE" >> $STORMDIR/run.properties   
-   echo "asgs.config.forcing.tropicalcyclone.best.path.hdir : $HDIR" >> $STORMDIR/run.properties
+   echo "config.forcing.tropicalcyclone.vortexmodel : $VORTEXMODEL" >> $STORMDIR/run.properties
+   echo "config.forcing.tropicalcyclone.stormnumber : $STORM" >> $STORMDIR/run.properties
+   echo "config.forcing.tropicalcyclone.year : $YEAR" >> $STORMDIR/run.properties
+   echo "config.forcing.tropicalcyclone.pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties   
+   echo "config.forcing.tropicalcyclone.forecast.trigger : $TRIGGER" >> $STORMDIR/run.properties   
+   echo "config.forcing.tropicalcyclone.forecast.rsssite : $RSSSITE" >> $STORMDIR/run.properties   
+   echo "config.forcing.tropicalcyclone.forecast.path.fdir : $FDIR" >> $STORMDIR/run.properties   
+   echo "config.forcing.tropicalcyclone.best.ftpsite : $FTPSITE" >> $STORMDIR/run.properties   
+   echo "config.forcing.tropicalcyclone.best.path.hdir : $HDIR" >> $STORMDIR/run.properties
    # each ensemble member
    if [[ $RMAX != default ]]; then
-      echo "asgs.config.forcing.tropicalcyclone.enstorm.variation.rmax : $RMAX" >> $STORMDIR/run.properties
+      echo "config.forcing.tropicalcyclone.enstorm.variation.rmax : $RMAX" >> $STORMDIR/run.properties
    fi
    if [[ $PERCENT != default ]]; then
-      echo "asgs.config.forcing.tropicalcyclone.enstorm.variation.percent : $PERCENT" >> $STORMDIR/run.properties
+      echo "config.forcing.tropicalcyclone.enstorm.variation.percent : $PERCENT" >> $STORMDIR/run.properties
    fi
 }
 #
@@ -1150,10 +1234,10 @@ writeTropicalCycloneProperties()
 # swan coupling. 
 writeWaveCouplingProperties()
 {
-   echo "asgs.config.coupling.waves.swan.reinitializeswan : $REINITIALIZESWAN" >> $STORMDIR/run.properties
-   echo "asgs.config.coupling.waves.swan.swandt : $SWANDT" >> $STORMDIR/run.properties
-   echo "asgs.config.coupling.waves.swan.input.file.swantemplate : $SWANTEMPLATE" >> $STORMDIR/run.properties
-   
+   echo "config.coupling.waves.swan.reinitializeswan : $REINITIALIZESWAN" >> $STORMDIR/run.properties
+   echo "config.coupling.waves.swan.swanhscompression : $SWANHSCOMPRESSION" >> $STORMDIR/run.properties
+   echo "swan.swandt : $SWANDT" >> $STORMDIR/run.properties
+   echo "swan.input.file.swantemplate : $SWANTEMPLATE" >> $STORMDIR/run.properties
 }
 #####################################################################
 #                 E N D  F U N C T I O N S
@@ -1182,7 +1266,7 @@ EXIT_NOT_OK=1
 EXIT_OK=0
 #
 # need to determine standard time format to be used for pasting log files
-STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 
 # create directories with default permissions of "775" and
 # files with the default permssion of "664"
@@ -1296,6 +1380,7 @@ SPATIALEXTRAPOLATIONRAMP=yes
 SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
 HPCENV=desktop.linux.org
 HPCENVSHORT=desktop
+SWANHSCOMPRESSION=yes
 #
 # first - look for SCRIPTDIR
 while getopts "c:e:s:h" optname; do    #<- first getopts for SCRIPTDIR
@@ -1709,6 +1794,7 @@ while [ true ]; do
       # prepare nowcast met (fort.22) and control (fort.15) files
       cd $NOWCASTDIR 2>> ${SYSLOG}
       STORMDIR=$ADVISDIR/$ENSTORM
+
       # write the properties associated with asgs configuration to the 
       # run.properties file
       writeProperties $STORMDIR
@@ -1890,7 +1976,16 @@ while [ true ]; do
       #
       # archive nowcast
       logMessage "$ENSTORM: $THIS: Initiating nowcast archival process, if any."
+      #
+      # log the start time of the archiving script so that downstream processes
+      # (e.g., a subsequent nowcast or forecast run) know that this process is 
+      # underway and that the final tar and/or globalized swan hotstart files
+      # are still under construction 
+      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+      echo "time.archive.start : $DATETIME" >> ${STORMDIR}/run.properties
       ${SCRIPTDIR}/archive/${ARCHIVE} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENVSHORT $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
+      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+      echo "time.archive.finish : $DATETIME" >> ${STORMDIR}/run.properties
       THIS="asgs_main.sh"
       allMessage "$ENSTORM: $THIS: Nowcast complete for advisory '$ADVISORY.'"
       cd $ADVISDIR 2>> ${SYSLOG}
@@ -1951,6 +2046,7 @@ while [ true ]; do
             # forecast jobs for this cycle.
             if ! checkTimeLimit $cycleStartTime $CYCLETIMELIMIT ; then
                THIS="asgs_main.sh"
+               DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
                warn "[${DATETIME}] $ENSTORM: $THIS: The deadline for submitting jobs ($CYCLETIMELIMIT) has passed for this cycle." 
                break 2
             fi
@@ -2163,13 +2259,21 @@ while [ true ]; do
                # ended successfully
                if [[ -d $STORMDIR ]]; then
                   logMessage "$ENSTORM: $THIS: The $ENSTORM job ended successfully. Starting postprocessing."
+                  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+                  echo "time.post.start : $DATETIME" >> ${STORMDIR}/run.properties
                   ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENVSHORT $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
+                  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+                  echo "time.post.finish : $DATETIME" >> ${STORMDIR}/run.properties
                   # notify analysts that new results are available
                   ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1  
-   
                   # archive the files for this ensemble member
                   logMessage "$ENSTORM: $THIS: Initiating archival process, if any."
+                  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+                  echo "time.archive.start : $DATETIME" >> ${STORMDIR}/run.properties
                   ${SCRIPTDIR}/archive/${ARCHIVE} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENVSHORT $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
+                  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+                  echo "time.archive.finish : $DATETIME" >> ${STORMDIR}/run.properties
+
                fi
             ) &
          fi

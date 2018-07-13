@@ -21,21 +21,37 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 # This script gets all the information it needs from the 
-# run.properties file.
+# run.properties file instead of using command line arguments. 
 #----------------------------------------------------------------
+localLogMessage()
+{
+  LEVEL=$1
+  MSG=$2
+  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+  echo "[${DATETIME}] ${ENSTORM}: ${THIS}: ${LEVEL}: ${MSG}" >> $LOGFILE 
+}
+# static initialization
 THIS=enstorm_pedir_removal.sh
-logFile="enstorm_pedir_removal.log"
-stormdir=$PWD
-COMPRESSION=yes
-#
+LOGFILE="archive.log"
+# run configuration
+STORMDIR=`sed -n 's/[ ^]*$//;s/asgs.path.stormdir\s*:\s*//p' run.properties`
 ENSTORM=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
-echo "$ENSTORM: $THIS: stormdir is $stormdir" >> $stormdir/$logFile
-
+SWANHSCOMPRESSION=`sed -n 's/[ ^]*$//;s/config.coupling.waves.swan.swanhscompression\s*:\s*//p' run.properties`
+# pull in logging functions 
+SYSLOG=`sed -n 's/[ ^]*$//;s/asgs.file.syslog\s*:\s*//p' run.properties`
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties`
+. ${SCRIPTDIR}/logging.sh
+#
+logMessage "Starting cleanup of subdomain (PE*) subdirectories."
+localLogMessage "INFO" "Starting cleanup of subdomain (PE*) subdirectories."
+#
 WAVES=`sed -n 's/[ ^]*$//;s/config.coupling.waves\s*:\s*//p' run.properties`
 if [[ $WAVES = on ]]; then
+   localLogMessage "INFO" "Wave coupling with SWAN is active."
    ADCIRCDIR=`sed -n 's/[ ^]*$//;s/config.path.adcircdir\s*:\s*//p' run.properties`
    # FIXME: path to swan executables is a hardcoded path relative to ADCIRCDIR
    HOTTIFYPATH=$ADCIRCDIR/../swan
+   localLogMessage "INFO" "The path to SWAN executables is ${HOTTIFYPATH}."
    #
    # set name of SWAN executable that knits together the subdomain
    # SWAN hotstart files into a fulldomain SWAN hotstart file
@@ -47,10 +63,10 @@ if [[ $WAVES = on ]]; then
       hSWANExe=unhcat.exe
    fi
    if [[ $hSWANExe = null ]]; then
-      echo "ERROR: $ENSTORM: $THIS: Could not find HottifySWAN.x or unhcat.exe in the directory ${HOTTIFYPATH}." >> $stormdir/$logFile
+      localLogMessage "ERROR" "Could not find HottifySWAN.x or unhcat.exe in the directory ${HOTTIFYPATH}."
       exit
    else
-      echo "$ENSTORM: $THIS: The SWAN hotstart composition executable is ${HOTTIFYPATH}/${hSWANExe}." >> $stormdir/$logFile
+      localLogMessage "INFO" "The SWAN hotstart composition executable is ${HOTTIFYPATH}/${hSWANExe}." 
    fi
    #
    # preserve the swan log file and swan Errfile (if any) so we can see it later
@@ -58,28 +74,38 @@ if [[ $WAVES = on ]]; then
    # is hardcoded here as asgs_swan.prt
    for file in ./PE0000/asgs_swan.prt ./PE0000/Errfile ; do 
       if [[ -e $file ]]; then
-         cp $file . 2>> $stormdir/$logFile
+         localLogMessage "INFO" "Preserving SWAN $file file."
+         cp $file . 2>> $LOGFILE
       fi
    done
    for file in swan.67 swan.68 ; do
+      if [[ -e $file ]]; then
+         localLogMessage "INFO" "Renaming existing fulldomain $file file to ${file}.start."
+         mv $file ${file}.start 2>> $LOGFILE
+      fi
       # tar up the swan subdomain hotstart files to create a fast
       # start for hotstarted jobs using the same number of processors;
       # then construct fulldomain swan hotstart file(s) and compress
       if [[ -e ./PE0000/$file ]]; then
-         if [[ $COMPRESSION = yes ]]; then 
-            tar cvjf ${file}.tar.bz2 ./PE*/$file 2>> $stormdir/$logFile 2>&1 &
-         else
-            tar cvf ${file}.tar ./PE*/$file 2>> $stormdir/$logFile 2>&1 &
-         fi
          (
-            ${HOTTIFYPATH}/$hSWANExe <<EndInput >> $stormdir/$logFile 2>&1 
+            localLogMessage "INFO" "Creating tar archive of subdomain $file files."
+            tar cvf ${file}.tar ./PE*/$file 2>> $LOGFILE 2>&1
+            if [[ $SWANHSCOMPRESSION = yes ]]; then 
+               bzip2 ${file}.tar 2>> $LOGFILE 2>&1
+            fi
+            localLogMessage "INFO" "Finished creating tar archive of subdomain $file files."
+         ) &
+         (
+            localLogMessage "INFO" "Creating fulldomain SWAN hotstart file from subdomain $file files."         
+            ${HOTTIFYPATH}/$hSWANExe <<EndInput >> $LOGFILE 2>&1 
 1
 $file
 F
 EndInput
-            if [[ $COMPRESSION = yes ]]; then
-               bzip2 $file >> $stormdir/$logFile 2>&1 
+            if [[ $SWANHSCOMPRESSION = yes ]]; then
+               bzip2 $file >> $LOGFILE 2>&1 
             fi
+            localLogMessage "INFO" "Finished creating fulldomain SWAN hotstart file from subdomain $file files."
          ) &
       fi
    done
@@ -93,11 +119,12 @@ wait
 # pull in platform-specific value for the command used to remove directories
 # (some platforms have a special command that is nicer for their filesystem)
 REMOVALCMD="rm -rf"
-SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties`
 . ${SCRIPTDIR}/platforms.sh # pick up platform specific config
 HPCENVSHORT=`sed -n 's/[ ^]*$//;s/hpc.hpcenvshort\s*:\s*//p' run.properties`
 env_dispatch ${HPCENVSHORT}
 # now delete the subdomain directories
 for dir in `ls -d PE*`; do 
-   $REMOVALCMD $dir 2>> $stormdir/$logFile
+   $REMOVALCMD $dir 2>> $LOGFILE
 done
+logMessage "Finished cleanup of subdomain (PE*) subdirectories."
+localLogMessage "INFO " "Finished cleanup of subdomain (PE*) subdirectories."
