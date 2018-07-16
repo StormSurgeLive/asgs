@@ -548,6 +548,8 @@ prepFile()
        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.pbs 2>> ${SYSLOG}
        # submit adcprep job, check to make sure qsub succeeded, and if not, retry
        while [ true ];  do
+          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+          echo "time.${JOBTYPE}.submit : $DATETIME" >> run.properties
           qsub $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.pbs >> ${SYSLOG} 2>&1
           if [[ $? = 0 ]]; then
              break # qsub returned a "success" status
@@ -567,6 +569,9 @@ prepFile()
        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.slurm 2>> ${SYSLOG}
        # submit adcprep job, check to make sure sbatch succeeded, and if not, retry
        while [ true ];  do
+          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+          echo "time.${JOBTYPE}.submit : $DATETIME" >> run.properties
+          qsub $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.pbs >> ${SYSLOG} 2>&1
           sbatch $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.slurm >> ${SYSLOG} 2>&1
           if [[ $? = 0 ]]; then
              break # qsub returned a "success" status
@@ -584,6 +589,8 @@ prepFile()
        SERQSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --account $ACCOUNT --adcircdir $ADCIRCDIR --walltime $WALLTIME --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $SCRIPTDIR/input/machines/$HPCENVSHORT/$SERQSCRIPT"
        perl $SCRIPTDIR/$SERQSCRIPTGEN $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
        logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge."
+       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+       echo "time.${JOBTYPE}.submit : $DATETIME" >> run.properties
        qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
        # if qsub succeeded, monitor the job, otherwise an error is indicated
        if [[ $? = 1 ]]; then
@@ -919,18 +926,20 @@ submitJob()
       CLOPTIONS="${CLOPTIONS} -S"
       LOCALHOTSTART="--localhotstart"
    fi
-   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-   echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
    case $QUEUESYS in 
    #
    #  Load Sharing Facility (LSF); used on topsail at UNC
    "LSF")
+      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+      echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
       bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${SYSLOG}
       ;;
    #
    #  LoadLeveler (often used on IBM systems)
    "LoadLeveler")
       perl $SCRIPTDIR/loadleveler.pl --jobtype $JOBTYPE --ncpu $NCPU --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --numwriters $NUMWRITERS $LOCALHOTSTART > $ADVISDIR/$ENSTORM/${JOBTYPE}.ll 2>> ${SYSLOG}
+      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+      echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
       llsubmit $ADVISDIR/$ENSTORM/${JOBTYPE}.ll >> ${SYSLOG} 2>&1
       ;;
    #
@@ -948,6 +957,8 @@ submitJob()
       logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs"
       # submit job, check to make sure qsub succeeded, and if not, retry
       while [ true ];  do
+         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+         echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
          qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs >> ${SYSLOG} 2>&1
          if [[ $? = 0 ]]; then
             break # qsub returned a "success" status
@@ -972,6 +983,8 @@ submitJob()
       logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm"
       # submit job, check to make sure qsub succeeded, and if not, retry
       while [ true ];  do
+         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+         echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
          sbatch $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm >> ${SYSLOG} 2>&1
          if [[ $? = 0 ]]; then
             break # sbatch returned a "success" status
@@ -1010,6 +1023,8 @@ submitJob()
       QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --ncpudivisor $NCPUDIVISOR --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$HPCENVSHORT/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
       perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/${JOBTYPE}.sge 2>> ${SYSLOG}
       logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.sge"
+      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+      echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
       qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.sge >> ${SYSLOG} 2>&1
       # if qsub failed, resubmit the job 5 times before giving up
       if [[ $? = 1 ]]; then
@@ -1038,6 +1053,8 @@ rangerResubmit()
    while [[ $num_retries -le 5 ]]; do
       logMessage "$ENSTORM: $THIS: SGE rejected the job; will resubmit after 60 seconds."
       sleep 60
+      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+      echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
       qsub $ADVISDIR/$ENSTORM/$SCRIPTNAME >> ${SYSLOG} 2>&1
       num_retries=`expr $num_retries + 1`
       logMessage "$ENSTORM: $THIS: The number of retries is $num_retries."

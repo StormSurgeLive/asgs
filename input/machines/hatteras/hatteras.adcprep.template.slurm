@@ -16,7 +16,7 @@
 #----------------------------------------------------------------------------
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 echo "[${DATETIME}] INFO: adcprep.%jobtype%.slurm: Executing %jobtype%.%enstorm% in %advisdir%/%enstorm% with SLURM Job ID ${SLURM_JOBID}; SLURM submit directory ${SLURM_SUBMIT_DIR}; and SLURM submit host ${SLURM_SUBMIT_HOST}." | tee --append %syslog% %jobtype%.%enstorm%.run.start
-echo "time.${JOBTYPE}.start : $DATETIME" >> run.properties
+echo "time.%jobtype%.start : $DATETIME" >> run.properties
 #
 hostname | tee CONTROL.TXT
 echo "Job Run on Nodes"  | tee --append CONTROL.TXT
@@ -59,4 +59,4 @@ else
 fi
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 echo "[${DATETIME}] INFO: adcprep.%jobtype%.slurm: Finished in %advisdir%/%enstorm% with return value = $ERROVALUE" | tee --append %jobtype%.%enstorm%.run.${RUNSUFFIX}
-echo "time.${JOBTYPE}.${RUNSUFFIX} : $DATETIME" >> run.properties
+echo "time.%jobtype%.${RUNSUFFIX} : $DATETIME" >> run.properties
