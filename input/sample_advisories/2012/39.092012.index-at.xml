@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Thu, 30 Aug 2012 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression ISAAC Forecast/Advisory Number 39</title>
+      <description>Issued at 2100 UTC THU AUG 30 2012 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL DEPRESSION ISAAC FORECAST/ADVISORY NUMBER  39
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL092012
+2100 UTC THU AUG 30 2012
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+ALL COASTAL WARNINGS HAVE BEEN DISCONTINUED.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT
+ 
+TROPICAL DEPRESSION CENTER LOCATED NEAR 32.7N  92.6W AT 30/2100Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHWEST OR 335 DEGREES AT  10 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  995 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 32.7N  92.6W AT 30/2100Z
+AT 30/1800Z CENTER WAS LOCATED NEAR 32.2N  92.4W
+ 
+FORECAST VALID 31/0600Z 34.0N  93.0W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 31/1800Z 36.0N  93.2W...INLAND
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 01/0600Z 37.7N  92.7W...POST-TROP/REMNT LOW
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 01/1800Z 38.6N  91.5W...POST-TROP/REMNT LOW
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 02/1800Z 39.5N  88.5W...POST-TROP/REMNT LOW
+MAX WIND  15 KT...GUSTS  25 KT.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 175 NM
+ON DAY 4 AND 225 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 03/1800Z 39.5N  85.5W...POST-TROP/REMNT LOW
+MAX WIND  15 KT...GUSTS  25 KT.
+ 
+OUTLOOK VALID 04/1800Z 38.5N  82.5W...POST-TROP/REMNT LOW
+MAX WIND  15 KT...GUSTS  25 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 32.7N  92.6W
+ 
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE
+CENTER ON THIS SYSTEM. FUTURE INFORMATION ON THIS SYSTEM CAN BE
+FOUND IN PUBLIC ADVISORIES ISSUED BY THE HYDROMETEOROLOGICAL
+PREDICTION CENTER...UNDER AWIPS HEADER TCPAT4 AND WMO HEADER WTNT34
+KWNH...BEGINNING AT 10 PM CDT.
+
+ 
+$$
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Thu, 30 Aug 2012 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2012/09/39.092012.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2012/09/39.092012.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
