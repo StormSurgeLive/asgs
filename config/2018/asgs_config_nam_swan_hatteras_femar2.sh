@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME=dailyfemar3    # "name" of this ASGS process
+INSTANCENAME=dailyfemar2    # "name" of this ASGS process
 COLDSTARTDATE=2018061206  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null           # path to previous execution (if HOTORCOLD=hotstart)
@@ -38,7 +38,7 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc/forks/adcirc/v53release/work # ADCIRC executables
 SCRIPTDIR=~/asgs/branches/nowcastarchive        # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/femar3       # grid and other input files
+INPUTDIR=${SCRIPTDIR}/input/meshes/femar2       # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
@@ -102,15 +102,15 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=FEMA_R3_20110303_MSL.grd  # mesh (fort.14) file
-GRIDNAME=FEMAR3
+GRIDFILE=FEMA_R2_norivers_gcs_mNAVD.grd
+GRIDNAME=FEMAR2
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=FEMA_R3_fort.15.template  # fort.15 template
+CONTROLTEMPLATE=FEMA_R2_fort.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=FEMA_R3_elevstations_20180712.txt
-VELSTATIONS=FEMA_R3_velstations_20180712.txt
-METSTATIONS=FEMA_R3_metstations_20180712.txt
-NAFILE=FEMA_R3_20110303_MSL.13
+ELEVSTATIONS=FEMA_R2_elevstations_20180712.txt
+VELSTATIONS=FEMA_R2_velstations_20180712.txt
+METSTATIONS=FEMA_R2_metstations_20180712.txt
+NAFILE=FEMA_R2_01262012_refrac_fort.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
 RIVERINIT=null                          # this mesh has no rivers ...
@@ -197,7 +197,7 @@ case $si in
    ENSTORM=namforecastWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=FEMA_R3_nowindreduction_fort.15.template  # fort.15 template
+   CONTROLTEMPLATE=FEMA_R2.noswanrefrac.nowindreduction.fort.15.template  # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0    # 5 minute time steps
    NCPU=2                # dramatically reduced resource requirements

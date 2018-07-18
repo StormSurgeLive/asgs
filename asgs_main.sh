@@ -6,8 +6,7 @@
 # loop which is executed once per advisory cycle.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2006--2016 Jason Fleming
-# Copyright(C) 2006, 2007 Brett Estrade
+# Copyright(C) 2018 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -571,7 +570,6 @@ prepFile()
        while [ true ];  do
           DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
           echo "time.${JOBTYPE}.submit : $DATETIME" >> run.properties
-          qsub $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.pbs >> ${SYSLOG} 2>&1
           sbatch $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.slurm >> ${SYSLOG} 2>&1
           if [[ $? = 0 ]]; then
              break # qsub returned a "success" status
@@ -1207,8 +1205,8 @@ writeProperties()
    # properties for backward compatibility
    echo "hostname : $HPCENVSHORT" >> $STORMDIR/run.properties
    echo "instance : $INSTANCENAME" >> $STORMDIR/run.properties
-   echo "storm : $STORM" >> $STORMDIR/run.properties
-   echo "stormnumber : $STORM" >> $STORMDIR/run.properties
+
+
    echo "pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties
    echo "intendedAudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
 }
@@ -1245,6 +1243,9 @@ writeTropicalCycloneProperties()
    if [[ $PERCENT != default ]]; then
       echo "config.forcing.tropicalcyclone.enstorm.variation.percent : $PERCENT" >> $STORMDIR/run.properties
    fi
+   # legacy properties
+   echo "storm : $STORM" >> $STORMDIR/run.properties
+   echo "stormnumber : $STORM" >> $STORMDIR/run.properties
 }
 #
 # write properties to the run.properties file that are associated with 
@@ -1860,7 +1861,8 @@ while [ true ]; do
          NAM222=`ls NAM*.222`
          ln -s $NAM221 fort.221 2>> ${SYSLOG}
          ln -s $NAM222 fort.222 2>> ${SYSLOG}
-         writeNAMProperties $NOWCASTDIR
+         STORMDIR=$NOWCASTDIR
+         writeNAMProperties 
          ;;
       OWI)
          # this is a hack to enable running pre-existing OWI files for hindcast
