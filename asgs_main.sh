@@ -916,10 +916,6 @@ submitJob()
       CPUREQUEST=`expr $NCPU + $NUMWRITERS`
    fi
    # record the number of requested CPUs for use in determining capacity to run another job
-   echo "cpurequest : $CPUREQUEST" >> ${STORMDIR}/run.properties
-   echo "hpc.cpurequest : $CPUREQUEST" >> ${STORMDIR}/run.properties
-   echo "ncpu : $NCPU" >> ${STORMDIR}/run.properties  # number of compute CPUs
-   echo "numwriters : $NUMWRITERS" >> ${STORMDIR}/run.properties  # number of dedicated writer CPUs
    if [[ $HOTSTARTCOMP = subdomain ]]; then
       CLOPTIONS="${CLOPTIONS} -S"
       LOCALHOTSTART="--localhotstart"
@@ -1112,7 +1108,7 @@ handleFailedJob()
 # ensemble member. 
 writeProperties()
 {
-   STORMDIR=$1
+   # basic asgs configuration
    echo "config.file : $CONFIG" >> $STORMDIR/run.properties
    echo "config.instancename : $INSTANCENAME" >> $STORMDIR/run.properties
    echo "config.path.adcircdir : $ADCIRCDIR" >> $STORMDIR/run.properties
@@ -1126,40 +1122,30 @@ writeProperties()
    echo "config.forcing.varflux : $VARFLUX" >> $STORMDIR/run.properties
    echo "config.forcing.schedule.cycletimelimit : $CYCLETIMELIMIT" >> $STORMDIR/run.properties
    echo "config.coupling.waves : $WAVES" >> $STORMDIR/run.properties
-
+   # static hpc environment properties
    echo "hpc.hpcenv : $HPCENV" >> $STORMDIR/run.properties
    echo "hpc.hpcenvshort : $HPCENVSHORT" >> $STORMDIR/run.properties
-   echo "hpc.queuename : $QUEUENAME" >> $STORMDIR/run.properties
-   echo "hpc.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
-   echo "hpc.account : $ACCOUNT" >> $STORMDIR/run.properties
-   echo "hpc.ncpu : $NCPU" >> $STORMDIR/run.properties
-   echo "hpc.numwriters: $NUMWRITERS" >> $STORMDIR/run.properties    
-   echo "hpc.ncpucapacity: $NCPUCAPACITY" >> $STORMDIR/run.properties
-   if [[ $ENSTORM = hindcast ]]; then
-      echo "hpc.hindcastwalltime: $NUMWRITERS" >> $STORMDIR/run.properties    
-   fi
-   echo "hpc.nowcastwalltime: $NOWCASTWALLTIME" >> $STORMDIR/run.properties       
-   echo "hpc.forecastwalltime: $FORECASTWALLTIME" >> $STORMDIR/run.properties       
-   echo "hpc.adcprepwalltime: $ADCPREPWALLTIME" >> $STORMDIR/run.properties       
-   if [[ $QUEUESYS = SLURM ]]; then
-      echo "hpc.slurm.partition : $PARTITION" >> $STORMDIR/run.properties
-      echo "hpc.slurm.reservation : $RESERVATION" >> $STORMDIR/run.properties
-      echo "hpc.slurm.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
-   fi
+   echo "hpc.queuesys : $QUEUESYS" >> $STORMDIR/run.properties
+   echo "hpc.ppn : $PPN" >> $STORMDIR/run.properties
+   echo "hpc.executable.qscriptgen : $QSCRIPTGEN" >> $STORMDIR/run.properties
+   echo "hpc.file.template.qscript : $QSCRIPT" >> $STORMDIR/run.properties
+   echo "hpc.file.template.prepcontrolscript : $PREPCONTROLSCRIPT" >> $STORMDIR/run.properties
+   echo "hpc.jobs.ncpucapacity : $NCPUCAPACITY" >> $STORMDIR/run.properties
    # static input files, templates, and property files 
-   echo "adcirc.input.file.gridfile : $GRIDFILE" >> $STORMDIR/run.properties   
+   echo "adcirc.file.input.gridfile : $GRIDFILE" >> $STORMDIR/run.properties   
    echo "adcirc.gridname : $GRIDNAME" >> $STORMDIR/run.properties   
-   echo "adcirc.properties.file.meshproperties : $MESHPROPERTIES" >> $STORMDIR/run.properties   
-   echo "adcirc.input.file.nafile : $NAFILE" >> $STORMDIR/run.properties
-   echo "adcirc.properties.file.naproperties : $NAPROPERTIES" >> $STORMDIR/run.properties
-   echo "adcirc.file.controltemplate : $CONTROLTEMPLATE" >> $STORMDIR/run.properties
-   echo "adcirc.properties.file.controlproperties : $CONTROLPROPERTIES" >> $STORMDIR/run.properties
+   echo "adcirc.file.properties.meshproperties : $MESHPROPERTIES" >> $STORMDIR/run.properties   
+   echo "adcirc.file.input.nafile : $NAFILE" >> $STORMDIR/run.properties
+   echo "adcirc.file.properties.naproperties : $NAPROPERTIES" >> $STORMDIR/run.properties
+   echo "adcirc.file.template.controltemplate : $CONTROLTEMPLATE" >> $STORMDIR/run.properties
+   echo "adcirc.file.properties.controlproperties : $CONTROLPROPERTIES" >> $STORMDIR/run.properties
    echo "adcirc.file.elevstations : $ELEVSTATIONS" >> $STORMDIR/run.properties
    echo "adcirc.file.velstations : $VELSTATIONS" >> $STORMDIR/run.properties
    echo "adcirc.file.metstations : $METSTATIONS" >> $STORMDIR/run.properties
    # other adcirc specific
    echo "adcirc.hotstartformat : $HOTSTARTFORMAT" >> $STORMDIR/run.properties   
    echo "adcirc.timestepsize : $TIMESTEPSIZE" >> $STORMDIR/run.properties
+   echo "adcirc.hotstartcomp : $HOTSTARTCOMP" >> $STORMDIR/run.properties
    echo "asgs.file.preppedarchive : $PREPPEDARCHIVE" >> $STORMDIR/run.properties
    echo "asgs.file.hindcastarchive : $HINDCASTARCHIVE" >> $STORMDIR/run.properties   
    echo "config.adcirc.minmax : $MINMAX" >> $STORMDIR/run.properties
@@ -1184,6 +1170,7 @@ writeProperties()
    THREDDS="$THREDDS )" 
    echo "post.opendap.tds : $THREDDS" >> $STORMDIR/run.properties
    echo "post.opendap.opendapuser : $OPENDAPUSER" >> $STORMDIR/run.properties
+   echo "post.file.sshkey : $SSHKEY" >> $STORMDIR/run.properties
    # archiving
    echo "archive.executable.archive : $ARCHIVE" >> $STORMDIR/run.properties    
    echo "archive.path.archivebase : $ARCHIVEBASE" >> $STORMDIR/run.properties    
@@ -1196,8 +1183,9 @@ writeProperties()
    # each ensemble member
    echo "asgs.path.fromdir : $FROMDIR" >> $STORMDIR/run.properties
    echo "asgs.path.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
-   echo "asgs.path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
+   echo "asgs.path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
    echo "asgs.enstorm : $ENSTORM" >> $STORMDIR/run.properties
+   echo "asgs.path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
    #
    ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
    echo "adcirc.version : $ADCIRCVERSION" >> $STORMDIR/run.properties   
@@ -1205,8 +1193,6 @@ writeProperties()
    # properties for backward compatibility
    echo "hostname : $HPCENVSHORT" >> $STORMDIR/run.properties
    echo "instance : $INSTANCENAME" >> $STORMDIR/run.properties
-
-
    echo "pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties
    echo "intendedAudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
 }
@@ -1252,10 +1238,39 @@ writeTropicalCycloneProperties()
 # swan coupling. 
 writeWaveCouplingProperties()
 {
+   echo "config.path.swandir : $SWANDIR" >> $STORMDIR/run.properties
    echo "config.coupling.waves.swan.reinitializeswan : $REINITIALIZESWAN" >> $STORMDIR/run.properties
    echo "config.coupling.waves.swan.swanhscompression : $SWANHSCOMPRESSION" >> $STORMDIR/run.properties
    echo "swan.swandt : $SWANDT" >> $STORMDIR/run.properties
    echo "swan.input.file.swantemplate : $SWANTEMPLATE" >> $STORMDIR/run.properties
+}
+#
+# write properties to the run.properties file that are associated with 
+# the cpu request for a particular job submitted to an hpc queue 
+writeJobResourceRequestProperties()
+{
+   echo "hpc.job.${JOBTYPE}.queuename : $QUEUENAME" >> $STORMDIR/run.properties
+   echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
+   echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $STORMDIR/run.properties
+   echo "hpc.job.${JOBTYPE}.ncpu : $NCPU" >> $STORMDIR/run.properties
+   echo "hpc.job.${JOBTYPE}.numwriters : $NUMWRITERS" >> $STORMDIR/run.properties    
+   echo "hpc.file.${JOBTYPE}.template.qstemplate : $QSCRIPT" >> $STORMDIR/run.properties
+   if [[ $ENSTORM = hindcast ]]; then
+      echo "hpc.job.limit.hindcastwalltime : $NUMWRITERS" >> $STORMDIR/run.properties    
+   fi
+   echo "hpc.job.limit.nowcastwalltime : $NOWCASTWALLTIME" >> $STORMDIR/run.properties       
+   echo "hpc.job.limit.forecastwalltime : $FORECASTWALLTIME" >> $STORMDIR/run.properties       
+   echo "hpc.job.limit.adcprepwalltime : $ADCPREPWALLTIME" >> $STORMDIR/run.properties       
+   echo "hpc.job.${JOBTYPE}.limit.walltime : $ADCPREPWALLTIME" >> $STORMDIR/run.properties
+   if [[ $QUEUESYS = SLURM ]]; then
+      echo "hpc.slurm.job.${JOBTYPE}.partition : $PARTITION" >> $STORMDIR/run.properties
+      echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
+      echo "hpc.slurm.job..${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
+   fi
+   # legacy properties
+   echo "cpurequest : $CPUREQUEST" >> ${STORMDIR}/run.properties
+   echo "ncpu : $NCPU" >> ${STORMDIR}/run.properties  # number of compute CPUs
+   echo "numwriters : $NUMWRITERS" >> ${STORMDIR}/run.properties  # number of dedicated writer CPUs
 }
 #####################################################################
 #                 E N D  F U N C T I O N S
@@ -1339,6 +1354,7 @@ FTPSITE=null
 FTPFCSTDIR=null
 FTPHCSTDIR=null
 ADCIRCDIR=null
+SWANDIR=null
 SCRATCHDIR=null
 MAILINGLIST=null
 QUEUESYS=null
@@ -1503,8 +1519,9 @@ if [[ $BACKGROUNDMET = on ]]; then
 fi
 if [[ $WAVES = on ]]; then
    JOBTYPE=padcswan
-   # @jasonfleming debug checkFileExistence $ADCIRCDIR "ADCIRC+SWAN parallel executable" padcswan
-   checkFileExistence $ADCIRCDIR/../swan "SWAN fulldomain hotstart file decomposition executable " unhcat.exe
+   checkDirExistence $SWANDIR "SWAN executables directory (SWANDIR)"
+   checkFileExistence $SWANDIR "SWAN fulldomain hotstart file decomposition executable " unhcat.exe
+   checkFileExistence $ADCIRCDIR "ADCIRC+SWAN parallel executable" padcswan
    checkFileExistence $INPUTDIR "SWAN initialization template file " swaninit.template
    checkFileExistence $INPUTDIR "SWAN control template file" $SWANTEMPLATE
 else
@@ -1684,6 +1701,7 @@ if [[ $START = coldstart ]]; then
    cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
    JOBTYPE=padcirc  # we won't run waves during the spinup hindcast
    logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
+   writeJobResourceRequestProperties
    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE
    THIS="asgs_main.sh"
    # check once per minute until all jobs have finished
@@ -1979,6 +1997,7 @@ while [ true ]; do
       logMessage "$ENSTORM: $THIS: Submitting $ENSTORM job."
       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
       logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE"
+      writeJobResourceRequestProperties
       submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE
       THIS="asgs_main.sh"
       # check once per minute until all jobs have finished
@@ -2264,6 +2283,7 @@ while [ true ]; do
             fi
             # then submit the job
             allMessage "$ENSTORM: $THIS: Submitting ensemble member $ENSTORM for forecast."
+            writeJobResourceRequestProperties
             submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
             THIS="asgs_main.sh"
             # monitor for completion and post process in a subshell running 

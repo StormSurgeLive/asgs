@@ -106,7 +106,7 @@ matlab -nodisplay -nosplash -nodesktop -r "run plot_usace_adcirc.m, exit"
 #       WAIT UNTIL FIGUREGEN IMAGE(S) ARE FINISHED
 #--------------------------------------------------------------------------
 # Wait until submit-postproc is finished
-until [ -f ${stormDir}/postproc.done ]
+until [ -f ${stormDir}/cpra.post.finish || -f ${stormDir}/cpra.post.error ]
 do
     sleep 5
 done
