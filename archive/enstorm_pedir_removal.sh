@@ -48,25 +48,23 @@ localLogMessage "INFO" "Starting cleanup of subdomain (PE*) subdirectories."
 WAVES=`sed -n 's/[ ^]*$//;s/config.coupling.waves\s*:\s*//p' run.properties`
 if [[ $WAVES = on ]]; then
    localLogMessage "INFO" "Wave coupling with SWAN is active."
-   ADCIRCDIR=`sed -n 's/[ ^]*$//;s/config.path.adcircdir\s*:\s*//p' run.properties`
-   # FIXME: path to swan executables is a hardcoded path relative to ADCIRCDIR
-   HOTTIFYPATH=$ADCIRCDIR/../swan
-   localLogMessage "INFO" "The path to SWAN executables is ${HOTTIFYPATH}."
+   SWANDIR=`sed -n 's/[ ^]*$//;s/config.path.swandir\s*:\s*//p' run.properties`
+   localLogMessage "INFO" "The path to SWAN executables is ${SWANDIR}."
    #
    # set name of SWAN executable that knits together the subdomain
    # SWAN hotstart files into a fulldomain SWAN hotstart file
    hSWANExe=null
-   if [[ -e ${HOTTIFYPATH}/HottifySWAN.x ]]; then
+   if [[ -e ${SWANDIR}/HottifySWAN.x ]]; then
       hSWANExe=HottifySWAN.x
    fi
-   if [[ -e ${HOTTIFYPATH}/unhcat.exe ]]; then
+   if [[ -e ${SWANDIR}/unhcat.exe ]]; then
       hSWANExe=unhcat.exe
    fi
    if [[ $hSWANExe = null ]]; then
-      localLogMessage "ERROR" "Could not find HottifySWAN.x or unhcat.exe in the directory ${HOTTIFYPATH}."
+      localLogMessage "ERROR" "Could not find HottifySWAN.x or unhcat.exe in the directory ${SWANDIR}."
       exit
    else
-      localLogMessage "INFO" "The SWAN hotstart composition executable is ${HOTTIFYPATH}/${hSWANExe}." 
+      localLogMessage "INFO" "The SWAN hotstart composition executable is ${SWANDIR}/${hSWANExe}." 
    fi
    #
    # preserve the swan log file and swan Errfile (if any) so we can see it later
@@ -97,7 +95,7 @@ if [[ $WAVES = on ]]; then
          ) &
          (
             localLogMessage "INFO" "Creating fulldomain SWAN hotstart file from subdomain $file files."         
-            ${HOTTIFYPATH}/$hSWANExe <<EndInput >> $LOGFILE 2>&1 
+            ${SWANDIR}/$hSWANExe <<EndInput >> $LOGFILE 2>&1 
 1
 $file
 F
