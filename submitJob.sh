@@ -29,7 +29,8 @@
 # relative paths.
 #
 #----------------------------------------------------------------
-#
+#       R E A D   J O B   P R O P E R T I E S
+#----------------------------------------------------------------
 # JOBTYPE: padcirc, padcswan, prep15, prep20, prepall, partmesh, etc
 # This will be used to look up additional properties needed to submit
 # this job. 
@@ -51,11 +52,8 @@ PPN=`sed -n 's/[ ^]*$//;s/hpc.ppn\s*:\s*//p' run.properties`
 ADCIRCDIR=`sed -n 's/[ ^]*$//;s/config.path.adcircdir\s*:\s*//p' run.properties`
 # SWANDIR: path to swan executables (i.e., to unhcat.exe)
 SWANDIR=`sed -n 's/[ ^]*$//;s/config.path.swandir\s*:\s*//p' run.properties`
-# INPUTDIR: path to input files, including subdirectories meshes and machines
-INPUTDIR=`sed -n 's/[ ^]*$//;s/config.path.inputdir\s*:\s*//p' run.properties`
-# ADVISDIR: path where all ensemble members are stored for a particular 
-# advisory or nam cycle
-ADVISDIR=`sed -n 's/[ ^]*$//;s/asgs.path.advisdir\s*:\s*//p' run.properties`
+# STORMDIR: path where this ensemble member is supposed to run 
+STORMDIR=`sed -n 's/[ ^]*$//;s/asgs.path.stormdir\s*:\s*//p' run.properties`
 # ENSTORM: name of this ensemble member
 ENSTORM=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
 # NOTIFYUSER: email address to put into the queue script that the queueing
@@ -72,18 +70,29 @@ ACCOUNT=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.account\s*:\s*//p" run.properti
 # WALLTIME: limit of wall clock time for the job to run before being
 # kicked out of the queue
 WALLTIME=$`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.limit.walltime\s*:\s*//p" run.properties`
+# JOBMODULES: command line to be executed to load resources specific to this job
+JOBMODULES=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.jobmodules\s*:\s*//p" run.properties`
+# PLATFORMMODULES: command line to be executed to load resources specific to this platform
+PLATFORMMODULES=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.platformmodules\s*:\s*//p" run.properties`
+# SUBMITSTRING: command used to submit jobs to the queue
+SUBMITSTRING=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.submitstring\s*:\s*//p" run.properties`
+# JOBLAUNCHER: command used inside a queue script to start a job
+JOBLAUNCHER=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.submitstring\s*:\s*//p" run.properties`
 # CMD: command line to be executed via queueing system
 CMD=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.cmd\s*:\s*//p" run.properties`
 #----------------------------------------------------------------
-#
+#     S E T   U P   J O B   C H A R A C T E R I S T I C S
+#----------------------------------------------------------------
 THIS="submitJob.sh"
-STORMDIR=${ADVISDIR}/${ENSTORM}
 cd $STORMDIR 2>> $LOGFILE
 LOGFILE=$STORMDIR/${JOBTYPE}.log
+echo "asgs.submitjob.${JOBTYPE}.pid : $$" >> ${STORMDIR}/run.properties 
 #
 CLOPTIONS=""     # command line options
 LOCALHOTSTART=""
 CPUREQUEST=$NCPU   
+#
+# deteremine command line options specific to padcirc and padcswan jobs
 if [[ $JOBTYPE = padcirc || $JOBTYPE = padcswan ]]; then
    # NUMWRITERS: the number of dedicated writer processors for a padcirc
    # or padcswan job
@@ -100,87 +109,60 @@ if [[ $JOBTYPE = padcirc || $JOBTYPE = padcswan ]]; then
       LOCALHOTSTART="--localhotstart" 
    fi
 fi
-QSFILE=${JOBTYPE}.${QUEUESYS,,}
-cp $QSTDIR/$QSTEMPLATE $QSFILE 2>> $LOGFILE
-#
+# convert HH:MM:SS wall time to integer minutes
 WALLMINUTES=`echo "${WALLTIME:0:2} * 60 + ${WALLTIME:3:2} + 1" | bc` 
+# compute number of nodes to request using processors per node (PPN)
+NNODES=`python -c "from math import ceil; print int(ceil(float($CPUREQUEST)/float($PPN)))"`
 #--------------------------------------------------------------------------
-sed -i "s/%jobtype%/$JOBTYPE/g" $QSFILE 2>> $LOGFILE
-sed -i "s/%enstorm%/$ENSTORM/g" $QSFILE 2>> $LOGFILE
-sed -i "s/%wallminutes%/$WALLMINUTES/g" $QSFILE 2>> $LOGFILE
-sed -i "s/%advisdir%/$ADVISDIR/g" $QSFILE 2>> $LOGFILE
-sed -i "s/%syslog%/$SYSLOG/g" $QSFILE 2>> $LOGFILE
-sed -i "s/%cmd%/$CMD/g" $QSFILE 2>> $LOGFILE
-
+#       F I L L   I N   Q U E U E   S C R I P T   T E M P L A T E 
 #--------------------------------------------------------------------------
-#
+case $QUEUESYS in
+"PBS" | "SLURM" )
+   # form queue script file name with downcased queueing system as suffix
+   QSFILE=${JOBTYPE}.${QUEUESYS,,}
+   # copy queue script template to storm directory
+   cp $QSTDIR/$QSTEMPLATE $QSFILE 2>> $LOGFILE
+   sed -i "s/%jobtype%/$JOBTYPE/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%enstorm%/$ENSTORM/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%wallminutes%/$WALLMINUTES/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%partition%/$PARTITION/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%reservation%/$RESERVATION/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%constraint%/$CONSTRAINT/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%nnodes%/$NNODES/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%notifyuser%/$NOTIFYUSER/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%account%/$ACCOUNT/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%queuename%/$QUEUENAME/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%serqueue%/$SERQUEUE/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%ppn%/$PPN/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%advisdir%/$ADVISDIR/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%syslog%/$SYSLOG/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%platformmodules%/$PLATFORMMODULES/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%jobmodules%/$JOBMODULES/g" $QSFILE 2>> $LOGFILE
+   if [[ $CPUREQUEST -gt 1 ]]; then
+      sed -i "s/%joblauncher%/$JOBLAUNCHER/g" $QSFILE 2>> $LOGFILE
+   fi
+   sed -i "s/%cmd%/$CMD/g" $QSFILE 2>> $LOGFILE
+   ;;
+"mpiexec") # do nothing because there is no queue script
+   ;;
+esac
+#--------------------------------------------------------------------------
+#              S U B M I T   J O B 
+#--------------------------------------------------------------------------
 case $QUEUESYS in 
 #
-#  Load Sharing Facility (LSF); used on topsail at UNC
-"LSF")
-      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-      echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-      bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${SYSLOG}
-      ;;
-#
-#  LoadLeveler (often used on IBM systems)
-"LoadLeveler")
-      perl $SCRIPTDIR/loadleveler.pl --cmd "$CMD" --jobtype $JOBTYPE --ncpu $NCPU --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --numwriters $NUMWRITERS $LOCALHOTSTART > $ADVISDIR/$ENSTORM/${JOBTYPE}.ll 2>> ${SYSLOG}
-      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-      echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-      llsubmit $ADVISDIR/$ENSTORM/${JOBTYPE}.ll >> ${SYSLOG} 2>&1
-      ;;
-#
-#  Portable Batch System (PBS); widely used
-"PBS")
-      QSCRIPTOPTIONS="--jobtype $JOBTYPE --cmd \"$CMD\" --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript ${QSTDIR}/${QSTEMPLATE} --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME $LOCALHOTSTART --syslog $SYSLOG"
-      if [[ $PPN -ne 0 ]]; then
-         QSCRIPTOPTIONS="$QSCRIPTOPTIONS --ppn $PPN"
-      fi
-      if [[ $NUMWRITERS != "0" ]]; then
-         QSCRIPTOPTIONS="$QSCRIPTOPTIONS --numwriters $NUMWRITERS"
-      fi
-      logMessage "$ENSTORM: $THIS: QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
-      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs 2>> ${SYSLOG}
-      logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs"
-      # submit job, check to make sure qsub succeeded, and if not, retry
+#  Portable Batch System (PBS) or SLURM; both widely used
+"PBS" | "SLURM")
+      logMessage "$ENSTORM: $THIS: Submitting ${STORMDIR}/${QSFILE}."
+      # submit job, check to make sure submission succeeded, and if not, retry
       while [ true ];  do
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-         qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs >> ${SYSLOG} 2>&1
+         $SUBMITSTRING ${STORMDIR}/${QSFILE} >> ${SYSLOG} 2>&1
          if [[ $? = 0 ]]; then
-            break # qsub returned a "success" status
+            break # submission returned a "success" status
          else
-            warn "$ENSTORM: $THIS: qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs failed; will retry in 60 seconds."
-            sleep 60
-         fi
-      done
-      ;;
-#
-#  SLURM
-"SLURM")
-      sed -i "s/%partition%/$PARTITION/g" $QSFILE 2>> $LOGFILE
-      sed -i "s/%reservation%/$RESERVATION/g" $QSFILE 2>> $LOGFILE
-      sed -i "s/%constraint%/$CONSTRAINT/g" $QSFILE 2>> $LOGFILE
-      QSCRIPTOPTIONS="--jobtype $JOBTYPEE --cmd \"$CMD\" --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --partition $PARTITION --reservation $RESERVATION --constraint "$CONSTRAINT" --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript ${QSTDIR}/${QSTEMPLATE} --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME $LOCALHOTSTART --syslog $SYSLOG"
-      if [[ $PPN -ne 0 ]]; then
-         QSCRIPTOPTIONS="$QSCRIPTOPTIONS --ppn $PPN"
-      fi
-      if [[ $NUMWRITERS != "0" ]]; then
-         QSCRIPTOPTIONS="$QSCRIPTOPTIONS --numwriters $NUMWRITERS"
-      fi
-      logMessage "$ENSTORM: $THIS: QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
-      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm 2>> ${SYSLOG}
-      logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm"
-      # submit job, check to make sure qsub succeeded, and if not, retry
-      while [ true ];  do
-         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-         echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-         sbatch $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm >> ${SYSLOG} 2>&1
-         if [[ $? = 0 ]]; then
-            break # sbatch returned a "success" status
-         else
-            warn "$ENSTORM: $THIS: sbatch $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm failed; will retry in 60 seconds."
+            warn "$ENSTORM: $THIS: qsub ${STORMDIR}/${QSFILE} failed; will retry in 60 seconds."
             sleep 60
          fi
       done
@@ -190,44 +172,44 @@ case $QUEUESYS in
 "mpiexec")
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'%z`
       echo "time.${JOBTYPE}.start : $DATETIME" >> run.properties
-      echo "[${DATETIME}] Starting ${JOBTYPE}.${ENSTORM} job in $PWD." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start
-      logMessage "$ENSTORM: $THIS: Submitting job via $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${SYSLOG} 2>&1"
+      echo "[${DATETIME}] Starting ${JOBTYPE}.${ENSTORM} job in $PWD." >> ${STORMDIR}/${JOBTYPE}.${ENSTORM}.run.start
+      logMessage "$ENSTORM: $THIS: Submitting job via \"$SUBMITSTRING -n $CPUREQUEST $CMD $CLOPTIONS >> ${SYSLOG} 2>&1"
       # submit the parallel job in a subshell
       #
       # write the process id for the subshell to the run.properties file
       # so that monitorJobs() can kill the job if it exceeds the expected
       # wall clock time
-      (
-         echo "$JOBTYPE subshell pid : $BASHPID" >> ${ADVISDIR}/${ENSTORM}/run.properties 2>> ${SYSLOG}
-         mpiexec -n $CPUREQUEST $CMD >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.log 2>&1
+      #(
+         echo "asgs.submitjob.${JOBTYPE}.subshell.pid : $$" >> ${STORMDIR}/run.properties 
+         $SUBMITSTRING -n $CPUREQUEST $CMD >> ${STORMDIR}/${JOBTYPE}.log 2>&1
          ERROVALUE=$?
          RUNSUFFIX="finish"
-         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-         if [ $ERROVALUE != 0 ] ; then
+         if [ $ERROVALUE == 0 ] ; then
+            if [[ $JOBTYPE = padcirc || $JOBTYPE = padcswan ]]; then
+               for file in adcirc.log %advisdir%/%enstorm%/%jobtype%.%enstorm%.out ; do
+                  if [ -e $file ]; then
+                     numMsg=`grep WarnElev $file | wc -l`
+                     if [ $numMsg = 0 ]; then
+                        DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+                        echo "[${DATETIME}] INFO: %jobtype%.slurm: No numerical instability detected in $file after executing %jobtype%.%enstorm%." | tee --append %syslog%
+                     else
+                        ERROMSG="$ERROMSG Detected $numMsg numerical instability messages in $file."
+                        ERROVALUE=1
+                     fi
+                  fi
+               done
+            fi
+         else
+            ERROMSG="The %jobtype%.%enstorm% job ended with an exit status that indicates an error occurred."
+         fi
+         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'` 
+         # select suffix based on whether the job finished successfully
+         if [[ $ERROVALUE != 0 ]]; then
             RUNSUFFIX="error"
          fi
-         echo "[${DATETIME}] Finished ${JOBTYPE}.${ENSTORM} job in $PWD with return value = $ERROVALUE." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.${RUNSUFFIX}
+         echo "[${DATETIME}] Finished ${JOBTYPE}.${ENSTORM} job in $PWD with return value = $ERROVALUE." >> ${STORMDIR}/${JOBTYPE}.${ENSTORM}.run.${RUNSUFFIX}
          echo "time.${JOBTYPE}.${RUNSUFFIX} : $DATETIME" >> run.properties
       ) &
-      ;;
-#
-#  Sun Grid Engine (SGE); used on Sun and many Linux clusters
-"SGE")
-      QSCRIPTOPTIONS="--jobtype $JOBTYPE --cmd \"$CMD\" --ncpu $NCPU --ncpudivisor $NCPUDIVISOR --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript ${QSTDIR}/${QSTEMPLATE} --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
-      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/${JOBTYPE}.sge 2>> ${SYSLOG}
-      logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.sge"
-      # submit job, check to make sure qsub succeeded, and if not, retry
-      while [ true ];  do
-         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-         echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-         qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.sge >> ${SYSLOG} 2>&1
-         if [[ $? = 0 ]]; then
-            break # qsub returned a "success" status
-         else
-            warn "$ENSTORM: $THIS: qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.sge failed; will retry in 60 seconds."
-            sleep 60
-         fi
-      done
       ;;
    *)
       fatal "$ENSTORM: $THIS: Queueing system $QUEUESYS unrecognized."

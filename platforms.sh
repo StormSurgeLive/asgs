@@ -41,6 +41,7 @@ init_supermike()
   SERQUEUE=single
   #ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
   SUBMITSTRING=qsub
+  JOBLAUNCHER='mpirun -np %ncpu% -machinefile \$PBS_NODEFILE'
   SCRATCHDIR=/work/$USER
   #SCRATCHDIR=/work/cera
   SSHKEY=~/.ssh/id_rsa.pub
@@ -58,6 +59,7 @@ init_queenbee()
   SERQUEUE=single
   ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
   SUBMITSTRING=qsub
+  JOBLAUNCHER='mpirun -np %ncpu% -machinefile \$PBS_NODEFILE'
   SCRATCHDIR=/work/$USER
   #SCRATCHDIR=/work/cera
   SSHKEY=~/.ssh/id_rsa.pub
@@ -66,12 +68,8 @@ init_queenbee()
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=20
   REMOVALCMD="rmpurge"
-  module load intel
-  module load netcdf
-  module load netcdf_fortran
-  module load gcc
-  module load matlab/r2015b
-  module load python/2.7.12-anaconda-tensorflow 
+  PLATFORMMODULES='module load intel netcdf netcdf_fortran gcc'
+  $PLATFORMMODULES
 }
 init_arete()
 { #<- can replace the following with a custom script
@@ -79,7 +77,8 @@ init_arete()
   QUEUESYS=SLURM
   QCHECKCMD=sacct
   ACCOUNT=null
-  SUBMITSTRING=srun
+  SUBMITSTRING=sbatch
+  JOBLAUNCHER=
   SCRATCHDIR=/scratch/$USER
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=arete.template.slurm
@@ -136,6 +135,7 @@ init_hatteras()
   QCHECKCMD=sacct
   ACCOUNT=ncfs
   SUBMITSTRING=sbatch
+  JOBLAUNCHER=srun
   SCRATCHDIR=/projects/ncfs/data
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=hatteras.template.slurm
@@ -148,8 +148,8 @@ init_hatteras()
   if [[ $RESERVATION = ncfs ]]; then
      PPN=20
   fi
-  module load python_modules/2.7
-  module load matlab/2017b
+  PLATFORMMODULES='module load hdf5/1.10.1_intel-18.0.0 intelc/18.0.0 intelfort/18.0.0 mvapich2/2.3b_intel-18.0.0_ch3_ofed-4.1 netcdf-C/4.5.0_intel-18.0.0 netcdf-Fortran/4.4.0_intel-18.0.0 zlib/1.2.11_intel-18.0.0'
+  $PLATFORMMODULES
 }
 init_stampede()
 { #<- can replace the following with a custom script
@@ -158,13 +158,15 @@ init_stampede()
   QCHECKCMD=sacct
   ACCOUNT=PleaseSpecifyACCOUNTInYourAsgsConfigFile
   SUBMITSTRING=sbatch
+  JOBLAUNCHER=ibrun
   SCRATCHDIR=$SCRATCH
   SSHKEY=~/.ssh/id_rsa_stampede
   QSCRIPT=stampede.template.slurm
   PREPCONTROLSCRIPT=stampede.adcprep.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=16
-  module load netcdf/4.3.2
+  PLATFORMMODULES='module load netcdf/4.3.2'
+  $PLATFORMMODULES
   #jgf20150610: Most likely QUEUENAME=normal SERQUEUENAME=serial
 }
 init_kittyhawk()
@@ -187,7 +189,8 @@ init_sapphire()
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=erdcvhsp
-  SUBMITSTRING="aprun"
+  SUBMITSTRING=qsub
+  JOBLAUNCHER="aprun"
   SCRATCHDIR=/work2/$USER
   SSHKEY=~/.ssh/id_rsa_sapphire
   QSCRIPT=erdc.template.pbs
@@ -204,7 +207,8 @@ init_jade()
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=erdcvhsp
-  SUBMITSTRING="aprun"
+  SUBMITSTRING=qsub
+  JOBLAUNCHER="aprun"
 # INTERSTRING="qsub -l size=1,walltime=00:10:00 -A $ACCOUNT -q $QUEUENAME -I"
   INTERSTRING=
   SCRATCHDIR=/work/$USER
@@ -381,7 +385,8 @@ init_lonestar()
   QCHECKCMD=squeue
   PPN=24
   ACCOUNT=ADCIRC
-  SUBMITSTRING="ibrun"
+  SUBMITSTRING=sbatch
+  JOBLAUNCHER=ibrun
   SCRATCHDIR=$SCRATCH
   SSHKEY=id_rsa_lonestar
   QSCRIPT=lonestar.template.slurm
@@ -390,14 +395,15 @@ init_lonestar()
   SERQSCRIPTGEN=hatteras.slurm.pl
   UMASK=006
   GROUP="G-803086"
-  module load netcdf/4.3.3.1 
+  PLATFORMMODULES='module load netcdf/4.3.3.1'
+  $PLATFORMMODULES
 }
 init_desktop()
 {
   HPCENV=jason-desktop
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
-  SUBMITSTRING="mpiexec -n"
+  SUBMITSTRING="mpiexec"
   SCRATCHDIR=/srv/asgs
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
