@@ -54,13 +54,14 @@ ADCIRCDIR=`sed -n 's/[ ^]*$//;s/config.path.adcircdir\s*:\s*//p' run.properties`
 SWANDIR=`sed -n 's/[ ^]*$//;s/config.path.swandir\s*:\s*//p' run.properties`
 # STORMDIR: path where this ensemble member is supposed to run 
 STORMDIR=`sed -n 's/[ ^]*$//;s/asgs.path.stormdir\s*:\s*//p' run.properties`
+ADVISDIR=`sed -n 's/[ ^]*$//;s/asgs.path.advisdir\s*:\s*//p' run.properties`
 # ENSTORM: name of this ensemble member
 ENSTORM=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
 # NOTIFYUSER: email address to put into the queue script that the queueing
 # system will send email to if the hpc job fails
 NOTIFYUSER=`sed -n "s/[ ^]*$//;s/notification.hpc.email.notifyuser\s*:\s*//p" run.properties`
 # QSTDIR: template to use when generating queue script
-QSTDIR=`sed -n "s/[ ^]*$//;s/hpc.file.${JOBTYPE}.template.qstdir\s*:\s*//p" run.properties`
+QSTDIR=`sed -n "s/[ ^]*$//;s/hpc.path.${JOBTYPE}.template.qstdir\s*:\s*//p" run.properties`
 # QSTEMPLATE: template to use when generating queue script
 QSTEMPLATE=`sed -n "s/[ ^]*$//;s/hpc.file.${JOBTYPE}.template.qstemplate\s*:\s*//p" run.properties`
 # NCPU: number of cores to request for this job
@@ -69,28 +70,29 @@ NCPU=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.ncpu\s*:\s*//p" run.properties`
 ACCOUNT=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.account\s*:\s*//p" run.properties`
 # WALLTIME: limit of wall clock time for the job to run before being
 # kicked out of the queue
-WALLTIME=$`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.limit.walltime\s*:\s*//p" run.properties`
+WALLTIME=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.limit.walltime\s*:\s*//p" run.properties`
 # JOBMODULES: command line to be executed to load resources specific to this job
 JOBMODULES=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.jobmodules\s*:\s*//p" run.properties`
 # PLATFORMMODULES: command line to be executed to load resources specific to this platform
 PLATFORMMODULES=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.platformmodules\s*:\s*//p" run.properties`
 # SUBMITSTRING: command used to submit jobs to the queue
-SUBMITSTRING=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.submitstring\s*:\s*//p" run.properties`
+SUBMITSTRING=`sed -n "s/[ ^]*$//;s/hpc.submitstring\s*:\s*//p" run.properties`
 # JOBLAUNCHER: command used inside a queue script to start a job
-JOBLAUNCHER=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.submitstring\s*:\s*//p" run.properties`
+JOBLAUNCHER=`sed -n "s/[ ^]*$//;s/hpc.joblauncher\s*:\s*//p" run.properties`
 # CMD: command line to be executed via queueing system
 CMD=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.cmd\s*:\s*//p" run.properties`
 #----------------------------------------------------------------
 #     S E T   U P   J O B   C H A R A C T E R I S T I C S
 #----------------------------------------------------------------
 THIS="submitJob.sh"
-cd $STORMDIR 2>> $LOGFILE
 LOGFILE=$STORMDIR/${JOBTYPE}.log
+cd $STORMDIR 2>> $LOGFILE
 echo "asgs.submitjob.${JOBTYPE}.pid : $$" >> ${STORMDIR}/run.properties 
 #
 CLOPTIONS=""     # command line options
 LOCALHOTSTART=""
 CPUREQUEST=$NCPU   
+echo "$THIS: CPUREQUEST is $CPUREQUEST"
 #
 # deteremine command line options specific to padcirc and padcswan jobs
 if [[ $JOBTYPE = padcirc || $JOBTYPE = padcswan ]]; then
@@ -111,11 +113,16 @@ if [[ $JOBTYPE = padcirc || $JOBTYPE = padcswan ]]; then
 fi
 # convert HH:MM:SS wall time to integer minutes
 WALLMINUTES=`echo "${WALLTIME:0:2} * 60 + ${WALLTIME:3:2} + 1" | bc` 
+echo "WALLMINUTES is $WALLMINUTES"
 # compute number of nodes to request using processors per node (PPN)
-NNODES=`python -c "from math import ceil; print int(ceil(float($CPUREQUEST)/float($PPN)))"`
+#NNODES=`python -c "from math import ceil; print int(ceil(float($CPUREQUEST)/float($PPN)))"`
 #--------------------------------------------------------------------------
 #       F I L L   I N   Q U E U E   S C R I P T   T E M P L A T E 
 #--------------------------------------------------------------------------
+# Any variables that contain forward slashes ("/") have to have the forward
+# slashes escaped with a backslash so they don't confuse sed, 
+# e.g., ${STORMDIR//\//\\/}
+# 
 case $QUEUESYS in
 "PBS" | "SLURM" )
    # form queue script file name with downcased queueing system as suffix
@@ -124,24 +131,45 @@ case $QUEUESYS in
    cp $QSTDIR/$QSTEMPLATE $QSFILE 2>> $LOGFILE
    sed -i "s/%jobtype%/$JOBTYPE/g" $QSFILE 2>> $LOGFILE
    sed -i "s/%enstorm%/$ENSTORM/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%stormdir%/${STORMDIR//\//\\/}/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%ncpu%/$CPUREQUEST/g" $QSFILE 2>> $LOGFILE
    sed -i "s/%wallminutes%/$WALLMINUTES/g" $QSFILE 2>> $LOGFILE
-   sed -i "s/%partition%/$PARTITION/g" $QSFILE 2>> $LOGFILE
-   sed -i "s/%reservation%/$RESERVATION/g" $QSFILE 2>> $LOGFILE
-   sed -i "s/%constraint%/$CONSTRAINT/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%walltime%/$WALLTIME/g" $QSFILE 2>> $LOGFILE
    sed -i "s/%nnodes%/$NNODES/g" $QSFILE 2>> $LOGFILE
    sed -i "s/%notifyuser%/$NOTIFYUSER/g" $QSFILE 2>> $LOGFILE
    sed -i "s/%account%/$ACCOUNT/g" $QSFILE 2>> $LOGFILE
    sed -i "s/%queuename%/$QUEUENAME/g" $QSFILE 2>> $LOGFILE
    sed -i "s/%serqueue%/$SERQUEUE/g" $QSFILE 2>> $LOGFILE
    sed -i "s/%ppn%/$PPN/g" $QSFILE 2>> $LOGFILE
-   sed -i "s/%advisdir%/$ADVISDIR/g" $QSFILE 2>> $LOGFILE
-   sed -i "s/%syslog%/$SYSLOG/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%advisdir%/${ADVISDIR//\//\\/}/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%syslog%/${SYSLOG//\//\\/}/g" $QSFILE 2>> $LOGFILE
    sed -i "s/%platformmodules%/$PLATFORMMODULES/g" $QSFILE 2>> $LOGFILE
-   sed -i "s/%jobmodules%/$JOBMODULES/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%jobmodules%/${JOBMODULES//\//\\/}/g" $QSFILE 2>> $LOGFILE
    if [[ $CPUREQUEST -gt 1 ]]; then
       sed -i "s/%joblauncher%/$JOBLAUNCHER/g" $QSFILE 2>> $LOGFILE
+   else 
+      sed -i "s/%joblauncher%//g" $QSFILE 2>> $LOGFILE
    fi
-   sed -i "s/%cmd%/$CMD/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%cmd%/${CMD//\//\\/}/g" $QSFILE 2>> $LOGFILE
+   # slurm-specific settings
+   PARTITION=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.partition\s*:\s*//p" run.properties`   
+   if [[ -z $PARTITION || $PARTITION = null ]]; then
+      sed -i "/%partition%/d" $QSFILE 2>> $LOGFILE
+   else
+      sed -i "s/%partition%/$PARTITION/g" $QSFILE 2>> $LOGFILE
+   fi
+   RESERVATION=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.reservation\s*:\s*//p" run.properties`   
+   if [[ -z $RESERVATION || $RESERVATION = null ]]; then
+      sed -i "/%reservation%/d" $QSFILE 2>> $LOGFILE
+   else
+      sed -i "s/%reservation%/$RESERVATION/g" $QSFILE 2>> $LOGFILE
+   fi
+   CONSTRAINT=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.constraint\s*:\s*//p" run.properties`   
+   if [[ -z $CONSTRAINT || $CONSTRAINT = null ]]; then
+      sed -i "/%constraint%/d" $QSFILE 2>> $LOGFILE
+   else
+      sed -i "s/%constraint%/$CONSTRAINT/g" $QSFILE 2>> $LOGFILE
+   fi
    ;;
 "mpiexec") # do nothing because there is no queue script
    ;;
@@ -179,7 +207,7 @@ case $QUEUESYS in
       # write the process id for the subshell to the run.properties file
       # so that monitorJobs() can kill the job if it exceeds the expected
       # wall clock time
-      #(
+      (
          echo "asgs.submitjob.${JOBTYPE}.subshell.pid : $$" >> ${STORMDIR}/run.properties 
          $SUBMITSTRING -n $CPUREQUEST $CMD >> ${STORMDIR}/${JOBTYPE}.log 2>&1
          ERROVALUE=$?
