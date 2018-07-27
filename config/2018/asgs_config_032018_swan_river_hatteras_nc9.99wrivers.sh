@@ -59,8 +59,8 @@ HINDCASTWALLTIME="12:00:00"
 ADCPREPWALLTIME="01:15:00"
 NOWCASTWALLTIME="05:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=159
-NCPUCAPACITY=500
+NCPU=619
+NCPUCAPACITY=640
 NUMWRITERS=1
 CYCLETIMELIMIT="05:00:00"
 # queue
@@ -69,7 +69,7 @@ SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
 ACCOUNT=batch # or "ncfs" on hatteras to use pre-empt capability
 PARTITION=ncfs
-RESERVATION=null
+RESERVATION=ncfs
 CONSTRAINT=null
 
 # External data sources : Tropical cyclones
