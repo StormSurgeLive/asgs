@@ -427,8 +427,8 @@ init_topsail()
 init_renci_tds()
 {
    OPENDAPHOST=ht4.renci.org
-   DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
-   CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
+   DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer"
+   CATALOGPREFIX="http://tds.renci.org:8080/thredds/catalog"
    OPENDAPBASEDIR=/projects/ncfs/opendap/data
    SSHPORT=22
    LINKABLEHOSTS=(hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
