@@ -26,6 +26,9 @@
 #--------------------------------------------------------------------------
 # This script assumes that it is executed in the same directory with
 # the results it is post processing.
+#
+# FigureGen.F90 must be compiled in the cpra_postproc subdirectory 
+# in order for this script to function. 
 #--------------------------------------------------------------------------
 #                        S E T U P 
 #--------------------------------------------------------------------------
@@ -35,7 +38,14 @@ STORMDIR=$PWD
 # SCRIPTDIR: path to asgs scripts like asgs_main.sh
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties`
 . ${SCRIPTDIR}/logging.sh
+# ACCOUNT: by default, use whatever account was used by padcirc or padcswan
+ACCOUNT=`sed -n 's/[ ^]*$//;s/hpc.job.padcswan.account\s*:\s*//p' run.properties`
+if [[ -z $ACCOUNT ]]; then
+   ACCOUNT=`sed -n 's/[ ^]*$//;s/hpc.job.padcirc.account\s*:\s*//p' run.properties`
+fi
+QUEUESYS=`sed -n 's/[ ^]*$//;s/hpc.queuesys\s*:\s*//p' run.properties`
 #
+JOBTYPE=cpra.post
 POSTPROCDIR=${SCRIPTDIR}/output/cpra_postproc/
 LOGFILE=${STORMDIR}/cpra.post.log
 export MATLABPATH=${POSTPROCDIR}
@@ -44,10 +54,14 @@ JOBMODULES=""
 HPCENVSHORT=`sed -n 's/[ ^]*$//;s/hpc.hpcenvshort\s*:\s*//p' run.properties`
 case $HPCENVSHORT in
     queenbee)
-        JOBMODULES="module load python/2.7.12-anaconda-tensorflow ; module load matlab/r2015b"  
+        JOBMODULES="module load python/2.7.12-anaconda-tensorflow matlab/r2015b"  
+        $JOBMODULES
         ;;
     hatteras)
-        JOBMODULES="module load python_modules/2.7 ; module load matlab/2017b"
+        JOBMODULES="module load python_modules/2.7 matlab/2017b"
+        $JOBMODULES
+        module unload zlib # causes intel library issues with matlab on hatteras
+        echo "hpc.job.${JOBTYPE}.partition : ncfs" >> ${STORMDIR}/run.properties
         ;;
     lonestar)
         JOBMODULES=""    
@@ -76,7 +90,7 @@ if [[ -f maxele.63.nc ]]; then
     #sed -i "s/%Title%/${title}/g" FG51_SELA_maxele.inp 
     sed -i "s/%TrackFile%/fort.22.trk/g" FG51_SELA_maxele.inp 2>> $LOGFILE
     # Find Maximum WSE
-    matlab -nodisplay -nosplash -nodesktop -r "run FindMaxZ.m, exit" 2>> $LOGFILE
+    matlab -nodisplay -nosplash -nodesktop -r "run FindMaxZ.m, exit" 
     etaMax=$(head -n 1 etaMax.txt) 2>> $LOGFILE
     etaMax=${etaMax%.*} 2>> $LOGFILE # Converts floating point to integer
     # set contour range based on maximum water level
@@ -96,9 +110,9 @@ if [[ -f maxele.63.nc ]]; then
     # FigureGen contour plot of maxele.63.nc 
     #
     # write properties to describe the FigureGen job
-    JOBTYPE=cpra.post
-    echo "hpc.path.${JOBTYPE}.template.qstdir : $POSTPROCDIR" >> $STORMDIR/run.properties
-    echo "hpc.file.${JOBTYPE}.template.qstemplate : $INPUTDIR/queuesys/$QUEUESYS/serial.template" >> $STORMDIR/run.properties
+
+    echo "hpc.path.${JOBTYPE}.template.qstdir : $SCRIPTDIR/input/queuesys/$QUEUESYS" >> $STORMDIR/run.properties
+    echo "hpc.file.${JOBTYPE}.template.qstemplate : slurm.template" >> $STORMDIR/run.properties
     echo "hpc.job.${JOBTYPE}.ncpu : 1" >> $STORMDIR/run.properties
     echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $STORMDIR/run.properties
     echo "hpc.job.${JOBTYPE}.limit.walltime : 01:00:00" >> $STORMDIR/run.properties

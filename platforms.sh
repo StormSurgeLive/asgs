@@ -140,8 +140,8 @@ init_hatteras()
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=hatteras.template.slurm
   PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
-  RESERVATION=null     # ncfs or null, this causes job to run on dedicated cores
-  PARTITION=ncfs       # ncfs or batch, this gives priority
+  RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
+  PARTITION=ncfs       # ncfs or batch, gives priority
   CONSTRAINT=null      # ivybridge or sandybridge
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=16

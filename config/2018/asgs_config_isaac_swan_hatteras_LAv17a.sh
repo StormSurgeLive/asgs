@@ -37,6 +37,7 @@ REINITIALIZESWAN=no        # used to bounce the wave solution
 # Source file paths
 
 ADCIRCDIR=~/adcirc/forks/adcirc/v53release/work # ADCIRC executables
+SWANDIR=~/adcirc/forks/adcirc/v53release/swan   # SWAN executables
 SCRIPTDIR=~/asgs/branches/nowcastarchive        # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v17a # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
@@ -58,7 +59,7 @@ HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
-NCPU=508                    # number of compute CPUs for all simulations
+NCPU=504                    # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=640
 CYCLETIMELIMIT="05:00:00"
@@ -201,7 +202,7 @@ case $si in
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0 
-   NCPU=2                # dramatically reduced resource requirements
+   NCPU=6                # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output

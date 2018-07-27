@@ -401,20 +401,22 @@ prep()
           swanArchiveStart=`sed -n 's/[ ^]*$//;s/time.archive.start\s*:\s*//p' $FROMDIR/run.properties`          
           if [[ ! -z $swanArchiveStart ]]; then 
              # archiving process has started
-             logMessage "$ENSTORM: $THIS: The archiving process for the hotstart source run started at $swanArchiveStart. Waiting for it to finish before preparing SWAN hotstart files."
+             logMessage "$ENSTORM: $THIS: The archiving process for the hotstart source run started at $swanArchiveStart."
              waitMinutes=0 # number of minutes waiting for the archiving process to complete
              waitMinutesMax=60  # max number of minutes to wait for upstream archiving process to finish
              while [[ $waitMinutes -lt $waitMinutesMax ]]; do
-                # wait until it is finished
+                # wait until it is finished or has errored out
                 swanArchiveFinish=`sed -n 's/[ ^]*$//;s/time.archive.finish\s*:\s*//p' $FROMDIR/run.properties`
-                if [[ ! -z $swanArchiveFinish ]]; then
-                   logMessage "$ENSTORM: $THIS: The archiving process for the hotstart source run started at $swanArchiveStart. Waiting for it to finish before preparing SWAN hotstart files."
+                swanArchiveError=`sed -n 's/[ ^]*$//;s/time.archive.error\s*:\s*//p' $FROMDIR/run.properties`
+                if [[ ! -z $swanArchiveFinish || ! -z $swanArchiveError ]]; then
+                   logMessage "$ENSTORM: $THIS: The archiving process for the hotstart source run has finished."
                    break
+                else
+                   sleep 60
+                   waitMinutes=`expr $waitMinutes + 1`
                 fi
-                waitMinutes=`expr $waitMinutes + 1`
-                sleep 60
              done
-             if [[ $waitMinutes -eq 60 ]]; then
+             if [[ $waitMinutes -ge 60 ]]; then
                 warn "$ENSTORM: $THIS: The archiving process for the hotstart source run did not finish within $watiMinutesMax minutes. Attempting to collect SWAN hotstart files anyway."            
              fi
           fi
