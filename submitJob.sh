@@ -74,7 +74,7 @@ WALLTIME=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.limit.walltime\s*:\s*//p" run.
 # JOBMODULES: command line to be executed to load resources specific to this job
 JOBMODULES=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.jobmodules\s*:\s*//p" run.properties`
 # PLATFORMMODULES: command line to be executed to load resources specific to this platform
-PLATFORMMODULES=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.platformmodules\s*:\s*//p" run.properties`
+PLATFORMMODULES=`sed -n "s/[ ^]*$//;s/hpc.platformmodules\s*:\s*//p" run.properties`
 # SUBMITSTRING: command used to submit jobs to the queue
 SUBMITSTRING=`sed -n "s/[ ^]*$//;s/hpc.submitstring\s*:\s*//p" run.properties`
 # JOBLAUNCHER: command used inside a queue script to start a job
@@ -92,7 +92,6 @@ echo "asgs.submitjob.${JOBTYPE}.pid : $$" >> ${STORMDIR}/run.properties
 CLOPTIONS=""     # command line options
 LOCALHOTSTART=""
 CPUREQUEST=$NCPU   
-echo "$THIS: CPUREQUEST is $CPUREQUEST"
 #
 # deteremine command line options specific to padcirc and padcswan jobs
 if [[ $JOBTYPE = padcirc || $JOBTYPE = padcswan ]]; then
@@ -113,7 +112,6 @@ if [[ $JOBTYPE = padcirc || $JOBTYPE = padcswan ]]; then
 fi
 # convert HH:MM:SS wall time to integer minutes
 WALLMINUTES=`echo "${WALLTIME:0:2} * 60 + ${WALLTIME:3:2} + 1" | bc` 
-echo "WALLMINUTES is $WALLMINUTES"
 # compute number of nodes to request using processors per node (PPN)
 #NNODES=`python -c "from math import ceil; print int(ceil(float($CPUREQUEST)/float($PPN)))"`
 #--------------------------------------------------------------------------

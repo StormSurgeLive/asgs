@@ -1130,6 +1130,7 @@ writeProperties()
    echo "hpc.queuesys : $QUEUESYS" >> $STORMDIR/run.properties
    echo "hpc.ppn : $PPN" >> $STORMDIR/run.properties
    echo "hpc.joblauncher : $JOBLAUNCHER" >> $STORMDIR/run.properties
+   echo "hpc.platformmodules : $PLATFORMMODULES" >> $STORMDIR/run.properties
    echo "hpc.submitstring : $SUBMITSTRING" >> $STORMDIR/run.properties
    echo "hpc.executable.qscriptgen : $QSCRIPTGEN" >> $STORMDIR/run.properties
    echo "hpc.file.template.qscript : $QSCRIPT" >> $STORMDIR/run.properties
@@ -1266,7 +1267,7 @@ writeJobResourceRequestProperties()
    echo "hpc.job.limit.forecastwalltime : $FORECASTWALLTIME" >> $STORMDIR/run.properties       
    echo "hpc.job.limit.adcprepwalltime : $ADCPREPWALLTIME" >> $STORMDIR/run.properties       
    echo "hpc.job.${JOBTYPE}.limit.walltime : $ADCPREPWALLTIME" >> $STORMDIR/run.properties
-   echo "hpc.job.${JOBTYPE}.platformmodules : $PLATFORMMODULES" >> $STORMDIR/run.properties
+
    if [[ $QUEUESYS = SLURM ]]; then
       echo "hpc.slurm.job.${JOBTYPE}.partition : $PARTITION" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
