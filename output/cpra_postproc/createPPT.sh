@@ -25,73 +25,49 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
 #--------------------------------------------------------------------------
+THIS="cpra_postproc/createPPT.sh"
 #
 #
 #--------------------------------------------------------------------------
-#       GATHER COMMAND LINE ARGUMENTS
+#       GATHER PROPERTIES
 #--------------------------------------------------------------------------
-POSITIONAL=()
-while [[ $# -gt 0 ]]
-do
-    key="$1"
-
-    case $key in
-        -i)
-            toolDir="$2"
-            shift # past argument
-            shift # past value
-            ;;
-        -s)
-            stormDir="$2"
-            shift # past argument
-            shift # past value
-            ;;
-        -fig)
-            fname="$2"
-            shift
-            shift
-            ;;
-    esac
-done
-set -- "${POSITIONAL[@]}" # restore positional parameters
+POSTPROCDIR=`sed -n 's/[ ^]*$//;s/post.path.cpra.post.postprocdir\s*:\s*//p' run.properties`
+STORMDIR=`sed -n 's/[ ^]*$//;s/asgs.path.stormdir\s*:\s*//p' run.properties`
+fname=`sed -n 's/[ ^]*$//;s/post.file.cpra.post.maxele.fname\s*:\s*//p' run.properties`
+coldStartTime=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' run.properties`
+# Parse run.properties to get storm name
+storm=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
+# Parse run.properties to get advisory
+advisory=`sed -n 's/[ ^]*$//;s/advisory\s*:\s*//p' run.properties`
+# Parse run.properties to get forecast advisory start time
+forecastValidStart=`sed -n 's/[ ^]*$//;s/forecastValidStart\s*:\s*//p' run.properties`
+# get mesh file name
+grid=`sed -n 's/[ ^]*$//;s/adcirc.gridname\s*:\s*//p' run.properties`
+#
+# create strings to represent time in UTC and CDT
+coldStartTimeUTC="${coldStartTime:0:8} ${coldStartTime:8:4} UTC"
+coldStartTimeCDT=$(TZ="America/Chicago" date -d "${coldStartTimeUTC}" "+%Y-%m-%d %H:%M:%S")
+forecastValidStartUTC="${forecastValidStart:0:8} ${forecastValidStart:8:4} UTC"
+forecastValidStartCDT=$(TZ="America/Chicago" date -d "${forecastValidStartUTC}" "+%Y%m%d%H%M%S")
+#--------------------------------------------------------------------------
+#
+#
+#--------------------------------------------------------------------------
+#      WRITE PROPERTIES FOR MATLAB 
+#--------------------------------------------------------------------------
+oFile=cpraHydro.info
+echo $storm > $oFile
+echo $grid >> $oFile
+echo $forecastValidStartCDT >> $oFile
+echo $coldStartTimeCDT >> $oFile
+echo $advisory >> $oFile
 #--------------------------------------------------------------------------
 #
 #
 #--------------------------------------------------------------------------
 #       SET MATLABPATH TO POINT TO MATLAB SCRIPTS
 #--------------------------------------------------------------------------
-export MATLABPATH=${toolDir}
-#--------------------------------------------------------------------------
-#
-#
-#--------------------------------------------------------------------------
-#       PARSE run.properties FILE
-#--------------------------------------------------------------------------
-coldStartTime=$(grep ColdStartTime run.properties)
-coldStartTime=${coldStartTime/ColdStartTime : }
-temp1=${coldStartTime:0:8}
-temp2=${coldStartTime:8:9}
-coldStartTimeUTC="${temp1} ${temp2} UTC"
-coldStartTimeCDT=$(TZ="America/Chicago" date -d "${coldStartTimeUTC}" "+%Y-%m-%d %H:%M:%S")
-
-# Parse run.properties to get storm name
-storm=$(grep "storm name" run.properties)
-storm=${storm/storm name : }
-
-# Parse run.properties to get advisory
-advisory=$(grep "advisory :" run.properties)
-advisory=${advisory/advisory : }
-
-# Parse run.properties to get forecast advisory start time
-forecastValidStart=$(grep forecastValidStart run.properties)
-forecastValidStart=${forecastValidStart/forecastValidStart : }
-temp1=${forecastValidStart:0:8}
-temp2=${forecastValidStart:8:4}
-forecastValidStartUTC="${temp1} ${temp2} UTC"
-forecastValidStartCDT=$(TZ="America/Chicago" date -d "${forecastValidStartUTC}" "+%Y%m%d%H%M%S")
-
-# Parse run.properties file
-${toolDir}/GetInfo4Hydrographs.sh
+export MATLABPATH=${POSTPROCDIR}
 #--------------------------------------------------------------------------
 #
 #
@@ -105,17 +81,19 @@ matlab -nodisplay -nosplash -nodesktop -r "run plot_usace_adcirc.m, exit"
 #--------------------------------------------------------------------------
 #       WAIT UNTIL FIGUREGEN IMAGE(S) ARE FINISHED
 #--------------------------------------------------------------------------
-# Wait until submit-postproc is finished
-until [ -f ${stormDir}/cpra.post.finish || -f ${stormDir}/cpra.post.error ]
-do
-    sleep 5
-done
+# If there is a maxele.63.nc, wait until associated FigureGen job is complete
+if [[ -f maxele.63.nc ]]; then
+   until [[ -f ${STORMDIR}/cpra.post.${storm}.run.finish || -f ${STORMDIR}/cpra.post.${storm}.run.error ]]; do
+       echo "THIS: INFO: Waiting for FigureGen maxele job to complete."
+       sleep 5
+   done
+fi
 #--------------------------------------------------------------------------
 #       RUN PYTHON SCRIPT TO GENERATE PPT SLIDE DECK
 #--------------------------------------------------------------------------
-cp ${toolDir}/LSU_template.pptx ${stormDir}/
-python ${toolDir}/buildPPT.py ${fname}
-rm LSU_template.pptx
+cp ${POSTPROCDIR}/LSU_template.pptx ${STORMDIR}
+python ${POSTPROCDIR}/buildPPT.py ${fname}
+#rm LSU_template.pptx
 #--------------------------------------------------------------------------
 #
 #
@@ -123,7 +101,8 @@ rm LSU_template.pptx
 #       E-MAIL PPT AS ATTACHMENT
 #--------------------------------------------------------------------------
 #emailList='mbilsk3@lsu.edu matt.bilskie@gmail.com jason.fleming@seahorsecoastal.com ckaiser@cct.lsu.edu'
-emailList='mbilsk3@lsu.edu'
+#emailList='mbilsk3@lsu.edu'
+emailList='jason.fleming@seahorsecoastal.com'
 subjectLine="$storm Advisory $advisory PPT"
 message="This is an automated message from the ADCIRC Surge Guidance System (ASGS).
 New results are attached for STORM $storm ADVISORY $advisory issued on $forecastValidStartCDT CDT"
@@ -135,6 +114,6 @@ echo "$message" | mail -s "$subjectLine" -a "$attachFile" $emailList
 #--------------------------------------------------------------------------
 #       CLEAN UP
 #--------------------------------------------------------------------------
-rm cpraHydro.info
-rm pptFile.temp
+#rm cpraHydro.info
+#rm pptFile.temp
 #--------------------------------------------------------------------------
