@@ -59,18 +59,29 @@ echo "post.path.${JOBTYPE}.postprocdir : $POSTPROCDIR" >> $STORMDIR/run.properti
 LOGFILE=${STORMDIR}/cpra.post.log
 export MATLABPATH=${POSTPROCDIR}
 JOBMODULES=""    
+JOBPATHS=""
+JOBLIBS=""
 # HPCENVSHORT: shorthand for the HPC environment: queenbee, hatteras, etc
 HPCENVSHORT=`sed -n 's/[ ^]*$//;s/hpc.hpcenvshort\s*:\s*//p' run.properties`
 case $HPCENVSHORT in
     queenbee)
-        JOBMODULES="module load python/2.7.12-anaconda-tensorflow matlab/r2015b"  
+        JOBMODULES="module load python/2.7.12-anaconda-tensorflow matlab/r2015b"
         $JOBMODULES
         ;;
     hatteras)
         JOBMODULES="module load python_modules/2.7 matlab/2017b"
+        module unload zlib # avoid intel library conflict issues with matlab
+        # set location of gdal; this only works if the asgs is running
+        # in the ncfs account
+        if [[ $USER = ncfs ]]; then
+           GDAL_HOME=/home/ncfs/asgs/gdal
+           GMT_HOME=/home/ncfs/asgs/gmt/gmt-4.5.18
+           JOBPATHS="export PATH=${GDAL_HOME}/bin:${GMT_HOME}/bin:\$PATH GDAL_DATA=${GDAL_HOME}/share/gdal"
+           JOBLIBS="export LD_LIBRARY_PATH=${GDAL_HOME}/lib:${GMT_HOME}/lib:\$LD_LIBRARY_PATH"
+           # use the ncfs priority level
+           echo "hpc.job.${JOBTYPE}.partition : ncfs" >> ${STORMDIR}/run.properties
+        fi
         $JOBMODULES
-        module unload zlib # causes intel library issues with matlab on hatteras
-        echo "hpc.job.${JOBTYPE}.partition : ncfs" >> ${STORMDIR}/run.properties
         ;;
     lonestar)
         JOBMODULES=""    
@@ -96,9 +107,8 @@ if [[ -f maxele.63.nc ]]; then
     cp ${POSTPROCDIR}/FG51_SELA_maxele.inp.template ${STORMDIR}/FG51_SELA_maxele.inp 2>> $LOGFILE
     # fill in figuregen template file with values for this plot
     fname="LA_SELA_${STORMNAME}_${ADVISORY}_${ENSTORM}_maxele_"
-    echo "$THIS: fname is $fname" # debug
     sed -i "s/%FileName%/${fname}/g" FG51_SELA_maxele.inp 2>> $LOGFILE
-    #sed -i "s/%Title%/${title}/g" FG51_SELA_maxele.inp 
+    sed -i "s/%Title%/Peak Water Levels/g" FG51_SELA_maxele.inp 
     sed -i "s/%TrackFile%/fort.22.trk/g" FG51_SELA_maxele.inp 2>> $LOGFILE
     # Find Maximum WSE
     matlab -nodisplay -nosplash -nodesktop -r "run FindMaxZ.m, exit" 
@@ -127,6 +137,8 @@ if [[ -f maxele.63.nc ]]; then
     echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $STORMDIR/run.properties
     echo "hpc.job.${JOBTYPE}.limit.walltime : 01:00:00" >> $STORMDIR/run.properties
     echo "hpc.job.${JOBTYPE}.jobmodules : $JOBMODULES" >> $STORMDIR/run.properties 
+    echo "hpc.job.${JOBTYPE}.jobpaths : $JOBPATHS" >> $STORMDIR/run.properties 
+    echo "hpc.job.${JOBTYPE}.joblibs : $JOBLIBS" >> $STORMDIR/run.properties 
     echo "hpc.job.${JOBTYPE}.cmd : ${POSTPROCDIR}/FigureGen -I FG51_SELA_maxele.inp > ${JOBTYPE}.log 2>\&1" >> $STORMDIR/run.properties 
     # now submit the job
     ${SCRIPTDIR}/submitJob.sh $JOBTYPE

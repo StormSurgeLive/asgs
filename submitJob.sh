@@ -73,6 +73,10 @@ ACCOUNT=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.account\s*:\s*//p" run.properti
 WALLTIME=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.limit.walltime\s*:\s*//p" run.properties`
 # JOBMODULES: command line to be executed to load resources specific to this job
 JOBMODULES=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.jobmodules\s*:\s*//p" run.properties`
+# JOBPATHS: command line to be executed to set paths to resources for this job
+JOBPATHS=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.jobpaths\s*:\s*//p" run.properties`
+# JOBLIBS: command line to be executed to set paths to libraries for this job
+JOBLIBS=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.joblibs\s*:\s*//p" run.properties`
 # PLATFORMMODULES: command line to be executed to load resources specific to this platform
 PLATFORMMODULES=`sed -n "s/[ ^]*$//;s/hpc.platformmodules\s*:\s*//p" run.properties`
 # SUBMITSTRING: command used to submit jobs to the queue
@@ -143,6 +147,8 @@ case $QUEUESYS in
    sed -i "s/%syslog%/${SYSLOG//\//\\/}/g" $QSFILE 2>> $LOGFILE
    sed -i "s/%platformmodules%/$PLATFORMMODULES/g" $QSFILE 2>> $LOGFILE
    sed -i "s/%jobmodules%/${JOBMODULES//\//\\/}/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%jobpaths%/${JOBPATHS//\//\\/}/g" $QSFILE 2>> $LOGFILE
+   sed -i "s/%joblibs%/${JOBLIBS//\//\\/}/g" $QSFILE 2>> $LOGFILE
    if [[ $CPUREQUEST -gt 1 ]]; then
       sed -i "s/%joblauncher%/$JOBLAUNCHER/g" $QSFILE 2>> $LOGFILE
    else 
@@ -150,23 +156,25 @@ case $QUEUESYS in
    fi
    sed -i "s/%cmd%/${CMD//\//\\/}/g" $QSFILE 2>> $LOGFILE
    # slurm-specific settings
-   PARTITION=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.partition\s*:\s*//p" run.properties`   
-   if [[ -z $PARTITION || $PARTITION = null ]]; then
-      sed -i "/%partition%/d" $QSFILE 2>> $LOGFILE
-   else
-      sed -i "s/%partition%/$PARTITION/g" $QSFILE 2>> $LOGFILE
-   fi
-   RESERVATION=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.reservation\s*:\s*//p" run.properties`   
-   if [[ -z $RESERVATION || $RESERVATION = null ]]; then
-      sed -i "/%reservation%/d" $QSFILE 2>> $LOGFILE
-   else
-      sed -i "s/%reservation%/$RESERVATION/g" $QSFILE 2>> $LOGFILE
-   fi
-   CONSTRAINT=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.constraint\s*:\s*//p" run.properties`   
-   if [[ -z $CONSTRAINT || $CONSTRAINT = null ]]; then
-      sed -i "/%constraint%/d" $QSFILE 2>> $LOGFILE
-   else
-      sed -i "s/%constraint%/$CONSTRAINT/g" $QSFILE 2>> $LOGFILE
+   if [[ $QUEUESYS = SLURM ]]; then 
+      PARTITION=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.partition\s*:\s*//p" run.properties`   
+      if [[ -z $PARTITION || $PARTITION = null ]]; then
+         sed -i "/%partition%/d" $QSFILE 2>> $LOGFILE
+      else
+         sed -i "s/%partition%/$PARTITION/g" $QSFILE 2>> $LOGFILE
+      fi
+      RESERVATION=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.reservation\s*:\s*//p" run.properties`   
+      if [[ -z $RESERVATION || $RESERVATION = null ]]; then
+         sed -i "/%reservation%/d" $QSFILE 2>> $LOGFILE
+      else
+         sed -i "s/%reservation%/$RESERVATION/g" $QSFILE 2>> $LOGFILE
+      fi
+      CONSTRAINT=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.constraint\s*:\s*//p" run.properties`   
+      if [[ -z $CONSTRAINT || $CONSTRAINT = null ]]; then
+         sed -i "/%constraint%/d" $QSFILE 2>> $LOGFILE
+      else
+         sed -i "s/%constraint%/$CONSTRAINT/g" $QSFILE 2>> $LOGFILE
+      fi
    fi
    ;;
 "mpiexec") # do nothing because there is no queue script
@@ -188,7 +196,7 @@ case $QUEUESYS in
          if [[ $? = 0 ]]; then
             break # submission returned a "success" status
          else
-            warn "$ENSTORM: $THIS: qsub ${STORMDIR}/${QSFILE} failed; will retry in 60 seconds."
+            warn "$ENSTORM: $THIS: $SUBMITSTRING ${STORMDIR}/${QSFILE} failed; will retry in 60 seconds."
             sleep 60
          fi
       done
