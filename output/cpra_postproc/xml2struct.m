@@ -28,7 +28,7 @@ function [ s ] = xml2struct( file )
 % Modified by X. Mo, University of Wisconsin, 12-5-2012
 
     if (nargin < 1)
-        clc;
+        %clc;
         help xml2struct
         return
     end

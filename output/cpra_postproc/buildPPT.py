@@ -82,16 +82,19 @@ staName = ['17th St. Outfall Canal','Seabrook Complex (IHNC-01)','IHNC Surge Bar
 
 i = 0
 for image in fnames:
-    slide = prs.slides.add_slide(slide_layout_hydro)
-    title = slide.shapes.title
-    title.text = staName[i]
-    pic = slide.shapes.add_picture(image,left,top)
-    fouo = slide.placeholders[13]
-    fouo.text = statement
-    snum = slide.placeholders[14]
-    snum.text = str(numSlides)
-    numSlides = numSlides + 1
-    i = i + 1
+    try: 
+        slide = prs.slides.add_slide(slide_layout_hydro)
+        title = slide.shapes.title
+        title.text = staName[i]
+        pic = slide.shapes.add_picture(image,left,top)
+        fouo = slide.placeholders[13]
+        fouo.text = statement
+        snum = slide.placeholders[14]
+        snum.text = str(numSlides)
+        numSlides = numSlides + 1
+        i = i + 1
+    except:
+        print("ERROR: buildPPT.py: Could not find " + image + ".")
 
 # Loop through slides
 #slides = prs.slides

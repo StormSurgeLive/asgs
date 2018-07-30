@@ -1,4 +1,5 @@
-clc; clear all;
+%clc; 
+clear all;
 
 filename = 'maxele.63.nc';
 

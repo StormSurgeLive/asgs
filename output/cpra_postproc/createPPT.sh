@@ -67,7 +67,7 @@ echo $advisory >> $oFile
 #--------------------------------------------------------------------------
 #       SET MATLABPATH TO POINT TO MATLAB SCRIPTS
 #--------------------------------------------------------------------------
-export MATLABPATH=${POSTPROCDIR}
+export MATLABPATH=${POSTPROCDIR}/
 #--------------------------------------------------------------------------
 #
 #
@@ -83,10 +83,13 @@ matlab -nodisplay -nosplash -nodesktop -r "run plot_usace_adcirc.m, exit"
 #--------------------------------------------------------------------------
 # If there is a maxele.63.nc, wait until associated FigureGen job is complete
 if [[ -f maxele.63.nc ]]; then
-   until [[ -f ${STORMDIR}/cpra.post.${storm}.run.finish || -f ${STORMDIR}/cpra.post.${storm}.run.error ]]; do
-       echo "THIS: INFO: Waiting for FigureGen maxele job to complete."
-       sleep 5
-   done
+   STARTPOST=`sed -n 's/[ ^]*$//;s/cpra.post.${storm}.start\s*:\s*//p' run.properties`  
+   if [[ ! -z $STARTPOST ]]; then
+      until [[ -f ${STORMDIR}/cpra.post.${storm}.run.finish || -f ${STORMDIR}/cpra.post.${storm}.run.error ]]; do
+         echo "THIS: INFO: Waiting for FigureGen maxele job to complete."
+         sleep 5
+      done
+   fi
 fi
 #--------------------------------------------------------------------------
 #       RUN PYTHON SCRIPT TO GENERATE PPT SLIDE DECK
