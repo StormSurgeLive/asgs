@@ -13,10 +13,11 @@ f = open('cpraHydro.info','r')
 info = f.readlines()
 f.close()
 storm=info[0].strip()
-grid=info[1].strip()
-advisoryTime=info[2].strip()
-coldStartTime=info[3].strip()
-advisory=info[4].strip()
+enstorm=info[1].strip()
+grid=info[2].strip()
+advisoryTime=info[3].strip()
+coldStartTime=info[4].strip()
+advisory=info[5].strip()
 
 # Convert advisoryTime to python datetime object
 advisory_dt = datetime.strptime(advisoryTime,'%Y%m%d%H%M%S')
@@ -36,7 +37,7 @@ title_slide_layout = prs.slide_layouts[0]
 slide = prs.slides.add_slide(title_slide_layout)
 title = slide.shapes.title
 subtitle = slide.placeholders[1]
-title.text = "STORM " + storm
+title.text = "STORM " + storm + " (" + enstorm + ")"
 subtitle.text = "Advisory #" + advisory + " Issued on " + advisory_dt_long + " CDT"
 statement = 'For Official Use Only. Not For Release. \rModel results were produced by the ADCIRC Surge Guidance System (ASGS) and are based on the National Hurricane Center (NHC) forecast track.'
 fouo = slide.placeholders[10]
@@ -64,6 +65,8 @@ numSlides = numSlides + 1
 
 left = Inches(0.42)
 top = Inches(1.15)
+iwidth = Inches(11.84)
+iheight = Inches(5.69)
 
 fnames = ['WSE_17StCanal_USACE85625.png','WSE_IHNC01_USACE76065.png','WSE_IHNC02_USACE76030.png',
         'WSE_LPV144_USACE76010.png','WSE_LPV149_USACE85760.png','WSE_NOV13_USACE01440.png',
@@ -86,7 +89,7 @@ for image in fnames:
         slide = prs.slides.add_slide(slide_layout_hydro)
         title = slide.shapes.title
         title.text = staName[i]
-        pic = slide.shapes.add_picture(image,left,top)
+        pic = slide.shapes.add_picture(image,left,top,width=iwidth,height=iheight)
         fouo = slide.placeholders[13]
         fouo.text = statement
         snum = slide.placeholders[14]
@@ -101,7 +104,7 @@ for image in fnames:
 #for slide in slides:
         #print('slide number %s' % str(slides.index(slide)+1))
 
-pptFile = storm + "_Adv" + advisory + "_" + advisoryTime + ".pptx"
+pptFile = storm + "_" + enstorm + "_Adv" + advisory + "_" + advisoryTime + ".pptx"
 prs.save(pptFile)
 pFile = open('pptFile.temp','w')
 pFile.write(pptFile)
