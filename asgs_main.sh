@@ -204,7 +204,7 @@ prep()
     THIS="asgs_main.sh>prep()"
 #
     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-    echo "time.adcprep.start : $DATETIME" >> ${STORMDIR}/run.properties
+    echo "time.adcprep.start : ${DATETIME}" >> ${STORMDIR}/run.properties
     # set the name of the archive of preprocessed input files
     PREPPED=$PREPPEDARCHIVE
     if [[ $START = coldstart ]]; then

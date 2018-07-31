@@ -15,7 +15,7 @@ colors = [0.9290 0.6940 0.1250; 175/255 54/255 60/255];
 fid = fopen('cpraHydro.info','r');
 info = textscan(fid,'%s\n');
 fclose(fid);
-storm = info{1}{1}; adcGrid = info{1}{2}; forecastValid = info{1}{3};
+storm = info{1}{1}; adcGrid = info{1}{3}; forecastValid = info{1}{4};
 
 %% 
 % -------------------------------------------------------------------------

@@ -8,20 +8,21 @@ from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE
 # Get command line argument
 fname = sys.argv[1]
 
-# Read parsed run.properties
-f = open('cpraHydro.info','r')
-info = f.readlines()
+# Read run.properties and make a property dictionary
+runProp = dict()
+f = open('run.properties','r')
+for line in f:
+    fields = line.split(':',1)
+    runProp[fields[0].strip()] = fields[1].strip() 
 f.close()
-storm=info[0].strip()
-enstorm=info[1].strip()
-grid=info[2].strip()
-advisoryTime=info[3].strip()
-coldStartTime=info[4].strip()
-advisory=info[5].strip()
 
 # Convert advisoryTime to python datetime object
-advisory_dt = datetime.strptime(advisoryTime,'%Y%m%d%H%M%S')
+advisory_dt = datetime.strptime(runProp['time.forecast.valid.cdt'],'%Y%m%d%H%M%S')
 advisory_dt_long = datetime.strftime(advisory_dt,'%b-%d-%Y %H:%M')
+
+scenario = runProp['asgs.enstorm']
+if [[ scenario == 'nhcConsensus' ]]:
+    scenario = 'NHC Track'
 
 prs = Presentation('LSU_template.pptx')
 
@@ -37,8 +38,9 @@ title_slide_layout = prs.slide_layouts[0]
 slide = prs.slides.add_slide(title_slide_layout)
 title = slide.shapes.title
 subtitle = slide.placeholders[1]
-title.text = "STORM " + storm + " (" + enstorm + ")"
-subtitle.text = "Advisory #" + advisory + " Issued on " + advisory_dt_long + " CDT"
+#title.text = "STORM " + storm + " (" + enstorm + ")"
+title.text = runProp['storm class'] + ' ' + runProp['storm name'] + ', ' + scenario + ' Scenario'
+subtitle.text = "Advisory " + runProp['advisory'] + " Issued on " + advisory_dt_long + " CDT"
 statement = 'For Official Use Only. Not For Release. \rModel results were produced by the ADCIRC Surge Guidance System (ASGS) and are based on the National Hurricane Center (NHC) forecast track.'
 fouo = slide.placeholders[10]
 fouo.text = statement
@@ -52,8 +54,8 @@ img_path = fname
 slide = prs.slides.add_slide(slide_layout)
 title = slide.shapes.title
 subtitle = slide.placeholders[1]
-title.text = "NHC Advisory 25 Consensus"
-subtitle.text = "Simulated maximum water level (ft, NAVD88)"
+title.text = 'NHC Advisory ' + runProp['advisory'] + ' ' + scenario + ' Scenario'
+subtitle.text = "Simulated peak water levels (ft, NAVD88)"
 pic = slide.shapes.add_picture(img_path,left,top)
 fouo = slide.placeholders[13]
 fouo.text = statement
@@ -104,7 +106,7 @@ for image in fnames:
 #for slide in slides:
         #print('slide number %s' % str(slides.index(slide)+1))
 
-pptFile = storm + "_" + enstorm + "_Adv" + advisory + "_" + advisoryTime + ".pptx"
+pptFile = runProp['storm name'] + "_Adv" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
 prs.save(pptFile)
 pFile = open('pptFile.temp','w')
 pFile.write(pptFile)
