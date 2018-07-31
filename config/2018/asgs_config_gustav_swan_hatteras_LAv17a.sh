@@ -109,9 +109,9 @@ GRIDNAME=LA_v17a-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=LA_v17a-WithUpperAtch.15.template   # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=combined_stations_20180525.txt
-VELSTATIONS=combined_stations_20180525.txt
-METSTATIONS=combined_stations_20180525.txt
+ELEVSTATIONS=combined_stations_20180611.txt
+VELSTATIONS=combined_stations_20180611.txt
+METSTATIONS=combined_stations_20180611.txt
 NAFILE=LA_v17a-WithUpperAtch.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=LA_v17a-WithUpperAtch.26.template   # only used if WAVES=on
@@ -179,7 +179,8 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
-ARCHIVE=enstorm_pedir_removal.sh
+#ARCHIVE=enstorm_pedir_removal.sh
+ARCHIVE=null_archive.sh
 ARCHIVEBASE=/projects/ncfs/data
 ARCHIVEDIR=archive
 
@@ -187,7 +188,7 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=4 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
@@ -197,9 +198,9 @@ case $si in
    ;;
 1)
    ENSTORM=nhcConsensusWind10m
-   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   ADCPREPWALLTIME="00:40:00"  # adcprep wall clock time, including partmesh
    CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
-   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   FORECASTWALLTIME="00:40:00" # forecast wall clock time
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0 
    NCPU=6                # dramatically reduced resource requirements
@@ -227,10 +228,10 @@ case $si in
    POSTPROCESS=null_post.sh
    ;;
 2)
-   ENSTORM=veerLeft100Wind10m
-   PERCENT=-100
-   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
-   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   ENSTORM=veerRight100Wind10m
+   PERCENT=100
+   ADCPREPWALLTIME="00:40:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:40:00" # forecast wall clock time
    CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0  
@@ -253,14 +254,14 @@ case $si in
    SPARSE=""
    NETCDF4="--netcdf4"
    OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
-   INTENDEDAUDIENCE=general
+   INTENDEDAUDIENCE=developers-only
    # prevent collisions in prepped archives
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
    ;;
 3)
-   ENSTORM=veerLeft100
-   PERCENT=-100
+   ENSTORM=veerRight100
+   PERCENT=100
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
