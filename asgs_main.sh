@@ -391,7 +391,7 @@ prep()
        # then try to use the SWAN subdomain hotstart files directly. 
        if [[ $WAVES = on && $HOTSWAN = on ]]; then
           logMessage "$ENSTORM: $THIS: Preparing SWAN hotstart file."
-          swanHotstartOK=false
+          swanHotstartOK=no
           # if archiving of the hotstart source run has started but is not
           # complete, wait until it is complete so that we don't 
           # accidentally ingest partially complete tar files or partially
@@ -420,7 +420,8 @@ prep()
                 warn "$ENSTORM: $THIS: The archiving process for the hotstart source run did not finish within $watiMinutesMax minutes. Attempting to collect SWAN hotstart files anyway."            
              fi
           fi
-          hotSubdomains=`sed -n 's/[ ^]*$//;s/hpc.ncpu\s*:\s*//p' $FROMDIR/run.properties`
+          hotSubdomains=`sed -n 's/[ ^]*$//;s/hpc.job.padcswan.ncpu\s*:\s*//p' $FROMDIR/run.properties`
+          logMessage "hotSubdomains is $hotSubdomains ; NCPU is $NCPU ; FROMDIR is $FROMDIR"
           if [[ $hotSubdomains = $NCPU ]]; then
              logMessage "$ENSTORM: $THIS: The number of subdomains is the same as hotstart source; subdomain SWAN hotstart files will be copied directly."
              # subdomain swan hotstart files
@@ -436,10 +437,10 @@ prep()
                    PE=`expr $PE + 1`
                 done
                 logMessage "$ENSTORM: $THIS: Completed copy of subdomain hotstart files."
-                swanHotstartOK=true
+                swanHotstartOK=yes
              fi
              # subdomain SWAN hotstart files in a tar archive
-             if [[ $swanHotstartOK = false ]]; then
+             if [[ $swanHotstartOK = no ]]; then
                 logMessage "$ENSTORM: $THIS: Could not copy subdomain SWAN hotstart files directly."
                 for suffix in tar tar.gz tar.bz2 ; do 
                    logMessage "$ENSTORM: $THIS: Looking for ${FROMDIR}/swan.67.${suffix}."
@@ -449,15 +450,15 @@ prep()
                       case $suffix in
                       tar)
                          tar xvf swan.68.${suffix} 2>> $SYSLOG 1>> untarswan.log
-                         if [[ $? == 0 ]]; then swanHotstartOK=true; fi
+                         if [[ $? == 0 ]]; then swanHotstartOK=yes ; fi
                          ;;
                       tar.gz)
                          tar xvzf swan.68.${suffix} 2>> $SYSLOG 1>> untarswan.log
-                         if [[ $? == 0 ]]; then swanHotstartOK=true; fi
+                         if [[ $? == 0 ]]; then swanHotstartOK=yes ; fi
                          ;;
                       tar.bz2)
                          tar xvjf swan.68.${suffix} 2>> $SYSLOG 1>> untarswan.log
-                         if [[ $? == 0 ]]; then swanHotstartOK=true; fi                         
+                         if [[ $? == 0 ]]; then swanHotstartOK=yes ; fi                         
                          ;;
                       *)
                          warn "$ENSTORM: $THIS: SWAN hotstart file archive $FROMDIR/swan.67.${suffix} unrecognized."
@@ -471,7 +472,7 @@ prep()
                    fi
                 done
              fi
-             if [[ $swanHotstartOK = false ]]; then
+             if [[ $swanHotstartOK = no ]]; then
                 logMessage "$ENSTORM: $THIS: Failed to obtain subdomain SWAN hotstart files."
              fi
           else
@@ -482,7 +483,7 @@ prep()
           # or is not appropriate because the number of subdomains in
           # this run is different from the hotstart source, try to 
           # decompose a fulldomain SWAN hotstart file
-          if [[ swanHotstartOK = false ]]; then
+          if [[ $swanHotstartOK = no ]]; then
              logMessage "$ENSTORM: $THIS: Decomposing fulldomain SWAN hotstart file."
              # fulldomain swan hotstart file or archive of subdomain
              # swan hotstart files
@@ -502,16 +503,20 @@ prep()
 swan.68
 F
 EOF
-                if [[ $? == 0 ]]; then swanHotstartOK=true; fi
+                if [[ $? == 0 ]]; then swanHotstartOK=yes ; fi
              fi
-             if [[ $swanHotstartOK = true ]]; then
+             if [[ $swanHotstartOK = yes ]]; then
                 logMessage "$ENSTORM: $THIS: Completed decomposition of fulldomain swan hotstart file."
              else
                 error "$ENSTORM: $THIS: Failed to obtain any swan hotstart file."              
              fi
           fi             
-       else
+       fi
+       if [[ $WAVES = off ]]; then
           logMessage "$ENSTORM: $THIS: SWAN coupling is not active."
+       fi
+       if [[ $WAVES = on && $HOTSWAN = off ]]; then
+          logMessage "$ENSTORM: $THIS: SWAN coupling is active but SWAN hotstart files are not available in $FROMDIR. SWAN will be cold started."
        fi
     fi
     # if we don't have an archive of our preprocessed files, create
