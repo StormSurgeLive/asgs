@@ -36,7 +36,7 @@ STORMDIR=`sed -n 's/[ ^]*$//;s/asgs.path.stormdir\s*:\s*//p' run.properties`
 fname=`sed -n 's/[ ^]*$//;s/post.file.cpra.post.maxele.fname\s*:\s*//p' run.properties`
 coldStartTime=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' run.properties`
 # Parse run.properties to get storm name and ensemble
-storm=`sed -n 's/[ ^]*$//;s/storm class\s*:\s*//p' run.properties`
+storm=`sed -n 's/[ ^]*$//;s/storm name\s*:\s*//p' run.properties`
 enstorm=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
 # Parse run.properties to get advisory
 advisory=`sed -n 's/[ ^]*$//;s/advisory\s*:\s*//p' run.properties`
@@ -48,8 +48,10 @@ grid=`sed -n 's/[ ^]*$//;s/adcirc.gridname\s*:\s*//p' run.properties`
 # create strings to represent time in UTC and CDT
 coldStartTimeUTC="${coldStartTime:0:8} ${coldStartTime:8:4} UTC"
 coldStartTimeCDT=$(TZ="America/Chicago" date -d "${coldStartTimeUTC}" "+%Y-%m-%d %H:%M:%S")
+echo "time.coldstart.cdt : $coldStartTimeCDT" >> run.properties
 forecastValidStartUTC="${forecastValidStart:0:8} ${forecastValidStart:8:4} UTC"
 forecastValidStartCDT=$(TZ="America/Chicago" date -d "${forecastValidStartUTC}" "+%Y%m%d%H%M%S")
+echo "time.forecast.valid.cdt : $forecastValidStartCDT" >> run.properties
 #--------------------------------------------------------------------------
 #
 #
@@ -58,7 +60,7 @@ forecastValidStartCDT=$(TZ="America/Chicago" date -d "${forecastValidStartUTC}" 
 #--------------------------------------------------------------------------
 oFile=cpraHydro.info
 echo $storm > $oFile
-echo $enstorm > $oFile
+echo $enstorm >> $oFile
 echo $grid >> $oFile
 echo $forecastValidStartCDT >> $oFile
 echo $coldStartTimeCDT >> $oFile
