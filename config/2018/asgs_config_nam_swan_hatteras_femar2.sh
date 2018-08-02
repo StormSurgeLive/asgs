@@ -61,7 +61,7 @@ NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=508                    # number of compute CPUs for all simulations
 NUMWRITERS=1
-NCPUCAPACITY=512
+NCPUCAPACITY=2000
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=null
 SERQUEUE=null
@@ -201,7 +201,7 @@ case $si in
    CONTROLTEMPLATE=FEMA_R2.noswanrefrac.nowindreduction.fort.15.template  # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0    # 5 minute time steps
-   NCPU=2                # dramatically reduced resource requirements
+   NCPU=6                # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output

@@ -113,6 +113,9 @@ fi
 # delete subdomain directories
 wait 
 #
+# archive the subdomain fort.16 log files
+tar cvjf fort.16.tar.bz2 ./PE*/fort.16 2>> $LOGFILE 2>&1
+#
 #
 # pull in platform-specific value for the command used to remove directories
 # (some platforms have a special command that is nicer for their filesystem)
