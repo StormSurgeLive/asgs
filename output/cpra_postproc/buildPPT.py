@@ -90,7 +90,7 @@ staName = ['17th St. Outfall Canal','Seabrook Complex (IHNC01)','IHNC Surge Barr
         'Bayou Dupre Sector Gate (LPV144)','Caernarvon Canal Sector Gate (LPV149)',
         'Empire Floodgate (NOV13)','Empire Lock (NOV14)','Oakville Sluice Gate (WBV09a)',
         'Hero Canal stop-log gage (WBV09b)','Bayou Segnetee closure (WBV162)',
-        'Western Tie-In features (WBV7472)','West Closure Complex (WBV90)',
+        'Western Tie-In features (WBV7274)','West Closure Complex (WBV90)',
         'Lakefront Airport','Mandeville','Rigolets','Lafitte']
 
 i = 0
