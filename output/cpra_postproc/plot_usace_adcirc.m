@@ -250,7 +250,7 @@ for f = 1:adcData(1).NumStations
 % -------------------------------------------------------------------------
     
     title1 = strcat('Storm:',storm,' - grid:',adcGrid);
-    title2 = strcat(cpraStationNames(cpraStationIndex),'  -  USACE Gage ID ',stations(cpraStationIndex));
+    title2 = strcat(cpraStationNames(cpraStationIndex),'  -  USACE Gage ID:',stations(cpraStationIndex));
     
     text(0,1.07,title1,'Units','normalized','Interpreter','None');
     text(0,1.03,title2,'Units','normalized','Interpreter','None');
