@@ -73,8 +73,6 @@ init_queenbee()
   module load gcc
   module load matlab/r2015b
   module load python/2.7.12-anaconda-tensorflow
-  # alias cdwo='cd /work/jgflemin'
-  # alias cdasgs='cd ~/asgs/2014stable'
 }
 init_arete()
 { #<- can replace the following with a custom script
