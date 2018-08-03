@@ -53,4 +53,4 @@ env_dispatch ${TARGET}
 #
 # the pedir_removal.sh script recomposes a fulldomain swan hotstart file
 # from the subdomain swan hotstart files
-${SCRIPTDIR}/archive/enstorm_pedir_removal.sh -e hatteras -h ${ADCIRCDIR}/../swan 2>> $SYSLOG
+${SCRIPTDIR}/archive/enstorm_pedir_removal.sh -e hatteras -h ${ADCIRCDIR}/../swan -c 2>> $SYSLOG
