@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2006--2016 Jason Fleming
+# Copyright(C) 2006--2017 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade 
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -28,69 +28,65 @@
 #
 # Fundamental 
 #
-INSTANCENAME=dailyv6d      # name of this ASGS process
-#COLDSTARTDATE=2016090400
-#COLDSTARTDATE=2017010100
-#COLDSTARTDATE=2017012400
-#COLDSTARTDATE=2017070900
-#COLDSTARTDATE=2017121500
-#COLDSTARTDATE=2018020900
+INSTANCENAME=032018hiresr       # name of this ASGS process, to differentiate results
 COLDSTARTDATE=2018022100
-#
-HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
-LASTSUBDIR=null
-HINDCASTLENGTH=30.0        # length of initial hindcast, from cold (days)
+HOTORCOLD=hotstart       # "hotstart" or "coldstart" 
+LASTSUBDIR=/projects/ncfs/data/asgs15957/2018070706
+HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
 ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables 
-SCRIPTDIR=~/asgs/2014stable        # ASGS scripts/executables  
-INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v6b   # dir containing grid and other input files 
+SCRIPTDIR=~/asgs/2014stable     # ASGS scripts/executables  
+INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v9.99_w_rivers # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on     # [de]activate NAM download/forcing 
+BACKGROUNDMET=off    # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
-TROPICALCYCLONE=off  # [de]activate tropical cyclone forcing (temp. broken)
-WAVES=on            # [de]activate wave forcing 
+TROPICALCYCLONE=on   # [de]activate tropical cyclone forcing (temp. broken)
+WAVES=on             # [de]activate wave forcing 
 VARFLUX=on           # [de]activate variable river flux forcing
 
 # Computational Resources
 
 TIMESTEPSIZE=0.5
 SWANDT=1200
-HINDCASTWALLTIME="24:00:00"
+HINDCASTWALLTIME="12:00:00"
 ADCPREPWALLTIME="01:15:00"
 NOWCASTWALLTIME="05:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=159
+NCPU=619
+NCPUCAPACITY=640
 NUMWRITERS=1
-NCPUCAPACITY=500
 CYCLETIMELIMIT="05:00:00"
 # queue
 QUEUENAME=null
 SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
+ACCOUNT=batch # or "ncfs" on hatteras to use pre-empt capability
 PARTITION=ncfs
-RESERVATION=null
-CONSTRAINT='sandybridge&hatteras' # sandybridge=512wide max, ivybridge=640wide max
+RESERVATION=ncfs
+CONSTRAINT=null
 
 # External data sources : Tropical cyclones
 
-STORM=12  # storm number, e.g. 05=ernesto in 2006 
-YEAR=2013 # year of the storm (useful for historical storms) 
-TRIGGER=rssembedded    # either "ftp" or "rss"
-RSSSITE=www.nhc.noaa.gov 
+STORM=03  # storm number, e.g. 05=ernesto in 2006 
+YEAR=2018 # year of the storm (useful for historical storms) 
+TRIGGER=rssembedded       # either "ftp" or "rss"
+#RSSSITE=www.nhc.noaa.gov 
+RSSSITE=filesystem
 FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files
-FDIR=/atcf/afst     # forecast dir on nhc ftp site 
-HDIR=/atcf/btk      # hindcast dir on nhc ftp site 
+#FDIR=/atcf/afst          # forecast dir on nhc ftp site 
+FDIR=/home/ncfs/asgs/2014stable/input/sample_advisories/2018 # forecast dir on nhc ftp site 
+HDIR=/atcf/btk            # hindcast dir on nhc ftp site 
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="00,12"
+FORECASTCYCLE="06,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -109,17 +105,17 @@ RIVERDATAPROTOCOL=scp
 
 # Input files and templates
 
-GRIDFILE=nc_inundation_v6d_rivers_msl.grd
-GRIDNAME=nc6b  # @jasonfleming 20170814: should be nc6d
+GRIDFILE=nc_inundation_v9.99a_w_rivers.grd
+GRIDNAME=nc_inundation_v9.99_w_rivers
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=v6brivers_explicit_rlevel51_fort.15_template
-CONTROLPROPERTIES=v6brivers_fort.15.properties
-ELEVSTATIONS=v6brivers_elev_stations.txt
-VELSTATIONS=null
-METSTATIONS=v6brivers_met_stations.txt
-NAFILE=v6brivers_rlevel.13
+CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
+CONTROLPROPERTIES=fort.15.properties
+ELEVSTATIONS=ncv999_combined_station_list_cera.20161105_ncem20180329.txt
+VELSTATIONS=ncv999_combined_station_list_cera.20161105_ncem20180329.txt
+METSTATIONS=ncv999_combined_station_list_cera.20161105_ncem20180329.txt
+NAFILE=nc_inundation_v9.99_rivers.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=fort.26.v6b.template
+SWANTEMPLATE=fort.26.template
 RIVERINIT=v6brivers.88
 RIVERFLUX=v6brivers_fort.20_default
 HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
@@ -154,12 +150,12 @@ MINMAX=reset
 # Notification
 
 EMAILNOTIFY=yes # set to yes to have host platform email notifications
-NOTIFY_SCRIPT=ncfs_nam_notify.sh
-ACTIVATE_LIST=""
-NEW_ADVISORY_LIST=""
-POST_INIT_LIST=""
-POST_LIST=""
-JOB_FAILED_LIST="jason.g.fleming@gmail.com"
+NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
+ACTIVATE_LIST=null
+NEW_ADVISORY_LIST=null
+POST_INIT_LIST=null
+POST_LIST=null
+JOB_FAILED_LIST=jason.g.fleming@gmail.com
 NOTIFYUSER=jason.g.fleming@gmail.com
 ASGSADMIN=jason.g.fleming@gmail.com
 
@@ -178,7 +174,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
@@ -196,21 +192,15 @@ case $si in
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=namforecast
-   RESERVATION=null
-   PARTITION=ncfs
-   CONSTRAINT='sandybridge&hatteras'
+   ENSTORM=nhcConsensus
    ;;
 1)
-   ENSTORM=namforecastWind10m
-   RESERVATION=null
-   PARTITION=ncfs
-   CONSTRAINT='sandybridge&hatteras'
+   ENSTORM=nhcConsensusWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=v6brivers_explicit_rlevel51.nowindreduction.fort.15_template
+   CONTROLTEMPLATE=nc_9.99wrivers.nowindreduction.fort.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-   TIMESTEPSIZE=300.0    # 5 minute time steps
+   TIMESTEPSIZE=300.0   # 5 minute time steps
    NCPU=15               # so total cpus match with other ensemble members
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
@@ -238,3 +228,4 @@ case $si in
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
    ;;
 esac
+

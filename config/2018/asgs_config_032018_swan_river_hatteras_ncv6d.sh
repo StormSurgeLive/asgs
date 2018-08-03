@@ -28,17 +28,10 @@
 #
 # Fundamental 
 #
-INSTANCENAME=dailyv6d      # name of this ASGS process
-#COLDSTARTDATE=2016090400
-#COLDSTARTDATE=2017010100
-#COLDSTARTDATE=2017012400
-#COLDSTARTDATE=2017070900
-#COLDSTARTDATE=2017121500
-#COLDSTARTDATE=2018020900
+INSTANCENAME=032018v6d      # name of this ASGS process
 COLDSTARTDATE=2018022100
-#
-HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
-LASTSUBDIR=null
+HOTORCOLD=hotstart        # "hotstart" or "coldstart" 
+LASTSUBDIR=/projects/ncfs/data/asgs15861/2018070706
 HINDCASTLENGTH=30.0        # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
@@ -52,10 +45,10 @@ PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on     # [de]activate NAM download/forcing 
+BACKGROUNDMET=off    # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
-TROPICALCYCLONE=off  # [de]activate tropical cyclone forcing (temp. broken)
-WAVES=on            # [de]activate wave forcing 
+TROPICALCYCLONE=on   # [de]activate tropical cyclone forcing (temp. broken)
+WAVES=on             # [de]activate wave forcing 
 VARFLUX=on           # [de]activate variable river flux forcing
 
 # Computational Resources
@@ -76,16 +69,17 @@ SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
 PARTITION=ncfs
 RESERVATION=null
-CONSTRAINT='sandybridge&hatteras' # sandybridge=512wide max, ivybridge=640wide max
+CONSTRAINT=null # sandybridge=512wide max, ivybridge=640wide max
 
 # External data sources : Tropical cyclones
 
-STORM=12  # storm number, e.g. 05=ernesto in 2006 
-YEAR=2013 # year of the storm (useful for historical storms) 
-TRIGGER=rssembedded    # either "ftp" or "rss"
-RSSSITE=www.nhc.noaa.gov 
+STORM=03  # storm number, e.g. 05=ernesto in 2006 
+YEAR=2018 # year of the storm (useful for historical storms) 
+TRIGGER=rssembedded
+#RSSSITE=www.nhc.noaa.gov 
+RSSSITE=filesystem
+FDIR=~/asgs/2014stable/input/sample_advisories/2018    # forecast dir on nhc ftp site 
 FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files
-FDIR=/atcf/afst     # forecast dir on nhc ftp site 
 HDIR=/atcf/btk      # hindcast dir on nhc ftp site 
 
 # External data sources : Background Meteorology
@@ -154,7 +148,7 @@ MINMAX=reset
 # Notification
 
 EMAILNOTIFY=yes # set to yes to have host platform email notifications
-NOTIFY_SCRIPT=ncfs_nam_notify.sh
+NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 ACTIVATE_LIST=""
 NEW_ADVISORY_LIST=""
 POST_INIT_LIST=""
@@ -196,16 +190,10 @@ case $si in
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=namforecast
-   RESERVATION=null
-   PARTITION=ncfs
-   CONSTRAINT='sandybridge&hatteras'
+   ENSTORM=nhcConsensus
    ;;
 1)
-   ENSTORM=namforecastWind10m
-   RESERVATION=null
-   PARTITION=ncfs
-   CONSTRAINT='sandybridge&hatteras'
+   ENSTORM=nhcConsensusWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=v6brivers_explicit_rlevel51.nowindreduction.fort.15_template
