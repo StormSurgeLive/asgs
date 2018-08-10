@@ -18,15 +18,14 @@ cd %stormdir%
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 echo "[${DATETIME}] INFO: %jobtype%.slurm: Executing %jobtype%.%enstorm% in %stormdir% with SLURM Job ID ${SLURM_JOBID}; SLURM submit directory ${SLURM_SUBMIT_DIR}; and SLURM submit host ${SLURM_SUBMIT_HOST}." | tee --append %syslog% %jobtype%.%enstorm%.run.start
 # job properties
-echo "time.%jobtype%.start : $DATETIME" >> run.properties
-echo "hpc.job.%jobtype%.slurm_jobid : ${SLURM_JOBID}" >> run.properties
+echo "time.%jobtype%.${SLURM_JOBID}.start : $DATETIME" >> run.properties
 #
 hostname | tee CONTROL.TXT
 echo "Job Run on Nodes"  | tee --append CONTROL.TXT
 echo "----------------"  | tee --append CONTROL.TXT
 echo $SLURM_JOB_NODELIST | tee --append CONTROL.TXT
 echo "----------------"  | tee --append CONTROL.TXT
-#
+echo "hpc.slurm.job.%jobtype%.${SLURM_JOBID}.slurm_job_nodelist : $SLURM_JOB_NODELIST" >> run.properties
 #----------------------------------------------------------------------------
 #                      L O A D   M O D U L E S
 #----------------------------------------------------------------------------
@@ -82,5 +81,4 @@ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 if [ $ERROVALUE == 1 ]; then
    echo "[${DATETIME}] ERROR: %jobtype%.slurm: $ERROMSG" | tee --append %syslog% %jobtype%.%enstorm%.run.${RUNSUFFIX}
 fi
-echo "time.%jobtype%.${RUNSUFFIX} : $DATETIME" >> run.properties
-
+echo "time.%jobtype%.${SLURM_JOBID}.${RUNSUFFIX} : $DATETIME" >> run.properties

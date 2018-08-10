@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=dailyfemar3    # "name" of this ASGS process
-COLDSTARTDATE=2018061206  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2018070900  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null           # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
@@ -48,7 +48,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=on     # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=off  # tropical cyclone forcing
-WAVES=on             # wave forcing
+WAVES=off            # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
@@ -59,10 +59,10 @@ HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
-NCPU=508                    # number of compute CPUs for all simulations
-NUMWRITERS=1
-NCPUCAPACITY=2000
-CYCLETIMELIMIT="05:00:00"
+NCPU=496                    # number of compute CPUs for all simulations
+NUMWRITERS=16
+NCPUCAPACITY=640
+CYCLETIMELIMIT="99:00:00"
 QUEUENAME=null
 SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data
@@ -108,9 +108,9 @@ GRIDNAME=FEMAR3
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=FEMA_R3_fort.15.template  # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=FEMA_R3_elevstations_20180712.txt
-VELSTATIONS=FEMA_R3_velstations_20180712.txt
-METSTATIONS=FEMA_R3_metstations_20180712.txt
+ELEVSTATIONS=cera_stations_20180810.txt
+VELSTATIONS=cera_stations_20180810.txt
+METSTATIONS=cera_stations_20180810.txt
 NAFILE=FEMA_R3_20110303_MSL.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
@@ -186,22 +186,24 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=10 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
-0)
-   ENSTORM=namforecast
-   ;;
 1)
+   ENSTORM=namforecast
+   CONSTRAINT=ivybridge
+   ;;
+0)
    ENSTORM=namforecastWind10m
+   CONSTRAINT=ivybridge
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=FEMA_R3_nowindreduction_fort.15.template  # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0    # 5 minute time steps
-   NCPU=6                # dramatically reduced resource requirements
+   NCPU=15               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output
@@ -223,6 +225,70 @@ case $si in
    INTENDEDAUDIENCE=developers-only
    # prevent collisions in prepped archives
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   POSTPROCESS=null_post.sh
+   ;;
+2)
+   ENSTORM=namforecast496Ivybridge0
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   CONSTRAINT=ivybridge
+   NUMWRITERS=0
+   NCPU=512
+   POSTPROCESS=null_post.sh
+   ;;
+3)
+   ENSTORM=namforecast496Ivybridge1
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   CONSTRAINT=ivybridge
+   NUMWRITERS=1
+   NCPU=511
+   POSTPROCESS=null_post.sh
+   ;;
+4)
+   ENSTORM=namforecast496Ivybridge4
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   CONSTRAINT=ivybridge
+   NUMWRITERS=4
+   NCPU=508
+   POSTPROCESS=null_post.sh
+   ;;
+5)
+   ENSTORM=namforecast496Ivybridge16
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   CONSTRAINT=ivybridge
+   NUMWRITERS=16
+   NCPU=496
+   POSTPROCESS=null_post.sh
+   ;;
+6)
+   ENSTORM=namforecast496Sandybridge0
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   CONSTRAINT=sandybridge
+   NUMWRITERS=0
+   NCPU=512
+   POSTPROCESS=null_post.sh
+   ;;
+7)
+   ENSTORM=namforecast496Sandybridge1
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   CONSTRAINT=sandybridge
+   NUMWRITERS=1
+   NCPU=511
+   POSTPROCESS=null_post.sh
+   ;;
+8)
+   ENSTORM=namforecast496Sandybridge4
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   CONSTRAINT=sandybridge
+   NUMWRITERS=4
+   NCPU=508
+   POSTPROCESS=null_post.sh
+   ;;
+9)
+   ENSTORM=namforecast496Sandybridge16
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   CONSTRAINT=sandybridge
+   NUMWRITERS=16
+   NCPU=496
    POSTPROCESS=null_post.sh
    ;;
 *)
