@@ -229,66 +229,66 @@ case $si in
    ;;
 2)
    ENSTORM=namforecast496Ivybridge0
+   NCPU=512
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    CONSTRAINT=ivybridge
    NUMWRITERS=0
-   NCPU=512
    POSTPROCESS=null_post.sh
    ;;
 3)
    ENSTORM=namforecast496Ivybridge1
+   NCPU=511
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    CONSTRAINT=ivybridge
    NUMWRITERS=1
-   NCPU=511
    POSTPROCESS=null_post.sh
    ;;
 4)
    ENSTORM=namforecast496Ivybridge4
+   NCPU=508
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    CONSTRAINT=ivybridge
    NUMWRITERS=4
-   NCPU=508
    POSTPROCESS=null_post.sh
    ;;
 5)
    ENSTORM=namforecast496Ivybridge16
+   NCPU=496
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    CONSTRAINT=ivybridge
    NUMWRITERS=16
-   NCPU=496
    POSTPROCESS=null_post.sh
    ;;
 6)
    ENSTORM=namforecast496Sandybridge0
+   NCPU=512
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    CONSTRAINT=sandybridge
    NUMWRITERS=0
-   NCPU=512
    POSTPROCESS=null_post.sh
    ;;
 7)
    ENSTORM=namforecast496Sandybridge1
+   NCPU=511
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    CONSTRAINT=sandybridge
    NUMWRITERS=1
-   NCPU=511
    POSTPROCESS=null_post.sh
    ;;
 8)
    ENSTORM=namforecast496Sandybridge4
+   NCPU=508
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    CONSTRAINT=sandybridge
    NUMWRITERS=4
-   NCPU=508
    POSTPROCESS=null_post.sh
    ;;
 9)
    ENSTORM=namforecast496Sandybridge16
+   NCPU=496
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    CONSTRAINT=sandybridge
    NUMWRITERS=16
-   NCPU=496
    POSTPROCESS=null_post.sh
    ;;
 *)
