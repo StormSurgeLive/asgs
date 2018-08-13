@@ -165,6 +165,23 @@ init_stampede()
   module load netcdf/4.3.2
   #jgf20150610: Most likely QUEUENAME=normal SERQUEUENAME=serial
 }
+init_stampede2()
+{ #<- can replace the following with a custom script
+  HOSTNAME=stampede2.tacc.utexas.edu
+  QUEUESYS=SLURM
+  QCHECKCMD=sacct
+  ACCOUNT=PleaseSpecifyACCOUNTInYourAsgsConfigFile
+  SUBMITSTRING=sbatch
+  SCRATCHDIR=$SCRATCH
+  SSHKEY=~/.ssh/id_rsa_stampede
+  QSCRIPT=stampede2.template.slurm
+  PREPCONTROLSCRIPT=stampede2.adcprep.template.slurm
+  QSCRIPTGEN=stampede2.slurm.pl
+  PPN=48
+  GROUP="G-803086"
+  module load netcdf/4.3.3.1
+  module load hdf5/1.8.16
+}
 init_kittyhawk()
 { #<- can replace the following with a custom script
   HOSTNAME=kittyhawk.renci.org
@@ -450,10 +467,11 @@ init_tacc_tds()
    OPENDAPHOST=adcircvis.tacc.utexas.edu
    DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer/asgs"
    CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog/asgs"
-   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS/2017
+   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS/2018
    SSHPORT=null
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
-   COPYABLEHOSTS=(lonestar lonestar.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+   #COPYABLEHOSTS=(lonestar lonestar.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+   COPYABLEHOSTS=(stampede stampede.tacc.utexas.edu stampede2 stampede2.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
 }
 init_test()
 { #<- can replace the following with a custom script
@@ -535,6 +553,9 @@ env_dispatch(){
           ;;
   "stampede") consoleMessage "platforms.sh: Stampede (TACC) configuration found."
           init_stampede
+          ;;
+  "stampede2") consoleMessage "platforms.sh: Stampede2 (TACC) configuration found."
+          init_stampede2
           ;;
   "arete") consoleMessage "platforms.sh: Arete (CCT) configuration found."
           init_arete
