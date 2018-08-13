@@ -71,8 +71,8 @@ init_queenbee()
   module load netcdf
   module load netcdf_fortran
   module load gcc
-  # alias cdwo='cd /work/jgflemin'
-  # alias cdasgs='cd ~/asgs/2014stable'
+  module load matlab/r2015b
+  module load python/2.7.12-anaconda-tensorflow
 }
 init_arete()
 { #<- can replace the following with a custom script
@@ -141,11 +141,13 @@ init_hatteras()
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=hatteras.template.slurm
   PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
-  RESERVATION=ncfs     # ncfs or null
-  PARTITION=ncfs       # ncfs or batch
+  RESERVATION=ncfs     # ncfs or null, this causes job to run on dedicated cores
+  PARTITION=ncfs       # ncfs or batch, this gives priority
   CONSTRAINT=ivybridge # ivybridge or sandybridge
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=20
+  module load python_modules/2.7
+  module load matlab/2017b
 }
 init_stampede()
 { #<- can replace the following with a custom script
@@ -423,8 +425,8 @@ init_topsail()
 init_renci_tds()
 {
    OPENDAPHOST=ht4.renci.org
-   DOWNLOADPREFIX="http://opendap.renci.org:1935/thredds/fileServer"
-   CATALOGPREFIX="http://opendap.renci.org:1935/thredds/catalog"
+   DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer"
+   CATALOGPREFIX="http://tds.renci.org:8080/thredds/catalog"
    OPENDAPBASEDIR=/projects/ncfs/opendap/data
    SSHPORT=22
    LINKABLEHOSTS=(hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
