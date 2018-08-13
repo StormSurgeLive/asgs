@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 04 Oct 2017 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression SIXTEEN Forecast/Advisory Number 2</title>
+      <description>Issued at 2100 UTC WED OCT 04 2017 <![CDATA[<pre>
+ZCZC MIATCMAT1 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL DEPRESSION SIXTEEN FORECAST/ADVISORY NUMBER   2
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL162017
+2100 UTC WED OCT 04 2017
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+NONE
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* SANDY BAY SIRPI NICARAGUA TO PUNTA CASTILLA HONDURAS
+
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA... IN THIS CASE WITHIN
+12-24 HOURS.
+
+INTERESTS ELSEWHERE IN HONDURAS... THE BAY ISLANDS... WESTERN CUBA
+AND THE YUCATAN PENINSULA SHOULD MONITOR THE PROGRESS OF THE
+DEPRESSION.  A HURRICANE WATCH COULD BE ISSUED FOR A PORTION OF THE
+YUCATAN PENINSULA THIS EVENING.
+
+TROPICAL DEPRESSION CENTER LOCATED NEAR 12.5N  82.5W AT 04/2100Z
+POSITION ACCURATE WITHIN  20 NM
+
+PRESENT MOVEMENT TOWARD THE NORTHWEST OR 315 DEGREES AT   6 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1005 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 12.5N  82.5W AT 04/2100Z
+AT 04/1800Z CENTER WAS LOCATED NEAR 12.3N  82.3W
+
+FORECAST VALID 05/0600Z 13.2N  83.1W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 30NE  30SE   0SW  20NW.
+
+FORECAST VALID 05/1800Z 14.6N  83.8W...INLAND
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 30NE  30SE   0SW  20NW.
+
+FORECAST VALID 06/0600Z 16.7N  84.6W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 20NE   0SE   0SW   0NW.
+34 KT... 60NE  60SE  30SW  40NW.
+
+FORECAST VALID 06/1800Z 19.5N  85.8W
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 30NE  20SE  20SW  20NW.
+34 KT...100NE  70SE  30SW  50NW.
+
+FORECAST VALID 07/1800Z 25.0N  88.0W
+MAX WIND  75 KT...GUSTS  90 KT.
+50 KT... 40NE  30SE  20SW  30NW.
+34 KT...120NE  90SE  50SW  60NW.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 200 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 08/1800Z 30.5N  86.0W...INLAND
+MAX WIND  65 KT...GUSTS  80 KT.
+
+OUTLOOK VALID 09/1800Z 35.5N  82.0W...POST-TROP/INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 12.5N  82.5W
+
+NEXT ADVISORY AT 05/0300Z
+
+$$
+FORECASTER BLAKE
+
+</pre>]]></description>
+      <pubDate>Wed, 04 Oct 2017 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2017/16/02.162017.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2017/16/02.162017.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
