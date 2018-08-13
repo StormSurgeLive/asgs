@@ -34,7 +34,8 @@ INSTANCENAME=dailyv6d      # name of this ASGS process
 #COLDSTARTDATE=2017012400
 #COLDSTARTDATE=2017070900
 #COLDSTARTDATE=2017121500
-COLDSTARTDATE=2018022100
+#COLDSTARTDATE=2018022100
+COLDSTARTDATE=2018052700
 HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0        # length of initial hindcast, from cold (days)
@@ -42,7 +43,7 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables 
+ADCIRCDIR=~/adcirc/forks/adcirc/v53release/work # ADCIRC executables 
 SCRIPTDIR=~/asgs/2014stable        # ASGS scripts/executables  
 INPUTDIR=${SCRATCHDIR}/asgs/2014stable/input/meshes/nc_v6b   # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
@@ -62,7 +63,7 @@ TIMESTEPSIZE=0.5
 SWANDT=1200
 HINDCASTWALLTIME="24:00:00"
 ADCPREPWALLTIME="00:15:00"
-NOWCASTWALLTIME="05:00:00"  # must have leading zero, e.g., 05:00:00
+NOWCASTWALLTIME="08:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
 NCPU=159
 NUMWRITERS=1
@@ -70,7 +71,7 @@ NCPUCAPACITY=500
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=workq
 SERQUEUE=single
-ACCOUNT=loni_cera_2018
+ACCOUNT=loni_cera_2018a
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones
@@ -173,7 +174,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="jason.g.fleming@gmail.com"
 
 # Archiving
 

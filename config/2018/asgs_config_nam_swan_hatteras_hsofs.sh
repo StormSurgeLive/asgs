@@ -67,7 +67,7 @@ QUEUENAME=null
 SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data
 PARTITION=ncfs
-RESERVATION=ncfs
+RESERVATION=null
 CONSTRAINT=ivybridge
 
 # External data sources : Tropical cyclones
@@ -87,7 +87,7 @@ HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="00,12"
+FORECASTCYCLE="06,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -108,9 +108,9 @@ GRIDNAME=hsofs
 MESHPROPERTIES=${GRIDFILE}.nc.properties
 CONTROLTEMPLATE=hsofs.15.template  # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=hsofs.combined_station_list_20180329.txt
-VELSTATIONS=hsofs.combined_station_list_20180329.txt
-METSTATIONS=hsofs.combined_station_list_20180329.txt
+ELEVSTATIONS=hsofs.combined_station_list_20180525.txt
+VELSTATIONS=hsofs.combined_station_list_20180525.txt
+METSTATIONS=hsofs.combined_station_list_20180525.txt
 NAFILE=hsofs.13
 NAPROPERTIES=${NAFILE}.properties
 #SWANTEMPLATE=fort.26.template # only used if WAVES=on

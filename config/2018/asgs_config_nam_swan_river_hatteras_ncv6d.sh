@@ -178,7 +178,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="jason.g.fleming@gmail.com"
 
 # Archiving
 
@@ -208,7 +208,7 @@ case $si in
    CONSTRAINT='sandybridge&hatteras'
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=nv6brivers_explicit_rlevel51.nowindreduction.fort.15_template
+   CONTROLTEMPLATE=v6brivers_explicit_rlevel51.nowindreduction.fort.15_template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0    # 5 minute time steps
    NCPU=15               # so total cpus match with other ensemble members

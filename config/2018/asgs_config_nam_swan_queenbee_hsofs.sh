@@ -64,10 +64,13 @@ NCPUCAPACITY=3648
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=workq
 SERQUEUE=single
-#QUEUENAME=admin
-#SERQUEUE=admin
+#QUEUENAME=priority
+#SERQUEUE=priority
+if [[ $SERQUEUE = priority ]]; then
+   PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
+fi
 SCRATCHDIR=/work/$USER
-ACCOUNT=loni_cera_2018
+ACCOUNT=loni_cera_2018a
 
 # External data sources : Tropical cyclones
 
@@ -106,9 +109,9 @@ GRIDNAME=hsofs
 MESHPROPERTIES=${GRIDFILE}.ng.properties     
 CONTROLTEMPLATE=hsofs_explicit.15.template  # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=hsofs.combined_station_list_20180329.txt
-VELSTATIONS=hsofs.combined_station_list_20180329.txt
-METSTATIONS=hsofs.combined_station_list_20180329.txt
+ELEVSTATIONS=hsofs.combined_station_list_20180525.txt
+VELSTATIONS=hsofs.combined_station_list_20180525.txt
+METSTATIONS=hsofs.combined_station_list_20180525.txt
 NAFILE=hsofs.13
 NAPROPERTIES=${NAFILE}.properties
 #SWANTEMPLATE=fort.26.template # only used if WAVES=on

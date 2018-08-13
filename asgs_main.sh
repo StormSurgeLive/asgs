@@ -383,6 +383,9 @@ prep()
 
        if [[ $WAVES = on && $HOTSWAN = on ]]; then
           # subdomain swan hotstart file
+          # FIXME: what if this subdomain swan hotstart file is
+          # present but there are a different number of subdomains 
+          # between different runs??
           if [[ -e $FROMDIR/PE0000/swan.67 ]]; then
              logMessage "$ENSTORM: $THIS: Starting copy of subdomain swan hotstart files."
              # copy the subdomain hotstart files over
@@ -424,7 +427,7 @@ prep()
                 done
              fi
              if [[ -e  swan.68 ]]; then
-                logMessage "$ENSTORM: $THIS: Starting dcomposition of fulldomain swan hotstart file to subdomains."
+                logMessage "$ENSTORM: $THIS: Starting decomposition of fulldomain swan hotstart file to subdomains."
                 ${ADCIRCDIR}/../swan/unhcat.exe <<EOF 2>> ${SYSLOG}
 2
 swan.68
@@ -1641,12 +1644,17 @@ while [ true ]; do
                ln -s $file fort.${ext} 2>> ${SYSLOG} # symbolically link data
             fi
          done
-      ;;
+         ;;
+     off)
+        # don't need to download any data
+        ;;
      *) # should be unreachable
         fatal "BACKGROUNDMET did not match an allowable value."
-      ;;
+        ;;
    esac
-   CONTROLOPTIONS=" --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+   if [[ $BACKGROUNDMET != off ]]; then
+      CONTROLOPTIONS="$CONTROLOPTIONS --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+   fi
    # send out an email alerting end users that a new cycle has been issued
    cycleStartTime=`date +%s`  # epoch seconds
    ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORM $YEAR $NOWCASTDIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
