@@ -20,32 +20,23 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------------
 from optparse import OptionParser
+import re
 #
-inputPropertiesFile = "run.properties"
-outputPropertiesFile = "run.properties"
+propertiesFile = "run.properties"
 #
 #     C O M M A N D   L I N E   O P T I O N S
 #
 parser = OptionParser()
-# property key
-parser.add_option("-p", "--property", dest="prop")
-# property value
-parser.add_option("-v", "--value", dest="value", default="null")            
+# FIXME: add ability to search for runid
+# jobtype
+parser.add_option("-j", "--jobtype", dest="jobtype")
 # path to run.properties file (optional)
 parser.add_option("-d", "--dir", dest="directory", default='.')                
 # name of input file ("run.properties" is the default) (optional)
-parser.add_option("-i", "--input", dest="inputFile", default=inputPropertiesFile)
-# name of input file ("run.properties" is the default) (optional)
-parser.add_option("-o", "--output", dest="outputFile", default=outputPropertiesFile)
+parser.add_option("-i", "--input", dest="inputFile", default=propertiesFile)
 (options, args) = parser.parse_args()
 #
-# If only the property is given, the value is retrieved from the run.properties
-# file and written to stdout; if both the key and the value options are
-# present, then the property and its value are added (or replaced if they
-# were already in the file)
-#
 # Open run.properties and make property dictionary  
-#print "start"
 runProp = dict()
 try: 
     f = open(options.directory + '/' + options.inputFile,'r')
@@ -53,29 +44,15 @@ try:
         fields = line.split(':',1)
         runProp[fields[0].strip()] = fields[1].strip()
     f.close()
-    #print "try"
 except:
     print "properties.py: Could not open " + options.directory + "/" + options.inputFile + " file."
-    #print "except"
     exit()
-#print "start"
 #
 # if the value is present, write the property; if not, read it 
-if options.value != "null":
-    #print "options.value is " + options.value
-    runProp[options.prop] = options.value
-    try: 
-        f = open(options.directory + "/" + options.outputFile,'w')
-        # sort the keys
-        sortedKeys = sorted(runProp.keys())
-        # write all properties to the file
-        #for key in runProp:
-        for key in sortedKeys:
-            f.write(key + " : " + runProp[key] + "\n")
-        f.close()
-    except:
-        print "properties.py: Could not open " + options.directory + "/" + options.outputFile + " file."
-        exit()
-else:
-    #print "options.value is " + options.value
-    print runProp[options.prop]
+for key in runProp:
+    if re.search(r'time.*' + options.jobtype + '.*start', key): 
+        #print key
+        #
+        # convert start time to python datetime object
+        #advisory_dt = datetime.strptime(runProp['time.forecast.valid.cdt'],'%Y%m%d%H%M%S')
+        #advisory_dt_long = datetime.strftime(advisory_dt,'%b-%d-%Y %H:%M')
