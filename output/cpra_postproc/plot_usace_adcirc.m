@@ -1,7 +1,7 @@
 %% 
 clear all;
 close all;
-clc;
+%clc;
 
 % All time are in CDT. The model values are adjusted from UTC to CDT
 % by subtracting 5 hours.
@@ -15,13 +15,14 @@ colors = [0.9290 0.6940 0.1250; 175/255 54/255 60/255];
 fid = fopen('cpraHydro.info','r');
 info = textscan(fid,'%s\n');
 fclose(fid);
-storm = info{1}{1}; adcGrid = info{1}{2}; forecastValid = info{1}{3};
+storm = info{1}{1}; adcGrid = info{1}{3}; forecastValid = info{1}{4};
 
 %% 
 % -------------------------------------------------------------------------
 
 % These lists are used in order to look-up the appropriate name based on
 % the USACE Station ID found when parsing the fort.15/fort.61.
+%
 % USACE Station ID
 stations={'85625','76065','76030','76265','82762','82770','82742',...
     '85760','76010','82715','01440','01440','85670','85575','85700','82875'};
@@ -41,7 +42,7 @@ usaceStationsName={'West End',...
     'Lake Pontchartrain at Mandeville',...
     'Rigolets near Lake Pontchartrain',...
     'Barataria Waterway at Lafitte'};
-% The stationID in parenthesis must match what is in the fort.51
+% The stationID in parenthesis must match what is in the fort.15
 cpraStationNames = {'17th St. Outfall Canal (17StCanal)',...
     'Seabrook Complex (IHNC01)',...
     'IHNC  Surge Barrier (IHNC02)',...
@@ -103,8 +104,11 @@ for f = 1:adcData(1).NumStations
     % assigned earlier in the script
     cpraStationIndex = find(~cellfun(@isempty,strfind(cpraStationNames,adcData.STATION{f}.NAME)));
     
-    % Check if cpraStationIndex was found -> If not, then cycle to next iteration.
+    % Check if cpraStationIndex was found -> If not, then cycle 
+    % to next iteration.
     if isempty(cpraStationIndex) == 1
+        str = sprintf("WARNING: plot_usace_adcirc.m: Could not find %s",adcData.STATION{f}.NAME);
+        %disp(str);
         continue;
     end
        
@@ -246,7 +250,7 @@ for f = 1:adcData(1).NumStations
 % -------------------------------------------------------------------------
     
     title1 = strcat('Storm:',storm,' - grid:',adcGrid);
-    title2 = strcat(cpraStationNames(cpraStationIndex),'  -  USACE Gage ID ',stations(cpraStationIndex));
+    title2 = strcat(cpraStationNames(cpraStationIndex),'  -  USACE Gage ID:',stations(cpraStationIndex));
     
     text(0,1.07,title1,'Units','normalized','Interpreter','None');
     text(0,1.03,title2,'Units','normalized','Interpreter','None');

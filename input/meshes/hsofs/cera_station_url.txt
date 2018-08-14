@@ -1,1 +1,1 @@
-http://jupiter.cct.lsu.edu/cera_stations/stations/mesh=hsofs.cera_stations
+http://ruby.cct.lsu.edu/cera_stations/stations/mesh=hsofs.cera_stations

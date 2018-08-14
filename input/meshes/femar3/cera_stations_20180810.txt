@@ -1,0 +1,113 @@
+-74.8906 38.9486 ! 01411390 ! USGS ! Cape May Harbor at Cape May
+-74.7642 39.0567 ! 01411360 ! USGS ! Great Channel at Stone Harbor
+-74.7342 39.1103 ! 01411355 ! USGS ! Ingram Thorofare at Avalon
+-74.8319 39.1617 ! 01411435 ! USGS ! Sluice Creek near South Dennis
+-75.0331 39.2317 ! 01412150 ! USGS ! Maurice River at Bivalve
+-75.3553 39.3792 ! 01413038 ! USGS ! Cohansey River at Greenwich
+-74.6978 39.1575 ! 01411350 ! USGS ! Ludlam Thorofare at Sea Isle City
+-75.3750 39.305 ! 8537121 ! NOAA_NOS ! Ship John Shoal
+-75.4010 39.8117 ! 8540433 ! NOAA_NOS ! Marcus Hook
+-75.1417 39.9333 ! 8545240 ! NOAA_NOS ! Philadelphia
+-74.751667 40.136667 ! 8548989 ! NOAA_NOS ! Newbold
+-75.588333 39.581667 ! 8551762 ! NOAA_NOS ! Delaware City
+-75.5733 39.5583 ! 8551910 ! NOAA_NOS ! Reedy Point
+-75.1133 38.985 ! 8555889 ! NOAA_NOS ! Brandywine Shoa Light
+-75.0917 38.3283 ! 8570283 ! NOAA_NOS ! Ocean City Inlet
+-76.0683 38.5733 ! 8571892 ! NOAA_NOS ! Cambridge
+-76.2450 39.2133 ! 8573364 ! NOAA_NOS ! Tolchester Beach
+-75.81 39.528333 ! 8573927 ! NOAA_NOS ! Chesapeake City
+-76.5783 39.2667 ! 8574680 ! NOAA_NOS ! Baltimore
+-76.481667 38.9833 ! 8575512 ! NOAA_NOS ! Annapolis
+-76.4517 38.3167 ! 8577330 ! NOAA_NOS ! Solomons Island
+-77.021667 38.8733 ! 8594900 ! NOAA_NOS ! Washington
+-76.4633 37.9950 ! 8635750 ! NOAA_NOS ! Lewisetta
+-76.3300 36.9467 ! 8638610 ! NOAA_NOS ! Sewells Point
+-76.3017 36.7783 ! 8639348 ! NOAA_NOS ! Money Point
+-77.0627 38.9023 ! 01647600 ! USGS ! Potomac River at Wisconsin Ave - Washington
+-76.9505 38.9145 ! 01651750 ! USGS ! Anacostia River Aquatic Gardens at Washington
+-75.7203 38.5439 ! 01488110 ! USGS ! Nanticoke River at Sharptown
+-75.6087 39.7106 ! 01480065 ! USGS ! Christina River at Newport
+-75.5405 39.7361 ! 01480120 ! USGS ! Christina River at Wilmington
+-75.5191 39.1637 ! 01483700 ! USGS ! Jones River at Dover
+-75.3976 39.0583 ! 01484085 ! USGS ! Murderkill River at Bowers
+-75.2124 38.5915 ! 01484540 ! USGS ! Indian River at Rosedale Beach
+-75.0842 38.6942 ! 01484670 ! USGS ! Rehoboth Bay at Dewey Beach
+-75.0680 38.6098 ! 01484683 ! USGS ! Indian River Bay Inlet near Bethany Beach
+-75.0623 38.5136 ! 01484696 ! USGS ! Jefferson Creek at South Bethany
+-75.0583 38.4550 ! 01484701 ! USGS ! Little Assawoman Bay at Fenwick Island
+-77.0533 38.8402 ! 01652545 ! USGS ! Fourmile Run above Hwy 1 at Alexandria
+-77.0383 38.8053 ! 0165258890 ! USGS ! Potomac River at Cameron St Dock at Alexandria
+-77.4211 37.5250 ! 02037705 ! USGS ! James River at City Locks at Richmond
+-66.9850 44.9033 ! 8410140 ! NOAA_NOS ! Eastport Passamaquoddy Bay
+-67.2967 44.6416 ! 8411250 ! NOAA_NOS ! Cutler Naval Base
+-68.2000 44.4000 ! 8413320 ! NOAA_NOS ! Bar Harbor
+-70.2467 43.6567 ! 8418150 ! NOAA_NOS ! Portland
+-71.0517 42.3550 ! 8443970 ! NOAA_NOS ! Boston
+-70.6700 41.5133 ! 8447930 ! NOAA_NOS ! Woods Hole
+-70.0950 41.2867 ! 8449130 ! NOAA_NOS ! Nantucket Island
+-71.6133 41.1583 ! 8459681 ! NOAA_NOS ! Block Island
+-71.9667 41.0500 ! 8510560 ! NOAA_NOS ! Montauk
+-74.0117 40.4683 ! 8531680 ! NOAA_NOS ! Sandy Hook
+-74.4183 39.3550 ! 8534720 ! NOAA_NOS ! Atlantic City
+-74.96 38.96833 ! 8536110 ! NOAA_NOS ! Cape May Ferry Terminal
+-75.118333 38.783333 ! 8557380 ! NOAA_NOS ! Lewes
+-75.9883 37.1667 ! 8632200 ! NOAA_NOS ! Chesapeake Bay near Kiptopeke
+-76.2900 37.616667 ! 8636580 ! NOAA_NOS ! Chesapeake Bay at Windmill Point
+-76.5000 37.2467 ! 8637624 ! NOAA_NOS ! Gloucester Pt.
+-76.1133 36.9667 ! 8638863 ! NOAA_NOS ! Chesapeake Bay Bridge Tunnel
+-75.7466 36.1833 ! 8651370 ! NOAA_NOS ! Duck Pier
+-75.5483 35.7950 ! 8652587 ! NOAA_NOS ! Oregon Inlet Marina
+-75.6350 35.2233 ! 8654400 ! NOAA_NOS ! Cape Hatteras Fishing Pier
+-76.6673 34.7163 ! 8656483 ! NOAA_NOS ! Beaufort
+-77.9533 34.2267 ! 8658120 ! NOAA_NOS ! Cape Fear River at Wilmington
+-77.7859 34.2133 ! 8658163 ! NOAA_NOS ! Atlantic Coast at J. Mercer Pier at Wrightsville Beach
+-78.0183 33.9150 ! 8659084 ! NOAA_NOS ! Southport
+-78.5067 33.8650 ! 8659897 ! NOAA_NOS ! Sunset Beach
+-77.0620 35.5429 ! 02084472 ! USGS ! Pamlico River at Washington
+-76.7228 35.9152 ! 0208114150 ! USGS ! Roanoke River at NC 45 near Westover
+-78.9183 33.6550 ! 8661070 ! NOAA_NOS ! Springmaid Pier
+-79.9250 32.7816 ! 8665530 ! NOAA_NOS ! Charleston Harbor
+-80.9016 32.0333 ! 8670870 ! NOAA_NOS ! Fort Pulaski
+-81.4300 30.3966 ! 8720218 ! NOAA_NOS ! Mayport (Bar Pilots Dock)
+-81.2633 29.8566 ! 8720587 ! NOAA_NOS ! St. Augustine Beach
+-80.5933 28.4150 ! 8721604 ! NOAA_NOS ! Trident Pier
+-80.1616 25.7316 ! 8723214 ! NOAA_NOS ! Virginia Key
+-81.1050 24.7116 ! 8723970 ! NOAA_NOS ! Vaca Key
+-81.8083 24.5533 ! 8724580 ! NOAA_NOS ! Key West
+-81.8066 26.1300 ! 8725110 ! NOAA_NOS ! Naples
+-82.8316 27.9766 ! 8726724 ! NOAA_NOS ! Clearwater Beach
+-83.0316 29.135 ! 8727520 ! NOAA_NOS ! Cedar Key
+-84.9816 29.7266 ! 8728690 ! NOAA_NOS ! Apalachicola
+-85.88 30.2133 ! 8729210 ! NOAA_NOS ! Panama City Beach
+-87.2116 30.4033 ! 8729840 ! NOAA_NOS ! Pensacola
+-89.3666 30.2816 ! 8747766 ! NOAA_NOS ! Waveland
+-89.14 28.99 ! 8760551 ! NOAA_NOS ! South Pass
+-89.9566 29.2633 ! 8761724 ! NOAA_NOS ! Grand Isle
+-93.87 29.7316 ! 8770570 ! NOAA_NOS ! Sabine Pass North
+-94.7883 29.285 ! 8771510 ! NOAA_NOS ! Galveston Pleasure Pier
+-95.3083 28.9483 ! 8772440 ! NOAA_NOS ! Freeport
+-97.2166 27.58 ! 8775870 ! NOAA_NOS ! Corpus Christi
+-97.215 26.06 ! 8779770 ! NOAA_NOS ! Port Isabel - Laguna Madre
+-76.3192 37.1106 ! 1136784 !  ! Messick WL
+-76.3758 37.1419 ! 1153338 !  ! Poquoson Pump
+-76.3931 37.1086 ! 1136783 !  ! Langley
+-76.3969 37.1783 ! 1136780 !  ! Seaford
+-76.3100 37.4928 ! 1153341 !  ! Gwynns Island
+-76.0883 36.9067 ! 1153348 !  ! Lesner Inn
+-76.2989 36.2589 ! 1153339 !  ! Norfolk
+-76.8058 37.1772 ! 2414172 !  ! Gray'sWL
+-75.3970 38.1780 ! 8571359 ! NOAA_NOS ! Snow Hill
+-76.038333 38.22 ! 8571421 ! NOAA_NOS ! Bishops Head
+-76.0050 38.3000 ! 8571559 ! NOAA_NOS ! McCreadys Creek
+-76.5280 39.2190 ! 8574728 ! NOAA_NOS ! Francis Scott Key Bridge
+-76.5250 39.2200 ! 8574729 ! NOAA_NOS ! Francis Scott Key Bridge NE Tower
+-76.3870 38.4320 ! 8577018 ! NOAA_NOS ! Cove Point Lng Pier
+-76.5330 38.1330 ! 8578240 ! NOAA_NOS ! Piney Point
+-75.6870 37.6070 ! 8631044 ! NOAA_NOS ! Wachapreague
+-76.0150 37.5383 ! 8632837 ! NOAA_NOS ! Rappahannock Light
+-76.3330 37.2500 ! 8637611 ! NOAA_NOS ! York River East Rear Range Light
+-76.4783 37.2270 ! 8637689 ! NOAA_NOS ! Yorktown USGS Training Center
+-76.4250 36.9620 ! 8638511 ! NOAA_NOS ! Dominion Terminal Associates
+-76.3380 36.8880 ! 8638595 ! NOAA_NOS ! South Craney Island
+-76.3220 36.9820 ! 8638614 ! NOAA_NOS ! Willoughby Degaussing Station
+-76.0070 36.9300 ! 8638999 ! NOAA_NOS ! Cape Henry
