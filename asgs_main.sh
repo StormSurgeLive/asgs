@@ -63,6 +63,8 @@ checkFileExistence()
 #
 # compare the modification times of the input files with the archive of
 # subdomain files to avoid using a stale archive
+# @jasonfleming: 20180814: moved the storage of the prepped archive
+# from the 
 checkArchiveFreshness()
 {  PREPPEDARCHIVE=$1
    HINDCASTARCHIVE=$2
@@ -72,12 +74,12 @@ checkArchiveFreshness()
    VELSTATIONS=$6
    METSTATIONS=$7
    NAFILE=$8
-   INPUTDIR=$9
+   SCRATCHDIR=$9
    THIS="asgs_main.sh>checkArchiveFreshness()" 
    logMessage "$THIS: Checking to see if the archive of preprocessed subdomain files is up to date."   
    for archiveFile in $PREPPEDARCHIVE $HINDCASTARCHIVE; do
-      if [ ! -e $INPUTDIR/$archiveFile ]; then
-         logMessage "$THIS: The subdomain archive file $INPUTDIR/$archiveFile does not exist."
+      if [ ! -e $SCRATCHDIR/$archiveFile ]; then
+         logMessage "$THIS: The subdomain archive file $SCRATCHDIR/$archiveFile does not exist."
          continue
       fi
       for inputFile in $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE; do
@@ -86,9 +88,9 @@ checkArchiveFreshness()
             continue
          fi
          # see if the archiveFile is older than inputFile 
-         if [ $INPUTDIR/$archiveFile -ot $INPUTDIR/$inputFile ]; then 
+         if [ $SCRATCHDIR/$archiveFile -ot $INPUTDIR/$inputFile ]; then 
             logMessage "$THIS: A change in the input files has been detected. The archive file $archiveFile is older than the last modification time of the input file ${inputFile}. The archive file is therefore stale and will be deleted. A fresh one will automatically be created the next time adcprep is run." 
-            rm $INPUTDIR/$archiveFile 2>> $SYSLOG 
+            rm $SCRATCHDIR/$archiveFile 2>> $SYSLOG 
             break
          fi
       done
@@ -212,7 +214,7 @@ prep()
     fi
     # determine if there is an archive of preprocessed input files
     HAVEARCHIVE=yes
-    if [[ ! -e ${INPUTDIR}/${PREPPED} ]]; then
+    if [[ ! -e ${SCRATCHDIR}/${PREPPED} ]]; then
        HAVEARCHIVE=no
     fi
     # create directory to run in 
@@ -235,7 +237,7 @@ prep()
     if [[ $HAVEARCHIVE = yes ]]; then
         # copy in the files that have already been preprocessed
         logMessage "$ENSTORM: $THIS: Copying input files that have already been decomposed."
-        cp $INPUTDIR/${PREPPED} . 2>> ${SYSLOG}
+        cp ${SCRATCHDIR}/${PREPPED} . 2>> ${SYSLOG}
         gunzip -f ${PREPPED} 2>> ${SYSLOG}
         # untar the uncompressed archive
         UNCOMPRESSEDARCHIVE=${PREPPED%.gz}
@@ -522,17 +524,17 @@ EOF
     # if we don't have an archive of our preprocessed files, create
     # one so that we don't have to do another prepall
     if [[ $HAVEARCHIVE = no ]]; then
-       logMessage "$ENSTORM: $THIS: Creating an archive of preprocessed files and saving to ${INPUTDIR}/${PREPPED} to avoid having to run prepall again."
+       logMessage "$ENSTORM: $THIS: Creating an archive of preprocessed files and saving to ${SCRATCHDIR}/${PREPPED} to avoid having to run prepall again."
        FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18'
        if [[ ! -z $NAFILE && $NAFILE != null ]]; then
           FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18 PE*/fort.13'
        fi
-       tar cvzf ${INPUTDIR}/${PREPPED} ${FILELIST} 2>> ${SYSLOG}
+       tar cvzf ${SCRATCHDIR}/${PREPPED} ${FILELIST} 2>> ${SYSLOG}
        # check status of tar operation; if it failed, delete the file
        # it attempted to make and alert the operator
        if [[ $? != 0 ]]; then
           warn "$ENSTORM: $THIS: The construction of a tar archive of the preprocessed input files has failed."
-          rm ${INPUTDIR}/${PREPPED} 2>> ${SYSLOG} 2>&1
+          rm ${SCRATCHDIR}/${PREPPED} 2>> ${SYSLOG} 2>&1
        fi
     fi
     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
@@ -1583,15 +1585,15 @@ if [[ $HOTORCOLD = hotstart ]]; then
    fi
 fi
 THIS="asgs_main.sh"
-if [[ -e ${INPUTDIR}/${PREPPEDARCHIVE} ]]; then
-   logMessage "$THIS: Found archive of preprocessed input files ${INPUTDIR}/${PREPPEDARCHIVE}."
+if [[ -e ${SCRATCHDIR}/${PREPPEDARCHIVE} ]]; then
+   logMessage "$THIS: Found archive of preprocessed input files ${SCRATCHDIR}/${PREPPEDARCHIVE}."
 else
-   warn "$THIS: Could not find archive of preprocessed input files ${INPUTDIR}/${PREPPEDARCHIVE}. It will be recreated."
+   warn "$THIS: Could not find archive of preprocessed input files ${SCRATCHDIR}/${PREPPEDARCHIVE}. It will be recreated."
 fi
-if [[ -e ${INPUTDIR}/${HINDCASTARCHIVE} ]]; then
-   logMessage "$THIS: Found archive of preprocessed input files ${INPUTDIR}/${HINDCASTARCHIVE}."
+if [[ -e ${SCRATCHDIR}/${HINDCASTARCHIVE} ]]; then
+   logMessage "$THIS: Found archive of preprocessed input files ${SCRATCHDIR}/${HINDCASTARCHIVE}."
 else
-   warn "$THIS: Could not find archive of preprocessed input files ${INPUTDIR}/${HINDCASTARCHIVE}. It will be recreated."
+   warn "$THIS: Could not find archive of preprocessed input files ${SCRATCHDIR}/${HINDCASTARCHIVE}. It will be recreated."
 fi
 #
 checkFileExistence $OUTPUTDIR "postprocessing initialization script" $INITPOST
