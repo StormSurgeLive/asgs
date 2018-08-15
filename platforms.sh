@@ -55,12 +55,19 @@ init_queenbee()
   HPCENV=queenbee.loni.org
   QUEUESYS=PBS
   QCHECKCMD=qstat
+  QSUMMARYCMD=showq
+  QUOTACHECKCMD=showquota
+  ALLOCCHECKCMD=showquota
   QUEUENAME=workq
   SERQUEUE=single
   ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
   SUBMITSTRING=qsub
   JOBLAUNCHER='mpirun -np %ncpu% -machinefile \$PBS_NODEFILE'
-  SCRATCHDIR=/work/$USER
+  if [[ -d /work/$USER ]]; then
+     SCRATCHDIR=/work/$USER
+  else
+     SCRATCHDIR=/ssdwork/$USER
+  fi
   #SCRATCHDIR=/work/cera
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=queenbee.template.pbs
@@ -70,6 +77,7 @@ init_queenbee()
   REMOVALCMD="rmpurge"
   PLATFORMMODULES='module load intel netcdf netcdf_fortran gcc'
   $PLATFORMMODULES
+  # modules for CPRA post processing
   module load matlab/r2015b
   module load python/2.7.12-anaconda-tensorflow
 }
@@ -135,6 +143,9 @@ init_hatteras()
   HPCENV=hatteras.renci.org
   QUEUESYS=SLURM
   QCHECKCMD=sacct
+  QSUMMARYCMD=null
+  QUOTACHECKCMD="df -h /projects/ncfs"
+  ALLOCCHECKCMD=null
   ACCOUNT=ncfs
   SUBMITSTRING=sbatch
   JOBLAUNCHER=srun
