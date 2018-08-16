@@ -46,17 +46,17 @@ module load zlib/1.2.11_intel-18.0.0
 #----------------------------------------------------------------------------
 #                  E X E C U T E   T H E   J O B
 #----------------------------------------------------------------------------
+ERROMSG=""
 $CMD 
 # 
 #----------------------------------------------------------------------------
 #           C H E C K   S T A T U S   O F   R E S U L T S
 #----------------------------------------------------------------------------
-ERROMSG=""
 ERROVALUE=$?  # capture exit status
-if [ $ERROVALUE == 0 ] ; then
-   # look for numerical instability errors in the stdout/stderr files
+if [ $ERROVALUE = 0 ] ; then
    for file in adcirc.log %advisdir%/%enstorm%/%jobtype%.%enstorm%.out ; do
       if [ -e $file ]; then
+         # look for numerical instability errors in the stdout/stderr files
          numMsg=`grep WarnElev $file | wc -l`
          if [ $numMsg = 0 ]; then
             DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
@@ -65,13 +65,24 @@ if [ $ERROVALUE == 0 ] ; then
             ERROMSG="$ERROMSG Detected $numMsg numerical instability messages in $file."
             ERROVALUE=1
          fi
+         # look for other indications of errors
+         numMsgKilled=`grep Killed $file | wc -l`
+         numMsgAbort=`grep MPI_Abort | wc -l`
+         numMsg=`expr $numMsgKilled + $numMsgAbort`
+         if [ $numMsg = 0 ]; then
+            DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+            echo "[${DATETIME}] INFO: %jobtype%.slurm: No egregious error messages detected in $file after executing %jobtype%.%enstorm%." | tee --append %syslog%
+         else
+            ERROMSG="$ERROMSG Detected $numMsg 'Killed' or 'MPI_Abort' messages in $file."
+            ERROVALUE=1
+         fi
       fi
    done
 else
    ERROMSG="The %jobtype%.%enstorm% job ended with an exit status that indicates an error occurred."
 fi
 #
-if [ $ERROVALUE == 0 ] ; then
+if [ $ERROVALUE = 0 ] ; then
    RUNSUFFIX="finish"
 else
    RUNSUFFIX="error"
