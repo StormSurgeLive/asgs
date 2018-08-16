@@ -8,7 +8,7 @@
 #   file system.
 #
 #--------------------------------------------------------------
-# Copyright(C) 2006--2015 Jason Fleming
+# Copyright(C) 2006--2018 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
