@@ -216,31 +216,6 @@ while (!$dl) {
          #nld empty $body to clear any old advisory numbers from the xml
          $body="";
          $body = $response->{content};
-         #print $body;
-         
-         #my $http = Net::HTTP->new(Host => $rsssite);
-         #unless ($http) {
-         #   stderrMessage("ERROR","http: Cannot connect to $rsssite: $@");
-         #   next;
-         #}
-         #my $httpReqSuccess = $http->write_request(GET         => "/index-at.xml", 
-         #                                         'User-Agent' => "Mozilla/5.0");
-         #unless ( $httpReqSuccess ) {
-         #   stderrMessage("ERROR","http: Request for index-at.xml failed.");
-         #   next;
-         #}
-         #my ($code, $mess, %h) = $http->read_response_headers();
-
-         #while(1) { 
-         #   my $buf;
-         #   my $n = $http->read_entity_body($buf,1024);
-         #   unless ( defined $n ) {
-         #      stderrMessage("ERROR","http: buffer read failed: $!");
-         #      last;
-         #   }
-         #   last unless $n;
-         #   $body.=$buf;
-         #}
          my $indexOpenSuccess = open(INDEX,">index-at.xml");
          unless ($indexOpenSuccess) {
             stderrMessage("ERROR","Could not open index-at.xml for writing.");
