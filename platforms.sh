@@ -75,7 +75,7 @@ init_queenbee()
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=20
   REMOVALCMD="rmpurge"
-  PLATFORMMODULES='module load intel netcdf netcdf_fortran gcc'
+  PLATFORMMODULES='module load intel netcdf netcdf_fortran gcc perl'
   $PLATFORMMODULES
   # modules for CPRA post processing
   module load matlab/r2015b
