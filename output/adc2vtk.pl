@@ -72,6 +72,8 @@ my %namesNumNonDefaults; # how many of the nodes have nondefault values
 my @attrValues; # at every node in the mesh
 our $getNodeIDs;     # defined if the node labels should be recorded
 our @nodeIDs;         # array of node labels from data file 
+our $getElementIDs;     # defined if the node labels should be recorded
+our @elementIDs;         # array of node labels from data file 
 #
 my $meshfile = "null";
 my $cpp;  # 1 to reproject to cpp (carte parallelogrammatique projection)
@@ -96,6 +98,7 @@ GetOptions(
            "slam0=s" => \$slam0,
            "sfea0=s" => \$sfea0,
            "getNodeIDs" => \$getNodeIDs,
+           "getElementIDs" => \$getElementIDs,           
            "trackfiles=s" => \@trackfiles,
            "adcircfiles=s" => \@adcircfiles
          );
@@ -263,6 +266,10 @@ if ( defined $cpp ) {
 for (my $i=0; $i<$ne; $i++) {
    $line = <MESH>;
    @fields = split(' ',$line);
+   # if node labels were specified
+   if ( defined $getElementIDs ) {
+      $elementIDs[$i] = $fields[0];
+   }
    # have to subtract 1 from the ADCIRC node numbers because vtk is 0 indexed
    my $i1 = $fields[2]-1;
    my $i2 = $fields[3]-1;
@@ -303,7 +310,8 @@ for (my $i=0; $i<$nope; $i++) {
    # my $ibtypee = $fields[1]; # many mesh files don't have this field
    my $ibtypee = 0;
    for (my $j=0; $j<$nvdll; $j++) {
-      my $nbdv = split(' ',<MESH>);
+      my @nbdvFields = split(' ',<MESH>);
+      my $nbdv = $nbdvFields[0];
       $elevBoundaryNodes[$elevBoundaryCount] = $nbdv;  
       $elevBoundaryLons[$elevBoundaryCount] = $x[$nbdv-1];
       $elevBoundaryLats[$elevBoundaryCount] = $y[$nbdv-1];
@@ -425,8 +433,8 @@ for (my $i=0; $i<$nbou; $i++) {
    my $ibtype = $fields[1];
    for (my $j=0; $j<$nvell; $j++) {
       $line = <MESH>;
-      @fields = split(' ',$line);
-      my $nbvv = $fields[0];
+      my @nvellFields = split(' ',$line);
+      my $nbvv = $nvellFields[0];
       printf VTKFLUXBOUNDARY "$x[$nbvv-1] $y[$nbvv-1] 0.0 ";
       $fluxBoundaryTypes[$fluxBoundaryCount] = $ibtype;
       $fluxBoundaryElevs[$fluxBoundaryCount] = $z[$nbvv-1];      
@@ -742,7 +750,18 @@ sub writeMesh () {
    }
    printf OUT "            </DataArray>\n";
    printf OUT "         </Points>\n";
-   # write element connectivity indices
+   #
+   # write element IDs if specified
+   if ( defined $getElementIDs ) {
+      printf OUT "         <CellData Scalars=\"ElementIDs\">\n"; 
+      printf OUT "         <DataArray Name=\"ElementIDs\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+      for (my $i=0; $i<$ne; $i++) {
+         printf OUT "$elementIDs[$i]\n";
+      }
+      printf OUT "            </DataArray>\n";
+      printf OUT "         </CellData>\n";
+   }
+   # write element connectivity indices   
    printf OUT "         <Cells>\n";
    printf OUT "            <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n";
    for (my $i=0; $i<$ne; $i++) {
