@@ -27,8 +27,8 @@
 
 # Fundamental
 
-INSTANCENAME=dailyfemar2    # "name" of this ASGS process
-COLDSTARTDATE=2018061206  # calendar year month day hour YYYYMMDDHH24
+INSTANCENAME=dailyfemar2  # "name" of this ASGS process
+COLDSTARTDATE=2018070900  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null           # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
@@ -48,7 +48,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=on     # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=off  # tropical cyclone forcing
-WAVES=on             # wave forcing
+WAVES=off            # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
@@ -59,9 +59,9 @@ HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
-NCPU=508                    # number of compute CPUs for all simulations
-NUMWRITERS=1
-NCPUCAPACITY=512
+NCPU=496                    # number of compute CPUs for all simulations
+NUMWRITERS=16
+NCPUCAPACITY=640
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=null
 SERQUEUE=null
@@ -108,9 +108,9 @@ GRIDNAME=FEMAR2
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=FEMA_R2_fort.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=FEMA_R2_elevstations_20180712.txt
-VELSTATIONS=FEMA_R2_velstations_20180712.txt
-METSTATIONS=FEMA_R2_metstations_20180712.txt
+ELEVSTATIONS=cera_stations_20180810.txt
+VELSTATIONS=cera_stations_20180810.txt
+METSTATIONS=cera_stations_20180810.txt
 NAFILE=FEMA_R2_01262012_refrac_fort.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
@@ -191,17 +191,17 @@ case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
-0)
+1)
    ENSTORM=namforecast
    ;;
-1)
+0)
    ENSTORM=namforecastWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=FEMA_R2.noswanrefrac.nowindreduction.fort.15.template  # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0    # 5 minute time steps
-   NCPU=2                # dramatically reduced resource requirements
+   NCPU=15                # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output

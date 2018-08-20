@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME=dailyfemar3    # "name" of this ASGS process
+INSTANCENAME=readynaccs   # "name" of this ASGS process
 COLDSTARTDATE=2018070900  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null           # path to previous execution (if HOTORCOLD=hotstart)
@@ -36,50 +36,44 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/v53release/work # ADCIRC executables
-SWANDIR=~/adcirc/forks/adcirc/v53release/swan   # SWAN executables
-SCRIPTDIR=~/asgs/branches/nowcastarchive        # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/femar3       # grid and other input files
+ADCIRCDIR=$HOME/adcirc/forks/adcirc/v53release/work # ADCIRC executables
+SWANDIR=$HOME/adcirc/forks/adcirc/v53release/swan   # SWAN executables
+SCRIPTDIR=$HOME/asgs/branches/nowcastarchive        # ASGS executables
+INPUTDIR=${SCRIPTDIR}/input/meshes/naccs       # mesh and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on     # NAM download/forcing
-TIDEFAC=on           # tide factor recalc
-TROPICALCYCLONE=off  # tropical cyclone forcing
-WAVES=off            # wave forcing
-VARFLUX=off          # variable river flux forcing
+BACKGROUNDMET=on      # NAM download/forcing
+TIDEFAC=on            # tide factor recalc
+TROPICALCYCLONE=off   # tropical cyclone forcing
+WAVES=off             # wave forcing
+VARFLUX=off           # variable river flux forcing
+VORTEXMODEL=GAHM
 
 # Computational Resources
 
-TIMESTEPSIZE=1.0            # adcirc time step size (seconds)
-SWANDT=1200                 # swan time step size (seconds)
-HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
-ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
-FORECASTWALLTIME="05:00:00" # forecast wall clock time
-NCPU=496                    # number of compute CPUs for all simulations
-NUMWRITERS=16
+TIMESTEPSIZE=1.0             # adcirc time step size (seconds)
+SWANDT=1200                  # swan time step size (seconds)
+HINDCASTWALLTIME="24:00:00"  # hindcast wall clock time
+ADCPREPWALLTIME="01:30:00"   # adcprep wall clock time, including partmesh
+NOWCASTWALLTIME="08:00:00"   # longest nowcast wall clock time
+FORECASTWALLTIME="08:00:00"  # forecast wall clock time
+NCPU=620                    # number of compute CPUs for all simulations
 NCPUCAPACITY=640
+NUMWRITERS=20
 CYCLETIMELIMIT="99:00:00"
-QUEUENAME=null
-SERQUEUE=null
-SCRATCHDIR=/projects/ncfs/data
-PARTITION=ncfs
-RESERVATION=null
-CONSTRAINT=null
 
 # External data sources : Tropical cyclones
 
-PSEUDOSTORM=n 
-STORM=14                         # storm number, e.g. 05=ernesto in 2006
+STORM=99                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2016                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 #RSSSITE=filesystem
 #FTPSITE=filesystem
-#FDIR=~/asgs/2014stable/input/sample_advisories/isaac
-#HDIR=$FDIR
+#FDIR=${SCRIPTDIR}/input/sample_advisories
+#HDIR=${SCRIPTDIR}/input/sample_advisories
 RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
 FDIR=/atcf/afst                  # forecast dir on nhc ftp site
@@ -91,7 +85,7 @@ FORECASTCYCLE="06"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
-PTFILE=ptFile_hsofs.txt         # the lat/lons for the OWI background met
+PTFILE=ptFile_oneEighth.txt         # the lat/lons for the OWI background met
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
 SPATIALEXTRAPOLATIONRAMP=yes
 SPATIALEXTRAPOLATIONRAMPDISTANCE=5.0
@@ -103,18 +97,22 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=FEMA_R3_20110303_MSL.grd  # mesh (fort.14) file
-GRIDNAME=FEMAR3
+#QSCRIPT=lonestar.reservation.template.slurm
+#PREPCONTROLSCRIPT=lonestar.reservation.template.serial.slurm
+
+
+GRIDFILE=NAC2014_R01_ClosedRivers.grd # mesh (fort.14) file
+GRIDNAME=NAC2014_R01_ClosedRivers
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=FEMA_R3_fort.15.template  # fort.15 template
+CONTROLTEMPLATE=NAC2014_R01.15.template   # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
 ELEVSTATIONS=cera_stations_20180810.txt
 VELSTATIONS=cera_stations_20180810.txt
 METSTATIONS=cera_stations_20180810.txt
-NAFILE=FEMA_R3_20110303_MSL.13
+NAFILE=NAC2014_R01.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
-RIVERINIT=null                          # this mesh has no rivers ...
+SWANTEMPLATE=fort.26.nolimiter.template  # only used if WAVES=on
+RIVERINIT=null                              # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
@@ -131,7 +129,7 @@ FORT63="--fort63freq 3600.0 --fort63netcdf"
 # full domain water current velocity output
 FORT64="--fort64freq 3600.0 --fort64netcdf" 
 # met station output
-FORT7172="--fort7172freq 300.0 --fort7172netcdf"           
+FORT7172="--fort7172freq 3600.0 --fort7172netcdf"           
 # full domain meteorological output
 FORT7374="--fort7374freq 3600.0 --fort7374netcdf"           
 #SPARSE="--sparse-output"
@@ -143,19 +141,19 @@ HOTSTARTCOMP=fulldomain
 # binary or netcdf hotstart files
 HOTSTARTFORMAT=netcdf                      
 # "continuous" or "reset" for maxele.63 etc files
-MINMAX=reset                              
+MINMAX=reset                               
 
 # Notification
 
 EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
-NOTIFY_SCRIPT=ncfs_nam_notify.sh
+NOTIFY_SCRIPT=ut-nam-notify.sh
 ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
 POST_LIST=null
-JOB_FAILED_LIST="jason.fleming@seahorsecoastal.com"
-NOTIFYUSER=jason.fleming@seahorsecoasatal.com
-ASGSADMIN=jason.fleming@seahorsecoastal.com
+JOB_FAILED_LIST="jason.g.fleming@gmail.com"
+NOTIFYUSER=jason.g.fleming@gmail.com
+ASGSADMIN=jason.g.fleming@gmail.com
 
 # Post processing and publication
 
@@ -165,16 +163,27 @@ POSTPROCESS=cera_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
-
 TDS=(renci_tds)
 TARGET=hatteras  # used in post processing to pick up HPC platform config
+# You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
+# on the opendap server machine in order to scp files there via
+# opendap_post.sh. OPENDAPHOST is set to each value in the TDS array specified
+# above and used by your post processing script to successively trigger 
+# configuration via platforms.sh. The OPENDAPUSER parameter needs to be set
+# here, rather than in platforms.sh or your post processing script,
+# because multiple Operators may be posting to a particular opendap server
+# using different usernames. 
 OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
 if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
    OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
 fi
+if [[ $OPENDAPHOST = "adcircvis.tacc.utexas.edu" ]]; then
+   OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
+fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
+OPENDAPNOTIFY="jason.g.fleming@gmail.com"
 
 # Archiving
 
@@ -193,17 +202,15 @@ case $si in
    ;;
 1)
    ENSTORM=namforecast
-   CONSTRAINT=ivybridge
    ;;
 0)
    ENSTORM=namforecastWind10m
-   CONSTRAINT=ivybridge
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=FEMA_R3_nowindreduction_fort.15.template  # fort.15 template
+   CONTROLTEMPLATE=NAC2014_R01.nowindreduction.15.template  # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0    # 5 minute time steps
-   NCPU=15               # dramatically reduced resource requirements
+   NCPU=19               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output
@@ -215,7 +222,7 @@ case $si in
    # turn off full domain water current velocity output
    FORT64="--fort64freq 0"
    # met station output
-   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
+   FORT7172="--fort7172freq 900.0 --fort7172netcdf"
    # full domain meteorological output
    FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
    #SPARSE="--sparse-output"
@@ -225,70 +232,6 @@ case $si in
    INTENDEDAUDIENCE=developers-only
    # prevent collisions in prepped archives
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
-   POSTPROCESS=null_post.sh
-   ;;
-2)
-   ENSTORM=namforecast496Ivybridge0
-   NCPU=512
-   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
-   CONSTRAINT=ivybridge
-   NUMWRITERS=0
-   POSTPROCESS=null_post.sh
-   ;;
-3)
-   ENSTORM=namforecast496Ivybridge1
-   NCPU=511
-   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
-   CONSTRAINT=ivybridge
-   NUMWRITERS=1
-   POSTPROCESS=null_post.sh
-   ;;
-4)
-   ENSTORM=namforecast496Ivybridge4
-   NCPU=508
-   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
-   CONSTRAINT=ivybridge
-   NUMWRITERS=4
-   POSTPROCESS=null_post.sh
-   ;;
-5)
-   ENSTORM=namforecast496Ivybridge16
-   NCPU=496
-   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
-   CONSTRAINT=ivybridge
-   NUMWRITERS=16
-   POSTPROCESS=null_post.sh
-   ;;
-6)
-   ENSTORM=namforecast496Sandybridge0
-   NCPU=512
-   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
-   CONSTRAINT=sandybridge
-   NUMWRITERS=0
-   POSTPROCESS=null_post.sh
-   ;;
-7)
-   ENSTORM=namforecast496Sandybridge1
-   NCPU=511
-   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
-   CONSTRAINT=sandybridge
-   NUMWRITERS=1
-   POSTPROCESS=null_post.sh
-   ;;
-8)
-   ENSTORM=namforecast496Sandybridge4
-   NCPU=508
-   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
-   CONSTRAINT=sandybridge
-   NUMWRITERS=4
-   POSTPROCESS=null_post.sh
-   ;;
-9)
-   ENSTORM=namforecast496Sandybridge16
-   NCPU=496
-   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
-   CONSTRAINT=sandybridge
-   NUMWRITERS=16
    POSTPROCESS=null_post.sh
    ;;
 *)

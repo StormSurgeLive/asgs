@@ -1115,6 +1115,7 @@ handleFailedJob()
 # ensemble member. 
 writeProperties()
 {
+   STORMDIR=$1
    # basic asgs configuration
    echo "config.file : $CONFIG" >> $STORMDIR/run.properties
    echo "config.instancename : $INSTANCENAME" >> $STORMDIR/run.properties
@@ -1211,6 +1212,7 @@ writeProperties()
 # NAM forcing. 
 writeNAMProperties()
 {
+   STORMDIR=$1
    echo "config.forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties 
    echo "config.forcing.nam.backsite : $BACKSITE" >> $STORMDIR/run.properties 
    echo "config.forcing.nam.backdir : $BACKDIR" >> $STORMDIR/run.properties 
@@ -1223,6 +1225,7 @@ writeNAMProperties()
 # tropical cyclone forcing. 
 writeTropicalCycloneProperties()
 {
+   STORMDIR=$1
    echo "config.forcing.tropicalcyclone.vortexmodel : $VORTEXMODEL" >> $STORMDIR/run.properties
    echo "config.forcing.tropicalcyclone.stormnumber : $STORM" >> $STORMDIR/run.properties
    echo "config.forcing.tropicalcyclone.year : $YEAR" >> $STORMDIR/run.properties
@@ -1248,6 +1251,7 @@ writeTropicalCycloneProperties()
 # swan coupling. 
 writeWaveCouplingProperties()
 {
+   STORMDIR=$1
    echo "config.path.swandir : $SWANDIR" >> $STORMDIR/run.properties
    echo "config.coupling.waves.swan.reinitializeswan : $REINITIALIZESWAN" >> $STORMDIR/run.properties
    echo "config.coupling.waves.swan.swanhscompression : $SWANHSCOMPRESSION" >> $STORMDIR/run.properties
@@ -1259,6 +1263,7 @@ writeWaveCouplingProperties()
 # the cpu request for a particular job submitted to an hpc queue 
 writeJobResourceRequestProperties()
 {
+   STORMDIR=$1
    echo "hpc.job.${JOBTYPE}.queuename : $QUEUENAME" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $STORMDIR/run.properties
@@ -1714,7 +1719,7 @@ if [[ $START = coldstart ]]; then
    cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
    JOBTYPE=padcirc  # we won't run waves during the spinup hindcast
    logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
-   writeJobResourceRequestProperties
+   writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE
    THIS="asgs_main.sh"
    # check once per minute until all jobs have finished
@@ -1893,7 +1898,7 @@ while [ true ]; do
          ln -s $NAM221 fort.221 2>> ${SYSLOG}
          ln -s $NAM222 fort.222 2>> ${SYSLOG}
          STORMDIR=$NOWCASTDIR
-         writeNAMProperties 
+         writeNAMProperties $STORMDIR
          ;;
       OWI)
          # this is a hack to enable running pre-existing OWI files for hindcast
@@ -2010,7 +2015,7 @@ while [ true ]; do
       logMessage "$ENSTORM: $THIS: Submitting $ENSTORM job."
       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
       logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE"
-      writeJobResourceRequestProperties
+      writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
       submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE
       THIS="asgs_main.sh"
       # check once per minute until all jobs have finished
@@ -2296,7 +2301,7 @@ while [ true ]; do
             fi
             # then submit the job
             allMessage "$ENSTORM: $THIS: Submitting ensemble member $ENSTORM for forecast."
-            writeJobResourceRequestProperties
+            writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
             submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
             THIS="asgs_main.sh"
             # monitor for completion and post process in a subshell running 
