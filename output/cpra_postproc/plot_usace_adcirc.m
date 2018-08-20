@@ -181,7 +181,9 @@ for f = 1:adcData(1).NumStations
     %% 
 % -----------------------------------------------------------------------
     % Find out if forecasted water level is above the trigger
+    trigger = false;
     if (trigger(cpraStationIndex) > 0) && (maxMWL > trigger(cpraStationIndex))
+        trigger = true;
         % Find the index at which this occurs. Use the first time it
         % occurs.
         idx = find(adcData(i).STATION{f}.DATA/.3048 > trigger(cpraStationIndex));
@@ -258,7 +260,11 @@ for f = 1:adcData(1).NumStations
     % Add Legend
 %     legend('USACE Observations','nhcConsensus','veerRight50',...
 %         'Location','northwest');
-    legend('USACE Observations','nhcConsensus','Location','northwest');
+    if (trigger)
+        legend('USACE Observations','nhcConsensus','Water Level Trigger','Location','northwest');
+    else
+        legend('USACE Observations','nhcConsensus','Location','northwest');
+    end
     
     % Override some defaults
     set(gca,'LineWidth',1,'TickLength',[0.015 0.015]);
