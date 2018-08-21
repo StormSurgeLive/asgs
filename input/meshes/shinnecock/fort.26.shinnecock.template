@@ -1,6 +1,6 @@
 $*************************HEADING************************
 $
-PROJ 'ASGS' '2012'
+PROJ 'ASGS' '2018'
 'StormName: %StormName%'
 'EnsembleID: %EnsembleID%'
 'WTIMINC Line in ADCIRC fort.15: %WTIMINC%'
@@ -35,7 +35,7 @@ WCAP KOMEN 2.36E-5 3.02E-3 2.0 1.0 1.0
 BREAKING 
 FRICTION
 PROP BSBT
-NUM STOPC DABS=0.005 DREL=0.01 CURVAT=0.005 NPNTS=95 NONSTAT MXITNS=20 CSIGMA CFL=0.25 CTHETA CFL=0.25
+NUM STOPC DABS=0.005 DREL=0.01 CURVAT=0.005 NPNTS=95 NONSTAT MXITNS=20
 $
 $*************************************************************
 $

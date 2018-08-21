@@ -1,11 +1,11 @@
 #!/bin/bash
 #--------------------------------------------------------------------------
-# Extract_latlon.sh 
+# ranger_archive.sh 
 #--------------------------------------------------------------------------
-# Generates a track file for FigureGen from NWS=20 fort.22 file.
+# Copies all files to corral.
 #--------------------------------------------------------------------------
 # 
-# Copyright(C) 2018 Matthew V Bilskie
+# Copyright(C) 2010--2015 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -23,24 +23,27 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
 #--------------------------------------------------------------------------
-
-INPUT=$1
-OUTPUT=$2
-IFS=,
-
-[ -f $OUTPUT ] && rm $OUTPUT
-
-[ ! -f $INPUT ] && { echo "$INPUT file not found"; exit 99; }
-while read f1 f2 f2 f3 f4 f5 f6 f7 f8 f9
-do
-   slat=${f6%?}
-   slon=${f7%?}
-
-   lat="$(echo $slat/10|bc -l)"
-   lon="$(echo $slon/10|bc -l)"
-   lon="$(echo $lon*-1|bc -l)"
-
-   echo $(printf "%0.2f\t%0.2f\n" $lon $lat) >> $OUTPUT
-
-done < $INPUT
-#--------------------------------------------------------------------------
+ADVISDIR=$1
+OUTPUTDIR=$2
+STORM=$3
+YEAR=$4
+ADVISORY=$5
+HOSTNAME=$6
+ENSTORM=$7
+ARCHIVEBASE=$8
+ARCHIVEDIR=$9
+#
+if [[ -e $ARCHIVEBASE ]]; then
+   if [[ ! -e ${ARCHIVEBASE}/${ARCHIVEDIR} ]]; then
+      mkdir ${ARCHIVEBASE}/${ARCHIVEDIR} 
+   fi
+   if [[ ! -e ${ARCHIVEBASE}/${ARCHIVEDIR}/${ADVISORY} ]]; then
+      mkdir ${ARCHIVEBASE}/${ARCHIVEDIR}/${ADVISORY}
+   fi
+   chgrp -R G-803086 ${ADVISDIR} 
+   chmod -R 750 ${ADVISDIR}
+   cp -a $ADVISDIR/*/*.zip ${ARCHIVEBASE}/${ARCHIVEDIR}/${ADVISORY}
+   cp -a $ADVISDIR/* ${ARCHIVEBASE}/${ARCHIVEDIR}/${ADVISORY}
+else
+   echo "Archival process failed, archive base directory '$ARCHIVEBASE' does not exist." 1>&2
+fi

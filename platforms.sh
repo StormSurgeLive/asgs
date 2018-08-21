@@ -7,7 +7,7 @@
 # is platform dependent. 
 #
 #----------------------------------------------------------------
-# Copyright(C) 2012--2015 Jason Fleming
+# Copyright(C) 2012--2018 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -34,13 +34,14 @@
 #
 init_supermike()
 { #<- can replace the following with a custom script
-  HOSTNAME=mike.hpc.lsu.edu
+  HPCENV=mike.hpc.lsu.edu
   QUEUESYS=PBS
   QCHECKCMD=qstat
   QUEUENAME=workq
   SERQUEUE=single
   #ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
   SUBMITSTRING=qsub
+  JOBLAUNCHER='mpirun -np %ncpu% -machinefile \$PBS_NODEFILE'
   SCRATCHDIR=/work/$USER
   #SCRATCHDIR=/work/cera
   SSHKEY=~/.ssh/id_rsa.pub
@@ -48,39 +49,46 @@ init_supermike()
   PREPCONTROLSCRIPT=supermike.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=16
-  # alias cdwo='cd /work/jgflemin'
-  # alias cdasgs='cd ~/asgs/2014stable'
 }
 init_queenbee()
 { #<- can replace the following with a custom script
-  HOSTNAME=queenbee.loni.org
+  HPCENV=queenbee.loni.org
   QUEUESYS=PBS
   QCHECKCMD=qstat
+  QSUMMARYCMD=showq
+  QUOTACHECKCMD=showquota
+  ALLOCCHECKCMD=showquota
   QUEUENAME=workq
   SERQUEUE=single
   ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
   SUBMITSTRING=qsub
-  SCRATCHDIR=/work/$USER
+  JOBLAUNCHER='mpirun -np %ncpu% -machinefile \$PBS_NODEFILE'
+  if [[ -d /work/$USER ]]; then
+     SCRATCHDIR=/work/$USER
+  else
+     SCRATCHDIR=/ssdwork/$USER
+  fi
   #SCRATCHDIR=/work/cera
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=queenbee.template.pbs
   PREPCONTROLSCRIPT=queenbee.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=20
-  module load intel
-  module load netcdf
-  module load netcdf_fortran
-  module load gcc
+  REMOVALCMD="rmpurge"
+  PLATFORMMODULES='module load intel netcdf netcdf_fortran gcc'
+  $PLATFORMMODULES
+  # modules for CPRA post processing
   module load matlab/r2015b
   module load python/2.7.12-anaconda-tensorflow
 }
 init_arete()
 { #<- can replace the following with a custom script
-  HOSTNAME=arete.cct.lsu.edu
+  HPCENV=arete.cct.lsu.edu
   QUEUESYS=SLURM
   QCHECKCMD=sacct
   ACCOUNT=null
-  SUBMITSTRING=srun
+  SUBMITSTRING=sbatch
+  JOBLAUNCHER=
   SCRATCHDIR=/scratch/$USER
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=arete.template.slurm
@@ -90,7 +98,7 @@ init_arete()
 }
 init_camellia()
 { #<- can replace the following with a custom script
-  HOSTNAME=camellia.worldwindsinc.com
+  HPCENV=camellia.worldwindsinc.com
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=bpj
@@ -104,7 +112,7 @@ init_camellia()
 }
 init_blueridge()
 { #<- can replace the following with a custom script
-  HOSTNAME=blueridge.renci.org
+  HPCENV=blueridge.renci.org
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=noaccount
@@ -118,7 +126,7 @@ init_blueridge()
 }
 init_croatan()
 { #<- can replace the following with a custom script
-  HOSTNAME=croatan.renci.org
+  HPCENV=croatan.renci.org
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=noaccount
@@ -132,42 +140,68 @@ init_croatan()
 }
 init_hatteras()
 { #<- can replace the following with a custom script
-  HOSTNAME=hatteras.renci.org
+  HPCENV=hatteras.renci.org
   QUEUESYS=SLURM
   QCHECKCMD=sacct
+  QSUMMARYCMD=null
+  QUOTACHECKCMD="df -h /projects/ncfs"
+  ALLOCCHECKCMD=null
   ACCOUNT=ncfs
   SUBMITSTRING=sbatch
+  JOBLAUNCHER=srun
   SCRATCHDIR=/projects/ncfs/data
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=hatteras.template.slurm
   PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
-  RESERVATION=ncfs     # ncfs or null, this causes job to run on dedicated cores
-  PARTITION=ncfs       # ncfs or batch, this gives priority
-  CONSTRAINT=ivybridge # ivybridge or sandybridge
+  RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
+  PARTITION=ncfs       # ncfs or batch, gives priority
+  CONSTRAINT=null      # ivybridge or sandybridge
   QSCRIPTGEN=hatteras.slurm.pl
-  PPN=20
-  module load python_modules/2.7
-  module load matlab/2017b
+  PPN=16
+  if [[ $RESERVATION = ncfs ]]; then
+     PPN=20
+  fi
+  PLATFORMMODULES='module load hdf5/1.10.1_intel-18.0.0 intelc/18.0.0 intelfort/18.0.0 mvapich2/2.3b_intel-18.0.0_ch3_ofed-4.1 netcdf-C/4.5.0_intel-18.0.0 netcdf-Fortran/4.4.0_intel-18.0.0 zlib/1.2.11_intel-18.0.0'
+  $PLATFORMMODULES
 }
 init_stampede()
 { #<- can replace the following with a custom script
-  HOSTNAME=stampede.tacc.utexas.edu
+  HPCENV=stampede.tacc.utexas.edu
   QUEUESYS=SLURM
   QCHECKCMD=sacct
   ACCOUNT=PleaseSpecifyACCOUNTInYourAsgsConfigFile
   SUBMITSTRING=sbatch
+  JOBLAUNCHER=ibrun
   SCRATCHDIR=$SCRATCH
   SSHKEY=~/.ssh/id_rsa_stampede
   QSCRIPT=stampede.template.slurm
   PREPCONTROLSCRIPT=stampede.adcprep.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=16
-  module load netcdf/4.3.2
+  PLATFORMMODULES='module load netcdf/4.3.2'
+  $PLATFORMMODULES
   #jgf20150610: Most likely QUEUENAME=normal SERQUEUENAME=serial
+}
+init_stampede2()
+{ #<- can replace the following with a custom script
+  HOSTNAME=stampede2.tacc.utexas.edu
+  QUEUESYS=SLURM
+  QCHECKCMD=sacct
+  ACCOUNT=PleaseSpecifyACCOUNTInYourAsgsConfigFile
+  SUBMITSTRING=sbatch
+  SCRATCHDIR=$SCRATCH
+  SSHKEY=~/.ssh/id_rsa_stampede
+  QSCRIPT=stampede2.template.slurm
+  PREPCONTROLSCRIPT=stampede2.adcprep.template.slurm
+  QSCRIPTGEN=stampede2.slurm.pl
+  PPN=48
+  GROUP="G-803086"
+  module load netcdf/4.3.3.1
+  module load hdf5/1.8.16
 }
 init_kittyhawk()
 { #<- can replace the following with a custom script
-  HOSTNAME=kittyhawk.renci.org
+  HPCENV=kittyhawk.renci.org
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=noaccount
@@ -181,11 +215,12 @@ init_kittyhawk()
 }
 init_sapphire()
 { #<- can replace the following with a custom script
-  HOSTNAME=sapphire.erdc.hpc.mil
+  HPCENV=sapphire.erdc.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=erdcvhsp
-  SUBMITSTRING="aprun"
+  SUBMITSTRING=qsub
+  JOBLAUNCHER="aprun"
   SCRATCHDIR=/work2/$USER
   SSHKEY=~/.ssh/id_rsa_sapphire
   QSCRIPT=erdc.template.pbs
@@ -198,11 +233,12 @@ init_sapphire()
 
 init_jade()
 { #<- can replace the following with a custom script
-  HOSTNAME=jade.erdc.hpc.mil
+  HPCENV=jade.erdc.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=erdcvhsp
-  SUBMITSTRING="aprun"
+  SUBMITSTRING=qsub
+  JOBLAUNCHER="aprun"
 # INTERSTRING="qsub -l size=1,walltime=00:10:00 -A $ACCOUNT -q $QUEUENAME -I"
   INTERSTRING=
   SCRATCHDIR=/work/$USER
@@ -217,7 +253,7 @@ init_jade()
 
 init_diamond()
 { #<- can replace the following with a custom script
-  HOSTNAME=diamond.erdc.hpc.mil
+  HPCENV=diamond.erdc.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=erdcvhsp
@@ -233,7 +269,7 @@ init_diamond()
 
 init_garnet()
 { #<- can replace the following with a custom script
-  HOSTNAME=garnet.erdc.hpc.mil
+  HPCENV=garnet.erdc.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=erdcvhsp
@@ -258,7 +294,7 @@ init_spirit()
   # module load hdf5-mpi/intel/sgimpt/1.8.12
   # module load mpt/2.12
   # echo "... modules loaded."
-  HOSTNAME=spirit.afrl.hpc.mil
+  HPCENV=spirit.afrl.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=erdcvhsp
@@ -282,7 +318,7 @@ init_topaz()
   module load usp-netcdf/intel-15.0.3/4.3.3.1
   module load imagemagick/6.9.2-5
   echo "... modules loaded."
-  HOSTNAME=topaz.erdc.hpc.mil
+  HPCENV=topaz.erdc.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
   #ACCOUNT=ERDCV00898N10
@@ -307,7 +343,7 @@ init_thunder()
   module load git
   module load netcdf-fortran/intel/4.4.2
   echo "... modules loaded."
-  HOSTNAME=thunder.afrl.hpc.mil
+  HPCENV=thunder.afrl.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=ERDCV00898N10
@@ -324,7 +360,7 @@ init_thunder()
 }
 init_tezpur()
 { #<- can replace the following with a custom script
-  HOSTNAME=tezpur.hpc.lsu.edu
+  HPCENV=tezpur.hpc.lsu.edu
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=loni_asgs2009
@@ -339,7 +375,7 @@ init_tezpur()
 }
 init_mike()
 { #<- can replace the following with a custom script
-  HOSTNAME=mike.hpc.lsu.edu
+  HPCENV=mike.hpc.lsu.edu
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=pleaseSetAccountParamToHPCAllocationInASGSConfig
@@ -355,7 +391,7 @@ init_mike()
 }
 init_ranger()
 { #<- can replace the following with a custom script
-  HOSTNAME=ranger.tacc.utexas.edu
+  HPCENV=ranger.tacc.utexas.edu
   QUEUESYS=SGE
   QCHECKCMD=qstat
   NCPUDIVISOR=16
@@ -372,14 +408,15 @@ init_ranger()
 }
 init_lonestar()
 { #<- can replace the following with a custom script
-  HOSTNAME=lonestar.tacc.utexas.edu
+  HPCENV=lonestar.tacc.utexas.edu
   QUEUESYS=SLURM
   QUEUENAME=normal
   SERQUEUE=normal
   QCHECKCMD=squeue
   PPN=24
   ACCOUNT=ADCIRC
-  SUBMITSTRING="ibrun"
+  SUBMITSTRING=sbatch
+  JOBLAUNCHER=ibrun
   SCRATCHDIR=$SCRATCH
   SSHKEY=id_rsa_lonestar
   QSCRIPT=lonestar.template.slurm
@@ -388,14 +425,15 @@ init_lonestar()
   SERQSCRIPTGEN=hatteras.slurm.pl
   UMASK=006
   GROUP="G-803086"
-  module load netcdf/4.3.3.1 
+  PLATFORMMODULES='module load netcdf/4.3.3.1'
+  $PLATFORMMODULES
 }
 init_desktop()
 {
-  HOSTNAME=jason-desktop
+  HPCENV=jason-desktop
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
-  SUBMITSTRING="mpiexec -n"
+  SUBMITSTRING="mpiexec"
   SCRATCHDIR=/srv/asgs
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
@@ -403,7 +441,7 @@ init_desktop()
 }
 init_Poseidon()
 {
-  HOSTNAME=poseidon.vsnet.gmu.edu
+  HPCENV=poseidon.vsnet.gmu.edu
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec -n"
@@ -415,7 +453,7 @@ init_Poseidon()
 
 init_topsail()
 { #<- can replace the following with a custom script
-  HOSTNAME=topsail.unc.edu
+  HPCENV=topsail.unc.edu
   QUEUESYS=LSF
   INTERSTRING="bsub -q int -Ip"
   SCRATCHDIR=/ifs1/scr/$USER
@@ -450,10 +488,11 @@ init_tacc_tds()
    OPENDAPHOST=adcircvis.tacc.utexas.edu
    DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer/asgs"
    CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog/asgs"
-   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS/2017
+   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS/2018
    SSHPORT=null
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
-   COPYABLEHOSTS=(lonestar lonestar.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+   #COPYABLEHOSTS=(lonestar lonestar.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+   COPYABLEHOSTS=(stampede stampede.tacc.utexas.edu stampede2 stampede2.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
 }
 init_test()
 { #<- can replace the following with a custom script
@@ -463,7 +502,8 @@ init_test()
 # used to dispatch environmentally sensitive actions
 # such as queue interactions
 env_dispatch(){
- case $1 in
+ HPCENVSHORT=$1
+ case $HPCENVSHORT in
   "camellia") consoleMessage "platforms.sh: Camellia(WorldWinds) configuration found."
           init_camellia
           ;;
@@ -536,6 +576,9 @@ env_dispatch(){
   "stampede") consoleMessage "platforms.sh: Stampede (TACC) configuration found."
           init_stampede
           ;;
+  "stampede2") consoleMessage "platforms.sh: Stampede2 (TACC) configuration found."
+          init_stampede2
+          ;;
   "arete") consoleMessage "platforms.sh: Arete (CCT) configuration found."
           init_arete
           ;;
@@ -548,7 +591,7 @@ env_dispatch(){
   "test") consoleMessage "platforms.sh: test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "platforms.sh: '$1' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
+  *) fatal "platforms.sh: '$HPCENVSHORT' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
      ;;
   esac
 }
