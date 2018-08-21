@@ -103,6 +103,8 @@ deflate =.false.
 !
 fm%meshFileName = "null"
 rm%meshFileName = "null"
+fd%dataFileFormat = ASCII
+rd%dataFileFormat = ASCII
 meshonly = .false.
 dataFileBase = "null"
 !
@@ -183,7 +185,7 @@ if (argcount.gt.0) then
             i = i + 1
             call getarg(i, cmdlinearg)
             read(cmdlinearg,*) circleCenterLatitude
-            write(6,'("INFO: Result circle is centered at ",f15.7," degrees west longitude ",f15.7," degrees north latitude.")') circleCenterLongitude, circleCenterLatitude           
+            write(6,'("INFO: Result circle is centered at ",f15.7," degrees longitude ",f15.7," degrees north latitude.")') circleCenterLongitude, circleCenterLatitude           
             i = i + 1
             call getarg(i, cmdlinearg)
             read(cmdlinearg,*) circleDiameterDegrees
@@ -242,12 +244,16 @@ endif
 select case(fd%dataFileFormat)
 case(ASCII,ASCIIG)
    call read14(fm)
-   call determineASCIIFileCharacteristics(fd)
+   if (meshonly.eqv..false.) then
+      call determineASCIIFileCharacteristics(fd)
+   endif
 case(NETCDFG)
    fm%meshFileName = fd%dataFileName
    call findMeshDimsNetCDF(fm, fn)
    call readMeshNetCDF(fm, fn)
-   call determineNetCDFFileCharacteristics(fd, fm, fn)
+   if (meshonly.eqv..false.) then
+      call determineNetCDFFileCharacteristics(fd, fm, fn)
+   endif
 case default
    call allMessage(ERROR,'Cannot read mesh.')
    stop

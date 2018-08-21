@@ -1,6 +1,7 @@
 $*************************HEADING************************
 $
-PROJ 'ASGS' '2016'
+$ comment lines:
+PROJ 'ASGS' '2004'
 'StormName: %StormName%'
 'EnsembleID: %EnsembleID%'
 'WTIMINC Line in ADCIRC fort.15: %WTIMINC%'
@@ -13,34 +14,40 @@ MODE NONSTATIONARY
 $
 COORDINATES SPHERICAL CCM
 $
-CGRID UNSTRUCTURED CIRCLE MDC=36 FLOW=0.031384 MSC=30
+CGRID UNSTRUCTURED CIRCLE MDC=36 FLOW=0.031384 MSC=40
 READ UNSTRUCTURED
 $
 INIT ZERO
+$
 INPGRID WLEV UNSTRUCTURED EXCEPTION 0.1 NONSTAT %startdatetime% %swandt% SEC %enddatetime%
 READINP ADCWL
 $
-INPGRID  CUR UNSTRUCTURED EXCEPTION 0.  NONSTAT %startdatetime% %swandt% SEC %enddatetime% 
+INPGRID  CUR UNSTRUCTURED EXCEPTION 0.  NONSTAT %startdatetime% %swandt% SEC %enddatetime%
 READINP ADCCUR
 $
-INPGRID WIND UNSTRUCTURED EXCEPTION 0.  NONSTAT %startdatetime% %swandt% SEC %enddatetime% 
+INPGRID WIND UNSTRUCTURED EXCEPTION 0.  NONSTAT %startdatetime% %swandt% SEC %enddatetime%
 READINP ADCWIND
 $
+INPGRID FRIC UNSTRUCTURED EXCEPTION 0.05 NONSTAT %startdatetime% %swandt% SEC %enddatetime%
+READINP ADCFRIC
+$
+$ specify initial wave field and associated hot start file;
+$ may override previous 'INIT ZERO'
 %hotstart%
+$
 $
 GEN3 KOMEN AGROW
 WCAP KOMEN 2.36E-5 3.02E-3 2.0 1.0 1.0
-BREAKING RUE
-FRICTION JONSWAP CFJON=0.038
-$OFF REFRAC
+BREAKING
+FRICTION MADSEN KN=0.05
 PROP BSBT
 NUM STOPC DABS=0.005 DREL=0.01 CURVAT=0.005 NPNTS=95 NONSTAT MXITNS=20 CSIGMA CFL=0.25 CTHETA CFL=0.25
 $
 $*************************************************************
 $
-QUANTITY HS DIR TM01 FMIN=0.031384 FMAX=0.547632
+QUANTITY HS DIR TM01 TM02 TMM10 TPS FMIN=0.031384 FMAX=1.420416
+$
 TEST 1,0
-COMPUTE %startdatetime% %swandt%  SEC %enddatetime% 
+COMPUTE %startdatetime% %swandt% SEC %enddatetime%
 STOP
 $
-
