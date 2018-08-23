@@ -1864,7 +1864,7 @@ while [ true ]; do
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
-      STORMNAME=`grep "storm name" run.properties | sed 's/storm name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}    
+      STORMNAME=`grep "stormname" run.properties | sed 's/stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}    
       # create a GAHM or ASYMMETRIC fort.22 file from the existing track file
       if [[ $VORTEXMODEL = GAHM || $VORTEXMODEL = ASYMMETRIC ]]; then
          $ADCIRCDIR/aswip -n $BASENWS >> ${SYSLOG} 2>&1
