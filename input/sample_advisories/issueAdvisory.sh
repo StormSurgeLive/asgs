@@ -16,8 +16,8 @@
 # TRIGGER=rssembedded          
 # RSSSITE=filesystem
 # FTPSITE=filesystem
-# HDIR=${INPUTDIR}/sample_advisories
-# FDIR=${INPUTDIR}/sample_advisories
+# HDIR=${SCRIPTDIR}/input/sample_advisories
+# FDIR=${SCRIPTDIR}/input/sample_advisories
 #
 # Or alternatively use the optional --sampledir argument 
 # if you have a reason for issusing advisories in a different
