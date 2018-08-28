@@ -30,7 +30,7 @@
 INSTANCENAME=dailyv17a   # "name" of this ASGS process
 #COLDSTARTDATE=2017120100 # calendar year month day hour YYYYMMDDHH24
 #COLDSTARTDATE=2018040800 # calendar year month day hour YYYYMMDDHH24
-COLDSTARTDATE=2018050500 # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2018040800 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -38,8 +38,9 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables
-SCRIPTDIR=~/asgs/2014stable          # ASGS executables
+ADCIRCDIR=~/adcirc/forks/adcirc/v53release/work # ADCIRC executables
+SWANDIR=~/adcirc/forks/adcirc/v53release/swan
+SCRIPTDIR=~/asgs/branches/2014stable          # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v17a # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
@@ -49,7 +50,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=on     # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=off  # tropical cyclone forcing
-WAVES=on             # wave forcing
+WAVES=off            # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
@@ -159,7 +160,7 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=queenbee_daily_post.sh
+POSTPROCESS=cera_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
@@ -188,7 +189,7 @@ WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts
 
 # Archiving
 
-ARCHIVE=ncfs_archive.sh
+ARCHIVE=enstorm_pedir_removal.sh
 ARCHIVEBASE=/projects/ncfs/data
 ARCHIVEDIR=archive
 
@@ -208,7 +209,7 @@ case $si in
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-   TIMESTEPSIZE=900.0    # 15 minute time steps
+   TIMESTEPSIZE=300.0    # 5 minute time steps
    NCPU=15               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 

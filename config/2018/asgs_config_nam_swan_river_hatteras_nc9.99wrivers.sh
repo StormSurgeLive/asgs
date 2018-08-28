@@ -44,8 +44,9 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables 
-SCRIPTDIR=~/asgs/2014stable     # ASGS scripts/executables  
+ADCIRCDIR=~/adcirc/forks/adcirc/v53release/work  # ADCIRC executables 
+SWANDIR=~/adcirc/forks/adcirc/v53release/swan  # SWAN executables 
+SCRIPTDIR=~/asgs/branches/2014stable     # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v9.99_w_rivers # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
@@ -183,7 +184,7 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
-ARCHIVE=ncfs_archive.sh
+ARCHIVE=enstorm_pedir_removal.sh
 ARCHIVEBASE=/projects/ncfs/data
 ARCHIVEDIR=archive
 
