@@ -494,6 +494,18 @@ init_tacc_tds()
    #COPYABLEHOSTS=(lonestar lonestar.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
    COPYABLEHOSTS=(stampede stampede.tacc.utexas.edu stampede2 stampede2.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
 }
+init_penguin()
+{ #<- can replace the following with a custom script
+  HOSTNAME=login-29-45.pod.penguincomputing.com
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  SCRATCHDIR=/home/$USER
+  SUBMITSTRING="mpirun"
+  QSCRIPT=penguin.template.pbs
+  PREPCONTROLSCRIPT=penguin.adcprep.template.pbs
+  QSCRIPTGEN=penguin.pbs.pl
+  PPN=40
+}
 init_test()
 { #<- can replace the following with a custom script
   QUEUESYS=Test
@@ -587,6 +599,9 @@ env_dispatch(){
            ;;
   "poseidon") consoleMessage "platforms.sh: desktop configuration found."
           init_Poseidon
+           ;;
+  "penguin") consoleMessage "platforms.sh: desktop configuration found."
+          init_penguin
            ;;
   "test") consoleMessage "platforms.sh: test environment (default) configuration found."
           init_test
