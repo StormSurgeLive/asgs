@@ -1630,12 +1630,19 @@ if [[ $HOTORCOLD = hotstart ]]; then
       curl $hotstartURL/run.properties > from.run.properties
    else
       # starting from a hotstart file on the local filesystem, not from a URL
-      checkDirExistence $LASTSUBDIR "Local subdirectory containing hotstart file from the previous run"
+      checkDirExistence $LASTSUBDIR "local subdirectory containing hotstart file from the previous run"
       # check to make sure the COLDSTARTDATE was not set to "auto" in the 
       # asgs config file (unless the run.properties file was also supplied)
       if [[ $COLDSTARTDATE = auto ]]; then
          logMessage "The COLDSTARTDATE parameter in the ASGS config file was set to 'auto' and the LASTSUBDIR parameter was set to the local filesystem directory ${LASTSUBDIR}. The COLDSTARTDATE will therefore be determined from the ColdStartTime property in the $LASTSUBDIR/run.properties file."
-         checkFileExistence $LASTSUBDIR "Run properties file" run.properties
+         for dir in nowcast hindcast; do 
+            if [[ -d $LASTSUBDIR/$dir ]]; then
+               checkFileExistence $LASTSUBDIR/$dir "run properties file" run.properties
+               COLDSTARTDATE=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' ${LASTSUBDIR}/$dir/run.properties`
+               logMessage "The cold start datetime from the run.properties file is ${COLDSTARTDATE}."
+               break
+            fi
+         done
       fi
       checkHotstart $hotstartPath $HOTSTARTFORMAT 67
    fi
@@ -2369,7 +2376,7 @@ while [ true ]; do
                   logMessage "$ENSTORM: $THIS: The $ENSTORM job ended successfully. Starting postprocessing."
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
                   echo "time.post.start : $DATETIME" >> ${STORMDIR}/run.properties
-                  ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENVSHORT $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
+                  ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
                   echo "time.post.finish : $DATETIME" >> ${STORMDIR}/run.properties
                   # notify analysts that new results are available
