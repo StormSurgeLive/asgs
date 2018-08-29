@@ -107,7 +107,7 @@ for f = 1:adcData(1).NumStations
     % Check if cpraStationIndex was found -> If not, then cycle 
     % to next iteration.
     if isempty(cpraStationIndex) == 1
-        str = sprintf("WARNING: plot_usace_adcirc.m: Could not find %s",adcData.STATION{f}.NAME);
+        str = sprintf('WARNING: plot_usace_adcirc.m: Could not find %s',adcData.STATION{f}.NAME);
         %disp(str);
         continue;
     end
@@ -129,6 +129,7 @@ for f = 1:adcData(1).NumStations
             minOWL = floor(min(wl(:,2)));
         else
             wl(1,1) = sdate; wl(1,2) = -20; % Create a fake point for legend purposes
+            oDataExist = 0;
         end
     catch ME
         % USACE is down... :(
@@ -142,7 +143,7 @@ for f = 1:adcData(1).NumStations
     
     % Plot USACE water levels as scatter points
     scatter(wl(:,1),wl(:,2),50,'MarkerEdgeColor','black','Linewidth',1);hold on;
-     
+        
     %% 
 % -------------------------------------------------------------------------
     
@@ -168,7 +169,7 @@ for f = 1:adcData(1).NumStations
             maxMWL = 1;
             minMWL = 0;
         end
-
+        
         % Plot ADCIRC Simulation
         plot(adcData(i).STATION{f}.DATE,...
             adcData(i).STATION{f}.DATA / 0.3048,...
@@ -176,14 +177,25 @@ for f = 1:adcData(1).NumStations
     end
     
     minWL = min(minOWL,minMWL) - 1;
-    maxWL = max(maxOWL,maxMWL) + 3;
-%     maxWL = max([maxOWL,maxMWL,trigger(cpraStationIndex)]) + 3;    
+    maxWL = max(maxOWL,maxMWL) + 3; 
+
+    %%
+    
+    % Include some text stating that no USACE observed gage data is available.
+    if oDataExist == 0
+        text(sdate-2.85,minWL + 1.5,'Real-time observations are not available.','Interpreter','None');
+    end
+    % Include some text stating that no model data is available.
+    if mDataExist == 0
+        text(sdate+2.5,minWL + 1.5,'Model result indicate location is dry.','Interpreter','None');
+    end
+
     %% 
 % -----------------------------------------------------------------------
     % Find out if forecasted water level is above the trigger
-    trigger = false;
+    triggerL = false;
     if (trigger(cpraStationIndex) > 0) && (maxMWL > trigger(cpraStationIndex))
-        trigger = true;
+        triggerL = true;
         % Find the index at which this occurs. Use the first time it
         % occurs.
         idx = find(adcData(i).STATION{f}.DATA/.3048 > trigger(cpraStationIndex));
@@ -252,7 +264,13 @@ for f = 1:adcData(1).NumStations
 % -------------------------------------------------------------------------
     
     title1 = strcat('Storm:',storm,' - grid:',adcGrid);
-    title2 = strcat(cpraStationNames(cpraStationIndex),'  -  USACE Gage ID:',stations(cpraStationIndex));
+	if (strcmp(cpraStationNames(cpraStationIndex),'Western Tie-In (WBV7274)') == 1)
+		title2 = strcat('Western Tie-In (WBV-72/74)  -  USACE Gage ID:',stations(cpraStationIndex));
+	elseif (strcmp(cpraStationNames(cpraStationIndex),'Bayou Segnette Closure (WBV162)') == 1)
+		title2 = strcat('Bayou Segnette Closure (WBV-16.2) -  USACE Gage ID:',stations(cpraStationIndex));
+	else
+		title2 = strcat(cpraStationNames(cpraStationIndex),'  -  USACE Gage ID:',stations(cpraStationIndex));
+	end
     
     text(0,1.07,title1,'Units','normalized','Interpreter','None');
     text(0,1.03,title2,'Units','normalized','Interpreter','None');
@@ -260,8 +278,9 @@ for f = 1:adcData(1).NumStations
     % Add Legend
 %     legend('USACE Observations','nhcConsensus','veerRight50',...
 %         'Location','northwest');
-    if (trigger)
-        legend('USACE Observations','nhcConsensus','Water Level Trigger','Location','northwest');
+    triggerText = strcat('Water Level Trigger (',num2str(trigger(cpraStationIndex),'%4.1f'),' ft)');
+    if (triggerL)
+        legend('USACE Observations','nhcConsensus',triggerText,'Location','northwest');
     else
         legend('USACE Observations','nhcConsensus','Location','northwest');
     end
