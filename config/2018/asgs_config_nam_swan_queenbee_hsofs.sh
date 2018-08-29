@@ -28,17 +28,18 @@
 # Fundamental
 
 INSTANCENAME=namhsofs    # "name" of this ASGS process
-COLDSTARTDATE=2018032400 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart       # "hotstart" or "coldstart"
-LASTSUBDIR=null  # path to previous execution (if HOTORCOLD=hotstart)
+COLDSTARTDATE=auto       # YYYYMMDDHH24 or "auto" to extract from hotstart file
+HOTORCOLD=hotstart       # "hotstart" or "coldstart"
+LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/tc/nam/2018082706/hsofs/hatteras.renci.org/namhsofs/namforecast  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables
-SCRIPTDIR=~/asgs/2014stable        # ASGS executables
-INPUTDIR=${SCRATCHDIR}/asgs/2014stable/input/meshes/hsofs # grid and other input files
+ADCIRCDIR=~/adcirc/forks/adcirc/v53release/work # ADCIRC executables
+SWANDIR=~/adcirc/forks/adcirc/v53release/swan   # SWAN executables
+SCRIPTDIR=~/asgs/branches/2014stable            # ASGS executables
+INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
@@ -69,7 +70,7 @@ SERQUEUE=single
 if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
-SCRATCHDIR=/work/$USER
+SCRATCHDIR=/ssdwork/$USER
 ACCOUNT=loni_cera_2018a
 
 # External data sources : Tropical cyclones
@@ -163,7 +164,7 @@ ASGSADMIN="jason.g.fleming@gmail.com"
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=queenbee_daily_post.sh
+POSTPROCESS=cera_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
@@ -180,7 +181,7 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
-ARCHIVE=queenbee_archive.sh
+ARCHIVE=enstorm_pedir_removal.sh
 ARCHIVEBASE=/work/jgflemin
 ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
@@ -199,7 +200,7 @@ case $si in
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-   TIMESTEPSIZE=60.0    # 15 minute time steps
+   TIMESTEPSIZE=300.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
