@@ -27,19 +27,19 @@
 
 # Fundamental
 
-INSTANCENAME=dailyv18j   # "name" of this ASGS process
-COLDSTARTDATE=2018050900 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
+INSTANCENAME=daily_NGOM_RT_v18j   # "name" of this ASGS process
+COLDSTARTDATE=2018081300 # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=coldstart     # "hotstart" or "coldstart"
+LASTSUBDIR=/ssdwork/mbilskie/asgs/NGOM_RT_v18j          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=14.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=/home/mbilskie/src/PADCIRC/adcirc-cg-52.30.14/work # ADCIRC executables
-#SCRIPTDIR=/scratch/mbilskie/NGOM_RT_v18j/asgs_2014stable          # ASGS executables
-SCRIPTDIR=/project/mbilskie/repo/asgs   # ASGS executables
-INPUTDIR=/work/mbilskie/NGOM_RT_v18j/daily/mesh # grid and other input files
+ADCIRCDIR=/ssdwork/mbilskie/adcirc-cg-52.30.14/work # ADCIRC executables
+SWANDIR=/ssdwork/mbilskie/adcirc-cg-52.30.14/swan # ADCIRC executables
+SCRIPTDIR=/ssdwork/mbilskie/asgs/2014_stable_08282018   # ASGS executables
+INPUTDIR=/ssdwork/mbilskie/asgs/NGOM_RT_v18j/mesh # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
@@ -59,16 +59,16 @@ HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="07:00:00" # forecast wall clock time
-NCPU=1200                   # number of compute CPUs for all simulations
-NUMWRITERS=20
-NCPUCAPACITY=1240
+NCPU=479                    # number of compute CPUs for all simulations
+NUMWRITERS=1 
+NCPUCAPACITY=500 
 CYCLETIMELIMIT="99:00:00"
 QUEUENAME=workq
 #QUEUENAME=checkpt
 SERQUEUE=single
-ACCOUNT=loni_cera_2018a
-#SCRATCHDIR=/work/$USER    # vs default /work/cera
-SCRATCHDIR=/work/mbilskie/NGOM_RT_v18j/daily #overides setting in platforms.sh -where state file will be written
+#ACCOUNT=loni_cera_2018a
+ACCOUNT=loni_lsu_ccr_18
+SCRATCHDIR=/ssdwork/mbilskie/asgs/NGOM_RT_v18j #overides setting in platforms.sh -where state file will be written
 
 # External data sources : Tropical cyclones
 
@@ -86,11 +86,11 @@ HDIR=${INPUTDIR}/sample_advisories
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06,18"
+FORECASTCYCLE="06"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
-PTFILE=ptFile_oneEighth.txt         # the lat/lons for the OWI background met
+PTFILE=ptFile_oneTenth.txt         # the lat/lons for the OWI background met
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
 
 # External data sources : River Flux
@@ -105,9 +105,9 @@ GRIDNAME=NGOM_RT_v18j_chk
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=NGOM_RT_v18j.15.template   # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=NGOMv18j_stations_for_ASGS.TXT
-VELSTATIONS=NGOMv18j_stations_for_ASGS.TXT
-METSTATIONS=NGOMv18j_stations_for_ASGS.TXT
+ELEVSTATIONS=NGOMv18j_ASGS_stations_list_for_CERA_08282018.txt
+VELSTATIONS=NGOMv18j_ASGS_stations_list_for_CERA_08282018.txt
+METSTATIONS=NGOMv18j_ASGS_stations_list_for_CERA_08282018.txt
 NAFILE=NGOM_RT_v18j.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=fort.26.template   # only used if WAVES=on
@@ -159,7 +159,6 @@ ASGSADMIN=mbilsk3@lsu.edu
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
 POSTPROCESS=queenbee_daily_post.sh
-#POSTPROCESS=null_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
@@ -179,20 +178,14 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,mbilsk3@lsu.edu"
-
-NUMCERASERVERS=2
-WEBHOST=webserver.hostingco.com
-WEBUSER=remoteuser
-WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts
 
 # Archiving
 
-ARCHIVE=queenbee_archive.sh
-#ARCHIVEBASE=/work/jgflemin
-ARCHIVEBASE=/project/mbilskie/NGOM_RT_v18j/daily
-ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
+#ARCHIVE=queenbee_archive.sh
+ARCHIVE=enstorm_pedir_removal.sh
+#ARCHIVEBASE=/ssdwork/mbilskie/
+#ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
 # Forecast ensemble members
 

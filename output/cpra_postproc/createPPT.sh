@@ -44,6 +44,8 @@ advisory=`sed -n 's/[ ^]*$//;s/advisory\s*:\s*//p' run.properties`
 forecastValidStart=`sed -n 's/[ ^]*$//;s/forecastValidStart\s*:\s*//p' run.properties`
 # get mesh file name
 grid=`sed -n 's/[ ^]*$//;s/adcirc.gridname\s*:\s*//p' run.properties`
+# HPCENVSHORT: shorthand for the HPC environment: queenbee, hatteras, etc
+HPCENVSHORT=`sed -n 's/[ ^]*$//;s/hpc.hpcenvshort\s*:\s*//p' run.properties`
 #
 # create strings to represent time in UTC and CDT
 coldStartTimeUTC="${coldStartTime:0:8} ${coldStartTime:8:4} UTC"
@@ -78,7 +80,18 @@ export MATLABPATH=${POSTPROCDIR}/
 #--------------------------------------------------------------------------
 #       RUN MATLAB SCRIPT TO GENERATE HYDROGRAPH IMAGES
 #--------------------------------------------------------------------------
-matlab -nodisplay -nosplash -nodesktop -r "run plot_usace_adcirc.m, exit"
+PLOTCMD=""
+case $HPCENVSHORT in
+    queenbee)
+        PLOTCMD="${POSTPROCDIR}/Matlab_QB2/run_plot_usace_adcirc.sh /usr/local/packages/license/matlab/r2017a"
+        ;;
+    hatteras)
+        PLOTCMD='matlab -nodisplay -nosplash -nodesktop -r "run plot_usace_adcirc.m, exit"'
+        ;;
+    *)
+        error "HPC platform $HPCENVSHORT not recognized."
+esac
+$PLOTCMD
 #--------------------------------------------------------------------------
 #
 #
