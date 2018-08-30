@@ -61,16 +61,19 @@ export MATLABPATH=${POSTPROCDIR}
 JOBMODULES=""    
 JOBPATHS=""
 JOBLIBS=""
+FINDMAXZ=""
 # HPCENVSHORT: shorthand for the HPC environment: queenbee, hatteras, etc
 HPCENVSHORT=`sed -n 's/[ ^]*$//;s/hpc.hpcenvshort\s*:\s*//p' run.properties`
 case $HPCENVSHORT in
     queenbee)
         JOBMODULES="module load python/2.7.12-anaconda-tensorflow matlab/r2015b"
         $JOBMODULES
+        FINDMAXZCMD="${POSTPROCDIR}/Matlab_QB2/run_FindMaxZ.sh /usr/local/packages/license/matlab/r2017a"
         ;;
     hatteras)
         JOBMODULES="module load python_modules/2.7 matlab/2017b"
         module unload zlib # avoid intel library conflict issues with matlab
+        FINDMAXZCMD='matlab -nodisplay -nosplash -nodesktop -r "run FindMaxZ.m, exit"'
         # set location of gdal; this only works if the asgs is running
         # in the ncfs account
         if [[ $USER = ncfs ]]; then
@@ -111,7 +114,7 @@ if [[ -f maxele.63.nc ]]; then
     sed -i "s/%Title%/Peak Water Levels/g" FG51_SELA_maxele.inp 
     sed -i "s/%TrackFile%/fort.22.trk/g" FG51_SELA_maxele.inp 2>> $LOGFILE
     # Find Maximum WSE
-    matlab -nodisplay -nosplash -nodesktop -r "run FindMaxZ.m, exit" 
+    $FINDMAXZCMD
     etaMax=$(head -n 1 etaMax.txt) 2>> $LOGFILE
     etaMax=${etaMax%.*} 2>> $LOGFILE # Converts floating point to integer
     # set contour range based on maximum water level
