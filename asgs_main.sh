@@ -1205,7 +1205,7 @@ writeProperties()
    echo "adcirc.version : $ADCIRCVERSION" >> $STORMDIR/run.properties   
    #
    # properties for backward compatibility
-   echo "hostname : $HPCENVSHORT" >> $STORMDIR/run.properties
+   echo "hostname : $HPCENV" >> $STORMDIR/run.properties
    echo "instance : $INSTANCENAME" >> $STORMDIR/run.properties
    echo "pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties
    echo "intendedAudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
