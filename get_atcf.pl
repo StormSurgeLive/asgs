@@ -223,7 +223,7 @@ while (!$dl) {
          my $http = HTTP::Tiny->new(%attributes);
          my $response = $http->get('https://' . $rsssite . '/index-at.xml');
          if ( $response->{status} == 599 ) { 
-            stderrMessage("ERROR","Failed 
+            stderrMessage("ERROR","Failed to download forecast/advisory.");
             printf STDERR "content: ";
             print STDERR $response->{content};
             printf STDERR "status: ";

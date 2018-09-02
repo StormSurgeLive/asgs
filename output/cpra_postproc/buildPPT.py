@@ -47,7 +47,7 @@ title_slide_layout = prs.slide_layouts[0]
 slide = prs.slides.add_slide(title_slide_layout)
 title = slide.shapes.title
 subtitle = slide.placeholders[1]
-title.text = runProp['storm class'] + ' ' + runProp['storm name'] + ', ' + scenario + ' Scenario'
+title.text = runProp['storm class'] + ' ' + runProp['stormname'] + ', ' + scenario + ' Scenario'
 subtitle.text = "Advisory " + runProp['advisory'] + " Issued on " + advisory_dt_long + " CDT"
 statement = 'For Official Use Only. Not For Release. \rModel results were produced by the ADCIRC Surge Guidance System (ASGS) and are based on the National Hurricane Center (NHC) forecast track. \rADCIRC-developed hydrographs are an operational planning tool for emergency-response personnel and are not a replacement for National Weather Service (NWS) forecasts.'
 fouo = slide.placeholders[10]
@@ -132,7 +132,7 @@ for image in fnames:
 #for slide in slides:
         #print('slide number %s' % str(slides.index(slide)+1))
 
-pptFile = runProp['storm name'] + "_Adv" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
+pptFile = runProp['stormname'] + "_Adv" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
 prs.save(pptFile)
 pFile = open('pptFile.temp','w')
 pFile.write(pptFile)
