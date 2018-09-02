@@ -4,7 +4,6 @@
 # Sets up the MATLAB Runtime environment for the current $ARCH and executes 
 # the specified command.
 #
-echo "starting run_plot_usace_adcirc.sh"
 exe_name=$0
 exe_dir=`dirname "$0"`
 echo "------------------------------------------"
@@ -28,9 +27,7 @@ else
       args="${args} \"${token}\"" 
       shift
   done
-  #eval "\"${exe_dir}/plot_usace_adcirc\"" $args
-  ${exe_dir}/plot_usace_adcirc $args
-  echo "finished run_plot_usace_adcirc.sh"
+  eval "\"${exe_dir}/plot_usace_adcirc\"" $args
 fi
-#exit
+exit
 
