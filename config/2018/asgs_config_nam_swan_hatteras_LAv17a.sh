@@ -30,10 +30,10 @@
 INSTANCENAME=dailyv17a   # "name" of this ASGS process
 #COLDSTARTDATE=2017120100 # calendar year month day hour YYYYMMDDHH24
 #COLDSTARTDATE=2018040800 # calendar year month day hour YYYYMMDDHH24
-COLDSTARTDATE=2018040800 # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2018081200 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
-HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
+HINDCASTLENGTH=20.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
@@ -88,7 +88,7 @@ HDIR=${INPUTDIR}/sample_advisories
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06,18"
+FORECASTCYCLE="00,06,12,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -105,7 +105,7 @@ RIVERDIR=/projects/ciflow/adcirc_info
 GRIDFILE=LA_v17a-WithUpperAtch_chk.grd   # mesh (fort.14) file
 GRIDNAME=LA_v17a-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=LA_v17a-WithUpperAtch.15.template   # fort.15 template
+CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS12ft.15.template   # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
 ELEVSTATIONS=combined_stations_20180525.txt
 VELSTATIONS=combined_stations_20180525.txt
