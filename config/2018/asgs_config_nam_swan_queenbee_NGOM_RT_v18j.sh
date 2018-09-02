@@ -86,7 +86,7 @@ HDIR=${INPUTDIR}/sample_advisories
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06"
+FORECASTCYCLE="06,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -162,7 +162,7 @@ POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
-TDS=(renci_tds)
+TDS=(lsu_tds renci_tds)
 TARGET=queenbee  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
