@@ -298,3 +298,5 @@ for f = 1:adcData(1).NumStations
     fname = char(strcat('WSE_',adcData.STATION{f}.NAME,'_USACE',stations(cpraStationIndex)));
     print(fname,'-dpng','-r200');
 end
+
+clear all; close all;
