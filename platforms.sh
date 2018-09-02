@@ -81,6 +81,36 @@ init_queenbee()
   module load matlab/r2015b
   module load python/2.7.12-anaconda-tensorflow
 }
+init_supermic()
+{ #<- can replace the following with a custom script
+  HPCENV=smic.hpc.lsu.edu
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  QSUMMARYCMD=showq
+  QUOTACHECKCMD=showquota
+  ALLOCCHECKCMD=showquota
+  QUEUENAME=workq
+  SERQUEUE=single
+  ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
+  SUBMITSTRING=qsub
+  JOBLAUNCHER='mpirun -np %ncpu% -machinefile \$PBS_NODEFILE'
+  if [[ -d /work/$USER ]]; then
+     SCRATCHDIR=/work/$USER
+  else
+     SCRATCHDIR=/ssdwork/$USER
+  fi
+  SSHKEY=~/.ssh/id_rsa.pub
+  QSCRIPT=smic.template.pbs
+  PREPCONTROLSCRIPT=smic.adcprep.template.pbs
+  QSCRIPTGEN=tezpur.pbs.pl
+  PPN=20
+  REMOVALCMD="rmpurge"
+  PLATFORMMODULES='module load intel/14.0.2 netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0 netcdf_fortran/4.2/INTEL-140-MVAPICH2-2.0 perl/5.16.3/INTEL-14.0.2'
+  $PLATFORMMODULES
+  # modules for CPRA post processing
+  #module load matlab/r2015b
+  #module load python/2.7.12-anaconda-tensorflow
+}
 init_arete()
 { #<- can replace the following with a custom script
   HPCENV=arete.cct.lsu.edu
@@ -570,6 +600,9 @@ env_dispatch(){
   "queenbee") consoleMessage "platforms.sh: Queenbee (LONI) configuration found."
           init_queenbee
           ;;
+  "supermic") consoleMessage "platforms.sh: Queenbee (LONI) configuration found."
+          init_supermic
+          ;;
   "tezpur") consoleMessage "platforms.sh: Tezpur (LSU) configuration found."
           init_tezpur
           ;;
@@ -606,7 +639,7 @@ env_dispatch(){
   "test") consoleMessage "platforms.sh: test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "platforms.sh: '$HPCENVSHORT' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
+  *) fatal "platforms.sh: '$HPCENVSHORT' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, supermic, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
      ;;
   esac
 }
