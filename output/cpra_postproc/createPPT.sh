@@ -26,17 +26,25 @@
 #
 #--------------------------------------------------------------------------
 THIS="cpra_postproc/createPPT.sh"
+batchJOBTYPE=cpra.figuregen
+postJOBTYPE=cpra.post
 #
 #
 #--------------------------------------------------------------------------
 #       GATHER PROPERTIES
 #--------------------------------------------------------------------------
-POSTPROCDIR=`sed -n 's/[ ^]*$//;s/post.path.cpra.post.postprocdir\s*:\s*//p' run.properties`
+# STORMDIR: path where this ensemble member is supposed to run 
 STORMDIR=`sed -n 's/[ ^]*$//;s/asgs.path.stormdir\s*:\s*//p' run.properties`
-fname=`sed -n 's/[ ^]*$//;s/post.file.cpra.post.maxele.fname\s*:\s*//p' run.properties`
+LOGFILE=${STORMDIR}/${postJOBTYPE}.log
+# ensemble member name
+ENSTORM=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
+echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Creating pptx." >> $LOGFILE
+#
+POSTPROCDIR=`sed -n 's/[ ^]*$//;s/post.path.cpra.post.postprocdir\s*:\s*//p' run.properties`
+fname=`sed -n 's/[ ^]*$//;s/post.file.cpra.figuregen.maxele.fname\s*:\s*//p' run.properties`
 coldStartTime=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' run.properties`
 # Parse run.properties to get storm name and ensemble
-storm=`sed -n 's/[ ^]*$//;s/storm name\s*:\s*//p' run.properties`
+storm=`sed -n '0,/stormname/{s/[ ^]*$//;s/stormname\s*:\s*//p}' run.properties`
 enstorm=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
 # Parse run.properties to get advisory
 advisory=`sed -n 's/[ ^]*$//;s/advisory\s*:\s*//p' run.properties`
@@ -60,6 +68,7 @@ echo "time.forecast.valid.cdt : $forecastValidStartCDT" >> run.properties
 #--------------------------------------------------------------------------
 #      WRITE PROPERTIES FOR MATLAB 
 #--------------------------------------------------------------------------
+echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Writing properties for matlab." >> $LOGFILE
 oFile=cpraHydro.info
 echo $storm > $oFile
 echo $enstorm >> $oFile
@@ -80,6 +89,7 @@ export MATLABPATH=${POSTPROCDIR}/
 #--------------------------------------------------------------------------
 #       RUN MATLAB SCRIPT TO GENERATE HYDROGRAPH IMAGES
 #--------------------------------------------------------------------------
+echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Executing matlab." >> $LOGFILE
 PLOTCMD=""
 case $HPCENVSHORT in
     queenbee)
@@ -90,8 +100,10 @@ case $HPCENVSHORT in
         ;;
     *)
         error "HPC platform $HPCENVSHORT not recognized."
+        ;;
 esac
-$PLOTCMD
+$PLOTCMD >> $LOGFILE 2>&1
+echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Finished executing matlab." >> $LOGFILE
 #--------------------------------------------------------------------------
 #
 #
@@ -100,17 +112,33 @@ $PLOTCMD
 #--------------------------------------------------------------------------
 # If there is a maxele.63.nc, wait until associated FigureGen job is complete
 if [[ -f maxele.63.nc ]]; then
-   STARTPOST=`sed -n 's/[ ^]*$//;s/cpra.post.${storm}.start\s*:\s*//p' run.properties`  
+   echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Checking to see if FigureGen job is complete." >> $LOGFILE
+   STARTPOST=`sed -n 's/[ ^]*$//;s/time.hpc.job.cpra.figuregen.*.start\s*:\s*//p' run.properties`  
    if [[ ! -z $STARTPOST ]]; then
-      until [[ -f ${STORMDIR}/cpra.post.${storm}.run.finish || -f ${STORMDIR}/cpra.post.${storm}.run.error ]]; do
-         echo "THIS: INFO: Waiting for FigureGen maxele job to complete."
-         sleep 5
+      waitSeconds=0
+      until [[ $waitSeconds -gt 300 ]]; do 
+         FINISHPOST=""
+         FINISHPOST=`sed -n 's/[ ^]*$//;s/time.hpc.job.cpra.figuregen.*.finish\s*:\s*//p' run.properties`            
+         if [[ $FINISHPOST != "" ]]; then
+            echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: FigureGen maxele job finished." >> $LOGFILE
+            break
+         fi
+         ERRORPOST=""
+         ERRORPOST=`sed -n 's/[ ^]*$//;s/time.hpc.job.cpra.figuregen.*.error\s*:\s*//p' run.properties`            
+         if [[ $ERRORPOST != "" ]]; then
+            echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: FigureGen maxele job exited with an error." >> $LOGFILE
+            break
+         fi
+         echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Waiting for FigureGen maxele job to complete." >> $LOGFILE
+         sleep 10
+         waitSeconds=`expr $waitSeconds + 10`
       done
    fi
 fi
 #--------------------------------------------------------------------------
 #       RUN PYTHON SCRIPT TO GENERATE PPT SLIDE DECK
 #--------------------------------------------------------------------------
+echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Building pptx with buildPPT.py." >> $LOGFILE
 cp ${POSTPROCDIR}/LSU_template.pptx ${STORMDIR}
 python ${POSTPROCDIR}/buildPPT.py ${fname}
 #rm LSU_template.pptx
@@ -120,13 +148,14 @@ python ${POSTPROCDIR}/buildPPT.py ${fname}
 #--------------------------------------------------------------------------
 #       E-MAIL PPT AS ATTACHMENT
 #--------------------------------------------------------------------------
+echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Sending email." >> $LOGFILE
 #emailList='mbilsk3@lsu.edu matt.bilskie@gmail.com jason.fleming@seahorsecoastal.com ckaiser@cct.lsu.edu'
 #emailList='mbilsk3@lsu.edu'
 emailList='jason.fleming@seahorsecoastal.com'
 subjectLine="$storm Advisory $advisory PPT"
 message="This is an automated message from the ADCIRC Surge Guidance System (ASGS).
 New results are attached for STORM $storm ADVISORY $advisory issued on $forecastValidStartCDT CDT"
-attachFile=$(cat pptFile.temp)
+attachFile="$(cat pptFile.temp)" # double quotes because the file name may have a space in it
 echo "$message" | mail -s "$subjectLine" -a "$attachFile" $emailList
 #--------------------------------------------------------------------------
 #
