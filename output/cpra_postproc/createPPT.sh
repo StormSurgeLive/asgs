@@ -151,11 +151,33 @@ python ${POSTPROCDIR}/buildPPT.py ${fname}
 echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Sending email." >> $LOGFILE
 #emailList='mbilsk3@lsu.edu matt.bilskie@gmail.com jason.fleming@seahorsecoastal.com ckaiser@cct.lsu.edu'
 #emailList='mbilsk3@lsu.edu'
-emailList='jason.fleming@seahorsecoastal.com'
+emailList='jason.fleming@scimaritan.org'
 subjectLine="$storm Advisory $advisory PPT"
 message="This is an automated message from the ADCIRC Surge Guidance System (ASGS).
 New results are attached for STORM $storm ADVISORY $advisory issued on $forecastValidStartCDT CDT"
-attachFile="$(cat pptFile.temp)" # double quotes because the file name may have a space in it
+# double quotes because the file name may have a space in it
+attachFile="$(cat pptFile.temp)" 
+# 
+# now set the email list based on the HPC platform ... queenbee is the primary
+# for CPRA while stampede, hatteras, and lonestar are backup HPC machines
+# 
+# the ASGS on the primary HPC should be set to email clients directly while
+# backup machines should only email their results to ASGS Operators who can
+# forward the slide deck if the primary HPC has failed ... this prevents
+# clients being bombarded with redundant successful slide decks from 
+# primary and multiple backup ASGSes ... however all Operators will get
+# slide decks from all ASGSes on every ensemble member of every advisory ...
+case $HPCENVSHORT in
+   queenbee)
+      emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com ckaiser@cct.lsu.edu shagen@lsu.edu rtwilley@lsu.edu Billy.Wall@la.gov Sam.Martin@la.gov Stephen.Amato@la.gov Heath.E.Jones@usace.army.mil Sarah.T.Stone@usace.army.mil Dana.R.Ray@usace.army.mil Maxwell.E.Agnew@usace.army.mil David.A.Ramirez@usace.army.mil'
+      ;;
+   hatteras|stampede|lonestar)
+      emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com'
+      ;;
+   *)
+      error "HPC platform $HPCENVSHORT not recognized."
+      ;;
+esac
 echo "$message" | mail -s "$subjectLine" -a "$attachFile" $emailList
 #--------------------------------------------------------------------------
 #
