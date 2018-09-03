@@ -63,10 +63,10 @@ NCPU=1200                     # number of compute CPUs for all simulations
 NUMWRITERS=20
 NCPUCAPACITY=3660
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=workq
-SERQUEUE=single
-#QUEUENAME=priority
-#SERQUEUE=priority
+#QUEUENAME=workq
+#SERQUEUE=single
+QUEUENAME=priority
+SERQUEUE=priority
 if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
@@ -108,9 +108,9 @@ GRIDNAME=LA_v17a-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=LA_v17a-WithUpperAtch.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=combined_stations_20180525.txt
-VELSTATIONS=combined_stations_20180525.txt
-METSTATIONS=combined_stations_20180525.txt
+ELEVSTATIONS=combined_stations_20180611.txt
+VELSTATIONS=combined_stations_20180611.txt
+METSTATIONS=combined_stations_20180611.txt
 NAFILE=LA_v17a-WithUpperAtch.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=LA_v17a-WithUpperAtch.26.template   # only used if WAVES=on
@@ -198,7 +198,7 @@ ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=4 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
