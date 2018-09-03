@@ -102,7 +102,7 @@ case $HPCENVSHORT in
         error "HPC platform $HPCENVSHORT not recognized."
         ;;
 esac
-$PLOTCMD >> $LOGFILE 2>&1
+eval "$PLOTCMD" >> $LOGFILE 2>&1
 echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Finished executing matlab." >> $LOGFILE
 #--------------------------------------------------------------------------
 #

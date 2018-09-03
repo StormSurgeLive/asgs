@@ -88,7 +88,8 @@ case $HPCENVSHORT in
     hatteras)
         JOBMODULES="module load python_modules/2.7 matlab/2017b"
         module unload zlib # avoid intel library conflict issues with matlab
-        FINDMAXZCMD='matlab -nodisplay -nosplash -nodesktop -r "run FindMaxZ.m, exit"'
+        #FINDMAXZCMD='matlab -nodisplay -nosplash -nodesktop -r "run FindMaxZ.m, exit"'
+        FINDMAXZCMD=(matlab -nodisplay -nosplash -nodesktop -r "run FindMaxZ.m, exit")
         # set location of gdal; this only works if the asgs is running
         # in the ncfs account
         if [[ $USER = ncfs ]]; then
@@ -130,7 +131,7 @@ if [[ -f maxele.63.nc ]]; then
     sed -i "s/%Title%/Peak Water Levels/g" FG51_SELA_maxele.inp 
     sed -i "s/%TrackFile%/fort.22.trk/g" FG51_SELA_maxele.inp 2>> $LOGFILE
     # Find Maximum WSE
-    $FINDMAXZCMD
+    eval "$FINDMAXZCMD"
     etaMax=$(head -n 1 etaMax.txt) 2>> $LOGFILE
     etaMax=${etaMax%.*} 2>> $LOGFILE # Converts floating point to integer
     # set contour range based on maximum water level
