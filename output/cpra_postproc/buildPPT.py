@@ -30,7 +30,7 @@ advisory_dt = datetime.strptime(runProp['time.forecast.valid.cdt'],'%Y%m%d%H%M%S
 advisory_dt_long = datetime.strftime(advisory_dt,'%b-%d-%Y %H:%M')
 
 scenario = runProp['asgs.enstorm']
-if [[ scenario == 'nhcConsensus' ]]:
+if scenario == 'nhcConsensus':
     scenario = 'NHC Track'
 
 prs = Presentation('LSU_template.pptx')
