@@ -36,6 +36,7 @@ while [[ 1 ]]; do
       cp $forecastFileNameXML ${forecastFileNameXML}.${DATETIME}
       cp $forecastFileNameHTML ${forecastFileNameHTML}.${DATETIME}
    fi
+   curl http://ftp.nhc.noaa.gov/atcf/btk/$hindcastFileName > $hindcastFileName
    bestEndDate=`tail -n 1 $hindcastFileName | awk '{ print $3 }' | sed -e "s/,//"`
    if [[ $oldBESTEndDate = 0 ]]; then
       oldBESTEndDate=$bestEndDate
