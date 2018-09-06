@@ -28,10 +28,11 @@
 
 # Fundamental 
 
-INSTANCENAME=tc_podtest   # name of this ASGS process (Change this for every new instance)
-COLDSTARTDATE=2018052700 # (date to start cold start from )
-HOTORCOLD=hotstart       # "hotstart" or "coldstart" 
-LASTSUBDIR=/home/bblanton/asgs-scratch/asgs8851/2018070912/
+INSTANCENAME=pod_tc_ncv9.99  # name of this ASGS process (Change this for every new instance)
+COLDSTARTDATE=2018080600 # (date to start cold start from )
+HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
+#LASTSUBDIR=/home/bblanton/asgs-scratch/kickstart_ncv9.99/
+LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
@@ -48,7 +49,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 
 BACKGROUNDMET=off    # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
-TROPICALCYCLONE=on   # [de]activate tropical cyclone forcing (temp. broken)
+TROPICALCYCLONE=off   # [de]activate tropical cyclone forcing (temp. broken)
 WAVES=off            # [de]activate wave forcing 
 VARFLUX=off          # [de]activate variable river flux forcing
 
@@ -56,16 +57,16 @@ VARFLUX=off          # [de]activate variable river flux forcing
 
 TIMESTEPSIZE=30
 SWANDT=1200
-HINDCASTWALLTIME="06:00:00"   # river inital and tidal spinup time in machine
-ADCPREPWALLTIME="00:05:00"
-NOWCASTWALLTIME="01:00:00"  # must have leading zero, e.g., 05:00:00
-FORECASTWALLTIME="01:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=24
+HINDCASTWALLTIME="24:00:00"   # river inital and tidal spinup time in machine
+ADCPREPWALLTIME="01:00:00"
+NOWCASTWALLTIME="06:00:00"  # must have leading zero, e.g., 05:00:00
+FORECASTWALLTIME="06:00:00" # must have leading zero, e.g., 05:00:00
+NCPU=960
 NUMWRITERS=0
-NCPUCAPACITY=96
-CYCLETIMELIMIT="03:00:00"
-QUEUENAME=B30
-SERQUEUE=B30
+NCPUCAPACITY=960
+CYCLETIMELIMIT="06:00:00"
+QUEUENAME=S30
+SERQUEUE=S30
 ACCOUNT=DhsCrcTesting
 SCRATCHDIR=/home/bblanton/asgs-scratch
 
