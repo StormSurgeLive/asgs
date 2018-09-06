@@ -156,9 +156,8 @@ C-- DETERMINE GREENWICH EQUIL. TERMS AT BEGINNING OF RECORD
          if (adcircFormat.eqv..true.) then
             ! tidal potential nodal factors and equilibrium arguments
             if (i.eq.1) then
-               write(11,122)  numTidalConstituents, int(BHR),iday,monthChar(imo),iyr, xdays
- 122           FORMAT(i0, 6x,'! NTIF number of tidal potential constituents ! start date is ',
-     & i0,'Z ',i0,1x,a,1x,i0,' ! run length is ',f6.2,' days') 
+               write(11,fmt=100)
+     & numTidalConstituents, int(BHR),iday,monthChar(imo),iyr, xdays
             ! boundary forcing nodal factors and equilibrium arguments
             else
                write(11,'(i0, 6x,"! NBFR number of tidal boundary constituents")') numTidalConstituents
