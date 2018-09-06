@@ -682,7 +682,7 @@ downloadBackgroundMet()
    newAdvisoryNum=0
    while [[ $newAdvisoryNum -lt 2 ]]; do
       OPTIONS="--rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle $FORECASTCYCLE --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
-      echo "perl ${SCRIPTDIR}/get_nam.pl $OPTIONS "
+      #echo "perl ${SCRIPTDIR}/get_nam.pl $OPTIONS "
       newAdvisoryNum=`perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}` 
       if [[ $newAdvisoryNum -lt 2 ]]; then
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Sleeping 60 secs ..."
@@ -2187,7 +2187,7 @@ exit
                   logMessage "$ENSTORM: $THIS: The $ENSTORM job ended successfully. Starting postprocessing."
 
                   com="${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
-                  RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL"  "$com"
+                  RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL" "${POSTPROCESS} $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR"
                   $com
                   # notify analysts that new results are available
                   ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HOSTNAME $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1  
