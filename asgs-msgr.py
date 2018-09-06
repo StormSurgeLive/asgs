@@ -1,7 +1,7 @@
 import sys
 import datetime
 import getopt
-import yaml
+#import yaml
 import pika
 import json
 

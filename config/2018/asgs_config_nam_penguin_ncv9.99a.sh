@@ -28,8 +28,8 @@
 
 # Fundamental 
 
-INSTANCENAME=ncem_op      # name of this ASGS process (Change this for every new instance)
-COLDSTARTDATE=2018052800  # (date to start cold start from )
+INSTANCENAME=pod_tc_ncv9.99      # name of this ASGS process (Change this for every new instance)
+COLDSTARTDATE=2018080800  # (date to start cold start from )
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
@@ -46,26 +46,26 @@ PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCalc.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on     # [de]activate NAM download/forcing 
+BACKGROUNDMET=off     # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
 TROPICALCYCLONE=off  # [de]activate tropical cyclone forcing (temp. broken)
-WAVES=on            # [de]activate wave forcing 
+WAVES=off            # [de]activate wave forcing 
 VARFLUX=on           # [de]activate variable river flux forcing
 
 # Computational Resources
 
 TIMESTEPSIZE=0.5
 SWANDT=1200
-HINDCASTWALLTIME="06:00:00"   # river inital and tidal spinup time in machine
+HINDCASTWALLTIME="24:00:00"   # river inital and tidal spinup time in machine
 ADCPREPWALLTIME="00:10:00"
 NOWCASTWALLTIME="01:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="03:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=500
+NCPU=960
 NUMWRITERS=4
-NCPUCAPACITY=504
+NCPUCAPACITY=960
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=B30
-SERQUEUE=B30
+QUEUENAME=S30
+SERQUEUE=S30
 ACCOUNT=bblanton
 SCRATCHDIR=/home/bblanton/asgs-scratch
 
