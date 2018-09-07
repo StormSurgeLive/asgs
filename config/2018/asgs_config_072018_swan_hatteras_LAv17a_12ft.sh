@@ -69,7 +69,7 @@ SCRATCHDIR=/projects/ncfs/data
 QSCRIPT=hatteras.template.slurm
 PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm # jgf20160322
 PARTITION=ncfs
-RESERVATION=ncfs
+RESERVATION=null
 CONSTRAINT=null
 
 # External data sources : Tropical cyclones
@@ -163,7 +163,7 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=cera_post.sh
+POSTPROCESS=cpra_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
