@@ -193,11 +193,11 @@ case $si in
    ;;
 1)
    ENSTORM=namforecast
-   CONSTRAINT=ivybridge
+   #CONSTRAINT=ivybridge
    ;;
 0)
    ENSTORM=namforecastWind10m
-   CONSTRAINT=ivybridge
+   #CONSTRAINT=ivybridge
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=FEMA_R3_nowindreduction_fort.15.template  # fort.15 template
