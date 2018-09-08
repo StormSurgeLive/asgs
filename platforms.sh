@@ -425,7 +425,7 @@ init_lonestar()
   SERQSCRIPTGEN=hatteras.slurm.pl
   UMASK=006
   GROUP="G-803086"
-  PLATFORMMODULES='module load netcdf/4.3.3.1'
+  PLATFORMMODULES='module load netcdf/4.3.3.1 curl perl'
   $PLATFORMMODULES
 }
 init_desktop()
