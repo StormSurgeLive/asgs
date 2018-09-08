@@ -78,7 +78,8 @@ SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
 ACCOUNT=batch # or "ncfs" on hatteras to use pre-empt capability
 PARTITION=ncfs
 RESERVATION=null
-CONSTRAINT='sandybridge&hatteras'
+#CONSTRAINT='sandybridge&hatteras'
+CONSTRAINT=null
 
 # External data sources : Tropical cyclones
 
@@ -92,7 +93,7 @@ HDIR=/atcf/btk      # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06,18"
+FORECASTCYCLE="00,06,12,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -114,11 +115,11 @@ RIVERDATAPROTOCOL=scp
 GRIDFILE=nc_inundation_v9.99a_w_rivers.grd
 GRIDNAME=nc_inundation_v9.99_w_rivers
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
+CONTROLTEMPLATE=nc_9.99wrivers_vortex_offset_fort.15.template
 CONTROLPROPERTIES=fort.15.properties
-ELEVSTATIONS=ncv999_combined_station_list_cera.20161105_ncem20180329.txt
-VELSTATIONS=ncv999_combined_station_list_cera.20161105_ncem20180329.txt
-METSTATIONS=ncv999_combined_station_list_cera.20161105_ncem20180329.txt
+ELEVSTATIONS=ncv999_stations_20180907.txt
+VELSTATIONS=${ELEVSTATIONS}
+METSTATIONS=${ELEVSTATIONS}
 NAFILE=nc_inundation_v9.99_rivers.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=fort.26.template
@@ -201,13 +202,13 @@ case $si in
    ENSTORM=namforecast
    PARTITION=ncfs
    RESERVATION=null
-   CONSTRAINT='sandybridge&hatteras'
+   #CONSTRAINT='sandybridge&hatteras'
    ;;
 1)
    ENSTORM=namforecastWind10m
    PARTITION=ncfs
    RESERVATION=null
-   CONSTRAINT='sandybridge&hatteras'
+   #CONSTRAINT='sandybridge&hatteras'
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=nc_9.99wrivers.nowindreduction.fort.15.template

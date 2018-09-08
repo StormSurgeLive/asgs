@@ -1591,5 +1591,5 @@ jason.fleming@seahorsecoastal.com    ! NCCONT - CONTACT INFORMATION
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
 &inundationOutputControl inundationOutput=.true. /
 &metControl WindDragLimit=0.0028 / 
-! jgf: offset hard coded for matthew test advisory 23 
-&offsetControl offsetFileName='/home/ncfs/asgs/2014stable/input/sample_advisories/offset_test.dat',  offsetRampStart=2912988.0, offsetRampEnd=3002400.0, offsetRampReferenceTime='coldstart' /
+! jgf: offset 
+&offsetControl offsetFileName='/home/ncfs/asgs/branches/2014stable/input/meshes/hsofs/oi_surface_NOMAD1e_0.1524.dat', offsetRampStart=18640800.0, offsetRampEnd=18662400.0, offsetRampReferenceTime='coldstart' /
