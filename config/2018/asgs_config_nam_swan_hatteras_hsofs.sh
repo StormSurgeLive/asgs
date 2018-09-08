@@ -69,7 +69,8 @@ SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data
 PARTITION=ncfs
 RESERVATION=null
-CONSTRAINT=ivybridge
+#CONSTRAINT=ivybridge
+CONSTRAINT=null
 
 # External data sources : Tropical cyclones
 
@@ -88,7 +89,7 @@ HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06,18"
+FORECASTCYCLE="00,06,12,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -107,11 +108,11 @@ RIVERDIR=/projects/ciflow/adcirc_info
 GRIDFILE=hsofs.14  # mesh (fort.14) file
 GRIDNAME=hsofs
 MESHPROPERTIES=${GRIDFILE}.nc.properties
-CONTROLTEMPLATE=hsofs.15.template  # fort.15 template
+CONTROLTEMPLATE=hsofs_offset.15.template  # fort.15 template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=hsofs.combined_station_list_20180525.txt
-VELSTATIONS=hsofs.combined_station_list_20180525.txt
-METSTATIONS=hsofs.combined_station_list_20180525.txt
+ELEVSTATIONS=hsofs_stations_20180907.txt
+VELSTATIONS=${ELEVSTATIONS}
+METSTATIONS=${ELEVSTATIONS}
 NAFILE=hsofs.13
 NAPROPERTIES=${NAFILE}.properties
 #SWANTEMPLATE=fort.26.template # only used if WAVES=on
@@ -195,15 +196,15 @@ case $si in
    ;;
 0)
    ENSTORM=namforecast
-   PARTITION=ncfs
-   RESERVATION=ncfs
-   CONSTRAINT=ivybridge
+   #PARTITION=ncfs
+   #RESERVATION=ncfs
+   #CONSTRAINT=ivybridge
    ;;
 1)
    ENSTORM=namforecastWind10m
-   PARTITION=ncfs
-   RESERVATION=null
-   CONSTRAINT='sandybridge&hatteras'
+   #PARTITION=ncfs
+   #RESERVATION=null
+   #CONSTRAINT='sandybridge&hatteras'
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
