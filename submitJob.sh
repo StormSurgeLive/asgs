@@ -66,6 +66,10 @@ QSTDIR=`sed -n "s/[ ^]*$//;s/hpc.path.${JOBTYPE}.template.qstdir\s*:\s*//p" run.
 QSTEMPLATE=`sed -n "s/[ ^]*$//;s/hpc.file.${JOBTYPE}.template.qstemplate\s*:\s*//p" run.properties`
 # NCPU: number of cores to request for this job
 NCPU=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.ncpu\s*:\s*//p" run.properties`
+# QUEUENAME: name of parallel queue to use on this platform
+QUEUENAME=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.queuename\s*:\s*//p" run.properties`
+# SERQUEUE: name of serial queue to use on this platform
+SERQUEUE=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.serqueue\s*:\s*//p" run.properties`
 # ACCOUNT: the account the job should be billed to
 ACCOUNT=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.account\s*:\s*//p" run.properties`
 # WALLTIME: limit of wall clock time for the job to run before being
@@ -117,7 +121,7 @@ fi
 # convert HH:MM:SS wall time to integer minutes
 WALLMINUTES=`echo "${WALLTIME:0:2} * 60 + ${WALLTIME:3:2} + 1" | bc` 
 # compute number of nodes to request using processors per node (PPN)
-#NNODES=`python -c "from math import ceil; print int(ceil(float($CPUREQUEST)/float($PPN)))"`
+NNODES=`python -c "from math import ceil; print int(ceil(float($CPUREQUEST)/float($PPN)))"`
 #--------------------------------------------------------------------------
 #       F I L L   I N   Q U E U E   S C R I P T   T E M P L A T E 
 #--------------------------------------------------------------------------
@@ -140,9 +144,13 @@ case $QUEUESYS in
    sed -i "s/%nnodes%/$NNODES/g" $QSFILE 2>> $LOGFILE
    sed -i "s/%notifyuser%/$NOTIFYUSER/g" $QSFILE 2>> $LOGFILE
    sed -i "s/%account%/$ACCOUNT/g" $QSFILE 2>> $LOGFILE
-   sed -i "s/%queuename%/$QUEUENAME/g" $QSFILE 2>> $LOGFILE
-   sed -i "s/%serqueue%/$SERQUEUE/g" $QSFILE 2>> $LOGFILE
-   sed -i "s/%ppn%/$PPN/g" $QSFILE 2>> $LOGFILE
+   if [[ $CPUREQUEST -gt 1 ]]; then
+      sed -i "s/%queuename%/$QUEUENAME/g" $QSFILE 2>> $LOGFILE
+      sed -i "s/%ppn%/$PPN/g" $QSFILE 2>> $LOGFILE
+   else
+      sed -i "s/%queuename%/$SERQUEUE/g" $QSFILE 2>> $LOGFILE
+      sed -i "s/%ppn%/1/g" $QSFILE 2>> $LOGFILE
+   fi
    sed -i "s/%advisdir%/${ADVISDIR//\//\\/}/g" $QSFILE 2>> $LOGFILE
    sed -i "s/%syslog%/${SYSLOG//\//\\/}/g" $QSFILE 2>> $LOGFILE
    sed -i "s/%platformmodules%/$PLATFORMMODULES/g" $QSFILE 2>> $LOGFILE

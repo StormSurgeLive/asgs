@@ -34,8 +34,15 @@
 #--------------------------------------------------------------------------
 umask 002
 THIS="cpra_slide_deck_post.sh"
+batchJOBTYPE=cpra.figuregen
+postJOBTYPE=cpra.post
 # STORMDIR: path where this ensemble member is supposed to run 
 STORMDIR=$PWD
+LOGFILE=${STORMDIR}/${postJOBTYPE}.log
+# ensemble member name
+ENSTORM=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
+echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Starting post processing." >> $LOGFILE
+echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Collecting properties." >> $LOGFILE
 # SCRIPTDIR: path to asgs scripts like asgs_main.sh
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties`
 . ${SCRIPTDIR}/logging.sh
@@ -50,27 +57,39 @@ QUEUESYS=`sed -n 's/[ ^]*$//;s/hpc.queuesys\s*:\s*//p' run.properties`
 STORMNAME=`sed -n 's/[ ^]*$//;0,/stormname/{s/stormname\s*:\s*//p}' run.properties`
 # advisory number
 ADVISORY=`sed -n 's/[ ^]*$//;s/advisory\s*:\s*//p' run.properties`
-# ensemble member name
-ENSTORM=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
 #
-JOBTYPE=cpra.post
 POSTPROCDIR=${SCRIPTDIR}/output/cpra_postproc
-echo "post.path.${JOBTYPE}.postprocdir : $POSTPROCDIR" >> $STORMDIR/run.properties
-LOGFILE=${STORMDIR}/cpra.post.log
+echo "post.path.${postJOBTYPE}.postprocdir : $POSTPROCDIR" >> $STORMDIR/run.properties
+
 export MATLABPATH=${POSTPROCDIR}
 JOBMODULES=""    
 JOBPATHS=""
 JOBLIBS=""
+FINDMAXZ=""
 # HPCENVSHORT: shorthand for the HPC environment: queenbee, hatteras, etc
 HPCENVSHORT=`sed -n 's/[ ^]*$//;s/hpc.hpcenvshort\s*:\s*//p' run.properties`
+echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Setting up for execution on ${HPCENVSHORT}." >> $LOGFILE
+#
 case $HPCENVSHORT in
     queenbee)
-        JOBMODULES="module load python/2.7.12-anaconda-tensorflow matlab/r2015b"
+        echo "hpc.job.${batchJOBTYPE}.serqueue : single" >> $STORMDIR/run.properties
+        echo "hpc.job.${batchJOBTYPE}.queuename : workq" >> $STORMDIR/run.properties
+        JOBMODULES="module load python/2.7.12-anaconda-tensorflow"
         $JOBMODULES
+        FINDMAXZCMD="${POSTPROCDIR}/Matlab_QB2/run_FindMaxZ.sh /usr/local/packages/license/matlab/r2017a"
+        if [[ $USER = jgflemin ]]; then
+           ACCOUNT=loni_cera_2018a
+           GDAL_HOME=/home/jgflemin/asgs/gdal
+           GMT_HOME=/home/jgflemin/asgs/gmt/gmt-4.5.18
+           JOBPATHS="export PATH=${GDAL_HOME}/bin:${GMT_HOME}/bin:\$PATH GDAL_DATA=${GDAL_HOME}/share/gdal"
+           JOBLIBS="export LD_LIBRARY_PATH=${GDAL_HOME}/lib:${GMT_HOME}/lib:\$LD_LIBRARY_PATH"
+        fi
         ;;
     hatteras)
         JOBMODULES="module load python_modules/2.7 matlab/2017b"
         module unload zlib # avoid intel library conflict issues with matlab
+        #FINDMAXZCMD='matlab -nodisplay -nosplash -nodesktop -r "run FindMaxZ.m, exit"'
+        FINDMAXZCMD=(matlab -nodisplay -nosplash -nodesktop -r "run FindMaxZ.m, exit")
         # set location of gdal; this only works if the asgs is running
         # in the ncfs account
         if [[ $USER = ncfs ]]; then
@@ -79,7 +98,7 @@ case $HPCENVSHORT in
            JOBPATHS="export PATH=${GDAL_HOME}/bin:${GMT_HOME}/bin:\$PATH GDAL_DATA=${GDAL_HOME}/share/gdal"
            JOBLIBS="export LD_LIBRARY_PATH=${GDAL_HOME}/lib:${GMT_HOME}/lib:\$LD_LIBRARY_PATH"
            # use the ncfs priority level
-           echo "hpc.job.${JOBTYPE}.partition : ncfs" >> ${STORMDIR}/run.properties
+           echo "hpc.job.${batchJOBTYPE}.partition : ncfs" >> ${STORMDIR}/run.properties
         fi
         $JOBMODULES
         ;;
@@ -100,6 +119,7 @@ esac
 #                    F I G U R E   G E N  
 #--------------------------------------------------------------------------
 if [[ -f maxele.63.nc ]]; then
+    echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Building FigureGen job." >> $LOGFILE
     # Create storm track from fort.22 file
     awk 'BEGIN { FS="," } { printf "-%0.2f  %0.2f\n", $8/10.0, $7/10.0 }' fort.22 > fort.22.trk 2>> $LOGFILE
     # copy in color palette
@@ -111,7 +131,7 @@ if [[ -f maxele.63.nc ]]; then
     sed -i "s/%Title%/Peak Water Levels/g" FG51_SELA_maxele.inp 
     sed -i "s/%TrackFile%/fort.22.trk/g" FG51_SELA_maxele.inp 2>> $LOGFILE
     # Find Maximum WSE
-    matlab -nodisplay -nosplash -nodesktop -r "run FindMaxZ.m, exit" 
+    eval "$FINDMAXZCMD"
     etaMax=$(head -n 1 etaMax.txt) 2>> $LOGFILE
     etaMax=${etaMax%.*} 2>> $LOGFILE # Converts floating point to integer
     # set contour range based on maximum water level
@@ -131,23 +151,29 @@ if [[ -f maxele.63.nc ]]; then
     # FigureGen contour plot of maxele.63.nc 
     #
     # write properties to describe the FigureGen job
-    echo "hpc.path.${JOBTYPE}.template.qstdir : $SCRIPTDIR/input/queuesys/$QUEUESYS" >> $STORMDIR/run.properties
-    echo "hpc.file.${JOBTYPE}.template.qstemplate : slurm.template" >> $STORMDIR/run.properties
-    echo "hpc.job.${JOBTYPE}.ncpu : 1" >> $STORMDIR/run.properties
-    echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $STORMDIR/run.properties
-    echo "hpc.job.${JOBTYPE}.limit.walltime : 01:00:00" >> $STORMDIR/run.properties
-    echo "hpc.job.${JOBTYPE}.jobmodules : $JOBMODULES" >> $STORMDIR/run.properties 
-    echo "hpc.job.${JOBTYPE}.jobpaths : $JOBPATHS" >> $STORMDIR/run.properties 
-    echo "hpc.job.${JOBTYPE}.joblibs : $JOBLIBS" >> $STORMDIR/run.properties 
-    echo "hpc.job.${JOBTYPE}.cmd : ${POSTPROCDIR}/FigureGen -I FG51_SELA_maxele.inp > ${JOBTYPE}.log 2>\&1" >> $STORMDIR/run.properties 
+    echo "hpc.path.${batchJOBTYPE}.template.qstdir : $SCRIPTDIR/input/queuesys/$QUEUESYS" >> $STORMDIR/run.properties
+    echo "hpc.file.${batchJOBTYPE}.template.qstemplate : ${QUEUESYS,,}.template" >> $STORMDIR/run.properties
+    echo "hpc.job.${batchJOBTYPE}.ncpu : 1" >> $STORMDIR/run.properties
+    echo "hpc.job.${batchJOBTYPE}.account : $ACCOUNT" >> $STORMDIR/run.properties
+    echo "hpc.job.${batchJOBTYPE}.limit.walltime : 01:00:00" >> $STORMDIR/run.properties
+    echo "hpc.job.${batchJOBTYPE}.jobmodules : $JOBMODULES" >> $STORMDIR/run.properties 
+    echo "hpc.job.${batchJOBTYPE}.jobpaths : $JOBPATHS" >> $STORMDIR/run.properties 
+    echo "hpc.job.${batchJOBTYPE}.joblibs : $JOBLIBS" >> $STORMDIR/run.properties 
+    echo "hpc.job.${batchJOBTYPE}.cmd : ${POSTPROCDIR}/FigureGen -I FG51_SELA_maxele.inp > ${batchJOBTYPE}.log 2>\&1" >> $STORMDIR/run.properties 
     # now submit the job
-    ${SCRIPTDIR}/submitJob.sh $JOBTYPE
+    echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Submitting FigureGen job." >> $LOGFILE
+    ${SCRIPTDIR}/submitJob.sh $batchJOBTYPE
     fname="LA_SELA_${STORMNAME}_${ADVISORY}_${ENSTORM}_maxele_0001.jpg"
-    echo "post.file.${JOBTYPE}.maxele.fname : $fname" >> $STORMDIR/run.properties
+    echo "post.file.${batchJOBTYPE}.maxele.fname : $fname" >> $STORMDIR/run.properties
+else
+    echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: The maxele.63.nc file was not found, so the FigureGen job will not be built." >> $LOGFILE
 fi
 #--------------------------------------------------------------------------
 #       GENERATE HYDROGRAPHS & BUILD PPT
 #--------------------------------------------------------------------------
+# copy in the spreadsheet that matlab needs
+cp ${POSTPROCDIR}/Gate_Closure_Trigger.xlsx . 2>> $LOGFILE
 # Run createPPT.sh
+echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Running ${POSTPROCDIR}/createPPT.sh." >> $LOGFILE
 ${POSTPROCDIR}/createPPT.sh 
 #--------------------------------------------------------------------------

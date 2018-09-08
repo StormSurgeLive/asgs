@@ -1121,6 +1121,7 @@ writeProperties()
    # basic asgs configuration
    echo "config.file : $CONFIG" >> $STORMDIR/run.properties
    echo "config.instancename : $INSTANCENAME" >> $STORMDIR/run.properties
+   echo "config.adcirc.time.coldstartdate : $COLDSTARTDATE" >> $STORMDIR/run.properties
    echo "config.path.adcircdir : $ADCIRCDIR" >> $STORMDIR/run.properties
    echo "config.path.scriptdir : $SCRIPTDIR" >> $STORMDIR/run.properties
    echo "config.path.inputdir : $INPUTDIR" >> $STORMDIR/run.properties
@@ -1204,7 +1205,7 @@ writeProperties()
    echo "adcirc.version : $ADCIRCVERSION" >> $STORMDIR/run.properties   
    #
    # properties for backward compatibility
-   echo "hostname : $HPCENVSHORT" >> $STORMDIR/run.properties
+   echo "hostname : $HPCENV" >> $STORMDIR/run.properties
    echo "instance : $INSTANCENAME" >> $STORMDIR/run.properties
    echo "pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties
    echo "intendedAudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
@@ -1503,7 +1504,11 @@ else
       echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
    fi
 fi
-
+# see if the storm directory already exists in the scratch space
+if [ ! -d $RUNDIR ]; then
+    # -p says make the entire path tree if intermediate dirs do not exist
+    mkdir -p $RUNDIR #
+fi
 consoleMessage "$THIS: Please see ASGS log file for detailed information regarding system progress."
 consoleMessage "$THIS: ASGS Start Up MSG: [SYSLOG] The log file is ${SYSLOG}"
 logMessage "$THIS: ASGS Start Up MSG: [PROCID] $$"
@@ -1521,7 +1526,6 @@ checkDirExistence $ADCIRCDIR "ADCIRC executables directory"
 checkDirExistence $INPUTDIR "directory for input files"
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
 checkDirExistence $PERL5LIB "directory for the Date::Pcalc perl module"
-
 #
 checkFileExistence $ADCIRCDIR "ADCIRC serial executable" adcirc
 checkFileExistence $ADCIRCDIR "ADCIRC preprocessing executable" adcprep
@@ -1568,23 +1572,83 @@ fi
 if [[ ! -z $NAFILE && $NAFILE != null ]]; then
    checkFileExistence $INPUTDIR "ADCIRC nodal attributes (fort.13) file" $NAFILE
 fi
+LUN=67
+hotstartBase=fort.${LUN}
+hotstartSuffix=.nc
+hotstartPath=${LASTSUBDIR}/nowcast # only for reading from local filesystem
+hotstartURL=null
 if [[ $HOTORCOLD = hotstart ]]; then
-   if [[ $HOTSTARTFORMAT = netcdf ]]; then
-      if [[ -d $LASTSUBDIR/hindcast ]]; then
-         checkFileExistence "" "ADCIRC hotstart (fort.67.nc) file " $LASTSUBDIR/hindcast/fort.67.nc
-      fi
-      if [[ -d $LASTSUBDIR/nowcast ]]; then
-         checkFileExistence "" "ADCIRC hotstart (fort.67.nc) file " $LASTSUBDIR/nowcast/fort.67.nc
-      fi
+   # check to see if the LASTSUBDIR is actually a URL
+   urlCheck=`expr match "$LASTSUBDIR" 'http:'`
+   if [[ $urlCheck -eq 5 ]]; then
+      # always look for fort.68.nc from a URL because only a forecast
+      # will be posted to a URL, and only the hotstart file that was used
+      # to start the forecast will be posted ... asgs always hotstarts from 
+      # a fort.68 file and always writes a fort.67 file
+      hotstartURL=$LASTSUBDIR
    else
+      # we are reading the hotstart file from the local filesystem, determine
+      # whether it is from a nowcast or hindcast
       if [[ -d $LASTSUBDIR/hindcast ]]; then
-         checkFileExistence "" "ADCIRC hotstart (fort.67) file " $LASTSUBDIR/hindcast/PE0000/fort.67
-      fi
-      if [[ -d $LASTSUBDIR/nowcast ]]; then
-         checkFileExistence "" "ADCIRC hotstart (fort.67) file " $LASTSUBDIR/nowcast/PE0000/fort.67
+         hotstartPath=${LASTSUBDIR}/hindcast
       fi
    fi
-fi
+   if [[ $HOTSTARTFORMAT = binary ]]; then
+      # don't need the .nc suffix 
+      hotstartSuffix=
+   fi
+   # form the name of the hotstart file
+   hotstartFile=${hotstartBase}${hotstartSuffix}
+   # check existence and validity of hotstart file
+   # FIXME: this does not download the SWAN hotstart file from the URL; 
+   # that would require the post processing of the forecast to include the 
+   # globalization of the SWAN hotstart file
+   # FIXME: this also assumes that the hotstart format for this instance
+   # is the same as the hotstart format that is being read 
+   if [[ $hotstartURL != "null" ]]; then
+      debugMessage "The current directory is ${PWD}."
+      debugMessage "The run directory is ${RUNDIR}."
+      logMessage "Downloading run.properties file associated with hotstart file from ${hotstartURL}."
+      # get cold start time from the run.properties file
+      curl $hotstartURL/run.properties > $RUNDIR/from.run.properties
+      COLDSTARTDATE=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' ${RUNDIR}/from.run.properties`
+      logMessage "The cold start datetime associated with the remote hotstart file is ${COLDSTARTDATE}."
+      # pull down fort.68 file and save as fort.67 just because that
+      # is what the rest of asgs_main.sh is expecting
+      if [[ $HOTSTARTFORMAT = "binary" ]]; then
+         mkdir -p $RUNDIR/PE0000 2>> $SYSLOG
+         curl ${hotstartURL}/fort.68${hotstartSuffix} > ${RUNDIR}/PE0000/${hotstartFile}
+         logMessage "Downloaded hotstart file fort.68$hotstartSuffix from $hotstartURL to $RUNDIR/PE0000/${hotstartFile}."
+      else
+         curl ${hotstartURL}/fort.68${hotstartSuffix} > ${RUNDIR}/${hotstartFile}
+         logMessage "Downloaded hotstart file fort.68$hotstartSuffix from $hotstartURL to $RUNDIR/${hotstartFile}."
+      fi
+
+      logMessage "Now checking hotstart file content."
+      checkHotstart . $HOTSTARTFORMAT 67
+      # get cold start time from the run.properties file
+      curl $hotstartURL/run.properties > from.run.properties
+   else
+      # starting from a hotstart file on the local filesystem, not from a URL
+      checkDirExistence $LASTSUBDIR "local subdirectory containing hotstart file from the previous run"
+      # check to make sure the COLDSTARTDATE was not set to "auto" in the 
+      # asgs config file (unless the run.properties file was also supplied)
+      if [[ $COLDSTARTDATE = auto ]]; then
+         logMessage "The COLDSTARTDATE parameter in the ASGS config file was set to 'auto' and the LASTSUBDIR parameter was set to the local filesystem directory ${LASTSUBDIR}. The COLDSTARTDATE will therefore be determined from the ColdStartTime property in the $LASTSUBDIR/run.properties file."
+         for dir in nowcast hindcast; do 
+            if [[ -d $LASTSUBDIR/$dir ]]; then
+               checkFileExistence $LASTSUBDIR/$dir "run properties file" run.properties
+               COLDSTARTDATE=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' ${LASTSUBDIR}/$dir/run.properties`
+               logMessage "The cold start datetime from the run.properties file is ${COLDSTARTDATE}."
+               break
+            fi
+         done
+      fi
+      checkHotstart $hotstartPath $HOTSTARTFORMAT 67
+   fi
+fi   
+#
+#
 THIS="asgs_main.sh"
 if [[ -e ${SCRATCHDIR}/${PREPPEDARCHIVE} ]]; then
    logMessage "$THIS: Found archive of preprocessed input files ${SCRATCHDIR}/${PREPPEDARCHIVE}."
@@ -1630,11 +1694,6 @@ logMessage "$THIS: The directory $RUNDIR will be used for all files associated w
 ALTNAMDIR="${ALTNAMDIR},$RUNDIR"
 # set directory to get perl date calcs module from
 export PERL5LIB=${SCRIPTDIR}:${PERL5LIB} #<- augment, don't write over existing
-# see if the storm directory already exists in the scratch space
-if [ ! -d $RUNDIR ]; then
-    # -p says make the entire path tree if intermediate dirs do not exist
-    mkdir -p $RUNDIR #
-fi
 #
 # send out an email to notify users that the ASGS is ACTIVATED
 ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $RUNDIR advisory enstorm $GRIDFILE activation $EMAILNOTIFY $SYSLOG "${ACTIVATE_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
@@ -1642,11 +1701,7 @@ ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $RUNDIR advisory enstorm $GRI
 OLDADVISDIR=null
 CSDATE=$COLDSTARTDATE
 START=$HOTORCOLD
-if [[ -d $LASTSUBDIR/hindcast ]]; then
-    OLDADVISDIR=$LASTSUBDIR/hindcast
-else
-    OLDADVISDIR=$LASTSUBDIR/hindcast
-fi
+OLDADVISDIR=$LASTSUBDIR/hindcast
 #
 ###############################
 #   BODY OF ASGS STARTS HERE
@@ -1748,15 +1803,21 @@ if [[ $START = coldstart ]]; then
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
 else
    # start from   H O T S T A R T   file
-   if [[ `basename $LASTSUBDIR` = nowcast || `basename $LASTSUBDIR` = hindcast ]]; then
+   if [[ $hotstartURL = null ]]; then
+      if [[ `basename $LASTSUBDIR` = nowcast || `basename $LASTSUBDIR` = hindcast ]]; then
       logMessage "$THIS: The LASTSUBDIR path is $LASTSUBDIR but ASGS looks in this path to find either a nowcast or hindcast subdirectory. The LASTSUBDIR parameter is being reset to to remove either nowcast or hindcast from the end of it." 
       LASTSUBDIR=`dirname $LASTSUBDIR`
+      fi
    fi 
    if [[ $LASTSUBDIR = null ]]; then
       fatal "LASTSUBDIR is set to null, but the ASGS is trying to hotstart. Is the STATEFILE $STATEFILE up to date and correct? If not, perhaps it should be deleted. Otherwise, the HOTORCOLD parameter in the ASGS config file has been set to $HOTORCOLD and yet the LASTSUBDIR parameter is still set to null."
    fi
-   logMessage "$ENSTORM: $THIS: Starting from the hindcast or nowcast subdirectory under '$LASTSUBDIR'."
-   OLDADVISDIR=$LASTSUBDIR
+   if [[ $hotstartURL = null ]]; then
+      logMessage "$ENSTORM: $THIS: Starting from the hindcast or nowcast subdirectory under '$LASTSUBDIR'."
+      OLDADVISDIR=$LASTSUBDIR
+   else
+      OLDADVISDIR=$RUNDIR
+   fi 
 fi
 #
 # B E G I N   N O W C A S T / F O R E C A S T   L O O P
@@ -1767,15 +1828,17 @@ while [ true ]; do
    si=-1
    . ${CONFIG}
    FROMDIR=null
-   LUN=null       # logical unit number; either 67 or 68
-   logMessage "$ENSTORM: $THIS: Looking for the directory $OLDADVISDIR/nowcast."
-   if [[ -d $OLDADVISDIR/nowcast ]]; then
-       FROMDIR=$OLDADVISDIR/nowcast
-   else 
-      logMessage "$ENSTORM: $THIS: Looking for the directory $OLDADVISDIR/hindcast."
-      if [[ -d $OLDADVISDIR/hindcast ]]; then
-          FROMDIR=$OLDADVISDIR/hindcast
-      fi
+   if [[ $hotstartURL = null ]]; then
+      for dir in nowcast hindcast; do 
+         logMessage "$ENSTORM: $THIS: Looking for the directory $OLDADVISDIR/${dir}."
+         if [[ -d $OLDADVISDIR/$dir ]]; then
+            FROMDIR=$OLDADVISDIR/$dir
+            break
+         fi
+      done
+   else
+      # already downloaded the hotstart file
+      FROMDIR=$RUNDIR
    fi
    # turn SWAN hotstarting on or off as appropriate
    HOTSWAN=off
@@ -1796,23 +1859,8 @@ while [ true ]; do
          done
       done
    fi
-   checkHotstart $FROMDIR $HOTSTARTFORMAT  67
+   checkHotstart $FROMDIR $HOTSTARTFORMAT 67
    THIS="asgs_main.sh"
-   logMessage "$ENSTORM $THIS: Checking the time in seconds since cold start in the hotstart file."
-   if [[ $HOTSTARTFORMAT = netcdf ]]; then
-      logMessage "$ENSTORM: $THIS: The hotstart format is netcdf."
-      if [[ ! -e ${FROMDIR}/fort.67.nc ]]; then
-         fatal "$ENSTORM: $THIS: The hotstart file ${FROMDIR}/fort.67.nc was not found."
-      fi
-      HSTIME=`$ADCIRCDIR/hstime -f ${FROMDIR}/fort.67.nc -n` 2>> ${SYSLOG}
-   else
-      logMessage "$ENSTORM: $THIS: The hotstart format is binary."
-      if [[ ! -e ${FROMDIR}/PE0000/fort.67 ]]; then
-         fatal "$ENSTORM: $THIS: The hotstart file ${FROMDIR}/PE0000/fort.67.nc was not found."
-      fi
-      HSTIME=`$ADCIRCDIR/hstime -f ${FROMDIR}/PE0000/fort.67` 2>> ${SYSLOG}
-   fi
-   logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
    cd $RUNDIR 2>> ${SYSLOG}
    #
    # N O W C A S T
@@ -1864,7 +1912,7 @@ while [ true ]; do
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
-      STORMNAME=`grep "storm name" run.properties | sed 's/storm name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}    
+      STORMNAME=`grep "stormname" run.properties | sed 's/stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}    
       # create a GAHM or ASYMMETRIC fort.22 file from the existing track file
       if [[ $VORTEXMODEL = GAHM || $VORTEXMODEL = ASYMMETRIC ]]; then
          $ADCIRCDIR/aswip -n $BASENWS >> ${SYSLOG} 2>&1
@@ -2060,6 +2108,10 @@ while [ true ]; do
       NOWCASTDIR=$FROMDIR
    fi
    # write the ASGS state file
+   if [[ $hotstartURL != "null" ]]; then
+      hotstartURL=null
+   fi
+   LUN=67  # asgs always tells adcirc to read a 68 file and write a 67 file
    LASTSUBDIR=`echo $NOWCASTDIR | sed 's/\/nowcast//g ; s/\/hindcast//g'`
    echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
    echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
@@ -2324,7 +2376,7 @@ while [ true ]; do
                   logMessage "$ENSTORM: $THIS: The $ENSTORM job ended successfully. Starting postprocessing."
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
                   echo "time.post.start : $DATETIME" >> ${STORMDIR}/run.properties
-                  ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENVSHORT $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
+                  ${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
                   echo "time.post.finish : $DATETIME" >> ${STORMDIR}/run.properties
                   # notify analysts that new results are available

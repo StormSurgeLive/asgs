@@ -38,7 +38,7 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc/forks/adcirc/v53release/work # ADCIRC executables
 SWANDIR=~/adcirc/forks/adcirc/v53release/swan   # SWAN executables
-SCRIPTDIR=~/asgs/branches/nowcastarchive        # ASGS executables
+SCRIPTDIR=~/asgs/branches/2014stable     # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/femar3       # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
@@ -193,11 +193,11 @@ case $si in
    ;;
 1)
    ENSTORM=namforecast
-   CONSTRAINT=ivybridge
+   #CONSTRAINT=ivybridge
    ;;
 0)
    ENSTORM=namforecastWind10m
-   CONSTRAINT=ivybridge
+   #CONSTRAINT=ivybridge
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=FEMA_R3_nowindreduction_fort.15.template  # fort.15 template
