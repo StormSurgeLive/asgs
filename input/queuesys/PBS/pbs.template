@@ -7,7 +7,7 @@
 #PBS -l walltime=%walltime%
 #PBS -A %account%
 #PBS -j oe
-#PBS -o %stomdir%/%jobtype%.%enstorm%.out
+#PBS -o %stormdir%/%jobtype%.%enstorm%.out
 #PBS -q %queuename%
 #PBS -M %notifyuser%
 #----------------------------------------------------------------------------
@@ -17,8 +17,8 @@ cd %stormdir%
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 echo "[${DATETIME}] INFO: %jobtype%.pbs: Executing %jobtype%.%enstorm% in %stormdir% with job ID ${PBS_JOBID}; work directory ${PBS_O_WORKDIR}; and submit host ${PBS_O_HOST}." | tee --append %syslog% %jobtype%.%enstorm%.run.start
 # job properties
-echo "time.%jobtype%.${PBS_JOBID}.start : $DATETIME" >> run.properties
-echo "hpc.pbs.job.%jobtype%.${PBS_JOBID}.pbs_job_nodefile : $PBS_NODEFILE" >> run.properties
+echo "time.hpc.job.%jobtype%.${PBS_JOBID}.start : $DATETIME" >> run.properties
+echo "hpc.job.%jobtype%.pbs.${PBS_JOBID}.pbs_job_nodefile : $PBS_NODEFILE" >> run.properties
 #----------------------------------------------------------------------------
 #                      L O A D   M O D U L E S
 #----------------------------------------------------------------------------
@@ -74,4 +74,5 @@ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 if [ $ERROVALUE == 1 ]; then
    echo "[${DATETIME}] ERROR: %jobtype%.pbs: $ERROMSG" | tee --append %syslog% %jobtype%.%enstorm%.run.${RUNSUFFIX}
 fi
-echo "time.%jobtype%.${PBS_JOBID}.${RUNSUFFIX} : $DATETIME" >> run.properties
+echo "time.hpc.job.%jobtype%.${PBS_JOBID}.${RUNSUFFIX} : $DATETIME" >> run.properties
+#echo "time.%jobtype%.${PBS_JOBID}.${RUNSUFFIX} : $DATETIME" >> run.properties

@@ -59,6 +59,8 @@ end type netCDFVar_t
 ! Derived data type to represent an xdmf variable within an ADCIRC-related
 ! data file.
 type xdmfVar_t
+   !character(NF90_MAX_NAME), allocatable :: varNameXDMF(:)   ! as represented in XDMF XML
+   !character(NF90_MAX_NAME), allocatable :: varNameXDMF   ! as represented in XDMF XML
    character(NF90_MAX_NAME) :: varNameXDMF   ! as represented in XDMF XML
    ! the following refer to scalar or vector quantities in XDMF files
    character(len=20) :: dataCenter ! "Node" or "Element" 

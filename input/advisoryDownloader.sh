@@ -12,7 +12,7 @@ ASGSDIR=$4
 RSSSITE=filesystem         
 FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
 #FDIR=/atcf/afst                 # forecast dir on nhc ftp site
-FDIR=~/asgs/2014stable/input/sample_advisories/2018 
+FDIR=~/asgs/branches/2014stable/input/sample_advisories/2018 
 HDIR=/atcf/btk   
 TRIGGER=rssembedded
 ADVISORY=0
@@ -36,6 +36,7 @@ while [[ 1 ]]; do
       cp $forecastFileNameXML ${forecastFileNameXML}.${DATETIME}
       cp $forecastFileNameHTML ${forecastFileNameHTML}.${DATETIME}
    fi
+   curl http://ftp.nhc.noaa.gov/atcf/btk/$hindcastFileName > $hindcastFileName
    bestEndDate=`tail -n 1 $hindcastFileName | awk '{ print $3 }' | sed -e "s/,//"`
    if [[ $oldBESTEndDate = 0 ]]; then
       oldBESTEndDate=$bestEndDate

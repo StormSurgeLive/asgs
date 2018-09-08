@@ -30,7 +30,7 @@ advisory_dt = datetime.strptime(runProp['time.forecast.valid.cdt'],'%Y%m%d%H%M%S
 advisory_dt_long = datetime.strftime(advisory_dt,'%b-%d-%Y %H:%M')
 
 scenario = runProp['asgs.enstorm']
-if [[ scenario == 'nhcConsensus' ]]:
+if scenario == 'nhcConsensus':
     scenario = 'NHC Track'
 
 prs = Presentation('LSU_template.pptx')
@@ -47,16 +47,16 @@ title_slide_layout = prs.slide_layouts[0]
 slide = prs.slides.add_slide(title_slide_layout)
 title = slide.shapes.title
 subtitle = slide.placeholders[1]
-statement = 'For Official Use Only. Not For Public Release. \rModel results were produced by the ADCIRC Surge Guidance System (ASGS) and are based on the National Hurricane Center (NHC) forecast track. ADCIRC-developed hydrographs are an operational planning tool for emergency-response personnel and are not a replacement for National Weather Service (NWS) forecasts.'
-title.text = runProp['storm class'] + ' ' + runProp['storm name'] + ', ' + scenario + ' Scenario'
+title.text = runProp['storm class'] + ' ' + runProp['stormname'] + ', ' + scenario + ' Scenario'
 subtitle.text = "Advisory " + runProp['advisory'] + " Issued on " + advisory_dt_long + " CDT"
+statement = 'For Official Use Only. Not For Release. \rModel results were produced by the ADCIRC Surge Guidance System (ASGS) and are based on the National Hurricane Center (NHC) forecast track. \rADCIRC-developed hydrographs are an operational planning tool for emergency-response personnel and are not a replacement for National Weather Service (NWS) forecasts.'
 fouo = slide.placeholders[10]
 fouo.text = statement
 numSlides = numSlides + 1
 
 # Set slide layout
 left = Inches(1.94)
-top = Inches(1.14)
+top = Inches(1.06)
 
 img_path = fname
 slide = prs.slides.add_slide(slide_layout)
@@ -97,16 +97,16 @@ fnames = ['WSE_17StCanal_USACE85625.png','WSE_IHNC01_USACE76065.png','WSE_IHNC02
 staName = ['Outfall 17th St London Ave Orleans Ave, LA (17StCanal, CPRA) (85625, USACE)',
            'Seabrook Complex - Flood Side, LA (IHNC01, CPRA) (76065, USACE)',
            'IHNC Surge Barrier East - Flood Side, LA (IHNC02, CPRA) (76030, USACE)',
-           'Bayou Dupre Sector Gate - East/Flood Side, LA (LPV144, CPRA) (76010, USACE)',
-           'Caernarvon Canal Sector Gate - South/Flood Side, LA (LPV149, CPRA) (85760, USACE)',
+           'Bayou Dupre Sector Gate - East/Flood Side, LA (LPV144, CPRA)\n(76010, USACE)',
+           'Caernarvon Canal Sector Gate - South/Flood Side, LA (LPV149, CPRA)\n(85760, USACE)',
            'Mississippi River at Empire Floodgate, LA (NOV13, CPRA) (01440, USACE)',
            'Mississippi River at Empire Lock, LA (NOV14, CPRA) (01440, USACE)',
            'Oakville Sluice Gate - Flood Side/South (WBV09a, CPRA) (82770 USACE)',
-           'Hero Canal Stop-Log Gate - Flood Side/West, LA (WBV09b, CPRA) (82762, USACE)',
-           'Bayou Segnette Closure - Flood Side, LA (WBV162, CPRA) (82742, USACE)',
-           'Bayou Verret / W. Tie-In Sector Gate Flood Side, LA (WBV7274, CPRA) (82715, USACE)',
-           'GIWW at West Closure Complex - Flood Side, LA (WBV90, CPRA) (76265, USACE)',
-           'Lake Pontchartrain at Lakefront Airport, LA (LakefrontAirport, CPRA) (85670, USACE)',
+           'Hero Canal Stop-Log Gate - Flood Side/West, LA (WBV09b, CPRA)\n(82762, USACE)',
+           'Bayou Segnette Closure - Flood Side, LA (WBV-16.2, CPRA) (82742, USACE)',
+           'Bayou Verret / W. Tie-In Sector Gate Flood Side, LA (WBV-72/74, CPRA)\n(82715, USACE)',
+           'GIWW at West Closure Complex - Flood Side, LA (WBV90, CPRA)\n(76265, USACE)',
+           'Lake Pontchartrain at Lakefront Airport, LA (LakefrontAirport, CPRA)\n(85670, USACE)',
            'Lake Pontchartrain at Mandeville, LA (Mandeville, CPRA) (85575, USACE)',
            'Rigolets near Lake Pontchartrain, LA (Rigolets, CPRA) (85700, USACE)',
            'Barataria Waterway at Lafitte, LA (Lafitte, CPRA) (82875, USACE)']
@@ -132,7 +132,7 @@ for image in fnames:
 #for slide in slides:
         #print('slide number %s' % str(slides.index(slide)+1))
 
-pptFile = runProp['storm name'] + "_Adv" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
+pptFile = runProp['stormname'] + "_Adv" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
 prs.save(pptFile)
 pFile = open('pptFile.temp','w')
 pFile.write(pptFile)

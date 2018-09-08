@@ -25,7 +25,7 @@ ADVISDIR=$2
 STORM=$3
 YEAR=$4
 ADVISORY=$5
-HOSTNAME=$6
+HPCENV=$6
 ENSTORM=$7
 CSDATE=$8
 HSTIME=$9
@@ -133,8 +133,8 @@ OPENDAPDIR=""
 # For each opendap server in the list in ASGS config file.
 primaryCount=0
 for server in ${TDS[*]}; do
-   logMessage "$ENSTORM: $THIS: Posting to $server opendap using the following command: ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server \"${FILES[*]}\" $OPENDAPNOTIFY"
-   ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HOSTNAME $ENSTORM $HSTIME $SYSLOG $server "${FILES[*]}" $OPENDAPNOTIFY >> ${SYSLOG} 2>&1
+   logMessage "$ENSTORM: $THIS: Posting to $server opendap using the following command: ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HPCENV $ENSTORM $HSTIME $SYSLOG $server \"${FILES[*]}\" $OPENDAPNOTIFY"
+   ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HPCENV $ENSTORM $HSTIME $SYSLOG $server "${FILES[*]}" $OPENDAPNOTIFY >> ${SYSLOG} 2>&1
    # add downloadurl_backup propert(ies) to the properties file that refer to previously 
    # posted results
    backupCount=0
