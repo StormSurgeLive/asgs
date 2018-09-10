@@ -28,10 +28,11 @@
 
 # Fundamental 
 
-INSTANCENAME=podtest      # name of this ASGS process (Change this for every new instance)
-COLDSTARTDATE=2018052700  # (date to start cold start from )
-HOTORCOLD=hotstart       # "hotstart" or "coldstart" 
-LASTSUBDIR=/home/bblanton/asgs-scratch/kickstart
+INSTANCENAME=podtestec95d      # name of this ASGS process (Change this for every new instance)
+COLDSTARTDATE=2018080600  # (date to start cold start from )
+HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
+#LASTSUBDIR=/home/bblanton/asgs-scratch/kickstart
+LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
@@ -46,7 +47,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on     # [de]activate NAM download/forcing 
+BACKGROUNDMET=off     # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
 TROPICALCYCLONE=off  # [de]activate tropical cyclone forcing (temp. broken)
 WAVES=off            # [de]activate wave forcing 
@@ -188,7 +189,7 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=1 # number of storms in the ensemble
+ENSEMBLESIZE=0 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast

@@ -74,7 +74,7 @@ OPENDAPDIR=""
 primaryCount=0
 CURRENT_EVENT="POST"
 CURRENT_STATE="RUNN"
-FILES="fort.22 fort.61.nc maxvel.63.nc maxele.63.nc fort.15"
+FILES="run.properties fort.22 fort.61.nc maxvel.63.nc maxele.63.nc fort.15 fort.74.nc fort.63.nc swan_DIR.63.nc  swan_DIR_max.63.nc  swan_HS.63.nc  swan_HS_max.63.nc  swan_TMM10.63.nc  swan_TMM10_max.63.nc  swan_TPS.63.nc  swan_TPS_max.63.nc"
 
 for server in ${TDS[*]}; do
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Posting to $server opendap, $ADVISORY $HOSTNAME $ENSTORM $HSTIME"
