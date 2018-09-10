@@ -1459,7 +1459,6 @@ HSTIME=null     # determined below
 #
 #       H I N D C A S T
 #
-echo "here1", $START
 if [[ $START = coldstart ]]; then
    CURRENT_EVENT="HIND"
    CURRENT_STATE="INIT"
@@ -1624,7 +1623,7 @@ while [ true ]; do
    fi
    CURRENT_EVENT="PRE1"
    CURRENT_STATE="INIT"
-   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Initializing for NowCast."
+   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Initializing for Nowcast."
    checkHotstart $FROMDIR $HOTSTARTFORMAT  67
    THIS="asgs_main.sh"
    logMessage "$ENSTORM $THIS: Checking the time in seconds since cold start in the hotstart file."
@@ -1649,6 +1648,7 @@ while [ true ]; do
    RUNNOWCAST=yes 
    NOWCASTDIR=null    # directory with hotstart files to be used in forecast
    CURRENT_STATE="WAIT"
+
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Checking for new meteorological data every 60 seconds ..."
    logMessage "$ENSTORM: $THIS: Checking for new meteorological data every 60 seconds ..."
    # TROPICAL CYCLONE ONLY
@@ -1697,7 +1697,7 @@ while [ true ]; do
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
       STORMNAME=`grep "storm name" run.properties | sed 's/storm name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}    
-      RMQ_StormName="$STORMNAME"
+
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "StormName is $STORMNAME"
       # create a GAHM or ASYMMETRIC fort.22 file from the existing track file
       if [[ $VORTEXMODEL = GAHM || $VORTEXMODEL = ASYMMETRIC ]]; then
@@ -1837,9 +1837,9 @@ while [ true ]; do
    done
 
    CURRENT_STATE="PEND"
-   RMQ_AdvisoryNumber="$ADVISORY"
+
    if [[ $RUNNOWCAST = yes ]]; then
-      RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting nowcast for cycle $RMQ_AdvisoryNumber."
+      RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting nowcast for cycle $ADVISORY."
       allMessage "$ENSTORM: $THIS: Starting nowcast for cycle '$ADVISORY'."
       # get river flux nowcast data, if configured to do so
       if [[ $VARFLUX = on ]]; then

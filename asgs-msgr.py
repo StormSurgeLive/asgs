@@ -62,9 +62,9 @@ def main(argv):
 	ClusterName = 'hatteras'
 	tmpDateTime = datetime.datetime.utcnow()
 	UTCDateTime = tmpDateTime.strftime("%Y-%m-%d %H:%M:%S")
-	StormName = 'NAM'
-	StormNumber = '0'
-	AdvisoryNumber = ''
+	StormName = 'unknown'
+	StormNumber = 'unknown'
+	AdvisoryNumber = 'unknown'
 	Message = 'test message'
 	EventType = ''
 	Process = 'asgs'
@@ -72,7 +72,10 @@ def main(argv):
 	State = 'IDLE'
 
 	try:
-        	opts, args = getopt.getopt(argv,"hu:l:c:d:s:n:a:m:y:p:t:r:",["Help","Uid=","LocationName=","ClusterName=","UTCDateTime=","StormName=", "StormNumber=", "AdvisoryNumber=", "Message=", "EventType=", "Process=", "PctComplete=", "State="])
+        	opts, args = getopt.getopt(argv,"hu:l:c:d:s:n:a:m:y:p:t:r:",
+                        ["Help","Uid=","LocationName=","ClusterName=","UTCDateTime=",
+                         "StormName=", "StormNumber=", "AdvisoryNumber=", "Message=",
+                         "EventType=", "Process=", "PctComplete=", "State="])
 	except getopt.GetoptError as err:
         	print('\nCommand line option error: ' + str(err))
         	usage()
@@ -123,6 +126,7 @@ def main(argv):
 			)
 
 	queue_message(msg)
+#	print(msg)
 
 
 if __name__ == "__main__":

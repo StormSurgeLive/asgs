@@ -42,7 +42,7 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
   PROCESS=$3
   STATE=$4
   MSG=$5
-  MSG="RMQ-$MTYPE : $EVENT : $STATE : ${DATETIME} : $MSG"
+  #MSG="RMQ-$MTYPE : $EVENT : $STATE : ${DATETIME} : $MSG"
   PCTCOM=0
   if [ "$#" -eq 6 ] ; then PCTCOM=$6 ; fi
 
@@ -56,15 +56,16 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
      ${RMQMessaging_Python} ${RMQMessaging_Script} --Uid $$ \
                            --LocationName ${RMQMessaging_LocationName} \
                            --ClusterName ${RMQMessaging_ClusterName} \
-                           --StormName $RMQ_StormName \
-                           --AdvisoryNumber $RMQ_AdvisoryNumber \
+                           --StormNumber $STORM \
+                           --StormName $STORMNAME \
+                           --AdvisoryNumber $ADVISORY \
                            --Message "$MSG"  \
                            --EventType $EVENT \
                            --Process $PROCESS \
                            --PctComplete $PCTCOM \
                            --State $STATE
-   # --RunType weather \
-   # --RunType $RMQ_RunType \
+                           # --RunType weather \
+                           # --RunType $RMQ_RunType \
    fi
 }
 
