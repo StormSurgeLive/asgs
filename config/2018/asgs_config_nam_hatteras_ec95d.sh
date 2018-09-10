@@ -29,7 +29,7 @@
 # Fundamental 
 #
 INSTANCENAME=rmqtest      # name of this ASGS process (Change this for every new instance)
-COLDSTARTDATE=2018052700  # (date to start cold start from )
+COLDSTARTDATE=2018080600  # (date to start cold start from )
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
@@ -45,7 +45,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on     # [de]activate NAM download/forcing 
+BACKGROUNDMET=on    # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
 TROPICALCYCLONE=off  # [de]activate tropical cyclone forcing (temp. broken)
 WAVES=off            # [de]activate wave forcing 

@@ -1163,7 +1163,7 @@ variables_init()
    PERIODICFLUX=null
    SPATIALEXTRAPOLATIONRAMP=yes
    SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
-# RMQMEssaging
+# RMQMessaging
    RMQMessaging="on"  # "on"|"off"
 
 }
@@ -1467,6 +1467,7 @@ if [[ $START = coldstart ]]; then
    HOTSWAN=off
    ENSTORM=hindcast
    # pick up config info that is specific to the hindcast
+   si=-1
    . ${CONFIG}
    ADVISDIR=$RUNDIR/initialize
    mkdir -p $ADVISDIR 2>> ${SYSLOG}
@@ -1491,6 +1492,7 @@ if [[ $START = coldstart ]]; then
       logMessage "$ENSTORM: $THIS: Running $FLUXCALCULATOR with options $FLUXOPTIONS."
       perl $FLUXCALCULATOR $FLUXOPTIONS >> ${SYSLOG} 2>&1 
    fi
+
    CONTROLOPTIONS="--name $ENSTORM --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --cst $CSDATE --endtime $HINDCASTLENGTH --dt $TIMESTEPSIZE --nws $NWS --hsformat $HOTSTARTFORMAT --advisorynum 0 --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
    CONTROLOPTIONS="$CONTROLOPTIONS --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
