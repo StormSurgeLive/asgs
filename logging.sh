@@ -42,7 +42,7 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
   PROCESS=$3
   STATE=$4
   MSG=$5
-  MSG="RMQ-$MTYPE : $EVENT : $STATE : ${DATETIME} : $MSG"
+  #MSG="RMQ-$MTYPE : $EVENT : $STATE : ${DATETIME} : $MSG"
   PCTCOM=0
   if [ "$#" -eq 6 ] ; then PCTCOM=$6 ; fi
 
