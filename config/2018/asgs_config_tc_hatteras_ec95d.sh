@@ -28,10 +28,10 @@
 #
 # Fundamental 
 #
-INSTANCENAME=tctest      # name of this ASGS process (Change this for every new instance)
-COLDSTARTDATE=2003081200  # (date to start cold start from )
+INSTANCENAME=rmqtest      # name of this ASGS process (Change this for every new instance)
+COLDSTARTDATE=2018081000  # (date to start cold start from )
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
-LASTSUBDIR=null #  /scratch/bblanton/asgs//asgs21874/initialize  # null
+LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
@@ -45,9 +45,9 @@ PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=off     # [de]activate NAM download/forcing 
+BACKGROUNDMET=on    # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
-TROPICALCYCLONE=on  # [de]activate tropical cyclone forcing (temp. broken)
+TROPICALCYCLONE=off  # [de]activate tropical cyclone forcing (temp. broken)
 WAVES=off            # [de]activate wave forcing 
 VARFLUX=off           # [de]activate variable river flux forcing
 
@@ -59,9 +59,9 @@ HINDCASTWALLTIME="06:00:00"   # river inital and tidal spinup time in machine
 ADCPREPWALLTIME="00:05:00"
 NOWCASTWALLTIME="01:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="01:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=128
+NCPU=256
 NUMWRITERS=0
-NCPUCAPACITY=128
+NCPUCAPACITY=256
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=batch
 SERQUEUE=single
@@ -70,15 +70,13 @@ SCRATCHDIR=/scratch/bblanton/asgs/
 
 # External data sources : Tropical cyclones
 
-STORM=13  # storm number, e.g. 05=ernesto in 2006 
-YEAR=2003 # year of the storm (useful for historical storms) 
+STORM=12  # storm number, e.g. 05=ernesto in 2006 
+YEAR=2013 # year of the storm (useful for historical storms) 
 TRIGGER=rssembedded    # either "ftp" or "rss"
-RSSSITE=filesystem  # www.nhc.noaa.gov 
-FTPSITE=filesystem  # ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files
-FDIR="${SCRIPTDIR}/input/sample_advisories/2003"
-HDIR=$FDIR
-#FDIR="/home/bblanton/asgs_test_files/afst"     # forecast dir 
-#HDIR="/home/bblanton/asgs_test_files/btk"      # hindcast dir 
+RSSSITE=www.nhc.noaa.gov 
+FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files
+FDIR=/atcf/afst     # forecast dir on nhc ftp site 
+HDIR=/atcf/btk      # hindcast dir on nhc ftp site 
 
 # External data sources : Background Meteorology
 
@@ -168,7 +166,7 @@ RMQMessaging_ClusterName="Hatteras"
 
 INTENDEDAUDIENCE=msg_test # meta data audience
 INITPOST=null_init_post.sh
-POSTPROCESS=blanton_rmq_test_post.sh
+POSTPROCESS=blanton_rmq_test_post_hatteras.sh
 POSTPROCESS2=null_post.sh
 
 TDS=(renci_tds)
