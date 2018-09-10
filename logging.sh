@@ -56,15 +56,16 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
      ${RMQMessaging_Python} ${RMQMessaging_Script} --Uid $$ \
                            --LocationName ${RMQMessaging_LocationName} \
                            --ClusterName ${RMQMessaging_ClusterName} \
-                           --StormName $RMQ_StormName \
-                           --AdvisoryNumber $RMQ_AdvisoryNumber \
+                           --StormNumber $STORM \
+                           --StormName $STORMNAME \
+                           --AdvisoryNumber $ADVISORY \
                            --Message "$MSG"  \
                            --EventType $EVENT \
                            --Process $PROCESS \
                            --PctComplete $PCTCOM \
                            --State $STATE
-   # --RunType weather \
-   # --RunType $RMQ_RunType \
+                           # --RunType weather \
+                           # --RunType $RMQ_RunType \
    fi
 }
 

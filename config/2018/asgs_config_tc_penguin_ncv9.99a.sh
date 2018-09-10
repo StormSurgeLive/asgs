@@ -104,7 +104,7 @@ RIVERDATAPROTOCOL=scp
 
 # Input files and templates
 
-GRIDNAME=nc_inundation_v9.99_rivers
+GRIDNAME=nc_inundation_v9.99a_w_rivers
 GRIDFILE=${GRIDNAME}.14
 MESHPROPERTIES=${GRIDFILE}.properties
 #CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
