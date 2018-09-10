@@ -1458,7 +1458,7 @@ HSTIME=null     # determined below
 #
 #       H I N D C A S T
 #
-
+echo "here1", $START
 if [[ $START = coldstart ]]; then
    CURRENT_EVENT="HIND"
    CURRENT_STATE="INIT"
@@ -1466,7 +1466,9 @@ if [[ $START = coldstart ]]; then
    logMessage "$THIS: Starting hindcast."
    HOTSWAN=off
    ENSTORM=hindcast
-   # pick up config info that is specific to the hindcast
+   
+# pick up config info that is specific to the hindcast
+   si=-1
    . ${CONFIG}
    ADVISDIR=$RUNDIR/initialize
    mkdir -p $ADVISDIR 2>> ${SYSLOG}
@@ -1495,8 +1497,12 @@ if [[ $START = coldstart ]]; then
    CONTROLOPTIONS="$CONTROLOPTIONS --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
+
+   echo $CONTROLOPTIONS
+
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Constructing control file."
    logMessage "$ENSTORM: $THIS: Constructing control file with the following options: $CONTROLOPTIONS."
+   echo perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS 
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
 
    # don't have a meterological forcing (fort.22) file in this case
@@ -1734,8 +1740,8 @@ while [ true ]; do
          DelegateToCompute="false"
          if [[ ${DelegateToCompute} == "true" ]] ; then
             QSCRIPTOPTIONS="--jobtype NAMtoOWIRamp --ncpu 1 --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$ENV/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING $LOCALHOTSTART --syslog $SYSLOG"
-echo $QSCRIPTOPTIONS
-exit
+#echo $QSCRIPTOPTIONS
+#exit
          else 
 
              perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
