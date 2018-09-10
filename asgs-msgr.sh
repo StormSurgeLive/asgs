@@ -1,7 +1,6 @@
 #!/bin/bash
-# variables and paths for RabbitMQ messaging
-# independent of the asgs/config details.  Other messaging variables are set in the 
-# config/machine file
+# variables and paths for RabbitMQ messaging independent of the asgs/config details.  
+# Other messaging variables are set in the config/machine file
 
 
 export PATH=$PATH:${ADCIRCDIR}:${RMQMessaging_NcoHome}/bin
