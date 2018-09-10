@@ -144,10 +144,12 @@ init_pod()
   QSCRIPT=penguin.template.pbs
   PREPCONTROLSCRIPT=penguin.adcprep.template.pbs
   RESERVATION=null
-  SERQUEUE=B30     # aka the partition in SLURM parlance 
-  QUEUE=B30     # aka the partition in SLURM parlance 
   QSCRIPTGEN=tezpur.pbs.pl
-  PPN=28
+  SERQUEUE=B30     # aka the partition in SLURM parlance 
+#  QUEUE=B30     # aka the partition in SLURM parlance 
+#  PPN=28
+  QUEUE=S30     # aka the partition in SLURM parlance 
+  PPN=40
 }
 init_hatteras()
 { #<- can replace the following with a custom script
@@ -446,14 +448,15 @@ init_renci_tds()
 # http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
 # http://tds.renci.org:8080/thredds/dodsC/     DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
 # http://tds.renci.org:8080/thredds/catalog/                   tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/catalog.html
-   OPENDAPHOST=ht4.renci.org
-   #DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer"
-   #CATALOGPREFIX="http://tds.renci.org:8080/thredds/catalog"
-   DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/"
-   CATALOGPREFIX="http://tds.renci.org:8080/thredds/DataLayers/asgs/"
-   OPENDAPBASEDIR=/projects/ees/DataLayers/asgs/
+   OPENDAPHOST=ht3.renci.org
+   DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer"
+   CATALOGPREFIX="http://tds.renci.org:8080/thredds/catalog"
+   OPENDAPBASEDIR=/projects/ncfs/opendap/data
+   #DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/"
+   #CATALOGPREFIX="http://tds.renci.org:8080/thredds/DataLayers/asgs/"
+   #OPENDAPBASEDIR=/projects/ees/DataLayers/asgs/
    SSHPORT=22
-   LINKABLEHOSTS=(null) #hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
+   LINKABLEHOSTS=(hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
    COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
 }
 # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU
