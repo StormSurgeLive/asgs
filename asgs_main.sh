@@ -1242,6 +1242,7 @@ env_dispatch ${ENV}
 # Re-read the config file, so that the variables can take precedence over
 # the values in the platform-specific functions called by env_dispatch
 . ${CONFIG}
+
 # RMQMessaging config
 if [[ $RMQMessaging == "on" ]] ; then
    . ${SCRIPTDIR}/asgs-msgr.sh
@@ -1696,6 +1697,7 @@ while [ true ]; do
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
       STORMNAME=`grep "storm name" run.properties | sed 's/storm name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}    
+      RMQ_StormName="$STORMNAME"
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "StormName is $STORMNAME"
       # create a GAHM or ASYMMETRIC fort.22 file from the existing track file
       if [[ $VORTEXMODEL = GAHM || $VORTEXMODEL = ASYMMETRIC ]]; then
@@ -1728,7 +1730,8 @@ while [ true ]; do
          ADVISDIR=$RUNDIR/${ADVISORY}
          NOWCASTDIR=$ADVISDIR/$ENSTORM
          cd $ADVISDIR 2>> ${SYSLOG}
-         RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$START $ENSTORM cycle $ADVISORY."
+         RMQ_AdvisoryNumber="$ADVISORY"
+         RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$START $ENSTORM cycle $RMQ_AdvisoryNumber."
          allMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
          # convert met files to OWI format
          NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --applyRamp $SPATIALEXTRAPOLATIONRAMP --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE --awipGridNumber 218 --dataDir $NOWCASTDIR --outDir ${NOWCASTDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
@@ -1834,8 +1837,9 @@ while [ true ]; do
    done
 
    CURRENT_STATE="PEND"
+   RMQ_AdvisoryNumber="$ADVISORY"
    if [[ $RUNNOWCAST = yes ]]; then
-      RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting nowcast for cycle $ADVISORY."
+      RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting nowcast for cycle $RMQ_AdvisoryNumber."
       allMessage "$ENSTORM: $THIS: Starting nowcast for cycle '$ADVISORY'."
       # get river flux nowcast data, if configured to do so
       if [[ $VARFLUX = on ]]; then
