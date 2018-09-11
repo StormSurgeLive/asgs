@@ -1625,7 +1625,7 @@ if [[ $HOTORCOLD = hotstart ]]; then
       fi
 
       logMessage "Now checking hotstart file content."
-      checkHotstart . $HOTSTARTFORMAT 67
+      checkHotstart $RUNDIR $HOTSTARTFORMAT 67
       # get cold start time from the run.properties file
       curl $hotstartURL/run.properties > from.run.properties
    else
