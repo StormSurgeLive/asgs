@@ -444,6 +444,9 @@ init_lonestar()
   SERQUEUE=normal
   QCHECKCMD=squeue
   PPN=24
+  RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
+  PARTITION=null       # ncfs or batch, gives priority
+  CONSTRAINT=null      # ivybridge or sandybridge
   ACCOUNT=ADCIRC
   SUBMITSTRING=sbatch
   JOBLAUNCHER=ibrun
