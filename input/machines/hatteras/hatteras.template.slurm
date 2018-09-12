@@ -15,6 +15,15 @@
 #        L O G   M E S S A G E S   T O   S T A R T   T H E   J O B
 #----------------------------------------------------------------------------
 cd %advisdir%/%enstorm%
+#
+LOGFILE="fort.68.debug"
+echo -n "MD5SUM: "
+md5sum fort.68.nc >> $LOGFILE
+echo "STAT:"
+echo "-----------------------"
+stat fort.68.nc >> $LOGFILE
+echo "-----------------------"
+#
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 echo "[${DATETIME}] INFO: %jobtype%.slurm: Executing %jobtype%.%enstorm% in %advisdir%/%enstorm% with SLURM Job ID ${SLURM_JOBID}; SLURM submit directory ${SLURM_SUBMIT_DIR}; and SLURM submit host ${SLURM_SUBMIT_HOST}." | tee --append %syslog% %jobtype%.%enstorm%.run.start
 echo "time.%jobtype%.${SLURM_JOBID}.start : $DATETIME" >> run.properties
