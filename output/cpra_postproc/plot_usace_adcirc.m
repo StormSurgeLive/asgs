@@ -1,24 +1,47 @@
 %% 
-clear all;
-close all;
-%clc;
-
 % All time are in CDT. The model values are adjusted from UTC to CDT
 % by subtracting 5 hours.
+%
+clear all;
+close all;
+%
+%%
+%
+msg = sprintf('plot_usace_adcirc.m: BEGIN plot_usace_adcirc.m %s CDT',...
+    datestr(datetime('now','TimeZone','America/Chicago'),'yyyymmdd HH:MM'));
+disp(msg);
+%
+%%
+% User-defined inputs
+%
+offset = 0.0; % in feet
+% offset = 1.25; % in feet
+
+productionMode = true; % for ASGS
+% productionMode = false; % Manual mode
+
+if (productionMode)
+%     ASGS Production mode.
+    numEns = 1;
+    ensFileNames = {'fort.61.nc'};
+    propFile = {'run.properties'};
+    plotPrevious = false;
+else
+%     Manual Mode
+%     The nhcConsensus for the last advisory, if used, advsiory should be
+%     FIRST in the array
+%     The nhcConsensus for the current advsiory should be LAST in the array
+    numEns = 3;
+    ensFileNames = {'Adv09.nhcConsensus.fort.61.nc','Adv10.veerLeft100.fort.61.nc','Adv10.nhcConsensus.fort.61.nc'};
+    propFile = {'Adv09.nhcConsensus.run.properties','Adv10.veerLeft100.run.properties','Adv10.nhcConsensus.run.properties'};
+    plotPrevious = true;
+end
+%
+%%
 
 % Hydrograph ensemble colors
-colors = [0.9290 0.6940 0.1250; 175/255 54/255 60/255];
-
-%% 
-% -------------------------------------------------------------------------
-% Read cpraHydro.info for specific run-time information
-fid = fopen('cpraHydro.info','r');
-info = textscan(fid,'%s\n');
-fclose(fid);
-storm = info{1}{1}; adcGrid = info{1}{3}; forecastValid = info{1}{4};
-
-%% 
-% -------------------------------------------------------------------------
+colors = [0.9290 0.6940 0.1250; 175/255 54/255 60/255; 0/255 128/255 0/255;...
+    143/255 0/255 255/255; 0/255 0/255 255/255; 47/255 79/255 79/255];
 
 % These lists are used in order to look-up the appropriate name based on
 % the USACE Station ID found when parsing the fort.15/fort.61.
@@ -59,37 +82,68 @@ cpraStationNames = {'17th St. Outfall Canal (17StCanal)',...
     'Mandeville (Mandeville)',...
     'Rigolets (Rigolets)',...
     'Lafitte (Lafitte)'};
-% The USACE Gate Closure Trigger (ft, NAVD88)
-[num,txt,raw] = xlsread('Gate_Closure_Trigger.xlsx');
-trigger = num;
-
+%
 %% 
-% -------------------------------------------------------------------------
 
-% Get the current date/time of the advisory
-dtAdvisory = datenum(forecastValid,'yyyymmddHHMMSS');
+msg = sprintf('plot_usace_adcirc.m: Using an offset of %f ft.',offset);
+disp(msg);
+offset = offset*0.3048;
 
+%
+%% 
+
+if (plotPrevious)
+    useEnsemble = numEns;
+else
+    useEnsemble = 1;
+end
+
+%%
+% The USACE Gate Closure Trigger (ft, NAVD88)
+gateFile = 'Gate_Closure_Trigger.xlsx';
+if exist(gateFile)
+    fid = fopen(gateFile,'r');
+    msg = sprintf('plot_usace_adcirc.m: File %s was found.', gateFile);
+    disp(msg);
+else
+    msg = sprintf('plot_usace_adcirc.m FATAL ERROR: %s was NOT found.', gateFile);
+    disp(msg);
+    quit;
+end
+msg = sprintf('plot_usace_adcirc.m: Reading gate closure information from %s.', gateFile);
+disp(msg);
+[num,txt,raw] = xlsread(gateFile);
+trigger = num;
+msg = sprintf('plot_usace_adcirc.m: Success reading gate closure information from %s.', gateFile);
+disp(msg);
+%
 %% 
 % -------------------------------------------------------------------------
 
 % Loop through the number of ensemble simulations
-numEns = 1;
-ensFileNames = {'fort.61.nc','fort.61.veerRight50.61.nc'};
+msg = sprintf('plot_usace_adcirc.m: Begin reading ADCIRC station data.');
+disp(msg);
 for i = 1:numEns
     % Read in ADCIRC time-series water levels
+    msg = sprintf('plot_usace_adcirc.m: Reading %s', char(ensFileNames(i)));
+    disp(msg);
     adcData(i) = read61nc(char(ensFileNames(i)));
     % Change from UTC to CDT by subtracting 5 hours
+    % Adjust hydrograph based on offset
     for j = 1:adcData(i).NumStations
         adcData(i).STATION{j}.DATE = adcData(i).STATION{j}.DATE - (5/24);
+        adcData(i).STATION{j}.DATA = adcData(i).STATION{j}.DATA + offset;
     end
+    msg = sprintf('plot_usace_adcirc.m: Success reading %s', char(ensFileNames(i)));;
+    disp(msg);
 end
-% NEED TO ADD CHECK TO MAKE SURE THE NUMBER OF STATIONS ARE THE SAME FOR
+% NEED TO ADD CHECK TO MAKE SURE THE NUMBER OF STAdfTIONS ARE THE SAME FOR
 % EACH ENSEMBLE SIMULATION
 
 % Get the start and end date of the ADCIRC simulation and round off
 % Used for plotting purposes and grabbing USACE gage data
-sdate = round(adcData(1).STATION{1}.DATE(1));
-edate = round(adcData(1).STATION{1}.DATE(length(adcData(1).STATION{1}.DATE)));
+sdate = round(adcData(useEnsemble).STATION{1}.DATE(1));
+edate = round(adcData(useEnsemble).STATION{1}.DATE(length(adcData(useEnsemble).STATION{1}.DATE)));
 
 %datetime(adcData(1).STATION{1}.DATE(1),'ConvertFrom','datenum')
             
@@ -102,24 +156,27 @@ for f = 1:adcData(1).NumStations
   
     % This will provide you with the index in the cpraStationNames vector
     % assigned earlier in the script
-    cpraStationIndex = find(~cellfun(@isempty,strfind(cpraStationNames,adcData.STATION{f}.NAME)));
+    cpraStationIndex = find(~cellfun(@isempty,strfind(cpraStationNames,adcData(1).STATION{f}.NAME)));
     
     % Check if cpraStationIndex was found -> If not, then cycle 
     % to next iteration.
     if isempty(cpraStationIndex) == 1
-        str = sprintf('WARNING: plot_usace_adcirc.m: Could not find %s',adcData.STATION{f}.NAME);
-        %disp(str);
+        msg = sprintf('plot_usace_adcirc.m: NON-FATAL WARNING: plot_usace_adcirc.m: Could not find %s',adcData(1).STATION{f}.NAME);
+        %disp(msg);
         continue;
     end
        
     % Get USACE water level data for station cpraStationIndex
     % If the rivergages function fails, then create a dummy value to plot.
     try
-        display(stations{1,cpraStationIndex})
+        msg = sprintf('plot_usace_adcirc.m: Finding real-time data for USACE %s', stations{1,cpraStationIndex});
+        disp(msg);
         wl=rivergages2(stations{1,cpraStationIndex},datestr(sdate-3),datestr(sdate),'HG');
         
         % Plot USACE Observations
         if isempty(wl) == 0 % Data was obtained
+            msg = sprintf('plot_usace_adcirc.m: Real-time data for USACE %s was found!', stations{1,cpraStationIndex});
+            disp(msg);
             oDataExist = 1;
 %             wl(:,1) = wl(:,1) + 5/24; % Adjust time from CDT to UTC
             wl(wl < -99) = NaN; % Remove data points that are less than -99
@@ -128,11 +185,15 @@ for f = 1:adcData(1).NumStations
             maxOWL = ceil(max(wl(:,2)));
             minOWL = floor(min(wl(:,2)));
         else
+            msg = sprintf('plot_usace_adcirc.m: NON-FATAL WARNING: Real-time data for USACE %s was NOT found!', stations{1,cpraStationIndex});
+            disp(msg);
             wl(1,1) = sdate; wl(1,2) = -20; % Create a fake point for legend purposes
             oDataExist = 0;
         end
     catch ME
         % USACE is down... :(
+        msg = sprintf('plot_usace_adcirc.m: NON-FATAL WARNING: Real-time data for USACE %s was NOT found!', stations{1,cpraStationIndex});
+        disp(msg);
         % Create some dummy values so the legned can still be plotted
         wl(1,1) = sdate;
         wl(1,2) = -20;
@@ -143,21 +204,63 @@ for f = 1:adcData(1).NumStations
     
     % Plot USACE water levels as scatter points
     scatter(wl(:,1),wl(:,2),50,'MarkerEdgeColor','black','Linewidth',1);hold on;
+    legendCell{1} = 'USACE Observations';
         
     %% 
 % -------------------------------------------------------------------------
     
     % Get ADCIRC data from station f and loop through each available ensemble
     for i = 1:numEns
+
+        % Load run.properties file
+        % Utilize Matlab Map object data structure - similar to Python dict.
+        % http://www.mathworks.com/help/matlab/ref/containers.map.html;jsessionid=e51d09845dede42c23d71ce2851a
+        if exist(propFile{i})
+            fid = fopen(propFile{i},'r');
+            msg = sprintf('plot_usace_adcirc.m: File %s was found.', propFile{i});
+            disp(msg);
+        else
+            msg = sprintf('plot_usace_adcirc.m FATAL ERROR: %s was NOT found.', propFile{i});
+            disp(msg);
+            quit;
+        end
+        data = textscan(fid,'%s %s %s %s','delimiter',{':'});
+        fclose(fid);
+        keySet = strtrim(data{1});
+        valueSet = data{2};
+        M = containers.Map(keySet,valueSet);
+        clear keySet valueSet data
+
+        storm = M('stormname'); adcGrid = M('adcirc.gridname'); enstorm = M('asgs.enstorm');
+        advisory = M('advisory'); forecastValidStart = M('forecastValidStart');
+        msg = sprintf('plot_usace_adcirc.m: Success reading %s', propFile{i});
+        disp(msg);
+
+        legendCell{i+1} = strcat(enstorm,' (Advisory  ',advisory,')');      
+     
+        % Get the current date/time of the advisory
+        % Subtract 5 hours to convert from UTC to CDT.
+        dtAdvisory = datenum(forecastValidStart,'yyyymmddHHMMSS') - (5/24);
+        
         adcData(i).STATION{f}.DATA(adcData(i).STATION{f}.DATA < -999) = NaN;
         % Find min/max water surface elevation from ADCIRC result
         res = ~any(~isnan(adcData(i).STATION{f}.DATA(:)));
         if res == false
+            msg = sprintf('plot_usace_adcirc.m: ADCIRC data for %s - Storm %s - Advisory %s was found!',...
+                adcData(i).STATION{f}.NAME, storm, advisory);
+            disp(msg);
             mDataExist = 1;
             % Find min/max water surface elevation from ADCIRC result
-            maxMWL = ceil(max(adcData.STATION{f}.DATA / 0.3048));
-            minMWL = floor(min(adcData.STATION{f}.DATA / 0.3048));
+            maxMWL = ceil(max(adcData(i).STATION{f}.DATA / 0.3048));
+            minMWL = floor(min(adcData(i).STATION{f}.DATA / 0.3048));
+            % Only plot trigger for consensus track for current advisory
+            if (i == useEnsemble)
+                max4Trigger = max(adcData(i).STATION{f}.DATA / 0.3048);
+            end
         else
+            msg = sprintf('plot_usace_adcirc.m: ADCIRC data for %s - Storm %s - Advisory %s was NOT found!',...
+                adcData(i).STATION{f}.NAME, storm, advisory);
+            disp(msg);
             mDataExist = 0;
             % Create some dummy values so the legned can still be plotted
             adcData(i).STATION{f}.DATE(1) = sdate;
@@ -194,13 +297,15 @@ for f = 1:adcData(1).NumStations
 % -----------------------------------------------------------------------
     % Find out if forecasted water level is above the trigger
     triggerL = false;
-    if (trigger(cpraStationIndex) > 0) && (maxMWL > trigger(cpraStationIndex))
+    % Only plot trigger for consensus track for current advisory
+    % This is why the index of adcData is useEnsemble
+    if (trigger(cpraStationIndex) > 0) && (max4Trigger >= trigger(cpraStationIndex))
         triggerL = true;
         % Find the index at which this occurs. Use the first time it
         % occurs.
-        idx = find(adcData(i).STATION{f}.DATA/.3048 > trigger(cpraStationIndex));
+        idx = find(adcData(useEnsemble).STATION{f}.DATA/.3048 > trigger(cpraStationIndex));
         if isempty(idx) == 0
-            trigDate = adcData(i).STATION{f}.DATE(idx(1));
+            trigDate = adcData(useEnsemble).STATION{f}.DATE(idx(1));
             % Plot gate closure trigger
             plot([trigDate-0.5 trigDate+0.5],[trigger(cpraStationIndex) trigger(cpraStationIndex)],...
                 '-', 'color', 'green','Linewidth',2.0);
@@ -263,7 +368,7 @@ for f = 1:adcData(1).NumStations
     %% 
 % -------------------------------------------------------------------------
     
-    title1 = strcat('Storm:',storm,' - grid:',adcGrid);
+    title1 = strcat('Storm:',storm,' - Advisory: ',advisory,' - grid:',adcGrid);
 	if (strcmp(cpraStationNames(cpraStationIndex),'Western Tie-In (WBV7274)') == 1)
 		title2 = strcat('Western Tie-In (WBV-72/74)  -  USACE Gage ID:',stations(cpraStationIndex));
 	elseif (strcmp(cpraStationNames(cpraStationIndex),'Bayou Segnette Closure (WBV162)') == 1)
@@ -276,15 +381,16 @@ for f = 1:adcData(1).NumStations
     text(0,1.03,title2,'Units','normalized','Interpreter','None');
     
     % Add Legend
-%     legend('USACE Observations','nhcConsensus','veerRight50',...
-%         'Location','northwest');
     triggerText = strcat('Water Level Trigger (',num2str(trigger(cpraStationIndex),'%4.1f'),' ft)');
     if (triggerL)
-        legend('USACE Observations','nhcConsensus',triggerText,'Location','northwest');
-    else
-        legend('USACE Observations','nhcConsensus','Location','northwest');
+        legendCell{i+2} = triggerText;
+        %legend('USACE Observations',enstorm,triggerText,'Location','northwest');
+%     else
+%         legend('USACE Observations',enstorm,'Location','northwest');
     end
-    
+%     legend(legendCell,'Location','northwest');
+    legend(legendCell,'Location','northeast');
+       
     % Override some defaults
     set(gca,'LineWidth',1,'TickLength',[0.015 0.015]);
     set(gca,'FontSize',12,'FontWeight','bold');
@@ -295,8 +401,17 @@ for f = 1:adcData(1).NumStations
     fig.PaperUnits = 'inches';
     fig.PaperPosition = [0 0 12.5 6.0];
     
-    fname = char(strcat('WSE_',adcData.STATION{f}.NAME,'_USACE',stations(cpraStationIndex)));
+    fname = char(strcat('WSE_',adcData(i).STATION{f}.NAME,'_USACE',stations(cpraStationIndex)));
     print(fname,'-dpng','-r200');
+    
+    clear legendCell;
+    
+    msg = sprintf('plot_usace_adcirc.m: Station %s jpeg success.', stations{1,cpraStationIndex});
+    disp(msg);
 end
+
+msg = sprintf('plot_usace_adcirc.m: END plot_usace_adcirc.m %s CDT',...
+    datestr(datetime('now','TimeZone','America/Chicago'),'yyyymmdd HH:MM'));
+disp(msg);
 
 clear all; close all;

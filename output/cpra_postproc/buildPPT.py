@@ -5,6 +5,14 @@
 #          Jason Fleming, PhD
 #          Seahorse Coastal Consulting
 # COPYRIGHT 2018
+#
+#####################################################
+#
+# TO RUN IN A PYTHON SHELL USING CMD ARGS
+#import sys
+#sys.argv = ['./buildPPT.py','FigureGenFilename']
+#execfile('./buildPPT.py')
+#
 #####################################################
 
 import sys
