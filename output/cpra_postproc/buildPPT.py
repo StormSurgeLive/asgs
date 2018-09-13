@@ -22,7 +22,10 @@ runProp = dict()
 f = open('run.properties','r')
 for line in f:
     fields = line.split(':',1)
-    runProp[fields[0].strip()] = fields[1].strip() 
+    try:
+        runProp[fields[0].strip()] = fields[1].strip()
+    except IndexError:
+        continue
 f.close()
 
 # Convert advisoryTime to python datetime object
