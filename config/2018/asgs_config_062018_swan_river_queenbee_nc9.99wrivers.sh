@@ -171,7 +171,7 @@ INITPOST=null_init_post.sh
 POSTPROCESS=cera_post.sh
 POSTPROCESS2=null_post.sh
 
-TDS=(renci_tds)
+TDS=(lsu_tds renci_tds)
 TARGET=queenbee  # used in post processing to pick up HPC platform config
 OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
 if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
