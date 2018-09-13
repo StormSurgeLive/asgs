@@ -502,7 +502,7 @@ init_renci_tds()
    SSHPORT=22
    LINKABLEHOSTS=(hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
    COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
-   if [[ $USER = jgflemin ]]; then
+   if [[ $USER = jgflemin || $USER = ncfs ]]; then
       OPENDAPUSER=ncfs
    fi
 }
