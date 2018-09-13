@@ -182,7 +182,16 @@ esac
 echo "$message" | mail -s "$subjectLine" -a "$attachFile" $emailList
 #--------------------------------------------------------------------------
 #
+#--------------------------------------------------------------------------
 #
+#       E-MAIL FIGUREGEN TO OPERATORS IN CASE MANUAL PPT PRODUCTION
+#       IS NEEDED
+#--------------------------------------------------------------------------
+emailList='mbilsk3@lsu.edu'
+subjectLine="$storm Advisory $advisory FigureGen"
+message="This is an automated message from the ADCIRC Surge Guidance System (ASGS).
+FigureGen results are attached for STORM $storm ADVISORY $advisory issued on $forecastValidStartCDT CDT"
+attachFile=$fname
 #--------------------------------------------------------------------------
 #       CLEAN UP
 #--------------------------------------------------------------------------
