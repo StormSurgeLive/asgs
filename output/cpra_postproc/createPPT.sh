@@ -68,14 +68,14 @@ echo "time.forecast.valid.cdt : $forecastValidStartCDT" >> run.properties
 #--------------------------------------------------------------------------
 #      WRITE PROPERTIES FOR MATLAB 
 #--------------------------------------------------------------------------
-echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Writing properties for matlab." >> $LOGFILE
-oFile=cpraHydro.info
-echo $storm > $oFile
-echo $enstorm >> $oFile
-echo $grid >> $oFile
-echo $forecastValidStartCDT >> $oFile
-echo $coldStartTimeCDT >> $oFile
-echo $advisory >> $oFile
+#echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Writing properties for matlab." >> $LOGFILE
+#oFile=cpraHydro.info
+#echo $storm > $oFile
+#echo $enstorm >> $oFile
+#echo $grid >> $oFile
+#echo $forecastValidStartCDT >> $oFile
+#echo $coldStartTimeCDT >> $oFile
+#echo $advisory >> $oFile
 #--------------------------------------------------------------------------
 #
 #
