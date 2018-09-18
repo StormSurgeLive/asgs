@@ -253,7 +253,11 @@ for f = 1:adcData(1).NumStations
      
         % Get the current date/time of the advisory
         % Subtract 5 hours to convert from UTC to CDT.
-        dtAdvisory = datenum(forecastValidStart,'yyyymmddHHMMSS') - (5/24);    
+        dtAdvisory = datenum(forecastValidStart,'yyyymmddHHMMSS') - (5/24);
+
+		% Add in the offset, if any
+        adcData(i).STATION{f}.DATA = adcData(i).STATION{f}.DATA + ...
+            offsetMap(stations{1,cpraStationIndex});		
      
         adcData(i).STATION{f}.DATA(adcData(i).STATION{f}.DATA < -999) = NaN;
         % Find min/max water surface elevation from ADCIRC result
@@ -285,10 +289,6 @@ for f = 1:adcData(1).NumStations
             maxMWL = 1;
             minMWL = 0;
         end
-        
-        % Add in the offset, if any
-        adcData(i).STATION{f}.DATA = adcData(i).STATION{f}.DATA + ...
-            offsetMap(stations{1,cpraStationIndex});
         
         % Plot ADCIRC Simulation
         plot(adcData(i).STATION{f}.DATE,...
