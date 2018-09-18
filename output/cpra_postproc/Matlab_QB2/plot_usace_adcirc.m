@@ -16,6 +16,13 @@ disp(msg);
 %
 offset = 0.0; % in feet
 % offset = 1.25; % in feet
+offsetSet = zeros(1,16);
+offsetSet(:) = offset;
+% Offset vector - same order as "stations" string vector
+% offsetSet = [1.25,1.25,1.25,0.75,1.25,1.25,1.25,...
+%     1.25,1.25,1.25,1.25,1.25,1.25,1.50,1.00,0.35];
+% {'85625','76065','76030','76265','82762','82770','82742',...
+% '85760','76010','82715','01440','01440','85670','85575','85700','82875'};
 
 productionMode = true; % for ASGS
 % productionMode = false; % Manual mode
@@ -82,12 +89,17 @@ cpraStationNames = {'17th St. Outfall Canal (17StCanal)',...
     'Mandeville (Mandeville)',...
     'Rigolets (Rigolets)',...
     'Lafitte (Lafitte)'};
+
 %
 %% 
 
-msg = sprintf('plot_usace_adcirc.m: Using an offset of %f ft.',offset);
-disp(msg);
-offset = offset*0.3048;
+% Create a map container of station-dependent offsets
+offsetSet = offsetSet * 0.3048;
+offsetMap = containers.Map(stations,offsetSet);
+
+% msg = sprintf('plot_usace_adcirc.m: Using an offset of %f ft.',offset);
+% disp(msg);
+% offset = offset*0.3048;
 
 %
 %% 
@@ -132,7 +144,8 @@ for i = 1:numEns
     % Adjust hydrograph based on offset
     for j = 1:adcData(i).NumStations
         adcData(i).STATION{j}.DATE = adcData(i).STATION{j}.DATE - (5/24);
-        adcData(i).STATION{j}.DATA = adcData(i).STATION{j}.DATA + offset;
+        adcData(i).STATION{j}.DATA = adcData(i).STATION{j}.DATA;
+%         adcData(i).STATION{j}.DATA = adcData(i).STATION{j}.DATA + offset;
     end
     msg = sprintf('plot_usace_adcirc.m: Success reading %s', char(ensFileNames(i)));;
     disp(msg);
@@ -240,8 +253,8 @@ for f = 1:adcData(1).NumStations
      
         % Get the current date/time of the advisory
         % Subtract 5 hours to convert from UTC to CDT.
-        dtAdvisory = datenum(forecastValidStart,'yyyymmddHHMMSS') - (5/24);
-        
+        dtAdvisory = datenum(forecastValidStart,'yyyymmddHHMMSS') - (5/24);    
+     
         adcData(i).STATION{f}.DATA(adcData(i).STATION{f}.DATA < -999) = NaN;
         % Find min/max water surface elevation from ADCIRC result
         res = ~any(~isnan(adcData(i).STATION{f}.DATA(:)));
@@ -272,6 +285,10 @@ for f = 1:adcData(1).NumStations
             maxMWL = 1;
             minMWL = 0;
         end
+        
+        % Add in the offset, if any
+        adcData(i).STATION{f}.DATA = adcData(i).STATION{f}.DATA + ...
+            offsetMap(stations{1,cpraStationIndex});
         
         % Plot ADCIRC Simulation
         plot(adcData(i).STATION{f}.DATE,...
