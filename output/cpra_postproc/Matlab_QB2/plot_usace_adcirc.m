@@ -169,13 +169,13 @@ for f = 1:adcData(1).NumStations
     % Get USACE water level data for station cpraStationIndex
     % If the rivergages function fails, then create a dummy value to plot.
     try
-        msg = sprintf('plot_usace_adcirc.m: Finding real-time data for USACE %s', stations{1,cpraStationIndex});
+        msg = sprintf('plot_usace_adcirc.m: Finding gage data for USACE %s', stations{1,cpraStationIndex});
         disp(msg);
         wl=rivergages2(stations{1,cpraStationIndex},datestr(sdate-3),datestr(sdate),'HG');
         
         % Plot USACE Observations
         if isempty(wl) == 0 % Data was obtained
-            msg = sprintf('plot_usace_adcirc.m: Real-time data for USACE %s was found!', stations{1,cpraStationIndex});
+            msg = sprintf('plot_usace_adcirc.m: Gage data for USACE %s was found!', stations{1,cpraStationIndex});
             disp(msg);
             oDataExist = 1;
 %             wl(:,1) = wl(:,1) + 5/24; % Adjust time from CDT to UTC
@@ -185,14 +185,14 @@ for f = 1:adcData(1).NumStations
             maxOWL = ceil(max(wl(:,2)));
             minOWL = floor(min(wl(:,2)));
         else
-            msg = sprintf('plot_usace_adcirc.m: NON-FATAL WARNING: Real-time data for USACE %s was NOT found!', stations{1,cpraStationIndex});
+            msg = sprintf('plot_usace_adcirc.m: NON-FATAL WARNING: Gage data for USACE %s was NOT found!', stations{1,cpraStationIndex});
             disp(msg);
             wl(1,1) = sdate; wl(1,2) = -20; % Create a fake point for legend purposes
             oDataExist = 0;
         end
     catch ME
         % USACE is down... :(
-        msg = sprintf('plot_usace_adcirc.m: NON-FATAL WARNING: Real-time data for USACE %s was NOT found!', stations{1,cpraStationIndex});
+        msg = sprintf('plot_usace_adcirc.m: NON-FATAL WARNING: Gage data for USACE %s was NOT found!', stations{1,cpraStationIndex});
         disp(msg);
         % Create some dummy values so the legned can still be plotted
         wl(1,1) = sdate;
@@ -204,7 +204,7 @@ for f = 1:adcData(1).NumStations
     
     % Plot USACE water levels as scatter points
     scatter(wl(:,1),wl(:,2),50,'MarkerEdgeColor','black','Linewidth',1);hold on;
-    legendCell{1} = 'USACE Observations';
+    legendCell{1} = 'Gage Observations';
         
     %% 
 % -------------------------------------------------------------------------
@@ -236,7 +236,7 @@ for f = 1:adcData(1).NumStations
         msg = sprintf('plot_usace_adcirc.m: Success reading %s', propFile{i});
         disp(msg);
 
-        legendCell{i+1} = strcat(enstorm,' (Advisory  ',advisory,')');      
+        legendCell{i+1} = strcat(enstorm,' (Advisory ',advisory,')');      
      
         % Get the current date/time of the advisory
         % Subtract 5 hours to convert from UTC to CDT.
@@ -286,12 +286,13 @@ for f = 1:adcData(1).NumStations
     
     % Include some text stating that no USACE observed gage data is available.
     if oDataExist == 0
-        text(sdate-2.85,minWL + 1.5,'Real-time observations are not available.','Interpreter','None');
+        text(sdate-2.85,minWL + 1.5,'Gage observations are not available.','Interpreter','None');
     end
     % Include some text stating that no model data is available.
-    if mDataExist == 0
-        text(sdate+2.5,minWL + 1.5,'Model result indicate location is dry.','Interpreter','None');
-    end
+    % Removed on 09-18-2018 based on review from CPRA
+%     if mDataExist == 0
+%         text(sdate+2.5,minWL + 1.5,'Model result indicate location is dry.','Interpreter','None');
+%     end
 
     %% 
 % -----------------------------------------------------------------------
@@ -368,13 +369,14 @@ for f = 1:adcData(1).NumStations
     %% 
 % -------------------------------------------------------------------------
     
-    title1 = strcat('Storm:',storm,' - Advisory: ',advisory,' - grid:',adcGrid);
+    title1 = strcat({'Storm: '},storm,{' - Advisory: '},advisory,{' Issued on '},...
+        datestr(dtAdvisory,'mm-dd HH:MM'),{' CDT'},{' - grid: '},adcGrid);
 	if (strcmp(cpraStationNames(cpraStationIndex),'Western Tie-In (WBV7274)') == 1)
 		title2 = strcat('Western Tie-In (WBV-72/74)  -  USACE Gage ID:',stations(cpraStationIndex));
 	elseif (strcmp(cpraStationNames(cpraStationIndex),'Bayou Segnette Closure (WBV162)') == 1)
 		title2 = strcat('Bayou Segnette Closure (WBV-16.2) -  USACE Gage ID:',stations(cpraStationIndex));
 	else
-		title2 = strcat(cpraStationNames(cpraStationIndex),'  -  USACE Gage ID:',stations(cpraStationIndex));
+		title2 = strcat(cpraStationNames(cpraStationIndex),{'  -  USACE Gage ID: '},stations(cpraStationIndex));
 	end
     
     text(0,1.07,title1,'Units','normalized','Interpreter','None');
@@ -384,9 +386,9 @@ for f = 1:adcData(1).NumStations
     triggerText = strcat('Water Level Trigger (',num2str(trigger(cpraStationIndex),'%4.1f'),' ft)');
     if (triggerL)
         legendCell{i+2} = triggerText;
-        %legend('USACE Observations',enstorm,triggerText,'Location','northwest');
+        %legend('Gage Observations',enstorm,triggerText,'Location','northwest');
 %     else
-%         legend('USACE Observations',enstorm,'Location','northwest');
+%         legend('Gage Observations',enstorm,'Location','northwest');
     end
 %     legend(legendCell,'Location','northwest');
     legend(legendCell,'Location','northeast');
