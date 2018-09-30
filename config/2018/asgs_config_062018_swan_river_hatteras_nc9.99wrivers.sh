@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2006--2017 Jason Fleming
+# Copyright(C) 2006--2018 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade 
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -28,34 +28,28 @@
 #
 # Fundamental 
 #
-INSTANCENAME=hiresr       # name of this ASGS process, to differentiate results
-#COLDSTARTDATE=2016061300
-#COLDSTARTDATE=2016111500
-#COLDSTARTDATE=2017010100
-#COLDSTARTDATE=2017012400
-#COLDSTARTDATE=2017071000
-#COLDSTARTDATE=2017121500
-#COLDSTARTDATE=2018020900
+INSTANCENAME=062018hiresr # name of this ASGS process, to differentiate results
 COLDSTARTDATE=2018022100
-HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
-LASTSUBDIR=null
+HOTORCOLD=hotstart        # "hotstart" or "coldstart" 
+LASTSUBDIR=/projects/ncfs/data/asgs15957/2018090800
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
-REINITIALIZESWAN=yes       # used to bounce the wave solution
+REINITIALIZESWAN=no       # used to bounce the wave solution
+SWANHSCOMPRESSION=no
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/v53release/work  # ADCIRC executables 
-SWANDIR=~/adcirc/forks/adcirc/v53release/swan  # SWAN executables 
-SCRIPTDIR=~/asgs/branches/2014stable     # ASGS scripts/executables  
+ADCIRCDIR=~/adcirc/forks/adcirc/v53release/work # ADCIRC executables 
+SWANDIR=~/adcirc/forks/adcirc/v53release/swan   # SWAN executables 
+SCRIPTDIR=~/asgs/branches/2014stable            # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v9.99_w_rivers # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on     # [de]activate NAM download/forcing 
+BACKGROUNDMET=off    # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
-TROPICALCYCLONE=off  # [de]activate tropical cyclone forcing (temp. broken)
+TROPICALCYCLONE=on   # [de]activate tropical cyclone forcing (temp. broken)
 WAVES=on             # [de]activate wave forcing 
 VARFLUX=on           # [de]activate variable river flux forcing
 
@@ -67,33 +61,34 @@ HINDCASTWALLTIME="12:00:00"
 ADCPREPWALLTIME="01:15:00"
 NOWCASTWALLTIME="05:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=159
-NCPUCAPACITY=500
-NUMWRITERS=1
+NCPU=500
+NCPUCAPACITY=2000
+NUMWRITERS=10
 CYCLETIMELIMIT="05:00:00"
 # queue
 QUEUENAME=null
 SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
-ACCOUNT=batch # or "ncfs" on hatteras to use pre-empt capability
+#ACCOUNT=batch # or "ncfs" on hatteras to use pre-empt capability
 PARTITION=ncfs
 RESERVATION=null
-CONSTRAINT='sandybridge&hatteras'
-CONSTRAINT=null
+CONSTRAINT='hatteras&sandybridge'
 
 # External data sources : Tropical cyclones
 
-STORM=12  # storm number, e.g. 05=ernesto in 2006 
-YEAR=2013 # year of the storm (useful for historical storms) 
-TRIGGER=rssembedded    # either "ftp" or "rss"
+STORM=06  # storm number, e.g. 05=ernesto in 2006 
+YEAR=2018 # year of the storm (useful for historical storms) 
+TRIGGER=rssembedded       # either "ftp" or "rss"
 RSSSITE=www.nhc.noaa.gov 
+#RSSSITE=filesystem
 FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files
-FDIR=/atcf/afst     # forecast dir on nhc ftp site 
-HDIR=/atcf/btk      # hindcast dir on nhc ftp site 
+FDIR=/atcf/afst          # forecast dir on nhc ftp site 
+#FDIR=/home/ncfs/asgs/branches/2014stable/input/sample_advisories/2018 # forecast dir on nhc ftp site 
+HDIR=/atcf/btk            # hindcast dir on nhc ftp site 
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="00,06,12,18"
+FORECASTCYCLE="06,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -118,8 +113,8 @@ MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=nc_9.99wrivers_vortex_offset_fort.15.template
 CONTROLPROPERTIES=fort.15.properties
 ELEVSTATIONS=ncv999_stations_20180907.txt
-VELSTATIONS=${ELEVSTATIONS}
-METSTATIONS=${ELEVSTATIONS}
+VELSTATIONS=$ELEVSTATIONS
+METSTATIONS=$ELEVSTATIONS
 NAFILE=nc_inundation_v9.99_rivers.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=fort.26.template
@@ -157,7 +152,7 @@ MINMAX=reset
 # Notification
 
 EMAILNOTIFY=yes # set to yes to have host platform email notifications
-NOTIFY_SCRIPT=ncfs_nam_notify.sh
+NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
@@ -170,8 +165,7 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=ncfs_post_min.sh
-POSTPROCESS2=null_post.sh
+POSTPROCESS=cera_post.sh
 
 TDS=(renci_tds)
 TARGET=hatteras  # used in post processing to pick up HPC platform config
@@ -193,22 +187,20 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=6 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
-0)
-   ENSTORM=namforecast
+3)
+   ENSTORM=nhcConsensus
    PARTITION=ncfs
-   RESERVATION=null
-   CONSTRAINT='sandybridge&hatteras'
+   #CONSTRAINT=hatteras
    ;;
-1)
-   ENSTORM=namforecastWind10m
+0)
+   ENSTORM=nhcConsensusWind10m
    PARTITION=ncfs
-   RESERVATION=null
-   CONSTRAINT='sandybridge&hatteras'
+   #CONSTRAINT=hatteras
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=nc_9.99wrivers.nowindreduction.fort.15.template
@@ -235,7 +227,85 @@ case $si in
    OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
    # prevent collisions in prepped archives
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
-   POSTPROCESS=wind10m_post.sh
+   POSTPROCESS=null_post.sh
+   ;;
+4)
+   ENSTORM=veerRight50
+   PERCENT=50
+   #CONSTRAINT=hatteras
+   PARTITION=ncfs
+   ;;
+1)
+   ENSTORM=veerRight50Wind10m
+   PERCENT=50
+   #CONSTRAINT=hatteras
+   PARTITION=ncfs
+   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   CONTROLTEMPLATE=nc_9.99wrivers.nowindreduction.fort.15.template
+   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+   TIMESTEPSIZE=300.0   # 5 minute time steps
+   NCPU=15               # so total cpus match with other ensemble members
+   NUMWRITERS=1          # multiple writer procs might collide
+   WAVES=off             # deactivate wave forcing 
+   # turn off water surface elevation station output
+   FORT61="--fort61freq 0"
+   # turn off water current velocity station output
+   FORT62="--fort62freq 0"
+   # turn off full domain water surface elevation output
+   FORT63="--fort63freq 0"
+   # turn off full domain water current velocity output
+   FORT64="--fort64freq 0"
+   # met station output
+   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
+   # full domain meteorological output
+   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
+   #SPARSE="--sparse-output"
+   SPARSE=""
+   NETCDF4="--netcdf4"
+   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+   # prevent collisions in prepped archives
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   POSTPROCESS=null_post.sh
+   ;;
+5)
+   ENSTORM=veerLeft50
+   PERCENT=-50
+   #CONSTRAINT=hatteras
+   PARTITION=ncfs
+   ;;
+2)
+   ENSTORM=veerLeft50Wind10m
+   PERCENT=-50
+   #CONSTRAINT=hatteras
+   PARTITION=ncfs
+   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   CONTROLTEMPLATE=nc_9.99wrivers.nowindreduction.fort.15.template
+   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+   TIMESTEPSIZE=300.0   # 5 minute time steps
+   NCPU=15               # so total cpus match with other ensemble members
+   NUMWRITERS=1          # multiple writer procs might collide
+   WAVES=off             # deactivate wave forcing 
+   # turn off water surface elevation station output
+   FORT61="--fort61freq 0"
+   # turn off water current velocity station output
+   FORT62="--fort62freq 0"
+   # turn off full domain water surface elevation output
+   FORT63="--fort63freq 0"
+   # turn off full domain water current velocity output
+   FORT64="--fort64freq 0"
+   # met station output
+   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
+   # full domain meteorological output
+   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
+   #SPARSE="--sparse-output"
+   SPARSE=""
+   NETCDF4="--netcdf4"
+   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+   # prevent collisions in prepped archives
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   POSTPROCESS=null_post.sh
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
