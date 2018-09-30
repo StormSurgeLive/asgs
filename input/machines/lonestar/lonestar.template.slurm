@@ -4,6 +4,9 @@
 #SBATCH -p %queuename%   # Queue name
 #SBATCH -N %nnodes%      # Total number of nodes requested
 #SBATCH -n %ncpu%        # Total number of mpi tasks requested
+#SBATCH --partition=%partition%
+#SBATCH --reservation=%reservation%
+#SBATCH --constraint=%constraint%
 #SBATCH -t %walltime%    # Run time (hh:mm:ss) - 1.5 hours
 # The next line is required if the user has more than one project
 #SBATCH -A %account%     # Project/allocation number
