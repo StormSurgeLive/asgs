@@ -27,11 +27,11 @@
 
 # Fundamental
 
-INSTANCENAME=dailyLAv17a_12ft  # "name" of this ASGS process
-COLDSTARTDATE=2018081200    # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=/ssdwork/jgflemin/asgs28673/13 # path to previous execution (if HOTORCOLD=hotstart)
-HINDCASTLENGTH=20.0      # length of initial hindcast, from cold (days)
+INSTANCENAME=dailyLAv17a_28ft  # "name" of this ASGS process
+COLDSTARTDATE=2018090300   # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=coldstart      # "hotstart" or "coldstart"
+LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
+HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
@@ -106,7 +106,7 @@ RIVERDIR=/projects/ciflow/adcirc_info
 GRIDFILE=LA_v17a-WithUpperAtch_chk.grd   # mesh (fort.14) file
 GRIDNAME=LA_v17a-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS12ft.15.template
+CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS27ft.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
 ELEVSTATIONS=combined_stations_20181005.txt
 VELSTATIONS=combined_stations_20181005.txt
