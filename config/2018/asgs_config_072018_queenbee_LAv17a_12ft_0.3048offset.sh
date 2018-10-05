@@ -27,10 +27,10 @@
 
 # Fundamental
 
-INSTANCENAME=dailyLAv17a_12ft  # "name" of this ASGS process
+INSTANCENAME=072018LAv17a_12ft_offset  # "name" of this ASGS process
 COLDSTARTDATE=2018081200    # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=/ssdwork/jgflemin/asgs28673/13 # path to previous execution (if HOTORCOLD=hotstart)
+LASTSUBDIR=/ssdwork/jgflemin/asgs28673/05 # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=20.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -45,9 +45,9 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on   # NAM download/forcing
-TIDEFAC=on     # tide factor recalc
-TROPICALCYCLONE=off   # tropical cyclone forcing
+BACKGROUNDMET=off   # NAM download/forcing
+TIDEFAC=on           # tide factor recalc
+TROPICALCYCLONE=on   # tropical cyclone forcing
 WAVES=off             # wave forcing
 VARFLUX=off          # variable river flux forcing
 
@@ -89,7 +89,7 @@ HDIR=${FDIR}
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06,18"
+FORECASTCYCLE="06"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -106,11 +106,11 @@ RIVERDIR=/projects/ciflow/adcirc_info
 GRIDFILE=LA_v17a-WithUpperAtch_chk.grd   # mesh (fort.14) file
 GRIDNAME=LA_v17a-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS12ft.15.template
+CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS12ft_0.3048offset.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=combined_stations_20181005.txt
-VELSTATIONS=combined_stations_20181005.txt
-METSTATIONS=combined_stations_20181005.txt
+ELEVSTATIONS=combined_stations_20180611.txt
+VELSTATIONS=combined_stations_20180611.txt
+METSTATIONS=combined_stations_20180611.txt
 NAFILE=LA_v17a-WithUpperAtch.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=LA_v17a-WithUpperAtch.26.template   # only used if WAVES=on
@@ -161,7 +161,8 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=cera_post.sh
+POSTPROCESS=queenbee_daily_post.sh
+POSTPROCESS2=null_post.sh
 
 # opendap
 TDS=(lsu_tds renci_tds)
@@ -182,11 +183,6 @@ fi
 # other notification parameters above. 
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
-NUMCERASERVERS=2
-WEBHOST=webserver.hostingco.com
-WEBUSER=remoteuser
-WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts
-
 # Archiving
 
 ARCHIVE=enstorm_pedir_removal.sh
@@ -203,15 +199,85 @@ case $si in
       # do nothing ... this is not a forecast
    ;;
 1)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
    ;;
 0)
-   ENSTORM=namforecastWind10m
+   ENSTORM=nhcConsensusWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-   TIMESTEPSIZE=300.0    # 15 minute time steps
+   TIMESTEPSIZE=60.0    # 15 minute time steps
+   NCPU=19               # dramatically reduced resource requirements
+   NUMWRITERS=1          # multiple writer procs might collide
+   WAVES=off             # deactivate wave forcing 
+   # turn off water surface elevation station output
+   FORT61="--fort61freq 0"
+   # turn off water current velocity station output
+   FORT62="--fort62freq 0"
+   # turn off full domain water surface elevation output
+   FORT63="--fort63freq 0"
+   # turn off full domain water current velocity output
+   FORT64="--fort64freq 0"
+   # met station output
+   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
+   # full domain meteorological output
+   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
+   #SPARSE="--sparse-output"
+   SPARSE=""
+   NETCDF4="--netcdf4"
+   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+   # prevent collisions in prepped archives
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   POSTPROCESS=null_post.sh
+   ;;
+3)
+   ENSTORM=veerLeft100
+   PERCENT=-100
+   ;;
+2)
+   ENSTORM=veerLeft100Wind10m
+   PERCENT=-100
+   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
+   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+   TIMESTEPSIZE=60.0    # 15 minute time steps
+   NCPU=19               # dramatically reduced resource requirements
+   NUMWRITERS=1          # multiple writer procs might collide
+   WAVES=off             # deactivate wave forcing 
+   # turn off water surface elevation station output
+   FORT61="--fort61freq 0"
+   # turn off water current velocity station output
+   FORT62="--fort62freq 0"
+   # turn off full domain water surface elevation output
+   FORT63="--fort63freq 0"
+   # turn off full domain water current velocity output
+   FORT64="--fort64freq 0"
+   # met station output
+   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
+   # full domain meteorological output
+   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
+   #SPARSE="--sparse-output"
+   SPARSE=""
+   NETCDF4="--netcdf4"
+   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+   # prevent collisions in prepped archives
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   POSTPROCESS=null_post.sh
+   ;;
+4)
+   ENSTORM=veerRight100
+   PERCENT=100
+   ;;
+5)
+   ENSTORM=veerRight100Wind10m
+   PERCENT=100
+   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
+   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+   TIMESTEPSIZE=60.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
