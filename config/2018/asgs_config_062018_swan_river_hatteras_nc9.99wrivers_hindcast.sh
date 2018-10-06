@@ -28,10 +28,10 @@
 #
 # Fundamental 
 #
-INSTANCENAME=062018hiresr # name of this ASGS process, to differentiate results
+INSTANCENAME=062018hiresrh # name of this ASGS process, to differentiate results
 COLDSTARTDATE=2018022100
 HOTORCOLD=hotstart        # "hotstart" or "coldstart" 
-LASTSUBDIR=/projects/ncfs/data/asgs15957/2018090800
+LASTSUBDIR=/projects/ncfs/data/asgs3788/51
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
 SWANHSCOMPRESSION=no
@@ -80,11 +80,13 @@ STORM=06  # storm number, e.g. 05=ernesto in 2006
 YEAR=2018 # year of the storm (useful for historical storms) 
 TRIGGER=rssembedded       # either "ftp" or "rss"
 RSSSITE=www.nhc.noaa.gov 
-#RSSSITE=filesystem
-FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files
-FDIR=/atcf/afst          # forecast dir on nhc ftp site 
-#FDIR=/home/ncfs/asgs/branches/2014stable/input/sample_advisories/2018 # forecast dir on nhc ftp site 
-HDIR=/atcf/btk            # hindcast dir on nhc ftp site 
+RSSSITE=filesystem
+FTPSITE=filesystem
+#FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files
+#FDIR=/atcf/afst          # forecast dir on nhc ftp site 
+FDIR=/home/ncfs/asgs/branches/2014stable/input/sample_advisories/2018 # forecast dir on nhc ftp site 
+#HDIR=/atcf/btk            # hindcast dir on nhc ftp site 
+HDIR=${FDIR}               # hindcast dir on nhc ftp site 
 
 # External data sources : Background Meteorology
 
@@ -187,7 +189,7 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=0 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
