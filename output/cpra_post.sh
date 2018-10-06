@@ -36,7 +36,7 @@ SSHKEY=${13}
 #
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR} 2>> ${SYSLOG}
-THIS=cera_post.sh
+THIS=cpra_post.sh
 # get the forecast ensemble member number 
 ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 #
@@ -51,6 +51,9 @@ si=$ENMEMNUM
 env_dispatch ${TARGET}
 # grab all config info (again, last, so the CONFIG file takes precedence)
 . ${CONFIG}
+#
+# create slide deck for cpra
+${OUTPUTDIR}/cpra_slide_deck_post.sh
 #
 #-----------------------------------------------------------------------
 #          I N C L U S I O N   O F   10 M   W I N D S

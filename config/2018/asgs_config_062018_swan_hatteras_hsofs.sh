@@ -177,7 +177,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,nathan.dill@ransomenv.com"
 
 # Archiving
 
@@ -189,12 +189,12 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=6 # number of storms in the ensemble
+ENSEMBLESIZE=2 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
-3)
+1)
    ENSTORM=nhcConsensus
    PARTITION=ncfs
    RESERVATION=ncfs
@@ -234,14 +234,14 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
    ;;
-4)
+3)
    ENSTORM=veerLeft50
    PARTITION=ncfs
    RESERVATION=null
    PERCENT=-50
    #CONSTRAINT=ivybridge
    ;;
-1)
+2)
    ENSTORM=veerLeft50Wind10m
    PARTITION=ncfs
    PERCENT=-50
@@ -283,7 +283,7 @@ case $si in
    PERCENT=50
    #CONSTRAINT=ivybridge
    ;;
-2)
+4)
    ENSTORM=veerRight50Wind10m
    PARTITION=ncfs
    PERCENT=50

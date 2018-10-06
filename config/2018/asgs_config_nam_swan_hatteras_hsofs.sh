@@ -162,7 +162,7 @@ ASGSADMIN=jason.fleming@seahorsecoastal.com
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general
+INTENDEDAUDIENCE=developers-only
 INITPOST=null_init_post.sh
 POSTPROCESS=hsofs_renci_post.sh
 POSTPROCESS2=null_post.sh
@@ -229,7 +229,7 @@ case $si in
    SPARSE=""
    NETCDF4="--netcdf4"
    OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
-   INTENDEDAUDIENCE=general
+   INTENDEDAUDIENCE=developers-only
    # prevent collisions in prepped archives
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=wind10m_post.sh
