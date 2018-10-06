@@ -184,3 +184,19 @@ for server in ${TDS[*]}; do
    done
    primaryCount=$((primaryCount+1))
 done
+#
+# example execution on lonestar5:
+#/work/00976/jgflemin/lonestar/asgs/branches/2014stable/output/cera_post.sh \
+#/work/00976/jgflemin/lonestar/asgs/branches/2014stable/config/2018/asgs_config_nam_swan_lonestar_ncv6d.sh \
+#/scratch/00976/jgflemin/asgs183013/2018091312 \
+#99 \
+#2018 \
+#2018091312  \
+#lonestar.tacc.utexas.edu \
+#namforecast \
+#2018022100  \
+#17668800.0 \
+#/work/00976/jgflemin/lonestar/asgs/branches/2014stable/input/meshes/nc_v6b/nc_inundation_v6d_rivers_msl.grd \
+#/work/00976/jgflemin/lonestar/asgs/branches/2014stable/output \
+#syslog.log \
+#$HOME/.ssh/id_rsa_lonestar.pub 

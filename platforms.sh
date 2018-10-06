@@ -502,6 +502,9 @@ init_renci_tds()
    SSHPORT=22
    LINKABLEHOSTS=(hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
    COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+   if [[ $USER = jgflemin || $USER = ncfs ]]; then
+      OPENDAPUSER=ncfs
+   fi
 }
 # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU
 init_lsu_tds()
@@ -513,6 +516,9 @@ init_lsu_tds()
    SSHPORT=2525
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links
    COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+   if [[ $USER = jgflemin ]]; then
+      OPENDAPUSER=$USER
+   fi
 }
 # THREDDS Data Server (TDS, i.e., OPeNDAP server) at Texas
 # Advanced Computing Center (TACC)
@@ -525,7 +531,10 @@ init_tacc_tds()
    SSHPORT=null
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
    #COPYABLEHOSTS=(lonestar lonestar.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
-   COPYABLEHOSTS=(stampede stampede.tacc.utexas.edu stampede2 stampede2.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+   COPYABLEHOSTS=(lonestar lonestar5 lonestar.tacc.utexas.edu lonestar5.tacc.utexas.edu ls5.tacc.utexas.edu stampede stampede.tacc.utexas.edu stampede2 stampede2.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+   if [[ $USER = jgflemin ]]; then
+      OPENDAPUSER=$USER
+   fi
 }
 init_penguin()
 { #<- can replace the following with a custom script
