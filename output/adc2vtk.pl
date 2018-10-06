@@ -600,7 +600,9 @@ foreach my $file (@adcircfiles) {
       next;
    }
    $line = <ADCIRCFILE>;  # read comment line (not used)
+   print $line;
    $line = <ADCIRCFILE>;  # read header line (not used)
+   print $line;
    if ( $num_datasets == 0 ) {
       # we don't know how many datasets are in this file, it is likely more
       # than one, so we need to start a small separate pvd file that lists

@@ -68,14 +68,14 @@ echo "time.forecast.valid.cdt : $forecastValidStartCDT" >> run.properties
 #--------------------------------------------------------------------------
 #      WRITE PROPERTIES FOR MATLAB 
 #--------------------------------------------------------------------------
-echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Writing properties for matlab." >> $LOGFILE
-oFile=cpraHydro.info
-echo $storm > $oFile
-echo $enstorm >> $oFile
-echo $grid >> $oFile
-echo $forecastValidStartCDT >> $oFile
-echo $coldStartTimeCDT >> $oFile
-echo $advisory >> $oFile
+#echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Writing properties for matlab." >> $LOGFILE
+#oFile=cpraHydro.info
+#echo $storm > $oFile
+#echo $enstorm >> $oFile
+#echo $grid >> $oFile
+#echo $forecastValidStartCDT >> $oFile
+#echo $coldStartTimeCDT >> $oFile
+#echo $advisory >> $oFile
 #--------------------------------------------------------------------------
 #
 #
@@ -169,7 +169,8 @@ attachFile="$(cat pptFile.temp)"
 # slide decks from all ASGSes on every ensemble member of every advisory ...
 case $HPCENVSHORT in
    queenbee)
-      emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com ckaiser@cct.lsu.edu shagen@lsu.edu rtwilley@lsu.edu Ignacio.Harrouch@la.gov rick_luettich@unc.edu Billy.Wall@la.gov Sam.Martin@la.gov Stephen.Amato@la.gov Heath.E.Jones@usace.army.mil Sarah.T.Stone@usace.army.mil Dana.R.Ray@usace.army.mil Maxwell.E.Agnew@usace.army.mil David.A.Ramirez@usace.army.mil'
+      #emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com ckaiser@cct.lsu.edu shagen@lsu.edu rtwilley@lsu.edu Ignacio.Harrouch@la.gov rick_luettich@unc.edu Billy.Wall@la.gov Stephen.Amato@la.gov Heath.E.Jones@usace.army.mil Maxwell.E.Agnew@usace.army.mil David.A.Ramirez@usace.army.mil'
+      emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com'
       ;;
    hatteras|stampede|lonestar)
       emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com'
@@ -181,7 +182,16 @@ esac
 echo "$message" | mail -s "$subjectLine" -a "$attachFile" $emailList
 #--------------------------------------------------------------------------
 #
+#--------------------------------------------------------------------------
 #
+#       E-MAIL FIGUREGEN TO OPERATORS IN CASE MANUAL PPT PRODUCTION
+#       IS NEEDED
+#--------------------------------------------------------------------------
+emailList='mbilsk3@lsu.edu'
+subjectLine="$storm Advisory $advisory FigureGen"
+message="This is an automated message from the ADCIRC Surge Guidance System (ASGS).
+FigureGen results are attached for STORM $storm ADVISORY $advisory issued on $forecastValidStartCDT CDT"
+attachFile=$fname
 #--------------------------------------------------------------------------
 #       CLEAN UP
 #--------------------------------------------------------------------------
