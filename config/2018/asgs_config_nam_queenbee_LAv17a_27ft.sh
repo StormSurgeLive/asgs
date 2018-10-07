@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME=dailyLAv17a_28ft  # "name" of this ASGS process
+INSTANCENAME=dailyLAv17a_27ft  # "name" of this ASGS process
 COLDSTARTDATE=2018090300   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
@@ -107,7 +107,8 @@ RIVERDIR=/projects/ciflow/adcirc_info
 GRIDFILE=LA_v17a-WithUpperAtch_chk.grd   # mesh (fort.14) file
 GRIDNAME=LA_v17a-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS27ft.15.template
+#CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS27ft.15.template
+CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS27ft_0.3048offset.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
 ELEVSTATIONS=combined_stations_20181005.txt
 VELSTATIONS=combined_stations_20181005.txt
@@ -165,7 +166,7 @@ INITPOST=null_init_post.sh
 POSTPROCESS=cera_post.sh
 
 # opendap
-TDS=(lsu_tds renci_tds)
+TDS=(renci_tds)
 TARGET=queenbee  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
@@ -181,7 +182,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rick_luettich@unc.edu"
 
 NUMCERASERVERS=2
 WEBHOST=webserver.hostingco.com

@@ -106,7 +106,8 @@ RIVERDIR=/projects/ciflow/adcirc_info
 GRIDFILE=LA_v17a-WithUpperAtch_chk.grd   # mesh (fort.14) file
 GRIDNAME=LA_v17a-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS27ft.15.template
+#CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS27ft.15.template
+CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS27ft_0.3048offset.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
 ELEVSTATIONS=combined_stations_20181005.txt
 VELSTATIONS=combined_stations_20181005.txt
@@ -165,7 +166,7 @@ POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
-TDS=(lsu_tds renci_tds)
+TDS=(renci_tds)
 TARGET=queenbee  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
@@ -181,7 +182,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rick_luettich@unc.edu"
 
 NUMCERASERVERS=2
 WEBHOST=webserver.hostingco.com
@@ -198,19 +199,20 @@ ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=4 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
-1)
+3)
    ENSTORM=nhcConsensus
    ;;
-0)
+2)
    ENSTORM=nhcConsensusWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
+   #CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
+   CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS27ft_0.3048offset.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=60.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements
@@ -236,11 +238,11 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
    ;;
-3)
+1)
    ENSTORM=veerLeft100
    PERCENT=-100
    ;;
-2)
+0)
    ENSTORM=veerLeft100Wind10m
    PERCENT=-100
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
