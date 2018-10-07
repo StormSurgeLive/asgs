@@ -30,7 +30,7 @@
 INSTANCENAME=142018LAv17a_27ft  # "name" of this ASGS process
 COLDSTARTDATE=2018090300    # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=/ssdwork/jgflemin/asgs9694/2018100600 # path to previous execution (if HOTORCOLD=hotstart)
+LASTSUBDIR=/work/jgflemin/asgs9694/2018100618 # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -165,7 +165,7 @@ POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
-TDS=(lsu_tds nci_tds)
+TDS=(lsu_tds renci_tds)
 TARGET=queenbee  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
