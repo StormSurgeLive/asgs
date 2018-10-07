@@ -169,7 +169,8 @@ attachFile="$(cat pptFile.temp)"
 # slide decks from all ASGSes on every ensemble member of every advisory ...
 case $HPCENVSHORT in
    queenbee)
-      emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com ckaiser@cct.lsu.edu shagen@lsu.edu rtwilley@lsu.edu Ignacio.Harrouch@la.gov rick_luettich@unc.edu Billy.Wall@la.gov Stephen.Amato@la.gov Heath.E.Jones@usace.army.mil Maxwell.E.Agnew@usace.army.mil David.A.Ramirez@usace.army.mil'
+      #emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com ckaiser@cct.lsu.edu shagen@lsu.edu rtwilley@lsu.edu Ignacio.Harrouch@la.gov rick_luettich@unc.edu Billy.Wall@la.gov Stephen.Amato@la.gov Heath.E.Jones@usace.army.mil Maxwell.E.Agnew@usace.army.mil David.A.Ramirez@usace.army.mil'
+      emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com ckaiser@cct.lsu.edu shagen@lsu.edu rtwilley@lsu.edu rick_luettich@unc.edu'
       #emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com'
       ;;
    hatteras|stampede|lonestar)
