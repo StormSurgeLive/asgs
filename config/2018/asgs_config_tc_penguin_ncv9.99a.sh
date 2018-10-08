@@ -28,9 +28,10 @@
 
 # Fundamental 
 
-INSTANCENAME=pod_florence_ncv9.99wr  # name of this ASGS process (Change this for every new instance)
-COLDSTARTDATE=2018081000 # (date to start cold start from )
-HOTORCOLD=hotstart       # "hotstart" or "coldstart" 
+INSTANCENAME=pod_michael_ncv9.99wr  # name of this ASGS process (Change this for every new instance)
+COLDSTARTDATE=2018090800 # (date to start cold start from )
+HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
+#HOTORCOLD=hotstart       # "hotstart" or "coldstart" 
 #LASTSUBDIR=/home/bblanton/asgs-scratch/kickstart_ncv9.99/
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
@@ -50,8 +51,8 @@ PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 BACKGROUNDMET=off    # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
 TROPICALCYCLONE=on   # [de]activate tropical cyclone forcing (temp. broken)
-WAVES=on            # [de]activate wave forcing 
-VARFLUX=on          # [de]activate variable river flux forcing
+WAVES=off            # [de]activate wave forcing 
+VARFLUX=on           # [de]activate variable river flux forcing
 
 # Computational Resources
 
@@ -67,12 +68,12 @@ NCPUCAPACITY=1920
 CYCLETIMELIMIT="06:00:00"
 QUEUENAME=S30
 SERQUEUE=S30
-ACCOUNT=H-Florence
+ACCOUNT=H-Michael
 SCRATCHDIR=/home/bblanton/asgs-scratch
 
 # External data sources : Tropical cyclones
 
-STORM=06  # storm number, e.g. 05=ernesto in 2006 
+STORM=14  # storm number, e.g. 05=ernesto in 2006 
 YEAR=2018 # year of the storm (useful for historical storms) 
 TRIGGER=rssembedded    # either "ftp" or "rss"
 RSSSITE=filesystem # www.nhc.noaa.gov 
@@ -200,15 +201,15 @@ case $si in
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=nhcConsensus
+   ENSTORM=nhcForecast
    ;;
 1)
-   ENSTORM=veerLeft25
-   PERCENT=-25
+   ENSTORM=veerLeft50
+   PERCENT=-50
    ;;
 2)
-   ENSTORM=veerRight25
-   PERCENT=25
+   ENSTORM=veerRight50
+   PERCENT=50
    ;;
 3)
    ENSTORM=rMax20
