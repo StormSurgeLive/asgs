@@ -1498,11 +1498,9 @@ if [[ $START = coldstart ]]; then
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
 
-   echo $CONTROLOPTIONS
-
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Constructing control file."
    logMessage "$ENSTORM: $THIS: Constructing control file with the following options: $CONTROLOPTIONS."
-   echo perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS 
+#   echo perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS 
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
 
    # don't have a meterological forcing (fort.22) file in this case
