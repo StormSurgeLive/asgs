@@ -827,6 +827,6 @@ jason.fleming@seahorsecoastal.com
 
 ! bob: offset
 &offsetControl offsetFileName='/home/bblanton/Offsets/oi_surface_nc_inundation_v9.99_rivers_0.1524.dat',
-offsetRampStart=18640800.0, 
-offsetRampEnd=18662400.0, 
+offsetRampStart=0000000.0,  
+offsetRampEnd=0086400.0, 
 offsetRampReferenceTime='coldstart' /

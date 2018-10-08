@@ -126,7 +126,8 @@ def main(argv):
 			)
 
 	queue_message(msg)
-#	print(msg)
+	print(msg)
+	print('\n')
 
 
 if __name__ == "__main__":
