@@ -6,7 +6,7 @@ import json
 
 def usage():
 	print('\nUsage:\n')
-	print('send-msg.py -h -u <Uid> -l <LocationName> -c <ClusterName>  -d <UTCDateTime> -s <StormName> -n <StormNumber> -a <AdvisoryNumber> -m <Message> -y <EventType> -p <Process> -t <PctComplete> -r <State>')
+	print('asgs-msgr.py -h -u <Uid> -l <LocationName> -c <ClusterName>  -d <UTCDateTime> -s <StormName> -n <StormNumber> -a <AdvisoryNumber> -m <Message> -y <EventType> -p <Process> -t <PctComplete> -r <State> -q <RunParams> -i <InstanceName> ')
 	print('		')		
 	print(' where -h | --Help		the text you are looking at right now')
 	print('       -u | --Uid        	proc ID of asgs_main.sh process')
@@ -21,6 +21,8 @@ def usage():
 	print('       -p | --Process		software process issuing this message')
 	print('       -t | --PctComplete	numeric percentage of completion of process running, i.e. 34.2')
 	print('       -r | --State		ASGS run state, STRT | RUNN | PEND | FAIL | WARN | IDLE | EXIT')
+	print('       -q | --RunParams		Info string to put on Dashboard')
+	print('       -i | --InstanceName	ASGS Instance Name for "group" id in messaging')
 	print(' ')
 
 def JsonifyMessage(Uid,
@@ -34,16 +36,16 @@ def JsonifyMessage(Uid,
                    EventType,
                    Process,
                    PctComplete,
-                   State):
+                   State,
+                   RunParams,
+                   InstanceName):
 	
-	msg_obj = {'uid': Uid, 'name': 'asgs', 'physical_location': LocationName, 'clustername': ClusterName, 'date-time': UTCDateTime, 'message': Message, 'event_type': EventType, 'process': Process, 'pctcomplete': PctComplete, 'state': State, 'storm': StormName, 'storm_number': StormNumber, 'advisory_number': AdvisoryNumber}
+	msg_obj = {'uid': Uid, 'name': 'asgs', 'physical_location': LocationName, 'clustername': ClusterName, 'date-time': UTCDateTime, 'message': Message, 'event_type': EventType, 'process': Process, 'pctcomplete': PctComplete, 'state': State, 'storm': StormName, 'storm_number': StormNumber, 'advisory_number': AdvisoryNumber, 'run_params': RunParams, 'instance_name': InstanceName}
 
 	return json.dumps(msg_obj)
 
 
 def queue_message(message):
-
-#	print(message)
 
 ########## NEED TO GET THIS STUFF FROM YAML FILE #########################
 	credentials = pika.PlainCredentials('asgs', 'ZippityD0Da')
@@ -65,17 +67,19 @@ def main(argv):
 	StormName = 'unknown'
 	StormNumber = 'unknown'
 	AdvisoryNumber = 'unknown'
-	Message = 'test message'
+	Message = 'none'
 	EventType = ''
 	Process = 'asgs'
 	PctComplete = '0'
 	State = 'IDLE'
+        RunParams = 'N/A'
+        InstanceName = 'N/A'
 
 	try:
-        	opts, args = getopt.getopt(argv,"hu:l:c:d:s:n:a:m:y:p:t:r:",
+        	opts, args = getopt.getopt(argv,"hu:l:c:d:s:n:a:m:y:p:t:r:q:i:",
                         ["Help","Uid=","LocationName=","ClusterName=","UTCDateTime=",
                          "StormName=", "StormNumber=", "AdvisoryNumber=", "Message=",
-                         "EventType=", "Process=", "PctComplete=", "State="])
+                         "EventType=", "Process=", "PctComplete=", "State=", "RunParams=", "InstanceName="])
 	except getopt.GetoptError as err:
         	print('\nCommand line option error: ' + str(err))
         	usage()
@@ -85,6 +89,10 @@ def main(argv):
 		if opt in ("-h", "--Help"):
 			usage()
 			sys.exit(2)
+		elif opt in ("-i", "--InstanceName"):
+			InstanceName = arg
+		elif opt in ("-q", "--RunParams"):
+			RunParams = arg
 		elif opt in ("-u", "--Uid"):
 			Uid = arg
 		elif opt in ("-l", "--LocationName"):
@@ -110,6 +118,11 @@ def main(argv):
 		elif opt in ("-r", "--State"):
 			State = arg
 
+        if (Message == 'none' ):
+               # return without sending 
+        	sys.exit()
+
+
 	msg = JsonifyMessage(
 			Uid,
                         LocationName, 
@@ -122,10 +135,13 @@ def main(argv):
 			EventType,
                         Process,
                         PctComplete,
-                        State
+                        State,
+                        RunParams,
+                        InstanceName
 			)
 
 	queue_message(msg)
+	print('\n')
 	print(msg)
 	print('\n')
 
