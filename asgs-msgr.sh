@@ -21,7 +21,8 @@ if [[ ! -e ${RMQMessaging_Script} ]] ; then
 fi
 echo $RMQMessaging_Script
 
-declare -a python_mod_list=("pika" "datetime" "getopt" "yaml" "json" "sys") 
+#declare -a python_mod_list=("pika" "datetime" "getopt" "yaml" "json" "sys") 
+declare -a python_mod_list=("pika" "datetime" "getopt" "json" "sys") 
 for m in "${python_mod_list[@]}"
 do 
 	printf "   Checking for $m ..."

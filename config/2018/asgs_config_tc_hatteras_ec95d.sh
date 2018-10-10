@@ -102,7 +102,7 @@ RIVERDATAPROTOCOL=scp
 # Input files and templates
 
 GRIDFILE=ec_95d.grd
-GRIDNAME=ec_95d   # @jasonfleming 20170814: should be nc6d
+GRIDNAME=ec_95d  
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=ec_95_fort.15_template
 CONTROLPROPERTIES=ec_95_fort.15.properties
