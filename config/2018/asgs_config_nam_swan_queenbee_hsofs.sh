@@ -30,7 +30,7 @@
 INSTANCENAME=namhsofs    # "name" of this ASGS process
 COLDSTARTDATE=auto       # YYYYMMDDHH24 or "auto" to extract from hotstart file
 HOTORCOLD=hotstart       # "hotstart" or "coldstart"
-LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/tc/nam/2018082706/hsofs/hatteras.renci.org/namhsofs/namforecast  # path to previous execution (if HOTORCOLD=hotstart)
+LASTSUBDIR=/work/jgflemin/asgs4779/07  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -70,7 +70,7 @@ SERQUEUE=single
 if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
-SCRATCHDIR=/ssdwork/$USER
+SCRATCHDIR=/work/$USER
 ACCOUNT=loni_cera_2018a
 
 # External data sources : Tropical cyclones
@@ -108,11 +108,11 @@ RIVERDIR=/projects/ciflow/adcirc_info
 GRIDFILE=hsofs.14  # mesh (fort.14) file
 GRIDNAME=hsofs
 MESHPROPERTIES=${GRIDFILE}.ng.properties     
-CONTROLTEMPLATE=hsofs_explicit.15.template  # fort.15 template
+CONTROLTEMPLATE=hsofs_0.3048offset_qb.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=hsofs.combined_station_list_20180525.txt
-VELSTATIONS=hsofs.combined_station_list_20180525.txt
-METSTATIONS=hsofs.combined_station_list_20180525.txt
+ELEVSTATIONS=hsofs_stations_20180907.txt
+VELSTATIONS=$ELEVSTATIONS
+METSTATIONS=$ELEVSTATIONS
 NAFILE=hsofs.13
 NAPROPERTIES=${NAFILE}.properties
 #SWANTEMPLATE=fort.26.template # only used if WAVES=on
