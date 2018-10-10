@@ -61,12 +61,12 @@ NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="07:00:00" # forecast wall clock time
 NCPU=1160                     # number of compute CPUs for all simulations
 NUMWRITERS=20
-NCPUCAPACITY=3600
+NCPUCAPACITY=1200
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=workq
-SERQUEUE=single
-#QUEUENAME=priority
-#SERQUEUE=priority
+#QUEUENAME=workq
+#SERQUEUE=single
+QUEUENAME=priority
+SERQUEUE=priority
 if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
@@ -199,15 +199,15 @@ ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=4 # number of storms in the ensemble
+ENSEMBLESIZE=6 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
-3)
+5)
    ENSTORM=nhcConsensus
    ;;
-2)
+4)
    ENSTORM=nhcConsensusWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
@@ -238,11 +238,11 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
    ;;
-1)
+3)
    ENSTORM=veerLeft100
    PERCENT=-100
    ;;
-0)
+2)
    ENSTORM=veerLeft100Wind10m
    PERCENT=-100
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
@@ -273,13 +273,13 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
    ;;
-4)
-   ENSTORM=veerRight100
-   PERCENT=100
+1)
+   ENSTORM=veerLeft200
+   PERCENT=-200
    ;;
-5)
-   ENSTORM=veerRight100Wind10m
-   PERCENT=100
+0)
+   ENSTORM=veerLeft200Wind10m
+   PERCENT=-200
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
