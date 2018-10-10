@@ -1,4 +1,13 @@
-%% 
+%####################################################
+% AUTHORS: Matthew V Bilskie, PhD
+%          Louisiana State University
+%
+%          Jason Fleming, PhD
+%          Seahorse Coastal Consulting
+% COPYRIGHT 2018
+%
+%####################################################
+% 
 % All time are in CDT. The model values are adjusted from UTC to CDT
 % by subtracting 5 hours.
 %
