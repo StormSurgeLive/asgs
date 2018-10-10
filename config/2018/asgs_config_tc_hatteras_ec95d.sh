@@ -28,9 +28,9 @@
 #
 # Fundamental 
 #
-INSTANCENAME=rmqtest      # name of this ASGS process (Change this for every new instance)
-COLDSTARTDATE=2018081000  # (date to start cold start from )
-HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
+INSTANCENAME=michael_test      # name of this ASGS process (Change this for every new instance)
+COLDSTARTDATE=2018090800  # (date to start cold start from )
+HOTORCOLD=hotstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
 REINITIALIZESWAN=no       # used to bounce the wave solution
@@ -45,10 +45,10 @@ PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=off    # [de]activate NAM download/forcing 
-TIDEFAC=on           # [de]activate tide factor recalc 
-TROPICALCYCLONE=off  # [de]activate tropical cyclone forcing (temp. broken)
-WAVES=off            # [de]activate wave forcing 
+BACKGROUNDMET=off     # [de]activate NAM download/forcing 
+TIDEFAC=on            # [de]activate tide factor recalc 
+TROPICALCYCLONE=on    # [de]activate tropical cyclone forcing (temp. broken)
+WAVES=on              # [de]activate wave forcing 
 VARFLUX=off           # [de]activate variable river flux forcing
 
 # Computational Resources
@@ -58,11 +58,11 @@ SWANDT=1200
 HINDCASTWALLTIME="06:00:00"   # river inital and tidal spinup time in machine
 ADCPREPWALLTIME="00:05:00"
 NOWCASTWALLTIME="01:00:00"  # must have leading zero, e.g., 05:00:00
-FORECASTWALLTIME="01:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=256
+FORECASTWALLTIME="02:00:00" # must have leading zero, e.g., 05:00:00
+NCPU=64
 NUMWRITERS=0
-NCPUCAPACITY=256
-CYCLETIMELIMIT="05:00:00"
+NCPUCAPACITY=704
+CYCLETIMELIMIT="03:00:00"
 QUEUENAME=batch
 SERQUEUE=single
 ACCOUNT=null
@@ -70,13 +70,15 @@ SCRATCHDIR=/scratch/bblanton/asgs/
 
 # External data sources : Tropical cyclones
 
-STORM=06  # storm number, e.g. 05=ernesto in 2006 
+STORM=14  # storm number, e.g. 05=ernesto in 2006 
 YEAR=2018 # year of the storm (useful for historical storms) 
 TRIGGER=rssembedded    # either "ftp" or "rss"
-RSSSITE=www.nhc.noaa.gov 
-FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files
-FDIR=/atcf/afst     # forecast dir on nhc ftp site 
-HDIR=/atcf/btk      # hindcast dir on nhc ftp site 
+RSSSITE=filesystem # www.nhc.noaa.gov 
+FTPSITE=filesystem   # ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files
+#FDIR=/atcf/afst     # forecast dir on nhc ftp site 
+#HDIR=/atcf/btk      # hindcast dir on nhc ftp site 
+FDIR=/scratch/bblanton/asgs-advisories
+HDIR=/scratch/bblanton/asgs-advisories
 
 # External data sources : Background Meteorology
 
@@ -143,9 +145,9 @@ MINMAX=reset
 
 # Notification
 
-EMAILNOTIFY=no # set to yes to have host platform email notifications
+EMAILNOTIFY=yes # set to yes to have host platform email notifications
 ems="bblanton@renci.org"
-NOTIFY_SCRIPT=ncfs_nam_notify.sh
+NOTIFY_SCRIPT=blanton_cyclone_notify.sh
 ACTIVATE_LIST="$ems"
 NEW_ADVISORY_LIST="$ems"
 POST_INIT_LIST="$ems"
@@ -164,7 +166,7 @@ RMQMessaging_ClusterName="Hatteras"
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=msg_test # meta data audience
+INTENDEDAUDIENCE=hatteras_msg_test # meta data audience
 INITPOST=null_init_post.sh
 POSTPROCESS=blanton_rmq_test_post_hatteras.sh
 POSTPROCESS2=null_post.sh
@@ -192,37 +194,87 @@ case $si in
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=namforecast
+   ENSTORM=nhcForecast
    ;;
 1)
-   ENSTORM=namforecastWind10m
-   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
-   FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=nv6brivers_explicit_rlevel51.nowindreduction.fort.15_template
-   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-   TIMESTEPSIZE=300.0    # 5 minute time steps
-   #NCPU=31               # so total cpus match with other ensemble members
-   #NUMWRITERS=1          # multiple writer procs might collide
-   WAVES=off             # deactivate wave forcing 
-   # turn off water surface elevation station output
-   FORT61="--fort61freq 0"
-   # turn off water current velocity station output
-   FORT62="--fort62freq 0"
-   # turn off full domain water surface elevation output
-   FORT63="--fort63freq 0"
-   # turn off full domain water current velocity output
-   FORT64="--fort64freq 0"
-   # met station output
-   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
-   # full domain meteorological output
-   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
-   #SPARSE="--sparse-output"
-   SPARSE=""
-   NETCDF4="--netcdf4"
-   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
-   # prevent collisions in prepped archives
-   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
-   POSTPROCESS=null_post.sh
+   ENSTORM=veerLeft10
+   PERCENT=-10
+   ;;
+2)
+   ENSTORM=veerRight10
+   PERCENT=10
+   ;;
+3)
+   ENSTORM=veerLeft20
+   PERCENT=-20
+   ;;
+4)
+   ENSTORM=veerRight20
+   PERCENT=20
+   ;;
+5)
+   ENSTORM=veerLeft30
+   PERCENT=-30
+   ;;
+6)
+   ENSTORM=veerRight30
+   PERCENT=30
+   ;;
+7)
+   ENSTORM=veerLeft40
+   PERCENT=-40
+   ;;
+8)
+   ENSTORM=veerRight40
+   PERCENT=40
+   ;;
+9)
+   ENSTORM=veerLeft50
+   PERCENT=-50
+   ;;
+10)
+   ENSTORM=veerRight50
+   PERCENT=50
+   ;;
+11)
+   ENSTORM=veerLeft60
+   PERCENT=-60
+   ;;
+12)
+   ENSTORM=veerRight60
+   PERCENT=60
+   ;;
+13)
+   ENSTORM=veerLeft70
+   PERCENT=-70
+   ;;
+14)
+   ENSTORM=veerRight70
+   PERCENT=70
+   ;;
+15)
+   ENSTORM=veerLeft80
+   PERCENT=-80
+   ;;
+16)
+   ENSTORM=veerRight80
+   PERCENT=80
+   ;;
+17)
+   ENSTORM=veerLeft90
+   PERCENT=-90
+   ;;
+18)
+   ENSTORM=veerRight90
+   PERCENT=90
+   ;;
+19)
+   ENSTORM=veerLeft100
+   PERCENT=-100
+   ;;
+20)
+   ENSTORM=veerRight100
+   PERCENT=100
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."

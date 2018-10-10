@@ -43,7 +43,7 @@ def JsonifyMessage(Uid,
 
 def queue_message(message):
 
-	#print(message)
+#	print(message)
 
 ########## NEED TO GET THIS STUFF FROM YAML FILE #########################
 	credentials = pika.PlainCredentials('asgs', 'ZippityD0Da')
@@ -126,7 +126,8 @@ def main(argv):
 			)
 
 	queue_message(msg)
-#	print(msg)
+	print(msg)
+	print('\n')
 
 
 if __name__ == "__main__":

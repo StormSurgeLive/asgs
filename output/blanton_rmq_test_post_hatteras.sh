@@ -61,16 +61,25 @@ STORMNAMEPATH=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
 #
 # make opendap directory
 OPENDAPBASEDIR=/projects/ees/DataLayers/asgs
-OPENDAPDIR=${OPENDAPBASEDIR}/nam/$ADVISORY/$GRIDNAME/$HOSTNAME/$INSTANCENAME/$ENSTORM
+OPENDAPDIR=${OPENDAPBASEDIR}/tc/$STORMNAME/$ADVISORY/$GRIDNAME/$HOSTNAME/$INSTANCENAME/$ENSTORM
 mkdir -p $OPENDAPDIR 2>> ${SYSLOG}
 cd $OPENDAPDIR 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/fort.14 .  2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/fort.15 . 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/fort.22 . 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/fort.*.nc . 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/max*.nc . 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/min*.nc . 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/run.properties . 2>> ${SYSLOG}
-ln -s ${ADVISDIR}/${ENSTORM}/*.xmf . 2>> ${SYSLOG}
+#ln -s ${ADVISDIR}/${ENSTORM}/fort.14 .  2>> ${SYSLOG}
+#ln -s ${ADVISDIR}/${ENSTORM}/fort.15 . 2>> ${SYSLOG}
+#ln -s ${ADVISDIR}/${ENSTORM}/fort.22 . 2>> ${SYSLOG}
+#ln -s ${ADVISDIR}/${ENSTORM}/fort.*.nc . 2>> ${SYSLOG}
+#ln -s ${ADVISDIR}/${ENSTORM}/max*.nc . 2>> ${SYSLOG}
+#ln -s ${ADVISDIR}/${ENSTORM}/min*.nc . 2>> ${SYSLOG}
+#ln -s ${ADVISDIR}/${ENSTORM}/run.properties . 2>> ${SYSLOG}
+#ln -s ${ADVISDIR}/${ENSTORM}/*.xmf . 2>> ${SYSLOG}
+#
+cp  ${ADVISDIR}/${ENSTORM}/fort.14 .  2>> ${SYSLOG}
+cp  ${ADVISDIR}/${ENSTORM}/fort.15 . 2>> ${SYSLOG}
+cp  ${ADVISDIR}/${ENSTORM}/fort.22 . 2>> ${SYSLOG}
+cp  ${ADVISDIR}/${ENSTORM}/fort.*.nc . 2>> ${SYSLOG}
+cp  ${ADVISDIR}/${ENSTORM}/max*.nc . 2>> ${SYSLOG}
+cp  ${ADVISDIR}/${ENSTORM}/min*.nc . 2>> ${SYSLOG}
+cp  ${ADVISDIR}/${ENSTORM}/run.properties . 2>> ${SYSLOG}
+cp  ${ADVISDIR}/${ENSTORM}/*.xmf . 2>> ${SYSLOG}
 #
 
