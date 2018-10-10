@@ -63,9 +63,9 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
                            --EventType $EVENT \
                            --Process $PROCESS \
                            --PctComplete $PCTCOM \
-                           --State $STATE
-                           # --RunType weather \
-                           # --RunType $RMQ_RunType \
+                           --State $STATE \
+                           --RunParams $RMQRunParams \
+                           --InstanceName $INSTANCENAME
    fi
 }
 

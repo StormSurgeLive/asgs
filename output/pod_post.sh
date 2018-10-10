@@ -1,6 +1,6 @@
 #!/bin/bash
 #-----------------------------------------------------------------------
-# ncfs_post.sh : Post processing for North Carolina.
+# blanton_post.sh : Post processing for North Carolina.
 #-----------------------------------------------------------------------
 # Copyright(C) 2011--2017 Jason Fleming
 #
@@ -44,7 +44,7 @@ SSHKEY=${13}
 #
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR} 2>> ${SYSLOG}
-THIS=pod_post.sh
+THIS=blanton_post.sh
 # get the forecast ensemble member number 
 ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 
