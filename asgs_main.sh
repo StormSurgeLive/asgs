@@ -585,7 +585,7 @@ downloadCycloneData()
 
     while [ $newAdvisory = false ]; do
        if [[ $TRIGGER != "atcf" ]]; then 
-          #echo Calling "get_atcf.pl $OPTIONS"  # BOB
+          #echo  "perl $SCRIPTDIR/get_atcf.pl $OPTIONS"  # BOB
           newAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
        fi
        # check to see if we have a new one, and if so, determine the
@@ -788,7 +788,7 @@ monitorJobs()
    logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job has started."
    startTime=`date +%s`  # epoch seconds
    until [[ -e ${ENSTORM_TEMP}.run.finish || -e ${ENSTORM_TEMP}.run.error ]]; do
-      sleep 5 
+      sleep 15 
       # execute the FortCheck.py code to get a %complete status
       if [[ -e "fort.61.nc" ]] ; then
         #pc=`${SCRIPTDIR}/fortcheck.sh fort.61.nc 2>> $SYSLOG`
@@ -1236,6 +1236,17 @@ SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG
 . ${SCRIPTDIR}/logging.sh
 # Bring in platform-specific configuration
 . ${SCRIPTDIR}/platforms.sh
+
+# RMQMessaging config
+# this verifies that messages can be constructed.  It is possible
+# that asgs-msgr.sh will set RMQMessaging to "off", in which case
+# calls to RMQMessage will return without doing anything
+if [[ $RMQMessaging == "on" ]] ; then
+   . ${SCRIPTDIR}/asgs-msgr.sh
+fi
+
+# set a RunParams string for messaging
+RMQRunParams="$GRIDNAME:EnsSize=$ENSEMBLESIZE"
 RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh"  "RUNN" "$ENV configuration found."
 # dispatch environment (using the functions in platforms.sh)
 env_dispatch ${ENV}
@@ -1243,10 +1254,6 @@ env_dispatch ${ENV}
 # the values in the platform-specific functions called by env_dispatch
 . ${CONFIG}
 
-# RMQMessaging config
-if [[ $RMQMessaging == "on" ]] ; then
-   . ${SCRIPTDIR}/asgs-msgr.sh
-fi
 
 RUNDIR=$SCRATCHDIR/asgs$$
 #SYSLOG=`pwd`/asgs-${STARTDATETIME}.$$.log #nld moved to before logging function is called
@@ -1662,6 +1669,9 @@ while [ true ]; do
       if [[ $WAVES = on ]]; then
          NWS=`expr $BASENWS + 300`
       fi
+
+      RMQRunParams="NWS=$NWS:$GRIDNAME:EnsSize=$ENSEMBLESIZE"
+
       # download wind data from ftp site every 60 seconds to see if
       # there is a new advisory
       downloadCycloneData $STORM $YEAR $RUNDIR $SCRIPTDIR $OLDADVISDIR $TRIGGER $ADVISORY $FTPSITE $RSSSITE $FDIR $HDIR $STATEFILE
@@ -1714,6 +1724,9 @@ while [ true ]; do
          NWS=-312
       fi
    fi
+
+   RMQRunParams="$GRIDNAME:EnsSize=$ENSEMBLESIZE:NWS=$NWS"
+
    case $BACKGROUNDMET in
       on|NAM)
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "NWS is $NWS. Downloading background meteorology."
@@ -1926,6 +1939,7 @@ while [ true ]; do
    # F O R E C A S T
    #
    ENSTORM="forecast"
+   RMQMessage "INFO" "FSTR" "$THIS>$ENSTORM" "NONE" "Starting forecast(s) for advisory '$ADVISORY'."
    CURRENT_EVENT="PRE2"
    CURRENT_STATE="INIT"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting forecast for advisory '$ADVISORY'."
@@ -2231,4 +2245,6 @@ while [ true ]; do
 
    CURRENT_EVENT="REND"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "NONE" "Cycle Complete"
+   CURRENT_EVENT="FEND"
+   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "NONE" "Forecast(s) Complete"
 done
