@@ -931,4 +931,4 @@ jason.fleming@seahorsecoastal.com
 &wetDryControl noffActive=.false.  /
 &inundationOutputControl inundationOutput=.true. /
 &metControl WindDragLimit=0.0028 /
-&offsetControl offsetFileName='/home/ncfs/asgs/branches/2014stable/input/meshes/nc_v9.99_w_rivers/oi_surface_nc_inundation_v9.99_rivers_0.3048.dat', offsetRampStart=1728000.0, offsetRampEnd=1771200.0, offsetRampReferenceTime='coldstart' /
+&offsetControl offsetFileName='/home/ncfs/asgs/branches/2014stable/input/meshes/nc_v9.99_w_rivers/oi_surface_nc_inundation_v9.99_rivers_0.1524.dat', offsetRampStart=2592000.0, offsetRampEnd=2635200.0, offsetRampReferenceTime='coldstart' /
