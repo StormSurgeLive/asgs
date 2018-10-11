@@ -28,7 +28,7 @@ for g = 2:length(DD)
     bd=[datestr(DD(g-1),'yyyy-mm-dd'),'T',datestr(DD(g-1),'hh:MM')];
     ed=[datestr(DD(g),'yyyy-mm-dd'),'T',datestr(DD(g),'hh:MM')];
 
-    urlwrite(['http://rivergages.mvr.usace.army.mil/watercontrol/webservices/rest/webserviceWaterML.cfc?meth=getValues&site=',station,'&location=',station,'&variable=',variable,'&beginDate=',bd,'&endDate=',ed,'&authToken=RiverGages&method=RGWML'],'Gtest.xml');
+    urlwrite(['http://rivergages.mvr.usace.army.mil/watercontrol/webservices/rest/webserviceWaterML.cfc?meth=getValues&site=',station,'&location=',station,'&variable=',variable,'&beginDate=',bd,'&endDate=',ed,'&authToken=RiverGages&method=RGWML'],'Gtest.xml','Timeout',20);
     %urlwrite(['http://rivergages.mvr.usace.army.mil/watercontrol/webservices/rest/webserviceWaterML.cfm?meth=getSiteInfo&site=',station,'&authToken=RiverGages'],'Gtestsiteinfo.xml');
 
     A=xml2struct('Gtest.xml');
