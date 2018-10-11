@@ -184,3 +184,20 @@ for server in ${TDS[*]}; do
    done
    primaryCount=$((primaryCount+1))
 done
+#
+# example partly portable execution:
+#/work/00976/jgflemin/lonestar/asgs/branches/2014stable/output/cera_post.sh \
+#/work/00976/jgflemin/lonestar/asgs/branches/2014stable/config/2018/asgs_config_nam_lonestar_texasr35h.sh \
+#dirname $PWD
+#99 \
+#2018 \
+#basename `dirname $PWD` \
+#lonestar.tacc.utexas.edu \
+#namforecast \
+#`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' run.properties` \
+#`sed -n 's/[ ^]*$//;s/InitialHotStartTime\s*:\s*//p' run.properties` \
+#/work/00976/jgflemin/lonestar/asgs/branches/2014stable/output/tx2008_r35h.grd \
+#/work/00976/jgflemin/lonestar/asgs/branches/2014stable/output \
+#./syslog.log \
+#$HOME/.ssh/id_rsa_lonestar.pub
+

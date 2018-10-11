@@ -162,7 +162,7 @@ POSTPROCESS=cera_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
-TDS=(tacc_tds lsu_tds renci_tds)
+TDS=(tacc_tds)
 TARGET=lonestar  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via

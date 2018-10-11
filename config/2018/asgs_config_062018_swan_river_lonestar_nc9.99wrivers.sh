@@ -184,7 +184,7 @@ fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,clint@ices.utexas.edu"
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,clint@ices.utexas.edu,rick_luettich@unc.edu"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,clint@ices.utexas.edu,rick_luettich@unc.edu,nathan.dill@ransomenv.com"
 #OPENDAPNOTIFY="jason.g.fleming@gmail.com"
 
 # Archiving
@@ -197,12 +197,12 @@ ARCHIVEDIR="${INSTANCENAME}_062018"
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=6 # number of storms in the ensemble
+ENSEMBLESIZE=2 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
-3)
+1)
    ENSTORM=nhcConsensus
    ;;
 0)
@@ -235,11 +235,11 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
    ;;
-4)
+3)
    ENSTORM=veerLeft50
    PERCENT=-50
    ;;
-1)
+2)
    ENSTORM=veerLeft50Wind10m
    PERCENT=-50
    ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
@@ -274,7 +274,7 @@ case $si in
    ENSTORM=veerRight50
    PERCENT=50
    ;;
-2)
+4)
    ENSTORM=veerRight50Wind10m
    PERCENT=50
    ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
