@@ -28,11 +28,11 @@
 #
 # Fundamental 
 #
-INSTANCENAME=062018hiresr # name of this ASGS process, to differentiate results
-COLDSTARTDATE=2018022100
-HOTORCOLD=hotstart        # "hotstart" or "coldstart" 
-LASTSUBDIR=/projects/ncfs/data/asgs15957/2018090800
-HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
+INSTANCENAME=142018hiresr # name of this ASGS process, to differentiate results
+COLDSTARTDATE=2018091618
+HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
+LASTSUBDIR=null
+HINDCASTLENGTH=20.0       # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
 SWANHSCOMPRESSION=no
 
@@ -62,7 +62,7 @@ ADCPREPWALLTIME="01:15:00"
 NOWCASTWALLTIME="05:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
 NCPU=500
-NCPUCAPACITY=2000
+NCPUCAPACITY=1280
 NUMWRITERS=10
 CYCLETIMELIMIT="05:00:00"
 # queue
@@ -71,12 +71,13 @@ SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
 #ACCOUNT=batch # or "ncfs" on hatteras to use pre-empt capability
 PARTITION=ncfs
-RESERVATION=null
-CONSTRAINT='hatteras&sandybridge'
+RESERVATION=ncfs
+#CONSTRAINT='hatteras&sandybridge'
+CONSTRAINT=null
 
 # External data sources : Tropical cyclones
 
-STORM=06  # storm number, e.g. 05=ernesto in 2006 
+STORM=14  # storm number, e.g. 05=ernesto in 2006 
 YEAR=2018 # year of the storm (useful for historical storms) 
 TRIGGER=rssembedded       # either "ftp" or "rss"
 RSSSITE=www.nhc.noaa.gov 
@@ -175,7 +176,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,nathan.dill@ransomenv.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rick_luettich@unc.edu"
 
 # Archiving
 
@@ -187,20 +188,16 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=6 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
-1)
+3)
    ENSTORM=nhcConsensus
-   PARTITION=ncfs
-   #CONSTRAINT=hatteras
    ;;
 0)
    ENSTORM=nhcConsensusWind10m
-   PARTITION=ncfs
-   #CONSTRAINT=hatteras
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=nc_9.99wrivers.nowindreduction.fort.15.template
@@ -229,13 +226,11 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
    ;;
-3)
+4)
    ENSTORM=veerRight50
    PERCENT=50
-   #CONSTRAINT=hatteras
-   PARTITION=ncfs
    ;;
-2)
+1)
    ENSTORM=veerRight50Wind10m
    PERCENT=50
    #CONSTRAINT=hatteras
@@ -269,16 +264,12 @@ case $si in
    POSTPROCESS=null_post.sh
    ;;
 5)
-   ENSTORM=veerLeft50
-   PERCENT=-50
-   #CONSTRAINT=hatteras
-   PARTITION=ncfs
+   ENSTORM=veerRight100
+   PERCENT=100
    ;;
-4)
-   ENSTORM=veerLeft50Wind10m
-   PERCENT=-50
-   #CONSTRAINT=hatteras
-   PARTITION=ncfs
+2)
+   ENSTORM=veeRight100Wind10m
+   PERCENT=100
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=nc_9.99wrivers.nowindreduction.fort.15.template

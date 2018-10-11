@@ -108,9 +108,9 @@ GRIDNAME=LA_v17a-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS12ft.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=combined_stations_20180611.txt
-VELSTATIONS=combined_stations_20180611.txt
-METSTATIONS=combined_stations_20180611.txt
+ELEVSTATIONS=combined_stations_20181005.txt
+VELSTATIONS=combined_stations_20181005.txt
+METSTATIONS=combined_stations_20181005.txt
 NAFILE=LA_v17a-WithUpperAtch.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=LA_v17a-WithUpperAtch.26.template   # only used if WAVES=on
@@ -159,7 +159,7 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=developers-only
+INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
 POSTPROCESS=cera_post.sh
 
