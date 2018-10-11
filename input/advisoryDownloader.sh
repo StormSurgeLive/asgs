@@ -10,10 +10,11 @@ ASGSDIR=$4
 #
 #RSSSITE=www.nhc.noaa.gov        # site information for retrieving advisories
 RSSSITE=filesystem         
-FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
+#FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
+FTPSITE=filesystem        # hindcast/nowcast ATCF formatted files
 #FDIR=/atcf/afst                 # forecast dir on nhc ftp site
 FDIR=${ASGSDIR}/input/sample_advisories/2018 
-HDIR=/atcf/btk   
+HDIR=${FDIR}   
 TRIGGER=rssembedded
 ADVISORY=0
 forecastFileNameXML=index-at.xml
@@ -28,6 +29,7 @@ oldBESTEndDate=0
 OPTIONS="--storm $STORMNUMBER --year $YEAR --ftpsite $FTPSITE --fdir $FDIR --hdir $HDIR --rsssite $RSSSITE --trigger $TRIGGER --adv $ADVISORY"
 while [[ 1 ]]; do
    curl https://www.nhc.noaa.gov/index-at.xml > $FDIR/index-at.xml
+   curl http://ftp.nhc.noaa.gov/atcf/btk/$hindcastFileName > $FDIR/$hindcastFileName
    advisoryNum=`perl $ASGSDIR/get_atcf.pl $OPTIONS 2>> advisoryMonitor.log`
    if [[ $advisoryNum != $oldAdvisoryNum ]]; then
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`

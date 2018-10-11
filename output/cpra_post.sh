@@ -36,7 +36,7 @@ SSHKEY=${13}
 #
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR} 2>> ${SYSLOG}
-THIS=cera_post.sh
+THIS=cpra_post.sh
 # get the forecast ensemble member number 
 ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 #
@@ -51,6 +51,9 @@ si=$ENMEMNUM
 env_dispatch ${TARGET}
 # grab all config info (again, last, so the CONFIG file takes precedence)
 . ${CONFIG}
+#
+# create slide deck for cpra
+${OUTPUTDIR}/cpra_slide_deck_post.sh
 #
 #-----------------------------------------------------------------------
 #          I N C L U S I O N   O F   10 M   W I N D S
@@ -184,35 +187,3 @@ for server in ${TDS[*]}; do
    done
    primaryCount=$((primaryCount+1))
 done
-#
-# example partly portable execution:
-#/work/00976/jgflemin/lonestar/asgs/branches/2014stable/output/cera_post.sh \
-#/work/00976/jgflemin/lonestar/asgs/branches/2014stable/config/2018/asgs_config_nam_lonestar_texasr35h.sh \
-#dirname $PWD
-#99 \
-#2018 \
-#basename `dirname $PWD` \
-#lonestar.tacc.utexas.edu \
-#namforecast \
-#`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' run.properties` \
-#`sed -n 's/[ ^]*$//;s/InitialHotStartTime\s*:\s*//p' run.properties` \
-#/work/00976/jgflemin/lonestar/asgs/branches/2014stable/output/tx2008_r35h.grd \
-#/work/00976/jgflemin/lonestar/asgs/branches/2014stable/output \
-#./syslog.log \
-#$HOME/.ssh/id_rsa_lonestar.pub
-#
-# example execution on lonestar5:
-#/work/00976/jgflemin/lonestar/asgs/branches/2014stable/output/cera_post.sh \
-#/work/00976/jgflemin/lonestar/asgs/branches/2014stable/config/2018/asgs_config_nam_swan_lonestar_ncv6d.sh \
-#/scratch/00976/jgflemin/asgs183013/2018091312 \
-#99 \
-#2018 \
-#2018091312  \
-#lonestar.tacc.utexas.edu \
-#namforecast \
-#2018022100  \
-#17668800.0 \
-#/work/00976/jgflemin/lonestar/asgs/branches/2014stable/input/meshes/nc_v6b/nc_inundation_v6d_rivers_msl.grd \
-#/work/00976/jgflemin/lonestar/asgs/branches/2014stable/output \
-#syslog.log \
-#$HOME/.ssh/id_rsa_lonestar.pub 
