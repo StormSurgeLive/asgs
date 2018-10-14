@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Thu, 30 Aug 2012 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm ISAAC Forecast/Advisory Number 38</title>
+      <description>Issued at 1500 UTC THU AUG 30 2012 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL STORM ISAAC FORECAST/ADVISORY NUMBER  38
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL092012
+1500 UTC THU AUG 30 2012
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+THE TROPICAL STORM WARNING HAS BEEN DISCONTINUED WEST OF MORGAN CITY
+LOUISIANA.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* MORGAN CITY LOUISIANA TO THE MISSISSIPPI-ALABAMA BORDER...
+INCLUDING LAKE PONTCHARTRAIN AND LAKE MAUREPAS
+ 
+TROPICAL STORM CENTER LOCATED NEAR 31.7N  92.1W AT 30/1500Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHWEST OR 330 DEGREES AT   8 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  987 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  50 KT.
+34 KT....... 60NE 170SE 140SW   0NW.
+12 FT SEAS..  0NE 180SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 31.7N  92.1W AT 30/1500Z
+AT 30/1200Z CENTER WAS LOCATED NEAR 31.3N  91.9W
+ 
+FORECAST VALID 31/0000Z 33.0N  92.8W...INLAND
+MAX WIND  30 KT...GUSTS  45 KT.
+ 
+FORECAST VALID 31/1200Z 35.0N  93.3W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 01/0000Z 37.0N  93.3W...INLAND
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 01/1200Z 38.4N  92.3W...POST-TROP/REMNT LOW
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 02/1200Z 39.4N  89.2W...POST-TROP/REMNT LOW
+MAX WIND  15 KT...GUSTS  25 KT.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 175 NM
+ON DAY 4 AND 225 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 03/1200Z 39.5N  86.0W...POST-TROP/REMNT LOW
+MAX WIND  15 KT...GUSTS  25 KT.
+ 
+OUTLOOK VALID 04/1200Z 39.5N  83.0W...POST-TROP/REMNT LOW
+MAX WIND  15 KT...GUSTS  25 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 31.7N  92.1W
+ 
+NEXT ADVISORY AT 30/2100Z
+ 
+$$
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Thu, 30 Aug 2012 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2012/09/38.092012.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2012/09/38.092012.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

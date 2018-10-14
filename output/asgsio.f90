@@ -59,6 +59,8 @@ end type netCDFVar_t
 ! Derived data type to represent an xdmf variable within an ADCIRC-related
 ! data file.
 type xdmfVar_t
+   !character(NF90_MAX_NAME), allocatable :: varNameXDMF(:)   ! as represented in XDMF XML
+   !character(NF90_MAX_NAME), allocatable :: varNameXDMF   ! as represented in XDMF XML
    character(NF90_MAX_NAME) :: varNameXDMF   ! as represented in XDMF XML
    ! the following refer to scalar or vector quantities in XDMF files
    character(len=20) :: dataCenter ! "Node" or "Element" 
@@ -318,13 +320,24 @@ if ( (f%ncformat.eq.nf90_format_netcdf4).or. &
 	   ! check to see if it is a nodal attributes file
 	   errorIO = nf90_get_att(f%nc_id,nf90_global,'nodalAttributesComment',nodalAttributesComment)
 	   if (errorIO.eq.0) then
+         call allMessage(INFO,'The netcdf file '//trim(f%dataFileName)//' is a nodal attributes file.')
 	      f%defaultFileName = 'fort.13'
 	      f%dataFileCategory = NODALATTRIBF
 	      f%fileTypeDesc = 'an ADCIRC nodal attributes ('//trim(f%defaultFileName)//') file.'      
           call allMessage(INFO,'Examining '//trim(f%fileTypeDesc)//' file.')
 	   else 
-          call allMessage(INFO,'The netcdf file '//trim(f%dataFileName)//' only contains mesh data.')
-          f%dataFileCategory = MESH !FIXME: Could also be a fort.88?
+          errorIO = nf90_inquire_dimension(f%nc_id,f%nc_dimid_time,len=f%nSnaps)        
+          if ( errorIO.ne.0 ) then
+             if ( f%nvar.lt.6 ) then
+                call allMessage(INFO,'The netcdf file '//trim(f%dataFileName)//' only contains mesh data.')
+                f%dataFileCategory = MESH !FIXME: or fort.88?
+                f%timeVarying = .false. 
+             else
+                call allMessage(INFO,'The netcdf file '//trim(f%dataFileName)//' is a min/max file.')
+                f%dataFileCategory = MINMAX
+                f%timeVarying = .false.                
+             endif
+          endif
 	   endif
    endif
 endif
@@ -337,7 +350,7 @@ if (f%dataFileCategory.eq.MESH) then
 endif
 !
 ! determine the number of snapshots in the file
-if (f%dataFileCategory.ne.NODALATTRIBF) then
+if ( (f%dataFileCategory.ne.NODALATTRIBF).and.(f%dataFileCategory.ne.MINMAX) ) then
    call check(nf90_inquire_dimension(f%nc_id,f%nc_dimid_time,len=f%nSnaps))
    write(scratchMessage,'(a,i0,a)') 'There is/are ',f%nSnaps,' dataset(s) in the file.'
    call allMessage(INFO,scratchMessage)
@@ -851,7 +864,9 @@ if ( f%dataFileCategory.ne.NODALATTRIBF ) then
    if ( (f%nSnaps.gt.1).and.(f%timeOfOccurrence.eqv..false.) ) then
       f%time_increment = f%timesec(2) - f%timesec(1)
    endif
-   f%it(:) = -99999
+   if ( f%dataFileCategory.ne.MINMAX ) then
+      f%it(:) = -99999
+   endif
 endif
 !
 call check(nf90_close(f%nc_id))
@@ -1432,27 +1447,7 @@ case(DOMAIN)
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','element'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','unitless'))
-   case('maxwvel.63') ! maxwvel
-      thisVarName = 'wind_max'
-      call initMinMaxFileMetaData(fn, thisVarName, .false.)
-      call check(nf90_def_var(fn%nc_id,'wind_max',nf90_double,n%nc_dimid_node,fn%ncds(1)%nc_varID))
-      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',fn%ncds(1)%fillValue))
-      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'long_name','maximum wind speed at sea level'))
-      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'standard_name','maximum_wind_speed_at_sea_level'))
-      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'coordinates','time y x'))
-      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','node'))
-      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
-      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','m s-1'))
-      if ( fn%timeOfOccurrence.eqv..true.) then
-         call check(nf90_def_var(fn%nc_id,'time_of_wind_max',nf90_double,n%nc_dimid_node,fn%ncds(2)%nc_varID))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'_fillValue',fn%ncds(1)%fillValue))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'long_name','time of maximum wind speed at sea level'))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'standard_name','time_of_maximum_wind_speed_at_sea_level'))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'coordinates','y x'))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'location','node'))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'mesh','adcirc_mesh'))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'units','s'))
-      endif
+
    case('eslnodes.63') ! eslnodes.63
       thisVarName = 'eslnodes'
       call initFileMetaData(fn, thisVarName, 1, 1)   
@@ -1498,6 +1493,27 @@ case(MINMAX)
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'_fillValue',fn%ncds(1)%fillValue))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'long_name','time of maximum sea surface elevation above datum'))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'standard_name','time_of_maximum_sea_surface_elevation_above_datum'))
+         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'coordinates','y x'))
+         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'location','node'))
+         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'mesh','adcirc_mesh'))
+         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'units','s'))
+      endif
+   case('maxwvel.63') ! maxwvel
+      thisVarName = 'wind_max'
+      call initMinMaxFileMetaData(fn, thisVarName, .false.)
+      call check(nf90_def_var(fn%nc_id,'wind_max',nf90_double,n%nc_dimid_node,fn%ncds(1)%nc_varID))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',fn%ncds(1)%fillValue))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'long_name','maximum wind speed at sea level'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'standard_name','maximum_wind_speed_at_sea_level'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'coordinates','time y x'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','node'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','m s-1'))
+      if ( fn%timeOfOccurrence.eqv..true.) then
+         call check(nf90_def_var(fn%nc_id,'time_of_wind_max',nf90_double,n%nc_dimid_node,fn%ncds(2)%nc_varID))
+         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'_fillValue',fn%ncds(1)%fillValue))
+         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'long_name','time of maximum wind speed at sea level'))
+         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'standard_name','time_of_maximum_wind_speed_at_sea_level'))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'coordinates','y x'))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'location','node'))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'mesh','adcirc_mesh'))
@@ -2043,7 +2059,9 @@ case(ASCII,SPARSE_ASCII,ASCIIG)
       endif        
    endif
 case(NETCDFG,NETCDF3,NETCDF4)
-   call check(nf90_put_var(f%nc_id, f%nc_varid_time, (/snapr/), (/s/), (/1/)))
+   if ( f%dataFileCategory.ne.MINMAX ) then
+      call check(nf90_put_var(f%nc_id, f%nc_varid_time, (/snapr/), (/s/), (/1/)))
+   endif
    if (allocated(f%it).eqv..true.) then
       call check(nf90_put_var(f%nc_id, f%nc_varid_it, (/snapi/), (/s/), (/1/)))
    endif

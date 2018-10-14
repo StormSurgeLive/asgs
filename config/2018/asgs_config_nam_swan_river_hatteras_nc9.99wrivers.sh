@@ -36,16 +36,18 @@ INSTANCENAME=hiresr       # name of this ASGS process, to differentiate results
 #COLDSTARTDATE=2017071000
 #COLDSTARTDATE=2017121500
 #COLDSTARTDATE=2018020900
-COLDSTARTDATE=2018022100
+#COLDSTARTDATE=2018022100
+COLDSTARTDATE=2018090100
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
-REINITIALIZESWAN=no       # used to bounce the wave solution
+REINITIALIZESWAN=yes       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables 
-SCRIPTDIR=~/asgs/2014stable     # ASGS scripts/executables  
+ADCIRCDIR=~/adcirc/forks/adcirc/v53release/work  # ADCIRC executables 
+SWANDIR=~/adcirc/forks/adcirc/v53release/swan  # SWAN executables 
+SCRIPTDIR=~/asgs/branches/2014stable     # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v9.99_w_rivers # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
@@ -78,6 +80,7 @@ ACCOUNT=batch # or "ncfs" on hatteras to use pre-empt capability
 PARTITION=ncfs
 RESERVATION=null
 CONSTRAINT='sandybridge&hatteras'
+CONSTRAINT=null
 
 # External data sources : Tropical cyclones
 
@@ -91,7 +94,7 @@ HDIR=/atcf/btk      # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06,18"
+FORECASTCYCLE="00,06,12,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -113,11 +116,11 @@ RIVERDATAPROTOCOL=scp
 GRIDFILE=nc_inundation_v9.99a_w_rivers.grd
 GRIDNAME=nc_inundation_v9.99_w_rivers
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
+CONTROLTEMPLATE=nc_9.99wrivers_vortex_offset_fort.15.template
 CONTROLPROPERTIES=fort.15.properties
-ELEVSTATIONS=ncv999_combined_station_list_cera.20161105_ncem20180329.txt
-VELSTATIONS=ncv999_combined_station_list_cera.20161105_ncem20180329.txt
-METSTATIONS=ncv999_combined_station_list_cera.20161105_ncem20180329.txt
+ELEVSTATIONS=ncv999_stations_20180907.txt
+VELSTATIONS=${ELEVSTATIONS}
+METSTATIONS=${ELEVSTATIONS}
 NAFILE=nc_inundation_v9.99_rivers.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=fort.26.template
@@ -183,7 +186,7 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
-ARCHIVE=ncfs_archive.sh
+ARCHIVE=enstorm_pedir_removal.sh
 ARCHIVEBASE=/projects/ncfs/data
 ARCHIVEDIR=archive
 

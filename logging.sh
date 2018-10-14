@@ -6,7 +6,7 @@
 # requires logging capabilities. 
 #
 #----------------------------------------------------------------
-# Copyright(C) 2012 Jason Fleming
+# Copyright(C) 2012--2018 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -26,7 +26,7 @@
 #
 # Log file will be in the directory where the asgs was executed
 logMessage()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] INFO: $@"
   echo ${MSG} >> ${SYSLOG}
 }
@@ -34,7 +34,7 @@ logMessage()
 # send a message to the console (i.e., window where the script was started)
 # (these should be rare)
 consoleMessage()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] INFO: $@"
   echo ${MSG}
 }
@@ -48,7 +48,7 @@ allMessage()
 #
 # log a warning message, execution continues
 warn()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] WARNING: $@"
   echo ${MSG} >> ${SYSLOG}
   echo ${MSG}  # send to console
@@ -56,7 +56,7 @@ warn()
 #
 # log an error message, notify Operator 
 error()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] ERROR: $@"
   echo ${MSG} >> ${SYSLOG}
   echo ${MSG}  # send to console
@@ -68,7 +68,7 @@ error()
 #
 # log an error message, execution halts
 fatal()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] FATAL ERROR: $@"
   echo ${MSG} >> ${SYSLOG}
   if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
@@ -80,7 +80,7 @@ fatal()
 #
 # log a debug message
 debugMessage()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] DEBUG: $@"
   echo ${MSG} >> ${SYSLOG}
 }

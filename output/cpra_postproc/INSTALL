@@ -1,0 +1,13 @@
+@jasonfleming 28 July 2018
+
+1. FigureGen must be built with netCDF support; otherwise, you will get the
+following error:
+
+FATAL ERROR: FigureGen has not been compiled to be compatible
+             with NetCDF files.  Please use something like:
+
+pgf90 FigureGen.F90 -DNETCDF -I$TACC_NETCDF_INC -L$TACC_NETCDF_LIB -lnetcdf
+
+The makefile can be invoked as follows:
+
+make all compiler=intel MACHINENAME=hatteras NETCDF=enable 

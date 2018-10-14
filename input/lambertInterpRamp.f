@@ -698,7 +698,7 @@ C           (13)  - LATIN 2 - SECOND LAT FROM POLE OF SECANT CONE INTER
         IM=614                          
         JM=428                         
         RLAT1=12.190                     
-        RLON1=226.514                  
+        RLON1=226.541                  
         IROT=1                      
         ORIENT=265.0              
         DX= 12190.58       ! in meters   !!   
