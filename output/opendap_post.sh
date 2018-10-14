@@ -23,7 +23,7 @@
 CONFIG=$1
 ADVISDIR=$2
 ADVISORY=$3
-HOSTNAME=$4
+HPCENV=$4
 ENSTORM=$5
 HSTIME=$6
 SYSLOG=$7
@@ -69,7 +69,7 @@ if [[ $TROPICALCYCLONE = on ]]; then
    STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
    STORMNAMEPATH=tc/$STORMNAMELC
 fi
-OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HOSTNAME/$INSTANCENAME/$ENSTORM
+OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HPCENV/$INSTANCENAME/$ENSTORM
 #
 # Create full path to results for server file sytem. 
 # OPENDAPBASEDIR is specified in platforms.sh.
@@ -127,7 +127,7 @@ subject="ADCIRC POSTED for $runStartTime"
 if [[ $TROPICALCYCLONE = on ]]; then
    subject=${subject}" (TC)"
 fi
-subject="${subject} $ENMEMNUM $HOSTNAME.$INSTANCENAME"
+subject="${subject} $ENMEMNUM $HPCENV.$INSTANCENAME"
 cat <<END > ${STORMDIR}/opendap_results_notify.txt 
 
 Click on the link: 

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Mon, 22 Oct 2012 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm SANDY Forecast/Advisory Number 2</title>
+      <description>Issued at 2100 UTC MON OCT 22 2012 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL STORM SANDY FORECAST/ADVISORY NUMBER   2
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL182012
+2100 UTC MON OCT 22 2012
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+THE GOVERNMENT OF HAITI HAS ISSUED A TROPICAL STORM WATCH FOR HAITI.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A TROPICAL STORM WATCH IS IN EFFECT FOR...
+* JAMAICA
+* HAITI
+ 
+A TROPICAL STORM WATCH MEANS THAT TROPICAL STORM CONDITIONS ARE
+POSSIBLE WITHIN THE WATCH AREA...GENERALLY WITHIN 48 HOURS.  A
+HURRICANE WATCH AND/OR A TROPICAL STORM WARNING COULD BE REQUIRED
+FOR JAMAICA TONIGHT.
+ 
+INTERESTS IN EASTERN CUBA AND THE BAHAMAS SHOULD MONITOR THE
+PROGRESS OF SANDY.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 12.5N  78.5W AT 22/2100Z
+POSITION ACCURATE WITHIN  50 NM
+ 
+PRESENT MOVEMENT IS STATIONARY
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  999 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT....... 50NE  60SE   0SW   0NW.
+12 FT SEAS.. 60NE  60SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 12.5N  78.5W AT 22/2100Z
+AT 22/1800Z CENTER WAS LOCATED NEAR 12.7N  78.4W
+ 
+FORECAST VALID 23/0600Z 13.6N  78.5W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 50NE  60SE  20SW  30NW.
+ 
+FORECAST VALID 23/1800Z 14.9N  78.3W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT... 50NE  60SE  40SW  40NW.
+ 
+FORECAST VALID 24/0600Z 16.4N  77.8W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 30NE  40SE   0SW   0NW.
+34 KT... 80NE  80SE  60SW  60NW.
+ 
+FORECAST VALID 24/1800Z 18.2N  77.2W
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 40NE  40SE  30SW  30NW.
+34 KT... 90NE  90SE  70SW  70NW.
+ 
+FORECAST VALID 25/1800Z 22.0N  76.0W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 50NE  40SE   0SW  40NW.
+34 KT...200NE 180SE  60SW 200NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 175 NM
+ON DAY 4 AND 225 NM ON DAY 5...AND FOR INTENSITY NEAR 20 KT EACH DAY
+ 
+OUTLOOK VALID 26/1800Z 25.0N  75.0W
+MAX WIND  50 KT...GUSTS  60 KT.
+ 
+OUTLOOK VALID 27/1800Z 27.5N  74.0W
+MAX WIND  45 KT...GUSTS  55 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 12.5N  78.5W
+ 
+NEXT ADVISORY AT 23/0300Z
+ 
+$$
+FORECASTER PASCH
+
+</pre>]]></description>
+      <pubDate>Mon, 22 Oct 2012 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2012/18/02.182012.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2012/18/02.182012.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

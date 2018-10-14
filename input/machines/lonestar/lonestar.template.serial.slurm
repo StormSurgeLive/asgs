@@ -2,6 +2,9 @@
 #SBATCH -J %jobtype%.%enstorm%          # Job name
 #SBATCH -o %advisdir%/%enstorm%/%jobtype%.%enstorm%_%j.out # Name of stdout output file (%j expands to jobId)
 #SBATCH -p %queuename%                  # Queue name
+#SBATCH --partition=%partition%
+#SBATCH --reservation=%reservation%
+#SBATCH --constraint=%constraint%
 #SBATCH -N 1                            # Total number of nodes requested
 #SBATCH -n 1                            # Total number of mpi tasks requested
 #SBATCH -t %walltime%                   # Run time (hh:mm:ss) - 1.5 hours

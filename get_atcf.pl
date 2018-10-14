@@ -8,7 +8,7 @@
 #   file system.
 #
 #--------------------------------------------------------------
-# Copyright(C) 2006--2016 Jason Fleming
+# Copyright(C) 2006--2018 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -29,7 +29,10 @@
 $^W++;
 use strict;
 use Net::FTP;
-use Net::HTTP;
+#use Net::HTTP;
+use HTTP::Tiny;
+#use IO::Socket::SSL;
+#use Net::SSLeay;
 use Getopt::Long;
 #
 my $statefile="null"; # shell script with variables and values that 
@@ -211,30 +214,26 @@ while (!$dl) {
          }
       } else {
          # pick up the RSS feed from the web
-         my $http = Net::HTTP->new(Host => $rsssite);
-         unless ($http) {
-            stderrMessage("ERROR","http: Cannot connect to $rsssite: $@");
-            next;
+         #(my $ok, my $why) = HTTP::Tiny->can_ssl;
+         #(my $ok, my $why) = $http->can_ssl();
+         #stderrMessage("DEBUG","ok is $ok");
+         #stderrMessage("DEBUG","why is $why");
+         my %attributes = ();
+         $attributes{'verify_SSL'} = 1;
+         my $http = HTTP::Tiny->new(%attributes);
+         my $response = $http->get('https://' . $rsssite . '/index-at.xml');
+         if ( $response->{status} == 599 ) { 
+            stderrMessage("ERROR","Failed to download forecast/advisory.");
+            printf STDERR "content: ";
+            print STDERR $response->{content};
+            printf STDERR "status: ";
+            print STDERR $response->{status} . "\n";
+            printf STDERR "reason: ";
+            print STDERR $response->{reason} . "\n";
          }
-         my $httpReqSuccess = $http->write_request(GET         => "/index-at.xml", 
-                                                  'User-Agent' => "Mozilla/5.0");
-         unless ( $httpReqSuccess ) {
-            stderrMessage("ERROR","http: Request for index-at.xml failed.");
-            next;
-         }
-         my ($code, $mess, %h) = $http->read_response_headers();
          #nld empty $body to clear any old advisory numbers from the xml
          $body="";
-         while(1) { 
-            my $buf;
-            my $n = $http->read_entity_body($buf,1024);
-            unless ( defined $n ) {
-               stderrMessage("ERROR","http: buffer read failed: $!");
-               last;
-            }
-            last unless $n;
-            $body.=$buf;
-         }
+         $body = $response->{content};
          my $indexOpenSuccess = open(INDEX,">index-at.xml");
          unless ($indexOpenSuccess) {
             stderrMessage("ERROR","Could not open index-at.xml for writing.");

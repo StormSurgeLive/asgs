@@ -111,6 +111,10 @@ ifeq ($(NETCDF),enable)
       # jgf20180105
       NETCDFPATH := /usr/share/Modules/software/CentOS-7/netcdf-Fortran/4.4.0_intel-18.0.0
    endif
+   # nld20170829: Added compiler flags for seadog at Ransom.
+   ifeq ($(MACHINENAME),seadog)
+      NETCDFPATH  := /home/nate/install
+   endif
    # jgf20150720: Added compiler flags for queenbee at LONI.
    ifeq ($(MACHINENAME),queenbee)
       NETCDFPATH  := /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0
@@ -138,6 +142,9 @@ ifeq ($(NETCDF),enable)
    # jgf20160803: Updared compiler flags for lonestar 5 at TACC.
    ifeq ($(MACHINENAME),lonestar)
       NETCDFPATH=/opt/apps/intel16/netcdf/4.3.3.1/x86_64
+   endif
+   ifeq ($(MACHINENAME),mike)
+      NETCDFPATH := /home/nate/install
    endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := $(LDFLAGS) -lnetcdff
