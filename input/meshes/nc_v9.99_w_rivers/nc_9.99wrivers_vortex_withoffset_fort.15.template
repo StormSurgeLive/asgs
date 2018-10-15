@@ -826,7 +826,14 @@ jason.fleming@seahorsecoastal.com
 &metControl WindDragLimit=0.0028 /
 
 ! bob: offset
-&offsetControl offsetFileName='/home/bblanton/Offsets/oi_surface_nc_inundation_v9.99_rivers_0.1524.dat',
-offsetRampStart=0000000.0,  
-offsetRampEnd=0086400.0, 
+&offsetControl offsetFileName='/home/bblanton/Offsets/oi_surface_nc_inundation_v9.99_rivers_0.3048.dat',
+offsetRampStart=2764800.,
+offsetRampEnd=2786400.,
 offsetRampReferenceTime='coldstart' /
+
+!&offsetControl offsetFileName='/home/bblanton/Offsets/oi_surface_nc_inundation_v9.99_rivers_0.1524.dat',
+!offsetRampStart=0.,  
+!offsetRampEnd=86400., 
+!offsetRampReferenceTime='coldstart' /
+
+
