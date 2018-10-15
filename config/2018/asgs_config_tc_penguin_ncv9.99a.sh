@@ -30,8 +30,8 @@
 
 INSTANCENAME=pod_michael_ncv9.99wr  # name of this ASGS process (Change this for every new instance)
 COLDSTARTDATE=2018090800 # (date to start cold start from )
-HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
-#HOTORCOLD=hotstart       # "hotstart" or "coldstart" 
+#HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
+HOTORCOLD=hotstart       # "hotstart" or "coldstart" 
 #LASTSUBDIR=/home/bblanton/asgs-scratch/kickstart_ncv9.99/
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
@@ -40,7 +40,8 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 # Source file paths
 
 H="/home/bblanton/"
-ADCIRCDIR=${H}/adcirc-cg-52release/work
+#ADCIRCDIR=${H}/adcirc-cg-52release/work
+ADCIRCDIR=${H}/v53release/work
 SCRIPTDIR=${H}/asgs       # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v9.99_w_rivers   # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
@@ -153,8 +154,8 @@ MINMAX=reset
 EMAILNOTIFY=yes # set to yes to have host platform email notifications
 ems="bblanton@renci.org"
 NOTIFY_SCRIPT=pod_tc_notify.sh
-ACTIVATE_LIST=   #  "$ems"
-NEW_ADVISORY_LIST=   #  "$ems"
+ACTIVATE_LIST="$ems"
+NEW_ADVISORY_LIST="$ems"
 POST_INIT_LIST="$ems"
 POST_LIST="$ems"
 JOB_FAILED_LIST="$ems" 
@@ -171,7 +172,7 @@ RMQMessaging_ClusterName="POD"
 
 # Post processing and publication
 
-INTENDEDAUDIENCE="tc_testrun" # meta data audience
+INTENDEDAUDIENCE="general"  #  "tc_testrun" # meta data audience
 INITPOST=null_init_post.sh
 POSTPROCESS=pod_post.sh
 #POSTPROCESS=null_post.sh
@@ -195,7 +196,7 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=1 # number of storms in the ensemble
+ENSEMBLESIZE=2 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
@@ -204,12 +205,12 @@ case $si in
    ENSTORM=nhcForecast
    ;;
 1)
-   ENSTORM=veerLeft50
-   PERCENT=-50
+   ENSTORM=veerRight100
+   PERCENT=100
    ;;
 2)
-   ENSTORM=veerRight50
-   PERCENT=50
+   ENSTORM=veerLeft100
+   PERCENT=-100
    ;;
 3)
    ENSTORM=rMax20
