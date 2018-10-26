@@ -2,7 +2,7 @@
 ! pullStationTimeSeries.f90: Create ADCIRC ascii elevation station
 ! file (fort.61) from ADCIRC fort.63 file.
 !------------------------------------------------------------------
-! Copyright(C) 2015--2017 Jason Fleming
+! Copyright(C) 2015--2018 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -214,8 +214,11 @@ case(ASCIIG)
                   ! we jump to here.     
 case(NETCDFG)
    call determineNetCDFFileCharacteristics(ft, m, n)
+   !write(*,*) 'pullStationTimeSeries: ',trim(rundes)
+   !write(*,*) 'pullStationTimeSeries: ',trim(runid)
    line = trim(rundes) // ' ' // trim(runid) // ' ' // trim(m%agrid)
    snapR = ft%time_increment
+   !write(*,*) trim(adjustl(line))
    write(fs%fun,*) trim(adjustl(line))
    write(fs%fun,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, numStations, ft%time_increment, ft%nspool, ft%irtype
    ! open the netcdf file
@@ -301,8 +304,8 @@ else
       temp2 = adcirc_data(m%nm(station%elementIndex,1),2) * station%w(1) &
             + adcirc_data(m%nm(station%elementIndex,2),2) * station%w(2) &
             + adcirc_data(m%nm(station%elementIndex,3),2) * station%w(3) 
-      write(slun,'(i10,2(2x,e17.10))') s, temp1, temp2
    endif
+   write(slun,'(i10,2(2x,e17.10))') s, temp1, temp2
 endif
 !-----------------------------------------------------------------------
 end subroutine writeStationValue
