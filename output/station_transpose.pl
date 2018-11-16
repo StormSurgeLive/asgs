@@ -8,7 +8,7 @@
 # different stations and the rows represent time. 
 #
 #----------------------------------------------------------------
-# Copyright(C) 2009--2017 Jason Fleming
+# Copyright(C) 2009--2018 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -54,7 +54,7 @@ my $separator = " ";
 my $vectorOutput = "raw"; # "raw" (for east and north values), "compassdirection" or "trigdirection" (degrees) along with magnitude 
 my $coldstartdate = "null"; # yyyymmddhh24 when the simulation was coldstarted
 my $gmtoffset=-5; # number of hours between gmt and local time
-my $timezone="CDT"; # time zone designation to be placed on graphs
+my $timezone="GMT"; # time zone designation to be placed on graphs
 my $units = "null"; # output units, english or si
 my $stationlabel = "full"; # how to parse the station label from fort.15
 # on command line, use 
@@ -77,7 +77,9 @@ my $secondBang; # where second "!" appears in station metadata in fort.15
 my $thirdBang;  # where third "!" appears in station metadata in fort.15 
 my $labelLength; # length of station label string
 my @stationPlotLabels; # the string that is pulled from the fort.15 for each station to be used in labeling the associated plot
-my @supported_files = qw( elevation velocity windvelocity barometricpressure wavedirection significantwaveheight maxsignificantwaveheight maxelevation maxinundationdepth maxwindvelocity );
+my @supported_files = qw( elevation velocity windvelocity barometricpressure wavedirection significantwaveheight );
+my @supported_minmax_files = qw( maxsignificantwaveheight maxelevation maxinundationdepth maxwindvelocity );
+my @supported_time_minmax_files = qw( timemaxelevation );
 my $multiplier = "null"; # generic multiplier to use on the data
 my $defaultStationLabels = 0;
 my $multiplierarg = "1.0";
@@ -121,12 +123,23 @@ GetOptions(
            );
 # 
 # check to make sure that the output file to be transposed is in the list
-unless ( is_member($fileToTranspose,@supported_files)) {
-   my $sf = join(",",@supported_files);
+unless ( is_member($fileToTranspose,@supported_files) || is_member($fileToTranspose,@supported_minmax_files) || is_member($fileToTranspose,@supported_time_minmax_files) ) {
+   my $sf = join(",",@supported_files,@supported_minmax_files,@supported_time_minmax_files);
    stderrMessage("ERROR","The file type to transpose ($fileToTranspose) is not one of the supported file types, which are as follows: $sf.");
    die; 
 }
-
+#
+# check to see if this is a minmax or time of minmax file
+my $minmax = 0;
+if ( is_member($fileToTranspose,@supported_minmax_files) ) {
+   $minmax = 1;
+}
+#
+# check to see if this is a minmax or time of minmax file
+my $time_minmax = 0;
+if ( is_member($fileToTranspose,@supported_time_minmax_files) ) {
+   $time_minmax = 1;
+}
 #
 # read the run.properties file if it was specified
 if ( -e $runproperties ) {
@@ -305,7 +318,7 @@ for ( my $i=0; $i<$num_sta; $i++ ) {
 stderrMessage("DEBUG","There are $num_sta stations.\n");
 #
 # check to see if this is scalar data or vector data
-my $fileType;
+my $fileRank = "scalar";
 my $filename;
 my $fileExtension;
 my $total_stations = 0;
@@ -319,25 +332,22 @@ if ($units ne "null" ) {
 $header = "dataype=$fileToTranspose units=$reformattedUnits{$fileToTranspose} stationfile=$stationfile coldstartdate=$coldstartdate multiplier=$multiplierarg";
 if ( $fileToTranspose eq "elevation" ||
      $fileToTranspose eq "maxelevation" ) { 
-   $fileType = "scalar";
    $header = "water surface " . $header;
 } elsif ( $fileToTranspose eq "maxwindvelocity" ) {
-   $fileType = "scalar";
    $header .= " windaveragingperiod=$averagingperiod";
 } elsif ( $fileToTranspose eq "wavedirection" ||
           $fileToTranspose eq "significantwaveheight" ||
           $fileToTranspose eq "maxsignificantwaveheight" ||
           $fileToTranspose eq "maxinundationdepth" ) { 
-   $fileType = "scalar";
+   # $header = ""; ... placeholder
 } elsif ( $fileToTranspose eq "barometricpressure" ) {
    $header .= " waterdensity=$density gravitationalaccel=$g";
-   $fileType = "scalar";
 } elsif ( $fileToTranspose eq "velocity" ) {
    $header .= " vectoroutput=$vectorOutput"; 
-   $fileType = "vector";
+   $fileRank = "vector";
 } elsif ( $fileToTranspose eq "windvelocity" ) {
    $header .= " vectoroutput=$vectorOutput"; 
-   $fileType = "vector";
+   $fileRank = "vector";
    $header .= " windaveragingperiod=$averagingperiod";
 }
 # set separator character whether a space-delimited or comma-delimited file
@@ -436,7 +446,7 @@ while (<DATAFILE>) {
    #
    # this is data (not the file header or the individual dataset header)
    my $stationNumber;
-   if ( $fileType eq "scalar" ) {
+   if ( $fileRank eq "scalar" ) {
       my $scalar;
       # parse out the station number and the value
       m/^\s*(\d*)\s*(.*)\s*$/;
@@ -480,6 +490,21 @@ while (<DATAFILE>) {
                $scalar *= 1.136; # convert 10 minute winds to 1 minute winds               
             }
          }
+         # if this is time of occurrence data convert to a date based
+         # on the cold start date/time and the value
+         if ( $fileToTranspose eq "timemaxelevation" ) {
+            if ( $coldstartdate ne "null" ) {
+               # converting to date/time string with timezone
+               ($year,$month,$day,$hour,$min,$sec)
+                  = Date::Pcalc::Add_Delta_DHMS($cs_year,$cs_mon,$cs_day,
+                  $cs_hour,$cs_min,$cs_sec,0,$gmtoffset,0,sprintf("%2d",$scalar));
+               $scalar = sprintf("%4s-%02s-%02s$separator%02s:%02s:%02d $timezone$separator",
+                   $year,$month,$day,$hour,$min,$sec);
+            } else {
+               # leave the data value as the time in seconds since cold
+               # start if we don't have a date/time associated with cold start
+            }
+         }
       }
       $station_val[$1-1] = $scalar;
    } else {
@@ -517,13 +542,21 @@ while (<DATAFILE>) {
    #
    # if we have collected a complete dataset, write it now
    if ( $stationNumber == $total_stations ) {
-      unless ( $coldstartdate eq "null" ) {      
-         printf TRANSPOSE $time . "$timezone" . $separator;
+      # first column: date/time, unless this is time_minmax file, in which
+      # case, we don't need the time in the first column (there is only 
+      # one row)
+      if ( $time_minmax == 0 ) {
+         # create the column for the time and time zone
+         unless ( $coldstartdate eq "null" ) {      
+            printf TRANSPOSE $time . "$timezone" . $separator;
+         } else {
+            printf TRANSPOSE $time . $separator;
+         }
       } else {
-         printf TRANSPOSE $time . $separator;
-      }
+         # do nothing: don't need a time column in a time of minmax file
+      }         
       # write scalar data 
-      if ( $fileType eq "scalar" ) { 
+      if ( $fileRank eq "scalar" ) { 
          # scalar data
          foreach (@station_val) {
             printf TRANSPOSE ("%20s",$_);
