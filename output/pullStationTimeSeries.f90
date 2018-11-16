@@ -245,6 +245,25 @@ case(NETCDFG)
          call writeStationValue(adcirc_data, m, ft%numValuesPerDataset, ft%irtype, stations(s), s, fs%fun)
       end do
    end do
+   close(fs%fun)
+   if (ft%dataFileCategory.eq.MINMAX) then
+      ! open the text file for writing time of occurrence data
+      fs%fun = availableUnitNumber()
+      open(unit=fs%fun,file='time_'//trim(fs%dataFileName),status='replace',action='write')
+      fs%defaultValue = -99999.
+      write(fs%fun,*) trim(adjustl(line))
+      write(fs%fun,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, numStations, ft%time_increment, ft%nspool, ft%irtype
+      nc_start = (/ 1, 1 /)
+      nc_count = (/ m%np, 1 /)
+      ! get data
+      call check(nf90_inq_varid(ft%nc_id, trim('time_of_' // adjustl(ft%ncds(1)%varNameNetCDF)), ft%ncds(1)%nc_varid))
+      call check(nf90_get_var(ft%nc_id,ft%ncds(j)%nc_varID,adcirc_data(:,1),nc_start,nc_count))     
+      write(fs%fun,*) ft%timesec(1), ft%it(1)      
+      do s=1, numStations   
+         call writeStationValue(adcirc_data, m, ft%numValuesPerDataset, ft%irtype, stations(s), s, fs%fun)
+      end do
+      close(fs%fun)
+   endif
    call check(nf90_close(ft%nc_id))
 case default
    write(6,*) "ERROR: File format '",TRIM(cmdlineopt),"' was not recognized."
