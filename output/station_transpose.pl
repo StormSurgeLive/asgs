@@ -77,7 +77,7 @@ my $secondBang; # where second "!" appears in station metadata in fort.15
 my $thirdBang;  # where third "!" appears in station metadata in fort.15 
 my $labelLength; # length of station label string
 my @stationPlotLabels; # the string that is pulled from the fort.15 for each station to be used in labeling the associated plot
-my @supported_files = qw( elevation velocity windvelocity barometricpressure wavedirection significantwaveheight );
+my @supported_files = qw( elevation velocity windvelocity barometricpressure wavedirection significantwaveheight bathytopo );
 my @supported_minmax_files = qw( maxsignificantwaveheight maxelevation maxinundationdepth maxwindvelocity );
 my @supported_time_minmax_files = qw( timemaxelevation );
 my $multiplier = "null"; # generic multiplier to use on the data
@@ -88,7 +88,9 @@ my $reformattedfile = "null"; # name of the reformatted (transposed) data file
 my %reformattedUnits = ("elevation", "m", "velocity", "m/s", "windvelocity", 
    "m/s", "barometricpressure", "mH2O", "wavedirection", "degrees", 
    "significantwaveheight", "m", "maxsignificantwaveheight", "m",
-   "maxelevation", "m", "maxinundationdepth", "m", "maxwindvelocity", "m/s");
+   "maxelevation", "m", "maxinundationdepth", "m", "maxwindvelocity", "m/s",
+   "bathytopo", "m" );
+my $datum;
 my $year;
 my $month;
 my $day;
@@ -111,6 +113,7 @@ GetOptions(
            "vectoroutput=s" => \$vectorOutput,
            "coldstartdate=s" => \$coldstartdate,
            "gmtoffset=s" => \$gmtoffset,
+           "datum=s" => \$datum,
            "timezone=s" => \$timezone,
            "stationlabel=s" => \$stationlabel,
            "runproperties=s" => \$runproperties,
@@ -133,12 +136,6 @@ unless ( is_member($fileToTranspose,@supported_files) || is_member($fileToTransp
 my $minmax = 0;
 if ( is_member($fileToTranspose,@supported_minmax_files) ) {
    $minmax = 1;
-}
-#
-# check to see if this is a minmax or time of minmax file
-my $time_minmax = 0;
-if ( is_member($fileToTranspose,@supported_time_minmax_files) ) {
-   $time_minmax = 1;
 }
 #
 # read the run.properties file if it was specified
@@ -174,6 +171,17 @@ unless ( $coldstartdate eq "null" ) {
    &stderrMessage("DEBUG","coldstartdate $cs_year $cs_mon $cs_day $cs_hour $cs_min $cs_sec");
 } else {
    &stderrMessage("WARNING","The coldstartdate was not specified on the command line and it could not be read from the run.properties file. The times associated with the output will be in units of seconds since ADCIRC cold start.");   
+}
+#
+# check to see if this is a minmax or time of minmax file
+my $time_minmax = 0;
+if ( is_member($fileToTranspose,@supported_time_minmax_files) ) {   
+   $time_minmax = 1;
+   if ( $coldstartdate eq "null" ) {
+      $units = "seconds"
+   } else {
+      $units = "datetime"
+   }
 }
 #
 ######################################################################
@@ -271,9 +279,10 @@ my @sta_IDs;    # station IDs
 my @sta_agencies; # organization that assigned the ID
 my @sta_descriptions;    # human-readable station descriptions 
 for ( my $i=0; $i<$num_sta; $i++ ) {
-   $firstBang = index($sta_lines[$i],"!") + 1;
+   $firstBang = index($sta_lines[$i],"!");
    $secondBang = index($sta_lines[$i],"!",$firstBang+1);
    $thirdBang = index($sta_lines[$i],"!",$secondBang+1);
+   #print "firstBang $firstBang secondBang $secondBang thirdBang $thirdBang\n";
    # make a guess as to whether the station definition
    # line is in adcirc-standard format as follows:
    # lon lat ! stationID ! agency ! description
@@ -281,14 +290,26 @@ for ( my $i=0; $i<$num_sta; $i++ ) {
    if ( $firstBang != -1 && $secondBang != -1 && $thirdBang != -1 ) {
       $standardMetaData = 1;
       $sta_coords[$i] = substr($sta_lines[$i],0,$firstBang);
-      $sta_IDs[$i] = substr($sta_lines[$i],$firstBang,($secondBang-$firstBang));
-      $sta_agencies[$i] = substr($sta_lines[$i],$secondBang,($secondBang-$firstBang));
-      $sta_descriptions[$i] = substr($sta_lines[$i],$thirdBang+1,( length($sta_lines[$i]) - ($thirdBang + 1) ));
+      $sta_coords[$i] =~ s/^\s+//g; # strip spaces
+      $sta_coords[$i] =~ s/\s+$//g; 
+      $sta_IDs[$i] = substr($sta_lines[$i],$firstBang+1,($secondBang-1-$firstBang));
+      $sta_IDs[$i] =~ s/^\s+//g; # strip spaces
+      $sta_IDs[$i] =~ s/\s+$//g;
+      $sta_agencies[$i] = substr($sta_lines[$i],$secondBang+1,($thirdBang-1-$secondBang));
+      $sta_agencies[$i] =~ s/^\s+//g; # strip spaces
+      $sta_agencies[$i] =~ s/\s+$//g;
+      $sta_descriptions[$i] = substr($sta_lines[$i],$thirdBang+1);
+      $sta_descriptions[$i] =~ s/^\s+//g; # strip spaces
+      $sta_descriptions[$i] =~ s/\s+$//g;
+      #print "$sta_coords[$i]\n";
+      #print "$sta_IDs[$i]\n";
+      #print "$sta_agencies[$i]\n";
+      #print "$sta_descriptions[$i]\n";
       if ( $stationlabel eq "std" ) {
-         $stationPlotLabels[$i] = substr($sta_lines[$i],$firstBang,( length($sta_lines[$i]) - ($thirdBang + 1) ) ) 
-         . substr($sta_lines[$i],($thirdBang + 1),(length($sta_lines[$i]) - ($thirdBang + 1)));
+         $stationPlotLabels[$i] = "$sta_agencies[$i] ! $sta_IDs[$i] ! $sta_descriptions[$i]";
       }
    } 
+
    $labelLength = -1;
    if ( $stationlabel eq "betweenbangs" && $firstBang ne -1 && $secondBang ne -1 ) {
       $labelLength = $secondBang - $firstBang;
@@ -329,12 +350,16 @@ my $header;       # start on comment on first line of reformatted file
 if ($units ne "null" ) { 
    $reformattedUnits{$fileToTranspose} = $units;  
 }
-$header = "dataype=$fileToTranspose units=$reformattedUnits{$fileToTranspose} stationfile=$stationfile coldstartdate=$coldstartdate multiplier=$multiplierarg";
+$header = "dataype=$fileToTranspose units=$reformattedUnits{$fileToTranspose}";
+$header = $header . " stationfile=$stationfile coldstartdate=$coldstartdate";
+$header = $header . " multiplier=$multiplierarg format=$format";
 if ( $fileToTranspose eq "elevation" ||
      $fileToTranspose eq "maxelevation" ) { 
    $header = "water surface " . $header;
 } elsif ( $fileToTranspose eq "maxwindvelocity" ) {
    $header .= " windaveragingperiod=$averagingperiod";
+} elsif ( $fileToTranspose eq "bathytopo" ) {
+   $header = "bathy/topo " . $header;   
 } elsif ( $fileToTranspose eq "wavedirection" ||
           $fileToTranspose eq "significantwaveheight" ||
           $fileToTranspose eq "maxsignificantwaveheight" ||
@@ -391,7 +416,7 @@ while (<DATAFILE>) {
    # transposed file as a gnuplot comment line
    if ($. == 1 ) {
       chomp;
-      printf TRANSPOSE "# $header " . $_ . "\n";
+      printf TRANSPOSE "# $header comment=\"" . $_ . "\"\n";
       next;
    } 
    #
@@ -413,10 +438,12 @@ while (<DATAFILE>) {
          }
       }
       # write the names of the stations on the next line according to the requested format
-      unless ( $coldstartdate eq "null" ) {
-         printf TRANSPOSE "#DATE" . $separator . "TIME" . $separator . "TIMEZONE" . $separator;
-      } else {
-         printf TRANSPOSE "#TIMESEC" . $separator;         
+      if ( $minmax == 0 && $time_minmax == 0 && $fileToTranspose ne "bathytopo" ) {
+         unless ( $coldstartdate eq "null" ) {
+            printf TRANSPOSE "#DATE" . $separator . "TIME" . $separator . "TIMEZONE" . $separator;
+         } else {
+            printf TRANSPOSE "#TIMESEC" . $separator;         
+         }
       }
       foreach (@stationPlotLabels) {
           printf TRANSPOSE "\"$_\"" . $separator;
@@ -435,8 +462,7 @@ while (<DATAFILE>) {
          ($year,$month,$day,$hour,$min,$sec)
             = Date::Pcalc::Add_Delta_DHMS($cs_year,$cs_mon,$cs_day,
                $cs_hour,$cs_min,$cs_sec,0,$gmtoffset,0,sprintf("%2d",$1));
-         
-         $time = sprintf("%4s-%02s-%02s$separator%02s:%02s:%02d$separator",
+         $time = sprintf("%4s-%02s-%02s %02s:%02s:%02d$separator",
                    $year,$month,$day,$hour,$min,$sec);
       } else {
          $time = $1;
@@ -464,6 +490,7 @@ while (<DATAFILE>) {
       if ( $scalar != -99999 ) {
          if  ( ($fileToTranspose eq "elevation") || 
                ($fileToTranspose eq "maxelevation") ||
+               ($fileToTranspose eq "bathytopo") ||
                ($fileToTranspose eq "maxinundationdepth") ||
                ($fileToTranspose eq "significantwaveheight") ||
                ($fileToTranspose eq "maxsignificantwaveheight") 
@@ -498,8 +525,12 @@ while (<DATAFILE>) {
                ($year,$month,$day,$hour,$min,$sec)
                   = Date::Pcalc::Add_Delta_DHMS($cs_year,$cs_mon,$cs_day,
                   $cs_hour,$cs_min,$cs_sec,0,$gmtoffset,0,sprintf("%2d",$scalar));
-               $scalar = sprintf("%4s-%02s-%02s$separator%02s:%02s:%02d $timezone$separator",
+               $scalar = sprintf("\"%4s-%02s-%02s %02s:%02s:%02d $timezone\"",
                    $year,$month,$day,$hour,$min,$sec);
+               if ( $format eq "comma" ) {
+                  $scalar = sprintf("%4s-%02s-%02s %02s:%02s:%02d $timezone",
+                   $year,$month,$day,$hour,$min,$sec);
+               }
             } else {
                # leave the data value as the time in seconds since cold
                # start if we don't have a date/time associated with cold start
@@ -545,7 +576,7 @@ while (<DATAFILE>) {
       # first column: date/time, unless this is time_minmax file, in which
       # case, we don't need the time in the first column (there is only 
       # one row)
-      if ( $time_minmax == 0 ) {
+      if ( $minmax == 0 && $time_minmax == 0 && $fileToTranspose ne "bathytopo" ) {
          # create the column for the time and time zone
          unless ( $coldstartdate eq "null" ) {      
             printf TRANSPOSE $time . "$timezone" . $separator;
@@ -553,7 +584,7 @@ while (<DATAFILE>) {
             printf TRANSPOSE $time . $separator;
          }
       } else {
-         # do nothing: don't need a time column in a time of minmax file
+         # do nothing: don't need a time column in a minmax or time of minmax file
       }         
       # write scalar data 
       if ( $fileRank eq "scalar" ) { 
