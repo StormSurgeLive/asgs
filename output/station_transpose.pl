@@ -78,8 +78,8 @@ my $thirdBang;  # where third "!" appears in station metadata in fort.15
 my $labelLength; # length of station label string
 my @stationPlotLabels; # the string that is pulled from the fort.15 for each station to be used in labeling the associated plot
 my @supported_files = qw( elevation velocity windvelocity barometricpressure wavedirection significantwaveheight bathytopo );
-my @supported_minmax_files = qw( maxsignificantwaveheight maxelevation maxinundationdepth maxwindvelocity );
-my @supported_time_minmax_files = qw( timemaxelevation );
+my @supported_minmax_files = qw( maxsignificantwaveheight maxelevation maxvelocity maxinundationdepth maxwindvelocity );
+my @supported_time_minmax_files = qw( timemaxelevation timemaxwindvelocity timemaxvelocity timemaxsignificantwaveheight );
 my $multiplier = "null"; # generic multiplier to use on the data
 my $defaultStationLabels = 0;
 my $multiplierarg = "1.0";
@@ -356,7 +356,8 @@ $header = $header . " multiplier=$multiplierarg format=$format";
 if ( $fileToTranspose eq "elevation" ||
      $fileToTranspose eq "maxelevation" ) { 
    $header = "water surface " . $header;
-} elsif ( $fileToTranspose eq "maxwindvelocity" ) {
+} elsif ( $fileToTranspose eq "maxwindvelocity" ||
+          $fileToTranspose eq "timemaxwindvelocity" ) {
    $header .= " windaveragingperiod=$averagingperiod";
 } elsif ( $fileToTranspose eq "bathytopo" ) {
    $header = "bathy/topo " . $header;   
@@ -371,7 +372,7 @@ if ( $fileToTranspose eq "elevation" ||
    $header .= " vectoroutput=$vectorOutput"; 
    $fileRank = "vector";
 } elsif ( $fileToTranspose eq "windvelocity" ) {
-   $header .= " vectoroutput=$vectorOutput"; 
+   $header .= " direction=$vectorOutput"; 
    $fileRank = "vector";
    $header .= " windaveragingperiod=$averagingperiod";
 }
@@ -490,12 +491,13 @@ while (<DATAFILE>) {
       if ( $scalar != -99999 ) {
          if  ( ($fileToTranspose eq "elevation") || 
                ($fileToTranspose eq "maxelevation") ||
+               ($fileToTranspose eq "maxvelocity") ||
                ($fileToTranspose eq "bathytopo") ||
                ($fileToTranspose eq "maxinundationdepth") ||
                ($fileToTranspose eq "significantwaveheight") ||
                ($fileToTranspose eq "maxsignificantwaveheight") 
                 ) {
-            if ( ($units eq "ft") || ($units eq "feet" )  ) {
+            if ( ($units eq "ft") || ($units eq "feet") || ($units eq "fps" ) ) {
                # convert m to ft
                $scalar *= (100.0 / (2.54 * 12.0));
             }
@@ -519,7 +521,10 @@ while (<DATAFILE>) {
          }
          # if this is time of occurrence data convert to a date based
          # on the cold start date/time and the value
-         if ( $fileToTranspose eq "timemaxelevation" ) {
+         if ( $fileToTranspose eq "timemaxelevation" ||
+              $fileToTranspose eq "timemaxwindvelocity" ||
+              $fileToTranspose eq "timemaxvelocity" ||
+              $fileToTranspose eq "timemaxsignificantwaveheight" ) {
             if ( $coldstartdate ne "null" ) {
                # converting to date/time string with timezone
                ($year,$month,$day,$hour,$min,$sec)
