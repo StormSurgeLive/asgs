@@ -34,23 +34,26 @@ sub stderrMessage($$);
 my $fileToPlot; # name of file to plot 
 my $plotType; # type of file to plot 
 my $template = "template.gp"; # gnuplot template file, including full path to the file
-my $vectorOutput = "magnitude"; # magnitude or direction or raw
+my $vectorOutput = "compassdegrees"; # compassdegrees or trigdegress (both include magnitude)
 my $timezone="CDT"; # time zone designation to be placed on graphs
-my $units = "english"; # output units, english or si
+my $units = "null"; # output units, english or si
 my $plotDir;  # directory where the plots should be created
 my $plotType; # type of data to be plotted (elevation, velocity, etc)
 my $gpscript; # name of script file to create
-my @supported_files = qw(elevation velocity windvelocity barometricpressure);
+my @supported_files = qw(elevation velocity windvelocity barometricpressure significantwaveheight);
+my @vector_files = qw(velocity windvelocity); 
 my %plotTypesDescriptions = ( "elevation", "water surface elevation",
-                             "velocity", "water current, speed and direction" ,
-                             "windvelocity", "wind speed and direction",
-                             "barometricpressure", "atmospheric pressure"  
-                             );
+                              "significantwaveheight", "significant wave height",
+                              "velocity", "water current, speed and direction" ,
+                              "windvelocity", "wind speed and direction",
+                              "barometricpressure", "atmospheric pressure"  
+                            );      
 my %maxTypesDescriptions = ( "elevation", "Peak water level",
+                             "significantwaveheight", "Peak significant wave height",
                              "velocity", "Peak water current speed",
                              "windvelocity", "Peak sustained wind speed",
                              "barometricpressure", "Minimum atmospheric pressure"
-                             );
+                           );
 my $datum = "MSL";
 my $stationsOfInterest = "all"; # std format subset of stations to actually plot
 my $enstorm = "Consensus Forecast"; # name of the storm in the ensemble
@@ -62,6 +65,7 @@ my $minmaxfile = "null";
 my $timeminmaxfile = "null";
 my $bathytopo = "null";
 my $gpscriptname = "null";
+my $every = 1;
 #
 GetOptions(
            "filetoplot=s" => \$fileToPlot,
@@ -69,6 +73,7 @@ GetOptions(
            "plotType=s" => \$plotType,
            "plotdir=s" => \$plotDir,
            "legend=s" => \$legend,
+           "every=s" => \$every,
            "template=s" => \$template,
            "vectoroutput=s" => \$vectorOutput,
            "timezone=s" => \$timezone,
@@ -125,38 +130,72 @@ if ( $stationsOfInterest ne "all" ) {
    }
 }
 #-------------------------------------------------------------------
-#     L A B E L   Y - A X I S  A N D   
+#     L A B E L   Y - A X E S
 #
-#  S E T  D E F A U L T   Y - R A N G E  
+#  S E T  D E F A U L T   Y - R A N G E S  
 #-------------------------------------------------------------------
 #
 # form label of y axis on plot based on command line arguments
 my $ylabel;       # full label for y axis
-my $vectorLabel;  # describes the vector quantity 
+my $y2label = "null";      # full label for y2 axis
+my $vectorLabel;  # describes the magnitude of the vector quantity 
+my $vector2Label = "null"; # describes the direction of the vector quantity 
 my $labelUnits;   # units of the quantity being plotted
+my $label2Units = "null";  # units of the direction of the quantity being plotted
+my $y2tics = "null";
 #
 # we used to let gnuplot autorange the graphs, but this was confusing to 
 # end users: tiny, cm-scale variations in water levels looked like giant
 # oscillations b/c gnuplot autoscaled the graphs ... now we set a default
 # scale, and if the numbers exceed the range, we adjust so that we can 
 # see the actual range 
-my $default_ymin; # min cutoff on the graph
-my $default_ymax; # max cutoff on the graph
+my $default_ymin; # min cutoff on the primary y axis
+my $default_ymax; # max cutoff on the primary y axis
+my $y2min = "null"; # min cutoff on the 2nd y axis
+my $y2max = "null"; # max cutoff on the 2nd y axis
 my $titlePrefix;  # the first words in the title of the plot
-if ( $vectorOutput eq "magnitude" ) {
-   $vectorLabel = "Speed ";
-   $labelUnits = "";
-} else {
-   $vectorLabel = "Compass Direction ";
-   $labelUnits = "degrees";
-   $default_ymin = 0.0;
-   $default_ymax = 360.0;
+my $title2Prefix = "null";  # the first words in the title of the plot
+if ( is_member($plotType,@vector_files) ) {
+   if ( $plotType eq "velocity" ) {   
+      $titlePrefix = "Water Current";
+      if ( $units eq "fps" ) {
+         $labelUnits = "ft/s";
+         $default_ymin = "0.0";
+         $default_ymax = "1.0";
+      } else { 
+         $labelUnits = "m/s";
+         $default_ymin = "0.0";
+         $default_ymax = "0.3";
+      }
+   }
+   if ( $plotType eq "windvelocity" ) {
+      $titlePrefix = "Wind";
+      if ( $units eq "mph" || $units eq "kts" || $units eq "kt" ) {
+         $labelUnits = $units;
+         $default_ymin = "0.0";
+         $default_ymax = "75.0";
+      } else { 
+         $labelUnits = "m/s";
+         $default_ymin = "0.0";
+         $default_ymax = "25.0";
+      }
+   }
+   $titlePrefix .= "Speed ";
+   $title2Prefix = "Compass Direction ";
+   if ( $vectorOutput eq "trigdirection" ) {
+      $title2Prefix = "Trigonometric Direction ";
+   }
+   $label2Units = "degrees";
+   $y2min = 0.0;
+   $y2max = 360.0;
+   $y2label = "$title2Prefix ($label2Units)";
+   $y2tics = " "; # just turn them on
 }
 if ( $plotType eq "elevation" ) {
 #   $titlePrefix = "Stage above " . $datum;
 #   $titlePrefix = "Stage ";
    $titlePrefix = "Water Level";
-   if ( $units eq "english" ) {
+   if ( $units eq "ft" ) {
       $labelUnits ="ft above " . $datum;
       $default_ymin = "0.0";
       $default_ymax = "10.0";
@@ -165,34 +204,25 @@ if ( $plotType eq "elevation" ) {
       $default_ymin = "0.0";
       $default_ymax = "3.5";
    }
-} elsif ( $plotType eq "velocity" ) {
-   if ( $units eq "english" && $vectorOutput eq "magnitude" ) {
-      $labelUnits = "ft/s";
+}   
+if ( $plotType eq "significantwaveheight" ) {
+   $titlePrefix = "Significant Wave Height";
+   if ( $units eq "ft" ) {
+      $labelUnits ="ft";
       $default_ymin = "0.0";
       $default_ymax = "3.0";
-   } elsif ( $units ne "english" && $vectorOutput eq "magnitude" ) { 
-      $labelUnits = "m/s";
+   } else { 
+      $labelUnits = "m";
       $default_ymin = "0.0";
       $default_ymax = "1.0";
    }
-   $titlePrefix = "Water Current " . $vectorLabel;
-   # $ylabel = "Water Current " . $vectorLabel . $vectorUnits;
-} elsif ( $plotType eq "barometricpressure" ) {
+}   
+if ( $plotType eq "barometricpressure" ) {
    $titlePrefix = "Atm.Press. ";
    $labelUnits = "mb"; # english units not available
    $default_ymin = "920.0";
    $default_ymax = "1013.0";
-} elsif ( $plotType eq "windvelocity" ) {
-   $titlePrefix = "Wind " . $vectorLabel;
-   if ( $units eq "english" && $vectorOutput eq "magnitude" ) {
-      $labelUnits = "kts";
-      $default_ymin = "0.0";
-      $default_ymax = "75.0";
-   } elsif ( $units ne "english" && $vectorOutput eq "magnitude" ) { 
-      $labelUnits = "m/s";
-      $default_ymin = "0.0";
-      $default_ymax = "25.0";
-   }
+
 }
 $ylabel = "$titlePrefix ($labelUnits)";
 #
@@ -216,30 +246,45 @@ my @stanames;    # the names of the stations
 my $numCol;      # number of stations
 my @ymins;       # the minimum value at each station
 my @ymaxes;      # the maximum value at each station
-my @station_vals; # the value at each station at a given time
+my @station_vals; # the value at each station at a given time (magnitude only if vector data type)
 while (<TRANSPOSE>) {
    if ( $. == 2 ) { # second line is a header with station names
       @stanames = ($_ =~ /(".*?"|\S+)/g);
       $numCol = @stanames;    
    }
+   #
+   #  D E T E R M I N E   Y M I N   A N D   Y M A X
+   #
+   #      F O R   E A C H   S T A T I O N
+   #
    # parse non-header lines
    if ( ($. != 1) && ($. != 2) ) { 
       @station_vals = split;
       if ( $. == 3 ) {
          # initialize the min and max arrays if this is the first set of values
+         my $rangeIndex = 3;
          for (my $i=3; $i<$numCol; $i++ ) {
-            $ymins[$i] = $station_vals[$i];
-            $ymaxes[$i] = $station_vals[$i];
+            $ymins[$i] = $station_vals[$rangeIndex];
+            $ymaxes[$i] = $station_vals[$rangeIndex];
+            $rangeIndex++; 
+            if ( is_member($plotType,@vector_files) ) {
+               $rangeIndex++; 
+            }
          }
       } else {
          # see if we have set a new ymin or a new ymax
+         my $rangeIndex = 3;
          for (my $i=3; $i<$numCol; $i++ ) {
-            if ( ($station_vals[$i] < $ymins[$i]) || ($ymins[$i] == -99999) ) {
-               $ymins[$i] = $station_vals[$i];
+            if ( ($station_vals[$rangeIndex] < $ymins[$i]) || ($ymins[$i] == -99999) ) {
+               $ymins[$i] = $station_vals[$rangeIndex];
             }
-            if ( $station_vals[$i] > $ymaxes[$i] ) {
-               $ymaxes[$i] = $station_vals[$i];
+            if ( $station_vals[$rangeIndex] > $ymaxes[$i] ) {
+               $ymaxes[$i] = $station_vals[$rangeIndex];
             }
+            $rangeIndex++; 
+            if ( is_member($plotType,@vector_files) ) {
+               $rangeIndex++; 
+            }            
          }
       }
    }
@@ -327,6 +372,12 @@ if ( $bathytopo ne "null" ) {
 #-------------------------------------------------------------------
 #
 # create a gnuplot script file for each column
+my $magcol = "null";
+my $dircol = "null";
+if ( is_member($plotType,@vector_files) ) {
+   $magcol = 4;
+   $dircol = $magcol + 1;
+}
 for (my $i=3; $i<$numCol; $i++ ) {
    my $stationAgency;
    my $stationID;
@@ -354,14 +405,9 @@ for (my $i=3; $i<$numCol; $i++ ) {
       $stationID =~ s/^\s+|\s+$//g;
       $stationDescription = $fields[2];
       $stationDescription =~ s/^\s+|s+$//g; # strip quotes and any surrounding space
-      print "stuff\n";
-      #print "stationAgency is \"$stationAgency\"\n";
-      #print "stationID is \"$stationID\"\n";
-      #print "stationDescription is \"$stationDescription\"\n";
       # only include the specified stations if only certain stations were 
       # specified
       if ( $stationsOfInterest ne "all" ) {
-         print "stuff\n";         
          unless ( is_member($stationID,@stationIDs)) {
            next;
          }
@@ -408,15 +454,22 @@ for (my $i=3; $i<$numCol; $i++ ) {
    my $psplotName =  $filename . ".ps";       
    $psplotName =~ s/\///g; # strip forward slashes from file name
    # set plot legend
+   my $magdatatitle = "null";
+   my $dirdatatitle = "null";
    my $datatitle = $enstorm;
    if ( $legend eq "stationname" ) {
       $datatitle = $stationName;
    } elsif ( $legend eq "plottype" ) {
       $datatitle = $plotTypesDescriptions{$plotType};
+      if ( is_member($plotType,@vector_files) ) {
+         $magdatatitle = "Speed";
+         $dirdatatitle = "Direction";
+      }
    }
    #
    my $col = $i + 1;       # gnuplot index for data column in time varying files
    my $minmaxcol = $i - 3; # perl index for data column in minmax and time of minmax files
+
    #
    #                M I N   M A X   L A B E L  
    #
@@ -457,9 +510,8 @@ for (my $i=3; $i<$numCol; $i++ ) {
          $datumlabel = $datum;
       } 
       $bathytopolabelcontent = "Site elevation is $bathytopo$bathytopounits $relation $datumlabel";
+      $bathytopolabeltext = "set label \"$bathytopolabelcontent\" at graph 0.1,0.05";
    }
-   $bathytopolabeltext = "set label \"$bathytopolabelcontent\" at graph 0.1,0.05";
-   #
    #              S E T   Y   R A N G E
    #     
    # if station value exceeds ymax, then use the station max as the max on the
@@ -477,31 +529,38 @@ for (my $i=3; $i<$numCol; $i++ ) {
      $myYmin = $ymins[$i];
      stderrMessage("INFO","Station $stanames[$i] has a minimum value of $myYmin, which is less than $default_ymin, the normal minimum range for the plot $plottitle ... therefore the y-axis of this plot will be set to bottom out at $myYmin.");
    } 
-   #
+   #            F I L L   T E M P L A T E
+   #     
    # Create gnuplotscript file 
    unless (open(GPSCRIPT,">$plotDir/$gpscript")) {
       stderrMessage("ERROR","Could not create $plotDir/$gpscript: $!.");
       die;
    }
-   #
-   #            F I L L   T E M P L A T E
-   #     
    #&stderrMessage("DEBUG","Opened $plotDir/$gpscript.");
    while(<TEMPLATE>) {
       #print $_;
       s/%ymin%/$myYmin/;
       s/%ymax%/$myYmax/;
+      s/%y2min%/$y2min/;
+      s/%y2max%/$y2max/;
+      s/%y2tics%/$y2tics/;
       s/%ylabel%/$ylabel/;
+      s/%y2label%/$y2label/;
       s/%startgraph%/$startgraph/;
       s/%endforecast%/$endforecast/;
       s/%plottitle%/$plottitle/;
       s/%psplotname%/$psplotName/;
       s/%transpose%/$fileToPlot/;
+      s/%magdatatitle%/$magdatatitle/;
+      s/%dirdatatitle%/$dirdatatitle/;
       s/%datatitle%/$datatitle/;
       s/%col%/$col/;
+      s/%magcol%/$magcol/;
+      s/%dircol%/$dircol/;
       s/%minmaxlabel%/$labeltext/;      
       s/%bathytopolabel%/$bathytopolabeltext/;
       s/%timezone%/$timezone/;
+      s/%every%/$every/;
       #print $_;
       unless ( $_ =~ "null" ) {         
          print GPSCRIPT $_;
@@ -509,9 +568,13 @@ for (my $i=3; $i<$numCol; $i++ ) {
          print GPSCRIPT "# ".$_;
       }
    }
+   close(TEMPLATE);
+   close(GPSCRIPT);
+   if ( is_member($plotType,@vector_files) ) {
+      $magcol = $magcol + 2;
+      $dircol = $magcol + 1;
+   }
 }
-close(TEMPLATE);
-close(GPSCRIPT);
 #
 #
 sub stderrMessage ($$) {
