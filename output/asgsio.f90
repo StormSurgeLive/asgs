@@ -4,7 +4,7 @@
 ! A module that provides helper subroutines for opening and reading 
 ! ADCIRC files in ascii and netcdf format. 
 !--------------------------------------------------------------------------
-! Copyright(C) 2014--2017 Jason Fleming
+! Copyright(C) 2014--2018 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -822,8 +822,8 @@ end do
 ! 
 ! set the default values rundes and runid attributes in case they need to be written
 ! to ascii output
-rundes = 'rundes' !TODO: make adcirc write this value to netcdf output files
-runid = 'runid'   !TODO: make adcirc write this value to netcdf output files 
+rundes = 'rundes' !TODO: make adcirc write this value to all netcdf output files
+runid = 'runid'   !TODO: make adcirc write this value to all netcdf output files 
 !
 ! Get all the global metadata attribute names and their netcdf data types.
 ! This depends on initialization of file metadata and memory allocation
@@ -834,6 +834,14 @@ allocate(f%nc_attType(f%natt))
 do i=1, f%natt
    ! determine netcdf attribute types
    call check(nf90_inq_attname(f%nc_id, nf90_global, i, f%nc_attName(i)))
+   if (trim(f%nc_attName(i)).eq.'rundes') then
+      call check(nf90_get_att(f%nc_id, nf90_global, f%nc_attName(i), rundes))
+      !write(*,*) trim(rundes)
+   endif
+   if (trim(f%nc_attName(i)).eq.'runid') then
+      call check(nf90_get_att(f%nc_id, nf90_global, f%nc_attName(i), runid))
+      !write(*,*) trim(runid)
+   endif   
    call check(nf90_inquire_attribute(f%nc_id, nf90_global, f%nc_attName(i), f%nc_attType(i)))
 end do
 !

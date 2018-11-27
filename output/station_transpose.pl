@@ -8,7 +8,7 @@
 # different stations and the rows represent time. 
 #
 #----------------------------------------------------------------
-# Copyright(C) 2009--2017 Jason Fleming
+# Copyright(C) 2009--2018 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -39,16 +39,23 @@ use Math::Trig;
 #
 sub stderrMessage($$);
 #
+our %properties; # key/value pairs _read from_ properties files
+our $runproperties = "run.properties"; # full path to metadata file from ASGS 
 my $pi = 3.14159265;
-my $fileToTranspose; # type of file to transpose 
-my $controlFile = "./fort.15"; # full path name of control file
-my $stationFile; # full path name of station output file 
+my $g = 9.81;
+my $density = 1000.0;
+my $averagingperiod = "10min";
+my $fileToTranspose = "null"; # type of file to transpose 
+my $controlfile = "null"; # full path name of control file (parsed to obtain list of stations)
+my $stationfile = "null"; # full path name of station file (list of stations) in standard format 
+my $datafile = "null";    # full path name to file containing data at each station 
 my $format = "space"; # column separator in transposed file (space or comma)
-my $vectorOutput = "magnitude"; # magnitude or direction or raw
-my $coldstartdate; # yyyymmddhh24 when the simulation was coldstarted
+my $separator = " "; 
+my $vectorOutput = "raw"; # "raw" (for east and north values), "compassdirection" or "trigdirection" (degrees) along with magnitude 
+my $coldstartdate = "null"; # yyyymmddhh24 when the simulation was coldstarted
 my $gmtoffset=-5; # number of hours between gmt and local time
-my $timezone="CDT"; # time zone designation to be placed on graphs
-my $units = "english"; # output units, english or si
+my $timezone="GMT"; # time zone designation to be placed on graphs
+my $units = "null"; # output units, english or si
 my $stationlabel = "full"; # how to parse the station label from fort.15
 # on command line, use 
 # --stationlabel full
@@ -69,8 +76,25 @@ my $firstBang;  # where first "!" appears in station metadata in fort.15
 my $secondBang; # where second "!" appears in station metadata in fort.15  
 my $thirdBang;  # where third "!" appears in station metadata in fort.15 
 my $labelLength; # length of station label string
-my $stationPlotLabel; # the string that is pulled from the fort.15 for each station to be used in labeling the associated plot
-my @supported_files = qw(elevation velocity windvelocity barometricpressure);
+my @stationPlotLabels; # the string that is pulled from the fort.15 for each station to be used in labeling the associated plot
+my @supported_files = qw( elevation velocity windvelocity barometricpressure wavedirection significantwaveheight bathytopo );
+my @supported_minmax_files = qw( maxsignificantwaveheight maxelevation maxvelocity maxinundationdepth maxwindvelocity );
+my @supported_time_minmax_files = qw( timemaxelevation timemaxwindvelocity timemaxvelocity timemaxsignificantwaveheight );
+my $multiplier = "null"; # generic multiplier to use on the data
+my $defaultStationLabels = 0;
+my $multiplierarg = "1.0";
+my $reformattedfile = "null"; # name of the reformatted (transposed) data file 
+# initialize the default units for each data type coming from ADCIRC
+my %reformattedUnits = ("elevation", "m", "velocity", "m/s", "windvelocity", 
+   "m/s", "barometricpressure", "mH2O", "wavedirection", "degrees", 
+   "significantwaveheight", "m", "maxsignificantwaveheight", "m",
+   "maxelevation", "m", "maxinundationdepth", "m", "maxwindvelocity", "m/s",
+   "bathytopo", "m" );
+my $hstime = "null"; # optional parameter, used to compute transposed date/times based 
+                    # on hotstart time, coldstartdate, and the output frequency
+                    # in the file, rather than the number of seconds associated
+                    # with each data set in the file
+my $datum;
 my $year;
 my $month;
 my $day;
@@ -86,33 +110,84 @@ my $cs_sec;
 #
 GetOptions(
            "filetotranspose=s" => \$fileToTranspose,
-           "controlfile=s" => \$controlFile,
-           "stationfile=s" => \$stationFile,
+           "controlfile=s" => \$controlfile,
+           "stationfile=s" => \$stationfile,
+           "datafile=s" => \$datafile,
            "format=s" => \$format,
            "vectoroutput=s" => \$vectorOutput,
            "coldstartdate=s" => \$coldstartdate,
+           "hstime=s" => \$hstime,
            "gmtoffset=s" => \$gmtoffset,
+           "datum=s" => \$datum,
            "timezone=s" => \$timezone,
            "stationlabel=s" => \$stationlabel,
+           "runproperties=s" => \$runproperties,
+           "density=s" => \$density,
+           "averagingperiod=s" => \$averagingperiod,
+           "multiplier=s" => \$multiplierarg,
+           "g=s" => \$g,
+           "reformattedfile=s" => \$reformattedfile,           
            "units=s" => \$units
            );
 # 
 # check to make sure that the output file to be transposed is in the list
-unless ( is_member($fileToTranspose,@supported_files)) {
-   my $sf = join(",",@supported_files);
-   stderrMessage("ERROR","The file type to transpose ($fileToTranspose) is not one of the supported file types, which are as follows: $sf."); 
+unless ( is_member($fileToTranspose,@supported_files) || is_member($fileToTranspose,@supported_minmax_files) || is_member($fileToTranspose,@supported_time_minmax_files) ) {
+   my $sf = join(",",@supported_files,@supported_minmax_files,@supported_time_minmax_files);
+   stderrMessage("ERROR","The file type to transpose ($fileToTranspose) is not one of the supported file types, which are as follows: $sf.");
+   die; 
 }
-my $separator = " "; 
+#
+# check to see if this is a minmax or time of minmax file
+my $minmax = 0;
+if ( is_member($fileToTranspose,@supported_minmax_files) ) {
+   $minmax = 1;
+}
+#
+# read the run.properties file if it was specified
+if ( -e $runproperties ) {
+   &loadProperties;
+}
+#
+# if we are producing a csv file
 if ( $format eq "comma" ) {
    $separator = ",";
 }
-$coldstartdate =~ /(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
-$cs_year = $1;
-$cs_mon = $2;
-$cs_day = $3;
-$cs_hour = $4;
-$cs_min = 0;
-$cs_sec = 0;
+#
+# if coldstartdate was supplied on the command line, use that
+if ( $runproperties ne "null" ) {
+   # open run.properties file and read the coldstartdate from there
+   $coldstartdate = $properties{"config.adcirc.time.coldstartdate"};
+   if ( $coldstartdate ) {
+       &stderrMessage("INFO","The coldstartdate from the $runproperties file is $coldstartdate.");
+   } else {
+       &stderrMessage("ERROR","The coldstartdate property could not be found in the run properties file $runproperties.");
+       $coldstartdate = "null";
+       $defaultStationLabels = 1;
+   }
+}
+unless ( $coldstartdate eq "null" ) {
+   $coldstartdate =~ /(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+   $cs_year = $1;
+   $cs_mon = $2;
+   $cs_day = $3;
+   $cs_hour = $4;
+   $cs_min = 0;
+   $cs_sec = 0;
+   &stderrMessage("DEBUG","coldstartdate $cs_year $cs_mon $cs_day $cs_hour $cs_min $cs_sec");
+} else {
+   &stderrMessage("WARNING","The coldstartdate was not specified on the command line and it could not be read from the run.properties file. The times associated with the output will be in units of seconds since ADCIRC cold start.");   
+}
+#
+# check to see if this is a minmax or time of minmax file
+my $time_minmax = 0;
+if ( is_member($fileToTranspose,@supported_time_minmax_files) ) {   
+   $time_minmax = 1;
+   if ( $coldstartdate eq "null" ) {
+      $units = "seconds"
+   } else {
+      $units = "datetime"
+   }
+}
 #
 ######################################################################
 # first, we parse the fort.15 file to get number of each kind of station
@@ -130,139 +205,256 @@ my $metsta_ts_incr = 0;  # time step increment btw met station output
 my $num_met_sta = 0;
 my @met_sta_names;
 my @sta_names;
+my @sta_lines;
 my $sta_type = ""; # which station type we are currently parsing
-my $controlFileFound = 1;
-unless(open(FORT15,"<$controlFile")) {
-   stderrMessage("WARNING","Could not open $controlFile for reading.");
-   stderrMessage("WARNING","The number of stations will be gleaned from the datafile itself.");
-   stderrMessage("WARNING","The station names will default to 'Station1', 'Station2', etc.");
-   $controlFileFound = 0;
-} else {
-   stderrMessage("INFO","The number of stations and the station names will be parsed from the file '$controlFile'.");
-   while(<FORT15>) {
-      my @Fld = split;
-      if ( /(NSTAE)/ || /(NSTAV)/ || /(NSTAM)/ ) {
-         $num_sta = $Fld[0];
-         my $station_type = $1;
-         for ( my $i=0; $i<$num_sta; $i++ ) {
-            my $line =<FORT15>; 
-            chomp($line);
-            # 
-            # determine the location(s) of the exclamation point(s) that
-            # are used to mark out the station name and/or station ID 
-            $firstBang = index($line,"!") + 1;
-            $secondBang = index($line,"!",$firstBang+1);
-            $thirdBang = index($line,"!",$secondBang+1);
-            # make an educated guess as to whether the station definition
-            # line is in adcirc-standard format as follows:
-            # lon lat ! stationID ! agency ! description
-            my $standardMetaData = 0; 
-            if ( $firstBang ne -1 && $secondBang ne -1 && $thirdBang ne -1 ) {
-               $standardMetaData = 1;
-               if ( $stationlabel eq "std" ) {
-                  $stationPlotLabel = substr($line,$firstBang,($secondBang - $firstBang)) . substr($line,($thirdBang + 1),(length($line) - ($thirdBang + 1)));
-               }
-            } 
-            $labelLength = -1;
-            if ( $stationlabel eq "betweenbangs" && $firstBang ne -1 && $secondBang ne -1 ) {
-               $labelLength = $secondBang - $firstBang;
-            } else {
-               $labelLength = length($line) - $firstBang;
+# neither fort.15 or station file provided
+if ( $controlfile eq "null" && $stationfile eq "null" ) {
+   &stderrMessage("WARNING","The number of stations will be gleaned from the datafile itself.");
+   &stderrMessage("WARNING","The station labels will be 'station001', 'station002', etc because the neither the associated control (fort.15) file nor a standalone station file were provided on the command line.");
+   $defaultStationLabels = 1;
+}  
+# both fort.15 and station file provided
+if ( $controlfile ne "null" && $stationfile ne "null" ) {
+   &stderrMessage("WARNING","Both the control (fort.15) file and station file were provided, so the station file will be parsed for the list of stations and the control file will be ignored.");
+}  
+# read station lines from stations file
+if ( $stationfile ne "null" ) {
+   unless( -e $stationfile && open(STATIONFILE,"<$stationfile")) {
+      stderrMessage("ERROR","Could not open $stationfile for reading.");
+      die;
+   } else {
+      stderrMessage("INFO","The number of stations and the station names will be parsed from the stationfile '$stationfile'.");
+      # parse out station names
+      $num_sta = 0;
+      while(<STATIONFILE>) {
+         chomp;
+         push(@sta_lines,$_);
+         $num_sta++;
+      }
+      close(STATIONFILE);
+   }
+}
+# read station lines from fort.15
+if ( ($controlfile ne "null") &&  ($stationfile eq "null") ) {
+   unless(-e $controlfile && open(FORT15,"<$controlfile")) {
+      stderrMessage("ERROR","Could not open $controlfile for reading.");
+      die;
+   } else {
+      stderrMessage("INFO","The number of stations and the station names will be parsed from the file '$controlfile'.");
+      # parse out station names
+      while(<FORT15>) {
+         my @Fld = split;
+         # look for the specified station list         
+         if ( ( ( $fileToTranspose eq "elevation" || 
+                  $fileToTranspose eq "maxelevation" ||
+                  $fileToTranspose eq "maxinundationdepth" )
+                  && /(NSTAE)/ ) 
+                  ||
+              ( ( $fileToTranspose eq "velocity" ) 
+                  && /(NSTAV)/ )
+                  || 
+              ( ( $fileToTranspose eq "windvelocity" ||     
+                  $fileToTranspose eq "barometricpressure" || 
+                  $fileToTranspose eq "wavedirection" ||
+                  $fileToTranspose eq "significantwaveheight" ||
+                  $fileToTranspose eq "maxsignificantwaveheight" ||
+                  $fileToTranspose eq "maxwindvelocity" )
+                  && /(NSTAM)/ ) ) {
+            $num_sta = $Fld[0];
+            my $station_type = $1;
+            for ( my $i=0; $i<$num_sta; $i++ ) {
+               my $line =<FORT15>; 
+               chomp($line);
+               $sta_lines[$i] = $line;
             }
-            if ( $stationlabel eq "after exclamation point" || $stationlabel eq "betweenbangs" ) {           
-               $stationPlotLabel = substr($line,$firstBang,$labelLength);
-               $stationPlotLabel =~ s/^\s+|\s+$//g ;
-            }
-            if ( $stationlabel eq "numbered" ) { 
-               $stationPlotLabel = sprintf("%d",$i + 1);
-            }
-            if ( $stationlabel eq "full" ) {
-               $stationPlotLabel = $line;
-            }
-            if ( $station_type eq "NSTAE" ) {
-               $num_elev_sta = $num_sta;
-               push(@elev_sta_names,$stationPlotLabel);
-            }
-            if ( $station_type eq "NSTAV" ) {
-               $num_vel_sta = $num_sta;
-               push(@vel_sta_names,$stationPlotLabel);  
-            }
-            if ( $station_type eq "NSTAM" ) {
-               $num_met_sta = $num_sta;
-               push(@met_sta_names,$stationPlotLabel);  
-            }
+            close(FORT15);
+            last;
          }
       }
    }
-   close(FORT15);
-   if ( $fileToTranspose eq "elevation" ) {
-      @sta_names = @elev_sta_names;
-   } elsif ( $fileToTranspose eq "velocity" ) {
-      @sta_names = @vel_sta_names;
-   } elsif ( $fileToTranspose eq "windvelocity" || $fileToTranspose eq "barometricpressure" ) {
-      @sta_names = @met_sta_names;
+}
+# parse the station lines (from whatever source) to get metadata if
+# it was provided in standard ASGS metadata format for stations
+# 
+# 
+# determine the location(s) of the exclamation point(s) that
+# are used to mark out the station name and/or station ID 
+my @sta_coords; # two numbers: longitude and latitude
+my @sta_IDs;    # station IDs
+my @sta_agencies; # organization that assigned the ID
+my @sta_descriptions;    # human-readable station descriptions 
+for ( my $i=0; $i<$num_sta; $i++ ) {
+   $firstBang = index($sta_lines[$i],"!");
+   $secondBang = index($sta_lines[$i],"!",$firstBang+1);
+   $thirdBang = index($sta_lines[$i],"!",$secondBang+1);
+   #print "firstBang $firstBang secondBang $secondBang thirdBang $thirdBang\n";
+   # make a guess as to whether the station definition
+   # line is in adcirc-standard format as follows:
+   # lon lat ! stationID ! agency ! description
+   my $standardMetaData = 0; 
+   if ( $firstBang != -1 && $secondBang != -1 && $thirdBang != -1 ) {
+      $standardMetaData = 1;
+      $sta_coords[$i] = substr($sta_lines[$i],0,$firstBang);
+      $sta_coords[$i] =~ s/^\s+//g; # strip spaces
+      $sta_coords[$i] =~ s/\s+$//g; 
+      $sta_IDs[$i] = substr($sta_lines[$i],$firstBang+1,($secondBang-1-$firstBang));
+      $sta_IDs[$i] =~ s/^\s+//g; # strip spaces
+      $sta_IDs[$i] =~ s/\s+$//g;
+      $sta_agencies[$i] = substr($sta_lines[$i],$secondBang+1,($thirdBang-1-$secondBang));
+      $sta_agencies[$i] =~ s/^\s+//g; # strip spaces
+      $sta_agencies[$i] =~ s/\s+$//g;
+      $sta_descriptions[$i] = substr($sta_lines[$i],$thirdBang+1);
+      $sta_descriptions[$i] =~ s/^\s+//g; # strip spaces
+      $sta_descriptions[$i] =~ s/\s+$//g;
+      #print "$sta_coords[$i]\n";
+      #print "$sta_IDs[$i]\n";
+      #print "$sta_agencies[$i]\n";
+      #print "$sta_descriptions[$i]\n";
+      if ( $stationlabel eq "std" ) {
+         $stationPlotLabels[$i] = "$sta_agencies[$i] ! $sta_IDs[$i] ! $sta_descriptions[$i]";
+      }
+   } 
+
+   $labelLength = -1;
+   if ( $stationlabel eq "betweenbangs" && $firstBang ne -1 && $secondBang ne -1 ) {
+      $labelLength = $secondBang - $firstBang;
+   } else {
+      $labelLength = length($sta_lines[$i]) - $firstBang;
    }
+   if ( $stationlabel eq "after exclamation point" || $stationlabel eq "betweenbangs" ) {           
+      $stationPlotLabels[$i] = substr($sta_lines[$i],$firstBang,$labelLength);
+      $stationPlotLabels[$i] =~ s/^\s+|\s+$//g ;
+   } elsif ( $stationlabel eq "numbered" ) { 
+      $stationPlotLabels[$i] = sprintf("%d",$i + 1);
+   } elsif ( $stationlabel eq "full" ) {
+      $stationPlotLabels[$i] = $sta_lines[$i];
+   } elsif ( $stationlabel eq "stationID" ) {
+      $stationPlotLabels[$i] = $sta_IDs[$i];      
+   } elsif ( $stationlabel eq "stationdescription" ) {
+      $stationPlotLabels[$i] = $sta_descriptions[$i];
+   } elsif ( $stationlabel eq "stationcoords" ) {
+      $stationPlotLabels[$i] = $sta_coords[$i];
+   }
+   # remove leading and trailing whitespaces
+   $stationPlotLabels[$i] =~ s/^\s+//g;
+   $stationPlotLabels[$i] =~ s/\s+$//g; 
 }
 #
 # jgfdebug
-stderrMessage("DEBUG","According to the fort.15 file, there are $num_elev_sta elevation stations, $num_vel_sta velocity stations, and $num_met_sta meteorological stations.\n");
+stderrMessage("DEBUG","There are $num_sta stations.\n");
 #
 # check to see if this is scalar data or vector data
-my $fileType;
+my $fileRank = "scalar";
 my $filename;
 my $fileExtension;
 my $total_stations = 0;
 my @station_val = ();
 my @vector_tuple_1 = ();
 my @vector_tuple_2 = ();
-if ( $fileToTranspose eq "elevation" 
-	|| $fileToTranspose eq "barometricpressure" ) {
-   $fileType = "scalar";
-} else {
-   $fileType = "vector";
+my $header;       # start on comment on first line of reformatted file
+if ($units ne "null" ) { 
+   $reformattedUnits{$fileToTranspose} = $units;  
 }
+$header = "dataype=$fileToTranspose units=$reformattedUnits{$fileToTranspose}";
+$header = $header . " stationfile=$stationfile coldstartdate=$coldstartdate";
+$header = $header . " multiplier=$multiplierarg format=$format";
+if ( $fileToTranspose eq "elevation" ||
+     $fileToTranspose eq "maxelevation" ) { 
+   $header = "water surface " . $header;
+} elsif ( $fileToTranspose eq "maxwindvelocity" ||
+          $fileToTranspose eq "timemaxwindvelocity" ) {
+   $header .= " windaveragingperiod=$averagingperiod";
+} elsif ( $fileToTranspose eq "bathytopo" ) {
+   $header = "bathy/topo " . $header;   
+} elsif ( $fileToTranspose eq "wavedirection" ||
+          $fileToTranspose eq "significantwaveheight" ||
+          $fileToTranspose eq "maxsignificantwaveheight" ||
+          $fileToTranspose eq "maxinundationdepth" ) { 
+   # $header = ""; ... placeholder
+} elsif ( $fileToTranspose eq "barometricpressure" ) {
+   $header .= " waterdensity=$density gravitationalaccel=$g";
+} elsif ( $fileToTranspose eq "velocity" ) {
+   $header .= " vectoroutput=$vectorOutput"; 
+   $fileRank = "vector";
+} elsif ( $fileToTranspose eq "windvelocity" ) {
+   $header .= " direction=$vectorOutput"; 
+   $fileRank = "vector";
+   $header .= " windaveragingperiod=$averagingperiod";
+}
+# set separator character whether a space-delimited or comma-delimited file
 if ( $format eq "comma" ) {
    $fileExtension = ".csv";
 } else {
    $fileExtension = ".txt";
 }
-unless (open(STAFILE,"<$stationFile")) {
-   stderrMessage("ERROR","Could not open $stationFile: $!.");
-   exit(1);
+#--------------------------------------------------------- 
+#      R E A D   S T A T I O N   D A T A   A N D   
+#     W R I T E   R E F O R M A T T E D   F I L E
+#--------------------------------------------------------- 
+# open up the station data file for reading
+unless (open(DATAFILE,"<$datafile")) {
+   &stderrMessage("ERROR","Could not open data file $datafile for reading: $!.");
+   die;
 } 
-my $transposeFilename = $stationFile . "_transpose" . $fileExtension;
-unless (open(TRANSPOSE,">$transposeFilename")) {
-   stderrMessage("ERROR","Could not open $transposeFilename: $!.");
-   exit(1);
+# open up the transposed data file for writing
+my $transposeFilename = $datafile . "_transpose" . $fileExtension;
+if ( $reformattedfile ne "null" ) {
+   $transposeFilename = $reformattedfile;
 }
+unless (open(TRANSPOSE,">$transposeFilename")) {
+   &stderrMessage("ERROR","Could not open $transposeFilename for writing: $!.");
+   die;
+}
+#--------------------------------------------------------- 
+#  READ FILE AND PROCESS LINES ACCORDINGLY
+#--------------------------------------------------------- 
 my $time;
-while (<STAFILE>) {
+my $num_datasets = 0;
+my $output_frequency = "null";
+while (<DATAFILE>) {
    #
-   # the first line in the file is a comment line; transcribe it to the 
+   # reset the multiplier before processing this line
+   $multiplier = 1.0;
+   if ($multiplierarg ne "null") {
+      $multiplier = $multiplierarg; # save for writing to header of output file
+   }
+   #
+   # if this is the first line in the file it is a comment line; transcribe it to the 
    # transposed file as a gnuplot comment line
    if ($. == 1 ) {
       chomp;
-      printf TRANSPOSE "# " . $_ . "\n";
+      printf TRANSPOSE "# $header comment=\"" . $_ . "\"\n";
       next;
    } 
    #
    # 2nd line in the file contains the number of stations;
    # this number must match the number of stations from the fort.15 file
    if ($. == 2) {
-      m/^\s*([^\s]*)\s*([^\s]*)/;
+      m/^\s*([^\s]*)\s*([^\s]*)\s*([^\s]*)/;
       $total_stations = $2;
+      $output_frequency = $3;
+      if ( $total_stations != $num_sta ) {
+         &stderrMessage("ERROR","The total number of stations in the data file is $total_stations but the total number of stations in the station file is $num_sta. The number of stations must match.");
+      }
       stderrMessage("INFO","Output file '$transposeFilename' contains $total_stations stations.\n");
-      # if the user didn't specify a fort.15, create default station names,
+      stderrMessage("INFO","Output frequency is $output_frequency seconds.\n");
+      # if the user didn't specify a fort.15 or station file, create default station names,
       # using the number of stations we just found in the station output file
-      if ( $controlFileFound == 0 ) { 
+      if ( $defaultStationLabels == 1 ) { 
          for (my $i=0; $i<$total_stations; $i++ ) {
             my $default_station_number = $i+1;
             $sta_names[$i] = "Station" . $default_station_number;
          }
       }
       # write the names of the stations on the next line according to the requested format
-      printf TRANSPOSE "#DATE" . $separator . "TIME" . $separator . "TIMEZONE" . $separator;
-      foreach (@sta_names) {
+      if ( $minmax == 0 && $time_minmax == 0 && $fileToTranspose ne "bathytopo" ) {
+         unless ( $coldstartdate eq "null" ) {
+            printf TRANSPOSE "#DATE" . $separator . "TIME" . $separator . "TIMEZONE" . $separator;
+         } else {
+            printf TRANSPOSE "#TIMESEC" . $separator;         
+         }
+      }
+      foreach (@stationPlotLabels) {
           printf TRANSPOSE "\"$_\"" . $separator;
       }
       printf TRANSPOSE "\n";
@@ -272,21 +464,32 @@ while (<STAFILE>) {
    # there is a header line with the time, at the start of each dataset
    if ($. > 2 && ($.-3) % ($total_stations+1) == 0) {
       #
-      # grab the new time (assumed to be in gmt), converting to 
-      # specified local time 
-      m/^\s*([^\s]*)\s*([^\s]*)\s*$/;
-      ($year,$month,$day,$hour,$min,$sec)
-         = Date::Pcalc::Add_Delta_DHMS($cs_year,$cs_mon,$cs_day,
-            $cs_hour,$cs_min,$cs_sec,0,$gmtoffset,0,sprintf("%2d",$1));
-      
-      $time = sprintf("%4s-%02s-%02s$separator%02s:%02s:%02d$separator",
-                $year,$month,$day,$hour,$min,$sec);
+      # grab the new time (assumed to be in gmt)
+      my $data_seconds = "null";
+      if ( $hstime ne "null" ) {
+         # use the hotstart time and output frequency to compute the time
+         # in seconds associated with this dataset
+         $data_seconds = $hstime + $output_frequency * ($num_datasets + 1);
+      } else {
+         m/^\s*([^\s]*)\s*([^\s]*)\s*$/;
+         $data_seconds = $1;
+      }         
+      if ( $coldstartdate ne "null" ) {
+         # converting to specified local time 
+         ($year,$month,$day,$hour,$min,$sec)
+            = Date::Pcalc::Add_Delta_DHMS($cs_year,$cs_mon,$cs_day,
+               $cs_hour,$cs_min,$cs_sec,0,$gmtoffset,0,sprintf("%2d",$data_seconds));
+         $time = sprintf("%4s-%02s-%02s %02s:%02s:%02d$separator",
+                   $year,$month,$day,$hour,$min,$sec);
+      } else {
+         $time = $data_seconds;
+      }
       next;
    }
    #
    # this is data (not the file header or the individual dataset header)
    my $stationNumber;
-   if ( $fileType eq "scalar" ) {
+   if ( $fileRank eq "scalar" ) {
       my $scalar;
       # parse out the station number and the value
       m/^\s*(\d*)\s*(.*)\s*$/;
@@ -295,37 +498,84 @@ while (<STAFILE>) {
       if ( $2 == "-0.9999900000E+05" || $2 =~/NaN/) {
          $scalar = -99999;
       } else {
-         $scalar = $2; 
+         # apply the user-specified multiplier given on the command line
+         $scalar = $2*$multiplier; 
       }
       #
-      # units in output file are assumed to be SI; convert to english
-      # if requested 
-      if ( $scalar != -99999 && $units eq "english" ) {
-         if ( $fileToTranspose eq "elevation" ) {
-            # convert m to ft
-            $scalar *= (100.0 / (2.54 * 12.0));
+      # the default is to pass through the data in ADCIRC SI units but 
+      # conversions are possible
+      if ( $scalar != -99999 ) {
+         if  ( ($fileToTranspose eq "elevation") || 
+               ($fileToTranspose eq "maxelevation") ||
+               ($fileToTranspose eq "maxvelocity") ||
+               ($fileToTranspose eq "bathytopo") ||
+               ($fileToTranspose eq "maxinundationdepth") ||
+               ($fileToTranspose eq "significantwaveheight") ||
+               ($fileToTranspose eq "maxsignificantwaveheight") 
+                ) {
+            if ( ($units eq "ft") || ($units eq "feet") || ($units eq "fps" ) ) {
+               # convert m to ft
+               $scalar *= (100.0 / (2.54 * 12.0));
+            }
          }
          if ( $fileToTranspose eq "barometricpressure" ) {
-            stderrMessage("ERROR","Output in english units is not available for barometric pressure.");
+            if ( ($units eq "mb") || ($units eq "millibar" ) || ($units eq "millibars" ) ) {
+               # convert from m of water to mb: multiply by rho_0 g to get 
+               # Pascals, then divide by 100 to get mb
+               $scalar *= ($density * $g / 100.0);
+            }
          }
-      } 
-      if ( $scalar != -99999 && $fileToTranspose eq "barometricpressure" ) {
-         # convert from m of water to mb: multiply by rho_0 g to get 
-         # Pascals, then divide by 100 to get mb
-         $scalar *= (1000.0 * 9.81 / 100.0);
+         if ( $fileToTranspose eq "maxwindvelocity" ) {
+            if ( $units eq "mph" ) {
+               $scalar *= 2.2369363;
+            } elsif ( $units eq "kts" || $units eq "kts" ) {
+               $scalar *= 1.0/0.514444444; # convert m/s to kts 
+            }
+            if ( $averagingperiod eq "1min" ) {
+               $scalar *= 1.136; # convert 10 minute winds to 1 minute winds               
+            }
+         }
+         # if this is time of occurrence data convert to a date based
+         # on the cold start date/time and the value
+         if ( $fileToTranspose eq "timemaxelevation" ||
+              $fileToTranspose eq "timemaxwindvelocity" ||
+              $fileToTranspose eq "timemaxvelocity" ||
+              $fileToTranspose eq "timemaxsignificantwaveheight" ) {
+            if ( $coldstartdate ne "null" ) {
+               # converting to date/time string with timezone
+               ($year,$month,$day,$hour,$min,$sec)
+                  = Date::Pcalc::Add_Delta_DHMS($cs_year,$cs_mon,$cs_day,
+                  $cs_hour,$cs_min,$cs_sec,0,$gmtoffset,0,sprintf("%2d",$scalar));
+               $scalar = sprintf("\"%4s-%02s-%02s %02s:%02s:%02d $timezone\"",
+                   $year,$month,$day,$hour,$min,$sec);
+               if ( $format eq "comma" ) {
+                  $scalar = sprintf("%4s-%02s-%02s %02s:%02s:%02d $timezone",
+                   $year,$month,$day,$hour,$min,$sec);
+               }
+            } else {
+               # leave the data value as the time in seconds since cold
+               # start if we don't have a date/time associated with cold start
+            }
+         }
       }
       $station_val[$1-1] = $scalar;
    } else {
       # this is vector data
       my $tuple_1;
       my $tuple_2;
-      my $multiplier = 1.0;
-      if ( $units eq "english" ) {
-         $multiplier = 1.0/0.514444444; # convert m/s to kts 
+      if ( $units eq "kts" || $units eq "knots" || $units eq "kt" ) {
+         $multiplier *= 1.0/0.514444444; # convert m/s to kts 
       }
-      if ( $fileToTranspose eq "windvelocity" ) {
+      if ( $fileToTranspose eq "windvelocity" && $averagingperiod eq "1min") {
          $multiplier *= 1.136; # convert 10 minute winds to 1 minute winds
       }
+      if ( ($units eq "ft/s") || ($units eq "fps" )  ) {
+         # convert m to ft
+         $multiplier *= (100.0 / (2.54 * 12.0));
+      } elsif ( $units eq "mph" ) {
+         $multiplier *= 2.2369363;
+      }
+      # parse out the station number and the two data values
       m/^\s*([^\s]*)\s*([^\s]*)\s*([^\s]*)\s*$/;
       $stationNumber = $1;
       if ( !($2 =~ /NaN/) && !($2 =~/Inf/) && !($2 == -99999 ) ) {
@@ -344,9 +594,21 @@ while (<STAFILE>) {
    #
    # if we have collected a complete dataset, write it now
    if ( $stationNumber == $total_stations ) {
-      printf TRANSPOSE $time . "$timezone" . $separator;
+      # first column: date/time, unless this is time_minmax file, in which
+      # case, we don't need the time in the first column (there is only 
+      # one row)
+      if ( $minmax == 0 && $time_minmax == 0 && $fileToTranspose ne "bathytopo" ) {
+         # create the column for the time and time zone
+         unless ( $coldstartdate eq "null" ) {      
+            printf TRANSPOSE $time . "$timezone" . $separator;
+         } else {
+            printf TRANSPOSE $time . $separator;
+         }
+      } else {
+         # do nothing: don't need a time column in a minmax or time of minmax file
+      }         
       # write scalar data 
-      if ( $fileType eq "scalar" ) { 
+      if ( $fileRank eq "scalar" ) { 
          # scalar data
          foreach (@station_val) {
             printf TRANSPOSE ("%20s",$_);
@@ -361,32 +623,44 @@ while (<STAFILE>) {
             # we have two valid values
             } elsif ( $vector_tuple_1[$i] != -99999 
                    && $vector_tuple_2[$i] != -99999 ) {
-               if ( $vectorOutput eq "magnitude" ) {
-                  printf TRANSPOSE ("%20s",sqrt($vector_tuple_1[$i]*$vector_tuple_1[$i] + $vector_tuple_2[$i]*$vector_tuple_2[$i]));
-               } elsif ( $vectorOutput eq "direction" ) {
-                  # assumes vectors are in east and north components
-                  my $direction = 0.0;
-                  # if north component is zero
-                  #if ( $vector_tuple_2[$i] ) {
-                  #   # if east component is negative
-                  #   if ( $vector_tuple_1[$i] < 0.0 ) {
-                  #      $direction = 270.0;
-                  #   } else { # east component is negative or zero
-                  #      $direction = 90.0;
-                  #   }
-                  #} 
-                  # if both components are nonzero
-                  if ( $vector_tuple_1[$i] == 0.0 && $vector_tuple_2[$i] == 0.0 ) {  
-                    $direction = -99999;
-                  } else {
-                    # my $direction = 360.0 - atan($vector_tuple_2[$i]/$vector_tuple_1[$i])*(360.0/(2.0*$pi));
-                     $direction = (180.0+(atan2($vector_tuple_1[$i],$vector_tuple_2[$i])*180.0/$pi ) ) % 360.0;
+               my $magnitude = sqrt($vector_tuple_1[$i]*$vector_tuple_1[$i] + $vector_tuple_2[$i]*$vector_tuple_2[$i]);
+               my $trigdirection = 0.0;
+               my $compassdirection = 0.0;
+               # avoid division by zero if north velocity is zero
+               if ( $vector_tuple_2[$i] == 0.0 && $vector_tuple_1[$i] >= 0.0 ) {
+                  # wind/current going due east
+                  $trigdirection = 0.0; 
+               } elsif ( $vector_tuple_2[$i] == 0.0 && $vector_tuple_1[$i] < 0.0 ) {
+                  # wind/current going due west
+                  $trigdirection = 180.0;
+               } else {
+                  $trigdirection = (180.0/$pi) * atan2($vector_tuple_2[$i],$vector_tuple_1[$i]);
+                  # get a positive value from 0 to 360
+                  if ( $trigdirection < 0.0 ) {
+                     $trigdirection += 360.0;
                   }
-                  printf TRANSPOSE ("%20s",$direction);
+               }
+               # compass degrees for water current reflect the direction the current is going 
+               if ( $fileToTranspose eq "velocity" ) {
+                  $compassdirection = 90.0 - $trigdirection; # add 360.0 later
+               } else {
+                  # compute wind direction in compass degrees based on the standard that winds
+                  # are reported as the direction they are coming from
+                  $compassdirection = 90.0 - $trigdirection;
+
+               }
+               if ( $compassdirection <= 0.0 ) {
+                  $compassdirection += 360.0; 
+               }
+               # write out the magnitude and direction
+               if ( $vectorOutput eq "compassdegrees" ) {     
+                  printf TRANSPOSE ("%20s %20s",$magnitude,$compassdirection);
+               } else {
+                  printf TRANSPOSE ("%20s %20s",$magnitude,$trigdirection);                  
                }
             } else {
                # we have invalid values
-               printf TRANSPOSE "-99999";
+               printf TRANSPOSE "-99999 -99999";
             }
             printf TRANSPOSE $separator;
          }
@@ -394,11 +668,27 @@ while (<STAFILE>) {
          @vector_tuple_2 = ();
       }
       printf TRANSPOSE "\n";
+      $num_datasets++;
    }
 }
-close(STAFILE);
 close(TRANSPOSE);
-
+#
+# Final log messages
+&stderrMessage("INFO","Wrote $num_datasets datasets.\n");
+#
+if ( $fileToTranspose eq "windvelocity" || $fileToTranspose eq "maxwindvelocity" ) {
+   &stderrMessage("INFO","The wind data were written with a multiplier corresponding to a $averagingperiod averaging period.");
+   if ( $vectorOutput eq "compassdegrees" ) {
+      &stderrMessage("INFO","The wind direction was written in compass degrees that indicate the direction the winds are coming FROM (i.e., a direction of 0 degrees indicates winds blowing from the north to the south).");
+   } 
+}
+if ( $vectorOutput eq "trigdegrees" ) {
+   &stderrMessage("INFO","The vector direction was written in trigonometric degrees that indicate the direction the wind/current is going (i.e., a direction of 0 degrees indicates motion from west to east).");      
+}
+#
+#-----------------------------------------------------------------
+#       F U N C T I O N      I S   M E M B E R
+#-----------------------------------------------------------------
 # General subroutine used to test if an element is already in an array
 sub is_member {
   my $test = shift;
@@ -412,7 +702,48 @@ sub is_member {
   }
   return $ret;
 }
-
+#
+#-----------------------------------------------------------------
+#       F U N C T I O N     L O A D   P R O P E R T I E S 
+#-----------------------------------------------------------------
+# load all properties from the run.properties metadata file produced
+# by the ASGS; these consist of key/value pairs separated by ":"
+sub loadProperties {
+   if ( -e $runproperties ) { 
+      unless (open(RP,"<$runproperties") ) {
+         &stderrMessage("ERROR","Found the run.properties file but could not open it: $!.");
+         die;
+      } else {
+         &stderrMessage("INFO","Found and opened the run.properties file.");
+      }         
+   } else {
+      &stderrMessage("INFO","The run.properties file was not found.");
+      $runproperties = "null";
+      return;
+   }
+   while (<RP>) {
+      my $k;  # property key
+      my $v;  # property value
+      my $colon = index($_,":");
+      #($k,$v)=split(':',$_);
+      $k = substr($_,0,$colon);
+      $v = substr($_,$colon+1,length($_));
+      chomp($k);
+      chomp($v);
+      # remove leading and trailing whitespaces from the key and value
+      $k =~ s/^\s+//g;
+      $k =~ s/\s+$//g; 
+      $v =~ s/^\s+//g;
+      $v =~ s/\s+$//g; 
+      #&stderrMessage("DEBUG","loadProperties: key is '$k' and value is '$v'");
+      $properties{$k}=$v;
+   }
+   close(RP);
+}
+#
+#-----------------------------------------------------------------
+#       F U N C T I O N    S T D E R R M E S S A G E 
+#-----------------------------------------------------------------
 sub stderrMessage ($$) {
    my $level = shift;
    my $message = shift;
