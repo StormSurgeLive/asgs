@@ -850,7 +850,8 @@ monitorJobs()
    done
    logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job has started."
    startTime=`date +%s`  # epoch seconds
-   until [[ -e ${ENSTORM_TEMP}.run.finish || -e ${ENSTORM_TEMP}.run.error ]]; do
+   retries=0  # count resubmits on hatteras due to io errors
+   while [[ 1 ]]; do
       sleep 10
       if ! checkTimeLimit $startTime $WALLTIME ; then
          THIS="asgs_main.sh>monitorJobs()"
@@ -885,14 +886,39 @@ monitorJobs()
             done
          fi
       fi
+      if [[ -e ${ENSTORM_TEMP}.run.error ]]; then
+         if [[ $QUEUESYS = "SLURM" ]]; then
+            # check to see if there was an i/o error reading the hotstart  file,
+            # and if so, resubmit the job
+            $SCRIPTDIR/monitoring/hatteras/hatteras_io_error_detector.pl --outfile ${ENSTORM_TEMP}.out >> $SYSLOG 2>&1 
+            if [[ -e netcdf_io.error ]]; then
+               retries=`expr $retries + 1`
+               logMessage "$ENSTORM_TEMP: $THIS: There was an i/o error reading the hotstart file. Resubmitting job."
+               retriesStr=`printf "%02d" $retries`
+               # store ends of subdomain logs
+               tail PE*/fort.16 > fort16.log 2>> $SYSLOG 2>&1
+               for file in `ls *.error *.out *.log`; do 
+                  mv $file ${file}.${retriesStr} 2>> $SYSLOG 2>&1
+               done
+               for jobtype in padcirc padcswan; do 
+                  if [[ -e ${jobtype}.slurm ]]; then
+                     sbatch ${jobtype}.slurm >> $SYSLOG 2>&1
+                     break
+                  fi
+               done
+               continue
+            fi
+         else
+            error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
+            cat ${ENSTORM_TEMP}.run.error >> jobFailed
+            break
+         fi
+      fi
+      if [[ -e ${ENSTORM_TEMP}.run.finish ]]; then
+         logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job appears to have run to completion successfully."
+         break
+      fi
    done
-   if [[ -e ${ENSTORM_TEMP}.run.error ]]; then
-     error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
-     cat ${ENSTORM_TEMP}.run.error >> jobFailed
-   fi
-   if [[ -e ${ENSTORM_TEMP}.run.finish ]]; then
-     logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job appears to have run to completion successfully."
-   fi
    logMessage "$ENSTORM_TEMP: $THIS: Finished monitoring $ENSTORM_TEMP job."
 }
 #
