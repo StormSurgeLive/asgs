@@ -44,8 +44,9 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables 
-SCRIPTDIR=~/asgs/2014stable        # ASGS scripts/executables  
+ADCIRCDIR=~/adcirc/forks/jasonfleming/v53release/work # ADCIRC executables 
+SWANDIR=~/adcirc/forks/jasonfleming/v53release/swan # ADCIRC executables 
+SCRIPTDIR=~/asgs/branches/2014stable        # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v6b   # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module

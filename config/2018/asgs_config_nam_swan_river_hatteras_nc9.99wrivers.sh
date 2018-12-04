@@ -46,8 +46,8 @@ REINITIALIZESWAN=yes       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/v53release/work  # ADCIRC executables 
-SWANDIR=~/adcirc/forks/adcirc/v53release/swan  # SWAN executables 
+ADCIRCDIR=~/adcirc/forks/jasonfleming/v53release/work  # ADCIRC executables 
+SWANDIR=~/adcirc/forks/jasonfleming/v53release/swan  # SWAN executables 
 SCRIPTDIR=~/asgs/branches/2014stable     # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v9.99_w_rivers # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
