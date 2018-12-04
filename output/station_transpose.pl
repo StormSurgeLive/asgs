@@ -90,6 +90,10 @@ my %reformattedUnits = ("elevation", "m", "velocity", "m/s", "windvelocity",
    "significantwaveheight", "m", "maxsignificantwaveheight", "m",
    "maxelevation", "m", "maxinundationdepth", "m", "maxwindvelocity", "m/s",
    "bathytopo", "m" );
+my $hstime = "null"; # optional parameter, used to compute transposed date/times based 
+                    # on hotstart time, coldstartdate, and the output frequency
+                    # in the file, rather than the number of seconds associated
+                    # with each data set in the file
 my $datum;
 my $year;
 my $month;
@@ -112,6 +116,7 @@ GetOptions(
            "format=s" => \$format,
            "vectoroutput=s" => \$vectorOutput,
            "coldstartdate=s" => \$coldstartdate,
+           "hstime=s" => \$hstime,
            "gmtoffset=s" => \$gmtoffset,
            "datum=s" => \$datum,
            "timezone=s" => \$timezone,
@@ -405,6 +410,7 @@ unless (open(TRANSPOSE,">$transposeFilename")) {
 #--------------------------------------------------------- 
 my $time;
 my $num_datasets = 0;
+my $output_frequency = "null";
 while (<DATAFILE>) {
    #
    # reset the multiplier before processing this line
@@ -424,12 +430,14 @@ while (<DATAFILE>) {
    # 2nd line in the file contains the number of stations;
    # this number must match the number of stations from the fort.15 file
    if ($. == 2) {
-      m/^\s*([^\s]*)\s*([^\s]*)/;
+      m/^\s*([^\s]*)\s*([^\s]*)\s*([^\s]*)/;
       $total_stations = $2;
+      $output_frequency = $3;
       if ( $total_stations != $num_sta ) {
          &stderrMessage("ERROR","The total number of stations in the data file is $total_stations but the total number of stations in the station file is $num_sta. The number of stations must match.");
       }
       stderrMessage("INFO","Output file '$transposeFilename' contains $total_stations stations.\n");
+      stderrMessage("INFO","Output frequency is $output_frequency seconds.\n");
       # if the user didn't specify a fort.15 or station file, create default station names,
       # using the number of stations we just found in the station output file
       if ( $defaultStationLabels == 1 ) { 
@@ -457,16 +465,24 @@ while (<DATAFILE>) {
    if ($. > 2 && ($.-3) % ($total_stations+1) == 0) {
       #
       # grab the new time (assumed to be in gmt)
-      m/^\s*([^\s]*)\s*([^\s]*)\s*$/;
+      my $data_seconds = "null";
+      if ( $hstime ne "null" ) {
+         # use the hotstart time and output frequency to compute the time
+         # in seconds associated with this dataset
+         $data_seconds = $hstime + $output_frequency * ($num_datasets + 1);
+      } else {
+         m/^\s*([^\s]*)\s*([^\s]*)\s*$/;
+         $data_seconds = $1;
+      }         
       if ( $coldstartdate ne "null" ) {
          # converting to specified local time 
          ($year,$month,$day,$hour,$min,$sec)
             = Date::Pcalc::Add_Delta_DHMS($cs_year,$cs_mon,$cs_day,
-               $cs_hour,$cs_min,$cs_sec,0,$gmtoffset,0,sprintf("%2d",$1));
+               $cs_hour,$cs_min,$cs_sec,0,$gmtoffset,0,sprintf("%2d",$data_seconds));
          $time = sprintf("%4s-%02s-%02s %02s:%02s:%02d$separator",
                    $year,$month,$day,$hour,$min,$sec);
       } else {
-         $time = $1;
+         $time = $data_seconds;
       }
       next;
    }
