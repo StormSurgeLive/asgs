@@ -29,7 +29,7 @@
 
 INSTANCENAME=dailyv17a   # "name" of this ASGS process
 #COLDSTARTDATE=2017120100 # calendar year month day hour YYYYMMDDHH24
-COLDSTARTDATE=2018040800 # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2018050800 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -70,7 +70,7 @@ SERQUEUE=single
 if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
-ACCOUNT=loni_cera_2018
+ACCOUNT=loni_cera_2018a
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones

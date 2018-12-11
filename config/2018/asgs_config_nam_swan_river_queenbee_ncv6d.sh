@@ -35,16 +35,17 @@ INSTANCENAME=dailyv6d      # name of this ASGS process
 #COLDSTARTDATE=2017070900
 #COLDSTARTDATE=2017121500
 COLDSTARTDATE=2018022100
-HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
-LASTSUBDIR=null
+#COLDSTARTDATE=2018052700
+HOTORCOLD=hotstart         # "hotstart" or "coldstart" 
+LASTSUBDIR=/ssdwork/jgflemin/asgs15861/2018081400
 HINDCASTLENGTH=30.0        # length of initial hindcast, from cold (days)
-REINITIALIZESWAN=no       # used to bounce the wave solution
+REINITIALIZESWAN=no        # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables 
-SCRIPTDIR=~/asgs/2014stable        # ASGS scripts/executables  
-INPUTDIR=${SCRATCHDIR}/asgs/2014stable/input/meshes/nc_v6b   # dir containing grid and other input files 
+ADCIRCDIR=~/adcirc/forks/adcirc/v53release/work # ADCIRC executables 
+SCRIPTDIR=~/asgs/branches/2014stable        # ASGS scripts/executables  
+INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v6b   # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 
@@ -53,7 +54,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 BACKGROUNDMET=on     # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
 TROPICALCYCLONE=off  # [de]activate tropical cyclone forcing (temp. broken)
-WAVES=on            # [de]activate wave forcing 
+WAVES=off            # [de]activate wave forcing 
 VARFLUX=on           # [de]activate variable river flux forcing
 
 # Computational Resources
@@ -68,10 +69,8 @@ NCPU=159
 NUMWRITERS=1
 NCPUCAPACITY=500
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=workq
-SERQUEUE=single
-ACCOUNT=loni_cera_2018
-SCRATCHDIR=/work/$USER    # vs default /work/cera
+ACCOUNT=loni_cera_2018a
+SCRATCHDIR=/ssdwork/jgflemin
 
 # External data sources : Tropical cyclones
 
@@ -85,7 +84,7 @@ HDIR=/atcf/btk      # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="00,12"
+FORECASTCYCLE="06,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -165,7 +164,7 @@ INITPOST=null_init_post.sh
 POSTPROCESS=queenbee_daily_post.sh
 POSTPROCESS2=null_post.sh
 
-TDS=(renci_tds)
+TDS=(lsu_tds renci_tds)
 TARGET=queenbee  # used in post processing to pick up HPC platform config
 OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
 if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
@@ -177,8 +176,8 @@ OPENDAPNOTIFY="jason.g.fleming@gmail.com"
 
 # Archiving
 
-ARCHIVE=queenbee_archive.sh
-ARCHIVEBASE=/work/jgflemin
+ARCHIVE=enstorm_pedir_removal.sh
+ARCHIVEBASE=/ssdwork/jgflemin
 ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
 # Forecast ensemble members

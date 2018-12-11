@@ -44,8 +44,9 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables 
-SCRIPTDIR=~/asgs/2014stable        # ASGS scripts/executables  
+ADCIRCDIR=~/adcirc/forks/jasonfleming/v53release/work # ADCIRC executables 
+SWANDIR=~/adcirc/forks/jasonfleming/v53release/swan # ADCIRC executables 
+SCRIPTDIR=~/asgs/branches/2014stable        # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v6b   # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
@@ -208,7 +209,7 @@ case $si in
    CONSTRAINT='sandybridge&hatteras'
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=nv6brivers_explicit_rlevel51.nowindreduction.fort.15_template
+   CONTROLTEMPLATE=v6brivers_explicit_rlevel51.nowindreduction.fort.15_template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0    # 5 minute time steps
    NCPU=15               # so total cpus match with other ensemble members

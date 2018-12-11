@@ -91,6 +91,7 @@ if ( ($ncpu%$ppn) != 0 ) {
    $nnodes++;
 }
 # convert wall clock time HH:MM:SS to minutes
+#print $walltime;
 $walltime =~ /(\d{2}):(\d{2}):(\d{2})/;
 my $wallminutes = $1*60 + $2;
 #
