@@ -6,7 +6,7 @@ import json
 
 def usage():
 	print('\nUsage:\n')
-	print('asgs-msgr.py -h -u <Uid> -l <LocationName> -c <ClusterName>  -d <UTCDateTime> -s <StormName> -n <StormNumber> -a <AdvisoryNumber> -m <Message> -y <EventType> -p <Process> -t <PctComplete> -r <State> -q <RunParams> -i <InstanceName> ')
+	print('asgs-msgr.py -h -u <Uid> -l <LocationName> -c <ClusterName>  -d <UTCDateTime> -s <StormName> -n <StormNumber> -a <AdvisoryNumber> -m <Message> -y <EventType> -p <Process> -t <PctComplete> -r <State> -q <RunParams> -i <InstanceName> -k <Transmit> ')
 	print('		')		
 	print(' where -h | --Help		the text you are looking at right now')
 	print('       -u | --Uid        	proc ID of asgs_main.sh process')
@@ -23,6 +23,7 @@ def usage():
 	print('       -r | --State		ASGS run state, STRT | RUNN | PEND | FAIL | WARN | IDLE | EXIT')
 	print('       -q | --RunParams		Info string to put on Dashboard')
 	print('       -i | --InstanceName	ASGS Instance Name for "group" id in messaging')
+	print('       -k | --Transmit   	Whether (or not) to actually transmit message. def="on"')
 	print(' ')
 
 def JsonifyMessage(Uid,
@@ -40,7 +41,10 @@ def JsonifyMessage(Uid,
                    RunParams,
                    InstanceName):
 	
-	msg_obj = {'uid': Uid, 'name': 'asgs', 'physical_location': LocationName, 'clustername': ClusterName, 'date-time': UTCDateTime, 'message': Message, 'event_type': EventType, 'process': Process, 'pctcomplete': PctComplete, 'state': State, 'storm': StormName, 'storm_number': StormNumber, 'advisory_number': AdvisoryNumber, 'run_params': RunParams, 'instance_name': InstanceName}
+	msg_obj = {'uid': Uid, 'name': 'asgs', 'physical_location': LocationName, 'clustername': ClusterName, 
+                   'date-time': UTCDateTime, 'message': Message, 'event_type': EventType, 'process': Process, 
+                   'pctcomplete': PctComplete, 'state': State, 'storm': StormName, 'storm_number': StormNumber, 
+                   'advisory_number': AdvisoryNumber, 'run_params': RunParams, 'instance_name': InstanceName}
 
 	return json.dumps(msg_obj)
 
@@ -60,8 +64,8 @@ def queue_message(message):
 def main(argv):
 
 	Uid = '0'
-        LocationName = 'RENCI'
-	ClusterName = 'hatteras'
+        LocationName = 'unknown'
+	ClusterName = 'unknown'
 	tmpDateTime = datetime.datetime.utcnow()
 	UTCDateTime = tmpDateTime.strftime("%Y-%m-%d %H:%M:%S")
 	StormName = 'unknown'
@@ -71,15 +75,17 @@ def main(argv):
 	EventType = ''
 	Process = 'asgs'
 	PctComplete = '0'
-	State = 'IDLE'
+	State = 'unknown'
         RunParams = 'N/A'
         InstanceName = 'N/A'
+        Transmit = "on"
 
 	try:
-        	opts, args = getopt.getopt(argv,"hu:l:c:d:s:n:a:m:y:p:t:r:q:i:",
+        	opts, args = getopt.getopt(argv,"hu:l:c:d:s:n:a:m:y:p:t:r:q:i:k",
                         ["Help","Uid=","LocationName=","ClusterName=","UTCDateTime=",
                          "StormName=", "StormNumber=", "AdvisoryNumber=", "Message=",
-                         "EventType=", "Process=", "PctComplete=", "State=", "RunParams=", "InstanceName="])
+                         "EventType=", "Process=", "PctComplete=", "State=", "RunParams=",
+                         "InstanceName=", "Transmit="])
 	except getopt.GetoptError as err:
         	print('\nCommand line option error: ' + str(err))
         	usage()
@@ -89,6 +95,8 @@ def main(argv):
 		if opt in ("-h", "--Help"):
 			usage()
 			sys.exit(2)
+		elif opt in ("-k", "--Transmit"):
+        		Transmit = arg
 		elif opt in ("-i", "--InstanceName"):
 			InstanceName = arg
 		elif opt in ("-q", "--RunParams"):
@@ -118,10 +126,9 @@ def main(argv):
 		elif opt in ("-r", "--State"):
 			State = arg
 
-        if (Message == 'none' ):
+        if (Message == 'none'):
                # return without sending 
         	sys.exit()
-
 
 	msg = JsonifyMessage(
 			Uid,
@@ -140,10 +147,14 @@ def main(argv):
                         InstanceName
 			)
 
-	queue_message(msg)
-	print('\n')
-	print(msg)
-	print('\n')
+	if (Transmit == 'on'):
+	        print('\n')
+	        print(msg)
+	        print('\n')
+                queue_message(msg)
+        else:
+                #print('Message not transmitted.\n')
+                print('\n')
 
 
 if __name__ == "__main__":
