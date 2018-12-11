@@ -1,5 +1,10 @@
 # ASGS : Enabling and Using Messaging
-This is the RENCI fork of the ASGS code, for instrumenting ASGS with RabbitMQ messaging and porting to Penguin On Demand (POD).  This new (late 2018) feature sends ASGS status messages using the RabbitMQ implementation of AMQP.  The messaging code is written in python, and is called from the ASGS logging.sh facility.  Specific messages are generated within asgs_main.sh to reflect the current activity of the main script.  The messages are sent (via pika) to a RabbitMQ server/queue at RENCI.  Each incoming message is parsed and stored in a PostGRES database.  A Django-based web infrastructure then queries the database (at a 3-sec interval, e.g.) to populate a webpage with ASGS instance status and runtime information.  The draft/version 0.5 webpage looks like this:
+This is the RENCI fork of the ASGS code, for instrumenting ASGS with RabbitMQ messaging and porting to Penguin On Demand (POD).  This new (late 2018) feature sends ASGS status messages using the RabbitMQ implementation of AMQP.  The messaging code is written in python, and is called from the ASGS logging.sh facility.  Specific messages are generated within asgs_main.sh to reflect the current activity of the main script.  The messages are sent (via pika) to a RabbitMQ server/queue at RENCI.  Each incoming message is parsed and stored in a PostGRES database.  A Django-based web infrastructure then queries the database (at a 3-sec interval, e.g.) to populate a webpage with ASGS instance status and runtime information.  The basic system looks like this: 
+
+![ASGS-Dash-Schem](/doc/figures/asgs-schem.png)
+
+
+The draft/version 0.5 webpage looks like this:
 
 ![ASGS-Dash](/doc/figures/asgsdash.png)
 
