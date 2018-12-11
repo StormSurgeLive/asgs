@@ -4,4 +4,4 @@ This is the RENCI fork of ASGS for instrumenting the code with RabbitMQ messagin
 
 See ASGS_Setup.md for detailed "basic setup" notes, which are relevant for any new user.
 
-See ASGS_Messaging.md for enabling RMQ messsaging. 
+See ASGS_RMQMessaging.md for enabling RMQ messsaging. 
