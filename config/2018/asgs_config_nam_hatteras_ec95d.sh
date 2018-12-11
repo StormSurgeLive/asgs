@@ -28,8 +28,8 @@
 #
 # Fundamental 
 #
-INSTANCENAME=rmqtest      # name of this ASGS process (Change this for every new instance)
-COLDSTARTDATE=2018080600  # (date to start cold start from )
+INSTANCENAME=rmqtest-NAM      # name of this ASGS process (Change this for every new instance)
+COLDSTARTDATE=2018110700  # (date to start cold start from )
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)  
@@ -59,7 +59,7 @@ HINDCASTWALLTIME="06:00:00"   # river inital and tidal spinup time in machine
 ADCPREPWALLTIME="00:05:00"
 NOWCASTWALLTIME="01:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="01:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=256
+NCPU=64
 NUMWRITERS=0
 NCPUCAPACITY=256
 CYCLETIMELIMIT="05:00:00"
@@ -156,6 +156,8 @@ ASGSADMIN="$ems"
 
 # RMQ Messaging
 
+RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
 RMQMessaging_NcoHome="/home/bblanton/"
 RMQMessaging_Python="/projects/storm_surge/anaconda/bin/python"

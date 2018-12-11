@@ -27,9 +27,9 @@
 # Log file will be in the directory where the asgs was executed
 
 sigint(){
-   #echo "Received Ctrl-C from console.  Shutting ASGS down...'"
-   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..." 
-   exit 0
+  echo "Received Ctrl-C from console.  Shutting ASGS down...'"
+  RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..." 
+  exit 0
 }
 
 RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
@@ -50,9 +50,11 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
   if ! [[ $PCTCOM =~ $re ]] ; then
       echo "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message." 
   else
-     printf "RMQ-%4s : %4s : %21s : %4s : %5.1f : %s : %s\n" "$MTYPE" $EVENT "$DATETIME" $STATE $PCTCOM $PROCESS  "$5"
+     printf "RMQ : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" "$MTYPE" $EVENT "$DATETIME" $STATE $PCTCOM $PROCESS  "$5"
 
      # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
+#     echo "RMQMessaging_Transmit=$RMQMessaging_Transmit"
+
      ${RMQMessaging_Python} ${RMQMessaging_Script} --Uid $$ \
                            --LocationName ${RMQMessaging_LocationName} \
                            --ClusterName ${RMQMessaging_ClusterName} \
@@ -65,7 +67,8 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
                            --PctComplete $PCTCOM \
                            --State $STATE \
                            --RunParams $RMQRunParams \
-                           --InstanceName $INSTANCENAME
+                           --InstanceName $INSTANCENAME \
+                           --Transmit ${RMQMessaging_Transmit}
    fi
 }
 
