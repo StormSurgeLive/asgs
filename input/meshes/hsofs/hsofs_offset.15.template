@@ -36,7 +36,7 @@ surface_submergence_state
 0.0              ! CORI - CORIOLIS PARAMETER - IGNORED IF NCOR = 1
 8      ! NUMBER OF TIDAL POTENTIAL CONSTITUENTS BEING FORCED
 K1     !ALPAHANUMERIC DESCRIPTION OF TIDAL POTENTIAL CONSTIT.
-  0.141565  0.000072921158358  0.736  %K1NF%  %K2EQARG% 
+  0.141565  0.000072921158358  0.736  %K1NF%  %K1EQARG% 
 O1
   0.100514  0.000067597744151  0.695  %O1NF%  %O1EQARG% 
 P1
@@ -53,7 +53,7 @@ K2
   0.030704  0.000145842317201  0.693  %K2NF%  %K2EQARG%
 8  ! NBFR: bnd forcing
 K1
-  0.000072921158358  %K1NF%  %K2EQARG% 
+  0.000072921158358  %K1NF%  %K1EQARG% 
 O1
   0.000067597744151  %O1NF%  %O1EQARG%
 P1
@@ -1591,5 +1591,5 @@ jason.fleming@seahorsecoastal.com    ! NCCONT - CONTACT INFORMATION
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
 &inundationOutputControl inundationOutput=.true. /
 &metControl WindDragLimit=0.0028 / 
-! jgf: offset hard coded for matthew test advisory 23 
-&offsetControl offsetFileName='/home/ncfs/asgs/2014stable/input/sample_advisories/offset_test.dat',  offsetRampStart=2912988.0, offsetRampEnd=3002400.0, offsetRampReferenceTime='coldstart' /
+! jgf: offset 
+&offsetControl offsetFileName='/home/ncfs/asgs/branches/2014stable/input/meshes/hsofs/oi_surface_NOMAD1e_0.3048.dat', offsetRampStart=19051200.0, offsetRampEnd=19072800.0, offsetRampReferenceTime='coldstart' /
