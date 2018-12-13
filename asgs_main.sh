@@ -890,10 +890,15 @@ monitorJobs()
       sleep 15
       # execute the FortCheck.py code to get a %complete status
       if [[ -e "fort.61.nc" ]] ; then
-        #pc=`${SCRIPTDIR}/fortcheck.sh fort.61.nc 2>> $SYSLOG`
-        #echo "${RMQMessaging_Python} ${SCRIPTDIR}/FortCheck.py fort.61.nc"
-        pc=`${RMQMessaging_Python} ${SCRIPTDIR}/FortCheck.py fort.61.nc 2>> $SYSLOG`
-        RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "RUNN" "The $ENSTORM_TEMP job is running..." $pc
+         #pc=`${SCRIPTDIR}/fortcheck.sh fort.61.nc 2>> $SYSLOG`
+         #echo "${RMQMessaging_Python} ${SCRIPTDIR}/FortCheck.py fort.61.nc"
+         #
+         # RMQMessaging_Python will be undefined if RMQMessaging is not
+         # enabled
+         if [[ $RMQMessaging_Enable = on ]]; then
+            pc=`${RMQMessaging_Python} ${SCRIPTDIR}/FortCheck.py fort.61.nc 2>> $SYSLOG`
+            RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "RUNN" "The $ENSTORM_TEMP job is running..." $pc
+         fi
       fi
       # check job run status
       if ! checkTimeLimit $startTime $WALLTIME ; then
@@ -1505,8 +1510,8 @@ writeJobResourceRequestProperties()
 #               B E G I N     E X E C U T I O N
 #####################################################################
 THIS="asgs_main.sh"
-CURRENT_EVENT="STRT"
-CURRENT_STATE="INIT"
+CURRENT_EVENT="STRT" # used for RMQ messages
+CURRENT_STATE="INIT" # used for RMQ messages
 #
 #
 # Option Summary
@@ -1564,7 +1569,7 @@ SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG
 . ${SCRIPTDIR}/logging.sh
 # Bring in platform-specific configuration
 . ${SCRIPTDIR}/platforms.sh
-
+#
 # RMQMessaging config
 # this verifies that messages can be constructed.  It is possible
 # that asgs-msgr.sh will set RMQMessaging to "off", in which case
