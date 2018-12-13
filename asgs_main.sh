@@ -773,12 +773,13 @@ downloadBackgroundMet()
    cd $RUNDIR 2>> ${SYSLOG}
    if [[ $ENSTORM != "nowcast" ]]; then
       grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//' > currentCycle 2>> ${SYSLOG}
+      logMessage "According to the statefile $STATEFILE the most recently completed nowcast is from cycle ${ADVISORY}."
    fi
    newAdvisoryNum=0
    TRIES=0
    while [[ $newAdvisoryNum -lt 2 ]]; do
       OPTIONS="--rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle $FORECASTCYCLE --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
-      #echo "perl ${SCRIPTDIR}/get_nam.pl $OPTIONS "
+      logMessage "Downloading NAM data with the following command: perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}"
       newAdvisoryNum=`perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}` 
       if [[ $newAdvisoryNum -lt 2 ]]; then
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Sleeping 60 secs (TRY=$TRIES) ..."
