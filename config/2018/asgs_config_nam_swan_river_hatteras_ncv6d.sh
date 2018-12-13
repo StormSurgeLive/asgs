@@ -35,7 +35,7 @@ INSTANCENAME=dailyv6d      # name of this ASGS process
 #COLDSTARTDATE=2017070900
 #COLDSTARTDATE=2017121500
 #COLDSTARTDATE=2018020900
-COLDSTARTDATE=2018022100
+COLDSTARTDATE=2018110200
 #
 HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
 LASTSUBDIR=null
@@ -77,7 +77,7 @@ SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
 PARTITION=ncfs
 RESERVATION=null
-CONSTRAINT='sandybridge&hatteras' # sandybridge=512wide max, ivybridge=640wide max
+#CONSTRAINT='sandybridge&hatteras' # sandybridge=512wide max, ivybridge=640wide max
 
 # External data sources : Tropical cyclones
 
