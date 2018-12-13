@@ -1307,8 +1307,14 @@ variables_init()
    PERIODICFLUX=null
    SPATIALEXTRAPOLATIONRAMP=yes
    SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
-# RMQMessaging
+# RMQMessaging defaults
    RMQMessaging_Enable="off"  # "on"|"off"
+   RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
+   RMQMessaging_Script="/set/RMQMessaging_Script/in/asgs/config"
+   RMQMessaging_NcoHome="/set/RMQMessaging_NcoHome/in/asgs/config"
+   RMQMessaging_Python="/set/RMQMessaging_Python/in/asgs/config"
+   RMQMessaging_LocationName="/set/RMQMessaging_LocationName/in/asgs/config/e.g./RENCI"
+   RMQMessaging_ClusterName="/set/RMQMessaging_ClusterName/in/asgs/config/e.g./Hatteras"
 
 }
 #
