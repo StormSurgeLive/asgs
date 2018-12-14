@@ -886,8 +886,20 @@ monitorJobs()
    logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job has started."
    startTime=`date +%s`  # epoch seconds
    retries=0  # count resubmits on hatteras due to io errors
+   jobCheckIntervalSeconds=15
+   #
+   # Keep checking every $jobCheckIntervalSeconds to see if the job has 
+   # (a) timed out; (b) written a .finish file; or (c) written a .error file. 
+   # Job status is monitored via these files, which are actually
+   # written by the queue script on HPC systems that use SLURM or PBS (i.e.,
+   # basically all of them). One consequence of this is that if the 
+   # job simply disappears (e.g. is cancelled by the Operator or the 
+   # sysadmins), the ASGS won't notice until the wall clock time ends.
+   # This behavior is actually useful for real time tweaks and fixes
+   # because the Operator can cancel a job, make modifications, and then 
+   # resubmit it without the ASGS noticing or being disturbed.  
    while [[ 1 ]]; do
-      sleep 15
+      sleep $jobCheckIntervalSeconds
       # execute the FortCheck.py code to get a %complete status
       if [[ -e "fort.61.nc" ]] ; then
          #pc=`${SCRIPTDIR}/fortcheck.sh fort.61.nc 2>> $SYSLOG`
@@ -920,10 +932,11 @@ monitorJobs()
             DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
             logMessage "$THIS: $ENSTORM_TEMP job in $PWD terminated by ASGS for exceeding expected wall clock time." >> ${ENSTORM_TEMP}.run.error
          else 
-            # if we are over the wall clock limit, wait until the operating system has had a chance
-            # to write the job log file, or until 5 minutes  have passed
+            # if we are over the wall clock limit, wait until the operating 
+            # system has had a chance to write the job log file, or 
+            # until 5 minutes have passed
             overLimitTime=`date +%s`
-            until [[ ! -e ${ENSTORM_TEMP}.out ]]; do
+            until [[ -e ${ENSTORM_TEMP}.out ]]; do
                logMessage "$ENSTORM_TEMP: $THIS: Waiting for queueing system to write out the job log file ${ENSTORM_TEMP}.out."
                sleep 60
                nowTime=`date +%s`
@@ -968,14 +981,14 @@ monitorJobs()
       fi
    done
    if [[ -e ${ENSTORM_TEMP}.run.error ]]; then
-     RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "FAIL" "The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
-     error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
-     cat ${ENSTORM_TEMP}.run.error >> jobFailed
+      RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "FAIL" "The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
+      error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
+      cat ${ENSTORM_TEMP}.run.error >> jobFailed
    fi
    if [[ -e ${ENSTORM_TEMP}.run.finish ]]; then
-     CURRENT_STATE="CMPL"
-     RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "The $ENSTORM_TEMP job appears to have run to completion successfully." 
-     logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job appears to have run to completion successfully."
+      CURRENT_STATE="CMPL"
+      RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "The $ENSTORM_TEMP job appears to have run to completion successfully." 
+      logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job appears to have run to completion successfully."
    fi
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Finished monitoring $ENSTORM_TEMP job."
    logMessage "$ENSTORM_TEMP: $THIS: Finished monitoring $ENSTORM_TEMP job."
