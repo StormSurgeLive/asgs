@@ -170,7 +170,8 @@ init_croatan()
 }
 init_pod()
 { #<- can replace the following with a custom script
-  HOSTNAME=pod.penguin.com
+  HOSTNAME=pod.penguincomputing.com
+  HPCENV=pod.penguincomputing.com
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=noaccount
@@ -182,10 +183,10 @@ init_pod()
   RESERVATION=null
   QSCRIPTGEN=tezpur.pbs.pl
   SERQUEUE=B30     # aka the partition in SLURM parlance 
-#  QUEUE=B30     # aka the partition in SLURM parlance 
-#  PPN=28
-  QUEUE=S30     # aka the partition in SLURM parlance 
-  PPN=40
+  QUEUE=B30     # aka the partition in SLURM parlance 
+  PPN=28
+#  QUEUE=S30     # aka the partition in SLURM parlance 
+#  PPN=40
 }
 init_hatteras()
 { #<- can replace the following with a custom script

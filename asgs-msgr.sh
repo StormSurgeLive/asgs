@@ -4,10 +4,6 @@
 #set -e
 #set -u
 
-# variables and paths for RabbitMQ messaging independent of the asgs/config details.  
-# Other messaging variables are set in the config/machine file
-
-
 #export PATH=$PATH:${ADCIRCDIR}:${RMQMessaging_NcoHome}/bin
 
 echo "RMQMessaging:Validating Message Service..."
@@ -27,7 +23,7 @@ if [[ ! -e ${RMQMessaging_Script} ]] ; then
 fi
 
 #declare -a python_mod_list=("pika" "datetime" "getopt" "yaml" "json" "sys") 
-declare -a python_mod_list=("pika" "datetime" "getopt" "json" "sys") 
+declare -a python_mod_list=("pika" "datetime" "getopt" "json") 
 for m in "${python_mod_list[@]}"
 do 
 	printf "   Checking for $m ..."
