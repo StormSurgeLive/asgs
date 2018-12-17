@@ -26,7 +26,7 @@
 #
 # Log file will be in the directory where the asgs was executed
 
-sigint(){
+sigint() {
   echo "Received Ctrl-C from console.  Shutting ASGS down...'"
   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..." 
   exit 0
@@ -34,7 +34,7 @@ sigint(){
 
 RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
 { 
-  if [[ ${RMQMessaging} == "off" ]] ; then return; fi
+  if [[ ${RMQMessaging_Enable} == "off" ]] ; then return; fi
 
   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
   MTYPE=$1
@@ -133,4 +133,3 @@ debugMessage()
   MSG="[${DATETIME}] DEBUG: $@"
   echo ${MSG} >> ${SYSLOG}
 }
-
