@@ -773,12 +773,13 @@ downloadBackgroundMet()
    cd $RUNDIR 2>> ${SYSLOG}
    if [[ $ENSTORM != "nowcast" ]]; then
       grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//' > currentCycle 2>> ${SYSLOG}
+      logMessage "According to the statefile $STATEFILE the most recently completed nowcast is from cycle ${ADVISORY}."
    fi
    newAdvisoryNum=0
    TRIES=0
    while [[ $newAdvisoryNum -lt 2 ]]; do
       OPTIONS="--rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle $FORECASTCYCLE --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
-      #echo "perl ${SCRIPTDIR}/get_nam.pl $OPTIONS "
+      logMessage "Downloading NAM data with the following command: perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}"
       newAdvisoryNum=`perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}` 
       if [[ $newAdvisoryNum -lt 2 ]]; then
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Sleeping 60 secs (TRY=$TRIES) ..."
@@ -885,14 +886,31 @@ monitorJobs()
    logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job has started."
    startTime=`date +%s`  # epoch seconds
    retries=0  # count resubmits on hatteras due to io errors
+   jobCheckIntervalSeconds=15
+   #
+   # Keep checking every $jobCheckIntervalSeconds to see if the job has 
+   # (a) timed out; (b) written a .finish file; or (c) written a .error file. 
+   # Job status is monitored via these files, which are actually
+   # written by the queue script on HPC systems that use SLURM or PBS (i.e.,
+   # basically all of them). One consequence of this is that if the 
+   # job simply disappears (e.g. is cancelled by the Operator or the 
+   # sysadmins), the ASGS won't notice until the wall clock time ends.
+   # This behavior is actually useful for real time tweaks and fixes
+   # because the Operator can cancel a job, make modifications, and then 
+   # resubmit it without the ASGS noticing or being disturbed.  
    while [[ 1 ]]; do
-      sleep 15
+      sleep $jobCheckIntervalSeconds
       # execute the FortCheck.py code to get a %complete status
       if [[ -e "fort.61.nc" ]] ; then
-        #pc=`${SCRIPTDIR}/fortcheck.sh fort.61.nc 2>> $SYSLOG`
-        #echo "${RMQMessaging_Python} ${SCRIPTDIR}/FortCheck.py fort.61.nc"
-        pc=`${RMQMessaging_Python} ${SCRIPTDIR}/FortCheck.py fort.61.nc 2>> $SYSLOG`
-        RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "RUNN" "The $ENSTORM_TEMP job is running..." $pc
+         #pc=`${SCRIPTDIR}/fortcheck.sh fort.61.nc 2>> $SYSLOG`
+         #echo "${RMQMessaging_Python} ${SCRIPTDIR}/FortCheck.py fort.61.nc"
+         #
+         # RMQMessaging_Python will be undefined if RMQMessaging is not
+         # enabled
+         if [[ $RMQMessaging_Enable = on ]]; then
+            pc=`${RMQMessaging_Python} ${SCRIPTDIR}/FortCheck.py fort.61.nc 2>> $SYSLOG`
+            RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "RUNN" "The $ENSTORM_TEMP job is running..." $pc
+         fi
       fi
       # check job run status
       if ! checkTimeLimit $startTime $WALLTIME ; then
@@ -914,10 +932,11 @@ monitorJobs()
             DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
             logMessage "$THIS: $ENSTORM_TEMP job in $PWD terminated by ASGS for exceeding expected wall clock time." >> ${ENSTORM_TEMP}.run.error
          else 
-            # if we are over the wall clock limit, wait until the operating system has had a chance
-            # to write the job log file, or until 5 minutes  have passed
+            # if we are over the wall clock limit, wait until the operating 
+            # system has had a chance to write the job log file, or 
+            # until 5 minutes have passed
             overLimitTime=`date +%s`
-            until [[ ! -e ${ENSTORM_TEMP}.out ]]; do
+            until [[ -e ${ENSTORM_TEMP}.out ]]; do
                logMessage "$ENSTORM_TEMP: $THIS: Waiting for queueing system to write out the job log file ${ENSTORM_TEMP}.out."
                sleep 60
                nowTime=`date +%s`
@@ -962,14 +981,14 @@ monitorJobs()
       fi
    done
    if [[ -e ${ENSTORM_TEMP}.run.error ]]; then
-     RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "FAIL" "The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
-     error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
-     cat ${ENSTORM_TEMP}.run.error >> jobFailed
+      RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "FAIL" "The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
+      error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
+      cat ${ENSTORM_TEMP}.run.error >> jobFailed
    fi
    if [[ -e ${ENSTORM_TEMP}.run.finish ]]; then
-     CURRENT_STATE="CMPL"
-     RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "The $ENSTORM_TEMP job appears to have run to completion successfully." 
-     logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job appears to have run to completion successfully."
+      CURRENT_STATE="CMPL"
+      RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "The $ENSTORM_TEMP job appears to have run to completion successfully." 
+      logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job appears to have run to completion successfully."
    fi
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Finished monitoring $ENSTORM_TEMP job."
    logMessage "$ENSTORM_TEMP: $THIS: Finished monitoring $ENSTORM_TEMP job."
@@ -1306,8 +1325,14 @@ variables_init()
    PERIODICFLUX=null
    SPATIALEXTRAPOLATIONRAMP=yes
    SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
-# RMQMessaging
+# RMQMessaging defaults
    RMQMessaging_Enable="off"  # "on"|"off"
+   RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
+   RMQMessaging_Script="/set/RMQMessaging_Script/in/asgs/config"
+   RMQMessaging_NcoHome="/set/RMQMessaging_NcoHome/in/asgs/config"
+   RMQMessaging_Python="/set/RMQMessaging_Python/in/asgs/config"
+   RMQMessaging_LocationName="/set/RMQMessaging_LocationName/in/asgs/config/e.g./RENCI"
+   RMQMessaging_ClusterName="/set/RMQMessaging_ClusterName/in/asgs/config/e.g./Hatteras"
 
 }
 #
@@ -1498,8 +1523,8 @@ writeJobResourceRequestProperties()
 #               B E G I N     E X E C U T I O N
 #####################################################################
 THIS="asgs_main.sh"
-CURRENT_EVENT="STRT"
-CURRENT_STATE="INIT"
+CURRENT_EVENT="STRT" # used for RMQ messages
+CURRENT_STATE="INIT" # used for RMQ messages
 #
 #
 # Option Summary
@@ -1557,7 +1582,7 @@ SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG
 . ${SCRIPTDIR}/logging.sh
 # Bring in platform-specific configuration
 . ${SCRIPTDIR}/platforms.sh
-
+#
 # RMQMessaging config
 # this verifies that messages can be constructed.  It is possible
 # that asgs-msgr.sh will set RMQMessaging to "off", in which case
