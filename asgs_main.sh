@@ -1573,8 +1573,8 @@ trap 'sigint' INT
 
 # set a RunParams string for messaging
 RMQRunParams="$GRIDNAME:EnsSize=$ENSEMBLESIZE"
-#RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh" "RUNN" "$ENV configuration found."
-RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh" "$CURRENT_STATE" "$ENV configuration found."
+RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh" "$CURRENT_STATE" "$HPCENVSHORT configuration found."
+
 # dispatch environment (using the functions in platforms.sh)
 env_dispatch ${HPCENVSHORT}
 # Re-read the config file, so that the variables can take precedence over
@@ -2123,6 +2123,7 @@ while [ true ]; do
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM"  "$CURRENT_STATE" "Converting NAM data to OWI format."
          logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format with the following options : $NAMOPTIONS"
          echo perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS 
+exit
 # BOB this process needs to be shoved off onto a compute-node, if the login node running asgs_main.sh is memory limited.  
 # BOB This is a stopgap until we rewrite this perl code in python...
          DelegateToCompute="false"
@@ -2131,7 +2132,6 @@ while [ true ]; do
 #echo $QSCRIPTOPTIONS
 #exit
          else 
-
              perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
          fi
          # create links to the OWI files
@@ -2655,8 +2655,8 @@ while [ true ]; do
       exit $OK  # exit because the ASGS will be started once again by cron
    fi
 
-   CURRENT_EVENT="REND"
-   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "NONE" "Cycle Complete"
    CURRENT_EVENT="FEND"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "NONE" "Forecast(s) Complete"
+   CURRENT_EVENT="REND"
+   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "NONE" "Cycle Complete"
 done
