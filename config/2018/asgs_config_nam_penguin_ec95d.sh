@@ -29,7 +29,7 @@
 # Fundamental 
 
 INSTANCENAME=podtestec95d      # name of this ASGS process (Change this for every new instance)
-COLDSTARTDATE=2018080600  # (date to start cold start from )
+COLDSTARTDATE=2018111600  # (date to start cold start from )
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 #LASTSUBDIR=/home/bblanton/asgs-scratch/kickstart
 LASTSUBDIR=null
@@ -43,11 +43,11 @@ ADCIRCDIR=${H}/adcirc-cg-52release/work
 SCRIPTDIR=${H}/asgs       # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/ec95d   # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
-PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
+PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCalc.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=off     # [de]activate NAM download/forcing 
+BACKGROUNDMET=on     # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
 TROPICALCYCLONE=off  # [de]activate tropical cyclone forcing (temp. broken)
 WAVES=off            # [de]activate wave forcing 
@@ -72,8 +72,8 @@ SCRATCHDIR=/home/bblanton/asgs-scratch
 
 # External data sources : Tropical cyclones
 
-STORM=12  # storm number, e.g. 05=ernesto in 2006 
-YEAR=2013 # year of the storm (useful for historical storms) 
+STORM=0  # storm number, e.g. 05=ernesto in 2006 
+YEAR=2018 # year of the storm (useful for historical storms) 
 TRIGGER=rssembedded    # either "ftp" or "rss"
 RSSSITE=www.nhc.noaa.gov 
 FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files
@@ -158,7 +158,10 @@ ASGSADMIN="$ems"
 
 # RMQ Messaging
 
+RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
+RMQMessaging_StartupScript="${SCRIPTDIR}/asgs-msgr_startup.py"
 RMQMessaging_NcoHome="/home/bblanton/"
 RMQMessaging_Python="/home/bblanton/asgs/asgspy/bin/python"
 RMQMessaging_LocationName="Penguin"
@@ -181,7 +184,8 @@ OPENDAPNOTIFY="bblanton@renci.org"
 
 # Archiving
 
-ARCHIVE=pod_archive.sh # if null no data gets save
+ARCHIVE=null_archive.sh # if null_archive.sh  no data gets save
+#ARCHIVE=pod_archive.sh # if null no data gets save
 ARCHIVEBASE=/home/bblanton/scratch/
 ARCHIVEDIR=archive
 
@@ -189,7 +193,7 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=0 # number of storms in the ensemble
+ENSEMBLESIZE=1 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
@@ -228,6 +232,6 @@ case $si in
    POSTPROCESS=null_post.sh
    ;;
 *)
-   echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
+   echo "CONFIGURATION ERROR: Unknown ensemble member number: '$si'."
    ;;
 esac

@@ -32,6 +32,20 @@ sigint() {
   exit 0
 }
 
+RMQMessageStartup()  # 
+{ 
+  if [[ ${RMQMessaging_Enable} == "off" ]] ; then return; fi
+  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+  FILE2SEND=$1
+  ${RMQMessaging_Python} ${RMQMessaging_StartupScript} \
+         --Uid $$ \
+         --LocationName ${RMQMessaging_LocationName} \
+         --ClusterName ${RMQMessaging_ClusterName} \
+         --Message "$FILE2SEND"  \
+         --InstanceName $INSTANCENAME \
+         --Transmit ${RMQMessaging_Transmit}
+}
+
 RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
 { 
   if [[ ${RMQMessaging_Enable} == "off" ]] ; then return; fi
@@ -85,7 +99,7 @@ logMessage()
 consoleMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] INFO: $@"
-  #echo ${MSG}
+  echo ${MSG}
 }
 #
 # send a message to console as well as to the log file

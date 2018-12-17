@@ -153,8 +153,8 @@ def main(argv):
 	        print('\n')
                 queue_message(msg)
         else:
-                #print('Message not transmitted.\n')
-                print('\n')
+                print('Message not transmitted.\n')
+                #print('\n')
 
 
 if __name__ == "__main__":
