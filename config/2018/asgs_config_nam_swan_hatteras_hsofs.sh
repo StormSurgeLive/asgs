@@ -30,7 +30,8 @@
 INSTANCENAME=namhsofs    # "name" of this ASGS process
 #COLDSTARTDATE=2017120100 # calendar year month day hour YYYYMMDDHH24
 #COLDSTARTDATE=2018020400 # calendar year month day hour YYYYMMDDHH24
-COLDSTARTDATE=2018091500  # calendar year month day hour YYYYMMDDHH24
+#COLDSTARTDATE=2018091500  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2018111500  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -72,6 +73,7 @@ PARTITION=ncfs
 RESERVATION=null
 #CONSTRAINT=ivybridge
 CONSTRAINT=null
+QSCRIPT=hatteras-test.template.slurm #@jasonflemingdebug: workaround hatteras i/o err
 
 # External data sources : Tropical cyclones
 
