@@ -49,7 +49,7 @@ REINITIALIZESWAN=yes       # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc/forks/jasonfleming/v53release/work  # ADCIRC executables 
 SWANDIR=~/adcirc/forks/jasonfleming/v53release/swan  # SWAN executables 
-SCRIPTDIR=~/asgs/branches/2014stable     # ASGS scripts/executables  
+SCRIPTDIR=~/asgs/forks/renci-unc/2014stable-rmq     # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v9.99_w_rivers # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
@@ -81,8 +81,9 @@ SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
 ACCOUNT=batch # or "ncfs" on hatteras to use pre-empt capability
 PARTITION=ncfs
 RESERVATION=null
-CONSTRAINT='sandybridge&hatteras'
+#CONSTRAINT='sandybridge&hatteras'
 CONSTRAINT=null
+QSCRIPT=hatteras-test.template.slurm
 
 # External data sources : Tropical cyclones
 
@@ -205,13 +206,13 @@ case $si in
    ENSTORM=namforecast
    PARTITION=ncfs
    RESERVATION=null
-   CONSTRAINT='sandybridge&hatteras'
+   #CONSTRAINT='sandybridge&hatteras'
    ;;
 1)
    ENSTORM=namforecastWind10m
    PARTITION=ncfs
    RESERVATION=null
-   CONSTRAINT='sandybridge&hatteras'
+   #CONSTRAINT='sandybridge&hatteras'
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=nc_9.99wrivers.nowindreduction.fort.15.template
