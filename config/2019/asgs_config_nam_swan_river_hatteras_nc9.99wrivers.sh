@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2006--2018 Jason Fleming
+# Copyright(C) 2006--2019 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade 
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -39,7 +39,8 @@ INSTANCENAME=hiresr       # name of this ASGS process, to differentiate results
 #COLDSTARTDATE=2018022100
 #COLDSTARTDATE=2018090100
 #COLDSTARTDATE=2018091500
-COLDSTARTDATE=2018111000
+#COLDSTARTDATE=2018111000
+COLDSTARTDATE=2018120100
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
