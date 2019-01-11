@@ -32,7 +32,7 @@ INSTANCENAME=namhsofs    # "name" of this ASGS process
 #COLDSTARTDATE=2018020400 # calendar year month day hour YYYYMMDDHH24
 #COLDSTARTDATE=2018091500  # calendar year month day hour YYYYMMDDHH24
 #COLDSTARTDATE=2018111500  # calendar year month day hour YYYYMMDDHH24
-COLDSTARTDATE=2018120100  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2018120500  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -40,9 +40,9 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/jasonfleming/v53release/work # ADCIRC executables
-SWANDIR=~/adcirc/forks/jasonfleming/v53release/swan   # ADCIRC executables
-SCRIPTDIR=~/asgs/forks/renci-unc/2014stable-rmq       # ASGS executables
+ADCIRCDIR=~/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
+SWANDIR=~/adcirc-cg/jasonfleming/v53release/swan   # ADCIRC executables
+SCRIPTDIR=~/asgs/renci-unc/2014stable-rmq       # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
@@ -63,8 +63,8 @@ HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="05:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
-NCPU=600                   # number of compute CPUs for all simulations
-NUMWRITERS=20
+NCPU=500                   # number of compute CPUs for all simulations
+NUMWRITERS=1
 NCPUCAPACITY=640
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=null
