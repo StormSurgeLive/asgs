@@ -483,7 +483,8 @@ init_lonestar()
   SERQSCRIPTGEN=hatteras.slurm.pl
   UMASK=006
   GROUP="G-803086"
-  PLATFORMMODULES='module load netcdf/4.3.3.1 curl perl'
+  ml reset
+  PLATFORMMODULES='module load netcdf nco'
   $PLATFORMMODULES
 }
 init_desktop()
