@@ -25,11 +25,74 @@
 #----------------------------------------------------------------
 #
 # Log file will be in the directory where the asgs was executed
+
+sigint() {
+  echo "Received Ctrl-C from console.  Shutting ASGS down...'"
+  RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..." 
+  exit 0
+}
+
+RMQMessageStartup()  # 
+{ 
+  if [[ ${RMQMessaging_Enable} == "off" ]] ; then return; fi
+  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+  FILE2SEND=$1
+  ${RMQMessaging_Python} ${RMQMessaging_StartupScript} \
+         --Uid $$ \
+         --LocationName ${RMQMessaging_LocationName} \
+         --ClusterName ${RMQMessaging_ClusterName} \
+         --Message "$FILE2SEND"  \
+         --InstanceName $INSTANCENAME \
+         --Transmit ${RMQMessaging_Transmit}
+}
+
+RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
+{ 
+  if [[ ${RMQMessaging_Enable} == "off" ]] ; then return; fi
+
+  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+  MTYPE=$1
+  EVENT=$2
+  PROCESS=$3
+  STATE=$4
+  MSG=$5
+  #MSG="RMQ-$MTYPE : $EVENT : $STATE : ${DATETIME} : $MSG"
+  PCTCOM=0
+  if [ "$#" -eq 6 ] ; then PCTCOM=$6 ; fi
+
+  re='^[0-9]+([.][0-9]+)?$' 
+  if ! [[ $PCTCOM =~ $re ]] ; then
+      echo "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message." 
+  else
+     printf "RMQ : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" "$MTYPE" $EVENT "$DATETIME" $STATE $PCTCOM $PROCESS  "$5"
+
+     # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
+#     echo "RMQMessaging_Transmit=$RMQMessaging_Transmit"
+
+     ${RMQMessaging_Python} ${RMQMessaging_Script} \
+         --Uid $$ \
+         --LocationName ${RMQMessaging_LocationName} \
+         --ClusterName ${RMQMessaging_ClusterName} \
+         --StormNumber $STORM \
+         --StormName $STORMNAME \
+         --AdvisoryNumber $ADVISORY \
+         --Message "$MSG"  \
+         --EventType $EVENT \
+         --Process $PROCESS \
+         --PctComplete $PCTCOM \
+         --State $STATE \
+         --RunParams $RMQRunParams \
+         --InstanceName $INSTANCENAME \
+         --Transmit ${RMQMessaging_Transmit}
+   fi
+}
+
 logMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] INFO: $@"
   echo ${MSG} >> ${SYSLOG}
 }
+
 #
 # send a message to the console (i.e., window where the script was started)
 # (these should be rare)
@@ -51,7 +114,7 @@ warn()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] WARNING: $@"
   echo ${MSG} >> ${SYSLOG}
-  echo ${MSG}  # send to console
+  #echo ${MSG}  # send to console
 }
 #
 # log an error message, notify Operator 
@@ -84,4 +147,3 @@ debugMessage()
   MSG="[${DATETIME}] DEBUG: $@"
   echo ${MSG} >> ${SYSLOG}
 }
-
