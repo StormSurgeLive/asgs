@@ -45,8 +45,8 @@ my $cloptions=""; # command line options for adcirc, if any
 my $jobtype;  # e.g., prep15, padcirc, padcswan, etc
 my $localhotstart; # present if subdomain hotstart files should be written
 my $reservation="null"; # name of SLURM reservation where the job should be submitted
-my $partition="null";   # name of SLURM partition the job should use
-my $constraint="null";  # name of SLURM constraint the job should use
+my $partition="batch";   # name of SLURM partition the job should use
+my $constraint="hatteras";  # name of SLURM constraint the job should use
 my $numwriters=0;  # number of writer processors, if any
 
 # initialize to the log file that adcirc uses, just in case

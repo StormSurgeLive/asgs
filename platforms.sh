@@ -168,11 +168,36 @@ init_croatan()
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=16
 }
+init_pod()
+{ #<- can replace the following with a custom script
+  HOSTNAME=pod.penguincomputing.com
+  HPCENV=pod.penguincomputing.com
+  QUEUESYS=PBS
+  QCHECKCMD=qstat
+  ACCOUNT=noaccount
+  SUBMITSTRING=submitstring
+  SCRATCHDIR=/home/bblanton/asgs_scratch
+  SSHKEY=~/.ssh/id_rsa.pub
+  QSCRIPT=penguin.template.pbs
+  PREPCONTROLSCRIPT=penguin.adcprep.template.pbs
+  RESERVATION=null
+  QSCRIPTGEN=tezpur.pbs.pl
+  SERQUEUE=B30     # aka the partition in SLURM parlance 
+  QUEUE=B30     # aka the partition in SLURM parlance 
+  PPN=28
+#  QUEUE=S30     # aka the partition in SLURM parlance 
+#  PPN=40
+}
 init_hatteras()
 { #<- can replace the following with a custom script
   HPCENV=hatteras.renci.org
   QUEUESYS=SLURM
   QCHECKCMD=sacct
+  #ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
+  #SCRATCHDIR=/scratch/bblanton/data
+  #PARTITION=batch       # ncfs or batch
+  #CONSTRAINT=hatteras # ivybridge or sandybridge
+  #
   QSUMMARYCMD=null
   QUOTACHECKCMD="df -h /projects/ncfs"
   ALLOCCHECKCMD=null
@@ -191,7 +216,7 @@ init_hatteras()
   if [[ $RESERVATION = ncfs ]]; then
      PPN=20
   fi
-  PLATFORMMODULES='module load hdf5/1.10.1_intel-18.0.0 intelc/18.0.0 intelfort/18.0.0 mvapich2/2.3b_intel-18.0.0_ch3_ofed-4.1 netcdf-C/4.5.0_intel-18.0.0 netcdf-Fortran/4.4.0_intel-18.0.0 zlib/1.2.11_intel-18.0.0'
+  PLATFORMMODULES='module load hdf5/1.10.1_intel-18.0.0 intelc/18.0.0 intelfort/18.0.0 mvapich2/2.3b_intel-18.0.0_ch3_ofed-4.1-test netcdf-C/4.5.0_intel-18.0.0 netcdf-Fortran/4.4.0_intel-18.0.0 zlib/1.2.11_intel-18.0.0'
   $PLATFORMMODULES
 }
 init_stampede()
@@ -458,7 +483,8 @@ init_lonestar()
   SERQSCRIPTGEN=hatteras.slurm.pl
   UMASK=006
   GROUP="G-803086"
-  PLATFORMMODULES='module load netcdf/4.3.3.1 curl perl'
+  ml reset
+  PLATFORMMODULES='module load netcdf nco'
   $PLATFORMMODULES
 }
 init_desktop()
@@ -495,10 +521,16 @@ init_topsail()
 # THREDDS Data Server (TDS, i.e., OPeNDAP server) at RENCI
 init_renci_tds()
 {
+# http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
+# http://tds.renci.org:8080/thredds/dodsC/     DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
+# http://tds.renci.org:8080/thredds/catalog/                   tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/catalog.html
    OPENDAPHOST=ht4.renci.org
    DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer"
    CATALOGPREFIX="http://tds.renci.org:8080/thredds/catalog"
    OPENDAPBASEDIR=/projects/ncfs/opendap/data
+   #DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/"
+   #CATALOGPREFIX="http://tds.renci.org:8080/thredds/DataLayers/asgs/"
+   #OPENDAPBASEDIR=/projects/ees/DataLayers/asgs/
    SSHPORT=22
    LINKABLEHOSTS=(hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
    COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
@@ -578,6 +610,9 @@ env_dispatch(){
           ;;
   "croatan") consoleMessage "platforms.sh: Croatan (RENCI) configuration found."
           init_croatan
+          ;;
+  "pod") consoleMessage "platforms.sh: POD (Penguin) configuration found."
+          init_pod
           ;;
   "hatteras") consoleMessage "platforms.sh: Hatteras (RENCI) configuration found."
           init_hatteras

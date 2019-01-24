@@ -71,7 +71,7 @@ if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
 ACCOUNT=loni_cera_2018a
-SCRATCHDIR=/ssdwork/$USER    # vs default /work/cera
+SCRATCHDIR=/work/$USER    # vs default /work/cera
 
 # External data sources : Tropical cyclones
 
@@ -186,7 +186,7 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 # Archiving
 
 ARCHIVE=enstorm_pedir_removal.sh
-ARCHIVEBASE=/ssdwork/jgflemin
+ARCHIVEBASE=/work/jgflemin
 ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
 # Forecast ensemble members
