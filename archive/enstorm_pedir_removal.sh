@@ -23,6 +23,13 @@
 # This script gets all the information it needs from the 
 # run.properties file instead of using command line arguments. 
 #----------------------------------------------------------------
+HOTTIFYPATH=/home/bblanton/adcirc-cg-52release/swan
+MACHINE=pod-login
+COMPRESSION=no
+#
+logFile="enstorm_pedir_removal.log"
+stormdir=$PWD
+REMOVALCMD="rm"
 localLogMessage()
 {
   LEVEL=$1
@@ -127,5 +134,7 @@ env_dispatch ${HPCENVSHORT}
 for dir in `ls -d PE*`; do 
    $REMOVALCMD $dir 2>> $LOGFILE
 done
+#$REMOVALCMD metis_graph.txt partmesh.txt fort.80
+$REMOVALCMD partmesh.txt
 logMessage "Finished cleanup of subdomain (PE*) subdirectories."
 localLogMessage "INFO " "Finished cleanup of subdomain (PE*) subdirectories."

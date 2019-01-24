@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=dailyLAv17a_27ft  # "name" of this ASGS process
-COLDSTARTDATE=2018090300   # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2018092400   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -48,7 +48,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=on   # NAM download/forcing
 TIDEFAC=on     # tide factor recalc
 TROPICALCYCLONE=off   # tropical cyclone forcing
-WAVES=off             # wave forcing
+WAVES=on             # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
@@ -108,7 +108,7 @@ GRIDFILE=LA_v17a-WithUpperAtch_chk.grd   # mesh (fort.14) file
 GRIDNAME=LA_v17a-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
 #CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS27ft.15.template
-CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS27ft_0.3048offset.15.template
+CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS27ft.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
 ELEVSTATIONS=combined_stations_20181005.txt
 VELSTATIONS=combined_stations_20181005.txt
@@ -192,7 +192,7 @@ WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts
 # Archiving
 
 ARCHIVE=enstorm_pedir_removal.sh
-ARCHIVEBASE=/ssdwork/jgflemin
+ARCHIVEBASE=/work/jgflemin
 ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
 # Forecast ensemble members

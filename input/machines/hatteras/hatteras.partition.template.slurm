@@ -6,7 +6,7 @@
 #SBATCH -J %jobtype%.%enstorm%
 #SBATCH -t %wallminutes%
 #SBATCH -n %ncpu% 
-#SBATCH --partition=ncfs
+#SBATCH --partition=%partition%
 #SBATCH -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out
 #
 #----------------------------------------------------------------------------
@@ -30,10 +30,14 @@ echo "[${DATETIME}] INFO: %jobtype%.slurm: Executing %jobtype%.%enstorm%
 #----------------------------------------------------------------------------
 #                      L O A D   M O D U L E S
 #----------------------------------------------------------------------------
-module load intelc/14.0.3  
-module load intelfort/14.0.3
-module load netcdf/4.1.3_intel-14.0.3
-module load mvapich2/2.0_intel-14.0.3_ch3_ofed-3.1  
+module purge
+module load hdf5/1.10.1_intel-18.0.0
+module load intelc/18.0.0
+module load intelfort/18.0.0
+module load mvapich2/2.3b_intel-18.0.0_ch3_ofed-4.1
+module load netcdf-C/4.5.0_intel-18.0.0
+module load netcdf-Fortran/4.4.0_intel-18.0.0
+module load zlib/1.2.11_intel-18.0.0
 # 
 #----------------------------------------------------------------------------
 #                  E X E C U T E   T H E   J O B
