@@ -32,7 +32,7 @@ INSTANCENAME=dragexp    # "name" of this ASGS process
 #COLDSTARTDATE=2018020400 # calendar year month day hour YYYYMMDDHH24
 #COLDSTARTDATE=2018091500  # calendar year month day hour YYYYMMDDHH24
 #COLDSTARTDATE=2018111500  # calendar year month day hour YYYYMMDDHH24
-COLDSTARTDATE=2018120500  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2018122200  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=hotstart      # "hotstart" or "coldstart"
 LASTSUBDIR=/projects/ncfs/data/asgs8869/initialize  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -163,6 +163,15 @@ POST_LIST=null
 JOB_FAILED_LIST="jason.fleming@seahorsecoastal.com"
 NOTIFYUSER=jason.fleming@seahorsecoasatal.com
 ASGSADMIN=jason.fleming@seahorsecoastal.com
+# RMQ Messaging
+RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
+RMQMessaging_NcoHome="/home/bblanton/"
+RMQMessaging_Python="/projects/storm_surge/anaconda/bin/python"
+RMQMessaging_LocationName="RENCI"
+RMQMessaging_ClusterName="Hatteras"
+
 
 # Post processing and publication
 

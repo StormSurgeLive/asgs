@@ -171,6 +171,14 @@ POST_LIST=null
 JOB_FAILED_LIST=jason.g.fleming@gmail.com
 NOTIFYUSER=jason.g.fleming@gmail.com
 ASGSADMIN=jason.g.fleming@gmail.com
+# RMQ Messaging
+RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
+RMQMessaging_NcoHome="/home/bblanton/"
+RMQMessaging_Python="/projects/storm_surge/anaconda/bin/python"
+RMQMessaging_LocationName="RENCI"
+RMQMessaging_ClusterName="Hatteras"
 
 # Post processing and publication
 
