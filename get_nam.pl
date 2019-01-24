@@ -74,6 +74,7 @@ GetOptions(
           );
 #
 stderrMessage("DEBUG","hstime is $hstime");
+stderrMessage("DEBUG","Connecting to $backsite:$backdir");
 our $dl = 0;   # true if we were able to download the file(s) successfully
 our $ftp = Net::FTP->new($backsite, Debug => 0, Passive => 1); 
 unless ( defined $ftp ) {
@@ -145,7 +146,7 @@ if ( defined $hstime && $hstime != 0 ) {
 # form the date and hour of the current ADCIRC time
 $date = sprintf("%4d%02d%02d",$ny ,$nm, $nd);
 $hour = sprintf("%02d",$nh);
-stderrMessage("DEBUG","The current ADCIRC time is $date.");
+stderrMessage("DEBUG","The current ADCIRC time is $date:$hour.");
 #
 # now go to the ftp site and download the files
 # get the list of nam dates where data is available
@@ -170,24 +171,31 @@ foreach my $dir (@sortedNamDirs) {
       push(@targetDirs,$dir);
    }
 }
+
 # determine the most recent date/hour ... this is the cycle time
 $targetDirs[-1] =~ /nam.(\d+)/;
 my $cycledate = $1; 
-#stderrMessage("DEBUG","The cycledate is '$cycledate'.");
+stderrMessage("DEBUG","The cycledate is '$cycledate'.");
 if ( $cycledate < $date ) { 
    stderrMessage("ERROR","The cycledate is '$cycledate' but the ADCIRC hotstart date is '$date'; therefore an error has occurred. get_nam.pl is halting this attempted download.");
    printf STDOUT $dl;
    exit;
 }
+
 $hcDirSuccess = $ftp->cwd($targetDirs[-1]);
 unless ( $hcDirSuccess ) {
-   stderrMessage("ERROR",
-      "ftp: Cannot change working directory to '$targetDirs[-1]': " . $ftp->message);
+   stderrMessage("ERROR","ftp: Cannot change working directory to '$targetDirs[-1]': " . $ftp->message);
    printf STDOUT $dl;
    exit;
 }
 my $cyclehour;
-my @allFiles = $ftp->ls(); 
+#my @allFiles = $ftp->ls(); 
+my @allFiles = grep /awip1200.tm00/, $ftp->ls();
+if (!@allFiles){
+   #die "no awip1200 files yet in $targetDirs[-1]\n";
+   stderrMessage("ERROR","No awip1200.tm00 files yet in $targetDirs[-1].");
+}
+
 foreach my $file (@allFiles) { 
    if ( $file =~ /nam.t(\d+)z.awip1200.tm00.grib2/ ) { 
       $cyclehour = $1;
@@ -195,6 +203,7 @@ foreach my $file (@allFiles) {
    }
 }
 my $cycletime;
+
 unless (defined $cyclehour ) {
    stderrMessage("WARNING","Could not download the list of NAM files from NCEP.");
    exit; 
@@ -605,7 +614,8 @@ sub stderrMessage () {
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
    printf STDERR "$theTime $level: $enstorm: get_nam.pl: $message\n";
    if ($level eq "ERROR") {
-      sleep 60
+      sleep 1;
+      die "bye-bye.";
    }
 }
 
