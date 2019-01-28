@@ -257,8 +257,6 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
    stderrMessage("DEBUG","Setting parameters appropriately for vortex model.");
    &vortexModelParameters($nws);
 } elsif ( abs($nws) == 12 || abs($nws) == 312 ) {
-
-if ( abs($nws) == 12 || abs($nws) == 312 ) {
    &owiParameters();
 } elsif ( defined $specifiedRunLength ) {
    stderrMessage("DEBUG","The duration of this $enstorm run is specially defined.");

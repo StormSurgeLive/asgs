@@ -677,10 +677,10 @@ env_dispatch(){
   "desktop") consoleMessage "platforms.sh: desktop configuration found."
           init_desktop
            ;;
-  "poseidon") consoleMessage "platforms.sh: desktop configuration found."
+  "poseidon") consoleMessage "platforms.sh: Poseidon configuration found."
           init_Poseidon
            ;;
-  "penguin") consoleMessage "platforms.sh: desktop configuration found."
+  "penguin") consoleMessage "platforms.sh: Penguin configuration found."
           init_penguin
            ;;
   "test") consoleMessage "platforms.sh: test environment (default) configuration found."

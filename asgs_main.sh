@@ -376,7 +376,6 @@ prep()
         if [[ ! -z $NAFILE  && $NAFILE != null ]]; then
            ln -s $INPUTDIR/$NAFILE $ADVISDIR/$ENSTORM/fort.13 2>> ${SYSLOG}
         fi
-      fi
     fi
     if [[ $HAVEARCHIVE = yes ]]; then
         # copy in the files that have already been preprocessed
@@ -1235,10 +1234,10 @@ submitJob()
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'%z`
       echo "time.${JOBTYPE}.start : $DATETIME" >> run.properties
       echo "[${DATETIME}] Starting ${JOBTYPE}.${ENSTORM} job in $PWD." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start
-      logMessage "$ENSTORM: $THIS: Submitting job via $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${SYSLOG} 2>&1"
+      logMessage "$ENSTORM: $THIS: Submitting job via $SUBMITSTRING -n $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
       # submit the parallel job in a subshell
       (
-         $SUBMITSTRING $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${ADVISDIR}/${ENSTORM}/adcirc.log 2>&1
+         $SUBMITSTRING -n $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${ADVISDIR}/${ENSTORM}/adcirc.log 2>&1
          ERROVALUE=$?
          RUNSUFFIX="finish"
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
@@ -1705,9 +1704,9 @@ while getopts "c:e:s:h" optname; do
 done
 #
 # Initialize variables accessed from ASGS config parameters to reasonable values
-#. ${SCRIPTDIR}/config_defaults.sh
+. ${SCRIPTDIR}/config/config_defaults.sh
 # Initialize model parameters to appropriate values
-#. ${SCRIPTDIR}/model_defaults.sh
+. ${SCRIPTDIR}/config/model_defaults.sh
 
 # set the file and directory permissions, which are platform dependent
 umask $UMASK
@@ -1716,7 +1715,7 @@ umask $UMASK
 # name asgs log file here
 SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG must be defined before logging.sh is run.
 # Bring in logging functions
-. ${SCRIPTDIR}/logging.sh
+. ${SCRIPTDIR}/monitoring/logging.sh
 # Bring in platform-specific configuration functions
 . ${SCRIPTDIR}/platforms.sh
 #
@@ -2020,7 +2019,7 @@ fi
 ADVISDIR=null   # determined below
 HSTIME=null     # determined below
 #
-#       H I N D C A S T
+#       S P I N U P
 #
 if [[ $START = coldstart ]]; then
    CURRENT_EVENT="HIND"
@@ -2034,11 +2033,11 @@ if [[ $START = coldstart ]]; then
    si=-1
    . ${CONFIG}
    # Obtain and/or verify ADCIRC(+SWAN) executables
-   get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG 
-   if [[ $? = 1 ]]; then
-      warn "Failed to find or build ADCIRC(+SWAN) executables for hindcast."
-      exit ${EXIT_NOT_OK} # can't really come back from this
-   fi
+   #get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG 
+   #if [[ $? = 1 ]]; then
+   #   warn "Failed to find or build ADCIRC(+SWAN) executables for hindcast."
+   #   exit ${EXIT_NOT_OK} # can't really come back from this
+   #fi
    ADVISDIR=$RUNDIR/initialize
    mkdir -p $ADVISDIR 2>> ${SYSLOG}
    STORMDIR=$ADVISDIR/$ENSTORM
@@ -2168,11 +2167,11 @@ while [ true ]; do
    ENSTORM=nowcast
    si=-1
    # Initialize variables accessed from ASGS config parameters to reasonable values
-   . ${SCRIPTDIR}/config_defaults.sh
+   . ${SCRIPTDIR}/config/config_defaults.sh
    # Initialize model parameters to appropriate values
-   . ${SCRIPTDIR}/model_defaults.sh
+   . ${SCRIPTDIR}/config/model_defaults.sh
    # HPC environment defaults (using the functions in platforms.sh)
-   env_dispatch ${HPCENV}   
+   env_dispatch ${HPCENVSHORT}   
    # grab the config specified by the operator
    . ${CONFIG}
    # Obtain and/or verify ADCIRC(+SWAN) executables
@@ -2576,11 +2575,11 @@ while [ true ]; do
       # ensemble member
       ENSTORM=forecast  
       # Initialize variables accessed from ASGS config parameters to reasonable values
-      . ${SCRIPTDIR}/config_defaults.sh
+      . ${SCRIPTDIR}/config/config_defaults.sh
       # Initialize model parameters to appropriate values
-      . ${SCRIPTDIR}/model_defaults.sh
+      . ${SCRIPTDIR}/config/model_defaults.sh
       # HPC environment defaults (using the functions in platforms.sh)
-      env_dispatch ${HPCENV}
+      env_dispatch ${HPCENVSHORT}
       # grab the config specified by the operator
       . ${CONFIG}
       # Obtain and/or verify ADCIRC(+SWAN) executables
