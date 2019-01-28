@@ -87,7 +87,7 @@ BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
 PTFILE=ptFile_oneEighth.txt         # the lat/lons for the OWI background met
-ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
+ALTNAMDIR="/srv/asgs/asgs6011","/projects/ncfs/data/asgs14174"
 
 # External data sources : River Flux
 

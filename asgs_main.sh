@@ -1967,9 +1967,12 @@ if [[ $PERIODICFLUX != null ]]; then
    checkFileExistence ${PERL5LIB} "AdcGrid perl module used by flux calculator" AdcGrid.pm
 fi
 #
-if [[ $TROPICALCYCLONE != off ]]; then
-   checkFileExistence ${PERL5LIB} "perl library to support downloading forecast/advisories from the National Hurricane Center website" Tiny.pm
-fi
+# # @jasonfleming : temporarily disable until we can get this to work reliably
+# on all platforms without having to build and install additional perl modules
+#
+#if [[ $TROPICALCYCLONE != off ]]; then
+#   checkFileExistence ${PERL5LIB} "perl library to support downloading forecast/advisories from the National Hurricane Center website" Tiny.pm
+#fi
 THIS="asgs_main.sh"
 #
 # Check for any issues or inconsistencies in configuration parameters. 

@@ -56,10 +56,10 @@ VORTEXMODEL=GAHM     # default is GAHM (NWS20); ASYMMETRIC (NWS19) possible
 
 TIMESTEPSIZE=6.0            # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
-HINDCASTWALLTIME="01:00:00" # hindcast wall clock time
-ADCPREPWALLTIME="00:05:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
-FORECASTWALLTIME="00:10:00" # forecast wall clock time
+HINDCASTWALLTIME="12:00:00" # hindcast wall clock time
+ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
+NOWCASTWALLTIME="12:00:00"  # longest nowcast wall clock time
+FORECASTWALLTIME="12:10:00" # forecast wall clock time
 NCPU=2                      # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=4
