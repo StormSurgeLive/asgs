@@ -28,7 +28,10 @@ ENSTORM=$5
 HSTIME=$6
 SYSLOG=$7
 SERVER=$8
-FILES=($9) # array of files to post to opendap
+FILES=("$9") # array of files to post to opendap
+#OPENDAPNOTIFY=$10
+
+#echo $OPENDAPNOTIFY
 #
 THIS=opendap_post.sh
 echo "SERVER is $SERVER" >> ${SYSLOG}
@@ -57,7 +60,6 @@ env_dispatch $SERVER   # from platforms.sh
 #  O P E N  D A P    P A T H   F O R M A T I O N
 #--------------------------------------------------------------------
 STORMNAMEPATH=null
-#
 #
 # form path to results on tds based on type of forcing or name of storm
 if [[ $BACKGROUNDMET != off ]]; then
@@ -127,14 +129,13 @@ subject="ADCIRC POSTED for $runStartTime"
 if [[ $TROPICALCYCLONE = on ]]; then
    subject=${subject}" (TC)"
 fi
+#Click on the link: 
+#
+#$CATALOGPREFIX/$STORMNAMEPATH/${OPENDAPSUFFIX}/catalog.html
 subject="${subject} $ENMEMNUM $HPCENV.$INSTANCENAME"
 cat <<END > ${STORMDIR}/opendap_results_notify.txt 
 
-Click on the link: 
-
-$CATALOGPREFIX/$STORMNAMEPATH/${OPENDAPSUFFIX}/catalog.html
-
-The results for cycle $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
+The results for cycle $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/catalog.html
 
 The run.properties file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
    
@@ -150,6 +151,7 @@ END
 case $OPENDAPPOSTMETHOD in
 "scp")
    logMessage "$ENSTORM: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
+   #echo ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "mkdir -p $OPENDAPDIR" 
    ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
    if [[ $? != 0 ]]; then
       warn "$ENSTORM: $THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
@@ -157,8 +159,8 @@ case $OPENDAPPOSTMETHOD in
    fi
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories
-   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR" 2>> $SYSLOG
-   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
+   #ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR" 2>> $SYSLOG
+   #ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
    ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
    if [[ $? != 0 ]]; then
       warn "$ENSTORM: $THIS: Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
@@ -174,7 +176,7 @@ case $OPENDAPPOSTMETHOD in
       fi
       chmod +r $file 2>> $SYSLOG
       logMessage "$ENSTORM: $THIS: Transferring $file."
-      scp -P $SSHPORT $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG
+      scp -P $SSHPORT $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG  2>&1
       if [[ $? != 0 ]]; then
          threddsPostStatus=fail
          warn "$ENSTORM: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."

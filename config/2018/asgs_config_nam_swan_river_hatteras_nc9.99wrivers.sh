@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2006--2017 Jason Fleming
+# Copyright(C) 2006--2018 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade 
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -49,7 +49,7 @@ REINITIALIZESWAN=yes       # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc/forks/jasonfleming/v53release/work  # ADCIRC executables 
 SWANDIR=~/adcirc/forks/jasonfleming/v53release/swan  # SWAN executables 
-SCRIPTDIR=~/asgs/branches/2014stable     # ASGS scripts/executables  
+SCRIPTDIR=~/asgs/forks/renci-unc/2014stable-rmq     # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v9.99_w_rivers # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
@@ -68,7 +68,7 @@ TIMESTEPSIZE=0.5
 SWANDT=1200
 HINDCASTWALLTIME="12:00:00"
 ADCPREPWALLTIME="01:15:00"
-NOWCASTWALLTIME="05:00:00"  # must have leading zero, e.g., 05:00:00
+NOWCASTWALLTIME="10:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
 NCPU=159
 NCPUCAPACITY=500
@@ -81,8 +81,9 @@ SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
 ACCOUNT=batch # or "ncfs" on hatteras to use pre-empt capability
 PARTITION=ncfs
 RESERVATION=null
-CONSTRAINT='sandybridge&hatteras'
+#CONSTRAINT='sandybridge&hatteras'
 CONSTRAINT=null
+QSCRIPT=hatteras-test.template.slurm
 
 # External data sources : Tropical cyclones
 
@@ -205,13 +206,13 @@ case $si in
    ENSTORM=namforecast
    PARTITION=ncfs
    RESERVATION=null
-   CONSTRAINT='sandybridge&hatteras'
+   #CONSTRAINT='sandybridge&hatteras'
    ;;
 1)
    ENSTORM=namforecastWind10m
    PARTITION=ncfs
    RESERVATION=null
-   CONSTRAINT='sandybridge&hatteras'
+   #CONSTRAINT='sandybridge&hatteras'
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=nc_9.99wrivers.nowindreduction.fort.15.template

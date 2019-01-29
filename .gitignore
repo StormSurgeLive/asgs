@@ -5,4 +5,15 @@
 *.x
 wgrib2
 *.tar.gz
+/.project
+*~
+null/
 *.mod
+a.out
+asgs*log
+test_command.sh
+t.pl
+old/
+asgspy/
+*.log
+current.sh
