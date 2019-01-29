@@ -13,8 +13,13 @@ RSSSITE=filesystem
 #FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
 FTPSITE=filesystem        # hindcast/nowcast ATCF formatted files
 #FDIR=/atcf/afst                 # forecast dir on nhc ftp site
+#
+#FDIR=/scratch/bblanton/asgs-advisories/ 
+#HDIR=/atcf/btk   
+#
 FDIR=${ASGSDIR}/input/sample_advisories/2018 
 HDIR=${FDIR}   
+#
 TRIGGER=rssembedded
 ADVISORY=0
 forecastFileNameXML=index-at.xml
