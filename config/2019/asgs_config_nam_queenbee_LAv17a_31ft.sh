@@ -70,7 +70,7 @@ SERQUEUE=single
 if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
-ACCOUNT=loni_cera_2018a
+ACCOUNT=cera_2019
 #SCRATCHDIR=/ssdwork/$USER    # vs default /work/cera
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
