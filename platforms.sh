@@ -81,6 +81,35 @@ init_queenbee()
   module load matlab/r2015b
   module load python/2.7.12-anaconda-tensorflow
 }
+
+init_rostam()
+{ #<- can replace the following with a custom script
+  HPCENV=rostam.cct.lsu.edu
+  QUEUESYS=SLURM
+  QCHECKCMD=squeue
+  QSUMMARYCMD=squeue
+  QUOTACHECKCMD=null
+  ALLOCCHECKCMD=null
+  QUEUENAME=rostam
+  SERQUEUE=rostam
+  ACCOUNT=null
+  SUBMITSTRING=sbatch
+  JOBLAUNCHER='srun -N %nnodes%'
+  SCRATCHDIR=~/asgs
+  SSHKEY=~/.ssh/id_rsa.pub
+  QSCRIPT=rostam.template.slurm
+  PREPCONTROLSCRIPT=rostam.adcprep.template.slurm
+  QSCRIPTGEN=hatteras.slurm.pl
+  PPN=16
+  PARTITION=marvin
+  CONSTRAINT=null
+  RESERVATION=null
+  REMOVALCMD="rm"
+  PLATFORMMODULES='module load mpi/mpich-3.0-x86_64'
+  $PLATFORMMODULES
+  # modules for CPRA post processing
+  module load mpi/mpich-3.0-x86_64
+}
 init_supermic()
 { #<- can replace the following with a custom script
   HPCENV=smic.hpc.lsu.edu
@@ -544,7 +573,7 @@ init_lsu_tds()
    OPENDAPHOST=fortytwo.cct.lsu.edu
    DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer"
    CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog"
-   OPENDAPBASEDIR=/scratch/opendap
+   OPENDAPBASEDIR=/data/opendap
    SSHPORT=2525
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links
    COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
@@ -682,6 +711,9 @@ env_dispatch(){
            ;;
   "penguin") consoleMessage "platforms.sh: Penguin configuration found."
           init_penguin
+           ;;
+  "rostam") consoleMessage "platforms.sh: rostam configuration found."
+          init_rostam
            ;;
   "test") consoleMessage "platforms.sh: test environment (default) configuration found."
           init_test
