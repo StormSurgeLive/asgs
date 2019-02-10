@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=namhsofs    # "name" of this ASGS process
-COLDSTARTDATE=2018120500  # YYYYMMDDHH24 or "auto" to extract from hotstart file
+COLDSTARTDATE=2019010100  # YYYYMMDDHH24 or "auto" to extract from hotstart file
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -38,7 +38,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
 SWANDIR=~/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-SCRIPTDIR=~/asgs/renci-unc/2014stable-rmq            # ASGS executables
+SCRIPTDIR=~/asgs/jasonfleming/2014stable           # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
@@ -62,7 +62,7 @@ FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=1200                    # number of compute CPUs for all simulations
 NUMWRITERS=20
 NCPUCAPACITY=3648
-CYCLETIMELIMIT="05:00:00"
+CYCLETIMELIMIT="24:00:00"
 QUEUENAME=workq
 SERQUEUE=single
 #QUEUENAME=priority
@@ -71,7 +71,7 @@ if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
 SCRATCHDIR=/work/$USER
-ACCOUNT=loni_cera_2018a
+ACCOUNT=loni_cera_2019
 
 # External data sources : Tropical cyclones
 
@@ -160,8 +160,8 @@ JOB_FAILED_LIST="jason.g.fleming@gmail.com"
 NOTIFYUSER="jason.g.fleming@gmail.com"
 ASGSADMIN="jason.g.fleming@gmail.com"
 # RMQ Messaging
-RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
-RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+RMQMessaging_Enable="off"      #  enables message generation ("on" | "off")
+RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
 RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
 RMQMessaging_NcoHome="/home/bblanton/"
 RMQMessaging_Python="/projects/storm_surge/anaconda/bin/python"
@@ -177,7 +177,7 @@ POSTPROCESS2=null_post.sh
 
 # opendap
 
-TDS=(renci_tds)
+TDS=(renci_tds lsu_tds)
 TARGET=queenbee # used in post processing to pick up HPC platform config
 OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
 if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then

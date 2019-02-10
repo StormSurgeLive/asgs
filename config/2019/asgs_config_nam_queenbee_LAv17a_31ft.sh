@@ -28,7 +28,8 @@
 # Fundamental
 
 INSTANCENAME=dailyLAv17a_31ft  # "name" of this ASGS process
-COLDSTARTDATE=2018120100   # calendar year month day hour YYYYMMDDHH24
+#COLDSTARTDATE=2018120100   # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2019010500   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -38,7 +39,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
 SWANDIR=~/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-SCRIPTDIR=~/asgs/renci-unc/2014stable-rmq          # ASGS executables
+SCRIPTDIR=~/asgs/jasonfleming/2014stable           # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v17a # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
@@ -70,7 +71,7 @@ SERQUEUE=single
 if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
-ACCOUNT=cera_2019
+ACCOUNT=loni_cera_2019
 #SCRATCHDIR=/ssdwork/$USER    # vs default /work/cera
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
@@ -166,7 +167,7 @@ INITPOST=null_init_post.sh
 POSTPROCESS=queenbee_daily_post.sh
 
 # opendap
-TDS=(renci_tds)
+TDS=(renci_tds lsu_tds)
 TARGET=queenbee  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
