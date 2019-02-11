@@ -166,6 +166,14 @@ POST_LIST=""
 JOB_FAILED_LIST="jason.g.fleming@gmail.com"
 NOTIFYUSER=jason.g.fleming@gmail.com
 ASGSADMIN=jason.g.fleming@gmail.com
+# RMQ Messaging
+RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
+RMQMessaging_NcoHome="/home/ijgflemin/"
+RMQMessaging_Python="/usr/local/packages/python/2.7.12-anaconda/bin/python"
+RMQMessaging_LocationName="LONI"
+RMQMessaging_ClusterName="Queenbee"
 
 # Post processing and publication
 
