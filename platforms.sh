@@ -245,7 +245,16 @@ init_hatteras()
   if [[ $RESERVATION = ncfs ]]; then
      PPN=20
   fi
-  PLATFORMMODULES='module load hdf5/1.10.1_intel-18.0.0 intelc/18.0.0 intelfort/18.0.0 openmpi/intel_3.0.0 netcdf-C/4.5.0_intel-18.0.0 netcdf-Fortran/4.4.0_intel-18.0.0 zlib/1.2.11_intel-18.0.0'
+  # to create python environment for the ncfs user, @jasonfleming did this:
+  #   pip install --user --upgrade pip
+  #   pip install --user --upgrade setuptools
+  # for rabbitmq and the asgs status monitor:
+  #   pip install --user pika
+  #   pip install --user netCDF4
+  # for the automated slide deck generator
+  #   pip install --user pptx
+  #
+  PLATFORMMODULES='module load hdf5/1.10.1_intel-18.0.0 intelc/18.0.0 intelfort/18.0.0 openmpi/intel_3.0.0 netcdf-C/4.5.0_intel-18.0.0 netcdf-Fortran/4.4.0_intel-18.0.0 zlib/1.2.11_intel-18.0.0 python_modules/2.7'
   module purge
   $PLATFORMMODULES
 }

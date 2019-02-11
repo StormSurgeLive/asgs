@@ -968,8 +968,15 @@ monitorJobs()
                   fi
                done
                continue
+            else
+               # there was an error under a SLURM system, but not 
+               # an error we can get around by resubmitting
+               error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
+            cat ${ENSTORM_TEMP}.run.error >> jobFailed
+               break
             fi
          else
+            # there was an error under a non-SLURM system
             error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
             cat ${ENSTORM_TEMP}.run.error >> jobFailed
             break
