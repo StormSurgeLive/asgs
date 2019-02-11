@@ -28,7 +28,7 @@
 #
 # Fundamental 
 #
-INSTANCENAME=hiresr       # name of this ASGS process, to differentiate results
+INSTANCENAME=hiresr-RENCI       # name of this ASGS process, to differentiate results
 #COLDSTARTDATE=2016061300
 #COLDSTARTDATE=2016111500
 #COLDSTARTDATE=2017010100

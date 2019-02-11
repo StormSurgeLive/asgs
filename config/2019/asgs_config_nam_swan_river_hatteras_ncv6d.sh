@@ -28,7 +28,7 @@
 #
 # Fundamental 
 #
-INSTANCENAME=dailyv6d      # name of this ASGS process
+INSTANCENAME=dailyv6d-RENCI      # name of this ASGS process
 #COLDSTARTDATE=2016090400
 #COLDSTARTDATE=2017010100
 #COLDSTARTDATE=2017012400
