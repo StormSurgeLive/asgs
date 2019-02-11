@@ -254,7 +254,10 @@ init_hatteras()
   # for the automated slide deck generator
   #   pip install --user pptx
   #
-  PLATFORMMODULES='module load hdf5/1.10.1_intel-18.0.0 intelc/18.0.0 intelfort/18.0.0 openmpi/intel_3.0.0 netcdf-C/4.5.0_intel-18.0.0 netcdf-Fortran/4.4.0_intel-18.0.0 zlib/1.2.11_intel-18.0.0 python_modules/2.7'
+  PLATFORMMODULES='module load hdf5/1.10.1_intel-18.0.0 intelc/18.0.0 intelfort/18.0.0 openmpi/intel_3.0.0 netcdf-C/4.5.0_intel-18.0.0 netcdf-Fortran/4.4.0_intel-18.0.0 zlib/1.2.11_intel-18.0.0'
+  if [[ $USER = ncfs ]]; then
+     PLATFORMMODULES=$PLATFORMMODULES' python_modules/2.7'
+  fi
   module purge
   $PLATFORMMODULES
 }
