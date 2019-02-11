@@ -27,8 +27,8 @@
 
 # Fundamental
 
-INSTANCENAME=namhsofs    # "name" of this ASGS process
-COLDSTARTDATE=2019010100  # YYYYMMDDHH24 or "auto" to extract from hotstart file
+INSTANCENAME=dailyv6d    # "name" of this ASGS process
+COLDSTARTDATE=2019010500  # YYYYMMDDHH24 or "auto" to extract from hotstart file
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -39,7 +39,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 ADCIRCDIR=~/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
 SWANDIR=~/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
 SCRIPTDIR=~/asgs/jasonfleming/2014stable           # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs # grid and other input files
+INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v6b # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
@@ -49,18 +49,18 @@ BACKGROUNDMET=on     # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=off  # tropical cyclone forcing
 WAVES=on            # wave forcing
-VARFLUX=off          # variable river flux forcing
+VARFLUX=on          # variable river flux forcing
 
 # Computational Resources
 
-TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
+TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00" # forecast wall clock time
-NCPU=1200                    # number of compute CPUs for all simulations
-NUMWRITERS=20
+NCPU=159                    # number of compute CPUs for all simulations
+NUMWRITERS=1
 NCPUCAPACITY=3648
 CYCLETIMELIMIT="24:00:00"
 QUEUENAME=workq
@@ -93,7 +93,7 @@ FORECASTCYCLE="06,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
-PTFILE=ptFile_hsofs.txt         # the lat/lons for the OWI background met
+PTFILE=ptFile_oneEighth.txt         # the lat/lons for the OWI background met
 SPATIALEXTRAPOLATIONRAMP=yes
 SPATIALEXTRAPOLATIONRAMPDISTANCE=5.0
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
@@ -105,21 +105,20 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=hsofs.14  # mesh (fort.14) file
-GRIDNAME=hsofs
-MESHPROPERTIES=${GRIDFILE}.ng.properties     
-CONTROLTEMPLATE=hsofs_explicit.15.template
-CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=hsofs_stations_20180907.txt
-VELSTATIONS=$ELEVSTATIONS
-METSTATIONS=$ELEVSTATIONS
-NAFILE=hsofs.13
+GRIDFILE=nc_inundation_v6d_rivers_msl.grd
+GRIDNAME=nc6b  # @jasonfleming 20170814: should be nc6d
+MESHPROPERTIES=${GRIDFILE}.properties
+CONTROLTEMPLATE=v6brivers_explicit_rlevel51_fort.15_template
+CONTROLPROPERTIES=v6brivers_fort.15.properties
+ELEVSTATIONS=v6brivers_elev_stations.txt
+VELSTATIONS=null
+METSTATIONS=v6brivers_met_stations.txt
+NAFILE=v6brivers_rlevel.13
 NAPROPERTIES=${NAFILE}.properties
-#SWANTEMPLATE=fort.26.template # only used if WAVES=on
-SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
-RIVERINIT=null                          # this mesh has no rivers ...
-RIVERFLUX=null
-HINDCASTRIVERFLUX=null
+SWANTEMPLATE=fort.26.v6b.template
+RIVERINIT=v6brivers.88
+RIVERFLUX=v6brivers_fort.20_default
+HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
 
@@ -163,7 +162,7 @@ ASGSADMIN="jason.g.fleming@gmail.com"
 RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
 RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
-RMQMessaging_NcoHome="/home/ijgflemin/"
+RMQMessaging_NcoHome="/home/jgflemin/"
 RMQMessaging_Python="/usr/local/packages/python/2.7.12-anaconda/bin/python"
 RMQMessaging_LocationName="LONI"
 RMQMessaging_ClusterName="Queenbee"
@@ -206,7 +205,7 @@ case $si in
    ENSTORM=namforecastWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
+   CONTROLTEMPLATE=v6brivers_nowindreduction_fort.15_template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements
