@@ -63,7 +63,7 @@ FORECASTWALLTIME="07:00:00" # forecast wall clock time
 NCPU=1160                     # number of compute CPUs for all simulations
 NUMWRITERS=20
 NCPUCAPACITY=3600
-CYCLETIMELIMIT="05:00:00"
+CYCLETIMELIMIT="24:00:00"
 QUEUENAME=workq
 SERQUEUE=single
 #QUEUENAME=priority
@@ -159,6 +159,14 @@ POST_LIST=null
 JOB_FAILED_LIST="jason.g.fleming@gmail.com"
 NOTIFYUSER=jason.g.fleming@gmail.com
 ASGSADMIN=jason.g.fleming@gmail.com
+# RMQ Messaging
+RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
+RMQMessaging_NcoHome="/home/ijgflemin/"
+RMQMessaging_Python="/usr/local/packages/python/2.7.12-anaconda/bin/python"
+RMQMessaging_LocationName="LONI"
+RMQMessaging_ClusterName="Queenbee"
 
 # Post processing and publication
 
