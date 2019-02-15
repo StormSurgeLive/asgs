@@ -176,8 +176,8 @@ ASGSADMIN=jason.g.fleming@gmail.com
 RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
 RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
-RMQMessaging_NcoHome="/home/bblanton/"
-RMQMessaging_Python="/projects/storm_surge/anaconda/bin/python"
+RMQMessaging_NcoHome="/home/jgflemin/"
+RMQMessaging_Python="/bin/python"
 RMQMessaging_LocationName="RENCI"
 RMQMessaging_ClusterName="Hatteras"
 

@@ -45,8 +45,8 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc-cg/jasonfleming/v53release_openmpi/work # ADCIRC executables 
-SWANDIR=~/adcirc-cg/jasonfleming/v53release_openmpi/swan # ADCIRC executables 
+ADCIRCDIR=~/adcirc-cg/jasonfleming/v53release_mvapich2-2.0/work # ADCIRC executables 
+SWANDIR=~/adcirc-cg/jasonfleming/v53release_mvapich2-2.0/swan # ADCIRC executables 
 SCRIPTDIR=~/asgs/jasonfleming/2014stable    # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v6b   # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
@@ -80,7 +80,7 @@ PARTITION=ncfs
 RESERVATION=null
 CONSTRAINT=null
 #CONSTRAINT='sandybridge&hatteras' # sandybridge=512wide max, ivybridge=640wide max
-QSCRIPT=hatteras-openmpi.template.slurm
+QSCRIPT=hatteras-mvapich2-2.0.template.slurm
 
 # External data sources : Tropical cyclones
 
