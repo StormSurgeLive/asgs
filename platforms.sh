@@ -205,7 +205,9 @@ init_pod()
   QCHECKCMD=qstat
   ACCOUNT=noaccount
   SUBMITSTRING=submitstring
-  SCRATCHDIR=/home/bblanton/asgs_scratch
+  if [[ $USER = bblanton ]]; then 
+     SCRATCHDIR=/home/bblanton/asgs_scratch
+  fi
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=penguin.template.pbs
   PREPCONTROLSCRIPT=penguin.adcprep.template.pbs
@@ -216,29 +218,57 @@ init_pod()
   PPN=28
 #  QUEUE=S30     # aka the partition in SLURM parlance 
 #  PPN=40
+   RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+   if [[ $USER = bblanton ]]; then
+      RMQMessaging_NcoHome="/home/bblanton/"
+      RMQMessaging_Python="/home/bblanton/asgs/asgspy/bin/python"
+   fi
+   RMQMessaging_LocationName="Penguin"
+   RMQMessaging_ClusterName="POD"
 }
 init_hatteras()
 { #<- can replace the following with a custom script
   HPCENV=hatteras.renci.org
   QUEUESYS=SLURM
   QCHECKCMD=sacct
-  #ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
-  #SCRATCHDIR=/scratch/bblanton/data
-  #PARTITION=batch       # ncfs or batch
-  #CONSTRAINT=hatteras # ivybridge or sandybridge
+  ACCOUNT=pleaseSetAccountInASGSConfigFile
+  case $USER in 
+  bblanton) 
+     ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
+     SCRATCHDIR=/scratch/bblanton/data
+     PYTHONVENV=/projects/storm_surge/anaconda
+     ;;
+  ncfs)
+     ACCOUNT=ncfs
+     SCRATCHDIR=/projects/ncfs/data
+     PARTITION=ncfs       # ncfs or batch, gives priority
+     PYTHONVENV=~/asgs/asgspy/venv
+     ;;
+  *)
+     echo "User name $USER on hatteras not recognized and ACCOUNT could not be set."
+     ;;
+  esac
+  #
+  RMQMessaging_Enable="on"      # "on"|"off"
+  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  RMQMessaging_NcoHome="/home/bblanton/"
+  if [[ $PYTHONVENV !=null ]]; then
+     RMQMessaging_Python=$PYTHONVENV/bin/python
+  fi
+  RMQMessaging_LocationName="RENCI"
+  RMQMessaging_ClusterName="Hatteras"
   #
   QSUMMARYCMD=null
   QUOTACHECKCMD="df -h /projects/ncfs"
   ALLOCCHECKCMD=null
-  ACCOUNT=ncfs
   SUBMITSTRING=sbatch
   JOBLAUNCHER=srun
-  SCRATCHDIR=/projects/ncfs/data
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=hatteras.template.slurm
   PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
   RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
-  PARTITION=ncfs       # ncfs or batch, gives priority
+  PARTITION=null
   CONSTRAINT=null      # ivybridge or sandybridge
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=16
@@ -526,6 +556,16 @@ init_desktop()
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
   SWANMACROSINC=macros.inc.gfortran
+  if [[ $USER = "jason" ]]; then
+     PYTHONVENV=~/asgs/asgspy/venv
+     RMQMessaging_Enable="on"  # "on"|"off"
+     RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+     RMQMessaging_Script="/set/RMQMessaging_Script/in/asgs/config"
+     RMQMessaging_NcoHome=null
+     RMQMessaging_Python=$PYTHONVENV/bin/python
+     RMQMessaging_LocationName="Seahorse"
+     RMQMessaging_ClusterName="jason-desktop"
+  fi
 }
 init_Poseidon()
 {
@@ -577,8 +617,11 @@ init_lsu_tds()
    SSHPORT=2525
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links
    COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
-   if [[ $USER = jgflemin ]]; then
+   if [[ $USER = jgflemin && $HPCENV = queenbee.loni.org ]]; then
       OPENDAPUSER=$USER
+   fi
+   if [[ $USER = ncfs && $HPCENV = hatteras.renci.org ]]; then
+      OPENDAPUSER=jgflemin
    fi
 }
 # THREDDS Data Server (TDS, i.e., OPeNDAP server) at Texas
