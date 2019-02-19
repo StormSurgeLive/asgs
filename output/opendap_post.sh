@@ -167,15 +167,22 @@ case $OPENDAPPOSTMETHOD in
       threddsPostStatus=fail
    fi
    for file in ${FILES[*]}; do 
+      # add downloadurl property to run.properties file
+      if [[ $file = "run.properties" ]]; then
+         echo "downloadurl : $downloadURL" >> run.properties 2>> ${SYSLOG}
+      fi      
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
          logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
          cat ${STORMDIR}/opendap_results_notify.txt | mail -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
          opendapEmailSent=yes
          continue        
+      else
+         # see if the file is currently considered "opened" by another process
+         lsof -t $file 2>> $SYSLOG 2>&1
       fi
       chmod +r $file 2>> $SYSLOG
-      logMessage "$ENSTORM: $THIS: Transferring $file."
+      logMessage "$ENSTORM: $THIS: Transferring $file to ${OPENDAPHOST}."
       scp -P $SSHPORT $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG  2>&1
       if [[ $? != 0 ]]; then
          threddsPostStatus=fail
@@ -187,14 +194,6 @@ case $OPENDAPPOSTMETHOD in
       if [[ $? != 0 ]]; then
          threddsPostStatus=fail
          warn "$ENSTORM: $THIS: Failed to give the file $file read permissions in ${OPENDAPHOST}:${OPENDAPDIR}."
-      fi      
-      # We must add this new property to the run.properties after copying it
-      # to the remote server so we don't contaminate the original
-      # run.properties with this downloadurl property.
-      ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "echo downloadurl : $downloadURL >> $OPENDAPDIR/run.properties"
-      if [[ $? != 0 ]]; then
-         threddsPostStatus=fail
-         warn "$ENSTORM: $THIS: Failed to add the downloadurl property to run.properties in ${OPENDAPHOST}:${OPENDAPDIR}."
       fi      
    done
    ;;
@@ -231,23 +230,15 @@ case $OPENDAPPOSTMETHOD in
          continue        
       fi
       chmod +r ${ADVISDIR}/${ENSTORM}/$file 2>> $SYSLOG
-      # We must copy the run.properties so we don't contaminate the
-      # original run.properties with this downloadurl property.
+      # add downloadurl property.
       if [[ $file = 'run.properties' ]]; then
-         logMessage "$ENSTORM: $THIS: Copying $file."
-         cp ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
-         if [[ $? != 0 ]]; then
-            threddsPostStatus=fail
-            warn "$ENSTORM: $THIS: Failed to copy the run.properties file to ${OPENDAPDIR}."
-         fi         
          echo downloadurl : $downloadURL >> $file 2>> ${SYSLOG}
-      else
-         logMessage "$ENSTORM: $THIS: $postDesc $file."
-         $postCMD ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
-         if [[ $? != 0 ]]; then
-           threddsPostStatus=fail
-           warn "$ENSTORM: $THIS: $postDesc $file to ${OPENDAPDIR} failed."
-         fi
+      fi
+      logMessage "$ENSTORM: $THIS: $postDesc $file."
+      $postCMD ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
+      if [[ $? != 0 ]]; then
+         threddsPostStatus=fail
+         warn "$ENSTORM: $THIS: $postDesc $file to ${OPENDAPDIR} failed."
       fi
    done
    ;;
