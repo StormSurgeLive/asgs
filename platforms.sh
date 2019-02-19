@@ -528,6 +528,14 @@ init_lonestar()
   ml reset
   PLATFORMMODULES='module load netcdf nco'
   $PLATFORMMODULES
+  #
+  # @jasonfleming 20190218 : don't upgrade pip! 
+  # for rabbitmq and the asgs status monitor:
+  #   pip install --user pika
+  #   pip install --user netCDF4
+  # for the automated slide deck generator
+  #   (installing pptx did not work -- it was not found) 
+  #   pip install --user python-pptx
 }
 init_desktop()
 {
