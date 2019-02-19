@@ -1032,12 +1032,12 @@ monitorJobs()
       # execute the FortCheck.py code to get a %complete status
       if [[ -e "fort.61.nc" ]] ; then
          #pc=`${SCRIPTDIR}/fortcheck.sh fort.61.nc 2>> $SYSLOG`
-         #echo "${RMQMessaging_Python} ${SCRIPTDIR}/FortCheck.py fort.61.nc"
+         #echo "${RMQMessaging_Python} ${SCRIPTDIR}/monitoring/FortCheck.py fort.61.nc"
          #
          # RMQMessaging_Python will be undefined if RMQMessaging is not
          # enabled
          if [[ $RMQMessaging_Enable = on ]]; then
-            pc=`${RMQMessaging_Python} ${SCRIPTDIR}/FortCheck.py fort.61.nc 2>> $SYSLOG`
+            pc=`${RMQMessaging_Python} ${SCRIPTDIR}/monitoring/FortCheck.py fort.61.nc 2>> $SYSLOG`
             RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "RUNN" "The $ENSTORM_TEMP job is running..." $pc
          fi
       fi
@@ -1454,15 +1454,16 @@ variables_init()
    PERIODICFLUX=null
    SPATIALEXTRAPOLATIONRAMP=yes
    SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
+   PYTHONVENV=null # path to python virtual environment, e.g., ~/asgs/asgspy/venv
 # RMQMessaging defaults
    RMQMessaging_Enable="off"  # "on"|"off"
    RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
-   RMQMessaging_Script="/set/RMQMessaging_Script/in/asgs/config"
+   RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
+   RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
    RMQMessaging_NcoHome="/set/RMQMessaging_NcoHome/in/asgs/config"
    RMQMessaging_Python="/set/RMQMessaging_Python/in/asgs/config"
    RMQMessaging_LocationName="/set/RMQMessaging_LocationName/in/asgs/config/e.g./RENCI"
    RMQMessaging_ClusterName="/set/RMQMessaging_ClusterName/in/asgs/config/e.g./Hatteras"
-
 }
 #
 # Write general properties to the run.properties file that are associated with 
@@ -1719,12 +1720,17 @@ SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG
 # Bring in platform-specific configuration functions
 . ${SCRIPTDIR}/platforms.sh
 #
+# establish python virtual environment, if any
+if [[ $PYTHONVENV != "null" ]]; then
+   source $PYTHONVENV/bin/activate
+fi
+#
 # RMQMessaging config
 # this verifies that messages can be constructed.  It is possible
 # that asgs-msgr.sh will set RMQMessaging to "off", in which case
 # calls to RMQMessage will return without doing anything
 if [[ $RMQMessaging_Enable == "on" ]] ; then
-   . ${SCRIPTDIR}/asgs-msgr.sh
+   . ${SCRIPTDIR}/monitoring/asgs-msgr.sh
 fi
 
 # set a trap for a signal to reread the ASGS config file
