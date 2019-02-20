@@ -55,7 +55,7 @@ ifeq ($(compiler),intel)
    endif
 endif
 #
-OUTPUTDIR := ../../output
+OUTPUTDIR := ../../../output
 INCLUDES := -I. -I$(OUTPUTDIR)
 #
 # if netcdf libraries are available on the target platform, 
