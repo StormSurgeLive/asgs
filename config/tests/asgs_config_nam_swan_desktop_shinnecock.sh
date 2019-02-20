@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=shinnam    # "name" of this ASGS process
-COLDSTARTDATE=2019011500 # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2019021200 # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=5.0      # length of initial hindcast, from cold (days)
@@ -82,7 +82,7 @@ HDIR=~/asgs/branches/nowcastarchive/input/sample_advisories/2012
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="00,06,12,18"
+FORECASTCYCLE="00"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -149,6 +149,14 @@ POST_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
 JOB_FAILED_LIST="jason.fleming@seahorsecoastal.com jason.g.fleming@gmail.com"
 NOTIFYUSER=jason.fleming@seahorsecoastal.com
 ASGSADMIN=jason.fleming@seahorsecoastal.com
+# ASGS monitor
+RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
+RMQMessaging_NcoHome=$HOME
+RMQMessaging_Python="/usr/bin/python"
+RMQMessaging_LocationName="Seahorse"
+RMQMessaging_ClusterName="jason-desktop"
 
 # Post processing and publication
 

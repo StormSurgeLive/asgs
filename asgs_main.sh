@@ -1728,30 +1728,14 @@ SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG
 . ${SCRIPTDIR}/platforms.sh
 #
 # establish python virtual environment, if any
-if [[ $PYTHONVENV != "null" ]]; then
-   source $PYTHONVENV/bin/activate
-fi
-#
-# RMQMessaging config
-# this verifies that messages can be constructed.  It is possible
-# that asgs-msgr.sh will set RMQMessaging to "off", in which case
-# calls to RMQMessage will return without doing anything
-if [[ $RMQMessaging_Enable == "on" ]] ; then
-   . ${SCRIPTDIR}/monitoring/asgs-msgr.sh
-fi
+#if [[ $PYTHONVENV != "null" ]]; then
+#   source $PYTHONVENV/bin/activate
+#fi
 
 # set a trap for a signal to reread the ASGS config file
 trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; . $CONFIG' USR1
 # catch ^C for a final message
 trap 'sigint' INT
-
-# Send message with config file contents as the message body.  This is only done once at ASGS startup
-temp=`cat $CONFIG | sed '/^#/d' | sed '/^$/d'` 
-RMQMessageStartup "$temp"
-
-# set a RunParams string for messaging
-RMQRunParams="$GRIDNAME:EnsSize=$ENSEMBLESIZE"
-RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh" "$CURRENT_STATE" "$HPCENVSHORT configuration found."
 
 # dispatch environment (using the functions in platforms.sh)
 env_dispatch ${HPCENVSHORT}
@@ -1763,6 +1747,25 @@ env_dispatch ${HPCENVSHORT}
 umask $UMASK
 #
 RUNDIR=$SCRATCHDIR/asgs$$
+#
+# RMQMessaging config
+# this verifies that messages can be constructed.  It is possible
+# that asgs-msgr.sh will set RMQMessaging to "off", in which case
+# calls to RMQMessage will return without doing anything
+if [[ $RMQMessaging_Enable == "on" ]] ; then
+   THIS="monitoring/asgs-msgr.sh"
+   . ${SCRIPTDIR}/monitoring/asgs-msgr.sh
+   THIS="asgs_main.sh"
+fi
+#
+# Send message with config file contents as the message body.  This is only done once at ASGS startup
+temp=`cat $CONFIG | sed '/^#/d' | sed '/^$/d'` 
+RMQMessageStartup "$temp"
+#
+# set a RunParams string for messaging
+RMQRunParams="$GRIDNAME:EnsSize=$ENSEMBLESIZE"
+RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh" "$CURRENT_STATE" "$HPCENVSHORT configuration found."
+
 # if we are starting from cron, look for a state file
 if [[ $ONESHOT = yes ]]; then
    # if it is there, read it
