@@ -4,7 +4,7 @@
 # A system to build ASGS-related utilities for processing ADCIRC output.
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2014--2016 Jason Fleming
+# Copyright(C) 2014--2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -40,7 +40,7 @@ ifeq ($(compiler),intel)
    endif
 endif
 #
-OUTPUTDIR := ../../output
+OUTPUTDIR := ../../../output
 INCLUDES := -I. -I$(OUTPUTDIR)
 #
 # if netcdf libraries are available on the target platform, 
