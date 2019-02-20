@@ -252,10 +252,8 @@ init_hatteras()
   #
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome="/home/bblanton/"
-  if [[ $PYTHONVENV !=null ]]; then
-     RMQMessaging_Python=$PYTHONVENV/bin/python
-  fi
+  RMQMessaging_NcoHome="/home/ncfs"
+  RMQMessaging_Python=/usr/bin/python
   RMQMessaging_LocationName="RENCI"
   RMQMessaging_ClusterName="Hatteras"
   #
@@ -578,12 +576,11 @@ init_desktop()
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
   SWANMACROSINC=macros.inc.gfortran
   if [[ $USER = "jason" ]]; then
-     PYTHONVENV=~/asgs/asgspy/venv
-     RMQMessaging_Enable="on"  # "on"|"off"
-     RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+     RMQMessaging_Enable="on"   # "on"|"off"
+     RMQMessaging_Transmit="on" #  enables message transmission ("on" | "off")
      RMQMessaging_Script="/set/RMQMessaging_Script/in/asgs/config"
-     RMQMessaging_NcoHome=null
-     RMQMessaging_Python=$PYTHONVENV/bin/python
+     RMQMessaging_NcoHome=$HOME
+     RMQMessaging_Python=/usr/bin/python
      RMQMessaging_LocationName="Seahorse"
      RMQMessaging_ClusterName="jason-desktop"
   fi
