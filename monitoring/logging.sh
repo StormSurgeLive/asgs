@@ -64,7 +64,7 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
   if ! [[ $PCTCOM =~ $re ]] ; then
      warn "PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message." 
   else
-     logMessage "RMQ : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" "$MTYPE" $EVENT "$DATETIME" $STATE $PCTCOM $PROCESS  "$5"
+     printf "RMQ : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" "$MTYPE" $EVENT "$DATETIME" $STATE $PCTCOM $PROCESS  "$5" >> $SYSLOG 2>&1
 
      # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
 #     echo "RMQMessaging_Transmit=$RMQMessaging_Transmit"
