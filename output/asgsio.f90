@@ -917,6 +917,8 @@ integer :: errorIO
 character(len=160) :: line
 integer :: lineNum
 !
+call allMessage(INFO,'Determining characteristics of ASCII text file.') 
+!
 ! set some defaults
 fn%nSnaps = -99
 fn%numValuesPerDataSet = -99   
@@ -940,6 +942,7 @@ select case(trim(fn%defaultFileName))
 case('maxele.63','maxvel.63','maxwvel.63','maxrs.63','minpr.63','swan_HS_max.63','swan_TPS_max.63','minmax')
    fn%dataFileCategory = MINMAX
    fn%timeVarying = .false.
+   call allMessage(INFO,'Found min/max file.') 
 case('fort.13','nodalattributes')
    fn%dataFileCategory = NODALATTRIBF
    fn%timeVarying = .false.
@@ -994,8 +997,16 @@ case(MINMAX,STATION,DOMAIN)
    call openFileForRead(fn%fun, trim(fn%dataFileName), errorIO)
    read(fn%fun,*,end=246,err=248,iostat=errorio) fn%agridRunIDRunDesLine
    lineNum=lineNum+1
+   call allMessage(INFO,'The ASCII text file header line is ' // trim(fn%agridRunIDRunDesLine) // '.') 
    read(fn%fun,*,end=246,err=248,iostat=errorio) fn%nSnaps, fn%numValuesPerDataset, fn%time_increment, fn%nspool, fn%irtype
    lineNum=lineNum+1
+   write(scratchMessage,23) fn%nSnaps, fn%numValuesPerDataset, fn%time_increment, fn%nspool, fn%irtype
+   call allMessage(INFO,scratchMessage)
+23 format('The number of datasets is ',i0,'; the number of values per dataset is ',i0,'; the time increment between datasets is ',f15.8,'; the time step increment between datasets is ',i0,'; the rank of the dataset is ',i0,'.')
+   if (fn%nSnaps.eq.2) then
+      fn%timeOfOccurrence = .true. ! only relevant to min/max files
+      call allMessage(INFO,'The min/max file contains time of occurrence data.')
+   endif
    read(fn%fun,'(a)',end=246,err=248) line
    lineNum = lineNum + 1
    ! determine whether the file is sparse ascii
@@ -1005,6 +1016,7 @@ case(MINMAX,STATION,DOMAIN)
    ! attempt to parse this line as sparse ascii
    read(line,*,err=907,end=907) snapr, snapi, numNodesNonDefault, defaultValue
    fn%isSparse = .true.
+   call allMessage(INFO,'The ASCII file is sparse formatted.')
 907 continue
    close(fn%fun)
 case(INITRIVER)
@@ -1489,7 +1501,7 @@ case(MINMAX)
       thisVarName = 'zeta_max'
       call initMinMaxFileMetaData(fn, thisVarName, .false.)
       call check(nf90_def_var(fn%nc_id,'zeta_max',nf90_double,n%nc_dimid_node,fn%ncds(1)%nc_varID))
-      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',fn%ncds(1)%fillValue))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',-99999.d0))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'long_name','maximum sea surface elevation above datum'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'standard_name','maximum_sea_surface_elevation_above_datum'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'coordinates','y x'))
@@ -1498,7 +1510,7 @@ case(MINMAX)
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','m'))
       if ( fn%timeOfOccurrence.eqv..true.) then
          call check(nf90_def_var(fn%nc_id,'time_of_zeta_max',nf90_double,n%nc_dimid_node,fn%ncds(2)%nc_varID))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'_fillValue',fn%ncds(1)%fillValue))
+         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'_fillValue',-99999.d0))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'long_name','time of maximum sea surface elevation above datum'))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'standard_name','time_of_maximum_sea_surface_elevation_above_datum'))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'coordinates','y x'))
@@ -1510,7 +1522,7 @@ case(MINMAX)
       thisVarName = 'wind_max'
       call initMinMaxFileMetaData(fn, thisVarName, .false.)
       call check(nf90_def_var(fn%nc_id,'wind_max',nf90_double,n%nc_dimid_node,fn%ncds(1)%nc_varID))
-      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',fn%ncds(1)%fillValue))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',-99999.d0))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'long_name','maximum wind speed at sea level'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'standard_name','maximum_wind_speed_at_sea_level'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'coordinates','time y x'))
@@ -1519,7 +1531,7 @@ case(MINMAX)
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','m s-1'))
       if ( fn%timeOfOccurrence.eqv..true.) then
          call check(nf90_def_var(fn%nc_id,'time_of_wind_max',nf90_double,n%nc_dimid_node,fn%ncds(2)%nc_varID))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'_fillValue',fn%ncds(1)%fillValue))
+         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'_fillValue',-99999.d0))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'long_name','time of maximum wind speed at sea level'))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'standard_name','time_of_maximum_wind_speed_at_sea_level'))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'coordinates','y x'))
@@ -1531,7 +1543,7 @@ case(MINMAX)
       thisVarName = 'pressure_min'
       call initMinMaxFileMetaData(fn, thisVarName, .false.)
       call check(nf90_def_var(fn%nc_id,'pressure_min',nf90_double,n%nc_dimid_node,fn%ncds(1)%nc_varID))
-      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',fn%ncds(1)%fillValue))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',-99999.d0))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'long_name','minimum air pressure at sea level'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'standard_name','minimum_air_pressure_at_sea_level'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'coordinates','y x'))
@@ -1540,7 +1552,7 @@ case(MINMAX)
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','meters of water'))
       if ( fn%timeOfOccurrence.eqv..true.) then
          call check(nf90_def_var(fn%nc_id,'time_of_pressure_min',nf90_double,n%nc_dimid_node,fn%ncds(2)%nc_varID))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'_fillValue',fn%ncds(1)%fillValue))
+         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'_fillValue',-99999.d0))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'long_name','time of minimum air pressure at sea level'))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'standard_name','time_of_minimum_air_pressure_at_sea_level'))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'coordinates','y x'))
@@ -1858,10 +1870,12 @@ case(ASCII,ASCIIG)
       !
       ! READ 2DDI ASCII DATASET HEADER
       !
+      ! sparse
       if (f%isSparse) then        
          read(f%fun,fmt=*,end=246,err=248,iostat=errorio) snapr, snapi, numNodesNonDefault, f%defaultValue
          l = l + 1
       else
+         ! non-sparse and non-fort.88 
          if (f%dataFileCategory.ne.INITRIVER) then
             read(f%fun,fmt=*,end=246,err=248,iostat=errorio) SnapR, SnapI
             numNodesNonDefault = f%numValuesPerDataSet
@@ -2108,7 +2122,11 @@ case(NETCDFG,NETCDF3,NETCDF4)
                call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%ncds(c)%rdata,nc_start,nc_count))
             else
                ! data came from ascii
-               call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%rdata(c,:),nc_start,nc_count))
+               if (f%dataFileCategory.eq.MINMAX .and. f%timeOfOccurrence.eqv..true. .and. s.eq.2) then
+                  call check(nf90_put_var(f%nc_id,f%ncds(2)%nc_varID,f%rdata(c,:),nc_start,nc_count))                  
+               else
+                  call check(nf90_put_var(f%nc_id,f%ncds(1)%nc_varID,f%rdata(c,:),nc_start,nc_count))
+               endif
             endif
          endif
       endif
