@@ -582,6 +582,7 @@ prepFile()
              sleep 60
           fi
        done
+       CURRENT_STATE="WAIT"
        monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $WALLTIME
        THIS="asgs_main.sh>prepFile()"
        logMessage "$ENSTORM: $THIS: Finished adcprepping file ($JOBTYPE)."
@@ -604,6 +605,7 @@ prepFile()
              sleep 60
           fi
        done
+       CURRENT_STATE="WAIT"
        monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $WALLTIME
        THIS="asgs_main.sh>prepFile()"
        RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Finished adcprepping file ($JOBTYPE)."
@@ -623,6 +625,7 @@ prepFile()
           THIS="asgs_main.sh>prepFile()"
        fi
        # check once per minute until all jobs have finished
+       CURRENT_STATE="WAIT"
        monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $WALLTIME
        THIS="asgs_main.sh>prepFile()"
        allMessage "$ENSTORM: $THIS: adcprep finished."
@@ -768,7 +771,7 @@ downloadBackgroundMet()
    #
    THIS="asgs_main.sh>downloadBackgroundMet()"
    CURRENT_STATE="WAIT" 
-   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Downloading meteorological data."
+   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Downloading meteorological data for $ENSTORM."
    logMessage "$ENSTORM: $THIS: Downloading meteorological data."
    cd $RUNDIR 2>> ${SYSLOG}
    if [[ $ENSTORM != "nowcast" ]]; then
@@ -873,13 +876,12 @@ monitorJobs()
    ENSTORM_TEMP=$2
    WALLTIME=$3
    THIS="asgs_main.sh>monitorJobs()"
-   #
 
-   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Waiting for $ENSTORM_TEMP job to start."
+   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Waiting for $ENSTORM_TEMP job to start for Adv=${ADVISORY}."
    logMessage "$ENSTORM_TEMP: $THIS: Waiting for $ENSTORM_TEMP job to start."
    until [[ -e ${ENSTORM_TEMP}.run.start ]]; do
       sleep 10
-      RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Still waiting for $ENSTORM_TEMP job to start..."
+      RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Still waiting for $ENSTORM_TEMP job to start for Adv=${ADVISORY} ..."
    done
    CURRENT_STATE="RUNN"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "The $ENSTORM_TEMP job has started."
@@ -900,20 +902,21 @@ monitorJobs()
    # resubmit it without the ASGS noticing or being disturbed.  
    while [[ 1 ]]; do
       sleep $jobCheckIntervalSeconds
-      # execute the FortCheck.py code to get a %complete status
-      if [[ -e "fort.61.nc" ]] ; then
-         #pc=`${SCRIPTDIR}/fortcheck.sh fort.61.nc 2>> $SYSLOG`
-         #echo "${RMQMessaging_Python} ${SCRIPTDIR}/FortCheck.py fort.61.nc"
-         #
+
+      # execute the FortCheck.py code to get a %complete status, but only 
+      # do this for jobs that will generate a fort.61.nc file (p)adc{irc,swan}
+      if [[ -e "fort.61.nc" && $ENSTORM_TEMP =~ "adc"  ]] ; then
          # RMQMessaging_Python will be undefined if RMQMessaging is not
          # enabled
+	 
          if [[ $RMQMessaging_Enable = on ]]; then
             pc=`${RMQMessaging_Python} ${SCRIPTDIR}/FortCheck.py fort.61.nc 2>> $SYSLOG`
             if [ ! -z "$pc" ] ; then 
-                RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "RUNN" "The $ENSTORM_TEMP job for Adv=${ADVISORY} is running. $pc complete ..." $pc
+                RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "The $ENSTORM_TEMP job for Adv=${ADVISORY} is running. $pc complete ..." $pc
             fi
          fi
       fi
+
       # check job run status
       if ! checkTimeLimit $startTime $WALLTIME ; then
          THIS="asgs_main.sh>monitorJobs()"
@@ -995,7 +998,6 @@ monitorJobs()
       cat ${ENSTORM_TEMP}.run.error >> jobFailed
    fi
    if [[ -e ${ENSTORM_TEMP}.run.finish ]]; then
-      CURRENT_STATE="CMPL"
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "The $ENSTORM_TEMP job appears to have run to completion successfully." 
       logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job appears to have run to completion successfully."
    fi
@@ -2160,7 +2162,7 @@ while [ true ]; do
 
    case $BACKGROUNDMET in
       on|NAM)
-         RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "NWS is $NWS. Downloading background meteorology."
+         RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "NWS is $NWS. Downloading background meteorology for $ENSTORM."
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading background meteorology."
          logMessage "$ENSTORM: $THIS: downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
 #         CURRENT_STATE="WAIT"
@@ -2277,6 +2279,7 @@ while [ true ]; do
    if [ ! -s "fort.15" ] ; then
       echo "nowcast: fort.15 file is 0-length.  This is terminal."  >> ${SYSLOG} 2>&1
       RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS" "FAIL" "nowcast: fort.15 file is 0-length.  This is terminal."
+      exit -9
    fi
 #BOB
 
@@ -2355,7 +2358,6 @@ while [ true ]; do
          continue # abandon this nowcast and wait for the next one
       fi
       # nowcast finished, get on with it
-      CURRENT_STATE="CMPL"
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Nowcast run finished."
       allMessage "$ENSTORM: $THIS: Nowcast run finished."
       #
@@ -2373,6 +2375,7 @@ while [ true ]; do
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
       echo "time.archive.finish : $DATETIME" >> ${STORMDIR}/run.properties
       THIS="asgs_main.sh"
+      CURRENT_STATE="CMPL"
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Nowcast complete for advisory $ADVISORY ."
       allMessage "$ENSTORM: $THIS: Nowcast complete for advisory '$ADVISORY.'"
       cd $ADVISDIR 2>> ${SYSLOG}
@@ -2381,7 +2384,7 @@ while [ true ]; do
       # at the same time as the previous nowcast data, so we can just use
       # the prior cycle's nowcast hotstart file
       logMessage "$ENSTORM: $THIS: The nowcast data end at the same time as the hindcast/nowcast data from the previous cycle. As a result, a nowcast will not be run on this cycle; this cycle's forecast(s) will be hotstarted from the hindcast/nowcast of the previous cycle."
-#      CURRENT_STATE="CMPL"
+      CURRENT_STATE="CMPL"
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Skipping the submission of the nowcast job and proceeding directly to the forecast(s)."
       logMessage "$ENSTORM: $THIS: Skipping the submission of the nowcast job and proceeding directly to the forecast(s)."
       NOWCASTDIR=$FROMDIR
@@ -2400,8 +2403,8 @@ while [ true ]; do
    # F O R E C A S T
    #
    ENSTORM="forecast"
-   CURRENT_EVENT="FSTR"
-   CURRENT_STATE="NONE"
+   CURRENT_EVENT="PRE2"
+   CURRENT_STATE="INIT"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting forecast(s) for advisory '$ADVISORY'."
    allMessage "$ENSTORM: $THIS: Starting forecast for advisory '$ADVISORY'."
    checkHotstart $NOWCASTDIR $HOTSTARTFORMAT 67
@@ -2414,8 +2417,6 @@ while [ true ]; do
    logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
    si=0
    while [ $si -lt $ENSEMBLESIZE ]; do    
-      CURRENT_EVENT="PRE2"
-      CURRENT_STATE="INIT"
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting forecast for advisory '$ADVISORY', ensemble member $si."
       # source config file to pick up any configuration changes, or any
       # config that is specific to forecasts, and set up the current 
@@ -2582,9 +2583,9 @@ while [ true ]; do
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Downloading background meteorology."
          logMessage "$ENSTORM: $THIS: Downloading background meteorology."
          logMessage "$ENSTORM: $THIS: downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR" $STATEFILE
-         CURRENT_STATE="WAIT"
+
          downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
-        # CURRENT_STATE="INIT"
+
          THIS="asgs_main.sh"
          cd $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
          NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --applyRamp $SPATIALEXTRAPOLATIONRAMP --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE --awipGridNumber 218 --dataDir ${STORMDIR} --outDir ${STORMDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
@@ -2619,6 +2620,7 @@ while [ true ]; do
       if [ ! -s "fort.15" ] ; then
          echo "forecast: fort.15 file is 0-length.  This is terminal."  >> ${SYSLOG} 2>&1
          RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS" "FAIL" "forecast: fort.15 file is 0-length.  This is terminal."
+	 exit -9
       fi
 #BOB
 
@@ -2647,7 +2649,7 @@ while [ true ]; do
       # balancing the postprocessing, particularly for CERA
       echo "forecastEnsembleMemberNumber : $si" >> ${STORMDIR}/run.properties
       CURRENT_EVENT="FORE"
-      CURRENT_STATE="PEND"
+      CURRENT_STATE="WAIT"
       echo "asgs.config.forecast.ensemblemembernumber : $si" >> ${STORMDIR}/run.properties
       if [[ $RUNFORECAST = yes ]]; then
          # set up post processing for the forecast, including initiation
@@ -2704,11 +2706,13 @@ while [ true ]; do
                   ${SCRIPTDIR}/archive/${ARCHIVE} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENVSHORT $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
                   echo "time.archive.finish : $DATETIME" >> ${STORMDIR}/run.properties
-
                fi
+   	       CURRENT_EVENT="FEND"
+   	       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL" "Forecast Complete for Adv=$ADVISORY Ens=$ENSTORM"
             ) &
          fi
-      fi
+#      else
+      fi    #  end of if [[ $RUNFORECAST = yes ]]; then
       si=`expr $si + 1`
    done
    #
@@ -2716,6 +2720,10 @@ while [ true ]; do
    # allow all ensemble members and associated post processing to complete
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "RUNN" "All forecast ensemble members have been submitted."
    logMessage "$ENSTORM: $THIS: All forecast ensemble members have been submitted."
+   wait
+
+   CURRENT_EVENT="FEND"
+   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL" "Forecast Cycle Complete for Adv=$ADVISORY"
 
    LASTSUBDIR=null # don't need this any longer
    # if we ran the nowcast on this cycle, then this cycle's nowcast becomes 
@@ -2730,8 +2738,6 @@ while [ true ]; do
       exit $OK  # exit because the ASGS will be started once again by cron
    fi
 
-   CURRENT_EVENT="FEND"
-   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "NONE" "Forecast(s) Complete"
    CURRENT_EVENT="REND"
-   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "NONE" "Cycle Complete"
+   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL" "NC/FC Cycle Complete"
 done
