@@ -37,12 +37,14 @@ INSTANCENAME=ncfs-dev-test2      # name of this ASGS process
 #COLDSTARTDATE=2018020900
 #COLDSTARTDATE=2018110200
 COLDSTARTDATE=2019020600
+
+STORMNAME=daily
+
 #
 HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=18.0        # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
-
 # Source file paths
 
 ADCIRCDIR=/home/ncfs-dev/ADCIRC/v53release/work # ADCIRC executables 
@@ -84,8 +86,8 @@ QSCRIPT=hatteras.template.slurm
 
 # External data sources : Tropical cyclones
 
-STORM=12  # storm number, e.g. 05=ernesto in 2006 
-YEAR=2013 # year of the storm (useful for historical storms) 
+STORM=-1  # storm number, e.g. 05=ernesto in 2006 
+YEAR=2019 # year of the storm (useful for historical storms) 
 TRIGGER=rssembedded    # either "ftp" or "rss"
 RSSSITE=www.nhc.noaa.gov 
 FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files
