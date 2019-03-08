@@ -223,7 +223,7 @@ do f=1, dataFileNames%n
       outOfRange(f) = .true.
    endif
    if ( (timesecEnd.gt.0).and.(timesecEnd.lt.sf(f)%timesec(1)) ) then
-      write(scratchMessage,'("The data file starts at time t=",e17.8," (s) but the requested end time is t=",e17.8," (s).")') , sf(f)%timesec(1), timesecEnd
+      write(scratchMessage,'("The data file starts at time t=",e17.8," (s) but the requested end time is t=",e17.8," (s).")') timesecEnd, sf(f)%timesec(1)
       call allMessage(WARNING,scratchMessage)
       outOfRange(f) = .true.
    endif
