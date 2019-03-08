@@ -288,6 +288,8 @@ if (f%dataFileCategory.ne.INITRIVER) then
 endif
 !
 ! Allocate space to hold the data
+!
+! gridded
 if (f%isGridded.eqv..true.) then
    ! y before x according to netcdf specification in fortran api
    allocate(owi1(1:f%iLatOWI,1:f%iLonOWI))
@@ -295,6 +297,7 @@ if (f%isGridded.eqv..true.) then
       ! y before x according to netcdf specification in fortran api
       allocate(owi2(1:f%iLatOWI,1:f%iLonOWI))
    endif
+! meshed
 else
    f%dataFileFormat = ASCIIG
    call allocateDataSetMemory(f, m)
