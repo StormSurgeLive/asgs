@@ -26,20 +26,20 @@ echo "----------------"  | tee --append CONTROL.TXT
 echo "hpc.slurm.job.%jobtype%.${SLURM_JOBID}.slurm_job_nodelist : $SLURM_JOB_NODELIST" >> run.properties
 #
 # log the command used to run adcprep
-CMD="srun %adcircdir%/adcprep --np %ncpu% --%jobtype% --strict-boundaries"
+#CMD="srun %adcircdir%/adcprep --np %ncpu% --%jobtype% --strict-boundaries"
+CMD="%adcircdir%/adcprep --np %ncpu% --%jobtype% --strict-boundaries"
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 echo "[${DATETIME}] INFO: adcprep.%jobtype%.slurm: Executing %jobtype%.%enstorm% with the command $CMD" | tee --append %syslog% 
 #
 #----------------------------------------------------------------------------
 #                      L O A D   M O D U L E S
 #----------------------------------------------------------------------------
-module load hdf5/1.10.1_intel-18.0.0
-module load intelc/18.0.0
-module load intelfort/18.0.0
-module load mvapich2/2.3b_intel-18.0.0_ch3_ofed-4.1
-module load netcdf-C/4.5.0_intel-18.0.0
-module load netcdf-Fortran/4.4.0_intel-18.0.0
-module load zlib/1.2.11_intel-18.0.0
+export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
+module load intelc/18.0.0 intelfort/18.0.0
+module load hdf5/1.8.11-acis  
+module load netcdf/4.1.2-acis
+module load mvapich2/2.0-acis-debug
+export MV2_DEBUG_SHOW_BACKTRACE=2
 #
 #----------------------------------------------------------------------------
 #                  E X E C U T E   T H E   J O B
