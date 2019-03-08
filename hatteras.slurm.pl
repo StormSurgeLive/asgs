@@ -100,6 +100,8 @@ open(TEMPLATE,"<$qscript") || die "ERROR: hatteras.slurm.pl: Can't open $qscript
 while(<TEMPLATE>) {
     # fill in the number of CPUs
     s/%ncpu%/$ncpu/;
+    # fill in the number of tasks per node
+    s/%ppn%/$ppn/;
     # name of the queue on which to run
     s/%queuename%/$queuename/;
     # the estimated amount of wall clock time
