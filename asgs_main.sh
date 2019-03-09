@@ -1890,16 +1890,21 @@ RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Configured the ASGS
 logMessage "$THIS: Configured the ASGS according to the file ${CONFIG}."
 logMessage "$THIS: ASGS state file is ${STATEFILE}."
 RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "ASGS state file is ${STATEFILE}."
-
+# 
 #
-# check existence of all required files and directories
+# C H E C K   E X I S T E N C E   O F   A L L   R E Q U I R E D
+#   F I L E S   A N D   D I R E C T O R I E S
+#
 checkDirExistence $INPUTDIR "directory for input files"
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
 checkDirExistence $PERL5LIB "directory for the Date::Pcalc perl module"
 #
-checkFileExistence $ADCIRCDIR "ADCIRC serial executable" adcirc
-checkFileExistence $ADCIRCDIR "ADCIRC preprocessing executable" adcprep
-checkFileExistence $ADCIRCDIR "ADCIRC parallel executable" padcirc
+if [[ $QUEUESYS = serial ]]; then
+   checkFileExistence $ADCIRCDIR "ADCIRC serial executable" adcirc
+else
+   checkFileExistence $ADCIRCDIR "ADCIRC preprocessing executable" adcprep
+   checkFileExistence $ADCIRCDIR "ADCIRC parallel executable" padcirc
+fi
 checkFileExistence $ADCIRCDIR "hotstart time extraction executable" hstime
 checkFileExistence "$SCRIPTDIR/tides" "tide_factor executable" tide_fac.x
 if [[ $TROPICALCYCLONE = on ]]; then
@@ -1917,12 +1922,20 @@ fi
 if [[ $WAVES = on ]]; then
    JOBTYPE=padcswan
    checkDirExistence $SWANDIR "SWAN executables directory (SWANDIR)"
-   checkFileExistence $SWANDIR "SWAN fulldomain hotstart file decomposition executable " unhcat.exe
-   checkFileExistence $ADCIRCDIR "ADCIRC+SWAN parallel executable" padcswan
    checkFileExistence $INPUTDIR "SWAN initialization template file " swaninit.template
    checkFileExistence $INPUTDIR "SWAN control template file" $SWANTEMPLATE
+   if [[ $QUEUESYS = serial ]]; then
+      JOBTYPE=adcswan
+      checkFileExistence $ADCIRCDIR "ADCIRC+SWAN serial executable" adcswan
+   else
+      checkFileExistence $SWANDIR "SWAN fulldomain hotstart file decomposition executable " unhcat.exe
+      checkFileExistence $ADCIRCDIR "ADCIRC+SWAN parallel executable" padcswan
+   fi
 else
    JOBTYPE=padcirc
+   if [[ $QUEUESYS = serial ]]; then
+      JOBTYPE=padcirc
+   fi
 fi
 if [[ $VARFLUX = on || $VARFLUX = default ]]; then
    checkFileExistence $INPUTDIR "River elevation initialization file " $RIVERINIT
@@ -1944,6 +1957,10 @@ fi
 if [[ ! -z $NAFILE && $NAFILE != null ]]; then
    checkFileExistence $INPUTDIR "ADCIRC nodal attributes (fort.13) file" $NAFILE
 fi
+#
+#  O B T A I N   I N I T I A L   H O T S T A R T   F I L E
+#  F R O M   F I L E S Y S T E M   O R   U R L  
+#
 LUN=67
 hotstartBase=fort.${LUN}
 hotstartSuffix=.nc
@@ -2019,7 +2036,7 @@ if [[ $HOTORCOLD = hotstart ]]; then
       checkHotstart $hotstartPath $HOTSTARTFORMAT 67
    fi
 fi
-
+#
 THIS="asgs_main.sh"
 if [[ -e ${INPUTDIR}/${PREPPEDARCHIVE} ]]; then
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Found archive of preprocessed input files ${INPUTDIR}/${PREPPEDARCHIVE}."
