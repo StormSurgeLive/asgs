@@ -94,7 +94,8 @@ init_rostam()
   SERQUEUE=rostam
   ACCOUNT=null
   SUBMITSTRING=sbatch
-  JOBLAUNCHER='srun -N %nnodes%'
+  #JOBLAUNCHER='srun -N %nnodes%'
+  JOBLAUNCHER='salloc -p marvin -N %nnodes% -n %ncpu%' 
   SCRATCHDIR=~/asgs
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=rostam.template.slurm
@@ -108,7 +109,9 @@ init_rostam()
   PLATFORMMODULES='module load mpi/mpich-3.0-x86_64'
   $PLATFORMMODULES
   # modules for CPRA post processing
-  module load mpi/mpich-3.0-x86_64
+  #module load mpi/mpich-3.0-x86_64
+  module purge 
+  module load impi/2017.3.196 
 }
 init_supermic()
 { #<- can replace the following with a custom script
@@ -543,7 +546,7 @@ init_desktop()
   HPCENV=jason-desktop
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
-  SUBMITSTRING="mpiexec"
+  SUBMITSTRING="mpiexec -n"
   SCRATCHDIR=/srv/asgs
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
