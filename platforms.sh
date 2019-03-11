@@ -583,8 +583,8 @@ init_renci_tds()
    #CATALOGPREFIX="http://tds.renci.org:8080/thredds/DataLayers/asgs/"
    #OPENDAPBASEDIR=/projects/ees/DataLayers/asgs/
    SSHPORT=22
-   LINKABLEHOSTS=(hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
-   COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+   LINKABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+   COPYABLEHOSTS=(hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
    if [[ $USER = jgflemin || $USER = ncfs ]]; then
       OPENDAPUSER=ncfs
    fi
