@@ -103,10 +103,10 @@ def main(argv):
 			)
 
 	if (Transmit == 'on'):
-	        print('\n')
-	        print(msg)
-	        print('\n')
                 transmit_message(msg)
+	        #print('\n')
+	        #print(msg)
+	        #print('\n')
         else:
                 print('Message not transmitted.\n')
                 #print('\n')
