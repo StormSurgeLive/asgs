@@ -29,13 +29,14 @@
 sigint() {
   echo "Received Ctrl-C from console.  Shutting ASGS down...'"
   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..." 
+  allMessage "Received Ctrl-C from console.  Shutting ASGS instance $INSTANCENAME down. See ya!"
   exit 0
 }
 
 RMQMessageStartup()  # 
 { 
   if [[ ${RMQMessaging_Enable} == "off" ]] ; then return; fi
-  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+  DATETIME=`date --utc +'%Y-%h-%d-T%H:%M:%S'`
   FILE2SEND=$1
   ${RMQMessaging_Python} ${RMQMessaging_StartupScript} \
          --Uid $$ \
@@ -50,7 +51,7 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
 { 
   if [[ ${RMQMessaging_Enable} == "off" ]] ; then return; fi
 
-  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+  DATETIME=`date --utc +'%Y-%h-%d-T%H:%M:%S'`
   MTYPE=$1
   EVENT=$2
   PROCESS=$3
@@ -64,7 +65,7 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
   if ! [[ $PCTCOM =~ $re ]] ; then
       echo "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message." 
   else
-     printf "RMQ : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" "$MTYPE" $EVENT "$DATETIME" $STATE $PCTCOM $PROCESS  "$5"
+     printf "RMQ : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" "$MTYPE" $EVENT "$DATETIME" "$STATE" "$PCTCOM" "$PROCESS"  "$5"
 
      # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
 #     echo "RMQMessaging_Transmit=$RMQMessaging_Transmit"
