@@ -29,7 +29,8 @@
 # Fundamental 
 #
 INSTANCENAME=hiresr       # name of this ASGS process, to differentiate results
-COLDSTARTDATE=2019010500
+#COLDSTARTDATE=2019010500
+COLDSTARTDATE=2019020100
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
@@ -49,7 +50,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 BACKGROUNDMET=on     # [de]activate NAM download/forcing 
 TIDEFAC=on           # [de]activate tide factor recalc 
 TROPICALCYCLONE=off  # [de]activate tropical cyclone forcing (temp. broken)
-WAVES=on             # [de]activate wave forcing 
+WAVES=off             # [de]activate wave forcing 
 VARFLUX=on           # [de]activate variable river flux forcing
 
 # Computational Resources
@@ -63,7 +64,7 @@ FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
 NCPU=159
 NCPUCAPACITY=640
 NUMWRITERS=1
-CYCLETIMELIMIT="24:00:00"
+CYCLETIMELIMIT="99:00:00"
 ACCOUNT=loni_cera_2019
 
 # External data sources : Tropical cyclones
