@@ -7,7 +7,7 @@
 # is platform dependent. 
 #
 #----------------------------------------------------------------
-# Copyright(C) 2012--2018 Jason Fleming
+# Copyright(C) 2012--2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -585,6 +585,28 @@ init_desktop()
      RMQMessaging_ClusterName="jason-desktop"
   fi
 }
+
+init_desktop-serial()
+{
+  HPCENV=jason-desktop-serial
+  QUEUESYS=serial
+  QCHECKCMD="ps -aux | grep adcirc "
+  SUBMITSTRING="./"
+  SCRATCHDIR=/srv/asgs
+  SSHKEY=id_rsa_jason-desktop-serial
+  ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop-serial'
+  SWANMACROSINC=macros.inc.gfortran
+  if [[ $USER = "jason" ]]; then
+     RMQMessaging_Enable="on"   # "on"|"off"
+     RMQMessaging_Transmit="on" #  enables message transmission ("on" | "off")
+     RMQMessaging_Script="/set/RMQMessaging_Script/in/asgs/config"
+     RMQMessaging_NcoHome=$HOME
+     RMQMessaging_Python=/usr/bin/python
+     RMQMessaging_LocationName="Seahorse"
+     RMQMessaging_ClusterName="jason-desktop-serial"
+  fi
+}
+
 init_Poseidon()
 {
   HPCENV=poseidon.vsnet.gmu.edu
@@ -767,6 +789,9 @@ env_dispatch(){
   "desktop") consoleMessage "platforms.sh: desktop configuration found."
           init_desktop
            ;;
+  "desktop-serial") consoleMessage "platforms.sh: desktop-serial configuration found."
+          init_desktop-serial
+           ;;
   "poseidon") consoleMessage "platforms.sh: Poseidon configuration found."
           init_Poseidon
            ;;
@@ -779,7 +804,7 @@ env_dispatch(){
   "test") consoleMessage "platforms.sh: test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "platforms.sh: '$HPCENVSHORT' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, supermic, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
+  *) fatal "platforms.sh: '$HPCENVSHORT' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, supermic, topsail, desktop, desktop-serial, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
      ;;
   esac
 }
