@@ -4,7 +4,7 @@
 # A system to build ASGS-related utilities for processing ADCIRC output.
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2014 Jason Fleming
+# Copyright(C) 2014--2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -53,8 +53,8 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := $(OUTPUTDIR)/adcmesh.o $(OUTPUTDIR)/asgsio.o $(OUTPUTDIR)/adcircdata.o
-MODS := adcmesh.mod asgsio.mod adcircdata.mod
+OBJ := $(OUTPUTDIR)/adcmesh.o $(OUTPUTDIR)/asgsio.o $(OUTPUTDIR)/logging.o
+MODS := adcmesh.mod asgsio.mod logging.mod
 #
 # targets
 all : makeMax
@@ -65,11 +65,11 @@ clean :
 makeMax : $(MODS) makeMax.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-adcmesh.mod : adcmesh.f90 asgsio.mod
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c adcmesh.f90 $(LDFLAGS)
+logging.mod : $(OUTPUTDIR)/logging.f90 
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/logging.f90 $(LDFLAGS)
 #
-asgsio.mod : asgsio.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c asgsio.f90 $(LDFLAGS)
+adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcmesh.f90 $(LDFLAGS)
 #
-adcircdata.mod : adcircdata.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcircdata.f90 $(LDFLAGS)
+asgsio.mod : $(OUTPUTDIR)/asgsio.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/asgsio.f90 $(LDFLAGS)

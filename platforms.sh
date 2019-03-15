@@ -85,6 +85,35 @@ init_queenbee()
   module load matlab/r2015b
   module load python/2.7.12-anaconda-tensorflow
 }
+
+init_rostam()
+{ #<- can replace the following with a custom script
+  HPCENV=rostam.cct.lsu.edu
+  QUEUESYS=SLURM
+  QCHECKCMD=squeue
+  QSUMMARYCMD=squeue
+  QUOTACHECKCMD=null
+  ALLOCCHECKCMD=null
+  QUEUENAME=rostam
+  SERQUEUE=rostam
+  ACCOUNT=null
+  SUBMITSTRING=sbatch
+  JOBLAUNCHER='srun -N %nnodes%'
+  SCRATCHDIR=~/asgs
+  SSHKEY=~/.ssh/id_rsa.pub
+  QSCRIPT=rostam.template.slurm
+  PREPCONTROLSCRIPT=rostam.adcprep.template.slurm
+  QSCRIPTGEN=hatteras.slurm.pl
+  PPN=16
+  PARTITION=marvin
+  CONSTRAINT=null
+  RESERVATION=null
+  REMOVALCMD="rm"
+  PLATFORMMODULES='module load mpi/mpich-3.0-x86_64'
+  $PLATFORMMODULES
+  # modules for CPRA post processing
+  module load mpi/mpich-3.0-x86_64
+}
 init_supermic()
 { #<- can replace the following with a custom script
   HPCENV=smic.hpc.lsu.edu
@@ -180,7 +209,9 @@ init_pod()
   QCHECKCMD=qstat
   ACCOUNT=noaccount
   SUBMITSTRING=submitstring
-  SCRATCHDIR=/home/bblanton/asgs_scratch
+  if [[ $USER = bblanton ]]; then 
+     SCRATCHDIR=/home/bblanton/asgs_scratch
+  fi
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=penguin.template.pbs
   PREPCONTROLSCRIPT=penguin.adcprep.template.pbs
@@ -191,36 +222,75 @@ init_pod()
   PPN=28
 #  QUEUE=S30     # aka the partition in SLURM parlance 
 #  PPN=40
+   RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+   if [[ $USER = bblanton ]]; then
+      RMQMessaging_NcoHome="/home/bblanton/"
+      RMQMessaging_Python="/home/bblanton/asgs/asgspy/bin/python"
+   fi
+   RMQMessaging_LocationName="Penguin"
+   RMQMessaging_ClusterName="POD"
 }
 init_hatteras()
 { #<- can replace the following with a custom script
   HPCENV=hatteras.renci.org
   QUEUESYS=SLURM
   QCHECKCMD=sacct
-  #ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
-  #SCRATCHDIR=/scratch/bblanton/data
-  #PARTITION=batch       # ncfs or batch
-  #CONSTRAINT=hatteras # ivybridge or sandybridge
+  ACCOUNT=pleaseSetAccountInASGSConfigFile
+  case $USER in 
+  bblanton) 
+     ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
+     SCRATCHDIR=/scratch/bblanton/data
+     PYTHONVENV=/projects/storm_surge/anaconda
+     ;;
+  ncfs)
+     ACCOUNT=ncfs
+     SCRATCHDIR=/projects/ncfs/data
+     PARTITION=ncfs       # ncfs or batch, gives priority
+     PYTHONVENV=~/asgs/asgspy/venv
+     ;;
+  *)
+     echo "User name $USER on hatteras not recognized and ACCOUNT could not be set."
+     ;;
+  esac
+  #
+  RMQMessaging_Enable="on"      # "on"|"off"
+  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  RMQMessaging_NcoHome="/home/ncfs"
+  RMQMessaging_Python=/usr/bin/python
+  RMQMessaging_LocationName="RENCI"
+  RMQMessaging_ClusterName="Hatteras"
   #
   QSUMMARYCMD=null
   QUOTACHECKCMD="df -h /projects/ncfs"
   ALLOCCHECKCMD=null
-  ACCOUNT=ncfs
   SUBMITSTRING=sbatch
   JOBLAUNCHER=srun
-  SCRATCHDIR=/projects/ncfs/data
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=hatteras.template.slurm
   PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
   RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
-  PARTITION=ncfs       # ncfs or batch, gives priority
+  PARTITION=null
   CONSTRAINT=null      # ivybridge or sandybridge
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=16
   if [[ $RESERVATION = ncfs ]]; then
      PPN=20
   fi
-  PLATFORMMODULES='module load hdf5/1.10.1_intel-18.0.0 intelc/18.0.0 intelfort/18.0.0 mvapich2/2.3b_intel-18.0.0_ch3_ofed-4.1-test netcdf-C/4.5.0_intel-18.0.0 netcdf-Fortran/4.4.0_intel-18.0.0 zlib/1.2.11_intel-18.0.0'
+  # to create python environment for the ncfs user, @jasonfleming did this:
+  #   pip install --user --upgrade pip
+  #   pip install --user --upgrade setuptools
+  # for rabbitmq and the asgs status monitor:
+  #   pip install --user pika
+  #   pip install --user netCDF4
+  # for the automated slide deck generator
+  #   pip install --user pptx
+  #
+  PLATFORMMODULES='module load hdf5/1.10.1_intel-18.0.0 intelc/18.0.0 intelfort/18.0.0 mvapich2/2.0_intel-18.0.0_ch3_ofed-4.1 netcdf-C/4.5.0_intel-18.0.0 netcdf-Fortran/4.4.0_intel-18.0.0 zlib/1.2.11_intel-18.0.0'
+  if [[ $USER = ncfs ]]; then
+     PLATFORMMODULES=$PLATFORMMODULES' python_modules/2.7'
+  fi
+  module purge
   $PLATFORMMODULES
 }
 init_stampede()
@@ -490,6 +560,14 @@ init_lonestar()
   ml reset
   PLATFORMMODULES='module load netcdf nco'
   $PLATFORMMODULES
+  #
+  # @jasonfleming 20190218 : don't upgrade pip! 
+  # for rabbitmq and the asgs status monitor:
+  #   pip install --user pika
+  #   pip install --user netCDF4
+  # for the automated slide deck generator
+  #   (installing pptx did not work -- it was not found) 
+  #   pip install --user python-pptx
 }
 init_desktop()
 {
@@ -501,7 +579,38 @@ init_desktop()
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
   SWANMACROSINC=macros.inc.gfortran
+  if [[ $USER = "jason" ]]; then
+     RMQMessaging_Enable="on"   # "on"|"off"
+     RMQMessaging_Transmit="on" #  enables message transmission ("on" | "off")
+     RMQMessaging_Script="/set/RMQMessaging_Script/in/asgs/config"
+     RMQMessaging_NcoHome=$HOME
+     RMQMessaging_Python=/usr/bin/python
+     RMQMessaging_LocationName="Seahorse"
+     RMQMessaging_ClusterName="jason-desktop"
+  fi
 }
+
+init_desktop-serial()
+{
+  HPCENV=jason-desktop-serial
+  QUEUESYS=serial
+  QCHECKCMD="ps -aux | grep adcirc "
+  SUBMITSTRING="./"
+  SCRATCHDIR=/srv/asgs
+  SSHKEY=id_rsa_jason-desktop-serial
+  ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop-serial'
+  SWANMACROSINC=macros.inc.gfortran
+  if [[ $USER = "jason" ]]; then
+     RMQMessaging_Enable="on"   # "on"|"off"
+     RMQMessaging_Transmit="on" #  enables message transmission ("on" | "off")
+     RMQMessaging_Script="/set/RMQMessaging_Script/in/asgs/config"
+     RMQMessaging_NcoHome=$HOME
+     RMQMessaging_Python=/usr/bin/python
+     RMQMessaging_LocationName="Seahorse"
+     RMQMessaging_ClusterName="jason-desktop-serial"
+  fi
+}
+
 init_Poseidon()
 {
   HPCENV=poseidon.vsnet.gmu.edu
@@ -548,12 +657,15 @@ init_lsu_tds()
    OPENDAPHOST=fortytwo.cct.lsu.edu
    DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer"
    CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog"
-   OPENDAPBASEDIR=/scratch/opendap
+   OPENDAPBASEDIR=/data/opendap
    SSHPORT=2525
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links
    COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
-   if [[ $USER = jgflemin ]]; then
+   if [[ $USER = jgflemin && $HPCENV = queenbee.loni.org ]]; then
       OPENDAPUSER=$USER
+   fi
+   if [[ $USER = ncfs && $HPCENV = hatteras.renci.org ]]; then
+      OPENDAPUSER=jgflemin
    fi
 }
 # THREDDS Data Server (TDS, i.e., OPeNDAP server) at Texas
@@ -681,16 +793,22 @@ env_dispatch(){
   "desktop") consoleMessage "platforms.sh: desktop configuration found."
           init_desktop
            ;;
+  "desktop-serial") consoleMessage "platforms.sh: desktop-serial configuration found."
+          init_desktop-serial
+           ;;
   "poseidon") consoleMessage "platforms.sh: Poseidon configuration found."
           init_Poseidon
            ;;
   "penguin") consoleMessage "platforms.sh: Penguin configuration found."
           init_penguin
            ;;
+  "rostam") consoleMessage "platforms.sh: rostam configuration found."
+          init_rostam
+           ;;
   "test") consoleMessage "platforms.sh: test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "platforms.sh: '$HPCENVSHORT' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, supermic, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
+  *) fatal "platforms.sh: '$HPCENVSHORT' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, supermic, topsail, desktop, desktop-serial, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
      ;;
   esac
 }

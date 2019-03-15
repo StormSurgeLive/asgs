@@ -28,7 +28,8 @@
 # Fundamental
 
 INSTANCENAME=dailyLAv17a_31ft  # "name" of this ASGS process
-COLDSTARTDATE=2018120100   # calendar year month day hour YYYYMMDDHH24
+#COLDSTARTDATE=2018120100   # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2019010500   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -38,7 +39,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
 SWANDIR=~/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-SCRIPTDIR=~/asgs/renci-unc/2014stable-rmq          # ASGS executables
+SCRIPTDIR=~/asgs/jasonfleming/2014stable           # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v17a # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
@@ -62,7 +63,7 @@ FORECASTWALLTIME="07:00:00" # forecast wall clock time
 NCPU=1160                     # number of compute CPUs for all simulations
 NUMWRITERS=20
 NCPUCAPACITY=3600
-CYCLETIMELIMIT="05:00:00"
+CYCLETIMELIMIT="24:00:00"
 QUEUENAME=workq
 SERQUEUE=single
 #QUEUENAME=priority
@@ -70,7 +71,7 @@ SERQUEUE=single
 if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
-ACCOUNT=loni_cera_2018a
+ACCOUNT=loni_cera_2019
 #SCRATCHDIR=/ssdwork/$USER    # vs default /work/cera
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
@@ -90,7 +91,7 @@ HDIR=${FDIR}
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06,18"
+FORECASTCYCLE="06"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -158,6 +159,14 @@ POST_LIST=null
 JOB_FAILED_LIST="jason.g.fleming@gmail.com"
 NOTIFYUSER=jason.g.fleming@gmail.com
 ASGSADMIN=jason.g.fleming@gmail.com
+# RMQ Messaging
+RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
+RMQMessaging_NcoHome="/home/ijgflemin/"
+RMQMessaging_Python="/usr/local/packages/python/2.7.12-anaconda/bin/python"
+RMQMessaging_LocationName="LONI"
+RMQMessaging_ClusterName="Queenbee"
 
 # Post processing and publication
 
@@ -166,7 +175,7 @@ INITPOST=null_init_post.sh
 POSTPROCESS=queenbee_daily_post.sh
 
 # opendap
-TDS=(renci_tds)
+TDS=(lsu_tds renci_tds)
 TARGET=queenbee  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via

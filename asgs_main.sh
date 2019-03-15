@@ -344,28 +344,14 @@ prep()
     MINMAX=${15}           # "continuous" or "reset"
     HOTSWAN=${16} # "yes" or "no" to reinitialize SWAN only
     NAFILE=${17}  # full domain nodal attributes file
-    TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
+    #
     THIS="asgs_main.sh>prep()"
-#
-    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-    echo "time.adcprep.start : ${DATETIME}" >> ${STORMDIR}/run.properties
-    # set the name of the archive of preprocessed input files
-    PREPPED=$PREPPEDARCHIVE
-    if [[ $START = coldstart ]]; then
-       PREPPED=$HINDCASTARCHIVE
-    fi
-    # determine if there is an archive of preprocessed input files
-    HAVEARCHIVE=yes
-    if [[ ! -e ${SCRATCHDIR}/${PREPPED} ]]; then
-       HAVEARCHIVE=no
-    fi
+    #
     # create directory to run in 
     if [ ! -d $ADVISDIR/$ENSTORM ]; then
-      mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
+       mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
     fi
-    #echo "$TIMESTAMP INFO: $ENSTORM: $THIS: adcprep.log entry for $FILE for ensemble member $ENSTORM in $ADVISDIR as follows: " >> $ADVISDIR/$ENSTORM/adcprep.log
-    echo "$TIMESTAMP INFO: $ENSTORM: $THIS: adcprep.log entry for ensemble member $ENSTORM in $ADVISDIR as follows: " >> $ADVISDIR/$ENSTORM/adcprep.log
-    cd $ADVISDIR/$ENSTORM
+    cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
     logMessage "Linking to full domain input files."
     # symbolically link grid
     if [ ! -e $ADVISDIR/$ENSTORM/fort.14 ]; then
@@ -377,19 +363,6 @@ prep()
            ln -s $INPUTDIR/$NAFILE $ADVISDIR/$ENSTORM/fort.13 2>> ${SYSLOG}
         fi
     fi
-    if [[ $HAVEARCHIVE = yes ]]; then
-        # copy in the files that have already been preprocessed
-        logMessage "$ENSTORM: $THIS: Copying input files that have already been decomposed."
-        cp ${SCRATCHDIR}/${PREPPED} . 2>> ${SYSLOG}
-        gunzip -f ${PREPPED} 2>> ${SYSLOG}
-        # untar the uncompressed archive
-        UNCOMPRESSEDARCHIVE=${PREPPED%.gz}
-        tar xvf $UNCOMPRESSEDARCHIVE > untarred_files.log 2>> ${SYSLOG}
-        logMessage "$ENSTORM: $THIS: Removing $UNCOMPRESSEDARCHIVE"
-        rm $UNCOMPRESSEDARCHIVE 2>> ${SYSLOG}
-    fi
-    #
-    # this is a C O L D S T A R T
     if [ $START = coldstart ]; then
        # if we have variable river flux, link the fort.20 and fort.88 files
        if [[ $VARFLUX = on || $VARFLUX = default ]]; then
@@ -400,30 +373,9 @@ prep()
           # run adcprep to decompose the river elevation init (fort.88) file
           ln -s ${INPUTDIR}/${RIVERINIT} ./fort.88
        fi
-       # now run adcprep to decompose the files
-       if [[ $HAVEARCHIVE = no ]]; then
-          logMessage "$ENSTORM: $THIS: Running adcprep to partition the mesh for $NCPU compute processors."
-          prepFile partmesh $NCPU $ACCOUNT $WALLTIME
-          THIS="asgs_main.sh>prep()"
-          logMessage "$ENSTORM: $THIS: Running adcprep to prepare all files."
-          prepFile prepall $NCPU $ACCOUNT $WALLTIME
-          THIS="asgs_main.sh>prep()"
-       else
-          logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.15 file."
-          prepFile prep15 $NCPU $ACCOUNT $WALLTIME
-          THIS="asgs_main.sh>prep()"
-          if [[ $VARFLUX = on || $VARFLUX = default ]]; then
-             logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.20 file."
-             prepFile prep20 $NCPU $ACCOUNT $WALLTIME
-             THIS="asgs_main.sh>prep()"
-             logMessage "$ENSTORM: $THIS: Running adcprep to prepare fort.88 file."
-             prepFile prep88 $NCPU $ACCOUNT $WALLTIME
-             THIS="asgs_main.sh>prep()"
-          fi
-       fi
     else
-       # this is a H O T S T A R T
-       #
+       # hotstart
+       # 
        # copy in the swaninit file which contains the name of the swan
        # control file (conventionally named fort.26 when used with ADCIRC)
        if [[ $WAVES = on ]]; then
@@ -433,34 +385,7 @@ prep()
        if [ -e $INPUTDIR/time-bonnet.in ]; then 
           logMessage "$ENSTORM: $THIS: Copying $INPUTDIR/time-bonnet.in to $ADVISDIR/$ENSTORM."
           cp $INPUTDIR/time-bonnet.in $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-       fi 
-       # run adcprep to decompose the new files
-       if [[ $HAVEARCHIVE = no ]]; then
-          logMessage "$ENSTORM: $THIS: Running adcprep to partition the mesh for $NCPU compute processors."
-          prepFile partmesh $NCPU $ACCOUNT $WALLTIME
-          THIS="asgs_main.sh>prep()"
-          logMessage "$ENSTORM: $THIS: Running adcprep to prepare all files."
-          prepFile prepall $NCPU $ACCOUNT $WALLTIME
-          THIS="asgs_main.sh>prep()"
-       else
-          logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.15 file."
-          prepFile prep15 $NCPU $ACCOUNT $WALLTIME
-          THIS="asgs_main.sh>prep()"
-          if [[ $VARFLUX = on || $VARFLUX = default ]]; then
-             logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.20 file."
-             prepFile prep20 $NCPU $ACCOUNT $WALLTIME
-             THIS="asgs_main.sh>prep()"
-          fi
-          if [[ $WAVES = on ]]; then
-             PE=0
-             format="%04d"
-             while [[ $PE -lt $NCPU ]]; do
-                PESTRING=`printf "$format" $PE`
-                ln -s $ADVISDIR/$ENSTORM/fort.26 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.26 2>> ${SYSLOG}
-                PE=`expr $PE + 1`
-             done
-          fi
-       fi
+       fi       
        logMessage "$ENSTORM: $THIS: Copying existing output files to this directory."
        if [[ $MINMAX = continuous ]]; then
           # copy max and min files so that the max values will be
@@ -501,6 +426,113 @@ prep()
              fi
           done
        done
+       # bring in hotstart file(s)
+       if [[ $QUEUESYS = serial ]]; then
+          if [[ $HOTSTARTFORMAT = netcdf ]]; then
+             # copy netcdf file so we overwrite the one that adcprep created
+             cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG 2>&1
+          else
+             cp $FROMDIR/fort.67 $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG 2>&1
+          fi
+       fi
+       # swan hotstart file
+       if [[ $WAVES = on && $HOTSWAN = on ]]; then
+          cp $FROMDIR/swan.67 $ADVISDIR/$ENSTORM/swan.68 >> $SYSLOG 2>&1
+       fi
+    fi
+    #
+    #
+    # R E T U R N   N O W  
+    # I F   T H I S   I S   A   S E R I A L   R U N 
+    #
+    # adcprep is not required if the job is to run in serial
+    if [[ $QUEUESYS = "serial" ]]; then
+       return
+    fi
+    #
+    # C O N T I N U E   W I T H   A D C P R E P
+    # F O R   P A R A L L E L   R U N 
+    #
+    TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
+    #echo "$TIMESTAMP INFO: $ENSTORM: $THIS: adcprep.log entry for $FILE for ensemble member $ENSTORM in $ADVISDIR as follows: " >> $ADVISDIR/$ENSTORM/adcprep.log
+    echo "$TIMESTAMP INFO: $ENSTORM: $THIS: adcprep.log entry for ensemble member $ENSTORM in $ADVISDIR as follows: " >> $ADVISDIR/$ENSTORM/adcprep.log
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+    echo "time.adcprep.start : ${DATETIME}" >> ${STORMDIR}/run.properties
+    # set the name of the archive of preprocessed input files
+    PREPPED=$PREPPEDARCHIVE
+    if [[ $START = coldstart ]]; then
+       PREPPED=$HINDCASTARCHIVE
+    fi
+    # determine if there is an archive of preprocessed input files
+    HAVEARCHIVE=yes
+    if [[ ! -e ${SCRATCHDIR}/${PREPPED} ]]; then
+       HAVEARCHIVE=no
+    fi
+    if [[ $HAVEARCHIVE = yes ]]; then
+        # copy in the files that have already been preprocessed
+        logMessage "$ENSTORM: $THIS: Copying input files that have already been decomposed."
+        cp ${SCRATCHDIR}/${PREPPED} . 2>> ${SYSLOG}
+        gunzip -f ${PREPPED} 2>> ${SYSLOG}
+        # untar the uncompressed archive
+        UNCOMPRESSEDARCHIVE=${PREPPED%.gz}
+        tar xvf $UNCOMPRESSEDARCHIVE > untarred_files.log 2>> ${SYSLOG}
+        logMessage "$ENSTORM: $THIS: Removing $UNCOMPRESSEDARCHIVE"
+        rm $UNCOMPRESSEDARCHIVE 2>> ${SYSLOG}
+    fi
+    #
+    # this is a P A R A L L E L    C O L D S T A R T
+    if [ $START = coldstart ]; then
+       # now run adcprep to decompose the files
+       if [[ $HAVEARCHIVE = no ]]; then
+          logMessage "$ENSTORM: $THIS: Running adcprep to partition the mesh for $NCPU compute processors."
+          prepFile partmesh $NCPU $ACCOUNT $WALLTIME
+          THIS="asgs_main.sh>prep()"
+          logMessage "$ENSTORM: $THIS: Running adcprep to prepare all files."
+          prepFile prepall $NCPU $ACCOUNT $WALLTIME
+          THIS="asgs_main.sh>prep()"
+       else
+          logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.15 file."
+          prepFile prep15 $NCPU $ACCOUNT $WALLTIME
+          THIS="asgs_main.sh>prep()"
+          if [[ $VARFLUX = on || $VARFLUX = default ]]; then
+             logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.20 file."
+             prepFile prep20 $NCPU $ACCOUNT $WALLTIME
+             THIS="asgs_main.sh>prep()"
+             logMessage "$ENSTORM: $THIS: Running adcprep to prepare fort.88 file."
+             prepFile prep88 $NCPU $ACCOUNT $WALLTIME
+             THIS="asgs_main.sh>prep()"
+          fi
+       fi
+    else
+       # this is a P A R A L L E L   H O T S T A R T
+       #
+       # run adcprep to decompose the new files
+       if [[ $HAVEARCHIVE = no ]]; then
+          logMessage "$ENSTORM: $THIS: Running adcprep to partition the mesh for $NCPU compute processors."
+          prepFile partmesh $NCPU $ACCOUNT $WALLTIME
+          THIS="asgs_main.sh>prep()"
+          logMessage "$ENSTORM: $THIS: Running adcprep to prepare all files."
+          prepFile prepall $NCPU $ACCOUNT $WALLTIME
+          THIS="asgs_main.sh>prep()"
+       else
+          logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.15 file."
+          prepFile prep15 $NCPU $ACCOUNT $WALLTIME
+          THIS="asgs_main.sh>prep()"
+          if [[ $VARFLUX = on || $VARFLUX = default ]]; then
+             logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.20 file."
+             prepFile prep20 $NCPU $ACCOUNT $WALLTIME
+             THIS="asgs_main.sh>prep()"
+          fi
+          if [[ $WAVES = on ]]; then
+             PE=0
+             format="%04d"
+             while [[ $PE -lt $NCPU ]]; do
+                PESTRING=`printf "$format" $PE`
+                ln -s $ADVISDIR/$ENSTORM/fort.26 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.26 2>> ${SYSLOG}
+                PE=`expr $PE + 1`
+             done
+          fi
+       fi
        # bring in hotstart file(s)
        if [[ $HOTSTARTCOMP = fulldomain ]]; then
           if [[ $HOTSTARTFORMAT = netcdf ]]; then
@@ -710,7 +742,7 @@ prepFile()
              sleep 60
           fi
        done
-       monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $WALLTIME
+       monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $WALLTIME
        THIS="asgs_main.sh>prepFile()"
        logMessage "$ENSTORM: $THIS: Finished adcprepping file ($JOBTYPE)."
        ;;
@@ -732,7 +764,7 @@ prepFile()
              sleep 60
           fi
        done
-       monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $WALLTIME
+       monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $WALLTIME
        THIS="asgs_main.sh>prepFile()"
        RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Finished adcprepping file ($JOBTYPE)."
        logMessage "$ENSTORM: $THIS: Finished adcprepping file ($JOBTYPE)."
@@ -751,7 +783,7 @@ prepFile()
           THIS="asgs_main.sh>prepFile()"
        fi
        # check once per minute until all jobs have finished
-       monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $WALLTIME
+       monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $WALLTIME
        THIS="asgs_main.sh>prepFile()"
        allMessage "$ENSTORM: $THIS: adcprep finished."
        ;;
@@ -999,11 +1031,13 @@ checkTimeLimit()
 # those files
 monitorJobs()
 {  QUEUESYS=$1
-   ENSTORM_TEMP=$2
-   WALLTIME=$3
+   JOBTYPE=$2   
+   ENSTORM=$3
+   WALLTIME=$4
+   #
+   ENSTORM_TEMP=${JOBTYPE}.${ENSTORM}
    THIS="asgs_main.sh>monitorJobs()"
    #
-
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Waiting for $ENSTORM_TEMP job to start."
    logMessage "$ENSTORM_TEMP: $THIS: Waiting for $ENSTORM_TEMP job to start."
    until [[ -e ${ENSTORM_TEMP}.run.start ]]; do
@@ -1032,12 +1066,12 @@ monitorJobs()
       # execute the FortCheck.py code to get a %complete status
       if [[ -e "fort.61.nc" ]] ; then
          #pc=`${SCRIPTDIR}/fortcheck.sh fort.61.nc 2>> $SYSLOG`
-         #echo "${RMQMessaging_Python} ${SCRIPTDIR}/FortCheck.py fort.61.nc"
+         #echo "${RMQMessaging_Python} ${SCRIPTDIR}/monitoring/FortCheck.py fort.61.nc"
          #
          # RMQMessaging_Python will be undefined if RMQMessaging is not
          # enabled
          if [[ $RMQMessaging_Enable = on ]]; then
-            pc=`${RMQMessaging_Python} ${SCRIPTDIR}/FortCheck.py fort.61.nc 2>> $SYSLOG`
+            pc=`${RMQMessaging_Python} ${SCRIPTDIR}/monitoring/FortCheck.py fort.61.nc 2>> $SYSLOG`
             RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "RUNN" "The $ENSTORM_TEMP job is running..." $pc
          fi
       fi
@@ -1052,7 +1086,8 @@ monitorJobs()
          # prevents cpus from being tied up unnecessarily ...
          # if the job was submitted through a queueing system, then the
          # queueing system will terminate it
-         if [[ $QUEUESYS = mpiexec ]]; then
+         case $QUEUESYS in
+         "mpiexec")
             pid=`grep 'mpiexec subshell pid' ${ADVISDIR}/${ENSTORM}/run.properties | sed 's/mpiexec subshell pid.*://' | sed 's/^\s//'`
             #logMessage "Terminating the $ENSTORM_TEMP job with the command 'kill -TERM `ps --ppid $pid -o pid --no-headers'."
             # need to kill the mpiexec process, but don't know its process ID
@@ -1060,7 +1095,16 @@ monitorJobs()
             kill -TERM `ps --ppid $pid -o pid --no-headers` >> ${SYSLOG} 2>&1
             DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
             logMessage "$THIS: $ENSTORM_TEMP job in $PWD terminated by ASGS for exceeding expected wall clock time." >> ${ENSTORM_TEMP}.run.error
-         else 
+            ;;
+         "serial")
+            pid=`grep 'serial $JOBTYPE job subshell pid' ${ADVISDIR}/${ENSTORM}/run.properties | sed 's/serial $JOBTYPE job subshell pid.*://' | sed 's/^\s//'`
+            # need to kill the serial process, but don't know its process ID
+            # ... but we do have the process ID of its parent subshell
+            kill -TERM `ps --ppid $pid -o pid --no-headers` >> ${SYSLOG} 2>&1
+            DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+            logMessage "$THIS: $ENSTORM_TEMP job in $PWD terminated by ASGS for exceeding expected wall clock time." >> ${ENSTORM_TEMP}.run.error
+            ;;
+         *)
             # if we are over the wall clock limit, wait until the operating 
             # system has had a chance to write the job log file, or 
             # until 5 minutes have passed
@@ -1074,7 +1118,8 @@ monitorJobs()
                   break
                fi
             done
-         fi
+            ;;
+         esac
       fi
       if [[ -e ${ENSTORM_TEMP}.run.error ]]; then
          if [[ $QUEUESYS = "SLURM" ]]; then
@@ -1097,8 +1142,15 @@ monitorJobs()
                   fi
                done
                continue
+            else
+               # there was an error under a SLURM system, but not 
+               # an error we can get around by resubmitting
+               error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
+            cat ${ENSTORM_TEMP}.run.error >> jobFailed
+               break
             fi
          else
+            # there was an error under a non-SLURM system
             error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
             cat ${ENSTORM_TEMP}.run.error >> jobFailed
             break
@@ -1157,6 +1209,30 @@ submitJob()
       LOCALHOTSTART="--localhotstart"
    fi
    case $QUEUESYS in 
+   #
+   #  No queueing system, just run adcirc or adcswan (used on standalone computers or cloud)
+   "serial")
+      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'%z`
+      echo "time.${JOBTYPE}.start : $DATETIME" >> run.properties
+      echo "[${DATETIME}] Starting ${JOBTYPE}.${ENSTORM} job in $PWD." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start
+      logMessage "$ENSTORM: $THIS: Submitting job via $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
+      # submit the serial job in a subshell
+      (
+         $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${ADVISDIR}/${ENSTORM}/serial-adcirc.log 2>&1
+         ERROVALUE=$?
+         RUNSUFFIX="finish"
+         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+         if [ $ERROVALUE != 0 ] ; then
+            RUNSUFFIX="error"
+         fi
+         echo "[${DATETIME}] Finished ${JOBTYPE}.${ENSTORM} job in $PWD with return value = $ERROVALUE." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.${RUNSUFFIX}
+         echo "time.${JOBTYPE}.${RUNSUFFIX} : $DATETIME" >> run.properties
+      ) &
+      # write the process id to the run.properties file so that monitorJobs()
+      # can kill the job if it exceeds the expected wall clock time
+      echo "serial $JOBTYPE job subshell pid : $!" >> ${ADVISDIR}/${ENSTORM}/run.properties 2>> ${SYSLOG}
+      ;;
+
    #
    #  Load Sharing Facility (LSF); used on topsail at UNC
    "LSF")
@@ -1454,15 +1530,16 @@ variables_init()
    PERIODICFLUX=null
    SPATIALEXTRAPOLATIONRAMP=yes
    SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
+   PYTHONVENV=null # path to python virtual environment, e.g., ~/asgs/asgspy/venv
 # RMQMessaging defaults
    RMQMessaging_Enable="off"  # "on"|"off"
    RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
-   RMQMessaging_Script="/set/RMQMessaging_Script/in/asgs/config"
+   RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
+   RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
    RMQMessaging_NcoHome="/set/RMQMessaging_NcoHome/in/asgs/config"
    RMQMessaging_Python="/set/RMQMessaging_Python/in/asgs/config"
    RMQMessaging_LocationName="/set/RMQMessaging_LocationName/in/asgs/config/e.g./RENCI"
    RMQMessaging_ClusterName="/set/RMQMessaging_ClusterName/in/asgs/config/e.g./Hatteras"
-
 }
 #
 # Write general properties to the run.properties file that are associated with 
@@ -1719,26 +1796,15 @@ SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG
 # Bring in platform-specific configuration functions
 . ${SCRIPTDIR}/platforms.sh
 #
-# RMQMessaging config
-# this verifies that messages can be constructed.  It is possible
-# that asgs-msgr.sh will set RMQMessaging to "off", in which case
-# calls to RMQMessage will return without doing anything
-if [[ $RMQMessaging_Enable == "on" ]] ; then
-   . ${SCRIPTDIR}/asgs-msgr.sh
-fi
+# establish python virtual environment, if any
+#if [[ $PYTHONVENV != "null" ]]; then
+#   source $PYTHONVENV/bin/activate
+#fi
 
 # set a trap for a signal to reread the ASGS config file
 trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; . $CONFIG' USR1
 # catch ^C for a final message
 trap 'sigint' INT
-
-# Send message with config file contents as the message body.  This is only done once at ASGS startup
-temp=`cat $CONFIG | sed '/^#/d' | sed '/^$/d'` 
-RMQMessageStartup "$temp"
-
-# set a RunParams string for messaging
-RMQRunParams="$GRIDNAME:EnsSize=$ENSEMBLESIZE"
-RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh" "$CURRENT_STATE" "$HPCENVSHORT configuration found."
 
 # dispatch environment (using the functions in platforms.sh)
 env_dispatch ${HPCENVSHORT}
@@ -1750,6 +1816,25 @@ env_dispatch ${HPCENVSHORT}
 umask $UMASK
 #
 RUNDIR=$SCRATCHDIR/asgs$$
+#
+# RMQMessaging config
+# this verifies that messages can be constructed.  It is possible
+# that asgs-msgr.sh will set RMQMessaging to "off", in which case
+# calls to RMQMessage will return without doing anything
+if [[ $RMQMessaging_Enable == "on" ]] ; then
+   THIS="monitoring/asgs-msgr.sh"
+   . ${SCRIPTDIR}/monitoring/asgs-msgr.sh
+   THIS="asgs_main.sh"
+fi
+#
+# Send message with config file contents as the message body.  This is only done once at ASGS startup
+temp=`cat $CONFIG | sed '/^#/d' | sed '/^$/d'` 
+RMQMessageStartup "$temp"
+#
+# set a RunParams string for messaging
+RMQRunParams="$GRIDNAME:EnsSize=$ENSEMBLESIZE"
+RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh" "$CURRENT_STATE" "$HPCENVSHORT configuration found."
+
 # if we are starting from cron, look for a state file
 if [[ $ONESHOT = yes ]]; then
    # if it is there, read it
@@ -1805,16 +1890,21 @@ RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Configured the ASGS
 logMessage "$THIS: Configured the ASGS according to the file ${CONFIG}."
 logMessage "$THIS: ASGS state file is ${STATEFILE}."
 RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "ASGS state file is ${STATEFILE}."
-
+# 
 #
-# check existence of all required files and directories
+# C H E C K   E X I S T E N C E   O F   A L L   R E Q U I R E D
+#   F I L E S   A N D   D I R E C T O R I E S
+#
 checkDirExistence $INPUTDIR "directory for input files"
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
 checkDirExistence $PERL5LIB "directory for the Date::Pcalc perl module"
 #
-checkFileExistence $ADCIRCDIR "ADCIRC serial executable" adcirc
-checkFileExistence $ADCIRCDIR "ADCIRC preprocessing executable" adcprep
-checkFileExistence $ADCIRCDIR "ADCIRC parallel executable" padcirc
+if [[ $QUEUESYS = serial ]]; then
+   checkFileExistence $ADCIRCDIR "ADCIRC serial executable" adcirc
+else
+   checkFileExistence $ADCIRCDIR "ADCIRC preprocessing executable" adcprep
+   checkFileExistence $ADCIRCDIR "ADCIRC parallel executable" padcirc
+fi
 checkFileExistence $ADCIRCDIR "hotstart time extraction executable" hstime
 checkFileExistence "$SCRIPTDIR/tides" "tide_factor executable" tide_fac.x
 if [[ $TROPICALCYCLONE = on ]]; then
@@ -1832,12 +1922,20 @@ fi
 if [[ $WAVES = on ]]; then
    JOBTYPE=padcswan
    checkDirExistence $SWANDIR "SWAN executables directory (SWANDIR)"
-   checkFileExistence $SWANDIR "SWAN fulldomain hotstart file decomposition executable " unhcat.exe
-   checkFileExistence $ADCIRCDIR "ADCIRC+SWAN parallel executable" padcswan
    checkFileExistence $INPUTDIR "SWAN initialization template file " swaninit.template
    checkFileExistence $INPUTDIR "SWAN control template file" $SWANTEMPLATE
+   if [[ $QUEUESYS = serial ]]; then
+      JOBTYPE=adcswan
+      checkFileExistence $ADCIRCDIR "ADCIRC+SWAN serial executable" adcswan
+   else
+      checkFileExistence $SWANDIR "SWAN fulldomain hotstart file decomposition executable " unhcat.exe
+      checkFileExistence $ADCIRCDIR "ADCIRC+SWAN parallel executable" padcswan
+   fi
 else
    JOBTYPE=padcirc
+   if [[ $QUEUESYS = serial ]]; then
+      JOBTYPE=padcirc
+   fi
 fi
 if [[ $VARFLUX = on || $VARFLUX = default ]]; then
    checkFileExistence $INPUTDIR "River elevation initialization file " $RIVERINIT
@@ -1859,6 +1957,10 @@ fi
 if [[ ! -z $NAFILE && $NAFILE != null ]]; then
    checkFileExistence $INPUTDIR "ADCIRC nodal attributes (fort.13) file" $NAFILE
 fi
+#
+#  O B T A I N   I N I T I A L   H O T S T A R T   F I L E
+#  F R O M   F I L E S Y S T E M   O R   U R L  
+#
 LUN=67
 hotstartBase=fort.${LUN}
 hotstartSuffix=.nc
@@ -1934,7 +2036,7 @@ if [[ $HOTORCOLD = hotstart ]]; then
       checkHotstart $hotstartPath $HOTSTARTFORMAT 67
    fi
 fi
-
+#
 THIS="asgs_main.sh"
 if [[ -e ${INPUTDIR}/${PREPPEDARCHIVE} ]]; then
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Found archive of preprocessed input files ${INPUTDIR}/${PREPPEDARCHIVE}."
@@ -2113,12 +2215,15 @@ if [[ $START = coldstart ]]; then
    logMessage "$ENSTORM: $THIS: Submitting ADCIRC $ENSTORM job."
    cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
    JOBTYPE=padcirc  # we won't run waves during the spinup hindcast
+   if [[ $QUEUESYS = serial ]]; then
+      JOBTYPE=adcirc
+   fi
    logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
    writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE
    THIS="asgs_main.sh"
    # check once per minute until all jobs have finished
-   monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $HINDCASTWALLTIME
+   monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $HINDCASTWALLTIME
    THIS="asgs_main.sh"
    # check to see that the nowcast job did not conspicuously fail
    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV hindcast $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
@@ -2484,11 +2589,16 @@ while [ true ]; do
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Nowcast preprocessing complete."
 
       JOBTYPE=padcirc
+      if [[ $QUEUESYS = "serial" ]]; then
+         JOBTYPE=adcirc
+      fi
       HOTSWAN=on
       if [[ $WAVES = on ]]; then
          JOBTYPE=padcswan
+         if [[ $QUEUESYS = "serial" ]]; then
+            JOBTYPE=adcswan
+         fi
       fi
-
       # then submit the job
       CURRENT_STATE="CMPL"
       RMQMessage "INFO" "$CURRENT_EVENT" "$JOBTYPE" "$CURRENT_STATE" "Submitting $ENSTORM:$JOBTYPE job."
@@ -2501,7 +2611,7 @@ while [ true ]; do
       submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE
       THIS="asgs_main.sh"
       # check once per minute until all jobs have finished
-      monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $NOWCASTWALLTIME
+      monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $NOWCASTWALLTIME
       THIS="asgs_main.sh"
       # check to see that the nowcast job did not conspicuously fail
       handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
@@ -2593,9 +2703,15 @@ while [ true ]; do
          continue # just go on to the next ensemble member
       fi      
       JOBTYPE=padcirc
+      if [[ $QUEUESYS = "serial" ]]; then
+         JOBTYPE=adcirc
+      fi      
       HOTSWAN=on
       if [[ $WAVES = on ]]; then
          JOBTYPE=padcswan
+         if [[ $QUEUESYS = "serial" ]]; then
+            JOBTYPE=adcswan
+         fi
       fi
       # Check for a misconfiguration where the Operator has set the  
       # number of CPUs and number of writers greater than the total
@@ -2830,8 +2946,14 @@ while [ true ]; do
          # if the prep task was successful, the ensemble member directory will still be there
          if [[ -d $STORMDIR ]]; then
             JOBTYPE=padcirc
+            if [[ $QUEUESYS = "serial" ]]; then
+               JOBTYPE=adcirc
+            fi
             if [[ $WAVES = on ]]; then
                JOBTYPE=padcswan
+               if [[ $QUEUESYS = "serial" ]]; then
+                  JOBTYPE=adcswan
+               fi
             fi
             # then submit the job
             RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Submitting ensemble member $ENSTORM for forecast."
@@ -2845,7 +2967,7 @@ while [ true ]; do
             # in the background ... this allows us to go on to the
             # next ensemble member
             (            
-               monitorJobs $QUEUESYS ${JOBTYPE}.${ENSTORM} $FORECASTWALLTIME
+               monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $FORECASTWALLTIME
                THIS="asgs_main.sh"
                handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
                THIS="asgs_main.sh"    
