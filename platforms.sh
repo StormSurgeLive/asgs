@@ -98,7 +98,8 @@ init_rostam()
   SERQUEUE=rostam
   ACCOUNT=null
   SUBMITSTRING=sbatch
-  JOBLAUNCHER='srun -N %nnodes%'
+  #JOBLAUNCHER='srun -N %nnodes%'
+  JOBLAUNCHER='salloc -p marvin -N %nnodes% -n %ncpu%' 
   SCRATCHDIR=~/asgs
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=rostam.template.slurm
@@ -112,7 +113,9 @@ init_rostam()
   PLATFORMMODULES='module load mpi/mpich-3.0-x86_64'
   $PLATFORMMODULES
   # modules for CPRA post processing
-  module load mpi/mpich-3.0-x86_64
+  #module load mpi/mpich-3.0-x86_64
+  module purge 
+  module load impi/2017.3.196 
 }
 init_supermic()
 { #<- can replace the following with a custom script
@@ -286,7 +289,8 @@ init_hatteras()
   # for the automated slide deck generator
   #   pip install --user pptx
   #
-  PLATFORMMODULES='module load hdf5/1.10.1_intel-18.0.0 intelc/18.0.0 intelfort/18.0.0 mvapich2/2.0_intel-18.0.0_ch3_ofed-4.1 netcdf-C/4.5.0_intel-18.0.0 netcdf-Fortran/4.4.0_intel-18.0.0 zlib/1.2.11_intel-18.0.0'
+  export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
+  PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.11-acis  netcdf/4.1.2-acis mvapich2/2.0-acis-debug'
   if [[ $USER = ncfs ]]; then
      PLATFORMMODULES=$PLATFORMMODULES' python_modules/2.7'
   fi
@@ -574,7 +578,7 @@ init_desktop()
   HPCENV=jason-desktop
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
-  SUBMITSTRING="mpiexec"
+  SUBMITSTRING="mpiexec -n"
   SCRATCHDIR=/srv/asgs
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
@@ -645,8 +649,8 @@ init_renci_tds()
    #CATALOGPREFIX="http://tds.renci.org:8080/thredds/DataLayers/asgs/"
    #OPENDAPBASEDIR=/projects/ees/DataLayers/asgs/
    SSHPORT=22
-   LINKABLEHOSTS=(hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
-   COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+   LINKABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+   COPYABLEHOSTS=(hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
    if [[ $USER = jgflemin || $USER = ncfs ]]; then
       OPENDAPUSER=ncfs
    fi
