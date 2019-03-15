@@ -7,7 +7,7 @@
 # is platform dependent. 
 #
 #----------------------------------------------------------------
-# Copyright(C) 2012--2018 Jason Fleming
+# Copyright(C) 2012--2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -60,15 +60,18 @@ init_queenbee()
   ALLOCCHECKCMD=showquota
   QUEUENAME=workq
   SERQUEUE=single
-  ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
   SUBMITSTRING=qsub
   JOBLAUNCHER='mpirun -np %ncpu% -machinefile \$PBS_NODEFILE'
+  ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
+  if [[ $USER = "jgflemin" ]]; then
+     ACCOUNT=loni_cera_2019
+  fi
+  SCRATCHDIR=/work/cera
   if [[ -d /work/$USER ]]; then
      SCRATCHDIR=/work/$USER
   else
      SCRATCHDIR=/ssdwork/$USER
   fi
-  #SCRATCHDIR=/work/cera
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=queenbee.template.pbs
   PREPCONTROLSCRIPT=queenbee.adcprep.template.pbs
@@ -78,6 +81,7 @@ init_queenbee()
   PLATFORMMODULES='module load intel netcdf netcdf_fortran gcc perl'
   $PLATFORMMODULES
   # modules for CPRA post processing
+  # FIXME: Do these belong in the post processing scripts instead?
   module load matlab/r2015b
   module load python/2.7.12-anaconda-tensorflow
 }
