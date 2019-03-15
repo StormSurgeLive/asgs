@@ -5,7 +5,8 @@
 #----------------------------------------------------------------------------
 #SBATCH -J %jobtype%.%enstorm%
 #SBATCH -t %wallminutes%
-#SBATCH -n %ncpu% 
+#SBATCH --ntasks-per-node %ppn% 
+#SBATCH --nodes %nnodes% 
 #SBATCH --partition=%partition%
 #SBATCH --reservation=%reservation%
 #SBATCH --constraint=%constraint%
@@ -24,7 +25,7 @@ echo "time.%jobtype%.${SLURM_JOBID}.start : $DATETIME" >> run.properties
 echo "hpc.slurm.job.%jobtype%.${SLURM_JOBID}.slurm_job_nodelist : $SLURM_JOB_NODELIST" >> run.properties
 #
 # log the command used to run the job
-CMD="srun -N %nnodes% %adcircdir%/%jobtype% %cloptions%"
+CMD="mpirun -np %ncpu% -ppn %ppn% %adcircdir%/%jobtype% %cloptions%"
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 echo "[${DATETIME}] INFO: %jobtype%.slurm: Executing %jobtype%.%enstorm%
  with the command $CMD" | tee --append %syslog% %jobtype%.%enstorm%.run.start
