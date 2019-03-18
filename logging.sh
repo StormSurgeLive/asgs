@@ -33,7 +33,7 @@ sigint() {
   exit 0
 }
 
-RMQMessageStartup()  # 
+RMQMessageStartup() 
 { 
   if [[ ${RMQMessaging_Enable} == "off" ]] ; then return; fi
   DATETIME=`date --utc +'%Y-%h-%d-T%H:%M:%S'`
@@ -65,11 +65,9 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
   if ! [[ $PCTCOM =~ $re ]] ; then
       echo "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message." 
   else
-     printf "RMQ : %20s : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" "$INSTANCENAME" "$MTYPE" $EVENT "$DATETIME" "$STATE" "$PCTCOM" "$PROCESS"  "$5"
+     printf "RMQ : %s : %s : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" ${INSTANCENAME} ${ADVISORY} ${MTYPE} ${EVENT} ${DATETIME} ${STATE} ${PCTCOM} ${PROCESS}  "$5"
 
      # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
-#     echo "RMQMessaging_Transmit=$RMQMessaging_Transmit"
-
      ${RMQMessaging_Python} ${RMQMessaging_Script} \
          --Uid $$ \
          --LocationName ${RMQMessaging_LocationName} \
@@ -106,7 +104,7 @@ consoleMessage()
 # send a message to console as well as to the log file
 allMessage()
 {
-#BOB   consoleMessage $@
+   consoleMessage $@
    logMessage $@
 }
 #
