@@ -28,19 +28,17 @@
 # Fundamental
 
 INSTANCENAME=dailyv6d     # "name" of this ASGS process
-COLDSTARTDATE=auto  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2018022100  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=hotstart        # "hotstart" or "coldstart"
 #LASTSUBDIR=null  # path to previous execution (if HOTORCOLD=hotstart)
-LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/tc/nam/2018091206/nc6b/queenbee.loni.org/dailyv6d/namforecast
+LASTSUBDIR=/scratch/00976/jgflemin/asgs15861/2018070712
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
-SWANHSCOMPRESSION=no
 
 # Source file paths
 
 ADCIRCDIR=$WORK/adcirc/forks/adcirc/v53release/work # ADCIRC executables
-SWANDIR=$WORK/adcirc/forks/adcirc/v53release/swan # ADCIRC executables
-SCRIPTDIR=$WORK/asgs/branches/2014stable           # ASGS executables
+SCRIPTDIR=$WORK/asgs/2014stable           # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v6b # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
@@ -68,7 +66,7 @@ NUMWRITERS=1
 CYCLETIMELIMIT="05:00:00"
 CONSTRAINT=null
 PARTITION=null
-RESERVATION=florence
+RESERVATION=null
 
 # External data sources : Tropical cyclones
 
@@ -164,10 +162,10 @@ ASGSADMIN=jason.g.fleming@gmail.com
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=cera_post.sh
+POSTPROCESS=ut-post2017.sh
 
 # opendap
-TDS=(tacc_tds lsu_tds)
+TDS=(tacc_tds)
 TARGET=lonestar  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
