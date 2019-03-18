@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2019 Jason Fleming
+# Copyright(C) 2016 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -27,71 +27,67 @@
 
 # Fundamental
 
-INSTANCENAME=readyhsofs   # "name" of this ASGS process
-COLDSTARTDATE=auto        # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=hotstart        # "hotstart" or "coldstart"
-#LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/tc/nam/2018090706/tx2008_r35h/hatteras.renci.org/readytx/namforecast     # path to previous execution (if HOTORCOLD=hotstart)
-#LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/tc/nam/2019021600/hsofs/queenbee.loni.org/namhsofs/namforecast
-LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/tc/nam/2019031106/hsofs/queenbee.loni.org/namhsofs/namforecast
+INSTANCENAME=albertoLAv17al     # "name" of this ASGS process
+COLDSTARTDATE=2018040800  # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart       # "hotstart" or "coldstart"
+LASTSUBDIR=/scratch/00976/jgflemin/asgs24763/07/nowcast  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
-SWANHSCOMPRESSION=no
 
 # Source file paths
 
-ADCIRCDIR=$WORK/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
-SWANDIR=$WORK/adcirc-cg/jasonfleming/v53release/swan # ADCIRC executables
-SCRIPTDIR=$WORK/asgs/jasonfleming/2014stable        # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs            # grid and other input files
+ADCIRCDIR=$WORK/adcirc/forks/adcirc/master/work # ADCIRC executables
+SCRIPTDIR=$WORK/asgs/2014stable        # ASGS executables
+INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v17a # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
-BACKGROUNDMET=on      # NAM download/forcing
+BACKGROUNDMET=off      # NAM download/forcing
 TIDEFAC=on            # tide factor recalc
-TROPICALCYCLONE=off   # tropical cyclone forcing
-WAVES=on              # wave forcing
+TROPICALCYCLONE=on  # tropical cyclone forcing
+WAVES=on             # wave forcing
 VARFLUX=off           # variable river flux forcing
 VORTEXMODEL=GAHM
 
 # Computational Resources
 
-TIMESTEPSIZE=2.0             # adcirc time step size (seconds)
+TIMESTEPSIZE=1.0             # adcirc time step size (seconds)
 SWANDT=1200                  # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00"  # hindcast wall clock time
-ADCPREPWALLTIME="01:30:00"   # adcprep wall clock time, including partmesh
+ADCPREPWALLTIME="00:30:00"   # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="08:00:00"   # longest nowcast wall clock time
 FORECASTWALLTIME="05:00:00"  # forecast wall clock time
-NCPU=1160                   # number of compute CPUs for all simulations
-NCPUCAPACITY=3648
+NCPU=1200                     # number of compute CPUs for all simulations
+NCPUCAPACITY=2496
 NUMWRITERS=20
-CYCLETIMELIMIT="99:00:00"
+CYCLETIMELIMIT="05:00:00"
+QSCRIPT=lonestar.template.slurm
+PREPCONTROLSCRIPT=lonestar.template.serial.slurm
 
 # External data sources : Tropical cyclones
 
-STORM=99                         # storm number, e.g. 05=ernesto in 2006
-YEAR=2016                        # year of the storm
+STORM=01                         # storm number, e.g. 05=ernesto in 2006
+YEAR=2018                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
-#RSSSITE=filesystem
+RSSSITE=filesystem
 #FTPSITE=filesystem
-#FDIR=${SCRIPTDIR}/input/sample_advisories
+FDIR=${SCRIPTDIR}/input/sample_advisories/2018
 #HDIR=${SCRIPTDIR}/input/sample_advisories
-RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
+#RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
-FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+#FDIR=/atcf/afst                  # forecast dir on nhc ftp site
 HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06"
+FORECASTCYCLE="00,06,12,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
 PTFILE=ptFile_oneEighth.txt         # the lat/lons for the OWI background met
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
-SPATIALEXTRAPOLATIONRAMP=yes
-SPATIALEXTRAPOLATIONRAMPDISTANCE=5.0
 
 # External data sources : River Flux
 
@@ -100,19 +96,18 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=hsofs.14  # mesh (fort.14) file
-GRIDNAME=hsofs
-MESHPROPERTIES=${GRIDFILE}.nc.properties
-CONTROLTEMPLATE=hsofs_explicit_offset_lonestar.15.template  # fort.15 template
-CONTROLPROPERTIES=hsofs.15.template.properties
-ELEVSTATIONS=hsofs_stations_20180907.txt
-VELSTATIONS=${ELEVSTATIONS}
-METSTATIONS=${ELEVSTATIONS}
-NAFILE=hsofs.13
+GRIDFILE=LA_v17a-WithUpperAtch_chk.grd   # mesh (fort.14) file
+GRIDNAME=LA_v17a-WithUpperAtch_chk
+MESHPROPERTIES=${GRIDFILE}.properties
+CONTROLTEMPLATE=LA_v17a-WithUpperAtch.15.template
+CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+ELEVSTATIONS=combined_stations_20180525.txt
+VELSTATIONS=combined_stations_20180525.txt
+METSTATIONS=combined_stations_20180525.txt
+NAFILE=LA_v17a-WithUpperAtch.13
 NAPROPERTIES=${NAFILE}.properties
-#SWANTEMPLATE=fort.26.template # only used if WAVES=on
-SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
-RIVERINIT=null                          # this mesh has no rivers ...
+SWANTEMPLATE=LA_v17a-WithUpperAtch.26.template   # only used if WAVES=on
+RIVERINIT=null                           # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
@@ -129,7 +124,7 @@ FORT63="--fort63freq 3600.0 --fort63netcdf"
 # full domain water current velocity output
 FORT64="--fort64freq 3600.0 --fort64netcdf" 
 # met station output
-FORT7172="--fort7172freq 3600.0 --fort7172netcdf"           
+FORT7172="--fort7172freq 300.0 --fort7172netcdf"           
 # full domain meteorological output
 FORT7374="--fort7374freq 3600.0 --fort7374netcdf"           
 #SPARSE="--sparse-output"
@@ -146,7 +141,7 @@ MINMAX=reset
 # Notification
 
 EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
-NOTIFY_SCRIPT=ut-nam-notify.sh
+NOTIFY_SCRIPT=ut-nhc-notify.sh
 ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
@@ -154,24 +149,16 @@ POST_LIST=null
 JOB_FAILED_LIST="jason.g.fleming@gmail.com"
 NOTIFYUSER=jason.g.fleming@gmail.com
 ASGSADMIN=jason.g.fleming@gmail.com
-# RMQ Messaging
-RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
-RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
-RMQMessaging_NcoHome=$WORK
-RMQMessaging_Python="/opt/apps/intel18/python2/2.7.15/bin/python"
-RMQMessaging_LocationName="TACC"
-RMQMessaging_ClusterName="Lonestar5"
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=cera_post.sh
+POSTPROCESS=ut-post2017.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
-TDS=(tacc_tds lsu_tds renci_tds)
+TDS=(tacc_tds renci_tds)
 TARGET=lonestar  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
@@ -191,36 +178,41 @@ fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,zbyerly@cct.lsu.edu"
-OPENDAPNOTIFY="jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+
+NUMCERASERVERS=2
+WEBHOST=webserver.hostingco.com
+WEBUSER=remoteuser
+WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts
 
 # Archiving
 
-ARCHIVE=null_archive.sh
+ARCHIVE=ut-archive.sh
 ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS/2018
-ARCHIVEDIR="${INSTANCENAME}_NAM"
+ARCHIVEDIR="${INSTANCENAME}_012018"
 
 # Forecast ensemble members
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=4 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
-1)
-   ENSTORM=namforecast
+2)
+   ENSTORM=nhcConsensus
    ;;
-0)
-   ENSTORM=namforecastWind10m
-   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
-   FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=hsofs.nowindreduction.15.template
+3)
+   ENSTORM=nhcConsensusWind10m
+   ADCPREPWALLTIME="00:60:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:60:00" # forecast wall clock time
+   CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-   TIMESTEPSIZE=300.0    # 5 minute time steps
-   NCPU=23               # dramatically reduced resource requirements
+   TIMESTEPSIZE=60.0     # 1 minute time steps
+   NCPU=19               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
-   WAVES=off             # deactivate wave forcing 
+   WAVES=off             # deactivate wave forcing
    # turn off water surface elevation station output
    FORT61="--fort61freq 0"
    # turn off water current velocity station output
@@ -238,6 +230,41 @@ case $si in
    NETCDF4="--netcdf4"
    OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
    INTENDEDAUDIENCE=general
+   # prevent collisions in prepped archives
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   POSTPROCESS=null_post.sh
+   ;;
+0)
+   ENSTORM=veerLeft100
+   PERCENT=-100
+   ;;
+1)
+   ENSTORM=veerLeft100Wind10m
+   PERCENT=-100
+   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   CONTROLTEMPLATE=LA_v12h-WithUpperAtch_chk_setFlux.nowindreduction.15.template
+   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+   TIMESTEPSIZE=60.0    # 15 minute time steps
+   NCPU=19               # dramatically reduced resource requirements
+   NUMWRITERS=1          # multiple writer procs might collide
+   WAVES=off             # deactivate wave forcing
+   # turn off water surface elevation station output
+   FORT61="--fort61freq 0"
+   # turn off water current velocity station output
+   FORT62="--fort62freq 0"
+   # turn off full domain water surface elevation output
+   FORT63="--fort63freq 0"
+   # turn off full domain water current velocity output
+   FORT64="--fort64freq 0"
+   # met station output
+   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
+   # full domain meteorological output
+   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
+   #SPARSE="--sparse-output"
+   SPARSE=""
+   NETCDF4="--netcdf4"
+   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
    # prevent collisions in prepped archives
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh

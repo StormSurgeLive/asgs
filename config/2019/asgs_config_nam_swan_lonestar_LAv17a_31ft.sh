@@ -27,12 +27,10 @@
 
 # Fundamental
 
-INSTANCENAME=readyhsofs   # "name" of this ASGS process
+INSTANCENAME=testLAv17a   # "name" of this ASGS process
 COLDSTARTDATE=auto        # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=hotstart        # "hotstart" or "coldstart"
-#LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/tc/nam/2018090706/tx2008_r35h/hatteras.renci.org/readytx/namforecast     # path to previous execution (if HOTORCOLD=hotstart)
-#LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/tc/nam/2019021600/hsofs/queenbee.loni.org/namhsofs/namforecast
-LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/tc/nam/2019031106/hsofs/queenbee.loni.org/namhsofs/namforecast
+LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/tc/nam/2019031106/LA_v17a-WithUpperAtch_chk/queenbee.loni.org/dailyLAv17a_31ft/namforecast
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
 SWANHSCOMPRESSION=no
@@ -42,7 +40,7 @@ SWANHSCOMPRESSION=no
 ADCIRCDIR=$WORK/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
 SWANDIR=$WORK/adcirc-cg/jasonfleming/v53release/swan # ADCIRC executables
 SCRIPTDIR=$WORK/asgs/jasonfleming/2014stable        # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs            # grid and other input files
+INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v17a          # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
@@ -100,19 +98,19 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=hsofs.14  # mesh (fort.14) file
-GRIDNAME=hsofs
-MESHPROPERTIES=${GRIDFILE}.nc.properties
-CONTROLTEMPLATE=hsofs_explicit_offset_lonestar.15.template  # fort.15 template
-CONTROLPROPERTIES=hsofs.15.template.properties
-ELEVSTATIONS=hsofs_stations_20180907.txt
-VELSTATIONS=${ELEVSTATIONS}
-METSTATIONS=${ELEVSTATIONS}
-NAFILE=hsofs.13
+GRIDFILE=LA_v17a-WithUpperAtch_chk.grd   # mesh (fort.14) file
+GRIDNAME=LA_v17a-WithUpperAtch_chk
+MESHPROPERTIES=${GRIDFILE}.properties
+#CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS27ft.15.template
+CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS31ft.15.template
+CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+ELEVSTATIONS=combined_stations_20181005.txt
+VELSTATIONS=combined_stations_20181005.txt
+METSTATIONS=combined_stations_20181005.txt
+NAFILE=LA_v17a-WithUpperAtch.13
 NAPROPERTIES=${NAFILE}.properties
-#SWANTEMPLATE=fort.26.template # only used if WAVES=on
-SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
-RIVERINIT=null                          # this mesh has no rivers ...
+SWANTEMPLATE=LA_v17a-WithUpperAtch.26.template   # only used if WAVES=on
+RIVERINIT=null                           # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
@@ -215,7 +213,7 @@ case $si in
    ENSTORM=namforecastWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=hsofs.nowindreduction.15.template
+   CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0    # 5 minute time steps
    NCPU=23               # dramatically reduced resource requirements
