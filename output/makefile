@@ -143,6 +143,9 @@ ifeq ($(NETCDF),enable)
    ifeq ($(MACHINENAME),mike)
       NETCDFPATH := /home/nate/install
    endif
+   ifeq ($(MACHINENAME),JDB_MacPro)
+      NETCDFPATH := /usr/local/Cellar/netcdf/4.6.2_1
+   endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := $(LDFLAGS) -lnetcdff
    INCLUDES    := -I. -I$(NETCDFPATH)/include
