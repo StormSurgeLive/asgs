@@ -366,18 +366,24 @@ if ( allTimeInvariant.eqv..true. ) then
    stop
 endif
 !
-! Load up the node and element tables if we are writing a maureparticle file. 
-do fi=1,numFiles
-   if (fileMetaData(fi)%dataFileFormat.eq.NETCDF4) then
-      call check(nf90_open(trim(fileMetaData(fi)%dataFileName), NF90_NOWRITE, fileMetaData(fi)%nc_id))
-      if ((writeParticleFile.eqv..true.).and.(meshInitialized.eqv..false.)) then
-         call findMeshDimsNetCDF(m, n)
+! Load up the node and element tables if we are writing a maureparticle file
+! so that we can interpolate the physical quantities to the particle
+! location. This will allow us to color the particles according to any
+! scalar in the xmf file, as well as warp the particle locations up 
+! or down with the water surface elevation.  
+if ((writeParticleFile.eqv..true.).and.(meshInitialized.eqv..false.)) then
+   do fi=1,numFiles
+      if (fileMetaData(fi)%dataFileFormat.eq.NETCDF4) then
+         call check(nf90_open(trim(fileMetaData(fi)%dataFileName), NF90_NOWRITE, fileMetaData(fi)%nc_id))
+         m%meshFileName = trim(fileMetaData(fi)%dataFileName)
+         !!call findMeshDimsNetCDF(fileMetaData(fi)%dataFileName, n)
          call readMeshNetCDF(m, n)
+         call check(nf90_close(fileMetaData(fi)%nc_id))
          meshInitialized = .true.
+         exit
       endif
-      call check(nf90_close(fileMetaData(fi)%nc_id))
-   endif
-end do
+   end do
+endif
 !
 ! checks
 nSnaps = -99
@@ -420,12 +426,13 @@ if (writeParticleFile.eqv..true.) then
       ! as well and interpolate all the quantities found there
       if (numFiles.gt.1) then
          do fi=1,numFiles
-            ! FIXME: need to load bathy depth to interpolate that too
             if (fi.eq.maureIndex) then
                cycle
             endif
             call interpolateAndWriteTimeVaryingAttributesXML(fileMetaData(fi), fileMetaData(maureIndex), m, particles, fileMetaData(maureIndex)%maxParticles, iSnap, olun)
          end do
+         ! TODO:load bathy depth to interpolate that too
+         !call interpolateAndWriteTimeVaryingAttributesXML(fileMetaData(fi), fileMetaData(maureIndex), m, particles, fileMetaData(maureIndex)%maxParticles, iSnap, olun)         
       endif
       write(olun,'('//ind('-')//',A)') '</Grid>' ! closing element for time varying grid
    end do
@@ -1120,7 +1127,8 @@ do k=1,pfmd%numParticlesPerSnap(iSnap)
    ! TODO: Fix this hack for 2D velocity
    if (trim(afmd%ncds(1)%varNameNetCDF).eq.'u-vel') then
       ! fill in zero for the third component : velocity in the z direction
-      write(olun,'('//ind('|')//',f15.7,f15.7,f15.7)') (interpVals(v,k), v=1,afmd%numVarNetCDF), 0.d0
+!      write(olun,'('//ind('|')//',f15.7,2x,f21.15,2x,f15.7)') (interpVals(v,k), v=1,afmd%numVarNetCDF), 0.d0
+      write(olun,*) (interpVals(v,k), v=1,afmd%numVarNetCDF), 0.d0
       ! compute particle speeds while we're at it
       sp(k) = sqrt(interpVals(1,k)**2 + interpVals(2,k)**2)
    else

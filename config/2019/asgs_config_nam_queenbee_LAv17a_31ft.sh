@@ -49,7 +49,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=on   # NAM download/forcing
 TIDEFAC=on     # tide factor recalc
 TROPICALCYCLONE=off   # tropical cyclone forcing
-WAVES=on             # wave forcing
+WAVES=off             # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
@@ -63,7 +63,7 @@ FORECASTWALLTIME="07:00:00" # forecast wall clock time
 NCPU=1160                     # number of compute CPUs for all simulations
 NUMWRITERS=20
 NCPUCAPACITY=3600
-CYCLETIMELIMIT="24:00:00"
+CYCLETIMELIMIT="99:00:00"
 QUEUENAME=workq
 SERQUEUE=single
 #QUEUENAME=priority
