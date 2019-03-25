@@ -925,17 +925,19 @@ fn%numValuesPerDataSet = -99
 fn%time_increment = -99.d0   
 fn%nspool = -99
 fn%irtype = -99
-fn%dataFileCategory = DOMAIN
 fn%timeVarying = .true.
 fn%isGridded = .false.
 fn%isElemental = .false.
 fn%is3D = .false.
 fn%isInteger = .false.
-fn%dataFileCategory = UNKNOWN
 fn%fileTypeDesc = 'null description'
 fn%isBasin = .false.
 fn%isRegion = .false.
 fn%timeOfOccurrence = .false. ! only relevant to min/max files
+if ( fn%dataFileCategory.eq.MAUREPT ) then
+   return
+endif
+fn%dataFileCategory = DOMAIN
 !
 ! determine data file category from default file name
 select case(trim(fn%defaultFileName))
@@ -1989,6 +1991,7 @@ integer :: ncStartMinMax(1)
 !
 select case(f%dataFileFormat)
 case(ASCII,SPARSE_ASCII,ASCIIG)
+
    if (f%is3D.eqv..true.) then
       !
       ! WRITE 3D DATA
@@ -2126,7 +2129,7 @@ case(NETCDFG,NETCDF3,NETCDF4)
                if ((f%dataFileCategory.eq.MINMAX).and.(f%timeOfOccurrence.eqv..true.).and.(s.eq.2)) then
                   call check(nf90_put_var(f%nc_id,f%ncds(2)%nc_varID,f%rdata(c,:),nc_start,nc_count))                  
                else
-                  call check(nf90_put_var(f%nc_id,f%ncds(1)%nc_varID,f%rdata(c,:),nc_start,nc_count))
+                  call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%rdata(c,:),nc_start,nc_count))
                endif
             endif
          endif
