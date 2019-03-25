@@ -29,22 +29,15 @@
 # Fundamental 
 #
 INSTANCENAME=ncfs-dev-test2      # name of this ASGS process
-#COLDSTARTDATE=2016090400
-#COLDSTARTDATE=2017010100
-#COLDSTARTDATE=2017012400
-#COLDSTARTDATE=2017070900
-#COLDSTARTDATE=2017121500
-#COLDSTARTDATE=2018020900
-#COLDSTARTDATE=2018110200
 COLDSTARTDATE=2019020600
 
 STORMNAME=daily
 
-#
 HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=18.0        # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
+
 # Source file paths
 
 ADCIRCDIR=/home/ncfs-dev/ADCIRC/v53release/work # ADCIRC executables 
@@ -74,6 +67,7 @@ NCPU=511
 NUMWRITERS=1
 NCPUCAPACITY=512
 CYCLETIMELIMIT="05:00:00"
+
 # queue
 QUEUENAME=null
 SERQUEUE=null
@@ -81,8 +75,8 @@ SCRATCHDIR=/scratch/ncfs-dev/test2/  #   /projects/ncfs/data # for the NCFS on b
 PARTITION=ncfs
 RESERVATION=null # bblanton
 CONSTRAINT=hatteras
-#CONSTRAINT='sandybridge&hatteras' # sandybridge=512wide max, ivybridge=640wide max
 QSCRIPT=hatteras.template.slurm
+ACCOUNT=null
 
 # External data sources : Tropical cyclones
 
@@ -161,11 +155,11 @@ MINMAX=reset
 
 EMAILNOTIFY=no # set to yes to have host platform email notifications
 NOTIFY_SCRIPT=ncfs_nam_notify.sh
-ACTIVATE_LIST=""
-NEW_ADVISORY_LIST=""
-POST_INIT_LIST=""
-POST_LIST=""
-JOB_FAILED_LIST="jason.g.fleming@gmail.com"
+ACTIVATE_LIST=null
+NEW_ADVISORY_LIST=null
+POST_INIT_LIST=null
+POST_LIST=null
+JOB_FAILED_LIST=jason.g.fleming@gmail.com
 NOTIFYUSER=jason.g.fleming@gmail.com
 ASGSADMIN=jason.g.fleming@gmail.com
 
@@ -175,8 +169,8 @@ RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
 RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
 RMQMessaging_StartupScript="${SCRIPTDIR}/asgs-msgr_startup.py"
-RMQMessaging_NcoHome="/home/bblanton/"
-RMQMessaging_Python="//home/bblanton/GitHub/renci-unc/asgs/asgspy/bin/python"
+RMQMessaging_NcoHome="/home/ncfs-dev/"
+RMQMessaging_Python="/home/ncfs-dev/miniconda2/bin/python"
 RMQMessaging_LocationName="RENCI"
 RMQMessaging_ClusterName="Hatteras"
 
