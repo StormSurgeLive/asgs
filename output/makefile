@@ -160,7 +160,8 @@ endif
 #
 #
 OBJ := adcmesh.o asgsio.o nodalattr.o logging.o 
-MODS := adcmesh.mod asgsio.mod nodalattr.mod logging.mod
+# JDB March 2019, added ioutil.mod to MODS
+MODS := ioutil.mod adcmesh.mod asgsio.mod nodalattr.mod logging.mod
 #
 # targets
 all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN checkAdcircMesh resultScope highResolutionRegion stationProcessor collectMinMax
