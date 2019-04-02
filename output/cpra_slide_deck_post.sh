@@ -78,7 +78,7 @@ case $HPCENVSHORT in
         $JOBMODULES
         FINDMAXZCMD="${POSTPROCDIR}/Matlab_QB2/run_FindMaxZ.sh /usr/local/packages/license/matlab/r2017a"
         if [[ $USER = jgflemin ]]; then
-           ACCOUNT=loni_cera_2018a
+           ACCOUNT=loni_cera_2019
            GDAL_HOME=/home/jgflemin/asgs/gdal
            GMT_HOME=/home/jgflemin/asgs/gmt/gmt-4.5.18
            JOBPATHS="export PATH=${GDAL_HOME}/bin:${GMT_HOME}/bin:\$PATH GDAL_DATA=${GDAL_HOME}/share/gdal"
