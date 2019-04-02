@@ -93,10 +93,12 @@ echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Executing matlab." >>
 PLOTCMD=""
 case $HPCENVSHORT in
     queenbee)
-        PLOTCMD="${POSTPROCDIR}/Matlab_QB2/run_plot_usace_adcirc.sh /usr/local/packages/license/matlab/r2017a"
+        #PLOTCMD="${POSTPROCDIR}/Matlab_QB2/run_plot_usace_adcirc.sh /usr/local/packages/license/matlab/r2017a"
+        PLOTCMD="${POSTPROCDIR}/Matlab_QB2/run_cpra_hydrograph_plotter.sh /usr/local/packages/license/matlab/r2017a"
         ;;
     hatteras)
-        PLOTCMD='matlab -nodisplay -nosplash -nodesktop -r "run plot_usace_adcirc.m, exit"'
+        #PLOTCMD='matlab -nodisplay -nosplash -nodesktop -r "run plot_usace_adcirc.m, exit"'
+        PLOTCMD='matlab -nodisplay -nosplash -nodesktop -r "run cpra_hydrograph_plotter.m, exit"'
         ;;
     *)
         error "HPC platform $HPCENVSHORT not recognized."
