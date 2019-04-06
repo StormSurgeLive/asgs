@@ -4,7 +4,7 @@
 %
 %          Jason Fleming, PhD
 %          Seahorse Coastal Consulting
-% COPYRIGHT 2018
+% COPYRIGHT 2018-2019
 %
 %####################################################
 % 
@@ -16,7 +16,7 @@ close all;
 %
 %%
 %
-msg = sprintf('plot_usace_adcirc.m: BEGIN plot_usace_adcirc.m %s CDT',...
+msg = sprintf('cpra_hydrograph_plotter.m: BEGIN cpra_hydrograph_plotter.m %s CDT',...
     datestr(datetime('now','TimeZone','America/Chicago'),'yyyymmdd HH:MM'));
 disp(msg);
 %
@@ -25,13 +25,15 @@ disp(msg);
 %
 offset = 0.0; % in feet
 % offset = 1.25; % in feet
-offsetSet = zeros(1,16);
+offsetSet = zeros(1,22);
 offsetSet(:) = offset;
 % Offset vector - same order as "stations" string vector
 % offsetSet = [1.25,1.25,1.25,0.75,1.25,1.25,1.25,...
-%     1.25,1.25,1.25,1.25,1.25,1.25,1.50,1.00,0.35];
+%     1.25,1.25,1.25,1.25,1.25,1.25,1.50,1.00,...
+%     0.35,0.0,0.0,0.0,0.0,0.0,0.0];
 % {'85625','76065','76030','76265','82762','82770','82742',...
-% '85760','76010','82715','01440','01440','85670','85575','85700','82875'};
+    %'85760','76010','82715','01440','01440','85670','85575','85700',...
+    %'82875','76220','76230','76025','073802516','76593','8017118'};
 
 productionMode = true; % for ASGS
 % productionMode = false; % Manual mode
@@ -41,6 +43,7 @@ if (productionMode)
     numEns = 1;
     ensFileNames = {'fort.61.nc'};
     propFile = {'run.properties'};
+    colors = [0/255 128/255 0/255];
     plotPrevious = false;
 else
 %     Manual Mode
@@ -48,24 +51,35 @@ else
 %     FIRST in the array
 %     The nhcConsensus for the current advsiory should be LAST in the array
     numEns = 3;
-    ensFileNames = {'Adv09.nhcConsensus.fort.61.nc','Adv10.veerLeft100.fort.61.nc','Adv10.nhcConsensus.fort.61.nc'};
-    propFile = {'Adv09.nhcConsensus.run.properties','Adv10.veerLeft100.run.properties','Adv10.nhcConsensus.run.properties'};
+    ensFileNames = {'Adv26.veerLeft100.fort.61.nc','Adv26.veerRight100.fort.61.nc','Adv26.nhcConsensus.fort.61.nc'};
+    propFile = {'Adv26.veerLeft100.run.properties','Adv26.veerRight100.run.properties','Adv26.nhcConsensus.run.properties'};
+    colors = [0.9290 0.6940 0.1250; 175/255 54/255 60/255; 0/255 128/255 0/255];
     plotPrevious = true;
 end
 %
 %%
 
 % Hydrograph ensemble colors
-colors = [0.9290 0.6940 0.1250; 175/255 54/255 60/255; 0/255 128/255 0/255;...
-    143/255 0/255 255/255; 0/255 0/255 255/255; 47/255 79/255 79/255];
+% colors = [0.9290 0.6940 0.1250; 175/255 54/255 60/255; 0/255 128/255 0/255;...
+%     143/255 0/255 255/255; 0/255 0/255 255/255; 47/255 79/255 79/255];
 
 % These lists are used in order to look-up the appropriate name based on
 % the USACE Station ID found when parsing the fort.15/fort.61.
 %
+% Station Agency and ID
+fstations={'USACE 85625','USACE 76065','USACE 76030','USACE 76265',...
+    'USACE 82762','USACE 82770','USACE 82742','USACE 85760',...
+    'USACE 76010','USACE 82715','USACE 01440','USACE 01440',...
+    'USACE 85670','USACE 85575','USACE 85700','USACE 82875',...
+    'USACE 76220','USACE 76230','USACE 76025','USGS 073802516',...
+    'USACE 76593','USGS 8017118'};
+fstationsSplit = regexp(fstations, ' ', 'split');
+fstationsSplit = vertcat(fstationsSplit{:});
 % USACE Station ID
 stations={'85625','76065','76030','76265','82762','82770','82742',...
-    '85760','76010','82715','01440','01440','85670','85575','85700','82875'};
-usaceStationsName={'West End',...
+    '85760','76010','82715','01440','01440','85670','85575','85700',...
+    '82875','76220','76230','76025','073802516','76593','8017118'};
+gageStationsName={'West End',...
     'Seabrook CC - Flood Side',...
     'IHNC Surge Barrier East - Flood Side',...
     'GIWW at West Closure Complex - Flood Side',...
@@ -80,7 +94,13 @@ usaceStationsName={'West End',...
     'Lake Pontchartrain at Lakefront Airport',...
     'Lake Pontchartrain at Mandeville',...
     'Rigolets near Lake Pontchartrain',...
-    'Barataria Waterway at Lafitte'};
+    'Barataria Waterway at Lafitte',...
+    'Harvey Canal Sector Gates North / Protected Side nr Lapalco Blvd',...
+    'Harvey Canal at Boomtown Casino',...
+    'Bayou Bienvenue Floodgate - East/Flood Side',...
+    'Barataria Pass at Grand Isle',...
+    'Freshwater Canal at Freshwater Bayou Lock',...
+    'Calcasieu River at Cameron'};
 % The stationID in parenthesis must match what is in the fort.15
 cpraStationNames = {'17th St. Outfall Canal (17StCanal)',...
     'Seabrook Complex (IHNC01)',...
@@ -97,8 +117,13 @@ cpraStationNames = {'17th St. Outfall Canal (17StCanal)',...
     'Lakefront Airport (LakefrontAirport)',...
     'Mandeville (Mandeville)',...
     'Rigolets (Rigolets)',...
-    'Lafitte (Lafitte)'};
-
+    'Lafitte (Lafitte)',...
+    'Harvey Canal Sector Gate (HarveyCanalNorth)',...
+    'Harvey Canal at Broomtown (HarveyCanalBloom)',...
+    'Bayou Bienvenue Floodgate (BayouBienv)',...
+    'Barataria Pass at Grand Isle (BaraPass)',...
+    'Freshwater Canal (FreshCanal)',...
+    'Calcasieu River (CalcRiver)'};
 %
 %% 
 
@@ -106,7 +131,7 @@ cpraStationNames = {'17th St. Outfall Canal (17StCanal)',...
 offsetSet = offsetSet * 0.3048;
 offsetMap = containers.Map(stations,offsetSet);
 
-% msg = sprintf('plot_usace_adcirc.m: Using an offset of %f ft.',offset);
+% msg = sprintf('cpra_hydrograph_plotter.m: Using an offset of %f ft.',offset);
 % disp(msg);
 % offset = offset*0.3048;
 
@@ -124,29 +149,29 @@ end
 gateFile = 'Gate_Closure_Trigger.xlsx';
 if exist(gateFile)
     fid = fopen(gateFile,'r');
-    msg = sprintf('plot_usace_adcirc.m: File %s was found.', gateFile);
+    msg = sprintf('cpra_hydrograph_plotter.m: File %s was found.', gateFile);
     disp(msg);
 else
-    msg = sprintf('plot_usace_adcirc.m FATAL ERROR: %s was NOT found.', gateFile);
+    msg = sprintf('cpra_hydrograph_plotter.m FATAL ERROR: %s was NOT found.', gateFile);
     disp(msg);
-    quit;
+    %quit;
 end
-msg = sprintf('plot_usace_adcirc.m: Reading gate closure information from %s.', gateFile);
+msg = sprintf('cpra_hydrograph_plotter.m: Reading gate closure information from %s.', gateFile);
 disp(msg);
 [num,txt,raw] = xlsread(gateFile);
 trigger = num;
-msg = sprintf('plot_usace_adcirc.m: Success reading gate closure information from %s.', gateFile);
+msg = sprintf('cpra_hydrograph_plotter.m: Success reading gate closure information from %s.', gateFile);
 disp(msg);
 %
 %% 
 % -------------------------------------------------------------------------
 
 % Loop through the number of ensemble simulations
-msg = sprintf('plot_usace_adcirc.m: Begin reading ADCIRC station data.');
+msg = sprintf('cpra_hydrograph_plotter.m: Begin reading ADCIRC station data.');
 disp(msg);
 for i = 1:numEns
     % Read in ADCIRC time-series water levels
-    msg = sprintf('plot_usace_adcirc.m: Reading %s', char(ensFileNames(i)));
+    msg = sprintf('cpra_hydrograph_plotter.m: Reading %s', char(ensFileNames(i)));
     disp(msg);
     adcData(i) = read61nc(char(ensFileNames(i)));
     % Change from UTC to CDT by subtracting 5 hours
@@ -156,10 +181,10 @@ for i = 1:numEns
         adcData(i).STATION{j}.DATA = adcData(i).STATION{j}.DATA;
 %         adcData(i).STATION{j}.DATA = adcData(i).STATION{j}.DATA + offset;
     end
-    msg = sprintf('plot_usace_adcirc.m: Success reading %s', char(ensFileNames(i)));;
+    msg = sprintf('cpra_hydrograph_plotter.m: Success reading %s', char(ensFileNames(i)));
     disp(msg);
 end
-% NEED TO ADD CHECK TO MAKE SURE THE NUMBER OF STAdfTIONS ARE THE SAME FOR
+% NEED TO ADD CHECK TO MAKE SURE THE NUMBER OF STATIONS ARE THE SAME FOR
 % EACH ENSEMBLE SIMULATION
 
 % Get the start and end date of the ADCIRC simulation and round off
@@ -180,50 +205,105 @@ for f = 1:adcData(1).NumStations
     % assigned earlier in the script
     cpraStationIndex = find(~cellfun(@isempty,strfind(cpraStationNames,adcData(1).STATION{f}.NAME)));
     
+    gageAgency = char(fstationsSplit(cpraStationIndex,1));
+    gageID = char(fstationsSplit(cpraStationIndex,2));
+    
     % Check if cpraStationIndex was found -> If not, then cycle 
     % to next iteration.
     if isempty(cpraStationIndex) == 1
-        msg = sprintf('plot_usace_adcirc.m: NON-FATAL WARNING: plot_usace_adcirc.m: Could not find %s',adcData(1).STATION{f}.NAME);
+        msg = sprintf('cpra_hydrograph_plotter.m: NON-FATAL WARNING: cpra_hydrograph_plotter.m: Could not find %s',adcData(1).STATION{f}.NAME);
         %disp(msg);
         continue;
     end
-       
-    % Get USACE water level data for station cpraStationIndex
-    % If the rivergages function fails, then create a dummy value to plot.
-    try
-        msg = sprintf('plot_usace_adcirc.m: Finding gage data for USACE %s', stations{1,cpraStationIndex});
-        disp(msg);
-        wl=rivergages2(stations{1,cpraStationIndex},datestr(sdate-3),datestr(sdate),'HG');
-        
-        % Plot USACE Observations
-        if isempty(wl) == 0 % Data was obtained
-            msg = sprintf('plot_usace_adcirc.m: Gage data for USACE %s was found!', stations{1,cpraStationIndex});
+    
+    if strcmp(gageAgency,'USGS')
+        % Get USGS water level data for station cpraStationIndex
+        % If the USGS function fails, then create a dummy value to plot.
+        try
+            msg = sprintf('cpra_hydrograph_plotter.m: Finding gage data for USGS %s', gageID);
             disp(msg);
-            oDataExist = 1;
-%             wl(:,1) = wl(:,1) + 5/24; % Adjust time from CDT to UTC
-            wl(wl < -99) = NaN; % Remove data points that are less than -99
- 
-            % Find the min and max observed water levels
-            maxOWL = ceil(max(wl(:,2)));
-            minOWL = floor(min(wl(:,2)));
-        else
-            msg = sprintf('plot_usace_adcirc.m: NON-FATAL WARNING: Gage data for USACE %s was NOT found!', stations{1,cpraStationIndex});
+            % wl = USGS_Service(char(site(i)),format,outputDataType,sDate,eDate,plotter);
+            wl = USGS_Service(gageID,'waterml,2.0','00065',datestr(sdate-3),datestr(sdate+0.25),false);
+            if isempty(wl) == 0 % Data was obtained
+                msg = sprintf('cpra_hydrograph_plotter.m: Gage data for USGS %s was found!', gageID);
+                disp(msg);
+                oDataExist = 1;
+
+                % Find the min and max observed water levels
+                maxOWL = ceil(max(wl(:,2)));
+                minOWL = floor(min(wl(:,2)));
+            else
+                msg = sprintf('cpra_hydrograph_plotter.m: NON-FATAL WARNING: Gage data for USGS %s was NOT found!', gageID);
+                disp(msg);
+                wl(1,1) = sdate; wl(1,2) = -20; % Create a fake point for legend purposes
+                oDataExist = 0;
+            end
+        catch ME
+            % USGS is down... :(
+            msg = sprintf('cpra_hydrograph_plotter.m: NON-FATAL WARNING: Gage data for USGS %s was NOT found!', gageID);
             disp(msg);
-            wl(1,1) = sdate; wl(1,2) = -20; % Create a fake point for legend purposes
+            % Create some dummy values so the legned can still be plotted
+            wl(1,1) = sdate;
+            wl(1,2) = -20;
+            maxOWL = 1;
+            minOWL = 0;
             oDataExist = 0;
         end
-    catch ME
-        % USACE is down... :(
-        msg = sprintf('plot_usace_adcirc.m: NON-FATAL WARNING: Gage data for USACE %s was NOT found!', stations{1,cpraStationIndex});
-        disp(msg);
-        % Create some dummy values so the legned can still be plotted
-        wl(1,1) = sdate;
-        wl(1,2) = -20;
-        maxOWL = 1;
-        minOWL = 0;
-        oDataExist = 0;
+    elseif strcmp(gageAgency,'USACE')
+        % Get USACE water level data for station cpraStationIndex
+        % If the rivergages function fails, then create a dummy value to plot.
+        try
+            msg = sprintf('cpra_hydrograph_plotter.m: Finding gage data for USACE %s', gageID);
+            disp(msg);
+            wl=rivergages2(gageID,datestr(sdate-3),datestr(sdate+0.25),'HG');
+
+            % Plot USACE Observations
+            if isempty(wl) == 0 % Data was obtained
+                msg = sprintf('cpra_hydrograph_plotter.m: Gage data for USACE %s was found!', gageID);
+                disp(msg);
+                oDataExist = 1;
+    %             wl(:,1) = wl(:,1) + 5/24; % Adjust time from CDT to UTC
+                wl(wl < -99) = NaN; % Remove data points that are less than -99
+
+                % Find the min and max observed water levels
+                maxOWL = ceil(max(wl(:,2)));
+                minOWL = floor(min(wl(:,2)));
+                
+                % Check to see if values are reasonable
+                if minOWL > 50
+                    msg = sprintf('cpra_hydrograph_plotter.m: Gage data for USACE %s was found but deemed erroneous!', gageID);
+                    disp(msg);
+                    maxOWL = 1;
+                    minOWL = 0;
+                    wl(1,1) = sdate;
+                    wl(1,2) = -20;
+                    oDataExist = 0;
+                end
+            else
+                msg = sprintf('cpra_hydrograph_plotter.m: NON-FATAL WARNING: Gage data for USACE %s was NOT found!', gageID);
+                disp(msg);
+                wl(1,1) = sdate; wl(1,2) = -20; % Create a fake point for legend purposes
+                oDataExist = 0;
+            end
+        catch ME
+            % USACE is down... :(
+            msg = sprintf('cpra_hydrograph_plotter.m: NON-FATAL WARNING: Gage data for USACE %s was NOT found!', gageID);
+            disp(msg);
+            % Create some dummy values so the legned can still be plotted
+            wl(1,1) = sdate;
+            wl(1,2) = -20;
+            maxOWL = 1;
+            minOWL = 0;
+            oDataExist = 0;
+        end
+    else
+        msg = sprintf('cpra_hydrograph_plotter.m: Did not recognize %s %s',...
+            gageAgency, gageID);
+            disp(msg);
     end
-    
+        
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       
     % Plot USACE water levels as scatter points
     scatter(wl(:,1),wl(:,2),50,'MarkerEdgeColor','black','Linewidth',1);hold on;
     legendCell{1} = 'Gage Observations';
@@ -232,6 +312,8 @@ for f = 1:adcData(1).NumStations
 % -------------------------------------------------------------------------
     
     % Get ADCIRC data from station f and loop through each available ensemble
+    maxMWL = 0;
+    minMWL = 0;
     for i = 1:numEns
 
         % Load run.properties file
@@ -239,12 +321,12 @@ for f = 1:adcData(1).NumStations
         % http://www.mathworks.com/help/matlab/ref/containers.map.html;jsessionid=e51d09845dede42c23d71ce2851a
         if exist(propFile{i})
             fid = fopen(propFile{i},'r');
-            msg = sprintf('plot_usace_adcirc.m: File %s was found.', propFile{i});
+            msg = sprintf('cpra_hydrograph_plotter.m: File %s was found.', propFile{i});
             disp(msg);
         else
-            msg = sprintf('plot_usace_adcirc.m FATAL ERROR: %s was NOT found.', propFile{i});
+            msg = sprintf('cpra_hydrograph_plotter.m FATAL ERROR: %s was NOT found.', propFile{i});
             disp(msg);
-            quit;
+            %quit;
         end
         data = textscan(fid,'%s %s %s %s','delimiter',{':'});
         fclose(fid);
@@ -255,7 +337,7 @@ for f = 1:adcData(1).NumStations
 
         storm = M('stormname'); adcGrid = M('adcirc.gridname'); enstorm = M('asgs.enstorm');
         advisory = M('advisory'); forecastValidStart = M('forecastValidStart');
-        msg = sprintf('plot_usace_adcirc.m: Success reading %s', propFile{i});
+        msg = sprintf('cpra_hydrograph_plotter.m: Success reading %s', propFile{i});
         disp(msg);
 
         legendCell{i+1} = strcat(enstorm,' (Advisory ',advisory,')');      
@@ -270,21 +352,26 @@ for f = 1:adcData(1).NumStations
      
         adcData(i).STATION{f}.DATA(adcData(i).STATION{f}.DATA < -999) = NaN;
         % Find min/max water surface elevation from ADCIRC result
+        % Search WSE and determine if all data points are NaN or not
         res = ~any(~isnan(adcData(i).STATION{f}.DATA(:)));
         if res == false
-            msg = sprintf('plot_usace_adcirc.m: ADCIRC data for %s - Storm %s - Advisory %s was found!',...
+            msg = sprintf('cpra_hydrograph_plotter.m: ADCIRC data for %s - Storm %s - Advisory %s was found!',...
                 adcData(i).STATION{f}.NAME, storm, advisory);
             disp(msg);
             mDataExist = 1;
             % Find min/max water surface elevation from ADCIRC result
-            maxMWL = ceil(max(adcData(i).STATION{f}.DATA / 0.3048));
-            minMWL = floor(min(adcData(i).STATION{f}.DATA / 0.3048));
+            if ceil(max(adcData(i).STATION{f}.DATA / 0.3048)) > maxMWL
+                maxMWL = ceil(max(adcData(i).STATION{f}.DATA / 0.3048));
+            end
+            if floor(min(adcData(i).STATION{f}.DATA / 0.3048)) < minMWL
+                minMWL = floor(min(adcData(i).STATION{f}.DATA / 0.3048));
+            end
             % Only plot trigger for consensus track for current advisory
             if (i == useEnsemble)
                 max4Trigger = max(adcData(i).STATION{f}.DATA / 0.3048);
             end
         else
-            msg = sprintf('plot_usace_adcirc.m: ADCIRC data for %s - Storm %s - Advisory %s was NOT found!',...
+            msg = sprintf('cpra_hydrograph_plotter.m: ADCIRC data for %s - Storm %s - Advisory %s was NOT found!',...
                 adcData(i).STATION{f}.NAME, storm, advisory);
             disp(msg);
             mDataExist = 0;
@@ -310,7 +397,7 @@ for f = 1:adcData(1).NumStations
 
     %%
     
-    % Include some text stating that no USACE observed gage data is available.
+    % Include some text stating that no observed gage data is available.
     if oDataExist == 0
         text(sdate-2.85,minWL + 1.5,'Gage observations are not available.','Interpreter','None');
     end
@@ -402,7 +489,7 @@ for f = 1:adcData(1).NumStations
 	elseif (strcmp(cpraStationNames(cpraStationIndex),'Bayou Segnette Closure (WBV162)') == 1)
 		title2 = strcat('Bayou Segnette Closure (WBV-16.2) -  USACE Gage ID:',stations(cpraStationIndex));
 	else
-		title2 = strcat(cpraStationNames(cpraStationIndex),{'  -  USACE Gage ID: '},stations(cpraStationIndex));
+		title2 = strcat(cpraStationNames(cpraStationIndex),{'  -  '},gageAgency,{' Gage ID: '},stations(cpraStationIndex));
 	end
     
     text(0,1.07,title1,'Units','normalized','Interpreter','None');
@@ -429,16 +516,25 @@ for f = 1:adcData(1).NumStations
     fig.PaperUnits = 'inches';
     fig.PaperPosition = [0 0 12.5 6.0];
     
-    fname = char(strcat('WSE_',adcData(i).STATION{f}.NAME,'_USACE',stations(cpraStationIndex)));
+    fname = char(strcat('WSE_',adcData(i).STATION{f}.NAME,'_',gageAgency,'_',gageID));
     print(fname,'-dpng','-r200');
     
     clear legendCell;
     
-    msg = sprintf('plot_usace_adcirc.m: Station %s jpeg success.', stations{1,cpraStationIndex});
+    msg = sprintf('cpra_hydrograph_plotter.m: Station %s %s jpeg success.', gageAgency, gageID);
     disp(msg);
 end
+%%
+% Clean up stray xml files
+if exist('temp.xml','file') == 2
+    delete temp.xml
+end
+if exist('Gtest.xml','file') == 2
+    delete temp.xml
+end
 
-msg = sprintf('plot_usace_adcirc.m: END plot_usace_adcirc.m %s CDT',...
+%%
+msg = sprintf('cpra_hydrograph_plotter.m: END cpra_hydrograph_plotter.m %s CDT',...
     datestr(datetime('now','TimeZone','America/Chicago'),'yyyymmdd HH:MM'));
 disp(msg);
 
