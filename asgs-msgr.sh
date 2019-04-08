@@ -36,4 +36,9 @@ do
 		printf "   Found it.\n"
 	fi
 done
+
+#if [ -d "$RMQMessaging_NcoHome" ] ; then
+
+#FortCheckCommand="/home/ncfs-dev//2014stable/FortCheck_nco.sh"
+
 echo " "
