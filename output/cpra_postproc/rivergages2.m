@@ -20,7 +20,8 @@ function [TW]=rivergages2(station,begindate,enddate,variable)
 % variable='HG'
 
 %DD=linspace(round(datenum(begindate)),round(datenum(enddate)),round((datenum(enddate)-datenum(begindate))/25));
-DD=linspace(round(datenum(begindate)),round(datenum(enddate)),round((datenum(enddate)-datenum(begindate))));
+% DD=linspace(round(datenum(begindate)),round(datenum(enddate)),round((datenum(enddate)-datenum(begindate))));
+DD=linspace(datenum(begindate),datenum(enddate),round((datenum(enddate)-datenum(begindate))));
 
 TW = [];
 for g = 2:length(DD)

@@ -136,9 +136,11 @@ ifeq ($(NETCDF),enable)
       LDFLAGS     :=  -lnetcdf
    endif
    # jgf20160627: Added compiler flags for lonestar 5 at TACC.
-   # jgf20160803: Updared compiler flags for lonestar 5 at TACC.
+   # jgf20160803: Updated compiler flags for lonestar 5 at TACC.
+   # jgf20190406: Updated compiler flags for lonestar 5 at TACC.
    ifeq ($(MACHINENAME),lonestar)
-      NETCDFPATH=/opt/apps/intel16/netcdf/4.3.3.1/x86_64
+      #NETCDFPATH=/opt/apps/intel16/netcdf/4.3.3.1/x86_64
+      NETCDFPATH=/opt/apps/intel18/netcdf/4.6.2/x86_64
    endif
    ifeq ($(MACHINENAME),mike)
       NETCDFPATH := /home/nate/install
