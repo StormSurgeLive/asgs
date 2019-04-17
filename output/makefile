@@ -108,6 +108,10 @@ ifeq ($(NETCDF),enable)
       # jgf20180105
       NETCDFPATH := /usr/share/Modules/software/CentOS-7/netcdf-Fortran/4.4.0_intel-18.0.0
    endif
+   # nld20170829: Added compiler flags for seadog at Ransom.
+   ifeq ($(MACHINENAME),seadog)
+      NETCDFPATH  := /home/nate/install
+   endif
    # jgf20150720: Added compiler flags for queenbee at LONI.
    ifeq ($(MACHINENAME),queenbee)
       NETCDFPATH  := /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0
@@ -132,9 +136,23 @@ ifeq ($(NETCDF),enable)
       LDFLAGS     :=  -lnetcdf
    endif
    # jgf20160627: Added compiler flags for lonestar 5 at TACC.
-   # jgf20160803: Updared compiler flags for lonestar 5 at TACC.
+   # jgf20160803: Updated compiler flags for lonestar 5 at TACC.
+   # jgf20190406: Updated compiler flags for lonestar 5 at TACC.
    ifeq ($(MACHINENAME),lonestar)
-      NETCDFPATH=/opt/apps/intel16/netcdf/4.3.3.1/x86_64
+      #NETCDFPATH=/opt/apps/intel16/netcdf/4.3.3.1/x86_64
+      NETCDFPATH=/opt/apps/intel18/netcdf/4.6.2/x86_64
+   endif
+   ifeq ($(MACHINENAME),mike)
+      NETCDFPATH := /home/nate/install
+   endif
+   ifeq ($(MACHINENAME),JDB_MacPro)
+      NETCDFPATH := /usr/local/Cellar/netcdf/4.6.2_1
+   endif
+   #
+   # @jasonfleming 20190330 : Added netcdf paths for penguin on demand (pod)
+   ifeq ($(MACHINENAME),penguin) 
+      #NETCDFPATH := /public/apps/netcdf/4.4.1.1/gcc.4.8.5
+      NETCDFPATH := /public/apps/netcdf/4.4.1.1/gcc.6.2.0
    endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := $(LDFLAGS) -lnetcdff
@@ -150,7 +168,8 @@ endif
 #
 #
 OBJ := adcmesh.o asgsio.o nodalattr.o logging.o 
-MODS := adcmesh.mod asgsio.mod nodalattr.mod logging.mod
+# JDB March 2019, added ioutil.mod to MODS
+MODS := ioutil.mod adcmesh.mod asgsio.mod nodalattr.mod logging.mod
 #
 # targets
 all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN checkAdcircMesh resultScope highResolutionRegion stationProcessor collectMinMax

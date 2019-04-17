@@ -45,8 +45,8 @@ my $cloptions=""; # command line options for adcirc, if any
 my $jobtype;  # e.g., prep15, padcirc, padcswan, etc
 my $localhotstart; # present if subdomain hotstart files should be written
 my $reservation="null"; # name of SLURM reservation where the job should be submitted
-my $partition="null";   # name of SLURM partition the job should use
-my $constraint="null";  # name of SLURM constraint the job should use
+my $partition="batch";   # name of SLURM partition the job should use
+my $constraint="hatteras";  # name of SLURM constraint the job should use
 my $numwriters=0;  # number of writer processors, if any
 
 # initialize to the log file that adcirc uses, just in case
@@ -91,6 +91,7 @@ if ( ($ncpu%$ppn) != 0 ) {
    $nnodes++;
 }
 # convert wall clock time HH:MM:SS to minutes
+#print $walltime;
 $walltime =~ /(\d{2}):(\d{2}):(\d{2})/;
 my $wallminutes = $1*60 + $2;
 #
@@ -99,6 +100,8 @@ open(TEMPLATE,"<$qscript") || die "ERROR: hatteras.slurm.pl: Can't open $qscript
 while(<TEMPLATE>) {
     # fill in the number of CPUs
     s/%ncpu%/$ncpu/;
+    # fill in the number of tasks per node
+    s/%ppn%/$ppn/;
     # name of the queue on which to run
     s/%queuename%/$queuename/;
     # the estimated amount of wall clock time

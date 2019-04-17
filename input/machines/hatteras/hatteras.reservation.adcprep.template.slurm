@@ -7,7 +7,7 @@
 #SBATCH -t %wallminutes%
 #SBATCH -n 1 
 #jgf20161003: commented out per Chris Rutledge #SBATCH -c 1
-# #SBATCH --partition=ncfs
+# #SBATCH --partition=%partition%
 # #SBATCH --reservation=ncfs
 #SBATCH -o %advisdir%/%enstorm%/%jobtype%.%enstorm%.out
 #
@@ -36,6 +36,7 @@ echo "[${DATETIME}] INFO: adcprep.%jobtype%.slurm: Executing %jobtype%.%enstorm%
 #module load mvapich2/2.0_intel-14.0.3_ch3_ofed-3.1
 #module load netcdf/4.1.3_intel-14.0.3
 # @jasdonfleming 20180105
+module purge
 module load hdf5/1.10.1_intel-18.0.0
 module load intelc/18.0.0
 module load intelfort/18.0.0

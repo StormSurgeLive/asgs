@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 ################################################################################
-#                          	netcdfNAMtoOWI                                 #
+#                          	netcdfNAMtoOWIRamp                                 #
 ################################################################################
 # This script is triggered when a netCDF NAM file is received by LDM.
 # Its purpose is to convert the NAM data to OWI formatted data for use in
@@ -20,7 +20,7 @@
 #
 # Example of usage for a set of grib2 files containing nowcast data:
 #
-# perl ~/asgs/NAMtoOWI.pl --ptFile ~/Ida/ptFile.txt --namFormat grib2 --namType nowcast --awipGridNumber 218 --dataDir ~/Ida --outDir ~/Ida/test/ --velocityMultiplier 0.9 --scriptDir ~/asgs
+# perl ~/asgs/NAMtoOWIRamp.pl --ptFile ~/Ida/ptFile.txt --namFormat grib2 --namType nowcast --awipGridNumber 218 --dataDir ~/Ida --outDir ~/Ida/test/ --velocityMultiplier 0.9 --scriptDir ~/asgs
 #
 # jgf20161118: Example for use with spatial extrapolation ramp
 # perl ~/asgs/2014stable/NAMtoOWIRamp.pl --ptFile ~/asgs/2014stable/input/ptFile_hsofs.txt --namFormat grib2 --namType nowcast --awipGridNumber 218 --dataDir ./ --outDir ./ --velocityMultiplier 1.0 --scriptDir ~/asgs/2014stable --applyRamp yes --rampDistance 1.0
@@ -31,7 +31,7 @@
 use strict;
 no strict 'refs';
 #use NetCDF;
-use ArraySub;
+use List::Util qw[min max];
 use Getopt::Long;
 use Date::Pcalc;
 ######################################################
@@ -39,7 +39,7 @@ use Date::Pcalc;
 ######################################################
 our $dataDir="/data/renci/ADCIRC/wind/";    # path to NAM data
 our $outDir='/data/renci/ADCIRC/wind/src/'; # path to NAM u,v,p text data 
-our $outFilename='uvp.txt';                 # filename of NAM u,v,p text data
+our $uvpFilename='uvp.txt';                 # filename of NAM u,v,p text data
 our $ptFile='ptFile.txt';                   # file name of output grid lat/lon
 our $fort22='fort.22';			    # fort.22 path and filename
 our $awipGridNumber=221;                    # code that describes the grid num
@@ -50,7 +50,8 @@ our ($wndFile,$presFile);                   # names of OWI wind/pre output files
 our @namFormats = qw(grb grib2 netCDF);   # accceptable file types for NAMdata
 our $namFormat = "netCDF";                  # default NAM format is netCDF
 our $namType = "forecast";                  # expect forecast data by default
-our ($nDims,$nVars,$nAtts,$recDim,$dimName,%varId,@dimIds,$name,$dataType,%data,%dimId,%nRec,$nRec,@ugrd,@vgrd,@atmp,@time,@OWI_wnd,@miniOWI_wnd,@OWI_pres,@miniOWI_pres,@zeroOffset,$geoHeader);
+our ($nDims,$nVars,$nAtts,$recDim,$dimName,%varId,@dimIds,$name,$dataType,%data,%dimId,%nRec,$nRec);
+our (@ugrd,@vgrd,@atmp,@time,@OWI_wnd,@miniOWI_wnd,@OWI_pres,@miniOWI_pres,@zeroOffset,$geoHeader);
 our ($OWItimeRef,$startTime,$endTime,$timeStep,$mainHeader,@miniUgrd,@miniVgrd,@miniAtmp,@OWItime,$recordLength);
 our $applyRamp = "no";   # whether or not to apply a spatial extrapolation ramp
 our $rampDistance = 1.0; # distance in lambert coords to ramp vals to zero
@@ -70,7 +71,7 @@ our $rampDistance = 1.0; # distance in lambert coords to ramp vals to zero
 GetOptions(
           "dataDir=s" => \$dataDir,
           "outDir=s" => \$outDir,
-          "outFilename=s" => \$outFilename,
+          "uvpFilename=s" => \$uvpFilename,
           "ptFile=s" => \$ptFile,
           "namFormat=s" => \$namFormat,
           "namType=s" => \$namType,
@@ -159,8 +160,8 @@ sub processPtFile
 		($null,$lon[$i-1],$lat[$i-1])=split/,/,$pt[$i];
 	}
 	# find SW lat and lon using min
-	($swLat,$null)=&giveMinArray(\@lat);
-	($swLon,$null)=&giveMinArray(\@lon);
+	$swLat=min(@lat);
+	$swLon=min(@lon);
 	#get rid of remaining space (may be important for format of header line)
 	$swLat=~m/(\S+)/;
 	$swLat=sprintf("%3.4f",$1);# first to have the right float format
@@ -411,7 +412,7 @@ sub rotateAndFormat
 {
 	for my $t (0 .. $nRec{'time'}-1)
 		{
-		#&stderrMessage("DEBUG","TS=$t");
+		&stderrMessage("DEBUG","TS=$t");
 		my $startInd=$t*$recordLength;
 		my $stopInd=($t+1)*$recordLength-1;
 		my @subset=($startInd .. $stopInd);
@@ -420,23 +421,37 @@ sub rotateAndFormat
 		@miniVgrd=@vgrd[@subset];
 		@miniAtmp=@atmp[@subset];
 		# # print u,v,p file
-		my $outFile=$outDir.$outFilename;
-		 open (OUT,">$outFile") or die "Can't open output file ($outFile), error: $! \n";
-		 for my $i (0 .. $recordLength-1)
-		 {
-			 print OUT "$miniUgrd[$i] \t $miniVgrd[$i] \t $miniAtmp[$i]\n";
-		 }
-		 close (OUT);
+		my $uvpFile=$outDir.$uvpFilename;
+		open (OUT,">$uvpFile") or die "Can't open output file ($uvpFile), error: $! \n";
+		for my $i (0 .. $recordLength-1)
+		{
+			print OUT "$miniUgrd[$i] \t $miniVgrd[$i] \t $miniAtmp[$i]\n";
+		}
+		close (OUT);
 	
 		# run awip_interp
 		if ( $applyRamp eq "yes" ) {
-                  # NAM pressure data are in Pa
-                  #&stderrMessage("DEBUG","Reprojecting Lambert Conformal NAM data with the following command: $scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $outFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance $rampDistance --background-pressure 101300.0 --pressure-column 3 >> reproject.log 2>&1");
-                   `$scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $outFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance $rampDistance --background-pressure 101300.0 --pressure-column 3 >> reproject.log 2>&1`;
-                   #&stderrMessage("DEBUG","Applying spatial ramp.");
+                   # NAM pressure data are in Pa
+		   if ( -f "rotataedNAM.txt" ) {
+			print "Deleting old rotated3NAM.txt\n"; 
+                        unlink "rotatedNAM.txt";
+		   }
+
+		   my $com="$scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $uvpFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance $rampDistance --background-pressure 101300.0 --pressure-column 3 >> reproject.log 2>&1";
+                   &stderrMessage("DEBUG","1: Reprojecting Lambert Conformal NAM data with the following command: $com");
+                   my $res=`$com`;
+		   if (! -f "rotatedNAM.txt") {
+	               die "\nrotatedNAM.txt DNE. on TS=$t\n" 
+		   }
+	           else{
+                        &stderrMessage("DEBUG","$res");
+		   }
+#                   &stderrMessage("DEBUG","Applying spatial ramp.");
+
+
                 } else {
-                   #&stderrMessage("DEBUG","Reprojecting Lambert Conformal NAM data with the following command: $scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $outFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance -99999.0 >> reproject.log 2>&1");
-                   `$scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $outFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance -99999.0 >> reproject.log 2>&1`;
+                   &stderrMessage("DEBUG","2: Reprojecting Lambert Conformal NAM data with the following command: $scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $uvpFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance -99999.0 >> reproject.log 2>&1");
+                   `$scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $uvpFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance -99999.0 >> reproject.log 2>&1`;
                    #&stderrMessage("DEBUG","Not applying spatial ramp.");
                 }
 		 &toOWIformat('rotatedNAM.txt',$geoHeader."DT=".$OWItime[$t]);
@@ -450,7 +465,7 @@ sub rotateAndFormat
 ################################################################################
 sub addToFort22
 {
-	open(F22,">>$fort22") || die "ERROR: NAMtoOWI.pl: Failed to open OWI (NWS12) fort.22 file to append a comment line with the met time increment.";
+	open(F22,">>$fort22") || die "ERROR: NAMtoOWIRamp.pl: Failed to open OWI (NWS12) fort.22 file to append a comment line with the met time increment.";
 	my $wtiminc=$timeStep*3600; # ts in seconds
         &stderrMessage("INFO","Appending the WTIMINC value of '$wtiminc' to the fort.22 file '$fort22'.");
 	print F22 "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15\n";
@@ -549,9 +564,14 @@ sub getGrib2
            my $numInterp = 0;
            my @factors; 
            $factors[0] = 1.0;
+	   $endTime="";
            if ( $namType eq "nowcast" ) {
+              my $temp="";
               if ( $namFormat eq "grib2" ) {
-                 `$scriptDir/wgrib2 $file -match PRMSL` =~ m/d=(\d+)/;
+                 my $com="";
+                 $com="$scriptDir/wgrib2 $file -match PRMSL";
+                 $temp=`$com`;
+                 $temp =~ m/d=(\d+)/;
                  $endTime = $1;
               } 
               if ( $namFormat eq "grb" ) {
@@ -611,9 +631,17 @@ sub getGrib2
               # since wgrib2 will output them in the order in which they are 
               # found in the grib2 file ... PRMSL comes first in the grib2
               # file, so it would be first in the array ... need it to be last
-              @rawU = `$scriptDir/wgrib2 $file -match "UGRD:10" -inv /dev/null -text -`;
-              @rawV = `$scriptDir/wgrib2 $file -match "VGRD:10" -inv /dev/null -text -`;
-              @rawP = `$scriptDir/wgrib2 $file -match "PRMSL" -inv /dev/null -text -`;
+die "$file not found.\n" if (! -f $file);
+              my $com="$scriptDir/wgrib2 $file -match \"UGRD:10\" -inv /dev/null -text -";
+              @rawU = `$com`;
+              $com="$scriptDir/wgrib2 $file -match \"VGRD:10\" -inv /dev/null -text -";
+              @rawV = `$com`;
+              $com="$scriptDir/wgrib2 $file -match \"PRMSL\" -inv /dev/null -text -";
+              @rawP = `$com`;
+  	      die "rawU is empty, com=$com\n" unless (@rawU);
+  	      die "rawV is empty, com=$com\n" unless (@rawV);
+              die "rawP is empty, com=$com\n" unless (@rawP);
+
            }
            if ( $namFormat eq "grb" ) {
               #
@@ -713,9 +741,9 @@ sub stderrMessage () {
    my $year = 1900 + $yearOffset;
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-   printf STDERR "$theTime $level: $namType: NAMtoOWI.pl: $message\n";
+   printf STDERR "$theTime $level: $namType: NAMtoOWIRamp.pl: $message\n";
    if ($level eq "ERROR") {
-      sleep 60
+      sleep 1
    }
 }
 

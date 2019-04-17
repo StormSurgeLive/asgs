@@ -186,6 +186,27 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "periodicflux=s" => \$periodicflux
            );
 #
+# define stormDir if it is not already
+if ( $stormDir eq "null" ) {
+   $stormDir = $advisdir."/".$enstorm;
+}
+#
+# create a dictionary of properties from run.properties
+my %runProp; 
+# open properties file 
+unless (open(RUNPROP,"<$stormDir/run.properties")) {
+   stderrMessage("ERROR","Failed to open $stormDir/run.properties: $!.");
+   die;
+}
+while (<RUNPROP>) {
+   my @fields = split ':',$_, 2 ;
+   # strip leading and trailing spaces and tabs
+   $fields[0] =~ s/^\s|\s+$//g ;
+   $fields[1] =~ s/^\s|\s+$//g ;
+   $runProp{$fields[0]} = $fields[1];
+}
+close(RUNPROP);
+#
 # parse out the pieces of the cold start date
 $csdate=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
 $cy = $1;
@@ -223,9 +244,6 @@ unless (open(TEMPLATE,"<$controltemplate")) {
 }
 #
 # open output control file
-if ( $stormDir eq "null" ) {
-   $stormDir = $advisdir."/".$enstorm;
-}
 unless (open(STORM,">$stormDir/fort.15")) {
    stderrMessage("ERROR","Failed to open the output control file $stormDir/fort.15: $!");
    die;
@@ -315,7 +333,7 @@ if ( $waves eq "on" ) {
 # nodal factors and equilibrium arguments
 my $tides = "off";
 if ( -e "$scriptdir/tides/tide_fac.x" && -x "$scriptdir/tides/tide_fac.x" ) {
-   my $tide_fac_message = `$scriptdir/tides/tide_fac.x --length $RNDAY --year $cy --month $cm --day $cd --hour $ch --outputformat simple --outputdir $stormDir`;
+   my $tide_fac_message = `$scriptdir/tides/tide_fac.x --length $RNDAY --year $cy --month $cm --day $cd --hour $ch -n 8 m2 s2 n2 k1 k2 o1 q1 p1 --outputformat simple --outputdir $stormDir`;
    if ( $tide_fac_message =~ /ERROR|WARNING/ ) {
       stderrMessage("WARNING","There was an issue when running $scriptdir/tides/tide_fac.x: $tide_fac_message.");
    } else {
@@ -543,7 +561,15 @@ printf RUNPROPS "directory storm : $stormDir\n";
 printf RUNPROPS "mesh : $gridname\n";
 printf RUNPROPS "RunType : $run_type\n";
 printf RUNPROPS "ADCIRCgrid : $gridname\n";
-printf RUNPROPS "stormname : $nhcName\n";
+# only write the stornmame if there is vortex forcing and it is not
+# already in the properties file
+# FIXME: if the stormname property exists but is null or empty, it should be
+# removed from the run.properties file
+if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 309 ) { 
+   if ( ! exists $runProp{'stormname'} || $runProp{'stormname'} eq "" || $runProp{'stormname'} eq "null" ) { 
+      printf RUNPROPS "stormname : $nhcName\n";
+   }
+}
 printf RUNPROPS "currentcycle : $cycle_hour\n";
 printf RUNPROPS "currentdate : $currentdate\n";
 printf RUNPROPS "advisory : $advisorynum\n";
