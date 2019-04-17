@@ -35,7 +35,7 @@ INSTANCENAME=dailyv6d      # name of this ASGS process
 #COLDSTARTDATE=2017070900
 #COLDSTARTDATE=2017121500
 #COLDSTARTDATE=2018020900
-COLDSTARTDATE=2018022100
+COLDSTARTDATE=2018110200
 #
 HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
 LASTSUBDIR=null
@@ -44,8 +44,9 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables 
-SCRIPTDIR=~/asgs/2014stable        # ASGS scripts/executables  
+ADCIRCDIR=~/adcirc/forks/jasonfleming/v53release/work # ADCIRC executables 
+SWANDIR=~/adcirc/forks/jasonfleming/v53release/swan # ADCIRC executables 
+SCRIPTDIR=~/asgs/branches/2014stable        # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v6b   # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
@@ -76,7 +77,7 @@ SERQUEUE=null
 SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
 PARTITION=ncfs
 RESERVATION=null
-CONSTRAINT='sandybridge&hatteras' # sandybridge=512wide max, ivybridge=640wide max
+#CONSTRAINT='sandybridge&hatteras' # sandybridge=512wide max, ivybridge=640wide max
 
 # External data sources : Tropical cyclones
 
@@ -178,7 +179,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="jason.g.fleming@gmail.com"
 
 # Archiving
 
@@ -208,7 +209,7 @@ case $si in
    CONSTRAINT='sandybridge&hatteras'
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=nv6brivers_explicit_rlevel51.nowindreduction.fort.15_template
+   CONTROLTEMPLATE=v6brivers_explicit_rlevel51.nowindreduction.fort.15_template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0    # 5 minute time steps
    NCPU=15               # so total cpus match with other ensemble members

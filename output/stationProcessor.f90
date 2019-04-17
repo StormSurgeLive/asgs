@@ -2,7 +2,7 @@
 ! stationProcessor.f90: Reads ADCIRC netCDF station file(s) and 
 ! performs specified operation for given station list
 !------------------------------------------------------------------
-! Copyright(C) 2017 Jason Fleming
+! Copyright(C) 2017--2018 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -79,7 +79,7 @@ type(characterVector1D_t) :: dataFileNames
 character(len=2000) :: tempName
 ! 
 ! initializations
-stationFileName = 'stations.txt'
+stationFileName = 'stations.txt'  ! this is the list of stations we are interested in 
 outputFile = 'processedStations.dat'
 operation = 'mean'
 strictTimeRange = .false.
@@ -98,19 +98,19 @@ if (argcount.gt.0) then
          write(scratchMessage,'(99(a))') 'Processing ',trim(cmdlineopt),'.'
          call allMessage(INFO,scratchMessage)
          strictTimeRange = .true.
-      case("--datafile")
+      case("--datafile")  ! file from which station data should be extracted
          i = i + 1
          call getarg(i, tempName)
          call appendC1D(dataFileNames,tempName)
          write(scratchMessage,'(99(a))') 'Processing ',trim(cmdlineopt),' ',trim(tempName),'.'
          call allMessage(INFO,scratchMessage)
-      case("--stationfile")
+      case("--stationfile") ! file name containing list of stations of interest
          i = i + 1
          call getarg(i, cmdlinearg)
          write(scratchMessage,'(99(a))') 'Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
          call allMessage(INFO,scratchMessage)
          stationFileName = trim(cmdlinearg)
-      case("--outputfile")
+      case("--outputfile")  ! file name where results should be written
          i = i + 1
          call getarg(i, cmdlinearg)
          write(scratchMessage,'(99(a))') 'Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
@@ -223,7 +223,7 @@ do f=1, dataFileNames%n
       outOfRange(f) = .true.
    endif
    if ( (timesecEnd.gt.0).and.(timesecEnd.lt.sf(f)%timesec(1)) ) then
-      write(scratchMessage,'("The data file starts at time t=",e17.8," (s) but the requested end time is t=",e17.8," (s).")') , timesecEnd, sf(f)%timesec(1)
+      write(scratchMessage,'("The data file starts at time t=",e17.8," (s) but the requested end time is t=",e17.8," (s).")') timesecEnd, sf(f)%timesec(1)
       call allMessage(WARNING,scratchMessage)
       outOfRange(f) = .true.
    endif

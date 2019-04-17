@@ -6,7 +6,7 @@
 # requires logging capabilities. 
 #
 #----------------------------------------------------------------
-# Copyright(C) 2012 Jason Fleming
+# Copyright(C) 2012--2018 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -25,16 +25,118 @@
 #----------------------------------------------------------------
 #
 # Log file will be in the directory where the asgs was executed
+
+sigint() {
+  echo "Received Ctrl-C from console.  Shutting ASGS down...'"
+  RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..." 
+  allMessage "Received Ctrl-C from console.  Shutting ASGS instance $INSTANCENAME down. See ya!"
+  exit 0
+}
+
+function IncrementNCEPCycle()
+{
+	local DATE='date --utc'
+	local inc=21600  # cycle increment in secs
+
+	if [  $# -eq 0 ] ; then
+		d=`$DATE +%Y%m%d%H`
+		cy=${d:8:2}
+		cy=`echo "6*($cy/6)" | bc`
+	else
+		d=$1
+	fi
+
+	if [ ${#d} -lt 10 ] ; then
+		echo input date must of YYYYMMDDHH
+		exit 1
+	fi
+
+	#cy=${d:8:2}
+	#cy=`echo "6*($cy/6)" | bc`
+	#echo $d, $cy
+	#echo Current NCEP Cycle = $cy
+
+	# input YYMMDDHH in epoch seconds
+	d1=`$DATE -d "${d:0:4}-${d:4:2}-${d:6:2} ${d:8:2}:00:00" +%s`
+	d2=$[$d1+$inc]
+	d2=`$DATE -d "1970-01-01 UTC $d2 seconds" +%Y%m%d%H`
+	cy=${d2:8:2}
+	cy=`echo "6*(${d2:8:2}/6)" | bc`
+	d2=`printf "${d2:0:8}%02d" $cy`
+	echo $d2
+	#echo Next NCEP Cycle = $cy
+}
+
+RMQMessageStartup() 
+{ 
+  if [[ ${RMQMessaging_Enable} == "off" ]] ; then return; fi
+  DATETIME=`date --utc +'%Y-%h-%d-T%H:%M:%S'`
+  FILE2SEND=$1
+  ${RMQMessaging_Python} ${RMQMessaging_StartupScript} \
+         --Uid $$ \
+         --LocationName ${RMQMessaging_LocationName} \
+         --ClusterName ${RMQMessaging_ClusterName} \
+         --Message "$FILE2SEND"  \
+         --InstanceName $INSTANCENAME \
+         --Transmit ${RMQMessaging_Transmit}
+}
+
+RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
+{ 
+  if [[ ${RMQMessaging_Enable} == "off" ]] ; then return; fi
+
+  DATETIME=`date --utc +'%Y-%h-%d-T%H:%M:%S'`
+  MTYPE=$1
+  EVENT=$2
+  PROCESS=$3
+  STATE=$4
+  MSG=$5
+  #MSG="RMQ-$MTYPE : $EVENT : $STATE : ${DATETIME} : $MSG"
+  PCTCOM=0
+  if [ "$#" -eq 6 ] ; then PCTCOM=$6 ; fi
+
+  if [[ $RMQADVISORY -lt 0 ]] ; then
+	echo "warn: RMQA ($RMQADVISORY) < 0.  Not sending message ..."
+	return
+  fi
+
+  re='^[0-9]+([.][0-9]+)?$' 
+  if ! [[ $PCTCOM =~ $re ]] ; then
+      echo "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message ..." 
+  else
+     printf "RMQ : %s : %10s : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" ${INSTANCENAME} ${RMQADVISORY} ${MTYPE} ${EVENT} ${DATETIME} ${STATE} ${PCTCOM} ${PROCESS}  "$5"
+
+     # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
+     ${RMQMessaging_Python} ${RMQMessaging_Script} \
+         --Uid $$ \
+         --LocationName ${RMQMessaging_LocationName} \
+         --ClusterName ${RMQMessaging_ClusterName} \
+         --StormNumber $STORM \
+         --StormName $STORMNAME \
+         --AdvisoryNumber $RMQADVISORY \
+         --Message "$MSG"  \
+         --EventType $EVENT \
+         --Process $PROCESS \
+         --PctComplete 0 \
+         --SubPctComplete $PCTCOM \
+         --State $STATE \
+         --RunParams $RMQRunParams \
+         --InstanceName $INSTANCENAME \
+         --Transmit ${RMQMessaging_Transmit}
+   fi
+}
+
 logMessage()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] INFO: $@"
   echo ${MSG} >> ${SYSLOG}
 }
+
 #
 # send a message to the console (i.e., window where the script was started)
 # (these should be rare)
 consoleMessage()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] INFO: $@"
   echo ${MSG}
 }
@@ -42,21 +144,21 @@ consoleMessage()
 # send a message to console as well as to the log file
 allMessage()
 {
-   consoleMessage $@
+#   consoleMessage $@
    logMessage $@
 }
 #
 # log a warning message, execution continues
 warn()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] WARNING: $@"
   echo ${MSG} >> ${SYSLOG}
-  echo ${MSG}  # send to console
+  #echo ${MSG}  # send to console
 }
 #
 # log an error message, notify Operator 
 error()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] ERROR: $@"
   echo ${MSG} >> ${SYSLOG}
   echo ${MSG}  # send to console
@@ -68,7 +170,7 @@ error()
 #
 # log an error message, execution halts
 fatal()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] FATAL ERROR: $@"
   echo ${MSG} >> ${SYSLOG}
   if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
@@ -80,8 +182,7 @@ fatal()
 #
 # log a debug message
 debugMessage()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] DEBUG: $@"
   echo ${MSG} >> ${SYSLOG}
 }
-

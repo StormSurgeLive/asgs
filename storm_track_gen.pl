@@ -108,6 +108,22 @@ GetOptions(
            "percent=s" => \$percent
            );
 #
+# create a dictionary of properties from run.properties
+my %runProp;
+# open properties file 
+unless (open(RUNPROP,"<run.properties")) {
+   stderrMessage("ERROR","Failed to open run.properties: $!.");
+    die;
+}
+while (<RUNPROP>) {
+   my @fields = split ':',$_, 2 ;
+   # strip leading and trailing spaces and tabs
+   $fields[0] =~ s/^\s|\s+$//g ;
+   $fields[1] =~ s/^\s|\s+$//g ;
+   $runProp{$fields[0]} = $fields[1];
+}
+close(RUNPROP);
+#
 # check to see that all the mandatory command line arguments were specified
 unless ( $dir ) {
    $dir = cwd();
@@ -415,7 +431,16 @@ if ( $zdFound == 0 ) {
 #
 # write the last current storm class and name to run.properties file; 
 printf PROPS "storm class : $stormClass\n";
-printf PROPS "storm name : $nhcName\n";
+# only write the stornmame if there is vortex forcing and it is not
+# already in the properties file
+# FIXME: if the stormname property exists but is null or empty, it should be
+# removed from the run.properties file
+if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 309 ) {
+   if ( ! exists $runProp{'stormname'} || $runProp{'stormname'} eq "" || $runProp{'stormname'} eq "null" ) {
+      printf PROPS "stormname : $nhcName\n";
+   }
+}
+#
 # write the names of the unmodified, ATCF-formatted track data
 printf PROPS "track_raw_dat : bal$storm$year.dat\n";
 printf PROPS "track_raw_fst : al$storm$year.fst\n";
@@ -725,8 +750,9 @@ sub interpolateUncertaintyRadius($) {
     my $radius = 0;
     my @nhc_tau = (0, 12, 24, 36, 48, 72, 96, 120);
     #my @nhc_radii = (9.5, 32, 52, 71, 90, 122, 170, 225); #2015
-    my @nhc_radii = (9.5, 30, 49, 66, 84, 115, 165, 237); #2016
-
+    #my @nhc_radii = (9.5, 30, 49, 66, 84, 115, 165, 237); #2016
+    #my @nhc_radii = (9.5, 29, 45, 63, 78, 107, 159, 211); #2017
+    my @nhc_radii =  (9.5, 26, 43, 56, 74, 103, 151, 198); #2018 
     if ( $tau<$nhc_tau[0] ) {
 	stderrMessage("WARNING","Invalid forecast period (tau) of $tau in fort.22. Setting radius of uncertainty to $nhc_radii[0].");
 	return $nhc_radii[0];

@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2006--2017 Jason Fleming
+# Copyright(C) 2006--2018 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade 
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -36,16 +36,20 @@ INSTANCENAME=hiresr       # name of this ASGS process, to differentiate results
 #COLDSTARTDATE=2017071000
 #COLDSTARTDATE=2017121500
 #COLDSTARTDATE=2018020900
-COLDSTARTDATE=2018022100
+#COLDSTARTDATE=2018022100
+#COLDSTARTDATE=2018090100
+#COLDSTARTDATE=2018091500
+COLDSTARTDATE=2018111000
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
-REINITIALIZESWAN=no       # used to bounce the wave solution
+REINITIALIZESWAN=yes       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables 
-SCRIPTDIR=~/asgs/2014stable     # ASGS scripts/executables  
+ADCIRCDIR=~/adcirc/forks/jasonfleming/v53release/work  # ADCIRC executables 
+SWANDIR=~/adcirc/forks/jasonfleming/v53release/swan  # SWAN executables 
+SCRIPTDIR=~/asgs/forks/renci-unc/2014stable-rmq     # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v9.99_w_rivers # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
@@ -64,7 +68,7 @@ TIMESTEPSIZE=0.5
 SWANDT=1200
 HINDCASTWALLTIME="12:00:00"
 ADCPREPWALLTIME="01:15:00"
-NOWCASTWALLTIME="05:00:00"  # must have leading zero, e.g., 05:00:00
+NOWCASTWALLTIME="10:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
 NCPU=159
 NCPUCAPACITY=500
@@ -77,7 +81,9 @@ SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
 ACCOUNT=batch # or "ncfs" on hatteras to use pre-empt capability
 PARTITION=ncfs
 RESERVATION=null
-CONSTRAINT='sandybridge&hatteras'
+#CONSTRAINT='sandybridge&hatteras'
+CONSTRAINT=null
+QSCRIPT=hatteras-test.template.slurm
 
 # External data sources : Tropical cyclones
 
@@ -91,7 +97,7 @@ HDIR=/atcf/btk      # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="00,12"
+FORECASTCYCLE="00,06,12,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -115,9 +121,9 @@ GRIDNAME=nc_inundation_v9.99_w_rivers
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
 CONTROLPROPERTIES=fort.15.properties
-ELEVSTATIONS=ncv999_combined_station_list_cera.20161105_ncem20180329.txt
-VELSTATIONS=ncv999_combined_station_list_cera.20161105_ncem20180329.txt
-METSTATIONS=ncv999_combined_station_list_cera.20161105_ncem20180329.txt
+ELEVSTATIONS=ncv999_stations_20180907.txt
+VELSTATIONS=${ELEVSTATIONS}
+METSTATIONS=${ELEVSTATIONS}
 NAFILE=nc_inundation_v9.99_rivers.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=fort.26.template
@@ -183,7 +189,7 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
-ARCHIVE=ncfs_archive.sh
+ARCHIVE=enstorm_pedir_removal.sh
 ARCHIVEBASE=/projects/ncfs/data
 ARCHIVEDIR=archive
 
@@ -200,13 +206,13 @@ case $si in
    ENSTORM=namforecast
    PARTITION=ncfs
    RESERVATION=null
-   CONSTRAINT='sandybridge&hatteras'
+   #CONSTRAINT='sandybridge&hatteras'
    ;;
 1)
    ENSTORM=namforecastWind10m
    PARTITION=ncfs
    RESERVATION=null
-   CONSTRAINT='sandybridge&hatteras'
+   #CONSTRAINT='sandybridge&hatteras'
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=nc_9.99wrivers.nowindreduction.fort.15.template

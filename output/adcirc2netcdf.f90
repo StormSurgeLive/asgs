@@ -179,7 +179,12 @@ dataFileExtension = trim(dataFileBase(lastDotPosition+1:))
 ! as the default adcirc file name.
 if ( trim(f%defaultFileName).eq.'null') then
    f%defaultFileName = dataFileBase
-endif      
+endif
+!
+! recognize nodal attributes files
+if ( trim(dataFileExtension).eq.'13' ) then
+   f%defaultFileName = 'fort.13'
+endif
 !
 ! set up basic characteristics based on canonical ascii file name
 if ( meshonly.eqv..false.) then
@@ -283,6 +288,8 @@ if (f%dataFileCategory.ne.INITRIVER) then
 endif
 !
 ! Allocate space to hold the data
+!
+! gridded
 if (f%isGridded.eqv..true.) then
    ! y before x according to netcdf specification in fortran api
    allocate(owi1(1:f%iLatOWI,1:f%iLonOWI))
@@ -290,6 +297,7 @@ if (f%isGridded.eqv..true.) then
       ! y before x according to netcdf specification in fortran api
       allocate(owi2(1:f%iLatOWI,1:f%iLonOWI))
    endif
+! meshed
 else
    f%dataFileFormat = ASCIIG
    call allocateDataSetMemory(f, m)

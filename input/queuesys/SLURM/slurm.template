@@ -1,0 +1,84 @@
+#!/bin/bash
+#
+#----------------------------------------------------------------------------
+#                    S L U R M   D I R E C T I V E S
+#----------------------------------------------------------------------------
+#SBATCH -J %jobtype%.%enstorm%
+#SBATCH -t %wallminutes%
+#SBATCH -n %ncpu% 
+#SBATCH --partition=%partition%
+#SBATCH --reservation=%reservation%
+#SBATCH --constraint=%constraint%
+#SBATCH -o %stormdir%/%jobtype%.%enstorm%.out
+#
+#----------------------------------------------------------------------------
+#        L O G   M E S S A G E S   T O   S T A R T   T H E   J O B
+#----------------------------------------------------------------------------
+cd %stormdir%
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+echo "[${DATETIME}] INFO: %jobtype%.slurm: Executing %jobtype%.%enstorm% in %stormdir% with SLURM Job ID ${SLURM_JOBID}; SLURM submit directory ${SLURM_SUBMIT_DIR}; and SLURM submit host ${SLURM_SUBMIT_HOST}." | tee --append %syslog% %jobtype%.%enstorm%.run.start
+# job properties
+echo "time.hpc.job.%jobtype%.${SLURM_JOBID}.start : $DATETIME" >> run.properties
+#
+hostname | tee CONTROL.TXT
+echo "Job Run on Nodes"  | tee --append CONTROL.TXT
+echo "----------------"  | tee --append CONTROL.TXT
+echo $SLURM_JOB_NODELIST | tee --append CONTROL.TXT
+echo "----------------"  | tee --append CONTROL.TXT
+echo "hpc.job.%jobtype%.slurm.${SLURM_JOBID}.slurm_job_nodelist : $SLURM_JOB_NODELIST" >> run.properties
+#----------------------------------------------------------------------------
+#                      L O A D   M O D U L E S
+#----------------------------------------------------------------------------
+%platformmodules%
+%jobmodules%
+%joblibs%
+%jobpaths%
+#
+#----------------------------------------------------------------------------
+#                  E X E C U T E   T H E   J O B
+#----------------------------------------------------------------------------
+# log the command to run 
+CMD="%joblauncher% %cmd%"
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+echo "[${DATETIME}] INFO: %jobtype%.slurm: Executing %jobtype%.%enstorm% with the command $CMD" | tee --append %syslog% 
+$CMD 2>&1
+#
+#----------------------------------------------------------------------------
+#           C H E C K   S T A T U S   O F   R E S U L T S
+#----------------------------------------------------------------------------
+ERROMSG=""
+ERROVALUE=$?  # capture exit status
+if [ $ERROVALUE == 0 ] ; then
+   if [[ $JOBTYPE = adcirc || $JOBTYPE = padcirc || $JOBTYPE = padcswan ]]; then
+      # look for numerical instability errors in the stdout/stderr files
+      for file in adcirc.log %stormdir%/%jobtype%.%enstorm%.out ; do
+         if [ -e $file ]; then
+            numMsg=`grep WarnElev $file | wc -l`
+            if [ $numMsg = 0 ]; then
+               DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+               echo "[${DATETIME}] INFO: %jobtype%.slurm: No numerical instability detected in $file after executing %jobtype%.%enstorm%." | tee --append %syslog%
+            else
+               ERROMSG="$ERROMSG Detected $numMsg numerical instability messages in $file."
+               ERROVALUE=1
+            fi
+         fi
+      done
+   fi
+else
+   ERROMSG="The %jobtype%.%enstorm% job ended with an exit status that indicates an error occurred."
+fi
+#
+if [ $ERROVALUE == 0 ] ; then
+   RUNSUFFIX="finish"
+else
+   RUNSUFFIX="error"
+fi
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+echo "[${DATETIME}] INFO: %jobtype%.slurm: %jobtype%.%enstorm% finished in %stormdir% with return value = $ERROVALUE" | tee --append %jobtype%.%enstorm%.run.${RUNSUFFIX}
+#
+#  write reason for job failure
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+if [ $ERROVALUE == 1 ]; then
+   echo "[${DATETIME}] ERROR: %jobtype%.slurm: $ERROMSG" | tee --append %syslog% %jobtype%.%enstorm%.run.${RUNSUFFIX}
+fi
+echo "time.hpc.job.%jobtype%.${SLURM_JOBID}.${RUNSUFFIX} : $DATETIME" >> run.properties

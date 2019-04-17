@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sun, 08 Oct 2017 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression NATE Forecast/Advisory Number 17</title>
+      <description>Issued at 1500 UTC SUN OCT 08 2017 <![CDATA[<pre>
+ZCZC MIATCMAT1 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL DEPRESSION NATE FORECAST/ADVISORY NUMBER  17
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL162017
+1500 UTC SUN OCT 08 2017
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+ALL COASTAL WARNINGS HAVE BEEN DISCONTINUED.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+TROPICAL DEPRESSION CENTER LOCATED NEAR 33.1N  87.3W AT 08/1500Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHEAST OR  30 DEGREES AT  21 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  996 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  45 KT.
+12 FT SEAS..  0NE 240SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 33.1N  87.3W AT 08/1500Z
+AT 08/1200Z CENTER WAS LOCATED NEAR 32.2N  88.0W
+
+FORECAST VALID 09/0000Z 36.2N  85.0W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 09/1200Z 40.1N  79.5W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 10/0000Z 43.1N  72.8W...POST-TROP/REMNT LOW
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 10/1200Z 45.0N  65.0W...POST-TROP/EXTRATROP
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 11/1200Z...ABSORBED BY FRONT
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 33.1N  87.3W
+
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE
+CENTER ON THIS SYSTEM. FUTURE INFORMATION ON THIS SYSTEM CAN BE
+FOUND IN PUBLIC ADVISORIES ISSUED BY THE WEATHER PREDICTION CENTER
+BEGINNING AT 2100 UTC, UNDER AWIPS HEADER TCPAT1, WMO HEADER
+WTNT31 KWNH, AND ON THE WEB AT HTTP://WWW.WPC.NCEP.NOAA.GOV.
+
+$$
+FORECASTER BROWN
+
+</pre>]]></description>
+      <pubDate>Sun, 08 Oct 2017 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2017/16/17.162017.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2017/16/17.162017.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

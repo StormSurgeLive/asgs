@@ -1,0 +1,50 @@
+-68.2000 44.4000 ! 8413320 ! NOAA_NOS ! Bar Harbor
+-70.2467 43.6567 ! 8418150 ! NOAA_NOS ! Portland
+-70.5633 43.3200 ! 8419317 !  ! Wells
+-70.7117 43.0717 ! 8423898 !  ! Fort Point
+-71.0517 42.3550 ! 8443970 ! NOAA_NOS ! Boston
+-71.4000 41.8067 ! 8454000 !  ! Providence
+-71.3433 41.7167 ! 8452944 !  ! Conimicut Light
+-71.1633 41.7033 ! 8447386 !  ! Fall River
+-69.9500 41.6883 ! 8447435 !  ! Chatham
+-70.6700 41.5133 ! 8447930 ! NOAA_NOS ! Woods Hole
+-71.3267 41.5050 ! 8452660 !  ! Newport
+-72.0900 41.3617 ! 8461490 ! NOAA_NOS ! New London
+-70.7667 41.3533 ! 8448725 !  ! Menemsha Harbor
+-70.0950 41.2867 ! 8449130 ! NOAA_NOS ! Nantucket Island
+-72.9083 41.2833 ! 8465705 ! NOAA_NOS ! New Heaven
+-73.1817 41.1733 ! 8467150 ! NOAA_NOS ! Bridegport
+-72.306667 41.1367 ! 8511671 ! NOAA_NOS ! Orient Harbor
+-71.96 41.0483 ! 8510560 ! NOAA_NOS ! Montauk
+-73.765 40.8100 ! 8516945 ! NOAA_NOS ! Kings Point
+-74.013333 40.7000 ! 8518750 ! NOAA_NOS ! The Battery
+-74.141667 40.64 ! 8519483 ! NOAA_NOS ! Bergen Point West Reach
+-74.01 40.4667 ! 8531680 ! NOAA_NOS ! Sandy Hook
+-74.4183 39.3550 ! 8534720 ! NOAA_NOS ! Atlantic City
+-76.5783 39.2667 ! 8574680 ! NOAA_NOS ! Baltimore
+-76.2450 39.2133 ! 8573364 ! NOAA_NOS ! Tolchester Beach
+-75.1133 38.985 ! 8555889 ! NOAA_NOS ! Brandywine Shoa Light
+-76.4800 38.9833 ! 8575512 ! NOAA_NOS ! Annapolis
+-74.96 38.9683 ! 8536110 ! NOAA_NOS ! Cape May Ferry Terminal
+-77.0172 38.8733 ! 8594900 ! NOAA_NOS ! Washington
+-75.118333 38.783333 ! 8557380 ! NOAA_NOS ! Lewes
+-76.0683 38.5733 ! 8571892 ! NOAA_NOS ! Cambridge
+-75.0917 38.3283 ! 8570283 ! NOAA_NOS ! Ocean City Inlet
+-76.0383 38.2196 ! 8571421 ! NOAA_NOS ! Bishops Head
+-76.4633 37.9950 ! 8635750 ! NOAA_NOS ! Lewisetta
+-76.4780 37.2270 ! 8637689 ! NOAA_NOS ! Yorktown USGS Training Center
+-75.9883 37.1667 ! 8632200 ! NOAA_NOS ! Chesapeake Bay near Kiptopeke
+-76.1133 36.9667 ! 8638863 ! NOAA_NOS ! Chesapeake Bay Bridge Tunnel
+-76.2750 36.8833 ! 8638671 !  ! Lafayette River
+-76.3817 36.8217 ! 8638339 !  ! Western Branch
+-76.3017 36.7783 ! 8639348 ! NOAA_NOS ! Money Point
+-75.7466 36.1833 ! 8651370 ! NOAA_NOS ! Duck Pier
+-75.5483 35.7950 ! 8652587 ! NOAA_NOS ! Oregon Inlet Marina
+-75.7033 35.2083 ! 8654467 !  ! USCG Station Hatteras
+-76.6673 34.7163 ! 8656483 ! NOAA_NOS ! Beaufort
+-77.9533 34.2267 ! 8658120 ! NOAA_NOS ! Cape Fear River at Wilmington
+-77.7859 34.2133 ! 8658163 ! NOAA_NOS ! Atlantic Coast at J. Mercer Pier at Wrightsville Beach
+-79.1867 33.3517 ! 8662245 !  ! Oyster Landing (N. Inlet Estuary)
+-79.9250 32.7816 ! 8665530 ! NOAA_NOS ! Charleston Harbor
+-80.7833 32.3350 ! 8667633 !  ! Clarendon Plantation
+-80.9016 32.0333 ! 8670870 ! NOAA_NOS ! Fort Pulaski

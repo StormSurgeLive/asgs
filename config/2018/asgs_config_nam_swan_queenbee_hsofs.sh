@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2017 Jason Fleming
+# Copyright(C) 2017--2018 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -28,17 +28,18 @@
 # Fundamental
 
 INSTANCENAME=namhsofs    # "name" of this ASGS process
-COLDSTARTDATE=2018032400 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart       # "hotstart" or "coldstart"
+COLDSTARTDATE=2018111100   # YYYYMMDDHH24 or "auto" to extract from hotstart file
+HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc/forks/adcirc/master/work # ADCIRC executables
-SCRIPTDIR=~/asgs/2014stable        # ASGS executables
-INPUTDIR=${SCRATCHDIR}/asgs/2014stable/input/meshes/hsofs # grid and other input files
+ADCIRCDIR=~/adcirc/forks/jasonfleming/v53release/work # ADCIRC executables
+SWANDIR=~/adcirc/forks/jasonfleming/v53release/swan   # SWAN executables
+SCRIPTDIR=~/asgs/forks/renci-unc/2014stable-rmq            # ASGS executables
+INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
@@ -64,10 +65,13 @@ NCPUCAPACITY=3648
 CYCLETIMELIMIT="05:00:00"
 QUEUENAME=workq
 SERQUEUE=single
-#QUEUENAME=admin
-#SERQUEUE=admin
+#QUEUENAME=priority
+#SERQUEUE=priority
+if [[ $SERQUEUE = priority ]]; then
+   PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
+fi
 SCRATCHDIR=/work/$USER
-ACCOUNT=loni_cera_2018
+ACCOUNT=loni_cera_2018a
 
 # External data sources : Tropical cyclones
 
@@ -104,11 +108,11 @@ RIVERDIR=/projects/ciflow/adcirc_info
 GRIDFILE=hsofs.14  # mesh (fort.14) file
 GRIDNAME=hsofs
 MESHPROPERTIES=${GRIDFILE}.ng.properties     
-CONTROLTEMPLATE=hsofs_explicit.15.template  # fort.15 template
+CONTROLTEMPLATE=hsofs_explicit.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=hsofs.combined_station_list_20180329.txt
-VELSTATIONS=hsofs.combined_station_list_20180329.txt
-METSTATIONS=hsofs.combined_station_list_20180329.txt
+ELEVSTATIONS=hsofs_stations_20180907.txt
+VELSTATIONS=$ELEVSTATIONS
+METSTATIONS=$ELEVSTATIONS
 NAFILE=hsofs.13
 NAPROPERTIES=${NAFILE}.properties
 #SWANTEMPLATE=fort.26.template # only used if WAVES=on
@@ -160,7 +164,7 @@ ASGSADMIN="jason.g.fleming@gmail.com"
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=queenbee_daily_post.sh
+POSTPROCESS=cera_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
@@ -177,7 +181,7 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
-ARCHIVE=queenbee_archive.sh
+ARCHIVE=enstorm_pedir_removal.sh
 ARCHIVEBASE=/work/jgflemin
 ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
@@ -196,7 +200,7 @@ case $si in
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-   TIMESTEPSIZE=60.0    # 15 minute time steps
+   TIMESTEPSIZE=300.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 

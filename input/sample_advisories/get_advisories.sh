@@ -33,7 +33,7 @@ BASIN=$5 # e.g. lowercase al for Atlantic basin
 FSTORMNUMBER=`printf "%02d" $STORMNUMBER`
 #
 while [[ $ADVISORY -le $MAXADVISORY ]]; do 
-   urlRoot=http://www.nhc.noaa.gov/archive/$YEAR
+   urlRoot=https://www.nhc.noaa.gov/archive/$YEAR
    file=`printf "$BASIN$FSTORMNUMBER$YEAR.fstadv.%03d.shtml" $ADVISORY` 
    if [[ $YEAR -lt 2006 ]]; then
       urlRoot="$urlRoot/mar"
