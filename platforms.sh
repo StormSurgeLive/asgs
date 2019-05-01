@@ -290,7 +290,7 @@ init_hatteras()
   #   pip install --user pptx
   #
   export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
-  PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.11-acis  netcdf/4.1.2-acis mvapich2/2.0-acis-debug'
+  PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.11-acis  netcdf/4.1.2-acis mvapich2/2.0-acis'
   if [[ $USER = ncfs ]]; then
      PLATFORMMODULES=$PLATFORMMODULES' python_modules/2.7'
   fi
