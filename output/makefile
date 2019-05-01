@@ -4,7 +4,7 @@
 # A system to build ASGS-related utilities for processing ADCIRC output.
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2014--2016 Jason Fleming
+# Copyright(C) 2014--2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -150,6 +150,9 @@ ifeq ($(NETCDF),enable)
    endif
    ifeq ($(MACHINENAME),JDB_MacPro)
       NETCDFPATH := /usr/local/Cellar/netcdf/4.6.2_1
+   endif
+   ifeq ($(MACHINENAME),penguin)
+      NETCDFPATH := /home/jgflemin/local
    endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := $(LDFLAGS) -lnetcdff

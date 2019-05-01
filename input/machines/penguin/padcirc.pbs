@@ -1,0 +1,62 @@
+#!/bin/bash
+## Specify the shell for PBS 
+#PBS -S /bin/sh
+# Specify the queue explicitly
+#PBS -q B30
+# Specify email address
+#PBS -M jason.fleming@seahorsecoastal.com
+# Specify number of cpus in a machine-specific way
+#PBS -l nodes=10:ppn=28
+# Specify the wall clock time
+#PBS -l walltime=12:00:00
+# Merge stderr to stdout (optional, otherwise they're in separate files)
+#PBS -j oe
+# Name the job (this will appear in the output from the qstat command)
+#PBS -N padcirc
+# Specify the output filename explicitly (optional; the default is named
+# from the job ID, in the directory where qsub was run.)
+#PBS -o /home/jgflemin/projects/%project%/run.log
+# Request mail when job ends, or is aborted (optional, default is "a" only)
+# (commented out)
+##PBS -m ea  # request email when the job ends or aborts
+#PBS -V
+#
+# initialize
+THIS=padcirc.pbs
+SCRIPTDIR=~/asgs/jasonfleming/master
+PROJECTDIR=/home/jgflemin/projects/%project%
+RUNDIR=${PROJECTDIR}/%scenario%
+RUNLOG=${RUNDIR}/run.log
+# shorthand for timestamping and logging
+TIMESTAMPANDLOG="2>&1 | awk -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk >> $RUNLOG"
+#
+# start the script commands
+echo "------------------------------------------------------------------------"
+echo "Start of padcirc queue script in $RUNDIR" 2>&1 | awk -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
+cd $RUNDIR $TIMESTAMPANDLOG
+#
+# this is where the necessary netcdf share libraries are
+module purge
+module add gcc/6.2.0
+module add openmpi/2.1.2/gcc.6.2.0
+module list
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${HOME}/local/lib
+export PATH=${PATH}:${HOME}/local/bin
+#
+# record which cluster nodes we are running on 
+echo "PBS_NODEFILE: "`cat $PBS_NODEFILE`
+echo "hostname: "`hostname`
+#
+cmd="mpirun -machinefile $PBS_NODEFILE -np 280 /home/jgflemin/adcirc-cg/jasonfleming/v53release/work/padcirc -W 1" 
+echo "padcirc job ${PBS_JOBID} starting in $RUNDIR with the following command: $cmd" 2>&1 | awk -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $RUNLOG >> padcirc.run.start
+#
+$cmd
+#
+ERROVALUE=$?
+if [ $ERROVALUE == 0 ] ; then
+   RUNSUFFIX="finish"
+else
+   RUNSUFFIX="error"
+fi
+echo "padcirc job ${PBS_JOBID} finished in $RUNDIR with return value = $ERROVALUE" 2>&1 | awk -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $RUNLOG >> padcirc.run.${RUNSUFFIX}
+echo "-----------------------------------------------------------------------"

@@ -4,7 +4,7 @@
 ! A program to generate XDMF xml for NetCDF4 formatted ADCIRC files.
 !
 !--------------------------------------------------------------------------
-! Copyright(C) 2012--2017 Jason Fleming
+! Copyright(C) 2012--2019 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -138,18 +138,6 @@ if (argcount.gt.0) then
       call getarg(i, cmdlineopt)
       select case(trim(cmdlineopt))
          case("--datafile")
-            numFiles = numFiles + 1
-         case default
-            ! skip it
-      end select
-   end do
-   i=0
-   fi=1  ! file index
-   do while (i.lt.argcount)
-      i = i + 1
-      call getarg(i, cmdlineopt)
-      select case(trim(cmdlineopt))
-         case("--datafile")
             i = i + 1
             call getarg(i, cmdlinearg)
             write(scratchMessage,'(a,a,a,a,a)') 'Processing "',trim(cmdlineopt),' ',trim(cmdlinearg),'".'
@@ -193,6 +181,7 @@ endif
 !
 ! Check to see if each file exists; if the file exists, initialize dimensions
 do fi=1,numFiles
+   write(*,*) 'checking file existince of ',trim(fileMetaData(fi)%dataFileName)
    call checkFileExistence(fileMetaData(fi)%dataFileName,errorIO)
    if (errorIO.gt.0) then
       stop
