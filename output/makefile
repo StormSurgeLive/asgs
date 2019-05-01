@@ -151,6 +151,12 @@ ifeq ($(NETCDF),enable)
    ifeq ($(MACHINENAME),JDB_MacPro)
       NETCDFPATH := /usr/local/Cellar/netcdf/4.6.2_1
    endif
+   #
+   # @jasonfleming 20190330 : Added netcdf paths for penguin on demand (pod)
+   ifeq ($(MACHINENAME),penguin) 
+      #NETCDFPATH := /public/apps/netcdf/4.4.1.1/gcc.4.8.5
+      NETCDFPATH := /public/apps/netcdf/4.4.1.1/gcc.6.2.0
+   endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := $(LDFLAGS) -lnetcdff
    INCLUDES    := -I. -I$(NETCDFPATH)/include
