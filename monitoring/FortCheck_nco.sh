@@ -5,7 +5,7 @@
 # May 2018, for ASGS OAD 
 #
 
-HSTIME="hstime"
+HSTIME="$ADCIRCDIR/hstime"
 NCKS="ncks"
 ##NCDUMP="ncdump"
 
@@ -23,6 +23,7 @@ if [ "$#" -ne 1 ] ; then
 else
    f=$1
 fi
+#echo $f
 
 if [[ ! -e $f ]] ; then
         echo "$f DNE."

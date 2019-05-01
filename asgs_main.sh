@@ -144,7 +144,7 @@ checkHotstart()
    fi
    # check for existence of hotstart file
    if [ ! -e $HOTSTARTFILE ]; then
-      RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS" "FAIL" "The hotstart file '$HOTSTARTFILE' was not found. The preceding podlation run must have failed to produce it."
+      RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS" "FAIL" "The hotstart file '$HOTSTARTFILE' was not found. The preceding simulation run must have failed to produce it."
       fatal "$THIS: The hotstart file '$HOTSTARTFILE' was not found. The preceding simulation run must have failed to produce it."
    # if it exists, check size to be sure its nonzero
    else
@@ -168,6 +168,7 @@ checkHotstart()
          failureOccurred=$?
          errorOccurred=`expr index "$HSTIME" ERROR`
          if [[ $failureOccurred != 0 || $errorOccurred != 0 ]]; then
+            RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM" "FAIL "Hstime failed: $HSTIME""
             fatal "$THIS: The hstime utility could not read the ADCIRC time from the file '$HOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
          else
             if float_cond '$HSTIME == 0.0'; then
@@ -538,6 +539,8 @@ prep()
           if [[ $HOTSTARTFORMAT = netcdf ]]; then
              # copy netcdf file so we overwrite the one that adcprep created
              cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG 2>&1
+	     mv fort.68.nc fort.68.nc.orig
+  	     nccopy -d0 fort.68.nc.orig fort.68.nc
           else
              ln -s $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG 2>&1
           fi
@@ -948,7 +951,7 @@ downloadBackgroundMet()
       logMessage "Downloading NAM data with the following command: perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}"
       newAdvisoryNum=`perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}` 
       if [[ $newAdvisoryNum -lt 2 ]]; then
-         RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Waiting on NCEP data. Sleeping 60 secs (TRY=$TRIES) ..."
+         RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
          sleep 60
          TRIES=$[$TRIES + 1]
       fi
@@ -1736,7 +1739,8 @@ writeJobResourceRequestProperties()
 THIS="asgs_main.sh"
 CURRENT_EVENT="STRT" # used for RMQ messages
 CURRENT_STATE="INIT" # used for RMQ messages
-#
+RMQADVISORY=0  #  "Fake" ADVISORY number for RMQ Messages.  
+
 #
 # Option Summary
 #
@@ -1842,7 +1846,7 @@ temp=`cat $CONFIG | sed '/^#/d' | sed '/^$/d'`
 RMQMessageStartup "$temp"
 #
 # set a RunParams string for messaging
-RMQRunParams="$GRIDNAME:EnsSize=$ENSEMBLESIZE"
+RMQRunParams="$GRIDNAME:EnsSize=$ENSEMBLESIZE:Pid=$$"
 RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh" "$CURRENT_STATE" "$HPCENVSHORT configuration found."
 
 # if we are starting from cron, look for a state file
@@ -1910,15 +1914,6 @@ RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Configured the ASGS
 
 logMessage                                           "$THIS: ASGS state file is ${STATEFILE}."
 RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "ASGS state file is ${STATEFILE}."
-# 
-#
-# C H E C K   E X I S T E N C E   O F   A L L   R E Q U I R E D
-#   F I L E S   A N D   D I R E C T O R I E S
-#BOB
-#echo "  "
-#module list
-#echo " "
-#BOB
 #
 checkDirExistence $INPUTDIR "directory for input files"
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
@@ -2309,7 +2304,25 @@ while [ true ]; do
    CURRENT_EVENT="RSTR"
    CURRENT_STATE="INIT"
    ENSTORM=nowcast
-   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting new NC/FC Cycle."
+
+   #BOB
+#   echo "\$OLDADVISDIR=$OLDADVISDIR"
+#   echo "\$ADVISORY=$ADVISORY"
+#   echo "\$ENSTORM=$ENSTORM"
+   # determine if this date is the next cycle
+   #ls $OLDADVISDIR/$ENSTORM
+   #echo "\$ADVISORY=$ADVISORY"
+   if [[  -e "$OLDADVISDIR/$ENSTORM/padcirc.$ENSTORM.run.finish"  ||  -e "$OLDADVISDIR/$ENSTORM/padcswan.$ENSTORM.run.finish"  ]] ; then
+	   #echo "yes"
+	   RMQADVISORY=$(IncrementNCEPCycle $ADVISORY)
+   else
+	   RMQADVISORY=$ADVISORY
+	   #echo "no"
+   fi
+   #echo "\$RMQADVISORY=$RMQADVISORY"
+   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting new NC/FC Cycle for ADVISORY $RMQADVISORY."
+  
+   #BOB
    si=-1
    # Initialize variables accessed from ASGS config parameters to reasonable values
    . ${SCRIPTDIR}/config/config_defaults.sh
@@ -2328,7 +2341,7 @@ while [ true ]; do
    FROMDIR=null
    CURRENT_EVENT="PRE1"
    CURRENT_STATE="INIT"
-   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Initializing for Nowcast."
+   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Initializing for Nowcast for ADVISORY $RMQADVISORY."
    CURRENT_STATE="WAIT"
    if [[ $hotstartURL = null ]]; then
       for dir in nowcast hindcast; do 
@@ -2386,7 +2399,7 @@ while [ true ]; do
          NWS=`expr $BASENWS + 300`
       fi
 
-      RMQRunParams="NWS=$NWS:$GRIDNAME:EnsSize=$ENSEMBLESIZE"
+      RMQRunParams="NWS=$NWS:$GRIDNAME:EnsSize=$ENSEMBLESIZE:Pid=$$"
 
       # download wind data from ftp site every 60 seconds to see if
       # there is a new advisory
@@ -2404,6 +2417,7 @@ while [ true ]; do
       if [ ! -d $NOWCASTDIR ]; then
           mkdir $NOWCASTDIR 2>> ${SYSLOG}
       fi
+      RMQADVISORY=$ADVISORY
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$START Storm $STORM advisory $ADVISORY in $YEAR"
       allMessage "$ENSTORM: $THIS: $START Storm $STORM advisory $ADVISORY in $YEAR"
       # move raw ATCF files into advisory directory
@@ -2442,7 +2456,7 @@ while [ true ]; do
       fi
    fi
 
-   RMQRunParams="$GRIDNAME:EnsSize=$ENSEMBLESIZE:NWS=$NWS"
+   RMQRunParams="NWS=$NWS:$GRIDNAME:EnsSize=$ENSEMBLESIZE:Pid=$$"
 
    case $BACKGROUNDMET in
       on|NAM)
@@ -2470,14 +2484,16 @@ while [ true ]; do
 
          # BOB this process needs to be shoved off onto a compute-node, if the login node running asgs_main.sh is memory limited.  
          # BOB This is a stopgap until we rewrite this perl code in python...
-         DelegateToCompute="false"
-         if [[ ${DelegateToCompute} == "true" ]] ; then
-            QSCRIPTOPTIONS="--jobtype NAMtoOWIRamp --ncpu 1 --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$ENV/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING $LOCALHOTSTART --syslog $SYSLOG"
+#         DelegateToCompute="false"
+#         if [[ ${DelegateToCompute} == "true" ]] ; then
+#            QSCRIPTOPTIONS="--jobtype NAMtoOWIRamp --ncpu 1 --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$ENV/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING $LOCALHOTSTART --syslog $SYSLOG"
 #echo $QSCRIPTOPTIONS
 #exit
-         else 
+#         else 
              perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
-         fi
+#         fi
+	 #BOB the end result of the above process should be NAM*.22{1,2}.
+
          # create links to the OWI files
          cd $ENSTORM 2>> ${SYSLOG}
          NAM221=`ls NAM*.221`
@@ -2627,8 +2643,8 @@ while [ true ]; do
       # nowcast directory; therefore, the non-existence of the nowcast
       # directory is evidence that something has gone wrong in prep
       if [[ ! -d $NOWCASTDIR ]]; then
-   	     CURRENT_EVENT="REND"
-	     CURRENT_STATE="CMPL"
+   	 CURRENT_EVENT="REND"
+	 CURRENT_STATE="CMPL"
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "NC/FC Cycle restarting due to nowcast failure."
          continue  # abandon this nowcast and wait for the next one
       fi
@@ -2666,13 +2682,13 @@ while [ true ]; do
       THIS="asgs_main.sh"
       if [[ ! -d $NOWCASTDIR ]]; then
          CURRENT_EVENT="REND"
-	     CURRENT_STATE="CMPL"
+         CURRENT_STATE="CMPL"
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "NC/FC Cycle restarting due to NC failure."
          continue # abandon this nowcast and wait for the next one
       fi
       
       # nowcast finished, get on with it
-	  CURRENT_STATE="WAIT"
+      CURRENT_STATE="WAIT"
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Nowcast run finished."
       allMessage "$ENSTORM: $THIS: Nowcast run finished."
       
