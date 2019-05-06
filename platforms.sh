@@ -39,14 +39,14 @@ init_supermike()
   QCHECKCMD=qstat
   QUEUENAME=workq
   SERQUEUE=single
-  #ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
+  ACCOUNT=null
   SUBMITSTRING=qsub
-  JOBLAUNCHER='mpirun -np %ncpu% -machinefile \$PBS_NODEFILE'
+  JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   SCRATCHDIR=/work/$USER
   #SCRATCHDIR=/work/cera
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=supermike.template.pbs
-  PREPCONTROLSCRIPT=supermike.adcprep.template.pbs
+  QSCRIPT=$SCRIPTDIR/input/machines/supermike/supermike.template.pbs
+  PREPCONTROLSCRIPT=$SCRIPTDIR/input/machines/supermike/supermike.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=16
 }
@@ -61,20 +61,16 @@ init_queenbee()
   QUEUENAME=workq
   SERQUEUE=single
   SUBMITSTRING=qsub
-  JOBLAUNCHER='mpirun -np %ncpu% -machinefile \$PBS_NODEFILE'
-  ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
+  JOBLAUNCHER='mpirun -np %totalncpu% -machinefile $PBS_NODEFILE'
+  ACCOUNT=null
   if [[ $USER = "jgflemin" ]]; then
+     SCRATCHDIR=/work/$USER
      ACCOUNT=loni_cera_2019
   fi
   SCRATCHDIR=/work/cera
-  if [[ -d /work/$USER ]]; then
-     SCRATCHDIR=/work/$USER
-  else
-     SCRATCHDIR=/ssdwork/$USER
-  fi
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=queenbee.template.pbs
-  PREPCONTROLSCRIPT=queenbee.adcprep.template.pbs
+  QSCRIPT=$SCRIPDIR/input/machines/queenbee/queenbee.template.pbs
+  PREPCONTROLSCRIPT=$SCRIPTDIR/input/machines/queenbee/queenbee.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=20
   REMOVALCMD="rmpurge"
@@ -99,7 +95,7 @@ init_rostam()
   ACCOUNT=null
   SUBMITSTRING=sbatch
   #JOBLAUNCHER='srun -N %nnodes%'
-  JOBLAUNCHER='salloc -p marvin -N %nnodes% -n %ncpu%' 
+  JOBLAUNCHER='salloc -p marvin -N %nnodes% -n %totalcpu%' 
   SCRATCHDIR=~/asgs
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=rostam.template.slurm
@@ -127,17 +123,17 @@ init_supermic()
   ALLOCCHECKCMD=showquota
   QUEUENAME=workq
   SERQUEUE=single
-  ACCOUNT=pleaseSetAccountParamToLONIAllocationInASGSConfig
+  ACCOUNT=null
   SUBMITSTRING=qsub
-  JOBLAUNCHER='mpirun -np %ncpu% -machinefile \$PBS_NODEFILE'
+  JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   if [[ -d /work/$USER ]]; then
      SCRATCHDIR=/work/$USER
   else
      SCRATCHDIR=/ssdwork/$USER
   fi
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=smic.template.pbs
-  PREPCONTROLSCRIPT=smic.adcprep.template.pbs
+  QSCRIPT=$SCRIPTDIR/input/machines/supermic/smic.template.pbs
+  PREPCONTROLSCRIPT=$SCRIPTDIR/input/machines/supermic/smic.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=20
   REMOVALCMD="rmpurge"
@@ -206,11 +202,11 @@ init_croatan()
 }
 init_pod()
 { #<- can replace the following with a custom script
-  HOSTNAME=pod.penguincomputing.com
+  HPCENV=pod.penguincomputing.com
   HPCENV=pod.penguincomputing.com
   QUEUESYS=PBS
   QCHECKCMD=qstat
-  ACCOUNT=noaccount
+  ACCOUNT=null
   SUBMITSTRING=submitstring
   if [[ $USER = bblanton ]]; then 
      SCRATCHDIR=/home/bblanton/asgs_scratch
@@ -239,7 +235,8 @@ init_hatteras()
   HPCENV=hatteras.renci.org
   QUEUESYS=SLURM
   QCHECKCMD=sacct
-  ACCOUNT=pleaseSetAccountInASGSConfigFile
+  ACCOUNT=null
+  WALLTIMEFORMAT="minutes"
   case $USER in 
   bblanton) 
      ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
@@ -270,8 +267,8 @@ init_hatteras()
   SUBMITSTRING=sbatch
   JOBLAUNCHER=srun
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=hatteras.template.slurm
-  PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
+  QSCRIPT=$SCRIPTDIR/input/machines/hatteras/ hatteras.template.slurm
+  PREPCONTROLSCRIPT=$SCRIPTDIR/input/machines/hatteras/hatteras.adcprep.template.slurm
   RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
   PARTITION=null
   CONSTRAINT=null      # ivybridge or sandybridge
@@ -302,7 +299,7 @@ init_stampede()
   HPCENV=stampede.tacc.utexas.edu
   QUEUESYS=SLURM
   QCHECKCMD=sacct
-  ACCOUNT=PleaseSpecifyACCOUNTInYourAsgsConfigFile
+  ACCOUNT=null
   SUBMITSTRING=sbatch
   JOBLAUNCHER=ibrun
   SCRATCHDIR=$SCRATCH
@@ -315,29 +312,48 @@ init_stampede()
   $PLATFORMMODULES
   #jgf20150610: Most likely QUEUENAME=normal SERQUEUENAME=serial
 }
+#
 init_stampede2()
 { #<- can replace the following with a custom script
-  HOSTNAME=stampede2.tacc.utexas.edu
+  HPCENV=stampede2.tacc.utexas.edu
   QUEUESYS=SLURM
+  QUEUENAME=skx
+  SERQUEUE=skx
   QCHECKCMD=sacct
-  ACCOUNT=PleaseSpecifyACCOUNTInYourAsgsConfigFile
+  JOBLAUNCHER='ibrun '
+  ACCOUNT=null
   SUBMITSTRING=sbatch
   SCRATCHDIR=$SCRATCH
-  SSHKEY=~/.ssh/id_rsa_stampede
-  QSCRIPT=stampede2.template.slurm
-  PREPCONTROLSCRIPT=stampede2.adcprep.template.slurm
-  QSCRIPTGEN=stampede2.slurm.pl
+  SSHKEY=~/.ssh/id_rsa_stampede2
+  QSCRIPTTEMPLATE=$SCRIPTDIR/input/queuesys/SLURM/slurm.template
+  QSCRIPTGEN=slurm.pl
   PPN=48
   GROUP="G-803086"
-  module load netcdf/4.3.3.1
-  module load hdf5/1.8.16
+  RMQMessaging_LocationName="TACC"
+  RMQMessaging_ClusterName="Stampede2"
+  PLATFORMMODULES='module load intel/18.0.2 python2/2.7.15 xalt/2.6.5 TACC'
+  SERIALMODULES='module load' # no extra modules for serial jobs
+  PARALLELMODULES='module load libfabric/1.7.0 impi/18.0.2'
+  JOBENVDIR=$SCRIPTDIR/config/machines/stampede2
+  if [[ $USER = jgflemin ]]; then
+     PPN=48
+     ACCOUNT=DesignSafe-CERA
+     # don't use built in netcdf module
+     JOBENV=( netcdf.sh gmt.sh gdal.sh )
+     for script in $JOBENV; do 
+        source $JOBENVDIR/$script
+     done
+  fi
+  $PLATFORMMODULES
+  $SERIALMODULES
 }
+#
 init_kittyhawk()
 { #<- can replace the following with a custom script
   HPCENV=kittyhawk.renci.org
   QUEUESYS=PBS
   QCHECKCMD=qstat
-  ACCOUNT=noaccount
+  ACCOUNT=null
   SUBMITSTRING=submitstring
   SCRATCHDIR=/work/$USER
   SSHKEY=~/.ssh/id_rsa_kittyhawk
@@ -351,7 +367,7 @@ init_sapphire()
   HPCENV=sapphire.erdc.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
-  ACCOUNT=erdcvhsp
+  ACCOUNT=null
   SUBMITSTRING=qsub
   JOBLAUNCHER="aprun"
   SCRATCHDIR=/work2/$USER
@@ -369,7 +385,7 @@ init_jade()
   HPCENV=jade.erdc.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
-  ACCOUNT=erdcvhsp
+  ACCOUNT=null
   SUBMITSTRING=qsub
   JOBLAUNCHER="aprun"
 # INTERSTRING="qsub -l size=1,walltime=00:10:00 -A $ACCOUNT -q $QUEUENAME -I"
@@ -389,7 +405,7 @@ init_diamond()
   HPCENV=diamond.erdc.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
-  ACCOUNT=erdcvhsp
+  ACCOUNT=null
   SUBMITSTRING="mpiexec_mpt"
   SCRATCHDIR=/work/$USER
   SSHKEY=~/.ssh/id_rsa_diamond
@@ -430,7 +446,7 @@ init_spirit()
   HPCENV=spirit.afrl.hpc.mil
   QUEUESYS=PBS
   QCHECKCMD=qstat
-  ACCOUNT=erdcvhsp
+  ACCOUNT=null
   SUBMITSTRING="mpiexec_mpt"
   SCRATCHDIR=$WORKDIR 
   SSHKEY=~/.ssh/id_rsa_spirit
@@ -511,7 +527,7 @@ init_mike()
   HPCENV=mike.hpc.lsu.edu
   QUEUESYS=PBS
   QCHECKCMD=qstat
-  ACCOUNT=pleaseSetAccountParamToHPCAllocationInASGSConfig
+  ACCOUNT=null
   SUBMITSTRING="mpirun"
   SCRATCHDIR=/work/$USER
   SSHKEY=id_rsa_mike
@@ -550,14 +566,14 @@ init_lonestar()
   RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
   PARTITION=null       # ncfs or batch, gives priority
   CONSTRAINT=null      # ivybridge or sandybridge
-  ACCOUNT=ADCIRC
+  ACCOUNT=null
   SUBMITSTRING=sbatch
   JOBLAUNCHER=ibrun
   SCRATCHDIR=$SCRATCH
   SSHKEY=id_rsa_lonestar
-  QSCRIPT=lonestar.template.slurm
+  QSCRIPT=$SCRIPTDIR/input/machines/lonestar/lonestar.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
-  PREPCONTROLSCRIPT=lonestar.template.serial.slurm
+  PREPCONTROLSCRIPT=$SCRIPTDIR/input/machines/lonestar/lonestar.template.serial.slurm
   SERQSCRIPTGEN=hatteras.slurm.pl
   UMASK=006
   GROUP="G-803086"
@@ -671,6 +687,9 @@ init_lsu_tds()
    if [[ $USER = ncfs && $HPCENV = hatteras.renci.org ]]; then
       OPENDAPUSER=jgflemin
    fi
+   if [[ $USER = jgflemin && $HPCENV = stampede2.tacc.utexas.edu ]]; then
+      OPENDAPUSER=jgflemin
+   fi
 }
 # THREDDS Data Server (TDS, i.e., OPeNDAP server) at Texas
 # Advanced Computing Center (TACC)
@@ -679,7 +698,7 @@ init_tacc_tds()
    OPENDAPHOST=adcircvis.tacc.utexas.edu
    DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer/asgs"
    CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog/asgs"
-   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS/2018
+   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
    SSHPORT=null
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
    #COPYABLEHOSTS=(lonestar lonestar.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
@@ -687,10 +706,13 @@ init_tacc_tds()
    if [[ $USER = jgflemin ]]; then
       OPENDAPUSER=$USER
    fi
+   if [[ $USER = ncfs ]]; then
+      OPENDAPUSER=jgflemin
+   fi
 }
 init_penguin()
 { #<- can replace the following with a custom script
-  HOSTNAME=login-29-45.pod.penguincomputing.com
+  HPCENV=login-29-45.pod.penguincomputing.com
   QUEUESYS=PBS
   QCHECKCMD=qstat
   SCRATCHDIR=/home/$USER

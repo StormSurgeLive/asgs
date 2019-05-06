@@ -1,6 +1,8 @@
 #!/usr/bin/env perl
 #--------------------------------------------------------------------------
-# Copyright(C) 2006--2018 Jason Fleming
+#
+#--------------------------------------------------------------------------
+# Copyright(C) 2006--2019 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -24,97 +26,167 @@ $^W++;
 use strict;
 use integer;
 use Getopt::Long;
-
-my $ncpu;      # number of CPUs the job should run on
-my $queuename; # name of the queue to submit the job to
-my $ncpudivisor; # integer number to divide npu by
-my $account;    # name of the account to take the hours from
-my $adcircdir; # directory where the padcirc executable is found
-my $advisdir;   # directory for the individual advisory
-my $inputdir;  # directory where the template files are stored
-my $enstorm;   # name of the enesemble member (nowcast, storm3, etc)
-my $notifyuser; # email address of the user to be notified in case of error
+use Date::Pcalc;
+use Date::Handler;
+#
+my $ncpu;         # number of CPUs the job should run on
+my $totalcpu = "null";     # ncpu + numwriters
+my $nnodes = "null";       # number of cluster nodes 
+my $queuename;    # name of the queue to submit the job to
+my $ncpudivisor;  # integer number to divide npu by
+my $account;      # name of the account to take the hours from
+my $adcircdir;    # directory where the padcirc executable is found
+my $advisdir;     # directory for the individual advisory
+my $inputdir;     # directory where the template files are stored
+my $scenario;     # name of the ensemble member (nowcast, storm3, etc)
+my $notifyuser;   # email address of the user to be notified in case of error
 my $submitstring; # string to use to submit a job to the parallel queue
-my $walltime; # estimated maximum wall clock time  
-my $qscript;  # the template file to use for the queue submission script
-my $syslog;   # the log file that the ASGS uses 
-my $ppn;      # the number of processors per node
+my $walltime;     # estimated maximum wall clock time  
+my $wallminutes;  # integer number of minutes, calculated from HH:MM:SS 
+my $qscript_template; # template file to use for the queue submission script
+my $qscript;      # queue submission script we're producing
+my $syslog;       # the log file that the ASGS uses 
+my $ppn;          # the number of processors per node
 my $cloptions=""; # command line options for adcirc, if any
-my $jobtype;  # e.g., prep15, padcirc, padcswan, etc
+my $jobtype;      # e.g., prep15, padcirc, padcswan, etc
 my $localhotstart; # present if subdomain hotstart files should be written
+my $cmd;           # the command line to execute
 my $reservation="null"; # name of SLURM reservation where the job should be submitted
 my $partition="null";   # name of SLURM partition the job should use
 my $constraint="null";  # name of SLURM constraint the job should use
-my $cmd="null".;        # command to be executed
-my $numwriters=0;  # number of writer processors, if any
-
+my $cmd="null";        # command to be executed
+my $numwriters=0;    # number of writer processors, if any
+my $scenariodir = "null";
+my $joblauncher = "null"; # executable line in qscript (ibrun, mpirun, etc)
+our %properties;     # holds the run.properties file
+our $this="slurm.pl";
 # initialize to the log file that adcirc uses, just in case
-$syslog="adcirc.log";
-
-GetOptions("ncpu=s" => \$ncpu,
-           "queuename=s" => \$queuename,
-           "partition=s" => \$partition,
-           "reservation=s" => \$reservation,
-           "constraint=s" => \$constraint,
-           "account=s" => \$account,
-           "adcircdir=s" => \$adcircdir,
-           "advisdir=s" => \$advisdir,
-           "inputdir=s" => \$inputdir, 
-           "enstorm=s" => \$enstorm,
-           "notifyuser=s" => \$notifyuser,
-           "walltime=s" => \$walltime,
-           "qscript=s" => \$qscript,
-           "syslog=s" => \$syslog,
-           "submitstring=s" => \$submitstring,
-           "localhotstart" => \$localhotstart,
-           "numwriters=s" => \$numwriters,
-           "cmd=s" => \$cmd,
-           "ppn=s" => \$ppn,
-           "jobtype=s" => \$jobtype );
-
-# calculate the number of nodes to request, based on the number of cpus and the
-# number of processors per node
-unless ( $ncpu ) { die "ERROR: hatteras.slurm.pl: The number of CPUs was not specified."; }
-unless ( $ppn ) { die "ERROR: hatteras.slurm.pl: The number of processors per node was not specified."; }
+our $syslog="run.log";
 #
-# add command line option if local hot start files should be written
+GetOptions("scenariodir=s" => \$scenariodir,
+           "jobtype=s" => \$jobtype,
+           "qscript_template=s" => \$qscript_template,
+           "qscript=s" => \$qscript );
+
+#
+#-----------------------------------------------------------------
+#
+#       R E A D   R U N . P R O P E R T I E S   F I L E
+#
+#-----------------------------------------------------------------
+if ( -e "run.properties" ) { 
+   unless (open(RP,"<run.properties")) {
+      print STDERR "ERROR: Found the run.properties file but could not open it: $!.";
+      die;
+   }
+} else {
+   print STDERR "ERROR: The run.properties file was not found.";
+   die;
+}
+while (<RP>) {
+   chomp;
+   # use first ":" to allow hashes to have : embedded in value (but not key)
+   my $sep = index($_,":");
+   my $k = substr($_,0,$sep);  # key
+   my $v = substr($_,$sep+1);  # value
+   # strip leading and trailing spaces
+   $k =~ s/^\s+//g;
+   $k =~ s/\s+$//g; 
+   $v =~ s/^\s+//g;
+   $v =~ s/\s+$//g;
+   $properties{$k} = $v
+}
+close(RP);
+#
+#-----------------------------------------------------------------
+#
+#                S E T   P A R A M E T E R S 
+#
+#-----------------------------------------------------------------
 $cloptions = "";
-if ( defined $localhotstart ) {
-   $cloptions = "-S";
+# get path to adcirc executables
+$adcircdir = $properties{"path.adcircdir"};
+# 
+# construct command line for running adcprep or serial job
+if ( $jobtype eq "partmesh" || $jobtype =~/prep/ ) {
+   # get number of compute cpus
+   $ncpu = $properties{"hpc.job.$jobtype.for.ncpu"};
+   $cmd="$adcircdir/adcprep --np $ncpu --$jobtype --strict-boundaries"
 }
-if ( $numwriters != 0 ) {
-   $cloptions = $cloptions . " -W " . $numwriters;
-   $ncpu += $numwriters;
-}
-my $nnodes = int($ncpu/$ppn); 
-if ( ($ncpu%$ppn) != 0 ) {
-   $nnodes++;
-}
-# convert wall clock time HH:MM:SS to minutes
-$walltime =~ /(\d{2}):(\d{2}):(\d{2})/;
-my $wallminutes = $1*60 + $2;
 #
-open(TEMPLATE,"<$qscript") || die "ERROR: hatteras.slurm.pl: Can't open $qscript file for reading as a template for the queue submission script.";
+# construct command line for running padcirc or padcswan job
+if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ){
+   # get number of compute cpus
+   $ncpu = $properties{"hpc.job.$jobtype.ncpu"};
+   # set subdomain hotstart files if specified
+   if ( $properties{"adcirc.hotstartcomp"} eq "subdomain" ) {
+      $cloptions .= "-S";
+   }
+   # set dedicated writer processors
+   $numwriters = $properties{"hpc.job.$jobtype.numwriters"}; 
+   if ( $numwriters != 0 ) {
+      $cloptions = $cloptions . " -W " . $numwriters;
+      $totalcpu = $ncpu + $numwriters;
+   }
+   # determine number of compute nodes to request
+   $nnodes = int($totalcpu/$ppn); 
+   if ( ($totalcpu%$ppn) != 0 ) {
+      $nnodes++;
+   }
+   $joblauncher = $properties{"hpc.joblauncher"};
+   # fill in template positions in job launcher line
+   $joblauncher =~ s/%ncpu%/$ncpu/g;
+   $joblauncher =~ s/%totalcpu%/$totalcpu/g;
+   $joblauncher =~ s/%nnodes%/$nnodes/g;
+   $cmd="$joblauncher $adcircdir/$jobtype $cloptions"
+   
+}
+# 
+# compute wall clock time HH:MM:SS in minutes
+$walltime = $properties{"hpc.job.$jobtype.limit.walltime"};
+$walltime =~ /(\d{2}):(\d{2}):(\d{2})/;
+$wallminutes = $1*60 + $2;
+#
+#-----------------------------------------------------------------
+#
+#              F I L L   I N   T E M P L A T E 
+#
+#-----------------------------------------------------------------
+if ( -e $qscript_template ) { 
+   unless (open(TEMPLATE,"<$qscript_template")) {
+      print STDERR "Found the $qscript_template template file but could not open it: $!.";
+      die;
+   }
+} else {
+   print STDERR "ERROR: The $qscript_template template file was not found.";
+   die;
+}
+unless (open(QSCRIPT,">$qscript")) {
+   print STDERR "Could not create the $qscript file: $!.";
+   die;
+}
 #
 while(<TEMPLATE>) {
-    # fill in the number of CPUs
+    # fill in the number of compute cores
     s/%ncpu%/$ncpu/;
-    # name of the queue on which to run
-    s/%queuename%/$queuename/;
+    # fill in the total number of cores 
+    s/%totalcpu%/$totalcpu/;
     # the estimated amount of wall clock time
-    s/%walltime%/$walltime/;
-    # fill in the estimated wall clock time in minutes
-    s/%wallminutes%/$wallminutes/;
+    if ( $properties{"hpc.walltimeformat"} eq "minutes" ) {
+       s/%walltime%/$wallminutes/;
+    } else {
+       s/%walltime%/$walltime/;
+    }
     # name of the account to take the hours from
-    s/%account%/$account/;
+    s/%account%/$properties{"hpc.job.$jobtype.account"}/;
     # directory where padcirc executable is located
-    s/%adcircdir%/$adcircdir/;
+    s/%adcircdir%/$properties{"path.adcircdir"}/;
     # directory for this particular advisory
-    s/%advisdir%/$advisdir/;  
+    s/%advisdir%/$properties{"path.advisdir"}/;  
     # name of this member of the ensemble (nowcast, storm3, etc)
-    s/%enstorm%/$enstorm/g;  
+    s/%scenario%/$properties{"scenario"}/g;  
     # file to direct stdout and stderr to from the adcirc process
-    s/%syslog%/$syslog/;
+    s/%syslog%/$properties{"file.syslog"}/g;
     # fill in command line options
     s/%cloptions%/$cloptions/;
     # fill in command to be executed
@@ -122,29 +194,40 @@ while(<TEMPLATE>) {
     # the type of job that is being submitted
     s/%jobtype%/$jobtype/g;
     # the email address of the ASGS Operator
-    s/%notifyuser%/$notifyuser/g;
+    if ( $properties{"notification.emailnotify"} eq "yes" ) { 
+       s/%notifyuser%/$properties{"notification.hpc.email.notifyuser"}/g;
+    } else {
+       s/%notifyuser%/null/g;
+    }
     # the SLURM partition
-    if ( $partition ne "null" ) {
-       s/%partition%/$partition/g;
-    } else {
-       s/%partition%/noLineHere/g;
-    }
+    s/%partition%/$properties{"hpc.slurm.job.$jobtype.partition"}/g;
     # the SLURM reservation
-    if ( $reservation ne "null" ) {
-       s/%reservation%/$reservation/g;
-    } else {
-       s/%reservation%/noLineHere/g;
-    }
+    s/%reservation%/$properties{"hpc.slurm.job.$jobtype.reservation"}/g;
     # the SLURM constraint
-    if ( $constraint ne "null" ) {
-       s/%constraint%/$constraint/g;
-    } else {
-       s/%constraint%/noLineHere/g;
-    }
+    s/%constraint%/$properties{"hpc.slurm.job.$jobtype.constraint"}/g;
     # fills in the number of nodes on platforms that require it
     s/%nnodes%/$nnodes/g;
-    unless ( $_ =~ /noLineHere/ ) {
-       print $_;
+    # fill in the module commands generally needed on this platform
+    s/%platformmodules%/$properties{"hpc.platformmodules"}/g;
+    # fill in serial modules for serial job
+    if ( $jobtype eq "partmesh" || $jobtype =~/prep/ ) {
+       s/%jobmodules%/$properties{"hpc.serialmodules"}/g;   
+       # name of the queue on which to run
+       s/%queuename%/$properties{"hpc.serqueue"}/;
+    }
+    # fill in parallel modules for parallel job 
+    if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ) {
+       s/%jobmodules%/$properties{"hpc.parallelmodules"}/g;
+       # name of the queue on which to run
+       s/%queuename%/$properties{"hpc.queuename"}/;
+    }
+    # fill in job library paths and executable paths
+    s/%jobenv%/$properties{"hpc.job.$jobtype.jobenv"}/g;
+    # copy non-null lines to the queue script
+    unless ( $_ =~ /noLineHere/ || $_ =~ /null/ ) {
+       print QSCRIPT $_;
     }
 }
 close(TEMPLATE);
+close(QSCRIPT);
+

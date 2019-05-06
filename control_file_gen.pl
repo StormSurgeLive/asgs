@@ -572,6 +572,11 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
       printf RUNPROPS "stormname : $nhcName\n";
    }
 }
+if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 309 ) { 
+   if ( ! exists $runProp{'forcing.tropicalcyclone.stormname'} || $runProp{'forcing.tropicalcyclone.stormname'} eq "" || $runProp{'forcing.tropicalcyclone.stormname'} eq "null" ) { 
+      printf RUNPROPS "forcing.tropicalcyclone.stormname : $nhcName\n";
+   }
+}
 printf RUNPROPS "currentcycle : $cycle_hour\n";
 printf RUNPROPS "currentdate : $currentdate\n";
 printf RUNPROPS "advisory : $advisorynum\n";
