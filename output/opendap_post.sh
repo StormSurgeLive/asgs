@@ -63,13 +63,17 @@ STORMNAMEPATH=null
 #
 # form path to results on tds based on type of forcing or name of storm
 if [[ $BACKGROUNDMET != off ]]; then
-   # for NAM, the "advisory number" is actually the cycle time 
-   STORMNAMEPATH=tc/nam
+   YEAR=`grep "forcing.nwp.year" ${STORMDIR}/run.properties | sed 's/forcing.nwp.year.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+   NWPMODEL=`grep "forcing.nwp.model" ${STORMDIR}/run.properties | sed 's/forcing.nwp.model.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+   STORMNAMEPATH=$YEAR/$NWPMODEL
 fi
-if [[ $TROPICALCYCLONE = on ]]; then
-   STORMNAME=`grep -m 1 "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+if [[ $TROPICALCYCLONE != off ]]; then
+   YEAR=`grep "forcing.tropicalcyclone.year" ${STORMDIR}/run.properties | sed 's/forcing.tropicalcyclone.year.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+   STORMNAME=`grep -m 1 "forcing.tropicalcyclone.stormname" ${STORMDIR}/run.properties | sed 's/forcing.tropicalcyclone.stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+   STORMNUMBER=`grep "forcing.tropicalcyclone.stormnumber" ${STORMDIR}/run.properties | sed 's/forcing.tropicalcyclone.stormnumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
    STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
-   STORMNAMEPATH=tc/$STORMNAMELC
+   STORMNAMEPATH=$YEAR/$STORMNUMBER
+   ALTSTORMNAMEPATH=$YEAR/$STORMNAMELC
 fi
 OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HPCENV/$INSTANCENAME/$ENSTORM
 #
@@ -161,11 +165,23 @@ case $OPENDAPPOSTMETHOD in
    # Operators can post results to the same directories
    #ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR" 2>> $SYSLOG
    #ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
-   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
+   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+x $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
+   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
    if [[ $? != 0 ]]; then
       warn "$ENSTORM: $THIS: Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
       threddsPostStatus=fail
    fi
+   #
+   # add a symbolic link for the storm name if this is tropicalcyclone forcing
+   if [[ $TOPICALCYCLONE != off ]]; then 
+      ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH" 2>> $SYSLOG
+      if [[ $? != 0 ]]; then
+         warn "$ENSTORM: $THIS: Failed to create symbolic link for the storm name."
+         threddsPostStatus=fail
+      fi
+   fi
+   #
+   # now scp the files 
    for file in ${FILES[*]}; do 
       # add downloadurl property to run.properties file
       if [[ $file = "run.properties" ]]; then
@@ -220,6 +236,11 @@ case $OPENDAPPOSTMETHOD in
    chmod a+w $OPENDAPBASEDIR 2>> $SYSLOG
    chmod a+w $OPENDAPBASEDIR/$STORMNAMEPATH 2>> $SYSLOG
    chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY 2>> $SYSLOG
+   #
+   # create link with storm name instead of storm number
+   if [[ $TROPICALCYCLONE != off ]]; then
+      ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH
+   fi
    cd $OPENDAPDIR 2>> ${SYSLOG}
    for file in ${FILES[*]}; do 
       # send opendap posting notification email early if directed

@@ -728,10 +728,14 @@ prepFile()
     WALLTIME=$4
     THIS="asgs_main.sh>prepFile()"
     CURRENT_STATE="WAIT"
+    echo "hpc.job.${JOBTYPE}.for.ncpu : $NCPU" >> $ADVISDIR/$ENSTORM/run.properties
+    echo "hpc.job.${JOBTYPE}.limit.walltime : $ADCPREPWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
+    echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $ADVISDIR/$ENSTORM/run.properties
+    echo "hpc.job.${JOBTYPE}.jobenv : $JOBENV" >> $ADVISDIR/$ENSTORM/run.properties
     #
     case $QUEUESYS in
     "PBS")
-       QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$HPCENVSHORT/$PREPCONTROLSCRIPT --enstorm ${ENSTORM} --notifyuser $NOTIFYUSER --syslog $SYSLOG"
+       QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript_template $QSCRIPTTEMPLATE --enstorm ${ENSTORM} --notifyuser $NOTIFYUSER --syslog $SYSLOG"
        RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Preparing queue script for adcprep.${JOBTYPE}.pbs"
        perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.pbs 2>> ${SYSLOG}
        # submit adcprep job, check to make sure qsub succeeded, and if not, retry
@@ -752,11 +756,14 @@ prepFile()
        logMessage "$ENSTORM: $THIS: Finished adcprepping file ($JOBTYPE)."
        ;;
     "SLURM")
-       QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --partition $PARTITION --reservation $RESERVATION --constraint "$CONSTRAINT" --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$HPCENVSHORT/$PREPCONTROLSCRIPT --enstorm ${ENSTORM} --notifyuser $NOTIFYUSER --syslog $SYSLOG"
+       echo "hpc.slurm.job.${JOBTYPE}.partition : $PARTITION" >> $STORMDIR/run.properties
+       echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
+       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
+       QSCRIPTOPTIONS="--jobtype $JOBTYPE --scenariodir $ADVISDIR/$ENSTORM --qscript_template $QSCRIPTTEMPLATE --qscript adcprep.${JOBTYPE}.slurm"
        #jgfdebug
        RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Preparing queue script for adcprep.${JOBTYPE}.slurm."
-       logMessage "$ENSTORM: $THIS: Preparing queue script for adcprep with the following: perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.slurm 2>> ${SYSLOG}"
-       perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.slurm 2>> ${SYSLOG}
+       logMessage "$ENSTORM: $THIS: Preparing queue script for adcprep with the following: perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS"
+       perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS 2>&1 | awk -v this=$QSCRIPTGEN -f $SCRIPTDIR/monitoring/timestamp.awk >> run.log  
        # submit adcprep job, check to make sure sbatch succeeded, and if not, retry
        while [ true ];  do
           DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
@@ -1285,18 +1292,12 @@ submitJob()
    #
    #  SLURM
    "SLURM")
-      QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --partition $PARTITION --reservation $RESERVATION --constraint "$CONSTRAINT" --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$HPCENVSHORT/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING $LOCALHOTSTART --syslog $SYSLOG"
-      if [[ $PPN -ne 0 ]]; then
-         QSCRIPTOPTIONS="$QSCRIPTOPTIONS --ppn $PPN"
-      fi
-      if [[ $NUMWRITERS != "0" ]]; then
-         QSCRIPTOPTIONS="$QSCRIPTOPTIONS --numwriters $NUMWRITERS"
-      fi
+      QSCRIPTOPTIONS="--jobtype $JOBTYPE --scenariodir $ADVISDIR/$ENSTORM --qscript_template $QSCRIPTTEMPLATE --qscript $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm"
       logMessage "$ENSTORM: $THIS: QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
-      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm 2>> ${SYSLOG}
+      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS 2>&1 | awk -v this=$QSCRIPTGEN -f $SCRIPTDIR/monitoring/timestamp.awk >> $ADVISDIR/$ENSTORM/run.log
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm"
       logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm"
-
+      #
       # submit job, check to make sure qsub succeeded, and if not, retry
       while [ true ];  do
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
@@ -1465,6 +1466,7 @@ variables_init()
    ADCPREPWALLTIME="00:30:00"
    NOWCASTWALLTIME="02:00:00"
    FORECASTWALLTIME="05:00:00"
+   WALLTIMEFORMAT="hh:mm:ss" # "hh:mm:ss" or "minutes"
    TIMESTEPSIZE=1.0
    SWANDT=600
    UMASK=002
@@ -1533,21 +1535,24 @@ variables_init()
    NOTIFYUSER=null
    PARTITION=null   # for SLURM
    RESERVATION=null # for SLURM
-   CONSTRIAINT=null # for SLURM
+   CONSTRAINT=null  # for SLURM
    ASGSADMIN=null
    PERIODICFLUX=null
    SPATIALEXTRAPOLATIONRAMP=yes
    SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
+   declare -a JOBENV=( null )  # array of shell scripts to 'source' for compute job
+   JOBENVDIR=null
    PYTHONVENV=null # path to python virtual environment, e.g., ~/asgs/asgspy/venv
 # RMQMessaging defaults
-   RMQMessaging_Enable="off"  # "on"|"off"
-   RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
+   RMQMessaging_Enable="off"   # "on"|"off"
+   RMQMessaging_Transmit="off" #  enables message transmission ("on" | "off")
    RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
    RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
    RMQMessaging_NcoHome="/set/RMQMessaging_NcoHome/in/asgs/config"
    RMQMessaging_Python="/set/RMQMessaging_Python/in/asgs/config"
-   RMQMessaging_LocationName="/set/RMQMessaging_LocationName/in/asgs/config/e.g./RENCI"
-   RMQMessaging_ClusterName="/set/RMQMessaging_ClusterName/in/asgs/config/e.g./Hatteras"
+   namedot=${HPCENVSHORT}.
+   RMQMessaging_LocationName=${HPCENV#$namedot}
+   RMQMessaging_ClusterName=$HPCENVSHORT
 }
 #
 # Write general properties to the run.properties file that are associated with 
@@ -1558,19 +1563,19 @@ writeProperties()
    STORMDIR=$1
    # basic asgs configuration
    echo "config.file : $CONFIG" >> $STORMDIR/run.properties
-   echo "config.instancename : $INSTANCENAME" >> $STORMDIR/run.properties
-   echo "config.adcirc.time.coldstartdate : $COLDSTARTDATE" >> $STORMDIR/run.properties
-   echo "config.path.adcircdir : $ADCIRCDIR" >> $STORMDIR/run.properties
-   echo "config.path.scriptdir : $SCRIPTDIR" >> $STORMDIR/run.properties
-   echo "config.path.inputdir : $INPUTDIR" >> $STORMDIR/run.properties
-   echo "config.path.outputdir : $OUTPUTDIR" >> $STORMDIR/run.properties
-   echo "config.path.scratchdir : $SCRATCHDIR" >> $STORMDIR/run.properties
-   echo "config.forcing.backgroundmet : $BACKGROUNDMET" >> $STORMDIR/run.properties
-   echo "config.forcing.tidefac : $TIDEFAC" >> $STORMDIR/run.properties
-   echo "config.forcing.tropicalcyclone : $TROPICALCYCLONE" >> $STORMDIR/run.properties
-   echo "config.forcing.varflux : $VARFLUX" >> $STORMDIR/run.properties
-   echo "config.forcing.schedule.cycletimelimit : $CYCLETIMELIMIT" >> $STORMDIR/run.properties
-   echo "config.coupling.waves : $WAVES" >> $STORMDIR/run.properties
+   echo "instancename : $INSTANCENAME" >> $STORMDIR/run.properties
+   echo "adcirc.time.coldstartdate : $COLDSTARTDATE" >> $STORMDIR/run.properties
+   echo "path.adcircdir : $ADCIRCDIR" >> $STORMDIR/run.properties
+   echo "path.scriptdir : $SCRIPTDIR" >> $STORMDIR/run.properties
+   echo "path.inputdir : $INPUTDIR" >> $STORMDIR/run.properties
+   echo "path.outputdir : $OUTPUTDIR" >> $STORMDIR/run.properties
+   echo "path.scratchdir : $SCRATCHDIR" >> $STORMDIR/run.properties
+   echo "forcing.backgroundmet : $BACKGROUNDMET" >> $STORMDIR/run.properties
+   echo "forcing.tidefac : $TIDEFAC" >> $STORMDIR/run.properties
+   echo "forcing.tropicalcyclone : $TROPICALCYCLONE" >> $STORMDIR/run.properties
+   echo "forcing.varflux : $VARFLUX" >> $STORMDIR/run.properties
+   echo "forcing.schedule.cycletimelimit : $CYCLETIMELIMIT" >> $STORMDIR/run.properties
+   echo "coupling.waves : $WAVES" >> $STORMDIR/run.properties
    # static hpc environment properties
    echo "hpc.hpcenv : $HPCENV" >> $STORMDIR/run.properties
    echo "hpc.hpcenvshort : $HPCENVSHORT" >> $STORMDIR/run.properties
@@ -1578,11 +1583,14 @@ writeProperties()
    echo "hpc.ppn : $PPN" >> $STORMDIR/run.properties
    echo "hpc.joblauncher : $JOBLAUNCHER" >> $STORMDIR/run.properties
    echo "hpc.platformmodules : $PLATFORMMODULES" >> $STORMDIR/run.properties
+   echo "hpc.serialmodules : $SERIALMODULES" >> $STORMDIR/run.properties
+   echo "hpc.parallelmodules : $PARALLELMODULES" >> $STORMDIR/run.properties
    echo "hpc.submitstring : $SUBMITSTRING" >> $STORMDIR/run.properties
    echo "hpc.executable.qscriptgen : $QSCRIPTGEN" >> $STORMDIR/run.properties
-   echo "hpc.file.template.qscript : $QSCRIPT" >> $STORMDIR/run.properties
+   echo "hpc.file.template.qscript : $QSCRIPTTEMPLATE" >> $STORMDIR/run.properties
    echo "hpc.file.template.prepcontrolscript : $PREPCONTROLSCRIPT" >> $STORMDIR/run.properties
    echo "hpc.jobs.ncpucapacity : $NCPUCAPACITY" >> $STORMDIR/run.properties
+   echo "hpc.walltimeformat : $WALLTIMEFORMAT" >> $STORMDIR/run.properties
    # static input files, templates, and property files 
    echo "adcirc.file.input.gridfile : $GRIDFILE" >> $STORMDIR/run.properties   
    echo "adcirc.gridname : $GRIDNAME" >> $STORMDIR/run.properties   
@@ -1598,9 +1606,9 @@ writeProperties()
    echo "adcirc.hotstartformat : $HOTSTARTFORMAT" >> $STORMDIR/run.properties   
    echo "adcirc.timestepsize : $TIMESTEPSIZE" >> $STORMDIR/run.properties
    echo "adcirc.hotstartcomp : $HOTSTARTCOMP" >> $STORMDIR/run.properties
-   echo "asgs.file.preppedarchive : $PREPPEDARCHIVE" >> $STORMDIR/run.properties
-   echo "asgs.file.hindcastarchive : $HINDCASTARCHIVE" >> $STORMDIR/run.properties   
-   echo "config.adcirc.minmax : $MINMAX" >> $STORMDIR/run.properties
+   echo "file.preppedarchive : $PREPPEDARCHIVE" >> $STORMDIR/run.properties
+   echo "file.hindcastarchive : $HINDCASTARCHIVE" >> $STORMDIR/run.properties   
+   echo "adcirc.minmax : $MINMAX" >> $STORMDIR/run.properties
    # notification
    echo "notification.emailnotify : $EMAILNOTIFY" >> $STORMDIR/run.properties   
    echo "notification.executable.notify_script : $NOTIFY_SCRIPT" >> $STORMDIR/run.properties   
@@ -1610,6 +1618,14 @@ writeProperties()
    echo "notification.email.job_failed_list : \"$JOB_FAILED_LIST\"" >> $STORMDIR/run.properties   
    echo "notification.hpc.email.notifyuser : \"$NOTIFYUSER\"" >> $STORMDIR/run.properties
    echo "notification.opendap.email.opendapnotify : \"$OPENDAPNOTIFY\"" >> $STORMDIR/run.properties
+   # monitoring
+   echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable " >> $STORMDIR/run.properties  
+   echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $STORMDIR/run.properties  
+   echo "monitoring.rmqmessaging.script : $RMQMessaging_Script" >> $STORMDIR/run.properties  
+   echo "monitoring.rmqmessaging.ncohome : $RMQMessaging_NcoHome" >> $STORMDIR/run.properties  
+   echo "monitoring.rmqmessaging.python : $RMQMessaging_Python" >> $STORMDIR/run.properties  
+   echo "monitoring.rmqmessaging.locationname : $RMQMessaging_LocationName" >> $STORMDIR/run.properties  
+   echo "monitoring.rmqmessaging.clustername : $RMQMessaging_ClusterName" >> $STORMDIR/run.properties  
    # post processing
    echo "post.intendedaudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
    echo "post.executable.initpost : $INITPOST" >> $STORMDIR/run.properties
@@ -1625,19 +1641,21 @@ writeProperties()
    echo "post.file.sshkey : $SSHKEY" >> $STORMDIR/run.properties
    # archiving
    echo "archive.executable.archive : $ARCHIVE" >> $STORMDIR/run.properties    
-   echo "archive.path.archivebase : $ARCHIVEBASE" >> $STORMDIR/run.properties    
-   echo "archive.path.archivedir : $ARCHIVEDIR" >> $STORMDIR/run.properties      
+   echo "archive.path.archivebase : $ARCHIVEBASE" >> $STORMDIR/run.properties
+   echo "archive.path.archivedir : $ARCHIVEDIR" >> $STORMDIR/run.properties
    # forecast ensemble
-   echo "asgs.forecast.ensemblesize : $ENSEMBLESIZE" >> $STORMDIR/run.properties
+   echo "forecast.ensemblesize : $ENSEMBLESIZE" >> $STORMDIR/run.properties
    # runtime
-   echo "asgs.file.syslog : $SYSLOG" >> $STORMDIR/run.properties
-   echo "asgs.path.rundir : $RUNDIR" >> $STORMDIR/run.properties
+   echo "file.syslog : $SYSLOG" >> $STORMDIR/run.properties
+   echo "path.rundir : $RUNDIR" >> $STORMDIR/run.properties
    # each ensemble member
-   echo "asgs.path.fromdir : $FROMDIR" >> $STORMDIR/run.properties
-   echo "asgs.path.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
-   echo "asgs.path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
-   echo "asgs.enstorm : $ENSTORM" >> $STORMDIR/run.properties
-   echo "asgs.path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
+   echo "path.fromdir : $FROMDIR" >> $STORMDIR/run.properties
+   echo "path.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
+   echo "path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
+   echo "enstorm : $ENSTORM" >> $STORMDIR/run.properties
+   echo "scenario : $ENSTORM" >> $STORMDIR/run.properties
+   echo "path.scenariodir : $STORMDIR" >> $STORMDIR/run.properties
+   echo "path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
    #
    ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
    echo "adcirc.version : $ADCIRCVERSION" >> $STORMDIR/run.properties   
@@ -1654,12 +1672,14 @@ writeProperties()
 writeNAMProperties()
 {
    STORMDIR=$1
-   echo "config.forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties 
-   echo "config.forcing.nam.backsite : $BACKSITE" >> $STORMDIR/run.properties 
-   echo "config.forcing.nam.backdir : $BACKDIR" >> $STORMDIR/run.properties 
-   echo "config.forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR/run.properties 
-   echo "config.forcing.nam.reprojection.ptfile : $PTFILE" >> $STORMDIR/run.properties 
-   echo "config.forcing.nam.local.altnamdir : $ALTNAMDIR" >> $STORMDIR/run.properties 
+   echo "forcing.nwp.model : nam" >> $STORMDIR/run.properties   
+   echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $STORMDIR/run.properties 
+   echo "forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties 
+   echo "forcing.nam.backsite : $BACKSITE" >> $STORMDIR/run.properties 
+   echo "forcing.nam.backdir : $BACKDIR" >> $STORMDIR/run.properties 
+   echo "forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR/run.properties 
+   echo "forcing.nam.reprojection.ptfile : $PTFILE" >> $STORMDIR/run.properties 
+   echo "forcing.nam.local.altnamdir : $ALTNAMDIR" >> $STORMDIR/run.properties 
 }
 #
 # write properties to the run.properties file that are associated with 
@@ -1667,21 +1687,21 @@ writeNAMProperties()
 writeTropicalCycloneProperties()
 {
    STORMDIR=$1
-   echo "config.forcing.tropicalcyclone.vortexmodel : $VORTEXMODEL" >> $STORMDIR/run.properties
-   echo "config.forcing.tropicalcyclone.stormnumber : $STORM" >> $STORMDIR/run.properties
-   echo "config.forcing.tropicalcyclone.year : $YEAR" >> $STORMDIR/run.properties
-   echo "config.forcing.tropicalcyclone.pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties   
-   echo "config.forcing.tropicalcyclone.forecast.trigger : $TRIGGER" >> $STORMDIR/run.properties   
-   echo "config.forcing.tropicalcyclone.forecast.rsssite : $RSSSITE" >> $STORMDIR/run.properties   
-   echo "config.forcing.tropicalcyclone.forecast.path.fdir : $FDIR" >> $STORMDIR/run.properties   
-   echo "config.forcing.tropicalcyclone.best.ftpsite : $FTPSITE" >> $STORMDIR/run.properties   
-   echo "config.forcing.tropicalcyclone.best.path.hdir : $HDIR" >> $STORMDIR/run.properties
+   echo "forcing.tropicalcyclone.vortexmodel : $VORTEXMODEL" >> $STORMDIR/run.properties
+   echo "forcing.tropicalcyclone.stormnumber : $STORM" >> $STORMDIR/run.properties
+   echo "forcing.tropicalcyclone.year : $YEAR" >> $STORMDIR/run.properties
+   echo "forcing.tropicalcyclone.pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties   
+   echo "forcing.tropicalcyclone.forecast.trigger : $TRIGGER" >> $STORMDIR/run.properties   
+   echo "forcing.tropicalcyclone.forecast.rsssite : $RSSSITE" >> $STORMDIR/run.properties   
+   echo "forcing.tropicalcyclone.forecast.path.fdir : $FDIR" >> $STORMDIR/run.properties   
+   echo "forcing.tropicalcyclone.best.ftpsite : $FTPSITE" >> $STORMDIR/run.properties   
+   echo "forcing.tropicalcyclone.best.path.hdir : $HDIR" >> $STORMDIR/run.properties
    # each ensemble member
    if [[ $RMAX != default ]]; then
-      echo "config.forcing.tropicalcyclone.enstorm.variation.rmax : $RMAX" >> $STORMDIR/run.properties
+      echo "forcing.tropicalcyclone.enstorm.variation.rmax : $RMAX" >> $STORMDIR/run.properties
    fi
    if [[ $PERCENT != default ]]; then
-      echo "config.forcing.tropicalcyclone.enstorm.variation.percent : $PERCENT" >> $STORMDIR/run.properties
+      echo "forcing.tropicalcyclone.enstorm.variation.percent : $PERCENT" >> $STORMDIR/run.properties
    fi
    # legacy properties
    echo "storm : $STORM" >> $STORMDIR/run.properties
@@ -1693,9 +1713,9 @@ writeTropicalCycloneProperties()
 writeWaveCouplingProperties()
 {
    STORMDIR=$1
-   echo "config.path.swandir : $SWANDIR" >> $STORMDIR/run.properties
-   echo "config.coupling.waves.swan.reinitializeswan : $REINITIALIZESWAN" >> $STORMDIR/run.properties
-   echo "config.coupling.waves.swan.swanhscompression : $SWANHSCOMPRESSION" >> $STORMDIR/run.properties
+   echo "path.swandir : $SWANDIR" >> $STORMDIR/run.properties
+   echo "coupling.waves.swan.reinitializeswan : $REINITIALIZESWAN" >> $STORMDIR/run.properties
+   echo "coupling.waves.swan.swanhscompression : $SWANHSCOMPRESSION" >> $STORMDIR/run.properties
    echo "swan.swandt : $SWANDT" >> $STORMDIR/run.properties
    echo "swan.input.file.swantemplate : $SWANTEMPLATE" >> $STORMDIR/run.properties
 }
@@ -1705,25 +1725,23 @@ writeWaveCouplingProperties()
 writeJobResourceRequestProperties()
 {
    STORMDIR=$1
-   echo "hpc.job.${JOBTYPE}.queuename : $QUEUENAME" >> $STORMDIR/run.properties
-   echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
+   echo "hpc.queuename : $QUEUENAME" >> $STORMDIR/run.properties
+   echo "hpc.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.ncpu : $NCPU" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.numwriters : $NUMWRITERS" >> $STORMDIR/run.properties    
-   echo "hpc.file.${JOBTYPE}.template.qstemplate : $QSCRIPT" >> $STORMDIR/run.properties
-   if [[ $ENSTORM = hindcast ]]; then
-      echo "hpc.job.limit.hindcastwalltime : $NUMWRITERS" >> $STORMDIR/run.properties    
-   fi
+   echo "hpc.file.${JOBTYPE}.template.qscripttemplate : $QSCRIPTTEMPLATE" >> $STORMDIR/run.properties
+   echo "hpc.job.limit.hindcastwalltime : $HINDCASTWALLTIME" >> $STORMDIR/run.properties    
    echo "hpc.job.limit.nowcastwalltime : $NOWCASTWALLTIME" >> $STORMDIR/run.properties       
    echo "hpc.job.limit.forecastwalltime : $FORECASTWALLTIME" >> $STORMDIR/run.properties       
    echo "hpc.job.limit.adcprepwalltime : $ADCPREPWALLTIME" >> $STORMDIR/run.properties       
-   echo "hpc.job.${JOBTYPE}.limit.walltime : $ADCPREPWALLTIME" >> $STORMDIR/run.properties
-
    if [[ $QUEUESYS = SLURM ]]; then
       echo "hpc.slurm.job.${JOBTYPE}.partition : $PARTITION" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
    fi
+   echo "hpc.job.${JOBTYPE}.jobenv : $JOBENV" >> $STORMDIR/run.properties
+   echo "hpc.path.${JOBTYPE}.jobenvdir : $JOBENVDIR" >> $STORMDIR/run.properties
    # legacy properties
    echo "cpurequest : $CPUREQUEST" >> ${STORMDIR}/run.properties
    echo "ncpu : $NCPU" >> ${STORMDIR}/run.properties  # number of compute CPUs
@@ -2230,6 +2248,8 @@ if [[ $START = coldstart ]]; then
    # make sure the archive of subdomain files is up to date 
    checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
    THIS="asgs_main.sh"
+   writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
+    echo "hpc.job.${JOBTYPE}.limit.walltime : $HINDCASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
    logMessage "$THIS: prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
    THIS="asgs_main.sh"
@@ -2250,7 +2270,6 @@ if [[ $START = coldstart ]]; then
       JOBTYPE=adcirc
    fi
    logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
-   writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE
    THIS="asgs_main.sh"
    # check once per minute until all jobs have finished
@@ -2616,7 +2635,7 @@ while [ true ]; do
    done
 
    CURRENT_STATE="WAIT"
-
+   writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
    if [[ $RUNNOWCAST = yes ]]; then
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting nowcast for cycle $ENSTORM/$ADVISORY."
       allMessage "$ENSTORM: $THIS: Starting nowcast for cycle '$ADVISORY'."
@@ -2664,6 +2683,7 @@ while [ true ]; do
             JOBTYPE=adcswan
          fi
       fi
+      echo "hpc.job.${JOBTYPE}.limit.walltime : $NOWCASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
       # then submit the job
       CURRENT_EVENT="NOWC"
       CURRENT_STATE="PEND"
@@ -2671,7 +2691,6 @@ while [ true ]; do
       logMessage "$ENSTORM: $THIS: Submitting $ENSTORM job."
       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
       logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE"
-      writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
       submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE
       THIS="asgs_main.sh"
       # check once per minute until all jobs have finished
@@ -2869,6 +2888,7 @@ while [ true ]; do
       # write the properties associated with asgs configuration to the 
       # run.properties file
       writeProperties $STORMDIR
+
       RUNFORECAST=yes
       # TROPICAL CYCLONE ONLY
       if [[ $TROPICALCYCLONE = on ]]; then
@@ -3011,6 +3031,7 @@ while [ true ]; do
       CURRENT_EVENT="FORE"
       CURRENT_STATE="WAIT"
       echo "asgs.config.forecast.ensemblemembernumber : $si" >> ${STORMDIR}/run.properties
+      writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
       if [[ $RUNFORECAST = yes ]]; then
          # set up post processing for the forecast, including initiation
          # of real time post processing
@@ -3040,7 +3061,8 @@ while [ true ]; do
             CURRENT_STATE="PEND"
             RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Submitting ensemble member $ENSTORM for forecast."
             allMessage "$ENSTORM: $THIS: Submitting ensemble member $ENSTORM for forecast."
-            writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
+
+            echo "hpc.job.${JOBTYPE}.limit.walltime : $FORECASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
             submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
             THIS="asgs_main.sh"
             # monitor for completion and post process in a subshell running 
