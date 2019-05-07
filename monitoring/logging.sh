@@ -25,14 +25,102 @@
 #----------------------------------------------------------------
 #
 # Log file will be in the directory where the asgs was executed
-
+#
+#  send message when shutting down on INT and clear all processes
 sigint() {
-  allMessage "Received Ctrl-C from console.  Shutting ASGS down...'"
-  RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..." 
-  allMessage "Received Ctrl-C from console.  Shutting ASGS instance $INSTANCENAME down. See ya!"
-  exit 0
+   allMessage "Received Ctrl-C from console.  Shutting ASGS down...'"
+   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..." 
+   allMessage "Received Ctrl-C from console.  Shutting ASGS instance $INSTANCENAME down."
+   trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group 
+   exit 0
 }
-
+#
+#  send message when shutting down on TERM and clear all processes 
+sigterm() {
+   allMessage "Received SIGTERM. Shutting ASGS down...'"
+   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigterm()" "EXIT" "Received SIGTERM.  Shutting ASGS down ..." 
+   allMessage "Received SIGTERM. Shutting ASGS instance $INSTANCENAME down."
+   trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group 
+   exit 0
+}
+#
+# send message when shutting down on EXIT and clear all processes
+sigexit() {
+   allMessage "Received EXIT.  Shutting ASGS down...'"
+   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigiexit()" "EXIT" "Received SIGEXIT.  Shutting ASGS down ..." 
+   allMessage "Received SIGEXIT.  Shutting ASGS instance $INSTANCENAME down."
+   trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group 
+   exit 0
+}
+#
+# set up logging so that output from various processes within a scenario 
+# is also sent to scenario.log file for centralized logging
+initCentralizedScenarioLogging() {
+   unset logFiles
+   unset subshellPIDs
+   if [[ "$JOBTYPE" =~ prep || $JOBTYPE = partmesh ]]; then
+      logFiles=( fort.6 fort.16 ${JOBTYPE}.out )
+   fi
+   if [[ $JOBTYPE = padcirc ]]; then
+      logFiles=( fort.6 fort.16 adcirc.log ${JOBTYPE}.out )
+   fi
+   if [[ $JOBTYPE = padcswan ]]; then
+      logFiles=( fort.6 fort.16 adcirc.log PE0000/asgs_swan.prt PE0000/Errfile  ${JOBTYPE}.out )
+   fi
+   #
+   # initialize log files if they do not exist so tail doesn't exit immediately
+   for file in ${logFiles[*]} ; do
+      echo "Initializing $file file." | awk -v level=INFO -v this="logging.sh" -f $SCRIPTDIR/monitoring/timestamp.awk >> scenario.log 2>&1
+      if [[ -e $file ]]; then
+         rm $file
+      fi
+      # make a zero length file
+      touch $file
+      # execute logs monitoring in the background
+      (
+         tail -f $file >> scenario.log 2>&1
+      ) &
+      # add this process ID to the list of background subshell jobs
+      subshellPIDs+=($!)
+   done
+   # write the logging PIDs to the run.properties file so they can be 
+   # cleaned up later
+   SUBSHELLPIDSTRING="("
+   for string in ${subshellPIDs[*]}; do
+      SUBSHELLPIDSTRING="$SUBSHELLPIDSTRING $string"
+   done
+   SUBSHELLPIDSTRING="$SUBSHELLPIDSTRING )"
+   echo "hpc.job.${JOBTYPE}.subshellpids : $SUBSHELLPIDSTRING" >> $STORMDIR/run.properties   
+}
+#
+# terminate centralized logging subshell processes
+finalizeCentralizedScenarioLogging() {
+   unset subshellPIDs
+   # grab list of associated subshell PIDs from run.properties file
+   declare -a subshellPIDs=`sed -n 's/[ ^]*$//;s/hpc.job.$JOBTYPE.subshellpids\s*:\s*//p' run.properties`
+   # loop over subshell processes 
+   for pid in ${subshellPIDs[*]}; do
+      # terminate each one
+      echo "Terminating previously spawned subshell process ID ${pid}." | awk -v level=INFO -v this=logging.sh -f $SCRIPTDIR/monitoring/timestamp.awk >> scenario.log 2>&1
+      kill -TERM $pid 2>&1 | awk -v this=logging.sh -v level=INFO -f $SCRIPTDIR/monitoring/timestamp.awk >> scenario.log 2>&1
+   done
+   unset subshellPIDs  
+}
+#
+# Find and clear stray orphan tail -f processes that have not been cleaned
+# up. Normally there should not be any stray orphan processes, but there
+# could be, and we want to avoid a proliferation of orphan processes. 
+findAndClearOrphans() {
+   #
+   # send SIGTERM to tail processes owned by this Operator that are children
+   # of init (i.e., process)
+   for pid in `ps -eo pid,ppid,user,comm | awk -v user=$USER '$3==user && $2==1 && $4~/tail/ { print $1 } '`; do
+      logMessage "Found orphan 'tail -f' process ID $pid and now clearing it." 
+      kill $pid 
+   done
+}
+#
+#
 function IncrementNCEPCycle()
 {
 	local DATE='date --utc'
@@ -66,7 +154,8 @@ function IncrementNCEPCycle()
 	echo $d2
 	#echo Next NCEP Cycle = $cy
 }
-
+#
+#
 RMQMessageStartup() 
 { 
   if [[ ${RMQMessaging_Enable} == "off" ]] ; then return; fi
@@ -80,7 +169,8 @@ RMQMessageStartup()
          --InstanceName $INSTANCENAME \
          --Transmit ${RMQMessaging_Transmit} >> $SYSLOG 2>&1
 }
-
+#
+#
 RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
 { 
   if [[ ${RMQMessaging_Enable} == "off" ]] ; then return; fi
@@ -125,7 +215,8 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
          --Transmit ${RMQMessaging_Transmit} >> ${SYSLOG} 2>&1
    fi
 }
-
+#
+# write an INFO-level message to the main asgs log file
 logMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] INFO: $@"

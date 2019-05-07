@@ -29,13 +29,14 @@ use Getopt::Long;
 use Date::Pcalc;
 use Date::Handler;
 #
-my $ncpu;         # number of CPUs the job should run on
-my $totalcpu = "null";     # ncpu + numwriters
-my $nnodes = "null";       # number of cluster nodes 
+my $ncpu = "null";      # number of CPUs the job should run on
+my $totalcpu = "null";  # ncpu + numwriters
+my $nnodes = "null";    # number of cluster nodes 
 my $queuename;    # name of the queue to submit the job to
-my $ncpudivisor;  # integer number to divide npu by
+my $parallelism;  # "serial" or "parallel"
 my $account;      # name of the account to take the hours from
 my $adcircdir;    # directory where the padcirc executable is found
+my $scriptdir;    # directory where the asgs executables are stored
 my $advisdir;     # directory for the individual advisory
 my $inputdir;     # directory where the template files are stored
 my $scenario;     # name of the ensemble member (nowcast, storm3, etc)
@@ -43,7 +44,7 @@ my $notifyuser;   # email address of the user to be notified in case of error
 my $submitstring; # string to use to submit a job to the parallel queue
 my $walltime;     # estimated maximum wall clock time  
 my $wallminutes;  # integer number of minutes, calculated from HH:MM:SS 
-my $qscript_template; # template file to use for the queue submission script
+my $qscripttemplate; # template file to use for the queue submission script
 my $qscript;      # queue submission script we're producing
 my $syslog;       # the log file that the ASGS uses 
 my $ppn;          # the number of processors per node
@@ -56,18 +57,13 @@ my $partition="null";   # name of SLURM partition the job should use
 my $constraint="null";  # name of SLURM constraint the job should use
 my $cmd="null";        # command to be executed
 my $numwriters=0;    # number of writer processors, if any
-my $scenariodir = "null";
 my $joblauncher = "null"; # executable line in qscript (ibrun, mpirun, etc)
 our %properties;     # holds the run.properties file
 our $this="slurm.pl";
 # initialize to the log file that adcirc uses, just in case
-our $syslog="run.log";
+our $syslog="scenario.log";
 #
-GetOptions("scenariodir=s" => \$scenariodir,
-           "jobtype=s" => \$jobtype,
-           "qscript_template=s" => \$qscript_template,
-           "qscript=s" => \$qscript );
-
+GetOptions("jobtype=s" => \$jobtype );
 #
 #-----------------------------------------------------------------
 #
@@ -97,7 +93,6 @@ while (<RP>) {
    $properties{$k} = $v
 }
 close(RP);
-#
 #-----------------------------------------------------------------
 #
 #                S E T   P A R A M E T E R S 
@@ -106,15 +101,23 @@ close(RP);
 $cloptions = "";
 # get path to adcirc executables
 $adcircdir = $properties{"path.adcircdir"};
+# get path to asgs executables
+$scriptdir = $properties{"path.scriptdir"};
+# determine whether this is a parallel job 
+$parallelism = $properties{"hpc.job.$jobtype.parallelism"};
 # 
 # construct command line for running adcprep or serial job
-if ( $jobtype eq "partmesh" || $jobtype =~/prep/ ) {
-   # get number of compute cpus
-   $ncpu = $properties{"hpc.job.$jobtype.for.ncpu"};
-   $cmd="$adcircdir/adcprep --np $ncpu --$jobtype --strict-boundaries"
+if ( $parallelism eq "serial" ) {
+   if ( $jobtype eq "partmesh" || $jobtype =~ /prep/ ) {
+      # get number of compute cpus
+      $ncpu = $properties{"hpc.job.$jobtype.for.ncpu"}; # for adcprep
+      $cmd="$adcircdir/adcprep --np $ncpu --$jobtype --strict-boundaries";
+   }
+   $totalcpu = 1; # these are serial jobs
+   $nnodes = 1;   # these are serial jobs
 }
 #
-# construct command line for running padcirc or padcswan job
+# construct command line for running padcirc, padcswan, or other parallel job
 if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ){
    # get number of compute cpus
    $ncpu = $properties{"hpc.job.$jobtype.ncpu"};
@@ -147,18 +150,25 @@ $walltime = $properties{"hpc.job.$jobtype.limit.walltime"};
 $walltime =~ /(\d{2}):(\d{2}):(\d{2})/;
 $wallminutes = $1*60 + $2;
 #
+# get queue script template
+$qscripttemplate = $properties{"hpc.job.$jobtype.file.qscripttemplate"};
+#
+# set name of qscript
+$qscript = $jobtype . ".slurm";
+
+#
 #-----------------------------------------------------------------
 #
 #              F I L L   I N   T E M P L A T E 
 #
 #-----------------------------------------------------------------
-if ( -e $qscript_template ) { 
-   unless (open(TEMPLATE,"<$qscript_template")) {
-      print STDERR "Found the $qscript_template template file but could not open it: $!.";
+if ( -e $qscripttemplate ) { 
+   unless (open(TEMPLATE,"<$qscripttemplate")) {
+      print STDERR "Found the $qscripttemplate template file but could not open it: $!.";
       die;
    }
 } else {
-   print STDERR "ERROR: The $qscript_template template file was not found.";
+   print STDERR "ERROR: The $qscripttemplate template file was not found.";
    die;
 }
 unless (open(QSCRIPT,">$qscript")) {
@@ -181,6 +191,8 @@ while(<TEMPLATE>) {
     s/%account%/$properties{"hpc.job.$jobtype.account"}/;
     # directory where padcirc executable is located
     s/%adcircdir%/$properties{"path.adcircdir"}/;
+    # directory where padcirc executable is located
+    s/%scriptdir%/$properties{"path.scriptdir"}/;
     # directory for this particular advisory
     s/%advisdir%/$properties{"path.advisdir"}/;  
     # name of this member of the ensemble (nowcast, storm3, etc)
@@ -211,18 +223,19 @@ while(<TEMPLATE>) {
     s/%platformmodules%/$properties{"hpc.platformmodules"}/g;
     # fill in serial modules for serial job
     if ( $jobtype eq "partmesh" || $jobtype =~/prep/ ) {
-       s/%jobmodules%/$properties{"hpc.serialmodules"}/g;   
+       s/%jobmodules%/$properties{"hpc.job.$jobtype.serialmodules"}/g;   
        # name of the queue on which to run
-       s/%queuename%/$properties{"hpc.serqueue"}/;
+       s/%queuename%/$properties{"hpc.job.$jobtype.serqueue"}/;
     }
     # fill in parallel modules for parallel job 
     if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ) {
-       s/%jobmodules%/$properties{"hpc.parallelmodules"}/g;
+       s/%jobmodules%/$properties{"hpc.job.$jobtype.parallelmodules"}/g;
        # name of the queue on which to run
-       s/%queuename%/$properties{"hpc.queuename"}/;
+       s/%queuename%/$properties{"hpc.job.$jobtype.queuename"}/;
     }
     # fill in job library paths and executable paths
     s/%jobenv%/$properties{"hpc.job.$jobtype.jobenv"}/g;
+    s/%jobenvdir%/$properties{"hpc.job.$jobtype.path.jobenvdir"}/g;
     # copy non-null lines to the queue script
     unless ( $_ =~ /noLineHere/ || $_ =~ /null/ ) {
        print QSCRIPT $_;
@@ -230,4 +243,11 @@ while(<TEMPLATE>) {
 }
 close(TEMPLATE);
 close(QSCRIPT);
-
+#
+# record name of queue script to run.properties file
+unless (open(RP,">>run.properties")) {
+   print STDERR "ERROR: Could not open run.properties file: $!.";
+   die;
+} 
+print RP "hpc.job.$jobtype.file.qscript : $qscript\n";
+close(RP);

@@ -2,7 +2,7 @@
 #----------------------------------------------------------------------------
 #                    S L U R M   D I R E C T I V E S
 #----------------------------------------------------------------------------
-#SBATCH -J %jobtype%.%enstorm%
+#SBATCH -J %jobtype%.%scenario%
 #SBATCH -t %walltime%
 #SBATCH -n %totalcpu% 
 #SBATCH -N %nnodes%
@@ -10,36 +10,41 @@
 #SBATCH --partition=%partition%
 #SBATCH --reservation=%reservation%
 #SBATCH --constraint=%constraint%
-#SBATCH -j oe
 #SBATCH -A %account%
-#SBATCH -o %advisdir%/%enstorm%/run.log
+#SBATCH -o %advisdir%/%scenario%/%jobtype%.out
 #
 #----------------------------------------------------------------------------
 #        L O G   M E S S A G E S   T O   S T A R T   T H E   J O B
 #----------------------------------------------------------------------------
-THIS=%jobtype%.%enstorm%.slurm  # name of this script for use in log messages
+THIS=%jobtype%.slurm  # name of this script for use in log messages
 SCRIPTDIR=%scriptdir%
 CYCLEDIR=%advisdir%
 CYCLELOG=$CYCLEDIR/cycle.log
-RUNDIR=$CYCLEDIR/%enstorm%
-RUNLOG=$RUNDIR/run.log
+SCENARIODIR=$CYCLEDIR/%scenario%
+SCENARIOLOG=$SCENARIODIR/scenario.log
 #
-cd $RUNDIR
+cd $SCENARIODIR 2>&1 | awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append %syslog% 
 echo "------------------------------------------------------------------------"
-echo "Starting $THIS in $RUNDIR with SLURM Job ID ${SLURM_JOBID}; SLURM submit directory ${SLURM_SUBMIT_DIR}; and SLURM submit host ${SLURM_SUBMIT_HOST}."  2>&1 | awk -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $RUNLOG | tee --append $CYCLELOG | tee --append %syslog% >> %jobtype%.%enstorm%.run.start
-# job properties (TODO: Add json property)
-echo "time.hpc.job.%jobtype%.${SLURM_JOBID}.start : $DATETIME" >> run.properties
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+echo "Starting $THIS in $SCENARIODIR with SLURM Job ID ${SLURM_JOBID}; SLURM submit directory ${SLURM_SUBMIT_DIR}; and SLURM submit host ${SLURM_SUBMIT_HOST}."  2>&1 | awk -v this=$THIS -v level=INFO -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append %syslog% >> %jobtype%.%scenario%.run.start
 #
+# job properties (TODO: Add json propertes)
+echo "time.hpc.job.%jobtype%.start : $DATETIME" >> run.properties
+echo "hpc.job.%jobtype%.jobid : ${SLURM_JOBID}" >> run.properties
+echo "hpc.job.%jobtype%.nodelist : ( $SLURM_JOB_NODELIST )" >> run.properties
+echo "hpc.job.%jobtype%.hostname: $HOSTNAME" >> run.properties
+#
+# This is only needed on hatteras?
 hostname > CONTROL.TXT
 echo "Job Run on Nodes"  >> CONTROL.TXT
 echo "----------------"  >> CONTROL.TXT
 echo $SLURM_JOB_NODELIST >> CONTROL.TXT
 echo "----------------"  >> CONTROL.TXT
-echo "hpc.job.%jobtype%.slurm.${SLURM_JOBID}.slurm_job_nodelist : $SLURM_JOB_NODELIST" >> run.properties
 #
-# record which cluster nodes we are running on to run.log
-echo "SLURM_JOB_NODELIST: $SLURM_JOB_NODELIST" 
-echo "hostname: "`hostname` 
+# record which cluster nodes we have  to scenario.log
+echo "INFO: $THIS: SLURM_JOB_NODELIST: $SLURM_JOB_NODELIST" 
+echo "INFO: $THIS: hostname: "`hostname` 
+#
 #----------------------------------------------------------------------------
 #                      L O A D   M O D U L E S
 #----------------------------------------------------------------------------
@@ -48,14 +53,21 @@ module purge
 %jobmodules%
 module list
 # source scripts to set required PATH and LD_LIBRARY_PATH
-%jobenv%
+declare -a JOBENV
+JOBENV=%jobenv%
+for script in ${JOBENV[*]}; do
+   source %jobenvdir%/$script
+done
+THIS=%jobtype%.slurm  # reset name of this script for use in log messages
+echo "INFO: $THIS: PATH : $PATH"
+echo "INFO: $THIS: LD_LIBRARY_PATH : $LD_LIBRARY_PATH"
 #
 #----------------------------------------------------------------------------
 #                  E X E C U T E   T H E   J O B
 #----------------------------------------------------------------------------
 # log the command to run 
 CMD="%cmd%"
-echo "%jobtype%.%enstorm% job ${SLURM_JOBID} starting in $RUNDIR with the following command: $CMD" 2>&1 | awk -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $RUNLOG >> %jobtype%.%enstorm%.run.start
+echo "%jobtype%.%scenario% job ${SLURM_JOBID} starting in $SCENARIODIR with the following command: $CMD" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG >> %jobtype%.%scenario%.run.start
 $CMD 
 #
 #----------------------------------------------------------------------------
@@ -67,28 +79,29 @@ ERROVALUE=$?  # capture exit status
 if [ $ERROVALUE == 0 ] ; then
    if [[ $JOBTYPE = adcirc || $JOBTYPE = padcirc || $JOBTYPE = padcswan ]]; then
       # look for numerical instability errors in the stdout/stderr files
-      for file in adcirc.log $RUNLOG ; do
+      for file in adcirc.log $SCENARIOLOG ; do
          if [ -e $file ]; then
             numMsg=`grep WarnElev $file | wc -l`
             if [ $numMsg = 0 ]; then
-               echo "No numerical instability detected in $file after completion of %jobtype%.%enstorm% job ${SLURM_JOBID}." 2>&1 | awk -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk 
+               echo "No numerical instability detected in $file after completion of %jobtype%.%scenario% job ${SLURM_JOBID}." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk 
             else
-               ERROMSG="$ERROMSG Detected $numMsg numerical instability messages in $file after completion of %jobtype%.%enstorm% job ${SLURM_JOBID}."
+               ERROMSG="$ERROMSG Detected $numMsg numerical instability messages in $file after completion of %jobtype%.%scenario% job ${SLURM_JOBID}."
                RUNSUFFIX="error"
             fi
          fi
       done
    fi
 else
-   ERROMSG="$ERROMSG The %jobtype%.%enstorm% job ended with an exit status that indicates an error occurred."
+   ERROMSG="$ERROMSG The %jobtype%.%scenario% job ended with an exit status that indicates an error occurred."
    RUNSUFFIX="error"
 fi
 #
-echo "%jobtype%.%enstorm% job $SLURM_JOBID finished in $RUNDIR with return value = $ERROVALUE" 2>&1 | awk -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $RUNLOG | tee --append $CYCLELOG | tee --append %syslog% >> %jobtype%.%enstorm%.run.${RUNSUFFIX}
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+echo "%jobtype%.%scenario% job $SLURM_JOBID finished in $SCENARIODIR with return value = $ERROVALUE" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append %syslog% >> %jobtype%.%scenario%.run.${RUNSUFFIX}
 #
 #  write reason for job failure
 if [ $ERROVALUE != 0 ]; then
-   echo "$ERROMSG" 2>&1 | awk -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $RUNLOG | tee --append $CYCLELOG | tee --append %syslog% >> %jobtype%.%enstorm%.run.${RUNSUFFIX}
+   echo "$ERROMSG" 2>&1 | awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append %syslog% >> %jobtype%.%scenario%.run.${RUNSUFFIX}
 fi
-echo "time.hpc.job.%jobtype%.${SLURM_JOBID}.${RUNSUFFIX} : $DATETIME" >> run.properties
+echo "time.hpc.job.%jobtype%.${RUNSUFFIX} : $DATETIME" >> run.properties
 echo "-----------------------------------------------------------------------"
