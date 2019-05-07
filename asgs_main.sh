@@ -455,8 +455,6 @@ prep()
     # F O R   P A R A L L E L   R U N 
     #
     TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
-    #echo "$TIMESTAMP INFO: $ENSTORM: $THIS: adcprep.log entry for $FILE for ensemble member $ENSTORM in $ADVISDIR as follows: " >> $ADVISDIR/$ENSTORM/adcprep.log
-    echo "$TIMESTAMP INFO: $ENSTORM: $THIS: adcprep.log entry for ensemble member $ENSTORM in $ADVISDIR as follows: " >> $ADVISDIR/$ENSTORM/adcprep.log
     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
     echo "time.adcprep.start : ${DATETIME}" >> ${STORMDIR}/run.properties
     # set the name of the archive of preprocessed input files
@@ -731,7 +729,17 @@ prepFile()
     echo "hpc.job.${JOBTYPE}.for.ncpu : $NCPU" >> $ADVISDIR/$ENSTORM/run.properties
     echo "hpc.job.${JOBTYPE}.limit.walltime : $ADCPREPWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
     echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $ADVISDIR/$ENSTORM/run.properties
-    echo "hpc.job.${JOBTYPE}.jobenv : $JOBENV" >> $ADVISDIR/$ENSTORM/run.properties
+   JOBENVSTRING="("
+   for string in ${JOBENV[*]}; do
+      JOBENVSTRING="$JOBENVSTRING $string"
+   done
+   JOBENVSTRING="$JOBENVSTRING )" 
+   echo "hpc.job.${JOBTYPE}.jobenv : $JOBENVSTRING" >> $STORMDIR/run.properties
+   echo "hpc.job.${JOBTYPE}.path.jobenvdir : $JOBENVDIR" >> $STORMDIR/run.properties
+   echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $ADVISDIR/$ENSTORM/run.properties
+   echo "hpc.job.${JOBTYPE}.parallelism : serial" >> $STORMDIR/run.properties
+   echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
+   echo "hpc.job.${JOBTYPE}.seralmodules : $SERIALMODULES" >> $STORMDIR/run.properties
     #
     case $QUEUESYS in
     "PBS")
@@ -759,20 +767,18 @@ prepFile()
        echo "hpc.slurm.job.${JOBTYPE}.partition : $PARTITION" >> $STORMDIR/run.properties
        echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
        echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
-       QSCRIPTOPTIONS="--jobtype $JOBTYPE --scenariodir $ADVISDIR/$ENSTORM --qscript_template $QSCRIPTTEMPLATE --qscript adcprep.${JOBTYPE}.slurm"
-       #jgfdebug
        RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Preparing queue script for adcprep.${JOBTYPE}.slurm."
-       logMessage "$ENSTORM: $THIS: Preparing queue script for adcprep with the following: perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS"
-       perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS 2>&1 | awk -v this=$QSCRIPTGEN -f $SCRIPTDIR/monitoring/timestamp.awk >> run.log  
+       logMessage "$ENSTORM: $THIS: Preparing queue script for adcprep with the following: perl $SCRIPTDIR/$QSCRIPTGEN --jobtype $JOBTYPE"
+       perl $SCRIPTDIR/$QSCRIPTGEN --jobtype $JOBTYPE 2>&1 | awk -v this=$QSCRIPTGEN -f $SCRIPTDIR/monitoring/timestamp.awk >> scenario.log  
        # submit adcprep job, check to make sure sbatch succeeded, and if not, retry
        while [ true ];  do
           DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-          echo "time.${JOBTYPE}.submit : $DATETIME" >> run.properties
-          sbatch $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.slurm >> ${SYSLOG} 2>&1
+          echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> run.properties
+          sbatch ${JOBTYPE}.slurm >> ${SYSLOG} 2>&1
           if [[ $? = 0 ]]; then
              break # qsub returned a "success" status
           else
-             warn "$ENSTORM: $THIS: sbatch $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.slurm failed; will retry in 60 seconds."
+             warn "$ENSTORM: $THIS: sbatch $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm failed; will retry in 60 seconds."
              sleep 60
           fi
        done
@@ -803,12 +809,12 @@ prepFile()
        allMessage "$ENSTORM: $THIS: adcprep finished."
        ;;
     *)
-       logMessage "Submitting job with $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/adcprep.log 2>&1"
-       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} --strict-boundaries >> $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log 2>&1
+       logMessage "Submitting job with $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/scenario.log 2>&1"
+       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} --strict-boundaries >> $ADVISDIR/$ENSTORM/scenario.log 2>&1
        # check to see if adcprep completed successfully
        if [[ $? != 0 ]]; then
-          error "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log for details."
-          echo "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/${JOBTYPE}.adcprep.log for details." >> jobFailed
+          error "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/scenario.log for details."
+          echo "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/scenario.log for details." >> jobFailed
        fi
        ;;
     esac
@@ -1066,6 +1072,9 @@ monitorJobs()
    retries=0  # count resubmits on hatteras due to io errors
    jobCheckIntervalSeconds=15
    #
+   # start log redirect processes for centralized logging
+   initCentralizedScenarioLogging
+   #
    # Keep checking every $jobCheckIntervalSeconds to see if the job has 
    # (a) timed out; (b) written a .finish file; or (c) written a .error file. 
    # Job status is monitored via these files, which are actually
@@ -1076,6 +1085,7 @@ monitorJobs()
    # This behavior is actually useful for real time tweaks and fixes
    # because the Operator can cancel a job, make modifications, and then 
    # resubmit it without the ASGS noticing or being disturbed.  
+   #
    while [[ 1 ]]; do
       sleep $jobCheckIntervalSeconds
       # execute the FortCheck.py code to get a %complete status, but only 
@@ -1186,6 +1196,11 @@ monitorJobs()
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "The $ENSTORM_TEMP job appears to have run to completion successfully." 
       logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job appears to have run to completion successfully."
    fi
+   #
+   # terminate redirect processes for centralized logging
+   finalizeCentralizedScenarioLogging
+   #
+   # final messages
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Finished monitoring $ENSTORM_TEMP job."
    logMessage "$ENSTORM_TEMP: $THIS: Finished monitoring $ENSTORM_TEMP job."
 }
@@ -1223,6 +1238,7 @@ submitJob()
       CLOPTIONS="${CLOPTIONS} -S"
       LOCALHOTSTART="--localhotstart"
    fi
+   echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $ADVISDIR/$ENSTORM/run.properties
    case $QUEUESYS in 
    #
    #  No queueing system, just run adcirc or adcswan (used on standalone computers or cloud)
@@ -1292,17 +1308,15 @@ submitJob()
    #
    #  SLURM
    "SLURM")
-      QSCRIPTOPTIONS="--jobtype $JOBTYPE --scenariodir $ADVISDIR/$ENSTORM --qscript_template $QSCRIPTTEMPLATE --qscript $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm"
-      logMessage "$ENSTORM: $THIS: QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
-      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS 2>&1 | awk -v this=$QSCRIPTGEN -f $SCRIPTDIR/monitoring/timestamp.awk >> $ADVISDIR/$ENSTORM/run.log
+      perl $SCRIPTDIR/$QSCRIPTGEN --jobtype $JOBTYPE 2>&1 | awk -v this=$QSCRIPTGEN -f $SCRIPTDIR/monitoring/timestamp.awk >> $ADVISDIR/$ENSTORM/scenario.log
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm"
       logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm"
       #
       # submit job, check to make sure qsub succeeded, and if not, retry
       while [ true ];  do
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-         echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-         sbatch $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm >> ${SYSLOG} 2>&1
+         echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
+         sbatch ${JOBTYPE}.slurm >> ${SYSLOG} 2>&1
          if [[ $? = 0 ]]; then
             RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "sbatch ${JOBTYPE}.slurm successful."
             break # sbatch returned a "success" status
@@ -1484,7 +1498,7 @@ variables_init()
    ADCIRCDIR=null
    SCRATCHDIR=null
    MAILINGLIST=null
-   ENV=null
+   HPCENV=null
    QUEUESYS=null
    QUEUENAME=null
    SERQUEUE=null
@@ -1542,6 +1556,8 @@ variables_init()
    SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
    declare -a JOBENV=( null )  # array of shell scripts to 'source' for compute job
    JOBENVDIR=null
+   declare -a subshellPIDs  # list of process IDs of subshells
+   declare -a logFiles      # list of log files to be tailed onto scenario.log
    PYTHONVENV=null # path to python virtual environment, e.g., ~/asgs/asgspy/venv
 # RMQMessaging defaults
    RMQMessaging_Enable="off"   # "on"|"off"
@@ -1587,7 +1603,6 @@ writeProperties()
    echo "hpc.parallelmodules : $PARALLELMODULES" >> $STORMDIR/run.properties
    echo "hpc.submitstring : $SUBMITSTRING" >> $STORMDIR/run.properties
    echo "hpc.executable.qscriptgen : $QSCRIPTGEN" >> $STORMDIR/run.properties
-   echo "hpc.file.template.qscript : $QSCRIPTTEMPLATE" >> $STORMDIR/run.properties
    echo "hpc.file.template.prepcontrolscript : $PREPCONTROLSCRIPT" >> $STORMDIR/run.properties
    echo "hpc.jobs.ncpucapacity : $NCPUCAPACITY" >> $STORMDIR/run.properties
    echo "hpc.walltimeformat : $WALLTIMEFORMAT" >> $STORMDIR/run.properties
@@ -1725,12 +1740,15 @@ writeWaveCouplingProperties()
 writeJobResourceRequestProperties()
 {
    STORMDIR=$1
-   echo "hpc.queuename : $QUEUENAME" >> $STORMDIR/run.properties
-   echo "hpc.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
+   echo "hpc.job.${JOBTYPE}.queuename : $QUEUENAME" >> $STORMDIR/run.properties
+   echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
+   echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.ncpu : $NCPU" >> $STORMDIR/run.properties
+   if [[ $NCPU -gt 1 ]]; then
+      echo "hpc.job.${JOBTYPE}.parallelism : parallel" >> $STORMDIR/run.properties
+   fi
    echo "hpc.job.${JOBTYPE}.numwriters : $NUMWRITERS" >> $STORMDIR/run.properties    
-   echo "hpc.file.${JOBTYPE}.template.qscripttemplate : $QSCRIPTTEMPLATE" >> $STORMDIR/run.properties
    echo "hpc.job.limit.hindcastwalltime : $HINDCASTWALLTIME" >> $STORMDIR/run.properties    
    echo "hpc.job.limit.nowcastwalltime : $NOWCASTWALLTIME" >> $STORMDIR/run.properties       
    echo "hpc.job.limit.forecastwalltime : $FORECASTWALLTIME" >> $STORMDIR/run.properties       
@@ -1740,8 +1758,13 @@ writeJobResourceRequestProperties()
       echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
    fi
-   echo "hpc.job.${JOBTYPE}.jobenv : $JOBENV" >> $STORMDIR/run.properties
-   echo "hpc.path.${JOBTYPE}.jobenvdir : $JOBENVDIR" >> $STORMDIR/run.properties
+   JOBENVSTRING="("
+   for string in ${JOBENV[*]}; do
+      JOBENVSTRING="$JOBENVSTRING $string"
+   done
+   JOBENVSTRING="$JOBENVSTRING )" 
+   echo "hpc.job.${JOBTYPE}.jobenv : $JOBENVSTRING" >> $STORMDIR/run.properties
+   echo "hpc.job.${JOBTYPE}.path.jobenvdir : $JOBENVDIR" >> $STORMDIR/run.properties
    # legacy properties
    echo "cpurequest : $CPUREQUEST" >> ${STORMDIR}/run.properties
    echo "ncpu : $NCPU" >> ${STORMDIR}/run.properties  # number of compute CPUs
@@ -1830,13 +1853,18 @@ SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG
 if [[ $RMQMessaging_Enable == "on" ]] ; then
    . ${SCRIPTDIR}/asgs-msgr.sh
 else
-   allMessage "RMQ Messaging disabled. No OAD for you!!" 
+   allMessage "RMQ Messaging disabled via RMQMessaging_Enable=off in ASGS config file. The status of this ASGS instance will not be available on the ASGS Monitor https://asgs-monitor.renci.org." 
 fi
 
 # set a trap for a signal to reread the ASGS config file
 trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; . $CONFIG' USR1
 # catch ^C for a final message
 trap 'sigint' INT
+trap 'sigterm' TERM
+trap 'sigexit' EXIT
+#
+# clear orphaned logging processes
+findAndClearOrphans
 
 # dispatch environment (using the functions in platforms.sh)
 env_dispatch ${HPCENVSHORT}
@@ -2323,7 +2351,8 @@ while [ true ]; do
    CURRENT_EVENT="RSTR"
    CURRENT_STATE="INIT"
    ENSTORM=nowcast
-
+   # clear orphaned logging processes (if any)
+   findAndClearOrphans
    #BOB
 #   echo "\$OLDADVISDIR=$OLDADVISDIR"
 #   echo "\$ADVISORY=$ADVISORY"
@@ -2758,6 +2787,8 @@ while [ true ]; do
    CURRENT_STATE="INIT"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting forecast(s) for advisory '$ADVISORY'."
    allMessage "$ENSTORM: $THIS: Starting forecast(s) for advisory '$ADVISORY'."
+   # clear orphaned logging processes (if any)
+   findAndClearOrphans
    checkHotstart $NOWCASTDIR $HOTSTARTFORMAT 67
    THIS="asgs_main.sh"
    if [[ $HOTSTARTFORMAT = netcdf ]]; then

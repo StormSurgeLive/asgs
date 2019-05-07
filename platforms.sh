@@ -334,7 +334,10 @@ init_stampede2()
   PLATFORMMODULES='module load intel/18.0.2 python2/2.7.15 xalt/2.6.5 TACC'
   SERIALMODULES='module load' # no extra modules for serial jobs
   PARALLELMODULES='module load libfabric/1.7.0 impi/18.0.2'
+  # specify location of platform- and Operator-specific scripts to 
+  # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/stampede2
+  JOBENV=( )
   if [[ $USER = jgflemin ]]; then
      PPN=48
      ACCOUNT=DesignSafe-CERA
