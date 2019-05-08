@@ -28,7 +28,6 @@
 #
 #  send message when shutting down on INT and clear all processes
 sigint() {
-   allMessage "Received Ctrl-C from console.  Shutting ASGS down...'"
    RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..." 
    allMessage "Received Ctrl-C from console.  Shutting ASGS instance $INSTANCENAME down."
    trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group 
@@ -37,7 +36,6 @@ sigint() {
 #
 #  send message when shutting down on TERM and clear all processes 
 sigterm() {
-   allMessage "Received SIGTERM. Shutting ASGS down...'"
    RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigterm()" "EXIT" "Received SIGTERM.  Shutting ASGS down ..." 
    allMessage "Received SIGTERM. Shutting ASGS instance $INSTANCENAME down."
    trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group 
@@ -46,7 +44,6 @@ sigterm() {
 #
 # send message when shutting down on EXIT and clear all processes
 sigexit() {
-   allMessage "Received EXIT.  Shutting ASGS down...'"
    RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigiexit()" "EXIT" "Received SIGEXIT.  Shutting ASGS down ..." 
    allMessage "Received SIGEXIT.  Shutting ASGS instance $INSTANCENAME down."
    trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group 
@@ -222,6 +219,20 @@ logMessage()
   MSG="[${DATETIME}] INFO: $@"
   echo ${MSG} >> ${SYSLOG}
 }
+#
+# write an INFO-level message to the cycle (or advisory log file)
+cycleMessage()
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+  MSG="[${DATETIME}] INFO: $@"
+  echo ${MSG} >> $ADVISDIR/cycle.log
+}
+#
+# write an INFO-level message to the cycle (or advisory log file)
+scenarioMessage()
+{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+  MSG="[${DATETIME}] INFO: $@"
+  echo ${MSG} >> $ADVISDIR/$ENSTORM/scenario.log
+}
 
 #
 # send a message to the console (i.e., window where the script was started)
@@ -232,11 +243,14 @@ consoleMessage()
   echo ${MSG}
 }
 #
-# send a message to console as well as to the log file
+# send INFO message to main asgs log file, cycle (advisory) log file, as well
+# as scenario log file 
 allMessage()
 {
 #   consoleMessage $@
    logMessage $@
+   cycleMessage $@
+   scenarioMessage $@
 }
 #
 # log a warning message, execution continues
@@ -244,6 +258,8 @@ warn()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] WARNING: $@"
   echo ${MSG} >> ${SYSLOG}
+  echo ${MSG} >> $ADVISDIR/cycle.log
+  echo ${MSG} >> $ADVISDIR/$ENSTORM/scenario.log
   #echo ${MSG}  # send to console
 }
 #
@@ -253,6 +269,8 @@ error()
   MSG="[${DATETIME}] ERROR: $@"
   echo ${MSG} >> ${SYSLOG}
   echo ${MSG}  # send to console
+  echo ${MSG} >> $ADVISDIR/cycle.log
+  echo ${MSG} >> $ADVISDIR/$ENSTORM/scenario.log
   # email the operator
   if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
      echo $MSG | mail -s "[ASGS] Attn: Error for $INSTANCENAME" "${ASGSADMIN}"
@@ -264,6 +282,8 @@ fatal()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] FATAL ERROR: $@"
   echo ${MSG} >> ${SYSLOG}
+  echo ${MSG} >> $ADVISDIR/cycle.log
+  echo ${MSG} >> $ADVISDIR/$ENSTORM/scenario.log
   if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
      cat ${SYSLOG} | mail -s "[ASGS] Fatal Error for PROCID ($$)" "${ASGSADMIN}"
   fi
@@ -275,5 +295,5 @@ fatal()
 debugMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] DEBUG: $@"
-  echo ${MSG} >> ${SYSLOG}
+  echo ${MSG} >> $ADVISDIR/$ENSTORM/scenario.log
 }
