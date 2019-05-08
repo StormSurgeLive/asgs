@@ -105,6 +105,8 @@ $adcircdir = $properties{"path.adcircdir"};
 $scriptdir = $properties{"path.scriptdir"};
 # determine whether this is a parallel job 
 $parallelism = $properties{"hpc.job.$jobtype.parallelism"};
+# get number of processors per node
+$ppn = $properties{"hpc.job.$jobtype.ppn"}; 
 # 
 # construct command line for running adcprep or serial job
 if ( $parallelism eq "serial" ) {
