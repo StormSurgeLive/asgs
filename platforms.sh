@@ -317,8 +317,8 @@ init_stampede2()
 { #<- can replace the following with a custom script
   HPCENV=stampede2.tacc.utexas.edu
   QUEUESYS=SLURM
-  QUEUENAME=skx
-  SERQUEUE=skx
+  QUEUENAME=skx-normal
+  SERQUEUE=skx-normal
   QCHECKCMD=sacct
   JOBLAUNCHER='ibrun '
   ACCOUNT=null

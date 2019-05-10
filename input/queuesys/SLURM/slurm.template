@@ -18,15 +18,16 @@
 #----------------------------------------------------------------------------
 THIS=%jobtype%.slurm  # name of this script for use in log messages
 SCRIPTDIR=%scriptdir%
+SYSLOG=%syslog%
 CYCLEDIR=%advisdir%
 CYCLELOG=$CYCLEDIR/cycle.log
 SCENARIODIR=$CYCLEDIR/%scenario%
 SCENARIOLOG=$SCENARIODIR/scenario.log
 #
-cd $SCENARIODIR 2>&1 | awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append %syslog% 
+cd $SCENARIODIR 2>&1 | awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG 
 echo "------------------------------------------------------------------------"
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-echo "Starting $THIS in $SCENARIODIR with SLURM Job ID ${SLURM_JOBID}; SLURM submit directory ${SLURM_SUBMIT_DIR}; and SLURM submit host ${SLURM_SUBMIT_HOST}."  2>&1 | awk -v this=$THIS -v level=INFO -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append %syslog% >> %jobtype%.%scenario%.run.start
+echo "Starting $THIS in $SCENARIODIR with SLURM Job ID ${SLURM_JOBID}; SLURM submit directory ${SLURM_SUBMIT_DIR}; and SLURM submit host ${SLURM_SUBMIT_HOST}."  2>&1 | awk -v this=$THIS -v level=INFO -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG >> %jobtype%.%scenario%.run.start
 #
 # job properties (TODO: Add json propertes)
 echo "time.hpc.job.%jobtype%.start : $DATETIME" >> run.properties
@@ -97,11 +98,11 @@ else
 fi
 #
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-echo "%jobtype%.%scenario% job $SLURM_JOBID finished in $SCENARIODIR with return value = $ERROVALUE" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append %syslog% >> %jobtype%.%scenario%.run.${RUNSUFFIX}
+echo "%jobtype%.%scenario% job $SLURM_JOBID finished in $SCENARIODIR with return value = $ERROVALUE" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG >> %jobtype%.%scenario%.run.${RUNSUFFIX}
 #
 #  write reason for job failure
 if [ $ERROVALUE != 0 ]; then
-   echo "$ERROMSG" 2>&1 | awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append %syslog% >> %jobtype%.%scenario%.run.${RUNSUFFIX}
+   echo "$ERROMSG" 2>&1 | awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG >> %jobtype%.%scenario%.run.${RUNSUFFIX}
 fi
 echo "time.hpc.job.%jobtype%.${RUNSUFFIX} : $DATETIME" >> run.properties
 echo "-----------------------------------------------------------------------"

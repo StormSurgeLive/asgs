@@ -94,7 +94,7 @@ initCentralizedScenarioLogging() {
 finalizeCentralizedScenarioLogging() {
    unset subshellPIDs
    # grab list of associated subshell PIDs from run.properties file
-   declare -a subshellPIDs=`sed -n 's/[ ^]*$//;s/hpc.job.$JOBTYPE.subshellpids\s*:\s*//p' run.properties`
+   declare -a subshellPIDs=`grep hpc.job.$JOBTYPE.subshellpids run.properties | cut -d':' -f 2- | sed -n 's/^\s*//p'`
    # loop over subshell processes 
    for pid in ${subshellPIDs[*]}; do
       # terminate each one
