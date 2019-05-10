@@ -629,6 +629,7 @@ prep()
                    if [[ -e $FROMDIR/swan.67.${suffix} ]]; then
                       logMessage "$ENSTORM: $THIS: Found $FROMDIR/swan.67.${suffix}."
                       cp $FROMDIR/swan.67.${suffix} ./swan.68.${suffix} 2>> $SYSLOG
+                      scenarioMessage "$THIS: Untarring SWAN hotstart files:"
                       case $suffix in
                       tar)
                          tar xvf swan.68.${suffix} >> scenario.log 2> >(awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG})
@@ -776,12 +777,14 @@ prepFile()
        echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
        RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Preparing queue script for adcprep.${JOBTYPE}.slurm."
        logMessage "$ENSTORM: $THIS: Preparing queue script for adcprep with the following: perl $SCRIPTDIR/$QSCRIPTGEN --jobtype $JOBTYPE"
-       perl $SCRIPTDIR/$QSCRIPTGEN --jobtype $JOBTYPE 2>&1 | awk -v this=$QSCRIPTGEN -f $SCRIPTDIR/monitoring/timestamp.awk >> scenario.log  
+       perl $SCRIPTDIR/$QSCRIPTGEN --jobtype $JOBTYPE >> scenario.log 2> >(awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log )  
        # submit adcprep job, check to make sure sbatch succeeded, and if not, retry
        while [ true ];  do
           DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
           echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> run.properties
-          sbatch ${JOBTYPE}.slurm >> ${SYSLOG} 2>&1
+          # submit job with sbatch, capture stdout from sbatch and direct it
+          # to scenario.log; capture stderr 
+          sbatch ${JOBTYPE}.slurm  --jobtype $JOBTYPE >> scenario.log 2> >(awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log ) 
           if [[ $? = 0 ]]; then
              break # qsub returned a "success" status
           else

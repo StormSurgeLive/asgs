@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=dailysouthfl # "name" of this ASGS process
-COLDSTARTDATE=2019040100  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2019042200  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null           # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=14.0       # length of initial hindcast, from cold (days)
@@ -37,8 +37,8 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 # Source file paths
 
 ADCIRCDIR=$WORK/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
-SWANDIR=$WORK/adcirc-cg/jasonfleming/v53release/work   # SWAN executables
-SCRIPTDIR=$WORK/asgs/jasonfleming/master               # ASGS executables
+SWANDIR=$WORK/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
+SCRIPTDIR=$WORK/asgs/jasonfleming/portability      # ASGS executables
 INPUTDIR=$SCRIPTDIR/input/meshes/southfl           # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output                      # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL                         # DateCale.pm perl module
@@ -63,6 +63,7 @@ NCPU=479                    # number of compute CPUs for all simulations
 NUMWRITERS=1 
 NCPUCAPACITY=528 
 CYCLETIMELIMIT="99:00:00"
+ACCOUNT=DesignSafe-CERA
 
 # External data sources : Tropical cyclones
 
@@ -161,7 +162,7 @@ RMQMessaging_Python="/usr/local/packages/python/2.7.12-anaconda/bin/python"
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=null_post.sh
+POSTPROCESS=cera_post.sh
 #POSTPROCESS=null_post.sh
 POSTPROCESS2=null_post.sh
 
@@ -183,7 +184,7 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 # Archiving
 
 #ARCHIVE=queenbee_archive.sh
-ARCHIVE=ut-archive.sh
+ARCHIVE=null_archive.sh
 ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS/2018
 ARCHIVEDIR="${INSTANCENAME}_082017"
 
@@ -201,10 +202,10 @@ case $si in
    ENSTORM=namforecastWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=NGOM_RT_v18j.nowindreduction.15.template
+   CONTROLTEMPLATE=southfl-v11-1.nowindreduction.template.15
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=900.0    # 15 minute time steps
-   NCPU=19               # dramatically reduced resource requirements
+   NCPU=47               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output
