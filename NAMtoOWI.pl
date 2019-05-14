@@ -246,21 +246,20 @@ sub toOWIformat
             &stderrMessage("ERROR","The data file '$file' does not exist.");
             die;
         }       
-	open (FIL,$file);
-	my @file=<FIL>;
-	close(FIL);
+	open my $FIL, '<', $file || die $!;
 	my (@ugrd,@vgrd,@atmp,@uLines,@vLines,@pLines,$uStr,$vStr,$pStr);
 	undef ($uStr);
 	undef ($vStr);
 	undef ($pStr);
 	my $count=0;
 	my $null;
-	foreach my $line (@file)
+        while (my $line = <$FIL>)
 	{
 		($null,$null,$ugrd[$count],$vgrd[$count],$atmp[$count])=split/\s+/,$line;#2 nulls bc starts with space and don't need index number
 		#print "u,v,p=$ugrd[$count],$vgrd[$count],$atmp[$count]\n";
 		$count++;
 	}
+	close $FIL;
 	my $nTot=@ugrd-1;
 	my $miniCount=0;
 	for my $i (0 .. $nTot)# can do u, v and p at the same time
