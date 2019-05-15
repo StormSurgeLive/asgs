@@ -745,89 +745,55 @@ prepFile()
    echo "hpc.job.${JOBTYPE}.parallelism : serial" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.serialmodules : $SERIALMODULES" >> $STORMDIR/run.properties
+   job_defaults # pick up defaults and idiosyncracies from platforms.sh
+   echo "hpc.job.${JOBTYPE}.ppn : $PPN" >> $STORMDIR/run.properties
+   if [[ $QUEUESYS = "SLURM" ]]; then
+      echo "hpc.slurm.job.${JOBTYPE}.partition : $PARTITION" >> $STORMDIR/run.properties
+      echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
+      echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
+   fi
    #
    # start log redirect processes for centralized logging
    initCentralizedScenarioLogging
-    #
-    case $QUEUESYS in
-    "PBS")
-       QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --ppn $PPN --queuename $SERQUEUE --account $ACCOUNT --walltime $WALLTIME --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript_template $QSCRIPTTEMPLATE --enstorm ${ENSTORM} --notifyuser $NOTIFYUSER --syslog $SYSLOG"
-       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Preparing queue script for adcprep.${JOBTYPE}.pbs"
-       perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.pbs 2>> ${SYSLOG}
-       # submit adcprep job, check to make sure qsub succeeded, and if not, retry
-       while [ true ];  do
-          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-          echo "time.${JOBTYPE}.submit : $DATETIME" >> run.properties
-          qsub $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.pbs >> ${SYSLOG} 2>&1
-          if [[ $? = 0 ]]; then
-             break # qsub returned a "success" status
-          else
-             warn "$ENSTORM: $THIS: qsub $ADVISDIR/$ENSTORM/adcprep.${JOBTYPE}.pbs failed; will retry in 60 seconds."
-             sleep 60
-          fi
-       done
-       CURRENT_STATE="WAIT"
-       monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $WALLTIME
-       THIS="asgs_main.sh>prepFile()"
-       logMessage "$ENSTORM: $THIS: Finished adcprepping file ($JOBTYPE)."
-       ;;
-    "SLURM")
-       echo "hpc.slurm.job.${JOBTYPE}.partition : $PARTITION" >> $STORMDIR/run.properties
-       echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
-       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
-       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Preparing queue script for adcprep.${JOBTYPE}.slurm."
-       logMessage "$ENSTORM: $THIS: Preparing queue script for adcprep with the following: perl $SCRIPTDIR/$QSCRIPTGEN --jobtype $JOBTYPE"
-       perl $SCRIPTDIR/$QSCRIPTGEN --jobtype $JOBTYPE >> scenario.log 2> >(awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log )  
-       # submit adcprep job, check to make sure sbatch succeeded, and if not, retry
-       while [ true ];  do
-          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-          echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> run.properties
-          # submit job with sbatch, capture stdout from sbatch and direct it
-          # to scenario.log; capture stderr 
-          sbatch ${JOBTYPE}.slurm  --jobtype $JOBTYPE >> scenario.log 2> >(awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log ) 
-          if [[ $? = 0 ]]; then
-             break # qsub returned a "success" status
-          else
-             warn "$ENSTORM: $THIS: sbatch $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm failed; will retry in 60 seconds."
-             sleep 60
-          fi
-       done
-       CURRENT_STATE="WAIT"
-       monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $WALLTIME
-       THIS="asgs_main.sh>prepFile()"
-       CURRENT_STATE="WAIT"
-       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Finished adcprepping file ($JOBTYPE)."
-       logMessage "$ENSTORM: $THIS: Finished adcprepping file ($JOBTYPE)."
-       ;;
-    "SGE")
-       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
-       SERQSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --account $ACCOUNT --adcircdir $ADCIRCDIR --walltime $WALLTIME --advisdir $ADVISDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --serqscript $SCRIPTDIR/input/machines/$HPCENVSHORT/$SERQSCRIPT"
-       perl $SCRIPTDIR/$SERQSCRIPTGEN $SERQSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/adcprep.serial.sge 2>> ${SYSLOG}
-       logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/adcprep.serial.sge."
-       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-       echo "time.${JOBTYPE}.submit : $DATETIME" >> run.properties
-       qsub $ADVISDIR/$ENSTORM/adcprep.serial.sge >> ${SYSLOG} 2>&1
-       # if qsub succeeded, monitor the job, otherwise an error is indicated
-       if [[ $? = 1 ]]; then
-          rangerResubmit $ADVISDIR $ENSTORM adcprep.serial.sge $SYSLOG
-          THIS="asgs_main.sh>prepFile()"
-       fi
-       # check once per minute until all jobs have finished
-       CURRENT_STATE="WAIT"
-       monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $WALLTIME
-       THIS="asgs_main.sh>prepFile()"
-       scenarioMessage "$ENSTORM: $THIS: adcprep finished."
-       ;;
-    *)
-       logMessage "Submitting job with $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/scenario.log 2>&1"
-       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} --strict-boundaries >> $ADVISDIR/$ENSTORM/scenario.log 2>&1
-       # check to see if adcprep completed successfully
-       if [[ $? != 0 ]]; then
-          error "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/scenario.log for details."
-          echo "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/scenario.log for details." >> jobFailed
-       fi
-       ;;
-    esac
+   #
+   case $QUEUESYS in
+   "SLURM" | "PBS" | "SGE" )
+      queuesyslc=`echo $QUEUESYS | tr '[:upper:]' '[:lower:]'`
+      RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Preparing queue script for adcprep.${JOBTYPE}.${queuesyslc}."
+      scenarioMessage "$ENSTORM: $THIS: Preparing queue script for adcprep with the following: perl $SCRIPTDIR/$QSCRIPTGEN --jobtype $JOBTYPE"
+      perl $SCRIPTDIR/$QSCRIPTGEN --jobtype $JOBTYPE >> scenario.log 2> >(awk -v this=$QSCRIPTGEN -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log )  
+      # submit adcprep job, check to make sure queue script submission
+      # succeeded, and if not, retry
+      while [ true ];  do
+         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+         echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> run.properties
+         # submit job , capture stdout from sbatch and direct it
+         # to scenario.log; capture stderr and send to all logs 
+         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} >> scenario.log 2> >(awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log ) 
+         if [[ $? = 0 ]]; then
+            break # job submission command returned a "success" status
+         else
+            warn "$ENSTORM: $THIS: $SUBMITSTRING ${JOBTYPE}.${queuesyslc} failed; will retry in 60 seconds."
+            sleep 60
+         fi
+      done
+      CURRENT_STATE="WAIT"
+      monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $WALLTIME
+      THIS="asgs_main.sh>prepFile()"
+      CURRENT_STATE="WAIT"
+      RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Finished adcprepping file ($JOBTYPE)."
+      logMessage "$ENSTORM: $THIS: Finished adcprepping file ($JOBTYPE)."
+      ;;
+   *)
+      logMessage "Submitting job with $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/scenario.log 2>&1"
+      $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} --strict-boundaries >> $ADVISDIR/$ENSTORM/scenario.log 2>&1
+      # check to see if adcprep completed successfully
+      if [[ $? != 0 ]]; then
+         error "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/scenario.log for details."
+         echo "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/scenario.log for details." >> jobFailed
+      fi
+      ;;
+   esac
 }
 #
 # subroutine that calls an external script over and over until it
@@ -1278,56 +1244,13 @@ submitJob()
       # can kill the job if it exceeds the expected wall clock time
       echo "serial $JOBTYPE job subshell pid : $!" >> ${ADVISDIR}/${ENSTORM}/run.properties 2>> ${SYSLOG}
       ;;
-
    #
-   #  Load Sharing Facility (LSF); used on topsail at UNC
-   "LSF")
-      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-      echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-      bsub -x -n $NCPU -q $QUEUENAME -o log.%J -e err.%J -a mvapich mpirun $ADCIRCDIR/$JOBTYPE $CLOPTION >> ${SYSLOG}
-      ;;
-   #
-   #  LoadLeveler (often used on IBM systems)
-   "LoadLeveler")
-      perl $SCRIPTDIR/loadleveler.pl --jobtype $JOBTYPE --ncpu $NCPU --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --inputdir $INPUTDIR --enstorm $ENSTORM --notifyuser $NOTIFYUSER --numwriters $NUMWRITERS $LOCALHOTSTART > $ADVISDIR/$ENSTORM/${JOBTYPE}.ll 2>> ${SYSLOG}
-      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-      echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-      llsubmit $ADVISDIR/$ENSTORM/${JOBTYPE}.ll >> ${SYSLOG} 2>&1
-      ;;
-   #
-   #  Portable Batch System (PBS); widely used
-   "PBS")
-      QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$HPCENVSHORT/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING $LOCALHOTSTART --syslog $SYSLOG"
-      if [[ $PPN -ne 0 ]]; then
-         QSCRIPTOPTIONS="$QSCRIPTOPTIONS --ppn $PPN"
-      fi
-      if [[ $NUMWRITERS != "0" ]]; then
-         QSCRIPTOPTIONS="$QSCRIPTOPTIONS --numwriters $NUMWRITERS"
-      fi
-      logMessage "$ENSTORM: $THIS: QSCRIPTOPTIONS is $QSCRIPTOPTIONS"
-      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs 2>> ${SYSLOG}
-      logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs"
-      # initialize log files so they can be centralized
-      initCentralizedScenarioLogging
-      # submit job, check to make sure qsub succeeded, and if not, retry
-      while [ true ];  do
-         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-         echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-         qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs >> ${SYSLOG} 2>&1
-         if [[ $? = 0 ]]; then
-            break # qsub returned a "success" status
-         else
-            warn "$ENSTORM: $THIS: qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.pbs failed; will retry in 60 seconds."
-            sleep 60
-         fi
-      done
-      ;;
-   #
-   #  SLURM
-   "SLURM")
+   #  SLURM PBS SGE LoadLeveler LSF
+   "SLURM" | "PBS" | "SGE" | "LoadLeveler" | "LSF" )
+      queuesyslc=`echo $QUEUESYS | tr '[:upper:]' '[:lower:]'`
       perl $SCRIPTDIR/$QSCRIPTGEN --jobtype $JOBTYPE 2>&1 | awk -v this=$QSCRIPTGEN -f $SCRIPTDIR/monitoring/timestamp.awk >> $ADVISDIR/$ENSTORM/scenario.log
-      RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm"
-      logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm"
+      RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesyslc}."
+      logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesyslc}."
       # initialize log files so they can be centralized
       initCentralizedScenarioLogging
       #
@@ -1335,13 +1258,13 @@ submitJob()
       while [ true ];  do
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-         sbatch ${JOBTYPE}.slurm >> ${SYSLOG} 2>&1
+         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} >> ${SYSLOG} 2>&1
          if [[ $? = 0 ]]; then
-            RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "sbatch ${JOBTYPE}.slurm successful."
-            break # sbatch returned a "success" status
+            RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$SUBMITSTRING ${JOBTYPE}.${queuesyslc} successful."
+            break # job submission command returned a "success" status
          else
-            RMQMessage "WARN" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WARN" "sbatch ${JOBTYPE}.slurm failed; will retry in 60 seconds."
-            warn "$ENSTORM: $THIS: sbatch $ADVISDIR/$ENSTORM/${JOBTYPE}.slurm failed; will retry in 60 seconds."
+            RMQMessage "WARN" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WARN" "$SUBMITSTRING ${JOBTYPE}.${queuesyslc} failed; will retry in 60 seconds."
+            warn "$ENSTORM: $THIS: $SUBMITSTRING $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesys} failed; will retry in 60 seconds."
             sleep 60
          fi
       done
@@ -1375,60 +1298,11 @@ submitJob()
       # can kill the job if it exceeds the expected wall clock time
       echo "mpiexec subshell pid : $!" >> ${ADVISDIR}/${ENSTORM}/run.properties 2>> ${SYSLOG}
       ;;
-#
-#  Sun Grid Engine (SGE); used on Sun and many Linux clusters
-   "SGE")
-      QSCRIPTOPTIONS="--jobtype $JOBTYPE --ncpu $NCPU --ncpudivisor $NCPUDIVISOR --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$HPCENVSHORT/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING --syslog $SYSLOG --numwriters $NUMWRITERS $LOCALHOTSTART"
-      perl $SCRIPTDIR/$QSCRIPTGEN $QSCRIPTOPTIONS > $ADVISDIR/$ENSTORM/${JOBTYPE}.sge 2>> ${SYSLOG}
-      logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.sge"
-      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-      echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-      qsub $ADVISDIR/$ENSTORM/${JOBTYPE}.sge >> ${SYSLOG} 2>&1
-      # if qsub failed, resubmit the job 5 times before giving up
-      if [[ $? = 1 ]]; then
-         rangerResubmit $ADVISDIR $ENSTORM ${JOBTYPE}.sge $SYSLOG
-         THIS="asgs_main.sh>submitJob()"
-      fi
-      ;;
    *)
       RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM" "FAIL" "Queueing system $QUEUESYS unrecognized."
       fatal "$ENSTORM: $THIS: Queueing system $QUEUESYS unrecognized."
       ;;
    esac
-}
-#
-# since valid jobs are sometimes rejected on ranger, this function will
-# attempt to resubmit rejected jobs 5 times before giving up
-rangerResubmit()
-{
-   ADVISDIR=$1
-   ENSTORM=$2
-   SCRIPTNAME=$3
-   SYSLOG=$4
-#
-   THIS="asgs_main.sh>rangerResubmit():"
-   num_retries=0
-   success=0
-   while [[ $num_retries -le 5 ]]; do
-      logMessage "$ENSTORM: $THIS: SGE rejected the job; will resubmit after 60 seconds."
-      sleep 60
-      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-      echo "time.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-      qsub $ADVISDIR/$ENSTORM/$SCRIPTNAME >> ${SYSLOG} 2>&1
-      num_retries=`expr $num_retries + 1`
-      logMessage "$ENSTORM: $THIS: The number of retries is $num_retries."
-      if [[ $? = 0 ]]; then
-         success=1
-         logMessage "$ENSTORM: $THIS: The job was successfully resubmitted."
-         break
-      fi
-   done
-   if [[ $success = 0 ]]; then
-      date > $ADVISDIR/$ENSTORM/run.error
-      msg="$ENSTORM: $THIS: The job '$ADVISDIR/$ENSTORM/$SCRIPTNAME' was not accepted by SGE after it was resubmitted $num_retries times."
-      warn $msg
-      echo $msg >> $ADVISDIR/$ENSTORM/run.error
-   fi
 }
 #
 # checks to see if a job has failed, and if so, copies it off to
@@ -1767,11 +1641,11 @@ writeJobResourceRequestProperties()
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.ncpu : $NCPU" >> $STORMDIR/run.properties
-   echo "hpc.job.${JOBTYPE}.ppn : $PPN" >> $STORMDIR/run.properties
    if [[ $NCPU -gt 1 ]]; then
       echo "hpc.job.${JOBTYPE}.parallelism : parallel" >> $STORMDIR/run.properties
+      echo "hpc.job.${JOBTYPE}.parallelmodules : $PARALLELMODULES" >> $STORMDIR/run.properties
+      echo "hpc.job.${JOBTYPE}.numwriters : $NUMWRITERS" >> $STORMDIR/run.properties    
    fi
-   echo "hpc.job.${JOBTYPE}.numwriters : $NUMWRITERS" >> $STORMDIR/run.properties    
    echo "hpc.job.limit.hindcastwalltime : $HINDCASTWALLTIME" >> $STORMDIR/run.properties    
    echo "hpc.job.limit.nowcastwalltime : $NOWCASTWALLTIME" >> $STORMDIR/run.properties       
    echo "hpc.job.limit.forecastwalltime : $FORECASTWALLTIME" >> $STORMDIR/run.properties       
@@ -1781,7 +1655,6 @@ writeJobResourceRequestProperties()
       echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
    fi
-   echo "hpc.job.${JOBTYPE}.parallelmodules : $PARALLELMODULES" >> $STORMDIR/run.properties
    JOBENVSTRING="("
    for string in ${JOBENV[*]}; do
       JOBENVSTRING="$JOBENVSTRING $string"
@@ -1789,6 +1662,8 @@ writeJobResourceRequestProperties()
    JOBENVSTRING="$JOBENVSTRING )" 
    echo "hpc.job.${JOBTYPE}.jobenv : $JOBENVSTRING" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.path.jobenvdir : $JOBENVDIR" >> $STORMDIR/run.properties
+   job_defaults # pick up defaults and idiosyncracies from platforms.sh
+   echo "hpc.job.${JOBTYPE}.ppn : $PPN" >> $STORMDIR/run.properties
    # legacy properties
    echo "cpurequest : $CPUREQUEST" >> ${STORMDIR}/run.properties
    echo "ncpu : $NCPU" >> ${STORMDIR}/run.properties  # number of compute CPUs
