@@ -80,14 +80,15 @@ TRIGGER=rssembedded              # either "ftp" or "rss"
 #FTPSITE=filesystem
 #FDIR=${INPUTDIR}/sample_advisories
 #HDIR=${INPUTDIR}/sample_advisories
-#RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
-#FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
 #FDIR=/atcf/afst                  # forecast dir on nhc ftp site
 #HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
-FDIR=                             # forecast dir on nhc ftp site
+FDIR=null      # <-- add "null" to avoid unset parameter 
 HDIR=/atcf/btk                    # hindcast dir on nhc ftp site
-RSSSITE=https://www.stormsurge.live   # site information for retrieving advisories
-FTPSITE=ftp://stormsurge.live         # hindcast/nowcast ATCF formatted files
+#
+#RSSSITE=www.nhc.noaa.gov     # <-- real site as example  
+#FTPSITE=ftp.nhc.noaa.gov     #
+RSSSITE=www.stormsurge.live   # site information for retrieving advisories
+FTPSITE=stormsurge.live       # hindcast/nowcast ATCF formatted files
 
 # External data sources : Background Meteorology
 
