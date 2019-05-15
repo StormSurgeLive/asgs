@@ -33,6 +33,7 @@ my $ncpu = "null";      # number of CPUs the job should run on
 my $totalcpu = "null";  # ncpu + numwriters
 my $nnodes = "null";    # number of cluster nodes 
 my $queuename;    # name of the queue to submit the job to
+my $queuesys;     # name of the queue to submit the job to
 my $parallelism;  # "serial" or "parallel"
 my $account;      # name of the account to take the hours from
 my $adcircdir;    # directory where the padcirc executable is found
@@ -103,6 +104,8 @@ $cloptions = "";
 $adcircdir = $properties{"path.adcircdir"};
 # get path to asgs executables
 $scriptdir = $properties{"path.scriptdir"};
+# type of queueing system
+$queuesys = $properties{"hpc.queuesys"};
 # determine whether this is a parallel job 
 $parallelism = $properties{"hpc.job.$jobtype.parallelism"};
 # get number of processors per node
@@ -144,7 +147,6 @@ if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ){
    $joblauncher =~ s/%totalcpu%/$totalcpu/g;
    $joblauncher =~ s/%nnodes%/$nnodes/g;
    $cmd="$joblauncher $adcircdir/$jobtype $cloptions"
-   
 }
 # 
 # compute wall clock time HH:MM:SS in minutes
@@ -156,8 +158,8 @@ $wallminutes = $1*60 + $2;
 $qscripttemplate = $properties{"hpc.job.$jobtype.file.qscripttemplate"};
 #
 # set name of qscript
-$qscript = $jobtype . ".slurm";
-
+my $queuesyslc = lc $queuesys;
+$qscript = $jobtype . "." . $queuesyslc;
 #
 #-----------------------------------------------------------------
 #
@@ -179,8 +181,10 @@ unless (open(QSCRIPT,">$qscript")) {
 }
 #
 while(<TEMPLATE>) {
-    # fill in the number of compute cores
+    # fill in the number of compute cores (i.e., not including writers)
     s/%ncpu%/$ncpu/;
+    # number of cores per compute node
+    s/%ppn%/$ppn/;
     # fill in the total number of cores 
     s/%totalcpu%/$totalcpu/;
     # the estimated amount of wall clock time
@@ -213,12 +217,14 @@ while(<TEMPLATE>) {
     } else {
        s/%notifyuser%/null/g;
     }
-    # the SLURM partition
-    s/%partition%/$properties{"hpc.slurm.job.$jobtype.partition"}/g;
-    # the SLURM reservation
-    s/%reservation%/$properties{"hpc.slurm.job.$jobtype.reservation"}/g;
-    # the SLURM constraint
-    s/%constraint%/$properties{"hpc.slurm.job.$jobtype.constraint"}/g;
+    if ( $queuesys eq "SLURM" ) {
+       # the SLURM partition
+       s/%partition%/$properties{"hpc.slurm.job.$jobtype.partition"}/g;
+       # the SLURM reservation
+       s/%reservation%/$properties{"hpc.slurm.job.$jobtype.reservation"}/g;
+       # the SLURM constraint
+       s/%constraint%/$properties{"hpc.slurm.job.$jobtype.constraint"}/g;
+    }
     # fills in the number of nodes on platforms that require it
     s/%nnodes%/$nnodes/g;
     # fill in the module commands generally needed on this platform

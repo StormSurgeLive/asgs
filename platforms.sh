@@ -61,25 +61,31 @@ init_queenbee()
   QUEUENAME=workq
   SERQUEUE=single
   SUBMITSTRING=qsub
-  JOBLAUNCHER='mpirun -np %totalncpu% -machinefile $PBS_NODEFILE'
+  QSCRIPTTEMPLATE=$SCRIPTDIR/input/queuesys/PBS/pbs.template
+  QSCRIPTGEN=slurm.pl # asgs looks in $SCRIPTDIR for this
+  RMQMessaging_LocationName="LONI"
+  RMQMessaging_ClusterName="Queenbee"
+  JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
+  JOBENVDIR=$SCRIPTDIR/config/machines/queenbee
+  JOBENV=( )
+  PLATFORMMODULES='module load intel netcdf netcdf_fortran perl'
+  # modules for CPRA post processing
+  SERIALMODULES='module load matlab/r2015b python/2.7.12-anaconda-tensorflow'
+  PARALLELMODULES='module load mvapich2'
   if [[ $USER = "jgflemin" ]]; then
      SCRATCHDIR=/work/$USER
      ACCOUNT=loni_cera_2019
+     JOBENV=( gmt.sh gdal.sh imagemagick.sh )
+     for script in $JOBENV; do
+        source $JOBENVDIR/$script
+     done
   fi
-  SCRATCHDIR=/work/cera
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=$SCRIPDIR/input/machines/queenbee/queenbee.template.pbs
-  PREPCONTROLSCRIPT=$SCRIPTDIR/input/machines/queenbee/queenbee.adcprep.template.pbs
-  QSCRIPTGEN=tezpur.pbs.pl
-  PPN=20
   REMOVALCMD="rmpurge"
-  PLATFORMMODULES='module load intel netcdf netcdf_fortran gcc perl'
+  module purge
   $PLATFORMMODULES
-  # modules for CPRA post processing
-  # FIXME: Do these belong in the post processing scripts instead?
-  module load matlab/r2015b
-  module load python/2.7.12-anaconda-tensorflow
+  $SERIALMODULES
 }
 
 init_rostam()
@@ -327,7 +333,6 @@ init_stampede2()
   SSHKEY=~/.ssh/id_rsa_stampede2
   QSCRIPTTEMPLATE=$SCRIPTDIR/input/queuesys/SLURM/slurm.template
   QSCRIPTGEN=slurm.pl
-  PPN=48
   GROUP="G-803086"
   RMQMessaging_LocationName="TACC"
   RMQMessaging_ClusterName="Stampede2"
@@ -339,7 +344,6 @@ init_stampede2()
   JOBENVDIR=$SCRIPTDIR/config/machines/stampede2
   JOBENV=( )
   if [[ $USER = jgflemin ]]; then
-     PPN=48
      ACCOUNT=DesignSafe-CERA
      # don't use built in netcdf module
      JOBENV=( netcdf.sh gmt.sh gdal.sh )
@@ -730,9 +734,31 @@ init_test()
   QUEUESYS=Test
   NCPU=-1
 }
+#
+# executed to pick up default settings for compute jobs on each platform
+# (if any) and also to handle related idiosyncracies
+job_defaults() {
+   case $HPCENVSHORT in 
+   "queenbee")
+      # should be 20 in priority queue on queenbee even for serial jobs
+      PPN=20
+      # get parallelism property
+      PARALLELISM=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.parallelism\s*:\s*//p" run.properties`
+      if [[ $QUEUENAME != "priority" && $PARALLELISM = "serial" ]]; then 
+         PPN=1   
+      fi
+      ;;
+   "stampede2")
+      PPN=48
+      ;;
+   *)
+      scenarioMessage "platforms.sh>job_defaults: There are no platform-specific settings for jobtype $JOBTYPE on the $HPCENVSHORT platform."
+      ;;
+   esac
+}
+#
 # used to dispatch environmentally sensitive actions
-# such as queue interactions
-env_dispatch(){
+env_dispatch() {
  HPCENVSHORT=$1
  case $HPCENVSHORT in
   "camellia") consoleMessage "platforms.sh: Camellia(WorldWinds) configuration found."
