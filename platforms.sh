@@ -239,28 +239,22 @@ init_hatteras()
 { #<- can replace the following with a custom script
   HPCENV=hatteras.renci.org
   QUEUESYS=SLURM
-  QCHECKCMD=sacct
-  ACCOUNT=null
-  RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
   QUEUENAME=batch # <---<< PARTITION synonym on slurm
+  SERQUEUE=batch
   CONSTRAINT=null      # ivybridge or sandybridge
+  RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
+  QCHECKCMD=sacct
+  JOBLAUNCHER='srun '
+  ACCOUNT=null
+  SUBMITSTRING=sbatch
+  SCRATCHDIR=/projects/ncfs/data
+  SSHKEY=~/.ssh/id_rsa.pub
+  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTGEN=qscript.pl
   WALLTIMEFORMAT="minutes"
-  case $USER in 
-  bblanton) 
-     ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
-     SCRATCHDIR=/scratch/bblanton/data
-     PYTHONVENV=/projects/storm_surge/anaconda
-     ;;
-  ncfs)
-     ACCOUNT=ncfs
-     SCRATCHDIR=/projects/ncfs/data
-     QUEUENAME=ncfs     # SLURM partition---ncfs or batch---gives priority
-     PYTHONVENV=~/asgs/asgspy/venv
-     ;;
-  *)
-     echo "User name $USER on hatteras not recognized and ACCOUNT could not be set."
-     ;;
-  esac
+  QSUMMARYCMD=null
+  QUOTACHECKCMD="df -h /projects/ncfs"
+  ALLOCCHECKCMD=null
   #
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
@@ -269,19 +263,30 @@ init_hatteras()
   RMQMessaging_LocationName="RENCI"
   RMQMessaging_ClusterName="Hatteras"
   #
-  QSUMMARYCMD=null
-  QUOTACHECKCMD="df -h /projects/ncfs"
-  ALLOCCHECKCMD=null
-  SUBMITSTRING=sbatch
-  JOBLAUNCHER=srun
-  SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=$SCRIPTDIR/input/machines/hatteras/ hatteras.template.slurm
-  PREPCONTROLSCRIPT=$SCRIPTDIR/input/machines/hatteras/hatteras.adcprep.template.slurm
-  QSCRIPTGEN=hatteras.slurm.pl
-  PPN=16
-  if [[ $RESERVATION = ncfs ]]; then
-     PPN=20
-  fi
+  PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0'
+  SERIALMODULES='module load' # no extra modules for serial jobs
+  PARALLELMODULES='module load mvapich2/2.0-acis'
+  # specify location of platform- and Operator-specific scripts to 
+  # set up environment for different types of jobs
+  JOBENVDIR=$SCRIPTDIR/config/machines/hatteras
+  JOBENV=( gdal.sh gmt.sh fftw.sh netcdf.sh )
+  case $USER in 
+  bblanton) 
+     ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
+     SCRATCHDIR=/scratch/bblanton/data
+     PYTHONVENV=/projects/storm_surge/anaconda
+     ;;
+  ncfs)
+     ACCOUNT=ncfs
+     QUEUENAME=ncfs     # SLURM partition---ncfs or batch---gives priority
+     PYTHONVENV=~/asgs/asgspy/venv
+     ;;
+  *)
+     echo "User name $USER on hatteras not recognized and ACCOUNT could not be set."
+     ;;
+  esac
+  #
+  #
   # to create python environment for the ncfs user, @jasonfleming did this:
   #   pip install --user --upgrade pip
   #   pip install --user --upgrade setuptools
@@ -291,13 +296,12 @@ init_hatteras()
   # for the automated slide deck generator
   #   pip install --user pptx
   #
-  export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
-  PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.11-acis  netcdf/4.1.2-acis mvapich2/2.0-acis'
   if [[ $USER = ncfs ]]; then
      PLATFORMMODULES=$PLATFORMMODULES' python_modules/2.7'
   fi
   module purge
   $PLATFORMMODULES
+  $SERIALMODULES
 }
 init_stampede()
 { #<- can replace the following with a custom script
@@ -752,6 +756,11 @@ job_defaults() {
       ;;
    "stampede2")
       PPN=48
+      ;;
+   "hatteras")
+      # hatteras is heterogeneous and does not use this but it could 
+      # conceivably be set on a job-by-job basis
+      PPN=null
       ;;
    *)
       scenarioMessage "platforms.sh>job_defaults: There are no platform-specific settings for jobtype $JOBTYPE on the $HPCENVSHORT platform."
