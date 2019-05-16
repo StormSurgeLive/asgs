@@ -181,7 +181,8 @@ unless (open(QSCRIPT,">$qscript")) {
 #
 while(<TEMPLATE>) {
     # remove queue system directives from queueing systems other than 
-    # the one specified
+    # the one specified and then fill in the correct environment 
+    # variables for the queue system we ar using
     if ( $queuesys eq "PBS" ) {
        s/#SBATCH/null/g;
        s/%JOBID%/PBS_JOBID/g;
@@ -196,9 +197,10 @@ while(<TEMPLATE>) {
        s/%JOBHOST%/SLURM_SUBMIT_HOST/g;
        s/%JOBNODES%/SLURM_JOB_NODELIST/g;
     }
-    # fill in the number of compute cores (i.e., not including writers)
+    # fill in the lower case name of the queueing system
     s/%queuesyslc%/$queuesyslc/g;
-    # fill in the number of compute cores (i.e., not including writers)
+    # fill in the name of the queueing system (typicall upper case in the 
+    # run.properties file 
     s/%queuesys%/$queuesys/g;
     # fill in the number of compute cores (i.e., not including writers)
     s/%ncpu%/$ncpu/;
@@ -214,21 +216,21 @@ while(<TEMPLATE>) {
     }
     # name of the account to take the hours from
     s/%account%/$properties{"hpc.job.$jobtype.account"}/;
-    # directory where padcirc executable is located
+    # directory where adcirc executables are located
     s/%adcircdir%/$properties{"path.adcircdir"}/;
-    # directory where padcirc executable is located
+    # directory where asgs executables are located
     s/%scriptdir%/$properties{"path.scriptdir"}/;
     # directory for this particular advisory
     s/%advisdir%/$properties{"path.advisdir"}/;  
     # name of this member of the ensemble (nowcast, storm3, etc)
     s/%scenario%/$properties{"scenario"}/g;  
-    # file to direct stdout and stderr to from the adcirc process
+    # name of overall asgs log file 
     s/%syslog%/$properties{"file.syslog"}/g;
     # fill in command line options
     s/%cloptions%/$cloptions/;
     # fill in command to be executed
     s/%cmd%/$cmd/;
-    # the type of job that is being submitted
+    # the type of job that is being submitted (partmesh, prep15, padcirc, etc)
     s/%jobtype%/$jobtype/g;
     # the email address of the ASGS Operator
     if ( $properties{"notification.emailnotify"} eq "yes" ) { 
@@ -241,19 +243,20 @@ while(<TEMPLATE>) {
        s/%reservation%/$properties{"hpc.slurm.job.$jobtype.reservation"}/g;
        # the SLURM constraint
        s/%constraint%/$properties{"hpc.slurm.job.$jobtype.constraint"}/g;
+       # partition is not here b/c it is synonym for queuename
     }
     # fills in the number of nodes on platforms that require it
     s/%nnodes%/$nnodes/g;
     # fill in the module commands generally needed on this platform
     s/%platformmodules%/$properties{"hpc.platformmodules"}/g;
     # fill in serial modules for serial job
-    if ( $jobtype eq "partmesh" || $jobtype =~/prep/ ) {
+    if ( $parallelism eq "serial" ) {
        s/%jobmodules%/$properties{"hpc.job.$jobtype.serialmodules"}/g;   
        # name of the queue on which to run
        s/%queuename%/$properties{"hpc.job.$jobtype.serqueue"}/;
     }
     # fill in parallel modules for parallel job 
-    if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ) {
+    if ( $parallelism eq "parallel" ) {
        s/%jobmodules%/$properties{"hpc.job.$jobtype.parallelmodules"}/g;
        # name of the queue on which to run
        s/%queuename%/$properties{"hpc.job.$jobtype.queuename"}/;
