@@ -65,6 +65,10 @@ init_queenbee()
   QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
   RMQMessaging_LocationName="LONI"
   RMQMessaging_ClusterName="Queenbee"
+  RMQMessaging_Enable="on"      # "on"|"off"
+  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  RMQMessaging_NcoHome="$HOME/local"
+  RMQMessaging_Python=/usr/local/packages/python/2.7.12-anaconda/bin/python
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
   PLATFORMMODULES='module load intel netcdf netcdf_fortran perl'
