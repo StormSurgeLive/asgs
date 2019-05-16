@@ -96,8 +96,8 @@ init_rostam()
   QSUMMARYCMD=squeue
   QUOTACHECKCMD=null
   ALLOCCHECKCMD=null
-  QUEUENAME=rostam
-  SERQUEUE=rostam
+  QUEUENAME=marvin  # same as SLURM partition 
+  SERQUEUE=marvin
   ACCOUNT=null
   SUBMITSTRING=sbatch
   #JOBLAUNCHER='srun -N %nnodes%'
@@ -108,7 +108,6 @@ init_rostam()
   PREPCONTROLSCRIPT=rostam.adcprep.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=16
-  PARTITION=marvin
   CONSTRAINT=null
   RESERVATION=null
   REMOVALCMD="rm"
@@ -242,6 +241,9 @@ init_hatteras()
   QUEUESYS=SLURM
   QCHECKCMD=sacct
   ACCOUNT=null
+  RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
+  QUEUENAME=batch # <---<< PARTITION synonym on slurm
+  CONSTRAINT=null      # ivybridge or sandybridge
   WALLTIMEFORMAT="minutes"
   case $USER in 
   bblanton) 
@@ -252,7 +254,7 @@ init_hatteras()
   ncfs)
      ACCOUNT=ncfs
      SCRATCHDIR=/projects/ncfs/data
-     PARTITION=ncfs       # ncfs or batch, gives priority
+     QUEUENAME=ncfs     # SLURM partition---ncfs or batch---gives priority
      PYTHONVENV=~/asgs/asgspy/venv
      ;;
   *)
@@ -275,9 +277,6 @@ init_hatteras()
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=$SCRIPTDIR/input/machines/hatteras/ hatteras.template.slurm
   PREPCONTROLSCRIPT=$SCRIPTDIR/input/machines/hatteras/hatteras.adcprep.template.slurm
-  RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
-  PARTITION=null
-  CONSTRAINT=null      # ivybridge or sandybridge
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=16
   if [[ $RESERVATION = ncfs ]]; then
@@ -323,16 +322,18 @@ init_stampede2()
 { #<- can replace the following with a custom script
   HPCENV=stampede2.tacc.utexas.edu
   QUEUESYS=SLURM
-  QUEUENAME=skx-normal
+  QUEUENAME=skx-normal # same as SLURM partition
   SERQUEUE=skx-normal
+  CONSTRAINT=null
+  RESERVATION=null
   QCHECKCMD=sacct
   JOBLAUNCHER='ibrun '
   ACCOUNT=null
   SUBMITSTRING=sbatch
   SCRATCHDIR=$SCRATCH
   SSHKEY=~/.ssh/id_rsa_stampede2
-  QSCRIPTTEMPLATE=$SCRIPTDIR/input/queuesys/SLURM/slurm.template
-  QSCRIPTGEN=slurm.pl
+  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTGEN=qscript.pl
   GROUP="G-803086"
   RMQMessaging_LocationName="TACC"
   RMQMessaging_ClusterName="Stampede2"
@@ -566,12 +567,11 @@ init_lonestar()
 { #<- can replace the following with a custom script
   HPCENV=lonestar.tacc.utexas.edu
   QUEUESYS=SLURM
-  QUEUENAME=normal
+  QUEUENAME=normal # same as SLURM partition
   SERQUEUE=normal
   QCHECKCMD=squeue
   PPN=24
   RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
-  PARTITION=null       # ncfs or batch, gives priority
   CONSTRAINT=null      # ivybridge or sandybridge
   ACCOUNT=null
   SUBMITSTRING=sbatch
@@ -740,11 +740,13 @@ init_test()
 job_defaults() {
    case $HPCENVSHORT in 
    "queenbee")
-      # should be 20 in priority queue on queenbee even for serial jobs
+      # in general should be 20; actually for serial jobs submitted to
+      # priority queue on queenbee, should still be 20, strange but true
       PPN=20
       # get parallelism property
       PARALLELISM=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.parallelism\s*:\s*//p" run.properties`
       if [[ $QUEUENAME != "priority" && $PARALLELISM = "serial" ]]; then 
+         # for serial jobs in non-priority queue, PPN is 1
          PPN=1   
       fi
       ;;

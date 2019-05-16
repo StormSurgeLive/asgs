@@ -748,7 +748,6 @@ prepFile()
    job_defaults # pick up defaults and idiosyncracies from platforms.sh
    echo "hpc.job.${JOBTYPE}.ppn : $PPN" >> $STORMDIR/run.properties
    if [[ $QUEUESYS = "SLURM" ]]; then
-      echo "hpc.slurm.job.${JOBTYPE}.partition : $PARTITION" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
    fi
@@ -1446,7 +1445,6 @@ variables_init()
    POST_LIST=null
    JOB_FAILED_LIST=null
    NOTIFYUSER=null
-   PARTITION=null   # for SLURM
    RESERVATION=null # for SLURM
    CONSTRAINT=null  # for SLURM
    ASGSADMIN=null
@@ -1651,7 +1649,6 @@ writeJobResourceRequestProperties()
    echo "hpc.job.limit.forecastwalltime : $FORECASTWALLTIME" >> $STORMDIR/run.properties       
    echo "hpc.job.limit.adcprepwalltime : $ADCPREPWALLTIME" >> $STORMDIR/run.properties       
    if [[ $QUEUESYS = SLURM ]]; then
-      echo "hpc.slurm.job.${JOBTYPE}.partition : $PARTITION" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
    fi
