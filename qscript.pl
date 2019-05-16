@@ -21,7 +21,6 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
 #--------------------------------------------------------------------------
-#
 $^W++;
 use strict;
 use integer;
@@ -59,7 +58,7 @@ my $cmd="null";        # command to be executed
 my $numwriters=0;    # number of writer processors, if any
 my $joblauncher = "null"; # executable line in qscript (ibrun, mpirun, etc)
 our %properties;     # holds the run.properties file
-our $this="slurm.pl";
+our $this="qscript.pl";
 # initialize to the log file that adcirc uses, just in case
 our $syslog="scenario.log";
 #
@@ -136,9 +135,13 @@ if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ){
       $totalcpu = $ncpu + $numwriters;
    }
    # determine number of compute nodes to request
-   $nnodes = int($totalcpu/$ppn); 
-   if ( ($totalcpu%$ppn) != 0 ) {
-      $nnodes++;
+   if ( $ppn ne "null" ) { 
+      $nnodes = int($totalcpu/$ppn); 
+      if ( ($totalcpu%$ppn) != 0 ) {
+         $nnodes++;
+      }
+   } else {
+      $nnodes = "null";
    }
    $joblauncher = $properties{"hpc.joblauncher"};
    # fill in template positions in job launcher line
@@ -189,6 +192,9 @@ while(<TEMPLATE>) {
        s/%JOBDIR%/PBS_O_WORKDIR/g;
        s/%JOBHOST%/PBS_O_HOST/g;
        s/%JOBNODES%/PBS_NODEFILE/g;
+       s/%JOBNNODES%/PBS_NUM_NODES/g;
+       s/%JOBNTASKSPERNODE%/PBS_NUM_PPN/g;
+       s/%JOBNTASKS%/PBS_TASKNUM/g;
     }
     if ( $queuesys eq "SLURM" ) {
        s/#PBS/null/g;
@@ -196,6 +202,9 @@ while(<TEMPLATE>) {
        s/%JOBDIR%/SLURM_SUBMIT_DIR/g;
        s/%JOBHOST%/SLURM_SUBMIT_HOST/g;
        s/%JOBNODES%/SLURM_JOB_NODELIST/g;
+       s/%JOBNNODES%/SLURM_NNODES/g;
+       s/%JOBNTASKSPERNODE%/SLURM_NTASKS_PER_NODE/g;
+       s/%JOBNTASKS%/SLURM_NTASKS/g;
     }
     # fill in the lower case name of the queueing system
     s/%queuesyslc%/$queuesyslc/g;
