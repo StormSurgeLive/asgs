@@ -9,8 +9,8 @@
 #PBS -A %account%
 #PBS -o %advisdir%/%scenario%/%jobtype%.out
 #PBS -V
-#PBS -j oe  # combine stdout and stderr into on file) 
-#PBS -m a   # email on job abort
+#PBS -j oe  
+#PBS -m a   
 #PBS -M %notifyuser%
 #SBATCH --job-name="%jobtype%.%scenario%"
 #SBATCH --time=%walltime%
