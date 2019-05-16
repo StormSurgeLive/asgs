@@ -61,18 +61,18 @@ init_queenbee()
   QUEUENAME=workq
   SERQUEUE=single
   SUBMITSTRING=qsub
-  QSCRIPTTEMPLATE=$SCRIPTDIR/input/queuesys/PBS/pbs.template
-  QSCRIPTGEN=slurm.pl # asgs looks in $SCRIPTDIR for this
+  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
   RMQMessaging_LocationName="LONI"
   RMQMessaging_ClusterName="Queenbee"
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
-  JOBENVDIR=$SCRIPTDIR/config/machines/queenbee
-  JOBENV=( )
   PLATFORMMODULES='module load intel netcdf netcdf_fortran perl'
   # modules for CPRA post processing
   SERIALMODULES='module load matlab/r2015b python/2.7.12-anaconda-tensorflow'
   PARALLELMODULES='module load mvapich2'
+  JOBENVDIR=$SCRIPTDIR/config/machines/queenbee
+  JOBENV=( )
   if [[ $USER = "jgflemin" ]]; then
      SCRATCHDIR=/work/$USER
      ACCOUNT=loni_cera_2019
