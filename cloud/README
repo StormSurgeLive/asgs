@@ -15,7 +15,8 @@ in this case we're using the image available at
   % cd cloud/bento-ubuntu-18.10
   % vagrant up
   % vagrant ssh
-  $ sh init-openmpi.sh && sh init-adcirc.sh  # RUN FIRST TIME ONLY
+  $ bash init-perlbrew.sh
+  $ bash init-openmpi.sh && bash init-adcirc.sh  # RUN FIRST TIME ONLY
 
 NOTE: init-adcirc.sh pulls down asgs from GitHub (no credentials,
 required), it also attempts to pull down adcirc-cg but it requires
