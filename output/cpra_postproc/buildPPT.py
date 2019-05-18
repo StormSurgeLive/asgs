@@ -97,7 +97,7 @@ fnames = ['WSE_17StCanal_USACE_85625.png','WSE_IHNC01_USACE_76065.png','WSE_IHNC
         'WSE_WBV162_USACE_82742.png','WSE_WBV7274_USACE_82715.png','WSE_WBV90_USACE_76265.png',
         'WSE_LakefrontAirport_USACE_85670.png','WSE_Mandeville_USACE_85575.png',
         'WSE_Rigolets_USACE_85700.png','WSE_Lafitte_USACE_82875.png','WSE_HarveyCanalNorth_USACE_76220.png',
-        'WSE_HarveyCanalBloom_USACE_76230.png','WSE_BayouBienv_USACE_76025.png','WSE_BaraPass_USGS_073802516.png',
+        'WSE_HarveyCanalBoom_USACE_76230.png','WSE_BayouBienv_USACE_76025.png','WSE_BaraPass_USGS_073802516.png',
         'WSE_FreshCanal_USACE_76593.png','WSE_CalcRiv_USGS_8017118.png']
 
 # Station names correspond to the order of fnames
@@ -124,7 +124,7 @@ staName = ['Outfall 17th St London Ave Orleans Ave, LA (17StCanal, CPRA) (85625,
            'Rigolets near Lake Pontchartrain, LA (Rigolets, CPRA) (85700, USACE)',
            'Barataria Waterway at Lafitte, LA (Lafitte, CPRA) (82875, USACE)',
            'Harvey Canal Sector Gate North - Prot. Side nr Lapalco, LA (HarveyCanalNorth, CPRA) (76220, USACE)',
-           'Harvey Canal at Broomtown Casion, LA (HarveyCanalBloom, CPRA) (76230, USACE)',
+           'Harvey Canal at Boomtown Casion, LA (HarveyCanalBoom, CPRA) (76230, USACE)',
            'Bayou Bienvenue Floodgate, LA (BayouBienv, CPRA) (76025, USACE)',
            'Baratria Pass at Grand Isle, LA (BaraPass, CPRA) (073802515, USGS)',
            'Freshwater Canal at Freshwater Bayou Lock South, LA (FreshCanal, CPRA) (76593, USACE)',
