@@ -1,0 +1,8 @@
+# Build the Matlab mex files by:
+mcc -m myCode.m
+
+# This will build the executable files from Matlab as well as all
+# dependent *.m files
+
+# To run the executable:
+myCode.sh /usr/local/packages/license/matlab/r2017a
