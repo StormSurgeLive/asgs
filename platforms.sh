@@ -346,6 +346,14 @@ init_stampede2()
   fi
   $PLATFORMMODULES
   $SERIALMODULES
+  #
+  # @jasonfleming 201900406 : don't upgrade pip! 
+  # for rabbitmq and the asgs status monitor https://asgs-monitor.renci.org:
+  #   pip install --user pika
+  #   pip install --user netCDF4
+  # for the automated slide deck generator
+  #   (installing pptx did not work -- it was not found) 
+  #   pip install --user python-pptx
 }
 #
 init_kittyhawk()
