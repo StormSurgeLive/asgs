@@ -594,24 +594,48 @@ init_lonestar()
   QUEUESYS=SLURM
   QUEUENAME=normal # same as SLURM partition
   SERQUEUE=normal
+  CONSTRAINT=null
+  RESERVATION=null
   QCHECKCMD=squeue
-  PPN=24
-  RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
-  CONSTRAINT=null      # ivybridge or sandybridge
+  JOBLAUNCHER='ibrun '
   ACCOUNT=null
+  PPN=24
   SUBMITSTRING=sbatch
-  JOBLAUNCHER=ibrun
   SCRATCHDIR=$SCRATCH
   SSHKEY=id_rsa_lonestar
-  QSCRIPT=$SCRIPTDIR/input/machines/lonestar/lonestar.template.slurm
-  QSCRIPTGEN=hatteras.slurm.pl
-  PREPCONTROLSCRIPT=$SCRIPTDIR/input/machines/lonestar/lonestar.template.serial.slurm
-  SERQSCRIPTGEN=hatteras.slurm.pl
+  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTGEN=qscript.pl
   UMASK=006
   GROUP="G-803086"
+  QSUMMARYCMD=null
+  QUOTACHECKCMD=null
+  ALLOCCHECKCMD=null
+  #
+  RMQMessaging_LocationName="TACC"
+  RMQMessaging_ClusterName="Lonestar5"
+  RMQMessaging_Enable="on"      # "on"|"off"
+  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  RMQMessaging_NcoHome="$WORK/local"
+  RMQMessaging_Python=/opt/apps/intel18/python2/2.7.15/bin/python
+  #
   ml reset
-  PLATFORMMODULES='module load netcdf nco'
+  PLATFORMMODULES='module load intel/18.0.2 python2/2.7.15 TACC/1.0'
+  SERIALMODULES='module load' # no extra modules for serial jobs
+  PARALLELMODULES='module load cray_mpich/7.7.3'
+  # specify location of platform- and Operator-specific scripts to
+  # set up environment for different types of jobs
+  JOBENVDIR=$SCRIPTDIR/config/machines/lonestar5
+  JOBENV=( )
+  if [[ $USER = jgflemin ]]; then
+     ACCOUNT=DesignSafe-CERA
+     # don't use built in netcdf module
+     JOBENV=( netcdf.sh gmt.sh gdal.sh openssl.sh )
+     for script in $JOBENV; do
+        source $JOBENVDIR/$script
+     done
+  fi
   $PLATFORMMODULES
+  $SERIALMODULES
   #
   # @jasonfleming 20190218 : don't upgrade pip! 
   # for rabbitmq and the asgs status monitor:
