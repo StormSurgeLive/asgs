@@ -212,32 +212,48 @@ init_croatan()
 init_pod()
 { #<- can replace the following with a custom script
   HPCENV=pod.penguincomputing.com
-  HPCENV=pod.penguincomputing.com
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=null
-  SUBMITSTRING=submitstring
-  if [[ $USER = bblanton ]]; then 
-     SCRATCHDIR=/home/bblanton/asgs_scratch
+  QSUMMARYCMD=null
+  QUOTACHECKCMD=null
+  ALLOCCHECKCMD=null
+  QUEUENAME=B30
+  SERQUEUE=B30
+  SUBMITSTRING=qsub
+  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
+  SCRATCHDIR=$HOME/asgs
+  #
+  RMQMessaging_LocationName="Penguin"
+  RMQMessaging_ClusterName="POD"
+  RMQMessaging_Enable="on"      # "on"|"off"
+  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  RMQMessaging_NcoHome="$HOME/local"
+  RMQMessaging_Python=/usr/bin/python
+  JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
+  PLATFORMMODULES='module load gcc/6.2.0'
+  # modules for CPRA post processing
+  SERIALMODULES='module load '
+  PARALLELMODULES='module load openmpi/2.1.2/gcc.6.2.0'
+  JOBENV=( )
+  if [[ $USER = "jgflemin" ]]; then
+     JOBENV=( netcdf.sh )
+     for script in $JOBENV; do
+        source $JOBENVDIR/$script
+     done
   fi
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=penguin.template.pbs
-  PREPCONTROLSCRIPT=penguin.adcprep.template.pbs
   RESERVATION=null
-  QSCRIPTGEN=tezpur.pbs.pl
-  SERQUEUE=B30     # aka the partition in SLURM parlance 
-  QUEUE=B30     # aka the partition in SLURM parlance 
   PPN=28
-#  QUEUE=S30     # aka the partition in SLURM parlance 
-#  PPN=40
-   RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
-   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
    if [[ $USER = bblanton ]]; then
+     SCRATCHDIR=/home/bblanton/asgs_scratch
       RMQMessaging_NcoHome="/home/bblanton/"
       RMQMessaging_Python="/home/bblanton/asgs/asgspy/bin/python"
    fi
-   RMQMessaging_LocationName="Penguin"
-   RMQMessaging_ClusterName="POD"
+  module purge
+  $PLATFORMMODULES
+  $SERIALMODULES
 }
 init_hatteras()
 { #<- can replace the following with a custom script
