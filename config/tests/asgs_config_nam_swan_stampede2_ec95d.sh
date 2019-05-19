@@ -38,7 +38,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 ADCIRCDIR=$WORK/adcirc-cg/jasonfleming/v53release/work  # ADCIRC executables
 SWANDIR=$WORK/adcirc-cg/jasonfleming/v53release/swan    # SWAN executables
-SCRIPTDIR=$WORK/asgs/jasonfleming/master                # ASGS executables
+SCRIPTDIR=$WORK/asgs/jasonfleming/portability           # ASGS executables
 INPUTDIR=$SCRIPTDIR/input/meshes/ec95d     # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output              # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL                 # DateCale.pm perl module
@@ -65,7 +65,8 @@ NCPUCAPACITY=96
 CYCLETIMELIMIT="99:00:00"
 QUEUENAME=skx-dev
 SERQUEUE=skx-dev
-ACCOUNT=DesignSafe-CERA  
+#ACCOUNT=DesignSafe-CERA  
+ACCOUNT=TG-DMS080016N
 
 # External data sources : Tropical cyclones
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #--------------------------------------------------------------------------
-#
+# qscript.pl : use run.properties to fill in qscript.template
 #--------------------------------------------------------------------------
 # Copyright(C) 2006--2019 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
@@ -21,7 +21,6 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
 #--------------------------------------------------------------------------
-#
 $^W++;
 use strict;
 use integer;
@@ -54,13 +53,12 @@ my $jobtype;      # e.g., prep15, padcirc, padcswan, etc
 my $localhotstart; # present if subdomain hotstart files should be written
 my $cmd;           # the command line to execute
 my $reservation="null"; # name of SLURM reservation where the job should be submitted
-my $partition="null";   # name of SLURM partition the job should use
 my $constraint="null";  # name of SLURM constraint the job should use
 my $cmd="null";        # command to be executed
 my $numwriters=0;    # number of writer processors, if any
 my $joblauncher = "null"; # executable line in qscript (ibrun, mpirun, etc)
 our %properties;     # holds the run.properties file
-our $this="slurm.pl";
+our $this="qscript.pl";
 # initialize to the log file that adcirc uses, just in case
 our $syslog="scenario.log";
 #
@@ -137,9 +135,13 @@ if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ){
       $totalcpu = $ncpu + $numwriters;
    }
    # determine number of compute nodes to request
-   $nnodes = int($totalcpu/$ppn); 
-   if ( ($totalcpu%$ppn) != 0 ) {
-      $nnodes++;
+   if ( $ppn ne "null" ) { 
+      $nnodes = int($totalcpu/$ppn); 
+      if ( ($totalcpu%$ppn) != 0 ) {
+         $nnodes++;
+      }
+   } else {
+      $nnodes = "null";
    }
    $joblauncher = $properties{"hpc.joblauncher"};
    # fill in template positions in job launcher line
@@ -181,6 +183,34 @@ unless (open(QSCRIPT,">$qscript")) {
 }
 #
 while(<TEMPLATE>) {
+    # remove queue system directives from queueing systems other than 
+    # the one specified and then fill in the correct environment 
+    # variables for the queue system we ar using
+    if ( $queuesys eq "PBS" ) {
+       s/#SBATCH/null/g;
+       s/%JOBID%/PBS_JOBID/g;
+       s/%JOBDIR%/PBS_O_WORKDIR/g;
+       s/%JOBHOST%/PBS_O_HOST/g;
+       s/%JOBNODES%/PBS_NODEFILE/g;
+       s/%JOBNNODES%/PBS_NUM_NODES/g;
+       s/%JOBNTASKSPERNODE%/PBS_NUM_PPN/g;
+       s/%JOBNTASKS%/PBS_TASKNUM/g;
+    }
+    if ( $queuesys eq "SLURM" ) {
+       s/#PBS/null/g;
+       s/%JOBID%/SLURM_JOBID/g;
+       s/%JOBDIR%/SLURM_SUBMIT_DIR/g;
+       s/%JOBHOST%/SLURM_SUBMIT_HOST/g;
+       s/%JOBNODES%/SLURM_JOB_NODELIST/g;
+       s/%JOBNNODES%/SLURM_NNODES/g;
+       s/%JOBNTASKSPERNODE%/SLURM_NTASKS_PER_NODE/g;
+       s/%JOBNTASKS%/SLURM_NTASKS/g;
+    }
+    # fill in the lower case name of the queueing system
+    s/%queuesyslc%/$queuesyslc/g;
+    # fill in the name of the queueing system (typicall upper case in the 
+    # run.properties file 
+    s/%queuesys%/$queuesys/g;
     # fill in the number of compute cores (i.e., not including writers)
     s/%ncpu%/$ncpu/;
     # number of cores per compute node
@@ -195,21 +225,21 @@ while(<TEMPLATE>) {
     }
     # name of the account to take the hours from
     s/%account%/$properties{"hpc.job.$jobtype.account"}/;
-    # directory where padcirc executable is located
+    # directory where adcirc executables are located
     s/%adcircdir%/$properties{"path.adcircdir"}/;
-    # directory where padcirc executable is located
+    # directory where asgs executables are located
     s/%scriptdir%/$properties{"path.scriptdir"}/;
     # directory for this particular advisory
     s/%advisdir%/$properties{"path.advisdir"}/;  
     # name of this member of the ensemble (nowcast, storm3, etc)
     s/%scenario%/$properties{"scenario"}/g;  
-    # file to direct stdout and stderr to from the adcirc process
+    # name of overall asgs log file 
     s/%syslog%/$properties{"file.syslog"}/g;
     # fill in command line options
     s/%cloptions%/$cloptions/;
     # fill in command to be executed
     s/%cmd%/$cmd/;
-    # the type of job that is being submitted
+    # the type of job that is being submitted (partmesh, prep15, padcirc, etc)
     s/%jobtype%/$jobtype/g;
     # the email address of the ASGS Operator
     if ( $properties{"notification.emailnotify"} eq "yes" ) { 
@@ -218,25 +248,24 @@ while(<TEMPLATE>) {
        s/%notifyuser%/null/g;
     }
     if ( $queuesys eq "SLURM" ) {
-       # the SLURM partition
-       s/%partition%/$properties{"hpc.slurm.job.$jobtype.partition"}/g;
        # the SLURM reservation
        s/%reservation%/$properties{"hpc.slurm.job.$jobtype.reservation"}/g;
        # the SLURM constraint
        s/%constraint%/$properties{"hpc.slurm.job.$jobtype.constraint"}/g;
+       # partition is not here b/c it is synonym for queuename
     }
     # fills in the number of nodes on platforms that require it
     s/%nnodes%/$nnodes/g;
     # fill in the module commands generally needed on this platform
     s/%platformmodules%/$properties{"hpc.platformmodules"}/g;
     # fill in serial modules for serial job
-    if ( $jobtype eq "partmesh" || $jobtype =~/prep/ ) {
+    if ( $parallelism eq "serial" ) {
        s/%jobmodules%/$properties{"hpc.job.$jobtype.serialmodules"}/g;   
        # name of the queue on which to run
        s/%queuename%/$properties{"hpc.job.$jobtype.serqueue"}/;
     }
     # fill in parallel modules for parallel job 
-    if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ) {
+    if ( $parallelism eq "parallel" ) {
        s/%jobmodules%/$properties{"hpc.job.$jobtype.parallelmodules"}/g;
        # name of the queue on which to run
        s/%queuename%/$properties{"hpc.job.$jobtype.queuename"}/;

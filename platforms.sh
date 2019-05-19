@@ -61,25 +61,35 @@ init_queenbee()
   QUEUENAME=workq
   SERQUEUE=single
   SUBMITSTRING=qsub
-  JOBLAUNCHER='mpirun -np %totalncpu% -machinefile $PBS_NODEFILE'
+  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
+  RMQMessaging_LocationName="LONI"
+  RMQMessaging_ClusterName="Queenbee"
+  RMQMessaging_Enable="on"      # "on"|"off"
+  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  RMQMessaging_NcoHome="$HOME/local"
+  RMQMessaging_Python=/usr/local/packages/python/2.7.12-anaconda/bin/python
+  JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
+  PLATFORMMODULES='module load intel netcdf netcdf_fortran perl'
+  # modules for CPRA post processing
+  SERIALMODULES='module load matlab/r2015b python/2.7.12-anaconda-tensorflow'
+  PARALLELMODULES='module load mvapich2'
+  JOBENVDIR=$SCRIPTDIR/config/machines/queenbee
+  JOBENV=( )
   if [[ $USER = "jgflemin" ]]; then
      SCRATCHDIR=/work/$USER
      ACCOUNT=loni_cera_2019
+     JOBENV=( gmt.sh gdal.sh imagemagick.sh )
+     for script in $JOBENV; do
+        source $JOBENVDIR/$script
+     done
   fi
-  SCRATCHDIR=/work/cera
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=$SCRIPDIR/input/machines/queenbee/queenbee.template.pbs
-  PREPCONTROLSCRIPT=$SCRIPTDIR/input/machines/queenbee/queenbee.adcprep.template.pbs
-  QSCRIPTGEN=tezpur.pbs.pl
-  PPN=20
   REMOVALCMD="rmpurge"
-  PLATFORMMODULES='module load intel netcdf netcdf_fortran gcc perl'
+  module purge
   $PLATFORMMODULES
-  # modules for CPRA post processing
-  # FIXME: Do these belong in the post processing scripts instead?
-  module load matlab/r2015b
-  module load python/2.7.12-anaconda-tensorflow
+  $SERIALMODULES
 }
 
 init_rostam()
@@ -90,8 +100,8 @@ init_rostam()
   QSUMMARYCMD=squeue
   QUOTACHECKCMD=null
   ALLOCCHECKCMD=null
-  QUEUENAME=rostam
-  SERQUEUE=rostam
+  QUEUENAME=marvin  # same as SLURM partition 
+  SERQUEUE=marvin
   ACCOUNT=null
   SUBMITSTRING=sbatch
   #JOBLAUNCHER='srun -N %nnodes%'
@@ -102,7 +112,6 @@ init_rostam()
   PREPCONTROLSCRIPT=rostam.adcprep.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=16
-  PARTITION=marvin
   CONSTRAINT=null
   RESERVATION=null
   REMOVALCMD="rm"
@@ -234,25 +243,22 @@ init_hatteras()
 { #<- can replace the following with a custom script
   HPCENV=hatteras.renci.org
   QUEUESYS=SLURM
+  QUEUENAME=batch # <---<< PARTITION synonym on slurm
+  SERQUEUE=batch
+  CONSTRAINT=null      # ivybridge or sandybridge
+  RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
   QCHECKCMD=sacct
+  JOBLAUNCHER='srun '
   ACCOUNT=null
+  SUBMITSTRING=sbatch
+  SCRATCHDIR=/projects/ncfs/data
+  SSHKEY=~/.ssh/id_rsa.pub
+  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTGEN=qscript.pl
   WALLTIMEFORMAT="minutes"
-  case $USER in 
-  bblanton) 
-     ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
-     SCRATCHDIR=/scratch/bblanton/data
-     PYTHONVENV=/projects/storm_surge/anaconda
-     ;;
-  ncfs)
-     ACCOUNT=ncfs
-     SCRATCHDIR=/projects/ncfs/data
-     PARTITION=ncfs       # ncfs or batch, gives priority
-     PYTHONVENV=~/asgs/asgspy/venv
-     ;;
-  *)
-     echo "User name $USER on hatteras not recognized and ACCOUNT could not be set."
-     ;;
-  esac
+  QSUMMARYCMD=null
+  QUOTACHECKCMD="df -h /projects/ncfs"
+  ALLOCCHECKCMD=null
   #
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
@@ -261,22 +267,30 @@ init_hatteras()
   RMQMessaging_LocationName="RENCI"
   RMQMessaging_ClusterName="Hatteras"
   #
-  QSUMMARYCMD=null
-  QUOTACHECKCMD="df -h /projects/ncfs"
-  ALLOCCHECKCMD=null
-  SUBMITSTRING=sbatch
-  JOBLAUNCHER=srun
-  SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=$SCRIPTDIR/input/machines/hatteras/ hatteras.template.slurm
-  PREPCONTROLSCRIPT=$SCRIPTDIR/input/machines/hatteras/hatteras.adcprep.template.slurm
-  RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
-  PARTITION=null
-  CONSTRAINT=null      # ivybridge or sandybridge
-  QSCRIPTGEN=hatteras.slurm.pl
-  PPN=16
-  if [[ $RESERVATION = ncfs ]]; then
-     PPN=20
-  fi
+  PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0'
+  SERIALMODULES='module load' # no extra modules for serial jobs
+  PARALLELMODULES='module load mvapich2/2.0-acis'
+  # specify location of platform- and Operator-specific scripts to 
+  # set up environment for different types of jobs
+  JOBENVDIR=$SCRIPTDIR/config/machines/hatteras
+  JOBENV=( gdal.sh gmt.sh fftw.sh netcdf.sh )
+  case $USER in 
+  bblanton) 
+     ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
+     SCRATCHDIR=/scratch/bblanton/data
+     PYTHONVENV=/projects/storm_surge/anaconda
+     ;;
+  ncfs)
+     ACCOUNT=ncfs
+     QUEUENAME=ncfs     # SLURM partition---ncfs or batch---gives priority
+     PYTHONVENV=~/asgs/asgspy/venv
+     ;;
+  *)
+     echo "User name $USER on hatteras not recognized and ACCOUNT could not be set."
+     ;;
+  esac
+  #
+  #
   # to create python environment for the ncfs user, @jasonfleming did this:
   #   pip install --user --upgrade pip
   #   pip install --user --upgrade setuptools
@@ -286,13 +300,12 @@ init_hatteras()
   # for the automated slide deck generator
   #   pip install --user pptx
   #
-  export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
-  PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.11-acis  netcdf/4.1.2-acis mvapich2/2.0-acis'
   if [[ $USER = ncfs ]]; then
      PLATFORMMODULES=$PLATFORMMODULES' python_modules/2.7'
   fi
   module purge
   $PLATFORMMODULES
+  $SERIALMODULES
 }
 init_stampede()
 { #<- can replace the following with a custom script
@@ -317,26 +330,38 @@ init_stampede2()
 { #<- can replace the following with a custom script
   HPCENV=stampede2.tacc.utexas.edu
   QUEUESYS=SLURM
-  QUEUENAME=skx
-  SERQUEUE=skx
+  QUEUENAME=skx-normal # same as SLURM partition
+  SERQUEUE=skx-normal
+  CONSTRAINT=null
+  RESERVATION=null
   QCHECKCMD=sacct
   JOBLAUNCHER='ibrun '
   ACCOUNT=null
   SUBMITSTRING=sbatch
   SCRATCHDIR=$SCRATCH
   SSHKEY=~/.ssh/id_rsa_stampede2
-  QSCRIPTTEMPLATE=$SCRIPTDIR/input/queuesys/SLURM/slurm.template
-  QSCRIPTGEN=slurm.pl
-  PPN=48
+  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTGEN=qscript.pl
   GROUP="G-803086"
+  QSUMMARYCMD=null
+  QUOTACHECKCMD=null
+  ALLOCCHECKCMD=null
+  #
   RMQMessaging_LocationName="TACC"
   RMQMessaging_ClusterName="Stampede2"
+  RMQMessaging_Enable="on"      # "on"|"off"
+  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  RMQMessaging_NcoHome="$WORK/local"
+  RMQMessaging_Python=/opt/apps/intel18/python2/2.7.15/bin/python
+  #
   PLATFORMMODULES='module load intel/18.0.2 python2/2.7.15 xalt/2.6.5 TACC'
   SERIALMODULES='module load' # no extra modules for serial jobs
   PARALLELMODULES='module load libfabric/1.7.0 impi/18.0.2'
+  # specify location of platform- and Operator-specific scripts to 
+  # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/stampede2
+  JOBENV=( )
   if [[ $USER = jgflemin ]]; then
-     PPN=48
      ACCOUNT=DesignSafe-CERA
      # don't use built in netcdf module
      JOBENV=( netcdf.sh gmt.sh gdal.sh )
@@ -567,12 +592,11 @@ init_lonestar()
 { #<- can replace the following with a custom script
   HPCENV=lonestar.tacc.utexas.edu
   QUEUESYS=SLURM
-  QUEUENAME=normal
+  QUEUENAME=normal # same as SLURM partition
   SERQUEUE=normal
   QCHECKCMD=squeue
   PPN=24
   RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
-  PARTITION=null       # ncfs or batch, gives priority
   CONSTRAINT=null      # ivybridge or sandybridge
   ACCOUNT=null
   SUBMITSTRING=sbatch
@@ -735,9 +759,38 @@ init_test()
   QUEUESYS=Test
   NCPU=-1
 }
+#
+# executed to pick up default settings for compute jobs on each platform
+# (if any) and also to handle related idiosyncracies
+job_defaults() {
+   case $HPCENVSHORT in 
+   "queenbee")
+      # in general should be 20; actually for serial jobs submitted to
+      # priority queue on queenbee, should still be 20, strange but true
+      PPN=20
+      # get parallelism property
+      PARALLELISM=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.parallelism\s*:\s*//p" run.properties`
+      if [[ $QUEUENAME != "priority" && $PARALLELISM = "serial" ]]; then 
+         # for serial jobs in non-priority queue, PPN is 1
+         PPN=1   
+      fi
+      ;;
+   "stampede2")
+      PPN=48
+      ;;
+   "hatteras")
+      # hatteras is heterogeneous and does not use this but it could 
+      # conceivably be set on a job-by-job basis
+      PPN=null
+      ;;
+   *)
+      scenarioMessage "platforms.sh>job_defaults: There are no platform-specific settings for jobtype $JOBTYPE on the $HPCENVSHORT platform."
+      ;;
+   esac
+}
+#
 # used to dispatch environmentally sensitive actions
-# such as queue interactions
-env_dispatch(){
+env_dispatch() {
  HPCENVSHORT=$1
  case $HPCENVSHORT in
   "camellia") consoleMessage "platforms.sh: Camellia(WorldWinds) configuration found."
