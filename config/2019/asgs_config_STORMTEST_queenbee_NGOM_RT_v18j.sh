@@ -30,8 +30,8 @@
 INSTANCENAME=stormTEST   # "name" of this ASGS process
 #COLDSTARTDATE=2018112200 # calendar year month day hour YYYYMMDDHH24
 COLDSTARTDATE=2018092309 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart    # "hotstart" or "coldstart"
-LASTSUBDIR=          # path to previous execution (if HOTORCOLD=hotstart)
+HOTORCOLD=hotstart    # "hotstart" or "coldstart"
+LASTSUBDIR=/home/mbilskie/scratch/asgs/2019/NGOM_RT_v18j/asgs22777/initialize/hindcast          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=14.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -165,7 +165,7 @@ ASGSADMIN=mbilsk3@lsu.edu
 RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
 RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
-#RMQMessaging_StartupScript="/set/RMQMessaging_Script/in/asgs/config"
+RMQMessaging_StartupScript="${SCRIPTDIR}/asgs-msgr_startup.py"
 RMQMessaging_NcoHome="/scratch/mbilskie/asgs"
 RMQMessaging_Python="/project/mbilskie/mbilskie_conda-env/asgs/bin/python"
 RMQMessaging_LocationName="QB2"
