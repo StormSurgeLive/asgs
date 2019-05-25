@@ -677,28 +677,30 @@ die "$file not found.\n" if (! -f $file);
            # interpolate if necessary
            if ( $numInterp > 0 ) {
               for ( my $i=1; $i<=$numInterp; $i++ ) {
-                 (my $iy, my $im, my $iday, my $ih, my $imin, my $isec) =
-                    Date::Pcalc::Add_Delta_DHMS($oey, $oem, $oed, $oeh, 0, 0, 
-                    0, $i*$timeStep, 0, 0);
+                 (my $iy, my $im, my $iday, my $ih, my $imin, my $isec) = Date::Pcalc::Add_Delta_DHMS($oey, $oem, $oed, $oeh, 0, 0, 0, $i*$timeStep, 0, 0);
+
                  my $interpolatedTime = sprintf("%4d%02d%02d%02d",$iy ,$im, $iday, $ih);
+
                  &stderrMessage("WARNING","Interpolating data at time $interpolatedTime in the date range ($oldEndTime, $endTime) with the interpolating factor $factors[$i-1].");
-                 my @interpUVP;
+
                  # create output data ... this will be linearly interpolated in
-                 # time between two valid datasets
-                 for ( my $uvp_index=0; $uvp_index<($recordLength*3); $uvp_index++ ) {
-                    $interpUVP[$uvp_index] = ($rawUVP[$uvp_index] - $oldRawUVP[$uvp_index]) * $factors[$i-1] + $oldRawUVP[$uvp_index];
-                 }   
-                 foreach my $val (@interpUVP[(0 .. ($recordLength-1))]) {
+                 # time between two valid datasets - each 3rd of the interpolation is distribted among @ugrd, @vgrd, and @atmp
+
+                 for ( my $uvp_index=0; $uvp_index<$recordLength; $uvp_index++ ) {
+                    my $val = ($rawUVP[$uvp_index] - $oldRawUVP[$uvp_index]) * $factors[$i-1] + $oldRawUVP[$uvp_index];
                     push(@ugrd,$val);
-                 }
-                 foreach my $val (@interpUVP[($recordLength .. (2*$recordLength-1))]) {
+                 }   
+                 for ( my $uvp_index=$recordLength; $uvp_index<2*$recordLength; $uvp_index++ ) {
+                    my $val = ($rawUVP[$uvp_index] - $oldRawUVP[$uvp_index]) * $factors[$i-1] + $oldRawUVP[$uvp_index];
                     push(@vgrd,$val);
-                 }
-                 foreach my $val (@interpUVP[(2*$recordLength .. (3*$recordLength-1))]){
+                 }   
+                 for ( my $uvp_index=2*$recordLength; $uvp_index<3*$recordLength; $uvp_index++ ) {
+                    my $val = ($rawUVP[$uvp_index] - $oldRawUVP[$uvp_index]) * $factors[$i-1] + $oldRawUVP[$uvp_index];
                     push(@atmp,$val);
-                 }
+                 }   
               }
-           } else {
+           }
+           else {
               # there wasn't any data missing between the last file and
               # the current one, so just push the data into the arrays
               foreach my $val (@rawUVP[(0 .. ($recordLength-1))]) {
