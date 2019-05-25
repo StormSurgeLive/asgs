@@ -150,15 +150,14 @@ sub processPtFile
                  &stderrMessage("ERROR","Grid specification file '$ptFile' does not exist.");
                  die;
         }       
-	open(PT,$ptFile);
-	my @pt=<PT>;
-	chomp(@pt);
-	close (PT);
-	$nPts=@pt;
-	for my $i (1 .. $nPts-1)#starts at 1 to skip the first line (number of pts)
-	{
-		($null,$lon[$i-1],$lat[$i-1])=split/,/,$pt[$i];
+	open my $PT, '<', $ptFile || die $!;
+        my $discard = <$PT>; # skip first line
+        my $i = 0;
+        while (my $line = <$PT>) {
+		($null,$lon[$i],$lat[$i])=split/,/,$line;
+                ++$i;
 	}
+        close $PT;
 	# find SW lat and lon using min
 	$swLat=min(@lat);
 	$swLon=min(@lon);
@@ -254,21 +253,19 @@ sub toOWIformat
             &stderrMessage("ERROR","The data file '$file' does not exist.");
             die;
         }       
-	open (FIL,$file);
-	my @file=<FIL>;
-	close(FIL);
+	open my $FIL, '<', $file || die $!;
 	my (@ugrd,@vgrd,@atmp,@uLines,@vLines,@pLines,$uStr,$vStr,$pStr);
 	undef ($uStr);
 	undef ($vStr);
 	undef ($pStr);
 	my $count=0;
 	my $null;
-	foreach my $line (@file)
-	{
+        while (my $line = <$FIL>) {
 		($null,$null,$ugrd[$count],$vgrd[$count],$atmp[$count])=split/\s+/,$line;#2 nulls bc starts with space and don't need index number
 		#print "u,v,p=$ugrd[$count],$vgrd[$count],$atmp[$count]\n";
 		$count++;
 	}
+        close $FIL;
 	my $nTot=@ugrd-1;
 	my $miniCount=0;
 	for my $i (0 .. $nTot)# can do u, v and p at the same time
