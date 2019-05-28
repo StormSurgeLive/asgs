@@ -27,9 +27,9 @@
 
 # Fundamental
 
-INSTANCENAME=dailyLAv17a_31ft  # "name" of this ASGS process
+INSTANCENAME=dailyLAv19j_31ft  # "name" of this ASGS process
 #COLDSTARTDATE=2018120100   # calendar year month day hour YYYYMMDDHH24
-COLDSTARTDATE=2019010500   # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2019040700  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -40,7 +40,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 ADCIRCDIR=~/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
 SWANDIR=~/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
 SCRIPTDIR=~/asgs/jasonfleming/2014stable           # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v17a # grid and other input files
+INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v19j # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
@@ -71,7 +71,8 @@ SERQUEUE=single
 if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
-ACCOUNT=loni_cera_2019
+#ACCOUNT=loni_cera_2019
+ACCOUNT=loni_lsu_ccr_18
 #SCRATCHDIR=/ssdwork/$USER    # vs default /work/cera
 SCRATCHDIR=/work/$USER    # vs default /work/cera
 
@@ -105,18 +106,18 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=LA_v17a-WithUpperAtch_chk.grd   # mesh (fort.14) file
-GRIDNAME=LA_v17a-WithUpperAtch_chk
+GRIDFILE=LA_v19j-WithUpperAtch_chk.grd   # mesh (fort.14) file
+GRIDNAME=LA_v19j-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
 #CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS27ft.15.template
-CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS31ft.15.template
+CONTROLTEMPLATE=LA_v19j-WithUpperAtch_MS31ft.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
 ELEVSTATIONS=combined_stations_20190327.txt
 VELSTATIONS=combined_stations_20190327.txt
 METSTATIONS=combined_stations_20190327.txt
-NAFILE=LA_v17a-WithUpperAtch.13
+NAFILE=LA_v19j-WithUpperAtch_chk.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=LA_v17a-WithUpperAtch.26.template   # only used if WAVES=on
+SWANTEMPLATE=LA_v19j-WithUpperAtch.26.template   # only used if WAVES=on
 RIVERINIT=null                           # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
@@ -172,7 +173,7 @@ RMQMessaging_ClusterName="Queenbee"
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=queenbee_daily_post.sh
+POSTPROCESS=queenbee_opendap_post.sh
 
 # opendap
 TDS=(lsu_tds renci_tds)
@@ -191,12 +192,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
-
-NUMCERASERVERS=2
-WEBHOST=webserver.hostingco.com
-WEBUSER=remoteuser
-WEBPATH=/home/remoteuser/public_html/ASGS/outputproducts
+OPENDAPNOTIFY="mbilsk3@lsu.edu,jason.g.fleming@gmail.com"
 
 # Archiving
 
@@ -220,7 +216,7 @@ case $si in
    ENSTORM=namforecastWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=LA_v17a-WithUpperAtch.nowindreduction.15.template
+   CONTROLTEMPLATE=LA_v19j-WithUpperAtch.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements

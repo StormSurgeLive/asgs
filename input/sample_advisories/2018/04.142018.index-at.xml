@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sun, 07 Oct 2018 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression FOURTEEN Forecast/Advisory Number 4</title>
+      <description>Issued at 1500 UTC SUN OCT 07 2018 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL DEPRESSION FOURTEEN FORECAST/ADVISORY NUMBER   4
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL142018
+1500 UTC SUN OCT 07 2018
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+NONE
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* THE CUBAN PROVINCES OF PINAR DEL RIO AND THE ISLE OF YOUTH
+* THE COAST OF MEXICO FROM TULUM TO CABO CATOCHE
+
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA... IN THIS CASE WITHIN 24
+HOURS.
+
+INTERESTS ALONG THE NORTHEASTERN AND CENTRAL U.S. GULF COAST SHOULD
+MONITOR THE PROGRESS OF THE DEPRESSION.
+
+TROPICAL DEPRESSION CENTER LOCATED NEAR 19.2N  86.9W AT 07/1500Z
+POSITION ACCURATE WITHIN  25 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH OR 360 DEGREES AT   5 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1004 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 19.2N  86.9W AT 07/1500Z
+AT 07/1200Z CENTER WAS LOCATED NEAR 19.0N  86.9W
+
+FORECAST VALID 08/0000Z 20.0N  86.5W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 70NE  50SE   0SW   0NW.
+
+FORECAST VALID 08/1200Z 21.5N  86.5W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT...110NE  70SE  30SW  40NW.
+
+FORECAST VALID 09/0000Z 23.2N  86.8W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 40NE  40SE   0SW  20NW.
+34 KT...130NE 100SE  40SW  80NW.
+
+FORECAST VALID 09/1200Z 24.9N  87.2W
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 60NE  40SE   0SW  30NW.
+34 KT...130NE 120SE  50SW 100NW.
+
+FORECAST VALID 10/1200Z 28.7N  86.5W
+MAX WIND  70 KT...GUSTS  85 KT.
+50 KT... 60NE  60SE  30SW  30NW.
+34 KT...130NE 130SE  70SW  80NW.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 11/1200Z 33.0N  82.5W...INLAND
+MAX WIND  45 KT...GUSTS  55 KT.
+
+OUTLOOK VALID 12/1200Z 37.8N  73.0W...POST-TROP/EXTRATROP
+MAX WIND  45 KT...GUSTS  55 KT.
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 19.2N  86.9W
+
+NEXT ADVISORY AT 07/2100Z
+
+$$
+FORECASTER BROWN
+
+</pre>]]></description>
+      <pubDate>Sun, 07 Oct 2018 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2018/14/04.142018.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2018/14/04.142018.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
