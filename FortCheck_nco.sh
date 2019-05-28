@@ -103,7 +103,7 @@ rlen=$(echo "scale=6;$rnday-$t1" | bc)
 #echo "rlen=$rlen"
 pct=$(echo "scale=6;$tend-$t1" | bc)
 #echo "pct=$pct"
-pct=$(echo "scale=6;100*$pct/$rlen" | bc) 
+pct=$(echo "scale=2;100*$pct/$rlen" | bc) 
 #echo "pct=$pct"
 
 #exit
