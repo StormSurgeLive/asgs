@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=dailysouthfl # "name" of this ASGS process
-COLDSTARTDATE=2019042200  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2019051400  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null           # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=14.0       # length of initial hindcast, from cold (days)
@@ -53,7 +53,7 @@ VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
 
-TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+TIMESTEPSIZE=0.5           # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
