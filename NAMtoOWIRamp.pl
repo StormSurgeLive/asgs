@@ -35,27 +35,29 @@ no strict 'refs';
 use List::Util qw[min max];
 use Getopt::Long;
 use Date::Pcalc;
+use Storable;
 ######################################################
 #             Variables declarations                 #
 ######################################################
-our $dataDir            = "/data/renci/ADCIRC/wind/";        # path to NAM data
-our $outDir             = '/data/renci/ADCIRC/wind/src/';    # path to NAM u,v,p text data
-our $uvpFilename        = 'uvp.txt';                         # filename of NAM u,v,p text data
-our $ptFile             = 'ptFile.txt';                      # file name of output grid lat/lon
-our $fort22             = 'fort.22';                         # fort.22 path and filename
-our $awipGridNumber     = 221;                               # code that describes the grid num
-our $velocityMultiplier = 1.0;                               # multiplier for vels
-our $pressureMultiplier = 0.01;                              # convert Pascals to mb by default
-our $scriptDir          = ".";                               # path to executables
-our ( $wndFile, $presFile );                                 # names of OWI wind/pre output files
-our @namFormats = qw(grb grib2 netCDF);                      # accceptable file types for NAMdata
-our $namFormat  = "netCDF";                                  # default NAM format is netCDF
-our $namType    = "forecast";                                # expect forecast data by default
-our ( $nDims, $nVars, $nAtts, $recDim, $dimName, %varId, @dimIds, $name, $dataType, %data, %dimId, %nRec, $nRec );
-our ( @ugrd,       @vgrd,      @atmp,    @time,     @OWI_wnd,    @miniOWI_wnd, @OWI_pres, @miniOWI_pres, @zeroOffset, $geoHeader );
-our ( $OWItimeRef, $startTime, $endTime, $timeStep, $mainHeader, @miniUgrd,    @miniVgrd, @miniAtmp,     @OWItime,    $recordLength );
-our $applyRamp    = "no";                                    # whether or not to apply a spatial extrapolation ramp
-our $rampDistance = 1.0;                                     # distance in lambert coords to ramp vals to zero
+my $dataDir            = "/data/renci/ADCIRC/wind/";        # path to NAM data
+my $outDir             = '/data/renci/ADCIRC/wind/src/';    # path to NAM u,v,p text data
+my $uvpFilename        = 'uvp.txt';                         # filename of NAM u,v,p text data
+my $ptFile             = 'ptFile.txt';                      # file name of output grid lat/lon
+my $fort22             = 'fort.22';                         # fort.22 path and filename
+my $awipGridNumber     = 221;                               # code that describes the grid num
+my $velocityMultiplier = 1.0;                               # multiplier for vels
+my $pressureMultiplier = 0.01;                              # convert Pascals to mb by default
+my $scriptDir          = ".";                               # path to executables
+my ( $wndFile, $presFile );                                 # names of OWI wind/pre output files
+my @namFormats = qw(grb grib2 netCDF);                      # accceptable file types for NAMdata
+my $namFormat  = "netCDF";                                  # default NAM format is netCDF
+my $namType    = "forecast";                                # expect forecast data by default
+my ( $nDims, $nVars, $nAtts, $recDim, $dimName, %varId, @dimIds, $name, $dataType, %data, %dimId, %nRec, $nRec );
+my ( @ugrd,       @vgrd,      @atmp,    @time,     @OWI_wnd,    @miniOWI_wnd, @OWI_pres, @miniOWI_pres, @zeroOffset, $geoHeader );
+my ( $OWItimeRef, $startTime, $endTime, $timeStep, $mainHeader, @miniUgrd,    @miniVgrd, @miniAtmp,     @OWItime,    $recordLength );
+my $applyRamp    = "no";                                    # whether or not to apply a spatial extrapolation ramp
+my $rampDistance = 1.0;                                     # distance in lambert coords to ramp vals to zero
+my (@ugrd_store_files, @vgrd_store_files, @atmp_store_files);
 
 # @ugrd holds the lambert gridded u wind velocity data, across all time steps
 # @vgrd holds the lambert gridded v wind velocity data, across all time steps
@@ -701,6 +703,15 @@ sub getGrib2 {
         my @rawUVP = ( @rawU, @rawV, @rawP );
 
         # interpolate if necessary
+        my (@tmp_ugrd, @tmp_vgrd, @tmp_atmp);
+        my $ugrd_store_file = qq{ugrd.$numGrib2Files.tmp};
+        my $vgrd_store_file = qq{vgrd.$numGrib2Files.tmp};
+        my $atmp_store_file = qq{atmp.$numGrib2Files.tmp};
+
+        push @ugrd_store_files, $ugrd_store_file;
+        push @vgrd_store_files, $vgrd_store_file;
+        push @atmp_store_files, $atmp_store_file;
+
         if ( $numInterp > 0 ) {
             for ( my $i = 1; $i <= $numInterp; $i++ ) {
                 ( my $iy, my $im, my $iday, my $ih, my $imin, my $isec ) = Date::Pcalc::Add_Delta_DHMS( $oey, $oem, $oed, $oeh, 0, 0, 0, $i * $timeStep, 0, 0 );
@@ -714,35 +725,43 @@ sub getGrib2 {
 
                 for ( my $uvp_index = 0; $uvp_index < $recordLength; $uvp_index++ ) {
                     my $val = ( $rawUVP[$uvp_index] - $oldRawUVP[$uvp_index] ) * $factors[ $i - 1 ] + $oldRawUVP[$uvp_index];
-                    push( @ugrd, $val );
+                    push( @tmp_ugrd, $val );
                 }
                 for ( my $uvp_index = $recordLength; $uvp_index < 2 * $recordLength; $uvp_index++ ) {
                     my $val = ( $rawUVP[$uvp_index] - $oldRawUVP[$uvp_index] ) * $factors[ $i - 1 ] + $oldRawUVP[$uvp_index];
-                    push( @vgrd, $val );
+                    push( @tmp_vgrd, $val );
                 }
+
                 for ( my $uvp_index = 2 * $recordLength; $uvp_index < 3 * $recordLength; $uvp_index++ ) {
                     my $val = ( $rawUVP[$uvp_index] - $oldRawUVP[$uvp_index] ) * $factors[ $i - 1 ] + $oldRawUVP[$uvp_index];
-                    push( @atmp, $val );
+                    push( @tmp_atmp, $val );
                 }
             }
         }
         else {
             # there wasn't any data missing between the last file and
             # the current one, so just push the data into the arrays
+
             foreach my $val ( @rawUVP[ ( 0 .. ( $recordLength - 1 ) ) ] ) {
-                push( @ugrd, $val );
+                push( @tmp_ugrd, $val );
             }
             foreach my $val ( @rawUVP[ ( $recordLength .. ( 2 * $recordLength - 1 ) ) ] ) {
-                push( @vgrd, $val );
+                push( @tmp_vgrd, $val );
             }
             foreach my $val ( @rawUVP[ ( 2 * $recordLength .. ( 3 * $recordLength - 1 ) ) ] ) {
-                push( @atmp, $val );
+                push( @tmp_atmp, $val );
             }
         }
+
+        store \@tmp_ugrd, $ugrd_store_file;
+        store \@tmp_vgrd, $vgrd_store_file;
+        store \@tmp_atmp, $atmp_store_file;
+
         $oldEndTime   = $endTime;
         $oldCycleHour = $cycleHour;
         @oldRawUVP    = @rawUVP;
     }
+
     $mainHeader = "Oceanweather WIN/PRE Format                            $startTime     $endTime";
     push @OWI_wnd,  $mainHeader;
     push @OWI_pres, $mainHeader;
