@@ -65,6 +65,10 @@ init_queenbee()
   QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
   RMQMessaging_LocationName="LONI"
   RMQMessaging_ClusterName="Queenbee"
+  RMQMessaging_Enable="on"      # "on"|"off"
+  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  RMQMessaging_NcoHome="$HOME/local"
+  RMQMessaging_Python=/usr/local/packages/python/2.7.12-anaconda/bin/python
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
   PLATFORMMODULES='module load intel netcdf netcdf_fortran perl'
@@ -86,6 +90,10 @@ init_queenbee()
   module purge
   $PLATFORMMODULES
   $SERIALMODULES
+  # @jasonfleming: for ~/.bashrc: Prevent git push from opening up a graphical
+  # dialog box to ask for a password; it will interactively ask for
+  # a password instead
+  unset SSH_ASKPASS
 }
 
 init_rostam()
@@ -208,32 +216,48 @@ init_croatan()
 init_pod()
 { #<- can replace the following with a custom script
   HPCENV=pod.penguincomputing.com
-  HPCENV=pod.penguincomputing.com
   QUEUESYS=PBS
   QCHECKCMD=qstat
   ACCOUNT=null
-  SUBMITSTRING=submitstring
-  if [[ $USER = bblanton ]]; then 
-     SCRATCHDIR=/home/bblanton/asgs_scratch
+  QSUMMARYCMD=null
+  QUOTACHECKCMD=null
+  ALLOCCHECKCMD=null
+  QUEUENAME=B30
+  SERQUEUE=B30
+  SUBMITSTRING=qsub
+  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
+  SCRATCHDIR=$HOME/asgs
+  #
+  RMQMessaging_LocationName="Penguin"
+  RMQMessaging_ClusterName="POD"
+  RMQMessaging_Enable="on"      # "on"|"off"
+  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  RMQMessaging_NcoHome="$HOME/local"
+  RMQMessaging_Python=/usr/bin/python
+  JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
+  PLATFORMMODULES='module load gcc/6.2.0'
+  # modules for CPRA post processing
+  SERIALMODULES='module load '
+  PARALLELMODULES='module load openmpi/2.1.2/gcc.6.2.0'
+  JOBENV=( )
+  if [[ $USER = "jgflemin" ]]; then
+     JOBENV=( netcdf.sh )
+     for script in $JOBENV; do
+        source $JOBENVDIR/$script
+     done
   fi
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=penguin.template.pbs
-  PREPCONTROLSCRIPT=penguin.adcprep.template.pbs
   RESERVATION=null
-  QSCRIPTGEN=tezpur.pbs.pl
-  SERQUEUE=B30     # aka the partition in SLURM parlance 
-  QUEUE=B30     # aka the partition in SLURM parlance 
   PPN=28
-#  QUEUE=S30     # aka the partition in SLURM parlance 
-#  PPN=40
-   RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
-   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
    if [[ $USER = bblanton ]]; then
+     SCRATCHDIR=/home/bblanton/asgs_scratch
       RMQMessaging_NcoHome="/home/bblanton/"
       RMQMessaging_Python="/home/bblanton/asgs/asgspy/bin/python"
    fi
-   RMQMessaging_LocationName="Penguin"
-   RMQMessaging_ClusterName="POD"
+  module purge
+  $PLATFORMMODULES
+  $SERIALMODULES
 }
 init_hatteras()
 { #<- can replace the following with a custom script
@@ -339,8 +363,17 @@ init_stampede2()
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
   GROUP="G-803086"
+  QSUMMARYCMD=null
+  QUOTACHECKCMD=null
+  ALLOCCHECKCMD=null
+  #
   RMQMessaging_LocationName="TACC"
   RMQMessaging_ClusterName="Stampede2"
+  RMQMessaging_Enable="on"      # "on"|"off"
+  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  RMQMessaging_NcoHome="$WORK/local"
+  RMQMessaging_Python=/opt/apps/intel18/python2/2.7.15/bin/python
+  #
   PLATFORMMODULES='module load intel/18.0.2 python2/2.7.15 xalt/2.6.5 TACC'
   SERIALMODULES='module load' # no extra modules for serial jobs
   PARALLELMODULES='module load libfabric/1.7.0 impi/18.0.2'
@@ -358,6 +391,14 @@ init_stampede2()
   fi
   $PLATFORMMODULES
   $SERIALMODULES
+  #
+  # @jasonfleming 201900406 : don't upgrade pip! 
+  # for rabbitmq and the asgs status monitor https://asgs-monitor.renci.org:
+  #   pip install --user pika
+  #   pip install --user netCDF4
+  # for the automated slide deck generator
+  #   (installing pptx did not work -- it was not found) 
+  #   pip install --user python-pptx
 }
 #
 init_kittyhawk()
@@ -573,24 +614,48 @@ init_lonestar()
   QUEUESYS=SLURM
   QUEUENAME=normal # same as SLURM partition
   SERQUEUE=normal
+  CONSTRAINT=null
+  RESERVATION=null
   QCHECKCMD=squeue
-  PPN=24
-  RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
-  CONSTRAINT=null      # ivybridge or sandybridge
+  JOBLAUNCHER='ibrun '
   ACCOUNT=null
+  PPN=24
   SUBMITSTRING=sbatch
-  JOBLAUNCHER=ibrun
   SCRATCHDIR=$SCRATCH
   SSHKEY=id_rsa_lonestar
-  QSCRIPT=$SCRIPTDIR/input/machines/lonestar/lonestar.template.slurm
-  QSCRIPTGEN=hatteras.slurm.pl
-  PREPCONTROLSCRIPT=$SCRIPTDIR/input/machines/lonestar/lonestar.template.serial.slurm
-  SERQSCRIPTGEN=hatteras.slurm.pl
+  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTGEN=qscript.pl
   UMASK=006
   GROUP="G-803086"
+  QSUMMARYCMD=null
+  QUOTACHECKCMD=null
+  ALLOCCHECKCMD=null
+  #
+  RMQMessaging_LocationName="TACC"
+  RMQMessaging_ClusterName="Lonestar5"
+  RMQMessaging_Enable="on"      # "on"|"off"
+  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  RMQMessaging_NcoHome="$WORK/local"
+  RMQMessaging_Python=/opt/apps/intel18/python2/2.7.15/bin/python
+  #
   ml reset
-  PLATFORMMODULES='module load netcdf nco'
+  PLATFORMMODULES='module load intel/18.0.2 python2/2.7.15 TACC/1.0'
+  SERIALMODULES='module load' # no extra modules for serial jobs
+  PARALLELMODULES='module load cray_mpich/7.7.3'
+  # specify location of platform- and Operator-specific scripts to
+  # set up environment for different types of jobs
+  JOBENVDIR=$SCRIPTDIR/config/machines/lonestar5
+  JOBENV=( )
+  if [[ $USER = jgflemin ]]; then
+     ACCOUNT=DesignSafe-CERA
+     # don't use built in netcdf module
+     JOBENV=( netcdf.sh gmt.sh gdal.sh openssl.sh )
+     for script in $JOBENV; do
+        source $JOBENVDIR/$script
+     done
+  fi
   $PLATFORMMODULES
+  $SERIALMODULES
   #
   # @jasonfleming 20190218 : don't upgrade pip! 
   # for rabbitmq and the asgs status monitor:
