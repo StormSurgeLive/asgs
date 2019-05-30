@@ -24,7 +24,7 @@ surface_directional_effective_roughness_length
 -3                    ! TAU0 - WEIGHTING FACTOR IN GWCE
 %DT%                  ! DT - TIME STEP (IN SECONDS)
 0.00000               ! STATIM - STARTING SIMULATION TIME IN DAYS
-0.00000  i            ! REFTIME - (DAYS) FOR NODAL FACTORS AND EQ ARGS
+0.00000               ! REFTIME - (DAYS) FOR NODAL FACTORS AND EQ ARGS
 %WTIMINC%             ! wtiminc
 %RNDAY%               ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
 15.00000              ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
