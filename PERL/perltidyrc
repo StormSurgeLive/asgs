@@ -1,49 +1,11 @@
--l=400  # Max line width is 78 cols
--i=4    # Indent level is 4 cols
--ci=4   # Continuation indent is 4 cols
--vt=2   # Maximal vertical tightness
--cti=0  # No extra indentation for closing brackets
--pt=1   # Medium parenthesis tightness
--sbt=1  # Medium square bracket tightness
--bt=1   # Medium brace tightness (for non-code blocks)
--bbt=1  # Medium block brace tightness (for code blocks)
--nsfs   # No space before semicolons
--nolq   # Don't outdent long quoted strings
-        # Break before all operators:
--wbb="% + - * / x != == >= <= =~ < > | & **= += *= &= <<= &&= -= /= |= >>= ||= .= %= ^= x="
-# Note that the PBP book has a typo on page 35 when defining the above -wbb
-# option, see http://oreilly.com/catalog/perlbp/errata/perlbp.confirmed
-# The above string is correct.
-
-#----------  Perltidy default options (i.e. in line with PBP)  --------------
--tqw    # Default handling of multi-line 'qw' quotes
--ibc    # Indent block comments to same level as the code
--msc=4  # Minimum 4 spaces between code and same-line comments
--fpsc=0 # Don't try to line up all comments to a fixed column
--hsc    # Align hanging side comments
--sbc    # Enable static block comments
--nssc   # No special handling for static side comments
--dnl    # Delete old newlines
--bbc    # Ensure a blank line before every full-line comment
--bbs    # Ensure a blank line before every sub definition (except one-liners)
--bbb    # Ensure a blank line before code blocks (for, while, if, ....)
--lbl=8  # Minimum number of lines between each -bbb inserted blank line
-
-#-------------  Additional options, based on PBP recommendations  ------------
--bar    # K&R style code braces
--nolc   # Long comments indented, even when this make the total line length "too long"
--noll   # Long lines indented, even when this make the total line length "too long"
--nola   # Don't treat labels as special cases when indenting
-
-#----------  Options concerning Perltidy's input and ouput files  -----------
--se     # Write errors to STDERR
--ple    # Preserve the EOL character(s). E.g. in case Perltidy runs
-        # on Windows, but processes a Perl file for Unix (and vice versa)
-
-#-----------  Some other Perltidy options, intentionally not used   ----------
-# The following Perltidy options are NOT consistent with PBP and should NOT be used:
-# -lp, -icb, -fws, -nwls, -nwrs, -sfp, -sak/-nsak, -csc/dcsc, -fnl,
-# -ce, -bl, -sbl, -bli, -blil, -bbvt, -otr, -sct, -boc, -kis,
-# -pbp (because the -wbb list typo in the PBP book carried over to Perltidy (!))
-# The following Perltidy options are not used, for other reasons:
-# -sot, -mft, -cab, -bol, -bok/-nbok, -bot/-nbot, -iob, -isbc
+-l=400
+-i=4
+-dt=4
+-it=4
+-bar
+-nsfs
+-nolq
+--break-at-old-comma-breakpoints
+--format-skipping
+--format-skipping-begin='#\s*tidyoff'
+--format-skipping-end='#\s*tidyon'
