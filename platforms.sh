@@ -90,6 +90,10 @@ init_queenbee()
   module purge
   $PLATFORMMODULES
   $SERIALMODULES
+  # @jasonfleming: for ~/.bashrc: Prevent git push from opening up a graphical
+  # dialog box to ask for a password; it will interactively ask for
+  # a password instead
+  unset SSH_ASKPASS
 }
 
 init_rostam()
