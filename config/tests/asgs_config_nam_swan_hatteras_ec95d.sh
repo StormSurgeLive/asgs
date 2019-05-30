@@ -55,10 +55,10 @@ VARFLUX=off          # variable river flux forcing
 
 TIMESTEPSIZE=30             # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
-HINDCASTWALLTIME="02:00:00" # hindcast wall clock time
+HINDCASTWALLTIME="08:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="02:00:00"  # longest nowcast wall clock time
-FORECASTWALLTIME="02:00:00" # forecast wall clock time
+NOWCASTWALLTIME="08:00:00"  # longest nowcast wall clock time
+FORECASTWALLTIME="08:00:00" # forecast wall clock time
 NCPU=19                     # number of compute CPUs for all simulations
 NUMWRITERS=1 
 NCPUCAPACITY=96
