@@ -54,7 +54,7 @@ my $namFormat  = "netCDF";                                  # default NAM format
 my $namType    = "forecast";                                # expect forecast data by default
 my ( $nDims, $nVars, $nAtts, $recDim, $dimName, %varId, @dimIds, $name, $dataType, %data, %dimId, %nRec, $nRec );
 my ( @ugrd,       @vgrd,      @atmp,    @time,     @OWI_wnd,    @miniOWI_wnd, @OWI_pres, @miniOWI_pres, @zeroOffset, $geoHeader );
-my ( $OWItimeRef, $startTime, $endTime, $timeStep, $mainHeader, @miniUgrd,    @miniVgrd, @miniAtmp,     @OWItime,    $recordLength );
+my ( $OWItimeRef, $startTime, $endTime, $timeStep, $mainHeader, @OWItime,    $recordLength );
 my $applyRamp    = "no";                                    # whether or not to apply a spatial extrapolation ramp
 my $rampDistance = 1.0;                                     # distance in lambert coords to ramp vals to zero
 my (@ugrd_store_files, @vgrd_store_files, @atmp_store_files);
@@ -415,23 +415,27 @@ sub getNetCDF {
 sub rotateAndFormat {
     for my $t ( 0 .. $nRec{'time'} - 1 ) {
         &stderrMessage( "DEBUG", "TS=$t" );
-        my $startInd = $t * $recordLength;
-        my $stopInd  = ( $t + 1 ) * $recordLength - 1;
-        my @subset   = ( $startInd .. $stopInd );
+
+        my $ugrd_file = $ugrd_store_files[$t]; 
+        my $vgrd_file = $vgrd_store_files[$t]; 
+        my $atmp_file = $atmp_store_files[$t]; 
 
         # select subset of array corresponding at the particular time-step
-        @miniUgrd = @ugrd[@subset];
-        @miniVgrd = @vgrd[@subset];
-        @miniAtmp = @atmp[@subset];
+        my $miniUgrd_ref = retrieve($ugrd_file) or die $!;
+        my $miniVgrd_ref = retrieve($vgrd_file) or die $!;
+        my $miniAtmp_ref = retrieve($atmp_file) or die $!;
+
+        # delete files as they're used
+        unlink($ugrd_file, $vgrd_file, $atmp_file);
 
         # # print u,v,p file
         my $uvpFile = $outDir . $uvpFilename;
-        open( OUT, ">$uvpFile" )
+        open(my $OUT, '>', $uvpFile)
             or die "Can't open output file ($uvpFile), error: $! \n";
         for my $i ( 0 .. $recordLength - 1 ) {
-            print OUT "$miniUgrd[$i] \t $miniVgrd[$i] \t $miniAtmp[$i]\n";
+            print $OUT "$miniUgrd_ref->[$i] \t $miniVgrd_ref->[$i] \t $miniAtmp_ref->[$i]\n";
         }
-        close(OUT);
+        close $OUT;
 
         # run awip_interp
         if ( $applyRamp eq "yes" ) {
