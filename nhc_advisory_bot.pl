@@ -240,6 +240,9 @@ open(PLOT,">>$metadata") || die "ERROR: nhc_advisory_bot.pl: Failed to open run.
 print PLOT "stormname:$storm_name\nstormclass:$storm_class\nwind:$vmax\nadvisory time: $date_time\ngusts : $gusts\n";
 print PLOT "forecastValidStart : $nowcast_date_time" . "0000\n";
 #
+print PLOT "forcing.tropicalcyclone.stormname:$storm_name\nforcing.tropicalcyclone.stormclass:$storm_class\nforcing.tropicalcyclone.vmax:$vmax\nforcing.tropicalcyclone.advisory.time: $date_time\nforcing.tropicalcyclone.gusts : $gusts\n";
+print PLOT "forcing.tropicalcyclone.forecast.valid.time.start : $nowcast_date_time" . "0000\n";
+#
 substr($atcf_line,47,4) = sprintf("%4d",$vmax);
 substr($atcf_line,113,4) = sprintf("%4d",$gusts);
 printf STDERR "INFO: nhc_advisory_bot.pl: nowcast max wind is $vmax\n";
@@ -352,6 +355,7 @@ while ($i < $#{$body_ref} ) {
    $i++;
 }
 print PLOT "forecastValidEnd : $forecast_date_time" . "0000\n";
+print PLOT "forcing.tropicalcyclone.forecast.valid.time.end : $forecast_date_time" . "0000\n";
 close(PLOT);
 close(ATCF);
 exit;

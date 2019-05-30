@@ -2,4 +2,4 @@
 BEGIN {
    date=strftime("%Y-%m-%d-T%H:%M:%S%z")
 }
-{ print "["date"] "this": "$0 }
+{ print "["date"] "level": "this": "$0 }
