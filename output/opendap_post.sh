@@ -253,7 +253,7 @@ case $OPENDAPPOSTMETHOD in
       chmod +r ${ADVISDIR}/${ENSTORM}/$file 2>> $SYSLOG
       # add downloadurl property.
       if [[ $file = 'run.properties' ]]; then
-         echo downloadurl : $downloadURL >> $file 2>> ${SYSLOG}
+         echo "downloadurl : $downloadURL" >> $file 2>> ${SYSLOG}
       fi
       logMessage "$ENSTORM: $THIS: $postDesc $file."
       $postCMD ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
