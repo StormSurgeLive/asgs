@@ -53,11 +53,11 @@ my @namFormats = qw(grb grib2 netCDF);                      # accceptable file t
 my $namFormat  = "netCDF";                                  # default NAM format is netCDF
 my $namType    = "forecast";                                # expect forecast data by default
 my ( $nDims, $nVars, $nAtts, $recDim, $dimName, %varId, @dimIds, $name, $dataType, %data, %dimId, %nRec, $nRec );
-my ( @ugrd,       @vgrd,      @atmp,    @time,     @OWI_wnd,    @miniOWI_wnd, @OWI_pres, @miniOWI_pres, @zeroOffset, $geoHeader );
-my ( $OWItimeRef, $startTime, $endTime, $timeStep, $mainHeader, @OWItime,    $recordLength );
+my ( @ugrd, @vgrd, @atmp, @time, @OWI_wnd, @miniOWI_wnd, @OWI_pres, @miniOWI_pres, @zeroOffset, $geoHeader );
+my ( $OWItimeRef, $startTime, $endTime, $timeStep, $mainHeader, @OWItime, $recordLength );
 my $applyRamp    = "no";                                    # whether or not to apply a spatial extrapolation ramp
 my $rampDistance = 1.0;                                     # distance in lambert coords to ramp vals to zero
-my (@ugrd_store_files, @vgrd_store_files, @atmp_store_files);
+my ( @ugrd_store_files, @vgrd_store_files, @atmp_store_files );
 
 # @ugrd holds the lambert gridded u wind velocity data, across all time steps
 # @vgrd holds the lambert gridded v wind velocity data, across all time steps
@@ -267,14 +267,14 @@ sub toOWIformat {
 
     while ( my $line = <$FIL> ) {
         ( $null, $null, $ugrd[$count], $vgrd[$count], $atmp[$count] ) =
-            split /\s+/, $line;    #2 nulls bc starts with space and don't need index number
-                                   #print "u,v,p=$ugrd[$count],$vgrd[$count],$atmp[$count]\n";
+          split /\s+/, $line;    #2 nulls bc starts with space and don't need index number
+                                 #print "u,v,p=$ugrd[$count],$vgrd[$count],$atmp[$count]\n";
         $count++;
     }
     close $FIL;
     my $nTot      = @ugrd - 1;
     my $miniCount = 0;
-    for my $i ( 0 .. $nTot )       # can do u, v and p at the same time
+    for my $i ( 0 .. $nTot )     # can do u, v and p at the same time
     {
         my $u = sprintf( "% 10f", $ugrd[$i] );
         my $v = sprintf( "% 10f", $vgrd[$i] );
@@ -416,9 +416,9 @@ sub rotateAndFormat {
     for my $t ( 0 .. $nRec{'time'} - 1 ) {
         &stderrMessage( "DEBUG", "TS=$t" );
 
-        my $ugrd_file = $ugrd_store_files[$t]; 
-        my $vgrd_file = $vgrd_store_files[$t]; 
-        my $atmp_file = $atmp_store_files[$t]; 
+        my $ugrd_file = $ugrd_store_files[$t];
+        my $vgrd_file = $vgrd_store_files[$t];
+        my $atmp_file = $atmp_store_files[$t];
 
         # select subset of array corresponding at the particular time-step
         my $miniUgrd_ref = retrieve($ugrd_file) or die $!;
@@ -426,12 +426,12 @@ sub rotateAndFormat {
         my $miniAtmp_ref = retrieve($atmp_file) or die $!;
 
         # delete files as they're used
-        unlink($ugrd_file, $vgrd_file, $atmp_file);
+        unlink( $ugrd_file, $vgrd_file, $atmp_file );
 
         # # print u,v,p file
         my $uvpFile = $outDir . $uvpFilename;
-        open(my $OUT, '>', $uvpFile)
-            or die "Can't open output file ($uvpFile), error: $! \n";
+        open( my $OUT, '>', $uvpFile )
+          or die "Can't open output file ($uvpFile), error: $! \n";
         for my $i ( 0 .. $recordLength - 1 ) {
             print $OUT "$miniUgrd_ref->[$i] \t $miniVgrd_ref->[$i] \t $miniAtmp_ref->[$i]\n";
         }
@@ -460,8 +460,10 @@ sub rotateAndFormat {
 
         }
         else {
-            &stderrMessage( "DEBUG",
-                "2: Reprojecting Lambert Conformal NAM data with the following command: $scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $uvpFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance -99999.0 >> reproject.log 2>&1" );
+            &stderrMessage(
+                "DEBUG",
+                "2: Reprojecting Lambert Conformal NAM data with the following command: $scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $uvpFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance -99999.0 >> reproject.log 2>&1"
+            );
             `$scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $uvpFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance -99999.0 >> reproject.log 2>&1`;
 
             #&stderrMessage("DEBUG","Not applying spatial ramp.");
@@ -477,7 +479,7 @@ sub rotateAndFormat {
 ################################################################################
 sub addToFort22 {
     open( F22, ">>$fort22" )
-        || die "ERROR: NAMtoOWIRamp.pl: Failed to open OWI (NWS12) fort.22 file to append a comment line with the met time increment.";
+      || die "ERROR: NAMtoOWIRamp.pl: Failed to open OWI (NWS12) fort.22 file to append a comment line with the met time increment.";
     my $wtiminc = $timeStep * 3600;    # ts in seconds
     &stderrMessage( "INFO", "Appending the WTIMINC value of '$wtiminc' to the fort.22 file '$fort22'." );
     print F22 "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15\n";
@@ -707,7 +709,7 @@ sub getGrib2 {
         my @rawUVP = ( @rawU, @rawV, @rawP );
 
         # interpolate if necessary
-        my (@tmp_ugrd, @tmp_vgrd, @tmp_atmp);
+        my ( @tmp_ugrd, @tmp_vgrd, @tmp_atmp );
         my $ugrd_store_file = qq{ugrd.$numGrib2Files.tmp};
         my $vgrd_store_file = qq{vgrd.$numGrib2Files.tmp};
         my $atmp_store_file = qq{atmp.$numGrib2Files.tmp};
