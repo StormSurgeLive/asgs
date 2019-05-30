@@ -17,7 +17,7 @@ FTPSITE=filesystem        # hindcast/nowcast ATCF formatted files
 #FDIR=/scratch/bblanton/asgs-advisories/ 
 #HDIR=/atcf/btk   
 #
-FDIR=${ASGSDIR}/input/sample_advisories/2018 
+FDIR=${ASGSDIR}/input/sample_advisories/2019 
 HDIR=${FDIR}   
 #
 TRIGGER=rssembedded

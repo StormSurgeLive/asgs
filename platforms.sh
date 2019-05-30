@@ -664,6 +664,10 @@ init_lonestar()
   # for the automated slide deck generator
   #   (installing pptx did not work -- it was not found) 
   #   pip install --user python-pptx
+  #
+  # btw git on lonestar5 is messed up when it outputs things like diffs,
+  # found the solution:
+  # git config --global core.pager "less -r"
 }
 init_desktop()
 {

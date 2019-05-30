@@ -111,9 +111,9 @@ MESHPROPERTIES=${GRIDFILE}.properties
 #CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS27ft.15.template
 CONTROLTEMPLATE=LA_v17a-WithUpperAtch_MS31ft.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=combined_stations_20181005.txt
-VELSTATIONS=combined_stations_20181005.txt
-METSTATIONS=combined_stations_20181005.txt
+ELEVSTATIONS=combined_stations_20190327.txt
+VELSTATIONS=combined_stations_20190327.txt
+METSTATIONS=combined_stations_20190327.txt
 NAFILE=LA_v17a-WithUpperAtch.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=LA_v17a-WithUpperAtch.26.template   # only used if WAVES=on
