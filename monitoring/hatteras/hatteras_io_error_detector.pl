@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #----------------------------------------------------------------
 # hatteras_io_error_detector.pl
 #
