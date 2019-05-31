@@ -224,14 +224,18 @@ logMessage()
 cycleMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] INFO: $@"
-  echo ${MSG} >> $ADVISDIR/cycle.log
+  if [[ -e $ADVISDIR/cycle.log ]]; then
+     echo ${MSG} >> $ADVISDIR/cycle.log
+  fi
 }
 #
 # write an INFO-level message to the cycle (or advisory log file)
 scenarioMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] INFO: $@"
-  echo ${MSG} >> $ADVISDIR/$ENSTORM/scenario.log
+  if [[ -e $ADVISDIR/$ENSTORM/scenario.log ]]; then
+     echo ${MSG} >> $ADVISDIR/$ENSTORM/scenario.log
+  fi
 }
 
 #
@@ -257,9 +261,11 @@ allMessage()
 warn()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] WARNING: $@"
-  echo ${MSG} >> ${SYSLOG}
-  echo ${MSG} >> $ADVISDIR/cycle.log
-  echo ${MSG} >> $ADVISDIR/$ENSTORM/scenario.log
+  for file in $SYSLOG $ADVISDIR/cycle.log $ADVISDIR/$ENSTORM/scenario.log ; do
+    if [[ -e $file ]]; then
+      echo ${MSG} >> ${SYSLOG}
+    fi
+  done
   #echo ${MSG}  # send to console
 }
 #
@@ -267,10 +273,12 @@ warn()
 error()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] ERROR: $@"
-  echo ${MSG} >> ${SYSLOG}
   echo ${MSG}  # send to console
-  echo ${MSG} >> $ADVISDIR/cycle.log
-  echo ${MSG} >> $ADVISDIR/$ENSTORM/scenario.log
+  for file in $SYSLOG $ADVISDIR/cycle.log $ADVISDIR/$ENSTORM/scenario.log ; do
+    if [[ -e $file ]]; then
+      echo ${MSG} >> ${SYSLOG}
+    fi
+  done
   # email the operator
   if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
      echo $MSG | mail -s "[ASGS] Attn: Error for $INSTANCENAME" "${ASGSADMIN}"
@@ -281,9 +289,11 @@ error()
 fatal()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] FATAL ERROR: $@"
-  echo ${MSG} >> ${SYSLOG}
-  echo ${MSG} >> $ADVISDIR/cycle.log
-  echo ${MSG} >> $ADVISDIR/$ENSTORM/scenario.log
+  for file in $SYSLOG $ADVISDIR/cycle.log $ADVISDIR/$ENSTORM/scenario.log ; do
+    if [[ -e $file ]]; then
+      echo ${MSG} >> ${SYSLOG}
+    fi
+  done
   if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
      cat ${SYSLOG} | mail -s "[ASGS] Fatal Error for PROCID ($$)" "${ASGSADMIN}"
   fi

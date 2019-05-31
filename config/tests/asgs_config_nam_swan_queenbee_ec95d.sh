@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2016--2018 Jason Fleming
+# Copyright(C) 2016--2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -38,7 +38,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc-cg/jasonfleming/v53release/work  # ADCIRC executables
 SWANDIR=~/adcirc-cg/jasonfleming/v53release/swan    # SWAN executables
-SCRIPTDIR=~/asgs/jasonfleming/portability           # ASGS executables
+SCRIPTDIR=~/asgs/jasonfleming/master       # ASGS executables
 INPUTDIR=$SCRIPTDIR/input/meshes/ec95d     # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output              # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL                 # DateCale.pm perl module
