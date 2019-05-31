@@ -1,4 +1,4 @@
-#! /usr/bin/perl -w
+#! /usr/bin/env perl
 # 
 # Copyright (c) 2008  Renaissance Computing Institute. All rights reserved.
 # 
