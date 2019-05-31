@@ -42,6 +42,8 @@ cd ${STORMDIR}
 # member in the configuration files
 ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 si=$ENMEMNUM
+# load asgs operator email address
+ASGSADMIN=`grep "notification.email.asgsadmin" ${STORMDIR}/run.properties | sed 's/notification.email.asgsadmin.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 #
 ## grab all config info
 . ${CONFIG} 
@@ -136,7 +138,7 @@ fi
 #Click on the link: 
 #
 #$CATALOGPREFIX/$STORMNAMEPATH/${OPENDAPSUFFIX}/catalog.html
-subject="${subject} $ENMEMNUM $HPCENV.$INSTANCENAME"
+subject="${subject} $ENMEMNUM $HPCENV.$INSTANCENAME $ASGSADMIN"
 cat <<END > ${STORMDIR}/opendap_results_notify.txt 
 
 The results for cycle $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/catalog.html
@@ -190,7 +192,7 @@ case $OPENDAPPOSTMETHOD in
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
          logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-         cat ${STORMDIR}/opendap_results_notify.txt | mail -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         cat ${STORMDIR}/opendap_results_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
          opendapEmailSent=yes
          continue        
       else
@@ -246,7 +248,7 @@ case $OPENDAPPOSTMETHOD in
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
          logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-         cat ${STORMDIR}/opendap_results_notify.txt | mail -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         cat ${STORMDIR}/opendap_results_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
          opendapEmailSent=yes
          continue        
       fi
@@ -277,9 +279,9 @@ esac
 #
 #if [[ threddsPostStatus != ok ]]; then
 #   error "opendap_post.sh: A failure occurred when the ASGS instance $INSTANCENAME attempted to post data to the THREDDS Data Server ${SERVER}. Downstream data consumers will not receive an email for these results. However, the opendap results notification will be sent to ${ASGSADMIN}."
-#   cat ${STORMDIR}/opendap_results_notify.txt | mail -s "$subject" $ASGSADMIN 2>> ${SYSLOG} 2>&1
+#   cat ${STORMDIR}/opendap_results_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $ASGSADMIN 2>> ${SYSLOG} 2>&1
 #else
 if [[ $opendapEmailSent = "no" ]]; then 
    logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
-   cat ${STORMDIR}/opendap_results_notify.txt | mail -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+   cat ${STORMDIR}/opendap_results_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
 fi

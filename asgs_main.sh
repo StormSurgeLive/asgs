@@ -1446,8 +1446,8 @@ variables_init()
    JOB_FAILED_LIST=null
    NOTIFYUSER=null
    RESERVATION=null # for SLURM
-   CONSTRAINT=null  # for SLURM
-   ASGSADMIN=null
+   CONSTRIAINT=null # for SLURM
+   ASGSADMIN=ASGSADMIN
    PERIODICFLUX=null
    SPATIALEXTRAPOLATIONRAMP=yes
    SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
@@ -1527,6 +1527,7 @@ writeProperties()
    echo "notification.email.job_failed_list : \"$JOB_FAILED_LIST\"" >> $STORMDIR/run.properties   
    echo "notification.hpc.email.notifyuser : \"$NOTIFYUSER\"" >> $STORMDIR/run.properties
    echo "notification.opendap.email.opendapnotify : \"$OPENDAPNOTIFY\"" >> $STORMDIR/run.properties
+   echo "notification.email.asgsadmin : $ASGSADMIN" >> $STORMDIR/run.properties
    # monitoring
    echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable " >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $STORMDIR/run.properties  
@@ -1689,7 +1690,7 @@ RMQADVISORY=0  #  "Fake" ADVISORY number for RMQ Messages.
 #   bash asgs_main.sh -c /path/to/config -r /path/to/rundir -e topsail
 #
 # mail alert
-ASGSADMIN=
+ASGSADMIN=ASGSADMIN
 #
 # exit statuses
 EXIT_NOT_OK=1
