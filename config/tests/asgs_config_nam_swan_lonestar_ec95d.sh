@@ -166,7 +166,7 @@ POSTPROCESS=cera_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
-TDS=(tacc_tds lsu_tds renci_tds)
+TDS=(tacc_tds renci_tds)
 # FIXME: TARGET should be automatic
 TARGET=lonestar # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 

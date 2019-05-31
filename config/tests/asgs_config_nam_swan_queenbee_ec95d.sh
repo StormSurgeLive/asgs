@@ -165,7 +165,7 @@ POSTPROCESS=cera_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
-TDS=(lsu_tds renci_tds)
+TDS=(renci_tds)
 # FIXME: TARGET should be automatic
 TARGET=queenbee  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
