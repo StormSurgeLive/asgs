@@ -1410,7 +1410,7 @@ writeProperties()
    echo "notification.email.job_failed_list : \"$JOB_FAILED_LIST\"" >> $STORMDIR/run.properties   
    echo "notification.hpc.email.notifyuser : \"$NOTIFYUSER\"" >> $STORMDIR/run.properties
    echo "notification.opendap.email.opendapnotify : \"$OPENDAPNOTIFY\"" >> $STORMDIR/run.properties
-   echo "notification.email.asgsadmin : \"$ASGSADMIN\"" >> $STORMDIR/run.properties
+   echo "notification.email.asgsadmin : $ASGSADMIN" >> $STORMDIR/run.properties
    # post processing
    echo "post.intendedaudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
    echo "post.executable.initpost : $INITPOST" >> $STORMDIR/run.properties
