@@ -126,7 +126,8 @@ def main(argv):
 			State = arg
 
         if (Message == 'none'):
-               # return without sending 
+		print('Message == none.  Not sending')
+                # return without sending 
         	sys.exit(2)
 	if (InstanceName == 'unknown'):
 		print('Cannot kill an "unknown" instance {}.').format(InstanceName)

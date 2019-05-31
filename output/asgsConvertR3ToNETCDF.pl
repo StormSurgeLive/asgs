@@ -1,4 +1,4 @@
-#!/usr/bin/perl -W
+#!/usr/bin/env perl
 # #!/home/thorpe/local/bin/perl -W
 #
 # wrapper for pqinsert an adcirc solution file into local LDM product queue

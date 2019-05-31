@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #----------------------------------------------------------------
 # advisory_xml_filler.pl
 #
