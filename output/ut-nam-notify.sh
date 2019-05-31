@@ -51,6 +51,8 @@ if [[ $ADDRESS_LIST = null ]]; then
 fi
 #
 COMMA_SEP_LIST=${ADDRESS_LIST// /,}
+# load asgs operator email address
+ASGSADMIN=`grep "notification.email.asgsadmin" ${STORMDIR}/run.properties | sed 's/notification.email.asgsadmin.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 case $PHASE in
 #
 #               A C T I V A T I O N
@@ -64,7 +66,7 @@ This message is to let you know that the ASGS has been ACTIVATED using NAM forci
 
 END
     logMessage "Sending activation email to the following addresses: $COMMA_SEP_LIST."
-    cat $STORMDIR/activate.txt | mail -s "ASGS Activated on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+    cat $STORMDIR/activate.txt | mail  -S "replyto=$ASGSADMIN" -s "ASGS Activated on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
 #              N E W  C Y C L E 
@@ -79,7 +81,7 @@ The supercomputer $HOSTNAME has detected a new NAM cycle (number $ADVISORY) from
 
 END
     logMessage "Sending 'new advisory detected' email to the following addresses: $COMMA_SEP_LIST."
-     cat $STORMDIR/new_advisory.txt | mail -s "$STORMNAME advisory $ADVISORY detected by ASGS on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+     cat $STORMDIR/new_advisory.txt | mail  -S "replyto=$ASGSADMIN" -s "$STORMNAME advisory $ADVISORY detected by ASGS on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 
 ;;
 #
@@ -95,7 +97,7 @@ The supercomputer $HOSTNAME has produced results for NAM cycle $ADVISORY on the 
 END
 #
 logMessage "Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/post_notify.txt | mail -s "ASGS results available for $STORMNAME advisory $ADVISORY from $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/post_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "ASGS results available for $STORMNAME advisory $ADVISORY from $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
 #              J O B   F A I L E D 
@@ -110,7 +112,7 @@ A job running on the supercomputer $HOSTNAME has failed when running NAM cycle $
 END
 #
 logMessage "Sending 'job failed' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/job_failed_notify.txt | mail -s "ASGS job $STORMNAME $ADVISORY failed on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/job_failed_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "ASGS job $STORMNAME $ADVISORY failed on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 *)
 logMessage "ERROR: ut-nam-notify.sh: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."
