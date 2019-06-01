@@ -38,7 +38,7 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 ADCIRCDIR=$WORK/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
 SWANDIR=$WORK/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-SCRIPTDIR=$WORK/asgs/jasonfleming/portability      # ASGS executables
+SCRIPTDIR=$WORK/asgs/jasonfleming/master      # ASGS executables
 INPUTDIR=$SCRIPTDIR/input/meshes/southfl           # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output                      # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL                         # DateCale.pm perl module
