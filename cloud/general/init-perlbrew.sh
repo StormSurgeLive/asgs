@@ -19,7 +19,7 @@ which perl          # should be version managed by perlbrew
 #3. Install a perl version known to support ASGS (takes 20-30 minutes)
 #
 
-perlbrew install perl-5.28.1
+perlbrew install perl-5.28.2
 
 #
 #Note: you may manage any number of versions of perl you wish, perlbrew builds and tracks them for you
@@ -28,7 +28,7 @@ perlbrew install perl-5.28.1
 #and batch terminal sessions
 #
 
-perlbrew switch perl-5.28.1
+perlbrew switch perl-5.28.2
 
 #
 #Note: this operation can be reversed using
@@ -53,6 +53,10 @@ which cpanm         # should be the one installed by perlbrew
 
 cpanm --local-lib=~/perl5 local::lib && eval $(perl -I ~/perl5/lib/perl5/ -Mlocal::lib)
 cpanm Date::Format Date::Handler DateTime DateTime::Format::Builder IO::Socket::SSL HTTP::Tiny List::Util Math::Trig Net::FTP Params::Validate Time::Local
+
+# interactive:
+
+cpanm --force --interactive Date::Pcalc
 
 #
 #You should be all set up.
