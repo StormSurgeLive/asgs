@@ -84,12 +84,13 @@ OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HPCENV/$INSTANCENAME/$ENSTORM
 OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
 # create the opendap download url for the run.properties file 
 downloadURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
-# write the downloadurl to a file for later reference as well as 
-# for retrieving and writing backup urls 
-echo $downloadURL >> $STORMDIR/downloadurl.log 2>> ${SYSLOG}
-# write the opendap dir to a file for later reference as well as
-# for retrieving and writing backup urls
-echo $OPENDAPDIR >> $STORMDIR/opendapdir.log 2>> ${SYSLOG}
+# add downloadurl or downloadurl_backup property to run.properties file
+if [[ ! `grep downloadurl run.properties` =~ downloadurl ]]; then
+   echo "downloadurl : $downloadURL" >> run.properties 2>> ${SYSLOG}
+else
+   backupNum=`grep downloadurl run.properties | wc -l`
+   echo "downloadurl_backup$backupNum : $downloadURL" >> run.properties 2>> ${SYSLOG}
+fi      
 #-----------------------------------------------------------------------
 #           D E T E R M I N E   M E T H O D
 #-----------------------------------------------------------------------
@@ -103,7 +104,6 @@ for hpc in ${COPYABLEHOSTS[*]}; do
       OPENDAPPOSTMETHOD=copy
    fi
 done
-
 #
 # Determine whether to create symbolic links by looking at the
 # list of HPC machines that share a common filesystem with this TDS. 
@@ -185,10 +185,6 @@ case $OPENDAPPOSTMETHOD in
    #
    # now scp the files 
    for file in ${FILES[*]}; do 
-      # add downloadurl property to run.properties file
-      if [[ $file = "run.properties" ]]; then
-         echo "downloadurl : $downloadURL" >> run.properties 2>> ${SYSLOG}
-      fi      
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
          logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
@@ -253,10 +249,6 @@ case $OPENDAPPOSTMETHOD in
          continue        
       fi
       chmod +r ${ADVISDIR}/${ENSTORM}/$file 2>> $SYSLOG
-      # add downloadurl property.
-      if [[ $file = 'run.properties' ]]; then
-         echo "downloadurl : $downloadURL" >> $file 2>> ${SYSLOG}
-      fi
       logMessage "$ENSTORM: $THIS: $postDesc $file."
       $postCMD ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
       if [[ $? != 0 ]]; then

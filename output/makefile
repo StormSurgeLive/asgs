@@ -172,10 +172,14 @@ OBJ := adcmesh.o asgsio.o nodalattr.o logging.o
 MODS := ioutil.mod adcmesh.mod asgsio.mod nodalattr.mod logging.mod
 #
 # targets
-all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN checkAdcircMesh resultScope highResolutionRegion stationProcessor collectMinMax
+all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN checkAdcircMesh resultScope highResolutionRegion stationProcessor collectMinMax 
 #
 clean :
-	rm -f *.o *.mod *.x
+	rm -f *.o *.mod *.x FigureGen/*.mod FigureGen/*.x
+#
+# FIXME: make FigureGen is not working yet
+FigureGen : FigureGen/FigureGen.F90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@/$@.x $@/$@.F90 $(LDFLAGS)
 #
 adcirc2netcdf : $(MODS) adcirc2netcdf.f90 nodalattr.mod logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
