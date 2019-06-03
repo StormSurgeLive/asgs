@@ -29,7 +29,7 @@
 # Fundamental 
 #
 INSTANCENAME=ec95d-RENCI-TC-TEST       # name of this ASGS process, to differentiate results
-COLDSTARTDATE=2018092309
+COLDSTARTDATE=2018090706
 
 #STORMNAME=daily
 
@@ -206,19 +206,19 @@ ARCHIVEDIR=null  # archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=1 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 0)
-   ENSTORM=namforecast
+   ENSTORM=nhcOfcl
    PARTITION=ncfs
    RESERVATION=null
    #CONSTRAINT='sandybridge&hatteras'
    ;;
 1)
-   ENSTORM=namforecastWind10m
+   ENSTORM=nhcOfclWind10m
    PARTITION=ncfs
    RESERVATION=null
    #CONSTRAINT='sandybridge&hatteras'
