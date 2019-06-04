@@ -75,11 +75,13 @@ init_queenbee()
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=20
   REMOVALCMD="rmpurge"
-  PLATFORMMODULES='module load intel netcdf netcdf_fortran gcc perl'
+  PLATFORMMODULES='module load intel netcdf netcdf_fortran gcc'
   $PLATFORMMODULES
   # modules for CPRA post processing
   module load matlab/r2015b
   module load python/2.7.12-anaconda-tensorflow
+  # needed for asgs perl
+  source ~/perl5/perlbrew/etc/bashrc
 }
 
 init_rostam()

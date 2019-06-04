@@ -687,6 +687,12 @@ downloadCycloneData()
     while [ $newAdvisory = false ]; do
        if [[ $TRIGGER != "atcf" ]]; then 
           #echo  "perl $SCRIPTDIR/get_atcf.pl $OPTIONS"  # BOB
+          echo 'cpan -l | grep SSL >> $RUNDIR/cpanm.log' > $RUNDIR/cpanm.log
+          #cpan -l  >> $RUNDIR/cpanm.log 2>&1
+          which cpan >> $RUNDIR/cpanm.log 2>&1
+          which perl >> $RUNDIR/cpanm.log 2>&1
+          which cpanm >> $RUNDIR/cpanm.log 2>&1
+          echo $PERL5LIB
           newAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
        fi
        # check to see if we have a new one, and if so, determine the
@@ -1302,7 +1308,7 @@ variables_init()
    NOTIFYUSER=null
    RUNDIR=null
    INPUTDIR=null
-   PERL5LIB=
+   #PERL5LIB=  leave in place from perlbrew ..
    HOTSTARTFORMAT=null
    STORMDIR=stormdir
    SSHKEY=null
@@ -1702,7 +1708,7 @@ RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "ASGS state file is 
 checkDirExistence $ADCIRCDIR "ADCIRC executables directory"
 checkDirExistence $INPUTDIR "directory for input files"
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
-checkDirExistence $PERL5LIB "directory for the Date::Pcalc perl module"
+#checkDirExistence $SCRIPTDIR/PERL "directory for the Date::Pcalc perl module"
 #
 checkFileExistence $ADCIRCDIR "ADCIRC serial executable" adcirc
 checkFileExistence $ADCIRCDIR "ADCIRC preprocessing executable" adcprep
@@ -1848,20 +1854,20 @@ checkFileExistence $OUTPUTDIR "postprocessing script" $POSTPROCESS
 checkFileExistence $OUTPUTDIR "email notification script" $NOTIFY_SCRIPT
 checkFileExistence ${SCRIPTDIR}/archive "data archival script" $ARCHIVE
 #
-checkDirExistence ${PERL5LIB}/Date "subdirectory for the Pcalc.pm perl module"
-checkFileExistence ${PERL5LIB}/Date "perl module for date calculations" Pcalc.pm
+#checkDirExistence ${PERL5LIB}/Date "subdirectory for the Pcalc.pm perl module"
+#checkFileExistence ${PERL5LIB}/Date "perl module for date calculations" Pcalc.pm
 
 THIS="asgs_main.sh"
 #
 if [[ $PERIODICFLUX != null ]]; then
    logMessage "$THIS: checking for FLUXCALCULATOR script"
    checkFileExistence "" "perl script for calculating periodic flux boundary" $FLUXCALCULATOR
-   checkFileExistence ${PERL5LIB} "AdcGrid perl module used by flux calculator" AdcGrid.pm
+   checkFileExistence $SCRIPTDIR/PERL "AdcGrid perl module used by flux calculator" AdcGrid.pm
 fi
 #
-if [[ $TROPICALCYCLONE != off ]]; then
-   checkFileExistence ${PERL5LIB} "perl library to support downloading forecast/advisories from the National Hurricane Center website" Tiny.pm
-fi
+#if [[ $TROPICALCYCLONE != off ]]; then
+#   checkFileExistence ${PERL5LIB} "perl library to support downloading forecast/advisories from the National Hurricane Center website" Tiny.pm
+#fi
 THIS="asgs_main.sh"
 #
 # Check for any issues or inconsistencies in configuration parameters. 
@@ -1877,7 +1883,7 @@ logMessage "$THIS: The directory $RUNDIR will be used for all files associated w
 # NAM data in
 ALTNAMDIR="${ALTNAMDIR},$RUNDIR"
 # set directory to get perl date calcs module from
-export PERL5LIB=${SCRIPTDIR}:${PERL5LIB} #<- augment, don't write over existing
+export PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL #<- augment, don't write over existing
 #
 # send out an email to notify users that the ASGS is ACTIVATED
 ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $RUNDIR advisory enstorm $GRIDFILE activation $EMAILNOTIFY $SYSLOG "${ACTIVATE_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
