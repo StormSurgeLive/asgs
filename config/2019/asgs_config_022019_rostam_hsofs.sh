@@ -98,9 +98,9 @@ ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
 RIVERSITE=ftp.nssl.noaa.gov
 RIVERDIR=/projects/ciflow/adcirc_info
 
-# Input files and templates (looks in INPUTDIR=$SCRIPDIR/input/meshes/hsofs)
+# Input files and templates (looks in INPUTDIR=$SCRIPTDIR/input/meshes/hsofs)
 #https://asgs-static-assets.sfo2.digitaloceanspaces.com/meshes/hsofs.14.xz
-#https://asgs-static-assets.sfo2.digitaloceanspaces.com/meshes/hsofs.13.xz
+#https://asgs-static-assets.sfo2.digitaloceanspaces.com/nodal-attributes/hsofs.13.xz
 
 GRIDFILE=hsofs.14  # mesh (fort.14) file
 GRIDNAME=hsofs
