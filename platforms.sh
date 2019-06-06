@@ -136,25 +136,37 @@ init_supermic()
   ALLOCCHECKCMD=showquota
   QUEUENAME=workq
   SERQUEUE=single
-  ACCOUNT=null
   SUBMITSTRING=qsub
+  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTGEN=qscript.pl
+  RMQMessaging_LocationName="LSU CCT"
+  RMQMessaging_ClusterName="SuperMIC"
+  RMQMessaging_Enable="on"      # "on"|"off"
+  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  RMQMessaging_NcoHome="$HOME/local"
+  RMQMessaging_Python=/usr/local/packages/python/2.7.12-anaconda/bin/python
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
-  if [[ -d /work/$USER ]]; then
+  ACCOUNT=null
+  PLATFORMMODULES='module load intel/14.0.2 hdf5/1.8.12/INTEL-140-MVAPICH2-2.0 netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0 netcdf_fortran/4.2/INTEL-140-MVAPICH2-2.0'
+  # modules for CPRA post processing
+  SERIALMODULES='module load matlab/r2015b python/2.7.13-anaconda-tensorflow'
+  PARALLELMODULES='module load mvapich2'
+  JOBENVDIR=$SCRIPTDIR/config/machines/supermic
+  JOBENV=( )
+  if [[ $USER = "jgflemin" ]]; then
      SCRATCHDIR=/work/$USER
-  else
-     SCRATCHDIR=/ssdwork/$USER
+     ACCOUNT=loni_cera_2019a
+     JOBENV=( gmt.sh gdal.sh imagemagick.sh )
+     for script in $JOBENV; do
+        source $JOBENVDIR/$script
+     done
   fi
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=$SCRIPTDIR/input/machines/supermic/smic.template.pbs
-  PREPCONTROLSCRIPT=$SCRIPTDIR/input/machines/supermic/smic.adcprep.template.pbs
-  QSCRIPTGEN=tezpur.pbs.pl
   PPN=20
   REMOVALCMD="rmpurge"
-  PLATFORMMODULES='module load intel/14.0.2 netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0 netcdf_fortran/4.2/INTEL-140-MVAPICH2-2.0 perl/5.16.3/INTEL-14.0.2'
+  module purge
   $PLATFORMMODULES
-  # modules for CPRA post processing
-  #module load matlab/r2015b
-  #module load python/2.7.12-anaconda-tensorflow
+  $SERIALMODULES
 }
 init_arete()
 { #<- can replace the following with a custom script
