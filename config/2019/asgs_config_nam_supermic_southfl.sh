@@ -53,7 +53,7 @@ VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
 
-TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
+TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -150,9 +150,9 @@ JOB_FAILED_LIST="jason.g.fleming@gmail.com"
 NOTIFYUSER="jason.g.fleming@gmail.com"
 ASGSADMIN="jason.g.fleming@gmail.com"
 # RMQ Messaging
-RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
-RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
+RMQMessaging_Enable="off"      #  enables message generation ("on" | "off")
+RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
+RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
 RMQMessaging_NcoHome="/home/jgflemin/"
 RMQMessaging_Python="/usr/local/packages/python/2.7.13-anaconda/bin/python"
 RMQMessaging_LocationName="LSU CCT"
