@@ -40,7 +40,7 @@ si=$ENMEMNUM
 ## grab all config info
 . ${CONFIG} 
 # Bring in logging functions
-. ${SCRIPTDIR}/logging.sh
+. ${SCRIPTDIR}/monitoring/logging.sh
 # Bring in platform-specific configuration
 . ${SCRIPTDIR}/platforms.sh
 # grab all config info (again, last, so the CONFIG file takes precedence)

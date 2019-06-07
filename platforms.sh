@@ -155,14 +155,13 @@ init_supermic()
   JOBENV=( )
   if [[ $USER = "jgflemin" ]]; then
      SCRATCHDIR=/work/$USER
-     ACCOUNT=loni_cera_2019a
+     ACCOUNT=hpc_cera_2019
      JOBENV=( gmt.sh gdal.sh imagemagick.sh )
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
   fi
   SSHKEY=~/.ssh/id_rsa.pub
-  PPN=20
   REMOVALCMD="rmpurge"
   module purge
   $PLATFORMMODULES
@@ -835,6 +834,15 @@ job_defaults() {
          PPN=1   
       fi
       ;;
+   "supermic")
+      # in general should be 20; actually for serial jobs submitted to
+      PPN=20
+      # get parallelism property
+      PARALLELISM=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.parallelism\s*:\s*//p" run.properties`
+      if [[ $PARALLELISM = "serial" ]]; then 
+         PPN=1   
+      fi
+      ;;
    "stampede2")
       PPN=48
       ;;
@@ -910,7 +918,7 @@ env_dispatch() {
   "queenbee") consoleMessage "platforms.sh: Queenbee (LONI) configuration found."
           init_queenbee
           ;;
-  "supermic") consoleMessage "platforms.sh: Queenbee (LONI) configuration found."
+  "supermic") consoleMessage "platforms.sh: SuperMIC (LSU HPC) configuration found."
           init_supermic
           ;;
   "tezpur") consoleMessage "platforms.sh: Tezpur (LSU) configuration found."
