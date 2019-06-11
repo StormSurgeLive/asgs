@@ -87,9 +87,12 @@ init_queenbee()
   fi
   SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
+<<<<<<< HEAD
   module purge
   $PLATFORMMODULES
   $SERIALMODULES
+  # needed for asgs perl
+  source ~/perl5/perlbrew/etc/bashrc
   # @jasonfleming: for ~/.bashrc: Prevent git push from opening up a graphical
   # dialog box to ask for a password; it will interactively ask for
   # a password instead
