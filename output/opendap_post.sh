@@ -48,7 +48,7 @@ ASGSADMIN=`grep "notification.email.asgsadmin" ${STORMDIR}/run.properties | sed 
 ## grab all config info
 . ${CONFIG} 
 # Bring in logging functions
-. ${SCRIPTDIR}/logging.sh
+. ${SCRIPTDIR}/monitoring/monitoring/logging.sh
 # Bring in platform-specific configuration
 . ${SCRIPTDIR}/platforms.sh
 # dispatch environment (using the functions in platforms.sh)
