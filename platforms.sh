@@ -87,7 +87,6 @@ init_queenbee()
   fi
   SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
-<<<<<<< HEAD
   module purge
   $PLATFORMMODULES
   $SERIALMODULES
