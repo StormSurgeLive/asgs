@@ -45,7 +45,7 @@ echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Starting post process
 echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Collecting properties." >> $LOGFILE
 # SCRIPTDIR: path to asgs scripts like asgs_main.sh
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties`
-. ${SCRIPTDIR}/logging.sh
+. ${SCRIPTDIR}/monitoring/logging.sh
 # ACCOUNT: by default, use whatever account was used by padcirc or padcswan
 ACCOUNT=`sed -n 's/[ ^]*$//;s/hpc.job.padcswan.account\s*:\s*//p' run.properties`
 if [[ -z $ACCOUNT ]]; then
