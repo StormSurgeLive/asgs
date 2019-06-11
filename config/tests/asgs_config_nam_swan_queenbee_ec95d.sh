@@ -150,11 +150,8 @@ ASGSADMIN=jason.fleming@seahorsecoastal.com
 
 # Monitoring
 
-RMQMessaging_Enable="off"      #  enables message generation ("on" | "off")
-RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
-RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
-RMQMessaging_NcoHome="/home/jgflemin"
-RMQMessaging_Python="/usr/local/packages/python/2.7.12-anaconda/bin/python"
+RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 
 # Post processing and publication
 
