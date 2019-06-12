@@ -71,7 +71,7 @@ init_queenbee()
   RMQMessaging_Python=/usr/local/packages/python/2.7.12-anaconda/bin/python
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
-  PLATFORMMODULES='module load intel netcdf netcdf_fortran perl'
+  PLATFORMMODULES='module load intel netcdf netcdf_fortran'
   # modules for CPRA post processing
   SERIALMODULES='module load matlab/r2015b python/2.7.12-anaconda-tensorflow'
   PARALLELMODULES='module load mvapich2'
@@ -80,7 +80,7 @@ init_queenbee()
   if [[ $USER = "jgflemin" ]]; then
      SCRATCHDIR=/work/$USER
      ACCOUNT=loni_cera_2019
-     JOBENV=( gmt.sh gdal.sh imagemagick.sh )
+     JOBENV=( gmt.sh gdal.sh imagemagick.sh perlbrew.sh )
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
@@ -90,6 +90,8 @@ init_queenbee()
   module purge
   $PLATFORMMODULES
   $SERIALMODULES
+  # needed for asgs perl
+  source ~/perl5/perlbrew/etc/bashrc
   # @jasonfleming: for ~/.bashrc: Prevent git push from opening up a graphical
   # dialog box to ask for a password; it will interactively ask for
   # a password instead
