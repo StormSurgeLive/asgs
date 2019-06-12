@@ -160,7 +160,7 @@ RMQMessaging_ClusterName="SuperMIC"
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=developers-only
+INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
 POSTPROCESS=cera_post.sh
 POSTPROCESS2=null_post.sh
