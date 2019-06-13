@@ -164,7 +164,7 @@ RMQMessaging_ClusterName="Queenbee"
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=queenbee_opendap_post.sh
+POSTPROCESS=cpra_post.sh
 
 # opendap
 TDS=(lsu_tds renci_tds)

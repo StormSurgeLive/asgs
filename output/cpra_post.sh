@@ -1,7 +1,7 @@
 #!/bin/bash
 #-----------------------------------------------------------------------
-# cera_post.sh : Minimal post processing to get data onto THREDDS
-# server for dissemination via CERA.
+# cpra_post.sh : Minimal post processing to get data onto THREDDS
+# server for dissemination via CERA and to create slide deck for CPRA.
 #-----------------------------------------------------------------------
 # Copyright(C) 2018 Jason Fleming
 #
