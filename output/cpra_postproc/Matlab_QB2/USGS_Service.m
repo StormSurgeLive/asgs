@@ -16,14 +16,14 @@ function [TW]=USGS_Service(site,format,outputDataType,sDate,eDate,plotter)
 % site = '02481270';
 % format = 'waterml,2.0';
 % outputDataType = '00065';
-% sDate = '2017-10-01';
-% eDate = '2017-10-17';
+% sDate = '2017-10-01 00:00';
+% eDate = '2017-10-17 00:00';
 % plotter = true;
 
 prefix = 'https://nwis.waterservices.usgs.gov/nwis/iv/?';
 
-sDate = datestr(sDate,'yyyy-mm-dd');
-eDate = datestr(eDate,'yyyy-mm-dd');
+sDate = datestr(sDate,'yyyy-mm-ddThh:MM');
+eDate = datestr(eDate,'yyyy-mm-ddThh:MM');
 
 url = [prefix,'sites=',site,...
     '&startDT=',sDate,'&endDT=',eDate,...
@@ -54,7 +54,7 @@ for i=1:numDataPoints
     wl(i) = str2num(data{i}.Text);
     line = strtok(data{i}.Attributes.dateTime,'.');
     dateTime(i) = datenum(line,'yyyy-mm-ddTHH:MM:SS');
-    dateTime(i) = dateTime(i) + (4/24); % Convert from EST to UTC
+    %dateTime(i) = dateTime(i) + (4/24); % Convert from EST to UTC
     %fprintf(fid,'%s\t%8.3f\n',datestr(dateTime(i),'yyyymmdd HH:MM'),wl(i));
 end
 

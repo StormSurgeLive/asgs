@@ -21,10 +21,15 @@ function [TW]=rivergages2(station,begindate,enddate,variable)
 
 %DD=linspace(round(datenum(begindate)),round(datenum(enddate)),round((datenum(enddate)-datenum(begindate))/25));
 % DD=linspace(round(datenum(begindate)),round(datenum(enddate)),round((datenum(enddate)-datenum(begindate))));
+
+% This works
 DD=linspace(datenum(begindate),datenum(enddate),round((datenum(enddate)-datenum(begindate))));
 
 TW = [];
 for g = 2:length(DD)
+    
+%     sDate = datestr(begindate,'yyyy-mm-ddThh:MM')
+%     eDate = datestr(enddate,'yyyy-mm-ddThh:MM')
 
     bd=[datestr(DD(g-1),'yyyy-mm-dd'),'T',datestr(DD(g-1),'hh:MM')];
     ed=[datestr(DD(g),'yyyy-mm-dd'),'T',datestr(DD(g),'hh:MM')];
