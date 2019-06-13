@@ -58,9 +58,14 @@ title_slide_layout = prs.slide_layouts[0]
 slide = prs.slides.add_slide(title_slide_layout)
 title = slide.shapes.title
 subtitle = slide.placeholders[1]
-title.text = runProp['storm class'] + ' ' + runProp['stormname'] + ', ' + scenario + ' Scenario'
-subtitle.text = "Advisory " + runProp['advisory'] + " Issued on " + advisory_dt_long + " CDT"
-statement = 'For Official Use Only. Not For Release. \rModel results were produced by the ADCIRC Surge Guidance System (ASGS) and are based on the National Hurricane Center (NHC) forecast track. \rADCIRC-developed hydrographs are an operational planning tool for emergency-response personnel and are not a replacement for National Weather Service (NWS) forecasts.'
+if runProp['config.forcing.tropicalcyclone'] != "off": 
+    title.text = runProp['storm class'] + ' ' + runProp['stormname'] + ', ' + scenario + ' Scenario'
+    subtitle.text = "Advisory " + runProp['advisory'] + " Issued on " + advisory_dt_long + " CDT"
+    statement = 'For Official Use Only. Not For Release. \rModel results were produced by the ADCIRC Surge Guidance System (ASGS) and are based on the National Hurricane Center (NHC) forecast track. \rADCIRC-developed hydrographs are an operational planning tool for emergency-response personnel and are not a replacement for National Weather Service (NWS) forecasts.'
+else:
+    title.text = runProp['stormname'] + ' Model, ' + scenario + ' Scenario'
+    subtitle.text = "Cycle " + runProp['advisory'] + " Issued on " + advisory_dt_long + " CDT"
+    statement = 'For Official Use Only. Not For Release. \rModel results were produced by the ADCIRC Surge Guidance System (ASGS) and are based on the North American Mesoscale (NAM) model from NOAA. \rADCIRC-developed hydrographs are an operational planning tool for emergency-response personnel and are not a replacement for National Weather Service (NWS) forecasts.'
 fouo = slide.placeholders[10]
 fouo.text = statement
 numSlides = numSlides + 1
@@ -73,7 +78,11 @@ img_path = fname
 slide = prs.slides.add_slide(slide_layout)
 title = slide.shapes.title
 subtitle = slide.placeholders[1]
-title.text = 'NHC Advisory ' + runProp['advisory'] + ' ' + scenario + ' Scenario'
+if runProp['config.forcing.tropicalcyclone'] != "off": 
+    title.text = 'NHC Advisory ' + runProp['advisory'] + ' ' + scenario + ' Scenario'
+else:
+    title.text = 'NAM Cycle ' + runProp['advisory'] + ' ' + scenario + ' Scenario'
+#
 subtitle.text = "Simulated peak water levels (ft, NAVD88)"
 pic = slide.shapes.add_picture(img_path,left,top)
 fouo = slide.placeholders[13]
@@ -151,7 +160,10 @@ for image in fnames:
 #for slide in slides:
         #print('slide number %s' % str(slides.index(slide)+1))
 
-pptFile = runProp['stormname'] + "_Adv" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
+if runProp['config.forcing.tropicalcyclone'] != "off": 
+    pptFile = runProp['stormname'] + "_Adv" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
+else:
+    pptFile = runProp['stormname'] + "_Cycle" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
 prs.save(pptFile)
 pFile = open('pptFile.temp','w')
 pFile.write(pptFile)
