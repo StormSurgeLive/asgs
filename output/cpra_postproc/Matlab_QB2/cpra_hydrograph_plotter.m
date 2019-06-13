@@ -354,12 +354,25 @@ for f = 1:adcData(1).NumStations
         M = containers.Map(keySet,valueSet);
         clear keySet valueSet data
 
-        storm = M('stormname'); adcGrid = M('adcirc.gridname'); enstorm = M('asgs.enstorm');
+        adcGrid = M('adcirc.gridname');
         advisory = M('advisory'); forecastValidStart = M('forecastValidStart');
+        enstorm = M('asgs.enstorm');
+        
+        if ~isKey(M,'stormname')
+%             storm = 'NAM';
+            storm = enstorm;
+        else
+            storm = M('stormname');
+        end
+        
         msg = sprintf('cpra_hydrograph_plotter.m: Success reading %s', propFile{i});
         disp(msg);
 
-        legendCell{i+1} = strcat(enstorm,' (Advisory ',advisory,')');      
+        if strcmp(storm,enstorm)
+            legendCell{i+1} = enstorm;      
+        else  
+            legendCell{i+1} = char(strcat(enstorm,{' (Advisory '},advisory,'{)}'));      
+        end
      
         % Get the current date/time of the advisory
         % Subtract 5 hours to convert from UTC to CDT.
@@ -498,6 +511,16 @@ for f = 1:adcData(1).NumStations
     
     title1 = strcat({'Storm: '},storm,{' - Advisory: '},advisory,{' Issued on '},...
         datestr(dtAdvisory,'mm-dd HH:MM'),{' CDT'},{' - grid: '},adcGrid);
+    
+    % Arrange plot titles accordingly for NAM/daily runs vs STORM runs
+    if (strcmp(storm,enstorm))
+        title1 = strcat(M('WindModel'),{' Cycle: '},M('currentcycle'),{' Issued on '},...
+            datestr(dtAdvisory,'mm-dd HH:MM'),{' CDT'},{' - grid: '},adcGrid);
+    else
+        title1 = strcat({'Storm: '},storm,{' - Advisory: '},advisory,{' Issued on '},...
+            datestr(dtAdvisory,'mm-dd HH:MM'),{' CDT'},{' - grid: '},adcGrid);
+    end
+    
 	if (strcmp(cpraStationNames(cpraStationIndex),'Western Tie-In (WBV7274)') == 1)
 		title2 = strcat('Western Tie-In (WBV-72/74)  -  USACE Gage ID:',stations(cpraStationIndex),...
             {' - '},'Datum Converstion to NAVD88 ',num2str(datumConvMap(gageID)));
