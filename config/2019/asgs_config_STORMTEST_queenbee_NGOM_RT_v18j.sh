@@ -29,9 +29,9 @@
 
 INSTANCENAME=stormTEST   # "name" of this ASGS process
 #COLDSTARTDATE=2018112200 # calendar year month day hour YYYYMMDDHH24
-COLDSTARTDATE=2018092309 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=hotstart    # "hotstart" or "coldstart"
-LASTSUBDIR=/home/mbilskie/scratch/asgs/2019/NGOM_RT_v18j/asgs22777/initialize/hindcast          # path to previous execution (if HOTORCOLD=hotstart)
+COLDSTARTDATE=2018092312 # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=coldstart   # "hotstart" or "coldstart"
+LASTSUBDIR=   # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=14.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -42,7 +42,7 @@ SWANDIR=/home/mbilskie/src/PADCIRC/adcirc-cg-53.04/swan # ADCIRC executables
 SCRIPTDIR=/work/mbilskie/asgs/2019/asgs   # ASGS executables
 INPUTDIR=/work/mbilskie/asgs/2019/asgs/input/meshes/NGOM_RT_v18j # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
-PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
+PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 
 # Physical forcing
 
