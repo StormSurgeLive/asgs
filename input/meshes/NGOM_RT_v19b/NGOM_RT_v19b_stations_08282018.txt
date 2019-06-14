@@ -1,0 +1,49 @@
+# 27-Aug-2018, 10:25 CDT, mesh: NGOMv18j
+# Longitude Latitude ! Station ID ! Agency ! Station Name
+-83.9797728000 30.1123469400 ! 02326550 ! USGS ! Aucilla River near Mouth near Nutall Rise
+-84.1511944000 30.2852222000 ! 02326885 ! USGS ! St. MArks River Swallet near Woodville
+-84.1482508000 30.2714311000 ! 02326900 ! USGS ! St. Marks River near Newport
+-84.2615630000 30.2138141000 ! 02327022 ! USGS ! Wakulla River near Crawfordville
+-84.32689300 30.07315700 ! 02327031 ! USGS ! Spring Creek near Spring Creek
+-85.0154686000 29.9493709400 ! 02359170 ! USGS ! Apalachicola River near Sumatra
+-86.92334500 30.57030100 ! 02369600 ! USGS ! Yellow River near Milton
+-87.2669179000 30.6701917000 ! 02376033 ! USGS ! Escambia River near Molino
+-87.4627577000 30.5182508900 ! 02376100 ! USGS ! Bayou Marcus Creek near Pensacoula
+-87.4627577000 30.5182508900 ! 02377750 ! USGS ! Styx River at Seminole
+-88.0208320000 31.0157360000 ! 02470629 ! USGS ! Mobile River at River Mile 31.0 at Bucks
+-88.0111090000 31.0029580000 ! 02470630 ! USGS ! Mobile River at Barry Steamplant nr Bucks
+-88.6413888900 30.6105555600 ! 02479310 ! USGS ! Pascagoula River at Graham Ferry
+-88.4513888900 30.4586111000 ! 0248018020 ! USGS ! Escatawpa River at 1-10 nr Orange Grove
+-88.5630560000 30.3677780000 ! 02480212 ! USGS ! Pascagoula River at MI 1 at Pascagoula
+-88.6084440000 30.3826940000 ! 02480285 ! USGS ! West Pascagoula River at Hwy 90 at Gautier
+-88.6947220000 30.3628890000 ! 02480287 ! USGS ! Graveline Bayou near Gautier
+-89.0358333000 30.4883333300 ! 02481130 ! USGS ! Biloxi River near Lyman
+-88.9758670000 30.4157530000 ! 02481270 ! USGS ! Back Bay of Biloxi near Biloxi
+-88.8280560000 30.4191670000 ! 02481299 ! USGS ! Old Fort Bayou at Ocean Springs
+-89.2063889000 30.3933611000 ! 02481521 ! USGS ! Wolf River at Belle Ferry Road near Long Beach
+-89.4413890000 30.3872220000 ! 02481660 ! USGS ! Jourdan River nr Bay St Louis
+-84.98101200 29.72692700 ! 8728690 ! NOAA NOS ! Apalachicola
+-85.6669000000 30.1523000000 ! 8729108 ! NOAA NOS ! Panama City
+-85.8783330000 30.2133330000 ! 8729210 ! NOAA NOS ! Panama City Beach
+-87.21179000 30.40398400 ! 8729840 ! NOAA NOS ! Pensacola
+-88.0750000000 30.2500000000 ! 8735180 ! NOAA NOS ! Dauphin Island
+-88.0880000000 30.5652000000 ! 8735391 ! NOAA NOS ! Dog River Bridge
+-88.05743000 30.64901000 ! 8736897 ! NOAA NOS ! Coast Guard Sector Mobile
+-88.03981900 30.70844100 ! 8737048 ! NOAA NOS ! Mobile State Docks
+-88.15864000 30.37605600 ! 8738043 ! NOAA NOS ! West Fowl River Bridge
+-88.2477000000 30.4057000000 ! 8739803 ! NOAA NOS ! Bayou La Batre Bridge
+-88.4027000000 30.4133000000 ! 8740166 ! NOAA NOS ! Grand Bay NERR Mississippi Sound
+-89.3258000000 30.3264000000 ! 8747437 ! NOAA NOS ! Bay Waveland Yacht Club
+-84.98101200 29.72692700 ! APCF1 ! NOAA RFC ! Apalachicola
+-84.5025000000 29.9883330000 ! CTMF1 ! NOAA RFC ! Ochlockonee River at Curtis Mill (US-319)
+-88.8933643000 30.4760307000 ! DIBM6 ! NOAA RFC ! Tchoutacabouffa River nr D&#39;Iberville
+-89.2063889000 30.3933611000 ! GLFM6 ! NOAA RFC ! Wolf River above Gulfport
+-89.0358333000 30.4883333300 ! LYMM6 ! NOAA RFC ! Biloxi River nr Lyman
+-84.2105560000 30.1505560000 ! MRKF1 ! NOAA RFC ! St. Marks River at St. Marks
+-84.1482508000 30.2714311000 ! NEPF1 ! NOAA RFC ! St. Marks River near Newport on Old Magnolia Rd
+-83.9797728000 30.1123469400 ! NUTF1 ! NOAA RFC ! Aucilla River near Nutall Rise
+-88.4513888900 30.4586111000 ! ORAM6 ! NOAA RFC ! Escatawpa River at I-10 nr Orange Grove
+-85.6669440000 30.1519440000 ! PACF1 ! NOAA RFC ! Panama City
+-85.8780560000 30.2147220000 ! PCBF1 ! NOAA RFC ! Panama City Beach
+-88.6414000000 30.6106000000 ! PGFM6 ! NOAA RFC ! Pascagoula River at Graham Ferry
+-84.3273972000 30.0727048500 ! SBIF1 ! NOAA RFC ! Tide Gauge near Spring Creek Boat Ramp
