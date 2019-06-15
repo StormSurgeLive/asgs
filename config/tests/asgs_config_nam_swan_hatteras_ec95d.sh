@@ -28,9 +28,9 @@
 # Fundamental
 
 INSTANCENAME=dailyec95d  # "name" of this ASGS process
-COLDSTARTDATE=2019042000 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
+COLDSTARTDATE=auto       # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart       # "hotstart" or "coldstart"
+LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2019/nam/2019061018/ec95d/lonestar.tacc.utexas.edu/dailyec95d/namforecast/fort.68.nc          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=14.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -41,7 +41,6 @@ SWANDIR=~/adcirc-cg/jasonfleming/v53release/swan    # SWAN executables
 SCRIPTDIR=~/asgs/jasonfleming/master       # ASGS executables
 INPUTDIR=$SCRIPTDIR/input/meshes/ec95d     # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output              # post processing scripts
-PERL5LIB=${SCRIPTDIR}/PERL                 # DateCale.pm perl module
 
 # Physical forcing
 
@@ -149,19 +148,13 @@ NOTIFYUSER=jason.g.fleming@gmail.com
 ASGSADMIN=jason.fleming@seahorsecoastal.com
 
 # Monitoring
-
-RMQMessaging_Enable="off"      #  enables message generation ("on" | "off")
-RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
-RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
-RMQMessaging_NcoHome="/home/jgflemin"
-RMQMessaging_Python="/usr/local/packages/python/2.7.12-anaconda/bin/python"
+# (use defaults from platforms.sh)
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
 POSTPROCESS=cera_post.sh
-#POSTPROCESS=null_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
@@ -179,13 +172,13 @@ TARGET=hatteras  # used in post processing to pick up HPC platform config
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.fleming@seahorsecoastal.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
-ARCHIVE=null_archive.sh
-ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
-ARCHIVEDIR=null
+ARCHIVE=enstorm_pedir_removal.sh
+ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS/2019
+ARCHIVEDIR=nam
 
 # Forecast ensemble members
 
@@ -204,7 +197,7 @@ case $si in
    CONTROLTEMPLATE=ec_95_nowindreduction.fort.15_template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=900.0    # 15 minute time steps
-   NCPU=47               # dramatically reduced resource requirements
+   NCPU=15               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output
