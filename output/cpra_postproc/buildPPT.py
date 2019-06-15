@@ -63,7 +63,7 @@ if runProp['config.forcing.tropicalcyclone'] != "off":
     subtitle.text = "Advisory " + runProp['advisory'] + " Issued on " + advisory_dt_long + " CDT"
     statement = 'For Official Use Only. Not For Release. \rModel results were produced by the ADCIRC Surge Guidance System (ASGS) and are based on the National Hurricane Center (NHC) forecast track. \rADCIRC-developed hydrographs are an operational planning tool for emergency-response personnel and are not a replacement for National Weather Service (NWS) forecasts.'
 else:
-    title.text = runProp['stormname'] + ' Model, ' + scenario + ' Scenario'
+    title.text = 'NAM Model, ' + scenario + ' Scenario'
     subtitle.text = "Cycle " + runProp['advisory'] + " Issued on " + advisory_dt_long + " CDT"
     statement = 'For Official Use Only. Not For Release. \rModel results were produced by the ADCIRC Surge Guidance System (ASGS) and are based on the North American Mesoscale (NAM) model from NOAA. \rADCIRC-developed hydrographs are an operational planning tool for emergency-response personnel and are not a replacement for National Weather Service (NWS) forecasts.'
 fouo = slide.placeholders[10]
@@ -163,7 +163,7 @@ for image in fnames:
 if runProp['config.forcing.tropicalcyclone'] != "off": 
     pptFile = runProp['stormname'] + "_Adv" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
 else:
-    pptFile = runProp['stormname'] + "_Cycle" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
+    pptFile = "NAM_Cycle" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
 prs.save(pptFile)
 pFile = open('pptFile.temp','w')
 pFile.write(pptFile)
