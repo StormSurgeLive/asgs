@@ -95,7 +95,7 @@ if [[ -d $dirWind10m ]]; then
    logMessage "Corresponding 10m wind ensemble member was found."
    wind10mFound=yes
    for file in fort.72.nc fort.74.nc maxwvel.63.nc ; do
-      if [[ -e $dirWind10m/$file ]]; then
+      if [[ -e $dirWind10m/$file && ! -e ./wind10m.${file} ]]; then
          logMessage "$ENSTORM: $THIS: Found $dirWind10m/${file}."
          ln -s $dirWind10m/${file} ./wind10m.${file} 2>&1 | tee -a scenario.log >> $SYSLOG
          # update the run.properties file
