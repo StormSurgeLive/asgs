@@ -141,7 +141,7 @@ fi
 #
 #$CATALOGPREFIX/$STORMNAMEPATH/${OPENDAPSUFFIX}/catalog.html
 subject="${subject} $ENMEMNUM $HPCENV.$INSTANCENAME $ASGSADMIN"
-cat <<END > ${STORMDIR}/opendap_results_notify.txt 
+cat <<END > ${STORMDIR}/opendap_results_notify_${SERVER}.txt 
 
 The results for cycle $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/catalog.html
 
@@ -202,7 +202,7 @@ case $OPENDAPPOSTMETHOD in
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
          logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-         cat ${STORMDIR}/opendap_results_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
          opendapEmailSent=yes
          continue        
       fi
@@ -232,7 +232,7 @@ case $OPENDAPPOSTMETHOD in
          ssh $sshOptions "chmod +r $OPENDAPDIR/$fname"
          if [[ $? != 0 ]]; then
             threddsPostStatus=fail
-            warn "$ENSTORM: $THIS: Failed to give the file $file read permissions in ${OPENDAPHOST}:${OPENDAPDIR}."
+            warn "$ENSTORM: $THIS: Failed to give the file $fname read permissions in ${OPENDAPHOST}:${OPENDAPDIR}."
          else
             logMessage "$ENSTORM: $THIS: Successfully changed permissions."
             break
@@ -269,18 +269,18 @@ case $OPENDAPPOSTMETHOD in
    chmod a+w $OPENDAPBASEDIR 2>> $SYSLOG
    chmod a+w $OPENDAPBASEDIR/$STORMNAMEPATH 2>> $SYSLOG
    chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY 2>> $SYSLOG
-   cd $OPENDAPDIR 2>> ${SYSLOG}
+   #cd $OPENDAPDIR 2>> ${SYSLOG}
    for file in ${FILES[*]}; do 
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
          logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-         cat ${STORMDIR}/opendap_results_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
          opendapEmailSent=yes
          continue        
       fi
-      chmod +r ${ADVISDIR}/${ENSTORM}/$file 2>> $SYSLOG
+      chmod +r $file 2>> $SYSLOG
       logMessage "$ENSTORM: $THIS: $postDesc $file."
-      $postCMD ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
+      $postCMD $file $OPENDAPDIR 2>> ${SYSLOG}
       if [[ $? != 0 ]]; then
          threddsPostStatus=fail
          warn "$ENSTORM: $THIS: $postDesc $file to ${OPENDAPDIR} failed."
@@ -305,5 +305,5 @@ esac
 #else
 if [[ $opendapEmailSent = "no" ]]; then 
    logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
-   cat ${STORMDIR}/opendap_results_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+   cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
 fi
