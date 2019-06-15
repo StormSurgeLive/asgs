@@ -660,7 +660,7 @@ init_lonestar()
   JOBENVDIR=$SCRIPTDIR/config/machines/lonestar5
   JOBENV=( )
   if [[ $USER = jgflemin ]]; then
-     ACCOUNT=DesignSafe-CERA
+     ACCOUNT=ADCIRC
      # don't use built in netcdf module
      JOBENV=( netcdf.sh gmt.sh gdal.sh openssl.sh )
      for script in $JOBENV; do
