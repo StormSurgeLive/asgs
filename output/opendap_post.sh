@@ -33,8 +33,14 @@ FILES=("$9") # array of files to post to opendap
 
 #echo $OPENDAPNOTIFY
 #
-THIS=opendap_post.sh
-echo "SERVER is $SERVER" >> ${SYSLOG}
+THIS="opendap_post.sh-->$SERVER"
+declare -A properties
+# get loadProperties function   
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties 2>>$SYSLOG`   
+source $SCRIPTDIR/properties.sh
+# load run.properties file into associative array
+loadProperties   
+#
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR}
 # get the forecast ensemble member number for use in 
@@ -152,22 +158,46 @@ END
 # jgf20160803: Changed if/then to case-switch to accommodate new "copy" method.
 case $OPENDAPPOSTMETHOD in
 "scp")
+   serverAliveInterval=10
+   timeoutRetryLimit=3
+   sshOptions="$OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60"
    logMessage "$ENSTORM: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
-   #echo ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "mkdir -p $OPENDAPDIR" 
-   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
-   if [[ $? != 0 ]]; then
-      warn "$ENSTORM: $THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
-      threddsPostStatus=fail
-   fi
+   retry=0
+   while [[ $retry -lt $timeoutRetryLimit ]]; do 
+      ssh $sshOptions "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
+      if [[ $? != 0 ]]; then
+         warn "$ENSTORM: $THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
+         threddsPostStatus=fail
+      else
+         logMessage "$ENSTORM: $THIS: Successfully created the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
+         break
+      fi
+      retry=`expr $retry + 1`
+      if [[ $retry -lt $timeoutRetryLimit ]]; then
+         logMessage "$ENSTORM: $THIS: Trying again."
+      else
+         logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+      fi
+   done
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories
-   #ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR" 2>> $SYSLOG
-   #ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
-   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
-   if [[ $? != 0 ]]; then
-      warn "$ENSTORM: $THIS: Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
-      threddsPostStatus=fail
-   fi
+   retry=0
+   while [[ $retry -lt $timeoutRetryLimit ]]; do 
+      ssh $sshOptions "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
+      if [[ $? != 0 ]]; then
+         warn "$ENSTORM: $THIS: Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
+         threddsPostStatus=fail
+      else
+         logMessage "$ENSTORM: $THIS: Successfully changed permissions."
+         break
+      fi
+      retry=`expr $retry + 1`
+      if [[ $retry -lt $timeoutRetryLimit ]]; then
+         logMessage "$ENSTORM: $THIS: Trying again."
+      else
+         logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+      fi
+   done
    for file in ${FILES[*]}; do 
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
@@ -175,24 +205,45 @@ case $OPENDAPPOSTMETHOD in
          cat ${STORMDIR}/opendap_results_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
          opendapEmailSent=yes
          continue        
-      else
-         # see if the file is currently considered "opened" by another process
-         lsof -t $file 2>> $SYSLOG 2>&1
       fi
       chmod +r $file 2>> $SYSLOG
       logMessage "$ENSTORM: $THIS: Transferring $file to ${OPENDAPHOST}."
-      scp -P $SSHPORT $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG  2>&1
-      if [[ $? != 0 ]]; then
-         threddsPostStatus=fail
-         warn "$ENSTORM: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
-      fi
+      retry=0
+      while [[ $retry -lt $timeoutRetryLimit ]]; do 
+         scp -P $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60 $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG  2>&1   
+         if [[ $? != 0 ]]; then
+            threddsPostStatus=fail
+            warn "$ENSTORM: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
+         else
+            logMessage "$ENSTORM: $THIS: Successfully transferred the file."
+            break
+         fi
+         retry=`expr $retry + 1`
+         if [[ $retry -lt $timeoutRetryLimit ]]; then
+            logMessage "$ENSTORM: $THIS: Trying again."
+         else
+            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+         fi
+      done
       # give the file read permissions
       fname=`basename $file` 
-      ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod +r $OPENDAPDIR/$fname"
-      if [[ $? != 0 ]]; then
-         threddsPostStatus=fail
-         warn "$ENSTORM: $THIS: Failed to give the file $file read permissions in ${OPENDAPHOST}:${OPENDAPDIR}."
-      fi      
+      retry=0
+      while [[ $retry -lt $timeoutRetryLimit ]]; do 
+         ssh $sshOptions "chmod +r $OPENDAPDIR/$fname"
+         if [[ $? != 0 ]]; then
+            threddsPostStatus=fail
+            warn "$ENSTORM: $THIS: Failed to give the file $file read permissions in ${OPENDAPHOST}:${OPENDAPDIR}."
+         else
+            logMessage "$ENSTORM: $THIS: Successfully changed permissions."
+            break
+         fi
+         retry=`expr $retry + 1`
+         if [[ $retry -lt $timeoutRetryLimit ]]; then
+            logMessage "$ENSTORM: $THIS: Trying again."
+         else
+            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+         fi
+      done
    done
    ;;
 #-------------------------------------------------------------------

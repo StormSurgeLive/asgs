@@ -1949,7 +1949,7 @@ if [[ $START = coldstart ]]; then
       perl $FLUXCALCULATOR $FLUXOPTIONS >> ${SYSLOG} 2>&1 
    fi
 
-   CONTROLOPTIONS="--name $ENSTORM --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --cst $CSDATE --endtime $HINDCASTLENGTH --dt $TIMESTEPSIZE --nws $NWS --hsformat $HOTSTARTFORMAT --advisorynum 0 --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
+   CONTROLOPTIONS="--name $ENSTORM --scriptdir $SCRIPTDIR --advisorynum $ADVISORY --advisdir $ADVISDIR --cst $CSDATE --endtime $HINDCASTLENGTH --dt $TIMESTEPSIZE --nws $NWS --hsformat $HOTSTARTFORMAT --advisorynum 0 --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
    CONTROLOPTIONS="$CONTROLOPTIONS --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
@@ -2218,20 +2218,7 @@ while [ true ]; do
                 --dataDir $NOWCASTDIR --outDir ${NOWCASTDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM"  "$CURRENT_STATE" "Converting NAM data to OWI format."
          logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format with the following options : $NAMOPTIONS"
-         #echo perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS 
-
-         # BOB this process needs to be shoved off onto a compute-node, if the login node running asgs_main.sh is memory limited.  
-         # BOB This is a stopgap until we rewrite this perl code in python...
-#         DelegateToCompute="false"
-#         if [[ ${DelegateToCompute} == "true" ]] ; then
-#            QSCRIPTOPTIONS="--jobtype NAMtoOWIRamp --ncpu 1 --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$ENV/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING $LOCALHOTSTART --syslog $SYSLOG"
-#echo $QSCRIPTOPTIONS
-#exit
-#         else 
-             perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
-#         fi
-	 #BOB the end result of the above process should be NAM*.22{1,2}.
-
+         perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
          # create links to the OWI files
          cd $ENSTORM 2>> ${SYSLOG}
          NAM221=`ls NAM*.221`
@@ -2291,7 +2278,7 @@ while [ true ]; do
       # write the properties associated with asgs configuration to the 
       # run.properties file
       writeProperties $NOWCASTDIR
-      CONTROLOPTIONS="$CONTROLOPTIONS --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+      CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
    fi
    if [[ $WAVES = on ]]; then
       writeWaveCouplingProperties $NOWCASTDIR
@@ -2641,7 +2628,7 @@ while [ true ]; do
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Converting NAM data to OWI format."
          logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format with the following options : $NAMOPTIONS"
          perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
-         CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --advisorynum $ADVISORY --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          # create links to the OWI files
          NAM221=`ls NAM*.221`;
          NAM222=`ls NAM*.222`;

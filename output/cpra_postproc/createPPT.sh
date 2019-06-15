@@ -33,6 +33,7 @@ postJOBTYPE=cpra.post
 #--------------------------------------------------------------------------
 #       GATHER PROPERTIES
 #--------------------------------------------------------------------------
+SYSLOG=`sed -n 's/[ ^]*$//;s/asgs.file.syslog\s*:\s*//p' run.properties`
 # STORMDIR: path where this ensemble member is supposed to run 
 STORMDIR=`sed -n 's/[ ^]*$//;s/asgs.path.stormdir\s*:\s*//p' run.properties`
 LOGFILE=${STORMDIR}/${postJOBTYPE}.log
@@ -147,7 +148,7 @@ fi
 #--------------------------------------------------------------------------
 echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Building pptx with buildPPT.py." >> $LOGFILE
 cp ${POSTPROCDIR}/LSU_template.pptx ${STORMDIR}
-python ${POSTPROCDIR}/buildPPT.py ${fname}
+python ${POSTPROCDIR}/buildPPT.py ${fname} 2>&1 | tee -a $LOGFILE | tee -a scenario.log >> $SYSLOG
 #rm LSU_template.pptx
 #--------------------------------------------------------------------------
 #
