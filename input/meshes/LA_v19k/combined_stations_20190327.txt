@@ -231,7 +231,7 @@
 -89.73746 30.17320 ! Rigolets ! CPRA ! Rigolets near Lake Pontchartrain (cf USACE 85700)
 -90.11074 29.66911 ! Lafitte ! CPRA ! Barataria Waterway at Lafitte (cf USACE 82875)
 -90.0693250000 29.8705638000 ! HarveyCanalNorth ! CPRA ! Harvey Canal Sector Gates North / Prot Side nr Lapalco (cf USACE 76220)
--90.0619590000 29.8478540000 ! HarveyCanalBloom ! CPRA ! Harvey Canal at Broomtown Casion (cf USACE 76230)
+-90.0619590000 29.8478540000 ! HarveyCanalBoom ! CPRA ! Harvey Canal at Broomtown Casion (cf USACE 76230)
 -89.9141700000 30.0000020000 ! BayouBienv ! CPRA ! Bayou Bienvenue Floodgate (cf USACE 76025)
 -89.9468000000 29.2728333000 ! BaraPass ! CPRA ! Barataria Pass at Grand Isle (cf USGS 073802516)
 -92.3053360000 29.5505010000 ! FreshCanal ! CPRA ! Freshwater Canal at Freshwater Bayou Lock South (cf USACE 76593)
