@@ -27,7 +27,7 @@ HOTTIFYPATH=/home/bblanton/adcirc-cg-52release/swan
 MACHINE=pod-login
 COMPRESSION=no
 #
-logFile="enstorm_pedir_removal.log"
+logFile="scenario.log"
 stormdir=$PWD
 REMOVALCMD="rm"
 localLogMessage()
@@ -39,7 +39,7 @@ localLogMessage()
 }
 # static initialization
 THIS=enstorm_pedir_removal.sh
-LOGFILE="archive.log"
+LOGFILE="scenario.log"
 # run configuration
 STORMDIR=`sed -n 's/[ ^]*$//;s/asgs.path.stormdir\s*:\s*//p' run.properties`
 ENSTORM=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
@@ -47,7 +47,7 @@ SWANHSCOMPRESSION=`sed -n 's/[ ^]*$//;s/config.coupling.waves.swan.swanhscompres
 # pull in logging functions 
 SYSLOG=`sed -n 's/[ ^]*$//;s/asgs.file.syslog\s*:\s*//p' run.properties`
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties`
-. ${SCRIPTDIR}/logging.sh
+. ${SCRIPTDIR}/monitoring/logging.sh
 #
 logMessage "Starting cleanup of subdomain (PE*) subdirectories."
 localLogMessage "INFO" "Starting cleanup of subdomain (PE*) subdirectories."
