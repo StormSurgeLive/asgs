@@ -177,8 +177,9 @@ fi
 #--------------------------------------------------------------------------
 #       GENERATE HYDROGRAPHS & BUILD PPT
 #--------------------------------------------------------------------------
-# copy in the spreadsheet that matlab needs
+# copy in the spreadsheets that matlab needs
 cp ${POSTPROCDIR}/Gate_Closure_Trigger.xlsx . 2>> $LOGFILE
+cp ${POSTPROCDIR}/Datum_Conversion.xlsx . 2>> $LOGFILE
 # Run createPPT.sh
 echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Running ${POSTPROCDIR}/createPPT.sh." >> $LOGFILE
 ${POSTPROCDIR}/createPPT.sh 
