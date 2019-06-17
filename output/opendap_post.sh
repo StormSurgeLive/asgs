@@ -36,7 +36,7 @@ FILES=("$9") # array of files to post to opendap
 THIS="opendap_post.sh-->$SERVER"
 declare -A properties
 # get loadProperties function   
-SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties 2>>$SYSLOG`   
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties 2>>$SYSLOG`   
 source $SCRIPTDIR/properties.sh
 # load run.properties file into associative array
 loadProperties   
@@ -54,7 +54,7 @@ ASGSADMIN=`grep "notification.email.asgsadmin" ${STORMDIR}/run.properties | sed 
 ## grab all config info
 . ${CONFIG} 
 # Bring in logging functions
-. ${SCRIPTDIR}/monitoring/monitoring/logging.sh
+. ${SCRIPTDIR}/monitoring/logging.sh
 # Bring in platform-specific configuration
 . ${SCRIPTDIR}/platforms.sh
 # dispatch environment (using the functions in platforms.sh)
@@ -165,6 +165,7 @@ case $OPENDAPPOSTMETHOD in
    serverAliveInterval=10
    timeoutRetryLimit=3
    sshOptions="$OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60"
+   scpOptions="-P $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60"
    logMessage "$ENSTORM: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
    retry=0
    while [[ $retry -lt $timeoutRetryLimit ]]; do 
@@ -185,27 +186,6 @@ case $OPENDAPPOSTMETHOD in
    done
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories
-<<<<<<< HEAD
-   #ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR" 2>> $SYSLOG
-   #ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
-   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+x $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
-   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
-   if [[ $? != 0 ]]; then
-      warn "$ENSTORM: $THIS: Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
-      threddsPostStatus=fail
-   fi
-   #
-   # add a symbolic link for the storm name if this is tropicalcyclone forcing
-   if [[ $TOPICALCYCLONE != off ]]; then 
-      ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH" 2>> $SYSLOG
-      if [[ $? != 0 ]]; then
-         warn "$ENSTORM: $THIS: Failed to create symbolic link for the storm name."
-         threddsPostStatus=fail
-      fi
-   fi
-   #
-   # now scp the files 
-=======
    retry=0
    while [[ $retry -lt $timeoutRetryLimit ]]; do 
       ssh $sshOptions "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
@@ -257,7 +237,7 @@ case $OPENDAPPOSTMETHOD in
       logMessage "$ENSTORM: $THIS: Transferring $file to ${OPENDAPHOST}."
       retry=0
       while [[ $retry -lt $timeoutRetryLimit ]]; do 
-         scp -P $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60 $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG  2>&1   
+         scp $scpOptions $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG  2>&1   
          if [[ $? != 0 ]]; then
             threddsPostStatus=fail
             warn "$ENSTORM: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
