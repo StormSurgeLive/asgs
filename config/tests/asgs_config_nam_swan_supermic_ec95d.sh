@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2016--2018 Jason Fleming
+# Copyright(C) 2016--2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -28,20 +28,19 @@
 # Fundamental
 
 INSTANCENAME=dailyec95d  # "name" of this ASGS process
-COLDSTARTDATE=20190402000 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
+COLDSTARTDATE=auto # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2019/nam/2019061018/ec95d/lonestar.tacc.utexas.edu/dailyec95d/namforecast          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=14.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=$WORK/adcirc-cg/jasonfleming/v53release/work  # ADCIRC executables
-SWANDIR=$WORK/adcirc-cg/jasonfleming/v53release/swan    # SWAN executables
-SCRIPTDIR=$WORK/asgs/jasonfleming/master   # ASGS executables
+ADCIRCDIR=~/adcirc-cg/jasonfleming/v53release/work  # ADCIRC executables
+SWANDIR=~/adcirc-cg/jasonfleming/v53release/swan    # SWAN executables
+SCRIPTDIR=~/asgs/jasonfleming/master       # ASGS executables
 INPUTDIR=$SCRIPTDIR/input/meshes/ec95d     # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output              # post processing scripts
-PERL5LIB=${SCRIPTDIR}/PERL                 # DateCale.pm perl module
 
 # Physical forcing
 
@@ -59,14 +58,10 @@ HINDCASTWALLTIME="02:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="02:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="02:00:00" # forecast wall clock time
-NCPU=47                     # number of compute CPUs for all simulations
+NCPU=19                     # number of compute CPUs for all simulations
 NUMWRITERS=1 
-NCPUCAPACITY=96
+NCPUCAPACITY=40
 CYCLETIMELIMIT="99:00:00"
-QUEUENAME=skx-dev
-SERQUEUE=skx-dev
-#ACCOUNT=DesignSafe-CERA  
-ACCOUNT=TG-DMS080016N
 
 # External data sources : Tropical cyclones
 
@@ -164,9 +159,9 @@ POSTPROCESS=cera_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
-TDS=(tacc_tds renci_tds)
+TDS=(renci_tds)
 # FIXME: TARGET should be automatic
-TARGET=stampede2  # used in post processing to pick up HPC platform config
+TARGET=supermic  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
 # opendap_post.sh. OPENDAPHOST is set to each value in the TDS array specified
@@ -178,13 +173,13 @@ TARGET=stampede2  # used in post processing to pick up HPC platform config
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.fleming@seahorsecoastal.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
 ARCHIVE=enstorm_pedir_removal.sh
-ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS/2019
-ARCHIVEDIR=nam
+ARCHIVEBASE=/work/$USER
+ARCHIVEDIR=null
 
 # Forecast ensemble members
 
@@ -203,7 +198,7 @@ case $si in
    CONTROLTEMPLATE=ec_95_nowindreduction.fort.15_template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=900.0    # 15 minute time steps
-   NCPU=47               # dramatically reduced resource requirements
+   NCPU=19               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output
