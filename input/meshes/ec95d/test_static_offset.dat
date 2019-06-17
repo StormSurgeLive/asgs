@@ -1,0 +1,4 @@
+# test static unit offset for ec95d mesh
+-99999.000000    !time interval
+0.000000         !default value
+329  1.0         !one node with unit offset
