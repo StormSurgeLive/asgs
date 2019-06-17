@@ -153,12 +153,7 @@ NOTIFYUSER=jason.g.fleming@gmail.com
 ASGSADMIN=jason.fleming@seahorsecoastal.com
 
 # Monitoring
-
-RMQMessaging_Enable="off"      #  enables message generation ("on" | "off")
-RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
-RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
-RMQMessaging_NcoHome="/home/jgflemin"
-RMQMessaging_Python="/usr/local/packages/python/2.7.12-anaconda/bin/python"
+# (use defaults from platforms.sh)
 
 # Post processing and publication
 
@@ -187,9 +182,9 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.fleming@seahorsecoastal.com"
 
 # Archiving
 
-ARCHIVE=null_archive.sh
-ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
-ARCHIVEDIR=null
+ARCHIVE=enstorm_pedir_removal.sh
+ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS/2019
+ARCHIVEDIR=nam
 
 # Forecast ensemble members
 
