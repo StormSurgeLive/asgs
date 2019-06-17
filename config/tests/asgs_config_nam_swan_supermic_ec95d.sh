@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2016--2018 Jason Fleming
+# Copyright(C) 2016--2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -28,9 +28,9 @@
 # Fundamental
 
 INSTANCENAME=dailyec95d  # "name" of this ASGS process
-COLDSTARTDATE=auto       # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=hotstart       # "hotstart" or "coldstart"
-LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2019/nam/2019061018/ec95d/lonestar.tacc.utexas.edu/dailyec95d/namforecast/fort.68.nc          # path to previous execution (if HOTORCOLD=hotstart)
+COLDSTARTDATE=auto # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2019/nam/2019061018/ec95d/lonestar.tacc.utexas.edu/dailyec95d/namforecast          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=14.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -54,13 +54,13 @@ VARFLUX=off          # variable river flux forcing
 
 TIMESTEPSIZE=30             # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
-HINDCASTWALLTIME="08:00:00" # hindcast wall clock time
+HINDCASTWALLTIME="02:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="08:00:00"  # longest nowcast wall clock time
-FORECASTWALLTIME="08:00:00" # forecast wall clock time
+NOWCASTWALLTIME="02:00:00"  # longest nowcast wall clock time
+FORECASTWALLTIME="02:00:00" # forecast wall clock time
 NCPU=19                     # number of compute CPUs for all simulations
 NUMWRITERS=1 
-NCPUCAPACITY=96
+NCPUCAPACITY=40
 CYCLETIMELIMIT="99:00:00"
 
 # External data sources : Tropical cyclones
@@ -155,12 +155,13 @@ ASGSADMIN=jason.fleming@seahorsecoastal.com
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
 POSTPROCESS=cera_post.sh
+#POSTPROCESS=null_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
 TDS=(renci_tds)
 # FIXME: TARGET should be automatic
-TARGET=hatteras  # used in post processing to pick up HPC platform config
+TARGET=supermic  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
 # opendap_post.sh. OPENDAPHOST is set to each value in the TDS array specified
@@ -177,8 +178,8 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 # Archiving
 
 ARCHIVE=enstorm_pedir_removal.sh
-ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS/2019
-ARCHIVEDIR=nam
+ARCHIVEBASE=/work/$USER
+ARCHIVEDIR=null
 
 # Forecast ensemble members
 
@@ -197,7 +198,7 @@ case $si in
    CONTROLTEMPLATE=ec_95_nowindreduction.fort.15_template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=900.0    # 15 minute time steps
-   NCPU=15               # dramatically reduced resource requirements
+   NCPU=19               # dramatically reduced resource requirements
    NUMWRITERS=1          # multiple writer procs might collide
    WAVES=off             # deactivate wave forcing 
    # turn off water surface elevation station output
