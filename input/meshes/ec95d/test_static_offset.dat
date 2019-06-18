@@ -1,4 +1,13 @@
-# test static unit offset for ec95d mesh
--99999.000000    !time interval
-0.000000         !default value
-329  1.0         !one node with unit offset
+# dynamic Operator-specified offset for ec95d mesh
+%offsettimeinterval%   # time increment in seconds
+0.0              # default nodal value applied to any node not specified below
+234   1.0
+1223  1.0
+1789  1.0
+4000  1.0 
+##
+234   1.0
+1223  1.0
+1789  1.0
+4000  1.0 
+##

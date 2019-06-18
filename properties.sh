@@ -36,3 +36,5 @@ while read -r keyValuePair ; do
    properties["$key"]="$value" 
 done < run.properties
 }
+# to expand associative array keys: ${!properties[@]}
+# to expand associative array values: ${properties[@]}

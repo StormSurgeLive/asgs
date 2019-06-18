@@ -142,6 +142,8 @@ my ($m2nf, $s2nf, $n2nf, $k2nf, $k1nf, $o1nf, $p1nf, $q1nf); # nodal factors
 my ($m2eqarg, $s2eqarg, $n2eqarg, $k2eqarg, $k1eqarg, $o1eqarg, $p1eqarg, $q1eqarg); # equilibrium arguments
 my $periodicflux="null";  # the name of a file containing the periodic flux unit discharge data for constant inflow boundaries
 my $fluxdata;
+our %runProp;     # create a dictionary of properties from run.properties
+our %fromRunProp; # create a dictionary of properties from <fromdir>/run.properties
 GetOptions("controltemplate=s" => \$controltemplate,
            "stormdir=s" => \$stormDir,
            "swantemplate=s" => \$swantemplate,
@@ -191,9 +193,6 @@ GetOptions("controltemplate=s" => \$controltemplate,
 if ( $stormDir eq "null" ) {
    $stormDir = $advisdir."/".$enstorm;
 }
-#
-# create a dictionary of properties from run.properties
-my %runProp; 
 # open properties file 
 unless (open(RUNPROP,"<$stormDir/run.properties")) {
    stderrMessage("ERROR","Failed to open $stormDir/run.properties: $!.");
@@ -207,6 +206,37 @@ while (<RUNPROP>) {
    $runProp{$fields[0]} = $fields[1];
 }
 close(RUNPROP);
+#
+# locate the properties file that this run was hotstarted from (if any)
+my $fromdir = null;
+my $from_properties = null;
+unless ( $runProp{"scenario"} eq "hindcast" || $runProp{"scenario"} eq "spinup" ) {
+   $fromdir = $runProp{"path.fromdir"};
+   if ( $runProp{"url.hotstart"} eq "null" ) {
+      $from_properties =  "$fromdir/run.properties";
+   } else {
+      # starting from a hotstart file downloaded from URL
+      $from_properties =  $runProp{"path.rundir"} . "/from.run.properties";   
+   }
+} else {
+   # this is a tide/river spinup
+}
+# load previous run.properties if available
+if ( $fromdir ne "null" ) {
+   unless (open(FROMRUNPROP,"<$from_properties")) {
+      stderrMessage("ERROR","Failed to open $from_properties: $!.");
+      die;
+   }
+   while (<FROMRUNPROP>) {
+      my @fields = split ':',$_, 2 ;
+      # strip leading and trailing spaces and tabs
+      $fields[0] =~ s/^\s|\s+$//g ;
+      $fields[1] =~ s/^\s|\s+$//g ;
+      $fromRunProp{$fields[0]} = $fields[1];
+   }
+   close(FROMRUNPROP);
+}
+
 #
 # parse out the pieces of the cold start date
 $csdate=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
@@ -394,9 +424,260 @@ if ( $nws eq "0" ) {
 } else {
    $nummetstations = &getStations($metstations,"meteorology");
 }
-
 # load up the periodicflux data
 $fluxdata = &getPeriodicFlux($periodicflux);
+#
+#  W A T E R   L E V E L   O F F S E T
+#
+my $offset_line = "NO LINE HERE";
+my $offsetFactorAtRunStart = 0.0;
+my $offsetFactorAtRunFinish = 0.0;
+my $offsetFactorAtFromRunFinish = 0.0; # offset at end of run we are hotstarting from (if any)
+# if hotstarting, see if there was an offset in place at end of previous run
+if ( defined $hstime ) { 
+   if ( $fromRunProps{"forcing.offset"} ne "off" ) {
+      $offsetFactorAtFromRunFinish = $fromRunProps{"forcing.offset.factor.atrunfinish"};
+   }
+}
+my $offsetStartSec = 0.0;  # initialize seconds since cold start for offset start
+my $offsetFinishSec = 0.0; # initialize seconds since cold start for offset finish
+if ( $runProp{"forcing.offset"} ne "off" ) {
+   #
+   # get offset file name --- either dynamic or assimilated
+   my $offsetFile = $runProps{"forcing.offset.offsetfile"}; 
+   my $offsetFactorStart = $runProps{"forcing.offset.offsetfactorstart"};
+   my $offsetFactorFinish = $runProps{"forcing.offset.offsetfactorfinish"};
+   # 
+   # get offset start and end time in seconds since cold start
+   $runProp{"forcing.offset.offsetstartdatetime"}=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+   my $offsy = $1;
+   my $offsm = $2;
+   my $offsd = $3;
+   my $offsh = $4;
+   my $offsmin = 0.0;
+   my $offss = 0.0;         
+   # get difference (in seconds) from the cold start time
+   (my $ddays, my $dhrs, my $dmin, my $dsec)
+        = Date::Pcalc::Delta_DHMS(
+             $cy,$cm,$cd,$ch,cmin,cs,
+             $offsy,$offsm,$offsd,$offsh,$offsmin,$offss);
+   # get time difference between coldstartdate and offset start time
+   $offsetStartSec = $ddays*86400.0 + $dhrs*3600.0 + $dmin*60.0 + $dsec;
+   # finish      
+   $runProp{"forcing.offset.offsetfinishdatetime"}=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+   my $offfy = $1;
+   my $offfm = $2;
+   my $offfd = $3;
+   my $offfh = $4;
+   my $offfmin = 0.0;
+   my $offfs = 0.0;         
+   # find total seconds difference between cold start and completion of offset
+   ($ddays, $dhrs, $dmin, $dsec)
+        = Date::Pcalc::Delta_DHMS(
+             $cy,$cm,$cd,$ch,cmin,cs,
+             $offfy,$offfm,$offfd,$offfh,$offfmin,$offfs);
+   $offsetFinishSec = $ddays*86400.0 + $dhrs*3600.0 + $dmin*60.0 + $dsec; 
+   #--------------------------------------------------------------------
+   #
+   #                D Y N A M I C   O F F S E T 
+   #
+   #--------------------------------------------------------------------
+   # "Dynamic" means that the Operator has specified an offset, e.g., 30cm.
+   #-------------------------------------------------------------------- 
+   #
+   # There are nine possible cases for the relationship between the 
+   # specified start and finish times of the dynamic offset and the 
+   # coldstart time, hotstart time, and run end time.
+   #          
+   #                                 hotstart  
+   #        coldstart            "off" (b)
+   # CASE     (a)            "dynamic" (c)                           
+   #  0. S---F |                        |                      |
+   #  1. S-----+-------------F          |                      |
+   #  2. S-----+------------------------+-------------F        |
+   #  3. S-----+------------------------+----------------------+-------F
+   #  4.       |         S---F          |                      |
+   #  5.       |         S--------------+-------------F        |
+   #  6.       |         S--------------+----------------------+-------F
+   #  7.       |                        |         S---F        |
+   #  8.       |                        |         S------------+-------F
+   #  9.       |                        |                      |   S---F
+   #           +------------------------+----------------------+
+   #           ^                        ^                      ^
+   #       coldstart                 hotstart                RNDAY
+   #
+   #  S: start time for dynamic offset    F: finish time for dynamic offset
+   #
+   #--------------------------------------------------------------------
+   # There are three possible situations in terms of how this run is started 
+   # and relationship to the run it was started from (if any)
+   #
+   #  a: coldstart     
+   #  b: hotstart, offset was previously set to "off"        
+   #  c: hotstart, offset was previously set to "dynamic"
+   #--------------------------------------------------------------------
+   #--------------------------------------------------------------------
+   # Each case/situation will be handled as follows for each situation:
+   # DS=num. data sets     F1=starting factor    F2=finishing factor
+   # HF=offset at hotstart
+   # TI=time increment
+   #           
+   # CASE         a                 b                   c 
+   #  0        no (error)       no (info)          DS=1 F1=HF (info)
+   #  1        no (error)       no (info)          DS=1 F1=HF (info)
+   #  2        no (error)       no (error)         DS=2 F1=HF TI=(F-hotstart) (warning)
+   #  3. F1=0.0 S=CS DS=2 TI=(F-CS) (info)         F1=HF S=HS DS=2 TI=(F-HS) (info)
+   #                     F1=0.0 S=CS DS=2 TI=(F-HS) (info)
+   #  4.    spec/F1=0.0 (info)
+   #
+   #  0a. do not use the offset feature (error message)
+   #  0b. do not use the offset feature (info message)
+   #  0c. apply steady offset factor at same value as end of previous run (info message)
+   #         single data set in offset.dat multiplied by offset factor from previous run
+   #  --
+   #  1a. do not use the offset feature (error message)
+   #  1b. do not use the offset feature (info message)
+   #  1c. apply steady offset at same value as end of previous run (info message)
+   #         single data set in offset.dat multiplied by offset factor from previous run
+   #  --
+   #  2a. do not use the offset feature (error message)
+   #  2b. do not use the offset feature (error message)
+   #  2c. reset starting offset factor to be same value as end of previous run (warning message)
+   #         use two datasets in offset.dat, one with factor from hotstart, one with 
+   #         final offset factor, time increment set to (F - hotstart)
+   #  --
+   #  3a. reset starting offset factor to 0.0 at coldstart time (warning message)
+   #         use two datasets in offset.dat, first with offset factor of 0.0, 
+   #         second using final offset factor, time increment set to (F)
+   #  3b. reset starting offset factor to 0.0 at hotstart time (warning message)
+   #         use two datasets in offset.dat, one using offset factor of 0.0,
+   #         second using final offset factor, time increment set to (F - hotstart)      
+   #  3c. reset starting offset factor to value at end of previous run at hotstart time (warning message)
+   #         use two datasets in offset.dat, one using offset factor from hotstart,
+   #         second using final offset factor, time increment set to (F - hotstart)
+   #  --
+   #  4a. apply offset as specified, reset starting factor to 0.0 if needed (info/warning)
+   #  4b. do not use the offset feature (info message)
+   #  4c. apply steady offset at same value as end of previous run (info message)
+   #         single data set in offset.dat multiplied by offset factor from previous run
+   #  --
+   #  5a. apply offset as specified, reset starting factor to 0.0 if needed (info/warning)
+   #  5b. reset starting offset factor to 0.0 at hotstart time (warning message)
+   #         use two datasets in offset.dat, one using offset factor of 0.0,
+   #         second using final offset factor, time increment set to (F - hotstart)
+   #  5c. reset starting offset factor to value at end of previous run at hotstart time (warning message)
+   #         use two datasets in offset.dat, one using offset factor from hotstart,
+   #         second using final offset factor, time increment set to (F - hotstart)
+   #  --
+   #  6a. apply offset as specified, reset starting factor to 0.0 if needed (info/warning)
+   #  6b. reset starting offset factor to 0.0 at hotstart time (warning message)
+   #         use two datasets in offset.dat, one using offset factor of 0.0,
+   #         second using final offset factor, time increment set to (F - hotstart)
+   #  6c. reset starting offset factor to value at end of previous run at hotstart time (warning message)
+   #         use two datasets in offset.dat, one using offset factor from hotstart,
+   #         second using final offset factor, time increment set to (F - hotstart)   
+   #  --
+   #  7a. apply offset as specified, reset starting factor to 0.0 if needed (info/warning)
+   #  7b. apply offset as specified, reset starting factor to 0.0 if needed (info/warning)
+   #  7c. reset starting offset factor to value at end of previous run at hotstart time (warning message)
+   #         use two datasets in offset.dat, one using offset factor from hotstart,
+   #         second using final offset factor, time increment set to (F - hotstart)
+   #  --
+   #  8a. apply offset as specified, reset starting factor to 0.0 if needed (info/warning)
+   #  8b. apply offset as specified, reset starting factor to 0.0 if needed (info/warning)
+   #  8c. reset starting offset factor to value at end of previous run at hotstart time (warning message)
+   #         compute/reset finishing offset factor to be the same as it would be 
+   #         at RNDAY with the original set of factors and timing
+   #         then set time increment to (RNDAY - hotstart) and use two datasets
+   #         in offset.dat
+   #  --
+   #  9a-c. do not use the offset feature (info message)
+
+   if ( $runProp{"forcing.offset"} eq "dynamic"  ) {
+      # 
+      # CASE 0: Offset start and finish times both set prior to cold start
+      if ( $offsetStartSec < 0 && $offsetFinishSec < 0 ) {
+         &stderrMessage("ERROR","The offset start and finish times are prior to cold start.");
+         if ( $offsetFactorAtFromRunFinish == 0.0 ) { 
+            &stderrMessage("INFO","The offset surface will not be used.");
+            $offset_line = "#offsetControl not used because offset start and finish both before cold start.";
+         } else {
+            # use the value in place from the previous run
+
+      $offset_line = "&offsetControl offsetFileName='offset.dat' ";
+      $offset_line .= "offsetMultiplier=$offsetMultiplier, ";
+      $offset_line .= "offsetRampStart=$offset_start_time, ";
+      $offset_line .= "offsetRampEnd=$offset_end_time, ";
+      $offset_line .= "offsetRampReferenceTime='coldstart' /";
+      # create static offset file
+      $offsetFileName = $runProps{"path.inputdir"} . "/" . $offsetFileName; 
+      unless (open(TEMPLATE,"<$offsetFileName")) {
+         stderrMessage("ERROR","Failed to open the offset template file $offsetFileName for reading: $!.");
+         die;
+      }
+      # open offset data file
+      unless (open(DYNAMICOFFSET,">offset.dat")) {
+         stderrMessage("ERROR","Failed to open the dynamic offset file offset.dat for writing: $!.");
+         die;
+      }
+      stderrMessage("INFO","The offset.dat file will be written to the directory $stormDir.");
+         
+      }
+      while(<TEMPLATE>) {
+         s/%offsettimeinterval%/-99999.0/;
+         # just write one dataset 
+         if ( $_ =~ /##/ ) {
+            print DYNAMICOFFSET $_;
+            last;
+         }
+         
+      }
+
+            
+       
+      # issue a warning if the Operator specified a starting offset that 
+      # takes effect prior to the hotstart 
+      # the run that produced the hotstart file did not have an offset applied
+      if ( $fromRunProp{"forcing.offset"} eq "off" && $offsetFactorStart != "0.0" ) {
+         stderrMessage("WARNING","The parameter offsetFactorStart was set to $offsetFactorStart but will be reset to 0.0 due to the previous run having no offset factor applied.");                  
+         $offsetFactorStart = 0.0;
+      } 
+      # issue a warning if the Operator specified a starting offset but
+      # the run that produced the hotstart file did not have an offset applied
+      if ( $fromRunProp{"forcing.offset"} eq "off" && $offsetFactorStart != "0.0" ) {
+         stderrMessage("WARNING","The parameter offsetFactorStart was set to $offsetFactorStart but will be reset to 0.0 due to the previous run having no offset factor applied.");                  
+         $offsetFactorStart = 0.0;
+      }     
+      # compute the value of the offset at the end of the run time 
+      # ... this will most likely be different than ramp finish time 
+      if ( $offset_end_time <  ( $RNDAY * 86400.0 ) ) {
+         $offsetAtRunFinish = $offsetFactorFinish;
+      } else {
+         $offsetAtRunFinish = $offsetFactorFinish * ( ( ($RNDAY * 86400.0) - $offset_start_time ) / ( $offset_end_time - $offset_start_time ) );   
+      }
+
+      
+   }   
+   # if hotstarting from a run that had an active offset going
+   
+   
+   # if applying a dynamic data assimilated offset surface, assume it 
+   # starts at the hotstart time and has the right time interval and 
+   # data in it
+   if ( $runProp{"forcing.offset"} eq "assimilated" ) {
+
+      # create the &offsetControl namelist line      
+      $offset_line = "&offsetControl offsetFileName=$offsetFileName";
+      $offset_line .= "offsetMultiplier=$offsetMultiplier, ";
+      $offset_line .= "offsetRampStart=$ramp_start_time, ";
+      $offset_line .= "offsetRampEnd=$ramp_end_time, ";
+      $offset_line .= "offsetRampReferenceTime='coldstart' /";   
+   }
+   
+
+   # &offsetControl offsetFileName='offset_test.dat', offsetSkipSnaps=0, offsetMultiplier=0.1, 
+   # offsetRampStart=0.0, offsetRampEnd=43200.0, offsetRampReferenceTime='coldstart' /
+}
 #
 stderrMessage("INFO","Filling in ADCIRC control template (fort.15).");
 while(<TEMPLATE>) {
@@ -548,6 +829,11 @@ stderrMessage("INFO","Opening run.properties file for writing.");
 unless (open(RUNPROPS,">>$stormDir/run.properties")) {
    stderrMessage("ERROR","Failed to open the $stormDir/run.properties file for writing: $!.");
    die;
+}
+# write offset properties
+if ( $runProp{"forcing.offset"} ne "off" ) {
+   printf RUNPROPS "forcing.offset.offsetfactor.runstart : $offsetRunStart\n"; 
+   printf RUNPROPS "forcing.offset.offsetfactor.runfinish : $offsetRunFinish\n"; 
 }
 # If we aren't using a vortex met model, we don't have a track
 # file, but the CERA web app still needs to have values for these

@@ -1,7 +1,6 @@
 #!/bin/bash
 #set -x
-#trap read debug
-
+#trap read debug:
 #----------------------------------------------------------------
 #
 # asgs_main.sh: This is the main driver script for the ADCIRC Surge Guidance
@@ -1472,6 +1471,18 @@ variables_init()
    namedot=${HPCENVSHORT}.
    RMQMessaging_LocationName=${HPCENV#$namedot}
    RMQMessaging_ClusterName=$HPCENVSHORT
+   # 
+   # The offsetStartDateTime and offsetFactorStart settings will both be ignored
+   # if a run is hotstarted from another run that already had an active 
+   # offset going. In that case, the offsetStartDateTime will be set to the
+   # hotstart time and the offsetFactorStart will be set to the value 
+   # of the offset in place at the hotstart time.  
+   offset=off            # "dynamic"|"assimilated"|"off"
+   offsetFactorStart=0.0 # all values in offset data file multiplied @start of offset
+   offsetFactorFinish=0.0       # final multiplier for all values in offset file    
+   offsetStartDateTime=null   # target date/time starting offset 
+   offsetFinishDateTime=null  # target date/time finishing offset
+   offsetFile=null       # file in inputdir to use for offset
 }
 #
 # Write general properties to the run.properties file that are associated with 
@@ -1495,6 +1506,16 @@ writeProperties()
    echo "forcing.varflux : $VARFLUX" >> $STORMDIR/run.properties
    echo "forcing.schedule.cycletimelimit : $CYCLETIMELIMIT" >> $STORMDIR/run.properties
    echo "coupling.waves : $WAVES" >> $STORMDIR/run.properties
+   echo "url.hotstart : $hotstartURL" >> $STORMDIR/run.properties
+   # offset forcing properties
+   echo "forcing.offset : $offset" >> $STORMDIR/run.properties
+   if [[ $OFFSET = "on" ]]; then
+      echo "forcing.offset.offsetfactorstart : $offsetFactorStart" >> $STORMDIR/run.properties
+      echo "forcing.offset.offsetfactorfinish : $offsetFactorFinish" >> $STORMDIR/run.properties
+      echo "forcing.offset.offsetstartdatetime : $offsetStartDateTime" >> $STORMDIR/run.properties
+      echo "forcing.offset.offsetfinishdatetime : $offsetfinishDateTime" >> $STORMDIR/run.properties
+      echo "forcing.offset.offsetfile : $offsetFile" >> $STORMDIR/run.properties
+   fi 
    # static hpc environment properties
    echo "hpc.hpcenv : $HPCENV" >> $STORMDIR/run.properties
    echo "hpc.hpcenvshort : $HPCENVSHORT" >> $STORMDIR/run.properties
@@ -1572,7 +1593,8 @@ writeProperties()
    echo "scenario : $ENSTORM" >> $STORMDIR/run.properties
    echo "path.scenariodir : $STORMDIR" >> $STORMDIR/run.properties
    echo "path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
-   #
+
+
    ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
    echo "adcirc.version : $ADCIRCVERSION" >> $STORMDIR/run.properties   
    #
@@ -2379,7 +2401,7 @@ while [ true ]; do
       # prepare nowcast met (fort.22) and control (fort.15) files
       cd $NOWCASTDIR 2>> ${SYSLOG}
       STORMDIR=$ADVISDIR/$ENSTORM
-
+      #
       # write the properties associated with asgs configuration to the 
       # run.properties file
       writeProperties $STORMDIR
