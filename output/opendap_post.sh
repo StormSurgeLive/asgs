@@ -33,7 +33,7 @@ FILES=("$9") # array of files to post to opendap
 
 #echo $OPENDAPNOTIFY
 #
-THIS="opendap_post.sh-->$SERVER"
+
 declare -A properties
 # get loadProperties function   
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties 2>>$SYSLOG`   
@@ -64,6 +64,7 @@ logMessage "Setting opendap server parameters with env_dispatch ${SERVER}."
 env_dispatch $SERVER   # from platforms.sh
 # grab all config info (again, last, so the CONFIG file takes precedence)
 . ${CONFIG}
+THIS="opendap_post.sh-->$SERVER"
 #--------------------------------------------------------------------
 #  O P E N  D A P    P A T H   F O R M A T I O N
 #--------------------------------------------------------------------
