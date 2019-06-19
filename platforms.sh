@@ -141,7 +141,7 @@ init_supermic()
   SUBMITSTRING=qsub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
-  RMQMessaging_LocationName="LSU CCT"
+  RMQMessaging_LocationName="LSU"
   RMQMessaging_ClusterName="SuperMIC"
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
