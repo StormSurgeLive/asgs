@@ -152,9 +152,9 @@ ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
 POST_LIST=null
-JOB_FAILED_LIST="mbilsk3@lsu.edu"
-NOTIFYUSER=mbilsk3@lsu.edu
-ASGSADMIN=mbilsk3@lsu.edu
+JOB_FAILED_LIST="MBilskie.ASGS@gmail.com"
+NOTIFYUSER=MBilskie.ASGS@gmail.com
+ASGSADMIN=MBilskie.ASGS@gmail.com
 # RMQ Messaging
 RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
 RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
@@ -193,7 +193,7 @@ fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,mbilsk3@lsu.edu"
-OPENDAPNOTIFY="MBilskie.ASGS@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,MBilskie.ASGS@gmail.com"
 
 # Archiving
 
