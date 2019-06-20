@@ -90,6 +90,7 @@ BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
 PTFILE=ptFile_oneEighth.txt         # the lat/lons for the OWI background met
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
+VELOCITYMULTIPLIER=1.0
 
 # External data sources : River Flux
 
@@ -195,7 +196,7 @@ ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=4 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
@@ -232,6 +233,16 @@ case $si in
    # prevent collisions in prepped archives
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
+   ;;
+2)
+   ENSTORM=namforecast2x
+   VELOCITYMULTIPLIER=2.0
+   OPENDAPNOTIFY="mbilsk3@lsu.edu,jason.g.fleming@gmail.com"
+   ;;
+3)
+   ENSTORM=namforecast3x
+   VELOCITYMULTIPLIER=3.0
+   OPENDAPNOTIFY="mbilsk3@lsu.edu,jason.g.fleming@gmail.com"
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
