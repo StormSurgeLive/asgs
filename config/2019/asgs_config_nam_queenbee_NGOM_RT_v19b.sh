@@ -87,7 +87,7 @@ HDIR=${INPUTDIR}/sample_advisories
 # External data sources : Background Meteorology
 
 #FORECASTCYCLE="06,18"
-FORECASTCYCLE="06"
+FORECASTCYCLE="00,06,12,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -173,8 +173,10 @@ POSTPROCESS=queenbee_daily_post.sh
 
 # opendap
 #TDS=(lsu_tds)
-TDS=(renci_tds lsu_ccr_tds)
 #TDS=(renci_tds lsu_tds)
+#TDS=(renci_tds lsu_ccr_tds)
+#TDS=(renci_tds)
+TDS=(lsu_ccr_tds)
 TARGET=queenbee  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
@@ -214,7 +216,7 @@ case $si in
    ENSTORM=namforecastWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=NGOM_RT_v18j.nowindreduction.15.template
+   CONTROLTEMPLATE=NGOM_RT_v19b.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=900.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements

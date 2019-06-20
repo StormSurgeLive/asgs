@@ -248,6 +248,48 @@ case $OPENDAPPOSTMETHOD in
    done
    ;;
 #-------------------------------------------------------------------
+#                P O S T   V I A   R S Y N C
+#-------------------------------------------------------------------
+# mvb20190618: Added to support time-out issues with general scp transfers
+"rsync")
+   rsyncSSHOptions=(--rsh="ssh -p $SSHPORT")
+   rsyncOptions="-z --copy-links"
+   sshOptions="$OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT"
+   logMessage "$ENSTORM: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
+
+   ssh $sshOptions "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
+   if [[ $? != 0 ]]; then
+      warn "$ENSTORM: $THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
+      threddsPostStatus=fail
+   fi
+   # add code to create write permissions on directories so that other 
+   # Operators can post results to the same directories
+   ssh $sshOptions "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
+   if [[ $? != 0 ]]; then
+      warn "$ENSTORM: $THIS: Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
+      threddsPostStatus=fail
+   fi
+   for file in ${FILES[*]}; do 
+      # send opendap posting notification email early if directed
+      if [[ $file = "sendNotification" ]]; then
+         logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
+         cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         opendapEmailSent=yes
+         continue        
+      else
+         # see if the file is currently considered "opened" by another process
+         lsof -t $file 2>> $SYSLOG 2>&1
+      fi
+      chmod +r $file 2>> $SYSLOG
+      logMessage "$ENSTORM: $THIS: Transferring $file to ${OPENDAPHOST}."
+      rsync "${rsyncSSHOptions}" ${rsyncOptions}  ${file} ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG 2>&1
+      if [[ $? != 0 ]]; then
+         threddsPostStatus=fail
+         warn "$ENSTORM: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
+      fi
+   done
+   ;;
+#-------------------------------------------------------------------
 #        P O S T   V I A   S Y M B O L I C   L I N K 
 #           O R   F I L E S Y S T E M   C O P Y
 #-------------------------------------------------------------------
