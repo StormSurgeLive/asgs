@@ -29,8 +29,8 @@
 
 INSTANCENAME=daily_NGOM_RT_v19b   # "name" of this ASGS process
 COLDSTARTDATE=2019052900 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart     # "hotstart" or "coldstart"
-LASTSUBDIR=             # path to previous execution (if HOTORCOLD=hotstart)
+HOTORCOLD=hotstart     # "hotstart" or "coldstart"
+LASTSUBDIR=/home/mbilskie/scratch/asgs/2019/daily_NGOM_RTv19b/asgs18206/2019061918 # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=14.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -169,7 +169,7 @@ RMQMessaging_ClusterName="Queenbee2"
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=queenbee_daily_post.sh
+POSTPROCESS=queenbee_daily_post_NGOM.sh
 
 # opendap
 #TDS=(lsu_tds)
@@ -193,7 +193,7 @@ fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,mbilsk3@lsu.edu"
-OPENDAPNOTIFY="mbilsk3@lsu.edu"
+OPENDAPNOTIFY="MBilskie.ASGS@gmail.com"
 
 # Archiving
 

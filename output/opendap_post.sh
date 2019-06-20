@@ -99,6 +99,13 @@ fi
 #-----------------------------------------------------------------------
 # Establish the default method of posting results for service via opendap
 OPENDAPPOSTMETHOD=scp
+
+#
+# mvb20190620: Testing rsync with the LSU CCR thredds server
+if [[ $SERVER = "lsu_ccr_tds" ]]; then
+    OPENDAPPOSTMETHOD=rsync
+fi
+
 #
 # Determine whether to copy files instead of using scp by looking at the
 # list of HPC machines that share a common filesystem with this TDS. 
