@@ -6,8 +6,8 @@
 # build final PPT slide deck, and email slide deck as attachment.
 #--------------------------------------------------------------------------
 # 
-# Copyright(C) 2018 Matthew V Bilskie
-# Copyright(C) 2018 Jason Fleming
+# Copyright(C) 2018--2019 Matthew V Bilskie
+# Copyright(C) 2018--2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -33,6 +33,7 @@ postJOBTYPE=cpra.post
 #--------------------------------------------------------------------------
 #       GATHER PROPERTIES
 #--------------------------------------------------------------------------
+SYSLOG=`sed -n 's/[ ^]*$//;s/asgs.file.syslog\s*:\s*//p' run.properties`
 # STORMDIR: path where this ensemble member is supposed to run 
 STORMDIR=`sed -n 's/[ ^]*$//;s/asgs.path.stormdir\s*:\s*//p' run.properties`
 LOGFILE=${STORMDIR}/${postJOBTYPE}.log
@@ -43,8 +44,13 @@ echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Creating pptx." >> $L
 POSTPROCDIR=`sed -n 's/[ ^]*$//;s/post.path.cpra.post.postprocdir\s*:\s*//p' run.properties`
 fname=`sed -n 's/[ ^]*$//;s/post.file.cpra.figuregen.maxele.fname\s*:\s*//p' run.properties`
 coldStartTime=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' run.properties`
-# Parse run.properties to get storm name and ensemble
-storm=`sed -n '0,/stormname/{s/[ ^]*$//;s/stormname\s*:\s*//p}' run.properties`
+TROPCIALCYCLONE=`sed -n 's/[ ^]*$//;0,/config.forcing.tropicalcyclone/{s/config.forcing.tropicalcyclone\s*:\s*//p}' run.properties` 
+if [[ $TROPICALCYCLONE != "off" ]]; then
+   # Parse run.properties to get storm name and ensemble
+   storm=`sed -n '0,/stormname/{s/[ ^]*$//;s/stormname\s*:\s*//p}' run.properties`
+else
+   storm=NAM #FIXME: make this more general
+fi
 enstorm=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
 # Parse run.properties to get advisory
 advisory=`sed -n 's/[ ^]*$//;s/advisory\s*:\s*//p' run.properties`
@@ -142,7 +148,7 @@ fi
 #--------------------------------------------------------------------------
 echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Building pptx with buildPPT.py." >> $LOGFILE
 cp ${POSTPROCDIR}/LSU_template.pptx ${STORMDIR}
-python ${POSTPROCDIR}/buildPPT.py ${fname}
+python ${POSTPROCDIR}/buildPPT.py ${fname} 2>&1 | tee -a $LOGFILE | tee -a scenario.log >> $SYSLOG
 #rm LSU_template.pptx
 #--------------------------------------------------------------------------
 #
@@ -154,9 +160,16 @@ echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Sending email." >> $L
 #emailList='mbilsk3@lsu.edu matt.bilskie@gmail.com jason.fleming@seahorsecoastal.com ckaiser@cct.lsu.edu'
 #emailList='mbilsk3@lsu.edu'
 emailList='jason.fleming@scimaritan.org'
-subjectLine="$storm Advisory $advisory PPT"
-message="This is an automated message from the ADCIRC Surge Guidance System (ASGS).
+TROPCIALCYCLONE=`sed -n 's/[ ^]*$//;0,/config.forcing.tropicalcyclone/{s/config.forcing.tropicalcyclone\s*:\s*//p}' run.properties` 
+if [[ $TROPICALCYCLONE != "off" ]]; then
+   subjectLine="$storm Advisory $advisory PPT"
+   message="This is an automated message from the ADCIRC Surge Guidance System (ASGS).
 New results are attached for STORM $storm ADVISORY $advisory issued on $forecastValidStartCDT CDT"
+else
+   subjectLine="$storm Cycle $advisory PPT"
+   message="This is an automated message from the ADCIRC Surge Guidance System (ASGS).
+New results are attached for $storm Cycle $advisory issued on $forecastValidStartCDT CDT"
+fi
 # double quotes because the file name may have a space in it
 attachFile="$(cat pptFile.temp)" 
 # 
@@ -172,17 +185,19 @@ attachFile="$(cat pptFile.temp)"
 case $HPCENVSHORT in
    queenbee)
       #emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com ckaiser@cct.lsu.edu shagen@lsu.edu rtwilley@lsu.edu Ignacio.Harrouch@la.gov rick_luettich@unc.edu Billy.Wall@la.gov Stephen.Amato@la.gov Heath.E.Jones@usace.army.mil Maxwell.E.Agnew@usace.army.mil David.A.Ramirez@usace.army.mil'
-      emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com ckaiser@cct.lsu.edu shagen@lsu.edu rtwilley@lsu.edu rick_luettich@unc.edu'
-      #emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com'
+      #emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com ckaiser@cct.lsu.edu shagen@lsu.edu rtwilley@lsu.edu rick_luettich@unc.edu'
+      emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu'
       ;;
    hatteras|stampede|lonestar)
-      emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com'
+      emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu'
       ;;
    *)
       error "HPC platform $HPCENVSHORT not recognized."
       ;;
 esac
-echo "$message" | mail -s "$subjectLine" -a "$attachFile" $emailList
+# load asgs operator email address for the reply-to field
+ASGSADMIN=`grep "notification.email.asgsadmin" ${STORMDIR}/run.properties | sed 's/notification.email.asgsadmin.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+echo "$message" | mail -S "replyto=$ASGSADMIN" -s "$subjectLine" -a "$attachFile" $emailList
 #--------------------------------------------------------------------------
 #
 #--------------------------------------------------------------------------

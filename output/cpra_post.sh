@@ -1,9 +1,9 @@
 #!/bin/bash
 #-----------------------------------------------------------------------
-# cera_post.sh : Minimal post processing to get data onto THREDDS
-# server for dissemination via CERA.
+# cpra_post.sh : Minimal post processing to get data onto THREDDS
+# server for dissemination via CERA and to create slide deck for CPRA.
 #-----------------------------------------------------------------------
-# Copyright(C) 2018 Jason Fleming
+# Copyright(C) 2018--2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -20,19 +20,46 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------
-CONFIG=$1
-ADVISDIR=$2
-STORM=$3
-YEAR=$4
-ADVISORY=$5
-HPCENV=$6
-ENSTORM=$7
-CSDATE=$8
-HSTIME=$9
-GRIDFILE=${10}
-OUTPUTDIR=${11}
-SYSLOG=${12}
-SSHKEY=${13}
+#
+# Count command line arguments; use them if provided or use 
+# run.properties if not.
+declare -A properties
+if [[ $# -gt 2 ]]; then
+   CONFIG=$1
+   ADVISDIR=$2
+   STORM=$3
+   YEAR=$4
+   ADVISORY=$5
+   HPCENV=$6
+   ENSTORM=$7
+   CSDATE=$8
+   HSTIME=$9
+   GRIDFILE=${10}
+   OUTPUTDIR=${11}
+   SYSLOG=${12}
+   SSHKEY=${13}
+else
+   RUNPROPERTIES=$1
+   # get loadProperties function
+   SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
+   source $SCRIPTDIR/properties.sh
+   # load run.properties file into associative array
+   loadProperties
+   # now set variables that would otherwise be set by command line arguments
+   CONFIG=${properties['config.file']}
+   ADVISDIR=${properties['asgs.path.advisdir']}
+   STORM=${properties['asgs.enstorm']}
+   YEAR=${properties['year']}
+   ADVISORY=${properties['advisory']}
+   HPCENV=${properties['hpc.hpcenv']}
+   ENSTORM=${properties['enstorm']}
+   CSDATE=${properties['config.adcirc.time.coldstartdate']}
+   HSTIME=${properties['InitialHotStartTime']}
+   GRIDFILE=${properties['adcirc.file.input.gridfile']}
+   OUTPUTDIR=${properties['config.path.outputdir']}
+   SYSLOG=${properties['asgs.file.syslog']}
+   SSHKEY=${properties['post.file.sshkey']}
+fi
 #
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR} 2>> ${SYSLOG}
@@ -68,9 +95,9 @@ if [[ -d $dirWind10m ]]; then
    logMessage "Corresponding 10m wind ensemble member was found."
    wind10mFound=yes
    for file in fort.72.nc fort.74.nc maxwvel.63.nc ; do
-      if [[ -e $dirWind10m/$file ]]; then
+      if [[ -e $dirWind10m/$file && ! -e ./wind10m.${file} ]]; then
          logMessage "$ENSTORM: $THIS: Found $dirWind10m/${file}."
-         ln -s $dirWind10m/${file} ./wind10m.${file}
+         ln -s $dirWind10m/${file} ./wind10m.${file} 2>&1 | tee -a scenario.log >> $SYSLOG
          # update the run.properties file
          case $file in
          "fort.72.nc")
@@ -110,20 +137,20 @@ fi
 if [[ -e ../bal${STORM}${YEAR}.dat ]]; then
    cp ../bal${STORM}${YEAR}.dat . 2>> $SYSLOG
 fi
-ceraNonPriorityFiles=( `ls endrisinginun.63.nc everdried.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc` )
-ceraPriorityFiles=(`ls run.properties maxele.63.nc fort.63.nc fort.61.nc fort.15 fort.22`)
+ceraNonPriorityFiles=( `ls $CONFIG $SYSLOG cpra.post.log endrisinginun.63.nc everdried.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc 2>> $SYSLOG` )
+ceraPriorityFiles=(`ls run.properties maxele.63.nc fort.63.nc fort.61.nc fort.15 fort.22 2>> $SYSLOG`)
 if [[ $TROPICALCYCLONE = on ]]; then
-   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat` )
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat 2>> $SYSLOG` )
 fi
 if [[ $WAVES = on ]]; then
-   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls swan_HS_max.63.nc swan_TPS_max.63.nc swan_HS.63.nc swan_TPS.63.nc` )
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls swan_HS_max.63.nc swan_TPS_max.63.nc swan_HS.63.nc swan_TPS.63.nc $SYSLOG` )
 fi
 dirWind10m=$ADVISDIR/${ENSTORM}Wind10m
 if [[ -d $dirWind10m ]]; then
-   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls wind10m.maxwvel.63.nc wind10m.fort.74.nc` )
-   ceraNonPriorityFiles=( ${ceraNonPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc` )
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls wind10m.maxwvel.63.nc wind10m.fort.74.nc 2>> $SYSLOG` )
+   ceraNonPriorityFiles=( ${ceraNonPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc 2>> $SYSLOG` )
 else
-   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc` )
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nci 2>> $SYSLOG` )
 fi
 FILES=( ${ceraPriorityFiles[*]} "sendNotification" ${ceraNonPriorityFiles[*]} )
 #
