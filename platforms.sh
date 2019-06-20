@@ -75,11 +75,13 @@ init_queenbee()
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=20
   REMOVALCMD="rmpurge"
-  PLATFORMMODULES='module load intel netcdf netcdf_fortran gcc perl'
+  PLATFORMMODULES='module load intel netcdf netcdf_fortran gcc'
   $PLATFORMMODULES
   # modules for CPRA post processing
   module load matlab/r2015b
   module load python/2.7.12-anaconda-tensorflow
+  # needed for asgs perl
+  source ~/perl5/perlbrew/etc/bashrc
 }
 
 init_rostam()
@@ -612,6 +614,17 @@ init_lsu_tds()
       OPENDAPUSER=$USER
    fi
 }
+# THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU Center for Coastal Resiliency
+init_lsu_ccr_tds()
+{
+   OPENDAPHOST=chenier.cct.lsu.edu
+   DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer/asgs/ASGS-2019"
+   CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog/asgs/ASGS-2019"
+   OPENDAPBASEDIR=/data/thredds/ASGS/ASGS-2019
+   SSHPORT=2525
+   LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links
+   COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+}
 # THREDDS Data Server (TDS, i.e., OPeNDAP server) at Texas
 # Advanced Computing Center (TACC)
 init_tacc_tds()
@@ -656,7 +669,14 @@ env_dispatch(){
   "lsu_tds") allMessage "platforms.sh: LSU THREDDS Data Server configuration found."
           init_lsu_tds
           ;;
+<<<<<<< HEAD
   "renci_tds") allMessage "platforms.sh: RENCI THREDDS Data Server configuration found."
+=======
+  "lsu_ccr_tds") consoleMessage "platforms.sh: LSU THREDDS Data Server configuration found."
+          init_lsu_ccr_tds
+          ;;
+  "renci_tds") consoleMessage "platforms.sh: RENCI THREDDS Data Server configuration found."
+>>>>>>> 863454793c67a1d09fb6df0467324e3bc4f14ab1
           init_renci_tds
           ;;
   "tacc_tds") allMessage "platforms.sh: TACC THREDDS Data Server configuration found."
@@ -749,7 +769,7 @@ env_dispatch(){
   "test") allMessage "platforms.sh: test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "platforms.sh: '$HPCENVSHORT' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, supermic, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
+  *) fatal "platforms.sh: '$HPCENVSHORT' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, supermic, topsail, desktop, arete, spirit, topaz, thunder, lsu_tds, lsu_ccr_tds, renci_tds, tacc_tds"
      ;;
   esac
 }

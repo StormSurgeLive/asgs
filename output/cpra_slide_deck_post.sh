@@ -53,8 +53,14 @@ if [[ -z $ACCOUNT ]]; then
 fi
 # type of queueing system (e.g., PBS, SLURM, or mpiexec)
 QUEUESYS=`sed -n 's/[ ^]*$//;s/hpc.queuesys\s*:\s*//p' run.properties`
-# name of tc (FIXME: need the 0 because this property may appear more than once)
-STORMNAME=`sed -n 's/[ ^]*$//;0,/stormname/{s/stormname\s*:\s*//p}' run.properties`
+# check to see if this is a tropical cyclone
+TROPCIALCYCLONE=`sed -n 's/[ ^]*$//;0,/config.forcing.tropicalcyclone/{s/config.forcing.tropicalcyclone\s*:\s*//p}' run.properties`
+if [[ $TROPICALCYCLONE != "off" ]]; then
+   # name of tc (FIXME: need the 0 because this property may appear more than once)
+   STORMNAME=`sed -n 's/[ ^]*$//;0,/stormname/{s/stormname\s*:\s*//p}' run.properties`
+else
+   STORMNAME=NAM  #FIXME: make this more general
+fi
 # advisory number
 ADVISORY=`sed -n 's/[ ^]*$//;s/advisory\s*:\s*//p' run.properties`
 #
@@ -171,8 +177,9 @@ fi
 #--------------------------------------------------------------------------
 #       GENERATE HYDROGRAPHS & BUILD PPT
 #--------------------------------------------------------------------------
-# copy in the spreadsheet that matlab needs
+# copy in the spreadsheets that matlab needs
 cp ${POSTPROCDIR}/Gate_Closure_Trigger.xlsx . 2>> $LOGFILE
+cp ${POSTPROCDIR}/Datum_Conversion.xlsx . 2>> $LOGFILE
 # Run createPPT.sh
 echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Running ${POSTPROCDIR}/createPPT.sh." >> $LOGFILE
 ${POSTPROCDIR}/createPPT.sh 
