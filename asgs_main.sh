@@ -2049,24 +2049,22 @@ while [ true ]; do
    CURRENT_STATE="INIT"
    ENSTORM=nowcast
 
-   #BOB
-#   echo "\$OLDADVISDIR=$OLDADVISDIR"
-#   echo "\$ADVISORY=$ADVISORY"
-#   echo "\$ENSTORM=$ENSTORM"
-   # determine if this date is the next cycle
-   #ls $OLDADVISDIR/$ENSTORM
+   # determine if this date/advisory is the next cycle
    #echo "\$ADVISORY=$ADVISORY"
    if [[  -e "$OLDADVISDIR/$ENSTORM/padcirc.$ENSTORM.run.finish"  ||  -e "$OLDADVISDIR/$ENSTORM/padcswan.$ENSTORM.run.finish"  ]] ; then
 	   #echo "yes"
-	   RMQADVISORY=$(IncrementNCEPCycle $ADVISORY)
+	   if [[ "$TROPICALCYCLONE" == "off" ]]; then
+	   	RMQADVISORY=$(IncrementNCEPCycle $ADVISORY)
+	   else
+		RMQADVISORY=$[$ADVISORY +1]
+	   fi
    else
-	   RMQADVISORY=$ADVISORY
 	   #echo "no"
+	   RMQADVISORY=$ADVISORY
    fi
    #echo "\$RMQADVISORY=$RMQADVISORY"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting new NC/FC Cycle for ADVISORY $RMQADVISORY."
   
-   #BOB
    si=-1
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
    . ${CONFIG}
@@ -2213,18 +2211,7 @@ while [ true ]; do
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM"  "$CURRENT_STATE" "Converting NAM data to OWI format."
          logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format with the following options : $NAMOPTIONS"
          #echo perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS 
-
-         # BOB this process needs to be shoved off onto a compute-node, if the login node running asgs_main.sh is memory limited.  
-         # BOB This is a stopgap until we rewrite this perl code in python...
-#         DelegateToCompute="false"
-#         if [[ ${DelegateToCompute} == "true" ]] ; then
-#            QSCRIPTOPTIONS="--jobtype NAMtoOWIRamp --ncpu 1 --queuename $QUEUENAME --account $ACCOUNT --adcircdir $ADCIRCDIR --advisdir $ADVISDIR --qscript $SCRIPTDIR/input/machines/$ENV/$QSCRIPT --enstorm $ENSTORM --notifyuser $NOTIFYUSER --walltime $WALLTIME --submitstring $SUBMITSTRING $LOCALHOTSTART --syslog $SYSLOG"
-#echo $QSCRIPTOPTIONS
-#exit
-#         else 
-             perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
-#         fi
-	 #BOB the end result of the above process should be NAM*.22{1,2}.
+         perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
 
          # create links to the OWI files
          cd $ENSTORM 2>> ${SYSLOG}
@@ -2734,7 +2721,10 @@ while [ true ]; do
                   logMessage "$ENSTORM: $THIS: The $ENSTORM job ended successfully. Starting postprocessing."
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
                   echo "time.post.start : $DATETIME" >> ${STORMDIR}/run.properties
-                  com="${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
+                  #com="${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
+                  com="${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY "
+#BB echo "here ye, here ye, here ye!!"
+#BB echo "$com"
                   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WAIT" "${POSTPROCESS} $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR"
                   $com
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`

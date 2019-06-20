@@ -51,10 +51,10 @@ echo "[${DATETIME}] INFO: %jobtype%.slurm: Executing %jobtype%.%enstorm%
 module purge
 export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
 module load intelc/18.0.0 intelfort/18.0.0
-module load hdf5/1.8.11-acis  
-module load netcdf/4.1.2-acis
+module load hdf5/1.8.12-acis
+module load netcdf/4.2.1.1-acis
+module load netcdf-Fortran/4.2-acis
 module load mvapich2/2.0-acis
-#module load mvapich2/2.0-acis-debug
 #export MV2_DEBUG_SHOW_BACKTRACE=2
 
 #
