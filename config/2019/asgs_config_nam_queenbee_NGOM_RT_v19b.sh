@@ -29,8 +29,8 @@
 
 INSTANCENAME=daily_NGOM_RT_v19b   # "name" of this ASGS process
 COLDSTARTDATE=2019052900 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart     # "hotstart" or "coldstart"
-LASTSUBDIR=             # path to previous execution (if HOTORCOLD=hotstart)
+HOTORCOLD=hotstart     # "hotstart" or "coldstart"
+LASTSUBDIR=/home/mbilskie/scratch/asgs/2019/daily_NGOM_RTv19b/asgs18206/2019061918 # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=14.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -87,7 +87,7 @@ HDIR=${INPUTDIR}/sample_advisories
 # External data sources : Background Meteorology
 
 #FORECASTCYCLE="06,18"
-FORECASTCYCLE="06"
+FORECASTCYCLE="00,06,12,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -152,9 +152,9 @@ ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
 POST_LIST=null
-JOB_FAILED_LIST="mbilsk3@lsu.edu"
-NOTIFYUSER=mbilsk3@lsu.edu
-ASGSADMIN=mbilsk3@lsu.edu
+JOB_FAILED_LIST="MBilskie.ASGS@gmail.com"
+NOTIFYUSER=MBilskie.ASGS@gmail.com
+ASGSADMIN=MBilskie.ASGS@gmail.com
 # RMQ Messaging
 RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
 RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
@@ -169,12 +169,14 @@ RMQMessaging_ClusterName="Queenbee2"
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=queenbee_daily_post.sh
+POSTPROCESS=queenbee_daily_post_NGOM.sh
 
 # opendap
 #TDS=(lsu_tds)
-TDS=(renci_tds lsu_ccr_tds)
 #TDS=(renci_tds lsu_tds)
+#TDS=(renci_tds lsu_ccr_tds)
+#TDS=(renci_tds)
+TDS=(lsu_ccr_tds)
 TARGET=queenbee  # used in post processing to pick up HPC platform config
 # You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
 # on the opendap server machine in order to scp files there via
@@ -191,7 +193,7 @@ fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,mbilsk3@lsu.edu"
-OPENDAPNOTIFY="mbilsk3@lsu.edu"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,MBilskie.ASGS@gmail.com"
 
 # Archiving
 
@@ -214,7 +216,7 @@ case $si in
    ENSTORM=namforecastWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=NGOM_RT_v18j.nowindreduction.15.template
+   CONTROLTEMPLATE=NGOM_RT_v19b.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=900.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements
