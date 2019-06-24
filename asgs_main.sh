@@ -1512,8 +1512,8 @@ writeProperties()
    if [[ $OFFSET = "on" ]]; then
       echo "forcing.offset.offsetfactorstart : $offsetFactorStart" >> $STORMDIR/run.properties
       echo "forcing.offset.offsetfactorfinish : $offsetFactorFinish" >> $STORMDIR/run.properties
-      echo "forcing.offset.offsetstartdatetime : $offsetStartDateTime" >> $STORMDIR/run.properties
-      echo "forcing.offset.offsetfinishdatetime : $offsetfinishDateTime" >> $STORMDIR/run.properties
+      echo "forcing.offset.config.offsetstartdatetime : $offsetStartDateTime" >> $STORMDIR/run.properties
+      echo "forcing.offset.config.offsetfinishdatetime : $offsetfinishDateTime" >> $STORMDIR/run.properties
       echo "forcing.offset.offsetfile : $offsetFile" >> $STORMDIR/run.properties
    fi 
    # static hpc environment properties
@@ -2184,6 +2184,11 @@ if [[ $START = coldstart ]]; then
       exit -9
    fi
 #BOB
+   #
+   # calling offset.pl to build offset.dat if necessary
+   perl $SCRIPTDIR/offset.pl --scenariodir $STORMDIR >> ${SYSLOG} 2>&1
+   #
+   #
    if [[ -e tide_fac.out ]]; then
       scenarioMessage "$ENSTORM: $THIS: tide_fac.out is as follows:"
       cat tide_fac.out >> scenario.log
@@ -2568,6 +2573,11 @@ while [ true ]; do
       exit -9
    fi
 #BOB
+   #
+   # calling offset.pl to build offset.dat if necessary
+   perl $SCRIPTDIR/offset.pl --scenariodir $STORMDIR >> ${SYSLOG} 2>&1
+   #
+   #
    if [[ -e tide_fac.out ]]; then
       scenarioMessage "$ENSTORM: $THIS: tide_fac.out is as follows:"
       cat tide_fac.out >> scenario.log
@@ -2959,6 +2969,11 @@ while [ true ]; do
 	 exit -9
       fi
 #BOB
+      #
+      # calling offset.pl to build offset.dat if necessary
+      perl $SCRIPTDIR/offset.pl --scenariodir $STORMDIR >> ${SYSLOG} 2>&1
+      #
+      #
       if [[ -e tide_fac.out ]]; then
          scenarioMessage "$ENSTORM: $THIS: tide_fac.out is as follows:"
          cat tide_fac.out >> scenario.log
