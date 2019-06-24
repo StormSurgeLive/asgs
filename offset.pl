@@ -54,7 +54,7 @@ while (<RUNPROPS>) {
    # strip leading and trailing spaces and tabs
    $fields[0] =~ s/^\s|\s+$//g ;
    $fields[1] =~ s/^\s|\s+$//g ;
-   $runPropS{$fields[0]} = $fields[1];
+   $runProps{$fields[0]} = $fields[1];
 }
 close(RUNPROPS);
 #
@@ -73,8 +73,8 @@ if ( $runProps{"forcing.offset"} eq "assimilated" ) {
 #-------------------------------------------------------------------- 
 #
 # locate the properties file that this run was hotstarted from (if any)
-my $fromdir = null;
-my $from_properties = null;
+my $fromdir = "null";
+my $from_properties = "null";
 unless ( $runProps{"scenario"} eq "hindcast" || $runProps{"scenario"} eq "spinup" ) {
    $fromdir = $runProps{"path.fromdir"};
    if ( $runProps{"url.hotstart"} eq "null" ) {
@@ -141,11 +141,14 @@ $es = 0.0;
 
 my $offsetFactorAtPreviousRunFinish = 0.0; # offset at end of run we are hotstarting from (if any)
 $runProps{"forcing.offset.datasets"} = 1; # whether to use 1 or 2 datasets in offset.dat
-$runProps{"forcing.offset.timeincrement"} = -99999.0 # in offset.dat file
+$runProps{"forcing.offset.timeincrement"} = -99999.0; # in offset.dat file
 $runProps{"forcing.offset.deactivated"} = "false"; # must be turned off under certain circumstances
 $runProps{"forcing.offset.modified"} = "false";    # must be modified under certain circumstances
 my $offsetFactorStart = $runProps{"forcing.offset.offsetfactorstart"};
 my $offsetFactorFinish = $runProps{"forcing.offset.offsetfactorfinish"};
+my $offsetFactorAtRunStart;   # for run.properties 
+my $offsetFactorAtRunFinish;  # for run.properties
+my $offsetTimeIncrement;      # time between first and second offset datasets (seconds) 
 #
 # if hotstarting, see if there was an offset in place at end of previous run
 if ( $hstime != 0.0 ) {
@@ -170,7 +173,7 @@ if ( $runProps{"forcing.offset"} eq "off" ) {
         $runProps{"forcing.offset.modified.severity"} = "ERROR";
         # create properties related to the modified offset
         $runProps{"forcing.offset.modified.type"} = "dynamic";
-        $runProps{"forcing.offset.modified.reason"} = "Offset was configured to be off in this scenario but it was turned on in the previous run. This will cause numerical issues in ADCIRC, so it will be ramped down to zero over the course of this scenario.");       
+        $runProps{"forcing.offset.modified.reason"} = "Offset was configured to be off in this scenario but it was turned on in the previous run. This will cause numerical issues in ADCIRC, so it will be ramped down to zero over the course of this scenario.";       
         &stderrMesage("ERROR",$runProps{"forcing.offset.modified.reason"});
         $runProps{"forcing.offset.modified.offsetfactor.atrunstart"} = $offsetFactorAtPreviousRunFinish;
         $runProps{"forcing.offset.modified.offsetfactor.atrunfinish"} = 0.0;
@@ -207,7 +210,7 @@ my $offss = 0.0;
 # get difference (in seconds) from the cold start time
 (my $ddays, my $dhrs, my $dmin, my $dsec)
     = Date::Pcalc::Delta_DHMS(
-            $cy,$cm,$cd,$ch,cmin,cs,
+            $cy,$cm,$cd,$ch,$cmin,$cs,
             $offsy,$offsm,$offsd,$offsh,$offsmin,$offss);
 # get time difference between coldstartdate and offset start time
 $runProps{"forcing.offset.offsetfactorstart.seconds"} 
@@ -240,9 +243,9 @@ if ($offsetConfigFinish =~ /(\d+)hours/) {
 # find total seconds difference between cold start and completion of offset
 ($ddays, $dhrs, $dmin, $dsec)
     = Date::Pcalc::Delta_DHMS(
-            $cy,$cm,$cd,$ch,cmin,cs,
+            $cy,$cm,$cd,$ch,$cmin,$cs,
             $offfy,$offfm,$offfd,$offfh,$offfmin,$offfs); 
-$runProps{"forcing.offset.offsetfactorfinish.seconds"} = 
+$runProps{"forcing.offset.offsetfactorfinish.seconds"} 
     = $ddays*86400.0 + $dhrs*3600.0 + $dmin*60.0 + $dsec;
 my $offsetFinishSec = $runProps{"forcing.offset.offsetfactorfinish.seconds"};
 #
@@ -256,18 +259,18 @@ if ($runProps{"forcing.offset.offsetfactorstart.seconds"} > $runProps{"forcing.o
         $runProps{"forcing.offset.modified"} = "true";
         $runProps{"forcing.offset.modified.severity"} = "ERROR";
         # create properties related to the modified offset
-        $runProps{"forcing.offset.modified.reason"} = "The specified start time of the offset is after the specified end time. The offset will be kept at a constant value, the same as at the end of the previous run.");        
+        $runProps{"forcing.offset.modified.reason"} = "The specified start time of the offset is after the specified end time. The offset will be kept at a constant value, the same as at the end of the previous run.";        
         $runProps{"forcing.offset.modified.offsetfactor.atrunstart"} = $offsetFactorAtPreviousRunFinish;             
         $runProps{"forcing.offset.modified.offsetfactor.atrunfinish"} = $offsetFactorAtPreviousRunFinish;
         $runProps{"forcing.offset.modified.offsetfactorstart"} = $offsetFactorAtPreviousRunFinish;           
         $runProps{"forcing.offset.modified.offsetfactorfinish"} = $offsetFactorAtPreviousRunFinish;
         $runProps{"forcing.offset.modified.offsetfactorstart.seconds"} = $hstime;
-        ($offsy,$offsm,$offsd,$offsh,$offsmin,$ofsss) =
+        ($offsy,$offsm,$offsd,$offsh,$offsmin,$offss) =
                Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$offsetFinishSec,0,0,0);
         $runProps{"forcing.offset.modified.offsetstart"} 
                = sprintf("%4d%02d%02d%02d",$offsy,$offsm,$offsd,$offsh); 
-        $runProp{"forcing.offset.modified.offsetfactorstart"} = $offsetFactorAtRunStart;
-        $runProp{"forcing.offset.modified.offsetfactorfinish"} = $offsetFactorAtRunStart;
+        $runProps{"forcing.offset.modified.offsetfactorstart"} = $offsetFactorAtPreviousRunFinish;
+        $runProps{"forcing.offset.modified.offsetfactorfinish"} = $offsetFactorAtPreviousRunFinish;
         &writeControlAndOffsetFiles();
         exit;
     } else {
@@ -344,10 +347,10 @@ if ( $hstime == 0.0 ) {
         &zeroStartingOffset();
     }
     #  0-2a. turn off offset feature b/c before cold start (error)
-    if ($offsetStartSec < 0 && && $offsetFinishSec > 0 && $offsetFinishSec < ($RNDAY*86400.0)) {
-        $runProp{"forcing.offset.deactivated.reason"} 
+    if ($offsetStartSec < 0 && $offsetFinishSec > 0 && $offsetFinishSec < ($RNDAY*86400.0)) {
+        $runProps{"forcing.offset.deactivated.reason"} 
             = "Offset deactivated because the offset start is before the cold start date/time.";
-        $runProp{"forcing.offset.deactivated.severity"} = "ERROR";
+        $runProps{"forcing.offset.deactivated.severity"} = "ERROR";
         &deactivateOffset();
         exit;
     }
@@ -362,7 +365,7 @@ if ( $hstime == 0.0 ) {
         # create properties related to the modified offset
         $runProps{"forcing.offset.modified"} = "true";
         $runProps{"forcing.offset.modified.offsetfactorstart.seconds"} = 0.0;
-        ($offsy,$offsm,$offsd,$offsh,$offsmin,$ofsss) =
+        ($offsy,$offsm,$offsd,$offsh,$offsmin,$offss) =
             Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$offsetFinishSec,0,0,0);
         $runProps{"forcing.offset.modified.offsetstartdatetime"} 
             = sprintf("%4d%02d%02d%02d",$offsy,$offsm,$offsd,$offsh); 
@@ -402,11 +405,11 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "off" ) {
     }
     #  0-2b. do not use the offset feature (info/info/error message)
     if ($offsetStartSec < 0 && $offsetFinishSec < ($RNDAY*86400.0)) {
-        $runProp{"forcing.offset.deactivated.severity"} = "INFO";
+        $runProps{"forcing.offset.deactivated.severity"} = "INFO";
         if ( $offsetFinishSec > $hstime ) {
-            $runProp{"forcing.offset.deactivated.severity"} = "ERROR";
+            $runProps{"forcing.offset.deactivated.severity"} = "ERROR";
         } 
-        $runProp{"forcing.offset.deactivated.reason"} 
+        $runProps{"forcing.offset.deactivated.reason"} 
             = "Offset deactivated because the offset start is before the cold start date/time and the previous run had no offset.";
         &deactivateOffset();
         exit;             
@@ -427,7 +430,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "off" ) {
         # create properties releated to the modified offset
         $runProps{"forcing.offset.modified"} = "true";
         $runProps{"forcing.offset.modified.offsetfactorstart.seconds"} = $hstime;
-        ($offsy,$offsm,$offsd,$offsh,$offsmin,$ofsss) =
+        ($offsy,$offsm,$offsd,$offsh,$offsmin,$offss) =
             Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$hstime,0,0,0);
         $runProps{"forcing.offset.modified.offsetstart"} 
             = sprintf("%4d%02d%02d%02d",$offsy,$offsm,$offsd,$offsh); 
@@ -438,8 +441,8 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "off" ) {
     #  4b. do not use the offset feature (info message)
     #  offset start time and end time before hot start time
     if ($offsetStartSec < $hstime && $offsetFinishSec < $hstime ) {
-        $runProp{"forcing.offset.deactivated.severity"} = "INFO"; 
-        $runProp{"forcing.offset.deactivated.reason"} 
+        $runProps{"forcing.offset.deactivated.severity"} = "INFO"; 
+        $runProps{"forcing.offset.deactivated.reason"} 
             = "Offset deactivated because the offset start and end times are before the hotstart time and no offset was applied in the previous run.";
         &deactivateOffset();
         exit;             
@@ -453,7 +456,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "off" ) {
         $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorAtRunFinish;
         # create properties releated to the modified offset
         $runProps{"forcing.offset.modified.offsetfactorstart.seconds"} = $hstime;
-        ($offsy,$offsm,$offsd,$offsh,$offsmin,$ofsss) =
+        ($offsy,$offsm,$offsd,$offsh,$offsmin,$offss) =
             Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$hstime,0,0,0);
         $runProps{"forcing.offset.modified.offsetstart"} 
             = sprintf("%4d%02d%02d%02d",$offsy,$offsm,$offsd,$offsh); 
@@ -507,7 +510,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "dynamic" ) {
         $runProps{"forcing.offset.datasets"} = 2;
         $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorAtPreviousRunFinish;
         $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorFinish; 
-        $runProps{"forcing.offset.timeincrement"} = offsetFinishSec - $hstime;
+        $runProps{"forcing.offset.timeincrement"} = $offsetFinishSec - $hstime;
         &writeControlAndOffsetFiles();
         exit;
     }
@@ -524,7 +527,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "dynamic" ) {
         $offsetFactorAtRunFinish = ( $offsetFactorFinish - $offsetFactorStart ) * 
             ( (($RNDAY*86400.0) - $hstime) / ($offsetFinishSec - $hstime) ) + $offsetFactorStart;            
         $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorAtRunFinish; 
-        $runProps{"forcing.offset.timeincrement"} = offsetFinishSec - $hstime;
+        $runProps{"forcing.offset.timeincrement"} = $offsetFinishSec - $hstime;
         &writeControlAndOffsetFiles();
         exit;        
     }
@@ -535,7 +538,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "dynamic" ) {
         $runProps{"forcing.offset.datasets"} = 2;
         $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorAtPreviousRunFinish;            
         $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorFinish; 
-        $runProps{"forcing.offset.timeincrement"} = offsetFinishSec - $hstime;
+        $runProps{"forcing.offset.timeincrement"} = $offsetFinishSec - $hstime;
         &writeControlAndOffsetFiles();
         exit;        
     }
@@ -554,7 +557,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "dynamic" ) {
             "Offset factor starts after the hotstart time. It will be modified so it starts at the hotstart time.";
         $runProps{"forcing.offset.modified.severity"} = "INFO";
         $runProps{"forcing.offset.modified.offsetfactorstart.seconds"} = $hstime;
-        ($offsy,$offsm,$offsd,$offsh,$offsmin,$ofsss) =
+        ($offsy,$offsm,$offsd,$offsh,$offsmin,$offss) =
             Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$hstime,0,0,0);
         $runProps{"forcing.offset.modified.offsetstart"} 
             = sprintf("%4d%02d%02d%02d",$offsy,$offsm,$offsd,$offsh); 
@@ -563,7 +566,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "dynamic" ) {
             " In addition, offset factor at end of previous run is unexpectedly different from the specified offset start factor. Resetting offset start factor to same value as at end of previous run.";
             $offsetFactorStart = $offsetFactorAtPreviousRunFinish;
             $offsetFactorAtRunStart = $offsetFactorStart;
-            $runProp{"forcing.offset.modified.offsetfactorstart"} = $offsetFactorAtPreviousRunFinish;
+            $runProps{"forcing.offset.modified.offsetfactorstart"} = $offsetFactorAtPreviousRunFinish;
         }
         $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorAtPreviousRunFinish;
         $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorFinish;
@@ -576,14 +579,13 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "dynamic" ) {
 # case 9: offset applied after RNDAY
 #  9a-c. do not use the offset feature (info message)
 if ($offsetStartSec > ($RNDAY*86400.0) && $offsetFinishSec > ($RNDAY*86400.0)) {
-    $runProp{"forcing.offset.deactivated.reason"} 
+    $runProps{"forcing.offset.deactivated.reason"} 
         = "Offset deactivated because the offset start is after the end of the run (RNDAY).";
-    $runProp{"forcing.offset.deactivated.severity"} = "INFO"; 
+    $runProps{"forcing.offset.deactivated.severity"} = "INFO"; 
     &deactivateOffset();
     exit;
 }
 exit;
-
 #
 #--------------------------------------------------------------------------
 #           S U B   Z E R O   S T A R T I N G  O F F S E T
@@ -593,12 +595,12 @@ exit;
 #--------------------------------------------------------------------------
 sub zeroStartingOffset() {          
     $runProps{"forcing.offset.modified"} = "true";
-    $runProp{"forcing.offset.modified.offsetfactoratrunstart"} = 0.0;        
+    $runProps{"forcing.offset.modified.offsetfactoratrunstart"} = 0.0;        
     my $severity = $runProps{"forcing.offset.modified.offsetfactoratrunstart.severity"};
-    my $reason = $runProp{"forcing.offset.modified.reason"}; 
+    my $reason = $runProps{"forcing.offset.modified.reason"}; 
     $offset_line .= "# $severity: offsetControl modified: $reason\n";
     if ( $offsetFactorStart != 0.0 ) { 
-        $runProp{"forcing.offset.modified.offsetfactorstart"} = 0.0;
+        $runProps{"forcing.offset.modified.offsetfactorstart"} = 0.0;
         $offsetFactorStart = 0.0;
     }
 }
@@ -669,8 +671,8 @@ sub writeControlAndOffsetFiles() {
             }            
         }   
     }
-    printf RUNPROPS "forcing.offset.offsetfactor.runstart : $offsetRunStart\n"; 
-    printf RUNPROPS "forcing.offset.offsetfactor.runfinish : $offsetRunFinish\n"; 
+    printf RUNPROPS "forcing.offset.offsetfactor.atrunstart : $offsetFactorAtRunStart\n"; 
+    printf RUNPROPS "forcing.offset.offsetfactor.atrunfinish : $offsetFactorAtRunFinish\n"; 
     close(RUNPROPS);    
     #
     if ( $runProps{"forcing.offset"} eq "assimilated" ) {
@@ -700,7 +702,7 @@ sub writeControlAndOffsetFiles() {
     close(FORT15);
     # can exit now if the offset data file was supplied by
     # an external process
-    if ( $runProps{"forcing.offset"} eq "assimilated")
+    if ( $runProps{"forcing.offset"} eq "assimilated") {
         exit;
     }
     #
@@ -727,7 +729,7 @@ sub writeControlAndOffsetFiles() {
     while(<UNITOFFSET>) {
         s/%comment%/$offset_line/;
         s/%offsettimeinterval%/$offsetTimeIncrement/;
-        if ($#>1 || $_ =~ /##/ ) {
+        if ($.>1 || $_ =~ /##/ ) {
             print DYNAMICOFFSET $_*$multiplier;
         } else {
             print DYNAMICOFFSET $_;
@@ -736,7 +738,7 @@ sub writeControlAndOffsetFiles() {
             if ( $runProps{"forcing.offset.datasets"} == 1 ) {
                 last;
             } else {
-                $multiplier = $offsetFactorEnd;
+                $multiplier = $offsetFactorFinish;
             }
         }
     }
@@ -760,3 +762,4 @@ sub stderrMessage () {
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
    printf STDERR "$theTime $level: " . $runProps{"scenario"} .": $this : $message\n";
 }
+
