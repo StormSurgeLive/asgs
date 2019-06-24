@@ -58,6 +58,11 @@ while (<RUNPROPS>) {
 }
 close(RUNPROPS);
 #
+# handle case where there is nothing about the offset in the run.properties file
+unless ( defined $runProps{"forcing.offset"} ) {
+   $runProps{"forcing.offset"} = "off";
+}
+#
 #     A S S I M I L A T E D    O F F S E T
 #
 if ( $runProps{"forcing.offset"} eq "assimilated" ) {
