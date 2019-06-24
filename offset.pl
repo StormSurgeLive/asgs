@@ -91,6 +91,7 @@ unless ( $runProps{"scenario"} eq "hindcast" || $runProps{"scenario"} eq "spinup
 } else {
    # this is a tide/river spinup, there are no previous run properties, this is 
    # the first run from cold start, nothing needs to be done here
+   &stderrMessage("INFO","This is a hindcast, there is no possibility of a prior dynamic offset.");
 }
 #
 # load previous run.properties if available
@@ -169,9 +170,10 @@ if ( $hstime != 0.0 ) {
 #
 # check to see if offset is turned off in this scenario but was turned on 
 # in the previous run -- if so, then ramp it down to zero over the course
-# of this scenario
+# of this scenario : case -2
 if ( $runProps{"forcing.offset"} eq "off" ) {
     if ( $offsetFactorAtPreviousRunFinish != 0.0 ) {
+        
         # offset was previously turned on, it needs to be turned on at a steady value in this
         # scenario or ADCIRC will experience numerical issues
         $runProps{"forcing.offset.modified"} = "true";
@@ -191,7 +193,8 @@ if ( $runProps{"forcing.offset"} eq "off" ) {
     } else {
         # offset is turned off, and was off in the previous run, or there was no
         # previous run, so no need to continue with this script
-        &stderrMessage("INFO","This scenario is not configured to use the water level offset (i.e., bias correction).");
+        &stderrMessage("DEBUG","Case -3.");
+        &stderrMessage("INFO","This scenario is not configured to use the water level offset (i.e., bias correction). It will not be activated.");
         exit;
     }
 }
@@ -259,6 +262,7 @@ if ($runProps{"forcing.offset.offsetfactorstart.seconds"} > $runProps{"forcing.o
     # if this is a hotstart and there was previously an offset in place,
     # keep it steady at that level
     if ( $hstime != 0.0 && $offsetFactorAtPreviousRunFinish != 0.0 ) {
+        &stderrMessage("DEBUG","Case -1b-c.");
         # offset was previously turned on, it needs to be turned on at a steady value in this
         # scenario or ADCIRC will experience numerical issues
         $runProps{"forcing.offset.modified"} = "true";
@@ -281,6 +285,7 @@ if ($runProps{"forcing.offset.offsetfactorstart.seconds"} > $runProps{"forcing.o
     } else {
         # this is a misconfiguration, there was no offset previously or it was zero,
         # deactivate offset
+        &stderrMessage("DEBUG","Case -1a.");
         $runProps{"forcing.offset.deactivated.reason"} = "The offset end time is prior to the offset start time.";
         $runProps{"forcing.offset.deactivated.severity"} = "ERROR";
         &deactivateOffset();
@@ -353,6 +358,7 @@ if ( $hstime == 0.0 ) {
     }
     #  0-2a. turn off offset feature b/c before cold start (error)
     if ($offsetStartSec < 0 && $offsetFinishSec > 0 && $offsetFinishSec < ($RNDAY*86400.0)) {
+        &stderrMessage("DEBUG","Case 0-2a.");
         $runProps{"forcing.offset.deactivated.reason"} 
             = "Offset deactivated because the offset start is before the cold start date/time.";
         $runProps{"forcing.offset.deactivated.severity"} = "ERROR";
@@ -363,6 +369,7 @@ if ( $hstime == 0.0 ) {
     #      use two datasets in offset.dat, first with offset factor of 0.0, 
     #      second using final offset factor, time increment set to (F)
     if ( $offsetStartSec < 0 && $offsetFinishSec > ($RNDAY*86400.0) ) {
+        &stderrMessage("DEBUG","Case 3a.");
         $runProps{"forcing.offset.datasets"} = 2;
         # interpolate to find the offset factor at time=RNDAY
         $offsetFactorAtRunFinish = $offsetFactorFinish * ( ($RNDAY*86400.0) / $offsetFinishSec );            
@@ -382,12 +389,14 @@ if ( $hstime == 0.0 ) {
     }
     #  4,5,7a. apply offset as specified, reset starting factor to 0.0 if needed (info/warning) 1 ds/wramp
     if ( $offsetStartSec > 0 && $offsetFinishSec < ($RNDAY*86400.0) ) {
+        &stderrMessage("DEBUG","Case 4,5,7a.");
         &writeControlAndOffsetFiles();
         exit;
     }
     # cold start case 6&8: offset starts after coldstart and ends after RNDAY
     #  apply offset as specified, reset starting factor to 0.0 if needed (info/warning)
     if ( $offsetStartSec > 0 && $offsetFinishSec > ($RNDAY*86400.0) ) {         
+        &stderrMessage("DEBUG","Case 6,8a.");
         $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorStart;
         $offsetFactorAtRunFinish = $offsetFactorFinish * ( ($RNDAY*86400.0) / $offsetFinishSec );            
         $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorAtRunFinish;
@@ -410,6 +419,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "off" ) {
     }
     #  0-2b. do not use the offset feature (info/info/error message)
     if ($offsetStartSec < 0 && $offsetFinishSec < ($RNDAY*86400.0)) {
+        &stderrMessage("DEBUG","Case 0-2b.");
         $runProps{"forcing.offset.deactivated.severity"} = "INFO";
         if ( $offsetFinishSec > $hstime ) {
             $runProps{"forcing.offset.deactivated.severity"} = "ERROR";
@@ -427,6 +437,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "off" ) {
     #         use two datasets in offset.dat, one using offset factor of 0.0,
     #         second using final offset factor, time increment set to (F - hotstart)
     if ( ($offsetStartSec < 0 || $offsetStartSec < $hstime) && $offsetFinishSec > ($RNDAY*86400.0) ) {
+        &stderrMessage("DEBUG","Case 3,6b.");
         $runProps{"forcing.offset.datsets"} = 2;
         # interpolate to find the offset factor at time=RNDAY
         $offsetFactorAtRunFinish = $offsetFactorFinish * 
@@ -446,6 +457,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "off" ) {
     #  4b. do not use the offset feature (info message)
     #  offset start time and end time before hot start time
     if ($offsetStartSec < $hstime && $offsetFinishSec < $hstime ) {
+        &stderrMessage("DEBUG","Case 4b.");
         $runProps{"forcing.offset.deactivated.severity"} = "INFO"; 
         $runProps{"forcing.offset.deactivated.reason"} 
             = "Offset deactivated because the offset start and end times are before the hotstart time and no offset was applied in the previous run.";
@@ -456,6 +468,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "off" ) {
     #         use two datasets in offset.dat, one using offset factor of 0.0,
     #         second using final offset factor, time increment set to (F - hotstart)
     if ( $offsetStartSec < 0 && $offsetFinishSec > ($RNDAY*86400.0) ) {
+        &stderrMessage("DEBUG","Case 5b.");
         $runProps{"forcing.offset.datasets"} = 2;
         $offsetFactorAtRunFinish = $offsetFactorFinish;            
         $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorAtRunFinish;
@@ -471,11 +484,13 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "off" ) {
     }        
     #  7b. apply offset as specified, reset starting factor to 0.0 if needed (info/warning)
     if ( $offsetStartSec > $hstime && $offsetFinishSec < ($RNDAY*86400.0) ) {         
+        &stderrMessage("DEBUG","Case 7b.");
         &writeControlAndOffsetFiles();
         exit;
     }
     #  8b. apply offset as specified, reset starting factor to 0.0 if needed (info/warning)
-    if ( $offsetStartSec > $hstime && $offsetFinishSec < ($RNDAY*86400.0) ) {         
+    if ( $offsetStartSec > $hstime && $offsetFinishSec < ($RNDAY*86400.0) ) {
+        &stderrMessage("DEBUG","Case 8b.");
         $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorStart;
         # interpolate to find the offset factor at time=RNDAY
         $offsetFactorAtRunFinish = $offsetFactorFinish * 
@@ -503,6 +518,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "dynamic" ) {
     #  4c. apply steady offset at same value as end of previous run (info message)
     #         single data set in offset.dat multiplied by offset factor from previous run
     if ( $offsetFinishSec < $hstime ) {
+        &stderrMessage("DEBUG","Case 0,1c.");
         $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorAtPreviousRunFinish;
         $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorAtPreviousRunFinish;
         &writeControlAndOffsetFiles();
@@ -512,6 +528,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "dynamic" ) {
     #         use two datasets in offset.dat, one with factor from hotstart, one with 
     #         final offset factor, time increment set to (F - hotstart)
     if ( $offsetStartSec < 0 && $offsetFinishSec > $hstime ) {
+        &stderrMessage("DEBUG","Case 2c.");
         $runProps{"forcing.offset.datasets"} = 2;
         $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorAtPreviousRunFinish;
         $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorFinish; 
@@ -526,6 +543,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "dynamic" ) {
     #         use two datasets in offset.dat, one using offset factor from hotstart,
     #         second using final offset factor, time increment set to (F - hotstart)   
     if ( $offsetStartSec < 0 && $offsetFinishSec > ($RNDAY*86400.0) ) {
+        &stderrMessage("DEBUG","Case 3c.");
         $runProps{"forcing.offset.datasets"} = 2;
         $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorAtPreviousRunFinish;            
         # interpolate to find the offset factor at time=RNDAY
@@ -540,6 +558,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "dynamic" ) {
     #         use two datasets in offset.dat, one using offset factor from hotstart,
     #         second using final offset factor, time increment set to (F - hotstart)
     if ( $offsetStartSec > 0 && $offsetStartSec < $hstime && $offsetFinishSec > ($RNDAY*86400.0) ) {
+        &stderrMessage("DEBUG","Case 5c.");
         $runProps{"forcing.offset.datasets"} = 2;
         $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorAtPreviousRunFinish;            
         $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorFinish; 
@@ -556,6 +575,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "dynamic" ) {
     #         then set time increment to (RNDAY - hotstart) and use two datasets
     #         in offset.dat
     if ( $offsetStartSec > $hstime && $offsetStartSec < ($RNDAY*86400.0) ) {
+        &stderrMessage("DEBUG","Case 7,8c.");
         $runProps{"forcing.offset.datasets"} = 2;
         $runProps{"forcing.offset.modified"} = "true";
         $runProps{"forcing.offset.modified.reason"} =
@@ -584,6 +604,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "dynamic" ) {
 # case 9: offset applied after RNDAY
 #  9a-c. do not use the offset feature (info message)
 if ($offsetStartSec > ($RNDAY*86400.0) && $offsetFinishSec > ($RNDAY*86400.0)) {
+    &stderrMessage("DEBUG","Case 9a-c.");
     $runProps{"forcing.offset.deactivated.reason"} 
         = "Offset deactivated because the offset start is after the end of the run (RNDAY).";
     $runProps{"forcing.offset.deactivated.severity"} = "INFO"; 
