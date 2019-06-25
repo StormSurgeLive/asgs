@@ -218,3 +218,8 @@ forcing.offset.offsetfactorfinish : 0.2
 forcing.offset.config.offsetstartdatetime : 2019060400
 forcing.offset.config.offsetfinishdatetime : 2019060500
 forcing.offset.offsetfile : test_offset.dat
+forcing.offset.modified : false
+forcing.offset.offsetfactor.atrunstart : 
+forcing.offset.offsetfactor.atrunfinish : 0.2
+forcing.offset.timeincrement : -99999
+forcing.offset.datasets : 1

@@ -344,16 +344,22 @@ if ( $offsetFactorStart eq "auto" ) {
         if ( $previousRunProps{"forcing.offset"} eq "off" ) {
             # hotstart with no previous offset value -- start at zero
             $offsetFactorStart = 0.0;
+            $runProps{"forcing.offset.derived.reason"} = "Starting offset factor set to 0.0 because this scenario is hotstarted from a run with no offset applied."; 
+
         } else {
             # hotstart with previous offset value -- start at that value
             $offsetFactorStart = $offsetFactorAtPreviousRunFinish;
+            $runProps{"forcing.offset.derived.reason"} = "Set starting offset factor to $offsetFactorStart because this scenario is hotstarted from a run that finished with that offset factor."; 
         }
     } else {
         # coldstart -- start at zero
         $offsetFactorStart = 0.0;
+        $runProps{"forcing.offset.derived.reason"} = "Starting offset factor set to 0.0 because this scenario is a cold start."; 
     }
     $runProps{"forcing.offset.derived"} = $offsetFactorStart;
+    $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorStart;
 }
+
 #
 #   S E T   O F F S E T S   I N   C O L D   S T A R T
 #
@@ -397,14 +403,15 @@ if ( $hstime == 0.0 ) {
         exit;
     }
     #  4,5,7a. apply offset as specified, reset starting factor to 0.0 if needed (info/warning) 1 ds/wramp
-    if ( $offsetStartSec > 0 && $offsetFinishSec < ($RNDAY*86400.0) ) {
+    if ( $offsetStartSec >= 0 && $offsetFinishSec <= ($RNDAY*86400.0) ) {
         &stderrMessage("DEBUG","Case 4,5,7a.");
+        $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorFinish;
         &writeControlAndOffsetFiles();
         exit;
     }
     # cold start case 6&8: offset starts after coldstart and ends after RNDAY
     #  apply offset as specified, reset starting factor to 0.0 if needed (info/warning)
-    if ( $offsetStartSec > 0 && $offsetFinishSec > ($RNDAY*86400.0) ) {         
+    if ( $offsetStartSec >= 0 && $offsetStartSec < ($RNDAY*86400.0) && $offsetFinishSec >= ($RNDAY*86400.0) ) {         
         &stderrMessage("DEBUG","Case 6,8a.");
         $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorStart;
         $offsetFactorAtRunFinish = $offsetFactorFinish * ( ($RNDAY*86400.0) / $offsetFinishSec );            
@@ -679,6 +686,13 @@ sub deactivateOffset() {
 sub writeControlAndOffsetFiles() {
     my $offsetFactorStart = $runProps{"forcing.offset.offsetfactorstart"};
     my $offsetFactorFinish = $runProps{"forcing.offset.offsetfactorfinish"};
+    # if the Operator selected "auto" as the starting offset
+    if ( defined $runProps{"forcing.offset.derived"} ) {
+        my $reason = $runProps{"forcing.offset.derived.reason"};
+        $offsetFactorStart = $runProps{"forcing.offset.derived"};
+        &stderrMessage("INFO",$reason);
+        $offset_line .= "# INFO: 'auto' setting for offsetControl: $reason\n"; 
+    }
     # write modified and derived properties to run.properties file
     unless (open(RUNPROPS,">>$scenariodir/run.properties")) {
         stderrMessage("ERROR","Failed to open the $scenariodir/run.properties for appending the offsetControl namelist properties: $!.");
