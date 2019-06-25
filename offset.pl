@@ -144,7 +144,13 @@ $ed = $3;
 $eh = $4;
 $emin = 0.0;
 $es = 0.0;
-
+# 
+(my $ddays, my $dhrs, my $dmin, my $dsec)
+    = Date::Pcalc::Delta_DHMS(
+            $cy,$cm,$cd,$ch,$cmin,$cs,
+            $ey,$em,$ed,$eh,$emin,$es);
+$RNDAY = $ddays + $dhrs/24.0 + $dmin/(60.0*24.0) + $dsec/86400.0;
+#
 my $offsetFactorAtPreviousRunFinish = 0.0; # offset at end of run we are hotstarting from (if any)
 $runProps{"forcing.offset.datasets"} = 1; # whether to use 1 or 2 datasets in offset.dat
 $runProps{"forcing.offset.timeincrement"} = -99999.0; # in offset.dat file
@@ -213,8 +219,8 @@ my $offsy = $1;
 my $offsm = $2;
 my $offsd = $3;
 my $offsh = $4;
-my $offsmin = 0.0;
-my $offss = 0.0;         
+my $offsmin = 0;
+my $offss = 0;         
 # get difference (in seconds) from the cold start time
 (my $ddays, my $dhrs, my $dmin, my $dsec)
     = Date::Pcalc::Delta_DHMS(
@@ -233,8 +239,8 @@ my $offfy;
 my $offfm;
 my $offfd;
 my $offfh;
-my $offfmin;
-my $offfs;         
+my $offfmin = 0;
+my $offfs = 0;         
 my $offsetConfigFinish = $runProps{"forcing.offset.config.offsetfinishdatetime"};
 if ($offsetConfigFinish =~ /(\d+)hours/) {
     $dhrs = $1;
@@ -247,8 +253,13 @@ if ($offsetConfigFinish =~ /(\d+)hours/) {
 } else {
     $runProps{"forcing.offset.offsetfinishdatetime"} = $runProps{"forcing.offset.config.offsetfinishdatetime"}; 
     $runProps{"forcing.offset.offsetfinishdatetime"}=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+    $offfy = $1;
+    $offfm = $2;
+    $offfd = $3;
+    $offfh = $4;
 }
 # find total seconds difference between cold start and completion of offset
+#print "$cy,$cm,$cd,$ch,$cmin,$cs,$offfy,$offfm,$offfd,$offfh,$offfmin,$offfs"; 
 ($ddays, $dhrs, $dmin, $dsec)
     = Date::Pcalc::Delta_DHMS(
             $cy,$cm,$cd,$ch,$cmin,$cs,
@@ -348,7 +359,7 @@ if ( $offsetFactorStart eq "auto" ) {
 #   S E T   O F F S E T S   I N   C O L D   S T A R T
 #
 if ( $hstime == 0.0 ) {
-    if ($offsetFactorAtRunStart != 0.0) {
+    if ($offsetFactorStart != 0.0) {
         $runProps{"forcing.offset.modified.offsetfactorstart.severity"} = "ERROR";
         $runProps{"forcing.offset.modified.offsetfactorstart.reason"} =
             "Offset starting factor nonzero in cold start; resetting initial offset factor to zero.";
@@ -621,9 +632,9 @@ exit;
 #--------------------------------------------------------------------------
 sub zeroStartingOffset() {          
     $runProps{"forcing.offset.modified"} = "true";
-    $runProps{"forcing.offset.modified.offsetfactoratrunstart"} = 0.0;        
-    my $severity = $runProps{"forcing.offset.modified.offsetfactoratrunstart.severity"};
-    my $reason = $runProps{"forcing.offset.modified.reason"}; 
+    $runProps{"forcing.offset.modified.offsetfactorstart"} = 0.0;        
+    my $severity = $runProps{"forcing.offset.modified.offsetfactorstart.severity"};
+    my $reason = $runProps{"forcing.offset.modified.offsetfactorstart.reason"}; 
     $offset_line .= "# $severity: offsetControl modified: $reason\n";
     if ( $offsetFactorStart != 0.0 ) { 
         $runProps{"forcing.offset.modified.offsetfactorstart"} = 0.0;

@@ -3316,3 +3316,4 @@ jason.fleming@seahorsecoastal.com
 2019-05-10 00:00:00
 &metControl WindDragLimit=0.002 DragLawString='Garratt' /
 &inundationOutputControl inundationOutput=.true. inunThresh=0.6 /
+# offsetControl: Offset deactivated because the offset start is before the cold start date/time.
