@@ -576,11 +576,6 @@ unless (open(RUNPROPS,">>$stormDir/run.properties")) {
    stderrMessage("ERROR","Failed to open the $stormDir/run.properties file for writing: $!.");
    die;
 }
-# write offset properties
-if ( $runProp{"forcing.offset"} ne "off" ) {
-   printf RUNPROPS "forcing.offset.offsetfactor.runstart : $offsetRunStart\n"; 
-   printf RUNPROPS "forcing.offset.offsetfactor.runfinish : $offsetRunFinish\n"; 
-}
 # If we aren't using a vortex met model, we don't have a track
 # file, but the CERA web app still needs to have values for these
 # properties. In the case of a vortex met model, these values are
