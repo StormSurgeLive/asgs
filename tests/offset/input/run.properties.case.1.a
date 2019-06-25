@@ -1,0 +1,220 @@
+config.file : /work/00976/jgflemin/stampede2/asgs/jasonfleming/master/config/2019/asgs_config_nam_stampede2_texas2008r35h.sh
+instancename : readytx
+adcirc.time.coldstartdate : 2019051000
+path.adcircdir : /work/00976/jgflemin/stampede2/adcirc-cg/jasonfleming/v53release/work
+path.scriptdir : ../../../
+path.inputdir : .
+path.outputdir : /work/00976/jgflemin/stampede2/asgs/jasonfleming/master/output
+path.scratchdir : /scratch/00976/jgflemin
+forcing.backgroundmet : on
+forcing.tidefac : on
+forcing.tropicalcyclone : off
+forcing.varflux : off
+forcing.schedule.cycletimelimit : 99:00:00
+coupling.waves : off
+hpc.hpcenv : stampede2.tacc.utexas.edu
+hpc.hpcenvshort : stampede2
+hpc.queuesys : SLURM
+hpc.joblauncher : ibrun 
+hpc.platformmodules : module load intel/18.0.2 python2/2.7.15 xalt/2.6.5 TACC
+hpc.submitstring : sbatch
+hpc.executable.qscriptgen : qscript.pl
+hpc.file.template.prepcontrolscript : 
+hpc.jobs.ncpucapacity : 3648
+hpc.walltimeformat : hh:mm:ss
+adcirc.file.input.gridfile : tx2008_r35h.grd
+adcirc.gridname : tx2008_r35h
+adcirc.file.properties.meshproperties : tx2008_r35h.grd.properties
+adcirc.file.input.nafile : tx2008_r35h.13
+adcirc.file.properties.naproperties : tx2008_r35h.13.properties
+adcirc.file.template.controltemplate : tx2008r35h_template.15
+adcirc.file.properties.controlproperties : tx2008r35h_template.15.properties
+adcirc.file.elevstations : tx2008r35h_stations_20170618.txt
+adcirc.file.velstations : tx2008r35h_stations_20170618.txt
+adcirc.file.metstations : tx2008r35h_stations_20170618.txt
+adcirc.hotstartformat : netcdf
+adcirc.timestepsize : 1.0
+adcirc.hotstartcomp : fulldomain
+file.preppedarchive : prepped_tx2008_r35h_readytx_479.tar.gz
+file.hindcastarchive : prepped_tx2008_r35h_hc_readytx_479.tar.gz
+adcirc.minmax : reset
+notification.emailnotify : yes
+notification.executable.notify_script : ut-nam-notify.sh
+notification.email.activate_list : ""
+notification.email.new_advisory_list : "null"
+notification.email.post_init_list : "null"
+notification.email.job_failed_list : "jason.g.fleming@gmail.com"
+notification.hpc.email.notifyuser : "jason.g.fleming@gmail.com"
+notification.opendap.email.opendapnotify : "asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+notification.email.asgsadmin : jason.g.fleming@gmail.com
+monitoring.rmqmessaging.enable : on 
+monitoring.rmqmessaging.transmit : on
+monitoring.rmqmessaging.script : /work/00976/jgflemin/stampede2/asgs/jasonfleming/master/monitoring/asgs-msgr.py
+monitoring.rmqmessaging.ncohome : /work/00976/jgflemin/stampede2/local
+monitoring.rmqmessaging.python : /opt/apps/intel18/python2/2.7.15/bin/python
+monitoring.rmqmessaging.locationname : TACC
+monitoring.rmqmessaging.clustername : Stampede2
+post.intendedaudience : general
+post.executable.initpost : null_init_post.sh
+post.executable.postprocess : cera_post.sh
+post.opendap.target : stampede2
+post.opendap.tds : ( tacc_tds lsu_tds renci_tds )
+post.opendap.opendapuser : ncfs
+post.file.sshkey : /home1/00976/jgflemin/.ssh/id_rsa_stampede2
+archive.executable.archive : enstorm_pedir_removal.sh
+archive.path.archivebase : /corral-tacc/utexas/hurricane/ASGS/2019
+archive.path.archivedir : nam
+forecast.ensemblesize : 2
+file.syslog : /work/00976/jgflemin/stampede2/asgs/log/readytx.asgs-2019-Jun-15-T13:08:12-0500.149843.log
+path.rundir : /scratch/00976/jgflemin/asgs149843
+path.fromdir : 
+path.lastsubdir : null
+path.advisdir : /scratch/00976/jgflemin/asgs149843/initialize
+enstorm : hindcast
+scenario : hindcast
+path.scenariodir : /scratch/00976/jgflemin/asgs149843/initialize/hindcast
+path.stormdir : /scratch/00976/jgflemin/asgs149843/initialize/hindcast
+adcirc.version : v53.04-27-g82f1a11-modified
+hostname : stampede2.tacc.utexas.edu
+instance : readytx
+pseudostorm : n
+intendedAudience : general
+track_raw_dat : notrack
+track_raw_fst : notrack
+track_modified : notrack
+year : 2019
+directory storm : /scratch/00976/jgflemin/asgs149843/initialize/hindcast
+mesh : tx2008_r35h
+RunType : Hindcast
+ADCIRCgrid : tx2008_r35h
+currentcycle : 00
+currentdate : 190510
+advisory : 0
+prodID : SADCtx2008_r35h-UNC_none_20190510T0000_20190510T0000_20190609T0000_00<field>_Z.nc.gz
+RunStartTime : 2019051000
+RunEndTime : 2019060900
+ColdStartTime : 2019051000
+WindModel : none
+Model : PADCIRC
+Water Surface Elevation Stations File Name : fort.61.nc
+Water Surface Elevation Stations Format : netcdf
+Water Surface Elevation File Name : fort.63.nc
+Water Surface Elevation Format : netcdf
+Water Current Velocity File Name : fort.64.nc
+Water Current Velocity Format : netcdf
+Barometric Pressure Stations File Name : fort.71.nc
+Barometric Pressure Stations Format : netcdf
+Wind Velocity Stations File Name : fort.72.nc
+Wind Velocity Stations Format : netcdf
+Barometric Pressure File Name : fort.73.nc
+Barometric Pressure Format : netcdf
+Wind Velocity File Name : fort.74.nc
+Wind Velocity Format : netcdf
+Maximum Water Surface Elevation File Name : maxele.63.nc
+Maximum Water Surface Elevation Format : netcdf
+Maximum Current Speed File Name : maxvel.63.nc
+Maximum Current Speed Format : netcdf
+Maximum Wind Speed File Name : maxwvel.63.nc
+Maximum Wind Speed Format : netcdf
+Minimum Barometric Pressure File Name : minpr.63.nc
+Minimum Barometric Pressure Format : netcdf
+Initially Dry File Name : initiallydry.63.nc
+Initially Dry Format : netcdf
+Inundation Time File Name : inundationtime.63.nc
+Inundation Time Format : netcdf
+Maximum Inundation Depth File Name : maxinundepth.63.nc
+Maximum Inundation Depth Format : netcdf
+Ever Dried File Name : everdried.63.nc
+Ever Dried Format : netcdf
+End Rising Inundation File Name : endrisinginun.63.nc
+End Rising Inundation Format : netcdf
+asgs : tx
+h0 : 0.1
+sea_surface_height_above_geoid : 0.276300
+hpc.job.padcirc.queuename : skx-normal
+hpc.job.padcirc.serqueue : skx-normal
+hpc.job.padcirc.file.qscripttemplate : /work/00976/jgflemin/stampede2/asgs/jasonfleming/master/qscript.template
+hpc.job.padcirc.account : DesignSafe-CERA
+hpc.job.padcirc.ncpu : 479
+hpc.job.padcirc.parallelism : parallel
+hpc.job.padcirc.parallelmodules : module load libfabric/1.7.0 impi/18.0.2
+hpc.job.padcirc.numwriters : 1
+hpc.job.limit.hindcastwalltime : 18:00:00
+hpc.job.limit.nowcastwalltime : 08:00:00
+hpc.job.limit.forecastwalltime : 05:00:00
+hpc.job.limit.adcprepwalltime : 01:30:00
+hpc.slurm.job.padcirc.reservation : null
+hpc.slurm.job.padcirc.constraint : null
+hpc.job.padcirc.jobenv : ( netcdf.sh gmt.sh gdal.sh )
+hpc.job.padcirc.path.jobenvdir : /work/00976/jgflemin/stampede2/asgs/jasonfleming/master/config/machines/stampede2
+hpc.job.padcirc.ppn : 48
+cpurequest : 
+ncpu : 479
+numwriters : 1
+hpc.job.padcirc.limit.walltime : 18:00:00
+time.adcprep.start : 2019-Jun-15-T13:08:24-0500
+hpc.job.partmesh.for.ncpu : 479
+hpc.job.partmesh.limit.walltime : 01:30:00
+hpc.job.partmesh.account : DesignSafe-CERA
+hpc.job.partmesh.jobenv : ( netcdf.sh gmt.sh gdal.sh )
+hpc.job.partmesh.path.jobenvdir : /work/00976/jgflemin/stampede2/asgs/jasonfleming/master/config/machines/stampede2
+hpc.job.partmesh.file.qscripttemplate : /work/00976/jgflemin/stampede2/asgs/jasonfleming/master/qscript.template
+hpc.job.partmesh.parallelism : serial
+hpc.job.partmesh.serqueue : skx-normal
+hpc.job.partmesh.serialmodules : module load
+hpc.job.partmesh.ppn : 48
+hpc.slurm.job.partmesh.reservation : null
+hpc.slurm.job.partmesh.constraint : null
+hpc.job.partmesh.subshellpids : ( 153434 153441 153447 )
+hpc.job.partmesh.file.qscript : partmesh.slurm
+time.hpc.job.partmesh.submit : 2019-Jun-15-T13:08:24-0500
+time.hpc.job.partmesh.start : 2019-Jun-15-T13:10:44-0500
+hpc.job.partmesh.jobid : 3796131
+hpc.job.partmesh.nodelist : ( c505-024 )
+hpc.job.partmesh.hostname : c505-024
+hpc.job.partmesh.qnnodes : 1
+hpc.job.partmesh.qntasks-per-node : 48
+hpc.job.partmesh.qntasks : 1
+time.hpc.job.partmesh.finish : 2019-Jun-15-T13:12:59-0500
+hpc.job.prepall.for.ncpu : 479
+hpc.job.prepall.limit.walltime : 01:30:00
+hpc.job.prepall.account : DesignSafe-CERA
+hpc.job.prepall.jobenv : ( netcdf.sh gmt.sh gdal.sh )
+hpc.job.prepall.path.jobenvdir : /work/00976/jgflemin/stampede2/asgs/jasonfleming/master/config/machines/stampede2
+hpc.job.prepall.file.qscripttemplate : /work/00976/jgflemin/stampede2/asgs/jasonfleming/master/qscript.template
+hpc.job.prepall.parallelism : serial
+hpc.job.prepall.serqueue : skx-normal
+hpc.job.prepall.serialmodules : module load
+hpc.job.prepall.ppn : 48
+hpc.slurm.job.prepall.reservation : null
+hpc.slurm.job.prepall.constraint : null
+hpc.job.prepall.subshellpids : ( 238515 238527 238537 )
+hpc.job.prepall.file.qscript : prepall.slurm
+time.hpc.job.prepall.submit : 2019-Jun-15-T13:13:42-0500
+time.hpc.job.prepall.start : 2019-Jun-15-T13:45:17-0500
+hpc.job.prepall.jobid : 3796147
+hpc.job.prepall.nodelist : ( c490-024 )
+hpc.job.prepall.hostname : c490-024
+hpc.job.prepall.qnnodes : 1
+hpc.job.prepall.qntasks-per-node : 48
+hpc.job.prepall.qntasks : 1
+time.hpc.job.prepall.finish : 2019-Jun-15-T13:49:06-0500
+time.adcprep.finish : 2019-Jun-15-T13:51:12-0500
+hpc.job.padcirc.file.qscripttemplate : /work/00976/jgflemin/stampede2/asgs/jasonfleming/master/qscript.template
+hpc.job.padcirc.file.qscript : padcirc.slurm
+hpc.job.padcirc.subshellpids : ( 175197 175202 175206 175210 )
+time.hpc.job.padcirc.submit : 2019-Jun-15-T13:51:13-0500
+time.hpc.job.padcirc.start : 2019-Jun-15-T18:55:00-0500
+hpc.job.padcirc.jobid : 3796237
+hpc.job.padcirc.nodelist : ( c491-[014,024,052,131,133],c493-[012,014,034,052,074] )
+hpc.job.padcirc.hostname : c491-014
+hpc.job.padcirc.qnnodes : 10
+hpc.job.padcirc.qntasks-per-node : 48
+hpc.job.padcirc.qntasks : 480
+time.hpc.job.padcirc.finish : 2019-Jun-16-T01:32:28-0500
+forcing.offset : on
+forcing.offset.offsetfactorstart : 0.1
+forcing.offset.offsetfactorfinish : 0.2
+forcing.offset.config.offsetstartdatetime : 2019050800
+forcing.offset.config.offsetfinishdatetime : 2019051100
+forcing.offset.offsetfile : test_offset.dat
