@@ -179,7 +179,6 @@ if ( $hstime != 0.0 ) {
 # of this scenario : case -2
 if ( $runProps{"forcing.offset"} eq "off" ) {
     if ( $offsetFactorAtPreviousRunFinish != 0.0 ) {
-        
         # offset was previously turned on, it needs to be turned on at a steady value in this
         # scenario or ADCIRC will experience numerical issues
         $runProps{"forcing.offset.modified"} = "true";
@@ -362,13 +361,11 @@ if ( $hstime == 0.0 ) {
     if ($offsetFactorStart != 0.0) {
         $runProps{"forcing.offset.modified.offsetfactorstart.severity"} = "ERROR";
         $runProps{"forcing.offset.modified.offsetfactorstart.reason"} =
-            "Offset starting factor nonzero in cold start; resetting initial offset factor to zero.";
-        $runProps{"forcing.offset.modified.offsetfactoratrunstart.reason"} =
-            "Offset starting factor nonzero in cold start; resetting initial offset factor to zero.";
+            "Offset starting factor nonzero in cold start; resetting starting offset factor to zero.";
         &zeroStartingOffset();
     }
     #  0-2a. turn off offset feature b/c before cold start (error)
-    if ($offsetStartSec < 0 && $offsetFinishSec < ($RNDAY*86400.0)) {
+    if ($offsetStartSec < 0 && $offsetFinishSec <= ($RNDAY*86400.0)) {
         &stderrMessage("DEBUG","Case 0-2a.");
         $runProps{"forcing.offset.deactivated.reason"} 
             = "Offset deactivated because the offset start is before the cold start date/time.";
@@ -387,13 +384,14 @@ if ( $hstime == 0.0 ) {
         $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorAtRunFinish;
         # create properties related to the modified offset
         $runProps{"forcing.offset.modified"} = "true";
-        $runProps{"forcing.offset.modified.offsetfactorstart.seconds"} = 0.0;
-        ($offsy,$offsm,$offsd,$offsh,$offsmin,$offss) =
-            Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$offsetFinishSec,0,0,0);
-        $runProps{"forcing.offset.modified.offsetstartdatetime"} 
-            = sprintf("%4d%02d%02d%02d",$offsy,$offsm,$offsd,$offsh); 
-        $runProps{"forcing.offset.modified.offsetfactorstart.seconds.reason"} = "Offset start time was prior to coldstart.";
-        $runProps{"forcing.offset.modified.offsetfactorstartdatetime.reason"} = "Offset start time was prior to coldstart.";
+        $runProps{"forcing.offset.modified.offsetfactorstart.seconds"} = "0.0";
+        $runProps{"forcing.offset.modified.offsetstartdatetime"} = $csdate;
+        my $reason = "Offset start time was prior to coldstart."; 
+        $runProps{"forcing.offset.modified.offsetfactorstartdatetime.reason"} = $reason;
+        my $severity = "ERROR"; 
+        $runProps{"forcing.offset.modified.offsetfactorstartdatetime.severity"} = $severity;
+        $offset_line .= "# $severity: offsetControl modified: $reason\n";
+        &stderrMessage($severity,$reason); 
         $runProps{"forcing.offset.timeincrement"} = $offsetFinishSec;
         &writeControlAndOffsetFiles();
         exit;
@@ -636,10 +634,8 @@ sub zeroStartingOffset() {
     my $severity = $runProps{"forcing.offset.modified.offsetfactorstart.severity"};
     my $reason = $runProps{"forcing.offset.modified.offsetfactorstart.reason"}; 
     $offset_line .= "# $severity: offsetControl modified: $reason\n";
-    if ( $offsetFactorStart != 0.0 ) { 
-        $runProps{"forcing.offset.modified.offsetfactorstart"} = 0.0;
-        $offsetFactorStart = 0.0;
-    }
+    &stderrMessage($severity,$reason);
+    $runProps{"forcing.offset.offsetfactor.atrunstart"} = 0.0;
 }
 #
 #--------------------------------------------------------------------------
@@ -681,6 +677,8 @@ sub deactivateOffset() {
 # run.properties.
 #--------------------------------------------------------------------------
 sub writeControlAndOffsetFiles() {
+    my $offsetFactorStart = $runProps{"forcing.offset.offsetfactorstart"};
+    my $offsetFactorFinish = $runProps{"forcing.offset.offsetfactorfinish"};
     # write modified and derived properties to run.properties file
     unless (open(RUNPROPS,">>$scenariodir/run.properties")) {
         stderrMessage("ERROR","Failed to open the $scenariodir/run.properties for appending the offsetControl namelist properties: $!.");
@@ -708,14 +706,20 @@ sub writeControlAndOffsetFiles() {
             }            
         }   
     }
+    my $offsetFactorAtRunStart = $runProps{"forcing.offset.offsetfactor.atrunstart"}; 
+    my $offsetFactorAtRunFinish = $runProps{"forcing.offset.offsetfactor.atrunfinish"}; 
+    my $timeIncrement = $runProps{"forcing.offset.timeincrement"};
+    my $datasets = $runProps{"forcing.offset.datasets"};
     printf RUNPROPS "forcing.offset.offsetfactor.atrunstart : $offsetFactorAtRunStart\n"; 
     printf RUNPROPS "forcing.offset.offsetfactor.atrunfinish : $offsetFactorAtRunFinish\n"; 
+    printf RUNPROPS "forcing.offset.timeincrement : $timeIncrement\n"; 
+    printf RUNPROPS "forcing.offset.datasets : $datasets\n"; 
     close(RUNPROPS);    
     #
     if ( $runProps{"forcing.offset"} eq "assimilated" ) {
         # Data assimilated offset surface, assume it starts at the hotstart 
         # time and has the right time interval and data in it.
-        my $offsetFileName = $runProps{"forcing.offset.filename"};
+        my $offsetFileName = $runProps{"forcing.offset.offsetfile"};
         # create the &offsetControl namelist line      
         $offset_line .= "&offsetControl offsetFileName=$offsetFileName /";   
         # &offsetControl offsetFileName='offset_test.dat', offsetSkipSnaps=0, offsetMultiplier=0.1, 
@@ -745,7 +749,7 @@ sub writeControlAndOffsetFiles() {
     #
     # open unit offset data file -- it is assumed to be in the 
     # input directory (i.e., same directory as the mesh)
-    my $unitOffsetFileName = $runProps{"path.inputdir"} . "/" . $runProps{"forcing.offset.filename"}; 
+    my $unitOffsetFileName = $runProps{"path.inputdir"} . "/" . $runProps{"forcing.offset.offsetfile"}; 
     unless (open(UNITOFFSET,"<$unitOffsetFileName")) {
         stderrMessage("ERROR","Failed to open the unit offset data file $unitOffsetFileName for reading: $!.");
         die;
@@ -763,21 +767,25 @@ sub writeControlAndOffsetFiles() {
     if ( $runProps{"forcing.offset.datasets"} == 2 ) {
         $multiplier = $offsetFactorStart;
     }
+    my $comment = "$offsetDataFile from $unitOffsetFileName and $scenariodir/run.properties";
     while(<UNITOFFSET>) {
-        s/%comment%/$offset_line/;
-        s/%offsettimeinterval%/$offsetTimeIncrement/;
-        if ($.>1 || $_ =~ /##/ ) {
-            print DYNAMICOFFSET $_*$multiplier;
-        } else {
+        s/%comment%/$comment/;
+        s/%timeincrement%/$timeIncrement/;
+        #&stderrMessage("DEBUG","multiplier is $multiplier");
+        if ( $.<=3) {
             print DYNAMICOFFSET $_;
-        }        
-        if ( $_ =~ /##/ ) {
+        } elsif ( $_ =~ /##/ && $.>3) {
+            print DYNAMICOFFSET $_; 
             if ( $runProps{"forcing.offset.datasets"} == 1 ) {
                 last;
             } else {
                 $multiplier = $offsetFactorFinish;
             }
-        }
+        } else {
+            my @col = split(' ',$_);
+            my $modvalue = $col[1] * $multiplier;
+            printf DYNAMICOFFSET "$col[0] $modvalue\n";
+        } 
     }
     close(UNITOFFSET);
     close(DYNAMICOFFSET);
