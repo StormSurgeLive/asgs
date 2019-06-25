@@ -357,7 +357,7 @@ if ( $hstime == 0.0 ) {
         &zeroStartingOffset();
     }
     #  0-2a. turn off offset feature b/c before cold start (error)
-    if ($offsetStartSec < 0 && $offsetFinishSec > 0 && $offsetFinishSec < ($RNDAY*86400.0)) {
+    if ($offsetStartSec < 0 && $offsetFinishSec < ($RNDAY*86400.0)) {
         &stderrMessage("DEBUG","Case 0-2a.");
         $runProps{"forcing.offset.deactivated.reason"} 
             = "Offset deactivated because the offset start is before the cold start date/time.";
