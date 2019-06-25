@@ -257,6 +257,7 @@ if ($offsetConfigFinish =~ /(\d+)hours/) {
     $offfd = $3;
     $offfh = $4;
 }
+#
 # find total seconds difference between cold start and completion of offset
 #print "$cy,$cm,$cd,$ch,$cmin,$cs,$offfy,$offfm,$offfd,$offfh,$offfmin,$offfs"; 
 ($ddays, $dhrs, $dmin, $dsec)
@@ -369,6 +370,8 @@ if ( $hstime == 0.0 ) {
         $runProps{"forcing.offset.modified.offsetfactorstart.reason"} =
             "Offset starting factor nonzero in cold start; resetting starting offset factor to zero.";
         &zeroStartingOffset();
+    } else {
+        $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorStart;        
     }
     #  0-2a. turn off offset feature b/c before cold start (error)
     if ($offsetStartSec < 0 && $offsetFinishSec <= ($RNDAY*86400.0)) {
@@ -409,12 +412,13 @@ if ( $hstime == 0.0 ) {
         &writeControlAndOffsetFiles();
         exit;
     }
-    # cold start case 6&8: offset starts after coldstart and ends after RNDAY
+    # cold start case 6&8a: offset starts after coldstart and ends after RNDAY
     #  apply offset as specified, reset starting factor to 0.0 if needed (info/warning)
-    if ( $offsetStartSec >= 0 && $offsetStartSec < ($RNDAY*86400.0) && $offsetFinishSec >= ($RNDAY*86400.0) ) {         
+    if ( $offsetStartSec >= 0 && $offsetStartSec < ($RNDAY*86400.0) && $offsetFinishSec > ($RNDAY*86400.0) ) {         
         &stderrMessage("DEBUG","Case 6,8a.");
         $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorStart;
-        $offsetFactorAtRunFinish = $offsetFactorFinish * ( ($RNDAY*86400.0) / $offsetFinishSec );            
+        $offsetFactorAtRunFinish = $offsetFactorFinish * 
+            ( (($RNDAY*86400.0) - $offsetStartSec)  / ($offsetFinishSec - $offsetStartSec) );            
         $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorAtRunFinish;
         &writeControlAndOffsetFiles();
         exit;
@@ -429,9 +433,9 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "off" ) {
         $runProps{"forcing.offset.modified.offsetfactorstart.severity"} = "WARNING";
         $runProps{"forcing.offset.modified.offsetfactorstart.reason"} =
         "Offset starting factor was nonzero but previous run had no offset applied; initial offset factor reset to zero.";             
-        $runProps{"forcing.offset.modified.offsetfactoratrunstart.reason"} =
-        "Offset starting factor was nonzero but previous run had no offset applied; initial offset factor reset to zero.";            
         &zeroStartingOffset();
+    } else {
+        $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorStart;        
     }
     #  0-2b. do not use the offset feature (info/info/error message)
     if ($offsetStartSec < 0 && $offsetFinishSec < ($RNDAY*86400.0)) {
@@ -720,6 +724,8 @@ sub writeControlAndOffsetFiles() {
             }            
         }   
     }
+    #$runProps{"forcing.offset.offsetfactorstart.seconds"}
+    #$runProps{"forcing.offset.offsetfactorfinish.seconds"}
     my $offsetFactorAtRunStart = $runProps{"forcing.offset.offsetfactor.atrunstart"}; 
     my $offsetFactorAtRunFinish = $runProps{"forcing.offset.offsetfactor.atrunfinish"}; 
     my $timeIncrement = $runProps{"forcing.offset.timeincrement"};

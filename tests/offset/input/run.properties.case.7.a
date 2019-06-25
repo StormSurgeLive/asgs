@@ -2,8 +2,8 @@ config.file : /work/00976/jgflemin/stampede2/asgs/jasonfleming/master/config/201
 instancename : readytx
 adcirc.time.coldstartdate : 2019051000
 path.adcircdir : /work/00976/jgflemin/stampede2/adcirc-cg/jasonfleming/v53release/work
-path.scriptdir : /work/00976/jgflemin/stampede2/asgs/jasonfleming/master
-path.inputdir : /work/00976/jgflemin/stampede2/asgs/jasonfleming/master/input/meshes/texas2008_r35h
+path.scriptdir : ../../../
+path.inputdir : .
 path.outputdir : /work/00976/jgflemin/stampede2/asgs/jasonfleming/master/output
 path.scratchdir : /scratch/00976/jgflemin
 forcing.backgroundmet : on
@@ -72,8 +72,8 @@ path.lastsubdir : null
 path.advisdir : /scratch/00976/jgflemin/asgs149843/initialize
 enstorm : hindcast
 scenario : hindcast
-path.scenariodir : /scratch/00976/jgflemin/asgs149843/initialize/hindcast
-path.stormdir : /scratch/00976/jgflemin/asgs149843/initialize/hindcast
+path.scenariodir : .
+path.stormdir : .
 adcirc.version : v53.04-27-g82f1a11-modified
 hostname : stampede2.tacc.utexas.edu
 instance : readytx
@@ -212,3 +212,9 @@ hpc.job.padcirc.qnnodes : 10
 hpc.job.padcirc.qntasks-per-node : 48
 hpc.job.padcirc.qntasks : 480
 time.hpc.job.padcirc.finish : 2019-Jun-16-T01:32:28-0500
+forcing.offset : on
+forcing.offset.offsetfactorstart : 0.0
+forcing.offset.offsetfactorfinish : 0.2
+forcing.offset.config.offsetstartdatetime : 2019060600
+forcing.offset.config.offsetfinishdatetime : 2019060700
+forcing.offset.offsetfile : test_offset.dat
