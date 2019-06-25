@@ -4,6 +4,8 @@
 *.13
 *.x
 wgrib2
+grib2/
+test/
 *.tar.gz
 /.project
 *~
@@ -17,7 +19,6 @@ old/
 asgspy/
 *.log
 current.sh
-test/
 run.me*
 *.swp
 

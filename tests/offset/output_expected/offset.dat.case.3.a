@@ -1,0 +1,13 @@
+# ./offset.dat from ./test_offset.dat and ./run.properties
+2764800
+0.0   # default value
+1 0
+10 0
+100 0
+1000 0
+##
+1 0.05
+10 0.1
+100 0.15
+1000 0.2
+##
