@@ -82,7 +82,7 @@ my $fromdir = "null";
 my $from_properties = "null";
 unless ( $runProps{"scenario"} eq "hindcast" || $runProps{"scenario"} eq "spinup" ) {
    $fromdir = $runProps{"path.fromdir"};
-   if ( $runProps{"url.hotstart"} eq "null" ) {
+   if ( ! defined $runProps{"url.hotstart"} || $runProps{"url.hotstart"} eq "null" ) {
       $from_properties =  "$fromdir/run.properties";
    } else {
       # starting from a hotstart file downloaded from URL
@@ -124,6 +124,8 @@ $cs = 0.0;
 $hstime = $runProps{"InitialHotStartTime"};
 unless (defined $hstime) {
     $hstime = 0.0;
+} else {
+    &stderrMessage("DEBUG","The hotstart time in seconds is $hstime.");
 }
 #
 # run start time (yyyymmddhh24)
@@ -164,14 +166,18 @@ my $offsetTimeIncrement;      # time between first and second offset datasets (s
 #
 # if hotstarting, see if there was an offset in place at end of previous run
 if ( $hstime != 0.0 ) {
-    if ( defined $previousRunProps{"forcing.offset"} && $previousRunProps{"forcing.offset"} ne "off" ) {
-        # collect the offset value at the end of the previous run
-        $offsetFactorAtPreviousRunFinish = $previousRunProps{"forcing.offset.factor.atrunfinish"};
+    if ( defined $previousRunProps{"forcing.offset"} ) { 
+        if ( $previousRunProps{"forcing.offset"} ne "off" ) {
+            # collect the offset value at the end of the previous run
+            $offsetFactorAtPreviousRunFinish = $previousRunProps{"forcing.offset.factor.atrunfinish"};
+            &stderrMessage("INFO","This scenario is hotstarting from a run that an offset factor of $offsetFactorAtPreviousRunFinish at the time the hotstart file was written.");
+        }
+    } else {
+        # in case the previous run was produced with a version of the asgs
+        # that does not write this property
+        &stderrMessage("INFO","This scenario is hotstarting from a run that either had the offset turned off or did not define any offset properties.");
+        $previousRunProps{"forcing.offset"} = "off";
     }
-} else {
-    # in case the previous run was produced with a version of the asgs
-    # that does not write this property
-    $previousRunProps{"forcing.offset"} = "off";
 }
 #
 # check to see if offset is turned off in this scenario but was turned on 
@@ -429,7 +435,7 @@ if ( $hstime == 0.0 ) {
 #        N O   P R E V I O U S   O F F S E T
 #
 if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "off" ) {
-    if ($offsetFactorAtRunStart != 0.0) {
+    if ($offsetFactorStart != 0.0) {
         $runProps{"forcing.offset.modified.offsetfactorstart.severity"} = "WARNING";
         $runProps{"forcing.offset.modified.offsetfactorstart.reason"} =
         "Offset starting factor was nonzero but previous run had no offset applied; initial offset factor reset to zero.";             
