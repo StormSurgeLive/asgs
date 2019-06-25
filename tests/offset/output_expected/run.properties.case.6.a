@@ -218,3 +218,11 @@ forcing.offset.offsetfactorfinish : 0.2
 forcing.offset.config.offsetstartdatetime : 2019060400
 forcing.offset.config.offsetfinishdatetime : 2019061200
 forcing.offset.offsetfile : test_offset.dat
+forcing.offset.modified.offsetfactorstart.severity : ERROR
+forcing.offset.modified.offsetfactorstart : 0
+forcing.offset.modified : true
+forcing.offset.modified.offsetfactorstart.reason : Offset starting factor nonzero in cold start; resetting starting offset factor to zero.
+forcing.offset.offsetfactor.atrunstart : 0.05
+forcing.offset.offsetfactor.atrunfinish : 0.125
+forcing.offset.timeincrement : -99999
+forcing.offset.datasets : 1
