@@ -212,3 +212,8 @@ hpc.job.padcirc.qnnodes : 10
 hpc.job.padcirc.qntasks-per-node : 48
 hpc.job.padcirc.qntasks : 480
 time.hpc.job.padcirc.finish : 2019-Jun-16-T01:32:28-0500
+forcing.offset.offsetfactorstart : 0.1
+forcing.offset.offsetfactorfinish : 0.2
+forcing.offset.config.offsetstartdatetime : 
+forcing.offset.config.offsetfinishdatetime : $offsetfinishDateTime" >> $STORMDIR/run.properties
+forcing.offset.offsetfile : $offsetFile
