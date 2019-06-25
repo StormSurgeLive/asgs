@@ -213,8 +213,13 @@ hpc.job.padcirc.qntasks-per-node : 48
 hpc.job.padcirc.qntasks : 480
 time.hpc.job.padcirc.finish : 2019-Jun-16-T01:32:28-0500
 forcing.offset : on
-forcing.offset.offsetfactorstart : 0.0
+forcing.offset.offsetfactorstart : auto
 forcing.offset.offsetfactorfinish : 0.2
 forcing.offset.config.offsetstartdatetime : 2019060400
 forcing.offset.config.offsetfinishdatetime : 2019060500
 forcing.offset.offsetfile : test_offset.dat
+forcing.offset.modified : false
+forcing.offset.offsetfactor.atrunstart : 0
+forcing.offset.offsetfactor.atrunfinish : 0.2
+forcing.offset.timeincrement : -99999
+forcing.offset.datasets : 1
