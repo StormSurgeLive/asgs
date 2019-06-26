@@ -1513,7 +1513,7 @@ writeProperties()
       echo "forcing.offset.offsetfactorstart : $offsetFactorStart" >> $STORMDIR/run.properties
       echo "forcing.offset.offsetfactorfinish : $offsetFactorFinish" >> $STORMDIR/run.properties
       echo "forcing.offset.config.offsetstartdatetime : $offsetStartDateTime" >> $STORMDIR/run.properties
-      echo "forcing.offset.config.offsetfinishdatetime : $offsetfinishDateTime" >> $STORMDIR/run.properties
+      echo "forcing.offset.config.offsetfinishdatetime : $offsetFinishDateTime" >> $STORMDIR/run.properties
       echo "forcing.offset.offsetfile : $offsetFile" >> $STORMDIR/run.properties
    fi 
    # static hpc environment properties
