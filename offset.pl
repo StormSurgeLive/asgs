@@ -455,34 +455,24 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "off" ) {
         &deactivateOffset();
         exit;             
     }
-    #  3b.,6b. reset starting offset factor to 0.0 at hotstart time (warning message)
-    #         use two datasets in offset.dat, one using offset factor of 0.0,
-    #         second using final offset factor, time increment set to (F - hotstart)
-    # hot start case 3,6 : reset offset start to hotstart time and starting factor to 0.0
-    #  6b. reset starting offset factor to 0.0 at hotstart time (warning message)
-    #         use two datasets in offset.dat, one using offset factor of 0.0,
-    #         second using final offset factor, time increment set to (F - hotstart)
+    #  3b.,6b. use one dataset in offset.dat, ramp starting at runstartdate
+    #          ending at offsetfactorfinishdatetime.
     if ( ($offsetStartSec < 0 || $offsetStartSec < $hstime) && $offsetFinishSec > ($RNDAY*86400.0) ) {
         &stderrMessage("DEBUG","Case 3,6b.");
-        $runProps{"forcing.offset.datsets"} = 2;
         # interpolate to find the offset factor at time=RNDAY
         $offsetFactorAtRunFinish = $offsetFactorFinish * 
             ( (($RNDAY*86400.0) - $hstime) / ($offsetFinishSec - $hstime) );            
         $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorAtRunFinish;
         # create properties releated to the modified offset
         $runProps{"forcing.offset.modified"} = "true";
-        $runProps{"forcing.offset.modified.offsetfactorstart.seconds"} = $hstime;
-        ($offsy,$offsm,$offsd,$offsh,$offsmin,$offss) =
-            Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$hstime,0,0,0);
-        $runProps{"forcing.offset.modified.offsetstart"} 
-            = sprintf("%4d%02d%02d%02d",$offsy,$offsm,$offsd,$offsh); 
-        $offsetTimeIncrement = $offsetFinishSec - $hstime;
+        $runProps{"forcing.offset.modified.offsetstart.seconds"} = $hstime;
+        $runProps{"forcing.offset.modified.offsetstartdatetime"} = $runstartdate; 
         &writeControlAndOffsetFiles();
         exit;
     }        
     #  4b. do not use the offset feature (info message)
     #  offset start time and end time before hot start time
-    if ($offsetStartSec < $hstime && $offsetFinishSec < $hstime ) {
+    if ($offsetStartSec < $hstime && $offsetFinishSec <= $hstime ) {
         &stderrMessage("DEBUG","Case 4b.");
         $runProps{"forcing.offset.deactivated.severity"} = "INFO"; 
         $runProps{"forcing.offset.deactivated.reason"} 
@@ -490,32 +480,28 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "off" ) {
         &deactivateOffset();
         exit;             
     }         
-    #  5b. reset starting offset factor to 0.0 at hotstart time (warning message)
-    #         use two datasets in offset.dat, one using offset factor of 0.0,
-    #         second using final offset factor, time increment set to (F - hotstart)
-    if ( $offsetStartSec < 0 && $offsetFinishSec > ($RNDAY*86400.0) ) {
+    #  5b.  offset starts prior to hotstart time and ends between hotstart time
+    #       and run end time
+    if ( $offsetStartSec > 0 && $offsetStartSec < $hstime && $offsetFinishSec <= ($RNDAY*86400.0) ) {
         &stderrMessage("DEBUG","Case 5b.");
-        $runProps{"forcing.offset.datasets"} = 2;
         $offsetFactorAtRunFinish = $offsetFactorFinish;            
         $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorAtRunFinish;
         # create properties releated to the modified offset
         $runProps{"forcing.offset.modified.offsetfactorstart.seconds"} = $hstime;
-        ($offsy,$offsm,$offsd,$offsh,$offsmin,$offss) =
-            Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$hstime,0,0,0);
-        $runProps{"forcing.offset.modified.offsetstart"} 
-            = sprintf("%4d%02d%02d%02d",$offsy,$offsm,$offsd,$offsh); 
-        $runProps{"forcing.offset.timeincrement"} = $offsetFinishSec - $hstime;
+        $runProps{"forcing.offset.modified.offsetstartdatetime"} = $runstartdate;
         &writeControlAndOffsetFiles();
         exit;
     }        
-    #  7b. apply offset as specified, reset starting factor to 0.0 if needed (info/warning)
-    if ( $offsetStartSec > $hstime && $offsetFinishSec < ($RNDAY*86400.0) ) {         
+    #  7b. apply offset as specified
+    if ( $offsetStartSec >= $hstime && $offsetFinishSec <= ($RNDAY*86400.0) ) {         
         &stderrMessage("DEBUG","Case 7b.");
+        $offsetFactorAtRunFinish = $offsetFactorFinish;            
+        $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorAtRunFinish;
         &writeControlAndOffsetFiles();
         exit;
     }
     #  8b. apply offset as specified, reset starting factor to 0.0 if needed (info/warning)
-    if ( $offsetStartSec > $hstime && $offsetFinishSec < ($RNDAY*86400.0) ) {
+    if ( $offsetStartSec >= $hstime && $offsetStartSec < ($RNDAY*86400) && $offsetFinishSec > ($RNDAY*86400.0) ) {
         &stderrMessage("DEBUG","Case 8b.");
         $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorStart;
         # interpolate to find the offset factor at time=RNDAY
@@ -716,16 +702,16 @@ sub writeControlAndOffsetFiles() {
             if ( $key eq "forcing.offset.modified.offsetfactorfinish" ) {
                 $offsetFactorFinish = $value;
             }
-            if ( $key eq "forcing.offset.modified.offsetstartsec" ) {
+            if ( $key eq "forcing.offset.modified.offsetstart.seconds" ) {
                 $offsetStartSec = $value;
             }
-            if ( $key eq "forcing.offset.modified.offsetfinishsec" ) {
+            if ( $key eq "forcing.offset.modified.offsetfinish.seconds" ) {
                 $offsetFinishSec = $value;
             }            
             if ( $key eq "forcing.offset.modified.offsetfactorstart" ) {
                 $offsetFactorStart = $value;
             }
-            if ( $key eq "forcing.offset.modified.offsetfinishsec" ) {
+            if ( $key eq "forcing.offset.modified.offsetfactorfinish" ) {
                 $offsetFactorFinish = $value;
             }            
         }   
