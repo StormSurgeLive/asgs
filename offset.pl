@@ -166,10 +166,10 @@ my $offsetTimeIncrement;      # time between first and second offset datasets (s
 #
 # if hotstarting, see if there was an offset in place at end of previous run
 if ( $hstime != 0.0 ) {
-    if ( defined $previousRunProps{"forcing.offset"} ) { 
+    if ( defined $previousRunProps{"forcing.offset"} && ! defined $previousRunProps{"forcing.offset.deactivated"} ) { 
         if ( $previousRunProps{"forcing.offset"} ne "off" ) {
             # collect the offset value at the end of the previous run
-            $offsetFactorAtPreviousRunFinish = $previousRunProps{"forcing.offset.factor.atrunfinish"};
+            $offsetFactorAtPreviousRunFinish = $previousRunProps{"forcing.offset.offsetfactor.atrunfinish"};
             &stderrMessage("INFO","This scenario is hotstarting from a run that an offset factor of $offsetFactorAtPreviousRunFinish at the time the hotstart file was written.");
         }
     } else {
@@ -183,7 +183,7 @@ if ( $hstime != 0.0 ) {
 # check to see if offset is turned off in this scenario but was turned on 
 # in the previous run -- if so, then ramp it down to zero over the course
 # of this scenario : case -2
-if ( $runProps{"forcing.offset"} eq "off" ) {
+if ( $runProps{"forcing.offset"} eq "off"   ) {
     if ( $offsetFactorAtPreviousRunFinish != 0.0 ) {
         # offset was previously turned on, it needs to be turned on at a steady value in this
         # scenario or ADCIRC will experience numerical issues
@@ -366,7 +366,6 @@ if ( $offsetFactorStart eq "auto" ) {
     $runProps{"forcing.offset.derived"} = $offsetFactorStart;
     $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorStart;
 }
-
 #
 #   S E T   O F F S E T S   I N   C O L D   S T A R T
 #
@@ -434,7 +433,8 @@ if ( $hstime == 0.0 ) {
 #   S E T   O F F S E T S   I N   H O T   S T A R T
 #        N O   P R E V I O U S   O F F S E T
 #
-if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "off" ) {
+if ( $hstime != 0.0 && 
+        ( $previousRunProps{"forcing.offset"} eq "off" || ! defined $previousRunProps{"forcing.offset"} ) )  {
     if ($offsetFactorStart != 0.0) {
         $runProps{"forcing.offset.modified.offsetfactorstart.severity"} = "WARNING";
         $runProps{"forcing.offset.modified.offsetfactorstart.reason"} =
@@ -457,7 +457,7 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "off" ) {
     }
     #  3b.,6b. use one dataset in offset.dat, ramp starting at runstartdate
     #          ending at offsetfactorfinishdatetime.
-    if ( ($offsetStartSec < 0 || $offsetStartSec < $hstime) && $offsetFinishSec > ($RNDAY*86400.0) ) {
+    if ( ($offsetStartSec < 0 || $offsetStartSec < $hstime) && $offsetFinishSec >= ($RNDAY*86400.0) ) {
         &stderrMessage("DEBUG","Case 3,6b.");
         # interpolate to find the offset factor at time=RNDAY
         $offsetFactorAtRunFinish = $offsetFactorFinish * 
@@ -516,34 +516,46 @@ if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "off" ) {
 #       S E T   O F F S E T S   I N   H O T   S T A R T
 #     W I T H   P R E V I O U S   D Y N A M I C   O F F S E T
 #
-if ( $hstime != 0.0 && $previousRunProps{"forcing.offset"} eq "dynamic" ) {
-    if ( $offsetFactorAtRunStart != $offsetFactorAtPreviousRunFinish ) { 
-        $runProps{"forcing.offset.modified.offsetfactoratrunstart.severity"} = "INFO";
-        $runProps{"forcing.offset.modified.offsetfactoratrunstart.reason"} =
+if ( $hstime != 0.0 && 
+        ( $previousRunProps{"forcing.offset"} eq "dynamic" || $previousRunProps{"forcing.offset"} eq "on" ) &&
+         ( ! defined $previousRunProps{"forcing.offset.deactivated"} ) ) {
+    #
+    # reset starting offset to value at time of hotstart instead of the 
+    # configured value         
+    if ( $offsetFactorStart != $offsetFactorAtPreviousRunFinish ) { 
+        $runProps{"forcing.offset.modified.offsetfactorstart.severity"} = "INFO";
+        $runProps{"forcing.offset.modified.offsetfactorstart.reason"} =
             "Offset factor at end of previous run is unexpectedly different from the specified offset finish factor. Resetting to same value as end of previous run.";
         $offsetFactorStart = $offsetFactorAtPreviousRunFinish; 
-        &writeControlAndOffsetFiles();
-        exit;
+        $runProps{"forcing.offset.modified.offsetfactorstart"} = $offsetFactorAtPreviousRunFinish;
+    } else {
+        $runProps{"forcing.offset.offsetfactorstart"} = $offsetFactorStart;        
     }
+
     #  0-1c. apply steady offset factor at same value as end of previous run (info message)
     #         single data set in offset.dat multiplied by offset factor from previous run
     #  4c. apply steady offset at same value as end of previous run (info message)
     #         single data set in offset.dat multiplied by offset factor from previous run
     if ( $offsetFinishSec < $hstime ) {
-        &stderrMessage("DEBUG","Case 0,1c.");
+        &stderrMessage("DEBUG","Case 0,1,4c.");
         $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorAtPreviousRunFinish;
         $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorAtPreviousRunFinish;
+        $runProps{"forcing.offset.modified.offsetfactorfinish"} = $offsetFactorAtPreviousRunFinish;
+        $runProps{"forcing.offset.modified.offsetstart.seconds"} = $hstime;
+        $runProps{"forcing.offset.modified.offsetstartdatetime"} = $runstartdate;                
+        $runProps{"forcing.offset.modified.offsetfinish.seconds"} = $RNDAY*86400.0;
+        $runProps{"forcing.offset.modified.offsetfinishdatetime"} = $runenddate;
         &writeControlAndOffsetFiles();
         exit;
     }
     #  2c. reset starting offset factor to be same value as end of previous run
     #         use two datasets in offset.dat, one with factor from hotstart, one with 
     #         final offset factor, time increment set to (F - hotstart)
-    if ( $offsetStartSec < 0 && $offsetFinishSec > $hstime ) {
+    if ( $offsetStartSec < 0 && $offsetFinishSec > $hstime && $offsetFinishSec <= $RNDAY*86400.0) {
         &stderrMessage("DEBUG","Case 2c.");
         $runProps{"forcing.offset.datasets"} = 2;
         $runProps{"forcing.offset.offsetfactor.atrunstart"} = $offsetFactorAtPreviousRunFinish;
-        $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorFinish; 
+        $runProps{"forcing.offset.offsetfactor.atrunfinish"} = $offsetFactorFinish;
         $runProps{"forcing.offset.timeincrement"} = $offsetFinishSec - $hstime;
         &writeControlAndOffsetFiles();
         exit;
@@ -699,9 +711,6 @@ sub writeControlAndOffsetFiles() {
     while ((my $key, my $value) = each (%runProps)) {
         if ( $key =~ /forcing.offset.*modified/ ) {
             printf RUNPROPS "$key : $value\n";
-            if ( $key eq "forcing.offset.modified.offsetfactorfinish" ) {
-                $offsetFactorFinish = $value;
-            }
             if ( $key eq "forcing.offset.modified.offsetstart.seconds" ) {
                 $offsetStartSec = $value;
             }
