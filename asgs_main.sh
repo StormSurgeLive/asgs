@@ -1349,7 +1349,7 @@ variables_init()
    RMQMessaging_Enable="off"  # "on"|"off"
    RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
    RMQMessaging_Script="/set/RMQMessaging_Script/in/asgs/config"
-   RMQMessaging_StartupScript="/set/RMQMessaging_Script/in/asgs/config"
+   RMQMessaging_StartupScript="/set/RMQMessaging_StartupScript/in/asgs/config"
    RMQMessaging_NcoHome="/set/RMQMessaging_NcoHome/in/asgs/config"
    RMQMessaging_Python="/set/RMQMessaging_Python/in/asgs/config"
    RMQMessaging_LocationName="/set/RMQMessaging_LocationName/in/asgs/config/e.g./RENCI"
