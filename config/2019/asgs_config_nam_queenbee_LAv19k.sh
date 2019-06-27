@@ -156,6 +156,7 @@ ASGSADMIN=jason.g.fleming@gmail.com
 RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
 RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
+RMQMessaging_StartupScript="${SCRIPTDIR}/asgs-msgr_startup.py"
 RMQMessaging_NcoHome="/home/jgflemin/"
 RMQMessaging_Python="/usr/local/packages/python/2.7.12-anaconda/bin/python"
 RMQMessaging_LocationName="LONI"
@@ -196,7 +197,7 @@ ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=4 # number of storms in the ensemble
+ENSEMBLESIZE=2 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
