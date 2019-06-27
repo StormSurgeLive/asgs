@@ -1,6 +1,6 @@
 Table of Contents:
 
-I.  Installing perlbrew and your desired version(s) of perl
+I.   Installing perlbrew and your desired version(s) of perl
 II.  Setting up the perl environment of your dreams
 III. perlbrew environment, ASGS, and HPC batch jobs
 IV.  Autmating this process
@@ -133,6 +133,10 @@ b. make sure the .pl script is chmod'd to be executable:
   chmod 750 /path/to/script.pl
 
 c. Perl modules should contain NO shebang line at all, they are meaningless*
+
+3. PLEASE NOTE: Setting "PERL5LIB" or any perl related environmental variable in the ASGS configuration file
+will potentially conflict with the environment that is set up by perlbrew. It is recommended that when using
+perlbrew that any lines in the ASGS configuration file be deleted altogether.
 
 ~~~~~
 * There is a caveat to this, and it's when writing something called a modulino that is both a script and a proper Perl 
