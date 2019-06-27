@@ -111,6 +111,10 @@ ifeq ($(NETCDF),enable)
       # jgf20180105
       NETCDFPATH := /usr/share/Modules/software/CentOS-7/netcdf-Fortran/4.4.0_intel-18.0.0
    endif
+   # jgf20190624: Added compiler flags for locally compiled netcdf on hatteras at RENCI.
+   ifeq ($(MACHINENAME),hatteras-local)
+      NETCDFPATH := /home/ncfs/local
+   endif
    # nld20170829: Added compiler flags for seadog at Ransom.
    ifeq ($(MACHINENAME),seadog)
       NETCDFPATH  := /home/nate/install
