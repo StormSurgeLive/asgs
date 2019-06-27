@@ -1494,7 +1494,7 @@ writeProperties()
    # basic asgs configuration
    echo "config.file : $CONFIG" >> $STORMDIR/run.properties
    echo "instancename : $INSTANCENAME" >> $STORMDIR/run.properties
-   echo "adcirc.time.coldstartdate : $COLDSTARTDATE" >> $STORMDIR/run.properties
+   echo "adcirc.time.coldstartdate : $CSDATE" >> $STORMDIR/run.properties
    echo "path.adcircdir : $ADCIRCDIR" >> $STORMDIR/run.properties
    echo "path.scriptdir : $SCRIPTDIR" >> $STORMDIR/run.properties
    echo "path.inputdir : $INPUTDIR" >> $STORMDIR/run.properties
@@ -1509,7 +1509,7 @@ writeProperties()
    echo "url.hotstart : $hotstartURL" >> $STORMDIR/run.properties
    # offset forcing properties
    echo "forcing.offset : $offset" >> $STORMDIR/run.properties
-   if [[ $OFFSET = "on" ]]; then
+   if [[ $offset = "dynamic" ]]; then
       echo "forcing.offset.offsetfactorstart : $offsetFactorStart" >> $STORMDIR/run.properties
       echo "forcing.offset.offsetfactorfinish : $offsetFactorFinish" >> $STORMDIR/run.properties
       echo "forcing.offset.config.offsetstartdatetime : $offsetStartDateTime" >> $STORMDIR/run.properties

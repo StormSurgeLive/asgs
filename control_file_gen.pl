@@ -200,40 +200,9 @@ while (<RUNPROPS>) {
    # strip leading and trailing spaces and tabs
    $fields[0] =~ s/^\s|\s+$//g ;
    $fields[1] =~ s/^\s|\s+$//g ;
-   $runPropS{$fields[0]} = $fields[1];
+   $runProps{$fields[0]} = $fields[1];
 }
 close(RUNPROPS);
-#
-# locate the properties file that this run was hotstarted from (if any)
-my $fromdir = null;
-my $from_properties = null;
-unless ( $runProps{"scenario"} eq "hindcast" || $runProps{"scenario"} eq "spinup" ) {
-   $fromdir = $runProps{"path.fromdir"};
-   if ( $runProps{"url.hotstart"} eq "null" ) {
-      $from_properties =  "$fromdir/run.properties";
-   } else {
-      # starting from a hotstart file downloaded from URL
-      $from_properties =  $runProps{"path.rundir"} . "/from.run.properties";   
-   }
-} else {
-   # this is a tide/river spinup, there are no previous run properties, this is 
-   # the first run from cold start, nothing needs to be done here
-}
-# load previous run.properties if available
-if ( $fromdir ne "null" ) {
-   unless (open(FROMRUNPROPS,"<$from_properties")) {
-      stderrMessage("ERROR","Failed to open $from_properties: $!.");
-      die;
-   }
-   while (<FROMRUNPROPS>) {
-      my @fields = split ':',$_, 2 ;
-      # strip leading and trailing spaces and tabs
-      $fields[0] =~ s/^\s|\s+$//g ;
-      $fields[1] =~ s/^\s|\s+$//g ;
-      $previousRunPropS{$fields[0]} = $fields[1];
-   }
-   close(FROMRUNPROPS);
-}
 #
 # parse out the pieces of the cold start date
 $csdate=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
@@ -595,12 +564,12 @@ printf RUNPROPS "ADCIRCgrid : $gridname\n";
 # FIXME: if the stormname property exists but is null or empty, it should be
 # removed from the run.properties file
 if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 309 ) { 
-   if ( ! exists $runProp{'stormname'} || $runProp{'stormname'} eq "" || $runProp{'stormname'} eq "null" ) { 
+   if ( ! exists $runProps{'stormname'} || $runProps{'stormname'} eq "" || $runProps{'stormname'} eq "null" ) { 
       printf RUNPROPS "stormname : $nhcName\n";
    }
 }
 if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 309 ) { 
-   if ( ! exists $runProp{'forcing.tropicalcyclone.stormname'} || $runProp{'forcing.tropicalcyclone.stormname'} eq "" || $runProp{'forcing.tropicalcyclone.stormname'} eq "null" ) { 
+   if ( ! exists $runProps{'forcing.tropicalcyclone.stormname'} || $runProps{'forcing.tropicalcyclone.stormname'} eq "" || $runProps{'forcing.tropicalcyclone.stormname'} eq "null" ) { 
       printf RUNPROPS "forcing.tropicalcyclone.stormname : $nhcName\n";
    }
 }
