@@ -28,9 +28,9 @@
 # Fundamental
 
 INSTANCENAME=readysouthfl    # "name" of this ASGS process
-COLDSTARTDATE=auto  # YYYYMMDDHH24 or "auto" to extract from hotstart file
-HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2019/nam/2019060206/southfl_v11-1_final/stampede2.tacc.utexas.edu/dailysouthfl/namforecast
+COLDSTARTDATE=2019052500 # YYYYMMDDHH24 or "auto" to extract from hotstart file
+HOTORCOLD=coldstart      # "hotstart" or "coldstart"
+LASTSUBDIR=null
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
