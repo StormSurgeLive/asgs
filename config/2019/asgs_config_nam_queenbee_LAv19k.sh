@@ -90,6 +90,7 @@ BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
 PTFILE=ptFile_oneEighth.txt         # the lat/lons for the OWI background met
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
+VELOCITYMULTIPLIER=1.0
 
 # External data sources : River Flux
 
@@ -155,6 +156,7 @@ ASGSADMIN=jason.g.fleming@gmail.com
 RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
 RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
+RMQMessaging_StartupScript="${SCRIPTDIR}/asgs-msgr_startup.py"
 RMQMessaging_NcoHome="/home/jgflemin/"
 RMQMessaging_Python="/usr/local/packages/python/2.7.12-anaconda/bin/python"
 RMQMessaging_LocationName="LONI"
@@ -183,7 +185,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,mbilsk3@lsu.edu,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,MBilskie.ASGS@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
@@ -232,6 +234,16 @@ case $si in
    # prevent collisions in prepped archives
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
+   ;;
+2)
+   ENSTORM=namforecast2x
+   VELOCITYMULTIPLIER=2.0
+   OPENDAPNOTIFY="mbilsk3@lsu.edu,jason.g.fleming@gmail.com"
+   ;;
+3)
+   ENSTORM=namforecast3x
+   VELOCITYMULTIPLIER=3.0
+   OPENDAPNOTIFY="mbilsk3@lsu.edu,jason.g.fleming@gmail.com"
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
