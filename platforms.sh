@@ -669,14 +669,10 @@ env_dispatch(){
   "lsu_tds") allMessage "platforms.sh: LSU THREDDS Data Server configuration found."
           init_lsu_tds
           ;;
-<<<<<<< HEAD
-  "renci_tds") allMessage "platforms.sh: RENCI THREDDS Data Server configuration found."
-=======
   "lsu_ccr_tds") consoleMessage "platforms.sh: LSU THREDDS Data Server configuration found."
           init_lsu_ccr_tds
           ;;
   "renci_tds") consoleMessage "platforms.sh: RENCI THREDDS Data Server configuration found."
->>>>>>> 863454793c67a1d09fb6df0467324e3bc4f14ab1
           init_renci_tds
           ;;
   "tacc_tds") allMessage "platforms.sh: TACC THREDDS Data Server configuration found."
