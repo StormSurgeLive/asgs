@@ -28,14 +28,14 @@
 #
 # Fundamental 
 #
-INSTANCENAME=hiresr-RENCI       # name of this ASGS process, to differentiate results
-COLDSTARTDATE=2019020900
+INSTANCENAME=ncv99-nam       # name of this ASGS process, to differentiate results
+COLDSTARTDATE=2019060100
 
 STORMNAME=daily
 
 HOTORCOLD=coldstart       # "hotstart" or "coldstart" 
 LASTSUBDIR=null
-HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
+HINDCASTLENGTH=27.0       # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=yes       # used to bounce the wave solution
 
 # Source file paths
@@ -63,15 +63,15 @@ HINDCASTWALLTIME="24:00:00"
 ADCPREPWALLTIME="01:15:00"
 NOWCASTWALLTIME="10:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=160
-NUMWRITERS=0
+NCPU=512
+NUMWRITERS=1
 NCPUCAPACITY=640
 CYCLETIMELIMIT="05:00:00"
 
 # queue
 QUEUENAME=null
 SERQUEUE=null
-SCRATCHDIR=/scratch/ncfs-dev/hiresr-RENCI/   #   /projects/ncfs/data # for the NCFS on blueridge
+SCRATCHDIR=/scratch/ncfs-dev/ncv99-nam
 PARTITION=ncfs
 RESERVATION=null
 CONSTRAINT=hatteras
@@ -90,7 +90,7 @@ HDIR=/atcf/btk      # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="00,12"
+FORECASTCYCLE="00,06,12,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -153,15 +153,16 @@ MINMAX=reset
 
 # Notification
 
-EMAILNOTIFY=no # set to yes to have host platform email notifications
+EMAILNOTIFY=yes # set to yes to have host platform email notifications
+ems="bblanton@renci.org"
 NOTIFY_SCRIPT=ncfs_nam_notify.sh
 ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
 POST_LIST=null
-JOB_FAILED_LIST=jason.g.fleming@gmail.com
-NOTIFYUSER=jason.g.fleming@gmail.com
-ASGSADMIN=jason.g.fleming@gmail.com
+JOB_FAILED_LIST="$ems"  #  jason.g.fleming@gmail.com
+NOTIFYUSER="$ems"  #  jason.g.fleming@gmail.com
+ASGSADMIN="$ems"  # jason.g.fleming@gmail.com
 
 # RMQ Messaging
 
@@ -176,9 +177,9 @@ RMQMessaging_ClusterName="Hatteras"
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=systemTest
+INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=ncfs_post_min.sh
+POSTPROCESS=ncfs_post_no-cera.sh
 POSTPROCESS2=null_post.sh
 
 TDS=(renci_tds)
@@ -189,7 +190,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="$ems" # "asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
