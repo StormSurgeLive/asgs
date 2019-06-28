@@ -108,6 +108,10 @@ ifeq ($(NETCDF),enable)
       # jgf20180105
       NETCDFPATH := $(shell nf-config --prefix)
    endif
+   # jgf20190624: Added compiler flags for locally compiled netcdf on hatteras at RENCI.
+   ifeq ($(MACHINENAME),hatteras-local)
+      NETCDFPATH := /home/ncfs/local
+   endif
    # nld20170829: Added compiler flags for seadog at Ransom.
    ifeq ($(MACHINENAME),seadog)
       NETCDFPATH  := /home/nate/install
