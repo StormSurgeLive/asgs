@@ -406,7 +406,17 @@ while(<TEMPLATE>) {
     # if we are looking at the DT line, fill in the time step (seconds)
     s/%DT%/$dt/;
     # if we are looking at the RNDAY line, fill in the total run time (days)
-    s/%RNDAY%/$RNDAY/;
+    # unless this is a wind run, in which case we tell adcirc that
+    # every run is a cold start
+    if ( $hsformat eq "wind" ) {
+       my $windRunLength = $RNDAY;
+       if ( defined $hstime ) { 
+          $windRunLength = ($windRunLength*86400.0 - $hstime)/86400.0;
+       }
+       s/%RNDAY%/$windRunLength/;
+    } else {
+       s/%RNDAY%/$RNDAY/;
+    }
     # set whether or not we are going to read a hotstart file
     s/%IHOT%/$ihot/;
     # fill in the parameter that selects which wind model to use
