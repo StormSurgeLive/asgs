@@ -86,7 +86,7 @@ my $fort7374freq=0; # output frequency in SECONDS
 my $fort7374append; # if defined, output files will append across hotstarts
 my ($fort61, $fort62, $fort63, $fort64, $fort7172, $fort7374);
 our $sparseoutput; # if defined, then fort.63 and fort.64 will be sparse ascii
-my $hsformat="binary";  # input param for hotstart format: binary or netcdf
+my $hsformat="binary";  # input param for hotstart format: binary, netcdf, or wind
 my ($fort61netcdf, $fort62netcdf, $fort63netcdf, $fort64netcdf, $fort7172netcdf, $fort7374netcdf); # for netcdf (not ascii) output
 my $hotswan = "on"; # "off" if swan has to be cold started (only on first nowcast)
 our $netcdf4;  # if defined, then netcdf files should use netcdf4 formatting
@@ -267,7 +267,7 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
 }
 #
 # we want a hotstart file if this is a nowcast or hindcast
-if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
+if ( ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) && $hsformat ne "wind" ) {
    $NHSTAR = 1;
    if ( $hsformat eq "netcdf" ) {
       $NHSTAR = 3;
@@ -282,7 +282,7 @@ if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
 #
 # we always look for a fort.68 file, and since we only write one hotstart
 # file during the run, we know we will always be left with a fort.67 file.
-if ( defined $hstime ) {
+if ( defined $hstime && $hsformat ne "wind" ) {
    $ihot = 68;
    if ( $hsformat eq "netcdf" ) {
       $ihot = 368;
@@ -510,6 +510,17 @@ if ( $waves eq "on" ) {
    close(STORM);
 }
 #
+# write wind "hotstart" file
+if ( $hsformat eq "wind" ) {
+   unless (open(HSWIND,">$stormDir/wind.67")) {
+      stderrMessage("ERROR","Failed to open the file '$advisdir/$enstorm/wind.67' for writing: $!.");
+      die;
+   }  
+   printf HSWIND "%.5f",$RNDAY*86400.0;
+   close(HSWIND);
+}
+
+#
 # append run.properties file
 # set components
 my $model = "PADCIRC";
@@ -583,7 +594,7 @@ printf RUNPROPS "advisory : $advisorynum\n";
 printf RUNPROPS "prodID : $prodid\n";
 if (defined $hstime) {
    printf RUNPROPS "InitialHotStartTime : $hstime\n";
-}
+} 
 printf RUNPROPS "RunStartTime : $runstarttime\n";
 printf RUNPROPS "RunEndTime : $runendtime\n";
 printf RUNPROPS "ColdStartTime : $csdate\n";

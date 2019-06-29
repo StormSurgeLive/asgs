@@ -139,8 +139,12 @@ checkHotstart()
    # set name and specific file location based on format (netcdf or binary)
    if [[ $HOTSTARTFORMAT = netcdf ]]; then
       HOTSTARTFILE=$FROMDIR/fort.$LUN.nc
-   else
+   fi 
+   if [[ $HOTSTARTFORMAT = binary ]]; then
       HOTSTARTFILE=$FROMDIR/PE0000/fort.$LUN
+   fi
+   if [[ $HOTSTARTFORMAT = wind ]]; then
+      HOTSTARTFILE=$FROMDIR/wind.$LUN  # just a one line text file containing seconds since coldstart
    fi
    # check for existence of hotstart file
    if [ ! -e $HOTSTARTFILE ]; then
@@ -162,9 +166,13 @@ checkHotstart()
          HSTIME=''
          if [[ $HOTSTARTFORMAT = netcdf ]]; then
             HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE -n 2>&1 | tee --append ${SYSLOG}`
-         else
+         fi
+         if [[ $HOTSTARTFORMAT = binary ]]; then         
             HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE 2>&1 | tee --append ${SYSLOG}`
          fi
+         if [[ $HOTSTARTFORMAT = wind ]]; then         
+            HSTIME=`cat $HOTSTARTFILE 2>&1 | tee --append ${SYSLOG}`
+         fi         
          failureOccurred=$?
          errorOccurred=`expr index "$HSTIME" ERROR`
          if [[ $failureOccurred != 0 || $errorOccurred != 0 ]]; then
@@ -172,8 +180,10 @@ checkHotstart()
             fatal "$THIS: The hstime utility could not read the ADCIRC time from the file '$HOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
          else
             if float_cond '$HSTIME == 0.0'; then
-               THIS="asgs_main.sh>checkHotstart()"
-               fatal "$THIS: The time in the hotstart file '$HOTSTARTFILE' is zero. The preceding simulation run must have failed to produce a proper hotstart file."
+               if [[ $HOTSTARTFORMAT != wind ]]; then
+                  THIS="asgs_main.sh>checkHotstart()"
+                  fatal "$THIS: The time in the hotstart file '$HOTSTARTFILE' is zero. The preceding simulation run must have failed to produce a proper hotstart file."
+               fi
             fi
          fi
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$ENSTORM: The time in the hotstart file is '$HSTIME' seconds."
@@ -439,6 +449,9 @@ prep()
        # swan hotstart file
        if [[ $WAVES = on && $HOTSWAN = on ]]; then
           cp $FROMDIR/swan.67 $ADVISDIR/$ENSTORM/swan.68 >> $SYSLOG 2>&1
+       fi
+       if [[ $HOTSTARTFORMAT = "wind" ]]; then
+          cp $FROMDIR/wind.67 $ADVISDIR/$ENSTORM/wind.68 >> $SYSLOG 2>&1
        fi
     fi
     #
@@ -2228,7 +2241,8 @@ if [[ $START = coldstart ]]; then
    echo LASTSUBDIR=${OLDADVISDIR} >> $STATEFILE 2>> ${SYSLOG}
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
-else
+fi
+if [[ $START = hotstart ]]; then
    # start from   H O T S T A R T   file
    if [[ $hotstartURL = null ]]; then
       if [[ `basename $LASTSUBDIR` = nowcast || `basename $LASTSUBDIR` = hindcast ]]; then
@@ -2247,7 +2261,18 @@ else
       OLDADVISDIR=$RUNDIR
    fi 
 fi
-
+if [[ $START = "windonly" ]]; then
+   logMessage "$THIS: This ASGS instance is only producing wind data and does not need a hindcast."
+   ADVISDIR=$RUNDIR/initialize
+   mkdir -p $ADVISDIR 2>> ${SYSLOG}
+   STORMDIR=$ADVISDIR/$ENSTORM
+   mkdir -p $STORMDIR 2>> ${SYSLOG}
+   HSTIME=0
+   OLDADVISDIR=$ADVISDIR
+   if [[ $HOTSTARTFORMAT = wind ]]; then
+      echo "0.0" >> $OLDADVISDIR/wind.67  # initialize adcirc time to 0.0
+   fi
+fi
 #
 # B E G I N   N O W C A S T / F O R E C A S T   L O O P
 #
@@ -2329,7 +2354,6 @@ while [ true ]; do
       done
    fi
    checkHotstart $FROMDIR $HOTSTARTFORMAT  67
-
    cd $RUNDIR 2>> ${SYSLOG}
    #
    # N O W C A S T
@@ -2337,7 +2361,7 @@ while [ true ]; do
    NOWCASTDIR=null    # directory with hotstart files to be used in forecast
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Checking for new meteorological data every 60 seconds ..."
    logMessage "$ENSTORM: $THIS: Checking for new meteorological data every 60 seconds ..."
-   
+   #
    # TROPICAL CYCLONE ONLY
    if [[ $TROPICALCYCLONE = on ]]; then
       BASENWS=20
@@ -2696,9 +2720,13 @@ while [ true ]; do
    THIS="asgs_main.sh"
    if [[ $HOTSTARTFORMAT = netcdf ]]; then
       HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/fort.67.nc -n` 2>> ${SYSLOG}
-   else
+   fi
+   if [[ $HOTSTARTFORMAT = binary ]]; then   
       HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/PE0000/fort.67` 2>> ${SYSLOG}
    fi
+   if [[ $HOTSTARTFORMAT = wind ]]; then   
+      HSTIME=`cat ${NOWCASTDIR}/wind.67` 2>> ${SYSLOG}
+   fi   
    logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
    si=0
    CURRENT_STATE="WAIT"
