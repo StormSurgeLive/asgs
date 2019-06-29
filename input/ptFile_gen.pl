@@ -33,7 +33,9 @@ my $nx=160;       # number of points in east-west direction
 my $ny=160;       # number of points in north-south direction
 my $output_file="ptFile_out.txt"; 
 #
-GetOptions("swlat=s" => \$swlat,
+GetOptions(
+      "outputfile=s" => \$output_file,
+           "swlat=s" => \$swlat,
            "swlon=s" => \$swlon,
            "dx=s" => \$dx,
            "dy=s" => \$dy,
