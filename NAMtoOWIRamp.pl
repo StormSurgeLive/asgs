@@ -172,9 +172,14 @@ sub processPtFile {
     $swLat = sprintf( "%3.4f", $1 );        # first to have the right float format
     $swLat = sprintf( "%8s",   $swLat );    # then to have the right spacing in the file
     $swLon =~ m/(\S+)/;
-    $swLon = sprintf( "%3.4f", $1 );
-    $swLon = sprintf( "%8s",   $swLon );
-
+    # make room for three digit longitude
+    if ( $swLon > -100.0 ) {
+       $swLon = sprintf( "%3.4f", $1 );
+       $swLon = sprintf( "%8s",   $swLon );
+    } else { 
+       $swLon = sprintf( "%3.3f", $1 );
+       $swLon = sprintf( "%8s",   $swLon );
+    }
     # find the uniques lat and lon
     %seen = ();
     foreach my $item (@lat) {
