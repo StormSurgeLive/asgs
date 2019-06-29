@@ -2262,6 +2262,7 @@ if [[ $START = hotstart ]]; then
    fi 
 fi
 if [[ $START = "windonly" ]]; then
+   ENSTORM=hindcast
    logMessage "$THIS: This ASGS instance is only producing wind data and does not need a hindcast."
    ADVISDIR=$RUNDIR/initialize
    mkdir -p $ADVISDIR 2>> ${SYSLOG}
@@ -2270,7 +2271,7 @@ if [[ $START = "windonly" ]]; then
    HSTIME=0
    OLDADVISDIR=$ADVISDIR
    if [[ $HOTSTARTFORMAT = wind ]]; then
-      echo "0.0" >> $OLDADVISDIR/wind.67  # initialize adcirc time to 0.0
+      echo "0.0" >> $RUNDIR/initialize/hindcast/wind.67  # initialize adcirc time to 0.0
    fi
 fi
 #

@@ -695,9 +695,10 @@ init_desktop()
   if [[ $USER = "jason" ]]; then
      RMQMessaging_Enable="on"   # "on"|"off"
      RMQMessaging_Transmit="on" #  enables message transmission ("on" | "off")
-     RMQMessaging_Script="/set/RMQMessaging_Script/in/asgs/config"
+     RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
+     RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
      RMQMessaging_NcoHome=$HOME
-     RMQMessaging_Python=/usr/bin/python
+     RMQMessaging_Python=/home/jason/miniconda2/bin/python
      RMQMessaging_LocationName="Seahorse"
      RMQMessaging_ClusterName="jason-desktop"
   fi
