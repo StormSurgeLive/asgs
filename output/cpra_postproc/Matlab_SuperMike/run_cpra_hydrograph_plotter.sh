@@ -27,7 +27,7 @@ else
       args="${args} \"${token}\"" 
       shift
   done
-  eval "\"${exe_dir}/plot_usace_adcirc\"" $args
+  eval "\"${exe_dir}/cpra_hydrograph_plotter\"" $args
 fi
 exit
 
