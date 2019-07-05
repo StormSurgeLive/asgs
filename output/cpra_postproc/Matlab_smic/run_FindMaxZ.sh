@@ -27,7 +27,7 @@ else
       args="${args} \"${token}\"" 
       shift
   done
-  eval "\"${exe_dir}/plot_usace_adcirc\"" $args
+  eval "\"${exe_dir}/FindMaxZ\"" $args
 fi
 exit
 
