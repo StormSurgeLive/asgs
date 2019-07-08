@@ -40,6 +40,9 @@ integer :: mask_count(1) ! number of inundation mask data to write
 integer :: nc_varid_inundationmask
 character(len=NF90_MAX_NAME) :: thisVarName
 integer :: varid
+integer, parameter :: WET=1
+integer, parameter :: DRY=0
+integer :: grow ! whether to grow the wet or dry area with each pass 
 integer, allocatable :: adcirc_idata(:,:)
 real(8), allocatable :: adcirc_data(:,:)
 integer :: nc_start(2)
@@ -48,6 +51,7 @@ integer :: imUnit
 logical :: deflate
 !
 numPasses = 1
+grow = DRY
 ed%dataFileName = 'null'
 dataFound = .false.
 im%dataFileFormat = NETCDF4
@@ -70,6 +74,15 @@ if (argcount.gt.0) then
             write(scratchMessage,'(a,a,a,a,a)') 'Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
             call allMessage(INFO,scratchMessage)
             ed%dataFileName = trim(cmdlinearg)
+         case("--grow")
+            i = i + 1
+            call getarg(i, cmdlinearg)
+            write(scratchMessage,'(a,a,a,a,a)') 'Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
+            call allMessage(INFO,scratchMessage)
+            if ( trim(cmdlinearg).eq.'wet' ) then
+               call allMessage(INFO,"Growing wet area with each pass.")
+               grow = WET
+            endif
          case("--netcdf4")
              im%dataFileFormat = NETCDF4
              write(scratchMessage,'(a,a,a)') 'Processing "',trim(cmdlineopt),'".'            
@@ -183,11 +196,11 @@ do i=1,numPasses
    ! set the new value equal to the existing value
    newnodecode = nnodecode
    do j=1,m%np
-      ! if node j is dry
-      if ( nnodecode(j).eq.0 ) then    
-         ! make all its neighbors dry too
+      ! if node j is the state that we want to grow spatially
+      if ( nnodecode(j).eq.grow ) then    
+         ! make all its neighbors match that state
          do k=2,m%nNeigh(j)
-            newnodecode(m%neitab(j,k)) = 0
+            newnodecode(m%neitab(j,k)) = grow
          end do
       end if
    end do
