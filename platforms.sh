@@ -684,7 +684,7 @@ init_lonestar()
 }
 init_desktop()
 {
-  HPCENV=jason-desktop
+  HPCENV=jason-desktop.seahorsecoastal.com
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec"
@@ -695,9 +695,8 @@ init_desktop()
   if [[ $USER = "jason" ]]; then
      RMQMessaging_Enable="on"   # "on"|"off"
      RMQMessaging_Transmit="on" #  enables message transmission ("on" | "off")
-     RMQMessaging_Script="/set/RMQMessaging_Script/in/asgs/config"
      RMQMessaging_NcoHome=$HOME
-     RMQMessaging_Python=/usr/bin/python
+     RMQMessaging_Python="/home/jason/miniconda2/bin/python"
      RMQMessaging_LocationName="Seahorse"
      RMQMessaging_ClusterName="jason-desktop"
   fi
