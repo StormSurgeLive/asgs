@@ -156,7 +156,7 @@ RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
 RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
 RMQMessaging_NcoHome="/home/jgflemin/"
 RMQMessaging_Python="/usr/local/packages/python/2.7.13-anaconda/bin/python"
-RMQMessaging_LocationName="LSU CCT"
+RMQMessaging_LocationName="LSU"
 RMQMessaging_ClusterName="SuperMIC"
 
 # Post processing and publication
