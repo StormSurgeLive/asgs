@@ -1750,16 +1750,6 @@ SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG
 # Bring in platform-specific configuration functions
 . ${SCRIPTDIR}/platforms.sh
 #
-# RMQMessaging config
-# this verifies that messages can be constructed.  It is possible
-# that asgs-msgr.sh will set RMQMessaging to "off", in which case
-# calls to RMQMessage will return without doing anything
-if [[ $RMQMessaging_Enable == "on" ]] ; then
-   . ${SCRIPTDIR}/asgs-msgr.sh
-else
-   logMessage "RMQ Messaging disabled via RMQMessaging_Enable=off in ASGS config file. The status of this ASGS instance will not be available on the ASGS Monitor https://asgs-monitor.renci.org." 
-fi
-
 # set a trap for a signal to reread the ASGS config file
 trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; . $CONFIG' USR1
 # catch ^C for a final message
@@ -1785,7 +1775,7 @@ RUNDIR=$SCRATCHDIR/asgs$$
 # this verifies that messages can be constructed.  It is possible
 # that asgs-msgr.sh will set RMQMessaging to "off", in which case
 # calls to RMQMessage will return without doing anything
-if [[ $RMQMessaging_Enable == "on" ]] ; then
+if [[ $RMQMessaging_Enable = "on" ]] ; then
    THIS="monitoring/asgs-msgr.sh"
    . ${SCRIPTDIR}/monitoring/asgs-msgr.sh
    THIS="asgs_main.sh"
