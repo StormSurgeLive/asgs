@@ -107,9 +107,9 @@ GRIDNAME=LA_v19k-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=LA_v19k-WithUpperAtch.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=combined_stations_20190327.txt
-VELSTATIONS=combined_stations_20190327.txt
-METSTATIONS=combined_stations_20190327.txt
+ELEVSTATIONS=combined_stations_20190710.txt
+VELSTATIONS=$ELEVSTATIONS
+METSTATIONS=$ELEVSTATIONS
 NAFILE=LA_v19k-WithUpperAtch_chk.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=LA_v19k-WithUpperAtch.26.template   # only used if WAVES=on
