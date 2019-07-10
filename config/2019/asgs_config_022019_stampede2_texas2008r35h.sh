@@ -27,10 +27,10 @@
 
 # Fundamental
 
-INSTANCENAME=readytx      # "name" of this ASGS process
-COLDSTARTDATE=2019051000  # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart        # "hotstart" or "coldstart"
-LASTSUBDIR=null
+INSTANCENAME=022019tx     # "name" of this ASGS process
+COLDSTARTDATE=auto        # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart        # "hotstart" or "coldstart"
+LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2019/nam/2019070806/tx2008_r35h/stampede2.tacc.utexas.edu/readytx/namforecast
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
@@ -44,10 +44,10 @@ OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 
 # Physical forcing
 
-BACKGROUNDMET=on      # NAM download/forcing
+BACKGROUNDMET=off     # NAM download/forcing
 TIDEFAC=on            # tide factor recalc
-TROPICALCYCLONE=off   # tropical cyclone forcing
-WAVES=off              # wave forcing
+TROPICALCYCLONE=on    # tropical cyclone forcing
+WAVES=off             # wave forcing
 VARFLUX=off           # variable river flux forcing
 
 # Computational Resources
@@ -66,8 +66,8 @@ ACCOUNT=TG-DMS080016N
 
 # External data sources : Tropical cyclones
 
-STORM=99                         # storm number, e.g. 05=ernesto in 2006
-YEAR=2016                        # year of the storm
+STORM=02                         # storm number, e.g. 05=ernesto in 2006
+YEAR=2019                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 #RSSSITE=filesystem
 #FTPSITE=filesystem
