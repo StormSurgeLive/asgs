@@ -27,10 +27,10 @@
 
 # Fundamental
 
-INSTANCENAME=readysouthfl    # "name" of this ASGS process
-COLDSTARTDATE=2019060500 # YYYYMMDDHH24 or "auto" to extract from hotstart file
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null
+INSTANCENAME=dailyLAv19k # "name" of this ASGS process
+COLDSTARTDATE=auto       # YYYYMMDDHH24 or "auto" to extract from hotstart file
+HOTORCOLD=hotstart       # "hotstart" or "coldstart"
+LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/tc/nam/2019070818/LA_v19k-WithUpperAtch_chk/queenbee.loni.org/dailyLAv19k/namforecast
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -39,9 +39,8 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 ADCIRCDIR=~/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
 SWANDIR=~/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
 SCRIPTDIR=~/asgs/jasonfleming/master               # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/southfl         # grid and other input files
+INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v19k        # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
-PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 
 # Physical forcing
 
@@ -53,7 +52,7 @@ VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
 
-TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
+TIMESTEPSIZE=1.0            # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -80,7 +79,7 @@ HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06"
+FORECASTCYCLE="06,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -88,6 +87,7 @@ PTFILE=ptFile_hsofs.txt         # the lat/lons for the OWI background met
 SPATIALEXTRAPOLATIONRAMP=yes
 SPATIALEXTRAPOLATIONRAMPDISTANCE=5.0
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
+VELOCITYMULTIPLIER=1.0
 
 # External data sources : River Flux
 
@@ -96,17 +96,17 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=southfl_v11-1_final.grd
-GRIDNAME=southfl_v11-1_final
+GRIDFILE=LA_v19k-WithUpperAtch_chk.grd   # mesh (fort.14) file
+GRIDNAME=LA_v19k-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=southfl-v11-1.template.15
+CONTROLTEMPLATE=LA_v19k-WithUpperAtch.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=southfl_stations_20190502.txt
-VELSTATIONS=southfl_stations_20190502.txt
-METSTATIONS=southfl_stations_20190502.txt
-NAFILE=southfl_v11-1_final-production.13
+ELEVSTATIONS=combined_stations_20190327.txt
+VELSTATIONS=combined_stations_20190327.txt
+METSTATIONS=combined_stations_20190327.txt
+NAFILE=LA_v19k-WithUpperAtch_chk.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=fort.26.nolimiter.template
+SWANTEMPLATE=LA_v19k-WithUpperAtch.26.template   # only used if WAVES=on
 RIVERINIT=null                           # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
@@ -163,7 +163,7 @@ RMQMessaging_ClusterName="SuperMIC"
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=cera_post.sh
+POSTPROCESS=cpra_post.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
@@ -176,7 +176,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,MBilskie.ASGS@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
@@ -197,7 +197,7 @@ case $si in
    ENSTORM=namforecastWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=southfl-v11-1.nowindreduction.template.15
+   CONTROLTEMPLATE=LA_v19k-WithUpperAtch.nowindreduction.15.template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements
