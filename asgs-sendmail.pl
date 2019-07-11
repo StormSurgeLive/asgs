@@ -81,22 +81,22 @@ __END__
 
 =head1 NAME
 
-  asgs_sendmail.pl
+  asgs-sendmail.pl
 
 =head1 USAGE 
 
   # piped STDIN
-  cat body.txt | asgs_sendmail.pl [-c override/default/conf] --subject "subject line" --to recipient@email.tld
-  some-utility | asgs_sendmail.pl [-c override/default/conf] --subject "subject line" --to recipient@email.tld
+  cat body.txt | asgs-sendmail.pl [-c override/default/conf] --subject "subject line" --to recipient@email.tld
+  some-utility | asgs-sendmail.pl [-c override/default/conf] --subject "subject line" --to recipient@email.tld
 
   # directed file contents in using '<', typical unix syntax
-  asgs_sendmail.pl [-c override/default/conf] --subject "subject line" --to recipient@email.tld < body.txt
+  asgs-sendmail.pl [-c override/default/conf] --subject "subject line" --to recipient@email.tld < body.txt
 
 =head2 Multiple Recipients
 
 The C<--to> options accepts a comma delimited list of email addresses:
 
-  some-utility | asgs_sendmail.pl [-c override/default/conf] --subject "subject line" --to "recipient1@email.tld, recipient2@email.tld, ..., recipientN@email.tld"
+  some-utility | asgs-sendmail.pl [-c override/default/conf] --subject "subject line" --to "recipient1@email.tld, recipient2@email.tld, ..., recipientN@email.tld"
 
 =head1 DESCRIPTION
 
