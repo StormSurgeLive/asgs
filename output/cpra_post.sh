@@ -138,7 +138,7 @@ if [[ -e ../bal${STORM}${YEAR}.dat ]]; then
    cp ../bal${STORM}${YEAR}.dat . 2>> $SYSLOG
 fi
 ceraNonPriorityFiles=( `ls $CONFIG $SYSLOG cpra.post.log endrisinginun.63.nc everdried.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc 2>> $SYSLOG` )
-ceraPriorityFiles=(`ls run.properties maxele.63.nc fort.63.nc fort.61.nc fort.15 fort.22 2>> $SYSLOG`)
+ceraPriorityFiles=(`ls run.properties maxele.63.nc fort.63.nc fort.61.nc fort.15 fort.22 *.jpg 2>> $SYSLOG`)
 if [[ $TROPICALCYCLONE = on ]]; then
    ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat 2>> $SYSLOG` )
 fi
@@ -150,7 +150,7 @@ if [[ -d $dirWind10m ]]; then
    ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls wind10m.maxwvel.63.nc wind10m.fort.74.nc 2>> $SYSLOG` )
    ceraNonPriorityFiles=( ${ceraNonPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc 2>> $SYSLOG` )
 else
-   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nci 2>> $SYSLOG` )
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc 2>> $SYSLOG` )
 fi
 FILES=( ${ceraPriorityFiles[*]} "sendNotification" ${ceraNonPriorityFiles[*]} )
 #
