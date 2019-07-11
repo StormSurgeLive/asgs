@@ -13,6 +13,14 @@ I. Installing perlbrew and your desired version(s) of perl
 
 0. Login to the head node of the computing system where you'll be installing perlbrew
 
+NOTE: Experience has shown that when logging into a head node of an HPC resource, you may be
+placed on one of multiple machines. And while they have access to the same file system, the environment
+may be set up slightly differently on each head node. This means that one must take care to note
+the head node on which they have set up perlbrew - future logins may land them on head nodes that
+are not quite set up. So if you login to a head node and it's not set up right, it could be that
+you're on a different one that before. This also affects screen sessions, since the screen session
+on one machine will not be accessible on a different machine.
+
 1. Install perlbrew
 
   curl -L https://install.perlbrew.pl | bash
@@ -47,6 +55,8 @@ install as many versions of perl as you whish using this method. perl 5.28.2 is 
 of perl at the time of this writing.
 
   perlbrew install perl-5.28.2
+
+  Note: if the build fails, see the Troubleshooting (Append. A) below.
 
 4. Set this perl to be your default perl, overriding the system perl on all interactive and batch
 terminal sessions; when ~/perl5/perlbrew/etc/bashrc is source'd on login or new shell, it will automatically
@@ -97,6 +107,9 @@ Make sure the perl you're expecting is first in the PATH:
 
   cpanm Perl::Tidy
   which perltidy      # should point to the version of perltidy installed by cpanm
+
+  # make sure you're in the asgs scripts directory, then copy the tidy file to $HOME as follows:
+
   cp PERL/perltidyrc ~/.perltidyrc # ASGS standard perltidy options
 
   The use of perltidy is outside the scope of this README, but a quick start for anyone using vim is as follows.
@@ -149,3 +162,27 @@ IV.  Autmating this process
 in the ASGS repository under the file, "cloud/general/init-perlbrew.sh".
      
 Have fun!
+
+Appendix A - Troubleshooting
+
+Case 1: Build fails
+
+1. view the log as suggested in the error output
+2. determine the cause of the error, some of the failure types are:
+
+* unit test failure (more common than others)
+* compiler error (super rare)
+* configure phase error (rare)
+
+In the case of the unit test failure, take note of the tests that failed (end in .t) and how many tests failed. If it's
+a very small amount of tests then it's usually safe to re-run the install using the "--no-test" option.
+
+  perlbrew install --no-test perl-5.28.2
+
+If there are widespread test failures, then this could indicate something environmental at work. A search of the errors seen
+on duck duck go (or G) may also prove useful. But perlbrew is pretty robust, as is the Perl source distribution.
+
+Compiler and configure errors are tougher to diagnose, so they are not covered here since it's more likely than not related
+to a perl or perlbrew issue. These are very rare these days, especially on relatively common platforms like Linux or some Unix
+variant.
+
