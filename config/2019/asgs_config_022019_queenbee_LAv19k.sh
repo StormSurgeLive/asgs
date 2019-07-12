@@ -206,7 +206,7 @@ ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=6     # number of storms in the ensemble
+ENSEMBLESIZE=8     # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
@@ -245,10 +245,45 @@ case $si in
    POSTPROCESS=null_post.sh
    ;;
 3)
+   ENSTORM=veerRight50
+   PERCENT=50
+   ;;
+2)
+   ENSTORM=veerRight50Wind10m
+   PERCENT=50
+   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   CONTROLTEMPLATE=LA_v19k-WithUpperAtch.nowindreduction.15.template
+   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+   TIMESTEPSIZE=300.0    # 15 minute time steps
+   NCPU=19               # dramatically reduced resource requirements
+   NUMWRITERS=1          # multiple writer procs might collide
+   WAVES=off             # deactivate wave forcing 
+   # turn off water surface elevation station output
+   FORT61="--fort61freq 0"
+   # turn off water current velocity station output
+   FORT62="--fort62freq 0"
+   # turn off full domain water surface elevation output
+   FORT63="--fort63freq 0"
+   # turn off full domain water current velocity output
+   FORT64="--fort64freq 0"
+   # met station output
+   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
+   # full domain meteorological output
+   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
+   #SPARSE="--sparse-output"
+   SPARSE=""
+   NETCDF4="--netcdf4"
+   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+   # prevent collisions in prepped archives
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   POSTPROCESS=null_post.sh
+   ;;
+5)
    ENSTORM=veerRight100
    PERCENT=100
    ;;
-2)
+4)
    ENSTORM=veerRight100Wind10m
    PERCENT=100
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
@@ -279,11 +314,11 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
    ;;
-5)
+7)
    ENSTORM=veerLeft100
    PERCENT=-100
    ;;
-4)
+6)
    ENSTORM=veerLeft100Wind10m
    PERCENT=-100
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
