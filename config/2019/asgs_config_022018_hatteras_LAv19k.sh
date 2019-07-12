@@ -185,7 +185,9 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,MBilskie.ASGS@gmail.com,jason.g.fleming@gmail.com,shagen@lsu.edu"
+#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,MBilskie.ASGS@gmail.com,jason.g.fleming@gmail.com,shagen@lsu.edu"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,MBilskie.ASGS@gmail.com,jason.g.fleming@gmail.com,shagen@lsu.edu,taylorgasher@gmail.com,zcobell@thewaterinstitute.org,nathan.dill@ransomenv.com,scott.hayward@ransomenv.com,busy_child29@hotmail.com"
+
 
 # Archiving
 
