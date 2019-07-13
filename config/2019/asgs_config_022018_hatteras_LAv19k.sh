@@ -239,12 +239,12 @@ case $si in
    POSTPROCESS=null_post.sh
    ;;
 3)
-   ENSTORM=veerRight50
-   PERCENT=50
+   ENSTORM=veerRight100
+   PERCENT=100
    ;;
 2)
-   ENSTORM=veerRight50Wind10m
-   PERCENT=50
+   ENSTORM=veerRight100Wind10m
+   PERCENT=100
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=LA_v19k-WithUpperAtch.nowindreduction.15.template  # fort.15 template
@@ -275,12 +275,12 @@ case $si in
    POSTPROCESS=null_post.sh
    ;;
 5)
-   ENSTORM=veerRight25
-   PERCENT=25
+   ENSTORM=veerLeft100
+   PERCENT=-100
    ;;
 4)
-   ENSTORM=veerRight25Wind10m
-   PERCENT=25
+   ENSTORM=veerLeft100Wind10m
+   PERCENT=-100
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=LA_v19k-WithUpperAtch.nowindreduction.15.template  # fort.15 template
@@ -311,12 +311,12 @@ case $si in
    POSTPROCESS=null_post.sh
    ;;
 7)
-   ENSTORM=veerLeft100
-   PERCENT=-100
+   ENSTORM=maxWindSpeed15
+   PERCENT=15
    ;;
 6)
-   ENSTORM=veerLeft100Wind10m
-   PERCENT=-100
+   ENSTORM=maxWindSpeed15Wind10m
+   PERCENT=-15
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=LA_v19k-WithUpperAtch.nowindreduction.15.template  # fort.15 template
