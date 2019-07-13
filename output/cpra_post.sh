@@ -79,7 +79,45 @@ env_dispatch ${TARGET}
 # grab all config info (again, last, so the CONFIG file takes precedence)
 . ${CONFIG}
 #
-# create slide deck for cpra
+#-----------------------------------------------------------------------
+#     A C C U M U L A T E   M I N   /   M A X 
+#------------------------------------------------------------------------
+# get loadProperties function
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties`
+source $SCRIPTDIR/properties.sh
+# load run.properties file into associative array
+loadProperties
+# get path to hotstart file that started this run
+fromdir=${properties['asgs.path.fromdir']}
+# set previous advisory number with leading zero if appropriate
+# FIXME: this makes an assumption that previous advisory number is one
+# less than the current one
+previousAdvisory=$(printf "%02d" `expr $ADVISORY - 1`)
+for file in maxele.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc maxwvel.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc ; do 
+   if [[ -e $file ]]; then
+      # create backup copy of the file just in case
+      cp $file backup_${file}
+      # merge nowcast min/max with current one
+      if [[ -e $fromdir/$file ]]; then
+         ${OUTPUTDIR}/collectMinMax.x --source $fromdir/$file --destination $file
+      fi
+      # merge previous min/max with current one
+      previousPath=../../$previousAdvisory/nowcast
+      if [[ -e $previousPath/$file ]]; then
+         ${OUTPUTDIR}/collectMinMax.x --source ../../$previousAdvisory/nowcast/$file --destination $file       
+      fi
+   fi
+done
+#
+#-----------------------------------------------------------------------
+#     C R E A T E   M A X   C S V  
+#------------------------------------------------------------------------
+${OUTPUTDIR}/make_max_csv.sh $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG >> ${SYSLOG} 2>&1
+csvFileName=`grep "Maximum Values Point CSV File Name" ${STORMDIR}/run.properties | sed 's/Maximum Values Point CSV File Name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+#
+#-----------------------------------------------------------------------
+#     C R E A T E   C P R A   S L I D E   D E C K 
+#------------------------------------------------------------------------
 ${OUTPUTDIR}/cpra_slide_deck_post.sh
 #
 #-----------------------------------------------------------------------
@@ -137,7 +175,7 @@ fi
 if [[ -e ../bal${STORM}${YEAR}.dat ]]; then
    cp ../bal${STORM}${YEAR}.dat . 2>> $SYSLOG
 fi
-ceraNonPriorityFiles=( `ls $CONFIG $SYSLOG cpra.post.log endrisinginun.63.nc everdried.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc 2>> $SYSLOG` )
+ceraNonPriorityFiles=( `ls $CONFIG $SYSLOG cpra.post.log $csvFileName endrisinginun.63.nc everdried.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc 2>> $SYSLOG` )
 ceraPriorityFiles=(`ls run.properties maxele.63.nc fort.63.nc fort.61.nc fort.15 fort.22 *.jpg 2>> $SYSLOG`)
 if [[ $TROPICALCYCLONE = on ]]; then
    ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat 2>> $SYSLOG` )
