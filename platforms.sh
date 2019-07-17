@@ -143,7 +143,7 @@ init_supermic()
   $PLATFORMMODULES
   # modules for CPRA post processing
   #module load matlab/r2015b
-  #module load python/2.7.12-anaconda-tensorflow
+  module load python/2.7.13-anaconda-tensorflow
 }
 init_arete()
 { #<- can replace the following with a custom script
