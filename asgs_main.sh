@@ -1444,6 +1444,7 @@ writeProperties()
    echo "asgs.path.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
    echo "asgs.path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
    echo "asgs.enstorm : $ENSTORM" >> $STORMDIR/run.properties
+   echo "enstorm : $ENSTORM" >> $STORMDIR/run.properties
    echo "asgs.path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
    #
    ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`

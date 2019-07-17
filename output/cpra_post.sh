@@ -39,17 +39,19 @@ if [[ $# -gt 2 ]]; then
    SYSLOG=${12}
    SSHKEY=${13}
 else
+   # this script can be called with just one command line option: the
+   # full path to the run.properties file
    RUNPROPERTIES=$1
+   echo "Loading properties."
    # get loadProperties function
    SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
    source $SCRIPTDIR/properties.sh
    # load run.properties file into associative array
-   loadProperties
+   loadProperties $RUNPROPERTIES
+   echo "Finished loading properties."
    # now set variables that would otherwise be set by command line arguments
    CONFIG=${properties['config.file']}
    ADVISDIR=${properties['asgs.path.advisdir']}
-   STORM=${properties['asgs.enstorm']}
-   YEAR=${properties['year']}
    ADVISORY=${properties['advisory']}
    HPCENV=${properties['hpc.hpcenv']}
    ENSTORM=${properties['enstorm']}
@@ -59,11 +61,21 @@ else
    OUTPUTDIR=${properties['config.path.outputdir']}
    SYSLOG=${properties['asgs.file.syslog']}
    SSHKEY=${properties['post.file.sshkey']}
+   TROPICALCYCLONE=${properties['config.forcing.tropicalcyclone']}
+   if [[ $TROPICALCYCLONE != "off" ]]; then
+      STORM=${properties['config.forcing.tropicalcyclone.stormnumber']}
+      YEAR=${properties['config.forcing.tropicalcyclone.year']}
+   else
+      STORM="null"
+      YEAR=${ADVISORY:0:4}
+   fi      
 fi
 #
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR} 2>> ${SYSLOG}
 THIS=cpra_post.sh
+echo "ENSTORM is $ENSTORM"
+echo "STORMDIR is $STORMDIR"
 # get the forecast ensemble member number 
 ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 #
@@ -79,6 +91,8 @@ env_dispatch ${TARGET}
 # grab all config info (again, last, so the CONFIG file takes precedence)
 . ${CONFIG}
 #
+logMessage "$ENSTORM: $THIS: Starting post processing."
+#
 #-----------------------------------------------------------------------
 #     A C C U M U L A T E   M I N   /   M A X 
 #------------------------------------------------------------------------
@@ -86,28 +100,28 @@ env_dispatch ${TARGET}
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties`
 source $SCRIPTDIR/properties.sh
 # load run.properties file into associative array
-loadProperties
+loadProperties ./run.properties
 # get path to hotstart file that started this run
 fromdir=${properties['asgs.path.fromdir']}
 # set previous advisory number with leading zero if appropriate
 # FIXME: this makes an assumption that previous advisory number is one
 # less than the current one
 previousAdvisory=$(printf "%02d" `expr $ADVISORY - 1`)
-for file in maxele.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc maxwvel.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc ; do 
-   if [[ -e $file ]]; then
-      # create backup copy of the file just in case
-      cp $file backup_${file}
-      # merge nowcast min/max with current one
-      if [[ -e $fromdir/$file ]]; then
-         ${OUTPUTDIR}/collectMinMax.x --source $fromdir/$file --destination $file
-      fi
-      # merge previous min/max with current one
-      previousPath=../../$previousAdvisory/nowcast
-      if [[ -e $previousPath/$file ]]; then
-         ${OUTPUTDIR}/collectMinMax.x --source ../../$previousAdvisory/nowcast/$file --destination $file       
-      fi
-   fi
-done
+#for file in maxele.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc maxwvel.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc ; do 
+#   if [[ -e $file ]]; then
+#      # create backup copy of the file just in case
+#      cp $file backup_${file}
+#      # merge nowcast min/max with current one
+#      if [[ -e $fromdir/$file ]]; then
+#         #${OUTPUTDIR}/collectMinMax.x --source $fromdir/$file --destination $file
+#      fi
+#      # merge previous min/max with current one
+#      previousPath=../../$previousAdvisory/nowcast
+#      if [[ -e $previousPath/$file ]]; then
+#         #${OUTPUTDIR}/collectMinMax.x --source ../../$previousAdvisory/nowcast/$file --destination $file       
+#      fi
+#   fi
+#done
 #
 #-----------------------------------------------------------------------
 #     C R E A T E   M A X   C S V  
