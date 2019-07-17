@@ -99,10 +99,10 @@ case $HPCENVSHORT in
         # set location of gdal; this only works if the asgs is running
         # in the ncfs account
         if [[ $USER = ncfs ]]; then
-           GDAL_HOME=/home/ncfs/asgs/gdal
-           GMT_HOME=/home/ncfs/asgs/gmt/gmt-4.5.18
-           JOBPATHS="export PATH=${GDAL_HOME}/bin:${GMT_HOME}/bin:\$PATH GDAL_DATA=${GDAL_HOME}/share/gdal"
-           JOBLIBS="export LD_LIBRARY_PATH=${GDAL_HOME}/lib:${GMT_HOME}/lib:\$LD_LIBRARY_PATH"
+           #GDAL_HOME=/home/ncfs/asgs/gdal
+           #GMT_HOME=/home/ncfs/asgs/gmt/gmt-4.5.18
+           JOBPATHS="export PATH=/home/ncfs/local/bin:\$PATH GDAL_DATA=/home/ncfs/local/share/gdal"
+           JOBLIBS="export LD_LIBRARY_PATH=/home/ncfs/local/lib:\$LD_LIBRARY_PATH"
            # use the ncfs priority level
            echo "hpc.job.${batchJOBTYPE}.partition : ncfs" >> ${STORMDIR}/run.properties
         fi

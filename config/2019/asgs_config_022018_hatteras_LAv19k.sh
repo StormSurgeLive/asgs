@@ -199,7 +199,7 @@ ARCHIVEDIR=archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=8 # number of storms in the ensemble
+ENSEMBLESIZE=2 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
