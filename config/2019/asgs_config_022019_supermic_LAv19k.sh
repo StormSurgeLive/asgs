@@ -30,7 +30,7 @@
 INSTANCENAME=al022019LAv19k # "name" of this ASGS process
 COLDSTARTDATE=auto        # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=hotstart        # "hotstart" or "coldstart"
-LASTSUBDIR=  # path to previous execution (if HOTORCOLD=hotstart)
+LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileserver/tc/two/02/LA_v19k-WithUpperAtch_chk/queenbee.loni.org/al022019LAv19k/nhcConsensus  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
@@ -38,7 +38,7 @@ REINITIALIZESWAN=no       # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
 SWANDIR=~/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-SCRIPTDIR=~/asgs/jasonfleming/2014stable           # ASGS executables
+SCRIPTDIR=/work/jgflemin/asgs/jasonfleming/2014stable     # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v19k # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 
@@ -68,7 +68,7 @@ QUEUENAME=priority
 if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
-ACCOUNT=loni_cera_2019
+ACCOUNT=hpc_cera_2019
 #ACCOUNT=loni_lsu_ccr_18
 
 # External data sources : Tropical cyclones
@@ -78,7 +78,7 @@ YEAR=2019                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 RSSSITE=filesystem
 FTPSITE=filesystem
-FDIR=~/asgs/jasonfleming/2014stable/input/sample_advisories/2019
+FDIR=/work/jgflemin/asgs/jasonfleming/2014stable/input/sample_advisories/2019
 HDIR=${FDIR}
 #RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 #FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files

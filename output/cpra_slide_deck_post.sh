@@ -90,6 +90,20 @@ case $HPCENVSHORT in
            JOBPATHS="export PATH=${GDAL_HOME}/bin:${GMT_HOME}/bin:\$PATH GDAL_DATA=${GDAL_HOME}/share/gdal"
            JOBLIBS="export LD_LIBRARY_PATH=${GDAL_HOME}/lib:${GMT_HOME}/lib:\$LD_LIBRARY_PATH"
         fi
+       ;;
+    supermic)
+        echo "hpc.job.${batchJOBTYPE}.serqueue : single" >> $STORMDIR/run.properties
+        echo "hpc.job.${batchJOBTYPE}.queuename : workq" >> $STORMDIR/run.properties
+        JOBMODULES="module load python/2.7.13-anaconda-tensorflow"
+        $JOBMODULES
+        FINDMAXZCMD="${POSTPROCDIR}/Matlab_QB2/run_FindMaxZ.sh /usr/local/packages/license/matlab/r2017a"
+        if [[ $USER = jgflemin ]]; then
+           ACCOUNT=hpc_cera_2019
+           #GDAL_HOME=/home/jgflemin/asgs/gdal
+           #GMT_HOME=/home/jgflemin/asgs/gmt/gmt-4.5.18
+           JOBPATHS="export PATH=/home/jgflemin/local/bin:\$PATH GDAL_DATA=/home/jgflemin/local/share/gdal"
+           JOBLIBS="export LD_LIBRARY_PATH=/home/jgflemin/local/lib:\$LD_LIBRARY_PATH"
+        fi
         ;;
     hatteras)
         JOBMODULES="module load python_modules/2.7 matlab/2017b"
