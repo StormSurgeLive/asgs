@@ -751,6 +751,7 @@ prepFile()
    if [[ $QUEUESYS = "SLURM" ]]; then
       echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
+      echo "hpc.slurm.job.${JOBTYPE}.qos : $QOS" >> $STORMDIR/run.properties
    fi
    #
    # start log redirect processes for centralized logging
@@ -1453,7 +1454,8 @@ variables_init()
    JOB_FAILED_LIST=null
    NOTIFYUSER=null
    RESERVATION=null # for SLURM
-   CONSTRIAINT=null # for SLURM
+   CONSTRAINT=null # for SLURM
+   QOS=null
    ASGSADMIN=ASGSADMIN
    PERIODICFLUX=null
    SPATIALEXTRAPOLATIONRAMP=yes
@@ -1659,6 +1661,7 @@ writeJobResourceRequestProperties()
    if [[ $QUEUESYS = SLURM ]]; then
       echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
+      echo "hpc.slurm.job.${JOBTYPE}.qos : $QOS" >> $STORMDIR/run.properties
    fi
    JOBENVSTRING="("
    for string in ${JOBENV[*]}; do
