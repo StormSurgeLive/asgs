@@ -21,6 +21,7 @@
 #------------------------------------------------------------------------
 #
 loadProperties () {
+propertiesFile=$1
 while read -r keyValuePair ; do 
    colonPosition=`expr index "$keyValuePair" ":" `
    key=${keyValuePair:0:$colonPosition-1}
@@ -34,5 +35,5 @@ while read -r keyValuePair ; do
    # remove trailing whitespace characters from value
    value="${value%"${value##*[![:space:]]}"}"
    properties["$key"]="$value" 
-done < run.properties
+done < $propertiesFile
 }
