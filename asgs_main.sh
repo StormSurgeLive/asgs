@@ -751,6 +751,7 @@ prepFile()
    if [[ $QUEUESYS = "SLURM" ]]; then
       echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
+      echo "hpc.slurm.job.${JOBTYPE}.qos : $QOS" >> $STORMDIR/run.properties
    fi
    #
    # start log redirect processes for centralized logging
@@ -1453,7 +1454,8 @@ variables_init()
    JOB_FAILED_LIST=null
    NOTIFYUSER=null
    RESERVATION=null # for SLURM
-   CONSTRIAINT=null # for SLURM
+   CONSTRAINT=null # for SLURM
+   QOS=null
    ASGSADMIN=ASGSADMIN
    PERIODICFLUX=null
    SPATIALEXTRAPOLATIONRAMP=yes
@@ -1573,6 +1575,13 @@ writeProperties()
    echo "scenario : $ENSTORM" >> $STORMDIR/run.properties
    echo "path.scenariodir : $STORMDIR" >> $STORMDIR/run.properties
    echo "path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
+   # FIXME: the following are legacy properties from 2014stable 
+   # and should not be carried forward  
+   echo "asgs.path.fromdir : $FROMDIR" >> $STORMDIR/run.properties
+   echo "asgs.path.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
+   echo "asgs.path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
+   echo "asgs.enstorm : $ENSTORM" >> $STORMDIR/run.properties
+   echo "asgs.path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
    #
    ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
    echo "adcirc.version : $ADCIRCVERSION" >> $STORMDIR/run.properties   
@@ -1659,6 +1668,7 @@ writeJobResourceRequestProperties()
    if [[ $QUEUESYS = SLURM ]]; then
       echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
+      echo "hpc.slurm.job.${JOBTYPE}.qos : $QOS" >> $STORMDIR/run.properties
    fi
    JOBENVSTRING="("
    for string in ${JOBENV[*]}; do

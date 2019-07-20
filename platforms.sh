@@ -367,6 +367,7 @@ init_stampede2()
   SERQUEUE=skx-normal
   CONSTRAINT=null
   RESERVATION=null
+  QOS=null
   QCHECKCMD=sacct
   JOBLAUNCHER='ibrun '
   ACCOUNT=null

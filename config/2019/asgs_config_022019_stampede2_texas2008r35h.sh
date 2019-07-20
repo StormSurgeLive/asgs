@@ -27,10 +27,10 @@
 
 # Fundamental
 
-INSTANCENAME=readytx      # "name" of this ASGS process
-COLDSTARTDATE=2019051000  # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart        # "hotstart" or "coldstart"
-LASTSUBDIR=null
+INSTANCENAME=al022019tx     # "name" of this ASGS process
+COLDSTARTDATE=auto        # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart        # "hotstart" or "coldstart"
+LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2019/nam/2019071006/tx2008_r35h/stampede2.tacc.utexas.edu/readytx/namforecast
 HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
@@ -44,10 +44,10 @@ OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 
 # Physical forcing
 
-BACKGROUNDMET=on      # NAM download/forcing
+BACKGROUNDMET=off     # NAM download/forcing
 TIDEFAC=on            # tide factor recalc
-TROPICALCYCLONE=off   # tropical cyclone forcing
-WAVES=off              # wave forcing
+TROPICALCYCLONE=on    # tropical cyclone forcing
+WAVES=off             # wave forcing
 VARFLUX=off           # variable river flux forcing
 
 # Computational Resources
@@ -67,17 +67,17 @@ QOS=vip
 
 # External data sources : Tropical cyclones
 
-STORM=99                         # storm number, e.g. 05=ernesto in 2006
-YEAR=2016                        # year of the storm
+STORM=02                         # storm number, e.g. 05=ernesto in 2006
+YEAR=2019                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
-#RSSSITE=filesystem
-#FTPSITE=filesystem
-#FDIR=${SCRIPTDIR}/input/sample_advisories
-#HDIR=${SCRIPTDIR}/input/sample_advisories
-RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
-FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
-FDIR=/atcf/afst                  # forecast dir on nhc ftp site
-HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
+RSSSITE=filesystem
+FTPSITE=filesystem
+FDIR=${SCRIPTDIR}/input/sample_advisories/2019
+HDIR=${SCRIPTDIR}/input/sample_advisories/2019
+#RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
+#FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
+#FDIR=/atcf/afst                  # forecast dir on nhc ftp site
+#HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
@@ -194,16 +194,52 @@ ARCHIVEDIR="nam"
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=4 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 1)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
    ;;
 0)
-   ENSTORM=namforecastWind10m
+   ENSTORM=nhcConsensusWind10m
+   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   CONTROLTEMPLATE=tx2008r35h_norough_template.15
+   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+   TIMESTEPSIZE=300.0    # 5 minute time steps
+   NCPU=47               # dramatically reduced resource requirements
+   NUMWRITERS=1          # multiple writer procs might collide
+   WAVES=off             # deactivate wave forcing 
+   # turn off water surface elevation station output
+   FORT61="--fort61freq 0"
+   # turn off water current velocity station output
+   FORT62="--fort62freq 0"
+   # turn off full domain water surface elevation output
+   FORT63="--fort63freq 0"
+   # turn off full domain water current velocity output
+   FORT64="--fort64freq 0"
+   # met station output
+   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
+   # full domain meteorological output
+   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
+   #SPARSE="--sparse-output"
+   SPARSE=""
+   NETCDF4="--netcdf4"
+   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+   INTENDEDAUDIENCE=general
+   # prevent collisions in prepped archives
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   POSTPROCESS=null_post.sh
+   ;;
+3)
+   ENSTORM=veerLeft100
+   PERCENT=-100
+   ;;
+2)
+   ENSTORM=veerLeft100Wind10m
+   PERCENT=-100
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=tx2008r35h_norough_template.15
