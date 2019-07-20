@@ -7,7 +7,7 @@ Temp/                                              ! Path where temporary files 
 %FileName%                                         ! Alphanumeric label for these plots.
 0,%Title%                                          ! Plot label flag and plot label.
 0,2005,8,23,18,0,0                                 ! Time bar flag: 0 to ignore, 1 to plot time bar.
--92.25                                             ! Lat/lon box.
+-94.50                                             ! Lat/lon box.
 -88.3387                                           !
 28.5383                                            !
 30.7884                                            !
