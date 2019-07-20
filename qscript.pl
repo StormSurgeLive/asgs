@@ -48,14 +48,15 @@ my $qscripttemplate; # template file to use for the queue submission script
 my $qscript;      # queue submission script we're producing
 my $syslog;       # the log file that the ASGS uses 
 my $ppn;          # the number of processors per node
+my $qos = "null"; # quality of service
 my $cloptions=""; # command line options for adcirc, if any
 my $jobtype;      # e.g., prep15, padcirc, padcswan, etc
 my $localhotstart; # present if subdomain hotstart files should be written
 my $cmd;           # the command line to execute
 my $reservation="null"; # name of SLURM reservation where the job should be submitted
 my $constraint="null";  # name of SLURM constraint the job should use
-my $cmd="null";        # command to be executed
-my $numwriters=0;    # number of writer processors, if any
+my $cmd="null";         # command to be executed
+my $numwriters=0;        # number of writer processors, if any
 my $joblauncher = "null"; # executable line in qscript (ibrun, mpirun, etc)
 our %properties;     # holds the run.properties file
 our $this="qscript.pl";
@@ -108,6 +109,8 @@ $queuesys = $properties{"hpc.queuesys"};
 $parallelism = $properties{"hpc.job.$jobtype.parallelism"};
 # get number of processors per node
 $ppn = $properties{"hpc.job.$jobtype.ppn"}; 
+# get quality of service if any
+#
 # 
 # construct command line for running adcprep or serial job
 if ( $parallelism eq "serial" ) {
@@ -253,6 +256,13 @@ while(<TEMPLATE>) {
        # the SLURM constraint
        s/%constraint%/$properties{"hpc.slurm.job.$jobtype.constraint"}/g;
        # partition is not here b/c it is synonym for queuename
+       #
+       # fill in command to be executed
+       $qos = $properties{"hpc.slurm.job.$jobtype.qos"};
+       unless ( defined $qos ) {
+          $qos = "null";
+       }
+       s/%qos%/$qos/g;
     }
     # fills in the number of nodes on platforms that require it
     s/%nnodes%/$nnodes/g;
