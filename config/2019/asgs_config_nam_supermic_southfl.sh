@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=readysouthfl    # "name" of this ASGS process
-COLDSTARTDATE=2019052500 # YYYYMMDDHH24 or "auto" to extract from hotstart file
+COLDSTARTDATE=2019060500 # YYYYMMDDHH24 or "auto" to extract from hotstart file
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)

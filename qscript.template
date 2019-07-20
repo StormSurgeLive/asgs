@@ -21,6 +21,7 @@
 #SBATCH --reservation=%reservation%
 #SBATCH --constraint=%constraint%
 #SBATCH --account=%account%
+#SBATCH --qos=%qos%
 #SBATCH --output=%advisdir%/%scenario%/%jobtype%.out
 #SBATCH --reservation=%reservation%
 #SBATCH --constraint=%constraint%
