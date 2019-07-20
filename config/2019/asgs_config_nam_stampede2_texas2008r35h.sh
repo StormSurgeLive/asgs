@@ -62,6 +62,8 @@ NCPU=479                     # number of compute CPUs for all simulations
 NCPUCAPACITY=3648
 NUMWRITERS=1
 CYCLETIMELIMIT="99:00:00"
+ACCOUNT=TG-DMS080016N
+QOS=vip
 
 # External data sources : Tropical cyclones
 

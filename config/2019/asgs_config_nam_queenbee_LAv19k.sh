@@ -62,6 +62,8 @@ NCPU=1160                     # number of compute CPUs for all simulations
 NUMWRITERS=20
 NCPUCAPACITY=3600
 CYCLETIMELIMIT="99:00:00"
+SERQUEUE=priority
+QUEUENAME=priority
 if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
