@@ -40,11 +40,11 @@ postJOBTYPE=cpra.post
 STORMDIR=$PWD
 LOGFILE=${STORMDIR}/${postJOBTYPE}.log
 # ensemble member name
-ENSTORM=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
+ENSTORM=`sed -n 's/[ ^]*$//;s/scenario\s*:\s*//p' run.properties`
 echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Starting post processing." >> $LOGFILE
 echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Collecting properties." >> $LOGFILE
 # SCRIPTDIR: path to asgs scripts like asgs_main.sh
-SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties`
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties`
 . ${SCRIPTDIR}/monitoring/logging.sh
 # ACCOUNT: by default, use whatever account was used by padcirc or padcswan
 ACCOUNT=`sed -n 's/[ ^]*$//;s/hpc.job.padcswan.account\s*:\s*//p' run.properties`
@@ -54,7 +54,7 @@ fi
 # type of queueing system (e.g., PBS, SLURM, or mpiexec)
 QUEUESYS=`sed -n 's/[ ^]*$//;s/hpc.queuesys\s*:\s*//p' run.properties`
 # check to see if this is a tropical cyclone
-TROPCIALCYCLONE=`sed -n 's/[ ^]*$//;0,/config.forcing.tropicalcyclone/{s/config.forcing.tropicalcyclone\s*:\s*//p}' run.properties`
+TROPCIALCYCLONE=`sed -n 's/[ ^]*$//;0,/forcing.tropicalcyclone/{s/forcing.tropicalcyclone\s*:\s*//p}' run.properties`
 if [[ $TROPICALCYCLONE != "off" ]]; then
    # name of tc (FIXME: need the 0 because this property may appear more than once)
    STORMNAME=`sed -n 's/[ ^]*$//;0,/stormname/{s/stormname\s*:\s*//p}' run.properties`
@@ -89,6 +89,20 @@ case $HPCENVSHORT in
            GMT_HOME=/home/jgflemin/asgs/gmt/gmt-4.5.18
            JOBPATHS="export PATH=${GDAL_HOME}/bin:${GMT_HOME}/bin:\$PATH GDAL_DATA=${GDAL_HOME}/share/gdal"
            JOBLIBS="export LD_LIBRARY_PATH=${GDAL_HOME}/lib:${GMT_HOME}/lib:\$LD_LIBRARY_PATH"
+        fi
+        ;;
+    supermic)
+        echo "hpc.job.${batchJOBTYPE}.serqueue : single" >> $STORMDIR/run.properties
+        echo "hpc.job.${batchJOBTYPE}.queuename : workq" >> $STORMDIR/run.properties
+        echo "hpc.job.${batchJOBTYPE}.ppn : 1" >> $STORMDIR/run.properties
+
+        JOBMODULES="module load python/2.7.13-anaconda-tensorflow"
+        $JOBMODULES
+        FINDMAXZCMD="${POSTPROCDIR}/Matlab_QB2/run_FindMaxZ.sh /usr/local/packages/license/matlab/r2017a"
+        if [[ $USER = jgflemin ]]; then
+           ACCOUNT=hpc_cera_2019
+           JOBPATHS="export PATH=/home/jgflemin/local/bin:\$PATH GDAL_DATA=/home/jgflemin/local/share/gdal"
+           JOBLIBS="export LD_LIBRARY_PATH=/home/jgflemin/local/bin:\$LD_LIBRARY_PATH"
         fi
         ;;
     hatteras)
@@ -160,6 +174,7 @@ if [[ -f maxele.63.nc ]]; then
     echo "hpc.path.${batchJOBTYPE}.template.qstdir : $SCRIPTDIR/input/queuesys/$QUEUESYS" >> $STORMDIR/run.properties
     echo "hpc.file.${batchJOBTYPE}.template.qstemplate : ${QUEUESYS,,}.template" >> $STORMDIR/run.properties
     echo "hpc.job.${batchJOBTYPE}.ncpu : 1" >> $STORMDIR/run.properties
+    echo "hpc.job.${batchJOBTYPE}.ppn : $PPN" >> $STORMDIR/run.properties
     echo "hpc.job.${batchJOBTYPE}.account : $ACCOUNT" >> $STORMDIR/run.properties
     echo "hpc.job.${batchJOBTYPE}.limit.walltime : 01:00:00" >> $STORMDIR/run.properties
     echo "hpc.job.${batchJOBTYPE}.jobmodules : $JOBMODULES" >> $STORMDIR/run.properties 

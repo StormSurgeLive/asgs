@@ -151,7 +151,7 @@ init_supermic()
   ACCOUNT=null
   PLATFORMMODULES='module load intel/14.0.2 hdf5/1.8.12/INTEL-140-MVAPICH2-2.0 netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0 netcdf_fortran/4.2/INTEL-140-MVAPICH2-2.0'
   # modules for CPRA post processing
-  SERIALMODULES='module load matlab/r2015b python/2.7.13-anaconda-tensorflow'
+  SERIALMODULES='module load matlab/r2017a python/2.7.13-anaconda-tensorflow'
   PARALLELMODULES='module load mvapich2'
   JOBENVDIR=$SCRIPTDIR/config/machines/supermic
   JOBENV=( )
