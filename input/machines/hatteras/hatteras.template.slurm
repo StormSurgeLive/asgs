@@ -44,13 +44,13 @@ echo "[${DATETIME}] INFO: %jobtype%.slurm: Executing %jobtype%.%enstorm%
 #----------------------------------------------------------------------------
 #                      L O A D   M O D U L E S
 #----------------------------------------------------------------------------
-module load hdf5/1.10.1_intel-18.0.0
-module load intelc/18.0.0
-module load intelfort/18.0.0
-module load mvapich2/2.3b_intel-18.0.0_ch3_ofed-4.1
-module load netcdf-C/4.5.0_intel-18.0.0
-module load netcdf-Fortran/4.4.0_intel-18.0.0
-module load zlib/1.2.11_intel-18.0.0
+module purge
+export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
+module load intelc/18.0.0 intelfort/18.0.0
+module load hdf5/1.8.12-acis
+module load netcdf/4.2.1.1-acis
+module load netcdf-Fortran/4.2-acis
+module load mvapich2/2.0-acis
 # 
 #----------------------------------------------------------------------------
 #                  E X E C U T E   T H E   J O B
