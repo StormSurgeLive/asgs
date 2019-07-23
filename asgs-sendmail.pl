@@ -56,7 +56,7 @@ sub run {
             'Reply-To' => $config->{email}->{reply_to_address} // $config->{email}->{from_address},
             From       => $config->{email}->{from_address},
             To         => $to,
-            Subject    => qq{[asgs-notification] $subject},
+            Subject    => $subject,
         ],
         body => $content,
     );
