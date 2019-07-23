@@ -439,6 +439,9 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
    if ( ! exists $runProp{'stormname'} || $runProp{'stormname'} eq "" || $runProp{'stormname'} eq "null" ) {
       printf PROPS "stormname : $nhcName\n";
    }
+   if ( ! exists $runProp{'forcing.tropicalcyclone.stormname'} || $runProp{'forcing.tropicalcyclone.stormname'} eq "" || $runProp{'forcing.tropicalcyclone.stormname'} eq "null" ) {
+      printf PROPS "forcing.tropicalcyclone.stormname : $nhcName\n";
+   }
 }
 #
 # write the names of the unmodified, ATCF-formatted track data

@@ -48,7 +48,7 @@ PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
 BACKGROUNDMET=on     # NAM download/forcing
 TIDEFAC=on           # tide factor recalc
 TROPICALCYCLONE=off  # tropical cyclone forcing
-WAVES=on            # wave forcing
+WAVES=off           # wave forcing
 VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
@@ -62,7 +62,7 @@ FORECASTWALLTIME="05:00:00" # forecast wall clock time
 NCPU=1200                    # number of compute CPUs for all simulations
 NUMWRITERS=20
 NCPUCAPACITY=3648
-CYCLETIMELIMIT="24:00:00"
+CYCLETIMELIMIT="99:00:00"
 QUEUENAME=workq
 SERQUEUE=single
 #QUEUENAME=priority
@@ -89,7 +89,7 @@ HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06"
+FORECASTCYCLE="06,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)

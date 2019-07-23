@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #----------------------------------------------------------------
 # swan_convergence_analysis.pl
 #

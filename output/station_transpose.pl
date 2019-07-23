@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #----------------------------------------------------------------
 # station_transpose.pl
 #

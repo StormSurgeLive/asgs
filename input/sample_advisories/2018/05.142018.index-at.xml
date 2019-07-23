@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sun, 07 Oct 2018 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm MICHAEL Forecast/Advisory Number 5</title>
+      <description>Issued at 2100 UTC SUN OCT 07 2018 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM MICHAEL FORECAST/ADVISORY NUMBER   5
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL142018
+2100 UTC SUN OCT 07 2018
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+NONE.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* THE CUBAN PROVINCES OF PINAR DEL RIO AND THE ISLE OF YOUTH
+* THE COAST OF MEXICO FROM TULUM TO CABO CATOCHE... INCLUDING
+COZUMEL
+
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA... IN THIS CASE WITHIN
+24 HOURS.
+
+INTERESTS ALONG THE NORTHEASTERN AND CENTRAL U.S. GULF COAST SHOULD
+MONITOR THE PROGRESS OF MICHAEL.
+
+TROPICAL STORM CENTER LOCATED NEAR 19.2N  85.5W AT 07/2100Z
+POSITION ACCURATE WITHIN  20 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHEAST OR  20 DEGREES AT   3 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  999 MB
+MAX SUSTAINED WINDS  45 KT WITH GUSTS TO  50 KT.
+34 KT.......120NE 180SE   0SW   0NW.
+12 FT SEAS.. 90NE  90SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 19.2N  85.5W AT 07/2100Z
+AT 07/1800Z CENTER WAS LOCATED NEAR 19.0N  86.0W
+
+FORECAST VALID 08/0600Z 20.1N  85.6W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 50NE  50SE   0SW   0NW.
+34 KT...120NE 180SE   0SW  40NW.
+
+FORECAST VALID 08/1800Z 21.5N  85.8W
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 60NE  60SE   0SW  20NW.
+34 KT...120NE 150SE  30SW  50NW.
+
+FORECAST VALID 09/0600Z 23.2N  86.2W
+MAX WIND  70 KT...GUSTS  85 KT.
+64 KT... 25NE  25SE   0SW  20NW.
+50 KT... 60NE  60SE  20SW  40NW.
+34 KT...140NE 140SE  40SW  80NW.
+
+FORECAST VALID 09/1800Z 25.0N  86.7W
+MAX WIND  80 KT...GUSTS 100 KT.
+64 KT... 25NE  25SE  15SW  25NW.
+50 KT... 60NE  60SE  30SW  40NW.
+34 KT...130NE 130SE  60SW 100NW.
+
+FORECAST VALID 10/1800Z 29.2N  85.7W
+MAX WIND  85 KT...GUSTS 105 KT.
+50 KT... 60NE  60SE  30SW  40NW.
+34 KT...130NE 130SE  70SW  80NW.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 11/1800Z 33.7N  80.4W...INLAND
+MAX WIND  50 KT...GUSTS  60 KT.
+
+OUTLOOK VALID 12/1800Z 39.0N  68.5W...POST-TROP/EXTRATROP
+MAX WIND  55 KT...GUSTS  65 KT.
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 19.2N  85.5W
+
+NEXT ADVISORY AT 08/0300Z
+
+$$
+FORECASTER BROWN
+
+</pre>]]></description>
+      <pubDate>Sun, 07 Oct 2018 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2018/14/05.142018.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2018/14/05.142018.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

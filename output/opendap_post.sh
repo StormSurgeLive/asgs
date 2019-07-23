@@ -33,8 +33,14 @@ FILES=("$9") # array of files to post to opendap
 
 #echo $OPENDAPNOTIFY
 #
-THIS=opendap_post.sh
-echo "SERVER is $SERVER" >> ${SYSLOG}
+
+declare -A properties
+# get loadProperties function   
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties 2>>$SYSLOG`   
+source $SCRIPTDIR/properties.sh
+# load run.properties file into associative array
+loadProperties   
+#
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR}
 # get the forecast ensemble member number for use in 
@@ -42,11 +48,13 @@ cd ${STORMDIR}
 # member in the configuration files
 ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 si=$ENMEMNUM
+# load asgs operator email address
+ASGSADMIN=`grep "notification.email.asgsadmin" ${STORMDIR}/run.properties | sed 's/notification.email.asgsadmin.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 #
 ## grab all config info
 . ${CONFIG} 
 # Bring in logging functions
-. ${SCRIPTDIR}/logging.sh
+. ${SCRIPTDIR}/monitoring/logging.sh
 # Bring in platform-specific configuration
 . ${SCRIPTDIR}/platforms.sh
 # dispatch environment (using the functions in platforms.sh)
@@ -56,6 +64,7 @@ logMessage "Setting opendap server parameters with env_dispatch ${SERVER}."
 env_dispatch $SERVER   # from platforms.sh
 # grab all config info (again, last, so the CONFIG file takes precedence)
 . ${CONFIG}
+THIS="opendap_post.sh-->$SERVER"
 #--------------------------------------------------------------------
 #  O P E N  D A P    P A T H   F O R M A T I O N
 #--------------------------------------------------------------------
@@ -63,13 +72,17 @@ STORMNAMEPATH=null
 #
 # form path to results on tds based on type of forcing or name of storm
 if [[ $BACKGROUNDMET != off ]]; then
-   # for NAM, the "advisory number" is actually the cycle time 
-   STORMNAMEPATH=tc/nam
+   YEAR=`grep "forcing.nwp.year" ${STORMDIR}/run.properties | sed 's/forcing.nwp.year.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+   NWPMODEL=`grep "forcing.nwp.model" ${STORMDIR}/run.properties | sed 's/forcing.nwp.model.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+   STORMNAMEPATH=$YEAR/$NWPMODEL
 fi
-if [[ $TROPICALCYCLONE = on ]]; then
-   STORMNAME=`grep -m 1 "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+if [[ $TROPICALCYCLONE != off ]]; then
+   YEAR=`grep "forcing.tropicalcyclone.year" ${STORMDIR}/run.properties | sed 's/forcing.tropicalcyclone.year.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+   STORMNAME=`grep -m 1 "forcing.tropicalcyclone.stormname" ${STORMDIR}/run.properties | sed 's/forcing.tropicalcyclone.stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+   STORMNUMBER=`grep "forcing.tropicalcyclone.stormnumber" ${STORMDIR}/run.properties | sed 's/forcing.tropicalcyclone.stormnumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
    STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
-   STORMNAMEPATH=tc/$STORMNAMELC
+   STORMNAMEPATH=$YEAR/$STORMNUMBER
+   ALTSTORMNAMEPATH=$YEAR/$STORMNAMELC
 fi
 OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HPCENV/$INSTANCENAME/$ENSTORM
 #
@@ -78,17 +91,25 @@ OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HPCENV/$INSTANCENAME/$ENSTORM
 OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
 # create the opendap download url for the run.properties file 
 downloadURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
-# write the downloadurl to a file for later reference as well as 
-# for retrieving and writing backup urls 
-echo $downloadURL >> $STORMDIR/downloadurl.log 2>> ${SYSLOG}
-# write the opendap dir to a file for later reference as well as
-# for retrieving and writing backup urls
-echo $OPENDAPDIR >> $STORMDIR/opendapdir.log 2>> ${SYSLOG}
+# add downloadurl or downloadurl_backup property to run.properties file
+if [[ ! `grep downloadurl run.properties` =~ downloadurl ]]; then
+   echo "downloadurl : $downloadURL" >> run.properties 2>> ${SYSLOG}
+else
+   backupNum=`grep downloadurl run.properties | wc -l`
+   echo "downloadurl_backup$backupNum : $downloadURL" >> run.properties 2>> ${SYSLOG}
+fi      
 #-----------------------------------------------------------------------
 #           D E T E R M I N E   M E T H O D
 #-----------------------------------------------------------------------
 # Establish the default method of posting results for service via opendap
 OPENDAPPOSTMETHOD=scp
+
+#
+# mvb20190620: Testing rsync with the LSU CCR thredds server
+if [[ $SERVER = "lsu_ccr_tds" ]]; then
+    OPENDAPPOSTMETHOD=rsync
+fi
+
 #
 # Determine whether to copy files instead of using scp by looking at the
 # list of HPC machines that share a common filesystem with this TDS. 
@@ -97,7 +118,6 @@ for hpc in ${COPYABLEHOSTS[*]}; do
       OPENDAPPOSTMETHOD=copy
    fi
 done
-
 #
 # Determine whether to create symbolic links by looking at the
 # list of HPC machines that share a common filesystem with this TDS. 
@@ -132,8 +152,8 @@ fi
 #Click on the link: 
 #
 #$CATALOGPREFIX/$STORMNAMEPATH/${OPENDAPSUFFIX}/catalog.html
-subject="${subject} $ENMEMNUM $HPCENV.$INSTANCENAME"
-cat <<END > ${STORMDIR}/opendap_results_notify.txt 
+subject="${subject} $ENMEMNUM $HPCENV.$INSTANCENAME $ASGSADMIN"
+cat <<END > ${STORMDIR}/opendap_results_notify_${SERVER}.txt 
 
 The results for cycle $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/catalog.html
 
@@ -150,31 +170,144 @@ END
 # jgf20160803: Changed if/then to case-switch to accommodate new "copy" method.
 case $OPENDAPPOSTMETHOD in
 "scp")
+   serverAliveInterval=10
+   timeoutRetryLimit=3
+   sshOptions="$OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60"
+   scpOptions="-P $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60"
    logMessage "$ENSTORM: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
-   #echo ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "mkdir -p $OPENDAPDIR" 
-   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
+   retry=0
+   while [[ $retry -lt $timeoutRetryLimit ]]; do 
+      ssh $sshOptions "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
+      if [[ $? != 0 ]]; then
+         warn "$ENSTORM: $THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
+         threddsPostStatus=fail
+      else
+         logMessage "$ENSTORM: $THIS: Successfully created the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
+         break
+      fi
+      retry=`expr $retry + 1`
+      if [[ $retry -lt $timeoutRetryLimit ]]; then
+         logMessage "$ENSTORM: $THIS: Trying again."
+      else
+         logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+      fi
+   done
+   # add code to create write permissions on directories so that other 
+   # Operators can post results to the same directories
+   retry=0
+   while [[ $retry -lt $timeoutRetryLimit ]]; do 
+      ssh $sshOptions "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
+      ssh $sshOptions "chmod -R a+x $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
+      if [[ $? != 0 ]]; then
+         warn "$ENSTORM: $THIS: Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
+         threddsPostStatus=fail
+      else
+         logMessage "$ENSTORM: $THIS: Successfully changed permissions."
+         break
+      fi
+      retry=`expr $retry + 1`
+      if [[ $retry -lt $timeoutRetryLimit ]]; then
+         logMessage "$ENSTORM: $THIS: Trying again."
+      else
+         logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+      fi
+   done
+   #
+   # add a symbolic link for the storm name if this is tropicalcyclone forcing
+   if [[ $TOPICALCYCLONE != off ]]; then 
+      retry=0
+      while [[ $retry -lt $timeoutRetryLimit ]]; do 
+         ssh $sshOptions "ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH" 2>> $SYSLOG
+         if [[ $? != 0 ]]; then
+            warn "$ENSTORM: $THIS: Failed to create symbolic link for the storm name."
+            threddsPostStatus=fail
+         else
+            logMessage "$ENSTORM: $THIS: Successfully created symbolic link to storm name."
+            break
+         fi
+         retry=`expr $retry + 1`
+         if [[ $retry -lt $timeoutRetryLimit ]]; then
+            logMessage "$ENSTORM: $THIS: Trying again."
+         else
+            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+         fi
+      done
+   fi
+   for file in ${FILES[*]}; do 
+      # send opendap posting notification email early if directed
+      if [[ $file = "sendNotification" ]]; then
+         logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
+         cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         opendapEmailSent=yes
+         continue        
+      fi
+      chmod +r $file 2>> $SYSLOG
+      logMessage "$ENSTORM: $THIS: Transferring $file to ${OPENDAPHOST}."
+      retry=0
+      while [[ $retry -lt $timeoutRetryLimit ]]; do 
+         scp $scpOptions $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG  2>&1   
+         if [[ $? != 0 ]]; then
+            threddsPostStatus=fail
+            warn "$ENSTORM: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
+         else
+            logMessage "$ENSTORM: $THIS: Successfully transferred the file."
+            break
+         fi
+         retry=`expr $retry + 1`
+         if [[ $retry -lt $timeoutRetryLimit ]]; then
+            logMessage "$ENSTORM: $THIS: Trying again."
+         else
+            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+         fi
+      done
+      # give the file read permissions
+      fname=`basename $file` 
+      retry=0
+      while [[ $retry -lt $timeoutRetryLimit ]]; do 
+         ssh $sshOptions "chmod +r $OPENDAPDIR/$fname"
+         if [[ $? != 0 ]]; then
+            threddsPostStatus=fail
+            warn "$ENSTORM: $THIS: Failed to give the file $fname read permissions in ${OPENDAPHOST}:${OPENDAPDIR}."
+         else
+            logMessage "$ENSTORM: $THIS: Successfully changed permissions."
+            break
+         fi
+         retry=`expr $retry + 1`
+         if [[ $retry -lt $timeoutRetryLimit ]]; then
+            logMessage "$ENSTORM: $THIS: Trying again."
+         else
+            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+         fi
+      done
+   done
+   ;;
+#-------------------------------------------------------------------
+#                P O S T   V I A   R S Y N C
+#-------------------------------------------------------------------
+# mvb20190618: Added to support time-out issues with general scp transfers
+"rsync")
+   rsyncSSHOptions=(--rsh="ssh -p $SSHPORT")
+   rsyncOptions="-z --copy-links"
+   sshOptions="$OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT"
+   logMessage "$ENSTORM: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
+
+   ssh $sshOptions "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
    if [[ $? != 0 ]]; then
       warn "$ENSTORM: $THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
       threddsPostStatus=fail
    fi
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories
-   #ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR" 2>> $SYSLOG
-   #ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
-   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
+   ssh $sshOptions "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
    if [[ $? != 0 ]]; then
       warn "$ENSTORM: $THIS: Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
       threddsPostStatus=fail
    fi
    for file in ${FILES[*]}; do 
-      # add downloadurl property to run.properties file
-      if [[ $file = "run.properties" ]]; then
-         echo "downloadurl : $downloadURL" >> run.properties 2>> ${SYSLOG}
-      fi      
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
          logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-         cat ${STORMDIR}/opendap_results_notify.txt | mail -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
          opendapEmailSent=yes
          continue        
       else
@@ -183,18 +316,11 @@ case $OPENDAPPOSTMETHOD in
       fi
       chmod +r $file 2>> $SYSLOG
       logMessage "$ENSTORM: $THIS: Transferring $file to ${OPENDAPHOST}."
-      scp -P $SSHPORT $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG  2>&1
+      rsync "${rsyncSSHOptions}" ${rsyncOptions}  ${file} ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG 2>&1
       if [[ $? != 0 ]]; then
          threddsPostStatus=fail
          warn "$ENSTORM: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
       fi
-      # give the file read permissions
-      fname=`basename $file` 
-      ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod +r $OPENDAPDIR/$fname"
-      if [[ $? != 0 ]]; then
-         threddsPostStatus=fail
-         warn "$ENSTORM: $THIS: Failed to give the file $file read permissions in ${OPENDAPHOST}:${OPENDAPDIR}."
-      fi      
    done
    ;;
 #-------------------------------------------------------------------
@@ -220,22 +346,22 @@ case $OPENDAPPOSTMETHOD in
    chmod a+w $OPENDAPBASEDIR 2>> $SYSLOG
    chmod a+w $OPENDAPBASEDIR/$STORMNAMEPATH 2>> $SYSLOG
    chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY 2>> $SYSLOG
-   cd $OPENDAPDIR 2>> ${SYSLOG}
+   #
+   # create link with storm name instead of storm number
+   if [[ $TROPICALCYCLONE != off ]]; then
+      ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH
+   fi
    for file in ${FILES[*]}; do 
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
          logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-         cat ${STORMDIR}/opendap_results_notify.txt | mail -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
          opendapEmailSent=yes
          continue        
       fi
-      chmod +r ${ADVISDIR}/${ENSTORM}/$file 2>> $SYSLOG
-      # add downloadurl property.
-      if [[ $file = 'run.properties' ]]; then
-         echo downloadurl : $downloadURL >> $file 2>> ${SYSLOG}
-      fi
+      chmod +r $file 2>> $SYSLOG
       logMessage "$ENSTORM: $THIS: $postDesc $file."
-      $postCMD ${ADVISDIR}/${ENSTORM}/$file . 2>> ${SYSLOG}
+      $postCMD $file $OPENDAPDIR 2>> ${SYSLOG}
       if [[ $? != 0 ]]; then
          threddsPostStatus=fail
          warn "$ENSTORM: $THIS: $postDesc $file to ${OPENDAPDIR} failed."
@@ -256,9 +382,9 @@ esac
 #
 #if [[ threddsPostStatus != ok ]]; then
 #   error "opendap_post.sh: A failure occurred when the ASGS instance $INSTANCENAME attempted to post data to the THREDDS Data Server ${SERVER}. Downstream data consumers will not receive an email for these results. However, the opendap results notification will be sent to ${ASGSADMIN}."
-#   cat ${STORMDIR}/opendap_results_notify.txt | mail -s "$subject" $ASGSADMIN 2>> ${SYSLOG} 2>&1
+#   cat ${STORMDIR}/opendap_results_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $ASGSADMIN 2>> ${SYSLOG} 2>&1
 #else
 if [[ $opendapEmailSent = "no" ]]; then 
    logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
-   cat ${STORMDIR}/opendap_results_notify.txt | mail -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+   cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
 fi

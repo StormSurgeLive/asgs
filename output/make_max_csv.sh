@@ -43,7 +43,7 @@ ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed '
 si=$ENMEMNUM
 . ${CONFIG}
 # Bring in logging functions
-. ${SCRIPTDIR}/logging.sh
+. ${SCRIPTDIR}/monitoring/logging.sh
 # Bring in platform-specific configuration
 . ${SCRIPTDIR}/platforms.sh
 # dispatch environment (using the functions in platforms.sh)
@@ -71,7 +71,7 @@ awk 'NR==2 { np=$2 } NR>2 && NR<=np+2 { print $2","$3","$4 }' fort.14 > xyd.txt
 # convert the netcdf files to ascii and then extract just the data values
 # from the resulting ascii files
 columnDefinitions="# longitude,latitude,depth,maxele"
-columnUnits="# degrees east,degrees north,m below msl,m above msl"
+columnUnits="# degrees east,degrees north,m below datum,m above datum"
 windFile=wind10m.maxwvel.txt
 waveFile=swan_HS_max.txt
 ${OUTPUTDIR}/netcdf2adcirc.x --datafile maxele.63.nc 2>> $SYSLOG

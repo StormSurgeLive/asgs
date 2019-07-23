@@ -17,3 +17,7 @@ old/
 asgspy/
 *.log
 current.sh
+test/
+run.me*
+*.swp
+

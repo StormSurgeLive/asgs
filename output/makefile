@@ -4,7 +4,7 @@
 # A system to build ASGS-related utilities for processing ADCIRC output.
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2014--2016 Jason Fleming
+# Copyright(C) 2014--2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -111,6 +111,10 @@ ifeq ($(NETCDF),enable)
       # jgf20180105
       NETCDFPATH := /usr/share/Modules/software/CentOS-7/netcdf-Fortran/4.4.0_intel-18.0.0
    endif
+   # jgf20190624: Added compiler flags for locally compiled netcdf on hatteras at RENCI.
+   ifeq ($(MACHINENAME),hatteras-local)
+      NETCDFPATH := /home/ncfs/local
+   endif
    # nld20170829: Added compiler flags for seadog at Ransom.
    ifeq ($(MACHINENAME),seadog)
       NETCDFPATH  := /home/nate/install
@@ -139,12 +143,20 @@ ifeq ($(NETCDF),enable)
       LDFLAGS     :=  -lnetcdf
    endif
    # jgf20160627: Added compiler flags for lonestar 5 at TACC.
-   # jgf20160803: Updared compiler flags for lonestar 5 at TACC.
+   # jgf20160803: Updated compiler flags for lonestar 5 at TACC.
+   # jgf20190406: Updated compiler flags for lonestar 5 at TACC.
    ifeq ($(MACHINENAME),lonestar)
-      NETCDFPATH=/opt/apps/intel16/netcdf/4.3.3.1/x86_64
+      #NETCDFPATH=/opt/apps/intel16/netcdf/4.3.3.1/x86_64
+      NETCDFPATH=/opt/apps/intel18/netcdf/4.6.2/x86_64
    endif
    ifeq ($(MACHINENAME),mike)
       NETCDFPATH := /home/nate/install
+   endif
+   ifeq ($(MACHINENAME),JDB_MacPro)
+      NETCDFPATH := /usr/local/Cellar/netcdf/4.6.2_1
+   endif
+   ifeq ($(MACHINENAME),penguin)
+      NETCDFPATH := /home/jgflemin/local
    endif
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    LDFLAGS     := $(LDFLAGS) -lnetcdff
@@ -160,13 +172,18 @@ endif
 #
 #
 OBJ := adcmesh.o asgsio.o nodalattr.o logging.o 
-MODS := adcmesh.mod asgsio.mod nodalattr.mod logging.mod
+# JDB March 2019, added ioutil.mod to MODS
+MODS := ioutil.mod adcmesh.mod asgsio.mod nodalattr.mod logging.mod
 #
 # targets
-all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN checkAdcircMesh resultScope highResolutionRegion stationProcessor collectMinMax
+all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN checkAdcircMesh resultScope highResolutionRegion stationProcessor collectMinMax 
 #
 clean :
-	rm -f *.o *.mod *.x
+	rm -f *.o *.mod *.x FigureGen/*.mod FigureGen/*.x
+#
+# FIXME: make FigureGen is not working yet
+FigureGen : FigureGen/FigureGen.F90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@/$@.x $@/$@.F90 $(LDFLAGS)
 #
 adcirc2netcdf : $(MODS) adcirc2netcdf.f90 nodalattr.mod logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)

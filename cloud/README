@@ -1,0 +1,41 @@
+Basic Instructions - subject to major changes
+
+1. install VirtualBox onto your local laptop or workstation
+  https://virtualbox.org
+
+2. install Vagrant onto your local laptop or workstation
+  https://www.vagrantup.com
+
+NOTE: "bento" refers to official Vagrant base images found at
+  https://app.vagrantup.com/bento
+in this case we're using the image available at
+  https://app.vagrantup.com/bento/boxes/ubuntu-18.10
+
+3. cd into the cloud directory
+  % cd cloud/bento-ubuntu-18.10
+  % vagrant up
+  % vagrant ssh
+  $ bash init-perlbrew.sh
+  $ bash init-openmpi.sh && bash init-adcirc.sh  # RUN FIRST TIME ONLY
+
+NOTE: init-adcirc.sh pulls down asgs from GitHub (no credentials,
+required), it also attempts to pull down adcirc-cg but it requires
+your GitHub username/password AND access to the adcirc-cg repo.
+
+More Information
+
+Vagrant is a nice utility that allows one to manage headless virtual
+machines on their laptops or work stations. Most use VirtualBox as the
+VM hypervisor, but it supports a variety of platforms. It works by
+starting with a vanilla base image (e.g., bento-ubuntu-18.10) and
+provides a configuration file (Vagrantfile) where a user can define
+how they want the virtual machine provisioned (set up).
+
+The purpose of providing a set of Vagrant provisioning scripts inside
+of this repo is to create a starting point for anyone wanting to run
+or develop ASGS locally. In the future it might be the basis for
+provisioning on actual cloud infrastructures (which Vagrant does
+support).
+
+Have fun!
+

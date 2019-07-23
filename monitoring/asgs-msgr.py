@@ -6,7 +6,7 @@ import json
 
 def usage():
 	print('\nUsage:\n')
-	print('asgs-msgr.py -h -u <Uid> -l <LocationName> -c <ClusterName>  -d <UTCDateTime> -s <StormName> -n <StormNumber> -a <AdvisoryNumber> -m <Message> -y <EventType> -p <Process> -t <PctComplete> -r <State> -q <RunParams> -i <InstanceName> -k <Transmit> ')
+	print('asgs-msgr.py -h -u <Uid> -l <LocationName> -c <ClusterName>  -d <UTCDateTime> -s <StormName> -n <StormNumber> -a <AdvisoryNumber> -m <Message> -y <EventType> -p <Process> -t <PctComplete> -b <SubPctComplete> -r <State> -q <RunParams> -i <InstanceName> -k <Transmit> ')
 	print('		')		
 	print(' where -h | --Help		the text you are looking at right now')
 	print('       -u | --Uid        	proc ID of asgs_main.sh process')
@@ -20,6 +20,7 @@ def usage():
 	print('       -y | --EventType		event type, RSTR | PRE1 | NOWC | PRE2 | FORC | POST | REND ')
 	print('       -p | --Process		software process issuing this message')
 	print('       -t | --PctComplete	numeric percentage of completion of process running, i.e. 34.2')
+	print('       -b | --SubPctComplete	numeric percentage of completion of a subprocess running, i.e. 34.2')
 	print('       -r | --State		ASGS run state, STRT | RUNN | PEND | FAIL | WARN | IDLE | EXIT')
 	print('       -q | --RunParams		Info string to put on Dashboard')
 	print('       -i | --InstanceName	ASGS Instance Name for "group" id in messaging')
@@ -37,6 +38,7 @@ def JsonifyMessage(Uid,
                    EventType,
                    Process,
                    PctComplete,
+                   SubPctComplete,
                    State,
                    RunParams,
                    InstanceName):
@@ -44,7 +46,8 @@ def JsonifyMessage(Uid,
 	msg_obj = {'uid': Uid, 'name': 'asgs', 'physical_location': LocationName, 'clustername': ClusterName, 
                    'date-time': UTCDateTime, 'message': Message, 'event_type': EventType, 'process': Process, 
                    'pctcomplete': PctComplete, 'state': State, 'storm': StormName, 'storm_number': StormNumber, 
-                   'advisory_number': AdvisoryNumber, 'run_params': RunParams, 'instance_name': InstanceName}
+                   'advisory_number': AdvisoryNumber, 'run_params': RunParams, 'instance_name': InstanceName,
+		   'subpctcomplete': SubPctComplete}
 
 	return json.dumps(msg_obj)
 
@@ -75,17 +78,18 @@ def main(argv):
 	EventType = ''
 	Process = 'asgs'
 	PctComplete = '0'
+	SubPctComplete = '0'
 	State = 'unknown'
         RunParams = 'N/A'
         InstanceName = 'N/A'
         Transmit = "on"
 
 	try:
-        	opts, args = getopt.getopt(argv,"hu:l:c:d:s:n:a:m:y:p:t:r:q:i:k",
+        	opts, args = getopt.getopt(argv,"hu:l:c:d:s:n:a:m:y:p:t:r:q:i:k:u",
                         ["Help","Uid=","LocationName=","ClusterName=","UTCDateTime=",
                          "StormName=", "StormNumber=", "AdvisoryNumber=", "Message=",
                          "EventType=", "Process=", "PctComplete=", "State=", "RunParams=",
-                         "InstanceName=", "Transmit="])
+                         "InstanceName=", "Transmit=", "SubPctComplete="])
 	except getopt.GetoptError as err:
         	print('\nCommand line option error: ' + str(err))
         	usage()
@@ -123,6 +127,8 @@ def main(argv):
 			Process = arg
 		elif opt in ("-t", "--PctComplete"):
 			PctComplete = arg
+		elif opt in ("-b", "--SubPctComplete"):
+			SubPctComplete = arg
 		elif opt in ("-r", "--State"):
 			State = arg
 
@@ -142,16 +148,17 @@ def main(argv):
 			EventType,
                         Process,
                         PctComplete,
+                        SubPctComplete,
                         State,
                         RunParams,
                         InstanceName
 			)
 
 	if (Transmit == 'on'):
-	        print('\n')
-	        print(msg)
-	        print('\n')
                 queue_message(msg)
+	       #print('\n')
+	       #print(msg)
+	       #print('\n')
         else:
                 print('Message not transmitted.\n')
                 #print('\n')

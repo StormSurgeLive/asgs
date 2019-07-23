@@ -42,6 +42,8 @@ fi
 # load storm's name 
 STORMNAME=`grep "storm name" ${STORMDIR}/run.properties | sed 's/storm name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 COMMA_SEP_LIST=${ADDRESS_LIST// /,}
+# load asgs operator email address
+ASGSADMIN=`grep "notification.email.asgsadmin" ${STORMDIR}/run.properties | sed 's/notification.email.asgsadmin.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 case $PHASE in
 #
 #               A C T I V A T I O N
@@ -70,7 +72,7 @@ northern Gulf Coast.
 
 END
     echo "INFO: corps_cyclone_notify.sh: Sending activation email to the following addresses: $COMMA_SEP_LIST."
-    cat $STORMDIR/activate.txt | mail -s "ASGS Activated on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+    cat $STORMDIR/activate.txt | mail  -S "replyto=$ASGSADMIN" -s "ASGS Activated on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
 #              N E W  C Y C L E 
@@ -97,7 +99,7 @@ The other instances are running for redundancy purposes.
 
 END
     echo "INFO: corps_cyclone_notify.sh: Sending 'new advisory detected' email to the following addresses: $COMMA_SEP_LIST."
-     cat $STORMDIR/new_advisory.txt | mail -s "$STORMNAME advisory $ADVISORY detected by ASGS on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+     cat $STORMDIR/new_advisory.txt | mail  -S "replyto=$ASGSADMIN" -s "$STORMNAME advisory $ADVISORY detected by ASGS on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 
 ;;
 #
@@ -128,7 +130,7 @@ issue the next advisory.
 END
 #
 echo "INFO: corps_cyclone_notify.sh: Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/post_notify.txt | mail -s "ASGS results available for $STORMNAME advisory $ADVISORY from $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/post_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "ASGS results available for $STORMNAME advisory $ADVISORY from $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
 #              J O B   F A I L E D 
@@ -146,7 +148,7 @@ on the $GRIDFILE grid.
 END
 #
 echo "INFO: corps_cyclone_notify.sh: Sending 'job failed' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/job_failed_notify.txt | mail -s "ASGS job $STORMNAME $ADVISORY failed on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/job_failed_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "ASGS job $STORMNAME $ADVISORY failed on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 *)
 echo "ERROR: corps_cyclone_notify.sh: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."

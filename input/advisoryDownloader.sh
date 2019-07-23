@@ -17,7 +17,7 @@ FTPSITE=filesystem        # hindcast/nowcast ATCF formatted files
 #FDIR=/scratch/bblanton/asgs-advisories/ 
 #HDIR=/atcf/btk   
 #
-FDIR=${ASGSDIR}/input/sample_advisories/2018 
+FDIR=${ASGSDIR}/input/sample_advisories/2019 
 HDIR=${FDIR}   
 #
 TRIGGER=rssembedded
@@ -34,7 +34,7 @@ oldBESTEndDate=0
 OPTIONS="--storm $STORMNUMBER --year $YEAR --ftpsite $FTPSITE --fdir $FDIR --hdir $HDIR --rsssite $RSSSITE --trigger $TRIGGER --adv $ADVISORY"
 while [[ 1 ]]; do
    curl https://www.nhc.noaa.gov/index-at.xml > $FDIR/index-at.xml
-   curl http://ftp.nhc.noaa.gov/atcf/btk/$hindcastFileName > $FDIR/$hindcastFileName
+   curl https://ftp.nhc.noaa.gov/atcf/btk/$hindcastFileName > $FDIR/$hindcastFileName
    advisoryNum=`perl $ASGSDIR/get_atcf.pl $OPTIONS 2>> advisoryMonitor.log`
    if [[ $advisoryNum != $oldAdvisoryNum ]]; then
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`

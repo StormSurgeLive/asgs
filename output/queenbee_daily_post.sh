@@ -48,7 +48,7 @@ si=$ENMEMNUM
 # grab all config info
 . ${CONFIG} 
 # Bring in logging functions
-. ${SCRIPTDIR}/logging.sh
+. ${SCRIPTDIR}/monitoring/logging.sh
 # Bring in platform-specific configuration
 . ${SCRIPTDIR}/platforms.sh
 # dispatch environment (using the functions in platforms.sh)
@@ -154,7 +154,7 @@ if [[ -e ../bal${STORM}${YEAR}.dat ]]; then
    cp ../bal${STORM}${YEAR}.dat . 2>> $SYSLOG
 fi
 #FILES=(`ls *.nc al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat fort.15 fort.22 CERA.tar run.properties 2>> /dev/null`)
-ceraNonPriorityFiles=( `ls endrisinginun.63.nc everdried.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc` )
+ceraNonPriorityFiles=( `ls cpra.post.log $SYSLOG $CONFIG endrisinginun.63.nc everdried.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc` )
 ceraPriorityFiles=(`ls run.properties maxele.63.nc fort.63.nc fort.61.nc fort.15 fort.22`)
 if [[ $ceraContoursAvailable = yes ]]; then
    ceraPriorityFiles=( ${ceraPriorityFiles[*]} "CERA.tar" )
@@ -183,52 +183,4 @@ primaryCount=0
 for server in ${TDS[*]}; do 
    logMessage "$ENSTORM: $THIS: Posting to $server opendap using the following command: ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HPCENV $ENSTORM $HSTIME $SYSLOG $server \"${FILES[*]}\" $OPENDAPNOTIFY"
    ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HPCENV $ENSTORM $HSTIME $SYSLOG $server "${FILES[*]}" $OPENDAPNOTIFY >> ${SYSLOG} 2>&1
-   # add downloadurl_backup propert(ies) to the properties file that 
-   # refer to previously posted results
-   backupCount=0
-   for backup in ${TDS[*]}; do
-      # don't list the same server as primary and backup and don't list
-      # a server as a backup if nothing has been posted there yet
-      if [[ $backupCount -ge $primaryCount ]]; then
-         break
-      fi
-      # opendap_post.sh writes each primary download URL to the file
-      # downloadurl.txt as it posts the results. Use these to populate
-      # the downloadurl_backupX properties.
-      # add +1 b/c the 0th backup url is on 1st line of the file
-      backupURL=`sed -n $(($backupCount+1))p downloadurl.log`
-      OPENDAPDIR=`sed -n $(($backupCount+1))p opendapdir.log`
-      propertyName="downloadurl_backup"$(($backupServer+1))
-      # need to grab the SSHPORT from the configuration
-      env_dispatch $backup
-      # Establish the method of posting results for service via opendap
-      OPENDAPPOSTMETHOD=scp
-      for hpc in ${COPYABLEHOSTS[*]}; do
-         if [[ $hpc = $TARGET ]]; then
-            OPENDAPPOSTMETHOD=copy
-         fi
-      done
-      for hpc in ${LINKABLEHOSTS[*]}; do
-         if [[ $hpc = $TARGET ]]; then
-            OPENDAPPOSTMETHOD=link
-         fi
-      done
-      case $OPENDAPPOSTMETHOD in
-      "scp")
-         if [[ $SSHPORT != "null" ]]; then
-            ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties"
-         else
-            ssh $OPENDAPHOST -l $OPENDAPUSER "echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties"
-        fi
-        ;;
-      "copy"|"link")
-         echo $propertyName : $backupURL >> $OPENDAPDIR/run.properties 2>> $SYSLOG
-         ;;
-      *)
-         warn "$ENSTORM: $THIS: OPeNDAP post method unrecogrnized."
-         ;;
-      esac
-      backupCount=$(($backupCount+1))
-   done
-   primaryCount=$((primaryCount+1))
 done
