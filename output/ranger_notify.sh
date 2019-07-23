@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
+# load asgs operator email address
+ASGSADMIN=`grep "notification.email.asgsadmin" ${STORMDIR}/run.properties | sed 's/notification.email.asgsadmin.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 activation_email()
 { HOSTNAME=$1
   STORM=$2
@@ -50,7 +52,7 @@ identical to the results produced on ${HOSTNAME}. The other instances
 are running for redundancy purposes.
 
 END
-    cat $STORMDIR/activate.txt | mail -s "ASGS Activated on $HOSTNAME" $ACTIVATE_LIST 2>> ${SYSLOG}
+    cat $STORMDIR/activate.txt | mail  -S "replyto=$ASGSADMIN" -s "ASGS Activated on $HOSTNAME" $ACTIVATE_LIST 2>> ${SYSLOG}
 }
 
 new_advisory_email()
@@ -78,7 +80,7 @@ that are running on supercomputers OTHER THAN ${HOSTNAME}.
 The other instances are running for redundancy purposes.  
 
 END
-     cat $STORMDIR/new_advisory.txt | mail -s "advisory detected by ASGS on $HOSTNAME" $NEW_ADVISORY_LIST 2>> ${SYSLOG}
+     cat $STORMDIR/new_advisory.txt | mail  -S "replyto=$ASGSADMIN" -s "advisory detected by ASGS on $HOSTNAME" $NEW_ADVISORY_LIST 2>> ${SYSLOG}
 
 }
 
@@ -105,7 +107,7 @@ When the results for this advisory are ready, they will be copied to
 that directory by the ASGS and another email will be sent as notification.
 END
 #
-cat $ASGSADVISORYDIR/post_init_notify.txt | mail -s "ASGS init directory for storm $STORM advisory $ADVISORY on $HOSTNAME" $POST_INIT_LIST
+cat $ASGSADVISORYDIR/post_init_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "ASGS init directory for storm $STORM advisory $ADVISORY on $HOSTNAME" $POST_INIT_LIST
 }
 
 post_email() 
@@ -142,7 +144,7 @@ ${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}-plots.tar.gz
 
 END
 #
-cat $ASGSADVISORYDIR/post_notify.txt | mail -s "ASGS results available for storm $STORM advisory $ADVISORY on $HOSTNAME" $POST_LIST
+cat $ASGSADVISORYDIR/post_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "ASGS results available for storm $STORM advisory $ADVISORY on $HOSTNAME" $POST_LIST
 }
 
 post2_email()
@@ -174,7 +176,7 @@ $POSTADVISORYDIR/$ENSTORM/${STORM}_${YEAR}_${ENSTORM}_${ADVISORY}-KMZ_GIS.tgz
 END
 #
 #
-cat $ASGSADVISORYDIR/post_notify.txt | mail -s "ASGS GIS, KMZ and JPG results available for storm $STORM advisory $ADVISORY on $HOSTNAME" $POST_LIST 
+cat $ASGSADVISORYDIR/post_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "ASGS GIS, KMZ and JPG results available for storm $STORM advisory $ADVISORY on $HOSTNAME" $POST_LIST 
 #
 }
 

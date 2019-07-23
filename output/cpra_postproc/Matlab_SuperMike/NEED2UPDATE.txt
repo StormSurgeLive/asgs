@@ -1,3 +1,0 @@
-Matt needs to updated the plot_usace_adcirc executable with the latest plot_usace_adcirc.m.
-
-SM2 Matlab license is currently check out. 08282018 12:52PM CST.

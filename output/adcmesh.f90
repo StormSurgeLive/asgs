@@ -432,8 +432,6 @@ write(6,'(a)') 'INFO: Reading mesh dimensions from the netCDF file.'
 ! initializations
 m%is3D = .false.
 !
-write(6,'(a)') 'INFO: Reading mesh dimensions from the netCDF file.'
-!
 ! open the netcdf file
 call check(nf90_open(trim(m%meshFileName), NF90_NOWRITE, nc_id))
 !

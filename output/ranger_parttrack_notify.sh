@@ -29,6 +29,8 @@ OUTPUTPREFIX=$7
 POST_LIST=$8
 
 #
+# load asgs operator email address
+ASGSADMIN=`grep "notification.email.asgsadmin" ${STORMDIR}/run.properties | sed 's/notification.email.asgsadmin.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 PTDIR=$ADVISDIR/TRACKING
 POSTDIR=/corral/hurricane/asgs_output
 ANIMPOSTDIR=/corral/hurricane/asgs_output/movies
@@ -57,6 +59,6 @@ $ADVISDIR/MONTAGE
 
 END
 #
-cat $ADVISDIR/post_notify.txt | mail -s "ASGS Oil Spill results available for $KIND $STORM advisory $ADVISORY  Initial Particle location ${PARTICLEFILE} on $HOSTNAME" $POST_LIST
+cat $ADVISDIR/post_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "ASGS Oil Spill results available for $KIND $STORM advisory $ADVISORY  Initial Particle location ${PARTICLEFILE} on $HOSTNAME" $POST_LIST
 }
 

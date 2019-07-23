@@ -28,26 +28,21 @@
 #
 # Fundamental 
 #
-INSTANCENAME=dailyv6d-RENCI      # name of this ASGS process
-#COLDSTARTDATE=2016090400
-#COLDSTARTDATE=2017010100
-#COLDSTARTDATE=2017012400
-#COLDSTARTDATE=2017070900
-#COLDSTARTDATE=2017121500
-#COLDSTARTDATE=2018020900
-#COLDSTARTDATE=2018110200
-COLDSTARTDATE=2018121700
-#
+INSTANCENAME=ncfs-dev-test2      # name of this ASGS process
+COLDSTARTDATE=2019020600
+
+STORMNAME=daily
+
 HOTORCOLD=coldstart        # "hotstart" or "coldstart" 
 LASTSUBDIR=null
-HINDCASTLENGTH=30.0        # length of initial hindcast, from cold (days)
+HINDCASTLENGTH=18.0        # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
-ADCIRCDIR=~/adcirc-cg/jasonfleming/v53release_mvapich2-2.0/work # ADCIRC executables 
-SWANDIR=~/adcirc-cg/jasonfleming/v53release_mvapich2-2.0/swan # ADCIRC executables 
-SCRIPTDIR=~/asgs/jasonfleming/2014stable    # ASGS scripts/executables  
+ADCIRCDIR=/home/ncfs-dev/ADCIRC/v53release/work # ADCIRC executables 
+SWANDIR=/home/ncfs-dev/ADCIRC/v53release/swan # ADCIRC executables 
+SCRIPTDIR=/home/ncfs-dev/2014stable/        # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/nc_v6b   # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
@@ -68,24 +63,25 @@ HINDCASTWALLTIME="24:00:00"
 ADCPREPWALLTIME="01:15:00"
 NOWCASTWALLTIME="05:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=159
+NCPU=511
 NUMWRITERS=1
-NCPUCAPACITY=500
+NCPUCAPACITY=512
 CYCLETIMELIMIT="05:00:00"
+
 # queue
 QUEUENAME=null
 SERQUEUE=null
-SCRATCHDIR=/projects/ncfs/data # for the NCFS on blueridge
+SCRATCHDIR=/scratch/ncfs-dev/test2/  #   /projects/ncfs/data # for the NCFS on blueridge
 PARTITION=ncfs
-RESERVATION=null
-CONSTRAINT=null
-#CONSTRAINT='sandybridge&hatteras' # sandybridge=512wide max, ivybridge=640wide max
-QSCRIPT=hatteras-mvapich2-2.0.template.slurm
+RESERVATION=null # bblanton
+CONSTRAINT=hatteras
+QSCRIPT=hatteras.template.slurm
+ACCOUNT=null
 
 # External data sources : Tropical cyclones
 
-STORM=12  # storm number, e.g. 05=ernesto in 2006 
-YEAR=2013 # year of the storm (useful for historical storms) 
+STORM=-1  # storm number, e.g. 05=ernesto in 2006 
+YEAR=2019 # year of the storm (useful for historical storms) 
 TRIGGER=rssembedded    # either "ftp" or "rss"
 RSSSITE=www.nhc.noaa.gov 
 FTPSITE=ftp.nhc.noaa.gov  # real anon ftp site for hindcast/forecast files
@@ -94,7 +90,7 @@ HDIR=/atcf/btk      # hindcast dir on nhc ftp site
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="00,12"
+FORECASTCYCLE="00,06,12,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -108,7 +104,7 @@ ALTNAMDIR="/projects/ncfs/data/asgs16441"
 
 RIVERSITE=data.disaster.renci.org
 RIVERDIR=/opt/ldm/storage/SCOOP/RHLRv9-OKU
-RIVERUSER=ldm
+RIVERUSER=bblanton
 RIVERDATAPROTOCOL=scp
 
 # Input files and templates
@@ -157,29 +153,32 @@ MINMAX=reset
 
 # Notification
 
-EMAILNOTIFY=yes # set to yes to have host platform email notifications
+EMAILNOTIFY=no # set to yes to have host platform email notifications
 NOTIFY_SCRIPT=ncfs_nam_notify.sh
-ACTIVATE_LIST=""
-NEW_ADVISORY_LIST=""
-POST_INIT_LIST=""
-POST_LIST=""
-JOB_FAILED_LIST="jason.g.fleming@gmail.com"
+ACTIVATE_LIST=null
+NEW_ADVISORY_LIST=null
+POST_INIT_LIST=null
+POST_LIST=null
+JOB_FAILED_LIST=jason.g.fleming@gmail.com
 NOTIFYUSER=jason.g.fleming@gmail.com
 ASGSADMIN=jason.g.fleming@gmail.com
+
 # RMQ Messaging
+
 RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
 RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
-RMQMessaging_NcoHome="/home/jgflemin/"
-RMQMessaging_Python="/bin/python"
+RMQMessaging_StartupScript="${SCRIPTDIR}/asgs-msgr_startup.py"
+RMQMessaging_NcoHome="/home/ncfs-dev/"
+RMQMessaging_Python="/home/ncfs-dev/miniconda2/bin/python"
 RMQMessaging_LocationName="RENCI"
 RMQMessaging_ClusterName="Hatteras"
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general
+INTENDEDAUDIENCE=systemTest  # general
 INITPOST=null_init_post.sh
-POSTPROCESS=ncfs_post_min.sh
+POSTPROCESS=ncfs_post_min.sh  #  null_post.sh 
 POSTPROCESS2=null_post.sh
 
 TDS=(renci_tds)
@@ -194,30 +193,27 @@ OPENDAPNOTIFY="jason.g.fleming@gmail.com"
 
 # Archiving
 
-ARCHIVE=ncfs_archive.sh
-ARCHIVEBASE=/projects/ncfs/data
-ARCHIVEDIR=archive
+ARCHIVE=null_archive.sh  #  ncfs_archive.sh
+ARCHIVEBASE=null   #  /projects/ncfs/data
+ARCHIVEDIR=null   #  archive
 
 # Forecast ensemble members
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=1 # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 0)
    ENSTORM=namforecast
-   RESERVATION=null
-   PARTITION=ncfs
-   #CONSTRAINT='sandybridge&hatteras'
    ;;
 1)
    ENSTORM=namforecastWind10m
    RESERVATION=null
-   PARTITION=ncfs
-   #CONSTRAINT='sandybridge&hatteras'
+   PARTITION=batch
+   CONSTRAINT='hatteras'
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=v6brivers_explicit_rlevel51.nowindreduction.fort.15_template

@@ -36,27 +36,27 @@
 # this job. 
 JOBTYPE=$1
 # SYSLOG: asgs log file
-SYSLOG=`sed -n 's/[ ^]*$//;s/asgs.file.syslog\s*:\s*//p' run.properties`
+SYSLOG=`sed -n 's/[ ^]*$//;s/file.syslog\s*:\s*//p' run.properties`
 # SCRIPTDIR: path to asgs scripts like asgs_main.sh
-SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties`
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties`
 # pull in logging functions
-. ${SCRIPTDIR}/logging.sh
+. ${SCRIPTDIR}/monitoring/logging.sh
 #
 # HPCENVSHORT: shorthand for the HPC environment: queenbee, hatteras, etc
 HPCENVSHORT=`sed -n 's/[ ^]*$//;s/hpc.hpcenvshort\s*:\s*//p' run.properties`
 # QUEUESYS: type of queueing system, e.g., SLURM, PBS, etc
 QUEUESYS=`sed -n 's/[ ^]*$//;s/hpc.queuesys\s*:\s*//p' run.properties`
 # PPN: processors (or cores) per node to specify for the job 
-PPN=`sed -n 's/[ ^]*$//;s/hpc.ppn\s*:\s*//p' run.properties`
+PPN=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.ppn\s*:\s*//p" run.properties`
 # ADCIRDIR: path to adcirc executables e.g. ~/adcirc/work 
-ADCIRCDIR=`sed -n 's/[ ^]*$//;s/config.path.adcircdir\s*:\s*//p' run.properties`
+ADCIRCDIR=`sed -n 's/[ ^]*$//;s/path.adcircdir\s*:\s*//p' run.properties`
 # SWANDIR: path to swan executables (i.e., to unhcat.exe)
-SWANDIR=`sed -n 's/[ ^]*$//;s/config.path.swandir\s*:\s*//p' run.properties`
+SWANDIR=`sed -n 's/[ ^]*$//;s/path.swandir\s*:\s*//p' run.properties`
 # STORMDIR: path where this ensemble member is supposed to run 
-STORMDIR=`sed -n 's/[ ^]*$//;s/asgs.path.stormdir\s*:\s*//p' run.properties`
-ADVISDIR=`sed -n 's/[ ^]*$//;s/asgs.path.advisdir\s*:\s*//p' run.properties`
+STORMDIR=`sed -n 's/[ ^]*$//;s/path.stormdir\s*:\s*//p' run.properties`
+ADVISDIR=`sed -n 's/[ ^]*$//;s/path.advisdir\s*:\s*//p' run.properties`
 # ENSTORM: name of this ensemble member
-ENSTORM=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
+ENSTORM=`sed -n 's/[ ^]*$//;s/scenario\s*:\s*//p' run.properties`
 # NOTIFYUSER: email address to put into the queue script that the queueing
 # system will send email to if the hpc job fails
 NOTIFYUSER=`sed -n "s/[ ^]*$//;s/notification.hpc.email.notifyuser\s*:\s*//p" run.properties`
