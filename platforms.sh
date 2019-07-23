@@ -239,6 +239,12 @@ init_hatteras()
      SCRATCHDIR=/scratch/bblanton/data
      PYTHONVENV=/projects/storm_surge/anaconda
      ;;
+  ncfs-dev)
+     ACCOUNT=ncfs-dev
+     SCRATCHDIR=/scratch/ncfs-dev/data
+     PARTITION=ncfs       # ncfs or batch, gives priority
+     PYTHONVENV="$HOME/miniconda2"
+     ;;
   ncfs)
      ACCOUNT=ncfs
      SCRATCHDIR=/projects/ncfs/data
@@ -250,12 +256,12 @@ init_hatteras()
      ;;
   esac
   #
-  RMQMessaging_Enable="on"      # "on"|"off"
-  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome="/home/ncfs"
-  RMQMessaging_Python=/usr/bin/python
-  RMQMessaging_LocationName="RENCI"
-  RMQMessaging_ClusterName="Hatteras"
+  #RMQMessaging_Enable="on"      # "on"|"off"
+  #RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  #RMQMessaging_NcoHome="/home/ncfs"
+  #RMQMessaging_Python=/usr/bin/python
+  #RMQMessaging_LocationName="RENCI"
+  #RMQMessaging_ClusterName="Hatteras"
   #
   QSUMMARYCMD=null
   QUOTACHECKCMD="df -h /projects/ncfs"
@@ -266,7 +272,7 @@ init_hatteras()
   QSCRIPT=hatteras.template.slurm
   PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
   RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
-  PARTITION=null
+  PARTITION=ncfs
   CONSTRAINT=null      # ivybridge or sandybridge
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=16
@@ -282,7 +288,8 @@ init_hatteras()
   # for the automated slide deck generator
   #   pip install --user pptx
   #
-  PLATFORMMODULES='module load hdf5/1.10.1_intel-18.0.0 intelc/18.0.0 intelfort/18.0.0 mvapich2/2.0_intel-18.0.0_ch3_ofed-4.1 netcdf-C/4.5.0_intel-18.0.0 netcdf-Fortran/4.4.0_intel-18.0.0 zlib/1.2.11_intel-18.0.0'
+  export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
+  PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.2.1.1-acis netcdf-Fortran/4.2-acis mvapich2/2.0-acis'
   if [[ $USER = ncfs ]]; then
      PLATFORMMODULES=$PLATFORMMODULES' python_modules/2.7'
   fi

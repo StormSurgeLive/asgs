@@ -17,11 +17,12 @@ def main(argv):
         print "Syntax: FortCheck.py directory_name <will look for fort.61.nc in directory_name.>"
         sys.exit()
     
-    ds = nc.Dataset(fname)
-
+    ds = nc.Dataset(fname,'r')
     rnday=ds.rnday
     nt=len(ds.variables['time'])
     time=ds.variables['time']
+    ds.close
+
     if (time.size == 0):
         pct=0
     else:
