@@ -32,6 +32,40 @@ sigint() {
   exit 0
 }
 
+function IncrementNCEPCycle()
+{
+	local DATE='date --utc'
+	local inc=21600  # cycle increment in secs
+
+	if [  $# -eq 0 ] ; then
+		d=`$DATE +%Y%m%d%H`
+		cy=${d:8:2}
+		cy=`echo "6*($cy/6)" | bc`
+	else
+		d=$1
+	fi
+
+	if [ ${#d} -lt 10 ] ; then
+		echo input date must of YYYYMMDDHH
+		exit 1
+	fi
+
+	#cy=${d:8:2}
+	#cy=`echo "6*($cy/6)" | bc`
+	#echo $d, $cy
+	#echo Current NCEP Cycle = $cy
+
+	# input YYMMDDHH in epoch seconds
+	d1=`$DATE -d "${d:0:4}-${d:4:2}-${d:6:2} ${d:8:2}:00:00" +%s`
+	d2=$[$d1+$inc]
+	d2=`$DATE -d "1970-01-01 UTC $d2 seconds" +%Y%m%d%H`
+	cy=${d2:8:2}
+	cy=`echo "6*(${d2:8:2}/6)" | bc`
+	d2=`printf "${d2:0:8}%02d" $cy`
+	echo $d2
+	#echo Next NCEP Cycle = $cy
+}
+
 RMQMessageStartup() 
 { 
   if [[ ${RMQMessaging_Enable} == "off" ]] ; then return; fi
@@ -60,11 +94,16 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
   PCTCOM=0
   if [ "$#" -eq 6 ] ; then PCTCOM=$6 ; fi
 
+  if [[ $RMQADVISORY -lt 0 ]] ; then
+	echo "warn: RMQA ($RMQADVISORY) < 0.  Not sending message ..."
+	return
+  fi
+
   re='^[0-9]+([.][0-9]+)?$' 
   if ! [[ $PCTCOM =~ $re ]] ; then
      warn "PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message." 
   else
-     printf "RMQ : %s : %s : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" ${INSTANCENAME} ${ADVISORY} ${MTYPE} ${EVENT} ${DATETIME} ${STATE} ${PCTCOM} ${PROCESS}  "$5"
+     printf "RMQ : %s : %10s : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" ${INSTANCENAME} ${RMQADVISORY} ${MTYPE} ${EVENT} ${DATETIME} ${STATE} ${PCTCOM} ${PROCESS}  "$5"
 
      # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
      ${RMQMessaging_Python} ${RMQMessaging_Script} \
@@ -73,11 +112,12 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
          --ClusterName ${RMQMessaging_ClusterName} \
          --StormNumber $STORM \
          --StormName $STORMNAME \
-         --AdvisoryNumber $ADVISORY \
+         --AdvisoryNumber $RMQADVISORY \
          --Message "$MSG"  \
          --EventType $EVENT \
          --Process $PROCESS \
-         --PctComplete $PCTCOM \
+         --PctComplete 0 \
+         --SubPctComplete $PCTCOM \
          --State $STATE \
          --RunParams $RMQRunParams \
          --InstanceName $INSTANCENAME \
