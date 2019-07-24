@@ -47,7 +47,7 @@ OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 BACKGROUNDMET=on      # NAM download/forcing
 TIDEFAC=on            # tide factor recalc
 TROPICALCYCLONE=off   # tropical cyclone forcing
-WAVES=off              # wave forcing
+WAVES=on              # wave forcing
 VARFLUX=off           # variable river flux forcing
 
 # Computational Resources
