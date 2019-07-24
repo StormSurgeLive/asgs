@@ -136,6 +136,8 @@ if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ){
    if ( $numwriters != 0 ) {
       $cloptions = $cloptions . " -W " . $numwriters;
       $totalcpu = $ncpu + $numwriters;
+   } else {
+      $totalcpu = $ncpu;
    }
    # determine number of compute nodes to request
    if ( $ppn ne "null" ) { 
