@@ -116,8 +116,7 @@ findAndClearOrphans() {
       kill $pid 
    done
 }
-#
-#
+
 function IncrementNCEPCycle()
 {
 	local DATE='date --utc'
@@ -151,8 +150,7 @@ function IncrementNCEPCycle()
 	echo $d2
 	#echo Next NCEP Cycle = $cy
 }
-#
-#
+
 RMQMessageStartup() 
 { 
   if [[ ${RMQMessaging_Enable} == "off" ]] ; then return; fi
