@@ -2299,12 +2299,17 @@ while [ true ]; do
    logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
 
 #BOB
-   echo "Debug: nowcast: building fort.15" >> ${SYSLOG} 2>&1 
+   debugMessage "$THIS: $ENSTORM: Building fort.15 file." 
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
    if [ ! -s "fort.15" ] ; then
-      echo "nowcast: fort.15 file is 0-length.  This is terminal."  >> ${SYSLOG} 2>&1
-      RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS" "FAIL" "nowcast: fort.15 file is 0-length.  This is terminal."
-      exit -9
+      warn "$THIS: $ENSTORM: fort.15 file is 0-length. The $ENSTORM run will be abandoned." 
+      echo "$THIS: $ENSTORM: fort.15 file is 0-length. The $ENSTORM run will be abandoned." >> jobFailed
+      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+      THIS="asgs_main.sh"
+      CURRENT_EVENT="REND"
+      CURRENT_STATE="CMPL"
+      RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "NC/FC Cycle restarting due to nowcast failure."
+      continue  # abandon this nowcast and wait for the next one
    fi
 #BOB
 
@@ -2651,12 +2656,14 @@ while [ true ]; do
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
 
 #BOB
-      echo "Debug: forecast: building fort.15" >> ${SYSLOG} 2>&1
+      THIS="asgs_main.sh"
+      debugMessage "$THIS: $ENSTORM: Building fort.15 file."
       perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
       if [ ! -s "fort.15" ] ; then
-         echo "forecast: fort.15 file is 0-length.  This is terminal."  >> ${SYSLOG} 2>&1
-         RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS" "FAIL" "forecast: fort.15 file is 0-length.  This is terminal."
-	 exit -9
+         warn "$THIS: $ENSTORM: fort.15 file is 0-length. The $ENSTORM run will be abandoned." 
+         echo "$THIS: $ENSTORM: fort.15 file is 0-length. The $ENSTORM run will be abandoned." >> jobFailed
+         handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+         THIS="asgs_main.sh"
       fi
 #BOB
 
