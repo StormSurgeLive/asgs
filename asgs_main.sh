@@ -45,6 +45,14 @@ echoHelp()
   echo "-h : show help"
   exit;
 }
+
+# reads/rereads+rebuilds derived variables
+readConfig()
+{
+  . ${CONFIG}
+  RUNARCHIVEBASE=$SCRATCHDIR
+}
+
 #
 # subroutine to check for the existence of required files that have
 # been specified in config.sh
@@ -86,7 +94,7 @@ checkArchiveFreshness()
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE"  "Checking to see if the archive of preprocessed subdomain files is up to date." 
    logMessage "$THIS: Checking to see if the archive of preprocessed subdomain files is up to date."   
    for archiveFile in $PREPPEDARCHIVE $HINDCASTARCHIVE; do
-      if [ ! -e $SCRATCHDIR/$archiveFile ]; then
+      if [ ! -e $RUNARCHIVEBASE/$archiveFile ]; then
          logMessage "$THIS: The subdomain archive file $SCRATCHDIR/$archiveFile does not exist."
          continue
       fi
@@ -1747,7 +1755,8 @@ done
 # set the file and directory permissions, which are platform dependent
 umask $UMASK
 # read config file just to get the location of $SCRIPTDIR
-. ${CONFIG}
+readConfig
+
 # name asgs log file here
 SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG must be defined before logging.sh is run.
 # Bring in logging functions
@@ -1757,7 +1766,7 @@ SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG
 . ${SCRIPTDIR}/platforms.sh
 #
 # set a trap for a signal to reread the ASGS config file
-trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; . $CONFIG' USR1
+trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; readConfig' USR1
 # catch ^C for a final RMQ message
 trap 'sigint' INT
 trap 'sigterm' TERM
@@ -1770,7 +1779,8 @@ findAndClearOrphans
 env_dispatch ${HPCENVSHORT}
 # Re-read the config file, so that the variables can take precedence over
 # the values in the platform-specific functions called by env_dispatch
-. ${CONFIG}
+readConfig
+
 #
 # set the file and directory permissions, which are platform dependent
 umask $UMASK
@@ -2006,19 +2016,19 @@ if [[ $HOTORCOLD = hotstart ]]; then
 fi
 #
 THIS="asgs_main.sh"
-if [[ -e ${INPUTDIR}/${PREPPEDARCHIVE} ]]; then
-   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Found archive of preprocessed input files ${INPUTDIR}/${PREPPEDARCHIVE}."
-   logMessage "$THIS: Found archive of preprocessed input files ${INPUTDIR}/${PREPPEDARCHIVE}."
+if [[ -e ${RUNARCHIVEBASE}/${PREPPEDARCHIVE} ]]; then
+   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Found archive of preprocessed input files ${RUNARCHIVEBASE}/${PREPPEDARCHIVE}."
+   logMessage "$THIS: Found archive of preprocessed input files ${RUNARCHIVEBASE}/${PREPPEDARCHIVE}."
 else
-   RMQMessage "WARN" "$CURRENT_EVENT" "$THIS" "WARN" "Could not find archive of preprocessed input files ${INPUTDIR}/${PREPPEDARCHIVE}. It will be recreated."
-   warn "$THIS: Could not find archive of preprocessed input files ${INPUTDIR}/${PREPPEDARCHIVE}. It will be recreated."
+   RMQMessage "WARN" "$CURRENT_EVENT" "$THIS" "WARN" "Could not find archive of preprocessed input files ${RUNARCHIVEBASE}/${PREPPEDARCHIVE}. It will be recreated."
+   warn "$THIS: Could not find archive of preprocessed input files ${RUNARCHIVEBASE}/${PREPPEDARCHIVE}. It will be recreated."
 fi
-if [[ -e ${INPUTDIR}/${HINDCASTARCHIVE} ]]; then
-   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Found archive of preprocessed input files ${INPUTDIR}/${HINDCASTARCHIVE}."
-   logMessage "$THIS: Found archive of preprocessed input files ${INPUTDIR}/${HINDCASTARCHIVE}."
+if [[ -e ${RUNARCHIVEBASE}/${HINDCASTARCHIVE} ]]; then
+   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Found archive of preprocessed input files ${RUNARCHIVEBASE}/${HINDCASTARCHIVE}."
+   logMessage "$THIS: Found archive of preprocessed input files ${RUNARCHIVEBASE}/${HINDCASTARCHIVE}."
 else
-   RMQMessage "WARN" "$CURRENT_EVENT" "$THIS" "WARN" "Could not find archive of preprocessed input files ${INPUTDIR}/${HINDCASTARCHIVE}. It will be recreated."
-   warn "$THIS: Could not find archive of preprocessed input files ${INPUTDIR}/${HINDCASTARCHIVE}. It will be recreated."
+   RMQMessage "WARN" "$CURRENT_EVENT" "$THIS" "WARN" "Could not find archive of preprocessed input files ${RUNARCHIVEBASE}/${HINDCASTARCHIVE}. It will be recreated."
+   warn "$THIS: Could not find archive of preprocessed input files ${RUNARCHIVEBASE}/${HINDCASTARCHIVE}. It will be recreated."
 fi
 #
 checkFileExistence $OUTPUTDIR "postprocessing initialization script" $INITPOST
@@ -2105,7 +2115,7 @@ if [[ $START = coldstart ]]; then
    si=-2      # represents a hindcast 
    # pick up config info that is specific to the hindcast
    si=-1
-   . ${CONFIG}
+   readConfig
    # Obtain and/or verify ADCIRC(+SWAN) executables
    #get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG 
    #if [[ $? = 1 ]]; then
@@ -2280,7 +2290,7 @@ while [ true ]; do
    # HPC environment defaults (using the functions in platforms.sh)
    env_dispatch ${HPCENVSHORT}   
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
-   . ${CONFIG}
+   readConfig
    # Obtain and/or verify ADCIRC(+SWAN) executables
    get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG
    if [[ $? = 1 ]]; then
@@ -2727,7 +2737,7 @@ while [ true ]; do
       # HPC environment defaults (using the functions in platforms.sh)
       env_dispatch ${HPCENVSHORT}
       # grab the config specified by the operator
-      . ${CONFIG}
+      readConfig
       # Obtain and/or verify ADCIRC(+SWAN) executables
       get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG
       if [[ $? = 1 ]]; then
