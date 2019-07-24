@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2018--2019 Jason Fleming
+# Copyright(C) 2017--2018 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -27,10 +27,10 @@
 
 # Fundamental
 
-INSTANCENAME=dailyLAv19k  # "name" of this ASGS process
-COLDSTARTDATE=2019062000  # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
+INSTANCENAME=al032019hsofs  # "name" of this ASGS process
+COLDSTARTDATE=auto     # YYYYMMDDHH24 or "auto" to extract from hotstart file
+HOTORCOLD=hotstart     # "hotstart" or "coldstart"
+LASTSUBDIR=/work/jgflemin/asgs6337/2019072212  # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -38,47 +38,49 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
 SWANDIR=~/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-SCRIPTDIR=~/asgs/jasonfleming/2014stable           # ASGS executables
-INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v19k # grid and other input files
+SCRIPTDIR=/work/jgflemin/asgs/jasonfleming/2014stable           # ASGS executables
+INPUTDIR=${SCRIPTDIR}/input/meshes/hsofs # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 
 # Physical forcing
 
-BACKGROUNDMET=on      # NAM download/forcing
-TIDEFAC=on            # tide factor recalc
-TROPICALCYCLONE=off   # tropical cyclone forcing
-WAVES=on              # wave forcing
-VARFLUX=off           # variable river flux forcing
+BACKGROUNDMET=off     # NAM download/forcing
+TIDEFAC=on           # tide factor recalc
+TROPICALCYCLONE=on  # tropical cyclone forcing
+WAVES=off           # wave forcing
+VARFLUX=off          # variable river flux forcing
 
 # Computational Resources
 
-TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
 SWANDT=1200                 # swan time step size (seconds)
 HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
-ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
-FORECASTWALLTIME="07:00:00" # forecast wall clock time
-NCPU=1160                     # number of compute CPUs for all simulations
+ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
+FORECASTWALLTIME="05:00:00" # forecast wall clock time
+NCPU=1200                    # number of compute CPUs for all simulations
 NUMWRITERS=20
-NCPUCAPACITY=3600
+NCPUCAPACITY=3648
 CYCLETIMELIMIT="99:00:00"
-SERQUEUE=priority
-QUEUENAME=priority
+QUEUENAME=workq
+SERQUEUE=single
+#QUEUENAME=priority
+#SERQUEUE=priority
 if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
-ACCOUNT=loni_cera_2019
-#ACCOUNT=loni_lsu_ccr_18
+SCRATCHDIR=/work/$USER
+ACCOUNT=hpc_cera_2019
 
 # External data sources : Tropical cyclones
 
-STORM=07                         # storm number, e.g. 05=ernesto in 2006
-YEAR=2018                        # year of the storm
+STORM=03                         # storm number, e.g. 05=ernesto in 2006
+YEAR=2019                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 RSSSITE=filesystem
 FTPSITE=filesystem
-FDIR=~/asgs/branches/2014stable/input/sample_advisories/2018
-HDIR=${FDIR}
+FDIR=$SCRIPTDIR/input/sample_advisories/2019
+HDIR=$FDIR
 #RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 #FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
 #FDIR=/atcf/afst                  # forecast dir on nhc ftp site
@@ -90,9 +92,10 @@ FORECASTCYCLE="06,18"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
-PTFILE=ptFile_oneEighth.txt         # the lat/lons for the OWI background met
+PTFILE=ptFile_hsofs.txt         # the lat/lons for the OWI background met
+SPATIALEXTRAPOLATIONRAMP=yes
+SPATIALEXTRAPOLATIONRAMPDISTANCE=5.0
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
-VELOCITYMULTIPLIER=1.0
 
 # External data sources : River Flux
 
@@ -101,18 +104,19 @@ RIVERDIR=/projects/ciflow/adcirc_info
 
 # Input files and templates
 
-GRIDFILE=LA_v19k-WithUpperAtch_chk.grd   # mesh (fort.14) file
-GRIDNAME=LA_v19k-WithUpperAtch_chk
-MESHPROPERTIES=${GRIDFILE}.properties
-CONTROLTEMPLATE=LA_v19k-WithUpperAtch.15.template
+GRIDFILE=hsofs.14  # mesh (fort.14) file
+GRIDNAME=hsofs
+MESHPROPERTIES=${GRIDFILE}.nc.properties     
+CONTROLTEMPLATE=hsofs_explicit.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=combined_stations_20190327.txt
-VELSTATIONS=combined_stations_20190327.txt
-METSTATIONS=combined_stations_20190327.txt
-NAFILE=LA_v19k-WithUpperAtch_chk.13
+ELEVSTATIONS=hsofs_stations_20180907.txt
+VELSTATIONS=$ELEVSTATIONS
+METSTATIONS=$ELEVSTATIONS
+NAFILE=hsofs.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=LA_v19k-WithUpperAtch.26.template   # only used if WAVES=on
-RIVERINIT=null                           # this mesh has no rivers ...
+#SWANTEMPLATE=fort.26.template # only used if WAVES=on
+SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
+RIVERINIT=null                          # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
@@ -141,53 +145,46 @@ HOTSTARTCOMP=fulldomain
 # binary or netcdf hotstart files
 HOTSTARTFORMAT=netcdf                      
 # "continuous" or "reset" for maxele.63 etc files
-MINMAX=reset                               
+MINMAX=reset                              
 
 # Notification
 
 EMAILNOTIFY=yes         # yes to have host HPC platform email notifications
-NOTIFY_SCRIPT=corps_cyclone_notify.sh
+NOTIFY_SCRIPT=corps_nam_notify.sh
 ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
 POST_LIST=null
 JOB_FAILED_LIST="jason.g.fleming@gmail.com"
-NOTIFYUSER=jason.g.fleming@gmail.com
-ASGSADMIN=jason.g.fleming@gmail.com
+NOTIFYUSER="jason.g.fleming@gmail.com"
+ASGSADMIN="jason.g.fleming@gmail.com"
 # RMQ Messaging
 RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
 RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
-RMQMessaging_StartupScript="${SCRIPTDIR}/asgs-msgr_startup.py"
 RMQMessaging_NcoHome="/home/jgflemin/"
-RMQMessaging_Python="/usr/local/packages/python/2.7.12-anaconda/bin/python"
-RMQMessaging_LocationName="LONI"
-RMQMessaging_ClusterName="Queenbee"
+RMQMessaging_Python="/usr/local/packages/python/2.7.13-anaconda/bin/python"
+RMQMessaging_LocationName="LSU"
+RMQMessaging_ClusterName="SuperMIC"
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=cpra_post.sh
+POSTPROCESS=cera_post.sh
+POSTPROCESS2=null_post.sh
 
 # opendap
+
 TDS=(lsu_tds renci_tds)
-TARGET=queenbee  # used in post processing to pick up HPC platform config
-# You must first have your ssh public key in ~/.ssh/authorized_keys2 file 
-# on the opendap server machine in order to scp files there via
-# opendap_post.sh. OPENDAPHOST is set to each value in the TDS array specified
-# above and used by your post processing script to successively trigger 
-# configuration via platforms.sh. The OPENDAPUSER parameter needs to be set
-# here, rather than in platforms.sh or your post processing script,
-# because multiple Operators may be posting to a particular opendap server
-# using different usernames. 
+TARGET=supermic # used in post processing to pick up HPC platform config
 OPENDAPUSER=ncfs         # default value that works for RENCI opendap 
 if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
    OPENDAPUSER=jgflemin  # change this for other Operator running on queenbee
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,MBilskie.ASGS@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
@@ -204,14 +201,11 @@ case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
-1)
-   ENSTORM=namforecast
-   ;;
 0)
-   ENSTORM=namforecastWind10m
+   ENSTORM=nhcConsensusWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
-   CONTROLTEMPLATE=LA_v19k-WithUpperAtch.nowindreduction.15.template
+   CONTROLTEMPLATE=hsofs.nowindreduction.15.template  # fort.15 template
    CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
    TIMESTEPSIZE=300.0    # 15 minute time steps
    NCPU=19               # dramatically reduced resource requirements
@@ -233,19 +227,13 @@ case $si in
    SPARSE=""
    NETCDF4="--netcdf4"
    OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+   INTENDEDAUDIENCE=general
    # prevent collisions in prepped archives
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
    ;;
-2)
-   ENSTORM=namforecast2x
-   VELOCITYMULTIPLIER=2.0
-   OPENDAPNOTIFY="mbilsk3@lsu.edu,jason.g.fleming@gmail.com"
-   ;;
-3)
-   ENSTORM=namforecast3x
-   VELOCITYMULTIPLIER=3.0
-   OPENDAPNOTIFY="mbilsk3@lsu.edu,jason.g.fleming@gmail.com"
+1)
+   ENSTORM=nhcConsensus
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
