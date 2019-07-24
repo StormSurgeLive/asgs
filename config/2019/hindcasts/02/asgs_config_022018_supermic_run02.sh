@@ -41,7 +41,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 ADCIRCDIR=~/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
 SWANDIR=~/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-SCRIPTDIR=/work/jgflemin/asgs/jasonfleming/master        # ASGS executables
+SCRIPTDIR=~/asgs/jgflemin/asgs/jasonfleming/master        # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v19k # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 
@@ -65,13 +65,6 @@ NCPU=599                    # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=5000
 CYCLETIMELIMIT="05:00:00"
-QUEUENAME=null
-SERQUEUE=null
-SCRATCHDIR=/projects/ncfs/data
-PARTITION=ncfs
-RESERVATION=null
-#CONSTRAINT=ivybridge
-CONSTRAINT=null
 
 # External data sources : Tropical cyclones
 
@@ -81,7 +74,8 @@ YEAR=2019                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 RSSSITE=filesystem
 FTPSITE=filesystem
-FDIR=~/asgs/jasonfleming/2014stable/input/sample_advisories/2019
+# set up for OWI hindcast
+FDIR=/work/jgflemin/asgs/input
 HDIR=$FDIR
 #RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 #FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
@@ -98,6 +92,7 @@ PTFILE=ptFile_hsofs.txt         # the lat/lons for the OWI background met
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
 SPATIALEXTRAPOLATIONRAMP=yes
 SPATIALEXTRAPOLATIONRAMPDISTANCE=5.0
+
 
 # External data sources : River Flux
 
@@ -162,14 +157,14 @@ ASGSADMIN=jason.fleming@seahorsecoastal.com
 
 # ASGS Monitor
 
-RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
-RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+RMQMessaging_Enable="off"      #  enables message generation ("on" | "off")
+RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
 RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
 RMQMessaging_StartupScript="${SCRIPTDIR}/asgs-msgr_startup.py"
 RMQMessaging_NcoHome="/home/jgflemin/"
 RMQMessaging_Python="/projects/storm_surge/anaconda/bin/python"
-RMQMessaging_LocationName="LONI"
-RMQMessaging_ClusterName="Queenbee"
+RMQMessaging_LocationName="LSU"
+RMQMessaging_ClusterName="SuperMIC"
 
 # Post processing and publication
 
