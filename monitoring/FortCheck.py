@@ -1,6 +1,5 @@
 import sys, os
 from netCDF4 import Dataset
-#import netCDF4 as nc
 
 def main(argv):
     if  ( len(sys.argv) !=2 ):
@@ -23,6 +22,7 @@ def main(argv):
     nt=len(ds.variables['time'])
     time=ds.variables['time']
     #print nt,rnday,len(time)
+
     ds.close
 
     if (time.size == 0):
