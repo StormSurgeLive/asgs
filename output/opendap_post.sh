@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------
 # opendap_post.sh : Makes results available to thredds data server.
 #------------------------------------------------------------------------
-# Copyright(C) 2015--2017 Jason Fleming
+# Copyright(C) 2015--2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -237,7 +237,12 @@ case $OPENDAPPOSTMETHOD in
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
          logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-         cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         # use asgs sendmail if Operator has set it up 
+         if [[ -e $HOME/asgs-global.conf ]]; then
+            $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${STORMDIR}/opendap_results_notify_${SERVER}.txt 2>> ${SYSLOG} 2>&1
+         else
+            cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         fi
          opendapEmailSent=yes
          continue        
       fi
@@ -307,12 +312,14 @@ case $OPENDAPPOSTMETHOD in
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
          logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-         cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         # use asgs sendmail if Operator has set it up 
+         if [[ -e $HOME/asgs-global.conf ]]; then
+            $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${STORMDIR}/opendap_results_notify_${SERVER}.txt 2>> ${SYSLOG} 2>&1
+         else
+            cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         fi
          opendapEmailSent=yes
          continue        
-      else
-         # see if the file is currently considered "opened" by another process
-         lsof -t $file 2>> $SYSLOG 2>&1
       fi
       chmod +r $file 2>> $SYSLOG
       logMessage "$ENSTORM: $THIS: Transferring $file to ${OPENDAPHOST}."
@@ -355,7 +362,12 @@ case $OPENDAPPOSTMETHOD in
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
          logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-         cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         # use asgs sendmail if Operator has set it up 
+         if [[ -e $HOME/asgs-global.conf ]]; then
+            $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${STORMDIR}/opendap_results_notify_${SERVER}.txt 2>> ${SYSLOG} 2>&1
+         else
+            cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         fi
          opendapEmailSent=yes
          continue        
       fi
@@ -386,5 +398,10 @@ esac
 #else
 if [[ $opendapEmailSent = "no" ]]; then 
    logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
-   cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+   # use asgs sendmail if Operator has set it up 
+   if [[ -e $HOME/asgs-global.conf ]]; then
+      $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${STORMDIR}/opendap_results_notify_${SERVER}.txt 2>> ${SYSLOG} 2>&1
+   else
+      cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+   fi
 fi
