@@ -23,8 +23,6 @@
 #SBATCH --account=%account%
 #SBATCH --qos=%qos%
 #SBATCH --output=%advisdir%/%scenario%/%jobtype%.out
-#SBATCH --reservation=%reservation%
-#SBATCH --constraint=%constraint%
 #SBATCH --mail-type=FAIL,TIME_LIMIT
 #SBATCH --mail-user=%notifyuser%
 echo "------------------------------------------------------------------------"
