@@ -34,7 +34,9 @@ sub run {
     my @content = <STDIN>;
     my $content;
     if (@content) {
-        $content = join( qq{\n}, @content );
+        # don't need to add a newline between records since each already
+        # ends in a newline
+        $content = join( qq{}, @content );
     }
     else {
         $content = q{empty message};
