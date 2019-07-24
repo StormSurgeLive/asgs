@@ -9,3 +9,8 @@ Math::Trig
 Net::FTP
 Params::Validate
 Time::Local
+Email::Sender::Simple
+Email::Sender::Transport::SMTP::TLS
+Email::Simple::Creator
+Config::Tiny
+Try::Tiny
