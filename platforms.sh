@@ -299,8 +299,11 @@ init_stampede2()
   QSCRIPTGEN=stampede2.slurm.pl
   PPN=48
   GROUP="G-803086"
-  module load netcdf/4.3.3.1
-  module load hdf5/1.8.16
+  module load intel/18.0.2 python2/2.7.15 xalt/2.6.5 TACC
+  if [[ $USER = "jgflemin" ]]; then
+     export PATH=$WORK/local/bin:$PATH
+     export LD_LIBRARY_PATH=$WORK/local/lib:$LD_LIBRARY_PATH
+  fi
 }
 init_kittyhawk()
 { #<- can replace the following with a custom script
