@@ -23,6 +23,12 @@ echo "[${DATETIME}] INFO: %jobtype%.slurm: Executing %jobtype%.%enstorm%
 #----------------------------------------------------------------------------
 #                      L O A D   M O D U L E S
 #----------------------------------------------------------------------------
+if [[ $USER = "jgflemin" ]]; then
+   export PATH=$WORK/local/bin:$PATH
+   export LD_LIBRARY_PATH=$WORK/local/lib:$LD_LIBRARY_PATH
+fi
+echo "PATH is $PATH" | tee --append %syslog%
+echo "LD_LIBRARY_PATH is $LD_LIBRARY_PATH" | tee --append %syslog%
 # 
 #----------------------------------------------------------------------------
 #                  E X E C U T E   T H E   J O B

@@ -1884,7 +1884,7 @@ logMessage "$THIS: The directory $RUNDIR will be used for all files associated w
 # NAM data in
 ALTNAMDIR="${ALTNAMDIR},$RUNDIR"
 # set directory to get perl date calcs module from
-export PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL #<- augment, don't write over existing
+#export PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL #<- augment, don't write over existing
 #
 # send out an email to notify users that the ASGS is ACTIVATED
 ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $RUNDIR advisory enstorm $GRIDFILE activation $EMAILNOTIFY $SYSLOG "${ACTIVATE_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
