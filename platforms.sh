@@ -130,7 +130,7 @@ init_rostam()
 }
 init_supermic()
 { #<- can replace the following with a custom script
-  HPCENV=smic.hpc.lsu.edu
+  HPCENV=supermic.hpc.lsu.edu
   QUEUESYS=PBS
   QCHECKCMD=qstat
   QSUMMARYCMD=showq
@@ -719,7 +719,7 @@ init_desktop()
   HPCENV=jason-desktop.seahorsecoastal.com
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
-  SUBMITSTRING="mpiexec"
+  SUBMITSTRING="mpiexec -n "
   SCRATCHDIR=/srv/asgs
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
