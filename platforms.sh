@@ -534,9 +534,13 @@ init_lonestar()
   SERQSCRIPTGEN=hatteras.slurm.pl
   UMASK=006
   GROUP="G-803086"
-  ml reset
-  PLATFORMMODULES='module load netcdf nco'
-  $PLATFORMMODULES
+  #ml reset
+  if [[ $USER = "jgflemin" ]]; then
+     export PATH=$WORK/local/bin:$PATH
+     export LD_LIBRARY_PATH=$WORK/local/lib:$LD_LIBRARY_PATH
+  fi
+  #PLATFORMMODULES='module load netcdf nco'
+  #$PLATFORMMODULES
   #
   # @jasonfleming 20190218 : don't upgrade pip! 
   # for rabbitmq and the asgs status monitor:
