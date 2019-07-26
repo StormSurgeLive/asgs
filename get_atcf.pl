@@ -31,8 +31,8 @@ use strict;
 use Net::FTP;
 #use Net::HTTP;
 use HTTP::Tiny;
-#use IO::Socket::SSL;
-#use Net::SSLeay;
+use IO::Socket::SSL;
+use Net::SSLeay;
 use Getopt::Long;
 #
 my $statefile="null"; # shell script with variables and values that 
