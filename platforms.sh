@@ -117,7 +117,7 @@ init_rostam()
 }
 init_supermic()
 { #<- can replace the following with a custom script
-  HPCENV=smic.hpc.lsu.edu
+  HPCENV=supermic.hpc.lsu.edu
   QUEUESYS=PBS
   QCHECKCMD=qstat
   QSUMMARYCMD=showq
@@ -134,8 +134,8 @@ init_supermic()
      SCRATCHDIR=/ssdwork/$USER
   fi
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=smic.template.pbs
-  PREPCONTROLSCRIPT=smic.adcprep.template.pbs
+  QSCRIPT=supermic.template.pbs
+  PREPCONTROLSCRIPT=supermic.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=20
   REMOVALCMD="rmpurge"
@@ -559,7 +559,7 @@ init_desktop()
   HPCENV=jason-desktop
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
-  SUBMITSTRING="mpiexec"
+  SUBMITSTRING="mpiexec -n "
   SCRATCHDIR=/srv/asgs
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'

@@ -687,12 +687,6 @@ downloadCycloneData()
     while [ $newAdvisory = false ]; do
        if [[ $TRIGGER != "atcf" ]]; then 
           #echo  "perl $SCRIPTDIR/get_atcf.pl $OPTIONS"  # BOB
-          echo 'cpan -l | grep SSL >> $RUNDIR/cpanm.log' > $RUNDIR/cpanm.log
-          #cpan -l  >> $RUNDIR/cpanm.log 2>&1
-          which cpan >> $RUNDIR/cpanm.log 2>&1
-          which perl >> $RUNDIR/cpanm.log 2>&1
-          which cpanm >> $RUNDIR/cpanm.log 2>&1
-          echo $PERL5LIB
           newAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
        fi
        # check to see if we have a new one, and if so, determine the
