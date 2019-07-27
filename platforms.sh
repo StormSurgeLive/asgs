@@ -280,6 +280,7 @@ init_hatteras()
   SERQUEUE=batch
   CONSTRAINT=null      # ivybridge or sandybridge
   RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
+  PARTITION=null
   QCHECKCMD=sacct
   JOBLAUNCHER='srun '
   ACCOUNT=null
@@ -318,40 +319,22 @@ init_hatteras()
      SCRATCHDIR=/scratch/ncfs-dev/data
      PARTITION=ncfs       # ncfs or batch, gives priority
      PYTHONVENV="$HOME/miniconda2"
+     export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
+     PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.2.1.1-acis netcdf-Fortran/4.2-acis mvapich2/2.0-acis'
      ;;
   ncfs)
      ACCOUNT=ncfs
      QUEUENAME=ncfs     # SLURM partition---ncfs or batch---gives priority
      PYTHONVENV=~/asgs/asgspy/venv
+     PLATFORMMODULES=$PLATFORMMODULES' python_modules/2.7'
      ;;
   *)
      echo "User name $USER on hatteras not recognized and ACCOUNT could not be set."
      ;;
   esac
-  #
-  #RMQMessaging_Enable="on"      # "on"|"off"
-  #RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-  #RMQMessaging_NcoHome="/home/ncfs"
-  #RMQMessaging_Python=/usr/bin/python
-  #RMQMessaging_LocationName="RENCI"
-  #RMQMessaging_ClusterName="Hatteras"
-  #
   QSUMMARYCMD=null
   QUOTACHECKCMD="df -h /projects/ncfs"
   ALLOCCHECKCMD=null
-  SUBMITSTRING=sbatch
-  JOBLAUNCHER=srun
-  SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=hatteras.template.slurm
-  PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
-  RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
-  PARTITION=ncfs
-  CONSTRAINT=null      # ivybridge or sandybridge
-  QSCRIPTGEN=hatteras.slurm.pl
-  PPN=16
-  if [[ $RESERVATION = ncfs ]]; then
-     PPN=20
-  fi
   # to create python environment for the ncfs user, @jasonfleming did this:
   #   pip install --user --upgrade pip
   #   pip install --user --upgrade setuptools
@@ -361,12 +344,6 @@ init_hatteras()
   # for the automated slide deck generator
   #   pip install --user pptx
   #
-  export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
-  PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.2.1.1-acis netcdf-Fortran/4.2-acis mvapich2/2.0-acis'
-
-  if [[ $USER = ncfs ]]; then
-     PLATFORMMODULES=$PLATFORMMODULES' python_modules/2.7'
-  fi
   module purge
   $PLATFORMMODULES
   $SERIALMODULES
