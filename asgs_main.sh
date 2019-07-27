@@ -2045,7 +2045,7 @@ THIS="asgs_main.sh"
 if [[ $PERIODICFLUX != null ]]; then
    logMessage "$THIS: checking for FLUXCALCULATOR script"
    checkFileExistence "" "perl script for calculating periodic flux boundary" $FLUXCALCULATOR
-   checkFileExistence $SCRIPTDIR/PERL "AdcGrid perl module used by flux calculator" AdcGrid.pm
+#   checkFileExistence $SCRIPTDIR/PERL "AdcGrid perl module used by flux calculator" AdcGrid.pm
 fi
 #
 # # @jasonfleming : temporarily disable until we can get this to work reliably
