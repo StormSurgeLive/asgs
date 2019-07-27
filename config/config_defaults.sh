@@ -24,7 +24,6 @@
 #----------------------------------------------------------------
 #
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
-PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 INSTANCENAME=1
 BACKGROUNDMET=on
 TIDEFAC=off
@@ -102,5 +101,3 @@ ONESHOT=no      # yes if ASGS is launched by cron
 NCPUCAPACITY=2  # total number of CPUs available to run jobs
 CYCLETIMELIMIT="05:00:00"
 IMAGEMAGICKBINPATH=null
-SERQSCRIPT=null
-SERQSCRIPTGEN=null
