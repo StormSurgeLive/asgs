@@ -1,15 +1,13 @@
 #!/bin/bash
 #set -x
 #trap read debug
-
 #----------------------------------------------------------------
-#
 # asgs_main.sh: This is the main driver script for the ADCIRC Surge Guidance
 # System (ASGS). It performs configuration tasks via config.sh, then enters a
 # loop which is executed once per advisory cycle.
-#
 #----------------------------------------------------------------
-# Copyright(C) 2018 Jason Fleming
+# Copyright(C) 2006--2019 Jason Fleming
+# Copyright(C) 2006--2007, 2019 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -1456,6 +1454,8 @@ writeProperties()
 writeNAMProperties()
 {
    STORMDIR=$1
+   echo "forcing.nwp.model : nam" >> $STORMDIR/run.properties   
+   echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $STORMDIR/run.properties 
    echo "config.forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties 
    echo "config.forcing.nam.backsite : $BACKSITE" >> $STORMDIR/run.properties 
    echo "config.forcing.nam.backdir : $BACKDIR" >> $STORMDIR/run.properties 
