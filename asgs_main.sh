@@ -785,6 +785,7 @@ downloadBackgroundMet()
       OPTIONS="--rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle $FORECASTCYCLE --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
       logMessage "Downloading NAM data with the following command: perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}"
       newAdvisoryNum=`perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}` 
+      logMessage "$THIS: $ENSTORM: The new NAM cycle is ${newAdvisoryNum}."
       if [[ $newAdvisoryNum -lt 2 ]]; then
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
          sleep 60
@@ -792,9 +793,10 @@ downloadBackgroundMet()
       fi
    done
    # record the new advisory number to the statefile
-   cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG}
+   cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 2>&1
    sed 's/ADVISORY=.*/ADVISORY='$newAdvisoryNum'/' $STATEFILE > ${STATEFILE}.new
-   cp -f ${STATEFILE}.new $STATEFILE >> ${SYSLOG} 2>&1          
+   logMessage "Updating statefile $STATEFILE with new cycle number ${newAdvisoryNum}."
+   cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG} 2>&1          
 }
 #
 # subroutine that downloads river flux data from an external ftp site
