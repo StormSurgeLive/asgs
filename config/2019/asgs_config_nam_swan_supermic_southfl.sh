@@ -28,9 +28,9 @@
 # Fundamental
 
 INSTANCENAME=readysouthflwaves    # "name" of this ASGS process
-COLDSTARTDATE=auto # YYYYMMDDHH24 or "auto" to extract from hotstart file
-HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=/work/jgflemin/asgs13074/2019071906
+COLDSTARTDATE=2019062300 # YYYYMMDDHH24 or "auto" to extract from hotstart file
+HOTORCOLD=coldstart      # "hotstart" or "coldstart"
+LASTSUBDIR=null
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 

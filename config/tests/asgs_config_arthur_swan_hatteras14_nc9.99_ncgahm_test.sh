@@ -41,7 +41,6 @@ ADCIRCDIR=~/adcirc/GAHM_jie/work # ADCIRC executables
 SCRIPTDIR=~/asgs/trunk  # ASGS scripts/executables  
 INPUTDIR=${SCRIPTDIR}/input/meshes/NCv9.98_012014   # dir containing grid and other input files 
 OUTPUTDIR=${SCRIPTDIR}/output # dir containing post processing scripts
-PERL5LIB=${SCRIPTDIR}/PERL    # dir with DateCale.pm perl module
 
 # Physical forcing
 

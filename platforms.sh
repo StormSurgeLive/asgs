@@ -130,7 +130,7 @@ init_rostam()
 }
 init_supermic()
 { #<- can replace the following with a custom script
-  HPCENV=smic.hpc.lsu.edu
+  HPCENV=supermic.hpc.lsu.edu
   QUEUESYS=PBS
   QCHECKCMD=qstat
   QSUMMARYCMD=showq
@@ -280,6 +280,7 @@ init_hatteras()
   SERQUEUE=batch
   CONSTRAINT=null      # ivybridge or sandybridge
   RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
+  PARTITION=null
   QCHECKCMD=sacct
   JOBLAUNCHER='srun '
   ACCOUNT=null
@@ -315,11 +316,14 @@ init_hatteras()
      SCRATCHDIR=/scratch/ncfs-dev/data
      PARTITION=ncfs       # ncfs or batch, gives priority
      PYTHONVENV="$HOME/miniconda2"
+     export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
+     PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.2.1.1-acis netcdf-Fortran/4.2-acis mvapich2/2.0-acis'
      ;;
   ncfs)
      ACCOUNT=ncfs
      QUEUENAME=ncfs     # SLURM partition---ncfs or batch---gives priority
      PYTHONVENV=~/asgs/asgspy/venv
+     PLATFORMMODULES=$PLATFORMMODULES' python_modules/2.7'
      ;;
   *)
      echo "User name $USER on hatteras not recognized and ACCOUNT could not be set."
@@ -329,6 +333,7 @@ init_hatteras()
   if [[ $RESERVATION = ncfs ]]; then
      PPN=20
   fi
+
   # to create python environment for the ncfs user, @jasonfleming did this:
   #   pip install --user --upgrade pip
   #   pip install --user --upgrade setuptools
@@ -338,6 +343,7 @@ init_hatteras()
   # for the automated slide deck generator
   #   pip install --user pptx
   #
+
   MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
   export MODULEPATH
   PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.2.1.1-acis netcdf-Fortran/4.2-acis'
@@ -700,7 +706,7 @@ init_desktop()
   HPCENV=jason-desktop.seahorsecoastal.com
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
-  SUBMITSTRING="mpiexec"
+  SUBMITSTRING="mpiexec -n "
   SCRATCHDIR=/srv/asgs
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
