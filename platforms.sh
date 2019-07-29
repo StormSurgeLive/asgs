@@ -300,9 +300,6 @@ init_hatteras()
   RMQMessaging_LocationName="RENCI"
   RMQMessaging_ClusterName="Hatteras"
   #
-  PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0'
-  SERIALMODULES='module load' # no extra modules for serial jobs
-  PARALLELMODULES='module load mvapich2/2.0-acis'
   # specify location of platform- and Operator-specific scripts to 
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/hatteras
@@ -328,26 +325,6 @@ init_hatteras()
      echo "User name $USER on hatteras not recognized and ACCOUNT could not be set."
      ;;
   esac
-  #
-  #RMQMessaging_Enable="on"      # "on"|"off"
-  #RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-  #RMQMessaging_NcoHome="/home/ncfs"
-  #RMQMessaging_Python=/usr/bin/python
-  #RMQMessaging_LocationName="RENCI"
-  #RMQMessaging_ClusterName="Hatteras"
-  #
-  QSUMMARYCMD=null
-  QUOTACHECKCMD="df -h /projects/ncfs"
-  ALLOCCHECKCMD=null
-  SUBMITSTRING=sbatch
-  JOBLAUNCHER=srun
-  SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=hatteras.template.slurm
-  PREPCONTROLSCRIPT=hatteras.adcprep.template.slurm
-  RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
-  PARTITION=ncfs
-  CONSTRAINT=null      # ivybridge or sandybridge
-  QSCRIPTGEN=hatteras.slurm.pl
   PPN=16
   if [[ $RESERVATION = ncfs ]]; then
      PPN=20
@@ -361,14 +338,18 @@ init_hatteras()
   # for the automated slide deck generator
   #   pip install --user pptx
   #
-  export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
-  PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.2.1.1-acis netcdf-Fortran/4.2-acis mvapich2/2.0-acis'
+  MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
+  export MODULEPATH
+  PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.2.1.1-acis netcdf-Fortran/4.2-acis'
+  PARALLELMODULES='module load mvapich2/2.0-acis' 
+  SERIALMODULES='module load' # no extra modules for serial jobs
 
   if [[ $USER = ncfs ]]; then
      PLATFORMMODULES=$PLATFORMMODULES' python_modules/2.7'
   fi
   module purge
   $PLATFORMMODULES
+  $PARALLELMODULES
   $SERIALMODULES
 }
 init_stampede()
