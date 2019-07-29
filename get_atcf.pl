@@ -31,8 +31,8 @@ use strict;
 use Net::FTP;
 #use Net::HTTP;
 use HTTP::Tiny;
-#use IO::Socket::SSL;
-#use Net::SSLeay;
+use IO::Socket::SSL;
+use Net::SSLeay;
 use Getopt::Long;
 #
 my $statefile="null"; # shell script with variables and values that 
@@ -213,58 +213,27 @@ while (!$dl) {
             next;        
          }
       } else {
-         
-                  # pick up the RSS feed from the web
-         my $http = Net::HTTP->new(Host => $rsssite);
-         unless ($http) {
-            stderrMessage("ERROR","http: Cannot connect to $rsssite: $@");
-            next;
-         }
-         my $httpReqSuccess = $http->write_request(GET         => "/index-at.xml",
-                                                  'User-Agent' => "Mozilla/5.0");
-         unless ( $httpReqSuccess ) {
-            stderrMessage("ERROR","http: Request for index-at.xml failed.");
-            next;
-         }
-         my ($code, $mess, %h) = $http->read_response_headers();
-         #nld empty $body to clear any old advisory numbers from the xml
-         $body="";
-         #
-         # @jasonfleming : revert to not using HTTP::Tiny until we can
-         # figure out how to make this work reliably without having to 
-         # build and install additional perl modules.
-         #        
          # pick up the RSS feed from the web
          #(my $ok, my $why) = HTTP::Tiny->can_ssl;
          #(my $ok, my $why) = $http->can_ssl();
          #stderrMessage("DEBUG","ok is $ok");
          #stderrMessage("DEBUG","why is $why");
-#         my %attributes = ();
-#         $attributes{'verify_SSL'} = 1;
-#         my $http = HTTP::Tiny->new(%attributes);
-#         my $response = $http->get('https://' . $rsssite . '/index-at.xml');
-#         if ( $response->{status} == 599 ) { 
-#            stderrMessage("ERROR","Failed to download forecast/advisory.");
-#            printf STDERR "content: ";
-#            print STDERR $response->{content};
-#            printf STDERR "status: ";
-#            print STDERR $response->{status} . "\n";
-#            printf STDERR "reason: ";
-#            print STDERR $response->{reason} . "\n";
-#         }
-#         #nld empty $body to clear any old advisory numbers from the xml
-#         $body = $response->{content};
-         
-         while(1) {
-            my $buf;
-            my $n = $http->read_entity_body($buf,1024);
-            unless ( defined $n ) {
-               stderrMessage("ERROR","http: buffer read failed: $!");
-               last;
-            }
-            last unless $n;
-            $body.=$buf;
+         my %attributes = ();
+         $attributes{'verify_SSL'} = 1;
+         my $http = HTTP::Tiny->new(%attributes);
+         my $response = $http->get('https://' . $rsssite . '/index-at.xml');
+         if ( $response->{status} == 599 ) { 
+            stderrMessage("ERROR","Failed to download forecast/advisory.");
+            printf STDERR "content: ";
+            print STDERR $response->{content};
+            printf STDERR "status: ";
+            print STDERR $response->{status} . "\n";
+            printf STDERR "reason: ";
+            print STDERR $response->{reason} . "\n";
          }
+         #nld empty $body to clear any old advisory numbers from the xml
+         $body="";
+         $body = $response->{content};
          my $indexOpenSuccess = open(INDEX,">index-at.xml");
          unless ($indexOpenSuccess) {
             stderrMessage("ERROR","Could not open index-at.xml for writing.");
@@ -273,7 +242,6 @@ while (!$dl) {
          print INDEX $body;
          close(INDEX);
       }
-         
       my @lines=split("\n",$body); # break text into an array of lines
       my $cnt=@lines;  # count them
       my $i=0;
@@ -294,10 +262,8 @@ while (!$dl) {
       # look for the advisory by storm number, not name. 
       while ($i<$cnt) {
          # TROPICAL STORM BERTHA FORECAST/ADVISORY NUMBER  22
-         # example line:
          # NWS NATIONAL HURRICANE CENTER MIAMI FL       AL032014
-         #
-         # pre-2006 example line:
+         # pre-2006:
          # NWS TPC/NATIONAL HURRICANE CENTER MIAMI FL       AL182005
          if ( $lines[$i] =~ /NATIONAL HURRICANE CENTER MIAMI FL\s+AL(\d{2})(\d{4})/ ) {
             if ($1 == $storm && $2 == $year && $lines[$i-1] =~ /FORECAST.ADVISORY/ ) {

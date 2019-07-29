@@ -41,7 +41,6 @@ SWANDIR=$WORK/adcirc-cg/jasonfleming/v53release/swan    # SWAN executables
 SCRIPTDIR=$WORK/asgs/jasonfleming/master   # ASGS executables
 INPUTDIR=$SCRIPTDIR/input/meshes/ec95d     # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output              # post processing scripts
-PERL5LIB=${SCRIPTDIR}/PERL                 # DateCale.pm perl module
 
 # Physical forcing
 
