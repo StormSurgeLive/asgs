@@ -416,7 +416,8 @@ prep()
           # globalized fulldomain swan hotstart files or start to copy 
           # subdomain swan hotstart files that are being deleted by an
           # archiving script
-          swanArchiveStart=`sed -n 's/[ ^]*$//;s/time.archive.start\s*:\s*//p' $FROMDIR/run.properties`          
+          logMessage "$ENSTORM: $THIS: Detecting time that SWAN hotstart archiving process started in ${FROMDIR}."
+          swanArchiveStart=`sed -n 's/[ ^]*$//;s/time.archive.start\s*:\s*//p' $FROMDIR/run.properties`
           if [[ ! -z $swanArchiveStart ]]; then 
              # archiving process has started
              logMessage "$ENSTORM: $THIS: The archiving process for the hotstart source run started at $swanArchiveStart."
@@ -424,6 +425,7 @@ prep()
              waitMinutesMax=60  # max number of minutes to wait for upstream archiving process to finish
              while [[ $waitMinutes -lt $waitMinutesMax ]]; do
                 # wait until it is finished or has errored out
+                logMessage "$ENSTORM: $THIS: Detecting finish or error condition for archiving SWAN hotstart files in ${FROMDIR}."
                 swanArchiveFinish=`sed -n 's/[ ^]*$//;s/time.archive.finish\s*:\s*//p' $FROMDIR/run.properties`
                 swanArchiveError=`sed -n 's/[ ^]*$//;s/time.archive.error\s*:\s*//p' $FROMDIR/run.properties`
                 if [[ ! -z $swanArchiveFinish || ! -z $swanArchiveError ]]; then
@@ -437,7 +439,11 @@ prep()
              if [[ $waitMinutes -ge 60 ]]; then
                 warn "$ENSTORM: $THIS: The archiving process for the hotstart source run did not finish within $watiMinutesMax minutes. Attempting to collect SWAN hotstart files anyway."            
              fi
+          else
+             # FIXME: how to handle this situation?
+             warn "$ENSTORM: $THIS: The SWAN hotstart archiving process has not started in ${FROMDIR}."
           fi
+          logMessage "$ENSTORM: $THIS: Detecting number of subdomains for SWAN hotstart files in ${FROMDIR}."
           hotSubdomains=`sed -n 's/[ ^]*$//;s/hpc.job.padcswan.ncpu\s*:\s*//p' $FROMDIR/run.properties`
           logMessage "hotSubdomains is $hotSubdomains ; NCPU is $NCPU ; FROMDIR is $FROMDIR"
           if [[ $hotSubdomains = $NCPU ]]; then
@@ -742,6 +748,7 @@ downloadCycloneData()
     logMessage "$THIS: New forecast detected."
     cp -f $STATEFILE ${STATEFILE}.old
     sed 's/ADVISORY=.*/ADVISORY='$newAdvisoryNum'/' $STATEFILE > ${STATEFILE}.new
+    logMessage "$ENSTORM: $THIS: The new advisory number is ${newAdvisoryNum}."
     cp -f ${STATEFILE}.new $STATEFILE >> ${SYSLOG} 2>&1 
     if [[ $TRIGGER = rss || $TRIGGER = rssembedded ]]; then
        perl ${SCRIPTDIR}/nhc_advisory_bot.pl --input ${forecastFileName}.html --output $forecastFileName --metadata forecast.properties >> ${SYSLOG} 2>&1
@@ -776,8 +783,10 @@ downloadBackgroundMet()
    logMessage "$ENSTORM: $THIS: Downloading meteorological data."
    cd $RUNDIR 2>> ${SYSLOG}
    if [[ $ENSTORM != "nowcast" ]]; then
-      grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//' > currentCycle 2>> ${SYSLOG}
-      logMessage "According to the statefile $STATEFILE the most recently completed nowcast is from cycle ${ADVISORY}."
+      advisoryLine=`grep ADVISORY $STATEFILE`
+      ADVISORY=${advisoryLine##ADVISORY=}
+      echo $ADVISORY > $RUNDIR/currentCycle
+      logMessage "According to the statefile ${STATEFILE}, the most recently downloaded cycle is ${ADVISORY}."
    fi
    newAdvisoryNum=0
    TRIES=0
@@ -932,6 +941,7 @@ monitorJobs()
          # if the job was submitted through a queueing system, then the
          # queueing system will terminate it
          if [[ $QUEUESYS = mpiexec ]]; then
+            logMessage "$ENSTORM: $THIS: Detecting mpiexec subshell pid."
             pid=`grep 'mpiexec subshell pid' ${ADVISDIR}/${ENSTORM}/run.properties | sed 's/mpiexec subshell pid.*://' | sed 's/^\s//'`
             #logMessage "Terminating the $ENSTORM_TEMP job with the command 'kill -TERM `ps --ppid $pid -o pid --no-headers'."
             # need to kill the mpiexec process, but don't know its process ID
@@ -1213,6 +1223,7 @@ handleFailedJob()
    ARCHIVEBASE=${15}
    ARCHIVEDIR=${16}
    THIS="asgs_main.sh>handleFailedJob()"
+   debugMessage "$ENSTORM: $THIS: handleFailedJob called with the following arguments: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY LASTADVISORYNUM=$LASTADVISORYNUM STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
    # check to see that the job did not conspicuously fail
    if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then
       RMQMessage "WARN" "$CURRENT_EVENT" "$THIS>$ENSTORM" "FAIL" "The job ($ENSTORM/$ADVISORY) has failed." 0
@@ -1225,6 +1236,7 @@ handleFailedJob()
    fi
    # roll back the latest advisory number if the nowcast failed
    if [[ $ENSTORM = nowcast ]]; then
+      logMessage "Rolling back the advisory number in the state file $STATEFILE due to failed nowcast."
       sed 's/ADVISORY=.*/ADVISORY='$LASTADVISORYNUM'/' $STATEFILE > ${STATEFILE}.new 2>> ${SYSLOG}
       mv -f ${STATEFILE}.new $STATEFILE >> ${SYSLOG} 2>&1 
    fi
@@ -1619,6 +1631,7 @@ trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; . $CONFIG' US
 trap 'sigint' INT
 
 # Send message with config file contents as the message body.  This is only done once at ASGS startup
+logMessage "Sending a message with the asgs configuration file as the message body."
 temp=`cat $CONFIG | sed '/^#/d' | sed '/^$/d'` 
 RMQMessageStartup "$temp"
 
@@ -1793,6 +1806,7 @@ if [[ $HOTORCOLD = hotstart ]]; then
       logMessage "Downloading run.properties file associated with hotstart file from ${hotstartURL}."
       # get cold start time from the run.properties file
       curl $hotstartURL/run.properties > $RUNDIR/from.run.properties
+      logMessage "$ENSTORM: $THIS: Detecting cold start date from $RUNDIR/from.run.properties."
       COLDSTARTDATE=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' ${RUNDIR}/from.run.properties`
       logMessage "The cold start datetime associated with the remote hotstart file is ${COLDSTARTDATE}."
       # pull down fort.68 file and save as fort.67 just because that
@@ -1984,6 +1998,7 @@ if [[ $START = coldstart ]]; then
    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
    THIS="asgs_main.sh"
    # check to see that adcprep did not conspicuously fail
+
    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV hindcast $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
    THIS="asgs_main.sh"
    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
@@ -2142,6 +2157,7 @@ while [ true ]; do
       THIS="asgs_main.sh"
       LASTADVISORYNUM=$ADVISORY
       # pull the latest advisory number from the statefile
+      logMessage "$ENSTORM: $THIS: Pulling latest advisory number from the state file ${STATEFILE}."
       ADVISORY=`grep "ADVISORY" $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
 
       ADVISDIR=$RUNDIR/${ADVISORY}
@@ -2172,6 +2188,7 @@ while [ true ]; do
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
+      logMessage "$ENSTORM: $THIS: Detecting storm name in run.properties file."
       STORMNAME=`grep "stormname" run.properties | sed 's/stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}    
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "StormName is $STORMNAME"
       # create a GAHM or ASYMMETRIC fort.22 file from the existing track file
@@ -2200,8 +2217,10 @@ while [ true ]; do
          logMessage "$ENSTORM: $THIS: downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
          CURRENT_STATE="WAIT"
          downloadBackgroundMet $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+
          THIS="asgs_main.sh"
          LASTADVISORYNUM=$ADVISORY
+         logMessage "$ENSTORM: $THIS: Detecting the ADVISORY from the state file ${STATEFILE}."
          ADVISORY=`grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
          ADVISDIR=$RUNDIR/${ADVISORY}
          NOWCASTDIR=$ADVISDIR/$ENSTORM
@@ -2237,6 +2256,7 @@ while [ true ]; do
             newAdvisoryNum=${linkTarget:0:10}
             # record the advisory number to the statefile
             cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG}
+            logMessage "$ENSTORM: $THIS: Recording the advisory number $newAdvisoryNum to the state file ${STATEFILE}."
             sed 's/ADVISORY=.*/ADVISORY='$newAdvisoryNum'/' $STATEFILE > ${STATEFILE}.new
             cp -f ${STATEFILE}.new $STATEFILE >> ${SYSLOG} 2>&1 
             LASTADVISORYNUM=$ADVISORY
@@ -2300,6 +2320,7 @@ while [ true ]; do
    if [ ! -s "fort.15" ] ; then
       warn "$THIS: $ENSTORM: fort.15 file is 0-length. The $ENSTORM run will be abandoned." 
       echo "$THIS: $ENSTORM: fort.15 file is 0-length. The $ENSTORM run will be abandoned." >> jobFailed
+
       handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
       THIS="asgs_main.sh"
       CURRENT_EVENT="REND"
@@ -2429,6 +2450,7 @@ while [ true ]; do
       hotstartURL=null
    fi
    LUN=67  # asgs always tells adcirc to read a 68 file and write a 67 file
+   logMessage "Detecting LASTSUBDIR from NOWCASTDIR ${NOWCASTDIR}."
    LASTSUBDIR=`echo $NOWCASTDIR | sed 's/\/nowcast//g ; s/\/hindcast//g'`
    echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
    echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
