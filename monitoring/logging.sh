@@ -44,7 +44,7 @@ sigterm() {
 #
 # send message when shutting down on EXIT and clear all processes
 sigexit() {
-   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigiexit()" "EXIT" "Received SIGEXIT.  Shutting ASGS down ..." 
+   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigexit()" "EXIT" "Received SIGEXIT.  Shutting ASGS down ..." 
    allMessage "Received SIGEXIT.  Shutting ASGS instance $INSTANCENAME down."
    trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group 
    exit 0
