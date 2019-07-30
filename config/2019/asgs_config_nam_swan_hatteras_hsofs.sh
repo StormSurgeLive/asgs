@@ -28,10 +28,10 @@
 # Fundamental
 
 INSTANCENAME=namhsofs    # "name" of this ASGS process
-COLDSTARTDATE=2019050700  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2019062000  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
-HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
+HINDCASTLENGTH=19.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
 # Source file paths
@@ -175,7 +175,7 @@ RMQMessaging_ClusterName="Hatteras"
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=hsofs_renci_post.sh
+POSTPROCESS=hsofs_renci_post_nam.sh
 POSTPROCESS2=null_post.sh
 
 # opendap
@@ -188,7 +188,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,bblanton@renci.org"  # jason.g.fleming@gmail.com"
 
 # Archiving
 
