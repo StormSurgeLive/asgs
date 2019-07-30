@@ -5,11 +5,11 @@ package util::asgs_sendmail;
 use strict;
 use warnings;
 
-use Email::Sender::Simple qw(sendmail);
-use Email::Sender::Transport::SMTP::TLS;
-use Email::Simple::Creator;
-use Config::Tiny;
-use Try::Tiny;
+use Email::Sender::Simple qw(sendmail);  # main email capability (receives TLS obj)
+use Email::Sender::Transport::SMTP::TLS; # creates transport object
+use Email::Simple::Creator;  # generates message itself (converts header and body from hash to text email)
+use Config::Tiny; # reads ini format ... converts to a perl hash
+use Try::Tiny;    # exception handling (alternative to eval)
 use Getopt::Long;
 use constant EXIT_SUCCESS => 0;
 
