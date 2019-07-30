@@ -834,7 +834,8 @@ init_tacc_tds()
 }
 init_penguin()
 { #<- can replace the following with a custom script
-  HPCENV=login-29-45.pod.penguincomputing.com
+  HPCENV=pod.penguincomputing.com
+  #HOSTNAME=login-29-45.pod.penguincomputing.com
   QUEUESYS=PBS
   QCHECKCMD=qstat
   SCRATCHDIR=/home/$USER

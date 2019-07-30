@@ -29,27 +29,23 @@ HSTIME=$6
 SYSLOG=$7
 SERVER=$8
 FILES=("$9") # array of files to post to opendap
-#OPENDAPNOTIFY=$10
-
-#echo $OPENDAPNOTIFY
 #
-
 declare -A properties
 # get loadProperties function   
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties 2>>$SYSLOG`   
 source $SCRIPTDIR/properties.sh
-# load run.properties file into associative array
-loadProperties   
 #
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR}
+# load run.properties file into associative array
+loadProperties $STORMDIR/run.properties  
 # get the forecast ensemble member number for use in 
 # picking up any bespoke configuration for this ensemble
 # member in the configuration files
-ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+ENMEMNUM=${properties["forecastEnsembleMemberNumber"]}
 si=$ENMEMNUM
 # load asgs operator email address
-ASGSADMIN=`grep "notification.email.asgsadmin" ${STORMDIR}/run.properties | sed 's/notification.email.asgsadmin.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+ASGSADMIN=${properties["notification.email.asgsadmin"]}
 #
 ## grab all config info
 . ${CONFIG} 
@@ -72,17 +68,19 @@ STORMNAMEPATH=null
 #
 # form path to results on tds based on type of forcing or name of storm
 if [[ $BACKGROUNDMET != off ]]; then
-   YEAR=`grep "forcing.nwp.year" ${STORMDIR}/run.properties | sed 's/forcing.nwp.year.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
-   NWPMODEL=`grep "forcing.nwp.model" ${STORMDIR}/run.properties | sed 's/forcing.nwp.model.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+   # for NAM, the "advisory number" is actually the cycle time 
+   YEAR=${properties["forcing.nwp.year"]}
+   NWPMODEL=${properties["forcing.nwp.model"]}
    STORMNAMEPATH=$YEAR/$NWPMODEL
 fi
-if [[ $TROPICALCYCLONE != off ]]; then
-   YEAR=`grep "forcing.tropicalcyclone.year" ${STORMDIR}/run.properties | sed 's/forcing.tropicalcyclone.year.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
-   STORMNAME=`grep -m 1 "forcing.tropicalcyclone.stormname" ${STORMDIR}/run.properties | sed 's/forcing.tropicalcyclone.stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
-   STORMNUMBER=`grep "forcing.tropicalcyclone.stormnumber" ${STORMDIR}/run.properties | sed 's/forcing.tropicalcyclone.stormnumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+if [[ $TROPICALCYCLONE = on ]]; then
+   YEAR=${properties["forcing.tropicalcyclone.year"]}
+   STORMNAME=${properties["forcing.tropicalcyclone.stormname"]}
+   STORMNUMBER=${properties["forcing.tropicalcyclone.stormnumber"]}
    STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
-   STORMNAMEPATH=$YEAR/$STORMNUMBER
-   ALTSTORMNAMEPATH=$YEAR/$STORMNAMELC
+   basin="al" # FIXME: write/read a property instead of hardcoding the atlantic basin
+   STORMNAMEPATH=$YEAR/$basin$STORMNUMBER
+   ALTSTORMNAMEPATH=$YEAR/$STORMNAMELC  # symbolic link with name
 fi
 OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HPCENV/$INSTANCENAME/$ENSTORM
 #
@@ -103,13 +101,11 @@ fi
 #-----------------------------------------------------------------------
 # Establish the default method of posting results for service via opendap
 OPENDAPPOSTMETHOD=scp
-
 #
 # mvb20190620: Testing rsync with the LSU CCR thredds server
 if [[ $SERVER = "lsu_ccr_tds" ]]; then
     OPENDAPPOSTMETHOD=rsync
 fi
-
 #
 # Determine whether to copy files instead of using scp by looking at the
 # list of HPC machines that share a common filesystem with this TDS. 
@@ -144,7 +140,7 @@ threddsPostStatus=ok
 # before all the files have been posted. 
 opendapEmailSent=no
 #
-runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'`
+runStartTime=${properties["RunStartTime"]}
 subject="ADCIRC POSTED for $runStartTime"
 if [[ $TROPICALCYCLONE = on ]]; then
    subject=${subject}" (TC)"
