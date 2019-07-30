@@ -38,8 +38,10 @@ declare -A properties
 # get loadProperties function   
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties 2>>$SYSLOG`   
 source $SCRIPTDIR/properties.sh
+
 # load run.properties file into associative array
 loadProperties   
+
 #
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR}
@@ -81,6 +83,8 @@ if [[ $TROPICALCYCLONE = on ]]; then
    STORMNAMEPATH=tc/$STORMNAMELC
 fi
 OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HPCENV/$INSTANCENAME/$ENSTORM
+echo $OPENDAPSUFFIX
+
 #
 # Create full path to results for server file sytem. 
 # OPENDAPBASEDIR is specified in platforms.sh.
@@ -98,7 +102,7 @@ fi
 #           D E T E R M I N E   M E T H O D
 #-----------------------------------------------------------------------
 # Establish the default method of posting results for service via opendap
-OPENDAPPOSTMETHOD=scp
+OPENDAPPOSTMETHOD=link
 
 #
 # mvb20190620: Testing rsync with the LSU CCR thredds server
@@ -159,6 +163,7 @@ or wget the file with the following command
 
 wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
 END
+
 #
 #-------------------------------------------------------------------
 #                P O S T   V I A   S C P
@@ -313,6 +318,10 @@ case $OPENDAPPOSTMETHOD in
    #
    # if the HPC and TDS do share a common filesystem, create symbolic links
    # to the actual results files in a place where TDS can find them
+echo "$OPENDAPBASEDIR"
+echo "$OPENDAPDIR"
+exit
+
    mkdir -p $OPENDAPDIR 2>> $SYSLOG
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories

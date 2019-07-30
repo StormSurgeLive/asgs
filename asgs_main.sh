@@ -692,7 +692,6 @@ downloadCycloneData()
           which cpan >> $RUNDIR/cpanm.log 2>&1
           which perl >> $RUNDIR/cpanm.log 2>&1
           which cpanm >> $RUNDIR/cpanm.log 2>&1
-          echo $PERL5LIB
           newAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
        fi
        # check to see if we have a new one, and if so, determine the
@@ -2056,19 +2055,15 @@ while [ true ]; do
    ENSTORM=nowcast
 
    # determine if this date/advisory is the next cycle
-   #echo "\$ADVISORY=$ADVISORY"
    if [[  -e "$OLDADVISDIR/$ENSTORM/padcirc.$ENSTORM.run.finish"  ||  -e "$OLDADVISDIR/$ENSTORM/padcswan.$ENSTORM.run.finish"  ]] ; then
-	   #echo "yes"
 	   if [[ "$TROPICALCYCLONE" == "off" ]]; then
 	   	RMQADVISORY=$(IncrementNCEPCycle $ADVISORY)
 	   else
-		RMQADVISORY=$[$ADVISORY +1]
+		RMQADVISORY=$[10#$ADVISORY +1]
 	   fi
    else
-	   #echo "no"
 	   RMQADVISORY=$ADVISORY
    fi
-   #echo "\$RMQADVISORY=$RMQADVISORY"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting new NC/FC Cycle for ADVISORY $RMQADVISORY."
   
    si=-1
@@ -2171,6 +2166,9 @@ while [ true ]; do
       CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Generating ADCIRC Met File (fort.22) for nowcast."
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
+#BB
+      echo ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS
+#BB
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
       STORMNAME=`grep "stormname" run.properties | sed 's/stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}    
@@ -2729,8 +2727,6 @@ while [ true ]; do
                   echo "time.post.start : $DATETIME" >> ${STORMDIR}/run.properties
                   #com="${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
                   com="${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY "
-#BB echo "here ye, here ye, here ye!!"
-#BB echo "$com"
                   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WAIT" "${POSTPROCESS} $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR"
                   $com
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`

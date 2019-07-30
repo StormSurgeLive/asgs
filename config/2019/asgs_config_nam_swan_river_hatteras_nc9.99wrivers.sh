@@ -61,11 +61,11 @@ TIMESTEPSIZE=0.5
 SWANDT=1200
 HINDCASTWALLTIME="24:00:00"
 ADCPREPWALLTIME="01:15:00"
-NOWCASTWALLTIME="10:00:00"  # must have leading zero, e.g., 05:00:00
+NOWCASTWALLTIME="03:00:00"  # must have leading zero, e.g., 05:00:00
 FORECASTWALLTIME="05:00:00" # must have leading zero, e.g., 05:00:00
-NCPU=512
+NCPU=511
 NUMWRITERS=1
-NCPUCAPACITY=640
+NCPUCAPACITY=512
 CYCLETIMELIMIT="05:00:00"
 
 # queue
@@ -179,7 +179,8 @@ RMQMessaging_ClusterName="Hatteras"
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=ncfs_post_no-cera.sh
+#POSTPROCESS=ncfs_post_no-cera.sh
+POSTPROCESS=ncfs_post.sh
 POSTPROCESS2=null_post.sh
 
 TDS=(renci_tds)
@@ -190,7 +191,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="$ems" # "asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 
