@@ -117,7 +117,7 @@ init_rostam()
 }
 init_supermic()
 { #<- can replace the following with a custom script
-  HPCENV=smic.hpc.lsu.edu
+  HPCENV=supermic.hpc.lsu.edu
   QUEUESYS=PBS
   QCHECKCMD=qstat
   QSUMMARYCMD=showq
@@ -134,8 +134,8 @@ init_supermic()
      SCRATCHDIR=/ssdwork/$USER
   fi
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=smic.template.pbs
-  PREPCONTROLSCRIPT=smic.adcprep.template.pbs
+  QSCRIPT=supermic.template.pbs
+  PREPCONTROLSCRIPT=supermic.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=20
   REMOVALCMD="rmpurge"
@@ -143,7 +143,7 @@ init_supermic()
   $PLATFORMMODULES
   # modules for CPRA post processing
   #module load matlab/r2015b
-  #module load python/2.7.12-anaconda-tensorflow
+  module load python/2.7.13-anaconda-tensorflow
 }
 init_arete()
 { #<- can replace the following with a custom script
@@ -204,7 +204,6 @@ init_croatan()
 }
 init_pod()
 { #<- can replace the following with a custom script
-  HOSTNAME=pod.penguincomputing.com
   HPCENV=pod.penguincomputing.com
   QUEUESYS=PBS
   QCHECKCMD=qstat
@@ -287,7 +286,7 @@ init_stampede()
 }
 init_stampede2()
 { #<- can replace the following with a custom script
-  HOSTNAME=stampede2.tacc.utexas.edu
+  HPCENV=stampede2.tacc.utexas.edu
   QUEUESYS=SLURM
   QCHECKCMD=sacct
   ACCOUNT=PleaseSpecifyACCOUNTInYourAsgsConfigFile
@@ -299,8 +298,11 @@ init_stampede2()
   QSCRIPTGEN=stampede2.slurm.pl
   PPN=48
   GROUP="G-803086"
-  module load netcdf/4.3.3.1
-  module load hdf5/1.8.16
+  module load intel/18.0.2 python2/2.7.15 xalt/2.6.5 TACC
+  if [[ $USER = "jgflemin" ]]; then
+     export PATH=$WORK/local/bin:$PATH
+     export LD_LIBRARY_PATH=$WORK/local/lib:$LD_LIBRARY_PATH
+  fi
 }
 init_kittyhawk()
 { #<- can replace the following with a custom script
@@ -531,9 +533,13 @@ init_lonestar()
   SERQSCRIPTGEN=hatteras.slurm.pl
   UMASK=006
   GROUP="G-803086"
-  ml reset
-  PLATFORMMODULES='module load netcdf nco'
-  $PLATFORMMODULES
+  #ml reset
+  if [[ $USER = "jgflemin" ]]; then
+     export PATH=$WORK/local/bin:$PATH
+     export LD_LIBRARY_PATH=$WORK/local/lib:$LD_LIBRARY_PATH
+  fi
+  #PLATFORMMODULES='module load netcdf nco'
+  #$PLATFORMMODULES
   #
   # @jasonfleming 20190218 : don't upgrade pip! 
   # for rabbitmq and the asgs status monitor:
@@ -552,7 +558,7 @@ init_desktop()
   HPCENV=jason-desktop
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
-  SUBMITSTRING="mpiexec"
+  SUBMITSTRING="mpiexec -n "
   SCRATCHDIR=/srv/asgs
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
@@ -630,7 +636,7 @@ init_tacc_tds()
    OPENDAPHOST=adcircvis.tacc.utexas.edu
    DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer/asgs"
    CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog/asgs"
-   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS/2018
+   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
    SSHPORT=null
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
    #COPYABLEHOSTS=(lonestar lonestar.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
@@ -641,7 +647,8 @@ init_tacc_tds()
 }
 init_penguin()
 { #<- can replace the following with a custom script
-  HOSTNAME=login-29-45.pod.penguincomputing.com
+  HPCENV=pod.penguincomputing.com
+  #HOSTNAME=login-29-45.pod.penguincomputing.com
   QUEUESYS=PBS
   QCHECKCMD=qstat
   SCRATCHDIR=/home/$USER

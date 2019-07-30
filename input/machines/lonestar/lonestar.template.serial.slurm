@@ -15,6 +15,12 @@ echo "%enstorm% adcprep job script starting at `date`"
 cd %advisdir%/%enstorm%
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 echo "[${DATETIME}] : %jobtype%.%enstorm% starting in %advisdir%/%enstorm%" > %jobtype%.%enstorm%.run.start
+if [[ $USER = "jgflemin" ]]; then
+   export PATH=$WORK/local/bin:$PATH
+   export LD_LIBRARY_PATH=$WORK/local/lib:$LD_LIBRARY_PATH
+fi
+echo "PATH is $PATH" | tee --append %syslog%
+echo "LD_LIBRARY_PATH is $LD_LIBRARY_PATH" | tee --append %syslog%
 %adcircdir%/adcprep --np %ncpu% --%jobtype% --strict-boundaries >> adcprep.log 2>&1
 ERROVALUE=$?
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`

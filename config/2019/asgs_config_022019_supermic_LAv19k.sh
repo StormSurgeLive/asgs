@@ -27,28 +27,28 @@
 
 # Fundamental
 
-INSTANCENAME=dailyLAv19k  # "name" of this ASGS process
-COLDSTARTDATE=2019062000  # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
-HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
-REINITIALIZESWAN=no      # used to bounce the wave solution
+INSTANCENAME=al022019LAv19k # "name" of this ASGS process
+COLDSTARTDATE=auto        # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart        # "hotstart" or "coldstart"
+LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileserver/tc/two/02/LA_v19k-WithUpperAtch_chk/queenbee.loni.org/al022019LAv19k/nhcConsensus  # path to previous execution (if HOTORCOLD=hotstart)
+HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
+REINITIALIZESWAN=no       # used to bounce the wave solution
 
 # Source file paths
 
 ADCIRCDIR=~/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
 SWANDIR=~/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-SCRIPTDIR=~/asgs/jasonfleming/2014stable           # ASGS executables
+SCRIPTDIR=/work/jgflemin/asgs/jasonfleming/2014stable     # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/LA_v19k # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 
 # Physical forcing
 
-BACKGROUNDMET=on      # NAM download/forcing
-TIDEFAC=on            # tide factor recalc
-TROPICALCYCLONE=off   # tropical cyclone forcing
-WAVES=on              # wave forcing
-VARFLUX=off           # variable river flux forcing
+BACKGROUNDMET=off   # NAM download/forcing
+TIDEFAC=on          # tide factor recalc
+TROPICALCYCLONE=on  # tropical cyclone forcing
+WAVES=off           # wave forcing
+VARFLUX=off         # variable river flux forcing
 
 # Computational Resources
 
@@ -60,24 +60,25 @@ NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="07:00:00" # forecast wall clock time
 NCPU=1160                     # number of compute CPUs for all simulations
 NUMWRITERS=20
-NCPUCAPACITY=3600
+NCPUCAPACITY=5000
 CYCLETIMELIMIT="99:00:00"
+
 SERQUEUE=priority
 QUEUENAME=priority
 if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
-ACCOUNT=loni_cera_2019
+ACCOUNT=hpc_cera_2019
 #ACCOUNT=loni_lsu_ccr_18
 
 # External data sources : Tropical cyclones
 
-STORM=07                         # storm number, e.g. 05=ernesto in 2006
-YEAR=2018                        # year of the storm
+STORM=02                         # storm number, e.g. 05=ernesto in 2006
+YEAR=2019                        # year of the storm
 TRIGGER=rssembedded              # either "ftp" or "rss"
 RSSSITE=filesystem
 FTPSITE=filesystem
-FDIR=~/asgs/branches/2014stable/input/sample_advisories/2018
+FDIR=/work/jgflemin/asgs/jasonfleming/2014stable/input/sample_advisories/2019
 HDIR=${FDIR}
 #RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
 #FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
@@ -106,9 +107,9 @@ GRIDNAME=LA_v19k-WithUpperAtch_chk
 MESHPROPERTIES=${GRIDFILE}.properties
 CONTROLTEMPLATE=LA_v19k-WithUpperAtch.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-ELEVSTATIONS=combined_stations_20190327.txt
-VELSTATIONS=combined_stations_20190327.txt
-METSTATIONS=combined_stations_20190327.txt
+ELEVSTATIONS=combined_stations_20190710.txt
+VELSTATIONS=$ELEVSTATIONS
+METSTATIONS=$ELEVSTATIONS
 NAFILE=LA_v19k-WithUpperAtch_chk.13
 NAPROPERTIES=${NAFILE}.properties
 SWANTEMPLATE=LA_v19k-WithUpperAtch.26.template   # only used if WAVES=on
@@ -187,7 +188,7 @@ if [[ $OPENDAPHOST = "fortytwo.cct.lsu.edu" ]]; then
 fi
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,MBilskie.ASGS@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,MBilskie.ASGS@gmail.com,jason.g.fleming@gmail.com,shagen@lsu.edu"
 
 # Archiving
 
@@ -199,16 +200,16 @@ ARCHIVEDIR=${ARCHIVEBASE}/asgs_archive
 
 RMAX=default
 PERCENT=default
-ENSEMBLESIZE=2 # number of storms in the ensemble
+ENSEMBLESIZE=6     # number of storms in the ensemble
 case $si in
 -1)
       # do nothing ... this is not a forecast
    ;;
 1)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
    ;;
 0)
-   ENSTORM=namforecastWind10m
+   ENSTORM=nhcConsensusWind10m
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=LA_v19k-WithUpperAtch.nowindreduction.15.template
@@ -237,15 +238,75 @@ case $si in
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    POSTPROCESS=null_post.sh
    ;;
-2)
-   ENSTORM=namforecast2x
-   VELOCITYMULTIPLIER=2.0
-   OPENDAPNOTIFY="mbilsk3@lsu.edu,jason.g.fleming@gmail.com"
-   ;;
 3)
-   ENSTORM=namforecast3x
-   VELOCITYMULTIPLIER=3.0
-   OPENDAPNOTIFY="mbilsk3@lsu.edu,jason.g.fleming@gmail.com"
+   ENSTORM=veerRight100
+   PERCENT=100
+   ;;
+2)
+   ENSTORM=veerRight100Wind10m
+   PERCENT=100
+   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   CONTROLTEMPLATE=LA_v19k-WithUpperAtch.nowindreduction.15.template
+   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+   TIMESTEPSIZE=300.0    # 15 minute time steps
+   NCPU=19               # dramatically reduced resource requirements
+   NUMWRITERS=1          # multiple writer procs might collide
+   WAVES=off             # deactivate wave forcing 
+   # turn off water surface elevation station output
+   FORT61="--fort61freq 0"
+   # turn off water current velocity station output
+   FORT62="--fort62freq 0"
+   # turn off full domain water surface elevation output
+   FORT63="--fort63freq 0"
+   # turn off full domain water current velocity output
+   FORT64="--fort64freq 0"
+   # met station output
+   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
+   # full domain meteorological output
+   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
+   #SPARSE="--sparse-output"
+   SPARSE=""
+   NETCDF4="--netcdf4"
+   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+   # prevent collisions in prepped archives
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   POSTPROCESS=null_post.sh
+   ;;
+5)
+   ENSTORM=veerLeft100
+   PERCENT=-100
+   ;;
+4)
+   ENSTORM=veerLeft100Wind10m
+   PERCENT=-100
+   ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
+   FORECASTWALLTIME="00:20:00" # forecast wall clock time
+   CONTROLTEMPLATE=LA_v19k-WithUpperAtch.nowindreduction.15.template
+   CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+   TIMESTEPSIZE=300.0    # 15 minute time steps
+   NCPU=19               # dramatically reduced resource requirements
+   NUMWRITERS=1          # multiple writer procs might collide
+   WAVES=off             # deactivate wave forcing 
+   # turn off water surface elevation station output
+   FORT61="--fort61freq 0"
+   # turn off water current velocity station output
+   FORT62="--fort62freq 0"
+   # turn off full domain water surface elevation output
+   FORT63="--fort63freq 0"
+   # turn off full domain water current velocity output
+   FORT64="--fort64freq 0"
+   # met station output
+   FORT7172="--fort7172freq 300.0 --fort7172netcdf"
+   # full domain meteorological output
+   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
+   #SPARSE="--sparse-output"
+   SPARSE=""
+   NETCDF4="--netcdf4"
+   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+   # prevent collisions in prepped archives
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   POSTPROCESS=null_post.sh
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
