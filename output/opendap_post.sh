@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------
 # opendap_post.sh : Makes results available to thredds data server.
 #------------------------------------------------------------------------
-# Copyright(C) 2015--2017 Jason Fleming
+# Copyright(C) 2015--2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -29,29 +29,24 @@ HSTIME=$6
 SYSLOG=$7
 SERVER=$8
 FILES=("$9") # array of files to post to opendap
-#OPENDAPNOTIFY=$10
-
-#echo $OPENDAPNOTIFY
 #
-
 declare -A properties
 # get loadProperties function   
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties 2>>$SYSLOG`   
 source $SCRIPTDIR/properties.sh
 
-# load run.properties file into associative array
-loadProperties   
-
 #
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR}
+# load run.properties file into associative array
+loadProperties $STORMDIR/run.properties  
 # get the forecast ensemble member number for use in 
 # picking up any bespoke configuration for this ensemble
 # member in the configuration files
-ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+ENMEMNUM=${properties["forecastEnsembleMemberNumber"]}
 si=$ENMEMNUM
 # load asgs operator email address
-ASGSADMIN=`grep "notification.email.asgsadmin" ${STORMDIR}/run.properties | sed 's/notification.email.asgsadmin.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+ASGSADMIN=${properties["notification.email.asgsadmin"]}
 #
 ## grab all config info
 . ${CONFIG} 
@@ -76,11 +71,18 @@ STORMNAMEPATH=null
 if [[ $BACKGROUNDMET != off ]]; then
    # for NAM, the "advisory number" is actually the cycle time 
    STORMNAMEPATH=tc/nam
+   YEAR=${properties["forcing.nwp.year"]}
+   NWPMODEL=${properties["forcing.nwp.model"]}
+   STORMNAMEPATH=$YEAR/$NWPMODEL
 fi
 if [[ $TROPICALCYCLONE = on ]]; then
-   STORMNAME=`grep -m 1 "stormname" ${STORMDIR}/run.properties | sed 's/stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+   YEAR=${properties["forcing.tropicalcyclone.year"]}
+   STORMNAME=${properties["forcing.tropicalcyclone.stormname"]}
+   STORMNUMBER=${properties["forcing.tropicalcyclone.stormnumber"]}
    STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
-   STORMNAMEPATH=tc/$STORMNAMELC
+   basin="al" # FIXME: write/read a property instead of hardcoding the atlantic basin
+   STORMNAMEPATH=$YEAR/$basin$STORMNUMBER
+   ALTSTORMNAMEPATH=$YEAR/$STORMNAMELC  # symbolic link with name
 fi
 OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HPCENV/$INSTANCENAME/$ENSTORM
 echo $OPENDAPSUFFIX
@@ -103,13 +105,11 @@ fi
 #-----------------------------------------------------------------------
 # Establish the default method of posting results for service via opendap
 OPENDAPPOSTMETHOD=link
-
 #
 # mvb20190620: Testing rsync with the LSU CCR thredds server
 if [[ $SERVER = "lsu_ccr_tds" ]]; then
     OPENDAPPOSTMETHOD=rsync
 fi
-
 #
 # Determine whether to copy files instead of using scp by looking at the
 # list of HPC machines that share a common filesystem with this TDS. 
@@ -144,7 +144,7 @@ threddsPostStatus=ok
 # before all the files have been posted. 
 opendapEmailSent=no
 #
-runStartTime=`grep RunStartTime run.properties | sed 's/RunStartTime.*://' | sed 's/\s//g'`
+runStartTime=${properties["RunStartTime"]}
 subject="ADCIRC POSTED for $runStartTime"
 if [[ $TROPICALCYCLONE = on ]]; then
    subject=${subject}" (TC)"
@@ -174,6 +174,7 @@ case $OPENDAPPOSTMETHOD in
    serverAliveInterval=10
    timeoutRetryLimit=3
    sshOptions="$OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60"
+   scpOptions="-P $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60"
    logMessage "$ENSTORM: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
    retry=0
    while [[ $retry -lt $timeoutRetryLimit ]]; do 
@@ -197,6 +198,7 @@ case $OPENDAPPOSTMETHOD in
    retry=0
    while [[ $retry -lt $timeoutRetryLimit ]]; do 
       ssh $sshOptions "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
+      ssh $sshOptions "chmod -R a+x $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
       if [[ $? != 0 ]]; then
          warn "$ENSTORM: $THIS: Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
          threddsPostStatus=fail
@@ -211,11 +213,37 @@ case $OPENDAPPOSTMETHOD in
          logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
       fi
    done
+   #
+   # add a symbolic link for the storm name if this is tropicalcyclone forcing
+   if [[ $TOPICALCYCLONE != off ]]; then 
+      retry=0
+      while [[ $retry -lt $timeoutRetryLimit ]]; do 
+         ssh $sshOptions "ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH" 2>> $SYSLOG
+         if [[ $? != 0 ]]; then
+            warn "$ENSTORM: $THIS: Failed to create symbolic link for the storm name."
+            threddsPostStatus=fail
+         else
+            logMessage "$ENSTORM: $THIS: Successfully created symbolic link to storm name."
+            break
+         fi
+         retry=`expr $retry + 1`
+         if [[ $retry -lt $timeoutRetryLimit ]]; then
+            logMessage "$ENSTORM: $THIS: Trying again."
+         else
+            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+         fi
+      done
+   fi   
    for file in ${FILES[*]}; do 
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
          logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-         cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         # use asgs sendmail if Operator has set it up 
+         if [[ -e $HOME/asgs-global.conf ]]; then
+            $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${STORMDIR}/opendap_results_notify_${SERVER}.txt 2>> ${SYSLOG} 2>&1
+         else
+            cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         fi
          opendapEmailSent=yes
          continue        
       fi
@@ -223,7 +251,7 @@ case $OPENDAPPOSTMETHOD in
       logMessage "$ENSTORM: $THIS: Transferring $file to ${OPENDAPHOST}."
       retry=0
       while [[ $retry -lt $timeoutRetryLimit ]]; do 
-         scp -P $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60 $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG  2>&1   
+         scp $scpOptions $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG  2>&1   
          if [[ $? != 0 ]]; then
             threddsPostStatus=fail
             warn "$ENSTORM: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
@@ -285,12 +313,14 @@ case $OPENDAPPOSTMETHOD in
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
          logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-         cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         # use asgs sendmail if Operator has set it up 
+         if [[ -e $HOME/asgs-global.conf ]]; then
+            $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${STORMDIR}/opendap_results_notify_${SERVER}.txt 2>> ${SYSLOG} 2>&1
+         else
+            cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         fi
          opendapEmailSent=yes
          continue        
-      else
-         # see if the file is currently considered "opened" by another process
-         lsof -t $file 2>> $SYSLOG 2>&1
       fi
       chmod +r $file 2>> $SYSLOG
       logMessage "$ENSTORM: $THIS: Transferring $file to ${OPENDAPHOST}."
@@ -333,7 +363,12 @@ exit
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
          logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-         cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         # use asgs sendmail if Operator has set it up 
+         if [[ -e $HOME/asgs-global.conf ]]; then
+            $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${STORMDIR}/opendap_results_notify_${SERVER}.txt 2>> ${SYSLOG} 2>&1
+         else
+            cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         fi
          opendapEmailSent=yes
          continue        
       fi
@@ -364,5 +399,10 @@ esac
 #else
 if [[ $opendapEmailSent = "no" ]]; then 
    logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
-   cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+   # use asgs sendmail if Operator has set it up 
+   if [[ -e $HOME/asgs-global.conf ]]; then
+      $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${STORMDIR}/opendap_results_notify_${SERVER}.txt 2>> ${SYSLOG} 2>&1
+   else
+      cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+   fi
 fi

@@ -19,6 +19,12 @@
 
 echo "%enstorm% %jobtype% job script starting at `date`"
 cd %advisdir%/%enstorm%
+if [[ $USER = "jgflemin" ]]; then
+   export PATH=$WORK/local/bin:$PATH
+   export LD_LIBRARY_PATH=$WORK/local/lib:$LD_LIBRARY_PATH
+fi
+echo "PATH is $PATH" | tee --append %syslog%
+echo "LD_LIBRARY_PATH is $LD_LIBRARY_PATH" | tee --append %syslog%
 CMD="ibrun %adcircdir%/%jobtype% %cloptions%"
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'`
 RUNSUFFIX="start"
