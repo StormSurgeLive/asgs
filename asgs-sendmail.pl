@@ -1,15 +1,35 @@
 #!/usr/bin/env perl
-
+#--------------------------------------------------------------------------
+# asgs-sendmail.pl
+#--------------------------------------------------------------------------
+# Copyright(C) 2019 Brett Estrade
+# Copyright(C) 2019 Jason Fleming
+#
+# This file is part of the ADCIRC Surge Guidance System (ASGS).
+#
+# The ASGS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# ASGS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#--------------------------------------------------------------------------
 package util::asgs_sendmail;
 
 use strict;
 use warnings;
 
-use Email::Sender::Simple qw(sendmail);
-use Email::Sender::Transport::SMTP::TLS;
-use Email::Simple::Creator;
-use Config::Tiny;
-use Try::Tiny;
+use Email::Sender::Simple qw(sendmail);  # main email capability (receives TLS obj)
+use Email::Sender::Transport::SMTP::TLS; # creates transport object
+use Email::Simple::Creator;  # generates message itself (converts header and body from hash to text email)
+use Config::Tiny; # reads ini format ... converts to a perl hash
+use Try::Tiny;    # exception handling (alternative to eval)
 use Getopt::Long;
 use constant EXIT_SUCCESS => 0;
 
