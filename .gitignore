@@ -21,3 +21,4 @@ test/
 run.me*
 *.swp
 *.swo
+*.o
