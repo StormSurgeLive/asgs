@@ -204,7 +204,6 @@ init_croatan()
 }
 init_pod()
 { #<- can replace the following with a custom script
-  HOSTNAME=pod.penguincomputing.com
   HPCENV=pod.penguincomputing.com
   QUEUESYS=PBS
   QCHECKCMD=qstat
@@ -287,7 +286,7 @@ init_stampede()
 }
 init_stampede2()
 { #<- can replace the following with a custom script
-  HOSTNAME=stampede2.tacc.utexas.edu
+  HPCENV=stampede2.tacc.utexas.edu
   QUEUESYS=SLURM
   QCHECKCMD=sacct
   ACCOUNT=PleaseSpecifyACCOUNTInYourAsgsConfigFile
@@ -637,7 +636,7 @@ init_tacc_tds()
    OPENDAPHOST=adcircvis.tacc.utexas.edu
    DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer/asgs"
    CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog/asgs"
-   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS/2018
+   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
    SSHPORT=null
    LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
    #COPYABLEHOSTS=(lonestar lonestar.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
@@ -648,7 +647,8 @@ init_tacc_tds()
 }
 init_penguin()
 { #<- can replace the following with a custom script
-  HOSTNAME=login-29-45.pod.penguincomputing.com
+  HPCENV=pod.penguincomputing.com
+  #HOSTNAME=login-29-45.pod.penguincomputing.com
   QUEUESYS=PBS
   QCHECKCMD=qstat
   SCRATCHDIR=/home/$USER
