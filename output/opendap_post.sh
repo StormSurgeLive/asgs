@@ -77,8 +77,19 @@ if [[ $BACKGROUNDMET != off ]]; then
 fi
 if [[ $TROPICALCYCLONE = on ]]; then
    YEAR=${properties["forcing.tropicalcyclone.year"]}
+   if [[ $YEAR = "" ]]; then 
+      # 2014stable version of properties
+      YEAR=${properties["config.forcing.tropicalcyclone.year"]}
+   fi
    STORMNAME=${properties["forcing.tropicalcyclone.stormname"]}
+   if [[ $STORMNAME = "" ]]; then
+      # 2014stable version of properties
+      STORMNAME=${properties["config.forcing.tropicalcyclone.stormname"]}
+   fi
    STORMNUMBER=${properties["forcing.tropicalcyclone.stormnumber"]}
+   if [[ $STORMNUMBER = "" ]]; then
+      STORMNUMBER=${properties["config.forcing.tropicalcyclone.stormnumber"]}
+   fi
    STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
    basin="al" # FIXME: write/read a property instead of hardcoding the atlantic basin
    STORMNAMEPATH=$YEAR/$basin$STORMNUMBER
@@ -104,7 +115,8 @@ fi
 #           D E T E R M I N E   M E T H O D
 #-----------------------------------------------------------------------
 # Establish the default method of posting results for service via opendap
-OPENDAPPOSTMETHOD=link
+# The actual method will depend on the configuration in platforms.sh.
+OPENDAPPOSTMETHOD=scp
 #
 # mvb20190620: Testing rsync with the LSU CCR thredds server
 if [[ $SERVER = "lsu_ccr_tds" ]]; then
@@ -169,6 +181,7 @@ END
 #                P O S T   V I A   S C P
 #-------------------------------------------------------------------
 # jgf20160803: Changed if/then to case-switch to accommodate new "copy" method.
+logMessage "$ENSTORM: $THIS: Posting to $OPENDAPHOST using the '$OPENDAPPOSTMETHOD' method."
 case $OPENDAPPOSTMETHOD in
 "scp")
    serverAliveInterval=10
@@ -348,10 +361,6 @@ case $OPENDAPPOSTMETHOD in
    #
    # if the HPC and TDS do share a common filesystem, create symbolic links
    # to the actual results files in a place where TDS can find them
-echo "$OPENDAPBASEDIR"
-echo "$OPENDAPDIR"
-exit
-
    mkdir -p $OPENDAPDIR 2>> $SYSLOG
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories

@@ -593,7 +593,7 @@ init_renci_tds()
    OPENDAPHOST=ht4.renci.org
    DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer"
    CATALOGPREFIX="http://tds.renci.org:8080/thredds/catalog"
-   OPENDAPBASEDIR="/projects/ncfs/opendap/data/"
+   OPENDAPBASEDIR="/projects/ncfs/opendap/data"
    #DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/"
    #CATALOGPREFIX="http://tds.renci.org:8080/thredds/DataLayers/asgs/"
    #OPENDAPBASEDIR=/projects/ees/DataLayers/asgs/
