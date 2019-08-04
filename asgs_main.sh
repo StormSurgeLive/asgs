@@ -353,7 +353,35 @@ prep()
     NAFILE=${17}  # full domain nodal attributes file
     #
     THIS="asgs_main.sh>prep()"
-    #
+    debugMessage "top of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY LASTADVISORYNUM=$LASTADVISORYNUM STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
+    HPCENVSHORT=$6     # machine to run on (jade, desktop, queenbee, etc)
+    NCPU=$7     # number of CPUs to request in parallel jobs
+    PREPPEDARCHIVE=$8 # preprocessed fort.13 and fort.14 package
+    GRIDFILE=$9 # fulldomain grid
+    ACCOUNT=${10} # account to charge time to
+    OUTPUTOPTIONS="${11}" # contains list of args for appending files
+    HOTSTARTCOMP=${12} # fulldomain or subdomain
+    WALLTIME=${13} # HH:MM:SS format
+    HOTSTARTFORMAT=${14}   # "binary" or "netcdf"
+    MINMAX=${15}           # "continuous" or "reset"
+    HOTSWAN=${16} # "yes" or "no" to reinitialize SWAN only
+    NAFILE=${17}  # full domain nodal attributes file, must be last in the
+
+
+
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+    echo "time.adcprep.start : ${DATETIME}" >> ${STORMDIR}/run.properties
+    # set the name of the archive of preprocessed input files
+    PREPPED=$PREPPEDARCHIVE
+    if [[ $START = coldstart ]]; then
+       PREPPED=$HINDCASTARCHIVE
+    fi
+    # determine if there is an archive of preprocessed input files
+    HAVEARCHIVE=yes
+    if [[ ! -e ${SCRATCHDIR}/${PREPPED} ]]; then
+       HAVEARCHIVE=no
+    fi
+>>>>>>> 2014stable
     # create directory to run in 
     if [ ! -d $ADVISDIR/$ENSTORM ]; then
        mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
@@ -732,6 +760,7 @@ EOF
     fi
     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
     echo "time.adcprep.finish : $DATETIME" >> ${STORMDIR}/run.properties
+    debugMessage "bottom of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY LASTADVISORYNUM=$LASTADVISORYNUM STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
 }
 #
 # function to run adcprep in a platform dependent way to decompose
@@ -1356,12 +1385,12 @@ handleFailedJob()
       $NOTIFYSCRIPT $HPCENV $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE jobfailed $EMAILNOTIFY $SYSLOG "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
       warn "$ENSTORM: $THIS: Moving failed cycle to 'failed.${FAILDATETIME}'."
       mv $ADVISDIR/$ENSTORM $RUNDIR/failed.${FAILDATETIME} 2>> ${SYSLOG}
-   fi
-   # roll back the latest advisory number if the nowcast failed
-   if [[ $ENSTORM = nowcast ]]; then
-      logMessage "Rolling back the advisory number in the state file $STATEFILE due to failed nowcast."
-      sed 's/ADVISORY=.*/ADVISORY='$LASTADVISORYNUM'/' $STATEFILE > ${STATEFILE}.new 2>> ${SYSLOG}
-      mv -f ${STATEFILE}.new $STATEFILE >> ${SYSLOG} 2>&1 
+      # roll back the latest advisory number if the nowcast failed
+      if [[ $ENSTORM = nowcast ]]; then
+         logMessage "Rolling back the advisory number in the state file $STATEFILE due to failed nowcast."
+         sed 's/ADVISORY=.*/ADVISORY='$LASTADVISORYNUM'/' $STATEFILE > ${STATEFILE}.new 2>> ${SYSLOG}
+         mv -f ${STATEFILE}.new $STATEFILE >> ${SYSLOG} 2>&1 
+      fi
    fi
 }
 
@@ -2241,7 +2270,7 @@ if [[ $START = coldstart ]]; then
    # check once per minute until all jobs have finished
    monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $HINDCASTWALLTIME
    THIS="asgs_main.sh"
-   # check to see that the nowcast job did not conspicuously fail
+   # check to see that the hindcast job did not conspicuously fail
    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV hindcast $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
    THIS="asgs_main.sh"
    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
@@ -2419,10 +2448,13 @@ while [ true ]; do
       CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Generating ADCIRC Met File (fort.22) for nowcast."
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
+#BB
+      echo ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS
+#BB
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
       logMessage "$ENSTORM: $THIS: Detecting storm name in run.properties file."
-      STORMNAME=`grep "stormname" run.properties | sed 's/stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}    
+      STORMNAME=`grep "forcing.tropicalcyclone.stormname" run.properties | sed 's/forcing.tropicalcyclone.stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}    
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "StormName is $STORMNAME"
       # create a GAHM or ASYMMETRIC fort.22 file from the existing track file
       if [[ $VORTEXMODEL = GAHM || $VORTEXMODEL = ASYMMETRIC ]]; then
@@ -2629,7 +2661,8 @@ while [ true ]; do
       THIS="asgs_main.sh"
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Nowcast preprocessing for $ENSTORM/$ADVISORY."
       logMessage "$ENSTORM: $THIS: Nowcast preprocessing."
-      logMessage "$ENSTORM: $THIS: prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
+      #logMessage "$ENSTORM: $THIS: prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
+      logMessage "$ENSTORM: $THIS: prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
       prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
       THIS="asgs_main.sh"
       # check to see that adcprep did not conspicuously fail
@@ -3081,7 +3114,8 @@ while [ true ]; do
                   logMessage "$ENSTORM: $THIS: The $ENSTORM job ended successfully. Starting postprocessing."
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
                   echo "time.post.start : $DATETIME" >> ${STORMDIR}/run.properties
-                  com="${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
+                  #com="${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
+                  com="${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY "
                   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WAIT" "${POSTPROCESS} $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR"
                   $com
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
