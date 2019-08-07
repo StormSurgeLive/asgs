@@ -951,11 +951,7 @@ env_dispatch() {
   "queenbee") allMessage "platforms.sh: Queenbee (LONI) configuration found."
           init_queenbee
           ;;
-<<<<<<< HEAD
-  "supermic") consoleMessage "platforms.sh: SuperMIC (LSU HPC) configuration found."
-=======
-  "supermic") allMessage "platforms.sh: Queenbee (LONI) configuration found."
->>>>>>> 2014stable
+  "supermic") allMessage "platforms.sh: SuperMIC (LSU HPC) configuration found."
           init_supermic
           ;;
   "tezpur") allMessage "platforms.sh: Tezpur (LSU) configuration found."
@@ -985,20 +981,13 @@ env_dispatch() {
   "desktop") allMessage "platforms.sh: desktop configuration found."
           init_desktop
            ;;
-<<<<<<< HEAD
   "desktop-serial") consoleMessage "platforms.sh: desktop-serial configuration found."
           init_desktop-serial
            ;;
-  "poseidon") consoleMessage "platforms.sh: Poseidon configuration found."
+  "poseidon") allMessage "platforms.sh: Poseidon configuration found."
           init_Poseidon
            ;;
-  "penguin") consoleMessage "platforms.sh: Penguin configuration found."
-=======
-  "poseidon") allMessage "platforms.sh: desktop configuration found."
-          init_Poseidon
-           ;;
-  "penguin") allMessage "platforms.sh: desktop configuration found."
->>>>>>> 2014stable
+  "penguin") allMessage "platforms.sh: Penguin configuration found."
           init_penguin
            ;;
   "rostam") allMessage "platforms.sh: rostam configuration found."

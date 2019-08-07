@@ -381,7 +381,6 @@ prep()
     if [[ ! -e ${SCRATCHDIR}/${PREPPED} ]]; then
        HAVEARCHIVE=no
     fi
->>>>>>> 2014stable
     # create directory to run in 
     if [ ! -d $ADVISDIR/$ENSTORM ]; then
        mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
