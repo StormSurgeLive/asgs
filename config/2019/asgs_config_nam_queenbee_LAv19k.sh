@@ -68,7 +68,7 @@ CYCLETIMELIMIT="99:00:00"
 if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
-ACCOUNT=loni_cera_2019
+ACCOUNT=loni_cera_2019a
 #ACCOUNT=loni_lsu_ccr_18
 
 # External data sources : Tropical cyclones
