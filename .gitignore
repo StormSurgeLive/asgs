@@ -20,4 +20,5 @@ current.sh
 test/
 run.me*
 *.swp
-
+*.swo
+*.o

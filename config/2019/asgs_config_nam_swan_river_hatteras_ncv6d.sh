@@ -28,7 +28,7 @@
 #
 # Fundamental 
 #
-INSTANCENAME=ncfs-dev-test2      # name of this ASGS process
+INSTANCENAME=dailyv6d-RENCI    # name of this ASGS process
 COLDSTARTDATE=2019020600
 
 STORMNAME=daily
