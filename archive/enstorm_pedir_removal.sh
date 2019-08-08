@@ -23,8 +23,8 @@
 # This script gets all the information it needs from the 
 # run.properties file instead of using command line arguments. 
 #----------------------------------------------------------------
-HOTTIFYPATH=/home/bblanton/adcirc-cg-52release/swan
-MACHINE=pod-login
+HOTTIFYPATH=/home/ncfs-dev/ADCIRC/v53release/swan
+MACHINE=hatteras
 COMPRESSION=no
 #
 logFile="scenario.log"
@@ -94,7 +94,7 @@ if [[ $WAVES = on ]]; then
       if [[ -e ./PE0000/$file ]]; then
          (
             localLogMessage "INFO" "Creating tar archive of subdomain $file files."
-            tar cvf ${file}.tar ./PE*/$file 2>> $LOGFILE 2>&1
+            tar cf ${file}.tar ./PE*/$file 2>> $LOGFILE 2>&1
             if [[ $SWANHSCOMPRESSION = yes ]]; then 
                bzip2 ${file}.tar 2>> $LOGFILE 2>&1
             fi
@@ -121,7 +121,7 @@ fi
 wait 
 #
 # archive the subdomain fort.16 log files
-tar cvjf fort.16.tar.bz2 ./PE*/fort.16 2>> $LOGFILE 2>&1
+tar cjf fort.16.tar.bz2 ./PE*/fort.16 2>> $LOGFILE 2>&1
 #
 #
 # pull in platform-specific value for the command used to remove directories
