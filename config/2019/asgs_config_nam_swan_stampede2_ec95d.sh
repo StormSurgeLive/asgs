@@ -96,7 +96,7 @@ ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
 RIVERSITE=ftp.nssl.noaa.gov
 RIVERDIR=/projects/ciflow/adcirc_info
 
-# Input files and templates
+# Input files and templates (ASGS looks in $INPUTDIR by default for these files)
 
 GRIDFILE=ec_95d.grd   # mesh (fort.14) file
 GRIDNAME=ec95d
@@ -108,7 +108,7 @@ VELSTATIONS=cera_stations.txt
 METSTATIONS=cera_stations.txt
 NAFILE=null
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=fort.26.nolimiter.template   # only used if WAVES=on
+SWANTEMPLATE=fort.26.nolimiter.template   # only used if WAVES=on ; nolimiter for ADCIRC+SWAN v53
 RIVERINIT=null                           # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
