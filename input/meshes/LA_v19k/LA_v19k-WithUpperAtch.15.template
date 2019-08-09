@@ -1020,19 +1020,19 @@ K2
  STEADY               ! CONSTITUENT. 1  ALPHA DESCRIPTOR
  0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
   STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
-12.337273  .000000    !...River 1 Node 1 (Total River Flow: 27184.0000 cms, Avg Lat/Long: -91.198941,30.425086)
-26.629020  .000000    !...River 1 Node 2
-30.133083  .000000    !...River 1 Node 3
-32.735223  .000000    !...River 1 Node 4
-34.570658  .000000    !...River 1 Node 5
-35.304017  .000000    !...River 1 Node 6
-34.032847  .000000    !...River 1 Node 7
-29.835453  .000000    !...River 1 Node 8
-23.248833  .000000    !...River 1 Node 9
-16.239270  .000000    !...River 1 Node 10
-10.384742  .000000    !...River 1 Node 11
-7.190540  .000000    !...River 1 Node 12
-3.226086  .000000    !...River 1 Node 13
+10.513731  .000000    !...River 1 Node 1 (Total River Flow: 23166.0000 cms, Avg Lat/Long: -91.198941,30.425086)
+22.693050  .000000    !...River 1 Node 2
+25.679186  .000000    !...River 1 Node 3
+27.896710  .000000    !...River 1 Node 4
+29.460854  .000000    !...River 1 Node 5
+30.085817  .000000    !...River 1 Node 6
+29.002535  .000000    !...River 1 Node 7
+25.425548  .000000    !...River 1 Node 8
+19.812481  .000000    !...River 1 Node 9
+13.838983  .000000    !...River 1 Node 10
+8.849799  .000000    !...River 1 Node 11
+6.127724  .000000    !...River 1 Node 12
+2.749246  .000000    !...River 1 Node 13
 .000000  .000000    !...River 2 Node 1 (Total River Flow: .0000 cms, Avg Lat/Long: -91.619574,30.776798)
 .000000  .000000    !...River 2 Node 2
 .000000  .000000    !...River 2 Node 3
@@ -1040,28 +1040,28 @@ K2
 .000000  .000000    !...River 2 Node 5
 .000000  .000000    !...River 2 Node 6
 .000000  .000000    !...River 2 Node 7
-3.688652  .000000    !...River 3 Node 1 (Total River Flow: 11553.0000 cms, Avg Lat/Long: -91.801121,30.979759)
-7.670781  .000000    !...River 3 Node 2
-8.245470  .000000    !...River 3 Node 3
-8.778956  .000000    !...River 3 Node 4
-9.344959  .000000    !...River 3 Node 5
-9.826874  .000000    !...River 3 Node 6
-9.995057  .000000    !...River 3 Node 7
-10.003004  .000000    !...River 3 Node 8
-10.060401  .000000    !...River 3 Node 9
-10.180122  .000000    !...River 3 Node 10
-10.281182  .000000    !...River 3 Node 11
-10.314046  .000000    !...River 3 Node 12
-10.316166  .000000    !...River 3 Node 13
-10.316204  .000000    !...River 3 Node 14
-10.307288  .000000    !...River 3 Node 15
-10.244831  .000000    !...River 3 Node 16
-10.119911  .000000    !...River 3 Node 17
-10.021798  .000000    !...River 3 Node 18
-9.890887  .000000    !...River 3 Node 19
-9.481459  .000000    !...River 3 Node 20
-8.804417  .000000    !...River 3 Node 21
-4.216316  .000000    !...River 3 Node 22
+2.977933  .000000    !...River 3 Node 1 (Total River Flow: 9327.0000 cms, Avg Lat/Long: -91.801121,30.979759)
+6.192796  .000000    !...River 3 Node 2
+6.656756  .000000    !...River 3 Node 3
+7.087451  .000000    !...River 3 Node 4
+7.544398  .000000    !...River 3 Node 5
+7.933459  .000000    !...River 3 Node 6
+8.069237  .000000    !...River 3 Node 7
+8.075653  .000000    !...River 3 Node 8
+8.121991  .000000    !...River 3 Node 9
+8.218645  .000000    !...River 3 Node 10
+8.300232  .000000    !...River 3 Node 11
+8.326765  .000000    !...River 3 Node 12
+8.328476  .000000    !...River 3 Node 13
+8.328506  .000000    !...River 3 Node 14
+8.321309  .000000    !...River 3 Node 15
+8.270885  .000000    !...River 3 Node 16
+8.170034  .000000    !...River 3 Node 17
+8.090825  .000000    !...River 3 Node 18
+7.985138  .000000    !...River 3 Node 19
+7.654598  .000000    !...River 3 Node 20
+7.108006  .000000    !...River 3 Node 21
+3.403928  .000000    !...River 3 Node 22
 %FORT61%    ! NOUTE,TOUTSE,TOUTFE,NSPOOLE (UNIT  61)
 %NUMELEVSTATIONS%    ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS
 %FORT62%
