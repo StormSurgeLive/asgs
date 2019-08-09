@@ -70,7 +70,6 @@ STORMNAMEPATH=null
 # form path to results on tds based on type of forcing or name of storm
 if [[ $BACKGROUNDMET != off ]]; then
    # for NAM, the "advisory number" is actually the cycle time 
-   STORMNAMEPATH=tc/nam
    YEAR=${properties["forcing.nwp.year"]}
    NWPMODEL=${properties["forcing.nwp.model"]}
    STORMNAMEPATH=$YEAR/$NWPMODEL
@@ -208,23 +207,29 @@ case $OPENDAPPOSTMETHOD in
    done
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories
-   retry=0
-   while [[ $retry -lt $timeoutRetryLimit ]]; do 
-      ssh $sshOptions "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
-      ssh $sshOptions "chmod -R a+x $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
-      if [[ $? != 0 ]]; then
-         warn "$ENSTORM: $THIS: Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
-         threddsPostStatus=fail
-      else
-         logMessage "$ENSTORM: $THIS: Successfully changed permissions."
-         break
-      fi
-      retry=`expr $retry + 1`
-      if [[ $retry -lt $timeoutRetryLimit ]]; then
-         logMessage "$ENSTORM: $THIS: Trying again."
-      else
-         logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
-      fi
+   #OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HPCENV/$INSTANCENAME/$ENSTORM
+   partialPath=$OPENDAPDIR
+   while [[ $partialPath != $OPENDAPBASEDIR  ]]; do 
+      retry=0
+      while [[ $retry -lt $timeoutRetryLimit ]]; do 
+         ssh $sshOptions "chmod a+wx $partialPath" 2>> $SYSLOG
+         if [[ $? != 0 ]]; then
+            warn "$ENSTORM: $THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
+            threddsPostStatus=fail
+         else
+            logMessage "$ENSTORM: $THIS: Successfully changed permissions."
+            break
+         fi
+         retry=`expr $retry + 1`
+         if [[ $retry -lt $timeoutRetryLimit ]]; then
+            logMessage "$ENSTORM: $THIS: Trying again."
+         else
+            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+         fi
+      done
+      # cut off the end of the partial path and keep going until we get down
+      # to OPENDAPBASEDIR
+      partialPath=`dirname $partialPath` 
    done
    #
    # add a symbolic link for the storm name if this is tropicalcyclone forcing
@@ -317,11 +322,29 @@ case $OPENDAPPOSTMETHOD in
    fi
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories
-   ssh $sshOptions "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
-   if [[ $? != 0 ]]; then
-      warn "$ENSTORM: $THIS: Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
-      threddsPostStatus=fail
-   fi
+   partialPath=$OPENDAPDIR
+   while [[ $partialPath != $OPENDAPBASEDIR  ]]; do 
+      retry=0
+      while [[ $retry -lt $timeoutRetryLimit ]]; do 
+         ssh $sshOptions "chmod a+wx $partialPath" 2>> $SYSLOG
+         if [[ $? != 0 ]]; then
+            warn "$ENSTORM: $THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
+            threddsPostStatus=fail
+         else
+            logMessage "$ENSTORM: $THIS: Successfully changed permissions."
+            break
+         fi
+         retry=`expr $retry + 1`
+         if [[ $retry -lt $timeoutRetryLimit ]]; then
+            logMessage "$ENSTORM: $THIS: Trying again."
+         else
+            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+         fi
+      done
+      # cut off the end of the partial path and keep going until we get down
+      # to OPENDAPBASEDIR
+      partialPath=`dirname $partialPath` 
+   done
    for file in ${FILES[*]}; do 
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
@@ -364,10 +387,29 @@ case $OPENDAPPOSTMETHOD in
    mkdir -p $OPENDAPDIR 2>> $SYSLOG
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories
-   chmod a+w $OPENDAPBASEDIR 2>> $SYSLOG
-   chmod a+w $OPENDAPBASEDIR/$STORMNAMEPATH 2>> $SYSLOG
-   chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY 2>> $SYSLOG
-   #cd $OPENDAPDIR 2>> ${SYSLOG}
+   partialPath=$OPENDAPDIR
+   while [[ $partialPath != $OPENDAPBASEDIR  ]]; do 
+      retry=0
+      while [[ $retry -lt $timeoutRetryLimit ]]; do 
+         chmod a+wx $partialPath 2>> $SYSLOG
+         if [[ $? != 0 ]]; then
+            warn "$ENSTORM: $THIS: Failed to change permissions on the directory ${partialPath}."
+            threddsPostStatus=fail
+         else
+            logMessage "$ENSTORM: $THIS: Successfully changed permissions."
+            break
+         fi
+         retry=`expr $retry + 1`
+         if [[ $retry -lt $timeoutRetryLimit ]]; then
+            logMessage "$ENSTORM: $THIS: Trying again."
+         else
+            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+         fi
+      done
+      # cut off the end of the partial path and keep going until we get down
+      # to OPENDAPBASEDIR
+      partialPath=`dirname $partialPath` 
+   done
    for file in ${FILES[*]}; do 
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
