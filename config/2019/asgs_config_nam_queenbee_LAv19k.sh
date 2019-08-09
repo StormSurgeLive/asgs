@@ -28,7 +28,8 @@
 # Fundamental
 
 INSTANCENAME=dailyLAv19k  # "name" of this ASGS process
-COLDSTARTDATE=2019062000  # calendar year month day hour YYYYMMDDHH24
+#COLDSTARTDATE=2019062000  
+COLDSTARTDATE=2019070500  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null          # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
@@ -62,12 +63,12 @@ NCPU=1160                     # number of compute CPUs for all simulations
 NUMWRITERS=20
 NCPUCAPACITY=3600
 CYCLETIMELIMIT="99:00:00"
-SERQUEUE=priority
-QUEUENAME=priority
+#SERQUEUE=priority
+#QUEUENAME=priority
 if [[ $SERQUEUE = priority ]]; then
    PREPCONTROLSCRIPT=queenbee.adcprep.priority.template.pbs # sets ppn=20
 fi
-ACCOUNT=loni_cera_2019
+ACCOUNT=loni_cera_2019a
 #ACCOUNT=loni_lsu_ccr_18
 
 # External data sources : Tropical cyclones
@@ -86,7 +87,7 @@ HDIR=${FDIR}
 
 # External data sources : Background Meteorology
 
-FORECASTCYCLE="06,18"
+FORECASTCYCLE="06"
 BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
 BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
 FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
@@ -151,9 +152,9 @@ ACTIVATE_LIST=null
 NEW_ADVISORY_LIST=null
 POST_INIT_LIST=null
 POST_LIST=null
-JOB_FAILED_LIST="jason.g.fleming@gmail.com"
-NOTIFYUSER=jason.g.fleming@gmail.com
-ASGSADMIN=jason.g.fleming@gmail.com
+JOB_FAILED_LIST="jason.fleming@seahorsecoastal.com"
+NOTIFYUSER=jason.fleming@seahorsecoastal.com
+ASGSADMIN=jason.fleming@seahorsecoastal.com
 # RMQ Messaging
 RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
 RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
