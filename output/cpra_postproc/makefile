@@ -68,12 +68,12 @@ endif
 # due possible compiler bug. Flag not needed for ifort version 13.1.3 and later. -nld
 ifeq ($(compiler),intel)
    FC := ifort
-   FFLAGS := -cpp -i-dynamic
+   FFLAGS := -cpp -shared-intel
    ifeq ($(DEBUG),trace)
       FFLAGS := -g -O0 -fpp -traceback 
    endif
    ifeq ($(DEBUG),full)
-      FFLAGS := -cpp -g -O0 -traceback -debug all -check all -ftrapuv -fpe0 -i-dynamic -DDEBUGSEGFAULT
+      FFLAGS := -cpp -g -O0 -traceback -debug all -check all -ftrapuv -fpe0 -shared-intel -DDEBUGSEGFAULT
    endif
    # jgf20150616: Added to implement nld's -heap-arrays fix.
    ifeq ($(HEAP_ARRAYS),fix)
