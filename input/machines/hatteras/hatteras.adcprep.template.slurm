@@ -40,6 +40,7 @@ module load hdf5/1.8.12-acis
 module load netcdf/4.2.1.1-acis
 module load netcdf-Fortran/4.2-acis
 module load mvapich2/2.0-acis
+#export MV2_DEBUG_SHOW_BACKTRACE=2
 #
 #----------------------------------------------------------------------------
 #                  E X E C U T E   T H E   J O B

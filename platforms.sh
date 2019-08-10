@@ -343,13 +343,11 @@ init_hatteras()
   # for the automated slide deck generator
   #   pip install --user pptx
   #
-
   MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
   export MODULEPATH
   PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.2.1.1-acis netcdf-Fortran/4.2-acis'
   PARALLELMODULES='module load mvapich2/2.0-acis' 
   SERIALMODULES='module load' # no extra modules for serial jobs
-
   if [[ $USER = ncfs ]]; then
      PLATFORMMODULES=$PLATFORMMODULES' python_modules/2.7'
   fi
@@ -771,7 +769,7 @@ init_renci_tds()
    OPENDAPHOST=ht4.renci.org
    DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer"
    CATALOGPREFIX="http://tds.renci.org:8080/thredds/catalog"
-   OPENDAPBASEDIR=/projects/ncfs/opendap/data
+   OPENDAPBASEDIR="/projects/ncfs/opendap/data"
    #DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/"
    #CATALOGPREFIX="http://tds.renci.org:8080/thredds/DataLayers/asgs/"
    #OPENDAPBASEDIR=/projects/ees/DataLayers/asgs/
@@ -893,10 +891,10 @@ job_defaults() {
 env_dispatch() {
  HPCENVSHORT=$1
  case $HPCENVSHORT in
-  "camellia") consoleMessage "platforms.sh: Camellia(WorldWinds) configuration found."
+  "camellia") allMessage "platforms.sh: Camellia(WorldWinds) configuration found."
           init_camellia
           ;;
-  "lsu_tds") consoleMessage "platforms.sh: LSU THREDDS Data Server configuration found."
+  "lsu_tds") allMessage "platforms.sh: LSU THREDDS Data Server configuration found."
           init_lsu_tds
           ;;
   "lsu_ccr_tds") consoleMessage "platforms.sh: LSU THREDDS Data Server configuration found."
@@ -905,97 +903,97 @@ env_dispatch() {
   "renci_tds") consoleMessage "platforms.sh: RENCI THREDDS Data Server configuration found."
           init_renci_tds
           ;;
-  "tacc_tds") consoleMessage "platforms.sh: TACC THREDDS Data Server configuration found."
+  "tacc_tds") allMessage "platforms.sh: TACC THREDDS Data Server configuration found."
           init_tacc_tds
           ;;
-  "kittyhawk") consoleMessage "platforms.sh: Kittyhawk (RENCI) configuration found."
+  "kittyhawk") allMessage "platforms.sh: Kittyhawk (RENCI) configuration found."
           init_kittyhawk
           ;;
-  "blueridge") consoleMessage "platforms.sh: Blueridge (RENCI) configuration found."
+  "blueridge") allMessage "platforms.sh: Blueridge (RENCI) configuration found."
           init_blueridge
           ;;
-  "croatan") consoleMessage "platforms.sh: Croatan (RENCI) configuration found."
+  "croatan") allMessage "platforms.sh: Croatan (RENCI) configuration found."
           init_croatan
           ;;
-  "pod") consoleMessage "platforms.sh: POD (Penguin) configuration found."
+  "pod") allMessage "platforms.sh: POD (Penguin) configuration found."
           init_pod
           ;;
-  "hatteras") consoleMessage "platforms.sh: Hatteras (RENCI) configuration found."
+  "hatteras") allMessage "platforms.sh: Hatteras (RENCI) configuration found."
           init_hatteras
           ;;
-  "hatteras14") consoleMessage "platforms.sh: Hatteras (RENCI) configuration found."
+  "hatteras14") allMessage "platforms.sh: Hatteras (RENCI) configuration found."
           init_hatteras14
           ;;
-  "sapphire") consoleMessage "platforms.sh: Sapphire (ERDC) configuration found."
+  "sapphire") allMessage "platforms.sh: Sapphire (ERDC) configuration found."
           init_sapphire
           ;;
-  "jade") consoleMessage "platforms.sh: Jade (ERDC) configuration found."
+  "jade") allMessage "platforms.sh: Jade (ERDC) configuration found."
           init_jade
           ;;
-  "diamond") consoleMessage "platforms.sh: Diamond (ERDC) configuration found."
+  "diamond") allMessage "platforms.sh: Diamond (ERDC) configuration found."
           init_diamond
           ;;
-  "garnet") consoleMessage "platforms.sh: Garnet (ERDC) configuration found."
+  "garnet") allMessage "platforms.sh: Garnet (ERDC) configuration found."
           init_garnet
           ;;
-  "spirit") consoleMessage "platforms.sh: Spirit (AFRL) configuration found."
+  "spirit") allMessage "platforms.sh: Spirit (AFRL) configuration found."
           init_spirit
           ;;
-  "topaz") consoleMessage "platforms.sh: Topaz (ERDC) configuration found."
+  "topaz") allMessage "platforms.sh: Topaz (ERDC) configuration found."
           init_topaz
           ;;
-  "thunder") consoleMessage "platforms.sh: Thunder (AFRL) configuration found."
+  "thunder") allMessage "platforms.sh: Thunder (AFRL) configuration found."
           init_thunder
           ;;
-  "supermike") consoleMessage "platforms.sh: Supermike (LSU) configuration found."
+  "supermike") allMessage "platforms.sh: Supermike (LSU) configuration found."
           init_supermike
           ;;
-  "queenbee") consoleMessage "platforms.sh: Queenbee (LONI) configuration found."
+  "queenbee") allMessage "platforms.sh: Queenbee (LONI) configuration found."
           init_queenbee
           ;;
-  "supermic") consoleMessage "platforms.sh: SuperMIC (LSU HPC) configuration found."
+  "supermic") allMessage "platforms.sh: SuperMIC (LSU HPC) configuration found."
           init_supermic
           ;;
-  "tezpur") consoleMessage "platforms.sh: Tezpur (LSU) configuration found."
+  "tezpur") allMessage "platforms.sh: Tezpur (LSU) configuration found."
           init_tezpur
           ;;
-  "mike") consoleMessage "platforms.sh: SuperMike-II (LSU) configuration found."
+  "mike") allMessage "platforms.sh: SuperMike-II (LSU) configuration found."
           init_mike
           ;;
-  "topsail") consoleMessage "platforms.sh: Topsail (UNC) configuration found."
+  "topsail") allMessage "platforms.sh: Topsail (UNC) configuration found."
           init_topsail
           ;;
-  "ranger") consoleMessage "platforms.sh: Ranger (TACC) configuration found."
+  "ranger") allMessage "platforms.sh: Ranger (TACC) configuration found."
           init_ranger
           ;;
-  "lonestar") consoleMessage "platforms.sh: Lonestar (TACC) configuration found."
+  "lonestar") allMessage "platforms.sh: Lonestar (TACC) configuration found."
           init_lonestar
           ;;
-  "stampede") consoleMessage "platforms.sh: Stampede (TACC) configuration found."
+  "stampede") allMessage "platforms.sh: Stampede (TACC) configuration found."
           init_stampede
           ;;
-  "stampede2") consoleMessage "platforms.sh: Stampede2 (TACC) configuration found."
+  "stampede2") allMessage "platforms.sh: Stampede2 (TACC) configuration found."
           init_stampede2
           ;;
-  "arete") consoleMessage "platforms.sh: Arete (CCT) configuration found."
+  "arete") allMessage "platforms.sh: Arete (CCT) configuration found."
           init_arete
           ;;
-  "desktop") consoleMessage "platforms.sh: desktop configuration found."
+  "desktop") allMessage "platforms.sh: desktop configuration found."
           init_desktop
            ;;
   "desktop-serial") consoleMessage "platforms.sh: desktop-serial configuration found."
           init_desktop-serial
            ;;
-  "poseidon") consoleMessage "platforms.sh: Poseidon configuration found."
+  "poseidon") allMessage "platforms.sh: Poseidon configuration found."
           init_Poseidon
            ;;
-  "penguin") consoleMessage "platforms.sh: Penguin configuration found."
+  "penguin") allMessage "platforms.sh: Penguin configuration found."
           init_penguin
            ;;
-  "rostam") consoleMessage "platforms.sh: rostam configuration found."
+  "rostam") allMessage "platforms.sh: rostam configuration found."
           init_rostam
            ;;
-  "test") consoleMessage "platforms.sh: test environment (default) configuration found."
+  "test") allMessage "platforms.sh: test environment (default) configuration found."
           init_test
           ;;
   *) fatal "platforms.sh: '$HPCENVSHORT' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, supermic, topsail, desktop, desktop-serial, arete, spirit, topaz, thunder, lsu_tds, lsu_ccr_tds, renci_tds, tacc_tds"

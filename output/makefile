@@ -71,7 +71,7 @@ endif
 # due possible compiler bug. Flag not needed for ifort version 13.1.3 and later. -nld
 ifeq ($(compiler),intel)
    FC := ifort
-   FFLAGS := -cpp -i-dynamic
+   FFLAGS := -cpp # -i-dynamic
    ifeq ($(DEBUG),trace)
       FFLAGS := -g -O0 -fpp -traceback 
    endif
@@ -109,7 +109,7 @@ ifeq ($(NETCDF),enable)
    ifeq ($(MACHINENAME),hatteras)
       #NETCDFPATH  := /usr/share/Modules/software/RHEL-6.5/netcdf/netcdf-4.1.3_intel-14.0.3
       # jgf20180105
-      NETCDFPATH := /usr/share/Modules/software/CentOS-7/netcdf-Fortran/4.4.0_intel-18.0.0
+      NETCDFPATH := $(shell nf-config --prefix)
    endif
    # jgf20190624: Added compiler flags for locally compiled netcdf on hatteras at RENCI.
    ifeq ($(MACHINENAME),hatteras-local)

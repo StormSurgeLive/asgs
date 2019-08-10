@@ -21,3 +21,5 @@ test/
 run.me*
 *.swp
 grib2
+*.swo
+*.o
