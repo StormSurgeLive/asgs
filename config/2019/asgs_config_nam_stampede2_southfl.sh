@@ -28,9 +28,9 @@
 # Fundamental
 
 INSTANCENAME=dailysouthfl # "name" of this ASGS process
-COLDSTARTDATE=2019051400  # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart       # "hotstart" or "coldstart"
-LASTSUBDIR=null           # path to previous execution (if HOTORCOLD=hotstart)
+COLDSTARTDATE=auto        # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart       # "hotstart" or "coldstart"
+LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/2019080706/southfl_v11-1_final/supermic.hpc.lsu.edu/readysouthflwaves/namforecast
 HINDCASTLENGTH=14.0       # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no       # used to bounce the wave solution
 
@@ -152,11 +152,8 @@ ASGSADMIN="jason.fleming@seahorsecoastal.com"
 # Monitoring
 
 # RMQ Messaging
-RMQMessaging_Enable="off"      #  enables message generation ("on" | "off")
-RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
-RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
-RMQMessaging_NcoHome="/home/jgflemin"
-RMQMessaging_Python="/usr/local/packages/python/2.7.12-anaconda/bin/python"
+ 
+# (use defaults from platforms.sh for RMQ Messaging)
 
 # Post processing and publication
 
@@ -185,8 +182,8 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 #ARCHIVE=queenbee_archive.sh
 ARCHIVE=null_archive.sh
-ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS/2018
-ARCHIVEDIR="${INSTANCENAME}_082017"
+ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
+ARCHIVEDIR="2019"
 
 # Forecast ensemble members
 
