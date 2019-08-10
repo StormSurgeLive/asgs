@@ -71,7 +71,7 @@ CYCLETIMELIMIT="05:00:00"
 # queue
 QUEUENAME=null
 SERQUEUE=null
-SCRATCHDIR=/scratch/ncfs-dev/ec95d-RENCI-TC-TEST/   #   /projects/ncfs/data # for the NCFS on blueridge
+SCRATCHDIR=/scratch/ncfs-dev/ec95d-RENCI-TC-TEST/  
 PARTITION=ncfs
 RESERVATION=null
 CONSTRAINT=hatteras
@@ -183,7 +183,7 @@ RMQMessaging_ClusterName="Hatteras"
 
 INTENDEDAUDIENCE=systemTest
 INITPOST=null_init_post.sh
-POSTPROCESS=ncfs_post_min.sh
+POSTPROCESS=ncfs_post_no-cera.sh
 POSTPROCESS2=null_post.sh
 
 TDS=(renci_tds)
@@ -215,13 +215,13 @@ case $si in
    ENSTORM=nhcOfcl
    PARTITION=ncfs
    RESERVATION=null
-   #CONSTRAINT='sandybridge&hatteras'
+   CONSTRAINT=hatteras
    ;;
 1)
    ENSTORM=nhcOfclWind10m
    PARTITION=ncfs
    RESERVATION=null
-   #CONSTRAINT='sandybridge&hatteras'
+   CONSTRAINT='hatteras'
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="00:20:00" # forecast wall clock time
    CONTROLTEMPLATE=nc_9.99wrivers.nowindreduction.fort.15.template
@@ -251,7 +251,7 @@ case $si in
    #POSTPROCESS=wind10m_post.sh
    ;;
 *)
-   echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
+   echo "CONFIGURATION ERROR: Unknown ensemble member number: '$si'."
    ;;
 esac
 

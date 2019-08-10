@@ -34,6 +34,7 @@ declare -A properties
 # get loadProperties function   
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties 2>>$SYSLOG`   
 source $SCRIPTDIR/properties.sh
+
 #
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR}
@@ -75,14 +76,27 @@ if [[ $BACKGROUNDMET != off ]]; then
 fi
 if [[ $TROPICALCYCLONE = on ]]; then
    YEAR=${properties["forcing.tropicalcyclone.year"]}
+   if [[ $YEAR = "" ]]; then 
+      # 2014stable version of properties
+      YEAR=${properties["config.forcing.tropicalcyclone.year"]}
+   fi
    STORMNAME=${properties["forcing.tropicalcyclone.stormname"]}
+   if [[ $STORMNAME = "" ]]; then
+      # 2014stable version of properties
+      STORMNAME=${properties["config.forcing.tropicalcyclone.stormname"]}
+   fi
    STORMNUMBER=${properties["forcing.tropicalcyclone.stormnumber"]}
+   if [[ $STORMNUMBER = "" ]]; then
+      STORMNUMBER=${properties["config.forcing.tropicalcyclone.stormnumber"]}
+   fi
    STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
    basin="al" # FIXME: write/read a property instead of hardcoding the atlantic basin
    STORMNAMEPATH=$YEAR/$basin$STORMNUMBER
    ALTSTORMNAMEPATH=$YEAR/$STORMNAMELC  # symbolic link with name
 fi
 OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HPCENV/$INSTANCENAME/$ENSTORM
+echo $OPENDAPSUFFIX
+
 #
 # Create full path to results for server file sytem. 
 # OPENDAPBASEDIR is specified in platforms.sh.
@@ -100,6 +114,7 @@ fi
 #           D E T E R M I N E   M E T H O D
 #-----------------------------------------------------------------------
 # Establish the default method of posting results for service via opendap
+# The actual method will depend on the configuration in platforms.sh.
 OPENDAPPOSTMETHOD=scp
 #
 # mvb20190620: Testing rsync with the LSU CCR thredds server
@@ -159,11 +174,13 @@ or wget the file with the following command
 
 wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
 END
+
 #
 #-------------------------------------------------------------------
 #                P O S T   V I A   S C P
 #-------------------------------------------------------------------
 # jgf20160803: Changed if/then to case-switch to accommodate new "copy" method.
+logMessage "$ENSTORM: $THIS: Posting to $OPENDAPHOST using the '$OPENDAPPOSTMETHOD' method."
 case $OPENDAPPOSTMETHOD in
 "scp")
    serverAliveInterval=10
@@ -190,23 +207,29 @@ case $OPENDAPPOSTMETHOD in
    done
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories
-   retry=0
-   while [[ $retry -lt $timeoutRetryLimit ]]; do 
-      ssh $sshOptions "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
-      ssh $sshOptions "chmod -R a+x $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
-      if [[ $? != 0 ]]; then
-         warn "$ENSTORM: $THIS: Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
-         threddsPostStatus=fail
-      else
-         logMessage "$ENSTORM: $THIS: Successfully changed permissions."
-         break
-      fi
-      retry=`expr $retry + 1`
-      if [[ $retry -lt $timeoutRetryLimit ]]; then
-         logMessage "$ENSTORM: $THIS: Trying again."
-      else
-         logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
-      fi
+   #OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HPCENV/$INSTANCENAME/$ENSTORM
+   partialPath=$OPENDAPDIR
+   while [[ $partialPath != $OPENDAPBASEDIR  ]]; do 
+      retry=0
+      while [[ $retry -lt $timeoutRetryLimit ]]; do 
+         ssh $sshOptions "chmod a+wx $partialPath" 2>> $SYSLOG
+         if [[ $? != 0 ]]; then
+            warn "$ENSTORM: $THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
+            threddsPostStatus=fail
+         else
+            logMessage "$ENSTORM: $THIS: Successfully changed permissions."
+            break
+         fi
+         retry=`expr $retry + 1`
+         if [[ $retry -lt $timeoutRetryLimit ]]; then
+            logMessage "$ENSTORM: $THIS: Trying again."
+         else
+            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+         fi
+      done
+      # cut off the end of the partial path and keep going until we get down
+      # to OPENDAPBASEDIR
+      partialPath=`dirname $partialPath` 
    done
    #
    # add a symbolic link for the storm name if this is tropicalcyclone forcing
@@ -299,11 +322,29 @@ case $OPENDAPPOSTMETHOD in
    fi
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories
-   ssh $sshOptions "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
-   if [[ $? != 0 ]]; then
-      warn "$ENSTORM: $THIS: Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
-      threddsPostStatus=fail
-   fi
+   partialPath=$OPENDAPDIR
+   while [[ $partialPath != $OPENDAPBASEDIR  ]]; do 
+      retry=0
+      while [[ $retry -lt $timeoutRetryLimit ]]; do 
+         ssh $sshOptions "chmod a+wx $partialPath" 2>> $SYSLOG
+         if [[ $? != 0 ]]; then
+            warn "$ENSTORM: $THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
+            threddsPostStatus=fail
+         else
+            logMessage "$ENSTORM: $THIS: Successfully changed permissions."
+            break
+         fi
+         retry=`expr $retry + 1`
+         if [[ $retry -lt $timeoutRetryLimit ]]; then
+            logMessage "$ENSTORM: $THIS: Trying again."
+         else
+            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+         fi
+      done
+      # cut off the end of the partial path and keep going until we get down
+      # to OPENDAPBASEDIR
+      partialPath=`dirname $partialPath` 
+   done
    for file in ${FILES[*]}; do 
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
@@ -346,13 +387,33 @@ case $OPENDAPPOSTMETHOD in
    mkdir -p $OPENDAPDIR 2>> $SYSLOG
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories
-   chmod a+w $OPENDAPBASEDIR 2>> $SYSLOG
-   chmod a+w $OPENDAPBASEDIR/$STORMNAMEPATH 2>> $SYSLOG
-   chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY 2>> $SYSLOG
+   partialPath=$OPENDAPDIR
+   while [[ $partialPath != $OPENDAPBASEDIR  ]]; do 
+      retry=0
+      while [[ $retry -lt $timeoutRetryLimit ]]; do 
+         chmod a+wx $partialPath 2>> $SYSLOG
+         if [[ $? != 0 ]]; then
+            warn "$ENSTORM: $THIS: Failed to change permissions on the directory ${partialPath}."
+            threddsPostStatus=fail
+         else
+            logMessage "$ENSTORM: $THIS: Successfully changed permissions."
+            break
+         fi
+         retry=`expr $retry + 1`
+         if [[ $retry -lt $timeoutRetryLimit ]]; then
+            logMessage "$ENSTORM: $THIS: Trying again."
+         else
+            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+         fi
+      done
+      # cut off the end of the partial path and keep going until we get down
+      # to OPENDAPBASEDIR
+      partialPath=`dirname $partialPath` 
+   done
    #
    # create link with storm name instead of storm number
    if [[ $TROPICALCYCLONE != off ]]; then
-      ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH
+      ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH 2>> $SYSLOG
    fi
    for file in ${FILES[*]}; do 
       # send opendap posting notification email early if directed
