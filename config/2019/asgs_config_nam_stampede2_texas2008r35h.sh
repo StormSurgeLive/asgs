@@ -47,7 +47,7 @@ OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 BACKGROUNDMET=on      # NAM download/forcing
 TIDEFAC=on            # tide factor recalc
 TROPICALCYCLONE=off   # tropical cyclone forcing
-WAVES=off             # wave forcing
+WAVES=on              # wave forcing
 VARFLUX=off           # variable river flux forcing
 
 # Computational Resources
@@ -107,7 +107,7 @@ VELSTATIONS=tx2008r35h_stations_20170618.txt
 METSTATIONS=tx2008r35h_stations_20170618.txt
 NAFILE=tx2008_r35h.13
 NAPROPERTIES=${NAFILE}.properties
-SWANTEMPLATE=nolimiter.fort.26.ut.template    # only used if WAVES=on
+SWANTEMPLATE=fort.26.nolimiter.template    # only used if WAVES=on
 RIVERINIT=null                           # this mesh has no rivers ...
 RIVERFLUX=null
 HINDCASTRIVERFLUX=null
