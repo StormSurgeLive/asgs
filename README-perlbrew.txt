@@ -25,11 +25,19 @@ on one machine will not be accessible on a different machine.
 
   curl -L https://install.perlbrew.pl | bash
 
-2. Add entry to one or all of the following 
+2. Add entry to one or all of the following that control userland's environment on login/new shell
 
-  echo "source ~/perl5/perlbrew/etc/bashrc" >> ~/.profile      # legacy supported by bash, but used by the original Bourne shell (/bin/sh)
-  echo "source ~/perl5/perlbrew/etc/bashrc" >> ~/.bash_profile # offical bash file, read ONCE on interactive login (e.g., when you first ssh to the host)
-  echo "source ~/perl5/perlbrew/etc/bashrc" >> ~/.bashrc       # read whenever a shell is started, including when ssh is used non-interactively
+a. ~/.bash_profile [recommended]
+  # offical bash file, read ONCE on interactive login (e.g., when you first ssh to the host)
+  echo "source ~/perl5/perlbrew/etc/bashrc" >> ~/.bash_profile
+
+b. ~/.bashrc       [recommended]
+  # read whenever a shell is started, including when ssh is used non-interactively
+  echo "source ~/perl5/perlbrew/etc/bashrc" >> ~/.bashrc
+
+c.  ~/.profile     [optional]
+  # legacy supported by bash, but used by the original Bourne shell (/bin/sh)
+  echo "source ~/perl5/perlbrew/etc/bashrc" >> ~/.profile
 
 It is recommended that you place it in ~/.bash_profile when running ASGS, assuming you will be
 starting it up from an interactive session. The batch queue system should inherit the interactive
@@ -37,8 +45,6 @@ environment when ASGS submits jobs to the queue. If you plan on issuing commands
 host machine non-interactively (e.g., ssh user@host "command to execute"), then place the source'ing
 of the perlbrew resource file into ~/.bashrc. There should be no reason to place it in ~/.profile
 since this is a hold over from the old Bourne shell.
-
-NOTE: You may wish to add this line to ~/.profile instead
 
 Once this is done, logout and back in again; make sure perlbrew is in your PATH:
 
