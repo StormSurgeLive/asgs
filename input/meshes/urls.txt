@@ -1,0 +1,2 @@
+https://asgs-static-assets.sfo2.digitaloceanspaces.com/meshes
+https://asgs-static-assets.sfo2.digitaloceanspaces.com/nodal-attributes
