@@ -1552,6 +1552,9 @@ writeProperties()
    echo "hpc.file.template.prepcontrolscript : $PREPCONTROLSCRIPT" >> $STORMDIR/run.properties
    echo "hpc.jobs.ncpucapacity : $NCPUCAPACITY" >> $STORMDIR/run.properties
    echo "hpc.walltimeformat : $WALLTIMEFORMAT" >> $STORMDIR/run.properties
+   echo "hpc.job.default.account : $ACCOUNT" >> $STORMDIR/run.properties
+   echo "hpc.job.default.queuename : $QUEUENAME" >> $STORMDIR/run.properties
+   echo "hpc.job.default.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
    # static input files, templates, and property files 
    echo "adcirc.file.input.gridfile : $GRIDFILE" >> $STORMDIR/run.properties   
    echo "adcirc.gridname : $GRIDNAME" >> $STORMDIR/run.properties   
@@ -1580,7 +1583,7 @@ writeProperties()
    echo "notification.hpc.email.notifyuser : \"$NOTIFYUSER\"" >> $STORMDIR/run.properties
    echo "notification.opendap.email.opendapnotify : \"$OPENDAPNOTIFY\"" >> $STORMDIR/run.properties
    echo "notification.email.asgsadmin : $ASGSADMIN" >> $STORMDIR/run.properties
-   # monitoring
+   # monitoring (includes logging)
    echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable " >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.script : $RMQMessaging_Script" >> $STORMDIR/run.properties  
@@ -1588,6 +1591,9 @@ writeProperties()
    echo "monitoring.rmqmessaging.python : $RMQMessaging_Python" >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.locationname : $RMQMessaging_LocationName" >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.clustername : $RMQMessaging_ClusterName" >> $STORMDIR/run.properties  
+   echo "monitoring.logging.file.syslog : $SYSLOG" >> $STORMDIR/run.properties  
+   echo "monitoring.logging.file.cyclelog : $CYCLELOG" >> $STORMDIR/run.properties  
+   echo "monitoring.logging.file.scenariolog : $SCENARIOLOG" >> $STORMDIR/run.properties  
    # post processing
    echo "post.intendedaudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
    echo "post.executable.initpost : $INITPOST" >> $STORMDIR/run.properties
@@ -1608,7 +1614,6 @@ writeProperties()
    # forecast ensemble
    echo "forecast.ensemblesize : $ENSEMBLESIZE" >> $STORMDIR/run.properties
    # runtime
-   echo "file.syslog : $SYSLOG" >> $STORMDIR/run.properties
    echo "path.rundir : $RUNDIR" >> $STORMDIR/run.properties
    # each ensemble member
    echo "path.fromdir : $FROMDIR" >> $STORMDIR/run.properties
@@ -2161,6 +2166,7 @@ if [[ $START = coldstart ]]; then
    logMessage "$THIS: Starting hindcast."
    HOTSWAN=off
    ENSTORM=hindcast
+   SCENARIO=$ENSTORM
    si=-2      # represents a hindcast 
    # pick up config info that is specific to the hindcast
    si=-1
@@ -2173,8 +2179,12 @@ if [[ $START = coldstart ]]; then
    #fi
    ADVISDIR=$RUNDIR/initialize
    mkdir -p $ADVISDIR 2>> ${SYSLOG}
+   CYCLEDIR=$ADVISDIR
+   CYCLELOG=$ADVISDIR/cycle.log
    STORMDIR=$ADVISDIR/$ENSTORM
    mkdir -p $STORMDIR 2>> ${SYSLOG}
+   SCENARIODIR=$STORMDIR
+   SCENARIOLOG=$SCENARIODIR/scenario.log
    HSTIME=0
    # We assume that the hindcast is only used to spin up tides or
    # initialize rivers ... therefore no met forcing.
@@ -2223,7 +2233,7 @@ if [[ $START = coldstart ]]; then
 
    if [[ -e tide_fac.out ]]; then
       scenarioMessage "$ENSTORM: $THIS: tide_fac.out is as follows:"
-      cat tide_fac.out >> scenario.log
+      cat tide_fac.out >> $SCENARIOLOG
    fi
    # don't have a meterological forcing (fort.22) file in this case
    # preproces
@@ -2307,7 +2317,8 @@ else
       OLDADVISDIR=$RUNDIR
    fi 
 fi
-
+CYCLELOG=null
+SCENARIOLOG=null
 #
 # B E G I N   N O W C A S T / F O R E C A S T   L O O P
 #
@@ -2316,6 +2327,7 @@ while [ true ]; do
    CURRENT_EVENT="RSTR"
    CURRENT_STATE="INIT"
    ENSTORM=nowcast
+   SCENARIO=$ENSTORM
 
    # determine if this date/advisory is the next cycle
    if [[  -e "$OLDADVISDIR/$ENSTORM/padcirc.$ENSTORM.run.finish"  ||  -e "$OLDADVISDIR/$ENSTORM/padcswan.$ENSTORM.run.finish"  ]] ; then
@@ -2425,10 +2437,14 @@ while [ true ]; do
       if [ ! -d $ADVISDIR ]; then
           mkdir $ADVISDIR 2>> ${SYSLOG}
       fi
+      CYCLEDIR=$ADVISDIR
+      CYCLELOG=$CYCLEDIR/cycle.log
       NOWCASTDIR=$ADVISDIR/$ENSTORM
       if [ ! -d $NOWCASTDIR ]; then
           mkdir $NOWCASTDIR 2>> ${SYSLOG}
       fi
+      SCENARIODIR=$CYCLEDIR/$SCENARIO
+      SCENARIOLOG=$SCENARIO/scenario.log
       RMQADVISORY=$ADVISORY
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$START Storm $STORM advisory $ADVISORY in $YEAR"
       logMessage "$ENSTORM: $THIS: $START Storm $STORM advisory $ADVISORY in $YEAR"
@@ -2487,7 +2503,11 @@ while [ true ]; do
          logMessage "$ENSTORM: $THIS: Detecting the ADVISORY from the state file ${STATEFILE}."
          ADVISORY=`grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
          ADVISDIR=$RUNDIR/${ADVISORY}
+         CYCLEDIR=$ADVISDIR
+         CYCLELOG=$CYCLEDIR/cycle.log
          NOWCASTDIR=$ADVISDIR/$ENSTORM
+         SCENARIODIR=$CYCLEDIR/$SCENARIO
+         SCENARIOLOG=$SCENARIODIR/scenario.log
          cd $ADVISDIR 2>> ${SYSLOG}
          RMQ_AdvisoryNumber="$ADVISORY"
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$START $ENSTORM cycle $RMQ_AdvisoryNumber."
@@ -2504,7 +2524,7 @@ while [ true ]; do
          for file in lambert_diag.out reproject.log ; do 
             if [[ -e $ADVISDIR/$file ]]; then
                scenarioMessage "$ENSTORM: $THIS: $file is as follows:"
-               cat $ADVISDIR/$file >> $ADVISDIR/$ENSTORM/scenario.log
+               cat $ADVISDIR/$file >> $SCENARIOLOG
             fi
          done
 
@@ -2539,6 +2559,10 @@ while [ true ]; do
          fi
          ADVISDIR=$RUNDIR/${ADVISORY}
          NOWCASTDIR=$ADVISDIR/$ENSTORM
+         CYCLEDIR=$ADVISDIR
+         CYCLELOG=$CYCLEDIR/cycle.log
+         SCENARIODIR=$CYCLEDIR/$SCENARIO
+         SCENARIOLOG=$SCENARIODIR/$SCENARIO
          mkdir -p $NOWCASTDIR 2>> ${SYSLOG}
          cd $ADVISDIR 2>> ${SYSLOG}
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
@@ -2582,7 +2606,11 @@ while [ true ]; do
             # pull the latest advisory number from the statefile
       ADVISORY=99999
       ADVISDIR=$RUNDIR/${ADVISORY}
+      CYCLEDIR=$ADVISDIR
+      CYCLELOG=$CYCLEDIR/cycle.log
       NOWCASTDIR=$ADVISDIR/$ENSTORM
+      SCENARIODIR=$NOWCASTDIR
+      SCENARIOLOG=$SCENARIODIR/scenario.log
       if [ ! -d $NOWCASTDIR ]; then
           mkdir -p $NOWCASTDIR 2>> ${SYSLOG}
       fi
@@ -2763,6 +2791,7 @@ while [ true ]; do
    echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
+   SCENARIOLOG=null
    #
    # F O R E C A S T
    #
@@ -2902,6 +2931,8 @@ while [ true ]; do
          mkdir $STORMDIR 2>> ${SYSLOG}
       fi
       cd $STORMDIR 2>> ${SYSLOG}
+      SCENARIODIR=$STORMDIR
+      SCENARIOLOG=$SCENARIODIR/scenario.log
       # write the properties associated with asgs configuration to the 
       # run.properties file
       writeProperties $STORMDIR
@@ -3137,12 +3168,11 @@ while [ true ]; do
       si=`expr $si + 1`
    done
    #
+   SCENARIOLOG=null
    THIS="asgs_main.sh"
    # allow all ensemble members and associated post processing to complete
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "RUNN" "All forecast ensemble members have been submitted."
    logMessage "$ENSTORM: $THIS: All forecast ensemble members have been submitted."
-   wait
-
    CURRENT_EVENT="FEND"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL" "Forecast Cycle Complete for Adv=$ADVISORY"
 
@@ -3161,5 +3191,6 @@ while [ true ]; do
 
    CURRENT_EVENT="REND"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL" "NC/FC Cycle Complete"
+   CYCLELOG=null
 done
 
