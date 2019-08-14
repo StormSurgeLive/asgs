@@ -1,7 +1,7 @@
 #!/bin/bash
 #----------------------------------------------------------------
 #
-# platforms.sh: This file contains functions required for initializing
+# $THIS: This file contains functions required for initializing
 # variables that are architecture (platform) dependent. 
 # It is sourced by asgs_main.sh and any other shell script that 
 # is platform dependent. 
@@ -47,9 +47,12 @@ init_supermike()
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=$SCRIPTDIR/input/machines/supermike/supermike.template.pbs
   PREPCONTROLSCRIPT=$SCRIPTDIR/input/machines/supermike/supermike.adcprep.template.pbs
+  MATLABEXE=mex
+  MCRROOT=/usr/local/packages/license/matlab/r2017a # for matlab mex files
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=16
 }
+#
 init_queenbee()
 { #<- can replace the following with a custom script
   HPCENV=queenbee.loni.org
@@ -73,18 +76,22 @@ init_queenbee()
   ACCOUNT=null
   PLATFORMMODULES='module load intel netcdf netcdf_fortran'
   # modules for CPRA post processing
+  MATLABEXE=script # "script" means just execute matlab
+  MCRROOT=/usr/local/packages/license/matlab/r2017a
   SERIALMODULES='module load matlab/r2015b python/2.7.12-anaconda-tensorflow'
   PARALLELMODULES='module load mvapich2'
   JOBENVDIR=$SCRIPTDIR/config/machines/queenbee
   JOBENV=( )
   if [[ $USER = "jgflemin" ]]; then
      SCRATCHDIR=/work/$USER
-     ACCOUNT=loni_cera_2019
+     ACCOUNT=loni_cera_2019a
      JOBENV=( gmt.sh gdal.sh imagemagick.sh perlbrew.sh )
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
+     MATLABEXE=mex  # "mex" means use the precompiled mex files
   fi
+  THIS=platforms.sh
   SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
   module purge
@@ -97,7 +104,7 @@ init_queenbee()
   # a password instead
   unset SSH_ASKPASS
 }
-
+#
 init_rostam()
 { #<- can replace the following with a custom script
   HPCENV=rostam.cct.lsu.edu
@@ -151,6 +158,8 @@ init_supermic()
   ACCOUNT=null
   PLATFORMMODULES='module load intel/14.0.2 hdf5/1.8.12/INTEL-140-MVAPICH2-2.0 netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0 netcdf_fortran/4.2/INTEL-140-MVAPICH2-2.0'
   # modules for CPRA post processing
+  MATLABEXE=script # "script" means just execute matlab
+  MCRROOT=/usr/local/packages/license/matlab/r2017a
   SERIALMODULES='module load matlab/r2017a python/2.7.13-anaconda-tensorflow'
   PARALLELMODULES='module load mvapich2'
   JOBENVDIR=$SCRIPTDIR/config/machines/supermic
@@ -163,6 +172,7 @@ init_supermic()
         source $JOBENVDIR/$script
      done
   fi
+  THIS=platforms.sh
   SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
   module purge
@@ -260,6 +270,7 @@ init_pod()
         source $JOBENVDIR/$script
      done
   fi
+  THIS=platforms.sh
   SSHKEY=~/.ssh/id_rsa.pub
   RESERVATION=null
   PPN=28
@@ -293,6 +304,8 @@ init_hatteras()
   QSUMMARYCMD=null
   QUOTACHECKCMD="df -h /projects/ncfs"
   ALLOCCHECKCMD=null
+  # 
+  MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   #
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
@@ -407,6 +420,8 @@ init_stampede2()
   PLATFORMMODULES='module load intel/18.0.2 python2/2.7.15 xalt/2.6.5 TACC'
   SERIALMODULES='module load' # no extra modules for serial jobs
   PARALLELMODULES='module load libfabric/1.7.0 impi/18.0.2'
+  # matlab
+  MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   # specify location of platform- and Operator-specific scripts to 
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/stampede2
@@ -419,6 +434,7 @@ init_stampede2()
         source $JOBENVDIR/$script
      done
   fi
+  THIS=platforms.sh
   $PLATFORMMODULES
   $SERIALMODULES
   #
@@ -660,6 +676,8 @@ init_lonestar()
   QSUMMARYCMD=null
   QUOTACHECKCMD=null
   ALLOCCHECKCMD=null
+  # matlab
+  MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   #
   RMQMessaging_LocationName="TACC"
   RMQMessaging_ClusterName="Lonestar5"
@@ -684,6 +702,7 @@ init_lonestar()
         source $JOBENVDIR/$script
      done
   fi
+  THIS=platforms.sh
   $PLATFORMMODULES
   $SERIALMODULES
   #
@@ -882,7 +901,7 @@ job_defaults() {
       PPN=null
       ;;
    *)
-      scenarioMessage "platforms.sh>job_defaults: There are no platform-specific settings for jobtype $JOBTYPE on the $HPCENVSHORT platform."
+      scenarioMessage "$THIS>job_defaults: There are no platform-specific settings for jobtype $JOBTYPE on the $HPCENVSHORT platform."
       ;;
    esac
 }
@@ -890,113 +909,114 @@ job_defaults() {
 # used to dispatch environmentally sensitive actions
 env_dispatch() {
  HPCENVSHORT=$1
+ THIS=platforms.sh
  case $HPCENVSHORT in
-  "camellia") allMessage "platforms.sh: Camellia(WorldWinds) configuration found."
+  "camellia") allMessage "$THIS: Camellia(WorldWinds) configuration found."
           init_camellia
           ;;
-  "lsu_tds") allMessage "platforms.sh: LSU THREDDS Data Server configuration found."
+  "lsu_tds") allMessage "$THIS: LSU THREDDS Data Server configuration found."
           init_lsu_tds
           ;;
-  "lsu_ccr_tds") consoleMessage "platforms.sh: LSU THREDDS Data Server configuration found."
+  "lsu_ccr_tds") consoleMessage "$THIS: LSU THREDDS Data Server configuration found."
           init_lsu_ccr_tds
           ;;
-  "renci_tds") consoleMessage "platforms.sh: RENCI THREDDS Data Server configuration found."
+  "renci_tds") consoleMessage "$THIS: RENCI THREDDS Data Server configuration found."
           init_renci_tds
           ;;
-  "tacc_tds") allMessage "platforms.sh: TACC THREDDS Data Server configuration found."
+  "tacc_tds") allMessage "$THIS: TACC THREDDS Data Server configuration found."
           init_tacc_tds
           ;;
-  "kittyhawk") allMessage "platforms.sh: Kittyhawk (RENCI) configuration found."
+  "kittyhawk") allMessage "$THIS: Kittyhawk (RENCI) configuration found."
           init_kittyhawk
           ;;
-  "blueridge") allMessage "platforms.sh: Blueridge (RENCI) configuration found."
+  "blueridge") allMessage "$THIS: Blueridge (RENCI) configuration found."
           init_blueridge
           ;;
-  "croatan") allMessage "platforms.sh: Croatan (RENCI) configuration found."
+  "croatan") allMessage "$THIS: Croatan (RENCI) configuration found."
           init_croatan
           ;;
-  "pod") allMessage "platforms.sh: POD (Penguin) configuration found."
+  "pod") allMessage "$THIS: POD (Penguin) configuration found."
           init_pod
           ;;
-  "hatteras") allMessage "platforms.sh: Hatteras (RENCI) configuration found."
+  "hatteras") allMessage "$THIS: Hatteras (RENCI) configuration found."
           init_hatteras
           ;;
-  "hatteras14") allMessage "platforms.sh: Hatteras (RENCI) configuration found."
+  "hatteras14") allMessage "$THIS: Hatteras (RENCI) configuration found."
           init_hatteras14
           ;;
-  "sapphire") allMessage "platforms.sh: Sapphire (ERDC) configuration found."
+  "sapphire") allMessage "$THIS: Sapphire (ERDC) configuration found."
           init_sapphire
           ;;
-  "jade") allMessage "platforms.sh: Jade (ERDC) configuration found."
+  "jade") allMessage "$THIS: Jade (ERDC) configuration found."
           init_jade
           ;;
-  "diamond") allMessage "platforms.sh: Diamond (ERDC) configuration found."
+  "diamond") allMessage "$THIS: Diamond (ERDC) configuration found."
           init_diamond
           ;;
-  "garnet") allMessage "platforms.sh: Garnet (ERDC) configuration found."
+  "garnet") allMessage "$THIS: Garnet (ERDC) configuration found."
           init_garnet
           ;;
-  "spirit") allMessage "platforms.sh: Spirit (AFRL) configuration found."
+  "spirit") allMessage "$THIS: Spirit (AFRL) configuration found."
           init_spirit
           ;;
-  "topaz") allMessage "platforms.sh: Topaz (ERDC) configuration found."
+  "topaz") allMessage "$THIS: Topaz (ERDC) configuration found."
           init_topaz
           ;;
-  "thunder") allMessage "platforms.sh: Thunder (AFRL) configuration found."
+  "thunder") allMessage "$THIS: Thunder (AFRL) configuration found."
           init_thunder
           ;;
-  "supermike") allMessage "platforms.sh: Supermike (LSU) configuration found."
+  "supermike") allMessage "$THIS: Supermike (LSU) configuration found."
           init_supermike
           ;;
-  "queenbee") allMessage "platforms.sh: Queenbee (LONI) configuration found."
+  "queenbee") allMessage "$THIS: Queenbee (LONI) configuration found."
           init_queenbee
           ;;
-  "supermic") allMessage "platforms.sh: SuperMIC (LSU HPC) configuration found."
+  "supermic") allMessage "$THIS: SuperMIC (LSU HPC) configuration found."
           init_supermic
           ;;
-  "tezpur") allMessage "platforms.sh: Tezpur (LSU) configuration found."
+  "tezpur") allMessage "$THIS: Tezpur (LSU) configuration found."
           init_tezpur
           ;;
-  "mike") allMessage "platforms.sh: SuperMike-II (LSU) configuration found."
+  "mike") allMessage "$THIS: SuperMike-II (LSU) configuration found."
           init_mike
           ;;
-  "topsail") allMessage "platforms.sh: Topsail (UNC) configuration found."
+  "topsail") allMessage "$THIS: Topsail (UNC) configuration found."
           init_topsail
           ;;
-  "ranger") allMessage "platforms.sh: Ranger (TACC) configuration found."
+  "ranger") allMessage "$THIS: Ranger (TACC) configuration found."
           init_ranger
           ;;
-  "lonestar") allMessage "platforms.sh: Lonestar (TACC) configuration found."
+  "lonestar") allMessage "$THIS: Lonestar (TACC) configuration found."
           init_lonestar
           ;;
-  "stampede") allMessage "platforms.sh: Stampede (TACC) configuration found."
+  "stampede") allMessage "$THIS: Stampede (TACC) configuration found."
           init_stampede
           ;;
-  "stampede2") allMessage "platforms.sh: Stampede2 (TACC) configuration found."
+  "stampede2") allMessage "$THIS: Stampede2 (TACC) configuration found."
           init_stampede2
           ;;
-  "arete") allMessage "platforms.sh: Arete (CCT) configuration found."
+  "arete") allMessage "$THIS: Arete (CCT) configuration found."
           init_arete
           ;;
-  "desktop") allMessage "platforms.sh: desktop configuration found."
+  "desktop") allMessage "$THIS: desktop configuration found."
           init_desktop
            ;;
-  "desktop-serial") consoleMessage "platforms.sh: desktop-serial configuration found."
+  "desktop-serial") consoleMessage "$THIS: desktop-serial configuration found."
           init_desktop-serial
            ;;
-  "poseidon") allMessage "platforms.sh: Poseidon configuration found."
+  "poseidon") allMessage "$THIS: Poseidon configuration found."
           init_Poseidon
            ;;
-  "penguin") allMessage "platforms.sh: Penguin configuration found."
+  "penguin") allMessage "$THIS: Penguin configuration found."
           init_penguin
            ;;
-  "rostam") allMessage "platforms.sh: rostam configuration found."
+  "rostam") allMessage "$THIS: rostam configuration found."
           init_rostam
            ;;
-  "test") allMessage "platforms.sh: test environment (default) configuration found."
+  "test") allMessage "$THIS: test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "platforms.sh: '$HPCENVSHORT' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, supermic, topsail, desktop, desktop-serial, arete, spirit, topaz, thunder, lsu_tds, lsu_ccr_tds, renci_tds, tacc_tds"
+  *) fatal "$THIS: '$HPCENVSHORT' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, supermic, topsail, desktop, desktop-serial, arete, spirit, topaz, thunder, lsu_tds, lsu_ccr_tds, renci_tds, tacc_tds"
      ;;
   esac
 }

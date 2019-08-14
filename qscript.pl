@@ -114,14 +114,16 @@ $ppn = $properties{"hpc.job.$jobtype.ppn"};
 # 
 # construct command line for running adcprep or serial job
 if ( $parallelism eq "serial" ) {
+   $totalcpu = 1; # these are serial jobs
+   $nnodes = 1;   # these are serial jobs
    if ( $jobtype eq "partmesh" || $jobtype =~ /prep/ ) {
       # get number of compute cpus
       $ncpu = $properties{"hpc.job.$jobtype.for.ncpu"}; # for adcprep
       $cmd="$adcircdir/adcprep --np $ncpu --$jobtype --strict-boundaries";
+   } else {
+      $cmd = $properties{"hpc.job.$jobtype.cmd"};
    }
-   $totalcpu = 1; # these are serial jobs
-   $nnodes = 1;   # these are serial jobs
-}
+} 
 #
 # construct command line for running padcirc, padcswan, or other parallel job
 if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ){

@@ -59,7 +59,7 @@ else
    HSTIME=${properties['InitialHotStartTime']}
    GRIDFILE=${properties['adcirc.file.input.gridfile']}
    OUTPUTDIR=${properties['config.path.outputdir']}
-   SYSLOG=${properties['asgs.file.syslog']}
+   SYSLOG=${properties['monitoring.logging.file.syslog']}
    SSHKEY=${properties['post.file.sshkey']}
    TROPICALCYCLONE=${properties['config.forcing.tropicalcyclone']}
    if [[ $TROPICALCYCLONE != "off" ]]; then
@@ -107,6 +107,8 @@ fromdir=${properties['asgs.path.fromdir']}
 # FIXME: this makes an assumption that previous advisory number is one
 # less than the current one
 previousAdvisory=$(printf "%02d" `expr $ADVISORY - 1`)
+CYCLELOG=${properties['monitoring.logging.file.cyclelog']}
+SCENARIOLOG==${properties['monitoring.logging.file.scenariolog']}
 #for file in maxele.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc maxwvel.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc ; do 
 #   if [[ -e $file ]]; then
 #      # create backup copy of the file just in case

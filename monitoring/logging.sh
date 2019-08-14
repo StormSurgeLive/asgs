@@ -214,26 +214,34 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
 # write an INFO-level message to the main asgs log file
 logMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] INFO: $@"
-  echo ${MSG} >> ${SYSLOG}
+  MSG="[${DATETIME}] INFO: $1"
+  for file in $SYSLOG $2 ; do
+    if [[ -e $file ]]; then
+      echo ${MSG} >> $file
+    fi
+  done
 }
 #
 # write an INFO-level message to the cycle (or advisory log file)
 cycleMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] INFO: $@"
-  if [[ -e $ADVISDIR/cycle.log ]]; then
-     echo ${MSG} >> $ADVISDIR/cycle.log
-  fi
+  MSG="[${DATETIME}] INFO: $1"
+  for file in $CYCLELOG $2 ; do
+    if [[ -e $file ]]; then
+      echo ${MSG} >> $file
+    fi
+  done
 }
 #
 # write an INFO-level message to the cycle (or advisory log file)
 scenarioMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] INFO: $@"
-  if [[ -e $ADVISDIR/$ENSTORM/scenario.log ]]; then
-     echo ${MSG} >> $ADVISDIR/$ENSTORM/scenario.log
-  fi
+  MSG="[${DATETIME}] INFO: $1"
+  for file in $SCENARIOLOG $2 ; do
+    if [[ -e $file ]]; then
+      echo ${MSG} >> $file
+    fi
+  done
 }
 
 #
@@ -241,8 +249,11 @@ scenarioMessage()
 # (these should be rare)
 consoleMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] INFO: $@"
+  MSG="[${DATETIME}] ATTN: $1"
   echo ${MSG}
+  if [[ -e $2 ]]; then
+     echo ${MSG} >> $2
+  fi
 }
 #
 # send INFO message to main asgs log file, cycle (advisory) log file, as well
@@ -250,18 +261,18 @@ consoleMessage()
 allMessage()
 {
 #   consoleMessage $@
-   logMessage $@
-   cycleMessage $@
-   scenarioMessage $@
+   logMessage $1 $2
+   cycleMessage $1 $2
+   scenarioMessage $1 $2
 }
 #
 # log a warning message, execution continues
 warn()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] WARNING: $@"
-  for file in $SYSLOG $ADVISDIR/cycle.log $ADVISDIR/$ENSTORM/scenario.log ; do
+  MSG="[${DATETIME}] WARNING: $1"
+  for file in $SYSLOG $CYCLELOG $SCENARIOLOG $2 ; do
     if [[ -e $file ]]; then
-      echo ${MSG} >> ${SYSLOG}
+      echo ${MSG} >> $file
     fi
   done
   #echo ${MSG}  # send to console
@@ -270,11 +281,12 @@ warn()
 # log an error message, notify Operator 
 error()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] ERROR: $@"
+  MSG="[${DATETIME}] ERROR: $1"
   echo ${MSG}  # send to console
-  for file in $SYSLOG $ADVISDIR/cycle.log $ADVISDIR/$ENSTORM/scenario.log ; do
+  # added ability for Operator to supply a "local" log file (e.g., postprocess.log)
+  for file in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
     if [[ -e $file ]]; then
-      echo ${MSG} >> ${SYSLOG}
+      echo ${MSG} >> $file
     fi
   done
   # email the operator
@@ -286,14 +298,14 @@ error()
 # log an error message, execution halts
 fatal()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] FATAL ERROR: $@"
-  for file in $SYSLOG $ADVISDIR/cycle.log $ADVISDIR/$ENSTORM/scenario.log ; do
+  MSG="[${DATETIME}] FATAL ERROR: $1"
+  for file in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
     if [[ -e $file ]]; then
-      echo ${MSG} >> ${SYSLOG}
+      echo ${MSG} >> $file
     fi
   done
   if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
-     cat ${SYSLOG} | mail -s "[ASGS] Fatal Error for PROCID ($$)" "${ASGSADMIN}"
+     echo $MSG | mail -s "[ASGS] Fatal Error for PROCID ($$)" "${ASGSADMIN}"
   fi
   echo ${MSG} # send to console
   exit ${EXIT_NOT_OK}
@@ -302,6 +314,10 @@ fatal()
 # log a debug message
 debugMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] DEBUG: $@"
-  echo ${MSG} >> $ADVISDIR/$ENSTORM/scenario.log
+  MSG="[${DATETIME}] DEBUG: $1"
+  for file in $SCENARIOLOG $2; do
+     if [[ -e $file ]]; then
+        echo ${MSG} >> $file
+     fi
+  done
 }
