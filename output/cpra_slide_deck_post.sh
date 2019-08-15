@@ -98,7 +98,7 @@ echo "hpc.job.${batchJOBTYPE}.account : $ACCOUNT" >> $SCENARIODIR/run.properties
 export MATLABPATH=${POSTPROCDIR}
 # queenbee, supermic
 if [[ $MATLABEXE = "mex" ]]; then
-   FINDMAXZCMD="${POSTPROCDIR}/Matlab_$HPCENVSHORT/run_FindMaxZ.sh $MCRROOT"
+   FINDMAXZCMD="${POSTPROCDIR}/MEX/run_mex.sh $MCRROOT ${POSTPROCDIR}/MEX/FindMaxZ_${HPCENVSHORT}.mex"
 else
    # hatteras, stampede2, lonestar5
    FINDMAXZCMD="(matlab -nodisplay -nosplash -nodesktop -r 'run FindMaxZ.m, exit')"
