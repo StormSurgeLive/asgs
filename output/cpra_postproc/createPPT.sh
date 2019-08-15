@@ -101,7 +101,8 @@ scenarioMessage "$SCENARIO: $THIS: Executing matlab." $LOGFILE
 PLOTCMD=""
 if [[ $MATLABEXE = "mex" ]]; then
    # MCRROOT is set in platforms.sh
-   PLOTCMD="${POSTPROCDIR}/Matlab_$HPCENVSHORT/run_cpra_hydrograph_plotter.sh $MCRROOT"
+   MEXFILE="${POSTPROCDIR}/MEX/cpra_hydrograph_plotter_${HPCENVSHORT}.mex"
+   PLOTCMD="${POSTPROCDIR}/MEX/run_mex.sh $MCRROOT $MEXFILE"
 else
    PLOTCMD='matlab -nodisplay -nosplash -nodesktop -r "run cpra_hydrograph_plotter.m, exit"'
 fi
