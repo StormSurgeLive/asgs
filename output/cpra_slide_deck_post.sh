@@ -6,7 +6,7 @@
 #--------------------------------------------------------------------------
 # 
 # Copyright(C) 2018 Matthew V Bilskie
-# Copyright(C) 2018 Jason Fleming
+# Copyright(C) 2018--2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
