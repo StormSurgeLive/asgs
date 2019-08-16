@@ -66,7 +66,7 @@ env_dispatch $HPCENVSHORT
 THIS="output/cpra_postproc/createPPT.sh" # must reset after env_dispatch()
 #
 echo "post.path.cpra.post.mcrroot : $MCRROOT" >> $SCENARIODIR/run.properties
-echo "post.path.cpra.post.matlabexe : $MATLABEXE" >> $SCENARIODIR/run.properties
+echo "post.cpra.post.matlabexe : $MATLABEXE" >> $SCENARIODIR/run.properties
 #
 # create strings to represent time in UTC and CDT
 coldStartTimeUTC="${coldStartTime:0:8} ${coldStartTime:8:4} UTC"
