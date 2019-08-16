@@ -21,17 +21,18 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------
 #
+THIS=cpra_post.sh
 # Count command line arguments; use them if provided or use 
 # run.properties if not.
 declare -A properties
 if [[ $# -gt 2 ]]; then
    CONFIG=$1
-   ADVISDIR=$2
+   CYCLEDIR=$2
    STORM=$3
    YEAR=$4
-   ADVISORY=$5
+   CYCLE=$5
    HPCENV=$6
-   ENSTORM=$7
+   SCENARIO=$7
    CSDATE=$8
    HSTIME=$9
    GRIDFILE=${10}
@@ -51,10 +52,10 @@ else
    echo "Finished loading properties."
    # now set variables that would otherwise be set by command line arguments
    CONFIG=${properties['config.file']}
-   ADVISDIR=${properties['asgs.path.advisdir']}
-   ADVISORY=${properties['advisory']}
+   CYCLEDIR=${properties['asgs.path.advisdir']}
+   CYCLE=${properties['advisory']}
    HPCENV=${properties['hpc.hpcenv']}
-   ENSTORM=${properties['enstorm']}
+   SCENARIO=${properties['scenario']}
    CSDATE=${properties['config.adcirc.time.coldstartdate']}
    HSTIME=${properties['InitialHotStartTime']}
    GRIDFILE=${properties['adcirc.file.input.gridfile']}
@@ -67,21 +68,15 @@ else
       YEAR=${properties['config.forcing.tropicalcyclone.year']}
    else
       STORM="null"
-      YEAR=${ADVISORY:0:4}
+      YEAR=${CYCLE:0:4}
    fi      
 fi
-#
-STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
-cd ${STORMDIR} 2>> ${SYSLOG}
-THIS=cpra_post.sh
-echo "ENSTORM is $ENSTORM"
-echo "STORMDIR is $STORMDIR"
 # get the forecast ensemble member number 
-ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${SCENARIODIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 #
 # grab all config info
 si=$ENMEMNUM
-. ${CONFIG}
+. ${CONFIG} #FIXME: this should not be needed 
 # Bring in logging functions
 . ${SCRIPTDIR}/monitoring/logging.sh
 # Bring in platform-specific configuration
@@ -91,24 +86,28 @@ env_dispatch ${TARGET}
 # grab all config info (again, last, so the CONFIG file takes precedence)
 . ${CONFIG}
 #
-logMessage "$ENSTORM: $THIS: Starting post processing."
-#
-#-----------------------------------------------------------------------
-#     A C C U M U L A T E   M I N   /   M A X 
-#------------------------------------------------------------------------
+SCENARIODIR=${CYCLEDIR}/${SCENARIO}       # shorthand
+
 # get loadProperties function
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties`
 source $SCRIPTDIR/properties.sh
 # load run.properties file into associative array
 loadProperties ./run.properties
+CYCLELOG=${properties['monitoring.logging.file.cyclelog']}
+SCENARIOLOG==${properties['monitoring.logging.file.scenariolog']}
+allMessage "$SCENARIO: $THIS: Starting post processing."
+scenarioMessage "$THIS: SCENARIO=$SCENARIO ; SCENARIODIR=$SCENARIODIR"
+cd ${SCENARIODIR} 2>&1 > errmsg || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not change directory to $SCENARIODIR: `cat $errmsg`"
+#
+#-----------------------------------------------------------------------
+#     A C C U M U L A T E   M I N   /   M A X 
+#------------------------------------------------------------------------
 # get path to hotstart file that started this run
 fromdir=${properties['asgs.path.fromdir']}
 # set previous advisory number with leading zero if appropriate
 # FIXME: this makes an assumption that previous advisory number is one
 # less than the current one
-previousAdvisory=$(printf "%02d" `expr $ADVISORY - 1`)
-CYCLELOG=${properties['monitoring.logging.file.cyclelog']}
-SCENARIOLOG==${properties['monitoring.logging.file.scenariolog']}
+previousAdvisory=$(printf "%02d" `expr $CYCLE - 1`)
 #for file in maxele.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc maxwvel.63.nc swan_HS_max.63.nc swan_TPS_max.63.nc ; do 
 #   if [[ -e $file ]]; then
 #      # create backup copy of the file just in case
@@ -128,12 +127,14 @@ SCENARIOLOG==${properties['monitoring.logging.file.scenariolog']}
 #-----------------------------------------------------------------------
 #     C R E A T E   M A X   C S V  
 #------------------------------------------------------------------------
-${OUTPUTDIR}/make_max_csv.sh $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HOSTNAME $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG >> ${SYSLOG} 2>&1
-csvFileName=`grep "Maximum Values Point CSV File Name" ${STORMDIR}/run.properties | sed 's/Maximum Values Point CSV File Name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+${OUTPUTDIR}/make_max_csv.sh $CONFIG $CYCLEDIR $STORM $YEAR $CYCLE $HOSTNAME $SCENARIO $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG >> ${SCENARIOLOG} 2>&1
+csvFileName=`grep "Maximum Values Point CSV File Name" ${SCENARIODIR}/run.properties | sed 's/Maximum Values Point CSV File Name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 #
 #-----------------------------------------------------------------------
 #     C R E A T E   C P R A   S L I D E   D E C K 
 #------------------------------------------------------------------------
+# ATTN: Operator must compile FigureGen with netCDF4 support in cpra_postproc.
+# This also requires installation and configuration of GMT, gdal, etc
 ${OUTPUTDIR}/cpra_slide_deck_post.sh
 #
 #-----------------------------------------------------------------------
@@ -144,14 +145,14 @@ ${OUTPUTDIR}/cpra_slide_deck_post.sh
 # and canopy coefficient) were produced by another ensemble member, 
 # then include these winds in the post processing
 wind10mFound=no
-dirWind10m=$ADVISDIR/${ENSTORM}Wind10m
+dirWind10m=$CYCLEDIR/${SCENARIO}Wind10m
 if [[ -d $dirWind10m ]]; then
-   logMessage "Corresponding 10m wind ensemble member was found."
+   scenarioMessage "Corresponding 10m wind ensemble member was found."
    wind10mFound=yes
    for file in fort.72.nc fort.74.nc maxwvel.63.nc ; do
       if [[ -e $dirWind10m/$file && ! -e ./wind10m.${file} ]]; then
-         logMessage "$ENSTORM: $THIS: Found $dirWind10m/${file}."
-         ln -s $dirWind10m/${file} ./wind10m.${file} 2>&1 | tee -a scenario.log >> $SYSLOG
+         scenarioMessage "$SCENARIO: $THIS: Found $dirWind10m/${file}."
+         ln -s $dirWind10m/${file} ./wind10m.${file} 2>&1 > errmsg || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not link to Wind10m directory: `cat $errmsg`"
          # update the run.properties file
          case $file in
          "fort.72.nc")
@@ -167,15 +168,15 @@ if [[ -d $dirWind10m ]]; then
             echo "Maximum Wind Speed 10m Format : netcdf" >> run.properties
             ;;
          *)
-            warn "$ENSTORM: $THIS: The file $file was not recognized."
+            warn "cycle $CYCLE: $SCENARIO: $THIS: The file $file was not recognized."
          ;;
          esac
       else
-         logMessage "$ENSTORM: $THIS: The file $dirWind10m/${file} was not found."
+         warn "cycle $CYCLE: $SCENARIO: $THIS: The file $dirWind10m/${file} was not found."
       fi
    done
 else
-   logMessage "$ENSTORM: $THIS: Corresponding 10m wind ensemble member was not found."
+   warn "cycle $CYCLE: $SCENARIO: $THIS: Corresponding 10m wind ensemble member was not found."
 fi
 #-------------------------------------------------------------------
 #               C E R A   F I L E   P R I O R I T Y
@@ -184,27 +185,28 @@ fi
 # needed by CERA have been posted. 
 #
 #FILES=(`ls *.nc al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat fort.15 fort.22 CERA.tar run.properties 2>> /dev/null`)
-logMessage "$ENSTORM: $THIS: Creating list of files to post to opendap."
-if [[ -e ../al${STORM}${YEAR}.fst ]]; then
-   cp ../al${STORM}${YEAR}.fst . 2>> $SYSLOG
-fi
-if [[ -e ../bal${STORM}${YEAR}.dat ]]; then
-   cp ../bal${STORM}${YEAR}.dat . 2>> $SYSLOG
-fi
-ceraNonPriorityFiles=( `ls $CONFIG $SYSLOG cpra.post.log $csvFileName endrisinginun.63.nc everdried.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc 2>> $SYSLOG` )
-ceraPriorityFiles=(`ls run.properties maxele.63.nc fort.63.nc fort.61.nc fort.15 fort.22 *.jpg 2>> $SYSLOG`)
+scenarioMessage "$SCENARIO: $THIS: Creating list of files to post to opendap."
+fcstFile=../al${STORM}${YEAR}.fst
+bestFile=../bal${STORM}${YEAR}.dat
+for file in $fcstFile $bestFile ; do
+   if [[ -e $file ]]; then
+      cp $file . 2>&1 > errmsg || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not link to $file: `cat $errmsg`"
+   fi
+done
+ceraNonPriorityFiles=( `ls $CONFIG $SYSLOG $CYCLELOG $SCENARIOLOG cpra.post.log $csvFileName endrisinginun.63.nc everdried.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc 2>> $SCENARIOLOG` )
+ceraPriorityFiles=(`ls run.properties maxele.63.nc fort.63.nc fort.61.nc fort.15 fort.22 *.jpg 2>> $SCENARIOLOG`)
 if [[ $TROPICALCYCLONE = on ]]; then
-   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat 2>> $SYSLOG` )
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat 2>> $SCENARIOLOG` )
 fi
 if [[ $WAVES = on ]]; then
-   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls swan_HS_max.63.nc swan_TPS_max.63.nc swan_HS.63.nc swan_TPS.63.nc $SYSLOG` )
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls swan_HS_max.63.nc swan_TPS_max.63.nc swan_HS.63.nc swan_TPS.63.nc 2>> $SCENARIOLOG` )
 fi
-dirWind10m=$ADVISDIR/${ENSTORM}Wind10m
+dirWind10m=$CYCLEDIR/${SCENARIO}Wind10m
 if [[ -d $dirWind10m ]]; then
-   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls wind10m.maxwvel.63.nc wind10m.fort.74.nc 2>> $SYSLOG` )
-   ceraNonPriorityFiles=( ${ceraNonPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc 2>> $SYSLOG` )
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls wind10m.maxwvel.63.nc wind10m.fort.74.nc 2>> $SCENARIOLOG` )
+   ceraNonPriorityFiles=( ${ceraNonPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc 2>> $SCENARIOLOG` )
 else
-   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc 2>> $SYSLOG` )
+   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc 2>> $SCENARIOLOG` )
 fi
 FILES=( ${ceraPriorityFiles[*]} "sendNotification" ${ceraNonPriorityFiles[*]} )
 #
@@ -217,6 +219,6 @@ OPENDAPDIR=""
 # For each opendap server in the list in ASGS config file.
 primaryCount=0
 for server in ${TDS[*]}; do
-   logMessage "$ENSTORM: $THIS: Posting to $server opendap using the following command: ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HPCENV $ENSTORM $HSTIME $SYSLOG $server \"${FILES[*]}\" $OPENDAPNOTIFY"
-   ${OUTPUTDIR}/opendap_post.sh $CONFIG $ADVISDIR $ADVISORY $HPCENV $ENSTORM $HSTIME $SYSLOG $server "${FILES[*]}" $OPENDAPNOTIFY >> ${SYSLOG} 2>&1
+   allMessage "cycle $CYCLE: $SCENARIO: $THIS: Posting to $server opendap using the following command: ${OUTPUTDIR}/opendap_post.sh $CONFIG $CYCLEDIR $CYCLE $HPCENV $SCENARIO $HSTIME $SYSLOG $server \"${FILES[*]}\" $OPENDAPNOTIFY"
+   ${OUTPUTDIR}/opendap_post.sh $CONFIG $CYCLEDIR $CYCLE $HPCENV $SCENARIO $HSTIME $SYSLOG $server "${FILES[*]}" $OPENDAPNOTIFY >> ${SYSLOG} 2>&1
 done

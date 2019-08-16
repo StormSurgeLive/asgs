@@ -25,25 +25,26 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
 #--------------------------------------------------------------------------
-THIS="cpra_postproc/createPPT.sh"
+THIS="output/cpra_postproc/createPPT.sh"
 batchJOBTYPE=cpra.figuregen
 postJOBTYPE=cpra.post
 #
 #--------------------------------------------------------------------------
 #       GATHER PROPERTIES
 #--------------------------------------------------------------------------
-# SCRIPTDIR: path to asgs scripts like asgs_main.sh
-SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties`
+# SCRIPTDIR: path to asgs scripts like asgs_main.sh; assumes $PWD is same as $SCENARIODIR
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties` 
 . ${SCRIPTDIR}/monitoring/logging.sh
 . ${SCRIPTDIR}/platforms.sh           # contains hpc platform configurations
 . ${SCRIPTDIR}/properties.sh          # contains loadProperties subroutine
 # load properties
 declare -A properties
-loadProperties $SCENARIODIR/run.properties
+loadProperties run.properties # assumes $PWD is same as $SCENARIODIR
 SCENARIODIR=${properties["path.scenariodir"]}
 LOGFILE=${SCENARIODIR}/${postJOBTYPE}.log
 SYSLOG=${properties["monitoring.logging.file.syslog"]}
 CYCLELOG=${properties["monitoring.logging.file.cyclelog"]}
+SCENARIOLOG=${properties["monitoring.logging.file.scenariolog"]}
 SCENARIO=${properties["scenario"]}
 scenarioMessage "$SCENARIO: $THIS: Creating pptx." $LOGFILE
 POSTPROCDIR=${properties["post.path.cpra.post.postprocdir"]}
@@ -60,8 +61,12 @@ advisory=${properties["advisory"]}
 forecastValidStart=${properties["forecastValidStart"]}
 grid=${properties["adcirc.gridname"]}
 HPCENVSHORT=${properties["hpc.hpcenvshort"]}
-# pull in platform-specific configuration
+# pull in platform-specific configuration (specifically MCRROOT and MATLABEXE)
 env_dispatch $HPCENVSHORT
+THIS="output/cpra_postproc/createPPT.sh" # must reset after env_dispatch()
+#
+echo "post.path.cpra.post.mcrroot : $MCRROOT" >> $SCENARIODIR/run.properties
+echo "post.path.cpra.post.matlabexe : $MATLABEXE" >> $SCENARIODIR/run.properties
 #
 # create strings to represent time in UTC and CDT
 coldStartTimeUTC="${coldStartTime:0:8} ${coldStartTime:8:4} UTC"
@@ -106,7 +111,7 @@ if [[ $MATLABEXE = "mex" ]]; then
 else
    PLOTCMD='matlab -nodisplay -nosplash -nodesktop -r "run cpra_hydrograph_plotter.m, exit"'
 fi
-$PLOTCMD 2&>1 | tee $LOGFILE >> $SCENARIOLOG
+$PLOTCMD 2>&1 | tee -a $LOGFILE >> $SCENARIOLOG
 scenarioMessage "$SCENARIO: $THIS: Finished executing matlab." $LOGFILE
 #--------------------------------------------------------------------------
 #
@@ -144,7 +149,7 @@ fi
 #       RUN PYTHON SCRIPT TO GENERATE PPT SLIDE DECK
 #--------------------------------------------------------------------------
 scenarioMessage "$SCENARIO: $THIS: Building pptx with buildPPT.py." $LOGFILE
-cp ${POSTPROCDIR}/LSU_template.pptx ${SCENARIODIR} 2>&1 | tee -a $LOGFILE >> $SCENARIOLOG
+cp ${POSTPROCDIR}/LSU_template.pptx ${SCENARIODIR} > errmsg 2>&1 || warn "cycle $advisory: $SCENARIO: $THIS: Could not copy ${POSTPROCDIR}/LSU_template.pptx to '$SCENARIODIR': `cat errmsg`." $LOGFILE
 python ${POSTPROCDIR}/buildPPT.py ${fname} 2>&1 | tee -a $LOGFILE >> $SCENARIOLOG
 #rm LSU_template.pptx
 #--------------------------------------------------------------------------
@@ -196,7 +201,7 @@ emailList='jason.fleming@scimaritan.org'
 #esac
 # load asgs operator email address for the reply-to field
 ASGSADMIN=${properties["notification.email.asgsadmin"]}
-echo "$message" | mail -S "replyto=$ASGSADMIN" -s "$subjectLine" -a "$attachFile" $emailList
+echo "$message" | mail -S "replyto=$ASGSADMIN" -s "$subjectLine" -a "$attachFile" $emailList > errmsg 2>&1 || warn "cycle $advisory: $SCENARIO: $THIS: Failed to send CPRA slide deck email to $emailList: `cat errmsg`." $LOGFILE
 #--------------------------------------------------------------------------
 #
 #--------------------------------------------------------------------------

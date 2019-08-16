@@ -11,3 +11,4 @@ pgf90 FigureGen.F90 -DNETCDF -I$TACC_NETCDF_INC -L$TACC_NETCDF_LIB -lnetcdf
 The makefile can be invoked as follows:
 
 make all compiler=intel MACHINENAME=hatteras NETCDF=enable 
+
