@@ -24,16 +24,19 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
 #--------------------------------------------------------------------------
+#                       R E A D  M E
+#--------------------------------------------------------------------------
 # This script assumes that it is executed in the same directory with
 # the results it is post processing.
 #
 # FigureGen.F90 must be compiled in the cpra_postproc subdirectory 
-# in order for this script to function. 
+# with netCDF4 support and all dependencies (GMT, gdal, etc) must be
+# installed and configured in order for this script to function. 
 #--------------------------------------------------------------------------
 #                        S E T U P 
 #--------------------------------------------------------------------------
 umask 002
-THIS="cpra_slide_deck_post.sh"
+THIS="output/cpra_slide_deck_post.sh"
 batchJOBTYPE=cpra.figuregen
 postJOBTYPE=cpra.post
 # SCENARIODIR: path where this ensemble member is supposed to run 
@@ -46,7 +49,7 @@ if [[ $# -eq 1 ]]; then
 fi
 # SCRIPTDIR: path to asgs scripts like asgs_main.sh
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties`
-echo "DEBUG: SCRIPTDIR is ${SCRIPTDIR}." | tee -a $LOGFILE 
+
 . ${SCRIPTDIR}/monitoring/logging.sh
 . ${SCRIPTDIR}/platforms.sh           # contains hpc platform configurations
 . ${SCRIPTDIR}/properties.sh          # contains loadProperties subroutine
@@ -54,17 +57,23 @@ echo "DEBUG: SCRIPTDIR is ${SCRIPTDIR}." | tee -a $LOGFILE
 declare -A properties
 loadProperties $SCENARIODIR/run.properties
 #
+CYCLE=${properties['advisory']}
 SCENARIO=${properties['scenario']}
 SCENARIOLOG=${properties["monitoring.logging.file.scenariolog"]}
+CYCLELOG=${properties["monitoring.logging.file.cyclelog"]}
+SYSLOG=${properties["monitoring.logging.file.syslog"]}
 LOGFILE=${SCENARIODIR}/${postJOBTYPE}.log
+scenarioMessage "DEBUG: SCRIPTDIR is '${SCRIPTDIR}'." $LOGFILE 
+cd $SCENARIODIR > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to change directory to '$SCENARIODIR': `cat errmsg`." 
 touch $LOGFILE 2>> $SCENARIOLOG
 scenarioMessage "$SCENARIO: $THIS: Starting $postJOBTYPE post processing in ${SCENARIODIR}." $LOGFILE
 #
 # HPCENVSHORT: shorthand for the HPC environment: queenbee, hatteras, etc
 HPCENVSHORT=${properties['hpc.hpcenvshort']}
 scenarioMessage "$SCENARIO: $THIS: Setting up for execution on ${HPCENVSHORT}." $LOGFILE 
-# set variables as defaults according to the platform
+# set variables as defaults according to the hpc platform
 env_dispatch $HPCENVSHORT
+THIS="output/cpra_slide_deck_post.sh" # must reset after executing env_dispatch()
 #
 # now pick up properties related to this particular scenario
 #
@@ -73,6 +82,14 @@ env_dispatch $HPCENVSHORT
 ACCOUNT=${properties['hpc.job.default.account']}
 QUEUENAME=${properties['hpc.job.default.queuename']}
 SERQUEUE=${properties['hpc.job.default.serqueue']}
+PPN=1
+# use the same ppn and account as was used in adcprep
+for key in "${!properties[@]}" ; do
+   if [[ $key == hpc.job.prep*.ppn ]]; then
+      PPN=${properties[$key]}
+   fi
+done
+#
 # check to see if this is a tropical cyclone
 TROPICALCYCLONE=${properties['forcing.tropicalcyclone']}
 if [[ $TROPICALCYCLONE != "off" ]]; then
@@ -93,6 +110,7 @@ echo "post.path.${postJOBTYPE}.postprocdir : $POSTPROCDIR" >> $SCENARIODIR/run.p
 echo "hpc.job.${batchJOBTYPE}.serqueue : $SERQUEUE" >> $SCENARIODIR/run.properties
 echo "hpc.job.${batchJOBTYPE}.queuename : $QUEUENAME" >> $SCENARIODIR/run.properties
 echo "hpc.job.${batchJOBTYPE}.account : $ACCOUNT" >> $SCENARIODIR/run.properties
+echo "hpc.job.${batchJOBTYPE}.ppn : $PPN" >> $SCENARIODIR/run.properties
 #
 # set command for finding max water surface elevation (ft) within a lat/lon box
 export MATLABPATH=${POSTPROCDIR}
@@ -142,7 +160,7 @@ if [[ -f maxele.63.nc ]]; then
     # FigureGen contour plot of maxele.63.nc 
     #
     # write properties to describe the FigureGen job
-    echo "hpc.job.${batchJOBTYPE}.file.qscripttemplate : qscript.template" >> $SCENARIODIR/run.properties   
+    echo "hpc.job.${batchJOBTYPE}.file.qscripttemplate : $SCRIPTDIR/qscript.template" >> $SCENARIODIR/run.properties   
     echo "hpc.job.${batchJOBTYPE}.parallelism : serial" >> $SCENARIODIR/run.properties   
     echo "hpc.job.${batchJOBTYPE}.ncpu : 1" >> $SCENARIODIR/run.properties
     echo "hpc.job.${batchJOBTYPE}.ppn : $PPN" >> $SCENARIODIR/run.properties
@@ -150,7 +168,12 @@ if [[ -f maxele.63.nc ]]; then
     echo "hpc.job.${batchJOBTYPE}.limit.walltime : 01:00:00" >> $SCENARIODIR/run.properties
     echo "hpc.job.${batchJOBTYPE}.serialmodules : $SERIALMODULES" >> $SCENARIODIR/run.properties 
     echo "hpc.job.${batchJOBTYPE}.path.jobenvdir : $JOBENVDIR" >> $SCENARIODIR/run.properties 
-    echo "hpc.job.${batchJOBTYPE}.jobenv : $JOBENV" >> $SCENARIODIR/run.properties 
+    JOBENVSTRING="("
+    for string in ${JOBENV[*]}; do
+       JOBENVSTRING="$JOBENVSTRING $string"
+    done
+    JOBENVSTRING="$JOBENVSTRING )" 
+    echo "hpc.job.${batchJOBTYPE}.jobenv : $JOBENVSTRING" >> $SCENARIODIR/run.properties 
     echo "hpc.job.${batchJOBTYPE}.cmd : ${POSTPROCDIR}/FigureGen -I FG51_SELA_maxele.inp" >> $SCENARIODIR/run.properties 
     # now submit the job
     scenarioMessage "$SCENARIO: $THIS: Submitting FigureGen job." $LOGFILE
@@ -186,11 +209,11 @@ fi
 #       GENERATE HYDROGRAPHS & BUILD PPT
 #--------------------------------------------------------------------------
 # copy in the spreadsheets that matlab needs
-cp ${POSTPROCDIR}/Gate_Closure_Trigger.xlsx . 2>&1 | tee -a $SCENARIOLOG >> $LOGFILE
-cp ${POSTPROCDIR}/Datum_Conversion.xlsx . 2>&1 | tee -a $SCENARIOLOG >> $LOGFILE
+cp ${POSTPROCDIR}/Gate_Closure_Trigger.xlsx . > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to copy ${POSTPROCDIR}/Gate_Closure_Trigger.xlsx to '$SCENARIODIR': `cat errmsg`." $LOGFILE
+cp ${POSTPROCDIR}/Datum_Conversion.xlsx . > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to copy ${POSTPROCDIR}/Datum_Conversion.xlsx to '$SCENARIODIR': `cat errmsg`." $LOGFILE
 # Run createPPT.sh
 scenarioMessage "$SCENARIO: $THIS: Running ${POSTPROCDIR}/createPPT.sh." $LOGFILE
 ${POSTPROCDIR}/createPPT.sh 2>&1 | tee -a $SCENARIOLOG >> $LOGFILE
 #--------------------------------------------------------------------------
 # in case we changed directories at the beginning and another script follows this
-cd $currentDir 2>&1 | tee -a $SCENARIOLOG >> $LOGFILE
+cd $currentDir > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to change directory to '$currentDir': `cat errmsg`." $LOGFILE

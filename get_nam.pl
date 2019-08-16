@@ -73,8 +73,13 @@ GetOptions(
            "scriptdir=s" => \$scriptDir
           );
 #
-stderrMessage("DEBUG","hstime is $hstime");
-stderrMessage("DEBUG","Connecting to $backsite:$backdir");
+# open an application log file for get_nam.pl
+unless ( open(APPLOGFILE,">>$rundir/get_nam.pl.log") ) { 
+   stderrMessage("ERROR","Could not open '$rundir/get_nam.pl.log' for appending: $!.");
+   exit 1;
+}
+&appMessage("DEBUG","hstime is $hstime");
+&appMessage("DEBUG","Connecting to $backsite:$backdir");
 our $dl = 0;   # true if we were able to download the file(s) successfully
 our $ftp = Net::FTP->new($backsite, Debug => 0, Passive => 1); 
 unless ( defined $ftp ) {
@@ -146,7 +151,7 @@ if ( defined $hstime && $hstime != 0 ) {
 # form the date and hour of the current ADCIRC time
 $date = sprintf("%4d%02d%02d",$ny ,$nm, $nd);
 $hour = sprintf("%02d",$nh);
-stderrMessage("DEBUG","The current ADCIRC time is $date:$hour.");
+&appMessage("DEBUG","The current ADCIRC time is $date$hour.");
 #
 # now go to the ftp site and download the files
 # get the list of nam dates where data is available
@@ -171,17 +176,17 @@ foreach my $dir (@sortedNamDirs) {
       push(@targetDirs,$dir);
    }
 }
-
+#
 # determine the most recent date/hour ... this is the cycle time
 $targetDirs[-1] =~ /nam.(\d+)/;
 my $cycledate = $1; 
-stderrMessage("DEBUG","The cycledate is '$cycledate'.");
+&appMessage("DEBUG","The cycledate is '$cycledate'.");
 if ( $cycledate < $date ) { 
    stderrMessage("ERROR","The cycledate is '$cycledate' but the ADCIRC hotstart date is '$date'; therefore an error has occurred. get_nam.pl is halting this attempted download.");
    printf STDOUT $dl;
    exit;
 }
-
+#
 $hcDirSuccess = $ftp->cwd($targetDirs[-1]);
 unless ( $hcDirSuccess ) {
    stderrMessage("ERROR","ftp: Cannot change working directory to '$targetDirs[-1]': " . $ftp->message);
@@ -215,7 +220,7 @@ unless (defined $cyclehour ) {
 # we need to have at least one set of files beyond the current nowcast
 # time, i.e., we need fresh new files that we have not run with yet
 if ( $cycletime <= ($date.$hour) ) {
-   stderrMessage("DEBUG","No new files on NAM ftp site.");
+   &appMessage("DEBUG","No new files on NAM ftp site.");
    printf STDOUT $dl;
    exit;
 }
@@ -603,7 +608,8 @@ sub getForecastData() {
    printf FP "forecastValidEnd : $end_date" . "0000\n";
    close(FP);
 }
-
+#
+# write a log message to stderr
 sub stderrMessage () {
    my $level = shift;
    my $message = shift;
@@ -613,10 +619,16 @@ sub stderrMessage () {
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
    printf STDERR "$theTime $level: $enstorm: get_nam.pl: $message\n";
-   if ($level eq "ERROR") {
-      sleep 1;
-      die "bye-bye.";
-   }
 }
-
-
+#
+# write a log message to a log file dedicated to this script (typically debug messages)
+sub appMessage () {
+   my $level = shift;
+   my $message = shift;
+   my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+   (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
+   my $year = 1900 + $yearOffset;
+   my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
+   my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
+   printf APPLOGFILE "$theTime $level: $enstorm: get_nam.pl: $message\n";
+}

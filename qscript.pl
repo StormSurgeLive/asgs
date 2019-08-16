@@ -241,7 +241,7 @@ while(<TEMPLATE>) {
     # name of this member of the ensemble (nowcast, storm3, etc)
     s/%scenario%/$properties{"scenario"}/g;  
     # name of overall asgs log file 
-    s/%syslog%/$properties{"file.syslog"}/g;
+    s/%syslog%/$properties{"monitoring.logging.file.syslog"}/g;
     # fill in command line options
     s/%cloptions%/$cloptions/;
     # fill in command to be executed

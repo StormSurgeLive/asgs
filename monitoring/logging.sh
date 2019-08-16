@@ -179,15 +179,21 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
   #MSG="RMQ-$MTYPE : $EVENT : $STATE : ${DATETIME} : $MSG"
   PCTCOM=0
   if [ "$#" -eq 6 ] ; then PCTCOM=$6 ; fi
+  #
+  # adding log file specific to RMQMessaging to augment and eventually maybe
+  # replace echoing messages to the console
+  APPLOGFILE=$RUNDIR/RMQMessaging.log
 
   if [[ $RMQADVISORY -lt 0 ]] ; then
 	echo "warn: RMQA ($RMQADVISORY) < 0.  Not sending message ..."
+	appMessage "warn: RMQA ($RMQADVISORY) < 0.  Not sending message ..." $APPLOGFILE
 	return
   fi
 
   re='^[0-9]+([.][0-9]+)?$' 
   if ! [[ $PCTCOM =~ $re ]] ; then
       echo "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message ..." 
+      appMessage "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message ..." $APPLOGFILE
   else
      printf "RMQ : %s : %10s : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" ${INSTANCENAME} ${RMQADVISORY} ${MTYPE} ${EVENT} ${DATETIME} ${STATE} ${PCTCOM} ${PROCESS}  "$5"
 
@@ -235,15 +241,32 @@ cycleMessage()
 #
 # write an INFO-level message to the cycle (or advisory log file)
 scenarioMessage()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] INFO: $1"
-  for file in $SCENARIOLOG $2 ; do
-    if [[ -e $file ]]; then
-      echo ${MSG} >> $file
-    fi
+{ 
+  LOGMESSAGE=$1
+  EXTRALOGFILE=$2
+  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+  MSG="[${DATETIME}] INFO: $LOGMESSAGE"
+  for file in $SCENARIOLOG $EXTRALOGFILE ; do
+     if [[ -e $file ]]; then
+        echo "${MSG}" >> $file
+     fi
   done
 }
-
+#
+# write a message to log file associated with a particular script or executable
+# (typically debug messages that would normally just clutter up other log files
+# but come in very handy for occasional troubleshooting) ... the
+# suggested name of the log file is the script or executable name followed by .log
+appMessage()
+{ 
+  LOGMESSAGE=$1
+  APPLOGFILE=$2
+  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+  MSG="[${DATETIME}] DEBUG: $LOGMESSAGE"
+  if [[ -e $RUNDIR ]]; then
+     echo ${MSG} >> $APPLOGFILE
+  fi
+}
 #
 # send a message to the console (i.e., window where the script was started)
 # (these should be rare)

@@ -853,9 +853,11 @@ downloadCycloneData()
     FDIR=${10}
     HDIR=${11}
     STATEFILE=${12}
+    #
     THIS="asgs_main.sh>downloadCycloneData()"
+    APPLOGFILE=$RUNDIR/get_atcf.pl.log
 #    activity_indicator "Checking remote site for new advisory..." &
-    logMessage "$THIS: Checking remote site for new advisory..." 
+    logMessage "$THIS: Checking remote site for new advisory..." $APPLOGFILE
 #    pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
     cd $RUNDIR 2>> ${SYSLOG}
     newAdvisory=false
@@ -869,7 +871,7 @@ downloadCycloneData()
        rm forecast.properties 2>> ${SYSLOG}
     fi
     OPTIONS="--storm $STORM --year $YEAR --ftpsite $FTPSITE --fdir $FDIR --hdir $HDIR --rsssite $RSSSITE --trigger $TRIGGER --adv $ADVISORY"
-    logMessage "$THIS: Options for get_atcf.pl are as follows : $OPTIONS"
+    logMessage "$THIS: Options for get_atcf.pl are as follows : $OPTIONS" $APPLOGFILE
     if [ "$START" = coldstart ]; then
        RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE"  "Downloading initial hindcast/forecast."
        logMessage "$THIS: Downloading initial hindcast/forecast."
@@ -880,7 +882,7 @@ downloadCycloneData()
 
     while [ $newAdvisory = false ]; do
        if [[ $TRIGGER != "atcf" ]]; then 
-          #echo  "perl $SCRIPTDIR/get_atcf.pl $OPTIONS"  # BOB
+          appMessage "perl $SCRIPTDIR/get_atcf.pl $OPTIONS"  $APPLOGFILE
           newAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
        fi
        # check to see if we have a new one, and if so, determine the
@@ -935,11 +937,11 @@ downloadCycloneData()
        fi
     done
     RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "New forecast detected."
-    logMessage "$THIS: New forecast detected."
-    cp -f $STATEFILE ${STATEFILE}.old
-    sed 's/ADVISORY=.*/ADVISORY='$newAdvisoryNum'/' $STATEFILE > ${STATEFILE}.new
-    logMessage "$ENSTORM: $THIS: The new advisory number is ${newAdvisoryNum}."
-    cp -f ${STATEFILE}.new $STATEFILE >> ${SYSLOG} 2>&1 
+    logMessage "$THIS: New forecast detected." $APPLOGFILE
+    cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 
+    sed 's/ADVISORY=.*/ADVISORY='$newAdvisoryNum'/' $STATEFILE > ${STATEFILE}.new 2>> ${SYSLOG} 2>&1
+    logMessage "$ENSTORM: $THIS: The new advisory number is ${newAdvisoryNum}." $APPLOGFILE
+    cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG}  
     if [[ $TRIGGER = rss || $TRIGGER = rssembedded ]]; then
        perl ${SCRIPTDIR}/nhc_advisory_bot.pl --input ${forecastFileName}.html --output $forecastFileName --metadata forecast.properties >> ${SYSLOG} 2>&1
     fi
@@ -968,23 +970,25 @@ downloadBackgroundMet()
    STATEFILE=${13}
    #
    THIS="asgs_main.sh>downloadBackgroundMet()"
+   APPLOGFILE=$RUNDIR/get_nam.pl.log
    CURRENT_STATE="WAIT" 
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Downloading NAM meteorological data for $ENSTORM."
-   logMessage "$ENSTORM: $THIS: Downloading meteorological data."
+   logMessage "$ENSTORM: $THIS: Downloading meteorological data." $APPLOGFILE
    cd $RUNDIR 2>> ${SYSLOG}
    if [[ $ENSTORM != "nowcast" ]]; then
       advisoryLine=`grep ADVISORY $STATEFILE`
       ADVISORY=${advisoryLine##ADVISORY=}
       echo $ADVISORY > $RUNDIR/currentCycle
-      logMessage "According to the statefile ${STATEFILE}, the most recently downloaded cycle is ${ADVISORY}."
+      logMessage "According to the statefile ${STATEFILE}, the most recently downloaded cycle is ${ADVISORY}." $APPLOGFILE
    fi
    newAdvisoryNum=0
    TRIES=0
    while [[ $newAdvisoryNum -lt 2 ]]; do
+      appMessage "According to the statefile ${STATEFILE}, the most recently downloaded cycle is ${ADVISORY}." $APPLOGFILE
       OPTIONS="--rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle $FORECASTCYCLE --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
-      logMessage "Downloading NAM data with the following command: perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}"
+      appMessage "Downloading NAM data with the following command: perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}" $APPLOGFILE
       newAdvisoryNum=`perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}` 
-      logMessage "$THIS: $ENSTORM: The new NAM cycle is ${newAdvisoryNum}."
+
       if [[ $newAdvisoryNum -lt 2 ]]; then
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
          sleep 60
@@ -992,9 +996,10 @@ downloadBackgroundMet()
       fi
    done
    # record the new advisory number to the statefile
+   logMessage "$THIS: $ENSTORM: The new NAM cycle is ${newAdvisoryNum}." $APPLOGFILE
    cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 2>&1
    sed 's/ADVISORY=.*/ADVISORY='$newAdvisoryNum'/' $STATEFILE > ${STATEFILE}.new
-   logMessage "Updating statefile $STATEFILE with new cycle number ${newAdvisoryNum}."
+   logMessage "Updating statefile $STATEFILE with new cycle number ${newAdvisoryNum}." $APPLOGFILE
    cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG} 2>&1          
 }
 #
@@ -1529,7 +1534,7 @@ writeProperties()
    # basic asgs configuration
    echo "config.file : $CONFIG" >> $STORMDIR/run.properties
    echo "instancename : $INSTANCENAME" >> $STORMDIR/run.properties
-   echo "adcirc.time.coldstartdate : $COLDSTARTDATE" >> $STORMDIR/run.properties
+   echo "adcirc.time.coldstartdate : $CSDATE" >> $STORMDIR/run.properties
    echo "path.adcircdir : $ADCIRCDIR" >> $STORMDIR/run.properties
    echo "path.scriptdir : $SCRIPTDIR" >> $STORMDIR/run.properties
    echo "path.inputdir : $INPUTDIR" >> $STORMDIR/run.properties
@@ -1611,25 +1616,27 @@ writeProperties()
    echo "archive.executable.archive : $ARCHIVE" >> $STORMDIR/run.properties    
    echo "archive.path.archivebase : $ARCHIVEBASE" >> $STORMDIR/run.properties
    echo "archive.path.archivedir : $ARCHIVEDIR" >> $STORMDIR/run.properties
-   # forecast ensemble
-   echo "forecast.ensemblesize : $ENSEMBLESIZE" >> $STORMDIR/run.properties
+   # forecast scenario package size
+   echo "forecast.scenariopackagesize : $ENSEMBLESIZE" >> $STORMDIR/run.properties
    # runtime
    echo "path.rundir : $RUNDIR" >> $STORMDIR/run.properties
-   # each ensemble member
+   # each scenario
    echo "path.fromdir : $FROMDIR" >> $STORMDIR/run.properties
    echo "path.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
-   echo "path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
-   echo "enstorm : $ENSTORM" >> $STORMDIR/run.properties
-   echo "scenario : $ENSTORM" >> $STORMDIR/run.properties
+   echo "path.cycledir : $ADVISDIR" >> $STORMDIR/run.properties
    echo "path.scenariodir : $STORMDIR" >> $STORMDIR/run.properties
-   echo "path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
+   echo "scenario : $ENSTORM" >> $STORMDIR/run.properties
    # FIXME: the following are legacy properties from 2014stable 
    # and should not be carried forward  
+   echo "forecast.ensemblesize : $ENSEMBLESIZE" >> $STORMDIR/run.properties
    echo "asgs.path.fromdir : $FROMDIR" >> $STORMDIR/run.properties
    echo "asgs.path.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
    echo "asgs.path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
    echo "asgs.enstorm : $ENSTORM" >> $STORMDIR/run.properties
    echo "asgs.path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
+   echo "enstorm : $ENSTORM" >> $STORMDIR/run.properties
+   echo "path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
+   echo "path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
    #
    ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
    echo "adcirc.version : $ADCIRCVERSION" >> $STORMDIR/run.properties   
@@ -1848,7 +1855,7 @@ if [[ $RMQMessaging_Enable = "on" ]] ; then
    . ${SCRIPTDIR}/monitoring/asgs-msgr.sh
    THIS="asgs_main.sh"
 else
-   allMessage "RMQ Messaging disabled. No OAD for you!!" 
+   allMessage "RMQ Messaging disabled." 
 fi
 #
 # Send message with config file contents as the message body.  This is only done once at ASGS startup
