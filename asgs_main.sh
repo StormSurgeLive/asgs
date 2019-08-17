@@ -1554,7 +1554,6 @@ writeProperties()
    echo "hpc.platformmodules : $PLATFORMMODULES" >> $STORMDIR/run.properties
    echo "hpc.submitstring : $SUBMITSTRING" >> $STORMDIR/run.properties
    echo "hpc.executable.qscriptgen : $QSCRIPTGEN" >> $STORMDIR/run.properties
-   echo "hpc.file.template.prepcontrolscript : $PREPCONTROLSCRIPT" >> $STORMDIR/run.properties
    echo "hpc.jobs.ncpucapacity : $NCPUCAPACITY" >> $STORMDIR/run.properties
    echo "hpc.walltimeformat : $WALLTIMEFORMAT" >> $STORMDIR/run.properties
    echo "hpc.job.default.account : $ACCOUNT" >> $STORMDIR/run.properties
@@ -1581,7 +1580,7 @@ writeProperties()
    # notification
    echo "notification.emailnotify : $EMAILNOTIFY" >> $STORMDIR/run.properties   
    echo "notification.executable.notify_script : $NOTIFY_SCRIPT" >> $STORMDIR/run.properties   
-   echo "notification.email.activate_list : \"$ACTIVATELIST\"" >> $STORMDIR/run.properties   
+   echo "notification.email.activate_list : \"$ACTIVATE_LIST\"" >> $STORMDIR/run.properties   
    echo "notification.email.new_advisory_list : \"$NEW_ADVISORY_LIST\"" >> $STORMDIR/run.properties   
    echo "notification.email.post_init_list : \"$POST_INIT_LIST\"" >> $STORMDIR/run.properties   
    echo "notification.email.job_failed_list : \"$JOB_FAILED_LIST\"" >> $STORMDIR/run.properties   

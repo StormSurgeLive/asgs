@@ -21,7 +21,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------
 #
-THIS=cpra_post.sh
+THIS=output/cpra_post.sh
 # Count command line arguments; use them if provided or use 
 # run.properties if not.
 declare -A properties
@@ -83,11 +83,11 @@ si=$ENMEMNUM
 . ${SCRIPTDIR}/platforms.sh
 # dispatch environment (using the functions in platforms.sh)
 env_dispatch ${TARGET}
+THIS=output/cpra_post.sh
 # grab all config info (again, last, so the CONFIG file takes precedence)
 . ${CONFIG}
 #
 SCENARIODIR=${CYCLEDIR}/${SCENARIO}       # shorthand
-
 # get loadProperties function
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties`
 source $SCRIPTDIR/properties.sh
@@ -147,11 +147,11 @@ ${OUTPUTDIR}/cpra_slide_deck_post.sh
 wind10mFound=no
 dirWind10m=$CYCLEDIR/${SCENARIO}Wind10m
 if [[ -d $dirWind10m ]]; then
-   scenarioMessage "Corresponding 10m wind ensemble member was found."
+   scenarioMessage "$THIS: Corresponding 10m wind ensemble member was found."
    wind10mFound=yes
    for file in fort.72.nc fort.74.nc maxwvel.63.nc ; do
       if [[ -e $dirWind10m/$file && ! -e ./wind10m.${file} ]]; then
-         scenarioMessage "$SCENARIO: $THIS: Found $dirWind10m/${file}."
+         scenarioMessage "$THIS: Found $dirWind10m/${file}."
          ln -s $dirWind10m/${file} ./wind10m.${file} 2>&1 > errmsg || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not link to Wind10m directory: `cat $errmsg`"
          # update the run.properties file
          case $file in
