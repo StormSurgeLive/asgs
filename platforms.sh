@@ -46,7 +46,6 @@ init_supermike()
   #SCRATCHDIR=/work/cera
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=$SCRIPTDIR/input/machines/supermike/supermike.template.pbs
-  PREPCONTROLSCRIPT=$SCRIPTDIR/input/machines/supermike/supermike.adcprep.template.pbs
   MATLABEXE=mex
   MCRROOT=/usr/local/packages/license/matlab/r2017a # for matlab mex files
   QSCRIPTGEN=tezpur.pbs.pl
@@ -122,7 +121,6 @@ init_rostam()
   SCRATCHDIR=~/asgs
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=rostam.template.slurm
-  PREPCONTROLSCRIPT=rostam.adcprep.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=16
   CONSTRAINT=null
@@ -190,7 +188,6 @@ init_arete()
   SCRATCHDIR=/scratch/$USER
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=arete.template.slurm
-  PREPCONTROLSCRIPT=arete.adcprep.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=8
 }
@@ -204,7 +201,6 @@ init_camellia()
   SCRATCHDIR=$HOME/tmp
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=ww.template.pbs
-  PREPCONTROLSCRIPT=ww.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=12
 }
@@ -218,7 +214,6 @@ init_blueridge()
   SCRATCHDIR=/projects/ncfs/data
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=renci.template.pbs
-  PREPCONTROLSCRIPT=renci.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=8
 }
@@ -232,7 +227,6 @@ init_croatan()
   SCRATCHDIR=/projects/ncfs/data
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=croatan.template.pbs
-  PREPCONTROLSCRIPT=croatan.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=16
 }
@@ -380,7 +374,6 @@ init_stampede()
   SCRATCHDIR=$SCRATCH
   SSHKEY=~/.ssh/id_rsa_stampede
   QSCRIPT=stampede.template.slurm
-  PREPCONTROLSCRIPT=stampede.adcprep.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
   PPN=16
   PLATFORMMODULES='module load netcdf/4.3.2'
@@ -457,7 +450,6 @@ init_kittyhawk()
   SCRATCHDIR=/work/$USER
   SSHKEY=~/.ssh/id_rsa_kittyhawk
   QSCRIPT=kittyhawk.template.pbs
-  PREPCONTROLSCRIPT=kittyhawk.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=4
 }
@@ -472,8 +464,6 @@ init_sapphire()
   SCRATCHDIR=/work2/$USER
   SSHKEY=~/.ssh/id_rsa_sapphire
   QSCRIPT=erdc.template.pbs
-  PREPCONTROLSCRIPT=erdc.adcprep.template.pbs
-  PREPHOTSTARTSCRIPT=erdc.adcprep.hotstart.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
   ulimit -s unlimited
   ulimit -v 2097152   # needed for NAMtoOWI.pl to avoid Out of memory error
@@ -492,8 +482,6 @@ init_jade()
   SCRATCHDIR=/work/$USER
   SSHKEY=~/.ssh/id_rsa_jade
   QSCRIPT=erdc.template.pbs
-  PREPCONTROLSCRIPT=erdc.adcprep.template.pbs
-  PREPHOTSTARTSCRIPT=erdc.adcprep.hotstart.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
   ulimit -s unlimited
   ulimit -v 2097152   # needed for NAMtoOWI.pl to avoid Out of memory error
@@ -509,8 +497,6 @@ init_diamond()
   SCRATCHDIR=/work/$USER
   SSHKEY=~/.ssh/id_rsa_diamond
   QSCRIPT=erdc.diamond.template.pbs
-  PREPCONTROLSCRIPT=erdc.diamond.adcprep.template.pbs
-  PREPHOTSTARTSCRIPT=erdc.diamond.adcprep.hotstart.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
   PPN=8
 }
@@ -525,8 +511,6 @@ init_garnet()
   SCRATCHDIR=$WORKDIR 
   SSHKEY=~/.ssh/id_rsa_garnet
   QSCRIPT=garnet.template.pbs
-  PREPCONTROLSCRIPT=garnet.adcprep.template.pbs
-  PREPHOTSTARTSCRIPT=garnet.adcprep.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
   PPN=32
   IMAGEMAGICKBINPATH=/usr/local/usp/ImageMagick/default/bin 
@@ -550,8 +534,6 @@ init_spirit()
   SCRATCHDIR=$WORKDIR 
   SSHKEY=~/.ssh/id_rsa_spirit
   QSCRIPT=spirit.template.pbs
-  PREPCONTROLSCRIPT=spirit.adcprep.template.pbs
-  PREPHOTSTARTSCRIPT=spirit.adcprep.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
   PPN=16
   IMAGEMAGICKBINPATH=/usr/local/usp/ImageMagick/default/bin 
@@ -575,8 +557,6 @@ init_topaz()
   SCRATCHDIR=$WORKDIR 
   SSHKEY=~/.ssh/id_rsa_topaz
   QSCRIPT=topaz.template.pbs
-  PREPCONTROLSCRIPT=topaz.adcprep.template.pbs
-  PREPHOTSTARTSCRIPT=topaz.adcprep.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
   PPN=36
   IMAGEMAGICKBINPATH=/app/unsupported/ImageMagick/6.9.2-5/bin/convert
@@ -600,8 +580,6 @@ init_thunder()
   SCRATCHDIR=$WORKDIR 
   SSHKEY=~/.ssh/id_rsa_thunder
   QSCRIPT=thunder.template.pbs
-  PREPCONTROLSCRIPT=thunder.adcprep.template.pbs
-  PREPHOTSTARTSCRIPT=thunder.adcprep.template.pbs
   QSCRIPTGEN=erdc.pbs.pl
   PPN=36
   IMAGEMAGICKBINPATH=/app/unsupported/ImageMagick/6.9.2-5/bin/convert
@@ -616,8 +594,6 @@ init_tezpur()
   SCRATCHDIR=/work/cera
   SSHKEY=id_rsa_tezpur
   QSCRIPT=tezpur.template.pbs
-  PREPCONTROLSCRIPT=tezpur.adcprep.template.pbs
-  PREPHOTSTARTSCRIPT=tezpur.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=4
 }
@@ -631,7 +607,6 @@ init_mike()
   SCRATCHDIR=/work/$USER
   SSHKEY=id_rsa_mike
   QSCRIPT=mike.template.pbs
-  PREPCONTROLSCRIPT=mike.adcprep.template.pbs
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=16
   soft add +netcdf-4.1.3-Intel-13.0.0 
@@ -858,7 +833,6 @@ init_penguin()
   SCRATCHDIR=/home/$USER
   SUBMITSTRING="mpirun"
   QSCRIPT=penguin.template.pbs
-  PREPCONTROLSCRIPT=penguin.adcprep.template.pbs
   QSCRIPTGEN=penguin.pbs.pl
   PPN=40
 }
