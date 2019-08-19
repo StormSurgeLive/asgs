@@ -20,48 +20,52 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #------------------------------------------------------------------------
 #
-CONFIG=$1
-ADVISDIR=$2
-ADVISORY=$3
-HPCENV=$4
-ENSTORM=$5
-HSTIME=$6
-SYSLOG=$7
-SERVER=$8
-FILES=("$9") # array of files to post to opendap
+THIS="output/opendap_post.sh"
 #
 declare -A properties
-# get loadProperties function   
-SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties 2>>$SYSLOG`   
+SCENARIODIR=$PWD
+RUNPROPERTIES=$SCENARIODIR/run.properties
+if [[ $# -eq 1 ]]; then
+   RUNPROPERTIES=$1
+fi
+# this script can be called with just one command line option: the
+# full path to the run.properties file
+echo "Loading properties."
+# get loadProperties function
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
 source $SCRIPTDIR/properties.sh
-
-#
-STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
-cd ${STORMDIR}
+source $SCRIPTDIR/platforms.sh
+source $SCRIPTDIR/monitoring/logging.sh
 # load run.properties file into associative array
-loadProperties $STORMDIR/run.properties  
-# get the forecast ensemble member number for use in 
-# picking up any bespoke configuration for this ensemble
-# member in the configuration files
-ENMEMNUM=${properties["forecastEnsembleMemberNumber"]}
-si=$ENMEMNUM
+loadProperties $RUNPROPERTIES
+echo "Finished loading properties."   # now set variables that would otherwise be set by command line arguments
+CONFIG=${properties['config.file']}
+CYCLEDIR=${properties['asgs.path.advisdir']}
+CYCLE=${properties['advisory']}
+HPCENV=${properties['hpc.hpcenv']}
+SCENARIO=${properties['scenario']}
+HSTIME=${properties['InitialHotStartTime']}
+SYSLOG=${properties['monitoring.logging.file.syslog']}
+declare -a SERVERS
+SERVERS=${properties['post.opendap.tds']}
+declare -a FILES
+FILES=${properties["post.opendap.files"]} # array of files to post to opendap
+OPENDAPNOTIFY="${properties['notification.opendap.email.opendapnotify']}"
+#
+SCENARIODIR=${CYCLEDIR}/${SCENARIO}       # shorthand
+cd ${SCENARIODIR} > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to change directory to '$SCENARIODIR': `cat errmsg`."
 # load asgs operator email address
 ASGSADMIN=${properties["notification.email.asgsadmin"]}
-#
-## grab all config info
-. ${CONFIG} 
-# Bring in logging functions
-. ${SCRIPTDIR}/monitoring/logging.sh
-# Bring in platform-specific configuration
-. ${SCRIPTDIR}/platforms.sh
-# dispatch environment (using the functions in platforms.sh)
-env_dispatch ${TARGET}
-# pick up config of the thredds data server where the files are to be posted
-logMessage "Setting opendap server parameters with env_dispatch ${SERVER}."
-env_dispatch $SERVER   # from platforms.sh
-# grab all config info (again, last, so the CONFIG file takes precedence)
-. ${CONFIG}
 THIS="opendap_post.sh-->$SERVER"
+# pick up config of the thredds data server where the files are to be posted
+logMessage "Setting opendap server parameters with writeTDSProperties ${SERVER}."
+# get the scenario number from Operator config
+SCENARIONUMBER=${properties["forecast.scenario.number"]}
+#
+# write platform-dependent properties related to posting to thredds server for opendap service 
+# (from platforms.sh)
+writeTDSProperties
+# FIXME: enable Operator to override TDS parameter settings from platforms.sh
 #--------------------------------------------------------------------
 #  O P E N  D A P    P A T H   F O R M A T I O N
 #--------------------------------------------------------------------
@@ -94,9 +98,8 @@ if [[ $TROPICALCYCLONE = on ]]; then
    STORMNAMEPATH=$YEAR/$basin$STORMNUMBER
    ALTSTORMNAMEPATH=$YEAR/$STORMNAMELC  # symbolic link with name
 fi
-OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HPCENV/$INSTANCENAME/$ENSTORM
+OPENDAPSUFFIX=$CYCLE/$GRIDNAME/$HPCENV/$INSTANCENAME/$SCENARIO
 echo $OPENDAPSUFFIX
-
 #
 # Create full path to results for server file sytem. 
 # OPENDAPBASEDIR is specified in platforms.sh.
@@ -163,10 +166,10 @@ fi
 #Click on the link: 
 #
 #$CATALOGPREFIX/$STORMNAMEPATH/${OPENDAPSUFFIX}/catalog.html
-subject="${subject} $ENMEMNUM $HPCENV.$INSTANCENAME $ASGSADMIN"
-cat <<END > ${STORMDIR}/opendap_results_notify_${SERVER}.txt 
+subject="${subject} $SCENARIONUMBER $HPCENV.$INSTANCENAME $ASGSADMIN"
+cat <<END > ${SCENARIODIR}/opendap_results_notify_${SERVER}.txt 
 
-The results for cycle $ADVISORY have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/catalog.html
+The results for cycle $CYCLE have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/catalog.html
 
 The run.properties file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
    
@@ -180,51 +183,51 @@ END
 #                P O S T   V I A   S C P
 #-------------------------------------------------------------------
 # jgf20160803: Changed if/then to case-switch to accommodate new "copy" method.
-logMessage "$ENSTORM: $THIS: Posting to $OPENDAPHOST using the '$OPENDAPPOSTMETHOD' method."
+logMessage "$SCENARIO: $THIS: Posting to $OPENDAPHOST using the '$OPENDAPPOSTMETHOD' method."
 case $OPENDAPPOSTMETHOD in
 "scp")
    serverAliveInterval=10
    timeoutRetryLimit=3
    sshOptions="$OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60"
    scpOptions="-P $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60"
-   logMessage "$ENSTORM: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
+   logMessage "$SCENARIO: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
    retry=0
    while [[ $retry -lt $timeoutRetryLimit ]]; do 
       ssh $sshOptions "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
       if [[ $? != 0 ]]; then
-         warn "$ENSTORM: $THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
+         warn "$SCENARIO: $THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
          threddsPostStatus=fail
       else
-         logMessage "$ENSTORM: $THIS: Successfully created the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
+         logMessage "$SCENARIO: $THIS: Successfully created the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
          break
       fi
       retry=`expr $retry + 1`
       if [[ $retry -lt $timeoutRetryLimit ]]; then
-         logMessage "$ENSTORM: $THIS: Trying again."
+         logMessage "$SCENARIO: $THIS: Trying again."
       else
-         logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+         logMessage "$SCENARIO: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
       fi
    done
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories
-   #OPENDAPSUFFIX=$ADVISORY/$GRIDNAME/$HPCENV/$INSTANCENAME/$ENSTORM
+   #OPENDAPSUFFIX=$CYCLE/$GRIDNAME/$HPCENV/$INSTANCENAME/$SCENARIO
    partialPath=$OPENDAPDIR
    while [[ $partialPath != $OPENDAPBASEDIR  ]]; do 
       retry=0
       while [[ $retry -lt $timeoutRetryLimit ]]; do 
          ssh $sshOptions "chmod a+wx $partialPath" 2>> $SYSLOG
          if [[ $? != 0 ]]; then
-            warn "$ENSTORM: $THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
+            warn "$SCENARIO: $THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
             threddsPostStatus=fail
          else
-            logMessage "$ENSTORM: $THIS: Successfully changed permissions."
+            logMessage "$SCENARIO: $THIS: Successfully changed permissions to a+wx on '$partialPath'."
             break
          fi
          retry=`expr $retry + 1`
          if [[ $retry -lt $timeoutRetryLimit ]]; then
-            logMessage "$ENSTORM: $THIS: Trying again."
+            logMessage "$SCENARIO: $THIS: Trying again."
          else
-            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+            logMessage "$SCENARIO: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
          fi
       done
       # cut off the end of the partial path and keep going until we get down
@@ -233,55 +236,55 @@ case $OPENDAPPOSTMETHOD in
    done
    #
    # add a symbolic link for the storm name if this is tropicalcyclone forcing
-   if [[ $TOPICALCYCLONE != off ]]; then 
+   if [[ $TROPICALCYCLONE != off ]]; then 
       retry=0
       while [[ $retry -lt $timeoutRetryLimit ]]; do 
          ssh $sshOptions "ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH" 2>> $SYSLOG
          if [[ $? != 0 ]]; then
-            warn "$ENSTORM: $THIS: Failed to create symbolic link for the storm name."
+            warn "$SCENARIO: $THIS: Failed to create symbolic link for the storm name."
             threddsPostStatus=fail
          else
-            logMessage "$ENSTORM: $THIS: Successfully created symbolic link to storm name."
+            logMessage "$SCENARIO: $THIS: Successfully created symbolic link to storm name."
             break
          fi
          retry=`expr $retry + 1`
          if [[ $retry -lt $timeoutRetryLimit ]]; then
-            logMessage "$ENSTORM: $THIS: Trying again."
+            logMessage "$SCENARIO: $THIS: Trying again."
          else
-            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+            logMessage "$SCENARIO: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
          fi
       done
    fi
    for file in ${FILES[*]}; do 
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
-         logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
+         logMessage "$SCENARIO: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
          # use asgs sendmail if Operator has set it up 
          if [[ -e $HOME/asgs-global.conf ]]; then
-            $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${STORMDIR}/opendap_results_notify_${SERVER}.txt 2>> ${SYSLOG} 2>&1
+            $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${SCENARIODIR}/opendap_results_notify_${SERVER}.txt 2>> ${SYSLOG} 2>&1
          else
-            cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+            cat ${SCENARIODIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
          fi
          opendapEmailSent=yes
          continue        
       fi
       chmod +r $file 2>> $SYSLOG
-      logMessage "$ENSTORM: $THIS: Transferring $file to ${OPENDAPHOST}."
+      logMessage "$SCENARIO: $THIS: Transferring $file to ${OPENDAPHOST}."
       retry=0
       while [[ $retry -lt $timeoutRetryLimit ]]; do 
          scp $scpOptions $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG  2>&1   
          if [[ $? != 0 ]]; then
             threddsPostStatus=fail
-            warn "$ENSTORM: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
+            warn "$SCENARIO: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
          else
-            logMessage "$ENSTORM: $THIS: Successfully transferred the file."
+            logMessage "$SCENARIO: $THIS: Successfully transferred the file."
             break
          fi
          retry=`expr $retry + 1`
          if [[ $retry -lt $timeoutRetryLimit ]]; then
-            logMessage "$ENSTORM: $THIS: Trying again."
+            logMessage "$SCENARIO: $THIS: Trying again."
          else
-            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+            logMessage "$SCENARIO: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
          fi
       done
       # give the file read permissions
@@ -291,16 +294,16 @@ case $OPENDAPPOSTMETHOD in
          ssh $sshOptions "chmod +r $OPENDAPDIR/$fname"
          if [[ $? != 0 ]]; then
             threddsPostStatus=fail
-            warn "$ENSTORM: $THIS: Failed to give the file $fname read permissions in ${OPENDAPHOST}:${OPENDAPDIR}."
+            warn "$SCENARIO: $THIS: Failed to give the file $fname read permissions in ${OPENDAPHOST}:${OPENDAPDIR}."
          else
-            logMessage "$ENSTORM: $THIS: Successfully changed permissions."
+            logMessage "$SCENARIO: $THIS: Successfully changed permissions to +r on $OPENDAPDIR/$fname."
             break
          fi
          retry=`expr $retry + 1`
          if [[ $retry -lt $timeoutRetryLimit ]]; then
-            logMessage "$ENSTORM: $THIS: Trying again."
+            logMessage "$SCENARIO: $THIS: Trying again."
          else
-            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+            logMessage "$SCENARIO: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
          fi
       done
    done
@@ -313,11 +316,11 @@ case $OPENDAPPOSTMETHOD in
    rsyncSSHOptions=(--rsh="ssh -p $SSHPORT")
    rsyncOptions="-z --copy-links"
    sshOptions="$OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT"
-   logMessage "$ENSTORM: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
+   logMessage "$SCENARIO: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
 
    ssh $sshOptions "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
    if [[ $? != 0 ]]; then
-      warn "$ENSTORM: $THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
+      warn "$SCENARIO: $THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
       threddsPostStatus=fail
    fi
    # add code to create write permissions on directories so that other 
@@ -328,17 +331,17 @@ case $OPENDAPPOSTMETHOD in
       while [[ $retry -lt $timeoutRetryLimit ]]; do 
          ssh $sshOptions "chmod a+wx $partialPath" 2>> $SYSLOG
          if [[ $? != 0 ]]; then
-            warn "$ENSTORM: $THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
+            warn "$SCENARIO: $THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
             threddsPostStatus=fail
          else
-            logMessage "$ENSTORM: $THIS: Successfully changed permissions."
+            logMessage "$SCENARIO: $THIS: Successfully changed permissions."
             break
          fi
          retry=`expr $retry + 1`
          if [[ $retry -lt $timeoutRetryLimit ]]; then
-            logMessage "$ENSTORM: $THIS: Trying again."
+            logMessage "$SCENARIO: $THIS: Trying again."
          else
-            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+            logMessage "$SCENARIO: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
          fi
       done
       # cut off the end of the partial path and keep going until we get down
@@ -348,22 +351,22 @@ case $OPENDAPPOSTMETHOD in
    for file in ${FILES[*]}; do 
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
-         logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
+         logMessage "$SCENARIO: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
          # use asgs sendmail if Operator has set it up 
          if [[ -e $HOME/asgs-global.conf ]]; then
-            $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${STORMDIR}/opendap_results_notify_${SERVER}.txt 2>> ${SYSLOG} 2>&1
+            $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${SCENARIODIR}/opendap_results_notify_${SERVER}.txt 2>> ${SYSLOG} 2>&1
          else
-            cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+            cat ${SCENARIODIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
          fi
          opendapEmailSent=yes
          continue        
       fi
       chmod +r $file 2>> $SYSLOG
-      logMessage "$ENSTORM: $THIS: Transferring $file to ${OPENDAPHOST}."
+      logMessage "$SCENARIO: $THIS: Transferring $file to ${OPENDAPHOST}."
       rsync "${rsyncSSHOptions}" ${rsyncOptions}  ${file} ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG 2>&1
       if [[ $? != 0 ]]; then
          threddsPostStatus=fail
-         warn "$ENSTORM: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
+         warn "$SCENARIO: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
       fi
    done
    ;;
@@ -393,17 +396,17 @@ case $OPENDAPPOSTMETHOD in
       while [[ $retry -lt $timeoutRetryLimit ]]; do 
          chmod a+wx $partialPath 2>> $SYSLOG
          if [[ $? != 0 ]]; then
-            warn "$ENSTORM: $THIS: Failed to change permissions on the directory ${partialPath}."
+            warn "$SCENARIO: $THIS: Failed to change permissions on the directory ${partialPath}."
             threddsPostStatus=fail
          else
-            logMessage "$ENSTORM: $THIS: Successfully changed permissions."
+            logMessage "$SCENARIO: $THIS: Successfully changed permissions."
             break
          fi
          retry=`expr $retry + 1`
          if [[ $retry -lt $timeoutRetryLimit ]]; then
-            logMessage "$ENSTORM: $THIS: Trying again."
+            logMessage "$SCENARIO: $THIS: Trying again."
          else
-            logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
+            logMessage "$SCENARIO: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
          fi
       done
       # cut off the end of the partial path and keep going until we get down
@@ -418,28 +421,28 @@ case $OPENDAPPOSTMETHOD in
    for file in ${FILES[*]}; do 
       # send opendap posting notification email early if directed
       if [[ $file = "sendNotification" ]]; then
-         logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
+         logMessage "$SCENARIO: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
          # use asgs sendmail if Operator has set it up 
          if [[ -e $HOME/asgs-global.conf ]]; then
-            $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${STORMDIR}/opendap_results_notify_${SERVER}.txt 2>> ${SYSLOG} 2>&1
+            $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${SCENARIODIR}/opendap_results_notify_${SERVER}.txt 2>> ${SYSLOG} 2>&1
          else
-            cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+            cat ${SCENARIODIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
          fi
          opendapEmailSent=yes
          continue        
       fi
       chmod +r $file 2>> $SYSLOG
-      logMessage "$ENSTORM: $THIS: $postDesc $file."
+      logMessage "$SCENARIO: $THIS: $postDesc $file."
       $postCMD $file $OPENDAPDIR 2>> ${SYSLOG}
       if [[ $? != 0 ]]; then
          threddsPostStatus=fail
-         warn "$ENSTORM: $THIS: $postDesc $file to ${OPENDAPDIR} failed."
+         warn "$SCENARIO: $THIS: $postDesc $file to ${OPENDAPDIR} failed."
       fi
    done
    ;;
 *)
    threddsPostStatus=fail
-   warn "$ENSTORM: $THIS: The opendap post method $OPENDAPPOSTMETHOD was not recognized."
+   warn "$SCENARIO: $THIS: The opendap post method $OPENDAPPOSTMETHOD was not recognized."
    ;;
 esac
 #
@@ -451,14 +454,14 @@ esac
 #
 #if [[ threddsPostStatus != ok ]]; then
 #   error "opendap_post.sh: A failure occurred when the ASGS instance $INSTANCENAME attempted to post data to the THREDDS Data Server ${SERVER}. Downstream data consumers will not receive an email for these results. However, the opendap results notification will be sent to ${ASGSADMIN}."
-#   cat ${STORMDIR}/opendap_results_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $ASGSADMIN 2>> ${SYSLOG} 2>&1
+#   cat ${SCENARIODIR}/opendap_results_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $ASGSADMIN 2>> ${SYSLOG} 2>&1
 #else
 if [[ $opendapEmailSent = "no" ]]; then 
-   logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
+   logMessage "$SCENARIO: $THIS: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
    # use asgs sendmail if Operator has set it up 
    if [[ -e $HOME/asgs-global.conf ]]; then
-      $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${STORMDIR}/opendap_results_notify_${SERVER}.txt 2>> ${SYSLOG} 2>&1
+      $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${SCENARIODIR}/opendap_results_notify_${SERVER}.txt 2>> ${SYSLOG} 2>&1
    else
-      cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+      cat ${SCENARIODIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
    fi
 fi

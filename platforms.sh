@@ -880,10 +880,106 @@ job_defaults() {
    esac
 }
 #
+# Writes properties related to the combination of the HPC platform, the Operator, 
+# and the THREDDS data server the results are to be posted to. 
+writeTDSProperties()
+{
+   THIS=platforms.sh/writeTDSProperties
+   CATALOGPREFIX=""    # after thredds/catalog
+   DOWNLOADPREFIX=""   # after thredds/fileServer
+   case $SERVER in
+   "renci_tds")
+      # THREDDS Data Server (TDS, i.e., OPeNDAP server) at RENCI
+      # http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
+      # http://tds.renci.org:8080/thredds/dodsC/     DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
+      # http://tds.renci.org:8080/thredds/catalog/                   tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/catalog.html
+      OPEDNAPHOST=ht4.renci.org
+      OPENDAPPORT=":8080"
+      OPENDAPBASEDIR=/projects/ncfs/opendap/data
+      SSHPORT=22
+      echo "post.opendap.${SERVER}.linkablehosts : (null)" >> run.properties
+      echo "post.opendap.${SERVER}.copyablehosts : (hatteras)" >> run.properties
+      if [[ $USER = jgflemin || $USER = ncfs ]]; then
+         OPENDAPUSER=ncfs
+      fi
+      #DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/"
+      #CATALOGPREFIX="http://tds.renci.org:8080/thredds/DataLayers/asgs/"
+      #OPENDAPBASEDIR=/projects/ees/DataLayers/asgs/
+      ;;
+
+   # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU
+   "lsu_tds") 
+      OPENDAPHOST=fortytwo.cct.lsu.edu
+      OPENDAPPORT=":8080"
+      OPENDAPBASEDIR=/data/opendap
+      SSHPORT=2525
+      echo "post.opendap.${SERVER}.linkablehosts : (null)" >> run.properties
+      echo "post.opendap.${SERVER}.copyablehosts : (null)" >> run.properties
+      if [[ $USER = jgflemin && $HPCENV = queenbee.loni.org ]]; then
+          OPENDAPUSER=$USER
+      fi
+      if [[ $USER = ncfs && $HPCENV = hatteras.renci.org ]]; then
+         OPENDAPUSER=jgflemin
+      fi
+      if [[ $USER = jgflemin && $HPCENV = stampede2.tacc.utexas.edu ]]; then
+         OPENDAPUSER=jgflemin
+      fi
+      ;;
+
+   # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU Center for Coastal Resiliency
+   "lsu_ccr_tds")
+      OPENDAPHOST=chenier.cct.lsu.edu
+      OPENDDAPPORT=":8080"
+      CATALOGPREFIX=/asgs/ASGS-2019
+      DOWNLOADPREFIX=/asgs/ASGS-2019
+      OPENDAPBASEDIR=/data/thredds/ASGS/ASGS-2019
+      SSHPORT=2525
+      echo "post.opendap.${SERVER}.linkablehosts : (null)" >> run.properties
+      echo "post.opendap.${SERVER}.copyablehosts : (null)" >> run.properties
+      if [[ $USER = jgflemin && $HPCENV = queenbee.loni.org ]]; then
+          OPENDAPUSER=$USER
+      fi
+      if [[ $USER = ncfs && $HPCENV = hatteras.renci.org ]]; then
+         OPENDAPUSER=jgflemin
+      fi
+      if [[ $USER = jgflemin && $HPCENV = stampede2.tacc.utexas.edu ]]; then
+         OPENDAPUSER=jgflemin
+      fi
+      ;;
+   #
+   # THREDDS Data Server (TDS, i.e., OPeNDAP server) at Texas
+   # Advanced Computing Center (TACC)
+   "tacc_tds")
+      OPENDAPHOST=adcircvis.tacc.utexas.edu
+      DOWNLOADPREFIX=/asgs
+      CATALOGPREFIX=/asgs
+      OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
+      SSHPORT=null
+      echo "post.opendap.${SERVER}.linkablehosts : (null)" >> run.properties
+      echo "post.opendap.${SERVER}.copyablehosts : (lonestar stampede2)" >> run.properties
+      if [[ $USER = jgflemin ]]; then
+         OPENDAPUSER=$USER
+      fi
+      if [[ $USER = ncfs ]]; then
+         OPENDAPUSER=jgflemin
+      fi
+      ;;
+   *)
+      echo "$THIS: ERROR: THREDDS Data Server $SERVER was not recognized."
+   esac
+   # now write properties
+   echo "post.opendap.${SERVER}.opendaphost : $OPENDAPHOST" >> run.properties
+   echo "post.opendap.${SERVER}.downloadprefix : http://$OPENDAPHOST$OPENDAPPORT/thredds/fileServer$DOWNLOADPREFIX" >> run.properties
+   echo "post.opendap.${SERVER}.catalogprefix : http://$OPENDAPHOST$OPENDAPPORT/thredds/catalog$CATALOGPREFIX" >> run.properties
+   echo "post.opendap.${SERVER}.opendapbasedir : $OPENDAPBASEDIR" >> run.properties
+   echo "post.opendap.${SERVER}.sshport : $SSHPORT" >> run.properties
+   echo "post.opendap.${SERVER}.opendapuser : $OPENDAPUSER" >> run.properties
+}
+#
 # used to dispatch environmentally sensitive actions
 env_dispatch() {
  HPCENVSHORT=$1
- THIS=platforms.sh
+ THIS=platforms.sh/env_dispatch
  case $HPCENVSHORT in
   "camellia") allMessage "$THIS: Camellia(WorldWinds) configuration found."
           init_camellia

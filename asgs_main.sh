@@ -1622,20 +1622,14 @@ writeProperties()
    # each scenario
    echo "path.fromdir : $FROMDIR" >> $STORMDIR/run.properties
    echo "path.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
-   echo "path.cycledir : $ADVISDIR" >> $STORMDIR/run.properties
-   echo "path.scenariodir : $STORMDIR" >> $STORMDIR/run.properties
    echo "scenario : $ENSTORM" >> $STORMDIR/run.properties
    # FIXME: the following are legacy properties from 2014stable 
    # and should not be carried forward  
    echo "forecast.ensemblesize : $ENSEMBLESIZE" >> $STORMDIR/run.properties
    echo "asgs.path.fromdir : $FROMDIR" >> $STORMDIR/run.properties
    echo "asgs.path.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
-   echo "asgs.path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
    echo "asgs.enstorm : $ENSTORM" >> $STORMDIR/run.properties
-   echo "asgs.path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
    echo "enstorm : $ENSTORM" >> $STORMDIR/run.properties
-   echo "path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
-   echo "path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
    #
    ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
    echo "adcirc.version : $ADCIRCVERSION" >> $STORMDIR/run.properties   
@@ -1645,6 +1639,21 @@ writeProperties()
    echo "instance : $INSTANCENAME" >> $STORMDIR/run.properties
    echo "pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties
    echo "intendedAudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
+}
+#
+# write properties that depend on the scenario but are not known
+# at the start of setup for the scenario
+writeScenarioProperties()
+{
+   STORMDIR=$1
+   echo "path.cycledir : $ADVISDIR" >> $STORMDIR/run.properties
+   echo "path.scenariodir : $STORMDIR" >> $STORMDIR/run.properties
+   # FIXME: the following are legacy properties from 2014stable 
+   # and should not be carried forward  
+   echo "asgs.path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
+   echo "asgs.path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
+   echo "path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
+   echo "path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
 }
 #
 # write properties to the run.properties file that are associated with 
@@ -2203,6 +2212,7 @@ if [[ $START = coldstart ]]; then
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "The initial hindcast duration is '$HINDCASTLENGTH' days."
    logMessage "$ENSTORM: $THIS: The initial hindcast duration is '$HINDCASTLENGTH' days."
    writeProperties $STORMDIR
+   writeScenarioProperties $SCENARIODIR
 
    # prepare hindcast control (fort.15) file
    # calculate periodic fux data for insertion in fort.15 if necessary
@@ -2408,9 +2418,13 @@ while [ true ]; do
    cd $RUNDIR 2>> ${SYSLOG}
    #
    # N O W C A S T
+   SCENARIO=nowcast
+   ENSTORM=nowcast
    RUNNOWCAST=yes 
    NOWCASTDIR=null    # directory with hotstart files to be used in forecast
-
+   # write the properties associated with asgs configuration to the 
+   # run.properties file
+   writeProperties $RUNDIR 
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Checking for new meteorological data every 60 seconds ..."
    logMessage "$ENSTORM: $THIS: Checking for new meteorological data every 60 seconds ..."
    
@@ -2446,11 +2460,15 @@ while [ true ]; do
       CYCLEDIR=$ADVISDIR
       CYCLELOG=$CYCLEDIR/cycle.log
       NOWCASTDIR=$ADVISDIR/$ENSTORM
+      STORMDIR=$ADVISDIR/$ENSTORM
       if [ ! -d $NOWCASTDIR ]; then
           mkdir $NOWCASTDIR 2>> ${SYSLOG}
       fi
       SCENARIODIR=$CYCLEDIR/$SCENARIO
       SCENARIOLOG=$SCENARIO/scenario.log
+      mv $RUNDIR/run.properties $SCENARIODIR 2>> $SYSLOG
+      writeScenarioProperties $SCENARIODIR
+      #
       RMQADVISORY=$ADVISORY
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$START Storm $STORM advisory $ADVISORY in $YEAR"
       logMessage "$ENSTORM: $THIS: $START Storm $STORM advisory $ADVISORY in $YEAR"
@@ -2459,11 +2477,7 @@ while [ true ]; do
       #
       # prepare nowcast met (fort.22) and control (fort.15) files
       cd $NOWCASTDIR 2>> ${SYSLOG}
-      STORMDIR=$ADVISDIR/$ENSTORM
 
-      # write the properties associated with asgs configuration to the 
-      # run.properties file
-      writeProperties $STORMDIR
       writeTropicalCycloneProperties $STORMDIR
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE $STORMTRACKOPTIONS"
       CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
@@ -2514,7 +2528,10 @@ while [ true ]; do
          NOWCASTDIR=$ADVISDIR/$ENSTORM
          SCENARIODIR=$CYCLEDIR/$SCENARIO
          SCENARIOLOG=$SCENARIODIR/scenario.log
-         cd $ADVISDIR 2>> ${SYSLOG}
+         mkdir -p $SCENARIODIR 2>> $SYSLOG
+         mv $RUNDIR/run.properties $SCENARIODIR 2>> $SYSLOG
+         writeScenarioProperties $SCENARIODIR
+         cd $SCENARIODIR 2>> ${SYSLOG}
          RMQ_AdvisoryNumber="$ADVISORY"
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$START $ENSTORM cycle $RMQ_AdvisoryNumber."
          logMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
@@ -2542,6 +2559,7 @@ while [ true ]; do
          ln -s $NAM222 fort.222 2>> ${SYSLOG}
          STORMDIR=$NOWCASTDIR
          writeNAMProperties $STORMDIR
+         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
       OWI)
          # this is a hack to enable running pre-existing OWI files for hindcast
@@ -2570,7 +2588,11 @@ while [ true ]; do
          SCENARIODIR=$CYCLEDIR/$SCENARIO
          SCENARIOLOG=$SCENARIODIR/$SCENARIO
          mkdir -p $NOWCASTDIR 2>> ${SYSLOG}
+         mv $RUNDIR/run.properties $SCENARIODIR 2>> $SYSLOG
          cd $ADVISDIR 2>> ${SYSLOG}
+         # write the properties associated with asgs configuration to the 
+         # run.properties file
+         writeScenarioProperties $NOWCASTDIR
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
          logMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
          # create links to the OWI files, assuming they already have the
@@ -2585,21 +2607,17 @@ while [ true ]; do
                ln -s $file fort.${ext} 2>> ${SYSLOG} # symbolically link data
             fi
          done
+         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
      off)
         # don't need to download any data
+        # FIXME: writeProperties?
         ;;
      *) # should be unreachable
         RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM" "FAIL" "BACKGROUNDMET ($BACKGROUNDMET) did not match an allowable value."
         fatal "BACKGROUNDMET did not match an allowable value."
         ;;
    esac
-   if [[ $BACKGROUNDMET != off ]]; then
-      # write the properties associated with asgs configuration to the 
-      # run.properties file
-      writeProperties $NOWCASTDIR
-      CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
-   fi
    if [[ $WAVES = on ]]; then
       writeWaveCouplingProperties $NOWCASTDIR
    fi
@@ -2620,6 +2638,8 @@ while [ true ]; do
       if [ ! -d $NOWCASTDIR ]; then
           mkdir -p $NOWCASTDIR 2>> ${SYSLOG}
       fi
+      mv $RUNDIR/run.properties $NOWCASTDIR 2>> run.properties
+      writeScenarioProperties $NOWCASTDIR
       CONTROLOPTIONS="--nws 0 --advisorynum $ADVISORY"
       CONTROLOPTIONS="$CONTROLOPTIONS --specifiedRunLength $NOWCASTDAYS"
       CONTROLOPTIONS="$CONTROLOPTIONS --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
@@ -2834,6 +2854,9 @@ while [ true ]; do
       env_dispatch ${HPCENVSHORT}
       # grab the config specified by the operator
       readConfig
+      # write the properties associated with asgs configuration to the 
+      # run.properties file
+      writeProperties $RUNDIR
       # Obtain and/or verify ADCIRC(+SWAN) executables
       get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG
       if [[ $? = 1 ]]; then
@@ -2939,9 +2962,8 @@ while [ true ]; do
       cd $STORMDIR 2>> ${SYSLOG}
       SCENARIODIR=$STORMDIR
       SCENARIOLOG=$SCENARIODIR/scenario.log
-      # write the properties associated with asgs configuration to the 
-      # run.properties file
-      writeProperties $STORMDIR
+      mv $RUNDIR/run.properties $SCENARIODIR 2>> $SYSLOG
+      writeScenarioProperties $SCENARIODIR 2>> $SYSLOG
       writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
       RUNFORECAST=yes
       # TROPICAL CYCLONE ONLY
@@ -3088,10 +3110,9 @@ while [ true ]; do
       done
       # recording the ensemble member number may come in handy for load
       # balancing the postprocessing, particularly for CERA
-      echo "forecastEnsembleMemberNumber : $si" >> ${STORMDIR}/run.properties
       CURRENT_EVENT="FORE"
       CURRENT_STATE="WAIT"
-      echo "asgs.config.forecast.ensemblemembernumber : $si" >> ${STORMDIR}/run.properties
+      echo "forecast.scenario.number : $si" >> ${STORMDIR}/run.properties
       writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
       # copy log data to scenario.log
       for file in lambert_diag.out reproject.log ; do 

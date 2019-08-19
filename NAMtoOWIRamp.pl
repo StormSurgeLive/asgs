@@ -109,6 +109,22 @@ GetOptions(
     "scriptDir=s"          => \$scriptDir
 );
 #
+# create a hash of properties from run.properties
+our %properties;
+# open properties file 
+unless (open(RUNPROP,"<run.properties")) {
+   stderrMessage("ERROR","Failed to open run.properties: $!.");
+   die;
+}
+while (<RUNPROP>) {
+   my @fields = split ':',$_, 2 ;
+   # strip leading and trailing spaces and tabs
+   $fields[0] =~ s/^\s|\s+$//g ;
+   $fields[1] =~ s/^\s|\s+$//g ;
+   $properties{$fields[0]} = $fields[1];
+}
+close(RUNPROP);
+#
 # open an application log file for get_nam.pl
 unless ( open(APPLOGFILE,">>NAMtoOWIRamp.pl.log") ) {
    stderrMessage("ERROR","Could not open 'NAMtoOWIRamp.pl.log' for appending: $!.");        
@@ -470,7 +486,7 @@ sub rotateAndFormat {
 
             # NAM pressure data are in Pa
             if ( -f "rotataedNAM.txt" ) {
-                &appMessage("DEBUG","Deleting old rotatedNAM.txt.";
+                &appMessage("DEBUG","Deleting old rotatedNAM.txt.");
                 unlink "rotatedNAM.txt";
             }
 
@@ -837,5 +853,6 @@ sub appMessage () {
    my $year = 1900 + $yearOffset;
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-   printf APPLOGFILE "$theTime $level: $enstorm: get_nam.pl: $message\n";
+   my $scenario = $properties{"scenario"};
+   printf APPLOGFILE "$theTime $level: $scenario: get_nam.pl: $message\n";
 }

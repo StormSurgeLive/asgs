@@ -25,74 +25,47 @@ THIS=output/cpra_post.sh
 # Count command line arguments; use them if provided or use 
 # run.properties if not.
 declare -A properties
-if [[ $# -gt 2 ]]; then
-   CONFIG=$1
-   CYCLEDIR=$2
-   STORM=$3
-   YEAR=$4
-   CYCLE=$5
-   HPCENV=$6
-   SCENARIO=$7
-   CSDATE=$8
-   HSTIME=$9
-   GRIDFILE=${10}
-   OUTPUTDIR=${11}
-   SYSLOG=${12}
-   SSHKEY=${13}
-else
-   # this script can be called with just one command line option: the
-   # full path to the run.properties file
+SCENARIODIR=$PWD
+RUNPROPERTIES=$SCENARIODIR/run.properties
+if [[ $# -eq 1 ]]; then
    RUNPROPERTIES=$1
-   echo "Loading properties."
-   # get loadProperties function
-   SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
-   source $SCRIPTDIR/properties.sh
-   # load run.properties file into associative array
-   loadProperties $RUNPROPERTIES
-   echo "Finished loading properties."
-   # now set variables that would otherwise be set by command line arguments
-   CONFIG=${properties['config.file']}
-   CYCLEDIR=${properties['asgs.path.advisdir']}
-   CYCLE=${properties['advisory']}
-   HPCENV=${properties['hpc.hpcenv']}
-   SCENARIO=${properties['scenario']}
-   CSDATE=${properties['config.adcirc.time.coldstartdate']}
-   HSTIME=${properties['InitialHotStartTime']}
-   GRIDFILE=${properties['adcirc.file.input.gridfile']}
-   OUTPUTDIR=${properties['config.path.outputdir']}
-   SYSLOG=${properties['monitoring.logging.file.syslog']}
-   SSHKEY=${properties['post.file.sshkey']}
-   TROPICALCYCLONE=${properties['config.forcing.tropicalcyclone']}
-   if [[ $TROPICALCYCLONE != "off" ]]; then
-      STORM=${properties['config.forcing.tropicalcyclone.stormnumber']}
-      YEAR=${properties['config.forcing.tropicalcyclone.year']}
-   else
-      STORM="null"
-      YEAR=${CYCLE:0:4}
-   fi      
 fi
-# get the forecast ensemble member number 
-ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${SCENARIODIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
-#
-# grab all config info
-si=$ENMEMNUM
-. ${CONFIG} #FIXME: this should not be needed 
-# Bring in logging functions
-. ${SCRIPTDIR}/monitoring/logging.sh
-# Bring in platform-specific configuration
-. ${SCRIPTDIR}/platforms.sh
+# this script can be called with just one command line option: the
+# full path to the run.properties file
+echo "Loading properties."
+# get loadProperties function
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
+source $SCRIPTDIR/properties.sh
+source ${SCRIPTDIR}/monitoring/logging.sh
+source ${SCRIPTDIR}/platforms.sh
 # dispatch environment (using the functions in platforms.sh)
 env_dispatch ${TARGET}
 THIS=output/cpra_post.sh
-# grab all config info (again, last, so the CONFIG file takes precedence)
-. ${CONFIG}
+# load run.properties file into associative array
+loadProperties $RUNPROPERTIES
+echo "Finished loading properties."
+# now set variables that would otherwise be set by command line arguments
+CONFIG=${properties['config.file']}
+CYCLEDIR=${properties['asgs.path.advisdir']}
+CYCLE=${properties['advisory']}
+HPCENV=${properties['hpc.hpcenv']}
+SCENARIO=${properties['scenario']}
+CSDATE=${properties['config.adcirc.time.coldstartdate']}
+HSTIME=${properties['InitialHotStartTime']}
+GRIDFILE=${properties['adcirc.file.input.gridfile']}
+OUTPUTDIR=${properties['config.path.outputdir']}
+SYSLOG=${properties['monitoring.logging.file.syslog']}
+SSHKEY=${properties['post.file.sshkey']}
+TROPICALCYCLONE=${properties['config.forcing.tropicalcyclone']}
+if [[ $TROPICALCYCLONE != "off" ]]; then
+   STORM=${properties['config.forcing.tropicalcyclone.stormnumber']}
+   YEAR=${properties['config.forcing.tropicalcyclone.year']}
+else
+   STORM="null"
+   YEAR=${CYCLE:0:4}
+fi      
 #
 SCENARIODIR=${CYCLEDIR}/${SCENARIO}       # shorthand
-# get loadProperties function
-SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties`
-source $SCRIPTDIR/properties.sh
-# load run.properties file into associative array
-loadProperties ./run.properties
 CYCLELOG=${properties['monitoring.logging.file.cyclelog']}
 SCENARIOLOG==${properties['monitoring.logging.file.scenariolog']}
 allMessage "$SCENARIO: $THIS: Starting post processing."
@@ -209,6 +182,13 @@ else
    ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc 2>> $SCENARIOLOG` )
 fi
 FILES=( ${ceraPriorityFiles[*]} "sendNotification" ${ceraNonPriorityFiles[*]} )
+#
+FILESSTRING="("
+for string in ${FILES[*]}; do 
+   FILESSTRING="$FILESSTRING $string"
+done
+FILESSTRING="$FILESSTRING )"
+echo "post.opendap.files : $FILESSTRING" >> run.properties
 #
 #-----------------------------------------------------------------------
 #         O P E N  D A P    P U B L I C A T I O N 

@@ -36,7 +36,8 @@ SYSLOG=%syslog%
 CYCLEDIR=%advisdir%
 CYCLE=`basename %advisdir%`
 CYCLELOG=$CYCLEDIR/cycle.log
-SCENARIODIR=$CYCLEDIR/%scenario%
+SCENARIO=%scenario%
+SCENARIODIR=$CYCLEDIR/$SCENARIO
 SCENARIOLOG=$SCENARIODIR/scenario.log
 #
 cd $SCENARIODIR 2> >(awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a $SYSLOG | tee -a $CYCLELOG | tee -a $SCENARIOLOG )
