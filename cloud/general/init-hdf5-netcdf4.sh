@@ -3,6 +3,7 @@
 TMP=$HOME/tmp
 OPT=${1-$HOME/opt}
 COMPILER=${2-intel}
+JOBS=${3-1}
 
 if [ $2 == "clean" ]; then 
   echo Cleaning HDF5 and NetCDF libraries and utilities
@@ -45,7 +46,7 @@ if [ ! -e $OPT/bin/h5diff ]; then
   cd hdf5-1.8.12
   make clean
   ./configure --prefix $OPT --enable-fortran
-  make -j4 install
+  make -j $JOBS install
   cd ../
 fi
 
@@ -59,7 +60,7 @@ if [ ! -e $OPT/bin/nc-config ]; then
   cd netcdf-4.2.1.1
   make clean
   ./configure --prefix $OPT
-  make -j4 install
+  make -j $JOBS install
   cd ..
 fi
 
@@ -73,7 +74,7 @@ if [  ! -e $OPT/bin/nf-config ] && [ -z "$($OPT/bin/nf-config --all  | grep '\-\
   cd netcdf-fortran-4.2
   make clean
   ./configure --prefix $OPT
-  make -j4 install
+  make -j $JOBS install
   cd ..
 fi
 

@@ -60,6 +60,9 @@ ifeq ($(compiler),gfortran)
    ifeq ($(MACHINENAME),jason-desktop)
       FFLAGS := $(FFLAGS) -DOLDGFORTRAN 
    endif
+   ifeq ($(MACHINENAME),vagrant)
+      FFLAGS := $(FFLAGS) -DOLDGFORTRAN
+   endif
 endif
 #
 # specify compiler=intel on the make command line
