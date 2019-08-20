@@ -34,6 +34,8 @@
 #
 init_supermike()
 { #<- can replace the following with a custom script
+  THIS="platforms.sh>env_dispatch()>init_supermike()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=mike.hpc.lsu.edu
   QUEUESYS=PBS
   QCHECKCMD=qstat
@@ -54,6 +56,8 @@ init_supermike()
 #
 init_queenbee()
 { #<- can replace the following with a custom script
+  THIS="platforms.sh>env_dispatch()>init_queenbee()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=queenbee.loni.org
   QUEUESYS=PBS
   QCHECKCMD=qstat
@@ -106,6 +110,8 @@ init_queenbee()
 #
 init_rostam()
 { #<- can replace the following with a custom script
+  THIS="platforms.sh>env_dispatch()>init_rostam()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=rostam.cct.lsu.edu
   QUEUESYS=SLURM
   QCHECKCMD=squeue
@@ -135,6 +141,8 @@ init_rostam()
 }
 init_supermic()
 { #<- can replace the following with a custom script
+  THIS="platforms.sh>env_dispatch()>init_supermic()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=supermic.hpc.lsu.edu
   QUEUESYS=PBS
   QCHECKCMD=qstat
@@ -177,61 +185,10 @@ init_supermic()
   $PLATFORMMODULES
   $SERIALMODULES
 }
-init_arete()
-{ #<- can replace the following with a custom script
-  HPCENV=arete.cct.lsu.edu
-  QUEUESYS=SLURM
-  QCHECKCMD=sacct
-  ACCOUNT=null
-  SUBMITSTRING=sbatch
-  JOBLAUNCHER=
-  SCRATCHDIR=/scratch/$USER
-  SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=arete.template.slurm
-  QSCRIPTGEN=hatteras.slurm.pl
-  PPN=8
-}
-init_camellia()
-{ #<- can replace the following with a custom script
-  HPCENV=camellia.worldwindsinc.com
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  ACCOUNT=bpj
-  SUBMITSTRING=qsub
-  SCRATCHDIR=$HOME/tmp
-  SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=ww.template.pbs
-  QSCRIPTGEN=tezpur.pbs.pl
-  PPN=12
-}
-init_blueridge()
-{ #<- can replace the following with a custom script
-  HPCENV=blueridge.renci.org
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  ACCOUNT=noaccount
-  SUBMITSTRING=submitstring
-  SCRATCHDIR=/projects/ncfs/data
-  SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=renci.template.pbs
-  QSCRIPTGEN=tezpur.pbs.pl
-  PPN=8
-}
-init_croatan()
-{ #<- can replace the following with a custom script
-  HPCENV=croatan.renci.org
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  ACCOUNT=noaccount
-  SUBMITSTRING=submitstring
-  SCRATCHDIR=/projects/ncfs/data
-  SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=croatan.template.pbs
-  QSCRIPTGEN=tezpur.pbs.pl
-  PPN=16
-}
 init_pod()
 { #<- can replace the following with a custom script
+  THIS="platforms.sh>env_dispatch()>init_pod()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=pod.penguincomputing.com
   QUEUESYS=PBS
   QCHECKCMD=qstat
@@ -279,6 +236,8 @@ init_pod()
 }
 init_hatteras()
 { #<- can replace the following with a custom script
+  THIS="platforms.sh>env_dispatch()>init_hatteras()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=hatteras.renci.org
   QUEUESYS=SLURM
   QUEUENAME=batch # <---<< PARTITION synonym on slurm
@@ -363,26 +322,11 @@ init_hatteras()
   $PARALLELMODULES
   $SERIALMODULES
 }
-init_stampede()
-{ #<- can replace the following with a custom script
-  HPCENV=stampede.tacc.utexas.edu
-  QUEUESYS=SLURM
-  QCHECKCMD=sacct
-  ACCOUNT=null
-  SUBMITSTRING=sbatch
-  JOBLAUNCHER=ibrun
-  SCRATCHDIR=$SCRATCH
-  SSHKEY=~/.ssh/id_rsa_stampede
-  QSCRIPT=stampede.template.slurm
-  QSCRIPTGEN=hatteras.slurm.pl
-  PPN=16
-  PLATFORMMODULES='module load netcdf/4.3.2'
-  $PLATFORMMODULES
-  #jgf20150610: Most likely QUEUENAME=normal SERQUEUENAME=serial
-}
 #
 init_stampede2()
 { #<- can replace the following with a custom script
+  THIS="platforms.sh>env_dispatch()>init_stampede2()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=stampede2.tacc.utexas.edu
   QUEUESYS=SLURM
   QUEUENAME=skx-normal # same as SLURM partition
@@ -440,197 +384,10 @@ init_stampede2()
   #   pip install --user python-pptx
 }
 #
-init_kittyhawk()
-{ #<- can replace the following with a custom script
-  HPCENV=kittyhawk.renci.org
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  ACCOUNT=null
-  SUBMITSTRING=submitstring
-  SCRATCHDIR=/work/$USER
-  SSHKEY=~/.ssh/id_rsa_kittyhawk
-  QSCRIPT=kittyhawk.template.pbs
-  QSCRIPTGEN=tezpur.pbs.pl
-  PPN=4
-}
-init_sapphire()
-{ #<- can replace the following with a custom script
-  HPCENV=sapphire.erdc.hpc.mil
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  ACCOUNT=null
-  SUBMITSTRING=qsub
-  JOBLAUNCHER="aprun"
-  SCRATCHDIR=/work2/$USER
-  SSHKEY=~/.ssh/id_rsa_sapphire
-  QSCRIPT=erdc.template.pbs
-  QSCRIPTGEN=erdc.pbs.pl
-  ulimit -s unlimited
-  ulimit -v 2097152   # needed for NAMtoOWI.pl to avoid Out of memory error
-}
-
-init_jade()
-{ #<- can replace the following with a custom script
-  HPCENV=jade.erdc.hpc.mil
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  ACCOUNT=null
-  SUBMITSTRING=qsub
-  JOBLAUNCHER="aprun"
-# INTERSTRING="qsub -l size=1,walltime=00:10:00 -A $ACCOUNT -q $QUEUENAME -I"
-  INTERSTRING=
-  SCRATCHDIR=/work/$USER
-  SSHKEY=~/.ssh/id_rsa_jade
-  QSCRIPT=erdc.template.pbs
-  QSCRIPTGEN=erdc.pbs.pl
-  ulimit -s unlimited
-  ulimit -v 2097152   # needed for NAMtoOWI.pl to avoid Out of memory error
-}
-
-init_diamond()
-{ #<- can replace the following with a custom script
-  HPCENV=diamond.erdc.hpc.mil
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  ACCOUNT=null
-  SUBMITSTRING="mpiexec_mpt"
-  SCRATCHDIR=/work/$USER
-  SSHKEY=~/.ssh/id_rsa_diamond
-  QSCRIPT=erdc.diamond.template.pbs
-  QSCRIPTGEN=erdc.pbs.pl
-  PPN=8
-}
-
-init_garnet()
-{ #<- can replace the following with a custom script
-  HPCENV=garnet.erdc.hpc.mil
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  ACCOUNT=erdcvhsp
-  SUBMITSTRING="aprun"
-  SCRATCHDIR=$WORKDIR 
-  SSHKEY=~/.ssh/id_rsa_garnet
-  QSCRIPT=garnet.template.pbs
-  QSCRIPTGEN=erdc.pbs.pl
-  PPN=32
-  IMAGEMAGICKBINPATH=/usr/local/usp/ImageMagick/default/bin 
-}
-init_spirit()
-{ #<- can replace the following with a custom script
-  # This requires the user to have a .personal.bashrc file in the $HOME 
-  # directory with the following contents:
-  # echo "Loading modules in .personal.bashrc ..."
-  # module load intel-compilers/12.1.0
-  # module load netcdf-fortran/intel/4.4.2
-  # module load hdf5/intel/1.8.12
-  # module load hdf5-mpi/intel/sgimpt/1.8.12
-  # module load mpt/2.12
-  # echo "... modules loaded."
-  HPCENV=spirit.afrl.hpc.mil
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  ACCOUNT=null
-  SUBMITSTRING="mpiexec_mpt"
-  SCRATCHDIR=$WORKDIR 
-  SSHKEY=~/.ssh/id_rsa_spirit
-  QSCRIPT=spirit.template.pbs
-  QSCRIPTGEN=erdc.pbs.pl
-  PPN=16
-  IMAGEMAGICKBINPATH=/usr/local/usp/ImageMagick/default/bin 
-}
-init_topaz()
-{ #<- can replace the following with a custom script
-  # This requires the Operator to have a ~/.bash_profile file in the $HOME 
-  # directory with the following contents:
-  echo "Loading modules in .bash_profile ..."
-  module unload compiler/intel/16.0.0
-  module load compiler/intel/15.0.3
-  module load usp-netcdf/intel-15.0.3/4.3.3.1
-  module load imagemagick/6.9.2-5
-  echo "... modules loaded."
-  HPCENV=topaz.erdc.hpc.mil
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  #ACCOUNT=ERDCV00898N10
-  ACCOUNT=ERDCV00898HSP
-  SUBMITSTRING="qstat"
-  SCRATCHDIR=$WORKDIR 
-  SSHKEY=~/.ssh/id_rsa_topaz
-  QSCRIPT=topaz.template.pbs
-  QSCRIPTGEN=erdc.pbs.pl
-  PPN=36
-  IMAGEMAGICKBINPATH=/app/unsupported/ImageMagick/6.9.2-5/bin/convert
-  # fyi topaz has a 4hr time limit for the background queue
-}
-init_thunder()
-{ #<- can replace the following with a custom script
-  # This requires the Operator to have a ~/.personal.bashrc file in the $HOME 
-  # directory with the following contents:
-  echo "Loading modules in .bash_profile ..."
-  module load costinit
-  module load git
-  module load netcdf-fortran/intel/4.4.2
-  echo "... modules loaded."
-  HPCENV=thunder.afrl.hpc.mil
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  ACCOUNT=ERDCV00898N10
-  #ACCOUNT=ERDCV00898HSP
-  SUBMITSTRING="qstat"
-  SCRATCHDIR=$WORKDIR 
-  SSHKEY=~/.ssh/id_rsa_thunder
-  QSCRIPT=thunder.template.pbs
-  QSCRIPTGEN=erdc.pbs.pl
-  PPN=36
-  IMAGEMAGICKBINPATH=/app/unsupported/ImageMagick/6.9.2-5/bin/convert
-}
-init_tezpur()
-{ #<- can replace the following with a custom script
-  HPCENV=tezpur.hpc.lsu.edu
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  ACCOUNT=loni_asgs2009
-  SUBMITSTRING="mpirun"
-  SCRATCHDIR=/work/cera
-  SSHKEY=id_rsa_tezpur
-  QSCRIPT=tezpur.template.pbs
-  QSCRIPTGEN=tezpur.pbs.pl
-  PPN=4
-}
-init_mike()
-{ #<- can replace the following with a custom script
-  HPCENV=mike.hpc.lsu.edu
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  ACCOUNT=null
-  SUBMITSTRING="mpirun"
-  SCRATCHDIR=/work/$USER
-  SSHKEY=id_rsa_mike
-  QSCRIPT=mike.template.pbs
-  QSCRIPTGEN=tezpur.pbs.pl
-  PPN=16
-  soft add +netcdf-4.1.3-Intel-13.0.0 
-  #/usr/local/packages/netcdf/4.1.3/Intel-13.0.0
-}
-init_ranger()
-{ #<- can replace the following with a custom script
-  HPCENV=ranger.tacc.utexas.edu
-  QUEUESYS=SGE
-  QCHECKCMD=qstat
-  NCPUDIVISOR=16
-  ACCOUNT=TG-DMS100024
-  SUBMITSTRING="ibrun tacc_affinity"
-  SCRATCHDIR=$SCRATCH
-  SSHKEY=id_rsa_ranger
-  QSCRIPT=ranger.template.sge
-  QSCRIPTGEN=ranger.sge.pl
-  SERQSCRIPT=ranger.template.serial
-  SERQSCRIPTGEN=ranger.serial.pl
-  UMASK=006
-  GROUP="G-81535"
-}
 init_lonestar()
 { #<- can replace the following with a custom script
+  THIS="platforms.sh>env_dispatch()>init_lonestar()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=lonestar.tacc.utexas.edu
   QUEUESYS=SLURM
   QUEUENAME=normal # same as SLURM partition
@@ -695,6 +452,8 @@ init_lonestar()
 }
 init_desktop()
 {
+  THIS="platforms.sh>env_dispatch()>init_desktop()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=jason-desktop.seahorsecoastal.com
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
@@ -715,6 +474,8 @@ init_desktop()
 
 init_desktop-serial()
 {
+  THIS="platforms.sh>env_dispatch()>init_desktop-serial()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=jason-desktop-serial
   QUEUESYS=serial
   QCHECKCMD="ps -aux | grep adcirc "
@@ -746,17 +507,11 @@ init_Poseidon()
   SWANMACROSINC=macros.inc.gfortran
 }
 
-init_topsail()
-{ #<- can replace the following with a custom script
-  HPCENV=topsail.unc.edu
-  QUEUESYS=LSF
-  INTERSTRING="bsub -q int -Ip"
-  SCRATCHDIR=/ifs1/scr/$USER
-  SSHKEY=id_rsa_topsail
-}
 # THREDDS Data Server (TDS, i.e., OPeNDAP server) at RENCI
 init_renci_tds()
 {
+   THIS="platforms.sh>env_dispatch()>init_renci_tds()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
 # http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
 # http://tds.renci.org:8080/thredds/dodsC/     DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
 # http://tds.renci.org:8080/thredds/catalog/                   tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/catalog.html
@@ -777,6 +532,8 @@ init_renci_tds()
 # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU
 init_lsu_tds()
 {
+   THIS="platforms.sh>env_dispatch()>init_lsu_tds()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
    OPENDAPHOST=fortytwo.cct.lsu.edu
    DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer"
    CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog"
@@ -797,6 +554,8 @@ init_lsu_tds()
 # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU Center for Coastal Resiliency
 init_lsu_ccr_tds()
 {
+   THIS="platforms.sh>env_dispatch()>init_lsu_ccr_tds()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
    OPENDAPHOST=chenier.cct.lsu.edu
    DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer/asgs/ASGS-2019"
    CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog/asgs/ASGS-2019"
@@ -809,6 +568,8 @@ init_lsu_ccr_tds()
 # Advanced Computing Center (TACC)
 init_tacc_tds()
 {
+   THIS="platforms.sh>env_dispatch()>init_tacc_tds()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
    OPENDAPHOST=adcircvis.tacc.utexas.edu
    DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer/asgs"
    CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog/asgs"
@@ -826,6 +587,8 @@ init_tacc_tds()
 }
 init_penguin()
 { #<- can replace the following with a custom script
+  THIS="platforms.sh>env_dispatch()>init_penguin()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=pod.penguincomputing.com
   #HOSTNAME=login-29-45.pod.penguincomputing.com
   QUEUESYS=PBS
@@ -845,6 +608,8 @@ init_test()
 # executed to pick up default settings for compute jobs on each platform
 # (if any) and also to handle related idiosyncracies
 job_defaults() {
+   THIS="platforms.sh>env_dispatch()>job_defaults()"  
+  scenarioMessage "$THIS: Setting platforms-specific parameters for ${HPCENVSHORT}."
    case $HPCENVSHORT in 
    "queenbee")
       # in general should be 20; actually for serial jobs submitted to
@@ -885,15 +650,20 @@ job_defaults() {
 writeTDSProperties()
 {
    THIS=platforms.sh/writeTDSProperties
+  scenarioMessage "$THIS: Setting platforms-specific parameters for ${SERVER}."
+   SERVER=$1
    CATALOGPREFIX=""    # after thredds/catalog
    DOWNLOADPREFIX=""   # after thredds/fileServer
+   OPENDAPUSER=$USER
+   OPENDAPMAILSERVER=mailx  # this is the local default mail server executable on the HPC
    case $SERVER in
    "renci_tds")
       # THREDDS Data Server (TDS, i.e., OPeNDAP server) at RENCI
       # http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
       # http://tds.renci.org:8080/thredds/dodsC/     DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
       # http://tds.renci.org:8080/thredds/catalog/                   tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/catalog.html
-      OPEDNAPHOST=ht4.renci.org
+      OPENDAPHOST=ht4.renci.org
+      THREDDSHOST=tds.renci.org
       OPENDAPPORT=":8080"
       OPENDAPBASEDIR=/projects/ncfs/opendap/data
       SSHPORT=22
@@ -910,6 +680,7 @@ writeTDSProperties()
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU
    "lsu_tds") 
       OPENDAPHOST=fortytwo.cct.lsu.edu
+      THREDDSHOST=$OPENDAPHOST
       OPENDAPPORT=":8080"
       OPENDAPBASEDIR=/data/opendap
       SSHPORT=2525
@@ -929,6 +700,7 @@ writeTDSProperties()
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU Center for Coastal Resiliency
    "lsu_ccr_tds")
       OPENDAPHOST=chenier.cct.lsu.edu
+      THREDDSHOST=$OPENDAPHOST
       OPENDDAPPORT=":8080"
       CATALOGPREFIX=/asgs/ASGS-2019
       DOWNLOADPREFIX=/asgs/ASGS-2019
@@ -951,6 +723,7 @@ writeTDSProperties()
    # Advanced Computing Center (TACC)
    "tacc_tds")
       OPENDAPHOST=adcircvis.tacc.utexas.edu
+      THREDDSHOST=$OPENDAPHOST
       DOWNLOADPREFIX=/asgs
       CATALOGPREFIX=/asgs
       OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
@@ -969,21 +742,27 @@ writeTDSProperties()
    esac
    # now write properties
    echo "post.opendap.${SERVER}.opendaphost : $OPENDAPHOST" >> run.properties
-   echo "post.opendap.${SERVER}.downloadprefix : http://$OPENDAPHOST$OPENDAPPORT/thredds/fileServer$DOWNLOADPREFIX" >> run.properties
-   echo "post.opendap.${SERVER}.catalogprefix : http://$OPENDAPHOST$OPENDAPPORT/thredds/catalog$CATALOGPREFIX" >> run.properties
+   echo "post.opendap.${SERVER}.threddshost : $THREDDSHOST" >> run.properties
+   echo "post.opendap.${SERVER}.downloadprefix : http://$THREDDSHOST$OPENDAPPORT/thredds/fileServer$DOWNLOADPREFIX" >> run.properties
+   echo "post.opendap.${SERVER}.catalogprefix : http://$THREDDSHOST$OPENDAPPORT/thredds/catalog$CATALOGPREFIX" >> run.properties
    echo "post.opendap.${SERVER}.opendapbasedir : $OPENDAPBASEDIR" >> run.properties
    echo "post.opendap.${SERVER}.sshport : $SSHPORT" >> run.properties
    echo "post.opendap.${SERVER}.opendapuser : $OPENDAPUSER" >> run.properties
+   # if the Operator has an asgs-global.conf file, assume that a perl mail client capability is 
+   # set up and ready to use
+   if [[ -e $HOME/asgs-global.conf ]]; then
+      OPENDAPMAILSERVER=aws
+   fi
+   echo "notification.opendap.email.opendapmailserver : $OPENDAPMAILSERVER" >> run.properties
 }
 #
 # used to dispatch environmentally sensitive actions
 env_dispatch() {
  HPCENVSHORT=$1
  THIS=platforms.sh/env_dispatch
+ scenarioMessage "$THIS: Initializing settings for ${HPCENVSHORT}."
+ echo "$THIS: Initializing settings for ${HPCENVSHORT}."
  case $HPCENVSHORT in
-  "camellia") allMessage "$THIS: Camellia(WorldWinds) configuration found."
-          init_camellia
-          ;;
   "lsu_tds") allMessage "$THIS: LSU THREDDS Data Server configuration found."
           init_lsu_tds
           ;;
@@ -996,44 +775,11 @@ env_dispatch() {
   "tacc_tds") allMessage "$THIS: TACC THREDDS Data Server configuration found."
           init_tacc_tds
           ;;
-  "kittyhawk") allMessage "$THIS: Kittyhawk (RENCI) configuration found."
-          init_kittyhawk
-          ;;
-  "blueridge") allMessage "$THIS: Blueridge (RENCI) configuration found."
-          init_blueridge
-          ;;
-  "croatan") allMessage "$THIS: Croatan (RENCI) configuration found."
-          init_croatan
-          ;;
   "pod") allMessage "$THIS: POD (Penguin) configuration found."
           init_pod
           ;;
   "hatteras") allMessage "$THIS: Hatteras (RENCI) configuration found."
           init_hatteras
-          ;;
-  "hatteras14") allMessage "$THIS: Hatteras (RENCI) configuration found."
-          init_hatteras14
-          ;;
-  "sapphire") allMessage "$THIS: Sapphire (ERDC) configuration found."
-          init_sapphire
-          ;;
-  "jade") allMessage "$THIS: Jade (ERDC) configuration found."
-          init_jade
-          ;;
-  "diamond") allMessage "$THIS: Diamond (ERDC) configuration found."
-          init_diamond
-          ;;
-  "garnet") allMessage "$THIS: Garnet (ERDC) configuration found."
-          init_garnet
-          ;;
-  "spirit") allMessage "$THIS: Spirit (AFRL) configuration found."
-          init_spirit
-          ;;
-  "topaz") allMessage "$THIS: Topaz (ERDC) configuration found."
-          init_topaz
-          ;;
-  "thunder") allMessage "$THIS: Thunder (AFRL) configuration found."
-          init_thunder
           ;;
   "supermike") allMessage "$THIS: Supermike (LSU) configuration found."
           init_supermike
@@ -1044,29 +790,11 @@ env_dispatch() {
   "supermic") allMessage "$THIS: SuperMIC (LSU HPC) configuration found."
           init_supermic
           ;;
-  "tezpur") allMessage "$THIS: Tezpur (LSU) configuration found."
-          init_tezpur
-          ;;
-  "mike") allMessage "$THIS: SuperMike-II (LSU) configuration found."
-          init_mike
-          ;;
-  "topsail") allMessage "$THIS: Topsail (UNC) configuration found."
-          init_topsail
-          ;;
-  "ranger") allMessage "$THIS: Ranger (TACC) configuration found."
-          init_ranger
-          ;;
   "lonestar") allMessage "$THIS: Lonestar (TACC) configuration found."
           init_lonestar
           ;;
-  "stampede") allMessage "$THIS: Stampede (TACC) configuration found."
-          init_stampede
-          ;;
   "stampede2") allMessage "$THIS: Stampede2 (TACC) configuration found."
           init_stampede2
-          ;;
-  "arete") allMessage "$THIS: Arete (CCT) configuration found."
-          init_arete
           ;;
   "desktop") allMessage "$THIS: desktop configuration found."
           init_desktop
@@ -1086,7 +814,7 @@ env_dispatch() {
   "test") allMessage "$THIS: test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "$THIS: '$HPCENVSHORT' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, supermic, topsail, desktop, desktop-serial, arete, spirit, topaz, thunder, lsu_tds, lsu_ccr_tds, renci_tds, tacc_tds"
+  *) fatal "$THIS: '$HPCENVSHORT' is not a supported environment; currently supported options: stampede2, lonestar, supermike, queenbee, supermic, hatteras, desktop, desktop-serial, su_tds, lsu_ccr_tds, renci_tds, tacc_tds"
      ;;
   esac
 }

@@ -1401,7 +1401,7 @@ handleFailedJob()
 variables_init()
 {
 # Initialize variables accessed from config.sh to reasonable values
-   INSTANCENAME=1
+   INSTANCENAME=nullInstanceName
    BACKGROUNDMET=on
    TIDEFAC=off
    TROPICALCYCLONE=off
@@ -1439,16 +1439,12 @@ variables_init()
    SWANDT=600
    UMASK=002
    GROUP=""
-   DRY=1
-   DEMO=
    STORM=0
    YEAR=null
    CSDATE=null
    HOTORCOLD=coldstart
    LASTSUBDIR=null
    FTPSITE=null
-   FTPFCSTDIR=null
-   FTPHCSTDIR=null
    ADCIRCDIR=null
    SCRATCHDIR=null
    MAILINGLIST=null
@@ -1462,16 +1458,9 @@ variables_init()
    NUMWRITERS=0
    ACCOUNT=desktop
    SUBMITSTRING=null
-   INTERSTRING=null
-   RESULTSHOST=null
-   RESULTSPATH=null
-   RESULTSUSERNAME=null
-   RESULTSPROMPT=null
-   RESULTSPASSWORD=null
    NOTIFYUSER=null
    RUNDIR=null
    INPUTDIR=null
-   #PERL5LIB=  leave in place from perlbrew ..
    HOTSTARTFORMAT=null
    STORMDIR=stormdir
    SSHKEY=null
@@ -1485,8 +1474,6 @@ variables_init()
    ENSTORM=hindcast
    CYCLETIMELIMIT="05:00:00"
    IMAGEMAGICKBINPATH=null
-   SERQSCRIPT=null
-   SERQSCRIPTGEN=null
    VORTEXMODEL=GAHM
    STORMTRACKOPTIONS="--strengthPercent null"
    PSEUDOSTORM=n
@@ -1508,6 +1495,7 @@ variables_init()
    PERIODICFLUX=null
    SPATIALEXTRAPOLATIONRAMP=yes
    SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
+   declare -a POSTPROCESS=( null_post.sh ) 
    declare -a JOBENV=( null )  # array of shell scripts to 'source' for compute job
    JOBENVDIR=null
    declare -a subshellPIDs  # list of process IDs of subshells
@@ -1596,12 +1584,15 @@ writeProperties()
    echo "monitoring.rmqmessaging.locationname : $RMQMessaging_LocationName" >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.clustername : $RMQMessaging_ClusterName" >> $STORMDIR/run.properties  
    echo "monitoring.logging.file.syslog : $SYSLOG" >> $STORMDIR/run.properties  
-   echo "monitoring.logging.file.cyclelog : $CYCLELOG" >> $STORMDIR/run.properties  
-   echo "monitoring.logging.file.scenariolog : $SCENARIOLOG" >> $STORMDIR/run.properties  
    # post processing
    echo "post.intendedaudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
    echo "post.executable.initpost : $INITPOST" >> $STORMDIR/run.properties
-   echo "post.executable.postprocess : $POSTPROCESS" >> $STORMDIR/run.properties
+   POSTPROCESSSTRING="("
+   for script in ${POSTPROCESS[*]}; do
+      POSTPROCESSSTRING="$POSTPROCESSSTRING $script"
+   done
+   POSTPROCESSSTRING="$POSTPROCESSSTRING )"
+   echo "post.executable.postprocess : $POSTPROCESSSTRING" >> $STORMDIR/run.properties
    echo "post.opendap.target : $TARGET" >> $STORMDIR/run.properties
    THREDDS="("
    for thredds_data_server in ${TDS[*]}; do
@@ -1648,6 +1639,8 @@ writeScenarioProperties()
    STORMDIR=$1
    echo "path.cycledir : $ADVISDIR" >> $STORMDIR/run.properties
    echo "path.scenariodir : $STORMDIR" >> $STORMDIR/run.properties
+   echo "monitoring.logging.file.cyclelog : $CYCLELOG" >> $STORMDIR/run.properties  
+   echo "monitoring.logging.file.scenariolog : $SCENARIOLOG" >> $STORMDIR/run.properties  
    # FIXME: the following are legacy properties from 2014stable 
    # and should not be carried forward  
    echo "asgs.path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
@@ -2101,7 +2094,11 @@ else
 fi
 #
 checkFileExistence $OUTPUTDIR "postprocessing initialization script" $INITPOST
-checkFileExistence $OUTPUTDIR "postprocessing script" $POSTPROCESS
+scriptIndex=0
+while [[ $scriptIndex -lt ${#POSTPROCESS[@]} ]]; do
+   checkFileExistence $OUTPUTDIR "postprocessing script" ${POSTPROCESS[$scriptIndex]}
+   scriptIndex=`expr $scriptIndex + 1`
+done
 checkFileExistence $OUTPUTDIR "email notification script" $NOTIFY_SCRIPT
 checkFileExistence ${SCRIPTDIR}/archive "data archival script" $ARCHIVE
 #
@@ -2552,7 +2549,6 @@ while [ true ]; do
          done
 
          # create links to the OWI files
-         cd $ENSTORM 2>> ${SYSLOG}
          NAM221=`ls NAM*.221`
          NAM222=`ls NAM*.222`
          ln -s $NAM221 fort.221 2>> ${SYSLOG}
@@ -3171,10 +3167,14 @@ while [ true ]; do
                   logMessage "$ENSTORM: $THIS: The $ENSTORM job ended successfully. Starting postprocessing."
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
                   echo "time.post.start : $DATETIME" >> ${STORMDIR}/run.properties
-                  #com="${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
-                  com="${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY "
-                  RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WAIT" "${POSTPROCESS} $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR"
-                  $com
+                  scriptIndex=0
+                  while [[ $scriptIndex -lt ${#POSTPROCESS[@]} ]]; do 
+                     #com="${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
+                     com="${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY "
+                     RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WAIT" "${POSTPROCESS} $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR"
+                     $com
+                     scriptIndex=`expr $scriptIndex + 1`
+                  done
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
                   echo "time.post.finish : $DATETIME" >> ${STORMDIR}/run.properties
                   # notify analysts that new results are available

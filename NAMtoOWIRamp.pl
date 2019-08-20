@@ -458,7 +458,7 @@ sub getNetCDF {
 ################################################################################
 sub rotateAndFormat {
     for my $t ( 0 .. $nRec{'time'} - 1 ) {
-        &stderrMessage( "DEBUG", "TS=$t" );
+        &appMessage( "DEBUG", "TS=$t" );
 
         my $ugrd_file = $ugrd_store_files[$t];
         my $vgrd_file = $vgrd_store_files[$t];
@@ -497,7 +497,7 @@ sub rotateAndFormat {
                 die "\nrotatedNAM.txt DNE. on TS=$t\n";
             }
             else {
-                &stderrMessage( "DEBUG", "$res" );
+                &appMessage( "DEBUG", "$res" );
             }
 
             #                   &stderrMessage("DEBUG","Applying spatial ramp.");
@@ -607,7 +607,7 @@ sub getGrib2 {
 
     foreach my $file (@grib2Files) {
         $numGrib2Files++;
-        &stderrMessage( "DEBUG", "Starting work on '$file'." );
+        &appMessage( "DEBUG", "Starting work on '$file'." );
         my $cycleHour = "00";
         if ( $namFormat eq "grib2" ) {
 
@@ -682,7 +682,7 @@ sub getGrib2 {
             ( $ey, $em, $ed, $eh, $emin, $es ) = Date::Pcalc::Add_Delta_DHMS( $sy, $sm, $sd, $sh, 0, 0, 0, $cycleHour, 0, 0 );
             $endTime = sprintf( "%4d%02d%02d%02d", $ey, $em, $ed, $eh );
         }
-        &stderrMessage( "DEBUG", "The end time is '$endTime'." );
+        &appMessage( "DEBUG", "The end time is '$endTime'." );
         push( @OWItime, $endTime . "00" );    # add the minutes columns
                                               #
                                               # now grab the u,v,p data from the file
