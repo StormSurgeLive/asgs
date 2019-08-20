@@ -23,3 +23,5 @@ run.me*
 grib2
 *.swo
 *.o
+output/cpra_postproc/FigureGen
+wgrib2.tgz.v1.9.7a
