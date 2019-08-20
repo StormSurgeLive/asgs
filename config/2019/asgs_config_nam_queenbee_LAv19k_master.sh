@@ -164,7 +164,7 @@ RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=cpra_post.sh
+POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 
 # opendap
 TDS=(lsu_tds renci_tds)

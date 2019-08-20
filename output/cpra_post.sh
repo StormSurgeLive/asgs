@@ -34,32 +34,29 @@ fi
 # full path to the run.properties file
 echo "Loading properties."
 # get loadProperties function
-SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
 source $SCRIPTDIR/properties.sh
-source ${SCRIPTDIR}/monitoring/logging.sh
-source ${SCRIPTDIR}/platforms.sh
-# dispatch environment (using the functions in platforms.sh)
-env_dispatch ${TARGET}
-THIS=output/cpra_post.sh
 # load run.properties file into associative array
 loadProperties $RUNPROPERTIES
 echo "Finished loading properties."
 # now set variables that would otherwise be set by command line arguments
 CONFIG=${properties['config.file']}
-CYCLEDIR=${properties['asgs.path.advisdir']}
+CYCLEDIR=${properties['path.advisdir']}
 CYCLE=${properties['advisory']}
 HPCENV=${properties['hpc.hpcenv']}
 SCENARIO=${properties['scenario']}
-CSDATE=${properties['config.adcirc.time.coldstartdate']}
+CSDATE=${properties['adcirc.time.coldstartdate']}
 HSTIME=${properties['InitialHotStartTime']}
 GRIDFILE=${properties['adcirc.file.input.gridfile']}
-OUTPUTDIR=${properties['config.path.outputdir']}
+OUTPUTDIR=${properties['path.outputdir']}
 SYSLOG=${properties['monitoring.logging.file.syslog']}
 SSHKEY=${properties['post.file.sshkey']}
-TROPICALCYCLONE=${properties['config.forcing.tropicalcyclone']}
+HPCENVSHORT=${properties['hpc.hpcenvshort']}
+HPCENV=${properties['hpc.hpcenv']}
+TROPICALCYCLONE=${properties['forcing.tropicalcyclone']}
 if [[ $TROPICALCYCLONE != "off" ]]; then
-   STORM=${properties['config.forcing.tropicalcyclone.stormnumber']}
-   YEAR=${properties['config.forcing.tropicalcyclone.year']}
+   STORM=${properties['forcing.tropicalcyclone.stormnumber']}
+   YEAR=${properties['forcing.tropicalcyclone.year']}
 else
    STORM="null"
    YEAR=${CYCLE:0:4}
@@ -67,7 +64,12 @@ fi
 #
 SCENARIODIR=${CYCLEDIR}/${SCENARIO}       # shorthand
 CYCLELOG=${properties['monitoring.logging.file.cyclelog']}
-SCENARIOLOG==${properties['monitoring.logging.file.scenariolog']}
+SCENARIOLOG=${properties['monitoring.logging.file.scenariolog']}
+source ${SCRIPTDIR}/monitoring/logging.sh
+source ${SCRIPTDIR}/platforms.sh
+# dispatch environment (using the functions in platforms.sh)
+env_dispatch ${HPCENVSHORT}
+THIS=output/cpra_post.sh
 allMessage "$SCENARIO: $THIS: Starting post processing."
 scenarioMessage "$THIS: SCENARIO=$SCENARIO ; SCENARIODIR=$SCENARIODIR"
 cd ${SCENARIODIR} 2>&1 > errmsg || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not change directory to $SCENARIODIR: `cat $errmsg`"
@@ -100,15 +102,15 @@ previousAdvisory=$(printf "%02d" `expr $CYCLE - 1`)
 #-----------------------------------------------------------------------
 #     C R E A T E   M A X   C S V  
 #------------------------------------------------------------------------
-${OUTPUTDIR}/make_max_csv.sh $CONFIG $CYCLEDIR $STORM $YEAR $CYCLE $HOSTNAME $SCENARIO $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG >> ${SCENARIOLOG} 2>&1
-csvFileName=`grep "Maximum Values Point CSV File Name" ${SCENARIODIR}/run.properties | sed 's/Maximum Values Point CSV File Name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+#${OUTPUTDIR}/make_max_csv.sh $CONFIG $CYCLEDIR $STORM $YEAR $CYCLE $HPCENV $SCENARIO $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG >> ${SCENARIOLOG} 2>&1
+#csvFileName=`grep "Maximum Values Point CSV File Name" ${SCENARIODIR}/run.properties | sed 's/Maximum Values Point CSV File Name.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 #
 #-----------------------------------------------------------------------
 #     C R E A T E   C P R A   S L I D E   D E C K 
 #------------------------------------------------------------------------
 # ATTN: Operator must compile FigureGen with netCDF4 support in cpra_postproc.
 # This also requires installation and configuration of GMT, gdal, etc
-${OUTPUTDIR}/cpra_slide_deck_post.sh
+#${OUTPUTDIR}/cpra_slide_deck_post.sh
 #
 #-----------------------------------------------------------------------
 #          I N C L U S I O N   O F   10 M   W I N D S
@@ -193,12 +195,13 @@ echo "post.opendap.files : $FILESSTRING" >> run.properties
 #-----------------------------------------------------------------------
 #         O P E N  D A P    P U B L I C A T I O N 
 #-----------------------------------------------------------------------
+#${OUTPUTDIR}/opendap_post.sh >> ${SYSLOG} 2>&1
 #
-OPENDAPDIR=""
+#OPENDAPDIR=""
 #
 # For each opendap server in the list in ASGS config file.
-primaryCount=0
-for server in ${TDS[*]}; do
+#primaryCount=0
+#for server in ${TDS[*]}; do
    allMessage "cycle $CYCLE: $SCENARIO: $THIS: Posting to $server opendap using the following command: ${OUTPUTDIR}/opendap_post.sh $CONFIG $CYCLEDIR $CYCLE $HPCENV $SCENARIO $HSTIME $SYSLOG $server \"${FILES[*]}\" $OPENDAPNOTIFY"
    ${OUTPUTDIR}/opendap_post.sh $CONFIG $CYCLEDIR $CYCLE $HPCENV $SCENARIO $HSTIME $SYSLOG $server "${FILES[*]}" $OPENDAPNOTIFY >> ${SYSLOG} 2>&1
-done
+#done

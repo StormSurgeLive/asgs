@@ -221,9 +221,9 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
 logMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] INFO: $1"
-  for file in $SYSLOG $2 ; do
-    if [[ -e $file ]]; then
-      echo ${MSG} >> $file
+  for syslogfile in $SYSLOG $2 ; do
+    if [[ -e $syslogfile ]]; then
+      echo ${MSG} >> $syslogfile
     fi
   done
 }
@@ -232,9 +232,9 @@ logMessage()
 cycleMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] INFO: $1"
-  for file in $CYCLELOG $2 ; do
-    if [[ -e $file ]]; then
-      echo ${MSG} >> $file
+  for cyclelogfile in $CYCLELOG $2 ; do
+    if [[ -e $cyclelogfile ]]; then
+      echo ${MSG} >> $cyclelogfile
     fi
   done
 }
@@ -246,9 +246,9 @@ scenarioMessage()
   EXTRALOGFILE=$2
   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] INFO: $LOGMESSAGE"
-  for file in $SCENARIOLOG $EXTRALOGFILE ; do
-     if [[ -e $file ]]; then
-        echo "${MSG}" >> $file
+  for scenariologfile in $SCENARIOLOG $EXTRALOGFILE ; do
+     if [[ -e $scenariologfile ]]; then
+        echo "${MSG}" >> $scenariologfile
      fi
   done
 }
@@ -293,9 +293,9 @@ allMessage()
 warn()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] WARNING: $1"
-  for file in $SYSLOG $CYCLELOG $SCENARIOLOG $2 ; do
-    if [[ -e $file ]]; then
-      echo ${MSG} >> $file
+  for warnlogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2 ; do
+    if [[ -e $warnlogfile ]]; then
+      echo ${MSG} >> $warnlogfile
     fi
   done
   #echo ${MSG}  # send to console
@@ -307,9 +307,9 @@ error()
   MSG="[${DATETIME}] ERROR: $1"
   echo ${MSG}  # send to console
   # added ability for Operator to supply a "local" log file (e.g., postprocess.log)
-  for file in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
-    if [[ -e $file ]]; then
-      echo ${MSG} >> $file
+  for errorlogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
+    if [[ -e $errorlogfile ]]; then
+      echo ${MSG} >> $errorlogfile
     fi
   done
   # email the operator
@@ -322,9 +322,9 @@ error()
 fatal()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] FATAL ERROR: $1"
-  for file in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
-    if [[ -e $file ]]; then
-      echo ${MSG} >> $file
+  for fatallogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
+    if [[ -e $fatallogfile ]]; then
+      echo ${MSG} >> $fatallogfile
     fi
   done
   if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
@@ -338,9 +338,9 @@ fatal()
 debugMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] DEBUG: $1"
-  for file in $SCENARIOLOG $2; do
-     if [[ -e $file ]]; then
-        echo ${MSG} >> $file
+  for debuglogfile in $SCENARIOLOG $2; do
+     if [[ -e $debuglogfile ]]; then
+        echo ${MSG} >> $debuglogfile
      fi
   done
 }
