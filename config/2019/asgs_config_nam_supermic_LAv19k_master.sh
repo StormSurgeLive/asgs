@@ -31,7 +31,7 @@ INSTANCENAME=dailyLAv19kmaster # "name" of this ASGS process
 COLDSTARTDATE=auto       # YYYYMMDDHH24 or "auto" to extract from hotstart file
 HOTORCOLD=hotstart       # "hotstart" or "coldstart"
 #LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/tc/nam/2019081006/LA_v19k-WithUpperAtch_chk/queenbee.loni.org/dailyLAv19k/namforecast
-LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2019/nam/2019081106/LA_v19k-WithUpperAtch_chk/queenbee.loni.org/dailyLAv19k/namforecast
+LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2019/nam/2019081906/LA_v19k-WithUpperAtch_chk/queenbee.loni.org/dailyLAv19k/namforecast
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -160,7 +160,8 @@ RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 
 INTENDEDAUDIENCE=general
 INITPOST=null_init_post.sh
-POSTPROCESS=cpra_post.sh
+#POSTPROCESS=cpra_post.sh
+POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS2=null_post.sh
 
 # opendap
