@@ -62,6 +62,8 @@ our %properties;     # holds the run.properties file
 our $this="qscript.pl";
 # initialize to the log file that adcirc uses, just in case
 our $syslog="scenario.log";
+our $cyclelog="../cycle.log";
+our $scenariolog="scenario.log";
 #
 GetOptions("jobtype=s" => \$jobtype );
 #
@@ -107,10 +109,11 @@ $scriptdir = $properties{"path.scriptdir"};
 $queuesys = $properties{"hpc.queuesys"};
 # determine whether this is a parallel job 
 $parallelism = $properties{"hpc.job.$jobtype.parallelism"};
+# get the scenario log file
+$scenariolog = $properties{"monitoring.logging.file.scenariolog"};
 # get number of processors per node
 $ppn = $properties{"hpc.job.$jobtype.ppn"}; 
 # get quality of service if any
-#
 # 
 # construct command line for running adcprep or serial job
 if ( $parallelism eq "serial" ) {
@@ -123,6 +126,13 @@ if ( $parallelism eq "serial" ) {
    } else {
       $cmd = $properties{"hpc.job.$jobtype.cmd"};
    }
+   # FIXME: this is a hack to handle an idiosyncracy in ppn on queenbee and supermic
+   # when a priority queue is used
+   my $serqueue = $properties{"hpc.job.$jobtype.serqueue"};
+   my $hpcenvshort = $properties{"hpc.hpcenvshort"};
+   if ( $serqueue eq "priority" && ( $hpcenvshort eq "queenbee" || $hpcenvshort eq "supermic" ) ) { 
+      $ppn = 20;
+   } 
 } 
 #
 # construct command line for running padcirc, padcswan, or other parallel job

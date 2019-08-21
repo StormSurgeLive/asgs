@@ -786,8 +786,9 @@ prepFile()
    echo "hpc.job.${JOBTYPE}.parallelism : serial" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.serialmodules : $SERIALMODULES" >> $STORMDIR/run.properties
-   job_defaults # pick up defaults and idiosyncracies from platforms.sh
-   echo "hpc.job.${JOBTYPE}.ppn : $PPN" >> $STORMDIR/run.properties
+   # FIXME: there is a hack in qscript.pl to change this to 20 for the priority queue on 
+   # queenbee and supermic per LONI/LSU requirements (idiosyncracy on those platforms)
+   echo "hpc.job.${JOBTYPE}.ppn : 1" >> $STORMDIR/run.properties
    if [[ $QUEUESYS = "SLURM" ]]; then
       echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
@@ -1740,7 +1741,6 @@ writeJobResourceRequestProperties()
    JOBENVSTRING="$JOBENVSTRING )" 
    echo "hpc.job.${JOBTYPE}.jobenv : $JOBENVSTRING" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.path.jobenvdir : $JOBENVDIR" >> $STORMDIR/run.properties
-   job_defaults # pick up defaults and idiosyncracies from platforms.sh
    echo "hpc.job.${JOBTYPE}.ppn : $PPN" >> $STORMDIR/run.properties
    # legacy properties
    echo "cpurequest : $CPUREQUEST" >> ${STORMDIR}/run.properties
@@ -3169,9 +3169,9 @@ while [ true ]; do
                   echo "time.post.start : $DATETIME" >> ${STORMDIR}/run.properties
                   scriptIndex=0
                   while [[ $scriptIndex -lt ${#POSTPROCESS[@]} ]]; do 
-                     #com="${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
-                     com="${OUTPUTDIR}/${POSTPROCESS} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY "
-                     RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WAIT" "${POSTPROCESS} $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR"
+                     #com="${OUTPUTDIR}/${POSTPROCESS[$scriptIndex]} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
+                     com="${OUTPUTDIR}/${POSTPROCESS[$scriptIndex]} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY "
+                     RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WAIT" "${POSTPROCESS[$scriptIndex]} $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR"
                      $com
                      scriptIndex=`expr $scriptIndex + 1`
                   done

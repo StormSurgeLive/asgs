@@ -60,6 +60,7 @@ init_queenbee()
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=queenbee.loni.org
   QUEUESYS=PBS
+  PPN=20
   QCHECKCMD=qstat
   QSUMMARYCMD=showq
   QUOTACHECKCMD=showquota
@@ -145,6 +146,7 @@ init_supermic()
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=supermic.hpc.lsu.edu
   QUEUESYS=PBS
+  PPN=20
   QCHECKCMD=qstat
   QSUMMARYCMD=showq
   QUOTACHECKCMD=showquota
@@ -242,6 +244,7 @@ init_hatteras()
   QUEUESYS=SLURM
   QUEUENAME=batch # <---<< PARTITION synonym on slurm
   SERQUEUE=batch
+  PPN=null
   CONSTRAINT=null      # ivybridge or sandybridge
   RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
   PARTITION=null
@@ -331,6 +334,7 @@ init_stampede2()
   QUEUESYS=SLURM
   QUEUENAME=skx-normal # same as SLURM partition
   SERQUEUE=skx-normal
+  PPN=48
   CONSTRAINT=null
   RESERVATION=null
   QOS=null
@@ -608,8 +612,8 @@ init_test()
 # executed to pick up default settings for compute jobs on each platform
 # (if any) and also to handle related idiosyncracies
 job_defaults() {
-   THIS="platforms.sh>env_dispatch()>job_defaults()"  
-  scenarioMessage "$THIS: Setting platforms-specific parameters for ${HPCENVSHORT}."
+   THIS="platforms.sh>job_defaults()"  
+   scenarioMessage "$THIS: Setting platforms-specific parameters for ${HPCENVSHORT}."
    case $HPCENVSHORT in 
    "queenbee")
       # in general should be 20; actually for serial jobs submitted to
@@ -630,14 +634,6 @@ job_defaults() {
       if [[ $PARALLELISM = "serial" ]]; then 
          PPN=1   
       fi
-      ;;
-   "stampede2")
-      PPN=48
-      ;;
-   "hatteras")
-      # hatteras is heterogeneous and does not use this but it could 
-      # conceivably be set on a job-by-job basis
-      PPN=null
       ;;
    *)
       scenarioMessage "$THIS>job_defaults: There are no platform-specific settings for jobtype $JOBTYPE on the $HPCENVSHORT platform."
