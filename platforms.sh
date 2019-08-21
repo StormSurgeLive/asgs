@@ -609,38 +609,6 @@ init_test()
   NCPU=-1
 }
 #
-# executed to pick up default settings for compute jobs on each platform
-# (if any) and also to handle related idiosyncracies
-job_defaults() {
-   THIS="platforms.sh>job_defaults()"  
-   scenarioMessage "$THIS: Setting platforms-specific parameters for ${HPCENVSHORT}."
-   case $HPCENVSHORT in 
-   "queenbee")
-      # in general should be 20; actually for serial jobs submitted to
-      # priority queue on queenbee, should still be 20, strange but true
-      PPN=20
-      # get parallelism property
-      PARALLELISM=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.parallelism\s*:\s*//p" run.properties`
-      if [[ $QUEUENAME != "priority" && $PARALLELISM = "serial" ]]; then 
-         # for serial jobs in non-priority queue, PPN is 1
-         PPN=1   
-      fi
-      ;;
-   "supermic")
-      # in general should be 20; actually for serial jobs submitted to
-      PPN=20
-      # get parallelism property
-      PARALLELISM=`sed -n "s/[ ^]*$//;s/hpc.job.${JOBTYPE}.parallelism\s*:\s*//p" run.properties`
-      if [[ $PARALLELISM = "serial" ]]; then 
-         PPN=1   
-      fi
-      ;;
-   *)
-      scenarioMessage "$THIS>job_defaults: There are no platform-specific settings for jobtype $JOBTYPE on the $HPCENVSHORT platform."
-      ;;
-   esac
-}
-#
 # Writes properties related to the combination of the HPC platform, the Operator, 
 # and the THREDDS data server the results are to be posted to. 
 writeTDSProperties()
