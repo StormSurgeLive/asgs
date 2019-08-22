@@ -24,6 +24,15 @@
 # You should have received a copy of the GNU General Public License along with
 # the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------
+# The defaults for parameters that can be reset in this config file 
+# are preset in the following scripts:
+# {SCRIPTDIR/platforms.sh               # also contains Operator-specific info
+# {SCRIPTDIR/config/config_defaults.sh
+# {SCRIPTDIR/config/mesh_defaults.sh
+# {SCRIPTDIR/config/forcing_defaults.sh
+# {SCRIPTDIR/config/io_defaults.sh
+# {SCRIPTDIR/config/operator_defaults.sh
+#-------------------------------------------------------------------
 
 # Fundamental
 
@@ -74,9 +83,8 @@ case $si in
    ;;
 0)
    ENSTORM=namforecastWind10m
-   # set met-only mode and turn off wind roughness based on "Wind10m" suffix to 
-   # scenario name
-   source $SCRIPTDIR/config/io_defaults.sh 
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+
    ;;
 1)
    ENSTORM=namforecast

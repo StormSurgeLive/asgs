@@ -46,12 +46,20 @@ init_supermike()
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   SCRATCHDIR=/work/$USER
   #SCRATCHDIR=/work/cera
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=$SCRATCHDIR
+  ARCHIVEDIR=$SCRATCHDIR
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=$SCRIPTDIR/input/machines/supermike/supermike.template.pbs
   MATLABEXE=mex
   MCRROOT=/usr/local/packages/license/matlab/r2017a # for matlab mex files
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=16
+  TDS=(lsu_tds renci_tds)
+  if [[ $operator = "jgflemin" ]]; then
+     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
+     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
+  fi
 }
 #
 init_queenbee()
@@ -68,6 +76,7 @@ init_queenbee()
   QUEUENAME=workq
   SERQUEUE=single
   SUBMITSTRING=qsub
+  SCRATCHDIR=/work/$operator
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
   RMQMessaging_LocationName="LONI"
@@ -86,8 +95,9 @@ init_queenbee()
   PARALLELMODULES='module load mvapich2'
   JOBENVDIR=$SCRIPTDIR/config/machines/queenbee
   JOBENV=( )
-  if [[ $USER = "jgflemin" ]]; then
-     SCRATCHDIR=/work/$USER
+  if [[ $operator = "jgflemin" ]]; then
+     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
+     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=loni_cera_2019a
      JOBENV=( gmt.sh gdal.sh imagemagick.sh perlbrew.sh )
      for script in $JOBENV; do
@@ -98,6 +108,10 @@ init_queenbee()
   THIS=platforms.sh
   SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=$SCRATCHDIR
+  ARCHIVEDIR=$SCRATCHDIR
+  TDS=(lsu_tds renci_tds)
   module purge
   $PLATFORMMODULES
   $SERIALMODULES
@@ -125,7 +139,10 @@ init_rostam()
   SUBMITSTRING=sbatch
   #JOBLAUNCHER='srun -N %nnodes%'
   JOBLAUNCHER='salloc -p marvin -N %nnodes% -n %totalcpu%' 
-  SCRATCHDIR=~/asgs
+  SCRATCHDIR=${HOME}/asgs
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=$SCRATCHDIR
+  ARCHIVEDIR=$SCRATCHDIR
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=rostam.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
@@ -133,6 +150,11 @@ init_rostam()
   CONSTRAINT=null
   RESERVATION=null
   REMOVALCMD="rm"
+  TDS=(lsu_tds renci_tds)
+  if [[ $operator = "jgflemin" ]]; then
+     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
+     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
+  fi
   PLATFORMMODULES='module load mpi/mpich-3.0-x86_64'
   $PLATFORMMODULES
   # modules for CPRA post processing
@@ -154,6 +176,7 @@ init_supermic()
   QUEUENAME=workq
   SERQUEUE=single
   SUBMITSTRING=qsub
+  SCRATCHDIR=/work/$operator
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
   RMQMessaging_LocationName="LSU"
@@ -172,8 +195,9 @@ init_supermic()
   PARALLELMODULES='module load mvapich2'
   JOBENVDIR=$SCRIPTDIR/config/machines/supermic
   JOBENV=( )
-  if [[ $USER = "jgflemin" ]]; then
-     SCRATCHDIR=/work/$USER
+  if [[ $operator = "jgflemin" ]]; then
+     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
+     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=hpc_cera_2019
      JOBENV=( gmt.sh gdal.sh imagemagick.sh )
      for script in $JOBENV; do
@@ -183,6 +207,10 @@ init_supermic()
   THIS="platforms.sh>env_dispatch()>init_supermic()"
   SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=$SCRATCHDIR
+  ARCHIVEDIR=$SCRATCHDIR
+  TDS=(lsu_tds renci_tds)
   module purge
   $PLATFORMMODULES
   $SERIALMODULES
@@ -217,21 +245,27 @@ init_pod()
   SERIALMODULES='module load '
   PARALLELMODULES='module load openmpi/2.1.2/gcc.6.2.0'
   JOBENV=( )
-  if [[ $USER = "jgflemin" ]]; then
+  if [[ $operator = "jgflemin" ]]; then
+     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
+     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      JOBENV=( netcdf.sh )
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
   fi
-  THIS=platforms.sh
+  THIS="platforms.sh>env_dispatch()>init_pod()"
   SSHKEY=~/.ssh/id_rsa.pub
   RESERVATION=null
   PPN=28
-   if [[ $USER = bblanton ]]; then
-     SCRATCHDIR=/home/bblanton/asgs_scratch
+   if [[ $operator = bblanton ]]; then
+      SCRATCHDIR=/home/bblanton/asgs_scratch
       RMQMessaging_NcoHome="/home/bblanton/"
       RMQMessaging_Python="/home/bblanton/asgs/asgspy/bin/python"
    fi
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=$SCRATCHDIR
+  ARCHIVEDIR=$SCRATCHDIR
+  TDS=(renci_tds)
   module purge
   $PLATFORMMODULES
   $SERIALMODULES
@@ -274,7 +308,7 @@ init_hatteras()
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/hatteras
   JOBENV=( gdal.sh gmt.sh fftw.sh netcdf.sh )
-  case $USER in 
+  case $operator in 
   bblanton) 
      ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
      SCRATCHDIR=/scratch/bblanton/data
@@ -289,6 +323,8 @@ init_hatteras()
      PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.2.1.1-acis netcdf-Fortran/4.2-acis mvapich2/2.0-acis'
      ;;
   ncfs)
+     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
+     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=ncfs
      QUEUENAME=ncfs     # SLURM partition---ncfs or batch---gives priority
      PYTHONVENV=~/asgs/asgspy/venv
@@ -298,11 +334,10 @@ init_hatteras()
      echo "User name $USER on hatteras not recognized and ACCOUNT could not be set."
      ;;
   esac
-  PPN=16
-  if [[ $RESERVATION = ncfs ]]; then
-     PPN=20
-  fi
-
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=$SCRATCHDIR
+  ARCHIVEDIR=$SCRATCHDIR
+  TDS=(renci_tds lsu_tds)
   # to create python environment for the ncfs user, @jasonfleming did this:
   #   pip install --user --upgrade pip
   #   pip install --user --upgrade setuptools
@@ -367,7 +402,9 @@ init_stampede2()
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/stampede2
   JOBENV=( )
-  if [[ $USER = jgflemin ]]; then
+  if [[ $operator = jgflemin ]]; then
+     ADCIRCDIR=${WORK}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
+     SWANDIR=${WORK}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=DesignSafe-CERA
      # don't use built in netcdf module
      JOBENV=( netcdf.sh gmt.sh gdal.sh )
@@ -375,7 +412,11 @@ init_stampede2()
         source $JOBENVDIR/$script
      done
   fi
-  THIS=platforms.sh
+  THIS="platforms.sh>env_dispatch()>init_stampede2()"
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=$SCRATCHDIR
+  ARCHIVEDIR=$SCRATCHDIR
+  TDS=(tacc_tds lsu_tds renci_tds)
   $PLATFORMMODULES
   $SERIALMODULES
   #
@@ -430,7 +471,9 @@ init_lonestar()
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/lonestar5
   JOBENV=( )
-  if [[ $USER = jgflemin ]]; then
+  if [[ $operator = jgflemin ]]; then
+     ADCIRCDIR=${WORK}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
+     SWANDIR=${WORK}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=ADCIRC
      # don't use built in netcdf module
      JOBENV=( netcdf.sh gmt.sh gdal.sh openssl.sh )
@@ -438,7 +481,11 @@ init_lonestar()
         source $JOBENVDIR/$script
      done
   fi
-  THIS=platforms.sh
+  THIS="platforms.sh>env_dispatch()>init_lonestar()"
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=$SCRATCHDIR
+  ARCHIVEDIR=$SCRATCHDIR
+  TDS=(tacc_tds lsu_tds renci_tds)
   $PLATFORMMODULES
   $SERIALMODULES
   #
@@ -466,7 +513,9 @@ init_desktop()
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
   SWANMACROSINC=macros.inc.gfortran
-  if [[ $USER = "jason" ]]; then
+  if [[ $operator = "jason" ]]; then
+     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
+     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      RMQMessaging_Enable="on"   # "on"|"off"
      RMQMessaging_Transmit="on" #  enables message transmission ("on" | "off")
      RMQMessaging_NcoHome=$HOME
@@ -474,6 +523,10 @@ init_desktop()
      RMQMessaging_LocationName="Seahorse"
      RMQMessaging_ClusterName="jason-desktop"
   fi
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=$SCRATCHDIR
+  ARCHIVEDIR=$SCRATCHDIR
+  TDS=(renci_tds)
 }
 
 init_desktop-serial()
@@ -488,7 +541,9 @@ init_desktop-serial()
   SSHKEY=id_rsa_jason-desktop-serial
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop-serial'
   SWANMACROSINC=macros.inc.gfortran
-  if [[ $USER = "jason" ]]; then
+  if [[ $operator = "jason" ]]; then
+     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
+     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      RMQMessaging_Enable="on"   # "on"|"off"
      RMQMessaging_Transmit="on" #  enables message transmission ("on" | "off")
      RMQMessaging_Script="/set/RMQMessaging_Script/in/asgs/config"
@@ -497,6 +552,10 @@ init_desktop-serial()
      RMQMessaging_LocationName="Seahorse"
      RMQMessaging_ClusterName="jason-desktop-serial"
   fi
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=$SCRATCHDIR
+  ARCHIVEDIR=$SCRATCHDIR
+  TDS=(renci_tds)
 }
 
 init_Poseidon()
@@ -509,85 +568,9 @@ init_Poseidon()
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
   SWANMACROSINC=macros.inc.gfortran
-}
-
-# THREDDS Data Server (TDS, i.e., OPeNDAP server) at RENCI
-init_renci_tds()
-{
-   THIS="platforms.sh>env_dispatch()>init_renci_tds()"
-  scenarioMessage "$THIS: Setting platforms-specific parameters."
-# http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
-# http://tds.renci.org:8080/thredds/dodsC/     DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
-# http://tds.renci.org:8080/thredds/catalog/                   tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/catalog.html
-   OPENDAPHOST=ht4.renci.org
-   DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer"
-   CATALOGPREFIX="http://tds.renci.org:8080/thredds/catalog"
-   OPENDAPBASEDIR="/projects/ncfs/opendap/data"
-   #DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/"
-   #CATALOGPREFIX="http://tds.renci.org:8080/thredds/DataLayers/asgs/"
-   #OPENDAPBASEDIR=/projects/ees/DataLayers/asgs/
-   SSHPORT=22
-   LINKABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
-   COPYABLEHOSTS=(hatteras hatteras.renci.org) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
-   if [[ $USER = jgflemin || $USER = ncfs ]]; then
-      OPENDAPUSER=ncfs
-   fi
-}
-# THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU
-init_lsu_tds()
-{
-   THIS="platforms.sh>env_dispatch()>init_lsu_tds()"
-  scenarioMessage "$THIS: Setting platforms-specific parameters."
-   OPENDAPHOST=fortytwo.cct.lsu.edu
-   DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer"
-   CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog"
-   OPENDAPBASEDIR=/data/opendap
-   SSHPORT=2525
-   LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links
-   COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
-   if [[ $USER = jgflemin && $HPCENV = queenbee.loni.org ]]; then
-      OPENDAPUSER=$USER
-   fi
-   if [[ $USER = ncfs && $HPCENV = hatteras.renci.org ]]; then
-      OPENDAPUSER=jgflemin
-   fi
-   if [[ $USER = jgflemin && $HPCENV = stampede2.tacc.utexas.edu ]]; then
-      OPENDAPUSER=jgflemin
-   fi
-}
-# THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU Center for Coastal Resiliency
-init_lsu_ccr_tds()
-{
-   THIS="platforms.sh>env_dispatch()>init_lsu_ccr_tds()"
-  scenarioMessage "$THIS: Setting platforms-specific parameters."
-   OPENDAPHOST=chenier.cct.lsu.edu
-   DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer/asgs/ASGS-2019"
-   CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog/asgs/ASGS-2019"
-   OPENDAPBASEDIR=/data/thredds/ASGS/ASGS-2019
-   SSHPORT=2525
-   LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links
-   COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
-}
-# THREDDS Data Server (TDS, i.e., OPeNDAP server) at Texas
-# Advanced Computing Center (TACC)
-init_tacc_tds()
-{
-   THIS="platforms.sh>env_dispatch()>init_tacc_tds()"
-  scenarioMessage "$THIS: Setting platforms-specific parameters."
-   OPENDAPHOST=adcircvis.tacc.utexas.edu
-   DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer/asgs"
-   CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog/asgs"
-   OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
-   SSHPORT=null
-   LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links for thredds service, rather than having to scp the files to an external machine
-   #COPYABLEHOSTS=(lonestar lonestar.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
-   COPYABLEHOSTS=(lonestar lonestar5 lonestar.tacc.utexas.edu lonestar5.tacc.utexas.edu ls5.tacc.utexas.edu stampede stampede.tacc.utexas.edu stampede2 stampede2.tacc.utexas.edu) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
-   if [[ $USER = jgflemin ]]; then
-      OPENDAPUSER=$USER
-   fi
-   if [[ $USER = ncfs ]]; then
-      OPENDAPUSER=jgflemin
-   fi
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=$SCRATCHDIR
+  ARCHIVEDIR=$SCRATCHDIR
 }
 init_penguin()
 { #<- can replace the following with a custom script
@@ -613,12 +596,12 @@ init_test()
 # and the THREDDS data server the results are to be posted to. 
 writeTDSProperties()
 {
-   THIS=platforms.sh/writeTDSProperties
-  scenarioMessage "$THIS: Setting platforms-specific parameters for ${SERVER}."
+   THIS="platforms.sh>writeTDSProperties()"
+   scenarioMessage "$THIS: Setting platforms-specific parameters for ${SERVER}."
    SERVER=$1
    CATALOGPREFIX=""    # after thredds/catalog
    DOWNLOADPREFIX=""   # after thredds/fileServer
-   OPENDAPUSER=$USER
+   OPENDAPUSER=$operator
    OPENDAPMAILSERVER=mailx  # this is the local default mail server executable on the HPC
    case $SERVER in
    "renci_tds")
@@ -633,7 +616,7 @@ writeTDSProperties()
       SSHPORT=22
       echo "post.opendap.${SERVER}.linkablehosts : (null)" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : (hatteras)" >> run.properties
-      if [[ $USER = jgflemin || $USER = ncfs ]]; then
+      if [[ $operator = jgflemin ]]; then
          OPENDAPUSER=ncfs
       fi
       #DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/"
@@ -650,15 +633,6 @@ writeTDSProperties()
       SSHPORT=2525
       echo "post.opendap.${SERVER}.linkablehosts : (null)" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : (null)" >> run.properties
-      if [[ $USER = jgflemin && $HPCENV = queenbee.loni.org ]]; then
-          OPENDAPUSER=$USER
-      fi
-      if [[ $USER = ncfs && $HPCENV = hatteras.renci.org ]]; then
-         OPENDAPUSER=jgflemin
-      fi
-      if [[ $USER = jgflemin && $HPCENV = stampede2.tacc.utexas.edu ]]; then
-         OPENDAPUSER=jgflemin
-      fi
       ;;
 
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU Center for Coastal Resiliency
@@ -672,15 +646,6 @@ writeTDSProperties()
       SSHPORT=2525
       echo "post.opendap.${SERVER}.linkablehosts : (null)" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : (null)" >> run.properties
-      if [[ $USER = jgflemin && $HPCENV = queenbee.loni.org ]]; then
-          OPENDAPUSER=$USER
-      fi
-      if [[ $USER = ncfs && $HPCENV = hatteras.renci.org ]]; then
-         OPENDAPUSER=jgflemin
-      fi
-      if [[ $USER = jgflemin && $HPCENV = stampede2.tacc.utexas.edu ]]; then
-         OPENDAPUSER=jgflemin
-      fi
       ;;
    #
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at Texas
@@ -694,12 +659,6 @@ writeTDSProperties()
       SSHPORT=null
       echo "post.opendap.${SERVER}.linkablehosts : (null)" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : (lonestar stampede2)" >> run.properties
-      if [[ $USER = jgflemin ]]; then
-         OPENDAPUSER=$USER
-      fi
-      if [[ $USER = ncfs ]]; then
-         OPENDAPUSER=jgflemin
-      fi
       ;;
    *)
       echo "$THIS: ERROR: THREDDS Data Server $SERVER was not recognized."
@@ -714,31 +673,56 @@ writeTDSProperties()
    echo "post.opendap.${SERVER}.opendapuser : $OPENDAPUSER" >> run.properties
    # if the Operator has an asgs-global.conf file, assume that a perl mail client capability is 
    # set up and ready to use
+   # FIXME: create something more reliable/repeatable
    if [[ -e $HOME/asgs-global.conf ]]; then
       OPENDAPMAILSERVER=aws
    fi
    echo "notification.opendap.email.opendapmailserver : $OPENDAPMAILSERVER" >> run.properties
 }
 #
+# set the values of HPCENV and HPCENVSHORT
+set_hpc() {
+   THIS="platforms.sh>set_hpc()"
+   echo "$THIS: Setting the values of HPCENV and HPCENVSHORT."
+   fqdn=`hostname --long` 
+   echo "$THIS: The fully qualified domain name is ${fqdn}."
+   HPCENV=null
+   HPCENVSHORT=null
+   if [[ ${fqdn:(-25)} = "stampede2.tacc.utexas.edu" ]]; then
+      HPCENV=${fqdn:(-25)}
+      HPCENVSHORT=stampede2
+      return
+   fi
+   if [[ ${fqdn:(-19)} = "ls5.tacc.utexas.edu" ]]; then
+      HPCENV=lonestar.tacc.utexas.edu
+      HPCENVSHORT=lonestar
+      return
+   fi
+   if [[ ${fqdn:0:2} = "qb" ]]; then
+      HPCENV=queenbee.loni.org
+      HPCENVSHORT=queenbee
+   fi 
+   if [[ ${fqdn:0:4} = "smic" ]]; then
+      HPCENV=supermic.hpc.lsu.edu
+      HPCENVSHORT=supermic 
+   fi
+   if [[ ${fqdn:0:2} = "ht" ]]; then
+      HPCENV=hatteras.renci.org
+      HPCENVSHORT=hatteras
+   fi 
+   if [[ ${fqdn:0:2} = "jason" ]]; then
+      HPCENV=jason-desktop.seahorsecoastal.com
+      HPCENVSHORT=jason-desktop
+   fi 
+}
+#
 # used to dispatch environmentally sensitive actions
 env_dispatch() {
  HPCENVSHORT=$1
- THIS=platforms.sh/env_dispatch
+ THIS="platforms.sh>env_dispatch()"
  scenarioMessage "$THIS: Initializing settings for ${HPCENVSHORT}."
  echo "$THIS: Initializing settings for ${HPCENVSHORT}."
  case $HPCENVSHORT in
-  "lsu_tds") allMessage "$THIS: LSU THREDDS Data Server configuration found."
-          init_lsu_tds
-          ;;
-  "lsu_ccr_tds") consoleMessage "$THIS: LSU THREDDS Data Server configuration found."
-          init_lsu_ccr_tds
-          ;;
-  "renci_tds") consoleMessage "$THIS: RENCI THREDDS Data Server configuration found."
-          init_renci_tds
-          ;;
-  "tacc_tds") allMessage "$THIS: TACC THREDDS Data Server configuration found."
-          init_tacc_tds
-          ;;
   "pod") allMessage "$THIS: POD (Penguin) configuration found."
           init_pod
           ;;

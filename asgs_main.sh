@@ -46,8 +46,24 @@ echoHelp()
 # reads/rereads+rebuilds derived variables
 readConfig()
 {
-  . ${CONFIG}
-  RUNARCHIVEBASE=$SCRATCHDIR
+   # Initialize variables accessed from ASGS config parameters to reasonable values
+   source ${SCRIPTDIR}/config/config_defaults.sh
+   # Initialize model parameters to appropriate values
+   source ${SCRIPTDIR}/config/model_defaults.sh
+   # HPC environment defaults (using the functions in platforms.sh)
+   env_dispatch ${HPCENVSHORT}   
+   # set email addresses etc according to the Operator
+   source ${SCRIPTDIR}/config/operator_defaults.sh
+   # set default output file formats and frequencies   
+   source ${SCRIPTDIR}/config/io_defaults.sh
+   # set default values related to forcing URLs etc
+   source ${SCRIPTDIR}/config/forcing_defaults.sh
+   # pick up config parameters, set by the Operator, that differ from the defaults
+   source ${CONFIG}
+   # maintain backward compatibility with old config files
+   SCENARIOPACKAGESIZE=$ENSEMBLESIZE
+   #
+   RUNARCHIVEBASE=$SCRATCHDIR
 }
 
 #
@@ -62,13 +78,29 @@ checkFileExistence()
      RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS" "FAIL" "The $FTYPE was not specified in the configuration file. When it is specified, the ASGS will look for it in the path ${FPATH}."
      fatal "$THIS: The $FTYPE was not specified in the configuration file. When it is specified, the ASGS will look for it in the path ${FPATH}."
   fi
+  success=no
   if [ $FNAME ]; then
      if [ -e "${FPATH}/${FNAME}" ]; then
         logMessage "$THIS: The $FTYPE '${FPATH}/${FNAME}' was found."
+        success=yes
      else
-        RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS" "FAIL" "The $FTYPE '${FPATH}/${FNAME}' does not exist."
-        fatal "$THIS: The $FTYPE '${FPATH}/${FNAME}' does not exist."
+        # if this is a mesh or nodal attributes file, attempt to download and uncompress it
+        if [[ $FTYPE = "ADCIRC mesh file"  ]]; then
+           logMessage "Downloading $FTYPE from ${MESHURL}/${FNAME}.xz."
+           curl ${MESHURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download mesh from ${MESHURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
+        fi
+        if [[ $FTYPE = "ADCIRC nodal attributes (fort.13) file" ]]; then
+           logMessage "Attempting to download $FTYPE from ${MESHURL}/${FNAME}.xz."
+           curl ${NODALATTRIBUTESURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download nodal attributes file from ${NODALATTRIBUTESURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
+        fi
+        logMessage "THIS: Uncompressing ${FPATH}/${FNAME}.xz."
+        xz -d ${FPATH}/${FNAME}.xz 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}.xz : `cat errmsg`."
+        [[ -e ${FPATH}/${FNAME} ]] && success=yes || success=no
      fi
+  fi
+  if [[ $success = no ]]; then
+     RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS" "FAIL" "The $FTYPE '${FPATH}/${FNAME}' does not exist."
+     fatal "$THIS: The $FTYPE '${FPATH}/${FNAME}' does not exist."
   fi
 }
 #
@@ -1408,7 +1440,7 @@ variables_init()
    TROPICALCYCLONE=off
    WAVES=off
    VARFLUX=off
-   MINMAX=continuous
+   MINMAX=reset
    REINITIALIZESWAN=no
    USERIVERFILEONLY=no
    STORMNAME=stormname
@@ -1449,7 +1481,6 @@ variables_init()
    ADCIRCDIR=null
    SCRATCHDIR=null
    MAILINGLIST=null
-   HPCENV=null
    QUEUESYS=null
    QUEUENAME=null
    SERQUEUE=null
@@ -1461,7 +1492,8 @@ variables_init()
    SUBMITSTRING=null
    NOTIFYUSER=null
    RUNDIR=null
-   INPUTDIR=null
+   INPUTDIR=$SCRIPTDIR/input/meshes/null
+   OUTPUTDIR=$SCRIPTDIR/output
    HOTSTARTFORMAT=null
    STORMDIR=stormdir
    SSHKEY=null
@@ -1608,7 +1640,7 @@ writeProperties()
    echo "archive.path.archivebase : $ARCHIVEBASE" >> $STORMDIR/run.properties
    echo "archive.path.archivedir : $ARCHIVEDIR" >> $STORMDIR/run.properties
    # forecast scenario package size
-   echo "forecast.scenariopackagesize : $ENSEMBLESIZE" >> $STORMDIR/run.properties
+   echo "forecast.scenariopackagesize : $SCENARIOPACKAGESIZE" >> $STORMDIR/run.properties
    # runtime
    echo "path.rundir : $RUNDIR" >> $STORMDIR/run.properties
    # each scenario
@@ -1617,7 +1649,7 @@ writeProperties()
    echo "scenario : $ENSTORM" >> $STORMDIR/run.properties
    # FIXME: the following are legacy properties from 2014stable 
    # and should not be carried forward  
-   echo "forecast.ensemblesize : $ENSEMBLESIZE" >> $STORMDIR/run.properties
+   echo "forecast.ensemblesize : $SCENARIOPACKAGESIZE" >> $STORMDIR/run.properties
    echo "asgs.path.fromdir : $FROMDIR" >> $STORMDIR/run.properties
    echo "asgs.path.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
    echo "asgs.enstorm : $ENSTORM" >> $STORMDIR/run.properties
@@ -1770,7 +1802,8 @@ RMQADVISORY=0  #  "Fake" ADVISORY number for RMQ Messages.
 #   bash asgs_main.sh -c /path/to/config -r /path/to/rundir -e topsail
 #
 # mail alert
-ASGSADMIN=ASGSADMIN
+operator=`who am i | awk '{print $1}'`
+ASGSADMIN=$operator
 #
 # exit statuses
 EXIT_NOT_OK=1
@@ -1781,7 +1814,8 @@ SCRIPTDIR=${0%%/asgs_main.sh}  # ASGS scripts/executables
 si=-2  # storm index for forecast ensemble; -1 indicates nowcast, -2 forecast
 # need to determine standard time format to be used for pasting log files
 STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-
+HPCENVSHORT=null
+HPCENV=null
 # create directories with default permissions of "775" and
 # files with the default permssion of "664"
 umask 002
@@ -1808,22 +1842,23 @@ while getopts "c:e:s:h" optname; do
 done
 #
 # Initialize variables accessed from ASGS config parameters to reasonable values
-. ${SCRIPTDIR}/config/config_defaults.sh
+source ${SCRIPTDIR}/config/config_defaults.sh
 # Initialize model parameters to appropriate values
-. ${SCRIPTDIR}/config/model_defaults.sh
-
+source ${SCRIPTDIR}/config/model_defaults.sh
 # set the file and directory permissions, which are platform dependent
 umask $UMASK
-# read config file just to get the location of $SCRIPTDIR
-readConfig
-
 # name asgs log file here
 SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG must be defined before logging.sh is run.
 # Bring in logging functions
-. ${SCRIPTDIR}/monitoring/logging.sh
-
+source ${SCRIPTDIR}/monitoring/logging.sh
 # Bring in platform-specific configuration functions
-. ${SCRIPTDIR}/platforms.sh
+source ${SCRIPTDIR}/platforms.sh
+# determine hpc environment via function from platforms.sh
+if [[ $HPCENVSHORT = "null" ]]; then
+   set_hpc
+fi
+# dispatch environment (using the functions in platforms.sh)
+env_dispatch ${HPCENVSHORT}
 #
 # set a trap for a signal to reread the ASGS config file
 trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; readConfig' USR1
@@ -1835,12 +1870,9 @@ trap 'sigexit' EXIT
 # clear orphaned logging processes
 findAndClearOrphans
 
-# dispatch environment (using the functions in platforms.sh)
-env_dispatch ${HPCENVSHORT}
 # Re-read the config file, so that the variables can take precedence over
 # the values in the platform-specific functions called by env_dispatch
 readConfig
-
 #
 # set the file and directory permissions, which are platform dependent
 umask $UMASK
@@ -1853,7 +1885,7 @@ RUNDIR=$SCRATCHDIR/asgs$$
 # calls to RMQMessage will return without doing anything
 if [[ $RMQMessaging_Enable = "on" ]] ; then
    THIS="monitoring/asgs-msgr.sh"
-   . ${SCRIPTDIR}/monitoring/asgs-msgr.sh
+   source ${SCRIPTDIR}/monitoring/asgs-msgr.sh
    THIS="asgs_main.sh"
 else
    allMessage "RMQ Messaging disabled." 
@@ -1865,7 +1897,7 @@ temp=`cat $CONFIG | sed '/^#/d' | sed '/^$/d'`
 RMQMessageStartup "$temp"
 #
 # set a RunParams string for messaging
-RMQRunParams="$GRIDNAME:EnsSize=$ENSEMBLESIZE:Pid=$$"
+RMQRunParams="$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
 RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh" "$CURRENT_STATE" "$HPCENVSHORT configuration found."
 
 # if we are starting from cron, look for a state file
@@ -2180,8 +2212,6 @@ if [[ $START = coldstart ]]; then
    ENSTORM=hindcast
    SCENARIO=$ENSTORM
    si=-2      # represents a hindcast 
-   # pick up config info that is specific to the hindcast
-   si=-1
    readConfig
    # Obtain and/or verify ADCIRC(+SWAN) executables
    #get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG 
@@ -2358,12 +2388,6 @@ while [ true ]; do
    findAndClearOrphans
 
    si=-1
-   # Initialize variables accessed from ASGS config parameters to reasonable values
-   . ${SCRIPTDIR}/config/config_defaults.sh
-   # Initialize model parameters to appropriate values
-   . ${SCRIPTDIR}/config/model_defaults.sh
-   # HPC environment defaults (using the functions in platforms.sh)
-   env_dispatch ${HPCENVSHORT}   
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
    readConfig
    # Obtain and/or verify ADCIRC(+SWAN) executables
@@ -2439,7 +2463,7 @@ while [ true ]; do
          NWS=`expr $BASENWS + 300`
       fi
 
-      RMQRunParams="NWS=$NWS:$GRIDNAME:EnsSize=$ENSEMBLESIZE:Pid=$$"
+      RMQRunParams="NWS=$NWS:$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
 
       # download wind data from ftp site every 60 seconds to see if
       # there is a new advisory
@@ -2505,7 +2529,7 @@ while [ true ]; do
       fi
    fi
 
-   RMQRunParams="NWS=$NWS:$GRIDNAME:EnsSize=$ENSEMBLESIZE:Pid=$$"
+   RMQRunParams="NWS=$NWS:$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
 
    case $BACKGROUNDMET in
       on|NAM)
@@ -2836,18 +2860,12 @@ while [ true ]; do
    logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
    si=0
    CURRENT_STATE="WAIT"
-   while [ $si -lt $ENSEMBLESIZE ]; do    
+   while [ $si -lt $SCENARIOPACKAGESIZE ]; do    
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting forecast for advisory '$ADVISORY', ensemble member $si."
       # source config file to pick up any configuration changes, or any
       # config that is specific to forecasts, and set up the current 
       # ensemble member
       ENSTORM=forecast  
-      # Initialize variables accessed from ASGS config parameters to reasonable values
-      . ${SCRIPTDIR}/config/config_defaults.sh
-      # Initialize model parameters to appropriate values
-      . ${SCRIPTDIR}/config/model_defaults.sh
-      # HPC environment defaults (using the functions in platforms.sh)
-      env_dispatch ${HPCENVSHORT}
       # grab the config specified by the operator
       readConfig
       # write the properties associated with asgs configuration to the 
