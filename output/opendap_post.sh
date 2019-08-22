@@ -27,6 +27,7 @@ SCENARIODIR=$PWD
 RUNPROPERTIES=$SCENARIODIR/run.properties
 if [[ $# -eq 1 ]]; then
    RUNPROPERTIES=$1
+   SCENARIODIR=`dirname $RUNPROPERTIES`
 fi
 # this script can be called with just one command line option: the
 # full path to the run.properties file

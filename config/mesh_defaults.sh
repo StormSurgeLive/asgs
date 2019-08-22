@@ -78,7 +78,8 @@ case $GRIDNAME in
       ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="01:00:00" # forecast wall clock time
+      ;;
    *)
       warn "cycle $CYCLE: $SCENARIO: $THIS: Mesh GRIDNAME $GRIDNAME was not recognized."
-   ;;
+      ;;
 esac

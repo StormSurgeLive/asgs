@@ -47,6 +47,7 @@ HOTSTARTFORMAT=netcdf
 MINMAX=reset
 #
 if [[ ${ENSTORM:(-7)} = "Wind10m" ]]; then
+   scenarioMessage "THIS: Setting parameters to trigger ADCIRC met-only mode for ${ENSTORM}."
    ADCPREPWALLTIME="00:20:00"  # adcprep wall clock time, including partmesh   
    FORECASTWALLTIME="00:20:00" # forecast wall clock time   
    CONTROLTEMPLATE=$CONTROLTEMPLATENOROUGH  # CONTROLTEMPLATENOROUGH set in config/mesh_defaults.sh
@@ -64,5 +65,5 @@ if [[ ${ENSTORM:(-7)} = "Wind10m" ]]; then
    SPARSE=""
    NETCDF4="--netcdf4"
    OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
-   POSTPROCESS=null_post.sh
+   POSTPROCESS=( null_post.sh )
 fi

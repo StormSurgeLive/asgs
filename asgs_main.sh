@@ -61,7 +61,9 @@ readConfig()
    # pick up config parameters, set by the Operator, that differ from the defaults
    source ${CONFIG}
    # maintain backward compatibility with old config files
-   SCENARIOPACKAGESIZE=$ENSEMBLESIZE
+   if [[ $ENSEMBLESIZE != "null" ]]; then
+       SCENARIOPACKAGESIZE=$ENSEMBLESIZE
+   fi
    #
    RUNARCHIVEBASE=$SCRATCHDIR
 }
@@ -368,7 +370,7 @@ get_adcirc()
 prep()
 {   ADVISDIR=$1  # directory containing the now/forecast runs for this cycle
     INPUTDIR=$2 # directory where grid and nodal attribute files are found
-    ENSTORM=$3  # ensemble member (nowcast, storm1, storm5, etc)
+    ENSTORM=$3  # scenario name (nowcast, storm1, storm5, etc)
     START=$4    # coldstart or hotstart
     FROMDIR=$5 # directory containing files to hotstart this run from 
     HPCENVSHORT=$6     # machine to run on (jade, desktop, queenbee, etc)
@@ -1166,7 +1168,7 @@ monitorJobs()
          # if this job was submitted by mpiexec, then terminate it; otherwise,
          # it could run for a long time, delaying the continued execution
          # of the ASGS (the ASGS won't start the next cycle until all forecast
-         # ensemble members in the current cycle have completed); this also
+         # scenarios in the current cycle have completed); this also
          # prevents cpus from being tied up unnecessarily ...
          # if the job was submitted through a queueing system, then the
          # queueing system will terminate it
@@ -1230,13 +1232,13 @@ monitorJobs()
             else
                # there was an error under a SLURM system, but not 
                # an error we can get around by resubmitting
-               error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
+               error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this scenario for this advisory."
             cat ${ENSTORM_TEMP}.run.error >> jobFailed
                break
             fi
          else
             # there was an error under a non-SLURM system
-            error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
+            error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this scenario for this advisory."
             cat ${ENSTORM_TEMP}.run.error >> jobFailed
             break
          fi
@@ -1248,7 +1250,7 @@ monitorJobs()
    done
    if [[ -e ${ENSTORM_TEMP}.run.error ]]; then
       RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "FAIL" "The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
-      error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
+      error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this scenario for this advisory."
       cat ${ENSTORM_TEMP}.run.error >> jobFailed
    fi
    if [[ -e ${ENSTORM_TEMP}.run.finish ]]; then
@@ -1502,7 +1504,7 @@ variables_init()
    HOTSWAN=off
    ONESHOT=no      # yes if ASGS is launched by cron
    NCPUCAPACITY=2  # total number of CPUs available to run jobs
-   si=0       # storm index for forecast ensemble; -1 indicates non-forecast
+   si=0       # scenario index for ; -1 indicates non-forecast
    STATEFILE=null
    ENSTORM=hindcast
    CYCLETIMELIMIT="05:00:00"
@@ -1528,6 +1530,9 @@ variables_init()
    PERIODICFLUX=null
    SPATIALEXTRAPOLATIONRAMP=yes
    SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
+   ENSEMBLESIZE=null # deprecated in favor of SCENARIOPACKAGESIZE
+   SCENARIOPACKAGESIZE=null
+   declare -a INITPOST=( null_post.sh ) 
    declare -a POSTPROCESS=( null_post.sh ) 
    declare -a JOBENV=( null )  # array of shell scripts to 'source' for compute job
    JOBENVDIR=null
@@ -1555,6 +1560,7 @@ writeProperties()
    # basic asgs configuration
    echo "config.file : $CONFIG" >> $STORMDIR/run.properties
    echo "instancename : $INSTANCENAME" >> $STORMDIR/run.properties
+   echo "operator : $operator" >> $STORMDIR/run.properties  
    echo "adcirc.time.coldstartdate : $CSDATE" >> $STORMDIR/run.properties
    echo "path.adcircdir : $ADCIRCDIR" >> $STORMDIR/run.properties
    echo "path.scriptdir : $SCRIPTDIR" >> $STORMDIR/run.properties
@@ -1632,8 +1638,6 @@ writeProperties()
       THREDDS="$THREDDS $thredds_data_server"
    done
    THREDDS="$THREDDS )" 
-   echo "post.opendap.tds : $THREDDS" >> $STORMDIR/run.properties
-   echo "post.opendap.opendapuser : $OPENDAPUSER" >> $STORMDIR/run.properties
    echo "post.file.sshkey : $SSHKEY" >> $STORMDIR/run.properties
    # archiving
    echo "archive.executable.archive : $ARCHIVE" >> $STORMDIR/run.properties    
@@ -1790,7 +1794,6 @@ THIS="asgs_main.sh"
 CURRENT_EVENT="STRT" # used for RMQ messages
 CURRENT_STATE="INIT" # used for RMQ messages
 RMQADVISORY=0  #  "Fake" ADVISORY number for RMQ Messages.  
-
 #
 # Option Summary
 #
@@ -1811,7 +1814,8 @@ EXIT_OK=0
 #
 # get the value of SCRIPTDIR
 SCRIPTDIR=${0%%/asgs_main.sh}  # ASGS scripts/executables        
-si=-2  # storm index for forecast ensemble; -1 indicates nowcast, -2 forecast
+SYSLOG=$PWD/asgs.log
+si=-2  # storm index for forecast scenario; -1 indicates nowcast, -2 hindcast
 # need to determine standard time format to be used for pasting log files
 STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 HPCENVSHORT=null
@@ -1841,24 +1845,15 @@ while getopts "c:e:s:h" optname; do
   esac
 done
 #
-# Initialize variables accessed from ASGS config parameters to reasonable values
-source ${SCRIPTDIR}/config/config_defaults.sh
-# Initialize model parameters to appropriate values
-source ${SCRIPTDIR}/config/model_defaults.sh
-# set the file and directory permissions, which are platform dependent
-umask $UMASK
-# name asgs log file here
-SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log  # nld 6-6-2013 SYSLOG must be defined before logging.sh is run.
-# Bring in logging functions
-source ${SCRIPTDIR}/monitoring/logging.sh
-# Bring in platform-specific configuration functions
-source ${SCRIPTDIR}/platforms.sh
 # determine hpc environment via function from platforms.sh
+source ${SCRIPTDIR}/monitoring/logging.sh
+source ${SCRIPTDIR}/platforms.sh
 if [[ $HPCENVSHORT = "null" ]]; then
    set_hpc
 fi
-# dispatch environment (using the functions in platforms.sh)
-env_dispatch ${HPCENVSHORT}
+readConfig # now we have the instancename and can name the asgs log file after it 
+THIS=asgs_main.sh
+setSyslogFileName
 #
 # set a trap for a signal to reread the ASGS config file
 trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; readConfig' USR1
@@ -1869,10 +1864,6 @@ trap 'sigexit' EXIT
 #
 # clear orphaned logging processes
 findAndClearOrphans
-
-# Re-read the config file, so that the variables can take precedence over
-# the values in the platform-specific functions called by env_dispatch
-readConfig
 #
 # set the file and directory permissions, which are platform dependent
 umask $UMASK
@@ -1887,6 +1878,7 @@ if [[ $RMQMessaging_Enable = "on" ]] ; then
    THIS="monitoring/asgs-msgr.sh"
    source ${SCRIPTDIR}/monitoring/asgs-msgr.sh
    THIS="asgs_main.sh"
+   allMessage "RMQ Messaging enabled." 
 else
    allMessage "RMQ Messaging disabled." 
 fi
@@ -1900,14 +1892,23 @@ RMQMessageStartup "$temp"
 RMQRunParams="$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
 RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh" "$CURRENT_STATE" "$HPCENVSHORT configuration found."
 
+# save the value from of LASTSUBDIR from config in case 
+# LASTSUBDIR=null in STATEFILE due to previous failed
+# initialization 
+ORIGLASTSUBDIR=$LASTSUBDIR 
 # if we are starting from cron, look for a state file
 if [[ $ONESHOT = yes ]]; then
    # if it is there, read it
    if [[ -e $STATEFILE ]]; then
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Reading $STATEFILE for previous ASGS state."
       logMessage "$THIS: Reading $STATEFILE for previous ASGS state."
-      HOTORCOLD=hotstart
-      . $STATEFILE # contains RUNDIR, LASTSUBDIR, ADVISORY and SYSLOG values
+      source $STATEFILE # contains RUNDIR, LASTSUBDIR, ADVISORY and SYSLOG values
+      if [[ $LASTSUBDIR = null ]]; then
+         HOTORCOLD=coldstart
+         LASTSUBDIR=$ORIGLASTSUBDIR
+      else
+         HOTORCOLD=hotstart
+      fi
    else
       # if the state file is not there, just start from cold
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "The statefile '$STATEFILE' was not found. The ASGS will start cold and create a new statefile."
@@ -1922,8 +1923,13 @@ else
    if [[ -e $STATEFILE ]]; then
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Reading $STATEFILE for previous ASGS state."
       logMessage "$THIS: Reading $STATEFILE for previous ASGS state."
-      HOTORCOLD=hotstart
-      . $STATEFILE # contains RUNDIR, LASTSUBDIR, ADVISORY and SYSLOG values
+      source $STATEFILE # contains RUNDIR, LASTSUBDIR, ADVISORY and SYSLOG values
+      if [[ $LASTSUBDIR = null ]]; then
+         HOTORCOLD=coldstart
+         LASTSUBDIR=$ORIGLASTSUBDIR
+      else
+         HOTORCOLD=hotstart
+      fi
    else
       # this is an ongoing execution, and the statefile does not 
       # exist yet, so create it now using info straight from the 
@@ -2005,7 +2011,7 @@ if [[ $WAVES = on ]]; then
 else
    JOBTYPE=padcirc
    if [[ $QUEUESYS = serial ]]; then
-      JOBTYPE=padcirc
+      JOBTYPE=adcirc
    fi
 fi
 if [[ $VARFLUX = on || $VARFLUX = default ]]; then
@@ -2213,6 +2219,7 @@ if [[ $START = coldstart ]]; then
    SCENARIO=$ENSTORM
    si=-2      # represents a hindcast 
    readConfig
+   THIS=asgs_main.sh
    # Obtain and/or verify ADCIRC(+SWAN) executables
    #get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG 
    #if [[ $? = 1 ]]; then
@@ -2294,13 +2301,10 @@ if [[ $START = coldstart ]]; then
    # make sure the archive of subdomain files is up to date 
    checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
    THIS="asgs_main.sh"
-   writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
-    echo "hpc.job.${JOBTYPE}.limit.walltime : $HINDCASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
    logMessage "$THIS: prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
    prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
    THIS="asgs_main.sh"
    # check to see that adcprep did not conspicuously fail
-
    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV hindcast $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
    THIS="asgs_main.sh"
    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
@@ -2316,6 +2320,8 @@ if [[ $START = coldstart ]]; then
    if [[ $QUEUESYS = serial ]]; then
       JOBTYPE=adcirc
    fi
+   writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
+   echo "hpc.job.${JOBTYPE}.limit.walltime : $HINDCASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
    logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE
    THIS="asgs_main.sh"
@@ -2390,12 +2396,13 @@ while [ true ]; do
    si=-1
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
    readConfig
+   THIS=asgs_main.sh
    # Obtain and/or verify ADCIRC(+SWAN) executables
-   get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG
-   if [[ $? = 1 ]]; then
-      warn "Failed to find or build ADCIRC(+SWAN) executables for hindcast."
-      exit ${EXIT_NOT_OK} # can't really come back from this
-   fi      
+   #get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG
+   #if [[ $? = 1 ]]; then
+   #   warn "Failed to find or build ADCIRC(+SWAN) executables for hindcast."
+   #   exit ${EXIT_NOT_OK} # can't really come back from this
+   #fi      
    FROMDIR=null
    CURRENT_EVENT="PRE1"
    CURRENT_STATE="INIT"
@@ -2767,7 +2774,6 @@ while [ true ]; do
          fi
       fi
       echo "hpc.job.${JOBTYPE}.limit.walltime : $NOWCASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
-      writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
       # then submit the job
       CURRENT_EVENT="NOWC"
       CURRENT_STATE="PEND"
@@ -2845,7 +2851,7 @@ while [ true ]; do
    CURRENT_EVENT="PRE2"
    CURRENT_STATE="INIT"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting forecast(s) for advisory '$ADVISORY'."
-   allMessage "$ENSTORM: $THIS: Starting forecast(s) for advisory '$ADVISORY'."
+   allMessage "$ENSTORM: $THIS: Starting forecast scenarios for advisory '$ADVISORY'."
 
    # clear orphaned logging processes (if any)
    findAndClearOrphans
@@ -2864,20 +2870,21 @@ while [ true ]; do
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting forecast for advisory '$ADVISORY', ensemble member $si."
       # source config file to pick up any configuration changes, or any
       # config that is specific to forecasts, and set up the current 
-      # ensemble member
+      # scenario
       ENSTORM=forecast  
       # grab the config specified by the operator
       readConfig
+      THIS=asgs_main.sh
       # write the properties associated with asgs configuration to the 
       # run.properties file
       writeProperties $RUNDIR
       # Obtain and/or verify ADCIRC(+SWAN) executables
-      get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG
-      if [[ $? = 1 ]]; then
-         warn "Failed to find or build ADCIRC(+SWAN) executables for $ENSTORM."
-         si=$[$si + 1];
-         continue # just go on to the next ensemble member
-      fi      
+      #get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG
+      #if [[ $? = 1 ]]; then
+      #   warn "Failed to find or build ADCIRC(+SWAN) executables for $ENSTORM."
+      #   si=$[$si + 1];
+      #   continue # just go on to the next scenario
+      #fi      
       JOBTYPE=padcirc
       if [[ $QUEUESYS = "serial" ]]; then
          JOBTYPE=adcirc
@@ -2893,14 +2900,14 @@ while [ true ]; do
       # number of CPUs and number of writers greater than the total
       # number of CPUs that will ever be available.
       if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
-         error "$ENSTORM: $THIS: The requested number of CPUs for $ENSTORM is set to $NCPU and the number of writer processors has been set to $NUMWRITERS but the total number of requested CPUs exceeds the NCPUCAPACITY parameter value of ${NCPUCAPACITY}; therefore this forecast ensemble member will never be able to execute. This forecast ensemble member is being abandoned."
-         # increment the ensemble member counter
+         error "$ENSTORM: $THIS: The requested number of CPUs for $ENSTORM is set to $NCPU and the number of writer processors has been set to $NUMWRITERS but the total number of requested CPUs exceeds the NCPUCAPACITY parameter value of ${NCPUCAPACITY}; therefore this scenario will never be able to execute. This scenario is being abandoned."
+         # increment the scenario package counter
          si=$[$si + 1];
          continue 
       fi
       subDirs=`find ${ADVISDIR} -maxdepth 1 -type d -print`
       #debugMessage "subDirs is $subDirs" # jgfdebug
-      if [[ ! -z $subDirs ]]; then  # see if we have any ensemble member directories 
+      if [[ ! -z $subDirs ]]; then  # see if we have any scenario directories 
          # continuously loop to see if conditions are right to submit the next job
          while [ true ]; do
             # check to see if the deadline has passed for submitting 
@@ -2934,10 +2941,10 @@ while [ true ]; do
                   cpusEngaged=`expr $cpusEngaged + $cpuRequest`
                fi
             done
-            debugMessage "$ENSTORM: $THIS: The next ensemble member ('$ENSTORM') requires $NCPU compute cores and $NUMWRITERS dedicated writer cores. The number of CPUs currently engaged is $cpusEngaged. The max number of cores that can be engaged is $NCPUCAPACITY."
+            debugMessage "$ENSTORM: $THIS: The next scenario ('$ENSTORM') requires $NCPU compute cores and $NUMWRITERS dedicated writer cores. The number of CPUs currently engaged is $cpusEngaged. The max number of cores that can be engaged is $NCPUCAPACITY."
             if [[ `expr $NCPU + $NUMWRITERS + $cpusEngaged` -le $NCPUCAPACITY ]]; then
                #debugMessage "Sufficient capacity exists to run the next job."
-               break      # we now have the spare capacity to run this ensemble member
+               break      # we now have the spare capacity to run this scenario
             else 
                CURRENT_STATE="WARN"
                RMQMessage "WARN" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Insufficient capacity to submit the next job. Sleeping for 1 minute."
@@ -3122,7 +3129,7 @@ while [ true ]; do
             logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
          fi
       done
-      # recording the ensemble member number may come in handy for load
+      # recording the scenario number may come in handy for load
       # balancing the postprocessing, particularly for CERA
       CURRENT_EVENT="FORE"
       CURRENT_STATE="WAIT"
@@ -3147,7 +3154,7 @@ while [ true ]; do
          THIS="asgs_main.sh"
          handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
          THIS="asgs_main.sh"
-         # if the prep task was successful, the ensemble member directory will still be there
+         # if the prep task was successful, the scenario directory will still be there
          if [[ -d $STORMDIR ]]; then
             JOBTYPE=padcirc
             if [[ $QUEUESYS = "serial" ]]; then
@@ -3163,7 +3170,7 @@ while [ true ]; do
             CURRENT_EVENT="FORE"
             CURRENT_STATE="PEND"
             RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Submitting ensemble member $ENSTORM for forecast."
-            allMessage "$ENSTORM: $THIS: Submitting ensemble member $ENSTORM for forecast."
+            allMessage "$ENSTORM: $THIS: Submitting scenario package member ${ENSTORM}."
             writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
 
             echo "hpc.job.${JOBTYPE}.limit.walltime : $FORECASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
@@ -3172,13 +3179,13 @@ while [ true ]; do
             THIS="asgs_main.sh"
             # monitor for completion and post process in a subshell running 
             # in the background ... this allows us to go on to the
-            # next ensemble member
+            # next scenario
             (            
                monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $FORECASTWALLTIME
                THIS="asgs_main.sh"
                handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
                THIS="asgs_main.sh"    
-               # only attempt post processing if this ensemble member 
+               # only attempt post processing if this scenario 
                # ended successfully
                if [[ -d $STORMDIR ]]; then
                   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WAIT"  "The $ENSTORM job ended successfully. Starting postprocessing."
@@ -3197,7 +3204,7 @@ while [ true ]; do
                   echo "time.post.finish : $DATETIME" >> ${STORMDIR}/run.properties
                   # notify analysts that new results are available
                   ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1  
-                  # archive the files for this ensemble member
+                  # archive the files for this scenario
                   logMessage "$ENSTORM: $THIS: Initiating archival process, if any."
                   ${SCRIPTDIR}/archive/${ARCHIVE} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENVSHORT $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
@@ -3215,9 +3222,9 @@ while [ true ]; do
    #
    SCENARIOLOG=null
    THIS="asgs_main.sh"
-   # allow all ensemble members and associated post processing to complete
+   # allow all scenarios and associated post processing to complete
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "RUNN" "All forecast ensemble members have been submitted."
-   logMessage "$ENSTORM: $THIS: All forecast ensemble members have been submitted."
+   logMessage "$ENSTORM: $THIS: All scenarios have been submitted."
    CURRENT_EVENT="FEND"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL" "Forecast Cycle Complete for Adv=$ADVISORY"
 

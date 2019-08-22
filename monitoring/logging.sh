@@ -217,6 +217,12 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
    fi
 }
 #
+# set the name of the asgs log file
+setSyslogFileName()
+{
+   SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log
+} 
+#
 # write an INFO-level message to the main asgs log file
 logMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`

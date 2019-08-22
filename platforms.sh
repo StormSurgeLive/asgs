@@ -598,6 +598,7 @@ writeTDSProperties()
 {
    THIS="platforms.sh>writeTDSProperties()"
    scenarioMessage "$THIS: Setting platforms-specific parameters for ${SERVER}."
+   operator=`who am i | awk '{print $1}'`
    SERVER=$1
    CATALOGPREFIX=""    # after thredds/catalog
    DOWNLOADPREFIX=""   # after thredds/fileServer
@@ -614,8 +615,8 @@ writeTDSProperties()
       OPENDAPPORT=":8080"
       OPENDAPBASEDIR=/projects/ncfs/opendap/data
       SSHPORT=22
-      echo "post.opendap.${SERVER}.linkablehosts : (null)" >> run.properties
-      echo "post.opendap.${SERVER}.copyablehosts : (hatteras)" >> run.properties
+      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
+      echo "post.opendap.${SERVER}.copyablehosts : ( hatteras )" >> run.properties
       if [[ $operator = jgflemin ]]; then
          OPENDAPUSER=ncfs
       fi
@@ -631,8 +632,8 @@ writeTDSProperties()
       OPENDAPPORT=":8080"
       OPENDAPBASEDIR=/data/opendap
       SSHPORT=2525
-      echo "post.opendap.${SERVER}.linkablehosts : (null)" >> run.properties
-      echo "post.opendap.${SERVER}.copyablehosts : (null)" >> run.properties
+      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
+      echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> run.properties
       ;;
 
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU Center for Coastal Resiliency
@@ -644,8 +645,8 @@ writeTDSProperties()
       DOWNLOADPREFIX=/asgs/ASGS-2019
       OPENDAPBASEDIR=/data/thredds/ASGS/ASGS-2019
       SSHPORT=2525
-      echo "post.opendap.${SERVER}.linkablehosts : (null)" >> run.properties
-      echo "post.opendap.${SERVER}.copyablehosts : (null)" >> run.properties
+      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
+      echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> run.properties
       ;;
    #
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at Texas
@@ -657,8 +658,8 @@ writeTDSProperties()
       CATALOGPREFIX=/asgs
       OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
       SSHPORT=null
-      echo "post.opendap.${SERVER}.linkablehosts : (null)" >> run.properties
-      echo "post.opendap.${SERVER}.copyablehosts : (lonestar stampede2)" >> run.properties
+      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
+      echo "post.opendap.${SERVER}.copyablehosts : ( lonestar stampede2 )" >> run.properties
       ;;
    *)
       echo "$THIS: ERROR: THREDDS Data Server $SERVER was not recognized."
