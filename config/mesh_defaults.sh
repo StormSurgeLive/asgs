@@ -104,6 +104,31 @@ case $GRIDNAME in
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       ;;
+   "neflga_v12_geo")
+      INPUTDIR=$SCRIPTDIR/input/meshes/neflga
+      GRIDFILE=neflga_v12_geo.14 # mesh (fort.14) file
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=neflga_v12_geo_template.15   # fort.15 template
+      CONTROLTEMPLATENOROUGH=neflga_v12_geo_norough_template.15
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=neflga_stations_20190809.txt
+      VELSTATIONS=${ELEVSTATIONS}
+      METSTATIONS=${ELEVSTATIONS}
+      NAFILE=neflga_v12.13
+      NAPROPERTIES=${NAFILE}.properties
+      SWANTEMPLATE=fort.26.nolimiter.template    # only used if WAVES=on
+      RIVERINIT=null                           # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+      SWANDT=1200                # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      ;;
    *)
       warn "cycle $CYCLE: $SCENARIO: $THIS: Mesh GRIDNAME $GRIDNAME was not recognized."
       ;;

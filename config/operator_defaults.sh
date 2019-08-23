@@ -38,7 +38,8 @@ case $operator in
       POST_INIT_LIST=null
       POST_LIST=null
       # opendap email notification
-      OPENDAPNOTIFY="jason.g.fleming@gmail.com"
+      OPENDAPNOTIFY="jason.g.fleming@gmail.com" # space delimited if a list
+      #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com" 
       # the following are related to job failure
       JOB_FAILED_LIST="jason.fleming@seahorsecoastal.com"
       NOTIFYUSER=jason.fleming@seahorsecoastal.com
