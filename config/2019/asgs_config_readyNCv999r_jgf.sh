@@ -36,16 +36,20 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
-TIDEFAC=on            # tide factor recalc
-   HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on      # NAM download/forcing
+TIDEFAC=on               # tide factor recalc
+   HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
+BACKGROUNDMET=on         # NAM download/forcing
    FORECASTCYCLE="06"
-TROPICALCYCLONE=off   # tropical cyclone forcing
-   STORM=99                         # storm number, e.g. 05=ernesto in 2006
-   YEAR=2016                        # year of the storm
-WAVES=on              # wave forcing
+TROPICALCYCLONE=off      # tropical cyclone forcing
+   STORM=99              # storm number, e.g. 05=ernesto in 2006
+   YEAR=2016             # year of the storm
+WAVES=on                 # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
-VARFLUX=off           # variable river flux forcing
+VARFLUX=on               # variable river flux forcing
+   RIVERSITE=data.disaster.renci.org
+   RIVERDIR=/opt/ldm/storage/SCOOP/RHLRv9-OKU
+   RIVERUSER=ldm
+   RIVERDATAPROTOCOL=scp
 CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
