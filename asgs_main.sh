@@ -1612,7 +1612,7 @@ writeProperties()
    echo "notification.email.post_init_list : \"$POST_INIT_LIST\"" >> $STORMDIR/run.properties   
    echo "notification.email.job_failed_list : \"$JOB_FAILED_LIST\"" >> $STORMDIR/run.properties   
    echo "notification.hpc.email.notifyuser : \"$NOTIFYUSER\"" >> $STORMDIR/run.properties
-   echo "notification.opendap.email.opendapnotify : \"$OPENDAPNOTIFY\"" >> $STORMDIR/run.properties
+   echo "notification.opendap.email.opendapnotify : $OPENDAPNOTIFY" >> $STORMDIR/run.properties
    echo "notification.email.asgsadmin : $ASGSADMIN" >> $STORMDIR/run.properties
    # monitoring (includes logging)
    echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable " >> $STORMDIR/run.properties  
