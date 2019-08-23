@@ -414,8 +414,8 @@ init_stampede2()
   fi
   THIS="platforms.sh>env_dispatch()>init_stampede2()"
   ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCHDIR
-  ARCHIVEDIR=$SCRATCHDIR
+  ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
+  ARCHIVEDIR=2019
   TDS=(tacc_tds lsu_tds renci_tds)
   $PLATFORMMODULES
   $SERIALMODULES
@@ -483,8 +483,8 @@ init_lonestar()
   fi
   THIS="platforms.sh>env_dispatch()>init_lonestar()"
   ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCHDIR
-  ARCHIVEDIR=$SCRATCHDIR
+  ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
+  ARCHIVEDIR=2019
   TDS=(tacc_tds lsu_tds renci_tds)
   $PLATFORMMODULES
   $SERIALMODULES
