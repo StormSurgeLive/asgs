@@ -65,7 +65,7 @@ NCPUCAPACITY=3600
 # Post processing and publication
 
 INTENDEDAUDIENCE=developers-only    # can also be "developers-only" or "professional"
-POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 
 # Initial state (overridden by STATEFILE after the first cycle)
 
