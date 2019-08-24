@@ -34,9 +34,9 @@
 # {SCRIPTDIR/config/operator_defaults.sh
 #-------------------------------------------------------------------
 
-# Fundamental
+# set instancename based on mesh, forcing, and operator
 
-INSTANCENAME=dailyec95d  # "name" of this ASGS process
+INSTANCENAME=ec95d_${op}_nam   # "op" nickname set in config/operator_defaults.sh
 
 # Input files and templates
 
