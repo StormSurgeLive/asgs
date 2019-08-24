@@ -58,6 +58,8 @@ VELOCITYMULTIPLIER=1.0
 #
 RIVERSITE=ftp.nssl.noaa.gov
 RIVERDIR=/projects/ciflow/adcirc_info
+RIVERUSER=ldm
+RIVERDATAPROTOCOL=scp
 #
 # Model coupling : SWAN
 #
