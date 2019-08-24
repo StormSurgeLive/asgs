@@ -21,12 +21,14 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 THIS=config/operator_defaults.sh
-allMessage "$THIS: Setting default values for the Operator ${operator}."
+operator=`who am i | awk '{print $1}'`
+allMessage "$THIS: Setting default values for the Operator '${operator}'."
 #
 # set values based on Operator ... not basing this on $USER b/c on some platforms (e.g., hatteras)
 # user name is ambiguous
 case $operator in
-   "jgflemin")
+   "jgflemin"|"ncfs")
+      op="jgf"                      # initials as nickname for appending to asgs instance names
       # RMQ
       RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
       RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
@@ -44,6 +46,12 @@ case $operator in
       JOB_FAILED_LIST="jason.fleming@seahorsecoastal.com"
       NOTIFYUSER=jason.fleming@seahorsecoastal.com
       ASGSADMIN=jason.fleming@seahorsecoastal.com
+      #
+      # public keys:
+      #
+      # ncfs on hatteras
+      ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA8kHpbs9pJuvd/hgPe5H21z3XcqlFgHVEFwlO/yveRFbORuy3A5N/+J9fwXIqUc5hZ/RV56WMAc9FuIAY/0HAiLmlItYCk5EQeoeIgmm9PTVAGxEtrcYfFlS2dHIqJ4LWs4vdBrFETa0G8GQ3Cwd3LtNnSj5AVjEccx/riNjjD0doNo8MbmyBODekTw1NcUDNlTnMFc4CHV1QloaFpG6pE7dZZMVZDgeF1zomqtBOGSiMpvoxOAwOvj67Q++fr3YbocxNNbo1aHSlBgekAKowxQQm6bMQVC22EzO2mzYOME6sjRwsdlW0yMuJA/ZU0ZmuQuQTZDfMk6Q7EMA1oPT/YQ== ncfs@ht4.renci.org
+
       ;;
    *)
       warn "cycle $CYCLE: $SCENARIO: $THIS: Operator $operator was not recognized."

@@ -809,7 +809,7 @@ prepFile()
     echo "hpc.job.${JOBTYPE}.for.ncpu : $NCPU" >> $ADVISDIR/$ENSTORM/run.properties
     echo "hpc.job.${JOBTYPE}.limit.walltime : $ADCPREPWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
     echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $ADVISDIR/$ENSTORM/run.properties
-   JOBENVSTRING="("
+   JOBENVSTRING="( "
    for string in ${JOBENV[*]}; do
       JOBENVSTRING="$JOBENVSTRING $string"
    done
@@ -1436,7 +1436,6 @@ handleFailedJob()
 variables_init()
 {
 # Initialize variables accessed from config.sh to reasonable values
-   INSTANCENAME=nullInstanceName
    BACKGROUNDMET=on
    TIDEFAC=off
    TROPICALCYCLONE=off
@@ -1553,7 +1552,7 @@ variables_init()
 #
 # Write general properties to the run.properties file that are associated with 
 # the ASGS configuration as well as real time properties specific to this 
-# ensemble member. 
+# scenario. 
 writeProperties()
 {
    STORMDIR=$1
@@ -1626,18 +1625,19 @@ writeProperties()
    # post processing
    echo "post.intendedaudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
    echo "post.executable.initpost : $INITPOST" >> $STORMDIR/run.properties
-   POSTPROCESSSTRING="("
+   POSTPROCESSSTRING="( "
    for script in ${POSTPROCESS[*]}; do
       POSTPROCESSSTRING="$POSTPROCESSSTRING $script"
    done
    POSTPROCESSSTRING="$POSTPROCESSSTRING )"
    echo "post.executable.postprocess : $POSTPROCESSSTRING" >> $STORMDIR/run.properties
    echo "post.opendap.target : $TARGET" >> $STORMDIR/run.properties
-   THREDDS="("
+   THREDDS="( "
    for thredds_data_server in ${TDS[*]}; do
       THREDDS="$THREDDS $thredds_data_server"
    done
    THREDDS="$THREDDS )" 
+   echo "post.opendap.tds : $THREDDS" >> $STORMDIR/run.properties
    echo "post.file.sshkey : $SSHKEY" >> $STORMDIR/run.properties
    # archiving
    echo "archive.executable.archive : $ARCHIVE" >> $STORMDIR/run.properties    
@@ -1722,7 +1722,7 @@ writeTropicalCycloneProperties()
    echo "forcing.tropicalcyclone.forecast.path.fdir : $FDIR" >> $STORMDIR/run.properties   
    echo "forcing.tropicalcyclone.best.ftpsite : $FTPSITE" >> $STORMDIR/run.properties   
    echo "forcing.tropicalcyclone.best.path.hdir : $HDIR" >> $STORMDIR/run.properties
-   # each ensemble member
+   # each scenario
    if [[ $RMAX != default ]]; then
       echo "forcing.tropicalcyclone.enstorm.variation.rmax : $RMAX" >> $STORMDIR/run.properties
    fi
@@ -1770,7 +1770,7 @@ writeJobResourceRequestProperties()
       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.qos : $QOS" >> $STORMDIR/run.properties
    fi
-   JOBENVSTRING="("
+   JOBENVSTRING="( "
    for string in ${JOBENV[*]}; do
       JOBENVSTRING="$JOBENVSTRING $string"
    done
@@ -1828,21 +1828,21 @@ umask 002
 variables_init
 #
 while getopts "c:e:s:h" optname; do    
-  case $optname in
-    c) CONFIG=${OPTARG}
-       if [[ ! -e $CONFIG ]]; then
-          echo "ERROR: $CONFIG does not exist."
-          exit $EXIT_NOT_OK
-       fi 
-       ;;
-    e) HPCENVSHORT=${OPTARG}
-       ;;
-    s) STATEFILE=${OPTARG}
-       ONESHOT=yes
-       ;;
-    h) echoHelp
-       ;;
-  esac
+   case $optname in
+      c) CONFIG=${OPTARG}
+         if [[ ! -e $CONFIG ]]; then
+            echo "ERROR: $CONFIG does not exist."
+            exit $EXIT_NOT_OK
+         fi 
+         ;;
+      e) HPCENVSHORT=${OPTARG}
+         ;;
+      s) STATEFILE=${OPTARG}
+         ONESHOT=yes
+         ;;
+      h) echoHelp
+         ;;
+   esac
 done
 #
 # determine hpc environment via function from platforms.sh

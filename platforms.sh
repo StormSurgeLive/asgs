@@ -308,7 +308,8 @@ init_hatteras()
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/hatteras
   JOBENV=( gdal.sh gmt.sh fftw.sh netcdf.sh )
-  case $operator in 
+  export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
+  case $USER in 
   bblanton) 
      ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
      SCRATCHDIR=/scratch/bblanton/data
@@ -319,7 +320,6 @@ init_hatteras()
      SCRATCHDIR=/scratch/ncfs-dev/data
      PARTITION=ncfs       # ncfs or batch, gives priority
      PYTHONVENV="$HOME/miniconda2"
-     export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
      PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.2.1.1-acis netcdf-Fortran/4.2-acis mvapich2/2.0-acis'
      ;;
   ncfs)
@@ -328,7 +328,8 @@ init_hatteras()
      ACCOUNT=ncfs
      QUEUENAME=ncfs     # SLURM partition---ncfs or batch---gives priority
      PYTHONVENV=~/asgs/asgspy/venv
-     PLATFORMMODULES=$PLATFORMMODULES' python_modules/2.7'
+     PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 zlib/1.2.11_intel-18.0.0'
+     PLATFORMMODULES="$PLATFORMMODULES python_modules/2.7"
      ;;
   *)
      echo "User name $USER on hatteras not recognized and ACCOUNT could not be set."
@@ -347,14 +348,8 @@ init_hatteras()
   # for the automated slide deck generator
   #   pip install --user pptx
   #
-  MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
-  export MODULEPATH
-  PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.2.1.1-acis netcdf-Fortran/4.2-acis'
   PARALLELMODULES='module load mvapich2/2.0-acis' 
   SERIALMODULES='module load' # no extra modules for serial jobs
-  if [[ $USER = ncfs ]]; then
-     PLATFORMMODULES=$PLATFORMMODULES' python_modules/2.7'
-  fi
   module purge
   $PLATFORMMODULES
   $PARALLELMODULES
