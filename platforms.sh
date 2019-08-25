@@ -593,7 +593,7 @@ writeTDSProperties()
 {
    THIS="platforms.sh>writeTDSProperties()"
    scenarioMessage "$THIS: Setting platforms-specific parameters for ${SERVER}."
-   operator=`who am i | awk '{print $1}'`
+   operator=$USER
    SERVER=$1
    CATALOGPREFIX=""    # after thredds/catalog
    DOWNLOADPREFIX=""   # after thredds/fileServer
