@@ -30,6 +30,27 @@ ifeq ($(compiler),gfortran)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal #-Wall
    endif
 endif
+ifeq ($(compiler),intel)
+   FC := ifort
+   FFLAGS := -cpp -shared-intel
+   ifeq ($(DEBUG),trace)
+      FFLAGS := -g -O0 -fpp -traceback 
+   endif
+   ifeq ($(DEBUG),full)
+      FFLAGS := -cpp -g -O0 -traceback -debug all -check all -ftrapuv -fpe0 -shared-intel -DDEBUGSEGFAULT
+   endif
+   # jgf20150616: Added to implement nld's -heap-arrays fix.
+   ifeq ($(HEAP_ARRAYS),fix)
+      FFLAGS := $(FFLAGS) -heap-arrays
+   endif
+endif
+ifeq ($(compiler),pgf90)
+   FC := pgf90
+   FFLAGS := -Mpreprocess -Mextend -Minform,inform -tp=shanghai-64 -fast
+   ifeq ($(DEBUG),full)
+      FFLAGS := -Mextend -g -O0 -traceback -Mbounds -Mchkfpstk -Mchkptr -Mchkstk -DALL_TRACE -DFLUSH_MESSAGES -DFULL_STACK -tp=shanghai-64 -DDEBUGSEGFAULT
+   endif
+endif
 #
 OUTPUTDIR := ../output
 INCLUDES := -I. -I$(OUTPUTDIR)
