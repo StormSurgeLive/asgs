@@ -85,12 +85,12 @@ case $si in
    ENSTORM=nowcast
    ;;
 0)
-   ENSTORM=nhcConsensusWind10m
+   ENSTORM=namforecastWind10m
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
 
    ;;
 1)
-   ENSTORM=nhcConsensus
+   ENSTORM=namforecast
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
