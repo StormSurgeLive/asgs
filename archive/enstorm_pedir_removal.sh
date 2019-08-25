@@ -23,40 +23,32 @@
 # This script gets all the information it needs from the 
 # run.properties file instead of using command line arguments. 
 #----------------------------------------------------------------
-HOTTIFYPATH=/home/ncfs-dev/ADCIRC/v53release/swan
-MACHINE=hatteras
-COMPRESSION=no
-#
-logFile="scenario.log"
-stormdir=$PWD
-REMOVALCMD="rm"
-localLogMessage()
-{
-  LEVEL=$1
-  MSG=$2
-  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  echo "[${DATETIME}] ${SCENARIO}: ${THIS}: ${LEVEL}: ${MSG}" >> $LOGFILE 
-}
-# static initialization
-THIS=enstorm_pedir_removal.sh
-LOGFILE="scenario.log"
-# run configuration
-STORMDIR=`sed -n 's/[ ^]*$//;s/path.stormdir\s*:\s*//p' run.properties`
-SCENARIO=`sed -n 's/[ ^]*$//;s/scenario\s*:\s*//p' run.properties`
-SWANHSCOMPRESSION=`sed -n 's/[ ^]*$//;s/coupling.waves.swan.swanhscompression\s*:\s*//p' run.properties`
-# pull in logging functions 
-SYSLOG=`sed -n 's/[ ^]*$//;s/file.syslog\s*:\s*//p' run.properties`
+THIS=archive/enstorm_pedir_removal.sh
+# this assumes this script is executed in the dirctory that is to be archived
+SCENARIODIR=$PWD
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties`
 . ${SCRIPTDIR}/monitoring/logging.sh
+. ${SCRIPTDIR}/platforms.sh           # contains hpc platform configurations
+. ${SCRIPTDIR}/properties.sh          # contains loadProperties subroutine
+# load properties
+declare -A properties
+loadProperties $SCENARIODIR/run.properties
+CYCLE=${properties['advisory']}
+SCENARIO=${properties['scenario']}
+SCENARIOLOG=${properties["monitoring.logging.file.scenariolog"]}
+CYCLELOG=${properties["monitoring.logging.file.cyclelog"]}
+SYSLOG=${properties["monitoring.logging.file.syslog"]}
+LOGFILE=${SCENARIODIR}/enstorm_pedir_removal.sh.log
+# run configuration
+WAVES=${properties["coupling.waves"]}
+SWANHSCOMPRESSION=${properties["coupling.waves.swan.swanhscompression"]}
 #
-logMessage "Starting cleanup of subdomain (PE*) subdirectories."
-localLogMessage "INFO" "Starting cleanup of subdomain (PE*) subdirectories."
+scenarioMessage "$THIS: Starting cleanup of subdomain (PE*) subdirectories." $LOGFILE
 #
-WAVES=`sed -n 's/[ ^]*$//;s/coupling.waves\s*:\s*//p' run.properties`
 if [[ $WAVES = on ]]; then
-   localLogMessage "INFO" "Wave coupling with SWAN is active."
-   SWANDIR=`sed -n 's/[ ^]*$//;s/path.swandir\s*:\s*//p' run.properties`
-   localLogMessage "INFO" "The path to SWAN executables is ${SWANDIR}."
+   scenarioMessage "$THIS: Wave coupling with SWAN is active." $LOGFILE
+   SWANDIR=${properties["path.swandir"]}
+   scenarioMessage "$THIS: The path to SWAN executables is ${SWANDIR}." $LOGFILE
    #
    # set name of SWAN executable that knits together the subdomain
    # SWAN hotstart files into a fulldomain SWAN hotstart file
@@ -68,10 +60,10 @@ if [[ $WAVES = on ]]; then
       hSWANExe=unhcat.exe
    fi
    if [[ $hSWANExe = null ]]; then
-      localLogMessage "ERROR" "Could not find HottifySWAN.x or unhcat.exe in the directory ${SWANDIR}."
+      warn "cycle $CYCLE: $SCENARIO: $THIS: Could not find HottifySWAN.x or unhcat.exe in the directory '${SWANDIR}'." $LOGFILE
       exit
    else
-      localLogMessage "INFO" "The SWAN hotstart composition executable is ${SWANDIR}/${hSWANExe}." 
+      scenarioMessage "$THIS: The SWAN hotstart composition executable is ${SWANDIR}/${hSWANExe}." $LOGFILE
    fi
    #
    # preserve the swan log file and swan Errfile (if any) so we can see it later
@@ -79,38 +71,38 @@ if [[ $WAVES = on ]]; then
    # is hardcoded here as asgs_swan.prt
    for file in ./PE0000/asgs_swan.prt ./PE0000/Errfile ; do 
       if [[ -e $file ]]; then
-         localLogMessage "INFO" "Preserving SWAN $file file."
-         cp $file . 2>> $LOGFILE
+         scenarioMessage "$THIS: Preserving SWAN $file file." $LOGFILE
+         cp $file . > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not copy '$file' to $PWD: `cat errmsg`." $LOGFILE
       fi
    done
    for file in swan.67 swan.68 ; do
       if [[ -e $file ]]; then
-         localLogMessage "INFO" "Renaming existing fulldomain $file file to ${file}.start."
-         mv $file ${file}.start 2>> $LOGFILE
+         scenarioMessage "Renaming existing fulldomain $file file to ${file}.start." $LOGFILE
+         mv $file ${file}.start > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not rename '$file' to ${file}.start: `cat errmsg`." $LOGFILE
       fi
       # tar up the swan subdomain hotstart files to create a fast
       # start for hotstarted jobs using the same number of processors;
       # then construct fulldomain swan hotstart file(s) and compress
       if [[ -e ./PE0000/$file ]]; then
          (
-            localLogMessage "INFO" "Creating tar archive of subdomain $file files."
-            tar cf ${file}.tar ./PE*/$file 2>> $LOGFILE 2>&1
+            scenarioMessage "$THIS: Creating tar archive of subdomain $file files."
+            tar cf ${file}.tar ./PE*/$file 1> tar.log 2> errmsg && cat tar.log | tee -a $LOGFILE >> $SCENARIOLOG || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not create a tar archive of subdomain $file files: `cat errmsg`." $LOGFILE
             if [[ $SWANHSCOMPRESSION = yes ]]; then 
-               bzip2 ${file}.tar 2>> $LOGFILE 2>&1
+               bzip2 ${file}.tar > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not bzip2 '${file}.tar': `cat errmsg`." $LOGFILE
             fi
-            localLogMessage "INFO" "Finished creating tar archive of subdomain $file files."
+            scenarioMessage "$THIS: Finished creating tar archive of subdomain $file files." $LOGFILE
          ) &
          (
-            localLogMessage "INFO" "Creating fulldomain SWAN hotstart file from subdomain $file files."         
-            ${SWANDIR}/$hSWANExe <<EndInput >> $LOGFILE 2>&1 
+            scenarioMessage "$THIS: Creating fulldomain SWAN hotstart file from subdomain $file files." $LOGFILE        
+            ${SWANDIR}/$hSWANExe <<EndInput | tee $LOGFILE >> $SCENARIOLOG 2>&1 
 1
 $file
 F
 EndInput
             if [[ $SWANHSCOMPRESSION = yes ]]; then
-               bzip2 $file >> $LOGFILE 2>&1 
+               bzip2 $file > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not bzip2 '$file': `cat errmsg`." $LOGFILE
             fi
-            localLogMessage "INFO" "Finished creating fulldomain SWAN hotstart file from subdomain $file files."
+            scenarioMessage "$THIS: Finished creating fulldomain SWAN hotstart file from subdomain $file files." $LOGFILE
          ) &
       fi
    done
@@ -121,20 +113,26 @@ fi
 wait 
 #
 # archive the subdomain fort.16 log files
-tar cjf fort.16.tar.bz2 ./PE*/fort.16 2>> $LOGFILE 2>&1
+tar cjf fort.16.tar.bz2 ./PE*/fort.16 1> tar.log 2> errmsg && cat tar.log | tee -a $LOGFILE >> $SCENARIOLOG || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not create a tar archive of subdomain fort.16 files: `cat errmsg`." $LOGFILE
 #
 #
 # pull in platform-specific value for the command used to remove directories
 # (some platforms have a special command that is nicer for their filesystem)
 REMOVALCMD="rm -rf"
-. ${SCRIPTDIR}/platforms.sh # pick up platform specific config
-HPCENVSHORT=`sed -n 's/[ ^]*$//;s/hpc.hpcenvshort\s*:\s*//p' run.properties`
+HPCENVSHORT=${properties["hpc.hpcenvshort"]}
 env_dispatch ${HPCENVSHORT}
+THIS=archive/enstorm_pedir_removal.sh
 # now delete the subdomain directories
+rm errmsg ; touch errmsg
 for dir in `ls -d PE*`; do 
-   $REMOVALCMD $dir 2>> $LOGFILE
+   $REMOVALCMD $dir 2>> errmsg | tee -a $LOGFILE >> $SCENARIOLOG 
 done
-#$REMOVALCMD metis_graph.txt partmesh.txt fort.80
-$REMOVALCMD partmesh.txt
-logMessage "Finished cleanup of subdomain (PE*) subdirectories."
-localLogMessage "INFO " "Finished cleanup of subdomain (PE*) subdirectories."
+if [[ -s errmsg  ]]; then 
+   warn "cycle $CYCLE: $SCENARIO: $THIS: Could not remove PE subdirectories: `cat errmsg`." $LOGFILE
+fi
+for file in metis_graph.txt partmesh.txt fort.80 ; do
+   if [[ -e $file ]]; then 
+      $REMOVALCMD partmesh.txt
+   fi
+done
+scenarioMessage "$THIS: Finished cleanup of subdomain (PE*) subdirectories." $LOGFILE

@@ -179,15 +179,21 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
   #MSG="RMQ-$MTYPE : $EVENT : $STATE : ${DATETIME} : $MSG"
   PCTCOM=0
   if [ "$#" -eq 6 ] ; then PCTCOM=$6 ; fi
+  #
+  # adding log file specific to RMQMessaging to augment and eventually maybe
+  # replace echoing messages to the console
+  APPLOGFILE=$RUNDIR/RMQMessaging.log
 
   if [[ $RMQADVISORY -lt 0 ]] ; then
 	echo "warn: RMQA ($RMQADVISORY) < 0.  Not sending message ..."
+	appMessage "warn: RMQA ($RMQADVISORY) < 0.  Not sending message ..." $APPLOGFILE
 	return
   fi
 
   re='^[0-9]+([.][0-9]+)?$' 
   if ! [[ $PCTCOM =~ $re ]] ; then
       echo "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message ..." 
+      appMessage "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message ..." $APPLOGFILE
   else
      printf "RMQ : %s : %10s : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" ${INSTANCENAME} ${RMQADVISORY} ${MTYPE} ${EVENT} ${DATETIME} ${STATE} ${PCTCOM} ${PROCESS}  "$5"
 
@@ -211,38 +217,72 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
    fi
 }
 #
+# set the name of the asgs log file
+setSyslogFileName()
+{
+   SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log
+} 
+#
 # write an INFO-level message to the main asgs log file
 logMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] INFO: $@"
-  echo ${MSG} >> ${SYSLOG}
+  MSG="[${DATETIME}] INFO: $1"
+  for syslogfile in $SYSLOG $2 ; do
+    if [[ -e $syslogfile ]]; then
+      echo ${MSG} >> $syslogfile
+    fi
+  done
 }
 #
 # write an INFO-level message to the cycle (or advisory log file)
 cycleMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] INFO: $@"
-  if [[ -e $ADVISDIR/cycle.log ]]; then
-     echo ${MSG} >> $ADVISDIR/cycle.log
-  fi
+  MSG="[${DATETIME}] INFO: $1"
+  for cyclelogfile in $CYCLELOG $2 ; do
+    if [[ -e $cyclelogfile ]]; then
+      echo ${MSG} >> $cyclelogfile
+    fi
+  done
 }
 #
 # write an INFO-level message to the cycle (or advisory log file)
 scenarioMessage()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] INFO: $@"
-  if [[ -e $ADVISDIR/$ENSTORM/scenario.log ]]; then
-     echo ${MSG} >> $ADVISDIR/$ENSTORM/scenario.log
+{ 
+  LOGMESSAGE=$1
+  EXTRALOGFILE=$2
+  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+  MSG="[${DATETIME}] INFO: $LOGMESSAGE"
+  for scenariologfile in $SCENARIOLOG $EXTRALOGFILE ; do
+     if [[ -e $scenariologfile ]]; then
+        echo "${MSG}" >> $scenariologfile
+     fi
+  done
+}
+#
+# write a message to log file associated with a particular script or executable
+# (typically debug messages that would normally just clutter up other log files
+# but come in very handy for occasional troubleshooting) ... the
+# suggested name of the log file is the script or executable name followed by .log
+appMessage()
+{ 
+  LOGMESSAGE=$1
+  APPLOGFILE=$2
+  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+  MSG="[${DATETIME}] DEBUG: $LOGMESSAGE"
+  if [[ -e $RUNDIR ]]; then
+     echo ${MSG} >> $APPLOGFILE
   fi
 }
-
 #
 # send a message to the console (i.e., window where the script was started)
 # (these should be rare)
 consoleMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] INFO: $@"
+  MSG="[${DATETIME}] ATTN: $1"
   echo ${MSG}
+  if [[ -e $2 ]]; then
+     echo ${MSG} >> $2
+  fi
 }
 #
 # send INFO message to main asgs log file, cycle (advisory) log file, as well
@@ -250,18 +290,18 @@ consoleMessage()
 allMessage()
 {
 #   consoleMessage $@
-   logMessage $@
-   cycleMessage $@
-   scenarioMessage $@
+   logMessage $1 $2
+   cycleMessage $1 $2
+   scenarioMessage $1 $2
 }
 #
 # log a warning message, execution continues
 warn()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] WARNING: $@"
-  for file in $SYSLOG $ADVISDIR/cycle.log $ADVISDIR/$ENSTORM/scenario.log ; do
-    if [[ -e $file ]]; then
-      echo ${MSG} >> ${SYSLOG}
+  MSG="[${DATETIME}] WARNING: $1"
+  for warnlogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2 ; do
+    if [[ -e $warnlogfile ]]; then
+      echo ${MSG} >> $warnlogfile
     fi
   done
   #echo ${MSG}  # send to console
@@ -270,11 +310,12 @@ warn()
 # log an error message, notify Operator 
 error()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] ERROR: $@"
+  MSG="[${DATETIME}] ERROR: $1"
   echo ${MSG}  # send to console
-  for file in $SYSLOG $ADVISDIR/cycle.log $ADVISDIR/$ENSTORM/scenario.log ; do
-    if [[ -e $file ]]; then
-      echo ${MSG} >> ${SYSLOG}
+  # added ability for Operator to supply a "local" log file (e.g., postprocess.log)
+  for errorlogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
+    if [[ -e $errorlogfile ]]; then
+      echo ${MSG} >> $errorlogfile
     fi
   done
   # email the operator
@@ -286,14 +327,14 @@ error()
 # log an error message, execution halts
 fatal()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] FATAL ERROR: $@"
-  for file in $SYSLOG $ADVISDIR/cycle.log $ADVISDIR/$ENSTORM/scenario.log ; do
-    if [[ -e $file ]]; then
-      echo ${MSG} >> ${SYSLOG}
+  MSG="[${DATETIME}] FATAL ERROR: $1"
+  for fatallogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
+    if [[ -e $fatallogfile ]]; then
+      echo ${MSG} >> $fatallogfile
     fi
   done
   if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
-     cat ${SYSLOG} | mail -s "[ASGS] Fatal Error for PROCID ($$)" "${ASGSADMIN}"
+     echo $MSG | mail -s "[ASGS] Fatal Error for PROCID ($$)" "${ASGSADMIN}"
   fi
   echo ${MSG} # send to console
   exit ${EXIT_NOT_OK}
@@ -302,6 +343,10 @@ fatal()
 # log a debug message
 debugMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] DEBUG: $@"
-  echo ${MSG} >> $ADVISDIR/$ENSTORM/scenario.log
+  MSG="[${DATETIME}] DEBUG: $1"
+  for debuglogfile in $SCENARIOLOG $2; do
+     if [[ -e $debuglogfile ]]; then
+        echo ${MSG} >> $debuglogfile
+     fi
+  done
 }

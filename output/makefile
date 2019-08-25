@@ -105,8 +105,13 @@ ifeq ($(NETCDF),enable)
    NETCDFPATH  := /usr
    #
    # jgf20150616: Added netcdf paths for stampede at TACC.
-   ifeq ($(MACHINENAME),stampede) 
+   ifeq ($(MACHINENAME),stampede2) 
       NETCDFPATH := /opt/apps/intel17/netcdf/4.3.3.1/x86_64
+      ifeq ($(USER),jgflemin)
+         NETCDFPATH  := $(WORK)/local
+         LIBS        := -L$(WORK)/local/lib
+         LDFLAGS     :=  -lnetcdf -lnetcdff
+      endif
    endif
    # jgf20150716: Added compiler flags for hatteras at RENCI.
    ifeq ($(MACHINENAME),hatteras)
