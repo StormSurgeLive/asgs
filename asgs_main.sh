@@ -1805,7 +1805,7 @@ RMQADVISORY=0  #  "Fake" ADVISORY number for RMQ Messages.
 #   bash asgs_main.sh -c /path/to/config -r /path/to/rundir -e topsail
 #
 # mail alert
-operator=`who am i | awk '{print $1}'`
+operator=$USER
 ASGSADMIN=$operator
 #
 # exit statuses
