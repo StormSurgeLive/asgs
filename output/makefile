@@ -60,6 +60,9 @@ ifeq ($(compiler),gfortran)
    ifeq ($(MACHINENAME),jason-desktop)
       FFLAGS := $(FFLAGS) -DOLDGFORTRAN 
    endif
+   ifeq ($(MACHINENAME),vagrant)
+      FFLAGS := $(FFLAGS) -DOLDGFORTRAN
+   endif
    ifeq ($(DEBUG),trace)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace 
    endif

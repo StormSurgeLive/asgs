@@ -1,4 +1,4 @@
-Before you run install-hdf5-netcdf4.sh, read through the following to
+Before you run init-hdf5-netcdf4.sh, read through the following to
 undertand what it's going to do.
 
 1. downloads source files from the following URLs:
