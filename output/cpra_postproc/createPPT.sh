@@ -25,41 +25,48 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
 #--------------------------------------------------------------------------
-THIS="cpra_postproc/createPPT.sh"
+THIS="output/cpra_postproc/createPPT.sh"
 batchJOBTYPE=cpra.figuregen
 postJOBTYPE=cpra.post
-#
 #
 #--------------------------------------------------------------------------
 #       GATHER PROPERTIES
 #--------------------------------------------------------------------------
-SYSLOG=`sed -n 's/[ ^]*$//;s/asgs.file.syslog\s*:\s*//p' run.properties`
-# STORMDIR: path where this ensemble member is supposed to run 
-STORMDIR=`sed -n 's/[ ^]*$//;s/asgs.path.stormdir\s*:\s*//p' run.properties`
-LOGFILE=${STORMDIR}/${postJOBTYPE}.log
-# ensemble member name
-ENSTORM=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
-echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Creating pptx." >> $LOGFILE
-#
-POSTPROCDIR=`sed -n 's/[ ^]*$//;s/post.path.cpra.post.postprocdir\s*:\s*//p' run.properties`
-fname=`sed -n 's/[ ^]*$//;s/post.file.cpra.figuregen.maxele.fname\s*:\s*//p' run.properties`
-coldStartTime=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' run.properties`
-TROPCIALCYCLONE=`sed -n 's/[ ^]*$//;0,/config.forcing.tropicalcyclone/{s/config.forcing.tropicalcyclone\s*:\s*//p}' run.properties` 
+# SCRIPTDIR: path to asgs scripts like asgs_main.sh; assumes $PWD is same as $SCENARIODIR
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties` 
+. ${SCRIPTDIR}/monitoring/logging.sh
+. ${SCRIPTDIR}/platforms.sh           # contains hpc platform configurations
+. ${SCRIPTDIR}/properties.sh          # contains loadProperties subroutine
+# load properties
+declare -A properties
+loadProperties run.properties # assumes $PWD is same as $SCENARIODIR
+SCENARIODIR=${properties["path.scenariodir"]}
+LOGFILE=${SCENARIODIR}/${postJOBTYPE}.log
+SYSLOG=${properties["monitoring.logging.file.syslog"]}
+CYCLELOG=${properties["monitoring.logging.file.cyclelog"]}
+SCENARIOLOG=${properties["monitoring.logging.file.scenariolog"]}
+SCENARIO=${properties["scenario"]}
+scenarioMessage "$SCENARIO: $THIS: Creating pptx." $LOGFILE
+POSTPROCDIR=${properties["post.path.cpra.post.postprocdir"]}
+fname=${properties["post.file.cpra.figuregen.maxele.fname"]}
+coldStartTime=${properties["adcirc.time.coldstartdate"]}
+TROPCIALCYCLONE=${properties["forcing.tropicalcyclone"]} 
 if [[ $TROPICALCYCLONE != "off" ]]; then
    # Parse run.properties to get storm name and ensemble
-   storm=`sed -n '0,/stormname/{s/[ ^]*$//;s/stormname\s*:\s*//p}' run.properties`
+   stormname=${properties["forcing.tropicalcyclone.stormname"]}
 else
-   storm=NAM #FIXME: make this more general
+   stormname=NAM #FIXME: make this more general
 fi
-enstorm=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
-# Parse run.properties to get advisory
-advisory=`sed -n 's/[ ^]*$//;s/advisory\s*:\s*//p' run.properties`
-# Parse run.properties to get forecast advisory start time
-forecastValidStart=`sed -n 's/[ ^]*$//;s/forecastValidStart\s*:\s*//p' run.properties`
-# get mesh file name
-grid=`sed -n 's/[ ^]*$//;s/adcirc.gridname\s*:\s*//p' run.properties`
-# HPCENVSHORT: shorthand for the HPC environment: queenbee, hatteras, etc
-HPCENVSHORT=`sed -n 's/[ ^]*$//;s/hpc.hpcenvshort\s*:\s*//p' run.properties`
+advisory=${properties["advisory"]}
+forecastValidStart=${properties["forecastValidStart"]}
+grid=${properties["adcirc.gridname"]}
+HPCENVSHORT=${properties["hpc.hpcenvshort"]}
+# pull in platform-specific configuration (specifically MCRROOT and MATLABEXE)
+env_dispatch $HPCENVSHORT
+THIS="output/cpra_postproc/createPPT.sh" # must reset after env_dispatch()
+#
+echo "post.path.cpra.post.mcrroot : $MCRROOT" >> $SCENARIODIR/run.properties
+echo "post.cpra.post.matlabexe : $MATLABEXE" >> $SCENARIODIR/run.properties
 #
 # create strings to represent time in UTC and CDT
 coldStartTimeUTC="${coldStartTime:0:8} ${coldStartTime:8:4} UTC"
@@ -74,10 +81,10 @@ echo "time.forecast.valid.cdt : $forecastValidStartCDT" >> run.properties
 #--------------------------------------------------------------------------
 #      WRITE PROPERTIES FOR MATLAB 
 #--------------------------------------------------------------------------
-#echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Writing properties for matlab." >> $LOGFILE
+#echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $SCENARIO: $THIS: Writing properties for matlab." >> $LOGFILE
 #oFile=cpraHydro.info
-#echo $storm > $oFile
-#echo $enstorm >> $oFile
+#echo $stormname > $oFile
+#echo $SCENARIO >> $oFile
 #echo $grid >> $oFile
 #echo $forecastValidStartCDT >> $oFile
 #echo $coldStartTimeCDT >> $oFile
@@ -95,27 +102,17 @@ export MATLABPATH=${POSTPROCDIR}/
 #--------------------------------------------------------------------------
 #       RUN MATLAB SCRIPT TO GENERATE HYDROGRAPH IMAGES
 #--------------------------------------------------------------------------
-echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Executing matlab." >> $LOGFILE
+scenarioMessage "$SCENARIO: $THIS: Executing matlab." $LOGFILE
 PLOTCMD=""
-case $HPCENVSHORT in
-    queenbee)
-        PLOTCMD="${POSTPROCDIR}/Matlab_QB2/run_cpra_hydrograph_plotter.sh /usr/local/packages/license/matlab/r2017a"
-        ;;
-    supermike)
-        PLOTCMD="${POSTPROCDIR}/Matlab_SuperMike/run_cpra_hydrograph_plotter.sh /usr/local/packages/license/matlab/r2017a"
-        ;;
-    supermic)
-        PLOTCMD="${POSTPROCDIR}/Matlab_supermic/run_cpra_hydrograph_plotter.sh /usr/local/packages/license/matlab/r2017a"
-        ;;
-    hatteras)
-        PLOTCMD='matlab -nodisplay -nosplash -nodesktop -r "run cpra_hydrograph_plotter.m, exit"'
-        ;;
-    *)
-        error "HPC platform $HPCENVSHORT not recognized."
-        ;;
-esac
-eval "$PLOTCMD" >> $LOGFILE 2>&1
-echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Finished executing matlab." >> $LOGFILE
+if [[ $MATLABEXE = "mex" ]]; then
+   # MCRROOT is set in platforms.sh
+   MEXFILE="${POSTPROCDIR}/MEX/cpra_hydrograph_plotter_${HPCENVSHORT}.mex"
+   PLOTCMD="${POSTPROCDIR}/MEX/run_mex.sh $MCRROOT $MEXFILE"
+else
+   PLOTCMD='matlab -nodisplay -nosplash -nodesktop -r "run cpra_hydrograph_plotter.m, exit"'
+fi
+$PLOTCMD 2>&1 | tee -a $LOGFILE >> $SCENARIOLOG
+scenarioMessage "$SCENARIO: $THIS: Finished executing matlab." $LOGFILE
 #--------------------------------------------------------------------------
 #
 #
@@ -124,24 +121,25 @@ echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Finished executing ma
 #--------------------------------------------------------------------------
 # If there is a maxele.63.nc, wait until associated FigureGen job is complete
 if [[ -f maxele.63.nc ]]; then
-   echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Checking to see if FigureGen job is complete." >> $LOGFILE
-   STARTPOST=`sed -n 's/[ ^]*$//;s/time.hpc.job.cpra.figuregen.*.start\s*:\s*//p' run.properties`  
+   scenarioMessage "$SCENARIO: $THIS: Checking to see if FigureGen job is complete." $LOGFILE
+   loadProperties $SCENARIODIR/run.properties 
+   STARTPOST=${properties["time.hpc.job.cpra.figuregen.start"]}  
    if [[ ! -z $STARTPOST ]]; then
       waitSeconds=0
       until [[ $waitSeconds -gt 300 ]]; do 
          FINISHPOST=""
-         FINISHPOST=`sed -n 's/[ ^]*$//;s/time.hpc.job.cpra.figuregen.*.finish\s*:\s*//p' run.properties`            
+         FINISHPOST=${properties["time.hpc.job.cpra.figuregen.finish"]}            
          if [[ $FINISHPOST != "" ]]; then
-            echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: FigureGen maxele job finished." >> $LOGFILE
+            scenarioMessage "$SCENARIO: $THIS: FigureGen maxele job finished." $LOGFILE
             break
          fi
          ERRORPOST=""
-         ERRORPOST=`sed -n 's/[ ^]*$//;s/time.hpc.job.cpra.figuregen.*.error\s*:\s*//p' run.properties`            
+         ERRORPOST=${properties["time.hpc.job.cpra.figuregen.error"]}            
          if [[ $ERRORPOST != "" ]]; then
-            echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: FigureGen maxele job exited with an error." >> $LOGFILE
+            warn "$SCENARIO: $THIS: FigureGen maxele job exited with an error." $LOGFILE
             break
          fi
-         echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Waiting for FigureGen maxele job to complete." >> $LOGFILE
+         scenarioMessage "$SCENARIO: $THIS: Waiting for FigureGen maxele job to complete." $LOGFILE
          sleep 10
          waitSeconds=`expr $waitSeconds + 10`
       done
@@ -150,9 +148,9 @@ fi
 #--------------------------------------------------------------------------
 #       RUN PYTHON SCRIPT TO GENERATE PPT SLIDE DECK
 #--------------------------------------------------------------------------
-echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Building pptx with buildPPT.py." >> $LOGFILE
-cp ${POSTPROCDIR}/LSU_template.pptx ${STORMDIR}
-python ${POSTPROCDIR}/buildPPT.py ${fname} 2>&1 | tee -a $LOGFILE | tee -a scenario.log >> $SYSLOG
+scenarioMessage "$SCENARIO: $THIS: Building pptx with buildPPT.py." $LOGFILE
+cp ${POSTPROCDIR}/LSU_template.pptx ${SCENARIODIR} > errmsg 2>&1 || warn "cycle $advisory: $SCENARIO: $THIS: Could not copy ${POSTPROCDIR}/LSU_template.pptx to '$SCENARIODIR': `cat errmsg`." $LOGFILE
+python ${POSTPROCDIR}/buildPPT.py ${fname} 2>&1 | tee -a $LOGFILE >> $SCENARIOLOG
 #rm LSU_template.pptx
 #--------------------------------------------------------------------------
 #
@@ -160,19 +158,18 @@ python ${POSTPROCDIR}/buildPPT.py ${fname} 2>&1 | tee -a $LOGFILE | tee -a scena
 #--------------------------------------------------------------------------
 #       E-MAIL PPT AS ATTACHMENT
 #--------------------------------------------------------------------------
-echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Sending email." >> $LOGFILE
+scenarioMessage "$SCENARIO: $THIS: Sending email." $LOGFILE
 #emailList='mbilsk3@lsu.edu matt.bilskie@gmail.com jason.fleming@seahorsecoastal.com ckaiser@cct.lsu.edu'
 #emailList='mbilsk3@lsu.edu'
 emailList='jason.fleming@scimaritan.org'
-TROPCIALCYCLONE=`sed -n 's/[ ^]*$//;0,/config.forcing.tropicalcyclone/{s/config.forcing.tropicalcyclone\s*:\s*//p}' run.properties` 
 if [[ $TROPICALCYCLONE != "off" ]]; then
-   subjectLine="$storm Advisory $advisory PPT"
+   subjectLine="$stormname Advisory $advisory PPT"
    message="This is an automated message from the ADCIRC Surge Guidance System (ASGS).
-New results are attached for STORM $storm ADVISORY $advisory issued on $forecastValidStartCDT CDT"
+New results are attached for STORM $stormname ADVISORY $advisory issued on $forecastValidStartCDT CDT"
 else
-   subjectLine="$storm Cycle $advisory PPT"
+   subjectLine="$stormname Cycle $advisory PPT"
    message="This is an automated message from the ADCIRC Surge Guidance System (ASGS).
-New results are attached for $storm Cycle $advisory issued on $forecastValidStartCDT CDT"
+New results are attached for $stormname Cycle $advisory issued on $forecastValidStartCDT CDT"
 fi
 # double quotes because the file name may have a space in it
 attachFile="$(cat pptFile.temp)" 
@@ -186,22 +183,25 @@ attachFile="$(cat pptFile.temp)"
 # clients being bombarded with redundant successful slide decks from 
 # primary and multiple backup ASGSes ... however all Operators will get
 # slide decks from all ASGSes on every ensemble member of every advisory ...
-case $HPCENVSHORT in
-   queenbee)
+#emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu'
+emailList='jason.fleming@scimaritan.org'
+#
+#case $HPCENVSHORT in
+#   queenbee)
       #emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com ckaiser@cct.lsu.edu shagen@lsu.edu rtwilley@lsu.edu Ignacio.Harrouch@la.gov rick_luettich@unc.edu Billy.Wall@la.gov Stephen.Amato@la.gov Heath.E.Jones@usace.army.mil Maxwell.E.Agnew@usace.army.mil David.A.Ramirez@usace.army.mil'
       #emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu nathan.dill@ransomenv.com ckaiser@cct.lsu.edu shagen@lsu.edu rtwilley@lsu.edu rick_luettich@unc.edu'
-      emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu'
-      ;;
-   hatteras|stampede|lonestar)
-      emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu'
-      ;;
-   *)
-      error "HPC platform $HPCENVSHORT not recognized."
-      ;;
-esac
+#      emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu'
+#      ;;
+#   hatteras|stampede|lonestar)
+#      emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu'
+#      ;;
+#   *)
+#      error "HPC platform $HPCENVSHORT not recognized."
+#      ;;
+#esac
 # load asgs operator email address for the reply-to field
-ASGSADMIN=`grep "notification.email.asgsadmin" ${STORMDIR}/run.properties | sed 's/notification.email.asgsadmin.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
-echo "$message" | mail -S "replyto=$ASGSADMIN" -s "$subjectLine" -a "$attachFile" $emailList
+ASGSADMIN=${properties["notification.email.asgsadmin"]}
+echo "$message" | mail -S "replyto=$ASGSADMIN" -s "$subjectLine" -a "$attachFile" $emailList > errmsg 2>&1 || warn "cycle $advisory: $SCENARIO: $THIS: Failed to send CPRA slide deck email to $emailList: `cat errmsg`." $LOGFILE
 #--------------------------------------------------------------------------
 #
 #--------------------------------------------------------------------------
@@ -210,9 +210,9 @@ echo "$message" | mail -S "replyto=$ASGSADMIN" -s "$subjectLine" -a "$attachFile
 #       IS NEEDED
 #--------------------------------------------------------------------------
 emailList='mbilsk3@lsu.edu'
-subjectLine="$storm Advisory $advisory FigureGen"
+subjectLine="$stormname Advisory $advisory FigureGen"
 message="This is an automated message from the ADCIRC Surge Guidance System (ASGS).
-FigureGen results are attached for STORM $storm ADVISORY $advisory issued on $forecastValidStartCDT CDT"
+FigureGen results are attached for STORM $stormname ADVISORY $advisory issued on $forecastValidStartCDT CDT"
 attachFile=$fname
 #--------------------------------------------------------------------------
 #       CLEAN UP

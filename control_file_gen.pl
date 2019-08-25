@@ -192,7 +192,7 @@ if ( $stormDir eq "null" ) {
    $stormDir = $advisdir."/".$enstorm;
 }
 #
-# create a dictionary of properties from run.properties
+# create a hash of properties from run.properties
 my %runProp; 
 # open properties file 
 unless (open(RUNPROP,"<$stormDir/run.properties")) {
