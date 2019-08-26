@@ -27,11 +27,11 @@
 
 # Fundamental
 
-INSTANCENAME=neflga_nam_jgf      # "name" of this ASGS process
+INSTANCENAME=southfl_nam_jgf      # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=neflga_v12_geo
+GRIDNAME=southfl_v11-1_final
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
@@ -56,7 +56,7 @@ NCPUCAPACITY=3648
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general # can also be "developers-only" or "professional"
+INTENDEDAUDIENCE=professional    # can also be "developers-only" or "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com" # space delimited list
