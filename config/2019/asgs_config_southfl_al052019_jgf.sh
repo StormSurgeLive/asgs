@@ -27,45 +27,47 @@
 
 # Fundamental
 
-INSTANCENAME=neflga_nam_jgf      # "name" of this ASGS process
+INSTANCENAME=southfl_al052019_jgf      # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=neflga_v12_geo
+GRIDNAME=southfl_v11-1_final
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
-TIDEFAC=on            # tide factor recalc
-   HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on      # NAM download/forcing
+TIDEFAC=on               # tide factor recalc
+   HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
+BACKGROUNDMET=off        # NAM download/forcing
    FORECASTCYCLE="06"
-TROPICALCYCLONE=off   # tropical cyclone forcing
-   STORM=99                         # storm number, e.g. 05=ernesto in 2006
-   YEAR=2016                        # year of the storm
-WAVES=off             # wave forcing
+TROPICALCYCLONE=on       # tropical cyclone forcing
+   STORM=05              # storm number, e.g. 05=ernesto in 2006
+   YEAR=2019             # year of the storm
+WAVES=on                 # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
-VARFLUX=off           # variable river flux forcing
+VARFLUX=off               # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
 NCPU=479                     # number of compute CPUs for all simulations
-NUMWRITERS=1
 NCPUCAPACITY=3648
+NUMWRITERS=1
+ACCOUNT=null
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general # can also be "developers-only" or "professional"
+INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com" # space delimited list
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
+NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2019072200  # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart       # "hotstart" or "coldstart" ; only used for initial run
-LASTSUBDIR=null           # only for initialization; uses STATEFILE thereafter
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart
+LASTSUBDIR=htt...
 
 # Scenario package
 
@@ -80,19 +82,16 @@ case $si in
        ENSTORM=nowcast
        ;;
     0)
-       ENSTORM=namforecastWind10m
+       ENSTORM=nhcConsensusWind10m
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
     1)
-       ENSTORM=namforecast
+       ENSTORM=nhcConsensus
        ;;
     *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
       ;;
 esac
-
-# must be at the very end b/c filename intentionally depends on 
-# parameters set above
 
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
