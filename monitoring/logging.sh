@@ -184,7 +184,7 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
   # replace echoing messages to the console
   APPLOGFILE=$RUNDIR/RMQMessaging.log
 
-  if [[ $RMQADVISORY -lt 0 ]] ; then
+  if [[ 10#$RMQADVISORY -lt 0 ]] ; then
 	echo "warn: RMQA ($RMQADVISORY) < 0.  Not sending message ..."
 	appMessage "warn: RMQA ($RMQADVISORY) < 0.  Not sending message ..." $APPLOGFILE
 	return
