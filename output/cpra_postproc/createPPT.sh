@@ -111,7 +111,7 @@ if [[ $MATLABEXE = "mex" ]]; then
 else
    PLOTCMD='matlab -nodisplay -nosplash -nodesktop -r "run cpra_hydrograph_plotter.m, exit"'
 fi
-$PLOTCMD 2>&1 | tee -a $LOGFILE >> $SCENARIOLOG
+eval "$PLOTCMD" 2>&1 | tee -a $LOGFILE >> $SCENARIOLOG
 scenarioMessage "$SCENARIO: $THIS: Finished executing matlab." $LOGFILE
 #--------------------------------------------------------------------------
 #

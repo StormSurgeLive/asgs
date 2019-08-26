@@ -131,6 +131,11 @@ ifeq ($(NETCDF),enable)
    ifeq ($(MACHINENAME),queenbee)
       NETCDFPATH  := /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0
    endif
+   # jgf20150720: Added compiler flags for queenbee at LONI.
+   ifeq ($(MACHINENAME),supermic)
+      NETCDFPATH  := /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0
+      LDFLAGS     :=  -lnetcdf
+   endif
    # jgf20150817: Added compiler flags for garnet at ERDC.
    ifeq ($(MACHINENAME),garnet)
       NETCDFPATH  := /opt/cray/netcdf/4.3.0/pgi/121
