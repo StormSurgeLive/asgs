@@ -2020,10 +2020,6 @@ if [[ $VARFLUX = on || $VARFLUX = default ]]; then
 fi
 #
 checkFileExistence $INPUTDIR "ADCIRC mesh file" $GRIDFILE
-# jgfdebug
-echo "CONTROLTEMPLATE is '$CONTROLTEMPLATE'"
-allMessage "CONTROLTEMPLATE is '$CONTROLTEMPLATE'"
-
 checkFileExistence $INPUTDIR "ADCIRC template fort.15 file" $CONTROLTEMPLATE
 if [[ $ELEVSTATIONS != null ]]; then
    checkFileExistence $INPUTDIR "ADCIRC elevation stations file" $ELEVSTATIONS
