@@ -168,6 +168,7 @@ if [[ -f maxele.63.nc ]]; then
     echo "hpc.job.${batchJOBTYPE}.limit.walltime : 01:00:00" >> $SCENARIODIR/run.properties
     echo "hpc.job.${batchJOBTYPE}.serialmodules : $SERIALMODULES" >> $SCENARIODIR/run.properties 
     echo "hpc.job.${batchJOBTYPE}.path.jobenvdir : $JOBENVDIR" >> $SCENARIODIR/run.properties 
+    JOBENV=( gmt.sh gdal.sh imagemagick.sh )
     JOBENVSTRING="("
     for string in ${JOBENV[*]}; do
        JOBENVSTRING="$JOBENVSTRING $string"
@@ -176,6 +177,9 @@ if [[ -f maxele.63.nc ]]; then
     echo "hpc.job.${batchJOBTYPE}.jobenv : $JOBENVSTRING" >> $SCENARIODIR/run.properties 
     echo "hpc.job.${batchJOBTYPE}.cmd : ${POSTPROCDIR}/FigureGen -I FG51_SELA_maxele.inp" >> $SCENARIODIR/run.properties 
     # now submit the job
+    if [[ ! -e ${POSTPROCDIR}/FigureGen ]]; then
+       error "Need to compile ${POSTPROCDIR}/FigureGen." $LOGFILE
+    fi
     scenarioMessage "$SCENARIO: $THIS: Submitting FigureGen job." $LOGFILE
     perl ${SCRIPTDIR}/qscript.pl --jobtype $batchJOBTYPE 2>&1 | tee -a $SCENARIOLOG >> $LOGFILE
     #
