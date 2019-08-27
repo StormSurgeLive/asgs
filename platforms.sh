@@ -294,6 +294,7 @@ init_hatteras()
   QSUMMARYCMD=null
   QUOTACHECKCMD="df -h /projects/ncfs"
   ALLOCCHECKCMD=null
+  TDS=(renci_tds lsu_tds)
   # 
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   #
@@ -316,11 +317,16 @@ init_hatteras()
      PYTHONVENV=/projects/storm_surge/anaconda
      ;;
   ncfs-dev)
+     ADCIRCDIR="${HOME}/ADCIRC/v53release/work" # ADCIRC executables
+     SWANDIR="${HOME}/ADCIRC/v53release/swan" # ADCIRC executables
+     SCRATCHDIR=/scratch/ncfs-dev/
      ACCOUNT=ncfs-dev
-     SCRATCHDIR=/scratch/ncfs-dev/data
      PARTITION=ncfs       # ncfs or batch, gives priority
      PYTHONVENV="$HOME/miniconda2"
-     PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.2.1.1-acis netcdf-Fortran/4.2-acis mvapich2/2.0-acis'
+     RMQMessaging_NcoHome="${HOME}"
+     RMQMessaging_Python="${PYTHONENV}/bin/python"
+     PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.1.2-acis mvapich2/2.0-acis'
+     TDS=(renci_tds)
      ;;
   ncfs)
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
@@ -338,7 +344,6 @@ init_hatteras()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCHDIR
   ARCHIVEDIR=$SCRATCHDIR
-  TDS=(renci_tds lsu_tds)
   # to create python environment for the ncfs user, @jasonfleming did this:
   #   pip install --user --upgrade pip
   #   pip install --user --upgrade setuptools
