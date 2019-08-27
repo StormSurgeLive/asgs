@@ -27,6 +27,26 @@ allMessage "$THIS: Setting default values for the Operator '${operator}'."
 # set values based on Operator ... not basing this on $USER b/c on some platforms (e.g., hatteras)
 # user name is ambiguous
 case $operator in
+   "ncfs-dev")
+      op="bob"
+      # RMQ
+      RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+      RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
+      NOTIFY_SCRIPT=ncfs_nam_notify.sh
+      ems="bblanton@renci.org"
+      EMAILNOTIFY=yes         # no | yes to have host HPC platform email notifications
+      ACTIVATE_LIST="$ems"
+      NEW_ADVISORY_LIST="$ems"
+      POST_INIT_LIST=null
+      POST_LIST=null
+      # opendap email notification
+      OPENDAPNOTIFY="bblanton@renci.org"
+      #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com" 
+      # the following are related to job failure
+      JOB_FAILED_LIST="bblanton@renci.org"
+      NOTIFYUSER="bblanton@renci.org"
+      ASGSADMIN="bblanton@renci.org"
+      ;;
    "jgflemin"|"ncfs")
       op="jgf"                      # initials as nickname for appending to asgs instance names
       # RMQ
