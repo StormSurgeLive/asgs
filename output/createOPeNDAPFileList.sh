@@ -53,6 +53,7 @@ SYSLOG=${properties['monitoring.logging.file.syslog']}
 SSHKEY=${properties['post.file.sshkey']}
 HPCENVSHORT=${properties['hpc.hpcenvshort']}
 HPCENV=${properties['hpc.hpcenv']}
+WAVES=${properties['coupling.waves']}
 TROPICALCYCLONE=${properties['forcing.tropicalcyclone']}
 if [[ $TROPICALCYCLONE != "off" ]]; then
    STORM=${properties['forcing.tropicalcyclone.stormnumber']}
