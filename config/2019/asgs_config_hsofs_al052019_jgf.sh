@@ -72,7 +72,7 @@ LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/20190825
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2 
+SCENARIOPACKAGESIZE=6
 case $si in
    -2) 
        ENSTORM=hindcast
@@ -87,6 +87,26 @@ case $si in
        ;;
     1)
        ENSTORM=nhcConsensus
+       ;;
+
+    2)
+       ENSTORM=veerRight100Wind10m
+       PERCENT=100
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    3)
+       ENSTORM=veerRight100
+       PERCENT=100
+       ;;
+
+    4)
+       ENSTORM=veerLeft100Wind10m
+       PERCENT=-100
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    5)
+       ENSTORM=veerLeft100
+       PERCENT=-100
        ;;
     *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
