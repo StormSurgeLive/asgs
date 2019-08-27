@@ -32,6 +32,7 @@ case $GRIDNAME in
       GRIDFILE=LA_v19k-WithUpperAtch_chk.grd   # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=LA_v19k-WithUpperAtch.15.template
+      # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=LA_v19k-WithUpperAtch.nowindreduction.15.template
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=combined_stations_20190327.txt
@@ -59,6 +60,7 @@ case $GRIDNAME in
       GRIDFILE=ec_95d.grd   # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=ec_95_fort.15_template   # fort.15 template
+      # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=ec_95_nowindreduction.fort.15_template
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=cera_stations.txt
@@ -84,6 +86,7 @@ case $GRIDNAME in
       GRIDFILE=tx2008_r35h.grd # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=tx2008r35h_template.15   # fort.15 template
+      # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=tx2008r35h_norough_template.15
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=tx2008r35h_stations_20170618.txt
@@ -109,6 +112,7 @@ case $GRIDNAME in
       GRIDFILE=neflga_v12_geo.14 # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=neflga_v12_geo_template.15   # fort.15 template
+      # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=neflga_v12_geo_norough_template.15
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=neflga_stations_20190809.txt
@@ -134,6 +138,7 @@ case $GRIDNAME in
       GRIDFILE=nc_inundation_v9.99a_w_rivers.grd
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
+      # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=nc_9.99wrivers.nowindreduction.fort.15.template
       CONTROLPROPERTIES=fort.15.properties
       ELEVSTATIONS=ncv999_stations_20180907.txt
@@ -159,6 +164,7 @@ case $GRIDNAME in
       GRIDFILE=hsofs.14  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.nc.properties
       CONTROLTEMPLATE=hsofs_explicit.15.template
+      # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=hsofs.nowindreduction.15.template
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties 
       ELEVSTATIONS=hsofs_stations_20180907.txt
@@ -172,6 +178,32 @@ case $GRIDNAME in
       HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
       TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
+      SWANDT=1200                 # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      ;;
+   "southfl_v11-1_final")
+      INPUTDIR=$SCRIPTDIR/input/meshes/southfl    
+      GRIDFILE=southfl_v11-1_final.grd
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=southfl-v11-1.template.15
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=southfl-v11-1.nowindreduction.template.15
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=southfl_stations_20190502.txt
+      VELSTATIONS=southfl_stations_20190502.txt
+      METSTATIONS=southfl_stations_20190502.txt
+      NAFILE=southfl_v11-1_final-production.13
+      NAPROPERTIES=${NAFILE}.properties
+      SWANTEMPLATE=fort.26.nolimiter.template
+      RIVERINIT=null                           # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
       SWANDT=1200                 # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
