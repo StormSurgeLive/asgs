@@ -44,7 +44,7 @@ TROPICALCYCLONE=on       # tropical cyclone forcing
    STORM=05              # storm number, e.g. 05=ernesto in 2006
    YEAR=2019             # year of the storm
 WAVES=on                 # wave forcing
-   REINITIALIZESWAN=yes   # used to bounce the wave solution
+   REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off               # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
 
@@ -72,7 +72,7 @@ LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/20190825
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=6
+SCENARIOPACKAGESIZE=4
 case $si in
    -2) 
        ENSTORM=hindcast
