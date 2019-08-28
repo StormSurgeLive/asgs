@@ -5,5 +5,5 @@ if [ ! -d $HOME/asgs ]; then
 fi
 
 cd ./asgs
-git checkout issue-107-vagrant
+git checkout master
 ./cloud/general/asgs-brew.pl --install-path=$HOME/opt --compiler=gfortran --machinename=vagrant --make-jobs=2
