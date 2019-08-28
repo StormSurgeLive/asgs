@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ ! -d $HOME/asgs ]; then
-  git clone https://github.com/wwlwpd/asgs.git
+  https://github.com/jasonfleming/asgs.git
 fi
 
 cd ./asgs
