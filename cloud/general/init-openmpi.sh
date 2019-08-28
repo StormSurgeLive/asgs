@@ -22,12 +22,15 @@ if [ $COMPILER == "intel" ]; then
   export CC=icc
   export FC=ifort
   export CXX=icpc
+  echo "--prefix adjusted to $OPT"
 fi
 if [ $COMPILER == "gfortran" ]; then 
   export CC=gcc
   export FC=gfortran
   export CXX=g++
 fi
+OPT=${OPT}/$COMPILER
+echo "--prefix adjusted to $OPT"
 
 mkdir -p $TMP
 if [ ! -d $OPT ]; then
