@@ -185,6 +185,8 @@ sub _run_command {
     # choose command to run
     my $command = ( not $opts_ref->{clean} ) ? $op->{command} : $op->{clean_command};
 
+    return 1 if not defined $command;
+
     local $| = 1;
 
     print qq{\n$command\n};
@@ -195,11 +197,13 @@ sub _run_command {
 
 sub _print_summary {
     my ( $self, $opts_ref ) = @_;
+
     return 1 if $opts_ref->{clean};
     print q{-} x 45 . qq{\nSummary of updated environmental variables (these need to be added to ~/.bash_profile or similar):\n\n};
     foreach my $envar ( keys %$AFFECTED_ENV_VARS ) {
         printf( qq{export %s=%s\n}, $envar, $ENV{$envar} );
     }
+
     return 1;
 }
 
@@ -372,7 +376,7 @@ sub get_steps {
         {
             key           => q{perlbrew},
             name          => q{Step for perlbrew and perl for ASGS},
-            description   => q{Installs local Perl environment used for ASGS.},
+            description   => q{Installs local Perl version used for ASGS.},
             pwd           => q{./},
             command       => q{bash ./cloud/general/init-perlbrew.sh},
             clean_command => q{bash ./cloud/general/init-perlbrew.sh clean},
@@ -392,6 +396,15 @@ sub get_steps {
                 my ( $op, $opts_ref ) = @_;
                 return -e qq{$home/perl5/perlbrew/etc/bashrc};
             },
+        },
+        {
+            key                 => q{perl-modules},
+            name                => q{Step for installing required Perl modulesS},
+            description         => q{Installs local Perl modules used for ASGS.},
+            pwd                 => q{./},
+            command             => q{bash ./cloud/general/init-perl-modules.sh},
+            clean_command       => q{},
+            precondition_check  => sub { return ( -e qq{$home/perl5/perlbrew/perls/perl-5.28.2/bin/perl} ) ? 1 : 0 },
         },
     ];
     return $steps;
