@@ -211,6 +211,32 @@ case $GRIDNAME in
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       ;;
+   "eccl_v7_geo_z")
+      INPUTDIR=$SCRIPTDIR/input/meshes/cenfl    
+      GRIDFILE=eccl_v7_geo_z.grd
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=cenfl.fort.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=cenfl.norough.fort.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=cenfl_stations_20190809.txt
+      VELSTATIONS=${ELEVSTATIONS}
+      METSTATIONS=${ELEVSTATIONS}
+      NAFILE=cenfl_v7.13
+      NAPROPERTIES=${NAFILE}.properties
+      SWANTEMPLATE=fort.26.nolimiter.template
+      RIVERINIT=null                           # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=1.0            # adcirc time step size (seconds)
+      SWANDT=1200                 # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      ;;
    *)
       warn "cycle $CYCLE: $SCENARIO: $THIS: Mesh GRIDNAME $GRIDNAME was not recognized."
       ;;
