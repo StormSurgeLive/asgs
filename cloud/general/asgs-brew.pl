@@ -114,6 +114,7 @@ sub _run_steps {
 
         # augment ENV based on $op->{export_ENV}
         $self->_setup_ENV( $op, $opts_ref );
+        next RUN_STEPS if $opts_ref->{'dump-env'};
 
         # check for skip condition for run step, unless --force is used
         # if op is contained in --debug-skip-steps list then the step is skipped unconditionally (--force is ignored)
@@ -124,19 +125,18 @@ sub _run_steps {
 
         # precondition checking needs to be more robust and more clearly
         # defined (i.e., what to do on failure for subsequent runs
-        # check is skipped if --clean or --dump-env is passed
+        # check is skipped if --clean is passed
         if ( not $self->_run_precondition_check ) {
             die qq{pre condition for "$op->{name}" FAILED, stopping. Please fix and rerun.\n};
         }
 
-        # run command or clean_command (looks for --clean and --dump-env)
+        # run command or clean_command (looks for --clean)
         $self->_run_command( $op, $opts_ref );
 
         # verify step completed successfully
         # check is skipped if --clean is passed
         if ( $self->_run_postcondition_check( $op, $opts_ref ) ) {
-            print qq{"$op->{name}" was completed successfully\n}
-              unless $opts_ref->{'dump-env'};
+            print qq{"$op->{name}" was completed successfully\n};
         }
         else {
             die qq{post condition for "$op->{name}" FAILED, stopping. Please fix and rerun.\n};
@@ -150,8 +150,7 @@ sub _run_precondition_check {
 
     # skips check if --clean or precondition check doesn't exist in step's definition as a CODE ref
     return 1
-      if $opts_ref->{'dump-env'}
-      or $opts_ref->{clean}
+      if $opts_ref->{clean}
       or not ref $op->{precondition_check} eq q{CODE}
       or $op->{precondition_check}->( $op, $opts_ref );
     return undef;
@@ -162,8 +161,7 @@ sub _run_postcondition_check {
 
     # skips check if --clean or postcondition check doesn't exist in step's definition as a CODE ref
     return 1
-      if $opts_ref->{'dump-env'}
-      or $opts_ref->{clean}
+      if $opts_ref->{clean}
       or not ref $op->{postcondition_check} eq q{CODE}
       or $op->{postcondition_check}->( $op, $opts_ref );
     return undef;
@@ -184,10 +182,10 @@ sub _run_command {
     my $compiler     = $opts_ref->{compiler};
     my $install_path = $opts_ref->{'install-path'};
 
-    return 1 if $opts_ref->{'dump-env'};
-
     # choose command to run
     my $command = ( not $opts_ref->{clean} ) ? $op->{command} : $op->{clean_command};
+
+    return 1 if not defined $command;
 
     local $| = 1;
 
@@ -199,11 +197,13 @@ sub _run_command {
 
 sub _print_summary {
     my ( $self, $opts_ref ) = @_;
+
     return 1 if $opts_ref->{clean};
     print q{-} x 45 . qq{\nSummary of updated environmental variables (these need to be added to ~/.bash_profile or similar):\n\n};
     foreach my $envar ( keys %$AFFECTED_ENV_VARS ) {
         printf( qq{export %s=%s\n}, $envar, $ENV{$envar} );
     }
+
     return 1;
 }
 
@@ -243,7 +243,7 @@ sub get_steps {
     my $steps = [
         {
             key           => q{openmpi},
-            name          => q{Building OpenMPI 1.8.1 for gfortran},
+            name          => q{Step for OpenMPI 1.8.1 for gfortran},
             description   => q{Downloads and builds OpenMPI on all platforms for ASGS. Note: gfortran is required, so any compiler option causes this step to be skipped.},
             pwd           => q{./cloud/general},
             command       => qq{bash init-openmpi.sh $install_path $compiler $makejobs},
@@ -251,15 +251,15 @@ sub get_steps {
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                PATH => { value => qq{$install_path/bin}, how => q{prepend} },
+                PATH => { value => qq{$install_path/$compiler/bin}, how => q{prepend} },
             },
 
             # skip this step if the compiler is not set to gfortran
-            skip_if            => sub { return ( ( $compiler ne q{gfortran} ) or ( -e qq{$install_path/bin/mpif90} ) ) ? 1 : 0 },
+            skip_if            => sub { return ( ( $compiler ne q{gfortran} ) ) ? 1 : 0 },
             precondition_check => sub { 1 },
             postcondition_check => sub {
                 my ( $op, $opts_ref ) = @_;
-                my $bin          = qq{$opts_ref->{'install-path'}/bin};
+                my $bin          = qq{$opts_ref->{'install-path'}/$compiler/bin};
                 my $ok           = 1;
                 my @mpi_binaries = (
                     qw/mpic++ mpic++-vt mpif77-vt mpirun ompi-top orted orte-top otfaux  otfmerge otfshrink vtcc vtfilter  vtrun mpicc mpicxx mpif90 ompi-clean opal_wrapper orte-info oshcc otfcompress otfmerge-mpi shmemcc vtCC vtfiltergen vtunify mpiCC mpicxx-vt mpif90-vt ompi_info opari  orte-ps oshfort otfconfig otfprint shmemfort vtcxx vtfiltergen-mpi vtunify-mpi mpicc-vt mpiexec mpifort ompi-ps ortecc orterun oshmem_info otfdecompress otfprofile shmemrun vtf77 vtfilter-mpi vtwrapper mpiCC-vt mpif77 mpifort-vt ompi-server orte-clean orte-server oshrun otfinfo otfprofile-mpi vtc++ vtf90 vtfort/
@@ -270,7 +270,7 @@ sub get_steps {
         },
         {
             key           => q{hdf5-netcdf},
-            name          => q{Building NetCDF, HDF5 libraries and utilities},
+            name          => q{Step for NetCDF, HDF5 libraries and utilities},
             description   => q{Downloads and builds the versions of HDF5 and NetCDF that have been tested to work on all platforms for ASGS.},
             pwd           => q{./cloud/general},
             command       => qq{bash init-hdf5-netcdf4.sh $install_path $compiler $makejobs},
@@ -279,6 +279,7 @@ sub get_steps {
             # augment existing %ENV (cumulative)
             export_ENV => {
                 LD_LIBRARY_PATH => { value => qq{$install_path/lib},       how => q{prepend} },
+                LIBRARY_PATH    => { value => qq{$install_path/lib},       how => q{prepend} },
                 LD_INCLUDE_PATH => { value => qq{$install_path/include},   how => q{prepend} },
                 NETCDFHOME      => { value => qq{$install_path},           how => q{replace} },
                 CPPFLAGS        => { value => qq{-I$install_path/include}, how => q{replace} },
@@ -296,7 +297,7 @@ sub get_steps {
         },
         {
             key         => q{wgrib2},
-            name        => q{Building wgrib2},
+            name        => q{Step for wgrib2},
             description => q{Downloads and builds wgrib2 on all platforms for ASGS. Note: gfortran is required, so any compiler option passed is overridden.},
             pwd         => q{./},
 
@@ -309,7 +310,7 @@ sub get_steps {
         },
         {
             key                 => q{cpra-postproc},
-            name                => q{Building in output/cpra_postproc},
+            name                => q{Step for in output/cpra_postproc},
             description         => q{Runs the makefile and builds associated utilities in the output/cpra_postproc directory},
             pwd                 => q{./output/cpra_postproc},
             command             => qq{make clean && make -j $makejobs NETCDF_CAN_DEFLATE=enable NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
@@ -320,7 +321,7 @@ sub get_steps {
         },
         {
             key         => q{output},
-            name        => q{Building in output/},
+            name        => q{Step for in output/},
             description => q{Runs the makefile and builds associated utilities in the util/ directory.},
             pwd         => q{./output},
 
@@ -336,7 +337,7 @@ sub get_steps {
         },
         {
             key                 => q{util},
-            name                => q{Building in util/},
+            name                => q{Step for in util/},
             description         => q{Runs the makefile and builds all associated utilities in the util/ directory.},
             pwd                 => q{./util},
             command             => qq{make clean && make -j $makejobs NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
@@ -347,7 +348,7 @@ sub get_steps {
         },
         {
             key                 => q{input-mesh},
-            name                => q{Building in util/input/mesh},
+            name                => q{Step for in util/input/mesh},
             description         => q{Runs the makefile and builds all associated util/input/mesh in the util/ directory.},
             pwd                 => qq{./util/input/mesh},
             command             => qq{make clean && make -j $makejobs NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
@@ -361,7 +362,7 @@ sub get_steps {
         },
         {
             key         => q{input-nodalattr},
-            name        => q{Building in util/input/nodalattr},
+            name        => q{Step for in util/input/nodalattr},
             description => q{Runs the makefile and builds associated utilities in the util/input/nodalattr directory.},
             pwd         => q{./util/input/nodalattr},
 
@@ -374,8 +375,8 @@ sub get_steps {
         },
         {
             key           => q{perlbrew},
-            name          => q{Building perlbrew and perl for ASGS},
-            description   => q{Installs local Perl environment used for ASGS.},
+            name          => q{Step for perlbrew and perl for ASGS},
+            description   => q{Installs local Perl version used for ASGS.},
             pwd           => q{./},
             command       => q{bash ./cloud/general/init-perlbrew.sh},
             clean_command => q{bash ./cloud/general/init-perlbrew.sh clean},
@@ -395,6 +396,15 @@ sub get_steps {
                 my ( $op, $opts_ref ) = @_;
                 return -e qq{$home/perl5/perlbrew/etc/bashrc};
             },
+        },
+        {
+            key                 => q{perl-modules},
+            name                => q{Step for installing required Perl modulesS},
+            description         => q{Installs local Perl modules used for ASGS.},
+            pwd                 => q{./},
+            command             => q{bash ./cloud/general/init-perl-modules.sh},
+            clean_command       => q{},
+            precondition_check  => sub { return ( -e qq{$home/perl5/perlbrew/perls/perl-5.28.2/bin/perl} ) ? 1 : 0 },
         },
     ];
     return $steps;
