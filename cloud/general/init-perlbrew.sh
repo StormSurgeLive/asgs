@@ -82,21 +82,6 @@ fi
 echo setting perl-5.28.2 as default perl on next login
 perlbrew switch $PERL_VERSION 
 
-perlbrew --force install-cpanm
-which cpanm         # should be the one installed by perlbrew
-cpanm --local-lib=~/perl5 local::lib && eval $(perl -I ~/perl5/lib/perl5/ -Mlocal::lib)
-
-echo Installing Perl modules required for ASGS
-cpanm Date::Format Date::Handler DateTime DateTime::Format::Builder IO::Socket::SSL HTTP::Tiny List::Util        \
-      Math::Trig Net::FTP Params::Validate Time::Local Email::Sender::Simple Email::Sender::Transport::SMTP::TLS \
-      Email::Simple::Creator Config::Tiny Try::Tiny # this could be extended to use a MANIFEST type file
-
-# interactive (selects "p" option for "pure pure"), skips testing
-echo Installing Date::Pcalc using --force and --interactive due to known issue
-cpanm --force --interactive Date::Pcalc <<EOF
-p
-EOF
-
 # add to $HOME/.bash_profile, only once
 if [ ! -e "$HOME/.bash_profile" ] || [ 0 -eq "$(grep -c perlbrew $HOME/.bash_profile)" ]; then
   echo "source ~/perl5/perlbrew/etc/bashrc" >> ~/.bash_profile
