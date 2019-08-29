@@ -44,7 +44,7 @@ TROPICALCYCLONE=on       # tropical cyclone forcing
    STORM=05              # storm number, e.g. 05=ernesto in 2006
    YEAR=2019             # year of the storm
 WAVES=on                 # wave forcing
-   REINITIALIZESWAN=yes   # used to bounce the wave solution
+   REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off               # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
 
@@ -54,6 +54,9 @@ NCPU=959                     # number of compute CPUs for all simulations
 NCPUCAPACITY=3648
 NUMWRITERS=1
 ACCOUNT=null
+if [[ $HPCENVSHORT = "hatteras" ]]; then
+   NCPU=639 # max on hatteras
+fi
 
 # Post processing and publication
 
@@ -73,6 +76,11 @@ LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/20190825
 
 #PERCENT=default
 SCENARIOPACKAGESIZE=6
+if [[ $HPCENVSHORT = "hatteras" ]]; then
+   if [[ $USER = "jgflemin" || $USER = "ncfs" ]]; then
+      SCENARIOPACKAGESIZE=2
+   fi
+fi
 case $si in
    -2) 
        ENSTORM=hindcast
