@@ -60,7 +60,7 @@ ACCOUNT=null
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com taylorgasher@gmail.com"
 NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
@@ -72,7 +72,7 @@ LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/20190828
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2 
+SCENARIOPACKAGESIZE=4 
 case $si in
    -2) 
        ENSTORM=hindcast
@@ -89,6 +89,13 @@ case $si in
     1)
        ENSTORM=veerLeft100
        PERCENT=-100
+       ;;
+    2)
+       ENSTORM=nhcConsensusWind10m
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    3)
+       ENSTORM=nhcConsensus
        ;;
     *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
