@@ -60,7 +60,7 @@ ACCOUNT=null
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com taylorgasher@gmail.com"
 NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
@@ -72,7 +72,7 @@ LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/20190825
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=4
+SCENARIOPACKAGESIZE=6
 case $si in
    -2) 
        ENSTORM=hindcast
