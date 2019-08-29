@@ -141,7 +141,7 @@ init_supermic()
   SUBMITSTRING=qsub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
-  RMQMessaging_LocationName="LSU CCT"
+  RMQMessaging_LocationName="LSU"
   RMQMessaging_ClusterName="SuperMIC"
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
@@ -784,6 +784,17 @@ init_lsu_tds()
       OPENDAPUSER=jgflemin
    fi
 }
+# THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU Center for Coastal Resiliency
+init_lsu_ccr_tds()
+{
+   OPENDAPHOST=chenier.cct.lsu.edu
+   DOWNLOADPREFIX="http://${OPENDAPHOST}:8080/thredds/fileServer/asgs/ASGS-2019"
+   CATALOGPREFIX="http://${OPENDAPHOST}:8080/thredds/catalog/asgs/ASGS-2019"
+   OPENDAPBASEDIR=/data/thredds/ASGS/ASGS-2019
+   SSHPORT=2525
+   LINKABLEHOSTS=(null) # list of hosts where we can just create symbolic links
+   COPYABLEHOSTS=(null) # list of hosts where we can copy for thredds service, rather than having to scp the files to an external machine
+}
 # THREDDS Data Server (TDS, i.e., OPeNDAP server) at Texas
 # Advanced Computing Center (TACC)
 init_tacc_tds()
@@ -868,6 +879,9 @@ env_dispatch() {
           ;;
   "lsu_tds") consoleMessage "platforms.sh: LSU THREDDS Data Server configuration found."
           init_lsu_tds
+          ;;
+  "lsu_ccr_tds") consoleMessage "platforms.sh: LSU THREDDS Data Server configuration found."
+          init_lsu_ccr_tds
           ;;
   "renci_tds") consoleMessage "platforms.sh: RENCI THREDDS Data Server configuration found."
           init_renci_tds
@@ -965,7 +979,7 @@ env_dispatch() {
   "test") consoleMessage "platforms.sh: test environment (default) configuration found."
           init_test
           ;;
-  *) fatal "platforms.sh: '$HPCENVSHORT' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, supermic, topsail, desktop, desktop-serial, arete, spirit, topaz, thunder, lsu_tds, renci_tds, tacc_tds"
+  *) fatal "platforms.sh: '$HPCENVSHORT' is not a supported environment; currently supported options: kittyhawk, blueridge, sapphire, jade, diamond, ranger, lonestar, stampede, supermike, queenbee, supermic, topsail, desktop, desktop-serial, arete, spirit, topaz, thunder, lsu_tds, lsu_ccr_tds, renci_tds, tacc_tds"
      ;;
   esac
 }

@@ -33,10 +33,10 @@ FILES=("$9") # array of files to post to opendap
 
 #echo $OPENDAPNOTIFY
 #
-THIS="opendap_post.sh-->$SERVER"
+
 declare -A properties
 # get loadProperties function   
-SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties 2>>$SYSLOG`   
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties 2>>$SYSLOG`   
 source $SCRIPTDIR/properties.sh
 # load run.properties file into associative array
 loadProperties   
@@ -54,7 +54,7 @@ ASGSADMIN=`grep "notification.email.asgsadmin" ${STORMDIR}/run.properties | sed 
 ## grab all config info
 . ${CONFIG} 
 # Bring in logging functions
-. ${SCRIPTDIR}/monitoring/monitoring/logging.sh
+. ${SCRIPTDIR}/monitoring/logging.sh
 # Bring in platform-specific configuration
 . ${SCRIPTDIR}/platforms.sh
 # dispatch environment (using the functions in platforms.sh)
@@ -64,6 +64,7 @@ logMessage "Setting opendap server parameters with env_dispatch ${SERVER}."
 env_dispatch $SERVER   # from platforms.sh
 # grab all config info (again, last, so the CONFIG file takes precedence)
 . ${CONFIG}
+THIS="opendap_post.sh-->$SERVER"
 #--------------------------------------------------------------------
 #  O P E N  D A P    P A T H   F O R M A T I O N
 #--------------------------------------------------------------------
@@ -102,6 +103,13 @@ fi
 #-----------------------------------------------------------------------
 # Establish the default method of posting results for service via opendap
 OPENDAPPOSTMETHOD=scp
+
+#
+# mvb20190620: Testing rsync with the LSU CCR thredds server
+if [[ $SERVER = "lsu_ccr_tds" ]]; then
+    OPENDAPPOSTMETHOD=rsync
+fi
+
 #
 # Determine whether to copy files instead of using scp by looking at the
 # list of HPC machines that share a common filesystem with this TDS. 
@@ -165,6 +173,7 @@ case $OPENDAPPOSTMETHOD in
    serverAliveInterval=10
    timeoutRetryLimit=3
    sshOptions="$OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60"
+   scpOptions="-P $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60"
    logMessage "$ENSTORM: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
    retry=0
    while [[ $retry -lt $timeoutRetryLimit ]]; do 
@@ -185,27 +194,6 @@ case $OPENDAPPOSTMETHOD in
    done
    # add code to create write permissions on directories so that other 
    # Operators can post results to the same directories
-<<<<<<< HEAD
-   #ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR" 2>> $SYSLOG
-   #ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod a+w $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
-   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+x $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
-   ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH" 2>> $SYSLOG
-   if [[ $? != 0 ]]; then
-      warn "$ENSTORM: $THIS: Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
-      threddsPostStatus=fail
-   fi
-   #
-   # add a symbolic link for the storm name if this is tropicalcyclone forcing
-   if [[ $TOPICALCYCLONE != off ]]; then 
-      ssh $OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT "ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH" 2>> $SYSLOG
-      if [[ $? != 0 ]]; then
-         warn "$ENSTORM: $THIS: Failed to create symbolic link for the storm name."
-         threddsPostStatus=fail
-      fi
-   fi
-   #
-   # now scp the files 
-=======
    retry=0
    while [[ $retry -lt $timeoutRetryLimit ]]; do 
       ssh $sshOptions "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
@@ -257,7 +245,7 @@ case $OPENDAPPOSTMETHOD in
       logMessage "$ENSTORM: $THIS: Transferring $file to ${OPENDAPHOST}."
       retry=0
       while [[ $retry -lt $timeoutRetryLimit ]]; do 
-         scp -P $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60 $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG  2>&1   
+         scp $scpOptions $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG  2>&1   
          if [[ $? != 0 ]]; then
             threddsPostStatus=fail
             warn "$ENSTORM: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
@@ -291,6 +279,48 @@ case $OPENDAPPOSTMETHOD in
             logMessage "$ENSTORM: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
          fi
       done
+   done
+   ;;
+#-------------------------------------------------------------------
+#                P O S T   V I A   R S Y N C
+#-------------------------------------------------------------------
+# mvb20190618: Added to support time-out issues with general scp transfers
+"rsync")
+   rsyncSSHOptions=(--rsh="ssh -p $SSHPORT")
+   rsyncOptions="-z --copy-links"
+   sshOptions="$OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT"
+   logMessage "$ENSTORM: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
+
+   ssh $sshOptions "mkdir -p $OPENDAPDIR" 2>> $SYSLOG
+   if [[ $? != 0 ]]; then
+      warn "$ENSTORM: $THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
+      threddsPostStatus=fail
+   fi
+   # add code to create write permissions on directories so that other 
+   # Operators can post results to the same directories
+   ssh $sshOptions "chmod -R a+w $OPENDAPBASEDIR/$STORMNAMEPATH/$ADVISORY" 2>> $SYSLOG
+   if [[ $? != 0 ]]; then
+      warn "$ENSTORM: $THIS: Failed to change permissions on the directory $OPENDAPBASEDIR/$STORMNAMEPATH on the remote machine ${OPENDAPHOST}."
+      threddsPostStatus=fail
+   fi
+   for file in ${FILES[*]}; do 
+      # send opendap posting notification email early if directed
+      if [[ $file = "sendNotification" ]]; then
+         logMessage "$ENSTORM: $THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
+         cat ${STORMDIR}/opendap_results_notify_${SERVER}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         opendapEmailSent=yes
+         continue        
+      else
+         # see if the file is currently considered "opened" by another process
+         lsof -t $file 2>> $SYSLOG 2>&1
+      fi
+      chmod +r $file 2>> $SYSLOG
+      logMessage "$ENSTORM: $THIS: Transferring $file to ${OPENDAPHOST}."
+      rsync "${rsyncSSHOptions}" ${rsyncOptions}  ${file} ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} 2>> $SYSLOG 2>&1
+      if [[ $? != 0 ]]; then
+         threddsPostStatus=fail
+         warn "$ENSTORM: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
+      fi
    done
    ;;
 #-------------------------------------------------------------------

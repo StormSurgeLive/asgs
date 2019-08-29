@@ -35,27 +35,27 @@ localLogMessage()
   LEVEL=$1
   MSG=$2
   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  echo "[${DATETIME}] ${ENSTORM}: ${THIS}: ${LEVEL}: ${MSG}" >> $LOGFILE 
+  echo "[${DATETIME}] ${SCENARIO}: ${THIS}: ${LEVEL}: ${MSG}" >> $LOGFILE 
 }
 # static initialization
 THIS=enstorm_pedir_removal.sh
 LOGFILE="scenario.log"
 # run configuration
-STORMDIR=`sed -n 's/[ ^]*$//;s/asgs.path.stormdir\s*:\s*//p' run.properties`
-ENSTORM=`sed -n 's/[ ^]*$//;s/asgs.enstorm\s*:\s*//p' run.properties`
-SWANHSCOMPRESSION=`sed -n 's/[ ^]*$//;s/config.coupling.waves.swan.swanhscompression\s*:\s*//p' run.properties`
+STORMDIR=`sed -n 's/[ ^]*$//;s/path.stormdir\s*:\s*//p' run.properties`
+SCENARIO=`sed -n 's/[ ^]*$//;s/scenario\s*:\s*//p' run.properties`
+SWANHSCOMPRESSION=`sed -n 's/[ ^]*$//;s/coupling.waves.swan.swanhscompression\s*:\s*//p' run.properties`
 # pull in logging functions 
-SYSLOG=`sed -n 's/[ ^]*$//;s/asgs.file.syslog\s*:\s*//p' run.properties`
-SCRIPTDIR=`sed -n 's/[ ^]*$//;s/config.path.scriptdir\s*:\s*//p' run.properties`
+SYSLOG=`sed -n 's/[ ^]*$//;s/file.syslog\s*:\s*//p' run.properties`
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties`
 . ${SCRIPTDIR}/monitoring/logging.sh
 #
 logMessage "Starting cleanup of subdomain (PE*) subdirectories."
 localLogMessage "INFO" "Starting cleanup of subdomain (PE*) subdirectories."
 #
-WAVES=`sed -n 's/[ ^]*$//;s/config.coupling.waves\s*:\s*//p' run.properties`
+WAVES=`sed -n 's/[ ^]*$//;s/coupling.waves\s*:\s*//p' run.properties`
 if [[ $WAVES = on ]]; then
    localLogMessage "INFO" "Wave coupling with SWAN is active."
-   SWANDIR=`sed -n 's/[ ^]*$//;s/config.path.swandir\s*:\s*//p' run.properties`
+   SWANDIR=`sed -n 's/[ ^]*$//;s/path.swandir\s*:\s*//p' run.properties`
    localLogMessage "INFO" "The path to SWAN executables is ${SWANDIR}."
    #
    # set name of SWAN executable that knits together the subdomain

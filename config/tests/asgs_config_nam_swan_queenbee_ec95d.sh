@@ -176,7 +176,7 @@ TARGET=queenbee  # used in post processing to pick up HPC platform config
 # OPENDAPNOTIFY is used by opendap_post.sh and could be regrouped with the 
 # other notification parameters above. 
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.fleming@seahorsecoastal.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Archiving
 

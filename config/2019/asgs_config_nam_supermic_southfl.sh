@@ -28,9 +28,9 @@
 # Fundamental
 
 INSTANCENAME=readysouthfl    # "name" of this ASGS process
-COLDSTARTDATE=auto  # YYYYMMDDHH24 or "auto" to extract from hotstart file
-HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2019/nam/2019060206/southfl_v11-1_final/stampede2.tacc.utexas.edu/dailysouthfl/namforecast
+COLDSTARTDATE=2019052500 # YYYYMMDDHH24 or "auto" to extract from hotstart file
+HOTORCOLD=coldstart      # "hotstart" or "coldstart"
+LASTSUBDIR=null
 HINDCASTLENGTH=30.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -150,9 +150,10 @@ JOB_FAILED_LIST="jason.g.fleming@gmail.com"
 NOTIFYUSER="jason.g.fleming@gmail.com"
 ASGSADMIN="jason.g.fleming@gmail.com"
 # RMQ Messaging
-RMQMessaging_Enable="off"      #  enables message generation ("on" | "off")
-RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
+RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
+RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
 RMQMessaging_NcoHome="/home/jgflemin/"
 RMQMessaging_Python="/usr/local/packages/python/2.7.13-anaconda/bin/python"
 RMQMessaging_LocationName="LSU CCT"

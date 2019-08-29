@@ -177,6 +177,7 @@ if ( $hstime != 0.0 ) {
         # that does not write this property
         &stderrMessage("INFO","This scenario is hotstarting from a run that either had the offset turned off or did not define any offset properties.");
         $previousRunProps{"forcing.offset"} = "off";
+        $offsetFactorAtPreviousRunFinish = 0.0;
     }
 }
 #
@@ -618,10 +619,10 @@ if ( $hstime != 0.0 &&
 #   
 # case 9: offset applied after RNDAY
 #  9a-c. do not use the offset feature (info message)
-if ($offsetStartSec > ($RNDAY*86400.0) && $offsetFinishSec > ($RNDAY*86400.0)) {
+if ($offsetStartSec >= ($RNDAY*86400.0) && $offsetFinishSec > ($RNDAY*86400.0)) {
     &stderrMessage("DEBUG","Case 9a-c.");
     $runProps{"forcing.offset.deactivated.reason"} 
-        = "Offset deactivated because the offset start is after the end of the run (RNDAY).";
+        = "Offset deactivated because the offset start is at or after the end of the run (RNDAY).";
     $runProps{"forcing.offset.deactivated.severity"} = "INFO"; 
     &deactivateOffset();
     exit;
