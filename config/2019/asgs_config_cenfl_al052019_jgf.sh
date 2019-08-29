@@ -27,11 +27,11 @@
 
 # Fundamental
 
-INSTANCENAME=hsofs_al052019_jgf      # "name" of this ASGS process
+INSTANCENAME=cenfl_al052019_jgf      # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=hsofs
+GRIDNAME=eccl_v7_geo_z
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
@@ -43,24 +43,21 @@ BACKGROUNDMET=off        # NAM download/forcing
 TROPICALCYCLONE=on       # tropical cyclone forcing
    STORM=05              # storm number, e.g. 05=ernesto in 2006
    YEAR=2019             # year of the storm
-WAVES=on                 # wave forcing
+WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
-VARFLUX=off               # variable river flux forcing
+VARFLUX=off              # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=959                     # number of compute CPUs for all simulations
+NCPU=959                # number of compute CPUs for all simulations
 NCPUCAPACITY=3648
 NUMWRITERS=1
 ACCOUNT=null
-if [[ $HPCENVSHORT = "hatteras" ]]; then
-   NCPU=639 # max on hatteras
-fi
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
+INTENDEDAUDIENCE=professional # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com taylorgasher@gmail.com"
@@ -68,19 +65,14 @@ NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart
-LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/2019082506/hsofs/queenbee.loni.org/namhsofs/namforecast
+COLDSTARTDATE=2019072700
+HOTORCOLD=coldstart
+LASTSUBDIR=null
 
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=6
-if [[ $HPCENVSHORT = "hatteras" ]]; then
-   if [[ $USER = "jgflemin" || $USER = "ncfs" ]]; then
-      SCENARIOPACKAGESIZE=2
-   fi
-fi
+SCENARIOPACKAGESIZE=2 
 case $si in
    -2) 
        ENSTORM=hindcast
@@ -96,25 +88,23 @@ case $si in
     1)
        ENSTORM=nhcConsensus
        ;;
-
     2)
-       ENSTORM=veerRight100Wind10m
-       PERCENT=100
-       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-       ;;
-    3)
-       ENSTORM=veerRight100
-       PERCENT=100
-       ;;
-
-    4)
        ENSTORM=veerLeft100Wind10m
        PERCENT=-100
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
-    5)
+    3)
        ENSTORM=veerLeft100
        PERCENT=-100
+       ;;
+    4)
+       ENSTORM=veerRight100Wind10m
+       PERCENT=100
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    5)
+       ENSTORM=veerRight100
+       PERCENT=100
        ;;
     *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
