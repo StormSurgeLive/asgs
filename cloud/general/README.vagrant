@@ -31,14 +31,11 @@ environment from Github.
 
 Steps after logging into the vagrant instance:
 
-1. ./init-asgs.sh
+1. $HOME/init-asgs.sh
 2. wait while the following happens:
-
-a. the correct git branch is checked out
-b. asgs-brew.pl is run
-
-3. (for now) manually run the $HOME/cloud/genearl/init-adcirc.sh script;
-this script:
+  a. the correct git branch is checked out
+  b. asgs-brew.pl is run
+3. run the $HOME/init-adcirc.sh script to build adcirc related executables
 
 a. git clones the private git repository for adcirc-cg (one's Github user
 will require proper permissions, and they will be prompted for their github

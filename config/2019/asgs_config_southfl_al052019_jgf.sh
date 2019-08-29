@@ -43,14 +43,14 @@ BACKGROUNDMET=off        # NAM download/forcing
 TROPICALCYCLONE=on       # tropical cyclone forcing
    STORM=05              # storm number, e.g. 05=ernesto in 2006
    YEAR=2019             # year of the storm
-WAVES=on                 # wave forcing
+WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
-VARFLUX=off               # variable river flux forcing
+VARFLUX=off              # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=479                     # number of compute CPUs for all simulations
+NCPU=959                # number of compute CPUs for all simulations
 NCPUCAPACITY=3648
 NUMWRITERS=1
 ACCOUNT=null
@@ -59,20 +59,20 @@ ACCOUNT=null
 
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
+POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com taylorgasher@gmail.com"
 NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
 COLDSTARTDATE=auto
 HOTORCOLD=hotstart
-LASTSUBDIR=htt...
+LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/2019082806/southfl_v11-1_final/supermic.hpc.lsu.edu/southfl_nam_jgf/namforecast
 
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2 
+SCENARIOPACKAGESIZE=4 
 case $si in
    -2) 
        ENSTORM=hindcast
@@ -82,10 +82,19 @@ case $si in
        ENSTORM=nowcast
        ;;
     0)
-       ENSTORM=nhcConsensusWind10m
+       ENSTORM=veerLeft100Wind10m
+       PERCENT=-100
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
     1)
+       ENSTORM=veerLeft100
+       PERCENT=-100
+       ;;
+    2)
+       ENSTORM=nhcConsensusWind10m
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    3)
        ENSTORM=nhcConsensus
        ;;
     *)   
