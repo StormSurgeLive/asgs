@@ -72,7 +72,7 @@ LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/20190828
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=4 
+SCENARIOPACKAGESIZE=2
 case $si in
    -2) 
        ENSTORM=hindcast
@@ -81,20 +81,20 @@ case $si in
        # do nothing ... this is not a forecast
        ENSTORM=nowcast
        ;;
-    0)
+    2)
        ENSTORM=veerLeft100Wind10m
        PERCENT=-100
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
-    1)
+    3)
        ENSTORM=veerLeft100
        PERCENT=-100
        ;;
-    2)
+    0)
        ENSTORM=nhcConsensusWind10m
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
-    3)
+    1)
        ENSTORM=nhcConsensus
        ;;
     *)   
