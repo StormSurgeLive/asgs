@@ -51,6 +51,9 @@ CYCLETIMELIMIT="99:00:00"
 # Computational Resources (related defaults set in platforms.sh)
 
 NCPU=959                # number of compute CPUs for all simulations
+if [[ $HPCENVSHORT = "hatteras" ]]; then
+   NCPU=499 # 512 is max for hatteras outside the ncfs reservation
+fi
 NCPUCAPACITY=3648
 NUMWRITERS=1
 ACCOUNT=null
@@ -65,9 +68,9 @@ NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2019072700
-HOTORCOLD=coldstart
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart
+LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2019/al05/21/eccl_v7_geo_z/supermic.hpc.lsu.edu/cenfl_al052019_jgf/nhcConsensus
 
 # Scenario package
 
