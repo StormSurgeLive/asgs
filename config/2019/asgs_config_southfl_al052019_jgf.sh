@@ -67,7 +67,7 @@ NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 COLDSTARTDATE=auto
 HOTORCOLD=hotstart
-LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/2019082806/southfl_v11-1_final/supermic.hpc.lsu.edu/southfl_nam_jgf/namforecast
+LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/al05/25/southfl_v11-1_final/supermic.hpc.lsu.edu/southfl_al052019_jgf/nhcConsensus
 
 # Scenario package
 
