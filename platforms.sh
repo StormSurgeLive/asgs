@@ -627,6 +627,9 @@ writeTDSProperties()
       OPENDAPPORT=":8080"
       OPENDAPBASEDIR=/data/opendap
       SSHPORT=2525
+      if [[ $USER = "ncfs" || $USER = "jgflemin" ]]; then
+         OPENDAPUSER="jgflemin"
+      fi
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> run.properties
       ;;
@@ -640,6 +643,9 @@ writeTDSProperties()
       DOWNLOADPREFIX=/asgs/ASGS-2019
       OPENDAPBASEDIR=/data/thredds/ASGS/ASGS-2019
       SSHPORT=2525
+      if [[ $USER = "ncfs" || $USER = "jgflemin" ]]; then
+         OPENDAPUSER="jgflemin"
+      fi
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> run.properties
       ;;
@@ -653,6 +659,9 @@ writeTDSProperties()
       CATALOGPREFIX=/asgs
       OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
       SSHPORT=null
+      if [[ $USER = "ncfs" || $USER = "jgflemin" ]]; then
+         OPENDAPUSER="jgflemin"
+      fi
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : ( lonestar stampede2 )" >> run.properties
       ;;
