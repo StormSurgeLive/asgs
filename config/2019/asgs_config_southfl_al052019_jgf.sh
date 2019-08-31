@@ -81,20 +81,20 @@ case $si in
        # do nothing ... this is not a forecast
        ENSTORM=nowcast
        ;;
-    2)
+    0)
        ENSTORM=veerLeft100Wind10m
        PERCENT=-100
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
-    3)
+    1)
        ENSTORM=veerLeft100
        PERCENT=-100
        ;;
-    0)
+    2)
        ENSTORM=nhcConsensusWind10m
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
-    1)
+    3)
        ENSTORM=nhcConsensus
        ;;
     *)   
