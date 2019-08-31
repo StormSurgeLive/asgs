@@ -53,6 +53,7 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=959                # number of compute CPUs for all simulations
 if [[ $HPCENVSHORT = "hatteras" ]]; then
    NCPU=499 # 512 is max for hatteras outside the ncfs reservation
+   RESERVATION=ncfs
 fi
 NCPUCAPACITY=3648
 NUMWRITERS=1
