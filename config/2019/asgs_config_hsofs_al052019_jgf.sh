@@ -44,7 +44,7 @@ TROPICALCYCLONE=on       # tropical cyclone forcing
    STORM=05              # storm number, e.g. 05=ernesto in 2006
    YEAR=2019             # year of the storm
 WAVES=on                 # wave forcing
-   REINITIALIZESWAN=yes   # used to bounce the wave solution
+   REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off               # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
 
