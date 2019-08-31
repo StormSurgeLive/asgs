@@ -1882,6 +1882,7 @@ if [[ $RMQMessaging_Enable = "on" ]] ; then
 else
    allMessage "RMQ Messaging disabled." 
 fi
+
 #
 # Send message with config file contents as the message body.  This is only done once at ASGS startup
 logMessage "Sending a message with the asgs configuration file as the message body."
