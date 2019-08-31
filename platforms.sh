@@ -280,7 +280,7 @@ init_hatteras()
   SERQUEUE=batch
   PPN=null
   CONSTRAINT=null      # ivybridge or sandybridge
-  RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
+  RESERVATION=null    # ncfs or null, causes job to run on dedicated cores
   PARTITION=null
   QCHECKCMD=sacct
   JOBLAUNCHER='srun '
@@ -304,6 +304,7 @@ init_hatteras()
   RMQMessaging_Python=/usr/bin/python
   RMQMessaging_LocationName="RENCI"
   RMQMessaging_ClusterName="Hatteras"
+
   #
   # specify location of platform- and Operator-specific scripts to 
   # set up environment for different types of jobs
@@ -324,7 +325,7 @@ init_hatteras()
      PARTITION=ncfs       # ncfs or batch, gives priority
      PYTHONVENV="$HOME/miniconda2"
      RMQMessaging_NcoHome="${HOME}"
-     RMQMessaging_Python="${PYTHONENV}/bin/python"
+     RMQMessaging_Python="${PYTHONVENV}/bin/python"
      PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.1.2-acis mvapich2/2.0-acis'
      TDS=(renci_tds)
      ;;
