@@ -96,6 +96,7 @@ init_queenbee()
   JOBENVDIR=$SCRIPTDIR/config/machines/queenbee
   JOBENV=( )
   if [[ $operator = "jgflemin" ]]; then
+     ACCOUNT=loni_cera_2019a
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=loni_cera_2019a
