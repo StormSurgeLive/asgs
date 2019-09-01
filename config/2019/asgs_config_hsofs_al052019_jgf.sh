@@ -98,13 +98,13 @@ case $si in
        ;;
 
     2)
-       ENSTORM=veerRight100Wind10m
-       PERCENT=100
+       ENSTORM=veerLeft50Wind10m
+       PERCENT=-50
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
     3)
-       ENSTORM=veerRight100
-       PERCENT=100
+       ENSTORM=veerLeft50
+       PERCENT=-50
        ;;
 
     4)
