@@ -71,9 +71,9 @@ NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart
-LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/2019082506/hsofs/queenbee.loni.org/namhsofs/namforecast
+COLDSTARTDATE=2019073000
+HOTORCOLD=coldstart
+LASTSUBDIR=null
 
 # Scenario package
 
@@ -101,13 +101,13 @@ case $si in
        ;;
 
     2)
-       ENSTORM=veerLeft50Wind10m
-       PERCENT=-50
+       ENSTORM=veerRight100Wind10m
+       PERCENT=100
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
     3)
-       ENSTORM=veerLeft50
-       PERCENT=-50
+       ENSTORM=veerRight100
+       PERCENT=100
        ;;
 
     4)
