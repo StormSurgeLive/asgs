@@ -9,7 +9,7 @@ def usage():
 	print('asgs-msgr-SendKill.py -h -u <Uid> -l <LocationName> -c <ClusterName>  -d <UTCDateTime> -s <StormName> -n <StormNumber> -a <AdvisoryNumber> -m <Message> -y <EventType> -p <Process> -t <PctComplete> -r <State> -q <RunParams> -i <InstanceName> -k <Transmit> ')
 	print('		')		
 	print(' where -h | --Help		the text you are looking at right now')
-	#print('       -u | --Uid        	proc ID of asgs_main.sh process')
+	print('       -u | --Uid        	proc ID of asgs_main.sh process')
 	print('       -l | --LocationName	name of location where model is running, i.e. UNC')
 	print('       -c | --ClusterName 	name of cluster running model, i.e. Hatteras')
 	#print('       -d | --UTCDateTime	UTC date time - ISO 8601 format; if not provided defaults to now')

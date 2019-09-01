@@ -281,7 +281,7 @@ init_hatteras()
   SERQUEUE=batch
   PPN=null
   CONSTRAINT=null      # ivybridge or sandybridge
-  RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
+  RESERVATION=null    # ncfs or null, causes job to run on dedicated cores
   PARTITION=null
   QCHECKCMD=sacct
   JOBLAUNCHER='srun '
@@ -295,6 +295,7 @@ init_hatteras()
   QSUMMARYCMD=null
   QUOTACHECKCMD="df -h /projects/ncfs"
   ALLOCCHECKCMD=null
+  TDS=(renci_tds lsu_tds)
   # 
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   #
@@ -304,6 +305,7 @@ init_hatteras()
   RMQMessaging_Python=/usr/bin/python
   RMQMessaging_LocationName="RENCI"
   RMQMessaging_ClusterName="Hatteras"
+
   #
   # specify location of platform- and Operator-specific scripts to 
   # set up environment for different types of jobs
@@ -344,7 +346,6 @@ init_hatteras()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCHDIR
   ARCHIVEDIR=$SCRATCHDIR
-  TDS=(renci_tds lsu_tds)
   # to create python environment for the ncfs user, @jasonfleming did this:
   #   pip install --user --upgrade pip
   #   pip install --user --upgrade setuptools

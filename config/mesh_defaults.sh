@@ -143,7 +143,8 @@ case $GRIDNAME in
       INPUTDIR=$SCRIPTDIR/input/meshes/nc_v9.99_w_rivers
       GRIDFILE=nc_inundation_v9.99a_w_rivers.grd
       MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
+      #CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
+      CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template.minbf.eq.0_wcap.eq.002
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=nc_9.99wrivers.nowindreduction.fort.15.template
       CONTROLPROPERTIES=fort.15.properties
@@ -186,9 +187,9 @@ case $GRIDNAME in
       HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
       TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
-      SWANDT=1200                 # swan timestep / coupling interval (seconds)
+      SWANDT=1800                 # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
-      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
