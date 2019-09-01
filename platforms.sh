@@ -317,11 +317,16 @@ init_hatteras()
      PYTHONVENV=/projects/storm_surge/anaconda
      ;;
   ncfs-dev)
+     ADCIRCDIR="${HOME}/ADCIRC/v53release/work" # ADCIRC executables
+     SWANDIR="${HOME}/ADCIRC/v53release/swan" # ADCIRC executables
+     SCRATCHDIR=/scratch/ncfs-dev/
      ACCOUNT=ncfs-dev
-     SCRATCHDIR=/scratch/ncfs-dev/data
      PARTITION=ncfs       # ncfs or batch, gives priority
      PYTHONVENV="$HOME/miniconda2"
-     PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.2.1.1-acis netcdf-Fortran/4.2-acis mvapich2/2.0-acis'
+     RMQMessaging_NcoHome="${HOME}"
+     RMQMessaging_Python="${PYTHONVENV}/bin/python"
+     PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.1.2-acis mvapich2/2.0-acis'
+     TDS=(renci_tds)
      ;;
   ncfs)
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
