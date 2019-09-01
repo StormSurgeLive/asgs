@@ -96,6 +96,7 @@ init_queenbee()
   JOBENVDIR=$SCRIPTDIR/config/machines/queenbee
   JOBENV=( )
   if [[ $operator = "jgflemin" ]]; then
+     ACCOUNT=loni_cera_2019a
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=loni_cera_2019a
@@ -633,6 +634,9 @@ writeTDSProperties()
       OPENDAPPORT=":8080"
       OPENDAPBASEDIR=/data/opendap
       SSHPORT=2525
+      if [[ $USER = "ncfs" || $USER = "jgflemin" ]]; then
+         OPENDAPUSER="jgflemin"
+      fi
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> run.properties
       ;;
@@ -646,6 +650,9 @@ writeTDSProperties()
       DOWNLOADPREFIX=/asgs/ASGS-2019
       OPENDAPBASEDIR=/data/thredds/ASGS/ASGS-2019
       SSHPORT=2525
+      if [[ $USER = "ncfs" || $USER = "jgflemin" ]]; then
+         OPENDAPUSER="jgflemin"
+      fi
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> run.properties
       ;;
@@ -659,6 +666,9 @@ writeTDSProperties()
       CATALOGPREFIX=/asgs
       OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
       SSHPORT=null
+      if [[ $USER = "ncfs" || $USER = "jgflemin" ]]; then
+         OPENDAPUSER="jgflemin"
+      fi
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : ( lonestar stampede2 )" >> run.properties
       ;;

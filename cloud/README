@@ -1,26 +1,55 @@
 Basic Instructions - subject to major changes
 
+Assumption: You're on a Linux or MacOS as the HOST machine and
+in a terminal window. You also have access to the `git` utility.
+These instructions do not apply to Windows, which is not supported
+here at this time (thought Vagrant and Virtual Box certainly do
+support Windows). We may add Windows instructions at a later time,
+but the general steps should still conceptually work.
+
 1. install VirtualBox onto your local laptop or workstation
+
   https://virtualbox.org
 
 2. install Vagrant onto your local laptop or workstation
+
   https://www.vagrantup.com
 
+3. ON HOST machine (laptop):
+
+  % cd $HOME
+  % git clone https://github.com/jasonfleming/asgs.git
+  % cd $HOME/asgs/cloud/bento-ubuntu-18.10
+  % git checkout master 
+  % vagrant up
+  % vagrant ssh                                  # this will place you on the virtual machine as user "vagrant"
+
 NOTE: "bento" refers to official Vagrant base images found at
+
   https://app.vagrantup.com/bento
+
 in this case we're using the image available at
+
   https://app.vagrantup.com/bento/boxes/ubuntu-18.10
 
-3. cd into the cloud directory
-  % cd cloud/bento-ubuntu-18.10
-  % vagrant up
-  % vagrant ssh
-  $ bash init-perlbrew.sh
-  $ bash init-openmpi.sh && bash init-adcirc.sh  # RUN FIRST TIME ONLY
+4. ON GUEST machine (vm), initialize ASGS on the virtual machine, download
+   and build padcirc, adcirc, adcprep, adcpost, padcswan, and adcswan
 
-NOTE: init-adcirc.sh pulls down asgs from GitHub (no credentials,
+  $ bash $HOME/init-asgs.sh                      # this file is in $HOME (compiles all Fortran in ./asgs, perlbrew, and latest perl [1, 2]
+  $ . $HOME/.bash_profile                        # source's perlbrew rc file, sets perl the one we want [2]
+  $ bash $HOME/init-adcirc.sh                    # will prompt for Github username and password [3]
+
+[1] NOTE: init-adcirc.sh pulls down asgs from GitHub (no credentials,
 required), it also attempts to pull down adcirc-cg but it requires
 your GitHub username/password AND access to the adcirc-cg repo.
+
+[2] NOTE: the script used to install perlbrew, then to use perlbrew to
+install the version of Perl we want is a little flaky. Feedback on
+the user experience will help make it more robust.
+
+[3] NOTE: the adcirc-cg repository is private and owned by the adcirc
+github "organization". If you do not have access to it or the adcirc
+source code, please contact the representatives listed at https:/adcirc.org.
 
 More Information
 
