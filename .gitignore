@@ -1,4 +1,5 @@
 # ignore grid and nodal attribute files
+.nsf*
 *.grd
 *.14
 *.13

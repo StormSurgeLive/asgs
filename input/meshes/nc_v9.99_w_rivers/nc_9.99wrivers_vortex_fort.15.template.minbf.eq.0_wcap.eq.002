@@ -33,7 +33,7 @@ initial_river_elevation
 0.0 1.0 0.0               ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
 0.1 0 0 .01               ! H0 - MINIMUM CUTOFF DEPTH
 -79.0 35.0                ! SLAM0,SFEA0 - CENTER OF CPP DEGREES LONG/LAT
-0.003  1. 10. 0.33333     ! FFACTOR - BOTTOM FRICTION COEFFICIENT
+0.000  1. 10. 0.33333     ! FFACTOR - BOTTOM FRICTION COEFFICIENT
 2.0                       ! ESL - LATERAL EDDY VISCOSITY COEFFICIENT
 0.0                       ! CORI - CORIOLIS PARAMETER - IGNORED IF NCOR = 1
 7                         ! NTIF
@@ -822,5 +822,5 @@ jason.fleming@seahorsecoastal.com
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
 &wetDryControl noffActive=.false.  /
 &inundationOutputControl inundationOutput=.true. /
-&metControl WindDragLimit=0.0028 /
+&metControl WindDragLimit=0.0020 /
 %offsetline%

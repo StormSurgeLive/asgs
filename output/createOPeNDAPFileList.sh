@@ -55,6 +55,7 @@ HPCENVSHORT=${properties['hpc.hpcenvshort']}
 HPCENV=${properties['hpc.hpcenv']}
 WAVES=${properties['coupling.waves']}
 TROPICALCYCLONE=${properties['forcing.tropicalcyclone']}
+WAVES=${properties['coupling.waves']}
 if [[ $TROPICALCYCLONE != "off" ]]; then
    STORM=${properties['forcing.tropicalcyclone.stormnumber']}
    YEAR=${properties['forcing.tropicalcyclone.year']}
@@ -89,9 +90,9 @@ ceraPriorityFiles=(`ls run.properties maxele.63.nc fort.63.nc fort.61.nc fort.15
 if [[ $TROPICALCYCLONE = on ]]; then
    ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat 2>> $SCENARIOLOG` )
 fi
-if [[ $WAVES = on ]]; then
+#if [[ $WAVES = on ]]; then
    ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls swan_HS_max.63.nc swan_TPS_max.63.nc swan_HS.63.nc swan_TPS.63.nc 2>> $SCENARIOLOG` )
-fi
+#fi
 dirWind10m=$CYCLEDIR/${SCENARIO}Wind10m
 if [[ -d $dirWind10m ]]; then
    ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls wind10m.maxwvel.63.nc wind10m.fort.74.nc 2>> $SCENARIOLOG` )
@@ -107,3 +108,6 @@ for string in ${FILES[*]}; do
 done
 FILESSTRING="$FILESSTRING )"
 echo "post.opendap.files : $FILESSTRING" >> run.properties
+
+echo "BB: WAVES : $WAVES"
+echo "BB: post.opendap.files : $FILESSTRING"
