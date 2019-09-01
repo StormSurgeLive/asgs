@@ -95,7 +95,7 @@ init_queenbee()
   PARALLELMODULES='module load mvapich2'
   JOBENVDIR=$SCRIPTDIR/config/machines/queenbee
   JOBENV=( )
-  if [[ $operator = "jgflemin" ]]; then
+  if [[ $operator = "jgflemin" || $USER = "jgflemin" ]]; then
      ACCOUNT=loni_cera_2019a
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
