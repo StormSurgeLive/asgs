@@ -71,9 +71,9 @@ NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart
-LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/2019082506/hsofs/queenbee.loni.org/namhsofs/namforecast
+COLDSTARTDATE=2019073000
+HOTORCOLD=coldstart
+LASTSUBDIR=null
 
 # Scenario package
 

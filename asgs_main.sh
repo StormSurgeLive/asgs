@@ -92,8 +92,12 @@ checkFileExistence()
            curl ${MESHURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download mesh from ${MESHURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
         fi
         if [[ $FTYPE = "ADCIRC nodal attributes (fort.13) file" ]]; then
-           logMessage "Attempting to download $FTYPE from ${MESHURL}/${FNAME}.xz."
+           logMessage "Attempting to download $FTYPE from ${NODALATTRIBUTESURL}/${FNAME}.xz."
            curl ${NODALATTRIBUTESURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download nodal attributes file from ${NODALATTRIBUTESURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
+        fi
+        if [[ $FTYPE = "ADCIRC static water level offset data file" ]]; then
+           logMessage "Attempting to download $FTYPE from ${OFFSETURL}/${FNAME}.xz."
+            curl ${OFFSETURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download file from ${OFFSETURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
         fi
         logMessage "THIS: Uncompressing ${FPATH}/${FNAME}.xz."
         xz -d ${FPATH}/${FNAME}.xz 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}.xz : `cat errmsg`."
@@ -1529,6 +1533,8 @@ variables_init()
    PERIODICFLUX=null
    SPATIALEXTRAPOLATIONRAMP=yes
    SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
+   STATICOFFSET=null # (m), nonzero assumes unit offset file is available
+   UNITOFFSETFILE=null
    ENSEMBLESIZE=null # deprecated in favor of SCENARIOPACKAGESIZE
    SCENARIOPACKAGESIZE=null
    declare -a INITPOST=( null_post.sh ) 
@@ -1570,6 +1576,7 @@ writeProperties()
    echo "forcing.tidefac : $TIDEFAC" >> $STORMDIR/run.properties
    echo "forcing.tropicalcyclone : $TROPICALCYCLONE" >> $STORMDIR/run.properties
    echo "forcing.varflux : $VARFLUX" >> $STORMDIR/run.properties
+   echo "forcing.staticoffset : $STATICOFFSET" >> $STORMDIR/run.properties
    echo "forcing.schedule.cycletimelimit : $CYCLETIMELIMIT" >> $STORMDIR/run.properties
    echo "coupling.waves : $WAVES" >> $STORMDIR/run.properties
    # static hpc environment properties
@@ -1587,6 +1594,7 @@ writeProperties()
    echo "hpc.job.default.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
    # static input files, templates, and property files 
    echo "adcirc.file.input.gridfile : $GRIDFILE" >> $STORMDIR/run.properties   
+   echo "adcirc.file.input.unitoffsetfile : $UNITOFFSETFILE" >> $STORMDIR/run.properties
    echo "adcirc.gridname : $GRIDNAME" >> $STORMDIR/run.properties   
    echo "adcirc.file.properties.meshproperties : $MESHPROPERTIES" >> $STORMDIR/run.properties   
    echo "adcirc.file.input.nafile : $NAFILE" >> $STORMDIR/run.properties
@@ -2034,6 +2042,11 @@ fi
 if [[ ! -z $NAFILE && $NAFILE != null ]]; then
    checkFileExistence $INPUTDIR "ADCIRC nodal attributes (fort.13) file" $NAFILE
 fi
+# unit offset file if unit offset has been specified
+if [[ $STATICOFFSET != "null" ]]; then
+   checkFileExistence $INPUTDIR "ADCIRC static water level offset data file" $UNITOFFSETFILE
+fi
+
 #
 #  O B T A I N   I N I T I A L   H O T S T A R T   F I L E
 #  F R O M   F I L E S Y S T E M   O R   U R L  
