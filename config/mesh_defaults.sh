@@ -24,6 +24,8 @@ THIS=config/mesh_defaults.sh
 allMessage "$THIS: Setting default values for the mesh ${MESH}."
 MESHURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/meshes
 NODALATTRIBUTESURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/nodal-attributes
+OFFSETURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets
+UNITOFFSETFILE=null
 #
 case $GRIDNAME in
    "LA_v19k-WithUpperAtch_chk")
@@ -52,6 +54,7 @@ case $GRIDNAME in
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # FIXME: no unit offset url
       ;;
       #
    "ec95d")
@@ -80,6 +83,7 @@ case $GRIDNAME in
       ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="01:00:00" # forecast wall clock time
+      # FIXME: no unit offset url
       ;;
    "tx2008_r35h")
       INPUTDIR=$SCRIPTDIR/input/meshes/texas2008_r35h
@@ -106,6 +110,7 @@ case $GRIDNAME in
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # FIXME: no unit offset url
       ;;
    "neflga_v12_geo")
       INPUTDIR=$SCRIPTDIR/input/meshes/neflga
@@ -132,6 +137,7 @@ case $GRIDNAME in
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # FIXME: no unit offset url
       ;;
    "nc_inundation_v9.99_w_rivers")
       INPUTDIR=$SCRIPTDIR/input/meshes/nc_v9.99_w_rivers
@@ -159,6 +165,8 @@ case $GRIDNAME in
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_nc_inundation_v9.99_rivers.dat.xz
+      UNITOFFSETFILE=unit_offset_nc_inundation_v9.99_rivers.dat
       ;; 
    "hsofs")
       INPUTDIR=$SCRIPTDIR/input/meshes/hsofs
@@ -184,7 +192,9 @@ case $GRIDNAME in
       HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
-      FORECASTWALLTIME="08:00:00" # forecast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_hsofs.dat.xz
+      UNITOFFSETFILE=unit_offset_hsofs.dat
       ;;
    "southfl_v11-1_final")
       INPUTDIR=$SCRIPTDIR/input/meshes/southfl    
@@ -211,6 +221,7 @@ case $GRIDNAME in
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # FIXME: no unit offset url 
       ;;
    "eccl_v7_geo_z")
       INPUTDIR=$SCRIPTDIR/input/meshes/cenfl    
@@ -237,6 +248,7 @@ case $GRIDNAME in
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # FIXME: no unit offset url
       ;;
    *)
       warn "cycle $CYCLE: $SCENARIO: $THIS: Mesh GRIDNAME $GRIDNAME was not recognized."
