@@ -27,63 +27,62 @@
 
 # Fundamental
 
-INSTANCENAME=hsofs_al052019_jgf_0.3      # "name" of this ASGS process
+INSTANCENAME=ncfs-dev-ncv99-al05-staticoffset      # "name" of this ASGS process
+SCRATCHDIR=/scratch/ncfs-dev/${INSTANCENAME}
+RMQMessaging_Transmit=on
+RESERVATION=ncfs
+STATICOFFSET=0.30
 
 # Input files and templates
 
-GRIDNAME=hsofs
+GRIDNAME=nc_inundation_v9.99_w_rivers
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
 TIDEFAC=on               # tide factor recalc
    HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=off        # NAM download/forcing
-   FORECASTCYCLE="06"
-TROPICALCYCLONE=on       # tropical cyclone forcing
+BACKGROUNDMET=off         # NAM download/forcing
+   FORECASTCYCLE="00,06,12,18"
+TROPICALCYCLONE=on      # tropical cyclone forcing
    STORM=05              # storm number, e.g. 05=ernesto in 2006
    YEAR=2019             # year of the storm
-WAVES=on                 # wave forcing
+WAVES=on                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
-VARFLUX=off               # variable river flux forcing
-#
-STATICOFFSET=0.30        # (m), assumes a unit offset file is available
-#
+VARFLUX=on               # variable river flux forcing
+   RIVERSITE=data.disaster.renci.org
+   RIVERDIR=/opt/ldm/storage/SCOOP/RHLRv9-OKU
+   RIVERUSER=bblanton
+   RIVERDATAPROTOCOL=scp
 CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=1799                     # number of compute CPUs for all simulations
-NCPUCAPACITY=9999
+NCPU=639                     # number of compute CPUs for all simulations
+NCPUCAPACITY=2048
 NUMWRITERS=1
 ACCOUNT=null
-if [[ $HPCENVSHORT = "hatteras" ]]; then
-   NCPU=639 # max on hatteras
-fi
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
+INTENDEDAUDIENCE=professional    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com taylorgasher@gmail.com"
+POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="bblanton@renci.org asgs.cera.lsu@gmail.com"
 NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart
-LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/2019082506/hsofs/queenbee.loni.org/namhsofs/namforecast
+COLDSTARTDATE=2019080100  # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=coldstart       # "hotstart" or "coldstart"
+LASTSUBDIR=null
+#LASTSUBDIR=/scratch/ncfs-dev/ncfs-dev-ncv99-nam-master/asgs28855/2019083112
 
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=6
-if [[ $HPCENVSHORT = "hatteras" ]]; then
-   if [[ $USER = "jgflemin" || $USER = "ncfs" ]]; then
-      SCENARIOPACKAGESIZE=2
-   fi
-fi
+SCENARIOPACKAGESIZE=3
 case $si in
    -2) 
        ENSTORM=hindcast
@@ -93,31 +92,23 @@ case $si in
        ENSTORM=nowcast
        ;;
     0)
-       ENSTORM=nhcConsensusWind10m
-       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ENSTORM=nhcOfcl
        ;;
     1)
-       ENSTORM=nhcConsensus
+       ENSTORM=veerLeft50
+       PERCENT=-50
        ;;
-
     2)
-       ENSTORM=veerRight100Wind10m
-       PERCENT=100
-       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ENSTORM=veerLeft100
+       PERCENT=-100
        ;;
     3)
        ENSTORM=veerRight100
        PERCENT=100
        ;;
-
     4)
-       ENSTORM=veerLeft100Wind10m
-       PERCENT=-100
-       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-       ;;
-    5)
-       ENSTORM=veerLeft100
-       PERCENT=-100
+       ENSTORM=veerRight50
+       PERCENT=50
        ;;
     *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
