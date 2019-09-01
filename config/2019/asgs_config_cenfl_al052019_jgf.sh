@@ -27,11 +27,11 @@
 
 # Fundamental
 
-INSTANCENAME=southfl_al052019_jgf      # "name" of this ASGS process
+INSTANCENAME=cenfl_al052019_jgf      # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=southfl_v11-1_final
+GRIDNAME=eccl_v7_geo_z
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
@@ -51,13 +51,17 @@ CYCLETIMELIMIT="99:00:00"
 # Computational Resources (related defaults set in platforms.sh)
 
 NCPU=959                # number of compute CPUs for all simulations
-NCPUCAPACITY=1000
+if [[ $HPCENVSHORT = "hatteras" ]]; then
+   NCPU=499 # 512 is max for hatteras outside the ncfs reservation
+   RESERVATION=ncfs
+fi
+NCPUCAPACITY=3648
 NUMWRITERS=1
 ACCOUNT=null
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
+INTENDEDAUDIENCE=professional # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com taylorgasher@gmail.com"
@@ -67,12 +71,12 @@ NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 COLDSTARTDATE=auto
 HOTORCOLD=hotstart
-LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/al05/25/southfl_v11-1_final/supermic.hpc.lsu.edu/southfl_al052019_jgf/nhcConsensus
+LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2019/al05/21/eccl_v7_geo_z/supermic.hpc.lsu.edu/cenfl_al052019_jgf/nhcConsensus
 
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2
+SCENARIOPACKAGESIZE=2 
 case $si in
    -2) 
        ENSTORM=hindcast
@@ -82,20 +86,29 @@ case $si in
        ENSTORM=nowcast
        ;;
     0)
+       ENSTORM=nhcConsensusWind10m
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    1)
+       ENSTORM=nhcConsensus
+       ;;
+    2)
        ENSTORM=veerLeft100Wind10m
        PERCENT=-100
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
-    1)
+    3)
        ENSTORM=veerLeft100
        PERCENT=-100
        ;;
-    2)
-       ENSTORM=nhcConsensusWind10m
+    4)
+       ENSTORM=veerRight100Wind10m
+       PERCENT=100
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
-    3)
-       ENSTORM=nhcConsensus
+    5)
+       ENSTORM=veerRight100
+       PERCENT=100
        ;;
     *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
