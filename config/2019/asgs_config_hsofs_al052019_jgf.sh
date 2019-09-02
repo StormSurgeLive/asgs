@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME=hsofs_al052019_jgf_0.3      # "name" of this ASGS process
+INSTANCENAME=hsofs_al052019_jgf     # "name" of this ASGS process
 
 # Input files and templates
 
@@ -56,7 +56,6 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=1799                     # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
-ACCOUNT=null
 if [[ $HPCENVSHORT = "hatteras" ]]; then
    NCPU=639 # max on hatteras
 fi
@@ -73,7 +72,8 @@ NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 COLDSTARTDATE=auto
 HOTORCOLD=hotstart
-LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/2019082506/hsofs/queenbee.loni.org/namhsofs/namforecast
+#LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/2019082506/hsofs/queenbee.loni.org/namhsofs/namforecast
+LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/al05/30/hsofs/queenbee.loni.org/hsofs_al052019_jgf_0.3/nhcConsensus
 
 # Scenario package
 
