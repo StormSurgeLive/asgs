@@ -295,6 +295,7 @@ init_hatteras()
   QSUMMARYCMD=null
   QUOTACHECKCMD="df -h /projects/ncfs"
   ALLOCCHECKCMD=null
+  TDS=(renci_tds lsu_tds)
   # 
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   #
@@ -344,7 +345,6 @@ init_hatteras()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCHDIR
   ARCHIVEDIR=$SCRATCHDIR
-  TDS=(renci_tds lsu_tds)
   # to create python environment for the ncfs user, @jasonfleming did this:
   #   pip install --user --upgrade pip
   #   pip install --user --upgrade setuptools
