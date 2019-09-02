@@ -98,7 +98,7 @@ $ with Hs is less than CURVAT. The solution is considered converged
 $ if thses criteria are true at NPNTS percent of the wet nodes.
 $ SWAN will stop iterating and go to the next time step after
 $ 'NONSTAT MXITNS' iterations in any case.
-NUM STOPC DABS=0.005 DREL=0.01 CURVAT=0.005 NPNTS=95 NONSTAT MXITNS=5
+NUM STOPC DABS=0.005 DREL=0.01 CURVAT=0.005 NPNTS=95 NONSTAT MXITNS=20
 $
 $*************************************************************
 $
