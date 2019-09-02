@@ -58,7 +58,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=639                     # number of compute CPUs for all simulations
+NCPU=635                     # number of compute CPUs for all simulations
 NCPUCAPACITY=2048
 NUMWRITERS=1
 ACCOUNT=null
@@ -82,7 +82,7 @@ LASTSUBDIR=null
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=3
+SCENARIOPACKAGESIZE=6
 case $si in
    -2) 
        ENSTORM=hindcast
@@ -92,21 +92,35 @@ case $si in
        ENSTORM=nowcast
        ;;
     0)
-       ENSTORM=nhcOfcl
+       ENSTORM=nhcOfclWind10m
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
     1)
+       ENSTORM=nhcOfcl
+       ;;
+    2)
+       ENSTORM=veerLeft50Wind10m
+       PERCENT=-50
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    3)
        ENSTORM=veerLeft50
        PERCENT=-50
        ;;
-    2)
+    4)
+       ENSTORM=veerLeft100Wind10m
+       PERCENT=-100
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    5)
        ENSTORM=veerLeft100
        PERCENT=-100
        ;;
-    3)
+    6)
        ENSTORM=veerRight100
        PERCENT=100
        ;;
-    4)
+    7)
        ENSTORM=veerRight50
        PERCENT=50
        ;;
