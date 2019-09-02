@@ -281,7 +281,7 @@ init_hatteras()
   SERQUEUE=batch
   PPN=null
   CONSTRAINT=null      # ivybridge or sandybridge
-  RESERVATION=null     # ncfs or null, causes job to run on dedicated cores
+  RESERVATION=null    # ncfs or null, causes job to run on dedicated cores
   PARTITION=null
   QCHECKCMD=sacct
   JOBLAUNCHER='srun '
@@ -305,6 +305,7 @@ init_hatteras()
   RMQMessaging_Python=/usr/bin/python
   RMQMessaging_LocationName="RENCI"
   RMQMessaging_ClusterName="Hatteras"
+
   #
   # specify location of platform- and Operator-specific scripts to 
   # set up environment for different types of jobs

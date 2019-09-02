@@ -187,9 +187,9 @@ case $GRIDNAME in
       HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
       TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
-      SWANDT=1200                 # swan timestep / coupling interval (seconds)
+      SWANDT=1800                 # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
-      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
