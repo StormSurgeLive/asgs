@@ -59,13 +59,16 @@ NUMWRITERS=1
 if [[ $HPCENVSHORT = "hatteras" ]]; then
    NCPU=639 # max on hatteras
 fi
+if [[ $HPCENVSHORT = "queenbee" ]]; then
+   NCPU=959
+fi
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com taylorgasher@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,taylorgasher@gmail.com"
 NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
@@ -74,6 +77,7 @@ COLDSTARTDATE=auto
 HOTORCOLD=hotstart
 #LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/2019082506/hsofs/queenbee.loni.org/namhsofs/namforecast
 LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/al05/30/hsofs/queenbee.loni.org/hsofs_al052019_jgf_0.3/nhcConsensus
+#LASTSUBDIR=/work/jgflemin/asgs45215/30
 
 # Scenario package
 
