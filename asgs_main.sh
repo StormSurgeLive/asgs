@@ -1014,7 +1014,7 @@ downloadBackgroundMet()
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Downloading NAM meteorological data for $ENSTORM."
    logMessage "$ENSTORM: $THIS: Downloading meteorological data." $APPLOGFILE
    cd $RUNDIR 2>> ${SYSLOG}
-   if [[ $ENSTORM != "nowcast" ]]; then
+   if [[ ${ENSTORM:0:7} != "nowcast" ]]; then
       advisoryLine=`grep ADVISORY $STATEFILE`
       ADVISORY=${advisoryLine##ADVISORY=}
       echo $ADVISORY > $RUNDIR/currentCycle
@@ -1429,7 +1429,7 @@ handleFailedJob()
       warn "$ENSTORM: $THIS: Moving failed cycle to 'failed.${FAILDATETIME}'."
       mv $ADVISDIR/$ENSTORM $RUNDIR/failed.${FAILDATETIME} 2>> ${SYSLOG}
       # roll back the latest advisory number if the nowcast failed
-      if [[ $ENSTORM = nowcast ]]; then
+      if [[ ${ENSTORM:0:7} = nowcast ]]; then
          logMessage "Rolling back the advisory number in the state file $STATEFILE due to failed nowcast."
          sed 's/ADVISORY=.*/ADVISORY='$LASTADVISORYNUM'/' $STATEFILE > ${STATEFILE}.new 2>> ${SYSLOG}
          mv -f ${STATEFILE}.new $STATEFILE >> ${SYSLOG} 2>&1 
@@ -1508,6 +1508,7 @@ variables_init()
    ONESHOT=no      # yes if ASGS is launched by cron
    NCPUCAPACITY=2  # total number of CPUs available to run jobs
    si=0       # scenario index for ; -1 indicates non-forecast
+   ni=0
    STATEFILE=null
    ENSTORM=hindcast
    CYCLETIMELIMIT="05:00:00"
@@ -1537,7 +1538,9 @@ variables_init()
    UNITOFFSETFILE=null
    ENSEMBLESIZE=null # deprecated in favor of SCENARIOPACKAGESIZE
    SCENARIOPACKAGESIZE=null
+   NOWCASTPACKAGESIZE=null
    declare -a INITPOST=( null_post.sh ) 
+   declare -a NOWCASTPOST=( null_post.sh ) 
    declare -a POSTPROCESS=( null_post.sh ) 
    declare -a JOBENV=( null )  # array of shell scripts to 'source' for compute job
    JOBENVDIR=null
@@ -1632,14 +1635,24 @@ writeProperties()
    echo "monitoring.logging.file.syslog : $SYSLOG" >> $STORMDIR/run.properties  
    # post processing
    echo "post.intendedaudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
-   echo "post.executable.initpost : $INITPOST" >> $STORMDIR/run.properties
+   NOWCASTPOSTSTRING="( "
+   for script in ${NOWCASTPOST[*]}; do
+      NOWCASTPOSTSTRING="$NOWCASTPOSTSTRING $script"
+   done
+   NOWCASTPOSTSTRING="$NOWCASTPOSTSTRING )"
+   echo "post.executable.nowcastpost : $NOWCASTPOSTSTRING" >> $STORMDIR/run.properties
+   INITPOSTSTRING="( "
+   for script in ${INITPOST[*]}; do
+      INITPOSTSTRING="$INITPOSTSTRING $script"
+   done
+   INITPOSTSTRING="$INITPOSTSTRING )"
+   echo "post.executable.initpost : $INITPOSTSTRING" >> $STORMDIR/run.properties
    POSTPROCESSSTRING="( "
    for script in ${POSTPROCESS[*]}; do
       POSTPROCESSSTRING="$POSTPROCESSSTRING $script"
    done
    POSTPROCESSSTRING="$POSTPROCESSSTRING )"
    echo "post.executable.postprocess : $POSTPROCESSSTRING" >> $STORMDIR/run.properties
-   echo "post.opendap.target : $TARGET" >> $STORMDIR/run.properties
    THREDDS="( "
    for thredds_data_server in ${TDS[*]}; do
       THREDDS="$THREDDS $thredds_data_server"
@@ -2116,6 +2129,8 @@ if [[ $HOTORCOLD = hotstart ]]; then
       # asgs config file (unless the run.properties file was also supplied)
       if [[ $COLDSTARTDATE = auto ]]; then
          logMessage "The COLDSTARTDATE parameter in the ASGS config file was set to 'auto' and the LASTSUBDIR parameter was set to the local filesystem directory ${LASTSUBDIR}. The COLDSTARTDATE will therefore be determined from the ColdStartTime property in the $LASTSUBDIR/run.properties file."
+         # FIXME: allow other subdirectories in case the LASTSUBDIR is named
+         # for a scenario other than "nowcast" or "hindcast"
          for dir in nowcast hindcast; do 
             if [[ -d $LASTSUBDIR/$dir ]]; then
                checkFileExistence $LASTSUBDIR/$dir "run properties file" run.properties
@@ -2406,8 +2421,9 @@ while [ true ]; do
   
    # clear orphaned logging processes (if any)
    findAndClearOrphans
-
    si=-1
+   ni=0
+   while [ $ni -lt $NOWCASTPACKAGESIZE ]; do    
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
    readConfig
    THIS=asgs_main.sh
@@ -2423,7 +2439,7 @@ while [ true ]; do
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Initializing for Nowcast for ADVISORY $RMQADVISORY."
    CURRENT_STATE="WAIT"
    if [[ $hotstartURL = null ]]; then
-      for dir in nowcast hindcast; do 
+      for dir in $FROMSCENARIO hindcast; do 
          logMessage "$ENSTORM: $THIS: Looking for the directory $OLDADVISDIR/${dir}."
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Looking for the directory $OLDADVISDIR/${dir}."
          if [[ -d $OLDADVISDIR/$dir ]]; then
@@ -2454,15 +2470,13 @@ while [ true ]; do
          done
       done
    fi
-
+   echo "FROMDIR1 is $FROMDIR"
    checkHotstart $FROMDIR $HOTSTARTFORMAT  67
 
    cd $RUNDIR 2>> ${SYSLOG}
    #
    # N O W C A S T
-   SCENARIO=nowcast
-   ENSTORM=nowcast
-   RUNNOWCAST=yes 
+   RUNNOWCAST=yes     # default to running the nowcast
    NOWCASTDIR=null    # directory with hotstart files to be used in forecast
    # write the properties associated with asgs configuration to the 
    # run.properties file
@@ -2816,6 +2830,21 @@ while [ true ]; do
       CURRENT_STATE="WAIT"
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Nowcast run finished."
       logMessage "$ENSTORM: $THIS: Nowcast run finished."
+
+      # execute nowcast post processing
+      logMessage "$ENSTORM: $THIS: The $ENSTORM job ended successfully. Starting postprocessing."
+      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+      echo "time.post.start : $DATETIME" >> ${STORMDIR}/run.properties
+      scriptIndex=0
+      while [[ $scriptIndex -lt ${#NOWCASTPOST[@]} ]]; do 
+         #com="${OUTPUTDIR}/${POSTPROCESS[$scriptIndex]} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
+         com="${OUTPUTDIR}/${NOWCASTPOST[$scriptIndex]} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY "
+         RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WAIT" "${NOWCASTPOST[$scriptIndex]} $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR"
+         $com
+         scriptIndex=`expr $scriptIndex + 1`
+      done
+      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+      echo "time.post.finish : $DATETIME" >> ${STORMDIR}/run.properties
       
       # archive nowcast
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Initiating nowcast archival process, if any."
@@ -2845,13 +2874,15 @@ while [ true ]; do
       logMessage "$ENSTORM: $THIS: Skipping the submission of the nowcast job and proceeding directly to the forecast(s)."
       NOWCASTDIR=$FROMDIR
    fi
+   ni=`expr $ni + 1`
+   done # end loop over nowcasts
    # write the ASGS state file
    if [[ $hotstartURL != "null" ]]; then
       hotstartURL=null
    fi
    LUN=67  # asgs always tells adcirc to read a 68 file and write a 67 file
    logMessage "Detecting LASTSUBDIR from NOWCASTDIR ${NOWCASTDIR}."
-   LASTSUBDIR=`echo $NOWCASTDIR | sed 's/\/nowcast//g ; s/\/hindcast//g'`
+   LASTSUBDIR=`dirname $NOWCASTDIR`
    logMessage "RUNDIR is $RUNDIR STATEFILE is $STATEFILE SYSLOG is $SYSLOG" #jgfdebug
    echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
    echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}

@@ -277,8 +277,8 @@ our $dataDate = $dateNeeded; # initialize to a reasonable value
 # construct a fort.20 file using the nowcast ("*HC*") data
 # files from the site. Also use nowcast data to construct a fort.20 file
 # if this is a forecast but there isn't any forecast data (seems unlikely).  
-if ( ($enstorm eq "nowcast") || 
-        (($enstorm ne "nowcast") && ($numForecast == 0)) ) {
+if ( ($enstorm =~ /nowcast/) || 
+        (($enstorm =~ /nowcast/) && ($numForecast == 0)) ) {
    if ($numNowcast != 0) {
       $enough_data = &getFluxData(@nowcastFluxFiles);
    }
@@ -289,7 +289,7 @@ if ( ($enstorm eq "nowcast") ||
 # but there wasn't enough nowcast data, use forecast data to fill out the 
 # remainder of the required data ... only do this if there is forecast data
 # on the site. 
-if ( ($enstorm ne "nowcast") || ($enough_data == 0) ) {
+if ( ( ! $enstorm =~ /nowcast/) || ($enough_data == 0) ) {
    if ($numForecast != 0) {
       $enough_data = &getFluxData(@forecastFluxFiles);
    }

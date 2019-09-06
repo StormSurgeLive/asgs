@@ -104,7 +104,7 @@ unless ( $hcDirSuccess ) {
    exit 1;
 }
 if ( defined $enstorm ) { 
-   unless ( $enstorm eq "nowcast" ) {
+   unless ( $enstorm =~ /nowcast/ ) {
       @forecastcycle = split(/,/,join(',',@forecastcycle));
       &getForecastData();
       exit;
@@ -278,7 +278,7 @@ foreach my $dir (@targetDirs) {
    # but NAMtoOWI.pl is hardcoded to look for it
    $dir =~ /nam.(\d+)/;
    my $dirDate = $1;
-   $localDir = $cycletime."/nowcast/erl.".substr($dirDate,2);
+   $localDir = $cycletime."/$enstorm/erl.".substr($dirDate,2);
    unless ( -e $localDir ) { 
       unless ( mkdir($localDir,0777) ) {
          stderrMessage("ERROR","Could not make the directory '$localDir': $!");
@@ -341,7 +341,7 @@ while ($datetime_needed <= $cycletime) {
    }
    unless ( $already_haveit == 1 ) {
       # don't have it, look in alternate directories for it
-      stderrMessage("DEBUG","Don't have nowcast data for '$datetime_needed', searching alternate directories.");
+      stderrMessage("DEBUG","Don't have $enstorm data for '$datetime_needed', searching alternate directories.");
       if (@altnamdirs) {
          # loop through all the alternative directories
          foreach my $andir (@altnamdirs) {

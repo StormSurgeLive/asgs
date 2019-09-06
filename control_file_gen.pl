@@ -269,7 +269,7 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
 }
 #
 # we want a hotstart file if this is a nowcast or hindcast
-if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
+if ( $enstorm =~ /nowcast/ || $enstorm eq "hindcast" ) {
    $NHSTAR = 1;
    if ( $hsformat eq "netcdf" ) {
       $NHSTAR = 3;
@@ -572,7 +572,7 @@ if ( abs($nws) == 12 || abs($nws) == 312 ) {
    $currentdate = substr($oy,2,2) . sprintf("%02d%02d",$om,$od); # start time
    $date1 = sprintf("%4d%02d%02dT%02d%02d",$oy,$om,$od,$oh,$omin);
 }
-if ( $enstorm eq "nowcast" ) {
+if ( $enstorm =~ /nowcast/ ) {
    $run_type = "Nowcast";
 } elsif ( $enstorm eq "hindcast" ) {
    $run_type = "Hindcast";
@@ -898,7 +898,7 @@ sub customParameters () {
     $wtiminc = "NO LINE HERE";
    # create the runme file, if this is a nowcast that has an ending time
    # that is later than the previous hotstart
-   if ( $enstorm eq "nowcast" && $specifiedRunLength != 0 ) {
+   if ( $enstorm =~ /nowcast/ && $specifiedRunLength != 0 ) {
       open(RUNME,">$stormDir/runme") || die "ERROR: control_file_gen.pl: Failed to open runme file for writing in the directory $stormDir: $!.";
       printf RUNME "$specifiedRunLength day nowcast\n";     
       close(RUNME);
@@ -1031,7 +1031,7 @@ sub owiParameters () {
    $NHSINC = int(($RNDAY*86400.0)/$dt);
    #
    # create the runme file, if this is a nowcast
-   if ( $enstorm eq "nowcast" ) {
+   if ( $enstorm =~ /nowcast/ ) {
       open(RUNME,">$stormDir/runme") || die "ERROR: control_file_gen.pl: Failed to open runme file for writing in the directory $stormDir: $!.";
       printf RUNME "$ensembleid\n";     
    }
@@ -1100,7 +1100,7 @@ sub vortexModelParameters () {
    # get end time
    my $end; # yyyymmddhh
    # for a nowcast, end the run at the end of the hindcast
-   if ( $enstorm eq "nowcast" ) {
+   if ( $enstorm =~ /nowcast/ ) {
       $end = $nowcast;
       stderrMessage("INFO","New $enstorm time is $end.");
    } elsif ( $endtime ) {
@@ -1242,7 +1242,7 @@ sub vortexModelParameters () {
    # longer than the minimum
    my $goodRunlength = 1;
    if ( $runlength_seconds < $min_runlength ) {
-      if ( $enstorm eq "nowcast" ) {
+      if ( $enstorm =~ /nowcast/ ) {
          $goodRunlength = 0;
       }
       stderrMessage("INFO","Runlength was calculated as $runlength_seconds seconds, which is less than the minimum runlength of $min_runlength seconds. The RNDAY will be adjusted so that it ADCIRC runs for the minimum length of simulation time.");
@@ -1283,7 +1283,7 @@ sub vortexModelParameters () {
    } 
    # create the runme file, if this is a nowcast that has an ending time
    # that is later than the previous hotstart
-   if ( $enstorm eq "nowcast" && $goodRunlength == 1 ) {
+   if ( $enstorm =~ /nowcast/ && $goodRunlength == 1 ) {
       my $runlengthHours = ( $RNDAY*86400.0 - $hstime ) / 3600.0;
       open(RUNME,">$stormDir/runme") || die "ERROR: control_file_gen.pl: Failed to open runme file for writing in the directory $stormDir: $!.";
       printf RUNME "$runlengthHours hour nowcast\n";     
