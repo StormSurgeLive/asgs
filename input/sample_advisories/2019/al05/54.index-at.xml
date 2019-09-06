@@ -1,0 +1,1174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:georss="http://www.georss.org/georss"
+ xmlns:gml="http://www.opengis.net/gml"
+ xmlns:nhc="https://www.nhc.noaa.gov">
+<channel>
+<pubDate>Fri, 06 Sep 2019 20:58:12 GMT</pubDate>
+<title>NHC Atlantic</title>
+<description>Active tropical cyclones in the Atlantic, Caribbean, and the Gulf of Mexico</description>
+<link>https://www.nhc.noaa.gov/</link>
+<copyright>none</copyright>
+<managingEditor>nhcwebmaster@noaa.gov (NHC Webmaster)</managingEditor>
+<language>en-us</language>
+<webMaster>nhcwebmaster@noaa.gov (NHC Webmaster)</webMaster>
+<image>
+<url>https://www.nhc.noaa.gov/gifs/xml_logo_nhc.gif</url>
+<link>https://www.nhc.noaa.gov/</link>
+<title>NHC Atlantic</title>
+<description>NOAA logo</description>
+<width>95</width>
+<height>45</height>
+</image>
+<item>
+<title>Atlantic Tropical Weather Outlook</title>
+<description>
+<![CDATA[
+<br/>
+000<br/>
+ABNT20 KNHC 061727<br/>
+TWOAT <br/>
+<br/>
+Tropical Weather Outlook<br/>
+NWS National Hurricane Center Miami FL<br/>
+200 PM EDT Fri Sep 6 2019<br/>
+<br/>
+For the North Atlantic...Caribbean Sea and the Gulf of Mexico:<br/>
+<br/>
+The National Hurricane Center is issuing advisories on Hurricane<br/>
+Dorian, located offshore of the northeastern coast of North<br/>
+Carolina.  The National Hurricane Center is also issuing advisories<br/>
+on Tropical Storm Gabrielle, which quickly regenerated this morning<br/>
+about 1000 miles southwest of the Azores.<br/>
+<br/>
+A broad area of low pressure located just southwest of the Cabo<br/>
+Verde Islands is producing limited shower and thunderstorm activity.<br/>
+Little, if any, development of this disturbance is expected for the<br/>
+next couple of days, but environmental conditions are likely to<br/>
+become more conducive for a tropical depression to form by Tuesday<br/>
+or Wednesday while the system moves westward across the tropical<br/>
+Atlantic Ocean.<br/>
+* Formation chance through 48 hours...low...10 percent.<br/>
+* Formation chance through 5 days...high...70 percent.<br/>
+<br/>
+Disorganized cloudiness and showers located a few hundred miles<br/>
+northeast of the Leeward Islands are associated with a trough of<br/>
+low pressure.  Significant development of this system is not<br/>
+expected during the next several days while it moves slowly<br/>
+west-northwestward to northwestward.<br/>
+* Formation chance through 48 hours...low...near 0 percent.<br/>
+* Formation chance through 5 days...low...10 percent.<br/>
+<br/>
+$$<br/>
+Forecaster Brown<br/>
+]]>
+</description>
+<pubDate>Fri, 06 Sep 2019 17:27:09 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/gtwo.php?basin=atlc</link>
+<guid>https://www.nhc.noaa.gov/gtwo.php?basin=atlc&amp;201909061727</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+ <title>Summary for Tropical Storm Gabrielle (AT3/AL082019)</title>
+ <guid isPermaLink="false">summary-al082019-201909062035</guid>
+ <pubDate>Fri, 06 Sep 2019 20:35:12 GMT</pubDate>
+ <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+ <link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/062035.shtml</link>
+ <description>
+  ...GABRIELLE FORECAST TO BECOME A HURRICANE EARLY NEXT WEEK...
+ As of 5:00 PM AST Fri Sep 6
+ the center of Gabrielle was located near 27.9, -39.6
+ with movement NW at 17 mph.
+ The minimum central pressure was 1003 mb
+ with maximum sustained winds of about 45 mph.
+ </description>
+ <nhc:Cyclone>
+  <nhc:center>27.9, -39.6</nhc:center>
+  <nhc:type>Tropical Storm</nhc:type>
+  <nhc:name>Gabrielle</nhc:name>
+  <nhc:wallet>AT3</nhc:wallet>
+  <nhc:atcf>AL082019</nhc:atcf>
+  <nhc:datetime>5:00 PM AST Fri Sep 6</nhc:datetime>
+  <nhc:movement>NW at 17 mph</nhc:movement>
+  <nhc:pressure>1003 mb</nhc:pressure>
+  <nhc:wind>45 mph</nhc:wind>
+  <nhc:headline> ...GABRIELLE FORECAST TO BECOME A HURRICANE EARLY NEXT WEEK...</nhc:headline>
+ </nhc:Cyclone>
+</item>
+<item>
+<title>Tropical Storm Gabrielle Public Advisory Number 13</title>
+<description>Issued at 500 PM AST Fri Sep 06 2019  <![CDATA[<pre>
+
+000
+WTNT33 KNHC 062035
+TCPAT3
+
+BULLETIN
+Tropical Storm Gabrielle Advisory Number  13
+NWS National Hurricane Center Miami FL       AL082019
+500 PM AST Fri Sep 06 2019
+
+...GABRIELLE FORECAST TO BECOME A HURRICANE EARLY NEXT WEEK...
+
+
+SUMMARY OF 500 PM AST...2100 UTC...INFORMATION
+----------------------------------------------
+LOCATION...27.9N 39.6W
+ABOUT 1010 MI...1620 KM SW OF THE AZORES
+MAXIMUM SUSTAINED WINDS...45 MPH...75 KM/H
+PRESENT MOVEMENT...NW OR 315 DEGREES AT 17 MPH...28 KM/H
+MINIMUM CENTRAL PRESSURE...1003 MB...29.62 INCHES
+
+
+WATCHES AND WARNINGS
+--------------------
+There are no coastal watches or warnings in effect.
+
+
+DISCUSSION AND OUTLOOK
+----------------------
+At 500 PM AST (2100 UTC), the center of Tropical Storm Gabrielle was
+located near latitude 27.9 North, longitude 39.6 West. Gabrielle is
+moving toward the northwest near 17 mph (28 km/h).  A turn to the
+west-northwest with a slight decrease in forward speed are expected
+on Saturday.  Gabrielle is forecast to gradually turn to the
+northwest and north on Sunday, then move at a faster pace to the
+northeast on Monday.
+
+Maximum sustained winds are near 45 mph (75 km/h) with higher gusts.
+Some strengthening is forecast during the next 48 hours. Gabrielle
+is anticipated to become a hurricane by late Sunday or Monday.
+
+Tropical-storm-force winds extend outward up to 140 miles (220 km)
+from the center.
+
+The estimated minimum central pressure is 1003 mb (29.62 inches).
+
+
+HAZARDS AFFECTING LAND
+----------------------
+None.
+
+
+NEXT ADVISORY
+-------------
+Next complete advisory at 1100 PM AST.
+
+$$
+Forecaster Blake
+
+</pre>]]></description>
+<pubDate>Fri, 06 Sep 2019 20:35:12 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/062035.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/062035.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Gabrielle Forecast Advisory Number 13</title>
+<description>Issued at 2100 UTC FRI SEP 06 2019  <![CDATA[<pre>
+
+000
+WTNT23 KNHC 062033
+TCMAT3
+
+TROPICAL STORM GABRIELLE FORECAST/ADVISORY NUMBER  13
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL082019
+2100 UTC FRI SEP 06 2019
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+TROPICAL STORM CENTER LOCATED NEAR 27.9N  39.6W AT 06/2100Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE NORTHWEST OR 315 DEGREES AT  15 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1003 MB
+MAX SUSTAINED WINDS  40 KT WITH GUSTS TO  50 KT.
+34 KT.......120NE   0SE   0SW 100NW.
+12 FT SEAS..180NE  90SE 120SW 150NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 27.9N  39.6W AT 06/2100Z
+AT 06/1800Z CENTER WAS LOCATED NEAR 27.4N  39.1W
+
+FORECAST VALID 07/0600Z 29.3N  41.7W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT...120NE  30SE  30SW  90NW.
+
+FORECAST VALID 07/1800Z 30.8N  44.5W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 40NE   0SE   0SW   0NW.
+34 KT...110NE  50SE  30SW  80NW.
+
+FORECAST VALID 08/0600Z 32.2N  47.0W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 40NE  20SE   0SW  30NW.
+34 KT...100NE  70SE  40SW  70NW.
+
+FORECAST VALID 08/1800Z 33.9N  48.4W
+MAX WIND  65 KT...GUSTS  80 KT.
+64 KT... 20NE  15SE  10SW  10NW.
+50 KT... 40NE  30SE  30SW  30NW.
+34 KT... 90NE  90SE  60SW  60NW.
+
+FORECAST VALID 09/1800Z 38.5N  46.0W
+MAX WIND  80 KT...GUSTS 100 KT.
+50 KT... 50NE  50SE  40SW  30NW.
+34 KT...100NE 100SE  80SW  60NW.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 10/1800Z 44.0N  38.5W
+MAX WIND  70 KT...GUSTS  85 KT.
+
+OUTLOOK VALID 11/1800Z 53.0N  23.0W...POST-TROP/EXTRATROP
+MAX WIND  60 KT...GUSTS  75 KT.
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 27.9N  39.6W
+
+NEXT ADVISORY AT 07/0300Z
+
+$$
+FORECASTER BLAKE
+
+
+</pre>]]></description>
+<pubDate>Fri, 06 Sep 2019 20:33:13 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCMAT3+shtml/062033.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCMAT3+shtml/062033.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Gabrielle Forecast Discussion Number 13</title>
+<description>Issued at 500 PM AST Fri Sep 06 2019  <![CDATA[<pre>
+
+000
+WTNT43 KNHC 062036
+TCDAT3
+
+Tropical Storm Gabrielle Discussion Number  13
+NWS National Hurricane Center Miami FL       AL082019
+500 PM AST Fri Sep 06 2019
+
+Gabrielle has become somewhat better organized during the past few
+hours, with a better-defined surface circulation moving closer to a
+large burst of convection in the northern semicircle.  There has
+been little change in the intensity estimates, so the initial wind
+speed will stay 40 kt on this advisory.
+
+The storm continues to move to the northwest at about 15 kt.  A
+large subtropical ridge to the northeast of Gabrielle is forecast to
+build westward, forcing the tropical cyclone to turn west-
+northwestward on Saturday.  After that time, southwesterly flow
+ahead of Hurricane Dorian should turn Gabrielle quickly northward
+and northeastward by early next week.  Other than some minor speed
+differences, the models continue to be tightly packed.  The new
+NHC track forecast is basically an update of the previous one, and
+it lies near the NOAA corrected-consensus model.
+
+Southerly shear currently near Gabrielle is forecast to relax by
+late tomorrow, at about the same time that it moves over very warm
+waters near 29C.  This should promote strengthening, and it is
+possible that Gabrielle could intensify quickly near recurvature.
+By 96 h, the cyclone should move north of the Gulf Stream, with
+increasing shear. These conditions should cause a fast extratropical
+transition between 96-120 h.  The new NHC prediction is raised at 48
+and 72 hours, and it should be noted that quite a few models show
+Gabrielle becoming a category 2 hurricane at some point during that
+time.
+
+
+FORECAST POSITIONS AND MAX WINDS
+
+INIT  06/2100Z 27.9N  39.6W   40 KT  45 MPH
+ 12H  07/0600Z 29.3N  41.7W   45 KT  50 MPH
+ 24H  07/1800Z 30.8N  44.5W   50 KT  60 MPH
+ 36H  08/0600Z 32.2N  47.0W   55 KT  65 MPH
+ 48H  08/1800Z 33.9N  48.4W   65 KT  75 MPH
+ 72H  09/1800Z 38.5N  46.0W   80 KT  90 MPH
+ 96H  10/1800Z 44.0N  38.5W   70 KT  80 MPH
+120H  11/1800Z 53.0N  23.0W   60 KT  70 MPH...POST-TROP/EXTRATROP
+
+$$
+Forecaster Blake
+
+</pre>]]></description>
+<pubDate>Fri, 06 Sep 2019 20:36:15 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCDAT3+shtml/062036.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCDAT3+shtml/062036.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Gabrielle Wind Speed Probabilities Number 13</title>
+<description>Issued at 2100 UTC FRI SEP 06 2019  <![CDATA[<pre>
+
+000
+FONT13 KNHC 062035
+PWSAT3
+
+TROPICAL STORM GABRIELLE WIND SPEED PROBABILITIES NUMBER  13
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL082019
+2100 UTC FRI SEP 06 2019
+
+AT 2100Z THE CENTER OF TROPICAL STORM GABRIELLE WAS LOCATED NEAR
+LATITUDE 27.9 NORTH...LONGITUDE 39.6 WEST WITH MAXIMUM SUSTAINED
+WINDS NEAR 40 KTS...45 MPH...75 KM/H.
+
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME
+   EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME
+   CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME
+
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS
+
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST
+   ...34 KT (39 MPH... 63 KM/H)...
+   ...50 KT (58 MPH... 93 KM/H)...
+   ...64 KT (74 MPH...119 KM/H)...
+FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS
+
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING
+        AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)
+   (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN
+        18Z FRI AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)
+
+PROBABILITIES ARE GIVEN IN PERCENT
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.
+PROBABILITIES FOR 34...50...64 KT SHOWN WHEN THE 5-DAY
+64-KT CUMULATIVE PROBABILITY IS AT LEAST 1 PERCENT.
+
+
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -
+
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM
+  TIME       18Z FRI 06Z SAT 18Z SAT 06Z SUN 18Z SUN 18Z MON 18Z TUE
+PERIODS         TO      TO      TO      TO      TO      TO      TO
+             06Z SAT 18Z SAT 06Z SUN 18Z SUN 18Z MON 18Z TUE 18Z WED
+
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+LOCATION       KT
+
+SANTA CRUZ AZO 34  X   X( X)   X( X)   X( X)   X( X)   3( 3)   2( 5)
+
+HIBERNIA OILFD 34  X   X( X)   X( X)   X( X)   X( X)   3( 3)   X( 3)
+
+$$
+FORECASTER BLAKE
+</pre>]]></description>
+<pubDate>Fri, 06 Sep 2019 20:35:46 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT3+shtml/062035.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT3+shtml/062035.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Gabrielle Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/203732.shtml?cone">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT08/AL082019_5day_cone_with_line_and_wind_sm2.png"
+alt="Tropical Storm Gabrielle 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Fri, 06 Sep 2019 20:37:32 GMT
+<br /><br /><a href="https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/203732.shtml?tswind120">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT08/AL082019_wind_probs_34_F120_sm2.png"
+alt="Tropical Storm Gabrielle 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Fri, 06 Sep 2019 20:37:32 GMT
+]]>
+</description>
+<pubDate>Fri, 06 Sep 2019 20:37:32 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/203732.shtml?cone</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/203732.shtml?cone</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+ <title>Summary for Hurricane Dorian (AT5/AL052019)</title>
+ <guid isPermaLink="false">summary-al052019-201909061657</guid>
+ <pubDate>Fri, 06 Sep 2019 16:57:11 GMT</pubDate>
+ <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+ <link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT5+shtml/062058.shtml</link>
+ <description>
+  ...DORIAN MOVING AWAY FROM THE MID-ATLANTIC STATES... ...EXPECTED TO BRING HURRICANE-FORCE WINDS TO PORTIONS OF NOVA SCOTIA...
+ As of 5:00 PM EDT Fri Sep 6
+ the center of Dorian was located near 36.9, -72.7
+ with movement NE at 24 mph.
+ The minimum central pressure was 958 mb
+ with maximum sustained winds of about 90 mph.
+ </description>
+ <nhc:Cyclone>
+  <nhc:center>36.9, -72.7</nhc:center>
+  <nhc:type>Hurricane</nhc:type>
+  <nhc:name>Dorian</nhc:name>
+  <nhc:wallet>AT5</nhc:wallet>
+  <nhc:atcf>AL052019</nhc:atcf>
+  <nhc:datetime>5:00 PM EDT Fri Sep 6</nhc:datetime>
+  <nhc:movement>NE at 24 mph</nhc:movement>
+  <nhc:pressure>958 mb</nhc:pressure>
+  <nhc:wind>90 mph</nhc:wind>
+  <nhc:headline> ...DORIAN MOVING AWAY FROM THE MID-ATLANTIC STATES... ...EXPECTED TO BRING HURRICANE-FORCE WINDS TO PORTIONS OF NOVA SCOTIA...</nhc:headline>
+ </nhc:Cyclone>
+</item>
+<item>
+<title>Hurricane Dorian Public Advisory Number 54</title>
+<description>Issued at 500 PM EDT Fri Sep 06 2019  <![CDATA[<pre>
+
+654 
+WTNT35 KNHC 062058
+TCPAT5
+
+BULLETIN
+Hurricane Dorian Advisory Number  54
+NWS National Hurricane Center Miami FL       AL052019
+500 PM EDT Fri Sep 06 2019
+
+...DORIAN MOVING AWAY FROM THE MID-ATLANTIC STATES...
+...EXPECTED TO BRING HURRICANE-FORCE WINDS TO PORTIONS OF NOVA
+SCOTIA...
+
+SUMMARY OF 500 PM EDT...2100 UTC...INFORMATION
+----------------------------------------------
+LOCATION...36.9N 72.7W
+ABOUT 330 MI...530 KM SSW OF NANTUCKET MASSACHUSETTS
+ABOUT 715 MI...1145 KM SW OF HALIFAX NOVA SCOTIA
+MAXIMUM SUSTAINED WINDS...90 MPH...150 KM/H
+PRESENT MOVEMENT...NE OR 50 DEGREES AT 24 MPH...39 KM/H
+MINIMUM CENTRAL PRESSURE...958 MB...28.29 INCHES
+
+
+WATCHES AND WARNINGS
+--------------------
+CHANGES WITH THIS ADVISORY:
+
+The Canadian Hurricane Center has issued a Tropical Storm Watch
+for Newfoundland from Boat Harbour to Triton.
+
+All Hurricane and Tropical Storm Warnings are discontinued south of
+the North Carolina/Virginia Border.
+
+The Tropical Storm Warning is discontinued for the Tidal Potomac
+south of Cobb Island.
+
+The Storm Surge Warning has been discontinued north of the North
+Carolina/Virginia border.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT:
+
+A Storm Surge Warning is in effect for...
+* Salter Path NC to the North Carolina/Virginia border
+* Pamlico and Albemarle Sounds
+
+A Hurricane Warning is in effect for...
+* Eastern Nova Scotia from Hubbards to Avonport
+
+A Hurricane Watch is in effect for...
+* Southwestern Nova Scotia from Avonport to Hubbards
+* Prince Edward Island
+* Magdalen Islands
+* Southwestern Newfoundland from Parson's Pond to Indian
+Harbour
+
+A Tropical Storm Warning is in effect for...
+* North Carolina/Virginia border to Fenwick Island DE
+* Chesapeake Bay from Drum Point southward
+* Woods Hole to Sagamore Beach MA
+* Nantucket and Martha's Vineyard MA
+* East of Bar Harbor to Eastport ME
+* Prince Edward Island
+* Southwestern Nova Scotia from Avonport to Hubbards
+
+A Tropical Storm Watch is in effect for...
+* Fundy National Park to Shediac
+* Parson's Pond to Triton
+* Indian Harbour to Stone's Cove
+
+A Storm Surge Warning means there is a danger of life-threatening
+inundation, from rising water moving inland from the coastline,
+during the next 12 hours in the indicated locations. For a
+depiction of areas at risk, please see the National Weather Service
+Storm Surge Watch/Warning Graphic, available at hurricanes.gov.
+This is a life-threatening situation.  Persons located within these
+areas should take all necessary actions to protect life and property
+from rising water and the potential for other dangerous conditions.
+Promptly follow evacuation and other instructions from local
+officials.
+
+A Hurricane Warning means that hurricane conditions are expected
+somewhere within the warning area.  Preparations to protect life and
+property should be rushed to completion.
+
+A Tropical Storm Warning means that tropical storm conditions are
+expected within the warning area within 36 hours.
+
+A Hurricane Watch means that hurricane conditions are possible
+within the watch area.  A watch is typically issued 48 hours
+before the anticipated first occurrence of tropical-storm-force
+winds, conditions that make outside preparations difficult or
+dangerous.
+
+A Tropical Storm Watch means that tropical storm conditions are
+possible within the watch area, in this case within 36 hours.
+
+Interests elsewhere along the Mid-Atlantic and New England coasts of
+the United States should monitor the progress of Dorian.
+
+For storm information specific to your area in the United
+States, including possible inland watches and warnings, please
+monitor products issued by your local National Weather Service
+forecast office. For storm information specific to your area
+outside of the United States, please monitor products issued by
+your national meteorological service.
+
+
+DISCUSSION AND OUTLOOK
+----------------------
+At 500 PM EDT (2100 UTC), the eye of Hurricane Dorian was located
+near latitude 36.9 North, longitude 72.7 West. Dorian is moving
+toward the northeast near 24 mph (39 km/h), and this general motion
+with an additional increase in forward speed is expected through
+Sunday.  On the forecast track, the center of Dorian should
+move move to the southeast of extreme southeastern New England
+tonight and Saturday morning, and then across Nova Scotia late
+Saturday or Saturday night.
+
+Maximum sustained winds are near 90 mph (150 km/h) with higher
+gusts.  Some strengthening is possible during the next 24 hours.
+After that time, Dorian is forecast to become a post-tropical
+cyclone with hurricane-force winds Saturday night or Sunday while
+it is near or over eastern Canada.
+
+Hurricane-force winds extend outward up to 80 miles (130 km) from
+the center and tropical-storm-force winds extend outward up to
+230 miles (370 km).
+
+The estimated minimum central pressure is 958 mb (28.29 inches).
+
+
+HAZARDS AFFECTING LAND
+----------------------
+WIND: Tropical storm conditions will persist for a few more hours
+in the warning area over the Mid-Atlantic states.  Tropical storm
+conditions are expected in the warning area over portions of extreme
+southeastern Massachusetts tonight or early Saturday, and in the
+warning area in Maine Saturday afternoon.
+
+Regardless of whether Dorian is a hurricane or a post-tropical
+cyclone, hurricane conditions are expected in the Hurricane Warning
+area Saturday or Saturday night, and they are possible in the
+Hurricane Watch area Saturday or Saturday night.  Tropical storm
+conditions are expected in the Tropical Storm Warning area in Canada
+by Saturday, and they are possible in the Tropical Storm Watch area
+Saturday and Saturday night.
+
+STORM SURGE:  The combination of a dangerous storm surge and the
+tide will cause normally dry areas near the coast to be flooded by
+rising waters moving inland from the shoreline.  The water could
+reach the following heights above ground somewhere in the indicated
+areas if the peak surge occurs at the time of high tide...
+
+Salter Path to the North Carolina/Virginia border, including Pamlico
+and Albemarle Sounds...2 to 4 ft
+
+Water levels could begin to rise well in advance of the arrival of
+strong winds.  The surge will be accompanied by large and
+destructive waves.  Surge-related flooding depends on the how close
+the center of Dorian comes to the coast, and can vary greatly over
+short distances.  For information specific to your area, please see
+products issued by your local National Weather Service forecast
+office.
+
+Storm Surge is likely in the Gulf of St. Lawrence, the Southwest
+Coast of Newfoundland, and Eastern Nova Scotia.
+
+RAINFALL:  Dorian is expected to produce the following rainfall
+totals through Saturday:
+
+Extreme Southeastern New England and far eastern Maine...1 to 4
+inches.
+
+Nova Scotia...3 to 5 inches, isolated 7 inches.
+
+New Brunswick and Prince Edward Island...2 to 4 inches
+
+Newfoundland...1 to 2 inches
+
+This rainfall may cause life-threatening flash floods
+
+SURF:  Large swells will affect much of the southeastern United
+States coast from northern Florida through North Carolina during
+the next couple of days.  These swells are likely to cause
+life-threatening surf and rip current conditions. Please consult
+products from your local weather office.
+
+
+NEXT ADVISORY
+-------------
+Next intermediate advisory at 800 PM EDT.
+Next complete advisory at 1100 PM EDT.
+
+$$
+Forecaster Beven
+
+
+</pre>]]></description>
+<pubDate>Fri, 06 Sep 2019 20:58:10 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT5+shtml/062058.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCPAT5+shtml/062058.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Dorian Forecast Advisory Number 54</title>
+<description>Issued at 2100 UTC FRI SEP 06 2019  <![CDATA[<pre>
+
+020 
+WTNT25 KNHC 062056
+TCMAT5
+
+HURRICANE DORIAN FORECAST/ADVISORY NUMBER  54
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL052019
+2100 UTC FRI SEP 06 2019
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+THE CANADIAN HURRICANE CENTER HAS ISSUED A TROPICAL STORM WATCH
+FOR NEWFOUNDLAND FROM BOAT HARBOUR TO TRITON.
+
+ALL HURRICANE AND TROPICAL STORM WARNINGS ARE DISCONTINUED SOUTH OF
+THE NORTH CAROLINA/VIRGINIA BORDER.
+
+THE TROPICAL STORM WARNING IS DISCONTINUED FOR THE TIDAL POTOMAC
+SOUTH OF COBB ISLAND.
+
+THE STORM SURGE WARNING HAS BEEN DISCONTINUED NORTH OF THE NORTH
+CAROLINA/VIRGINIA BORDER.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A STORM SURGE WARNING IS IN EFFECT FOR...
+* SALTER PATH NC TO THE NORTH CAROLINA/VIRGINIA BORDER
+* PAMLICO AND ALBEMARLE SOUNDS
+
+A HURRICANE WARNING IS IN EFFECT FOR...
+* EASTERN NOVA SCOTIA FROM HUBBARDS TO AVONPORT
+
+A HURRICANE WATCH IS IN EFFECT FOR...
+* SOUTHWESTERN NOVA SCOTIA FROM AVONPORT TO HUBBARDS
+* PRINCE EDWARD ISLAND
+* MAGDALEN ISLANDS
+* SOUTHWESTERN NEWFOUNDLAND FROM PARSON'S POND TO INDIAN
+HARBOUR
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* NORTH CAROLINA/VIRGINIA BORDER TO FENWICK ISLAND DE
+* CHESAPEAKE BAY FROM DRUM POINT SOUTHWARD
+* WOODS HOLE TO SAGAMORE BEACH MA
+* NANTUCKET AND MARTHA'S VINEYARD MA
+* EAST OF BAR HARBOR TO EASTPORT ME
+* PRINCE EDWARD ISLAND
+* SOUTHWESTERN NOVA SCOTIA FROM AVONPORT TO HUBBARDS
+
+A TROPICAL STORM WATCH IS IN EFFECT FOR...
+* FUNDY NATIONAL PARK TO SHEDIAC
+* PARSON'S POND TO TRITON
+* INDIAN HARBOUR TO STONE'S COVE
+
+A STORM SURGE WARNING MEANS THERE IS A DANGER OF LIFE-THREATENING
+INUNDATION...FROM RISING WATER MOVING INLAND FROM THE COASTLINE...
+DURING THE NEXT 12 HOURS IN THE INDICATED LOCATIONS. FOR A DEPICTION
+OF AREAS AT RISK...PLEASE SEE THE NATIONAL WEATHER SERVICE
+STORM SURGE WATCH/WARNING GRAPHIC...AVAILABLE AT HURRICANES.GOV.
+THIS IS A LIFE-THREATENING SITUATION.  PERSONS LOCATED WITHIN THESE
+AREAS SHOULD TAKE ALL NECESSARY ACTIONS TO PROTECT LIFE AND PROPERTY
+FROM RISING WATER AND THE POTENTIAL FOR OTHER DANGEROUS CONDITIONS.
+PROMPTLY FOLLOW EVACUATION AND OTHER INSTRUCTIONS FROM LOCAL
+OFFICIALS.
+
+A HURRICANE WARNING MEANS THAT HURRICANE CONDITIONS ARE EXPECTED
+SOMEWHERE WITHIN THE WARNING AREA.  PREPARATIONS TO PROTECT LIFE AND
+PROPERTY SHOULD BE RUSHED TO COMPLETION.
+
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED WITHIN THE WARNING AREA WITHIN 36 HOURS.
+
+A HURRICANE WATCH MEANS THAT HURRICANE CONDITIONS ARE POSSIBLE
+WITHIN THE WATCH AREA.  A WATCH IS TYPICALLY ISSUED 48 HOURS
+BEFORE THE ANTICIPATED FIRST OCCURRENCE OF TROPICAL-STORM-FORCE
+WINDS...CONDITIONS THAT MAKE OUTSIDE PREPARATIONS DIFFICULT OR
+DANGEROUS.
+
+A TROPICAL STORM WATCH MEANS THAT TROPICAL STORM CONDITIONS ARE
+POSSIBLE WITHIN THE WATCH AREA...IN THIS CASE WITHIN 36 HOURS.
+
+INTERESTS ELSEWHERE ALONG THE MID-ATLANTIC AND NEW ENGLAND COASTS OF
+THE UNITED STATES SHOULD MONITOR THE PROGRESS OF DORIAN.
+
+HURRICANE CENTER LOCATED NEAR 36.9N  72.7W AT 06/2100Z
+POSITION ACCURATE WITHIN  20 NM
+
+PRESENT MOVEMENT TOWARD THE NORTHEAST OR  50 DEGREES AT  21 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  958 MB
+EYE DIAMETER  30 NM
+MAX SUSTAINED WINDS  80 KT WITH GUSTS TO 100 KT.
+64 KT....... 40NE  40SE  40SW  70NW.
+50 KT.......100NE  90SE  90SW  90NW.
+34 KT.......200NE 200SE 160SW 130NW.
+12 FT SEAS..240NE 400SE 300SW 150NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 36.9N  72.7W AT 06/2100Z
+AT 06/1800Z CENTER WAS LOCATED NEAR 36.3N  73.7W
+
+FORECAST VALID 07/0600Z 39.1N  69.5W
+MAX WIND  85 KT...GUSTS 105 KT.
+64 KT... 40NE  40SE  40SW  50NW.
+50 KT...100NE  90SE  90SW  90NW.
+34 KT...200NE 200SE 160SW 130NW.
+
+FORECAST VALID 07/1800Z 42.9N  65.3W
+MAX WIND  85 KT...GUSTS 105 KT.
+64 KT... 50NE  60SE  60SW  50NW.
+50 KT...100NE 100SE  90SW  90NW.
+34 KT...200NE 220SE 160SW 130NW.
+
+FORECAST VALID 08/0600Z 47.1N  61.6W
+MAX WIND  70 KT...GUSTS  85 KT.
+64 KT...  0NE  50SE  50SW   0NW.
+50 KT...120NE 120SE 110SW 100NW.
+34 KT...220NE 240SE 180SW 160NW.
+
+FORECAST VALID 08/1800Z 50.6N  57.8W...POST-TROP/EXTRATROP
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT...120NE 120SE 100SW 100NW.
+34 KT...240NE 240SE 240SW 170NW.
+
+FORECAST VALID 09/1800Z 55.5N  45.0W...POST-TROP/EXTRATROP
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT...150NE 270SE 270SW 150NW.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 10/1800Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 36.9N  72.7W
+
+INTERMEDIATE PUBLIC ADVISORY...WTNT35 KNHC/MIATCPAT5...AT 07/0000Z
+
+NEXT ADVISORY AT 07/0300Z
+
+$$
+FORECASTER BEVEN
+
+
+
+</pre>]]></description>
+<pubDate>Fri, 06 Sep 2019 20:56:42 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCMAT5+shtml/062056.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCMAT5+shtml/062056.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Dorian Forecast Discussion Number 53</title>
+<description>Issued at 1100 AM EDT Fri Sep 06 2019  <![CDATA[<pre>
+
+000
+WTNT45 KNHC 061457
+TCDAT5
+
+Hurricane Dorian Discussion Number  53
+NWS National Hurricane Center Miami FL       AL052019
+1100 AM EDT Fri Sep 06 2019
+
+The eye of Dorian made landfall over Cape Hatteras, North Carolina,
+at about 1235 UTC and then moved quickly northeastward into the
+Atlantic.  A combination of surface observations and Air Force
+Reserve Hurricane Hunter aircraft data indicate that the maximum
+winds are near 80 kt and the central pressure is near 957 mb.  The
+hurricane remains well-organized in satellite imagery, with
+the 30 n mi wide eye surrounded by cold convective banding.
+
+The initial motion is now 045/15.  Dorian should accelerate
+northeastward during the next 24-36 h as a mid- to upper-level
+trough, currently over the U.S. Great Lakes, approaches the system
+and accelerates the steering flow.  The track guidance remains
+tightly clustered, and the new track forecast is changed little in
+either direction or speed from the previous forecast.  The new
+forecast calls for Dorian to move away from the North Carolina
+coast today, pass well southeast of southern New England tonight
+and Saturday, and then move over Nova Scotia Saturday or Saturday
+night.  A continued northeastward motion is then expected to bring
+the cyclone across Newfoundland into the far north Atlantic.
+
+Dorian is expected to slowly weaken due to increased shear and
+entrainment of drier air during the next 24 h or so.  After that
+time, the hurricane is expected to undergo extratropical
+transition and become a large and powerful post-tropical low.  It is
+unclear whether the transition will be complete before Dorian
+reaches Nova Scotia.  However, whether Dorian is a hurricane or a
+hurricane-force extratropical low, it is expected to bring strong
+winds, storm surge, and heavy rains to portions of Nova Scotia and
+Newfoundland.  The new NHC intensity forecast is little changed from
+the previous forecast, and it follows the trend of the intensity
+guidance.
+
+Key Messages:
+
+1. Life-threatening storm surge and dangerous winds will continue
+along portions of the North Carolina coast, portions of southeast
+Virginia and the southern Chesapeake Bay for the next several
+hours.
+
+2. Areas of flash flooding, some of which may be significant and
+life-threatening, will continue into early afternoon across portions
+of northeastern North Carolina into far southeast Virginia.
+
+3. Dangerous storm surge impacts are likely in portions of the Gulf
+of St. Lawrence, southwestern Newfoundland and eastern Nova Scotia
+this weekend. Hurricane-force winds are also likely in Nova Scotia,
+Prince Edward Island and possibly Newfoundland Saturday and Sunday.
+Refer to information from the Canadian Hurricane Centre for more
+information on these hazards.
+
+FORECAST POSITIONS AND MAX WINDS
+
+INIT  06/1500Z 35.7N  74.8W   80 KT  90 MPH
+ 12H  07/0000Z 37.4N  72.2W   80 KT  90 MPH
+ 24H  07/1200Z 40.7N  67.7W   75 KT  85 MPH
+ 36H  08/0000Z 44.9N  63.5W   70 KT  80 MPH...INLAND
+ 48H  08/1200Z 48.8N  60.0W   60 KT  70 MPH...POST-TROP/EXTRATROP
+ 72H  09/1200Z 54.5N  48.0W   45 KT  50 MPH...POST-TROP/EXTRATROP
+ 96H  10/1200Z...DISSIPATED
+
+$$
+Forecaster Beven
+
+</pre>]]></description>
+<pubDate>Fri, 06 Sep 2019 14:57:40 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCDAT5+shtml/061457.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCDAT5+shtml/061457.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Dorian Wind Speed Probabilities Number 53</title>
+<description>Issued at 1500 UTC FRI SEP 06 2019                                              <![CDATA[<pre>
+
+000
+FONT15 KNHC 061456
+PWSAT5
+                                                                    
+HURRICANE DORIAN WIND SPEED PROBABILITIES NUMBER  53                
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL052019               
+1500 UTC FRI SEP 06 2019                                            
+                                                                    
+AT 1500Z THE CENTER OF HURRICANE DORIAN WAS LOCATED NEAR LATITUDE   
+35.7 NORTH...LONGITUDE 74.8 WEST WITH MAXIMUM SUSTAINED WINDS NEAR  
+80 KTS...90 MPH...150 KM/H.                                         
+                                                                    
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)                  
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME      
+   EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME      
+   CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME      
+                                                                    
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS                 
+                                                                    
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST     
+   ...34 KT (39 MPH... 63 KM/H)...                                  
+   ...50 KT (58 MPH... 93 KM/H)...                                  
+   ...64 KT (74 MPH...119 KM/H)...                                  
+FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS               
+                                                                    
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE               
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING            
+        AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)               
+   (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN           
+        12Z FRI AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)      
+                                                                    
+PROBABILITIES ARE GIVEN IN PERCENT                                  
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT                       
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.             
+PROBABILITIES FOR 34...50...64 KT SHOWN WHEN THE 5-DAY              
+64-KT CUMULATIVE PROBABILITY IS AT LEAST 1 PERCENT.                 
+                                                                    
+                                                                    
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -   
+                                                                    
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM 
+  TIME       12Z FRI 00Z SAT 12Z SAT 00Z SUN 12Z SUN 12Z MON 12Z TUE
+PERIODS         TO      TO      TO      TO      TO      TO      TO  
+             00Z SAT 12Z SAT 00Z SUN 12Z SUN 12Z MON 12Z TUE 12Z WED
+                                                                    
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+LOCATION       KT                                                   
+                                                                    
+CAPE RACE NFLD 34  X   X( X)   X( X)   5( 5)   4( 9)   X( 9)   X( 9)
+ 
+ILE ST PIERRE  34  X   X( X)   2( 2)  29(31)   1(32)   X(32)   X(32)
+ 
+BURGEO NFLD    34  X   X( X)   6( 6)  51(57)   2(59)   X(59)   X(59)
+BURGEO NFLD    50  X   X( X)   X( X)   6( 6)   2( 8)   X( 8)   X( 8)
+ 
+PTX BASQUES    34  X   X( X)  14(14)  70(84)   X(84)   X(84)   X(84)
+PTX BASQUES    50  X   X( X)   X( X)  36(36)   X(36)   X(36)   X(36)
+PTX BASQUES    64  X   X( X)   X( X)   7( 7)   X( 7)   X( 7)   X( 7)
+ 
+EDDY POINT NS  34  X   X( X)  74(74)  17(91)   X(91)   X(91)   X(91)
+EDDY POINT NS  50  X   X( X)  18(18)  30(48)   X(48)   X(48)   X(48)
+EDDY POINT NS  64  X   X( X)   2( 2)   7( 9)   X( 9)   X( 9)   X( 9)
+ 
+SYDNEY NS      34  X   X( X)  45(45)  40(85)   X(85)   X(85)   X(85)
+SYDNEY NS      50  X   X( X)   2( 2)  28(30)   X(30)   X(30)   X(30)
+SYDNEY NS      64  X   X( X)   X( X)   4( 4)   X( 4)   X( 4)   X( 4)
+ 
+SABLE ISLAND   34  X   X( X)  55(55)   3(58)   X(58)   X(58)   X(58)
+SABLE ISLAND   50  X   X( X)   3( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+HALIFAX NS     34  X   1( 1)  95(96)   X(96)   X(96)   X(96)   X(96)
+HALIFAX NS     50  X   X( X)  68(68)   5(73)   X(73)   X(73)   X(73)
+HALIFAX NS     64  X   X( X)  23(23)   5(28)   X(28)   X(28)   X(28)
+ 
+YARMOUTH NS    34  X  13(13)  74(87)   X(87)   X(87)   X(87)   X(87)
+YARMOUTH NS    50  X   X( X)  46(46)   X(46)   X(46)   X(46)   X(46)
+YARMOUTH NS    64  X   X( X)   9( 9)   X( 9)   X( 9)   X( 9)   X( 9)
+ 
+MONCTON NB     34  X   X( X)  53(53)  10(63)   X(63)   X(63)   X(63)
+MONCTON NB     50  X   X( X)  11(11)   5(16)   X(16)   X(16)   X(16)
+MONCTON NB     64  X   X( X)   1( 1)   1( 2)   X( 2)   X( 2)   X( 2)
+ 
+ST JOHN NB     34  X   2( 2)  45(47)   3(50)   X(50)   X(50)   X(50)
+ST JOHN NB     50  X   X( X)   8( 8)   1( 9)   X( 9)   X( 9)   X( 9)
+ 
+EASTPORT ME    34  X   3( 3)  25(28)   1(29)   X(29)   X(29)   X(29)
+EASTPORT ME    50  X   X( X)   3( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+BAR HARBOR ME  34  X   4( 4)   9(13)   1(14)   X(14)   X(14)   X(14)
+ 
+AUGUSTA ME     34  X   3( 3)   3( 6)   X( 6)   X( 6)   X( 6)   X( 6)
+ 
+PORTLAND ME    34  X   4( 4)   2( 6)   X( 6)   X( 6)   X( 6)   X( 6)
+ 
+CONCORD NH     34  X   3( 3)   2( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+PORTSMOUTH NH  34  X   4( 4)   2( 6)   X( 6)   X( 6)   X( 6)   X( 6)
+ 
+WORCESTER MA   34  1   4( 5)   1( 6)   X( 6)   X( 6)   X( 6)   X( 6)
+ 
+SPRINGFIELD MA 34  2   3( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+BOSTON MA      34  1   4( 5)   1( 6)   X( 6)   X( 6)   X( 6)   X( 6)
+ 
+HYANNIS MA     34  4  27(31)   X(31)   X(31)   X(31)   X(31)   X(31)
+HYANNIS MA     50  X   3( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+NANTUCKET MA   34  4  48(52)   X(52)   X(52)   X(52)   X(52)   X(52)
+NANTUCKET MA   50  X   6( 6)   X( 6)   X( 6)   X( 6)   X( 6)   X( 6)
+ 
+PROVIDENCE RI  34  2   4( 6)   1( 7)   X( 7)   X( 7)   X( 7)   X( 7)
+ 
+BRIDGEPORT CT  34  3   2( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+NEW HAVEN CT   34  3   2( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+HARTFORD CT    34  2   3( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+NEW LONDON CT  34  3   3( 6)   X( 6)   X( 6)   X( 6)   X( 6)   X( 6)
+ 
+POUGHKEEPSIE   34  2   2( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+MONTAUK POINT  34  4  10(14)   1(15)   X(15)   X(15)   X(15)   X(15)
+ 
+ISLIP NY       34  3   3( 6)   X( 6)   X( 6)   X( 6)   X( 6)   X( 6)
+ 
+NYC JFK AIRPRT 34  3   2( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+NYC CNTRL PARK 34  3   2( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+NEWARK NJ      34  3   2( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+TRENTON NJ     34  3   1( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+NWS EARLE NJ   34  3   2( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+ALLENTOWN PA   34  2   1( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+PHILADELPHIA   34  3   1( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+ATLANTIC CITY  34  3   2( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+BALTIMORE MD   34  2   1( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+DOVER DE       34  3   1( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+ANNAPOLIS MD   34  3   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+CAPE HENLOPEN  34  8   2(10)   X(10)   X(10)   X(10)   X(10)   X(10)
+ 
+OCEAN CITY MD  34 16   2(18)   X(18)   X(18)   X(18)   X(18)   X(18)
+ 
+PAX RIVER NAS  34  3   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+WALLOPS CDA    34  4   1( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+RICHMOND VA    34  3   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+NORFOLK NAS    34  4   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+NORFOLK VA     34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+ 
+OCEANA NAS VA  34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+ 
+ELIZABETH CTY  34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+ 
+CAPE HATTERAS  34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+CAPE HATTERAS  50 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+CAPE HATTERAS  64 63   X(63)   X(63)   X(63)   X(63)   X(63)   X(63)
+ 
+CHERRY PT NC   34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+ 
+NEW RIVER NC   34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+NEW RIVER NC   50 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+ 
+MOREHEAD CITY  34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+MOREHEAD CITY  50 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+ 
+SURF CITY NC   34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+ 
+BALD HEAD ISL  34  3   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+$$                                                                  
+FORECASTER BEVEN                                                    
+</pre>]]></description>
+<pubDate>Fri, 06 Sep 2019 14:56:08 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT5+shtml/061456.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT5+shtml/061456.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Dorian Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/151759.shtml?cone">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT05/AL052019_5day_cone_with_line_and_wind_sm2.png"
+alt="Hurricane Dorian 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Fri, 06 Sep 2019 17:54:30 GMT
+<br /><br /><a href="https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/151759.shtml?tswind120">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT05/AL052019_wind_probs_34_F120_sm2.png"
+alt="Hurricane Dorian 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Fri, 06 Sep 2019 15:24:55 GMT
+]]>
+</description>
+<pubDate>Fri, 06 Sep 2019 17:54:30 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/151759.shtml?cone</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/151759.shtml?cone</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Dorian Probabilistic Storm Surge Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/151759.shtml?gm_psurge">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT05/AL0519_psurge2_m1_sm2.png"
+alt="Hurricane Dorian Probabilistic Storm Surge Graphics Image"
+width="500" height="400" /></a><br/>
+Probabilistic Storm Surge Graphics last updated Fri, 06 Sep 2019 15:17:59 GMT
+]]>
+</description>
+<pubDate>Fri, 06 Sep 2019 15:17:59 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/151759.shtml?gm_psurge</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/151759.shtml?gm_psurge</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Dorian Potential Storm Surge Flooding Map</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/151759.shtml?inundation">
+<img src="https://www.nhc.noaa.gov/images/inundation_thumb.png"
+alt="Hurricane Dorian Link to Potential Storm Surge Flooding Map"
+width="60" height="48" /></a><br/>
+Potential Storm Surge Flooding Map last updated Fri, 06 Sep 2019 15:47:37 GMT
+]]>
+</description>
+<pubDate>Fri, 06 Sep 2019 15:47:37 GMT</pubDate>
+<validAdvisory>53</validAdvisory>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/151759.shtml?inundation</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/151759.shtml?inundation</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Dorian Storm Surge Watch/Warning Map</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/151759.shtml?wsurge">
+<img src="https://www.nhc.noaa.gov/images/wsurge_thumb.png"
+alt="Hurricane Dorian Link to Storm Surge Watch/Warning Map"
+width="60" height="48" /></a><br/>
+Storm Surge Watch/Warning Map last updated Fri, 06 Sep 2019 17:55:30 GMT
+]]>
+</description>
+<pubDate>Fri, 06 Sep 2019 17:55:30 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/151759.shtml?wsurge</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/151759.shtml?wsurge</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Raleigh, NC</title>
+<description>Issued at  1114 AM EDT Fri Sep 6 2019</description>
+<pubDate>Fri, 06 Sep 2019 15:14:17 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS82-KRAH.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS82-KRAH.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Boston, MA</title>
+<description>Issued at  1126 AM EDT Fri Sep 6 2019</description>
+<pubDate>Fri, 06 Sep 2019 15:26:51 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS81-KBOX.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS81-KBOX.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Baltimore/Washington</title>
+<description>Issued at  1127 AM EDT Fri Sep 6 2019</description>
+<pubDate>Fri, 06 Sep 2019 15:27:31 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS81-KLWX.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS81-KLWX.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Newport/Morehead City, NC</title>
+<description>Issued at  233 PM EDT Fri Sep 6 2019</description>
+<pubDate>Fri, 06 Sep 2019 18:33:46 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS82-KMHX.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS82-KMHX.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Wakefield, VA</title>
+<description>Issued at  247 PM EDT Fri Sep 6 2019</description>
+<pubDate>Fri, 06 Sep 2019 18:48:04 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS81-KAKQ.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS81-KAKQ.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Caribou, ME</title>
+<description>Issued at  442 PM EDT Fri Sep 6 2019</description>
+<pubDate>Fri, 06 Sep 2019 20:42:32 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS81-KCAR.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS81-KCAR.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+</channel>
+</rss>
