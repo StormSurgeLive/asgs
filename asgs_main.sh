@@ -2423,6 +2423,9 @@ while [ true ]; do
    findAndClearOrphans
    si=-1
    ni=0
+   #
+   #   L O O P   O V E R   N O W C A S T   S C E N A R I O S
+   #
    while [ $ni -lt $NOWCASTPACKAGESIZE ]; do    
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
    readConfig
@@ -2521,7 +2524,7 @@ while [ true ]; do
           mkdir $NOWCASTDIR 2>> ${SYSLOG}
       fi
       SCENARIODIR=$CYCLEDIR/$SCENARIO
-      SCENARIOLOG=$SCENARIO/scenario.log
+      SCENARIOLOG=$SCENARIODIR/scenario.log
       mv $RUNDIR/run.properties $SCENARIODIR 2>> $SYSLOG
       writeScenarioProperties $SCENARIODIR
       #
