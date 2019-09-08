@@ -43,14 +43,14 @@ BACKGROUNDMET=on      # NAM download/forcing
 TROPICALCYCLONE=off   # tropical cyclone forcing
    STORM=99                         # storm number, e.g. 05=ernesto in 2006
    YEAR=2016                        # year of the storm
-WAVES=off              # wave forcing
+WAVES=on              # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=479                     # number of compute CPUs for all simulations
+NCPU=959                     # number of compute CPUs for all simulations
 NCPUCAPACITY=3648
 NUMWRITERS=1
 
@@ -59,7 +59,7 @@ NUMWRITERS=1
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 NOTIFY_SCRIPT=corps_nam_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
