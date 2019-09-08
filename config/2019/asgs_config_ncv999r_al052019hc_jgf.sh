@@ -83,18 +83,18 @@ COLDSTARTDATE=2019073000
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #
-NOWCASTPACKAGESIZE=2
+NOWCASTPACKAGESIZE=1
 # $ni is the scenario index for the nowcast, set and incremented in asgs_main.sh
 if [[ $si -eq -1 ]]; then # only execute this block if this is not a forecast
    case $ni in 
-       0)
+       1)
           ENSTORM=nowcastWind10m
           SCENARIO=$ENSTORM
           FROMSCENARIO=nowcast
           source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
           NOWCASTPOST=( null_post.sh )
           ;;
-       1)
+       0)
           ENSTORM=nowcast
           SCENARIO=$ENSTORM
           FROMSCENARIO=nowcast
