@@ -36,16 +36,16 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
-TIDEFAC=on            # tide factor recalc
-   HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on      # NAM download/forcing
+TIDEFAC=on              # tide factor recalc
+   HINDCASTLENGTH=30.0  # length of initial hindcast, from cold (days)
+BACKGROUNDMET=on        # NAM download/forcing
    FORECASTCYCLE="06"
-TROPICALCYCLONE=off   # tropical cyclone forcing
-   STORM=99                         # storm number, e.g. 05=ernesto in 2006
-   YEAR=2016                        # year of the storm
-WAVES=off             # wave forcing
-   REINITIALIZESWAN=no   # used to bounce the wave solution
-VARFLUX=off           # variable river flux forcing
+TROPICALCYCLONE=off     # tropical cyclone forcing
+   STORM=99             # storm number, e.g. 05=ernesto in 2006
+   YEAR=2016            # year of the storm
+WAVES=on                # wave forcing
+   REINITIALIZESWAN=no  # used to bounce the wave solution
+VARFLUX=off             # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
@@ -56,10 +56,10 @@ NCPUCAPACITY=3648
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=professional    # can also be "developers-only" or "professional"
+INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com" # space delimited list
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com" # space delimited list
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
