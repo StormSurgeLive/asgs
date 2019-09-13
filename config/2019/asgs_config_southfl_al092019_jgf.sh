@@ -69,7 +69,7 @@ NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 COLDSTARTDATE=auto
 HOTORCOLD=hotstart
-LASTSUBDIR=/work/jgflemin/asgs12886/2019091218
+LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/al09/02/southfl_v11-1_final/queenbee.loni.org/southfl_al092019_jgf/veerLeft100
 
 # Scenario package
 
