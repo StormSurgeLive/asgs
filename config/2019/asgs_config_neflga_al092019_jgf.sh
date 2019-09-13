@@ -65,9 +65,9 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto   # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=hotstart   # "hotstart" or "coldstart" ; only used for initial run
-LASTSUBDIR=/work/jgflemin/asgs14074/initialize
+COLDSTARTDATE=2019081300   # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=coldstart   # "hotstart" or "coldstart" ; only used for initial run
+LASTSUBDIR=null
 
 # Scenario package
 
