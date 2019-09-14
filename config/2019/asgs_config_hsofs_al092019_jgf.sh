@@ -83,7 +83,7 @@ LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2019/nam/2019091212/hsof
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=6
+SCENARIOPACKAGESIZE=4
 if [[ $HPCENVSHORT = "hatteras" ]]; then
    if [[ $USER = "jgflemin" || $USER = "ncfs" ]]; then
       SCENARIOPACKAGESIZE=2
