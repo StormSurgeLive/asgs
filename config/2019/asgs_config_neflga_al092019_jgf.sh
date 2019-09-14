@@ -65,14 +65,14 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2019081300   # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart   # "hotstart" or "coldstart" ; only used for initial run
-LASTSUBDIR=null
+COLDSTARTDATE=auto   # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=hotstart   # "hotstart" or "coldstart" ; only used for initial run
+LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/al09/02/neflga_v12_geo/queenbee.loni.org/neflga_al092019_jgf/nhcConsensus
 
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=4
+SCENARIOPACKAGESIZE=2
 case $si in
    -2) 
        ENSTORM=hindcast
