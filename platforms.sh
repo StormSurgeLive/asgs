@@ -195,12 +195,22 @@ init_supermic()
   SERIALMODULES='module load matlab/r2017a python/2.7.13-anaconda-tensorflow'
   PARALLELMODULES='module load mvapich2'
   JOBENVDIR=$SCRIPTDIR/config/machines/supermic
+  PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
   JOBENV=( )
   if [[ $operator = "jgflemin" ]]; then
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=hpc_cera_2019
      JOBENV=( gmt.sh gdal.sh imagemagick.sh )
+     for script in $JOBENV; do
+        source $JOBENVDIR/$script
+     done
+  fi
+  if [[ $operator = "alireza" ]]; then  # User config for Al
+     ADCIRCDIR=${HOME}/adcirc-cg/work # ADCIRC executables
+     SWANDIR=${HOME}/adcirc-cg/swan   # SWAN executables
+     ACCOUNT=hpc_cera_2019
+     JOBENV=( gmt.sh gdal.sh imagemagick.sh ) #TODO
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
