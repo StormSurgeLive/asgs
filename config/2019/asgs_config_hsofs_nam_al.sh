@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME=hsofs_nam_jgf      # "name" of this ASGS process
+INSTANCENAME=hsofs_nam_al     # "name" of this ASGS process
 
 # Input files and templates
 
@@ -47,7 +47,6 @@ WAVES=on              # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
-STATICOFFSET=0.23
 
 # Computational Resources (related defaults set in platforms.sh)
 
@@ -58,14 +57,12 @@ NUMWRITERS=1
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
-#POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
-NOTIFY_SCRIPT=corps_nam_notify.sh
+TDS=(lsu_tds)
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2019072200   # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2019080500   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart        # "hotstart" or "coldstart"
 LASTSUBDIR=null
 

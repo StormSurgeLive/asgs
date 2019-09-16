@@ -23,18 +23,18 @@ disp(msg);
 %%
 % User-defined inputs
 %
-offset = 0.0; % in feet
+% offset = 0.0; % in feet
 % offset = 1.25; % in feet
-offsetSet = zeros(1,22);
-offsetSet(:) = offset;
+% offsetSet = zeros(1,22);
+% offsetSet(:) = offset;
 % Offset vector - same order as "stations" string vector
 % offsetSet = [1.25,1.25,1.25,0.75,1.25,1.25,1.25,...
 %     1.25,1.25,1.25,1.25,1.25,1.25,1.50,1.00,0.35];
 % {'85625','76065','76030','76265','82762','82770','82742',...
 % '85760','76010','82715','01440','01440','85670','85575','85700','82875'};
 
-productionMode = true; % for ASGS
-% productionMode = false; % Manual mode
+% productionMode = true; % for ASGS
+productionMode = false; % Manual mode
 
 if (productionMode)
 %     ASGS Production mode.
@@ -47,9 +47,9 @@ else
 %     The nhcConsensus for the last advisory, if used, advsiory should be
 %     FIRST in the array
 %     The nhcConsensus for the current advsiory should be LAST in the array
-    numEns = 3;
-    ensFileNames = {'Adv09.nhcConsensus.fort.61.nc','Adv10.veerLeft100.fort.61.nc','Adv10.nhcConsensus.fort.61.nc'};
-    propFile = {'Adv09.nhcConsensus.run.properties','Adv10.veerLeft100.run.properties','Adv10.nhcConsensus.run.properties'};
+    numEns = 4;
+    ensFileNames = {'Adv11.nhcConsensus.fort.61.nc','Adv12.veerLeft100.fort.61.nc','Adv12.veerRight100.fort.61.nc','Adv12.nhcConsensus.fort.61.nc'};
+    propFile = {'Adv11.nhcConsensus.run.properties','Adv12.veerLeft100.run.properties','Adv12.veerRight100.run.properties','Adv12.nhcConsensus.run.properties'};
     plotPrevious = true;
 end
 %
@@ -74,7 +74,7 @@ fstationsSplit = vertcat(fstationsSplit{:});
 % Station ID
 stations={'85625','76065','76030','76265','82762','82770','82742',...
     '85760','76010','82715','01440','01440','85670','85575','85700',...
-    '82875','76220','76230','76025','073802516','76593','8017118'};
+    '82875','76220','76230','76025','073802516','76593','08017118'};
 gageStationsName={'West End',...
     'Seabrook CC - Flood Side',...
     'IHNC Surge Barrier East - Flood Side',...
@@ -123,9 +123,32 @@ cpraStationNames = {'17th St. Outfall Canal (17StCanal)',...
 %
 %% 
 
+% The static offset (ft)
+staticOffsetFile = 'Static_Offset.xlsx';
+if exist(staticOffsetFile)
+    fid = fopen(staticOffsetFile,'r');
+    msg = sprintf('cpra_hydrograph_plotter.m: File %s was found.', staticOffsetFile);
+    disp(msg);
+else
+    msg = sprintf('cpra_hydrograph_plotter.m FATAL ERROR: %s was NOT found.', staticOffsetFile);
+    disp(msg);
+    %quit;
+end
+msg = sprintf('cpra_hydrograph_plotter.m: Reading static offsets information from %s.', staticOffsetFile);
+disp(msg);
+[~, ~, raw] = xlsread(staticOffsetFile);
+for idx = 1:numel(raw)
+   if isnumeric(raw{idx})
+      raw{idx} = num2str(raw{idx});
+   end
+end
+offsetMap = containers.Map(raw(:,2),str2num(char(raw(:,3)))*0.3048);
+msg = sprintf('cpra_hydrograph_plotter.m: Success reading static offset information from %s.', staticOffsetFile);
+disp(msg);
+
 % Create a map container of station-dependent offsets
-offsetSet = offsetSet * 0.3048;
-offsetMap = containers.Map(stations,offsetSet);
+%offsetSet = offsetSet * 0.3048;
+%offsetMap = containers.Map(stations,offsetSet);
 
 % msg = sprintf('cpra_hydrograph_plotter.m: Using an offset of %f ft.',offset);
 % disp(msg);
@@ -180,7 +203,7 @@ for idx = 1:numel(raw)
    end
 end
 datumConvMap = containers.Map(raw(:,2),str2num(char(raw(:,3))));
-msg = sprintf('cpra_hydrograph_plotter.m: Success reading gate closure information from %s.', datumConvFile);
+msg = sprintf('cpra_hydrograph_plotter.m: Success reading datum conversion information from %s.', datumConvFile);
 disp(msg);
 %
 %% 
@@ -380,7 +403,7 @@ for f = 1:adcData(1).NumStations
 
 		% Add in the offset, if any
         adcData(i).STATION{f}.DATA = adcData(i).STATION{f}.DATA + ...
-            offsetMap(stations{1,cpraStationIndex});		
+            offsetMap(gageID);		
      
         adcData(i).STATION{f}.DATA(adcData(i).STATION{f}.DATA < -999) = NaN;
         % Find min/max water surface elevation from ADCIRC result
@@ -523,10 +546,12 @@ for f = 1:adcData(1).NumStations
     
 	if (strcmp(cpraStationNames(cpraStationIndex),'Western Tie-In (WBV7274)') == 1)
 		title2 = strcat('Western Tie-In (WBV-72/74)  -  USACE Gage ID:',stations(cpraStationIndex),...
-            {' - '},'Datum Converstion to NAVD88 ',num2str(datumConvMap(gageID)));
+              {' - Datum Converstion to NAVD88: '},num2str(datumConvMap(gageID),'%0.2f'),{' ft'});
+%             {' - '},'Datum Converstion to NAVD88 ',num2str(datumConvMap(gageID)));
 	elseif (strcmp(cpraStationNames(cpraStationIndex),'Bayou Segnette Closure (WBV162)') == 1)
 		title2 = strcat('Bayou Segnette Closure (WBV-16.2) -  USACE Gage ID:',stations(cpraStationIndex),...
-            {' - '},'Datum Converstion to NAVD88 ',num2str(datumConvMap(gageID)));
+              {' - Datum Converstion to NAVD88: '},num2str(datumConvMap(gageID),'%0.2f'),{' ft'});
+%             {' - '},'Datum Converstion to NAVD88 ',num2str(datumConvMap(gageID)));
 	else
 		title2 = strcat(cpraStationNames(cpraStationIndex),{'  -  '},gageAgency,{' Gage ID: '},stations(cpraStationIndex),...
             {' - Datum Converstion to NAVD88: '},num2str(datumConvMap(gageID),'%0.2f'),{' ft'});
