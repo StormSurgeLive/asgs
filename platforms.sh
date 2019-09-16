@@ -722,9 +722,9 @@ set_hpc() {
       HPCENV=hatteras.renci.org
       HPCENVSHORT=hatteras
    fi 
-   if [[ ${fqdn:0:2} = "jason" ]]; then
-      HPCENV=jason-desktop.seahorsecoastal.com
-      HPCENVSHORT=jason-desktop
+   if [[ ${fqdn:0:5} = "jason" ]]; then
+      HPCENV=desktop.seahorsecoastal.com
+      HPCENVSHORT=desktop
    fi 
 }
 #
