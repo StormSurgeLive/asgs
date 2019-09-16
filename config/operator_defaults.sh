@@ -86,6 +86,40 @@ case $operator in
       # jgflemin on hatteras (not used for anything but put here just in case)
       # ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC2lvGOMmBb33d+GEqHsSkFUwsJkIOiv1l8FXK16Qbv+w/5uwH5MBbyAVBxKxrwFx5dc9JJBUbxZ6p67A+I73cE5OLkUkQNp8HPCbVWuvjWEAn8m9GJRKgc+xExzQLK6pa2rGtS+PyLypfXMLRbS9maYXF2CMoTcUjmrjOGS47JP0lXkCD/L/G0K7IIqkDCW4Ww98OTCnvWl/2zsO9y6CK/5v6BJHnA6Qul2lsaPq3Afm1o9BOQacNhT2XR/axk96hLCzxFx6bnBUlU9QFLwGDBpmOsZFb3NHIlk70Sn4HE8tpUSXSomC1UHF8kM/u9yUjxxpBXk1ameaZv+ALlNNNh jgflemin@ht4.renci.org
       ;;
+   "alireza"|"akheirkhahan"|"akheir")
+      op="al"                      # initials as nickname for appending to asgs instance names
+      # RMQ
+      RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+      RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+      # email notifications
+      NOTIFY_SCRIPT=corps_nam_notify.sh
+      EMAILNOTIFY=yes         # no | yes to have host HPC platform email notifications
+      ACTIVATE_LIST=null
+      NEW_ADVISORY_LIST=null
+      POST_INIT_LIST=null
+      POST_LIST=null
+      # opendap email notification
+      OPENDAPNOTIFY="kheirkhahan@gmail.com asgs.cera.lsu@gmail.com" # space delimited if a list
+      # the following are related to job failure
+      JOB_FAILED_LIST="kheirkhahan@gmail.com"
+      NOTIFYUSER=kheirkhahan@gmail.com
+      ASGSADMIN=kheirkhahan@gmail.com
+      #
+      # public keys:
+      #
+      # alireza on Office Desktop
+      # ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDDC6S+yXaJM6J1nR3g8CBQ0TTbivJfO9MIAPks+2KbHdQ1cisHKWKIYU8GxhcecihN1KFNgRv7VObQfs587L4StGlkH8CfZK50P1/bcl6wz47VYVLjyV6uVxKiTSmfAK2aaAk1SM6T8gLreFFiDlF2RCRLjzbvKS97zbRryEM3ZauylEwfLEGic6vpBg9/siBAXjK6gA9Ms6hYwHJYidtnEJgIl0lFnsdgLBeDtHBgqDQkKwOFE0Qr/9pKcjX6AZfzQwxSuRJj5TOfZBiJo1Qnz09PDyBidUpuwxc9FvgL3U+p3/0CB9p5pt7MHd62UiV/KtxmSj8JwNqhahTyel87 alireza@grantorino.lsu.edu
+      # alireza on Laptop
+      # ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDKZJwVqATIc4jB34ZXoR7xa02DibBm9rQ/9Ry+kcEngW7USyHIKOFg47zrcRRc6oqIop2WdD3W0LnVQUP2/HJkSx0YwmUmeDxqfM4S5StUPp+KANlPddztbq+pQTV9gtoNOYwvJt3nCUOvqw/kG2/JVcQszMirqdUTGJyhuDoYxPOdxFQXNaATK/DzlQMjTP6J3f/ZdXNetVj4huKr+kzpkjOac1LbQNQyKBkVXWg4Ucm6aFxf61mpua7IQcvPfyAZ+Jan0Iv9L8OXaavtIUJQIVvjbNa+9bQuE7LrYZNYC1n3AdMlQmzI/r5pmRAUUvB8WrtYXRlr4EKBvucFipL5 alireza@solo.lsu.edu
+      # alireza on supermic
+      # ssh-dss AAAAB3NzaC1kc3MAAACBANqO/YfJHPBox/sLxgXv4aEzDlNXqyIB2WdODodjVgXDphfRNBjCm6jaqz9AN3QUQo1R+Mplu149Wujwfwrj3YUpYp37rD4k7qfPfq/XDn7Tj1itGkot6AZTCJODIoSAsaU0BOf6aQVy866dNUshk5XIqn8RBadI9BKGg3yW+LkTAAAAFQDLmHnmsYLhLkzIsGDSyTp0di0ZxwAAAIEAoG5kzGcQ5Pcnr7gLQyZJGRW7vGKPJ9Zf9SVr9b+tHNJYwSYsV5q1dO+lLDb/7BK5ib7txSaeXFj72LxVXWV+kfASBb9AdQZQiwnb1W9lTa4mSX5w+MIBCEURMo8XPOYMcovvySCTGjen7tSOqx+68x6n0cpFRje3vqRxVJ5IJKEAAACAevGQHzm7j0vIwPtzrCi4BxqcwZFbWXb4lH+z0tUO9uusq0Br+pOmzal3RfvzHxWmWgcidCVPHQ9uRXWafmOuPdoMxGQBG4vd2+CwMJf5esan9P+76FIlynp5lZC01P5JjE9eFMnCwh2Taqu3WqYBele5BzJcDgKxKvfJOi3zCQ0= alireza@smic1
+      # alireza on queenbee
+      # ssh-dss AAAAB3NzaC1kc3MAAACBAOuHJpxEh0ROs5PLC3+KVDTYyXCJP+q+TkN/2EPQkPwmr3yhqsSHnLXrcpUwfC7rEBbdIA7K1h+Sm2nXXlKxNY9cYpi7MStlsEdx1soL6/JBfeeWmQGOE1rgLyo3Pl0J8bp/UKeFTDC+5h76YfR94oN1tqwY5cvxwReupAkzIvcDAAAAFQCyAzZJjTrzGWdQ34pTHzLz1fAQ+wAAAIEAkSBRPQm2oVAx3WIwaVYUtH6o4V/gaumlSo0V6RnY3JFdjTOY8ucqYxR0yaj5Qia7ULJKFEr7MHayPiJ4RBnmmEn3Sz/wgR9ZRL6jIWwsd5H44ZO/jeneuUppRlBmfQRsjZ16OhiCdFmrSILbqp8NIGWyUNJFeSAOiHIk/cvdSGgAAACBAIUlBmqDUnjm1iPIcqy+QoMUNgWByfPqmr4TSZrRprtbGy7r+2Pg8ACX+sdT16A0qqH+0lN8M/yU5n9mZGnbC/CmZmUnqz35YNYvZKokmKAZcCoEhS5qf6oFBljP4dinhKRntiKeKtAw8xSU7UzePiEF7WKk7YVGCE3GSAigai3E akheir@qb1
+      # akheirkhahan on rostam
+      # ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC71582YnBvrRAOrUWr+QPpk88cYvkG/8HN9vCEWjo8ki4AqWWrgy5diDDZXJ62OdDEZkdgcnMPBEBz/zpG1nns67pmZXyQv0kUox12p4b2ZuD5b9iu0CgN0WDWiy32rkcjguXzHJ/L9pROlXzs4iADgOveSu+GxPVciBKW3UI1M8UtBcr8hwKNN8s5vJiyFzPIoVAvBgcgOMTlEDqpsIbUx/MbDFuIo81YNKDWrxkk1TkAsYcEpMESAicor5kDreZp88VhwDA3WpRlUCBTGAU11XqD9l/pB5gyB043sAnmfE9UOSIPbqqyepqhaUlndHk2VMaOqlfXjALWq/0RRevh akheirkhahan@otter.rostam
+      # akheir on stampede2
+      # ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8SJ+0TevlDcedu7f3CwBYVAVhS/U/ilM5f7KnL6EzrmQRAv9RvSMMmpIb/zwd2h8ajYR8J7OxoHxy/c3PwG/xkNY/4Uh4tWObPgWCjA8OQrg8YeEayZjKMdzBDxpJ0IRbRLC2ZPGZoDiYTBKNc7+ZbIVvj8VUkYaBZVSjJIhH7Aq36WscYQjfSrpWOaaIH/c+NpPw8ijJje6Hvtn5AiKVzHKDfwTAVG8kWTqf5+LcNofCMiqc348m2UT0YpZKbWddiUAG1u7NQswkW106Urno/xO10qetPsgkBHHuGIFiDt20DT0dgudMQP3pkh+M/qr3wOPhk2aX5/nGHh1XN675 akheir@login1.stampede2.tacc.utexas.edu
+      ;;
    *)
       warn "cycle $CYCLE: $SCENARIO: $THIS: Operator $operator was not recognized."
       ;;
