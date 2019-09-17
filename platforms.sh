@@ -655,7 +655,7 @@ writeTDSProperties()
    "lsu_ccr_tds")
       OPENDAPHOST=chenier.cct.lsu.edu
       THREDDSHOST=$OPENDAPHOST
-      OPENDDAPPORT=":8080"
+      OPENDAPPORT=":8080"
       CATALOGPREFIX=/asgs/ASGS-2019
       DOWNLOADPREFIX=/asgs/ASGS-2019
       OPENDAPBASEDIR=/data/thredds/ASGS/ASGS-2019
@@ -672,6 +672,7 @@ writeTDSProperties()
    "tacc_tds")
       OPENDAPHOST=adcircvis.tacc.utexas.edu
       THREDDSHOST=$OPENDAPHOST
+      OPENDAPPORT=":8080"
       DOWNLOADPREFIX=/asgs
       CATALOGPREFIX=/asgs
       OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS

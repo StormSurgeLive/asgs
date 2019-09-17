@@ -66,17 +66,18 @@ INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
+TDS=( lsu_tds tacc_tds renci_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2019080100
-HOTORCOLD=coldstart
-LASTSUBDIR=null
-
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart
+LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/2019091106/tx2008_r35h/stampede2.tacc.utexas.edu/tx2008_r35h_nam_jgf/namforecast
+#
 # Scenario package
-
+#
 #PERCENT=default
-SCENARIOPACKAGESIZE=6
+SCENARIOPACKAGESIZE=2
 case $si in
    -2)
        ENSTORM=hindcast
@@ -96,8 +97,6 @@ case $si in
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
       ;;
 esac
-
+#
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
-
-
