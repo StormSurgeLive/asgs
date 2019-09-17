@@ -1,0 +1,40 @@
+I. Automated Building and "Installing" of ASGS
+
+There is a script that is going to support a single command to build the
+required environment for ASGS on all platforms.
+
+        cd $HOME
+        git clone https://github.com/jasonfleming/asgs.git
+	cd ./asgs
+        git checkout master # or whatever branch you're going to be using
+	perl ./cloud/general/asgs-brew.pl --compiler=intel --machinename=<name-used-in-makefiles> --install-path=$HOME/opt
+
+*Note: the "perl" used to run asgs-brew.pl can be the system perl. The script
+doesn't use any modules that are not part of the perl core set.
+
+When this command is issued (be sure to use the machine's "name" as it is in
+the various makefiles), it runs through a series of steps that go through
+and build required libraries (e.g., HDF/NetCDF, OpenMPI - if gfortran is
+specified as the compiler, etc). It also builds internal Fortran based tools
+spread throughout the asgs directory. The script also build the expected
+Perl environment using the "perlbrew" tool.
+
+NOTE: This script doesn't do anything for the set up of an ASGS ADCIRC
+model run
+
+II. Getting More Information
+
+The script itself contains quite a bit of documentation. It's written in Perl,
+so the "perldoc" command can be used to render the internal documentatin
+that is contained inside of the script.
+
+	perldoc ./cloud/general/asgs-brew.pl
+
+III. What To Do After asgs-brew.pl Is Run
+
+Run the ASGS Shell,
+
+       $HOME/opt/bin/asgsh
+
+Then type, 'help', to get started. More information is also available in
+README.asgsh.

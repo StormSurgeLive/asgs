@@ -33,7 +33,7 @@
 #----------------------------------------------------------------
 use strict;
 use warnings;
-use Date::Pcalc;
+use Date::Calc;
 use Getopt::Long;
 use Math::Trig;
 #
@@ -477,7 +477,7 @@ while (<DATAFILE>) {
       if ( $coldstartdate ne "null" ) {
          # converting to specified local time 
          ($year,$month,$day,$hour,$min,$sec)
-            = Date::Pcalc::Add_Delta_DHMS($cs_year,$cs_mon,$cs_day,
+            = Date::Calc::Add_Delta_DHMS($cs_year,$cs_mon,$cs_day,
                $cs_hour,$cs_min,$cs_sec,0,$gmtoffset,0,sprintf("%2d",$data_seconds));
          $time = sprintf("%4s-%02s-%02s %02s:%02s:%02d$separator",
                    $year,$month,$day,$hour,$min,$sec);
@@ -544,7 +544,7 @@ while (<DATAFILE>) {
             if ( $coldstartdate ne "null" ) {
                # converting to date/time string with timezone
                ($year,$month,$day,$hour,$min,$sec)
-                  = Date::Pcalc::Add_Delta_DHMS($cs_year,$cs_mon,$cs_day,
+                  = Date::Calc::Add_Delta_DHMS($cs_year,$cs_mon,$cs_day,
                   $cs_hour,$cs_min,$cs_sec,0,$gmtoffset,0,sprintf("%2d",$scalar));
                $scalar = sprintf("\"%4s-%02s-%02s %02s:%02s:%02d $timezone\"",
                    $year,$month,$day,$hour,$min,$sec);

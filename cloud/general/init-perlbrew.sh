@@ -5,17 +5,10 @@ PERL_VERSION=${2-"perl-5.28.2"}
 
 if [ "$ACTION" == "clean" ]; then
 
-  # if perlbrew is still available, turn it off
-  if [ -n "$(which perlbrew)" ]; then
-    perlbrew off <<EOF
-exit
-EOF
-  fi
-
   # remove local directories
   rm -rfv $HOME/perl5 $HOME/.perlbrew
 
-  # update ~/.bash_profile
+  # remove source line from ~/.bash_profile
   DOT_BASH_PROFILE=$HOME/.bash_profile-$$
   cat ~/.bash_profile | grep -v 'source ~/perl5/perlbrew/etc/bashrc' > $DOT_BASH_PROFILE
   mv -fv $DOT_BASH_PROFILE $HOME/.bash_profile

@@ -5,17 +5,19 @@
 
 source ~/perl5/perlbrew/etc/bashrc
 
-perlbrew --force install-cpanm
-cpanm --local-lib=~/perl5 local::lib && eval $(perl -I ~/perl5/lib/perl5/ -Mlocal::lib)
+if [ ! -e $HOME/perl5/perlbrew/bin/cpanm ]; then
+  perlbrew install-cpanm
+fi
 
 echo Installing Perl modules required for ASGS
-cpanm Date::Format Date::Handler DateTime DateTime::Format::Builder IO::Socket::SSL HTTP::Tiny List::Util        \
-      Math::Trig Net::FTP Params::Validate Time::Local Email::Sender::Simple Email::Sender::Transport::SMTP::TLS \
-      Email::Simple::Creator Config::Tiny Try::Tiny Date::Calc # this could be extended to use a MANIFEST type file
+for module in $(cat ./PERL-MODULES); do
+  cpanm install $module || exit 1 # forces script to exit with error, asgs-brew.pl will catch and report this
+done
 
 # interactive (selects "p" option for "pure pure"), skips testing
-echo Installing Date::Pcalc using --force and --interactive due to known issue
-cpanm --force --interactive Date::Pcalc <<EOF
-p
-EOF
-
+#echo Installing Date::Pcalc using --force and --interactive due to known issue
+#cpanm --force --interactive Date::Pcalc <<EOF
+#p
+#EOF
+## crude check for install (Date::Pcalc will be deprecated from ASGS soon, so this will go away)
+#perldoc -l Date::Pcalc > /dev/null 2>&1 || exit 1

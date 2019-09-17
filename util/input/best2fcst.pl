@@ -42,7 +42,7 @@
 #
 use strict;
 use Getopt::Long;
-use Date::Pcalc;
+use Date::Calc;
 $^W++;
 #
 my $input = "null";   # name of the BEST track file
@@ -128,7 +128,7 @@ if ( $rezeroHoursColumn ) {
    my $dminutes = 0;
    my $dseconds = $hstime; 
    my ($sdy,$sdm,$sdd,$sdh,$sdmin,$sds) =
-       Date::Pcalc::Add_Delta_DHMS($csy,$csm,$csd,$csh,$csmin,$css,$ddays,$dhours,$dminutes,$dseconds);
+       Date::Calc::Add_Delta_DHMS($csy,$csm,$csd,$csh,$csmin,$css,$ddays,$dhours,$dminutes,$dseconds);
    $newStartDate = sprintf("%04d%02d%02d%02d",$sdy,$sdm,$sdd,$sdh);
 }
 #
@@ -176,7 +176,7 @@ while(<BEST>) {
    # compute time difference between start date of file and date on 
    # current line
    (my $ddays, my $dhrs, my $dmin, my $dsec)
-      = Date::Pcalc::Delta_DHMS($sy,$sm,$sd,$sh,0,0,$fy,$fm,$fd,$fh,0,0);
+      = Date::Calc::Delta_DHMS($sy,$sm,$sd,$sh,0,0,$fy,$fm,$fd,$fh,0,0);
    $time_differences[$cycle] = $ddays*24 + $dhrs; # in hours
    # if the BEST line has gone beyond the max forecast length specified
    # on the command line, exit the loop
@@ -271,7 +271,7 @@ while(<HWIND>) {
       # compare the hwind start date with the range of date/times
       # found in the best track file
       (my $ddays, my $dhrs, my $dmin, my $dsec)
-         = Date::Pcalc::Delta_DHMS($sy,$sm,$sd,$sh,0,0,$hsy,$hsm,$hsd,$hsh,$hsmin,0);
+         = Date::Calc::Delta_DHMS($sy,$sm,$sd,$sh,0,0,$hsy,$hsm,$hsd,$hsh,$hsmin,0);
       $hours_from_best_start = $ddays * 24.0 + $dhrs + $dmin/60.0 + $dsec/3600.0; # in hours
       if ( $hours_from_best_start < 0.0 ) {
          stderrMessage("WARNING","The HWind data start before the best track data; the central pressure will be set to 1013 for HWind files prior to the start of the BEST track data.");
@@ -285,7 +285,7 @@ while(<HWIND>) {
          my $cd = $3;
          my $ch = $4;
          (my $ddays,my $dhrs, my $dmin, my $dsec)
-         = Date::Pcalc::Delta_DHMS($cy,$cm,$cd,$ch,0,0,$hsy,$hsm,$hsd,$hsh,$hsmin,0);
+         = Date::Calc::Delta_DHMS($cy,$cm,$cd,$ch,0,0,$hsy,$hsm,$hsd,$hsh,$hsmin,0);
          $hours_from_adcirc_start = $ddays * 24.0 + $dhrs + $dmin/60.0 + $dsec/3600.0; # in hours
          #stderrMessage("DEBUG","cy=$cy cm=$cm cd=$cd ch=$ch");
          #stderrMessage("DEBUG","hsy=$hsy hsm=$hsm hsd=$hsd hsh=$hsh hsmin=$hsmin");
@@ -299,7 +299,7 @@ while(<HWIND>) {
    }
    # compute the number of hours since the start of the hwind data
    (my $ddays, my $dhrs, my $dmin, my $dsec)
-      = Date::Pcalc::Delta_DHMS($hsy,$hsm,$hsd,$hsh,$hsmin,0,$fy,$fm,$fd,$fh,$fmin,0);
+      = Date::Calc::Delta_DHMS($hsy,$hsm,$hsd,$hsh,$hsmin,0,$fy,$fm,$fd,$fh,$fmin,0);
    my $hours = $ddays * 24.0 + $dhrs + $dmin/60.0 + $dsec/3600.0; # in hours
    # compute the number of hours since the start of the best track data
    my $interp_hours = $hours_from_best_start + $hours;

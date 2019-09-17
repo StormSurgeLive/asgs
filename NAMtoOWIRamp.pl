@@ -56,7 +56,7 @@ no strict 'refs';
 #use NetCDF;
 use List::Util qw[min max];
 use Getopt::Long;
-use Date::Pcalc;
+use Date::Calc;
 use Storable;
 ######################################################
 #             Variables declarations                 #
@@ -620,7 +620,7 @@ sub getGrib2 {
             $cycleHour = $4;
         }
         &appMessage( "DEBUG", "The cycle hour is '$cycleHour'." );
-        ( $fy, $fm, $fd, $fh, $fmin, $fs ) = Date::Pcalc::Add_Delta_DHMS( $sy, $sm, $sd, $sh, 0, 0, 0, $cycleHour, 0, 0 );
+        ( $fy, $fm, $fd, $fh, $fmin, $fs ) = Date::Calc::Add_Delta_DHMS( $sy, $sm, $sd, $sh, 0, 0, 0, $cycleHour, 0, 0 );
 
         # calculate and save the end time ... last one will represent
         # end of the OWI file
@@ -659,7 +659,7 @@ sub getGrib2 {
             $nem = $2;
             $ned = $3;
             $neh = $4;
-            ( my $ddays, $dhrs, my $dsec ) = Date::Pcalc::Delta_DHMS( $oey, $oem, $oed, $oeh, 0, 0, $ney, $nem, $ned, $neh, 0, 0 );
+            ( my $ddays, $dhrs, my $dsec ) = Date::Calc::Delta_DHMS( $oey, $oem, $oed, $oeh, 0, 0, $ney, $nem, $ned, $neh, 0, 0 );
             $dhrs = $dhrs + $ddays * 24;
 
             #&stderrMessage("DEBUG","The dhrs is $dhrs.");
@@ -679,7 +679,7 @@ sub getGrib2 {
             }
         }
         else {
-            ( $ey, $em, $ed, $eh, $emin, $es ) = Date::Pcalc::Add_Delta_DHMS( $sy, $sm, $sd, $sh, 0, 0, 0, $cycleHour, 0, 0 );
+            ( $ey, $em, $ed, $eh, $emin, $es ) = Date::Calc::Add_Delta_DHMS( $sy, $sm, $sd, $sh, 0, 0, 0, $cycleHour, 0, 0 );
             $endTime = sprintf( "%4d%02d%02d%02d", $ey, $em, $ed, $eh );
         }
         &appMessage( "DEBUG", "The end time is '$endTime'." );
@@ -764,7 +764,7 @@ sub getGrib2 {
 
         if ( $numInterp > 0 ) {
             for ( my $i = 1; $i <= $numInterp; $i++ ) {
-                ( my $iy, my $im, my $iday, my $ih, my $imin, my $isec ) = Date::Pcalc::Add_Delta_DHMS( $oey, $oem, $oed, $oeh, 0, 0, 0, $i * $timeStep, 0, 0 );
+                ( my $iy, my $im, my $iday, my $ih, my $imin, my $isec ) = Date::Calc::Add_Delta_DHMS( $oey, $oem, $oed, $oeh, 0, 0, 0, $i * $timeStep, 0, 0 );
 
                 my $interpolatedTime = sprintf( "%4d%02d%02d%02d", $iy, $im, $iday, $ih );
 

@@ -61,7 +61,7 @@
 #
 use strict;
 use Getopt::Long;
-use Date::Pcalc;
+use Date::Calc;
 use Cwd;
 $^W++;
 
@@ -278,7 +278,7 @@ my $hyear; my $hmon; my $hday; my $hhour;         # this relevant hindcast line
 my $zdyear; my $zdmon; my $zdday; my $zdhour;     # the zero date
 my $zdmin; my $zdsec;                             # not used
 ($zdyear,$zdmon,$zdday,$zdhour,$zdmin,$zdsec) =
-   Date::Pcalc::Add_Delta_DHMS($csyear,$csmon,$csday, $cshour,0,0,0,0,0,$hotstartseconds); 
+   Date::Calc::Add_Delta_DHMS($csyear,$csmon,$csday, $cshour,0,0,0,0,0,$hotstartseconds); 
 my $zeroDate = sprintf("%4d%02d%02d%02d",$zdyear,$zdmon,$zdday,$zdhour); 
 printf STDERR "INFO: storm_track_gen.pl: The fort.22 will be configured to start on $zeroDate UTC.\n";
 my $zdFound = 0; # set to 1 if/when we find the zero date in the file
@@ -402,7 +402,7 @@ while(<HCST>) {
     $hday = $3; 
     $hhour = $4;
     # get difference between zero hour and this hindcast time 
-    (my $ddays,my $dhrs, my $dsec) = Date::Pcalc::Delta_DHMS($fhcyear,$fhcmon,$fhcday,$fhchour,0,0,$hyear,$hmon,$hday,$hhour,0,0);
+    (my $ddays,my $dhrs, my $dsec) = Date::Calc::Delta_DHMS($fhcyear,$fhcmon,$fhcday,$fhchour,0,0,$hyear,$hmon,$hday,$hhour,0,0);
     my $time_difference = $ddays*24 + $dhrs; # in hours  
     if ( $nws == 20 || $nws == 19 || $nws == 320 || $nws == 319 ) {
        # fill in the time difference as tau
@@ -471,7 +471,7 @@ while(<FCST>) {
    stderrMessage("INFO","tau is $tau");
    # determine the date and time that the forecast applies to
    ($ftyear,$ftmon,$ftday,$fthour,$ftmin,$ftsec) =
-     Date::Pcalc::Add_Delta_DHMS($fyear,$fmon,$fday, $fhour,0,0,0,$tau,0,0); 
+     Date::Calc::Add_Delta_DHMS($fyear,$fmon,$fday, $fhour,0,0,0,$tau,0,0); 
    my $forecastedDate = sprintf("%4d%02d%02d%02d",$ftyear,$ftmon,$ftday,$fthour); 
    #
    # if the forecastedDate is before the last hindcast date, then ignore 
@@ -504,7 +504,7 @@ while(<FCST>) {
    #
    # next, calculate the difference between the forecasted date and the zero
    # hour so that we can fill in the forecast period
-   (my $ddays,my $dhrs, my $dsec) = Date::Pcalc::Delta_DHMS($zdyear,$zdmon,$zdday,$zdhour,0,0,$ftyear,$ftmon,$ftday,$fthour,0,0);
+   (my $ddays,my $dhrs, my $dsec) = Date::Calc::Delta_DHMS($zdyear,$zdmon,$zdday,$zdhour,0,0,$ftyear,$ftmon,$ftday,$fthour,0,0);
    my $time_difference = $ddays*24 + $dhrs; # in hours  
    if ( $nws == 20 || $nws == 19 || $nws == 320 || $nws == 319 ) {
       # fill in the time difference as tau
@@ -603,11 +603,11 @@ while(<FCST>) {
        my $newtau = $tau*(1.0+(-$overlandSpeedPercent/100.0));
        # determine the date and time that the forecast applies to
        ($ftyear,$ftmon,$ftday,$fthour,$ftmin,$ftsec) =
-       Date::Pcalc::Add_Delta_DHMS($fyear,$fmon,$fday, $fhour,0,
+       Date::Calc::Add_Delta_DHMS($fyear,$fmon,$fday, $fhour,0,
           0,0,$newtau,0,0); 
        # recalculate the difference between the forecasted time and the zero
        # hour so that we can fill in the forecast period
-       (my $ddays,my $dhrs, my $dsec) = Date::Pcalc::Delta_DHMS($fhcyear,$fhcmon,$fhcday,$fhchour,0,0,$ftyear,$ftmon,$ftday,$fthour,0,0);
+       (my $ddays,my $dhrs, my $dsec) = Date::Calc::Delta_DHMS($fhcyear,$fhcmon,$fhcday,$fhchour,0,0,$ftyear,$ftmon,$ftday,$fthour,0,0);
        my $time_difference = $ddays*24 + $dhrs; # in hours  
        # fill in the time difference as tau
        substr($line,29,4)=sprintf("%4d",$time_difference);
