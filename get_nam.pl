@@ -32,7 +32,7 @@ $^W++;
 use strict;
 use Net::FTP;
 use Getopt::Long;
-use Date::Pcalc;
+use Date::Calc;
 use Cwd;
 #
 our $rundir;   # directory where the ASGS is running
@@ -136,7 +136,7 @@ my ($ny, $nm, $nd, $nh, $nmin, $ns); # current ADCIRC time
 if ( defined $hstime && $hstime != 0 ) {
    # now add the hotstart seconds
    ($ny,$nm,$nd,$nh,$nmin,$ns) =
-      Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,0,0,0,0,0,$hstime);   
+      Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,0,0,0,0,0,$hstime);   
 } else {
    # the hotstart time was not provided, or it was provided and is equal to 0
    # therefore the current ADCIRC time is the cold start time, t=0
@@ -394,7 +394,7 @@ while ($datetime_needed <= $cycletime) {
    my ($ty, $tm, $td, $th, $tmin, $ts); # targeted nowcast time
    # now add 6 hours
    ($ty,$tm,$td,$th,$tmin,$ts) =
-      Date::Pcalc::Add_Delta_DHMS($yn,$mn,$dn,$hn,0,0,0,6,0,0);   
+      Date::Calc::Add_Delta_DHMS($yn,$mn,$dn,$hn,0,0,0,6,0,0);   
    # form the date and hour of the next nowcast data needed
    $date_needed = sprintf("%4d%02d%02d",$ty ,$tm, $td);
    $hour_needed = sprintf("%02d",$th);
@@ -473,7 +473,7 @@ sub getForecastData() {
          my ($pcy, $pcm, $pcd, $pch, $pcmin, $pcs); # previous cycle time
          # now subtract the right number of hours
         ($pcy,$pcm,$pcd,$pch,$pcmin,$pcs) =
-          Date::Pcalc::Add_Delta_DHMS($cdy,$cdm,$cdd,$cyclehour,0,0,0,$i,0,0);
+          Date::Calc::Add_Delta_DHMS($cdy,$cdm,$cdd,$cyclehour,0,0,0,$i,0,0);
          # form the date and hour of the previous cycle time
          my $previous_date = sprintf("%4d%02d%02d",$pcy ,$pcm, $pcd);
          my $previous_hour = sprintf("%02d",$pch);
@@ -602,7 +602,7 @@ sub getForecastData() {
    my $cmin = 0;
    my $cs = 0;
    my ($ey,$em,$ed,$eh,$emin,$es) =
-         Date::Pcalc::Add_Delta_DHMS($cdy,$cdm,$cdd,$cyclehour,$cmin,$cs,0,$dl*3,0,0);
+         Date::Calc::Add_Delta_DHMS($cdy,$cdm,$cdd,$cyclehour,$cmin,$cs,0,$dl*3,0,0);
                         #  yyyy mm  dd  hh  
    my $end_date = sprintf("%04d%02d%02d%02d",$ey,$em,$ed,$eh); 
    printf FP "forecastValidEnd : $end_date" . "0000\n";

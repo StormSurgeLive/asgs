@@ -28,7 +28,7 @@
 #
 use strict;
 use Getopt::Long;
-use Date::Pcalc;
+use Date::Calc;
 $^W++;
 #
 my $inputDate; # in yyyymmddhh24mmss format
@@ -53,7 +53,7 @@ my $sh = $4;
 my $smin = $5;
 my $ss = $6; 
 my ($ey,$em,$ed,$eh,$emin,$es) =
-       Date::Pcalc::Add_Delta_DHMS($sy,$sm,$sd,$sh,$smin,$ss,$ddays,$dhours,$dminutes,$dseconds);
+       Date::Calc::Add_Delta_DHMS($sy,$sm,$sd,$sh,$smin,$ss,$ddays,$dhours,$dminutes,$dseconds);
 my $outputDate = sprintf("%04d %02d %02d %02d %02d %02d",$ey,$em,$ed,$eh,$emin,$es);
 printf "The resulting date is $outputDate.\n";
 

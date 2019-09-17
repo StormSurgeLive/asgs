@@ -14,7 +14,7 @@ if [ $2 == "clean" ]; then
   cd $OPT/lib
  rm -rfv libmca_common_sm.la libmpi_mpifh.so libompitrace.la libopen-rte.so.7 liboshmem.so.1.0.0 libvt-hyb.so.0 libvt-mpi-unify.so libvt.so libmca_common_sm.so libmpi_mpifh.so.2 libompitrace.so libopen-rte.so.7.0.3 libotfaux.a libvt-hyb.so.0.0.0 libvt-mpi-unify.so.0 libvt.so.0 libmca_common_sm.so.4 libmpi_mpifh.so.2.3.0 libompitrace.so.0 libopen-trace-format.a libotfaux.la libvt.la libvt-mpi-unify.so.0.0.0 libvt.so.0.0.0 libmca_common_sm.so.4.0.3 libmpi.so libompitrace.so.0.0.0 libopen-trace-format.la libotfaux.so libvt-mpi.a libvt-mt.a mpi.mod libmpi_cxx.la libmpi.so.1 libopen-pal.la libopen-trace-format.so libotfaux.so.0 libvt-mpi.la libvt-mt.la openmpi libmpi_cxx.so libmpi.so.1.5.0 libopen-pal.so libopen-trace-format.so.1 libotfaux.so.0.0.0 libvt-mpi.so libvt-mt.so pkgconfig libmpi_cxx.so.1 libmpi_usempi.la libopen-pal.so.6 libopen-trace-format.so.1.0.0 libvt.a libvt-mpi.so.0 libvt-mt.so.0 libmpi_cxx.so.1.1.3 libmpi_usempi.so libopen-pal.so.6.1.1 liboshmem.la  libvt-hyb.a libvt-mpi.so.0.0.0 libvt-mt.so.0.0.0 libmpi.la  libmpi_usempi.so.1 libopen-rte.la liboshmem.so  libvt-hyb.la libvt-mpi-unify.a libvt-pomp.a libmpi_mpifh.la libmpi_usempi.so.1.3.0 libopen-rte.so liboshmem.so.1  libvt-hyb.so libvt-mpi-unify.la libvt-pomp.la
   cd $OPT/include
-  rm -rfv mpi-ext.h mpif-constants.h mpif-ext.h mpif-handles.h mpif-io-handles.h mpi.h   mpp shmem.fh vampirtrace mpif-config.h mpif-externals.h mpif.h mpif-io-constants.h mpif-sentinels.h mpi_portable_platform.h openmpi shmem.h
+  rm -rfv mpi-ext.h mpif-constants.h mpif-ext.h mpif-handles.h mpif-io-handles.h mpi.h mpp shmem.fh vampirtrace mpif-config.h mpif-externals.h mpif.h mpif-io-constants.h mpif-sentinels.h mpi_portable_platform.h openmpi shmem.h
   exit
 fi
 
@@ -52,6 +52,6 @@ fi
 tar -xvf $OPENMPI_VERSION.tar.gz
 cd $OPENMPI_VERSION 
 
-./configure --prefix=$OPT
+./configure --prefix=$OPT --disable-oshmem-fortran --disable-oshmem --disable-vt --disable-libompitrace
 make -j $JOBS
 make -j $JOBS install

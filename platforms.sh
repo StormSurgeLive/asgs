@@ -396,6 +396,7 @@ init_hatteras()
   $PARALLELMODULES
   $SERIALMODULES
   MAKEJOBS=8
+<<<<<<< HEAD
 }
 #
 init_frontera()

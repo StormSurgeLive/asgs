@@ -30,7 +30,7 @@
 #
 use strict;
 use Getopt::Long;
-use Date::Pcalc;
+use Date::Calc;
 use Cwd;
 $^W++;
 
@@ -51,6 +51,11 @@ GetOptions(
            "hstime=s" => \$hstime,
            "enstorm=s" => \$enstorm
            );
+
+# presumptive fix put in the satisfy 'strict' warnings
+my $name          = $enstorm;
+my $dir           = $advisdir;
+my $coldstartdate = $csdate;
 #
 # check to see if the name of the storm is one that this script knows how to
 # generate ... if not, bomb out
@@ -98,7 +103,7 @@ my $nHour = $4;
 #
 # get difference
 (my $ddays, my $dhrs, my $dsec)
-           = Date::Pcalc::Delta_DHMS(
+           = Date::Calc::Delta_DHMS(
                 $csYear,$csMonth,$csDay,$csHour,0,0,
                 $nYear,$nMonth,$nDay,$nHour,0,0);
 #

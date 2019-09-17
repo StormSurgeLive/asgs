@@ -26,7 +26,7 @@
 #
 $^W++;
 use strict;
-use Date::Pcalc;
+use Date::Calc;
 use Getopt::Long;
 #
 sub stderrMessage($$);
