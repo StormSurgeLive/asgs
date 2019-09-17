@@ -39,13 +39,14 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 TIDEFAC=on               # tide factor recalc
    HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on         # NAM download/forcing
-   FORECASTCYCLE="06"
+   FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off      # tropical cyclone forcing
    STORM=05              # storm number, e.g. 05=ernesto in 2006
    YEAR=2019             # year of the storm
 WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off               # variable river flux forcing
+STATICOFFSET=0.30
 #
 CYCLETIMELIMIT="99:00:00"
 
@@ -70,9 +71,9 @@ TDS=( lsu_tds tacc_tds renci_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart
-LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/2019091106/tx2008_r35h/stampede2.tacc.utexas.edu/tx2008_r35h_nam_jgf/namforecast
+COLDSTARTDATE=2019081500
+HOTORCOLD=coldstart
+LASTSUBDIR=null
 #
 # Scenario package
 #
