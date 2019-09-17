@@ -25,7 +25,7 @@
 use strict;
 use Getopt::Long;
 use Math::Trig;
-use Date::Pcalc;
+use Date::Calc;
 use Cwd;
 $^W++;
 
@@ -445,7 +445,7 @@ for (my $output_num=1; $output_num<=$last_output; $output_num++ ) {
    if ( $defaultOutputIncrement eq "true" ) {
       $cycle=$output_num;
       my ($ey,$em,$ed,$eh,$emin,$es) =
-         Date::Pcalc::Add_Delta_DHMS($cycle_years[$cycle],
+         Date::Calc::Add_Delta_DHMS($cycle_years[$cycle],
             $cycle_months[$cycle],$cycle_days[$cycle],$cycle_hours[$cycle],
                   0,0, 0,$timezone_offset,0,0);
       printf TIMESTAMPS sprintf("%02d:00",$eh)
@@ -459,7 +459,7 @@ for (my $output_num=1; $output_num<=$last_output; $output_num++ ) {
             my $diffsec = $sec - $timesec[$cycle]; 
             #stderrMessage("DEBUG","diffsec=$diffsec");
             my ($ey,$em,$ed,$eh,$emin,$es) =
-               Date::Pcalc::Add_Delta_DHMS($cycle_years[$cycle],
+               Date::Calc::Add_Delta_DHMS($cycle_years[$cycle],
                   $cycle_months[$cycle],$cycle_days[$cycle],$cycle_hours[$cycle],
                   0,0, 0,$timezone_offset,0,$diffsec);
             printf TIMESTAMPS sprintf("%02d:00",$eh)

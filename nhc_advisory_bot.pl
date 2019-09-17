@@ -25,7 +25,7 @@
 #----------------------------------------------------------------
 use strict;
 use warnings;
-use Date::Pcalc;
+use Date::Calc;
 use Getopt::Long;
 #use DateTime::Format::ISO8601;
 
@@ -345,7 +345,7 @@ while ($i < $#{$body_ref} ) {
       }
       # Determine the time in hours (forecast period) between the current
       # forecast and the nowcast time
-      (my $ddays,my $dhrs, my $dsec) = Date::Pcalc::Delta_DHMS($nowcast_year,$nowcast_month,$nowcast_day,$nowcast_hour,0,0,$forecast_year,$forecast_month,$forecast_day,$forecast_hour,0,0);
+      (my $ddays,my $dhrs, my $dsec) = Date::Calc::Delta_DHMS($nowcast_year,$nowcast_month,$nowcast_day,$nowcast_hour,0,0,$forecast_year,$forecast_month,$forecast_day,$forecast_hour,0,0);
       my $forecast_period = $ddays*24 + $dhrs;
       substr($atcf_line,29,4)=sprintf("%4d",$forecast_period);
       # Get the next line and parse the isotachs

@@ -43,7 +43,7 @@ $^W++;
 use strict;
 use Net::FTP;
 use Getopt::Long;
-use Date::Pcalc;
+use Date::Calc;
 use Cwd;
 #
 our $advisdir;   # directory where the ASGS is running
@@ -586,7 +586,7 @@ sub getFluxData() {
                $dmin = $5;
                $ds = $6;
                (my $ddays, my $dhrs, my $dmin, my $dsec) =
-                  Date::Pcalc::Delta_DHMS($ney,$nem,$ned,$neh, $nemin, $nes,
+                  Date::Calc::Delta_DHMS($ney,$nem,$ned,$neh, $nemin, $nes,
                    $dy, $dm, $dd, $dh, $dmin, $ds);
                my $num_incs = 
                  int(($ddays*86400.0 + $dhrs*3600.0 + $dmin*60 + $dsec)/$inc);
@@ -656,7 +656,7 @@ sub incDate () {
    #             yyyy    MM    dd   hh24   mm    ss
    $oldDate =~ /(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/; 
    (my $ndy, my $ndm, my $ndd, my $ndh, my $ndmin, my $nds) =
-         Date::Pcalc::Add_Delta_DHMS($1,$2,$3,$4,$5,$6,0,0,0,$incSecs); 
+         Date::Calc::Add_Delta_DHMS($1,$2,$3,$4,$5,$6,0,0,0,$incSecs); 
    return sprintf("%4d%02d%02d%02d%02d%02d",$ndy,$ndm,$ndd,$ndh,$ndmin,0);
 }
 #

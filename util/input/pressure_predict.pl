@@ -35,7 +35,7 @@
 #
 use strict;
 use Getopt::Long;
-use Date::Pcalc;
+use Date::Calc;
 $^W++;
 #
 my $dir;                            # path to raw ATCF hindcast and forecast
@@ -194,7 +194,7 @@ for (my $i=1; $i<$num_real; $i++ ) {
       my $fm = $2;
       my $fd = $3;
       my $fh = $4;
-      (my $ddays,my $dhrs, my $dsec) = Date::Pcalc::Delta_DHMS($ny,$nm,$nd,$nh,0,0,$fy,$fm,$fd,$fh,0,0);
+      (my $ddays,my $dhrs, my $dsec) = Date::Calc::Delta_DHMS($ny,$nm,$nd,$nh,0,0,$fy,$fm,$fd,$fh,0,0);
       $time_difference[$forecast_increment] = $ddays*24 + $dhrs; # in hours
       if ( $time_difference[$forecast_increment] > $forecast_length ) {
          $pcf[$j] = "-99999";

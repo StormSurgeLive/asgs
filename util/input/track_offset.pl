@@ -27,7 +27,7 @@
 #
 use strict;
 use Getopt::Long;
-use Date::Pcalc;
+use Date::Calc;
 use Cwd;
 $^W++;
 #
@@ -113,7 +113,7 @@ while(<INPUT>) {
      # forecast datetime that the forecast applies to
      my $tau=substr($_,29,4);
      ($byear,$bmon,$bday,$bhour,$bmin,$bsec) =
-        Date::Pcalc::Add_Delta_DHMS($byear,$bmon,$bday,$bhour,0,0,0,$tau,0,0);
+        Date::Calc::Add_Delta_DHMS($byear,$bmon,$bday,$bhour,0,0,0,$tau,0,0);
    }
    my $linedate = sprintf("%4d%02d%02d%02d",$byear,$bmon,$bday,$bhour);  
    #
@@ -142,10 +142,10 @@ while(<INPUT>) {
    # the interpolation factor and apply to the positions
    if ( $changestart <= $linedate && $linedate <= $changeend ) {
       # difference between start date and line date (in hours)
-      (my $ddays, my $dhrs, my $dsec) = Date::Pcalc::Delta_DHMS($byear,$bmon,$bday,$bhour,0,0,$syear,$smon,$sday,$shour,0,0);
+      (my $ddays, my $dhrs, my $dsec) = Date::Calc::Delta_DHMS($byear,$bmon,$bday,$bhour,0,0,$syear,$smon,$sday,$shour,0,0);
       $dhrs = $dhrs + $ddays*24 + $dsec/3600; 
       # difference between start date and end date in hours
-      (my $deldays,my $delhrs, my $delsec) = Date::Pcalc::Delta_DHMS($syear,$smon,$sday,$shour,0,0,$eyear,$emon,$eday,$ehour,0,0);
+      (my $deldays,my $delhrs, my $delsec) = Date::Calc::Delta_DHMS($syear,$smon,$sday,$shour,0,0,$eyear,$emon,$eday,$ehour,0,0);
       $delhrs = $delhrs + $deldays*24 + $delsec/3600; 
       my $interpfactor = abs($dhrs/$delhrs);
       $latchangenow = $interpfactor * $latchange;

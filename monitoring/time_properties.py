@@ -51,7 +51,7 @@ except:
 # if the value is present, write the property; if not, read it 
 for key in runProp:
     if re.search(r'time.*' + options.jobtype + '.*start', key): 
-        #print key
+        print key
         #
         # convert start time to python datetime object
         #advisory_dt = datetime.strptime(runProp['time.forecast.valid.cdt'],'%Y%m%d%H%M%S')
