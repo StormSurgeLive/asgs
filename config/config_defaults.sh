@@ -71,3 +71,4 @@ THIS="config/config_defaults.sh"
    SPATIALEXTRAPOLATIONRAMP=yes
    SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
    INITPOST=( null_post.sh )
+   ARCHIVE=( null_archive.sh )

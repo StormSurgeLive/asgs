@@ -388,20 +388,6 @@ prep()
     #
     THIS="asgs_main.sh>prep()"
     debugMessage "top of prep() has the following values: RUNDIR=$RUNDIR CYCLEDIR=$CYCLEDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR SCENARIODIR=$SCENARIODIR ADVISORY=$ADVISORY LASTADVISORYNUM=$LASTADVISORYNUM STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
-    HPCENVSHORT=$6     # machine to run on (jade, desktop, queenbee, etc)
-    NCPU=$7     # number of CPUs to request in parallel jobs
-    PREPPEDARCHIVE=$8 # preprocessed fort.13 and fort.14 package
-    GRIDFILE=$9 # fulldomain grid
-    ACCOUNT=${10} # account to charge time to
-    OUTPUTOPTIONS="${11}" # contains list of args for appending files
-    HOTSTARTCOMP=${12} # fulldomain or subdomain
-    WALLTIME=${13} # HH:MM:SS format
-    HOTSTARTFORMAT=${14}   # "binary" or "netcdf"
-    MINMAX=${15}           # "continuous" or "reset"
-    HOTSWAN=${16} # "yes" or "no" to reinitialize SWAN only
-    NAFILE=${17}  # full domain nodal attributes file, must be last in the
-
-
 
     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
     echo "time.adcprep.start : ${DATETIME}" >> ${SCENARIODIR}/run.properties
@@ -633,146 +619,13 @@ prep()
        #
        #  H O T S T A R T I N G   S W A N 
        # 
-       # Globalizing and localizing the SWAN hotstart files can take
-       # a significant amount of time and must be done in serial. If the
-       # number of subdomains for this run is the same as the number of 
-       # subdomains used in the run used as the source of SWAN hotstart files, 
-       # then try to use the SWAN subdomain hotstart files directly. 
-       if [[ $WAVES = on && $HOTSWAN = on ]]; then
-          logMessage "$ENSTORM: $THIS: Preparing SWAN hotstart file."
-          swanHotstartOK=no
-          # if archiving of the hotstart source run has started but is not
-          # complete, wait until it is complete so that we don't 
-          # accidentally ingest partially complete tar files or partially
-          # globalized fulldomain swan hotstart files or start to copy 
-          # subdomain swan hotstart files that are being deleted by an
-          # archiving script
-          logMessage "$ENSTORM: $THIS: Detecting time that SWAN hotstart archiving process started in ${FROMDIR}."
-          swanArchiveStart=`sed -n 's/[ ^]*$//;s/time.archive.start\s*:\s*//p' $FROMDIR/run.properties`
-          if [[ ! -z $swanArchiveStart ]]; then 
-             # archiving process has started
-             logMessage "$ENSTORM: $THIS: The archiving process for the hotstart source run started at $swanArchiveStart."
-             waitMinutes=0 # number of minutes waiting for the archiving process to complete
-             waitMinutesMax=60  # max number of minutes to wait for upstream archiving process to finish
-             while [[ $waitMinutes -lt $waitMinutesMax ]]; do
-                # wait until it is finished or has errored out
-                logMessage "$ENSTORM: $THIS: Detecting finish or error condition for archiving SWAN hotstart files in ${FROMDIR}."
-                swanArchiveFinish=`sed -n 's/[ ^]*$//;s/time.archive.finish\s*:\s*//p' $FROMDIR/run.properties`
-                swanArchiveError=`sed -n 's/[ ^]*$//;s/time.archive.error\s*:\s*//p' $FROMDIR/run.properties`
-                if [[ ! -z $swanArchiveFinish || ! -z $swanArchiveError ]]; then
-                   logMessage "$ENSTORM: $THIS: The archiving process for the hotstart source run has finished."
-                   break
-                else
-                   sleep 60
-                   waitMinutes=`expr $waitMinutes + 1`
-                fi
-             done
-             if [[ $waitMinutes -ge 60 ]]; then
-                warn "$ENSTORM: $THIS: The archiving process for the hotstart source run did not finish within $watiMinutesMax minutes. Attempting to collect SWAN hotstart files anyway."            
-             fi
-          else
-             # FIXME: how to handle this situation?
-             warn "$ENSTORM: $THIS: The SWAN hotstart archiving process has not started in ${FROMDIR}."
+       source $SCRIPTDIR/swanHotstart.sh
+       if [[ $WAVES = on ]] ; then 
+          if [[ $HOTSWAN = on ]]; then
+             prepareSWANHotstart # this function may end up having to set HOTSWAN=off
           fi
-          logMessage "$ENSTORM: $THIS: Detecting number of subdomains for SWAN hotstart files in ${FROMDIR}."
-          hotSubdomains=`sed -n 's/[ ^]*$//;s/hpc.job.padcswan.ncpu\s*:\s*//p' $FROMDIR/run.properties`
-          logMessage "hotSubdomains is $hotSubdomains ; NCPU is $NCPU ; FROMDIR is $FROMDIR"
-          if [[ $hotSubdomains = $NCPU ]]; then
-             logMessage "$ENSTORM: $THIS: The number of subdomains is the same as hotstart source; subdomain SWAN hotstart files will be copied directly."
-             # subdomain swan hotstart files
-             if [[ -e $FROMDIR/PE0000/swan.67 ]]; then
-                logMessage "$ENSTORM: $THIS: Starting copy of subdomain swan hotstart files."
-                # copy the subdomain hotstart files over
-                # subdomain hotstart files are always binary formatted
-                PE=0
-                format="%04d"
-                while [ $PE -lt $NCPU ]; do
-                   PESTRING=`printf "$format" $PE`
-                   cp $FROMDIR/PE${PESTRING}/swan.67 $SCENARIODIR/PE${PESTRING}/swan.68 2>> ${SYSLOG}
-                   PE=`expr $PE + 1`
-                done
-                logMessage "$ENSTORM: $THIS: Completed copy of subdomain hotstart files."
-                swanHotstartOK=yes
-             fi
-             # subdomain SWAN hotstart files in a tar archive
-             if [[ $swanHotstartOK = no ]]; then
-                logMessage "$ENSTORM: $THIS: Could not copy subdomain SWAN hotstart files directly."
-                for suffix in tar tar.gz tar.bz2 ; do 
-                   logMessage "$ENSTORM: $THIS: Looking for ${FROMDIR}/swan.67.${suffix}."
-                   if [[ -e $FROMDIR/swan.67.${suffix} ]]; then
-                      logMessage "$ENSTORM: $THIS: Found $FROMDIR/swan.67.${suffix}."
-                      cp $FROMDIR/swan.67.${suffix} ./swan.68.${suffix} 2>> $SYSLOG
-                      scenarioMessage "$THIS: Untarring SWAN hotstart files:"
-                      case $suffix in
-                      tar)
-                         tar xvf swan.68.${suffix} >> scenario.log 2> >(awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG})
-                         if [[ $? == 0 ]]; then swanHotstartOK=yes ; fi
-                         ;;
-                      tar.gz)
-                         tar xvzf swan.68.${suffix} >> scenario.log 2> >(awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG})
-                         if [[ $? == 0 ]]; then swanHotstartOK=yes ; fi
-                         ;;
-                      tar.bz2)
-                         tar xvjf swan.68.${suffix} >> scenario.log 2> >(awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG})
-                         if [[ $? == 0 ]]; then swanHotstartOK=yes ; fi                         
-                         ;;
-                      *)
-                         warn "$ENSTORM: $THIS: SWAN hotstart file archive $FROMDIR/swan.67.${suffix} unrecognized."
-                         ;;
-                      esac
-                      for dir in `ls -d PE*`; do
-                         mv $dir/swan.67 $dir/swan.68 2>> $SYSLOG
-                      done
-                      rm swan.68.${suffix} 2>> $SYSLOG
-                      break
-                   fi
-                done
-             fi
-             if [[ $swanHotstartOK = no ]]; then
-                logMessage "$ENSTORM: $THIS: Failed to obtain subdomain SWAN hotstart files."
-             fi
-          else
-             logMessage "$ENSTORM: $THIS: The number of subdomains is different from the hotstart source; a fulldomain SWAN hotstart file will be decomposed to the subdomains."
-          fi
-          # 
-          # if copying subdomain SWAN hotstart files did not work
-          # or is not appropriate because the number of subdomains in
-          # this run is different from the hotstart source, try to 
-          # decompose a fulldomain SWAN hotstart file
-          if [[ $swanHotstartOK = no ]]; then
-             logMessage "$ENSTORM: $THIS: Decomposing fulldomain SWAN hotstart file."
-             # fulldomain swan hotstart file or archive of subdomain
-             # swan hotstart files
-             if [[ -e $FROMDIR/swan.67 ]]; then
-                cp $FROMDIR/swan.67 ./swan.68 2>> $SYSLOG
-             elif [[ -e $FROMDIR/swan.67.gz ]]; then
-                cp $FROMDIR/swan.67.gz ./swan.68.gz 2>> $SYSLOG
-                gunzip swan.68.gz 2>> $SYSLOG
-             elif [[ -e $FROMDIR/swan.67.bz2 ]]; then
-                cp $FROMDIR/swan.67.bz2 ./swan.68.bz2 2>> $SYSLOG
-                bunzip2 swan.68.bz2 2>> $SYSLOG
-             fi
-             if [[ -e  swan.68 ]]; then
-                logMessage "$ENSTORM: $THIS: Starting decomposition of fulldomain swan hotstart file to subdomains."
-                ${ADCIRCDIR}/../swan/unhcat.exe <<EOF 2>> ${SYSLOG}
-2
-swan.68
-F
-EOF
-                if [[ $? == 0 ]]; then swanHotstartOK=yes ; fi
-             fi
-             if [[ $swanHotstartOK = yes ]]; then
-                logMessage "$ENSTORM: $THIS: Completed decomposition of fulldomain swan hotstart file."
-             else
-                error "$ENSTORM: $THIS: Failed to obtain any swan hotstart file."              
-             fi
-          fi             
-       fi
-       if [[ $WAVES = off ]]; then
+       else
           logMessage "$ENSTORM: $THIS: SWAN coupling is not active."
-       fi
-       if [[ $WAVES = on && $HOTSWAN = off ]]; then
-          logMessage "$ENSTORM: $THIS: SWAN coupling is active but SWAN hotstart files are not available in $FROMDIR. SWAN will be cold started."
        fi
     fi
     # if we don't have an archive of our preprocessed files, create
@@ -1533,6 +1386,7 @@ variables_init()
    SCENARIOPACKAGESIZE=null
    declare -a INITPOST=( null_post.sh ) 
    declare -a POSTPROCESS=( null_post.sh ) 
+   declare -a ARCHIVE=( null_archive.sh )
    declare -a JOBENV=( null )  # array of shell scripts to 'source' for compute job
    JOBENVDIR=null
    declare -a subshellPIDs  # list of process IDs of subshells

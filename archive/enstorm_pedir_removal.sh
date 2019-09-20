@@ -81,9 +81,9 @@ if [[ $WAVES = on && -e PE0000/swan.67 ]]; then
    # number of processors.
    properties[hpc.job.swanhotstartarchive.cmd]="tar cvzf swan.67.tar.gz PE*/swan.67"
    # compose a fulldomain hotstart file from the subdomain hotstart files 
-   properties[hpc.job.swanhotstartcompose.cmd]="${SWANDIR}/$hSWANExe < unhcat.in" 
+   properties[hpc.job.swanhotstartcompose.cmd]="${SWANDIR}/$hSWANExe < unhcat.in ; gzip swan.67" 
    # create stdin for unhcat.exe
-   echo "1" > unhcat.in ; echo "swan.68" >> unhcat.in ; echo "F" >> unhcat.in
+   echo "1" > unhcat.in ; echo "swan.67" >> unhcat.in ; echo "F" >> unhcat.in
    submitString=${properties["hpc.submitstring"]}
    for JOBTYPE in swanhotstartarchive swanhotstartcompose ; do 
       scenarioMessage "$THIS: Starting $JOBTYPE job."
@@ -143,7 +143,7 @@ if [[ $WAVES = on && -e PE0000/swan.67 ]]; then
             ${properties["hpc.job.${JOBTYPE}.cmd"]} 1> $LOGFILE 2> errmsg && cat tar.log  | tee -a $LOGFILE >> $SCENARIOLOG || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not execute $JOBTYPE job: `cat errmsg`." $LOGFILE
             [[ $? != "0" ]] && runSuffix=error 
             DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-            echo "time.hpc.job.$JOBTYPE.$runSuffix : $DATETIME" >> $SCENARIODIR/run.properties                     
+            echo "time.hpc.job.$JOBTYPE.$runSuffix : $DATETIME" >> $SCENARIODIR/run.properties
          ) &
       fi
       scenarioMessage "$THIS: Finished submitting $JOBTYPE job." $LOGFILE
@@ -185,10 +185,10 @@ if [[ $WAVES = on && -e PE0000/swan.67 ]]; then
    done
 fi
 #
-# archive the subdomain fort.16 log files
+# archive the subdomain fort.16 log files in case troubleshooting is required
 tar cvzf fort.16.tar.gz ./PE*/fort.16 1> tar.log 2> errmsg && cat tar.log | tee -a $LOGFILE >> $SCENARIOLOG || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not create a tar archive of subdomain fort.16 files: `cat errmsg`." $LOGFILE
 #
-# check to see if there is post processing, and if so, wait up to 2 hours
+# check to see if there is post processing going on, and if so, wait up to 2 hours
 # for post processing to finish
 loadProperties $SCENARIODIR/run.properties
 # For every key in the properties array
@@ -227,6 +227,3 @@ for file in metis_graph.txt partmesh.txt fort.80 ; do
    fi
 done
 scenarioMessage "$THIS: Finished cleanup of subdomain (PE*) subdirectories." $LOGFILE
-
-
-

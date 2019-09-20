@@ -37,3 +37,22 @@ while read -r keyValuePair ; do
    properties["$key"]="$value" 
 done < $propertiesFile
 }
+
+loadAltProperties () {
+propertiesFile=$1
+propertiesArray=$2
+while read -r keyValuePair ; do 
+   colonPosition=`expr index "$keyValuePair" ":" `
+   key=${keyValuePair:0:$colonPosition-1}
+   value=${keyValuePair:$colonPosition}
+   # remove leading whitespace characters from key
+   key="${key#"${key%%[![:space:]]*}"}" 
+   # remove trailing whitespace characters from key
+   key="${key%"${key##*[![:space:]]}"}"
+   # remove leading whitespace characters from value
+   value="${value#"${value%%[![:space:]]*}"}"
+   # remove trailing whitespace characters from value
+   value="${value%"${value##*[![:space:]]}"}"
+   propertiesArray["$key"]="$value" 
+done < $propertiesFile
+}
