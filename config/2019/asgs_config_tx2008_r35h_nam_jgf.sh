@@ -46,6 +46,7 @@ TROPICALCYCLONE=off      # tropical cyclone forcing
 WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off               # variable river flux forcing
+STATICOFFSET=0.30
 #
 CYCLETIMELIMIT="99:00:00"
 
@@ -66,17 +67,18 @@ INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
+TDS=( lsu_tds tacc_tds renci_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2019080100
+COLDSTARTDATE=2019081500
 HOTORCOLD=coldstart
 LASTSUBDIR=null
-
+#
 # Scenario package
-
+#
 #PERCENT=default
-SCENARIOPACKAGESIZE=6
+SCENARIOPACKAGESIZE=2
 case $si in
    -2)
        ENSTORM=hindcast
@@ -96,8 +98,6 @@ case $si in
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
       ;;
 esac
-
+#
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
-
-
