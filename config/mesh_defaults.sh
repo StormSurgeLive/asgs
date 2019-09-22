@@ -54,7 +54,8 @@ case $GRIDNAME in
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
-      # FIXME: no unit offset url
+      # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_LA_v19k-WithUpperAtch_chk.dat.xz
+      UNITOFFSETFILE=unit_offset_LA_v19k-WithUpperAtch_chk.dat
       ;;
       #
    "ec95d")
@@ -110,7 +111,8 @@ case $GRIDNAME in
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
-      # FIXME: no unit offset url
+      # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_tx2008_r35h.grd.dat.xz
+      UNITOFFSETFILE=unit_offset_tx2008_r35h.grd.dat
       ;;
    "neflga_v12_geo")
       INPUTDIR=$SCRIPTDIR/input/meshes/neflga
