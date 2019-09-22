@@ -72,7 +72,7 @@ NUMWRITERS=1
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
+INTENDEDAUDIENCE=developers-only # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
