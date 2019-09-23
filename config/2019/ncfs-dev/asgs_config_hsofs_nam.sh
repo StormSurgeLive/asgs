@@ -40,14 +40,14 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
-TIDEFAC=on               # tide factor recalc
-   HINDCASTLENGTH=26.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on         # NAM download/forcing
+TIDEFAC=on                # tide factor recalc
+   HINDCASTLENGTH=26.0    # length of initial hindcast, from cold (days)
+BACKGROUNDMET=on          # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
-TROPICALCYCLONE=off      # tropical cyclone forcing
-   STORM=-1              # storm number, e.g. 05=ernesto in 2006
-   YEAR=2019             # year of the storm
-WAVES=on               # wave forcing
+TROPICALCYCLONE=off       # tropical cyclone forcing
+   STORM=-1               # storm number, e.g. 05=ernesto in 2006
+   YEAR=2019              # year of the storm
+WAVES=on                  # wave forcing
    REINITIALIZESWAN=yes   # used to bounce the wave solution
 VARFLUX=off               # variable river flux forcing
    RIVERSITE=data.disaster.renci.org
@@ -65,11 +65,11 @@ ACCOUNT=null
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=developers-only    # "general" | "developers-only" | "professional"
+INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
-OPENDAPNOTIFY="bblanton@renci.org, asgs.cera.lsu@gmail.com"
+OPENDAPNOTIFY="bblanton@renci.org, asgs.cera.lsu@gmail.com, rluettich1@gmail.com"
 NOTIFY_SCRIPT=ncfs_nam_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
