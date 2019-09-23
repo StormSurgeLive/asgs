@@ -30,6 +30,8 @@
 INSTANCENAME=ncfs-dev-hsofs-nam-master      # "name" of this ASGS process
 SCRATCHDIR=/scratch/ncfs-dev/${INSTANCENAME}
 RMQMessaging_Transmit=on
+RESERVATION=ncfs
+STATICOFFSET=0.30
 
 # Input files and templates
 
@@ -45,8 +47,8 @@ BACKGROUNDMET=on         # NAM download/forcing
 TROPICALCYCLONE=off      # tropical cyclone forcing
    STORM=-1              # storm number, e.g. 05=ernesto in 2006
    YEAR=2019             # year of the storm
-WAVES=off                # wave forcing
-   REINITIALIZESWAN=no   # used to bounce the wave solution
+WAVES=on               # wave forcing
+   REINITIALIZESWAN=yes   # used to bounce the wave solution
 VARFLUX=off               # variable river flux forcing
    RIVERSITE=data.disaster.renci.org
    RIVERDIR=/opt/ldm/storage/SCOOP/RHLRv9-OKU
@@ -56,8 +58,8 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=511                     # number of compute CPUs for all simulations
-NCPUCAPACITY=540
+NCPU=623                     # number of compute CPUs for all simulations
+NCPUCAPACITY=640
 NUMWRITERS=1
 ACCOUNT=null
 
@@ -89,11 +91,11 @@ case $si in
        ENSTORM=nowcast
        ;;
     0)
-       ENSTORM=namforecast
-       ;;
-    1)
        ENSTORM=namforecastWind10m
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    1)
+       ENSTORM=namforecast
        ;;
     *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
