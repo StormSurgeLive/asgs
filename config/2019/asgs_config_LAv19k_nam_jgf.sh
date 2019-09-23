@@ -66,7 +66,7 @@ NCPUCAPACITY=3600
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,jason.fleming@scimaritan.org"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,jason.fleming@scimaritan.org,rluettich1@gmail.com"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
