@@ -57,14 +57,16 @@ if [[ $HPCENVSHORT = "hatteras" ]]; then
 fi
 NCPUCAPACITY=3648
 NUMWRITERS=1
-ACCOUNT=null
+if [[ $HPCENVSHORT = "queenbee" && $USER = "jgflemin" ]]; then
+   ACCOUNT=loni_cera_2019a
+fi
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=professional # "general" | "developers-only" | "professional"
+INTENDEDAUDIENCE=general # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com taylorgasher@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
@@ -86,11 +88,13 @@ case $si in
        ENSTORM=nowcast
        ;;
     0)
-       ENSTORM=nhcConsensusWind10m
+       ENSTORM=veerLeft50Wind10m
+       PERCENT=-50
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
     1)
-       ENSTORM=nhcConsensus
+       ENSTORM=veerLeft50
+       PERCENT=-50
        ;;
     2)
        ENSTORM=veerLeft100Wind10m

@@ -195,12 +195,22 @@ init_supermic()
   SERIALMODULES='module load matlab/r2017a python/2.7.13-anaconda-tensorflow'
   PARALLELMODULES='module load mvapich2'
   JOBENVDIR=$SCRIPTDIR/config/machines/supermic
+  PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
   JOBENV=( )
   if [[ $operator = "jgflemin" ]]; then
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=hpc_cera_2019
      JOBENV=( gmt.sh gdal.sh imagemagick.sh )
+     for script in $JOBENV; do
+        source $JOBENVDIR/$script
+     done
+  fi
+  if [[ $operator = "alireza" ]]; then  # User config for Al
+     ADCIRCDIR=${HOME}/adcirc-cg/work # ADCIRC executables
+     SWANDIR=${HOME}/adcirc-cg/swan   # SWAN executables
+     ACCOUNT=hpc_cera_2019
+     JOBENV=( gmt.sh gdal.sh imagemagick.sh ) #TODO
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
@@ -645,7 +655,7 @@ writeTDSProperties()
    "lsu_ccr_tds")
       OPENDAPHOST=chenier.cct.lsu.edu
       THREDDSHOST=$OPENDAPHOST
-      OPENDDAPPORT=":8080"
+      OPENDAPPORT=":8080"
       CATALOGPREFIX=/asgs/ASGS-2019
       DOWNLOADPREFIX=/asgs/ASGS-2019
       OPENDAPBASEDIR=/data/thredds/ASGS/ASGS-2019
@@ -662,6 +672,7 @@ writeTDSProperties()
    "tacc_tds")
       OPENDAPHOST=adcircvis.tacc.utexas.edu
       THREDDSHOST=$OPENDAPHOST
+      OPENDAPPORT=":8080"
       DOWNLOADPREFIX=/asgs
       CATALOGPREFIX=/asgs
       OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS

@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME=hsofs_al052019_jgf_0.3      # "name" of this ASGS process
+INSTANCENAME=hsofs_al092019_jgf     # "name" of this ASGS process
 
 # Input files and templates
 
@@ -41,11 +41,11 @@ TIDEFAC=on               # tide factor recalc
 BACKGROUNDMET=off        # NAM download/forcing
    FORECASTCYCLE="06"
 TROPICALCYCLONE=on       # tropical cyclone forcing
-   STORM=05              # storm number, e.g. 05=ernesto in 2006
+   STORM=09              # storm number, e.g. 05=ernesto in 2006
    YEAR=2019             # year of the storm
 WAVES=on                 # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
-VARFLUX=off               # variable river flux forcing
+VARFLUX=off              # variable river flux forcing
 #
 STATICOFFSET=0.30        # (m), assumes a unit offset file is available
 #
@@ -56,9 +56,11 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=1799                     # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
-ACCOUNT=null
 if [[ $HPCENVSHORT = "hatteras" ]]; then
    NCPU=639 # max on hatteras
+fi
+if [[ $HPCENVSHORT = "queenbee" ]]; then
+   NCPU=959
 fi
 
 # Post processing and publication
@@ -71,14 +73,17 @@ NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2019073000
-HOTORCOLD=coldstart
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart
+#LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/2019082506/hsofs/queenbee.loni.org/namhsofs/namforecast
+#LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/al05/30/hsofs/queenbee.loni.org/hsofs_al052019_jgf_0.3/nhcConsensus
+LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2019/nam/2019091212/hsofs/hatteras.renci.org/ncfs-dev-hsofs-nam-master/namforecast
+#LASTSUBDIR=/work/jgflemin/asgs45215/30
 
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=6
+SCENARIOPACKAGESIZE=4
 if [[ $HPCENVSHORT = "hatteras" ]]; then
    if [[ $USER = "jgflemin" || $USER = "ncfs" ]]; then
       SCENARIOPACKAGESIZE=2
@@ -99,30 +104,28 @@ case $si in
     1)
        ENSTORM=nhcConsensus
        ;;
-
     2)
-       ENSTORM=veerRight100Wind10m
-       PERCENT=100
-       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-       ;;
-    3)
-       ENSTORM=veerRight100
-       PERCENT=100
-       ;;
-
-    4)
        ENSTORM=veerLeft100Wind10m
        PERCENT=-100
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
-    5)
+    3)
        ENSTORM=veerLeft100
        PERCENT=-100
+       ;;
+    4)
+       ENSTORM=veerRightWind10m
+       PERCENT=100
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    5)
+       ENSTORM=veerRight100
+       PERCENT=100
        ;;
     *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
       ;;
 esac
-
+#
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz

@@ -53,14 +53,16 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=959                # number of compute CPUs for all simulations
 NCPUCAPACITY=1000
 NUMWRITERS=1
-ACCOUNT=null
+if [[ $HPCENVSHORT = "queenbee" && $USER = "jgflemin" ]]; then
+   ACCOUNT=loni_cera_2019a
+fi
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com taylorgasher@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
