@@ -31,7 +31,7 @@ case $operator in
       op="bob"
       # RMQ
       RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
-      RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
+      RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
       NOTIFY_SCRIPT=ncfs_nam_notify.sh
       ems="bblanton@renci.org"
       EMAILNOTIFY=yes         # no | yes to have host HPC platform email notifications
