@@ -27,43 +27,44 @@
 
 # Fundamental
 
-INSTANCENAME=hsofs_al052019_jgf_0.3      # "name" of this ASGS process
+INSTANCENAME=cenfl_nam_jgf      # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=hsofs
+GRIDNAME=eccl_v7_geo_z
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
 TIDEFAC=on               # tide factor recalc
    HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=off        # NAM download/forcing
+BACKGROUNDMET=on         # NAM download/forcing
    FORECASTCYCLE="06"
-TROPICALCYCLONE=on       # tropical cyclone forcing
+TROPICALCYCLONE=off      # tropical cyclone forcing
    STORM=05              # storm number, e.g. 05=ernesto in 2006
    YEAR=2019             # year of the storm
-WAVES=on                 # wave forcing
+WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
-VARFLUX=off               # variable river flux forcing
-#
-STATICOFFSET=0.30        # (m), assumes a unit offset file is available
-#
+VARFLUX=off              # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=1799                     # number of compute CPUs for all simulations
-NCPUCAPACITY=9999
-NUMWRITERS=1
-ACCOUNT=null
+NCPU=959                # number of compute CPUs for all simulations
 if [[ $HPCENVSHORT = "hatteras" ]]; then
-   NCPU=639 # max on hatteras
+   NCPU=499 # 512 is max for hatteras outside the ncfs reservation
+   RESERVATION=ncfs
 fi
+NCPUCAPACITY=3648
+NUMWRITERS=1
+if [[ $HPCENVSHORT = "queenbee" && $USER = "jgflemin" ]]; then
+   ACCOUNT=loni_cera_2019a
+fi
+
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
+INTENDEDAUDIENCE=general # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
@@ -71,19 +72,14 @@ NOTIFY_SCRIPT=ncfs_cyclone_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2019073000
+COLDSTARTDATE=2019081000
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=6
-if [[ $HPCENVSHORT = "hatteras" ]]; then
-   if [[ $USER = "jgflemin" || $USER = "ncfs" ]]; then
-      SCENARIOPACKAGESIZE=2
-   fi
-fi
+SCENARIOPACKAGESIZE=2 
 case $si in
    -2) 
        ENSTORM=hindcast
@@ -93,31 +89,29 @@ case $si in
        ENSTORM=nowcast
        ;;
     0)
-       ENSTORM=nhcConsensusWind10m
+       ENSTORM=namforecastWind10m
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
     1)
-       ENSTORM=nhcConsensus
+       ENSTORM=namforecast
        ;;
-
     2)
-       ENSTORM=veerRight100Wind10m
-       PERCENT=100
-       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-       ;;
-    3)
-       ENSTORM=veerRight100
-       PERCENT=100
-       ;;
-
-    4)
        ENSTORM=veerLeft100Wind10m
        PERCENT=-100
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
-    5)
+    3)
        ENSTORM=veerLeft100
        PERCENT=-100
+       ;;
+    4)
+       ENSTORM=veerRight100Wind10m
+       PERCENT=100
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    5)
+       ENSTORM=veerRight100
+       PERCENT=100
        ;;
     *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."

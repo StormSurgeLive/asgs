@@ -34,6 +34,22 @@ INSTANCENAME=hsofs_nam_jgf      # "name" of this ASGS process
 GRIDNAME=hsofs
 source $SCRIPTDIR/config/mesh_defaults.sh
 
+#--------------------------------------------------------------------------
+#  changes for 0.2286m sea_surface_height_above_geoid 
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+# The default values of the following parameters are set in
+# config/mesh_defaults.sh, so these settings have to come after the
+# sourcing of the mesh_defaults.sh script. 
+CONTROLTEMPLATE=hsofs_explicit_sshag.15.template
+CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+NAFILE=hsofs_2286.13
+NAPROPERTIES=${NAFILE}.properties
+#  ----> commented out static offset
+#STATICOFFSET=0.30
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#  changes for 0.2286m sea_surface_height_above_geoid 
+#--------------------------------------------------------------------------
+
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
 TIDEFAC=on            # tide factor recalc
@@ -43,28 +59,28 @@ BACKGROUNDMET=on      # NAM download/forcing
 TROPICALCYCLONE=off   # tropical cyclone forcing
    STORM=99                         # storm number, e.g. 05=ernesto in 2006
    YEAR=2016                        # year of the storm
-WAVES=off              # wave forcing
+WAVES=on              # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=479                     # number of compute CPUs for all simulations
+NCPU=959                     # number of compute CPUs for all simulations
 NCPUCAPACITY=3648
 NUMWRITERS=1
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
+INTENDEDAUDIENCE=developers-only # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 NOTIFY_SCRIPT=corps_nam_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2019072200   # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2019082200   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart        # "hotstart" or "coldstart"
 LASTSUBDIR=null
 

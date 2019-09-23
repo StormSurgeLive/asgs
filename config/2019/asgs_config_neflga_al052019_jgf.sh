@@ -53,13 +53,15 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=959              # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=3648
-
+if [[ $HPCENVSHORT = "queenbee" && $USER = "jgflemin" ]]; then
+   ACCOUNT=loni_cera_2019a
+fi
 # Post processing and publication
 
 INTENDEDAUDIENCE=general # can also be "developers-only" or "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com taylorgasher@gmail.com" # space delimited list
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com" 
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
