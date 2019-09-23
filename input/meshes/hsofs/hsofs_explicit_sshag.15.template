@@ -32,7 +32,7 @@ sea_surface_height_above_geoid
 0.0 1.0 0.0   ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
 0.050 10 10 0.05 ! H0, NODEDRYMIN, NODEWETRMP, VELMIN
 -71.0 27.0       ! SLAM0,SFEA0 - CENTER OF CPP PROJECTION (NOT USED IF ICS=1, NTIP=0, NCOR=0)
-0.0025           ! FFACTOR
+0.0           ! FFACTOR
 10               ! ESL - LATERAL EDDY VISCOSITY COEFFICIENT; IGNORED IF NWP =1
 0.0              ! CORI - CORIOLIS PARAMETER - IGNORED IF NCOR = 1
 8      ! NUMBER OF TIDAL POTENTIAL CONSTITUENTS BEING FORCED
@@ -1591,5 +1591,5 @@ CF-1.1                     ! NCCONV - CONVENTIONS
 jason.fleming@seahorsecoastal.com    ! NCCONT - CONTACT INFORMATION
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
 &inundationOutputControl inundationOutput=.true. /
-&metControl WindDragLimit=0.0028 / 
+&metControl WindDragLimit=0.002 / 
 %offsetline%
