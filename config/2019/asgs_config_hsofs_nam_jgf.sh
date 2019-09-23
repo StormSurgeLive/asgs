@@ -72,10 +72,10 @@ NUMWRITERS=1
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=developers-only # "general" | "developers-only" | "professional"
+INTENDEDAUDIENCE=general # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rluettich1@gmail.com"
 NOTIFY_SCRIPT=corps_nam_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
