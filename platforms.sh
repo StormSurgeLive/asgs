@@ -157,7 +157,7 @@ init_supermic()
   JOBENV=( )
   if [[ $USER = "jgflemin" ]]; then
      SCRATCHDIR=/work/$USER
-     ACCOUNT=hpc_cera_2019
+     ACCOUNT=hpc_cera_2019b
      JOBENV=( gmt.sh gdal.sh imagemagick.sh )
      for script in $JOBENV; do
         source $JOBENVDIR/$script
