@@ -142,6 +142,8 @@ my ($m2nf, $s2nf, $n2nf, $k2nf, $k1nf, $o1nf, $p1nf, $q1nf); # nodal factors
 my ($m2eqarg, $s2eqarg, $n2eqarg, $k2eqarg, $k1eqarg, $o1eqarg, $p1eqarg, $q1eqarg); # equilibrium arguments
 my $periodicflux="null";  # the name of a file containing the periodic flux unit discharge data for constant inflow boundaries
 my $fluxdata;
+my $staticoffset = "null";
+my $unitoffsetfile = "null";
 GetOptions("controltemplate=s" => \$controltemplate,
            "stormdir=s" => \$stormDir,
            "swantemplate=s" => \$swantemplate,
@@ -192,7 +194,7 @@ if ( $stormDir eq "null" ) {
    $stormDir = $advisdir."/".$enstorm;
 }
 #
-# create a dictionary of properties from run.properties
+# create a hash of properties from run.properties
 my %runProp; 
 # open properties file 
 unless (open(RUNPROP,"<$stormDir/run.properties")) {
@@ -394,9 +396,42 @@ if ( $nws eq "0" ) {
 } else {
    $nummetstations = &getStations($metstations,"meteorology");
 }
-
+#
 # load up the periodicflux data
 $fluxdata = &getPeriodicFlux($periodicflux);
+#
+# apply static offset if specified
+my $offsetline = "NO LINE HERE";
+$staticoffset = $runProp{'forcing.staticoffset'};
+if ( $staticoffset ne "null" && $staticoffset ne "0.0" ) { 
+   my $unitoffsetfile = $runProp{'adcirc.file.input.unitoffsetfile'};
+   my $inputdir = $runProp{'path.inputdir'};
+   # open static unit offset file 
+   unless (open(STATICOFFSET,"<$inputdir/$unitoffsetfile")) {
+      stderrMessage("ERROR","Failed to open $inputdir/$unitoffsetfile: $!.");
+      die;
+   }
+   # open static offset file 
+   unless (open(OFFSET,">$stormDir/offset.dat")) {
+      stderrMessage("ERROR","Failed to open $stormDir/offset.dat: $!.");
+      die;
+   }
+   my $offsetcomment = "static offset multiplier is $staticoffset with ramp starting at cold start and reaching full offset at 15.0 days";
+   my $offsettimeincrement = "999999.0";
+   while(<STATICOFFSET>) {
+      s/%comment%/$offsetcomment/;
+      s/%timeincrement%/$offsettimeincrement/;
+      unless (/NO LINE HERE/) {
+         print OFFSET $_;
+      }
+   }
+   close(STATICOFFSET);
+   close(OFFSET);
+   # FIXME: static offset start and end hardcoded to coldstart and 15.0 days
+   $offsetline = "&offsetControl offsetFileName='$stormDir/offset.dat', offsetMultiplier=$staticoffset, offsetRampStart=0.0, offsetRampEnd=1296000.0, offsetRampReferenceTime='coldstart' /";
+}
+#
+#
 #
 stderrMessage("INFO","Filling in ADCIRC control template (fort.15).");
 while(<TEMPLATE>) {
@@ -456,6 +491,7 @@ while(<TEMPLATE>) {
     if (/inundationOutput=.[tT]/) {
        $inundationOutput = "on";
     }
+    s/%offsetline%/$offsetline/;
     unless (/NO LINE HERE/) {
        print STORM $_;
     }

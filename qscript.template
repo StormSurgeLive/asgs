@@ -34,11 +34,13 @@ THIS=%jobtype%.%queuesyslc%  # name of this script for use in log messages
 SCRIPTDIR=%scriptdir%
 SYSLOG=%syslog%
 CYCLEDIR=%advisdir%
+CYCLE=`basename %advisdir%`
 CYCLELOG=$CYCLEDIR/cycle.log
-SCENARIODIR=$CYCLEDIR/%scenario%
+SCENARIO=%scenario%
+SCENARIODIR=$CYCLEDIR/$SCENARIO
 SCENARIOLOG=$SCENARIODIR/scenario.log
 #
-cd $SCENARIODIR 2> >(awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log )
+cd $SCENARIODIR 2> >(awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a $SYSLOG | tee -a $CYCLELOG | tee -a $SCENARIOLOG )
 #
 #----------------------------------------------------------------------------
 #            C R E A T E   J O B   E N V I R O N M E N T      
@@ -58,7 +60,7 @@ THIS=%jobtype%.%queuesyslc%  # reset script name for use in log messages
 #----------------------------------------------------------------------------
 #        L O G   M E S S A G E S   T O   S T A R T   T H E   J O B
 #----------------------------------------------------------------------------
-echo "Starting $THIS in $SCENARIODIR with %queuesys% Job ID ${%JOBID%}; %queuesys% submit directory ${%JOBDIR%}; and %queuesys% submit host ${%JOBHOST%}."  2>&1 | awk -v this=$THIS -v level=INFO -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG >> %jobtype%.%scenario%.run.start
+echo "Starting $THIS in $SCENARIODIR with %queuesys% Job ID ${%JOBID%}; %queuesys% submit directory ${%JOBDIR%}; and %queuesys% submit host ${%JOBHOST%}."  2>&1 | awk -v this=$THIS -v level=INFO -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG | tee --append %jobtype%.%scenario%.run.start
 # record which cluster nodes we have to scenario.log
 echo "INFO: $THIS: %JOBNODES%: $%JOBNODES%" 
 echo "INFO: $THIS: hostname: "`hostname` 
@@ -78,13 +80,14 @@ echo "hpc.job.%jobtype%.hostname : $HOSTNAME" >> run.properties
 echo "hpc.job.%jobtype%.qnnodes : $%JOBNNODES%" >> run.properties
 echo "hpc.job.%jobtype%.qntasks-per-node : $%JOBNTASKSPERNODE%" >> run.properties 
 echo "hpc.job.%jobtype%.qntasks : $%JOBNTASKS%" >> run.properties
+echo "hpc.job.%jobtype%.joblog : %advisdir%/%scenario%/%jobtype%.out" >> run.properties
 #
 #----------------------------------------------------------------------------
 #                  E X E C U T E   T H E   J O B
 #----------------------------------------------------------------------------
 # log the command to run 
 CMD="%cmd%"
-echo "%jobtype%.%scenario% job ${%JOBID%} starting in $SCENARIODIR with the following command: $CMD" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG >> %jobtype%.%scenario%.run.start
+echo "cycle $CYCLE: $SCENARIO: $THIS: %jobtype%.%scenario% job ${%JOBID%} starting in $SCENARIODIR with the following command: $CMD" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG | tee --append %jobtype%.%scenario%.run.start
 $CMD 
 #
 #----------------------------------------------------------------------------
@@ -100,7 +103,7 @@ if [ $ERROVALUE == 0 ] ; then
          if [ -e $file ]; then
             numMsg=`grep WarnElev $file | wc -l`
             if [ $numMsg = 0 ]; then
-               echo "No numerical instability detected in $file after completion of %jobtype%.%scenario% job ${%JOBID%}." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk 
+               echo "$THIS: No numerical instability detected in $file after completion of %jobtype%.%scenario% job ${%JOBID%}." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG
             else
                ERROMSG="$ERROMSG Detected $numMsg numerical instability messages in $file after completion of %jobtype%.%scenario% job ${%JOBID%}."
                RUNSUFFIX="error"
@@ -113,11 +116,11 @@ else
    RUNSUFFIX="error"
 fi
 #
-echo "%jobtype%.%scenario% job $%JOBID% finished in $SCENARIODIR with return value = $ERROVALUE" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG >> %jobtype%.%scenario%.run.${RUNSUFFIX}
+echo "cycle $CYCLE: $SCENARIO: $THIS: %jobtype%.%scenario% job $%JOBID% finished in $SCENARIODIR with return value = $ERROVALUE" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG | tee --append %jobtype%.%scenario%.run.${RUNSUFFIX}
 #
 #  write reason for job failure
 if [ $ERROVALUE != 0 ]; then
-   echo "$ERROMSG" 2>&1 | awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG >> %jobtype%.%scenario%.run.${RUNSUFFIX}
+   echo "cycle $CYCLE: $SCENARIO: $THIS: $ERROMSG" 2>&1 | awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG | tee --append %jobtype%.%scenario%.run.${RUNSUFFIX}
 fi
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 echo "time.hpc.job.%jobtype%.${RUNSUFFIX} : $DATETIME" >> run.properties

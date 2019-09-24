@@ -108,6 +108,28 @@ GetOptions(
     "rampDistance=s"       => \$rampDistance,
     "scriptDir=s"          => \$scriptDir
 );
+#
+# create a hash of properties from run.properties
+our %properties;
+# open properties file 
+unless (open(RUNPROP,"<run.properties")) {
+   stderrMessage("ERROR","Failed to open run.properties: $!.");
+   die;
+}
+while (<RUNPROP>) {
+   my @fields = split ':',$_, 2 ;
+   # strip leading and trailing spaces and tabs
+   $fields[0] =~ s/^\s|\s+$//g ;
+   $fields[1] =~ s/^\s|\s+$//g ;
+   $properties{$fields[0]} = $fields[1];
+}
+close(RUNPROP);
+#
+# open an application log file for get_nam.pl
+unless ( open(APPLOGFILE,">>NAMtoOWIRamp.pl.log") ) {
+   stderrMessage("ERROR","Could not open 'NAMtoOWIRamp.pl.log' for appending: $!.");        
+   exit 1;
+}
 &stderrMessage( "INFO", "Started processing NAM data." );
 &stderrMessage( "INFO", "Started processing point file." );
 $geoHeader = &processPtFile($ptFile);
@@ -436,7 +458,7 @@ sub getNetCDF {
 ################################################################################
 sub rotateAndFormat {
     for my $t ( 0 .. $nRec{'time'} - 1 ) {
-        &stderrMessage( "DEBUG", "TS=$t" );
+        &appMessage( "DEBUG", "TS=$t" );
 
         my $ugrd_file = $ugrd_store_files[$t];
         my $vgrd_file = $vgrd_store_files[$t];
@@ -464,25 +486,25 @@ sub rotateAndFormat {
 
             # NAM pressure data are in Pa
             if ( -f "rotataedNAM.txt" ) {
-                print "Deleting old rotated3NAM.txt\n";
+                &appMessage("DEBUG","Deleting old rotatedNAM.txt.");
                 unlink "rotatedNAM.txt";
             }
 
             my $com = "$scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $uvpFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance $rampDistance --background-pressure 101300.0 --pressure-column 3 >> reproject.log 2>&1";
-            &stderrMessage( "DEBUG", "1: Reprojecting Lambert Conformal NAM data with the following command: $com" );
+            &appMessage( "DEBUG", "1: Reprojecting Lambert Conformal NAM data with the following command: $com" );
             my $res = `$com`;
             if ( !-f "rotatedNAM.txt" ) {
                 die "\nrotatedNAM.txt DNE. on TS=$t\n";
             }
             else {
-                &stderrMessage( "DEBUG", "$res" );
+                &appMessage( "DEBUG", "$res" );
             }
 
             #                   &stderrMessage("DEBUG","Applying spatial ramp.");
 
         }
         else {
-            &stderrMessage(
+            &appMessage(
                 "DEBUG",
                 "2: Reprojecting Lambert Conformal NAM data with the following command: $scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $uvpFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance -99999.0 >> reproject.log 2>&1"
             );
@@ -567,7 +589,7 @@ sub getGrib2 {
         `$scriptDir/wgrib2 $grib2Files[0] -match PRMSL` =~ m/d=(\d+)/;
         $startTime = $1;
     }
-    &stderrMessage( "DEBUG", "The start time is '$startTime'." );
+    &appMessage( "DEBUG", "The start time is '$startTime'." );
     $startTime =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
     my $sy = $1;    # start year
     my $sm = $2;    # start month
@@ -585,7 +607,7 @@ sub getGrib2 {
 
     foreach my $file (@grib2Files) {
         $numGrib2Files++;
-        &stderrMessage( "DEBUG", "Starting work on '$file'." );
+        &appMessage( "DEBUG", "Starting work on '$file'." );
         my $cycleHour = "00";
         if ( $namFormat eq "grib2" ) {
 
@@ -597,7 +619,7 @@ sub getGrib2 {
             `$scriptDir/wgrib -v $file | grep PRMSL` =~ m/:D=(\d\d\d\d)(\d\d)(\d\d)(\d\d):PRMSL:/;
             $cycleHour = $4;
         }
-        &stderrMessage( "DEBUG", "The cycle hour is '$cycleHour'." );
+        &appMessage( "DEBUG", "The cycle hour is '$cycleHour'." );
         ( $fy, $fm, $fd, $fh, $fmin, $fs ) = Date::Pcalc::Add_Delta_DHMS( $sy, $sm, $sd, $sh, 0, 0, 0, $cycleHour, 0, 0 );
 
         # calculate and save the end time ... last one will represent
@@ -644,7 +666,7 @@ sub getGrib2 {
             if ( $dhrs > $timeStep ) {
                 &stderrMessage( "WARNING", "The time difference between the files is greater than $timeStep hours. The intervening data will be linearly interpolated." );
                 $numInterp = $dhrs / $timeStep;
-                &stderrMessage( "DEBUG", "There are $numInterp time increments to interpolate." );
+                &appMessage( "DEBUG", "There are $numInterp time increments to interpolate." );
 
                 # calculate interpolating factors
                 for ( my $i = 1; $i <= $numInterp; $i++ ) {
@@ -660,7 +682,7 @@ sub getGrib2 {
             ( $ey, $em, $ed, $eh, $emin, $es ) = Date::Pcalc::Add_Delta_DHMS( $sy, $sm, $sd, $sh, 0, 0, 0, $cycleHour, 0, 0 );
             $endTime = sprintf( "%4d%02d%02d%02d", $ey, $em, $ed, $eh );
         }
-        &stderrMessage( "DEBUG", "The end time is '$endTime'." );
+        &appMessage( "DEBUG", "The end time is '$endTime'." );
         push( @OWItime, $endTime . "00" );    # add the minutes columns
                                               #
                                               # now grab the u,v,p data from the file
@@ -821,3 +843,16 @@ sub stderrMessage () {
     }
 }
 
+#
+# write a log message to a log file dedicated to this script (typically debug messages)        
+sub appMessage () {
+   my $level = shift;
+   my $message = shift;
+   my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+   (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
+   my $year = 1900 + $yearOffset;
+   my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
+   my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
+   my $scenario = $properties{"scenario"};
+   printf APPLOGFILE "$theTime $level: $scenario: get_nam.pl: $message\n";
+}

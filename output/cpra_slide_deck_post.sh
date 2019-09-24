@@ -6,7 +6,7 @@
 #--------------------------------------------------------------------------
 # 
 # Copyright(C) 2018 Matthew V Bilskie
-# Copyright(C) 2018 Jason Fleming
+# Copyright(C) 2018--2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -24,128 +24,103 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
 #--------------------------------------------------------------------------
+#                       R E A D  M E
+#--------------------------------------------------------------------------
 # This script assumes that it is executed in the same directory with
 # the results it is post processing.
 #
 # FigureGen.F90 must be compiled in the cpra_postproc subdirectory 
-# in order for this script to function. 
+# with netCDF4 support and all dependencies (GMT, gdal, etc) must be
+# installed and configured in order for this script to function. 
 #--------------------------------------------------------------------------
 #                        S E T U P 
 #--------------------------------------------------------------------------
 umask 002
-THIS="cpra_slide_deck_post.sh"
+THIS="output/cpra_slide_deck_post.sh"
 batchJOBTYPE=cpra.figuregen
 postJOBTYPE=cpra.post
-# STORMDIR: path where this ensemble member is supposed to run 
-STORMDIR=$PWD
-LOGFILE=${STORMDIR}/${postJOBTYPE}.log
-# ensemble member name
-ENSTORM=`sed -n 's/[ ^]*$//;s/scenario\s*:\s*//p' run.properties`
-echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Starting post processing." >> $LOGFILE
-echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Collecting properties." >> $LOGFILE
+# SCENARIODIR: path where this ensemble member is supposed to run 
+SCENARIODIR=$PWD  # default to post processing files in the current directory
+# if there is only one command line argument, it is the directory where
+# the files are that should be post processed
+currentDir=$PWD # save in case we need to switch back at the end of the script 
+if [[ $# -eq 1 ]]; then
+   SCENARIODIR=$1 # only 1 cmd line option means we are given the scenario directory
+fi
 # SCRIPTDIR: path to asgs scripts like asgs_main.sh
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties`
+
 . ${SCRIPTDIR}/monitoring/logging.sh
-# ACCOUNT: by default, use whatever account was used by padcirc or padcswan
-ACCOUNT=`sed -n 's/[ ^]*$//;s/hpc.job.padcswan.account\s*:\s*//p' run.properties`
-if [[ -z $ACCOUNT ]]; then
-   ACCOUNT=`sed -n 's/[ ^]*$//;s/hpc.job.padcirc.account\s*:\s*//p' run.properties`
-fi
-# type of queueing system (e.g., PBS, SLURM, or mpiexec)
-QUEUESYS=`sed -n 's/[ ^]*$//;s/hpc.queuesys\s*:\s*//p' run.properties`
+. ${SCRIPTDIR}/platforms.sh           # contains hpc platform configurations
+. ${SCRIPTDIR}/properties.sh          # contains loadProperties subroutine
+# load properties
+declare -A properties
+loadProperties $SCENARIODIR/run.properties
+#
+CYCLE=${properties['advisory']}
+SCENARIO=${properties['scenario']}
+SCENARIOLOG=${properties["monitoring.logging.file.scenariolog"]}
+CYCLELOG=${properties["monitoring.logging.file.cyclelog"]}
+SYSLOG=${properties["monitoring.logging.file.syslog"]}
+LOGFILE=${SCENARIODIR}/${postJOBTYPE}.log
+scenarioMessage "DEBUG: SCRIPTDIR is '${SCRIPTDIR}'." $LOGFILE 
+cd $SCENARIODIR > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to change directory to '$SCENARIODIR': `cat errmsg`." 
+touch $LOGFILE 2>> $SCENARIOLOG
+scenarioMessage "$SCENARIO: $THIS: Starting $postJOBTYPE post processing in ${SCENARIODIR}." $LOGFILE
+#
+# HPCENVSHORT: shorthand for the HPC environment: queenbee, hatteras, etc
+HPCENVSHORT=${properties['hpc.hpcenvshort']}
+scenarioMessage "$SCENARIO: $THIS: Setting up for execution on ${HPCENVSHORT}." $LOGFILE 
+# set variables as defaults according to the hpc platform
+env_dispatch $HPCENVSHORT
+THIS="output/cpra_slide_deck_post.sh" # must reset after executing env_dispatch()
+#
+# now pick up properties related to this particular scenario
+#
+# ACCOUNT, SERQUEUE, QUEUENAME: by default, use whatever account was used by adcprep, 
+# padcirc or padcswan for this post processing 
+ACCOUNT=${properties['hpc.job.default.account']}
+QUEUENAME=${properties['hpc.job.default.queuename']}
+SERQUEUE=${properties['hpc.job.default.serqueue']}
+PPN=1
+# use the same ppn and account as was used in adcprep
+for key in "${!properties[@]}" ; do
+   if [[ $key == hpc.job.prep*.ppn ]]; then
+      PPN=${properties[$key]}
+   fi
+done
+#
 # check to see if this is a tropical cyclone
-TROPCIALCYCLONE=`sed -n 's/[ ^]*$//;0,/forcing.tropicalcyclone/{s/forcing.tropicalcyclone\s*:\s*//p}' run.properties`
+TROPICALCYCLONE=${properties['forcing.tropicalcyclone']}
 if [[ $TROPICALCYCLONE != "off" ]]; then
-   # name of tc (FIXME: need the 0 because this property may appear more than once)
-   STORMNAME=`sed -n 's/[ ^]*$//;0,/stormname/{s/stormname\s*:\s*//p}' run.properties`
+   STORM=${properties['forcing.tropicalcyclone.stormnumber']}
+   YEAR=${properties['forcing.tropicalcyclone.year']}
+   STORMNAME=${properties['forcing.tropicalcyclone.stormname']}
 else
+   STORM="null"
+   YEAR=${ADVISORY:0:4}
    STORMNAME=NAM  #FIXME: make this more general
 fi
-# advisory number
-ADVISORY=`sed -n 's/[ ^]*$//;s/advisory\s*:\s*//p' run.properties`
+# cycle ID
+ADVISORY=${properties['advisory']}
 #
 POSTPROCDIR=${SCRIPTDIR}/output/cpra_postproc
-echo "post.path.${postJOBTYPE}.postprocdir : $POSTPROCDIR" >> $STORMDIR/run.properties
-
-export MATLABPATH=${POSTPROCDIR}
-JOBMODULES=""    
-JOBPATHS=""
-JOBLIBS=""
-FINDMAXZ=""
-# HPCENVSHORT: shorthand for the HPC environment: queenbee, hatteras, etc
-HPCENVSHORT=`sed -n 's/[ ^]*$//;s/hpc.hpcenvshort\s*:\s*//p' run.properties`
-echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Setting up for execution on ${HPCENVSHORT}." >> $LOGFILE
+echo "post.path.${postJOBTYPE}.postprocdir : $POSTPROCDIR" >> $SCENARIODIR/run.properties
 #
-case $HPCENVSHORT in
-    queenbee)
-        echo "hpc.job.${batchJOBTYPE}.serqueue : single" >> $STORMDIR/run.properties
-        echo "hpc.job.${batchJOBTYPE}.queuename : workq" >> $STORMDIR/run.properties
-        JOBMODULES="module load python/2.7.12-anaconda-tensorflow"
-        $JOBMODULES
-        FINDMAXZCMD="${POSTPROCDIR}/Matlab_QB2/run_FindMaxZ.sh /usr/local/packages/license/matlab/r2017a"
-        if [[ $USER = jgflemin ]]; then
-           ACCOUNT=loni_cera_2019
-           GDAL_HOME=/home/jgflemin/asgs/gdal
-           GMT_HOME=/home/jgflemin/asgs/gmt/gmt-4.5.18
-           JOBPATHS="export PATH=${GDAL_HOME}/bin:${GMT_HOME}/bin:\$PATH GDAL_DATA=${GDAL_HOME}/share/gdal"
-           JOBLIBS="export LD_LIBRARY_PATH=${GDAL_HOME}/lib:${GMT_HOME}/lib:\$LD_LIBRARY_PATH"
-        fi
-       ;;
-    supermic)
-        echo "hpc.job.${batchJOBTYPE}.serqueue : single" >> $STORMDIR/run.properties
-        echo "hpc.job.${batchJOBTYPE}.queuename : workq" >> $STORMDIR/run.properties
-        JOBMODULES="module load python/2.7.13-anaconda-tensorflow"
-        $JOBMODULES
-        FINDMAXZCMD="${POSTPROCDIR}/Matlab_QB2/run_FindMaxZ.sh /usr/local/packages/license/matlab/r2017a"
-        if [[ $USER = jgflemin ]]; then
-           ACCOUNT=hpc_cera_2019
-           #GDAL_HOME=/home/jgflemin/asgs/gdal
-           #GMT_HOME=/home/jgflemin/asgs/gmt/gmt-4.5.18
-           JOBPATHS="export PATH=/home/jgflemin/local/bin:\$PATH GDAL_DATA=/home/jgflemin/local/share/gdal"
-           JOBLIBS="export LD_LIBRARY_PATH=/home/jgflemin/local/lib:\$LD_LIBRARY_PATH"
-        fi
-        ;;
-    supermic)
-        echo "hpc.job.${batchJOBTYPE}.serqueue : single" >> $STORMDIR/run.properties
-        echo "hpc.job.${batchJOBTYPE}.queuename : workq" >> $STORMDIR/run.properties
-        echo "hpc.job.${batchJOBTYPE}.ppn : 1" >> $STORMDIR/run.properties
-
-        JOBMODULES="module load python/2.7.13-anaconda-tensorflow"
-        $JOBMODULES
-        FINDMAXZCMD="${POSTPROCDIR}/Matlab_QB2/run_FindMaxZ.sh /usr/local/packages/license/matlab/r2017a"
-        if [[ $USER = jgflemin ]]; then
-           ACCOUNT=hpc_cera_2019
-           JOBPATHS="export PATH=/home/jgflemin/local/bin:\$PATH GDAL_DATA=/home/jgflemin/local/share/gdal"
-           JOBLIBS="export LD_LIBRARY_PATH=/home/jgflemin/local/bin:\$LD_LIBRARY_PATH"
-        fi
-        ;;
-    hatteras)
-        JOBMODULES="module load python_modules/2.7 matlab/2017b"
-        module unload zlib # avoid intel library conflict issues with matlab
-        #FINDMAXZCMD='matlab -nodisplay -nosplash -nodesktop -r "run FindMaxZ.m, exit"'
-        FINDMAXZCMD=(matlab -nodisplay -nosplash -nodesktop -r "run FindMaxZ.m, exit")
-        # set location of gdal; this only works if the asgs is running
-        # in the ncfs account
-        if [[ $USER = ncfs ]]; then
-           #GDAL_HOME=/home/ncfs/asgs/gdal
-           #GMT_HOME=/home/ncfs/asgs/gmt/gmt-4.5.18
-           JOBPATHS="export PATH=/home/ncfs/local/bin:\$PATH GDAL_DATA=/home/ncfs/local/share/gdal"
-           JOBLIBS="export LD_LIBRARY_PATH=/home/ncfs/local/lib:\$LD_LIBRARY_PATH"
-           # use the ncfs priority level
-           echo "hpc.job.${batchJOBTYPE}.partition : ncfs" >> ${STORMDIR}/run.properties
-        fi
-        $JOBMODULES
-        ;;
-    lonestar)
-        JOBMODULES=""    
-        ;;
-    stampede)
-        JOBMODULES=""
-        ;;
-    *)
-        error "HPC platform $HPCENVSHORT not recognized."
-        ;;
-esac
+echo "hpc.job.${batchJOBTYPE}.serqueue : $SERQUEUE" >> $SCENARIODIR/run.properties
+echo "hpc.job.${batchJOBTYPE}.queuename : $QUEUENAME" >> $SCENARIODIR/run.properties
+echo "hpc.job.${batchJOBTYPE}.account : $ACCOUNT" >> $SCENARIODIR/run.properties
+echo "hpc.job.${batchJOBTYPE}.ppn : $PPN" >> $SCENARIODIR/run.properties
+#
+# set command for finding max water surface elevation (ft) within a lat/lon box
+export MATLABPATH=${POSTPROCDIR}
+# queenbee, supermic
+if [[ $MATLABEXE = "mex" ]]; then
+   FINDMAXZCMD="${POSTPROCDIR}/MEX/run_mex.sh $MCRROOT ${POSTPROCDIR}/MEX/FindMaxZ_${HPCENVSHORT}.mex"
+else
+   # hatteras, stampede2, lonestar5
+   FINDMAXZCMD="(matlab -nodisplay -nosplash -nodesktop -r 'run FindMaxZ.m, exit')"
+fi
 #--------------------------------------------------------------------------
 #
 #
@@ -153,14 +128,14 @@ esac
 #                    F I G U R E   G E N  
 #--------------------------------------------------------------------------
 if [[ -f maxele.63.nc ]]; then
-    echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Building FigureGen job." >> $LOGFILE
+    scenarioMessage "$SCENARIO: $THIS: Building FigureGen job." $LOGFILE
     # Create storm track from fort.22 file
     awk 'BEGIN { FS="," } { printf "-%0.2f  %0.2f\n", $8/10.0, $7/10.0 }' fort.22 > fort.22.trk 2>> $LOGFILE
     # copy in color palette
-    cp ${POSTPROCDIR}/Default2.pal ${STORMDIR}/ 2>> $LOGFILE
-    cp ${POSTPROCDIR}/FG51_SELA_maxele.inp.template ${STORMDIR}/FG51_SELA_maxele.inp 2>> $LOGFILE
+    cp ${POSTPROCDIR}/Default2.pal ${SCENARIODIR}/ 2>> $LOGFILE
+    cp ${POSTPROCDIR}/FG51_SELA_maxele.inp.template ${SCENARIODIR}/FG51_SELA_maxele.inp 2>> $LOGFILE
     # fill in figuregen template file with values for this plot
-    fname="LA_SELA_${STORMNAME}_${ADVISORY}_${ENSTORM}_maxele_"
+    fname="LA_SELA_${STORMNAME}_${ADVISORY}_${SCENARIO}_maxele_"
     sed -i "s/%FileName%/${fname}/g" FG51_SELA_maxele.inp 2>> $LOGFILE
     sed -i "s/%Title%/Peak Water Levels/g" FG51_SELA_maxele.inp 
     sed -i "s/%TrackFile%/fort.22.trk/g" FG51_SELA_maxele.inp 2>> $LOGFILE
@@ -185,31 +160,65 @@ if [[ -f maxele.63.nc ]]; then
     # FigureGen contour plot of maxele.63.nc 
     #
     # write properties to describe the FigureGen job
-    echo "hpc.path.${batchJOBTYPE}.template.qstdir : $SCRIPTDIR/input/queuesys/$QUEUESYS" >> $STORMDIR/run.properties
-    echo "hpc.file.${batchJOBTYPE}.template.qstemplate : ${QUEUESYS,,}.template" >> $STORMDIR/run.properties
-    echo "hpc.job.${batchJOBTYPE}.ncpu : 1" >> $STORMDIR/run.properties
-    echo "hpc.job.${batchJOBTYPE}.ppn : $PPN" >> $STORMDIR/run.properties
-    echo "hpc.job.${batchJOBTYPE}.account : $ACCOUNT" >> $STORMDIR/run.properties
-    echo "hpc.job.${batchJOBTYPE}.limit.walltime : 01:00:00" >> $STORMDIR/run.properties
-    echo "hpc.job.${batchJOBTYPE}.jobmodules : $JOBMODULES" >> $STORMDIR/run.properties 
-    echo "hpc.job.${batchJOBTYPE}.jobpaths : $JOBPATHS" >> $STORMDIR/run.properties 
-    echo "hpc.job.${batchJOBTYPE}.joblibs : $JOBLIBS" >> $STORMDIR/run.properties 
-    echo "hpc.job.${batchJOBTYPE}.cmd : ${POSTPROCDIR}/FigureGen -I FG51_SELA_maxele.inp > ${batchJOBTYPE}.log 2>\&1" >> $STORMDIR/run.properties 
+    echo "hpc.job.${batchJOBTYPE}.file.qscripttemplate : $SCRIPTDIR/qscript.template" >> $SCENARIODIR/run.properties   
+    echo "hpc.job.${batchJOBTYPE}.parallelism : serial" >> $SCENARIODIR/run.properties   
+    echo "hpc.job.${batchJOBTYPE}.ncpu : 1" >> $SCENARIODIR/run.properties
+    echo "hpc.job.${batchJOBTYPE}.ppn : $PPN" >> $SCENARIODIR/run.properties
+    echo "hpc.job.${batchJOBTYPE}.account : $ACCOUNT" >> $SCENARIODIR/run.properties
+    echo "hpc.job.${batchJOBTYPE}.limit.walltime : 01:00:00" >> $SCENARIODIR/run.properties
+    echo "hpc.job.${batchJOBTYPE}.serialmodules : $SERIALMODULES" >> $SCENARIODIR/run.properties 
+    echo "hpc.job.${batchJOBTYPE}.path.jobenvdir : $JOBENVDIR" >> $SCENARIODIR/run.properties 
+    JOBENV=( gmt.sh gdal.sh imagemagick.sh )
+    JOBENVSTRING="("
+    for string in ${JOBENV[*]}; do
+       JOBENVSTRING="$JOBENVSTRING $string"
+    done
+    JOBENVSTRING="$JOBENVSTRING )" 
+    echo "hpc.job.${batchJOBTYPE}.jobenv : $JOBENVSTRING" >> $SCENARIODIR/run.properties 
+    echo "hpc.job.${batchJOBTYPE}.cmd : ${POSTPROCDIR}/FigureGen -I FG51_SELA_maxele.inp" >> $SCENARIODIR/run.properties 
     # now submit the job
-    echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Submitting FigureGen job." >> $LOGFILE
-    ${SCRIPTDIR}/submitJob.sh $batchJOBTYPE
-    fname="LA_SELA_${STORMNAME}_${ADVISORY}_${ENSTORM}_maxele_0001.jpg"
-    echo "post.file.${batchJOBTYPE}.maxele.fname : $fname" >> $STORMDIR/run.properties
+    if [[ ! -e ${POSTPROCDIR}/FigureGen ]]; then
+       error "Need to compile ${POSTPROCDIR}/FigureGen." $LOGFILE
+    fi
+    scenarioMessage "$SCENARIO: $THIS: Submitting FigureGen job." $LOGFILE
+    perl ${SCRIPTDIR}/qscript.pl --jobtype $batchJOBTYPE 2>&1 | tee -a $SCENARIOLOG >> $LOGFILE
+    #
+    fname="LA_SELA_${STORMNAME}_${ADVISORY}_${SCENARIO}_maxele_0001.jpg"
+    echo "post.file.${batchJOBTYPE}.maxele.fname : $fname" >> $SCENARIODIR/run.properties
 else
-    echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: The maxele.63.nc file was not found, so the FigureGen job will not be built." >> $LOGFILE
+    warn "$SCENARIO: $THIS: The maxele.63.nc file was not found, so the FigureGen job will not be built." $LOGFILE
+fi
+#
+# submit FigureGen job
+#$SUBMITSTRING ${STORMDIR}/${QSFILE} >> ${SYSLOG} 2>&1
+loadProperties $SCENARIODIR/run.properties # reload properties to get the name of the qscript
+submitString=${properties["hpc.submitstring"]}
+qscript=${properties["hpc.job.${batchJOBTYPE}.file.qscript"]}
+if [[ -e $qscript ]]; then
+   while [ true ];  do
+      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+      echo "time.hpc.job.${batchJOBTYPE}.submit : $DATETIME" >> ${SCENARIODIR}/run.properties
+      $submitString $SCENARIODIR/$qscript 2>&1 | tee -a $LOGFILE >> ${SCENARIOLOG}
+      if [[ $? = 0 ]]; then
+         break # job submission command returned a "success" status
+      else 
+         warn "$SCENARIO: $THIS: $submitString $SCENARIODIR/$qscript failed; will retry in 60 seconds." $LOGFILE
+         sleep 60
+      fi
+   done
+else 
+   warn "$SCENARIO: $THIS: The qscript file $qsript was not found in $SCENARIODIR." $LOGFILE
 fi
 #--------------------------------------------------------------------------
 #       GENERATE HYDROGRAPHS & BUILD PPT
 #--------------------------------------------------------------------------
 # copy in the spreadsheets that matlab needs
-cp ${POSTPROCDIR}/Gate_Closure_Trigger.xlsx . 2>> $LOGFILE
-cp ${POSTPROCDIR}/Datum_Conversion.xlsx . 2>> $LOGFILE
+cp ${POSTPROCDIR}/Gate_Closure_Trigger.xlsx . > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to copy ${POSTPROCDIR}/Gate_Closure_Trigger.xlsx to '$SCENARIODIR': `cat errmsg`." $LOGFILE
+cp ${POSTPROCDIR}/Datum_Conversion.xlsx . > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to copy ${POSTPROCDIR}/Datum_Conversion.xlsx to '$SCENARIODIR': `cat errmsg`." $LOGFILE
+cp ${POSTPROCDIR}/Static_Offset.xlsx . > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to copy ${POSTPROCDIR}/Static_Offset.xlsx to '$SCENARIODIR': `cat errmsg`." $LOGFILE
 # Run createPPT.sh
-echo "["`date +'%Y-%h-%d-T%H:%M:%S%z'`"]: $ENSTORM: $THIS: Running ${POSTPROCDIR}/createPPT.sh." >> $LOGFILE
-${POSTPROCDIR}/createPPT.sh 
+scenarioMessage "$SCENARIO: $THIS: Running ${POSTPROCDIR}/createPPT.sh." $LOGFILE
+${POSTPROCDIR}/createPPT.sh 2>&1 | tee -a $SCENARIOLOG >> $LOGFILE
 #--------------------------------------------------------------------------
+# in case we changed directories at the beginning and another script follows this
+cd $currentDir > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to change directory to '$currentDir': `cat errmsg`." $LOGFILE
