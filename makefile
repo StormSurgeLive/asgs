@@ -50,8 +50,13 @@ MODS :=
 # targets
 all : tide_fac.x awip_lambert_interp.x lambertInterpRamp.x wgrib2
 #
-clean :
-	rm -f *.o *.mod *.x tides/*.o tides/*.x tides/*.mod wgrib2 input/*.o input/*.x input/*.mod
+clean : cleano cleanx
+#
+cleanx:
+	rm -f *.x tides/*.x ./wgrib2 input/*.x
+#
+cleano :
+	rm -f *.o *.mod tides/*.o tides/*.mod wgrib2 input/*.o input/*.mod
 #
 tide_fac.x : tides/tide_fac.f
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o tides/tide_fac.x tides/tide_fac.f $(OBJ) $(LDFLAGS)
@@ -62,10 +67,11 @@ awip_lambert_interp.x : input/awip_lambert_interp.F
 lambertInterpRamp.x : input/lambertInterpRamp.f
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o lambertInterpRamp.x input/lambertInterpRamp.f $(LDFLAGS)
 #
-wgrib2 : wgrib2.tgz.v1.9.7a
+wgrib2 : wgrib2.tgz.v1.9.7a cleano
 	tar xvzf wgrib2.tgz.v1.9.7a
 	cp wgrib2.makefile ./grib2/makefile 
 	$(MAKE) -C grib2
 	cp grib2/wgrib2/wgrib2 .
+#
 wgrib2.tgz.v1.9.7a :
 	curl -sO https://www.ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/wgrib2.tgz.v1.9.7a 

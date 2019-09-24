@@ -1,0 +1,42 @@
+Before you run init-hdf5-netcdf4.sh, read through the following to
+undertand what it's going to do.
+
+1. downloads source files from the following URLs:
+
+  https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/hdf5-1.8.12.tar.gz
+  https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/netcdf-4.2.1.1.tar.gz
+  https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/netcdf-fortran-4.2.tar.gz
+
+2. unpacks, builds, and installs libraries in the following order:
+
+  hdf5-1.8.12.tar.gz
+  netcdf-4.2.1.1.tar.gz
+  netcdf-fortran-4.2.tar.gz
+
+Notes:
+
+a) setting compiler - this is currently set at the top of the script, 
+
+  export CC=icc
+  export FC=ifort
+  export CXX=icpc
+
+b) setting linking related envars is also done at the top of the script,
+
+  export LD_LIBRARY_PATH=$OPT/lib:$LD_LIBRARY_PATH
+  export LD_INCLUDE_PATH=$OPT/lib:$LD_INCLUDE_PATH
+  export CPPFLAGS=-I$OPT/include
+  export LDFLAGS=-L$OPT/lib
+
+c) the installation director is set with the following line,
+  OPT=$HOME/opt/usr
+
+d) there is an attempt to not try to install any of the libraries by checking
+for,
+
+  HDF5           -> $OPT/bin/h5diff
+  netcdf         -> $OPT/bin/nc-config
+  netcdf-fortran -> $OPT/bin/nf-config
+
+The existence of any of these binarys means that there will not be an attempt
+to rebuild it. 

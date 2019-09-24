@@ -60,6 +60,9 @@ ifeq ($(compiler),gfortran)
    ifeq ($(MACHINENAME),jason-desktop)
       FFLAGS := $(FFLAGS) -DOLDGFORTRAN 
    endif
+   ifeq ($(MACHINENAME),vagrant)
+      FFLAGS := $(FFLAGS) -DOLDGFORTRAN
+   endif
    ifeq ($(DEBUG),trace)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace 
    endif
@@ -102,8 +105,13 @@ ifeq ($(NETCDF),enable)
    NETCDFPATH  := /usr
    #
    # jgf20150616: Added netcdf paths for stampede at TACC.
-   ifeq ($(MACHINENAME),stampede) 
+   ifeq ($(MACHINENAME),stampede2) 
       NETCDFPATH := /opt/apps/intel17/netcdf/4.3.3.1/x86_64
+      ifeq ($(USER),jgflemin)
+         NETCDFPATH  := $(WORK)/local
+         LIBS        := -L$(WORK)/local/lib
+         LDFLAGS     :=  -lnetcdf -lnetcdff
+      endif
    endif
    # jgf20150716: Added compiler flags for hatteras at RENCI.
    ifeq ($(MACHINENAME),hatteras)
@@ -122,6 +130,11 @@ ifeq ($(NETCDF),enable)
    # jgf20150720: Added compiler flags for queenbee at LONI.
    ifeq ($(MACHINENAME),queenbee)
       NETCDFPATH  := /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0
+   endif
+   # jgf20150720: Added compiler flags for queenbee at LONI.
+   ifeq ($(MACHINENAME),supermic)
+      NETCDFPATH  := /usr/local/packages/netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0
+      LDFLAGS     :=  -lnetcdf
    endif
    # jgf20150817: Added compiler flags for garnet at ERDC.
    ifeq ($(MACHINENAME),garnet)

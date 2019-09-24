@@ -48,6 +48,14 @@ GetOptions(
 # verify recipient email has been set via --to
 die qq{a recipient is required to be defined via --to\n} unless defined $to;
 
+# make sure that $to is a comma delimited list of email addresses, accept a
+# space delimted list, but reform it to use commas
+
+$to =~ s/,/ /g;          # turn all commas to spaces
+$to =~ s/ +/ /g;         # reduce all contiguous spaces of 2 or more, down to 1 space
+my @to = split / /, $to; # split on single space
+$to = join q{,}, @to;    # recreate list of email addresses and delimit them by commas
+
 exit run();
 
 sub run {
@@ -119,6 +127,10 @@ __END__
 The C<--to> options accepts a comma delimited list of email addresses:
 
   some-utility | asgs-sendmail.pl [-c override/default/conf] --subject "subject line" --to "recipient1@email.tld, recipient2@email.tld, ..., recipientN@email.tld"
+
+A list of email addresses that are separated by spaces (like the actual sendmail utility) is also supported
+
+  some-utility | asgs-sendmail.pl [-c override/default/conf] --subject "subject line" --to "recipient1@email.tld recipient2@email.tld ... recipientN@email.tld"
 
 =head1 DESCRIPTION
 
