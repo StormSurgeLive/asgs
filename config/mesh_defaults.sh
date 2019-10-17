@@ -280,9 +280,9 @@ case $GRIDNAME in
       # https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_FEMA_R3_20110303_MSL.dat.xz
       UNITOFFSETFILE=unit_offset_FEMA_R3_20110303_MSL.dat
       ;;
-   "NGOMv19b")
+   "NGOM_RT_v19b_chk")
       INPUTDIR=${SCRIPTDIR}/input/meshes/NGOM_RT_v19b # grid and other input files
-      GRIDNAME=NGOM_RT_v19b_chk
+      GRIDFILE=NGOM_RT_v19b_chk.grd
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=NGOM_RT_v19b.15.template_18kcms   # fort.15 template
       # wind at 10m fort.15 template
