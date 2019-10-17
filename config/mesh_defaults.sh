@@ -280,6 +280,32 @@ case $GRIDNAME in
       # https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_FEMA_R3_20110303_MSL.dat.xz
       UNITOFFSETFILE=unit_offset_FEMA_R3_20110303_MSL.dat
       ;;
+   "NGOMv19b")
+      INPUTDIR=${SCRIPTDIR}/input/meshes/NGOM_RT_v19b # grid and other input files
+      GRIDNAME=NGOM_RT_v19b_chk
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=NGOM_RT_v19b.15.template_18kcms   # fort.15 template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=NGOM_RT_v19b.nowindreduction.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=NGOM_RT_v19b_stations_08282018.txt
+      VELSTATIONS=NGOM_RT_v19b_stations_08282018.txt
+      METSTATIONS=NGOM_RT_v19b_stations_08282018.txt
+      NAFILE=NGOM_RT_v19b_chk.13
+      NAPROPERTIES=${NAFILE}.properties
+      SWANTEMPLATE=fort.26.template   # only used if WAVES=on
+      RIVERINIT=null                           # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+      SWANDT=1200                 # swan time step size (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      ;;
    *)
       warn "cycle $CYCLE: $SCENARIO: $THIS: Mesh GRIDNAME $GRIDNAME was not recognized."
       ;;
