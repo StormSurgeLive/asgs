@@ -122,6 +122,12 @@ init_queenbee()
         source $JOBENVDIR/$script
      done
      TDS=(lsu_ccr_tds)
+     RMQMessaging_LocationName="QB2"
+     RMQMessaging_ClusterName="Queenbee2"
+     RMQMessaging_Enable="on"      # "on"|"off"
+     RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+     RMQMessaging_NcoHome="$HOME/local"
+     RMQMessaging_Python=/project/mbilskie/mbilskie_conda-env/asgs/bin/python
   fi
   THIS=platforms.sh
   SSHKEY=~/.ssh/id_rsa.pub
