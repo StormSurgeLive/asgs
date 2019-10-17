@@ -97,7 +97,7 @@ init_queenbee()
   JOBENV=( )
   TDS=(lsu_tds renci_tds)
   # needed for asgs perl
-  source ~/perl5/perlbrew/etc/bashrc
+  #source ~/perl5/perlbrew/etc/bashrc
   module purge
   $PLATFORMMODULES
   $SERIALMODULES
@@ -116,6 +116,7 @@ init_queenbee()
      ACCOUNT=loni_lsu_ccr_19
      ADCIRCDIR=/home/mbilskie/src/PADCIRC/adcirc-cg-53.04/work # ADCIRC executables
      SWANDIR=/home/mbilskie/src/PADCIRC/adcirc-cg-53.04/swan # ADCIRC executables
+     # needed for asgs perl
      source /project/mbilskie/perlbrew/etc/bashrc
      JOBENV=( perlbrew.sh )
      for script in $JOBENV; do
@@ -128,6 +129,7 @@ init_queenbee()
      RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
      RMQMessaging_NcoHome="$HOME/local"
      RMQMessaging_Python=/project/mbilskie/mbilskie_conda-env/asgs/bin/python
+     SCRATCHDIR=/work/$operator/asgs/2019/runs/
   fi
   THIS=platforms.sh
   SSHKEY=~/.ssh/id_rsa.pub
