@@ -66,9 +66,9 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com" # space delimi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto       # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=hotstart       # "hotstart" or "coldstart" ; only used for initial run
-LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/2019091106/southfl_v11-1_final/supermic.hpc.lsu.edu/southfl_nam_jgf/namforecast
+COLDSTARTDATE=2019082000   # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=coldstart        # "hotstart" | "coldstart" 
+LASTSUBDIR=null
 
 # Scenario package
 
