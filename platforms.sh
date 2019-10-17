@@ -121,6 +121,7 @@ init_queenbee()
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
+     TDS=(lsu_ccr_tds)
   fi
   THIS=platforms.sh
   SSHKEY=~/.ssh/id_rsa.pub
