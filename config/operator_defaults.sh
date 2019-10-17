@@ -120,6 +120,24 @@ case $operator in
       # akheir on stampede2
       # ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8SJ+0TevlDcedu7f3CwBYVAVhS/U/ilM5f7KnL6EzrmQRAv9RvSMMmpIb/zwd2h8ajYR8J7OxoHxy/c3PwG/xkNY/4Uh4tWObPgWCjA8OQrg8YeEayZjKMdzBDxpJ0IRbRLC2ZPGZoDiYTBKNc7+ZbIVvj8VUkYaBZVSjJIhH7Aq36WscYQjfSrpWOaaIH/c+NpPw8ijJje6Hvtn5AiKVzHKDfwTAVG8kWTqf5+LcNofCMiqc348m2UT0YpZKbWddiUAG1u7NQswkW106Urno/xO10qetPsgkBHHuGIFiDt20DT0dgudMQP3pkh+M/qr3wOPhk2aX5/nGHh1XN675 akheir@login1.stampede2.tacc.utexas.edu
       ;;
+   "mbilskie")
+       op="mvb"
+      # RMQ
+      RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+      RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+      # email notifications
+      NOTIFY_SCRIPT=corps_nam_notify.sh
+      ACTIVATE_LIST=null
+      NEW_ADVISORY_LIST=null
+      POST_INIT_LIST=null
+      POST_LIST=null
+      # opendap email notification
+      OPENDAPNOTIFY="asgs.cera.lsu@gmail.com MBilskie.ASGS@gmail.com" # space delimited if a list
+      # the following are related to job failure
+      JOB_FAILED_LIST="mbilsk3@lsu.edu"
+      NOTIFYUSER=MBilskie.ASGS@gmail.com
+      ASGSADMIN=MBilskie.ASGS@gmail.com
+      ;;
    *)
       warn "cycle $CYCLE: $SCENARIO: $THIS: Operator $operator was not recognized."
       ;;
