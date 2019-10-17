@@ -95,6 +95,12 @@ init_queenbee()
   PARALLELMODULES='module load mvapich2'
   JOBENVDIR=$SCRIPTDIR/config/machines/queenbee
   JOBENV=( )
+  TDS=(lsu_tds renci_tds)
+  # needed for asgs perl
+  source ~/perl5/perlbrew/etc/bashrc
+  module purge
+  $PLATFORMMODULES
+  $SERIALMODULES
   if [[ $operator = "jgflemin" || $USER = "jgflemin" ]]; then
      ACCOUNT=loni_cera_2019a
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
@@ -106,18 +112,22 @@ init_queenbee()
      done
      MATLABEXE=mex  # "mex" means use the precompiled mex files
   fi
+  if [[ $operator == "mbilskie" || $USER = "mbilskie" ]]; then
+     ACCOUNT=loni_lsu_ccr_19
+     ADCIRCDIR=/home/mbilskie/src/PADCIRC/adcirc-cg-53.04/work # ADCIRC executables
+     SWANDIR=/home/mbilskie/src/PADCIRC/adcirc-cg-53.04/swan # ADCIRC executables
+     source /project/mbilskie/perlbrew/etc/bashrc
+     JOBENV=( perlbrew.sh )
+     for script in $JOBENV; do
+        source $JOBENVDIR/$script
+     done
+  fi
   THIS=platforms.sh
   SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCHDIR
   ARCHIVEDIR=$SCRATCHDIR
-  TDS=(lsu_tds renci_tds)
-  module purge
-  $PLATFORMMODULES
-  $SERIALMODULES
-  # needed for asgs perl
-  source ~/perl5/perlbrew/etc/bashrc
   # @jasonfleming: for ~/.bashrc: Prevent git push from opening up a graphical
   # dialog box to ask for a password; it will interactively ask for
   # a password instead
