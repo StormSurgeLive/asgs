@@ -33,8 +33,8 @@ disp(msg);
 % {'85625','76065','76030','76265','82762','82770','82742',...
 % '85760','76010','82715','01440','01440','85670','85575','85700','82875'};
 
-% productionMode = true; % for ASGS
-productionMode = false; % Manual mode
+productionMode = true; % for ASGS
+% productionMode = false; % Manual mode
 
 if (productionMode)
 %     ASGS Production mode.
