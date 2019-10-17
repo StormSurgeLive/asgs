@@ -28,9 +28,9 @@
 # Fundamental
 
 INSTANCENAME=daily_NGOM_RT_v19b   # "name" of this ASGS process
-COLDSTARTDATE=2019052900 # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=hotstart     # "hotstart" or "coldstart"
-LASTSUBDIR=/home/mbilskie/scratch/asgs/2019/daily_NGOM_RTv19b/asgs18206/2019061918 # path to previous execution (if HOTORCOLD=hotstart)
+COLDSTARTDATE=2019100100 # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=coldstart     # "hotstart" or "coldstart"
+#LASTSUBDIR=/home/mbilskie/scratch/asgs/2019/daily_NGOM_RTv19b/asgs18206/2019061918 # path to previous execution (if HOTORCOLD=hotstart)
 HINDCASTLENGTH=14.0      # length of initial hindcast, from cold (days)
 REINITIALIZESWAN=no      # used to bounce the wave solution
 
@@ -38,7 +38,7 @@ REINITIALIZESWAN=no      # used to bounce the wave solution
 
 ADCIRCDIR=/home/mbilskie/src/PADCIRC/adcirc-cg-53.04/work # ADCIRC executables
 SWANDIR=/home/mbilskie/src/PADCIRC/adcirc-cg-53.04/swan # ADCIRC executables
-SCRIPTDIR=/work/mbilskie/asgs/2019/asgs   # ASGS executables
+SCRIPTDIR=/work/mbilskie/asgs/repo/asgs   # ASGS executables
 INPUTDIR=${SCRIPTDIR}/input/meshes/NGOM_RT_v19b # grid and other input files
 OUTPUTDIR=${SCRIPTDIR}/output # post processing scripts
 PERL5LIB=${SCRIPTDIR}/PERL    # DateCale.pm perl module
@@ -67,7 +67,7 @@ QUEUENAME=workq
 #QUEUENAME=checkpt
 SERQUEUE=single
 #ACCOUNT=loni_cera_2018a
-ACCOUNT=loni_lsu_ccr_18
+ACCOUNT=loni_lsu_ccr_19
 SCRATCHDIR=/work/mbilskie/asgs/2019/daily_NGOM_RTv19b #overides setting in platforms.sh -where state file will be written
 
 # External data sources : Tropical cyclones
@@ -158,8 +158,8 @@ ASGSADMIN=MBilskie.ASGS@gmail.com
 # RMQ Messaging
 RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
 RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-RMQMessaging_Script="${SCRIPTDIR}/asgs-msgr.py"
-RMQMessaging_StartupScript="${SCRIPTDIR}/asgs-msgr_startup.py"
+RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
+RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
 RMQMessaging_NcoHome="/scratch/mbilskie/asgs/2019"
 RMQMessaging_Python="/project/mbilskie/mbilskie_conda-env/asgs/bin/python"
 RMQMessaging_LocationName="QB2"
