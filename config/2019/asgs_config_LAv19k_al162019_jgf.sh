@@ -56,7 +56,7 @@ WAVES=on              # wave forcing
 STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
-CYCLETIMELIMIT="99:00:00"
+CYCLETIMELIMIT="05:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
@@ -72,9 +72,9 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,jason.fleming@s
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2019091500
-HOTORCOLD=coldstart        # "hotstart" or "coldstart"
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart        # "hotstart" or "coldstart"
+LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/2019101712/LA_v19k-WithUpperAtch_chk/queenbee.loni.org/LAv19k_nam_jgf/namforecast
 
 # Scenario package 
 
