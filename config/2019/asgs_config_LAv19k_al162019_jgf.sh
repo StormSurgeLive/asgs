@@ -56,7 +56,7 @@ WAVES=on              # wave forcing
 STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
-CYCLETIMELIMIT="99:00:00"
+CYCLETIMELIMIT="05:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
