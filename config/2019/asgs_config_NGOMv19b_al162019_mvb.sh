@@ -49,7 +49,7 @@ TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=14.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=off     # NAM download/forcing
 FORECASTCYCLE="06,18"
-TROPICALCYCLONE=off   # tropical cyclone forcing
+TROPICALCYCLONE=on    # tropical cyclone forcing
 STORM=16             # storm number, e.g. 05=ernesto in 2006
 YEAR=2019            # year of the storm
 WAVES=off             # wave forcing
@@ -74,8 +74,7 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,MBilskie.ASGS@gmail.com"
 
 COLDSTARTDATE=2019100100
 HOTORCOLD=hotstart         # "hotstart" or "coldstart"
-LASTSUBDIR=/home/mbilskie/scratch/asgs/2019/runs/asgs44605/2019101712
-
+LASTSUBDIR=/home/mbilskie/scratch/asgs/2019/runs/asgs40714/2019101800
 # Scenario package 
 
 #PERCENT=default
