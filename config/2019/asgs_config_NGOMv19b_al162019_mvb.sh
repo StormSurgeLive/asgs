@@ -52,8 +52,8 @@ FORECASTCYCLE="06,18"
 TROPICALCYCLONE=on    # tropical cyclone forcing
 STORM=16             # storm number, e.g. 05=ernesto in 2006
 YEAR=2019            # year of the storm
-WAVES=off             # wave forcing
-STATICOFFSET=null     # used only for a cold start
+WAVES=on              # wave forcing
+STATICOFFSET=0.3084   # used only for a cold start
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
