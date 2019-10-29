@@ -2281,6 +2281,7 @@ if [[ $START = coldstart ]]; then
    fi
    if [[ $DEFAULTSFILE != null ]]; then
       CONTROLOPTIONS="$CONTROLOPTIONS --defaultsfile $DEFAULTSFILE"
+      #CONTROLOPTIONS="$CONTROLOPTIONS --defaultfile $DEFAULTFILE"
    fi
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Constructing control file."
    logMessage "$ENSTORM: $THIS: Constructing control file with the following options: $CONTROLOPTIONS."
@@ -2695,6 +2696,7 @@ while [ true ]; do
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
    if [[ $DEFAULTSFILE != null ]]; then
       CONTROLOPTIONS="$CONTROLOPTIONS --defaultsfile $DEFAULTSFILE"
+      #CONTROLOPTIONS="$CONTROLOPTIONS --defaultfile $DEFAULTFILE"
    fi   
    # generate fort.15 file
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Generating ADCIRC Control File (fort.15) for $ENSTORM."
