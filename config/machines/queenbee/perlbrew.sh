@@ -6,6 +6,9 @@ case $USER in
    "jgflemin")
       source ~/perl5/perlbrew/etc/bashrc
       ;;
+   "mbilskie")
+      source /project/mbilskie/perlbrew/etc/bashrc
+      ;;
    # add another asgs Operator:
    # "myuser")
    #     MYPATH etc
