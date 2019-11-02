@@ -184,7 +184,7 @@ attachFile="$(cat pptFile.temp)"
 # primary and multiple backup ASGSes ... however all Operators will get
 # slide decks from all ASGSes on every ensemble member of every advisory ...
 #emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu'
-emailList='jason.fleming@scimaritan.org'
+emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu rluettich1@gmail.com'
 #
 #case $HPCENVSHORT in
 #   queenbee)

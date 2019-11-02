@@ -215,6 +215,7 @@ fi
 # copy in the spreadsheets that matlab needs
 cp ${POSTPROCDIR}/Gate_Closure_Trigger.xlsx . > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to copy ${POSTPROCDIR}/Gate_Closure_Trigger.xlsx to '$SCENARIODIR': `cat errmsg`." $LOGFILE
 cp ${POSTPROCDIR}/Datum_Conversion.xlsx . > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to copy ${POSTPROCDIR}/Datum_Conversion.xlsx to '$SCENARIODIR': `cat errmsg`." $LOGFILE
+cp ${POSTPROCDIR}/Static_Offset.xlsx . > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to copy ${POSTPROCDIR}/Static_Offset.xlsx to '$SCENARIODIR': `cat errmsg`." $LOGFILE
 # Run createPPT.sh
 scenarioMessage "$SCENARIO: $THIS: Running ${POSTPROCDIR}/createPPT.sh." $LOGFILE
 ${POSTPROCDIR}/createPPT.sh 2>&1 | tee -a $SCENARIOLOG >> $LOGFILE
