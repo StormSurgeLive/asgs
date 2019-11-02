@@ -1,0 +1,85 @@
+This document describes the development workflow and expectations from
+anyone contributing to the code base. The basics are covered here, but
+will be expanded as time and need permit.
+
+The general workflow is:
+
+A. create an "issue" (not required until the pull request (PR) is created).
+B. create a branch on your "local" checkout of YOUR remote (See Appendix A below).
+
+    git checkout master
+    git pull upstream master # make sure branch point is up to date
+    git checkout -b my-branch-name
+
+C. make changes...now ready for a PR,
+
+Note: your branch may contain any number of commits, but it is preferred to have
+one squashed commit and a meaningful commit message that references the issue
+associated with the change. See Appendix B for that.
+
+D. make sure your branch is pushed to your remote,
+  
+     git push origin my-branch-name
+
+E. Make and commit changes to the code
+
+F. Create a pull request
+
+If you are ready to create a PR, the output of the "git push" above will
+provide a URL. Visit this URL to complete the PR.
+
+There, you will specify:
+
+* target branch (typically master)
+* source branch (typically the branch you just pushed)
+* a reviewer - add someone from the team to review your work
+
+G. Now you wait for the reviewer to look at it, upon a passing review, they
+will follow the merge process that is in place. If there are changes that
+must be made before merge, every situation can be unique, then work with
+the reviewer or ask questions about how to use git. In general, "fixes"
+needing to be made before the actual merge should be using the "--fixup"
+flag when making commiting the fix to any that needs to be done. 
+
+Appendix A - Setting up your own remote repository
+
+1. create your own "remote" fork
+
+To begin, anyone developing  should clone the repository in their own
+github space (they have good documentation, please refer to it).
+
+2. git clone your own remote, not the main one; this will set up your
+remote locally as "origin"
+
+  git clone git@github.com:<your-gh-user>/asgs.git
+  cd asgs
+
+3. add the main repo as the "upstream" remote
+
+  git remote add upstream git@github.com:jasonfleming/asgs.git
+
+Now verify the remotes are set up properly:
+  
+  git remote -v
+  origin  git@github.com:<your-gh-user>/asgs.git (fetch)
+  origin  git@github.com:<your-gh-user>/asgs.git (push)
+  upstream        git@github.com:jasonfleming/asgs.git (fetch)
+  upstream        git@github.com:jasonfleming/asgs.git (push)
+
+From here on out, "origin" will refer to YOUR remote repository
+and "upstream" will refer to the canonical one, "jasonfleming/asgs.git".
+
+Appendix B - Commit messages and squashing commits for pull requests
+
+1. make your commit messages informative and properly formatted
+
+For information on how to write good commit messages, see
+
+  https://chris.beams.io/posts/git-commit/
+
+Do NOT look at the repository log, chances are there are more non-ideal
+commit messages in there than good ones.
+
+2. Add the issue number and any related issue numbers to the commit
+message. If github sees a "#" in front of a number, it will attempt to link
+it to an issue or pull request from the same upstream repo (or its own).-
