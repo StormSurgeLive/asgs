@@ -396,7 +396,75 @@ init_hatteras()
   $PARALLELMODULES
   $SERIALMODULES
   MAKEJOBS=8
-<<<<<<< HEAD
+}
+#
+init_frontera()
+{ #<- can replace the following with a custom script
+  THIS="platforms.sh>env_dispatch()>init_frontera()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
+  HPCENV=frontera.tacc.utexas.edu
+  QUEUESYS=SLURM
+  QUEUENAME=normal
+  SERQUEUE=normal
+  PPN=56
+  CONSTRAINT=null
+  RESERVATION=null
+  QOS=null
+  QCHECKCMD=sacct
+  JOBLAUNCHER='ibrun '
+  ACCOUNT=null
+  SUBMITSTRING=sbatch
+  SCRATCHDIR=$SCRATCH
+  SSHKEY=~/.ssh/id_rsa_frontera
+  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTGEN=qscript.pl
+  GROUP="G-803086"
+  QSUMMARYCMD=null
+  QUOTACHECKCMD=null
+  ALLOCCHECKCMD=null
+  #
+  RMQMessaging_LocationName="TACC"
+  RMQMessaging_ClusterName="Frontera"
+  RMQMessaging_Enable="off"      # "on"|"off"
+  RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
+  RMQMessaging_NcoHome="$WORK/local"
+  RMQMessaging_Python=/opt/apps/intel19/python2/2.7.16/bin/python
+  #
+  PLATFORMMODULES='module load intel/18.0.2 python2/2.7.15 xalt/2.6.5 TACC'
+  SERIALMODULES='module load' # no extra modules for serial jobs
+  PARALLELMODULES='module load libfabric/1.7.0 impi/18.0.2'
+  # matlab
+  MATLABEXE=script # "script" means just execute matlab (don't use mex files)
+  # specify location of platform- and Operator-specific scripts to 
+  # set up environment for different types of jobs
+  JOBENVDIR=$SCRIPTDIR/config/machines/frontera
+  JOBENV=( )
+  if [[ $operator = jgflemin ]]; then
+     ADCIRCDIR=${WORK}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
+     SWANDIR=${WORK}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
+     ACCOUNT=DesignSafe-CERA
+     # don't use built in netcdf module
+     JOBENV=( netcdf.sh gmt.sh gdal.sh )
+     for script in $JOBENV; do 
+        source $JOBENVDIR/$script
+     done
+  fi
+  THIS="platforms.sh>env_dispatch()>init_frontera()"
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
+  ARCHIVEDIR=2019
+  TDS=(tacc_tds lsu_tds renci_tds)
+  $PLATFORMMODULES
+  $SERIALMODULES
+  #
+  # @jasonfleming 201900406 : don't upgrade pip! 
+  # for rabbitmq and the asgs status monitor https://asgs-monitor.renci.org:
+  #   pip install --user pika
+  #   pip install --user netCDF4
+  # for the automated slide deck generator
+  #   (installing pptx did not work -- it was not found) 
+  #   pip install --user python-pptx
+  MAKEJOBS=8
 }
 #
 init_frontera()
