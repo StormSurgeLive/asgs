@@ -60,6 +60,7 @@ init_supermike()
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
   fi
+  MAKEJOBS=8
 }
 #
 init_queenbee()
@@ -141,6 +142,7 @@ init_queenbee()
   # dialog box to ask for a password; it will interactively ask for
   # a password instead
   unset SSH_ASKPASS
+  MAKEJOBS=8
 }
 #
 init_rostam()
@@ -181,6 +183,7 @@ init_rostam()
   #module load mpi/mpich-3.0-x86_64
   module purge 
   module load impi/2017.3.196 
+  MAKEJOBS=8
 }
 init_supermic()
 { #<- can replace the following with a custom script
@@ -244,6 +247,7 @@ init_supermic()
   module purge
   $PLATFORMMODULES
   $SERIALMODULES
+  MAKEJOBS=8
 }
 init_pod()
 { #<- can replace the following with a custom script
@@ -299,6 +303,7 @@ init_pod()
   module purge
   $PLATFORMMODULES
   $SERIALMODULES
+  MAKEJOBS=8
 }
 init_hatteras()
 { #<- can replace the following with a custom script
@@ -390,6 +395,76 @@ init_hatteras()
   $PLATFORMMODULES
   $PARALLELMODULES
   $SERIALMODULES
+  MAKEJOBS=8
+}
+#
+init_frontera()
+{ #<- can replace the following with a custom script
+  THIS="platforms.sh>env_dispatch()>init_frontera()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
+  HPCENV=frontera.tacc.utexas.edu
+  QUEUESYS=SLURM
+  QUEUENAME=normal
+  SERQUEUE=normal
+  PPN=56
+  CONSTRAINT=null
+  RESERVATION=null
+  QOS=null
+  QCHECKCMD=sacct
+  JOBLAUNCHER='ibrun '
+  ACCOUNT=null
+  SUBMITSTRING=sbatch
+  SCRATCHDIR=$SCRATCH
+  SSHKEY=~/.ssh/id_rsa_frontera
+  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTGEN=qscript.pl
+  GROUP="G-803086"
+  QSUMMARYCMD=null
+  QUOTACHECKCMD=null
+  ALLOCCHECKCMD=null
+  #
+  RMQMessaging_LocationName="TACC"
+  RMQMessaging_ClusterName="Frontera"
+  RMQMessaging_Enable="off"      # "on"|"off"
+  RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
+  RMQMessaging_NcoHome="$WORK/local"
+  RMQMessaging_Python=/opt/apps/intel19/python2/2.7.16/bin/python
+  #
+  PLATFORMMODULES='module load intel/18.0.2 python2/2.7.15 xalt/2.6.5 TACC'
+  SERIALMODULES='module load' # no extra modules for serial jobs
+  PARALLELMODULES='module load libfabric/1.7.0 impi/18.0.2'
+  # matlab
+  MATLABEXE=script # "script" means just execute matlab (don't use mex files)
+  # specify location of platform- and Operator-specific scripts to 
+  # set up environment for different types of jobs
+  JOBENVDIR=$SCRIPTDIR/config/machines/frontera
+  JOBENV=( )
+  if [[ $operator = jgflemin ]]; then
+     ADCIRCDIR=${WORK}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
+     SWANDIR=${WORK}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
+     ACCOUNT=DesignSafe-CERA
+     # don't use built in netcdf module
+     JOBENV=( netcdf.sh gmt.sh gdal.sh )
+     for script in $JOBENV; do 
+        source $JOBENVDIR/$script
+     done
+  fi
+  THIS="platforms.sh>env_dispatch()>init_frontera()"
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
+  ARCHIVEDIR=2019
+  TDS=(tacc_tds lsu_tds renci_tds)
+  $PLATFORMMODULES
+  $SERIALMODULES
+  #
+  # @jasonfleming 201900406 : don't upgrade pip! 
+  # for rabbitmq and the asgs status monitor https://asgs-monitor.renci.org:
+  #   pip install --user pika
+  #   pip install --user netCDF4
+  # for the automated slide deck generator
+  #   (installing pptx did not work -- it was not found) 
+  #   pip install --user python-pptx
+  MAKEJOBS=8
 }
 #
 init_stampede2()
@@ -458,6 +533,7 @@ init_stampede2()
   # for the automated slide deck generator
   #   (installing pptx did not work -- it was not found) 
   #   pip install --user python-pptx
+  MAKEJOBS=8
 }
 #
 init_lonestar()
@@ -531,7 +607,14 @@ init_lonestar()
   # btw git on lonestar5 is messed up when it outputs things like diffs,
   # found the solution:
   # git config --global core.pager "less -r"
+  MAKEJOBS=8
 }
+
+# placeholder for vagrant bootstrap
+init_vagrant() {
+  MAKEJOBS=2
+}
+
 init_desktop()
 {
   THIS="platforms.sh>env_dispatch()>init_desktop()"
@@ -558,9 +641,10 @@ init_desktop()
   ARCHIVEBASE=$SCRATCHDIR
   ARCHIVEDIR=$SCRATCHDIR
   TDS=(renci_tds)
+  MAKEJOBS=1
 }
 
-init_desktop-serial()
+init_desktop_serial() # changed from init_desktop-serial due to bash complaints 
 {
   THIS="platforms.sh>env_dispatch()>init_desktop-serial()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
@@ -587,6 +671,7 @@ init_desktop-serial()
   ARCHIVEBASE=$SCRATCHDIR
   ARCHIVEDIR=$SCRATCHDIR
   TDS=(renci_tds)
+  MAKEJOBS=1
 }
 
 init_Poseidon()
@@ -602,6 +687,7 @@ init_Poseidon()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCHDIR
   ARCHIVEDIR=$SCRATCHDIR
+  MAKEJOBS=1
 }
 init_penguin()
 { #<- can replace the following with a custom script
@@ -616,11 +702,13 @@ init_penguin()
   QSCRIPT=penguin.template.pbs
   QSCRIPTGEN=penguin.pbs.pl
   PPN=40
+  MAKEJOBS=8
 }
 init_test()
 { #<- can replace the following with a custom script
   QUEUESYS=Test
   NCPU=-1
+  MAKEJOBS=1
 }
 #
 # Writes properties related to the combination of the HPC platform, the Operator, 
@@ -786,6 +874,9 @@ env_dispatch() {
   "stampede2") allMessage "$THIS: Stampede2 (TACC) configuration found."
           init_stampede2
           ;;
+  "frontera") allMessage "$THIS: Frontera (TACC) configuration found."
+          init_frontera
+          ;;
   "desktop") allMessage "$THIS: desktop configuration found."
           init_desktop
            ;;
@@ -801,9 +892,12 @@ env_dispatch() {
   "rostam") allMessage "$THIS: rostam configuration found."
           init_rostam
            ;;
+  "vagrant") allMessage "$THIS: vagrant configuration found."
+          init_vagrant
+           ;; 
   "test") allMessage "$THIS: test environment (default) configuration found."
           init_test
-          ;;
+           ;;
   *) fatal "$THIS: '$HPCENVSHORT' is not a supported environment; currently supported options: stampede2, lonestar, supermike, queenbee, supermic, hatteras, desktop, desktop-serial, su_tds, lsu_ccr_tds, renci_tds, tacc_tds"
      ;;
   esac
