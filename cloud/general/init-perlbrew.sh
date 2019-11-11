@@ -43,12 +43,6 @@ source ~/perl5/perlbrew/etc/bashrc
 
 if [ ! -e "$HOME/perl5/perlbrew/perls/$PERL_VERSION/bin/perl" ]; then
 
-  # patching patchperl so perlbrew works on strict lustre file systems like
-  # what is seen on stampede2
-  PWD=$(pwd)
-  cp ./PERL/patchperl.patch ~/perl5 && cd ~/perl5 && patch -p 1 < ./patchperl.patch 
-  cd $PWD
-
   # --notest is just to increase the speed of the installation
   perlbrew --notest install $PERL_VERSION
 
