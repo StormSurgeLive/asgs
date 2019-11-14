@@ -29,7 +29,7 @@
 
 INSTANCENAME=ncfs-dev-ncv99-nam-master      # "name" of this ASGS process
 SCRATCHDIR=/scratch/ncfs-dev/${INSTANCENAME}
-RESERVATION=ncfs
+#RESERVATION=ncfs
 
 COLDSTARTDATE=2019090100  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
@@ -39,6 +39,7 @@ LASTSUBDIR=null
 
 GRIDNAME=nc_inundation_v9.99_w_rivers
 source $SCRIPTDIR/config/mesh_defaults.sh
+STATICOFFSET=0.35
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
@@ -79,7 +80,7 @@ NOTIFY_SCRIPT=ncfs_nam_notify.sh
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=0 
+SCENARIOPACKAGESIZE=2 
 case $si in
    -2) 
        ENSTORM=hindcast
