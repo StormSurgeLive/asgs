@@ -198,6 +198,34 @@ case $GRIDNAME in
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_hsofs.dat.xz
       UNITOFFSETFILE=unit_offset_hsofs.dat
       ;;
+   "fema_wfl")
+      INPUTDIR=$SCRIPTDIR/input/meshes/fema_wfl
+      GRIDFILE=fema_wfl_fort.14  # mesh (fort.14) file
+      MESHPROPERTIES=${GRIDFILE}.nc.properties
+      CONTROLTEMPLATE=fema_wfl_fort.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=fema_wfl_nowindreduction.fort.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties 
+      ELEVSTATIONS=fema_wfl_stations_20191114.txt
+      VELSTATIONS=$ELEVSTATIONS
+      METSTATIONS=$ELEVSTATIONS
+      NAFILE=fema_wfl_fort.13
+      NAPROPERTIES=${NAFILE}.properties
+      #SWANTEMPLATE=fort.26.template # only used if WAVES=on
+      SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
+      RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=1.0            # adcirc time step size (seconds)
+      SWANDT=1800                 # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # unit offset url 
+      UNITOFFSETFILE=null
+      ;;
    "southfl_v11-1_final")
       INPUTDIR=$SCRIPTDIR/input/meshes/southfl    
       GRIDFILE=southfl_v11-1_final.grd
