@@ -36,7 +36,7 @@
 
 # Fundamental
 
-INSTANCENAME=LAv19k_nam_jgf  # "name" of this ASGS process
+INSTANCENAME=LAv19k_al162019_jgf  # "name" of this ASGS process
 
 # Input files and templates
 
@@ -47,22 +47,22 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on      # NAM download/forcing
-FORECASTCYCLE="06,18"
-TROPICALCYCLONE=off   # tropical cyclone forcing
-#STORM=07             # storm number, e.g. 05=ernesto in 2006
-#YEAR=2018            # year of the storm
+BACKGROUNDMET=off     # NAM download/forcing
+FORECASTCYCLE="06"
+TROPICALCYCLONE=on    # tropical cyclone forcing
+STORM=16             # storm number, e.g. 05=ernesto in 2006
+YEAR=2019            # year of the storm
 WAVES=on              # wave forcing
 STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
-CYCLETIMELIMIT="99:00:00"
+CYCLETIMELIMIT="05:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
 NCPU=959                     # number of compute CPUs for all simulations
 NUMWRITERS=1
-NCPUCAPACITY=3600
+NCPUCAPACITY=5000
 
 # Post processing and publication
 
@@ -72,9 +72,9 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,jason.fleming@s
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2019091500
-HOTORCOLD=coldstart        # "hotstart" or "coldstart"
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart        # "hotstart" or "coldstart"
+LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/fileServer/2019/nam/2019101712/LA_v19k-WithUpperAtch_chk/queenbee.loni.org/LAv19k_nam_jgf/namforecast
 
 # Scenario package 
 
@@ -88,12 +88,30 @@ case $si in
    # do nothing ... this is not a forecast
    ENSTORM=nowcast
    ;;
- 0)
-   ENSTORM=namforecastWind10m
+0)
+   ENSTORM=nhcConsensusWind10m
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
 1)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
+   ;;
+2)
+   ENSTORM=veerLeft100Wind10m
+   PERCENT=-100
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   ;;
+3)
+   ENSTORM=veerLeft100
+   PERCENT=-100
+   ;;
+4)
+   ENSTORM=veerRight100Wind10m
+   PERCENT=100
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   ;;
+5)
+   ENSTORM=veerRight100
+   PERCENT=100
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."

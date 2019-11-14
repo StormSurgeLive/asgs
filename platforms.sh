@@ -95,6 +95,12 @@ init_queenbee()
   PARALLELMODULES='module load mvapich2'
   JOBENVDIR=$SCRIPTDIR/config/machines/queenbee
   JOBENV=( )
+  TDS=(lsu_tds renci_tds)
+  # needed for asgs perl
+  #source ~/perl5/perlbrew/etc/bashrc
+  module purge
+  $PLATFORMMODULES
+  $SERIALMODULES
   if [[ $operator = "jgflemin" || $USER = "jgflemin" ]]; then
      ACCOUNT=loni_cera_2019a
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
@@ -106,18 +112,31 @@ init_queenbee()
      done
      MATLABEXE=mex  # "mex" means use the precompiled mex files
   fi
+  if [[ $operator == "mbilskie" || $USER = "mbilskie" ]]; then
+     ACCOUNT=loni_lsu_ccr_19
+     ADCIRCDIR=/home/mbilskie/src/PADCIRC/adcirc-cg-53.04/work # ADCIRC executables
+     SWANDIR=/home/mbilskie/src/PADCIRC/adcirc-cg-53.04/swan # ADCIRC executables
+     # needed for asgs perl
+     source /project/mbilskie/perlbrew/etc/bashrc
+     JOBENV=( perlbrew.sh )
+     for script in $JOBENV; do
+        source $JOBENVDIR/$script
+     done
+     TDS=(lsu_ccr_tds)
+     RMQMessaging_LocationName="QB2"
+     RMQMessaging_ClusterName="Queenbee2"
+     RMQMessaging_Enable="on"      # "on"|"off"
+     RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+     RMQMessaging_NcoHome="$HOME/local"
+     RMQMessaging_Python=/project/mbilskie/mbilskie_conda-env/asgs/bin/python
+     SCRATCHDIR=/work/$operator/asgs/2019/runs/
+  fi
   THIS=platforms.sh
   SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCHDIR
   ARCHIVEDIR=$SCRATCHDIR
-  TDS=(lsu_tds renci_tds)
-  module purge
-  $PLATFORMMODULES
-  $SERIALMODULES
-  # needed for asgs perl
-  source ~/perl5/perlbrew/etc/bashrc
   # @jasonfleming: for ~/.bashrc: Prevent git push from opening up a graphical
   # dialog box to ask for a password; it will interactively ask for
   # a password instead
@@ -733,9 +752,9 @@ set_hpc() {
       HPCENV=hatteras.renci.org
       HPCENVSHORT=hatteras
    fi 
-   if [[ ${fqdn:0:2} = "jason" ]]; then
-      HPCENV=jason-desktop.seahorsecoastal.com
-      HPCENVSHORT=jason-desktop
+   if [[ ${fqdn:0:5} = "jason" ]]; then
+      HPCENV=desktop.seahorsecoastal.com
+      HPCENVSHORT=desktop
    fi 
 }
 #
