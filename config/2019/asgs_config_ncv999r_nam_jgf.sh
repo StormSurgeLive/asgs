@@ -51,6 +51,7 @@ VARFLUX=on               # variable river flux forcing
    RIVERUSER=ldm
    RIVERDATAPROTOCOL=scp
 CYCLETIMELIMIT="99:00:00"
+STATICOFFSET=0.35
 
 # Computational Resources (related defaults set in platforms.sh)
 
@@ -69,9 +70,9 @@ NOTIFY_SCRIPT=ncfs_nam_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto  # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=hotstart       # "hotstart" or "coldstart"
-LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2019/nam/2019111100/nc_inundation_v9.99_w_rivers/hatteras.renci.org/ncfs-dev-ncv99-nam-master/namforecast
+COLDSTARTDATE=2019101200  # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=coldstart      # "hotstart" or "coldstart"
+LASTSUBDIR=null
 
 # Scenario package
 
