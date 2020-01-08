@@ -27,8 +27,10 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 use strict;
+use warnings;
 use Getopt::Long;
 #
+my $runtype; # (presumptive addition to allow this script to pass perl -c)
 my $checkInterval = 60;   # seconds between fs checks by ASGS to see job state
 my $jobtype = "padcswan"; # type of job; used in naming the job status file
 my $enstorm = "nowcast";  # the model stage that is running

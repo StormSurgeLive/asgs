@@ -1,0 +1,158 @@
+Notes on the ASGS Shell, installed by asgs-brew.pl.
+
+Quick Start
+~~~~~~~~~~~
+
+After asgs-brew.pl has been run to complete, access the shell by running the
+following command:
+
+  % $HOME/opt/bin/asgsh
+
+[It us suggested that '$HOME/opt/bin' (or the "--install-path") be added to
+the login shell PATH via $HOME/.bash_profile.]
+
+You will then see this prompt:
+
+  asgs (none)>
+
+The environment created by asgs-brew.pl is fully available, as are some
+helpful commands that are summarized in Appendeix A.  The "none" indicates
+that a scenario package profile has not been loaded yet. More on this further
+down in this document.
+
+Next, verify Perl and Python are set up properly after asgs-brew.pl runs:
+
+  asgs (none)> verify
+
+Assuming the Perl and Python environments are set up properly, you will see a
+series of messages indicating that everything is "ok".
+
+You may also run the 'help' command to see the latest description of available
+commands.
+
+Usage Description
+~~~~~~~~~~~~~~~~~
+
+The ASGS Shell (asgsh) is meant to make it easy to set up, run, and monitor
+ASGS instances. It ensures that the environment created by asgs-brew.pl and
+required to run ASGS is set up properly. It also provides access to commands
+that make common tasks associate with ASGS much more efficient to perform.
+
+The 'run' command calls asgs_main.sh and automatically includes the config
+file that is tracked by the shell (internally as $ASGS_CONFIG). This can
+be set using the 'set config' command. To see the present value of the config,
+use the 'show config' command. See the command description below to see what
+can be set.
+
+Saving and Loading ASGS Scenario Package Profiles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A scenario package profile centers around the ASGS configuration file that
+is used by asgs_main.sh to define all of the scenarios, input options, run
+options, and output options for the duration of the ASGS instance's running
+time. ASGS relies heavily on environmental variables for a variety of things,
+this includes determining what directories to use for input and output,
+where to find the model executables, and they point to shared libraries
+that are used by many of the compiled utilities used (e.g., NetCDF, HDF5,
+OpenMPI, Perl, Python, etc).
+
+Once an operator has ASGS installed and working, it is important to preserve
+the environment. This is why asgsh has the ability to save the state of
+these variables into named, loadable sessions. This makes it much easier
+for an operator to manage a number of scenario packages on the same computer
+(typicall a login node of an HPC cluster).
+
+Important environmental variables that are able to be set via the 'set' command
+can be saved as a named session. To do this use the 'save' command. It saves as
+a named session, all variables that may be defined via the 'set' command. This
+ability is very helpful when juggling among various configurations or when
+running multiple ASGS instances from the same login node.
+
+When asgsh is first started, the prompt shows the name of the environment in
+parenthesis. When loading or saving an named environment, 'none' is replaced
+with the name of the session to indicate to the user that they are in a
+customized environment.
+
+For example, to create a profile the session would look something like the
+following:
+
+  asgs (none)> set config /path/to/config.sh 
+  asgs (none)> save hurricane-dorian-ec95d 
+  profile 'hurricane-dorian-ec95d' was written
+  asgs (hurricane-dorian-ec95d)> 
+
+Loading a profile when none is yet loaded would look like:
+
+  asgs (none)> load hurricane-dorian-ec95d 
+  loaded 'hurricane-dorian-ec95d' into current profile
+  asgs (hurricane-dorian-ec95d)>
+
+At the time of this writing, the following environmental variables can be directly
+managed and saved via asgsh.
+
+* ASGS_CONFIG    - used by 'run' to pass asgs_main.sh its configuration argument (-c)
+* EDITOR         - used by 'edit' command
+* SCRIPTDIR      - used by asgs_main.sh to know where to find helper scripts and utilities
+                   it is also used by the 'run' command as the path to in $SCRIPTDIR/asgs_main.sh;
+                   asgs_main.sh then is able to determine $SCRIPTDIR automatically based on call path.
+* SCRATCH        - used by asgs_main.sh, where models are executing from
+* WORK           - used by asgs_main.sh, some scripts for sharing output across system
+
+The following variables are set and derived once a configuration file has been set and
+INSTANCE name has been determined out of this file:
+
+* STATEFILE      - contains key information about the current ASGS instance
+* RUNDIR         - parent directory where ADCIRC's running an writing output, read from state file
+                 - the initialization of the models (hind/nowcast) and each subsequent advisory forecast
+                 - scenario is contained as sub directories here
+* SYSLOG         - full path to the main log file, used by 'watchlog'
+* PROPERTIESFILE - main run.properties file output by ASGS; current version of the shell does not make
+                   these variables directly available in the environment, but this could change
+ 
+Updating ASGS Shell
+~~~~~~~~~~~~~~~~~~~
+
+The shell is created whenever asgs-brew.pl is run, this includes when it is run
+with the --update-shell flag. Updated shells will come with updated versions of
+the ASGS system via asgs-brew.pl (running it fully or by using the --update-shell
+flag).
+
+Appendix A - Current Set of Commands (this may be outdated, see 'help' for most up to date list)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	% $HOME/opt/bin/asgsh
+	Commands:
+	   delete <name>              - deletes named profile
+	   edit config                - opens up $ASGS_CONFIG using $EDITOR (must be set, if not use the 'set editor' command)
+	   goto   <param>             - change current working directory to $SCRATCH
+	       *  scratchdir          - change current working directory to $SCRIPTDIR
+	       *  scriptdir           - change current working directory to $WORK
+	       *  workdir             - change current working directory
+	   list   <param>             - lists different things
+	       *  configs             - lists ASGS configuration files based on year (interactive)
+	       *  profiles            - lists all saved profiles that can be specified by load
+	   load   <profile-name>      - loads a saved profile by name
+	   run                        - runs asgs using config file, $ASGS_CONFIG must be set (see 'set config'); most handy after 'load'ing a profile
+	   save   <name>              - saves an asgs named profile
+	   set    <param> "<value>"   - sets specified profile variables (i.e., variables that do not last after 'exit')
+	       *  config              - sets ASGS configuration file used by 'run', ($ASGS_CONFIG)
+	       *  editor              - sets default editor, ($EDITOR)
+	       *  scratchdir          - sets ASGS main script directory used by all underlying scripts, ($SCRATCH)
+	       *  scriptdir           - sets ASGS main script directory used by all underlying scripts, ($SCRIPTDIR)
+	       *  workdir             - sets ASGS main script directory used by all underlying scripts, ($WORK)
+	   show   <param>             - shows specified profile variables (i.e., variables that do not last after 'exit')
+	       *  config              - shows ASGS configuration file used by 'run', ($ASGS_CONFIG)
+	       *  editor              - shows what default editor is set to, ($EDITOR)
+	       *  instancename        - shows ASGS instance name that is derived from a valid config file, ($INSTANCENAME)
+	       *  propertiesfile      - shows ASGS 'run.properties' file location, derived from rundir; ($PROPERTIESFILE)
+	       *  rundir              - shows ASGS rundir location, read directly from a valid state file, ($RUNDIR)
+	       *  scratchdir          - shows ASGS main script directory used by all underlying scripts, ($SCRATCH)
+	       *  scriptdir           - shows ASGS main script directory used by all underlying scripts, ($SCRIPTDIR)
+	       *  statefile           - shows ASGS state file location, derived from scratchdir; ($STATEFILE)
+	       *  syslog              - shows ASGS log location, read directly from a valid state file, ($SYSLOG)
+	       *  workdir             - shows ASGS main script directory used by all underlying scripts, ($WORK)
+	   sq                         - shortcut for "squeue -u $USER" (if squeue is available)
+	   verify                     - verfies Perl and Python environments
+	   watchlog                   - executes 'tail -f' on syslog 
+	   exit                       - exits ASGS shell, returns $USER to login shell
+	asgs (none)> 

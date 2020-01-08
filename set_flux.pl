@@ -195,7 +195,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
-use Date::Pcalc;
+use Date::Calc;
 use Date::Handler;
 #
 sub stderrMessage($$);
@@ -433,7 +433,7 @@ foreach my $bc (@fluxbcs) {
       my $cs = 0.0;
       # determine the date and time at the start of the simulation (in GMT)
       (my $hy, my $hm, my $hd, my $hh, my $hmin, my $hs) =
-       Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,0,0,0,$hstime);
+       Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,0,0,0,$hstime);
       # determine time zone of the gage data
       my $gageTimeZoneKey = $riverBoundaryName[$meshFilePosition] . "RiverBoundary" . $gageDataType . "TimeZone";
       my $gageTimeZone = $properties{$gageTimeZoneKey};

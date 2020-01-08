@@ -20,7 +20,7 @@
 #
 $^W++;
 use strict;
-use Date::Pcalc;
+use Date::Calc;
 use Getopt::Long;
 
 my $cst='';      # cold start time/date
@@ -300,12 +300,12 @@ my $f_hour = $4;
 my $f_min = 0;
 my $f_sec = 0;
 # also convert to CDT (UTC-5)
-my ($year,$month,$day,$hour,$min,$sec) = Date::Pcalc::Add_Delta_DHMS($f_year,$f_mon,$f_day,$f_hour,$f_min,$f_sec,0,($endforecast-5),0,0);
+my ($year,$month,$day,$hour,$min,$sec) = Date::Calc::Add_Delta_DHMS($f_year,$f_mon,$f_day,$f_hour,$f_min,$f_sec,0,($endforecast-5),0,0);
 $endforecast = sprintf("%s%02s%02s %02s:%02s:%02s",$year,$month,$day,$hour,$min,$sec);
 print STDERR "endforecast is $endforecast CDT\n";
 # determine the earliest date and time to plot (two days prior 
 # to forecast) ... also convert to CDT (UTC-5)
-($year,$month,$day,$hour,$min,$sec) = Date::Pcalc::Add_Delta_DHMS($f_year,$f_mon,$f_day,$f_hour,$f_min,$f_sec,-2,-5,0,0);
+($year,$month,$day,$hour,$min,$sec) = Date::Calc::Add_Delta_DHMS($f_year,$f_mon,$f_day,$f_hour,$f_min,$f_sec,-2,-5,0,0);
 $startgraph = sprintf("%s%02s%02s %02s:%02s:%02s",$year,$month,$day,$hour,$min,$sec);
 print STDERR "startgraph is $startgraph CDT\n";
 #
@@ -360,8 +360,8 @@ while (1) {
     #m/^\s*([\.+E\d]*)\s*([\.+E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*([\.+E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*([\.+E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*([\.+-E\d]*)\s*/;
     my @track1_stations=split;
     # convert to CDT (UTC-5)
-    #($year,$month,$day,$hour,$min,$sec) = Date::Pcalc::Add_Delta_DHMS($s_year,$s_mon,$s_day,$s_hour,$s_min,$s_sec,0,-5,0,sprintf("%f",$1));
-    ($year,$month,$day,$hour,$min,$sec) = Date::Pcalc::Add_Delta_DHMS($s_year,$s_mon,$s_day,$s_hour,$s_min,$s_sec,0,-5,0,sprintf("%f",$track1_stations[0]));
+    #($year,$month,$day,$hour,$min,$sec) = Date::Calc::Add_Delta_DHMS($s_year,$s_mon,$s_day,$s_hour,$s_min,$s_sec,0,-5,0,sprintf("%f",$1));
+    ($year,$month,$day,$hour,$min,$sec) = Date::Calc::Add_Delta_DHMS($s_year,$s_mon,$s_day,$s_hour,$s_min,$s_sec,0,-5,0,sprintf("%f",$track1_stations[0]));
     $time = sprintf("%s%02s%02s %02s:%02s:%02s",$year,$month,$day,$hour,$min,$sec);
 #    print STDERR "$time\n";
     push(@station61_1,$track1_stations[1]);
