@@ -25,7 +25,7 @@
 $^W++;
 use strict;
 use Getopt::Long;
-use Date::Pcalc;
+use Date::Calc;
 use Cwd;
 #
 my $fulldomainDir; # path to the full domain files, containing PE* dirs

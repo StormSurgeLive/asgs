@@ -1,3 +1,9 @@
+This document is deprecated but still valuable information. The script
+mentioned below was split into 2 different scripts that are used by
+asgs-brew.pl.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Before you run init-hdf5-netcdf4.sh, read through the following to
 undertand what it's going to do.
 

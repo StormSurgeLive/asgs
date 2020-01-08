@@ -30,7 +30,7 @@
 #----------------------------------------------------------------
 use strict;
 use warnings;
-use Date::Pcalc;
+use Date::Calc;
 use Getopt::Long;
 use Math::Trig;
 #
@@ -78,7 +78,7 @@ if ( $startwc ne "null" && $finishwc ne "null" ) {
    my $f_sec = $6;
    # get difference
    (my $ddays, my $dhrs, my $dmin, my $dsec)
-           = Date::Pcalc::Delta_DHMS(
+           = Date::Calc::Delta_DHMS(
                 $s_year,$s_mon,$s_day,$s_hour,$s_min,$s_sec,
                 $f_year,$f_mon,$f_day,$f_hour,$f_min,$f_sec);
    my $wall_clock_time = sprintf("%02d:%02d:%02d:%02d",$ddays,$dhrs,$dmin,$dsec);

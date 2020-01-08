@@ -68,7 +68,7 @@
 $^W++;
 use strict;
 use Getopt::Long;
-use Date::Pcalc;
+use Date::Calc;
 use Cwd;
 #
 
@@ -853,7 +853,7 @@ sub hindcastParameters () {
     $RNDAY = $endtime; #FIX: this should be a date, not days
     $NHSINC = int(($RNDAY*86400.0)/$dt);
     ($ey,$em,$ed,$eh,$emin,$es) =
-       Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$endtime,0,0,0);
+       Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$endtime,0,0,0);
     $nws = 0;
     $ensembleid = "$endtime day hindcast run";
     $wtiminc = "NO LINE HERE";
@@ -882,7 +882,7 @@ sub customParameters () {
    if ( defined $hstime && $hstime != 0 ) {
       # now add the hotstart seconds
       ($ny,$nm,$nd,$nh,$nmin,$ns) =
-         Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,0,0,0,0,0,$hstime);
+         Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,0,0,0,0,0,$hstime);
    } else {
       # the hotstart time was not provided, or it was provided and is equal to 0
       # therefore the current ADCIRC time is the cold start time, t=0
@@ -894,7 +894,7 @@ sub customParameters () {
       $ns = 0;
    }
    ($ey,$em,$ed,$eh,$emin,$es) =
-      Date::Pcalc::Add_Delta_DHMS($ny,$nm,$nd,$nh,0,0,$specifiedRunLength,0,0,0);    
+      Date::Calc::Add_Delta_DHMS($ny,$nm,$nd,$nh,0,0,$specifiedRunLength,0,0,0);    
     $wtiminc = "NO LINE HERE";
    # create the runme file, if this is a nowcast that has an ending time
    # that is later than the previous hotstart
@@ -927,7 +927,7 @@ sub owiParameters () {
    if ( defined $hstime && $hstime != 0 ) {
       # now add the hotstart seconds
       ($ny,$nm,$nd,$nh,$nmin,$ns) =
-         Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,0,0,0,0,0,$hstime);
+         Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,0,0,0,0,0,$hstime);
    } else {
       # the hotstart time was not provided, or it was provided and is equal to 0
       # therefore the current ADCIRC time is the cold start time, t=0
@@ -979,7 +979,7 @@ sub owiParameters () {
    #
    # get difference
    (my $ddays, my $dhrs, my $dmin, my $dsec)
-           = Date::Pcalc::Delta_DHMS(
+           = Date::Calc::Delta_DHMS(
                 $ny,$nm,$nd,$nh,0,0,
                 $oy,$om,$od,$oh,0,0);
    # find the difference in seconds
@@ -1016,14 +1016,14 @@ sub owiParameters () {
    #
    # get difference
    (my $ddays, my $dhrs, my $dmin, my $dsec)
-           = Date::Pcalc::Delta_DHMS(
+           = Date::Calc::Delta_DHMS(
                 $cy,$cm,$cd,$ch,0,0,
                 $ey,$em,$ed,$eh,0,0);
    # find the new total run length in days
    $RNDAY = $ddays + $dhrs/24.0 + $dmin/1440.0 + $dsec/86400.0;
    # determine the number of hours of this run, from hotstart to end
    (my $ddays, my $dhrs, my $dmin, my $dsec)
-           = Date::Pcalc::Delta_DHMS(
+           = Date::Calc::Delta_DHMS(
                 $ny,$nm,$nd,$nh,0,0,
                 $ey,$em,$ed,$eh,0,0);
    my $addHours = $ddays*24.0 + $dhrs + $dmin/60.0 + $dsec/3600.0;
@@ -1163,7 +1163,7 @@ sub vortexModelParameters () {
            # get difference between first occurrence of IN (inland)
            # and the time on the current track line
            ($ddays,$dhrs,$dmin,$dsec)
-              = Date::Pcalc::Delta_DHMS(
+              = Date::Calc::Delta_DHMS(
                 $tin_year,$tin_mon,$tin_day,$tin_hour,$tin_min,$tin_sec,
                 $c_year,$c_mon,$c_day,$c_hour,$c_min,$c_sec);
            my $time_inland = $ddays + $dhrs/24 + $dmin/1440 + $dsec/86400 + ($tau-$tin_tau)/24;
@@ -1182,7 +1182,7 @@ sub vortexModelParameters () {
            $emin = 0.0;
            $es = 0.0;
            ($ey,$em,$ed,$eh,$emin,$es) =
-              Date::Pcalc::Add_Delta_DHMS($ey,$em,$ed,$eh,$emin,$es,0,$tau,0,0);
+              Date::Calc::Add_Delta_DHMS($ey,$em,$ed,$eh,$emin,$es,0,$tau,0,0);
            $end = sprintf("%4d%02d%02d%02d",$ey,$em,$ed,$eh);
         }
       }
@@ -1191,7 +1191,7 @@ sub vortexModelParameters () {
    if ( defined $hstime && $hstime != 0 ) {
       # now add the hotstart seconds
       ($ny,$nm,$nd,$nh,$nmin,$ns) =
-         Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,0,0,0,$hstime);
+         Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,0,0,0,$hstime);
    } else {
       # the hotstart time was not provided, or it was provided and is equal to 0
       # therefore the current ADCIRC time is the cold start time, t=0
@@ -1213,7 +1213,7 @@ sub vortexModelParameters () {
    #
    # get total difference btw cold start time and end time ... this is RNDAY
    my ($days,$hours,$minutes,$seconds)
-      = Date::Pcalc::Delta_DHMS(
+      = Date::Calc::Delta_DHMS(
          $cy,$cm,$cd,$ch,$cmin,$cs,
          $ey,$em,$ed,$eh,$emin,$es);
    # RNDAY is diff btw cold start time and end time
@@ -1279,7 +1279,7 @@ sub vortexModelParameters () {
    # purely from the met file ... if so, modify the ending time accordingly
    if ( $RNDAY != $RNDAY_orig ) {
       ($ey,$em,$ed,$eh,$emin,$es) =
-       Date::Pcalc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$RNDAY,0,0,0);
+       Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$RNDAY,0,0,0);
    } 
    # create the runme file, if this is a nowcast that has an ending time
    # that is later than the previous hotstart

@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 $^W++;
 use strict;
-use Date::Pcalc;
+use Date::Calc;
  use Getopt::Long;
 my $cst='';      # cold start time/date formatted as yyyymmddhh24mmss
 my $gmtoffset=0; # difference between GMT and local time (hours) 
@@ -42,7 +42,7 @@ my $s_hour = $4;
 my $s_min = $5;
 my $s_sec = $6;
 # also convert to whatever local time is desired
-my ($year,$month,$day,$hour,$min,$sec) = Date::Pcalc::Add_Delta_DHMS($s_year,$s_mon,$s_day,$s_hour,$s_min,$s_sec,0,$gmtoffset,0,0);
+my ($year,$month,$day,$hour,$min,$sec) = Date::Calc::Add_Delta_DHMS($s_year,$s_mon,$s_day,$s_hour,$s_min,$s_sec,0,$gmtoffset,0,0);
 #
 #######################################################################
 # convert seconds in ADCIRC output to date time 
@@ -65,7 +65,7 @@ while (<DATEFILE>) {
        print $time2."\n";
 
       ($year,$month,$day,$hour,$min,$sec) 
-         = Date::Pcalc::Add_Delta_DHMS($s_year,$s_mon,$s_day,
+         = Date::Calc::Add_Delta_DHMS($s_year,$s_mon,$s_day,
             $s_hour,$s_min,$s_sec,0,$gmtoffset,0,sprintf("%f",$time2));
      # $time = sprintf("%s %02s %02s %02s %02s %02s",
      #           $year,$month,$day,$hour,$min,$sec);

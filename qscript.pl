@@ -25,7 +25,7 @@ $^W++;
 use strict;
 use integer;
 use Getopt::Long;
-use Date::Pcalc;
+use Date::Calc;
 use Date::Handler;
 #
 my $ncpu = "null";      # number of CPUs the job should run on

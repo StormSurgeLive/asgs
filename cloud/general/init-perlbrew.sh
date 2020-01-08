@@ -5,17 +5,10 @@ PERL_VERSION=${2-"perl-5.28.2"}
 
 if [ "$ACTION" == "clean" ]; then
 
-  # if perlbrew is still available, turn it off
-  if [ -n "$(which perlbrew)" ]; then
-    perlbrew off <<EOF
-exit
-EOF
-  fi
-
   # remove local directories
   rm -rfv $HOME/perl5 $HOME/.perlbrew
 
-  # update ~/.bash_profile
+  # remove source line from ~/.bash_profile
   DOT_BASH_PROFILE=$HOME/.bash_profile-$$
   cat ~/.bash_profile | grep -v 'source ~/perl5/perlbrew/etc/bashrc' > $DOT_BASH_PROFILE
   mv -fv $DOT_BASH_PROFILE $HOME/.bash_profile
@@ -49,12 +42,6 @@ fi
 source ~/perl5/perlbrew/etc/bashrc
 
 if [ ! -e "$HOME/perl5/perlbrew/perls/$PERL_VERSION/bin/perl" ]; then
-
-  # patching patchperl so perlbrew works on strict lustre file systems like
-  # what is seen on stampede2
-  PWD=$(pwd)
-  cp ./PERL/patchperl.patch ~/perl5 && cd ~/perl5 && patch -p 1 < ./patchperl.patch 
-  cd $PWD
 
   # --notest is just to increase the speed of the installation
   perlbrew --notest install $PERL_VERSION

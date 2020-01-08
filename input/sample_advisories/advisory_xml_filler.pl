@@ -55,7 +55,7 @@
 
 use strict;
 use warnings;
-use Date::Pcalc;
+use Date::Calc;
 use Getopt::Long;
 #
 my $template; # the template xml file representing new forecast/advisory
