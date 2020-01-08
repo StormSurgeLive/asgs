@@ -425,14 +425,14 @@ init_frontera()
   #
   RMQMessaging_LocationName="TACC"
   RMQMessaging_ClusterName="Frontera"
-  RMQMessaging_Enable="off"      # "on"|"off"
-  RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
+  RMQMessaging_Enable="on"      # "on"|"off"
+  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
   RMQMessaging_Python=/opt/apps/intel19/python2/2.7.16/bin/python
   #
-  PLATFORMMODULES='module load intel/18.0.2 python2/2.7.15 xalt/2.6.5 TACC'
+  PLATFORMMODULES='module load intel/19.0.5 python2/2.7.16 xalt/2.7.19 TACC'
   SERIALMODULES='module load' # no extra modules for serial jobs
-  PARALLELMODULES='module load libfabric/1.7.0 impi/18.0.2'
+  PARALLELMODULES='module load impi/19.0.5'
   # matlab
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   # specify location of platform- and Operator-specific scripts to 
@@ -442,7 +442,7 @@ init_frontera()
   if [[ $operator = jgflemin ]]; then
      ADCIRCDIR=${WORK}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${WORK}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     ACCOUNT=DesignSafe-CERA
+     ACCOUNT=FTA-SUB-Dawson
      # don't use built in netcdf module
      JOBENV=( netcdf.sh gmt.sh gdal.sh )
      for script in $JOBENV; do 
@@ -828,6 +828,11 @@ set_hpc() {
       HPCENVSHORT=lonestar
       return
    fi
+   if [[ ${fqdn:(-24)} = "frontera.tacc.utexas.edu" ]]; then
+      HPCENV=frontera.tacc.utexas.edu
+      HPCENVSHORT=frontera
+      return
+   fi
    if [[ ${fqdn:0:2} = "qb" ]]; then
       HPCENV=queenbee.loni.org
       HPCENVSHORT=queenbee
@@ -844,6 +849,8 @@ set_hpc() {
       HPCENV=desktop.seahorsecoastal.com
       HPCENVSHORT=desktop
    fi 
+   echo "$THIS: The value of HPCENV is ${HPCENV}."
+   echo "$THIS: The value of HPCENVSHORT is ${HPCENVSHORT}."
 }
 #
 # used to dispatch environmentally sensitive actions

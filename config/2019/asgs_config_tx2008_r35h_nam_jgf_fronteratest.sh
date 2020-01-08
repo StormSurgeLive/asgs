@@ -52,6 +52,9 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
+ADCIRCDIR=${WORK}/adcirc-cg/wwlwpd/issue-2020-frontera-support/work
+SWANDIR=${WORK}/adcirc-cg/wwlwpd/issue-2020-frontera-support/swan
+
 NCPU=479                    # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
@@ -60,9 +63,10 @@ if [[ $HPCENVSHORT = "hatteras" ]]; then
 fi
 QOS=vip
 
+
 # Post processing and publication
 
-INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
+INTENDEDAUDIENCE=developers-only   # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rluettich1@gmail.com"
