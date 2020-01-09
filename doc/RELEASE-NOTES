@@ -1,0 +1,27 @@
+*Release notes for 2019stable*
+
+Introduced a quick start script (./init-asgs.sh) that guides new users through an
+installation interactively. It calls a new tool, asgs-brew.pl, that automaticaly
+builds and installs all required untilities. It provides an interactive shell
+called asgsh (asgs shell) that provides the environment required to
+operate ASGS. Included in this shell environment are a small set of
+initial custom commands that are meant to aid operators and developers
+working with ASGS. Supported platforms include all of thoses listed in
+./platforms.sh along with capabilities of provisioning a virtual machine
+with ASGS installed for testing and learning purposes. In future releases,
+we will introduce the ability to run ASGS locally using a virtual machine on
+a user's local laptop or workstation.
+
+*Incompatibilities with existing installations*
+
+The Perl module, Date::Pcalc has been replaced with Date::Calc. In order to use
+this latest stable version of ASGS, a user must ensure that Date::Calc is installed.
+The newly provided initialization and installation toolchain installs this module, but
+for existing ASGS installations one may wish to install this module manually and
+ensure it's available to perl.
+
+Other
+
+Added support for using Amazon's SES (simple email service) to send emails for
+enhanced reliability over using the local environment's sendmail.
+
