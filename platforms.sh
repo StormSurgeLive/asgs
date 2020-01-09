@@ -605,11 +605,11 @@ init_stampede2()
   MAKEJOBS=8
 }
 #
-init_lonestar()
+init_lonestar5()
 { #<- can replace the following with a custom script
-  THIS="platforms.sh>env_dispatch()>init_lonestar()"
+  THIS="platforms.sh>env_dispatch()>init_lonestar5()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=lonestar.tacc.utexas.edu
+  HPCENV=ls5.tacc.utexas.edu
   QUEUESYS=SLURM
   QUEUENAME=normal # same as SLURM partition
   SERQUEUE=normal
@@ -621,7 +621,7 @@ init_lonestar()
   PPN=24
   SUBMITSTRING=sbatch
   SCRATCHDIR=$SCRATCH
-  SSHKEY=id_rsa_lonestar
+  SSHKEY=id_rsa_lonestar5
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
   UMASK=006
@@ -657,7 +657,7 @@ init_lonestar()
         source $JOBENVDIR/$script
      done
   fi
-  THIS="platforms.sh>env_dispatch()>init_lonestar()"
+  THIS="platforms.sh>env_dispatch()>init_lonestar5()"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2019
@@ -857,7 +857,7 @@ writeTDSProperties()
          OPENDAPUSER="jgflemin"
       fi
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
-      echo "post.opendap.${SERVER}.copyablehosts : ( lonestar stampede2 )" >> run.properties
+      echo "post.opendap.${SERVER}.copyablehosts : ( lonestar5 stampede2 )" >> run.properties
       ;;
    *)
       echo "$THIS: ERROR: THREDDS Data Server $SERVER was not recognized."
@@ -893,8 +893,8 @@ set_hpc() {
       return
    fi
    if [[ ${fqdn:(-19)} = "ls5.tacc.utexas.edu" ]]; then
-      HPCENV=lonestar.tacc.utexas.edu
-      HPCENVSHORT=lonestar
+      HPCENV=lonestar5.tacc.utexas.edu
+      HPCENVSHORT=lonestar5
       return
    fi
    if [[ ${fqdn:0:2} = "qb" ]]; then
@@ -937,8 +937,8 @@ env_dispatch() {
   "supermic") allMessage "$THIS: SuperMIC (LSU HPC) configuration found."
           init_supermic
           ;;
-  "lonestar") allMessage "$THIS: Lonestar (TACC) configuration found."
-          init_lonestar
+  "lonestar5") allMessage "$THIS: Lonestar (TACC) configuration found."
+          init_lonestar5
           ;;
   "stampede2") allMessage "$THIS: Stampede2 (TACC) configuration found."
           init_stampede2
@@ -967,7 +967,7 @@ env_dispatch() {
   "test") allMessage "$THIS: test environment (default) configuration found."
           init_test
            ;;
-  *) fatal "$THIS: '$HPCENVSHORT' is not a supported environment; currently supported options: stampede2, lonestar, supermike, queenbee, supermic, hatteras, desktop, desktop-serial, su_tds, lsu_ccr_tds, renci_tds, tacc_tds"
+  *) fatal "$THIS: '$HPCENVSHORT' is not a supported environment; currently supported options: stampede2, lonestar5, supermike, queenbee, supermic, hatteras, desktop, desktop-serial, su_tds, lsu_ccr_tds, renci_tds, tacc_tds"
      ;;
   esac
 }
