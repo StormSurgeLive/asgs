@@ -26,3 +26,4 @@ grib2
 *.o
 output/cpra_postproc/FigureGen
 wgrib2.tgz.v1.9.7a
+build.out

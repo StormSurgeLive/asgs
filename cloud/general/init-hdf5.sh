@@ -28,7 +28,7 @@ if [ $COMPILER == "gfortran" ]; then
   export CXX=g++
 fi
 
-mkdir -p $TMP
+mkdir -p $TMP 2> /dev/null
 cd $TMP
 
 if [ ! -e hdf5-1.8.12.tar.gz ]; then

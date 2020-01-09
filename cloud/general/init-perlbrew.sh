@@ -18,7 +18,7 @@ if [ "$ACTION" == "clean" ]; then
   echo All files associated with perlbrew have been removed.
   echo '"source"' has been removed from $HOME/.bash_profile.
   echo
-  echo Rerun this script without the '"clean"' option to reinstall perlbrew.
+  echo Run again without clean flag to install
   echo
   exit
 fi
