@@ -10,9 +10,10 @@ working with ASGS. Supported platforms include all of thoses listed in
 ./platforms.sh along with capabilities of provisioning a virtual machine
 with ASGS installed for testing and learning purposes. In future releases,
 we will introduce the ability to run ASGS locally using a virtual machine on
-a user's local laptop or workstation.
+a user's local laptop or workstation. For more information on a quick start,
+please review installation directions in ./INSTALLING.
 
-*Incompatibilities with existing installations*
+Incompatibilities with existing installations:
 
 The Perl module, Date::Pcalc has been replaced with Date::Calc. In order to use
 this latest stable version of ASGS, a user must ensure that Date::Calc is installed.
@@ -25,3 +26,11 @@ Other
 Added support for using Amazon's SES (simple email service) to send emails for
 enhanced reliability over using the local environment's sendmail.
 
+Recommended Update Steps for using init-asgs.sh or asgs-brew.pl
+
+We recommend that a user keeps (or backs up) their old ASGS installation intact
+and install this version anew. Basic steps: 1) rename old asgs director, 2) checkout
+asgs's 2019stable branch from Github, 3) run ./init-asgs.sh, 4) follow the instructions
+output. Please report bugs or request enhancements at
+
+https://github.com/jasonfleming/asgs/milestone/19
