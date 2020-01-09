@@ -1,7 +1,6 @@
 IO::Socket::SSL
 Config::Tiny
 Date::Calc
-Date::Format
 Date::Handler
 DateTime
 DateTime::Format::Builder

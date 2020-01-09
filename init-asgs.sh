@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ ! -d $HOME/asgs ]; then
   git clone https://github.com/jasonfleming/asgs.git
@@ -13,7 +13,7 @@ echo "hatteras       - Hatteras (RENCI)"
 echo "supermike      - Supermike (LSU)"
 echo "queenbee       - Queenbee (LONI)"
 echo "supermic       - SuperMIC (LSU HPC)"
-echo "lonestar       - Lonestar (TACC)"
+echo "lonestar5      - Lonestar (TACC)"
 echo "stampede2      - Stampede2 (TACC)"
 echo "frontera       - Frontera (TACC)"
 echo "desktop        - desktop"
@@ -38,7 +38,7 @@ elif [[ -z "$platform" && -n "$default_platform" ]]; then
   platform=$default_platform
 fi
 
-read -p "Which asgs branch would you like to checkout from Github? [master] " repo
+read -p "Which asgs branch would you like to checkout from Github ('.' to skip)? [master] " repo
 
 if [ -z "$repo" ]; then
   repo=master
@@ -46,11 +46,14 @@ fi
 
 cd ./asgs
 
-git checkout $repo 
-
-if [ $? -gt 0 ]; then
-  echo error checking out $repo
-  exit 1
+if [ "$repo" != "." ]; then
+  git checkout $repo 
+  if [ $? -gt 0 ]; then
+   echo error checking out $repo
+   exit 1
+  fi
+else
+  echo leaving git repo in current state 
 fi
 
 read -p "Which compiler family would you like to use, 'gfortran' or 'intel'? " compiler
