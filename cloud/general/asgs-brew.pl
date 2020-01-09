@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 
+# NOTE: this is meant to run using any perl that is available
+# on a system, it should only rely on core Perl modules
+
 use strict;
 use warnings;
 use Getopt::Long qw(GetOptionsFromArray);
@@ -26,6 +29,31 @@ sub new {
     return $self;
 }
 
+sub _get_help {
+    return qq{
+Usage:
+
+    $0 --machinename <MachineName> --compiler <CompilerFamily> [ --install-path some/path --home /path/other/than/user/\$HOME --force --clean [ --list-steps | --skip-steps | --run-steps ] ]
+
+Required Flags:
+
+    --compiler, --machinename
+
+Reset asgsh with clean environment:
+
+    $0 --machinename <MachineName> --compiler <CompilerFamily> --run-steps setup-env
+
+More Help and Information:
+
+    \$ perldoc $0 
+
+Note:
+
+    --install-path if not specified defaults to \$HOME/opt
+
+  };
+}
+
 sub run {
     my ( $self, $args_ref ) = @_;
     my $HOME     = ( getpwuid $> )[7];
@@ -36,32 +64,29 @@ sub run {
         'make-jobs'    => 1,
 
     };
+
+    my $start_dir = Cwd::getcwd();
+    $opts_ref->{scriptdir} = $start_dir;
+
+    local $@;
     my $ret = Getopt::Long::GetOptionsFromArray(
         $args_ref, $opts_ref,
-        q{clean}, q{compiler=s}, q{skip-steps=s}, q{update-shell}, q{force}, q{home}, q{install-path=s}, q{list-steps}, q{machinename=s}, q{make-jobs=i},
+        q{clean}, q{compiler=s}, q{skip-steps=s}, q{update-shell}, q{force}, q{home}, q{install-path=s}, q{list-steps}, q{machinename=s}, q{make-jobs=i}, q{run-steps=s}, q{debug},
     );
 
-    die $@ if not $ret;
-
-    if ( not $opts_ref->{compiler} or not $opts_ref->{machinename} ) {
-        print qq{
-Usage:
-
-    ./asgs-brew.pl --machinename <MachineName> --compiler <CompilerFamily> [--install-path some/path --home /path/other/than/user/\$HOME --force --clean --list-steps --skip-steps]
-
-Required Flags:
-
-    --compiler, --machinename
-
-Note:
-
-    --install-path if not specified defaults to \$HOME/opt
-
-More Help and Information:
-
-    \$ perldoc path/to/asgs-brew.pl
-
-};
+    my $errmsg;
+    if ( not $ret ) {
+        $errmsg = qq{An unrecognized option was passed\n};
+    }
+    elsif ( not $opts_ref->{compiler} or not $opts_ref->{machinename} ) {
+        $errmsg = qq{--compiler and --machinename flags are required\n};
+    }
+    elsif ( $opts_ref->{'skip-steps'} and $opts_ref->{'run-steps'} ) {
+        $errmsg = qq{--skip-steps can't be used with --run-steps\n};
+    }
+    if ($errmsg) {
+        warn $errmsg;
+        print $self->_get_help();
         exit 255;    # die's exit code
     }
 
@@ -77,19 +102,26 @@ More Help and Information:
 sub _process_opts {
     my ( $self, $opts_ref ) = @_;
 
-    # add to list of steps to skip - this is to assist in debugging only, not to affect the
-    # flow of the building of ASGS
+    # determine run steps
     if ( $opts_ref->{'skip-steps'} ) {
         for my $step ( split ',', $opts_ref->{'skip-steps'} ) {
             ++$SKIP_STEPS_LIST->{$step};
         }
     }
-
+    elsif ( $opts_ref->{'run-steps'} ) {
+        foreach my $step_ref ( @{ $self->get_steps($opts_ref) } ) {
+            ++$SKIP_STEPS_LIST->{ $step_ref->{key} };
+        }
+        for my $step ( split ',', $opts_ref->{'run-steps'} ) {
+            delete $SKIP_STEPS_LIST->{$step};
+        }
+    }
     return;
 }
 
 sub _run_steps {
     my ( $self, $opts_ref ) = @_;
+    my $start_dir = $opts_ref->{scriptdir};
 
   LIST_STEPS:
     if ( $opts_ref->{'list-steps'} ) {
@@ -101,12 +133,9 @@ sub _run_steps {
         # proceeds no further if --list-steps is used
         return 0;
     }
-
-    my $start_dir = Cwd::getcwd();
-    $opts_ref->{scriptdir} = $start_dir;
   RUN_STEPS:
     foreach my $op ( @{ $self->get_steps($opts_ref) } ) {
-        print $op->{name} . qq{\n} unless $opts_ref->{'update-shell'};
+        print $op->{name} . qq{\n} if defined $opts_ref->{debug};
 
         # start in known location (step pwd can be relative)
         chdir $start_dir;
@@ -121,7 +150,7 @@ sub _run_steps {
         # check for skip condition for run step, unless --force is used
         # if op is contained in --skip-steps list then the step is skipped unconditionally (--force is ignored)
         if ( defined $SKIP_STEPS_LIST->{ $op->{key} } or ( ref $op->{skip_if} eq q{CODE} and $op->{skip_if}->( $op, $opts_ref ) and not $opts_ref->{force} ) ) {
-            print qq{Skipping $op->{name} because 'skip_if' condition has been met.\n};
+            print qq{Skipping $op->{name} because 'skip_if' condition has been met.\n} if defined $opts_ref->{debug};
             next RUN_STEPS;
         }
 
@@ -132,17 +161,17 @@ sub _run_steps {
             die qq{pre condition for "$op->{name}" FAILED, stopping. Please fix and rerun.\n};
         }
 
-        # run command or clean_command (looks for --clean)
+        # run command or clean (looks for --clean)
         my $exit_code = $self->_run_command( $op, $opts_ref );
-        
+
         # always expects a clean exit code (value of 0) from the command, a command that doesn't return one
         # is probably faulty in some way
-        die qq{command for "$op->{name}" exited with an error code of $exit_code, stopping. Please fix and rerun.\n} if ! defined $exit_code or $exit_code > 0;
+        die qq{command for "$op->{name}" exited with an error code of $exit_code, stopping. Please fix and rerun.\n} if !defined $exit_code or $exit_code > 0;
 
         # verify step completed successfully
         # check is skipped if --clean is passed
         if ( $self->_run_postcondition_check( $op, $opts_ref ) ) {
-            print qq{"$op->{name}" was completed successfully\n};
+            print qq{"$op->{name}" was completed successfully\n} if defined $opts_ref->{debug};
         }
         else {
             die qq{post condition for "$op->{name}" FAILED, stopping. Please fix and rerun.\n};
@@ -152,7 +181,7 @@ sub _run_steps {
 }
 
 sub _run_precondition_check {
-    my ( $self, $op, $opts_ref ) = @_; # skips check if --clean or precondition check doesn't exist in step's definition as a CODE ref
+    my ( $self, $op, $opts_ref ) = @_;    # skips check if --clean or precondition check doesn't exist in step's definition as a CODE ref
     return 1
       if $opts_ref->{clean}
       or not ref $op->{precondition_check} eq q{CODE}
@@ -176,27 +205,75 @@ sub _run_postcondition_check {
 sub _install_asgs_shell {
     my ( $self, $opts_ref ) = @_;
 
-    return 1 if $opts_ref->{'list-steps'} or $opts_ref->{clean}; # do not show
- 
+    return 1 if $opts_ref->{'list-steps'} or $opts_ref->{clean};    # do not show
+
     my $install_path = $opts_ref->{'install-path'};
     my $home         = $opts_ref->{home};
     my $machinename  = $opts_ref->{machinename};
     my $compiler     = $opts_ref->{compiler};
     my $scriptdir    = $opts_ref->{scriptdir};
-
     my $env_summary  = $self->_get_env_summary($opts_ref);
 
     my $rcfile_src = q{./cloud/general/DOT-asgs-brew.sh};
-    my $rcfile = qq{$home/.asgs-brew.sh};
+    my $rcfile     = qq{$home/.asgs-brew.sh};
     if ( -e $rcfile_src ) {
-      File::Copy::copy($rcfile_src,$rcfile); 
-    } 
+        File::Copy::copy( $rcfile_src, $rcfile );
+    }
 
     # create/update $install_path/bin/asgsh
-    my $file =  qq{$install_path/bin/asgsh};
+    my $file = qq{$install_path/bin/asgsh};
     open my $fh, q{>}, $file or die qq{failed to create $file: $!};
-    print $fh qq{
-#!/usr/bin/env bash
+    print $fh $self->_get_asgsh( $opts_ref, $rcfile );
+    chmod 0750, $file;
+    close $fh;
+
+    # prints to STDOUT after asgs-brew.pl successfully completes
+    print qq{
+The ASGS shell has been updated.
+
+Quick Start:
+
+   $install_path/bin/asgsh
+
+Recommended Start:
+
+Adding the following line to your $home/.bash_profile file to preserve
+the change on subsequent logins:
+
+   export PATH=\$PATH:$install_path/bin
+
+Source it:
+
+   . $home/.bash_profile
+
+Then run the shell:
+
+   asgsh
+
+NOTE:
+Once this is run, you may assume the above environment is available. This
+can be tested by making sure the exected binaries are in your path, for
+example, `which ncdump` should find the utility in $install_path/bin
+
+To report bugs or request enhancements, please file them at
+
+   https://github.com/jasonfleming/asgs/milestone/19
+
+Happy ASGS'ing.
+
+};
+    return 1;
+}
+
+sub _get_asgsh {
+    my ( $self, $opts_ref, $rcfile ) = @_;
+    my $install_path = $opts_ref->{'install-path'};
+    my $home         = $opts_ref->{home};
+    my $machinename  = $opts_ref->{machinename};
+    my $compiler     = $opts_ref->{compiler};
+    my $scriptdir    = $opts_ref->{scriptdir};
+    my $env_summary  = $self->_get_env_summary($opts_ref);
+    return qq{#!/usr/bin/env bash
 # xxx THIS FILE IS GENERATED BY asgs-brew.pl                                           xxx
 # xxx DO NOT CUSTOMIZE THIS FILE, IT WILL BE OVERWRITTEN NEXT TIME asgs-brew.pl IS RUN xxx
 # 
@@ -228,7 +305,7 @@ echo "    d888b  d88  d888b  d88  d888b  d88  d888b  d88  d888b  d88  d888b  d88
 echo "   d888888888P d888888888P d888888888P d888888888P d888888888P d888888888P d888888888P"
 echo "   88P  Y888P  88P  Y888P  88P  Y888P  88P  Y888P  88P  Y888P  88P  Y888P  88P  Y888P"
 echo
-if [ "\${1}" = "--no-platform" ]; then
+if [ "\${1-x}" = "--no-platform" ]; then
   echo "skipping the loading platform.sh and properties.sh ..." 
 else
   echo initializing...
@@ -267,27 +344,6 @@ exec bash --rcfile "$rcfile"
 # xxx THIS FILE IS GENERATED BY asgs-brew.pl                                           xxx
 # xxx DO NOT CUSTOMIZE THIS FILE, IT WILL BE OVERWRITTEN NEXT TIME asgs-brew.pl IS RUN xxx
 };
-    chmod 0750, $file;
-    close $fh;
-
-    # prints to STDOUT after asgs-brew.pl successfully completes
-    print qq{
-To use the environment in your interactive shell, type the command:
-
-   $install_path/bin/asgsh
-
-Once this is run, you may assume the above environment is available. This
-can be tested by making sure the exected binaries are in your path, for
-example, `which ncdump` should find the utility in $install_path/bin
-
-Adding the following line to your $home/.bash_profile file will make the interactive
-environment available in your PATH:
-
-   export PATH=\$PATH:$install_path/bin
-
-};
-
-    return 1;
 }
 
 sub _run_command {
@@ -296,15 +352,28 @@ sub _run_command {
     my $install_path = $opts_ref->{'install-path'};
 
     # choose command to run
-    my $command = ( not $opts_ref->{clean} ) ? $op->{command} : $op->{clean_command};
+    my $command = ( not $opts_ref->{clean} ) ? $op->{command} : $op->{clean};
 
+    # short circuit if command is not defined
     return 0 if not defined $command;
 
-    local $| = 1;
-    local $?;
-    print qq{\n$command\n};
-    system("$command 2>&1");
-    my $exit_code = ($? >> 8); # captures child process exit code
+    # choose how to run it
+    my $type = ref $command;
+
+    # supports both string commands (run via system) and anonymous subroutines
+    my $exit_code = 0;
+    if ( q{CODE} eq $type ) {
+        local $@;
+        my $ret = eval { $command->( $op, $opts_ref ); 1 };
+        $exit_code = !defined $ret;    # expecting POSIX style code where 0 is success, non-zero is an error
+    }
+    elsif ( q{} eq $type ) {
+        local $| = 1;
+        local $?;
+        print qq{\n$command\n};
+        system("$command 2>&1");
+        $exit_code = ( $? >> 8 );      # captures child process exit code
+    }
 
     return $exit_code;
 }
@@ -313,13 +382,13 @@ sub _get_env_summary {
     my ( $self, $opts_ref ) = @_;
 
     return undef if $opts_ref->{clean};
-    print qq{\n\n#Summary of updated environmental variables:\n};
+
     my $summary = q{};
     foreach my $envar ( keys %$AFFECTED_ENV_VARS ) {
         $summary .= sprintf( qq{export %s=%s\n}, $envar, $ENV{$envar} );
     }
 
-    return $summary;;
+    return $summary;
 }
 
 sub _setup_ENV {
@@ -358,35 +427,36 @@ sub get_steps {
 
     my $steps = [
         {
-            key           => q{setup-env},
-            name          => q{Initializes common environmental variables needed for subsequent steps in asgs-brew.pl.},
-            description   => q{Updates current environment with variables needed for subsequent steps. It only affects the environment within the asgs-brew.pl environment.},
-            pwd           => q{./},
-            command       => qq{echo Setting up environmental variables...},
-            clean_command => qq{rm -vf $install_path/bin/asgsh # removes asgs shell wrapper},
+            key         => q{setup-env},
+            name        => q{Initializes common environmental variables needed for subsequent steps in asgs-brew.pl.},
+            description => q{Updates current environment with variables needed for subsequent steps. It only affects the environment within the asgs-brew.pl environment.},
+            pwd         => q{./},
+            command     => sub { 1 },
+            clean       => qq{rm -vf $install_path/bin/asgsh # removes asgs shell wrapper},
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                PATH            => { value => qq{$install_path/bin},       how => q{prepend} },
-                LIBRARY_PATH    => { value => qq{$install_path/lib},       how => q{prepend} },
-                LD_LIBRARY_PATH => { value => qq{$install_path/lib},       how => q{prepend} },
-                LD_INCLUDE_PATH => { value => qq{$install_path/include},   how => q{prepend} },
-                MACHINENAME     => { value => qq{$machinename},            how => q{replace} },
-                ADCCOMPILER     => { value => qq{$compiler},               how => q{replace} },
-                SCRIPTDIR       => { value => qq{$scriptdir},              how => q{replace} },
-                PERL5LIB        => { value => qq{$scriptdir/PERL},         how => q{append}  },
+                PATH            => { value => qq{$install_path/bin},     how => q{prepend} },
+                LIBRARY_PATH    => { value => qq{$install_path/lib},     how => q{prepend} },
+                LD_LIBRARY_PATH => { value => qq{$install_path/lib},     how => q{prepend} },
+                LD_RUN_PATH     => { value => qq{$install_path/lib},     how => q{prepend} },
+                LD_INCLUDE_PATH => { value => qq{$install_path/include}, how => q{prepend} },
+                MACHINENAME     => { value => qq{$machinename},          how => q{replace} },
+                ADCCOMPILER     => { value => qq{$compiler},             how => q{replace} },
+                SCRIPTDIR       => { value => qq{$scriptdir},            how => q{replace} },
+                PERL5LIB        => { value => qq{$scriptdir/PERL},       how => q{append} },
             },
             skip_if             => sub { 0 },    # if true and --force is not used, unilaterally skips the run step
             precondition_check  => sub { 1 },    # just a "1" indicates no checking is done
             postcondition_check => sub { 1 },
         },
         {
-            key           => q{openmpi},
-            name          => q{Step for OpenMPI 1.8.1 for gfortran},
-            description   => q{Downloads and builds OpenMPI on all platforms for ASGS. Note: gfortran is required, so any compiler option causes this step to be skipped.},
-            pwd           => q{./cloud/general},
-            command       => qq{bash init-openmpi.sh $install_path $compiler $makejobs},
-            clean_command => qq{bash init-openmpi.sh $install_path clean},
+            key         => q{openmpi},
+            name        => q{Step for OpenMPI 1.8.1 for gfortran},
+            description => q{Downloads and builds OpenMPI on all platforms for ASGS. Note: gfortran is required, so any compiler option causes this step to be skipped.},
+            pwd         => q{./cloud/general},
+            command     => qq{bash init-openmpi.sh $install_path $compiler $makejobs},
+            clean       => qq{bash init-openmpi.sh $install_path clean},
 
             # augment existing %ENV (cumulative)
             export_ENV => {
@@ -400,23 +470,23 @@ sub get_steps {
                 my ( $op, $opts_ref ) = @_;
                 my $bin          = qq{$opts_ref->{'install-path'}/$compiler/bin};
                 my $ok           = 1;
-                my @mpi_binaries = ( qw/mpiCC mpic++ mpicc mpicxx mpiexec mpif77 mpif90 mpifort mpirun ompi-clean ompi-ps ompi-server ompi-top ompi_info opal_wrapper orte-clean orte-info orte-ps orte-server orte-top ortecc orted orterun/);
+                my @mpi_binaries = (qw/mpiCC mpic++ mpicc mpicxx mpiexec mpif77 mpif90 mpifort mpirun ompi-clean ompi-ps ompi-server ompi-top ompi_info opal_wrapper orte-clean orte-info orte-ps orte-server orte-top ortecc orted orterun/);
                 map { $ok = -e qq[$bin/$_] && $ok } @mpi_binaries;
                 return $ok;
             },
         },
         {
-            key           => q{hdf5},
-            name          => q{Step for HDF5 libraries and utilities},
-            description   => q{Downloads and builds the version of HDF5 that has been tested to work on all platforms for ASGS.},
-            pwd           => q{./cloud/general},
-            command       => qq{bash init-hdf5.sh $install_path $compiler $makejobs},
-            clean_command => qq{bash init-hdf5.sh $install_path clean},
+            key         => q{hdf5},
+            name        => q{Step for HDF5 libraries and utilities},
+            description => q{Downloads and builds the version of HDF5 that has been tested to work on all platforms for ASGS.},
+            pwd         => q{./cloud/general},
+            command     => qq{bash init-hdf5.sh $install_path $compiler $makejobs},
+            clean       => qq{bash init-hdf5.sh $install_path clean},
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                CPPFLAGS        => { value => qq{-I$install_path/include}, how => q{replace} },
-                LDFLAGS         => { value => qq{-L$install_path/lib},     how => q{replace} },
+                CPPFLAGS => { value => qq{-I$install_path/include}, how => q{append} },
+                LDFLAGS  => { value => qq{-L$install_path/lib},     how => q{append} },
             },
             skip_if            => sub { 0 },    # if true and --force is not used, unilaterally skips the run step
             precondition_check => sub { 1 },    # just a "1" indicates no checking is done
@@ -429,17 +499,17 @@ sub get_steps {
             },
         },
         {
-            key           => q{netcdf4},
-            name          => q{Step for NetCDF4 libraries and utilities},
-            description   => q{Downloads and builds the versions of NetCDF and NetCFD-Fortran that have been tested to work on all platforms for ASGS.},
-            pwd           => q{./cloud/general},
-            command       => qq{bash init-netcdf4.sh $install_path $compiler $makejobs},
-            clean_command => qq{bash init-netcdf4.sh $install_path clean},
+            key         => q{netcdf4},
+            name        => q{Step for NetCDF4 libraries and utilities},
+            description => q{Downloads and builds the versions of NetCDF and NetCFD-Fortran that have been tested to work on all platforms for ASGS.},
+            pwd         => q{./cloud/general},
+            command     => qq{bash init-netcdf4.sh $install_path $compiler $makejobs},
+            clean       => qq{bash init-netcdf4.sh $install_path clean},
 
             # Note: uses environment set by setup-env step above
             # augment existing %ENV (cumulative)
             export_ENV => {
-                NETCDFHOME      => { value => qq{$install_path},           how => q{replace} },
+                NETCDFHOME => { value => qq{$install_path}, how => q{replace} },
             },
             skip_if            => sub { 0 },    # if true and --force is not used, unilaterally skips the run step
             precondition_check => sub {         # requires HDF5, so the precondition here is the same as the post condition of the hdf5 step above
@@ -464,8 +534,8 @@ sub get_steps {
             pwd         => q{./},
 
             # -j > 1 breaks this makefile
-            command             => qq{make clean && make -j 1 NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=gfortran},
-            clean_command       => q{make clean},
+            command             => qq{make -j 1 NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=gfortran},
+            clean               => q{make clean},
             skip_if             => sub { 0 },
             precondition_check  => sub { 1 },
             postcondition_check => sub { my ( $op, $opts_ref ) = @_; return -e qq{./wgrib2}; },
@@ -475,8 +545,8 @@ sub get_steps {
             name                => q{Step for in output/cpra_postproc},
             description         => q{Runs the makefile and builds associated utilities in the output/cpra_postproc directory},
             pwd                 => q{./output/cpra_postproc},
-            command             => qq{make clean && make -j $makejobs NETCDF_CAN_DEFLATE=enable NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
-            clean_command       => q{make clean},
+            command             => qq{make -j $makejobs NETCDF_CAN_DEFLATE=enable NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
+            clean               => q{make clean},
             skip_if             => sub { 0 },
             precondition_check  => sub { 1 },
             postcondition_check => sub { my ( $op, $opts_ref ) = @_; return -e qq{./FigureGen}; },
@@ -488,8 +558,8 @@ sub get_steps {
             pwd         => q{./output},
 
             # -j > 1 breaks this makefile
-            command             => qq{make clean && make -j 1 NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
-            clean_command       => q{make clean},
+            command             => qq{make -j 1 NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
+            clean               => q{make clean},
             skip_if             => sub { 0 },
             precondition_check  => sub { 1 },
             postcondition_check => sub {
@@ -502,8 +572,8 @@ sub get_steps {
             name                => q{Step for in util/},
             description         => q{Runs the makefile and builds all associated utilities in the util/ directory.},
             pwd                 => q{./util},
-            command             => qq{make clean && make -j $makejobs NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
-            clean_command       => q{make clean},
+            command             => qq{make -j $makejobs NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
+            clean               => q{make clean},
             skip_if             => sub { 0 },
             precondition_check  => sub { 1 },
             postcondition_check => sub { my ( $op, $opts_ref ) = @_; return -e qq{./makeMax.x}; },
@@ -513,8 +583,8 @@ sub get_steps {
             name                => q{Step for in util/input/mesh},
             description         => q{Runs the makefile and builds all associated util/input/mesh in the util/ directory.},
             pwd                 => qq{./util/input/mesh},
-            command             => qq{make clean && make -j $makejobs NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
-            clean_command       => q{make clean},
+            command             => qq{make -j $makejobs NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
+            clean               => q{make clean},
             skip_if             => sub { 0 },
             precondition_check  => sub { 1 },
             postcondition_check => sub {
@@ -529,24 +599,24 @@ sub get_steps {
             pwd         => q{./util/input/nodalattr},
 
             # -j > 1 breaks this makefile
-            command             => qq{make clean && make -j 1 NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
-            clean_command       => q{make clean},
+            command             => qq{make -j 1 NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
+            clean               => q{make clean},
             skip_if             => sub { 0 },
             precondition_check  => sub { 1 },
             postcondition_check => sub { my ( $op, $opts_ref ) = @_; return -e qq{./convertna.x}; },
         },
         {
-            key           => q{perlbrew},
-            name          => q{Step for perlbrew and perl for ASGS},
-            description   => q{Installs local Perl version used for ASGS.},
-            pwd           => q{./},
-            command       => q{bash ./cloud/general/init-perlbrew.sh},
-            clean_command => q{bash ./cloud/general/init-perlbrew.sh clean},
+            key         => q{perl},
+            name        => q{Step for perlbrew and perl for ASGS using perlbrew},
+            description => q{Installs local Perl version used for ASGS.},
+            pwd         => q{./},
+            command     => q{bash ./cloud/general/init-perlbrew.sh},
+            clean       => q{bash ./cloud/general/init-perlbrew.sh clean},
 
             # augment existing %ENV (cumulative) - this assumes that perlbrew is installed in $HOME and we're
             # using perl-5.28.2
             export_ENV => {
-                PATH             => { value => qq{$home/perl5/perlbrew/perls/perl-5.28.2/bin},                          how => q{prepend} },
+                PATH             => { value => qq{$home/perl5/perlbrew/bin:$home/perl5/perlbrew/perls/perl-5.28.2/bin}, how => q{prepend} },
                 PERLBREW_PERL    => { value => q{perl-5.28.2},                                                          how => q{replace} },
                 PERLBREW_MANPATH => { value => qq{$home/perl5/perlbrew/perls/perl-5.28.2/man},                          how => q{prepend} },
                 PERLBREW_PATH    => { value => qq{$home/perl5/perlbrew/bin:$home/perl5/perlbrew/perls/perl-5.28.2/bin}, how => q{prepend} },
@@ -563,44 +633,52 @@ sub get_steps {
         {
             key                 => q{perl-modules},
             name                => q{Step for installing required Perl modules},
-            description         => q{Installs local Perl modules used for ASGS.},
+            description         => q{Installs Perl modules used for ASGS.},
             pwd                 => q{./},
             command             => q{bash ./cloud/general/init-perl-modules.sh},
-            clean_command       => q{},
+            clean               => sub { my $op = shift; print qq{No explicit clean step for, $op->{name}\n} },
             precondition_check  => sub { return ( -e qq{$home/perl5/perlbrew/perls/perl-5.28.2/bin/perl} ) ? 1 : 0 },
-            postcondition_check => sub { 
+            postcondition_check => sub {
                 local $?;
                 system(qq{prove $home/asgs/cloud/general/t/verify-perl-modules.t 2>&1});
+
                 # look for zero exit code on success
-                my $exit_code = ($? >> 8);
-                return (defined $exit_code and $exit_code == 0) ? 1 : 0;
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
             },
         },
         {
             key         => q{python},
-            name        => q{Install Python modules},
-            description => q{Uses `pip` and system python to install: pika, netCDF4, and python-pptx python modules.},
+            name        => q{Step for installing Python 2.7.17 and required modules},
+            description => q{Install Python 2.7.17 locally and install required modules},
             pwd         => q{./},
-            command             => q{pip install --user pika; pip install --user netCDF4; pip install --user python-pptx}, 
-            clean_command       => q{echo there is no clean command for this step},
+            command     => qq{bash ./cloud/general/init-python.sh install $install_path},
+
+            # todo: make --clean accept sub refs
+            clean      => qq{bash ./cloud/general/init-python.sh clean $install_path},
+            export_ENV => {
+                PYTHONPATH => { value => qq{$install_path/python/2.7.17},                      how => q{replace} },
+                PATH       => { value => qq{$install_path/python/2.7.17/bin:$home/.local/bin}, how => q{prepend} },
+            },
             skip_if             => sub { 0 },
-            precondition_check  => sub { 1 }, # for now, assuming success; should have a simple python script that attempts to load all of these modules
-            postcondition_check => sub { 
+            precondition_check  => sub { 1 },    # for now, assuming success; should have a simple python script that attempts to load all of these modules
+            postcondition_check => sub {
                 local $?;
                 system(qq{$home/asgs/cloud/general/t/verify-python-modules.py 2>&1});
+
                 # look for zero exit code on success
-                my $exit_code = ($? >> 8);
-                return (defined $exit_code and $exit_code == 0) ? 1 : 0;
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
             },
         },
         {
-            key         => q{adcirc},
-            name        => q{Build ADCIRC and SWAN},
-            description => q{Builds ADCIRC and SWAN if $HOME/adcirc-cg exists.},
-            pwd         => qq{./},
-            command             => q{bash cloud/general/init-adcirc.sh}, 
-            clean_command       => q{bash cloud/general/init-adcirc.sh clean},
-            skip_if             => sub { -e qq{$home/adcirc-cg/work/padcirc} },
+            key                 => q{adcirc},
+            name                => q{Build ADCIRC and SWAN},
+            description         => q{Builds ADCIRC and SWAN if $HOME/adcirc-cg exists.},
+            pwd                 => qq{./},
+            command             => q{bash cloud/general/init-adcirc.sh},
+            clean               => q{bash cloud/general/init-adcirc.sh clean},
+            skip_if             => sub { 0 },
             precondition_check  => sub { 1 },
             postcondition_check => sub { -e qq{$home/adcirc-cg/work/padcirc} },
         },
@@ -641,7 +719,7 @@ makefiles:
 
 Note: C<--install-path> defaults to $HOME/opt.
 
-There is also a "clean" mode that will invoke the C<clean_command> for any
+There is also a "clean" mode that will invoke the C<clean> for any
 step that defines it:
 
     ./asgs-brew.pl --clean
@@ -657,7 +735,7 @@ added so far.
 
 =item C<--clean>
 
-For each step, only the C<clean_command> (if defined) is run and then the
+For each step, only the C<clean> (if defined) is run and then the
 script quits. The purpose of this is to provide access to the the C<clean>
 target that makefiles generally provide, but any command can be specificed
 in the step definition.
@@ -676,15 +754,30 @@ This flag is for really for debugging so that one may target a specific step,
 it is not meant for the general run case of building up the ASGS environment;
 asgs-brew.pl is meant to be run fully. It accepts a comma delimited list
 of run step keys (no spaces) to skip. For example, if one wished to skip
-the C<perlbrew>, C<openmpi>, and C<hdf5-netcdf> steps and begin with the
+the C<perl>, C<openmpi>, and C<hdf5-netcdf> steps and begin with the
 C<wgrib2> step - but continue through the rest of the list, the flag would
 be specificed as,
 
-   --skip-steps=perlbrew,openmpi,hdf5-netcdf
+   --skip-steps=perl,openmpi,hdf5-netcdf
 
-To get the list of keys, use the C<--list-keys> option.
+To get the list of keys, use the C<--list-keys> option. This option is not
+compaitble with C<--run-steps>. C<--force> overrides it.
 
-=item C<--update-shell>
+=item C<--run-steps>
+
+This flag is for really for debugging so that one may target a specific step,
+it is not meant for the general run case of building up the ASGS environment;
+asgs-brew.pl is meant to be run fully. It accepts a comma delimited list
+of run step keys (no spaces) to run. For example, if one wished to run
+the C<perl>, C<openmpi>, and C<hdf5-netcdf> steps, then the flag would be
+specified as,
+
+   --run-steps=perl,openmpi,hdf5-netcdf
+
+To get the list of keys, use the C<--list-keys> option. This option is not
+compatibale with C<--skip-steps>. C<--force> overrides it.
+
+=item C<--setup-env>
 
 Runs through each step, but only sets up the environment that is specified
 (if it is specified).  It then prints to STDOUT the list of variables and
@@ -693,7 +786,8 @@ their values in a way that is suitable to be used in a bash script.
 =item C<--force>
 
 If used, the C<skip_if> defined for a step (if defined) is not
-run. C<--skip-steps> is checked before C<--force> and therefore overrides it.
+run. C<--skip-steps> dn C<--run-steps> are checked before C<--force> and
+therefore overrides them.
 
 =item C<--home>
 
@@ -726,6 +820,10 @@ Provides a way to specify the the level of concurrency one may use with
 a makefile when defining the command in a step. Some makefiles are not
 properly able to use this option, so it is optionally used when defining
 the step command itself.
+
+=item C<--debug>
+
+Provides debugging output for various options.
 
 =back
 
@@ -814,6 +912,12 @@ of asgs-brew.pl, but the general rule of thumb should be that the options be
 kept to a minimum. Most of the complexity associated with a step should be
 hidden within the step's makefile, script, or program supporting the command.
 
+A command can either be a string, which is evaluated using the C<system> command;
+or it can be an anonymous subroutine. In this case, when the reference is
+called it will be pased a reference of the step's fully defined hash and
+all options and tracked internal information that is tracked in the code with
+the C<$opts_ref> varable (inspect asgs-brew.pl's code to see this).
+
 =item C<export_ENV>
 
 Environmental variables affect a great number of things in this space, so it
@@ -832,9 +936,11 @@ which variables to update, with what value, and how.
 Options for C<how> include: C<prepend> (default if not defined), C<append>,
 and C<replace>.
 
-=item C<clean_command>
+=item C<clean>
 
-Defines the command used to C<clean> a directory tree.
+Defines the command used to C<clean> a directory tree. As with C<command>, this
+can be either a string or a subroutine reference. See C<command> information
+above for more details.
 
 =item C<skip_if>
 
