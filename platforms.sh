@@ -609,7 +609,7 @@ init_lonestar5()
 { #<- can replace the following with a custom script
   THIS="platforms.sh>env_dispatch()>init_lonestar5()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=ls5.tacc.utexas.edu
+  HPCENV=lonestar5.tacc.utexas.edu
   QUEUESYS=SLURM
   QUEUENAME=normal # same as SLURM partition
   SERQUEUE=normal
