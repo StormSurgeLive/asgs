@@ -10,6 +10,7 @@ if [ ! -e $HOME/perl5/perlbrew/bin/cpanm ]; then
 fi
 
 echo Installing Perl modules required for ASGS
+cpanm install --notest Date::Format  # due to this failing test https://rt.cpan.org/Public/Bug/Display.html?id=124509
 for module in $(cat ./PERL-MODULES); do
   cpanm install $module || exit 1 # forces script to exit with error, asgs-brew.pl will catch and report this
 done
