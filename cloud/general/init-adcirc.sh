@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # meant to be run under the asgs-brew.pl environment
 

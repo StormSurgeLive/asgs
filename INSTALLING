@@ -1,0 +1,20 @@
+Quick Start:
+
+Run,
+
+./init-asgs.sh
+
+Notes:
+
+./init-asgs.sh is a wrapper script around ./cloud/general/asgs-brew.pl
+that guides a user through a few questions. It concludes by asking the
+user if they wish to run asgs-brew.pl. If the user selects "y", then
+./cloud/general/asgs-brew.pl is executed using the required flags with
+the designated values.
+
+asgs-brew.pl will build all required untilities, install perl locally
+using perlbrew, install python 2.7.17 locally, then provide a shell
+wrapper to the ASGS environment via the asgsh shell.
+
+Once asgs-brew.pl is completed successfully, it will output the simple
+instructions used to run asgsh for the first time.
