@@ -94,7 +94,6 @@ use strict;
 
 #  you'll need these mapping modules if you want to use the coordinate convertion
 #  capabilities -- this is not fully implemented yer 
-#use lib 'c:/myPerl';
 #use Mapping::UTMconvert;  # for the subroutine to conrvet cordinates
 #use Mapping::P_spcs83;    #
 

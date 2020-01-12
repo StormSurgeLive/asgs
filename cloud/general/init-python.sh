@@ -1,12 +1,15 @@
 #!/bin/bash
 
 ACTION=${1-install}
-OPT=${2-$HOME/opt}
+
+#Note: PYTHONPATH is defined in the environment
+OPT=${2-$PYTHONPATH}
 PYTHON_VERSION=2.7.17
+
 TMP=$HOME/tmp
 
 if [ "$ACTION" == "clean" ]; then
-  rm -rfv /home/estrabd/opt/python/2.7.17 $HOME/.local
+  rm -rfv $OPT/python/2.7.17 $HOME/.local
   rm -rfv $PYTHONPATH
   echo
   echo Run again without clean flag to install
