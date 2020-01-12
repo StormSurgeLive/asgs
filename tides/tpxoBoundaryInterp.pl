@@ -53,7 +53,6 @@
 use strict;
 use warnings;
 
-use lib '/home/nate/myPerl'; # this needs to point to the directory
 use AdcGrid;                     # that contains the AdcGrid.pm module   !!!!
 use Getopt::Long;
 

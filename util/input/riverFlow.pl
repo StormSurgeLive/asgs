@@ -56,7 +56,6 @@
 #
 use strict;
 use warnings;
-#use lib 'c:/myPerl';
 use AdcGrid;
 use Getopt::Long; 
 
