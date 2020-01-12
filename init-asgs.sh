@@ -44,7 +44,7 @@ if [ -z "$repo" ]; then
   repo=master
 fi
 
-cd ./asgs
+cd ./asgs 2> /dev/null
 
 if [ "$repo" != "." ]; then
   git checkout $repo 
@@ -70,17 +70,23 @@ if [ $? -gt 0 ]; then
   exit 1
 fi
 
-read -p "Where do want to install libraries and some utilities? [$HOME/opt] "
+read -p "Where do want to install libraries and some utilities? [$HOME/opt] " installdir
 
 if [ -z "$installdir" ]; then
   installdir=$HOME/opt
+fi
+
+read -p "What is a short name you'd like to use to name the asgsh profile associated with this installation? [default] " profile
+
+if [ -z "$profile" ]; then
+  profile=$$
 fi
 
 echo Bootstrapping ASGS for installation...
 env_dispatch $platform
 
 # $MAKEJOBS is defined in platforms.sh
-cmd="./cloud/general/asgs-brew.pl --install-path=$installdir --compiler=$compiler --machinename=$platform --make-jobs=$MAKEJOBS"
+cmd="./cloud/general/asgs-brew.pl --install-path=$installdir --profile=$profile --compiler=$compiler --machinename=$platform --make-jobs=$MAKEJOBS"
 
 echo
 echo $cmd

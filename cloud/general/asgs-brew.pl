@@ -37,7 +37,7 @@ Usage:
 
 Required Flags:
 
-    --compiler, --machinename
+    --compiler, --machinename, --profile
 
 Reset asgsh with clean environment:
 
@@ -61,8 +61,8 @@ sub run {
         compiler       => q{gfortran},
         'install-path' => qq{$HOME/opt},
         home           => $HOME,
+        profile        => q{default},
         'make-jobs'    => 1,
-
     };
 
     my $start_dir = Cwd::getcwd();
@@ -71,7 +71,7 @@ sub run {
     local $@;
     my $ret = Getopt::Long::GetOptionsFromArray(
         $args_ref, $opts_ref,
-        q{clean}, q{compiler=s}, q{skip-steps=s}, q{update-shell}, q{force}, q{home}, q{install-path=s}, q{list-steps}, q{machinename=s}, q{make-jobs=i}, q{run-steps=s}, q{debug},
+        q{clean}, q{compiler=s}, q{skip-steps=s}, q{update-shell}, q{force}, q{home}, q{install-path=s}, q{list-steps}, q{machinename=s}, q{make-jobs=i}, q{run-steps=s}, q{debug}, q{profile=s},
     );
 
     my $errmsg;
@@ -84,10 +84,20 @@ sub run {
     elsif ( $opts_ref->{'skip-steps'} and $opts_ref->{'run-steps'} ) {
         $errmsg = qq{--skip-steps can't be used with --run-steps\n};
     }
+
     if ($errmsg) {
         warn $errmsg;
         print $self->_get_help();
         exit 255;    # die's exit code
+    }
+
+    # check for profile name
+    if ( $opts_ref->{profile} eq q{default} ) {
+        warn qq{--profile is not set, using "default" as asgsh profile name};
+    }
+    # if --profile is set, append it to $install_path for managing different ASGS installations
+    else {
+        $opts_ref->{'install-path'} = sprintf("%s/%s",$opts_ref->{'install-path'}, $opts_ref->{profile}); 
     }
 
     $self->_process_opts($opts_ref);    # additional processing of options
@@ -212,7 +222,19 @@ sub _install_asgs_shell {
     my $machinename  = $opts_ref->{machinename};
     my $compiler     = $opts_ref->{compiler};
     my $scriptdir    = $opts_ref->{scriptdir};
+    my $profile      = $opts_ref->{profile};
     my $env_summary  = $self->_get_env_summary($opts_ref);
+
+    # create the registry for ASGS profiles if it doesn't 
+    # already exist
+    if ( ! -e qq{$home/.asgs} ) {
+      mkdir qq{$home/.asgs}
+    }
+    # dump the full environment into a named profile
+    # NOTE: overwrites anything that is there of the name
+    open my $fh, q{>}, qq{$home/.asgs/$profile} || die $!;
+    print $fh $env_summary;
+    close $fh;
 
     my $rcfile_src = q{./cloud/general/DOT-asgs-brew.sh};
     my $rcfile     = qq{$home/.asgs-brew.sh};
@@ -220,9 +242,13 @@ sub _install_asgs_shell {
         File::Copy::copy( $rcfile_src, $rcfile );
     }
 
-    # create/update $install_path/bin/asgsh
-    my $file = qq{$install_path/bin/asgsh};
-    open my $fh, q{>}, $file or die qq{failed to create $file: $!};
+    # create/update $home/bin/asgsh
+    my $home_bin = qq{$home/bin};
+    if ( ! -e qq{$home_bin} ) {
+      mkdir qq{$home_bin};
+    }
+    my $file = qq{$home_bin/asgsh};
+    open $fh, q{>}, $file or die qq{failed to create $file: $!};
     print $fh $self->_get_asgsh( $opts_ref, $rcfile );
     chmod 0750, $file;
     close $fh;
@@ -233,14 +259,14 @@ The ASGS shell has been updated.
 
 Quick Start:
 
-   $install_path/bin/asgsh
+   $file
 
 Recommended Start:
 
 Adding the following line to your $home/.bash_profile file to preserve
 the change on subsequent logins:
 
-   export PATH=\$PATH:$install_path/bin
+   export PATH=\$PATH:$home_bin
 
 Source it:
 
@@ -652,14 +678,14 @@ sub get_steps {
             name        => q{Step for installing Python 2.7.17 and required modules},
             description => q{Install Python 2.7.17 locally and install required modules},
             pwd         => q{./},
-            command     => qq{bash ./cloud/general/init-python.sh install $install_path},
-
-            # todo: make --clean accept sub refs
-            clean      => qq{bash ./cloud/general/init-python.sh clean $install_path},
-            export_ENV => {
-                PYTHONPATH => { value => qq{$install_path/python/2.7.17},                      how => q{replace} },
-                PATH       => { value => qq{$install_path/python/2.7.17/bin:$home/.local/bin}, how => q{prepend} },
+            export_ENV  => {
+                # putting this in $HOME/python27/asgs/build reflects what perlbrew's default
+                # behavior is doing by putting perl into $HOME/perl5/perlbrew/build/perl-$version
+                PYTHONPATH => { value => qq{$home/python27/asgs/build/python-2.7.17},                      how => q{replace} },
+                PATH       => { value => qq{$home/python27/asgs/build/python-2.7.17/bin:$home/.local/bin}, how => q{prepend} },
             },
+            command     => qq{bash ./cloud/general/init-python.sh install},
+            clean       => qq{bash ./cloud/general/init-python.sh clean},
             skip_if             => sub { 0 },
             precondition_check  => sub { 1 },    # for now, assuming success; should have a simple python script that attempts to load all of these modules
             postcondition_check => sub {
