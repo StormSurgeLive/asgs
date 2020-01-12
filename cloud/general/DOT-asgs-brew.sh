@@ -281,6 +281,7 @@ load() {
       return
   esac
 }
+load default
 
 # when started, ASGS Shell loads the 'default' profile, this can be made variable at some point
 load profile default

@@ -80,7 +80,6 @@ if [ $? -gt 0 ]; then
   exit 1
 fi
 
-
 _default_installdir=$HOME/opt
 if [ -n "$WORK" ]; then
   _default_installdir=$WORK/opt

@@ -82,7 +82,6 @@ sub run {
 
     # initial defaults (more are set dynamically after Getopts, in _munge_option_defaults)
     my $opts_ref = {
-
         # note: 'adcirc-dir' is finalized in _parse_options after ASGS_HOME is determined
         'adcirc-git-branch' => q{v53release},
         'adcirc-git-url'    => q{git@github.com:adcirc},
