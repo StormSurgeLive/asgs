@@ -66,18 +66,6 @@ if [ ! -e "$HOME/perl5/perlbrew/perls/$PERL_VERSION/bin/perl" ]; then
   exit
 fi
 
-echo setting perl-5.28.2 as default perl on next login
-perlbrew switch $PERL_VERSION 
-
-# add to $HOME/.bash_profile, only once
-if [ ! -e "$HOME/.bash_profile" ] || [ 0 -eq "$(grep -c perlbrew $HOME/.bash_profile)" ]; then
-  echo "source ~/perl5/perlbrew/etc/bashrc" >> ~/.bash_profile
-fi
-
-echo You need to run the following command to get access to the
-echo new perl that was installed:
 echo
-echo    . ~/.bash_profile
-echo
-echo Or you can logout and log back in.
+echo The installed perl will be available through asgsh, the ASGS Shell
 echo

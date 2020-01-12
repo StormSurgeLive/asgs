@@ -182,6 +182,7 @@ load() {
     echo no saved profile found
   fi
 }
+load default
 
 _parse_config() {
   if [ ! -e "${1}" ]; then
