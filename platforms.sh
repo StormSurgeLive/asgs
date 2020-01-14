@@ -677,7 +677,6 @@ writeTDSProperties()
    SERVER=$1
    CATALOGPREFIX=""    # after thredds/catalog
    DOWNLOADPREFIX=""   # after thredds/fileServer
-   OPENDAPUSER=$operator
    OPENDAPMAILSERVER=mailx  # this is the local default mail server executable on the HPC
    case $SERVER in
    "renci_tds")
@@ -685,16 +684,12 @@ writeTDSProperties()
       # http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
       # http://tds.renci.org:8080/thredds/dodsC/     DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
       # http://tds.renci.org:8080/thredds/catalog/                   tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/catalog.html
-      OPENDAPHOST=ht4.renci.org
-      THREDDSHOST=tds.renci.org
+      THREDDSHOST=tds.renci.org # WWW hostname for emailed links
+      OPENDAPHOST=renci_tds     # alias in $HOME/.ssh/config
       OPENDAPPORT=":8080"
       OPENDAPBASEDIR=/projects/ncfs/opendap/data
-      SSHPORT=22
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : ( hatteras )" >> run.properties
-      if [[ $operator = jgflemin ]]; then
-         OPENDAPUSER=ncfs
-      fi
       #DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/"
       #CATALOGPREFIX="http://tds.renci.org:8080/thredds/DataLayers/asgs/"
       #OPENDAPBASEDIR=/projects/ees/DataLayers/asgs/
@@ -702,30 +697,22 @@ writeTDSProperties()
 
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU
    "lsu_tds") 
-      OPENDAPHOST=fortytwo.cct.lsu.edu
-      THREDDSHOST=$OPENDAPHOST
+      THREDDSHOST=fortytwo.cct.lsu.edu
+      OPENDAPHOST=lsu_tds
       OPENDAPPORT=":443"
       OPENDAPBASEDIR=/data/opendap
-      SSHPORT=2525
-      if [[ $USER = "ncfs" || $USER = "jgflemin" ]]; then
-         OPENDAPUSER="jgflemin"
-      fi
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> run.properties
       ;;
 
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU Center for Coastal Resiliency
    "lsu_ccr_tds")
-      OPENDAPHOST=chenier.cct.lsu.edu
-      THREDDSHOST=$OPENDAPHOST
+      THREDDSHOST=chenier.cct.lsu.edu # WWW hostname for emailed links
+      OPENDAPHOST=lsu_ccr_tds         # alias in $HOME/.ssh/config
       OPENDAPPORT=":8080"
       CATALOGPREFIX=/asgs/ASGS-2019
       DOWNLOADPREFIX=/asgs/ASGS-2019
       OPENDAPBASEDIR=/data/thredds/ASGS/ASGS-2019
-      SSHPORT=2525
-      if [[ $USER = "ncfs" || $USER = "jgflemin" ]]; then
-         OPENDAPUSER="jgflemin"
-      fi
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> run.properties
       ;;
@@ -733,16 +720,12 @@ writeTDSProperties()
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at Texas
    # Advanced Computing Center (TACC)
    "tacc_tds")
-      OPENDAPHOST=adcircvis.tacc.utexas.edu
-      THREDDSHOST=$OPENDAPHOST
+      THREDDSHOST=adcircvis.tacc.utexas.edu # WWW hostname for emailed links
+      OPENDAPHOST=tacc_tds                  # alias in $HOME/.ssh/config
       OPENDAPPORT=":8080"
       DOWNLOADPREFIX=/asgs
       CATALOGPREFIX=/asgs
       OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
-      SSHPORT=null
-      if [[ $USER = "ncfs" || $USER = "jgflemin" ]]; then
-         OPENDAPUSER="jgflemin"
-      fi
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : ( lonestar5 stampede2 frontera )" >> run.properties
       ;;
@@ -755,8 +738,6 @@ writeTDSProperties()
    echo "post.opendap.${SERVER}.downloadprefix : http://$THREDDSHOST$OPENDAPPORT/thredds/fileServer$DOWNLOADPREFIX" >> run.properties
    echo "post.opendap.${SERVER}.catalogprefix : http://$THREDDSHOST$OPENDAPPORT/thredds/catalog$CATALOGPREFIX" >> run.properties
    echo "post.opendap.${SERVER}.opendapbasedir : $OPENDAPBASEDIR" >> run.properties
-   echo "post.opendap.${SERVER}.sshport : $SSHPORT" >> run.properties
-   echo "post.opendap.${SERVER}.opendapuser : $OPENDAPUSER" >> run.properties
    # if the Operator has an asgs-global.conf file, assume that a perl mail client capability is 
    # set up and ready to use
    # FIXME: create something more reliable/repeatable

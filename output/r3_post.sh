@@ -99,6 +99,6 @@ fi
 REMOTEPPDIR=/projects/ncfs/apps/asgs/trunk/output
 perl ${OUTPUTDIR}/asgsConvertR3ToNETCDF.pl --ppdir ${SCRIPTDIR}/output --griddir ${OUTPUTDIR}/POSTPROC_KMZGIS/grids --opendapbasedir $OPENDAPBASEDIR --pathonly
 OPENDAPPATH=`cat opendappath.log`
-ssh ${OPENDAPHOST} -l ${OPENDAPUSER} -i $SSHKEY "mkdir -p $OPENDAPPATH"
+ssh ${OPENDAPHOST} "mkdir -p $OPENDAPPATH"
 perl ${OUTPUTDIR}/asgsConvertR3ToNETCDF.pl --ppdir ${SCRIPTDIR}/output --remoteppdir $REMOTEPPDIR  --griddir ${OUTPUTDIR}/POSTPROC_KMZGIS/grids --opendapbasedir $OPENDAPBASEDIR --remote --sshkey $SSHKEY --opendapuser $OPENDAPUSER --opendaphost $OPENDAPHOST --tolist "jason.fleming@seahorsecoastal.com, jason.g.fleming@gmail.com"
-ssh ${OPENDAPHOST} -l ${OPENDAPUSER} -i $SSHKEY "chmod +r $OPENDAPPATH/*"
+ssh ${OPENDAPHOST} "chmod +r $OPENDAPPATH/*"
