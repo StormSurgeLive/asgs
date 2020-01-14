@@ -1,0 +1,35 @@
+Host renci_tds
+  Hostname ht4.renci.org
+  User ncfs 
+  Port 22
+  ServerAliveInterval 10
+  StrictHostKeyChecking=no
+  ConnectTimeout=60
+  IdentityFile ~/.ssh/id_rsa
+
+Host lsu_tds
+  HostName fortytwo.cct.lsu.edu
+  User jgflemin
+  Port 2525
+  ServerAliveInterval 10
+  StrictHostKeyChecking=no
+  ConnectTimeout=60
+  IdentityFile ~/.ssh/id_rsa
+
+Host lsu_ccr_tds
+  Hostname chenier.cct.lsu.edu
+  User jgflemin
+  Port 2525
+  ServerAliveInterval 10
+  StrictHostKeyChecking=no
+  ConnectTimeout=60
+  IdentityFile ~/.ssh/id_rsa
+
+Host tacc_tds
+  Hostname adcircvis.tacc.utexas.edu
+  User jgflemin 
+  Port 22
+  ServerAliveInterval 10
+  StrictHostKeyChecking=no
+  ConnectTimeout=60
+  IdentityFile ~/.ssh/id_rsa
