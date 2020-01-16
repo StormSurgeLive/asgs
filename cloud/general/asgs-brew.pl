@@ -640,7 +640,7 @@ sub get_steps {
             precondition_check  => sub { return ( -e qq{$home/perl5/perlbrew/perls/perl-5.28.2/bin/perl} ) ? 1 : 0 },
             postcondition_check => sub {
                 local $?;
-                system(qq{prove $home/asgs/cloud/general/t/verify-perl-modules.t 2>&1});
+                system(qq{prove ./cloud/general/t/verify-perl-modules.t 2>&1});
 
                 # look for zero exit code on success
                 my $exit_code = ( $? >> 8 );
@@ -664,7 +664,7 @@ sub get_steps {
             precondition_check  => sub { 1 },    # for now, assuming success; should have a simple python script that attempts to load all of these modules
             postcondition_check => sub {
                 local $?;
-                system(qq{$home/asgs/cloud/general/t/verify-python-modules.py 2>&1});
+                system(qq{./cloud/general/t/verify-python-modules.py 2>&1});
 
                 # look for zero exit code on success
                 my $exit_code = ( $? >> 8 );
