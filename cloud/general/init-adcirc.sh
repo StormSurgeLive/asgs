@@ -23,5 +23,5 @@ if [ "$TODO" = "clean" ]; then
   make clean clobber
 else
   #make clean clobber
-  make all adcswan padcswan hstime aswip compiler=$ADCCOMPILER NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=$NETCDFHOME MACHINENAME=$MACHINENAME
+  make adcirc padcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=$ADCCOMPILER NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=$NETCDFHOME MACHINENAME=$MACHINENAME
 fi
