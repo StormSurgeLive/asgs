@@ -58,7 +58,8 @@ NUMWRITERS=1
 if [[ $HPCENVSHORT = "hatteras" ]]; then
    NCPU=639 # max on hatteras
 fi
-QOS=vip
+# QOS=vip # does not work on Frontera
+ADCIRCDIR=/home1/00976/jgflemin/adcirc-cg/work
 
 # Post processing and publication
 
@@ -71,7 +72,7 @@ TDS=( lsu_tds tacc_tds renci_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2019120500
+COLDSTARTDATE=2019121200
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #
