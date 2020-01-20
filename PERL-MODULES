@@ -15,3 +15,4 @@ Params::Validate
 Test::More
 Time::Local
 Try::Tiny
+Perl::Tidy

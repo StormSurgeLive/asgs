@@ -15,6 +15,9 @@ for module in $(cat ./PERL-MODULES); do
   cpanm install $module || exit 1 # forces script to exit with error, asgs-brew.pl will catch and report this
 done
 
+# copy over ./PERL/perltidyrc to $HOME/.perltidyrc
+cp ./PERL/perltidyrc $HOME/.perltidyrc
+
 # interactive (selects "p" option for "pure pure"), skips testing
 #echo Installing Date::Pcalc using --force and --interactive due to known issue
 #cpanm --force --interactive Date::Pcalc <<EOF
