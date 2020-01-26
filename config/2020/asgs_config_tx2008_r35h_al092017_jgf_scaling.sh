@@ -56,8 +56,8 @@ FTPSITE=filesystem
 FDIR=$WORK/asgs/jasonfleming/asgs/input/sample_advisories/2017
 HDIR=${FDIR}
 # made the following symbolic links in $FDIR
-#lrwxrwxrwx 1 jgflemin G-803086   15 Jan 21 10:46 al092017.fst -> 16.al092017.fst
-#lrwxrwxrwx 1 jgflemin G-803086   16 Jan 21 10:46 bal162017.dat -> 16.bal162017.dat
+#lrwxrwxrwx 1 jgflemin G-803086    16 Jan 21 13:20 bal092017.dat -> 16.bal092017.dat
+#lrwxrwxrwx 1 jgflemin G-803086    22 Jan 21 14:12 index-at.xml -> 16.092017.index-at.xml
 
 # Computational Resources (related defaults set in platforms.sh)
 
@@ -91,7 +91,7 @@ LASTSUBDIR=null
 # Scenario package
 #
 #PERCENT=default
-SCENARIOPACKAGESIZE=2
+SCENARIOPACKAGESIZE=15
 #
 case $si in
    -2)
