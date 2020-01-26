@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Fri, 18 Aug 2017 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm HARVEY Forecast/Advisory Number 5</title>
+      <description>Issued at 1500 UTC FRI AUG 18 2017 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL STORM HARVEY FORECAST/ADVISORY NUMBER   5
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL092017
+1500 UTC FRI AUG 18 2017
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+NONE.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT... 
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* MARTINIQUE
+* ST. LUCIA
+* ST. VINCENT AND THE GRENADINES
+ 
+A TROPICAL STORM WATCH IS IN EFFECT FOR...
+* DOMINICA
+ 
+INTERESTS ELSEWHERE IN THE EASTERN AND CENTRAL CARIBBEAN SEA SHOULD
+MONITOR THE PROGRESS OF HARVEY.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 13.1N  61.3W AT 18/1500Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST OR 270 DEGREES AT  18 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1005 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT....... 60NE   0SE   0SW  60NW.
+12 FT SEAS.. 75NE   0SE   0SW  60NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 13.1N  61.3W AT 18/1500Z
+AT 18/1200Z CENTER WAS LOCATED NEAR 13.0N  60.3W
+ 
+FORECAST VALID 19/0000Z 13.3N  63.8W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 60NE   0SE   0SW  60NW.
+ 
+FORECAST VALID 19/1200Z 13.6N  67.3W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 60NE  30SE  30SW  60NW.
+ 
+FORECAST VALID 20/0000Z 14.0N  71.1W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 60NE  30SE  30SW  60NW.
+ 
+FORECAST VALID 20/1200Z 14.3N  75.0W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 30NE   0SE   0SW  30NW.
+34 KT... 70NE  30SE  30SW  70NW.
+ 
+FORECAST VALID 21/1200Z 15.0N  82.0W
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 40NE  20SE  20SW  40NW.
+34 KT... 80NE  40SE  40SW  80NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 200 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 22/1200Z 16.5N  87.5W
+MAX WIND  55 KT...GUSTS  65 KT.
+ 
+OUTLOOK VALID 23/1200Z 18.5N  91.0W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 13.1N  61.3W
+ 
+NEXT ADVISORY AT 18/2100Z
+ 
+$$
+FORECASTER BEVEN
+
+</pre>]]></description>
+      <pubDate>Fri, 18 Aug 2017 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2017/09/05.092017.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2017/09/05.092017.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
