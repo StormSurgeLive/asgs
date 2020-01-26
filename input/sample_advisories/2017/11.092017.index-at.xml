@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sun, 20 Aug 2017 03:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Remnants Of HARVEY Forecast/Advisory Number 11</title>
+      <description>Issued at 0300 UTC SUN AUG 20 2017 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+
+REMNANTS OF HARVEY FORECAST/ADVISORY NUMBER  11
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL092017
+0300 UTC SUN AUG 20 2017
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+INTERESTS IN NORTHERN NICARAGUA...NORTHERN HONDURAS...BELIZE...AND
+THE YUCATAN PENINSULA OF MEXICO SHOULD MONITOR THE PROGRESS OF THE
+REMNANTS OF HARVEY.
+
+REMNANTS OF CENTER LOCATED NEAR 14.3N  71.8W AT 20/0300Z
+POSITION ACCURATE WITHIN  50 NM
+
+PRESENT MOVEMENT TOWARD THE WEST OR 275 DEGREES AT  19 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1007 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 14.3N  71.8W AT 20/0300Z
+AT 20/0000Z CENTER WAS LOCATED NEAR 14.2N  70.8W
+
+FORECAST VALID 20/1200Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 14.3N  71.8W
+
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE
+CENTER ON THIS SYSTEM UNLESS REGENERATION OCCURS OR IF TROPICAL
+CYCLONE WATCHES OR WARNINGS ARE REQUIRED FOR LAND AREAS.  ADDITIONAL
+INFORMATION ON THIS SYSTEM CAN BE FOUND IN HIGH SEAS FORECASTS
+ISSUED BY THE NATIONAL WEATHER SERVICE...UNDER AWIPS HEADER
+NFDHSFAT1 AND WMO HEADER FZNT01 KWBC.
+
+$$
+FORECASTER BERG
+
+</pre>]]></description>
+      <pubDate>Sun, 20 Aug 2017 03:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2017/09/11.092017.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2017/09/11.092017.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

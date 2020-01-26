@@ -428,7 +428,7 @@ init_frontera()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
-  RMQMessaging_Python=/opt/apps/intel19/python2/2.7.16/bin/python
+  RMQMessaging_Python=$HOME/python27/asgs/build/python-2.7.17/bin/python
   #
   PLATFORMMODULES='module load intel/19.0.5 python2/2.7.16 xalt/2.7.19 TACC'
   SERIALMODULES='module load' # no extra modules for serial jobs
@@ -452,7 +452,7 @@ init_frontera()
   THIS="platforms.sh>env_dispatch()>init_frontera()"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
-  ARCHIVEDIR=2019
+  ARCHIVEDIR=2020 # is this used? 
   TDS=(tacc_tds lsu_tds renci_tds)
   $PLATFORMMODULES
   $SERIALMODULES
@@ -788,7 +788,7 @@ writeTDSProperties()
          OPENDAPUSER="jgflemin"
       fi
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
-      echo "post.opendap.${SERVER}.copyablehosts : ( lonestar5 stampede2 )" >> run.properties
+      echo "post.opendap.${SERVER}.copyablehosts : ( lonestar5 stampede2 frontera )" >> run.properties
       ;;
    *)
       echo "$THIS: ERROR: THREDDS Data Server $SERVER was not recognized."
