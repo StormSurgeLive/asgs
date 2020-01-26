@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 30 Aug 2017 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm HARVEY Forecast/Advisory Number 42</title>
+      <description>Issued at 2100 UTC WED AUG 30 2017 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM HARVEY FORECAST/ADVISORY NUMBER  42
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL092017
+2100 UTC WED AUG 30 2017
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+THE STORM SURGE WATCH AND WARNING ARE DISCONTINUED FOR THE COASTS
+OF TEXAS AND LOUISIANA.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* SABINE PASS TEXAS TO GRAND ISLE LOUISIANA
+
+CATASTROPHIC AND LIFE-THREATENING FLOODING CONTINUES IN SOUTHEASTERN
+TEXAS AND PORTIONS OF SOUTHWESTERN LOUISIANA.  PLEASE SEE WARNINGS
+AND OTHER PRODUCTS ISSUED BY YOUR LOCAL NATIONAL WEATHER SERVICE
+OFFICE FOR ADDITIONAL INFORMATION ON THIS LIFE-THREATENING
+SITUATION.
+
+TROPICAL STORM CENTER LOCATED NEAR 30.8N  93.1W AT 30/2100Z
+POSITION ACCURATE WITHIN  20 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHEAST OR  20 DEGREES AT   7 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  998 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT.......  0NE 120SE   0SW   0NW.
+12 FT SEAS..  0NE 150SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 30.8N  93.1W AT 30/2100Z...INLAND
+AT 30/1800Z CENTER WAS LOCATED NEAR 30.6N  93.3W...INLAND
+
+FORECAST VALID 31/0600Z 31.8N  92.4W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 31/1800Z 33.5N  91.0W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+
+FORECAST VALID 01/0600Z 35.1N  89.1W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+
+FORECAST VALID 01/1800Z 36.4N  87.1W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+
+FORECAST VALID 02/1800Z 38.6N  83.0W...POST-TROP/REMNT LOW
+MAX WIND  20 KT...GUSTS  30 KT.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 200 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 03/1800Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 30.8N  93.1W
+
+NEXT ADVISORY AT 31/0300Z
+
+$$
+FORECASTER BEVEN
+
+</pre>]]></description>
+      <pubDate>Wed, 30 Aug 2017 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2017/09/42.092017.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2017/09/42.092017.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
