@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Fri, 18 Aug 2017 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm HARVEY Forecast/Advisory Number 6</title>
+      <description>Issued at 2100 UTC FRI AUG 18 2017 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM HARVEY FORECAST/ADVISORY NUMBER   6
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL092017
+2100 UTC FRI AUG 18 2017
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+INTERESTS IN THE CARIBBEAN SEA AND THE ADJACENT LAND AREAS OF
+EASTERN CENTRAL AMERICAN AND NORTHERN SOUTH AMERICA SHOULD MONITOR
+THE PROGRESS OF HARVEY.
+
+TROPICAL STORM CENTER LOCATED NEAR 13.4N  62.9W AT 18/2100Z
+POSITION ACCURATE WITHIN  40 NM
+
+PRESENT MOVEMENT TOWARD THE WEST OR 275 DEGREES AT  18 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1005 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT....... 60NE   0SE   0SW  60NW.
+12 FT SEAS..150NE   0SE   0SW  60NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 13.4N  62.9W AT 18/2100Z
+AT 18/1800Z CENTER WAS LOCATED NEAR 13.3N  62.1W
+
+FORECAST VALID 19/0600Z 13.6N  65.7W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 60NE   0SE   0SW  60NW.
+
+FORECAST VALID 19/1800Z 13.9N  69.3W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 60NE   0SE   0SW  60NW.
+
+FORECAST VALID 20/0600Z 14.2N  73.0W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 60NE   0SE   0SW  60NW.
+
+FORECAST VALID 20/1800Z 14.5N  76.7W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT... 60NE  30SE  30SW  60NW.
+
+FORECAST VALID 21/1800Z 15.5N  83.5W
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 40NE  20SE  20SW  40NW.
+34 KT... 80NE  40SE  40SW  80NW.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 200 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 22/1800Z 17.5N  88.5W...INLAND
+MAX WIND  50 KT...GUSTS  60 KT.
+
+OUTLOOK VALID 23/1800Z 19.0N  92.0W...OVER WATER
+MAX WIND  30 KT...GUSTS  40 KT.
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 13.4N  62.9W
+
+NEXT ADVISORY AT 19/0300Z
+
+$$
+FORECASTER BEVEN
+
+</pre>]]></description>
+      <pubDate>Fri, 18 Aug 2017 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2017/09/06.092017.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2017/09/06.092017.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
