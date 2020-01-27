@@ -95,9 +95,10 @@ sub run {
     if ( $opts_ref->{profile} eq q{default} ) {
         warn qq{--profile is not set, using "default" as asgsh profile name};
     }
+
     # if --profile is set, append it to $install_path for managing different ASGS installations
     else {
-        $opts_ref->{'install-path'} = sprintf("%s/%s",$opts_ref->{'install-path'}, $opts_ref->{profile}); 
+        $opts_ref->{'install-path'} = sprintf( "%s/%s", $opts_ref->{'install-path'}, $opts_ref->{profile} );
     }
 
     $self->_process_opts($opts_ref);    # additional processing of options
@@ -225,11 +226,12 @@ sub _install_asgs_shell {
     my $profile      = $opts_ref->{profile};
     my $env_summary  = $self->_get_env_summary($opts_ref);
 
-    # create the registry for ASGS profiles if it doesn't 
+    # create the registry for ASGS profiles if it doesn't
     # already exist
-    if ( ! -e qq{$home/.asgs} ) {
-      mkdir qq{$home/.asgs}
+    if ( !-e qq{$home/.asgs} ) {
+        mkdir qq{$home/.asgs};
     }
+
     # dump the full environment into a named profile
     # NOTE: overwrites anything that is there of the name
     open my $fh, q{>}, qq{$home/.asgs/$profile} || die $!;
@@ -244,8 +246,8 @@ sub _install_asgs_shell {
 
     # create/update $home/bin/asgsh
     my $home_bin = qq{$home/bin};
-    if ( ! -e qq{$home_bin} ) {
-      mkdir qq{$home_bin};
+    if ( !-e qq{$home_bin} ) {
+        mkdir qq{$home_bin};
     }
     my $file = qq{$home_bin/asgsh};
     open $fh, q{>}, $file or die qq{failed to create $file: $!};
@@ -511,11 +513,14 @@ sub get_steps {
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                CPPFLAGS => { value => qq{-I$install_path/include}, how => q{append} },
-                LDFLAGS  => { value => qq{-L$install_path/lib},     how => q{append} },
+                CPPFLAGS    => { value => qq{-I$install_path/include}, how => q{append} },
+                LDFLAGS     => { value => qq{-L$install_path/lib},     how => q{append} },
+                HDF5_DIR    => { value => qq{$install_path},           how => q{replace} },    # needed for netCDF4 python module
+                HDF5_LIBDIR => { value => qq{$install_path/lib},       how => q{replace} },    # needed for netCDF4 python module
+                HDF5_INCDIR => { value => qq{$install_path/include},   how => q{replace} },    # needed for netCDF4 python module
             },
-            skip_if            => sub { 0 },    # if true and --force is not used, unilaterally skips the run step
-            precondition_check => sub { 1 },    # just a "1" indicates no checking is done
+            skip_if            => sub { 0 },                                                   # if true and --force is not used, unilaterally skips the run step
+            precondition_check => sub { 1 },                                                   # just a "1" indicates no checking is done
             postcondition_check => sub {
                 my ( $op, $opts_ref ) = @_;
                 my $bin = qq{$opts_ref->{'install-path'}/bin};
@@ -535,10 +540,13 @@ sub get_steps {
             # Note: uses environment set by setup-env step above
             # augment existing %ENV (cumulative)
             export_ENV => {
-                NETCDFHOME => { value => qq{$install_path}, how => q{replace} },
+                NETCDFHOME     => { value => qq{$install_path},         how => q{replace} },
+                NETCDF4_DIR    => { value => qq{$install_path},         how => q{replace} },    # needed for netCDF4 python module
+                NETCDF4_LIBDIR => { value => qq{$install_path/lib},     how => q{replace} },    # needed for netCDF4 python module
+                NETCDF4_INCDIR => { value => qq{$install_path/include}, how => q{replace} },    # needed for netCDF4 python module
             },
-            skip_if            => sub { 0 },    # if true and --force is not used, unilaterally skips the run step
-            precondition_check => sub {         # requires HDF5, so the precondition here is the same as the post condition of the hdf5 step above
+            skip_if            => sub { 0 },                                                    # if true and --force is not used, unilaterally skips the run step
+            precondition_check => sub {                                                         # requires HDF5, so the precondition here is the same as the post condition of the hdf5 step above
                 my ( $op, $opts_ref ) = @_;
                 my $bin = qq{$opts_ref->{'install-path'}/bin};
                 my $ok  = 1;
@@ -679,15 +687,16 @@ sub get_steps {
             description => q{Install Python 2.7.17 locally and install required modules},
             pwd         => q{./},
             export_ENV  => {
+
                 # putting this in $HOME/python27/asgs/build reflects what perlbrew's default
                 # behavior is doing by putting perl into $HOME/perl5/perlbrew/build/perl-$version
                 PYTHONPATH => { value => qq{$home/python27/asgs/build/python-2.7.17},                      how => q{replace} },
                 PATH       => { value => qq{$home/python27/asgs/build/python-2.7.17/bin:$home/.local/bin}, how => q{prepend} },
             },
-            command     => qq{bash ./cloud/general/init-python.sh install},
-            clean       => qq{bash ./cloud/general/init-python.sh clean},
+            command             => qq{bash ./cloud/general/init-python.sh install},
+            clean               => qq{bash ./cloud/general/init-python.sh clean},
             skip_if             => sub { 0 },
-            precondition_check  => sub { 1 },    # for now, assuming success; should have a simple python script that attempts to load all of these modules
+            precondition_check  => sub { 1 },                                         # for now, assuming success; should have a simple python script that attempts to load all of these modules
             postcondition_check => sub {
                 local $?;
                 system(qq{./cloud/general/t/verify-python-modules.py 2>&1});

@@ -409,6 +409,13 @@ verify() {
     # clean up potentially useful *.pyc (compiled python) files
     rm -f ${file}c
   done
+  echo benchmarking and verifying netCDF4 module functionality
+  pyNETCDFBENCH=$SCRIPTDIR/cloud/general/t/netcdf4-bench.py
+  $pyNETCDFBENCH && echo ok $pyNETCDFBENCH works || echo not ok $pyNETCDFBENCH 
+  pyNETCDFTUTORIAL=$SCRIPTDIR/cloud/general/t/netcdf4-tutorial.py 
+  $pyNETCDFTUTORIAL > /dev/null && echo ok $pyNETCDFTUTORIAL works || echo not ok $pyNETCDFTUTORIAL
+  # clean up *.nc from netcdf4-tutorial.py
+  rm -f ./*.nc
   popd > /dev/null 2>&1
 }
 
