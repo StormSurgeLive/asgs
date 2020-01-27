@@ -3,3 +3,4 @@
 import pika
 import netCDF4
 import pptx
+import numpy
