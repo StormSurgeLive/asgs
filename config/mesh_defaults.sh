@@ -198,7 +198,7 @@ case $GRIDNAME in
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_hsofs.dat.xz
       UNITOFFSETFILE=unit_offset_hsofs.dat
       ;;
-   "fema_wfl")
+   "WFLv18")
       INPUTDIR=$SCRIPTDIR/input/meshes/fema_wfl
       GRIDFILE=fema_wfl_fort.14  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.nc.properties
