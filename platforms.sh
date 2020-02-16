@@ -55,7 +55,7 @@ init_supermike()
   MCRROOT=/usr/local/packages/license/matlab/r2017a # for matlab mex files
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=16
-  TDS=(lsu_tds renci_tds)
+  TDS=(lsu_tds)
   if [[ $operator = "jgflemin" ]]; then
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
@@ -96,7 +96,7 @@ init_queenbee()
   PARALLELMODULES='module load mvapich2'
   JOBENVDIR=$SCRIPTDIR/config/machines/queenbee
   JOBENV=( )
-  TDS=(lsu_tds renci_tds)
+  TDS=( lsu_tds )
   # needed for asgs perl
   #source ~/perl5/perlbrew/etc/bashrc
   module purge
@@ -172,7 +172,7 @@ init_rostam()
   CONSTRAINT=null
   RESERVATION=null
   REMOVALCMD="rm"
-  TDS=(lsu_tds renci_tds)
+  TDS=( lsu_tds )
   if [[ $operator = "jgflemin" ]]; then
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
@@ -243,7 +243,7 @@ init_supermic()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCHDIR
   ARCHIVEDIR=$SCRATCHDIR
-  TDS=(lsu_tds renci_tds)
+  TDS=( lsu_tds )
   module purge
   $PLATFORMMODULES
   $SERIALMODULES
@@ -329,7 +329,7 @@ init_hatteras()
   QSUMMARYCMD=null
   QUOTACHECKCMD="df -h /projects/ncfs"
   ALLOCCHECKCMD=null
-  TDS=(renci_tds lsu_tds)
+  TDS=( renci_tds )
   # 
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   #
@@ -453,7 +453,7 @@ init_frontera()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2020 # is this used? 
-  TDS=(tacc_tds lsu_tds renci_tds)
+  TDS=( tacc_tds )
   $PLATFORMMODULES
   $SERIALMODULES
   #
@@ -522,7 +522,7 @@ init_stampede2()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2019
-  TDS=(tacc_tds lsu_tds renci_tds)
+  TDS=( tacc_tds )
   $PLATFORMMODULES
   $SERIALMODULES
   #
@@ -592,7 +592,7 @@ init_lonestar5()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2019
-  TDS=(tacc_tds lsu_tds renci_tds)
+  TDS=(tacc_tds)
   $PLATFORMMODULES
   $SERIALMODULES
   #
