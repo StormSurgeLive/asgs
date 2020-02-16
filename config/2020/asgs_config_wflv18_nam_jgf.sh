@@ -68,7 +68,7 @@ TDS=( tacc_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020013000
+COLDSTARTDATE=2020011500
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #

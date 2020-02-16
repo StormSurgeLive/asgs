@@ -80,7 +80,7 @@ POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rluettich1@gmail.com"
 OPENDAPNOTIFY="jason.g.fleming@gmail.com,rluettich1@gmail.com,brett.estrade@protonmail.com,akheir1@lsu.edu"
 NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( tacc_tds lsu_tds renci_tds )
+TDS=( tacc_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
