@@ -139,6 +139,9 @@ do s=1, numStations
    write(6,'(i0,1x)',advance='no') s    ! update progress bar
    stations(s)%elementFound = .false.
    call computeStationWeights(stations(s), m)
+!BEGINtgadebug
+!write(*,*)stations(s)%w(1:3)
+!ENDtgadebug
 end do
 !
 ! open the text file for writing time series data
@@ -154,9 +157,9 @@ case(ASCIIG)
    !
    ! read header lines and write them to time series file
    read(ft%fun,'(a1024)') headerLineOne
-   write(fs%fun,*) trim(adjustl(headerLineOne))
+   write(fs%fun,'(a)') trim(adjustl(headerLineOne))
    read(ft%fun,*) ft%nSnaps, numStations, ft%time_increment, ft%nspool, ft%irtype
-   write(61,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, numStations, ft%time_increment, ft%nspool, ft%irtype
+   write(fs%fun,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, numStations, ft%time_increment, ft%nspool, ft%irtype
    SS=1  ! jgf: initialize the dataset counter
    !
    ! jgf: loop until we run out of data
@@ -312,6 +315,13 @@ if (station%elementIndex.ne.0) then
          dryNode = .true.
       endif
    end do
+   !if coordinates exactly match a node's coordinates, then only that node's
+   !wet/dry state matters
+   do i=1,3
+      if (station%w(i).eq.1d0.and.adcirc_data(m%nm(station%elementIndex,i),1).ne.-99999) then
+         dryNode=.false.
+      endif
+   enddo
 endif
 if (irtype.eq.1) then
    if (station%elementIndex.eq.0 .or. dryNode.eqv..true.) then
