@@ -1956,6 +1956,7 @@ real(8) :: x1, x2, x3 ! longitude temporary variables
 real(8) :: y1, y2, y3 ! latitude temporary variables
 real(8) :: subArea1, subArea2, subArea3, TotalArea
 integer :: e
+logical :: exactmatch !whether station output is exactly at a node
 
 if (station%elementFound.eqv..false.) then
 
@@ -2001,16 +2002,27 @@ if (station%elementFound.eqv..false.) then
 endif
 
 if (station%elementFound.eqv..true.) then
-   X1 = m%xyd(1,m%nm(station%elementIndex,1))
-   X2 = m%xyd(1,m%nm(station%elementIndex,2))
-   X3 = m%xyd(1,m%nm(station%elementIndex,3))
-   Y1 = m%xyd(2,m%nm(station%elementIndex,1))
-   Y2 = m%xyd(2,m%nm(station%elementIndex,2))
-   Y3 = m%xyd(2,m%nm(station%elementIndex,3))
-   TotalArea = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-   station%w(1) = ( (station%lon-X3)*(Y2-Y3)+(X2-X3)*(Y3-station%lat) )/TotalArea
-   station%w(2) = ( (station%lon-X1)*(Y3-Y1)-(station%lat-Y1)*(X3-X1))/TotalArea
-   station%w(3) = (-(station%lon-X1)*(Y2-Y1)+(station%lat-Y1)*(X2-X1))/TotalArea
+   exactMatch=.false.
+   do e=1,3
+      if (station%lon.eq.m%xyd(1,m%nm(station%elementIndex,e)).and.&
+          station%lat.eq.m%xyd(2,m%nm(station%elementIndex,e))) then
+         exactMatch=.true.
+         station%w(1:3)=0d0
+         station%w(e)=1d0
+      endif
+   enddo
+   if (.not.exactmatch) then
+      X1 = m%xyd(1,m%nm(station%elementIndex,1))
+      X2 = m%xyd(1,m%nm(station%elementIndex,2))
+      X3 = m%xyd(1,m%nm(station%elementIndex,3))
+      Y1 = m%xyd(2,m%nm(station%elementIndex,1))
+      Y2 = m%xyd(2,m%nm(station%elementIndex,2))
+      Y3 = m%xyd(2,m%nm(station%elementIndex,3))
+      TotalArea = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+      station%w(1) = ( (station%lon-X3)*(Y2-Y3)+(X2-X3)*(Y3-station%lat) )/TotalArea
+      station%w(2) = ( (station%lon-X1)*(Y3-Y1)-(station%lat-Y1)*(X3-X1))/TotalArea
+      station%w(3) = (-(station%lon-X1)*(Y2-Y1)+(station%lat-Y1)*(X2-X1))/TotalArea
+   endif
 else  
    station%elementIndex = 0
    station%w = -99999.0
