@@ -64,7 +64,7 @@ INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rluettich1@gmail.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( tacc_tds )
+TDS=( lsu_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 

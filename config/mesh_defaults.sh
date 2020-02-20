@@ -135,12 +135,12 @@ case $GRIDNAME in
       TIMESTEPSIZE=0.5           # adcirc time step size (seconds)
       SWANDT=1200                # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
-      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
-      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
-      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
-      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="10:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="14:00:00" # forecast wall clock time
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_tx2008_r35h.grd.dat.xz
-      UNITOFFSETFILE=unit_offset_tx2008_r35h.grd.dat
+      UNITOFFSETFILE=unit_offset_tx2017.grd.dat
       ;;
    "neflga_v12_geo")
       INPUTDIR=$SCRIPTDIR/input/meshes/neflga
