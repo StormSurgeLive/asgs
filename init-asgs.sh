@@ -38,6 +38,7 @@ elif [[ -z "$platform" && -n "$default_platform" ]]; then
   platform=$default_platform
 fi
 
+echo
 read -p "Which asgs branch would you like to checkout from Github ('.' to skip)? [master] " repo
 
 if [ -z "$repo" ]; then
@@ -56,6 +57,7 @@ else
   echo leaving git repo in current state 
 fi
 
+echo
 read -p "Which compiler family would you like to use, 'gfortran' or 'intel'? " compiler
 
 if [[ "$compiler" != 'gfortran' && "$compiler" != "intel" ]]; then
@@ -70,13 +72,21 @@ if [ $? -gt 0 ]; then
   exit 1
 fi
 
-read -p "Where do you want to install libraries and some utilities? [$HOME/opt] " installdir
+
+_default_installdir=$HOME/opt
+if [ -n "$WORK" ]; then
+  _default_installdir=$WORK/opt
+fi
+echo
+echo "Where do you want to install libraries and some utilities? [$_default_installdir] "
+read -p "(note: shell variables like \$HOME or \$WORK will not be expanded)? " installdir
 
 if [ -z "$installdir" ]; then
   installdir=$HOME/opt
 fi
 
-read -p "What is a short name you'd like to use to name the asgsh profile associated with this installation? [default] " profile
+echo
+read -p "What is a short name you'd like to use to name the asgsh profile associated with this installation? [\"default\"] " profile
 
 if [ -z "$profile" ]; then
   profile=$$
@@ -86,7 +96,7 @@ echo Bootstrapping ASGS for installation...
 env_dispatch $platform
 
 # $MAKEJOBS is defined in platforms.sh
-cmd="./cloud/general/asgs-brew.pl --install-path=$installdir --profile=$profile --compiler=$compiler --machinename=$platform --make-jobs=$MAKEJOBS"
+cmd="./cloud/general/asgs-brew.pl --install-path=$installdir --asgs-profile=$profile --compiler=$compiler --machinename=$platform --make-jobs=$MAKEJOBS"
 
 echo
 echo $cmd
