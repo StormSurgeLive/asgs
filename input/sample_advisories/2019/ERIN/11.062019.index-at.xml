@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Thu, 29 Aug 2019 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Post-Tropical Cyclone ERIN Forecast/Advisory Number 11</title>
+      <description>Issued at 0900 UTC THU AUG 29 2019 <![CDATA[<pre>
+ZCZC MIATCMAT1 ALL
+TTAA00 KNHC DDHHMM
+
+POST-TROPICAL CYCLONE ERIN FORECAST/ADVISORY NUMBER  11
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL062019
+0900 UTC THU AUG 29 2019
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+POST-TROPICAL CYCLONE CENTER LOCATED NEAR 36.1N  71.6W AT 29/0900Z
+POSITION ACCURATE WITHIN  25 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHEAST OR  25 DEGREES AT  13 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1005 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+12 FT SEAS..  0NE  90SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 36.1N  71.6W AT 29/0900Z
+AT 29/0600Z CENTER WAS LOCATED NEAR 35.5N  72.3W
+
+FORECAST VALID 29/1800Z 39.3N  69.3W...POST-TROP/EXTRATROP
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 30/0600Z 44.3N  64.9W...POST-TROP/EXTRATROP
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE 120SE   0SW   0NW.
+
+FORECAST VALID 31/0600Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 36.1N  71.6W
+
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE
+CENTER ON THIS SYSTEM.  ADDITIONAL INFORMATION ON THIS SYSTEM CAN BE
+FOUND IN HIGH SEAS FORECASTS ISSUED BY THE NATIONAL WEATHER
+SERVICE...UNDER AWIPS HEADER NFDHSFAT1 AND WMO HEADER FZNT01 KWBC.
+
+
+$$
+FORECASTER BEVEN
+
+</pre>]]></description>
+      <pubDate>Thu, 29 Aug 2019 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/06/11.062019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/06/11.062019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

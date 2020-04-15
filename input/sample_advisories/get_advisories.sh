@@ -41,7 +41,7 @@ while [[ $ADVISORY -le $MAXADVISORY ]]; do
    if [[ $YEAR -ge 2006 ]]; then
       urlRoot="$urlRoot/$BASIN$FSTORMNUMBER"
    fi
-   echo "curl $urlRoot/$file > $file"
-   curl $urlRoot/$file > $file
+   echo "curl -s $urlRoot/$file > $file"
+   curl -s $urlRoot/$file > $file
    ADVISORY=`expr $ADVISORY + 1`
 done

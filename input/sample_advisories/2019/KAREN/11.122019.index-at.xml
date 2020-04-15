@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Tue, 24 Sep 2019 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm KAREN Forecast/Advisory Number 11</title>
+      <description>Issued at 2100 UTC TUE SEP 24 2019 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL STORM KAREN FORECAST/ADVISORY NUMBER  11
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL122019
+2100 UTC TUE SEP 24 2019
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+NONE.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* U.S. VIRGIN ISLANDS
+* PUERTO RICO...INCLUDING VIEQUES AND CULEBRA
+* BRITISH VIRGIN ISLANDS
+ 
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA.
+ 
+INTERESTS ELSEWHERE IN THE LESSER ANTILLES SHOULD MONITOR THE
+PROGRESS OF KAREN.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 18.0N  65.8W AT 24/2100Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH OR   0 DEGREES AT   7 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1005 MB
+MAX SUSTAINED WINDS  40 KT WITH GUSTS TO  50 KT.
+34 KT.......  0NE  70SE  20SW   0NW.
+12 FT SEAS..  0NE  60SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 18.0N  65.8W AT 24/2100Z
+AT 24/1800Z CENTER WAS LOCATED NEAR 17.5N  65.9W
+ 
+FORECAST VALID 25/0600Z 19.6N  65.5W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 40NE  70SE  30SW   0NW.
+ 
+FORECAST VALID 25/1800Z 21.9N  64.9W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT... 50NE  70SE  30SW   0NW.
+ 
+FORECAST VALID 26/0600Z 24.2N  64.2W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 20NE  20SE   0SW   0NW.
+34 KT... 60NE  60SE  40SW  30NW.
+ 
+FORECAST VALID 26/1800Z 25.9N  63.5W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 20NE  20SE   0SW   0NW.
+34 KT... 70NE  70SE  40SW  30NW.
+ 
+FORECAST VALID 27/1800Z 27.2N  61.9W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 20NE  20SE  20SW  20NW.
+34 KT... 80NE  80SE  60SW  60NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 28/1800Z 27.0N  62.5W
+MAX WIND  60 KT...GUSTS  75 KT.
+ 
+OUTLOOK VALID 29/1800Z 26.5N  65.5W
+MAX WIND  60 KT...GUSTS  75 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 18.0N  65.8W
+ 
+INTERMEDIATE PUBLIC ADVISORY...WTNT32 KNHC/MIATCPAT2...AT 25/0000Z
+ 
+NEXT ADVISORY AT 25/0300Z
+ 
+$$
+FORECASTER BEVEN
+
+</pre>]]></description>
+      <pubDate>Tue, 24 Sep 2019 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/12/11.122019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/12/11.122019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

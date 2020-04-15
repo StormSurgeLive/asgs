@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Fri, 20 Sep 2019 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane JERRY Forecast/Advisory Number 12</title>
+      <description>Issued at 0900 UTC FRI SEP 20 2019 <![CDATA[<pre>
+ZCZC MIATCMAT5 ALL
+TTAA00 KNHC DDHHMM
+
+HURRICANE JERRY FORECAST/ADVISORY NUMBER  12
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL102019
+0900 UTC FRI SEP 20 2019
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+NONE.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A TROPICAL STORM WATCH IS IN EFFECT FOR...
+* ST. MAARTEN
+* ST. MARTIN
+* ST. BARTHELEMY
+* SABA AND ST. EUSTATIUS
+
+A TROPICAL STORM WATCH MEANS THAT TROPICAL STORM CONDITIONS ARE
+POSSIBLE WITHIN THE WATCH AREA...IN THIS CASE WITHIN 24 TO 36 HOURS.
+
+INTERESTS ELSEWHERE IN THE NORTHERN LEEWARD ISLANDS SHOULD MONITOR
+THE PROGRESS OF JERRY.
+
+HURRICANE CENTER LOCATED NEAR 18.4N  58.7W AT 20/0900Z
+POSITION ACCURATE WITHIN  20 NM
+
+PRESENT MOVEMENT TOWARD THE WEST-NORTHWEST OR 290 DEGREES AT  14 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  981 MB
+MAX SUSTAINED WINDS  90 KT WITH GUSTS TO 110 KT.
+64 KT....... 20NE  10SE  10SW  15NW.
+50 KT....... 40NE  20SE  20SW  30NW.
+34 KT....... 70NE  40SE  30SW  40NW.
+12 FT SEAS..180NE 120SE  90SW 120NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 18.4N  58.7W AT 20/0900Z
+AT 20/0600Z CENTER WAS LOCATED NEAR 18.1N  58.0W
+
+FORECAST VALID 20/1800Z 19.1N  60.8W
+MAX WIND  85 KT...GUSTS 105 KT.
+64 KT... 20NE  10SE  10SW  15NW.
+50 KT... 40NE  20SE  20SW  30NW.
+34 KT... 70NE  50SE  30SW  60NW.
+
+FORECAST VALID 21/0600Z 20.4N  63.3W
+MAX WIND  80 KT...GUSTS 100 KT.
+64 KT... 20NE  10SE  10SW  15NW.
+50 KT... 40NE  20SE  20SW  20NW.
+34 KT... 70NE  50SE  30SW  60NW.
+
+FORECAST VALID 21/1800Z 21.8N  65.4W
+MAX WIND  75 KT...GUSTS  90 KT.
+64 KT... 20NE  10SE   0SW  15NW.
+50 KT... 40NE  30SE  20SW  30NW.
+34 KT... 80NE  70SE  30SW  60NW.
+
+FORECAST VALID 22/0600Z 23.2N  67.1W
+MAX WIND  70 KT...GUSTS  85 KT.
+64 KT... 20NE  10SE   0SW  15NW.
+50 KT... 40NE  30SE  20SW  30NW.
+34 KT... 80NE  70SE  30SW  60NW.
+
+FORECAST VALID 23/0600Z 26.1N  68.4W
+MAX WIND  65 KT...GUSTS  80 KT.
+50 KT... 40NE  30SE  20SW  30NW.
+34 KT... 90NE  80SE  30SW  60NW.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 24/0600Z 29.4N  66.8W
+MAX WIND  65 KT...GUSTS  80 KT.
+
+OUTLOOK VALID 25/0600Z 34.6N  63.0W
+MAX WIND  65 KT...GUSTS  80 KT.
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 18.4N  58.7W
+
+INTERMEDIATE PUBLIC ADVISORY...WTNT35 KNHC/MIATCPAT5...AT 20/1200Z
+
+NEXT ADVISORY AT 20/1500Z
+
+$$
+FORECASTER CANGIALOSI
+
+</pre>]]></description>
+      <pubDate>Fri, 20 Sep 2019 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/10/12.102019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/10/12.102019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
