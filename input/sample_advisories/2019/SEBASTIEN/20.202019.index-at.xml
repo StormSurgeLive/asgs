@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sun, 24 Nov 2019 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm SEBASTIEN Forecast/Advisory Number 20</title>
+      <description>Issued at 0900 UTC SUN NOV 24 2019 <![CDATA[<pre>
+ZCZC MIATCMAT5 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM SEBASTIEN FORECAST/ADVISORY NUMBER  20
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL202019
+0900 UTC SUN NOV 24 2019
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+INTERESTS IN THE AZORES SHOULD MONITOR THE PROGRESS OF SEBASTIEN.
+
+TROPICAL STORM CENTER LOCATED NEAR 36.0N  40.0W AT 24/0900Z
+POSITION ACCURATE WITHIN  45 NM
+
+PRESENT MOVEMENT TOWARD THE NORTHEAST OR  50 DEGREES AT  29 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  994 MB
+MAX SUSTAINED WINDS  55 KT WITH GUSTS TO  65 KT.
+50 KT....... 20NE  20SE   0SW   0NW.
+34 KT....... 90NE 100SE  60SW  60NW.
+12 FT SEAS.. 90NE 150SE 330SW  90NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 36.0N  40.0W AT 24/0900Z
+AT 24/0600Z CENTER WAS LOCATED NEAR 35.2N  41.7W
+
+FORECAST VALID 24/1800Z 38.5N  34.8W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT...  0NE  40SE  30SW   0NW.
+34 KT...100NE 140SE 100SW  60NW.
+
+FORECAST VALID 25/0600Z 42.1N  26.2W...POST-TROP/EXTRATROP
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT...  0NE  50SE  40SW   0NW.
+34 KT...110NE 170SE 170SW  60NW.
+
+FORECAST VALID 25/1800Z 46.2N  17.5W...POST-TROP/EXTRATROP
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT...120NE 200SE 180SW  60NW.
+
+FORECAST VALID 26/0600Z 50.0N  11.4W...POST-TROP/EXTRATROP
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT...130NE 240SE 240SW  60NW.
+
+FORECAST VALID 27/0600Z...MERGED WITH ANOTHER WEATHER SYSTEM
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 36.0N  40.0W
+
+NEXT ADVISORY AT 24/1500Z
+
+$$
+FORECASTER BERG
+
+</pre>]]></description>
+      <pubDate>Sun, 24 Nov 2019 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/20/20.202019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/20/20.202019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

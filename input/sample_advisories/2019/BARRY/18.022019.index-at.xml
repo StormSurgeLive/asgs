@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sun, 14 Jul 2019 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression BARRY Forecast/Advisory Number 18</title>
+      <description>Issued at 2100 UTC SUN JUL 14 2019 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL DEPRESSION BARRY FORECAST/ADVISORY NUMBER  18
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL022019
+2100 UTC SUN JUL 14 2019
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+ALL COASTAL TROPICAL CYCLONE WARNINGS AND WATCHES ARE DISCONTINUED.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+TROPICAL DEPRESSION CENTER LOCATED NEAR 32.8N  93.6W AT 14/2100Z
+POSITION ACCURATE WITHIN  25 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH OR 360 DEGREES AT   8 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1008 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 32.8N  93.6W AT 14/2100Z
+AT 14/1800Z CENTER WAS LOCATED NEAR 32.4N  93.6W
+
+FORECAST VALID 15/0600Z 33.9N  93.6W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+
+FORECAST VALID 15/1800Z 35.3N  93.5W...POST-TROP/INLAND
+MAX WIND  20 KT...GUSTS  30 KT.
+
+FORECAST VALID 16/0600Z 36.8N  92.8W...POST-TROP/INLAND
+MAX WIND  20 KT...GUSTS  30 KT.
+
+FORECAST VALID 16/1800Z 38.2N  91.4W...POST-TROP/INLAND
+MAX WIND  15 KT...GUSTS  20 KT.
+
+FORECAST VALID 17/1800Z...DISSIPATED INLAND
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 32.8N  93.6W
+
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE
+CENTER ON THIS SYSTEM. FUTURE INFORMATION ON THIS SYSTEM CAN BE
+FOUND IN PUBLIC ADVISORIES ISSUED BY THE WEATHER PREDICTION CENTER
+BEGINNING AT 10 PM CDT, UNDER AWIPS HEADER TCPAT2, WMO HEADER
+WTNT32 KWNH, AND ON THE WEB AT HTTP://WWW.WPC.NCEP.NOAA.GOV.
+
+$$
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Sun, 14 Jul 2019 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/02/18.022019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/02/18.022019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

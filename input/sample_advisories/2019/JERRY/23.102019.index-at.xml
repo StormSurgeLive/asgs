@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Mon, 23 Sep 2019 03:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm JERRY Forecast/Advisory Number 23</title>
+      <description>Issued at 0300 UTC MON SEP 23 2019 <![CDATA[<pre>
+ZCZC MIATCMAT5 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL STORM JERRY FORECAST/ADVISORY NUMBER  23
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL102019
+0300 UTC MON SEP 23 2019
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+THE BERMUDA WEATHER SERVICE HAS ISSUED A TROPICAL STORM WATCH FOR
+BERMUDA.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A TROPICAL STORM WATCH IS IN EFFECT FOR...
+* BERMUDA
+ 
+A TROPICAL STORM WATCH MEANS THAT TROPICAL STORM CONDITIONS ARE
+POSSIBLE WITHIN THE WATCH AREA...GENERALLY WITHIN 48 HOURS.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 27.4N  67.2W AT 23/0300Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHWEST OR 345 DEGREES AT   9 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  993 MB
+MAX SUSTAINED WINDS  55 KT WITH GUSTS TO  65 KT.
+50 KT....... 40NE  40SE   0SW   0NW.
+34 KT....... 80NE 100SE   0SW  50NW.
+12 FT SEAS..180NE 150SE  90SW 240NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 27.4N  67.2W AT 23/0300Z
+AT 23/0000Z CENTER WAS LOCATED NEAR 27.1N  67.1W
+ 
+FORECAST VALID 23/1200Z 28.4N  67.7W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 40NE  40SE   0SW   0NW.
+34 KT... 90NE 110SE   0SW  60NW.
+ 
+FORECAST VALID 24/0000Z 29.8N  68.2W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 40NE  40SE   0SW   0NW.
+34 KT...110NE 130SE  40SW  70NW.
+ 
+FORECAST VALID 24/1200Z 31.2N  68.4W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT...  0NE  40SE   0SW   0NW.
+34 KT...140NE 140SE  50SW  50NW.
+ 
+FORECAST VALID 25/0000Z 32.4N  67.4W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT...  0NE  40SE   0SW   0NW.
+34 KT...120NE 120SE  50SW  50NW.
+ 
+FORECAST VALID 26/0000Z 35.0N  61.5W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT...150NE 120SE  60SW  50NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 27/0000Z 37.3N  54.0W
+MAX WIND  45 KT...GUSTS  55 KT.
+ 
+OUTLOOK VALID 28/0000Z 38.5N  48.0W
+MAX WIND  40 KT...GUSTS  50 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 27.4N  67.2W
+ 
+INTERMEDIATE PUBLIC ADVISORY...WTNT35 KNHC/MIATCPAT5...AT 23/0600Z
+ 
+NEXT ADVISORY AT 23/0900Z
+ 
+$$
+FORECASTER CANGIALOSI
+
+</pre>]]></description>
+      <pubDate>Mon, 23 Sep 2019 03:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/10/23.102019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/10/23.102019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
