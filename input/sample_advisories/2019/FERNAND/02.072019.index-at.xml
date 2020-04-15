@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Tue, 03 Sep 2019 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression SEVEN Forecast/Advisory Number 2</title>
+      <description>Issued at 1500 UTC TUE SEP 03 2019 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL DEPRESSION SEVEN FORECAST/ADVISORY NUMBER   2
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL072019
+1500 UTC TUE SEP 03 2019
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+NONE.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* LA PESCA TO BARRA EL MEZQUITAL
+
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA WITHIN 36 HOURS.
+
+INTERESTS ELSEWHERE ALONG THE NORTHEASTERN COAST OF MEXICO AND THE
+LOWER TEXAS COAST SHOULD MONITOR THE PROGRESS OF THIS SYSTEM.
+ADDITIONAL WATCHES OR WARNINGS COULD BE REQUIRED LATER TODAY FOR
+PORTIONS OF THESE AREAS.
+
+TROPICAL DEPRESSION CENTER LOCATED NEAR 23.6N  94.9W AT 03/1500Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE WEST OR 260 DEGREES AT   6 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1004 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 23.6N  94.9W AT 03/1500Z
+AT 03/1200Z CENTER WAS LOCATED NEAR 23.6N  94.6W
+
+FORECAST VALID 04/0000Z 23.4N  95.6W
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 04/1200Z 23.6N  96.7W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 50NE   0SE   0SW  50NW.
+
+FORECAST VALID 05/0000Z 24.1N  97.6W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 60NE  40SE   0SW  60NW.
+
+FORECAST VALID 05/1200Z 24.8N  98.5W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 06/1200Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 23.6N  94.9W
+
+INTERMEDIATE PUBLIC ADVISORY...WTNT32 KNHC/MIATCPAT2...AT 03/1800Z
+
+NEXT ADVISORY AT 03/2100Z
+
+$$
+FORECASTER BEVEN
+
+</pre>]]></description>
+      <pubDate>Tue, 03 Sep 2019 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/07/02.072019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/07/02.072019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

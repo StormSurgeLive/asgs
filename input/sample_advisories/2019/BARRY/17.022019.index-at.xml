@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sun, 14 Jul 2019 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm BARRY Forecast/Advisory Number 17</title>
+      <description>Issued at 1500 UTC SUN JUL 14 2019 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM BARRY FORECAST/ADVISORY NUMBER  17
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL022019
+1500 UTC SUN JUL 14 2019
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+THE STORM SURGE WARNING FROM INTRACOASTAL CITY TO THE MOUTH OF THE
+ATCHAFALAYA RIVER HAS BEEN DISCONTINUED.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* MORGAN CITY TO CAMERON
+
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA.  THE TROPICAL STORM
+WARNING WILL LIKELY BE DISCONTINUED LATER THIS AFTERNOON.
+
+TROPICAL STORM CENTER LOCATED NEAR 31.8N  93.4W AT 14/1500Z
+POSITION ACCURATE WITHIN  25 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH OR 360 DEGREES AT   8 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1006 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT.......  0NE 150SE   0SW   0NW.
+12 FT SEAS..  0NE 150SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 31.8N  93.4W AT 14/1500Z
+AT 14/1200Z CENTER WAS LOCATED NEAR 31.4N  93.4W
+
+FORECAST VALID 15/0000Z 32.8N  93.5W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 15/1200Z 34.2N  93.5W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+
+FORECAST VALID 16/0000Z 35.7N  93.1W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+
+FORECAST VALID 16/1200Z 37.4N  91.9W...POST-TROP/REMNT LOW
+MAX WIND  20 KT...GUSTS  30 KT.
+
+FORECAST VALID 17/1200Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 31.8N  93.4W
+
+INTERMEDIATE PUBLIC ADVISORY...WTNT32 KNHC/MIATCPAT2...AT 14/1800Z
+
+NEXT ADVISORY AT 14/2100Z
+
+$$
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Sun, 14 Jul 2019 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/02/17.022019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/02/17.022019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

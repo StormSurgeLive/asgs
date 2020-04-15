@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Tue, 23 Jul 2019 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression THREE Forecast/Advisory Number 3</title>
+      <description>Issued at 0900 UTC TUE JUL 23 2019 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL DEPRESSION THREE FORECAST/ADVISORY NUMBER   3
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL032019
+0900 UTC TUE JUL 23 2019
+
+INTERESTS IN THE NORTHWEST BAHAMAS AND THE EAST COAST OF FLORIDA
+SHOULD MONITOR THE PROGRESS OF THIS SYSTEM.
+
+TROPICAL DEPRESSION CENTER LOCATED NEAR 27.0N  79.5W AT 23/0900Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH OR 360 DEGREES AT  10 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1012 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 27.0N  79.5W AT 23/0900Z
+AT 23/0600Z CENTER WAS LOCATED NEAR 26.5N  79.5W
+
+FORECAST VALID 23/1800Z 29.6N  79.4W
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 24/0600Z 34.0N  76.5W
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 24/1800Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 27.0N  79.5W
+
+NEXT ADVISORY AT 23/1500Z
+
+$$
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Tue, 23 Jul 2019 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/03/03.032019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/03/03.032019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Mon, 09 Sep 2019 03:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Post-Tropical Cyclone DORIAN Forecast/Advisory Number 64</title>
+      <description>Issued at 0300 UTC MON SEP 09 2019 <![CDATA[<pre>
+ZCZC MIATCMAT5 ALL
+TTAA00 KNHC DDHHMM
+
+POST-TROPICAL CYCLONE DORIAN FORECAST/ADVISORY NUMBER  64
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL052019
+0300 UTC MON SEP 09 2019
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+THE CANADIAN HURRICANE CENTER HAS DISCONTINUED ALL TROPICAL CYCLONE
+WARNINGS FOR ATLANTIC CANADA.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+POST-TROPICAL CYCLONE CENTER LOCATED NEAR 52.1N  53.4W AT 09/0300Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE EAST-NORTHEAST OR  60 DEGREES AT  21 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  980 MB
+MAX SUSTAINED WINDS  50 KT WITH GUSTS TO  60 KT.
+50 KT.......  0NE  90SE  60SW   0NW.
+34 KT.......360NE 330SE 180SW 120NW.
+12 FT SEAS..360NE 840SE 720SW 270NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 52.1N  53.4W AT 09/0300Z
+AT 09/0000Z CENTER WAS LOCATED NEAR 51.6N  54.8W
+
+FORECAST VALID 09/1200Z 53.6N  48.8W...POST-TROP/EXTRATROP
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT...420NE 390SE 300SW 240NW.
+
+FORECAST VALID 10/0000Z 55.1N  41.5W...POST-TROP/EXTRATROP
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT...420NE 360SE 360SW 240NW.
+
+FORECAST VALID 10/1200Z 56.6N  31.6W...POST-TROP/EXTRATROP
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...300NE 360SE 360SW 300NW.
+
+FORECAST VALID 11/0000Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 52.1N  53.4W
+
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE
+CENTER ON THIS SYSTEM.  ADDITIONAL INFORMATION ON THIS SYSTEM CAN BE
+FOUND IN HIGH SEAS FORECASTS ISSUED BY THE NATIONAL WEATHER
+SERVICE...UNDER AWIPS HEADER NFDHSFAT1 AND WMO HEADER FZNT01 KWBC.
+
+
+$$
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Mon, 09 Sep 2019 03:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/05/64.052019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/05/64.052019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
