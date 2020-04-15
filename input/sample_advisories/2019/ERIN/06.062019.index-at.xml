@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 28 Aug 2019 03:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm ERIN Forecast/Advisory Number 6</title>
+      <description>Issued at 0300 UTC WED AUG 28 2019 <![CDATA[<pre>
+ZCZC MIATCMAT1 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM ERIN FORECAST/ADVISORY NUMBER   6
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL062019
+0300 UTC WED AUG 28 2019
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+TROPICAL STORM CENTER LOCATED NEAR 31.9N  72.1W AT 28/0300Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE WEST OR 270 DEGREES AT   2 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1005 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT....... 70NE  90SE   0SW   0NW.
+12 FT SEAS..100NE 100SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 31.9N  72.1W AT 28/0300Z
+AT 28/0000Z CENTER WAS LOCATED NEAR 31.5N  72.0W
+
+FORECAST VALID 28/1200Z 33.1N  72.4W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 70NE  90SE   0SW   0NW.
+
+FORECAST VALID 29/0000Z 36.0N  71.6W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 90NE  90SE   0SW   0NW.
+
+FORECAST VALID 29/1200Z 39.4N  68.9W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 90NE  90SE   0SW   0NW.
+
+FORECAST VALID 30/0000Z 43.7N  65.1W...POST-TROP/EXTRATROP
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT...120NE 120SE   0SW   0NW.
+
+FORECAST VALID 31/0000Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 31.9N  72.1W
+
+NEXT ADVISORY AT 28/0900Z
+
+$$
+FORECASTER LATTO/PASCH
+
+</pre>]]></description>
+      <pubDate>Wed, 28 Aug 2019 03:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/06/06.062019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/06/06.062019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

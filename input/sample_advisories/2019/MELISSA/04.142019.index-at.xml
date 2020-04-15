@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sat, 12 Oct 2019 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Subtropical Storm MELISSA Forecast/Advisory Number 4</title>
+      <description>Issued at 0900 UTC SAT OCT 12 2019 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+
+SUBTROPICAL STORM MELISSA FORECAST/ADVISORY NUMBER   4
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL142019
+0900 UTC SAT OCT 12 2019
+
+THERE ARE NO COASTAL TROPICAL CYCLONE WATCHES OR WARNINGS IN EFFECT.
+
+FOR INFORMATION ON WIND AND COASTAL FLOODING HAZARDS...SEE PRODUCTS
+ISSUED BY YOUR LOCAL NATIONAL WEATHER SERVICE OFFICE AT WEATHER.GOV.
+
+SUBTROPICAL STORM CENTER LOCATED NEAR 38.1N  68.2W AT 12/0900Z
+POSITION ACCURATE WITHIN  15 NM
+
+PRESENT MOVEMENT TOWARD THE NORTHEAST OR  55 DEGREES AT   6 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  998 MB
+MAX SUSTAINED WINDS  45 KT WITH GUSTS TO  55 KT.
+34 KT.......240NE   0SE 180SW 240NW.
+12 FT SEAS..780NE 120SE 420SW 360NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 38.1N  68.2W AT 12/0900Z
+AT 12/0600Z CENTER WAS LOCATED NEAR 38.0N  68.5W
+
+FORECAST VALID 12/1800Z 38.4N  66.7W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT...100NE   0SE 100SW 100NW.
+
+FORECAST VALID 13/0600Z 39.0N  63.8W...POST-TROP/REMNT LOW
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 13/1800Z 39.6N  60.4W...POST-TROP/REMNT LOW
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 14/0600Z 40.3N  56.6W...POST-TROP/REMNT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+
+FORECAST VALID 15/0600Z 41.6N  47.7W...POST-TROP/REMNT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 16/0600Z...ABSORBED WITHIN A FRONTAL ZONE
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 38.1N  68.2W
+
+NEXT ADVISORY AT 12/1500Z
+
+$$
+FORECASTER CANGIALOSI
+
+</pre>]]></description>
+      <pubDate>Sat, 12 Oct 2019 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/14/04.142019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/14/04.142019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

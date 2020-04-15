@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Mon, 28 Oct 2019 03:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm PABLO Forecast/Advisory Number 10</title>
+      <description>Issued at 0300 UTC MON OCT 28 2019 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM PABLO FORECAST/ADVISORY NUMBER  10
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL182019
+0300 UTC MON OCT 28 2019
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+TROPICAL STORM CENTER LOCATED NEAR 46.0N  17.1W AT 28/0300Z
+POSITION ACCURATE WITHIN  20 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH OR 360 DEGREES AT  12 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  982 MB
+MAX SUSTAINED WINDS  60 KT WITH GUSTS TO  75 KT.
+50 KT....... 10NE  20SE  10SW   0NW.
+34 KT....... 40NE  50SE  30SW  20NW.
+12 FT SEAS..330NE 330SE 420SW 360NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 46.0N  17.1W AT 28/0300Z
+AT 28/0000Z CENTER WAS LOCATED NEAR 45.6N  17.1W
+
+FORECAST VALID 28/1200Z 47.0N  17.0W...POST-TROP/EXTRATROP
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 40NE   0SE   0SW   0NW.
+34 KT...180NE  50SE  30SW 180NW.
+
+FORECAST VALID 29/0000Z 48.2N  17.1W...POST-TROP/EXTRATROP
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT...240NE  50SE   0SW 210NW.
+
+FORECAST VALID 29/1200Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 46.0N  17.1W
+
+NEXT ADVISORY AT 28/0900Z
+
+$$
+FORECASTER BROWN
+
+</pre>]]></description>
+      <pubDate>Mon, 28 Oct 2019 03:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/18/10.182019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/18/10.182019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

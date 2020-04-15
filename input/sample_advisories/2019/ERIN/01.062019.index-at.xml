@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Mon, 26 Aug 2019 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression SIX Forecast/Advisory Number 1</title>
+      <description>Issued at 2100 UTC MON AUG 26 2019 <![CDATA[<pre>
+ZCZC MIATCMAT1 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL DEPRESSION SIX FORECAST/ADVISORY NUMBER   1
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL062019
+2100 UTC MON AUG 26 2019
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+TROPICAL DEPRESSION CENTER LOCATED NEAR 31.7N  72.5W AT 26/2100Z
+POSITION ACCURATE WITHIN  35 NM
+
+PRESENT MOVEMENT TOWARD THE EAST OR  80 DEGREES AT   2 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1010 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 31.7N  72.5W AT 26/2100Z
+AT 26/1800Z CENTER WAS LOCATED NEAR 31.7N  72.6W
+
+FORECAST VALID 27/0600Z 31.8N  72.0W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE  90SE   0SW   0NW.
+
+FORECAST VALID 27/1800Z 32.1N  71.9W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE  90SE   0SW   0NW.
+
+FORECAST VALID 28/0600Z 32.9N  71.9W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 80NE 120SE  60SW   0NW.
+
+FORECAST VALID 28/1800Z 34.6N  71.5W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 80NE 120SE  60SW   0NW.
+
+FORECAST VALID 29/1800Z 40.3N  66.8W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT... 80NE 120SE  60SW   0NW.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 30/1800Z 47.0N  60.0W...POST-TROP/EXTRATROP
+MAX WIND  40 KT...GUSTS  50 KT.
+
+OUTLOOK VALID 31/1800Z...MERGED WITH LARGER EXTRATROPICAL LOW
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 31.7N  72.5W
+
+NEXT ADVISORY AT 27/0300Z
+
+$$
+FORECASTER BROWN
+
+</pre>]]></description>
+      <pubDate>Mon, 26 Aug 2019 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/06/01.062019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/06/01.062019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
