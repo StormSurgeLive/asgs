@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Tue, 21 May 2019 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Subtropical Depression ANDREA Forecast/Advisory Number 4</title>
+      <description>Issued at 1500 UTC TUE MAY 21 2019 <![CDATA[<pre>
+ZCZC MIATCMAT1 ALL
+TTAA00 KNHC DDHHMM
+ 
+SUBTROPICAL DEPRESSION ANDREA FORECAST/ADVISORY NUMBER   4
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL012019
+1500 UTC TUE MAY 21 2019
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.  INTERESTS IN
+BERMUDA SHOULD MONITOR THE PROGRESS OF THIS SYSTEM.
+ 
+SUBTROPICAL DEPRESSION CENTER LOCATED NEAR 30.8N  69.2W AT 21/1500Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH OR 360 DEGREES AT   7 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1009 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 30.8N  69.2W AT 21/1500Z
+AT 21/1200Z CENTER WAS LOCATED NEAR 30.7N  69.2W
+ 
+FORECAST VALID 22/0000Z 31.5N  67.8W...POST-TROP/REMNT LOW
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 22/1200Z 31.7N  66.0W...POST-TROP/REMNT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 23/0000Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 30.8N  69.2W
+ 
+NEXT ADVISORY AT 21/2100Z
+ 
+$$
+FORECASTER PASCH
+
+</pre>]]></description>
+      <pubDate>Tue, 21 May 2019 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/01/04.012019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/01/04.012019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Thu, 22 Aug 2019 03:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression CHANTAL Forecast/Advisory Number 5</title>
+      <description>Issued at 0300 UTC THU AUG 22 2019 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL DEPRESSION CHANTAL FORECAST/ADVISORY NUMBER   5
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL042019
+0300 UTC THU AUG 22 2019
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+TROPICAL DEPRESSION CENTER LOCATED NEAR 39.4N  47.4W AT 22/0300Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+PRESENT MOVEMENT TOWARD THE EAST-SOUTHEAST OR 105 DEGREES AT  16 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1010 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+12 FT SEAS..  0NE  70SE  70SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 39.4N  47.4W AT 22/0300Z
+AT 22/0000Z CENTER WAS LOCATED NEAR 39.6N  48.3W
+ 
+FORECAST VALID 22/1200Z 38.8N  44.9W
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 23/0000Z 37.9N  42.6W
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 23/1200Z 36.8N  41.4W
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 24/0000Z 35.9N  41.5W...POST-TROP/REMNT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 25/0000Z 35.8N  42.9W...POST-TROP/REMNT LOW
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 26/0000Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 39.4N  47.4W
+ 
+NEXT ADVISORY AT 22/0900Z
+ 
+$$
+FORECASTER ROBERTS
+
+</pre>]]></description>
+      <pubDate>Thu, 22 Aug 2019 03:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/04/05.042019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/04/05.042019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

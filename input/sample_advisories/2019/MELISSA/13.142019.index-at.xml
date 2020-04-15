@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Mon, 14 Oct 2019 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Post-Tropical Cyclone MELISSA Forecast/Advisory Number 13</title>
+      <description>Issued at 1500 UTC MON OCT 14 2019 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+
+POST-TROPICAL CYCLONE MELISSA FORECAST/ADVISORY NUMBER  13
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL142019
+1500 UTC MON OCT 14 2019
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+POST-TROPICAL CYCLONE CENTER LOCATED NEAR 41.0N  51.4W AT 14/1500Z
+POSITION ACCURATE WITHIN  20 NM
+
+PRESENT MOVEMENT TOWARD THE EAST OR  80 DEGREES AT  20 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1004 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT.......  0NE  90SE  90SW   0NW.
+12 FT SEAS.. 60NE 120SE 120SW  60NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 41.0N  51.4W AT 14/1500Z
+AT 14/1200Z CENTER WAS LOCATED NEAR 40.8N  53.0W
+
+FORECAST VALID 15/0000Z 41.4N  46.6W...POST-TROP/EXTRATROP
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE  90SE  90SW   0NW.
+
+FORECAST VALID 15/1200Z 41.4N  39.3W...POST-TROP/EXTRATROP
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 16/0000Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 41.0N  51.4W
+
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE
+CENTER ON THIS SYSTEM.  ADDITIONAL INFORMATION ON THIS SYSTEM CAN BE
+FOUND IN HIGH SEAS FORECASTS ISSUED BY THE NATIONAL WEATHER
+SERVICE...UNDER AWIPS HEADER NFDHSFAT1 AND WMO HEADER FZNT01 KWBC.
+
+$$
+FORECASTER LATTO
+
+</pre>]]></description>
+      <pubDate>Mon, 14 Oct 2019 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/14/13.142019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/14/13.142019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
