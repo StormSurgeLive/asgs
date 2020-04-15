@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Thu, 26 Sep 2019 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm KAREN Forecast/Advisory Number 17</title>
+      <description>Issued at 0900 UTC THU SEP 26 2019 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL STORM KAREN FORECAST/ADVISORY NUMBER  17
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL122019
+0900 UTC THU SEP 26 2019
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 25.5N  63.5W AT 26/0900Z
+POSITION ACCURATE WITHIN  40 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHEAST OR  15 DEGREES AT  13 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1004 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT.......  0NE  40SE   0SW   0NW.
+12 FT SEAS..  0NE  60SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 25.5N  63.5W AT 26/0900Z
+AT 26/0600Z CENTER WAS LOCATED NEAR 25.0N  63.7W
+ 
+FORECAST VALID 26/1800Z 27.0N  62.9W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE  40SE   0SW   0NW.
+ 
+FORECAST VALID 27/0600Z 27.9N  61.5W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE  40SE   0SW   0NW.
+ 
+FORECAST VALID 27/1800Z 28.0N  60.3W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE  40SE   0SW   0NW.
+ 
+FORECAST VALID 28/0600Z 27.9N  60.1W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE  40SE   0SW   0NW.
+ 
+FORECAST VALID 29/0600Z 27.3N  62.5W
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 30/0600Z 27.0N  65.2W...POST-TROP/REMNT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+OUTLOOK VALID 01/0600Z 26.8N  67.4W...POST-TROP/REMNT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 25.5N  63.5W
+ 
+NEXT ADVISORY AT 26/1500Z
+ 
+$$
+FORECASTER CANGIALOSI
+
+</pre>]]></description>
+      <pubDate>Thu, 26 Sep 2019 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/12/17.122019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/12/17.122019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

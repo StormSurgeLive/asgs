@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sat, 28 Sep 2019 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane LORENZO Forecast/Advisory Number 24</title>
+      <description>Issued at 1500 UTC SAT SEP 28 2019 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+ 
+HURRICANE LORENZO FORECAST/ADVISORY NUMBER  24
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL132019
+1500 UTC SAT SEP 28 2019
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+HURRICANE CENTER LOCATED NEAR 22.5N  44.8W AT 28/1500Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH OR 350 DEGREES AT   9 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  957 MB
+EYE DIAMETER  20 NM
+MAX SUSTAINED WINDS 100 KT WITH GUSTS TO 120 KT.
+64 KT....... 45NE  35SE  40SW  40NW.
+50 KT....... 90NE  90SE  60SW  90NW.
+34 KT.......240NE 190SE 120SW 200NW.
+12 FT SEAS..390NE 300SE 360SW 360NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 22.5N  44.8W AT 28/1500Z
+AT 28/1200Z CENTER WAS LOCATED NEAR 22.0N  44.6W
+ 
+FORECAST VALID 29/0000Z 23.8N  44.6W
+MAX WIND 100 KT...GUSTS 120 KT.
+64 KT... 50NE  45SE  40SW  45NW.
+50 KT...100NE 100SE  60SW  90NW.
+34 KT...210NE 190SE 130SW 170NW.
+ 
+FORECAST VALID 29/1200Z 25.6N  44.2W
+MAX WIND  95 KT...GUSTS 115 KT.
+64 KT... 55NE  55SE  45SW  50NW.
+50 KT...110NE 120SE  70SW  90NW.
+34 KT...210NE 200SE 130SW 160NW.
+ 
+FORECAST VALID 30/0000Z 27.1N  43.7W
+MAX WIND  95 KT...GUSTS 115 KT.
+64 KT... 60NE  55SE  50SW  55NW.
+50 KT...120NE 120SE  80SW 100NW.
+34 KT...210NE 210SE 140SW 160NW.
+ 
+FORECAST VALID 30/1200Z 28.8N  43.0W
+MAX WIND  90 KT...GUSTS 110 KT.
+64 KT... 65NE  65SE  55SW  55NW.
+50 KT...120NE 120SE 100SW 100NW.
+34 KT...210NE 220SE 160SW 160NW.
+ 
+FORECAST VALID 01/1200Z 33.3N  39.3W
+MAX WIND  90 KT...GUSTS 110 KT.
+50 KT...130NE 140SE 120SW 100NW.
+34 KT...250NE 250SE 210SW 190NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 02/1200Z 40.5N  29.5W
+MAX WIND  80 KT...GUSTS 100 KT.
+ 
+OUTLOOK VALID 03/1200Z 51.0N  16.5W...POST-TROP/EXTRATROP
+MAX WIND  70 KT...GUSTS  85 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 22.5N  44.8W
+ 
+NEXT ADVISORY AT 28/2100Z
+ 
+$$
+FORECASTER BERG
+
+</pre>]]></description>
+      <pubDate>Sat, 28 Sep 2019 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/13/24.132019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/13/24.132019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Tue, 19 Nov 2019 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm SEBASTIEN Forecast/Advisory Number 1</title>
+      <description>Issued at 1500 UTC TUE NOV 19 2019 <![CDATA[<pre>
+ZCZC MIATCMAT5 ALL
+TTAA00 KNHC DDHHMM CCA
+
+TROPICAL STORM SEBASTIEN FORECAST/ADVISORY NUMBER   1
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL202019
+1500 UTC TUE NOV 19 2019
+
+CORRECTED GUSTS AT INITIAL TIME
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+TROPICAL STORM CENTER LOCATED NEAR 20.1N  58.7W AT 19/1500Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHWEST OR 330 DEGREES AT   7 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1008 MB
+MAX SUSTAINED WINDS  40 KT WITH GUSTS TO  50 KT.
+34 KT....... 90NE   0SE   0SW   0NW.
+12 FT SEAS.. 90NE   0SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 20.1N  58.7W AT 19/1500Z
+AT 19/1200Z CENTER WAS LOCATED NEAR 19.8N  58.5W
+
+FORECAST VALID 20/0000Z 21.0N  59.2W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 90NE  90SE   0SW   0NW.
+
+FORECAST VALID 20/1200Z 22.2N  60.0W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT... 90NE 130SE   0SW   0NW.
+
+FORECAST VALID 21/0000Z 23.5N  60.0W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT...100NE 140SE   0SW   0NW.
+
+FORECAST VALID 21/1200Z 25.5N  58.3W...POST-TROP/EXTRATROP
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT...100NE 150SE   0SW   0NW.
+
+FORECAST VALID 22/1200Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 20.1N  58.7W
+
+NEXT ADVISORY AT 19/2100Z
+
+$$
+FORECASTER LATTO
+
+</pre>]]></description>
+      <pubDate>Tue, 19 Nov 2019 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/20/01.202019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/20/01.202019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

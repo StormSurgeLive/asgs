@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 21 Aug 2019 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm CHANTAL Forecast/Advisory Number 3</title>
+      <description>Issued at 1500 UTC WED AUG 21 2019 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL STORM CHANTAL FORECAST/ADVISORY NUMBER   3
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL042019
+1500 UTC WED AUG 21 2019
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 40.2N  51.6W AT 21/1500Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+PRESENT MOVEMENT TOWARD THE EAST OR  90 DEGREES AT  17 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1009 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT.......  0NE  50SE  50SW   0NW.
+12 FT SEAS..  0NE  60SE  60SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 40.2N  51.6W AT 21/1500Z
+AT 21/1200Z CENTER WAS LOCATED NEAR 40.3N  52.6W
+ 
+FORECAST VALID 22/0000Z 40.0N  48.3W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE  50SE  50SW   0NW.
+ 
+FORECAST VALID 22/1200Z 39.2N  44.7W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE  40SE  50SW   0NW.
+ 
+FORECAST VALID 23/0000Z 38.1N  42.3W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE  40SE  50SW   0NW.
+ 
+FORECAST VALID 23/1200Z 36.9N  41.4W
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 24/1200Z 35.5N  42.5W
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 25/1200Z 36.0N  43.3W...POST-TROP/REMNT LOW
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+OUTLOOK VALID 26/1200Z 37.0N  43.5W...POST-TROP/REMNT LOW
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 40.2N  51.6W
+ 
+NEXT ADVISORY AT 21/2100Z
+ 
+$$
+FORECASTER PASCH
+
+</pre>]]></description>
+      <pubDate>Wed, 21 Aug 2019 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/04/03.042019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/04/03.042019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

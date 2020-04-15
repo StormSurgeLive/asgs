@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 18 Sep 2019 03:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression TEN Forecast/Advisory Number 3</title>
+      <description>Issued at 0300 UTC WED SEP 18 2019 <![CDATA[<pre>
+ZCZC MIATCMAT5 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL DEPRESSION TEN FORECAST/ADVISORY NUMBER   3
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL102019
+0300 UTC WED SEP 18 2019
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+INTERESTS IN THE NORTHERN LEEWARD ISLANDS SHOULD MONITOR THE
+PROGRESS OF THIS SYSTEM.
+ 
+TROPICAL DEPRESSION CENTER LOCATED NEAR 13.7N  46.7W AT 18/0300Z
+POSITION ACCURATE WITHIN  25 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST-NORTHWEST OR 285 DEGREES AT   9 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1006 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 13.7N  46.7W AT 18/0300Z
+AT 18/0000Z CENTER WAS LOCATED NEAR 13.5N  46.2W
+ 
+FORECAST VALID 18/1200Z 14.4N  48.2W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 30NE   0SE   0SW  30NW.
+ 
+FORECAST VALID 19/0000Z 15.3N  50.4W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT... 40NE  40SE  30SW  30NW.
+ 
+FORECAST VALID 19/1200Z 16.2N  53.0W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 20NE   0SE   0SW   0NW.
+34 KT... 50NE  50SE  30SW  50NW.
+ 
+FORECAST VALID 20/0000Z 17.3N  56.0W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 20NE  20SE   0SW  20NW.
+34 KT... 50NE  50SE  30SW  50NW.
+ 
+FORECAST VALID 21/0000Z 19.5N  62.0W
+MAX WIND  65 KT...GUSTS  80 KT.
+50 KT... 30NE  30SE  20SW  30NW.
+34 KT... 70NE  60SE  40SW  60NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 22/0000Z 21.5N  67.0W
+MAX WIND  70 KT...GUSTS  85 KT.
+ 
+OUTLOOK VALID 23/0000Z 24.5N  70.5W
+MAX WIND  75 KT...GUSTS  90 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 13.7N  46.7W
+ 
+NEXT ADVISORY AT 18/0900Z
+ 
+$$
+FORECASTER BEVEN
+
+</pre>]]></description>
+      <pubDate>Wed, 18 Sep 2019 03:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/10/03.102019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/10/03.102019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

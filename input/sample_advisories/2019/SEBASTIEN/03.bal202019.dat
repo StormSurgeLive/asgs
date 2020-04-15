@@ -1,0 +1,4 @@
+AL, 20, 2019111906,   , BEST,   0, 194N,  581W,  35, 1006, TS,  34, NEQ,   90,    0,    0,    0, 1011,  180,  90,   0,   0,   L,   0,    ,   0,   0,     INVEST, S,  0,    ,    0,    0,    0,    0, genesis-num, 041, 
+AL, 20, 2019111912,   , BEST,   0, 199N,  585W,  40, 1004, TS,  34, NEQ,   90,  120,    0,    0, 1010,  180,  80,  40,   0,   L,   0,    ,   0,   0,     INVEST, S, 12, NEQ,   90,    0,    0,    0, genesis-num, 041, TRANSITIONED, alC02019 to al202019, 
+AL, 20, 2019111918,   , BEST,   0, 203N,  594W,  40, 1004, TS,  34, NEQ,   90,  140,    0,    0, 1010,  180,  70,  50,   0,   L,   0,    ,   0,   0,  SEBASTIEN, S, 12, NEQ,   90,    0,    0,    0, genesis-num, 041, DISSIPATED, al202019 to al902019, TRANSITIONED, alD02019 to al202019, 
+AL, 20, 2019112000,   , BEST,   0, 204N,  603W,  40, 1002, TS,  34, NEQ,   90,  140,    0,    0, 1011,  150,  70,  50,   0,   L,   0,    ,   0,   0,  SEBASTIEN, S, 12, NEQ,  120,    0,    0,    0, genesis-num, 041, 
