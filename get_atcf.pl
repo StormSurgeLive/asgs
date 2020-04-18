@@ -26,15 +26,14 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
-$^W++;
+use warnings;
 use strict;
 use Net::FTP;
-#use Net::HTTP;
 use HTTP::Tiny;
 use IO::Socket::SSL;
 use Net::SSLeay;
 use Getopt::Long;
-#
+
 my $statefile="null"; # shell script with variables and values that 
                       # record the current state of the ASGS
 our %state;  # represents current state of ASGS
@@ -222,7 +221,16 @@ while (!$dl) {
          $attributes{'verify_SSL'} = 1;
          my $http = HTTP::Tiny->new(%attributes);
          my $response = $http->get('https://' . $rsssite . '/index-at.xml');
-         if ( $response->{status} == 599 ) { 
+         # provide a non-SSL fallback attempt for ad hoc web servers set up to provide RSS
+         # A status of 599 indicates a 'refused connection' in most cases here, which indicates
+         # that the webserver doesn't support SSL, which is not necessary at this time for integration
+         # testing against servers meant for testing
+         if ( 599 == $response->{status} ) {
+           stderrMessage("ERROR","Failed to download forecast/advisory using https. Trying http (no ssl).");
+           $http = HTTP::Tiny->new();
+           $response = $http->get('http://' . $rsssite . '/index-at.xml');
+         }
+         if ( not $response->{success} ) { 
             stderrMessage("ERROR","Failed to download forecast/advisory.");
             printf STDERR "content: ";
             print STDERR $response->{content};
@@ -230,6 +238,9 @@ while (!$dl) {
             print STDERR $response->{status} . "\n";
             printf STDERR "reason: ";
             print STDERR $response->{reason} . "\n";
+         }
+         else {
+            stderrMessage("SUCCEEDED","Downloaded forecast/advisory using no ssl.");
          }
          #nld empty $body to clear any old advisory numbers from the xml
          $body="";
