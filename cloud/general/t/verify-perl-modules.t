@@ -10,4 +10,6 @@ for my $module (<$fh>) {
   require_ok $module;
 }
 
+require_ok q{AdcGrid};
+
 done_testing();
