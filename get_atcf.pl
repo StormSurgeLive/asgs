@@ -34,39 +34,47 @@ use HTTP::Tiny;
 use IO::Socket::SSL;
 use Net::SSLeay;
 use Getopt::Long;
-#
-my $statefile="null"; # shell script with variables and values that 
-                      # record the current state of the ASGS
-our %state;  # represents current state of ASGS
-my $ftpsite; # hostname for hindcast, nowcast, and/or forecast data 
-             # $ftpsite can also be set to "filesystem" to pick up these
-             # data from the local filesystem
-my $rsssite; # hostname where the RSS feed (index-at.xml) is located
-             # $rsssite can also be set to "filesystem" to pick up these
-             # data from the local filesystem
-my $fdir;    # directory on $ftpsite for ATCF formatted forecast data
-my $hdir;    # directory on $ftpsite for ATCF formatted hindcast data
-my $storm;   # two digit NHC storm number 
-my $year;    # four digit year of the storm 
-my $adv;     # formatted advisory number of the previous advisory, if any
-my $trigger = "rss"; # the data source used to detect a new advisory
-             # can also be set to "rssembedded" to get the advisory text 
-             # that is embedded in the RSS xml file, rather than following
-             # the external link to the text of the forecast/advisory
-my $nhcName; # the name given by the NHC, e.g., TWO, GUSTAV, KATRINA, etc
-my $body;    # text of the forecast/advisory
+
+my $statefile = "null";    # shell script with variables and values that
+                           # record the current state of the ASGS
+our %state;                # represents current state of ASGS
+my $ftpsite;               # hostname for hindcast, nowcast, and/or forecast data
+                           # $ftpsite can also be set to "filesystem" to pick up these
+                           # data from the local filesystem
+my $rsssite;               # hostname where the RSS feed (index-at.xml) is located
+                           # $rsssite can also be set to "filesystem" to pick up these
+                           # data from the local filesystem
+my $fdir;                  # directory on $ftpsite for ATCF formatted forecast data
+my $hdir;                  # directory on $ftpsite for ATCF formatted hindcast data
+my $storm;                 # two digit NHC storm number
+my $year;                  # four digit year of the storm
+my $adv;                   # formatted advisory number of the previous advisory, if any
+my $trigger = "rss";       # the data source used to detect a new advisory
+                           # can also be set to "rssembedded" to get the advisory text
+                           # that is embedded in the RSS xml file, rather than following
+                           # the external link to the text of the forecast/advisory
+my $nhcName;               # the name given by the NHC, e.g., TWO, GUSTAV, KATRINA, etc
+my $verifySSL;             # by default, HTTP::Tiny doesn't verify SSL; off by default for testing
+                           # it's easier to set up a mock-NHC advisory issuing https without creating
+                           # a valid cert via something like Let's Encrypt
+my $useInsecureHTTP;       # if set, uses 'http' rather than 'https' for RSS feeds; useful for testing
+                           # without SSL at all (if set, ignores --verifySSL)
+my $body;                  # text of the forecast/advisory
+
 GetOptions(
-           "statefile=s" => \$statefile,
-           "rsssite=s" => \$rsssite,
-           "ftpsite=s" => \$ftpsite,
-           "fdir=s" => \$fdir,
-           "hdir=s" => \$hdir,
-           "storm=s" => \$storm,
-           "year=s" => \$year,
-           "adv=s" => \$adv,
-           "trigger=s" => \$trigger,
-           "nhcName=s" => \$nhcName
-           );
+    "statefile=s"     => \$statefile,
+    "rsssite=s"       => \$rsssite,
+    "ftpsite=s"       => \$ftpsite,
+    "fdir=s"          => \$fdir,
+    "hdir=s"          => \$hdir,
+    "storm=s"         => \$storm,
+    "year=s"          => \$year,
+    "adv=s"           => \$adv,
+    "trigger=s"       => \$trigger,
+    "nhcName=s"       => \$nhcName,
+    "verifySSL"       => \$verifySSL,
+    "useInsecureHTTP" => \$useInsecureHTTP,
+);
 #
 my $hindcastfile="bal".$storm.$year.".dat";
 my $forecastfile="al".$storm.$year.".fst";
@@ -218,18 +226,31 @@ while (!$dl) {
          #(my $ok, my $why) = $http->can_ssl();
          #stderrMessage("DEBUG","ok is $ok");
          #stderrMessage("DEBUG","why is $why");
-         my %attributes = ();
-         $attributes{'verify_SSL'} = 1;
-         my $http = HTTP::Tiny->new(%attributes);
-         my $response = $http->get('https://' . $rsssite . '/index-at.xml');
-         if ( $response->{status} == 599 ) { 
-            stderrMessage("ERROR","Failed to download forecast/advisory.");
-            printf STDERR "content: ";
-            print STDERR $response->{content};
-            printf STDERR "status: ";
-            print STDERR $response->{status} . "\n";
-            printf STDERR "reason: ";
-            print STDERR $response->{reason} . "\n";
+         my $response;
+         # use http:// if --useInsecureHTTP is set
+         if ($useInsecureHTTP) {
+           my $http = HTTP::Tiny->new;
+           $response = $http->get('http://' . $rsssite . '/index-at.xml');
+         }
+         # otherwise, assume https://
+         else {
+           my %attributes = ();
+           # only verify SSL if --verifySSL is set
+           if ($verifySSL) {
+             # by default, HTTP::Tiny doesn't verify SSL identity
+             $attributes{'verify_SSL'} = 1;
+           }
+           my $http = HTTP::Tiny->new(%attributes);
+           $response = $http->get('https://' . $rsssite . '/index-at.xml');
+           if ( $response->{status} == 599 ) { 
+              stderrMessage("ERROR","Failed to download forecast/advisory.");
+              printf STDERR "content: ";
+              print STDERR $response->{content};
+              printf STDERR "status: ";
+              print STDERR $response->{status} . "\n";
+              printf STDERR "reason: ";
+              print STDERR $response->{reason} . "\n";
+           }
          }
          #nld empty $body to clear any old advisory numbers from the xml
          $body="";

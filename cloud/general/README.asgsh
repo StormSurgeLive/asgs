@@ -262,7 +262,7 @@ INSTANCE name has been determined out of this file:
 * RUNDIR         - parent directory where ADCIRC's running an writing output, read from state file
                  - the initialization of the models (hind/nowcast) and each subsequent advisory forecast
                  - scenario is contained as sub directories here
-* SYSLOG         - full path to the main log file, used by 'watchlog'
+* SYSLOG         - full path to the main log file, used by 'tailf log'
 * PROPERTIESFILE - main run.properties file output by ASGS; current version of the shell does not make
                    these variables directly available in the environment, but this could change
  
@@ -303,6 +303,6 @@ Appendix A - Current Set of Commands (this may be outdated, see 'help' for most 
 	   show   <param>             - shows specified profile variables, to see current list type 'show help'
 	   show   exported            - dumps all exported variables and provides a summary of what asgsh tracks
 	   sq                         - shortcut for "squeue -u $USER" (if squeue is available)
+	   tailf log                  - executes 'tail -f' on ASGS instance's log
 	   verify                     - verfies Perl and Python environments
-	   watchlog                   - executes 'tail -f' on ASGS instance's log
 	   exit                       - exits ASGS shell, returns $USER to login shell
