@@ -813,12 +813,14 @@ sub get_steps {
             description => q{Builds ADCIRC and SWAN if $HOME/adcirc-cg exists.},
             pwd         => qq{./},
             export_ENV  => {
-                ADCIRCDIR           => { value => qq{$adcircdir-$adcirc_git_branch},     how => q{replace} },
-                ADCIRC_GIT_BRANCH   => { value => qq{$adcirc_git_branch},                how => q{replace} },
-                ADCIRC_GIT_URL      => { value => qq{$adcirc_git_url},                   how => q{replace} },
-                ADCIRC_GIT_REPO     => { value => qq{$adcirc_git_repo},                  how => q{replace} },
-                ADCIRC_COMPILER     => { value => qq{$asgs_compiler},                    how => q{replace} },
-                ADCIRC_PROFILE_NAME => { value => qq{$adcirc_git_branch-$asgs_compiler}, how => q{replace} },
+                ADCIRCBASE          => { value => qq{$adcircdir-$adcirc_git_branch},      how => q{replace} },
+                ADCIRCDIR           => { value => qq{$adcircdir-$adcirc_git_branch/work}, how => q{replace} },
+                SWANDIR             => { value => qq{$adcircdir-$adcirc_git_branch/swan}, how => q{replace} },
+                ADCIRC_GIT_BRANCH   => { value => qq{$adcirc_git_branch},                 how => q{replace} },
+                ADCIRC_GIT_URL      => { value => qq{$adcirc_git_url},                    how => q{replace} },
+                ADCIRC_GIT_REPO     => { value => qq{$adcirc_git_repo},                   how => q{replace} },
+                ADCIRC_COMPILER     => { value => qq{$asgs_compiler},                     how => q{replace} },
+                ADCIRC_PROFILE_NAME => { value => qq{$adcirc_git_branch-$asgs_compiler},  how => q{replace} },
             },
             command => q{bash cloud/general/init-adcirc.sh},                   #Note: parameters input via environmental variables
             clean   => q{bash cloud/general/init-adcirc.sh clean},
@@ -941,6 +943,7 @@ Used in conjunction with the C<adcirc> build step. C<asgs-brew.pl> looks
 here for the ADCIRC source code to build. The environmental variable,
 C<ADCIRCDIR> is set using this path and will persist in the C<ASGS Shell>
 where it is affects where C<asgs_main.sh> looks for the ADCIRC binaries.
+This also adds C<ADCIRCBASE> and C<SWANDIR>.
 
 =item C<--clean>
 

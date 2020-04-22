@@ -23,48 +23,36 @@
 # vice versa; if something is added in set(), be sure to add the
 # corresponding entry in show() - including usage
 
-export PS1='asgs (none)>'
-echo
-echo "Quick start:"
-echo "  'initadcirc' to build and local register versions of ADCIRC"
-echo "  'list profiles' to see what scenario package profiles exist"
-echo "  'list adcirc' to see what builds of ADCIRC exist"
-echo "  'load <profile_name>' to load saved profile"
-echo "  'run' to initiated ASGS for loaded profile"
-echo "  'help' for full list of options and features"
-echo "  'exit' to return to the login shell"
-echo
-echo "NOTE: This is a fully function bash shell environment; to update asgsh"
-echo "or to recreate it, exit this shell and run asgs-brew.pl with the"
-echo " --update-shell option"
-echo
-
 help() {
   echo
   echo Commands:
-  echo "   delete <name>              - deletes named profile"
-  echo "   edit  config  <name>       - directly edit currently registered ASGS configuration file (used by asgs_main.sh)"
-  echo "      *  adcirc  <name>       - directly edit the named ADCIRC environment file"
-  echo "      *  profile <name>       - directly edit the named ASGSH Shell profile"
-  echo "   goto   <param>             - change current working directory to a supported direcory; type 'goto options' to see the currently supported options"
+  echo "   delete profile <name>      - deletes named profile"
+  echo "   delete adcirc  <name>      - deletes named ADCIRC profile"
+  echo "   dump   <param>             - dumps (using cat) contents specified files: config, exported (variables); and if set: statefile, syslog" 
+  echo "   edit   adcirc  <name>      - directly edit the named ADCIRC environment file"
+  echo "   edit   config              - directly edit currently registered ASGS configuration file (used by asgs_main.sh)"
+  echo "   edit   profile <name>      - directly edit the named ASGSH Shell profile"
+  echo "   edit   syslog              - open up SYSLOG in EDITOR for easier forensics"
+  echo "   goto   <param>             - change CWD to a supported directory. Type 'goto options' to see the currently supported options"
   echo "   initadcirc                 - interactive tool for building and local registering versions of ADCIRC for use with ASGS"
   echo "   list   <param>             - lists different things, please see the following options; type 'list options' to see currently supported options"
-  echo "   load   <param>             - loads different things into the environment"
-  echo "          profile <name>      - loads a saved profile by name; use 'list profiles' to see what's available"
-  echo "          adcirc  <name>      - loads information about the version of ADCIRC to us into the current environment. Use 'list adcirc' to see what's available"
+  echo "   load   profile <name>      - loads a saved profile by name; use 'list profiles' to see what's available"
+  echo "   load   adcirc  <name>      - loads information a version of ADCIRC into the current environment. Use 'list adcirc' to see what's available"
+  echo "   purge  <param>             - deletes specified file or directory"
+  echo "          rundir              - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
+  echo "          statefile           - deletes the state file associated with a profile, effectively for restarting from the initial advisory"
   echo "   run                        - runs asgs using config file, \$ASGS_CONFIG must be set (see 'set config'); most handy after 'load'ing a profile"
-  echo "   save  <name>               - saves an asgs named profile, '<name>' not required if a profile is loaded"
-  echo "   set    <param> \"<value>\" - sets specified profile variables (i.e., variables that do not last after 'exit')"
-  echo "       *  config              - sets ASGS configuration file used by 'run', (\$ASGS_CONFIG)"
-  echo "       *  editor              - sets default editor, (\$EDITOR)"
-  echo "       *  scratchdir          - sets ASGS main script directory used by all underlying scripts, (\$SCRATCH)"
-  echo "       *  scriptdir           - sets ASGS main script directory used by all underlying scripts, (\$SCRIPTDIR)"
-  echo "       *  workdir             - sets ASGS main script directory used by all underlying scripts, (\$WORK)"
+  echo "   save   profile <name>      - saves an asgs named profile, '<name>' not required if a profile is loaded"
+  echo "   set    config              - sets ASGS configuration file used by 'run', (\$ASGS_CONFIG)"
+  echo "          editor              - sets default editor, (\$EDITOR)"
+  echo "          scratchdir          - sets ASGS main script directory used by all underlying scripts, (\$SCRATCH)"
+  echo "          scriptdir           - sets ASGS main script directory used by all underlying scripts, (\$SCRIPTDIR)"
+  echo "          workdir             - sets ASGS main script directory used by all underlying scripts, (\$WORK)"
   echo "   show   <param>             - shows specified profile variables, to see current list type 'show help'"
   echo "   show   exported            - dumps all exported variables and provides a summary of what asgsh tracks"
   echo "   sq                         - shortcut for \"squeue -u \$USER\" (if squeue is available)"
+  echo "   tailf  log                 - executes 'tail -f' on ASGS instance's log"
   echo "   verify                     - verfies Perl and Python environments"
-  echo "   watchlog                   - executes 'tail -f' on ASGS instance's log"
   echo "   exit                       - exits ASGS shell, returns \$USER to login shell"
 }
 
@@ -75,17 +63,37 @@ initadcirc() {
 
 # deletes a saved profile by name
 delete() {
-  if [ -z "${1}" ]; then
-    echo \'delete\' requires a name parameter, does NOT unload current profile 
-    return
-  fi
-  NAME=${1}
-  if [ -e "$ASGS_HOME/.asgs/$NAME" ]; then
-    rm -f "$ASGS_HOME/.asgs/$NAME"
-    echo deleted \'$NAME\'
-  else
-    echo "no saved profile named '$NAME' was found"
-  fi
+  case "${1}" in
+    adcirc)
+      if [ -z "${2}" ]; then
+        echo \'delete adcirc\' requires a name parameter, does NOT unload current ADCIRC settings 
+        return
+      fi
+      NAME=${2}
+      if [ -e "$ADCIRC_META_DIR/$NAME" ]; then
+        rm -f "$ADCIRC_META_DIR/$NAME"
+        echo deleted ADCIRC configuration \'$NAME\'
+      else
+        echo "no saved ADCIRC configuration named '$NAME' was found"
+      fi
+      ;;
+    profile)
+      if [ -z "${2}" ]; then
+        echo \'delete profile\' requires a name parameter, does NOT unload current profile 
+        return
+      fi
+      NAME=${2}
+      if [ -e "$ASGS_HOME/.asgs/$NAME" ]; then
+        rm -f "$ASGS_HOME/.asgs/$NAME"
+        echo deleted profile \'$NAME\'
+      else
+        echo "no saved profile named '$NAME' was found"
+      fi
+      ;;
+    *)
+      echo "'delete' requires 2 parameters: 'adcirc' or 'profile' as the first; the second parameter defines what to load."
+      return
+  esac
 }
 
 # interactive dialog for choosing an EDITOR if not set
@@ -139,11 +147,19 @@ edit() {
     fi
     $EDITOR "$ASGS_HOME/.asgs/$NAME"
     ;;
+  syslog)
+    if [ ! -e "$SYSLOG" ]; then
+      echo "Log file, '$NAME' doesn't exist"
+      return
+    fi
+    $EDITOR "$SYSLOG"
+    ;;
   *)
     echo "Supported options:"
     echo "adcirc <name>  - directly edit named ADCIRC environment file"
     echo "config         - directly edit ASGS_CONFIG, if set"
     echo "profile <name> - directly edit named ASGS profile (should be followed up with the 'load profile' command"
+    echo "syslog         - open SYSLOG from a run in EDITOR for easier forensices"
     ;;
   esac
 }
@@ -272,6 +288,7 @@ load() {
           # extracts info such as 'instancename' so we can derive the location of the state file, then the log file path and actual run directory
           _parse_config $ASGS_CONFIG
         fi
+        _ASGSH_CURRENT_PROFILE="${2}"
       else
         echo "ASGS profile, '$NAME' does not exist. Use 'list profile' to see a which profile are available to load"
       fi
@@ -282,9 +299,6 @@ load() {
   esac
 }
 load default
-
-# when started, ASGS Shell loads the 'default' profile, this can be made variable at some point
-load profile default
 
 _parse_config() {
   if [ ! -e "${1}" ]; then
@@ -347,22 +361,30 @@ run() {
 # saves environment as a file named what is passed to the command, gets the
 # list of environmental variables to save from $_ASGS_EXPORTED_VARS
 save() {
-  DO_RELOAD=1
-  if [ -n "${1}" ]; then 
-    NAME=${1}
-    DO_RELOAD=0
-  elif [ -z "${NAME}" ]; then
-    echo "'save' requires a name parameter or pre-loaded profile"
+  case "${1}" in
+    profile)
+      DO_RELOAD=1
+      if [ -n "${2}" ]; then 
+        NAME=${2}
+        DO_RELOAD=0
+      elif [ -z "${NAME}" ]; then
+        echo "'save' requires a name parameter or pre-loaded profile"
+        return
+      fi
+    
+      if [ ! -d $ASGS_HOME/.asgs ]; then
+        mkdir -p $ASGS_HOME/.asgs
+      fi
+    
+      if [ -e "$ASGS_HOME/.asgs/$NAME" ]; then
+        IS_UPDATE=1
+      fi
+    ;;
+    *)
+      echo "'save' requires 2 parameters: 'profile' as the first; the second is the profile name."
+      return
     return
-  fi
-
-  if [ ! -d $ASGS_HOME/.asgs ]; then
-    mkdir -p $ASGS_HOME/.asgs
-  fi
-
-  if [ -e "$ASGS_HOME/.asgs/$NAME" ]; then
-    IS_UPDATE=1
-  fi
+  esac
 
   # generates saved provile as a basic shell resource file that simply
   # includes an 'export' line for each variable asgsh cares about; this
@@ -433,6 +455,45 @@ set() {
 }
 
 # prints value of provided variable name
+dump() {
+  if [ -z "${1}" ]; then
+    echo "'set' requires 1 argument - parameter"
+    return 
+  fi
+  case "${1}" in
+    config)
+      if [ -n "${ASGS_CONFIG}" ]; then
+        cat ${ASGS_CONFIG}
+      else
+        echo "ASGS_CONFIG is not set to anything. Try, 'set config /path/to/asgs/config.sh' first"
+      fi
+      ;;
+    exported)
+      for e in $_ASGS_EXPORTED_VARS; do
+        echo "${e}='"${!e}"'"
+      done
+      ;;
+    statefile)
+      if [ -n "${STATEFILE}" ]; then
+        cat ${STATEFILE}
+      else
+        echo "STATEFILE is not set to anything. Does state file exist?"
+      fi
+      ;;
+    syslog)
+      if [ -n "${SYSLOG}" ]; then
+        cat ${SYSLOG}
+      else
+        echo "SYSLOG is not set to anything. Does state file exist?"
+      fi
+      ;;
+    *) echo "'dump' requires one of the supported parameters:"
+       echo config exported statefile syslog
+      ;;
+  esac 
+}
+
+# prints value of provided variable name
 show() {
   if [ -z "${1}" ]; then
     echo "'set' requires 1 argument - parameter"
@@ -444,6 +505,13 @@ show() {
         echo "ASGS_CONFIG is set to '${ASGS_CONFIG}'"
       else
         echo "ASGS_CONFIG is not set to anything. Try, 'set config /path/to/asgs/config.sh' first"
+      fi
+      ;;
+    adcircbase)
+      if [ -n "${ADCIRCBASE}" ]; then
+        echo "ADCIRCBASE is set to '${ADCIRCBASE}'"
+      else
+        echo "ADCIRCBASE is not set to anything. Try, 'set adcircbase /path/to/adcirc/dir' first"
       fi
       ;;
     adcircdir)
@@ -518,16 +586,21 @@ show() {
       ;;
     exported)
       for e in $_ASGS_EXPORTED_VARS; do
-      echo "${e}='"${!e}"'"
+        echo "${e}='"${!e}"'"
       done
-      echo Summary list of environmental variables exported by asgsh:
-      echo $_ASGS_EXPORTED_VARS
       ;;
     instancename)
       if [ -n "${INSTANCENAME}" ]; then
         echo "INSTANCENAME is set to '${INSTANCENAME}'"
       else
         echo "INSTANCENAME is not set to anything. Have you set the config file yet?"
+      fi
+      ;;
+    profile)
+      if [ -n "${_ASGSH_CURRENT_PROFILE}" ]; then
+        echo "profile is set to '${_ASGSH_CURRENT_PROFILE}'"
+      else
+        echo "profile is not set to anything. Does state file exist?" 
       fi
       ;;
     rundir)
@@ -573,9 +646,8 @@ show() {
       fi
       ;;
     *) echo "'show' requires one of the supported parameters:"
-       echo config adcircdir adcircbranch adcircremote machinename adcirccompiler asgscompiler home
-       echo installpath brewflags editor instancename rundir scratchdir scriptdir statefile syslog
-       echo workdir
+       echo config adcircbase adcircdir adcircbranch adcircremote machinename adcirccompiler asgscompiler home
+       echo installpath brewflags editor instancename rundir scratchdir scriptdir statefile syslog workdir
       ;;
   esac 
 }
@@ -590,14 +662,25 @@ sq() {
 }
 
 # short cut to tail -f the SYSLOG of the current ASGS package that is running
-watchlog() {
-  if [ -z "$SYSLOG" ]; then
-    echo "warning: log file "$SYSLOG" does not exist!"
-    return
+tailf() {
+  if [ -z "${1}" ]; then
+    echo "'tailf' requires 1 argument - parameter"
+    return 
   fi
-  echo "type 'ctrl-c' to end"
-  echo "tail -f $SYSLOG"
-  tail -f $SYSLOG
+  case "${1}" in
+    syslog)
+      if [ -z "$SYSLOG" ]; then
+        echo "warning: log file "$SYSLOG" does not exist!"
+        return
+      fi
+      echo "type 'ctrl-c' to end"
+      echo "tail -f $SYSLOG"
+      tail -f $SYSLOG
+      ;;
+   *)
+      echo "'tailf' supports the following parameters: 'syslog'" 
+    ;;
+  esac
 }
 
 # runs a fairly comprhensive set of Perl and Python scripts to validate
@@ -626,3 +709,81 @@ verify() {
   rm -f ./*.nc
   popd > /dev/null 2>&1
 }
+
+purge() {
+  if [ -z "${1}" ]; then
+    echo "'purge' requires 1 argument - currently only supports 'rundir', 'scratchdir', 'statefile'."
+    return 
+  fi
+  case "${1}" in
+    rundir)
+     read -p "This will delete the current run director, \"${RUNDIR}\". Type 'y' to proceed. [N] " DELETE_RUNDIR
+     if [ 'y' == "${DELETE_RUNDIR}" ]; then
+       rm -rvf "${RUNDIR}"
+       RUNDIR=
+     else
+       echo "Purge of rundir cancelled."
+     fi
+    ;;
+    statefile)
+     read -p "This will delete the state file, \"${STATEFILE}\". Type 'y' to proceed. [N] " DELETE_STATEFILE
+     if [ 'y' == "${DELETE_STATEFILE}" ]; then
+       rm -rvf "${STATEFILE}"
+       STATEFILE=
+     else
+       echo "Purge of state file cancelled."
+     fi
+    ;;
+    scratchdir)
+     read -p "This will delete EVERYTHING in the SCRATCH directory, \"${SCRATCH}\". Type 'y' to proceed. [N]? " DELETE_SCRATCH
+     if [ 'y' == "${DELETE_SCRATCH}" ]; then
+       rm -rvf ${SCRATCH}/*
+     else
+       echo "Purge of scratch directory cancelled."
+     fi
+    ;;
+    *)
+     echo "'${1}' is not supported. 'purge' currently only supports 'rundir', 'scratchdir', 'statefile'."
+    ;;
+  esac 
+}
+
+# initialization, do after bash functions have been loaded
+export PS1='asgs (none)>'
+echo
+echo "Quick start:"
+echo "  'initadcirc' to build and local register versions of ADCIRC"
+echo "  'list profiles' to see what scenario package profiles exist"
+echo "  'list adcirc' to see what builds of ADCIRC exist"
+echo "  'load profile <profile_name>' to load saved profile"
+echo "  'run' to initiated ASGS for loaded profile"
+echo "  'help' for full list of options and features"
+echo "  'goto scriptdir' to set current directory to ASGS' script directory"
+echo "  'exit' to return to the login shell"
+echo
+echo "NOTE: This is a fully function bash shell environment; to update asgsh"
+echo "or to recreate it, exit this shell and run asgs-brew.pl with the"
+echo " --update-shell option"
+echo
+
+# handy aliases for the impatient
+alias a="list adcirc"
+alias c="edit config"
+alias nukeit="purge scratchdir"
+alias p="list profiles"
+alias sd="goto scriptdir"
+alias s="goto scratchdir"
+alias v="verify"
+
+# when started, ASGS Shell loads the 'default' profile, this can be made variable at some point
+load profile default
+
+# show important directories
+show scriptdir
+show scratchdir
+
+# start off in $SCRIPTDIR
+goto scriptdir
+
+# provide a new line
+echo
