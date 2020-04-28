@@ -32,8 +32,9 @@ sub replay {
     my $opts_ref = {};
     my @flags    = (
         qw/
-          config=s
+          advisory-interval=i
           clean
+          config=s
           /
     );
     my $ret = Getopt::Long::GetOptionsFromArray( $args_ref, $opts_ref, @flags );
@@ -102,7 +103,7 @@ sub replay {
             ++$tracking_ref->{$storm}->{current};
         }
 
-        my $wait = $config->{global}->{ADVISORY_INTERVAL};
+        my $wait = $opts_ref->{'advisory-interval'} // $config->{global}->{ADVISORY_INTERVAL};
         print qq{Issuing next "official" advisory in $wait seconds ...\n};
         sleep $wait;
     }
@@ -133,8 +134,8 @@ sub update_rss {
     my $_rss_root = $config->{$storm}->{RSS_ROOT} // $config->{global}->{RSS_ROOT};
 
     # source index-at.xml
-    my $xml_src_file  = sprintf( "%s/%02d.%s%s.index-%s.xml", $_src_path,                    $_index, $_storm, $_year, $_basin );
-    my $xml_dest_file = sprintf( "%s/index-%s.xml", $_rss_root, $_basin );
+    my $xml_src_file  = sprintf( "%s/%02d.%s%s.index-%s.xml", $_src_path, $_index, $_storm, $_year, $_basin );
+    my $xml_dest_file = sprintf( "%s/index-%s.xml",           $_rss_root, $_basin );
 
     # insert <item> from $src_file of this storm into the exposed index-at.xml
     # being served as the RSS XML via HTTP
@@ -158,14 +159,14 @@ sub _insert_rss {
     # getting here means $dest_file exists already and we must
     # insert <item> from $src_file into $dest
 
-    my $_basin = $config->{global}->{BASIN_PREFIX};
-    my $_basin = $config->{$storm}->{RSS_BASIN_PREFIX} // $config->{global}->{RSS_BASIN_PREFIX};
-    my $_storm = $config->{$storm}->{storm};
-    my $_year  = $config->{$storm}->{year};
+    my $_rss_basin = $config->{$storm}->{RSS_BASIN_PREFIX} // $config->{global}->{RSS_BASIN_PREFIX};
+    my $_nhc_basin = $config->{$storm}->{NHC_BASIN_PREFIX} // $config->{global}->{NHC_BASIN_PREFIX};
+    my $_storm     = $config->{$storm}->{storm};
+    my $_year      = $config->{$storm}->{year};
 
     # string to look for in $item->{description} to determine it's the entry
     # for the storm we're updating
-    my $storm_designation = sprintf( "%s%s%s", uc($_basin), $_storm, $_year );
+    my $storm_designation = sprintf( "%s%s%s", uc($_nhc_basin), $_storm, $_year );
 
     # open src via XML parser
     my $src_rss = XML::RSS->new;
@@ -175,23 +176,26 @@ sub _insert_rss {
     my $dest_rss = XML::RSS->new;
     $dest_rss->parsefile($dest_file);
 
-    # find entry index for $storm if it's in the at-index.xml already
-    my $storm_index = $self->_find_index( $storm_designation, $dest_rss );
-
-    # entry found for this storm, so remove it
-    if ( defined $storm_index ) {
-        my $removed_item = splice( @{ $dest_rss->{items} }, $storm_index, 1 );
-    }
-
     # insert new entry - assumed here to not be in conflict with anything that is
     # currently in $src_rss->{items}
     my $replacement_item = $src_rss->{items}->[0];
-    push( @{ $dest_rss->{items} }, $replacement_item );
+
+    # find entry index for $storm if it's in the at-index.xml already
+    my $storm_index = $self->_find_index( $storm_designation, $dest_rss );
+    if ( defined $storm_index ) {
+
+        # replace
+        $dest_rss->{items}->[$storm_index] = $replacement_item;
+    }
+    else {
+        # add if storm is not yet in the XML
+        push( @{ $dest_rss->{items} }, $replacement_item );
+    }
 
   REPLACE_CURRENT_XML:
     {
         # write index-at.xml to a temporary file, them perform an atomic mv
-        my $tmp_file = sprintf( "/tmp/%s.index-%s.xml", $$, $_basin );
+        my $tmp_file = sprintf( "/tmp/%s.index-%s.xml", $$, $_rss_basin );
         $dest_rss->save($tmp_file);
 
         # perform atomic mv to overwrite existing file
@@ -206,15 +210,14 @@ sub _insert_rss {
 sub _find_index {
     my ( $self, $storm_designation, $dest_rss ) = @_;
     my $index = 0;
-    my $found;
   FIND_ENTRY:
     foreach my $item ( @{ $dest_rss->{items} } ) {
-        if ( exists $item->{description} and $item->{description} =~ m/$storm_designation/ ) {
-            $found = $index;
+        if ( $item->{description} =~ m/$storm_designation/ ) {
+            last FIND_ENTRY;
         }
         ++$index;
     }
-    return $found;
+    return $index;
 }
 
 # only provides best track in ftp in FTP_ROOT/FTP_HDIR
@@ -233,7 +236,7 @@ sub update_ftp {
     my $btk_src_file = sprintf( "%s/%02d.b%s%s%s.dat", $_src_path, $_index, $_basin, $_storm, $_year );
 
     # copy btk and fst to FTP
-    my $_btk_root     = sprintf( "%s%s", $_ftp_root, $_ftp_hdir );
+    my $_btk_root     = sprintf( "%s%s",           $_ftp_root, $_ftp_hdir );
     my $btk_dest_file = sprintf( "%s/b%s%s%s.dat", $_btk_root, $_basin, $_storm, $_year );
 
     # replace best track
@@ -258,22 +261,22 @@ sub clean_all {
         my $_fst_root = sprintf( "%s%s", $_ftp_root, $_ftp_fdir );
         my $_btk_root = sprintf( "%s%s", $_ftp_root, $_ftp_hdir );
 
-        my $_src_path         = $config->{$storm}->{source};
-        my $_storm            = $config->{$storm}->{storm};
-        my $_year             = $config->{$storm}->{year};
+        my $_src_path = $config->{$storm}->{source};
+        my $_storm    = $config->{$storm}->{storm};
+        my $_year     = $config->{$storm}->{year};
 
         my $_rss_basin = $config->{$storm}->{RSS_BASIN_PREFIX} // $config->{global}->{RSS_BASIN_PREFIX};
         my $_ftp_basin = $config->{$storm}->{BTK_BASIN_PREFIX} // $config->{global}->{BTK_BASIN_PREFIX};
 
         my $xml_dest_file_rss = sprintf( "%s/index-%s.xml", $_rss_root, $_rss_basin );
-        my $btk_dest_file     = sprintf( "%s/b%s%s%s.dat", $_btk_root, $_ftp_basin, $_storm, $_year );
+        my $btk_dest_file     = sprintf( "%s/b%s%s%s.dat",  $_btk_root, $_ftp_basin, $_storm, $_year );
 
         unlink $xml_dest_file_rss, $btk_dest_file;
     }
     return;
 }
 
-1
+1;
 
 __END__
 
@@ -291,9 +294,9 @@ emulate NHC's services.
 =head2 Note on updating forecast XML (e.g., C<index-at.xml>)
 
 Since the purpose is to support running more than one storm at a time, this script updates the RSS
-forecast feed (e.g., C<index-at.xml>) but inserting/updating the storm information into the C<items> section rather than
-overwriting the file that can be done easily with the C<best track> (e.g., C<bal142019>) and the
-track forecasts (e.g., C<al052019>) since they are storm specific files and may reside next to
+forecast feed (e.g., C<index-at.xml>) but inserting/updating the storm information into the C<items>
+section rather than overwriting the file that can be done easily with the C<best track> (e.g., C<bal142019>)
+and the track forecasts (e.g., C<al052019>) since they are storm specific files and may reside next to
 data for other storms. This behavior may change since it's not entirely clear how NHC represents
 multiple storms in the forecast feed, but what's done here is a reasonable assumption.
 
@@ -315,6 +318,10 @@ on configuring storms for more information.
 =head2 Optional
 
 =over 3
+
+=item C<--advisory-interval> number
+
+Overrides C<ADVISORY_INTERVAL> set in the configuration file, mainly used for testing.
 
 =item C<--clean>
 
@@ -370,16 +377,23 @@ Designate the ocean basin in which the storm appears for best track files.
 Note: This is necessary because an inconsistency with how NHC names its best track versus
 its RSS feed. (e.g., bal142019.dat versus index-at.xml).
 
-The global setting may be overwritten in the storm specific configuration.
-
 =item C<RSS_BASIN_PREFIX>
 
 Designate the ocean basin in which the storm appears. Generally for ASGS, this value is set
-to C<al> (for the Atlantic basin). Note, this value affects the name of the RSS forecast
+to C<at> (for the Atlantic basin). Note, this value affects the name of the RSS forecast
 feed file. For example, the Pacific basin prefix is C<ep>; therefore if set to be C<ep>, 
 the XML file name for the RSS feed file would become C<index-ep.xml>. ASGS has traditinally
 been used in the Atlantic basin, so it is common to see the name, C<index-at.xml>, but
 other variants of the file name are possible and dependant on the ocean basin designation.
+
+The global setting may be overwritten in the storm specific configuration.
+
+=item C<NHC_BASIN_PREFIX>
+
+To complicate matters, the forecast XML contains references to the storms using an ocean
+basin that is not consistent with the abbreviation used to name the forecast file. Based
+on obvservations, it seems identical to the C<BTK_BASIN_PREFIX>. But just in case this is
+not always the case, this configuration variable defines this designation.
 
 The global setting may be overwritten in the storm specific configuration.
 
@@ -496,8 +510,10 @@ will be considered to be C<finished>.
    RSS_DOCROOT_URL=/
    ;; template used for index.html in RSS_ROOT (relative to location of replay-storm.pl) 
    RSS_INDEX_TEMPLATE=replay-storm.tpl
-   ;; al -> "bal" for best track (.btk), "al" for forast track (.fst)
-   BASIN_PREFIX=al
+   ;; al -> "bal" for best track (.dat)
+   BTK_BASIN_PREFIX=al
+   ;; at -> index-at.xml (RSS feed)
+   RSS_BASIN_PREFIX=at
    ;; interval between advisories (doesn't affect intermediate/updates
    ;; to mimic NHC updates between advisories)
    ADVISORY_INTERVAL=21600
