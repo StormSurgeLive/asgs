@@ -170,6 +170,35 @@ case $GRIDNAME in
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_nc_inundation_v9.99_rivers.dat.xz
       UNITOFFSETFILE=unit_offset_nc_inundation_v9.99_rivers.dat
       ;; 
+   "hsofs_NE-hires_v2_depf2") 
+      INPUTDIR=$SCRIPTDIR/input/meshes/hsofs_NE-hires_v2_depf2/
+      GRIDFILE=hsofs_NE-hires_v2_depf2.grd
+      MESHPROPERTIES=${GRIDFILE}.nc.properties
+      CONTROLTEMPLATE=hsofs_NE-hires_v2_depf2.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=hsofs.nowindreduction.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties 
+      ELEVSTATIONS=hsofs_stations_2020-02-01.txt
+      VELSTATIONS=$ELEVSTATIONS
+      METSTATIONS=$ELEVSTATIONS
+      NAFILE=hsofs_NE-hires_v2_with_mann_advstate.13
+      NAPROPERTIES=${NAFILE}.properties
+      #SWANTEMPLATE=fort.26.template # only used if WAVES=on
+      SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
+      RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
+      SWANDT=1800                 # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_hsofs.dat.xz
+      UNITOFFSETFILE=unit_offset_hsofs.dat
+      ;;
+
    "hsofs")
       INPUTDIR=$SCRIPTDIR/input/meshes/hsofs
       GRIDFILE=hsofs.14  # mesh (fort.14) file
