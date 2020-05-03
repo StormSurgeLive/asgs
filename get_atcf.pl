@@ -33,6 +33,7 @@ use HTTP::Tiny;
 use IO::Socket::SSL;
 use Net::SSLeay;
 use Getopt::Long;
+use XML::RSS ();
 
 my $statefile = "null";    # shell script with variables and values that
                            # record the current state of the ASGS
@@ -59,6 +60,9 @@ my $verifySSL;             # by default, HTTP::Tiny doesn't verify SSL; off by d
 my $useInsecureHTTP;       # if set, uses 'http' rather than 'https' for RSS feeds; useful for testing
                            # without SSL at all (if set, ignores --verifySSL)
 my $body;                  # text of the forecast/advisory
+
+# used below to filter downloaded XML
+my $rss_obj = XML::RSS->new;
 
 GetOptions(
     "statefile=s"     => \$statefile,
@@ -267,6 +271,14 @@ while ( !$dl ) {
             #nld empty $body to clear any old advisory numbers from the xml
             $body = "";
             $body = $response->{content};
+
+            # ensure only the storm we want is in the XML
+            # Note: we should refactor this to use XML::RSS to it's fullest potential, but for now
+            # it is being used to strip out all unwanted storms so that the existing parsing can
+            # remain in place.
+            $rss_obj->parse($body);
+            $body = _filter_advisory($rss_obj, $storm, $year, q{AL});
+
             my $indexOpenSuccess = open( INDEX, ">index-at.xml" );
             unless ($indexOpenSuccess) {
                 stderrMessage( "ERROR", "Could not open index-at.xml for writing." );
@@ -275,6 +287,7 @@ while ( !$dl ) {
             print INDEX $body;
             close(INDEX);
         }
+
         my @lines = split( "\n", $body );    # break text into an array of lines
         my $cnt   = @lines;                  # count them
         my $i     = 0;
@@ -312,7 +325,6 @@ while ( !$dl ) {
                     $nhcName = $1;
                     $advNum  = sprintf( "%02d", $2 );
                     printf STDERR "INFO: get_atcf.pl: Advisory '$advNum' for storm $nhcName was found in the index-at.xml file.\n";
-
                     # compare the advisory number in the index file with the current
                     # advisory number on the command line, if any
                     if ( defined $adv ) {
@@ -333,14 +345,8 @@ while ( !$dl ) {
 
                             # grab the actual text of the advisory from the RSS xml
                             if ( $trigger eq "rssembedded" ) {
-                                if ( $lines[$i] =~ /description/ ) {
-                                    $body = "";
-                                    while ( $lines[$i] ne "</pre>]]></description>" ) {
-                                        $body .= $lines[$i] . "\n";
-                                        $i++;
-                                    }
-                                    last;
-                                }
+                                # extract directly from XML::RSS
+                                $body = $rss_obj->{items}->[0]->{description};
                             }
                             else {
                                 # just grab the link to the actual text of the advisory
@@ -538,5 +544,29 @@ sub stderrMessage {
     if ( $level eq "ERROR" ) {
         sleep 60;
     }
+}
+
+# strips out all advisories except the one we want, defined
+# by $storm # and $year
+sub _filter_advisory {
+  my ($rss_obj, $storm, $year, $basin) = @_;
+
+  $storm = sprintf("%02d", $storm); # zero pad
+  $basin = uc $basin;               # force to all upper case
+
+  my $nhc_storm = qq{$basin$storm$year}; # e.g., AL082005
+
+  my $new_items = [];
+  FILTER_STORM:
+  foreach my $item (@{$rss_obj->{items}}) {
+    if ( $item->{description} =~ m/$nhc_storm/ ) {
+      push @{$new_items}, $item;
+      last; # found it
+    }
+  } 
+
+  $rss_obj->{items} = $new_items;
+
+  return $rss_obj->as_string;
 }
 
