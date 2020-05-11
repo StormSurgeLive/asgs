@@ -104,7 +104,7 @@ type mesh_t
    real(8), allocatable :: centroids(:,:) ! (2,ne) x and y coordinates of the element centroids
    integer :: mnei = 15  ! maximum number of neighbors for a node
    !
-   character(2048) :: agrid
+   character(10000) :: agrid
    integer :: ne   ! number of elements
    integer :: np   ! number of nodes
    integer, allocatable :: nmnc(:,:) ! element table in netcdf (3,ne)

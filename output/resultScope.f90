@@ -103,6 +103,7 @@ deflate =.false.
 fm%meshFileName = "null"
 rm%meshFileName = "null"
 fd%dataFileFormat = ASCII
+fd%defaultFileName = "null"
 rd%dataFileFormat = ASCII
 meshonly = .false.
 dataFileBase = "null"
@@ -153,7 +154,7 @@ if (argcount.gt.0) then
          case("netcdf")
             fd%dataFileFormat = NETCDFG
          case("adcirc","ascii","text")
-            fd%dataFileFormat = ASCII 
+            fd%dataFileFormat = ASCIIG 
          case default
             call allMessage(ERROR,'Command line argument "'//trim(adjustl(cmdlinearg))//'" was not recognized.')
             stop
@@ -167,7 +168,7 @@ if (argcount.gt.0) then
          case("netcdf")
             rd%dataFileFormat = NETCDFG
          case("adcirc","ascii","text")
-            rd%dataFileFormat = ASCII         
+            rd%dataFileFormat = ASCIIG        
          case default
             call allMessage(WARNING,'Command line option "'//trim(cmdlineopt)//'" was not recognized.')
          end select
@@ -235,15 +236,18 @@ meshFileBase = trim(fm%meshFileName(lastSlashPositionMesh+1:))
 !
 ! If the data file type was not supplied, and the file is ascii, 
 ! then use the file name as the file type.
-if ( (fd%dataFileFormat.eq.ASCII).and.(trim(fd%defaultFileName).eq.'null') ) then
+if ( (fd%dataFileFormat.eq.ASCIIG).and.(trim(fd%defaultFileName).eq.'null') ) then
    fd%defaultFileName = trim(fd%dataFileName)
+   call allMessage(INFO,"Data file type is "//trim(fd%defaultFileName)//".")
 endif
 !
 ! open and read mesh in appropriate format
 select case(fd%dataFileFormat)
 case(ASCII,ASCIIG)
+   call allMessage(INFO,"ASCII data file format.")   
    call read14(fm)
    if (meshonly.eqv..false.) then
+      call allMessage(INFO,"Determining ASCII data file characteristics for "//trim(fd%dataFileName)//".")
       call determineASCIIFileCharacteristics(fd)
    endif
 case(NETCDFG)
@@ -319,6 +323,14 @@ case default
    stop
 end select
 !
+! if --remove-dry was present on the command line, take out all the nodes
+! that have negative z values for bathytopo 
+do n=1, fm%np 
+   if ( fm%xyd(3,n).lt.0.d0 ) then
+      within(n) = .false.
+   end if
+end do
+!
 ! Select elements inside the resultShape; first we need to count them
 ! so we can allocate an array of the proper size
 rm%ne = 0                 ! counter for elements that are included in the resultShape
@@ -392,7 +404,7 @@ do i=1,rm%ne
 end do
 !
 ! Output sub-mesh as fort.14 if the output format is ascii
-if (rd%dataFileFormat.eq.ASCII) then
+if (rd%dataFileFormat.eq.ASCIIG) then
    if (trim(rm%meshFileName).eq."null") then
       rm%meshFileName = trim(meshFileBase) // '_' // trim(resultShape) // '-sub.14'
    endif
@@ -403,9 +415,11 @@ if (meshonly.eqv..true.) then
    write(6,'("INFO: The --meshonly command line option was specified; the subdomain mesh has been written and execution is complete.")')
    stop
 endif
+
 !
 ! if the data file is a nodal attributes file, process that separately
 if (trim(fd%defaultFileName).eq.'fort.13') then
+   call allMessage(INFO,"Default file name is "//fd%defaultFileName//".")
    fna%nodalAttributesFileName = fd%dataFileName
    call readNodalAttributesFile(fna)
    ! populate result result shape fort.13
@@ -453,21 +467,29 @@ else
    call allMessage(INFO,'Not a nodal attributes file:'//trim(fd%defaultFileName))
    
 endif
+
 !
 ! set up subdomain result file
+!write(6,'(a,i0,a)') "INFO: Result file format is ",rd%dataFileFormat,"."
+!call allMessage(INFO,
 select case(rd%dataFileFormat) 
 !
 ! result file (subdomain) in ascii format
-case(ASCII)
+case(ASCII, ASCIIG)
+   rd%numValuesPerDataSet = rm%np  ! HARDCODE b/c this is not getting set properly
    ! open the subdomain ascii adcirc file that will hold the data and
    ! write the header
    rd%dataFileName = 'sub-' // trim(resultShape) // '_' // trim(fd%dataFileName) 
    rd%fun = availableUnitNumber()
    open(rd%fun,file=trim(rd%dataFileName),status='replace',action='write')
    ! write header info
-   write(rd%fun,'(a)') trim(rm%agrid) // trim(rd%dataFileName) // ' ' // trim(dataFileCommentLine)
+   write(rd%fun,'(a)') trim(rm%agrid) // ' ' // trim(rd%dataFileName) // ' ' // trim(fd%agridRunIDRunDesLine)
    ! write the header data to the resultshape file
-   write(rd%fun,1010) fd%nSnaps, rd%numValuesPerDataSet, fd%time_increment, fd%nspool, fd%irtype
+   rd%nSnaps = fd%nSnaps
+   rd%time_increment = fd%time_increment
+   rd%nspool = fd%nspool
+   rd%irtype = fd%irtype
+   write(rd%fun,1010) rd%nSnaps, rd%numValuesPerDataSet, rd%time_increment, rd%nspool, rd%irtype
 !
 ! result file in netcdf format
 case(NETCDFG)
@@ -564,21 +586,24 @@ case(NETCDFG)
       ! establish mapping from subdomain to fulldomain
       if (rd%ncds(i)%isElemental.eqv..true.) then
          rd%ncds(i)%mapping => sub2fullElements
-      else
+       else
          rd%ncds(i)%mapping => sub2fullNodes
-      endif
+       endif
    end do 
-case(ASCIIG) 
+case(ASCIIG, ASCII) 
    ! establish mapping from subdomain to fulldomain
    if (rd%isElemental.eqv..true.) then
       rd%mapping => sub2fullElements
+      rd%numValuesPerDataSet = rm%ne
    else
       rd%mapping => sub2fullNodes
+      rd%numValuesPerDataSet = rm%np
    endif
 case default
    ! should be unreacable
    call allMessage(ERROR,'Only NETCDF and ASCII full domain file formats are supported.')
 end select  
+
 !
 !
 !  R E A D   I N   F U L L D O M A I N   D A T A   
@@ -587,6 +612,18 @@ end select
 SS=1 ! jgf: initialize the dataset counter
 lineNum = 1 ! initialize the line number counter
 call allMessage(INFO,'Begin reading full domain data and writing result data.')
+
+if (fd%dataFileFormat.eq.ASCIIG) then
+   fd%fun = availableUnitNumber()
+   open(fd%fun,file=trim(fd%dataFileName),action='read')
+   ! first two lines so the first dataset is ready to read data from
+   lineNum=1
+   read(fd%fun,*,end=246,err=248,iostat=errorio) line
+   lineNum=lineNum+1
+   read(fd%fun,*,end=246,err=248,iostat=errorio) line
+   lineNum=lineNum+1
+endif
+
 DO   ! jgf: loop until we run out of data (can't trust the nSnaps at top of ascii file)
    !
    !  R E A D   I N   O N E   D A T A S E T
@@ -594,10 +631,15 @@ DO   ! jgf: loop until we run out of data (can't trust the nSnaps at top of asci
 
 !subroutine readOneDataSet(f, m, s, l, snapr, snapi)
 
+   !write(*,*) ss, lineNum, snapr, snapi !jgfdebug
    call readOneDataset(fd, fm, ss, lineNum, snapr, snapi)
+   ! check for end of ascii file
+   if (lineNum.eq.-99) then
+      exit  ! jump out of loop
+   endif
    call appendR1D(timesec, snapr)
    call appendI1D(it, snapi)
-   call allMessage(INFO,"read one data file") !jgfdebug
+   !call allMessage(INFO,"read one data dataset") !jgfdebug
    !
    !  P O P U L A T E   R E S U L T   A R R A Y ( S ) 
    !        F O R   T H I S   S I N G L E   D A T A S E T
@@ -617,8 +659,12 @@ DO   ! jgf: loop until we run out of data (can't trust the nSnaps at top of asci
             end do            
          else
          ! map 2DDI real data   ascii->ascii
-            do h=1,rd%numValuesPerDataSet
-               rd%rdata(:,h) = fd%rdata(:,rd%mapping(h))
+            !write(*,*) "rd%numValuesPerDataSet=",rd%numValuesPerDataSet !jgfdebug
+            do c=1,rd%irtype
+               do h=1,rd%numValuesPerDataSet
+                  rd%rdata(c,h) = fd%rdata(c,rd%mapping(h))
+                  !write(*,*) "rd%rdata(1,",h,") =",rd%rdata(1,h) !jgfdebug
+               end do
             end do
          endif
       endif   
@@ -704,6 +750,7 @@ DO   ! jgf: loop until we run out of data (can't trust the nSnaps at top of asci
    !  
    !call readOneDataset(fd, fm, ss, lineNum, snapr, snapi)   
    call writeOneDataSet(rd, rm, ss, lineNum, snapr, snapi)
+   !call allMessage(INFO,"wrote one data dataset") !jgfdebug
    !
    write(6,advance='no',fmt='(i6)') SS
    SS = SS + 1

@@ -80,11 +80,11 @@ type fileMetaData_t
    logical :: initialized  ! .true. if memory has been allocated 
    !
    ! general file characteristics
-   character(len=2048) :: dataFileName ! full path
+   character(len=10000) :: dataFileName ! full path
    character(len=100) :: defaultFileName ! fort.14 for mesh file, etc
    integer :: dataFileCategory ! DOMAIN, STATION, NODALATTR, MINMAX, etc   
    integer :: dataFileFormat     ! ASCII, NETCDF4, XDMF etc parameters defined above
-   character(len=1024) :: fileTypeDesc ! analyst-readable description
+   character(len=10000) :: fileTypeDesc ! analyst-readable description
    integer :: nSnaps           ! number of datasets in the time varying file
    logical :: timeOfOccurrence ! .true. if min/max file has time of occurrence data
    integer :: irtype ! for ascii adcirc files, 1=scalar, 2=2D vector, 3=3D vector   
@@ -102,10 +102,11 @@ type fileMetaData_t
    integer :: ncformat      ! netcdf3 or netcdf4
    integer :: numVarNetCDF ! number of variables targetted in NetCDF4 file
    integer, allocatable :: nc_attType(:) ! netcdf variable type for global metadata
-   character(NF90_MAX_NAME), allocatable :: nc_attName(:) ! netcdf attribute name for global metadata  
+   character(NF90_MAX_NAME), allocatable :: nc_attName(:) ! netcdf attribute name for global metadata
+   logical :: na            
    ! 
    ! ascii adcirc files only
-   character(len=1000) :: agridRunIDRunDesLine ! 1st header line in time varying output files
+   character(len=10000) :: agridRunIDRunDesLine ! 1st header line in time varying output files
    logical :: isSparse    ! true for sparse ascii
    logical :: isInteger     ! true for integer variable
    logical :: isElemental   ! true if the variable is defined on elements
@@ -307,12 +308,9 @@ if (errorIO.ne.0) then
 endif
 call check(nf90_open(trim(f%dataFileName), NF90_NOWRITE, f%nc_id))
 !
-! set the agrid value (mesh comment line)
-m%agrid='agrid:not_set'
-call readMeshCommentLineNetCDF(m, f%nc_id)
-!
 ! determine the type of data stored in the file
-call check(nf90_inquire(f%nc_id, f%ndim, f%nvar, f%natt, f%nc_dimid_time, f%ncformat))
+call check(nf90_inquire(f%nc_id, f%ndim, f%nvar, f%natt, f%nc_dimid_time,  f%ncformat ))
+write(*,*) 'f%nc_dimid_time=',f%nc_dimid_time !jgfdebug
 if ( (f%ncformat.eq.nf90_format_netcdf4).or. &
    (f%ncformat.eq.nf90_format_netcdf4_classic) ) then
    call allMessage(INFO,'The data file uses netcdf4 formatting.')
@@ -324,22 +322,42 @@ if ( (f%ncformat.eq.nf90_format_netcdf4).or. &
 	      f%defaultFileName = 'fort.13'
 	      f%dataFileCategory = NODALATTRIBF
 	      f%fileTypeDesc = 'an ADCIRC nodal attributes ('//trim(f%defaultFileName)//') file.'      
-          call allMessage(INFO,'Examining '//trim(f%fileTypeDesc)//' file.')
-	   else 
-          errorIO = nf90_inquire_dimension(f%nc_id,f%nc_dimid_time,len=f%nSnaps)        
-          if ( errorIO.ne.0 ) then
-             if ( f%nvar.lt.6 ) then
-                call allMessage(INFO,'The netcdf file '//trim(f%dataFileName)//' only contains mesh data.')
-                f%dataFileCategory = MESH !FIXME: or fort.88?
-                f%timeVarying = .false. 
-             else
-                call allMessage(INFO,'The netcdf file '//trim(f%dataFileName)//' is a min/max file.')
-                f%dataFileCategory = MINMAX
-                f%timeVarying = .false.                
-             endif
-          endif
+         call allMessage(INFO,'Examining '//trim(f%fileTypeDesc)//' file.')
+      else 
+         errorIO = nf90_inquire_dimension(f%nc_id,f%nc_dimid_time,len=f%nSnaps)        
+         write(*,*) 'f%nc_dimid_time=',f%nc_dimid_time !jgfdebug
+         if ( errorIO.ne.0 ) then
+            ! FIXME: next line is a complete hack!! :-)
+            if ( f%nvar.lt.6 ) then
+               call allMessage(INFO,'The netcdf file '//trim(f%dataFileName)//' only contains mesh data.')
+               f%dataFileCategory = MESH !FIXME: or fort.88?
+               f%timeVarying = .false. 
+            else
+               do j=1, f%nvar
+                  call check(nf90_inquire_variable(f%nc_id, j, thisVarName))
+                  if (trim(thisVarName).eq."u".or.trim(thisVarName).eq."v".or.trim(thisVarName).eq."elev") then
+                     f%na=.true. ! not adcirc
+                     call check(nf90_inq_dimid(f%nc_id,'time',f%nc_dimid_time))
+                     call check(nf90_inquire_dimension(f%nc_id,f%nc_dimid_time,len=f%nSnaps))                     
+                     write(*,*) 'not adcirc'
+                     exit
+                  endif
+               end do
+               if (f%na.eqv..false.) then
+                  call allMessage(INFO,'The netcdf file '//trim(f%dataFileName)//' is a min/max file.')
+                  f%dataFileCategory = MINMAX
+                  f%timeVarying = .false.
+               endif
+            endif
+         endif
 	   endif
    endif
+endif
+!
+! set the agrid value (mesh comment line)
+if (f%na.eqv..false.) then
+   m%agrid='agrid:not_set'
+   call readMeshCommentLineNetCDF(m, f%nc_id)
 endif
 !
 ! if the file only contains a mesh, then adcmesh.f90 will pick up
@@ -351,6 +369,7 @@ endif
 !
 ! determine the number of snapshots in the file
 if ( (f%dataFileCategory.ne.NODALATTRIBF).and.(f%dataFileCategory.ne.MINMAX) ) then
+   call allMessage(INFO,'Determining the number of datasets in the file.')
    call check(nf90_inquire_dimension(f%nc_id,f%nc_dimid_time,len=f%nSnaps))
    write(scratchMessage,'(a,i0,a)') 'There is/are ',f%nSnaps,' dataset(s) in the file.'
    call allMessage(INFO,scratchMessage)
@@ -381,7 +400,9 @@ if ( (f%dataFileCategory.ne.NODALATTRIBF).and.(f%dataFileCategory.ne.MINMAX) ) t
 endif
 ! if this is not a station file, find the mesh node dimension and comment 
 if ( f%dataFileCategory.ne.STATION ) then
-   call readMeshCommentLineNetCDF(m, f%nc_id)
+   if (f%na.eqv..false.) then
+      call readMeshCommentLineNetCDF(m, f%nc_id)
+   endif
    ! determine the number of nodes
    call check(nf90_inq_dimid(f%nc_id, "node", n%nc_dimid_node))
    if (f%dataFileCategory.ne.NODALATTRIBF) then   
@@ -391,6 +412,7 @@ endif
 !   
 ! determine the type of data in the netcdf file, and set the 
 ! file metadata accordingly
+call allMessage(INFO,'Determining file type and setting metadata.')
 do i=1,f%nvar
    if ( f%dataFileCategory.eq.NODALATTRIBF ) then
       f%timeVarying = .false. 
@@ -463,7 +485,7 @@ do i=1,f%nvar
       f%xds(1)%numComponents = 3
       f%xds(1)%varNameXDMF = "currentVel3D"
       exit
-   case("zeta")
+   case("zeta","elev")
       if ( f%dataFileCategory.eq.STATION ) then
          f%defaultFileName = 'fort.61'
          f%fileTypeDesc = 'a time varying 2D ADCIRC water surface elevation station file (fort.61)'
@@ -868,7 +890,7 @@ end do
 f%time_increment = -99999.d0
 f%defaultValue = -99999.d0
 f%nspool = -99999
-if ( f%dataFileCategory.ne.NODALATTRIBF ) then
+if ( (f%dataFileCategory.ne.NODALATTRIBF).and.(f%dataFileCategory.ne.MINMAX) ) then
    if ( (f%nSnaps.gt.1).and.(f%timeOfOccurrence.eqv..false.) ) then
       f%time_increment = f%timesec(2) - f%timesec(1)
    endif
@@ -934,6 +956,7 @@ fn%fileTypeDesc = 'null description'
 fn%isBasin = .false.
 fn%isRegion = .false.
 fn%timeOfOccurrence = .false. ! only relevant to min/max files
+fn%agridRunIDRunDesLine = "null comment"
 if ( fn%dataFileCategory.eq.MAUREPT ) then
    return
 endif
@@ -1844,10 +1867,19 @@ integer :: nc_start3D(3)
 integer :: nc_count3D(3)
 integer :: errorIO ! i/o error flag
 !
-if ( (f%dataFileFormat.eq.NETCDFG).and.(s.gt.f%nSnaps) ) then 
-   call allMessage(INFO,'All datasets have been read.')
-   return
-endif
+select case(f%dataFileFormat)
+case(NETCDFG)
+   if ( s.gt.f%nSnaps ) then 
+      call allMessage(INFO,'All datasets have been read.')
+      return
+   endif
+case (ASCII,ASCIIG)
+   if ( l.eq.-99 ) then 
+      call allMessage(INFO,'All datasets have been read.')
+      return
+   endif
+end select
+snapi = -99
 !
 select case(f%dataFileFormat)
 case(ASCII,ASCIIG)
@@ -1905,6 +1937,7 @@ case(ASCII,ASCIIG)
       end do
    else
       ! sparse or full ascii real numbers
+      !write(*,*) numNodesNonDefault, h, f%irtype
       do n=1,numNodesNonDefault
          read(unit=f%fun,fmt=*,end=246,err=248,iostat=errorio) h, (dtemp(c), c=1,f%irtype)
          l = l + 1
@@ -1914,6 +1947,9 @@ case(ASCII,ASCIIG)
          !   write(6,*) allocated(f%rdata),'not allocated'! jgfdebug
          !endif
          f%rdata(1:f%irtype,h) = dtemp(1:f%irtype)
+         !write(*,*) numNodesNonDefault, h, dtemp(1)
+         !write(*,*) h, f%rdata(1,h)
+         
       end do
    endif
 case(NETCDFG,NETCDF3,NETCDF4)
@@ -1943,8 +1979,6 @@ end select
 !
 if (allocated(f%it).eqv..true.) then
    snapi = f%it(s)
-else
-   snapi = -99
 endif
 !
 if (f%dataFileCategory.eq.INITRIVER) then
@@ -2068,6 +2102,7 @@ case(ASCII,SPARSE_ASCII,ASCIIG)
             if (allocated(f%rdata).eqv..true.) then
                do h=1,f%numValuesPerDataset       ! came from ascii
                   write(f%fun,2453) h, (f%rdata(c,h), c=1,f%irtype)
+                  !write(*,*) "f%rdata(1,",h,")=",f%rdata(1,h) !jgfdebug
                end do
             else
                do h=1,f%numValuesPerDataset       ! came from netcdf

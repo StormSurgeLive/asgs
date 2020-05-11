@@ -88,6 +88,7 @@ integer i, j ! loop counters
 xdmfFile = 'null'
 numFiles = 0
 argcount = iargc() ! count up command line options
+
 if (argcount.gt.0) then
    ! count the number of files for processing
    i=0
@@ -131,6 +132,7 @@ if (argcount.gt.0) then
 #endif
    fileMetaData(:) % useCPP = .false.
    fileMetaData(:) % initialized = .false.
+   fileMetaData(:) % na = .false.
    i=0
    fi=1  ! file index
    do while (i.lt.argcount)
@@ -181,7 +183,7 @@ endif
 !
 ! Check to see if each file exists; if the file exists, initialize dimensions
 do fi=1,numFiles
-   write(*,*) 'checking file existince of ',trim(fileMetaData(fi)%dataFileName)
+   write(*,*) 'checking file existence of ',trim(fileMetaData(fi)%dataFileName)
    call checkFileExistence(fileMetaData(fi)%dataFileName,errorIO)
    if (errorIO.gt.0) then
       stop
@@ -210,10 +212,12 @@ do fi=1,numFiles
       m%agrid = "mesh"
       call allMessage(INFO,'Read mesh dimensions from netCDF successfully.')
       ! Some netcdf files have the comment line at the top of the fort.14 in
-      ! an attribute named "agrid" while in others the attribute is named "grid".  
-      ncStatus = nf90_get_att(fileMetaData(fi)%nc_id, NF90_GLOBAL, 'agrid', m%agrid)
-      if ( ncStatus.ne.NF90_NOERR ) then
-         call check(nf90_get_att(fileMetaData(fi)%nc_id, NF90_GLOBAL, 'grid', m%agrid))
+      ! an attribute named "agrid" while in others the attribute is named "grid".
+      if (fileMetaData(fi)%na.eqv..false.) then  
+         ncStatus = nf90_get_att(fileMetaData(fi)%nc_id, NF90_GLOBAL, 'agrid', m%agrid)
+         if ( ncStatus.ne.NF90_NOERR ) then
+            call check(nf90_get_att(fileMetaData(fi)%nc_id, NF90_GLOBAL, 'grid', m%agrid))
+         endif
       endif
       call check(nf90_close(fileMetaData(fi)%nc_id))
       if ( fileMetaData(fi)%dataFileCategory.eq.NODALATTRIBF ) then 
@@ -562,9 +566,17 @@ write(olun,'('//ind('|')//',A)')     '  TopologyType="Triangle"'
 write(olun,'('//ind('|')//',A)')     '  NodesPerElement="3"'
 write(olun,'('//ind('|')//',A,i0,A)')'  NumberOfElements="',m%ne,'"'
 write(olun,'('//ind('|')//',A)')     '  BaseOffset="1">'
-write(olun,'('//ind('+')//',A,i0,A)') '<DataItem Dimensions="',m%ne,'  3"'
+if (fmd%na.eqv..false.) then
+   write(olun,'('//ind('+')//',A,i0,A)') '<DataItem Dimensions="',m%ne,'  3"'
+else
+   write(olun,'('//ind('+')//',A,i0,A)') '<DataItem Dimensions="3  ',m%ne,'"'
+endif
 write(olun,'('//ind('|')//',A)')       '  DataType="Int"'
-write(olun,'('//ind('|')//',A)')       '  Format="HDF">'//trim(fmd%dataFileName)//':/element'
+if (fmd%na.eqv..false.) then
+   write(olun,'('//ind('|')//',A)')       '  Format="HDF">'//trim(fmd%dataFileName)//':/element'
+else
+   write(olun,'('//ind('|')//',A)')       '  Format="HDF">'//trim(fmd%dataFileName)//':/ele'
+endif
 write(olun,'('//ind('|')//',A)')      '</DataItem>'
 write(olun,'('//ind('-')//',A)') '</Topology>'
 write(olun,'('//ind('|')//',A)') '<Geometry Name="NodeLocations"'
@@ -620,17 +632,24 @@ type(fileMetaData_t), intent(in) :: fmd
 integer, intent(in) :: olun ! i/o unit number to write XDMF xml to
 logical, intent(in) :: meshonly ! true if only the mesh xml are being written
 character(len=1) :: indent
+character(len=7) :: elemVar
 !
 indent = '|'
 if (meshonly.eqv..true.) then
    indent = '+'
 endif
+if (fmd%na.eqv..false.) then
+   elemVar='element'
+else
+   elemVar='ele'
+endif
+!
 ! Topology
-write(olun,'('//ind(indent)//',a)') '<xi:include xpointer="element(/1/1/1/1/2)"/>'
+write(olun,'('//ind(indent)//',a)') '<xi:include xpointer="'//trim(elemVar)//'(/1/1/1/1/2)"/>'
 ! Geometry
-write(olun,'('//ind('|')//',a)') '<xi:include xpointer="element(/1/1/1/1/3)"/>'
+write(olun,'('//ind('|')//',a)') '<xi:include xpointer="'//trim(elemVar)//'(/1/1/1/1/3)"/>'
 ! Depth Attribute
-write(olun,'('//ind('|')//',a)') '<xi:include xpointer="element(/1/1/1/1/4)"/>'
+write(olun,'('//ind('|')//',a)') '<xi:include xpointer="'//trim(elemVar)//'(/1/1/1/1/4)"/>'
       
 !----------------------------------------------------------------------
 end subroutine writeMeshTopologyGeometryDepthByReference
@@ -809,12 +828,19 @@ use logging
 implicit none
 type(fileMetaData_t), intent(in) :: fmd
 integer, intent(in) :: olun ! i/o unit number to write XDMF xml to
+character(len=7) :: elemVar
 !
 integer :: i
 !
+if (fmd%na.eqv..false.) then
+   elemVar='element'
+else
+   elemVar='ele'
+endif
+!
 do i=1,fmd%numVarXDMF
    write(olun,'('//ind('|')//',a,i0,a)') & 
-   '<xi:include xpointer="element(/1/1/1/1/',fmd%xds(i)%xmlReference,')"/>'
+   '<xi:include xpointer="'//trim(elemVar)//'(/1/1/1/1/',fmd%xds(i)%xmlReference,')"/>'
 end do
 !----------------------------------------------------------------------
 end subroutine writeAttributesXMLByReference
