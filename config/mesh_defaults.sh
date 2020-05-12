@@ -58,6 +58,36 @@ case $GRIDNAME in
       UNITOFFSETFILE=unit_offset_LA_v19k-WithUpperAtch_chk.dat
       ;;
       #
+   "LA_v20a-WithUpperAtch_chk")
+      #
+      INPUTDIR=$SCRIPTDIR/input/meshes/LA_v20a
+      GRIDFILE=LA_v20a-WithUpperAtch_chk.grd   # mesh (fort.14) file
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=LA_v20a-WithUpperAtch.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=LA_v20a-WithUpperAtch.nowindreduction.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=combined_stations_20190711.txt
+      VELSTATIONS=combined_stations_20190711.txt
+      METSTATIONS=combined_stations_20190711.txt
+      NAFILE=LA_v20a-WithUpperAtch_chk.13
+      NAPROPERTIES=${NAFILE}.properties
+      SWANTEMPLATE=LA_20a-WithUpperAtch.26.template   # only used if WAVES=on
+      RIVERINIT=null                           # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+      SWANDT=1200                # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_LA_v19k-WithUpperAtch_chk.dat.xz
+      UNITOFFSETFILE=unit_offset_LA_v20a-WithUpperAtch_chk.dat
+      ;;   
+      #   
    "ec95d")
       #   
       INPUTDIR=$SCRIPTDIR/input/meshes/ec95d
