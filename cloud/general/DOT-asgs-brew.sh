@@ -299,6 +299,9 @@ load() {
   esac
 }
 
+# when started, ASGS Shell loads the 'default' profile, this can be made variable at some point
+load profile default
+
 _parse_config() {
   if [ ! -e "${1}" ]; then
     echo "warning: config file is set, but the file '${1}' does not exist!"
