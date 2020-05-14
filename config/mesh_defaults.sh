@@ -448,7 +448,7 @@ case $GRIDNAME in
       ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
-      UNITOFFSETFILE=oi_surface_NGOM_RT_v19b_chk.grd.dat
+      # FIXME: no unit offset url
       ;;      
    *)
       warn "cycle $CYCLE: $SCENARIO: $THIS: Mesh GRIDNAME $GRIDNAME was not recognized."
