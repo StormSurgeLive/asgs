@@ -431,10 +431,10 @@ case $GRIDNAME in
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=NGOM_RT_v20a.nowindreduction.15.template
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-      ELEVSTATIONS=NGOM_RT_v19b_stations_08282018.txt
-      VELSTATIONS=NGOM_RT_v19b_stations_08282018.txt
-      METSTATIONS=NGOM_RT_v19b_stations_08282018.txt
-      NAFILE=NGOM_RT_v19b_chk.13
+      ELEVSTATIONS=NGOM_RT_v20a_stations_08282018.txt
+      VELSTATIONS=NGOM_RT_v20a_stations_08282018.txt
+      METSTATIONS=NGOM_RT_v20a_stations_08282018.txt
+      NAFILE=NGOM_RT_v20a_chk.13
       NAPROPERTIES=${NAFILE}.properties
       SWANTEMPLATE=fort.26.template   # only used if WAVES=on
       RIVERINIT=null                           # this mesh has no rivers ...
