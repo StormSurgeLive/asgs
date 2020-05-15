@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding: utf8
 # https://github.com/Unidata/netcdf4-python/blob/master/examples/bench.py
 
 # benchmark reads and writes, with and without compression.
