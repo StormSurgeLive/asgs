@@ -560,7 +560,7 @@ sub get_steps {
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                PATH              => { value => qq{$asgs_install_path/bin},     how => q{prepend} },    # prefer ASGS binaries (python, e.g.)
+                PATH              => { value => qq{$asgs_install_path/bin},     how => q{prepend} },    # prefer ASGS binaries
                 PATH              => { value => qq{$scriptdir/cloud/general},   how => q{append} },     # make helper scripts available
                 LIBRARY_PATH      => { value => qq{$asgs_install_path/lib},     how => q{prepend} },    # for use by linkers
                 LD_LIBRARY_PATH   => { value => qq{$asgs_install_path/lib},     how => q{prepend} },    # for use by linkers
@@ -783,16 +783,19 @@ sub get_steps {
             },
         },
         {
+            # Note: updating the Python 2 version support must be done here and in the
+            # ./cloud/general/init-python.sh script
+            # Note: this installs Python 2, Python 3 is currently not supported (needs a new step entry)
             key         => q{python},
-            name        => q{Step for installing Python 2.7.17 and required modules},
-            description => q{Install Python 2.7.17 locally and install required modules},
+            name        => q{Step for installing Python 2.7.18 and required modules},
+            description => q{Install Python 2.7.18 locally and install required modules},
             pwd         => q{./},
             export_ENV  => {
 
                 # putting this in $HOME/python27/asgs/build reflects what perlbrew's default
                 # behavior is doing by putting perl into $HOME/perl5/perlbrew/build/perl-$version
-                PYTHONPATH => { value => qq{$asgs_home/python27/asgs/build/python-2.7.17},                           how => q{replace} },
-                PATH       => { value => qq{$asgs_home/python27/asgs/build/python-2.7.17/bin:$asgs_home/.local/bin}, how => q{prepend} },
+                PYTHONPATH => { value => qq{$asgs_install_path/python27/asgs/build/python-2.7.18},                           how => q{replace} },
+                PATH       => { value => qq{$asgs_install_path/python27/asgs/build/python-2.7.18/bin:$asgs_home/.local/bin}, how => q{prepend} },
             },
             command             => qq{bash ./cloud/general/init-python.sh install},
             clean               => qq{bash ./cloud/general/init-python.sh clean},
