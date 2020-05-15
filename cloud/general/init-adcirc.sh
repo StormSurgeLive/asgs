@@ -43,7 +43,11 @@ if [ "$INTERACTIVE" == "yes" ]; then
   fi
   echo
   # determine where to look for source directory or checkout git repo for the build
-  __ADCIRCBASE=$ASGS_HOME/adcirc-cg-$ADCIRC_GIT_BRANCH-$ADCIRC_COMPILER
+  if [ -e "$WORK" ]; then
+    __ADCIRCBASE=$WORK/adcirc-cg-$ADCIRC_GIT_BRANCH-$ADCIRC_COMPILER
+  else
+    __ADCIRCBASE=$ASGS_HOME/adcirc-cg-$ADCIRC_GIT_BRANCH-$ADCIRC_COMPILER
+  fi
   read -p "Where would you like to build ADCIRC? [$__ADCIRCBASE] " _ADCIRCBASE
   if [ -n "$_ADCIRCBASE" ]; then
     ADCIRCBASE=$_ADCIRCBASE
@@ -72,7 +76,7 @@ fi
 # ADCIRC_GIT_URL - git repo remote URL, set via --adcirc-git-remote in asgs-brew.pl
 # ADCIRC_GIT_REPO   - git repository (likely 'adcirc-cg')
 
-ADCIRC_MAKE_CMD="make -j ${ASGS_MAKEJOBS} adcirc padcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} NETCDFROOT=${NETCDFROOT} MACHINENAME=${ASGS_MACHINE_NAME}"
+ADCIRC_MAKE_CMD="make padcirc adcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} NETCDFROOT=${NETCDFROOT} MACHINENAME=${ASGS_MACHINE_NAME}"
 
 if [ ! -d ${ADCIRCBASE}/.git ]; then
   if [ "$INTERACTIVE" == "yes" ]; then
