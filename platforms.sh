@@ -494,12 +494,11 @@ init_stampede2()
   #
   RMQMessaging_LocationName="TACC"
   RMQMessaging_ClusterName="Stampede2"
-  RMQMessaging_Enable="on"      # "on"|"off"
-  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  RMQMessaging_Enable="on"              # "on"|"off"
+  RMQMessaging_Transmit="on"            #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
-  RMQMessaging_Python=/opt/apps/intel18/python2/2.7.15/bin/python
-  #
-  PLATFORMMODULES='module load intel/18.0.2 python2/2.7.15 xalt/2.6.5 TACC'
+  RMQMessaging_Python=python            # should pick up whatever is in PATH
+  PLATFORMMODULES='module load intel/18.0.2 xalt/2.6.5 TACC' # removed: 'python2/2.7.15'
   SERIALMODULES='module load' # no extra modules for serial jobs
   PARALLELMODULES='module load libfabric/1.7.0 impi/18.0.2'
   # matlab
