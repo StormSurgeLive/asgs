@@ -1,15 +1,13 @@
 #!/bin/bash
 
 ACTION=${1-install}
-
-#Note: PYTHONPATH is defined in the environment
 OPT=${2-$PYTHONPATH}
-PYTHON_VERSION=2.7.17
+PYTHON_VERSION=${3-2.7.18}
 
 TMP=$HOME/tmp
 
 if [ "$ACTION" == "clean" ]; then
-  rm -rfv $OPT/python/2.7.17 $HOME/.local
+  rm -rfv $OPT/python/${PYTHON_VERSION} $HOME/.local
   rm -rfv $PYTHONPATH
   echo
   echo Run again without clean flag to install
@@ -20,16 +18,16 @@ fi
 mkdir -p $TMP 2> /dev/null
 cd $TMP
 
-if [ ! -e ./Python-2.7.17.tgz ]; then
-  wget https://www.python.org/ftp/python/2.7.17/Python-2.7.17.tgz
+if [ ! -e ./Python-${PYTHON_VERSION}.tgz ]; then
+  wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
 fi
 
-rm -rf ./Python-2.7.17 2> /dev/null
+rm -rf ./Python-${PYTHON_VERSION} 2> /dev/null
 
 if [ ! -e $PYTHONPATH/bin/python ]; then
-  tar zxvf ./Python-2.7.17.tgz && \
-    cd Python-2.7.17
-  mkdir -p $OPT/python/2.7.17 2> /dev/null
+  tar zxvf ./Python-${PYTHON_VERSION}.tgz && \
+    cd Python-${PYTHON_VERSION}
+  mkdir -p $OPT/python/${PYTHON_VERSION} 2> /dev/null
   ./configure --prefix=$PYTHONPATH && \
   make -j 8 && \
     make install
