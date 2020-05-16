@@ -28,6 +28,7 @@ OFFSETURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets
 UNITOFFSETFILE=null
 #
 case $GRIDNAME in
+      #
    "LA_v19k-WithUpperAtch_chk")
       #
       INPUTDIR=$SCRIPTDIR/input/meshes/LA_v19k
@@ -58,6 +59,35 @@ case $GRIDNAME in
       UNITOFFSETFILE=unit_offset_LA_v19k-WithUpperAtch_chk.dat
       ;;
       #
+   "LA_v20a-WithUpperAtch_chk")
+      #
+      INPUTDIR=$SCRIPTDIR/input/meshes/LA_v20a
+      GRIDFILE=LA_v20a-WithUpperAtch_chk.grd   # mesh (fort.14) file
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=LA_v20a-WithUpperAtch.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=LA_v20a-WithUpperAtch.nowindreduction.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=combined_stations_20190711.txt
+      VELSTATIONS=combined_stations_20190711.txt
+      METSTATIONS=combined_stations_20190711.txt
+      NAFILE=LA_v20a-WithUpperAtch_chk.13
+      NAPROPERTIES=${NAFILE}.properties
+      SWANTEMPLATE=LA_20a-WithUpperAtch.26.template   # only used if WAVES=on
+      RIVERINIT=null                           # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+      SWANDT=1200                # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # FIXME: no unit offset url
+      ;;   
+      #   
    "ec95d")
       #   
       INPUTDIR=$SCRIPTDIR/input/meshes/ec95d
@@ -86,7 +116,9 @@ case $GRIDNAME in
       FORECASTWALLTIME="01:00:00" # forecast wall clock time
       # FIXME: no unit offset url
       ;;
+      #
    "tx2008_r35h")
+      #
       INPUTDIR=$SCRIPTDIR/input/meshes/texas2008_r35h
       GRIDFILE=tx2008_r35h.grd # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -114,7 +146,9 @@ case $GRIDNAME in
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_tx2008_r35h.grd.dat.xz
       UNITOFFSETFILE=unit_offset_tx2008_r35h.grd.dat
       ;;
+      #
    "tx2017")
+      #
       INPUTDIR=$SCRIPTDIR/input/meshes/tx2017
       GRIDFILE=ctx_gr_p01E01.grd # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -139,9 +173,38 @@ case $GRIDNAME in
       ADCPREPWALLTIME="10:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="14:00:00" # forecast wall clock time
-      # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_tx2008_r35h.grd.dat.xz
-      UNITOFFSETFILE=unit_offset_tx2017.grd.dat
+      # FIXME: no unit offset url
       ;;
+      #
+   "tx2020a")
+      #
+      INPUTDIR=$SCRIPTDIR/input/meshes/tx2020
+      GRIDFILE=tx2020a.grd # mesh (fort.14) file
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=tx2020a_template.15   # fort.15 template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=tx2020a_norough_template.15
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=tx2008r35h_stations_20170618.txt
+      VELSTATIONS=tx2008r35h_stations_20170618.txt
+      METSTATIONS=tx2008r35h_stations_20170618.txt
+      NAFILE=tx2020a.13
+      NAPROPERTIES=${NAFILE}.properties
+      SWANTEMPLATE=fort.26.nolimiter.template    # only used if WAVES=on
+      RIVERINIT=null                           # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+      SWANDT=1200                # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="10:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="14:00:00" # forecast wall clock time
+      # FIXME: no unit offset url
+      ;;
+      #      
    "neflga_v12_geo")
       INPUTDIR=$SCRIPTDIR/input/meshes/neflga
       GRIDFILE=neflga_v12_geo.14 # mesh (fort.14) file
@@ -169,7 +232,9 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # FIXME: no unit offset url
       ;;
+      #
    "nc_inundation_v9.99_w_rivers")
+      #
       INPUTDIR=$SCRIPTDIR/input/meshes/nc_v9.99_w_rivers
       GRIDFILE=nc_inundation_v9.99a_w_rivers.grd
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -197,8 +262,10 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_nc_inundation_v9.99_rivers.dat.xz
       UNITOFFSETFILE=unit_offset_nc_inundation_v9.99_rivers.dat
-      ;; 
+      ;;
+      # 
    "hsofs")
+      #
       INPUTDIR=$SCRIPTDIR/input/meshes/hsofs
       GRIDFILE=hsofs.14  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.nc.properties
@@ -226,7 +293,9 @@ case $GRIDNAME in
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_hsofs.dat.xz
       UNITOFFSETFILE=unit_offset_hsofs.dat
       ;;
+      #
    "WFLv18")
+      #
       INPUTDIR=$SCRIPTDIR/input/meshes/fema_wfl
       GRIDFILE=fema_wfl_fort.14  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.nc.properties
@@ -254,7 +323,9 @@ case $GRIDNAME in
       # unit offset url 
       UNITOFFSETFILE=null
       ;;
+      #
    "southfl_v11-1_final")
+      #
       INPUTDIR=$SCRIPTDIR/input/meshes/southfl    
       GRIDFILE=southfl_v11-1_final.grd
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -281,7 +352,9 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # FIXME: no unit offset url 
       ;;
+      #
    "eccl_v7_geo_z")
+      #
       INPUTDIR=$SCRIPTDIR/input/meshes/cenfl    
       GRIDFILE=eccl_v7_geo_z.grd
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -308,7 +381,9 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # FIXME: no unit offset url
       ;;
+      #
    "FEMAR3")
+      #
       INPUTDIR=$SCRIPTDIR/input/meshes/femar3   
       GRIDFILE=FEMA_R3_20110303_MSL.grd
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -336,7 +411,9 @@ case $GRIDNAME in
       # https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_FEMA_R3_20110303_MSL.dat.xz
       UNITOFFSETFILE=unit_offset_FEMA_R3_20110303_MSL.dat
       ;;
+      #
    "NGOM_RT_v19b_chk")
+      #
       INPUTDIR=${SCRIPTDIR}/input/meshes/NGOM_RT_v19b # grid and other input files
       GRIDFILE=NGOM_RT_v19b_chk.grd
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -363,6 +440,64 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       UNITOFFSETFILE=oi_surface_NGOM_RT_v19b_chk.grd.dat
       ;;
+      #
+   "NGOM_RT_20a_chk")
+      #
+      INPUTDIR=${SCRIPTDIR}/input/meshes/NGOM_RT_v20a # grid and other input files
+      GRIDFILE=NGOM_RT_v20a_chk.grd
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=NGOM_RT_v20a.15.template   # fort.15 template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=NGOM_RT_v20a.nowindreduction.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=NGOM_RT_v20a_stations_08282018.txt
+      VELSTATIONS=NGOM_RT_v20a_stations_08282018.txt
+      METSTATIONS=NGOM_RT_v20a_stations_08282018.txt
+      NAFILE=NGOM_RT_v20a_chk.13
+      NAPROPERTIES=${NAFILE}.properties
+      SWANTEMPLATE=fort.26.template   # only used if WAVES=on
+      RIVERINIT=null                           # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+      SWANDT=1200                 # swan time step size (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # FIXME: no unit offset url
+      ;;
+      #      
+   "EGOM-RT_20b_chk")
+      #
+      INPUTDIR=${SCRIPTDIR}/input/meshes/EGOM-RT_v20b # grid and other input files
+      GRIDFILE=EGOM-RT_v20b_chk.grd
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=EGOM-RT_v20b.15.template   # fort.15 template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=EGOM-RT_v20b.nowindreduction.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=EGOM-RT_v20b_stations.txt
+      VELSTATIONS=EGOM-RT_v20b_stations.txt
+      METSTATIONS=EGOM-RT_v20b_stations.txt
+      NAFILE=EGOM-RT_v20b_chk.13
+      NAPROPERTIES=${NAFILE}.properties
+      SWANTEMPLATE=fort.26.nolimiter.template   # only used if WAVES=on
+      RIVERINIT=null                            # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+      SWANDT=1200                 # swan time step size (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # FIXME: no unit offset url
+      ;;      
    *)
       warn "cycle $CYCLE: $SCENARIO: $THIS: Mesh GRIDNAME $GRIDNAME was not recognized."
       ;;
