@@ -179,7 +179,7 @@ case $GRIDNAME in
    "tx2020a")
       #
       INPUTDIR=$SCRIPTDIR/input/meshes/tx2020
-      GRIDFILE=tx2020a.grd # mesh (fort.14) file
+      GRIDFILE=tx2020a.14 # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=tx2020a_template.15   # fort.15 template
       # wind at 10m fort.15 template
