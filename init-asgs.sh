@@ -90,14 +90,14 @@ echo "Where do you want to install libraries and some utilities? [$_default_inst
 read -p "(note: shell variables like \$HOME or \$WORK will not be expanded)? " installdir
 
 if [ -z "$installdir" ]; then
-  installdir=$HOME/opt
+  installdir=$_default_installdir
 fi
 
 echo
 read -p "What is a short name you'd like to use to name the asgsh profile associated with this installation? [\"default\"] " profile
 
 if [ -z "$profile" ]; then
-  profile=$$
+  profile=default
 fi
 
 echo Bootstrapping ASGS for installation...

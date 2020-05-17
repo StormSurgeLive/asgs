@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sat, 23 Nov 2019 03:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm SEBASTIEN Forecast/Advisory Number 15</title>
+      <description>Issued at 0300 UTC SAT NOV 23 2019 <![CDATA[<pre>
+ZCZC MIATCMAT5 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL STORM SEBASTIEN FORECAST/ADVISORY NUMBER  15
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL202019
+0300 UTC SAT NOV 23 2019
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 27.0N  52.2W AT 23/0300Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTHEAST OR  55 DEGREES AT  13 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  998 MB
+MAX SUSTAINED WINDS  55 KT WITH GUSTS TO  65 KT.
+50 KT.......  0NE  30SE  30SW   0NW.
+34 KT.......170NE 140SE  50SW 100NW.
+12 FT SEAS..150NE 120SE  90SW 150NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 27.0N  52.2W AT 23/0300Z
+AT 23/0000Z CENTER WAS LOCATED NEAR 26.6N  52.8W
+ 
+FORECAST VALID 23/1200Z 28.2N  50.2W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT...  0NE  30SE   0SW   0NW.
+34 KT...140NE 120SE  50SW  90NW.
+ 
+FORECAST VALID 24/0000Z 30.5N  46.5W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT...120NE 120SE  50SW  60NW.
+ 
+FORECAST VALID 24/1200Z 32.6N  42.5W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT...100NE 130SE  50SW  50NW.
+ 
+FORECAST VALID 25/0000Z 35.5N  36.0W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE 100SE   0SW   0NW.
+ 
+FORECAST VALID 26/0000Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 27.0N  52.2W
+ 
+NEXT ADVISORY AT 23/0900Z
+ 
+$$
+FORECASTER AVILA
+
+</pre>]]></description>
+      <pubDate>Sat, 23 Nov 2019 03:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/20/15.202019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/20/15.202019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

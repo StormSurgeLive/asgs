@@ -43,12 +43,16 @@ if [ "$INTERACTIVE" == "yes" ]; then
   fi
   echo
   # determine where to look for source directory or checkout git repo for the build
-  __ADCIRCDIR=$ASGS_HOME/adcirc-cg-$ADCIRC_GIT_BRANCH-$ADCIRC_COMPILER
-  read -p "Where would you like to build ADCIRC? [$__ADCIRCDIR] " _ADCIRCDIR
-  if [ -n "$_ADCIRCDIR" ]; then
-    ADCIRCDIR=$_ADCIRCDIR
+  if [ -e "$WORK" ]; then
+    __ADCIRCBASE=$WORK/adcirc-cg-$ADCIRC_GIT_BRANCH-$ADCIRC_COMPILER
   else
-    ADCIRCDIR=$__ADCIRCDIR
+    __ADCIRCBASE=$ASGS_HOME/adcirc-cg-$ADCIRC_GIT_BRANCH-$ADCIRC_COMPILER
+  fi
+  read -p "Where would you like to build ADCIRC? [$__ADCIRCBASE] " _ADCIRCBASE
+  if [ -n "$_ADCIRCBASE" ]; then
+    ADCIRCBASE=$_ADCIRCBASE
+  else
+    ADCIRCBASE=$__ADCIRCBASE
   fi
   echo
   # determine what to name the ADCIRC profile
@@ -66,25 +70,25 @@ fi
 # looks for:
 # ASGS_MACHINE_NAME - passed to MACHINENAME of ADCIRC's Makefile, internally determines compiler flags and some library paths
 # NETCDFHOME        - tells ADCIRC where to look for NetCDF libraries
-# ADCIRCDIR         - main directory containing ADCIRC source code
+# ADCIRCBASE         - main directory containing ADCIRC source code
 # ADCIRC_COMPILER   - "intel" or "gfortran", set via --compiler in asgs-brew.pl
 # ADCIRC_GIT_BRANCH - passed to `git checkout`, set via --adcirc-git-branch in asgs-brew.pl
 # ADCIRC_GIT_URL - git repo remote URL, set via --adcirc-git-remote in asgs-brew.pl
 # ADCIRC_GIT_REPO   - git repository (likely 'adcirc-cg')
 
-ADCIRC_MAKE_CMD="make -j ${ASGS_MAKEJOBS} adcirc padcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} NETCDFROOT=${NETCDFROOT} MACHINENAME=${ASGS_MACHINE_NAME}"
+ADCIRC_MAKE_CMD="make padcirc adcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} NETCDFROOT=${NETCDFROOT} MACHINENAME=${ASGS_MACHINE_NAME}"
 
-if [ ! -d ${ADCIRCDIR}/.git ]; then
+if [ ! -d ${ADCIRCBASE}/.git ]; then
   if [ "$INTERACTIVE" == "yes" ]; then
     answer=
-    read -p "Create directory, '$ADCIRCDIR'? Type 'no' to exit. " answer 
+    read -p "Create directory, '$ADCIRCBASE'? Type 'no' to exit. " answer
     if [ "$answer" == 'no' ]; then
       echo 'no directory was created. Exiting install.'
       exit
-    fi 
+    fi
     echo
   fi
-  mkdir -p ${ADCIRCDIR} 2> /dev/null
+  mkdir -p ${ADCIRCBASE} 2> /dev/null
   if [ "$INTERACTIVE" == "yes" ]; then
     answer=
     echo "Download ADCIRC git repository from GitHub? A 'skip' is useful if the ADCIRC source directory exists, but is not a git repo."
@@ -92,28 +96,28 @@ if [ ! -d ${ADCIRCDIR}/.git ]; then
     if [ "$answer" == 'skip' ]; then
       echo 'Git repository skipt downloaded. Proceeding to build."'
       skip_clone=yes
-    fi 
+    fi
      echo
   fi
   # 'skip_clone' may only be set during interactive mode
   if [ "$skip_clone" != "yes" ]; then
-    git clone ${ADCIRC_GIT_URL}/${ADCIRC_GIT_REPO}.git ${ADCIRCDIR}
+    git clone ${ADCIRC_GIT_URL}/${ADCIRC_GIT_REPO}.git ${ADCIRCBASE}
   fi
 fi
 
 # current branch management is naive and assumes that the branch
 # requested is available locally (via origin or any other manually
 # added remotes (see, git remote --help for more information)
-if [ ! -d "$ADCIRCDIR" ]; then
-  echo "$ADCIRCDIR not found. Exiting install."
+if [ ! -d "$ADCIRCBASE" ]; then
+  echo "$ADCIRCBASE not found. Exiting install."
   exit 1
 else
-  cd ${ADCIRCDIR}
+  cd ${ADCIRCBASE}
 fi
 
 # only try to checkout branch/tag/SHA if it's a git directory (looks for .git)
 
-if [ -d "$ADCIRCDIR/.git" ]; then
+if [ -d "$ADCIRCBASE/.git" ]; then
   if [ "$INTERACTIVE" == "yes" ]; then
     answer=
     skip_checkout=
@@ -122,13 +126,13 @@ if [ -d "$ADCIRCDIR/.git" ]; then
     if [ "$answer" == 'skip' ]; then
       echo 'Git repository skipped checkout. Proceeding to build."'
       skip_checkout=yes
-    fi 
+    fi
      echo
   fi
   if [ "$skip_checkout" != "yes" ]; then
     CURRENT_BRANCH=$(git branch | egrep '^\*' | awk '{ print $2 }')
     if [ "${ADCIRC_GIT_BRANCH}" != "${CURRENT_BRANCH}" ]; then
-      git checkout ${ADCIRC_GIT_BRANCH} 
+      git checkout ${ADCIRC_GIT_BRANCH}
       EXIT=$?
       if [ $EXIT -gt 0 ]; then
         echo "error checking out git repository. Exiting ($EXIT)."
@@ -137,15 +141,16 @@ if [ -d "$ADCIRCDIR/.git" ]; then
       # check to make sure we're really on the desired branch
       CURRENT_BRANCH=$(git branch | egrep '^\*' | awk '{ print $2 }')
       if [ "${ADCIRC_GIT_BRANCH}" != "${CURRENT_BRANCH}" ]; then
-        echo "git branch in $ADCIRCDIR isn't '$ADCIRC_GIT_BRANCH' (currently '$CURRENT_BRANCH')"
+        echo "git branch in $ADCIRCBASE isn't '$ADCIRC_GIT_BRANCH' (currently '$CURRENT_BRANCH')"
         exit 1
       fi
     fi
   fi
 fi
 
+ADCIRCDIR=${ADCIRCBASE}/work
 # final check to make sure it looks like the expected ADCIRC source
-if [ ! -d "$ADCIRCDIR/work" ]; then
+if [ ! -d "$ADCIRCDIR" ]; then
   echo "$ADCIRCDIR is missing the './work' directory. Exiting install."
   exit 1
 fi
@@ -166,7 +171,7 @@ if [ "$INTERACTIVE" = "yes" ]; then
 fi
 
 # attempt to build
-cd ${ADCIRCDIR}/work
+cd $ADCIRCDIR
 $ADCIRC_MAKE_CMD
 
 # catch failed exit status, for both interactive and initial asgs-brew.pl build
@@ -184,6 +189,7 @@ ADCIRC_META_FILE=$ADCIRC_META_DIR/$ADCIRC_PROFILE_NAME
 echo 'export ASGS_HOME='$ASGS_HOME                      >  $ADCIRC_META_FILE
 echo 'export ASGS_MACHINE_NAME='$ASGS_MACHINE_NAME      >> $ADCIRC_META_FILE
 echo 'export NETCDFHOME='$NETCDFHOME                    >> $ADCIRC_META_FILE
+echo 'export ADCIRCBASE='$ADCIRCBASE                    >> $ADCIRC_META_FILE
 echo 'export ADCIRCDIR='$ADCIRCDIR                      >> $ADCIRC_META_FILE
 echo 'export ADCIRC_COMPILER='$ADCIRC_COMPILER          >> $ADCIRC_META_FILE
 echo 'export ADCIRC_GIT_BRANCH='$ADCIRC_GIT_BRANCH      >> $ADCIRC_META_FILE

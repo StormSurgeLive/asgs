@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Mon, 28 Oct 2019 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Post-Tropical Cyclone PABLO Forecast/Advisory Number 12</title>
+      <description>Issued at 1500 UTC MON OCT 28 2019 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+
+POST-TROPICAL CYCLONE PABLO FORECAST/ADVISORY NUMBER  12
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL182019
+1500 UTC MON OCT 28 2019
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+POST-TROPICAL CYCLONE CENTER LOCATED NEAR 46.8N  17.7W AT 28/1500Z
+POSITION ACCURATE WITHIN  20 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH OR 360 DEGREES AT   4 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  995 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT.......  0NE   0SE   0SW  50NW.
+12 FT SEAS..360NE 300SE 420SW 420NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 46.8N  17.7W AT 28/1500Z
+AT 28/1200Z CENTER WAS LOCATED NEAR 46.6N  17.7W
+
+FORECAST VALID 29/0000Z 47.4N  17.9W...POST-TROP/EXTRATROP
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE   0SE   0SW  50NW.
+
+FORECAST VALID 29/1200Z 48.5N  18.3W...POST-TROP/EXTRATROP
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE   0SE   0SW  50NW.
+
+FORECAST VALID 30/0000Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 46.8N  17.7W
+
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE
+CENTER ON THIS SYSTEM. ADDITIONAL INFORMATION ON THIS SYSTEM CAN BE
+FOUND IN HIGH SEAS FORECASTS ISSUED BY METEO FRANCE UNDER WMO HEADER
+FQNT50 LFPW...AND IN HIGH SEAS FORECASTS ISSUED BY THE UK MET OFFICE
+UNDER WMO HEADER FQNT21 EGRR.
+
+$$
+FORECASTER LATTO
+
+</pre>]]></description>
+      <pubDate>Mon, 28 Oct 2019 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/18/12.182019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/18/12.182019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

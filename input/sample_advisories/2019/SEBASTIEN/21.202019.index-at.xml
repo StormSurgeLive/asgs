@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sun, 24 Nov 2019 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm SEBASTIEN Forecast/Advisory Number 21</title>
+      <description>Issued at 1500 UTC SUN NOV 24 2019 <![CDATA[<pre>
+ZCZC MIATCMAT5 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM SEBASTIEN FORECAST/ADVISORY NUMBER  21
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL202019
+1500 UTC SUN NOV 24 2019
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+INTERESTS IN THE AZORES SHOULD MONITOR THE PROGRESS OF SEBASTIEN.
+
+TROPICAL STORM CENTER LOCATED NEAR 37.4N  37.0W AT 24/1500Z
+POSITION ACCURATE WITHIN  60 NM
+
+PRESENT MOVEMENT TOWARD THE NORTHEAST OR  55 DEGREES AT  28 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  994 MB
+MAX SUSTAINED WINDS  55 KT WITH GUSTS TO  65 KT.
+50 KT....... 20NE  20SE   0SW   0NW.
+34 KT....... 90NE 100SE  60SW  60NW.
+12 FT SEAS.. 90NE 150SE 330SW 120NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 37.4N  37.0W AT 24/1500Z
+AT 24/1200Z CENTER WAS LOCATED NEAR 36.5N  38.7W
+
+FORECAST VALID 25/0000Z 39.8N  31.0W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT...  0NE  40SE  30SW   0NW.
+34 KT... 90NE 140SE 120SW  70NW.
+
+FORECAST VALID 25/1200Z 43.8N  22.0W...POST-TROP/EXTRATROP
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT...  0NE  40SE  40SW   0NW.
+34 KT...110NE 190SE 190SW  70NW.
+
+FORECAST VALID 26/0000Z 47.7N  14.8W...POST-TROP/EXTRATROP
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT...140NE 250SE 200SW  80NW.
+
+FORECAST VALID 26/1200Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 37.4N  37.0W
+
+NEXT ADVISORY AT 24/2100Z
+
+$$
+FORECASTER ZELINSKY
+
+</pre>]]></description>
+      <pubDate>Sun, 24 Nov 2019 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/20/21.202019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/20/21.202019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

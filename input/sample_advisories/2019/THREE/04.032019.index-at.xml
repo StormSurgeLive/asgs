@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Tue, 23 Jul 2019 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Remnants Of THREE Forecast/Advisory Number 4</title>
+      <description>Issued at 1500 UTC TUE JUL 23 2019 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+
+REMNANTS OF THREE FORECAST/ADVISORY NUMBER   4
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL032019
+1500 UTC TUE JUL 23 2019
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+REMNANTS OF CENTER LOCATED NEAR 29.0N  80.0W AT 23/1500Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH OR 360 DEGREES AT  15 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1014 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 29.0N  80.0W AT 23/1500Z
+AT 23/1200Z CENTER WAS LOCATED NEAR 28.6N  79.9W
+
+FORECAST VALID 24/0000Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 29.0N  80.0W
+
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE
+CENTER ON THIS SYSTEM. ADDITIONAL INFORMATION ON THIS SYSTEM CAN BE
+FOUND IN HIGH SEAS FORECASTS ISSUED BY THE NATIONAL WEATHER
+SERVICE...UNDER AWIPS HEADER NFDHSFAT1 AND WMO HEADER FZNT01 KWBC.
+
+$$
+FORECASTER BROWN
+
+</pre>]]></description>
+      <pubDate>Tue, 23 Jul 2019 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/03/04.032019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/03/04.032019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

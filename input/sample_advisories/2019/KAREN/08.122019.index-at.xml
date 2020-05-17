@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Tue, 24 Sep 2019 03:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression KAREN Forecast/Advisory Number 8</title>
+      <description>Issued at 0300 UTC TUE SEP 24 2019 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL DEPRESSION KAREN FORECAST/ADVISORY NUMBER   8
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL122019
+0300 UTC TUE SEP 24 2019
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+NONE
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* U.S. VIRGIN ISLANDS
+* PUERTO RICO...INCLUDING VIEQUES AND CULEBRA
+* BRITISH VIRGIN ISLANDS
+ 
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA.
+ 
+INTERESTS ELSEWHERE IN THE LESSER ANTILLES SHOULD MONITOR THE
+PROGRESS OF KAREN.
+ 
+TROPICAL DEPRESSION CENTER LOCATED NEAR 16.1N  65.8W AT 24/0300Z
+POSITION ACCURATE WITHIN  40 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTHWEST OR 325 DEGREES AT   9 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1008 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+12 FT SEAS.. 30NE   0SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 16.1N  65.8W AT 24/0300Z
+AT 24/0000Z CENTER WAS LOCATED NEAR 15.9N  65.7W
+ 
+FORECAST VALID 24/1200Z 17.5N  66.2W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE  50SE   0SW   0NW.
+ 
+FORECAST VALID 25/0000Z 19.6N  66.2W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE  50SE   0SW   0NW.
+ 
+FORECAST VALID 25/1200Z 22.0N  65.8W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 50NE  50SE   0SW   0NW.
+ 
+FORECAST VALID 26/0000Z 23.9N  65.2W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 60NE  60SE   0SW   0NW.
+ 
+FORECAST VALID 27/0000Z 26.8N  64.1W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT... 80NE  80SE   0SW  40NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 28/0000Z 28.0N  64.0W
+MAX WIND  50 KT...GUSTS  60 KT.
+ 
+OUTLOOK VALID 29/0000Z 28.0N  66.5W
+MAX WIND  55 KT...GUSTS  65 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 16.1N  65.8W
+ 
+INTERMEDIATE PUBLIC ADVISORY...WTNT32 KNHC/MIATCPAT2...AT 24/0600Z
+ 
+NEXT ADVISORY AT 24/0900Z
+ 
+$$
+FORECASTER CANGIALOSI
+
+</pre>]]></description>
+      <pubDate>Tue, 24 Sep 2019 03:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/12/08.122019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/12/08.122019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

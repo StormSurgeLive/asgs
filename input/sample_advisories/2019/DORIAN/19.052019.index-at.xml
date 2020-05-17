@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Thu, 29 Aug 2019 03:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane DORIAN Forecast/Advisory Number 19</title>
+      <description>Issued at 0300 UTC THU AUG 29 2019 <![CDATA[<pre>
+ZCZC MIATCMAT5 ALL
+TTAA00 KNHC DDHHMM
+ 
+HURRICANE DORIAN FORECAST/ADVISORY NUMBER  19
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL052019
+0300 UTC THU AUG 29 2019
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+HURRICANE CENTER LOCATED NEAR 19.7N  66.0W AT 29/0300Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTHWEST OR 320 DEGREES AT  11 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  986 MB
+MAX SUSTAINED WINDS  75 KT WITH GUSTS TO  90 KT.
+64 KT....... 15NE   0SE   0SW   0NW.
+50 KT....... 30NE  20SE   0SW   0NW.
+34 KT....... 60NE  40SE  10SW  30NW.
+12 FT SEAS.. 75NE  45SE  30SW  45NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 19.7N  66.0W AT 29/0300Z
+AT 29/0000Z CENTER WAS LOCATED NEAR 19.2N  65.7W
+ 
+FORECAST VALID 29/1200Z 21.0N  67.0W
+MAX WIND  80 KT...GUSTS 100 KT.
+64 KT... 15NE  10SE   0SW   0NW.
+50 KT... 30NE  20SE   0SW  10NW.
+34 KT... 60NE  40SE  20SW  30NW.
+ 
+FORECAST VALID 30/0000Z 22.9N  68.3W
+MAX WIND  85 KT...GUSTS 105 KT.
+64 KT... 15NE  10SE   0SW  10NW.
+50 KT... 30NE  20SE  20SW  30NW.
+34 KT... 70NE  40SE  30SW  40NW.
+ 
+FORECAST VALID 30/1200Z 24.5N  69.9W
+MAX WIND  90 KT...GUSTS 110 KT.
+64 KT... 15NE  10SE  10SW  10NW.
+50 KT... 30NE  20SE  20SW  30NW.
+34 KT... 70NE  50SE  30SW  40NW.
+ 
+FORECAST VALID 31/0000Z 25.7N  71.7W
+MAX WIND  95 KT...GUSTS 115 KT.
+64 KT... 20NE  10SE  10SW  10NW.
+50 KT... 30NE  20SE  20SW  30NW.
+34 KT... 70NE  50SE  40SW  50NW.
+ 
+FORECAST VALID 01/0000Z 27.0N  75.8W
+MAX WIND 100 KT...GUSTS 120 KT.
+50 KT... 40NE  30SE  20SW  30NW.
+34 KT... 80NE  70SE  40SW  60NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 02/0000Z 27.8N  79.4W
+MAX WIND 100 KT...GUSTS 120 KT.
+ 
+OUTLOOK VALID 03/0000Z 28.4N  81.8W...INLAND
+MAX WIND  80 KT...GUSTS 100 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 19.7N  66.0W
+ 
+NEXT ADVISORY AT 29/0900Z
+ 
+$$
+FORECASTER PASCH
+
+</pre>]]></description>
+      <pubDate>Thu, 29 Aug 2019 03:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/05/19.052019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/05/19.052019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

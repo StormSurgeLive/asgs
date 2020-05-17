@@ -138,6 +138,26 @@ case $operator in
       NOTIFYUSER=MBilskie.ASGS@gmail.com
       ASGSADMIN=MBilskie.ASGS@gmail.com
       ;;
+    "estrabd")
+op=bde
+ACCOUNT=DesignSafe-CERA
+QUEUENAME=skx-dev
+SERQUEUE=skx-dev
+PARALLELMODULES=
+SERIALMODULES=
+PPN=48
+NCPU=47               # number of compute CPUs for all simulations
+NUMWRITERS=1
+NCPUCAPACITY=96
+EMAILNOTIFY=no         # no | yes to have host HPC platform email notifications
+ACTIVATE_LIST=null
+NEW_ADVISORY_LIST=null
+POST_INIT_LIST=null
+POST_LIST=null
+JOB_FAILED_LIST=null
+NOTIFYUSER=
+ASGSADMIN=
+;;
    *)
       warn "cycle $CYCLE: $SCENARIO: $THIS: Operator $operator was not recognized."
       ;;
