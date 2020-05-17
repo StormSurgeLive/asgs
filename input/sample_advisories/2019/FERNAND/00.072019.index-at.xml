@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Tue, 03 Sep 2019 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>  Forecast/Advisory Number </title>
+      <description>Issued at 0900 UTC TUE SEP 03 2019 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM CCA
+
+POTENTIAL TROPICAL CYCLONE SEVEN
+FORECAST/ADVISORY NUMBER   1...CORRECTED
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL072019
+0900 UTC TUE SEP 03 2019
+
+CORRECTED TO SHOW TROPICAL CYCLONE STATUS AT 3/1800Z
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+THE GOVERNMENT OF MEXICO HAS ISSUED A TROPICAL STORM WARNING FROM
+LA PESCA NORTHWARD TO BARRA EL MEZQUITAL.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* LA PESCA TO BARRA EL MEZQUITAL
+
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA WITHIN 36 HOURS.
+
+POTENTIAL TROP CYCLONE CENTER LOCATED NEAR 23.5N  94.3W AT 03/0900Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE WEST OR 260 DEGREES AT   6 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1006 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 23.5N  94.3W AT 03/0900Z
+AT 03/0600Z CENTER WAS LOCATED NEAR 23.6N  94.0W
+
+FORECAST VALID 03/1800Z 23.4N  95.2W...TROPICAL DEPRESSION
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 04/0600Z 23.4N  96.3W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 50NE   0SE   0SW  50NW.
+
+FORECAST VALID 04/1800Z 23.7N  97.1W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 60NE  40SE   0SW  60NW.
+
+FORECAST VALID 05/0600Z 24.3N  98.2W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 06/0600Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 23.5N  94.3W
+
+INTERMEDIATE PUBLIC ADVISORY...WTNT32 KNHC/MIATCPAT2...AT 03/1200Z
+
+NEXT ADVISORY AT 03/1500Z
+
+$$
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Tue, 03 Sep 2019 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/07/00.072019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/07/00.072019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

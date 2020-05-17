@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 25 Sep 2019 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm KAREN Forecast/Advisory Number 13</title>
+      <description>Issued at 0900 UTC WED SEP 25 2019 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM KAREN FORECAST/ADVISORY NUMBER  13
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL122019
+0900 UTC WED SEP 25 2019
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+THE TROPICAL STORM WARNING FOR PUERTO RICO...VIEQUES...CULEBRA...AND
+THE U.S. VIRGIN ISLANDS HAS BEEN DISCONTINUED.  THE GOVERNMENT OF
+ANTIGUA AND BARBUDA HAS DISCONTINUED THE TROPICAL STORM WARNING FOR
+THE BRITISH VIRGIN ISLANDS.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+TROPICAL STORM CENTER LOCATED NEAR 20.5N  65.2W AT 25/0900Z
+POSITION ACCURATE WITHIN  20 NM
+
+PRESENT MOVEMENT TOWARD THE NORTH OR 360 DEGREES AT  12 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1003 MB
+MAX SUSTAINED WINDS  40 KT WITH GUSTS TO  50 KT.
+34 KT....... 20NE  60SE  20SW   0NW.
+12 FT SEAS.. 30NE  75SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 20.5N  65.2W AT 25/0900Z
+AT 25/0600Z CENTER WAS LOCATED NEAR 19.9N  65.2W
+
+FORECAST VALID 25/1800Z 22.3N  64.5W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT... 40NE  70SE  30SW  20NW.
+
+FORECAST VALID 26/0600Z 24.5N  63.9W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT... 50NE  70SE  30SW  20NW.
+
+FORECAST VALID 26/1800Z 26.4N  63.2W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 20NE  20SE   0SW   0NW.
+34 KT... 60NE  70SE  40SW  30NW.
+
+FORECAST VALID 27/0600Z 27.3N  62.5W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 20NE  20SE   0SW   0NW.
+34 KT... 70NE  70SE  40SW  30NW.
+
+FORECAST VALID 28/0600Z 27.1N  61.9W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 20NE  20SE  20SW  20NW.
+34 KT... 80NE  80SE  60SW  50NW.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 29/0600Z 26.3N  64.4W
+MAX WIND  55 KT...GUSTS  65 KT.
+
+OUTLOOK VALID 30/0600Z 25.9N  67.8W
+MAX WIND  55 KT...GUSTS  65 KT.
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 20.5N  65.2W
+
+NEXT ADVISORY AT 25/1500Z
+
+$$
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Wed, 25 Sep 2019 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/12/13.122019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/12/13.122019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

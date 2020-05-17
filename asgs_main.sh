@@ -2280,7 +2280,7 @@ if [[ $START = coldstart ]]; then
       CONTROLOPTIONS="$CONTROLOPTIONS --endtime $HINDCASTLENGTH  --nws $NWS  --advisorynum 0" 
    fi
    if [[ $DEFAULTSFILE != null ]]; then
-      CONTROLOPTIONS="$CONTROLOPTIONS --defaultsfile $DEFAULTSFILE"
+      CONTROLOPTIONS="$CONTROLOPTIONS --defaultfile $DEFAULTSFILE"
       #CONTROLOPTIONS="$CONTROLOPTIONS --defaultfile $DEFAULTFILE"
    fi
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Constructing control file."
@@ -2695,7 +2695,7 @@ while [ true ]; do
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
    if [[ $DEFAULTSFILE != null ]]; then
-      CONTROLOPTIONS="$CONTROLOPTIONS --defaultsfile $DEFAULTSFILE"
+      CONTROLOPTIONS="$CONTROLOPTIONS --defaultfile $DEFAULTSFILE"
       #CONTROLOPTIONS="$CONTROLOPTIONS --defaultfile $DEFAULTFILE"
    fi   
    # generate fort.15 file

@@ -165,7 +165,7 @@ if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ){
    $joblauncher =~ s/%ncpu%/$ncpu/g;
    $joblauncher =~ s/%totalcpu%/$totalcpu/g;
    $joblauncher =~ s/%nnodes%/$nnodes/g;
-   $cmd="$joblauncher $adcircdir/$jobtype $cloptions"
+   $cmd="$joblauncher $adcircdir/$jobtype $cloptions";
 }
 # 
 # compute wall clock time HH:MM:SS in minutes
