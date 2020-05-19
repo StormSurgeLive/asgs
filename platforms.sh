@@ -345,14 +345,17 @@ init_hatteras()
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/hatteras
   JOBENV=( gdal.sh gmt.sh fftw.sh netcdf.sh )
-  export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
   case $USER in 
   bblanton) 
+     export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
      ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
      SCRATCHDIR=/scratch/bblanton/data
      PYTHONVENV=/projects/storm_surge/anaconda
+     PLATFORMMODULES='module load mvapich2/2.0-acis'
+     SERIALMODULES='module load' # no extra modules for serial jobs
      ;;
   ncfs-dev)
+     export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
      ADCIRCDIR="${HOME}/ADCIRC/v53release/work" # ADCIRC executables
      SWANDIR="${HOME}/ADCIRC/v53release/swan" # ADCIRC executables
      SCRATCHDIR=/scratch/ncfs-dev/
@@ -362,19 +365,22 @@ init_hatteras()
      RMQMessaging_NcoHome="${HOME}"
      RMQMessaging_Python="${PYTHONVENV}/bin/python"
      PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.1.2-acis mvapich2/2.0-acis'
+     SERIALMODULES='module load' # no extra modules for serial jobs
      TDS=(renci_tds)
      ;;
   ncfs)
+     export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=ncfs
      QUEUENAME=ncfs     # SLURM partition---ncfs or batch---gives priority
      PYTHONVENV=~/asgs/asgspy/venv
      PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 zlib/1.2.11_intel-18.0.0'
-     PLATFORMMODULES="$PLATFORMMODULES python_modules/2.7"
+     PLATFORMMODULES="$PLATFORMMODULES python_modules/2.7 mvapich2/2.0-acis"
+     SERIALMODULES='module load' # no extra modules for serial jobs
      ;;
   *)
-     echo "User name $USER on hatteras not recognized and ACCOUNT could not be set."
+     PLATFORMMODULES='module load intelc/18.0.0 openmpi/intel_3.0.0'
      ;;
   esac
   ARCHIVE=enstorm_pedir_removal.sh
@@ -389,8 +395,6 @@ init_hatteras()
   # for the automated slide deck generator
   #   pip install --user pptx
   #
-  PARALLELMODULES='module load mvapich2/2.0-acis' 
-  SERIALMODULES='module load' # no extra modules for serial jobs
   module purge
   $PLATFORMMODULES
   $PARALLELMODULES
