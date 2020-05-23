@@ -396,6 +396,27 @@ if [ -n "\$_ASGSH_PID" ]; then
   exit 1
 fi
 
+# process options passed directly to `asgsh`
+options=\$(getopt -u -o "hp:" -- "\$@")
+eval set -- "\$options"
+while true
+  do
+    case \$1 in
+      -h)
+        echo "\nInteractive ASGS Shell Environment\n\nUsage:\n\tasgsh [-h] | [-p PROFILE-NAME]\n"
+        exit 1
+        ;;
+      -p) 
+        shift
+        export profile=\$1
+        ;;
+      --)
+        shift
+        break;;
+    esac
+    shift
+done
+
 clear
 echo
 echo "               AAA                 SSSSSSSSSSSSSSS         GGGGGGGGGGGGG   SSSSSSSSSSSSSSS "
@@ -457,6 +478,9 @@ export _ASGSH_PID=\$\$
 # are meaningful to ASGS Shell, but not set in asgs-brew.pl
 export _ASGS_EXPORTED_VARS="$_asgs_exported_vars _ASGS_EXPORTED_VARS WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD"
 $env_summary
+
+# export opts for processing in $rcfile
+export _ASGS_OPTS="\$@"
 
 # starts up bash with the environment created by asgs-brew.pl, sets the to "asgs> " so we know
 # we're in the ASGS environment

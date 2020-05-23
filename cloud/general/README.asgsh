@@ -58,9 +58,9 @@ these variables into named, loadable sessions. This makes it much easier
 for an operator to manage a number of scenario packages on the same computer
 (typicall a login node of an HPC cluster).
 
-Important environmental variables that are able to be set via the 'set' command
+Important environmental variables that are able to be set via the 'define' command
 can be saved as a named session. To do this use the 'save' command. It saves as
-a named session, all variables that may be defined via the 'set' command. This
+a named session, all variables that may be defined via the 'define' command. This
 ability is very helpful when juggling among various configurations or when
 running multiple ASGS instances from the same login node.
 
@@ -72,7 +72,7 @@ customized environment.
 For example, to create a profile the session would look something like the
 following:
 
-  asgs (default)> set config /path/to/config.sh 
+  asgs (default)> define config /path/to/config.sh 
   asgs (default)> save hurricane-dorian-ec95d 
   profile 'hurricane-dorian-ec95d' was written
   asgs (hurricane-dorian-ec95d)> 
@@ -188,10 +188,10 @@ of "v53release-intel" and showing that ADCIRCDIR has changed.
 
 	asgs (default)> load adcirc v54release-intel
 	asgs (default)> show adcircdir
-	ADCIRCDIR is set to '/work/$USER/adcirc-cg-v54release-intel'
+	ADCIRCDIR is defined as '/work/$USER/adcirc-cg-v54release-intel'
 	asgs (default)> load adcirc v53release-intel
 	asgs (default)> show adcircdir
-	ADCIRCDIR is set to '/home/$USER/adcirc-cg-v53release'
+	ADCIRCDIR is defined as '/home/$USER/adcirc-cg-v53release'
 
 NOTE: Loading an ADCIRC build profile into the current environment will not persist if one were
 to exit from asgsh without saving the profile. So the general idea is to start with a base
@@ -204,7 +204,7 @@ steps:
 	loaded 'default' into current profile
 	asgs (default)> load adcirc v53release-intel
 	asgs (default)> show adcircdir
-	ADCIRCDIR is set to '/work/$USER/adcirc-cg-v53release-intel'
+	ADCIRCDIR is defined as '/work/$USER/adcirc-cg-v53release-intel'
 	asgs (profile)> save default-v53
 	profile 'default-v53' was written
 	asgs (default)> list profiles
@@ -214,7 +214,7 @@ steps:
 	loaded 'default' into current profile
 	asgs (default)> load adcirc v54release-intel
 	asgs (default)> show adcircdir
-	ADCIRCDIR is set to '/work/$USER/adcirc-cg-v54release-intel'
+	ADCIRCDIR is defined as '/work/$USER/adcirc-cg-v54release-intel'
 	asgs (default)> save default-v54
 	profile 'default-v54' was written
 	asgs (default-v54)> load profile default
@@ -239,7 +239,7 @@ that make common tasks associate with ASGS much more efficient to perform.
 
 The 'run' command calls asgs_main.sh and automatically includes the config
 file that is tracked by the shell (internally as $ASGS_CONFIG). This can
-be set using the 'set config' command. To see the present value of the config,
+be set using the 'define config' command. To see the present value of the config,
 use the 'show config' command. See the command description below to see what
 can be set.
 
@@ -282,27 +282,31 @@ Appendix A - Current Set of Commands (this may be outdated, see 'help' for most 
 	% $HOME/opt/bin/asgsh
         asgs (default)>help<enter> 
 	Commands:
-	   delete <name>              - deletes named profile
-	   edit  config  <name>       - directly edit currently registered ASGS configuration file (used by asgs_main.sh)
-	      *  adcirc  <name>       - directly edit the named ADCIRC environment file
-	      *  profile <name>       - directly edit the named ASGSH Shell profile
-	   goto   <param>             - change current working directory to a supported direcory; type 'goto options' to see the currently supported options
+	   define config              - defines ASGS configuration file used by 'run', ($ASGS_CONFIG)
+		  editor              - defines default editor, ($EDITOR)
+		  scratchdir          - defines ASGS main script directory used by all underlying scripts, ($SCRATCH)
+		  scriptdir           - defines ASGS main script directory used by all underlying scripts, ($SCRIPTDIR)
+		  workdir             - defines ASGS main script directory used by all underlying scripts, ($WORK)
+	   delete profile <name>      - deletes named profile
+	   delete adcirc  <name>      - deletes named ADCIRC profile
+	   dump   <param>             - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog
+	   edit   adcirc  <name>      - directly edit the named ADCIRC environment file
+	   edit   config              - directly edit currently registered ASGS configuration file (used by asgs_main.sh)
+	   edit   profile <name>      - directly edit the named ASGSH Shell profile
+	   edit   syslog              - open up SYSLOG in EDITOR for easier forensics
+	   goto   <param>             - change CWD to a supported directory. Type 'goto options' to see the currently supported options
 	   initadcirc                 - interactive tool for building and local registering versions of ADCIRC for use with ASGS
 	   list   <param>             - lists different things, please see the following options; type 'list options' to see currently supported options
-	   load   <param>             - loads different things into the environment
-		  profile <name>      - loads a saved profile by name; use 'list profiles' to see what's available
-		  adcirc  <name>      - loads information about the version of ADCIRC to us into the current environment. Use 'list adcirc' to see what's available
-	   run                        - runs asgs using config file, $ASGS_CONFIG must be set (see 'set config'); most handy after 'load'ing a profile
-	   save  <name>               - saves an asgs named profile, '<name>' not required if a profile is loaded
-	   set    <param> "<value>" - sets specified profile variables (i.e., variables that do not last after 'exit')
-	       *  config              - sets ASGS configuration file used by 'run', ($ASGS_CONFIG)
-	       *  editor              - sets default editor, ($EDITOR)
-	       *  scratchdir          - sets ASGS main script directory used by all underlying scripts, ($SCRATCH)
-	       *  scriptdir           - sets ASGS main script directory used by all underlying scripts, ($SCRIPTDIR)
-	       *  workdir             - sets ASGS main script directory used by all underlying scripts, ($WORK)
+	   load   profile <name>      - loads a saved profile by name; use 'list profiles' to see what's available
+	   load   adcirc  <name>      - loads information a version of ADCIRC into the current environment. Use 'list adcirc' to see what's available
+	   purge  <param>             - deletes specified file or directory
+		  rundir              - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm
+		  statefile           - deletes the state file associated with a profile, effectively for restarting from the initial advisory
+	   run                        - runs asgs using config file, $ASGS_CONFIG must be defined (see 'define config'); most handy after 'load'ing a profile
+	   save   profile <name>      - saves an asgs named profile, '<name>' not required if a profile is loaded
 	   show   <param>             - shows specified profile variables, to see current list type 'show help'
 	   show   exported            - dumps all exported variables and provides a summary of what asgsh tracks
 	   sq                         - shortcut for "squeue -u $USER" (if squeue is available)
-	   tailf log                  - executes 'tail -f' on ASGS instance's log
+	   tailf  syslog              - executes 'tail -f' on ASGS instance's system log
 	   verify                     - verfies Perl and Python environments
 	   exit                       - exits ASGS shell, returns $USER to login shell
