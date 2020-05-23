@@ -20,15 +20,23 @@
 
 # Developer Note:
 # This must remain consistent with what's exported by asgs-brew.pl, and
-# vice versa; if something is added in set(), be sure to add the
+# vice versa; if something is added in define(), be sure to add the
 # corresponding entry in show() - including usage
 
 help() {
+  echo Command Line Options \(used when invoking asgsh from login shell\):
+  echo "   -h                         - displays available asgsh command line flags, then exits."
+  echo "   -p     profile             - launches the ASGS Shell environment and immediate loads specified profile on start, if it exists."
   echo
-  echo Commands:
+  echo ASGS Shell Commands:
+  echo "   define config              - defines ASGS configuration file used by 'run', (\$ASGS_CONFIG). 'define' replaces old 'set' command."
+  echo "          editor              - defines default editor, (\$EDITOR)"
+  echo "          scratchdir          - defines ASGS main script directory used by all underlying scripts, (\$SCRATCH)"
+  echo "          scriptdir           - defines ASGS main script directory used by all underlying scripts, (\$SCRIPTDIR)"
+  echo "          workdir             - defines ASGS main script directory used by all underlying scripts, (\$WORK)"
   echo "   delete profile <name>      - deletes named profile"
   echo "   delete adcirc  <name>      - deletes named ADCIRC profile"
-  echo "   dump   <param>             - dumps (using cat) contents specified files: config, exported (variables); and if set: statefile, syslog" 
+  echo "   dump   <param>             - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog" 
   echo "   edit   adcirc  <name>      - directly edit the named ADCIRC environment file"
   echo "   edit   config              - directly edit currently registered ASGS configuration file (used by asgs_main.sh)"
   echo "   edit   profile <name>      - directly edit the named ASGSH Shell profile"
@@ -41,17 +49,12 @@ help() {
   echo "   purge  <param>             - deletes specified file or directory"
   echo "          rundir              - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
   echo "          statefile           - deletes the state file associated with a profile, effectively for restarting from the initial advisory"
-  echo "   run                        - runs asgs using config file, \$ASGS_CONFIG must be set (see 'set config'); most handy after 'load'ing a profile"
+  echo "   run                        - runs asgs using config file, \$ASGS_CONFIG must be defined (see 'define config'); most handy after 'load'ing a profile"
   echo "   save   profile <name>      - saves an asgs named profile, '<name>' not required if a profile is loaded"
-  echo "   set    config              - sets ASGS configuration file used by 'run', (\$ASGS_CONFIG)"
-  echo "          editor              - sets default editor, (\$EDITOR)"
-  echo "          scratchdir          - sets ASGS main script directory used by all underlying scripts, (\$SCRATCH)"
-  echo "          scriptdir           - sets ASGS main script directory used by all underlying scripts, (\$SCRIPTDIR)"
-  echo "          workdir             - sets ASGS main script directory used by all underlying scripts, (\$WORK)"
   echo "   show   <param>             - shows specified profile variables, to see current list type 'show help'"
   echo "   show   exported            - dumps all exported variables and provides a summary of what asgsh tracks"
   echo "   sq                         - shortcut for \"squeue -u \$USER\" (if squeue is available)"
-  echo "   tailf  log                 - executes 'tail -f' on ASGS instance's log"
+  echo "   tailf  syslog              - executes 'tail -f' on ASGS instance's system log"
   echo "   verify                     - verfies Perl and Python environments"
   echo "   exit                       - exits ASGS shell, returns \$USER to login shell"
 }
@@ -100,7 +103,7 @@ delete() {
 _editor_check() {
   if [ -z "$EDITOR" ]; then
     __DEFAULT_EDITOR=vim
-    echo "\$EDITOR is not set. Please set it now (selection updates environment):"
+    echo "\$EDITOR is not set. Please define it now (selection updates environment):"
     echo
     echo "Editors available via PATH"
     for e in vim nano vi; do
@@ -111,7 +114,7 @@ _editor_check() {
     if [ -z "$_DEFAULT_EDITOR" ]; then
       _DEFAULT_EDITOR=$__DEFAULT_EDITOR
     fi
-    set editor "$_DEFAULT_EDITOR"
+    define editor "$_DEFAULT_EDITOR"
     echo
   fi
 }
@@ -134,7 +137,7 @@ edit() {
     ;;
   config)
     if [ -z "$ASGS_CONFIG" ]; then
-      echo "\$ASGS_CONFIG is not set. Use 'set config' to specify an ASGS config file."
+      echo "\$ASGS_CONFIG is not set. Use 'define config' to specify an ASGS config file."
       return
     fi
     $EDITOR $ASGS_CONFIG
@@ -301,7 +304,7 @@ load() {
 
 _parse_config() {
   if [ ! -e "${1}" ]; then
-    echo "warning: config file is set, but the file '${1}' does not exist!"
+    echo "warning: config file is defined, but the file '${1}' does not exist!"
     return
   fi
 
@@ -334,8 +337,8 @@ _load_state_file() {
     return
   fi
 
-  echo "... found 'RUNDIR' information, set to '$RUNDIR'"
-  echo "... found 'SYSLOG' information, set to '$SYSLOG'"
+  echo "... found 'RUNDIR' information, defined as '$RUNDIR'"
+  echo "... found 'SYSLOG' information, defined as '$SYSLOG'"
 
   PROPERTIESFILE="$RUNDIR/run.properties"
 
@@ -349,10 +352,10 @@ run() {
     echo "Running ASGS using the config file, '${ASGS_CONFIG}'"
 
     # NOTE: asgs_main.sh automatically extracts $SCRIPTDIR based on where it is located;
-    # this means that asgs_main.sh will respect $SCRIPTDIR set here by virtue of this capability.
+    # this means that asgs_main.sh will respect $SCRIPTDIR defined here by virtue of this capability.
     $SCRIPTDIR/asgs_main.sh -c $ASGS_CONFIG
   else
-    echo "ASGS_CONFIG must be set before the 'run' command can be used";  
+    echo "ASGS_CONFIG must be defined before the 'run' command can be used";  
     return;
   fi
 }
@@ -387,7 +390,7 @@ save() {
 
   # generates saved provile as a basic shell resource file that simply
   # includes an 'export' line for each variable asgsh cares about; this
-  # is set as part of the shell installation by asgs-brew.pl
+  # is defined as part of the shell installation by asgs-brew.pl
   for e in $_ASGS_EXPORTED_VARS; do
     echo "export ${e}='"${!e}"'"  >> "$ASGS_HOME/.asgs/${NAME}.$$.tmp"
   done
@@ -408,47 +411,54 @@ save() {
   fi
 }
 
-# sets the value of various important environmental variables,
+# defines the value of various important environmental variables,
 # exports them to current session (and are available to be saved)
-set() {
+define() {
   if [ -z "${2}" ]; then
-    echo "'set' requires 2 arguments - parameter name and value"
+    echo "'define' requires 2 arguments - parameter name and value"
     return 
   fi
   case "${1}" in
     adcircdir)
       export ADCIRCDIR=${2}
-      echo "ADCIRCDIR is set to '${ADCIRCDIR}'"
+      echo "ADCIRCDIR is defined as '${ADCIRCDIR}'"
       ;;
     adcircbranch)
       export ADCIRC_GIT_BRANCH=${2}
-      echo "ADCIRC_GIT_BRANCH is set to '${ADCIRC_GIT_BRANCH}'"
+      echo "ADCIRC_GIT_BRANCH is defined as '${ADCIRC_GIT_BRANCH}'"
       ;;
     adcircremote)
       export ADCIRC_GIT_REMOTE=${2}
-      echo "ADCIRC_GIT_REMOTE is set to '${ADCIRC_GIT_REMOTE}'"
+      echo "ADCIRC_GIT_REMOTE is defined as '${ADCIRC_GIT_REMOTE}'"
       ;;
     config)
-      export ASGS_CONFIG=${2}
-      echo "ASGS_CONFIG is set to '${ASGS_CONFIG}'"
+      # converts relative path to absolute path so the file is available regardless of the `pwd`
+      ABS_PATH=$(readlink -f "${2}")
+      # makes sure that file exists, will not 'define config' if the file does not
+      if [ ! -e "$ABS_PATH" ]; then
+        echo "'${ABS_PATH}' does not exist! 'define config' command has failed."
+        return
+      fi 
+      export ASGS_CONFIG=${ABS_PATH}
+      echo "ASGS_CONFIG is defined as '${ASGS_CONFIG}'"
       ;;
     editor)
       export EDITOR=${2}
-      echo "EDITOR is set to '${EDITOR}'"
+      echo "EDITOR is defined as '${EDITOR}'"
       ;;
     scriptdir)
       export SCRIPTDIR=${2} 
-      echo "SCRIPTDIR is now set to '${SCRIPTDIR}'"
+      echo "SCRIPTDIR is now defined as '${SCRIPTDIR}'"
       ;;
     workdir)
       export WORK=${2} 
-      echo "WORK is now set to '${WORK}'"
+      echo "WORK is now defined as '${WORK}'"
       ;;
     scratchdir)
       export SCRATCH=${2} 
-      echo "SCRATCH is now set to '${SCRATCH}'"
+      echo "SCRATCH is now defined as '${SCRATCH}'"
       ;;
-    *) echo "set requires one of the supported parameters: adcircdir, adcircbranch, adcircremote, config, editor, scratchdir, scriptdir, or workdir"
+    *) echo "define requires one of the supported parameters: adcircdir, adcircbranch, adcircremote, config, editor, scratchdir, scriptdir, or workdir"
       ;;
   esac 
 }
@@ -464,7 +474,7 @@ dump() {
       if [ -n "${ASGS_CONFIG}" ]; then
         cat ${ASGS_CONFIG}
       else
-        echo "ASGS_CONFIG is not set to anything. Try, 'set config /path/to/asgs/config.sh' first"
+        echo "ASGS_CONFIG is not defined as anything. Try, 'define config /path/to/asgs/config.sh' first"
       fi
       ;;
     exported)
@@ -476,14 +486,14 @@ dump() {
       if [ -n "${STATEFILE}" ]; then
         cat ${STATEFILE}
       else
-        echo "STATEFILE is not set to anything. Does state file exist?"
+        echo "STATEFILE is not defined as anything. Does state file exist?"
       fi
       ;;
     syslog)
       if [ -n "${SYSLOG}" ]; then
         cat ${SYSLOG}
       else
-        echo "SYSLOG is not set to anything. Does state file exist?"
+        echo "SYSLOG is not defined as anything. Does state file exist?"
       fi
       ;;
     *) echo "'dump' requires one of the supported parameters:"
@@ -495,92 +505,92 @@ dump() {
 # prints value of provided variable name
 show() {
   if [ -z "${1}" ]; then
-    echo "'set' requires 1 argument - parameter"
+    echo "'show' requires 1 argument - parameter"
     return 
   fi
   case "${1}" in
     config)
       if [ -n "${ASGS_CONFIG}" ]; then
-        echo "ASGS_CONFIG is set to '${ASGS_CONFIG}'"
+        echo "ASGS_CONFIG is defined as '${ASGS_CONFIG}'"
       else
-        echo "ASGS_CONFIG is not set to anything. Try, 'set config /path/to/asgs/config.sh' first"
+        echo "ASGS_CONFIG is not defined as anything. Try, 'define config /path/to/asgs/config.sh' first"
       fi
       ;;
     adcircbase)
       if [ -n "${ADCIRCBASE}" ]; then
-        echo "ADCIRCBASE is set to '${ADCIRCBASE}'"
+        echo "ADCIRCBASE is defined as '${ADCIRCBASE}'"
       else
-        echo "ADCIRCBASE is not set to anything. Try, 'set adcircbase /path/to/adcirc/dir' first"
+        echo "ADCIRCBASE is not defined as anything. Try, 'define adcircbase /path/to/adcirc/dir' first"
       fi
       ;;
     adcircdir)
       if [ -n "${ADCIRCDIR}" ]; then
-        echo "ADCIRCDIR is set to '${ADCIRCDIR}'"
+        echo "ADCIRCDIR is defined as '${ADCIRCDIR}'"
       else
-        echo "ADCIRCDIR is not set to anything. Try, 'set adcircdir /path/to/adcirc/dir' first"
+        echo "ADCIRCDIR is not defined as anything. Try, 'define adcircdir /path/to/adcirc/dir' first"
       fi
       ;;
     adcircbranch)
       if [ -n "${ADCIRC_GIT_BRANCH}" ]; then
-        echo "ADCIRC_GIT_BRANCH is set to '${ADCIRC_GIT_BRANCH}'"
+        echo "ADCIRC_GIT_BRANCH is defined as '${ADCIRC_GIT_BRANCH}'"
       else
-        echo "ADCIRC_GIT_BRANCH is not set to anything. Try, 'set adcircbranch git-branch-tag-or-sha' first"
+        echo "ADCIRC_GIT_BRANCH is not defined as anything. Try, 'define adcircbranch git-branch-tag-or-sha' first"
       fi
       ;;
     adcircremote)
       if [ -n "${ADCIRC_GIT_REMOTE}" ]; then
-        echo "ADCIRC_GIT_REMOTE is set to '${ADCIRC_GIT_REMOTE}'"
+        echo "ADCIRC_GIT_REMOTE is defined as '${ADCIRC_GIT_REMOTE}'"
       else
-        echo "ADCIRC_GIT_REMOTE is not set to anything. Try, 'set adcircremote https://|ssh://adcirc-remote-url' first"
+        echo "ADCIRC_GIT_REMOTE is not defined as anything. Try, 'define adcircremote https://|ssh://adcirc-remote-url' first"
       fi
       ;;
     machinename)
       if [ -n "${ASGS_MACHINE_NAME}" ]; then
-        echo "ASGS_MACHINE_NAME is set to '${ASGS_MACHINE_NAME}'"
+        echo "ASGS_MACHINE_NAME is defined as '${ASGS_MACHINE_NAME}'"
       else
-        echo "ASGS_MACHINE_NAME is not set to anything. This should have been set via asgs-brew.pl."
+        echo "ASGS_MACHINE_NAME is not defined as anything. This should have been defined via asgs-brew.pl."
       fi
       ;;
     adcirccompiler)
       if [ -n "${ADCIRC_COMPILER}" ]; then
-        echo "ADCIRC_COMPILER is set to '${ADCIRC_COMPILER}'"
+        echo "ADCIRC_COMPILER is defined as '${ADCIRC_COMPILER}'"
       else
-        echo "ADCIRC_COMPILER is not set to anything. This should have been set via asgs-brew.pl."
+        echo "ADCIRC_COMPILER is not defined as anything. This should have been defined via asgs-brew.pl."
       fi
       ;;
     asgscompiler)
       if [ -n "${ASGS_COMPILER}" ]; then
-        echo "ASGS_COMPILER is set to '${ASGS_COMPILER}'"
+        echo "ASGS_COMPILER is defined as '${ASGS_COMPILER}'"
       else
-        echo "ASGS_COMPILER is not set to anything. This should have been set via asgs-brew.pl."
+        echo "ASGS_COMPILER is not defined as anything. This should have been defined via asgs-brew.pl."
       fi
       ;;
     home)
       if [ -n "${ASGS_HOME}" ]; then
-        echo "ASGS_HOME is set to '${ASGS_HOME}'"
+        echo "ASGS_HOME is defined as '${ASGS_HOME}'"
       else
-        echo "ASGS_HOME is not set to anything. This should have been set via asgs-brew.pl."
+        echo "ASGS_HOME is not defined as anything. This should have been defined via asgs-brew.pl."
       fi
       ;;
     installpath)
       if [ -n "${ASGS_INSTALL_PATH}" ]; then
-        echo "ASGS_INSTALL_PATH is set to '${ASGS_INSTALL_PATH}'"
+        echo "ASGS_INSTALL_PATH is defined as '${ASGS_INSTALL_PATH}'"
       else
-        echo "ASGS_INSTALL_PATH is not set to anything. This should have been set via asgs-brew.pl."
+        echo "ASGS_INSTALL_PATH is not defined as anything. This should have been defined via asgs-brew.pl."
       fi
       ;;
     brewflags)
       if [ -n "${ASGS_BREW_FLAGS}" ]; then
-        echo "ASGS_BREW_FLAGS is set to '${ASGS_BREW_FLAGS}'"
+        echo "ASGS_BREW_FLAGS is defined as '${ASGS_BREW_FLAGS}'"
       else
-        echo "ASGS_BREW_FLAGS is not set to anything. This should have been set via asgs-brew.pl."
+        echo "ASGS_BREW_FLAGS is not defined as anything. This should have been defined via asgs-brew.pl."
       fi
       ;;
     editor)
       if [ -n "${EDITOR}" ]; then
-        echo "EDITOR is set to '${EDITOR}'"
+        echo "EDITOR is defined as '${EDITOR}'"
       else
-        echo "EDITOR is not set to anything. Try, 'set config vi' first"
+        echo "EDITOR is not defined as anything. Try, 'define config vi' first"
       fi
       ;;
     exported)
@@ -590,58 +600,58 @@ show() {
       ;;
     instancename)
       if [ -n "${INSTANCENAME}" ]; then
-        echo "INSTANCENAME is set to '${INSTANCENAME}'"
+        echo "INSTANCENAME is defined as '${INSTANCENAME}'"
       else
-        echo "INSTANCENAME is not set to anything. Have you set the config file yet?"
+        echo "INSTANCENAME is not defined as anything. Have you defined the config file yet?"
       fi
       ;;
     profile)
       if [ -n "${_ASGSH_CURRENT_PROFILE}" ]; then
-        echo "profile is set to '${_ASGSH_CURRENT_PROFILE}'"
+        echo "profile is defined as '${_ASGSH_CURRENT_PROFILE}'"
       else
-        echo "profile is not set to anything. Does state file exist?" 
+        echo "profile is not defined as anything. Does state file exist?" 
       fi
       ;;
     rundir)
       if [ -n "${RUNDIR}" ]; then
-        echo "RUNDIR is set to '${RUNDIR}'"
+        echo "RUNDIR is defined as '${RUNDIR}'"
       else
-        echo "RUNDIR is not set to anything. Does state file exist?" 
+        echo "RUNDIR is not defined as anything. Does state file exist?" 
       fi
       ;;
     scratchdir)
       if [ -n "${SCRATCH}" ]; then
-        echo "SCRATCH is set to '${SCRATCH}'"
+        echo "SCRATCH is defined as '${SCRATCH}'"
       else
-        echo "SCRATCH is not set to anything. Try, 'set config /path/to/scratch' first"
+        echo "SCRATCH is not defined as anything. Try, 'define config /path/to/scratch' first"
       fi
       ;;
     scriptdir)
       if [ -n "${SCRIPTDIR}" ]; then
-        echo "SCRIPTDIR is set to '${SCRIPTDIR}'"
+        echo "SCRIPTDIR is defined as '${SCRIPTDIR}'"
       else
-        echo "SCRIPTDIR is not set to anything. Try, 'set config /path/to/asgs' first"
+        echo "SCRIPTDIR is not defined as anything. Try, 'define config /path/to/asgs' first"
       fi
       ;;
     statefile)
       if [ -n "${STATEFILE}" ]; then
-        echo "STATEFILE is set to '${STATEFILE}'"
+        echo "STATEFILE is defined as '${STATEFILE}'"
       else
-        echo "STATEFILE is not set to anything. Does state file exist?"
+        echo "STATEFILE is not defined as anything. Does state file exist?"
       fi
       ;;
     syslog)
       if [ -n "${SYSLOG}" ]; then
-        echo "SYSLOG is set to '${SYSLOG}'"
+        echo "SYSLOG is defined as '${SYSLOG}'"
       else
-        echo "SYSLOG is not set to anything. Does state file exist?"
+        echo "SYSLOG is not defined as anything. Does state file exist?"
       fi
       ;;
     workdir)
       if [ -n "${WORK}" ]; then
-        echo "WORK is set to '${WORK}'"
+        echo "WORK is defined as '${WORK}'"
       else
-        echo "WORK is not set to anything. Try, 'set config /path/to/work' first"
+        echo "WORK is not defined as anything. Try, 'define config /path/to/work' first"
       fi
       ;;
     *) echo "'show' requires one of the supported parameters:"
@@ -754,7 +764,7 @@ echo "  'list adcirc' to see what builds of ADCIRC exist"
 echo "  'load profile <profile_name>' to load saved profile"
 echo "  'run' to initiated ASGS for loaded profile"
 echo "  'help' for full list of options and features"
-echo "  'goto scriptdir' to set current directory to ASGS' script directory"
+echo "  'goto scriptdir' to current directory to ASGS' script directory"
 echo "  'exit' to return to the login shell"
 echo
 echo "NOTE: This is a fully function bash shell environment; to update asgsh"
@@ -772,7 +782,7 @@ alias s="goto scratchdir"
 alias v="verify"
 
 # when started, ASGS Shell loads the 'default' profile, this can be made variable at some point
-load profile default
+load profile ${profile-default}
 
 # show important directories
 show scriptdir
@@ -783,3 +793,6 @@ goto scriptdir
 
 # provide a new line
 echo
+
+# temporary message, will be removed after a short while
+echo "NOTE: The asgsh 'set' command has been replaced with 'define' because it is a built-in bash keyword. Type 'help' for more information."
