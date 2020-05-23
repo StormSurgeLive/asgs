@@ -170,7 +170,7 @@ if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ){
 # 
 # compute wall clock time HH:MM:SS in minutes
 $walltime = $properties{"hpc.job.$jobtype.limit.walltime"};
-$walltime =~ /(\d{2}):(\d{2}):(\d{2})/;
+$walltime =~ /(\d+):(\d+):(\d+)/;
 $wallminutes = $1*60 + $2;
 #
 # get queue script template
