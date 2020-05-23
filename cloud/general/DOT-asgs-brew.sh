@@ -99,11 +99,11 @@ delete() {
   esac
 }
 
-# interactive dialog for choosing an EDITOR if not set
+# interactive dialog for choosing an EDITOR if not defined
 _editor_check() {
   if [ -z "$EDITOR" ]; then
     __DEFAULT_EDITOR=vim
-    echo "\$EDITOR is not set. Please define it now (selection updates environment):"
+    echo "\$EDITOR is not defined. Please define it now (selection updates environment):"
     echo
     echo "Editors available via PATH"
     for e in vim nano vi; do
@@ -122,7 +122,7 @@ _editor_check() {
 # opens up $EDITOR to directly edit files defined by the case
 # statement herein
 edit() {
-  # if it's not set
+  # if it's not defined
   _editor_check
 
   # dispatch subject of edit command
@@ -137,7 +137,7 @@ edit() {
     ;;
   config)
     if [ -z "$ASGS_CONFIG" ]; then
-      echo "\$ASGS_CONFIG is not set. Use 'define config' to specify an ASGS config file."
+      echo "\$ASGS_CONFIG is not defined. Use 'define config' to specify an ASGS config file."
       return
     fi
     $EDITOR $ASGS_CONFIG
@@ -160,7 +160,7 @@ edit() {
   *)
     echo "Supported options:"
     echo "adcirc <name>  - directly edit named ADCIRC environment file"
-    echo "config         - directly edit ASGS_CONFIG, if set"
+    echo "config         - directly edit ASGS_CONFIG, if defined"
     echo "profile <name> - directly edit named ASGS profile (should be followed up with the 'load profile' command"
     echo "syslog         - open SYSLOG from a run in EDITOR for easier forensices"
     ;;
@@ -466,7 +466,7 @@ define() {
 # prints value of provided variable name
 dump() {
   if [ -z "${1}" ]; then
-    echo "'set' requires 1 argument - parameter"
+    echo "'dump' requires 1 argument - parameter"
     return 
   fi
   case "${1}" in
@@ -692,7 +692,7 @@ tailf() {
   esac
 }
 
-# runs a fairly comprhensive set of Perl and Python scripts to validate
+# runs a fairly comprehensive set of Perl and Python scripts to validate
 # that these environments are working as expected
 verify() {
   echo verifying Perl Environment:
@@ -764,7 +764,7 @@ echo "  'list adcirc' to see what builds of ADCIRC exist"
 echo "  'load profile <profile_name>' to load saved profile"
 echo "  'run' to initiated ASGS for loaded profile"
 echo "  'help' for full list of options and features"
-echo "  'goto scriptdir' to current directory to ASGS' script directory"
+echo "  'goto scriptdir' to change current directory to ASGS' script directory"
 echo "  'exit' to return to the login shell"
 echo
 echo "NOTE: This is a fully function bash shell environment; to update asgsh"
