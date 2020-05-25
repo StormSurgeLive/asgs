@@ -573,6 +573,8 @@ sub get_steps {
     my $adcirc_git_url    = $opts_ref->{'adcirc-git-url'};
     my $adcirc_git_branch = $opts_ref->{'adcirc-git-branch'};
     my $adcirc_git_repo   = $opts_ref->{'adcirc-git-repo'};
+    my $pythonversion     = q{2.7.18};
+    my $pythonpath        = qq{$asgs_install_path/python27/asgs/build/python-$pythonversion};
 
     my $steps = [
         {
@@ -818,13 +820,13 @@ sub get_steps {
 
                 # putting this in $HOME/python27/asgs/build reflects what perlbrew's default
                 # behavior is doing by putting perl into $HOME/perl5/perlbrew/build/perl-$version
-                PYTHONPATH => { value => qq{$asgs_install_path/python27/asgs/build/python-2.7.18},                           how => q{replace} },
-                PATH       => { value => qq{$asgs_install_path/python27/asgs/build/python-2.7.18/bin:$asgs_home/.local/bin}, how => q{prepend} },
+                PYTHONPATH => { value => $pythonpath,                               how => q{replace} },
+                PATH       => { value => qq{$pythonpath/bin:$asgs_home/.local/bin}, how => q{prepend} },
             },
-            command             => qq{bash ./cloud/general/init-python.sh install},
-            clean               => qq{bash ./cloud/general/init-python.sh clean},
+            command             => qq{bash ./cloud/general/init-python.sh install $pythonpath $pythonversion},
+            clean               => qq{bash ./cloud/general/init-python.sh clean   $pythonpath $pythonversion},
             skip_if             => sub { 0 },
-            precondition_check  => sub { 1 },                                         # for now, assuming success; should have a simple python script that attempts to load all of these modules
+            precondition_check  => sub { 1 },                                                                    # for now, assuming success; should have a simple python script that attempts to load all of these modules
             postcondition_check => sub {
                 local $?;
                 system(qq{./cloud/general/t/verify-python-modules.py 2>&1});
