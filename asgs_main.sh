@@ -1483,7 +1483,7 @@ variables_init()
    HOTORCOLD=coldstart
    LASTSUBDIR=null
    FTPSITE=null
-   ADCIRCDIR=null
+   ADCIRCDIR=${ADCIRCDIR:-null} # will respect ADCIRCDIR if already sent in the environment
    SCRATCHDIR=null
    MAILINGLIST=null
    QUEUESYS=null
