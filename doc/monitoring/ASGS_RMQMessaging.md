@@ -56,6 +56,12 @@ Once the virtual env is created, you do not need to activate it to use its pytho
 
 ## Setp 2) Configure messaging:
 
+NOTE: use of "RMQMessaging_Python" is deprecated. All Python scripts should be executable (0755) and use the shebang:
+
+  #!/usr/bin/env python
+
+(deprecated info follows)
+
 Set the python variable in the main config file
 
 In "config/<YYYY>/your config file", set the RMQMessaging_Python variable to the python in this asgspy env. For example,
