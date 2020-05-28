@@ -1155,10 +1155,8 @@ monitorJobs()
       # execute the FortCheck.py code to get a %complete status, but only 
       # do this for jobs that will generate a fort.61.nc file (p)adc{irc,swan}
       if [[ -e "fort.61.nc" && $ENSTORM_TEMP =~ "adc"  ]] ; then
-         # RMQMessaging_Python will be undefined if RMQMessaging is not
-         # enabled 
          if [[ $RMQMessaging_Enable = on ]]; then
-            pc=`${RMQMessaging_Python} ${SCRIPTDIR}/monitoring/FortCheck.py fort.61.nc 2>> $SYSLOG`
+            pc=`${SCRIPTDIR}/monitoring/FortCheck.py fort.61.nc 2>> $SYSLOG`
             if [ ! -z "$pc" ] ; then 
                 RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "The $ENSTORM_TEMP job for Adv=${ADVISORY} is running. $pc complete ..." $pc
             fi
@@ -1550,7 +1548,6 @@ variables_init()
    RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
    RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
    RMQMessaging_NcoHome="/set/RMQMessaging_NcoHome/in/asgs/config"
-   RMQMessaging_Python="/set/RMQMessaging_Python/in/asgs/config"
    namedot=${HPCENVSHORT}.
    RMQMessaging_LocationName=${HPCENV#$namedot}
    RMQMessaging_ClusterName=$HPCENVSHORT
@@ -1626,7 +1623,6 @@ writeProperties()
    echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.script : $RMQMessaging_Script" >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.ncohome : $RMQMessaging_NcoHome" >> $STORMDIR/run.properties  
-   echo "monitoring.rmqmessaging.python : $RMQMessaging_Python" >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.locationname : $RMQMessaging_LocationName" >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.clustername : $RMQMessaging_ClusterName" >> $STORMDIR/run.properties  
    echo "monitoring.logging.file.syslog : $SYSLOG" >> $STORMDIR/run.properties  

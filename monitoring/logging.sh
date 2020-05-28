@@ -156,7 +156,7 @@ RMQMessageStartup()
   if [[ ${RMQMessaging_Enable} == "off" ]] ; then return; fi
   DATETIME=`date --utc +'%Y-%h-%d-T%H:%M:%S'`
   FILE2SEND=$1
-  ${RMQMessaging_Python} ${RMQMessaging_StartupScript} \
+  ${RMQMessaging_StartupScript} \
          --Uid $$ \
          --LocationName ${RMQMessaging_LocationName} \
          --ClusterName ${RMQMessaging_ClusterName} \
@@ -198,7 +198,7 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
      printf "RMQ : %s : %10s : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" ${INSTANCENAME} ${RMQADVISORY} ${MTYPE} ${EVENT} ${DATETIME} ${STATE} ${PCTCOM} ${PROCESS}  "$5"
 
      # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
-     ${RMQMessaging_Python} ${RMQMessaging_Script} \
+     ${RMQMessaging_Script} \
          --Uid $$ \
          --LocationName ${RMQMessaging_LocationName} \
          --ClusterName ${RMQMessaging_ClusterName} \
