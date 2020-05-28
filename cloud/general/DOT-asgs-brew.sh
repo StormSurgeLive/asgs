@@ -695,24 +695,35 @@ tailf() {
 # runs a fairly comprehensive set of Perl and Python scripts to validate
 # that these environments are working as expected
 verify() {
-  echo verifying Perl Environment:
-  which perl
+  echo +
+  echo ++ Verifying Perl Environment:
   pushd $SCRIPTDIR > /dev/null 2>&1
   perl $SCRIPTDIR/cloud/general/t/verify-perl-modules.t
-  echo verifying Perl scripts can pass compile phase \(perl -c\)
-  for file in $(find . -name "*.pl"); do perl -c $file > /dev/null 2>&1 && echo ok     $file || echo not ok $file; done
-  which python
-  python $SCRIPTDIR/cloud/general/t/verify-python-modules.py && echo Python modules loaded ok
-  echo verifying Python scripts can pass compile phase \(python -m py_compile\)
+  for file in $(find . -name "*.pl"); do
+    perl -c $file > /dev/null 2>&1 && echo ok $file || echo not ok $file;
+  done
+  python $SCRIPTDIR/cloud/general/t/verify-python-modules.py
+  echo +
+  echo ++ Verifying Python scripts can pass compile phase \(python -m py_compile\)
   for file in $(find . -name "*.py"); do
     python -m py_compile $file > /dev/null 2>&1 && echo ok     $file || echo not ok $file;
     # clean up potentially useful *.pyc (compiled python) files
     rm -f ${file}c
   done
-  echo benchmarking and verifying netCDF4 module functionality
+  echo +
+  echo ++ Regression Testing
+  ANS=$(python $SCRIPTDIR/monitoring/FortCheck.py $SCRIPTDIR/cloud/general/t/test-data/fort.61.nc 2>&1)
+  if [ "$ANS" == "100.00" ]; then
+   echo "ok ./monitoring/FortCheck.py can read fort.61.nc"
+  else
+   echo "not ok ./monitoring/FortCheck.py can't read cloud/general/t/test-data/fort.61.nc"
+  fi 
+  echo +
+  echo ++ Benchmarking and verifying netCDF4 module functionality
+  rm -f ./*.nc # pre clean up
   pyNETCDFBENCH=$SCRIPTDIR/cloud/general/t/netcdf4-bench.py
   $pyNETCDFBENCH && echo ok $pyNETCDFBENCH works || echo not ok $pyNETCDFBENCH 
-  rm -f ./*.nc
+  rm -f ./*.nc # post clean up
   popd > /dev/null 2>&1
 }
 
