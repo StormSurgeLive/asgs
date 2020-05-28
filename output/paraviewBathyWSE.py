@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #----------------------------------------------------------------------
 # paraviewBathyWSE.py : Visualize bathy and wse simultaneously in 
 # Paraview.

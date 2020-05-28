@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 # Adapted from http://snippets.dzone.com/posts/show/757 By Phil Bordelon @ LONI 
 #
