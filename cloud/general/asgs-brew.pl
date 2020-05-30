@@ -573,6 +573,8 @@ sub get_steps {
     my $adcirc_git_url    = $opts_ref->{'adcirc-git-url'};
     my $adcirc_git_branch = $opts_ref->{'adcirc-git-branch'};
     my $adcirc_git_repo   = $opts_ref->{'adcirc-git-repo'};
+    my $pythonversion     = q{2.7.18};
+    my $pythonpath        = qq{$asgs_install_path/python27/asgs/build/python-$pythonversion};
 
     my $steps = [
         {
@@ -585,22 +587,21 @@ sub get_steps {
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                PATH              => { value => qq{$asgs_install_path/bin},     how => q{prepend} },    # prefer ASGS binaries
-                PATH              => { value => qq{$scriptdir/cloud/general},   how => q{append} },     # make helper scripts available
-                LIBRARY_PATH      => { value => qq{$asgs_install_path/lib},     how => q{prepend} },    # for use by linkers
-                LD_LIBRARY_PATH   => { value => qq{$asgs_install_path/lib},     how => q{prepend} },    # for use by linkers
-                LD_RUN_PATH       => { value => qq{$asgs_install_path/lib},     how => q{prepend} },    # for use by binaries
-                LD_INCLUDE_PATH   => { value => qq{$asgs_install_path/include}, how => q{prepend} },    # for use by compilers
-                SCRIPTDIR         => { value => qq{$scriptdir},                 how => q{replace} },    # base ASGS dir, used by asgs_main.sh
-                PERL5LIB          => { value => qq{$scriptdir/PERL},            how => q{append} },     # place for distributed Perl libraries
-                ADCIRC_META_DIR   => { value => qq{$asgs_home/.adcirc-meta},    how => q{replace} },    # where to track ASGS profiles (always)
-                ASGS_META_DIR     => { value => qq{$asgs_home/.asgs},           how => q{replace} },    # where to track ADCIRC installs build information (always)
-                ASGS_BREW_FLAGS   => { value => qq{'$brewflags'},               how => q{replace} },    # make brew flags available for later use
-                ASGS_HOME         => { value => qq{$asgs_home},                 how => q{replace} },    # used in preference of $HOME in most cases
-                ASGS_MACHINE_NAME => { value => qq{$asgs_machine_name},         how => q{replace} },    # machine referred to as in platforms.sh & cmplrflags.mk
-                ASGS_COMPILER     => { value => qq{$asgs_compiler},             how => q{replace} },    # compiler family designated during asgs-brew.pl build
-                ASGS_INSTALL_PATH => { value => qq{$asgs_install_path},         how => q{replace} },    # where asgs-brew.pl installs supporting bins & libs
-                ASGS_MAKEJOBS     => { value => qq{$makejobs},                  how => q{replace} },    # passed to make commands where Makefile supports
+                PATH              => { value => qq{$asgs_install_path/bin:$scriptdir/cloud/general}, how => q{prepend} },    # prefer ASGS binaries and tools
+                LIBRARY_PATH      => { value => qq{$asgs_install_path/lib},                          how => q{prepend} },    # for use by linkers
+                LD_LIBRARY_PATH   => { value => qq{$asgs_install_path/lib},                          how => q{prepend} },    # for use by linkers
+                LD_RUN_PATH       => { value => qq{$asgs_install_path/lib},                          how => q{prepend} },    # for use by binaries
+                LD_INCLUDE_PATH   => { value => qq{$asgs_install_path/include},                      how => q{prepend} },    # for use by compilers
+                SCRIPTDIR         => { value => qq{$scriptdir},                                      how => q{replace} },    # base ASGS dir, used by asgs_main.sh
+                PERL5LIB          => { value => qq{$scriptdir/PERL},                                 how => q{append} },     # place for distributed Perl libraries
+                ADCIRC_META_DIR   => { value => qq{$asgs_home/.adcirc-meta},                         how => q{replace} },    # where to track ASGS profiles (always)
+                ASGS_META_DIR     => { value => qq{$asgs_home/.asgs},                                how => q{replace} },    # where to track ADCIRC installs build information (always)
+                ASGS_BREW_FLAGS   => { value => qq{'$brewflags'},                                    how => q{replace} },    # make brew flags available for later use
+                ASGS_HOME         => { value => qq{$asgs_home},                                      how => q{replace} },    # used in preference of $HOME in most cases
+                ASGS_MACHINE_NAME => { value => qq{$asgs_machine_name},                              how => q{replace} },    # machine referred to as in platforms.sh & cmplrflags.mk
+                ASGS_COMPILER     => { value => qq{$asgs_compiler},                                  how => q{replace} },    # compiler family designated during asgs-brew.pl build
+                ASGS_INSTALL_PATH => { value => qq{$asgs_install_path},                              how => q{replace} },    # where asgs-brew.pl installs supporting bins & libs
+                ASGS_MAKEJOBS     => { value => qq{$makejobs},                                       how => q{replace} },    # passed to make commands where Makefile supports
             },
         },
         {
@@ -819,13 +820,13 @@ sub get_steps {
 
                 # putting this in $HOME/python27/asgs/build reflects what perlbrew's default
                 # behavior is doing by putting perl into $HOME/perl5/perlbrew/build/perl-$version
-                PYTHONPATH => { value => qq{$asgs_install_path/python27/asgs/build/python-2.7.18},                           how => q{replace} },
-                PATH       => { value => qq{$asgs_install_path/python27/asgs/build/python-2.7.18/bin:$asgs_home/.local/bin}, how => q{prepend} },
+                PYTHONPATH => { value => $pythonpath,                               how => q{replace} },
+                PATH       => { value => qq{$pythonpath/bin:$asgs_home/.local/bin}, how => q{prepend} },
             },
-            command             => qq{bash ./cloud/general/init-python.sh install},
-            clean               => qq{bash ./cloud/general/init-python.sh clean},
+            command             => qq{bash ./cloud/general/init-python.sh install $pythonpath $pythonversion},
+            clean               => qq{bash ./cloud/general/init-python.sh clean   $pythonpath $pythonversion},
             skip_if             => sub { 0 },
-            precondition_check  => sub { 1 },                                         # for now, assuming success; should have a simple python script that attempts to load all of these modules
+            precondition_check  => sub { 1 },                                                                    # for now, assuming success; should have a simple python script that attempts to load all of these modules
             postcondition_check => sub {
                 local $?;
                 system(qq{./cloud/general/t/verify-python-modules.py 2>&1});

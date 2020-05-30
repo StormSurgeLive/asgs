@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #----------------------------------------------------------------
 # station_list_combiner.py: Combines station lists, dealing with
 # duplicates appropriately.

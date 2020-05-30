@@ -85,14 +85,13 @@ init_queenbee()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$HOME/local"
-  RMQMessaging_Python=/usr/local/packages/python/2.7.12-anaconda/bin/python
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
   PLATFORMMODULES='module load intel netcdf netcdf_fortran'
   # modules for CPRA post processing
   MATLABEXE=script # "script" means just execute matlab
   MCRROOT=/usr/local/packages/license/matlab/r2017a
-  SERIALMODULES='module load matlab/r2015b python/2.7.12-anaconda-tensorflow'
+  SERIALMODULES='module load matlab/r2015b'
   PARALLELMODULES='module load mvapich2'
   JOBENVDIR=$SCRIPTDIR/config/machines/queenbee
   JOBENV=( )
@@ -129,7 +128,6 @@ init_queenbee()
      RMQMessaging_Enable="on"      # "on"|"off"
      RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
      RMQMessaging_NcoHome="$HOME/local"
-     RMQMessaging_Python=/project/mbilskie/mbilskie_conda-env/asgs/bin/python
      SCRATCHDIR=/work/$operator/asgs/2019/runs/
   fi
   THIS=platforms.sh
@@ -207,14 +205,13 @@ init_supermic()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$HOME/local"
-  RMQMessaging_Python=/usr/local/packages/python/2.7.13-anaconda/bin/python
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
   PLATFORMMODULES='module load intel/14.0.2 hdf5/1.8.12/INTEL-140-MVAPICH2-2.0 netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0 netcdf_fortran/4.2/INTEL-140-MVAPICH2-2.0'
   # modules for CPRA post processing
   MATLABEXE=script # "script" means just execute matlab; only for LSU staff, not affiliates
   MCRROOT=/usr/local/packages/license/matlab/r2017a
-  SERIALMODULES='module load matlab/r2017a python/2.7.13-anaconda-tensorflow'
+  SERIALMODULES='module load matlab/r2017a'
   PARALLELMODULES='module load mvapich2'
   JOBENVDIR=$SCRIPTDIR/config/machines/supermic
   PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
@@ -272,7 +269,6 @@ init_pod()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$HOME/local"
-  RMQMessaging_Python=/usr/bin/python
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   PLATFORMMODULES='module load gcc/6.2.0'
   # modules for CPRA post processing
@@ -294,7 +290,6 @@ init_pod()
    if [[ $operator = bblanton ]]; then
       SCRATCHDIR=/home/bblanton/asgs_scratch
       RMQMessaging_NcoHome="/home/bblanton/"
-      RMQMessaging_Python="/home/bblanton/asgs/asgspy/bin/python"
    fi
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCHDIR
@@ -336,7 +331,6 @@ init_hatteras()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="/home/ncfs"
-  RMQMessaging_Python=/usr/bin/python
   RMQMessaging_LocationName="RENCI"
   RMQMessaging_ClusterName="Hatteras"
 
@@ -363,7 +357,6 @@ init_hatteras()
      PARTITION=ncfs       # ncfs or batch, gives priority
      PYTHONVENV="$HOME/miniconda2"
      RMQMessaging_NcoHome="${HOME}"
-     RMQMessaging_Python="${PYTHONVENV}/bin/python"
      PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.1.2-acis mvapich2/2.0-acis'
      SERIALMODULES='module load' # no extra modules for serial jobs
      TDS=(renci_tds)
@@ -376,7 +369,7 @@ init_hatteras()
      QUEUENAME=ncfs     # SLURM partition---ncfs or batch---gives priority
      PYTHONVENV=~/asgs/asgspy/venv
      PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 zlib/1.2.11_intel-18.0.0'
-     PLATFORMMODULES="$PLATFORMMODULES python_modules/2.7 mvapich2/2.0-acis"
+     PLATFORMMODULES="$PLATFORMMODULES mvapich2/2.0-acis"
      SERIALMODULES='module load' # no extra modules for serial jobs
      ;;
   *)
@@ -386,15 +379,6 @@ init_hatteras()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCHDIR
   ARCHIVEDIR=$SCRATCHDIR
-  # to create python environment for the ncfs user, @jasonfleming did this:
-  #   pip install --user --upgrade pip
-  #   pip install --user --upgrade setuptools
-  # for rabbitmq and the asgs status monitor:
-  #   pip install --user pika
-  #   pip install --user netCDF4
-  # for the automated slide deck generator
-  #   pip install --user pptx
-  #
   module purge
   $PLATFORMMODULES
   $PARALLELMODULES
@@ -432,9 +416,8 @@ init_frontera()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
-  RMQMessaging_Python=$HOME/python27/asgs/build/python-2.7.17/bin/python
   #
-  PLATFORMMODULES='module load intel/19.0.5 python2/2.7.16 xalt/2.7.19 TACC'
+  PLATFORMMODULES='module load intel/19.0.5 xalt/2.7.19 TACC'
   SERIALMODULES='module load' # no extra modules for serial jobs
   PARALLELMODULES='module load impi/19.0.5'
   # matlab
@@ -460,14 +443,6 @@ init_frontera()
   TDS=( tacc_tds )
   $PLATFORMMODULES
   $SERIALMODULES
-  #
-  # @jasonfleming 201900406 : don't upgrade pip! 
-  # for rabbitmq and the asgs status monitor https://asgs-monitor.renci.org:
-  #   pip install --user pika
-  #   pip install --user netCDF4
-  # for the automated slide deck generator
-  #   (installing pptx did not work -- it was not found) 
-  #   pip install --user python-pptx
   MAKEJOBS=8
 }
 #
@@ -501,8 +476,7 @@ init_stampede2()
   RMQMessaging_Enable="on"              # "on"|"off"
   RMQMessaging_Transmit="on"            #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
-  RMQMessaging_Python=python            # should pick up whatever is in PATH
-  PLATFORMMODULES='module load intel/18.0.2 xalt/2.6.5 TACC' # removed: 'python2/2.7.15'
+  PLATFORMMODULES='module load intel/18.0.2 xalt/2.6.5 TACC'
   SERIALMODULES='module load' # no extra modules for serial jobs
   PARALLELMODULES='module load libfabric/1.7.0 impi/18.0.2'
   # matlab
@@ -528,14 +502,6 @@ init_stampede2()
   TDS=( tacc_tds )
   $PLATFORMMODULES
   $SERIALMODULES
-  #
-  # @jasonfleming 201900406 : don't upgrade pip! 
-  # for rabbitmq and the asgs status monitor https://asgs-monitor.renci.org:
-  #   pip install --user pika
-  #   pip install --user netCDF4
-  # for the automated slide deck generator
-  #   (installing pptx did not work -- it was not found) 
-  #   pip install --user python-pptx
   MAKEJOBS=8
 }
 #
@@ -571,10 +537,9 @@ init_lonestar5()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
-  RMQMessaging_Python=/opt/apps/intel18/python2/2.7.15/bin/python
   #
   ml reset
-  PLATFORMMODULES='module load intel/18.0.2 python2/2.7.15 TACC/1.0'
+  PLATFORMMODULES='module load intel/18.0.2 TACC/1.0'
   SERIALMODULES='module load' # no extra modules for serial jobs
   PARALLELMODULES='module load cray_mpich/7.7.3'
   # specify location of platform- and Operator-specific scripts to
@@ -598,15 +563,6 @@ init_lonestar5()
   TDS=(tacc_tds)
   $PLATFORMMODULES
   $SERIALMODULES
-  #
-  # @jasonfleming 20190218 : don't upgrade pip! 
-  # for rabbitmq and the asgs status monitor:
-  #   pip install --user pika
-  #   pip install --user netCDF4
-  # for the automated slide deck generator
-  #   (installing pptx did not work -- it was not found) 
-  #   pip install --user python-pptx
-  #
   # btw git on lonestar5 is messed up when it outputs things like diffs,
   # found the solution:
   # git config --global core.pager "less -r"
@@ -636,7 +592,6 @@ init_desktop()
      RMQMessaging_Enable="on"   # "on"|"off"
      RMQMessaging_Transmit="on" #  enables message transmission ("on" | "off")
      RMQMessaging_NcoHome=$HOME
-     RMQMessaging_Python="/home/jason/miniconda2/bin/python"
      RMQMessaging_LocationName="Seahorse"
      RMQMessaging_ClusterName="jason-desktop"
   fi
@@ -666,7 +621,6 @@ init_desktop_serial() # changed from init_desktop-serial due to bash complaints
      RMQMessaging_Transmit="on" #  enables message transmission ("on" | "off")
      RMQMessaging_Script="/set/RMQMessaging_Script/in/asgs/config"
      RMQMessaging_NcoHome=$HOME
-     RMQMessaging_Python=/usr/bin/python
      RMQMessaging_LocationName="Seahorse"
      RMQMessaging_ClusterName="jason-desktop-serial"
   fi
