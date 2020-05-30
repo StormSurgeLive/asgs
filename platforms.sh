@@ -219,7 +219,7 @@ init_supermic()
   if [[ $operator = "jgflemin" ]]; then
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     ACCOUNT=hpc_cera_2019b
+     ACCOUNT=hpc_cera_2019c
      JOBENV=( gmt.sh gdal.sh imagemagick.sh )
      for script in $JOBENV; do
         source $JOBENVDIR/$script
