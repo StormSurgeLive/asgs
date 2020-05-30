@@ -5,17 +5,20 @@
  -1000         ! NSCREEN - UNIT 6 OUTPUT OPTION PARAMETER
  %IHOT%        !  IHOT - HOT START PARAMETER
  2             ! ICS - COORDINATE SYSTEM SELECTION PARAMETER
- 511111            ! IM - MODEL SELECTION PARAMETER 
+ 511111  ! smagorinski ! IM - MODEL SELECTION PARAMETER 
  1             ! NOLIBF - BOTTOM FRICTION TERM SELECTION PARAMETER
  2             ! NOLIFA - FINITE AMPLITUDE TERM SELECTION PARAMETER
  0             ! NOLICA - SPATIAL DERIVATIVE CONVECTIVE SELECTION PARAMETER
  0             ! NOLICAT - TIME DERIVATIVE CONVECTIVE TERM SELECTION PARAMETER
- 5             ! NWP - number of nodal attributes
+ 8             ! NWP - number of nodal attributes
+elemental_slope_limiter
 sea_surface_height_above_geoid
 primitive_weighting_in_continuity_equation
 average_horizontal_eddy_viscosity_in_sea_water_wrt_depth
 mannings_n_at_sea_floor
 surface_submergence_state
+surface_canopy_coefficient
+surface_directional_effective_roughness_length 
 1            ! NCOR - VARIABLE CORIOLIS IN SPACE OPTION PARAMETER
 1            ! NTIP - TIDAL POTENTIAL OPTION PARAMETER
 %NWS%        !  NWS - WIND STRESS AND BAROMETRIC PRESSURE OPTION PARAMETER
