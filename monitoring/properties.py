@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #----------------------------------------------------------------------
 # properties.py : Set and get key/value pairs from run.properties file.
 #----------------------------------------------------------------------

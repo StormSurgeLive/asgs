@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ## Importing all the necessary Python Modules ##
 import matplotlib
 ## matplotlib.use('Agg') is used to specify a matplotlib backend ##
