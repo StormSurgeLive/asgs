@@ -68,12 +68,12 @@ case $GRIDNAME in
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=LA_v20a-WithUpperAtch.nowindreduction.15.template
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-      ELEVSTATIONS=combined_stations_20190711.txt
-      VELSTATIONS=combined_stations_20190711.txt
-      METSTATIONS=combined_stations_20190711.txt
+      ELEVSTATIONS=combined_stations_20200520.txt
+      VELSTATIONS=$ELEVSTATIONS
+      METSTATIONS=$ELEVSTATIONS
       NAFILE=LA_v20a-WithUpperAtch_chk.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=LA_20a-WithUpperAtch.26.template   # only used if WAVES=on
+      SWANTEMPLATE=LA_v20a-WithUpperAtch.26.template   # only used if WAVES=on
       RIVERINIT=null                           # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
