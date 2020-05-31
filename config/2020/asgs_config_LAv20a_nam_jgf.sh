@@ -79,9 +79,9 @@ TDS=( renci_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020042800
-HOTORCOLD=coldstart        # "hotstart" or "coldstart"
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart        # "hotstart" or "coldstart"
+LASTSUBDIR=/work/jgflemin/asgs38813/initialize
 
 # Scenario package 
 

@@ -102,11 +102,11 @@ init_queenbee()
   $PLATFORMMODULES
   $SERIALMODULES
   if [[ $operator = "jgflemin" || $USER = "jgflemin" ]]; then
-     ACCOUNT=loni_cera_2019a
+     ACCOUNT=loni_lsu_ccr_19
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=loni_cera_2019a
-     JOBENV=( gmt.sh gdal.sh imagemagick.sh perlbrew.sh )
+     JOBENV=( ) # all exes are in /work/jgflemin/opt/default/bin ; all libs are in /work/jgflemin/default/lib
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
