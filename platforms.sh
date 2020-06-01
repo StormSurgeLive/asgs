@@ -102,11 +102,11 @@ init_queenbee()
   $PLATFORMMODULES
   $SERIALMODULES
   if [[ $operator = "jgflemin" || $USER = "jgflemin" ]]; then
-     ACCOUNT=loni_cera_2019a
+     ACCOUNT=loni_lsu_ccr_19
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=loni_cera_2019a
-     JOBENV=( gmt.sh gdal.sh imagemagick.sh perlbrew.sh )
+     JOBENV=( ) # all exes are in /work/jgflemin/opt/default/bin ; all libs are in /work/jgflemin/default/lib
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
@@ -219,7 +219,7 @@ init_supermic()
   if [[ $operator = "jgflemin" ]]; then
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     ACCOUNT=hpc_cera_2019b
+     ACCOUNT=hpc_cera_2019c
      JOBENV=( gmt.sh gdal.sh imagemagick.sh )
      for script in $JOBENV; do
         source $JOBENVDIR/$script
@@ -539,7 +539,7 @@ init_lonestar5()
   RMQMessaging_NcoHome="$WORK/local"
   #
   ml reset
-  PLATFORMMODULES='module load intel/18.0.2 TACC/1.0'
+  PLATFORMMODULES='module unload python3/3.7.0 ; module load intel/18.0.2 TACC/1.0'
   SERIALMODULES='module load' # no extra modules for serial jobs
   PARALLELMODULES='module load cray_mpich/7.7.3'
   # specify location of platform- and Operator-specific scripts to
@@ -551,7 +551,7 @@ init_lonestar5()
      SWANDIR=${WORK}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=ADCIRC
      # don't use built in netcdf module
-     JOBENV=( netcdf.sh gmt.sh gdal.sh openssl.sh )
+     JOBENV=( )
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
@@ -559,7 +559,7 @@ init_lonestar5()
   THIS="platforms.sh>env_dispatch()>init_lonestar5()"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
-  ARCHIVEDIR=2019
+  ARCHIVEDIR=2020
   TDS=(tacc_tds)
   $PLATFORMMODULES
   $SERIALMODULES
