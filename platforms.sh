@@ -429,7 +429,7 @@ init_frontera()
   if [[ $operator = jgflemin ]]; then
      ADCIRCDIR=${WORK}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${WORK}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     ACCOUNT=FTA-SUB-Dawson
+     ACCOUNT=ASC20001
      # don't use built in netcdf module
      JOBENV=( netcdf.sh gmt.sh gdal.sh )
      for script in $JOBENV; do 
