@@ -50,7 +50,7 @@ CONTROLTEMPLATE=LAv20a_30kcms.15.template # <---<<< default is LA_v20a-WithUpper
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on      # NAM download/forcing
-FORECASTCYCLE="06,18"
+FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #STORM=07             # storm number, e.g. 05=ernesto in 2006
 #YEAR=2018            # year of the storm
@@ -66,22 +66,24 @@ NCPU=959                     # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
 #
-ADCIRCDIR=/work/jgflemin/adcirc-cg/work
-SWANDIR=/work/jgflemin/adcirc-cg/swan
+# not needed on lonestar5 _________________________________________
+#ADCIRCDIR=/work/jgflemin/adcirc-cg/work
+#SWANDIR=/work/jgflemin/adcirc-cg/swan
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
-TDS=( renci_tds )
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu"
+TDS=( tacc_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020042800
-HOTORCOLD=coldstart        # "hotstart" or "coldstart"
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart        # "hotstart" or "coldstart"
+# location on lonestar5 ______________________________________________
+LASTSUBDIR=$SCRATCH/asgs38813/initialize
 
 # Scenario package 
 

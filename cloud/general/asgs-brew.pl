@@ -909,6 +909,8 @@ added so far.
 Not including any of these options when calling C<asgs-brew.pl> will cause
 termination of the script before any processing is done.
 
+=over 3
+
 =item C<--asgs-profile> ProfileName
 
 Provides a globally unique name to the environment created by C<asgs-brew.pl>
@@ -936,6 +938,8 @@ is in the ASGS C<platforms.sh> file and ADCIRC's C<cmplrmk.flags> file,
 otherwise you will see weird issues.
 
 This value is set in the environment as C<ASGS_MACHINE_NAME>.
+
+=back
 
 =head2 Additional Options
 
@@ -1045,7 +1049,7 @@ any of the steps.
 
 Flags are provided to query the current set of run steps and to run selected
 steps, either by defining which steps to not run (C<--skip-steps>) or by defining
-only the steps to run (C<--run-steps). Both cases are useful almost entirely
+only the steps to run (C<--run-steps>). Both cases are useful almost entirely
 for debugging purposes and are not generally recommends for operators installing
 ASGS on well supported systems.
 

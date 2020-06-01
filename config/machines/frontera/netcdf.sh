@@ -4,8 +4,8 @@
 THIS=$PWD/netcdf.sh
 case $USER in
    "jgflemin")
-      export PATH=$PATH:${WORK}/asgs/bin
-      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${WORK}/asgs/lib
+      export PATH=$PATH:${WORK}/opt/default/bin
+      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${WORK}/opt/default/lib
       ;;
    # add another asgs Operator:
    # "myuser")
