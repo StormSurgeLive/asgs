@@ -539,7 +539,7 @@ init_lonestar5()
   RMQMessaging_NcoHome="$WORK/local"
   #
   ml reset
-  PLATFORMMODULES='module load intel/18.0.2 TACC/1.0'
+  PLATFORMMODULES='module unload python3/3.7.0 ; module load intel/18.0.2 TACC/1.0'
   SERIALMODULES='module load' # no extra modules for serial jobs
   PARALLELMODULES='module load cray_mpich/7.7.3'
   # specify location of platform- and Operator-specific scripts to
@@ -551,7 +551,7 @@ init_lonestar5()
      SWANDIR=${WORK}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=ADCIRC
      # don't use built in netcdf module
-     JOBENV=( netcdf.sh gmt.sh gdal.sh openssl.sh )
+     JOBENV=( )
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
@@ -559,7 +559,7 @@ init_lonestar5()
   THIS="platforms.sh>env_dispatch()>init_lonestar5()"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
-  ARCHIVEDIR=2019
+  ARCHIVEDIR=2020
   TDS=(tacc_tds)
   $PLATFORMMODULES
   $SERIALMODULES
