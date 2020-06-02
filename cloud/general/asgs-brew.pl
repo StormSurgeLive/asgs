@@ -85,7 +85,7 @@ sub run {
 
         # note: 'adcirc-dir' is finalized in _parse_options after ASGS_HOME is determined
         'adcirc-git-branch' => q{v53release},
-        'adcirc-git-url'    => q{git@github.com:adcirc},
+        'adcirc-git-url'    => q{https://github.com/adcirc},
         'adcirc-git-repo'   => q{adcirc-cg},
         brewflags           => join( q{ }, @$args_ref ),
         compiler            => q{gfortran},

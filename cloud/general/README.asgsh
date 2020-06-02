@@ -144,7 +144,7 @@ are changed, the resulting variables specified inside of the ASGS profile are:
 environmental variables:
 
 	ADCIRCDIR=/home/$USER/adcirc-cg-v53release
-	ADCIRC_GIT_URL=git@github.com:adcirc
+	ADCIRC_GIT_URL=https://github.com/adcirc
 	ADCIRC_COMPILER=intel
 	ADCIRC_PROFILE_NAME=v53release-intel
 	ADCIRC_GIT_BRANCH=v53release
