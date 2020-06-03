@@ -199,7 +199,7 @@ case $GRIDNAME in
       SWANDT=1200                # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
-      ADCPREPWALLTIME="10:00:00"  # adcprep wall clock time, including partmesh
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="14:00:00" # forecast wall clock time
       # FIXME: no unit offset url
