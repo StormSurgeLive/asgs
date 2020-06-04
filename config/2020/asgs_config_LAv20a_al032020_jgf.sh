@@ -75,15 +75,14 @@ SWANDIR=/work/jgflemin/adcirc-cg/swan
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh cpra_slide_deck_post.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com"
 TDS=( renci_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
 COLDSTARTDATE=auto
 HOTORCOLD=hotstart       # "hotstart" or "coldstart"
-# location on lonestar5 ______________________________________________
-LASTSUBDIR=/work/jgflemin/asgs36935
+LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2020/nam/2020060412/LA_v20a-WithUpperAtch_chk/queenbee.loni.org/LAv20a_nam_jgf_26kcms/namforecast
 
 # Scenario package 
 
