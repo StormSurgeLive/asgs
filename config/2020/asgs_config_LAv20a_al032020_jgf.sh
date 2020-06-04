@@ -45,7 +45,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults)
 
-CONTROLTEMPLATE=LAv20a_28kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
+CONTROLTEMPLATE=LAv20a_26kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
@@ -87,7 +87,7 @@ LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2020/nam/2020060412/LA_v
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=6 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
 case $si in
  -2)
    ENSTORM=hindcast
