@@ -36,7 +36,7 @@
 
 # Fundamental
 
-INSTANCENAME=LAv20a_nam_jgf_28kcms  # "name" of this ASGS process
+INSTANCENAME=LAv20a_nam_jgf_26kcms  # "name" of this ASGS process
 
 # Input files and templates
 
@@ -45,7 +45,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults)
 
-CONTROLTEMPLATE=LAv20a_28kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
+CONTROLTEMPLATE=LAv20a_26kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
@@ -80,10 +80,10 @@ TDS=( renci_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart       # "hotstart" or "coldstart"
+COLDSTARTDATE=2020050300
+HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 # location on lonestar5 ______________________________________________
-LASTSUBDIR=/work/jgflemin/asgs36935
+LASTSUBDIR=null
 
 # Scenario package 
 

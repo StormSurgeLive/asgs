@@ -105,7 +105,6 @@ init_queenbee()
      ACCOUNT=loni_lsu_ccr_19
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     ACCOUNT=loni_cera_2019a
      JOBENV=( ) # all exes are in /work/jgflemin/opt/default/bin ; all libs are in /work/jgflemin/default/lib
      for script in $JOBENV; do
         source $JOBENVDIR/$script
