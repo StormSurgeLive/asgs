@@ -168,7 +168,7 @@ if [[ -f maxele.63.nc ]]; then
     echo "hpc.job.${batchJOBTYPE}.limit.walltime : 01:00:00" >> $SCENARIODIR/run.properties
     echo "hpc.job.${batchJOBTYPE}.serialmodules : $SERIALMODULES" >> $SCENARIODIR/run.properties 
     echo "hpc.job.${batchJOBTYPE}.path.jobenvdir : $JOBENVDIR" >> $SCENARIODIR/run.properties 
-    JOBENV=( gmt.sh gdal.sh imagemagick.sh )
+    JOBENV=( )
     JOBENVSTRING="("
     for string in ${JOBENV[*]}; do
        JOBENVSTRING="$JOBENVSTRING $string"
