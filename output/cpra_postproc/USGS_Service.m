@@ -8,6 +8,7 @@
 %
 % https://nwis.waterservices.usgs.gov/nwis/iv/?format=waterml,2.0&sites=02481270&startDT=2017-10-06&endDT=2017-10-17&parameterCd=00065&siteStatus=all
 %
+% https://nwis.waterservices.usgs.gov/nwis/iv/?sites=073802332&startDT=2020-05-31T00:00&endDT=2020-06-03T00:00&parameterCd=00065&siteStatus=all
 %####################################################
 
 %function [wl dateTime]=USGS_Service(site,format,outputDataType,sDate,eDate,plotter)
@@ -36,9 +37,70 @@ websave('temp.xml',url);
 A=xml2struct('temp.xml');
 
 try
-    data = A.ns1_colon_timeSeriesResponse.ns1_colon_timeSeries.ns1_colon_values.ns1_colon_value;
+    %if length(length(A.wml2_colon_Collection.wml2_colon_observationMember)) > 1
+        %data = A.wml2_colon_Collection.wml2_colon_observationMember{1,1}...
+            %.om_colon_OM_Observation.om_colon_result.wml2_colon_MeasurementTimeseries.wml2_colon_point;
+    %else
+    data = A.wml2_colon_Collection.wml2_colon_observationMember...
+        .om_colon_OM_Observation.om_colon_result.wml2_colon_MeasurementTimeseries.wml2_colon_point;
+    %end
+    
+    numDataPoints = length(data);
+    wl = zeros(numDataPoints,1);
+    dateTime = zeros(numDataPoints,1);
+    for i=1:numDataPoints
+        wl(i) = str2num(data{i}.Text);
+        line = strtok(data{i}.Attributes.dateTime,'.');
+        dateTime(i) = datenum(line,'yyyy-mm-ddTHH:MM:SS');
+    end
+
+    wl(wl < -100) = NaN;
+
+    dateTimeStr = datestr(dateTime,'yyyymmdd HH:MM');
+    delete temp.xml;
+
+    TW = [];
+    TW = [dateTime wl];
+    
 catch ME
     msg = sprintf('USGS_Service.m: Gage data for USGS %s was NOT found!', site);
+    disp(msg);
+    msg = sprintf('USGS_Service.m: Trying again using a different collection method.');
+    disp(msg);
+end
+
+% Had to do this for a special USGS gage (073802332) that has two sets of
+% water level data for it (flood side / protected side).
+
+try
+    if length(A.ns1_colon_timeSeriesResponse.ns1_colon_timeSeries.ns1_colon_values) > 1
+        data = A.ns1_colon_timeSeriesResponse.ns1_colon_timeSeries.ns1_colon_values{1}.ns1_colon_value;
+    else
+        data = A.ns1_colon_timeSeriesResponse.ns1_colon_timeSeries.ns1_colon_values.ns1_colon_value;
+    end
+    
+    numDataPoints = length(data);
+    wl = zeros(numDataPoints,1);
+    dateTime = zeros(numDataPoints,1);
+    for i=1:numDataPoints
+        wl(i) = str2num(data{i}.Text);
+        
+        line = strtok(data{i}.Attributes.dateTime,'.');
+        dateTime(i) = datenum(line,'yyyy-mm-ddTHH:MM:SS');
+    end
+
+    wl(wl < -100) = NaN;
+
+    dateTimeStr = datestr(dateTime,'yyyymmdd HH:MM');
+    delete temp.xml;
+
+    TW = [];
+    TW = [dateTime wl];
+    
+catch ME
+    msg = sprintf('USGS_Service.m: Gage data for USGS %s was NOT found using the second try!', site);
+    disp(msg);
+    msg = sprintf(url);
     disp(msg);
     TW = [];
     return
@@ -47,25 +109,25 @@ end
 % fid = fopen('temp.imeds','w');
 % fid = fopen(strcat('USGS_',site,'.txt'),'w');
 
-numDataPoints = length(data);
-wl = zeros(numDataPoints,1);
-dateTime = zeros(numDataPoints,1);
-for i=1:numDataPoints
-    wl(i) = str2num(data{i}.Text);
-    line = strtok(data{i}.Attributes.dateTime,'.');
-    dateTime(i) = datenum(line,'yyyy-mm-ddTHH:MM:SS');
-    %dateTime(i) = dateTime(i) + (4/24); % Convert from EST to UTC
-    %fprintf(fid,'%s\t%8.3f\n',datestr(dateTime(i),'yyyymmdd HH:MM'),wl(i));
-end
-
-wl(wl < -100) = NaN;
-
-dateTimeStr = datestr(dateTime,'yyyymmdd HH:MM');
-%fclose(fid);
-delete temp.xml;
-
-TW = [];
-TW = [dateTime wl];
+% numDataPoints = length(data);
+% wl = zeros(numDataPoints,1);
+% dateTime = zeros(numDataPoints,1);
+% for i=1:numDataPoints
+%     wl(i) = str2num(data{i}.Text);
+%     line = strtok(data{i}.Attributes.dateTime,'.');
+%     dateTime(i) = datenum(line,'yyyy-mm-ddTHH:MM:SS');
+%     %dateTime(i) = dateTime(i) + (4/24); % Convert from EST to UTC
+%     %fprintf(fid,'%s\t%8.3f\n',datestr(dateTime(i),'yyyymmdd HH:MM'),wl(i));
+% end
+% 
+% wl(wl < -100) = NaN;
+% 
+% dateTimeStr = datestr(dateTime,'yyyymmdd HH:MM');
+% %fclose(fid);
+% delete temp.xml;
+% 
+% TW = [];
+% TW = [dateTime wl];
 
 if plotter
     clf;
