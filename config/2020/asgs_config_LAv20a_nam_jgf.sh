@@ -45,6 +45,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults)
 
+#CONTROLTEMPLATE=LAv20a_26kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 CONTROLTEMPLATE=LAv20a_30kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 
 TIDEFAC=on            # tide factor recalc
@@ -65,25 +66,29 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=959                     # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
+#QUEUENAME=priority
+#SERQUEUE=priority
 #
-# not needed on lonestar5 _________________________________________
-#ADCIRCDIR=/work/jgflemin/adcirc-cg/work
-#SWANDIR=/work/jgflemin/adcirc-cg/swan
+if [[ $USER = jgflemin ]]; then
+   if [[ $HPCENVSHORT = queenbee || $HPCENVSHORT = supermic ]]; then
+      ADCIRCDIR=/work/jgflemin/adcirc-cg/work
+      SWANDIR=/work/jgflemin/adcirc-cg/swan
+   fi
+fi
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu"
-TDS=( tacc_tds )
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu"
+TDS=( renci_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart        # "hotstart" or "coldstart"
-# location on lonestar5 ______________________________________________
-LASTSUBDIR=$SCRATCH/asgs38813/initialize
+COLDSTARTDATE=2020050800
+HOTORCOLD=coldstart      # "hotstart" or "coldstart"
+LASTSUBDIR=null
 
 # Scenario package 
 
