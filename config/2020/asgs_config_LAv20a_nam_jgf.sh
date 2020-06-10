@@ -65,14 +65,20 @@ CYCLETIMELIMIT="99:00:00"
 
 NCPU=959                     # number of compute CPUs for all simulations
 NUMWRITERS=1
-NCPUCAPACITY=9999
-#QUEUENAME=priority
-#SERQUEUE=priority
+NCPUCAPACITY=9999 
+#QUEUENAME=priority    # queenbee2 and supermic
+#SERQUEUE=priority     # queenbee2 and supermic
+#QOS=vip               # stampede2 and lonestar5
+#QOS=vippj_p3000       # frontera
 #
 if [[ $USER = jgflemin ]]; then
    if [[ $HPCENVSHORT = queenbee || $HPCENVSHORT = supermic ]]; then
       ADCIRCDIR=/work/jgflemin/adcirc-cg/work
       SWANDIR=/work/jgflemin/adcirc-cg/swan
+   fi
+   if [[ $HPCENVSHORT = frontera ]]; then
+      ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
+      SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
    fi
 fi
 
@@ -83,6 +89,9 @@ INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu"
 TDS=( renci_tds )
+if [[ $HPCENVSHORT = frontera || $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then
+   TDS=( tacc_tds )
+fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
