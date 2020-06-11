@@ -470,19 +470,19 @@ case $GRIDNAME in
       # FIXME: no unit offset url
       ;;
       #      
-   "EGOM-RT_20b_chk")
+   "EGOMv20b")
       #
-      INPUTDIR=${SCRIPTDIR}/input/meshes/EGOM-RT_v20b # grid and other input files
+      INPUTDIR=${SCRIPTDIR}/input/meshes/EGOMv20b # grid and other input files
       GRIDFILE=EGOM-RT_v20b_chk.grd
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=EGOM-RT_v20b.15.template   # fort.15 template
       # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=EGOM-RT_v20b.nowindreduction.15.template
+      CONTROLTEMPLATENOROUGH=EGOM-RT_v20b.norough.15.template
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=EGOM-RT_v20b_stations.txt
       VELSTATIONS=EGOM-RT_v20b_stations.txt
       METSTATIONS=EGOM-RT_v20b_stations.txt
-      NAFILE=EGOM-RT_v20b_chk.13
+      NAFILE=EGOM-RT_v20b_asgs_chk.13
       NAPROPERTIES=${NAFILE}.properties
       SWANTEMPLATE=fort.26.nolimiter.template   # only used if WAVES=on
       RIVERINIT=null                            # this mesh has no rivers ...
