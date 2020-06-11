@@ -82,7 +82,12 @@ TDS=( renci_tds )
 
 COLDSTARTDATE=auto
 HOTORCOLD=hotstart       # "hotstart" or "coldstart"
-LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2020/nam/2020060412/LA_v20a-WithUpperAtch_chk/queenbee.loni.org/LAv20a_nam_jgf_26kcms/namforecast
+#LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2020/nam/2020060412/LA_v20a-WithUpperAtch_chk/queenbee.loni.org/LAv20a_nam_jgf_26kcms/namforecast
+#LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2020/nam/2020060518/LA_v20a-WithUpperAtch_chk/queenbee.loni.org/LAv20a_nam_jgf_26kcms/namforecast
+#LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020060600/LA_v20a-WithUpperAtch_chk/frontera.tacc.utexas.edu/LAv20a_nam_jgf/namforecast
+#LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020060606/LA_v20a-WithUpperAtch_chk/frontera.tacc.utexas.edu/LAv20a_nam_jgf/namforecast
+#LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020060612/LA_v20a-WithUpperAtch_chk/frontera.tacc.utexas.edu/LAv20a_nam_jgf/namforecast
+LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020060618/LA_v20a-WithUpperAtch_chk/frontera.tacc.utexas.edu/LAv20a_nam_jgf/namforecast
 
 # Scenario package 
 
