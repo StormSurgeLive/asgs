@@ -181,7 +181,7 @@ case $GRIDNAME in
       INPUTDIR=$SCRIPTDIR/input/meshes/tx2020
       GRIDFILE=tx2020a.14 # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=tx2020a_template.15   # fort.15 template
+      CONTROLTEMPLATE=tx2020a_esl_template.15   # fort.15 template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=tx2020a_norough_template.15
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
@@ -195,7 +195,7 @@ case $GRIDNAME in
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+      TIMESTEPSIZE=0.5           # adcirc time step size (seconds)
       SWANDT=1200                # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
