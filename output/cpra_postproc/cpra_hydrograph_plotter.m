@@ -24,8 +24,8 @@ disp(msg);
 %%
 % User-defined inputs
 
-% productionMode = true; % for ASGS
-productionMode = false; % Manual mode
+productionMode = true; % for ASGS
+% productionMode = false; % Manual mode
 
 if (productionMode)
 %     ASGS Production mode.
