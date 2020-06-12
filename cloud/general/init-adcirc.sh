@@ -76,7 +76,8 @@ fi
 # ADCIRC_GIT_URL - git repo remote URL, set via --adcirc-git-remote in asgs-brew.pl
 # ADCIRC_GIT_REPO   - git repository (likely 'adcirc-cg')
 
-ADCIRC_MAKE_CMD="make padcirc adcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} NETCDFROOT=${NETCDFROOT} MACHINENAME=${ASGS_MACHINE_NAME}"
+ADCIRC_BINS="padcirc adcirc adcswan padcswan adcprep hstime aswip"
+ADCIRC_MAKE_CMD="make $ADCIRC_BINS SWAN=enable compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} NETCDFROOT=${NETCDFROOT} MACHINENAME=${ASGS_MACHINE_NAME}"
 
 if [ ! -d ${ADCIRCBASE}/.git ]; then
   if [ "$INTERACTIVE" == "yes" ]; then
@@ -198,6 +199,7 @@ echo 'export ADCIRC_GIT_REPO='$ADCIRC_GIT_REPO          >> $ADCIRC_META_FILE
 echo 'export ASGS_MAKEJOBS='$ASGS_MAKEJOBS              >> $ADCIRC_META_FILE
 echo "export ADCIRC_MAKE_CMD='$ADCIRC_MAKE_CMD'"        >> $ADCIRC_META_FILE
 echo "export ADCIRC_PROFILE_NAME=$ADCIRC_PROFILE_NAME"  >> $ADCIRC_META_FILE
+echo "export ADCIRC_BINS='$ADCIRC_BINS'"                >> $ADCIRC_META_FILE
 
 if [ "$INTERACTIVE" == "yes" ]; then
   echo
