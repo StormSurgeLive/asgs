@@ -28,8 +28,7 @@ fname = sys.argv[1]
 
 # Read run.properties and make a property dictionary
 runProp = dict()
-#f = open('run.properties','r')
-f = open('NAM_2020060600.run.properties','r')
+f = open('run.properties','r')
 for line in f:
     fields = line.split(':',1)
     try:
