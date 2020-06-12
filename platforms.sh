@@ -218,8 +218,9 @@ init_supermic()
   if [[ $operator = "jgflemin" ]]; then
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     ACCOUNT=hpc_cera_2019c
-     JOBENV=( gmt.sh gdal.sh imagemagick.sh )
+     #ACCOUNT=hpc_cera_2019c
+     ACCOUNT=hpc_crc_smi_19
+     JOBENV=( )
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
@@ -476,7 +477,7 @@ init_stampede2()
   RMQMessaging_Transmit="on"            #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
   PLATFORMMODULES='module unload python2/2.7.15 ; module load intel/18.0.2 xalt/2.6.5 TACC'
-  SERIALMODULES='module load' # no extra modules for serial jobs
+  SERIALMODULES='module load matlab' # no extra modules for serial jobs
   PARALLELMODULES='module load libfabric/1.7.0 impi/18.0.2'
   # matlab
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)

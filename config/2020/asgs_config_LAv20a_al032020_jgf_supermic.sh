@@ -65,19 +65,19 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=959                     # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
-QUEUENAME=priority
-SERQUEUE=priority
 #
 # not needed on lonestar5 _________________________________________
 ADCIRCDIR=/work/jgflemin/adcirc-cg/work
 SWANDIR=/work/jgflemin/adcirc-cg/swan
+QUEUENAME=priority
+SERQUEUE=priority
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh cpra_slide_deck_post.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu,rluettich1@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu"
 TDS=( renci_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
@@ -89,7 +89,7 @@ LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2020/nam/2020060412/LA_v
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=6 # number of storms in the ensemble
 case $si in
  -2)
    ENSTORM=hindcast

@@ -65,31 +65,34 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=959                     # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
-QUEUENAME=priority
-SERQUEUE=priority
+QOS=vippj_p3000
 #
-# not needed on lonestar5 _________________________________________
-ADCIRCDIR=/work/jgflemin/adcirc-cg/work
-SWANDIR=/work/jgflemin/adcirc-cg/swan
+ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
+SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh cpra_slide_deck_post.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu,rluettich1@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu"
 TDS=( renci_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
 COLDSTARTDATE=auto
 HOTORCOLD=hotstart       # "hotstart" or "coldstart"
-LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2020/nam/2020060412/LA_v20a-WithUpperAtch_chk/queenbee.loni.org/LAv20a_nam_jgf_26kcms/namforecast
+#LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2020/nam/2020060412/LA_v20a-WithUpperAtch_chk/queenbee.loni.org/LAv20a_nam_jgf_26kcms/namforecast
+#LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2020/nam/2020060518/LA_v20a-WithUpperAtch_chk/queenbee.loni.org/LAv20a_nam_jgf_26kcms/namforecast
+#LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020060600/LA_v20a-WithUpperAtch_chk/frontera.tacc.utexas.edu/LAv20a_nam_jgf/namforecast
+#LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020060606/LA_v20a-WithUpperAtch_chk/frontera.tacc.utexas.edu/LAv20a_nam_jgf/namforecast
+#LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020060612/LA_v20a-WithUpperAtch_chk/frontera.tacc.utexas.edu/LAv20a_nam_jgf/namforecast
+LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020060618/LA_v20a-WithUpperAtch_chk/frontera.tacc.utexas.edu/LAv20a_nam_jgf/namforecast
 
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=6 # number of storms in the ensemble
 case $si in
  -2)
    ENSTORM=hindcast
