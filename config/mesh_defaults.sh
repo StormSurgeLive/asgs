@@ -68,7 +68,7 @@ case $GRIDNAME in
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=LA_v20a-WithUpperAtch.nowindreduction.15.template
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-      ELEVSTATIONS=combined_stations_20200603.txt
+      ELEVSTATIONS=combined_stations_20200605.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
       NAFILE=LA_v20a-WithUpperAtch_chk.13
@@ -181,7 +181,7 @@ case $GRIDNAME in
       INPUTDIR=$SCRIPTDIR/input/meshes/tx2020
       GRIDFILE=tx2020a.14 # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=tx2020a_template.15   # fort.15 template
+      CONTROLTEMPLATE=tx2020a_esl_template.15   # fort.15 template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=tx2020a_norough_template.15
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
@@ -195,7 +195,7 @@ case $GRIDNAME in
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+      TIMESTEPSIZE=0.5           # adcirc time step size (seconds)
       SWANDT=1200                # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
@@ -470,19 +470,19 @@ case $GRIDNAME in
       # FIXME: no unit offset url
       ;;
       #      
-   "EGOM-RT_20b_chk")
+   "EGOMv20b")
       #
-      INPUTDIR=${SCRIPTDIR}/input/meshes/EGOM-RT_v20b # grid and other input files
+      INPUTDIR=${SCRIPTDIR}/input/meshes/EGOMv20b # grid and other input files
       GRIDFILE=EGOM-RT_v20b_chk.grd
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=EGOM-RT_v20b.15.template   # fort.15 template
       # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=EGOM-RT_v20b.nowindreduction.15.template
+      CONTROLTEMPLATENOROUGH=EGOM-RT_v20b.norough.15.template
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=EGOM-RT_v20b_stations.txt
       VELSTATIONS=EGOM-RT_v20b_stations.txt
       METSTATIONS=EGOM-RT_v20b_stations.txt
-      NAFILE=EGOM-RT_v20b_chk.13
+      NAFILE=EGOM-RT_v20b_asgs_chk.13
       NAPROPERTIES=${NAFILE}.properties
       SWANTEMPLATE=fort.26.nolimiter.template   # only used if WAVES=on
       RIVERINIT=null                            # this mesh has no rivers ...

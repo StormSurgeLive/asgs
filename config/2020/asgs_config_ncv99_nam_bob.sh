@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2020 Jason Fleming
+# Copyright(C) 2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -27,64 +27,68 @@
 
 # Fundamental
 
-INSTANCENAME=tx2020a_nam_jgf     # "name" of this ASGS process
+INSTANCENAME=ncv99-nam-bob      # "name" of this ASGS process
+SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
+RESERVATION=ncfs
+
+COLDSTARTDATE=2020050100  # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=coldstart       # "hotstart" or "coldstart"
+LASTSUBDIR=null
 
 # Input files and templates
 
-GRIDNAME=tx2020a
+GRIDNAME=nc_inundation_v9.99_w_rivers
 source $SCRIPTDIR/config/mesh_defaults.sh
+STATICOFFSET=0.0
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
-TIMESTEPSIZE=0.5  # <-----<<< default value is 1.0s in $SCRIPTDIR/config/mesh_defaults.sh
-CONTROLTEMPLATE=tx2020a_esl_template.15 # <---<<< default is tx2020a_template.15 in $SCRIPTDIR/config/mesh_defaults.sh
-
 TIDEFAC=on               # tide factor recalc
-   HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
+   HINDCASTLENGTH=27.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on         # NAM download/forcing
-   FORECASTCYCLE="06"
+   FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off      # tropical cyclone forcing
-   STORM=05              # storm number, e.g. 05=ernesto in 2006
-   YEAR=2019             # year of the storm
-WAVES=on                 # wave forcing
-   REINITIALIZESWAN=no   # used to bounce the wave solution
-VARFLUX=off              # variable river flux forcing
-#STATICOFFSET=0.30
-#
+   STORM=-1              # storm number, e.g. 05=ernesto in 2006
+   YEAR=2020             # year of the storm
+WAVES=off                 # wave forcing
+   REINITIALIZESWAN=yes   # used to bounce the wave solution
+VARFLUX=on               # variable river flux forcing
+   RIVERSITE=data.disaster.renci.org
+   RIVERDIR=/opt/ldm/storage/SCOOP/RHLRv9-OKU
+   RIVERUSER=bblanton
+   RIVERDATAPROTOCOL=scp
 CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=999                 # number of compute CPUs for all simulations
-NCPUCAPACITY=9999
+# NCPU=623                     # number of compute CPUs for all simulations
+# NCPUCAPACITY=640
+# NUMWRITERS=1
+NCPU=495                    # number of compute CPUs for all simulations
+NCPUCAPACITY=512
 NUMWRITERS=1
-ADCIRCDIR=/work/00976/jgflemin/frontera/adcirc-cg/adcirc/v53release/work
-SWANDIR=/work/00976/jgflemin/frontera/adcirc-cg/adcirc/v53release/swan
+ACCOUNT=null
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
+INTENDEDAUDIENCE=general # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,clint@oden.utexas.edu"
-NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( tacc_tds )
+POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="bblanton@renci.org"  # , asgs.cera.lsu@gmail.com, rluettich1@gmail.com"
+NOTIFY_SCRIPT=ncfs_nam_notify.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020042300
-HOTORCOLD=coldstart
-LASTSUBDIR=null
-#
 # Scenario package
-#
+
 #PERCENT=default
-SCENARIOPACKAGESIZE=2
+SCENARIOPACKAGESIZE=2 
 case $si in
-   -2)
+   -2) 
        ENSTORM=hindcast
        ;;
-   -1)
+   -1)      
        # do nothing ... this is not a forecast
        ENSTORM=nowcast
        ;;
@@ -95,10 +99,10 @@ case $si in
     1)
        ENSTORM=namforecast
        ;;
-    *)
+    *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
       ;;
 esac
-#
+
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
