@@ -45,10 +45,19 @@ cd $SCENARIODIR 2> >(awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/t
 #----------------------------------------------------------------------------
 #            C R E A T E   J O B   E N V I R O N M E N T      
 #----------------------------------------------------------------------------
-module purge
-%platformmodules%
-%jobmodules%
+# Note: we don't want to load modules that are not already present in the asgsh
+# environment in the queue script
+if [ -z "$_ASGSH_PID" ]; then
+  module purge
+  %platformmodules%
+  %jobmodules%
+else
+  echo "asgsh environment detected, not loading unexpected modules; if you need"
+  echo "an environment provided by a module, please load it inside of asgsh"
+  echo "directly before running asgs_main.sh or submitting a job to the queues"
+fi
 module list
+
 # source scripts to set required PATH and LD_LIBRARY_PATH
 declare -a JOBENV
 JOBENV=%jobenv%
