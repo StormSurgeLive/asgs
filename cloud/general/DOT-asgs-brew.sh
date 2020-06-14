@@ -590,7 +590,7 @@ show() {
       if [ -n "${EDITOR}" ]; then
         echo "EDITOR is defined as '${EDITOR}'"
       else
-        echo "EDITOR is not defined as anything. Try, 'define config vi' first"
+        echo "EDITOR is not defined as anything. Try, 'define editor vi' first"
       fi
       ;;
     exported)
@@ -623,14 +623,14 @@ show() {
       if [ -n "${SCRATCH}" ]; then
         echo "SCRATCH is defined as '${SCRATCH}'"
       else
-        echo "SCRATCH is not defined as anything. Try, 'define config /path/to/scratch' first"
+        echo "SCRATCH is not defined as anything. Try, 'define scratch /path/to/scratch' first"
       fi
       ;;
     scriptdir)
       if [ -n "${SCRIPTDIR}" ]; then
         echo "SCRIPTDIR is defined as '${SCRIPTDIR}'"
       else
-        echo "SCRIPTDIR is not defined as anything. Try, 'define config /path/to/asgs' first"
+        echo "SCRIPTDIR is not defined. This is concerning, please make sure your installation of ASGS is complete."
       fi
       ;;
     statefile)
