@@ -727,6 +727,26 @@ verify() {
   popd > /dev/null 2>&1
 }
 
+# todo - added to general 'verify' function once it's merged to master
+verify_netcdf() {
+  echo +
+  echo ++ Verifying HDF5 and NetCDF tools and libraries
+  for b in gif2h5 h52gif h5cc h5copy h5debug h5diff h5dump h5fc h5import h5jam h5ls h5mkgrp h5perf_serial h5redeploy h5repack h5repart h5stat h5unjam nc-config nccopy ncdump ncgen ncgen3 nf-config; do
+    if [ -n "$(which $b 2> /dev/null)" ]; then
+      echo "ok found '$b'"
+    else
+      echo "not ok, can't find '$b'"
+    fi
+  done
+  for L in libhdf5.a libhdf5_fortran.a libhdf5_fortran.la libhdf5_fortran.so libhdf5_hl.a libhdf5hl_fortran.a libhdf5hl_fortran.la libhdf5hl_fortran.so libhdf5_hl.la libhdf5_hl.so libhdf5.la libhdf5.settings libhdf5.so libnetcdf.a libnetcdff.a libnetcdff.la libnetcdff.so libnetcdf.la libnetcdf.so pkgconfig; do
+    if [ -e "$ASGS_INSTALL_PATH/lib/$L" ]; then
+      echo "ok found '$L'"
+    else
+      echo "not ok, can't find '$L' in '$ASGS_INSTALL_PATH/lib'"
+    fi
+  done
+}
+
 purge() {
   if [ -z "${1}" ]; then
     echo "'purge' requires 1 argument - currently only supports 'rundir', 'scratchdir', 'statefile'."
