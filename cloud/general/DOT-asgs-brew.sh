@@ -29,39 +29,79 @@ help() {
   echo "   -p     profile             - launches the ASGS Shell environment and immediate loads specified profile on start, if it exists."
   echo
   echo ASGS Shell Commands:
-  echo "   define config              - defines ASGS configuration file used by 'run', (\$ASGS_CONFIG). 'define' replaces old 'set' command."
-  echo "          editor              - defines default editor, (\$EDITOR)"
-  echo "          scratchdir          - defines ASGS main script directory used by all underlying scripts, (\$SCRATCH)"
-  echo "          scriptdir           - defines ASGS main script directory used by all underlying scripts, (\$SCRIPTDIR)"
-  echo "          workdir             - defines ASGS main script directory used by all underlying scripts, (\$WORK)"
-  echo "   delete profile <name>      - deletes named profile"
-  echo "   delete adcirc  <name>      - deletes named ADCIRC profile"
-  echo "   dump   <param>             - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog" 
-  echo "   edit   adcirc  <name>      - directly edit the named ADCIRC environment file"
-  echo "   edit   config              - directly edit currently registered ASGS configuration file (used by asgs_main.sh)"
-  echo "   edit   profile <name>      - directly edit the named ASGSH Shell profile"
-  echo "   edit   syslog              - open up SYSLOG in EDITOR for easier forensics"
-  echo "   goto   <param>             - change CWD to a supported directory. Type 'goto options' to see the currently supported options"
-  echo "   initadcirc                 - interactive tool for building and local registering versions of ADCIRC for use with ASGS"
-  echo "   list   <param>             - lists different things, please see the following options; type 'list options' to see currently supported options"
-  echo "   load   profile <name>      - loads a saved profile by name; use 'list profiles' to see what's available"
-  echo "   load   adcirc  <name>      - loads information a version of ADCIRC into the current environment. Use 'list adcirc' to see what's available"
-  echo "   purge  <param>             - deletes specified file or directory"
-  echo "          rundir              - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
-  echo "          statefile           - deletes the state file associated with a profile, effectively for restarting from the initial advisory"
-  echo "   run                        - runs asgs using config file, \$ASGS_CONFIG must be defined (see 'define config'); most handy after 'load'ing a profile"
-  echo "   save   profile <name>      - saves an asgs named profile, '<name>' not required if a profile is loaded"
-  echo "   show   <param>             - shows specified profile variables, to see current list type 'show help'"
-  echo "   show   exported            - dumps all exported variables and provides a summary of what asgsh tracks"
-  echo "   sq                         - shortcut for \"squeue -u \$USER\" (if squeue is available)"
-  echo "   tailf  syslog              - executes 'tail -f' on ASGS instance's system log"
-  echo "   verify                     - verfies Perl and Python environments"
-  echo "   exit                       - exits ASGS shell, returns \$USER to login shell"
+  echo "   define  config              - defines ASGS configuration file used by 'run', (\$ASGS_CONFIG). 'define' replaces old 'set' command."
+  echo "           editor              - defines default editor, (\$EDITOR)"
+  echo "           scratchdir          - defines ASGS main script directory used by all underlying scripts, (\$SCRATCH)"
+  echo "           scriptdir           - defines ASGS main script directory used by all underlying scripts, (\$SCRIPTDIR)"
+  echo "           workdir             - defines ASGS main script directory used by all underlying scripts, (\$WORK)"
+  echo "   delete  profile <name>      - deletes named profile"
+  echo "   delete  adcirc  <name>      - deletes named ADCIRC profile"
+  echo "   dump    <param>             - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog" 
+  echo "   edit    adcirc  <name>      - directly edit the named ADCIRC environment file"
+  echo "   edit    config              - directly edit currently registered ASGS configuration file (used by asgs_main.sh)"
+  echo "   edit    profile <name>      - directly edit the named ASGSH Shell profile"
+  echo "   edit    statefile           - open up STATEFILE (if set) in EDITOR for easier forensics"
+  echo "   edit    syslog              - open up SYSLOG (if set) in EDITOR for easier forensics"
+  echo "   goto    <param>             - change CWD to a supported directory. Type 'goto options' to see the currently supported options"
+  echo "   guess   platform            - attempts to guess the current platform as supported by platforms.sh (e.g., frontera, supermic, etc)" 
+  echo "   initadcirc                  - interactive tool for building and local registering versions of ADCIRC for use with ASGS"
+  echo "   inspect <option>            - alias to 'edit' for better semantics; e.g., 'inspect syslog' or 'inspect statefile'"
+  echo "   list    <param>             - lists different things, please see the following options; type 'list options' to see currently supported options"
+  echo "   load    profile <name>      - loads a saved profile by name; use 'list profiles' to see what's available"
+  echo "   load    adcirc  <name>      - loads information a version of ADCIRC into the current environment. Use 'list adcirc' to see what's available"
+  echo "   purge   <param>             - deletes specified file or directory"
+  echo "           rundir              - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
+  echo "           statefile           - deletes the state file associated with a profile, effectively for restarting from the initial advisory"
+  echo "   run                         - runs asgs using config file, \$ASGS_CONFIG must be defined (see 'define config'); most handy after 'load'ing a profile"
+  echo "   save    profile <name>      - saves an asgs named profile, '<name>' not required if a profile is loaded"
+  echo "   show    <param>             - shows specified profile variables, to see current list type 'show help'"
+  echo "   show    exported            - dumps all exported variables and provides a summary of what asgsh tracks"
+  echo "   sq                          - shortcut for \"squeue -u \$USER\" (if squeue is available)"
+  echo "   tailf   syslog              - executes 'tail -f' on ASGS instance's system log"
+  echo "   verify                      - verfies Perl and Python environments"
+  echo "   exit                        - exits ASGS shell, returns \$USER to login shell"
 }
 
 # runs script to install ADCIRC interactively
 initadcirc() {
   init-adcirc.sh
+}
+
+guess(){
+  case "${1}" in
+    platform)
+      _guess_platform
+      ;;
+    *)
+      echo "'guess' currently supports only 'guess platform'."
+      return
+      ;;
+  esac
+}
+
+#TODO move this to someplace that it can be used by other scripts easily rather
+# than encouraging copy pasta'ing 
+_guess_platform()
+{
+  default_platform=unknown
+  if [ "$USER" = vagrant ]; then
+    default_platform=vagrant
+  elif [ 1 -eq $(hostname --fqdn | grep -c ht4) ]; then
+    default_platform=hatteras
+  elif [ 1 -eq $(hostname --fqdn | grep -c qb2) ]; then
+    default_platform=queenbee
+  elif [ 1 -eq $(hostname --fqdn | grep -c smic) ]; then
+    default_platform=supermic
+  elif [ 1 -eq $(hostname --fqdn | grep -c ls5) ]; then
+    default_platform=lonestar5
+  elif [ 1 -eq $(hostname --fqdn | grep -c stampede2) ]; then
+    default_platform=stampede2
+  elif [ 1 -eq $(hostname --fqdn | grep -c frontera) ]; then
+    default_platform=frontera
+  fi
+  if [ $default_platform != unknown ]; then
+    echo "$default_platform"
+  fi
 }
 
 # deletes a saved profile by name
@@ -119,6 +159,12 @@ _editor_check() {
   fi
 }
 
+# alias to edit that may be more semantically correct in some
+# cases; e.g., "inspect statefile" or "inspect log"
+inspect() {
+  edit $@
+}
+
 # opens up $EDITOR to directly edit files defined by the case
 # statement herein
 edit() {
@@ -139,6 +185,9 @@ edit() {
     if [ -z "$ASGS_CONFIG" ]; then
       echo "\$ASGS_CONFIG is not defined. Use 'define config' to specify an ASGS config file."
       return
+    elif [ ! -e "$ASGS_CONFIG" ]; then
+      echo "ASGS_CONFIG file, '$ASGS_FILE' doesn't exist"
+      return
     fi
     $EDITOR $ASGS_CONFIG
     ;;
@@ -150,9 +199,21 @@ edit() {
     fi
     $EDITOR "$ASGS_HOME/.asgs/$NAME"
     ;;
+  statefile)
+    if [ -z "$STATEFILE" ]; then
+      echo "STATEFILE is not defined. Perhaps you have not defined a config or loaded a completed profile file yet?"
+      return
+    elif [ ! -e "$STATEFILE" ]; then
+      echo "STATEFILE file, '$STATEFULE' doesn't exist"
+      return
+    fi
+    $EDITOR "$STATEFILE"
+    ;;
   syslog)
-    if [ ! -e "$SYSLOG" ]; then
-      echo "Log file, '$NAME' doesn't exist"
+    if [ -z "$SYSLOG" ]; then
+      echo "SYSLOG is not defined. Perhaps you have not defined a config or loaded a completed profile file yet?"
+    elif [ ! -e "$SYSLOG" ]; then
+      echo "Log file, '$SYSLOG' doesn't exist - did it get moved or deleted?"
       return
     fi
     $EDITOR "$SYSLOG"
@@ -162,7 +223,8 @@ edit() {
     echo "adcirc <name>  - directly edit named ADCIRC environment file"
     echo "config         - directly edit ASGS_CONFIG, if defined"
     echo "profile <name> - directly edit named ASGS profile (should be followed up with the 'load profile' command"
-    echo "syslog         - open SYSLOG from a run in EDITOR for easier forensices"
+    echo "statefile      - open STATEFILE from a run in EDITOR for easier forensics"
+    echo "syslog         - open SYSLOG from a run in EDITOR for easier forensics"
     ;;
   esac
 }
@@ -663,11 +725,23 @@ show() {
 
 # short cut to report current work queue status
 sq() {
-  if [ -n $(which squeue) ]; then
-    squeue -u $USER  
+  OLDIFS=$IFS
+  IFS=
+  platform=$(guess platform);
+  if [[ $(echo 'supermic queenbee' | grep -c "$platform") -gt 0 ]]; then
+    SQ=$(showq | grep $USER)
+  elif [[ $(echo 'frontera stampede lonestar' | grep -c "$platform") -gt 0 ]]; then
+    SQ=$(squeue -u $USER)
   else
-    echo The `squeue` utility has not been found in your PATH \(slurm is not available\)
+    SQ="Can't determine platform or command to use to report state of batch queues."
   fi
+  # display result
+  if [ -n "$SQ" ]; then
+    echo $SQ
+  else
+   echo "No jobs in queue for user '$USER'".
+  fi
+  IFS=$OLDIFS
 }
 
 # short cut to tail -f the SYSLOG of the current ASGS package that is running
