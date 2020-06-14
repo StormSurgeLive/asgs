@@ -229,10 +229,15 @@ edit() {
   esac
 }
 
+# function alias for `goto dir` command
+g() {
+  goto $@
+}
+
 # change to a directory know by asgsh
 goto() {
   case "${1}" in
-    adcircworkdir)
+  adcircworkdir)
     if [ -e "$ADCIRCDIR/work" ]; then
       cd $ADCIRCDIR/work
       pwd
@@ -240,7 +245,7 @@ goto() {
       echo 'ADCIRCDIR not yet defined'
     fi 
     ;;
-    adcircdir)
+  adcircdir)
     if [ -e "$ADCIRCDIR" ]; then
       cd $ADCIRCDIR
       pwd
@@ -248,12 +253,20 @@ goto() {
       echo 'ADCIRCDIR not yet defined'
     fi 
     ;;
+  installdir)
+    if [ -e "$ASGS_INSTALL_PATH" ]; then
+      cd $ASGS_INSTALL_PATH
+      pwd
+    else
+      echo 'ASGS_INSTALL_PATH not defined, which is concerning. Did you complete the installation of ASGS?'
+    fi 
+    ;;
   rundir)
     if [ -e "$RUNDIR" ]; then
       cd $RUNDIR
       pwd
     else
-      echo 'rundir not yet defined'
+      echo 'RUNDIR not yet defined'
     fi 
     ;;
   scratchdir)
@@ -261,7 +274,7 @@ goto() {
       cd $SCRATCH
       pwd
     else
-      echo 'scratchdir not yet defined'
+      echo 'SCRATCH not yet defined'
     fi 
     ;;
   scriptdir)
