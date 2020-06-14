@@ -612,8 +612,8 @@ sub get_steps {
             command     => qq{bash init-openmpi.sh $asgs_install_path $asgs_compiler $makejobs},
             clean       => qq{bash init-openmpi.sh $asgs_install_path clean},
 
-            # augment existing %ENV (cumulative)
-            export_ENV => {
+            # expose ENV *only* if --compiler=gfortran is passed as an option
+            export_ENV => ( $asgs_compiler ne q{gfortran} ) ? undef : {
                 PATH => { value => qq{$asgs_install_path/$asgs_compiler/bin}, how => q{prepend} },
             },
 
@@ -622,7 +622,7 @@ sub get_steps {
             precondition_check => sub { 1 },
             postcondition_check => sub {
                 my ( $op, $opts_ref ) = @_;
-                my $bin          = qq{$opts_ref->{'install-path'}/$asgs_compiler/bin};
+                my $bin          = qq{$asgs_install_path/$asgs_compiler/bin};
                 my $ok           = 1;
                 my @mpi_binaries = (qw/mpiCC mpic++ mpicc mpicxx mpiexec mpif77 mpif90 mpifort mpirun ompi-clean ompi-ps ompi-server ompi-top ompi_info opal_wrapper orte-clean orte-info orte-ps orte-server orte-top ortecc orted orterun/);
                 map { $ok = -e qq[$bin/$_] && $ok } @mpi_binaries;
@@ -841,15 +841,21 @@ sub get_steps {
             name        => q{Build ADCIRC and SWAN},
             description => q{Builds ADCIRC and SWAN if $HOME/adcirc-cg exists.},
             pwd         => qq{./},
-            export_ENV  => {
-                ADCIRCBASE          => { value => qq{$adcircdir-$adcirc_git_branch},      how => q{replace} },
-                ADCIRCDIR           => { value => qq{$adcircdir-$adcirc_git_branch/work}, how => q{replace} },
-                SWANDIR             => { value => qq{$adcircdir-$adcirc_git_branch/swan}, how => q{replace} },
-                ADCIRC_GIT_BRANCH   => { value => qq{$adcirc_git_branch},                 how => q{replace} },
-                ADCIRC_GIT_URL      => { value => qq{$adcirc_git_url},                    how => q{replace} },
-                ADCIRC_GIT_REPO     => { value => qq{$adcirc_git_repo},                   how => q{replace} },
-                ADCIRC_COMPILER     => { value => qq{$asgs_compiler},                     how => q{replace} },
-                ADCIRC_PROFILE_NAME => { value => qq{$adcirc_git_branch-$asgs_compiler},  how => q{replace} },
+
+            # expose ENV on if --build-adcirc is passed as an option
+            export_ENV => {
+
+                # always expose, always set even if not building ADCIRC
+                ADCIRC_GIT_BRANCH => { value => qq{$adcirc_git_branch}, how => q{replace} },
+                ADCIRC_GIT_URL    => { value => qq{$adcirc_git_url},    how => q{replace} },
+                ADCIRC_COMPILER   => { value => qq{$asgs_compiler},     how => q{replace} },
+
+                # always expose, don't actually set unless building adcirc via asgs-brew.pl
+                ADCIRCBASE          => ( not $opts_ref->{'build-adcirc'} ) ? undef : { value => qq{$adcircdir-$adcirc_git_branch},      how => q{replace} },
+                ADCIRCDIR           => ( not $opts_ref->{'build-adcirc'} ) ? undef : { value => qq{$adcircdir-$adcirc_git_branch/work}, how => q{replace} },
+                SWANDIR             => ( not $opts_ref->{'build-adcirc'} ) ? undef : { value => qq{$adcircdir-$adcirc_git_branch/swan}, how => q{replace} },
+                ADCIRC_GIT_REPO     => ( not $opts_ref->{'build-adcirc'} ) ? undef : { value => qq{$adcirc_git_repo},                   how => q{replace} },
+                ADCIRC_PROFILE_NAME => ( not $opts_ref->{'build-adcirc'} ) ? undef : { value => qq{$adcirc_git_branch-$asgs_compiler},  how => q{replace} },
             },
             command => q{bash cloud/general/init-adcirc.sh},                   #Note: parameters input via environmental variables
             clean   => q{bash cloud/general/init-adcirc.sh clean},
