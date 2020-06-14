@@ -57,6 +57,7 @@ help() {
   echo "   show    <param>             - shows specified profile variables, to see current list type 'show help'"
   echo "   show    exported            - dumps all exported variables and provides a summary of what asgsh tracks"
   echo "   sq                          - shortcut for \"squeue -u \$USER\" (if squeue is available)"
+  echo "   switch  <option>            - alias to 'load' for better semantics; e.g., 'switch profile next-profile'"
   echo "   tailf   syslog              - executes 'tail -f' on ASGS instance's system log"
   echo "   verify                      - verfies Perl and Python environments"
   echo "   exit                        - exits ASGS shell, returns \$USER to login shell"
@@ -336,6 +337,11 @@ list() {
   esac 
 }
 
+# alias for load, so one may more naturally "switch" profiles
+switch() {
+  load $@
+}
+
 # load environment related things like an ADCIRC environment or saved ASGS environment
 load() {
   case "${1}" in
@@ -359,6 +365,7 @@ load() {
       fi
       NAME=${2}
       if [ -e "$ASGS_HOME/.asgs/$NAME" ]; then
+        _reset_ephemeral_envars
         . "$ASGS_HOME/.asgs/$NAME"
         export PS1="asgs ($NAME)> "
         echo loaded \'$NAME\' into current profile;
@@ -375,6 +382,18 @@ load() {
       echo "'load' requires 2 parameters: 'adcirc' or 'profile' as the first; the second parameter defines what to load."
       return
   esac
+}
+
+# used to reset ephemeral variables - those created via _parse_config and
+# those sourced via _load_state_file (currently hard coded list based on
+# what is currently available via STATEFILE
+_reset_ephemeral_envars() {
+  INSTANCENAME=
+  STATEFILE=
+  RUNDIR=
+  LASTSUBDIR=
+  SYSLOG=
+  ASGS_CONFIG=
 }
 
 _parse_config() {
