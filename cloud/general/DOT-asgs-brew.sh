@@ -803,14 +803,26 @@ echo "or to recreate it, exit this shell and run asgs-brew.pl with the"
 echo " --update-shell option"
 echo
 
+# common aliases users expect - if you see something missing, please create a github issue
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias grep='grep --color=auto'
+alias l.='ls -d .* --color=auto'
+alias ll='ls -l --color=auto'
+alias ls='ls --color=auto'
+
 # handy aliases for the impatient
 alias a="list adcirc"
 alias c="edit config"
-alias nukeit="purge scratchdir"
 alias p="list profiles"
 alias sd="goto scriptdir"
 alias s="goto scratchdir"
 alias v="verify"
+
+# aliases used to discourage the use of certain utilities *inside* of asgsh
+alias screen='echo the use of the "screen" utility *inside* of asgsh is strongly discouraged'
+alias tmux='echo the use of the "tmux" utility *inside* of asgsh is strongly discouraged'
+alias asgsh='echo nesting of asgsh inside of asgsh is prohibited'
 
 # when started, ASGS Shell loads the 'default' profile, this can be made variable at some point
 load profile ${profile-default}
