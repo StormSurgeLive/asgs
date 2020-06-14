@@ -667,6 +667,30 @@ show() {
         echo "INSTANCENAME is not defined as anything. Have you defined the config file yet?"
       fi
       ;;
+    ld_include_path)
+      if [ -n "${LD_INCLUDE_PATH}" ]; then
+        echo "LD_INCLUDE_PATH is consists of the following paths:"
+        echo -e ${LD_INCLUDE_PATH//:/\\n}
+      else
+        echo "LD_INCLUDE_PATH is not defined, which is concerning. Did you complete installation of ASGS?"
+      fi
+      ;;
+    ld_library_path)
+      if [ -n "${LD_LIBRARY_PATH}" ]; then
+        echo "LD_LIBRARY_PATH is consists of the following paths:"
+        echo -e ${LD_LIBRARY_PATH//:/\\n}
+      else
+        echo "LD_LIBRARY_PATH is not defined, which is concerning. Did you complete installation of ASGS?"
+      fi
+      ;;
+    path)
+      if [ -n "${PATH}" ]; then
+        echo "PATH is consists of the following paths:"
+        echo -e ${PATH//:/\\n}
+      else
+        echo "PATH is not defined, which is concerning. Did you complete installation of ASGS?"
+      fi
+      ;;
     profile)
       if [ -n "${_ASGSH_CURRENT_PROFILE}" ]; then
         echo "profile is defined as '${_ASGSH_CURRENT_PROFILE}'"
