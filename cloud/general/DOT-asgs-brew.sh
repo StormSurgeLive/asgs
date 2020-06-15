@@ -121,6 +121,22 @@ delete() {
         echo "no saved ADCIRC configuration named '$NAME' was found"
       fi
       ;;
+    config)
+      if [ -z "$ASGS_CONFIG" ]; then
+        echo "Config file not yet defined."
+        return
+      elif [ ! -e "$ASGS_CONFIG" ]; then
+        echo "Can't find config fie, $ASGS_CONFIG"
+        return
+      fi 
+      read -p "Are you sure you want to delete the '$ASGS_CONFIG'?[y] " delete
+      if [[ -z "$delete" || "$delete" = "y" ]]; then
+         rm -f $ASGS_CONFIG
+         export ASGS_CONFIG=
+        echo "Deleted config file and unset 'config' for this profile."
+      fi
+      save profile $_ASGSH_CURRENT_PROFILE
+      ;;
     profile)
       if [ -z "${2}" ]; then
         echo \'delete profile\' requires a name parameter, does NOT unload current profile 
@@ -337,6 +353,43 @@ list() {
   esac 
 }
 
+clone() {
+  case "${1}" in
+    profile)
+      if [[ -z "$ASGS_CONFIG" || ! -e "$ASGS_CONFIG" ]]; then
+        echo "'clone profile' only proceedsif the profile's config file has been defined."
+        return
+      fi
+      _epoch=$(date +%s)
+      _default_new_config="${ASGS_CONFIG%.*}_$_epoch.sh"
+      read -p "Name of new config file? [$_default_new_config] " new_config
+      if [ -z "$new_config" ]; then
+        new_config=$_default_new_config
+      fi
+      _default_new_profile=${_ASGSH_CURRENT_PROFILE}-${_epoch}-clone
+      read -p "Name of new profile? [$_default_new_profile] " new_profile_name
+      if [ -z "$new_profile_name" ]; then
+        new_profile_name=$_default_new_profile
+      fi
+      read -p "Create new profile? [y] " create
+      if [[ -z "$create" || "$create" = "y"  ]]; then
+        cp -v $ASGS_CONFIG $new_config
+        define config $new_config
+        save profile $new_profile_name
+        read -p "Would you like to edit the new configuration file before switching to the new profile?[y] " edit
+        if [[ -z "$edit" || "$edit" = "y" ]]; then
+          edit config
+        fi
+        switch profile $new_profile_name
+      else
+        echo "Profile cloning operation has been aborted."
+      fi
+      ;;
+    *) echo "'clone' only applies to 'profile'"
+      ;;
+  esac
+}
+
 # alias for load, so one may more naturally "switch" profiles
 switch() {
   load $@
@@ -373,7 +426,7 @@ load() {
           # extracts info such as 'instancename' so we can derive the location of the state file, then the log file path and actual run directory
           _parse_config $ASGS_CONFIG
         fi
-        _ASGSH_CURRENT_PROFILE="${2}"
+        export _ASGSH_CURRENT_PROFILE="${2}"
       else
         echo "ASGS profile, '$NAME' does not exist. Use 'list profile' to see a which profile are available to load"
       fi
