@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME=ncfs-dev-hsofs-nam-master      # "name" of this ASGS process
+INSTANCENAME=hsofs-nam-bob      # "name" of this ASGS process
 SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
 RMQMessaging_Transmit=on
 RESERVATION=ncfs
@@ -91,7 +91,7 @@ INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
-OPENDAPNOTIFY="bblanton@renci.org, asgs.cera.lsu@gmail.com, rluettich1@gmail.com"
+OPENDAPNOTIFY="bblanton@renci.org, asgs.cera.lsu@gmail.com, rluettich1@gmail.com, jason.fleming@seahorsecoastal.com"
 NOTIFY_SCRIPT=ncfs_nam_notify.sh
 
 # Scenario package

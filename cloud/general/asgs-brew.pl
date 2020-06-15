@@ -1,5 +1,21 @@
 #!/usr/bin/perl
 
+# This file is part of the ADCIRC Surge Guidance System (ASGS).
+#
+# The ASGS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# ASGS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#----------------------------------------------------------------
+
 # NOTE: this is meant to run using any perl that is available
 # on a system, it should only rely on core Perl modules
 
@@ -12,6 +28,13 @@ use File::Copy qw(copy);
 package local::asgs_brew;
 
 use constant EXIT_SUCCESS => 0;
+use constant EXIT_DIE     => 255;
+
+# do not run if inside of asgsh
+if ( defined $ENV{_ASGSH_PID} ) {
+    print qq/\nOops!\nPlease run outside of the asgsh environment.\n`exit` from asgsh (pid: $ENV{_ASGSH_PID}) and run again\n/;
+    exit EXIT_DIE;
+}
 
 # copy existing environment
 local %ENV = %ENV;
@@ -33,15 +56,15 @@ sub _get_help {
     return qq{
 Usage:
 
-    $0 --machinename <MachineName> --compiler <CompilerFamily> [ --install-path some/path --home /path/other/than/user/\$HOME --force --clean [ --list-steps | --skip-steps | --run-steps ] ]
+    $0 --machinename <MachineName> --compiler <CompilerFamily> --asgs-profile <ProfileName> [ --install-path some/path --home /path/other/than/user/\$HOME --force --clean [ --list-steps | --skip-steps | --run-steps ] ]
 
 Required Flags:
 
-    --compiler, --machinename, --profile
+    --compiler, --machinename, --asgs-profile
 
 Reset asgsh with clean environment:
 
-    $0 --machinename <MachineName> --compiler <CompilerFamily> --run-steps setup-env
+    $0 --machinename <MachineName> --compiler <CompilerFamily> --asgs-profile <ASGSProfileName> --run-steps setup-env
 
 More Help and Information:
 
@@ -49,68 +72,118 @@ More Help and Information:
 
 Note:
 
-    --install-path if not specified defaults to \$HOME/opt
+    --install-path if not specified defaults to \$HOME/opt (respects the '--home' flag)
 
-  };
+};
 }
 
 sub run {
     my ( $self, $args_ref ) = @_;
-    my $HOME     = ( getpwuid $> )[7];
+
+    # initial defaults (more are set dynamically after Getopts, in _munge_option_defaults)
     my $opts_ref = {
-        compiler       => q{gfortran},
-        'install-path' => qq{$HOME/opt},
-        home           => $HOME,
-        profile        => q{default},
-        'make-jobs'    => 1,
+
+        # note: 'adcirc-dir' is finalized in _parse_options after ASGS_HOME is determined
+        'adcirc-git-branch' => q{v53release},
+        'adcirc-git-url'    => q{git@github.com:adcirc},
+        'adcirc-git-repo'   => q{adcirc-cg},
+        brewflags           => join( q{ }, @$args_ref ),
+        compiler            => q{gfortran},
+        'make-jobs'         => 1,
+        scriptdir           => Cwd::getcwd(),              # fixed throughout, no option to changes this
     };
 
-    my $start_dir = Cwd::getcwd();
-    $opts_ref->{scriptdir} = $start_dir;
+    $self->_parse_options( $args_ref, $opts_ref );         # exits with 255 if error with options
+    $self->_prerun_steps($opts_ref);                       # do things before steps are run
+    $self->_run_steps($opts_ref);                          # bulk of time spent running the 'run steps'
+    $self->_install_asgs_shell($opts_ref);                 # finalizes installation by installing/updating asgsh
+
+    return EXIT_SUCCESS;
+}
+
+sub _parse_options {
+    my ( $self, $args_ref, $opts_ref ) = @_;
+
+    my @flags = (
+        qw/
+          adcirc-dir=s
+          adcirc-git-branch=s
+          adcirc-git-url=s
+          adcirc-git-repo=s
+          build-adcirc
+          clean
+          compiler=s
+          debug
+          force
+          home
+          install-path=s
+          list-steps
+          machinename=s
+          make-jobs=i
+          asgs-profile=s
+          replace-home
+          run-steps=s
+          skip-steps=s
+          update-shell
+          /
+    );
 
     local $@;
-    my $ret = Getopt::Long::GetOptionsFromArray(
-        $args_ref, $opts_ref,
-        q{clean}, q{compiler=s}, q{skip-steps=s}, q{update-shell}, q{force}, q{home}, q{install-path=s}, q{list-steps}, q{machinename=s}, q{make-jobs=i}, q{run-steps=s}, q{debug}, q{profile=s},
-    );
+    my $ret = Getopt::Long::GetOptionsFromArray( $args_ref, $opts_ref, @flags );
 
     my $errmsg;
     if ( not $ret ) {
         $errmsg = qq{An unrecognized option was passed\n};
     }
     elsif ( not $opts_ref->{compiler} or not $opts_ref->{machinename} ) {
-        $errmsg = qq{--compiler and --machinename flags are required\n};
+        $errmsg = qq{--compiler and --machinename flags are required};
+    }
+    elsif ( not $opts_ref->{'asgs-profile'} ) {
+        $errmsg = qq{--asgs-profile is not set, this is required to differentiate among different ASGS installations.\n\nNote: ASGS Shell looks for a profile called 'default' to load automatically on start.};
     }
     elsif ( $opts_ref->{'skip-steps'} and $opts_ref->{'run-steps'} ) {
-        $errmsg = qq{--skip-steps can't be used with --run-steps\n};
+        $errmsg = qq{--skip-steps can't be used with --run-steps};
     }
+
+    $self->_munge_option_defaults($opts_ref);    # final chance to set defaults
 
     if ($errmsg) {
-        warn $errmsg;
+        print qq{\n$errmsg\n};
         print $self->_get_help();
-        exit 255;    # die's exit code
+        exit EXIT_DIE;                           # die's exit code
     }
 
-    # check for profile name
-    if ( $opts_ref->{profile} eq q{default} ) {
-        warn qq{--profile is not set, using "default" as asgsh profile name};
-    }
-
-    # if --profile is set, append it to $install_path for managing different ASGS installations
-    else {
-        $opts_ref->{'install-path'} = sprintf( "%s/%s", $opts_ref->{'install-path'}, $opts_ref->{profile} );
-    }
-
-    $self->_process_opts($opts_ref);    # additional processing of options
-
-    $self->_run_steps($opts_ref);
-
-    $self->_install_asgs_shell($opts_ref);
-
-    return EXIT_SUCCESS;
+    return;
 }
 
-sub _process_opts {
+sub _munge_option_defaults {
+    my ( $self, $opts_ref ) = @_;
+
+    # default to effective user's $HOME
+    if ( not $opts_ref->{home} ) {
+        $opts_ref->{home} = ( getpwuid $> )[7];
+    }
+
+    # otherwise, force $HOME in the process' environment to use
+    # a custom value of for $HOME
+    else {
+        # sanity check, anything defined by --home must already exist
+        die qq/$opts_ref->{home} must exist to proceed. Please create it manually.\n/ if not -d $opts_ref->{home};
+
+        # set this is $HOME in the current environment (catch-all) if --replace-home is used (experimental)
+        $ENV{HOME} = $opts_ref->{home} if $opts_ref->{'replace-home'};
+    }
+
+    # post Getopt defaults, in case user has set a new 'home' with --home
+    my $asgs_home       = $opts_ref->{home};
+    my $adcirc_git_repo = $opts_ref->{'adcirc-git-repo'};
+    $opts_ref->{'adcirc-dir'}   = $opts_ref->{'adcirc-dir'}   // qq{$asgs_home/$adcirc_git_repo};    # 'adcirc-cg' is the upstream repo name
+    $opts_ref->{'install-path'} = $opts_ref->{'install-path'} // qq{$asgs_home/opt};
+    $opts_ref->{'install-path'} = sprintf( "%s/%s", $opts_ref->{'install-path'}, $opts_ref->{'asgs-profile'} );
+    return;
+}
+
+sub _prerun_steps {
     my ( $self, $opts_ref ) = @_;
 
     # determine run steps
@@ -218,38 +291,40 @@ sub _install_asgs_shell {
 
     return 1 if $opts_ref->{'list-steps'} or $opts_ref->{clean};    # do not show
 
-    my $install_path = $opts_ref->{'install-path'};
-    my $home         = $opts_ref->{home};
-    my $machinename  = $opts_ref->{machinename};
-    my $compiler     = $opts_ref->{compiler};
-    my $scriptdir    = $opts_ref->{scriptdir};
-    my $profile      = $opts_ref->{profile};
-    my $env_summary  = $self->_get_env_summary($opts_ref);
+    my $asgs_install_path = $opts_ref->{'install-path'};
+    my $asgs_home         = $opts_ref->{home};
+    my $asgs_machine_name = $opts_ref->{machinename};
+    my $asgs_compiler     = $opts_ref->{compiler};
+    my $scriptdir         = $opts_ref->{scriptdir};
+    my $profile           = $opts_ref->{'asgs-profile'};
+    my $env_summary       = $self->_get_env_summary($opts_ref);
+    my $asgs_meta_dir     = $ENV{ASGS_META_DIR};
 
     # create the registry for ASGS profiles if it doesn't
     # already exist
-    if ( !-e qq{$home/.asgs} ) {
-        mkdir qq{$home/.asgs};
+    if ( !-e qq{$asgs_meta_dir} ) {
+        mkdir qq{$asgs_meta_dir};
     }
 
     # dump the full environment into a named profile
     # NOTE: overwrites anything that is there of the name
-    open my $fh, q{>}, qq{$home/.asgs/$profile} || die $!;
+    open my $fh, q{>}, qq{$asgs_meta_dir/$profile} || die $!;
     print $fh $env_summary;
     close $fh;
 
+    # this file supplies the functionality of asgsh
     my $rcfile_src = q{./cloud/general/DOT-asgs-brew.sh};
-    my $rcfile     = qq{$home/.asgs-brew.sh};
+    my $rcfile     = qq{$asgs_home/.asgs-brew.sh};
     if ( -e $rcfile_src ) {
         File::Copy::copy( $rcfile_src, $rcfile );
     }
 
-    # create/update $home/bin/asgsh
-    my $home_bin = qq{$home/bin};
-    if ( !-e qq{$home_bin} ) {
-        mkdir qq{$home_bin};
+    # create/update $asgs_home/bin/asgsh
+    my $asgs_home_bin = qq{$asgs_home/bin};
+    if ( !-e qq{$asgs_home_bin} ) {
+        mkdir qq{$asgs_home_bin};
     }
-    my $file = qq{$home_bin/asgsh};
+    my $file = qq{$asgs_home_bin/asgsh};
     open $fh, q{>}, $file or die qq{failed to create $file: $!};
     print $fh $self->_get_asgsh( $opts_ref, $rcfile );
     chmod 0750, $file;
@@ -265,23 +340,26 @@ Quick Start:
 
 Recommended Start:
 
-Adding the following line to your $home/.bash_profile file to preserve
+Adding the following line to your $asgs_home/.bash_profile file to preserve
 the change on subsequent logins:
 
-   export PATH=\$PATH:$home_bin
+   export PATH=\$PATH:$asgs_home_bin
 
 Source it:
 
-   . $home/.bash_profile
+   . $asgs_home/.bash_profile
 
 Then run the shell:
 
    asgsh
 
+If you didn't optionally build ADCIRC, the you can do so using the guided
+utility available under asgsh, 'initadcirc'
+
 NOTE:
 Once this is run, you may assume the above environment is available. This
 can be tested by making sure the exected binaries are in your path, for
-example, `which ncdump` should find the utility in $install_path/bin
+example, `which ncdump` should find the utility in $asgs_install_path/bin
 
 To report bugs or request enhancements, please file them at
 
@@ -295,19 +373,49 @@ Happy ASGS'ing.
 
 sub _get_asgsh {
     my ( $self, $opts_ref, $rcfile ) = @_;
-    my $install_path = $opts_ref->{'install-path'};
-    my $home         = $opts_ref->{home};
-    my $machinename  = $opts_ref->{machinename};
-    my $compiler     = $opts_ref->{compiler};
-    my $scriptdir    = $opts_ref->{scriptdir};
-    my $env_summary  = $self->_get_env_summary($opts_ref);
+    my $asgs_install_path   = $opts_ref->{'install-path'};
+    my $asgs_home           = $opts_ref->{home};
+    my $asgs_machine_name   = $opts_ref->{machinename};
+    my $asgs_compiler       = $opts_ref->{compiler};
+    my $scriptdir           = $opts_ref->{scriptdir};
+    my $env_summary         = $self->_get_env_summary($opts_ref);
+    my $_asgs_exported_vars = join( q{ }, keys %$AFFECTED_ENV_VARS );
+
     return qq{#!/usr/bin/env bash
 # xxx THIS FILE IS GENERATED BY asgs-brew.pl                                           xxx
 # xxx DO NOT CUSTOMIZE THIS FILE, IT WILL BE OVERWRITTEN NEXT TIME asgs-brew.pl IS RUN xxx
 # 
 # Update shell by adding "--update-shell" flag to the asgs-brew.pl command used to build this
 # environment:
-#     ./asgs-brew.pl --compiler-$compiler --machinename=$machinename --install-path=$install_path --update-shell
+#     ./asgs-brew.pl --compiler-$asgs_compiler --machinename=$asgs_machine_name --install-path=$asgs_install_path --update-shell
+
+if [ -n "\$_ASGSH_PID" ]; then
+  echo
+  echo "Do not nest asgsh. To restart asgsh, type 'exit' then 'asgsh'."
+  echo
+  exit 1
+fi
+
+# process options passed directly to `asgsh`
+options=\$(getopt -u -o "hp:" -- "\$@")
+eval set -- "\$options"
+while true
+  do
+    case \$1 in
+      -h)
+        echo "\nInteractive ASGS Shell Environment\n\nUsage:\n\tasgsh [-h] | [-p PROFILE-NAME]\n"
+        exit 1
+        ;;
+      -p) 
+        shift
+        export profile=\$1
+        ;;
+      --)
+        shift
+        break;;
+    esac
+    shift
+done
 
 clear
 echo
@@ -344,14 +452,14 @@ else
   else
     echo "warning: could not find $scriptdir/properties.sh"
   fi
-  # initializing ASGS environment and platform, based on $machinename
+  # initializing ASGS environment and platform, based on $asgs_machine_name
   if [ -e "$scriptdir/monitoring/logging.sh" ]; then
     echo "found logging.sh"
     . $scriptdir/monitoring/logging.sh 
     if [ -e "$scriptdir/platforms.sh" ]; then
       echo "found platforms.sh"
       . $scriptdir/platforms.sh
-      env_dispatch $machinename
+      env_dispatch $asgs_machine_name
     else
       echo "warning: could not find $scriptdir/platforms.sh"
     fi
@@ -362,8 +470,17 @@ fi
 
 # xxx THIS FILE IS GENERATED BY asgs-brew.pl                                           xxx
 # xxx DO NOT CUSTOMIZE THIS FILE, IT WILL BE OVERWRITTEN NEXT TIME asgs-brew.pl IS RUN xxx
-#
+ 
+# denotes we're in an active asgsh session
+export _ASGSH_PID=\$\$
+
+# denotes which environmental variables we care about when saving a profile - includes variables that
+# are meaningful to ASGS Shell, but not set in asgs-brew.pl
+export _ASGS_EXPORTED_VARS="$_asgs_exported_vars _ASGS_EXPORTED_VARS WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD"
 $env_summary
+
+# export opts for processing in $rcfile
+export _ASGS_OPTS="\$@"
 
 # starts up bash with the environment created by asgs-brew.pl, sets the to "asgs> " so we know
 # we're in the ASGS environment
@@ -376,8 +493,8 @@ exec bash --rcfile "$rcfile"
 
 sub _run_command {
     my ( $self, $op, $opts_ref ) = @_;
-    my $compiler     = $opts_ref->{compiler};
-    my $install_path = $opts_ref->{'install-path'};
+    my $asgs_compiler     = $opts_ref->{compiler};
+    my $asgs_install_path = $opts_ref->{'install-path'};
 
     # choose command to run
     my $command = ( not $opts_ref->{clean} ) ? $op->{command} : $op->{clean};
@@ -421,7 +538,7 @@ sub _get_env_summary {
 
 sub _setup_ENV {
     my ( $self, $op, $opts_ref ) = @_;
-    my $install_path = $opts_ref->{'install-path'};
+    my $asgs_install_path = $opts_ref->{'install-path'};
   SETUP_ENV:
     foreach my $envar ( keys %{ $op->{export_ENV} } ) {
         ++$AFFECTED_ENV_VARS->{$envar};    # track all environmental variables that are touched
@@ -436,8 +553,6 @@ sub _setup_ENV {
         elsif ( $op->{export_ENV}->{$envar}->{how} eq q{replace} ) {
             $ENV{$envar} = $op->{export_ENV}->{$envar}->{value};
         }
-
-        #print qq{setting $envar=$ENV{$envar}\n};
     }
     return 1;
 }
@@ -446,12 +561,20 @@ sub _setup_ENV {
 # TODO - add in preconditions, need per step validation of required options/params
 sub get_steps {
     my ( $self, $opts_ref ) = @_;
-    my $scriptdir    = $opts_ref->{scriptdir};
-    my $install_path = $opts_ref->{'install-path'};
-    my $compiler     = $opts_ref->{compiler};
-    my $home         = $opts_ref->{home};
-    my $machinename  = $opts_ref->{machinename};
-    my $makejobs     = $opts_ref->{'make-jobs'};
+
+    my $scriptdir         = $opts_ref->{scriptdir};
+    my $asgs_install_path = $opts_ref->{'install-path'};
+    my $asgs_compiler     = $opts_ref->{compiler};
+    my $asgs_home         = $opts_ref->{home};
+    my $asgs_machine_name = $opts_ref->{machinename};
+    my $makejobs          = $opts_ref->{'make-jobs'};
+    my $brewflags         = $opts_ref->{brewflags};
+    my $adcircdir         = $opts_ref->{'adcirc-dir'};
+    my $adcirc_git_url    = $opts_ref->{'adcirc-git-url'};
+    my $adcirc_git_branch = $opts_ref->{'adcirc-git-branch'};
+    my $adcirc_git_repo   = $opts_ref->{'adcirc-git-repo'};
+    my $pythonversion     = q{2.7.18};
+    my $pythonpath        = qq{$asgs_install_path/python27/asgs/build/python-$pythonversion};
 
     my $steps = [
         {
@@ -460,43 +583,46 @@ sub get_steps {
             description => q{Updates current environment with variables needed for subsequent steps. It only affects the environment within the asgs-brew.pl environment.},
             pwd         => q{./},
             command     => sub { 1 },
-            clean       => qq{rm -vf $install_path/bin/asgsh # removes asgs shell wrapper},
+            clean       => qq{rm -vf $asgs_install_path/bin/asgsh # removes asgs shell wrapper},
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                PATH            => { value => qq{$install_path/bin},     how => q{prepend} },
-                LIBRARY_PATH    => { value => qq{$install_path/lib},     how => q{prepend} },
-                LD_LIBRARY_PATH => { value => qq{$install_path/lib},     how => q{prepend} },
-                LD_RUN_PATH     => { value => qq{$install_path/lib},     how => q{prepend} },
-                LD_INCLUDE_PATH => { value => qq{$install_path/include}, how => q{prepend} },
-                MACHINENAME     => { value => qq{$machinename},          how => q{replace} },
-                ADCCOMPILER     => { value => qq{$compiler},             how => q{replace} },
-                SCRIPTDIR       => { value => qq{$scriptdir},            how => q{replace} },
-                PERL5LIB        => { value => qq{$scriptdir/PERL},       how => q{append} },
+                PATH              => { value => qq{$asgs_install_path/bin:$scriptdir/cloud/general}, how => q{prepend} },    # prefer ASGS binaries and tools
+                LIBRARY_PATH      => { value => qq{$asgs_install_path/lib},                          how => q{prepend} },    # for use by linkers
+                LD_LIBRARY_PATH   => { value => qq{$asgs_install_path/lib},                          how => q{prepend} },    # for use by linkers
+                LD_RUN_PATH       => { value => qq{$asgs_install_path/lib},                          how => q{prepend} },    # for use by binaries
+                LD_INCLUDE_PATH   => { value => qq{$asgs_install_path/include},                      how => q{prepend} },    # for use by compilers
+                SCRIPTDIR         => { value => qq{$scriptdir},                                      how => q{replace} },    # base ASGS dir, used by asgs_main.sh
+                PERL5LIB          => { value => qq{$scriptdir/PERL},                                 how => q{append} },     # place for distributed Perl libraries
+                ADCIRC_META_DIR   => { value => qq{$asgs_home/.adcirc-meta},                         how => q{replace} },    # where to track ASGS profiles (always)
+                ASGS_META_DIR     => { value => qq{$asgs_home/.asgs},                                how => q{replace} },    # where to track ADCIRC installs build information (always)
+                ASGS_BREW_FLAGS   => { value => qq{'$brewflags'},                                    how => q{replace} },    # make brew flags available for later use
+                ASGS_HOME         => { value => qq{$asgs_home},                                      how => q{replace} },    # used in preference of $HOME in most cases
+                ASGS_MACHINE_NAME => { value => qq{$asgs_machine_name},                              how => q{replace} },    # machine referred to as in platforms.sh & cmplrflags.mk
+                ASGS_COMPILER     => { value => qq{$asgs_compiler},                                  how => q{replace} },    # compiler family designated during asgs-brew.pl build
+                ASGS_INSTALL_PATH => { value => qq{$asgs_install_path},                              how => q{replace} },    # where asgs-brew.pl installs supporting bins & libs
+                ASGS_MAKEJOBS     => { value => qq{$makejobs},                                       how => q{replace} },    # passed to make commands where Makefile supports
             },
-            skip_if             => sub { 0 },    # if true and --force is not used, unilaterally skips the run step
-            precondition_check  => sub { 1 },    # just a "1" indicates no checking is done
-            postcondition_check => sub { 1 },
         },
         {
             key         => q{openmpi},
             name        => q{Step for OpenMPI 1.8.1 for gfortran},
             description => q{Downloads and builds OpenMPI on all platforms for ASGS. Note: gfortran is required, so any compiler option causes this step to be skipped.},
             pwd         => q{./cloud/general},
-            command     => qq{bash init-openmpi.sh $install_path $compiler $makejobs},
-            clean       => qq{bash init-openmpi.sh $install_path clean},
+            command     => qq{bash init-openmpi.sh $asgs_install_path $asgs_compiler $makejobs},
+            clean       => qq{bash init-openmpi.sh $asgs_install_path clean},
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                PATH => { value => qq{$install_path/$compiler/bin}, how => q{prepend} },
+                PATH => { value => qq{$asgs_install_path/$asgs_compiler/bin}, how => q{prepend} },
             },
 
             # skip this step if the compiler is not set to gfortran
-            skip_if            => sub { return ( ( $compiler ne q{gfortran} ) ) ? 1 : 0 },
+            skip_if            => sub { return ( ( $asgs_compiler ne q{gfortran} ) ) ? 1 : 0 },
             precondition_check => sub { 1 },
             postcondition_check => sub {
                 my ( $op, $opts_ref ) = @_;
-                my $bin          = qq{$opts_ref->{'install-path'}/$compiler/bin};
+                my $bin          = qq{$opts_ref->{'install-path'}/$asgs_compiler/bin};
                 my $ok           = 1;
                 my @mpi_binaries = (qw/mpiCC mpic++ mpicc mpicxx mpiexec mpif77 mpif90 mpifort mpirun ompi-clean ompi-ps ompi-server ompi-top ompi_info opal_wrapper orte-clean orte-info orte-ps orte-server orte-top ortecc orted orterun/);
                 map { $ok = -e qq[$bin/$_] && $ok } @mpi_binaries;
@@ -508,19 +634,19 @@ sub get_steps {
             name        => q{Step for HDF5 libraries and utilities},
             description => q{Downloads and builds the version of HDF5 that has been tested to work on all platforms for ASGS.},
             pwd         => q{./cloud/general},
-            command     => qq{bash init-hdf5.sh $install_path $compiler $makejobs},
-            clean       => qq{bash init-hdf5.sh $install_path clean},
+            command     => qq{bash init-hdf5.sh $asgs_install_path $asgs_compiler $makejobs},
+            clean       => qq{bash init-hdf5.sh $asgs_install_path clean},
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                CPPFLAGS    => { value => qq{-I$install_path/include}, how => q{append} },
-                LDFLAGS     => { value => qq{-L$install_path/lib},     how => q{append} },
-                HDF5_DIR    => { value => qq{$install_path},           how => q{replace} },    # needed for netCDF4 python module
-                HDF5_LIBDIR => { value => qq{$install_path/lib},       how => q{replace} },    # needed for netCDF4 python module
-                HDF5_INCDIR => { value => qq{$install_path/include},   how => q{replace} },    # needed for netCDF4 python module
+                CPPFLAGS    => { value => qq{-I$asgs_install_path/include}, how => q{append} },
+                LDFLAGS     => { value => qq{-L$asgs_install_path/lib},     how => q{append} },
+                HDF5_DIR    => { value => qq{$asgs_install_path},           how => q{replace} },    # needed for netCDF4 python module
+                HDF5_LIBDIR => { value => qq{$asgs_install_path/lib},       how => q{replace} },    # needed for netCDF4 python module
+                HDF5_INCDIR => { value => qq{$asgs_install_path/include},   how => q{replace} },    # needed for netCDF4 python module
             },
-            skip_if            => sub { 0 },                                                   # if true and --force is not used, unilaterally skips the run step
-            precondition_check => sub { 1 },                                                   # just a "1" indicates no checking is done
+            skip_if            => sub { 0 },                                                        # if true and --force is not used, unilaterally skips the run step
+            precondition_check => sub { 1 },                                                        # just a "1" indicates no checking is done
             postcondition_check => sub {
                 my ( $op, $opts_ref ) = @_;
                 my $bin = qq{$opts_ref->{'install-path'}/bin};
@@ -534,19 +660,20 @@ sub get_steps {
             name        => q{Step for NetCDF4 libraries and utilities},
             description => q{Downloads and builds the versions of NetCDF and NetCFD-Fortran that have been tested to work on all platforms for ASGS.},
             pwd         => q{./cloud/general},
-            command     => qq{bash init-netcdf4.sh $install_path $compiler $makejobs},
-            clean       => qq{bash init-netcdf4.sh $install_path clean},
+            command     => qq{bash init-netcdf4.sh $asgs_install_path $asgs_compiler $makejobs},
+            clean       => qq{bash init-netcdf4.sh $asgs_install_path clean},
 
             # Note: uses environment set by setup-env step above
             # augment existing %ENV (cumulative)
             export_ENV => {
-                NETCDFHOME     => { value => qq{$install_path},         how => q{replace} },
-                NETCDF4_DIR    => { value => qq{$install_path},         how => q{replace} },    # needed for netCDF4 python module
-                NETCDF4_LIBDIR => { value => qq{$install_path/lib},     how => q{replace} },    # needed for netCDF4 python module
-                NETCDF4_INCDIR => { value => qq{$install_path/include}, how => q{replace} },    # needed for netCDF4 python module
+                NETCDFHOME     => { value => qq{$asgs_install_path},         how => q{replace} },
+                NETCDFROOT     => { value => qq{$asgs_install_path},         how => q{replace} },    # used by SWAN's
+                NETCDF4_DIR    => { value => qq{$asgs_install_path},         how => q{replace} },    # needed for netCDF4 python module
+                NETCDF4_LIBDIR => { value => qq{$asgs_install_path/lib},     how => q{replace} },    # needed for netCDF4 python module
+                NETCDF4_INCDIR => { value => qq{$asgs_install_path/include}, how => q{replace} },    # needed for netCDF4 python module
             },
-            skip_if            => sub { 0 },                                                    # if true and --force is not used, unilaterally skips the run step
-            precondition_check => sub {                                                         # requires HDF5, so the precondition here is the same as the post condition of the hdf5 step above
+            skip_if            => sub { 0 },                                                         # if true and --force is not used, unilaterally skips the run step
+            precondition_check => sub {                                                              # requires HDF5, so the precondition here is the same as the post condition of the hdf5 step above
                 my ( $op, $opts_ref ) = @_;
                 my $bin = qq{$opts_ref->{'install-path'}/bin};
                 my $ok  = 1;
@@ -568,7 +695,7 @@ sub get_steps {
             pwd         => q{./},
 
             # -j > 1 breaks this makefile
-            command             => qq{make -j 1 NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=gfortran},
+            command             => qq{make -j 1 NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=gfortran},
             clean               => q{make clean},
             skip_if             => sub { 0 },
             precondition_check  => sub { 1 },
@@ -579,7 +706,7 @@ sub get_steps {
             name                => q{Step for in output/cpra_postproc},
             description         => q{Runs the makefile and builds associated utilities in the output/cpra_postproc directory},
             pwd                 => q{./output/cpra_postproc},
-            command             => qq{make -j $makejobs NETCDF_CAN_DEFLATE=enable NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
+            command             => qq{make -j $makejobs NETCDF_CAN_DEFLATE=enable NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=$asgs_compiler},
             clean               => q{make clean},
             skip_if             => sub { 0 },
             precondition_check  => sub { 1 },
@@ -592,7 +719,7 @@ sub get_steps {
             pwd         => q{./output},
 
             # -j > 1 breaks this makefile
-            command             => qq{make -j 1 NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
+            command             => qq{make -j 1 NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=$asgs_compiler},
             clean               => q{make clean},
             skip_if             => sub { 0 },
             precondition_check  => sub { 1 },
@@ -606,7 +733,7 @@ sub get_steps {
             name                => q{Step for in util/},
             description         => q{Runs the makefile and builds all associated utilities in the util/ directory.},
             pwd                 => q{./util},
-            command             => qq{make -j $makejobs NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
+            command             => qq{make -j $makejobs NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=$asgs_compiler},
             clean               => q{make clean},
             skip_if             => sub { 0 },
             precondition_check  => sub { 1 },
@@ -617,7 +744,7 @@ sub get_steps {
             name                => q{Step for in util/input/mesh},
             description         => q{Runs the makefile and builds all associated util/input/mesh in the util/ directory.},
             pwd                 => qq{./util/input/mesh},
-            command             => qq{make -j $makejobs NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
+            command             => qq{make -j $makejobs NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=$asgs_compiler},
             clean               => q{make clean},
             skip_if             => sub { 0 },
             precondition_check  => sub { 1 },
@@ -633,7 +760,7 @@ sub get_steps {
             pwd         => q{./util/input/nodalattr},
 
             # -j > 1 breaks this makefile
-            command             => qq{make -j 1 NETCDFPATH=$install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=$machinename compiler=$compiler},
+            command             => qq{make -j 1 NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=$asgs_compiler},
             clean               => q{make clean},
             skip_if             => sub { 0 },
             precondition_check  => sub { 1 },
@@ -650,18 +777,18 @@ sub get_steps {
             # augment existing %ENV (cumulative) - this assumes that perlbrew is installed in $HOME and we're
             # using perl-5.28.2
             export_ENV => {
-                PATH             => { value => qq{$home/perl5/perlbrew/bin:$home/perl5/perlbrew/perls/perl-5.28.2/bin}, how => q{prepend} },
-                PERLBREW_PERL    => { value => q{perl-5.28.2},                                                          how => q{replace} },
-                PERLBREW_MANPATH => { value => qq{$home/perl5/perlbrew/perls/perl-5.28.2/man},                          how => q{prepend} },
-                PERLBREW_PATH    => { value => qq{$home/perl5/perlbrew/bin:$home/perl5/perlbrew/perls/perl-5.28.2/bin}, how => q{prepend} },
-                PERLBREW_HOME    => { value => qq{$home/.perlbrew},                                                     how => q{replace} },
-                PERLBREW_ROOT    => { value => qq{$home/perl5/perlbrew},                                                how => q{replace} },
-                PERL5LIB         => { value => qq{$home/perl5/perlbrew/perls/perl-5.28.2/lib/site_perl/5.28.2/},        how => q{prepend} },
+                PATH             => { value => qq{$asgs_home/perl5/perlbrew/bin:$asgs_home/perl5/perlbrew/perls/perl-5.28.2/bin}, how => q{prepend} },
+                PERLBREW_PERL    => { value => q{perl-5.28.2},                                                                    how => q{replace} },
+                PERLBREW_MANPATH => { value => qq{$asgs_home/perl5/perlbrew/perls/perl-5.28.2/man},                               how => q{prepend} },
+                PERLBREW_PATH    => { value => qq{$asgs_home/perl5/perlbrew/bin:$asgs_home/perl5/perlbrew/perls/perl-5.28.2/bin}, how => q{prepend} },
+                PERLBREW_HOME    => { value => qq{$asgs_home/.perlbrew},                                                          how => q{replace} },
+                PERLBREW_ROOT    => { value => qq{$asgs_home/perl5/perlbrew},                                                     how => q{replace} },
+                PERL5LIB         => { value => qq{$asgs_home/perl5/perlbrew/perls/perl-5.28.2/lib/site_perl/5.28.2/},             how => q{prepend} },
             },
             skip_if             => sub { 0 },
             postcondition_check => sub {
                 my ( $op, $opts_ref ) = @_;
-                return -e qq{$home/perl5/perlbrew/etc/bashrc};
+                return -e qq{$asgs_home/perl5/perlbrew/etc/bashrc};
             },
         },
         {
@@ -671,7 +798,7 @@ sub get_steps {
             pwd                 => q{./},
             command             => q{bash ./cloud/general/init-perl-modules.sh},
             clean               => sub { my $op = shift; print qq{No explicit clean step for, $op->{name}\n} },
-            precondition_check  => sub { return ( -e qq{$home/perl5/perlbrew/perls/perl-5.28.2/bin/perl} ) ? 1 : 0 },
+            precondition_check  => sub { return ( -e qq{$asgs_home/perl5/perlbrew/perls/perl-5.28.2/bin/perl} ) ? 1 : 0 },
             postcondition_check => sub {
                 local $?;
                 system(qq{prove ./cloud/general/t/verify-perl-modules.t 2>&1});
@@ -682,21 +809,24 @@ sub get_steps {
             },
         },
         {
+            # Note: updating the Python 2 version support must be done here and in the
+            # ./cloud/general/init-python.sh script
+            # Note: this installs Python 2, Python 3 is currently not supported (needs a new step entry)
             key         => q{python},
-            name        => q{Step for installing Python 2.7.17 and required modules},
-            description => q{Install Python 2.7.17 locally and install required modules},
+            name        => q{Step for installing Python 2.7.18 and required modules},
+            description => q{Install Python 2.7.18 locally and install required modules},
             pwd         => q{./},
             export_ENV  => {
 
                 # putting this in $HOME/python27/asgs/build reflects what perlbrew's default
                 # behavior is doing by putting perl into $HOME/perl5/perlbrew/build/perl-$version
-                PYTHONPATH => { value => qq{$home/python27/asgs/build/python-2.7.17},                      how => q{replace} },
-                PATH       => { value => qq{$home/python27/asgs/build/python-2.7.17/bin:$home/.local/bin}, how => q{prepend} },
+                PYTHONPATH => { value => $pythonpath,                               how => q{replace} },
+                PATH       => { value => qq{$pythonpath/bin:$asgs_home/.local/bin}, how => q{prepend} },
             },
-            command             => qq{bash ./cloud/general/init-python.sh install},
-            clean               => qq{bash ./cloud/general/init-python.sh clean},
+            command             => qq{bash ./cloud/general/init-python.sh install $pythonpath $pythonversion},
+            clean               => qq{bash ./cloud/general/init-python.sh clean   $pythonpath $pythonversion},
             skip_if             => sub { 0 },
-            precondition_check  => sub { 1 },                                         # for now, assuming success; should have a simple python script that attempts to load all of these modules
+            precondition_check  => sub { 1 },                                                                    # for now, assuming success; should have a simple python script that attempts to load all of these modules
             postcondition_check => sub {
                 local $?;
                 system(qq{./cloud/general/t/verify-python-modules.py 2>&1});
@@ -707,15 +837,23 @@ sub get_steps {
             },
         },
         {
-            key                 => q{adcirc},
-            name                => q{Build ADCIRC and SWAN},
-            description         => q{Builds ADCIRC and SWAN if $HOME/adcirc-cg exists.},
-            pwd                 => qq{./},
-            command             => q{bash cloud/general/init-adcirc.sh},
-            clean               => q{bash cloud/general/init-adcirc.sh clean},
-            skip_if             => sub { 0 },
-            precondition_check  => sub { 1 },
-            postcondition_check => sub { -e qq{$home/adcirc-cg/work/padcirc} },
+            key         => q{adcirc},
+            name        => q{Build ADCIRC and SWAN},
+            description => q{Builds ADCIRC and SWAN if $HOME/adcirc-cg exists.},
+            pwd         => qq{./},
+            export_ENV  => {
+                ADCIRCBASE          => { value => qq{$adcircdir-$adcirc_git_branch},      how => q{replace} },
+                ADCIRCDIR           => { value => qq{$adcircdir-$adcirc_git_branch/work}, how => q{replace} },
+                SWANDIR             => { value => qq{$adcircdir-$adcirc_git_branch/swan}, how => q{replace} },
+                ADCIRC_GIT_BRANCH   => { value => qq{$adcirc_git_branch},                 how => q{replace} },
+                ADCIRC_GIT_URL      => { value => qq{$adcirc_git_url},                    how => q{replace} },
+                ADCIRC_GIT_REPO     => { value => qq{$adcirc_git_repo},                   how => q{replace} },
+                ADCIRC_COMPILER     => { value => qq{$asgs_compiler},                     how => q{replace} },
+                ADCIRC_PROFILE_NAME => { value => qq{$adcirc_git_branch-$asgs_compiler},  how => q{replace} },
+            },
+            command => q{bash cloud/general/init-adcirc.sh},                   #Note: parameters input via environmental variables
+            clean   => q{bash cloud/general/init-adcirc.sh clean},
+            skip_if => sub { ( $opts_ref->{'build-adcirc'} ) ? undef : 1 },    # builds only if --build-adcirc is passed to asgs-brew.pl
         },
     ];
     return $steps;
@@ -766,7 +904,79 @@ commands that each step requires, and they can be added quite easily to
 accomodate new pieces of information.  Below is a summary of what's been
 added so far.
 
+=head2 Required
+
+Not including any of these options when calling C<asgs-brew.pl> will cause
+termination of the script before any processing is done.
+
 =over 3
+
+=item C<--asgs-profile> ProfileName
+
+Provides a globally unique name to the environment created by C<asgs-brew.pl>
+so that an operator may manage more than one ASGS installation. This option
+will overwrite profiles of the same name without warning. The ASGS Shell
+(C<asgsh>) is installed in only one location for all profiles. It looks for
+the profile named, C<default>, to load whenever it is started.
+
+=item C<--compiler> intel|gfortran
+
+This option allows one to define the compiler family or group, as it is
+typically passed to makefiles used by ASGS. The two most common values
+for this flag are going to be C<gfortran> and C<intel>.  The step is not
+required to use this value. It is merely passed along so that the C<command>
+string may have access to the value if it is needed.
+
+This value is set in the environment as C<ASGS_COMPILER>.
+
+=item C<--machinename> MachineName
+
+This option allows one to define the C<machine> name, which is a common
+value that is used in typical ASGS makefiles. It is made available for use
+when defining a step. The name of the machine must be consistent with what
+is in the ASGS C<platforms.sh> file and ADCIRC's C<cmplrmk.flags> file,
+otherwise you will see weird issues.
+
+This value is set in the environment as C<ASGS_MACHINE_NAME>.
+
+=back
+
+=head2 Additional Options
+
+=over 3
+
+=item C<--adcirc-git-branch> BranchTagOrSHA
+
+This option allows the operator installing ASGS to select a specific branch,
+tag, or commit hash to C<checkout> before an attempt is made to build
+ADCIRC from the source. It's passed directly to a C<git checkout> command,
+so valid values are determined entirely by what this C<git> command accepts.
+
+The default value of "." (dot) is meant to indicate that there will be no
+attempt to `git checkout` to the custom value (could be branch, tag, or
+commit hash as stated in the paragraph above).
+
+=item C<--adcirc-git-url> RemoteGitRepoURL
+
+Specify the remote ADCIRC repository url; also known as a C<fork>. This is really
+only useful for development activities, therefore by default it is set to
+the official ADCIRC repository URL on GitHub:
+
+L<https://github.com/adcirc>
+
+=item C<--adcirc-git-repo>
+
+Specify the name of the repo. The default is C<adcirc-cg>, which at the time
+of this writing is the name of the official repository on GitHub. Chances
+are very small that option needs to be changed from the default value.
+
+=item C<--adcirc-dir> /path/to/adcirc/dir
+
+Used in conjunction with the C<adcirc> build step. C<asgs-brew.pl> looks
+here for the ADCIRC source code to build. The environmental variable,
+C<ADCIRCDIR> is set using this path and will persist in the C<ASGS Shell>
+where it is affects where C<asgs_main.sh> looks for the ADCIRC binaries.
+This also adds C<ADCIRCBASE> and C<SWANDIR>.
 
 =item C<--clean>
 
@@ -775,15 +985,83 @@ script quits. The purpose of this is to provide access to the the C<clean>
 target that makefiles generally provide, but any command can be specificed
 in the step definition.
 
-=item C<--compiler>
+=item C<--force>
 
-This option allows one to define the compiler family or group, as it is
-typically passed to makefiles used by ASGS. The two most common values
-for this flag are going to be C<gfortran> and C<intel>.  The step is not
-required to use this value. It is merely passed along so that the C<command>
-string may have access to the value if it is needed.
+Forcibly runs all steps, in order.
 
-=item C<--skip-steps>
+Using this option overrides any C<skip_if> conditions found in any step; it
+also overrides both C<--skip-steps> and C<--run-steps>, if either has been
+provided as part of the command.
+
+=item C<--home> /path/to/alt/home
+
+The default is set to the effective user's actual home directory, which is
+the value that the environmental variable C<$HOME> is typically assigned. As
+with the C<--compiler> flag, this value may or may not be used to define
+some part of a step. This value also replaces the environment's HOME value
+before any default paths are set (e.g., if C<--install-path> is not specified)
+or any steps are executed. Anything depending on the effective user's HOME
+environmental variable will see this value. This is useful when installing
+ASGS from the C<$WORK> directory.
+
+This value is set in the environment as C<ASGS_HOME>, in addition to the
+traditional C<HOME> if C<--replace-home> is set.
+
+NOTE: Unintended consequences may arise in a user's C<ASGS Shell> environment
+if C<HOME> is changed.
+
+=item C<--replace-home>
+
+If used in conjunction with the C<--home> flag, replaces the effective user's
+HOME directory variable in the environment used throughout C<asgs-brew.pl> and
+provided in the ASGS Shell. This may cause unexpected results since a lot of
+things outside of ASGS rely on the C<$HOME> variable and make the assumption
+that it points to the effective user's actual home directory as defined in
+in the system's C</etc/passwd>.
+
+=item C<--install-path> /path/to/install/dir
+
+Equivalent to config's C<--prefix> option, available for use as the main parent
+directory under which to pass to scripts, makefiles, and other commands as
+the intended home for all of the utilities you wish to rehome.
+
+This value is set in the environment as C<ASGS_INSTALL_PATH>.
+
+=item C<--make-jobs> Integer
+
+Provides a way to specify the the level of concurrency one may use with
+a makefile when defining the command in a step. Some makefiles are not
+properly able to use this option, so it is optionally used when defining
+the step command itself.
+
+=item C<--debug>
+
+Provides debugging output for various options.
+
+=item C<--update-shell>
+
+This option is provided as a way to update the C<ASGS Shell> without executing
+any of the steps. 
+
+=back
+
+=head2 Options for C<run steps>
+
+Flags are provided to query the current set of run steps and to run selected
+steps, either by defining which steps to not run (C<--skip-steps>) or by defining
+only the steps to run (C<--run-steps>). Both cases are useful almost entirely
+for debugging purposes and are not generally recommends for operators installing
+ASGS on well supported systems.
+
+=over 3
+
+=item C<--list-steps>
+
+Prints a nice listing of each step's key (in order of execution) and the
+description. It then exits, doing nothing else. It's handy when using
+C<--skip-steps> since this option takes a list of keys to skip.
+
+=item C<--skip-steps> C<step1, step2, step3, ...>
 
 This flag is for really for debugging so that one may target a specific step,
 it is not meant for the general run case of building up the ASGS environment;
@@ -795,10 +1073,10 @@ be specificed as,
 
    --skip-steps=perl,openmpi,hdf5-netcdf
 
-To get the list of keys, use the C<--list-keys> option. This option is not
+To get the list of keys, use the C<--list-steps> option. This option is not
 compaitble with C<--run-steps>. C<--force> overrides it.
 
-=item C<--run-steps>
+=item C<--run-steps> C<step1, step2, step3, ...>
 
 This flag is for really for debugging so that one may target a specific step,
 it is not meant for the general run case of building up the ASGS environment;
@@ -807,58 +1085,13 @@ of run step keys (no spaces) to run. For example, if one wished to run
 the C<perl>, C<openmpi>, and C<hdf5-netcdf> steps, then the flag would be
 specified as,
 
-   --run-steps=perl,openmpi,hdf5-netcdf
+   --run-steps=openmpi,hdf5-netcdf,perl-modules
 
-To get the list of keys, use the C<--list-keys> option. This option is not
+To get the list of keys, use the C<--list-steps> option. This option is not
 compatibale with C<--skip-steps>. C<--force> overrides it.
 
-=item C<--setup-env>
-
-Runs through each step, but only sets up the environment that is specified
-(if it is specified).  It then prints to STDOUT the list of variables and
-their values in a way that is suitable to be used in a bash script.
-
-=item C<--force>
-
-If used, the C<skip_if> defined for a step (if defined) is not
-run. C<--skip-steps> dn C<--run-steps> are checked before C<--force> and
-therefore overrides them.
-
-=item C<--home>
-
-The default is set to the effective user's actual home directory, which is
-the value that the environmental variable $HOME is typically assigned. As
-with the C<--compiler> flag, this value may or may not be used to define
-some part of a step.
-
-=item C<--install-path>
-
-Equivalent to config's C<--prefix> option, available for use as the main parent
-directory under which to pass to scripts, makefiles, and other commands as
-the intended home for all of the utilities you wish to rehome.
-
-=item C<--list-steps>
-
-Prints a nice listing of each step's key (in order of execution) and the
-description. It then exits, doing nothing else. It's handy when using
-C<--skip-steps> since this option takes a list of keys to skip.
-
-=item C<--machinename>
-
-This option allows one to define the C<machine> name, which is a common
-value that is used in typical ASGS makefiles. It is made available for use
-when defining a step.
-
-=item C<--make-jobs>
-
-Provides a way to specify the the level of concurrency one may use with
-a makefile when defining the command in a step. Some makefiles are not
-properly able to use this option, so it is optionally used when defining
-the step command itself.
-
-=item C<--debug>
-
-Provides debugging output for various options.
+NOTE: run order is defined by how each step is defined internally, not by
+the order in which they are passed to C<--run-steps>.
 
 =back
 
@@ -881,7 +1114,7 @@ the variable and what it's new value should be.
 A good example is the step that builds the NETCDF and HDF5 libraries, utlized
 extensively by any utility that must read or modify ADCIRC output files,
 hot start files, or external forcing data. Therefore, before the step is
-executed, the following variables are updated in %ENV:
+executed, the following variables are among those updated in %ENV:
 
 =over 3
 
@@ -899,10 +1132,19 @@ asgs-brew.pl doesn't automatically update the user's environment as it exists
 after all steps have been run successfully. Since there is the ability to
 export environmental variables in each step (available for the current and
 subsequent steps), it might be desired to be able to recreate this post-run.
-To get a dump of the variables set, how they are set, one may use the
-C<update-shell> option. Adding this to the set of options provided at build
-time will produce the update variables as they appear at the end of a fully
-successful running of all steps.
+
+For ease of use, a wrapper around the native bash shell is installed called
+C<asgsh>. Instructions on starting this shell environment are output at the
+end of a successful installation. Included in this environment are a set of
+ASGS specific commands and the full environment as it existed at the end.
+
+Documentation of the ASGS Shell is contained as a help section in the shell
+itself. The C<--update-shell> option may be used with C<asgs-brew.pl> to
+update to the latest version of this shell environment without have to run
+each step.
+
+There is also additional information in the C<ASGS INTERACTIVE SHELL> section
+below.
 
 =head1 ADDING AND MANAGING STEPS
 
@@ -911,6 +1153,10 @@ steps it should appear. If it's a library used by many utilities (e.g.,
 NetCDF or HDF5), additional care must be made when specifying the step -
 in particular the environmental variables that is standard for compilers
 utilize, such as C<LD_INCLUDE_PATH> or C<LD_LIBRARY_PATH>.
+
+NOTE: The best way to learn about the structure of a step is to inspect the
+source code of C<asgs-brew.pl>. What follows is a reference, but doesn't give
+as clear of a picture as viewing the actual implementation details.
 
 The defined C<keys> to define when adding a step are as follow,
 
@@ -948,7 +1194,7 @@ kept to a minimum. Most of the complexity associated with a step should be
 hidden within the step's makefile, script, or program supporting the command.
 
 A command can either be a string, which is evaluated using the C<system> command;
-or it can be an anonymous subroutine. In this case, when the reference is
+or it can be an anonymous Perl subroutine. In this case, when the reference is
 called it will be pased a reference of the step's fully defined hash and
 all options and tracked internal information that is tracked in the code with
 the C<$opts_ref> varable (inspect asgs-brew.pl's code to see this).
@@ -963,9 +1209,9 @@ Below is an example used for the C<hdf5-netcdf> step. This example demonstrates
 which variables to update, with what value, and how.
 
     export_ENV => {
-	LD_LIBRARY_PATH => { value => qq{$install_path/lib},     how => q{prepend} },
-	LD_INCLUDE_PATH => { value => qq{$install_path/include}, how => q{prepend} },
-	NETCDFHOME      => { value => qq{$install_path},         how => q{replace} },
+	LD_LIBRARY_PATH => { value => qq{$asgs_install_path/lib},     how => q{prepend} },
+	LD_INCLUDE_PATH => { value => qq{$asgs_install_path/include}, how => q{prepend} },
+	NETCDFHOME      => { value => qq{$asgs_install_path},         how => q{replace} },
     },
 
 Options for C<how> include: C<prepend> (default if not defined), C<append>,

@@ -1,20 +1,54 @@
-Quick Start:
+Quick Start (interactive):
 
 Run,
 
 ./init-asgs.sh
 
-Notes:
+General Notes:
 
-./init-asgs.sh is a wrapper script around ./cloud/general/asgs-brew.pl
+0. It is recommended that ASGS be cloned (from Github) and installed in
+your $WORK directory. The asgs directory has the potential to grow quite
+large due to the way it currently handles downloaded needed input files
+like ADCIRC meshes and other input files. An attempt to have all interactive
+installation tools prefer the $WORK directory has been made (including
+initadcirc, which is a guided installation of ADCIRC).
+
+1. ./init-asgs.sh is a wrapper script around ./cloud/general/asgs-brew.pl
 that guides a user through a few questions. It concludes by asking the
 user if they wish to run asgs-brew.pl. If the user selects "y", then
 ./cloud/general/asgs-brew.pl is executed using the required flags with
 the designated values.
 
-asgs-brew.pl will build all required untilities, install perl locally
-using perlbrew, install python 2.7.17 locally, then provide a shell
+2. asgs-brew.pl will build all required untilities, install perl locally
+using perlbrew, install python 2.7.18 locally, then provide a shell
 wrapper to the ASGS environment via the asgsh shell.
 
 Once asgs-brew.pl is completed successfully, it will output the simple
 instructions used to run asgsh for the first time.
+
+Platform Specific Notes:
+
+I. Hatteras
+
+New accounts on Hatteras are provided with a fairly vanilla environment,
+with all of the interesting applications and compilers provided via the
+'module' command. For ASGS, this means that one must ensure that the Intel
+Compiler and MPI libraries are loaded before attempting an installation.
+For example, either via commandline or provided for via $HOME/.bash_profile
+the following modules should be loaded:
+
+	module load intelc/18.0.0
+	module load openmpi/intel_3.0.0
+
+II. SuperMIC (LSU/HPC) and QueenBee2 (LONI):
+
+The ASGS installation process may take more time and computational resources
+than the LSU resources allow. For this reason, it is recommended that ASGS
+be build in a single node interactive session; e.g.,
+
+1. launch an interactive session on a compute node:
+
+        # on SuperMIC
+	qsub -I -l walltime=02:00:00,nodes=1:ppn=20 -A your-allocation-name 
+
+2. once the session launches, follow the instructions for installing ASGS

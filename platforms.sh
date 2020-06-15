@@ -55,7 +55,7 @@ init_supermike()
   MCRROOT=/usr/local/packages/license/matlab/r2017a # for matlab mex files
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=16
-  TDS=(lsu_tds renci_tds)
+  TDS=(lsu_tds)
   if [[ $operator = "jgflemin" ]]; then
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
@@ -85,29 +85,27 @@ init_queenbee()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$HOME/local"
-  RMQMessaging_Python=/usr/local/packages/python/2.7.12-anaconda/bin/python
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
   PLATFORMMODULES='module load intel netcdf netcdf_fortran'
   # modules for CPRA post processing
   MATLABEXE=script # "script" means just execute matlab
   MCRROOT=/usr/local/packages/license/matlab/r2017a
-  SERIALMODULES='module load matlab/r2015b python/2.7.12-anaconda-tensorflow'
+  SERIALMODULES='module load matlab/r2015b'
   PARALLELMODULES='module load mvapich2'
   JOBENVDIR=$SCRIPTDIR/config/machines/queenbee
   JOBENV=( )
-  TDS=(lsu_tds renci_tds)
+  TDS=( lsu_tds )
   # needed for asgs perl
   #source ~/perl5/perlbrew/etc/bashrc
   module purge
   $PLATFORMMODULES
   $SERIALMODULES
   if [[ $operator = "jgflemin" || $USER = "jgflemin" ]]; then
-     ACCOUNT=loni_cera_2019a
+     ACCOUNT=loni_lsu_ccr_19
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     ACCOUNT=loni_cera_2019a
-     JOBENV=( gmt.sh gdal.sh imagemagick.sh perlbrew.sh )
+     JOBENV=( ) # all exes are in /work/jgflemin/opt/default/bin ; all libs are in /work/jgflemin/default/lib
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
@@ -129,7 +127,6 @@ init_queenbee()
      RMQMessaging_Enable="on"      # "on"|"off"
      RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
      RMQMessaging_NcoHome="$HOME/local"
-     RMQMessaging_Python=/project/mbilskie/mbilskie_conda-env/asgs/bin/python
      SCRATCHDIR=/work/$operator/asgs/2019/runs/
   fi
   THIS=platforms.sh
@@ -172,7 +169,7 @@ init_rostam()
   CONSTRAINT=null
   RESERVATION=null
   REMOVALCMD="rm"
-  TDS=(lsu_tds renci_tds)
+  TDS=( lsu_tds )
   if [[ $operator = "jgflemin" ]]; then
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
@@ -207,14 +204,13 @@ init_supermic()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$HOME/local"
-  RMQMessaging_Python=/usr/local/packages/python/2.7.13-anaconda/bin/python
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
   PLATFORMMODULES='module load intel/14.0.2 hdf5/1.8.12/INTEL-140-MVAPICH2-2.0 netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0 netcdf_fortran/4.2/INTEL-140-MVAPICH2-2.0'
   # modules for CPRA post processing
   MATLABEXE=script # "script" means just execute matlab; only for LSU staff, not affiliates
   MCRROOT=/usr/local/packages/license/matlab/r2017a
-  SERIALMODULES='module load matlab/r2017a python/2.7.13-anaconda-tensorflow'
+  SERIALMODULES='module load matlab/r2017a'
   PARALLELMODULES='module load mvapich2'
   JOBENVDIR=$SCRIPTDIR/config/machines/supermic
   PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
@@ -222,8 +218,9 @@ init_supermic()
   if [[ $operator = "jgflemin" ]]; then
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     ACCOUNT=hpc_cera_2019b
-     JOBENV=( gmt.sh gdal.sh imagemagick.sh )
+     #ACCOUNT=hpc_cera_2019c
+     ACCOUNT=hpc_crc_smi_19
+     JOBENV=( )
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
@@ -243,7 +240,7 @@ init_supermic()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCHDIR
   ARCHIVEDIR=$SCRATCHDIR
-  TDS=(lsu_tds renci_tds)
+  TDS=( lsu_tds )
   module purge
   $PLATFORMMODULES
   $SERIALMODULES
@@ -272,7 +269,6 @@ init_pod()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$HOME/local"
-  RMQMessaging_Python=/usr/bin/python
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   PLATFORMMODULES='module load gcc/6.2.0'
   # modules for CPRA post processing
@@ -294,7 +290,6 @@ init_pod()
    if [[ $operator = bblanton ]]; then
       SCRATCHDIR=/home/bblanton/asgs_scratch
       RMQMessaging_NcoHome="/home/bblanton/"
-      RMQMessaging_Python="/home/bblanton/asgs/asgspy/bin/python"
    fi
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCHDIR
@@ -329,14 +324,13 @@ init_hatteras()
   QSUMMARYCMD=null
   QUOTACHECKCMD="df -h /projects/ncfs"
   ALLOCCHECKCMD=null
-  TDS=(renci_tds lsu_tds)
+  TDS=( renci_tds )
   # 
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   #
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="/home/ncfs"
-  RMQMessaging_Python=/usr/bin/python
   RMQMessaging_LocationName="RENCI"
   RMQMessaging_ClusterName="Hatteras"
 
@@ -345,14 +339,17 @@ init_hatteras()
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/hatteras
   JOBENV=( gdal.sh gmt.sh fftw.sh netcdf.sh )
-  export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
   case $USER in 
   bblanton) 
+     export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
      ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
      SCRATCHDIR=/scratch/bblanton/data
      PYTHONVENV=/projects/storm_surge/anaconda
+     PLATFORMMODULES='module load mvapich2/2.0-acis'
+     SERIALMODULES='module load' # no extra modules for serial jobs
      ;;
   ncfs-dev)
+     export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
      ADCIRCDIR="${HOME}/ADCIRC/v53release/work" # ADCIRC executables
      SWANDIR="${HOME}/ADCIRC/v53release/swan" # ADCIRC executables
      SCRATCHDIR=/scratch/ncfs-dev/
@@ -360,37 +357,28 @@ init_hatteras()
      PARTITION=ncfs       # ncfs or batch, gives priority
      PYTHONVENV="$HOME/miniconda2"
      RMQMessaging_NcoHome="${HOME}"
-     RMQMessaging_Python="${PYTHONVENV}/bin/python"
      PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.1.2-acis mvapich2/2.0-acis'
+     SERIALMODULES='module load' # no extra modules for serial jobs
      TDS=(renci_tds)
      ;;
   ncfs)
+     export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=ncfs
      QUEUENAME=ncfs     # SLURM partition---ncfs or batch---gives priority
      PYTHONVENV=~/asgs/asgspy/venv
      PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 zlib/1.2.11_intel-18.0.0'
-     PLATFORMMODULES="$PLATFORMMODULES python_modules/2.7"
+     PLATFORMMODULES="$PLATFORMMODULES mvapich2/2.0-acis"
+     SERIALMODULES='module load' # no extra modules for serial jobs
      ;;
   *)
-     echo "User name $USER on hatteras not recognized and ACCOUNT could not be set."
+     PLATFORMMODULES='module load intelc/18.0.0 openmpi/intel_3.0.0'
      ;;
   esac
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCHDIR
   ARCHIVEDIR=$SCRATCHDIR
-  # to create python environment for the ncfs user, @jasonfleming did this:
-  #   pip install --user --upgrade pip
-  #   pip install --user --upgrade setuptools
-  # for rabbitmq and the asgs status monitor:
-  #   pip install --user pika
-  #   pip install --user netCDF4
-  # for the automated slide deck generator
-  #   pip install --user pptx
-  #
-  PARALLELMODULES='module load mvapich2/2.0-acis' 
-  SERIALMODULES='module load' # no extra modules for serial jobs
   module purge
   $PLATFORMMODULES
   $PARALLELMODULES
@@ -428,9 +416,8 @@ init_frontera()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
-  RMQMessaging_Python=$HOME/python27/asgs/build/python-2.7.17/bin/python
   #
-  PLATFORMMODULES='module load intel/19.0.5 python2/2.7.16 xalt/2.7.19 TACC'
+  PLATFORMMODULES='module load intel/19.0.5 xalt/2.7.19 TACC'
   SERIALMODULES='module load' # no extra modules for serial jobs
   PARALLELMODULES='module load impi/19.0.5'
   # matlab
@@ -442,7 +429,7 @@ init_frontera()
   if [[ $operator = jgflemin ]]; then
      ADCIRCDIR=${WORK}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${WORK}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     ACCOUNT=FTA-SUB-Dawson
+     ACCOUNT=ASC20001
      # don't use built in netcdf module
      JOBENV=( netcdf.sh gmt.sh gdal.sh )
      for script in $JOBENV; do 
@@ -453,17 +440,9 @@ init_frontera()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2020 # is this used? 
-  TDS=(tacc_tds lsu_tds renci_tds)
+  TDS=( tacc_tds )
   $PLATFORMMODULES
   $SERIALMODULES
-  #
-  # @jasonfleming 201900406 : don't upgrade pip! 
-  # for rabbitmq and the asgs status monitor https://asgs-monitor.renci.org:
-  #   pip install --user pika
-  #   pip install --user netCDF4
-  # for the automated slide deck generator
-  #   (installing pptx did not work -- it was not found) 
-  #   pip install --user python-pptx
   MAKEJOBS=8
 }
 #
@@ -494,13 +473,11 @@ init_stampede2()
   #
   RMQMessaging_LocationName="TACC"
   RMQMessaging_ClusterName="Stampede2"
-  RMQMessaging_Enable="on"      # "on"|"off"
-  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  RMQMessaging_Enable="on"              # "on"|"off"
+  RMQMessaging_Transmit="on"            #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
-  RMQMessaging_Python=/opt/apps/intel18/python2/2.7.15/bin/python
-  #
-  PLATFORMMODULES='module load intel/18.0.2 python2/2.7.15 xalt/2.6.5 TACC'
-  SERIALMODULES='module load' # no extra modules for serial jobs
+  PLATFORMMODULES='module unload python2/2.7.15 ; module load intel/18.0.2 xalt/2.6.5 TACC'
+  SERIALMODULES='module load matlab' # no extra modules for serial jobs
   PARALLELMODULES='module load libfabric/1.7.0 impi/18.0.2'
   # matlab
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
@@ -521,18 +498,10 @@ init_stampede2()
   THIS="platforms.sh>env_dispatch()>init_stampede2()"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
-  ARCHIVEDIR=2019
-  TDS=(tacc_tds lsu_tds renci_tds)
+  ARCHIVEDIR=2020
+  TDS=( tacc_tds )
   $PLATFORMMODULES
   $SERIALMODULES
-  #
-  # @jasonfleming 201900406 : don't upgrade pip! 
-  # for rabbitmq and the asgs status monitor https://asgs-monitor.renci.org:
-  #   pip install --user pika
-  #   pip install --user netCDF4
-  # for the automated slide deck generator
-  #   (installing pptx did not work -- it was not found) 
-  #   pip install --user python-pptx
   MAKEJOBS=8
 }
 #
@@ -568,10 +537,9 @@ init_lonestar5()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
-  RMQMessaging_Python=/opt/apps/intel18/python2/2.7.15/bin/python
   #
   ml reset
-  PLATFORMMODULES='module load intel/18.0.2 python2/2.7.15 TACC/1.0'
+  PLATFORMMODULES='module unload python3/3.7.0 ; module load intel/18.0.2 TACC/1.0'
   SERIALMODULES='module load' # no extra modules for serial jobs
   PARALLELMODULES='module load cray_mpich/7.7.3'
   # specify location of platform- and Operator-specific scripts to
@@ -583,7 +551,7 @@ init_lonestar5()
      SWANDIR=${WORK}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=ADCIRC
      # don't use built in netcdf module
-     JOBENV=( netcdf.sh gmt.sh gdal.sh openssl.sh )
+     JOBENV=( )
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
@@ -591,19 +559,10 @@ init_lonestar5()
   THIS="platforms.sh>env_dispatch()>init_lonestar5()"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
-  ARCHIVEDIR=2019
-  TDS=(tacc_tds lsu_tds renci_tds)
+  ARCHIVEDIR=2020
+  TDS=(tacc_tds)
   $PLATFORMMODULES
   $SERIALMODULES
-  #
-  # @jasonfleming 20190218 : don't upgrade pip! 
-  # for rabbitmq and the asgs status monitor:
-  #   pip install --user pika
-  #   pip install --user netCDF4
-  # for the automated slide deck generator
-  #   (installing pptx did not work -- it was not found) 
-  #   pip install --user python-pptx
-  #
   # btw git on lonestar5 is messed up when it outputs things like diffs,
   # found the solution:
   # git config --global core.pager "less -r"
@@ -633,7 +592,6 @@ init_desktop()
      RMQMessaging_Enable="on"   # "on"|"off"
      RMQMessaging_Transmit="on" #  enables message transmission ("on" | "off")
      RMQMessaging_NcoHome=$HOME
-     RMQMessaging_Python="/home/jason/miniconda2/bin/python"
      RMQMessaging_LocationName="Seahorse"
      RMQMessaging_ClusterName="jason-desktop"
   fi
@@ -663,7 +621,6 @@ init_desktop_serial() # changed from init_desktop-serial due to bash complaints
      RMQMessaging_Transmit="on" #  enables message transmission ("on" | "off")
      RMQMessaging_Script="/set/RMQMessaging_Script/in/asgs/config"
      RMQMessaging_NcoHome=$HOME
-     RMQMessaging_Python=/usr/bin/python
      RMQMessaging_LocationName="Seahorse"
      RMQMessaging_ClusterName="jason-desktop-serial"
   fi

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Thu, 05 Sep 2019 03:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Remnants Of FERNAND Forecast/Advisory Number 8</title>
+      <description>Issued at 0300 UTC THU SEP 05 2019 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+
+REMNANTS OF FERNAND FORECAST/ADVISORY NUMBER   8
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL072019
+0300 UTC THU SEP 05 2019
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+REMNANTS OF CENTER LOCATED NEAR 25.0N  99.0W AT 05/0300Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE WEST-NORTHWEST OR 300 DEGREES AT   7 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1007 MB
+MAX SUSTAINED WINDS  25 KT WITH GUSTS TO  35 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 25.0N  99.0W AT 05/0300Z
+AT 05/0000Z CENTER WAS LOCATED NEAR 24.7N  98.6W
+
+FORECAST VALID 05/1200Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 25.0N  99.0W
+
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE
+CENTER ON THIS SYSTEM
+
+$$
+FORECASTER CANGIALOSI
+
+</pre>]]></description>
+      <pubDate>Thu, 05 Sep 2019 03:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/07/08.072019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/07/08.072019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

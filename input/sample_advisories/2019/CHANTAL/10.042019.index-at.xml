@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Fri, 23 Aug 2019 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression CHANTAL Forecast/Advisory Number 10</title>
+      <description>Issued at 0900 UTC FRI AUG 23 2019 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL DEPRESSION CHANTAL FORECAST/ADVISORY NUMBER  10
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL042019
+0900 UTC FRI AUG 23 2019
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+TROPICAL DEPRESSION CENTER LOCATED NEAR 37.1N  40.9W AT 23/0900Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE SOUTHEAST OR 140 DEGREES AT   7 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1010 MB
+MAX SUSTAINED WINDS  25 KT WITH GUSTS TO  35 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 37.1N  40.9W AT 23/0900Z
+AT 23/0600Z CENTER WAS LOCATED NEAR 37.4N  41.1W
+ 
+FORECAST VALID 23/1800Z 36.3N  40.7W
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 24/0600Z 35.4N  41.4W...POST-TROP/REMNT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 24/1800Z 35.2N  42.7W...POST-TROP/REMNT LOW
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 25/0600Z 35.4N  43.8W...POST-TROP/REMNT LOW
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 26/0600Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 37.1N  40.9W
+ 
+NEXT ADVISORY AT 23/1500Z
+ 
+$$
+FORECASTER BERG
+
+</pre>]]></description>
+      <pubDate>Fri, 23 Aug 2019 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/04/10.042019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/04/10.042019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

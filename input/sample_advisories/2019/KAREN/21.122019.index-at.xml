@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Fri, 27 Sep 2019 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm KAREN Forecast/Advisory Number 21</title>
+      <description>Issued at 0900 UTC FRI SEP 27 2019 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL STORM KAREN FORECAST/ADVISORY NUMBER  21
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL122019
+0900 UTC FRI SEP 27 2019
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 28.3N  61.2W AT 27/0900Z
+POSITION ACCURATE WITHIN  45 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTHEAST OR  55 DEGREES AT   7 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1005 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT.......  0NE  50SE  50SW   0NW.
+12 FT SEAS..  0NE  60SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 28.3N  61.2W AT 27/0900Z
+AT 27/0600Z CENTER WAS LOCATED NEAR 28.1N  61.5W
+ 
+FORECAST VALID 27/1800Z 28.8N  60.1W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE  50SE  50SW   0NW.
+ 
+FORECAST VALID 28/0600Z 29.1N  59.6W
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 28/1800Z 29.3N  60.1W...POST-TROP/REMNT LOW
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 29/0600Z 29.3N  61.3W...POST-TROP/REMNT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 30/0600Z 29.0N  64.5W...POST-TROP/REMNT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 01/0600Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 28.3N  61.2W
+ 
+NEXT ADVISORY AT 27/1500Z
+ 
+$$
+FORECASTER ZELINSKY
+
+</pre>]]></description>
+      <pubDate>Fri, 27 Sep 2019 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/12/21.122019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/12/21.122019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
