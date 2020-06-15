@@ -2627,4 +2627,5 @@ mbilsk3@lsu.edu
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
  &SWANOutputControl SWAN_OutputTPS=T, SWAN_OutputTMM10=T, SWAN_OutputTM01=T, SWAN_OutputHS=T, SWAN_OutputTM02=T SWAN_OutputDIR=T /
  &metControl WindDragLimit=0.002 DragLawString='Powell' /
- &inundationOutputControl inundationOutput=.true. /
+&inundationOutputControl inundationOutput=.true. inunThresh=0.6 /
+%offsetline%
