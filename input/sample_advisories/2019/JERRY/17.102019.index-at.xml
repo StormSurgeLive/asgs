@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sat, 21 Sep 2019 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm JERRY Forecast/Advisory Number 17</title>
+      <description>Issued at 1500 UTC SAT SEP 21 2019 <![CDATA[<pre>
+ZCZC MIATCMAT5 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL STORM JERRY FORECAST/ADVISORY NUMBER  17
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL102019
+1500 UTC SAT SEP 21 2019
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+INTERESTS IN BERMUDA SHOULD MONITOR THE PROGRESS OF JERRY.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 22.0N  65.0W AT 21/1500Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTHWEST OR 315 DEGREES AT  12 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  999 MB
+MAX SUSTAINED WINDS  55 KT WITH GUSTS TO  65 KT.
+50 KT....... 40NE  30SE   0SW   0NW.
+34 KT....... 80NE  70SE   0SW  70NW.
+12 FT SEAS..270NE 150SE 120SW 180NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 22.0N  65.0W AT 21/1500Z
+AT 21/1200Z CENTER WAS LOCATED NEAR 21.6N  64.3W
+ 
+FORECAST VALID 22/0000Z 23.3N  66.0W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 40NE  30SE   0SW   0NW.
+34 KT... 80NE  70SE   0SW  70NW.
+ 
+FORECAST VALID 22/1200Z 25.0N  66.9W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 40NE  30SE   0SW   0NW.
+34 KT...100NE  80SE  20SW  70NW.
+ 
+FORECAST VALID 23/0000Z 26.4N  67.1W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 40NE  30SE   0SW  30NW.
+34 KT...120NE 100SE  30SW  80NW.
+ 
+FORECAST VALID 23/1200Z 27.8N  67.1W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 40NE  40SE   0SW  30NW.
+34 KT...120NE 100SE  50SW  80NW.
+ 
+FORECAST VALID 24/1200Z 30.6N  66.3W
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 40NE  40SE   0SW  30NW.
+34 KT...150NE 150SE  60SW  80NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 25/1200Z 34.5N  62.0W
+MAX WIND  65 KT...GUSTS  80 KT.
+ 
+OUTLOOK VALID 26/1200Z 38.5N  57.5W
+MAX WIND  65 KT...GUSTS  80 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 22.0N  65.0W
+ 
+NEXT ADVISORY AT 21/2100Z
+ 
+$$
+FORECASTER ZELINSKY
+
+</pre>]]></description>
+      <pubDate>Sat, 21 Sep 2019 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/10/17.102019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/10/17.102019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

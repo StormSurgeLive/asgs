@@ -184,7 +184,8 @@ attachFile="$(cat pptFile.temp)"
 # primary and multiple backup ASGSes ... however all Operators will get
 # slide decks from all ASGSes on every ensemble member of every advisory ...
 #emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu'
-emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu rluettich1@gmail.com'
+#emailList='jason.fleming@scimaritan.org mbilsk3@lsu.edu rluettich1@gmail.com'
+emailList='jason.fleming@seahorsecoastal.com'
 #
 #case $HPCENVSHORT in
 #   queenbee)
@@ -209,7 +210,8 @@ echo "$message" | mail -S "replyto=$ASGSADMIN" -s "$subjectLine" -a "$attachFile
 #       E-MAIL FIGUREGEN TO OPERATORS IN CASE MANUAL PPT PRODUCTION
 #       IS NEEDED
 #--------------------------------------------------------------------------
-emailList='mbilsk3@lsu.edu'
+#emailList='mbilsk3@lsu.edu'
+emailList='jason.fleming@seahorsecoastal.com'
 subjectLine="$stormname Advisory $advisory FigureGen"
 message="This is an automated message from the ADCIRC Surge Guidance System (ASGS).
 FigureGen results are attached for STORM $stormname ADVISORY $advisory issued on $forecastValidStartCDT CDT"

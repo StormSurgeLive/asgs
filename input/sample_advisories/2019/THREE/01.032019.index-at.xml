@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Mon, 22 Jul 2019 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression THREE Forecast/Advisory Number 1</title>
+      <description>Issued at 2100 UTC MON JUL 22 2019 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL DEPRESSION THREE FORECAST/ADVISORY NUMBER   1
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL032019
+2100 UTC MON JUL 22 2019
+ 
+INTERESTS IN THE NORTHWEST BAHAMAS AND THE EAST COAST OF FLORIDA
+SHOULD MONITOR THE PROGRESS OF THIS SYSTEM.
+ 
+TROPICAL DEPRESSION CENTER LOCATED NEAR 25.6N  78.6W AT 22/2100Z
+POSITION ACCURATE WITHIN  40 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTHWEST OR 305 DEGREES AT  11 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1013 MB
+MAX SUSTAINED WINDS  25 KT WITH GUSTS TO  35 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 25.6N  78.6W AT 22/2100Z
+AT 22/1800Z CENTER WAS LOCATED NEAR 25.3N  78.3W
+ 
+FORECAST VALID 23/0600Z 27.2N  79.7W
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 23/1800Z 30.1N  79.6W
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 24/0600Z 33.7N  77.8W
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 24/1800Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 25.6N  78.6W
+ 
+NEXT ADVISORY AT 23/0300Z
+ 
+$$
+FORECASTER PASCH
+
+</pre>]]></description>
+      <pubDate>Mon, 22 Jul 2019 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/03/01.032019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/03/01.032019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

@@ -1,12 +1,20 @@
 #!/usr/bin/env bash
 
-if [ ! -d $HOME/asgs ]; then
-  git clone https://github.com/jasonfleming/asgs.git
-  if [ $? -gt 0 ]; then
-    echo error cloning ASGS
-    exit 1
-  fi
-fi
+# This file is part of the ADCIRC Surge Guidance System (ASGS).
+#
+# The ASGS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# ASGS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#----------------------------------------------------------------
 
 echo "pod            - POD (Penguin)"
 echo "hatteras       - Hatteras (RENCI)"
@@ -38,6 +46,7 @@ elif [[ -z "$platform" && -n "$default_platform" ]]; then
   platform=$default_platform
 fi
 
+echo
 read -p "Which asgs branch would you like to checkout from Github ('.' to skip)? [master] " repo
 
 if [ -z "$repo" ]; then
@@ -56,6 +65,7 @@ else
   echo leaving git repo in current state 
 fi
 
+echo
 read -p "Which compiler family would you like to use, 'gfortran' or 'intel'? " compiler
 
 if [[ "$compiler" != 'gfortran' && "$compiler" != "intel" ]]; then
@@ -70,23 +80,31 @@ if [ $? -gt 0 ]; then
   exit 1
 fi
 
-read -p "Where do you want to install libraries and some utilities? [$HOME/opt] " installdir
+
+_default_installdir=$HOME/opt
+if [ -n "$WORK" ]; then
+  _default_installdir=$WORK/opt
+fi
+echo
+echo "Where do you want to install libraries and some utilities? [$_default_installdir] "
+read -p "(note: shell variables like \$HOME or \$WORK will not be expanded)? " installdir
 
 if [ -z "$installdir" ]; then
-  installdir=$HOME/opt
+  installdir=$_default_installdir
 fi
 
-read -p "What is a short name you'd like to use to name the asgsh profile associated with this installation? [default] " profile
+echo
+read -p "What is a short name you'd like to use to name the asgsh profile associated with this installation? [\"default\"] " profile
 
 if [ -z "$profile" ]; then
-  profile=$$
+  profile=default
 fi
 
 echo Bootstrapping ASGS for installation...
 env_dispatch $platform
 
 # $MAKEJOBS is defined in platforms.sh
-cmd="./cloud/general/asgs-brew.pl --install-path=$installdir --profile=$profile --compiler=$compiler --machinename=$platform --make-jobs=$MAKEJOBS"
+cmd="./cloud/general/asgs-brew.pl --install-path=$installdir --asgs-profile=$profile --compiler=$compiler --machinename=$platform --make-jobs=$MAKEJOBS"
 
 echo
 echo $cmd

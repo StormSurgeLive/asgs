@@ -8,41 +8,37 @@ following command:
 
   % $HOME/opt/bin/asgsh
 
-[It us suggested that '$HOME/opt/bin' (or the "--install-path") be added to
-the login shell PATH via $HOME/.bash_profile.]
+It us suggested that '$HOME/bin' be added to the login shell PATH via $HOME/.bash_profile.
 
 You will then see this prompt:
 
-  asgs (none)>
+  asgs (default)>
 
 The environment created by asgs-brew.pl is fully available, as are some
-helpful commands that are summarized in Appendeix A.  The "none" indicates
+helpful commands that are summarized in Appendeix A.  The "default" indicates
 that a scenario package profile has not been loaded yet. More on this further
 down in this document.
 
+Verifying Proper Perl and Python Environments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Next, verify Perl and Python are set up properly after asgs-brew.pl runs:
 
-  asgs (none)> verify
+  asgs (default)> verify
 
 Assuming the Perl and Python environments are set up properly, you will see a
-series of messages indicating that everything is "ok".
+series of messages indicating that everything is "ok". It also runs some Python
+benchmarks using the netCDF4 module.
 
-You may also run the 'help' command to see the latest description of available
-commands.
+The 'help' command to see the latest description of available commands.
 
-Usage Description
-~~~~~~~~~~~~~~~~~
+Default Profile
+~~~~~~~~~~~~~~~
 
-The ASGS Shell (asgsh) is meant to make it easy to set up, run, and monitor
-ASGS instances. It ensures that the environment created by asgs-brew.pl and
-required to run ASGS is set up properly. It also provides access to commands
-that make common tasks associate with ASGS much more efficient to perform.
-
-The 'run' command calls asgs_main.sh and automatically includes the config
-file that is tracked by the shell (internally as $ASGS_CONFIG). This can
-be set using the 'set config' command. To see the present value of the config,
-use the 'show config' command. See the command description below to see what
-can be set.
+NOTE: at start up, asgsh looks for a profile called "default"; if you wish for
+a default profile to be generated during the running of asgs-brew.pl, specify
+the following option with value, "--asgs-profile default". This creates a profile
+named 'default' at the completion of asgs-brew.pl's execution.
 
 Saving and Loading ASGS Scenario Package Profiles
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -62,33 +58,195 @@ these variables into named, loadable sessions. This makes it much easier
 for an operator to manage a number of scenario packages on the same computer
 (typicall a login node of an HPC cluster).
 
-Important environmental variables that are able to be set via the 'set' command
-can be saved as a named session. To do this use the 'save' command. It saves as
-a named session, all variables that may be defined via the 'set' command. This
-ability is very helpful when juggling among various configurations or when
-running multiple ASGS instances from the same login node.
+Important environmental variables that are able to be specified via 
+the 'define' command can be saved as a named session. To do this use 
+the 'save' command. It saves as a named session, all variables that may be 
+specified via the 'define' command. This ability is very helpful when juggling 
+among various configurations or when running multiple ASGS instances from the
+same login node.
 
 When asgsh is first started, the prompt shows the name of the environment in
-parenthesis. When loading or saving an named environment, 'none' is replaced
+parenthesis. When loading or saving an named environment, 'default' is replaced
 with the name of the session to indicate to the user that they are in a
 customized environment.
 
 For example, to create a profile the session would look something like the
 following:
 
-  asgs (none)> set config /path/to/config.sh 
-  asgs (none)> save hurricane-dorian-ec95d 
+  asgs (default)> define config /path/to/config.sh 
+  asgs (default)> save hurricane-dorian-ec95d 
   profile 'hurricane-dorian-ec95d' was written
   asgs (hurricane-dorian-ec95d)> 
 
-Loading a profile when none is yet loaded would look like:
+Loading a profile when default is yet loaded would look like:
 
-  asgs (none)> load hurricane-dorian-ec95d 
+  asgs (default)> load hurricane-dorian-ec95d 
   loaded 'hurricane-dorian-ec95d' into current profile
   asgs (hurricane-dorian-ec95d)>
 
+ADCIRC Build Management 
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The 'initadcirc' command in asgsh is used to interactively guide a user through a
+series of questions that ultimately result in the building of ADCIRC. It assumes
+that the source is to be downloaded using git and the user has access to the official
+upstream ADCIRC repository. But depending on how the questions are answered, one may
+use source obtained in other ways; i.e., one may skip the "git clone" and "git checkout"
+steps as needed.  The best way to get familiar with the tool is for the user to actually
+just try it. If plans are to obtain the ADCIRC source from the upstream git repository
+(currently, GitHub), then authentication must be provided either via ssh keys or by
+entering in a username and password that has access to the private ADCIRC repository.
+
+The following interaction is an example interaction:
+
+	asgs (default)> initadcirc
+	What git branch (or tag, commit SHA) of the ADCIRC source do you wish to build [v53release]? 
+
+	Where would you like to build ADCIRC? [/home/$USER/adcirc-cg-v53release-intel] /work/$USER/adcirc-cg-demo 
+
+	What would you like to name this ADCIRC build profile [v53release-intel]? v53release-intel-demo
+
+	Create directory, '/work/$USER/adcirc-cg-demo'? Type 'no' to exit. yes
+
+	Download ADCIRC git repository from GitHub? A 'skip' is useful if the ADCIRC source directory exists, but is not a git repo.
+	Type 'skip' to skip the download [continue]. 
+
+	Initialized empty Git repository in /work/$USER/adcirc-cg-demo/.git/
+	remote: Enumerating objects: 7542, done.
+	remote: Total 7542 (delta 0), reused 0 (delta 0), pack-reused 7542
+	Receiving objects: 100% (7542/7542), 10.99 MiB | 9.59 MiB/s, done.
+	Resolving deltas: 100% (6028/6028), done.
+	Checkout ADCIRC git branch? A 'skip' is useful if the local git repo exists and is in an unclean state.
+	Type 'skip' to skip the branch checkout [continue]. 
+
+	Branch v53release set up to track remote branch v53release from origin.
+	Switched to a new branch 'v53release'
+
+	About to build ADCIRC in /work/$USER/adcirc-cg-demo with the following command:
+
+	make -j 1 adcirc padcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=intel NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=/home/$USER/opt/default NETCDFROOT= MACHINENAME=queenbee
+
+	Type 'no' to stop build [continue]. 
+
+ADCIRC Environment
+~~~~~~~~~~~~~~~~~~
+
+ADCIRC may be optionally built via asgs-shell.pl using the --build-adcirc 
+command, along with others that are used to specify the git branch, tag, 
+or commit SHA. But the shell provides access to the underlying script since 
+it is not the purpose of asgs-brew.pl to be a tool for building ADCIRC.
+
+The asgsh shell provides support for managing different versions of ADCIRC;
+for example, if --build-adcirc is used with asgs-brew.pl and no other defaults
+are changed, the resulting variables specified inside of the ASGS profile are:
+
+1. the named ASGS profile (e.g., 'default') will include the following exported
+environmental variables:
+
+	ADCIRCDIR=/home/$USER/adcirc-cg-v53release
+	ADCIRC_GIT_URL=git@github.com:adcirc
+	ADCIRC_COMPILER=intel
+	ADCIRC_PROFILE_NAME=v53release-intel
+	ADCIRC_GIT_BRANCH=v53release
+	ADCIRC_META_DIR=/home/$USER/.adcirc-meta
+	ADCIRC_GIT_REPO=adcirc-cg
+	ADCIRC_MAKE_CMD='make -j 1 adcirc padcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=intel NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=/home/$USER/opt/default MACHINENAME=queenbee'
+
+The most important of these is ADCIRCDIR, which is used by asgs_main.sh to locate
+the required ADCIRC executables and utilities. The other variables simply record
+from where ADCIRC's source code was retrieved and how it was built.
+
+2. a separate ADCIRC environment profile is created and placed inside of the directory
+defined by the ADCIRC_MET_DIR directory. Internally, it is managed very similarly to
+how the ASGS profiles are managed; i.e., text files with 'export' commands of specific
+environmental variables. For example, the contents of the ADCIRC environment associated
+with the "v53release-intel" build are:
+
+	cat ~/.adcirc-meta/v53release-intel 
+	export ASGS_HOME=/home/$USER
+	export ASGS_MACHINE_NAME=queenbee
+	export NETCDFHOME=/home/$USER/opt/default
+	export ADCIRCDIR=/home/$USER/adcirc-cg-v53release
+	export ADCIRC_COMPILER=intel
+	export ADCIRC_GIT_BRANCH=v53release
+	export ADCIRC_GIT_URL=git@github.com:adcirc
+	export ADCIRC_GIT_REPO=adcirc-cg
+	export ASGS_MAKEJOBS=1
+	export ADCIRC_MAKE_CMD='make -j 1 adcirc padcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=intel NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=/home/$USER/opt/default MACHINENAME=queenbee'
+	export ADCIRC_PROFILE_NAME=v53release-intel
+
+3. the 'list adcirc' command shows the different ADCIRC builds that are available to
+export into the current environment:
+
+	asgs (default)> list adcirc
+	- v53release-intel
+	- v54release-intel
+
+Each ADCIRC "profile" can then be loaded into the current environment using the command,
+'load adcirc <ADCIRC-name>'; for example the following shows the exporting of a build named,
+"v54release-intel", proven by showing the value of ADCIRCDIR. This is followed by the loading
+of "v53release-intel" and showing that ADCIRCDIR has changed.
+
+	asgs (default)> load adcirc v54release-intel
+	asgs (default)> show adcircdir
+	ADCIRCDIR is defined as '/work/$USER/adcirc-cg-v54release-intel'
+	asgs (default)> load adcirc v53release-intel
+	asgs (default)> show adcircdir
+	ADCIRCDIR is defined as '/home/$USER/adcirc-cg-v53release'
+
+NOTE: Loading an ADCIRC build profile into the current environment will not persist if one were
+to exit from asgsh without saving the profile. So the general idea is to start with a base
+ASGS profile, then tailor new profiles by loading different versions of ADCIRC. Consider the following
+steps:
+
+	asgs (default)> load profile default
+	asgs (default)> list profiles
+	- default
+	loaded 'default' into current profile
+	asgs (default)> load adcirc v53release-intel
+	asgs (default)> show adcircdir
+	ADCIRCDIR is defined as '/work/$USER/adcirc-cg-v53release-intel'
+	asgs (profile)> save default-v53
+	profile 'default-v53' was written
+	asgs (default)> list profiles
+	- default
+	- default-v53
+	asgs (default-v53)> load profile default
+	loaded 'default' into current profile
+	asgs (default)> load adcirc v54release-intel
+	asgs (default)> show adcircdir
+	ADCIRCDIR is defined as '/work/$USER/adcirc-cg-v54release-intel'
+	asgs (default)> save default-v54
+	profile 'default-v54' was written
+	asgs (default-v54)> load profile default
+	loaded 'default' into current profile
+	asgs (default)> list profiles
+	- default
+	- default-v53
+	- default-v54
+	asgs (default)> 
+
+In summary, ADCIRC build profiles are used to augment ASGS profiles; but the ASGS profiles
+must be saved with the desired ADCIRC environment loaded in order for them environment to
+persist in the ASGS profile permanently.
+
+Commandline Usage Description
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ASGS Shell (asgsh) is meant to make it easy to set up, run, and monitor
+ASGS instances. It ensures that the environment created by asgs-brew.pl and
+required to run ASGS is set up properly. It also provides access to commands
+that make common tasks associate with ASGS much more efficient to perform.
+
+The 'run' command calls asgs_main.sh and automatically includes the config
+file that is tracked by the shell (internally as $ASGS_CONFIG). This can
+be specified using the 'define config' command. To see the present value of the config,
+use the 'show config' command. See the command description below to see what
+can be defined.
+
 At the time of this writing, the following environmental variables can be directly
-managed and saved via asgsh.
+managed and saved via asgsh. This is just a sample of the environmental variables,
+to see the complete list of those that are tracked type the "show exported" command.
 
 * ASGS_CONFIG    - used by 'run' to pass asgs_main.sh its configuration argument (-c)
 * EDITOR         - used by 'edit' command
@@ -98,14 +256,14 @@ managed and saved via asgsh.
 * SCRATCH        - used by asgs_main.sh, where models are executing from
 * WORK           - used by asgs_main.sh, some scripts for sharing output across system
 
-The following variables are set and derived once a configuration file has been set and
+The following variables are populated and derived once a configuration file has been specified and
 INSTANCE name has been determined out of this file:
 
 * STATEFILE      - contains key information about the current ASGS instance
 * RUNDIR         - parent directory where ADCIRC's running an writing output, read from state file
                  - the initialization of the models (hind/nowcast) and each subsequent advisory forecast
                  - scenario is contained as sub directories here
-* SYSLOG         - full path to the main log file, used by 'watchlog'
+* SYSLOG         - full path to the main log file, used by 'tailf log'
 * PROPERTIESFILE - main run.properties file output by ASGS; current version of the shell does not make
                    these variables directly available in the environment, but this could change
  
@@ -117,42 +275,39 @@ with the --update-shell flag. Updated shells will come with updated versions of
 the ASGS system via asgs-brew.pl (running it fully or by using the --update-shell
 flag).
 
+  % cd cloud/general/asgs-brew.pl --machinename frontera --compiler intel --asgs-profile default --update-shell
+
 Appendix A - Current Set of Commands (this may be outdated, see 'help' for most up to date list)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	% $HOME/opt/bin/asgsh
+        asgs (default)>help<enter> 
 	Commands:
-	   delete <name>              - deletes named profile
-	   edit config                - opens up $ASGS_CONFIG using $EDITOR (must be set, if not use the 'set editor' command)
-	   goto   <param>             - change current working directory to $SCRATCH
-	       *  scratchdir          - change current working directory to $SCRIPTDIR
-	       *  scriptdir           - change current working directory to $WORK
-	       *  workdir             - change current working directory
-	   list   <param>             - lists different things
-	       *  configs             - lists ASGS configuration files based on year (interactive)
-	       *  profiles            - lists all saved profiles that can be specified by load
-	   load   <profile-name>      - loads a saved profile by name
-	   run                        - runs asgs using config file, $ASGS_CONFIG must be set (see 'set config'); most handy after 'load'ing a profile
-	   save   <name>              - saves an asgs named profile
-	   set    <param> "<value>"   - sets specified profile variables (i.e., variables that do not last after 'exit')
-	       *  config              - sets ASGS configuration file used by 'run', ($ASGS_CONFIG)
-	       *  editor              - sets default editor, ($EDITOR)
-	       *  scratchdir          - sets ASGS main script directory used by all underlying scripts, ($SCRATCH)
-	       *  scriptdir           - sets ASGS main script directory used by all underlying scripts, ($SCRIPTDIR)
-	       *  workdir             - sets ASGS main script directory used by all underlying scripts, ($WORK)
-	   show   <param>             - shows specified profile variables (i.e., variables that do not last after 'exit')
-	       *  config              - shows ASGS configuration file used by 'run', ($ASGS_CONFIG)
-	       *  editor              - shows what default editor is set to, ($EDITOR)
-	       *  instancename        - shows ASGS instance name that is derived from a valid config file, ($INSTANCENAME)
-	       *  propertiesfile      - shows ASGS 'run.properties' file location, derived from rundir; ($PROPERTIESFILE)
-	       *  rundir              - shows ASGS rundir location, read directly from a valid state file, ($RUNDIR)
-	       *  scratchdir          - shows ASGS main script directory used by all underlying scripts, ($SCRATCH)
-	       *  scriptdir           - shows ASGS main script directory used by all underlying scripts, ($SCRIPTDIR)
-	       *  statefile           - shows ASGS state file location, derived from scratchdir; ($STATEFILE)
-	       *  syslog              - shows ASGS log location, read directly from a valid state file, ($SYSLOG)
-	       *  workdir             - shows ASGS main script directory used by all underlying scripts, ($WORK)
+	   define config              - defines ASGS configuration file used by 'run', ($ASGS_CONFIG)
+		  editor              - defines default editor, ($EDITOR)
+		  scratchdir          - defines ASGS main script directory used by all underlying scripts, ($SCRATCH)
+		  scriptdir           - defines ASGS main script directory used by all underlying scripts, ($SCRIPTDIR)
+		  workdir             - defines ASGS main script directory used by all underlying scripts, ($WORK)
+	   delete profile <name>      - deletes named profile
+	   delete adcirc  <name>      - deletes named ADCIRC profile
+	   dump   <param>             - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog
+	   edit   adcirc  <name>      - directly edit the named ADCIRC environment file
+	   edit   config              - directly edit currently registered ASGS configuration file (used by asgs_main.sh)
+	   edit   profile <name>      - directly edit the named ASGSH Shell profile
+	   edit   syslog              - open up SYSLOG in EDITOR for easier forensics
+	   goto   <param>             - change CWD to a supported directory. Type 'goto options' to see the currently supported options
+	   initadcirc                 - interactive tool for building and local registering versions of ADCIRC for use with ASGS
+	   list   <param>             - lists different things, please see the following options; type 'list options' to see currently supported options
+	   load   profile <name>      - loads a saved profile by name; use 'list profiles' to see what's available
+	   load   adcirc  <name>      - loads information a version of ADCIRC into the current environment. Use 'list adcirc' to see what's available
+	   purge  <param>             - deletes specified file or directory
+		  rundir              - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm
+		  statefile           - deletes the state file associated with a profile, effectively for restarting from the initial advisory
+	   run                        - runs asgs using config file, $ASGS_CONFIG must be defined (see 'define config'); most handy after 'load'ing a profile
+	   save   profile <name>      - saves an asgs named profile, '<name>' not required if a profile is loaded
+	   show   <param>             - shows specified profile variables, to see current list type 'show help'
+	   show   exported            - dumps all exported variables and provides a summary of what asgsh tracks
 	   sq                         - shortcut for "squeue -u $USER" (if squeue is available)
+	   tailf  syslog              - executes 'tail -f' on ASGS instance's system log
 	   verify                     - verfies Perl and Python environments
-	   watchlog                   - executes 'tail -f' on syslog 
 	   exit                       - exits ASGS shell, returns $USER to login shell
-	asgs (none)> 

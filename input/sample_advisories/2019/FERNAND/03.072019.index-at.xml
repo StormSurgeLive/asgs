@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Tue, 03 Sep 2019 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm FERNAND Forecast/Advisory Number 3</title>
+      <description>Issued at 2100 UTC TUE SEP 03 2019 <![CDATA[<pre>
+ZCZC MIATCMAT2 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM FERNAND FORECAST/ADVISORY NUMBER   3
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL072019
+2100 UTC TUE SEP 03 2019
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+THE GOVERNMENT OF MEXICO HAS ISSUED A TROPICAL STORM WARNING FROM
+BARRA DEL TORDO SOUTHWARD TO PUERTO ALTAMIRA.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* PUERTO ALTAMIRA TO THE MOUTH OF THE RIO GRANDE RIVER
+
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA WITHIN 36 HOURS.
+
+INTERESTS ELSEWHERE ALONG THE EASTERN COAST OF MEXICO AND THE
+LOWER TEXAS COAST SHOULD MONITOR THE PROGRESS OF THIS SYSTEM.
+
+TROPICAL STORM CENTER LOCATED NEAR 23.4N  95.9W AT 03/2100Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE WEST OR 265 DEGREES AT   6 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1004 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT.......  0NE   0SE  90SW  90NW.
+12 FT SEAS..  0NE   0SE  90SW  90NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 23.4N  95.9W AT 03/2100Z
+AT 03/1800Z CENTER WAS LOCATED NEAR 23.4N  95.5W
+
+FORECAST VALID 04/0600Z 23.4N  96.5W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 60NE   0SE  90SW  90NW.
+
+FORECAST VALID 04/1800Z 23.7N  97.5W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT... 60NE  50SE  80SW  80NW.
+
+FORECAST VALID 05/0600Z 24.2N  98.4W...INLAND
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 60NE  60SE   0SW   0NW.
+
+FORECAST VALID 05/1800Z 25.0N  99.4W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+
+FORECAST VALID 06/1800Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 23.4N  95.9W
+
+INTERMEDIATE PUBLIC ADVISORY...WTNT32 KNHC/MIATCPAT2...AT 04/0000Z
+
+NEXT ADVISORY AT 04/0300Z
+
+$$
+FORECASTER BEVEN
+
+</pre>]]></description>
+      <pubDate>Tue, 03 Sep 2019 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/07/03.072019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/07/03.072019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

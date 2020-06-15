@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sat, 23 Nov 2019 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm SEBASTIEN Forecast/Advisory Number 16</title>
+      <description>Issued at 0900 UTC SAT NOV 23 2019 <![CDATA[<pre>
+ZCZC MIATCMAT5 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM SEBASTIEN FORECAST/ADVISORY NUMBER  16
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL202019
+0900 UTC SAT NOV 23 2019
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+TROPICAL STORM CENTER LOCATED NEAR 27.8N  50.6W AT 23/0900Z
+POSITION ACCURATE WITHIN  60 NM
+
+PRESENT MOVEMENT TOWARD THE EAST-NORTHEAST OR  60 DEGREES AT  15 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  997 MB
+MAX SUSTAINED WINDS  55 KT WITH GUSTS TO  65 KT.
+50 KT....... 50NE  50SE   0SW   0NW.
+34 KT.......100NE 100SE  80SW  80NW.
+12 FT SEAS..180NE 180SE 180SW 210NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 27.8N  50.6W AT 23/0900Z
+AT 23/0600Z CENTER WAS LOCATED NEAR 27.3N  51.4W
+
+FORECAST VALID 23/1800Z 29.4N  48.2W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 40NE  40SE   0SW   0NW.
+34 KT... 90NE 100SE  70SW  70NW.
+
+FORECAST VALID 24/0600Z 31.6N  44.2W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT... 80NE 120SE  70SW  50NW.
+
+FORECAST VALID 24/1800Z 34.0N  38.8W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 80NE 130SE  90SW  50NW.
+
+FORECAST VALID 25/0600Z 37.0N  31.6W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE 150SE 120SW   0NW.
+
+FORECAST VALID 26/0600Z...DISSIPATED
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 27.8N  50.6W
+
+NEXT ADVISORY AT 23/1500Z
+
+$$
+FORECASTER CANGIALOSI
+
+</pre>]]></description>
+      <pubDate>Sat, 23 Nov 2019 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2019/20/16.202019.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2019/20/16.202019.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

@@ -48,12 +48,12 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on      # NAM download/forcing
-FORECASTCYCLE="06,18"
+FORECASTCYCLE="06"
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #STORM=07             # storm number, e.g. 05=ernesto in 2006
 #YEAR=2018            # year of the storm
 WAVES=on              # wave forcing
-STATICOFFSET=0.1524
+#STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
@@ -73,10 +73,11 @@ INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,jason.fleming@scimaritan.org,rluettich1@gmail.com"
+TDS=( lsu_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2019121500
+COLDSTARTDATE=2020021500
 HOTORCOLD=coldstart        # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
