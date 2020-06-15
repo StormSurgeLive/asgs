@@ -29,6 +29,7 @@ help() {
   echo "   -p     profile             - launches the ASGS Shell environment and immediate loads specified profile on start, if it exists."
   echo
   echo ASGS Shell Commands:
+  echo "   clone   profile             - launches guided process for cloning the current profile, including copying the configuratin file."
   echo "   define  config              - defines ASGS configuration file used by 'run', (\$ASGS_CONFIG). 'define' replaces old 'set' command."
   echo "           editor              - defines default editor, (\$EDITOR)"
   echo "           scratchdir          - defines ASGS main script directory used by all underlying scripts, (\$SCRATCH)"
@@ -36,6 +37,7 @@ help() {
   echo "           workdir             - defines ASGS main script directory used by all underlying scripts, (\$WORK)"
   echo "   delete  profile <name>      - deletes named profile"
   echo "   delete  adcirc  <name>      - deletes named ADCIRC profile"
+  echo "   delete  config              - deletes configuration file for current profile, unsets 'config' var. Interactively confirms."
   echo "   dump    <param>             - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog" 
   echo "   edit    adcirc  <name>      - directly edit the named ADCIRC environment file"
   echo "   edit    config              - directly edit currently registered ASGS configuration file (used by asgs_main.sh)"
