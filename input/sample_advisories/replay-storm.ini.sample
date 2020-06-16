@@ -32,8 +32,8 @@ RSS_DOCROOT_URL=/
 [storms]
 DORIAN  = 0
 MELISSA = 0
-RITA    = 1
-NEWRITA = 1
+RITA    = 0
+MARGARITA = 1
 
 ;; Storms in run list
 ;; Note, storm specific default overrides for the following are supported:
@@ -57,12 +57,12 @@ end    = 13
 source = /home/user/git/asgs/input/sample_advisories/rita
 storm  = 18
 year   = 2005
-start  = 1
+start  = 14
 end    = 30
 
-[NEWRITA]
+[MARGARITA]
 source = /home/user/git/asgs/input/sample_advisories/new-rita
 storm  = 07
 year   = 2020
-start  = 1
+start  = 2
 end    = 30
