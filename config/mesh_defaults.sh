@@ -296,7 +296,7 @@ case $GRIDNAME in
       #
    "WFLv18")
       #
-      INPUTDIR=$SCRIPTDIR/input/meshes/fema_wfl
+      INPUTDIR=$SCRIPTDIR/input/meshes/WFLv18
       GRIDFILE=fema_wfl_fort.14  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.nc.properties
       CONTROLTEMPLATE=fema_wfl_fort.15.template
