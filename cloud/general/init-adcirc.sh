@@ -19,6 +19,10 @@
 # preconditions
 if [ -z "$ADCIRC_META_DIR" ]; then
   echo "ADCIRC_META_DIR is not set. Run interactively through asgsh or automatically via asgs-brew.pl."
+  echo
+  echo "Please note that this tool is meant to be run within an ASGS environment and is not supported "
+  echo "as a general purpose too. Per the license of the code, however, anyone is free to adapt it.   "
+  echo
   exit 1
 fi
 
@@ -33,35 +37,40 @@ fi
 
 # Ask user for preferences, but offer defaults in the present in the asgsh environment
 if [ "$INTERACTIVE" == "yes" ]; then
+  echo NOTE: ASGS generally uses the "'v53release'" version of ADCIRC. 
+  echo
   # get branch/tag/sha to checkout
   __ADCIRC_GIT_BRANCH=v53release # current preferred default
-  read -p "What git branch (or tag, commit SHA) of the ADCIRC source do you wish to build [$__ADCIRC_GIT_BRANCH]? " _ADCIRC_GIT_BRANCH
+  read -p "What git branch (or tag, commit SHA) of the ADCIRC source do you wish to build? [$__ADCIRC_GIT_BRANCH] " _ADCIRC_GIT_BRANCH
   if [ -n "$_ADCIRC_GIT_BRANCH" ]; then
-    ADCIRC_GIT_BRANCH=$_ADCIRC_GIT_BRANCH # do not export, don't affect current environment after build
+    # do not export, don't affect current environment after build
+    ADCIRC_GIT_BRANCH=$_ADCIRC_GIT_BRANCH
   else
     ADCIRC_GIT_BRANCH=$__ADCIRC_GIT_BRANCH
   fi
-  echo
-  # determine where to look for source directory or checkout git repo for the build
-  if [ -e "$WORK" ]; then
-    __ADCIRCBASE=$WORK/adcirc-cg-$ADCIRC_GIT_BRANCH-$ADCIRC_COMPILER
-  else
-    __ADCIRCBASE=$ASGS_HOME/adcirc-cg-$ADCIRC_GIT_BRANCH-$ADCIRC_COMPILER
-  fi
-  read -p "Where would you like to build ADCIRC? [$__ADCIRCBASE] " _ADCIRCBASE
-  if [ -n "$_ADCIRCBASE" ]; then
-    ADCIRCBASE=$_ADCIRCBASE
-  else
-    ADCIRCBASE=$__ADCIRCBASE
-  fi
+
   echo
   # determine what to name the ADCIRC profile
   __ADCIRC_PROFILE_NAME=$ADCIRC_GIT_BRANCH-$ADCIRC_COMPILER
-  read -p "What would you like to name this ADCIRC build profile [$__ADCIRC_PROFILE_NAME]? " _ADCIRC_PROFILE_NAME
+  read -p "What would you like to name this ADCIRC build profile? [$__ADCIRC_PROFILE_NAME] " _ADCIRC_PROFILE_NAME
   if [ -n "$_ADCIRC_PROFILE_NAME" ]; then
     ADCIRC_PROFILE_NAME=$_ADCIRC_PROFILE_NAME
   else
     ADCIRC_PROFILE_NAME=$__ADCIRC_PROFILE_NAME
+  fi
+  echo
+
+  # determine where to look for source directory or checkout git repo for the build
+  if [ -e "$WORK" ]; then
+    __ADCIRCBASE=$WORK/adcirc-cg-$ADCIRC_PROFILE_NAME
+  else
+    __ADCIRCBASE=$ASGS_HOME/adcirc-cg-$ADCIRC_PROFILE_NAME
+  fi
+  read -p "In what directory would you like to build ADCIRC? [$__ADCIRCBASE] " _ADCIRCBASE
+  if [ -n "$_ADCIRCBASE" ]; then
+    ADCIRCBASE=$_ADCIRCBASE
+  else
+    ADCIRCBASE=$__ADCIRCBASE
   fi
   echo
 fi
@@ -76,33 +85,41 @@ fi
 # ADCIRC_GIT_URL - git repo remote URL, set via --adcirc-git-remote in asgs-brew.pl
 # ADCIRC_GIT_REPO   - git repository (likely 'adcirc-cg')
 
-ADCIRC_MAKE_CMD="make padcirc adcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} NETCDFROOT=${NETCDFROOT} MACHINENAME=${ASGS_MACHINE_NAME}"
+ADCIRC_MAKE_CMD="make padcirc adcirc adcswan padcswan adcprep hstime aswip MACHINENAME=${ASGS_MACHINE_NAME} compiler=${ADCIRC_COMPILER} SWAN=enable NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} NETCDFROOT=${NETCDFROOT}"
 
-if [ ! -d ${ADCIRCBASE}/.git ]; then
+if [ ! -d ${ADCIRCBASE} ]; then
   if [ "$INTERACTIVE" == "yes" ]; then
-    answer=
-    read -p "Create directory, '$ADCIRCBASE'? Type 'no' to exit. " answer
-    if [ "$answer" == 'no' ]; then
+    _answer=yes
+    read -p "Create directory, '$ADCIRCBASE'? [$_answer] " answer
+    if [ -z "$answer" ]; then
+      answer=$_answer
+    fi
+    if [ "$answer" != 'yes' ]; then
       echo 'no directory was created. Exiting install.'
       exit
     fi
     echo
   fi
   mkdir -p ${ADCIRCBASE} 2> /dev/null
+else
+  echo Found directory, ${ADCIRCBASE}
+  echo
+fi
+if [ ! -d ${ADCIRCBASE}/.git ]; then
   if [ "$INTERACTIVE" == "yes" ]; then
-    answer=
-    echo "Download ADCIRC git repository from GitHub? A 'skip' is useful if the ADCIRC source directory exists, but is not a git repo."
-    read -p "Type 'skip' to skip the download [continue]. " answer
-    if [ "$answer" == 'skip' ]; then
-      echo 'Git repository skipt downloaded. Proceeding to build."'
-      skip_clone=yes
+    _answer=yes
+    read -p "Download ADCIRC git repository from GitHub? [$_answer] " answer
+    if [ -z "$answer" ]; then
+      answer=$_answer
     fi
-     echo
+    if [ "$answer" != 'no' ]; then
+      echo
+      git clone ${ADCIRC_GIT_URL}/${ADCIRC_GIT_REPO}.git ${ADCIRCBASE}
+    fi
+    echo
   fi
-  # 'skip_clone' may only be set during interactive mode
-  if [ "$skip_clone" != "yes" ]; then
-    git clone ${ADCIRC_GIT_URL}/${ADCIRC_GIT_REPO}.git ${ADCIRCBASE}
-  fi
+else
+  echo "$ADCIRCBASE appears to already contain a git repository."
 fi
 
 # current branch management is naive and assumes that the branch
@@ -119,17 +136,18 @@ fi
 
 if [ -d "$ADCIRCBASE/.git" ]; then
   if [ "$INTERACTIVE" == "yes" ]; then
-    answer=
-    skip_checkout=
-    echo "Checkout ADCIRC git branch? A 'skip' is useful if the local git repo exists and is in an unclean state."
-    read -p "Type 'skip' to skip the branch checkout [continue]. " answer
-    if [ "$answer" == 'skip' ]; then
-      echo 'Git repository skipped checkout. Proceeding to build."'
-      skip_checkout=yes
+    echo
+    read -p "Which ADCIRC branch would you like to checkout from GitHub ('.' to skip checkout)? [$ADCIRC_GIT_BRANCH] " repo
+    if [ -z "$repo" ]; then
+      repo=$ADCIRC_GIT_BRANCH
     fi
-     echo
+    do_checkout=yes
+    if [ "$repo" == "." ]; then
+      do_checkout=no
+    fi
+    echo
   fi
-  if [ "$skip_checkout" != "yes" ]; then
+  if [ "$do_checkout" == "yes" ]; then
     CURRENT_BRANCH=$(git branch | egrep '^\*' | awk '{ print $2 }')
     if [ "${ADCIRC_GIT_BRANCH}" != "${CURRENT_BRANCH}" ]; then
       git checkout ${ADCIRC_GIT_BRANCH}
@@ -160,11 +178,16 @@ if [ "$INTERACTIVE" = "yes" ]; then
   echo
   echo "About to build ADCIRC in $ADCIRCDIR with the following command:"
   echo
-  echo "$ADCIRC_MAKE_CMD"
+  echo "cd $ADCIRCDIR && \\"
+  echo "   $ADCIRC_MAKE_CMD"
   echo
-  read -p "Type 'no' to stop build [continue]. " answer
+  _answer=yes
+  read -p "Proceed to build? [$_answer] " answer
   echo
-  if [ "$answer" == 'no' ]; then
+  if [ -z "$answer" ]; then
+    answer=$_answer
+  fi
+  if [ "$answer" != 'yes' ]; then
     echo "build stopped. Exiting."
     exit 1
   fi
