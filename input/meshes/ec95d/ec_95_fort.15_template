@@ -813,3 +813,5 @@ RENCI HPC
 CF
 jason.fleming@seahorsecoastal.com
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
+&inundationOutputControl inundationOutput=.true. inunThresh=0.6 /
+%offsetline%

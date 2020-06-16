@@ -1054,3 +1054,6 @@ natedill@gmail.com !NCCONT
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00 
 &SWANOutputControl SWAN_OutputTPS=T, SWAN_OutputTMM10=T, SWAN_OutputTM01=T, SWAN_OutputHS=T, SWAN_OutputTM02=T SWAN_OutputDIR=T /
 &MetControl DragLawString='Powell' WindDragLimit=0.002 /
+&inundationOutputControl inundationOutput=.true. inunThresh=0.6 /
+%offsetline%
+
