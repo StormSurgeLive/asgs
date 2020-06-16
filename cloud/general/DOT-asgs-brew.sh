@@ -25,8 +25,10 @@
 
 help() {
   echo Command Line Options \(used when invoking asgsh from login shell\):
-  echo "   -h                         - displays available asgsh command line flags, then exits."
-  echo "   -p     profile             - launches the ASGS Shell environment and immediate loads specified profile on start, if it exists."
+  echo "   -d                          - debug mode, turns on 'set -x'"
+  echo "   -h                          - displays available asgsh command line flags, then exits."
+  echo "   -p     profile              - launches the ASGS Shell environment and immediate loads specified profile on start, if it exists."
+  echo "   -x                          - skips loading of platforms.sh and properties.sh (could become default)"
   echo
   echo ASGS Shell Commands:
   echo "   clone   profile             - launches guided process for cloning the current profile, including copying the configuratin file."
@@ -54,6 +56,7 @@ help() {
   echo "   purge   <param>             - deletes specified file or directory"
   echo "           rundir              - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
   echo "           statefile           - deletes the state file associated with a profile, effectively for restarting from the initial advisory"
+  echo "   rl                          - reload current profile, equivalent to 'load profile <current-profile-name>'"
   echo "   run                         - runs asgs using config file, \$ASGS_CONFIG must be defined (see 'define config'); most handy after 'load'ing a profile"
   echo "   save    profile <name>      - saves an asgs named profile, '<name>' not required if a profile is loaded"
   echo "   show    <param>             - shows specified profile variables, to see current list type 'show help'"
@@ -212,11 +215,19 @@ edit() {
     ;;
   profile)
     NAME=${2}
-    if [ ! -e "$ASGS_HOME/.asgs/$NAME" ]; then
+    if [[ -z "$NAME" || ! -e "$ASGS_HOME/.asgs/$NAME" ]]; then
       echo "An ASGS profile named '$NAME' doesn't exist"
       return
     fi
     $EDITOR "$ASGS_HOME/.asgs/$NAME"
+    if [ 0 -eq $? ]; then
+      read -p "reload edited profile '$_ASGSH_CURRENT_PROFILE'? [y]" reload
+      if [[ -z "$reload" || "$reload" = "y" ]]; then
+        rl
+      else
+        echo "warning - profile '$_ASGSH_CURRENT_PROFILE' has been edited, but not reloaded. To reload, use the 'rl' or 'load profile $_ASGSH_CURRENT_PROFILE' command."
+      fi
+    fi
     ;;
   statefile)
     if [ -z "$STATEFILE" ]; then
@@ -409,6 +420,13 @@ load() {
       if [ -e "${ADCIRC_META_DIR}/${BRANCH}" ]; then
           # source it
           . ${ADCIRC_META_DIR}/${BRANCH}
+          echo creating symlinks to ADCIRC binaries in $ASGS_INSTALL_PATH/bin
+          for b in $ADCIRC_BINS; do
+            echo -n linking $b
+            ln -sf $ADCIRCDIR/$b $ASGS_INSTALL_PATH/bin/$b && echo ... ok
+          done          
+          export PS1="asgs (${_ASGSH_CURRENT_PROFILE}*)> "
+          echo "don't forget to save profile"
       else
           echo "ADCIRC build, '$BRANCH' does not exist. Use 'list adcirc' to see a which ADCIRCs are available to load"
       fi
@@ -422,7 +440,8 @@ load() {
       if [ -e "$ASGS_HOME/.asgs/$NAME" ]; then
         _reset_ephemeral_envars
         . "$ASGS_HOME/.asgs/$NAME"
-        export PS1="asgs ($NAME)> "
+        _ASGSH_CURRENT_PROFILE="$NAME"
+        export PS1="asgs ($_ASGSH_CURRENT_PROFILE)> "
         echo loaded \'$NAME\' into current profile;
         if [ -n "$ASGS_CONFIG" ]; then
           # extracts info such as 'instancename' so we can derive the location of the state file, then the log file path and actual run directory
@@ -545,9 +564,6 @@ save() {
   done
   mv "$ASGS_HOME/.asgs/${NAME}.$$.tmp" "$ASGS_HOME/.asgs/${NAME}"
   
-  # update prompt so that it's easy to tell at first glance what's loaded
-  export PS1="asgs ($NAME)> "
-
   # print different message based on whether or not the profile already exists
   if [ -n "$IS_UPDATE" ]; then
     echo profile \'$NAME\' was updated
@@ -555,9 +571,18 @@ save() {
     echo profile \'$NAME\' was written
   fi
 
+  # update prompt so that it's easy to tell at first glance what's loaded
+  _ASGSH_CURRENT_PROFILE=$NAME
+  export PS1="asgs (${_ASGSH_CURRENT_PROFILE})> "
+
   if [ 1 -eq "$DO_RELOAD" ]; then
-    load $NAME
+    load profile $_ASGSH_CURRENT_PROFILE
   fi
+}
+
+# reload current profile
+rl() {
+  load profile $_ASGSH_CURRENT_PROFILE
 }
 
 # defines the value of various important environmental variables,
@@ -567,6 +592,7 @@ define() {
     echo "'define' requires 2 arguments - parameter name and value"
     return 
   fi
+  _DEFINE_OK=1
   case "${1}" in
     adcircdir)
       export ADCIRCDIR=${2}
@@ -586,6 +612,7 @@ define() {
       # makes sure that file exists, will not 'define config' if the file does not
       if [ ! -e "$ABS_PATH" ]; then
         echo "'${ABS_PATH}' does not exist! 'define config' command has failed."
+        _DEFINE_OK=0
         return
       fi 
       export ASGS_CONFIG=${ABS_PATH}
@@ -608,8 +635,12 @@ define() {
       echo "SCRATCH is now defined as '${SCRATCH}'"
       ;;
     *) echo "define requires one of the supported parameters: adcircdir, adcircbranch, adcircremote, config, editor, scratchdir, scriptdir, or workdir"
+      _DEFINE_OK=0
       ;;
   esac 
+  if [ 1 -eq "$_DEFINE_OK" ]; then
+    export PS1="asgs (${_ASGSH_CURRENT_PROFILE}*)> "
+  fi
 }
 
 # prints value of provided variable name
@@ -880,6 +911,36 @@ tailf() {
 # runs a fairly comprehensive set of Perl and Python scripts to validate
 # that these environments are working as expected
 verify() {
+  case "${1}" in
+    adcirc)
+     verify_adcirc
+     ;;
+    perl)
+     verify_perl
+     ;;
+    python)
+     verify_python
+     ;;
+    regressions)
+     verify_regressions
+     ;;
+    *)
+     verify_perl
+     verify_python
+     verify_regressions
+     verify_adcirc 
+     ;;      
+  esac
+}
+
+verify_adcirc() {
+  echo +
+  echo ++ Verifying ADCIRC in $ADCIRCDIR runs serially
+  echo ++ ... downloading test case from adcirc.org
+  $SCRIPTDIR/cloud/general/t/verify-adcirc.sh
+}
+
+verify_perl() {
   echo +
   echo ++ Verifying Perl Environment:
   pushd $SCRIPTDIR > /dev/null 2>&1
@@ -887,6 +948,9 @@ verify() {
   for file in $(find . -name "*.pl"); do
     perl -c $file > /dev/null 2>&1 && echo ok $file || echo not ok $file;
   done
+}
+
+verify_python() {
   python $SCRIPTDIR/cloud/general/t/verify-python-modules.py
   echo +
   echo ++ Verifying Python scripts can pass compile phase \(python -m py_compile\)
@@ -896,6 +960,16 @@ verify() {
     rm -f ${file}c
   done
   echo +
+  echo ++ Benchmarking and verifying netCDF4 module functionality
+  rm -f ./*.nc # pre clean up
+  pyNETCDFBENCH=$SCRIPTDIR/cloud/general/t/netcdf4-bench.py
+  $pyNETCDFBENCH && echo ok $pyNETCDFBENCH works || echo not ok $pyNETCDFBENCH 
+  rm -f ./*.nc # post clean up
+  popd > /dev/null 2>&1
+}
+
+verify_regressions() {
+  echo +
   echo ++ Regression Testing
   ANS=$(python $SCRIPTDIR/monitoring/FortCheck.py $SCRIPTDIR/cloud/general/t/test-data/fort.61.nc 2>&1)
   if [ "$ANS" == "100.00" ]; then
@@ -903,13 +977,6 @@ verify() {
   else
    echo "not ok ./monitoring/FortCheck.py can't read cloud/general/t/test-data/fort.61.nc"
   fi 
-  echo +
-  echo ++ Benchmarking and verifying netCDF4 module functionality
-  rm -f ./*.nc # pre clean up
-  pyNETCDFBENCH=$SCRIPTDIR/cloud/general/t/netcdf4-bench.py
-  $pyNETCDFBENCH && echo ok $pyNETCDFBENCH works || echo not ok $pyNETCDFBENCH 
-  rm -f ./*.nc # post clean up
-  popd > /dev/null 2>&1
 }
 
 # todo - added to general 'verify' function once it's merged to master
@@ -970,14 +1037,42 @@ purge() {
   esac 
 }
 
+if [ 1 = "${skip_platform_profiles}" ]; then
+  echo "(-x used) ... skipping the loading platform.sh and properties.sh ..." 
+else
+  echo initializing...
+  # loading support for reading of run.properties file
+  if [ -e "$SCRIPTDIR/properties.sh" ]; then
+    echo "found properties.sh"
+    . $SCRIPTDIR/properties.sh
+  else
+    echo "warning: could not find $SCRIPTDIR/properties.sh"
+  fi
+  # initializing ASGS environment and platform, based on $asgs_machine_name
+  if [ -e "$SCRIPTDIR/monitoring/logging.sh" ]; then
+    echo "found logging.sh"
+    . $SCRIPTDIR/monitoring/logging.sh 
+    if [ -e "$SCRIPTDIR/platforms.sh" ]; then
+      echo "found platforms.sh"
+      . $SCRIPTDIR/platforms.sh
+      env_dispatch $ASGS_MACHINE_NAME
+    else
+      echo "warning: could not find $SCRIPTDIR/platforms.sh"
+    fi
+  else
+    echo "warning: could not find $SCRIPTDIR/monitoring/logging.sh"
+  fi
+fi
+
 # initialization, do after bash functions have been loaded
 export PS1='asgs (none)>'
 echo
 echo "Quick start:"
 echo "  'initadcirc' to build and local register versions of ADCIRC"
 echo "  'list profiles' to see what scenario package profiles exist"
-echo "  'list adcirc' to see what builds of ADCIRC exist"
 echo "  'load profile <profile_name>' to load saved profile"
+echo "  'list adcirc' to see what builds of ADCIRC exist"
+echo "  'load adcirc <adcirc_build_name>' to load a specific ADCIRC build"
 echo "  'run' to initiated ASGS for loaded profile"
 echo "  'help' for full list of options and features"
 echo "  'goto scriptdir' to change current directory to ASGS' script directory"
