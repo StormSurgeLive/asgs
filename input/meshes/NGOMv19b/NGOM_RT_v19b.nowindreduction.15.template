@@ -10,15 +10,13 @@
  2                          ! NOLIFA - OPTION TO INCLUDE FINITE AMPLITUDE TERMS
  0                          ! NOLICA - OPTION TO INCLUDE CONVECTIVE ACCELERATION TERMS
  0                          ! NOLICAT - OPTION TO CONSIDER TIME DERIVATIVE OF CONV ACC TERMS
- 8                          ! NWP - Number of nodal attributes.
+ 6                          ! NWP - Number of nodal attributes.
 sea_surface_height_above_geoid
 elemental_slope_limiter
 surface_submergence_state
 primitive_weighting_in_continuity_equation
 average_horizontal_eddy_viscosity_in_sea_water_wrt_depth
 mannings_n_at_sea_floor
-surface_canopy_coefficient
-surface_directional_effective_roughness_length
  1                          ! NCOR - VARIABLE CORIOLIS IN SPACE OPTION PARAMETER
  1                          ! NTIP - TIDAL POTENTIAL OPTION PARAMETER
 %NWS%                       ! NWS - WIND STRESS AND BAROMETRIC PRESSURE OPTION PARAMETER
@@ -2618,13 +2616,14 @@ K2
 NGOM_4.0.25
 Louisiana State University  
 ADCIRC
-QB2          
+QB2      
 ASGS Nowcast/Forecast
 www.lsu.edu/ccr
 Model time is relative to UTC.
-qb.loni.org               
+qb.loni.org                
 mbilsk3@lsu.edu        
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
  &SWANOutputControl SWAN_OutputTPS=T, SWAN_OutputTMM10=T, SWAN_OutputTM01=T, SWAN_OutputHS=T, SWAN_OutputTM02=T SWAN_OutputDIR=T /
  &metControl WindDragLimit=0.002 DragLawString='Powell' /
- &inundationOutputControl inundationOutput=.true. /
+&inundationOutputControl inundationOutput=.true. inunThresh=0.6 /
+%offsetline%
