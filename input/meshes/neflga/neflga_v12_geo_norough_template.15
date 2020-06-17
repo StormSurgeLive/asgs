@@ -2438,3 +2438,4 @@ jason.fleming@seahorsecoastal.com     ! NCCONT - CONTACT INFORMATION
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
 &inundationOutputControl inundationOutput=.true. /
 # need to find out what wind drag formulation ... compiled with Powell??
+%offsetline%

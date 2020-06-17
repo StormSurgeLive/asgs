@@ -98,9 +98,11 @@ init_queenbee()
   TDS=( lsu_tds )
   # needed for asgs perl
   #source ~/perl5/perlbrew/etc/bashrc
-  module purge
-  $PLATFORMMODULES
-  $SERIALMODULES
+  if [ -z "$_ASGS_PID" ]; then 
+    module purge
+    $PLATFORMMODULES
+    $SERIALMODULES
+  fi
   if [[ $operator = "jgflemin" || $USER = "jgflemin" ]]; then
      ACCOUNT=loni_lsu_ccr_19
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
@@ -441,9 +443,12 @@ init_frontera()
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2020 # is this used? 
   TDS=( tacc_tds )
-  $PLATFORMMODULES
-  $SERIALMODULES
   MAKEJOBS=8
+  # only run env module commands if not in asgsh
+  if [ -z "$_ASGS_PID" ]; then 
+    $PLATFORMMODULES
+    $SERIALMODULES
+  fi
 }
 #
 init_stampede2()
