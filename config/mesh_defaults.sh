@@ -262,7 +262,6 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_nc_inundation_v9.99_rivers.dat.xz
       UNITOFFSETFILE=unit_offset_nc_inundation_v9.99_rivers.dat
-<<<<<<< HEAD
       ;; 
    "hsofs_NE-hires_v2_depf2") 
       INPUTDIR=$SCRIPTDIR/input/meshes/hsofs_NE-hires_v2_depf2/
@@ -292,11 +291,6 @@ case $GRIDNAME in
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_hsofs.dat.xz
       UNITOFFSETFILE=unit_offset_hsofs.dat
       ;;
-
-=======
-      ;;
-      # 
->>>>>>> 78b371ff5e9ccddee0690cce4b3191909991c309
    "hsofs")
       #
       INPUTDIR=$SCRIPTDIR/input/meshes/hsofs
