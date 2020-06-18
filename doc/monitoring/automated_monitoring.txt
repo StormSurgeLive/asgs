@@ -1,0 +1,128 @@
+Automated Monitoring of Resources (Allocation and Quota)
+Sample Commands and Output
+jason.fleming@seahorsecoastal.com
+Last Updated : 17 June 2020
+
+Frontera
+~~~~~~~~
+
+When I try to run it on Frontera, it seems to give the amount of our original allocation, rather than the current balance:
+
+asgs (default)> /usr/local/etc/taccinfo
+--------------------- Project balances for user jgflemin ----------------------
+| Name           Avail SUs     Expires | Name           Avail SUs     Expires |
+| FTA-SUB-Dawso      -3571  2020-06-30 | ASC20001          100000  2021-03-31 | 
+------------------------ Disk quotas for user jgflemin ------------------------
+| Disk         Usage (GB)     Limit    %Used   File Usage       Limit   %Used |
+| /home1              1.3      25.0     5.23        44748      400000   11.19 |
+| /work             171.7    1024.0    16.77       229292     3000000    7.64 |
+| /scratch1        4641.7       0.0     0.00       639662           0    0.00 |
+| /scratch2           0.0       0.0     0.00            1           0    0.00 |
+| /scratch3           0.0       0.0     0.00            1           0    0.00 |
+-------------------------------------------------------------------------------
+
+Stampede2
+~~~~~~~~~
+
+On stampede2, you can type the following command:
+
+/usr/local/etc/taccinfo
+
+https://portal.tacc.utexas.edu/user-guides/stampede2#running-accounting
+
+Bob Garza
+TACC User Services
+
+login1.stampede2(1040)$ /usr/local/etc/taccinfo
+--------------------- Project balances for user jgflemin ----------------------
+| Name           Avail SUs     Expires | Name           Avail SUs     Expires |
+| DesignSafe-CE      20571  2021-03-31 | TG-DMS080016N      42958  2020-12-31 | 
+| DesignSafe-DC         -0  2023-12-31 |                                      |
+------------------------ Disk quotas for user jgflemin ------------------------
+| Disk         Usage (GB)     Limit    %Used   File Usage       Limit   %Used |
+| /home1              1.3      10.0    12.98        48035      200000   24.02 |
+| /work             171.7    1024.0    16.77       229292     3000000    7.64 |
+| /scratch            0.3       0.0     0.00        57640           0    0.00 |
+-------------------------------------------------------------------------------
+
+Lonestar5
+~~~~~~~~~
+
+Virginia Trueheart, MSIS : Hi Jason,
+
+On LS5 the path for the taccinfo output is:
+
+/etc/tacc/taccinfo
+
+ex:
+login2.ls5(1002)$ whoami
+jgflemin
+login2.ls5(1003)$ /etc/tacc/taccinfo
+--------------------- Project balances for user jgflemin ----------------------
+| Name           Avail SUs     Expires |                                      |
+| ADCIRC             28190  2021-03-31 |                                      |
+------------------------ Disk quotas for user jgflemin ------------------------
+| Disk         Usage (GB)     Limit    %Used   File Usage       Limit   %Used |
+| /home1              1.3      10.0    12.59        54540     1000000    5.45 |
+| /work             163.4    1024.0    15.96       199186     3000000    6.64 |
+| /scratch           15.4       0.0     0.00      1795390           0    0.00 |
+-------------------------------------------------------------------------------
+
+We're still looking into the issue with the display on Frontera.
+
+
+Queenbee2
+~~~~~~~~~
+
+[jgflemin@qb1 ~]$ showquota
+Hard disk quotas for user jgflemin (uid 24193): 
+     Filesystem    MB used       quota       files      fquota
+     /home            7966       10000       90793           0
+     /work         1847723           0      220196     4000000
+
+CPU Allocation SUs remaining: 
+    loni_adcbench01:  88.57
+    loni_lsu_ccr_19:  1713541.14
+
+
+SuperMIC
+~~~~~~~~
+
+asgs (EGOMv20b_nam_jgf)> showquota
+Hard disk quotas for user jgflemin (uid 24193): 
+     Filesystem    MB used       quota       files      fquota
+     /home            1181        5000       53850           0
+     /work         2507626           0      212214     4000000
+
+CPU Allocation SUs remaining: 
+    hpc_cera_2019b:  5878.71
+    hpc_cera_2019c:  1084494.27
+    hpc_crc_smi_19:  939024.68
+
+Hatteras
+~~~~~~~~
+
+[ncfs@ht4 10:40:18 input]$ df -h /projects/ncfs
+Filesystem                 Size  Used Avail Use% Mounted on
+na-projects.cluster:/ncfs   86T   81T  5.5T  94% /projects/ncfs
+
+[ncfs@ht4 11:22:55 ncfs-dev]$ df -h /projects/ncfs-dev
+Filesystem                              Size  Used Avail Use% Mounted on
+data.isilon.cluster:/projects/ncfs-dev   70T   57T   14T  81% /projects/ncfs-dev
+
+
+Penguin
+~~~~~~~
+
+
+Seadog
+~~~~~~
+
+
+
+Desktop
+~~~~~~~
+
+
+
+###
