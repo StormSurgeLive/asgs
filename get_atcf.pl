@@ -219,7 +219,7 @@ while (!$dl) {
          #stderrMessage("DEBUG","ok is $ok");
          #stderrMessage("DEBUG","why is $why");
          my %attributes = ();
-         $attributes{'verify_SSL'} = 1;
+         #$attributes{'verify_SSL'} = 1;
          my $http = HTTP::Tiny->new(%attributes);
          my $response = $http->get('https://' . $rsssite . '/index-at.xml');
          if ( $response->{status} == 599 ) { 
