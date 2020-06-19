@@ -1,0 +1,52 @@
+# 19-Jun-2020, 16:05 CDT, CFIGS
+# Longitude Latitude ! Station ID ! Agency ! Station Name
+-89.8306214900 30.3013057800 ! 07374581 ! USGS ! Bayou Liberty nr Slidell
+-90.2486950000 30.6160220000 ! 07375000 ! USGS ! Tchefuncte River near Folsom
+-90.1695244000 30.4946364000 ! 07375050 ! USGS ! Tchefuncte River near Covington
+-90.1461111000 30.5563888900 ! 07375105 ! USGS ! Bogue Falaya River near Camp Covington
+-90.0845220000 30.4996360000 ! 07375170 ! USGS ! Bogue Falaya at Covington
+-90.0894440000 30.4763890000 ! 07375175 ! USGS ! Bogue Falaya River at Boston St. at Covington
+-90.0389640000 30.4821380000 ! 07375222 ! USGS ! Abita River north of Abita Springs
+-90.1548010000 30.4040830000 ! 07375230 ! USGS ! Tchefuncte River at Madisonville
+-90.4611111000 31.0122222000 ! 07375280 ! USGS ! Tangipahoa River at Osyka
+-90.4903728000 30.9376802900 ! 07375300 ! USGS ! Tangipahoa River near Kentwood
+-90.4842586900 30.7290746700 ! 07375430 ! USGS ! Tangipahoa River near Amite
+-90.3617520000 30.5065800000 ! 07375500 ! USGS ! Tangipahoa River at Robert
+-90.3345830000 30.4436940000 ! 07375650 ! USGS ! Tangipahoa River near Ponchatoula
+-90.6734317000 30.9307355900 ! 07375800 ! USGS ! Tickfaw River at Liverpool
+-90.6431509000 30.6862970700 ! 07375960 ! USGS ! Tickfaw River at Montpelier
+-90.6773160000 30.5038020000 ! 07376000 ! USGS ! Tickfaw River at Holden
+-90.5459240000 30.5043580000 ! 07376500 ! USGS ! Natalbany River at Baptist
+-90.8445454000 30.8890694000 ! 07377000 ! USGS ! Amite River near Darlington
+-90.8417669900 30.7362948400 ! 07377150 ! USGS ! Amite River at Grangeville
+-90.9601024000 30.6707406000 ! 07377210 ! USGS ! Sandy Creek nr Pride
+-90.9821167000 30.6211083300 ! 07377243 ! USGS ! Sandy Ck at Alph. Forbes nr Greenwell Springs
+-90.9806579000 30.5349106000 ! 07377300 ! USGS ! Amite River at Magnolia
+-91.0512991000 30.7022953800 ! 07377600 ! USGS ! Comite R. at Pt. Hudson-Pride Rd nr Milldale
+-91.0945500000 30.6432413800 ! 07377750 ! USGS ! Comite River near Zachary
+-91.0982722000 30.5582712600 ! 07377760 ! USGS ! Comite River at Comite Dr nr Baton Rouge
+-91.0401040000 30.5057450000 ! 07378050 ! USGS ! Comite R. at Greenwell Spg Rd near Baton Rouge
+-91.0209368000 30.5610210300 ! 07378083 ! USGS ! Beaver Bayou at Hooper Road nr Baton Rouge
+-90.9903800000 30.4640790000 ! 07378500 ! USGS ! Amite River near Denham Springs
+-91.0073240000 30.3868590000 ! 07378722 ! USGS ! Claycut Bayou at Antioch Rd near Baton Rouge
+-91.0207220000 30.3212500000 ! 07378745 ! USGS ! Alligator Bayou near Kleinpeter
+-91.1034380000 30.4444680000 ! 07379000 ! USGS ! Ward Creek at Government St at Baton Rouge
+-91.0942710000 30.3824140000 ! 07379960 ! USGS ! Dawson Cr. at Bluebonnet Blvd near Baton Rouge
+-90.9464890000 30.3285270000 ! 07380107 ! USGS ! Muddy Creek at Manchac Acres Rd near Oak Grove
+-90.8520419000 30.3326939000 ! 07380120 ! USGS ! Amite River at Port Vincent
+-90.8837090000 30.2974170000 ! 07380126 ! USGS ! Henderson Bayou near Port Vincent
+-90.7792616000 30.2754733000 ! 07380200 ! USGS ! Amite River near French Settlement
+-90.6103684000 30.3093619000 ! 07380215 ! USGS ! Amite River at Hwy 22 nr Maurepas
+-90.9187090000 30.1707530000 ! 073802220 ! USGS ! Panama Canal at Hwy 44 nr Gonzales
+-90.8612080000 30.1732530000 ! 073802225 ! USGS ! Bayou Conway near Sorrento
+-90.9634330000 30.2621400000 ! 0738022295 ! USGS ! Grand Goudine at Babin Rd Near Duplessis
+-90.8995420000 30.2274190000 ! 073802273 ! USGS ! Bayou Francois at Hwy 61 near Gonzales
+-90.7862050000 30.1893640000 ! 073802282 ! USGS ! New River Canal nr Sorrento
+-90.6308330000 30.1005560000 ! 300602090375100 ! USGS ! CRMS5373-H01-RT
+-90.6400000000 30.2233330000 ! 301324090382400 ! USGS ! CRMS0061-H01-RT
+-90.5508610000 30.3758610000 ! 85300 ! USACE ! Tickfaw River near Springfield
+-90.4002780000 30.2813890000 ! 85420 ! USACE ! Pass Manchac near Pontchoula
+-90.0922890000 30.3657970000 ! 85575 ! USACE ! Lake Pontchartrain at Mandeville
+-90.8969440000 30.3477780000 ! BYML1 ! NOAA RFC ! Amite River at Bayou Manchac Point
+-91.0438890000 30.7563890000 ! OLVL1 ! NOAA RFC ! Comite River near Olive Branch
+-90.5686110000 30.0555560000 ! RRVL1 ! NOAA RFC ! Mississippi River at Reserve
