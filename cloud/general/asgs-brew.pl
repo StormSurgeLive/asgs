@@ -456,7 +456,7 @@ export _ASGSH_PID=\$\$
 
 # denotes which environmental variables we care about when saving a profile - includes variables that
 # are meaningful to ASGS Shell, but not set in asgs-brew.pl
-export _ASGS_EXPORTED_VARS="$_asgs_exported_vars _ASGS_EXPORTED_VARS WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD"
+export _ASGS_EXPORTED_VARS="$_asgs_exported_vars _ASGS_EXPORTED_VARS WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_MAKE_CMD ADCIRC_BINS SWAN_BINS"
 $env_summary
 
 # export opts for processing in $rcfile
@@ -561,7 +561,7 @@ sub get_steps {
     #   Dev note: ADD new PATHs here using the existing pattern
     my $_get_all_paths = sub {
         my @all_paths = ();
-        push @all_paths, ( qq{$asgs_install_path/bini}, qq{$scriptdir/cloud/general} );
+        push @all_paths, ( qq{$asgs_install_path/bin}, qq{$scriptdir/cloud/general} );
         foreach my $dir (
             qw[  archive
             cloudgeneral
@@ -895,13 +895,13 @@ sub get_steps {
                 # always expose, always set even if not building ADCIRC
                 ADCIRC_GIT_BRANCH => { value => qq{$adcirc_git_branch}, how => q{replace} },
                 ADCIRC_GIT_URL    => { value => qq{$adcirc_git_url},    how => q{replace} },
+                ADCIRC_GIT_REPO   => { value => qq{$adcirc_git_repo},   how => q{replace} },
                 ADCIRC_COMPILER   => { value => qq{$asgs_compiler},     how => q{replace} },
 
                 # always expose, don't actually set unless building adcirc via asgs-brew.pl
                 ADCIRCBASE          => ( not $opts_ref->{'build-adcirc'} ) ? undef : { value => qq{$adcircdir-$adcirc_git_branch},      how => q{replace} },
                 ADCIRCDIR           => ( not $opts_ref->{'build-adcirc'} ) ? undef : { value => qq{$adcircdir-$adcirc_git_branch/work}, how => q{replace} },
                 SWANDIR             => ( not $opts_ref->{'build-adcirc'} ) ? undef : { value => qq{$adcircdir-$adcirc_git_branch/swan}, how => q{replace} },
-                ADCIRC_GIT_REPO     => ( not $opts_ref->{'build-adcirc'} ) ? undef : { value => qq{$adcirc_git_repo},                   how => q{replace} },
                 ADCIRC_PROFILE_NAME => ( not $opts_ref->{'build-adcirc'} ) ? undef : { value => qq{$adcirc_git_branch-$asgs_compiler},  how => q{replace} },
             },
             command => q{bash cloud/general/init-adcirc.sh},                   # Note: parameters input via environmental variables
