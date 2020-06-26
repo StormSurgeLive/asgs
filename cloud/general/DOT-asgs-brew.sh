@@ -40,6 +40,7 @@ help() {
   echo "   delete  profile <name>      - deletes named profile"
   echo "   delete  adcirc  <name>      - deletes named ADCIRC profile"
   echo "   delete  config              - deletes configuration file for current profile, unsets 'config' var. Interactively confirms."
+  echo "   delete  statefile           - deletes the state file associated with a profile, effectively for restarting from the initial advisory"
   echo "   dump    <param>             - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog" 
   echo "   edit    adcirc  <name>      - directly edit the named ADCIRC environment file"
   echo "   edit    config              - directly edit currently registered ASGS configuration file (used by asgs_main.sh)"
@@ -55,7 +56,6 @@ help() {
   echo "   load    adcirc  <name>      - loads information a version of ADCIRC into the current environment. Use 'list adcirc' to see what's available"
   echo "   purge   <param>             - deletes specified file or directory"
   echo "           rundir              - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
-  echo "           statefile           - deletes the state file associated with a profile, effectively for restarting from the initial advisory"
   echo "   rl                          - reload current profile, equivalent to 'load profile <current-profile-name>'"
   echo "   run                         - runs asgs using config file, \$ASGS_CONFIG must be defined (see 'define config'); most handy after 'load'ing a profile"
   echo "   save    profile <name>      - saves an asgs named profile, '<name>' not required if a profile is loaded"
@@ -155,8 +155,17 @@ delete() {
         echo "no saved profile named '$NAME' was found"
       fi
       ;;
+    statefile)
+     read -p "This will delete the state file, \"${STATEFILE}\". Type 'y' to proceed. [N] " DELETE_STATEFILE
+     if [ 'y' == "${DELETE_STATEFILE}" ]; then
+       rm -rvf "${STATEFILE}"
+       STATEFILE=
+     else
+       echo "Purge of state file cancelled."
+     fi
+    ;;
     *)
-      echo "'delete' requires 2 parameters: 'adcirc' or 'profile' as the first; the second parameter defines what to load."
+      echo "'delete' requires 2 parameters for 'adcirc' and 'profile' specifying which ADCIRC build or profile to delete. All others do not."
       return
   esac
 }
@@ -1001,7 +1010,7 @@ verify_netcdf() {
 
 purge() {
   if [ -z "${1}" ]; then
-    echo "'purge' requires 1 argument - currently only supports 'rundir', 'scratchdir', 'statefile'."
+    echo "'purge' requires 1 argument - currently only supports 'rundir' and 'scratchdir''."
     return 
   fi
   case "${1}" in
@@ -1014,15 +1023,6 @@ purge() {
        echo "Purge of rundir cancelled."
      fi
     ;;
-    statefile)
-     read -p "This will delete the state file, \"${STATEFILE}\". Type 'y' to proceed. [N] " DELETE_STATEFILE
-     if [ 'y' == "${DELETE_STATEFILE}" ]; then
-       rm -rvf "${STATEFILE}"
-       STATEFILE=
-     else
-       echo "Purge of state file cancelled."
-     fi
-    ;;
     scratchdir)
      read -p "This will delete EVERYTHING in the SCRATCH directory, \"${SCRATCH}\". Type 'y' to proceed. [N]? " DELETE_SCRATCH
      if [ 'y' == "${DELETE_SCRATCH}" ]; then
@@ -1032,7 +1032,7 @@ purge() {
      fi
     ;;
     *)
-     echo "'${1}' is not supported. 'purge' currently only supports 'rundir', 'scratchdir', 'statefile'."
+     echo "'${1}' is not supported. 'purge' currently only supports 'rundir' and 'scratchdir'."
     ;;
   esac 
 }
