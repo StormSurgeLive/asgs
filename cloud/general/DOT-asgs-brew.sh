@@ -434,6 +434,11 @@ load() {
             echo -n linking $b
             ln -sf $ADCIRCDIR/$b $ASGS_INSTALL_PATH/bin/$b && echo ... ok
           done          
+          echo creating symlinks to SWAN binaries in $ASGS_INSTALL_PATH/bin
+          for b in $SWAN_BINS; do
+            echo -n linking $b
+            ln -sf $SWANDIR/$b $ASGS_INSTALL_PATH/bin/$b && echo ... ok
+          done          
           export PS1="asgs (${_ASGSH_CURRENT_PROFILE}*)> "
           echo "don't forget to save profile"
       else
