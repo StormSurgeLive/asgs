@@ -96,9 +96,9 @@ fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020050800
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart     # "hotstart" or "coldstart"
+LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020061812/LA_v20a-WithUpperAtch_chk/frontera.tacc.utexas.edu/LAv20a_nam_jgf/namforecast
 
 # Scenario package 
 
