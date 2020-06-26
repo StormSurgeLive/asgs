@@ -26,7 +26,7 @@
   elif [ 1 -eq $(hostname --fqdn | grep -c qb2) ]; then
     default_platform=queenbee
   elif [ 1 -eq $(hostname --fqdn | grep -c smic) ]; then
-    default_platform=smic
+    default_platform=supermic
   elif [ 1 -eq $(hostname --fqdn | grep -c ls5) ]; then
     default_platform=lonestar5
   elif [ 1 -eq $(hostname --fqdn | grep -c stampede2) ]; then
