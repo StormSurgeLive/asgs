@@ -44,10 +44,13 @@ integer :: sbtUnit
 integer :: sfUnit
 integer :: swUnit
 integer :: snapi
-integer :: snapr
+real(8) :: snapr
 integer :: numNodesNonDefault
 integer :: i, j, node, ss, s
 integer :: errorIO
+logical :: zeroIndex ! true if stations should be numbered starting at zero 
+integer :: stationStart ! station index to start on
+integer :: stationEnd   ! station index to end on
 
 ! initializations
 call initLogging(availableUnitNumber(),'pullStationTimeSeries.f90')
@@ -55,7 +58,9 @@ m%meshFileName = 'fort.14'
 stationFileName = 'stations.txt'
 fs%dataFileName = 'stations_timeseries.txt'
 fs%dataFileFormat = ASCIIG
+ft%dataFileFormat = ASCIIG
 dataSetHeaderLine = "-99999.0 -99999"
+zeroIndex = .false.
 
 argcount = command_argument_count() ! count up command line options
 if (argcount.gt.0) then
@@ -77,6 +82,9 @@ if (argcount.gt.0) then
       case("--netcdf")
          write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt),"."
          ft%dataFileFormat = NETCDFG
+      case("--zero-index")
+         write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt),"."
+         zeroIndex = .true.
       case("--stationfile")
          i = i + 1
          call getarg(i, cmdlinearg)
@@ -110,11 +118,17 @@ do
 end do
 7 write(6,'(a,i0,a,a)') 'INFO: There are ',numStations,' station(s) in ',trim(stationFileName),'.'
 rewind(sfUnit)
-allocate(stations(numStations))
+stationStart = 1
+stationEnd = numStations
+if (zeroIndex.eqv..true.) then
+   stationStart = 0
+   stationEnd = numStations - 1 
+endif
+allocate(stations(stationStart:stationEnd))
 !
 ! read station file
 write(6,'(a)') 'INFO: Reading station file.'
-do i=1, numStations
+do i=stationStart, stationEnd
    read(sfUnit,*) stations(i)%lon, stations(i)%lat
 end do
 close(sfUnit)
@@ -131,11 +145,13 @@ endif
 ! 
 ! grab memory for holding a single data set for 1 or 2 component data
 allocate(adcirc_data(m%np,2))
+!jgfdebug
+! write(*,*) 'm%np is ',m%np,' size(adcirc_data,1) is ',size(adcirc_data,1),'size(adcirc_data,2) is ',size(adcirc_data,2)
 !
 ! loop over the stations, find the element that contains each station,
 ! and compute the interpolation weights
 write(6,'(a,i0,a)') 'INFO: Finding element containing each station and computing interpolation weights for ',numStations,' station(s).'
-do s=1, numStations
+do s=stationStart, stationEnd
    write(6,'(i0,1x)',advance='no') s    ! update progress bar
    stations(s)%elementFound = .false.
    call computeStationWeights(stations(s), m)
@@ -155,20 +171,23 @@ case(ASCIIG)
    ! read header lines and write them to time series file
    read(ft%fun,'(a1024)') headerLineOne
    write(fs%fun,*) trim(adjustl(headerLineOne))
-   read(ft%fun,*) ft%nSnaps, numStations, ft%time_increment, ft%nspool, ft%irtype
-   write(61,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, numStations, ft%time_increment, ft%nspool, ft%irtype
+   read(ft%fun,*) ft%nSnaps, ft%numValuesPerDataset, ft%time_increment, ft%nspool, ft%irtype
+   write(fs%fun,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, numStations, ft%time_increment, ft%nspool, ft%irtype
    SS=1  ! jgf: initialize the dataset counter
    !
    ! jgf: loop until we run out of data
    do    
       write(6,'(i0,1x)',advance='no') ss    ! update progress bar
       read(ft%fun,'(a80)',END=123,ERR=123) dataSetHeaderLine
+      ! jgfdebug 
+      ! write(*,*) 'dataSetHeaderLine is ',trim(dataSetHeaderLine)
       read(dataSetHeaderLine,*) SnapR, SnapI
       read(dataSetHeaderLine,*,ERR=907,END=907) SnapR, SnapI, numNodesNonDefault, ft%defaultValue
       goto 908  ! jgf: this file is sparse ascii
  907  numNodesNonDefault = ft%numValuesPerDataset !jgf: this file is full ascii
-
- 908  adcirc_data = ft%defaultValue
+      !jgfdebug
+      ! write(*,*) 'nunNodesNonDefault = ',numNodesNonDefault
+ 908  adcirc_data(:,:) = ft%defaultValue
       select case(ft%irtype)
       case(1) ! scalar data
          do node=1,numNodesNonDefault
@@ -184,8 +203,8 @@ case(ASCIIG)
          end do     
       end select
       write(fs%fun,*) snapR, snapI
-      do s=1, numStations   
-         call writeStationValue(adcirc_data, m, ft%numValuesPerDataSet, ft%irtype, stations(s), s, fs%fun)
+      do s=stationStart, stationEnd
+         call writeStationValue(adcirc_data, m, numNodesNonDefault, ft%irtype, stations(s), s, fs%fun)
       end do
       ss = ss + 1
    end do
@@ -218,7 +237,7 @@ case(NETCDFG)
          call check(nf90_get_var(ft%nc_id,ft%ncds(j)%nc_varID,adcirc_data(:,j),nc_start,nc_count))
       end do
       write(fs%fun,*) ft%timesec(i), ft%it(i)      
-      do s=1, numStations   
+      do s=stationStart, stationEnd   
          call writeStationValue(adcirc_data, m, ft%numValuesPerDataSet, ft%irtype, stations(s), s, fs%fun)
       end do
    end do
@@ -236,7 +255,7 @@ case(NETCDFG)
       call check(nf90_inq_varid(ft%nc_id, trim('time_of_' // adjustl(ft%ncds(1)%varNameNetCDF)), ft%ncds(1)%nc_varid))
       call check(nf90_get_var(ft%nc_id,ft%ncds(j)%nc_varID,adcirc_data(:,1),nc_start,nc_count))     
       write(fs%fun,*) ft%timesec(1), ft%it(1)      
-      do s=1, numStations   
+      do s=stationStart, stationEnd   
          call writeStationValue(adcirc_data, m, ft%numValuesPerDataset, ft%irtype, stations(s), s, fs%fun)
       end do
       close(fs%fun)
@@ -255,7 +274,7 @@ open(unit=swUnit,file='station_weights.61',status='replace',action='write')
 write(swUnit,*) trim(adjustl(headerLineOne))
 write(swUnit,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, numStations, ft%time_increment, ft%nspool, 3
 write(swUnit,*) trim(adjustl(dataSetHeaderLine))
-do s=1,numStations 
+do s=stationStart,stationEnd 
    write(swUnit,'(i10,2x,3(f15.7,3x))') s, (stations(s)%w(i),i=1,3)
 end do
 close(swUnit)
@@ -268,7 +287,7 @@ open(unit=sbtUnit,file='station_bathytopo.61',status='replace',action='write')
 write(sbtUnit,*) trim(adjustl(headerLineOne))
 write(sbtUnit,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, numStations, ft%time_increment, ft%nspool, 1
 write(sbtUnit,*) trim(adjustl(dataSetHeaderLine))
-do s=1,numStations
+do s=stationStart,stationEnd
    if (stations(s)%elementIndex.eq.0) then
       stationVal = -99999.0
    else
