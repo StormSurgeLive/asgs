@@ -22,8 +22,9 @@
 use strict;
 use warnings;
 use Getopt::Long qw(GetOptionsFromArray);
-use Cwd qw(getcwd);
-use File::Copy qw(copy);
+use Cwd        ();
+use File::Copy ();
+use File::Path ();
 
 package local::asgs_brew;
 
@@ -231,9 +232,9 @@ sub _run_steps {
         $self->_setup_ENV( $op, $opts_ref );
         next RUN_STEPS if $opts_ref->{'update-shell'};
 
-        # check for skip condition for run step, unless --force is used
+        # check for skip condition for run step, unless --force or --clean is used
         # if op is contained in --skip-steps list then the step is skipped unconditionally (--force is ignored)
-        if ( defined $SKIP_STEPS_LIST->{ $op->{key} } or ( ref $op->{skip_if} eq q{CODE} and $op->{skip_if}->( $op, $opts_ref ) and not $opts_ref->{force} ) ) {
+        if ( defined $SKIP_STEPS_LIST->{ $op->{key} } or ( ref $op->{skip_if} eq q{CODE} and $op->{skip_if}->( $op, $opts_ref ) and not $opts_ref->{force} and not $opts_ref->{clean} ) ) {
             print qq{Skipping $op->{name} because 'skip_if' condition has been met.\n} if defined $opts_ref->{debug};
             next RUN_STEPS;
         }
@@ -555,7 +556,7 @@ sub get_steps {
     my $adcirc_git_branch = $opts_ref->{'adcirc-git-branch'};
     my $adcirc_git_repo   = $opts_ref->{'adcirc-git-repo'};
     my $pythonversion     = q{2.7.18};
-    my $pythonpath        = qq{$asgs_install_path/python27/asgs/build/python-$pythonversion};
+    my $pythonpath        = qq{$asgs_install_path/python-$pythonversion};
 
     # generator for PATH string as an anonymous subroutine,
     #   Dev note: ADD new PATHs here using the existing pattern
@@ -621,25 +622,33 @@ sub get_steps {
             description => q{Updates current environment with variables needed for subsequent steps. It only affects the environment within the asgs-brew.pl environment.},
             pwd         => q{./},
             command     => sub { 1 },
-            clean       => qq{rm -vf $asgs_install_path/bin/asgsh # removes asgs shell wrapper},
+            clean       => sub {
+                my ( $op, $opts_ref ) = @_;
+
+                # export_ENV for run steps are used before 'clean' is run, so these are available
+                File::Path::rmtree( $ENV{ASGS_META_DIR}, $ENV{ADCIRC_META_DIR}, { safe => 1 } );
+                unlink qq{$asgs_home/.asgs-brew.sh}, qq{$asgs_home/bin/asgsh}, qq{$asgs_home/bin/update-asgsh};
+            },
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                PATH              => { value => $_get_all_paths->(), how => q{prepend} },               # prefer ASGS binaries and tools; full list managed above, via anonymous sub
-                LIBRARY_PATH      => { value => qq{$asgs_install_path/lib}, how => q{prepend} },        # for use by linkers
-                LD_LIBRARY_PATH   => { value => qq{$asgs_install_path/lib}, how => q{prepend} },        # for use by linkers
-                LD_RUN_PATH       => { value => qq{$asgs_install_path/lib}, how => q{prepend} },        # for use by binaries
-                LD_INCLUDE_PATH   => { value => qq{$asgs_install_path/include}, how => q{prepend} },    # for use by compilers
-                SCRIPTDIR         => { value => qq{$scriptdir}, how => q{replace} },                    # base ASGS dir, used by asgs_main.sh
-                PERL5LIB          => { value => qq{$scriptdir/PERL}, how => q{append} },                # place for distributed Perl libraries
-                ADCIRC_META_DIR   => { value => qq{$asgs_home/.adcirc-meta}, how => q{replace} },       # where to track ASGS profiles (always)
-                ASGS_META_DIR     => { value => qq{$asgs_home/.asgs}, how => q{replace} },              # where to track ADCIRC installs build information (always)
-                ASGS_BREW_FLAGS   => { value => qq{'$brewflags'}, how => q{replace} },                  # make brew flags available for later use
-                ASGS_HOME         => { value => qq{$asgs_home}, how => q{replace} },                    # used in preference of $HOME in most cases
-                ASGS_MACHINE_NAME => { value => qq{$asgs_machine_name}, how => q{replace} },            # machine referred to as in platforms.sh & cmplrflags.mk
-                ASGS_COMPILER     => { value => qq{$asgs_compiler}, how => q{replace} },                # compiler family designated during asgs-brew.pl build
-                ASGS_INSTALL_PATH => { value => qq{$asgs_install_path}, how => q{replace} },            # where asgs-brew.pl installs supporting bins & libs
-                ASGS_MAKEJOBS     => { value => qq{$makejobs}, how => q{replace} },                     # passed to make commands where Makefile supports
+                PATH               => { value => $_get_all_paths->(), how => q{prepend} },                       # prefer ASGS binaries and tools; full list managed above, via anonymous sub
+                LIBRARY_PATH       => { value => qq{$asgs_install_path/lib}, how => q{prepend} },                # for use by linkers
+                LD_LIBRARY_PATH    => { value => qq{$asgs_install_path/lib}, how => q{prepend} },                # for use by linkers
+                LD_RUN_PATH        => { value => qq{$asgs_install_path/lib}, how => q{prepend} },                # for use by binaries
+                LD_INCLUDE_PATH    => { value => qq{$asgs_install_path/include}, how => q{prepend} },            # for use by compilers
+                SCRIPTDIR          => { value => qq{$scriptdir}, how => q{replace} },                            # base ASGS dir, used by asgs_main.sh
+                PERL5LIB           => { value => qq{$scriptdir/PERL}, how => q{append} },                        # place for distributed Perl libraries
+                ADCIRC_META_DIR    => { value => qq{$asgs_home/.adcirc-meta}, how => q{replace} },               # where to track ASGS profiles (always)
+                ASGS_META_DIR      => { value => qq{$asgs_home/.asgs}, how => q{replace} },                      # where to track ADCIRC installs build information (always)
+                ASGS_BREW_FLAGS    => { value => qq{'$brewflags'}, how => q{replace} },                          # make brew flags available for later use
+                ASGS_HOME          => { value => qq{$asgs_home}, how => q{replace} },                            # used in preference of $HOME in most cases
+                ASGS_MACHINE_NAME  => { value => qq{$asgs_machine_name}, how => q{replace} },                    # machine referred to as in platforms.sh & cmplrflags.mk
+                ASGS_COMPILER      => { value => qq{$asgs_compiler}, how => q{replace} },                        # compiler family designated during asgs-brew.pl build
+                ASGS_INSTALL_PATH  => { value => qq{$asgs_install_path}, how => q{replace} },                    # where asgs-brew.pl installs supporting bins & libs
+                ASGS_MAKEJOBS      => { value => qq{$makejobs}, how => q{replace} },                             # passed to make commands where Makefile supports
+                ASGS_MESH_DEFAULTS => { value => qq{$scriptdir/config/mesh_defaults.sh}, how => q{replace} },    # list of supported meshes
+                ASGS_PLATFORMS     => { value => qq{$scriptdir/platforms.sh}, how => q{replace} },               # list of supported platforms
             },
         },
         {
@@ -656,8 +665,8 @@ sub get_steps {
             },
 
             # skip this step if the compiler is not set to gfortran
-            skip_if            => sub { return ( ( $asgs_compiler ne q{gfortran} ) ) ? 1 : 0 },
-            precondition_check => sub { 1 },
+            skip_if             => sub { return ( ( $asgs_compiler ne q{gfortran} ) ) ? 1 : 0 },
+            precondition_check  => sub { 1 },
             postcondition_check => sub {
                 my ( $op, $opts_ref ) = @_;
                 my $bin          = qq{$asgs_install_path/$asgs_compiler/bin};

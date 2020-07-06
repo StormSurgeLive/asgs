@@ -4,6 +4,7 @@ if [ -z "$(which adcirc)" ]; then
   echo ADCIRC not found - runt "'initadcirc'" to build ADCIRC
   echo or "'list adcirc'" to find an ADCIRC build to load using "'load adcirc <adcirc-build-name>'"
   echo exiting test ...
+  exit
 fi
 
 mkdir -p /tmp/$$-adcirc-test

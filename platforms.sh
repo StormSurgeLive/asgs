@@ -569,7 +569,8 @@ init_lonestar5()
 }
 
 # placeholder for vagrant bootstrap
-init_vagrant() {
+init_vagrant()
+{
   MAKEJOBS=2
 }
 
@@ -601,7 +602,7 @@ init_desktop()
   MAKEJOBS=1
 }
 
-init_desktop_serial() # changed from init_desktop-serial due to bash complaints 
+init_desktop_serial()
 {
   THIS="platforms.sh>env_dispatch()>init_desktop-serial()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."

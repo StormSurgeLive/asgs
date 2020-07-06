@@ -8,7 +8,7 @@ TMP=$HOME/tmp
 
 if [ "$ACTION" == "clean" ]; then
   # remove installed binaries from upstream build
-  rm -rfv $OPT/python/${PYTHON_VERSION}
+  rm -rfv $OPT
   # remove modules and local pip directory
   rm -rfv $HOME/.local
   if [ -e "$TMP/Python-${PYTHON_VERSION}" ]; then

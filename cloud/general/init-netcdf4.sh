@@ -15,6 +15,12 @@ if [ $2 == "clean" ]; then
   rm -fv netcdf*
   rm -rvf $TMP/netcdf-4.2.1.1*
   rm -rvf $TMP/netcdf-fortran-4.2*
+  cd $OPT/share/info
+  rm -rvf netcfg*
+  cd $OPT/share/man/man1
+  rm -rvf nc*
+  cd $OPT/share/man/man3
+  rm -rvf netcdf*
   exit
 fi
 
