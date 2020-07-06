@@ -104,7 +104,7 @@ init_queenbee()
     $SERIALMODULES
   fi
   if [[ $operator = "jgflemin" || $USER = "jgflemin" ]]; then
-     ACCOUNT=loni_lsu_ccr_19
+     ACCOUNT=loni_cera_2020
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      JOBENV=( ) # all exes are in /work/jgflemin/opt/default/bin ; all libs are in /work/jgflemin/default/lib
