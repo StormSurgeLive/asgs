@@ -46,12 +46,12 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 # Physical forcing (defaults set in config/forcing_defaults)
 
 #CONTROLTEMPLATE=LAv20a_26kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
-CONTROLTEMPLATE=LAv20a_30kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
+CONTROLTEMPLATE=LAv20a_23kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on      # NAM download/forcing
-FORECASTCYCLE="00,06,12,18"
+FORECASTCYCLE="06"
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #STORM=07             # storm number, e.g. 05=ernesto in 2006
 #YEAR=2018            # year of the storm
@@ -88,17 +88,17 @@ INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu"
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com"
-TDS=( renci_tds )
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com"
+TDS=( lsu_tds )
 if [[ $HPCENVSHORT = frontera || $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then
    TDS=( tacc_tds )
 fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart     # "hotstart" or "coldstart"
-LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020061812/LA_v20a-WithUpperAtch_chk/frontera.tacc.utexas.edu/LAv20a_nam_jgf/namforecast
+COLDSTARTDATE=2020060100
+HOTORCOLD=coldstart     # "hotstart" or "coldstart"
+LASTSUBDIR=null
 
 # Scenario package 
 
