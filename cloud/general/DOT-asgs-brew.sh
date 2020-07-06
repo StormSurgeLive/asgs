@@ -44,6 +44,8 @@ help() {
   echo "   dump    <param>             - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog" 
   echo "   edit    adcirc  <name>      - directly edit the named ADCIRC environment file"
   echo "   edit    config              - directly edit currently registered ASGS configuration file (used by asgs_main.sh)"
+  echo "   edit    meshes              - directly inspect or edit the list of supported meshes"
+  echo "   edit    platforms           - directly inspect or edit the list of supported platforms"
   echo "   edit    profile <name>      - directly edit the named ASGSH Shell profile"
   echo "   edit    statefile           - open up STATEFILE (if set) in EDITOR for easier forensics"
   echo "   edit    syslog              - open up SYSLOG (if set) in EDITOR for easier forensics"
@@ -222,6 +224,12 @@ edit() {
     fi
     $EDITOR $ASGS_CONFIG
     ;;
+  meshes)
+    $EDITOR $ASGS_MESH_DEFAULTS
+    ;;
+  platforms)
+    $EDITOR $ASGS_PLATFORMS
+    ;;
   profile)
     NAME=${2}
     if [[ -z "$NAME" || ! -e "$ASGS_HOME/.asgs/$NAME" ]]; then
@@ -359,6 +367,12 @@ list() {
         echo ASGS configs for $year do not exist 
       fi
       ;;
+    meshes)
+      cat $ASGS_MESH_DEFAULTS | grep '")' | sed 's/[")]//g' | awk '{print "- " $1}'
+      ;;
+    platforms)
+      cat $ASGS_PLATFORMS | egrep '^init_' | sed 's/init_//g' | sed 's/()//g' | awk '{print "- " $1}'
+      ;;
     profiles)
       if [ ! -d "$ASGS_HOME/.asgs/" ]; then
         echo "nothing is available to list, use the 'save' command to save this profile"
@@ -370,7 +384,7 @@ list() {
       fi
       ;;
     *)
-      echo "only 'list configs' and 'list profiles' are supported at this time.'"
+      echo "Supported items to list: 'adcirc', 'configs', 'meshes', 'platforms', 'profiles'"
       ;;
   esac 
 }
@@ -1100,9 +1114,16 @@ alias ls='ls --color=auto'
 alias a="list adcirc"
 alias c="edit config"
 alias p="list profiles"
+alias m="inspect meshes"
+alias lm="list meshes"
 alias sd="goto scriptdir"
 alias s="goto scratchdir"
+alias r="got rundir"
 alias v="verify"
+alias va="verify adcirc"
+alias vp="verify perl"
+alias vpy="verify python"
+alias vr="verify regressions"
 
 # aliases used to discourage the use of certain utilities *inside* of asgsh
 alias screen='echo the use of the "screen" utility *inside* of asgsh is strongly discouraged'

@@ -8,15 +8,8 @@ if [ "$ACTION" == "clean" ]; then
   # remove local directories
   rm -rfv $HOME/perl5 $HOME/.perlbrew
 
-  # remove source line from ~/.bash_profile
-  DOT_BASH_PROFILE=$HOME/.bash_profile-$$
-  cat ~/.bash_profile | grep -v 'source ~/perl5/perlbrew/etc/bashrc' > $DOT_BASH_PROFILE
-  mv -fv $DOT_BASH_PROFILE $HOME/.bash_profile
-
-  # final message on end of "clean"
   echo
-  echo All files associated with perlbrew have been removed.
-  echo '"source"' has been removed from $HOME/.bash_profile.
+  echo This also deleted all Perl modules installed with this perlbrew
   echo
   echo Run again without clean flag to install
   echo
@@ -39,7 +32,7 @@ else
 fi
 
 # source for this session
-source ~/perl5/perlbrew/etc/bashrc
+source $HOME/perl5/perlbrew/etc/bashrc
 
 if [ ! -e "$HOME/perl5/perlbrew/perls/$PERL_VERSION/bin/perl" ]; then
 
