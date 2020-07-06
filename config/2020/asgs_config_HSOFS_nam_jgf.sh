@@ -36,17 +36,14 @@
 
 # Fundamental
 
-INSTANCENAME=LAv20a_nam_jgf  # "name" of this ASGS process
+INSTANCENAME=HSOFS_nam_jgf  # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=LA_v20a-WithUpperAtch_chk
+GRIDNAME=hsofs
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults)
-
-#CONTROLTEMPLATE=LAv20a_26kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
-CONTROLTEMPLATE=LAv20a_23kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
@@ -65,21 +62,15 @@ CYCLETIMELIMIT="99:00:00"
 
 NCPU=959                     # number of compute CPUs for all simulations
 NUMWRITERS=1
-NCPUCAPACITY=9999 
-#QUEUENAME=priority    # queenbee2 and supermic
-#SERQUEUE=priority     # queenbee2 and supermic
-#QOS=vip               # stampede2 and lonestar5
-#QOS=vippj_p3000       # frontera
+NCPUCAPACITY=9999
+#QOS=vippj_p3000
 #
-if [[ $USER = jgflemin ]]; then
-   if [[ $HPCENVSHORT = queenbee || $HPCENVSHORT = supermic ]]; then
-      ADCIRCDIR=/work/jgflemin/adcirc-cg/work
-      SWANDIR=/work/jgflemin/adcirc-cg/swan
-   fi
-   if [[ $HPCENVSHORT = frontera ]]; then
-      ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
-      SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
-   fi
+# not needed on lonestar5 _________________________________________
+#ADCIRCDIR=/work/jgflemin/adcirc-cg/work
+#SWANDIR=/work/jgflemin/adcirc-cg/swan
+if [[ $HPCENVSHORT = frontera ]]; then
+   ADCIRCDIR=/work/00976/jgflemin/frontera/adcirc-cg/work
+   SWANDIR=/work/00976/jgflemin/frontera/adcirc-cg/swan
 fi
 
 # Post processing and publication
@@ -87,18 +78,15 @@ fi
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu"
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com"
-TDS=( lsu_tds )
-if [[ $HPCENVSHORT = frontera || $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then
-   TDS=( tacc_tds )
-fi
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rluettich@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com"
+TDS=( tacc_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020060100
-HOTORCOLD=coldstart     # "hotstart" or "coldstart"
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+# location on lonestar5 ______________________________________________
+LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2020/nam/2020063000/hsofs/hatteras.renci.org/hsofs_nam_jgf/namforecast
 
 # Scenario package 
 
