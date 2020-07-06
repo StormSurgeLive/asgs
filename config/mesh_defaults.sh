@@ -68,7 +68,7 @@ case $GRIDNAME in
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=LA_v20a-WithUpperAtch.nowindreduction.15.template
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-      ELEVSTATIONS=combined_stations_20200601.txt
+      ELEVSTATIONS=combined_stations_20200619.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
       NAFILE=LA_v20a-WithUpperAtch_chk.13
@@ -181,7 +181,7 @@ case $GRIDNAME in
       INPUTDIR=$SCRIPTDIR/input/meshes/tx2020
       GRIDFILE=tx2020a.14 # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=tx2020a_template.15   # fort.15 template
+      CONTROLTEMPLATE=tx2020a_esl_template.15   # fort.15 template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=tx2020a_norough_template.15
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
@@ -195,11 +195,11 @@ case $GRIDNAME in
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+      TIMESTEPSIZE=0.5           # adcirc time step size (seconds)
       SWANDT=1200                # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
-      ADCPREPWALLTIME="10:00:00"  # adcprep wall clock time, including partmesh
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="14:00:00" # forecast wall clock time
       # FIXME: no unit offset url
@@ -262,8 +262,35 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_nc_inundation_v9.99_rivers.dat.xz
       UNITOFFSETFILE=unit_offset_nc_inundation_v9.99_rivers.dat
+      ;; 
+   "hsofs_NE-hires_v2_depf2") 
+      INPUTDIR=$SCRIPTDIR/input/meshes/hsofs_NE-hires_v2_depf2/
+      GRIDFILE=hsofs_NE-hires_v2_depf2.grd
+      MESHPROPERTIES=${GRIDFILE}.nc.properties
+      CONTROLTEMPLATE=hsofs_NE-hires_v2_depf2.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=hsofs.nowindreduction.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties 
+      ELEVSTATIONS=hsofs_stations_2020-02-01.txt
+      VELSTATIONS=$ELEVSTATIONS
+      METSTATIONS=$ELEVSTATIONS
+      NAFILE=hsofs_NE-hires_v2_with_mann_advstate.13
+      NAPROPERTIES=${NAFILE}.properties
+      #SWANTEMPLATE=fort.26.template # only used if WAVES=on
+      SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
+      RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
+      SWANDT=1800                 # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_hsofs.dat.xz
+      UNITOFFSETFILE=unit_offset_hsofs.dat
       ;;
-      # 
    "hsofs")
       #
       INPUTDIR=$SCRIPTDIR/input/meshes/hsofs
@@ -296,7 +323,7 @@ case $GRIDNAME in
       #
    "WFLv18")
       #
-      INPUTDIR=$SCRIPTDIR/input/meshes/fema_wfl
+      INPUTDIR=$SCRIPTDIR/input/meshes/WFLv18
       GRIDFILE=fema_wfl_fort.14  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.nc.properties
       CONTROLTEMPLATE=fema_wfl_fort.15.template
@@ -412,9 +439,9 @@ case $GRIDNAME in
       UNITOFFSETFILE=unit_offset_FEMA_R3_20110303_MSL.dat
       ;;
       #
-   "NGOM_RT_v19b_chk")
+   "NGOMv19b")
       #
-      INPUTDIR=${SCRIPTDIR}/input/meshes/NGOM_RT_v19b # grid and other input files
+      INPUTDIR=${SCRIPTDIR}/input/meshes/NGOMv19b # grid and other input files
       GRIDFILE=NGOM_RT_v19b_chk.grd
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=NGOM_RT_v19b.15.template_18kcms   # fort.15 template
@@ -441,48 +468,20 @@ case $GRIDNAME in
       UNITOFFSETFILE=oi_surface_NGOM_RT_v19b_chk.grd.dat
       ;;
       #
-   "NGOM_RT_20a_chk")
-      #
-      INPUTDIR=${SCRIPTDIR}/input/meshes/NGOM_RT_v20a # grid and other input files
-      GRIDFILE=NGOM_RT_v20a_chk.grd
-      MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=NGOM_RT_v20a.15.template   # fort.15 template
-      # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=NGOM_RT_v20a.nowindreduction.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-      ELEVSTATIONS=NGOM_RT_v20a_stations_08282018.txt
-      VELSTATIONS=NGOM_RT_v20a_stations_08282018.txt
-      METSTATIONS=NGOM_RT_v20a_stations_08282018.txt
-      NAFILE=NGOM_RT_v20a_chk.13
-      NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=fort.26.template   # only used if WAVES=on
-      RIVERINIT=null                           # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
-      SWANDT=1200                 # swan time step size (seconds)
-      # intersection between mesh, models, hpc platform, and number of compute cores:
-      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
-      ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
-      NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
-      FORECASTWALLTIME="07:00:00" # forecast wall clock time
-      # FIXME: no unit offset url
-      ;;
       #      
-   "EGOM-RT_20b_chk")
+   "EGOMv20b")
       #
-      INPUTDIR=${SCRIPTDIR}/input/meshes/EGOM-RT_v20b # grid and other input files
+      INPUTDIR=${SCRIPTDIR}/input/meshes/EGOMv20b # grid and other input files
       GRIDFILE=EGOM-RT_v20b_chk.grd
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=EGOM-RT_v20b.15.template   # fort.15 template
       # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=EGOM-RT_v20b.nowindreduction.15.template
+      CONTROLTEMPLATENOROUGH=EGOM-RT_v20b.norough.15.template
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=EGOM-RT_v20b_stations.txt
       VELSTATIONS=EGOM-RT_v20b_stations.txt
       METSTATIONS=EGOM-RT_v20b_stations.txt
-      NAFILE=EGOM-RT_v20b_chk.13
+      NAFILE=EGOM-RT_v20b_asgs_chk.13
       NAPROPERTIES=${NAFILE}.properties
       SWANTEMPLATE=fort.26.nolimiter.template   # only used if WAVES=on
       RIVERINIT=null                            # this mesh has no rivers ...

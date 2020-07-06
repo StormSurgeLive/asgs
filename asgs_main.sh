@@ -2504,7 +2504,7 @@ while [ true ]; do
           mkdir $NOWCASTDIR 2>> ${SYSLOG}
       fi
       SCENARIODIR=$CYCLEDIR/$SCENARIO
-      SCENARIOLOG=$SCENARIO/scenario.log
+      SCENARIOLOG=$SCENARIODIR/scenario.log
       mv $RUNDIR/run.properties $SCENARIODIR 2>> $SYSLOG
       writeScenarioProperties $SCENARIODIR
       #
