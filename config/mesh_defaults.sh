@@ -555,6 +555,35 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # FIXME: no unit offset url
       ;;      
+      #      
+   "Shinnecock")
+      #
+      INPUTDIR=${SCRIPTDIR}/input/meshes/shinnecock # grid and other input files
+      GRIDFILE=shinnecock_inlet_coarse.grd
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=shinnecock_asgs.fort.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=shinnecock_asgs.fort.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=shinnecock_stations.txt
+      VELSTATIONS=$ELEVSTATIONS
+      METSTATIONS=$ELEVSTATIONS
+      NAFILE=null
+      NAPROPERTIES=shinnecock_nodal_attributes.properties
+      SWANTEMPLATE=fort.26.shinnecock.template
+      RIVERINIT=null                            # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=6.0           # adcirc time step size (seconds)
+      SWANDT=1200                 # swan time step size (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="01:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="01:00:00" # forecast wall clock time
+      # FIXME: no unit offset url
+      ;;      
    *)
       warn "cycle $CYCLE: $SCENARIO: $THIS: Mesh GRIDNAME $GRIDNAME was not recognized."
       ;;
