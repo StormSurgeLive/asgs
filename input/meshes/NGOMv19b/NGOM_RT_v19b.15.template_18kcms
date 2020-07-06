@@ -10,13 +10,15 @@
  2                          ! NOLIFA - OPTION TO INCLUDE FINITE AMPLITUDE TERMS
  0                          ! NOLICA - OPTION TO INCLUDE CONVECTIVE ACCELERATION TERMS
  0                          ! NOLICAT - OPTION TO CONSIDER TIME DERIVATIVE OF CONV ACC TERMS
- 6                          ! NWP - Number of nodal attributes.
+ 8                          ! NWP - Number of nodal attributes.
 sea_surface_height_above_geoid
 elemental_slope_limiter
 surface_submergence_state
 primitive_weighting_in_continuity_equation
 average_horizontal_eddy_viscosity_in_sea_water_wrt_depth
 mannings_n_at_sea_floor
+surface_canopy_coefficient
+surface_directional_effective_roughness_length
  1                          ! NCOR - VARIABLE CORIOLIS IN SPACE OPTION PARAMETER
  1                          ! NTIP - TIDAL POTENTIAL OPTION PARAMETER
 %NWS%                       ! NWS - WIND STRESS AND BAROMETRIC PRESSURE OPTION PARAMETER
@@ -2586,19 +2588,19 @@ K2
  STEADY                     ! CONSTITUENT. 1  ALPHA DESCRIPTOR
  0.00000E-00  1.0 0.0       ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
  STEADY                     ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
-15.3550356265  0.0 ! MS River @Baton Rouge  Node 1 !..12210*1.843 cms or 22.5 kcms
-20.7973046683  0.0 ! MS River @Baton Rouge  Node 2
-26.0931836609  0.0 ! MS River @Baton Rouge  Node 3 
-28.551958231   0.0 ! MS River @Baton Rouge  Node 4
-32.2503390663  0.0 ! MS River @Baton Rouge  Node 5
-31.2448894349  0.0 ! MS River @Baton Rouge  Node 6
-29.4786265356  0.0 ! MS River @Baton Rouge  Node 7
-26.1928415233  0.0 ! MS River @Baton Rouge  Node 8
-16.8727260442  0.0 ! MS River @Baton Rouge  Node 9
-6.7632051597   0.0 ! MS River @Baton Rouge  Node 10
-5.3293304668   0.0 ! MS River @Baton Rouge  Node 11
-4.657752457    0.0 ! MS River @Baton Rouge  Node 12
-4.657752457    0.0 ! MS River @Baton Rouge  Node 13
+8.340276  .000000    !...River 1 Node 1 (Total River Flow: 18377.0000 cms, Avg Lat/Long: -91.198941,30.425086)
+18.001821  .000000    !...River 1 Node 2
+20.370647  .000000    !...River 1 Node 3
+22.129752  .000000    !...River 1 Node 4
+23.370548  .000000    !...River 1 Node 5
+23.866315  .000000    !...River 1 Node 6
+23.006975  .000000    !...River 1 Node 7
+20.169442  .000000    !...River 1 Node 8
+15.716738  .000000    !...River 1 Node 9
+10.978114  .000000    !...River 1 Node 10
+7.020321  .000000    !...River 1 Node 11
+4.860968  .000000    !...River 1 Node 12
+2.180907  .000000    !...River 1 Node 13
 %FORT61%                    ! NOUTE,TOUTSE,TOUTFE,NSPOOLE (UNIT  61)
 %NUMELEVSTATIONS%           ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS
 %FORT62%
@@ -2616,13 +2618,14 @@ K2
 NGOM_4.0.25
 Louisiana State University  
 ADCIRC
-QB2      
+QB2          
 ASGS Nowcast/Forecast
 www.lsu.edu/ccr
 Model time is relative to UTC.
-qb.loni.org                
+qb.loni.org               
 mbilsk3@lsu.edu        
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
  &SWANOutputControl SWAN_OutputTPS=T, SWAN_OutputTMM10=T, SWAN_OutputTM01=T, SWAN_OutputHS=T, SWAN_OutputTM02=T SWAN_OutputDIR=T /
  &metControl WindDragLimit=0.002 DragLawString='Powell' /
- &inundationOutputControl inundationOutput=.true. /
+&inundationOutputControl inundationOutput=.true. inunThresh=0.6 /
+%offsetline%

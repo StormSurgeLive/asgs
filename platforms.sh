@@ -98,14 +98,15 @@ init_queenbee()
   TDS=( lsu_tds )
   # needed for asgs perl
   #source ~/perl5/perlbrew/etc/bashrc
-  module purge
-  $PLATFORMMODULES
-  $SERIALMODULES
+  if [ -z "$_ASGS_PID" ]; then 
+    module purge
+    $PLATFORMMODULES
+    $SERIALMODULES
+  fi
   if [[ $operator = "jgflemin" || $USER = "jgflemin" ]]; then
-     ACCOUNT=loni_lsu_ccr_19
+     ACCOUNT=loni_cera_2020
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     ACCOUNT=loni_cera_2019a
      JOBENV=( ) # all exes are in /work/jgflemin/opt/default/bin ; all libs are in /work/jgflemin/default/lib
      for script in $JOBENV; do
         source $JOBENVDIR/$script
@@ -220,7 +221,8 @@ init_supermic()
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      ACCOUNT=hpc_cera_2019c
-     JOBENV=( gmt.sh gdal.sh imagemagick.sh )
+     #ACCOUNT=hpc_crc_smi_19
+     JOBENV=( )
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
@@ -441,9 +443,12 @@ init_frontera()
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2020 # is this used? 
   TDS=( tacc_tds )
-  $PLATFORMMODULES
-  $SERIALMODULES
   MAKEJOBS=8
+  # only run env module commands if not in asgsh
+  if [ -z "$_ASGS_PID" ]; then 
+    $PLATFORMMODULES
+    $SERIALMODULES
+  fi
 }
 #
 init_stampede2()
@@ -477,7 +482,7 @@ init_stampede2()
   RMQMessaging_Transmit="on"            #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
   PLATFORMMODULES='module unload python2/2.7.15 ; module load intel/18.0.2 xalt/2.6.5 TACC'
-  SERIALMODULES='module load' # no extra modules for serial jobs
+  SERIALMODULES='module load matlab' # no extra modules for serial jobs
   PARALLELMODULES='module load libfabric/1.7.0 impi/18.0.2'
   # matlab
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
@@ -705,7 +710,7 @@ writeTDSProperties()
    "lsu_tds") 
       OPENDAPHOST=fortytwo.cct.lsu.edu
       THREDDSHOST=$OPENDAPHOST
-      OPENDAPPORT=":8080"
+      OPENDAPPORT=":80"
       OPENDAPBASEDIR=/data/opendap
       SSHPORT=2525
       if [[ $USER = "ncfs" || $USER = "jgflemin" ]]; then

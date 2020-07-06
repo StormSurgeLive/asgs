@@ -59,7 +59,8 @@ title_slide_layout = prs.slide_layouts[0]
 slide = prs.slides.add_slide(title_slide_layout)
 title = slide.shapes.title
 subtitle = slide.placeholders[1]
-if runProp['config.forcing.tropicalcyclone'] != "off": 
+#if runProp['config.forcing.tropicalcyclone'] != "off": 
+if runProp['forcing.tropicalcyclone'] != "off": 
     #title.text = runProp['storm class'] + ' ' + runProp['stormname'] + ', ' + scenario + ' Scenario'
     title.text = runProp['storm class'] + ' ' + runProp['stormname'] + ', ' + scenario + ' Scenario'
     subtitle.text = "Advisory " + runProp['advisory'] + " Issued on " + advisory_dt_long + " CDT"
@@ -85,7 +86,8 @@ img_path = fname
 slide = prs.slides.add_slide(slide_layout)
 title = slide.shapes.title
 subtitle = slide.placeholders[1]
-if runProp['config.forcing.tropicalcyclone'] != "off": 
+#if runProp['config.forcing.tropicalcyclone'] != "off": 
+if runProp['forcing.tropicalcyclone'] != "off": 
     title.text = 'NHC Advisory ' + runProp['advisory'] + ' ' + scenario + ' Scenario'
 else:
     title.text = 'NAM Cycle ' + runProp['advisory'] + ' ' + scenario + ' Scenario'
@@ -109,10 +111,9 @@ iwidth = Inches(11.84)
 iheight = Inches(5.69)
 
 
-fnames = ['WSE_17StCanal_USACE_85625.png','WSE_IHNC01_USACE_76065.png','WSE_IHNC02_USACE_76030.png',
-        'WSE_LPV144_USACE_76010.png','WSE_LPV149_USACE_85760.png','WSE_NOV13_USACE_01440.png',
-        #'WSE_NOV14_USACE_01440.png',
-        'WSE_NOV14_USGS_291929089562600.png',
+fnames = ['WSE_17StCanal_USACE_85625.png','WSE_IHNC01_USGS_073802332.png','WSE_IHNC02_USACE_76030.png',
+        'WSE_LPV144_USACE_76010.png','WSE_LPV149_USACE_85760.png','WSE_NOV13_USGS_07380260.png',
+        'WSE_NOV14_USACE_01440.png',
         'WSE_WBV09a_USACE_82770.png','WSE_WBV09b_USACE_82762.png',
         'WSE_WBV162_USACE_82742.png','WSE_WBV7274_USACE_82715.png','WSE_WBV90_USACE_76265.png',
         'WSE_LakefrontAirport_USACE_85670.png','WSE_Mandeville_USACE_85575.png',
@@ -122,7 +123,11 @@ fnames = ['WSE_17StCanal_USACE_85625.png','WSE_IHNC01_USACE_76065.png','WSE_IHNC
         'WSE_WestPoint_USACE_01400.png','WSE_Alliance_USACE_01390.png',
         'WSE_Carrollton_USACE_01300.png','WSE_BCSpillway_USACE_01280.png',
         'WSE_BCSpillwayN_USACE_01275.png','WSE_Reserve_USACE_01260.png',
-        'WSE_MorganCity_USACE_03780.png']
+        'WSE_MorganCity_USACE_03780.png',
+        'WSE_HoumaNavCanal_USACE_76305.png',
+        'WSE_Venice_USACE_01480.png',
+        'WSE_BayouSale_USACE_76560.png',
+        'WSE_BayouBoeuf_USGS_073814675.png']
 
 # Station names correspond to the order of fnames
 #staName = ['17th St. Outfall Canal','Seabrook Complex (IHNC-01)','IHNC Surge Barrier (IHNC-02)',
@@ -132,11 +137,11 @@ fnames = ['WSE_17StCanal_USACE_85625.png','WSE_IHNC01_USACE_76065.png','WSE_IHNC
 #        'Western Tie-In features (WBV-74-72)','West Closure Complex (WBV-90)',
 #        'Lakefront Airport','Mandeville','Rigolets','Lafitte']
 staName = ['Outfall 17th St London Ave Orleans Ave, LA (17StCanal, CPRA) (85625, USACE)',
-           'Seabrook Complex - Flood Side, LA (IHNC01, CPRA) (76065, USACE)',
+           'Seabrook Complex - Flood Side, LA (IHNC01, CPRA) (073802332, USGS)',
            'IHNC Surge Barrier East - Flood Side, LA (IHNC02, CPRA) (76030, USACE)',
            'Bayou Dupre Sector Gate - East/Flood Side, LA (LPV144, CPRA)\n(76010, USACE)',
            'Caernarvon Canal Sector Gate - South/Flood Side, LA (LPV149, CPRA)\n(85760, USACE)',
-           'Mississippi River at Empire Floodgate, LA (NOV13, CPRA) (01440, USACE)',
+           'Mississippi River at Empire Floodgate, LA (NOV13, CPRA) (07380260, USGS)',
            'Mississippi River at Empire Lock, LA (NOV14, CPRA) (01440, USACE)',
            'Oakville Sluice Gate - Flood Side/South (WBV09a, CPRA) (82770 USACE)',
            'Hero Canal Stop-Log Gate - Flood Side/West, LA (WBV09b, CPRA)\n(82762, USACE)',
@@ -159,7 +164,11 @@ staName = ['Outfall 17th St London Ave Orleans Ave, LA (17StCanal, CPRA) (85625,
            'MS River at Bonnet Carre Spillway (01280, USACE)',
            'MS River at Bonnet Carre Spillway N (01275, USACE)',
            'MS River at Reserve (01260, USACE)',
-           'Lower Atchafalaya River at Morgan City (03780, USACE)']
+           'Lower Atchafalaya River at Morgan City (03780, USACE)',
+           'Houma Navigation Canal (76305, USACE)',
+           'MS River at Venice (01480, USACE)',
+           'GIWW at Bayou Sale (76560, USACE)',
+           'Bayou Boeuf at Railroad Bridge (073814675, USGS)']
 
 i = 0
 for image in fnames:
@@ -182,7 +191,8 @@ for image in fnames:
 #for slide in slides:
         #print('slide number %s' % str(slides.index(slide)+1))
 
-if runProp['config.forcing.tropicalcyclone'] != "off": 
+#if runProp['config.forcing.tropicalcyclone'] != "off": 
+if runProp['forcing.tropicalcyclone'] != "off": 
     pptFile = runProp['stormname'] + "_Adv" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
 else:
     pptFile = runProp['WindModel'] + "_Cycle" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"

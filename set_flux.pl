@@ -26,7 +26,8 @@
 #------------------------------------------------------------------------
 #
 #------------------------------------------------------------------------
-#      A S G S   D E V E L O P E R   D O C U M E N T A T I O N #------------------------------------------------------------------------
+#      A S G S   D E V E L O P E R   D O C U M E N T A T I O N 
+#------------------------------------------------------------------------
 # The flux boundary condition is set via the following algorithm:
 #
 # 0. Add properties from mesh.properties file manually when the mesh 
@@ -55,7 +56,7 @@
 # 1. When the mesh is installed in ASGS, it will run the boundaryFinder.f90
 #    program to create a boundaries xyz file; example invokation is as follows:
 #
-# ${SCRIPTDIR}/util/mesh/boundaryFinder.x --meshfile ${GRIDFILE} --outputfile    ${GRIDFILE}.inflow_flux_boundaries_lengthsdepths.txt --boundarytype inflow_flux --lengths-depths
+# ${SCRIPTDIR}/util/input/mesh/boundaryFinder.x --meshfile ${GRIDFILE} --outputfile    ${GRIDFILE}.inflow_flux_boundaries_lengthsdepths.txt --boundarytype inflow_flux --lengths-depths
 #
 # If the mesh file is changed, the ASGS will detect this and automatically 
 # rerun the boundaryFinder.x program. 

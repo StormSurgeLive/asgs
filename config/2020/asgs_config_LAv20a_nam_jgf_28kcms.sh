@@ -67,23 +67,23 @@ NUMWRITERS=1
 NCPUCAPACITY=9999
 #
 # not needed on lonestar5 _________________________________________
-#ADCIRCDIR=/work/jgflemin/adcirc-cg/work
-#SWANDIR=/work/jgflemin/adcirc-cg/swan
+ADCIRCDIR=/work/jgflemin/adcirc-cg/work
+SWANDIR=/work/jgflemin/adcirc-cg/swan
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+POSTPROCESS=( createMaxCSV.sh includeWind10m.sh cpra_slide_deck_post.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu"
-TDS=( tacc_tds )
+TDS=( renci_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020042800
-HOTORCOLD=coldstart        # "hotstart" or "coldstart"
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart       # "hotstart" or "coldstart"
 # location on lonestar5 ______________________________________________
-LASTSUBDIR=null
+LASTSUBDIR=/work/jgflemin/asgs36935
 
 # Scenario package 
 
