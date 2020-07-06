@@ -27,11 +27,11 @@
 
 # Fundamental
 
-INSTANCENAME=WFLv18_nam_jgf     # "name" of this ASGS process
+INSTANCENAME=SFLv111_nam_jgf     # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=WFLv18
+GRIDNAME=southfl_v11-1_final
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
@@ -52,7 +52,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=479                    # number of compute CPUs for all simulations
+NCPU=959                    # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 if [[ $HPCENVSHORT = stampede2 ]]; then
@@ -81,7 +81,7 @@ TDS=( lsu_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020051500
+COLDSTARTDATE=2020060100
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #
