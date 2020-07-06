@@ -439,6 +439,64 @@ case $GRIDNAME in
       UNITOFFSETFILE=unit_offset_FEMA_R3_20110303_MSL.dat
       ;;
       #
+   "FEMAR2")
+      #
+      INPUTDIR=$SCRIPTDIR/input/meshes/femar2   
+      GRIDFILE=FEMA_R2_norivers_gcs_mNAVD.grd
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=FEMA_R2_fort.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=FEMA_R2.noswanrefrac.nowindreduction.fort.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=cera_stations_20180810.txt
+      VELSTATIONS=${ELEVSTATIONS}
+      METSTATIONS=${ELEVSTATIONS}
+      NAFILE=FEMA_R2_01262012_refrac_fort.13
+      NAPROPERTIES=${NAFILE}.properties
+      SWANTEMPLATE=fort.26.nolimiter.template
+      RIVERINIT=null                           # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=1.0            # adcirc time step size (seconds)
+      SWANDT=1200                 # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # no scalable unit water level correction file 
+      ;;
+      #
+   "NAC2014")
+      #
+      INPUTDIR=$SCRIPTDIR/input/meshes/naccs   
+      GRIDFILE=NAC2014_R01_ClosedRivers.grd
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=NAC2014_R01.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=NAC2014_R01.nowindreduction.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=cera_stations_20180810.txt
+      VELSTATIONS=${ELEVSTATIONS}
+      METSTATIONS=${ELEVSTATIONS}
+      NAFILE=NAC2014_R01.13
+      NAPROPERTIES=${NAFILE}.properties
+      SWANTEMPLATE=fort.26.nolimiter.template
+      RIVERINIT=null                           # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=1.0            # adcirc time step size (seconds)
+      SWANDT=1200                 # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # no scalable unit water level correction file 
+      ;;
+      #
    "NGOMv19b")
       #
       INPUTDIR=${SCRIPTDIR}/input/meshes/NGOMv19b # grid and other input files
@@ -495,6 +553,35 @@ case $GRIDNAME in
       ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # FIXME: no unit offset url
+      ;;      
+      #      
+   "Shinnecock")
+      #
+      INPUTDIR=${SCRIPTDIR}/input/meshes/shinnecock # grid and other input files
+      GRIDFILE=shinnecock_inlet_coarse.grd
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=shinnecock_asgs.fort.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=shinnecock_asgs.fort.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=shinnecock_stations.txt
+      VELSTATIONS=$ELEVSTATIONS
+      METSTATIONS=$ELEVSTATIONS
+      NAFILE=null
+      NAPROPERTIES=shinnecock_nodal_attributes.properties
+      SWANTEMPLATE=fort.26.shinnecock.template
+      RIVERINIT=null                            # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=6.0           # adcirc time step size (seconds)
+      SWANDT=1200                 # swan time step size (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="01:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="01:00:00" # forecast wall clock time
       # FIXME: no unit offset url
       ;;      
    *)
