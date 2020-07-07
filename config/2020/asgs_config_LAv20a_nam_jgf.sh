@@ -80,6 +80,10 @@ if [[ $USER = jgflemin ]]; then
       ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
       SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
    fi
+   if [[ $HPCENVSHORT = lonestar5 ]]; then
+      ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
+      SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
+   fi
 fi
 
 # Post processing and publication
@@ -99,6 +103,13 @@ fi
 COLDSTARTDATE=2020060100
 HOTORCOLD=coldstart     # "hotstart" or "coldstart"
 LASTSUBDIR=null
+
+if [[ $HPCENVSHORT = lonestar5 ]]; then
+   COLDSTARTDATE=auto
+   HOTORCOLD=hotstart     # "hotstart" or "coldstart"
+   LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020070506/LA_v20a-WithUpperAtch_chk/queenbee.loni.org/LAv20a_nam_jgf/namforecast
+fi
+
 
 # Scenario package 
 

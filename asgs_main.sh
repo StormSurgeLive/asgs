@@ -2056,8 +2056,8 @@ hotstartPath=${LASTSUBDIR}/nowcast # only for reading from local filesystem
 hotstartURL=null
 if [[ $HOTORCOLD = hotstart ]]; then
    # check to see if the LASTSUBDIR is actually a URL
-   urlCheck=`expr match "$LASTSUBDIR" 'http:'`
-   if [[ $urlCheck -eq 5 ]]; then
+   urlCheck=`expr match "$LASTSUBDIR" 'http'`
+   if [[ $urlCheck -eq 4 ]]; then
       # always look for fort.68.nc from a URL because only a forecast
       # will be posted to a URL, and only the hotstart file that was used
       # to start the forecast will be posted ... asgs always hotstarts from 
