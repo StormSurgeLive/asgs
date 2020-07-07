@@ -380,7 +380,7 @@ case $GRIDNAME in
       # FIXME: no unit offset url 
       ;;
       #
-   "eccl_v7_geo_z")
+   "CenFlv7"|"eccl_v7_geo_z")
       #
       INPUTDIR=$SCRIPTDIR/input/meshes/cenfl    
       GRIDFILE=eccl_v7_geo_z.grd
