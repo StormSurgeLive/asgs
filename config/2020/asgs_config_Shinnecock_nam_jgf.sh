@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2020 Jason Fleming
+# Copyright(C) 2018--2020 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -52,7 +52,7 @@ FORECASTCYCLE="06"
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #STORM=07             # storm number, e.g. 05=ernesto in 2006
 #YEAR=2018            # year of the storm
-WAVES=off              # wave forcing
+WAVES=off             # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
@@ -63,20 +63,21 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=2                     # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
-#QOS=vippj_p3000
 #
-# not needed on lonestar5 _________________________________________
-#ADCIRCDIR=/work/jgflemin/adcirc-cg/work
-#SWANDIR=/work/jgflemin/adcirc-cg/swan
 if [[ $HPCENVSHORT = frontera ]]; then
    ADCIRCDIR=/work/00976/jgflemin/frontera/adcirc-cg/work
    SWANDIR=/work/00976/jgflemin/frontera/adcirc-cg/swan
+fi
+if [[ $HPCENVSHORT = lonestar5 ]]; then
    QUEUENAME=development
+   SERQUEUE=development
+   ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
+   SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
 fi
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=developers-only   # can also be "developers-only" or "professional"
+INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rluettich@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com"
@@ -84,9 +85,10 @@ TDS=( tacc_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020062800
-HOTORCOLD=coldstart       # "hotstart" or "coldstart"
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+# location on lonestar5 ______________________________________________
+LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020070612/Shinnecock/frontera.tacc.utexas.edu/Shinnecock_nam_jgf/namforecast
 
 # Scenario package 
 
