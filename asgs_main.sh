@@ -89,6 +89,7 @@ checkFileExistence()
         # if this is a mesh or nodal attributes file, attempt to download and uncompress it
         if [[ $FTYPE = "ADCIRC mesh file"  ]]; then
            logMessage "Downloading $FTYPE from ${MESHURL}/${FNAME}.xz."
+           curl --version >> $SYSLOG
            curl ${MESHURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download mesh from ${MESHURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
         fi
         if [[ $FTYPE = "ADCIRC nodal attributes (fort.13) file" ]]; then
