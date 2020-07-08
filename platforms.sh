@@ -704,7 +704,7 @@ writeTDSProperties()
    "lsu_tds") 
       OPENDAPHOST=fortytwo.cct.lsu.edu
       THREDDSHOST=$OPENDAPHOST
-      OPENDAPPORT=":80"
+      OPENDAPPORT=":443"
       OPENDAPBASEDIR=/data/opendap
       SSHPORT=2525
       if [[ $USER = "ncfs" || $USER = "jgflemin" ]]; then
