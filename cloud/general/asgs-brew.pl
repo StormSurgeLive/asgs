@@ -824,27 +824,28 @@ sub get_steps {
             name        => q{Step for perlbrew and perl for ASGS using perlbrew},
             description => q{Installs local Perl version used for ASGS.},
             pwd         => q{./},
-            command     => q{bash ./cloud/general/init-perlbrew.sh},
-            clean       => q{bash ./cloud/general/init-perlbrew.sh clean},
+            command     => qq{bash ./cloud/general/init-perlbrew.sh $asgs_install_path/perl5},
+            clean       => qq{bash ./cloud/general/init-perlbrew.sh $asgs_install_path/perl5 clean},
 
             # augment existing %ENV (cumulative) - this assumes that perlbrew is installed in $HOME and we're
             # using perl-5.28.2
             export_ENV => {
-                PATH             => { value => qq{$asgs_home/perl5/perlbrew/bin:$asgs_home/perl5/perlbrew/perls/perl-5.28.2/bin}, how => q{prepend} },
-                PERLBREW_PERL    => { value => q{perl-5.28.2},                                                                    how => q{replace} },
-                PERLBREW_MANPATH => { value => qq{$asgs_home/perl5/perlbrew/perls/perl-5.28.2/man},                               how => q{prepend} },
-                PERLBREW_PATH    => { value => qq{$asgs_home/perl5/perlbrew/bin:$asgs_home/perl5/perlbrew/perls/perl-5.28.2/bin}, how => q{prepend} },
-                PERLBREW_HOME    => { value => qq{$asgs_home/.perlbrew},                                                          how => q{replace} },
-                PERLBREW_ROOT    => { value => qq{$asgs_home/perl5/perlbrew},                                                     how => q{replace} },
-                PERL5LIB         => { value => qq{$asgs_home/perl5/perlbrew/perls/perl-5.28.2/lib/site_perl/5.28.2/},             how => q{prepend} },
+                PERLBREW_PERL    => { value => q{perl-5.28.2},                                                                  how => q{replace} },
+                PATH             => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.28.2/bin}, how => q{prepend} },
+                PERLBREW_HOME    => { value => qq{$asgs_install_path/perl5/perlbrew},                                           how => q{replace} },
+                PERL_CPANM_HOME  => { value => qq{$asgs_install_path/perl5/.cpanm},                                             how => q{replace} },
+                PERLBREW_PATH    => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.28.2/bin}, how => q{prepend} },
+                PERLBREW_MANPATH => { value => qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.28.2/man},                     how => q{prepend} },
+                PERLBREW_ROOT    => { value => qq{$asgs_install_path/perl5/perlbrew},                                           how => q{replace} },
+                PERL5LIB         => { value => qq{$asgs_install_path/perl5/perls/perl-5.28.2/lib/site_perl/5.28.2/},            how => q{prepend} },
             },
             skip_if => sub {
                 my ( $op, $opts_ref ) = @_;
-                return -e qq{$asgs_home/perl5/perlbrew/etc/bashrc};
+                return -e qq{$asgs_install_path/perl5/etc/bashrc};
             },
             postcondition_check => sub {
                 my ( $op, $opts_ref ) = @_;
-                return -e qq{$asgs_home/perl5/perlbrew/etc/bashrc};
+                return -e qq{$asgs_install_path/perl5/etc/bashrc};
             },
         },
         {
@@ -852,9 +853,9 @@ sub get_steps {
             name                => q{Step for installing, adding, and updating required Perl modules},
             description         => q{Installs Perl modules used for ASGS.},
             pwd                 => q{./},
-            command             => q{bash ./cloud/general/init-perl-modules.sh},
+            command             => qq{bash ./cloud/general/init-perl-modules.sh $asgs_install_path/perl5},
             clean               => sub { my $op = shift; print qq{No explicit clean step for, $op->{name}\n} },
-            precondition_check  => sub { return ( -e qq{$asgs_home/perl5/perlbrew/perls/perl-5.28.2/bin/perl} ) ? 1 : 0 },
+            precondition_check  => sub { return ( -e qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.28.2/bin/perl} ) ? 1 : 0 },
             postcondition_check => sub {
                 local $?;
                 system(qq{prove ./cloud/general/t/verify-perl-modules.t 2>&1});

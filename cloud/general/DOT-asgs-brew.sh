@@ -436,13 +436,19 @@ load() {
   case "${1}" in
     adcirc)
       if [ -z "${2}" ]; then
-        echo "'load' requires a name parameter, use 'list adcirc' to list available ADCIRC builds"
-        return
+        if [ $(list adcirc | wc -l) -eq 1 ]; then
+          __ADCIRC_BUILD=$(list adcirc | awk '{print $2}')
+        else
+          echo "'load adcirc' requires a name parameter unless there's exactly 1 build available; use 'list adcirc' to list available ADCIRC builds"
+          return
+        fi 
+      else
+        __ADCIRC_BUILD=${2}
       fi
-      BRANCH=${2}
-      if [ -e "${ADCIRC_META_DIR}/${BRANCH}" ]; then
+      echo "loading ADCIRC build, '$__ADCIRC_BUILD' ... don't forget to save profile to persist this action."
+      if [ -e "${ADCIRC_META_DIR}/${__ADCIRC_BUILD}" ]; then
           # source it
-          . ${ADCIRC_META_DIR}/${BRANCH}
+          . ${ADCIRC_META_DIR}/${__ADCIRC_BUILD}
           echo creating symlinks to ADCIRC binaries in $ASGS_INSTALL_PATH/bin
           for b in $ADCIRC_BINS; do
             echo -n linking $b
@@ -456,7 +462,7 @@ load() {
           export PS1="asgs (${_ASGSH_CURRENT_PROFILE}*)> "
           echo "don't forget to save profile"
       else
-          echo "ADCIRC build, '$BRANCH' does not exist. Use 'list adcirc' to see a which ADCIRCs are available to load"
+          echo "ADCIRC build, '$__ADCIRC_BUILD' does not exist. Use 'list adcirc' to see a which ADCIRCs are available to load"
       fi
       ;;
     profile)
@@ -955,8 +961,8 @@ verify() {
     *)
      verify_perl
      verify_python
-     verify_regressions
      verify_adcirc 
+     verify_regressions
      ;;      
   esac
 }

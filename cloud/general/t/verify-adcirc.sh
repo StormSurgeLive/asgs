@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-if [ -z "$(which adcirc)" ]; then
-  echo ADCIRC not found - runt "'initadcirc'" to build ADCIRC
+which adcirc > /dev/null 2>&1
+if [ $? -gt 0 ]; then
+  echo ADCIRC not found - run "'initadcirc'" to build ADCIRC
   echo or "'list adcirc'" to find an ADCIRC build to load using "'load adcirc <adcirc-build-name>'"
   echo exiting test ...
   exit

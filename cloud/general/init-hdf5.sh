@@ -1,9 +1,9 @@
 #!/bin/bash
 
-TMP=$HOME/tmp
 OPT=${1-$HOME/opt}
 COMPILER=${2-intel}
 JOBS=${3-1}
+TMP=/tmp/$USER-asgs
 
 if [ $2 == "clean" ]; then
   echo Cleaning HDF5 libraries and utilities
@@ -31,6 +31,7 @@ if [ $COMPILER == "gfortran" ]; then
 fi
 
 mkdir -p $TMP 2> /dev/null
+chmod 700 $TMP
 cd $TMP
 
 if [ ! -e hdf5-1.8.12.tar.gz ]; then
