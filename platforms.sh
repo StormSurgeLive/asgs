@@ -688,6 +688,7 @@ writeTDSProperties()
       OPENDAPHOST=ht4.renci.org
       THREDDSHOST=tds.renci.org
       OPENDAPPORT=":8080"
+      OPENDAPPROTOCOL="http"
       OPENDAPBASEDIR=/projects/ncfs/opendap/data
       SSHPORT=22
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
@@ -705,6 +706,7 @@ writeTDSProperties()
       OPENDAPHOST=fortytwo.cct.lsu.edu
       THREDDSHOST=$OPENDAPHOST
       OPENDAPPORT=":443"
+      OPENDAPPROTOCOL="https"
       OPENDAPBASEDIR=/data/opendap
       SSHPORT=2525
       if [[ $USER = "ncfs" || $USER = "jgflemin" ]]; then
@@ -719,6 +721,7 @@ writeTDSProperties()
       OPENDAPHOST=chenier.cct.lsu.edu
       THREDDSHOST=$OPENDAPHOST
       OPENDAPPORT=":8080"
+      OPENDAPPROTOCOL="http"
       CATALOGPREFIX=/asgs/ASGS-2019
       DOWNLOADPREFIX=/asgs/ASGS-2019
       OPENDAPBASEDIR=/data/thredds/ASGS/ASGS-2019
@@ -736,6 +739,7 @@ writeTDSProperties()
       OPENDAPHOST=adcircvis.tacc.utexas.edu
       THREDDSHOST=$OPENDAPHOST
       OPENDAPPORT=":8080"
+      OPENDAPPROTOCOL="http"
       DOWNLOADPREFIX=/asgs
       CATALOGPREFIX=/asgs
       OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
@@ -752,8 +756,8 @@ writeTDSProperties()
    # now write properties
    echo "post.opendap.${SERVER}.opendaphost : $OPENDAPHOST" >> run.properties
    echo "post.opendap.${SERVER}.threddshost : $THREDDSHOST" >> run.properties
-   echo "post.opendap.${SERVER}.downloadprefix : http://$THREDDSHOST$OPENDAPPORT/thredds/fileServer$DOWNLOADPREFIX" >> run.properties
-   echo "post.opendap.${SERVER}.catalogprefix : http://$THREDDSHOST$OPENDAPPORT/thredds/catalog$CATALOGPREFIX" >> run.properties
+   echo "post.opendap.${SERVER}.downloadprefix : $OPENDAPPROTOCOL://$THREDDSHOST$OPENDAPPORT/thredds/fileServer$DOWNLOADPREFIX" >> run.properties
+   echo "post.opendap.${SERVER}.catalogprefix : $OPENDAPPROTOCOL://$THREDDSHOST$OPENDAPPORT/thredds/catalog$CATALOGPREFIX" >> run.properties
    echo "post.opendap.${SERVER}.opendapbasedir : $OPENDAPBASEDIR" >> run.properties
    echo "post.opendap.${SERVER}.sshport : $SSHPORT" >> run.properties
    echo "post.opendap.${SERVER}.opendapuser : $OPENDAPUSER" >> run.properties
