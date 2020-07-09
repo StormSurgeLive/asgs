@@ -98,6 +98,8 @@ _guess_platform()
     default_platform=hatteras
   elif [ 1 -eq $(hostname --fqdn | grep -c qb2) ]; then
     default_platform=queenbee
+  elif [ 1 -eq $(hostname --fqdn | grep -c qbc) ]; then
+    default_platform=queenbee3
   elif [ 1 -eq $(hostname --fqdn | grep -c smic) ]; then
     default_platform=supermic
   elif [ 1 -eq $(hostname --fqdn | grep -c ls5) ]; then

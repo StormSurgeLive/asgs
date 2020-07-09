@@ -43,6 +43,14 @@
     if [ -z "$SCRATCH" ]; then
       export SCRATCH=/scratch/$USER
     fi
+  elif [ 1 -eq $(hostname --fqdn | grep -c qbc) ]; then
+    default_platform=queenbee3
+    if [ -z "$WORK" ]; then
+      export WORK=/work/$USER
+    fi
+    if [ -z "$SCRATCH" ]; then
+      export SCRATCH=/scratch/$USER
+    fi
   elif [ 1 -eq $(hostname --fqdn | grep -c smic) ]; then
     default_platform=supermic
     if [ -z "$WORK" ]; then
@@ -70,6 +78,7 @@ echo "pod            - POD (Penguin)"
 echo "hatteras       - Hatteras (RENCI)"    # ht4
 echo "supermike      - Supermike (LSU)"
 echo "queenbee       - Queenbee (LONI)"     # qb2
+echo "queenbee3      - Queenbee3 (LONI)"    # qbc
 echo "supermic       - SuperMIC (LSU HPC)"  # smic
 echo "lonestar5      - Lonestar (TACC)"     # ls5
 echo "stampede2      - Stampede2 (TACC)"    # stampede2

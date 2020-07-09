@@ -60,7 +60,57 @@ init_supermike()
   fi
   MAKEJOBS=8
 }
-#
+
+init_queenbee3()
+{ #<- can replace the following with a custom script
+  THIS="platforms.sh>env_dispatch()>init_queenbee3()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
+  HPCENV=qbc.loni.org
+  QUEUESYS=SLURM
+  QUEUENAME=workq
+  SERQUEUE=single
+  PPN=48
+  CONSTRAINT=null
+  RESERVATION=null
+  QOS=null
+  QCHECKCMD=sacct
+  JOBLAUNCHER='sbatch '
+  ACCOUNT=null
+  SUBMITSTRING=sbatch
+  SCRATCHDIR=/scratch/$USER
+  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTGEN=qscript.pl
+  QSUMMARYCMD=null
+  QUOTACHECKCMD=null
+  ALLOCCHECKCMD=null
+  #
+  RMQMessaging_LocationName="LONI"
+  RMQMessaging_ClusterName="Queenbee3"
+  RMQMessaging_Enable="on"      # "on"|"off"
+  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  RMQMessaging_NcoHome="/work/$USER/local"
+  #
+  PLATFORMMODULES=
+  SERIALMODULES=
+  PARALLELMODULES=
+  # matlab
+  MATLABEXE=script # "script" means just execute matlab (don't use mex files)
+  # specify location of platform- and Operator-specific scripts to 
+  # set up environment for different types of jobs
+  JOBENVDIR=
+  JOBENV=( )
+  ARCHIVEBASE=$SCRATCHDIR
+  ARCHIVEDIR=$SCRATCHDIR
+  TDS=( lsu_tds )
+  MAKEJOBS=8
+  # only run env module commands if not in asgsh
+  if [ -z "$_ASGS_PID" ]; then 
+    $PLATFORMMODULES
+    $SERIALMODULES
+    $PARALLELMODULES
+  fi
+}
+
 init_queenbee()
 { #<- can replace the following with a custom script
   THIS="platforms.sh>env_dispatch()>init_queenbee()"
@@ -803,6 +853,9 @@ env_dispatch() {
           ;;
   "queenbee") allMessage "$THIS: Queenbee (LONI) configuration found."
           init_queenbee
+          ;;
+  "queenbee3") allMessage "$THIS: Queenbee3 (LONI) configuration found."
+          init_queenbee3
           ;;
   "supermic") allMessage "$THIS: SuperMIC (LSU HPC) configuration found."
           init_supermic
