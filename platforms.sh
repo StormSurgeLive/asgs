@@ -342,7 +342,7 @@ init_hatteras()
      SCRATCHDIR=/scratch/bblanton/data
      PYTHONVENV=/projects/storm_surge/anaconda
      PLATFORMMODULES='module load mvapich2/2.0-acis'
-     SERIALMODULES='module load' # no extra modules for serial jobs
+     SERIALMODULES='' # no extra modules for serial jobs
      ;;
   ncfs-dev)
      export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
@@ -354,7 +354,7 @@ init_hatteras()
      PYTHONVENV="$HOME/miniconda2"
      RMQMessaging_NcoHome="${HOME}"
      PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.1.2-acis mvapich2/2.0-acis'
-     SERIALMODULES='module load' # no extra modules for serial jobs
+     SERIALMODULES='' # no extra modules for serial jobs
      TDS=(renci_tds)
      ;;
   ncfs)
@@ -366,7 +366,7 @@ init_hatteras()
      PYTHONVENV=~/asgs/asgspy/venv
      PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 zlib/1.2.11_intel-18.0.0'
      PLATFORMMODULES="$PLATFORMMODULES mvapich2/2.0-acis"
-     SERIALMODULES='module load' # no extra modules for serial jobs
+     SERIALMODULES='' # no extra modules for serial jobs
      ;;
   *)
      PLATFORMMODULES='module load intelc/18.0.0 openmpi/intel_3.0.0'
@@ -413,9 +413,9 @@ init_frontera()
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
   #
-  PLATFORMMODULES='module load intel/19.0.5 xalt/2.7.19 TACC'
-  SERIALMODULES='module load' # no extra modules for serial jobs
-  PARALLELMODULES='module load impi/19.0.5'
+  PLATFORMMODULES='module reset'
+  SERIALMODULES='' # no extra modules for serial jobs
+  PARALLELMODULES=''
   # matlab
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   # specify location of platform- and Operator-specific scripts to 
@@ -475,9 +475,9 @@ init_stampede2()
   RMQMessaging_Enable="on"              # "on"|"off"
   RMQMessaging_Transmit="on"            #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
-  PLATFORMMODULES='module unload python2/2.7.15 ; module load intel/18.0.2 xalt/2.6.5 TACC'
+  PLATFORMMODULES='module reset'
   SERIALMODULES='module load matlab' # no extra modules for serial jobs
-  PARALLELMODULES='module load libfabric/1.7.0 impi/18.0.2'
+  PARALLELMODULES=''
   # matlab
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   # specify location of platform- and Operator-specific scripts to 
@@ -536,11 +536,9 @@ init_lonestar5()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
-  #
-  ml reset
-  PLATFORMMODULES='module unload python3/3.7.0 ; module load intel/18.0.2 TACC/1.0'
-  SERIALMODULES='module load' # no extra modules for serial jobs
-  PARALLELMODULES='module load cray_mpich/7.7.3'
+  PLATFORMMODULES='module load TACC/1.0'
+  SERIALMODULES='' # no extra modules for serial jobs
+  PARALLELMODULES=''
   # specify location of platform- and Operator-specific scripts to
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/lonestar5
