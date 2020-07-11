@@ -16,6 +16,11 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 
+if [ "${1}" = "clean" ]; then
+  echo "'clean' not implemented for optional ADCIRC/SWAN step at this time, clean up for ADCIRC and SWAN must be done manually."
+  exit 0
+fi
+
 # preconditions
 if [ -z "$ADCIRC_META_DIR" ]; then
   echo "ADCIRC_META_DIR is not set. Run interactively through asgsh or automatically via asgs-brew.pl."

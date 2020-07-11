@@ -3,9 +3,12 @@
 # unconditionally attempts to install the Perl modules that are required
 #for the operation of ASGS.
 
-source ~/perl5/perlbrew/etc/bashrc
+PERLBREW_ROOT=${1-$HOME/perl5/perlbrew}
 
-if [ ! -e $HOME/perl5/perlbrew/bin/cpanm ]; then
+source $PERLBREW_ROOT/etc/bashrc
+
+if [ ! -e $PERLBREW_ROOT/bin/cpanm ]; then
+  echo installing cpanm...
   perlbrew install-cpanm
 fi
 
