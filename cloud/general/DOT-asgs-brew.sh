@@ -1088,6 +1088,18 @@ echo "or to recreate it, exit this shell and run asgs-brew.pl with the"
 echo " --update-shell option"
 echo
 
+screen() { # disable
+  echo 'The use of the "screen" utility *inside* of asgsh is strongly discouraged.'
+}
+
+tmux() {   # disable
+  echo 'The use of the "tmux" utility *inside* of asgsh is strongly discouraged.'
+}
+
+asgsh() {  # disable
+  echo "The nesting of \"asgsh\" inside of asgsh (you're in it now, pid: $_ASGSH_PID) is not allowed."
+}
+
 # common aliases users expect - if you see something missing, please create a github issue
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
@@ -1103,11 +1115,6 @@ alias p="list profiles"
 alias sd="goto scriptdir"
 alias s="goto scratchdir"
 alias v="verify"
-
-# aliases used to discourage the use of certain utilities *inside* of asgsh
-alias screen='echo the use of the "screen" utility *inside* of asgsh is strongly discouraged'
-alias tmux='echo the use of the "tmux" utility *inside* of asgsh is strongly discouraged'
-alias asgsh='echo nesting of asgsh inside of asgsh is prohibited'
 
 # when started, ASGS Shell loads the 'default' profile, this can be made variable at some point
 load profile ${profile-default}
