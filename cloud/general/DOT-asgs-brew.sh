@@ -44,6 +44,8 @@ help() {
   echo "   dump    <param>             - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog" 
   echo "   edit    adcirc  <name>      - directly edit the named ADCIRC environment file"
   echo "   edit    config              - directly edit currently registered ASGS configuration file (used by asgs_main.sh)"
+  echo "   edit    meshes              - directly inspect or edit the list of supported meshes"
+  echo "   edit    platforms           - directly inspect or edit the list of supported platforms"
   echo "   edit    profile <name>      - directly edit the named ASGSH Shell profile"
   echo "   edit    statefile           - open up STATEFILE (if set) in EDITOR for easier forensics"
   echo "   edit    syslog              - open up SYSLOG (if set) in EDITOR for easier forensics"
@@ -222,6 +224,12 @@ edit() {
     fi
     $EDITOR $ASGS_CONFIG
     ;;
+  meshes)
+    $EDITOR $ASGS_MESH_DEFAULTS
+    ;;
+  platforms)
+    $EDITOR $ASGS_PLATFORMS
+    ;;
   profile)
     NAME=${2}
     if [[ -z "$NAME" || ! -e "$ASGS_HOME/.asgs/$NAME" ]]; then
@@ -359,6 +367,12 @@ list() {
         echo ASGS configs for $year do not exist 
       fi
       ;;
+    meshes)
+      cat $ASGS_MESH_DEFAULTS | grep '")' | sed 's/[")]//g' | awk '{print "- " $1}'
+      ;;
+    platforms)
+      cat $ASGS_PLATFORMS | egrep '^init_' | sed 's/init_//g' | sed 's/()//g' | awk '{print "- " $1}'
+      ;;
     profiles)
       if [ ! -d "$ASGS_HOME/.asgs/" ]; then
         echo "nothing is available to list, use the 'save' command to save this profile"
@@ -370,7 +384,7 @@ list() {
       fi
       ;;
     *)
-      echo "only 'list configs' and 'list profiles' are supported at this time.'"
+      echo "Supported items to list: 'adcirc', 'configs', 'meshes', 'platforms', 'profiles'"
       ;;
   esac 
 }
@@ -422,13 +436,19 @@ load() {
   case "${1}" in
     adcirc)
       if [ -z "${2}" ]; then
-        echo "'load' requires a name parameter, use 'list adcirc' to list available ADCIRC builds"
-        return
+        if [ $(list adcirc | wc -l) -eq 1 ]; then
+          __ADCIRC_BUILD=$(list adcirc | awk '{print $2}')
+        else
+          echo "'load adcirc' requires a name parameter unless there's exactly 1 build available; use 'list adcirc' to list available ADCIRC builds"
+          return
+        fi 
+      else
+        __ADCIRC_BUILD=${2}
       fi
-      BRANCH=${2}
-      if [ -e "${ADCIRC_META_DIR}/${BRANCH}" ]; then
+      echo "loading ADCIRC build, '$__ADCIRC_BUILD' ... don't forget to save profile to persist this action."
+      if [ -e "${ADCIRC_META_DIR}/${__ADCIRC_BUILD}" ]; then
           # source it
-          . ${ADCIRC_META_DIR}/${BRANCH}
+          . ${ADCIRC_META_DIR}/${__ADCIRC_BUILD}
           echo creating symlinks to ADCIRC binaries in $ASGS_INSTALL_PATH/bin
           for b in $ADCIRC_BINS; do
             echo -n linking $b
@@ -442,7 +462,7 @@ load() {
           export PS1="asgs (${_ASGSH_CURRENT_PROFILE}*)> "
           echo "don't forget to save profile"
       else
-          echo "ADCIRC build, '$BRANCH' does not exist. Use 'list adcirc' to see a which ADCIRCs are available to load"
+          echo "ADCIRC build, '$__ADCIRC_BUILD' does not exist. Use 'list adcirc' to see a which ADCIRCs are available to load"
       fi
       ;;
     profile)
@@ -941,8 +961,8 @@ verify() {
     *)
      verify_perl
      verify_python
-     verify_regressions
      verify_adcirc 
+     verify_regressions
      ;;      
   esac
 }
@@ -1112,9 +1132,16 @@ alias ls='ls --color=auto'
 alias a="list adcirc"
 alias c="edit config"
 alias p="list profiles"
+alias m="inspect meshes"
+alias lm="list meshes"
 alias sd="goto scriptdir"
 alias s="goto scratchdir"
+alias r="got rundir"
 alias v="verify"
+alias va="verify adcirc"
+alias vp="verify perl"
+alias vpy="verify python"
+alias vr="verify regressions"
 
 # when started, ASGS Shell loads the 'default' profile, this can be made variable at some point
 load profile ${profile-default}

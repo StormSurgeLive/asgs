@@ -108,13 +108,6 @@ if [[ "$compiler" != 'gfortran' && "$compiler" != "intel" ]]; then
   exit 1
 fi
 
-. ./monitoring/logging.sh
-. ./platforms.sh 
-if [ $? -gt 0 ]; then
-  echo error sourcing logging.sh and platforms.sh
-  exit 1
-fi
-
 _default_installpath=$HOME/opt
 if [ -n "$WORK" ]; then
   _default_installpath=$WORK/opt
@@ -153,7 +146,7 @@ if [ -e $HOME/.asgs/default ]; then
 fi
 
 echo Bootstrapping ASGS for installation...
-env_dispatch $platform > /dev/null 2>&1
+#env_dispatch $platform > /dev/null 2>&1
 ERROR=$?
 if [ 0 -lt $ERROR ]; then
   echo error bootstrapping $platform via platforms.sh
@@ -162,7 +155,7 @@ if [ 0 -lt $ERROR ]; then
 fi
 
 # $MAKEJOBS is defined in platforms.sh
-cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform --make-jobs=$MAKEJOBS"
+cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform"
 
 echo
 echo $cmd
