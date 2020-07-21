@@ -21,18 +21,45 @@
   default_platform=unknown
   if [ "$USER" = vagrant ]; then
     default_platform=vagrant
+    if [ -z "$WORK" ]; then
+      export WORK=$HOME
+    fi
+    if [ -z "$SCRATCH" ]; then
+      export SCRATCH=$HOME
+    fi
   elif [ 1 -eq $(hostname --fqdn | grep -c ht4) ]; then
     default_platform=hatteras
+    if [ -z "$WORK" ]; then
+      export WORK=$HOME
+    fi
+    if [ -z "$SCRATCH" ]; then
+      export SCRATCH=/scratch/$USER
+    fi
   elif [ 1 -eq $(hostname --fqdn | grep -c qb2) ]; then
     default_platform=queenbee
+    if [ -z "$WORK" ]; then
+      export WORK=/work/$USER
+    fi
+    if [ -z "$SCRATCH" ]; then
+      export SCRATCH=/scratch/$USER
+    fi
   elif [ 1 -eq $(hostname --fqdn | grep -c smic) ]; then
     default_platform=supermic
+    if [ -z "$WORK" ]; then
+      export WORK=/work/$USER
+    fi
+    if [ -z "$SCRATCH" ]; then
+      export SCRATCH=/scratch/$USER
+    fi
   elif [ 1 -eq $(hostname --fqdn | grep -c ls5) ]; then
     default_platform=lonestar5
+    # WORK and SCRATCH assumed to be set in default env
   elif [ 1 -eq $(hostname --fqdn | grep -c stampede2) ]; then
     default_platform=stampede2
+    # WORK and SCRATCH assumed to be set in default env
   elif [ 1 -eq $(hostname --fqdn | grep -c frontera) ]; then
     default_platform=frontera
+    # WORK and SCRATCH assumed to be set in default env
   fi
   if [ $default_platform != unknown ]; then
     echo "$default_platform"

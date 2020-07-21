@@ -44,8 +44,6 @@ init_supermike()
   ACCOUNT=null
   SUBMITSTRING=qsub
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
-  SCRATCHDIR=/work/$USER
-  #SCRATCHDIR=/work/cera
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCHDIR
   ARCHIVEDIR=$SCRATCHDIR
@@ -77,7 +75,6 @@ init_queenbee()
   QUEUENAME=workq
   SERQUEUE=single
   SUBMITSTRING=qsub
-  SCRATCHDIR=/work/$operator
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
   RMQMessaging_LocationName="LONI"
@@ -198,7 +195,6 @@ init_supermic()
   QUEUENAME=workq
   SERQUEUE=single
   SUBMITSTRING=qsub
-  SCRATCHDIR=/work/$operator
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
   RMQMessaging_LocationName="LSU"
@@ -312,7 +308,6 @@ init_hatteras()
   JOBLAUNCHER='srun '
   ACCOUNT=null
   SUBMITSTRING=sbatch
-  SCRATCHDIR=/projects/ncfs/data
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
@@ -398,7 +393,6 @@ init_frontera()
   JOBLAUNCHER='ibrun '
   ACCOUNT=null
   SUBMITSTRING=sbatch
-  SCRATCHDIR=$SCRATCH
   SSHKEY=~/.ssh/id_rsa_frontera
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
@@ -461,7 +455,6 @@ init_stampede2()
   JOBLAUNCHER='ibrun '
   ACCOUNT=null
   SUBMITSTRING=sbatch
-  SCRATCHDIR=$SCRATCH
   SSHKEY=~/.ssh/id_rsa_stampede2
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
@@ -519,7 +512,6 @@ init_lonestar5()
   ACCOUNT=null
   PPN=24
   SUBMITSTRING=sbatch
-  SCRATCHDIR=$SCRATCH
   SSHKEY=id_rsa_lonestar5
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl

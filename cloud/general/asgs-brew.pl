@@ -632,7 +632,9 @@ sub get_steps {
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                PATH               => { value => $_get_all_paths->(), how => q{prepend} },                       # prefer ASGS binaries and tools; full list managed above, via anonymous sub
+                PATH               => { value => $_get_all_paths->(), how => q{prepend} },                       # prefer ASGS binaries and tools; full list managed above
+                WORK               => { value => $ENV{WORK} // q{}, how => q{replace} },                         # standardize across all platforms
+                SCRATCH            => { value => $ENV{SCRATCH} // q{}, how => q{replace} },                      # standardize across all platforms
                 LIBRARY_PATH       => { value => qq{$asgs_install_path/lib}, how => q{prepend} },                # for use by linkers
                 LD_LIBRARY_PATH    => { value => qq{$asgs_install_path/lib}, how => q{prepend} },                # for use by linkers
                 LD_RUN_PATH        => { value => qq{$asgs_install_path/lib}, how => q{prepend} },                # for use by binaries
