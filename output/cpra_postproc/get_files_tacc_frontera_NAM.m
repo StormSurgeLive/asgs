@@ -1,4 +1,4 @@
-et data from TACC Frontera for NAM forecasts
+% Get data from TACC Frontera for NAM forecasts
 
 % Example URL:
 % http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020061206/LA_v20a-WithUpperAtch_chk/frontera.tacc.utexas.edu/LAv20a_nam_jgf/namforecast/run.properties
@@ -7,7 +7,7 @@ et data from TACC Frontera for NAM forecasts
 mesh='LA_v20a-WithUpperAtch_chk';  % mesh name
 storm='nam';  % storm name (string)
 year='2020';    % Storm year (string)
-adv='2020061206';         % NAM Cycle
+adv='2020060706';         % NAM Cycle
 asgs_instance='LAv20a_nam_jgf';
 en={'namforecast'};
 %==========================================================================================
@@ -50,7 +50,7 @@ for i=1:length(en)
     disp(msg);
     try
         urlmax = [url en{i} '/maxele.63.nc'];
-        name = [upper(storm) '_' adv '.maxele.63.nc'];
+        fname = [upper(storm) '_' adv '.maxele.63.nc'];
         websave(fname,urlmax);
         msg = sprintf(['get_files_tacc_frontera_NAM.m: SUCCESS downloading maxele.63.nc: ', urlmax]);
         disp(msg);
