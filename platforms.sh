@@ -342,7 +342,7 @@ init_hatteras()
      SCRATCHDIR=/scratch/bblanton/data
      PYTHONVENV=/projects/storm_surge/anaconda
      PLATFORMMODULES='module load mvapich2/2.0-acis'
-     SERIALMODULES='module load' # no extra modules for serial jobs
+     SERIALMODULES='' # no extra modules for serial jobs
      ;;
   ncfs-dev)
      export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
@@ -354,7 +354,7 @@ init_hatteras()
      PYTHONVENV="$HOME/miniconda2"
      RMQMessaging_NcoHome="${HOME}"
      PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.1.2-acis mvapich2/2.0-acis'
-     SERIALMODULES='module load' # no extra modules for serial jobs
+     SERIALMODULES='' # no extra modules for serial jobs
      TDS=(renci_tds)
      ;;
   ncfs)
@@ -366,7 +366,7 @@ init_hatteras()
      PYTHONVENV=~/asgs/asgspy/venv
      PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 zlib/1.2.11_intel-18.0.0'
      PLATFORMMODULES="$PLATFORMMODULES mvapich2/2.0-acis"
-     SERIALMODULES='module load' # no extra modules for serial jobs
+     SERIALMODULES='' # no extra modules for serial jobs
      ;;
   *)
      PLATFORMMODULES='module load intelc/18.0.0 openmpi/intel_3.0.0'
@@ -413,9 +413,9 @@ init_frontera()
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
   #
-  PLATFORMMODULES='module load intel/19.0.5 xalt/2.7.19 TACC'
-  SERIALMODULES='module load' # no extra modules for serial jobs
-  PARALLELMODULES='module load impi/19.0.5'
+  PLATFORMMODULES='module reset'
+  SERIALMODULES='' # no extra modules for serial jobs
+  PARALLELMODULES=''
   # matlab
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   # specify location of platform- and Operator-specific scripts to 
@@ -475,9 +475,9 @@ init_stampede2()
   RMQMessaging_Enable="on"              # "on"|"off"
   RMQMessaging_Transmit="on"            #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
-  PLATFORMMODULES='module unload python2/2.7.15 ; module load intel/18.0.2 xalt/2.6.5 TACC'
+  PLATFORMMODULES='module reset'
   SERIALMODULES='module load matlab' # no extra modules for serial jobs
-  PARALLELMODULES='module load libfabric/1.7.0 impi/18.0.2'
+  PARALLELMODULES=''
   # matlab
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   # specify location of platform- and Operator-specific scripts to 
@@ -536,11 +536,9 @@ init_lonestar5()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$WORK/local"
-  #
-  ml reset
-  PLATFORMMODULES='module unload python3/3.7.0 ; module load intel/18.0.2 TACC/1.0'
-  SERIALMODULES='module load' # no extra modules for serial jobs
-  PARALLELMODULES='module load cray_mpich/7.7.3'
+  PLATFORMMODULES='module load TACC/1.0'
+  SERIALMODULES='' # no extra modules for serial jobs
+  PARALLELMODULES=''
   # specify location of platform- and Operator-specific scripts to
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/lonestar5
@@ -569,7 +567,8 @@ init_lonestar5()
 }
 
 # placeholder for vagrant bootstrap
-init_vagrant() {
+init_vagrant()
+{
   MAKEJOBS=2
 }
 
@@ -601,7 +600,7 @@ init_desktop()
   MAKEJOBS=1
 }
 
-init_desktop_serial() # changed from init_desktop-serial due to bash complaints 
+init_desktop_serial()
 {
   THIS="platforms.sh>env_dispatch()>init_desktop-serial()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
@@ -677,7 +676,6 @@ writeTDSProperties()
    SERVER=$1
    CATALOGPREFIX=""    # after thredds/catalog
    DOWNLOADPREFIX=""   # after thredds/fileServer
-   OPENDAPUSER=$operator
    OPENDAPMAILSERVER=mailx  # this is the local default mail server executable on the HPC
    case $SERVER in
    "renci_tds")
@@ -685,16 +683,13 @@ writeTDSProperties()
       # http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
       # http://tds.renci.org:8080/thredds/dodsC/     DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
       # http://tds.renci.org:8080/thredds/catalog/                   tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/catalog.html
-      OPENDAPHOST=ht4.renci.org
-      THREDDSHOST=tds.renci.org
+      THREDDSHOST=tds.renci.org # WWW hostname for emailed links
+      OPENDAPHOST=renci_tds     # alias in $HOME/.ssh/config
       OPENDAPPORT=":8080"
+      OPENDAPPROTOCOL="http"
       OPENDAPBASEDIR=/projects/ncfs/opendap/data
-      SSHPORT=22
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : ( hatteras )" >> run.properties
-      if [[ $operator = jgflemin ]]; then
-         OPENDAPUSER=ncfs
-      fi
       #DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/"
       #CATALOGPREFIX="http://tds.renci.org:8080/thredds/DataLayers/asgs/"
       #OPENDAPBASEDIR=/projects/ees/DataLayers/asgs/
@@ -702,30 +697,24 @@ writeTDSProperties()
 
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU
    "lsu_tds") 
-      OPENDAPHOST=fortytwo.cct.lsu.edu
-      THREDDSHOST=$OPENDAPHOST
-      OPENDAPPORT=":80"
+      THREDDSHOST=fortytwo.cct.lsu.edu
+      OPENDAPHOST=lsu_tds
+      OPENDAPPORT=":443"
+      OPENDAPPROTOCOL="https"
       OPENDAPBASEDIR=/data/opendap
-      SSHPORT=2525
-      if [[ $USER = "ncfs" || $USER = "jgflemin" ]]; then
-         OPENDAPUSER="jgflemin"
-      fi
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> run.properties
       ;;
 
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU Center for Coastal Resiliency
    "lsu_ccr_tds")
-      OPENDAPHOST=chenier.cct.lsu.edu
-      THREDDSHOST=$OPENDAPHOST
+      THREDDSHOST=chenier.cct.lsu.edu # WWW hostname for emailed links
+      OPENDAPHOST=lsu_ccr_tds         # alias in $HOME/.ssh/config
       OPENDAPPORT=":8080"
+      OPENDAPPROTOCOL="http"
       CATALOGPREFIX=/asgs/ASGS-2019
       DOWNLOADPREFIX=/asgs/ASGS-2019
       OPENDAPBASEDIR=/data/thredds/ASGS/ASGS-2019
-      SSHPORT=2525
-      if [[ $USER = "ncfs" || $USER = "jgflemin" ]]; then
-         OPENDAPUSER="jgflemin"
-      fi
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> run.properties
       ;;
@@ -733,16 +722,13 @@ writeTDSProperties()
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at Texas
    # Advanced Computing Center (TACC)
    "tacc_tds")
-      OPENDAPHOST=adcircvis.tacc.utexas.edu
-      THREDDSHOST=$OPENDAPHOST
+      THREDDSHOST=adcircvis.tacc.utexas.edu # WWW hostname for emailed links
+      OPENDAPHOST=tacc_tds                  # alias in $HOME/.ssh/config
       OPENDAPPORT=":8080"
+      OPENDAPPROTOCOL="http"
       DOWNLOADPREFIX=/asgs
       CATALOGPREFIX=/asgs
       OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
-      SSHPORT=null
-      if [[ $USER = "ncfs" || $USER = "jgflemin" ]]; then
-         OPENDAPUSER="jgflemin"
-      fi
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : ( lonestar5 stampede2 frontera )" >> run.properties
       ;;
@@ -752,11 +738,9 @@ writeTDSProperties()
    # now write properties
    echo "post.opendap.${SERVER}.opendaphost : $OPENDAPHOST" >> run.properties
    echo "post.opendap.${SERVER}.threddshost : $THREDDSHOST" >> run.properties
-   echo "post.opendap.${SERVER}.downloadprefix : http://$THREDDSHOST$OPENDAPPORT/thredds/fileServer$DOWNLOADPREFIX" >> run.properties
-   echo "post.opendap.${SERVER}.catalogprefix : http://$THREDDSHOST$OPENDAPPORT/thredds/catalog$CATALOGPREFIX" >> run.properties
+   echo "post.opendap.${SERVER}.downloadprefix : $OPENDAPPROTOCOL://$THREDDSHOST$OPENDAPPORT/thredds/fileServer$DOWNLOADPREFIX" >> run.properties
+   echo "post.opendap.${SERVER}.catalogprefix : $OPENDAPPROTOCOL://$THREDDSHOST$OPENDAPPORT/thredds/catalog$CATALOGPREFIX" >> run.properties
    echo "post.opendap.${SERVER}.opendapbasedir : $OPENDAPBASEDIR" >> run.properties
-   echo "post.opendap.${SERVER}.sshport : $SSHPORT" >> run.properties
-   echo "post.opendap.${SERVER}.opendapuser : $OPENDAPUSER" >> run.properties
    # if the Operator has an asgs-global.conf file, assume that a perl mail client capability is 
    # set up and ready to use
    # FIXME: create something more reliable/repeatable

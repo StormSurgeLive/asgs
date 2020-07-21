@@ -3,14 +3,11 @@
 ACTION=${1-install}
 OPT=${2-$PYTHONPATH}
 PYTHON_VERSION=${3-2.7.18}
-
-TMP=$HOME/tmp
+TMP=/tmp/$USER-asgs
 
 if [ "$ACTION" == "clean" ]; then
   # remove installed binaries from upstream build
-  rm -rfv $OPT/python/${PYTHON_VERSION}
-  # remove modules and local pip directory
-  rm -rfv $HOME/.local
+  rm -rfv $OPT
   if [ -e "$TMP/Python-${PYTHON_VERSION}" ]; then
     rm -rfv $TMP/Python-${PYTHON_VERSION} $TMP/Python-${PYTHON_VERSION}.tgz
   fi
@@ -21,6 +18,7 @@ if [ "$ACTION" == "clean" ]; then
 fi
 
 mkdir -p $TMP 2> /dev/null
+chmod 700 $TMP
 cd $TMP
 
 if [ ! -e ./Python-${PYTHON_VERSION}.tgz ]; then
@@ -46,13 +44,13 @@ fi
 _install_asgs_python_modules () {
    cd $TMP
    wget https://bootstrap.pypa.io/get-pip.py -O ./get-pip.py
-   python - --user < ./get-pip.py
-   pip install --user 'pika==1.1.0'         -I --force-reinstall
+   python - --prefix=$PYTHONPATH < ./get-pip.py
+   pip install 'pika==1.1.0'    -I --force-reinstall --ignore-installed --prefix=$PYTHONPATH
    # version constrain is due to Unidata's drop in support of Python 2.7 in v1.5.4 of the netCDF4 module
-   pip install --user 'numpy==1.16.6'       -I --force-reinstall
+   pip install 'numpy==1.16.6'  -I --force-reinstall --ignore-installed --prefix=$PYTHONPATH
    # NOTE: installation of this netCDF4 installs numpy 1.16.6 if not specified before
-   pip install --user 'netCDF4==1.5.2'      -I --force-reinstall
-   pip install --user python-pptx           -I --force-reinstall
+   pip install 'netCDF4==1.5.2' -I --force-reinstall --ignore-installed --prefix=$PYTHONPATH
+   pip install python-pptx      -I --force-reinstall --ignore-installed --prefix=$PYTHONPATH
 }
 
 _install_asgs_python_modules

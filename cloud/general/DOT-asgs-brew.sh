@@ -38,29 +38,31 @@ help() {
   echo "           scriptdir           - defines ASGS main script directory used by all underlying scripts, (\$SCRIPTDIR)"
   echo "           workdir             - defines ASGS main script directory used by all underlying scripts, (\$WORK)"
   echo "   delete  profile <name>      - deletes named profile"
-  echo "   delete  adcirc  <name>      - deletes named ADCIRC profile"
-  echo "   delete  config              - deletes configuration file for current profile, unsets 'config' var. Interactively confirms."
-  echo "   delete  statefile           - deletes the state file associated with a profile, effectively for restarting from the initial advisory"
+  echo "           adcirc  <name>      - deletes named ADCIRC profile"
+  echo "           config              - deletes configuration file for current profile, unsets 'config' var. Interactively confirms."
+  echo "           statefile           - deletes the state file associated with a profile, effectively for restarting from the initial advisory"
   echo "   dump    <param>             - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog" 
   echo "   edit    adcirc  <name>      - directly edit the named ADCIRC environment file"
-  echo "   edit    config              - directly edit currently registered ASGS configuration file (used by asgs_main.sh)"
-  echo "   edit    profile <name>      - directly edit the named ASGSH Shell profile"
-  echo "   edit    statefile           - open up STATEFILE (if set) in EDITOR for easier forensics"
-  echo "   edit    syslog              - open up SYSLOG (if set) in EDITOR for easier forensics"
+  echo "           config              - directly edit currently registered ASGS configuration file (used by asgs_main.sh)"
+  echo "           meshes              - directly inspect or edit the list of supported meshes"
+  echo "           platforms           - directly inspect or edit the list of supported platforms"
+  echo "           profile <name>      - directly edit the named ASGSH Shell profile"
+  echo "           statefile           - open up STATEFILE (if set) in EDITOR for easier forensics"
+  echo "           syslog              - open up SYSLOG (if set) in EDITOR for easier forensics"
   echo "   goto    <param>             - change CWD to a supported directory. Type 'goto options' to see the currently supported options"
   echo "   guess   platform            - attempts to guess the current platform as supported by platforms.sh (e.g., frontera, supermic, etc)" 
   echo "   initadcirc                  - interactive tool for building and local registering versions of ADCIRC for use with ASGS"
   echo "   inspect <option>            - alias to 'edit' for better semantics; e.g., 'inspect syslog' or 'inspect statefile'"
   echo "   list    <param>             - lists different things, please see the following options; type 'list options' to see currently supported options"
   echo "   load    profile <name>      - loads a saved profile by name; use 'list profiles' to see what's available"
-  echo "   load    adcirc  <name>      - loads information a version of ADCIRC into the current environment. Use 'list adcirc' to see what's available"
+  echo "           adcirc  <name>      - loads information a version of ADCIRC into the current environment. Use 'list adcirc' to see what's available"
   echo "   purge   <param>             - deletes specified file or directory"
   echo "           rundir              - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
   echo "   rl                          - reload current profile, equivalent to 'load profile <current-profile-name>'"
   echo "   run                         - runs asgs using config file, \$ASGS_CONFIG must be defined (see 'define config'); most handy after 'load'ing a profile"
   echo "   save    profile <name>      - saves an asgs named profile, '<name>' not required if a profile is loaded"
   echo "   show    <param>             - shows specified profile variables, to see current list type 'show help'"
-  echo "   show    exported            - dumps all exported variables and provides a summary of what asgsh tracks"
+  echo "           exported            - dumps all exported variables and provides a summary of what asgsh tracks"
   echo "   sq                          - shortcut for \"squeue -u \$USER\" (if squeue is available)"
   echo "   switch  <option>            - alias to 'load' for better semantics; e.g., 'switch profile next-profile'"
   echo "   tailf   syslog              - executes 'tail -f' on ASGS instance's system log"
@@ -222,6 +224,12 @@ edit() {
     fi
     $EDITOR $ASGS_CONFIG
     ;;
+  meshes)
+    $EDITOR $ASGS_MESH_DEFAULTS
+    ;;
+  platforms)
+    $EDITOR $ASGS_PLATFORMS
+    ;;
   profile)
     NAME=${2}
     if [[ -z "$NAME" || ! -e "$ASGS_HOME/.asgs/$NAME" ]]; then
@@ -359,6 +367,12 @@ list() {
         echo ASGS configs for $year do not exist 
       fi
       ;;
+    meshes)
+      cat $ASGS_MESH_DEFAULTS | grep '")' | sed 's/[")]//g' | awk '{print "- " $1}'
+      ;;
+    platforms)
+      cat $ASGS_PLATFORMS | egrep '^init_' | sed 's/init_//g' | sed 's/()//g' | awk '{print "- " $1}'
+      ;;
     profiles)
       if [ ! -d "$ASGS_HOME/.asgs/" ]; then
         echo "nothing is available to list, use the 'save' command to save this profile"
@@ -370,7 +384,7 @@ list() {
       fi
       ;;
     *)
-      echo "only 'list configs' and 'list profiles' are supported at this time.'"
+      echo "Supported items to list: 'adcirc', 'configs', 'meshes', 'platforms', 'profiles'"
       ;;
   esac 
 }
@@ -422,13 +436,19 @@ load() {
   case "${1}" in
     adcirc)
       if [ -z "${2}" ]; then
-        echo "'load' requires a name parameter, use 'list adcirc' to list available ADCIRC builds"
-        return
+        if [ $(list adcirc | wc -l) -eq 1 ]; then
+          __ADCIRC_BUILD=$(list adcirc | awk '{print $2}')
+        else
+          echo "'load adcirc' requires a name parameter unless there's exactly 1 build available; use 'list adcirc' to list available ADCIRC builds"
+          return
+        fi 
+      else
+        __ADCIRC_BUILD=${2}
       fi
-      BRANCH=${2}
-      if [ -e "${ADCIRC_META_DIR}/${BRANCH}" ]; then
+      echo "loading ADCIRC build, '$__ADCIRC_BUILD' ... don't forget to save profile to persist this action."
+      if [ -e "${ADCIRC_META_DIR}/${__ADCIRC_BUILD}" ]; then
           # source it
-          . ${ADCIRC_META_DIR}/${BRANCH}
+          . ${ADCIRC_META_DIR}/${__ADCIRC_BUILD}
           echo creating symlinks to ADCIRC binaries in $ASGS_INSTALL_PATH/bin
           for b in $ADCIRC_BINS; do
             echo -n linking $b
@@ -442,7 +462,7 @@ load() {
           export PS1="asgs (${_ASGSH_CURRENT_PROFILE}*)> "
           echo "don't forget to save profile"
       else
-          echo "ADCIRC build, '$BRANCH' does not exist. Use 'list adcirc' to see a which ADCIRCs are available to load"
+          echo "ADCIRC build, '$__ADCIRC_BUILD' does not exist. Use 'list adcirc' to see a which ADCIRCs are available to load"
       fi
       ;;
     profile)
@@ -941,8 +961,8 @@ verify() {
     *)
      verify_perl
      verify_python
-     verify_regressions
      verify_adcirc 
+     verify_regressions
      ;;      
   esac
 }
@@ -1088,6 +1108,18 @@ echo "or to recreate it, exit this shell and run asgs-brew.pl with the"
 echo " --update-shell option"
 echo
 
+screen() { # disable
+  echo 'The use of the "screen" utility *inside* of asgsh is strongly discouraged.'
+}
+
+tmux() {   # disable
+  echo 'The use of the "tmux" utility *inside* of asgsh is strongly discouraged.'
+}
+
+asgsh() {  # disable
+  echo "The nesting of \"asgsh\" inside of asgsh (you're in it now, pid: $_ASGSH_PID) is not allowed."
+}
+
 # common aliases users expect - if you see something missing, please create a github issue
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
@@ -1100,14 +1132,16 @@ alias ls='ls --color=auto'
 alias a="list adcirc"
 alias c="edit config"
 alias p="list profiles"
+alias m="inspect meshes"
+alias lm="list meshes"
 alias sd="goto scriptdir"
 alias s="goto scratchdir"
+alias r="got rundir"
 alias v="verify"
-
-# aliases used to discourage the use of certain utilities *inside* of asgsh
-alias screen='echo the use of the "screen" utility *inside* of asgsh is strongly discouraged'
-alias tmux='echo the use of the "tmux" utility *inside* of asgsh is strongly discouraged'
-alias asgsh='echo nesting of asgsh inside of asgsh is prohibited'
+alias va="verify adcirc"
+alias vp="verify perl"
+alias vpy="verify python"
+alias vr="verify regressions"
 
 # when started, ASGS Shell loads the 'default' profile, this can be made variable at some point
 load profile ${profile-default}
