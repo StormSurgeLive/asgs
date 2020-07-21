@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2020 Jason Fleming
+# Copyright(C) 2019-2020 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -25,78 +25,63 @@
 # the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------
 
-#-- testing
-QSCRIPTTEMPLATE="$SCRIPTDIR/qscript.template-test"
-
 # Fundamental
 
-INSTANCENAME=tx2020a_nam_bde-DEBUG     # "name" of this ASGS process
-ASGSADMIN="asgsnotifications@opayq.com"
-
-ACCOUNT=ASC20001
-QOS=vippj_p3000 # for priority during a storm
-QUEUENAME=normal # same as SLURM partition
-SERQUEUE=normal
-PPN=56
-GROUP="G-822560"
-RMQMessaging_Enable="off"
-RMQMessaging_Transmit="off"
+INSTANCENAME=LAv20a_nam_akheir     # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=tx2020a
+GRIDNAME=LA_v20a-WithUpperAtch_chk
 source $SCRIPTDIR/config/mesh_defaults.sh
-
-#FTPSITE=ftp.nhc-replay.stormsurge.email
-#RSSSITE=nhc-replay.stormsurge.email
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
-TIDEFAC=on               # tide factor recalc
-   HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=off         # NAM download/forcing
-   FORECASTCYCLE="00,06,12,18"
-TROPICALCYCLONE=on      # tropical cyclone forcing
-   STORM=03              # storm number, e.g. 05=ernesto in 2006
-   YEAR=2020             # year of the storm
-WAVES=off                # wave forcing
+#CONTROLTEMPLATE=LAv20a_26kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
+CONTROLTEMPLATE=LAv20a_23kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
+
+TIDEFAC=on            # tide factor recalc
+   HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
+BACKGROUNDMET=on      # NAM download/forcing
+   FORECASTCYCLE="06"
+TROPICALCYCLONE=off   # tropical cyclone forcing
+#   STORM=99                         # storm number, e.g. 05=ernesto in 2006
+#   YEAR=2016                        # year of the storm
+WAVES=on              # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
-VARFLUX=off              # variable river flux forcing
-#STATICOFFSET=0.30
-#
+VARFLUX=off           # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=999                    # number of compute CPUs for all simulations
-NCPUCAPACITY=9999
+NCPU=959                     # number of compute CPUs for all simulations
+NCPUCAPACITY=3648
 NUMWRITERS=1
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
-#POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,clint@oden.utexas.edu" #,rluettich1@gmail.com"
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,clint@oden.utexas.edu,amin.kiaghadi2013@gmail.com,m.botto_t@utexas.edu" #,rluettich1@gmail.com"
-NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( tacc_tds renci_tds )
+OPENDAPNOTIFY="kheirkhahan@gmail.com,asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com"
+TDS=(lsu_tds)
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020050400
-HOTORCOLD=coldstart
-LASTSUBDIR=null
-#
-# Scenario package
-#
+#COLDSTARTDATE=2020060500   # calendar year month day hour YYYYMMDDHH24
+#HOTORCOLD=coldstart        # "hotstart" or "coldstart"
+#LASTSUBDIR=null
+
+
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart     # "hotstart" or "coldstart"
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020071406/LA_v20a-WithUpperAtch_chk/queenbee.loni.org/LAv20a_nam_jgf/namforecast
+
 #PERCENT=default
-SCENARIOPACKAGESIZE=2
+SCENARIOPACKAGESIZE=2 
 case $si in
-   -2)
+   -2) 
        ENSTORM=hindcast
        ;;
-   -1)
+   -1)      
        # do nothing ... this is not a forecast
        ENSTORM=nowcast
        ;;
@@ -107,10 +92,11 @@ case $si in
     1)
        ENSTORM=namforecast
        ;;
-    *)
+    *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
       ;;
 esac
-#
+
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+
