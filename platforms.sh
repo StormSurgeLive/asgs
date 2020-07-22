@@ -204,12 +204,12 @@ init_supermic()
   RMQMessaging_NcoHome="$HOME/local"
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
-  PLATFORMMODULES='module load intel/14.0.2 hdf5/1.8.12/INTEL-140-MVAPICH2-2.0 netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0 netcdf_fortran/4.2/INTEL-140-MVAPICH2-2.0'
+  PLATFORMMODULES=
   # modules for CPRA post processing
   MATLABEXE=script # "script" means just execute matlab; only for LSU staff, not affiliates
   MCRROOT=/usr/local/packages/license/matlab/r2017a
   SERIALMODULES='module load matlab/r2017a'
-  PARALLELMODULES='module load mvapich2'
+  PARALLELMODULES=
   JOBENVDIR=$SCRIPTDIR/config/machines/supermic
   PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
   JOBENV=( )
