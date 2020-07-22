@@ -61,9 +61,9 @@ init_supermike()
   MAKEJOBS=8
 }
 
-init_queenbee3()
+init_queenbeeC()
 { #<- can replace the following with a custom script
-  THIS="platforms.sh>env_dispatch()>init_queenbee3()"
+  THIS="platforms.sh>env_dispatch()>init_queenbeeC()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=qbc.loni.org
   QUEUESYS=SLURM
@@ -83,31 +83,18 @@ init_queenbee3()
   QSUMMARYCMD=null
   QUOTACHECKCMD=null
   ALLOCCHECKCMD=null
-  #
   RMQMessaging_LocationName="LONI"
-  RMQMessaging_ClusterName="Queenbee3"
+  RMQMessaging_ClusterName="QueenbeeC"
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome="/work/$USER/local"
-  #
-  PLATFORMMODULES=
-  SERIALMODULES=
-  PARALLELMODULES=
-  # matlab
-  MATLABEXE=script # "script" means just execute matlab (don't use mex files)
-  # specify location of platform- and Operator-specific scripts to 
-  # set up environment for different types of jobs
+  RMQMessaging_NcoHome=$WORK/local
+  # *NOTE* - MATLABEXE is moving to $HOME/.asgsh_profile, please set it there
   JOBENVDIR=
   JOBENV=( )
-  ARCHIVEBASE=$SCRATCHDIR
-  ARCHIVEDIR=$SCRATCHDIR
+  ARCHIVEBASE=$SCRATCH
+  ARCHIVEDIR=$SCRATCH
   TDS=( lsu_tds )
   MAKEJOBS=8
-  # only run env module commands if not in asgsh
-  if [ -z "$_ASGS_PID" ]; then 
-    $PLATFORMMODULES
-    $SERIALMODULES
-    $PARALLELMODULES
   fi
 }
 
@@ -854,8 +841,8 @@ env_dispatch() {
   "queenbee") allMessage "$THIS: Queenbee (LONI) configuration found."
           init_queenbee
           ;;
-  "queenbee3") allMessage "$THIS: Queenbee3 (LONI) configuration found."
-          init_queenbee3
+  "queenbeeC") allMessage "$THIS: Queenbee3 (LONI) configuration found."
+          init_queenbeeC
           ;;
   "supermic") allMessage "$THIS: SuperMIC (LSU HPC) configuration found."
           init_supermic
@@ -893,4 +880,9 @@ env_dispatch() {
   *) fatal "$THIS: '$HPCENVSHORT' is not a supported environment; currently supported options: stampede2, lonestar5, supermike, queenbee, supermic, hatteras, desktop, desktop-serial, su_tds, lsu_ccr_tds, renci_tds, tacc_tds"
      ;;
   esac
+
+ # hook for $HOME/.asgsh_profile
+ if [ -e $HOME/.asgsh_profile ]; then
+   source $HOME/.asgsh_profile  
+ fi
 }
