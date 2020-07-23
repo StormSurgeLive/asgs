@@ -263,7 +263,7 @@ init_queenbeeC()
   QUEUENAME=workq
   SERQUEUE=single
   PPN=48
-  JOBLAUNCHER='sbatch '
+  JOBLAUNCHER='srun '
   SUBMITSTRING=sbatch
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
