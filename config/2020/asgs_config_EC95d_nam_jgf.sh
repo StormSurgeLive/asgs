@@ -69,6 +69,11 @@ NCPUCAPACITY=9999
 ADCIRCDIR=/work/jgflemin/adcirc-cg/work
 SWANDIR=/work/jgflemin/adcirc-cg/swan
 
+if [[ $HPCENVSHORT = frontera ]]; then
+   ADCIRCDIR=/work/00976/jgflemin/frontera/adcirc-cg/work
+   SWANDIR=/work/00976/jgflemin/frontera/adcirc-cg/swan
+fi
+
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
