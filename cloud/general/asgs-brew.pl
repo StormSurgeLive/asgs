@@ -564,7 +564,7 @@ sub get_steps {
         my @all_paths = ();
         push @all_paths, ( qq{$asgs_install_path/bin}, qq{$scriptdir/cloud/general} );
         foreach my $dir (
-           qw[
+            qw[
             cloud/general
             config
             config/tests
@@ -591,11 +591,11 @@ sub get_steps {
             util
             util/admin
             util/input
-            util/inputmesh
-            util/inputnodalattr
+            util/input/mesh
+            util/input/nodalattr
             util/output
             util/troubleshooting
-           ]
+            ]
         ) {
             push @all_paths, sprintf( "%s/%s", $scriptdir, $dir );
         }
@@ -893,14 +893,14 @@ sub get_steps {
             export_ENV => {
 
                 # always expose, always set even if not building ADCIRC
-                ADCIRC_GIT_BRANCH   => { value => qq{$adcirc_git_branch}, how => q{replace} },
-                ADCIRC_GIT_URL      => { value => qq{$adcirc_git_url},    how => q{replace} },
-                ADCIRC_GIT_REPO     => { value => qq{$adcirc_git_repo},   how => q{replace} },
-                ADCIRC_COMPILER     => { value => qq{$asgs_compiler},     how => q{replace} },
-                ADCIRCBASE          => { value =>( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch},      how => q{replace} },
-                ADCIRCDIR           => { value =>( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/work}, how => q{replace} },
-                SWANDIR             => { value =>( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/swan}, how => q{replace} },
-                ADCIRC_PROFILE_NAME => { value =>( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcirc_git_branch-$asgs_compiler},  how => q{replace} },
+                ADCIRC_GIT_BRANCH => { value => qq{$adcirc_git_branch}, how => q{replace} },
+                ADCIRC_GIT_URL    => { value => qq{$adcirc_git_url},    how => q{replace} },
+                ADCIRC_GIT_REPO   => { value => qq{$adcirc_git_repo},   how => q{replace} },
+                ADCIRC_COMPILER   => { value => qq{$asgs_compiler},     how => q{replace} },
+                ADCIRCBASE          => { value => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch},      how => q{replace} },
+                ADCIRCDIR           => { value => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/work}, how => q{replace} },
+                SWANDIR             => { value => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/swan}, how => q{replace} },
+                ADCIRC_PROFILE_NAME => { value => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcirc_git_branch-$asgs_compiler},  how => q{replace} },
             },
             command => q{bash cloud/general/init-adcirc.sh},                   # Note: parameters input via environmental variables
             clean   => q{bash cloud/general/init-adcirc.sh clean},
