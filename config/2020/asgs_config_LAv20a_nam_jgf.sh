@@ -72,7 +72,7 @@ NCPUCAPACITY=9999
 #QUEUENAME=priority    # queenbee2 and supermic
 #SERQUEUE=priority     # queenbee2 and supermic
 #QOS=vip               # stampede2 and lonestar5
-#QOS=vippj_p3000       # frontera
+
 #
 if [[ $USER = jgflemin ]]; then
    if [[ $HPCENVSHORT = queenbee || $HPCENVSHORT = supermic ]]; then
@@ -82,6 +82,7 @@ if [[ $USER = jgflemin ]]; then
    if [[ $HPCENVSHORT = frontera ]]; then
       ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
       SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
+      QOS=vippj_p3000       # frontera
    fi
    if [[ $HPCENVSHORT = lonestar5 ]]; then
       ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
