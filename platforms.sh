@@ -447,11 +447,6 @@ init_frontera()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome=$WORK/local
-  #
-  PLATFORMMODULES=
-  SERIALMODULES= # no extra modules for serial jobs
-  PARALLELMODULES=
-  # matlab
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   # specify location of platform- and Operator-specific scripts to 
   # set up environment for different types of jobs
@@ -473,11 +468,6 @@ init_frontera()
   ARCHIVEDIR=2020 # is this used? 
   TDS=( tacc_tds )
   MAKEJOBS=8
-  # only run env module commands if not in asgsh
-  if [ -z "$_ASGS_PID" ]; then 
-    $PLATFORMMODULES
-    $SERIALMODULES
-  fi
 }
 #
 init_stampede2()
@@ -503,19 +493,11 @@ init_stampede2()
   QSUMMARYCMD=null
   QUOTACHECKCMD=null
   ALLOCCHECKCMD=null
-  #
   RMQMessaging_LocationName="TACC"
   RMQMessaging_ClusterName="Stampede2"
   RMQMessaging_Enable="on"              # "on"|"off"
   RMQMessaging_Transmit="on"            #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome=$WORK/local
-  PLATFORMMODULES=
-  SERIALMODULES='module load matlab' # no extra modules for serial jobs
-  PARALLELMODULES=
-  # matlab
-  MATLABEXE=script # "script" means just execute matlab (don't use mex files)
-  # specify location of platform- and Operator-specific scripts to 
-  # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/stampede2
   JOBENV=( )
   if [[ $operator = jgflemin ]]; then
@@ -533,8 +515,6 @@ init_stampede2()
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2020
   TDS=( tacc_tds )
-  $PLATFORMMODULES
-  $SERIALMODULES
   MAKEJOBS=8
 }
 #
@@ -569,9 +549,7 @@ init_lonestar5()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome=$WORK/local
-  PLATFORMMODULES='module load TACC/1.0'
-  SERIALMODULES= # no extra modules for serial jobs
-  PARALLELMODULES=
+  PLATFORMMODULES='module load TACC/1.0' # BDE - for some reason this is required
   # specify location of platform- and Operator-specific scripts to
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/lonestar5
@@ -592,10 +570,6 @@ init_lonestar5()
   ARCHIVEDIR=2020
   TDS=(tacc_tds)
   $PLATFORMMODULES
-  $SERIALMODULES
-  # btw git on lonestar5 is messed up when it outputs things like diffs,
-  # found the solution:
-  # git config --global core.pager "less -r"
   MAKEJOBS=8
 }
 
