@@ -710,7 +710,6 @@ writeTDSProperties()
    SERVER=$1
    CATALOGPREFIX=""    # after thredds/catalog
    DOWNLOADPREFIX=""   # after thredds/fileServer
-   OPENDAPUSER=$operator
    OPENDAPMAILSERVER=mailx  # this is the local default mail server executable on the HPC
    case $SERVER in
    "renci_tds")
@@ -773,11 +772,9 @@ writeTDSProperties()
    # now write properties
    echo "post.opendap.${SERVER}.opendaphost : $OPENDAPHOST" >> run.properties
    echo "post.opendap.${SERVER}.threddshost : $THREDDSHOST" >> run.properties
-   echo "post.opendap.${SERVER}.downloadprefix : http://$THREDDSHOST$OPENDAPPORT/thredds/fileServer$DOWNLOADPREFIX" >> run.properties
-   echo "post.opendap.${SERVER}.catalogprefix : http://$THREDDSHOST$OPENDAPPORT/thredds/catalog$CATALOGPREFIX" >> run.properties
+   echo "post.opendap.${SERVER}.downloadprefix : $OPENDAPPROTOCOL://$THREDDSHOST$OPENDAPPORT/thredds/fileServer$DOWNLOADPREFIX" >> run.properties
+   echo "post.opendap.${SERVER}.catalogprefix : $OPENDAPPROTOCOL://$THREDDSHOST$OPENDAPPORT/thredds/catalog$CATALOGPREFIX" >> run.properties
    echo "post.opendap.${SERVER}.opendapbasedir : $OPENDAPBASEDIR" >> run.properties
-   echo "post.opendap.${SERVER}.sshport : $SSHPORT" >> run.properties
-   echo "post.opendap.${SERVER}.opendapuser : $OPENDAPUSER" >> run.properties
    # if the Operator has an asgs-global.conf file, assume that a perl mail client capability is 
    # set up and ready to use
    # FIXME: create something more reliable/repeatable
