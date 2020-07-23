@@ -511,7 +511,7 @@ sub _get_env_summary {
 
     my $summary = q{};
     foreach my $envar ( keys %$AFFECTED_ENV_VARS ) {
-        $summary .= sprintf( qq{export %s=%s\n}, $envar, $ENV{$envar} );
+        $summary .= sprintf( qq{export %s=%s\n}, $envar, $ENV{$envar} // q{} );
     }
 
     return $summary;
@@ -564,50 +564,38 @@ sub get_steps {
         my @all_paths = ();
         push @all_paths, ( qq{$asgs_install_path/bin}, qq{$scriptdir/cloud/general} );
         foreach my $dir (
-            qw[  archive
-            cloudgeneral
-            cloudreplay-server
+           qw[
+            cloud/general
             config
-            configmachinesfrontera
-            configmachineshatteras
-            configmachineslonestar5
-            configmachinespenguin
-            configmachinesqueenbee
-            configmachinesstampede2
-            configmachinessupermic
-            configtests
+            config/tests
             input
-            inputdata_assimilation
-            inputsample_advisories
-            inputsample_advisories2003
+            input/data_assimilation
             monitoring
-            monitoringhatteras
-            monitoringhpc
             output
-            outputcera_contour
-            outputcpra_postproc
-            outputcpra_postprocMEX
-            outputcpra_postprocoldtools
-            outputCuba_post
-            outputFG49
-            outputNGOM_post
-            outputPartTrack
-            outputpostProcessFlux
-            outputPOSTPROC_KMZGIS
-            outputPOSTPROC_KMZGISFigGen
-            outputPOSTPROC_KMZGISRenciGETools-10src
-            outputtest
-            outputTRACKING_FILES
-            outputvalidation
+            output/cera_contour
+            output/cpra_postproc
+            output/cpra_postprocMEX
+            output/cpra_postprocoldtools
+            output/Cuba_post
+            output/FG49
+            output/NGOM_post
+            output/PartTrack
+            output/postProcessFlux
+            output/POSTPROC_KMZGIS
+            output/POSTPROC_KMZGISFigGen
+            output/POSTPROC_KMZGISRenciGETools-10src
+            output/test
+            output/TRACKING_FILES
+            output/validation
             tides
             util
-            utiladmin
-            utilinput
-            utilinputmesh
-            utilinputnodalattr
-            utiloutput
-            utiltroubleshooting
-            ]
+            util/admin
+            util/input
+            util/inputmesh
+            util/inputnodalattr
+            util/output
+            util/troubleshooting
+           ]
         ) {
             push @all_paths, sprintf( "%s/%s", $scriptdir, $dir );
         }
@@ -905,16 +893,14 @@ sub get_steps {
             export_ENV => {
 
                 # always expose, always set even if not building ADCIRC
-                ADCIRC_GIT_BRANCH => { value => qq{$adcirc_git_branch}, how => q{replace} },
-                ADCIRC_GIT_URL    => { value => qq{$adcirc_git_url},    how => q{replace} },
-                ADCIRC_GIT_REPO   => { value => qq{$adcirc_git_repo},   how => q{replace} },
-                ADCIRC_COMPILER   => { value => qq{$asgs_compiler},     how => q{replace} },
-
-                # always expose, don't actually set unless building adcirc via asgs-brew.pl
-                ADCIRCBASE          => ( not $opts_ref->{'build-adcirc'} ) ? undef : { value => qq{$adcircdir-$adcirc_git_branch},      how => q{replace} },
-                ADCIRCDIR           => ( not $opts_ref->{'build-adcirc'} ) ? undef : { value => qq{$adcircdir-$adcirc_git_branch/work}, how => q{replace} },
-                SWANDIR             => ( not $opts_ref->{'build-adcirc'} ) ? undef : { value => qq{$adcircdir-$adcirc_git_branch/swan}, how => q{replace} },
-                ADCIRC_PROFILE_NAME => ( not $opts_ref->{'build-adcirc'} ) ? undef : { value => qq{$adcirc_git_branch-$asgs_compiler},  how => q{replace} },
+                ADCIRC_GIT_BRANCH   => { value => qq{$adcirc_git_branch}, how => q{replace} },
+                ADCIRC_GIT_URL      => { value => qq{$adcirc_git_url},    how => q{replace} },
+                ADCIRC_GIT_REPO     => { value => qq{$adcirc_git_repo},   how => q{replace} },
+                ADCIRC_COMPILER     => { value => qq{$asgs_compiler},     how => q{replace} },
+                ADCIRCBASE          => { value =>( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch},      how => q{replace} },
+                ADCIRCDIR           => { value =>( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/work}, how => q{replace} },
+                SWANDIR             => { value =>( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/swan}, how => q{replace} },
+                ADCIRC_PROFILE_NAME => { value =>( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcirc_git_branch-$asgs_compiler},  how => q{replace} },
             },
             command => q{bash cloud/general/init-adcirc.sh},                   # Note: parameters input via environmental variables
             clean   => q{bash cloud/general/init-adcirc.sh clean},

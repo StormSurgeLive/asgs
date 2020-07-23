@@ -21,8 +21,12 @@
   guess=unknown
   if [ "$USER" = vagrant ]; then
     guess=vagrant
+  elif [ 1 -eq $(hostname --fqdn | grep -c ht3) ]; then
+    guess=hatteras
   elif [ 1 -eq $(hostname --fqdn | grep -c ht4) ]; then
     guess=hatteras
+  elif [ 1 -eq $(hostname --fqdn | grep -c qb1) ]; then
+    guess=queenbee
   elif [ 1 -eq $(hostname --fqdn | grep -c qb2) ]; then
     guess=queenbee
   elif [ 1 -eq $(hostname --fqdn | grep -c qbc) ]; then
@@ -103,6 +107,17 @@ if [[ -z "$platform" && -z "$default_platform" ]]; then
   exit 1
 elif [[ -z "$platform" && -n "$default_platform" ]]; then
   platform=$default_platform
+fi
+
+echo
+echo "Platform name: $platform"
+echo "WORK         : $WORK"
+echo "SCRATCH      : $SCRATCH"
+echo
+read -p "Does the above system information look correct? [Y] " _looks_correct
+if [[ -n "$_looks_correct" && "$_looks_correct" != Y ]]; then
+  echo Set up aborted. Ensure platform is supported, then try again. exiting...
+  exit
 fi
 
 echo

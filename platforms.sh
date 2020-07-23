@@ -272,6 +272,8 @@ init_queenbeeC()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome=$WORK/local
+  JOBENVDIR=$SCRIPTDIR/config/machines/queenbee3
+  ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
   ARCHIVEDIR=$SCRATCH
   TDS=( lsu_tds )
@@ -820,10 +822,18 @@ set_hpc() {
       HPCENVSHORT=frontera
       return
    fi
-   if [[ ${fqdn:0:2} = "qb" ]]; then
+   if [ 1 -eq $(hostname --fqdn | grep -c qb1) ]; then
       HPCENV=queenbee.loni.org
       HPCENVSHORT=queenbee
-   fi 
+   fi
+   if [ 1 -eq $(hostname --fqdn | grep -c qb2) ]; then
+      HPCENV=queenbee.loni.org
+      HPCENVSHORT=queenbee
+   fi
+   if [ 1 -eq $(hostname --fqdn | grep -c qbc) ]; then
+      HPCENV=qbc.loni.org
+      HPCENVSHORT=queenbeeC
+   fi
    if [[ ${fqdn:0:4} = "smic" ]]; then
       HPCENV=supermic.hpc.lsu.edu
       HPCENVSHORT=supermic 
