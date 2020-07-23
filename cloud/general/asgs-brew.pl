@@ -574,16 +574,16 @@ sub get_steps {
             output
             output/cera_contour
             output/cpra_postproc
-            output/cpra_postprocMEX
-            output/cpra_postprocoldtools
+            output/cpra_postproc/MEX
+            output/cpra_postproc/old/tools
             output/Cuba_post
             output/FG49
             output/NGOM_post
             output/PartTrack
             output/postProcessFlux
             output/POSTPROC_KMZGIS
-            output/POSTPROC_KMZGISFigGen
-            output/POSTPROC_KMZGISRenciGETools-10src
+            output/POSTPROC_KMZGIS/FigGen
+            output/POSTPROC_KMZGIS/RenciGETools-10/src
             output/test
             output/TRACKING_FILES
             output/validation
