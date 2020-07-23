@@ -446,11 +446,11 @@ init_frontera()
   RMQMessaging_ClusterName="Frontera"
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome="$WORK/local"
+  RMQMessaging_NcoHome=$WORK/local
   #
-  PLATFORMMODULES='module load intel/19.0.5 xalt/2.7.19 TACC'
-  SERIALMODULES='module load' # no extra modules for serial jobs
-  PARALLELMODULES='module load impi/19.0.5'
+  PLATFORMMODULES=''
+  SERIALMODULES='' # no extra modules for serial jobs
+  PARALLELMODULES=''
   # matlab
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   # specify location of platform- and Operator-specific scripts to 
@@ -508,10 +508,10 @@ init_stampede2()
   RMQMessaging_ClusterName="Stampede2"
   RMQMessaging_Enable="on"              # "on"|"off"
   RMQMessaging_Transmit="on"            #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome="$WORK/local"
-  PLATFORMMODULES='module unload python2/2.7.15 ; module load intel/18.0.2 xalt/2.6.5 TACC'
+  RMQMessaging_NcoHome=$WORK/local
+  PLATFORMMODULES=
   SERIALMODULES='module load matlab' # no extra modules for serial jobs
-  PARALLELMODULES='module load libfabric/1.7.0 impi/18.0.2'
+  PARALLELMODULES=
   # matlab
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   # specify location of platform- and Operator-specific scripts to 
@@ -568,12 +568,10 @@ init_lonestar5()
   RMQMessaging_ClusterName="Lonestar5"
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome="$WORK/local"
-  #
-  ml reset
-  PLATFORMMODULES='module unload python3/3.7.0 ; module load intel/18.0.2 TACC/1.0'
-  SERIALMODULES='module load' # no extra modules for serial jobs
-  PARALLELMODULES='module load cray_mpich/7.7.3'
+  RMQMessaging_NcoHome=$WORK/local
+  PLATFORMMODULES='module load TACC/1.0'
+  SERIALMODULES='' # no extra modules for serial jobs
+  PARALLELMODULES=''
   # specify location of platform- and Operator-specific scripts to
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/lonestar5
