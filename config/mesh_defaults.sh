@@ -147,7 +147,7 @@ case $GRIDNAME in
       UNITOFFSETFILE=unit_offset_tx2008_r35h.grd.dat
       ;;
       #
-   "tx2017")
+   "tx2017"|"CTXCS2017")
       #
       INPUTDIR=$SCRIPTDIR/input/meshes/tx2017
       GRIDFILE=ctx_gr_p01E01.grd # mesh (fort.14) file
