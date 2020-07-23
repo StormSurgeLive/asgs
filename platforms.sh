@@ -448,9 +448,9 @@ init_frontera()
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome=$WORK/local
   #
-  PLATFORMMODULES=''
-  SERIALMODULES='' # no extra modules for serial jobs
-  PARALLELMODULES=''
+  PLATFORMMODULES=
+  SERIALMODULES= # no extra modules for serial jobs
+  PARALLELMODULES=
   # matlab
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   # specify location of platform- and Operator-specific scripts to 
@@ -570,8 +570,8 @@ init_lonestar5()
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome=$WORK/local
   PLATFORMMODULES='module load TACC/1.0'
-  SERIALMODULES='' # no extra modules for serial jobs
-  PARALLELMODULES=''
+  SERIALMODULES= # no extra modules for serial jobs
+  PARALLELMODULES=
   # specify location of platform- and Operator-specific scripts to
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/lonestar5
