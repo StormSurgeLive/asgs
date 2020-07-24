@@ -16,6 +16,15 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 
+# Note:
+# If an operator wishes to use the ssh form of the git url, they will need
+# to update the environmental variable ADCIRC_GIT_URL to use the url,
+#    
+#   export ADCIRC_GIT_URL=git@github.com:adcirc
+#
+# before running 'initadcirc' in asgsh
+#
+
 if [ "${1}" = "clean" ]; then
   echo "'clean' not implemented for optional ADCIRC/SWAN step at this time, clean up for ADCIRC and SWAN must be done manually."
   exit 0
