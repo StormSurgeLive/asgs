@@ -18,26 +18,32 @@
 
  guess_platform()
 {
-  default_platform=unknown
+  guess=unknown
   if [ "$USER" = vagrant ]; then
-    default_platform=vagrant
+    guess=vagrant
   elif [ "$_ASGS_CONTAINER" = "docker" ]; then
-    default_platform=docker
+    guess=docker
+  elif [ 1 -eq $(hostname --fqdn | grep -c ht3) ]; then
+    guess=hatteras
   elif [ 1 -eq $(hostname --fqdn | grep -c ht4) ]; then
-    default_platform=hatteras
+    guess=hatteras
+  elif [ 1 -eq $(hostname --fqdn | grep -c qb1) ]; then
+    guess=queenbee
   elif [ 1 -eq $(hostname --fqdn | grep -c qb2) ]; then
-    default_platform=queenbee
+    guess=queenbee
+  elif [ 1 -eq $(hostname --fqdn | grep -c qbc) ]; then
+    guess=queenbeeC
   elif [ 1 -eq $(hostname --fqdn | grep -c smic) ]; then
-    default_platform=supermic
+    guess=supermic
   elif [ 1 -eq $(hostname --fqdn | grep -c ls5) ]; then
-    default_platform=lonestar5
+    guess=lonestar5
   elif [ 1 -eq $(hostname --fqdn | grep -c stampede2) ]; then
-    default_platform=stampede2
+    guess=stampede2
   elif [ 1 -eq $(hostname --fqdn | grep -c frontera) ]; then
-    default_platform=frontera
+    guess=frontera
   fi
-  if [ $default_platform != unknown ]; then
-    echo "$default_platform"
+  if [ $guess != unknown ]; then
+    echo "$guess"
   fi
 }
 
@@ -45,6 +51,7 @@ echo "pod            - POD (Penguin)"
 echo "hatteras       - Hatteras (RENCI)"    # ht4
 echo "supermike      - Supermike (LSU)"
 echo "queenbee       - Queenbee (LONI)"     # qb2
+echo "queenbeeC      - QueenbeeC (LONI)"    # qbC
 echo "supermic       - SuperMIC (LSU HPC)"  # smic
 echo "lonestar5      - Lonestar (TACC)"     # ls5
 echo "stampede2      - Stampede2 (TACC)"    # stampede2
@@ -61,6 +68,7 @@ default_platform=$(guess_platform)
 if [ -n "$default_platform" ]; then
   _default_platform=" [$default_platform]"
 fi
+
 echo
 read -p "Which platform environment would you like to use for ASGS bootstrapping?$_default_platform " platform
 
@@ -68,11 +76,51 @@ if [ -z "$platform" ]; then
   platform=$default_platform
 fi
 
+# catch WORK and SCRATCH as early as possible
+case "$platform" in
+  vagrant|docker|desktop|desktop-serial)
+    WORK=${WORK:-$HOME}
+    SCRATCH=${SCRATCH:-$HOME}
+    ;; 
+  hatteras)
+    WORK=${WORK:-$HOME}
+    SCRATCH=${SCRATCH:-"/scratch/$USER"}
+    ;;
+  queenbee|queenbeeC|supermic)
+    WORK=${WORK:-"/work/$USER"}
+    SCRATCH=${SCRATCH:-"/scratch/$USER"}
+    ;;
+  frontera|lonestar5|stampede2)
+    # WORK and SCRATCH assumed to be set in default env
+    if [[ -z "$WORK" || -z "$SCRATCH" ]]; then
+      echo "'WORK' and 'SCRATCH' are expected to be part of the default TACC environment. Please fix this."
+      exit 1
+    fi
+    ;;
+  *) echo "Unknown defaults for platform '$platform', using "$HOME" as 'WORK' and 'SCRATCH' directories..."
+    WORK=${WORK:-$HOME}
+    SCRATCH=${SCRATCH:-$HOME}
+    ;;
+esac
+export WORK
+export SCRATCH
+
 if [[ -z "$platform" && -z "$default_platform" ]]; then
   echo "A platform must be selected."
   exit 1
 elif [[ -z "$platform" && -n "$default_platform" ]]; then
   platform=$default_platform
+fi
+
+echo
+echo "Platform name: $platform"
+echo "WORK         : $WORK"
+echo "SCRATCH      : $SCRATCH"
+echo
+read -p "Does the above system information look correct? [Y] " _looks_correct
+if [[ -n "$_looks_correct" && "$_looks_correct" != Y ]]; then
+  echo Set up aborted. Ensure platform is supported, then try again. exiting...
+  exit
 fi
 
 echo
