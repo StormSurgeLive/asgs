@@ -94,6 +94,8 @@ _guess_platform()
   default_platform=unknown
   if [ "$USER" = vagrant ]; then
     default_platform=vagrant
+  elif [ "$_ASGS_CONTAINER" = "docker" ]; then
+    default_platform=docker
   elif [ 1 -eq $(hostname --fqdn | grep -c ht4) ]; then
     default_platform=hatteras
   elif [ 1 -eq $(hostname --fqdn | grep -c qb2) ]; then

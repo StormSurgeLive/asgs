@@ -566,6 +566,12 @@ init_lonestar5()
   MAKEJOBS=8
 }
 
+# placeholder for docker bootstrap
+init_docker()
+{
+  MAKEJOBS=2
+}
+
 # placeholder for vagrant bootstrap
 init_vagrant()
 {
@@ -842,6 +848,9 @@ env_dispatch() {
   "vagrant") allMessage "$THIS: vagrant configuration found."
           init_vagrant
            ;; 
+  "docker") allMessage "$THIS: docker configuration found."
+          init_docker
+           ;;
   "test") allMessage "$THIS: test environment (default) configuration found."
           init_test
            ;;
