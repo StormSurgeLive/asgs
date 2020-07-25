@@ -920,6 +920,7 @@ downloadCycloneData()
        logMessage "$THIS: Checking remote site for new advisory..."
     fi
 
+
     while [ $newAdvisory = false ]; do
        if [[ $TRIGGER != "atcf" ]]; then 
           appMessage "perl $SCRIPTDIR/get_atcf.pl $OPTIONS"  $APPLOGFILE
@@ -1738,6 +1739,25 @@ writeTropicalCycloneProperties()
    echo "storm : $STORM" >> $STORMDIR/run.properties
    echo "stormnumber : $STORM" >> $STORMDIR/run.properties
 }
+
+# write reference tropical cyclone metadata to the run.properties file 
+# runs that actually use gridded wind fields
+writeTropicalCycloneMetadataProperties()
+{
+   propdir=$1
+   echo "ref.tropicalcyclone.vortexmodel : $VORTEXMODEL" >> $propdir/run.properties
+   echo "ref.tropicalcyclone.stormnumber : $STORM" >> $propdir/run.properties
+   echo "ref.tropicalcyclone.year : $YEAR" >> $propdir/run.properties
+   echo "ref.tropicalcyclone.pseudostorm : $PSEUDOSTORM" >> $propdir/run.properties   
+   echo "ref.tropicalcyclone.forecast.trigger : $TRIGGER" >> $propdir/run.properties   
+   echo "ref.tropicalcyclone.forecast.rsssite : $RSSSITE" >> $propdir/run.properties   
+   echo "ref.tropicalcyclone.forecast.path.fdir : $FDIR" >> $propdir/run.properties   
+   echo "ref.tropicalcyclone.best.ftpsite : $FTPSITE" >> $propdir/run.properties   
+   echo "ref.tropicalcyclone.best.path.hdir : $HDIR" >> $propdir/run.properties
+   # legacy properties
+   echo "ref.storm : $STORM" >> $STORMDIR/run.properties
+   echo "ref.stormnumber : $STORM" >> $STORMDIR/run.properties
+}
 #
 # write properties to the run.properties file that are associated with 
 # swan coupling. 
@@ -2469,7 +2489,8 @@ while [ true ]; do
    logMessage "$ENSTORM: $THIS: Checking for new meteorological data every 60 seconds ..."
    
    # TROPICAL CYCLONE ONLY
-   if [[ $TROPICALCYCLONE = on ]]; then
+   case $TROPICALCYCLONE in
+   "on")
       BASENWS=20
       if [[ $VORTEXMODEL = ASYMMETRIC ]]; then
          BASENWS=19
@@ -2539,7 +2560,34 @@ while [ true ]; do
             cp NWS_${BASENWS}_fort.22 fort.22 >> ${SYSLOG} 2>&1
          fi
       fi
-   fi
+      ;;
+      #
+      "metadata-only")
+         writeTropicalCycloneMetadataProperties $RUNDIR
+         # | | |                                                      | | | 
+         # V V V FIXME: push the rest of this into an external script V V V           
+         OPTIONS="--storm $STORM --year $YEAR --ftpsite $FTPSITE --fdir $FDIR --hdir $HDIR --rsssite $RSSSITE --trigger $TRIGGER"
+         OPTIONS="$OPTIONS --adv 0" # so it always just gets whatever advisory is currently there 
+         logMessage "$THIS: Options for get_atcf.pl are as follows : $OPTIONS" $APPLOGFILE
+         appMessage "perl $SCRIPTDIR/get_atcf.pl $OPTIONS"  $APPLOGFILE
+         metadataAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
+         appMessage "$THIS: tropical cyclone reference advisory number is ${metadataAdvisoryNum}."
+         forecastFileName=al${STORM}${YEAR}.fst
+         hindcastFileName=bal${STORM}${YEAR}.dat
+         perl ${SCRIPTDIR}/nhc_advisory_bot.pl --input ${forecastFileName}.html --output $forecastFileName --metadata ref.tc.properties >> ${SYSLOG} 2>&1     
+         # ^ ^ ^ FIXME: push the rest of this into an external script ^ ^ ^ 
+      ;;
+      #
+      "off")
+        # don't need to download any data
+        # FIXME: writeProperties?
+        ;;
+     *) # should be unreachable
+        RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM" "FAIL" "BACKGROUNDMET ($BACKGROUNDMET) did not match an allowable value."
+        fatal "TROPICALCYCLONE did not match an allowable value."
+        ;;
+   esac
+  
    # BACKGROUND METEOROLOGY
    if [[ $BACKGROUNDMET != off ]]; then
       NWS=-12
@@ -3001,7 +3049,8 @@ while [ true ]; do
       writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
       RUNFORECAST=yes
       # TROPICAL CYCLONE ONLY
-      if [[ $TROPICALCYCLONE = on ]]; then
+      case $TROPICALCYCLONE in 
+      "on") 
          BASENWS=20
          if [[ $VORTEXMODEL = ASYMMETRIC ]]; then
             BASENWS=19
@@ -3054,7 +3103,32 @@ while [ true ]; do
             fi
          fi
          writeTropicalCycloneProperties $STORMDIR
-      fi
+      ;;
+      "metadata-only")
+         writeTropicalCycloneMetadataProperties $ADVISDIR
+         # | | |                                                      | | |
+         # V V V FIXME: push the rest of this into an external script V V V  
+         OPTIONS="--storm $STORM --year $YEAR --ftpsite $FTPSITE --fdir $FDIR --hdir $HDIR --rsssite $RSSSITE --trigger $TRIGGER"
+         OPTIONS="$OPTIONS --adv 0" # so it always just gets whatever advisory is currently there 
+         logMessage "$THIS: Options for get_atcf.pl are as follows : $OPTIONS" $APPLOGFILE
+         appMessage "perl $SCRIPTDIR/get_atcf.pl $OPTIONS"  $APPLOGFILE
+         metadataAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
+         appMessage "$THIS: tropical cyclone reference advisory number is ${metadataAdvisoryNum}."
+         forecastFileName=al${STORM}${YEAR}.fst
+         hindcastFileName=bal${STORM}${YEAR}.dat
+         perl ${SCRIPTDIR}/nhc_advisory_bot.pl --input ${forecastFileName}.html --output $forecastFileName --metadata ref.tc.properties >> ${SYSLOG} 2>&1     
+         # ^ ^ ^ FIXME: push the rest of this into an external script ^ ^ ^ 
+         #
+      ;;
+      off)
+        # don't need to download any data
+        # FIXME: writeProperties?
+        ;;
+      *) # should be unreachable
+        RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM" "FAIL" "BACKGROUNDMET ($BACKGROUNDMET) did not match an allowable value."
+        fatal "BACKGROUNDMET did not match an allowable value."
+        ;;
+      esac
 
       CURRENT_STATE="WAIT"
       # BACKGROUND METEOROLOGY ONLY
