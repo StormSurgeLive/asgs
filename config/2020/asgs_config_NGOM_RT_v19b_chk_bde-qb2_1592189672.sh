@@ -54,9 +54,9 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 TIDEFAC=on               # tide factor recalc
    HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on         # NAM download/forcing
-   FORECASTCYCLE="06,18"
+   FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off      # tropical cyclone forcing
-   STORM=03              # storm number, e.g. 05=ernesto in 2006
+   STORM=08              # storm number, e.g. 05=ernesto in 2006
    YEAR=2020             # year of the storm
 WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -82,7 +82,7 @@ TDS=( lsu_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020062100
+COLDSTARTDATE=2020062300
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #
