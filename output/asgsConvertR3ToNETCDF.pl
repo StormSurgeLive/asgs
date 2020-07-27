@@ -40,6 +40,7 @@ my $opendaphost; # hostname for scp'ing results
 my $remoteppdir="/projects/ncfs/apps/asgs/trunk/output"; # netcdf post proc 
 # set the OpenDAP prefix:  Change this if/when we change where opendap.renci.org points.
 my $openDAPPrefix;
+my $sshkey;
 
 # the new name of the run.properties file as stored in OpenDap. Set below and 
 # used in the call to sendEmailMessage
