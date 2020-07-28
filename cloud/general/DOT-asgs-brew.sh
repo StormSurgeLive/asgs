@@ -94,10 +94,18 @@ _guess_platform()
   default_platform=unknown
   if [ "$USER" = vagrant ]; then
     default_platform=vagrant
+  elif [ "$_ASGS_CONTAINER" = "docker" ]; then
+    default_platform=docker
+  elif [ 1 -eq $(hostname --fqdn | grep -c ht3) ]; then
+    default_platform=hatteras
   elif [ 1 -eq $(hostname --fqdn | grep -c ht4) ]; then
     default_platform=hatteras
+  elif [ 1 -eq $(hostname --fqdn | grep -c qb1) ]; then
+    default_platform=queenbee
   elif [ 1 -eq $(hostname --fqdn | grep -c qb2) ]; then
     default_platform=queenbee
+  elif [ 1 -eq $(hostname --fqdn | grep -c qbc) ]; then
+    default_platform=queenbeeC
   elif [ 1 -eq $(hostname --fqdn | grep -c smic) ]; then
     default_platform=supermic
   elif [ 1 -eq $(hostname --fqdn | grep -c ls5) ]; then
@@ -904,7 +912,7 @@ sq() {
   OLDIFS=$IFS
   IFS=
   platform=$(guess platform);
-  if [[ $(echo 'supermic queenbee' | grep -c "$platform") -gt 0 ]]; then
+  if [[ $(echo 'supermic queenbee queenbeeC' | grep -c "$platform") -gt 0 ]]; then
     SQ=$(showq | grep $USER)
   elif [[ $(echo 'frontera stampede lonestar' | grep -c "$platform") -gt 0 ]]; then
     SQ=$(squeue -u $USER)
