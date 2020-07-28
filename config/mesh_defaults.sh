@@ -59,7 +59,7 @@ case $GRIDNAME in
       UNITOFFSETFILE=unit_offset_LA_v19k-WithUpperAtch_chk.dat
       ;;
       #
-   "LA_v20a-WithUpperAtch_chk")
+   "LA_v20a-WithUpperAtch_chk"|"LAv20a")
       #
       INPUTDIR=$SCRIPTDIR/input/meshes/LA_v20a
       GRIDFILE=LA_v20a-WithUpperAtch_chk.grd   # mesh (fort.14) file
@@ -88,7 +88,7 @@ case $GRIDNAME in
       # FIXME: no unit offset url
       ;;   
       #   
-   "ec95d")
+   "ec95d"|"EC95d")
       #   
       INPUTDIR=$SCRIPTDIR/input/meshes/ec95d
       GRIDFILE=ec_95d.grd   # mesh (fort.14) file
@@ -176,7 +176,7 @@ case $GRIDNAME in
       # FIXME: no unit offset url
       ;;
       #
-   "tx2020a")
+   "tx2020a"|"TX2020a")
       #
       INPUTDIR=$SCRIPTDIR/input/meshes/tx2020
       GRIDFILE=tx2020a.14 # mesh (fort.14) file
@@ -205,7 +205,7 @@ case $GRIDNAME in
       # FIXME: no unit offset url
       ;;
       #      
-   "neflga_v12_geo")
+   "neflga_v12_geo"|"NEFLGAv12")
       INPUTDIR=$SCRIPTDIR/input/meshes/neflga
       GRIDFILE=neflga_v12_geo.14 # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -233,7 +233,7 @@ case $GRIDNAME in
       # FIXME: no unit offset url
       ;;
       #
-   "nc_inundation_v9.99_w_rivers")
+   "nc_inundation_v9.99_w_rivers"|"NCv999")
       #
       INPUTDIR=$SCRIPTDIR/input/meshes/nc_v9.99_w_rivers
       GRIDFILE=nc_inundation_v9.99a_w_rivers.grd
@@ -291,7 +291,7 @@ case $GRIDNAME in
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_hsofs.dat.xz
       UNITOFFSETFILE=unit_offset_hsofs.dat
       ;;
-   "hsofs")
+   "hsofs"|"HSOFS")
       #
       INPUTDIR=$SCRIPTDIR/input/meshes/hsofs
       GRIDFILE=hsofs.14  # mesh (fort.14) file
@@ -351,7 +351,7 @@ case $GRIDNAME in
       UNITOFFSETFILE=null
       ;;
       #
-   "southfl_v11-1_final")
+   "southfl_v11-1_final"|"SFLv111")
       #
       INPUTDIR=$SCRIPTDIR/input/meshes/southfl    
       GRIDFILE=southfl_v11-1_final.grd
