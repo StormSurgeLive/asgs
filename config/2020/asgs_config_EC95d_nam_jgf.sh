@@ -70,24 +70,35 @@ ADCIRCDIR=/work/jgflemin/adcirc-cg/work
 SWANDIR=/work/jgflemin/adcirc-cg/swan
 
 if [[ $HPCENVSHORT = frontera ]]; then
-   ADCIRCDIR=/work/00976/jgflemin/frontera/adcirc-cg/work
-   SWANDIR=/work/00976/jgflemin/frontera/adcirc-cg/swan
+   ADCIRCDIR=/work/00976/jgflemin/$HPCENVSHORT/adcirc-cg/work
+   SWANDIR=/work/00976/jgflemin/$HPCENVSHORT/adcirc-cg/swan
+fi
+if [[ $HPCENVSHORT = lonestar5 ]]; then
+   ADCIRCDIR=/work/00976/jgflemin/lonestar/adcirc-cg/work
+   SWANDIR=/work/00976/jgflemin/lonestar/adcirc-cg/swan
+fi
+if [[ $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then 
+   QOS=vip
 fi
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( createMaxCSV.sh includeWind10m.sh cpra_slide_deck_post.sh createOPeNDAPFileList.sh opendap_post.sh )
+#POSTPROCESS=( createMaxCSV.sh includeWind10m.sh cpra_slide_deck_post.sh createOPeNDAPFileList.sh opendap_post.sh )
+POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu,rluettich1@gmail.com"
-OPENDAPNOTIFY="jason.g.fleming@gmail.com,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com"
+OPENDAPNOTIFY="jason.g.fleming@gmail.com,rluettich1@gmail.com,asgsnotifications@opayq.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com"
 TDS=( lsu_tds )
+if [[ $HPCENVSHORT = frontera || $HPCENVSHORT = lonestar5 ]]; then
+   TDS=( tacc_tds )
+fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020062018
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020072306/ec95d/frontera.tacc.utexas.edu/EC95d_nam_jgf/namforecast
 
 # Scenario package 
 
