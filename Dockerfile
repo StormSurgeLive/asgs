@@ -3,50 +3,68 @@
 # to users via https://hub.docker.com (pending) by ASGS
 # maintainers when a new release is tagged.
 #
+# What to use this for? It can be used for a variety of things:
+#
+# 1. demo/evaluation of ASGS
+# 2. local development, testing (/home/asgsuser/asgs is a git repository)
+# 3. the brave may (currently) use this for operations on local machine or cluster
+# 4. experiment with using Docker containers on HPC or cluster hosts
+# 5. ... potentially others
+#
 # Note: image doesn't contain ADCIRC source or binaries;
 # run `initadcirc` in ASGS Shell to obtain.
 #
 # Build command: (used when publishing a new image to dockerhub)
 #
-#   docker build -t asgsdockerhub/2019stable .
+#   docker build -t asgsdockerhub/master .
 #
 # Run command:   (used by most, drops them directly to the ASGS Shell prompt)
 #
-#   docker pull asgsdockerhub/2019stable    # get from dockerhub
-#   docker run -it asgsdockerhub/2019stable # create running container from pulled image
+#   docker pull asgsdockerhub/master    # get from dockerhub
+#   docker run -it asgsdockerhub/master # create running container from pulled image
 
-# docker image is based on ubuntu
-FROM ubuntu
+# using xenial because newer versions of Ubuntu come
+# with an openssl version that breaks Perl's Net::SSLeay
+FROM ubuntu:xenial
+
+# update to latest security updates and package sources
 RUN apt-get update
 
-# install required libraries and tools
+# install require libraries and tools
 RUN apt-get install -y build-essential checkinstall
-RUN apt-get install -y zlib1g-dev
-RUN apt-get install -y libssl-dev
-RUN apt-get install -y gfortran
-RUN apt-get install -y python-pip
-RUN apt-get install -y python2.7
-RUN apt-get install -y wget curl vim
-RUN apt-get install -y git
+RUN apt-get install -y zlib1g-dev libssl-dev libexpat1-dev
+RUN apt-get install -y gfortran wget curl vim tmux git sudo
 
-# link env to expected path
+# symlink for /bin/env
 RUN ln -s /usr/bin/env /bin/env > /dev/null 2>&1 || echo /usr/bin/env already links to /bin/env
 
-# get tarball of ASGS, "2019stable"
-RUN wget https://github.com/jasonfleming/asgsdockerhub/archive/2019stable.tar.gz
+# set env, this is used to identify the environment to ./init-asgsh.sh
+ENV _ASGS_CONTAINER docker
 
-# unarchive/compress, install
-RUN tar zxvf /2019stable.tar.gz
-RUN mv /asgs-2019stable /asgs
+# create non-privileged asgsuser
+RUN useradd -ms /bin/bash asgsuser
 
-# fix minor issue with an upstream failing test in Date::Handler,
-# which is not an ASGS bug, but not handled; this line should go
-# away in future releases of ASGS
-RUN perl -pi -e 's/Date::Format/Date::Format Date::Handler/g' /asgs/cloud/general/init-perl-modules.sh
+# add asgsuser to suod so that they can drop into root (sudo su -)
+RUN echo "asgsuser ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# directly runs asgs-brew.pl
-RUN cd /asgs && ./cloud/general/asgs-brew.pl --machinename vagrant --compiler gfortran --asgs-profile default
+# set up WORK and SCRATCH targets to emulate how most other systems
+# break up their disk space domains
+RUN mkdir /work && mkdir /scratch
 
-# run whenever user creates a running container of this image
-# via `docker run -it asgsdockerhub/2019stable`
-ENTRYPOINT cd /asgs &&/root/bin/asgsh
+# set up for asgsuser
+RUN chown -R asgsuser /work
+RUN chown -R asgsuser /scratch
+
+# get git repo
+RUN su -c 'cd /home/asgsuser && git clone https://github.com/jasonfleming/asgs.git && cd ./asgs && git checkout docker2' - asgsuser
+RUN su -c 'cd /home/asgsuser/asgs && git config --global user.email "asgsuser@noemail" && git config --global user.name "asgsuser"'
+
+# persist env in .bash_profile
+RUN su -c 'echo "export PATH=$PATH:$HOME/bin"   >> /home/asgsuser/.bash_profile' - asgsuser
+RUN su -c 'echo "export _ASGS_CONTAINER=docker" >> /home/asgsuser/.bash_profile' - asgsuser
+RUN su -c 'export _ASGS_CONTAINER=docker  && cd /home/asgsuser/asgs && ./init-asgs.sh BATCH=YES' - asgsuser
+
+# start as a non-privileged user
+USER asgsuser
+WORKDIR /home/asgsuser
+ENTRYPOINT echo && echo "run 'asgsh' to enter into ASGS Shell" && . /home/asgsuser/.bash_profile && bash -i

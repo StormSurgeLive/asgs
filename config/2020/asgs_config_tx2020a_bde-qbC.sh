@@ -30,20 +30,19 @@ QSCRIPTTEMPLATE="$SCRIPTDIR/qscript.template-test"
 
 # Fundamental
 
-INSTANCENAME=NGOMv19b_nam_bde     # "name" of this ASGS process
+INSTANCENAME=tx2020a_nam_bde_qbC     # "name" of this ASGS process
 ASGSADMIN="asgsnotifications@opayq.com"
 
 ACCOUNT=loni_cera_2020
 #QUEUENAME=priority # same as SLURM partition
 QUEUENAME=workq
 SERQUEUE=single
-PPN=20
 RMQMessaging_Enable="on"
 RMQMessaging_Transmit="on"
 
 # Input files and templates
 
-GRIDNAME=NGOMv19b
+GRIDNAME=tx2020a
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 #FTPSITE=ftp.nhc-replay.stormsurge.email
@@ -54,9 +53,9 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 TIDEFAC=on               # tide factor recalc
    HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on         # NAM download/forcing
-   FORECASTCYCLE="00,06,12,18"
+   FORECASTCYCLE="06,18"
 TROPICALCYCLONE=off      # tropical cyclone forcing
-   STORM=08              # storm number, e.g. 05=ernesto in 2006
+   STORM=03              # storm number, e.g. 05=ernesto in 2006
    YEAR=2020             # year of the storm
 WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -67,7 +66,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=479          # number of compute CPUs for all simulations
+NCPU=999          # number of compute CPUs for all simulations
 NUMWRITERS=1       # number of writers, usually 1
 NCPUCAPACITY=9999  # total max number of CPUs used concurrently
 
@@ -82,7 +81,7 @@ TDS=( lsu_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020062300
+COLDSTARTDATE=2020062100
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #
