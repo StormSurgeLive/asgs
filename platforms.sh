@@ -44,11 +44,9 @@ init_supermike()
   ACCOUNT=null
   SUBMITSTRING=qsub
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
-  SCRATCHDIR=/work/$USER
-  #SCRATCHDIR=/work/cera
   ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCHDIR
-  ARCHIVEDIR=$SCRATCHDIR
+  ARCHIVEBASE=$SCRATCH
+  ARCHIVEDIR=$SCRATCH
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=$SCRIPTDIR/input/machines/supermike/supermike.template.pbs
   MATLABEXE=mex
@@ -77,7 +75,6 @@ init_queenbee()
   QUEUENAME=workq
   SERQUEUE=single
   SUBMITSTRING=qsub
-  SCRATCHDIR=/work/$operator
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
   RMQMessaging_LocationName="LONI"
@@ -104,7 +101,7 @@ init_queenbee()
     $SERIALMODULES
   fi
   if [[ $operator = "jgflemin" || $USER = "jgflemin" ]]; then
-     ACCOUNT=loni_cera_2020
+     ACCOUNT=loni_lsu_ccr_19
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      JOBENV=( ) # all exes are in /work/jgflemin/opt/default/bin ; all libs are in /work/jgflemin/default/lib
@@ -129,14 +126,14 @@ init_queenbee()
      RMQMessaging_Enable="on"      # "on"|"off"
      RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
      RMQMessaging_NcoHome="$HOME/local"
-     SCRATCHDIR=/work/$operator/asgs/2019/runs/
+     SCRATCH=/work/$operator/asgs/2019/runs/
   fi
   THIS=platforms.sh
   SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
   ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCHDIR
-  ARCHIVEDIR=$SCRATCHDIR
+  ARCHIVEBASE=$SCRATCH
+  ARCHIVEDIR=$SCRATCH
   # @jasonfleming: for ~/.bashrc: Prevent git push from opening up a graphical
   # dialog box to ask for a password; it will interactively ask for
   # a password instead
@@ -160,10 +157,9 @@ init_rostam()
   SUBMITSTRING=sbatch
   #JOBLAUNCHER='srun -N %nnodes%'
   JOBLAUNCHER='salloc -p marvin -N %nnodes% -n %totalcpu%' 
-  SCRATCHDIR=${HOME}/asgs
   ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCHDIR
-  ARCHIVEDIR=$SCRATCHDIR
+  ARCHIVEBASE=$SCRATCH
+  ARCHIVEDIR=$SCRATCH
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=rostam.template.slurm
   QSCRIPTGEN=hatteras.slurm.pl
@@ -198,7 +194,6 @@ init_supermic()
   QUEUENAME=workq
   SERQUEUE=single
   SUBMITSTRING=qsub
-  SCRATCHDIR=/work/$operator
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
   RMQMessaging_LocationName="LSU"
@@ -220,28 +215,71 @@ init_supermic()
   if [[ $operator = "jgflemin" ]]; then
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     ACCOUNT=hpc_cera_2019c
-     #ACCOUNT=hpc_crc_smi_19
+     #ACCOUNT=hpc_cera_2019c
+     ACCOUNT=hpc_crc_smi_19
      JOBENV=( )
      for script in $JOBENV; do
         source $JOBENVDIR/$script
      done
   fi
   if [[ $operator = "alireza" ]]; then  # User config for Al
-     ACCOUNT=hpc_cera_2019c
+     ADCIRCDIR=${HOME}/adcirc-cg/work # ADCIRC executables
+     SWANDIR=${HOME}/adcirc-cg/swan   # SWAN executables
+     ACCOUNT=hpc_cera_2019
+     JOBENV=( gmt.sh gdal.sh imagemagick.sh ) #TODO
+     for script in $JOBENV; do
+        source $JOBENVDIR/$script
+     done
   fi
   THIS="platforms.sh>env_dispatch()>init_supermic()"
   SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
   ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCHDIR
-  ARCHIVEDIR=$SCRATCHDIR
+  ARCHIVEBASE=$SCRATCH
+  ARCHIVEDIR=$SCRATCH
   TDS=( lsu_tds )
   module purge
   $PLATFORMMODULES
   $SERIALMODULES
   MAKEJOBS=8
 }
+
+# Note 0: This entry is meant to model a minimal entry
+# Note 1: We're moving to placing conditional environements based on user or operator
+# into $HOME/.asgsh_profile; e.g., setting MATLABEXE ('mex' or 'script' should go there)
+# Note 2: We're moving modules to load that are not already done so in a user's default shell
+# out of here
+# Note 3: Anything that is initialized without a value or as "null" should not be in here, but
+# the variables should be documented somewhere
+# Note 4: init-asgsh.sh should be run to ensure $WORK and $SCRATCH is set properly so that it
+# propagates in the ASGS Shell environment
+
+init_queenbeeC()
+{ THIS="platforms.sh>env_dispatch()>init_queenbeeC()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
+  HPCENV=qbc.loni.org
+  QUEUESYS=SLURM
+  QCHECKCMD=sacct
+  QUEUENAME=workq
+  SERQUEUE=single
+  PPN=48
+  JOBLAUNCHER='srun '
+  SUBMITSTRING=sbatch
+  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTGEN=qscript.pl
+  RMQMessaging_LocationName="LONI"
+  RMQMessaging_ClusterName="QueenbeeC"
+  RMQMessaging_Enable="on"      # "on"|"off"
+  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+  RMQMessaging_NcoHome=$WORK/local
+  JOBENVDIR=$SCRIPTDIR/config/machines/queenbee3
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=$SCRATCH
+  ARCHIVEDIR=$SCRATCH
+  TDS=( lsu_tds )
+  MAKEJOBS=8
+}
+
 init_pod()
 { #<- can replace the following with a custom script
   THIS="platforms.sh>env_dispatch()>init_pod()"
@@ -258,8 +296,6 @@ init_pod()
   SUBMITSTRING=qsub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
-  SCRATCHDIR=$HOME/asgs
-  #
   RMQMessaging_LocationName="Penguin"
   RMQMessaging_ClusterName="POD"
   RMQMessaging_Enable="on"      # "on"|"off"
@@ -284,12 +320,12 @@ init_pod()
   RESERVATION=null
   PPN=28
    if [[ $operator = bblanton ]]; then
-      SCRATCHDIR=/home/bblanton/asgs_scratch
+      SCRATCH=/home/bblanton/asgs_scratch
       RMQMessaging_NcoHome="/home/bblanton/"
    fi
   ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCHDIR
-  ARCHIVEDIR=$SCRATCHDIR
+  ARCHIVEBASE=$SCRATCH
+  ARCHIVEDIR=$SCRATCH
   TDS=(renci_tds)
   module purge
   $PLATFORMMODULES
@@ -312,7 +348,7 @@ init_hatteras()
   JOBLAUNCHER='srun '
   ACCOUNT=null
   SUBMITSTRING=sbatch
-  SCRATCHDIR=/projects/ncfs/data
+  SCRATCH=/projects/ncfs/data
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
@@ -339,22 +375,22 @@ init_hatteras()
   bblanton) 
      export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
      ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
-     SCRATCHDIR=/scratch/bblanton/data
+     SCRATCH=/scratch/bblanton/data
      PYTHONVENV=/projects/storm_surge/anaconda
      PLATFORMMODULES='module load mvapich2/2.0-acis'
-     SERIALMODULES='' # no extra modules for serial jobs
+     SERIALMODULES='module load' # no extra modules for serial jobs
      ;;
   ncfs-dev)
      export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
      ADCIRCDIR="${HOME}/ADCIRC/v53release/work" # ADCIRC executables
      SWANDIR="${HOME}/ADCIRC/v53release/swan" # ADCIRC executables
-     SCRATCHDIR=/scratch/ncfs-dev/
+     SCRATCH=/scratch/ncfs-dev/
      ACCOUNT=ncfs-dev
      PARTITION=ncfs       # ncfs or batch, gives priority
      PYTHONVENV="$HOME/miniconda2"
      RMQMessaging_NcoHome="${HOME}"
      PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.1.2-acis mvapich2/2.0-acis'
-     SERIALMODULES='' # no extra modules for serial jobs
+     SERIALMODULES='module load' # no extra modules for serial jobs
      TDS=(renci_tds)
      ;;
   ncfs)
@@ -366,15 +402,15 @@ init_hatteras()
      PYTHONVENV=~/asgs/asgspy/venv
      PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 zlib/1.2.11_intel-18.0.0'
      PLATFORMMODULES="$PLATFORMMODULES mvapich2/2.0-acis"
-     SERIALMODULES='' # no extra modules for serial jobs
+     SERIALMODULES='module load' # no extra modules for serial jobs
      ;;
   *)
      PLATFORMMODULES='module load intelc/18.0.0 openmpi/intel_3.0.0'
      ;;
   esac
   ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCHDIR
-  ARCHIVEDIR=$SCRATCHDIR
+  ARCHIVEBASE=$SCRATCH
+  ARCHIVEDIR=$SCRATCH
   module purge
   $PLATFORMMODULES
   $PARALLELMODULES
@@ -398,7 +434,6 @@ init_frontera()
   JOBLAUNCHER='ibrun '
   ACCOUNT=null
   SUBMITSTRING=sbatch
-  SCRATCHDIR=$SCRATCH
   SSHKEY=~/.ssh/id_rsa_frontera
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
@@ -411,12 +446,7 @@ init_frontera()
   RMQMessaging_ClusterName="Frontera"
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome="$WORK/local"
-  #
-  PLATFORMMODULES='module reset'
-  SERIALMODULES='' # no extra modules for serial jobs
-  PARALLELMODULES=''
-  # matlab
+  RMQMessaging_NcoHome=$WORK/local
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   # specify location of platform- and Operator-specific scripts to 
   # set up environment for different types of jobs
@@ -438,11 +468,6 @@ init_frontera()
   ARCHIVEDIR=2020 # is this used? 
   TDS=( tacc_tds )
   MAKEJOBS=8
-  # only run env module commands if not in asgsh
-  if [ -z "$_ASGS_PID" ]; then 
-    $PLATFORMMODULES
-    $SERIALMODULES
-  fi
 }
 #
 init_stampede2()
@@ -461,7 +486,6 @@ init_stampede2()
   JOBLAUNCHER='ibrun '
   ACCOUNT=null
   SUBMITSTRING=sbatch
-  SCRATCHDIR=$SCRATCH
   SSHKEY=~/.ssh/id_rsa_stampede2
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
@@ -469,19 +493,11 @@ init_stampede2()
   QSUMMARYCMD=null
   QUOTACHECKCMD=null
   ALLOCCHECKCMD=null
-  #
   RMQMessaging_LocationName="TACC"
   RMQMessaging_ClusterName="Stampede2"
   RMQMessaging_Enable="on"              # "on"|"off"
   RMQMessaging_Transmit="on"            #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome="$WORK/local"
-  PLATFORMMODULES='module reset'
-  SERIALMODULES='module load matlab' # no extra modules for serial jobs
-  PARALLELMODULES=''
-  # matlab
-  MATLABEXE=script # "script" means just execute matlab (don't use mex files)
-  # specify location of platform- and Operator-specific scripts to 
-  # set up environment for different types of jobs
+  RMQMessaging_NcoHome=$WORK/local
   JOBENVDIR=$SCRIPTDIR/config/machines/stampede2
   JOBENV=( )
   if [[ $operator = jgflemin ]]; then
@@ -499,8 +515,6 @@ init_stampede2()
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2020
   TDS=( tacc_tds )
-  $PLATFORMMODULES
-  $SERIALMODULES
   MAKEJOBS=8
 }
 #
@@ -519,7 +533,6 @@ init_lonestar5()
   ACCOUNT=null
   PPN=24
   SUBMITSTRING=sbatch
-  SCRATCHDIR=$SCRATCH
   SSHKEY=id_rsa_lonestar5
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
@@ -535,10 +548,8 @@ init_lonestar5()
   RMQMessaging_ClusterName="Lonestar5"
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome="$WORK/local"
-  PLATFORMMODULES='module load TACC/1.0'
-  SERIALMODULES='' # no extra modules for serial jobs
-  PARALLELMODULES=''
+  RMQMessaging_NcoHome=$WORK/local
+  PLATFORMMODULES='module load TACC/1.0' # BDE - for some reason this is required
   # specify location of platform- and Operator-specific scripts to
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/lonestar5
@@ -559,16 +570,17 @@ init_lonestar5()
   ARCHIVEDIR=2020
   TDS=(tacc_tds)
   $PLATFORMMODULES
-  $SERIALMODULES
-  # btw git on lonestar5 is messed up when it outputs things like diffs,
-  # found the solution:
-  # git config --global core.pager "less -r"
   MAKEJOBS=8
 }
 
-# placeholder for vagrant bootstrap
-init_vagrant()
+# placeholder for docker bootstrap
+init_docker()
 {
+  MAKEJOBS=2
+}
+
+# placeholder for vagrant bootstrap
+init_vagrant() {
   MAKEJOBS=2
 }
 
@@ -580,7 +592,7 @@ init_desktop()
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec -n "
-  SCRATCHDIR=/srv/asgs
+  SCRATCH=/srv/asgs
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
   SWANMACROSINC=macros.inc.gfortran
@@ -594,13 +606,13 @@ init_desktop()
      RMQMessaging_ClusterName="jason-desktop"
   fi
   ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCHDIR
-  ARCHIVEDIR=$SCRATCHDIR
+  ARCHIVEBASE=$SCRATCH
+  ARCHIVEDIR=$SCRATCH
   TDS=(renci_tds)
   MAKEJOBS=1
 }
 
-init_desktop_serial()
+init_desktop_serial() # changed from init_desktop-serial due to bash complaints 
 {
   THIS="platforms.sh>env_dispatch()>init_desktop-serial()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
@@ -608,7 +620,7 @@ init_desktop_serial()
   QUEUESYS=serial
   QCHECKCMD="ps -aux | grep adcirc "
   SUBMITSTRING="./"
-  SCRATCHDIR=/srv/asgs
+  SCRATCH=/srv/asgs
   SSHKEY=id_rsa_jason-desktop-serial
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop-serial'
   SWANMACROSINC=macros.inc.gfortran
@@ -623,8 +635,8 @@ init_desktop_serial()
      RMQMessaging_ClusterName="jason-desktop-serial"
   fi
   ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCHDIR
-  ARCHIVEDIR=$SCRATCHDIR
+  ARCHIVEBASE=$SCRATCH
+  ARCHIVEDIR=$SCRATCH
   TDS=(renci_tds)
   MAKEJOBS=1
 }
@@ -635,13 +647,13 @@ init_Poseidon()
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec -n"
-  SCRATCHDIR=/home/fhrl/Documents/asgs_processing
+  SCRATCH=/home/fhrl/Documents/asgs_processing
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
   SWANMACROSINC=macros.inc.gfortran
   ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCHDIR
-  ARCHIVEDIR=$SCRATCHDIR
+  ARCHIVEBASE=$SCRATCH
+  ARCHIVEDIR=$SCRATCH
   MAKEJOBS=1
 }
 init_penguin()
@@ -652,7 +664,7 @@ init_penguin()
   #HOSTNAME=login-29-45.pod.penguincomputing.com
   QUEUESYS=PBS
   QCHECKCMD=qstat
-  SCRATCHDIR=/home/$USER
+  SCRATCH=/home/$USER
   SUBMITSTRING="mpirun"
   QSCRIPT=penguin.template.pbs
   QSCRIPTGEN=penguin.pbs.pl
@@ -773,10 +785,18 @@ set_hpc() {
       HPCENVSHORT=frontera
       return
    fi
-   if [[ ${fqdn:0:2} = "qb" ]]; then
+   if [ 1 -eq $(hostname --fqdn | grep -c qb1) ]; then
       HPCENV=queenbee.loni.org
       HPCENVSHORT=queenbee
-   fi 
+   fi
+   if [ 1 -eq $(hostname --fqdn | grep -c qb2) ]; then
+      HPCENV=queenbee.loni.org
+      HPCENVSHORT=queenbee
+   fi
+   if [ 1 -eq $(hostname --fqdn | grep -c qbc) ]; then
+      HPCENV=qbc.loni.org
+      HPCENVSHORT=queenbeeC
+   fi
    if [[ ${fqdn:0:4} = "smic" ]]; then
       HPCENV=supermic.hpc.lsu.edu
       HPCENVSHORT=supermic 
@@ -815,6 +835,9 @@ env_dispatch() {
   "supermic") allMessage "$THIS: SuperMIC (LSU HPC) configuration found."
           init_supermic
           ;;
+  "queenbeeC") allMessage "$THIS: QueenbeeC (LONI) configuration found."
+          init_queenbeeC
+          ;;
   "lonestar5") allMessage "$THIS: Lonestar (TACC) configuration found."
           init_lonestar5
           ;;
@@ -842,10 +865,19 @@ env_dispatch() {
   "vagrant") allMessage "$THIS: vagrant configuration found."
           init_vagrant
            ;; 
+  "docker") allMessage "$THIS: docker configuration found."
+          init_docker
+           ;;
   "test") allMessage "$THIS: test environment (default) configuration found."
           init_test
            ;;
   *) fatal "$THIS: '$HPCENVSHORT' is not a supported environment; currently supported options: stampede2, lonestar5, supermike, queenbee, supermic, hatteras, desktop, desktop-serial, su_tds, lsu_ccr_tds, renci_tds, tacc_tds"
      ;;
   esac
+
+  # support arbitrarily $USER customizations after platforms.sh has been utilized
+  # this file will also be replacing config/operator_defaults.sh in the near future
+  if [ -e $HOME/.asgsh_profile ]; then
+    source $HOME/.asgsh_profile
+  fi
 }

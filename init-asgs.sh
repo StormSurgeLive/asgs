@@ -16,26 +16,36 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 
+BATCH=$1
+
  guess_platform()
 {
-  default_platform=unknown
+  guess=unknown
   if [ "$USER" = vagrant ]; then
-    default_platform=vagrant
+    guess=vagrant
+  elif [ "$_ASGS_CONTAINER" = "docker" ]; then
+    guess=docker
+  elif [ 1 -eq $(hostname --fqdn | grep -c ht3) ]; then
+    guess=hatteras
   elif [ 1 -eq $(hostname --fqdn | grep -c ht4) ]; then
-    default_platform=hatteras
+    guess=hatteras
+  elif [ 1 -eq $(hostname --fqdn | grep -c qb1) ]; then
+    guess=queenbee
   elif [ 1 -eq $(hostname --fqdn | grep -c qb2) ]; then
-    default_platform=queenbee
+    guess=queenbee
+  elif [ 1 -eq $(hostname --fqdn | grep -c qbc) ]; then
+    guess=queenbeeC
   elif [ 1 -eq $(hostname --fqdn | grep -c smic) ]; then
-    default_platform=supermic
+    guess=supermic
   elif [ 1 -eq $(hostname --fqdn | grep -c ls5) ]; then
-    default_platform=lonestar5
+    guess=lonestar5
   elif [ 1 -eq $(hostname --fqdn | grep -c stampede2) ]; then
-    default_platform=stampede2
+    guess=stampede2
   elif [ 1 -eq $(hostname --fqdn | grep -c frontera) ]; then
-    default_platform=frontera
+    guess=frontera
   fi
-  if [ $default_platform != unknown ]; then
-    echo "$default_platform"
+  if [ $guess != unknown ]; then
+    echo "$guess"
   fi
 }
 
@@ -43,6 +53,7 @@ echo "pod            - POD (Penguin)"
 echo "hatteras       - Hatteras (RENCI)"    # ht4
 echo "supermike      - Supermike (LSU)"
 echo "queenbee       - Queenbee (LONI)"     # qb2
+echo "queenbeeC      - QueenbeeC (LONI)"    # qbC
 echo "supermic       - SuperMIC (LSU HPC)"  # smic
 echo "lonestar5      - Lonestar (TACC)"     # ls5
 echo "stampede2      - Stampede2 (TACC)"    # stampede2
@@ -51,19 +62,60 @@ echo "desktop        - desktop"
 echo "desktop-serial - desktop-serial"
 echo "poseidon       - Poseidon"
 echo "penguin        - Penguin"
-echo "rostam         - rostam"
+echo "rostam         - Rostam"
+echo "docker         - Docker container environment"
 echo "vagrant        - vagrant/virtual box (local workstation)"
 
 default_platform=$(guess_platform)
 if [ -n "$default_platform" ]; then
   _default_platform=" [$default_platform]"
 fi
-echo
-read -p "Which platform environment would you like to use for ASGS bootstrapping?$_default_platform " platform
+
+if [ -z "$BATCH" ]; then
+  echo
+  read -p "Which platform environment would you like to use for ASGS bootstrapping?$_default_platform " platform
+fi
 
 if [ -z "$platform" ]; then
   platform=$default_platform
 fi
+
+# catch WORK and SCRATCH as early as possible
+DEFAULT_COMPILER=intel
+case "$platform" in
+  vagrant|desktop|desktop-serial)
+    WORK=${WORK:-$HOME}
+    SCRATCH=${SCRATCH:-$HOME}
+    DEFAULT_COMPILER=gfortran
+    ;; 
+  docker)
+    WORK=${WORK:-/work}
+    SCRATCH=${SCRATCH:-/scratch}
+    DEFAULT_COMPILER=gfortran
+    ;; 
+  hatteras)
+    WORK=${WORK:-$HOME}
+    SCRATCH=${SCRATCH:-"/scratch/$USER"}
+    ;;
+  queenbee|queenbeeC|supermic)
+    WORK=${WORK:-"/work/$USER"}
+    SCRATCH=${SCRATCH:-"/scratch/$USER"}
+    ;;
+  frontera|lonestar5|stampede2)
+    # WORK and SCRATCH assumed to be set in default env
+    if [[ -z "$WORK" || -z "$SCRATCH" ]]; then
+      echo "'WORK' and 'SCRATCH' are expected to be part of the default TACC environment. Please fix this."
+      exit 1
+    fi
+    ;;
+  *) echo "Unknown defaults for platform '$platform', using "$HOME" as 'WORK' and 'SCRATCH' directories..."
+    WORK=${WORK:-$HOME}
+    SCRATCH=${SCRATCH:-$HOME}
+    DEFAULT_COMPILER=gfortran
+    ;;
+esac
+export WORK
+export SCRATCH
 
 if [[ -z "$platform" && -z "$default_platform" ]]; then
   echo "A platform must be selected."
@@ -73,31 +125,45 @@ elif [[ -z "$platform" && -n "$default_platform" ]]; then
 fi
 
 echo
-read -p "Which asgs branch would you like to checkout from Github ('.' to skip checkout)? [master] " repo
-
-if [ -z "$repo" ]; then
-  repo=master
-fi
-
-cd ./asgs 2> /dev/null
-
-if [ "$repo" != "." ]; then
-  git checkout $repo 2> /dev/null
-  if [ $? -gt 0 ]; then
-   echo error checking out $repo
-   read -p "skip checkout and proceed? [n] " skip
-   if [[ -z "$skip" || "$skip" = "n" ]]; then
-     echo exiting ...
-     exit
-   fi
-  fi
-else
-  echo leaving git repo in current state 
-fi
-
+echo "Platform name: $platform"
+echo "WORK         : $WORK"
+echo "SCRATCH      : $SCRATCH"
 echo
-_compiler=intel
-read -p "Which compiler family would you like to use, 'gfortran' or 'intel'? [$_compiler] " compiler
+
+# Note: if BATCH is set, then "." is assumed and no "git checkout" is performed
+if [ -z "$BATCH" ]; then
+  read -p "Does the above system information look correct? [Y] " _looks_correct
+  if [[ -n "$_looks_correct" && "$_looks_correct" != Y ]]; then
+    echo Set up aborted. Ensure platform is supported, then try again. exiting...
+    exit
+  fi
+  echo
+  read -p "Which asgs branch would you like to checkout from Github ('.' to skip checkout)? [master] " repo
+
+  if [ -z "$repo" ]; then
+    repo=master
+  fi
+ 
+  if [ "$repo" != "." ]; then
+    git checkout $repo 2> /dev/null
+    if [ $? -gt 0 ]; then
+     echo error checking out $repo
+     read -p "skip checkout and proceed? [n] " skip
+     if [[ -z "$skip" || "$skip" = "n" ]]; then
+       echo exiting ...
+       exit
+     fi
+    fi
+  else
+    echo leaving git repo in current state 
+  fi
+fi
+
+_compiler=$DEFAULT_COMPILER
+if [ -z "$BATCH" ]; then
+  echo
+  read -p "Which compiler family would you like to use, 'gfortran' or 'intel'? [$_compiler] " compiler
+fi
 
 if [ -z "$compiler" ]; then
   compiler=$_compiler
@@ -108,63 +174,61 @@ if [[ "$compiler" != 'gfortran' && "$compiler" != "intel" ]]; then
   exit 1
 fi
 
-_default_installpath=$HOME/opt
-if [ -n "$WORK" ]; then
-  _default_installpath=$WORK/opt
+_default_installpath=$WORK/opt
+if [ -z "$BATCH" ]; then
+  echo
+  echo "(note: shell variables like \$HOME or \$WORK will not be expanded)?"
+  read -p "Where do you want to install libraries and some utilities? [$_default_installpath] " installpath
 fi
-echo
-echo "(note: shell variables like \$HOME or \$WORK will not be expanded)?"
-read -p "Where do you want to install libraries and some utilities? [$_default_installpath] " installpath
 
 if [ -z "$installpath" ]; then
   installpath=$_default_installpath
 fi
 
-if [ -d "$installpath" ]; then
-  echo
-  read -p "warning - '$installpath' exists. To prevent overwriting existing files, would you like to quit and do the needful? [y] " quit 
-  if [[ -z "$quit" || "$quit" = y ]]; then
-    echo exiting ...
-    exit 
+if [ -z "$BATCH" ]; then
+  if [ -d "$installpath" ]; then
+    echo
+    read -p "warning - '$installpath' exists. To prevent overwriting existing files, would you like to quit and do the needful? [y] " quit 
+    if [[ -z "$quit" || "$quit" = y ]]; then
+      echo exiting ...
+      exit 
+    fi
   fi
 fi
 
-echo
-read -p "What is a short name you'd like to use to name the asgsh profile associated with this installation? [\"default\"] " profile
+_default_profile=default
+if [ -z "$BATCH" ]; then
+  echo
+  read -p "What is a short name you'd like to use to name the asgsh profile associated with this installation? [\"$_default_profile\"] " profile
+fi
 
 if [ -z "$profile" ]; then
-  profile=default
+  profile=$_default_profile
 fi
 
-if [ -e $HOME/.asgs/default ]; then
-  echo
-  read -p "warning - it appears an 'default' profile already exists from a previous installation. Is it okay to proceed and overwrite? [n] " overwrite
-  if [[ -z "$overwrite" || "$overwrite" = "no" ]]; then
-    echo exiting ...
-    exit
+if [ -z "$BATCH" ]; then
+  if [ -e $HOME/.asgs/default ]; then
+    echo
+    read -p "warning - it appears an 'default' profile already exists from a previous installation. Is it okay to proceed and overwrite? [n] " overwrite
+    if [[ -z "$overwrite" || "$overwrite" = "no" ]]; then
+      echo exiting ...
+      exit
+    fi
   fi
 fi
 
-echo Bootstrapping ASGS for installation...
-#env_dispatch $platform > /dev/null 2>&1
-ERROR=$?
-if [ 0 -lt $ERROR ]; then
-  echo error bootstrapping $platform via platforms.sh
-  echo exiting ...
-  exit $ERROR
-fi
-
-# $MAKEJOBS is defined in platforms.sh
 cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform"
 
-echo
-echo $cmd
-echo
-read -p "Run command above, y/N? [N] " run
+if [ -z "$BATCH" ]; then
+  echo
+  echo $cmd
+  echo
+  read -p "Run command above, y/N? [N] " run
+fi
 
 # creates a script that is basically a wrapper around the asgs-brew.ps
 # command that results from the use of this guide installation
-if [ "$run" = "y" ]; then
+if [[ "$run" = "y" || -n "$BATCH" ]]; then
   mkdir $HOME/bin 2> /dev/null
   scriptdir=$(pwd)
   full_command=$scriptdir/$cmd
