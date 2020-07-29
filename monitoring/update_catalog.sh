@@ -5,7 +5,7 @@
 # Definitions and paths
 MakeCatalog=1
 
-DHOME="/projects/ncfs/opendap/data/2019"
+DHOME="/projects/ncfs/opendap/data/2020"
 
 ###functions
 filesec()
@@ -27,18 +27,18 @@ cd $DHOME
 echo ' '
 
 if [ "$MakeCatalog" == "1" ]  ; then 
-	if [ -e "catalog.tree" ] ; then
-		mv catalog.tree catalog.tree.old
-	fi
-	sh makecat.sh  > catalog.tree
+    if [ -e "catalog.tree" ] ; then
+        mv catalog.tree catalog.tree.old
+    fi
+    sh makecat.sh  > catalog.tree
 
     # split catalog into nam and tc parts, for convenience
     sed -n '1,3p' catalog.tree > header
     sed '/nam/d' catalog.tree > catalog.tree.tc
 
-    sed -n '/nc_/p' catalog.tree.tc > temp 
-    cat temp >> header
-    mv header catalog.tree.tc-nc
+#    sed -n '/nc_/p' catalog.tree.tc > temp 
+#    cat temp >> header
+#    mv header catalog.tree.tc-nc
 
     sed -n '/nam/p' catalog.tree > temp 
     cat temp >> header
@@ -50,9 +50,7 @@ else
 fi
 
 # update ncml in "current" directories
-
 #python $DHOME/make_ncml.py /projects/ncfs/opendap/data/2019/NCFS_CURRENT_TROPICAL /projects/ncfs/opendap/data/SSV-Ncml/ RenciAsgs_LatestTropical.ncml LatestTropical
-
 #python $DHOME/make_ncml.py /projects/ncfs/opendap/data/NCFS_CURRENT_DAILY /projects/ncfs/opendap/data/SSV-Ncml/  RenciAsgs_LatestDaily.ncml  LatestDaily
 
 
