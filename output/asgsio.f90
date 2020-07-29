@@ -997,6 +997,7 @@ select case(fn%dataFileCategory)
 case(MINMAX,STATION,DOMAIN)
    fn%fun = availableUnitNumber()
    call allMessage(INFO,'Checking number of nodes in data file.') 
+   lineNum = 1
    call openFileForRead(fn%fun, trim(fn%dataFileName), errorIO)
    read(fn%fun,*,end=246,err=248,iostat=errorio) fn%agridRunIDRunDesLine
    lineNum=lineNum+1
@@ -1843,6 +1844,7 @@ integer :: nc_count(2)
 integer :: nc_start3D(3)
 integer :: nc_count3D(3)
 integer :: errorIO ! i/o error flag
+character(len=10000) :: line ! used in debugging
 !
 if ( (f%dataFileFormat.eq.NETCDFG).and.(s.gt.f%nSnaps) ) then 
    call allMessage(INFO,'All datasets have been read.')
@@ -1880,6 +1882,11 @@ case(ASCII,ASCIIG)
       else
          ! non-sparse and non-fort.88 
          if (f%dataFileCategory.ne.INITRIVER) then
+         
+                  ! jgfdebug
+         !read(unit=f%fun,fmt=*,end=246,err=248,iostat=errorio) line
+         !write(*,*) trim(adjustl(line))
+         
             read(f%fun,fmt=*,end=246,err=248,iostat=errorio) SnapR, SnapI
             numNodesNonDefault = f%numValuesPerDataSet
             l = l + 1
@@ -1906,6 +1913,11 @@ case(ASCII,ASCIIG)
    else
       ! sparse or full ascii real numbers
       do n=1,numNodesNonDefault
+          
+         ! jgfdebug
+         !read(unit=f%fun,fmt=*,end=246,err=248,iostat=errorio) line
+         !write(*,*) trim(adjustl(line))
+         
          read(unit=f%fun,fmt=*,end=246,err=248,iostat=errorio) h, (dtemp(c), c=1,f%irtype)
          l = l + 1
          !if (allocated(f%rdata).eqv..true.) then
@@ -1992,6 +2004,9 @@ integer :: ncStartMinMax(1)
 select case(f%dataFileFormat)
 case(ASCII,SPARSE_ASCII,ASCIIG)
 
+   !jgfdebug 
+
+
    if (f%is3D.eqv..true.) then
       !
       ! WRITE 3D DATA
@@ -2065,6 +2080,8 @@ case(ASCII,SPARSE_ASCII,ASCIIG)
          ! 
             write(f%fun,2120) snapr, snapi
             ! write full dataset
+            !jgfdebug
+            !write(*,*) f%numValuesPerDataset
             if (allocated(f%rdata).eqv..true.) then
                do h=1,f%numValuesPerDataset       ! came from ascii
                   write(f%fun,2453) h, (f%rdata(c,h), c=1,f%irtype)

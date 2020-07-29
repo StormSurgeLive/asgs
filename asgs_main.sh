@@ -89,6 +89,7 @@ checkFileExistence()
         # if this is a mesh or nodal attributes file, attempt to download and uncompress it
         if [[ $FTYPE = "ADCIRC mesh file"  ]]; then
            logMessage "Downloading $FTYPE from ${MESHURL}/${FNAME}.xz."
+           curl --version >> $SYSLOG
            curl ${MESHURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download mesh from ${MESHURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
         fi
         if [[ $FTYPE = "ADCIRC nodal attributes (fort.13) file" ]]; then
@@ -1482,7 +1483,12 @@ variables_init()
    LASTSUBDIR=null
    FTPSITE=null
    ADCIRCDIR=${ADCIRCDIR:-null} # will respect ADCIRCDIR if already sent in the environment
-   SCRATCHDIR=null
+   # if not set, try to set SCRATCHDIR to SCRATCH (if set); otherwise default to "null"
+   # "SCRATCH" is set on TACC platforms in a USER's default environment; init-asgs.sh sets
+   # it for all others to provide some consistency
+   if [ -z "$SCRATCHDIR" ]; then
+     SCRATCHDIR=${SCRATCH:-null}
+   fi
    MAILINGLIST=null
    QUEUESYS=null
    QUEUENAME=null
@@ -2055,8 +2061,8 @@ hotstartPath=${LASTSUBDIR}/nowcast # only for reading from local filesystem
 hotstartURL=null
 if [[ $HOTORCOLD = hotstart ]]; then
    # check to see if the LASTSUBDIR is actually a URL
-   urlCheck=`expr match "$LASTSUBDIR" 'http:'`
-   if [[ $urlCheck -eq 5 ]]; then
+   urlCheck=`expr match "$LASTSUBDIR" 'http'`
+   if [[ $urlCheck -eq 4 ]]; then
       # always look for fort.68.nc from a URL because only a forecast
       # will be posted to a URL, and only the hotstart file that was used
       # to start the forecast will be posted ... asgs always hotstarts from 
@@ -2504,7 +2510,7 @@ while [ true ]; do
           mkdir $NOWCASTDIR 2>> ${SYSLOG}
       fi
       SCENARIODIR=$CYCLEDIR/$SCENARIO
-      SCENARIOLOG=$SCENARIO/scenario.log
+      SCENARIOLOG=$SCENARIODIR/scenario.log
       mv $RUNDIR/run.properties $SCENARIODIR 2>> $SYSLOG
       writeScenarioProperties $SCENARIODIR
       #

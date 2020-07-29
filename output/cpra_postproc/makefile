@@ -63,6 +63,9 @@ ifeq ($(compiler),gfortran)
    ifeq ($(MACHINENAME),vagrant)
       FFLAGS := $(FFLAGS) -DOLDGFORTRAN
    endif
+   ifeq ($(MACHINENAME),docker)
+      FFLAGS := $(FFLAGS) -DOLDGFORTRAN
+   endif
 endif
 #
 # specify compiler=intel on the make command line

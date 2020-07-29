@@ -43,6 +43,9 @@ INSTANCENAME=NGOMv19b_nam_jgf  # "name" of this ASGS process
 GRIDNAME=NGOMv19b
 source $SCRIPTDIR/config/mesh_defaults.sh
 
+#jgf20200721 : new template file with Matt's boundary condition
+CONTROLTEMPLATE=NGOM_RT_v19b.15.template_13kcms # <---<<< default is NGOM_RT_v19b.15.template_18kcms in $SCRIPTDIR/config/mesh_defaults.sh
+
 # Physical forcing (defaults set in config/forcing_defaults)
 
 TIDEFAC=on            # tide factor recalc
@@ -52,7 +55,7 @@ FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #STORM=07             # storm number, e.g. 05=ernesto in 2006
 #YEAR=2018            # year of the storm
-WAVES=on              # wave forcing
+WAVES=off             # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
@@ -60,7 +63,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=959                     # number of compute CPUs for all simulations
+NCPU=479               # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999 
 #QUEUENAME=priority    # queenbee2 and supermic
@@ -85,17 +88,20 @@ INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu"
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com"
-TDS=( renci_tds )
+
+#jgf20200721 : updated list of notifications
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com"
+
+TDS=( lsu_tds ) #jgf20200721 : updated thredds server where results should be posted
 if [[ $HPCENVSHORT = frontera || $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then
    TDS=( tacc_tds )
 fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020051000
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020072006/NGOMv19b/queenbee.loni.org/NGOMv19b_nam_bde/namforecast
 
 # Scenario package 
 
