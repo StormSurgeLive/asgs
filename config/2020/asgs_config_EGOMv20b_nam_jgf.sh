@@ -80,6 +80,9 @@ fi
 if [[ $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then 
    QOS=vip
 fi
+if [[ $HPCENVSHORT = queenbee ]]; then 
+   ACCOUNT=loni_cera_2020
+fi
 
 # Post processing and publication
 
