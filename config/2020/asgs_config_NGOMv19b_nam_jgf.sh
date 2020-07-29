@@ -55,7 +55,7 @@ FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #STORM=07             # storm number, e.g. 05=ernesto in 2006
 #YEAR=2018            # year of the storm
-WAVES=on              # wave forcing
+WAVES=off             # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
@@ -63,7 +63,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=959                     # number of compute CPUs for all simulations
+NCPU=479               # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999 
 #QUEUENAME=priority    # queenbee2 and supermic
@@ -99,10 +99,9 @@ fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-#COLDSTARTDATE=2020051000
-COLDSTARTDATE=2020062000 # <---<<< updated cold start date to start with new boundary condition
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020072006/NGOMv19b/queenbee.loni.org/NGOMv19b_nam_bde/namforecast
 
 # Scenario package 
 
