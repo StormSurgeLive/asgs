@@ -1,3 +1,4 @@
+operator=$USER
 if [ "$HPCENV" = "pod.penguincomputing.com" ]; then
   SCRATCH=/home/bblanton/asgs_scratch
   RMQMessaging_NcoHome="/home/bblanton/"
