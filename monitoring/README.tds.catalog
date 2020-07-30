@@ -1,0 +1,17 @@
+Blanton, 30 July 2020
+
+update_catalog.sh maintains a text file of the latest ASGS solutions on a THREDDS Data Server (TDS).  It is a simple bash script that scans the directory structure below a specified starting point ($TDSHOME).   Eventually, this will get replaced with a python code that is more efficient, but for now, this is what we have. 
+
+
+It would probably be best to copy these 2 codes (update_catalog.sh and makecat.sh) into a separate place, outside of the literal ASGS location.
+
+In update_catalog.sh, set these appropriately: 
+
+TDSHOME="/projects/ncfs/opendap/data/2020"
+ASGSHOME="/home/ncfs-dev/asgs/monitoring"
+
+Then, run update_catalog.sh from the commandline or in cron as: 
+
+0,5,10,15,20,25,30,35,40,45,50,55 * * * * /home/ncfs-dev/asgs/monitoring/update_catalog.sh
+
+
