@@ -1,3 +1,23 @@
+operator=$USER
+op="jgf"                      # initials as nickname for appending to asgs instance names
+# RMQ
+RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+# email notifications
+NOTIFY_SCRIPT=corps_cyclone_notify.sh
+EMAILNOTIFY=yes         # no | yes to have host HPC platform email notifications
+ACTIVATE_LIST=null
+NEW_ADVISORY_LIST=null
+POST_INIT_LIST=null
+POST_LIST=null
+# opendap email notification
+OPENDAPNOTIFY="jason.g.fleming@gmail.com" # space delimited if a list
+#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com" 
+# the following are related to job failure
+JOB_FAILED_LIST="jason.fleming@seahorsecoastal.com"
+NOTIFYUSER=jason.fleming@seahorsecoastal.com
+ASGSADMIN=jason.fleming@seahorsecoastal.com
+
 if [ "$HPCENV" = "mike.hpc.lsu.edu" ]; then
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
