@@ -1,0 +1,9 @@
+if [ "$HPCENV" = "supermic.hpc.lsu.edu" ]; then
+   ADCIRCDIR=${HOME}/adcirc-cg/work # ADCIRC executables
+   SWANDIR=${HOME}/adcirc-cg/swan   # SWAN executables
+   ACCOUNT=hpc_cera_2019
+   JOBENV=( gmt.sh gdal.sh imagemagick.sh ) #TODO
+   for script in $JOBENV; do
+      source $JOBENVDIR/$script
+   done
+fi
