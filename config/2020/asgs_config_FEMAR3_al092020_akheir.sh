@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2019-2020 Jason Fleming
+# Copyright(C) 2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -27,34 +27,49 @@
 
 # Fundamental
 
-INSTANCENAME=LAv20a_nam_akheir     # "name" of this ASGS process
+INSTANCENAME=FEMAR3_al092020_akheir     # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=LA_v20a-WithUpperAtch_chk
+GRIDNAME=FEMAR3
 source $SCRIPTDIR/config/mesh_defaults.sh
+
+#--------------------------------------------------------------------------
+#  changes for 0.2286m sea_surface_height_above_geoid 
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+# The default values of the following parameters are set in
+# config/mesh_defaults.sh, so these settings have to come after the
+# sourcing of the mesh_defaults.sh script. 
+#CONTROLTEMPLATE=hsofs_explicit_sshag.15.template
+#CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+#NAFILE=hsofs_2286.13
+#NAPROPERTIES=${NAFILE}.properties
+#  ----> commented out static offset
+#STATICOFFSET=0.1524
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#  changes for 0.2286m sea_surface_height_above_geoid 
+#--------------------------------------------------------------------------
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
-#jgf20200721 : new template file with Matt's boundary condition
-CONTROLTEMPLATE=LAv20a_23kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
-
 TIDEFAC=on            # tide factor recalc
    HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on      # NAM download/forcing
-   FORECASTCYCLE="06"
-TROPICALCYCLONE=off   # tropical cyclone forcing
-#   STORM=99                         # storm number, e.g. 05=ernesto in 2006
-#   YEAR=2016                        # year of the storm
+BACKGROUNDMET=off      # NAM download/forcing
+   FORECASTCYCLE="00,06,12,18"
+TROPICALCYCLONE=on   # tropical cyclone forcing
+   STORM=09                         # storm number, e.g. 05=ernesto in 2006
+   YEAR=2020                        # year of the storm
 WAVES=on              # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
 
+#STATICOFFSET=0.30        # (m), assumes a unit offset file is available
+
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=479                     # number of compute CPUs for all simulations
-NCPUCAPACITY=9999
+NCPU=999                     # number of compute CPUs for all simulations
+NCPUCAPACITY=3648
 NUMWRITERS=1
 
 # Post processing and publication
@@ -66,14 +81,15 @@ TDS=(lsu_tds)
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020062000   # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2020070000   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart        # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
-
 #COLDSTARTDATE=auto
-#HOTORCOLD=hotstart     # "hotstart" or "coldstart"
-#LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020071406/LA_v20a-WithUpperAtch_chk/queenbee.loni.org/LAv20a_nam_jgf/namforecast
+#HOTORCOLD=hotstart
+#LASTSUBDIR=http://fortytwo.cct.lsu.edu:8080/thredds/catalog/2019/nam/2019092506/hsofs/queenbee.loni.org/hsofs_nam_jgf/namforecast
+
+# Scenario package
 
 #PERCENT=default
 SCENARIOPACKAGESIZE=2 
@@ -99,4 +115,3 @@ esac
 
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
-

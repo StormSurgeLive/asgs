@@ -223,13 +223,7 @@ init_supermic()
      done
   fi
   if [[ $operator = "alireza" ]]; then  # User config for Al
-     ADCIRCDIR=${HOME}/adcirc-cg/work # ADCIRC executables
-     SWANDIR=${HOME}/adcirc-cg/swan   # SWAN executables
-     ACCOUNT=hpc_cera_2019
-     JOBENV=( gmt.sh gdal.sh imagemagick.sh ) #TODO
-     for script in $JOBENV; do
-        source $JOBENVDIR/$script
-     done
+     ACCOUNT=hpc_cera_2019c
   fi
   THIS="platforms.sh>env_dispatch()>init_supermic()"
   SSHKEY=~/.ssh/id_rsa.pub
