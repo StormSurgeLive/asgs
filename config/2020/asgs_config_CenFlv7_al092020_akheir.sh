@@ -27,11 +27,11 @@
 
 # Fundamental
 
-INSTANCENAME=FEMAR3_al092020_akheir     # "name" of this ASGS process
+INSTANCENAME=CenFlv7_al092020_akheir     # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=FEMAR3
+GRIDNAME=CenFlv7
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 #--------------------------------------------------------------------------
