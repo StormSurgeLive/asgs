@@ -30,7 +30,8 @@ QSCRIPTTEMPLATE="$SCRIPTDIR/qscript.template-test"
 
 # Fundamental
 
-INSTANCENAME=CenFlv7_cyclone_bde     # "name" of this ASGS process
+INSTANCENAME=HSOFS_al092020_bde     # "name" of this ASGS process
+GRIDNAME=HSOFS
 ASGSADMIN="asgsnotifications@opayq.com"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
@@ -48,8 +49,6 @@ RMQMessaging_Enable="on"
 RMQMessaging_Transmit="on"
 
 # Input files and templates
-
-GRIDNAME=CenFlv7
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 #FTPSITE=ftp.nhc-replay.stormsurge.email
