@@ -1552,6 +1552,7 @@ variables_init()
    RMQMessaging_Enable="off"   # "on"|"off"
    RMQMessaging_Transmit="off" #  enables message transmission ("on" | "off")
    RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
+   RMQMessaging_Script_RP="${SCRIPTDIR}/monitoring/rp2json.py"
    RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
    RMQMessaging_NcoHome="/set/RMQMessaging_NcoHome/in/asgs/config"
    namedot=${HPCENVSHORT}.
@@ -1628,6 +1629,7 @@ writeProperties()
    echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable " >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.script : $RMQMessaging_Script" >> $STORMDIR/run.properties  
+   echo "monitoring.rmqmessaging.scriptrp : $RMQMessaging_Script_RP" >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.ncohome : $RMQMessaging_NcoHome" >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.locationname : $RMQMessaging_LocationName" >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.clustername : $RMQMessaging_ClusterName" >> $STORMDIR/run.properties  
@@ -1858,6 +1860,7 @@ done
 # determine hpc environment via function from platforms.sh
 source ${SCRIPTDIR}/monitoring/logging.sh
 source ${SCRIPTDIR}/platforms.sh
+
 if [[ $HPCENVSHORT = "null" ]]; then
    set_hpc
 fi
@@ -2263,6 +2266,8 @@ if [[ $START = coldstart ]]; then
    logMessage "$ENSTORM: $THIS: The initial hindcast duration is '$HINDCASTLENGTH' days."
    writeProperties $STORMDIR
    writeScenarioProperties $SCENARIODIR
+   # send current run.properties to RMQ
+   RMQMessageRunProp $STORMDIR
 
    # prepare hindcast control (fort.15) file
    # calculate periodic fux data for insertion in fort.15 if necessary
@@ -2277,7 +2282,7 @@ if [[ $START = coldstart ]]; then
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
    if [[ $NOFORCING = true ]]; then
-      CONTROLOPTIONS="$CONTROLOPTIONS --specifiedRunLength $HINDCASTLENGTH"
+      CONTROLOPTIONS="$_RPCONTROLOPTIONS --specifiedRunLength $HINDCASTLENGTH"
    else
       CONTROLOPTIONS="$CONTROLOPTIONS --endtime $HINDCASTLENGTH  --nws $NWS  --advisorynum 0" 
    fi
@@ -2364,6 +2369,9 @@ if [[ $START = coldstart ]]; then
    echo LASTSUBDIR=${OLDADVISDIR} >> $STATEFILE 2>> ${SYSLOG}
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
+   # send current run.properties to RMQ
+   RMQMessageRunProp $STORMDIR
+
 else
    # start from   H O T S T A R T   file
    if [[ $hotstartURL = null ]]; then
@@ -2529,7 +2537,7 @@ while [ true ]; do
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Generating ADCIRC Met File (fort.22) for nowcast."
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
 #BB
-      echo ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS
+#BB      echo ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS
 #BB
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
@@ -2696,6 +2704,9 @@ while [ true ]; do
    CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
+        echo +$DEFAULTSFILE+
+exit
+
    if [[ $DEFAULTSFILE != null ]]; then
       CONTROLOPTIONS="$CONTROLOPTIONS --defaultfile $DEFAULTSFILE"
       #CONTROLOPTIONS="$CONTROLOPTIONS --defaultfile $DEFAULTFILE"
@@ -2797,6 +2808,9 @@ while [ true ]; do
       CURRENT_STATE="PEND"
       RMQMessage "INFO" "$CURRENT_EVENT" "$JOBTYPE" "$CURRENT_STATE" "Submitting $ENSTORM:$JOBTYPE job."
       logMessage "$ENSTORM: $THIS: Submitting $ENSTORM job."
+      # send current run.properties to RMQ
+      RMQMessageRunProp "$ADVISDIR/$ENSTORM/"
+
       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
       logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE"
       writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
@@ -2849,6 +2863,9 @@ while [ true ]; do
       logMessage "$ENSTORM: $THIS: Skipping the submission of the nowcast job and proceeding directly to the forecast(s)."
       NOWCASTDIR=$FROMDIR
    fi
+   # send current run.properties to RMQ
+   RMQMessageRunProp "$STORMDIR"
+
    # write the ASGS state file
    if [[ $hotstartURL != "null" ]]; then
       hotstartURL=null
@@ -3192,6 +3209,8 @@ while [ true ]; do
             writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
 
             echo "hpc.job.${JOBTYPE}.limit.walltime : $FORECASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
+            # send current run.properties to RMQ
+            RMQMessageRunProp "$ADVISDIR/$ENSTORM/"
 
             submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
             THIS="asgs_main.sh"
@@ -3231,6 +3250,8 @@ while [ true ]; do
    	       CURRENT_EVENT="FORE"
                CURRENT_STATE="CMPL"
    	       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Forecast Complete for Adv=$ADVISORY Ens=$ENSTORM"
+               # send current run.properties to RMQ
+               RMQMessageRunProp "$STORMDIR"
             ) &
          fi
 #      else
@@ -3241,7 +3262,7 @@ while [ true ]; do
    SCENARIOLOG=null
    THIS="asgs_main.sh"
    # allow all scenarios and associated post processing to complete
-   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "RUNN" "All forecast ensemble members have been submitted."
+   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "RUNN" "All scenario members have been submitted."
    logMessage "$ENSTORM: $THIS: All scenarios have been submitted."
    CURRENT_EVENT="FEND"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL" "Forecast Cycle Complete for Adv=$ADVISORY"

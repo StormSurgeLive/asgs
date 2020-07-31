@@ -110,7 +110,7 @@ case $GRIDNAME in
       TIMESTEPSIZE=30.0           # adcirc time step size (seconds)
       SWANDT=1200                # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
-      HINDCASTWALLTIME="01:00:00" # hindcast wall clock time
+      HINDCASTWALLTIME="06:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="01:00:00" # forecast wall clock time
