@@ -30,13 +30,13 @@ QSCRIPTTEMPLATE="$SCRIPTDIR/qscript.template-test"
 
 # Fundamental
 
-INSTANCENAME=CenFlv7_cyclone_bde     # "name" of this ASGS process
+INSTANCENAME=neflga_v12_geo_cyclone_bde     # "name" of this ASGS process
 ASGSADMIN="asgsnotifications@opayq.com"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 COLDSTARTDATE=auto #2020062700
 HOTORCOLD=hotstart #coldstart
-LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020072918/CenFlv7/frontera.tacc.utexas.edu/CenFlv7_nam_bde/namforecast
+LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020072918/neflga_v12_geo/frontera.tacc.utexas.edu/neflga_v12_geo_nam_bde/namforecast
 
 ACCOUNT=ASC20001
 QOS=vippj_p3000 # for priority during a storm
@@ -49,7 +49,7 @@ RMQMessaging_Transmit="on"
 
 # Input files and templates
 
-GRIDNAME=CenFlv7
+GRIDNAME=neflga_v12_geo
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 #FTPSITE=ftp.nhc-replay.stormsurge.email
