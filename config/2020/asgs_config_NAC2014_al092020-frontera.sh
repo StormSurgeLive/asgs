@@ -35,9 +35,9 @@ GRIDNAME=NAC2014
 ASGSADMIN="asgsnotifications@opayq.com"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
-COLDSTARTDATE=auto #2020062700
-HOTORCOLD=hotstart #coldstart
-LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020072918/CenFlv7/frontera.tacc.utexas.edu/CenFlv7_nam_bde/namforecast
+COLDSTARTDATE=2020063000
+HOTORCOLD=coldstart
+LASTSUBDIR=null
 
 ACCOUNT=ASC20001
 QOS=vippj_p3000 # for priority during a storm
