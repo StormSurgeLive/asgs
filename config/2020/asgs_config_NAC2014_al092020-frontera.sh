@@ -30,7 +30,8 @@ QSCRIPTTEMPLATE="$SCRIPTDIR/qscript.template-test"
 
 # Fundamental
 
-INSTANCENAME=CenFlv7_cyclone_bde     # "name" of this ASGS process
+INSTANCENAME=NAC2014_al092020_bde     # "name" of this ASGS process
+GRIDNAME=NAC2014
 ASGSADMIN="asgsnotifications@opayq.com"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
@@ -48,8 +49,6 @@ RMQMessaging_Enable="on"
 RMQMessaging_Transmit="on"
 
 # Input files and templates
-
-GRIDNAME=CenFlv7
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 #FTPSITE=ftp.nhc-replay.stormsurge.email
@@ -84,7 +83,7 @@ INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,rluettich1@gmail.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( lsu_tds )
+TDS=( tacc_tds lsu_tds )
 
 #
 # Scenario package
