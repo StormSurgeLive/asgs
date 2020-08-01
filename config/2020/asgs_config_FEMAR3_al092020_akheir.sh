@@ -81,7 +81,7 @@ TDS=(lsu_tds)
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020070000   # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2020063000   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart        # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
