@@ -1899,8 +1899,8 @@ fi
 #
 # Send message with config file contents as the message body.  This is only done once at ASGS startup
 logMessage "Sending a message with the asgs configuration file as the message body."
-temp=`cat $CONFIG | sed '/^#/d' | sed '/^$/d'` 
-RMQMessageStartup "$temp"
+#temp=`cat $CONFIG | sed '/^#/d' | sed '/^$/d'` 
+#RMQMessageStartup "$temp"
 #
 # set a RunParams string for messaging
 RMQRunParams="$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
@@ -2267,7 +2267,7 @@ if [[ $START = coldstart ]]; then
    writeProperties $STORMDIR
    writeScenarioProperties $SCENARIODIR
    # send current run.properties to RMQ
-   RMQMessageRunProp $STORMDIR
+   #RMQMessageRunProp $STORMDIR
 
    # prepare hindcast control (fort.15) file
    # calculate periodic fux data for insertion in fort.15 if necessary
@@ -2370,7 +2370,7 @@ if [[ $START = coldstart ]]; then
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
    # send current run.properties to RMQ
-   RMQMessageRunProp $STORMDIR
+   #RMQMessageRunProp $STORMDIR
 
 else
    # start from   H O T S T A R T   file
@@ -2704,8 +2704,6 @@ while [ true ]; do
    CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
-        echo +$DEFAULTSFILE+
-exit
 
    if [[ $DEFAULTSFILE != null ]]; then
       CONTROLOPTIONS="$CONTROLOPTIONS --defaultfile $DEFAULTSFILE"
@@ -2809,7 +2807,7 @@ exit
       RMQMessage "INFO" "$CURRENT_EVENT" "$JOBTYPE" "$CURRENT_STATE" "Submitting $ENSTORM:$JOBTYPE job."
       logMessage "$ENSTORM: $THIS: Submitting $ENSTORM job."
       # send current run.properties to RMQ
-      RMQMessageRunProp "$ADVISDIR/$ENSTORM/"
+      #RMQMessageRunProp "$ADVISDIR/$ENSTORM/"
 
       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
       logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE"
@@ -2864,7 +2862,7 @@ exit
       NOWCASTDIR=$FROMDIR
    fi
    # send current run.properties to RMQ
-   RMQMessageRunProp "$STORMDIR"
+   #RMQMessageRunProp "$STORMDIR"
 
    # write the ASGS state file
    if [[ $hotstartURL != "null" ]]; then
@@ -3210,7 +3208,7 @@ exit
 
             echo "hpc.job.${JOBTYPE}.limit.walltime : $FORECASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
             # send current run.properties to RMQ
-            RMQMessageRunProp "$ADVISDIR/$ENSTORM/"
+            #RMQMessageRunProp "$ADVISDIR/$ENSTORM/"
 
             submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
             THIS="asgs_main.sh"
@@ -3251,7 +3249,7 @@ exit
                CURRENT_STATE="CMPL"
    	       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Forecast Complete for Adv=$ADVISORY Ens=$ENSTORM"
                # send current run.properties to RMQ
-               RMQMessageRunProp "$STORMDIR"
+               #RMQMessageRunProp "$STORMDIR"
             ) &
          fi
 #      else
