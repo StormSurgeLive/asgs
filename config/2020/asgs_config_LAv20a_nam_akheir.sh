@@ -66,14 +66,14 @@ TDS=(lsu_tds)
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020062000   # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart        # "hotstart" or "coldstart"
-LASTSUBDIR=null
+#COLDSTARTDATE=2020062000   # calendar year month day hour YYYYMMDDHH24
+#HOTORCOLD=coldstart        # "hotstart" or "coldstart"
+#LASTSUBDIR=null
 
 
-#COLDSTARTDATE=auto
-#HOTORCOLD=hotstart     # "hotstart" or "coldstart"
-#LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020071406/LA_v20a-WithUpperAtch_chk/queenbee.loni.org/LAv20a_nam_jgf/namforecast
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart     # "hotstart" or "coldstart"
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020073106/LA_v20a-WithUpperAtch_chk/supermic.hpc.lsu.edu/LAv20a_nam_akheir/namforecast
 
 #PERCENT=default
 SCENARIOPACKAGESIZE=2 
