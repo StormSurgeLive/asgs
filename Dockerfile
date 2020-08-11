@@ -1,18 +1,13 @@
-# Note: Dockerfile is not meant to be built by users,
+#
+# Note 1: Dockerfile is not meant to be built by users,
 # but is meant to build the ASGS docker image avaiable
 # to users via https://hub.docker.com (pending) by ASGS
 # maintainers when a new release is tagged.
 #
-# What to use this for? It can be used for a variety of things:
-#
-# 1. demo/evaluation of ASGS
-# 2. local development, testing (/home/asgsuser/asgs is a git repository)
-# 3. the brave may (currently) use this for operations on local machine or cluster
-# 4. experiment with using Docker containers on HPC or cluster hosts
-# 5. ... potentially others
-#
-# Note: image doesn't contain ADCIRC source or binaries;
+# Note 2: image doesn't contain ADCIRC source or binaries;
 # run `initadcirc` in ASGS Shell to obtain.
+#
+# Usage
 #
 # Build command: (used when publishing a new image to dockerhub)
 #
@@ -20,11 +15,19 @@
 #
 # Run command:   (used by most, drops them directly to the ASGS Shell prompt)
 #
-#   docker pull asgsdockerhub/master    # get from dockerhub
-#   docker run -it asgsdockerhub/master # create running container from pulled image
-
-# using xenial because newer versions of Ubuntu come
-# with an openssl version that breaks Perl's Net::SSLeay
+#   docker run -it asgsdockerhub/asgs    # create running container from pulled image
+#
+# The latest image may be retreived using the command,
+#
+#   docker pull asgsdockerhub/asgs
+#
+# Dockerhub main URL:
+#
+#   https://hub.docker.com/repository/docker/asgsdockerhub/asgs
+#
+# Note 3: Using Ubuntu 16 (Xenial) because newer versions of Ubuntu
+# come with an openssl version that breaks Perl's Net::SSLeay
+#
 FROM ubuntu:xenial
 
 # update to latest security updates and package sources
