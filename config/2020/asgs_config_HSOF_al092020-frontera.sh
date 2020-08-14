@@ -37,14 +37,14 @@ ASGSADMIN="asgsnotifications@opayq.com"
 # Initial state (overridden by STATEFILE after ASGS gets going)
 COLDSTARTDATE=auto #2020062700
 HOTORCOLD=hotstart #coldstart
-LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020072918/CenFlv7/frontera.tacc.utexas.edu/CenFlv7_nam_bde/namforecast
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/al09/12/hsofs/qbc.loni.org/HSOFS_al092020_jgf/nhcConsensus/
 
 ACCOUNT=ASC20001
 QOS=vippj_p3000 # for priority during a storm
 QUEUENAME=normal # same as SLURM partition
 SERQUEUE=normal
 PPN=56
-GROUP="G-822560"
+GROUP="G-803086"
 RMQMessaging_Enable="on"
 RMQMessaging_Transmit="on"
 
@@ -72,7 +72,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=999                    # number of compute CPUs for all simulations
+NCPU=1999                    # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 
