@@ -320,6 +320,35 @@ case $GRIDNAME in
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_hsofs.dat.xz
       UNITOFFSETFILE=unit_offset_hsofs.dat
       ;;
+   "SABv20a")
+      #
+      INPUTDIR=$SCRIPTDIR/input/meshes/SABv20a
+      GRIDFILE=SABv20a.14  # mesh (fort.14) file
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=SABv20a.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=SABv20a.nowindreduction.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties 
+      ELEVSTATIONS=hsofs_stations_20180907.txt
+      VELSTATIONS=$ELEVSTATIONS
+      METSTATIONS=$ELEVSTATIONS
+      NAFILE=SABv20a.13
+      NAPROPERTIES=${NAFILE}.properties
+      #SWANTEMPLATE=fort.26.template # only used if WAVES=on
+      SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
+      RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
+      SWANDT=1200                 # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="24:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="24:00:00" # forecast wall clock time
+      # unit offset url
+      UNITOFFSETFILE=null
+      ;;   
       #
    "WFLv18")
       #
