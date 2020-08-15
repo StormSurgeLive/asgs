@@ -205,10 +205,13 @@ case $GRIDNAME in
       # FIXME: no unit offset url
       ;;
       #      
-   "neflga_v12_geo"|"NEFLGAv12")
+   "neflga_v12_geo"|"NEFLGAv12"|"NEFLGAv12b")
       INPUTDIR=$SCRIPTDIR/input/meshes/neflga
       GRIDFILE=neflga_v12_geo.14 # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
+      if [[ $GRIDNAME = "NEFLGAv12b" ]];  then 
+         GRIDFILE=neflga_v12b_geo.14 # mesh (fort.14) file
+      fi
       CONTROLTEMPLATE=neflga_v12_geo_template.15   # fort.15 template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=neflga_v12_geo_norough_template.15
@@ -342,7 +345,7 @@ case $GRIDNAME in
       TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
       SWANDT=1200                 # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
-      HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
+      HINDCASTWALLTIME="36:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="24:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="24:00:00" # forecast wall clock time
