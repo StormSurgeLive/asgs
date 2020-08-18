@@ -364,7 +364,8 @@ init_hatteras()
   # specify location of platform- and Operator-specific scripts to 
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/hatteras
-  JOBENV=( gdal.sh gmt.sh fftw.sh netcdf.sh )
+  #JOBENV=( gdal.sh gmt.sh fftw.sh netcdf.sh )
+  JOBENV=(  ) # <---<<< let's deprecate this approach
   case $USER in 
   bblanton) 
      export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
