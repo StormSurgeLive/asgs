@@ -158,6 +158,9 @@ my @tmp = split(' ', $storm_name);
 if ($tmp[0] eq 'HURRICANE'){
    $storm_class = $tmp[0];
    $storm_name = $tmp[1];
+} elsif ($tmp[0] eq 'POTENTIAL'){
+   $storm_class = "$tmp[0] $tmp[1] $tmp[2]";
+   $storm_name = $tmp[3];
 } elsif ($tmp[0] eq 'TROPICAL' or $tmp[0] eq 'SUBTROPICAL' or $tmp[0] eq 'REMNANTS' or $tmp[0] eq 'POST-TROPICAL') {
     # SUBTROPICAL is rare. see 2007 01
     $storm_class = "$tmp[0] $tmp[1]";

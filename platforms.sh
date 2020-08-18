@@ -101,7 +101,7 @@ init_queenbee()
     $SERIALMODULES
   fi
   if [[ $operator = "jgflemin" || $USER = "jgflemin" ]]; then
-     ACCOUNT=loni_lsu_ccr_19
+     ACCOUNT=loni_cera_2020
      ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
      SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
      JOBENV=( ) # all exes are in /work/jgflemin/opt/default/bin ; all libs are in /work/jgflemin/default/lib
@@ -223,13 +223,7 @@ init_supermic()
      done
   fi
   if [[ $operator = "alireza" ]]; then  # User config for Al
-     ADCIRCDIR=${HOME}/adcirc-cg/work # ADCIRC executables
-     SWANDIR=${HOME}/adcirc-cg/swan   # SWAN executables
-     ACCOUNT=hpc_cera_2019
-     JOBENV=( gmt.sh gdal.sh imagemagick.sh ) #TODO
-     for script in $JOBENV; do
-        source $JOBENVDIR/$script
-     done
+     ACCOUNT=hpc_cera_2019c
   fi
   THIS="platforms.sh>env_dispatch()>init_supermic()"
   SSHKEY=~/.ssh/id_rsa.pub
@@ -370,7 +364,8 @@ init_hatteras()
   # specify location of platform- and Operator-specific scripts to 
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/hatteras
-  JOBENV=( gdal.sh gmt.sh fftw.sh netcdf.sh )
+  #JOBENV=( gdal.sh gmt.sh fftw.sh netcdf.sh )
+  JOBENV=(  ) # <---<<< let's deprecate this approach
   case $USER in 
   bblanton) 
      export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles

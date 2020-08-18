@@ -109,5 +109,3 @@ done
 FILESSTRING="$FILESSTRING )"
 echo "post.opendap.files : $FILESSTRING" >> run.properties
 
-echo "BB: WAVES : $WAVES"
-echo "BB: post.opendap.files : $FILESSTRING"

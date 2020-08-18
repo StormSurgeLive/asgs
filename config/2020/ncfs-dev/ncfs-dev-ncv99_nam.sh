@@ -27,49 +27,32 @@
 
 # Fundamental
 
-INSTANCENAME=hsofs-nam-bob      # "name" of this ASGS process
+INSTANCENAME=ncv99-nam-bob      # "name" of this ASGS process
 SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
-RMQMessaging_Transmit=on
 RESERVATION=ncfs
 
-# Input files and templates
-
-GRIDNAME=hsofs
-source $SCRIPTDIR/config/mesh_defaults.sh
-
-#--------------------------------------------------------------------------
-#  changes for 0.2286m sea_surface_height_above_geoid
-# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-# The default values of the following parameters are set in
-# config/mesh_defaults.sh, so these settings have to come after the
-# sourcing of the mesh_defaults.sh script.
-CONTROLTEMPLATE=hsofs_explicit.15.template
-CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-NAFILE=hsofs.13
-NAPROPERTIES=${NAFILE}.properties
-STATICOFFSET=0.0
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-#  changes for 0.2286m sea_surface_height_above_geoid
-#--------------------------------------------------------------------------
-
-# Initial state (overridden by STATEFILE after ASGS gets going)
-
-COLDSTARTDATE=2019122000  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2020060100  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
+# Input files and templates
+
+GRIDNAME=nc_inundation_v9.99_w_rivers
+source $SCRIPTDIR/config/mesh_defaults.sh
+STATICOFFSET=0.0
+
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
-TIDEFAC=on                # tide factor recalc
-   HINDCASTLENGTH=20.0    # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on          # NAM download/forcing
+TIDEFAC=on               # tide factor recalc
+   HINDCASTLENGTH=22.0   # length of initial hindcast, from cold (days)
+BACKGROUNDMET=on         # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
-TROPICALCYCLONE=off       # tropical cyclone forcing
-   STORM=-1               # storm number, e.g. 05=ernesto in 2006
-   YEAR=2019              # year of the storm
-WAVES=on                  # wave forcing
-   REINITIALIZESWAN=no    # used to bounce the wave solution
-VARFLUX=off               # variable river flux forcing
+TROPICALCYCLONE=off      # tropical cyclone forcing
+   STORM=-1              # storm number, e.g. 05=ernesto in 2006
+   YEAR=2020             # year of the storm
+WAVES=off                 # wave forcing
+   REINITIALIZESWAN=yes   # used to bounce the wave solution
+VARFLUX=on               # variable river flux forcing
    RIVERSITE=data.disaster.renci.org
    RIVERDIR=/opt/ldm/storage/SCOOP/RHLRv9-OKU
    RIVERUSER=bblanton
@@ -78,26 +61,30 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-#NCPU=623                     # number of compute CPUs for all simulations
-#NCPUCAPACITY=640
-NCPU=511                     # number of compute CPUs for all simulations
-NCPUCAPACITY=512
+NCPU=623                     # number of compute CPUs for all simulations
+NCPUCAPACITY=640
 NUMWRITERS=1
+# NCPU=495                    # number of compute CPUs for all simulations
+# NCPUCAPACITY=512
+# NUMWRITERS=1
 ACCOUNT=null
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
+INTENDEDAUDIENCE=general # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
+#OPENDAPNOTIFY="bblanton@renci.org, asgs.cera.lsu@gmail.com, rluettich1@gmail.com,  jason.g.fleming@gmail.com"
 OPENDAPNOTIFY="bblanton@renci.org, asgs.cera.lsu@gmail.com, rluettich1@gmail.com, jason.g.fleming@gmail.com, asgsnotifications@opayq.com, cera.asgs.tk@gmail.com, asgsnotes4ian@gmail.com"
 NOTIFY_SCRIPT=ncfs_nam_notify.sh
+
+# Initial state (overridden by STATEFILE after ASGS gets going)
 
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=1 
+SCENARIOPACKAGESIZE=2 
 case $si in
    -2) 
        ENSTORM=hindcast
