@@ -2,6 +2,7 @@
 #set -o verbose
 #set -o xtrace 
 
+
 # Definitions and paths
 MakeCatalog=1
 
