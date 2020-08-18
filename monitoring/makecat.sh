@@ -26,9 +26,11 @@ unset CDPATH
 ChunkFort63Files=0
 ChunkCommand='nccopy  -c node/5000  fort.63.nc fort.63.chunked.nc'
 ChunkCommand2='ncks -4 -L 1  --cnk_dmn node,500  -O fort.63.nc fort.63.chunked.nc'
-
+TcStartDate=`date +%s  --date=20200601`
+NamStartDate=`date +%s --date=20200701`
 IgnoreTc=0
-TcStartDate=`date +%s --date=20190701`
+IgnoreNam=0
+
 if  [ $IgnoreTc -eq 1 ] ; then
 	TcStartDate=`date +%s --date=21000101`
 fi
@@ -36,8 +38,6 @@ fi
 # to ignore the daily NAM runs, and create a catalog file that only contains tropical events, set
 # IgnoreNam to 1.  This will set NamStartDate to the year 2100.  Otherwise, set NamStartDate to the 
 # date at which cataloging should begin.
-IgnoreNam=0
-NamStartDate=`date +%s --date=20190906`
 if  [ $IgnoreNam -eq 1 ] ; then
 	NamStartDate=`date +%s --date=21000101`
 fi
