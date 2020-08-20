@@ -49,16 +49,16 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 #CONTROLTEMPLATE=LAv20a_23kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 
 #jgf20200721 : new template file with Matt's boundary condition
-CONTROLTEMPLATE=LAv20a_13kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
+CONTROLTEMPLATE=LAv20a_12kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on      # NAM download/forcing
-FORECASTCYCLE="06" # <---<<< #jgf20200721: was just 06 
+FORECASTCYCLE="00,06,12,18" # <---<<< #jgf20200721: was just 06 
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #STORM=07             # storm number, e.g. 05=ernesto in 2006
 #YEAR=2018            # year of the storm
-WAVES=on              # wave forcing
+WAVES=on            # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
@@ -69,15 +69,18 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=959                     # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999 
+ACCOUNT=loni_cera_2020
+PARTITION=null
 #QUEUENAME=priority    # queenbee2 and supermic
 #SERQUEUE=priority     # queenbee2 and supermic
 #QOS=vip               # stampede2 and lonestar5
-
 #
 if [[ $USER = jgflemin ]]; then
-   if [[ $HPCENVSHORT = queenbee || $HPCENVSHORT = supermic ]]; then
-      ADCIRCDIR=/work/jgflemin/adcirc-cg/work
-      SWANDIR=/work/jgflemin/adcirc-cg/swan
+   ADCIRCDIR=/work/jgflemin/adcirc-cg/work
+   SWANDIR=/work/jgflemin/adcirc-cg/swan
+   if [[ $HPCENVSHORT = queenbeeC ]]; then 
+      ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/work
+      SWANDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/swan
    fi
    if [[ $HPCENVSHORT = frontera ]]; then
       ADCIRCDIR=$WORK/adcirc-cg/work
@@ -104,17 +107,9 @@ fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-#COLDSTARTDATE=2020060100
-COLDSTARTDATE=2020062000   # <---<<< jgf20200721 updated to re-coldstart
+COLDSTARTDATE=2020071800  
 HOTORCOLD=coldstart     # "hotstart" or "coldstart"
 LASTSUBDIR=null
-
-if [[ $HPCENVSHORT = lonestar5 ]]; then
-   COLDSTARTDATE=2020062000
-   HOTORCOLD=coldstart     # "hotstart" or "coldstart"
-   LASTSUBDIR=null
-fi
-
 
 # Scenario package 
 

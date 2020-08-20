@@ -37,23 +37,23 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
 #jgf20200721 : new template file with Matt's boundary condition
-CONTROLTEMPLATE=LAv20a_23kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
+CONTROLTEMPLATE=LAv20a_12kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 
 TIDEFAC=on            # tide factor recalc
    HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on      # NAM download/forcing
-   FORECASTCYCLE="06"
+   FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #   STORM=99                         # storm number, e.g. 05=ernesto in 2006
 #   YEAR=2016                        # year of the storm
-WAVES=on              # wave forcing
+WAVES=off              # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=479                     # number of compute CPUs for all simulations
+NCPU=959                     # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 
@@ -66,14 +66,14 @@ TDS=(lsu_tds)
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-#COLDSTARTDATE=2020062000   # calendar year month day hour YYYYMMDDHH24
-#HOTORCOLD=coldstart        # "hotstart" or "coldstart"
-#LASTSUBDIR=null
+COLDSTARTDATE=2020071800   # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=coldstart        # "hotstart" or "coldstart"
+LASTSUBDIR=null
 
 
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart     # "hotstart" or "coldstart"
-LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020073106/LA_v20a-WithUpperAtch_chk/supermic.hpc.lsu.edu/LAv20a_nam_akheir/namforecast
+#COLDSTARTDATE=auto
+#HOTORCOLD=hotstart     # "hotstart" or "coldstart"
+#LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020073106/LA_v20a-WithUpperAtch_chk/supermic.hpc.lsu.edu/LAv20a_nam_akheir/namforecast
 
 #PERCENT=default
 SCENARIOPACKAGESIZE=2 

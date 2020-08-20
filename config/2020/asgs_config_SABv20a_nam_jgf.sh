@@ -48,7 +48,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on      # NAM download/forcing
-FORECASTCYCLE="00,06,12,18"
+FORECASTCYCLE="06"
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #STORM=07             # storm number, e.g. 05=ernesto in 2006
 #YEAR=2018            # year of the storm
@@ -80,11 +80,16 @@ fi
 
 # Post processing and publication
 
+# turn off fort.64 (full domain water velocity) just to save disk space
+FORT64="--fort64freq 0.0"
+OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+
+
 INTENDEDAUDIENCE=developers-only    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rluettich@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com"
-OPENDAPNOTIFY="jason.g.fleming@gmail.com,rluettich@gmail.com"
+OPENDAPNOTIFY="jason.g.fleming@gmail.com,rluettich@gmail.com,athomas9@ncsu.edu"
 TDS=( renci_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
