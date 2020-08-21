@@ -1,5 +1,5 @@
 #!/bin/bash
-#set -x
+# set -x
 #trap read debug
 #----------------------------------------------------------------
 # asgs_main.sh: This is the main driver script for the ADCIRC Surge Guidance
@@ -1930,6 +1930,11 @@ if [[ $ONESHOT = yes ]]; then
       HOTORCOLD=coldstart
    fi
 else
+
+
+# BB 
+# set -x
+# BB 
    # if we are not starting from cron, use the default statefile name,
    # and load it if it is there; if it is not there, just go by the 
    # info in the config file
@@ -1948,6 +1953,11 @@ else
       # this is an ongoing execution, and the statefile does not 
       # exist yet, so create it now using info straight from the 
       # ASGS config file
+#      echo "RUNDIR=$RUNDIR"
+#      echo "STATEFILE=$STATEFILE"
+#      echo "LSD=$LASTSUBDIR"
+#      echo "SYSLOG=$SYSLOG"
+#exit
       echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
       echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
       echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
@@ -2010,6 +2020,7 @@ if [[ $BACKGROUNDMET = on ]]; then
    checkFileExistence $SCRIPTDIR "GRIB2 manipulation and extraction executable" wgrib2
 fi
 
+exit 
 if [[ $WAVES = on ]]; then
    JOBTYPE=padcswan
    checkDirExistence $SWANDIR "SWAN executables directory (SWANDIR)"
