@@ -73,7 +73,6 @@ if [[ $HPCENVSHORT = frontera ]]; then
    SWANDIR=/work/00976/jgflemin/frontera/adcirc-cg/swan
 fi
 if [[ $HPCENVSHORT = hatteras ]]; then
-   PARTITION=batch     # to make the job run without priority on hatteras
    ADCIRCDIR=/projects/ncfs/data/adcirc-cg/work
    SWANDIR=/projects/ncfs/data/adcirc-cg/swan
 fi
