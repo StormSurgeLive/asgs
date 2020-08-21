@@ -74,25 +74,28 @@ if [[ $HPCENVSHORT = hatteras ]]; then
    ADCIRCDIR=/projects/ncfs/data/adcirc-cg/work
    SWANDIR=/projects/ncfs/data/adcirc-cg/swan
 fi
-
+if [[ $HPCENVSHORT = lonestar5 ]]; then 
+   ADCIRCDIR=$WORK/adcirc-cg-v53release-intel/work
+   SWANDIR=$WORK/adcirc-cg-v53release-intel/swan
+fi
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rluettich@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com"
-TDS=( renci_tds )
+TDS=( tacc_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020071200
-HOTORCOLD=coldstart       # "hotstart" or "coldstart"
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart       # "hotstart" or "coldstart"
+LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2020/nam/2020081706/NEFLGAv12b/hatteras.renci.org/NEFLGAv12b_nam_jgf/namforecast
 
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2
+SCENARIOPACKAGESIZE=0
 case $si in
  -2)
    ENSTORM=hindcast

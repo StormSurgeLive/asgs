@@ -27,11 +27,11 @@
 
 # Fundamental
 
-INSTANCENAME=HSOFS_al092020_jgf      # "name" of this ASGS process
+INSTANCENAME=SFLv111_al092020_jgf      # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=hsofs
+GRIDNAME=SFLv111
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 #--------------------------------------------------------------------------
@@ -59,17 +59,24 @@ BACKGROUNDMET=off      # NAM download/forcing
 TROPICALCYCLONE=on   # tropical cyclone forcing
    STORM=09                         # storm number, e.g. 05=ernesto in 2006
    YEAR=2020                        # year of the storm
-WAVES=on              # wave forcing
+WAVES=off             # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=1999                      # number of compute CPUs for all simulations
+NCPU=999                     # number of compute CPUs for all simulations
 NCPUCAPACITY=10000
 NUMWRITERS=1
-ACCOUNT=loni_cera_2020
+
+if [[ $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then
+   QOS=vip
+fi
+if [[ $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then
+   ADCIRCDIR=/work/00976/jgflemin/stampede2/adcirc-cg-v53release-intel/work
+   SWANDIR=/work/00976/jgflemin/stampede2/adcirc-cg-v53release-intel/swan
+fi
 
 # Post processing and publication
 
@@ -78,18 +85,18 @@ INTENDEDAUDIENCE=general # "general" | "developers-only" | "professional"
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rluettich1@gmail.com,asgsnotifications@opayq.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com"
 NOTIFY_SCRIPT=corps_nam_notify.sh
-TDS=( lsu_tds )
+TDS=( tacc_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
 COLDSTARTDATE=auto   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=hotstart        # "hotstart" or "coldstart"
-LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2020/nam/2020072812/hsofs/hatteras.renci.org/hsofs-nam-bob/namforecast
+LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020072918/southfl_v11-1_final/frontera.tacc.utexas.edu/southfl_v11-1_nam_bde/namforecast
 
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=4 
+SCENARIOPACKAGESIZE=2 
 case $si in
    -2) 
        ENSTORM=hindcast
@@ -104,16 +111,6 @@ case $si in
        ;;
     1)
        ENSTORM=nhcConsensus
-       ;;
-
-    2)
-       ENSTORM=veerRight100Wind10m
-       PERCENT=100
-       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-       ;;
-    3)
-       ENSTORM=veerRight100
-       PERCENT=100
        ;;
     *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
