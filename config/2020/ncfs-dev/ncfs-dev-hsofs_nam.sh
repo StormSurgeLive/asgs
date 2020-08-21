@@ -97,7 +97,7 @@ NOTIFY_SCRIPT=ncfs_nam_notify.sh
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=1 
+SCENARIOPACKAGESIZE=2 
 case $si in
    -2) 
        ENSTORM=hindcast
