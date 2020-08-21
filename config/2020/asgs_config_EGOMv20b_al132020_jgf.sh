@@ -36,25 +36,22 @@
 
 # Fundamental
 
-INSTANCENAME=NGOMv19b_nam_jgf  # "name" of this ASGS process
+INSTANCENAME=EGOMv20b_al132020_jgf  # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=NGOMv19b
+GRIDNAME=EGOMv20b
 source $SCRIPTDIR/config/mesh_defaults.sh
-
-#jgf20200721 : new template file with Matt's boundary condition
-CONTROLTEMPLATE=NGOM_RT_v19b.15.template_13kcms # <---<<< default is NGOM_RT_v19b.15.template_18kcms in $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults)
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on      # NAM download/forcing
-FORECASTCYCLE="06"
-TROPICALCYCLONE=off   # tropical cyclone forcing
-#STORM=07             # storm number, e.g. 05=ernesto in 2006
-#YEAR=2018            # year of the storm
+BACKGROUNDMET=off      # NAM download/forcing
+   FORECASTCYCLE="06"
+TROPICALCYCLONE=on   # tropical cyclone forcing
+   STORM=13           # storm number, e.g. 05=ernesto in 2006
+   YEAR=2020          # year of the storm
 WAVES=off             # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -63,49 +60,34 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=479               # number of compute CPUs for all simulations
+NCPU=719                    # number of compute CPUs for all simulations
 NUMWRITERS=1
-NCPUCAPACITY=9999 
-#QUEUENAME=priority    # queenbee2 and supermic
-#SERQUEUE=priority     # queenbee2 and supermic
-#QOS=vip               # stampede2 and lonestar5
-#QOS=vippj_p3000       # frontera
-#
-if [[ $USER = jgflemin ]]; then
-   if [[ $HPCENVSHORT = queenbee ]]; then
-      ADCIRCDIR=/work/jgflemin/adcirc-cg/work
-      SWANDIR=/work/jgflemin/adcirc-cg/swan
-   fi
-   if [[ $HPCENVSHORT = frontera ]]; then
-      ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
-      SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
-   fi
-   if [[ $HPCENVSHORT = supermic ]]; then
-      ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
-      SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
-   fi
+NCPUCAPACITY=9999
+ACCOUNT=hpc_lsu_ccr_20
+
+if [[ $HPCENVSHORT = supermic ]]; then
+   ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
+   SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
 fi
-#
+
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,rluettich1@gmail.com,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu"
-
-#jgf20200721 : updated list of notifications
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com"
-
-TDS=( lsu_tds ) #jgf20200721 : updated thredds server where results should be posted
-if [[ $HPCENVSHORT = frontera || $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then
+#POSTPROCESS=( createMaxCSV.sh includeWind10m.sh cpra_slide_deck_post.sh createOPeNDAPFileList.sh opendap_post.sh )
+POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu,rluettich1@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,rluettich1@gmail.com,asgsnotifications@opayq.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com"
+TDS=( lsu_tds )
+if [[ $HPCENVSHORT = frontera || $HPCENVSHORT = lonestar5 ]]; then
    TDS=( tacc_tds )
 fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020071500
-HOTORCOLD=coldstart     # "hotstart" or "coldstart"
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+LASTSUBDIR=/work/jgflemin/asgs47733/2020082000
 
 # Scenario package 
 
@@ -119,12 +101,12 @@ case $si in
    # do nothing ... this is not a forecast
    ENSTORM=nowcast
    ;;
- 0)
-   ENSTORM=namforecastWind10m
+0)
+   ENSTORM=nhcConsensusWind10m
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
 1)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
@@ -133,4 +115,3 @@ esac
 
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
-

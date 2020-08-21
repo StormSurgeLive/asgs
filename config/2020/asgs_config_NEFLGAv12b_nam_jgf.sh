@@ -95,7 +95,7 @@ LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2020/nam/2020081706/NEFL
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2
+SCENARIOPACKAGESIZE=0
 case $si in
  -2)
    ENSTORM=hindcast
