@@ -66,10 +66,13 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=1999                      # number of compute CPUs for all simulations
+NCPU=1999                     # number of compute CPUs for all simulations
 NCPUCAPACITY=10000
 NUMWRITERS=1
-ACCOUNT=loni_cera_2020
+
+if [[ $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then
+   QOS=vip
+fi
 
 # Post processing and publication
 
@@ -78,7 +81,7 @@ INTENDEDAUDIENCE=general # "general" | "developers-only" | "professional"
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rluettich1@gmail.com,asgsnotifications@opayq.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com"
 NOTIFY_SCRIPT=corps_nam_notify.sh
-TDS=( lsu_tds )
+TDS=( tacc_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
@@ -89,7 +92,7 @@ LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2020/nam/2020072812/hsof
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=4 
+SCENARIOPACKAGESIZE=2 
 case $si in
    -2) 
        ENSTORM=hindcast
@@ -104,16 +107,6 @@ case $si in
        ;;
     1)
        ENSTORM=nhcConsensus
-       ;;
-
-    2)
-       ENSTORM=veerRight100Wind10m
-       PERCENT=100
-       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-       ;;
-    3)
-       ENSTORM=veerRight100
-       PERCENT=100
        ;;
     *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."

@@ -63,7 +63,13 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=479                    # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
-ACCOUNT=loni_cera_2020
+
+if [[ $HPCENVSHORT = lonestar5 || $HPCENVSHORT = stampede2 || $HPCENVSHORT = frontera ]]; then 
+   QOS=vip7000
+fi
+if [[ $HPCENVSHORT = queenbee ]]; then 
+   ACCOUNT=loni_cera_2020
+fi 
 
 # Post processing and publication
 
@@ -71,18 +77,22 @@ INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #POSTPROCESS=( createMaxCSV.sh includeWind10m.sh cpra_slide_deck_post.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu,rluettich1@gmail.com"
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com,asgsnotifications@opayq.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com"
+#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu,rluettich1@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,rluettich1@gmail.com,asgsnotifications@opayq.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com"
 TDS=( lsu_tds )
-if [[ $HPCENVSHORT = frontera || $HPCENVSHORT = lonestar5 ]]; then
+if [[ $HPCENVSHORT = frontera || $HPCENVSHORT = lonestar5 || $HPCENVSHORT = stampede2 ]]; then
    TDS=( tacc_tds )
+fi
+if [[ $HPCENVSHORT = stampede2 ]]; then 
+   ADCIRCDIR=$WORK/adcirc-cg-v53release-intel/work
+   SWANDIR=$WORK/adcirc-cg-v53release-intel/swan
 fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=/work/jgflemin/asgs11982/initialize
+COLDSTARTDATE=2020071500
+HOTORCOLD=coldstart      # "hotstart" or "coldstart"
+LASTSUBDIR=null
 
 # Scenario package 
 
