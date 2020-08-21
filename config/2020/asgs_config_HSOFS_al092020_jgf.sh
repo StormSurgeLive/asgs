@@ -59,7 +59,7 @@ BACKGROUNDMET=off      # NAM download/forcing
 TROPICALCYCLONE=on   # tropical cyclone forcing
    STORM=09                         # storm number, e.g. 05=ernesto in 2006
    YEAR=2020                        # year of the storm
-WAVES=on              # wave forcing
+WAVES=off              # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
