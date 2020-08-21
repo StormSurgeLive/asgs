@@ -27,23 +27,26 @@
 
 # Fundamental
 
-INSTANCENAME=SFLv111_nam_jgf     # "name" of this ASGS process
+INSTANCENAME=TX2020a_al142020_jgf     # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=SFLv111
+GRIDNAME=TX2020a
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
+TIMESTEPSIZE=0.5  # <-----<<< default value is 1.0s in $SCRIPTDIR/config/mesh_defaults.sh
+CONTROLTEMPLATE=tx2020a_esl_explicit_template.15 # <---<<< default is tx2020a_template.15 in $SCRIPTDIR/config/mesh_defaults.sh
+
 TIDEFAC=on               # tide factor recalc
    HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on         # NAM download/forcing
+BACKGROUNDMET=off        # NAM download/forcing
    FORECASTCYCLE="06"
-TROPICALCYCLONE=off      # tropical cyclone forcing
-   STORM=05              # storm number, e.g. 05=ernesto in 2006
-   YEAR=2019             # year of the storm
-WAVES=off                 # wave forcing
+TROPICALCYCLONE=on       # tropical cyclone forcing
+   STORM=14              # storm number, e.g. 05=ernesto in 2006
+   YEAR=2020             # year of the storm
+WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off              # variable river flux forcing
 #STATICOFFSET=0.30
@@ -52,38 +55,28 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=959                    # number of compute CPUs for all simulations
+NCPU=999                 # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
-if [[ $HPCENVSHORT = stampede2 ]]; then
-   ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
-   SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
-fi
-if [[ $USER = jgflemin ]]; then
-   if [[ $HPCENVSHORT = queenbee || $HPCENVSHORT = supermic ]]; then
-      ADCIRCDIR=/work/jgflemin/adcirc-cg/work
-      SWANDIR=/work/jgflemin/adcirc-cg/swan
-   fi
-   if [[ $HPCENVSHORT = frontera ]]; then
-      ADCIRCDIR=$WORK/adcirc-cg/work
-      SWANDIR=$WORK/adcirc-cg/swan
-   fi
-fi
+#
+# frontera
+ADCIRCDIR=/work/00976/jgflemin/frontera/adcirc-cg/work
+SWANDIR=/work/00976/jgflemin/frontera/adcirc-cg/swan
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotfications@opayq.com"
+POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,clint@oden.utexas.edu,amin.kiaghadi2013@gmail.com,m.botto_t@utexas.edu"
 NOTIFY_SCRIPT=ut-nam-notify.sh
 TDS=( tacc_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020071500
-HOTORCOLD=coldstart
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart
+LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020082012/tx2020a/frontera.tacc.utexas.edu/tx2020a_nam_bde/namforecast
 #
 # Scenario package
 #
@@ -98,11 +91,11 @@ case $si in
        ENSTORM=nowcast
        ;;
     0)
-       ENSTORM=namforecastWind10m
+       ENSTORM=nhcConsensusWind10m
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
     1)
-       ENSTORM=namforecast
+       ENSTORM=nhcConsensus
        ;;
     *)
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
