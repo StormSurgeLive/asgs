@@ -87,7 +87,7 @@ NOTIFY_SCRIPT=ncfs_nam_notify.sh
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=4 
+SCENARIOPACKAGESIZE=6
 case $si in
    -2) 
        ENSTORM=hindcast
@@ -104,23 +104,23 @@ case $si in
        ENSTORM=nhcConsensus
        ;;
     2)
-       ENSTORM=veerLeft50Wind10m
-       PERCENT=-50
+       ENSTORM=veerLeft100Wind10m
+       PERCENT=-100
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
     3)
-       ENSTORM=veerLeft50
-       PERCENT=-50
+       ENSTORM=veerLeft100
+       PERCENT=-100
        ;;
 
     4)
-       ENSTORM=veerRight50Wind10m
-       PERCENT=50
+       ENSTORM=veerRight100Wind10m
+       PERCENT=100
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
     5)
-       ENSTORM=veerRight50
-       PERCENT=50
+       ENSTORM=veerRight100
+       PERCENT=100
        ;;
 
     *)   

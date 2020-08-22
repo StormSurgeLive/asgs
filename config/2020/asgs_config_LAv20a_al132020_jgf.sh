@@ -71,8 +71,8 @@ NUMWRITERS=1
 NCPUCAPACITY=9999 
 ACCOUNT=loni_cera_2020
 PARTITION=null
-#QUEUENAME=priority    # queenbee2 and supermic
-#SERQUEUE=priority     # queenbee2 and supermic
+QUEUENAME=priority    # queenbee2 and supermic
+SERQUEUE=priority     # queenbee2 and supermic
 #QOS=vip               # stampede2 and lonestar5
 #
 if [[ $USER = jgflemin ]]; then

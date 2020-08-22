@@ -67,6 +67,7 @@ if [[ $USER = jgflemin ]]; then
    if [[ $HPCENVSHORT = frontera ]]; then
       ADCIRCDIR=$WORK/adcirc-cg/work
       SWANDIR=$WORK/adcirc-cg/swan
+      QOS=vippj_p3000
    fi
 fi
 
