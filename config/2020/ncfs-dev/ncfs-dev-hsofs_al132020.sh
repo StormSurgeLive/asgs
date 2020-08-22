@@ -28,7 +28,7 @@
 # Fundamental
 
 INSTANCENAME=hsofs-al132020-bob
-#SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
+SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
 RMQMessaging_Transmit=on
 RESERVATION=ncfs
 
