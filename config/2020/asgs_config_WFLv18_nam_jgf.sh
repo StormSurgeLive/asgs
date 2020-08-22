@@ -55,18 +55,25 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=479                    # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
-if [[ $HPCENVSHORT = stampede2 ]]; then
-   ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
-   SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
-fi
+PARTITION=null
+ACCOUNT=loni_cera_2020
+
 if [[ $USER = jgflemin ]]; then
    if [[ $HPCENVSHORT = queenbee || $HPCENVSHORT = supermic ]]; then
       ADCIRCDIR=/work/jgflemin/adcirc-cg/work
       SWANDIR=/work/jgflemin/adcirc-cg/swan
    fi
+   if [[ $HPCENVSHORT = queenbeeC ]]; then
+      ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/work
+      SWANDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/swan
+   fi
    if [[ $HPCENVSHORT = frontera ]]; then
       ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
       SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
+   fi
+   if [[ $HPCENVSHORT = stampede2 ]]; then
+      ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
+     SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
    fi
 fi
 
@@ -81,7 +88,7 @@ TDS=( lsu_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020051500
+COLDSTARTDATE=2020071800
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #
