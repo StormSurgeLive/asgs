@@ -231,6 +231,14 @@ edit() {
       return
     fi
     $EDITOR $ASGS_CONFIG
+    if [ 0 -eq $? ]; then
+      read -p "reload edited profile '$_ASGSH_CURRENT_PROFILE'? [y]" reload
+      if [[ -z "$reload" || "$reload" = "y" ]]; then
+        rl
+      else
+        echo "warning - profile '$ASGS_CONFIG' has been edited, but the profile has not been reloaded. To reload, use the 'rl' or 'load profile $_ASGSH_CURRENT_PROFILE' command."
+      fi
+    fi
     ;;
   meshes)
     $EDITOR $ASGS_MESH_DEFAULTS
@@ -411,7 +419,8 @@ clone() {
       if [ -z "$new_profile_name" ]; then
         new_profile_name=$_default_new_profile
       fi
-      _default_new_config="${new_profile_name}.sh"
+      _year=$(date +%Y)
+      _default_new_config="$SCRIPTDIR/config/$_year/${new_profile_name}.sh"
       read -p "Name of new config file? [$_default_new_config] " new_config
       if [ -z "$new_config" ]; then
         new_config=$_default_new_config
@@ -421,11 +430,11 @@ clone() {
         cp -v $ASGS_CONFIG $new_config
         define config $new_config
         save profile $new_profile_name
-        read -p "Would you like to edit the new configuration file before switching to the new profile?[y] " edit
-        if [[ -z "$edit" || "$edit" = "y" ]]; then
+        rl
+        read -p "Would you like to edit the new configuration file? [y] " _edit
+        if [[ -z "$_edit" || "$_edit" = "y" ]]; then
           edit config
         fi
-        switch profile $new_profile_name
       else
         echo "Profile cloning operation has been aborted."
       fi
