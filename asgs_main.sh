@@ -1,5 +1,5 @@
 #!/bin/bash
-#set -x
+# set -x
 #trap read debug
 #----------------------------------------------------------------
 # asgs_main.sh: This is the main driver script for the ADCIRC Surge Guidance
@@ -1930,6 +1930,7 @@ if [[ $ONESHOT = yes ]]; then
       HOTORCOLD=coldstart
    fi
 else
+
    # if we are not starting from cron, use the default statefile name,
    # and load it if it is there; if it is not there, just go by the 
    # info in the config file

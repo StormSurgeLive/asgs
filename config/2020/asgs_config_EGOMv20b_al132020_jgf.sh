@@ -64,6 +64,8 @@ NCPU=719                    # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
 ACCOUNT=hpc_lsu_ccr_20
+SERQUEUE=priority
+QUEUENAME=priority
 
 if [[ $HPCENVSHORT = supermic ]]; then
    ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
