@@ -27,9 +27,9 @@
 
 # Fundamental
 
-INSTANCENAME=hsofs-al092020-bob
+INSTANCENAME=hsofs-al132020-bob
 SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
-RMQMessaging_Transmit=off
+RMQMessaging_Transmit=on
 RESERVATION=ncfs
 
 # Input files and templates
@@ -54,10 +54,10 @@ STATICOFFSET=0.0
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2019122000  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=auto  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=hotstart       # "hotstart" or "coldstart"
 #LASTSUBDIR=null
-LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2020/nam/2020073100/hsofs/hatteras.renci.org/hsofs-nam-bob/namforecast/
+LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2020/nam/2020082112/hsofs/hatteras.renci.org/hsofs-nam-bob/namforecast/
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
@@ -66,7 +66,7 @@ TIDEFAC=on                # tide factor recalc
 BACKGROUNDMET=off          # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=on       # tropical cyclone forcing
-   STORM=09               # storm number, e.g. 05=ernesto in 2006
+   STORM=13               # storm number, e.g. 05=ernesto in 2006
    YEAR=2020              # year of the storm
 WAVES=on                  # wave forcing
    REINITIALIZESWAN=no    # used to bounce the wave solution

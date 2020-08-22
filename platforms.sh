@@ -376,13 +376,12 @@ init_hatteras()
      export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
      ADCIRCDIR="${HOME}/ADCIRC/v53release/work" # ADCIRC executables
      SWANDIR="${HOME}/ADCIRC/v53release/swan" # ADCIRC executables
-     SCRATCH=/scratch/ncfs-dev/
+     SCRATCH=/projects/ncfs-dev/
      ACCOUNT=ncfs-dev
      PARTITION=ncfs       # ncfs or batch, gives priority
      PYTHONVENV="$HOME/miniconda2"
      RMQMessaging_NcoHome="${HOME}"
-     PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.1.2-acis mvapich2/2.0-acis'
-     SERIALMODULES='module load' # no extra modules for serial jobs
+
      TDS=(renci_tds)
      ;;
   ncfs)

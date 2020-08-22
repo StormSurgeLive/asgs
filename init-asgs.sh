@@ -95,7 +95,7 @@ case "$platform" in
     ;; 
   hatteras)
     WORK=${WORK:-$HOME}
-    SCRATCH=${SCRATCH:-"/scratch/$USER"}
+    SCRATCH=${SCRATCH:-"/projects/$USER"}
     ;;
   queenbee|queenbeeC|supermic)
     WORK=${WORK:-"/work/$USER"}
