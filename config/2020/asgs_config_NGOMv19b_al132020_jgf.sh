@@ -125,12 +125,14 @@ case $si in
    # do nothing ... this is not a forecast
    ENSTORM=nowcast
    ;;
- 0)
-   ENSTORM=nhcConsensusWind10m
+0)
+   ENSTORM=veerRight100Wind10m
+   PERCENT=100
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
 1)
-   ENSTORM=nhcConsensus
+   ENSTORM=veerRight100
+   PERCENT=100
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
@@ -139,4 +141,3 @@ esac
 
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
-
