@@ -27,22 +27,25 @@
 
 # Fundamental
 
-INSTANCENAME=tx2020a_nam_bde     # "name" of this ASGS process
-ASGSADMIN="asgsnotifications@opayq.com"
-
-ACCOUNT=ASC20001 #DesignSafe-CERA
-#QOS=vip # for priority during a storm
-QUEUENAME=normal # same as SLURM partition
-SERQUEUE=normal
-PPN=48
-GROUP="G-803086"
-RMQMessaging_Enable="on"
-RMQMessaging_Transmit="on"
+INSTANCENAME=tx2008_nam_bde     # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=tx2020a
+GRIDNAME=tx2008_r35h
 source $SCRIPTDIR/config/mesh_defaults.sh
+
+# Initial state (overridden by STATEFILE after ASGS gets going)
+COLDSTARTDATE=2020072300
+HOTORCOLD=coldstart #hotstart
+LASTSUBDIR=null
+
+# Allocation from which SUs are taken
+ACCOUNT=DesignSafe-CERA
+QUEUENAME=skx-normal
+SERQUEUE=skx-dev
+PPN=48
+RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
+RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 
 #FTPSITE=ftp.nhc-replay.stormsurge.email
 #RSSSITE=nhc-replay.stormsurge.email
@@ -52,9 +55,9 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 TIDEFAC=on               # tide factor recalc
    HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on         # NAM download/forcing
-   FORECASTCYCLE="00,06,12,18"
+   FORECASTCYCLE="06"
 TROPICALCYCLONE=off      # tropical cyclone forcing
-   STORM=03              # storm number, e.g. 05=ernesto in 2006
+   STORM=09              # storm number, e.g. 05=ernesto in 2006
    YEAR=2020             # year of the storm
 WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -74,15 +77,10 @@ NUMWRITERS=1
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,rluettich1@gmail.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,clint@oden.utexas.edu,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,amin.kiaghadi2013@gmail.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( lsu_tds tacc_tds )
+TDS=( tacc_tds lsu_tds )
 
-# Initial state (overridden by STATEFILE after ASGS gets going)
-
-COLDSTARTDATE=2020070800
-HOTORCOLD=coldstart
-LASTSUBDIR=null
 #
 # Scenario package
 #
