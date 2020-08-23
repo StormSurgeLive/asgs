@@ -196,6 +196,7 @@ _editor_check() {
       _DEFAULT_EDITOR=$__DEFAULT_EDITOR
     fi
     define editor "$_DEFAULT_EDITOR"
+    save profile
     echo
   fi
 }
