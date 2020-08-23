@@ -71,8 +71,8 @@ NUMWRITERS=1
 NCPUCAPACITY=9999 
 ACCOUNT=loni_cera_2020
 PARTITION=null
-QUEUENAME=priority    # queenbee2 and supermic
-SERQUEUE=priority     # queenbee2 and supermic
+#QUEUENAME=priority    # queenbee2 and supermic
+#SERQUEUE=priority     # queenbee2 and supermic
 #QOS=vip               # stampede2 and lonestar5
 #
 if [[ $USER = jgflemin ]]; then
@@ -114,7 +114,7 @@ LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020082100/L
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=4 # number of storms in the ensemble
 case $si in
  -2)
    ENSTORM=hindcast
@@ -124,11 +124,18 @@ case $si in
    ENSTORM=nowcast
    ;;
  0)
+   ENSTORM=nhcConsensusWind10m
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   ;;
+ 1)
+   ENSTORM=nhcConsensus
+   ;;
+ 2)
    ENSTORM=veerLeft100Wind10m
    PERCENT=-100
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
- 1)
+ 3)
    ENSTORM=veerLeft100
    PERCENT=-100
    ;;
