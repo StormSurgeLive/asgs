@@ -39,6 +39,9 @@ COLDSTARTDATE=2020072300
 HOTORCOLD=coldstart #hotstart
 LASTSUBDIR=null
 
+GROUP="G-803086"
+newgrp $GROUP
+
 # Allocation from which SUs are taken
 ACCOUNT=DesignSafe-CERA
 QUEUENAME=skx-normal
