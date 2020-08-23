@@ -73,8 +73,8 @@ ACCOUNT=loni_cera_2020
 PARTITION=null
 #QUEUENAME=priority    # queenbee2 and supermic
 #SERQUEUE=priority     # queenbee2 and supermic
-QUEUENAME=workq   # not priority
-SERQUEUE=single   # not priority
+#QUEUENAME=workq   # not priority
+#SERQUEUE=single   # not priority
 
 #QOS=vip               # stampede2 and lonestar5
 #
@@ -84,6 +84,8 @@ if [[ $USER = jgflemin ]]; then
    if [[ $HPCENVSHORT = queenbeeC ]]; then 
       ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/work
       SWANDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/swan
+      QUEUENAME=workq   # not priority
+      SERQUEUE=single   # not priority
    fi
    if [[ $HPCENVSHORT = frontera ]]; then
       ADCIRCDIR=$WORK/adcirc-cg/work
@@ -93,6 +95,13 @@ if [[ $USER = jgflemin ]]; then
    if [[ $HPCENVSHORT = lonestar5 ]]; then
       ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
       SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
+   fi
+   if [[ $HPCENVSHORT = supermic ]]; then
+      ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
+      SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
+      ACCOUNT=hpc_lsu_ccr_20
+      SERQUEUE=priority
+      QUEUENAME=priority
    fi
 fi
 
@@ -114,6 +123,12 @@ COLDSTARTDATE=2020071800
 HOTORCOLD=hotstart     # "hotstart" or "coldstart"
 LASTSUBDIR=/work/jgflemin/asgs253623/initialize
 
+if [[ $HPCENVSHORT = supermic ]]; then
+   COLDSTARTDATE=auto
+   HOTORCOLD=hotstart     # "hotstart" or "coldstart"
+   LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/al14/07/LA_v20a-WithUpperAtch_chk/qbc.loni.org/LAv20a_al142020_jgf/nhcConsensus
+fi
+
 # Scenario package 
 
 #PERCENT=default
@@ -130,25 +145,17 @@ case $si in
    ENSTORM=veerRight100Wind10m
    PERCENT=100
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-   QUEUENAME=workq   # not priority
-   SERQUEUE=single   # not priority
    ;;
  1)
    ENSTORM=veerRight100
    PERCENT=100
-   QUEUENAME=workq   # not priority
-   SERQUEUE=single   # not priority
    ;;
  2)
    ENSTORM=nhcConsensusWind10m
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-   QUEUENAME=workq   # not priority
-   SERQUEUE=single   # not priority
    ;;
  3)
    ENSTORM=nhcConsensus
-   QUEUENAME=workq   # not priority
-   SERQUEUE=single   # not priority
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."

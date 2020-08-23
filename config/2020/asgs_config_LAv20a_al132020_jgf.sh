@@ -69,10 +69,8 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=959                     # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999 
-ACCOUNT=loni_cera_2020
-PARTITION=null
-#QUEUENAME=priority    # queenbee2 and supermic
-#SERQUEUE=priority     # queenbee2 and supermic
+QUEUENAME=priority    # queenbee2 and supermic
+SERQUEUE=priority     # queenbee2 and supermic
 #QOS=vip               # stampede2 and lonestar5
 #
 if [[ $USER = jgflemin ]]; then
@@ -81,6 +79,15 @@ if [[ $USER = jgflemin ]]; then
    if [[ $HPCENVSHORT = queenbeeC ]]; then 
       ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/work
       SWANDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/swan
+      ACCOUNT=loni_cera_2020
+      PARTITION=null
+   fi
+   if [[ $HPCENVSHORT = supermic ]]; then 
+      ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
+      SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
+      ACCOUNT=hpc_lsu_ccr_20
+      SERQUEUE=priority
+      QUEUENAME=priority
    fi
    if [[ $HPCENVSHORT = frontera ]]; then
       ADCIRCDIR=$WORK/adcirc-cg/work
@@ -114,7 +121,7 @@ LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020082100/L
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=4 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=6 # number of storms in the ensemble
 case $si in
  -2)
    ENSTORM=hindcast
@@ -138,6 +145,15 @@ case $si in
  3)
    ENSTORM=veerLeft100
    PERCENT=-100
+   ;;
+ 4)
+   ENSTORM=veerRight100Wind10m
+   PERCENT=100
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   ;;
+ 5)
+   ENSTORM=veerRight100
+   PERCENT=100
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
