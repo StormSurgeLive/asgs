@@ -96,6 +96,13 @@ if [[ $USER = jgflemin ]]; then
       ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
       SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
    fi
+   if [[ $HPCENVSHORT = stampede2 ]]; then
+      NCPU=1399
+      ADCIRCDIR=$WORK/adcirc-cg/adcirc-cg-v53release-intel/work
+      SWANDIR=$WORK/adcirc-cg/adcirc-cg-v53release-intel/swan
+      QOS=vip7000
+      ACCOUNT=DesignSafe-CERA
+   fi
 fi
 
 # Post processing and publication
