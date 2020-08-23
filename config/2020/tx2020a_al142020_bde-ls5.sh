@@ -71,7 +71,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=999                    # number of compute CPUs for all simulations
+NCPU=1999                    # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 
@@ -80,7 +80,7 @@ NUMWRITERS=1
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,rluettich1@gmail.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,rluettich1@gmail.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com,clint@oden.utexas.edu,amin.kiaghadi2013@gmail.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
 TDS=( tacc_tds )
 
