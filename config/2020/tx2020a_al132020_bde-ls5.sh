@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME=tx2020a_al142020_bde     # "name" of this ASGS process
+INSTANCENAME=tx2020a_al132020_bde     # "name" of this ASGS process
 ACCOUNT=ADCIRC #DesignSafe-CERA
 QOS=vip7000 # for priority during a storm
 QUEUENAME=normal # same as SLURM partition
@@ -45,7 +45,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 COLDSTARTDATE=auto #2020070800
 HOTORCOLD=hotstart #coldstart
-LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020082106/tx2020a/frontera.tacc.utexas.edu/tx2020a_nam_bde/namforecast #null
+LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020082106/tx2020a/frontera.tacc.utexas.edu/tx2020a_nam_bde/namforecast
 
 RMQMessaging_Enable="on"
 RMQMessaging_Transmit="on"
@@ -60,7 +60,7 @@ TIDEFAC=on               # tide factor recalc
 BACKGROUNDMET=off        # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=on       # tropical cyclone forcing
-   STORM=14              # storm number, e.g. 05=ernesto in 2006
+   STORM=13              # storm number, e.g. 05=ernesto in 2006
    YEAR=2020             # year of the storm
 WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -89,7 +89,7 @@ TDS=( tacc_tds )
 #
 #PERCENT=default
 #PERCENT=default
-SCENARIOPACKAGESIZE=4
+SCENARIOPACKAGESIZE=2
 case $si in
    -2)
        ENSTORM=hindcast
@@ -99,18 +99,11 @@ case $si in
        ENSTORM=nowcast
        ;;
     0)
-       ENSTORM=nhcConsensusWind10m
+       ENSTORM=veerLeft100Wind10m
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-       ;;
-    1)
-       ENSTORM=nhcConsensus
+       PERCENT=-100
        ;;
     2)
-       ENSTORM=veerLeft100Wind10m
-       PERCENT=-100
-       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-       ;;
-    3)
        ENSTORM=veerLeft100
        PERCENT=-100
        ;;
