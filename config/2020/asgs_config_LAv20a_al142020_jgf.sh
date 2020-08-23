@@ -73,8 +73,8 @@ ACCOUNT=loni_cera_2020
 PARTITION=null
 #QUEUENAME=priority    # queenbee2 and supermic
 #SERQUEUE=priority     # queenbee2 and supermic
-QUEUENAME=workq   # not priority
-SERQUEUE=single   # not priority
+#QUEUENAME=workq   # not priority
+#SERQUEUE=single   # not priority
 
 #QOS=vip               # stampede2 and lonestar5
 #
@@ -84,6 +84,8 @@ if [[ $USER = jgflemin ]]; then
    if [[ $HPCENVSHORT = queenbeeC ]]; then 
       ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/work
       SWANDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/swan
+      QUEUENAME=workq   # not priority
+      SERQUEUE=single   # not priority
    fi
    if [[ $HPCENVSHORT = frontera ]]; then
       ADCIRCDIR=$WORK/adcirc-cg/work
@@ -91,8 +93,18 @@ if [[ $USER = jgflemin ]]; then
       QOS=vippj_p3000       # frontera
    fi
    if [[ $HPCENVSHORT = lonestar5 ]]; then
-      ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
-      SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
+      NCPU=1399
+      ADCIRCDIR=$WORK/adcirc-cg-v53release-intel/work
+      SWANDIR=$WORK/adcirc-cg-v53release-intel/swan
+      QOS=vip7000
+      ACCOUNT=ADCIRC
+   fi
+   if [[ $HPCENVSHORT = supermic ]]; then
+      ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
+      SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
+      ACCOUNT=hpc_lsu_ccr_20
+      SERQUEUE=priority
+      QUEUENAME=priority
    fi
 fi
 
@@ -102,7 +114,7 @@ INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,rluettich1@gmail.com,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu"
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,shagen@lsu.edu,busy_child29@hotmail.com,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com"
 TDS=( lsu_tds )
 if [[ $HPCENVSHORT = frontera || $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then
    TDS=( tacc_tds )
@@ -114,10 +126,16 @@ COLDSTARTDATE=2020071800
 HOTORCOLD=hotstart     # "hotstart" or "coldstart"
 LASTSUBDIR=/work/jgflemin/asgs253623/initialize
 
+if [[ $HPCENVSHORT = supermic || $HPCENVSHORT = lonestar5 ]]; then
+   COLDSTARTDATE=auto
+   HOTORCOLD=hotstart     # "hotstart" or "coldstart"
+   LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/al14/07/LA_v20a-WithUpperAtch_chk/qbc.loni.org/LAv20a_al142020_jgf/nhcConsensus
+fi
+
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=4 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
 case $si in
  -2)
    ENSTORM=hindcast
@@ -127,28 +145,29 @@ case $si in
    ENSTORM=nowcast
    ;;
  0)
+   ENSTORM=veerLeft100Wind10m
+   PERCENT=-100
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   ;;
+ 1)
+   ENSTORM=veerLeft100
+   PERCENT=-100
+   ;;
+ 2)
    ENSTORM=veerRight100Wind10m
    PERCENT=100
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-   QUEUENAME=workq   # not priority
-   SERQUEUE=single   # not priority
-   ;;
- 1)
-   ENSTORM=veerRight100
-   PERCENT=100
-   QUEUENAME=workq   # not priority
-   SERQUEUE=single   # not priority
-   ;;
- 2)
-   ENSTORM=nhcConsensusWind10m
-   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-   QUEUENAME=workq   # not priority
-   SERQUEUE=single   # not priority
    ;;
  3)
+   ENSTORM=veerRight100
+   PERCENT=100
+   ;;
+ 4)
+   ENSTORM=nhcConsensusWind10m
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   ;;
+ 5)
    ENSTORM=nhcConsensus
-   QUEUENAME=workq   # not priority
-   SERQUEUE=single   # not priority
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
