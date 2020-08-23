@@ -55,13 +55,20 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=999                 # number of compute CPUs for all simulations
+NCPU=1999                 # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 #
 # frontera
-ADCIRCDIR=/work/00976/jgflemin/frontera/adcirc-cg/work
-SWANDIR=/work/00976/jgflemin/frontera/adcirc-cg/swan
+if [[ $HPCENVSHORT = frontera ]]; then 
+   ADCIRCDIR=/work/00976/jgflemin/frontera/adcirc-cg/work
+   SWANDIR=/work/00976/jgflemin/frontera/adcirc-cg/swan
+fi 
+if [[ $HPCENVSHORT = stampede2 ]]; then 
+   ADCIRCDIR=/work/00976/jgflemin/stampede2/adcirc-cg-v53release-intel/work
+   SWANDIR=/work/00976/jgflemin/stampede2/adcirc-cg-v53release-intel/swan
+   QOS=vip7000
+fi 
 
 # Post processing and publication
 
@@ -81,7 +88,7 @@ LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/na
 # Scenario package
 #
 #PERCENT=default
-SCENARIOPACKAGESIZE=2
+SCENARIOPACKAGESIZE=4
 case $si in
    -2)
        ENSTORM=hindcast
@@ -96,6 +103,15 @@ case $si in
        ;;
     1)
        ENSTORM=nhcConsensus
+       ;;
+    2)
+       ENSTORM=veerLeft100Wind10m
+       PERCENT=-100
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    3)
+       ENSTORM=veerLeft100
+       PERCENT=-100
        ;;
     *)
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."

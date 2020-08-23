@@ -28,11 +28,11 @@
 # Fundamental
 
 INSTANCENAME=tx2020a_al142020_bde     # "name" of this ASGS process
-ACCOUNT=ADCIRC #DesignSafe-CERA
+ACCOUNT=DesignSafe-CERA
 QOS=vip7000 # for priority during a storm
-QUEUENAME=normal # same as SLURM partition
-SERQUEUE=normal
-PPN=24
+QUEUENAME=skx-normal # same as SLURM partition
+SERQUEUE=skx-normal
+PPN=48
 GROUP="G-803086"
 ASGSADMIN="asgsnotifications@opayq.com"
 
@@ -45,7 +45,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 COLDSTARTDATE=auto #2020070800
 HOTORCOLD=hotstart #coldstart
-LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020082106/tx2020a/frontera.tacc.utexas.edu/tx2020a_nam_bde/namforecast #null
+LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020082106/tx2020a/frontera.tacc.utexas.edu/tx2020a_nam_bde/namforecast
 
 RMQMessaging_Enable="on"
 RMQMessaging_Transmit="on"
@@ -82,7 +82,7 @@ INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,rluettich1@gmail.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com,clint@oden.utexas.edu,amin.kiaghadi2013@gmail.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( tacc_tds )
+TDS=( tacc_tds lsu_tds )
 
 #
 # Scenario package
