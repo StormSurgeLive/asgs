@@ -93,8 +93,11 @@ if [[ $USER = jgflemin ]]; then
       QOS=vippj_p3000       # frontera
    fi
    if [[ $HPCENVSHORT = lonestar5 ]]; then
-      ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
-      SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
+      NCPU=1399
+      ADCIRCDIR=$WORK/adcirc-cg-v53release-intel/work
+      SWANDIR=$WORK/adcirc-cg-v53release-intel/swan
+      QOS=vip7000
+      ACCOUNT=ADCIRC
    fi
    if [[ $HPCENVSHORT = supermic ]]; then
       ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
@@ -123,7 +126,7 @@ COLDSTARTDATE=2020071800
 HOTORCOLD=hotstart     # "hotstart" or "coldstart"
 LASTSUBDIR=/work/jgflemin/asgs253623/initialize
 
-if [[ $HPCENVSHORT = supermic ]]; then
+if [[ $HPCENVSHORT = supermic || $HPCENVSHORT = lonestar5 ]]; then
    COLDSTARTDATE=auto
    HOTORCOLD=hotstart     # "hotstart" or "coldstart"
    LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/al14/07/LA_v20a-WithUpperAtch_chk/qbc.loni.org/LAv20a_al142020_jgf/nhcConsensus
@@ -132,7 +135,7 @@ fi
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=6 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
 case $si in
  -2)
    ENSTORM=hindcast
@@ -142,29 +145,29 @@ case $si in
    ENSTORM=nowcast
    ;;
  0)
-   ENSTORM=veerRight100Wind10m
-   PERCENT=100
-   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-   ;;
- 1)
-   ENSTORM=veerRight100
-   PERCENT=100
-   ;;
- 2)
-   ENSTORM=nhcConsensusWind10m
-   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-   ;;
- 3)
-   ENSTORM=nhcConsensus
-   ;;
- 4)
    ENSTORM=veerLeft100Wind10m
    PERCENT=-100
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
- 5)
+ 1)
    ENSTORM=veerLeft100
    PERCENT=-100
+   ;;
+ 2)
+   ENSTORM=veerRight100Wind10m
+   PERCENT=100
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   ;;
+ 3)
+   ENSTORM=veerRight100
+   PERCENT=100
+   ;;
+ 4)
+   ENSTORM=nhcConsensusWind10m
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   ;;
+ 5)
+   ENSTORM=nhcConsensus
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
