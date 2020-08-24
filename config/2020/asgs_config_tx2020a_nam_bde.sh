@@ -36,6 +36,7 @@ QUEUENAME=normal # same as SLURM partition
 SERQUEUE=normal
 PPN=48
 GROUP="G-803086"
+
 RMQMessaging_Enable="on"
 RMQMessaging_Transmit="on"
 

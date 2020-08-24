@@ -36,7 +36,7 @@
 
 # Fundamental
 
-INSTANCENAME=LAv20a_al132020_jgf  # "name" of this ASGS process
+INSTANCENAME=LAv20a_al132020_akheir  # "name" of this ASGS process
 
 # Input files and templates
 
