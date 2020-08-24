@@ -34,7 +34,6 @@ QUEUENAME=normal # same as SLURM partition
 SERQUEUE=normal
 PPN=24
 GROUP="G-803086"
-newgrp $GROUP
 ASGSADMIN="asgsnotifications@opayq.com"
 
 # Input files and templates
