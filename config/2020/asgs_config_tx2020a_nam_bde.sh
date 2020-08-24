@@ -36,7 +36,6 @@ QUEUENAME=normal # same as SLURM partition
 SERQUEUE=normal
 PPN=48
 GROUP="G-803086"
-newgrp $GROUP
 
 RMQMessaging_Enable="on"
 RMQMessaging_Transmit="on"
