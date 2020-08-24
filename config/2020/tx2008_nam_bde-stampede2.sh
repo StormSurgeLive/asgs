@@ -40,7 +40,6 @@ HOTORCOLD=coldstart #hotstart
 LASTSUBDIR=null
 
 GROUP="G-803086"
-newgrp $GROUP
 
 # Allocation from which SUs are taken
 ACCOUNT=DesignSafe-CERA
