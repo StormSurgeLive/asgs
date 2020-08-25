@@ -83,7 +83,7 @@ THIS="output/opendap_post.sh"
 OPENDAPMAILSERVER=${properties["notification.opendap.email.opendapmailserver"]}
 declare -a LINKABLEHOSTS
 declare -a COPYABLEHOSTS
-timeoutRetryLimit=${timeoutRetryLimit:-3}
+timeoutRetryLimit=${timeoutRetryLimit:-5} # FIXME: hardcoded to 5; make this more granular
 serverAliveInterval=${serverAliveInterval:-10}
 #
 for server in ${SERVERS[*]}; do
@@ -220,7 +220,8 @@ END
    "scp")
       scenarioMessage "$SCENARIO: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST."
       retry=0
-      while [[ $retry -lt $timeoutRetryLimit ]]; do 
+      mkdirRetryLimit=10 # FIXME: hardcoded for now 
+      while [[ $retry -lt $mkdirRetryLimit ]]; do 
          ssh $OPENDAPHOST "mkdir -p $OPENDAPDIR" >> $SCENARIOLOG 2>&1
          if [[ $? != 0 ]]; then
             warn "$SCENARIO: $THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
@@ -230,7 +231,7 @@ END
             break
          fi
          retry=`expr $retry + 1`
-         if [[ $retry -lt $timeoutRetryLimit ]]; then
+         if [[ $retry -lt $mkdirRetryLimit ]]; then
             scenarioMessage "$SCENARIO: $THIS: Trying again."
          else
             scenarioMessage "$SCENARIO: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
