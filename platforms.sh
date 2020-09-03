@@ -585,7 +585,7 @@ init_desktop()
   HPCENV=jason-desktop.seahorsecoastal.com
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
-  SUBMITSTRING="mpiexec -n "
+  SUBMITSTRING="mpiexec"
   SCRATCH=/srv/asgs
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
@@ -640,7 +640,7 @@ init_Poseidon()
   HPCENV=poseidon.vsnet.gmu.edu
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
-  SUBMITSTRING="mpiexec -n"
+  SUBMITSTRING="mpiexec"
   SCRATCH=/home/fhrl/Documents/asgs_processing
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'

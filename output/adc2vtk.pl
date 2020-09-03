@@ -72,8 +72,10 @@ my %namesNumNonDefaults; # how many of the nodes have nondefault values
 my @attrValues; # at every node in the mesh
 our $getNodeIDs;     # defined if the node labels should be recorded
 our @nodeIDs;         # array of node labels from data file 
-our $getElementIDs;     # defined if the node labels should be recorded
-our @elementIDs;         # array of node labels from data file 
+our $getElementIDs;     # defined if the element labels should be recorded
+our @elementIDs;        # array of element labels from data file 
+our $elementIncrement = 0;  # increment of elements to paint the same color
+our $elementGroup = 1;     # element group number
 #
 my $meshfile = "null";
 my $cpp;  # 1 to reproject to cpp (carte parallelogrammatique projection)
@@ -98,7 +100,8 @@ GetOptions(
            "slam0=s" => \$slam0,
            "sfea0=s" => \$sfea0,
            "getNodeIDs" => \$getNodeIDs,
-           "getElementIDs" => \$getElementIDs,           
+           "getElementIDs" => \$getElementIDs,
+           "elementIncrement=s" => \$elementIncrement,           
            "trackfiles=s" => \@trackfiles,
            "adcircfiles=s" => \@adcircfiles
          );
@@ -756,14 +759,28 @@ sub writeMesh () {
    #
    # write element IDs if specified
    if ( defined $getElementIDs ) {
-      printf OUT "         <CellData Scalars=\"ElementIDs\">\n"; 
-      printf OUT "         <DataArray Name=\"ElementIDs\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+      #printf OUT "         <CellData Scalars=\"ElementIDs\">\n"; 
+      printf OUT "         <CellData>\n"; 
+      printf OUT "            <DataArray Name=\"ElementIDs\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
       for (my $i=0; $i<$ne; $i++) {
          printf OUT "$elementIDs[$i]\n";
       }
       printf OUT "            </DataArray>\n";
+      #
+      # write elementgroup if specified
+      if ( $elementIncrement != 0 ) {
+         printf OUT "            <DataArray Name=\"ElementGroup\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+         for (my $i=0; $i<$ne; $i++) {
+            printf OUT "$elementGroup\n";
+            if  ( $i == ( $elementIncrement * $elementGroup )  ) {
+               $elementGroup++;
+            }
+         }
+      }
+      printf OUT "            </DataArray>\n";
       printf OUT "         </CellData>\n";
    }
+
    # write element connectivity indices   
    printf OUT "         <Cells>\n";
    printf OUT "            <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n";

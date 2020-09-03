@@ -500,7 +500,7 @@ prep()
           done
        done
        # bring in hotstart file(s)
-       if [[ $QUEUESYS = serial ]]; then
+       if [[ $QUEUESYS = "serial" || $NCPU = "1" ]]; then
           if [[ $HOTSTARTFORMAT = netcdf ]]; then
              # copy netcdf file so we overwrite the one that adcprep created
              cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG 2>&1
@@ -519,7 +519,7 @@ prep()
     # I F   T H I S   I S   A   S E R I A L   R U N 
     #
     # adcprep is not required if the job is to run in serial
-    if [[ $QUEUESYS = "serial" ]]; then
+    if [[ $QUEUESYS = "serial" || $NCPU = "1" ]]; then
        return
     fi
     #
@@ -1163,7 +1163,7 @@ monitorJobs()
             fi
          fi
       fi
-
+      #
       # check job run status
       if ! checkTimeLimit $startTime $WALLTIME ; then
          THIS="asgs_main.sh>monitorJobs()"
@@ -1175,7 +1175,11 @@ monitorJobs()
          # prevents cpus from being tied up unnecessarily ...
          # if the job was submitted through a queueing system, then the
          # queueing system will terminate it
-         case $QUEUESYS in
+         runMethod=$QUEUESYS
+         if [[ $NCPU = 1 ]]; then
+            runMethod="serial"
+         fi
+         case $runMethod in
          "mpiexec")
             logMessage "$ENSTORM: $THIS: Detecting mpiexec subshell pid."
             pid=`grep 'mpiexec subshell pid' ${ADVISDIR}/${ENSTORM}/run.properties | sed 's/mpiexec subshell pid.*://' | sed 's/^\s//'`
@@ -1305,8 +1309,14 @@ submitJob()
    fi
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $ADVISDIR/$ENSTORM/run.properties
    #
+   # determine whether this is a serial or parallel job
+   runMethod=$QUEUESYS
+   if [[ $NCPU = 1 ]]; then
+      runMethod="serial"
+   fi
+   #
    # start the job in a queueing system-dependent way
-   case $QUEUESYS in 
+   case $runMethod in 
    #
    #  No queueing system, just run adcirc or adcswan (used on standalone computers or cloud)
    "serial")
@@ -2394,7 +2404,7 @@ fi
 CYCLELOG=null
 SCENARIOLOG=null
 #
-# B E G I N   N O W C A S T / F O R E C A S T   L O O P
+#   B E G I N   N O W C A S T / F O R E C A S T   L O O P
 #
 while [ true ]; do
    THIS="asgs_main.sh"
@@ -2884,7 +2894,7 @@ while [ true ]; do
    CURRENT_EVENT="PRE2"
    CURRENT_STATE="INIT"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting forecast(s) for advisory '$ADVISORY'."
-   allMessage "$ENSTORM: $THIS: Starting forecast scenarios for advisory '$ADVISORY'."
+   logMessage "$ENSTORM: $THIS: Starting forecast scenarios for advisory '$ADVISORY'."
 
    # clear orphaned logging processes (if any)
    findAndClearOrphans
@@ -2919,13 +2929,13 @@ while [ true ]; do
       #   continue # just go on to the next scenario
       #fi      
       JOBTYPE=padcirc
-      if [[ $QUEUESYS = "serial" ]]; then
+      if [[ $QUEUESYS = "serial" || $NCPU = "1" ]]; then
          JOBTYPE=adcirc
       fi      
       HOTSWAN=on
       if [[ $WAVES = on ]]; then
          JOBTYPE=padcswan
-         if [[ $QUEUESYS = "serial" ]]; then
+         if [[ $QUEUESYS = "serial" || $NCPU = "1" ]]; then
             JOBTYPE=adcswan
          fi
       fi
@@ -2939,7 +2949,7 @@ while [ true ]; do
          continue 
       fi
       subDirs=`find ${ADVISDIR} -maxdepth 1 -type d -print`
-      #debugMessage "subDirs is $subDirs" # jgfdebug
+      logMessage "subDirs is $subDirs" # jgfdebug
       if [[ ! -z $subDirs ]]; then  # see if we have any scenario directories 
          # continuously loop to see if conditions are right to submit the next job
          while [ true ]; do
@@ -2953,6 +2963,7 @@ while [ true ]; do
             fi
             # total up the number of cpus currently engaged and compare with capacity
             cpusEngaged=0         
+            logMessage "Checking to see if sufficient capacity exists to run the next forecast job."
             for ensembleMemDir in $subDirs; do
                # ignore the nowcast and the advisory directory itself
                if [[ $ensembleMemDir = $ADVISDIR || $ensembleMemDir = "./nowcast" || $ensembleMemDir = "." || $ensembleMemDir = "$ADVISDIR/nowcast" ]]; then 
@@ -2974,9 +2985,9 @@ while [ true ]; do
                   cpusEngaged=`expr $cpusEngaged + $cpuRequest`
                fi
             done
-            debugMessage "$ENSTORM: $THIS: The next scenario ('$ENSTORM') requires $NCPU compute cores and $NUMWRITERS dedicated writer cores. The number of CPUs currently engaged is $cpusEngaged. The max number of cores that can be engaged is $NCPUCAPACITY."
+            logMessage "$ENSTORM: $THIS: The next scenario ('$ENSTORM') requires $NCPU compute cores and $NUMWRITERS dedicated writer cores. The number of CPUs currently engaged is $cpusEngaged. The max number of cores that can be engaged is $NCPUCAPACITY."
             if [[ `expr $NCPU + $NUMWRITERS + $cpusEngaged` -le $NCPUCAPACITY ]]; then
-               #debugMessage "Sufficient capacity exists to run the next job."
+               debugMessage "Sufficient capacity exists to run the next job."
                break      # we now have the spare capacity to run this scenario
             else 
                CURRENT_STATE="WARN"
