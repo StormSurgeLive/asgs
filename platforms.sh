@@ -213,10 +213,7 @@ init_supermic()
   PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
   JOBENV=( )
   if [[ $operator = "jgflemin" ]]; then
-     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
-     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     #ACCOUNT=hpc_cera_2019c
-     ACCOUNT=hpc_crc_smi_19
+     ACCOUNT=hpc_cera_2019c
      JOBENV=( )
      for script in $JOBENV; do
         source $JOBENVDIR/$script
@@ -364,7 +361,8 @@ init_hatteras()
   # specify location of platform- and Operator-specific scripts to 
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/hatteras
-  JOBENV=( gdal.sh gmt.sh fftw.sh netcdf.sh )
+  #JOBENV=( gdal.sh gmt.sh fftw.sh netcdf.sh )
+  JOBENV=(  ) # <---<<< let's deprecate this approach
   case $USER in 
   bblanton) 
      export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
@@ -378,13 +376,12 @@ init_hatteras()
      export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
      ADCIRCDIR="${HOME}/ADCIRC/v53release/work" # ADCIRC executables
      SWANDIR="${HOME}/ADCIRC/v53release/swan" # ADCIRC executables
-     SCRATCH=/scratch/ncfs-dev/
+     SCRATCH=/projects/ncfs-dev/
      ACCOUNT=ncfs-dev
      PARTITION=ncfs       # ncfs or batch, gives priority
      PYTHONVENV="$HOME/miniconda2"
      RMQMessaging_NcoHome="${HOME}"
-     PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.1.2-acis mvapich2/2.0-acis'
-     SERIALMODULES='module load' # no extra modules for serial jobs
+
      TDS=(renci_tds)
      ;;
   ncfs)

@@ -72,7 +72,7 @@ NCPUCAPACITY=9999
 #QOS=vippj_p3000       # frontera
 #
 if [[ $USER = jgflemin ]]; then
-   if [[ $HPCENVSHORT = queenbee || $HPCENVSHORT = supermic ]]; then
+   if [[ $HPCENVSHORT = queenbee ]]; then
       ADCIRCDIR=/work/jgflemin/adcirc-cg/work
       SWANDIR=/work/jgflemin/adcirc-cg/swan
    fi
@@ -80,17 +80,21 @@ if [[ $USER = jgflemin ]]; then
       ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
       SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
    fi
+   if [[ $HPCENVSHORT = supermic ]]; then
+      ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
+      SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
+   fi
 fi
-
+#
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu"
+POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,rluettich1@gmail.com,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu"
 
 #jgf20200721 : updated list of notifications
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com"
 
 TDS=( lsu_tds ) #jgf20200721 : updated thredds server where results should be posted
 if [[ $HPCENVSHORT = frontera || $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then
@@ -99,9 +103,9 @@ fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020072006/NGOMv19b/queenbee.loni.org/NGOMv19b_nam_bde/namforecast
+COLDSTARTDATE=2020071500
+HOTORCOLD=coldstart     # "hotstart" or "coldstart"
+LASTSUBDIR=null
 
 # Scenario package 
 

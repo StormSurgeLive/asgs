@@ -44,6 +44,7 @@ help() {
   echo "   dump    <param>             - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog" 
   echo "   edit    adcirc  <name>      - directly edit the named ADCIRC environment file"
   echo "           config              - directly edit currently registered ASGS configuration file (used by asgs_main.sh)"
+  echo "           jobs                - if RUNDIR is defined and exists, lists all job Ids associated with the current profile."
   echo "           meshes              - directly inspect or edit the list of supported meshes"
   echo "           platforms           - directly inspect or edit the list of supported platforms"
   echo "           profile <name>      - directly edit the named ASGSH Shell profile"
@@ -196,6 +197,7 @@ _editor_check() {
       _DEFAULT_EDITOR=$__DEFAULT_EDITOR
     fi
     define editor "$_DEFAULT_EDITOR"
+    save profile
     echo
   fi
 }
@@ -231,6 +233,14 @@ edit() {
       return
     fi
     $EDITOR $ASGS_CONFIG
+    if [ 0 -eq $? ]; then
+      read -p "reload edited profile '$_ASGSH_CURRENT_PROFILE'? [y]" reload
+      if [[ -z "$reload" || "$reload" = "y" ]]; then
+        rl
+      else
+        echo "warning - profile '$ASGS_CONFIG' has been edited, but the profile has not been reloaded. To reload, use the 'rl' or 'load profile $_ASGSH_CURRENT_PROFILE' command."
+      fi
+    fi
     ;;
   meshes)
     $EDITOR $ASGS_MESH_DEFAULTS
@@ -359,7 +369,7 @@ list() {
   case "${1}" in
     adcirc)
       if [ ! -d "$ADCIRC_META_DIR/" ]; then
-        echo "nothing is available to list, run 'initadcirc' to build and register a version of ADCIRC"
+        echo "nothing is available to list, run 'initadcirc' to build and register a version of ADCIRC."
       else
         for adcirc in $(ls -1 "$ADCIRC_META_DIR/" | sort); do
           echo "- $adcirc"
@@ -373,6 +383,13 @@ list() {
         ls $SCRIPTDIR/config/$year/* | less
       else
         echo ASGS configs for $year do not exist 
+      fi
+      ;;
+    jobs)
+      if [ -d "$RUNDIR" ]; then
+        find $RUNDIR -name run.properties | xargs grep -h 'hpc.job.prep15.jobid' | awk '{print $3}' 
+      else
+        echo "Make sure profile has a valid run directory. To reload profile, type the 'rl' command."
       fi
       ;;
     meshes)
@@ -401,30 +418,32 @@ clone() {
   case "${1}" in
     profile)
       if [[ -z "$ASGS_CONFIG" || ! -e "$ASGS_CONFIG" ]]; then
-        echo "'clone profile' only proceedsif the profile's config file has been defined."
+        echo "'clone profile' only proceeds if the parent profile's config file has been defined."
+        echo "type, 'save profile <new-profile-name>' if you don't wish to define a config file first."
         return
       fi
       _epoch=$(date +%s)
-      _default_new_config="${ASGS_CONFIG%.*}_$_epoch.sh"
-      read -p "Name of new config file? [$_default_new_config] " new_config
-      if [ -z "$new_config" ]; then
-        new_config=$_default_new_config
-      fi
       _default_new_profile=${_ASGSH_CURRENT_PROFILE}-${_epoch}-clone
       read -p "Name of new profile? [$_default_new_profile] " new_profile_name
       if [ -z "$new_profile_name" ]; then
         new_profile_name=$_default_new_profile
+      fi
+      _year=$(date +%Y)
+      _default_new_config="$SCRIPTDIR/config/$_year/${new_profile_name}.sh"
+      read -p "Name of new config file? [$_default_new_config] " new_config
+      if [ -z "$new_config" ]; then
+        new_config=$_default_new_config
       fi
       read -p "Create new profile? [y] " create
       if [[ -z "$create" || "$create" = "y"  ]]; then
         cp -v $ASGS_CONFIG $new_config
         define config $new_config
         save profile $new_profile_name
-        read -p "Would you like to edit the new configuration file before switching to the new profile?[y] " edit
-        if [[ -z "$edit" || "$edit" = "y" ]]; then
+        rl
+        read -p "Would you like to edit the new configuration file? [y] " _edit
+        if [[ -z "$_edit" || "$_edit" = "y" ]]; then
           edit config
         fi
-        switch profile $new_profile_name
       else
         echo "Profile cloning operation has been aborted."
       fi
@@ -519,7 +538,7 @@ _parse_config() {
   fi
 
   # pull out var info the old fashion way...
-  INSTANCENAME=$(grep 'INSTANCENAME=' "${1}" | sed 's/^ *INSTANCENAME=//' | sed 's/ *#.*$//g')
+  INSTANCENAME=$(egrep '^ *INSTANCENAME=' "${1}" | sed 's/^ *INSTANCENAME=//' | sed 's/ *#.*$//g')
   echo "config file found, instance name is '$INSTANCENAME'"
 
   STATEFILE="$SCRATCH/${INSTANCENAME}.state"
@@ -966,11 +985,19 @@ verify() {
     regressions)
      verify_regressions
      ;;
+    ssh_config)
+     verify_ssh_config
+     ;;
+    email_config)
+     verify_email_config
+     ;;
     *)
      verify_perl
      verify_python
      verify_adcirc 
      verify_regressions
+     verify_ssh_config
+     verify_email_config
      ;;      
   esac
 }
@@ -1039,6 +1066,52 @@ verify_netcdf() {
       echo "not ok, can't find '$L' in '$ASGS_INSTALL_PATH/lib'"
     fi
   done
+}
+
+verify_ssh_config() {
+  echo +
+  echo ++ Verifying $HOME/.ssh/config
+  if [ -e $HOME/.ssh/config ]; then
+    echo "ok found '$HOME/.ssh/config'"
+  else
+    echo "not ok, can't find '$HOME/.ssh/config' - please set this up or you will not be able to post results to a supported THREDDS server."
+    return
+  fi
+  echo ++ Verifying ssh config file permissions are set to 600
+  if [ $(ls -l $HOME/.ssh/config | awk '{print $1}') = '-rw-------' ]; then
+    echo "ok permissions for $HOME/.ssh/config are set to 600"
+  else
+    echo "not ok, permissions for $HOME/.ssh/config are not set to 600 ... fixing"
+    chmod 600 $HOME/.ssh/config && \
+      echo "ok, permissions fixed for $HOME/.ssh/config"
+  fi
+  echo ++ Verifying connections to supported THREDDS servers
+  for S in lsu_tds renci_tds tacc_tds; do
+    ssh -o ConnectTimeout=1 $S "echo ok connected to $S from \$(echo \$SSH_CLIENT|awk '{print \$1}') VIA Port \$(echo \$SSH_CLIENT|awk '{print \$3}')" 2>/dev/null
+    err=$?
+    if [ "$err" -gt 0 ]; then
+      echo "not ok, can't connect to '$S'. Please check '$HOME/.ssh/config' if you need to post results to '$S'."
+    fi
+  done
+}
+
+verify_email_config() {
+  echo +
+  echo "++ Verifying email configuration (Note: for now just making sure config file is in place)"
+  if [ -e $HOME/asgs-global.conf ]; then
+    echo "ok found '$HOME/asgs-global.conf'"
+  else
+    echo "not ok, can't find '$HOME/asgs-global.conf' - please set this up or you will not be able to email via the AWS mail server."
+    return
+  fi
+  echo ++ Verifying email configuration file permissions are set to 600
+  if [ $(ls -l $HOME/asgs-global.conf | awk '{print $1}') = '-rw-------' ]; then
+    echo "ok permissions for $HOME/asgs-global.conf are set to 600"
+  else
+    echo "not ok, permissions for $HOME/asgs-global.conf are not set to 600 ... fixing"
+    chmod 600 $HOME/asgs-global.conf && \
+      echo "ok, permissions fixed for $HOME/asgs-global.conf"
+  fi
 }
 
 purge() {
@@ -1139,12 +1212,15 @@ alias ls='ls --color=auto'
 # handy aliases for the impatient
 alias a="list adcirc"
 alias c="edit config"
+alias ds="delete statefile"
 alias p="list profiles"
 alias m="inspect meshes"
 alias lm="list meshes"
+alias r="run"
+alias rd="goto rundir"
 alias sd="goto scriptdir"
 alias s="goto scratchdir"
-alias r="got rundir"
+alias t="tailf syslog"
 alias v="verify"
 alias va="verify adcirc"
 alias vp="verify perl"

@@ -31,7 +31,7 @@ INSTANCENAME=SFLv111_nam_jgf     # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=southfl_v11-1_final
+GRIDNAME=SFLv111
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
@@ -65,8 +65,9 @@ if [[ $USER = jgflemin ]]; then
       SWANDIR=/work/jgflemin/adcirc-cg/swan
    fi
    if [[ $HPCENVSHORT = frontera ]]; then
-      ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
-      SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
+      ADCIRCDIR=$WORK/adcirc-cg/work
+      SWANDIR=$WORK/adcirc-cg/swan
+      QOS=vippj_p3000
    fi
 fi
 
@@ -74,14 +75,14 @@ fi
 
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotfications@opayq.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( lsu_tds )
+TDS=( tacc_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020060100
+COLDSTARTDATE=2020071500
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #
