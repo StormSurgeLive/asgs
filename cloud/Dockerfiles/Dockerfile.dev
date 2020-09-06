@@ -1,16 +1,16 @@
-# Note: dev.Dockerfile is not meant to be built by users,
+# Note: Dockerfile.dev is not meant to be built by users,
 # but is meant to build the ASGS docker image avaiable
 # to users via https://hub.docker.com (pending) by ASGS
 # maintainers.
 #
-# This dev.Dockerfile has the ASGS code outside the container 
+# This Dockerfile.dev has the ASGS code outside the container 
 # to enable development of ASGS as well as the 
 # simultaneous installation and use of different versions
 # of ASGS as well as installation alongside an ASGS that has
 # been directly installed on a host machine (i.e., without
 # the use of Docker).
 #
-# The idea behind this dev.Dockerfile is that the containers 
+# The idea behind this Dockerfile.dev is that the containers 
 # are ephemeral but the ASGS source code should be persistent.
 # This is a different goal than the main Dockerfile which is 
 # meant to encapsulate absolutely everything that is needed 
@@ -75,7 +75,7 @@
 #
 #     or 
 #
-#     cd ./asgs/cloud/general && docker build . --file dev.Dockerfile -t asgs.dev.image
+#     cd ./asgs/cloud/general && docker build . --file Dockerfile.dev -t asgs.dev.image
 # 
 # This image expects its containers to have /work /scratch and
 # /home/asgsuser mounted to appropriate places on the command line
