@@ -75,7 +75,7 @@
 #
 #     or 
 #
-#     cd ./cloud/general && docker build . --file dev.Dockerfile -t asgs.dev.image
+#     cd ./asgs/cloud/general && docker build . --file dev.Dockerfile -t asgs.dev.image
 # 
 # This image expects its containers to have /work /scratch and
 # /home/asgsuser mounted to appropriate places on the command line
@@ -98,9 +98,23 @@
 #
 #    docker run --rm                                            \
 #               --name asgs.dev                                 \
+#               -e _ASGS_CONTAINER="docker"                     \
 #               -v /srv/work/asgs.dev:/work                     \
 #               -v /srv/scratch/asgs.dev:/scratch               \
 #               -v /home/jason/asgsuser/asgs.dev:/home/asgsuser \
+#               -t asgs.dev.image
+#
+# On my desktop machine, I use the following
+#
+#    docker run --rm                                            \
+#               --name asgs.dev                                 \
+#               -e _ASGS_CONTAINER="docker"                     \
+#               -v /srv/work/asgs.dev:/work                     \
+#               -v /srv/scratch/asgs.dev:/scratch               \
+#               -v /home/jason/asgsuser/asgs.dev:/home/asgsuser \
+#               -v /home/jason:/project01                       \
+#               -v /media/jason/Drobo:/project02                \ 
+#               -v /media/jason/47a495f2-907a-4561-9ccd-d5ec5ae60ddc:/project03 \
 #               -t asgs.dev.image
 #
 # FIXME : Eventually we need to use environment variables to pass
@@ -114,12 +128,30 @@
 # 
 #    docker exec -i -t asgs.dev /bin/bash
 #
-# From there, build/install ASGS and ADCIRC the usual way. For more
+# From there, build/install ASGS and ADCIRC the usual way. For more.
 # information on that, visit
 #
 #    https://hub.docker.com/repository/docker/asgsdockerhub/asgs
 #
-# After following this process installation, you will be able 
+# After building ASGS and ADCIRC, the final step is to copy the 
+# bash startup files to the new home directory (the originals
+# cannot be used because we have mounted over them with our 
+# specially named home directory). 
+#
+# While still inside the container :
+# 
+#   cd /home/asgsuser
+#   cp /etc/skel/.bash_logout . 
+#   cp /etc/skel/.bashrc . 
+#   cp /etc/skel/.profile .
+#   echo "export PATH=${PATH}:/home/asgsuser/bin" >> ~/.bashrc  
+#
+#   to enable the use of git while inside the container, fill in 
+#   your name and email address :
+#   cd /work/asgs && git config --global user.email "<<me@noemail>>" && git config --global user.name "<<my.name>>"
+#
+#
+# After following this process of installation, you will be able 
 # to stop and start containers from this image and the installation
 # files and Operator/Machine configuration will still be there 
 # for you. :-) 
@@ -154,8 +186,9 @@ RUN echo "asgsuser ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
 # break up their disk space domains. 
 RUN mkdir /work && mkdir /scratch
 
-# I've added project directories so the Operator can use the container
-# to run asgs utilities on files in different directory hierarchies.
+# I've added project directories so the Operator can mount
+# different directories or directory hierarchies to execute
+# asgs utilities against various data files.
 RUN mkdir /project01 && mkdir /project02 && mkdir /project03
 
 # set up for asgsuser
@@ -165,13 +198,8 @@ RUN chown -R asgsuser /project01
 RUN chown -R asgsuser /project02
 RUN chown -R asgsuser /project03
 
-# persist env in .bash_profile
-RUN su -c 'echo "export PATH=$PATH:$HOME/bin"   >> /home/asgsuser/.bash_profile' - asgsuser
-RUN su -c 'echo "export _ASGS_CONTAINER=docker" >> /home/asgsuser/.bash_profile' - asgsuser
-RUN su -c 'export _ASGS_CONTAINER=docker  && cd /home/asgsuser' - asgsuser
-
 # start as a non-privileged user
 USER asgsuser
-WORKDIR /work
+WORKDIR /home/asgsuser
 ENTRYPOINT ["tail", "-f", "/dev/null"]#
 #ENTRYPOINT echo && echo "run 'asgsh' to enter into ASGS Shell" && . /home/asgsuser/.bash_profile && echo "sourced .bash_profile" && bash -i
