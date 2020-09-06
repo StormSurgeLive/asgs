@@ -538,7 +538,7 @@ _parse_config() {
   fi
 
   # pull out var info the old fashion way...
-  INSTANCENAME=$(grep 'INSTANCENAME=' "${1}" | sed 's/^ *INSTANCENAME=//' | sed 's/ *#.*$//g')
+  INSTANCENAME=$(egrep '^ *INSTANCENAME=' "${1}" | sed 's/^ *INSTANCENAME=//' | sed 's/ *#.*$//g')
   echo "config file found, instance name is '$INSTANCENAME'"
 
   STATEFILE="$SCRATCH/${INSTANCENAME}.state"
