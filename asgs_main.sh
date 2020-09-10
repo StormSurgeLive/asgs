@@ -6,8 +6,8 @@
 # System (ASGS). It performs configuration tasks via config.sh, then enters a
 # loop which is executed once per advisory cycle.
 #----------------------------------------------------------------
-# Copyright(C) 2006--2019 Jason Fleming
-# Copyright(C) 2006--2007, 2019 Brett Estrade
+# Copyright(C) 2006--2020 Jason Fleming
+# Copyright(C) 2006--2007, 2019--2020 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -2190,8 +2190,10 @@ fi
 THIS="asgs_main.sh"
 #
 # Check for any issues or inconsistencies in configuration parameters. 
-if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
-   fatal "$THIS: NCPUCAPACITY must be greater than or equal to NCPU plus NUMWRITERS, however NCPUCAPACITY=$NCPUCAPACITY and NUMWRITERS=$NUMWRITERS and NCPU=$NCPU."
+if [[ $NCPUCAPACITY != "oneJobAtATime" ]]; then
+   if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
+      fatal "$THIS: NCPUCAPACITY must be greater than or equal to NCPU plus NUMWRITERS, however NCPUCAPACITY=$NCPUCAPACITY and NUMWRITERS=$NUMWRITERS and NCPU=$NCPU."
+   fi
 fi
 #
 # initialize the directory where this instance of the ASGS will run and
@@ -2936,11 +2938,13 @@ while [ true ]; do
       # Check for a misconfiguration where the Operator has set the  
       # number of CPUs and number of writers greater than the total
       # number of CPUs that will ever be available.
-      if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
-         error "$ENSTORM: $THIS: The requested number of CPUs for $ENSTORM is set to $NCPU and the number of writer processors has been set to $NUMWRITERS but the total number of requested CPUs exceeds the NCPUCAPACITY parameter value of ${NCPUCAPACITY}; therefore this scenario will never be able to execute. This scenario is being abandoned."
-         # increment the scenario package counter
-         si=$[$si + 1];
-         continue 
+      if [[ $NCPUCAPACITY != "oneJobAtATime" ]]; then
+         if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
+            error "$ENSTORM: $THIS: The requested number of CPUs for $ENSTORM is set to $NCPU and the number of writer processors has been set to $NUMWRITERS but the total number of requested CPUs exceeds the NCPUCAPACITY parameter value of ${NCPUCAPACITY}; therefore this scenario will never be able to execute. This scenario is being abandoned."
+            # increment the scenario package counter
+            si=$[$si + 1];
+            continue 
+         fi
       fi
       subDirs=`find ${ADVISDIR} -maxdepth 1 -type d -print`
       logMessage "subDirs is $subDirs" # jgfdebug
@@ -2966,7 +2970,7 @@ while [ true ]; do
                fi
                # parse the run.properties to see what the cpu request is for this job
                # ... if the was never submitted, there won't be a cpurequest property 
-               cpuRequest=`grep 'cpurequest' $ensembleMemDir/run.properties | sed 's/cpurequest.*://' | sed 's/^\s//'`
+               cpuRequest=`grep 'cpurequest' $ensembleMemDir/run.properties | head -n 1 | sed 's/cpurequest.*://' | sed 's/^\s//'`
                if [[ -z $cpuRequest ]]; then
                   continue   # this job was never submitted, so doesn't count; go to the next directory
                fi
@@ -2979,6 +2983,16 @@ while [ true ]; do
                   cpusEngaged=`expr $cpusEngaged + $cpuRequest`
                fi
             done
+            if [[ $NCPUCAPACITY = "oneJobAtATime" ]]; then
+               if [[ $cpusEngaged -gt 0 ]]; then 
+                  logMessage "The number of cores currently engaged is $cpusEngaged. Waiting for the current job to finish before submitting the next one."
+                  sleep 60
+                  continue
+               else
+                  debugMessage "Sufficient capacity exists to run the next job."
+                  break      # nothing else is running, now run the next scenario
+               fi                  
+            fi
             logMessage "$ENSTORM: $THIS: The next scenario ('$ENSTORM') requires $NCPU compute cores and $NUMWRITERS dedicated writer cores. The number of CPUs currently engaged is $cpusEngaged. The max number of cores that can be engaged is $NCPUCAPACITY."
             if [[ `expr $NCPU + $NUMWRITERS + $cpusEngaged` -le $NCPUCAPACITY ]]; then
                debugMessage "Sufficient capacity exists to run the next job."

@@ -776,8 +776,8 @@ sub writeMesh () {
                $elementGroup++;
             }
          }
+         printf OUT "            </DataArray>\n";
       }
-      printf OUT "            </DataArray>\n";
       printf OUT "         </CellData>\n";
    }
 

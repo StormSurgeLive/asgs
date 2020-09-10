@@ -150,6 +150,7 @@
 #   your name and email address :
 #   cd /work/asgs && git config --global user.email "<<me@noemail>>" && git config --global user.name "<<my.name>>"
 #
+#   FIXME: how to set the timezone in the container (not the image)? 
 #
 # After following this process of installation, you will be able 
 # to stop and start containers from this image and the installation
@@ -168,13 +169,18 @@ RUN apt-get update
 # install require libraries and tools
 RUN apt-get install -y build-essential checkinstall
 RUN apt-get install -y zlib1g-dev libssl-dev libexpat1-dev
-RUN apt-get install -y gfortran wget curl vim screen htop tmux git sudo
+RUN apt-get install -y gfortran wget curl vim screen htop tmux git sudo tzdata
 
 # symlink for /bin/env
 RUN ln -s /usr/bin/env /bin/env > /dev/null 2>&1 || echo /usr/bin/env already links to /bin/env
 
 # set env, this is used to identify the environment to ./init-asgsh.sh
 ENV _ASGS_CONTAINER docker
+ENV SCRATCH /scratch
+ENV WORK /work
+
+#ENV TZ=America/New_York
+#RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # create non-privileged asgsuser
 RUN useradd -ms /bin/bash asgsuser
@@ -201,5 +207,4 @@ RUN chown -R asgsuser /project03
 # start as a non-privileged user
 USER asgsuser
 WORKDIR /home/asgsuser
-ENTRYPOINT ["tail", "-f", "/dev/null"]#
-#ENTRYPOINT echo && echo "run 'asgsh' to enter into ASGS Shell" && . /home/asgsuser/.bash_profile && echo "sourced .bash_profile" && bash -i
+ENTRYPOINT ["tail", "-f", "/dev/null"]

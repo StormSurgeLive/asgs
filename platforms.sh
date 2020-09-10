@@ -568,6 +568,16 @@ init_lonestar5()
 init_docker()
 {
   MAKEJOBS=2
+  THIS="platforms.sh>env_dispatch()>init_docker()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
+  HPCENV=docker
+  QUEUESYS=mpiexec
+  SUBMITSTRING="mpiexec"
+  SCRATCH=/scratch
+  SCRATCHDIR=/scratch
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=$SCRATCH
+  ARCHIVEDIR=$SCRATCH
 }
 
 # placeholder for vagrant bootstrap
@@ -800,6 +810,11 @@ set_hpc() {
       HPCENV=desktop.seahorsecoastal.com
       HPCENVSHORT=desktop
    fi 
+   if [[ ! -z $_ASGS_CONTAINER && $_ASGS_CONTAINER = "docker" ]]; then
+      HPCENV=docker
+      HPCENVSHORT=docker
+   fi
+
    echo "$THIS: The value of HPCENV is ${HPCENV}."
    echo "$THIS: The value of HPCENVSHORT is ${HPCENVSHORT}."
 }
