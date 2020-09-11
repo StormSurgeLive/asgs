@@ -37,7 +37,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
 #jgf20200721 : new template file with Matt's boundary condition
-CONTROLTEMPLATE=LAv20a_12kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
+CONTROLTEMPLATE=LAv20a_10kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 
 TIDEFAC=on            # tide factor recalc
    HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
@@ -56,8 +56,8 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=959                     # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
-QUEUENAME=priority    # queenbee2 and supermic
-SERQUEUE=priority     # queenbee2 and supermic
+#QUEUENAME=priority    # queenbee2 and supermic
+#SERQUEUE=priority     # queenbee2 and supermic
 
 
 # Post processing and publication
@@ -69,7 +69,7 @@ TDS=(lsu_tds)
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020071800   # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2020081000   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart        # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
