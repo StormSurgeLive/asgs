@@ -27,25 +27,25 @@
 
 # Fundamental
 
-INSTANCENAME=tx2020a_al132020_bde     # "name" of this ASGS process
-ACCOUNT=ADCIRC #DesignSafe-CERA
-QOS=vip7000 # for priority during a storm
+INSTANCENAME=CTXCS2017_al142020_bde     # "name" of this ASGS process
+ACCOUNT=ASC20001 #DesignSafe-CERA
+QOS=vippj_p3000 # for priority during a storm
 QUEUENAME=normal # same as SLURM partition
 SERQUEUE=normal
-PPN=24
+PPN=48
 GROUP="G-803086"
 ASGSADMIN="asgsnotifications@opayq.com"
 
 # Input files and templates
 
-GRIDNAME=tx2020a
+GRIDNAME=CTXCS2017
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
 COLDSTARTDATE=auto #2020070800
 HOTORCOLD=hotstart #coldstart
-LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020082106/tx2020a/frontera.tacc.utexas.edu/tx2020a_nam_bde/namforecast
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020082500/CTXCS2017/qbc.loni.org/CTXCS2017_nam_jgf/namforecast
 
 RMQMessaging_Enable="on"
 RMQMessaging_Transmit="on"
@@ -71,7 +71,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=1999                    # number of compute CPUs for all simulations
+NCPU=2999                    # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 
@@ -82,11 +82,13 @@ INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,rluettich1@gmail.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com,clint@oden.utexas.edu,amin.kiaghadi2013@gmail.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( lsu_tds )
+TDS=( lsu_tds tacc_tds )
 
 #
 # Scenario package
 #
+#PERCENT=default
+#PERCENT=default
 SCENARIOPACKAGESIZE=8
 case $si in
    -2)
@@ -99,7 +101,7 @@ case $si in
     0)
        ENSTORM=nhcConsensusWind10m
        ;;
-    1) 
+    1)
        ENSTORM=nhcConsensus
        ;;
     2)
@@ -111,20 +113,20 @@ case $si in
        PERCENT=10
        ;;
     4)
-       ENSTORM=veerRight100Wind10m
-       PERCENT=100
-       ;;
-    5)
-       ENSTORM=veerRight100
-       PERCENT=100
-       ;;
-    6)
        ENSTORM=veerLeft100Wind10m
        PERCENT=-100
        ;;
-    7)
+    5)
        ENSTORM=veerLeft100
        PERCENT=-100
+       ;;
+    6)
+       ENSTORM=veerRight100Wind10m
+       PERCENT=100
+       ;;
+    7)
+       ENSTORM=veerRight100
+       PERCENT=100
        ;;
     *)
        echo "CONFIGURATION ERROR: Unknown ensemble member number: '$si'."

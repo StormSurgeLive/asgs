@@ -44,6 +44,7 @@ help() {
   echo "   dump    <param>             - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog" 
   echo "   edit    adcirc  <name>      - directly edit the named ADCIRC environment file"
   echo "           config              - directly edit currently registered ASGS configuration file (used by asgs_main.sh)"
+  echo "           jobs                - if RUNDIR is defined and exists, lists all job Ids associated with the current profile."
   echo "           meshes              - directly inspect or edit the list of supported meshes"
   echo "           platforms           - directly inspect or edit the list of supported platforms"
   echo "           profile <name>      - directly edit the named ASGSH Shell profile"
@@ -368,7 +369,7 @@ list() {
   case "${1}" in
     adcirc)
       if [ ! -d "$ADCIRC_META_DIR/" ]; then
-        echo "nothing is available to list, run 'initadcirc' to build and register a version of ADCIRC"
+        echo "nothing is available to list, run 'initadcirc' to build and register a version of ADCIRC."
       else
         for adcirc in $(ls -1 "$ADCIRC_META_DIR/" | sort); do
           echo "- $adcirc"
@@ -382,6 +383,13 @@ list() {
         ls $SCRIPTDIR/config/$year/* | less
       else
         echo ASGS configs for $year do not exist 
+      fi
+      ;;
+    jobs)
+      if [ -d "$RUNDIR" ]; then
+        find $RUNDIR -name run.properties | xargs grep -h 'hpc.job.prep15.jobid' | awk '{print $3}' 
+      else
+        echo "Make sure profile has a valid run directory. To reload profile, type the 'rl' command."
       fi
       ;;
     meshes)
@@ -530,7 +538,7 @@ _parse_config() {
   fi
 
   # pull out var info the old fashion way...
-  INSTANCENAME=$(grep 'INSTANCENAME=' "${1}" | sed 's/^ *INSTANCENAME=//' | sed 's/ *#.*$//g')
+  INSTANCENAME=$(egrep '^ *INSTANCENAME=' "${1}" | sed 's/^ *INSTANCENAME=//' | sed 's/ *#.*$//g')
   echo "config file found, instance name is '$INSTANCENAME'"
 
   STATEFILE="$SCRATCH/${INSTANCENAME}.state"
