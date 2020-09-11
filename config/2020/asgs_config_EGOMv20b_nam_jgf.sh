@@ -48,7 +48,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on      # NAM download/forcing
-   FORECASTCYCLE="06"
+   FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off   # tropical cyclone forcing
    STORM=07           # storm number, e.g. 05=ernesto in 2006
    YEAR=2020          # year of the storm
@@ -71,14 +71,20 @@ if [[ $HPCENVSHORT = queenbee ]]; then
    ACCOUNT=loni_cera_2020
 fi 
 
+if [[ $HPCENVSHORT = supermic ]]; then 
+   ACCOUNT=hpc_cera_2019c
+   ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
+   SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
+fi 
+
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #POSTPROCESS=( createMaxCSV.sh includeWind10m.sh cpra_slide_deck_post.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu,rluettich1@gmail.com"
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,rluettich1@gmail.com,asgsnotifications@opayq.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com"
 TDS=( lsu_tds )
 if [[ $HPCENVSHORT = frontera || $HPCENVSHORT = lonestar5 || $HPCENVSHORT = stampede2 ]]; then
    TDS=( tacc_tds )
@@ -90,7 +96,7 @@ fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020071500
+COLDSTARTDATE=2020080800
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
