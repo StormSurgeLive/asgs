@@ -49,7 +49,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 #CONTROLTEMPLATE=LAv20a_23kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 
 #jgf20200721 : new template file with Matt's boundary condition
-CONTROLTEMPLATE=LAv20a_12kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
+CONTROLTEMPLATE=LAv20a_10kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
@@ -91,6 +91,11 @@ if [[ $USER = jgflemin ]]; then
       ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
       SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
    fi
+   if [[ $HPCENVSHORT = supermic ]]; then
+      ACCOUNT=hpc_cera_2019c
+      ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
+      SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
+   fi
 fi
 
 # Post processing and publication
@@ -107,7 +112,7 @@ fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020071800  
+COLDSTARTDATE=2020080800
 HOTORCOLD=coldstart     # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
