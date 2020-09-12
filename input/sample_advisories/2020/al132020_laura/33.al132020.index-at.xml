@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:georss="http://www.georss.org/georss"
+ xmlns:gml="http://www.opengis.net/gml"
+ xmlns:nhc="https://www.nhc.noaa.gov">
+<channel>
+<pubDate>Fri, 28 Aug 2020 02:34:31 GMT</pubDate>
+<title>NHC Atlantic</title>
+<description>Active tropical cyclones in the Atlantic, Caribbean, and the Gulf of Mexico</description>
+<link>https://www.nhc.noaa.gov/</link>
+<copyright>none</copyright>
+<managingEditor>nhcwebmaster@noaa.gov (NHC Webmaster)</managingEditor>
+<language>en-us</language>
+<webMaster>nhcwebmaster@noaa.gov (NHC Webmaster)</webMaster>
+<image>
+<url>https://www.nhc.noaa.gov/gifs/xml_logo_nhc.gif</url>
+<link>https://www.nhc.noaa.gov/</link>
+<title>NHC Atlantic</title>
+<description>NOAA logo</description>
+<width>95</width>
+<height>45</height>
+</image>
+<item>
+<title>Atlantic Tropical Weather Outlook</title>
+<description>
+<![CDATA[
+<br/>
+000<br/>
+ABNT20 KNHC 272338<br/>
+TWOAT <br/>
+<br/>
+Tropical Weather Outlook<br/>
+NWS National Hurricane Center Miami FL<br/>
+800 PM EDT Thu Aug 27 2020<br/>
+<br/>
+For the North Atlantic...Caribbean Sea and the Gulf of Mexico:<br/>
+<br/>
+The National Hurricane Center is issuing advisories on Tropical <br/>
+Storm Laura, located inland over southern Arkansas.<br/>
+<br/>
+Showers and thunderstorms associated with a tropical wave over the <br/>
+central tropical Atlantic have gradually become a little better <br/>
+organized during the day.  Additional development of this system is <br/>
+possible during the next several days while it moves westward <br/>
+at about 15 mph.<br/>
+* Formation chance through 48 hours...low...20 percent.<br/>
+* Formation chance through 5 days...low...30 percent.<br/>
+<br/>
+A tropical wave located over the eastern Atlantic Ocean just west <br/>
+of the Cabo Verde Islands is producing disorganized shower and <br/>
+thunderstorm activity.  The northern part of this wave, which is <br/>
+expected to move rapidly westward over the central Atlantic during <br/>
+the next few days, is forecast to remain too far to the north and <br/>
+in an unfavorable environment for development to occur.  However, <br/>
+the southern part of the wave is expected be nearly stationary <br/>
+south of the Cabo Verde Islands for the next several days, and some <br/>
+development of this system is possible early next week when it <br/>
+begins to move slowly westward over the eastern and central <br/>
+tropical Atlantic.<br/>
+* Formation chance through 48 hours...low...near 0 percent. <br/>
+* Formation chance through 5 days...low...30 percent.<br/>
+<br/>
+$$<br/>
+Forecaster Berg<br/>
+]]>
+</description>
+<pubDate>Thu, 27 Aug 2020 23:38:57 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/gtwo.php?basin=atlc</link>
+<guid>https://www.nhc.noaa.gov/gtwo.php?basin=atlc&amp;202008272338</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+ <title>Summary for Tropical Depression Laura (AT3/AL132020)</title>
+ <guid isPermaLink="false">summary-al132020-202008280234</guid>
+ <pubDate>Fri, 28 Aug 2020 02:34:20 GMT</pubDate>
+ <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+ <link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/280234.shtml</link>
+ <description>
+  ...LAURA WEAKENS TO A DEPRESSION OVER ARKANSAS... ...FLOOD THREAT CONTINUES...
+ As of 10:00 PM CDT Thu Aug 27
+ the center of Laura was located near 35.1, -92.0
+ with movement NNE at 15 mph.
+ The minimum central pressure was 993 mb
+ with maximum sustained winds of about 35 mph.
+ </description>
+ <nhc:Cyclone>
+  <nhc:center>35.1, -92.0</nhc:center>
+  <nhc:type>TROPICAL DEPRESSION</nhc:type>
+  <nhc:name>Laura</nhc:name>
+  <nhc:wallet>AT3</nhc:wallet>
+  <nhc:atcf>AL132020</nhc:atcf>
+  <nhc:datetime>10:00 PM CDT Thu Aug 27</nhc:datetime>
+  <nhc:movement>NNE at 15 mph</nhc:movement>
+  <nhc:pressure>993 mb</nhc:pressure>
+  <nhc:wind>35 mph</nhc:wind>
+  <nhc:headline> ...LAURA WEAKENS TO A DEPRESSION OVER ARKANSAS... ...FLOOD THREAT CONTINUES...</nhc:headline>
+ </nhc:Cyclone>
+</item>
+<item>
+<title>Tropical Depression Laura Public Advisory Number 33</title>
+<description>Issued at 1000 PM CDT Thu Aug 27 2020  <![CDATA[<pre>
+
+412 
+WTNT33 KNHC 280234
+TCPAT3
+ 
+BULLETIN
+Tropical Depression Laura Advisory Number  33
+NWS National Hurricane Center Miami FL       AL132020
+1000 PM CDT Thu Aug 27 2020
+ 
+...LAURA WEAKENS TO A DEPRESSION OVER ARKANSAS...
+...FLOOD THREAT CONTINUES...
+ 
+ 
+SUMMARY OF 1000 PM CDT...0300 UTC...INFORMATION
+-----------------------------------------------
+LOCATION...35.1N 92.0W
+ABOUT 30 MI...50 KM NNE OF LITTLE ROCK ARKANSAS
+MAXIMUM SUSTAINED WINDS...35 MPH...55 KM/H
+PRESENT MOVEMENT...NNE OR 15 DEGREES AT 15 MPH...24 KM/H
+MINIMUM CENTRAL PRESSURE...993 MB...29.33 INCHES
+ 
+ 
+WATCHES AND WARNINGS
+--------------------
+There are no coastal watches or warnings in effect.
+ 
+ 
+DISCUSSION AND OUTLOOK
+----------------------
+At 1000 PM CDT (0300 UTC), the center of Tropical Depression Laura
+was located near latitude 35.1 North, longitude 92.0 West. The
+depression is moving toward the north-northeast near 15 mph (24
+km/h), and this general motion should continue overnight. 
+A northeastward to east-northeastward motion is expected to begin on 
+Friday and continue into Saturday.  On the forecast track, the 
+center of Laura is forecast to move over Arkansas tonight, the 
+mid-Mississippi Valley on Friday, the mid-Atlantic states on 
+Saturday, and over the western Atlantic on Sunday.
+
+Maximum sustained winds have decreased to near 35 mph (55 km/h) 
+with higher gusts.  Laura is expected to become a remnant low 
+pressure system on Saturday, and an extratropical low later this 
+weekend.
+ 
+The estimated minimum central pressure is 993 mb (29.33 inches).
+ 
+ 
+HAZARDS AFFECTING LAND
+----------------------
+Key messages for Laura can be found in the Tropical Cyclone
+Discussion under AWIPS header MIATCDAT3 and WMO header WTNT43 KNHC.
+ 
+RAINFALL: Through Friday, Laura is expected to produce the 
+following additional rainfall totals:
+
+Over central and northern Arkansas: Additional 3 to 6 inches.
+
+Over southern Louisiana and southern Mississippi: 1 to 3 inches, 
+with isolated additional totals of 5 inches.
+
+Over northern Mississippi, western Tennessee, and south-central to 
+southeast Missouri: 1 to 3 inches, with isolated totals of 5 
+inches. 
+
+This rainfall will continue to cause widespread flash and urban 
+flooding, small streams and creeks to overflow their banks, and 
+minor to moderate freshwater river flooding. 
+
+Through Saturday, Laura is expected to produce 1 to 3 inches with 
+isolated maximum amounts of 5 inches across portions of the
+Tennessee and Lower Ohio Valleys, the central and southern 
+Appalachians, and the Mid-Atlantic States. This rainfall may lead to 
+flash and urban flooding and rapid rises on small streams.
+
+TORNADOES:  A few tornadoes remain possible this evening across
+eastern Arkansas, western Tennessee, northern Mississippi, and the
+Missouri Bootheel.  The risk for a few tornadoes is expected to
+redevelop Friday afternoon into the evening across parts of the
+Mid-South and Tennessee Valley regions.
+ 
+SURF:  Swells produced by Laura continue to affect the U.S. Gulf
+coast from the Florida Panhandle to Texas.  These swells are likely
+to cause life-threatening surf and rip current conditions.  Please
+consult products from your local weather office.
+ 
+ 
+NEXT ADVISORY
+-------------
+This is the last public advisory issued by the National Hurricane
+Center on this system.  Future information on this system can be 
+found in Public Advisories issued by the Weather Prediction Center 
+beginning at 4 AM CDT, under AWIPS header TCPAT3, WMO header 
+WTNT33 KWNH, and on the web at http://www.wpc.ncep.noaa.gov. 
+ 
+ 
+$$
+Forecaster Pasch
+ 
+
+</pre>]]></description>
+<pubDate>Fri, 28 Aug 2020 02:34:27 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/280234.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/280234.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Depression Laura Forecast Advisory Number 33</title>
+<description>Issued at 0300 UTC FRI AUG 28 2020  <![CDATA[<pre>
+
+410 
+WTNT23 KNHC 280234
+TCMAT3
+ 
+TROPICAL DEPRESSION LAURA FORECAST/ADVISORY NUMBER  33
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL132020
+0300 UTC FRI AUG 28 2020
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+TROPICAL DEPRESSION CENTER LOCATED NEAR 35.1N  92.0W AT 28/0300Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHEAST OR  15 DEGREES AT  13 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  993 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 35.1N  92.0W AT 28/0300Z
+AT 28/0000Z CENTER WAS LOCATED NEAR 34.4N  92.5W
+ 
+FORECAST VALID 28/1200Z 36.3N  91.0W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 29/0000Z 37.3N  87.8W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 29/1200Z 38.0N  82.3W...POST-TROP/INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 30/0000Z 38.5N  75.5W...POST-TROP/EXTRATROP
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 30/1200Z 41.5N  67.5W...POST-TROP/EXTRATROP
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...  0NE  90SE   0SW   0NW.
+ 
+FORECAST VALID 31/0000Z 44.0N  60.5W...POST-TROP/EXTRATROP
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT...100NE 100SE  60SW  30NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 01/0000Z 48.0N  52.0W...POST-TROP/EXTRATROP
+MAX WIND  40 KT...GUSTS  50 KT.
+ 
+OUTLOOK VALID 02/0000Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 35.1N  92.0W
+ 
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE 
+CENTER ON THIS SYSTEM.  FUTURE INFORMATION ON THIS SYSTEM CAN BE 
+FOUND IN PUBLIC ADVISORIES ISSUED BY THE WEATHER PREDICTION CENTER 
+BEGINNING AT 4 AM CDT, UNDER AWIPS HEADER TCPAT3, WMO HEADER 
+WTNT33 KWNH, AND ON THE WEB AT HTTP://WWW.WPC.NCEP.NOAA.GOV. 
+ 
+$$
+FORECASTER PASCH
+ 
+ 
+
+</pre>]]></description>
+<pubDate>Fri, 28 Aug 2020 02:34:27 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCMAT3+shtml/280234.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCMAT3+shtml/280234.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Depression Laura Forecast Discussion Number 32</title>
+<description>Issued at 400 PM CDT Thu Aug 27 2020  <![CDATA[<pre>
+
+000
+WTNT43 KNHC 272043
+TCDAT3
+ 
+Tropical Storm Laura Discussion Number  32
+NWS National Hurricane Center Miami FL       AL132020
+400 PM CDT Thu Aug 27 2020
+ 
+Laura has continued to weaken this afternoon.  The satellite and
+radar presentation of the tropical cyclone has continued to degrade,
+and the center has now moved into southern Arkansas.  The initial
+intensity has been reduced to 45 kt, and is based on a blend of
+surface observations, Doppler radar data, and typical over land 
+tropical cyclone filling rates.  Sustained tropical storm force
+winds have been observed in northern Louisiana, and wind gusts to
+nearly 50 kt were reported in southern Arkansas earlier this
+afternoon.
+ 
+Laura will continue to rapidly weaken during the next 6-12 hours,
+and it is expected to become a tropical depression either this
+evening or overnight.  The extratropical remnants could strengthen
+over the western Atlantic early next week, and the track and
+intensity forecast for that time is based on guidance from
+the NOAA Ocean Prediction Center.
+ 
+The tropical storm has turned north-northeastward or 015/13 kt.
+The cyclone is forecast to turn northeastward, and then east-
+northeastward as it becomes embedded within the mid-latitude
+westerlies on Friday.  This motion will take Laura or its remnants
+across the central Appalachians and to the Mid-Atlantic states on
+Saturday.  After that time, the system should accelerate
+east-northeastward to northeastward over the western Atlantic.  The
+updated NHC track forecast remains similar to the previous advisory
+and is close to the various consensus models.
+ 
+Key Messages:
+ 
+1. Tropical storm force winds, especially in gusts, will continue
+near the center of Laura over portions of extreme northern Louisiana
+and Arkansas this evening.
+ 
+2. Flash flooding along small streams, urban areas, and roadways
+will continue across portions of Louisiana, Mississippi and
+Arkansas.  Additional rainfall will also lead to minor to moderate
+freshwater river flooding.  The heavy rainfall threat and flash and
+urban flooding potential will spread northeastward into the
+middle-Mississippi, lower Ohio and Tennessee Valleys, and
+Mid-Atlantic States Friday and Saturday.
+ 
+3. A few tornadoes are possible this evening across central and
+eastern Arkansas into Mississippi.  The risk for a few tornadoes
+should redevelop Friday afternoon and evening across parts of the
+Mid-South and Tennessee Valley regions.
+ 
+ 
+FORECAST POSITIONS AND MAX WINDS
+ 
+INIT  27/2100Z 33.4N  92.8W   45 KT  50 MPH...INLAND
+ 12H  28/0600Z 35.3N  91.7W   30 KT  35 MPH...INLAND
+ 24H  28/1800Z 36.7N  89.3W   25 KT  30 MPH...INLAND
+ 36H  29/0600Z 37.4N  85.1W   25 KT  30 MPH...POST-TROP/INLAND
+ 48H  29/1800Z 38.2N  78.6W   25 KT  30 MPH...POST-TROP/INLAND
+ 60H  30/0600Z 39.6N  70.9W   35 KT  40 MPH...POST-TROP/EXTRATROP
+ 72H  30/1800Z 43.1N  63.4W   45 KT  50 MPH...POST-TROP/EXTRATROP
+ 96H  31/1800Z 48.8N  50.7W   45 KT  50 MPH...POST-TROP/EXTRATROP
+120H  01/1800Z...DISSIPATED
+ 
+$$
+Forecaster Brown
+ 
+</pre>]]></description>
+<pubDate>Thu, 27 Aug 2020 20:43:19 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCDAT3+shtml/272043.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCDAT3+shtml/272043.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Depression Laura Wind Speed Probabilities Number 33</title>
+<description>Issued at 0300 UTC FRI AUG 28 2020                                              <![CDATA[<pre>
+ZCZC MIAPWSAT3 ALL                                                  
+TTAA00 KNHC DDHHMM                                                  
+                                                                    
+TROPICAL DEPRESSION LAURA WIND SPEED PROBABILITIES NUMBER  33       
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL132020               
+0300 UTC FRI AUG 28 2020                                            
+                                                                    
+AT 0300Z THE CENTER OF TROPICAL DEPRESSION LAURA WAS LOCATED NEAR   
+LATITUDE 35.1 NORTH...LONGITUDE 92.0 WEST WITH MAXIMUM SUSTAINED    
+WINDS NEAR 30 KTS...35 MPH...55 KM/H.                               
+                                                                    
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)                  
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME      
+   EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME      
+   CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME      
+                                                                    
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS                 
+                                                                    
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST     
+   ...34 KT (39 MPH... 63 KM/H)...                                  
+   ...50 KT (58 MPH... 93 KM/H)...                                  
+   ...64 KT (74 MPH...119 KM/H)...                                  
+FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS               
+                                                                    
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE               
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING            
+        AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)               
+   (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN           
+        00Z FRI AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)      
+                                                                    
+PROBABILITIES ARE GIVEN IN PERCENT                                  
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT                       
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.             
+PROBABILITIES FOR 34...50...64 KT SHOWN WHEN THE 5-DAY              
+64-KT CUMULATIVE PROBABILITY IS AT LEAST 1 PERCENT.                 
+                                                                    
+                                                                    
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -   
+                                                                    
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM 
+  TIME       00Z FRI 12Z FRI 00Z SAT 12Z SAT 00Z SUN 00Z MON 00Z TUE
+PERIODS         TO      TO      TO      TO      TO      TO      TO  
+             12Z FRI 00Z SAT 12Z SAT 00Z SUN 00Z MON 00Z TUE 00Z WED
+                                                                    
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+LOCATION       KT                                                   
+                                                                    
+HIBERNIA OILFD 34  X   X( X)   X( X)   X( X)   X( X)   5( 5)   X( 5)
+ 
+CAPE RACE NFLD 34  X   X( X)   X( X)   X( X)   1( 1)  12(13)   X(13)
+CAPE RACE NFLD 50  X   X( X)   X( X)   X( X)   X( X)   3( 3)   X( 3)
+ 
+ILE ST PIERRE  34  X   X( X)   X( X)   X( X)   1( 1)   9(10)   X(10)
+ 
+BURGEO NFLD    34  X   X( X)   X( X)   X( X)   1( 1)   3( 4)   X( 4)
+ 
+PTX BASQUES    34  X   X( X)   X( X)   X( X)   1( 1)   2( 3)   X( 3)
+ 
+SYDNEY NS      34  X   X( X)   X( X)   X( X)   2( 2)   3( 5)   X( 5)
+ 
+SABLE ISLAND   34  X   X( X)   X( X)   X( X)  11(11)   5(16)   X(16)
+ 
+HALIFAX NS     34  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+ 
+YARMOUTH NS    34  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+NANTUCKET MA   34  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+ 
+CAPE HENLOPEN  34  X   X( X)   X( X)   2( 2)   1( 3)   X( 3)   X( 3)
+ 
+OCEAN CITY MD  34  X   X( X)   X( X)   3( 3)   1( 4)   X( 4)   X( 4)
+ 
+PAX RIVER NAS  34  X   X( X)   X( X)   3( 3)   X( 3)   X( 3)   X( 3)
+ 
+WALLOPS CDA    34  X   X( X)   X( X)   3( 3)   X( 3)   X( 3)   X( 3)
+ 
+CHARLOTTESVIL  34  X   X( X)   X( X)   3( 3)   X( 3)   X( 3)   X( 3)
+ 
+RICHMOND VA    34  X   X( X)   X( X)   3( 3)   X( 3)   X( 3)   X( 3)
+ 
+$$                                                                  
+FORECASTER PASCH                                                    
+NNNN                                                                
+</pre>]]></description>
+<pubDate>Fri, 28 Aug 2020 02:34:10 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT3+shtml/DDHHMM.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT3+shtml/DDHHMM.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Depression Laura Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/235046.shtml?cone">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT13/AL132020_5day_cone_with_line_and_wind_sm2.png"
+alt="Tropical Depression Laura 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Thu, 27 Aug 2020 23:50:46 GMT
+<br /><br /><a href="https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/235046.shtml?tswind120">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT13/AL132020_wind_probs_34_F120_sm2.png"
+alt="Tropical Depression Laura 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Thu, 27 Aug 2020 21:24:41 GMT
+]]>
+</description>
+<pubDate>Thu, 27 Aug 2020 23:50:46 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/235046.shtml?cone</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/235046.shtml?cone</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for New Orleans / Baton Rouge, LA</title>
+<description>Issued at  410 PM CDT Thu Aug 27 2020</description>
+<pubDate>Thu, 27 Aug 2020 21:10:41 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS84-KLIX.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS84-KLIX.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Lake Charles, LA</title>
+<description>Issued at  425 PM CDT Thu Aug 27 2020</description>
+<pubDate>Thu, 27 Aug 2020 21:25:30 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS84-KLCH.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS84-KLCH.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Jackson, MS</title>
+<description>Issued at  434 PM CDT Thu Aug 27 2020</description>
+<pubDate>Thu, 27 Aug 2020 21:34:55 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS84-KJAN.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS84-KJAN.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Little Rock, AR</title>
+<description>Issued at  452 PM CDT Thu Aug 27 2020</description>
+<pubDate>Thu, 27 Aug 2020 21:52:22 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS84-KLZK.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS84-KLZK.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Shreveport, LA</title>
+<description>Issued at  654 PM CDT Thu Aug 27 2020</description>
+<pubDate>Thu, 27 Aug 2020 23:54:46 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS84-KSHV.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS84-KSHV.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+</channel>
+</rss>

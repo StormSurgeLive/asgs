@@ -36,7 +36,7 @@
 
 # Fundamental
 
-INSTANCENAME=LAv20a_al142020_jgf  # "name" of this ASGS process
+INSTANCENAME=LAv20a_al132020_hindcast_jgf  # "name" of this ASGS process
 
 # Input files and templates
 
@@ -56,8 +56,14 @@ HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=off      # NAM download/forcing
 FORECASTCYCLE="00,06,12,18" # <---<<< #jgf20200721: was just 06 
 TROPICALCYCLONE=on   # tropical cyclone forcing
-STORM=14             # storm number, e.g. 05=ernesto in 2006
-YEAR=2020            # year of the storm
+   STORM=13             # storm number, e.g. 05=ernesto in 2006
+   YEAR=2020            # year of the storm
+   TRIGGER=rssembedded              # either "ftp" or "rss"
+   RSSSITE=filesystem               # site information for retrieving advisories
+   FTPSITE=filesystem               # hindcast/nowcast ATCF formatted files
+   FDIR=$SCRIPTDIR/input/sample_advisories/2020/al132020_laura    # forecast dir on nhc ftp site
+   HDIR=$FDIR                                            # hindcast dir on nhc ftp site
+   PSEUDOSTORM=y
 WAVES=on            # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -68,14 +74,7 @@ CYCLETIMELIMIT="99:00:00"
 
 NCPU=959                     # number of compute CPUs for all simulations
 NUMWRITERS=1
-NCPUCAPACITY=9999 
-ACCOUNT=loni_cera_2020
-PARTITION=null
-#QUEUENAME=priority    # queenbee2 and supermic
-#SERQUEUE=priority     # queenbee2 and supermic
-#QUEUENAME=workq   # not priority
-#SERQUEUE=single   # not priority
-
+NCPUCAPACITY=99999 
 #QOS=vip               # stampede2 and lonestar5
 #
 if [[ $USER = jgflemin ]]; then
@@ -84,8 +83,15 @@ if [[ $USER = jgflemin ]]; then
    if [[ $HPCENVSHORT = queenbeeC ]]; then 
       ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/work
       SWANDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/swan
-      QUEUENAME=workq   # not priority
-      SERQUEUE=single   # not priority
+      ACCOUNT=loni_cera_2020
+      PARTITION=null
+   fi
+   if [[ $HPCENVSHORT = supermic ]]; then 
+      ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
+      SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
+      ACCOUNT=hpc_lsu_ccr_20
+      SERQUEUE=priority
+      QUEUENAME=priority
    fi
    if [[ $HPCENVSHORT = frontera ]]; then
       ADCIRCDIR=$WORK/adcirc-cg/work
@@ -93,25 +99,15 @@ if [[ $USER = jgflemin ]]; then
       QOS=vippj_p3000       # frontera
    fi
    if [[ $HPCENVSHORT = lonestar5 ]]; then
+      ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
+      SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
+   fi
+   if [[ $HPCENVSHORT = stampede2 ]]; then
       NCPU=1399
-      ADCIRCDIR=$WORK/adcirc-cg-v53release-intel/work
-      SWANDIR=$WORK/adcirc-cg-v53release-intel/swan
+      ADCIRCDIR=$WORK/adcirc-cg/adcirc-cg-v53release-intel/work
+      SWANDIR=$WORK/adcirc-cg/adcirc-cg-v53release-intel/swan
       QOS=vip7000
-      ACCOUNT=ADCIRC
-   fi
-   if [[ $HPCENVSHORT = supermic ]]; then
-      ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
-      SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
-      ACCOUNT=hpc_lsu_ccr_20
-      SERQUEUE=priority
-      QUEUENAME=priority
-   fi
-   if [[ $HPCENVSHORT = queenbee ]]; then
-      ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
-      SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
-      ACCOUNT=hpc_lsu_ccr_20
-      SERQUEUE=priority
-      QUEUENAME=priority
+      ACCOUNT=DesignSafe-CERA
    fi
 fi
 
@@ -129,20 +125,35 @@ fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020071800  
+COLDSTARTDATE=auto 
 HOTORCOLD=hotstart     # "hotstart" or "coldstart"
-LASTSUBDIR=/work/jgflemin/asgs253623/initialize
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020082412/LA_v20a-WithUpperAtch_chk/supermic.hpc.lsu.edu/LAv20a_nam_akheir/namforecast
 
-if [[ $HPCENVSHORT = supermic || $HPCENVSHORT = lonestar5 ]]; then
-   COLDSTARTDATE=auto
-   HOTORCOLD=hotstart     # "hotstart" or "coldstart"
-   LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/al14/07/LA_v20a-WithUpperAtch_chk/qbc.loni.org/LAv20a_al142020_jgf/nhcConsensus
-fi
+# hard code for the nowcastWind10m job
+scenarioMessage "THIS: Setting parameters to trigger ADCIRC met-only mode for ${ENSTORM}."
+ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh   
+FORECASTWALLTIME="01:00:00" # forecast wall clock time   
+CONTROLTEMPLATE=$CONTROLTEMPLATENOROUGH  # CONTROLTEMPLATENOROUGH set in config/mesh_defaults.sh
+TIMESTEPSIZE=300.0          # 15 minute time steps
+NCPU=15                     # dramatically reduced resource requirements
+NUMWRITERS=1                # multiple writer procs might collide
+WAVES=off                   # deactivate wave forcing
+FORT61="--fort61freq 0"     # turn off water surface elevation station output
+FORT62="--fort62freq 0"     # turn off water current velocity station output
+FORT63="--fort63freq 0"     # turn off full domain water surface elevation output
+FORT64="--fort64freq 0"     # turn off full domain water current velocity output
+FORT7172="--fort7172freq 300.0 --fort7172netcdf"    # met station output
+FORT7374="--fort7374freq 3600.0 --fort7374netcdf"   # full domain meteorological output
+#SPARSE="--sparse-output"
+SPARSE=""
+NETCDF4="--netcdf4"
+OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+POSTPROCESS=( null_post.sh )
 
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=0 # number of storms in the ensemble
 case $si in
  -2)
    ENSTORM=hindcast
@@ -151,30 +162,39 @@ case $si in
    # do nothing ... this is not a forecast
    ENSTORM=nowcast
    ;;
- 0)
-   ENSTORM=veerLeft100Wind10m
-   PERCENT=-100
+  0)
+   ENSTORM=nhcConsensusWind10m
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
- 1)
-   ENSTORM=veerLeft100
-   PERCENT=-100
+  1)
+   ENSTORM=nhcConsensus
    ;;
- 2)
+  2)
    ENSTORM=veerRight100Wind10m
    PERCENT=100
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
- 3)
+  3)
    ENSTORM=veerRight100
    PERCENT=100
    ;;
- 4)
-   ENSTORM=nhcConsensusWind10m
+  4)
+   ENSTORM=maxWindSpeed10Wind10m
+   PERCENT=10
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
- 5)
-   ENSTORM=nhcConsensus
+  5)
+   ENSTORM=maxWindSpeed10
+   PERCENT=10
+   ;;
+  6)
+   ENSTORM=veerLeft100Wind10m
+   PERCENT=-100
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   ;;
+  7)
+   ENSTORM=veerLeft100
+   PERCENT=-100
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
