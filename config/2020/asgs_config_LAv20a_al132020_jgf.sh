@@ -98,8 +98,8 @@ if [[ $USER = jgflemin ]]; then
    fi
    if [[ $HPCENVSHORT = stampede2 ]]; then
       NCPU=1399
-      ADCIRCDIR=$WORK/adcirc-cg/adcirc-cg-v53release-intel/work
-      SWANDIR=$WORK/adcirc-cg/adcirc-cg-v53release-intel/swan
+      ADCIRCDIR=$WORK/adcirc-cg-v53release-intel/work
+      SWANDIR=$WORK/adcirc-cg-v53release-intel/swan
       QOS=vip7000
       ACCOUNT=DesignSafe-CERA
    fi
