@@ -1,0 +1,1270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:georss="http://www.georss.org/georss"
+ xmlns:gml="http://www.opengis.net/gml"
+ xmlns:nhc="https://www.nhc.noaa.gov">
+<channel>
+<pubDate>Mon, 24 Aug 2020 20:47:10 GMT</pubDate>
+<title>NHC Atlantic</title>
+<description>Active tropical cyclones in the Atlantic, Caribbean, and the Gulf of Mexico</description>
+<link>https://www.nhc.noaa.gov/</link>
+<copyright>none</copyright>
+<managingEditor>nhcwebmaster@noaa.gov (NHC Webmaster)</managingEditor>
+<language>en-us</language>
+<webMaster>nhcwebmaster@noaa.gov (NHC Webmaster)</webMaster>
+<image>
+<url>https://www.nhc.noaa.gov/gifs/xml_logo_nhc.gif</url>
+<link>https://www.nhc.noaa.gov/</link>
+<title>NHC Atlantic</title>
+<description>NOAA logo</description>
+<width>95</width>
+<height>45</height>
+</image>
+<item>
+<title>Atlantic Tropical Weather Outlook</title>
+<description>
+<![CDATA[
+<br/>
+000<br/>
+ABNT20 KNHC 241743<br/>
+TWOAT <br/>
+<br/>
+Tropical Weather Outlook<br/>
+NWS National Hurricane Center Miami FL<br/>
+200 PM EDT Mon Aug 24 2020<br/>
+<br/>
+For the North Atlantic...Caribbean Sea and the Gulf of Mexico:<br/>
+<br/>
+The National Hurricane Center is issuing advisories on Tropical <br/>
+Storm Laura, located just off the southern coast of Cuba, and on <br/>
+Tropical Storm Marco, located over the north-central Gulf of <br/>
+Mexico. <br/>
+<br/>
+Tropical cyclone formation is not expected during the next 5 days.<br/>
+<br/>
+$$<br/>
+Forecaster Berg<br/>
+]]>
+</description>
+<pubDate>Mon, 24 Aug 2020 17:43:47 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/gtwo.php?basin=atlc</link>
+<guid>https://www.nhc.noaa.gov/gtwo.php?basin=atlc&amp;202008241743</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+ <title>Summary for Tropical Storm Laura (AT3/AL132020)</title>
+ <guid isPermaLink="false">summary-al132020-202008242044</guid>
+ <pubDate>Mon, 24 Aug 2020 20:44:48 GMT</pubDate>
+ <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+ <link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/242044.shtml</link>
+ <description>
+  ...CENTER OF LAURA PASSING NEAR THE ISLE OF YOUTH.... ...HURRICANE AND STORM SURGE WATCHES ISSUED FOR A PORTION OF THE  NORTHWEST GULF COAST...
+ As of 5:00 PM EDT Mon Aug 24
+ the center of Laura was located near 21.7, -82.2
+ with movement WNW at 20 mph.
+ The minimum central pressure was 1001 mb
+ with maximum sustained winds of about 60 mph.
+ </description>
+ <nhc:Cyclone>
+  <nhc:center>21.7, -82.2</nhc:center>
+  <nhc:type>Tropical Storm</nhc:type>
+  <nhc:name>Laura</nhc:name>
+  <nhc:wallet>AT3</nhc:wallet>
+  <nhc:atcf>AL132020</nhc:atcf>
+  <nhc:datetime>5:00 PM EDT Mon Aug 24</nhc:datetime>
+  <nhc:movement>WNW at 20 mph</nhc:movement>
+  <nhc:pressure>1001 mb</nhc:pressure>
+  <nhc:wind>60 mph</nhc:wind>
+  <nhc:headline> ...CENTER OF LAURA PASSING NEAR THE ISLE OF YOUTH.... ...HURRICANE AND STORM SURGE WATCHES ISSUED FOR A PORTION OF THE  NORTHWEST GULF COAST...</nhc:headline>
+ </nhc:Cyclone>
+</item>
+<item>
+<title>Tropical Storm Laura Public Advisory Number 20</title>
+<description>Issued at 500 PM EDT Mon Aug 24 2020  <![CDATA[<pre>
+
+000
+WTNT33 KNHC 242044
+TCPAT3
+ 
+BULLETIN
+Tropical Storm Laura Advisory Number  20
+NWS National Hurricane Center Miami FL       AL132020
+500 PM EDT Mon Aug 24 2020
+ 
+...CENTER OF LAURA PASSING NEAR THE ISLE OF YOUTH....
+...HURRICANE AND STORM SURGE WATCHES ISSUED FOR A PORTION OF THE 
+NORTHWEST GULF COAST...
+ 
+ 
+SUMMARY OF 500 PM EDT...2100 UTC...INFORMATION
+----------------------------------------------
+LOCATION...21.7N 82.2W
+ABOUT 40 MI...65 KM E OF THE ISLE OF YOUTH
+ABOUT 175 MI...280 KM E OF THE WESTERN TIP OF CUBA
+MAXIMUM SUSTAINED WINDS...60 MPH...95 KM/H
+PRESENT MOVEMENT...WNW OR 290 DEGREES AT 20 MPH...31 KM/H
+MINIMUM CENTRAL PRESSURE...1001 MB...29.56 INCHES
+ 
+ 
+WATCHES AND WARNINGS
+--------------------
+CHANGES WITH THIS ADVISORY:
+ 
+A Storm Surge Watch is in effect from San Luis Pass, Texas, to Ocean
+Springs, Mississippi, including Lake Pontchartrain, Lake Maurepas,
+and Lake Borgne for areas outside of the southeast Louisiana 
+Hurricane and Storm Damage Risk Reduction System. 
+ 
+A Hurricane Watch is in effect from Port Bolivar, Texas, to
+west of Morgan City, Louisiana.
+ 
+A Tropical Storm Watch is in effect from south of Port Bolivar to
+San Luis Pass Texas and from Morgan City to the Mouth of the
+Mississippi River.
+ 
+The Tropical Storm Warning for Little Cayman and Cayman Brac has
+been discontinued.
+ 
+The Tropical Storm Warning for the Cuban provinces of Camaguey and
+Las Tunas has been discontinued.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT:
+ 
+A Storm Surge Watch is in effect for...
+* San Luis Pass Texas to Ocean Springs Mississippi
+* Lake Pontchartrain, Lake Maurepas, and Lake Borgne
+ 
+A Hurricane Watch is in effect for...
+* Port Bolivar Texas to west of Morgan City Louisiana
+ 
+A Tropical Storm Warning is in effect for...
+* Cuban provinces of Ciego De Avila, Sancti Spiritus, Villa Clara,
+Cienfuegos, Matanzas, Mayabeque, La Habana, Artemisa, Pinar del
+Rio, and the Isle of Youth
+* Florida Keys from Craig Key to Key West
+* Dry Tortugas
+ 
+A Tropical Storm Watch is in effect for...
+* South of Port Bolivar to San Luis Pass Texas
+* Morgan City Louisiana to the Mouth of the Mississippi River
+ 
+A Storm Surge Watch means there is a possibility of life-
+threatening inundation, from rising water moving inland from the
+coastline, in the indicated locations during the next 48 hours.
+For a depiction of areas at risk, please see the National Weather
+Service Storm Surge Watch/Warning Graphic, available at
+hurricanes.gov.
+ 
+A Hurricane Watch means that hurricane conditions are possible
+within the watch area.  A watch is typically issued 48 hours
+before the anticipated first occurrence of tropical-storm-force
+winds, conditions that make outside preparations difficult or
+dangerous.
+ 
+A Tropical Storm Warning means that tropical storm conditions are
+expected somewhere within the warning area.
+ 
+A Tropical Storm Watch means that tropical storm conditions are
+possible within the watch area, generally within 48 hours.
+ 
+For storm information specific to your area in the United
+States, including possible inland watches and warnings, please
+monitor products issued by your local National Weather Service
+forecast office. For storm information specific to your area
+outside of the United States, please monitor products issued by
+your national meteorological service.
+ 
+ 
+DISCUSSION AND OUTLOOK
+----------------------
+At 500 PM EDT (2100 UTC), the center of Tropical Storm Laura was
+located near latitude 21.7 North, longitude 82.2 West. Laura is
+moving toward the west-northwest near 20 mph (31 km/h), and this
+general motion with some decrease in forward speed is expected over
+the next day or so.  A turn toward the northwest is forecast by
+Wednesday, and a northwestward to north-northwestward motion should
+continue through Wednesday night.  On the forecast track, the center
+of Laura will cross western Cuba this evening and move into the 
+southeastern Gulf of Mexico overnight.  Laura is then forecast to 
+move over the central and northwestern Gulf of Mexico Tuesday night 
+and Wednesday, and approach the northwestern coast of the Gulf of 
+Mexico Wednesday night.
+ 
+Maximum sustained winds are near 60 mph (95 km/h) with higher gusts.
+Strengthening is expected when the storm moves over the Gulf of 
+Mexico, and Laura is foreast to become a hurricane by late Tuesday. 
+Additional strengthening is forecast on Wednesday.
+ 
+Tropical-storm-force winds extend outward up to 175 miles (280 km) 
+primarily to the northeast and east of the center. 
+ 
+The estimated minimum central pressure is 1001 mb (29.56 inches).
+ 
+ 
+HAZARDS AFFECTING LAND
+----------------------
+Key messages for Laura can be found in the Tropical Cyclone
+Discussion under AWIPS header MIATCDAT3 and WMO header WTNT43 KNHC.
+
+STORM SURGE:  The combination of a dangerous storm surge and the
+tide will cause normally dry areas near the coast to be flooded by
+rising waters moving inland from the shoreline.  The water could
+reach the following heights above ground somewhere in the indicated
+areas if the peak surge occurs at the time of high tide...
+
+High Island TX to Morgan City LA including Sabine Lake, Calcasieu 
+Lake, and Vermilion Bay...7-11 ft 
+Port Bolivar TX to High Island TX...4-6 ft 
+Morgan City LA to Mouth of the Mississippi River...4-6 ft 
+Mouth of the Mississippi River to Ocean Springs MS including Lake 
+Borgne...3-5 ft 
+San Luis Pass TX to Port Bolivar TX...2-4 ft
+Galveston Bay...2-4 ft
+Lake Pontchartrain and Lake Maurepas...2-4 ft
+
+The deepest water will occur along the immediate coast near and to
+the right of the landfall location, where the surge will be
+accompanied by large and destructive waves.  Surge-related
+flooding depends on the relative timing of the surge and the tidal
+cycle, and can vary greatly over short distances.  For information
+specific to your area, please see products issued by your local
+National Weather Service forecast office.
+ 
+RAINFALL: Laura is expected to produce the following storm total 
+rainfall accumulations into tonight:
+
+Western Jamaica, Western Cuba and the Cayman Islands: 4 to 6 inches, 
+with maximum amounts of 10 inches. Across the Greater Antilles this 
+heavy rainfall could lead to life-threatening flash and urban 
+flooding, and the potential for mudslides. 
+
+From Wednesday afternoon into Saturday, Laura is expected to produce 
+rainfall of 4 to 8 inches, with isolated maximum amounts of 12 
+inches across portions of the west-central U.S. Gulf Coast near the 
+Texas and Louisiana border north into portions of the lower 
+Mississippi Valley.  This rainfall could cause widespread flash and 
+urban flooding, small streams to overflow their banks, and minor to 
+isolated moderate river flooding.
+ 
+WIND:  Tropical storm conditions are expected to spread westward
+within the warning area in western Cuba through this evening.
+Tropical storm conditions are also expected within the warning area
+in the middle and lower Florida Keys and the Dry Tortugas tonight.
+
+Hurricane conditions are possible in the hurricane watch area along 
+the Gulf Coast by late Wednesday, with tropical storm conditions 
+possible by Wednesday afternoon. 
+
+SURF:  Swells generated by Laura are affecting portions of Cuba, the
+central Bahamas, and the Florida Keys. Swells are expected to
+spread northward along portions of the west coast of Florida
+peninsula and the coast of the Florida panhandle on Tuesday
+and Tuesday night, and reach the northern and northwest Gulf coast
+by Wednesday. These swells are likely to cause life-threatening surf
+and rip current conditions.  Please consult products from your
+local weather office.
+ 
+TORNADOES:  An isolated tornado is possible through tonight across 
+the Florida Keys.  
+ 
+ 
+NEXT ADVISORY
+-------------
+Next intermediate advisory at 800 PM EDT.
+Next complete advisory at 1100 PM EDT.
+ 
+$$
+Forecaster Brown
+ 
+</pre>]]></description>
+<pubDate>Mon, 24 Aug 2020 20:44:48 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/242044.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/242044.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Laura Forecast Advisory Number 20</title>
+<description>Issued at 2100 UTC MON AUG 24 2020  <![CDATA[<pre>
+
+619 
+WTNT23 KNHC 242044
+TCMAT3
+ 
+TROPICAL STORM LAURA FORECAST/ADVISORY NUMBER  20
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL132020
+2100 UTC MON AUG 24 2020
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+A STORM SURGE WATCH IS IN EFFECT FROM SAN LUIS PASS TEXAS TO 
+OCEAN SPRINGS MISSISSIPPI...INCLUDING LAKE PONTCHARTRAIN...LAKE 
+MAUREPAS AND LAKE BORGNE FOR AREAS OUTSIDE OF THE SOUTHEAST 
+LOUISIANA HURRICANE AND STORM DAMAGE RISK REDUCTION SYSTEM. 
+ 
+A HURRICANE WATCH IS IN EFFECT FROM PORT BOLIVAR TEXAS TO
+WEST OF MORGAN CITY LOUISIANA.
+ 
+A TROPICAL STORM WATCH IS IN EFFECT FROM SOUTH OF PORT BOLIVAR TO
+SAN LUIS PASS TEXAS AND FROM MORGAN CITY TO THE MOUTH OF THE
+MISSISSIPPI RIVER.
+ 
+THE TROPICAL STORM WARNING FOR LITTLE CAYMAN AND CAYMAN BRAC HAS
+BEEN DISCONTINUED.
+ 
+THE TROPICAL STORM WARNING FOR THE CUBAN PROVINCES OF CAMAGUEY AND
+LAS TUNAS HAS BEEN DISCONTINUED.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A STORM SURGE WATCH IS IN EFFECT FOR...
+* SAN LUIS PASS TEXAS TO OCEAN SPRINGS MISSISSIPPI
+* LAKE PONTCHARTRAIN...LAKE MAUREPAS...AND LAKE BORGNE
+ 
+A HURRICANE WATCH IS IN EFFECT FOR...
+* PORT BOLIVAR TEXAS TO WEST OF MORGAN CITY LOUISIANA
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* CUBAN PROVINCES OF CIEGO DE AVILA...SANCTI SPIRITUS...VILLA 
+CLARA... CIENFUEGOS...MATANZAS...MAYABEQUE...LA 
+HABANA...ARTEMISA...PINAR DEL RIO...AND THE ISLE OF YOUTH
+* FLORIDA KEYS FROM CRAIG KEY TO KEY WEST
+* DRY TORTUGAS
+ 
+A TROPICAL STORM WATCH IS IN EFFECT FOR...
+* SOUTH OF PORT BOLIVAR TO SAN LUIS PASS TEXAS
+* MORGAN CITY LOUISIANA TO THE MOUTH OF THE MISSISSIPPI RIVER
+ 
+A STORM SURGE WATCH MEANS THERE IS A POSSIBILITY OF LIFE-
+THREATENING INUNDATION...FROM RISING WATER MOVING INLAND FROM THE
+COASTLINE...IN THE INDICATED LOCATIONS DURING THE NEXT 48 HOURS.
+FOR A DEPICTION OF AREAS AT RISK...PLEASE SEE THE NATIONAL WEATHER
+SERVICE STORM SURGE WATCH/WARNING GRAPHIC...AVAILABLE AT
+HURRICANES.GOV.
+ 
+A HURRICANE WATCH MEANS THAT HURRICANE CONDITIONS ARE POSSIBLE
+WITHIN THE WATCH AREA.  A WATCH IS TYPICALLY ISSUED 48 HOURS
+BEFORE THE ANTICIPATED FIRST OCCURRENCE OF TROPICAL-STORM-FORCE
+WINDS...CONDITIONS THAT MAKE OUTSIDE PREPARATIONS DIFFICULT OR
+DANGEROUS.
+ 
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA WITHIN 36 HOURS.
+ 
+A TROPICAL STORM WATCH MEANS THAT TROPICAL STORM CONDITIONS ARE
+POSSIBLE WITHIN THE WATCH AREA...GENERALLY WITHIN 48 HOURS.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 21.7N  82.2W AT 24/2100Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST-NORTHWEST OR 290 DEGREES AT  17 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1001 MB
+MAX SUSTAINED WINDS  50 KT WITH GUSTS TO  60 KT.
+50 KT....... 60NE  60SE   0SW   0NW.
+34 KT.......150NE 140SE   0SW   0NW.
+12 FT SEAS..120NE   0SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 21.7N  82.2W AT 24/2100Z
+AT 24/1800Z CENTER WAS LOCATED NEAR 21.4N  81.4W
+ 
+FORECAST VALID 25/0600Z 22.7N  84.5W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 60NE  60SE   0SW  20NW.
+34 KT...150NE 140SE   0SW  40NW.
+ 
+FORECAST VALID 25/1800Z 24.2N  87.4W
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 50NE  50SE  20SW  30NW.
+34 KT...150NE 140SE  40SW  70NW.
+ 
+FORECAST VALID 26/0600Z 25.7N  90.0W
+MAX WIND  75 KT...GUSTS  90 KT.
+64 KT... 20NE  20SE  10SW  20NW.
+50 KT... 50NE  50SE  30SW  40NW.
+34 KT...150NE 140SE  60SW  80NW.
+ 
+FORECAST VALID 26/1800Z 27.5N  92.0W
+MAX WIND  85 KT...GUSTS 105 KT.
+64 KT... 25NE  25SE  15SW  20NW.
+50 KT... 60NE  60SE  30SW  40NW.
+34 KT...140NE 140SE  60SW 100NW.
+ 
+FORECAST VALID 27/0600Z 29.8N  93.1W
+MAX WIND  90 KT...GUSTS 110 KT.
+50 KT... 40NE  60SE  40SW  40NW.
+34 KT...110NE 140SE  70SW  80NW.
+ 
+FORECAST VALID 27/1800Z 32.5N  93.0W...INLAND
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT... 60NE  80SE  30SW  50NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 28/1800Z 36.1N  90.0W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+OUTLOOK VALID 29/1800Z 36.5N  80.5W...POST-TROP/REMNT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 21.7N  82.2W
+ 
+INTERMEDIATE PUBLIC ADVISORY...WTNT33 KNHC/MIATCPAT3...AT 25/0000Z
+ 
+NEXT ADVISORY AT 25/0300Z
+ 
+$$
+FORECASTER BROWN
+ 
+ 
+
+</pre>]]></description>
+<pubDate>Mon, 24 Aug 2020 20:44:18 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCMAT3+shtml/242044.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCMAT3+shtml/242044.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Laura Forecast Discussion Number 20</title>
+<description>Issued at 500 PM EDT Mon Aug 24 2020  <![CDATA[<pre>
+
+000
+WTNT43 KNHC 242045
+TCDAT3
+ 
+Tropical Storm Laura Discussion Number  20
+NWS National Hurricane Center Miami FL       AL132020
+500 PM EDT Mon Aug 24 2020
+ 
+The satellite presentation of the tropical storm has improved 
+somewhat with deep convection remaining over the center, and an 
+increase in banding over the southeastern portion of the 
+circulation. Earlier aircraft and scatterometer data, however, 
+indicated that there has been little change in strength today, and 
+the initial intensity remains 50 kt.  These observations have shown 
+the the stronger winds are located in the convective band well east 
+and southeast of the center, and that the system currently lacks  
+an inner core. This is likely the reason that Laura has not been 
+able to strengthen while it has moved over water today.  The 
+aircraft also reported a fairly stable minimum pressure of 1001-1003 
+mb during its mission this morning and early afternoon.
+ 
+The intensity forecast philosophy remains the same as the previous 
+advisory.  Once Laura moves over the southeastern Gulf of Mexico 
+tonight, a combination of warm sea surface temperatures and low 
+vertical wind shear should allow for steady strengthening. The 
+latest iterations of the global and regional hurricane models 
+continue to show significant deepening while Laura traverses the 
+Gulf of Mexico, and a period or rapid strengthening is possible once 
+an inner core is able to organize. The statistical guidance is 
+again on the lower side of the intensity forecast envelope 
+while the HWRF and CTCI models bringing Laura to major hurricane 
+strength. The NHC intensity forecast is again between these 
+solutions and is close to the consensus aids.
+ 
+The initial motion estimate is 290/16 kt. A deep-layer ridge over
+the western Atlantic is expected to build westward during the next
+day or so.  By early Wednesday, a mid- to upper-level trough over
+the south-central United States is forecast to erode the western
+portion of the ridge, which should cause Laura to turn northwestward
+and then northward toward the northwestern Gulf coast.  After 
+landfall, Laura or its remnants are expected to become embedded 
+in the mid-latitude westerlies and recurve over the eastern U.S. 
+on days 4 and 5.  The latest runs of the dynamical models are in a 
+little better agreement, but the 1200 UTC ECMWF ensemble mean is 
+located considerably left of its deterministic run, indicating that 
+uncertainty regarding the track forecast remains.  Users are again 
+reminded to not to focus on the exact details of the track or 
+intensity forecasts as the average NHC track error at 60 h is 
+around 90 miles and the average intensity error is close to 15 mph.  
+In addition, wind, storm surge, and rainfall hazards will extend 
+far from the center.
+
+The new NHC forecast necessitates the issuance of storm surge and 
+hurricane watches for portions of the U.S. Gulf Coast. 
+ 
+Key Messages:
+ 
+1. Laura is forecast to reach the northwestern Gulf Coast as a 
+hurricane late Wednesday and early Thursday. Do not focus 
+on the details of the official forecast given the typical 
+uncertainty in NHC's 2 to 3 day track and intensity predictions. In 
+addition, storm surge, wind, and rainfall hazards will extend well 
+away from Laura's center along the Gulf Coast. 
+
+2. There is a risk of life-threatening storm surge from San Luis 
+Pass, Texas, to Ocean Springs, Mississippi, within the next 48 
+hours, and a storm surge watch has been issued for these areas 
+outside of the southeast Louisiana Hurricane and Storm Damage Risk 
+Reduction System. Residents in these areas should follow any advice 
+given by local officials.
+
+3. Hurricane conditions are possible by late Wednesday from Port 
+Bolivar, Texas, to west of Morgan City, Louisiana, with tropical 
+storm conditions possible by Wednesday afternoon, and a hurricane 
+watch has been issued. Additional hurricane watches may be needed 
+farther south along the Texas coast if the track forecast shifts 
+toward the south and west tonight and Tuesday. 
+
+4. Tropical storm conditions and heavy rainfall are expected across 
+central and western Cuba through tonight. These rains could cause 
+mudslides and life-threatening flash and urban flooding.
+
+
+FORECAST POSITIONS AND MAX WINDS
+ 
+INIT  24/2100Z 21.7N  82.2W   50 KT  60 MPH
+ 12H  25/0600Z 22.7N  84.5W   50 KT  60 MPH
+ 24H  25/1800Z 24.2N  87.4W   60 KT  70 MPH
+ 36H  26/0600Z 25.7N  90.0W   75 KT  85 MPH
+ 48H  26/1800Z 27.5N  92.0W   85 KT 100 MPH
+ 60H  27/0600Z 29.8N  93.1W   90 KT 105 MPH
+ 72H  27/1800Z 32.5N  93.0W   45 KT  50 MPH...INLAND
+ 96H  28/1800Z 36.1N  90.0W   25 KT  30 MPH...INLAND
+120H  29/1800Z 36.5N  80.5W   25 KT  30 MPH...POST-TROP/REMNT LOW
+ 
+$$
+Forecaster Brown
+ 
+</pre>]]></description>
+<pubDate>Mon, 24 Aug 2020 20:45:19 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCDAT3+shtml/242045.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCDAT3+shtml/242045.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Laura Wind Speed Probabilities Number 20</title>
+<description>Issued at 2100 UTC MON AUG 24 2020                                              <![CDATA[<pre>
+
+000
+FONT13 KNHC 242045
+PWSAT3
+                                                                    
+TROPICAL STORM LAURA WIND SPEED PROBABILITIES NUMBER  20            
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL132020               
+2100 UTC MON AUG 24 2020                                            
+                                                                    
+AT 2100Z THE CENTER OF TROPICAL STORM LAURA WAS LOCATED NEAR        
+LATITUDE 21.7 NORTH...LONGITUDE 82.2 WEST WITH MAXIMUM SUSTAINED    
+WINDS NEAR 50 KTS...60 MPH...95 KM/H.                               
+                                                                    
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)                  
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME      
+   EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME      
+   CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME      
+                                                                    
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS                 
+                                                                    
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST     
+   ...34 KT (39 MPH... 63 KM/H)...                                  
+   ...50 KT (58 MPH... 93 KM/H)...                                  
+   ...64 KT (74 MPH...119 KM/H)...                                  
+FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS               
+                                                                    
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE               
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING            
+        AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)               
+   (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN           
+        18Z MON AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)      
+                                                                    
+PROBABILITIES ARE GIVEN IN PERCENT                                  
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT                       
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.             
+PROBABILITIES FOR 34...50...64 KT SHOWN WHEN THE 5-DAY              
+64-KT CUMULATIVE PROBABILITY IS AT LEAST 1 PERCENT.                 
+                                                                    
+                                                                    
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -   
+                                                                    
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM 
+  TIME       18Z MON 06Z TUE 18Z TUE 06Z WED 18Z WED 18Z THU 18Z FRI
+PERIODS         TO      TO      TO      TO      TO      TO      TO  
+             06Z TUE 18Z TUE 06Z WED 18Z WED 18Z THU 18Z FRI 18Z SAT
+                                                                    
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+LOCATION       KT                                                   
+                                                                    
+GREENSBORO NC  34  X   X( X)   X( X)   X( X)   X( X)   X( X)   3( 3)
+ 
+RALEIGH NC     34  X   X( X)   X( X)   X( X)   X( X)   X( X)   3( 3)
+ 
+FAYETTEVILLE   34  X   X( X)   X( X)   X( X)   X( X)   X( X)   3( 3)
+ 
+CHARLOTTE NC   34  X   X( X)   X( X)   X( X)   X( X)   X( X)   3( 3)
+ 
+NEW RIVER NC   34  X   X( X)   X( X)   X( X)   X( X)   X( X)   3( 3)
+ 
+SURF CITY NC   34  X   X( X)   X( X)   X( X)   X( X)   X( X)   3( 3)
+ 
+FLORENCE SC    34  X   X( X)   X( X)   X( X)   X( X)   X( X)   3( 3)
+ 
+COLUMBIA SC    34  X   X( X)   X( X)   X( X)   X( X)   X( X)   3( 3)
+ 
+LITTLE RIVER   34  X   X( X)   X( X)   X( X)   X( X)   X( X)   3( 3)
+ 
+MARATHON FL    34  6   1( 7)   X( 7)   X( 7)   X( 7)   X( 7)   X( 7)
+ 
+KEY WEST FL    34 10   2(12)   X(12)   X(12)   X(12)   X(12)   X(12)
+ 
+NAPLES FL      34  3   2( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+VENICE FL      34  X   4( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+GFMX 290N 850W 34  X   1( 1)   2( 3)   1( 4)   X( 4)   X( 4)   X( 4)
+ 
+PANAMA CITY FL 34  X   X( X)   1( 1)   1( 2)   1( 3)   X( 3)   X( 3)
+ 
+DESTIN EXEC AP 34  X   X( X)   1( 1)   1( 2)   2( 4)   X( 4)   X( 4)
+ 
+BIRMINGHAM AL  34  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   1( 4)
+ 
+MONTGOMERY AL  34  X   X( X)   X( X)   X( X)   2( 2)   1( 3)   X( 3)
+ 
+WHITING FLD FL 34  X   X( X)   X( X)   2( 2)   5( 7)   X( 7)   X( 7)
+ 
+PENSACOLA FL   34  X   X( X)   1( 1)   2( 3)   6( 9)   X( 9)   X( 9)
+ 
+GFMX 290N 870W 34  X   2( 2)  11(13)   5(18)   2(20)   X(20)   X(20)
+ 
+MOBILE AL      34  X   X( X)   2( 2)   3( 5)  11(16)   X(16)   X(16)
+ 
+GULFPORT MS    34  X   X( X)   2( 2)   6( 8)  17(25)   X(25)   X(25)
+GULFPORT MS    50  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+STENNIS MS     34  X   X( X)   2( 2)   8(10)  22(32)   1(33)   X(33)
+STENNIS MS     50  X   X( X)   X( X)   1( 1)   4( 5)   X( 5)   X( 5)
+STENNIS MS     64  X   X( X)   X( X)   X( X)   2( 2)   X( 2)   X( 2)
+ 
+BURAS LA       34  X   X( X)   4( 4)  14(18)  17(35)   1(36)   X(36)
+BURAS LA       50  X   X( X)   X( X)   2( 2)   4( 6)   X( 6)   X( 6)
+BURAS LA       64  X   X( X)   X( X)   X( X)   1( 1)   X( 1)   X( 1)
+ 
+GFMX 280N 890W 34  X   4( 4)  34(38)  18(56)   3(59)   X(59)   X(59)
+GFMX 280N 890W 50  X   X( X)   5( 5)   7(12)   X(12)   X(12)   X(12)
+GFMX 280N 890W 64  X   X( X)   X( X)   2( 2)   X( 2)   X( 2)   X( 2)
+ 
+JACKSON MS     34  X   X( X)   X( X)   2( 2)  28(30)   1(31)   X(31)
+JACKSON MS     50  X   X( X)   X( X)   X( X)   5( 5)   X( 5)   X( 5)
+ 
+NEW ORLEANS LA 34  X   X( X)   3( 3)  12(15)  31(46)   1(47)   X(47)
+NEW ORLEANS LA 50  X   X( X)   X( X)   2( 2)   9(11)   X(11)   X(11)
+NEW ORLEANS LA 64  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+GFMX 280N 910W 34  X   1( 1)  28(29)  53(82)   7(89)   X(89)   X(89)
+GFMX 280N 910W 50  X   X( X)   5( 5)  46(51)   9(60)   X(60)   X(60)
+GFMX 280N 910W 64  X   X( X)   1( 1)  23(24)   7(31)   X(31)   X(31)
+ 
+BATON ROUGE LA 34  X   X( X)   2( 2)  11(13)  46(59)   1(60)   X(60)
+BATON ROUGE LA 50  X   X( X)   X( X)   2( 2)  22(24)   1(25)   X(25)
+BATON ROUGE LA 64  X   X( X)   X( X)   X( X)  10(10)   X(10)   X(10)
+ 
+MORGAN CITY LA 34  X   X( X)   4( 4)  24(28)  37(65)   X(65)   X(65)
+MORGAN CITY LA 50  X   X( X)   X( X)   3( 3)  26(29)   X(29)   X(29)
+MORGAN CITY LA 64  X   X( X)   X( X)   1( 1)   9(10)   X(10)   X(10)
+ 
+ALEXANDRIA LA  34  X   X( X)   X( X)   6( 6)  61(67)   2(69)   X(69)
+ALEXANDRIA LA  50  X   X( X)   X( X)   X( X)  36(36)   1(37)   X(37)
+ALEXANDRIA LA  64  X   X( X)   X( X)   X( X)  18(18)   X(18)   X(18)
+ 
+LAFAYETTE LA   34  X   X( X)   2( 2)  15(17)  57(74)   X(74)   X(74)
+LAFAYETTE LA   50  X   X( X)   X( X)   2( 2)  40(42)   1(43)   X(43)
+LAFAYETTE LA   64  X   X( X)   X( X)   X( X)  22(22)   X(22)   X(22)
+ 
+NEW IBERIA LA  34  X   X( X)   3( 3)  19(22)  51(73)   1(74)   X(74)
+NEW IBERIA LA  50  X   X( X)   X( X)   3( 3)  39(42)   1(43)   X(43)
+NEW IBERIA LA  64  X   X( X)   X( X)   X( X)  21(21)   X(21)   X(21)
+ 
+GFMX 280N 930W 34  X   X( X)  10(10)  51(61)  21(82)   X(82)   X(82)
+GFMX 280N 930W 50  X   X( X)   1( 1)  35(36)  23(59)   1(60)   X(60)
+GFMX 280N 930W 64  X   X( X)   X( X)  17(17)  17(34)   1(35)   X(35)
+ 
+SHREVEPORT LA  34  X   X( X)   X( X)   1( 1)  44(45)   3(48)   X(48)
+SHREVEPORT LA  50  X   X( X)   X( X)   X( X)  19(19)   X(19)   X(19)
+SHREVEPORT LA  64  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+FORT POLK LA   34  X   X( X)   X( X)   7( 7)  61(68)   2(70)   X(70)
+FORT POLK LA   50  X   X( X)   X( X)   1( 1)  42(43)   1(44)   X(44)
+FORT POLK LA   64  X   X( X)   X( X)   X( X)  22(22)   X(22)   X(22)
+ 
+LAKE CHARLES   34  X   X( X)   1( 1)  13(14)  61(75)   1(76)   X(76)
+LAKE CHARLES   50  X   X( X)   X( X)   2( 2)  49(51)   1(52)   X(52)
+LAKE CHARLES   64  X   X( X)   X( X)   X( X)  30(30)   X(30)   X(30)
+ 
+CAMERON LA     34  X   X( X)   3( 3)  31(34)  48(82)   1(83)   X(83)
+CAMERON LA     50  X   X( X)   X( X)   8( 8)  47(55)   1(56)   X(56)
+CAMERON LA     64  X   X( X)   X( X)   3( 3)  31(34)   X(34)   X(34)
+ 
+JASPER TX      34  X   X( X)   X( X)   5( 5)  55(60)   2(62)   X(62)
+JASPER TX      50  X   X( X)   X( X)   X( X)  37(37)   X(37)   X(37)
+JASPER TX      64  X   X( X)   X( X)   X( X)  18(18)   X(18)   X(18)
+ 
+KOUNTZE TX     34  X   X( X)   X( X)   7( 7)  50(57)   2(59)   X(59)
+KOUNTZE TX     50  X   X( X)   X( X)   1( 1)  33(34)   1(35)   X(35)
+KOUNTZE TX     64  X   X( X)   X( X)   X( X)  18(18)   X(18)   X(18)
+ 
+PORT ARTHUR TX 34  X   X( X)   1( 1)  10(11)  53(64)   2(66)   X(66)
+PORT ARTHUR TX 50  X   X( X)   X( X)   2( 2)  40(42)   1(43)   X(43)
+PORT ARTHUR TX 64  X   X( X)   X( X)   X( X)  21(21)   X(21)   X(21)
+ 
+GALVESTON TX   34  X   X( X)   1( 1)  18(19)  31(50)   1(51)   X(51)
+GALVESTON TX   50  X   X( X)   X( X)   3( 3)  20(23)   X(23)   X(23)
+GALVESTON TX   64  X   X( X)   X( X)   X( X)  10(10)   X(10)   X(10)
+ 
+HOUSTON TX     34  X   X( X)   X( X)   4( 4)  30(34)   2(36)   X(36)
+HOUSTON TX     50  X   X( X)   X( X)   X( X)  12(12)   1(13)   X(13)
+HOUSTON TX     64  X   X( X)   X( X)   X( X)   5( 5)   X( 5)   X( 5)
+ 
+AUSTIN TX      34  X   X( X)   X( X)   1( 1)   6( 7)   X( 7)   X( 7)
+ 
+SAN ANTONIO TX 34  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+ 
+FREEPORT TX    34  X   X( X)   X( X)   6( 6)  22(28)   1(29)   X(29)
+FREEPORT TX    50  X   X( X)   X( X)   X( X)   8( 8)   1( 9)   X( 9)
+FREEPORT TX    64  X   X( X)   X( X)   X( X)   2( 2)   X( 2)   X( 2)
+ 
+GFMX 280N 950W 34  X   X( X)   3( 3)  16(19)  17(36)   X(36)   X(36)
+GFMX 280N 950W 50  X   X( X)   X( X)   3( 3)   8(11)   X(11)   X(11)
+GFMX 280N 950W 64  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+HIGH ISLAND TX 34  X   X( X)   1( 1)  10(11)  44(55)   1(56)   X(56)
+HIGH ISLAND TX 50  X   X( X)   X( X)   2( 2)  28(30)   1(31)   X(31)
+HIGH ISLAND TX 64  X   X( X)   X( X)   X( X)  13(13)   1(14)   X(14)
+ 
+MATAGORDA TX   34  X   X( X)   X( X)   8( 8)  14(22)   X(22)   X(22)
+MATAGORDA TX   50  X   X( X)   X( X)   X( X)   4( 4)   1( 5)   X( 5)
+MATAGORDA TX   64  X   X( X)   X( X)   X( X)   1( 1)   X( 1)   X( 1)
+ 
+PORT O CONNOR  34  X   X( X)   X( X)   6( 6)   9(15)   X(15)   X(15)
+PORT O CONNOR  50  X   X( X)   X( X)   X( X)   2( 2)   1( 3)   X( 3)
+ 
+ROCKPORT TX    34  X   X( X)   X( X)   2( 2)   5( 7)   X( 7)   X( 7)
+ 
+CORPUS CHRISTI 34  X   X( X)   X( X)   2( 2)   3( 5)   X( 5)   X( 5)
+ 
+GFMX 270N 960W 34  X   X( X)   1( 1)   7( 8)   6(14)   X(14)   X(14)
+ 
+BROWNSVILLE TX 34  X   X( X)   X( X)   1( 1)   1( 2)   1( 3)   X( 3)
+ 
+GFMX 250N 960W 34  X   X( X)   1( 1)   3( 4)   2( 6)   X( 6)   X( 6)
+ 
+COZUMEL MX     34  X   2( 2)   2( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+CP SAN ANTONIO 34 14  30(44)   1(45)   X(45)   X(45)   X(45)   X(45)
+CP SAN ANTONIO 50  2   3( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+HAVANA         34 84   X(84)   X(84)   X(84)   X(84)   X(84)   X(84)
+HAVANA         50  3   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+ISLE OF PINES  34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+ISLE OF PINES  50 51   X(51)   X(51)   X(51)   X(51)   X(51)   X(51)
+ 
+CIENFUEGOS     34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+ 
+PENSACOLA NAS  34  X   X( X)   3( 3)   6( 9)   4(13)   X(13)   X(13)
+ 
+KEESLER AB     34  X   X( X)   5( 5)  13(18)  11(29)   X(29)   X(29)
+ 
+$$                                                                  
+FORECASTER BROWN                                                    
+</pre>]]></description>
+<pubDate>Mon, 24 Aug 2020 20:45:19 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT3+shtml/242045.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT3+shtml/242045.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Laura Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/154444.shtml?cone">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT13/AL132020_5day_cone_with_line_and_wind_sm2.png"
+alt="Tropical Storm Laura 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Mon, 24 Aug 2020 17:44:55 GMT
+<br /><br /><a href="https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/154444.shtml?tswind120">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT13/AL132020_wind_probs_34_F120_sm2.png"
+alt="Tropical Storm Laura 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Mon, 24 Aug 2020 15:24:50 GMT
+]]>
+</description>
+<pubDate>Mon, 24 Aug 2020 17:44:55 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/154444.shtml?cone</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/154444.shtml?cone</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Laura Probabilistic Storm Surge Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/154444.shtml?gm_psurge">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT13/AL1320_psurge2_m1_sm2.png"
+alt="Tropical Storm Laura Probabilistic Storm Surge Graphics Image"
+width="500" height="400" /></a><br/>
+Probabilistic Storm Surge Graphics last updated Mon, 24 Aug 2020 15:44:44 GMT
+]]>
+</description>
+<pubDate>Mon, 24 Aug 2020 15:44:44 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/154444.shtml?gm_psurge</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/154444.shtml?gm_psurge</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Laura Potential Storm Surge Flooding Map</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/154444.shtml?inundation">
+<img src="https://www.nhc.noaa.gov/images/inundation_thumb.png"
+alt="Tropical Storm Laura Link to Potential Storm Surge Flooding Map"
+width="60" height="48" /></a><br/>
+Potential Storm Surge Flooding Map last updated Mon, 24 Aug 2020 16:03:30 GMT
+]]>
+</description>
+<pubDate>Mon, 24 Aug 2020 16:03:30 GMT</pubDate>
+<validAdvisory>19</validAdvisory>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/154444.shtml?inundation</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/154444.shtml?inundation</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Laura Storm Surge Watch/Warning Map</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/154444.shtml?wsurge">
+<img src="https://www.nhc.noaa.gov/images/wsurge_thumb.png"
+alt="Tropical Storm Laura Link to Storm Surge Watch/Warning Map"
+width="60" height="48" /></a><br/>
+Storm Surge Watch/Warning Map last updated Mon, 24 Aug 2020 20:46:53 GMT
+]]>
+</description>
+<pubDate>Mon, 24 Aug 2020 20:46:53 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/154444.shtml?wsurge</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/154444.shtml?wsurge</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Lake Charles, LA</title>
+<description>Issued at  1034 AM CDT Mon Aug 24 2020</description>
+<pubDate>Mon, 24 Aug 2020 15:34:20 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS84-KLCH.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS84-KLCH.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Key West, FL</title>
+<description>Issued at  1145 AM EDT Mon Aug 24 2020</description>
+<pubDate>Mon, 24 Aug 2020 15:45:35 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS82-KKEY.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS82-KKEY.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for New Orleans / Baton Rouge, LA</title>
+<description>Issued at  140 PM CDT Mon Aug 24 2020</description>
+<pubDate>Mon, 24 Aug 2020 18:41:10 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS84-KLIX.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS84-KLIX.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+ <title>Summary for Tropical Storm Marco (AT4/AL142020)</title>
+ <guid isPermaLink="false">summary-al142020-202008242046</guid>
+ <pubDate>Mon, 24 Aug 2020 20:46:19 GMT</pubDate>
+ <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+ <link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT4+shtml/242046.shtml</link>
+ <description>
+  ...MARCO EXPECTED TO CONTINUE TO PRODUCE GUSTY WINDS AND HEAVY RAINFALL OVER PORTIONS OF THE NORTHERN GULF COAST THROUGH THIS EVENING...
+ As of 4:00 PM CDT Mon Aug 24
+ the center of Marco was located near 29.0, -88.9
+ with movement NW at 7 mph.
+ The minimum central pressure was 1008 mb
+ with maximum sustained winds of about 40 mph.
+ </description>
+ <nhc:Cyclone>
+  <nhc:center>29.0, -88.9</nhc:center>
+  <nhc:type>TROPICAL STORM</nhc:type>
+  <nhc:name>Marco</nhc:name>
+  <nhc:wallet>AT4</nhc:wallet>
+  <nhc:atcf>AL142020</nhc:atcf>
+  <nhc:datetime>4:00 PM CDT Mon Aug 24</nhc:datetime>
+  <nhc:movement>NW at 7 mph</nhc:movement>
+  <nhc:pressure>1008 mb</nhc:pressure>
+  <nhc:wind>40 mph</nhc:wind>
+  <nhc:headline> ...MARCO EXPECTED TO CONTINUE TO PRODUCE GUSTY WINDS AND HEAVY RAINFALL OVER PORTIONS OF THE NORTHERN GULF COAST THROUGH THIS EVENING...</nhc:headline>
+ </nhc:Cyclone>
+</item>
+<item>
+<title>Tropical Storm Marco Public Advisory Number 19</title>
+<description>Issued at 400 PM CDT Mon Aug 24 2020  <![CDATA[<pre>
+
+000
+WTNT34 KNHC 242046
+TCPAT4
+ 
+BULLETIN
+Tropical Storm Marco Advisory Number  19
+NWS National Hurricane Center Miami FL       AL142020
+400 PM CDT Mon Aug 24 2020
+ 
+...MARCO EXPECTED TO CONTINUE TO PRODUCE GUSTY WINDS AND HEAVY
+RAINFALL OVER PORTIONS OF THE NORTHERN GULF COAST THROUGH THIS
+EVENING...
+ 
+ 
+SUMMARY OF 400 PM CDT...2100 UTC...INFORMATION
+----------------------------------------------
+LOCATION...29.0N 88.9W
+ABOUT 15 MI...20 KM ESE OF THE MOUTH OF THE MISSISSIPPI RIVER
+MAXIMUM SUSTAINED WINDS...40 MPH...65 KM/H
+PRESENT MOVEMENT...NW OR 320 DEGREES AT 7 MPH...11 KM/H
+MINIMUM CENTRAL PRESSURE...1008 MB...29.77 INCHES
+ 
+ 
+WATCHES AND WARNINGS
+--------------------
+CHANGES WITH THIS ADVISORY:
+ 
+None.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT:
+ 
+There are no coastal watches or warnings in effect.
+ 
+Gusty winds, heavy rainfall, and lingering coastal flooding are
+expected from Marco along portions of the Gulf Coast through this
+evening. For information on these hazards see products from your
+local National Weather Service office.
+ 
+Tropical cyclone wind and surge watches have been issued for
+portions of the U.S. Gulf Coast for Tropical Storm Laura.
+ 
+For storm information specific to your area, including possible
+inland watches and warnings, please monitor products issued by your
+local National Weather Service forecast office.
+ 
+ 
+DISCUSSION AND OUTLOOK
+----------------------
+At 400 PM CDT (2100 UTC), the center of Tropical Storm Marco was 
+located near latitude 29.0 North, longitude 88.9 West.  Marco is 
+moving toward the northwest near 7 mph (11 km/h), a turn to the 
+west-northwest and a slight increase in forward speed is expected 
+to occur tonight. On the forecast track, Marco will move inland 
+over southeastern Louisiana tonight, and across southern Louisiana 
+on Tuesday. 
+ 
+Maximum sustained winds are near 40 mph (65 km/h) with higher gusts.
+Weakening is expected, and Marco is forecast to become a
+tropical depression tonight and degenerate to a remnant low on
+Tuesday.
+ 
+Tropical-storm-force winds extend outward up to 80 miles (130 km) 
+from the center.  A National Ocean Service weather station located 
+on Petit Bois Island, Mississippi recently reported a wind gust to 
+38 mph (61 km/h).
+ 
+The estimated minimum central pressure is 1008 mb (29.77 inches).
+ 
+ 
+HAZARDS AFFECTING LAND
+----------------------
+WIND:  Wind gusts to tropical storm force are possible over the
+coastal sections of southeastern Louisiana and Mississippi through
+this evening.
+ 
+RAINFALL:  Marco is expected to produce additional rainfall 
+accumulations of 2 to 4 inches with additional isolated totals of 7 
+inches across portions of the north-central Gulf coast and 
+southeastern United States through Wednesday.   Rain totals related 
+to Marco near Apalachicola, Florida reached as high as 11.81 inches 
+on Sunday per a CoCoRaHS report.  The additional rainfall may result 
+in areas of flash, urban and small stream flooding along the same 
+area.
+ 
+SURF:  Swells generated by Marco are likely to affect portions of
+the northern Gulf Coast for the next day or so. These swells
+are likely to cause life-threatening surf and rip current
+conditions.  Please consult products from your local weather office.
+ 
+TORNADOES:  A couple of tornadoes are possible late this afternoon 
+through tonight across the Florida Panhandle, southern Georgia, far 
+southern Alabama, and far southern Mississippi. 
+ 
+ 
+NEXT ADVISORY
+-------------
+Next complete advisory at 1000 PM CDT.
+ 
+$$
+Forecaster Latto
+ 
+</pre>]]></description>
+<pubDate>Mon, 24 Aug 2020 20:46:19 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT4+shtml/242046.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCPAT4+shtml/242046.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Marco Forecast Advisory Number 19</title>
+<description>Issued at 2100 UTC MON AUG 24 2020  <![CDATA[<pre>
+
+000
+WTNT24 KNHC 242046
+TCMAT4
+ 
+TROPICAL STORM MARCO FORECAST/ADVISORY NUMBER  19
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL142020
+2100 UTC MON AUG 24 2020
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+NONE.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+GUSTY WINDS...HEAVY RAINFALL...AND LINGERING COASTAL FLOODING ARE
+EXPECTED FROM MARCO ALONG PORTIONS OF THE GULF COAST THROUGH THIS
+EVENING. FOR INFORMATION ON THESE HAZARDS SEE PRODUCTS FROM YOUR
+LOCAL NATIONAL WEATHER SERVICE OFFICE.
+ 
+TROPICAL CYCLONE WIND AND SURGE WATCHES HAVE BEEN ISSUED FOR
+PORTIONS OF THE U.S. GULF COAST FOR TROPICAL STORM LAURA.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 29.0N  88.9W AT 24/2100Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTHWEST OR 320 DEGREES AT   6 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1008 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT....... 70NE   0SE   0SW   0NW.
+12 FT SEAS.. 60NE   0SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 29.0N  88.9W AT 24/2100Z
+AT 24/1800Z CENTER WAS LOCATED NEAR 28.7N  88.6W
+ 
+FORECAST VALID 25/0600Z 29.7N  89.9W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 25/1800Z 30.3N  91.8W...POST-TROP/REMNT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 26/0600Z 30.8N  94.0W...POST-TROP/REMNT LOW
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 26/1800Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 29.0N  88.9W
+ 
+NEXT ADVISORY AT 25/0300Z
+ 
+$$
+FORECASTER LATTO
+ 
+ 
+</pre>]]></description>
+<pubDate>Mon, 24 Aug 2020 20:46:19 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCMAT4+shtml/242046.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCMAT4+shtml/242046.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Marco Forecast Discussion Number 19</title>
+<description>Issued at 400 PM CDT Mon Aug 24 2020  <![CDATA[<pre>
+
+000
+WTNT44 KNHC 242046
+TCDAT4
+ 
+Tropical Storm Marco Discussion Number  19
+NWS National Hurricane Center Miami FL       AL142020
+400 PM CDT Mon Aug 24 2020
+ 
+There has been little change to the structure of Marco over the past
+few hours, with the deep convection and associated heavy rainfall
+being sheared well to the northeast of the exposed center of
+circulation. Based on earlier Hurricane Hunter aircraft and
+scatterometer data, there was a small area of tropical-storm-force 
+winds in the strongest convection located about 50-75 n
+mi offshore of the northern Gulf coast. Since the shower and 
+thunderstorm activity is persisting, it is assumed that these winds
+are still occurring in that offshore area and the initial intensity
+is being held at 35 kt.
+ 
+The exposed vortex should continue to spin down as the center of the 
+cyclone reaches the southeastern Louisiana coast late this evening, 
+which would result in the coastal areas being spared from 
+experiencing sustained tropical-storm-force winds. The 
+official NHC forecast shows Marco weakening to a tropical 
+depression tonight, which is in agreement with the model guidance. 
+Strong vertical wind shear should strip away any remaining 
+convection associated with Marco at some point tonight, as indicated 
+by GFS and ECMWF simulated satellite imagery. When the convection 
+does diminish, most of the model guidance does not show any 
+significant new convection developing thereafter. So it is 
+anticipated that Marco will degenerate to a remnant low by Tuesday.
+ 
+Marco's initial motion is northwest at 6 kt. As the cyclone 
+continues to weaken and degenerate to a remnant low, a turn to the 
+west-northwest is expected as the system becomes steered in the 
+low-level flow. The latest NHC track forecast is little changed from 
+the previous one, and is near the TVCN consensus track guidance.
+ 
+Key Messages:
+ 
+1. Gusty winds, heavy rainfall, and lingering coastal flooding are
+expected from Marco along portions of the Gulf Coast through this
+evening. For information on these hazards see products from your
+local National Weather Service office.
+ 
+2. Tropical Storm Laura could bring dangerous storm surge, rainfall, 
+and wind impacts to portions of the U.S. Gulf Coast by the middle of 
+the week, and tropical cyclone wind and surge watches have been 
+issued for portions of the U.S. Gulf Coast.
+ 
+ 
+FORECAST POSITIONS AND MAX WINDS
+ 
+INIT  24/2100Z 29.0N  88.9W   35 KT  40 MPH
+ 12H  25/0600Z 29.7N  89.9W   30 KT  35 MPH...INLAND
+ 24H  25/1800Z 30.3N  91.8W   25 KT  30 MPH...POST-TROP/REMNT LOW
+ 36H  26/0600Z 30.8N  94.0W   20 KT  25 MPH...POST-TROP/REMNT LOW
+ 48H  26/1800Z...DISSIPATED
+ 
+$$
+Forecaster Latto
+ 
+</pre>]]></description>
+<pubDate>Mon, 24 Aug 2020 20:46:55 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCDAT4+shtml/242046.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCDAT4+shtml/242046.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Marco Wind Speed Probabilities Number 19</title>
+<description>Issued at 2100 UTC MON AUG 24 2020                                              <![CDATA[<pre>
+
+000
+FONT14 KNHC 242046
+PWSAT4
+                                                                    
+TROPICAL STORM MARCO WIND SPEED PROBABILITIES NUMBER  19            
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL142020               
+2100 UTC MON AUG 24 2020                                            
+                                                                    
+AT 2100Z THE CENTER OF TROPICAL STORM MARCO WAS LOCATED NEAR        
+LATITUDE 29.0 NORTH...LONGITUDE 88.9 WEST WITH MAXIMUM SUSTAINED    
+WINDS NEAR 35 KTS...40 MPH...65 KM/H.                               
+                                                                    
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)                  
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME      
+   EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME      
+   CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME      
+                                                                    
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS                 
+                                                                    
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST     
+   ...34 KT (39 MPH... 63 KM/H)...                                  
+   ...50 KT (58 MPH... 93 KM/H)...                                  
+   ...64 KT (74 MPH...119 KM/H)...                                  
+FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS               
+                                                                    
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE               
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING            
+        AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)               
+   (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN           
+        18Z MON AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)      
+                                                                    
+PROBABILITIES ARE GIVEN IN PERCENT                                  
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT                       
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.             
+PROBABILITIES FOR 34...50...64 KT SHOWN WHEN THE 5-DAY              
+64-KT CUMULATIVE PROBABILITY IS AT LEAST 1 PERCENT.                 
+                                                                    
+                                                                    
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -   
+                                                                    
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM 
+  TIME       18Z MON 06Z TUE 18Z TUE 06Z WED 18Z WED 18Z THU 18Z FRI
+PERIODS         TO      TO      TO      TO      TO      TO      TO  
+             06Z TUE 18Z TUE 06Z WED 18Z WED 18Z THU 18Z FRI 18Z SAT
+                                                                    
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+LOCATION       KT                                                   
+                                                                    
+MOBILE AL      34  3   1( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+GULFPORT MS    34 13   2(15)   X(15)   X(15)   X(15)   X(15)   X(15)
+ 
+STENNIS MS     34 16   5(21)   X(21)   X(21)   X(21)   X(21)   X(21)
+ 
+BURAS LA       34 12   4(16)   X(16)   X(16)   X(16)   X(16)   X(16)
+ 
+NEW ORLEANS LA 34 10  10(20)   X(20)   X(20)   X(20)   X(20)   X(20)
+ 
+BATON ROUGE LA 34  2  13(15)   1(16)   X(16)   X(16)   X(16)   X(16)
+ 
+MORGAN CITY LA 34  3   7(10)   X(10)   X(10)   X(10)   X(10)   X(10)
+ 
+ALEXANDRIA LA  34  X   3( 3)   4( 7)   X( 7)   X( 7)   X( 7)   X( 7)
+ 
+LAFAYETTE LA   34  1   7( 8)   3(11)   X(11)   X(11)   X(11)   X(11)
+ 
+NEW IBERIA LA  34  1   7( 8)   2(10)   X(10)   X(10)   X(10)   X(10)
+ 
+FORT POLK LA   34  X   2( 2)   5( 7)   X( 7)   X( 7)   X( 7)   X( 7)
+ 
+LAKE CHARLES   34  X   2( 2)   4( 6)   X( 6)   X( 6)   X( 6)   X( 6)
+ 
+CAMERON LA     34  X   3( 3)   2( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+JASPER TX      34  X   1( 1)   4( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+KOUNTZE TX     34  X   1( 1)   2( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+PORT ARTHUR TX 34  X   1( 1)   2( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+KEESLER AB     34 14   1(15)   X(15)   X(15)   X(15)   X(15)   X(15)
+ 
+$$                                                                  
+FORECASTER LATTO                                                    
+</pre>]]></description>
+<pubDate>Mon, 24 Aug 2020 20:46:19 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT4+shtml/242046.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT4+shtml/242046.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Marco Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/180159.shtml?cone">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT14/AL142020_5day_cone_with_line_and_wind_sm2.png"
+alt="Tropical Storm Marco 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Mon, 24 Aug 2020 18:01:59 GMT
+<br /><br /><a href="https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/180159.shtml?tswind120">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT14/AL142020_wind_probs_34_F120_sm2.png"
+alt="Tropical Storm Marco 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Mon, 24 Aug 2020 17:57:18 GMT
+]]>
+</description>
+<pubDate>Mon, 24 Aug 2020 18:01:59 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/180159.shtml?cone</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/180159.shtml?cone</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+</channel>
+</rss>
