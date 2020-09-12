@@ -106,6 +106,13 @@ if [[ $USER = jgflemin ]]; then
       SERQUEUE=priority
       QUEUENAME=priority
    fi
+   if [[ $HPCENVSHORT = queenbee ]]; then
+      ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
+      SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
+      ACCOUNT=hpc_lsu_ccr_20
+      SERQUEUE=priority
+      QUEUENAME=priority
+   fi
 fi
 
 # Post processing and publication
