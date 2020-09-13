@@ -142,7 +142,7 @@ fi
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=6 # number of storms in the ensemble
 case $si in
  -2)
    ENSTORM=hindcast
