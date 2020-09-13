@@ -44,7 +44,8 @@ GRIDNAME=NGOMv19b
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 #jgf20200721 : new template file with Matt's boundary condition
-CONTROLTEMPLATE=NGOM_RT_v19b.15.template_13kcms # <---<<< default is NGOM_RT_v19b.15.template_18kcms in $SCRIPTDIR/config/mesh_defaults.sh
+#CONTROLTEMPLATE=NGOM_RT_v19b.15.template_13kcms # <---<<< default is NGOM_RT_v19b.15.template_18kcms in $SCRIPTDIR/config/mesh_defaults.sh
+CONTROLTEMPLATE=NGOM_RT_v19b.15.template_10kcms # <---<<< default is NGOM_RT_v19b.15.template_18kcms in $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults)
 
@@ -63,7 +64,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=479               # number of compute CPUs for all simulations
+NCPU=959               # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999 
 #QUEUENAME=priority    # queenbee2 and supermic
@@ -75,6 +76,12 @@ if [[ $USER = jgflemin ]]; then
    if [[ $HPCENVSHORT = queenbee ]]; then
       ADCIRCDIR=/work/jgflemin/adcirc-cg/work
       SWANDIR=/work/jgflemin/adcirc-cg/swan
+   fi
+   if [[ $HPCENVSHORT = queenbeeC ]]; then
+      ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/work
+      SWANDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/swan
+      ACCOUNT=loni_cera_2020
+      PARTITION=null
    fi
    if [[ $HPCENVSHORT = frontera ]]; then
       ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
@@ -103,7 +110,7 @@ fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020071500
+COLDSTARTDATE=2020080800
 HOTORCOLD=coldstart     # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
