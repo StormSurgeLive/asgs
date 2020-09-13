@@ -84,6 +84,8 @@ if [[ $USER = jgflemin ]]; then
       ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
       SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
       ACCOUNT=loni_cera_2020
+      SERQUEUE=priority
+      QUEUENAME=priority
    fi
    if [[ $HPCENVSHORT = supermic ]]; then 
       ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
@@ -116,7 +118,7 @@ INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,rluettich1@gmail.com,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu"
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,shagen@lsu.edu,busy_child29@hotmail.com,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,shagen@lsu.edu,pbacopoulos@lsu.edu,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com"
 TDS=( lsu_tds )
 if [[ $HPCENVSHORT = frontera || $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then
    TDS=( tacc_tds )
@@ -126,12 +128,13 @@ fi
 
 COLDSTARTDATE=auto 
 HOTORCOLD=hotstart     # "hotstart" or "coldstart"
-LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020091200/LA_v20a-WithUpperAtch_chk/supermic.hpc.lsu.edu/LAv20a_nam_jgf/namforecast
+#LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020091200/LA_v20a-WithUpperAtch_chk/supermic.hpc.lsu.edu/LAv20a_nam_jgf/namforecast
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020091306/LA_v20a-WithUpperAtch_chk/qbc.loni.org/LAv20a_nam_jgf/namforecast
 
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=6 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=8 # number of storms in the ensemble
 case $si in
  -2)
     ENSTORM=hindcast
@@ -148,22 +151,22 @@ case $si in
     ENSTORM=nhcConsensus
     ;;
   2)
-    ENSTORM=veerLeft100Wind10m
-    PERCENT=-100
-    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-    ;;
-  3)
-    ENSTORM=veerLeft100
-    PERCENT=-100
-    ;;
-  4)
     ENSTORM=veerLeft50Wind10m
     PERCENT=-50
     source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
     ;;
-  5)
+  3)
     ENSTORM=veerLeft50
     PERCENT=-50
+    ;;
+  4)
+    ENSTORM=veerLeft100Wind10m
+    PERCENT=-100
+    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+    ;;
+  5)
+    ENSTORM=veerLeft100
+    PERCENT=-100
     ;;
   6)
     ENSTORM=veerRight100Wind10m
