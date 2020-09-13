@@ -113,7 +113,7 @@ fi
 
 COLDSTARTDATE=auto
 HOTORCOLD=hotstart     # "hotstart" or "coldstart"
-LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020091200/NGOMv19b/supermic.hpc.lsu.edu/NGOMv19b_nam_jgf/namforecast
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020091306/NGOMv19b/qbc.loni.org/NGOMv19b_nam_jgf/namforecast
 
 # Scenario package 
 
