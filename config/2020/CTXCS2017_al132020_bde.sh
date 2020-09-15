@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME=tx2020a_al142020_bde     # "name" of this ASGS process
+INSTANCENAME=CTXCS2017_al132020_bde     # "name" of this ASGS process
 ACCOUNT=DesignSafe-CERA
 QOS=vip7000 # for priority during a storm
 QUEUENAME=skx-normal # same as SLURM partition
@@ -38,14 +38,14 @@ ASGSADMIN="asgsnotifications@opayq.com"
 
 # Input files and templates
 
-GRIDNAME=tx2020a
+GRIDNAME=CTXCS2017
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
 COLDSTARTDATE=auto #2020070800
 HOTORCOLD=hotstart #coldstart
-LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020082106/tx2020a/frontera.tacc.utexas.edu/tx2020a_nam_bde/namforecast
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020082500/CTXCS2017/qbc.loni.org/CTXCS2017_nam_jgf/namforecast
 
 RMQMessaging_Enable="on"
 RMQMessaging_Transmit="on"
@@ -60,7 +60,7 @@ TIDEFAC=on               # tide factor recalc
 BACKGROUNDMET=off        # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=on       # tropical cyclone forcing
-   STORM=14              # storm number, e.g. 05=ernesto in 2006
+   STORM=13              # storm number, e.g. 05=ernesto in 2006
    YEAR=2020             # year of the storm
 WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -71,7 +71,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=1999                    # number of compute CPUs for all simulations
+NCPU=2999                    # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 
@@ -86,10 +86,7 @@ TDS=( lsu_tds )
 
 #
 # Scenario package
-#
-#PERCENT=default
-#PERCENT=default
-SCENARIOPACKAGESIZE=4
+SCENARIOPACKAGESIZE=1
 case $si in
    -2)
        ENSTORM=hindcast
@@ -100,18 +97,10 @@ case $si in
        ;;
     0)
        ENSTORM=nhcConsensusWind10m
-       ;;
+       ;; 
     1)
        ENSTORM=nhcConsensus
-       ;;
-    2)
-       ENSTORM=veerRight100Wind10m
-       PERCENT=100
-       ;;
-    3)
-       ENSTORM=veerRight100
-       PERCENT=100
-       ;;
+       ;; 
     *)
        echo "CONFIGURATION ERROR: Unknown ensemble member number: '$si'."
       ;;

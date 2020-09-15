@@ -82,14 +82,11 @@ INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,rluettich1@gmail.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com,clint@oden.utexas.edu,amin.kiaghadi2013@gmail.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( tacc_tds lsu_tds )
+TDS=( lsu_tds )
 
 #
 # Scenario package
-#
-#PERCENT=default
-#PERCENT=default
-SCENARIOPACKAGESIZE=2
+SCENARIOPACKAGESIZE=8
 case $si in
    -2)
        ENSTORM=hindcast
@@ -99,18 +96,40 @@ case $si in
        ENSTORM=nowcast
        ;;
     0)
+       ENSTORM=nhcConsensusWind10m
+       ;; 
+    1)
+       ENSTORM=nhcConsensus
+       ;; 
+    2)
+       ENSTORM=maxWindSpeed20Wind10m
+       PERCENT=20
+       ;;
+    3)
+       ENSTORM=maxWindSpeed20
+       PERCENT=20
+       ;;
+    4)
        ENSTORM=veerLeft100Wind10m
-       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        PERCENT=-100
        ;;
-    2)
+    5)
        ENSTORM=veerLeft100
        PERCENT=-100
+       ;;
+    6)
+       ENSTORM=veerRight100Wind10m
+       PERCENT=100
+       ;;
+    7)
+       ENSTORM=veerRight100
+       PERCENT=100
        ;;
     *)
        echo "CONFIGURATION ERROR: Unknown ensemble member number: '$si'."
       ;;
 esac
+source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
 #
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
