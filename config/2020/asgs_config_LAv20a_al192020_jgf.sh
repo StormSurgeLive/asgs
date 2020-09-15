@@ -70,6 +70,16 @@ NCPU=959                    # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=99999 
 #QOS=vip               # stampede2 and lonestar5
+
+if [[ $USER = ncfs ]]; then
+   if [[ $HPCENVSHORT = hatteras ]]; then
+      NCPU=619
+      ADCIRCDIR=/projects/ncfs/data/adcirc-cg/work
+      SWANDIR=/projects/ncfs/data/adcirc-cg/swan
+      PARTITION=ncfs
+      RESERVATION=ncfs
+   fi
+fi
 #
 if [[ $USER = jgflemin ]]; then
    ADCIRCDIR=/work/jgflemin/adcirc-cg/work
@@ -123,6 +133,9 @@ TDS=( lsu_tds )
 if [[ $HPCENVSHORT = frontera || $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then
    TDS=( tacc_tds )
 fi
+if [[ $HPCENVSHORT = hatteras ]]; then
+   TDS=( renci_tds )
+fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
@@ -134,7 +147,7 @@ LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020091306/L
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=8 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
 case $si in
  -2)
     ENSTORM=hindcast
