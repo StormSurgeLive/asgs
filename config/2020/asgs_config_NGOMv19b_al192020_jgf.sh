@@ -55,7 +55,7 @@ FORECASTCYCLE="06"
 TROPICALCYCLONE=on   # tropical cyclone forcing
 STORM=19              # storm number, e.g. 05=ernesto in 2006
 YEAR=2020             # year of the storm
-WAVES=off             # wave forcing
+WAVES=on             # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
@@ -63,7 +63,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=479               # number of compute CPUs for all simulations
+NCPU=359               # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999 
 ACCOUNT=loni_cera_2020
@@ -113,7 +113,7 @@ fi
 
 COLDSTARTDATE=auto
 HOTORCOLD=hotstart     # "hotstart" or "coldstart"
-LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020091200/NGOMv19b/supermic.hpc.lsu.edu/NGOMv19b_nam_jgf/namforecast
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020091306/NGOMv19b/qbc.loni.org/NGOMv19b_nam_jgf/namforecast
 
 # Scenario package 
 
@@ -128,13 +128,13 @@ case $si in
    ENSTORM=nowcast
    ;;
 0)
-   ENSTORM=veerRight100Wind10m
-   PERCENT=100
+   ENSTORM=veerRight50Wind10m
+   PERCENT=50
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
 1)
-   ENSTORM=veerRight100
-   PERCENT=100
+   ENSTORM=veerRight50
+   PERCENT=50
    ;;
 2)
    ENSTORM=nhcConsensusWind10m
