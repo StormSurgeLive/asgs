@@ -35,7 +35,7 @@ GRIDNAME=tx2008_r35h
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
-COLDSTARTDATE=2020072300
+COLDSTARTDATE=2020072500
 HOTORCOLD=coldstart #hotstart
 LASTSUBDIR=null
 
@@ -43,8 +43,9 @@ GROUP="G-803086"
 
 # Allocation from which SUs are taken
 ACCOUNT=DesignSafe-CERA
+#QOS=vip7000
 QUEUENAME=skx-normal
-SERQUEUE=skx-dev
+SERQUEUE=skx-normal
 PPN=48
 RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
 RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
@@ -81,13 +82,13 @@ INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,clint@oden.utexas.edu,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,amin.kiaghadi2013@gmail.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( tacc_tds lsu_tds )
+TDS=( lsu_tds )
 
 #
 # Scenario package
 #
 #PERCENT=default
-SCENARIOPACKAGESIZE=2
+SCENARIOPACKAGESIZE=1
 case $si in
    -2)
        ENSTORM=hindcast

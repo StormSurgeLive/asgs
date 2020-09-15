@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME=tx2020a_al142020_bde     # "name" of this ASGS process
+INSTANCENAME=NGOMv19b_al192020_bde     # "name" of this ASGS process
 ACCOUNT=DesignSafe-CERA
 QOS=vip7000 # for priority during a storm
 QUEUENAME=skx-normal # same as SLURM partition
@@ -38,14 +38,14 @@ ASGSADMIN="asgsnotifications@opayq.com"
 
 # Input files and templates
 
-GRIDNAME=tx2020a
+GRIDNAME=NGOMv19b
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
 COLDSTARTDATE=auto #2020070800
 HOTORCOLD=hotstart #coldstart
-LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020082106/tx2020a/frontera.tacc.utexas.edu/tx2020a_nam_bde/namforecast
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020091200/NGOMv19b/supermic.hpc.lsu.edu/NGOMv19b_nam_jgf/namforecast
 
 RMQMessaging_Enable="on"
 RMQMessaging_Transmit="on"
@@ -60,7 +60,7 @@ TIDEFAC=on               # tide factor recalc
 BACKGROUNDMET=off        # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=on       # tropical cyclone forcing
-   STORM=14              # storm number, e.g. 05=ernesto in 2006
+   STORM=19              # storm number, e.g. 05=ernesto in 2006
    YEAR=2020             # year of the storm
 WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -71,7 +71,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=1999                    # number of compute CPUs for all simulations
+NCPU=480                    # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 
@@ -82,13 +82,10 @@ INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,rluettich1@gmail.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com,clint@oden.utexas.edu,amin.kiaghadi2013@gmail.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( lsu_tds )
+TDS=( tacc_tds lsu_tds )
 
 #
 # Scenario package
-#
-#PERCENT=default
-#PERCENT=default
 SCENARIOPACKAGESIZE=4
 case $si in
    -2)
@@ -100,18 +97,18 @@ case $si in
        ;;
     0)
        ENSTORM=nhcConsensusWind10m
-       ;;
+       ;; 
     1)
        ENSTORM=nhcConsensus
-       ;;
+       ;; 
     2)
        ENSTORM=veerRight100Wind10m
        PERCENT=100
-       ;;
+       ;; 
     3)
        ENSTORM=veerRight100
        PERCENT=100
-       ;;
+       ;; 
     *)
        echo "CONFIGURATION ERROR: Unknown ensemble member number: '$si'."
       ;;

@@ -73,7 +73,7 @@ SERQUEUE=priority     # queenbee2 and supermic
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com,kheirkhahan@gmail.com,shagen@lsu.edu,busy_child29@hotmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com,kheirkhahan@gmail.com,shagen@lsu.edu,pbacopoulos@lsu.edu"
 TDS=( lsu_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
