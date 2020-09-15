@@ -66,26 +66,27 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=959                    # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=99999 
-#QOS=vip               # stampede2 and lonestar5
-#
+QUEUENAME=priority    # queenbee2 and supermic
+SERQUEUE=priority     # queenbee2 and supermic
+
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,shagen@lsu.edu,busy_child29@hotmail.com,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com,kheirkhahan@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,shagen@lsu.edu,pbacopoulos@lsu.edu,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com,kheirkhahan@gmail.com"
 TDS=( lsu_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
 COLDSTARTDATE=auto 
 HOTORCOLD=hotstart     # "hotstart" or "coldstart"
-LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020091200/LA_v20a-WithUpperAtch_chk/supermic.hpc.lsu.edu/LAv20a_nam_jgf/namforecast
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020091306/LA_v20a-WithUpperAtch_chk/qbc.loni.org/LAv20a_nam_jgf/namforecast
 
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=6 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=8 # number of storms in the ensemble
 case $si in
  -2)
     ENSTORM=hindcast
