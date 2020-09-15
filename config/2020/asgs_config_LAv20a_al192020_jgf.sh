@@ -134,7 +134,7 @@ LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020091306/L
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=8 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=4 # number of storms in the ensemble
 case $si in
  -2)
     ENSTORM=hindcast
@@ -151,31 +151,31 @@ case $si in
     ENSTORM=nhcConsensus
     ;;
   2)
-    ENSTORM=veerLeft50Wind10m
-    PERCENT=-50
-    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-    ;;
-  3)
-    ENSTORM=veerLeft50
-    PERCENT=-50
-    ;;
-  4)
     ENSTORM=veerLeft100Wind10m
     PERCENT=-100
     source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
     ;;
-  5)
+  3)
     ENSTORM=veerLeft100
     PERCENT=-100
     ;;
+  4)
+    ENSTORM=veerLeft50Wind10m
+    PERCENT=-50
+    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+    ;;
+  5)
+    ENSTORM=veerLeft50
+    PERCENT=-50
+    ;;
   6)
-    ENSTORM=veerRight100Wind10m
-    PERCENT=100
+    ENSTORM=veerRight50Wind10m
+    PERCENT=50
     source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
     ;;
   7)
-    ENSTORM=veerRight100
-    PERCENT=100
+    ENSTORM=veerRight50
+    PERCENT=50
     ;;
   8)
     ENSTORM=maxWindSpeed10Wind10m
