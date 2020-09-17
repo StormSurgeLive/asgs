@@ -56,15 +56,15 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=959                     # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
-QUEUENAME=priority    # queenbee2 and supermic
-SERQUEUE=priority     # queenbee2 and supermic
+#QUEUENAME=priority    # queenbee2 and supermic
+#SERQUEUE=priority     # queenbee2 and supermic
 
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="kheirkhahan@gmail.com,asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,mbilskie@uga.edu"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,shagen@lsu.edu,pbacopoulos@lsu.edu,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com,kheirkhahan@gmail.com"
 TDS=(lsu_tds)
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
