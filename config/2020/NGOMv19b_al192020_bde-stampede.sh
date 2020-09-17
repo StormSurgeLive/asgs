@@ -43,7 +43,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto #2020070800
+COLDSTARTDATE=auto #2020081300
 HOTORCOLD=hotstart #coldstart
 LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020091200/NGOMv19b/supermic.hpc.lsu.edu/NGOMv19b_nam_jgf/namforecast
 
@@ -71,7 +71,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=480                    # number of compute CPUs for all simulations
+NCPU=360                    # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 
@@ -80,7 +80,7 @@ NUMWRITERS=1
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,rluettich1@gmail.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com,clint@oden.utexas.edu,amin.kiaghadi2013@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,rluettich1@gmail.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com,clint@oden.utexas.edu,amin.kiaghadi2013@gmail.com,pbacopoulos@lsu.edu,mbilskie@uga.edu"
 NOTIFY_SCRIPT=ut-nam-notify.sh
 TDS=( tacc_tds lsu_tds )
 
@@ -102,12 +102,12 @@ case $si in
        ENSTORM=nhcConsensus
        ;; 
     2)
-       ENSTORM=veerRight100Wind10m
-       PERCENT=100
+       ENSTORM=veerRight50Wind10m
+       PERCENT=50
        ;; 
     3)
-       ENSTORM=veerRight100
-       PERCENT=100
+       ENSTORM=veerRight50
+       PERCENT=50
        ;; 
     *)
        echo "CONFIGURATION ERROR: Unknown ensemble member number: '$si'."

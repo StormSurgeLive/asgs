@@ -43,7 +43,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020081300
+COLDSTARTDATE=2020081718
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 
@@ -71,7 +71,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=2000                # number of compute CPUs for all simulations
+NCPU=2016         # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 
