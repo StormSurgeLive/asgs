@@ -37,7 +37,7 @@ ACCOUNT=loni_cera_2020
 #QUEUENAME=priority # same as SLURM partition
 QUEUENAME=workq
 SERQUEUE=single
-PPN=20
+PPN=48
 RMQMessaging_Enable="on"
 RMQMessaging_Transmit="on"
 
@@ -72,9 +72,9 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=2000          # number of compute CPUs for all simulations
+NCPU=2015          # number of compute CPUs for all simulations
 NUMWRITERS=1       # number of writers, usually 1
-NCPUCAPACITY=2001  # total max number of CPUs used concurrently
+NCPUCAPACITY=9999  # total max number of CPUs used concurrently
 
 # Post processing and publication
 
