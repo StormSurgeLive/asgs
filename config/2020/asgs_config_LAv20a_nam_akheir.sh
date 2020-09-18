@@ -42,7 +42,7 @@ CONTROLTEMPLATE=LAv20a_10kcms.15.template # <---<<< default is LA_v20a-WithUpper
 TIDEFAC=on            # tide factor recalc
    HINDCASTLENGTH=30.0       # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on      # NAM download/forcing
-   FORECASTCYCLE="00,06,12,18"
+   FORECASTCYCLE="06"
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #   STORM=99                         # storm number, e.g. 05=ernesto in 2006
 #   YEAR=2016                        # year of the storm
@@ -53,7 +53,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=959                     # number of compute CPUs for all simulations
+NCPU=479                     # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 #QUEUENAME=priority    # queenbee2 and supermic
@@ -69,14 +69,14 @@ TDS=(lsu_tds)
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-#COLDSTARTDATE=2020081000   # calendar year month day hour YYYYMMDDHH24
-#HOTORCOLD=coldstart        # "hotstart" or "coldstart"
-#LASTSUBDIR=null
+COLDSTARTDATE=2020081500   # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=coldstart        # "hotstart" or "coldstart"
+LASTSUBDIR=null
 
 
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart     # "hotstart" or "coldstart"
-LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020091206/LA_v20a-WithUpperAtch_chk/supermic.hpc.lsu.edu/LAv20a_nam_jgf/namforecast
+#COLDSTARTDATE=auto
+#HOTORCOLD=hotstart     # "hotstart" or "coldstart"
+#LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020091206/LA_v20a-WithUpperAtch_chk/supermic.hpc.lsu.edu/LAv20a_nam_jgf/namforecast
 
 #PERCENT=default
 SCENARIOPACKAGESIZE=2 
