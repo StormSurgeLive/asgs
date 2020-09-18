@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+if [ -z "$_ASGSH_PID" ]; then
+  echo "This script is meant to run inside of the ASGS Shell Environment, asgsh."
+  exit 1;
+fi
+
+# prints value of provided variable name
+_dump() {
+  if [ -z "${1}" ]; then
+    echo "'dump' requires 1 argument - parameter"
+    return 
+  fi
+  case "${1}" in
+    config)
+      if [ -n "${ASGS_CONFIG}" ]; then
+        cat ${ASGS_CONFIG}
+      else
+        echo "ASGS_CONFIG is not defined as anything. Try, 'define config /path/to/asgs/config.sh' first"
+      fi
+      ;;
+    exported)
+      for e in $_ASGS_EXPORTED_VARS; do
+        echo "${e}='"${!e}"'"
+      done
+      ;;
+    statefile)
+      if [ -n "${STATEFILE}" ]; then
+        cat ${STATEFILE}
+      else
+        echo "STATEFILE is not defined as anything. Does state file exist?"
+      fi
+      ;;
+    syslog)
+      if [ -n "${SYSLOG}" ]; then
+        cat ${SYSLOG}
+      else
+        echo "SYSLOG is not defined as anything. Does state file exist?"
+      fi
+      ;;
+    *) echo "'dump' requires one of the supported parameters:"
+       echo config exported statefile syslog
+      ;;
+  esac 
+}
+
+_dump $@
