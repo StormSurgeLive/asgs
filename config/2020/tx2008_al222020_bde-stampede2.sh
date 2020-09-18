@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME=tx2008_nam_bde     # "name" of this ASGS process
+INSTANCENAME=tx2008_al222020_bde     # "name" of this ASGS process
 
 # Input files and templates
 
@@ -57,9 +57,9 @@ RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 
 TIDEFAC=on               # tide factor recalc
    HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on         # NAM download/forcing
+BACKGROUNDMET=off         # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
-TROPICALCYCLONE=off      # tropical cyclone forcing
+TROPICALCYCLONE=on      # tropical cyclone forcing
    STORM=22              # storm number, e.g. 05=ernesto in 2006
    YEAR=2020             # year of the storm
 WAVES=off                # wave forcing
@@ -98,10 +98,10 @@ case $si in
        ENSTORM=nowcast
        ;;
     0)
-       ENSTORM=namforecastWind10m
+       ENSTORM=nhcConsensusWind10m
        ;;
     1)
-       ENSTORM=namforecast
+       ENSTORM=nhcConsensus
        ;;
     *)
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."

@@ -27,28 +27,28 @@
 
 # Fundamental
 
-INSTANCENAME=tx2008_nam_bde     # "name" of this ASGS process
+INSTANCENAME=tx2020a_al132020_bde     # "name" of this ASGS process
+ACCOUNT=DesignSafe-CERA
+QOS=vip7000 # for priority during a storm
+QUEUENAME=skx-normal # same as SLURM partition
+SERQUEUE=skx-normal
+PPN=48
+GROUP="G-803086"
+ASGSADMIN="asgsnotifications@opayq.com"
 
 # Input files and templates
 
-GRIDNAME=tx2008_r35h
+GRIDNAME=tx2020a
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
+
 COLDSTARTDATE=2020081718
-HOTORCOLD=coldstart #hotstart
-LASTSUBDIR=null
+HOTORCOLD=coldstart
+LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2020/nam/2020082106/tx2020a/frontera.tacc.utexas.edu/tx2020a_nam_bde/namforecast
 
-GROUP="G-803086"
-
-# Allocation from which SUs are taken
-ACCOUNT=DesignSafe-CERA
-QOS=vip7000
-QUEUENAME=skx-normal
-SERQUEUE=skx-normal
-PPN=48
-RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
-RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+RMQMessaging_Enable="on"
+RMQMessaging_Transmit="on"
 
 #FTPSITE=ftp.nhc-replay.stormsurge.email
 #RSSSITE=nhc-replay.stormsurge.email
@@ -57,10 +57,10 @@ RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 
 TIDEFAC=on               # tide factor recalc
    HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on         # NAM download/forcing
+BACKGROUNDMET=on        # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
-TROPICALCYCLONE=off      # tropical cyclone forcing
-   STORM=22              # storm number, e.g. 05=ernesto in 2006
+TROPICALCYCLONE=off       # tropical cyclone forcing
+   STORM=13              # storm number, e.g. 05=ernesto in 2006
    YEAR=2020             # year of the storm
 WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -71,7 +71,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=1007                # number of compute CPUs for all simulations
+NCPU=1999                    # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 
@@ -80,14 +80,12 @@ NUMWRITERS=1
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,clint@oden.utexas.edu,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,amin.kiaghadi2013@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,rluettich1@gmail.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com,clint@oden.utexas.edu,amin.kiaghadi2013@gmail.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
 TDS=( tacc_tds lsu_tds )
 
 #
 # Scenario package
-#
-#PERCENT=default
 SCENARIOPACKAGESIZE=2
 case $si in
    -2)
@@ -99,14 +97,15 @@ case $si in
        ;;
     0)
        ENSTORM=namforecastWind10m
-       ;;
+       ;; 
     1)
        ENSTORM=namforecast
-       ;;
+       ;; 
     *)
-       echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
+       echo "CONFIGURATION ERROR: Unknown ensemble member number: '$si'."
       ;;
 esac
 source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+#
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
