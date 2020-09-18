@@ -176,7 +176,7 @@ delete() {
      fi
     ;;
     *)
-      echo "'delete' requires 2 parameters for 'adcirc' and 'profile' specifying which ADCIRC build or profile to delete. All others do not."
+      echo "'delete' requires 2 parameters for 'adcirc' and 'profile' specifying which ADCIRC build or profile to delete. All others do not: 'config', 'statefile'."
       return
   esac
 }
