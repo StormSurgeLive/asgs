@@ -11,6 +11,32 @@ scripts available inside of asgsh. If your script/tools are
 generally useful, then we want to make it easy to get them
 added to the official distribution.
 
+A Note on Dependencies:
+
+It is preferred that scripts contained have no dependencies
+outside of what is provided in the default asgsh environment/
+ASGS installation. The idea is that they are provided "as-is"
+and work using the latest installed ASGS environment.
+
+* shell scripts are preferred (without the ".sh" extension)
+* Perl scripts are fine as long as they do not require additional
+  modules to be installed; if this is required PLEASE ASK about
+  the best approach. The official Perl module list is contained in
+  ./PERL-MODULES file; these are installed automatically when ASGS
+  is installed or deeply updated ('update-asgsh " "')
+* Python scripts are fine as long as they do not require additional
+  modules or dependencies; this is a little more tedious to manage
+  than the Perl environment. We're also using a "deprecated" version
+  of Python (2.7.18 at the time of this writing); so further complications
+  will ensue if Python 3 is required.
+* anything that needs to be compiled to work is discouraged from being
+  made available via ./my-bin or ./bin; PLEASE ASK if you wish to add
+  support for building a compiled tool to the ASGS installation or 
+  deep update; it is as part of asgs-brew.pl that compiled tools
+  and libraries are meant to be "officially" supported
+
+The asgsh Environment:
+
 To see what the asgsh environment contains, start up asgsh,
 then issue the command:
 
