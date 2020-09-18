@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+if [ -z "$_ASGSH_PID" ]; then
+  echo "This script is meant to run inside of the ASGS Shell Environment, asgsh."
+  exit 1;
+fi
+
+_run() {
+  if [ -n "${ASGS_CONFIG}" ]; then
+    echo "Running ASGS using the config file, '${ASGS_CONFIG}'"
+
+    # NOTE: asgs_main.sh automatically extracts $SCRIPTDIR based on where it is located;
+    # this means that asgs_main.sh will respect $SCRIPTDIR defined here by virtue of this capability.
+    $SCRIPTDIR/asgs_main.sh -c $ASGS_CONFIG
+  else
+    echo "ASGS_CONFIG must be defined before the 'run' command can be used";  
+    return;
+  fi
+}
+
+_run $@
