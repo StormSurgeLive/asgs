@@ -27,8 +27,8 @@
 
 # Fundamental
 
-INSTANCENAME=CTXCS2017_al132020_bde     # "name" of this ASGS process
-ACCOUNT=ADCIRC #DesignSafe-CERA
+INSTANCENAME=tx2008_al222020_bde     # "name" of this ASGS process
+ACCOUNT=ADCIRC #DesignSafe-C0ERA
 QOS=vip7000 # for priority during a storm
 QUEUENAME=normal # same as SLURM partition
 SERQUEUE=normal
@@ -38,14 +38,14 @@ ASGSADMIN="asgsnotifications@opayq.com"
 
 # Input files and templates
 
-GRIDNAME=CTXCS2017
+GRIDNAME=tx2008_r35h
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto #2020070800
-HOTORCOLD=hotstart #coldstart
-LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020082500/CTXCS2017/qbc.loni.org/CTXCS2017_nam_jgf/namforecast
+COLDSTARTDATE=2020081718
+HOTORCOLD=coldstart
+LASTSUBDIR=null
 
 RMQMessaging_Enable="on"
 RMQMessaging_Transmit="on"
@@ -60,7 +60,7 @@ TIDEFAC=on               # tide factor recalc
 BACKGROUNDMET=off        # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=on       # tropical cyclone forcing
-   STORM=13              # storm number, e.g. 05=ernesto in 2006
+   STORM=22              # storm number, e.g. 05=ernesto in 2006
    YEAR=2020             # year of the storm
 WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -71,7 +71,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=2999                    # number of compute CPUs for all simulations
+NCPU=2015                # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 
@@ -87,7 +87,7 @@ TDS=( tacc_tds lsu_tds )
 #
 # Scenario package
 #
-SCENARIOPACKAGESIZE=1
+SCENARIOPACKAGESIZE=2
 case $si in
    -2)
        ENSTORM=hindcast
