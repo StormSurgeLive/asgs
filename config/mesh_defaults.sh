@@ -117,7 +117,7 @@ case $GRIDNAME in
       # FIXME: no unit offset url
       ;;
       #
-   "tx2008_r35h")
+   "tx2008_r35h"|"TX2008")
       #
       INPUTDIR=$SCRIPTDIR/input/meshes/texas2008_r35h
       GRIDFILE=tx2008_r35h.grd # mesh (fort.14) file
@@ -167,7 +167,7 @@ case $GRIDNAME in
       HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
       TIMESTEPSIZE=0.5           # adcirc time step size (seconds)
-      SWANDT=1200                # swan timestep / coupling interval (seconds)
+      SWANDT=1200       :warranty         # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="10:00:00"  # adcprep wall clock time, including partmesh
