@@ -43,7 +43,7 @@ GROUP="G-803086"
 
 # Allocation from which SUs are taken
 ACCOUNT=DesignSafe-CERA
-#QOS=vip7000
+QOS=vip7000
 QUEUENAME=skx-normal
 SERQUEUE=skx-normal
 PPN=48
@@ -60,7 +60,7 @@ TIDEFAC=on               # tide factor recalc
 BACKGROUNDMET=on         # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off      # tropical cyclone forcing
-   STORM=09              # storm number, e.g. 05=ernesto in 2006
+   STORM=22              # storm number, e.g. 05=ernesto in 2006
    YEAR=2020             # year of the storm
 WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -71,7 +71,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=1008                # number of compute CPUs for all simulations
+NCPU=1007                # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 
