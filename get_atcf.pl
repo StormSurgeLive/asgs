@@ -220,8 +220,12 @@ while (!$dl) {
          #stderrMessage("DEBUG","why is $why");
          my %attributes = ();
          #$attributes{'verify_SSL'} = 1;
+
          my $http = HTTP::Tiny->new(%attributes);
-         my $response = $http->get('https://' . $rsssite . '/index-at.xml');
+         my $protocol = ( $rsssite =~ m/^nhc-replay\.stormsurge\.email$/ ) ? q{http} : q{https};
+         my $url = sprintf("%s://%s/index-at.xml", $protocol, $rsssite);
+         my $response = $http->get($url);
+
          if ( $response->{status} == 599 ) { 
             stderrMessage("ERROR","Failed to download forecast/advisory.");
             printf STDERR "content: ";
@@ -296,7 +300,7 @@ while (!$dl) {
                      if ( $trigger eq "rssembedded" ) {
                         if ( $lines[$i] =~ /description/ ) {
                            $body = "";
-                           while ( $lines[$i] ne "</pre>]]></description>" ) {
+                           while ( $lines[$i] !~ m/\/pre.+\/description>/ ) {
                               $body .= $lines[$i] . "\n";
                               $i++;
                            }
