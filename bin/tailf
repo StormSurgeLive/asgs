@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+if [ -z "$_ASGSH_PID" ]; then
+  echo "This script is meant to run inside of the ASGS Shell Environment, asgsh."
+  exit 1;
+fi
+
+# short cut to tail -f the SYSLOG of the current ASGS package that is running
+_tailf() {
+  if [ -z "${1}" ]; then
+    echo "'tailf' requires 1 argument - parameter"
+    return 
+  fi
+  case "${1}" in
+    syslog)
+      if [ -z "$SYSLOG" ]; then
+        echo "warning: log file "$SYSLOG" does not exist!"
+        return
+      fi
+      echo "type 'ctrl-c' to end"
+      echo "tail -f $SYSLOG"
+      tail -f $SYSLOG
+      ;;
+   *)
+      echo "'tailf' supports the following parameters: 'syslog'" 
+    ;;
+  esac
+}
+
+_tailf $@

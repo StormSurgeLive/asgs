@@ -18,37 +18,6 @@
 
 BATCH=$1
 
- guess_platform()
-{
-  guess=unknown
-  if [ "$USER" = vagrant ]; then
-    guess=vagrant
-  elif [ "$_ASGS_CONTAINER" = "docker" ]; then
-    guess=docker
-  elif [ 1 -eq $(hostname --fqdn | grep -c ht3) ]; then
-    guess=hatteras
-  elif [ 1 -eq $(hostname --fqdn | grep -c ht4) ]; then
-    guess=hatteras
-  elif [ 1 -eq $(hostname --fqdn | grep -c qb1) ]; then
-    guess=queenbee
-  elif [ 1 -eq $(hostname --fqdn | grep -c qb2) ]; then
-    guess=queenbee
-  elif [ 1 -eq $(hostname --fqdn | grep -c qbc) ]; then
-    guess=queenbeeC
-  elif [ 1 -eq $(hostname --fqdn | grep -c smic) ]; then
-    guess=supermic
-  elif [ 1 -eq $(hostname --fqdn | grep -c ls5) ]; then
-    guess=lonestar5
-  elif [ 1 -eq $(hostname --fqdn | grep -c stampede2) ]; then
-    guess=stampede2
-  elif [ 1 -eq $(hostname --fqdn | grep -c frontera) ]; then
-    guess=frontera
-  fi
-  if [ $guess != unknown ]; then
-    echo "$guess"
-  fi
-}
-
 echo "pod            - POD (Penguin)"
 echo "hatteras       - Hatteras (RENCI)"    # ht4
 echo "supermike      - Supermike (LSU)"
@@ -66,7 +35,7 @@ echo "rostam         - Rostam"
 echo "docker         - Docker container environment"
 echo "vagrant        - vagrant/virtual box (local workstation)"
 
-default_platform=$(guess_platform)
+default_platform=$(./bin/guess platform)
 if [ -n "$default_platform" ]; then
   _default_platform=" [$default_platform]"
 fi
