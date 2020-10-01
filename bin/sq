@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+if [ -z "$_ASGSH_PID" ]; then
+  echo "This script is meant to run inside of the ASGS Shell Environment, asgsh."
+  exit 1;
+fi
+
+# short cut to report current work queue status
+_sq() {
+  OLDIFS=$IFS
+  IFS=
+  platform=$(guess platform);
+  if [[ $(echo 'supermic queenbee queenbeeC' | grep -c "$platform") -gt 0 ]]; then
+    SQ=$(showq | grep $USER)
+  elif [[ $(echo 'frontera stampede2 lonestar5 hatteras' | grep -c "$platform") -gt 0 ]]; then
+    SQ=$(squeue -u $USER)
+  else
+    SQ="Can't determine platform or command to use to report state of batch queues."
+  fi
+  # display result
+  if [ -n "$SQ" ]; then
+    echo $SQ
+  else
+   echo "No jobs in queue for user '$USER'".
+  fi
+  IFS=$OLDIFS
+}
+
+_sq $@
