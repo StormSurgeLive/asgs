@@ -220,7 +220,7 @@ init_supermic()
      done
   fi
   if [[ $operator = "alireza" ]]; then  # User config for Al
-     ACCOUNT=hpc_cera_2019c
+     ACCOUNT=hpc_cera_2020
   fi
   THIS="platforms.sh>env_dispatch()>init_supermic()"
   SSHKEY=~/.ssh/id_rsa.pub

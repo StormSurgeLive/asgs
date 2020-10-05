@@ -71,6 +71,8 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=959                     # number of compute CPUs for all simulations
 NCPUCAPACITY=3648
 NUMWRITERS=1
+QUEUENAME=priority    # queenbee2 and supermic
+SERQUEUE=priority     # queenbee2 and supermic
 
 # Post processing and publication
 
@@ -81,7 +83,7 @@ TDS=(lsu_tds)
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020060500   # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2020082000   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart        # "hotstart" or "coldstart"
 LASTSUBDIR=null
 

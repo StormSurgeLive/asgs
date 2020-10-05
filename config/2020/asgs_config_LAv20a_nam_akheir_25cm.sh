@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME=LAv20a_nam_akheir     # "name" of this ASGS process
+INSTANCENAME=LAv20a_nam_akheir_25cm     # "name" of this ASGS process
 
 # Input files and templates
 
@@ -37,6 +37,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
 #jgf20200721 : new template file with Matt's boundary condition
+NAFILE=LA_v20a-WithUpperAtch_chk_25cm.13
 CONTROLTEMPLATE=LAv20a_10kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 
 TIDEFAC=on            # tide factor recalc
@@ -69,7 +70,7 @@ TDS=(lsu_tds)
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020081500   # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2020082000   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart        # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
