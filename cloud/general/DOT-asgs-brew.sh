@@ -256,6 +256,46 @@ save() {
   fi
 }
 
+clone() {
+  case "${1}" in
+    profile)
+      if [[ -z "$ASGS_CONFIG" || ! -e "$ASGS_CONFIG" ]]; then
+        echo "'clone profile' only proceeds if the parent profile's config file has been defined."
+        echo "type, 'save profile <new-profile-name>' if you don't wish to define a config file first."
+        return
+      fi
+      _epoch=$(date +%s)
+      _default_new_profile=${_ASGSH_CURRENT_PROFILE}-${_epoch}-clone
+      read -p "Name of new profile? [$_default_new_profile] " new_profile_name
+      if [ -z "$new_profile_name" ]; then
+        new_profile_name=$_default_new_profile
+      fi
+      _year=$(date +%Y)
+      _default_new_config="$SCRIPTDIR/config/$_year/${new_profile_name}.sh"
+      read -p "Name of new config file? [$_default_new_config] " new_config
+      if [ -z "$new_config" ]; then
+        new_config=$_default_new_config
+      fi
+      read -p "Create new profile? [y] " create
+      if [[ -z "$create" || "$create" = "y"  ]]; then
+        cp -v $ASGS_CONFIG $new_config
+        define config $new_config
+        save profile $new_profile_name
+        rl
+        read -p "Would you like to edit the new configuration file? [y] " _edit
+        if [[ -z "$_edit" || "$_edit" = "y" ]]; then
+          edit config
+        fi
+      else
+        echo "Profile cloning operation has been aborted."
+      fi
+      ;;
+    *) echo "'clone' only applies to 'profile'"
+      ;;
+  esac
+}
+
+
 # reload current profile
 rl() {
   load profile $_ASGSH_CURRENT_PROFILE
@@ -317,6 +357,178 @@ define() {
   if [ 1 -eq "$_DEFINE_OK" ]; then
     export PS1="asgs (${_ASGSH_CURRENT_PROFILE}*)> "
   fi
+}
+
+# interactive dialog for choosing an EDITOR if not defined
+_editor_check() {
+  if [ -z "$EDITOR" ]; then
+    __DEFAULT_EDITOR=vim
+    echo "\$EDITOR is not defined. Please define it now (selection updates environment):"
+    echo
+    echo "Editors available via PATH"
+    for e in vim nano vi; do
+      full=$(which `basename $e`)
+      echo "- $e	(full path: $full)"
+    done 
+    read -p "Choose [vim]: " _DEFAULT_EDITOR
+    if [ -z "$_DEFAULT_EDITOR" ]; then
+      _DEFAULT_EDITOR=$__DEFAULT_EDITOR
+    fi
+    define editor "$_DEFAULT_EDITOR"
+    save profile
+    echo
+  fi
+}
+
+# opens up $EDITOR to directly edit files defined by the case
+# statement herein
+edit() {
+  # if it's not defined
+  _editor_check
+
+  # dispatch subject of edit command
+  case "${1}" in
+  adcirc)
+    BRANCH=${2}
+    if [ ! -e "$ADCIRC_META_DIR/$BRANCH" ]; then
+      echo "An ADCIRC environment named '$BRANCH' doesn't exist"
+      return
+    fi
+    $EDITOR "$ADCIRC_META_DIR/$BRANCH"
+    ;;
+  config)
+    if [ -z "$ASGS_CONFIG" ]; then
+      echo "\$ASGS_CONFIG is not defined. Use 'define config' to specify an ASGS config file."
+      return
+    elif [ ! -e "$ASGS_CONFIG" ]; then
+      echo "ASGS_CONFIG file, '$ASGS_FILE' doesn't exist"
+      return
+    fi
+    $EDITOR $ASGS_CONFIG
+    if [ 0 -eq $? ]; then
+      read -p "reload edited profile '$_ASGSH_CURRENT_PROFILE'? [y]" reload
+      if [[ -z "$reload" || "$reload" = "y" ]]; then
+        rl
+      else
+        echo "warning - profile '$ASGS_CONFIG' has been edited, but the profile has not been reloaded. To reload, use the 'rl' or 'load profile $_ASGSH_CURRENT_PROFILE' command."
+      fi
+    fi
+    ;;
+  meshes)
+    $EDITOR $ASGS_MESH_DEFAULTS
+    ;;
+  platforms)
+    $EDITOR $ASGS_PLATFORMS
+    ;;
+  profile)
+    NAME=${2}
+    if [[ -z "$NAME" || ! -e "$ASGS_HOME/.asgs/$NAME" ]]; then
+      echo "An ASGS profile named '$NAME' doesn't exist"
+      return
+    fi
+    $EDITOR "$ASGS_HOME/.asgs/$NAME"
+    if [ 0 -eq $? ]; then
+      read -p "reload edited profile '$_ASGSH_CURRENT_PROFILE'? [y]" reload
+      if [[ -z "$reload" || "$reload" = "y" ]]; then
+        rl
+      else
+        echo "warning - profile '$_ASGSH_CURRENT_PROFILE' has been edited, but not reloaded. To reload, use the 'rl' or 'load profile $_ASGSH_CURRENT_PROFILE' command."
+      fi
+    fi
+    ;;
+  statefile)
+    if [ -z "$STATEFILE" ]; then
+      echo "STATEFILE is not defined. Perhaps you have not defined a config or loaded a completed profile file yet?"
+      return
+    elif [ ! -e "$STATEFILE" ]; then
+      echo "STATEFILE file, '$STATEFULE' doesn't exist"
+      return
+    fi
+    $EDITOR "$STATEFILE"
+    ;;
+  syslog)
+    if [ -z "$SYSLOG" ]; then
+      echo "SYSLOG is not defined. Perhaps you have not defined a config or loaded a completed profile file yet?"
+    elif [ ! -e "$SYSLOG" ]; then
+      echo "Log file, '$SYSLOG' doesn't exist - did it get moved or deleted?"
+      return
+    fi
+    $EDITOR "$SYSLOG"
+    ;;
+  *)
+    echo "Supported options:"
+    echo "adcirc <name>  - directly edit named ADCIRC environment file"
+    echo "config         - directly edit ASGS_CONFIG, if defined"
+    echo "profile <name> - directly edit named ASGS profile (should be followed up with the 'load profile' command"
+    echo "statefile      - open STATEFILE from a run in EDITOR for easier forensics"
+    echo "syslog         - open SYSLOG from a run in EDITOR for easier forensics"
+    ;;
+  esac
+}
+
+# change to a directory know by asgsh
+goto() {
+  case "${1}" in
+  adcircworkdir)
+    if [ -e "$ADCIRCDIR/work" ]; then
+      cd $ADCIRCDIR/work
+      pwd
+    else
+      echo 'ADCIRCDIR not yet defined'
+    fi 
+    ;;
+  adcircdir)
+    if [ -e "$ADCIRCDIR" ]; then
+      cd $ADCIRCDIR
+      pwd
+    else
+      echo 'ADCIRCDIR not yet defined'
+    fi 
+    ;;
+  installdir)
+    if [ -e "$ASGS_INSTALL_PATH" ]; then
+      cd $ASGS_INSTALL_PATH
+      pwd
+    else
+      echo 'ASGS_INSTALL_PATH not defined, which is concerning. Did you complete the installation of ASGS?'
+    fi 
+    ;;
+  rundir)
+    if [ -e "$RUNDIR" ]; then
+      cd $RUNDIR
+      pwd
+    else
+      echo 'RUNDIR not yet defined'
+    fi 
+    ;;
+  scratchdir)
+    if [ -e "$SCRATCH" ]; then
+      cd $SCRATCH
+      pwd
+    else
+      echo 'SCRATCH not yet defined'
+    fi 
+    ;;
+  scriptdir)
+    if [ "$SCRIPTDIR" ]; then
+      cd $SCRIPTDIR
+      pwd
+    else
+      echo 'scriptdir not yet defined'
+    fi 
+    ;;
+  workdir)
+    if [ "$WORK" ]; then
+      cd $WORKDIR
+      pwd
+    else
+      echo 'workdir not yet defined'
+    fi 
+    ;;
+  *)
+    echo "Only 'adcircdir', 'rundir', 'scratchdir', 'scriptdir', and 'workdir' are supported at this time."
+    ;;
+  esac
 }
 
 purge() {
