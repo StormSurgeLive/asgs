@@ -95,7 +95,7 @@ init_queenbee()
   TDS=( lsu_tds )
   # needed for asgs perl
   #source ~/perl5/perlbrew/etc/bashrc
-  if [ -z "$_ASGS_PID" ]; then 
+  if [ -z "$_ASGSH_PID" ]; then 
     module purge
     $PLATFORMMODULES
     $SERIALMODULES
