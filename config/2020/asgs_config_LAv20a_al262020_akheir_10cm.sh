@@ -114,22 +114,22 @@ case $si in
     ENSTORM=nhcConsensus
     ;;
   2)
-    ENSTORM=veerLeft100ind10m
-    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-    PERCENT=-100
-    ;;
-  3)
-    ENSTORM=veerLeft100
-    PERCENT=-100
-    ;;
-  4)
     ENSTORM=veerRight100Wind10m
     source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
     PERCENT=100
     ;;
-  5)
+  3)
     ENSTORM=veerRight100
     PERCENT=100
+    ;;
+  4)
+    ENSTORM=veerLeft100ind10m
+    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+    PERCENT=-100
+    ;;
+  5)
+    ENSTORM=veerLeft100
+    PERCENT=-100
     ;;
   *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
