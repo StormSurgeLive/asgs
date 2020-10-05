@@ -154,7 +154,7 @@ LASTSUBDIR=/work/jgflemin/asgs142358/2020100418
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=6 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=10 # number of storms in the ensemble
 
 if [[ $USER = ncfs ]]; then
    if [[ $HPCENVSHORT = hatteras ]]; then
@@ -194,6 +194,26 @@ case $si in
     ENSTORM=veerRight100
     PERCENT=100
     ;;
+
+  6)
+    ENSTORM=maxWindSpeed20HWind10m
+    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+    PERCENT=20
+    ;;
+  7)
+    ENSTORM=maxWindSpeed20H
+    PERCENT=20
+    ;;
+  8)
+    ENSTORM=maxWindSpeed20LWind10m
+    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+    PERCENT=-20
+    ;;
+  9)
+    ENSTORM=maxWindSpeed20L
+    PERCENT=-20
+    ;;
+
   *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
    ;;
