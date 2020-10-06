@@ -668,6 +668,3 @@ goto scriptdir
 
 # provide a new line
 echo
-
-# temporary message, will be removed after a short while
-echo "NOTE: The asgsh 'set' command has been replaced with 'define' because it is a built-in bash keyword. Type 'help' for more information."
