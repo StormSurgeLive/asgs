@@ -30,8 +30,8 @@
 INSTANCENAME=tx2008_al222020_bde_25cm     # "name" of this ASGS process
 ACCOUNT=ADCIRC
 QOS=vip7000 # for priority during a storm
-QUEUENAME=skx-normal # same as SLURM partition
-SERQUEUE=skx-normal
+QUEUENAME=normal # same as SLURM partition
+SERQUEUE=normal
 PPN=24
 GROUP="G-803086"
 ASGSADMIN="asgsnotifications@opayq.com"

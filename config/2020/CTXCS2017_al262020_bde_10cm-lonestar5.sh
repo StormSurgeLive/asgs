@@ -26,7 +26,7 @@
 #-------------------------------------------------------------------
 
 # Fundamental
-INSTANCENAME=CTXCS2017_al222020_bde_25cm     # "name" of this ASGS process
+INSTANCENAME=CTXCS2017_al262020_bde_10cm     # "name" of this ASGS process
 ACCOUNT=ADCIRC
 QOS=vip7000 # for priority during a storm
 QUEUENAME=normal # same as SLURM partition
@@ -39,7 +39,7 @@ ASGSADMIN="asgsnotifications@opayq.com"
 
 GRIDNAME=CTXCS2017
 source $SCRIPTDIR/config/mesh_defaults.sh
-NAFILE=ctx_gr_p01E02_na_p02_25cm_fort.13
+NAFILE=ctx_gr_p01E02_na_p02_10cm_fort.13
 NAPROPERTIES=${NAFILE}.properties
 
 
@@ -50,7 +50,7 @@ TIDEFAC=on               # tide factor recalc
 BACKGROUNDMET=off        # NAM download/forcing
    FORECASTCYCLE="06"
 TROPICALCYCLONE=on       # tropical cyclone forcing
-   STORM=22              # storm number, e.g. 05=ernesto in 2006
+   STORM=26              # storm number, e.g. 05=ernesto in 2006
    YEAR=2020             # year of the storm
 WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -70,14 +70,14 @@ NUMWRITERS=1
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,clint@oden.utexas.edu,amin.kiaghadi2013@gmail.com,m.botto_t@utexas.edu,asgsnotifications@opayq.com,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,clint@oden.utexas.edu,amin.kiaghadi2013@gmail.com,m.botto_t@utexas.edu,asgsnotifications@opayq.com,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,Patrick.C.Kerr@usace.army.mil"
 NOTIFY_SCRIPT=ut-nam-notify.sh
 TDS=( tacc_tds lsu_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-# bde20200919: must coldstart with new +25cm steric adjustment
-COLDSTARTDATE=2020082000
+# bde20200919: must coldstart with new +10cm steric adjustment
+COLDSTARTDATE=2020090500
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #
@@ -94,18 +94,18 @@ case $si in
    ENSTORM=nowcast
    ;;
   0)
-   ENSTORM=nhcConsensusWind10m
-   ;;
-  1)
-   ENSTORM=nhcConsensus
-   ;;
-  2)
    ENSTORM=veerLeft100Wind10m
    PERCENT=-100
    ;;
-  3)
+  1)
    ENSTORM=veerLeft100
    PERCENT=-100
+   ;;
+  2)
+   ENSTORM=nhcConsensusWind10m
+   ;;
+  3)
+   ENSTORM=nhcConsensus
    ;;
   4)
    ENSTORM=maxWindSpeed10Wind10m
