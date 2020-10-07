@@ -154,7 +154,7 @@ LASTSUBDIR=/work/jgflemin/asgs142358/2020100418
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=10 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=8 # number of storms in the ensemble
 
 if [[ $USER = ncfs ]]; then
    if [[ $HPCENVSHORT = hatteras ]]; then
@@ -177,13 +177,13 @@ case $si in
     ENSTORM=nhcConsensus
     ;;
   2)
-    ENSTORM=veerLeft100Wind10m
+    ENSTORM=veerLeft50Wind10m
     source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-    PERCENT=-100
+    PERCENT=-50
     ;;
   3)
-    ENSTORM=veerLeft100
-    PERCENT=-100
+    ENSTORM=veerLeft50
+    PERCENT=-50
     ;;
   4)
     ENSTORM=veerRight100Wind10m
@@ -196,20 +196,11 @@ case $si in
     ;;
 
   6)
-    ENSTORM=maxWindSpeed20HWind10m
-    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-    PERCENT=20
-    ;;
-  7)
-    ENSTORM=maxWindSpeed20H
-    PERCENT=20
-    ;;
-  8)
     ENSTORM=maxWindSpeed20LWind10m
     source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
     PERCENT=-20
     ;;
-  9)
+  7)
     ENSTORM=maxWindSpeed20L
     PERCENT=-20
     ;;
