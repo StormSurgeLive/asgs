@@ -84,7 +84,7 @@ LASTSUBDIR=null
 # Scenario package
 #
 #PERCENT=default
-SCENARIOPACKAGESIZE=2
+SCENARIOPACKAGESIZE=6
 case $si in
  -2)
    ENSTORM=hindcast
@@ -94,26 +94,26 @@ case $si in
    ENSTORM=nowcast
    ;;
   0)
+   ENSTORM=nhcConsensusWind10m
+   ;;
+  1)
+   ENSTORM=nhcConsensus
+   ;;
+  2)
    ENSTORM=veerLeft100Wind10m
    PERCENT=-100
    ;;
-  1)
+  3)
    ENSTORM=veerLeft100
    PERCENT=-100
    ;;
-  2)
-   ENSTORM=nhcConsensusWind10m
-   ;;
-  3)
-   ENSTORM=nhcConsensus
-   ;;
   4)
-   ENSTORM=maxWindSpeed10Wind10m
-   PERCENT=10
+   ENSTORM=maxWindSpeed20LWind10m
+   PERCENT=-20
    ;;
   5)
-   ENSTORM=maxWindSpeed10
-   PERCENT=10
+   ENSTORM=maxWindSpeed20L
+   PERCENT=-20
    ;;
   6)
    ENSTORM=veerRight100Wind10m
