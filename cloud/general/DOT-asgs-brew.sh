@@ -531,6 +531,66 @@ goto() {
   esac
 }
 
+# deletes a saved profile by name
+delete() {
+  case "${1}" in
+    adcirc)
+      if [ -z "${2}" ]; then
+        echo \'delete adcirc\' requires a name parameter, does NOT unload current ADCIRC settings 
+        return
+      fi
+      NAME=${2}
+      if [ -e "$ADCIRC_META_DIR/$NAME" ]; then
+        rm -f "$ADCIRC_META_DIR/$NAME"
+        echo deleted ADCIRC configuration \'$NAME\'
+      else
+        echo "no saved ADCIRC configuration named '$NAME' was found"
+      fi
+      ;;
+    config)
+      if [ -z "$ASGS_CONFIG" ]; then
+        echo "Config file not yet defined."
+        return
+      elif [ ! -e "$ASGS_CONFIG" ]; then
+        echo "Can't find config fie, $ASGS_CONFIG"
+        return
+      fi 
+      read -p "Are you sure you want to delete the '$ASGS_CONFIG'?[y] " delete
+      if [[ -z "$delete" || "$delete" = "y" ]]; then
+         rm -f $ASGS_CONFIG
+         export ASGS_CONFIG=
+        echo "Deleted config file and unset 'config' for this profile."
+      fi
+      save profile $_ASGSH_CURRENT_PROFILE
+      ;;
+    profile)
+      if [ -z "${2}" ]; then
+        echo \'delete profile\' requires a name parameter, does NOT unload current profile 
+        return
+      fi
+      NAME=${2}
+      if [ -e "$ASGS_HOME/.asgs/$NAME" ]; then
+        rm -f "$ASGS_HOME/.asgs/$NAME"
+        echo deleted profile \'$NAME\'
+      else
+        echo "no saved profile named '$NAME' was found"
+      fi
+      ;;
+    statefile)
+     read -p "This will delete the state file, \"${STATEFILE}\". Type 'y' to proceed. [N] " DELETE_STATEFILE
+     if [ 'y' == "${DELETE_STATEFILE}" ]; then
+       rm -rvf "${STATEFILE}"
+       STATEFILE=
+     else
+       echo "Purge of state file cancelled."
+     fi
+    ;;
+    *)
+      echo "'delete' requires 2 parameters for 'adcirc' and 'profile' specifying which ADCIRC build or profile to delete. All others do not."
+      return
+  esac
+}
+
 purge() {
   if [ -z "${1}" ]; then
     echo "'purge' requires 1 argument - currently only supports 'rundir' and 'scratchdir''."
