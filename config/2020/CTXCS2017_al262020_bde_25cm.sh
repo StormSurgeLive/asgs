@@ -26,7 +26,7 @@
 #-------------------------------------------------------------------
 
 # Fundamental
-INSTANCENAME=CTXCS2017_al262020_bde_10cm     # "name" of this ASGS process
+INSTANCENAME=CTXCS2017_al262020_bde_25cm     # "name" of this ASGS process
 ACCOUNT=DesignSafe-CERA
 QOS=vip7000 # for priority during a storm
 QUEUENAME=skx-normal # same as SLURM partition
@@ -39,7 +39,7 @@ ASGSADMIN="asgsnotifications@opayq.com"
 
 GRIDNAME=CTXCS2017
 source $SCRIPTDIR/config/mesh_defaults.sh
-NAFILE=ctx_gr_p01E02_na_p02_10cm_fort.13
+NAFILE=ctx_gr_p01E02_na_p02_25cm_fort.13
 NAPROPERTIES=${NAFILE}.properties
 
 
@@ -67,7 +67,8 @@ NUMWRITERS=1
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
+#INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
+INTENDEDAUDIENCE=developers-only
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,clint@oden.utexas.edu,amin.kiaghadi2013@gmail.com,m.botto_t@utexas.edu,asgsnotifications@opayq.com,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,Patrick.C.Kerr@usace.army.mil"
@@ -76,15 +77,15 @@ TDS=( tacc_tds lsu_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-# bde20200919: must coldstart with new +10cm steric adjustment
-COLDSTARTDATE=2020090500
+# bde20200919: must coldstart with new +25cm steric adjustment
+COLDSTARTDATE=2020082000
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #
 # Scenario package
 #
 #PERCENT=default
-SCENARIOPACKAGESIZE=2
+SCENARIOPACKAGESIZE=4
 case $si in
  -2)
    ENSTORM=hindcast
@@ -100,20 +101,20 @@ case $si in
    ENSTORM=nhcConsensus
    ;;
   2)
-   ENSTORM=veerLeft100Wind10m
-   PERCENT=-100
-   ;;
-  3)
-   ENSTORM=veerLeft100
-   PERCENT=-100
-   ;;
-  4)
    ENSTORM=maxWindSpeed20LWind10m
    PERCENT=-20
    ;;
-  5)
+  3)
    ENSTORM=maxWindSpeed20L
    PERCENT=-20
+   ;;
+  4)
+   ENSTORM=maxWindSpeed10Wind10m
+   PERCENT=10
+   ;;
+  5)
+   ENSTORM=maxWindSpeed10
+   PERCENT=10
    ;;
   6)
    ENSTORM=veerRight100Wind10m
