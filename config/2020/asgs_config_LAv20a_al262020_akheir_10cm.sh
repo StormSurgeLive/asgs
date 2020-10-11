@@ -73,7 +73,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=959                   # number of compute CPUs for all simulations
+NCPU=1919                   # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=99999 
 QUEUENAME=priority    # queenbee2 and supermic
@@ -96,7 +96,7 @@ LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020100418/L
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=10 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=4 # number of storms in the ensemble
 
 case $si in
  -2)
@@ -114,38 +114,11 @@ case $si in
     ENSTORM=nhcConsensus
     ;;
   2)
-    ENSTORM=veerRight100Wind10m
-    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-    PERCENT=100
-    ;;
-  3)
-    ENSTORM=veerRight100
-    PERCENT=100
-    ;;
-  4)
-    ENSTORM=veerLeft100Wind10m
-    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-    PERCENT=-100
-    ;;
-  5)
-    ENSTORM=veerLeft100
-    PERCENT=-100
-    ;;
-  6)
-    ENSTORM=maxWindSpeed20HWind10m
-    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-    PERCENT=20
-    ;;
-  7)
-    ENSTORM=maxWindSpeed20H
-    PERCENT=20
-    ;;
-  8)
     ENSTORM=maxWindSpeed20LWind10m
     source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
     PERCENT=-20
     ;;
-  9)
+  3)
     ENSTORM=maxWindSpeed20L
     PERCENT=-20
     ;;
