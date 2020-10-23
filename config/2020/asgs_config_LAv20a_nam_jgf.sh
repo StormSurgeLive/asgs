@@ -113,7 +113,8 @@ fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020081700
+#COLDSTARTDATE=2020081700
+COLDSTARTDATE=2020092000
 HOTORCOLD=coldstart     # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
