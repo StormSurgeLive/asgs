@@ -103,7 +103,7 @@ if [[ $USER = jgflemin ]]; then
    if [[ $HPCENVSHORT = supermic ]]; then 
       ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
       SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
-      ACCOUNT=hpc_lsu_ccr_20
+      ACCOUNT=hpc_cera_2020
       #SERQUEUE=priority
       #QUEUENAME=priority
    fi
@@ -143,7 +143,7 @@ fi
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
 # jgf20200919: must coldstart with new +25cm steric adjustment
-COLDSTARTDATE=2020090200 
+COLDSTARTDATE=2020092000 
 HOTORCOLD=coldstart    # "hotstart" or "coldstart"
 LASTSUBDIR=null
 

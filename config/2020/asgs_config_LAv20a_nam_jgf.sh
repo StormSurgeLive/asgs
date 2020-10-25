@@ -93,7 +93,7 @@ if [[ $USER = jgflemin ]]; then
       SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
    fi
    if [[ $HPCENVSHORT = supermic ]]; then
-      ACCOUNT=hpc_cera_2019c
+      ACCOUNT=hpc_cera_2020
       ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
       SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
    fi
