@@ -90,6 +90,7 @@ if [[ $USER = jgflemin ]]; then
    if [[ $HPCENVSHORT = supermic ]]; then
       ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
       SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
+      ACCOUNT=hpc_cera_2020
    fi
 fi
 #
@@ -110,7 +111,8 @@ fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020080800
+#COLDSTARTDATE=2020080800
+COLDSTARTDATE=2020092300
 HOTORCOLD=coldstart     # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
