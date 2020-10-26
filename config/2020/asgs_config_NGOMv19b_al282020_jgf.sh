@@ -36,7 +36,7 @@
 
 # Fundamental
 
-INSTANCENAME=NGOMv19b_nam_jgf  # "name" of this ASGS process
+INSTANCENAME=NGOMv19b_al282020_jgf  # "name" of this ASGS process
 
 # Input files and templates
 
@@ -51,12 +51,12 @@ CONTROLTEMPLATE=NGOM_RT_v19b.15.template_10kcms # <---<<< default is NGOM_RT_v19
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on      # NAM download/forcing
+BACKGROUNDMET=off     # NAM download/forcing
 FORECASTCYCLE="00,06,12,18"
-TROPICALCYCLONE=off   # tropical cyclone forcing
-#STORM=07             # storm number, e.g. 05=ernesto in 2006
-#YEAR=2018            # year of the storm
-WAVES=on            # wave forcing
+TROPICALCYCLONE=on   # tropical cyclone forcing
+STORM=28             # storm number, e.g. 05=ernesto in 2006
+YEAR=2020            # year of the storm
+WAVES=on             # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
@@ -112,9 +112,9 @@ fi
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
 #COLDSTARTDATE=2020080800
-COLDSTARTDATE=2020092300
-HOTORCOLD=coldstart     # "hotstart" or "coldstart"
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart     # "hotstart" or "coldstart"
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020102512/NGOMv19b/supermic.hpc.lsu.edu/NGOMv19b_nam_jgf/namforecast
 
 # Scenario package 
 
@@ -129,11 +129,11 @@ case $si in
    ENSTORM=nowcast
    ;;
  0)
-   ENSTORM=namforecastWind10m
+   ENSTORM=nhcConsensusWind10m
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
 1)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
