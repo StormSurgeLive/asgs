@@ -67,8 +67,6 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=959               # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999 
-#QUEUENAME=priority    # queenbee2 and supermic
-#SERQUEUE=priority     # queenbee2 and supermic
 #QOS=vip               # stampede2 and lonestar5
 #QOS=vippj_p3000       # frontera
 #
@@ -91,6 +89,8 @@ if [[ $USER = jgflemin ]]; then
       ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
       SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
       ACCOUNT=hpc_cera_2020
+      QUEUENAME=priority    # queenbee2 and supermic
+      SERQUEUE=priority     # queenbee2 and supermic
    fi
 fi
 #

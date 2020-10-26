@@ -71,8 +71,6 @@ NUMWRITERS=1
 NCPUCAPACITY=9999 
 ACCOUNT=loni_cera_2020
 PARTITION=null
-#QUEUENAME=priority    # queenbee2 and supermic
-#SERQUEUE=priority     # queenbee2 and supermic
 #QOS=vip               # stampede2 and lonestar5
 #
 if [[ $USER = jgflemin ]]; then
@@ -96,6 +94,8 @@ if [[ $USER = jgflemin ]]; then
       ACCOUNT=hpc_cera_2020
       ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
       SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
+      QUEUENAME=priority    # queenbee2 and supermic
+      SERQUEUE=priority     # queenbee2 and supermic
    fi
 fi
 
