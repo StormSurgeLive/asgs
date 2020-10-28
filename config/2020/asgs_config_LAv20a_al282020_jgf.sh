@@ -117,12 +117,13 @@ fi
 #COLDSTARTDATE=2020092000
 COLDSTARTDATE=auto
 HOTORCOLD=hotstart     # "hotstart" or "coldstart"
-LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020102506/LA_v20a-WithUpperAtch_chk/supermic.hpc.lsu.edu/LAv20a_nam_jgf/namforecast
+#LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020102506/LA_v20a-WithUpperAtch_chk/supermic.hpc.lsu.edu/LAv20a_nam_jgf/namforecast
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020102712/LA_v20a-WithUpperAtch_chk/supermic.hpc.lsu.edu/LAv20a_nam_akheir/namforecast
 
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=4 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=6 # number of storms in the ensemble
 case $si in
  -2)
    ENSTORM=hindcast
@@ -135,7 +136,7 @@ case $si in
    ENSTORM=nhcConsensusWind10m
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
-1)
+ 1)
    ENSTORM=nhcConsensus
    ;;
  2)
@@ -143,9 +144,18 @@ case $si in
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    PERCENT=-100
    ;;
-3)
+ 3)
    ENSTORM=veerLeft100
    PERCENT=-100
+   ;;
+ 4)
+   ENSTORM=veerRight100Wind10m
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   PERCENT=100
+   ;;
+ 5)
+   ENSTORM=veerRight100
+   PERCENT=100
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
