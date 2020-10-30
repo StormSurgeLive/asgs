@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Tue, 04 Aug 2020 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm ISAIAS Forecast/Advisory Number 31</title>
+      <description>Issued at 2100 UTC TUE AUG 04 2020 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM CCA
+ 
+TROPICAL STORM ISAIAS FORECAST/ADVISORY NUMBER  31...CORRECTED
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL092020
+2100 UTC TUE AUG 04 2020
+
+CORRECTED WATCHES AND WARNINGS SUMMARY
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+THE TROPICAL STORM WARNING HAS BEEN DISCONTINUED SOUTH OF SANDY 
+POINT...NEW JERSEY...INCLUDING ALL OF THE CHESAPEAKE BAY...THE TIDAL 
+POTOMAC RIVER...AND DELAWARE BAY. THE TROPICAL STORM WARNING HAS 
+ALSO BEEN DISCONTINUED NORTH OF STONINGTON...MAINE.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* SANDY POINT NEW JERSEY TO STONINGTON MAINE
+* LONG ISLAND AND LONG ISLAND SOUND
+* MARTHA'S VINEYARD...NANTUCKET...AND BLOCK ISLAND
+ 
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA...IN THIS CASE
+WITHIN THE NEXT 6 TO 12 HOURS.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 42.7N  74.2W AT 04/2100Z
+POSITION ACCURATE WITHIN  25 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHEAST OR  20 DEGREES AT  35 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  995 MB
+MAX SUSTAINED WINDS  55 KT WITH GUSTS TO  65 KT.
+50 KT....... 60NE  80SE   0SW   0NW.
+34 KT.......120NE 180SE  40SW  40NW.
+12 FT SEAS..  0NE 300SE  90SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 42.7N  74.2W AT 04/2100Z
+AT 04/1800Z CENTER WAS LOCATED NEAR 40.9N  75.1W
+ 
+FORECAST VALID 05/0600Z 46.3N  72.4W...POST-TROP/INLAND
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...120NE 190SE  40SW  40NW.
+ 
+FORECAST VALID 05/1800Z 50.7N  71.1W...POST-TROP/EXTRATROP
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 06/0600Z 53.3N  70.0W...POST-TROP/EXTRATROP
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 06/1800Z 54.1N  67.8W...POST-TROP/EXTRATROP
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 07/0600Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 42.7N  74.2W
+ 
+INTERMEDIATE PUBLIC ADVISORY...WTNT34 KNHC/MIATCPAT4...AT 05/0000Z
+ 
+NEXT ADVISORY AT 05/0300Z
+ 
+$$
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Tue, 04 Aug 2020 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2020/09/31.092020.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2020/09/31.092020.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

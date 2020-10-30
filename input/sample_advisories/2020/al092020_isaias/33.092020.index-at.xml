@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 05 Aug 2020 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Post-Tropical Cyclone ISAIAS Forecast/Advisory Number 33</title>
+      <description>Issued at 0900 UTC WED AUG 05 2020 <![CDATA[<pre>
+ZCZC MIATCMAT4 ALL
+TTAA00 KNHC DDHHMM
+ 
+POST-TROPICAL CYCLONE ISAIAS FORECAST/ADVISORY NUMBER  33
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL092020
+0900 UTC WED AUG 05 2020
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+POST-TROPICAL CYCLONE CENTER LOCATED NEAR 47.5N  71.8W AT 05/0900Z
+POSITION ACCURATE WITHIN  40 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHEAST OR  15 DEGREES AT  24 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1000 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT.......120NE  90SE   0SW   0NW.
+12 FT SEAS..  0NE 480SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 47.5N  71.8W AT 05/0900Z
+AT 05/0600Z CENTER WAS LOCATED NEAR 46.4N  72.1W
+ 
+FORECAST VALID 05/1800Z 50.7N  70.6W...POST-TROP/EXTRATROP
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 06/0600Z 53.3N  69.0W...POST-TROP/EXTRATROP
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 06/1800Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 47.5N  71.8W
+ 
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE 
+CENTER ON THIS SYSTEM.
+ 
+$$
+FORECASTER BROWN
+
+</pre>]]></description>
+      <pubDate>Wed, 05 Aug 2020 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2020/09/33.092020.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2020/09/33.092020.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
