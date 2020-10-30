@@ -78,6 +78,8 @@ integer, allocatable :: pTimesec(:) ! temporarily hold time stamp of particle da
 logical :: meshInitialized = .false. ! true if the associated mesh has been read in
 logical :: meshOnly = .false. ! true if only the mesh xml will be written
 logical :: allTimeInvariant ! true if all the files are static
+logical :: getNodeIndices = .false. ! true if dataset of 1-indexed node array indices should be added to xml
+logical :: getElementIndices = .false. ! true if dataset of 1-indexed element array indices should be added to xml
 !
 integer :: errorIO
 integer oldnp ! used to detect differences in number of nodes between data files
@@ -168,6 +170,14 @@ if (argcount.gt.0) then
             fileMetaData(:) % useCPP = .true.
             write(scratchMessage,'(a,a,a)') 'Processing ',trim(cmdlineopt),'.'
             call allMessage(INFO,scratchMessage)
+         case("--getNodeIndices")
+            getNodeIndices = .true.
+            write(scratchMessage,'(a,a,a)') 'Processing ',trim(cmdlineopt),'.'
+            call allMessage(INFO,scratchMessage)
+         case("--getElementIndices")
+            getElementIndices = .true.
+            write(scratchMessage,'(a,a,a)') 'Processing ',trim(cmdlineopt),'.'
+            call allMessage(INFO,scratchMessage)                        
          case default
             write(scratchMessage,'(a,a,a)') 'Command line option ',trim(cmdlineopt),' was not recognized.'  
             call allMessage(WARNING,scratchMessage)

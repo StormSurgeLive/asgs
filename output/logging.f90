@@ -248,7 +248,9 @@ integer, parameter :: NODALATTRIBF = 4 ! fort.13
 integer, parameter :: INITRIVER = 5 ! fort.88
 integer, parameter :: MINMAX = 6    ! maxele.63, maxwvel.63, etc
 integer, parameter :: OWI = 7       ! fort.221, fort.222, fort.223, fort.224
+integer, parameter :: ESLNODES = 8 ! ESLNodes.63
 integer, parameter :: MAUREPT = 108 ! output from maureparticle
+
 !-----------
 !-----------
 contains
@@ -423,12 +425,8 @@ real(8), allocatable :: intentionalSegFault(:)
 real(8) :: triggerSegFaultIntentionallyForStackTrace
 if(ncstatus.ne.nf90_noerr)then
    write(*,'(a,a)') "ERROR: ",trim(nf90_strerror(ncstatus))
-
-#ifdef DEBUGSEGFAULT
    call backtrace
    triggerSegFaultIntentionallyForStackTrace = intentionalSegFault(1)
-#endif
-
    stop 1
 endif
 !---------------------------------------------------------------------      

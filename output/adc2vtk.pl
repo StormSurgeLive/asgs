@@ -46,6 +46,7 @@ my %adcirctypes = ("maxele.63", "MaximumElevation",
                    "noff.100","ElementWetDryState",
                    "noffornot.100","InconsistentElementWetDryState",
                    "nodecode.63","NodeWetDryState",
+                   "ESLNodes.63","ElementalSlopeLimitAtNodesDiagnostic",                   
                    "residents.63","ResidentNodeNumbers",
                    "ghosts.63","GhostNodeNumbers",
                    "ghostmem.63","GhostNodeSubdomainMembership",
@@ -70,10 +71,10 @@ my %namesNumValues; # how many values at each node
 my %namesDefaultValues; # the value(s) of the attribute at most nodes
 my %namesNumNonDefaults; # how many of the nodes have nondefault values
 my @attrValues; # at every node in the mesh
-our $getNodeIDs;     # defined if the node labels should be recorded
-our @nodeIDs;         # array of node labels from data file 
-our $getElementIDs;     # defined if the node labels should be recorded
-our @elementIDs;         # array of node labels from data file 
+our $getNodeIndices;      # defined if the node array indices should be recorded
+our @nodeIndices;         # node array indices from data file 
+our $getElementIndices;   # defined if the element array indices should be recorded
+our @elementIndices;      # element array indices from data file 
 #
 my $meshfile = "null";
 my $cpp;  # 1 to reproject to cpp (carte parallelogrammatique projection)
@@ -97,8 +98,8 @@ GetOptions(
            "cpp" => \$cpp,
            "slam0=s" => \$slam0,
            "sfea0=s" => \$sfea0,
-           "getNodeIDs" => \$getNodeIDs,
-           "getElementIDs" => \$getElementIDs,           
+           "getNodeIndices" => \$getNodeIndices,
+           "getElementIndicess" => \$getElementIndices,           
            "trackfiles=s" => \@trackfiles,
            "adcircfiles=s" => \@adcircfiles
          );
@@ -248,8 +249,8 @@ for (my $i=0; $i<$np; $i++) {
    $line = <MESH>;
    @fields = split(' ',$line);
    # if node labels were specified
-   if ( defined $getNodeIDs ) {
-      $nodeIDs[$i] = $fields[0];
+   if ( defined $getNodeIndices ) {
+      $nodeIndices[$i] = $fields[0];
    }
    $x[$i] = $fields[1];
    $y[$i] = $fields[2];
@@ -267,8 +268,8 @@ for (my $i=0; $i<$ne; $i++) {
    $line = <MESH>;
    @fields = split(' ',$line);
    # if node labels were specified
-   if ( defined $getElementIDs ) {
-      $elementIDs[$i] = $fields[0];
+   if ( defined $getElementIndices ) {
+      $elementIndices[$i] = $fields[0];
    }
    # have to subtract 1 from the ADCIRC node numbers because vtk is 0 indexed
    my $i1 = $fields[2]-1;
@@ -494,7 +495,12 @@ foreach my $file (@adcircfiles) {
       $datacentered = "CellData";
       $datatype = "Int32";
    }
-   if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" || $file eq "residents.63" || $file eq "ghosts.63" || $file eq "absolutes.63" || $file eq "subdomains.63" || $file eq "psubdomains.63" || $file eq "ghostmem.63" ) {
+   if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" || $file eq "ESLNodes.63" ) {
+      $num_components = 1;
+      $num_datasets = 1;
+      $datatype = "Float64";
+   }
+   if ( $file eq "residents.63" || $file eq "ghosts.63" || $file eq "absolutes.63" || $file eq "subdomains.63" || $file eq "psubdomains.63" || $file eq "ghostmem.63" ) {
       $num_components = 1;
       $num_datasets = 1;
       $datatype = "Int32";
@@ -731,10 +737,10 @@ sub writeMesh () {
    my $np = shift;
    #
    # write node IDs if specified
-   if ( defined $getNodeIDs ) {
-      printf OUT "         <DataArray Name=\"NodeIDs\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   if ( defined $getNodeIndices ) {
+      printf OUT "         <DataArray Name=\"NodeArrayIndices\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
       for (my $i=0; $i<$np; $i++) {
-         printf OUT "$nodeIDs[$i]\n";
+         printf OUT "$nodeIndices[$i]\n";
       }
       printf OUT "            </DataArray>\n";
    }
@@ -755,11 +761,11 @@ sub writeMesh () {
    printf OUT "         </Points>\n";
    #
    # write element IDs if specified
-   if ( defined $getElementIDs ) {
-      printf OUT "         <CellData Scalars=\"ElementIDs\">\n"; 
-      printf OUT "         <DataArray Name=\"ElementIDs\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   if ( defined $getElementIndices ) {
+      printf OUT "         <CellData Scalars=\"ElementArrayIndices\">\n"; 
+      printf OUT "         <DataArray Name=\"ElementArrayIndices\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
       for (my $i=0; $i<$ne; $i++) {
-         printf OUT "$elementIDs[$i]\n";
+         printf OUT "$elementIndices[$i]\n";
       }
       printf OUT "            </DataArray>\n";
       printf OUT "         </CellData>\n";

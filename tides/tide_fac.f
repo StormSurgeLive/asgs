@@ -161,7 +161,7 @@ C-- DETERMINE GREENWICH EQUIL. TERMS AT BEGINNING OF RECORD
      & numTidalConstituents, int(BHR),iday,monthChar(imo),iyr, xdays
             ! boundary forcing nodal factors and equilibrium arguments
             else
-               write(11,'(i0, 6x,"! NBFR number of tidal boundary constituents")') numTidalConstituents
+               write(11,'(i0, 6x,"! NBFR number of tidal boundary constituents, computed by ASGS with tide_fac.f")') numTidalConstituents
             endif
          endif
  100     format(i0, 6x,
