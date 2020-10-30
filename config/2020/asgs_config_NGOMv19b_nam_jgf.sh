@@ -56,7 +56,7 @@ FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #STORM=07             # storm number, e.g. 05=ernesto in 2006
 #YEAR=2018            # year of the storm
-WAVES=off             # wave forcing
+WAVES=on            # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
@@ -67,8 +67,6 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=959               # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999 
-#QUEUENAME=priority    # queenbee2 and supermic
-#SERQUEUE=priority     # queenbee2 and supermic
 #QOS=vip               # stampede2 and lonestar5
 #QOS=vippj_p3000       # frontera
 #
@@ -90,6 +88,9 @@ if [[ $USER = jgflemin ]]; then
    if [[ $HPCENVSHORT = supermic ]]; then
       ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
       SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
+      ACCOUNT=hpc_cera_2020
+      QUEUENAME=priority    # queenbee2 and supermic
+      SERQUEUE=priority     # queenbee2 and supermic
    fi
 fi
 #
@@ -110,7 +111,8 @@ fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020080800
+#COLDSTARTDATE=2020080800
+COLDSTARTDATE=2020092300
 HOTORCOLD=coldstart     # "hotstart" or "coldstart"
 LASTSUBDIR=null
 

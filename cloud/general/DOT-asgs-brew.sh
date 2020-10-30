@@ -151,12 +151,12 @@ switch() {
 # those sourced via _load_state_file (currently hard coded list based on
 # what is currently available via STATEFILE
 _reset_ephemeral_envars() {
-  INSTANCENAME=
-  STATEFILE=
-  RUNDIR=
-  LASTSUBDIR=
-  SYSLOG=
-  ASGS_CONFIG=
+  export INSTANCENAME=
+  export STATEFILE=
+  export RUNDIR=
+  export LASTSUBDIR=
+  export SYSLOG=
+  export ASGS_CONFIG=
 }
 
 _parse_config() {
@@ -166,10 +166,10 @@ _parse_config() {
   fi
 
   # pull out var info the old fashion way...
-  INSTANCENAME=$(egrep '^ *INSTANCENAME=' "${1}" | sed 's/^ *INSTANCENAME=//' | sed 's/ *#.*$//g')
+  export INSTANCENAME=$(egrep '^ *INSTANCENAME=' "${1}" | sed 's/^ *INSTANCENAME=//' | sed 's/ *#.*$//g')
   echo "config file found, instance name is '$INSTANCENAME'"
 
-  STATEFILE="$SCRATCH/${INSTANCENAME}.state"
+  export STATEFILE="$SCRATCH/${INSTANCENAME}.state"
   echo "loading latest state file information from '${STATEFILE}'."
 
   _load_state_file $STATEFILE
@@ -580,7 +580,7 @@ delete() {
      read -p "This will delete the state file, \"${STATEFILE}\". Type 'y' to proceed. [N] " DELETE_STATEFILE
      if [ 'y' == "${DELETE_STATEFILE}" ]; then
        rm -rvf "${STATEFILE}"
-       STATEFILE=
+       export STATEFILE=
      else
        echo "Purge of state file cancelled."
      fi
@@ -601,7 +601,7 @@ purge() {
      read -p "This will delete the current run director, \"${RUNDIR}\". Type 'y' to proceed. [N] " DELETE_RUNDIR
      if [ 'y' == "${DELETE_RUNDIR}" ]; then
        rm -rvf "${RUNDIR}"
-       RUNDIR=
+       export RUNDIR=
      else
        echo "Purge of rundir cancelled."
      fi
