@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sun, 26 Jul 2020 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm HANNA Forecast/Advisory Number 15</title>
+      <description>Issued at 1500 UTC SUN JUL 26 2020 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL STORM HANNA FORECAST/ADVISORY NUMBER  15
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL082020
+1500 UTC SUN JUL 26 2020
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+THE TROPICAL STORM WARNING ALONG THE COAST OF TEXAS SOUTH OF BAFFIN
+BAY HAS BEEN DISCONTINUED.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* BARRA EL MEZQUITAL MEXICO TO THE MOUTH OF THE RIO GRANDE
+ 
+INTERESTS IN NORTHEASTERN MEXICO SHOULD MONITOR THE PROGRESS OF
+HANNA.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 26.1N  99.7W AT 26/1500Z
+POSITION ACCURATE WITHIN  40 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST-SOUTHWEST OR 250 DEGREES AT   8 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  995 MB
+MAX SUSTAINED WINDS  40 KT WITH GUSTS TO  50 KT.
+34 KT....... 60NE  90SE  30SW  30NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 26.1N  99.7W AT 26/1500Z
+AT 26/1200Z CENTER WAS LOCATED NEAR 26.2N  99.2W
+ 
+FORECAST VALID 27/0000Z 25.5N 100.6W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 27/1200Z 25.0N 101.9W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 28/0000Z 24.9N 102.9W...POST-TROP/INLAND
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 28/1200Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 26.1N  99.7W
+ 
+INTERMEDIATE PUBLIC ADVISORY...WTNT33 KNHC/MIATCPAT3...AT 26/1800Z
+ 
+NEXT ADVISORY AT 26/2100Z
+ 
+$$
+FORECASTER BROWN
+
+</pre>]]></description>
+      <pubDate>Sun, 26 Jul 2020 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2020/08/15.082020.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2020/08/15.082020.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

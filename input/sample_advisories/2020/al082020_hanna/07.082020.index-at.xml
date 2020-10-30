@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Fri, 24 Jul 2020 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm HANNA Forecast/Advisory Number 7</title>
+      <description>Issued at 1500 UTC FRI JUL 24 2020 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL STORM HANNA FORECAST/ADVISORY NUMBER   7
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL082020
+1500 UTC FRI JUL 24 2020
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+THE TROPICAL STORM WATCH FROM SAN LUIS PASS TO HIGH ISLAND TEXAS
+HAS BEEN DISCONTINUED.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* MOUTH OF THE RIO GRANDE TO SAN LUIS PASS TEXAS
+ 
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA...IN THIS CASE WITHIN 24
+TO 36 HOURS.
+ 
+INTERESTS ALONG THE TEXAS AND LOUISIANA COAST SHOULD MONITOR THE
+PROGRESS OF THIS SYSTEM.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 27.2N  93.2W AT 24/1500Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST-NORTHWEST OR 285 DEGREES AT   8 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1000 MB
+MAX SUSTAINED WINDS  40 KT WITH GUSTS TO  50 KT.
+34 KT....... 40NE  50SE   0SW   0NW.
+12 FT SEAS.. 45NE  45SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 27.2N  93.2W AT 24/1500Z
+AT 24/1200Z CENTER WAS LOCATED NEAR 27.1N  92.8W
+ 
+FORECAST VALID 25/0000Z 27.5N  94.6W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT... 60NE  60SE   0SW  20NW.
+ 
+FORECAST VALID 25/1200Z 27.4N  96.2W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 20NE   0SE   0SW  20NW.
+34 KT... 70NE  60SE  30SW  50NW.
+ 
+FORECAST VALID 26/0000Z 27.3N  97.6W...INLAND
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 20NE   0SE   0SW  20NW.
+34 KT... 70NE  60SE  30SW  60NW.
+ 
+FORECAST VALID 26/1200Z 27.0N  99.0W...INLAND
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 60NE  50SE  20SW  20NW.
+ 
+FORECAST VALID 27/0000Z 26.3N 100.4W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 27/1200Z 25.7N 101.6W...POST-TROP/REMNT LOW
+MAX WIND  15 KT...GUSTS  20 KT.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 28/1200Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 27.2N  93.2W
+ 
+INTERMEDIATE PUBLIC ADVISORY...WTNT33 KNHC/MIATCPAT3...AT 24/1800Z
+ 
+NEXT ADVISORY AT 24/2100Z
+ 
+$$
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Fri, 24 Jul 2020 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2020/08/07.082020.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2020/08/07.082020.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>
