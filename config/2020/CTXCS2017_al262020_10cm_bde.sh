@@ -26,7 +26,7 @@
 #-------------------------------------------------------------------
 
 # Fundamental
-INSTANCENAME=CTXCS2017_al262020_bde_10cm     # "name" of this ASGS process
+INSTANCENAME=CTXCS2017_al222020_bde_25cm     # "name" of this ASGS process
 ACCOUNT=DesignSafe-CERA
 QOS=vip7000 # for priority during a storm
 QUEUENAME=skx-normal # same as SLURM partition
@@ -39,7 +39,7 @@ ASGSADMIN="asgsnotifications@opayq.com"
 
 GRIDNAME=CTXCS2017
 source $SCRIPTDIR/config/mesh_defaults.sh
-NAFILE=ctx_gr_p01E02_na_p02_10cm_fort.13
+NAFILE=ctx_gr_p01E02_na_p02_25cm_fort.13
 NAPROPERTIES=${NAFILE}.properties
 
 
@@ -50,7 +50,7 @@ TIDEFAC=on               # tide factor recalc
 BACKGROUNDMET=off        # NAM download/forcing
    FORECASTCYCLE="06"
 TROPICALCYCLONE=on       # tropical cyclone forcing
-   STORM=26              # storm number, e.g. 05=ernesto in 2006
+   STORM=22              # storm number, e.g. 05=ernesto in 2006
    YEAR=2020             # year of the storm
 WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -76,8 +76,8 @@ TDS=( tacc_tds lsu_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-# bde20200919: must coldstart with new +10cm steric adjustment
-COLDSTARTDATE=2020090500
+# bde20200919: must coldstart with new +25cm steric adjustment
+COLDSTARTDATE=2020082000
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #
@@ -108,12 +108,12 @@ case $si in
    PERCENT=-100
    ;;
   4)
-   ENSTORM=maxWindSpeed20LWind10m
-   PERCENT=-20
+   ENSTORM=maxWindSpeed10Wind10m
+   PERCENT=10
    ;;
   5)
-   ENSTORM=maxWindSpeed20L
-   PERCENT=-20
+   ENSTORM=maxWindSpeed10
+   PERCENT=10
    ;;
   6)
    ENSTORM=veerRight100Wind10m

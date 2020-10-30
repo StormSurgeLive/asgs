@@ -42,9 +42,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 NAFILE=ctx_gr_p01E02_na_p02_10cm_fort.13
 NAPROPERTIES=${NAFILE}.properties
 
-
 # Physical forcing (defaults set in config/forcing_defaults.sh)
-
 TIDEFAC=on               # tide factor recalc
    HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on         # NAM download/forcing
@@ -77,7 +75,7 @@ TDS=( tacc_tds lsu_tds )
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
 # bde20200919: must coldstart with new +10cm steric adjustment
-COLDSTARTDATE=2020090500
+COLDSTARTDATE=2020092700
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #
