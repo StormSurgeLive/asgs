@@ -94,6 +94,7 @@ if [[ $HPCENVSHORT = supermic ]]; then
    SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
    QUEUENAME=priority    # queenbee2 and supermic
    SERQUEUE=priority     # queenbee2 and supermic
+   ACCOUNT=hpc_cera_2020
 fi
 
 # Post processing and publication
