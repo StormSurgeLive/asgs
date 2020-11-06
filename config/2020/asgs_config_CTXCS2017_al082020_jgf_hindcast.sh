@@ -53,6 +53,11 @@ BACKGROUNDMET=off     # NAM download/forcing
 TROPICALCYCLONE=on    # tropical cyclone forcing
    STORM=08           # storm number, e.g. 05=ernesto in 2006
    YEAR=2020          # year of the storm
+   TRIGGER=rssembedded              # either "ftp" or "rss"
+   RSSSITE=filesystem       # site information for retrieving advisories
+   FTPSITE=filesystem       # hindcast/nowcast ATCF formatted files
+   FDIR=$SCRIPTDIR/input/sample_advisories/2020/al082020_hanna    # forecast dir on nhc ftp site
+   HDIR=${FDIR}             # hindcast dir on nhc ftp site
 WAVES=on              # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -75,7 +80,13 @@ if [[ $HPCENVSHORT = frontera ]]; then
    SWANDIR=/work/00976/jgflemin/frontera/adcirc-cg/swan
    QOS=vippj_p3000
 fi
-
+if [[ $HPCENVSHORT = supermic ]]; then
+   ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
+   SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
+   QUEUENAME=priority    # queenbee2 and supermic
+   SERQUEUE=priority     # queenbee2 and supermic
+   ACCOUNT=hpc_cera_2020
+fi
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
