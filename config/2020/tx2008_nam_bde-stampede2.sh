@@ -27,23 +27,23 @@
 
 # Fundamental
 
-INSTANCENAME=tx2008_nam_bde     # "name" of this ASGS process
+INSTANCENAME=SABv20a_nam_bde     # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=tx2008_r35h
+GRIDNAME=SABv20a
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
-COLDSTARTDATE=2020081718
-HOTORCOLD=coldstart #hotstart
+COLDSTARTDATE=2020100700
+HOTORCOLD=coldstart
 LASTSUBDIR=null
 
 GROUP="G-803086"
 
 # Allocation from which SUs are taken
-ACCOUNT=DesignSafe-CERA
-QOS=vip7000
+ACCOUNT=TG-DMS080016N
+#QOS=vip7000
 QUEUENAME=skx-normal
 SERQUEUE=skx-normal
 PPN=48
@@ -62,7 +62,7 @@ BACKGROUNDMET=on         # NAM download/forcing
 TROPICALCYCLONE=off      # tropical cyclone forcing
    STORM=22              # storm number, e.g. 05=ernesto in 2006
    YEAR=2020             # year of the storm
-WAVES=off                # wave forcing
+WAVES=on                 # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off              # variable river flux forcing
 #STATICOFFSET=0.30
@@ -71,7 +71,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=1007                # number of compute CPUs for all simulations
+NCPU=959                # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 
