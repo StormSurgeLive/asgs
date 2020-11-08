@@ -27,7 +27,14 @@
 
 # Fundamental
 
-INSTANCENAME=SABv20a_nam_bde     # "name" of this ASGS process
+INSTANCENAME=SABv20a_nam_bde # "name" of this ASGS process
+ACCOUNT=ADCIRC
+QOS=vip7000 # for priority during a storm
+QUEUENAME=normal # same as SLURM partition
+SERQUEUE=normal
+PPN=24
+GROUP="G-803086"
+ASGSADMIN="asgsnotifications@opayq.com"
 
 # Input files and templates
 
@@ -35,20 +42,13 @@ GRIDNAME=SABv20a
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
+
 COLDSTARTDATE=2020100700
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 
-GROUP="G-803086"
-
-# Allocation from which SUs are taken
-ACCOUNT=TG-DMS080016N
-#QOS=vip7000
-QUEUENAME=skx-normal
-SERQUEUE=skx-normal
-PPN=48
-RMQMessaging_Enable="on"      #  enables message generation ("on" | "off")
-RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
+RMQMessaging_Enable="on"
+RMQMessaging_Transmit="on"
 
 #FTPSITE=ftp.nhc-replay.stormsurge.email
 #RSSSITE=nhc-replay.stormsurge.email
@@ -57,12 +57,12 @@ RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 
 TIDEFAC=on               # tide factor recalc
    HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on         # NAM download/forcing
+BACKGROUNDMET=off        # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
-TROPICALCYCLONE=off      # tropical cyclone forcing
-   STORM=22              # storm number, e.g. 05=ernesto in 2006
+TROPICALCYCLONE=on       # tropical cyclone forcing
+   STORM=28              # storm number, e.g. 05=ernesto in 2006
    YEAR=2020             # year of the storm
-WAVES=on                 # wave forcing
+WAVES=on                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off              # variable river flux forcing
 #STATICOFFSET=0.30
@@ -71,23 +71,18 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=959                # number of compute CPUs for all simulations
+NCPU=959               # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 
 # Post processing and publication
-
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
-#POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,clint@oden.utexas.edu,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,amin.kiaghadi2013@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,rluettich1@gmail.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com,pbacopoulos@lsu.edu,mbilskie@uga.edu"
 NOTIFY_SCRIPT=ut-nam-notify.sh
 TDS=( tacc_tds lsu_tds )
 
-#
 # Scenario package
-#
-#PERCENT=default
 SCENARIOPACKAGESIZE=2
 case $si in
    -2)
@@ -99,14 +94,15 @@ case $si in
        ;;
     0)
        ENSTORM=namforecastWind10m
-       ;;
+       ;; 
     1)
        ENSTORM=namforecast
-       ;;
+       ;; 
     *)
-       echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
+       echo "CONFIGURATION ERROR: Unknown ensemble member number: '$si'."
       ;;
 esac
 source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+#
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
