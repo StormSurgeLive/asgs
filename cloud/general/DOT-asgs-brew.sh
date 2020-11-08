@@ -69,6 +69,7 @@ help() {
   echo "           adcirc  <name>      - loads information a version of ADCIRC into the current environment. Use 'list adcirc' to see what's available"
   echo "   purge   <param>             - deletes specified file or directory"
   echo "           rundir              - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
+  echo "   rebuild profile             - wizard for recreating an ASGS profile using an existing configuration file"
   echo "   rl                          - reload current profile, equivalent to 'load profile <current-profile-name>'"
   echo "   run                         - runs asgs using config file, \$ASGS_CONFIG must be defined (see 'define config'); most handy after 'load'ing a profile"
   echo "   save    profile <name>      - saves an asgs named profile, '<name>' not required if a profile is loaded"
@@ -254,6 +255,36 @@ save() {
   if [ 1 -eq "$DO_RELOAD" ]; then
     load profile $_ASGSH_CURRENT_PROFILE
   fi
+}
+
+rebuild() {
+  case "${1}" in
+    profile)
+      _default_base_profile=default
+      read -p "Base profile [$_default_base_profile]? " _base_profile
+      if [ -z "$_base_profile" ]; then
+        _base_profile=$_default_base_profile
+      fi
+      load profile $_base_profile
+      read -p "Path to ASGS configuration file: " _config
+      if [[ -z "$_config" || ! -e "$_config" ]]; then
+        echo "'rebuild profile' requires an existing ASGS configuration file."
+        return
+      fi 
+      ABS_PATH=$(readlink -f "$_config")
+      export ASGS_CONFIG=$ABS_PATH
+      _parse_config $ASGS_CONFIG
+      # default is $INSTANCENAME, grabbed from _parse_config when $ASGS_CONFIG
+      # is parsed above
+      read -p "New profile name [$INSTANCENAME]? " _profile_name 
+      if [ -z "$_profile_name" ]; then
+        _profile_name=$INSTANCENAME
+      fi
+      save profile $_profile_name
+    ;;
+    *) echo "'clone' only applies to 'profile'"
+    ;;
+  esac
 }
 
 clone() {
