@@ -150,7 +150,7 @@ LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020110518/H
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=6 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
 
 case $si in
  -2)
