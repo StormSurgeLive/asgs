@@ -100,12 +100,12 @@ fi
 
 COLDSTARTDATE=auto
 HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020110806/EGOMv20b/supermic.hpc.lsu.edu/EGOMv20b_nam_jgf/namforecast
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2020/nam/2020111106/EGOMv20b/supermic.hpc.lsu.edu/EGOMv20b_nam_jgf/namforecast
 
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=6 # number of storms in the ensemble
 case $si in
  -2)
    ENSTORM=hindcast
@@ -120,6 +120,24 @@ case $si in
    ;;
 1)
    ENSTORM=nhcConsensus
+   ;;
+2)
+   ENSTORM=veerLeft100Wind10m
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   PERCENT=-100
+   ;;
+3)
+   ENSTORM=veerLeft100
+   PERCENT=-100
+   ;;
+4)
+   ENSTORM=veerRight100Wind10m
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   PERCENT=100
+   ;;
+5)
+   ENSTORM=veerRight100
+   PERCENT=100
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
