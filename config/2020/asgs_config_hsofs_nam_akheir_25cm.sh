@@ -27,12 +27,22 @@
 
 # Fundamental
 
-INSTANCENAME=hsofs_nam_akheir     # "name" of this ASGS process
+INSTANCENAME=hsofs_nam_akheir_25cm     # "name" of this ASGS process
 
 # Input files and templates
 
 GRIDNAME=hsofs
 source $SCRIPTDIR/config/mesh_defaults.sh
+#**********************************
+# jgf20200919: After calling 
+# mesh_defaults.sh, set the 
+# following parameters:
+#**********************************
+NAFILE=hsofs_25cm.13
+NAPROPERTIES=${NAFILE}.properties # <---<<<  jgf20201004: this is needed for correct metadata
+CONTROLTEMPLATE=hsofs_explicit_25cm.15.template
+CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+
 
 #--------------------------------------------------------------------------
 #  changes for 0.2286m sea_surface_height_above_geoid 
@@ -83,7 +93,7 @@ TDS=(lsu_tds)
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020091200   # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2020091900   # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart        # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
