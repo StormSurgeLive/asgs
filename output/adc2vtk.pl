@@ -78,7 +78,12 @@ our @elementIndices;      # element array indices from data file
 #
 my $meshfile = "null";
 my $cpp;  # 1 to reproject to cpp (carte parallelogrammatique projection)
-   
+my $translate; # 1 to translate the mesh x-y coordinates to the center of the cpp projection   
+my $centerx; # xcoord (deg) at center of the 2D mesh; conv to (m) if --cpp
+my $centery; # ycoord (deg) at center of the 2D mesh; conv to (m) if --cpp
+my $scale = 1.0; # number to muliply the x-y coordinates if they should be scaled
+my $comment; # contains the command used to generate the file as a comment at the top of the file 
+
 my $slam0 = 265.5; # longitude at center of projection
 my $sfea0 = 29.0;  # latitude at center of projection
 my $datacentered = "PointData";
@@ -98,11 +103,14 @@ GetOptions(
            "cpp" => \$cpp,
            "slam0=s" => \$slam0,
            "sfea0=s" => \$sfea0,
+           "translate" => \$translate,
+           "scale=s" => \$scale,           
            "getNodeIndices" => \$getNodeIndices,
-           "getElementIndicess" => \$getElementIndices,           
+           "getElementIndices" => \$getElementIndices,
            "trackfiles=s" => \@trackfiles,
            "adcircfiles=s" => \@adcircfiles
          );
+#
 #
 # Process track files, producing a single VTP file containing all 
 # the tracks that were listed on the command line
@@ -262,7 +270,25 @@ if ( defined $cpp ) {
       $x[$i] = $R*($x[$i]*$deg2rad-$slam0*$deg2rad)*cos($sfea0*$deg2rad);
       $y[$i] = $y[$i]*$deg2rad*$R;
    }
+   $centerx = 0.0;
+   $centery = $sfea0*$deg2rad*$R;   
+} else {
+   $centerx = $slam0;
+   $centery = $sfea0;
 }
+# "--translate" : move the coordinates to the center of the projection 
+if ( defined $translate ) {
+   for (my $i=0; $i<$np; $i++) {
+      $x[$i] = $x[$i] - $centerx;
+      $y[$i] = $y[$i] - $centery; 
+   }   
+}
+# "--scale 0.001" : scale the x-y coordinates
+for (my $i=0; $i<$np; $i++) {
+   $x[$i] = $x[$i]*$scale;
+   $y[$i] = $y[$i]*$scale; 
+}   
+
 # read the element table
 for (my $i=0; $i<$ne; $i++) {
    $line = <MESH>;
