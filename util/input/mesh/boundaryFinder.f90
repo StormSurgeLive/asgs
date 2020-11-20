@@ -166,7 +166,9 @@ case("inflow_flux","land","island")
             ! are, and the depth at each one, for use in calculating the flux
             ! per unit width
             allocate(dep(m % nvell(k)))
-            allocate(dist(m % nvell(k)))                
+            allocate(dist(m % nvell(k)))
+            sumDepths=0.0
+            sumLengths=0.0      
             ! 
             ! handle first node; use only half the distance to the next node
             thisNodeNum = m % simpleFluxBoundaries(i)%nodes(1)
@@ -198,7 +200,8 @@ case("inflow_flux","land","island")
             dep(m % nvell(k)) = 0.5d0 * (nominalWSE +m %  xyd(3,thisNodeNum)) ! use only half the total water depth
             sumDepths = sumDepths + dep(m % nvell(k)) ! accumulate total depth
             sumLengths = sumLengths + dist(m % nvell(k)) ! accumulate total length
-            write(99,'(f20.10,f20.10," # totalEffDepth(m) totalLength(m)")') sumDepths, sumLengths
+            write(99,'(f15.8,f15.8," # totalEffDepth(m) totalLength(m)")') sumDepths, sumLengths
+            !write(99,*) sumDepths, sumLengths            
             do j=1,m % nvell(k)
                write(99,'(f20.10,f20.10," # effDepth(m) effLength(m)")') dep(j), dist(j)
             end do
