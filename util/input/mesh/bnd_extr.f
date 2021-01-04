@@ -23,7 +23,7 @@ C*******************************************************************************
 C PARAMETER STATEMENT - MNP is the maximum number of nodes, MNEI is the maximum*
 C                       number of neighbors.                                   *
 C                                                                              *
-      PARAMETER(MNP=50000,MNE=2*MNP,MNEI=12)
+      PARAMETER(MNP=500000,MNE=2*MNP,MNEI=12)
 C                                                                              *
 C*******************************************************************************
 
@@ -135,7 +135,7 @@ C*******************************************************************************
 C PARAMETER STATEMENT - MNP is the maximum number of nodes, MNEI is the maximum*
 C                       number of neighbors.                                   *
 C                                                                              *
-      PARAMETER(MNP=50000,MNE=2*MNP,MNEI=12)
+      PARAMETER(MNP=500000,MNE=2*MNP,MNEI=12)
 C                                                                              *
 C*******************************************************************************
 
@@ -253,7 +253,7 @@ C*******************************************************************************
 C PARAMETER STATEMENT - MNP is the maximum number of nodes, MNEI is the maximum*
 C                       number of neighbors.                                   *
 C                                                                              *
-      PARAMETER(MNP=50000,MNE=2*MNP,MNEI=12)
+      PARAMETER(MNP=500000,MNE=2*MNP,MNEI=12)
 C                                                                              *
 C*******************************************************************************
 

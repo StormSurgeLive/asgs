@@ -442,7 +442,7 @@ if (trim(fd%defaultFileName).eq.'fort.13') then
          if (h.ne.-99999) then
             rna%na(i)%nonDefaultNodes(k) = h
             do n=1,rna%na(i)%numVals
-               rna%na(i)%nonDefaultVals(n,k) = fna%na(i)%nonDefaultVals(n,h)
+               rna%na(i)%nonDefaultVals(n,k) = fna%na(i)%nonDefaultVals(n,j)
             end do
             k=k+1   
          endif

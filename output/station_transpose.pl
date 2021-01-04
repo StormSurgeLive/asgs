@@ -54,7 +54,7 @@ my $drymaskfile = "null"; # elevation station file used to mask dry areas in oth
 my $format = "space";      # column separator in transposed file (space or comma)
 my $separator = " "; 
 my $vectorOutput = "raw";  # "raw" (for east and north values), "compassdegrees" or "trigdegrees" along with magnitude 
-my $coldstartdate = "null"; # yyyymmddhh24 when the simulation was coldstarted
+my $coldstartdate = "null"; # yyyymmddhh24 when the simulation was coldstarted; assumed to be in GMT
 my $gmtoffset=-5; # number of hours between gmt and local time
 my $timezone="GMT"; # time zone designation to be placed on graphs
 my $units = "null"; # output units, english or si
@@ -81,7 +81,7 @@ my $secondBang; # where second "!" appears in station metadata in fort.15
 my $thirdBang;  # where third "!" appears in station metadata in fort.15 
 my $labelLength; # length of station label string
 my @stationPlotLabels; # the string that is pulled from the fort.15 for each station to be used in labeling the associated plot
-my @supported_files = qw( elevation velocity windvelocity barometricpressure wavedirection significantwaveheight bathytopo );
+my @supported_files = qw( elevation velocity windvelocity barometricpressure wavedirection significantwaveheight bathytopo maureparticle_count maureparticle_count/area maureparticle_count/volume );
 my @supported_minmax_files = qw( maxsignificantwaveheight maxelevation maxvelocity maxinundationdepth maxwindvelocity );
 my @supported_time_minmax_files = qw( timemaxelevation timemaxwindvelocity timemaxvelocity timemaxsignificantwaveheight );
 my $multiplier = "null"; # generic multiplier to use on the data
@@ -93,7 +93,9 @@ my %reformattedUnits = ("elevation", "m", "velocity", "m/s", "windvelocity",
    "m/s", "barometricpressure", "mH2O", "wavedirection", "degrees", 
    "significantwaveheight", "m", "maxsignificantwaveheight", "m",
    "maxelevation", "m", "maxinundationdepth", "m", "maxwindvelocity", "m/s",
-   "bathytopo", "m" );
+   "bathytopo", "m", 
+   "particle count", "p", "particle densiy", "p/m2", "particle density", "p/m3" );
+#   maureparticle_count maureparticle_count/area maureparticle_count/volume
 my $hstime = "null"; # optional parameter, used to compute transposed date/times based 
                     # on hotstart time, coldstartdate, and the output frequency
                     # in the file, rather than the number of seconds associated
@@ -511,7 +513,7 @@ while (<DATAFILE>) {
    if ( $fileRank eq "scalar" ) {
       my $scalar;
       # parse out the station number and the value
-      m/^\s*(\d*)\s*(.*)\s*$/;
+      m/^\s*(\d*)\s*(\S*)\s*/;
       $stationNumber[$s] = $1;
       if ( $stationlabel eq "raw" ) {
          $stationPlotLabels[$s] = $stationNumber[$s];
@@ -598,7 +600,7 @@ while (<DATAFILE>) {
          $multiplier *= 2.2369363;
       }
       # parse out the station number and the two data values
-      m/^\s*([^\s]*)\s*([^\s]*)\s*([^\s]*)\s*$/;
+      m/^\s*([^\s]*)\s*([^\s]*)\s*([^\s]*)\s*/;
       $stationNumber[$s] = $1;
       if ( $stationlabel eq "raw" ) {
          $stationPlotLabels[$s] = $stationNumber[$s];
@@ -629,13 +631,24 @@ while (<DATAFILE>) {
       if ( $num_datasets == 0 ) {
          if ( $minmax == 0 && $time_minmax == 0 && $fileToTranspose ne "bathytopo" ) {
             unless ( $coldstartdate eq "null" ) {
-               printf TRANSPOSE "#DATE" . $separator . "TIME" . $separator . "TIMEZONE" . $separator;
+               printf TRANSPOSE "# DATE TIME" . $separator . "TIMEZONE" . $separator;
             } else {
-               printf TRANSPOSE "#TIMESEC" . $separator;         
+               printf TRANSPOSE "# TIMESEC" . $separator;         
             }
          }
          foreach (@stationPlotLabels) {
-             printf TRANSPOSE "\"$_\"" . $separator;
+             # scalar plot labels
+             if ( $fileRank eq "scalar" ) {              
+                printf TRANSPOSE "\"$_ ($reformattedUnits{$fileToTranspose})\"" . $separator;
+             } else {
+                # vector plot labels
+                if ( $vectorOutput eq "raw" ) {
+                    printf TRANSPOSE "\"$_ (east $reformattedUnits{$fileToTranspose})\"" . $separator . "\"$_ (north $reformattedUnits{$fileToTranspose})\"" . $separator ;                   
+                } else {
+                    # either trig degrees or compass degrees
+                    printf TRANSPOSE "\"$_ ($reformattedUnits{$fileToTranspose})\"" . $separator . "\"$_ ($vectorOutput) \"" . $separator ;                   
+                }                
+            }
          }
          printf TRANSPOSE "\n";
          
@@ -705,9 +718,9 @@ while (<DATAFILE>) {
                }
                # write out the magnitude and direction
                if ( $vectorOutput eq "compassdegrees" ) {     
-                  printf TRANSPOSE ("%20s %20s",$magnitude,$compassdirection);
+                  printf TRANSPOSE (" %20s , %20s ",$magnitude,$compassdirection);
                } else {
-                  printf TRANSPOSE ("%20s %20s",$magnitude,$trigdirection);                  
+                  printf TRANSPOSE (" %20s , %20s ",$magnitude,$trigdirection);                  
                }
             } else {
                # we have invalid values

@@ -94,9 +94,10 @@ type mesh_t
    ! parameters related to the neighbor edge length table (np,neimax)
    logical :: neighborEdgeLengthTableComputed = .false. ! .true. when mem is allocated for this
    real(8), allocatable :: neighborEdgeLengthTable(:,:)
-   real(8)  :: minEdgeLength ! shortest edge length in the whole mesh (m)
-   real(8)  :: maxEdgeLength ! longest edge length in the whole mesh (m)
+   real(8) :: minEdgeLength ! shortest edge length in the whole mesh (m)
+   real(8) :: maxEdgeLength ! longest edge length in the whole mesh (m)
    real(8), allocatable :: areas(:) ! (ne) 2x element areas in square meters
+   real(8), allocatable :: eledepths(:) ! (ne) element bathymetric depths (m)   
    real(8), allocatable :: sfac(:) ! (np)
    real(8), allocatable :: sfacAvg(:) ! (ne)
    real(8), allocatable :: fdx(:,:) ! (3,ne)
@@ -146,6 +147,7 @@ type mesh_t
    real(8), allocatable :: pipecoef(:,:)
    
    logical :: elementAreasComputed = .false.
+   logical :: elementDepthsComputed = .false.   
    logical :: weightingCoefficientsComputed = .false.
    logical :: neighborTableComputed = .false.
    logical :: allLeveesOK ! .false. if there are any issues
@@ -248,20 +250,22 @@ end type xdmfMetaData_t
 !
 ! info related to recording stations
 type station_t
-   real(8) :: lon             ! decimal degrees east 
-   real(8) :: lat             ! decimal degrees north
-   real(8) :: z               ! vertical position (m) relative to mesh zero
+   real(8) :: lon            ! decimal degrees east 
+   real(8) :: lat            ! decimal degrees north
+   real(8) :: z              ! vertical position (m) relative to mesh zero
    integer :: irtype         ! number of components; 1=scalar, 2=2D vector, 3=3D vector
    logical :: elementFound   ! true if the element number is known
-   integer :: elementIndex   ! where station is located in a particular mesh
-   integer :: n(3) ! nodes that surround the station
-   real(8) :: w(3)     ! weights used to interpolate station values based on nodal values
-   real(8), allocatable :: d(:,:)   ! station data (irtype, ntime)
+   integer :: elementIndex   ! where station is located in a particular mesh element table array
+   real(8) :: elementArea    ! total area in m^2
+   real(8) :: elementBathyDepth       ! spatially weighted interpolation of nodal depths (m)
+   integer :: n(3)           ! nodes that surround the station
+   real(8) :: w(3)           ! weights used to interpolate station values based on nodal values
+   real(8), allocatable :: d(:,:)     ! station data (irtype, ntime)
    integer :: iID            ! simple numerical ID
    character(len=1024) :: stationID   ! generally a number assigned by govt agency 
    character(len=1024) :: description ! human readable 
-   character(len=1024) :: agency  ! organization responsible for the station
-   character(len=1024) :: datum   ! relevant vertical datum (MSL, NAVD88, etc)
+   character(len=1024) :: agency      ! organization responsible for the station
+   character(len=1024) :: datum       ! relevant vertical datum (MSL, NAVD88, etc)
 end type station_t
       
 !-----+---------+---------+---------+---------+---------+---------+
@@ -1941,6 +1945,52 @@ write(6,'("INFO: Finished computing element centroids.")')
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
+!                     S U B R O U T I N E  
+!         C O M P U T E   E L E M E N T   D E P T H S
+!-----------------------------------------------------------------------
+!     jgf: Compute the solution weighting coefficients.
+!-----------------------------------------------------------------------
+SUBROUTINE computeElementDepths(m)
+IMPLICIT NONE
+type(mesh_t), intent(inout) :: m ! mesh to operate on
+real(8) :: x1, x2, x3 ! longitude temporary variables
+real(8) :: y1, y2, y3 ! latitude temporary variables
+real(8) :: w1, w2, w3 ! weighting coefficients of different nodes at the element centroid
+real(8) :: TotalArea
+integer :: e
+
+if (m%elementDepthsComputed.eqv..true.) then
+   return
+endif
+
+call computeElementCentroids(m)
+
+allocate(m%eledepths(m%ne))
+write(6,'("INFO: Computing element depths.")')
+do e=1,m%ne
+   X1 = m%x_cpp(m%nm(e,1))
+   X2 = m%x_cpp(m%nm(e,2))
+   X3 = m%x_cpp(m%nm(e,3))
+   Y1 = m%y_cpp(m%nm(e,1))
+   Y2 = m%y_cpp(m%nm(e,2))
+   Y3 = m%y_cpp(m%nm(e,3))
+   TotalArea = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+   w1 = ( (m%centroids(1,e)-X3)*(Y2-Y3)+(X2-X3)*(Y3-m%centroids(2,e)) )/TotalArea
+   w2 = ( (m%centroids(1,e)-X1)*(Y3-Y1)-(m%centroids(2,e)-Y1)*(X3-X1))/TotalArea
+   w3 = (-(m%centroids(1,e)-X1)*(Y2-Y1)+(m%centroids(2,e)-Y1)*(X2-X1))/TotalArea
+   m%eledepths(e) =                      &
+      m%xyd(3,m%nm(e,1)) * w1 &
+    + m%xyd(3,m%nm(e,2)) * w2 &
+    + m%xyd(3,m%nm(e,3)) * w3 
+end do
+m%elementDepthsComputed = .true.
+write(6,'("INFO: Finished computing element depths.")')
+!-----------------------------------------------------------------------
+      END SUBROUTINE computeElementDepths
+!-----------------------------------------------------------------------
+
+
+!-----------------------------------------------------------------------
 !  S U B R O U T I N E   C O M P U T E   S T A T I O N   W E I G H T S
 !-----------------------------------------------------------------------
 ! jgf: Find the element in which a station is located and then compute
@@ -1950,7 +2000,7 @@ write(6,'("INFO: Finished computing element centroids.")')
 subroutine computeStationWeights(station, m)
 implicit none
 type(station_t), intent(inout) :: station
-type(mesh_t), intent(in) :: m ! mesh to operate on
+type(mesh_t), intent(inout) :: m ! mesh to operate on (may compute element areas as a side effect)
 !
 real(8) :: x1, x2, x3 ! longitude temporary variables
 real(8) :: y1, y2, y3 ! latitude temporary variables
@@ -2011,8 +2061,13 @@ if (station%elementFound.eqv..true.) then
    station%w(1) = ( (station%lon-X3)*(Y2-Y3)+(X2-X3)*(Y3-station%lat) )/TotalArea
    station%w(2) = ( (station%lon-X1)*(Y3-Y1)-(station%lat-Y1)*(X3-X1))/TotalArea
    station%w(3) = (-(station%lon-X1)*(Y2-Y1)+(station%lat-Y1)*(X2-X1))/TotalArea
+   if (m%elementAreasComputed.eqv..false.) then
+      call compute2xAreas(m)
+   endif
+   station%elementArea = 0.5d0*m%areas(e)
 else  
    station%elementIndex = 0
+   station%elementArea = -99999.d0   
    station%w = -99999.0
 endif    
 
