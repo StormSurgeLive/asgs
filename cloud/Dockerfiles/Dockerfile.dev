@@ -170,6 +170,9 @@ RUN apt-get install -y build-essential checkinstall
 RUN apt-get install -y zlib1g-dev libssl-dev libexpat1-dev
 RUN apt-get install -y gfortran wget curl vim screen htop tmux git sudo
 RUN apt-get install -y gnuplot-nox
+RUN apt-get install -y ffmpeg
+RUN apt-get install -y units
+RUN apt-get install -y zip
 
 # symlink for /bin/env
 RUN ln -s /usr/bin/env /bin/env > /dev/null 2>&1 || echo /usr/bin/env already links to /bin/env

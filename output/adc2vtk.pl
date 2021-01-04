@@ -45,6 +45,9 @@ my %adcirctypes = ("maxele.63", "MaximumElevation",
                    "subdomains.100","SubdomainNumbers",
                    "noff.100","ElementWetDryState",
                    "noffornot.100","InconsistentElementWetDryState",
+                   "particles_count_peak.200","ElementPeakParticleCount",
+                   "particles_perarea_peak.200","ElementPeakParticleCountPerArea",
+                   "particles_pervolume_peak.200","ElementPeakParticleCountPerVolume",
                    "nodecode.63","NodeWetDryState",
                    "ESLNodes.63","ElementalSlopeLimitAtNodesDiagnostic",                   
                    "residents.63","ResidentNodeNumbers",
@@ -521,6 +524,18 @@ foreach my $file (@adcircfiles) {
       $datacentered = "CellData";
       $datatype = "Int32";
    }
+   if ( $file eq "particles_count_peak.200"  ) {
+      $num_components = 1;
+      $num_datasets = 1;
+      $datacentered = "CellData";
+      $datatype = "Int32";
+   }   
+   if ( $file eq "particles_perarea_peak.200" || $file eq "particles_pervolume_peak.200" ) {
+      $num_components = 1;
+      $num_datasets = 1;
+      $datacentered = "CellData";
+      $datatype = "Float64";
+   }   
    if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" || $file eq "ESLNodes.63" ) {
       $num_components = 1;
       $num_datasets = 1;
@@ -531,7 +546,7 @@ foreach my $file (@adcircfiles) {
       $num_datasets = 1;
       $datatype = "Int32";
    }
-   if ( $file eq "noff.100" || $file eq "noffornot.100" ) {
+   if ( $file eq "noff.100" || $file eq "noffornot.100"  ) {
       $num_components = 1;
       $num_datasets = 0;
       $datatype = "Int32";
@@ -664,7 +679,7 @@ foreach my $file (@adcircfiles) {
          $lim=$ne;
       }
       #
-      # read adcirc data file
+      # read one dataset from adcirc data file
       for (my $i=0; $i<$lim; $i++) {
          $line = <ADCIRCFILE>;
          if ( defined $line ) {
@@ -673,8 +688,7 @@ foreach my $file (@adcircfiles) {
             stderrMessage("ERROR","Ran out of data: $!.");
             die;
          }
-
-         # get rid of the node number or node ID
+         # get rid of the node/element index or node/element ID
          shift(@fields);
          if ( $num_components == 2 ) {
             # calculate vector magnitude
@@ -714,6 +728,7 @@ foreach my $file (@adcircfiles) {
          $vtk_components = $num_components + 1; # for vtk all vectors are 3D
       }
       printf OUT "            <DataArray Name=\"$adcirctypes{$file}\" type=\"$datatype\" NumberOfComponents=\"$vtk_components\" format=\"ascii\">\n";
+      # write out one adcirc dataset
       for (my $i=0; $i<$lim; $i++) {
          printf OUT "$comp[$i]\n";
       }
@@ -734,6 +749,10 @@ foreach my $file (@adcircfiles) {
       &writeFooter();
       close(OUT);
       $dataset++;
+      # only write the number of datasets as specified according to the filetype
+      if ( $num_datasets != 0 && $dataset >= $num_datasets ) {
+         last;
+      }
    }
    if ( $num_datasets == 0 ) {
       printf PVD "   </Collection>\n";

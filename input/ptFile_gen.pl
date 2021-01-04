@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Copyright(C) 2011 Jason Fleming
+# Copyright(C) 2011--2020 Jason Fleming
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 # 
