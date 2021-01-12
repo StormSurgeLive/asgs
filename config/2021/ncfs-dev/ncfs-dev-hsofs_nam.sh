@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME="hsofs-nam-bob-2021"      # "name" of this ASGS process
+INSTANCENAME=hsofs-nam-bob-2021      # "name" of this ASGS process
 SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
 RMQMessaging_Transmit=on
 RESERVATION=ncfs

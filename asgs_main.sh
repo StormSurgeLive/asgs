@@ -1887,14 +1887,22 @@ RUNDIR=$SCRATCHDIR/asgs$$
 # this verifies that messages can be constructed.  It is possible
 # that asgs-msgr.sh will set RMQMessaging to "off", in which case
 # calls to RMQMessage will return without doing anything
+echo $RMQMessaging_StartupScript
+echo $RMQMessaging_Script
+echo $RMQMessaging_Script_RP
+#exit
 if [[ $RMQMessaging_Enable = "on" ]] ; then
    THIS="monitoring/asgs-msgr.sh"
    source ${SCRIPTDIR}/monitoring/asgs-msgr.sh
    THIS="asgs_main.sh"
+   echo  "RMQ Messaging enabled."   # BB
    allMessage "RMQ Messaging enabled." 
 else
    allMessage "RMQ Messaging disabled." 
+   echo "RMQ Messaging disabled."   # BB
 fi
+echo "here"
+exit
 
 #
 # Send message with config file contents as the message body.  This is only done once at ASGS startup

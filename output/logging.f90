@@ -425,7 +425,7 @@ real(8), allocatable :: intentionalSegFault(:)
 real(8) :: triggerSegFaultIntentionallyForStackTrace
 if(ncstatus.ne.nf90_noerr)then
    write(*,'(a,a)') "ERROR: ",trim(nf90_strerror(ncstatus))
-   call backtrace
+   ! BOB call backtrace
    triggerSegFaultIntentionallyForStackTrace = intentionalSegFault(1)
    stop 1
 endif
