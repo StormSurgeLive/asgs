@@ -50,7 +50,7 @@
 # specify compiler=gfortran on the make command line
 ifeq ($(compiler),gfortran)
    FC := gfortran
-   FFLAGS := -O2 -cpp -ffree-line-length-none
+   FFLAGS := -O2 -cpp -ffree-line-length-none -DUSE_BACKTRACE
    ifeq ($(DEBUG),full)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal -DDEBUGSEGFAULT
    endif
@@ -77,7 +77,7 @@ endif
 # due possible compiler bug. Flag not needed for ifort version 13.1.3 and later. -nld
 ifeq ($(compiler),intel)
    FC := ifort
-   FFLAGS := -cpp -shared-intel
+   FFLAGS := -cpp -shared-intel -DUSE_TRACEBACKQQ
    ifeq ($(DEBUG),trace)
       FFLAGS := -g -O0 -fpp -traceback 
    endif
