@@ -51,8 +51,9 @@ fi
 tar -xvf $IMAGEMAGICK_VERSION.tar.gz
 cd ImageMagick-$IMAGEMAGICK_VERSION 
 
+CC=gcc
 export MAGICK_HOME=$ASGS_INSTALL_PATH
-./configure --prefix=$ASGS_INSTALL_PATH --with-perl
+./configure --prefix=$ASGS_INSTALL_PATH --with-gcc-arch=native --with-perl
 make #-j $JOBS
 make install
 # Note:
