@@ -40,6 +40,9 @@ if ( defined $ENV{_ASGSH_PID} ) {
 # copy existing environment
 local %ENV = %ENV;
 
+# precondition the shell's environmental variables
+__PACKAGE__->_init_env(\%ENV);
+
 our $AFFECTED_ENV_VARS = {};    # list of envars that were updated across all steps
 our $SKIP_STEPS_LIST   = {};    # for debugging only, forces a step's "skip_if" to be true
 
@@ -100,6 +103,14 @@ sub run {
     $self->_install_asgs_shell($opts_ref);                 # finalizes installation by installing/updating asgsh
 
     return EXIT_SUCCESS;
+}
+
+sub _init_env {
+    my ($self, $ENV_ref) = @_;
+    for my $envar (qw/PERL5LIB PERL_MB_OPT PERL_LOCAL_LIB_ROOT PERL_MM_OPT/) {
+      delete $ENV_ref->{$envar};
+    }  
+    return;
 }
 
 sub _parse_options {
@@ -617,7 +628,7 @@ sub get_steps {
 
                 # export_ENV for run steps are used before 'clean' is run, so these are available
                 File::Path::rmtree( $ENV{ASGS_META_DIR}, $ENV{ADCIRC_META_DIR}, { safe => 1 } );
-                unlink qq{$asgs_home/.asgs-brew.sh}, qq{$asgs_home/bin/asgsh}, qq{$asgs_home/bin/update-asgsh};
+                unlink qq{$asgs_home/.asgs-brew.sh}, qq{$asgs_home/bin/asgsh}, qq{$asgs_home/bin/update-asgs};
             },
 
             # augment existing %ENV (cumulative)
