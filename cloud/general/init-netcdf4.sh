@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OPT=${1-$HOME/opt}
+OPT=${1-$ASGS_INSTALL_PATH}
 COMPILER=${2-intel}
 JOBS=${3-1}
 TMP=/tmp/$USER-asgs
