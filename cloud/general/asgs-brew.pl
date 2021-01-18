@@ -965,7 +965,7 @@ sub get_steps {
         },
         {
             key         => q{gnuplot},
-            name        => q{Step for installing gnuplot },
+            name        => q{Step for installing gnuplot},
             description => q{Install gnuplot (commandline only)},
             pwd         => q{./},
             command     => qq{bash ./cloud/general/init-gnuplot-noX11.sh $asgs_install_path gfortran 4},
@@ -982,6 +982,31 @@ sub get_steps {
             postcondition_check => sub {
                 local $?;
                 system(qq{$asgs_install_path/bin/gnuplot --version > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+        },
+        {
+            key         => q{units},
+            name        => q{Step for installing units},
+            description => q{Install GNU Units utility},
+            pwd         => q{./},
+            command     => qq{bash ./cloud/general/init-gnu-units.sh $asgs_install_path gfortran 4},
+            clean       => qq{bash ./cloud/general/init-gnu-units.sh $asgs_install_path clean},
+            skip_if     => sub {
+                local $?;
+                system(qq{$asgs_install_path/bin/units --version > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+            precondition_check  => sub { 1 },
+            postcondition_check => sub {
+                local $?;
+                system(qq{$asgs_install_path/bin/units --version > /dev/null 2>&1});
 
                 # look for zero exit code on success
                 my $exit_code = ( $? >> 8 );
