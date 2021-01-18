@@ -5,7 +5,7 @@ COMPILER=$2
 JOBS=${3-1}
 TMP=/tmp/$USER-asgs
 
-if [ $2 == "clean" ]; then 
+if [ "$COMPILER" == "clean" ]; then 
   echo cleaning NASM and ffmpeg libraries and utilities
   cd $OPT/bin
   rm -rfv ffmpeg ffprobe nasm ndisasm
