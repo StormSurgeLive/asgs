@@ -77,7 +77,7 @@ endif
 # due possible compiler bug. Flag not needed for ifort version 13.1.3 and later. -nld
 ifeq ($(compiler),intel)
    FC := ifort
-   FFLAGS := -cpp -shared-intel
+   FFLAGS := -cpp -shared-intel -DINTEL
    ifeq ($(DEBUG),trace)
       FFLAGS := -g -O0 -fpp -traceback 
    endif

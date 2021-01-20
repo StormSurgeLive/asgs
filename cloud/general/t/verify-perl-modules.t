@@ -10,6 +10,9 @@ for my $module (<$fh>) {
   require_ok $module;
 }
 
+# Testing list of modules that are not handled through the
+# automated manifest, ./PERL-MODULES
+
 require_ok q{AdcGrid};
 
 done_testing();
