@@ -34,7 +34,7 @@ endif
 # specify compiler=intel on the make command line
 ifeq ($(compiler),intel)
    FC := ifort
-   FFLAGS := -fpp
+   FFLAGS := -fpp -DINTEL
    ifeq ($(DEBUG),full)
       FFLAGS := -g -O0 -fpp -traceback -debug -check all 
    endif

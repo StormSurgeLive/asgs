@@ -40,6 +40,9 @@ if ( defined $ENV{_ASGSH_PID} ) {
 # copy existing environment
 local %ENV = %ENV;
 
+# precondition the shell's environmental variables
+__PACKAGE__->_init_env(\%ENV);
+
 our $AFFECTED_ENV_VARS = {};    # list of envars that were updated across all steps
 our $SKIP_STEPS_LIST   = {};    # for debugging only, forces a step's "skip_if" to be true
 
@@ -100,6 +103,14 @@ sub run {
     $self->_install_asgs_shell($opts_ref);                 # finalizes installation by installing/updating asgsh
 
     return EXIT_SUCCESS;
+}
+
+sub _init_env {
+    my ($self, $ENV_ref) = @_;
+    for my $envar (qw/PERL5LIB PERL_MB_OPT PERL_LOCAL_LIB_ROOT PERL_MM_OPT/) {
+      delete $ENV_ref->{$envar};
+    }  
+    return;
 }
 
 sub _parse_options {
@@ -617,7 +628,7 @@ sub get_steps {
 
                 # export_ENV for run steps are used before 'clean' is run, so these are available
                 File::Path::rmtree( $ENV{ASGS_META_DIR}, $ENV{ADCIRC_META_DIR}, { safe => 1 } );
-                unlink qq{$asgs_home/.asgs-brew.sh}, qq{$asgs_home/bin/asgsh}, qq{$asgs_home/bin/update-asgsh};
+                unlink qq{$asgs_home/.asgs-brew.sh}, qq{$asgs_home/bin/asgsh}, qq{$asgs_home/bin/update-asgs};
             },
 
             # augment existing %ENV (cumulative)
@@ -820,16 +831,16 @@ sub get_steps {
             clean       => qq{bash ./cloud/general/init-perlbrew.sh $asgs_install_path/perl5 clean},
 
             # augment existing %ENV (cumulative) - this assumes that perlbrew is installed in $HOME and we're
-            # using perl-5.28.2
+            # using perl-5.32.0
             export_ENV => {
-                PERLBREW_PERL    => { value => q{perl-5.28.2},                                                                  how => q{replace} },
-                PATH             => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.28.2/bin}, how => q{prepend} },
+                PERLBREW_PERL    => { value => q{perl-5.32.0},                                                                  how => q{replace} },
+                PATH             => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.32.0/bin}, how => q{prepend} },
                 PERLBREW_HOME    => { value => qq{$asgs_install_path/perl5/perlbrew},                                           how => q{replace} },
                 PERL_CPANM_HOME  => { value => qq{$asgs_install_path/perl5/.cpanm},                                             how => q{replace} },
-                PERLBREW_PATH    => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.28.2/bin}, how => q{prepend} },
-                PERLBREW_MANPATH => { value => qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.28.2/man},                     how => q{prepend} },
+                PERLBREW_PATH    => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.32.0/bin}, how => q{prepend} },
+                PERLBREW_MANPATH => { value => qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.32.0/man},                     how => q{prepend} },
                 PERLBREW_ROOT    => { value => qq{$asgs_install_path/perl5/perlbrew},                                           how => q{replace} },
-                PERL5LIB         => { value => qq{$asgs_install_path/perl5/perls/perl-5.28.2/lib/site_perl/5.28.2/},            how => q{prepend} },
+                PERL5LIB         => { value => qq{$asgs_install_path/perl5/perls/perl-5.32.0/lib/site_perl/5.28.2/},            how => q{prepend} },
             },
             skip_if => sub {
                 my ( $op, $opts_ref ) = @_;
@@ -847,7 +858,7 @@ sub get_steps {
             pwd                 => q{./},
             command             => qq{bash ./cloud/general/init-perl-modules.sh $asgs_install_path/perl5},
             clean               => sub { my $op = shift; print qq{No explicit clean step for, $op->{name}\n} },
-            precondition_check  => sub { return ( -e qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.28.2/bin/perl} ) ? 1 : 0 },
+            precondition_check  => sub { return ( -e qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.32.0/bin/perl} ) ? 1 : 0 },
             postcondition_check => sub {
                 local $?;
                 system(qq{prove ./cloud/general/t/verify-perl-modules.t 2>&1});
@@ -855,6 +866,43 @@ sub get_steps {
                 # look for zero exit code on success
                 my $exit_code = ( $? >> 8 );
                 return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+        },
+        {
+            key         => q{ImageMagick},
+            name        => q{Step for ImageMagick},
+            description => q{Installs local ImageMagick tools and Perl module Image::Magick.},
+            pwd         => q{./},
+            # Note, gcc is used to compile ImageMagick
+            command     => qq{bash ./cloud/general/init-image-magick.sh $asgs_install_path},
+            clean       => qq{bash ./cloud/general/init-image-magick.sh $asgs_install_path clean},
+
+            export_ENV => {
+                MAGICK_HOME => { value => qq{$asgs_install_path}, how => q{replace} },
+            },
+
+            skip_if => sub {
+                my ( $op, $opts_ref ) = @_;
+                my $bins_ok = -x qq{$asgs_install_path/bin/convert};
+                local $?;
+                system(qw/perl -MImage::Magick -e/, 'print qq{..ensuring Image::Magick is available.\n}');
+                # perldoc -f system  for more info on getting child process info
+                # regarding the exit status
+                my $exit_code = $? >> 8; 
+                # exit code will be 0 if successful, so return the negation of it
+                return $bins_ok && (not $exit_code);
+            },
+
+            postcondition_check => sub {
+                my ( $op, $opts_ref ) = @_;
+                my $bins_ok = -x qq{$asgs_install_path/bin/convert};
+                local $?;
+                system(qw/perl -MImage::Magick -e/, 'print qq{..ensuring Image::Magick is available.\n}');
+                # perldoc -f system  for more info on getting child process info
+                # regarding the exit status
+                my $exit_code = $? >> 8; 
+                # exit code will be 0 if successful, so return the negation of it
+                return $bins_ok && (not $exit_code);
             },
         },
         {

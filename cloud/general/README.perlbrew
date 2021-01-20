@@ -57,10 +57,10 @@ If not, make sure you've placed the source line in the correct file.
 Note: it would be convenient to open a screen sessin if you wish to see it compiling and installing
 since perlbrew will give you the tail command to use to do this. If not then perlbrew just waits for
 the background process to complete with no feedback indicating that anything is happening. You may
-install as many versions of perl as you whish using this method. perl 5.28.2 is the latest version
+install as many versions of perl as you whish using this method. perl 5.32.0 is the latest version
 of perl at the time of this writing.
 
-  perlbrew install perl-5.28.2
+  perlbrew install perl-5.32.0
 
   Note: if the build fails, see the Troubleshooting (Append. A) below.
 
@@ -69,12 +69,12 @@ terminal sessions; when ~/perl5/perlbrew/etc/bashrc is source'd on login or new 
 set your environment to point to the version of perl you have specificed. Fixing it so that the
 perlbrew installed version of perl is set by default is recommended:
    
-  perlbrew switch perl-5.28.2
+  perlbrew switch perl-5.32.0
 
 If you wish to default to system perl on login, but switch to a version of perl after manually, then
 use the following command after login:
 
-  perlbrew use perl-5.28.2
+  perlbrew use perl-5.32.0
 
 You may undo the "perlbrew switch" using the following command:
 
@@ -182,7 +182,7 @@ Case 1: Build fails
 In the case of the unit test failure, take note of the tests that failed (end in .t) and how many tests failed. If it's
 a very small amount of tests then it's usually safe to re-run the install using the "--no-test" option.
 
-  perlbrew install --no-test perl-5.28.2
+  perlbrew install --no-test perl-5.32.0
 
 If there are widespread test failures, then this could indicate something environmental at work. A search of the errors seen
 on duck duck go (or G) may also prove useful. But perlbrew is pretty robust, as is the Perl source distribution.
