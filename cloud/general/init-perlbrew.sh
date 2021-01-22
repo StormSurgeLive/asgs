@@ -1,22 +1,16 @@
 #!/bin/bash
 
-ACTION=${1-install}
-PERL_VERSION=${2-"perl-5.28.2"}
+PERLBREW_ROOT=${1-"$HOME/perl5"}
+export PERLBREW_ROOT
+ACTION=${2-"install"}
+PERL_VERSION=${3-"perl-5.32.0"}
 
 if [ "$ACTION" == "clean" ]; then
 
   # remove local directories
-  rm -rfv $HOME/perl5 $HOME/.perlbrew
-
-  # remove source line from ~/.bash_profile
-  DOT_BASH_PROFILE=$HOME/.bash_profile-$$
-  cat ~/.bash_profile | grep -v 'source ~/perl5/perlbrew/etc/bashrc' > $DOT_BASH_PROFILE
-  mv -fv $DOT_BASH_PROFILE $HOME/.bash_profile
-
-  # final message on end of "clean"
+  rm -rfv $PERLBREW_ROOT
   echo
-  echo All files associated with perlbrew have been removed.
-  echo '"source"' has been removed from $HOME/.bash_profile.
+  echo This also deleted all Perl modules installed with this perlbrew
   echo
   echo Run again without clean flag to install
   echo
@@ -32,19 +26,19 @@ if [ 1 -eq "$(echo $CURRENT_PERL | grep -c perl5)" ]; then
   exit
 fi
 
-if [ ! -e "$HOME/perl5/perlbrew/bin/perlbrew" ]; then
+if [ ! -e "$PERLBREW_ROOT/bin/perlbrew" ]; then
   curl -sL https://install.perlbrew.pl | bash
 else
   echo perlbrew seems to be already set up and avaiable via PATH
 fi
 
 # source for this session
-source ~/perl5/perlbrew/etc/bashrc
+source $PERLBREW_ROOT/etc/bashrc
 
-if [ ! -e "$HOME/perl5/perlbrew/perls/$PERL_VERSION/bin/perl" ]; then
+if [ ! -e "$PERLBREW_ROOT/perls/$PERL_VERSION/bin/perl" ]; then
 
   # --notest is just to increase the speed of the installation
-  perlbrew --notest install $PERL_VERSION
+  perlbrew --verbose --notest install $PERL_VERSION
 
   if [ $? -ne 0 ]; then
     echo perlbrew failed to install perl $PERL_VERSION
@@ -61,7 +55,7 @@ else
 
 fi
 
-if [ ! -e "$HOME/perl5/perlbrew/perls/$PERL_VERSION/bin/perl" ]; then
+if [ ! -e "$PERLBREW_ROOT/perls/$PERL_VERSION/bin/perl" ]; then
   echo $PERL_VERSION failed to build
   exit
 fi

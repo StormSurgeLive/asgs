@@ -1,0 +1,63 @@
+Adding "commands" to asgsh:
+
+1. create a script in $SCRIPTDIR/bin
+2. make script executable (recommended, `chmod 700`)
+
+If you wish to add your script to the main ASGS distribution,
+please follow the procedure noted in the CONTRIBUTING folder.
+
+When in doubt, ask! We want to make it easy to make your own
+scripts available inside of asgsh. If your script/tools are
+generally useful, then we want to make it easy to get them
+added to the official distribution.
+
+A Note on Dependencies:
+
+It is preferred that scripts contained have no dependencies
+outside of what is provided in the default asgsh environment/
+ASGS installation. The idea is that they are provided "as-is"
+and work using the latest installed ASGS environment.
+
+* shell scripts are preferred (without the ".sh" extension)
+* Perl scripts are fine as long as they do not require additional
+  modules to be installed; if this is required PLEASE ASK about
+  the best approach. The official Perl module list is contained in
+  ./PERL-MODULES file; these are installed automatically when ASGS
+  is installed or deeply updated ('update-asgs " "')
+* Python scripts are fine as long as they do not require additional
+  modules or dependencies; this is a little more tedious to manage
+  than the Perl environment. We're also using a "deprecated" version
+  of Python (2.7.18 at the time of this writing); so further complications
+  will ensue if Python 3 is required.
+* anything that needs to be compiled to work is discouraged from being
+  made available via ./my-bin or ./bin; PLEASE ASK if you wish to add
+  support for building a compiled tool to the ASGS installation or 
+  deep update; it is as part of asgs-brew.pl that compiled tools
+  and libraries are meant to be "officially" supported
+
+The asgsh Environment:
+
+To see what the asgsh environment contains, start up asgsh,
+then issue the command:
+
+  asgs (default)>env | grep ASGS
+
+ASGS Specific Variables:
+
+* _ASGSH_PID
+* ASGS_HOME
+* _ASGS_OPTS
+* ASGS_PLATFORMS
+* _ASGSH_CURRENT_PROFILE
+* ASGS_INSTALL_PATH
+* ASGS_COMPILER
+* ASGS_MACHINE_NAME
+* ASGS_MAKEJOBS
+* ASGS_CONFIG
+* ASGS_BREW_FLAGS
+* ASGS_META_DIR
+* ASGS_MESH_DEFAULTS
+
+Also note:
+
+ *_ASGS_EXPORTED_VARS=ASGS_META_DIR ASGS_COMPILER LD_INCLUDE_PATH PERLBREW_MANPATH ASGS_BREW_FLAGS WORK PERLBREW_PATH NETCDF4_DIR ADCIRC_PROFILE_NAME SCRATCH LDFLAGS ADCIRC_GIT_BRANCH NETCDF4_LIBDIR NETCDF4_INCDIR NETCDFHOME PATH PERL5LIB HDF5_DIR ADCIRC_GIT_REPO SCRIPTDIR PERLBREW_ROOT PERLBREW_PERL LD_LIBRARY_PATH HDF5_INCDIR ASGS_HOME LIBRARY_PATH PERL_CPANM_HOME ASGS_MAKEJOBS HDF5_LIBDIR ADCIRC_COMPILER SWANDIR ADCIRC_META_DIR ADCIRCBASE LD_RUN_PATH PERLBREW_HOME ASGS_MESH_DEFAULTS ASGS_PLATFORMS ADCIRC_GIT_URL ASGS_MACHINE_NAME ASGS_INSTALL_PATH NETCDFROOT ADCIRCDIR CPPFLAGS PYTHONPATH _ASGS_EXPORTED_VARS WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_MAKE_CMD ADCIRC_BINS SWAN_BINS

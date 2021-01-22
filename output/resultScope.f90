@@ -106,6 +106,7 @@ fd%dataFileFormat = ASCII
 rd%dataFileFormat = ASCII
 meshonly = .false.
 dataFileBase = "null"
+fd%defaultFileName = "null"
 !
 call initLogging(availableUnitNumber(),'resultScope.f90')
 !
@@ -441,7 +442,7 @@ if (trim(fd%defaultFileName).eq.'fort.13') then
          if (h.ne.-99999) then
             rna%na(i)%nonDefaultNodes(k) = h
             do n=1,rna%na(i)%numVals
-               rna%na(i)%nonDefaultVals(n,k) = fna%na(i)%nonDefaultVals(n,h)
+               rna%na(i)%nonDefaultVals(n,k) = fna%na(i)%nonDefaultVals(n,j)
             end do
             k=k+1   
          endif
@@ -450,22 +451,31 @@ if (trim(fd%defaultFileName).eq.'fort.13') then
    call writeNodalAttributesFile(rna)   
    stop
 else
-   call allMessage(INFO,'Not a nodal attributes file:'//trim(fd%defaultFileName))
-   
+   if ( trim(adjustl(fd%defaultFileName)).ne.'null' ) then
+      call allMessage(INFO,'Not a nodal attributes file: '//trim(adjustl(fd%defaultFileName)))  
+   endif
 endif
 !
 ! set up subdomain result file
+if (rd%isElemental.eqv..true.) then
+   rd%numValuesPerDataset = rm%ne
+else
+   rd%numValuesPerDataset = rm%np
+endif 
+rd%irtype = fd%irtype
+!
 select case(rd%dataFileFormat) 
 !
 ! result file (subdomain) in ascii format
 case(ASCII)
+
    ! open the subdomain ascii adcirc file that will hold the data and
    ! write the header
    rd%dataFileName = 'sub-' // trim(resultShape) // '_' // trim(fd%dataFileName) 
    rd%fun = availableUnitNumber()
    open(rd%fun,file=trim(rd%dataFileName),status='replace',action='write')
    ! write header info
-   write(rd%fun,'(a)') trim(rm%agrid) // trim(rd%dataFileName) // ' ' // trim(dataFileCommentLine)
+   write(rd%fun,'(a)') trim(rm%agrid) // trim(rd%dataFileName) // ' ' // trim(fd%agridRunIDRunDesLine)
    ! write the header data to the resultshape file
    write(rd%fun,1010) fd%nSnaps, rd%numValuesPerDataSet, fd%time_increment, fd%nspool, fd%irtype
 !
@@ -568,17 +578,28 @@ case(NETCDFG)
          rd%ncds(i)%mapping => sub2fullNodes
       endif
    end do 
-case(ASCIIG) 
+case(ASCII) 
    ! establish mapping from subdomain to fulldomain
    if (rd%isElemental.eqv..true.) then
       rd%mapping => sub2fullElements
    else
       rd%mapping => sub2fullNodes
-   endif
+   endif 
 case default
    ! should be unreacable
    call allMessage(ERROR,'Only NETCDF and ASCII full domain file formats are supported.')
 end select  
+!
+! open the fulldomain ascii data file for reading
+if ( fd%dataFileFormat.eq.ASCII ) then
+   lineNum = 1
+   fd%fun = availableUnitNumber()
+   call openFileForRead(fd%fun,fd%dataFileName,errorIO)
+   read(fd%fun,*,end=246,err=248,iostat=errorio) junkc  ! comment line
+   lineNum=lineNum+1
+   read(fd%fun,*,end=246,err=248,iostat=errorio) junkc  ! nSnaps etc
+   lineNum=lineNum+1
+endif
 !
 !
 !  R E A D   I N   F U L L D O M A I N   D A T A   
@@ -593,17 +614,21 @@ DO   ! jgf: loop until we run out of data (can't trust the nSnaps at top of asci
    !  
 
 !subroutine readOneDataSet(f, m, s, l, snapr, snapi)
-
+   
+   ! jgfdebug
+   !write(*,*) 'call readOneDataset(fd, fm, ss, lineNum, snapr, snapi)'
+   
    call readOneDataset(fd, fm, ss, lineNum, snapr, snapi)
+   !write(*,*) 'call readOneDataset(fd, fm, ss, lineNum, snapr, snapi)'
    call appendR1D(timesec, snapr)
    call appendI1D(it, snapi)
-   call allMessage(INFO,"read one data file") !jgfdebug
+   !call allMessage(INFO,"read one data file") !jgfdebug
    !
    !  P O P U L A T E   R E S U L T   A R R A Y ( S ) 
    !        F O R   T H I S   S I N G L E   D A T A S E T
    ! 
    ! ASCII FULLDOMAIN FILE and ASCII SUBDOMAIN FILE
-   if ( (fd%dataFileFormat.eq.ASCIIG).and.(rd%dataFileFormat.eq.ASCIIG) ) then
+   if ( (fd%dataFileFormat.eq.ASCII).and.(rd%dataFileFormat.eq.ASCII) ) then
       ! map 3D real data  ascii->ascii
       if ( (fm%is3D.eqv..true.).and.(fd%is3D.eqv..true.) ) then
          do h=1,rd%numValuesPerDataSet
@@ -703,6 +728,10 @@ DO   ! jgf: loop until we run out of data (can't trust the nSnaps at top of asci
    !   W R I T E   O U T   O N E   R E S U L T   D A T A S E T
    !  
    !call readOneDataset(fd, fm, ss, lineNum, snapr, snapi)   
+
+            !jgfdebug
+            !write(*,*) rd%numValuesPerDataset
+
    call writeOneDataSet(rd, rm, ss, lineNum, snapr, snapi)
    !
    write(6,advance='no',fmt='(i6)') SS

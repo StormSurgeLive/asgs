@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+if [ -z "$_ASGSH_PID" ]; then
+  echo "must be run inside of a running asgsh environment"
+else
+  echo "hello, World!"
+fi

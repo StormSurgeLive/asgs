@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:georss="http://www.georss.org/georss"
+ xmlns:gml="http://www.opengis.net/gml"
+ xmlns:nhc="https://www.nhc.noaa.gov">
+<channel>
+<pubDate>Thu, 29 Oct 2020 20:35:32 GMT</pubDate>
+<title>NHC Atlantic</title>
+<description>Active tropical cyclones in the Atlantic, Caribbean, and the Gulf of Mexico</description>
+<link>https://www.nhc.noaa.gov/</link>
+<copyright>none</copyright>
+<managingEditor>nhcwebmaster@noaa.gov (NHC Webmaster)</managingEditor>
+<language>en-us</language>
+<webMaster>nhcwebmaster@noaa.gov (NHC Webmaster)</webMaster>
+<image>
+<url>https://www.nhc.noaa.gov/gifs/xml_logo_nhc.gif</url>
+<link>https://www.nhc.noaa.gov/</link>
+<title>NHC Atlantic</title>
+<description>NOAA logo</description>
+<width>95</width>
+<height>45</height>
+</image>
+<item>
+<title>Atlantic Tropical Weather Outlook</title>
+<description>
+<![CDATA[
+<br/>
+000<br/>
+ABNT20 KNHC 291723<br/>
+TWOAT <br/>
+<br/>
+Tropical Weather Outlook<br/>
+NWS National Hurricane Center Miami FL<br/>
+200 PM EDT Thu Oct 29 2020<br/>
+<br/>
+For the North Atlantic...Caribbean Sea and the Gulf of Mexico:<br/>
+<br/>
+The National Hurricane Center is issuing advisories on Zeta, located <br/>
+over Virginia.<br/>
+<br/>
+A large area of disturbed weather in the vicinity of the Lesser <br/>
+Antilles is associated with a tropical wave.  Upper-level winds are <br/>
+expected to become more conducive for development of this <br/>
+disturbance during the next couple of days, and a tropical <br/>
+depression could form over the weekend or early next week while the <br/>
+system moves westward across the central and western Caribbean Sea.<br/>
+* Formation chance through 48 hours...low...20 percent.<br/>
+* Formation chance through 5 days...medium...60 percent.<br/>
+<br/>
+$$<br/>
+Forecaster Pasch<br/>
+]]>
+</description>
+<pubDate>Thu, 29 Oct 2020 17:23:16 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/gtwo.php?basin=atlc</link>
+<guid>https://www.nhc.noaa.gov/gtwo.php?basin=atlc&amp;202010291723</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+ <title>Summary for Post-Tropical Cyclone Zeta (AT3/AL282020)</title>
+ <guid isPermaLink="false">summary-al282020-202010291802</guid>
+ <pubDate>Thu, 29 Oct 2020 18:02:16 GMT</pubDate>
+ <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+ <link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/291802.shtml</link>
+ <description>
+  ...ZETA BECOMES POST-TROPICAL... ...STILL PRODUCING STRONG GUSTY WINDS ACROSS NORTH CAROLINA AND SOUTHEASTERN VIRGINIA...
+ As of 2:00 PM EDT Thu Oct 29
+ the center of Zeta was located near 37.8, -78.2
+ with movement ENE at 53 mph.
+ The minimum central pressure was 992 mb
+ with maximum sustained winds of about 50 mph.
+ </description>
+ <nhc:Cyclone>
+  <nhc:center>37.8, -78.2</nhc:center>
+  <nhc:type>POST-TROPICAL CYCLONE</nhc:type>
+  <nhc:name>Zeta</nhc:name>
+  <nhc:wallet>AT3</nhc:wallet>
+  <nhc:atcf>AL282020</nhc:atcf>
+  <nhc:datetime>2:00 PM EDT Thu Oct 29</nhc:datetime>
+  <nhc:movement>ENE at 53 mph</nhc:movement>
+  <nhc:pressure>992 mb</nhc:pressure>
+  <nhc:wind>50 mph</nhc:wind>
+  <nhc:headline> ...ZETA BECOMES POST-TROPICAL... ...STILL PRODUCING STRONG GUSTY WINDS ACROSS NORTH CAROLINA AND SOUTHEASTERN VIRGINIA...</nhc:headline>
+ </nhc:Cyclone>
+</item>
+<item>
+<title>Post-Tropical Cyclone Zeta Public Advisory Number 20A</title>
+<description>Issued at 200 PM EDT Thu Oct 29 2020  <![CDATA[<pre>
+
+000
+WTNT33 KNHC 291802 CCA
+TCPAT3
+ 
+BULLETIN
+Post-Tropical Cyclone Zeta
+Intermediate Advisory Number 20A...Corrected
+NWS National Hurricane Center Miami FL       AL282020
+200 PM EDT Thu Oct 29 2020
+
+Corrected Tropical Storm to Post-Tropical Cyclone in Discussion and 
+Outlook section
+ 
+...ZETA BECOMES POST-TROPICAL...
+...STILL PRODUCING STRONG GUSTY WINDS ACROSS NORTH CAROLINA AND
+SOUTHEASTERN VIRGINIA...
+ 
+ 
+SUMMARY OF 200 PM EDT...1800 UTC...INFORMATION
+----------------------------------------------
+LOCATION...37.8N 78.2W
+ABOUT 25 MI...45 KM SSE OF CHARLOTTESVILLE VIRGINIA
+ABOUT 50 MI...85 KM WNW OF RICHMOND VIRGINIA
+MAXIMUM SUSTAINED WINDS...50 MPH...85 KM/H
+PRESENT MOVEMENT...ENE OR 60 DEGREES AT 53 MPH...85 KM/H
+MINIMUM CENTRAL PRESSURE...992 MB...29.29 INCHES
+ 
+ 
+WATCHES AND WARNINGS
+--------------------
+There are no coastal watches or warnings in effect.
+ 
+ 
+DISCUSSION AND OUTLOOK
+----------------------
+At 200 PM EDT (1800 UTC), the center of Post-Tropical Cyclone Zeta 
+was located near latitude 37.8 North, longitude 78.2 West.  Zeta is
+moving rapidly toward the east-northeast near 53 mph (85 km/h).  An
+even faster motion toward the east-northeast is expected tonight and
+on Friday.  On the forecast track, the center of Zeta will continue
+to move across Virginia this afternoon, and emerge over the western
+Atlantic by this evening.
+ 
+Maximum sustained winds are near 50 mph (85 km/h) with higher
+gusts.  Some strengthening is forecast once Zeta moves over the
+western Atlantic, but the cyclone should become absorbed by a
+frontal system by Friday night.
+ 
+Tropical-storm-force winds extend outward up to 275 miles (445 km)
+mainly to the southeast of the center.  A sustained wind of 51 mph
+(82 km/h) and a gust to 72 mph (116 km/h) were recently reported at
+a station in Conway, North Carolina, to the east of Roanoke Rapids.
+ 
+The estimated minimum central pressure is 992 mb (29.29 inches).
+ 
+ 
+HAZARDS AFFECTING LAND
+----------------------
+Key messages for Zeta can be found in the Tropical Cyclone
+Discussion under AWIPS header MIATCDAT3, WMO header WTNT43 KNHC, and
+on the web at www.hurricanes.gov/text/MIATCDAT3.shtml.
+ 
+WIND:  Damaging winds, especially in gusts, will continue to spread
+across portions of eastern North Carolina and southeastern Virginia
+through this evening.
+ 
+RAINFALL:  Areas of heavy rainfall, both in advance of Zeta and
+along the track of Zeta, will impact areas from the central
+Appalachians, Mid-Atlantic and lower to middle Ohio Valley through
+Thursday. Rainfall totals of 1 to 3 inches are expected across these
+areas, resulting in possible flash, urban, small stream, and
+isolated minor river flooding.
+ 
+TORNADOES:  A tornado or two is possible this afternoon across the
+Carolinas and southern Virginia.
+ 
+ 
+NEXT ADVISORY
+-------------
+Next complete advisory at 500 PM EDT.
+ 
+$$
+Forecaster Berg
+ 
+</pre>]]></description>
+<pubDate>Thu, 29 Oct 2020 18:02:16 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/291802.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/291802.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Post-Tropical Cyclone Zeta Forecast Advisory Number 21</title>
+<description>Issued at 2100 UTC THU OCT 29 2020  <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+ 
+POST-TROPICAL CYCLONE ZETA FORECAST/ADVISORY NUMBER  21
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL282020
+2100 UTC THU OCT 29 2020
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+POST-TROPICAL CYCLONE CENTER LOCATED NEAR 38.8N  75.3W AT 29/2100Z
+POSITION ACCURATE WITHIN  50 NM
+ 
+PRESENT MOVEMENT TOWARD THE EAST-NORTHEAST OR  60 DEGREES AT  48 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  992 MB
+MAX SUSTAINED WINDS  45 KT WITH GUSTS TO  55 KT.
+34 KT....... 60NE 270SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 38.8N  75.3W AT 29/2100Z
+AT 29/1800Z CENTER WAS LOCATED NEAR 37.8N  78.2W
+ 
+FORECAST VALID 30/0600Z 41.0N  66.1W...POST-TROP/EXTRATROP
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT...  0NE  90SE 120SW   0NW.
+34 KT...120NE 240SE 360SW 180NW.
+ 
+FORECAST VALID 30/1800Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 38.8N  75.3W
+ 
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE 
+CENTER ON THIS SYSTEM.  ADDITIONAL INFORMATION ON THIS SYSTEM CAN BE 
+FOUND IN HIGH SEAS FORECASTS ISSUED BY THE NATIONAL WEATHER 
+SERVICE...UNDER AWIPS HEADER NFDHSFAT1 AND WMO HEADER FZNT01 KWBC.
+
+ 
+$$
+FORECASTER BERG
+ 
+ 
+NNNN
+</pre>]]></description>
+<pubDate>Thu, 29 Oct 2020 20:35:28 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCMAT3+shtml/DDHHMM.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCMAT3+shtml/DDHHMM.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Post-Tropical Cyclone Zeta Forecast Discussion Number 20</title>
+<description>Issued at 1100 AM EDT Thu Oct 29 2020  <![CDATA[<pre>
+
+000
+WTNT43 KNHC 291452
+TCDAT3
+ 
+Tropical Storm Zeta Discussion Number  20
+NWS National Hurricane Center Miami FL       AL282020
+1100 AM EDT Thu Oct 29 2020
+ 
+Zeta continues to move rapidly over land, and its maximum sustained 
+winds are estimated to be near 45 kt over the southeastern 
+quadrant, with thew highest winds occuring over elevated locations. 
+The wind gust factor continues to be higher than usual due to the 
+interaction with land.
+
+Zeta continues to accelerate northeastward and is now moving near 
+055/42 kt.  The cyclone should accelerate some more ahead of a 
+strong 500-mb trough moving into the eastern United States over the 
+next day or so.  The official track forecast is in reasonable 
+agreement with the global model predictions.  
+ 
+The pressure pattern of Zeta is becoming distorted, and starting to 
+take on an extratropical appearance as the cyclone begins to 
+interact with a nearby frontal system.  By this afternoon, the 
+global models indicate that the system will become a frontal low and 
+thus extratropical.  Some short-term baroclinic strengthening is 
+possible over the western Atlantic, but the guidance suggests that 
+the system will become absorbed into the frontal zone in 36 hours 
+or so.
+ 
+ 
+KEY MESSAGES:
+ 
+1.  Strong, damaging wind gusts, which could cause tree damage and
+power outages, will continue to spread eastward across portions of 
+the Carolinas and southeastern Virginia through this afternoon due 
+to Zeta's fast forward speed. 
+
+2.  Through today, heavy rainfall is expected near and in advance of 
+Zeta from portions of the Ohio Valley, into the central Appalachians 
+and Mid-Atlantic.  This rainfall may lead to flash, urban, small 
+stream, and isolated minor river flooding. 
+ 
+ 
+FORECAST POSITIONS AND MAX WINDS
+ 
+INIT  29/1500Z 36.5N  81.5W   45 KT  50 MPH...INLAND
+ 12H  30/0000Z 39.4N  73.1W   50 KT  60 MPH...POST-TROP/EXTRATROP
+ 24H  30/1200Z 42.0N  60.0W   50 KT  60 MPH...POST-TROP/EXTRATROP
+ 36H  31/0000Z...DISSIPATED
+ 
+$$
+Forecaster Pasch
+ 
+</pre>]]></description>
+<pubDate>Thu, 29 Oct 2020 14:52:44 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCDAT3+shtml/291452.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCDAT3+shtml/291452.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Post-Tropical Cyclone Zeta Wind Speed Probabilities Number 20</title>
+<description>Issued at 1500 UTC THU OCT 29 2020                                              <![CDATA[<pre>
+
+375 
+FONT13 KNHC 291452
+PWSAT3
+                                                                    
+TROPICAL STORM ZETA WIND SPEED PROBABILITIES NUMBER  20             
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL282020               
+1500 UTC THU OCT 29 2020                                            
+                                                                    
+AT 1500Z THE CENTER OF TROPICAL STORM ZETA WAS LOCATED NEAR LATITUDE
+36.5 NORTH...LONGITUDE 81.5 WEST WITH MAXIMUM SUSTAINED WINDS NEAR  
+45 KTS...50 MPH...85 KM/H.                                          
+                                                                    
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)                  
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME      
+   EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME      
+   CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME      
+                                                                    
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS                 
+                                                                    
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST     
+   ...34 KT (39 MPH... 63 KM/H)...                                  
+   ...50 KT (58 MPH... 93 KM/H)...                                  
+   ...64 KT (74 MPH...119 KM/H)...                                  
+FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS               
+                                                                    
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE               
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING            
+        AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)               
+   (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN           
+        12Z THU AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)      
+                                                                    
+PROBABILITIES ARE GIVEN IN PERCENT                                  
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT                       
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.             
+PROBABILITIES FOR 34...50...64 KT SHOWN WHEN THE 5-DAY              
+64-KT CUMULATIVE PROBABILITY IS AT LEAST 1 PERCENT.                 
+                                                                    
+                                                                    
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -   
+                                                                    
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM 
+  TIME       12Z THU 00Z FRI 12Z FRI 00Z SAT 12Z SAT 12Z SUN 12Z MON
+PERIODS         TO      TO      TO      TO      TO      TO      TO  
+             00Z FRI 12Z FRI 00Z SAT 12Z SAT 12Z SUN 12Z MON 12Z TUE
+                                                                    
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+LOCATION       KT                                                   
+                                                                    
+SABLE ISLAND   34  X   5( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+NANTUCKET MA   34  1  16(17)   X(17)   X(17)   X(17)   X(17)   X(17)
+ 
+MONTAUK POINT  34  4   6(10)   X(10)   X(10)   X(10)   X(10)   X(10)
+ 
+ISLIP NY       34  3   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+NYC JFK AIRPRT 34 10   X(10)   X(10)   X(10)   X(10)   X(10)   X(10)
+ 
+TRENTON NJ     34  4   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+NWS EARLE NJ   34  7   X( 7)   X( 7)   X( 7)   X( 7)   X( 7)   X( 7)
+ 
+PHILADELPHIA   34 11   X(11)   X(11)   X(11)   X(11)   X(11)   X(11)
+ 
+ATLANTIC CITY  34 40   X(40)   X(40)   X(40)   X(40)   X(40)   X(40)
+ 
+BALTIMORE MD   34 13   X(13)   X(13)   X(13)   X(13)   X(13)   X(13)
+ 
+DOVER DE       34 63   X(63)   X(63)   X(63)   X(63)   X(63)   X(63)
+DOVER DE       50  3   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+ANNAPOLIS MD   34 48   X(48)   X(48)   X(48)   X(48)   X(48)   X(48)
+ 
+WASHINGTON DC  34 33   X(33)   X(33)   X(33)   X(33)   X(33)   X(33)
+ 
+CAPE HENLOPEN  34 75   X(75)   X(75)   X(75)   X(75)   X(75)   X(75)
+CAPE HENLOPEN  50 11   X(11)   X(11)   X(11)   X(11)   X(11)   X(11)
+ 
+OCEAN CITY MD  34 93   X(93)   X(93)   X(93)   X(93)   X(93)   X(93)
+OCEAN CITY MD  50 27   X(27)   X(27)   X(27)   X(27)   X(27)   X(27)
+OCEAN CITY MD  64  1   X( 1)   X( 1)   X( 1)   X( 1)   X( 1)   X( 1)
+ 
+PAX RIVER NAS  34 78   X(78)   X(78)   X(78)   X(78)   X(78)   X(78)
+PAX RIVER NAS  50 10   X(10)   X(10)   X(10)   X(10)   X(10)   X(10)
+ 
+WALLOPS CDA    34 97   X(97)   X(97)   X(97)   X(97)   X(97)   X(97)
+WALLOPS CDA    50 21   X(21)   X(21)   X(21)   X(21)   X(21)   X(21)
+ 
+CHARLOTTESVIL  34 53   X(53)   X(53)   X(53)   X(53)   X(53)   X(53)
+ 
+RICHMOND VA    34 95   X(95)   X(95)   X(95)   X(95)   X(95)   X(95)
+RICHMOND VA    50 21   X(21)   X(21)   X(21)   X(21)   X(21)   X(21)
+ 
+DANVILLE VA    34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+DANVILLE VA    50  8   X( 8)   X( 8)   X( 8)   X( 8)   X( 8)   X( 8)
+ 
+NORFOLK NAS    34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+NORFOLK NAS    50  4   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+NORFOLK VA     34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+ 
+OCEANA NAS VA  34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+ 
+ELIZABETH CTY  34 97   X(97)   X(97)   X(97)   X(97)   X(97)   X(97)
+ 
+GREENSBORO NC  34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+GREENSBORO NC  50  4   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+RALEIGH NC     34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+ 
+ROCKY MT NC    34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+ 
+FAYETTEVILLE   34 98   X(98)   X(98)   X(98)   X(98)   X(98)   X(98)
+ 
+CHARLOTTE NC   34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+ 
+FLORENCE SC    34 37   X(37)   X(37)   X(37)   X(37)   X(37)   X(37)
+ 
+COLUMBIA SC    34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+ 
+AUGUSTA GA     34 99   X(99)   X(99)   X(99)   X(99)   X(99)   X(99)
+ 
+$$                                                                  
+FORECASTER PASCH                                                    
+
+</pre>]]></description>
+<pubDate>Thu, 29 Oct 2020 14:52:14 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT3+shtml/291452.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT3+shtml/291452.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Post-Tropical Cyclone Zeta Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/174953.shtml?cone">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT28/AL282020_5day_cone_with_line_and_wind_sm2.png"
+alt="Post-Tropical Cyclone Zeta 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Thu, 29 Oct 2020 17:49:53 GMT
+<br /><br /><a href="https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/174953.shtml?tswind120">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT28/AL282020_wind_probs_34_F120_sm2.png"
+alt="Post-Tropical Cyclone Zeta 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Thu, 29 Oct 2020 15:25:00 GMT
+]]>
+</description>
+<pubDate>Thu, 29 Oct 2020 17:49:53 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/174953.shtml?cone</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/174953.shtml?cone</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Raleigh, NC</title>
+<description>Issued at  1111 AM EDT Thu Oct 29 2020</description>
+<pubDate>Thu, 29 Oct 2020 15:11:50 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS82-KRAH.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS82-KRAH.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Birmingham, AL</title>
+<description>Issued at  1029 AM CDT Thu Oct 29 2020</description>
+<pubDate>Thu, 29 Oct 2020 15:29:22 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS84-KBMX.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS84-KBMX.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Atlanta, GA</title>
+<description>Issued at  1135 AM EDT Thu Oct 29 2020</description>
+<pubDate>Thu, 29 Oct 2020 15:35:41 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS82-KFFC.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS82-KFFC.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Mobile, AL / Pensacola, FL</title>
+<description>Issued at  1050 AM CDT Thu Oct 29 2020</description>
+<pubDate>Thu, 29 Oct 2020 15:50:18 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS84-KMOB.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS84-KMOB.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Greenville-Spartanburg, SC</title>
+<description>Issued at  244 PM EDT Thu Oct 29 2020</description>
+<pubDate>Thu, 29 Oct 2020 18:44:36 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS82-KGSP.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS82-KGSP.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Knoxville, TN</title>
+<description>Issued at  303 PM EDT Thu Oct 29 2020</description>
+<pubDate>Thu, 29 Oct 2020 19:04:12 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS84-KMRX.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS84-KMRX.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Blacksburg, VA</title>
+<description>Issued at  335 PM EDT Thu Oct 29 2020</description>
+<pubDate>Thu, 29 Oct 2020 19:35:50 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS81-KRNK.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS81-KRNK.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+</channel>
+</rss>

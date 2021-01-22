@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sun, 26 Jul 2020 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression HANNA Forecast/Advisory Number 16</title>
+      <description>Issued at 2100 UTC SUN JUL 26 2020 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL DEPRESSION HANNA FORECAST/ADVISORY NUMBER  16
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL082020
+2100 UTC SUN JUL 26 2020
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+INTERESTS IN NORTHEASTERN MEXICO SHOULD MONITOR THE PROGRESS OF 
+HANNA.  FOR STORM INFORMATION SPECIFIC TO YOUR AREA, PLEASE MONITOR
+PRODUCTS ISSUED BY YOUR NATIONAL METEOROLOGICAL SERVICE.
+ 
+TROPICAL DEPRESSION CENTER LOCATED NEAR 25.6N 100.6W AT 26/2100Z
+POSITION ACCURATE WITHIN  40 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST-SOUTHWEST OR 245 DEGREES AT   8 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1002 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 25.6N 100.6W AT 26/2100Z
+AT 26/1800Z CENTER WAS LOCATED NEAR 25.9N 100.1W
+ 
+FORECAST VALID 27/0600Z 25.2N 101.6W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 27/1800Z 25.0N 102.6W...POST-TROP/INLAND
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 28/0600Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 25.6N 100.6W
+ 
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE 
+CENTER ON HANNA. FUTURE INFORMATION ON THIS SYSTEM CAN BE FOUND IN 
+PUBLIC ADVISORIES ISSUED BY THE WEATHER PREDICTION CENTER BEGINNING 
+AT 10 PM CDT, UNDER AWIPS HEADER TCPAT3, WMO HEADER WTNT33 KWNH, 
+AND ON THE WEB AT HTTP://WWW.WPC.NCEP.NOAA.GOV. 
+ 
+$$
+FORECASTER BROWN
+
+</pre>]]></description>
+      <pubDate>Sun, 26 Jul 2020 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2020/08/16.082020.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2020/08/16.082020.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

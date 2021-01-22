@@ -36,6 +36,8 @@ integer :: ncstatus
 type(mesh_t) :: m ! mesh to operate on
 type(meshNetCDF_t) :: n ! mesh netcdf IDs
 type(fileMetaData_t) :: fn ! netcdf file to be converted
+logical :: negative = .false. ! true if the data should be multiplied by -1
+real(8) :: sense = 1.d0 ! -1.d0 if --negative was given on cmd line
 integer :: snapi ! time step 
 real(8) :: snapr ! time (s)
 integer :: lineNum
@@ -60,6 +62,10 @@ if (argcount.gt.0) then
          case("--sparse")
             fn%isSparse = .true.
             write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
+         case("--negative")
+            negative = .true.
+            sense = -1.d0
+            write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."            
          case("--datafile")
             i = i + 1
             call getarg(i, cmdlinearg)
@@ -108,6 +114,7 @@ do i=1,fn%nSnaps
    ! 
    fn%dataFileFormat = NETCDFG
    call readOneDataset(fn, m, i, lineNum, snapr, snapi)   
+   !fn%
    !
    ! WRITE ONE COMPLETE DATASET TO ASCII
    ! 

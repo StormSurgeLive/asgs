@@ -67,6 +67,11 @@ real(8) :: timesec ! time in seconds corresponding to a particular snap (temp va
 real(8) :: oldtimesec ! time in seconds corresponding to a particular snap
 integer :: ele ! element number where a particle is found (temp variable)
 integer :: particleCount = 0
+integer :: numParticlesSpecified = 0   ! operator-specified max number of particles
+integer :: numParticleDatasetsSpecified = 0 ! operator specified number of particle snaps
+real(8) :: particleTimeSec = 0 ! time (sec) associated with a particular particle dataset 
+real(8) :: particleStartTimeSec = 0  ! time (sec) of the first particle dataset
+real(8) :: particleDatasetTimeIncrement = 0 ! time (sec) between particle datasets
 integer :: lineNum = 1 ! line about to be read from Maureparticle file
 integer :: numLines ! total number of lines in the Maureparticle file
 integer :: maureIndex ! index of the maureparticle file
@@ -78,12 +83,15 @@ integer, allocatable :: pTimesec(:) ! temporarily hold time stamp of particle da
 logical :: meshInitialized = .false. ! true if the associated mesh has been read in
 logical :: meshOnly = .false. ! true if only the mesh xml will be written
 logical :: allTimeInvariant ! true if all the files are static
+logical :: getNodeIndices = .false. ! true if dataset of 1-indexed node array indices should be added to xml
+logical :: getElementIndices = .false. ! true if dataset of 1-indexed element array indices should be added to xml
 !
 integer :: errorIO
 integer oldnp ! used to detect differences in number of nodes between data files
 integer oldne ! used to detect differences in number of elements between data files
 integer :: nSnaps ! number of snapshots in the time varying files (must all be the same)
-integer i, j ! loop counters
+integer :: i, j ! loop counters
+integer :: ds   ! dataset loop counter
 !
 xdmfFile = 'null'
 numFiles = 0
@@ -154,6 +162,30 @@ if (argcount.gt.0) then
             fileMetaData(fi)%dataFileCategory = MAUREPT
             writeParticleFile = .true.
             fi = fi + 1
+         case("--num-particles")  ! max number of particles in any dataset in the maureparticle file
+            i = i + 1
+            call getarg(i, cmdlinearg)
+            write(scratchMessage,'(a,a,a,a,a)') 'Processing "',trim(cmdlineopt),' ',trim(cmdlinearg),'".'
+            call allMessage(INFO,scratchMessage)
+            read(cmdlinearg,*) numParticlesSpecified
+         case("--num-particle-datasets")  ! max number of particles in any dataset in the maureparticle file
+            i = i + 1
+            call getarg(i, cmdlinearg)
+            write(scratchMessage,'(a,a,a,a,a)') 'Processing "',trim(cmdlineopt),' ',trim(cmdlinearg),'".'
+            call allMessage(INFO,scratchMessage)
+            read(cmdlinearg,*) numParticleDatasetsSpecified
+         case("--particle-start-time")  ! max number of particles in any dataset in the maureparticle file
+            i = i + 1
+            call getarg(i, cmdlinearg)
+            write(scratchMessage,'(a,a,a,a,a)') 'Processing "',trim(cmdlineopt),' ',trim(cmdlinearg),'".'
+            call allMessage(INFO,scratchMessage)
+            read(cmdlinearg,*) particleStartTimeSec
+         case("--particle-time-increment")  ! max number of particles in any dataset in the maureparticle file
+            i = i + 1
+            call getarg(i, cmdlinearg)
+            write(scratchMessage,'(a,a,a,a,a)') 'Processing "',trim(cmdlineopt),' ',trim(cmdlinearg),'".'
+            call allMessage(INFO,scratchMessage)
+            read(cmdlinearg,*) particleDatasetTimeIncrement            
          case("--xdmffile")
             i = i + 1
             call getarg(i, cmdlinearg)
@@ -168,6 +200,14 @@ if (argcount.gt.0) then
             fileMetaData(:) % useCPP = .true.
             write(scratchMessage,'(a,a,a)') 'Processing ',trim(cmdlineopt),'.'
             call allMessage(INFO,scratchMessage)
+         case("--getNodeIndices")
+            getNodeIndices = .true.
+            write(scratchMessage,'(a,a,a)') 'Processing ',trim(cmdlineopt),'.'
+            call allMessage(INFO,scratchMessage)
+         case("--getElementIndices")
+            getElementIndices = .true.
+            write(scratchMessage,'(a,a,a)') 'Processing ',trim(cmdlineopt),'.'
+            call allMessage(INFO,scratchMessage)                        
          case default
             write(scratchMessage,'(a,a,a)') 'Command line option ',trim(cmdlineopt),' was not recognized.'  
             call allMessage(WARNING,scratchMessage)
@@ -181,7 +221,6 @@ endif
 !
 ! Check to see if each file exists; if the file exists, initialize dimensions
 do fi=1,numFiles
-   write(*,*) 'checking file existince of ',trim(fileMetaData(fi)%dataFileName)
    call checkFileExistence(fileMetaData(fi)%dataFileName,errorIO)
    if (errorIO.gt.0) then
       stop
@@ -221,63 +260,88 @@ do fi=1,numFiles
       endif
    endif
    if (fileMetaData(fi)%dataFileCategory.eq.MAUREPT) then
-      maureIndex = fi  ! record which of the files is a maureparticle file
-      call determineASCIIFileCharacteristics(fileMetaData(fi))
-      ! open the file and determine the number of datasets as well as
-      ! the number of particles in each dataset
-      fileMetaData(fi)%fun = availableUnitNumber()
-      call openFileForRead(fileMetaData(fi)%fun,fileMetaData(fi)%dataFileName,errorIO)
-      fileMetaData(fi) % nSnaps = 1
-      fileMetaData(fi) % maxParticles = 0 
-      allocate(numParticles(MAX_DATASETS)) ! allocate temporary space for num particles per dataset
-      allocate(pTimesec(MAX_DATASETS)) ! allocate temporary space for particle dataset timestamps
-      ! read first line of file
-      lineNum = 1
-      read(unit=fileMetaData(fi)%fun,fmt=*,end=123,err=456,iostat=errorIO) partID, lon, lat, timesec, ele
-      pTimesec(1) = timesec
-      oldtimesec = timesec
-      particleCount = 1
-      call allMessage(INFO,'Counting total number of datasets and peak number of particles in maureparticle file.') 
-      do ! loop until we run out of data
-         ! read each line in the file; label 456 is at the end of this program and
-         ! provides the line number that we attempted to read in error message prior to exiting
-         lineNum = lineNum + 1
+      if ( (numParticlesSpecified.eq.0) .or. (numParticleDatasetsSpecified.eq.0) ) then
+         maureIndex = fi  ! record which of the files is a maureparticle file
+         call determineASCIIFileCharacteristics(fileMetaData(fi))
+         ! open the file and determine the number of datasets as well as
+         ! the number of particles in each dataset
+         fileMetaData(fi)%fun = availableUnitNumber()
+         call openFileForRead(fileMetaData(fi)%fun,fileMetaData(fi)%dataFileName,errorIO)
+         fileMetaData(fi) % nSnaps = 1
+         fileMetaData(fi) % maxParticles = 0 
+         allocate(numParticles(MAX_DATASETS)) ! allocate temporary space for num particles per dataset
+         allocate(pTimesec(MAX_DATASETS)) ! allocate temporary space for particle dataset timestamps
+         ! read first line of file
+         lineNum = 1
          read(unit=fileMetaData(fi)%fun,fmt=*,end=123,err=456,iostat=errorIO) partID, lon, lat, timesec, ele
-         if (abs(timesec-oldtimesec).le.1.e-6) then
-            ! same dataset
-            particleCount = particleCount + 1
-            fileMetaData(fi) % maxParticles = max(particleCount,fileMetaData(fi) % maxParticles)
-         else 
-            ! reached a new dataset
-            write(scratchMessage,'("There are ",i0," particles in dataset ",i0,".")') particleCount, fileMetaData(fi) % nSnaps
-            call allMessage(DEBUG,scratchMessage)
-            ! increment the number of datasets
-            fileMetaData(fi) % nSnaps = fileMetaData(fi) % nSnaps + 1
-            ! grab the timestamp
-            pTimesec(fileMetaData(fi) % nSnaps) = timesec            
-            ! reset the counter
-            particleCount = 1
-         endif
-         ! set the number of particles in this dataset
-         numParticles(fileMetaData(fi) % nSnaps) = particleCount
+         pTimesec(1) = timesec
          oldtimesec = timesec
-      end do
-      ! jump to 123 when running out of data
-      123 call allMessage(INFO,'Finished counting number of datasets and peak number of particles in maureparticle file.') 
-      numLines = lineNum - 1  
-      write(scratchMessage,'("There are ",i0," datasets in the maureparticle file and the peak number of particles is ",i0,".")') fileMetaData(fi)%nSnaps, fileMetaData(fi) % maxParticles
-      call allMessage(INFO,scratchMessage)
-      ! allocate space for particle data
-      allocate(particles(fileMetaData(fi)%maxParticles))
-      allocate(fileMetaData(fi)%numParticlesPerSnap(fileMetaData(fi)%nSnaps))      
-      fileMetaData(fi) % numParticlesPerSnap(1:fileMetaData(fi)%nSnaps) = numParticles(1:fileMetaData(fi)%nSnaps)
-      allocate(fileMetaData(fi)%timesec(fileMetaData(fi)%nSnaps))
-      fileMetaData(fi) % timesec(1:fileMetaData(fi)%nSnaps) = pTimesec(1:fileMetaData(fi)%nSnaps)
-      ! free up temp arrays
-      deallocate(numParticles)
-      deallocate(pTimesec)
-      ! rewind back to the beginning for one more read to actually process the data
-      rewind(fileMetaData(fi)%fun) 
+         particleCount = 1
+         call allMessage(INFO,'Counting total number of datasets and peak number of particles in maureparticle file.') 
+         do ! loop until we run out of data
+            ! read each line in the file; label 456 is at the end of this program and
+            ! provides the line number that we attempted to read in error message prior to exiting
+            lineNum = lineNum + 1
+            read(unit=fileMetaData(fi)%fun,fmt=*,end=123,err=456,iostat=errorIO) partID, lon, lat, timesec, ele
+            if (abs(timesec-oldtimesec).le.1.e-6) then
+               ! same dataset
+               particleCount = particleCount + 1
+               fileMetaData(fi) % maxParticles = max(particleCount,fileMetaData(fi) % maxParticles)
+            else 
+               ! reached a new dataset
+               write(scratchMessage,'("There are ",i0," particles in dataset ",i0,".")') particleCount, fileMetaData(fi) % nSnaps
+               call allMessage(DEBUG,scratchMessage)
+               ! increment the number of datasets
+               fileMetaData(fi) % nSnaps = fileMetaData(fi) % nSnaps + 1
+               ! grab the timestamp
+               pTimesec(fileMetaData(fi) % nSnaps) = timesec            
+               ! reset the counter
+               particleCount = 1
+            endif
+            ! set the number of particles in this dataset
+            numParticles(fileMetaData(fi) % nSnaps) = particleCount
+            oldtimesec = timesec
+         end do
+         ! jump to 123 when running out of data
+         123 call allMessage(INFO,'Finished counting number of datasets and peak number of particles in maureparticle file.') 
+         numLines = lineNum - 1  
+         write(scratchMessage,'("There are ",i0," datasets in the maureparticle file and the peak number of particles is ",i0,".")') fileMetaData(fi)%nSnaps, fileMetaData(fi) % maxParticles
+         call allMessage(INFO,scratchMessage)
+         ! allocate space for particle data
+         allocate(particles(fileMetaData(fi)%maxParticles))
+         allocate(fileMetaData(fi)%numParticlesPerSnap(fileMetaData(fi)%nSnaps))      
+         fileMetaData(fi) % numParticlesPerSnap(1:fileMetaData(fi)%nSnaps) = numParticles(1:fileMetaData(fi)%nSnaps)
+         allocate(fileMetaData(fi)%timesec(fileMetaData(fi)%nSnaps))
+         fileMetaData(fi) % timesec(1:fileMetaData(fi)%nSnaps) = pTimesec(1:fileMetaData(fi)%nSnaps)
+         ! free up temp arrays
+         deallocate(numParticles)
+         deallocate(pTimesec)
+         ! rewind back to the beginning for one more read to actually process the data
+         rewind(fileMetaData(fi)%fun) 
+      else
+         ! particle dataset parameters given on the command line
+         maureIndex = fi  ! record which of the files is a maureparticle file
+         call determineASCIIFileCharacteristics(fileMetaData(fi))
+         ! open the file and set the number of datasets as well as
+         ! the number of particles in each dataset (from command line arguments)
+         fileMetaData(fi)%fun = availableUnitNumber()
+         call openFileForRead(fileMetaData(fi)%fun,fileMetaData(fi)%dataFileName,errorIO)
+         fileMetaData(fi) % nSnaps = numParticleDatasetsSpecified
+         fileMetaData(fi) % maxParticles = numParticlesSpecified
+         write(scratchMessage,'("There are ",i0," datasets in the maureparticle file and the peak number of particles is ",i0,".")') fileMetaData(fi)%nSnaps, fileMetaData(fi) % maxParticles
+         call allMessage(INFO,scratchMessage)
+         ! allocate space for particle data
+         allocate(particles(fileMetaData(fi)%maxParticles))
+         allocate(fileMetaData(fi)%numParticlesPerSnap(fileMetaData(fi)%nSnaps))      
+         fileMetaData(fi) % numParticlesPerSnap(1:fileMetaData(fi)%nSnaps) = numParticlesSpecified
+         allocate(fileMetaData(fi)%timesec(fileMetaData(fi)%nSnaps))
+         ! populate the array of times associated with each particle dataset         
+         particleTimeSec = particleStartTimeSec
+         do ds=1,numParticleDatasetsSpecified
+            fileMetaData(fi) % timesec(1:fileMetaData(fi)%nSnaps) = particleTImeSec
+            particleTimeSec = particleTimeSec + particleDatasetTimeIncrement
+         end do
+      endif
    endif
  246  fileMetaData(fi) % initialized = .true.
 end do 
@@ -975,7 +1039,7 @@ return
 482 write(scratchMessage,'("Unexpectedly encountered end-of-file when reading from the Maureparticle file ",a,".")') trim(fmd%dataFileName)
 ! jump to here when encountering i/o error when reading Maureparticle file
 call allMessage(ERROR,scratchMessage)
-802 write(scratchMessage,'("Attempted to read line ",i0," from the maureparticle file ",a," when an i/o error occurred. The Fortran error code was ",i0,".")') lineNum, trim(fmd%dataFileName), errorIO
+802 write(scratchMessage,'("readTimeVaryingParticlePositions: Attempted to read line ",i0," from the maureparticle file ",a," when an i/o error occurred. The Fortran error code was ",i0,".")') lineNum, trim(fmd%dataFileName), errorIO
 call allMessage(ERROR,scratchMessage)
 stop
 !----------------------------------------------------------------------

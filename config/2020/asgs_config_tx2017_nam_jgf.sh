@@ -27,11 +27,11 @@
 
 # Fundamental
 
-INSTANCENAME=tx2017_nam_jgf     # "name" of this ASGS process
+INSTANCENAME=CTXCS2017_nam_jgf     # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=tx2017
+GRIDNAME=CTXCS2017
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
@@ -52,30 +52,36 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=479                    # number of compute CPUs for all simulations
+NCPU=2999                    # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
-ADCIRCDIR=/home1/00976/jgflemin/adcirc-cg/work
+
+if [[ $HPCENVSHORT = queenbeeC ]]; then
+   ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/work
+   SWANDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/swan
+   ACCOUNT=loni_cera_2020
+   PARTITION=null
+fi
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rluettich1@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,clint@oden.utexas.edu,amin.kiaghadi2013@gmail.com,m.botto_t@utexas.edu,asgsnotifications@opayq.com,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
 TDS=( lsu_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020011500
+COLDSTARTDATE=2020072200
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #
 # Scenario package
 #
 #PERCENT=default
-SCENARIOPACKAGESIZE=2
+ SCENARIOPACKAGESIZE=2
 case $si in
    -2)
        ENSTORM=hindcast

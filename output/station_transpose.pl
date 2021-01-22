@@ -8,7 +8,7 @@
 # different stations and the rows represent time. 
 #
 #----------------------------------------------------------------
-# Copyright(C) 2009--2018 Jason Fleming
+# Copyright(C) 2009--2020 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -40,44 +40,48 @@ use Math::Trig;
 sub stderrMessage($$);
 #
 our %properties; # key/value pairs _read from_ properties files
-our $runproperties = "run.properties"; # full path to metadata file from ASGS 
+our $runproperties = "null"; # full path to run.properties metadata file from ASGS 
 my $pi = 3.14159265;
 my $g = 9.81;
 my $density = 1000.0;
+my $s = 0;                  # index of the station in the station list or dataset
 my $averagingperiod = "10min";
 my $fileToTranspose = "null"; # type of file to transpose 
-my $controlfile = "null"; # full path name of control file (parsed to obtain list of stations)
-my $stationfile = "null"; # full path name of station file (list of stations) in standard format 
-my $datafile = "null";    # full path name to file containing data at each station 
-my $format = "space"; # column separator in transposed file (space or comma)
+my $controlfile = "null";  # full path name of control file (parsed to obtain list of stations)
+my $stationfile = "null";  # full path name of station file (list of stations) in standard format 
+my $datafile = "null";     # full path name to file containing data at each station 
+my $drymaskfile = "null"; # elevation station file used to mask dry areas in other file types
+my $format = "space";      # column separator in transposed file (space or comma)
 my $separator = " "; 
-my $vectorOutput = "raw"; # "raw" (for east and north values), "compassdirection" or "trigdirection" (degrees) along with magnitude 
-my $coldstartdate = "null"; # yyyymmddhh24 when the simulation was coldstarted
+my $vectorOutput = "raw";  # "raw" (for east and north values), "compassdegrees" or "trigdegrees" along with magnitude 
+my $coldstartdate = "null"; # yyyymmddhh24 when the simulation was coldstarted; assumed to be in GMT
 my $gmtoffset=-5; # number of hours between gmt and local time
 my $timezone="GMT"; # time zone designation to be placed on graphs
 my $units = "null"; # output units, english or si
-my $stationlabel = "full"; # how to parse the station label from fort.15
+my $stationlabel = "full";  # how to parse the station label from fort.15
 # on command line, use 
 # --stationlabel full
-# uses the entire line from fort.15 and copies it to the header in the 
-# transposed file
+#    uses the entire line from fort.15 and copies it to the header in the 
+#    transposed file
 # --stationlabel std
-# assumes that the fort.15 station metadata are in the standard adcirc
-# metadata format and that the stations will be labeled with the ID 
-# and description
+#    assumes that the fort.15 station metadata are in the standard adcirc
+#    metadata format and that the stations will be labeled with the ID 
+#    and description
 # --stationlabel 'after exclamation point' 
-# to use everything after the first exclamation point as the station label
+#    to use everything after the first exclamation point as the station label
 # --stationlabel betweenbangs
-# if the station comment line has the station ID between two exclamation 
-# points and only the station ID should be used on the plots; e.g., the
-# station line in the fort.15 looks like this
-# -88.55779 30.43825 ! SSS-MS-JAC-051WL ! storm tide, water level Jackson Mississippi hwm: 5.42 ft NAVD88 at 16:30:28 8/29/2012 GMT
+#    if the station comment line has the station ID between two exclamation 
+#    points and only the station ID should be used on the plots; e.g., the
+#    station line in the fort.15 looks like this
+#    -88.55779 30.43825 ! SSS-MS-JAC-051WL ! storm tide, water level Jackson Mississippi hwm: 5.42 ft NAVD88 at 16:30:28 8/29/2012 GMT
+# --stationlabel raw 
+#    uses the station number from the fort.61 file 
 my $firstBang;  # where first "!" appears in station metadata in fort.15 
 my $secondBang; # where second "!" appears in station metadata in fort.15  
 my $thirdBang;  # where third "!" appears in station metadata in fort.15 
 my $labelLength; # length of station label string
 my @stationPlotLabels; # the string that is pulled from the fort.15 for each station to be used in labeling the associated plot
-my @supported_files = qw( elevation velocity windvelocity barometricpressure wavedirection significantwaveheight bathytopo );
+my @supported_files = qw( elevation velocity windvelocity barometricpressure wavedirection significantwaveheight bathytopo maureparticle_count maureparticle_count/area maureparticle_count/volume );
 my @supported_minmax_files = qw( maxsignificantwaveheight maxelevation maxvelocity maxinundationdepth maxwindvelocity );
 my @supported_time_minmax_files = qw( timemaxelevation timemaxwindvelocity timemaxvelocity timemaxsignificantwaveheight );
 my $multiplier = "null"; # generic multiplier to use on the data
@@ -89,7 +93,9 @@ my %reformattedUnits = ("elevation", "m", "velocity", "m/s", "windvelocity",
    "m/s", "barometricpressure", "mH2O", "wavedirection", "degrees", 
    "significantwaveheight", "m", "maxsignificantwaveheight", "m",
    "maxelevation", "m", "maxinundationdepth", "m", "maxwindvelocity", "m/s",
-   "bathytopo", "m" );
+   "bathytopo", "m", 
+   "particle count", "p", "particle densiy", "p/m2", "particle density", "p/m3" );
+#   maureparticle_count maureparticle_count/area maureparticle_count/volume
 my $hstime = "null"; # optional parameter, used to compute transposed date/times based 
                     # on hotstart time, coldstartdate, and the output frequency
                     # in the file, rather than the number of seconds associated
@@ -112,6 +118,7 @@ GetOptions(
            "filetotranspose=s" => \$fileToTranspose,
            "controlfile=s" => \$controlfile,
            "stationfile=s" => \$stationfile,
+           "drymaskfile=s" => \$drymaskfile,
            "datafile=s" => \$datafile,
            "format=s" => \$format,
            "vectoroutput=s" => \$vectorOutput,
@@ -143,11 +150,6 @@ if ( is_member($fileToTranspose,@supported_minmax_files) ) {
    $minmax = 1;
 }
 #
-# read the run.properties file if it was specified
-if ( -e $runproperties ) {
-   &loadProperties;
-}
-#
 # if we are producing a csv file
 if ( $format eq "comma" ) {
    $separator = ",";
@@ -155,6 +157,10 @@ if ( $format eq "comma" ) {
 #
 # if coldstartdate was supplied on the command line, use that
 if ( $runproperties ne "null" ) {
+   # read the run.properties file if it was specified
+   if ( -e $runproperties ) {
+      &loadProperties;
+   }
    # open run.properties file and read the coldstartdate from there
    $coldstartdate = $properties{"config.adcirc.time.coldstartdate"};
    if ( $coldstartdate ) {
@@ -336,8 +342,10 @@ for ( my $i=0; $i<$num_sta; $i++ ) {
       $stationPlotLabels[$i] = $sta_coords[$i];
    }
    # remove leading and trailing whitespaces
-   $stationPlotLabels[$i] =~ s/^\s+//g;
-   $stationPlotLabels[$i] =~ s/\s+$//g; 
+   unless ( $stationlabel eq "raw" ) {
+      $stationPlotLabels[$i] =~ s/^\s+//g;
+      $stationPlotLabels[$i] =~ s/\s+$//g; 
+   }
 }
 #
 # jgfdebug
@@ -349,6 +357,7 @@ my $filename;
 my $fileExtension;
 my $total_stations = 0;
 my @station_val = ();
+my @stationNumber = ();
 my @vector_tuple_1 = ();
 my @vector_tuple_2 = ();
 my $header;       # start on comment on first line of reformatted file
@@ -395,7 +404,16 @@ if ( $format eq "comma" ) {
 unless (open(DATAFILE,"<$datafile")) {
    &stderrMessage("ERROR","Could not open data file $datafile for reading: $!.");
    die;
-} 
+}
+# open the dry mask file (assumed to be in fort.61 station file format)
+# for use in adding missing (-99999) values in dry areas for non-elevation
+# data
+if ( $drymaskfile ne "null" ) {
+   unless (open(DRYMASKFILE,"<$drymaskfile")) {
+     &stderrMessage("ERROR","Could not open data file $drymaskfile for reading: $!.");
+     die;
+   }
+}
 # open up the transposed data file for writing
 my $transposeFilename = $datafile . "_transpose" . $fileExtension;
 if ( $reformattedfile ne "null" ) {
@@ -411,7 +429,20 @@ unless (open(TRANSPOSE,">$transposeFilename")) {
 my $time;
 my $num_datasets = 0;
 my $output_frequency = "null";
+$s = 0; 
 while (<DATAFILE>) {
+   my $isDry = 0;
+   my $drymaskline;
+   my @drymaskfields;
+   if ( $drymaskfile ne "null" ) { 
+      $drymaskline = <DRYMASKFILE>;
+      if ($. > 2 && ($.-3) % ($total_stations+1) != 0) {
+         @drymaskfields = split(' ',$drymaskline);
+         if ( $drymaskfields[1] == -99999 ) {
+            $isDry = 1;
+         }
+      }
+   }
    #
    # reset the multiplier before processing this line
    $multiplier = 1.0;
@@ -446,23 +477,13 @@ while (<DATAFILE>) {
             $sta_names[$i] = "Station" . $default_station_number;
          }
       }
-      # write the names of the stations on the next line according to the requested format
-      if ( $minmax == 0 && $time_minmax == 0 && $fileToTranspose ne "bathytopo" ) {
-         unless ( $coldstartdate eq "null" ) {
-            printf TRANSPOSE "#DATE" . $separator . "TIME" . $separator . "TIMEZONE" . $separator;
-         } else {
-            printf TRANSPOSE "#TIMESEC" . $separator;         
-         }
-      }
-      foreach (@stationPlotLabels) {
-          printf TRANSPOSE "\"$_\"" . $separator;
-      }
-      printf TRANSPOSE "\n";
+
       next;
    }
    #
    # there is a header line with the time, at the start of each dataset
    if ($. > 2 && ($.-3) % ($total_stations+1) == 0) {
+      $s=0;  # reinitialize the station counter 
       #
       # grab the new time (assumed to be in gmt)
       my $data_seconds = "null";
@@ -486,16 +507,19 @@ while (<DATAFILE>) {
       }
       next;
    }
-   #
+
    # this is data (not the file header or the individual dataset header)
-   my $stationNumber;
+
    if ( $fileRank eq "scalar" ) {
       my $scalar;
       # parse out the station number and the value
-      m/^\s*(\d*)\s*(.*)\s*$/;
-      $stationNumber = $1;
+      m/^\s*(\d*)\s*(\S*)\s*/;
+      $stationNumber[$s] = $1;
+      if ( $stationlabel eq "raw" ) {
+         $stationPlotLabels[$s] = $stationNumber[$s];
+      }
       # set missing value or station value
-      if ( $2 == "-0.9999900000E+05" || $2 =~/NaN/) {
+      if ( $2 == "-0.9999900000E+05" || $2 =~/NaN/ || $isDry == 1 ) {
          $scalar = -99999;
       } else {
          # apply the user-specified multiplier given on the command line
@@ -558,7 +582,7 @@ while (<DATAFILE>) {
             }
          }
       }
-      $station_val[$1-1] = $scalar;
+      $station_val[$s] = $scalar;
    } else {
       # this is vector data
       my $tuple_1;
@@ -576,24 +600,60 @@ while (<DATAFILE>) {
          $multiplier *= 2.2369363;
       }
       # parse out the station number and the two data values
-      m/^\s*([^\s]*)\s*([^\s]*)\s*([^\s]*)\s*$/;
-      $stationNumber = $1;
-      if ( !($2 =~ /NaN/) && !($2 =~/Inf/) && !($2 == -99999 ) ) {
+      m/^\s*([^\s]*)\s*([^\s]*)\s*([^\s]*)\s*/;
+      $stationNumber[$s] = $1;
+      if ( $stationlabel eq "raw" ) {
+         $stationPlotLabels[$s] = $stationNumber[$s];
+      }
+      if ( !($2 =~ /NaN/) && !($2 =~/Inf/) && !($2 == -99999 ) && !($isDry == 1) ) {
          $tuple_1 = $2 * $multiplier;
       } else {
          $tuple_1 = -99999;
       }
-      if ( !($3 =~ /NaN/) && !($3 =~/Inf/) && !($3 == -99999 ) ) {
+      if ( !($3 =~ /NaN/) && !($3 =~/Inf/) && !($3 == -99999 ) && !($isDry == 1) ) {
          $tuple_2 = $3 * $multiplier;
       } else {
          $tuple_2 = -99999;
       }
-      $vector_tuple_1[$1-1] = $tuple_1;
-      $vector_tuple_2[$1-1] = $tuple_2;
+      $vector_tuple_1[$s] = $tuple_1;
+      $vector_tuple_2[$s] = $tuple_2;
    }   
    #
+
    # if we have collected a complete dataset, write it now
-   if ( $stationNumber == $total_stations ) {
+
+
+   if ( $s == $total_stations-1 ) {
+
+      # if this is the first dataset to be written, write the column
+      # header with the names of the stations according to the 
+      #requested format
+      if ( $num_datasets == 0 ) {
+         if ( $minmax == 0 && $time_minmax == 0 && $fileToTranspose ne "bathytopo" ) {
+            unless ( $coldstartdate eq "null" ) {
+               printf TRANSPOSE "# DATE TIME" . $separator . "TIMEZONE" . $separator;
+            } else {
+               printf TRANSPOSE "# TIMESEC" . $separator;         
+            }
+         }
+         foreach (@stationPlotLabels) {
+             # scalar plot labels
+             if ( $fileRank eq "scalar" ) {              
+                printf TRANSPOSE "\"$_ ($reformattedUnits{$fileToTranspose})\"" . $separator;
+             } else {
+                # vector plot labels
+                if ( $vectorOutput eq "raw" ) {
+                    printf TRANSPOSE "\"$_ (east $reformattedUnits{$fileToTranspose})\"" . $separator . "\"$_ (north $reformattedUnits{$fileToTranspose})\"" . $separator ;                   
+                } else {
+                    # either trig degrees or compass degrees
+                    printf TRANSPOSE "\"$_ ($reformattedUnits{$fileToTranspose})\"" . $separator . "\"$_ ($vectorOutput) \"" . $separator ;                   
+                }                
+            }
+         }
+         printf TRANSPOSE "\n";
+         
+      }
+
       # first column: date/time, unless this is time_minmax file, in which
       # case, we don't need the time in the first column (there is only 
       # one row)
@@ -647,16 +707,20 @@ while (<DATAFILE>) {
                   # compute wind direction in compass degrees based on the standard that winds
                   # are reported as the direction they are coming from
                   $compassdirection = 90.0 - $trigdirection;
-
+                  if ( $compassdirection < 180.0 ) {
+                     $compassdirection += 180.0;
+                  } else { 
+                     $compassdirection -= 180.0;
+                  }
                }
                if ( $compassdirection <= 0.0 ) {
                   $compassdirection += 360.0; 
                }
                # write out the magnitude and direction
                if ( $vectorOutput eq "compassdegrees" ) {     
-                  printf TRANSPOSE ("%20s %20s",$magnitude,$compassdirection);
+                  printf TRANSPOSE (" %20s , %20s ",$magnitude,$compassdirection);
                } else {
-                  printf TRANSPOSE ("%20s %20s",$magnitude,$trigdirection);                  
+                  printf TRANSPOSE (" %20s , %20s ",$magnitude,$trigdirection);                  
                }
             } else {
                # we have invalid values
@@ -670,6 +734,7 @@ while (<DATAFILE>) {
       printf TRANSPOSE "\n";
       $num_datasets++;
    }
+   $s++;
 }
 close(TRANSPOSE);
 #

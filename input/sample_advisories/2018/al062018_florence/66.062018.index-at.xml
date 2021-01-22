@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sat, 15 Sep 2018 21:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm FLORENCE Forecast/Advisory Number 66</title>
+      <description>Issued at 2100 UTC SAT SEP 15 2018 <![CDATA[<pre>
+ZCZC MIATCMAT1 ALL
+TTAA00 KNHC DDHHMM
+
+TROPICAL STORM FLORENCE FORECAST/ADVISORY NUMBER  66
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL062018
+2100 UTC SAT SEP 15 2018
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+THE TROPICAL STORM WARNING HAS BEEN DISCONTINUED NORTH OF SURF
+CITY...NORTH CAROLINA.  ALL STORM SURGE WARNINGS HAVE BEEN
+DISCONTINUED.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* SOUTH SANTEE RIVER SOUTH CAROLINA TO SURF CITY NORTH CAROLINA
+
+INTERESTS ELSEWHERE IN THE SOUTHEASTERN AND MID-ATLANTIC STATES
+SHOULD MONITOR THE PROGRESS OF FLORENCE DUE TO THE HEAVY RAINFALL
+THREAT.
+
+TROPICAL STORM CENTER LOCATED NEAR 33.6N  79.9W AT 15/2100Z
+POSITION ACCURATE WITHIN  10 NM
+
+PRESENT MOVEMENT TOWARD THE WEST OR 270 DEGREES AT   2 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  997 MB
+MAX SUSTAINED WINDS  40 KT WITH GUSTS TO  50 KT.
+34 KT.......130NE 130SE   0SW   0NW.
+12 FT SEAS..210NE 180SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 33.6N  79.9W AT 15/2100Z
+AT 15/1800Z CENTER WAS LOCATED NEAR 33.6N  79.8W
+
+FORECAST VALID 16/0600Z 33.9N  80.9W...INLAND
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT...130NE 130SE   0SW   0NW.
+
+FORECAST VALID 16/1800Z 35.1N  82.6W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+
+FORECAST VALID 17/0600Z 37.0N  83.2W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+
+FORECAST VALID 17/1800Z 38.8N  82.1W...POST-TROP/REMNT LOW INLAND
+MAX WIND  20 KT...GUSTS  30 KT.
+
+FORECAST VALID 18/1800Z 41.4N  74.5W...POST-TROP/REMNT LOW INLAND
+MAX WIND  20 KT...GUSTS  30 KT.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 19/1800Z 43.3N  60.8W...POST-TROP/EXTRATROP OVER WATER
+MAX WIND  30 KT...GUSTS  40 KT.
+
+OUTLOOK VALID 20/1800Z 47.0N  47.0W...POST-TROP/EXTRATROP OVER WATER
+MAX WIND  40 KT...GUSTS  50 KT.
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 33.6N  79.9W
+
+NEXT ADVISORY AT 16/0300Z
+
+$$
+FORECASTER STEWART
+
+</pre>]]></description>
+      <pubDate>Sat, 15 Sep 2018 21:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2018/06/66.062018.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2018/06/66.062018.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

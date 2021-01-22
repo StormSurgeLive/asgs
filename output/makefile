@@ -63,6 +63,9 @@ ifeq ($(compiler),gfortran)
    ifeq ($(MACHINENAME),vagrant)
       FFLAGS := $(FFLAGS) -DOLDGFORTRAN
    endif
+   ifeq ($(MACHINENAME),docker)
+      FFLAGS := $(FFLAGS) -DOLDGFORTRAN
+   endif
    ifeq ($(DEBUG),trace)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace 
    endif
@@ -74,7 +77,7 @@ endif
 # due possible compiler bug. Flag not needed for ifort version 13.1.3 and later. -nld
 ifeq ($(compiler),intel)
    FC := ifort
-   FFLAGS := -cpp -shared-intel
+   FFLAGS := -cpp -shared-intel -DINTEL
    ifeq ($(DEBUG),trace)
       FFLAGS := -g -O0 -fpp -traceback 
    endif

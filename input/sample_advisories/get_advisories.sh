@@ -24,6 +24,13 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
+# Alternatively, here is a one liner that will copy the advisory 
+# data from an ASGS execution ; downsides are that this will likely
+# not capture a complete set and may include erroneously issued
+# advisory data and advisories that do not include later corrections
+# 
+#BASIN=al ; STORMNUMBER=29 ; YEAR=2020 ; NAMELC=eta ; ID=$BASIN$STORMNUMBER$YEAR ; for dir in ?? ; do echo $dir ; for file in $ID.fst $ID.fst.html b${ID}.dat index-at.xml ; do cp $dir/$file $SCRIPTDIR/input/sample_advisories/$YEAR/${ID}_${NAMELC}/${dir}.${file} ; done ; done 
+#
 ADVISORY=$1
 MAXADVISORY=$2
 STORMNUMBER=$3

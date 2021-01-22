@@ -111,26 +111,19 @@ substr($atcf_line,4,2) = $storm_number_str;
 # 1500Z THU SEP 02 2004
 # July 18th TD 2. HAS CHANGED
 # NOTE NOTE NOW! 1500 UTC TUE JUL 18 2006
-if ($storm_year > 2005) {
-   @match = grep /^\d{4} .+ \d{4}$/, @{$body_ref};
-} else {
-   @match = grep /^\d{4}Z .+ \d{4}$/, @{$body_ref};
-}
+#
+@match = grep /^\d{4}Z| UTC .+ \d{4}$/, @{$body_ref};
 #
 if (@match) {
    $date_time = $match[0];
+   # "upgrade" d/t stamp to post 2005
+   $date_time =~ s/Z/ UTC/;
    chomp $date_time;
    my @vals = split( ' ', $date_time );
    $nowcast_hour = substr( $vals[0], 0, 2 );
-   if($storm_year > 2005) {
-      $nowcast_year = $vals[5];
-      $nowcast_month = $month_lookup{$vals[3]};
-      $nowcast_day = $vals[4];
-   } else {
-      $nowcast_year = $vals[4];
-      $nowcast_month = $month_lookup{$vals[2]};
-      $nowcast_day = $vals[3];
-   }
+   $nowcast_year = $vals[5];
+   $nowcast_month = $month_lookup{$vals[3]};
+   $nowcast_day = $vals[4];
    $nowcast_date_time = $nowcast_year . $nowcast_month . $nowcast_day . $nowcast_hour;
    printf STDERR "INFO: nhc_advisory_bot.pl: Time of nowcast is $nowcast_date_time\n";
    substr($atcf_line,8,10) = sprintf("%10d",$nowcast_date_time);
@@ -158,6 +151,9 @@ my @tmp = split(' ', $storm_name);
 if ($tmp[0] eq 'HURRICANE'){
    $storm_class = $tmp[0];
    $storm_name = $tmp[1];
+} elsif ($tmp[0] eq 'POTENTIAL'){
+   $storm_class = "$tmp[0] $tmp[1] $tmp[2]";
+   $storm_name = $tmp[3];
 } elsif ($tmp[0] eq 'TROPICAL' or $tmp[0] eq 'SUBTROPICAL' or $tmp[0] eq 'REMNANTS' or $tmp[0] eq 'POST-TROPICAL') {
     # SUBTROPICAL is rare. see 2007 01
     $storm_class = "$tmp[0] $tmp[1]";

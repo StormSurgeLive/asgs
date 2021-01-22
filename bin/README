@@ -1,0 +1,7 @@
+This is directory is for officially supported and distributed
+tools only. For custom or "work in progress" tools, please see
+the my-bin/README for more information.
+
+The idea is that contributed tools be made available for my-bin/,
+then eventually promoted into bin/ once it's been fully vetted
+and deemed generally useful.

@@ -1,0 +1,2 @@
+#0,5,10,15,20,25,30,35,40,45,50,55 * * * * /home/ncfs-dev/asgs/monitoring/update_catalog.sh
+0,15,30,45 * * * * /home/ncfs-dev/asgs/monitoring/update_catalog.sh   

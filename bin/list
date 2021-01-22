@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+if [ -z "$_ASGSH_PID" ]; then
+  echo "This script is meant to run inside of the ASGS Shell Environment, asgsh."
+  exit 1;
+fi
+
+# list interface for lists of important things (registered ADCIRC builds, ASGS profiles)
+_list() {
+  case "${1}" in
+    adcirc)
+      if [ ! -d "$ADCIRC_META_DIR/" ]; then
+        echo "nothing is available to list, run 'initadcirc' to build and register a version of ADCIRC."
+      else
+        for adcirc in $(ls -1 "$ADCIRC_META_DIR/" | sort); do
+          echo "- $adcirc"
+        done
+        return
+      fi
+      ;;
+    configs)
+      read -p "Show configs for what year? " year
+      if [ -d $SCRIPTDIR/config/$year ]; then
+        ls $SCRIPTDIR/config/$year/* | less
+      else
+        echo ASGS configs for $year do not exist 
+      fi
+      ;;
+    jobs)
+      if [ -d "$RUNDIR" ]; then
+        find $RUNDIR -name run.properties | xargs grep -h 'hpc.job.prep15.jobid' | awk '{print $3}' 
+      else
+        echo "Make sure profile has a valid run directory. To reload profile, type the 'rl' command."
+      fi
+      ;;
+    meshes)
+      cat $ASGS_MESH_DEFAULTS | grep '")' | sed 's/[")]//g' | awk '{print "- " $1}'
+      ;;
+    platforms)
+      cat $ASGS_PLATFORMS | egrep '^init_' | sed 's/init_//g' | sed 's/()//g' | awk '{print "- " $1}'
+      ;;
+    profiles)
+      if [ ! -d "$ASGS_HOME/.asgs/" ]; then
+        echo "nothing is available to list, use the 'save' command to save this profile"
+      else
+        for profile in $(ls -1 "$ASGS_HOME/.asgs/" | sort); do
+          echo "- $profile"
+        done
+        return
+      fi
+      ;;
+    *)
+      echo "Supported items to list: 'adcirc', 'configs', 'meshes', 'platforms', 'profiles'"
+      ;;
+  esac 
+}
+
+_list $@

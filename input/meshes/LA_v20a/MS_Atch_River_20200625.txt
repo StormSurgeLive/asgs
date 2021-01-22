@@ -1,0 +1,42 @@
+10.614938  .000000    !...River 1 Node 1 (Total River Flow: 23389.0000 cms, Avg Lat/Long: -91.198941,30.425086)
+22.911498  .000000    !...River 1 Node 2
+25.926379  .000000    !...River 1 Node 3
+28.165249  .000000    !...River 1 Node 4
+29.744450  .000000    !...River 1 Node 5
+30.375428  .000000    !...River 1 Node 6
+29.281719  .000000    !...River 1 Node 7
+25.670299  .000000    !...River 1 Node 8
+20.003199  .000000    !...River 1 Node 9
+13.972200  .000000    !...River 1 Node 10
+8.934989  .000000    !...River 1 Node 11
+6.186710  .000000    !...River 1 Node 12
+2.775711  .000000    !...River 1 Node 13
+.000000  .000000    !...River 2 Node 1 (Total River Flow: .0000 cms, Avg Lat/Long: -91.619574,30.776798)
+.000000  .000000    !...River 2 Node 2
+.000000  .000000    !...River 2 Node 3
+.000000  .000000    !...River 2 Node 4
+.000000  .000000    !...River 2 Node 5
+.000000  .000000    !...River 2 Node 6
+.000000  .000000    !...River 2 Node 7
+2.920143  .000000    !...River 3 Node 1 (Total River Flow: 9146.0000 cms, Avg Lat/Long: -91.801121,30.979759)
+6.072618  .000000    !...River 3 Node 2
+6.527575  .000000    !...River 3 Node 3
+6.949912  .000000    !...River 3 Node 4
+7.397992  .000000    !...River 3 Node 5
+7.779502  .000000    !...River 3 Node 6
+7.912645  .000000    !...River 3 Node 7
+7.918936  .000000    !...River 3 Node 8
+7.964375  .000000    !...River 3 Node 9
+8.059153  .000000    !...River 3 Node 10
+8.139158  .000000    !...River 3 Node 11
+8.165175  .000000    !...River 3 Node 12
+8.166853  .000000    !...River 3 Node 13
+8.166883  .000000    !...River 3 Node 14
+8.159825  .000000    !...River 3 Node 15
+8.110380  .000000    !...River 3 Node 16
+8.011487  .000000    !...River 3 Node 17
+7.933815  .000000    !...River 3 Node 18
+7.830178  .000000    !...River 3 Node 19
+7.506053  .000000    !...River 3 Node 20
+6.970068  .000000    !...River 3 Node 21
+3.337871  .000000    !...River 3 Node 22

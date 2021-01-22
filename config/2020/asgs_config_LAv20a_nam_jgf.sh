@@ -46,16 +46,19 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 # Physical forcing (defaults set in config/forcing_defaults)
 
 #CONTROLTEMPLATE=LAv20a_26kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
-CONTROLTEMPLATE=LAv20a_30kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
+#CONTROLTEMPLATE=LAv20a_23kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
+
+#jgf20200721 : new template file with Matt's boundary condition
+CONTROLTEMPLATE=LAv20a_10kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on      # NAM download/forcing
-FORECASTCYCLE="00,06,12,18"
+FORECASTCYCLE="00,06,12,18" # <---<<< #jgf20200721: was just 06 
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #STORM=07             # storm number, e.g. 05=ernesto in 2006
 #YEAR=2018            # year of the storm
-WAVES=on              # wave forcing
+WAVES=on            # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
@@ -66,19 +69,33 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=959                     # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999 
+ACCOUNT=loni_cera_2020
+PARTITION=null
 #QUEUENAME=priority    # queenbee2 and supermic
 #SERQUEUE=priority     # queenbee2 and supermic
 #QOS=vip               # stampede2 and lonestar5
-#QOS=vippj_p3000       # frontera
 #
 if [[ $USER = jgflemin ]]; then
-   if [[ $HPCENVSHORT = queenbee || $HPCENVSHORT = supermic ]]; then
-      ADCIRCDIR=/work/jgflemin/adcirc-cg/work
-      SWANDIR=/work/jgflemin/adcirc-cg/swan
+   ADCIRCDIR=/work/jgflemin/adcirc-cg/work
+   SWANDIR=/work/jgflemin/adcirc-cg/swan
+   if [[ $HPCENVSHORT = queenbeeC ]]; then 
+      ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/work
+      SWANDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/swan
+      PARTITION=null
    fi
    if [[ $HPCENVSHORT = frontera ]]; then
+      ADCIRCDIR=$WORK/adcirc-cg/work
+      SWANDIR=$WORK/adcirc-cg/swan
+      QOS=vippj_p3000       # frontera
+   fi
+   if [[ $HPCENVSHORT = lonestar5 ]]; then
       ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
       SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
+   fi
+   if [[ $HPCENVSHORT = supermic ]]; then
+      ACCOUNT=hpc_cera_2020
+      ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-intel/work
+      SWANDIR=/work/jgflemin/adcirc-cg-v53release-intel/swan
    fi
 fi
 
@@ -86,18 +103,19 @@ fi
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu"
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilsk3@lsu.edu,rluettich1@gmail.com"
-TDS=( renci_tds )
+POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,rluettich1@gmail.com,shagen@lsu.edu,jikeda@lsu.edu,fsanti1@lsu.edu"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,mbilskie@uga.edu,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com"
+TDS=( lsu_tds )
 if [[ $HPCENVSHORT = frontera || $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then
    TDS=( tacc_tds )
 fi
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020050800
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
+#COLDSTARTDATE=2020081700
+COLDSTARTDATE=2020092000
+HOTORCOLD=coldstart     # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
 # Scenario package 

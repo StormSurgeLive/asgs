@@ -85,14 +85,14 @@ if ( $startwc ne "null" && $finishwc ne "null" ) {
    print "The elapsed wall clock time was $wall_clock_time.\n";
 }
 unless(open(SWANSCREEN,"<$swanscreen")) {
-   stderrMessage("ERROR","Could not open $swanscreen for reading.");
+   stderrMessage("ERROR","Could not open swan screen file $swanscreen for reading.");
    exit 1;
 }
 while(<SWANSCREEN>) {
    # skip the line unless it is from SWAN and reports the timestep, 
    # iteration number, and sweep number
    #if ( $_ =~ /\+time\s\d{8}\.\d{6}\s+,\sstep\s+(\d+)\;\siteration\s+(d+)\;\ssweep\s+(\d+)/ ) {
-   if ( $_ =~ /time (\d{8}\.\d{6})\s+, step\s+(\d+); iteration\s+(\d+);/ ) {
+   if ( $_ =~ /time (\d{8}\.\d{6})\s+, step\s+(\d+); iteration\s+(\d+)/ ) {
       # if this is a new iteration, increment the total number of iterations
       if ( $3 != $iteration ) {
          $total_iterations++;

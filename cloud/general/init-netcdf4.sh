@@ -1,9 +1,9 @@
 #!/bin/bash
 
-TMP=$HOME/tmp
 OPT=${1-$HOME/opt}
 COMPILER=${2-intel}
 JOBS=${3-1}
+TMP=/tmp/$USER-asgs
 
 if [ $2 == "clean" ]; then 
   echo Cleaning NetCDF libraries and utilities
@@ -15,6 +15,12 @@ if [ $2 == "clean" ]; then
   rm -fv netcdf*
   rm -rvf $TMP/netcdf-4.2.1.1*
   rm -rvf $TMP/netcdf-fortran-4.2*
+  cd $OPT/share/info
+  rm -rvf netcfg*
+  cd $OPT/share/man/man1
+  rm -rvf nc*
+  cd $OPT/share/man/man3
+  rm -rvf netcdf*
   exit
 fi
 
@@ -29,7 +35,8 @@ if [ $COMPILER == "gfortran" ]; then
   export CXX=g++
 fi
 
-mkdir -p $TMP
+mkdir -p $TMP 2> /dev/null
+chmod 700 $TMP
 cd $TMP
 
 if [ ! -e netcdf-4.2.1.1.tar.gz ]; then

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+if [ -z "$_ASGSH_PID" ]; then
+  echo "This script is meant to run inside of the ASGS Shell Environment, asgsh."
+  exit 1;
+fi
+
+# this is just a starter, the above stuff might go into a shell "library" at some
+# point
+

@@ -317,6 +317,7 @@ if ( (f%ncformat.eq.nf90_format_netcdf4).or. &
    (f%ncformat.eq.nf90_format_netcdf4_classic) ) then
    call allMessage(INFO,'The data file uses netcdf4 formatting.')
    if (f%nc_dimid_time.lt.0) then
+      f%timeVarying = .false.       
 	   ! check to see if it is a nodal attributes file
 	   errorIO = nf90_get_att(f%nc_id,nf90_global,'nodalAttributesComment',nodalAttributesComment)
 	   if (errorIO.eq.0) then
@@ -331,11 +332,6 @@ if ( (f%ncformat.eq.nf90_format_netcdf4).or. &
              if ( f%nvar.lt.6 ) then
                 call allMessage(INFO,'The netcdf file '//trim(f%dataFileName)//' only contains mesh data.')
                 f%dataFileCategory = MESH !FIXME: or fort.88?
-                f%timeVarying = .false. 
-             else
-                call allMessage(INFO,'The netcdf file '//trim(f%dataFileName)//' is a min/max file.')
-                f%dataFileCategory = MINMAX
-                f%timeVarying = .false.                
              endif
           endif
 	   endif
@@ -350,7 +346,7 @@ if (f%dataFileCategory.eq.MESH) then
 endif
 !
 ! determine the number of snapshots in the file
-if ( (f%dataFileCategory.ne.NODALATTRIBF).and.(f%dataFileCategory.ne.MINMAX) ) then
+if ( f%timeVarying.eqv..true. ) then
    call check(nf90_inquire_dimension(f%nc_id,f%nc_dimid_time,len=f%nSnaps))
    write(scratchMessage,'(a,i0,a)') 'There is/are ',f%nSnaps,' dataset(s) in the file.'
    call allMessage(INFO,scratchMessage)
@@ -643,7 +639,13 @@ do i=1,f%nvar
       f%defaultFileName = 'fort.88'      
       f % fileTypeDesc = "an ADCIRC initial river elevation (fort.88) file"
       call initFileMetaData(f, thisVarName, 1, 1)
-      exit    
+      exit  
+   case("eslnodes")
+      f % dataFileCategory = ESLNODES   
+      f%defaultFileName = 'ESLNodes.63'      
+      f % fileTypeDesc = "an ADCIRC elemental slope limiter (ESLNodes.63) file"
+      call initFileMetaData(f, thisVarName, 1, 1)
+      exit          
    case("maxwvel","wind_max")
       f % dataFileCategory = MINMAX
       f%defaultFileName = 'maxwvel.63'
@@ -868,7 +870,7 @@ end do
 f%time_increment = -99999.d0
 f%defaultValue = -99999.d0
 f%nspool = -99999
-if ( f%dataFileCategory.ne.NODALATTRIBF ) then
+if ( (f%dataFileCategory.ne.NODALATTRIBF).and.f%timeVarying.eqv..true. ) then
    if ( (f%nSnaps.gt.1).and.(f%timeOfOccurrence.eqv..false.) ) then
       f%time_increment = f%timesec(2) - f%timesec(1)
    endif
@@ -986,6 +988,10 @@ case('nneighele.63','nodeids.63')
 case('noff.100')
    fn%isElemental = .true.
    fn%isInteger = .true.
+case('ESLNodes.63')
+   fn%timeVarying = .false.
+   fn%fileTypeDesc = 'elemental slope limiter activation at nodes file'   
+   fn%nSnaps = 1 
 case default
    fn%dataFileCategory = DOMAIN
    call allMessage(INFO,'Found full domain time varying output file.') 
@@ -997,6 +1003,7 @@ select case(fn%dataFileCategory)
 case(MINMAX,STATION,DOMAIN)
    fn%fun = availableUnitNumber()
    call allMessage(INFO,'Checking number of nodes in data file.') 
+   lineNum = 1
    call openFileForRead(fn%fun, trim(fn%dataFileName), errorIO)
    read(fn%fun,*,end=246,err=248,iostat=errorio) fn%agridRunIDRunDesLine
    lineNum=lineNum+1
@@ -1099,6 +1106,9 @@ if ( fn % dataFileCategory .eq. STATION ) then
    nc_dimid = (/ fn%nc_dimid_station, fn%nc_dimID_Time /)
 else
    nc_dimid = (/ n%nc_dimid_node, fn%nc_dimID_Time /)
+   if ( fn%timeVarying.eqv..false.) then
+      nc_dimid = n%nc_dimid_node
+   endif
 endif 
 !
 select case(fn%dataFileCategory)
@@ -1470,16 +1480,15 @@ case(DOMAIN)
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','element'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','unitless'))
-
-   case('eslnodes.63') ! eslnodes.63
+   case('ESLNodes.63','eslnodes.63') ! eslnodes.63
       thisVarName = 'eslnodes'
       call initFileMetaData(fn, thisVarName, 1, 1)   
-      call check(nf90_def_var(fn%nc_id,'eslnodes',nf90_double,nc_dimid,fn%ncds(1)%nc_varID))
+      call check(nf90_def_var(fn%nc_id,'eslnodes',nf90_double,n%nc_dimid_node,fn%ncds(1)%nc_varID))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',-99999.d0))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'long_name','elemental slope limiter active nodes'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'standard_name', &
          'elemental_slope_limiter_active_nodes'))
-      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'coordinates','time y x'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'coordinates','y x'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','node'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','1'))
@@ -1843,6 +1852,7 @@ integer :: nc_count(2)
 integer :: nc_start3D(3)
 integer :: nc_count3D(3)
 integer :: errorIO ! i/o error flag
+character(len=10000) :: line ! used in debugging
 !
 if ( (f%dataFileFormat.eq.NETCDFG).and.(s.gt.f%nSnaps) ) then 
    call allMessage(INFO,'All datasets have been read.')
@@ -1880,6 +1890,11 @@ case(ASCII,ASCIIG)
       else
          ! non-sparse and non-fort.88 
          if (f%dataFileCategory.ne.INITRIVER) then
+         
+                  ! jgfdebug
+         !read(unit=f%fun,fmt=*,end=246,err=248,iostat=errorio) line
+         !write(*,*) trim(adjustl(line))
+         
             read(f%fun,fmt=*,end=246,err=248,iostat=errorio) SnapR, SnapI
             numNodesNonDefault = f%numValuesPerDataSet
             l = l + 1
@@ -1906,6 +1921,11 @@ case(ASCII,ASCIIG)
    else
       ! sparse or full ascii real numbers
       do n=1,numNodesNonDefault
+          
+         ! jgfdebug
+         !read(unit=f%fun,fmt=*,end=246,err=248,iostat=errorio) line
+         !write(*,*) trim(adjustl(line))
+         
          read(unit=f%fun,fmt=*,end=246,err=248,iostat=errorio) h, (dtemp(c), c=1,f%irtype)
          l = l + 1
          !if (allocated(f%rdata).eqv..true.) then
@@ -1992,6 +2012,9 @@ integer :: ncStartMinMax(1)
 select case(f%dataFileFormat)
 case(ASCII,SPARSE_ASCII,ASCIIG)
 
+   !jgfdebug 
+
+
    if (f%is3D.eqv..true.) then
       !
       ! WRITE 3D DATA
@@ -2065,6 +2088,8 @@ case(ASCII,SPARSE_ASCII,ASCIIG)
          ! 
             write(f%fun,2120) snapr, snapi
             ! write full dataset
+            !jgfdebug
+            !write(*,*) f%numValuesPerDataset
             if (allocated(f%rdata).eqv..true.) then
                do h=1,f%numValuesPerDataset       ! came from ascii
                   write(f%fun,2453) h, (f%rdata(c,h), c=1,f%irtype)
@@ -2086,7 +2111,9 @@ case(ASCII,SPARSE_ASCII,ASCIIG)
    endif
 case(NETCDFG,NETCDF3,NETCDF4)
    if ( f%dataFileCategory.ne.MINMAX ) then
-      call check(nf90_put_var(f%nc_id, f%nc_varid_time, (/snapr/), (/s/), (/1/)))
+      if ( f%defaultFileName.ne.'ESLNodes.63') then
+         call check(nf90_put_var(f%nc_id, f%nc_varid_time, (/snapr/), (/s/), (/1/)))
+      endif
    endif
    if (allocated(f%it).eqv..true.) then
       call check(nf90_put_var(f%nc_id, f%nc_varid_it, (/snapi/), (/s/), (/1/)))
@@ -2127,8 +2154,10 @@ case(NETCDFG,NETCDF3,NETCDF4)
             else
                ! data came from ascii
                if ((f%dataFileCategory.eq.MINMAX).and.(f%timeOfOccurrence.eqv..true.).and.(s.eq.2)) then
-                  call check(nf90_put_var(f%nc_id,f%ncds(2)%nc_varID,f%rdata(c,:),nc_start,nc_count))                  
-               else
+                  call check(nf90_put_var(f%nc_id,f%ncds(2)%nc_varID,f%rdata(c,:),nc_start,nc_count))                 
+               else if (f%defaultFileName.eq.'ESLNodes.63') then
+                  call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%rdata(c,:),(/ 1 /), (/ 1 /)))
+               else                  
                   call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%rdata(c,:),nc_start,nc_count))
                endif
             endif

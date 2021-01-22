@@ -1,34 +1,37 @@
 #!/bin/bash
 
-TMP=$HOME/tmp
 OPT=${1-$HOME/opt}
 COMPILER=${2-intel}
 JOBS=${3-1}
+TMP=/tmp/$USER-asgs
 
-if [ $2 == "clean" ]; then 
+if [ $2 == "clean" ]; then
   echo Cleaning HDF5 libraries and utilities
   cd $OPT/bin
   rm -fv gif2h5 h5cc h5debug h5dump h5import h5ls h5perf_serial h5repack h5stat h52gif h5copy h5diff h5fc h5jam h5mkgrp h5redeploy h5repart h5unjam
   cd $OPT/lib
-  rm -fv libhd5* libhdf5
+  rm -fv libhd5* libhdf5*
   cd $OPT/include
-  rm -fv hd5* HD5* hdf*
+  rm -fv H5* h5* hd5* HD5* hdf* typesizes.mod
   rm -rvf $TMP/hdf5-1.8.12*
+  cd $OPT/share
+  rm -rvf hdf5_examples
   exit
 fi
 
-if [ $COMPILER == "intel" ]; then 
+if [ $COMPILER == "intel" ]; then
   export CC=icc
   export FC=ifort
   export CXX=icpc
 fi
-if [ $COMPILER == "gfortran" ]; then 
+if [ $COMPILER == "gfortran" ]; then
   export CC=gcc
   export FC=gfortran
   export CXX=g++
 fi
 
 mkdir -p $TMP 2> /dev/null
+chmod 700 $TMP
 cd $TMP
 
 if [ ! -e hdf5-1.8.12.tar.gz ]; then

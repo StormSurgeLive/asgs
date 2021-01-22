@@ -83,6 +83,8 @@ THIS="output/opendap_post.sh"
 OPENDAPMAILSERVER=${properties["notification.opendap.email.opendapmailserver"]}
 declare -a LINKABLEHOSTS
 declare -a COPYABLEHOSTS
+timeoutRetryLimit=${timeoutRetryLimit:-5} # FIXME: hardcoded to 5; make this more granular
+serverAliveInterval=${serverAliveInterval:-10}
 #
 for server in ${SERVERS[*]}; do
    if [[ $server = "(" || $server = ")" ]]; then 
@@ -103,8 +105,6 @@ for server in ${SERVERS[*]}; do
    DOWNLOADPREFIX=${properties["post.opendap.${server}.downloadprefix"]}
    CATALOGPREFIX=${properties["post.opendap.${server}.catalogprefix"]} 
    OPENDAPBASEDIR=${properties["post.opendap.${server}.opendapbasedir"]}
-   SSHPORT=${properties["post.opendap.${server}.sshport"]}
-   OPENDAPUSER=${properties["post.opendap.${server}.opendapuser"]}
    #
    #--------------------------------------------------------------------
    #  O P E N  D A P    P A T H   F O R M A T I O N
@@ -218,16 +218,11 @@ END
    scenarioMessage "$SCENARIO: $THIS: Posting to $OPENDAPHOST using the '$OPENDAPPOSTMETHOD' method."
    case $OPENDAPPOSTMETHOD in
    "scp")
-      serverAliveInterval=10
-      timeoutRetryLimit=3
-      sshOptions="$OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60"
-      echo "post.opendap.${server}.sshoptions : $sshOptions" >> run.properties 2>> $SYSLOG
-      scpOptions="-P $SSHPORT -o ServerAliveInterval=$serverAliveInterval -o StrictHostKeyChecking=no -o ConnectTimeout=60"
-      echo "post.opendap.${server}.scpoptions : $scpOptions" >> run.properties 2>> $SYSLOG
-      scenarioMessage "$SCENARIO: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
+      scenarioMessage "$SCENARIO: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST."
       retry=0
-      while [[ $retry -lt $timeoutRetryLimit ]]; do 
-         ssh $sshOptions "mkdir -p $OPENDAPDIR" >> $SCENARIOLOG 2>&1
+      mkdirRetryLimit=10 # FIXME: hardcoded for now 
+      while [[ $retry -lt $mkdirRetryLimit ]]; do 
+         ssh $OPENDAPHOST "mkdir -p $OPENDAPDIR" >> $SCENARIOLOG 2>&1
          if [[ $? != 0 ]]; then
             warn "$SCENARIO: $THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
             threddsPostStatus=fail
@@ -236,7 +231,7 @@ END
             break
          fi
          retry=`expr $retry + 1`
-         if [[ $retry -lt $timeoutRetryLimit ]]; then
+         if [[ $retry -lt $mkdirRetryLimit ]]; then
             scenarioMessage "$SCENARIO: $THIS: Trying again."
          else
             scenarioMessage "$SCENARIO: $THIS: Maximum number of retries has been reached. Moving on to the next operation."
@@ -249,7 +244,7 @@ END
       while [[ $partialPath != $OPENDAPBASEDIR  ]]; do 
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do 
-            ssh $sshOptions "chmod a+wx $partialPath" 2>> $SYSLOG
+            ssh $OPENDAPHOST "chmod a+wx $partialPath" 2>> $SYSLOG
             if [[ $? != 0 ]]; then
                warn "$SCENARIO: $THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
                threddsPostStatus=fail
@@ -273,7 +268,7 @@ END
       if [[ $TROPICALCYCLONE != off ]]; then 
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do 
-            ssh $sshOptions "ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH" 2>> $SYSLOG
+            ssh $OPENDAPHOST "ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH" 2>> $SYSLOG
             if [[ $? != 0 ]]; then
                warn "$SCENARIO: $THIS: Failed to create symbolic link for the storm name."
                threddsPostStatus=fail
@@ -314,7 +309,7 @@ END
          scenarioMessage "$SCENARIO: $THIS: Transferring $file to ${OPENDAPHOST}:${OPENDAPDIR}."
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do 
-            scp $scpOptions $file ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
+            scp $file ${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
             if [[ $? != 0 ]]; then
                threddsPostStatus=fail
                warn "$SCENARIO: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
@@ -333,7 +328,7 @@ END
          fname=`basename $file` 
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do 
-            ssh $sshOptions "chmod +r $OPENDAPDIR/$fname"
+            ssh $OPENDAPHOST "chmod +r $OPENDAPDIR/$fname"
             if [[ $? != 0 ]]; then
                threddsPostStatus=fail
                warn "$SCENARIO: $THIS: Failed to give the file $fname read permissions in ${OPENDAPHOST}:${OPENDAPDIR}."
@@ -356,14 +351,11 @@ END
    #-------------------------------------------------------------------
    # mvb20190618: Added to support time-out issues with general scp transfers
    "rsync")
-      rsyncSSHOptions=(--rsh="ssh -p $SSHPORT")
       echo "post.opendap.${server}.rsyncsshoptions : $rsyncSSHOptions" >> run.properties 2>> $SYSLOG
       rsyncOptions="-z --copy-links"
       echo "post.opendap.${server}.rsyncoptions : $rsyncOptions" >> run.properties 2>> $SYSLOG
-      sshOptions="$OPENDAPHOST -l $OPENDAPUSER -p $SSHPORT"
-      echo "post.opendap.${server}.sshoptions : $sshOptions" >> run.properties 2>> $SYSLOG
-      allMessage "$SCENARIO: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST as user $OPENDAPUSER."
-      ssh $sshOptions "mkdir -p $OPENDAPDIR" >> $SCENARIOLOG 2>&1
+      allMessage "$SCENARIO: $THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST."
+      ssh $OPENDAPHOST "mkdir -p $OPENDAPDIR" >> $SCENARIOLOG 2>&1
       if [[ $? != 0 ]]; then
          warn "$SCENARIO: $THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
          threddsPostStatus=fail
@@ -374,7 +366,7 @@ END
       while [[ $partialPath != $OPENDAPBASEDIR  ]]; do 
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do 
-            ssh $sshOptions "chmod a+wx $partialPath" 2>> $SYSLOG
+            ssh $OPENDAPHOST "chmod a+wx $partialPath" 2>> $SYSLOG
             if [[ $? != 0 ]]; then
                warn "$SCENARIO: $THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
                threddsPostStatus=fail
@@ -411,7 +403,7 @@ END
          fi
          chmod +r $file 2>> $SYSLOG
          scenarioMessage "$SCENARIO: $THIS: Transferring $file to ${OPENDAPHOST}:${OPENDAPDIR}."
-         rsync "${rsyncSSHOptions}" ${rsyncOptions}  ${file} ${OPENDAPUSER}@${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
+         rsync ${rsyncOptions} ${file} ${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
          if [[ $? != 0 ]]; then
             threddsPostStatus=fail
             warn "$SCENARIO: $THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."

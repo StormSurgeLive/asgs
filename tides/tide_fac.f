@@ -161,7 +161,7 @@ C-- DETERMINE GREENWICH EQUIL. TERMS AT BEGINNING OF RECORD
      & numTidalConstituents, int(BHR),iday,monthChar(imo),iyr, xdays
             ! boundary forcing nodal factors and equilibrium arguments
             else
-               write(11,'(i0, 6x,"! NBFR number of tidal boundary constituents")') numTidalConstituents
+               write(11,'(i0, 6x,"! NBFR number of tidal boundary constituents, computed by ASGS with tide_fac.f")') numTidalConstituents
             endif
          endif
  100     format(i0, 6x,
@@ -436,8 +436,9 @@ C* SUMMING TERMS TO OBTAIN EQUILIBRIUM ARGUMENTS
       EQCST(35)=2.*(T+H)-2.*NUP2
       EQCST(36)=8.*(T-S+H)+8.*(XI-NU)
       EQCST(37)=2.*(2.*T-S+H)+2.*(XI-NU)
-      DO 1 IH=1,37
-    1 EQCST(IH)=ANGLE(EQCST(IH))
+      DO IH=1,37
+         EQCST(IH)=ANGLE(EQCST(IH))
+      END DO 
 C---------------------------------------------------------------------
       END SUBROUTINE GTERMS
 C---------------------------------------------------------------------
@@ -511,20 +512,32 @@ C** DETERMINE ARCTANGENT AND PLACE IN CORRECT QUADRANT
 C   IF KEY EQ 0  NO QUADRANT SELECTION MADE
 C   IF KEY .NE. 0 PROPER QUADRANT IS SELECTED
 C---------------------------------------------------------------------
+      ! jgf: doing the minimum to eliminate the arithmetic if 
+      ! from this pile of spaghetti :-)
+      ! (the arithmetic if is a fortran deleted feature and 
+      ! its use produces warnings in gfortran 9.3.0)
       FUNCTION ARCTAN(TOP,BOTTOM,KEY)
       IF(BOTTOM .NE. 0.0) GO TO 4
-      IF(TOP) 2,9,3
+      IF (TOP.lt.0.) goto 2
+      if (top.eq.0.) goto 9
+      if (top.gt.0.) goto 3
     2 ARCTAN=270.
       RETURN
     3 ARCTAN=90.
       RETURN
     4 ARCTAN=ATAN(TOP/BOTTOM)*57.2957795
       IF(KEY.EQ.0) RETURN
-      IF(TOP) 5,5,7
-    5 IF(BOTTOM) 6,9,8
+      IF (TOP.lt.0.) goto 5
+      if (top.eq.0.) goto 5
+      if (top.gt.0.) goto 7
+    5 IF (BOTTOM.lt.0.) goto 6
+      if (bottom.eq.0.) goto 9
+      if (bottom.gt.0.) goto 8
     6 ARCTAN=ARCTAN+180.
       RETURN
-    7 IF(BOTTOM) 6,3,10
+    7 IF (BOTTOM.lt.0.) goto 6
+      if (bottom.eq.0.) goto 3
+      if (bottom.gt.0.) goto 10
     8 ARCTAN=ARCTAN+360.
       RETURN
     9 ARCTAN=0.
@@ -546,8 +559,9 @@ C---------------------------------------------------------------------
       DINC=0.
       YRLP=MOD((YR-1900.),4.)
       IF(YRLP .EQ. 0.) DINC=1.
-      DO 1 I=3,12
-    1 DAYS(I)=DAYT(I)+DINC
+      DO I=3,12
+         DAYS(I)=DAYT(I)+DINC
+      END DO
       DAYJUL=DAYS(IFIX(XMONTH))+DAY
 C---------------------------------------------------------------------
       END

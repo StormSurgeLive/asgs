@@ -27,17 +27,18 @@
 
 # Fundamental
 
-INSTANCENAME=tx2020a_NAM_bde     # "name" of this ASGS process
+INSTANCENAME=tx2020a_nam_bde     # "name" of this ASGS process
 ASGSADMIN="asgsnotifications@opayq.com"
 
-ACCOUNT=DesignSafe-CERA
-QOS=vip # for priority during a storm
-QUEUENAME=skx-normal # same as SLURM partition
-SERQUEUE=skx-normal
+ACCOUNT=ASC20001 #DesignSafe-CERA
+#QOS=vip # for priority during a storm
+QUEUENAME=normal # same as SLURM partition
+SERQUEUE=normal
 PPN=48
-GROUP="G-821231"
-RMQMessaging_Enable="off"
-RMQMessaging_Transmit="off"
+GROUP="G-803086"
+
+RMQMessaging_Enable="on"
+RMQMessaging_Transmit="on"
 
 # Input files and templates
 
@@ -74,13 +75,13 @@ NUMWRITERS=1
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,clint@oden.utexas.edu" #,rluettich1@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,rluettich1@gmail.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( tacc_tds )
+TDS=( lsu_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020050100
+COLDSTARTDATE=2020070800
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #
