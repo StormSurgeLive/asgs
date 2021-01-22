@@ -1,0 +1,52 @@
+operator=$USER
+if [ "$HPCENV" = "pod.penguincomputing.com" ]; then
+  SCRATCH=/home/bblanton/asgs_scratch
+  RMQMessaging_NcoHome="/home/bblanton/"
+fi
+
+if [ "$HPCENV" = "hatteras.renci.org" ]; then
+  case $USER in 
+  bblanton) 
+     export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
+     ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
+     SCRATCH=/scratch/bblanton/data
+     PYTHONVENV=/projects/storm_surge/anaconda
+     PLATFORMMODULES='module load mvapich2/2.0-acis'
+     SERIALMODULES='module load' # no extra modules for serial jobs
+     ;;
+  ncfs-dev)
+     export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
+     ADCIRCDIR="${HOME}/ADCIRC/v53release/work" # ADCIRC executables
+     SWANDIR="${HOME}/ADCIRC/v53release/swan" # ADCIRC executables
+     SCRATCH=/scratch/ncfs-dev/
+     ACCOUNT=ncfs-dev
+     PARTITION=ncfs       # ncfs or batch, gives priority
+     PYTHONVENV="$HOME/miniconda2"
+     RMQMessaging_NcoHome="${HOME}"
+     PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 hdf5/1.8.12-acis netcdf/4.1.2-acis mvapich2/2.0-acis'
+     SERIALMODULES='module load' # no extra modules for serial jobs
+     TDS=(renci_tds)
+     ;;
+  ncfs)
+     export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
+     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
+     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
+     ACCOUNT=ncfs
+     QUEUENAME=ncfs     # SLURM partition---ncfs or batch---gives priority
+     PYTHONVENV=~/asgs/asgspy/venv
+     PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 zlib/1.2.11_intel-18.0.0'
+     PLATFORMMODULES="$PLATFORMMODULES mvapich2/2.0-acis"
+     SERIALMODULES='module load' # no extra modules for serial jobs
+     ;;
+  *)
+     PLATFORMMODULES='module load intelc/18.0.0 openmpi/intel_3.0.0'
+     ;;
+  esac
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=$SCRATCH
+  ARCHIVEDIR=$SCRATCH
+  module purge
+  $PLATFORMMODULES
+  $PARALLELMODULES
+  $SERIALMODULES
+fi

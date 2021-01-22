@@ -1,0 +1,1100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:georss="http://www.georss.org/georss"
+ xmlns:gml="http://www.opengis.net/gml"
+ xmlns:nhc="https://www.nhc.noaa.gov">
+<channel>
+<pubDate>Thu, 17 Sep 2020 08:31:26 GMT</pubDate>
+<title>NHC Atlantic</title>
+<description>Active tropical cyclones in the Atlantic, Caribbean, and the Gulf of Mexico</description>
+<link>https://www.nhc.noaa.gov/</link>
+<copyright>none</copyright>
+<managingEditor>nhcwebmaster@noaa.gov (NHC Webmaster)</managingEditor>
+<language>en-us</language>
+<webMaster>nhcwebmaster@noaa.gov (NHC Webmaster)</webMaster>
+<image>
+<url>https://www.nhc.noaa.gov/gifs/xml_logo_nhc.gif</url>
+<link>https://www.nhc.noaa.gov/</link>
+<title>NHC Atlantic</title>
+<description>NOAA logo</description>
+<width>95</width>
+<height>45</height>
+</image>
+<item>
+<title>Atlantic Tropical Weather Outlook</title>
+<description>
+<![CDATA[
+<br/>
+000<br/>
+ABNT20 KNHC 170552<br/>
+TWOAT <br/>
+<br/>
+Tropical Weather Outlook<br/>
+NWS National Hurricane Center Miami FL<br/>
+200 AM EDT Thu Sep 17 2020<br/>
+<br/>
+For the North Atlantic...Caribbean Sea and the Gulf of Mexico:<br/>
+<br/>
+The National Hurricane Center is issuing advisories on <br/>
+recently downgraded Tropical Depression Sally, located inland <br/>
+over southeastern Alabama, on Hurricane Teddy, located over the <br/>
+central tropical Atlantic, and on Tropical Storm Vicky, located over <br/>
+the eastern tropical Atlantic. <br/>
+<br/>
+Thunderstorm activity associated with a low pressure system located <br/>
+over the southwestern Gulf of Mexico has increased in coverage and <br/>
+organization this morning. In addition, recent satellite-derived <br/>
+surface wind data indicate that the low has become better defined. <br/>
+Upper-level winds are expected to gradually become more conducive <br/>
+for development, and a tropical depression is likely to form during <br/>
+the next day or so while the low meanders over the southwestern Gulf <br/>
+of Mexico. An Air Force Reserve reconnaissance aircraft is scheduled <br/>
+to investigate the disturbance later today, if necessary.<br/>
+* Formation chance through 48 hours...high...70 percent. <br/>
+* Formation chance through 5 days...high...90 percent.<br/>
+<br/>
+An elongated area of low pressure located a few hundred miles <br/>
+south-southwest of the Cabo Verde Islands is producing disorganized <br/>
+shower and thunderstorm activity.  Environmental conditions are <br/>
+expected to be conducive for development during the next few days, <br/>
+and a tropical depression could form before upper-level winds become <br/>
+less favorable over the weekend.  The low is forecast to move <br/>
+west-northwestward at 10 to 15 mph during the next several days.<br/>
+* Formation chance through 48 hours...medium...40 percent. <br/>
+* Formation chance through 5 days...medium...60 percent.<br/>
+<br/>
+A non-tropical area of low pressure is located over the far <br/>
+northeastern Atlantic Ocean a few hundred miles east-northeast of <br/>
+the Azores.  This system is forecast to move east-southeastward and <br/>
+then northeastward at about 10 mph over the next day or two, and its <br/>
+chances of acquiring some subtropical characteristics before it <br/>
+reaches the coast of Portugal late Friday appear to be decreasing.  <br/>
+For more information on this system, see High Seas Forecasts issued <br/>
+by Meteo France. <br/>
+* Formation chance through 48 hours...low...10 percent. <br/>
+* Formation chance through 5 days...low...10 percent.<br/>
+<br/>
+&&<br/>
+<br/>
+High Seas Forecasts issued by Meteo France can be found under WMO <br/>
+header FQNT50 LFPW and available on the web at <br/>
+www.meteofrance.com/previsions-meteo-marine/bulletin/grandlarge/ <br/>
+metarea2<br/>
+<br/>
+$$<br/>
+Forecaster Stewart<br/>
+]]>
+</description>
+<pubDate>Thu, 17 Sep 2020 05:52:12 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/gtwo.php?basin=atlc</link>
+<guid>https://www.nhc.noaa.gov/gtwo.php?basin=atlc&amp;202009170552</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+ <title>Summary for Tropical Storm Vicky (AT1/AL212020)</title>
+ <guid isPermaLink="false">summary-al212020-202009170233</guid>
+ <pubDate>Thu, 17 Sep 2020 02:33:37 GMT</pubDate>
+ <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+ <link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT1+shtml/170233.shtml</link>
+ <description>
+  ...VICKY SHRINKING AND POISED TO WEAKEN TOMORROW...
+ As of 11:00 PM AST Wed Sep 16
+ the center of Vicky was located near 21.6, -35.8
+ with movement W at 10 mph.
+ The minimum central pressure was 1008 mb
+ with maximum sustained winds of about 40 mph.
+ </description>
+ <nhc:Cyclone>
+  <nhc:center>21.6, -35.8</nhc:center>
+  <nhc:type>Tropical Storm</nhc:type>
+  <nhc:name>Vicky</nhc:name>
+  <nhc:wallet>AT1</nhc:wallet>
+  <nhc:atcf>AL212020</nhc:atcf>
+  <nhc:datetime>11:00 PM AST Wed Sep 16</nhc:datetime>
+  <nhc:movement>W at 10 mph</nhc:movement>
+  <nhc:pressure>1008 mb</nhc:pressure>
+  <nhc:wind>40 mph</nhc:wind>
+  <nhc:headline> ...VICKY SHRINKING AND POISED TO WEAKEN TOMORROW...</nhc:headline>
+ </nhc:Cyclone>
+</item>
+<item>
+<title>Tropical Storm Vicky Public Advisory Number 12</title>
+<description>Issued at 1100 PM AST Wed Sep 16 2020  <![CDATA[<pre>
+
+000
+WTNT31 KNHC 170233
+TCPAT1
+ 
+BULLETIN
+Tropical Storm Vicky Advisory Number  12
+NWS National Hurricane Center Miami FL       AL212020
+1100 PM AST Wed Sep 16 2020
+ 
+...VICKY SHRINKING AND POISED TO WEAKEN TOMORROW...
+ 
+ 
+SUMMARY OF 1100 PM AST...0300 UTC...INFORMATION
+-----------------------------------------------
+LOCATION...21.6N 35.8W
+ABOUT 860 MI...1390 KM WNW OF THE CABO VERDE ISLANDS
+MAXIMUM SUSTAINED WINDS...40 MPH...65 KM/H
+PRESENT MOVEMENT...W OR 275 DEGREES AT 10 MPH...17 KM/H
+MINIMUM CENTRAL PRESSURE...1008 MB...29.77 INCHES
+ 
+ 
+WATCHES AND WARNINGS
+--------------------
+There are no coastal watches or warnings in effect.
+ 
+ 
+DISCUSSION AND OUTLOOK
+----------------------
+At 1100 PM AST (0300 UTC), the center of Tropical Storm Vicky was
+located near latitude 21.6 North, longitude 35.8 West.  Vicky is
+moving toward the west near 10 mph (17 km/h).  This general motion 
+is expected through Thursday morning, followed by a
+west-southwestward motion for a day or two after that.
+ 
+Maximum sustained winds are near 40 mph (65 km/h) with higher gusts.
+Gradual weakening is anticipated, and Vicky is forecast to become a 
+remnant low by late Thursday.
+ 
+Tropical-storm-force winds extend outward up to 35 miles (55 km)
+from the center.
+ 
+The estimated minimum central pressure is 1008 mb (29.77 inches).
+ 
+ 
+HAZARDS AFFECTING LAND
+----------------------
+None.
+ 
+ 
+NEXT ADVISORY
+-------------
+Next complete advisory at 500 AM AST.
+ 
+$$
+Forecaster Zelinsky
+ 
+</pre>]]></description>
+<pubDate>Thu, 17 Sep 2020 02:33:37 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT1+shtml/170233.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCPAT1+shtml/170233.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Vicky Forecast Advisory Number 12</title>
+<description>Issued at 0300 UTC THU SEP 17 2020  <![CDATA[<pre>
+
+280 
+WTNT21 KNHC 170233
+TCMAT1
+ 
+TROPICAL STORM VICKY FORECAST/ADVISORY NUMBER  12
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL212020
+0300 UTC THU SEP 17 2020
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 21.6N  35.8W AT 17/0300Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST OR 275 DEGREES AT   9 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1008 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT....... 30NE   0SE   0SW  30NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 21.6N  35.8W AT 17/0300Z
+AT 17/0000Z CENTER WAS LOCATED NEAR 21.6N  35.4W
+ 
+FORECAST VALID 17/1200Z 21.6N  37.1W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 30NE   0SE   0SW   0NW.
+ 
+FORECAST VALID 18/0000Z 21.0N  39.0W...POST-TROP/REMNT LOW
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 18/1200Z 20.2N  40.6W...POST-TROP/REMNT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 19/0000Z 19.4N  42.3W...POST-TROP/REMNT LOW
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 19/1200Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 21.6N  35.8W
+ 
+NEXT ADVISORY AT 17/0900Z
+ 
+$$
+FORECASTER ZELINSKY
+ 
+ 
+
+</pre>]]></description>
+<pubDate>Thu, 17 Sep 2020 02:33:08 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCMAT1+shtml/170233.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCMAT1+shtml/170233.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Vicky Forecast Discussion Number 12</title>
+<description>Issued at 1100 PM AST Wed Sep 16 2020  <![CDATA[<pre>
+
+000
+WTNT41 KNHC 170234
+TCDAT1
+ 
+Tropical Storm Vicky Discussion Number  12
+NWS National Hurricane Center Miami FL       AL212020
+1100 PM AST Wed Sep 16 2020
+ 
+A layer of cirrus clouds are covering the center of Vicky, but those 
+clouds are associated with outflow from Hurricane Teddy.  A 
+combination of outflow from Teddy and an upper-level low to the 
+north of Vicky is causing very strong westerly winds across the top 
+of the struggling tropical storm. As a result, Vicky is producing 
+minimal convection that is displaced to the east of the center. 
+Recent ASCAT data indicated that the maximum winds are still near 
+35 kt, but Vicky's wind field is becoming smaller and the system is 
+on the overall decline. There is no indication that the shear will 
+decrease and Vicky should weaken as a result. The NHC forecast calls 
+for Vicky to become a remnant low within 24 hours (if not sooner) 
+and dissipate in a few days.
+
+Vicky is still heading generally westward. The tropical storm will 
+likely continue westward through tomorrow morning, and then turn 
+west-southwestward in the low-level tradewind flow after that for as 
+long as it lasts. There is little spread in the track guidance and 
+the NHC forecast is essentially the same as the multi-model 
+consensus.
+ 
+FORECAST POSITIONS AND MAX WINDS
+ 
+INIT  17/0300Z 21.6N  35.8W   35 KT  40 MPH
+ 12H  17/1200Z 21.6N  37.1W   35 KT  40 MPH
+ 24H  18/0000Z 21.0N  39.0W   30 KT  35 MPH...POST-TROP/REMNT LOW
+ 36H  18/1200Z 20.2N  40.6W   25 KT  30 MPH...POST-TROP/REMNT LOW
+ 48H  19/0000Z 19.4N  42.3W   25 KT  30 MPH...POST-TROP/REMNT LOW
+ 60H  19/1200Z...DISSIPATED
+ 
+$$
+Forecaster Zelinsky
+ 
+</pre>]]></description>
+<pubDate>Thu, 17 Sep 2020 02:34:08 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCDAT1+shtml/170234.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCDAT1+shtml/170234.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Vicky Wind Speed Probabilities Number 12</title>
+<description>Issued at 0300 UTC THU SEP 17 2020                                              <![CDATA[<pre>
+
+000
+FONT11 KNHC 170233
+PWSAT1
+                                                                    
+TROPICAL STORM VICKY WIND SPEED PROBABILITIES NUMBER  12            
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL212020               
+0300 UTC THU SEP 17 2020                                            
+                                                                    
+AT 0300Z THE CENTER OF TROPICAL STORM VICKY WAS LOCATED NEAR        
+LATITUDE 21.6 NORTH...LONGITUDE 35.8 WEST WITH MAXIMUM SUSTAINED    
+WINDS NEAR 35 KTS...40 MPH...65 KM/H.                               
+                                                                    
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)                  
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME      
+   EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME      
+   CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME      
+                                                                    
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS                 
+                                                                    
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST     
+   ...34 KT (39 MPH... 63 KM/H)...                                  
+   ...50 KT (58 MPH... 93 KM/H)...                                  
+   ...64 KT (74 MPH...119 KM/H)...                                  
+FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS               
+                                                                    
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE               
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING            
+        AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)               
+   (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN           
+        00Z THU AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)      
+                                                                    
+PROBABILITIES ARE GIVEN IN PERCENT                                  
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT                       
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.             
+PROBABILITIES FOR 34...50...64 KT SHOWN WHEN THE 5-DAY              
+64-KT CUMULATIVE PROBABILITY IS AT LEAST 1 PERCENT.                 
+                                                                    
+                                                                    
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -   
+                                                                    
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM 
+  TIME       00Z THU 12Z THU 00Z FRI 12Z FRI 00Z SAT 00Z SUN 00Z MON
+PERIODS         TO      TO      TO      TO      TO      TO      TO  
+             12Z THU 00Z FRI 12Z FRI 00Z SAT 00Z SUN 00Z MON 00Z TUE
+                                                                    
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+LOCATION       KT                                                   
+                                                                    
+$$                                                                  
+FORECASTER ZELINSKY                                                 
+</pre>]]></description>
+<pubDate>Thu, 17 Sep 2020 02:33:38 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT1+shtml/170233.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT1+shtml/170233.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Vicky Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at1+shtml/023524.shtml?cone">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT21/AL212020_5day_cone_with_line_and_wind_sm2.png"
+alt="Tropical Storm Vicky 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Thu, 17 Sep 2020 02:35:24 GMT
+<br /><br /><a href="https://www.nhc.noaa.gov/refresh/graphics_at1+shtml/023524.shtml?tswind120">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT21/AL212020_wind_probs_34_F120_sm2.png"
+alt="Tropical Storm Vicky 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Thu, 17 Sep 2020 03:38:49 GMT
+]]>
+</description>
+<pubDate>Thu, 17 Sep 2020 02:35:24 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at1+shtml/023524.shtml?cone</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at1+shtml/023524.shtml?cone</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+ <title>Summary for Tropical Depression Sally (AT4/AL192020)</title>
+ <guid isPermaLink="false">summary-al192020-202009170831</guid>
+ <pubDate>Thu, 17 Sep 2020 08:31:13 GMT</pubDate>
+ <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+ <link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT4+shtml/170831.shtml</link>
+ <description>
+  ...TROPICAL DEPRESSION SALLY STILL PRODUCING TORRENTIAL RAINS OVER EASTERN ALABAMA AND WESTERN AND CENTRAL GEORGIA... ...THIS IS THE LAST ADVISORY ISSUED BY THE NATIONAL HURRICANE CENTER...
+ As of 4:00 AM CDT Thu Sep 17
+ the center of Sally was located near 31.8, -85.7
+ with movement NE at 12 mph.
+ The minimum central pressure was 1000 mb
+ with maximum sustained winds of about 30 mph.
+ </description>
+ <nhc:Cyclone>
+  <nhc:center>31.8, -85.7</nhc:center>
+  <nhc:type>TROPICAL DEPRESSION</nhc:type>
+  <nhc:name>Sally</nhc:name>
+  <nhc:wallet>AT4</nhc:wallet>
+  <nhc:atcf>AL192020</nhc:atcf>
+  <nhc:datetime>4:00 AM CDT Thu Sep 17</nhc:datetime>
+  <nhc:movement>NE at 12 mph</nhc:movement>
+  <nhc:pressure>1000 mb</nhc:pressure>
+  <nhc:wind>30 mph</nhc:wind>
+  <nhc:headline> ...TROPICAL DEPRESSION SALLY STILL PRODUCING TORRENTIAL RAINS OVER EASTERN ALABAMA AND WESTERN AND CENTRAL GEORGIA... ...THIS IS THE LAST ADVISORY ISSUED BY THE NATIONAL HURRICANE CENTER...</nhc:headline>
+ </nhc:Cyclone>
+</item>
+<item>
+<title>Tropical Depression Sally Public Advisory Number 25</title>
+<description>Issued at 400 AM CDT Thu Sep 17 2020  <![CDATA[<pre>
+
+000
+WTNT34 KNHC 170831
+TCPAT4
+ 
+BULLETIN
+Tropical Depression Sally Advisory Number  25
+NWS National Hurricane Center Miami FL       AL192020
+400 AM CDT Thu Sep 17 2020
+ 
+...TROPICAL DEPRESSION SALLY STILL PRODUCING TORRENTIAL RAINS OVER
+EASTERN ALABAMA AND WESTERN AND CENTRAL GEORGIA...
+...THIS IS THE LAST ADVISORY ISSUED BY THE NATIONAL HURRICANE
+CENTER...
+ 
+ 
+SUMMARY OF 400 AM CDT...0900 UTC...INFORMATION
+----------------------------------------------
+LOCATION...31.8N 85.7W
+ABOUT 50 MI...80 KM SE OF MONTGOMERY ALABAMA
+MAXIMUM SUSTAINED WINDS...30 MPH...45 KM/H
+PRESENT MOVEMENT...NE OR 55 DEGREES AT 12 MPH...19 KM/H
+MINIMUM CENTRAL PRESSURE...1000 MB...29.53 INCHES
+ 
+ 
+WATCHES AND WARNINGS
+--------------------
+There are no coastal watches or warnings in effect.
+ 
+ 
+DISCUSSION AND OUTLOOK
+----------------------
+At 400 AM CDT (0900 UTC), the center of Tropical Depression Sally
+was located near latitude 31.8 North, longitude 85.7 West. The
+depression is moving toward the northeast near 12 mph (19 km/h), and
+a northeastward to east-northeastward motion is expected into 
+Friday.  On the forecast track, the center of Sally will move 
+across southeastern Alabama this morning, over central Georgia 
+this afternoon and evening, and move over South Carolina late 
+tonight into Friday.
+ 
+Maximum sustained winds have decreased to near 30 mph (45 km/h) 
+with higher gusts. Additional weakening is forecast during the
+next couple of days, and Sally is expected to become a remnant low
+by tonight or Friday morning.
+ 
+The estimated minimum central pressure based on nearby surface 
+observations is 1000 mb (29.53 inches).
+ 
+ 
+HAZARDS AFFECTING LAND
+----------------------
+Key messages for Sally can be found in the Tropical Cyclone
+Discussion under AWIPS header MIATCDAT4 and WMO header WTNT44 KNHC,
+and on the web at <a href="http://www.hurricanes.gov/text/MIATCDAT4.shtml">www.hurricanes.gov/text/MIATCDAT4.shtml</a>
+ 
+RAINFALL:  Rainfall totals expected as Sally moves across the 
+Southeast U.S. through Friday:
+
+Central Georgia: Sally will produce additional rainfall totals of 3 
+to 6 inches, with localized higher amounts, on top of 3 to 6 inches 
+which has already fallen.  Widespread flash flooding and minor to 
+moderate river flooding is likely. 
+
+Central to upstate South Carolina: 3 to 6 inches, with isolated 
+amounts of 10 inches. Widespread flash flooding and minor to 
+moderate river flooding is likely. 
+
+Western to central North Carolina into south-central and southeast 
+Virginia: 4 to 6 inches, isolated amounts up to 8 inches. Flash 
+flooding and widespread minor river flooding is likely.
+ 
+STORM SURGE:  Water levels will continue to recede through the day
+today.
+ 
+TORNADOES:  A couple of tornadoes may occur early this morning
+across southern Georgia and northern Florida.  The threat of
+tornadoes will shift northeastward into eastern Georgia and much of
+the Carolinas today and tonight.
+ 
+SURF:  Swells from Sally will continue to affect the Gulf Coast
+from the Florida Big Bend westward to southeastern Louisiana
+through today. These swells are likely to cause life-threatening
+surf and rip current conditions.  Please consult products from your
+local weather office.
+ 
+ 
+NEXT ADVISORY
+-------------
+This is the last public advisory issued by the National Hurricane
+Center on Sally. Future information on this system can be found in 
+Public Advisories issued by the Weather Prediction Center beginning 
+at 10 AM CDT, under AWIPS header TCPAT4, WMO header WTNT34 KWNH, and 
+on the web at http://www.wpc.ncep.noaa.gov. 
+ 
+$$
+Forecaster Stewart
+ 
+</pre>]]></description>
+<pubDate>Thu, 17 Sep 2020 08:31:13 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT4+shtml/170831.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCPAT4+shtml/170831.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Depression Sally Forecast Advisory Number 25</title>
+<description>Issued at 0900 UTC THU SEP 17 2020  <![CDATA[<pre>
+
+000
+WTNT24 KNHC 170831
+TCMAT4
+ 
+TROPICAL DEPRESSION SALLY FORECAST/ADVISORY NUMBER  25
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL192020
+0900 UTC THU SEP 17 2020
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+TROPICAL DEPRESSION CENTER LOCATED NEAR 31.8N  85.7W AT 17/0900Z
+POSITION ACCURATE WITHIN  25 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTHEAST OR  55 DEGREES AT  10 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1000 MB
+MAX SUSTAINED WINDS  25 KT WITH GUSTS TO  35 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 31.8N  85.7W AT 17/0900Z
+AT 17/0600Z CENTER WAS LOCATED NEAR 31.6N  86.3W
+ 
+FORECAST VALID 17/1800Z 32.8N  84.2W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 18/0600Z 34.0N  81.3W...POST-TROP/REMNT LOW
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 18/1800Z 35.1N  78.4W...POST-TROP/REMNT LOW
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 19/0600Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 31.8N  85.7W
+ 
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE 
+CENTER ON SALLY. FUTURE INFORMATION ON THIS SYSTEM CAN BE FOUND IN 
+PUBLIC ADVISORIES ISSUED BY THE WEATHER PREDICTION CENTER BEGINNING 
+AT 10 AM CDT, UNDER AWIPS HEADER TCPAT3, WMO HEADER WTNT33 KWNH, 
+AND ON THE WEB AT HTTP://WWW.WPC.NCEP.NOAA.GOV.
+ 
+$$
+FORECASTER STEWART
+ 
+ 
+</pre>]]></description>
+<pubDate>Thu, 17 Sep 2020 08:31:13 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCMAT4+shtml/170831.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCMAT4+shtml/170831.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Depression Sally Forecast Discussion Number 25</title>
+<description>Issued at 400 AM CDT Thu Sep 17 2020  <![CDATA[<pre>
+ZCZC MIATCDAT4 ALL
+TTAA00 KNHC DDHHMM
+ 
+Tropical Depression Sally Discussion Number  25
+NWS National Hurricane Center Miami FL       AL192020
+400 AM CDT Thu Sep 17 2020
+ 
+Although the overall convective cloud and rain shield in satellite 
+and radar imagery continues to erode, Tropical Depression Sally is 
+still producing significant rainfall across east-central Alabama 
+and west-central and central Georgia.  Surface observations 
+and Doppler radar data indicate that Sally has weakened to a 25-kt 
+depression over southeastern Alabama.  Sally will continue to 
+weaken, and fairly rapidly at that, due to increasing friction and 
+loss of convection owing to very hostile westerly to southwesterly 
+vertical wind shear in excess of 40 kt. Sally will likely 
+degenerate into a remnant low pressure system by tonight or early 
+Friday, and merge with a frontal system over North Carolina by 
+Friday evening.
+ 
+Sally is moving northeastward or 055/10 kt. A northeastward to 
+east-northeastward motion will continue for the next 36 hours or 
+so as the cyclone moves ahead of a broad deep-layer trough over the 
+northeastern United States.  The official track forecast is down
+the middle of the tightly packed NHC model guidance suite, and lies 
+close to the previous advisory track and the consensus model HCCA.
+
+This is the last NHC advisory on Sally.  Future information on this 
+system, including the rainfall threat, can be found in Public 
+Advisories issued by the Weather Prediction Center beginning at 
+10 AM CDT, under AWIPS header TCPAT3, WMO header WTNT34 KWNH, and 
+on the web at http://www.wpc.ncep.noaa.gov 
+ 
+ 
+KEY MESSAGES:
+ 
+1. Widespread flooding is expected from central Georgia through 
+southeastern Virginia.  Along the central Gulf Coast, most 
+widespread moderate to major river flooding from the historic 
+rainfall event will crest by the weekend, but rivers will remain 
+elevated well into next week.
+ 
+ 
+FORECAST POSITIONS AND MAX WINDS
+ 
+INIT  17/0900Z 31.8N  85.7W   25 KT  30 MPH...INLAND
+ 12H  17/1800Z 32.8N  84.2W   25 KT  30 MPH...INLAND
+ 24H  18/0600Z 34.0N  81.3W   20 KT  25 MPH...POST-TROP/REMNT LOW
+ 36H  18/1800Z 35.1N  78.4W   20 KT  25 MPH...POST-TROP/REMNT LOW
+ 48H  19/0600Z...MERGED WITH FRONTAL SYSTEM
+ 
+$$
+Forecaster Stewart
+ 
+NNNN
+</pre>]]></description>
+<pubDate>Thu, 17 Sep 2020 08:31:09 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCDAT4+shtml/DDHHMM.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCDAT4+shtml/DDHHMM.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Depression Sally Wind Speed Probabilities Number 25</title>
+<description>Issued at 0900 UTC THU SEP 17 2020                                              <![CDATA[<pre>
+ZCZC MIAPWSAT4 ALL                                                  
+TTAA00 KNHC DDHHMM                                                  
+                                                                    
+TROPICAL DEPRESSION SALLY WIND SPEED PROBABILITIES NUMBER  25       
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL192020               
+0900 UTC THU SEP 17 2020                                            
+                                                                    
+AT 0900Z THE CENTER OF TROPICAL DEPRESSION SALLY WAS LOCATED NEAR   
+LATITUDE 31.8 NORTH...LONGITUDE 85.7 WEST WITH MAXIMUM SUSTAINED    
+WINDS NEAR 25 KTS...30 MPH...45 KM/H.                               
+                                                                    
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)                  
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME      
+   EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME      
+   CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME      
+                                                                    
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS                 
+                                                                    
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST     
+   ...34 KT (39 MPH... 63 KM/H)...                                  
+   ...50 KT (58 MPH... 93 KM/H)...                                  
+   ...64 KT (74 MPH...119 KM/H)...                                  
+FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS               
+                                                                    
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE               
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING            
+        AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)               
+   (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN           
+        06Z THU AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)      
+                                                                    
+PROBABILITIES ARE GIVEN IN PERCENT                                  
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT                       
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.             
+PROBABILITIES FOR 34...50...64 KT SHOWN WHEN THE 5-DAY              
+64-KT CUMULATIVE PROBABILITY IS AT LEAST 1 PERCENT.                 
+                                                                    
+                                                                    
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -   
+                                                                    
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM 
+  TIME       06Z THU 18Z THU 06Z FRI 18Z FRI 06Z SAT 06Z SUN 06Z MON
+PERIODS         TO      TO      TO      TO      TO      TO      TO  
+             18Z THU 06Z FRI 18Z FRI 06Z SAT 06Z SUN 06Z MON 06Z TUE
+                                                                    
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+LOCATION       KT                                                   
+                                                                    
+FAYETTEVILLE   34  X   X( X)   4( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+NEW RIVER NC   34  X   X( X)   3( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+SURF CITY NC   34  X   X( X)   3( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+WILMINGTON NC  34  X   X( X)   3( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+BALD HEAD ISL  34  X   X( X)   3( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+FLORENCE SC    34  X   1( 1)   4( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+COLUMBIA SC    34  X   3( 3)   2( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+LITTLE RIVER   34  X   X( X)   3( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+MYRTLE BEACH   34  X   X( X)   3( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+AUGUSTA GA     34  X   5( 5)   X( 5)   X( 5)   X( 5)   X( 5)   X( 5)
+ 
+COLUMBUS GA    34  4   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+$$                                                                  
+FORECASTER STEWART                                                  
+NNNN                                                                
+</pre>]]></description>
+<pubDate>Thu, 17 Sep 2020 08:30:52 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT4+shtml/DDHHMM.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT4+shtml/DDHHMM.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Depression Sally Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/030634.shtml?cone">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT19/AL192020_5day_cone_with_line_and_wind_sm2.png"
+alt="Tropical Depression Sally 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Thu, 17 Sep 2020 03:06:34 GMT
+<br /><br /><a href="https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/030634.shtml?tswind120">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT19/AL192020_wind_probs_34_F120_sm2.png"
+alt="Tropical Depression Sally 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Thu, 17 Sep 2020 03:24:48 GMT
+]]>
+</description>
+<pubDate>Thu, 17 Sep 2020 03:06:34 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/030634.shtml?cone</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/030634.shtml?cone</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Mobile, AL / Pensacola, FL</title>
+<description>Issued at  806 PM CDT Wed Sep 16 2020</description>
+<pubDate>Thu, 17 Sep 2020 01:07:04 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS84-KMOB.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS84-KMOB.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Tallahassee, FL</title>
+<description>Issued at  1123 PM EDT Wed Sep 16 2020 /1023 PM CDT Wed Sep 16 2020/</description>
+<pubDate>Thu, 17 Sep 2020 03:23:19 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS82-KTAE.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS82-KTAE.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+ <title>Summary for Hurricane Teddy (AT5/AL202020)</title>
+ <guid isPermaLink="false">summary-al202020-202009170243</guid>
+ <pubDate>Thu, 17 Sep 2020 02:43:07 GMT</pubDate>
+ <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+ <link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT5+shtml/170243.shtml</link>
+ <description>
+  ...TEDDY FORECAST TO STRENGTHEN OVER THE NEXT COUPLE OF DAYS...
+ As of 11:00 PM AST Wed Sep 16
+ the center of Teddy was located near 17.8, -51.5
+ with movement NW at 13 mph.
+ The minimum central pressure was 976 mb
+ with maximum sustained winds of about 90 mph.
+ </description>
+ <nhc:Cyclone>
+  <nhc:center>17.8, -51.5</nhc:center>
+  <nhc:type>Hurricane</nhc:type>
+  <nhc:name>Teddy</nhc:name>
+  <nhc:wallet>AT5</nhc:wallet>
+  <nhc:atcf>AL202020</nhc:atcf>
+  <nhc:datetime>11:00 PM AST Wed Sep 16</nhc:datetime>
+  <nhc:movement>NW at 13 mph</nhc:movement>
+  <nhc:pressure>976 mb</nhc:pressure>
+  <nhc:wind>90 mph</nhc:wind>
+  <nhc:headline> ...TEDDY FORECAST TO STRENGTHEN OVER THE NEXT COUPLE OF DAYS...</nhc:headline>
+ </nhc:Cyclone>
+</item>
+<item>
+<title>Hurricane Teddy Public Advisory Number 19</title>
+<description>Issued at 1100 PM AST Wed Sep 16 2020  <![CDATA[<pre>
+
+000
+WTNT35 KNHC 170243
+TCPAT5
+ 
+BULLETIN
+Hurricane Teddy Advisory Number  19
+NWS National Hurricane Center Miami FL       AL202020
+1100 PM AST Wed Sep 16 2020
+ 
+...TEDDY FORECAST TO STRENGTHEN OVER THE NEXT COUPLE OF DAYS...
+ 
+ 
+SUMMARY OF 1100 PM AST...0300 UTC...INFORMATION
+-----------------------------------------------
+LOCATION...17.8N 51.5W
+ABOUT 670 MI...1075 KM ENE OF THE LESSER ANTILLES
+MAXIMUM SUSTAINED WINDS...90 MPH...150 KM/H
+PRESENT MOVEMENT...NW OR 315 DEGREES AT 13 MPH...20 KM/H
+MINIMUM CENTRAL PRESSURE...976 MB...28.82 INCHES
+ 
+ 
+WATCHES AND WARNINGS
+--------------------
+There are no coastal watches or warnings in effect.
+ 
+ 
+DISCUSSION AND OUTLOOK
+----------------------
+At 1100 PM AST (0300 UTC), the center of Hurricane Teddy was located
+near latitude 17.8 North, longitude 51.5 West.  Teddy is moving
+toward the northwest near 13 mph (20 km/h), and this general motion 
+is expected to continue through the weekend.
+ 
+Maximum sustained winds are near 90 mph (150 km/h) with higher
+gusts.  Strengthening is forecast during the next couple of days, 
+and Teddy could become a major hurricane Thursday night or Friday.
+ 
+Hurricane-force winds extend outward up to 35 miles (55 km) from the
+center and tropical-storm-force winds extend outward up to 255 miles
+(405 km).
+ 
+The estimated minimum central pressure is 976 mb (28.82 inches).
+ 
+ 
+HAZARDS AFFECTING LAND
+----------------------
+SURF:  Large swells generated by Teddy are reaching the Lesser
+Antilles and the northeastern coast of South America and should
+spread westward to the Greater Antilles, the Bahamas, Bermuda, and
+the east coast of the United States by the weekend.  These
+swells are likely to cause life-threatening surf and rip current
+conditions.  Please consult products from your local weather office.
+ 
+ 
+NEXT ADVISORY
+-------------
+Next complete advisory at 500 AM AST.
+ 
+$$
+Forecaster Berg
+ 
+</pre>]]></description>
+<pubDate>Thu, 17 Sep 2020 02:43:07 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT5+shtml/170243.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCPAT5+shtml/170243.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Teddy Forecast Advisory Number 19</title>
+<description>Issued at 0300 UTC THU SEP 17 2020  <![CDATA[<pre>
+
+000
+WTNT25 KNHC 170242
+TCMAT5
+ 
+HURRICANE TEDDY FORECAST/ADVISORY NUMBER  19
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL202020
+0300 UTC THU SEP 17 2020
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+HURRICANE CENTER LOCATED NEAR 17.8N  51.5W AT 17/0300Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTHWEST OR 315 DEGREES AT  11 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  976 MB
+MAX SUSTAINED WINDS  80 KT WITH GUSTS TO 100 KT.
+64 KT....... 30NE  25SE  20SW  30NW.
+50 KT....... 60NE  50SE  50SW  70NW.
+34 KT.......220NE 100SE  80SW 170NW.
+12 FT SEAS..330NE 360SE 300SW 300NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 17.8N  51.5W AT 17/0300Z
+AT 17/0000Z CENTER WAS LOCATED NEAR 17.4N  51.2W
+ 
+FORECAST VALID 17/1200Z 18.9N  52.6W
+MAX WIND  85 KT...GUSTS 105 KT.
+64 KT... 35NE  30SE  25SW  35NW.
+50 KT... 70NE  60SE  50SW  70NW.
+34 KT...200NE 120SE  90SW 160NW.
+ 
+FORECAST VALID 18/0000Z 20.3N  54.1W
+MAX WIND  95 KT...GUSTS 115 KT.
+64 KT... 45NE  35SE  25SW  45NW.
+50 KT... 80NE  70SE  50SW  70NW.
+34 KT...190NE 130SE 100SW 150NW.
+ 
+FORECAST VALID 18/1200Z 21.8N  55.6W
+MAX WIND 100 KT...GUSTS 120 KT.
+64 KT... 45NE  40SE  30SW  45NW.
+50 KT... 90NE  80SE  60SW  70NW.
+34 KT...190NE 150SE 110SW 150NW.
+ 
+FORECAST VALID 19/0000Z 23.5N  57.1W
+MAX WIND 100 KT...GUSTS 120 KT.
+64 KT... 50NE  45SE  35SW  45NW.
+50 KT...100NE  90SE  70SW  90NW.
+34 KT...190NE 160SE 120SW 160NW.
+ 
+FORECAST VALID 19/1200Z 25.3N  59.1W
+MAX WIND  95 KT...GUSTS 115 KT.
+50 KT...100NE  90SE  70SW  80NW.
+34 KT...190NE 170SE 120SW 160NW.
+ 
+FORECAST VALID 20/0000Z 27.0N  61.1W
+MAX WIND  95 KT...GUSTS 115 KT.
+50 KT...100NE  90SE  70SW  80NW.
+34 KT...190NE 170SE 130SW 160NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 21/0000Z 30.0N  64.0W
+MAX WIND  90 KT...GUSTS 110 KT.
+ 
+OUTLOOK VALID 22/0000Z 35.0N  64.0W
+MAX WIND  90 KT...GUSTS 110 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 17.8N  51.5W
+ 
+NEXT ADVISORY AT 17/0900Z
+ 
+$$
+FORECASTER BERG
+ 
+ 
+</pre>]]></description>
+<pubDate>Thu, 17 Sep 2020 02:42:42 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCMAT5+shtml/170242.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCMAT5+shtml/170242.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Teddy Forecast Discussion Number 19</title>
+<description>Issued at 1100 PM AST Wed Sep 16 2020  <![CDATA[<pre>
+
+000
+WTNT45 KNHC 170243
+TCDAT5
+ 
+Hurricane Teddy Discussion Number  19
+NWS National Hurricane Center Miami FL       AL202020
+1100 PM AST Wed Sep 16 2020
+ 
+Teddy has been a perplexing hurricane thus far.  The infrared 
+satellite presentation appears rather impressive, with the center 
+embedded beneath a Central Dense Overcast with cloud tops as cold 
+as -85 degrees Celsius.  Despite the presentation, however, Dvorak 
+estimates from TAFB and SAB are a consensus T4.5/77 kt, and 
+objective estimates range between 70-75 kt.  Teddy's initial 
+intensity is therefore set just above these estimates at 80 kt.
+
+A recent ASCAT pass indicated that Teddy's center is a little 
+farther to the southwest than previously estimated.  However, the 
+long-term motion remains toward the northwest (315/11 kt).  The 
+track forecast remains straightforward the the next 3 days, with 
+the guidance in good agreement that a mid-tropospheric high over 
+the central Atlantic will drive the hurricane northwestward toward 
+the western Atlantic.  There is a little more spread among the 
+track models on days 4 and 5, related to timing differences on 
+exactly where and how fast Teddy begins to recurve ahead of an 
+approaching mid-latitude trough coming from the northeastern United 
+States.  The new NHC track forecast has been nudged westward during 
+the first 3 days to account for the initial position adjustment, 
+but otherwise it's still close to the previous prediction even with 
+the increasing model spread on days 4 and 5.
+
+An upper-level trough situated to the northwest of Teddy is causing 
+about 10-15 kt of deep-layer southwesterly shear over the 
+hurricane, and some model analyses suggest that there could be 
+stronger shear in a layer below the level of the upper-level 
+outflow.  The deep-layer shear is expected to increase a bit during 
+the next day or so, but this should be offset by a favorable 
+thermodynamic environment, allowing for some intensification during 
+that time.  The shear might relax by days 3 and 4, but then the 
+thermodynamic environment becomes a little less conducive for 
+strengthening.  In particular, Teddy may move over the cold wake 
+of Hurricane Paulette, and the SHIPS guidance indicates that 
+relatively warm upper-level temperatures could be a negative 
+factor.  All that said, the NHC intensity forecast lies near the 
+top end of the guidance envelope, showing Teddy peaking in 
+intensity in a couple of days and then only gradually weakening 
+through the end of the forecast period.
+
+ 
+FORECAST POSITIONS AND MAX WINDS
+ 
+INIT  17/0300Z 17.8N  51.5W   80 KT  90 MPH
+ 12H  17/1200Z 18.9N  52.6W   85 KT 100 MPH
+ 24H  18/0000Z 20.3N  54.1W   95 KT 110 MPH
+ 36H  18/1200Z 21.8N  55.6W  100 KT 115 MPH
+ 48H  19/0000Z 23.5N  57.1W  100 KT 115 MPH
+ 60H  19/1200Z 25.3N  59.1W   95 KT 110 MPH
+ 72H  20/0000Z 27.0N  61.1W   95 KT 110 MPH
+ 96H  21/0000Z 30.0N  64.0W   90 KT 105 MPH
+120H  22/0000Z 35.0N  64.0W   90 KT 105 MPH
+ 
+$$
+Forecaster Berg
+ 
+</pre>]]></description>
+<pubDate>Thu, 17 Sep 2020 02:43:07 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCDAT5+shtml/170243.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCDAT5+shtml/170243.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Teddy Wind Speed Probabilities Number 19</title>
+<description>Issued at 0300 UTC THU SEP 17 2020                                              <![CDATA[<pre>
+
+000
+FONT15 KNHC 170243
+PWSAT5
+                                                                    
+HURRICANE TEDDY WIND SPEED PROBABILITIES NUMBER  19                 
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL202020               
+0300 UTC THU SEP 17 2020                                            
+                                                                    
+AT 0300Z THE CENTER OF HURRICANE TEDDY WAS LOCATED NEAR LATITUDE    
+17.8 NORTH...LONGITUDE 51.5 WEST WITH MAXIMUM SUSTAINED WINDS NEAR  
+80 KTS...90 MPH...150 KM/H.                                         
+                                                                    
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)                  
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME      
+   EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME      
+   CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME      
+                                                                    
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS                 
+                                                                    
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST     
+   ...34 KT (39 MPH... 63 KM/H)...                                  
+   ...50 KT (58 MPH... 93 KM/H)...                                  
+   ...64 KT (74 MPH...119 KM/H)...                                  
+FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS               
+                                                                    
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE               
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING            
+        AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)               
+   (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN           
+        00Z THU AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)      
+                                                                    
+PROBABILITIES ARE GIVEN IN PERCENT                                  
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT                       
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.             
+PROBABILITIES FOR 34...50...64 KT SHOWN WHEN THE 5-DAY              
+64-KT CUMULATIVE PROBABILITY IS AT LEAST 1 PERCENT.                 
+                                                                    
+                                                                    
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -   
+                                                                    
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM 
+  TIME       00Z THU 12Z THU 00Z FRI 12Z FRI 00Z SAT 00Z SUN 00Z MON
+PERIODS         TO      TO      TO      TO      TO      TO      TO  
+             12Z THU 00Z FRI 12Z FRI 00Z SAT 00Z SUN 00Z MON 00Z TUE
+                                                                    
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+LOCATION       KT                                                   
+                                                                    
+BERMUDA        34  X   X( X)   X( X)   X( X)   2( 2)  34(36)  33(69)
+BERMUDA        50  X   X( X)   X( X)   X( X)   X( X)  13(13)  25(38)
+BERMUDA        64  X   X( X)   X( X)   X( X)   X( X)   5( 5)  15(20)
+ 
+$$                                                                  
+FORECASTER BERG                                                     
+</pre>]]></description>
+<pubDate>Thu, 17 Sep 2020 02:43:07 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT5+shtml/170243.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT5+shtml/170243.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Hurricane Teddy Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/024505.shtml?cone">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT20/AL202020_5day_cone_with_line_and_wind_sm2.png"
+alt="Hurricane Teddy 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Thu, 17 Sep 2020 02:45:05 GMT
+<br /><br /><a href="https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/024505.shtml?tswind120">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT20/AL202020_wind_probs_34_F120_sm2.png"
+alt="Hurricane Teddy 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Thu, 17 Sep 2020 03:32:07 GMT
+]]>
+</description>
+<pubDate>Thu, 17 Sep 2020 02:45:05 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/024505.shtml?cone</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/024505.shtml?cone</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+</channel>
+</rss>

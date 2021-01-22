@@ -39,11 +39,11 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 TIDEFAC=on               # tide factor recalc
    HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on         # NAM download/forcing
-   FORECASTCYCLE="00,06,12,18"
+   FORECASTCYCLE="06"
 TROPICALCYCLONE=off      # tropical cyclone forcing
    STORM=05              # storm number, e.g. 05=ernesto in 2006
    YEAR=2019             # year of the storm
-WAVES=on                 # wave forcing
+WAVES=off                 # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off              # variable river flux forcing
 #STATICOFFSET=0.30
@@ -55,9 +55,26 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=479                    # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
-if [[ $HPCENVSHORT = stampede2 ]]; then
-   ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
-   SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
+PARTITION=null
+ACCOUNT=loni_cera_2020
+
+if [[ $USER = jgflemin ]]; then
+   if [[ $HPCENVSHORT = queenbee || $HPCENVSHORT = supermic ]]; then
+      ADCIRCDIR=/work/jgflemin/adcirc-cg/work
+      SWANDIR=/work/jgflemin/adcirc-cg/swan
+   fi
+   if [[ $HPCENVSHORT = queenbeeC ]]; then
+      ADCIRCDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/work
+      SWANDIR=/work/jgflemin/adcirc-cg-v53release-qbc-intel/swan
+   fi
+   if [[ $HPCENVSHORT = frontera ]]; then
+      ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
+      SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
+   fi
+   if [[ $HPCENVSHORT = stampede2 ]]; then
+      ADCIRCDIR=$WORK/adcirc-cg/adcirc/v53release/work
+     SWANDIR=$WORK/adcirc-cg/adcirc/v53release/swan
+   fi
 fi
 
 # Post processing and publication
@@ -65,13 +82,13 @@ fi
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rluettich1@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,rluettich1@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( tacc_tds )
+TDS=( lsu_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020051500
+COLDSTARTDATE=2020071800
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #

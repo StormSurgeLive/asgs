@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Mon, 10 Sep 2018 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane FLORENCE Forecast/Advisory Number 45</title>
+      <description>Issued at 1500 UTC MON SEP 10 2018 <![CDATA[<pre>
+ZCZC MIATCMAT1 ALL
+TTAA00 KNHC DDHHMM
+
+HURRICANE FLORENCE FORECAST/ADVISORY NUMBER  45
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL062018
+1500 UTC MON SEP 10 2018
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+INTERESTS IN THE SOUTHEASTERN AND MID-ATLANTIC STATES SHOULD MONITOR
+THE PROGRESS OF FLORENCE. STORM SURGE AND HURRICANE WATCHES COULD
+BE ISSUED FOR PORTIONS OF THESE AREAS BY TUESDAY MORNING.
+
+HURRICANE CENTER LOCATED NEAR 25.0N  60.0W AT 10/1500Z
+POSITION ACCURATE WITHIN  10 NM
+
+PRESENT MOVEMENT TOWARD THE WEST OR 280 DEGREES AT  11 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  962 MB
+EYE DIAMETER  10 NM
+MAX SUSTAINED WINDS 100 KT WITH GUSTS TO 120 KT.
+64 KT....... 25NE  15SE  10SW  20NW.
+50 KT....... 50NE  40SE  30SW  40NW.
+34 KT.......120NE 110SE  60SW 110NW.
+12 FT SEAS..210NE  90SE 120SW 180NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 25.0N  60.0W AT 10/1500Z
+AT 10/1200Z CENTER WAS LOCATED NEAR 24.9N  59.5W
+
+FORECAST VALID 11/0000Z 25.5N  61.9W
+MAX WIND 115 KT...GUSTS 140 KT.
+64 KT... 30NE  20SE  10SW  20NW.
+50 KT... 50NE  40SE  30SW  40NW.
+34 KT...130NE 110SE  60SW 110NW.
+
+FORECAST VALID 11/1200Z 26.4N  64.7W
+MAX WIND 125 KT...GUSTS 150 KT.
+64 KT... 40NE  30SE  20SW  30NW.
+50 KT... 60NE  50SE  40SW  50NW.
+34 KT...140NE 120SE  70SW 120NW.
+
+FORECAST VALID 12/0000Z 27.8N  67.9W
+MAX WIND 130 KT...GUSTS 160 KT.
+64 KT... 50NE  40SE  30SW  40NW.
+50 KT... 70NE  60SE  50SW  60NW.
+34 KT...150NE 130SE  80SW 120NW.
+
+FORECAST VALID 12/1200Z 29.5N  71.0W
+MAX WIND 130 KT...GUSTS 160 KT.
+64 KT... 50NE  40SE  30SW  40NW.
+50 KT... 80NE  70SE  50SW  60NW.
+34 KT...150NE 140SE  80SW 120NW.
+
+FORECAST VALID 13/1200Z 33.0N  76.3W
+MAX WIND 125 KT...GUSTS 150 KT.
+50 KT... 80NE  70SE  60SW  70NW.
+34 KT...150NE 140SE 100SW 110NW.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 14/1200Z 35.0N  79.0W...INLAND
+MAX WIND  75 KT...GUSTS  90 KT.
+
+OUTLOOK VALID 15/1200Z 36.0N  80.0W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 25.0N  60.0W
+
+NEXT ADVISORY AT 10/2100Z
+
+$$
+FORECASTER BLAKE
+
+</pre>]]></description>
+      <pubDate>Mon, 10 Sep 2018 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2018/06/45.062018.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2018/06/45.062018.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

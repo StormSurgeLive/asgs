@@ -248,7 +248,9 @@ integer, parameter :: NODALATTRIBF = 4 ! fort.13
 integer, parameter :: INITRIVER = 5 ! fort.88
 integer, parameter :: MINMAX = 6    ! maxele.63, maxwvel.63, etc
 integer, parameter :: OWI = 7       ! fort.221, fort.222, fort.223, fort.224
+integer, parameter :: ESLNODES = 8 ! ESLNodes.63
 integer, parameter :: MAUREPT = 108 ! output from maureparticle
+
 !-----------
 !-----------
 contains
@@ -417,18 +419,31 @@ end function ind
 !---------------------------------------------------------------------
 subroutine check(ncstatus)
 use netcdf
+#ifdef INTEL
+! See ASGS Issue-393
+use ifcore, Only : tracebackqq
+#endif
 implicit none
 integer,intent(in) :: ncstatus
 real(8), allocatable :: intentionalSegFault(:)
 real(8) :: triggerSegFaultIntentionallyForStackTrace
 if(ncstatus.ne.nf90_noerr)then
    write(*,'(a,a)') "ERROR: ",trim(nf90_strerror(ncstatus))
-
-#ifdef DEBUGSEGFAULT
-   call backtrace
-   triggerSegFaultIntentionallyForStackTrace = intentionalSegFault(1)
+#ifdef INTEL 
+    ! See ASGS Issue-393
+    ! https://stackoverflow.com/questions/65157007/tracebackqq-with-ifort-leads-to-segmentation-fault
+    ! Note: "user_exit_code = -1" is required to match default behavior of the
+    ! original "backtrace" call that is now used for all non-INTEL compilers
+    call tracebackqq( user_exit_code = -1 ) 
 #endif
-
+#ifndef INTEL
+    ! See ASGS Issue-393
+    ! https://gcc.gnu.org/onlinedocs/gfortran/BACKTRACE.html
+    ! Note: used in this form, "backtrace" doesn't halt execution (unchanged
+    ! from origial code)
+    call backtrace
+#endif
+   triggerSegFaultIntentionallyForStackTrace = intentionalSegFault(1)
    stop 1
 endif
 !---------------------------------------------------------------------      

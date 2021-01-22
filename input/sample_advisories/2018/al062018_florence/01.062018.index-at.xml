@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Thu, 30 Aug 2018 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Potential Tropical Cyclone SIX Forecast/Advisory Number 1</title>
+      <description>Issued at 1500 UTC THU AUG 30 2018 <![CDATA[<pre>
+ZCZC MIATCMAT1 ALL
+TTAA00 KNHC DDHHMM
+
+POTENTIAL TROPICAL CYCLONE SIX FORECAST/ADVISORY NUMBER   1
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL062018
+1500 UTC THU AUG 30 2018
+
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+
+THE GOVERNMENT OF THE CABO VERDE ISLANDS HAS ISSUED A TROPICAL
+STORM WARNING FOR THE SOUTHERN ISLANDS OF SANTIAGO...FOGO AND
+BRAVA.
+
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* SANTIAGO
+* FOGO
+* BRAVA
+
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA WITHIN 36 HOURS.
+
+POTENTIAL TROP CYCLONE CENTER LOCATED NEAR 12.9N  18.4W AT 30/1500Z
+POSITION ACCURATE WITHIN  30 NM
+
+PRESENT MOVEMENT TOWARD THE WEST OR 280 DEGREES AT  10 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE 1007 MB
+MAX SUSTAINED WINDS  25 KT WITH GUSTS TO  35 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 12.9N  18.4W AT 30/1500Z
+AT 30/1200Z CENTER WAS LOCATED NEAR 12.8N  17.9W
+
+FORECAST VALID 31/0000Z 13.2N  20.1W...TROPICAL DEPRESSION
+MAX WIND  30 KT...GUSTS  40 KT.
+
+FORECAST VALID 31/1200Z 13.5N  22.0W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 30NE  30SE   0SW  30NW.
+
+FORECAST VALID 01/0000Z 14.0N  24.0W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT... 50NE  40SE  30SW  50NW.
+
+FORECAST VALID 01/1200Z 15.0N  27.0W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 30NE   0SE   0SW  30NW.
+34 KT... 80NE  50SE  40SW  70NW.
+
+FORECAST VALID 02/1200Z 16.5N  33.0W
+MAX WIND  65 KT...GUSTS  80 KT.
+50 KT... 40NE  40SE  30SW  40NW.
+34 KT...100NE  70SE  60SW  90NW.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 03/1200Z 18.5N  38.0W
+MAX WIND  65 KT...GUSTS  80 KT.
+
+OUTLOOK VALID 04/1200Z 20.0N  42.0W
+MAX WIND  65 KT...GUSTS  80 KT.
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 12.9N  18.4W
+
+NEXT ADVISORY AT 30/2100Z
+
+$$
+FORECASTER AVILA
+
+</pre>]]></description>
+      <pubDate>Thu, 30 Aug 2018 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2018/06/01.062018.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2018/06/01.062018.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

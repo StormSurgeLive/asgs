@@ -45,7 +45,11 @@ my %adcirctypes = ("maxele.63", "MaximumElevation",
                    "subdomains.100","SubdomainNumbers",
                    "noff.100","ElementWetDryState",
                    "noffornot.100","InconsistentElementWetDryState",
+                   "particles_count_peak.200","ElementPeakParticleCount",
+                   "particles_perarea_peak.200","ElementPeakParticleCountPerArea",
+                   "particles_pervolume_peak.200","ElementPeakParticleCountPerVolume",
                    "nodecode.63","NodeWetDryState",
+                   "ESLNodes.63","ElementalSlopeLimitAtNodesDiagnostic",                   
                    "residents.63","ResidentNodeNumbers",
                    "ghosts.63","GhostNodeNumbers",
                    "ghostmem.63","GhostNodeSubdomainMembership",
@@ -70,14 +74,19 @@ my %namesNumValues; # how many values at each node
 my %namesDefaultValues; # the value(s) of the attribute at most nodes
 my %namesNumNonDefaults; # how many of the nodes have nondefault values
 my @attrValues; # at every node in the mesh
-our $getNodeIDs;     # defined if the node labels should be recorded
-our @nodeIDs;         # array of node labels from data file 
-our $getElementIDs;     # defined if the node labels should be recorded
-our @elementIDs;         # array of node labels from data file 
+our $getNodeIndices;      # defined if the node array indices should be recorded
+our @nodeIndices;         # node array indices from data file 
+our $getElementIndices;   # defined if the element array indices should be recorded
+our @elementIndices;      # element array indices from data file 
 #
 my $meshfile = "null";
 my $cpp;  # 1 to reproject to cpp (carte parallelogrammatique projection)
-   
+my $translate; # 1 to translate the mesh x-y coordinates to the center of the cpp projection   
+my $centerx; # xcoord (deg) at center of the 2D mesh; conv to (m) if --cpp
+my $centery; # ycoord (deg) at center of the 2D mesh; conv to (m) if --cpp
+my $scale = 1.0; # number to muliply the x-y coordinates if they should be scaled
+my $comment; # contains the command used to generate the file as a comment at the top of the file 
+
 my $slam0 = 265.5; # longitude at center of projection
 my $sfea0 = 29.0;  # latitude at center of projection
 my $datacentered = "PointData";
@@ -97,11 +106,14 @@ GetOptions(
            "cpp" => \$cpp,
            "slam0=s" => \$slam0,
            "sfea0=s" => \$sfea0,
-           "getNodeIDs" => \$getNodeIDs,
-           "getElementIDs" => \$getElementIDs,           
+           "translate" => \$translate,
+           "scale=s" => \$scale,           
+           "getNodeIndices" => \$getNodeIndices,
+           "getElementIndices" => \$getElementIndices,
            "trackfiles=s" => \@trackfiles,
            "adcircfiles=s" => \@adcircfiles
          );
+#
 #
 # Process track files, producing a single VTP file containing all 
 # the tracks that were listed on the command line
@@ -248,8 +260,8 @@ for (my $i=0; $i<$np; $i++) {
    $line = <MESH>;
    @fields = split(' ',$line);
    # if node labels were specified
-   if ( defined $getNodeIDs ) {
-      $nodeIDs[$i] = $fields[0];
+   if ( defined $getNodeIndices ) {
+      $nodeIndices[$i] = $fields[0];
    }
    $x[$i] = $fields[1];
    $y[$i] = $fields[2];
@@ -261,14 +273,32 @@ if ( defined $cpp ) {
       $x[$i] = $R*($x[$i]*$deg2rad-$slam0*$deg2rad)*cos($sfea0*$deg2rad);
       $y[$i] = $y[$i]*$deg2rad*$R;
    }
+   $centerx = 0.0;
+   $centery = $sfea0*$deg2rad*$R;   
+} else {
+   $centerx = $slam0;
+   $centery = $sfea0;
 }
+# "--translate" : move the coordinates to the center of the projection 
+if ( defined $translate ) {
+   for (my $i=0; $i<$np; $i++) {
+      $x[$i] = $x[$i] - $centerx;
+      $y[$i] = $y[$i] - $centery; 
+   }   
+}
+# "--scale 0.001" : scale the x-y coordinates
+for (my $i=0; $i<$np; $i++) {
+   $x[$i] = $x[$i]*$scale;
+   $y[$i] = $y[$i]*$scale; 
+}   
+
 # read the element table
 for (my $i=0; $i<$ne; $i++) {
    $line = <MESH>;
    @fields = split(' ',$line);
    # if node labels were specified
-   if ( defined $getElementIDs ) {
-      $elementIDs[$i] = $fields[0];
+   if ( defined $getElementIndices ) {
+      $elementIndices[$i] = $fields[0];
    }
    # have to subtract 1 from the ADCIRC node numbers because vtk is 0 indexed
    my $i1 = $fields[2]-1;
@@ -494,12 +524,29 @@ foreach my $file (@adcircfiles) {
       $datacentered = "CellData";
       $datatype = "Int32";
    }
-   if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" || $file eq "residents.63" || $file eq "ghosts.63" || $file eq "absolutes.63" || $file eq "subdomains.63" || $file eq "psubdomains.63" || $file eq "ghostmem.63" ) {
+   if ( $file eq "particles_count_peak.200"  ) {
+      $num_components = 1;
+      $num_datasets = 1;
+      $datacentered = "CellData";
+      $datatype = "Int32";
+   }   
+   if ( $file eq "particles_perarea_peak.200" || $file eq "particles_pervolume_peak.200" ) {
+      $num_components = 1;
+      $num_datasets = 1;
+      $datacentered = "CellData";
+      $datatype = "Float64";
+   }   
+   if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" || $file eq "ESLNodes.63" ) {
+      $num_components = 1;
+      $num_datasets = 1;
+      $datatype = "Float64";
+   }
+   if ( $file eq "residents.63" || $file eq "ghosts.63" || $file eq "absolutes.63" || $file eq "subdomains.63" || $file eq "psubdomains.63" || $file eq "ghostmem.63" ) {
       $num_components = 1;
       $num_datasets = 1;
       $datatype = "Int32";
    }
-   if ( $file eq "noff.100" || $file eq "noffornot.100" ) {
+   if ( $file eq "noff.100" || $file eq "noffornot.100"  ) {
       $num_components = 1;
       $num_datasets = 0;
       $datatype = "Int32";
@@ -632,7 +679,7 @@ foreach my $file (@adcircfiles) {
          $lim=$ne;
       }
       #
-      # read adcirc data file
+      # read one dataset from adcirc data file
       for (my $i=0; $i<$lim; $i++) {
          $line = <ADCIRCFILE>;
          if ( defined $line ) {
@@ -641,8 +688,7 @@ foreach my $file (@adcircfiles) {
             stderrMessage("ERROR","Ran out of data: $!.");
             die;
          }
-
-         # get rid of the node number or node ID
+         # get rid of the node/element index or node/element ID
          shift(@fields);
          if ( $num_components == 2 ) {
             # calculate vector magnitude
@@ -682,6 +728,7 @@ foreach my $file (@adcircfiles) {
          $vtk_components = $num_components + 1; # for vtk all vectors are 3D
       }
       printf OUT "            <DataArray Name=\"$adcirctypes{$file}\" type=\"$datatype\" NumberOfComponents=\"$vtk_components\" format=\"ascii\">\n";
+      # write out one adcirc dataset
       for (my $i=0; $i<$lim; $i++) {
          printf OUT "$comp[$i]\n";
       }
@@ -702,6 +749,10 @@ foreach my $file (@adcircfiles) {
       &writeFooter();
       close(OUT);
       $dataset++;
+      # only write the number of datasets as specified according to the filetype
+      if ( $num_datasets != 0 && $dataset >= $num_datasets ) {
+         last;
+      }
    }
    if ( $num_datasets == 0 ) {
       printf PVD "   </Collection>\n";
@@ -731,10 +782,10 @@ sub writeMesh () {
    my $np = shift;
    #
    # write node IDs if specified
-   if ( defined $getNodeIDs ) {
-      printf OUT "         <DataArray Name=\"NodeIDs\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   if ( defined $getNodeIndices ) {
+      printf OUT "         <DataArray Name=\"NodeArrayIndices\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
       for (my $i=0; $i<$np; $i++) {
-         printf OUT "$nodeIDs[$i]\n";
+         printf OUT "$nodeIndices[$i]\n";
       }
       printf OUT "            </DataArray>\n";
    }
@@ -755,11 +806,11 @@ sub writeMesh () {
    printf OUT "         </Points>\n";
    #
    # write element IDs if specified
-   if ( defined $getElementIDs ) {
-      printf OUT "         <CellData Scalars=\"ElementIDs\">\n"; 
-      printf OUT "         <DataArray Name=\"ElementIDs\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   if ( defined $getElementIndices ) {
+      printf OUT "         <CellData Scalars=\"ElementArrayIndices\">\n"; 
+      printf OUT "         <DataArray Name=\"ElementArrayIndices\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
       for (my $i=0; $i<$ne; $i++) {
-         printf OUT "$elementIDs[$i]\n";
+         printf OUT "$elementIndices[$i]\n";
       }
       printf OUT "            </DataArray>\n";
       printf OUT "         </CellData>\n";

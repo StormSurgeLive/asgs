@@ -1,0 +1,734 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:georss="http://www.georss.org/georss"
+ xmlns:gml="http://www.opengis.net/gml"
+ xmlns:nhc="https://www.nhc.noaa.gov">
+<channel>
+<pubDate>Mon, 26 Oct 2020 14:48:54 GMT</pubDate>
+<title>NHC Atlantic</title>
+<description>Active tropical cyclones in the Atlantic, Caribbean, and the Gulf of Mexico</description>
+<link>https://www.nhc.noaa.gov/</link>
+<copyright>none</copyright>
+<managingEditor>nhcwebmaster@noaa.gov (NHC Webmaster)</managingEditor>
+<language>en-us</language>
+<webMaster>nhcwebmaster@noaa.gov (NHC Webmaster)</webMaster>
+<image>
+<url>https://www.nhc.noaa.gov/gifs/xml_logo_nhc.gif</url>
+<link>https://www.nhc.noaa.gov/</link>
+<title>NHC Atlantic</title>
+<description>NOAA logo</description>
+<width>95</width>
+<height>45</height>
+</image>
+<item>
+<title>Atlantic Tropical Weather Outlook</title>
+<description>
+<![CDATA[
+<br/>
+000<br/>
+ABNT20 KNHC 261144<br/>
+TWOAT <br/>
+<br/>
+Tropical Weather Outlook<br/>
+NWS National Hurricane Center Miami FL<br/>
+800 AM EDT Mon Oct 26 2020<br/>
+<br/>
+For the North Atlantic...Caribbean Sea and the Gulf of Mexico:<br/>
+<br/>
+The National Hurricane Center is issuing advisories on Tropical <br/>
+Storm Zeta, located over the northwestern Caribbean Sea.<br/>
+<br/>
+Tropical cyclone formation is not expected during the next 5 days.<br/>
+<br/>
+$$<br/>
+Forecaster Roberts<br/>
+]]>
+</description>
+<pubDate>Mon, 26 Oct 2020 11:44:50 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/gtwo.php?basin=atlc</link>
+<guid>https://www.nhc.noaa.gov/gtwo.php?basin=atlc&amp;202010261144</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+ <title>Summary for Tropical Storm Zeta (AT3/AL282020)</title>
+ <guid isPermaLink="false">summary-al282020-202010261448</guid>
+ <pubDate>Mon, 26 Oct 2020 14:48:50 GMT</pubDate>
+ <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+ <link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/261448.shtml</link>
+ <description>
+  ...HURRICANE CONDITIONS AND A DANGEROUS STORM SURGE LIKELY OVER PORTIONS OF THE YUCATAN PENINSULA BY LATE TODAY...
+ As of 10:00 AM CDT Mon Oct 26
+ the center of Zeta was located near 19.1, -85.3
+ with movement NW at 10 mph.
+ The minimum central pressure was 992 mb
+ with maximum sustained winds of about 70 mph.
+ </description>
+ <nhc:Cyclone>
+  <nhc:center>19.1, -85.3</nhc:center>
+  <nhc:type>Tropical Storm</nhc:type>
+  <nhc:name>Zeta</nhc:name>
+  <nhc:wallet>AT3</nhc:wallet>
+  <nhc:atcf>AL282020</nhc:atcf>
+  <nhc:datetime>10:00 AM CDT Mon Oct 26</nhc:datetime>
+  <nhc:movement>NW at 10 mph</nhc:movement>
+  <nhc:pressure>992 mb</nhc:pressure>
+  <nhc:wind>70 mph</nhc:wind>
+  <nhc:headline> ...HURRICANE CONDITIONS AND A DANGEROUS STORM SURGE LIKELY OVER PORTIONS OF THE YUCATAN PENINSULA BY LATE TODAY...</nhc:headline>
+ </nhc:Cyclone>
+</item>
+<item>
+<title>Tropical Storm Zeta Public Advisory Number 8</title>
+<description>Issued at 1000 AM CDT Mon Oct 26 2020  <![CDATA[<pre>
+
+000
+WTNT33 KNHC 261448
+TCPAT3
+ 
+BULLETIN
+Tropical Storm Zeta Advisory Number   8
+NWS National Hurricane Center Miami FL       AL282020
+1000 AM CDT Mon Oct 26 2020
+ 
+...HURRICANE CONDITIONS AND A DANGEROUS STORM SURGE LIKELY OVER
+PORTIONS OF THE YUCATAN PENINSULA BY LATE TODAY...
+ 
+ 
+SUMMARY OF 1000 AM CDT...1500 UTC...INFORMATION
+-----------------------------------------------
+LOCATION...19.1N 85.3W
+ABOUT 140 MI...230 KM SE OF COZUMEL MEXICO
+MAXIMUM SUSTAINED WINDS...70 MPH...110 KM/H
+PRESENT MOVEMENT...NW OR 305 DEGREES AT 10 MPH...17 KM/H
+MINIMUM CENTRAL PRESSURE...992 MB...29.29 INCHES
+ 
+ 
+WATCHES AND WARNINGS
+--------------------
+CHANGES WITH THIS ADVISORY:
+ 
+None.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT:
+ 
+A Hurricane Warning is in effect for...
+* Tulum to Dzilam Mexico
+* Cozumel
+ 
+ A Tropical Storm Warning is in effect for...
+* Pinar del Rio Cuba
+* South of Tulum to Punta Allen
+* West of Dzilam to Progreso
+ 
+A Hurricane Warning means that hurricane conditions are expected
+somewhere within the warning area.  A warning is typically issued
+36 hours before the anticipated first occurrence of tropical-storm- 
+force winds, conditions that make outside preparations difficult or 
+dangerous.  Preparations to protect life and property should be 
+rushed to completion.
+ 
+A Tropical Storm Warning means that tropical storm conditions are
+expected somewhere within the warning area within 36 hours.
+ 
+Watches will likely be required for a portion of the northern Gulf
+Coast later today.
+ 
+For storm information specific to your area, please monitor
+products issued by your national meteorological service.
+ 
+ 
+DISCUSSION AND OUTLOOK
+----------------------
+At 1000 AM CDT (1500 UTC), the center of Tropical Storm Zeta was
+located near latitude 19.1 North, longitude 85.3 West.  Zeta is
+moving toward the northwest near 10 mph (17 km/h).  A northwestward
+motion with some increase in forward speed is expected over the
+next day or so, followed by a turn toward the north Tuesday night.
+A faster northward to north-northeastward motion is forecast on
+Wednesday.  On the forecast track, the center of Zeta will move near
+or over the northern Yucatan Peninsula later today or tonight, move
+over the southern Gulf of Mexico on Tuesday, and approach the
+northern Gulf Coast on Wednesday.
+ 
+Maximum sustained winds are near 70 mph (110 km/h) with higher
+gusts.  Strengthening is forecast, and Zeta is expected to become
+a hurricane later today.  Some weakening is likely while Zeta
+moves over the Yucatan Peninsula tonight and early Tuesday.  Zeta
+is forecast to strengthen again while it moves over the southern
+Gulf of Mexico later on Tuesday
+ 
+Tropical-storm-force winds extend outward up to 115 miles (185 km)
+from the center.
+ 
+The estimated minimum central pressure is 992 mb (29.29 inches).
+ 
+ 
+HAZARDS AFFECTING LAND
+----------------------
+Key messages for Zeta can be found in the Tropical Cyclone 
+Discussion under AWIPS header MIATCDAT3, WMO header WTNT43
+KNHC, and on the web at <a href="http://www.hurricanes.gov/text/MIATCDAT3.shtml">www.hurricanes.gov/text/MIATCDAT3.shtml</a>.
+ 
+RAINFALL:  Rainfall totals of 4 to 8 inches with local amounts of 12
+inches are possible through Tuesday along and east-northeast of
+Zeta's track across the Yucatan Peninsula of Mexico, the Cayman
+Islands, and central to western Cuba.
+ 
+Heavy rains will begin to impact the central Gulf Coast Tuesday
+night, spreading inland across eastern Mississippi, Alabama,
+northern Georgia during Wednesday, through the southern Appalachians
+Wednesday night and into the Mid-Atlantic on Thursday.  Rainfall
+totals of 2 to 4 inches with isolated amounts of 6 inches are
+expected across these areas, resulting in flash, urban, small
+stream, and minor river flooding.
+ 
+WIND:  Hurricane conditions are expected within the Hurricane
+Warning area in the Yucatan Peninsula by late today.  Tropical
+storm conditions are expected within the Tropical Storm Warning
+area in Mexico by late today.  Tropical storm conditions could occur
+in the warning area in western Cuba beginning later today.
+ 
+STORM SURGE:  A dangerous storm surge will raise water levels by
+as much as 2 to 4 feet above normal tide levels along the immediate
+coast in the Hurricane Warning area near and to the north of where
+the center makes landfall in the Yucatan Peninsula.
+ 
+ 
+NEXT ADVISORY
+-------------
+Next intermediate advisory at 100 PM CDT.
+Next complete advisory at 400 PM CDT.
+ 
+$$
+Forecaster Pasch
+ 
+</pre>]]></description>
+<pubDate>Mon, 26 Oct 2020 14:48:50 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/261448.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCPAT3+shtml/261448.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Zeta Forecast Advisory Number 8</title>
+<description>Issued at 1500 UTC MON OCT 26 2020  <![CDATA[<pre>
+
+000
+WTNT23 KNHC 261448
+TCMAT3
+ 
+TROPICAL STORM ZETA FORECAST/ADVISORY NUMBER   8
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL282020
+1500 UTC MON OCT 26 2020
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+NONE.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A HURRICANE WARNING IS IN EFFECT FOR...
+* TULUM TO DZILAM MEXICO
+* COZUMEL
+ 
+A TROPICAL STORM WARNING IS IN EFFECT FOR...
+* PINAR DEL RIO CUBA
+* SOUTH OF TULUM TO PUNTA ALLEN
+* WEST OF DZILAM TO PROGRESO
+ 
+A HURRICANE WARNING MEANS THAT HURRICANE CONDITIONS ARE EXPECTED
+SOMEWHERE WITHIN THE WARNING AREA.  A WARNING IS TYPICALLY ISSUED
+36 HOURS BEFORE THE ANTICIPATED FIRST OCCURRENCE OF
+TROPICAL-STORM-FORCE WINDS...CONDITIONS THAT MAKE OUTSIDE
+PREPARATIONS DIFFICULT OR DANGEROUS.  PREPARATIONS TO PROTECT LIFE
+AND PROPERTY SHOULD BE RUSHED TO COMPLETION.
+ 
+A TROPICAL STORM WARNING MEANS THAT TROPICAL STORM CONDITIONS ARE
+EXPECTED SOMEWHERE WITHIN THE WARNING AREA WITHIN 36 HOURS.
+ 
+WATCHES WILL LIKELY BE REQUIRED FOR A PORTION OF THE NORTHERN GULF
+COAST LATER TODAY.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 19.1N  85.3W AT 26/1500Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTHWEST OR 305 DEGREES AT   9 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  992 MB
+MAX SUSTAINED WINDS  60 KT WITH GUSTS TO  75 KT.
+50 KT.......  0NE  50SE   0SW   0NW.
+34 KT....... 60NE 100SE   0SW   0NW.
+12 FT SEAS.. 90NE  60SE  30SW  60NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 19.1N  85.3W AT 26/1500Z
+AT 26/1200Z CENTER WAS LOCATED NEAR 18.9N  84.8W
+ 
+FORECAST VALID 27/0000Z 20.1N  86.7W
+MAX WIND  75 KT...GUSTS  90 KT.
+64 KT... 20NE  20SE   0SW  10NW.
+50 KT... 40NE  50SE   0SW  20NW.
+34 KT... 90NE 100SE  30SW  40NW.
+ 
+FORECAST VALID 27/1200Z 21.5N  88.8W
+MAX WIND  65 KT...GUSTS  80 KT.
+64 KT... 20NE  20SE   0SW  10NW.
+50 KT... 40NE  40SE   0SW  30NW.
+34 KT... 90NE  90SE  30SW  60NW.
+ 
+FORECAST VALID 28/0000Z 23.3N  90.8W
+MAX WIND  70 KT...GUSTS  85 KT.
+64 KT... 20NE  20SE   0SW  10NW.
+50 KT... 40NE  40SE   0SW  30NW.
+34 KT...100NE 100SE  30SW  70NW.
+ 
+FORECAST VALID 28/1200Z 25.7N  91.8W
+MAX WIND  70 KT...GUSTS  85 KT.
+64 KT... 20NE  20SE   0SW  10NW.
+50 KT... 40NE  40SE   0SW  30NW.
+34 KT...100NE 100SE  40SW  70NW.
+ 
+FORECAST VALID 29/0000Z 28.9N  90.7W
+MAX WIND  65 KT...GUSTS  80 KT.
+50 KT... 40NE  40SE  20SW  20NW.
+34 KT...100NE 110SE  40SW  60NW.
+ 
+FORECAST VALID 29/1200Z 33.0N  87.0W...INLAND
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 40NE  40SE  40SW   0NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 30/1200Z 40.0N  73.0W...POST-TROP/EXTRATROP
+MAX WIND  35 KT...GUSTS  45 KT.
+ 
+OUTLOOK VALID 31/1200Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 19.1N  85.3W
+ 
+INTERMEDIATE PUBLIC ADVISORY...WTNT33 KNHC/MIATCPAT3...AT 26/1800Z
+ 
+NEXT ADVISORY AT 26/2100Z
+ 
+$$
+FORECASTER PASCH
+ 
+ 
+</pre>]]></description>
+<pubDate>Mon, 26 Oct 2020 14:48:25 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCMAT3+shtml/261448.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCMAT3+shtml/261448.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Zeta Forecast Discussion Number 7</title>
+<description>Issued at 500 AM EDT Mon Oct 26 2020  <![CDATA[<pre>
+
+000
+WTNT43 KNHC 260853
+TCDAT3
+ 
+Tropical Storm Zeta Discussion Number   7
+NWS National Hurricane Center Miami FL       AL282020
+500 AM EDT Mon Oct 26 2020
+ 
+Zeta's satellite presentation has continued to improve overnight. 
+The cold convective cloud shield has expanded northwestward over the 
+center and there has been a continued increase in banding over the 
+southern and southeastern portions of the circulation. With the 
+expansion of the convection over the center, it appears that a CDO 
+feature is trying to form. A NOAA P-3 reconnaissance aircraft that 
+has been investigating Zeta overnight has reported that the pressure 
+has fallen to 990 mb.  The aircraft has found peak 850-mb 
+flight-level winds of 69 kt and believable SFMR winds of around 60 
+kt, with some higher flagged values.  These data support increasing 
+the initial intensity to 60 kt for this advisory.
+ 
+Recent aircraft fixes indicate that Zeta has begun its expected 
+northwestward motion at about 315 degrees at 8 kt.  The storm should 
+begin to move at an even faster pace toward the northwest as a 
+mid-level ridge builds over the western Atlantic and Florida during 
+the next 24 to 36 hours. This ridge will steer Zeta across the 
+northern portion of the Yucatan peninsula tonight, and over the 
+south-central Gulf of Mexico on Tuesday.  A vigorous mid- to 
+upper-level trough currently over the western United States is 
+forecast to begin ejecting out of the southwestern U.S. by mid-week, 
+which will erode the western portion of the aforementioned ridge.  
+This should cause Zeta to accelerate northward and approach the 
+northern Gulf of Mexico on Wednesday.  The 0000 UTC global models, 
+which incorporated dropwindsonde data from the earlier NOAA G-IV 
+synoptic surveillance mission, have come into somewhat better 
+agreement this cycle.  While there is still some spread on exactly 
+when the northward turn takes place and how quickly Zeta accelerates 
+north-northeastward over the Gulf of Mexico, the cross-track spread 
+at 60 h is about half of what it was before, resulting in an 
+increase in track-forecast confidence.  The latest NHC track is in 
+best agreement with the GFS ensemble mean and the GFEX consensus 
+aid.  This is a little right of the TVCA and HCCA multi-model 
+consensus, but quite close to the previous NHC track forecast.
+ 
+With the recent improvement in the outflow over Zeta, it appears 
+that the shear that had prevented strengthening has abated.  The 
+shear ahead of the storm is expected to remain low while the cyclone 
+traverses the deep, warm water of the northwestern Caribbean Sea. 
+As a result, Zeta is forecast to become a hurricane this morning, 
+and continued strengthening is likely until Zeta moves over the 
+Yucatan peninsula this evening. The landfall intensity is likely to 
+be a little stronger than shown below since Zeta will be inland over 
+the Yucatan peninsula by the 24-hour forecast point.  Environmental 
+conditions over the southern Gulf of Mexico are forecast to be 
+conducive for some re-strengthening as Zeta moves over the 
+south-central Gulf on Tuesday.  Increasing shear and the cooler 
+shelf waters of the northern Gulf are likely to result in some 
+reduction in intensity before Zeta reaches the northern Gulf coast. 
+
+KEY MESSAGES:
+ 
+1. Hurricane conditions and storm surge are expected in portions of
+the northern Yucatan Peninsula of Mexico tonight and early Tuesday.
+Tropical storm conditions could occur over extreme western Cuba
+beginning later today.
+ 
+2. Through Tuesday, heavy rainfall is expected from Zeta across the 
+Yucatan Peninsula of Mexico, the Cayman Islands, and central to 
+western Cuba. This rainfall may lead to flash flooding in urban 
+areas.  
+ 
+3. Zeta is forecast to be at or near hurricane strength when it 
+approaches the northern Gulf Coast on Wednesday, and there is an 
+increasing risk of storm surge, rainfall, and wind impacts from 
+Louisiana to the Florida Panhandle. Residents in these areas should 
+monitor the progress of Zeta and updates to the forecast.
+ 
+ 
+FORECAST POSITIONS AND MAX WINDS
+ 
+INIT  26/0900Z 18.7N  84.3W   60 KT  70 MPH
+ 12H  26/1800Z 19.5N  85.5W   75 KT  85 MPH
+ 24H  27/0600Z 20.8N  87.5W   75 KT  85 MPH...INLAND
+ 36H  27/1800Z 22.5N  89.6W   65 KT  75 MPH...OVER WATER
+ 48H  28/0600Z 24.7N  91.1W   70 KT  80 MPH
+ 60H  28/1800Z 27.7N  90.8W   65 KT  75 MPH
+ 72H  29/0600Z 31.8N  88.2W   45 KT  50 MPH...INLAND
+ 96H  30/0600Z 39.0N  75.5W   35 KT  40 MPH...POST-TROP/EXTRATROP
+120H  31/0600Z...DISSIPATED
+ 
+$$
+Forecaster Brown
+ 
+</pre>]]></description>
+<pubDate>Mon, 26 Oct 2020 08:53:21 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCDAT3+shtml/260853.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCDAT3+shtml/260853.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Zeta Wind Speed Probabilities Number 8</title>
+<description>Issued at 1500 UTC MON OCT 26 2020                                              <![CDATA[<pre>
+
+000
+FONT13 KNHC 261448
+PWSAT3
+                                                                    
+TROPICAL STORM ZETA WIND SPEED PROBABILITIES NUMBER   8             
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL282020               
+1500 UTC MON OCT 26 2020                                            
+                                                                    
+AT 1500Z THE CENTER OF TROPICAL STORM ZETA WAS LOCATED NEAR LATITUDE
+19.1 NORTH...LONGITUDE 85.3 WEST WITH MAXIMUM SUSTAINED WINDS NEAR  
+60 KTS...70 MPH...110 KM/H.                                         
+                                                                    
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)                  
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME      
+   EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME      
+   CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME      
+                                                                    
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS                 
+                                                                    
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST     
+   ...34 KT (39 MPH... 63 KM/H)...                                  
+   ...50 KT (58 MPH... 93 KM/H)...                                  
+   ...64 KT (74 MPH...119 KM/H)...                                  
+FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS               
+                                                                    
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE               
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING            
+        AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)               
+   (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN           
+        12Z MON AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)      
+                                                                    
+PROBABILITIES ARE GIVEN IN PERCENT                                  
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT                       
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.             
+PROBABILITIES FOR 34...50...64 KT SHOWN WHEN THE 5-DAY              
+64-KT CUMULATIVE PROBABILITY IS AT LEAST 1 PERCENT.                 
+                                                                    
+                                                                    
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -   
+                                                                    
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM 
+  TIME       12Z MON 00Z TUE 12Z TUE 00Z WED 12Z WED 12Z THU 12Z FRI
+PERIODS         TO      TO      TO      TO      TO      TO      TO  
+             00Z TUE 12Z TUE 00Z WED 12Z WED 12Z THU 12Z FRI 12Z SAT
+                                                                    
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+LOCATION       KT                                                   
+                                                                    
+NANTUCKET MA   34  X   X( X)   X( X)   X( X)   X( X)   4( 4)   X( 4)
+ 
+PROVIDENCE RI  34  X   X( X)   X( X)   X( X)   X( X)   3( 3)   X( 3)
+ 
+MONTAUK POINT  34  X   X( X)   X( X)   X( X)   X( X)   4( 4)   X( 4)
+ 
+ISLIP NY       34  X   X( X)   X( X)   X( X)   X( X)   3( 3)   X( 3)
+ 
+NYC JFK AIRPRT 34  X   X( X)   X( X)   X( X)   X( X)   5( 5)   X( 5)
+ 
+NYC CNTRL PARK 34  X   X( X)   X( X)   X( X)   X( X)   3( 3)   X( 3)
+ 
+NEWARK NJ      34  X   X( X)   X( X)   X( X)   X( X)   3( 3)   X( 3)
+ 
+TRENTON NJ     34  X   X( X)   X( X)   X( X)   X( X)   4( 4)   X( 4)
+ 
+NWS EARLE NJ   34  X   X( X)   X( X)   X( X)   X( X)   4( 4)   X( 4)
+ 
+ALLENTOWN PA   34  X   X( X)   X( X)   X( X)   X( X)   3( 3)   X( 3)
+ 
+PHILADELPHIA   34  X   X( X)   X( X)   X( X)   X( X)   5( 5)   X( 5)
+ 
+ATLANTIC CITY  34  X   X( X)   X( X)   X( X)   X( X)   6( 6)   X( 6)
+ 
+BALTIMORE MD   34  X   X( X)   X( X)   X( X)   X( X)   6( 6)   X( 6)
+ 
+DOVER DE       34  X   X( X)   X( X)   X( X)   X( X)   7( 7)   X( 7)
+ 
+ANNAPOLIS MD   34  X   X( X)   X( X)   X( X)   X( X)   6( 6)   X( 6)
+ 
+WASHINGTON DC  34  X   X( X)   X( X)   X( X)   X( X)   6( 6)   X( 6)
+ 
+CAPE HENLOPEN  34  X   X( X)   X( X)   X( X)   X( X)  11(11)   X(11)
+ 
+OCEAN CITY MD  34  X   X( X)   X( X)   X( X)   X( X)  13(13)   X(13)
+ 
+PAX RIVER NAS  34  X   X( X)   X( X)   X( X)   X( X)  11(11)   X(11)
+ 
+WALLOPS CDA    34  X   X( X)   X( X)   X( X)   X( X)  13(13)   X(13)
+WALLOPS CDA    50  X   X( X)   X( X)   X( X)   X( X)   3( 3)   X( 3)
+ 
+CHARLOTTESVIL  34  X   X( X)   X( X)   X( X)   X( X)   7( 7)   X( 7)
+ 
+RICHMOND VA    34  X   X( X)   X( X)   X( X)   X( X)  13(13)   X(13)
+ 
+DANVILLE VA    34  X   X( X)   X( X)   X( X)   X( X)  11(11)   X(11)
+ 
+NORFOLK NAS    34  X   X( X)   X( X)   X( X)   X( X)  12(12)   X(12)
+ 
+NORFOLK VA     34  X   X( X)   X( X)   X( X)   X( X)  12(12)   X(12)
+ 
+OCEANA NAS VA  34  X   X( X)   X( X)   X( X)   X( X)  11(11)   X(11)
+ 
+ELIZABETH CTY  34  X   X( X)   X( X)   X( X)   X( X)  10(10)   X(10)
+ 
+GREENSBORO NC  34  X   X( X)   X( X)   X( X)   X( X)  11(11)   X(11)
+ 
+RALEIGH NC     34  X   X( X)   X( X)   X( X)   X( X)  12(12)   X(12)
+ 
+ROCKY MT NC    34  X   X( X)   X( X)   X( X)   X( X)  11(11)   X(11)
+ 
+CAPE HATTERAS  34  X   X( X)   X( X)   X( X)   X( X)   8( 8)   X( 8)
+ 
+FAYETTEVILLE   34  X   X( X)   X( X)   X( X)   X( X)  10(10)   X(10)
+ 
+CHARLOTTE NC   34  X   X( X)   X( X)   X( X)   X( X)  11(11)   X(11)
+ 
+CHERRY PT NC   34  X   X( X)   X( X)   X( X)   X( X)   7( 7)   X( 7)
+ 
+NEW RIVER NC   34  X   X( X)   X( X)   X( X)   X( X)   7( 7)   X( 7)
+ 
+MOREHEAD CITY  34  X   X( X)   X( X)   X( X)   X( X)   7( 7)   X( 7)
+ 
+SURF CITY NC   34  X   X( X)   X( X)   X( X)   X( X)   7( 7)   X( 7)
+ 
+WILMINGTON NC  34  X   X( X)   X( X)   X( X)   X( X)   7( 7)   X( 7)
+ 
+BALD HEAD ISL  34  X   X( X)   X( X)   X( X)   X( X)   6( 6)   X( 6)
+ 
+FLORENCE SC    34  X   X( X)   X( X)   X( X)   X( X)   9( 9)   X( 9)
+ 
+COLUMBIA SC    34  X   X( X)   X( X)   X( X)   X( X)  10(10)   X(10)
+ 
+LITTLE RIVER   34  X   X( X)   X( X)   X( X)   X( X)   6( 6)   X( 6)
+ 
+MYRTLE BEACH   34  X   X( X)   X( X)   X( X)   X( X)   6( 6)   X( 6)
+ 
+GEORGETOWN SC  34  X   X( X)   X( X)   X( X)   X( X)   5( 5)   X( 5)
+ 
+CHARLESTON SC  34  X   X( X)   X( X)   X( X)   X( X)   5( 5)   X( 5)
+ 
+BEAUFORT MCAS  34  X   X( X)   X( X)   X( X)   X( X)   4( 4)   X( 4)
+ 
+ATLANTA GA     34  X   X( X)   X( X)   X( X)   5( 5)   6(11)   X(11)
+ 
+AUGUSTA GA     34  X   X( X)   X( X)   X( X)   1( 1)   8( 9)   X( 9)
+ 
+SAVANNAH GA    34  X   X( X)   X( X)   X( X)   1( 1)   3( 4)   X( 4)
+ 
+WAYCROSS GA    34  X   X( X)   X( X)   X( X)   1( 1)   2( 3)   X( 3)
+ 
+TALLAHASSEE FL 34  X   X( X)   X( X)   X( X)   5( 5)   1( 6)   X( 6)
+ 
+ST MARKS FL    34  X   X( X)   X( X)   X( X)   4( 4)   2( 6)   X( 6)
+ 
+APALACHICOLA   34  X   X( X)   X( X)   X( X)   8( 8)   1( 9)   X( 9)
+ 
+GFMX 290N 850W 34  X   X( X)   X( X)   X( X)   6( 6)   1( 7)   X( 7)
+ 
+PANAMA CITY FL 34  X   X( X)   X( X)   X( X)  11(11)   1(12)   X(12)
+ 
+DESTIN EXEC AP 34  X   X( X)   X( X)   X( X)  18(18)   2(20)   X(20)
+DESTIN EXEC AP 50  X   X( X)   X( X)   X( X)   2( 2)   1( 3)   X( 3)
+ 
+COLUMBUS GA    34  X   X( X)   X( X)   X( X)   8( 8)   6(14)   X(14)
+ 
+BIRMINGHAM AL  34  X   X( X)   X( X)   X( X)  10(10)   2(12)   X(12)
+ 
+MONTGOMERY AL  34  X   X( X)   X( X)   X( X)  15(15)   4(19)   X(19)
+ 
+WHITING FLD FL 34  X   X( X)   X( X)   X( X)  23(23)   2(25)   X(25)
+WHITING FLD FL 50  X   X( X)   X( X)   X( X)   4( 4)   1( 5)   X( 5)
+ 
+PENSACOLA FL   34  X   X( X)   X( X)   X( X)  25(25)   2(27)   X(27)
+PENSACOLA FL   50  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+ 
+GFMX 290N 870W 34  X   X( X)   X( X)   2( 2)  19(21)   X(21)   X(21)
+GFMX 290N 870W 50  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+MOBILE AL      34  X   X( X)   X( X)   X( X)  34(34)   2(36)   X(36)
+MOBILE AL      50  X   X( X)   X( X)   X( X)   8( 8)   X( 8)   X( 8)
+MOBILE AL      64  X   X( X)   X( X)   X( X)   1( 1)   X( 1)   X( 1)
+ 
+GULFPORT MS    34  X   X( X)   X( X)   1( 1)  39(40)   1(41)   X(41)
+GULFPORT MS    50  X   X( X)   X( X)   X( X)  11(11)   X(11)   X(11)
+GULFPORT MS    64  X   X( X)   X( X)   X( X)   2( 2)   X( 2)   X( 2)
+ 
+STENNIS MS     34  X   X( X)   X( X)   1( 1)  42(43)   1(44)   X(44)
+STENNIS MS     50  X   X( X)   X( X)   X( X)  12(12)   X(12)   X(12)
+STENNIS MS     64  X   X( X)   X( X)   X( X)   2( 2)   X( 2)   X( 2)
+ 
+BURAS LA       34  X   X( X)   X( X)   2( 2)  46(48)   1(49)   X(49)
+BURAS LA       50  X   X( X)   X( X)   X( X)  16(16)   X(16)   X(16)
+BURAS LA       64  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+GFMX 280N 890W 34  X   X( X)   2( 2)   9(11)  35(46)   1(47)   X(47)
+GFMX 280N 890W 50  X   X( X)   X( X)   X( X)  11(11)   X(11)   X(11)
+GFMX 280N 890W 64  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+JACKSON MS     34  X   X( X)   X( X)   X( X)  11(11)   X(11)   X(11)
+ 
+NEW ORLEANS LA 34  X   X( X)   X( X)   2( 2)  41(43)   X(43)   X(43)
+NEW ORLEANS LA 50  X   X( X)   X( X)   X( X)  14(14)   X(14)   X(14)
+NEW ORLEANS LA 64  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+GFMX 280N 910W 34  X   X( X)   3( 3)  22(25)  45(70)   X(70)   X(70)
+GFMX 280N 910W 50  X   X( X)   X( X)   3( 3)  30(33)   X(33)   X(33)
+GFMX 280N 910W 64  X   X( X)   X( X)   1( 1)  11(12)   X(12)   X(12)
+ 
+BATON ROUGE LA 34  X   X( X)   X( X)   1( 1)  24(25)   X(25)   X(25)
+BATON ROUGE LA 50  X   X( X)   X( X)   X( X)   7( 7)   X( 7)   X( 7)
+BATON ROUGE LA 64  X   X( X)   X( X)   X( X)   1( 1)   X( 1)   X( 1)
+ 
+MORGAN CITY LA 34  X   X( X)   X( X)   2( 2)  33(35)   X(35)   X(35)
+MORGAN CITY LA 50  X   X( X)   X( X)   X( X)  12(12)   X(12)   X(12)
+MORGAN CITY LA 64  X   X( X)   X( X)   X( X)   2( 2)   X( 2)   X( 2)
+ 
+ALEXANDRIA LA  34  X   X( X)   X( X)   X( X)   5( 5)   X( 5)   X( 5)
+ 
+LAFAYETTE LA   34  X   X( X)   X( X)   1( 1)  16(17)   X(17)   X(17)
+LAFAYETTE LA   50  X   X( X)   X( X)   X( X)   5( 5)   X( 5)   X( 5)
+ 
+NEW IBERIA LA  34  X   X( X)   X( X)   2( 2)  18(20)   X(20)   X(20)
+NEW IBERIA LA  50  X   X( X)   X( X)   X( X)   5( 5)   1( 6)   X( 6)
+NEW IBERIA LA  64  X   X( X)   X( X)   X( X)   1( 1)   X( 1)   X( 1)
+ 
+GFMX 280N 930W 34  X   X( X)   1( 1)  16(17)  14(31)   X(31)   X(31)
+GFMX 280N 930W 50  X   X( X)   X( X)   3( 3)   7(10)   X(10)   X(10)
+GFMX 280N 930W 64  X   X( X)   X( X)   1( 1)   1( 2)   X( 2)   X( 2)
+ 
+FORT POLK LA   34  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+ 
+LAKE CHARLES   34  X   X( X)   X( X)   1( 1)   5( 6)   X( 6)   X( 6)
+ 
+CAMERON LA     34  X   X( X)   X( X)   4( 4)   7(11)   X(11)   X(11)
+ 
+KOUNTZE TX     34  X   X( X)   X( X)   1( 1)   2( 3)   X( 3)   X( 3)
+ 
+PORT ARTHUR TX 34  X   X( X)   X( X)   1( 1)   2( 3)   X( 3)   X( 3)
+ 
+GALVESTON TX   34  X   X( X)   X( X)   3( 3)   2( 5)   X( 5)   X( 5)
+ 
+GFMX 280N 950W 34  X   X( X)   X( X)   5( 5)   1( 6)   X( 6)   X( 6)
+ 
+HIGH ISLAND TX 34  X   X( X)   X( X)   1( 1)   2( 3)   X( 3)   X( 3)
+ 
+MATAGORDA TX   34  X   X( X)   X( X)   2( 2)   1( 3)   X( 3)   X( 3)
+ 
+GFMX 270N 960W 34  X   X( X)   X( X)   3( 3)   1( 4)   X( 4)   X( 4)
+ 
+GFMX 250N 960W 34  X   X( X)   X( X)   3( 3)   1( 4)   X( 4)   X( 4)
+ 
+MERIDA MX      34  1  13(14)   8(22)   1(23)   X(23)   X(23)   X(23)
+MERIDA MX      50  X   2( 2)   2( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+COZUMEL MX     34 69  27(96)   1(97)   X(97)   X(97)   X(97)   X(97)
+COZUMEL MX     50 25  41(66)   X(66)   X(66)   X(66)   X(66)   X(66)
+COZUMEL MX     64 11  28(39)   X(39)   X(39)   X(39)   X(39)   X(39)
+ 
+BELIZE CITY    34  2   2( 4)   X( 4)   X( 4)   X( 4)   X( 4)   X( 4)
+ 
+GUANAJA        34  2   1( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+CP SAN ANTONIO 34  4   3( 7)   1( 8)   X( 8)   X( 8)   X( 8)   X( 8)
+ 
+ISLE OF PINES  34  2   1( 3)   X( 3)   X( 3)   X( 3)   X( 3)   X( 3)
+ 
+PENSACOLA NAS  34  X   X( X)   X( X)   X( X)  28(28)   1(29)   X(29)
+PENSACOLA NAS  50  X   X( X)   X( X)   X( X)   5( 5)   X( 5)   X( 5)
+ 
+KEESLER AB     34  X   X( X)   X( X)   1( 1)  43(44)   1(45)   X(45)
+KEESLER AB     50  X   X( X)   X( X)   X( X)  13(13)   X(13)   X(13)
+KEESLER AB     64  X   X( X)   X( X)   X( X)   2( 2)   X( 2)   X( 2)
+ 
+$$                                                                  
+FORECASTER PASCH                                                    
+</pre>]]></description>
+<pubDate>Mon, 26 Oct 2020 14:48:50 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT3+shtml/261448.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT3+shtml/261448.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Zeta Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/115424.shtml?cone">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT28/AL282020_5day_cone_with_line_and_wind_sm2.png"
+alt="Tropical Storm Zeta 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Mon, 26 Oct 2020 11:54:24 GMT
+<br /><br /><a href="https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/115424.shtml?tswind120">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT28/AL282020_wind_probs_34_F120_sm2.png"
+alt="Tropical Storm Zeta 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Mon, 26 Oct 2020 09:25:23 GMT
+]]>
+</description>
+<pubDate>Mon, 26 Oct 2020 11:54:24 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/115424.shtml?cone</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at3+shtml/115424.shtml?cone</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+</channel>
+</rss>

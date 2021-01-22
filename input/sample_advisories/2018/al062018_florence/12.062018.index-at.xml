@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Sun, 02 Sep 2018 09:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm FLORENCE Forecast/Advisory Number 12</title>
+      <description>Issued at 0900 UTC SUN SEP 02 2018 <![CDATA[<pre>
+ZCZC MIATCMAT1 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL STORM FLORENCE FORECAST/ADVISORY NUMBER  12
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL062018
+0900 UTC SUN SEP 02 2018
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 16.5N  31.4W AT 02/0900Z
+POSITION ACCURATE WITHIN  30 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST-NORTHWEST OR 290 DEGREES AT  13 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  999 MB
+MAX SUSTAINED WINDS  50 KT WITH GUSTS TO  60 KT.
+50 KT....... 20NE   0SE   0SW  20NW.
+34 KT....... 40NE  40SE  20SW  40NW.
+12 FT SEAS..150NE  60SE  45SW  90NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 16.5N  31.4W AT 02/0900Z
+AT 02/0600Z CENTER WAS LOCATED NEAR 16.3N  30.7W
+ 
+FORECAST VALID 02/1800Z 17.0N  33.5W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 30NE   0SE   0SW  30NW.
+34 KT... 50NE  40SE  30SW  50NW.
+ 
+FORECAST VALID 03/0600Z 17.5N  36.3W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 30NE   0SE   0SW  30NW.
+34 KT... 60NE  40SE  40SW  60NW.
+ 
+FORECAST VALID 03/1800Z 18.0N  39.0W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 30NE   0SE   0SW  30NW.
+34 KT... 70NE  40SE  40SW  70NW.
+ 
+FORECAST VALID 04/0600Z 18.5N  41.4W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 30NE   0SE   0SW  30NW.
+34 KT... 70NE  50SE  50SW  70NW.
+ 
+FORECAST VALID 05/0600Z 20.1N  45.5W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 40NE   0SE   0SW  40NW.
+34 KT... 80NE  60SE  50SW  80NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 06/0600Z 22.0N  49.5W
+MAX WIND  50 KT...GUSTS  60 KT.
+ 
+OUTLOOK VALID 07/0600Z 24.0N  53.0W
+MAX WIND  45 KT...GUSTS  55 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 16.5N  31.4W
+ 
+NEXT ADVISORY AT 02/1500Z
+ 
+$$
+FORECASTER ZELINSKY
+
+</pre>]]></description>
+      <pubDate>Sun, 02 Sep 2018 09:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2018/06/12.062018.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2018/06/12.062018.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

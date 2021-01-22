@@ -1,0 +1,154 @@
+#!/usr/bin/env bash
+
+if [ -z "$_ASGSH_PID" ]; then
+  echo "This script is meant to run inside of the ASGS Shell Environment, asgsh."
+  exit 1;
+fi
+
+# runs a fairly comprehensive set of Perl and Python scripts to validate
+# that these environments are working as expected
+_verify() {
+  case "${1}" in
+    adcirc)
+     verify_adcirc
+     ;;
+    perl)
+     verify_perl
+     ;;
+    python)
+     verify_python
+     ;;
+    regressions)
+     verify_regressions
+     ;;
+    ssh_config)
+     verify_ssh_config
+     ;;
+    email_config)
+     verify_email_config
+     ;;
+    *)
+     verify_perl
+     verify_python
+     verify_adcirc 
+     verify_regressions
+     verify_ssh_config
+     verify_email_config
+     ;;      
+  esac
+}
+
+verify_adcirc() {
+  echo +
+  echo ++ Verifying ADCIRC in $ADCIRCDIR runs serially
+  echo ++ ... downloading test case from adcirc.org
+  $SCRIPTDIR/cloud/general/t/verify-adcirc.sh
+}
+
+verify_perl() {
+  echo +
+  echo ++ Verifying Perl Environment:
+  pushd $SCRIPTDIR > /dev/null 2>&1
+  perl $SCRIPTDIR/cloud/general/t/verify-perl-modules.t
+  perl $SCRIPTDIR/cloud/general/t/verify-image-magick.t
+  for file in $(find . -name "*.pl"); do
+    perl -c $file > /dev/null 2>&1 && echo ok $file || echo not ok $file;
+  done
+}
+
+verify_python() {
+  python $SCRIPTDIR/cloud/general/t/verify-python-modules.py
+  echo +
+  echo ++ Verifying Python scripts can pass compile phase \(python -m py_compile\)
+  for file in $(find . -name "*.py"); do
+    python -m py_compile $file > /dev/null 2>&1 && echo ok     $file || echo not ok $file;
+    # clean up potentially useful *.pyc (compiled python) files
+    rm -f ${file}c
+  done
+  echo +
+  echo ++ Benchmarking and verifying netCDF4 module functionality
+  rm -f ./*.nc # pre clean up
+  pyNETCDFBENCH=$SCRIPTDIR/cloud/general/t/netcdf4-bench.py
+  $pyNETCDFBENCH && echo ok $pyNETCDFBENCH works || echo not ok $pyNETCDFBENCH 
+  rm -f ./*.nc # post clean up
+  popd > /dev/null 2>&1
+}
+
+verify_regressions() {
+  echo +
+  echo ++ Regression Testing
+  ANS=$(python $SCRIPTDIR/monitoring/FortCheck.py $SCRIPTDIR/cloud/general/t/test-data/fort.61.nc 2>&1)
+  if [ "$ANS" == "100.00" ]; then
+   echo "ok ./monitoring/FortCheck.py can read fort.61.nc"
+  else
+   echo "not ok ./monitoring/FortCheck.py can't read cloud/general/t/test-data/fort.61.nc"
+  fi 
+}
+
+# todo - added to general 'verify' function once it's merged to master
+verify_netcdf() {
+  echo +
+  echo ++ Verifying HDF5 and NetCDF tools and libraries
+  for b in gif2h5 h52gif h5cc h5copy h5debug h5diff h5dump h5fc h5import h5jam h5ls h5mkgrp h5perf_serial h5redeploy h5repack h5repart h5stat h5unjam nc-config nccopy ncdump ncgen ncgen3 nf-config; do
+    if [ -n "$(which $b 2> /dev/null)" ]; then
+      echo "ok found '$b'"
+    else
+      echo "not ok, can't find '$b'"
+    fi
+  done
+  for L in libhdf5.a libhdf5_fortran.a libhdf5_fortran.la libhdf5_fortran.so libhdf5_hl.a libhdf5hl_fortran.a libhdf5hl_fortran.la libhdf5hl_fortran.so libhdf5_hl.la libhdf5_hl.so libhdf5.la libhdf5.settings libhdf5.so libnetcdf.a libnetcdff.a libnetcdff.la libnetcdff.so libnetcdf.la libnetcdf.so pkgconfig; do
+    if [ -e "$ASGS_INSTALL_PATH/lib/$L" ]; then
+      echo "ok found '$L'"
+    else
+      echo "not ok, can't find '$L' in '$ASGS_INSTALL_PATH/lib'"
+    fi
+  done
+}
+
+verify_ssh_config() {
+  echo +
+  echo ++ Verifying $HOME/.ssh/config
+  if [ -e $HOME/.ssh/config ]; then
+    echo "ok found '$HOME/.ssh/config'"
+  else
+    echo "not ok, can't find '$HOME/.ssh/config' - please set this up or you will not be able to post results to a supported THREDDS server."
+    return
+  fi
+  echo ++ Verifying ssh config file permissions are set to 600
+  if [ $(ls -l $HOME/.ssh/config | awk '{print $1}') = '-rw-------' ]; then
+    echo "ok permissions for $HOME/.ssh/config are set to 600"
+  else
+    echo "not ok, permissions for $HOME/.ssh/config are not set to 600 ... fixing"
+    chmod 600 $HOME/.ssh/config && \
+      echo "ok, permissions fixed for $HOME/.ssh/config"
+  fi
+  echo ++ Verifying connections to supported THREDDS servers
+  for S in lsu_tds renci_tds tacc_tds; do
+    ssh -o ConnectTimeout=1 $S "echo ok connected to $S from \$(echo \$SSH_CLIENT|awk '{print \$1}') VIA Port \$(echo \$SSH_CLIENT|awk '{print \$3}')" 2>/dev/null
+    err=$?
+    if [ "$err" -gt 0 ]; then
+      echo "not ok, can't connect to '$S'. Please check '$HOME/.ssh/config' if you need to post results to '$S'."
+    fi
+  done
+}
+
+verify_email_config() {
+  echo +
+  echo "++ Verifying email configuration (Note: for now just making sure config file is in place)"
+  if [ -e $HOME/asgs-global.conf ]; then
+    echo "ok found '$HOME/asgs-global.conf'"
+  else
+    echo "not ok, can't find '$HOME/asgs-global.conf' - please set this up or you will not be able to email via the AWS mail server."
+    return
+  fi
+  echo ++ Verifying email configuration file permissions are set to 600
+  if [ $(ls -l $HOME/asgs-global.conf | awk '{print $1}') = '-rw-------' ]; then
+    echo "ok permissions for $HOME/asgs-global.conf are set to 600"
+  else
+    echo "not ok, permissions for $HOME/asgs-global.conf are not set to 600 ... fixing"
+    chmod 600 $HOME/asgs-global.conf && \
+      echo "ok, permissions fixed for $HOME/asgs-global.conf"
+  fi
+}
+
+_verify $@

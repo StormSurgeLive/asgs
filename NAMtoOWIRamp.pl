@@ -47,6 +47,10 @@
 # jgf20161118: Example for use with spatial extrapolation ramp
 # perl ~/asgs/2014stable/NAMtoOWIRamp.pl --ptFile ~/asgs/2014stable/input/ptFile_hsofs.txt --namFormat grib2 --namType nowcast --awipGridNumber 218 --dataDir ./ --outDir ./ --velocityMultiplier 1.0 --scriptDir ~/asgs/2014stable --applyRamp yes --rampDistance 1.0
 #
+# Example of partial grib2 download of NAM reanalysis :
+# day=1 ; while [[ $day -lt 32 ]]; do daystring=`printf %02d $day`; echo $daystring ; TARGETURL=https://www.ncei.noaa.gov/data/north-american-mesoscale-model/access/historical/analysis/201907/201907${daystring} ; for cycle in 00 06 12 18 ; do  $METSCRIPTDIR/get_inv.pl $TARGETURL/namanl_218_201907${daystring}_${cycle}00_000.inv | grep -E "(PRMSL|UGRD:10 m above ground|VGRD:10 m above ground)" | $METSCRIPTDIR/get_grib.pl $TARGETURL/namanl_218_201907${daystring}_${cycle}00_000.grb2 namanl_218_201907${daystring}_${cycle}00_000.grb2 ; done ; day=`expr $day + 1`; done 
+#
+#
 ######################################################
 #      Packages and exportation requirements         #
 ######################################################
@@ -71,7 +75,7 @@ my $velocityMultiplier = 1.0;                               # multiplier for vel
 my $pressureMultiplier = 0.01;                              # convert Pascals to mb by default
 my $scriptDir          = ".";                               # path to executables
 my ( $wndFile, $presFile );                                 # names of OWI wind/pre output files
-my @namFormats = qw(grb grib2 netCDF);                      # accceptable file types for NAMdata
+my @namFormats = qw(grb grib2 grb2 netCDF);  # accceptable file types for NAMdata (grb, grib2, and grb2 also used as file extension)
 my $namFormat  = "netCDF";                                  # default NAM format is netCDF
 my $namType    = "forecast";                                # expect forecast data by default
 my ( $nDims, $nVars, $nAtts, $recDim, $dimName, %varId, @dimIds, $name, $dataType, %data, %dimId, %nRec, $nRec );
@@ -135,7 +139,7 @@ unless ( open(APPLOGFILE,">>NAMtoOWIRamp.pl.log") ) {
 $geoHeader = &processPtFile($ptFile);
 
 # load NAM data
-if ( ( $namFormat eq "grib2" ) || ( $namFormat eq "grb" ) ) {
+if ( ( $namFormat eq "grib2" ) || ( $namFormat eq "grb2" ) || ( $namFormat eq "grb" ) ) {
     &stderrMessage( "INFO", "Processing file(s)." );
     &getGrib2($namType);
     &addToFort22();    # have to add the record length to fort.22
@@ -548,16 +552,14 @@ sub getGrib2 {
                             # called 'erl.yymmdd' where yymmdd is the year month day
         my @grib2Dirs;
         if ( $namFormat eq "grib2" ) {
-
             # assume that $dataDir points to a directory containing
             # subdirectories named erl.*, e.g. erl.091108 (i.e., 8 November
             # 2009) assume that each of these directories contain some grib2
             # files that are named with the extension ".grib2"
             @grib2Dirs = glob( $dataDir . "/erl.*" );
         }
-
         # assume grib files are all in the data directory
-        if ( $namFormat eq "grb" ) {
+        if ( ($namFormat eq "grb") || ($namFormat eq "grb2") ) {
             $grib2Dirs[0] = $dataDir;
         }
         my $numGrib2Dirs = @grib2Dirs;
@@ -577,7 +579,7 @@ sub getGrib2 {
         $timeStep   = 3.0;                                     # in hours
         @grib2Files = glob( $dataDir . "/*." . $namFormat );
     }
-
+    #
     # grab the start time (YYYYMMDDHH) of the files from the
     # inventory in the first file ... this assumes that glob returns
     # the files in ascending order.
@@ -585,7 +587,7 @@ sub getGrib2 {
         `$scriptDir/wgrib -v $grib2Files[0] | grep PRMSL` =~ m/:D=(\d+):PRMSL:/;
         $startTime = $1;
     }
-    if ( $namFormat eq "grib2" ) {
+    if ( ($namFormat eq "grib2") || ($namFormat eq "grb2") ) {
         `$scriptDir/wgrib2 $grib2Files[0] -match PRMSL` =~ m/d=(\d+)/;
         $startTime = $1;
     }
@@ -610,10 +612,13 @@ sub getGrib2 {
         &appMessage( "DEBUG", "Starting work on '$file'." );
         my $cycleHour = "00";
         if ( $namFormat eq "grib2" ) {
-
             # grab the cycle hour from the filename itself
             $file =~ m/nam.t\d\dz.awip12(\d\d).tm00.grib2/;
             $cycleHour = $1;
+        }
+        if ( $namFormat eq "grb2" ) {
+            `$scriptDir/wgrib2 -v $file | grep PRMSL` =~ m/:d=(\d\d\d\d)(\d\d)(\d\d)(\d\d):PRMSL/;
+            $cycleHour = $4;
         }
         if ( $namFormat eq "grb" ) {
             `$scriptDir/wgrib -v $file | grep PRMSL` =~ m/:D=(\d\d\d\d)(\d\d)(\d\d)(\d\d):PRMSL:/;
@@ -630,7 +635,7 @@ sub getGrib2 {
         $endTime = "";
         if ( $namType eq "nowcast" ) {
             my $temp = "";
-            if ( $namFormat eq "grib2" ) {
+            if ( ($namFormat eq "grib2") || ($namFormat eq "grb2") ) {
                 my $com = "";
                 $com  = "$scriptDir/wgrib2 $file -match PRMSL";
                 $temp = `$com`;
@@ -690,7 +695,7 @@ sub getGrib2 {
         my @rawV;
         my @rawP;
 
-        if ( $namFormat eq "grib2" ) {
+        if ( ($namFormat eq "grib2") || ($namFormat eq "grb2") ) {
 
             # send accompanying inventory info (that would normally go to
             # stdout also) to /dev/null

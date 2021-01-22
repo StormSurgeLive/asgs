@@ -36,11 +36,12 @@ GRIDNAME=NGOM_RT_v19b_chk
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Allocations from which SUs are drawn
-ACCOUNT=ADCIRC
+#ACCOUNT=ADCIRC         # lonestar5
+ACCOUNT=DesignSafe-CERA # stampede2
 QOS=vip # for priority during a storm
 GROUP="G-803086"
-QUEUENAME=normal
-SERQUEUE=normal
+QUEUENAME=skx-normal
+SERQUEUE=skx-normal
 RMQMessaging_Enable="off"      # "on"|"off"
 RMQMessaging_Transmit="off"    #  enables message transmission ("on" | "off")
 
@@ -54,7 +55,7 @@ TIDEFAC=on               # tide factor recalc
 BACKGROUNDMET=on         # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off      # tropical cyclone forcing
-   STORM=01              # storm number, e.g. 05=ernesto in 2006
+   STORM=03              # storm number, e.g. 05=ernesto in 2006
    YEAR=2020             # year of the storm
 WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -65,7 +66,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=479                    # number of compute CPUs for all simulations
+NCPU=239                    # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 
@@ -80,7 +81,7 @@ TDS=( tacc_tds renci_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020042800
+COLDSTARTDATE=2020050300
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #

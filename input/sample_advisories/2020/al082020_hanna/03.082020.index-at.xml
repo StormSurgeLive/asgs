@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Thu, 23 Jul 2020 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Depression EIGHT Forecast/Advisory Number 3</title>
+      <description>Issued at 1500 UTC THU JUL 23 2020 <![CDATA[<pre>
+ZCZC MIATCMAT3 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL DEPRESSION EIGHT FORECAST/ADVISORY NUMBER   3
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL082020
+1500 UTC THU JUL 23 2020
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+NONE.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+A TROPICAL STORM WATCH IS IN EFFECT FOR...
+* PORT MANSFIELD TO HIGH ISLAND TEXAS
+ 
+A TROPICAL STORM WATCH MEANS THAT TROPICAL STORM CONDITIONS ARE
+POSSIBLE WITHIN THE WATCH AREA...GENERALLY WITHIN 48 HOURS.
+ 
+INTERESTS ELSEWHERE ALONG THE TEXAS AND LOUISIANA COAST SHOULD
+MONITOR THE PROGRESS OF THIS SYSTEM.  TROPICAL STORM WARNINGS MAY
+BE REQUIRED FOR PORTIONS OF THE WATCH AREA LATER TODAY.
+ 
+TROPICAL DEPRESSION CENTER LOCATED NEAR 26.3N  90.7W AT 23/1500Z
+POSITION ACCURATE WITHIN  50 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST-NORTHWEST OR 285 DEGREES AT   8 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1007 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 26.3N  90.7W AT 23/1500Z
+AT 23/1200Z CENTER WAS LOCATED NEAR 26.1N  90.3W
+ 
+FORECAST VALID 24/0000Z 26.7N  91.8W
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 24/1200Z 27.4N  93.4W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 50NE   0SE   0SW  50NW.
+ 
+FORECAST VALID 25/0000Z 27.8N  94.9W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 50NE  30SE   0SW  50NW.
+ 
+FORECAST VALID 25/1200Z 28.0N  96.5W
+MAX WIND  45 KT...GUSTS  55 KT.
+34 KT... 60NE  40SE  30SW  50NW.
+ 
+FORECAST VALID 26/0000Z 28.0N  98.0W...INLAND
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 50NE  30SE   0SW  30NW.
+ 
+FORECAST VALID 26/1200Z 27.9N  99.3W...INLAND
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 27/1200Z 27.5N 101.0W...POST-TROP/INLAND
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+OUTLOOK VALID 28/1200Z 27.0N 103.0W...POST-TROP/INLAND
+MAX WIND  15 KT...GUSTS  20 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 26.3N  90.7W
+ 
+INTERMEDIATE PUBLIC ADVISORY...WTNT33 KNHC/MIATCPAT3...AT 23/1800Z
+ 
+NEXT ADVISORY AT 23/2100Z
+ 
+$$
+FORECASTER BEVEN
+
+</pre>]]></description>
+      <pubDate>Thu, 23 Jul 2020 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2020/08/03.082020.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2020/08/03.082020.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

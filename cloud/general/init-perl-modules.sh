@@ -1,11 +1,13 @@
 #!/bin/bash
 
 # unconditionally attempts to install the Perl modules that are required
-#for the operation of ASGS.
 
-source ~/perl5/perlbrew/etc/bashrc
+PERLBREW_ROOT=${1-$HOME/perl5/perlbrew}
 
-if [ ! -e $HOME/perl5/perlbrew/bin/cpanm ]; then
+source $PERLBREW_ROOT/etc/bashrc
+
+if [ ! -e $PERLBREW_ROOT/bin/cpanm ]; then
+  echo installing cpanm...
   perlbrew install-cpanm
 fi
 
@@ -22,11 +24,3 @@ done
 
 # copy over ./PERL/perltidyrc to $HOME/.perltidyrc
 cp ./PERL/perltidyrc $HOME/.perltidyrc
-
-# interactive (selects "p" option for "pure pure"), skips testing
-#echo Installing Date::Pcalc using --force and --interactive due to known issue
-#cpanm --force --interactive Date::Pcalc <<EOF
-#p
-#EOF
-## crude check for install (Date::Pcalc will be deprecated from ASGS soon, so this will go away)
-#perldoc -l Date::Pcalc > /dev/null 2>&1 || exit 1

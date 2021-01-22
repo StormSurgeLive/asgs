@@ -18,13 +18,108 @@
 
 import sys
 from datetime import datetime
+import pytz
 from pptx import Presentation
 from pptx.util import Inches
 from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE
 
+tz = pytz.timezone('America/Chicago')
+today = datetime.now(tz)
 
 # Get command line argument
 fname = sys.argv[1]
+
+# File names and stations
+fnames = ['WSE_IHNC02_USACE_76030.png',
+         'WSE_IHNC01_USGS_073802332.png',
+         'WSE_17StCanal_USACE_85625.png',
+         'WSE_LakefrontAirport_USACE_85670.png',
+         'WSE_Rigolets_USACE_85700.png',
+         'WSE_Mandeville_USACE_85575.png',
+         'WSE_LPV144_USACE_76010.png',
+         'WSE_LPV149_USACE_85760.png',
+         'WSE_BayouBienv_USACE_76025.png',
+         'WSE_WBV90_USACE_76265.png',
+         'WSE_HarveyCanalBoom_USACE_76230.png',
+         'WSE_Lafitte_USACE_82875.png',
+         'WSE_WBV162_USACE_82742.png',
+         'WSE_WBV7274_USACE_82715.png',
+         'WSE_WBV09b_USACE_82762.png',
+         'WSE_NOV13_USGS_07380260.png',
+         'WSE_BaraPass_USGS_073802516.png',
+         'WSE_HoumaNavCanal_USACE_76305.png',
+         'WSE_BayouSale_USACE_76560.png',
+         'WSE_BayouBoeuf_USGS_073814675.png',
+         'WSE_MorganCity_USACE_03780.png',
+         'WSE_CalcRiv_USGS_08017118.png',
+         'WSE_Venice_USACE_01480.png',
+         'WSE_NOV14_USACE_01440.png',
+         'WSE_WestPoint_USACE_01400.png',
+         'WSE_Alliance_USACE_01390.png',
+         'WSE_Carrollton_USACE_01300.png',
+         'WSE_BCSpillwayN_USACE_01275.png',
+         'WSE_Reserve_USACE_01260.png']
+
+# Station names correspond to the order of fnames
+staName = ['IHNC Surge Barrier East - Flood Side, LA (IHNC-02, CPRA) (76030, USACE)',
+            'Seabrook Complex - Flood Side, LA (IHNC-01, CPRA) (073802332, USGS)',
+            'Outfall: London Ave, Orleans Ave, 17th St. (17StCanal, CPRA) (85625, USACE)',
+            'Lake Pontchartrain at Lakefront Airport, LA (LakefrontAirport, CPRA)\n(85670, USACE)',
+            'Rigolets near Lake Pontchartrain, LA (Rigolets, CPRA) (85700, USACE)',
+            'Lake Pontchartrain at Mandeville, LA (Mandeville, CPRA) (85575, USACE)',
+            'Bayou Dupre Sector Gate - East/Flood Side, LA (LPV-144, CPRA)\n(76010, USACE)',
+            'Caernarvon Canal Sector Gate - South/Flood Side, LA (LPV-149, CPRA)\n(85760, USACE)',
+            'Bayou Bienvenue Floodgate, LA (BayouBienv, CPRA) (76025, USACE)',
+            'GIWW at West Closure Complex - Flood Side, LA (WBV-90, CPRA)\n(76265, USACE)',
+            'Harvey Canal at Boomtown Casino, LA (HarveyCanalBoom, CPRA)\n(76230, USACE)',
+            'Barataria Waterway at Lafitte, LA (Lafitte, CPRA) (82875, USACE)',
+            'Bayou Segnette Closure - Flood Side, LA (WBV-16.2, CPRA) (82742, USACE)',
+            'Bayou Verret / W. Tie-In Sector Gate Flood Side, LA (WBV-72/74, CPRA)\n(82715, USACE)',
+            'Hero Canal Stop-Log Gate - Flood Side/West, LA (WBV-09b, CPRA)\n(82762, USACE)',
+            'MS River at Empire Floodgate, LA (NOV-13, CPRA) (07380260, USGS)',
+            'Baratria Pass at Grand Isle, LA (BaraPass, CPRA) (073802516, USGS)',
+            'Houma Navigation Canal (76305, USACE)',
+            'GIWW at Bayou Sale (76560, USACE)',
+            'Bayou Boeuf at Railroad Bridge (073814675, USGS)',
+            'Lower Atchafalaya River at Morgan City (03780, USACE)',
+            'Calcasieu River at Cameron, LA (CalcRiv, CPRA) (8017118, USGS)',
+            'MS River at Venice (01480, USACE); RM 10-11',
+            'MS River at Empire Lock, LA (NOV-14, CPRA) (01440, USACE);\nRM 29-30',
+            'MS River at West Point a la Hache (01400, USACE); RM 48-49',
+            'MS River at Alliance (01390, USACE); RM 62-63',
+            'MS River at Carrollton (01300, USACE); RM 102-103',
+            'MS River at Bonnet Carre Spillway N (01275, USACE); RM 129-130',
+            'MS River at Reserve (01260, USACE); RM 138-139']
+
+staName_short = ['IHNC Surge Barrier East (IHNC-02)',
+            'Seabrook Complex (IHNC-01)',
+            'Outfall 17th St London Ave Orleans Ave',
+            'Lake Pontchartrain at Lakefront Airport',
+            'Rigolets near Lake Pontchartrain',
+            'Lake Pontchartrain at Mandeville',
+            'Bayou Dupre Sector Gate (LPV-144)',
+            'Caernarvon Canal Sector Gate',
+            'Bayou Bienvenue Floodgate',
+            'GIWW at West Closure Complex (WBV-90)',
+            'Harvey Canal at Boomtown Casino',
+            'Barataria Waterway at Lafitte',
+            'Bayou Segnette Closure (WBV-16.2)',
+            'Bayou Verret / W. Tie-In Sector Gate (WBV-72/74)',
+            'Hero Canal Stop-Log Gate (WBV-09b)',
+            'MS River at Empire Floodgate',
+            'Baratria Pass at Grand Isle',
+            'Houma Navigation Canal',
+            'GIWW at Bayou Sale',
+            'Bayou Boeuf at Railroad Bridge',
+            'Lower Atchafalaya River at Morgan City',
+            'Calcasieu River at Cameron',
+            'MS River at Venice; RM 10-11',
+            'MS River at Empire Lock (NOV-14); RM 29-30',
+            'MS River at West Point a la Hache; RM 48-49',
+            'MS River at Alliance; RM 62-63',
+            'MS River at Carrollton; RM 102-103',
+            'MS River at Bonnet Carre Spillway N; RM 129-130',
+            'MS River at Reserve; RM 138-139']
 
 # Read run.properties and make a property dictionary
 runProp = dict()
@@ -39,11 +134,16 @@ f.close()
 
 # Convert advisoryTime to python datetime object
 advisory_dt = datetime.strptime(runProp['time.forecast.valid.cdt'],'%Y%m%d%H%M%S')
-advisory_dt_long = datetime.strftime(advisory_dt,'%b-%d-%Y %H:%M')
+advisory_dt_long = datetime.strftime(advisory_dt,'%b-%d-%Y %I:%M %p')
+
+cycleAdvisory_dt = datetime.strptime(runProp['advisory'],'%Y%m%d%H')
+cycleAdvisory_dt_long = datetime.strftime(cycleAdvisory_dt,'%b-%d-%Y %H:%M')
 
 scenario = runProp['asgs.enstorm']
 if scenario == 'nhcConsensus':
-    scenario = 'NHC Official Track'
+    scenario_readable = 'NHC Official Track'
+if scenario == 'namforecast':
+    scenario_readable = 'NAM Forecast'
 
 prs = Presentation('LSU_template.pptx')
 
@@ -54,21 +154,19 @@ numSlides = 1
 
 # Create a title slide
 title_slide_layout = prs.slide_layouts[0]
-#for shape in title_slide_layout.placeholders:
-#    print('%d %s' % (shape.placeholder_format.idx, shape.name))
 slide = prs.slides.add_slide(title_slide_layout)
 title = slide.shapes.title
 subtitle = slide.placeholders[1]
 #if runProp['config.forcing.tropicalcyclone'] != "off": 
 if runProp['forcing.tropicalcyclone'] != "off": 
-    #title.text = runProp['storm class'] + ' ' + runProp['stormname'] + ', ' + scenario + ' Scenario'
-    title.text = runProp['storm class'] + ' ' + runProp['stormname'] + ', ' + scenario + ' Scenario'
-    subtitle.text = "Advisory " + runProp['advisory'] + " Issued on " + advisory_dt_long + " CDT"
-    statement = 'For Official Use Only. Not For Release. \nModel results were produced by the ADCIRC Surge Guidance System (ASGS) and are based on the National Hurricane Center (NHC) forecast track. \nADCIRC-developed hydrographs are an operational planning tool for emergency-response personnel and are not a replacement for National Weather Service (NWS) forecasts.'
+    title.text = runProp['storm class'] + ' ' + runProp['stormname'] + ', ' + scenario_readable + ' Scenario'
+    subtitle.text = "Advisory " + runProp['advisory'] + " Issued on " + advisory_dt_long + " CDT" + "\n\n" + \
+            'PPT generated on ' + today.strftime('%B %d, %Y %I:%M %p') + 'CDT'
 else:
-    title.text = runProp['WindModel'] + ' Model, ' + scenario + ' Scenario'
-    subtitle.text = "Cycle " + runProp['advisory'] + " Issued on " + advisory_dt_long + " CDT"
-    statement = 'For Official Use Only. Not For Release. \nModel results were produced by the ADCIRC Surge Guidance System (ASGS) and are based on the North American Mesoscale (NAM) model from NOAA. \nADCIRC-developed hydrographs are an operational planning tool for emergency-response personnel and are not a replacement for National Weather Service (NWS) forecasts.'
+    title.text = scenario_readable + " Cycle Issued on " + cycleAdvisory_dt_long + " UTC"
+    subtitle.text = scenario_readable + " Cycle Issued in Local Time on " + advisory_dt_long + " CDT" + "\n\n" + \
+            'PPT generated on ' + today.strftime('%B %d, %Y %I:%M %p') + 'CDT'
+statement = 'For Official Use Only. Not For Release. \nModel results were produced by the ADCIRC Surge Guidance System (ASGS) and are based on the National Hurricane Center (NHC) forecast track. \nADCIRC-developed hydrographs are an operational planning tool for emergency-response personnel and are not a replacement for National Weather Service (NWS) forecasts.'
 
 fouo = slide.placeholders[10]
 fouo.text = statement
@@ -88,9 +186,9 @@ title = slide.shapes.title
 subtitle = slide.placeholders[1]
 #if runProp['config.forcing.tropicalcyclone'] != "off": 
 if runProp['forcing.tropicalcyclone'] != "off": 
-    title.text = 'NHC Advisory ' + runProp['advisory'] + ' ' + scenario + ' Scenario'
+    title.text = 'NHC Advisory ' + runProp['advisory'] + ' ' + scenario_readable + ' Scenario'
 else:
-    title.text = 'NAM Cycle ' + runProp['advisory'] + ' ' + scenario + ' Scenario'
+    title.text = 'NAM Cycle Forecast Scenario Issued on ' + advisory_dt_long + ' CDT'
 #
 subtitle.text = "Simulated peak water levels (ft, NAVD88)"
 pic = slide.shapes.add_picture(img_path,left,top,width=iwidth,height=iheight)
@@ -99,6 +197,27 @@ fouo.text = statement
 snum = slide.placeholders[14]
 snum.text = str(numSlides)
 numSlides = numSlides + 1
+
+############################################################
+# TABLE OF CONTENTS SLIDE
+
+slide = prs.slides.add_slide(prs.slide_layouts[7])
+title = slide.shapes.title
+title.text = 'Table of Contents'
+tocText = ''
+i = 4
+for sta in staName_short:
+    tocText = tocText + 'Slide ' + str(i) + ':\t' + sta + '\n'
+    i=i+1
+
+maintext = slide.placeholders[1]
+maintext.text = tocText
+
+snum = slide.placeholders[14]
+snum.text = str(numSlides)
+numSlides = numSlides + 1
+
+############################################################
 
 #for shape in slide.placeholders:
 #    print('%d %s' % (shape.placeholder_format.idx, shape.name))
@@ -109,66 +228,6 @@ left = Inches(0.75)
 top = Inches(0.81)
 iwidth = Inches(11.84)
 iheight = Inches(5.69)
-
-
-fnames = ['WSE_17StCanal_USACE_85625.png','WSE_IHNC01_USGS_073802332.png','WSE_IHNC02_USACE_76030.png',
-        'WSE_LPV144_USACE_76010.png','WSE_LPV149_USACE_85760.png','WSE_NOV13_USGS_07380260.png',
-        'WSE_NOV14_USACE_01440.png',
-        'WSE_WBV09a_USACE_82770.png','WSE_WBV09b_USACE_82762.png',
-        'WSE_WBV162_USACE_82742.png','WSE_WBV7274_USACE_82715.png','WSE_WBV90_USACE_76265.png',
-        'WSE_LakefrontAirport_USACE_85670.png','WSE_Mandeville_USACE_85575.png',
-        'WSE_Rigolets_USACE_85700.png','WSE_Lafitte_USACE_82875.png','WSE_HarveyCanalNorth_USACE_76220.png',
-        'WSE_HarveyCanalBoom_USACE_76230.png','WSE_BayouBienv_USACE_76025.png','WSE_BaraPass_USGS_073802516.png',
-        'WSE_FreshCanal_USACE_76593.png','WSE_CalcRiv_USGS_08017118.png',
-        'WSE_WestPoint_USACE_01400.png','WSE_Alliance_USACE_01390.png',
-        'WSE_Carrollton_USACE_01300.png','WSE_BCSpillway_USACE_01280.png',
-        'WSE_BCSpillwayN_USACE_01275.png','WSE_Reserve_USACE_01260.png',
-        'WSE_MorganCity_USACE_03780.png',
-        'WSE_HoumaNavCanal_USACE_76305.png',
-        'WSE_Venice_USACE_01480.png',
-        'WSE_BayouSale_USACE_76560.png',
-        'WSE_BayouBoeuf_USGS_073814675.png']
-
-# Station names correspond to the order of fnames
-#staName = ['17th St. Outfall Canal','Seabrook Complex (IHNC-01)','IHNC Surge Barrier (IHNC-02)',
-#        'Bayou Dupre Sector Gate (LPV-144)','Caernarvon Canal Sector Gate (LPV-149)',
-#        'Empire Floodgate (NOV-13)','Empire Lock (NOV-14)','Oakville Sluice Gate (WBV-09a)',
-#        'Hero Canal stop-log gage (WBV-09b)','Bayou Segnetee closure (WBV-16.2)',
-#        'Western Tie-In features (WBV-74-72)','West Closure Complex (WBV-90)',
-#        'Lakefront Airport','Mandeville','Rigolets','Lafitte']
-staName = ['Outfall 17th St London Ave Orleans Ave, LA (17StCanal, CPRA) (85625, USACE)',
-           'Seabrook Complex - Flood Side, LA (IHNC01, CPRA) (073802332, USGS)',
-           'IHNC Surge Barrier East - Flood Side, LA (IHNC02, CPRA) (76030, USACE)',
-           'Bayou Dupre Sector Gate - East/Flood Side, LA (LPV144, CPRA)\n(76010, USACE)',
-           'Caernarvon Canal Sector Gate - South/Flood Side, LA (LPV149, CPRA)\n(85760, USACE)',
-           'Mississippi River at Empire Floodgate, LA (NOV13, CPRA) (07380260, USGS)',
-           'Mississippi River at Empire Lock, LA (NOV14, CPRA) (01440, USACE)',
-           'Oakville Sluice Gate - Flood Side/South (WBV09a, CPRA) (82770 USACE)',
-           'Hero Canal Stop-Log Gate - Flood Side/West, LA (WBV09b, CPRA)\n(82762, USACE)',
-           'Bayou Segnette Closure - Flood Side, LA (WBV-16.2, CPRA) (82742, USACE)',
-           'Bayou Verret / W. Tie-In Sector Gate Flood Side, LA (WBV-72/74, CPRA)\n(82715, USACE)',
-           'GIWW at West Closure Complex - Flood Side, LA (WBV90, CPRA)\n(76265, USACE)',
-           'Lake Pontchartrain at Lakefront Airport, LA (LakefrontAirport, CPRA)\n(85670, USACE)',
-           'Lake Pontchartrain at Mandeville, LA (Mandeville, CPRA) (85575, USACE)',
-           'Rigolets near Lake Pontchartrain, LA (Rigolets, CPRA) (85700, USACE)',
-           'Barataria Waterway at Lafitte, LA (Lafitte, CPRA) (82875, USACE)',
-           'Harvey Canal Sector Gate North - Prot. Side nr Lapalco, LA (HarveyCanalNorth, CPRA) (76220, USACE)',
-           'Harvey Canal at Boomtown Casion, LA (HarveyCanalBoom, CPRA) (76230, USACE)',
-           'Bayou Bienvenue Floodgate, LA (BayouBienv, CPRA) (76025, USACE)',
-           'Baratria Pass at Grand Isle, LA (BaraPass, CPRA) (073802516, USGS)',
-           'Freshwater Canal at Freshwater Bayou Lock South, LA (FreshCanal, CPRA) (76593, USACE)',
-           'Calcasieu River at Cameron, LA (CalcRiv, CPRA) (8017118, USGS)',
-           'MS River at West Point a la Hache (01400, USACE)',
-           'MS River at Alliance (01390, USACE)',
-           'MS River at Carrollton (01300, USACE)',
-           'MS River at Bonnet Carre Spillway (01280, USACE)',
-           'MS River at Bonnet Carre Spillway N (01275, USACE)',
-           'MS River at Reserve (01260, USACE)',
-           'Lower Atchafalaya River at Morgan City (03780, USACE)',
-           'Houma Navigation Canal (76305, USACE)',
-           'MS River at Venice (01480, USACE)',
-           'GIWW at Bayou Sale (76560, USACE)',
-           'Bayou Boeuf at Railroad Bridge (073814675, USGS)']
 
 i = 0
 for image in fnames:
@@ -195,7 +254,8 @@ for image in fnames:
 if runProp['forcing.tropicalcyclone'] != "off": 
     pptFile = runProp['stormname'] + "_Adv" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
 else:
-    pptFile = runProp['WindModel'] + "_Cycle" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
+    #pptFile = runProp['WindModel'] + "_Cycle" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
+    pptFile = scenario + "_Cycle_" + runProp['advisory'] + "UTC" + ".pptx"
 prs.save(pptFile)
 pFile = open('pptFile.temp','w')
 pFile.write(pptFile)

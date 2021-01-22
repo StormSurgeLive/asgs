@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 05 Sep 2018 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Hurricane FLORENCE Forecast/Advisory Number 25</title>
+      <description>Issued at 1500 UTC WED SEP 05 2018 <![CDATA[<pre>
+ZCZC MIATCMAT1 ALL
+TTAA00 KNHC DDHHMM
+
+HURRICANE FLORENCE FORECAST/ADVISORY NUMBER  25
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL062018
+1500 UTC WED SEP 05 2018
+
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+
+HURRICANE CENTER LOCATED NEAR 22.0N  45.7W AT 05/1500Z
+POSITION ACCURATE WITHIN  10 NM
+
+PRESENT MOVEMENT TOWARD THE NORTHWEST OR 305 DEGREES AT  11 KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE  957 MB
+EYE DIAMETER  10 NM
+MAX SUSTAINED WINDS 110 KT WITH GUSTS TO 135 KT.
+64 KT....... 15NE  15SE  10SW  15NW.
+50 KT....... 30NE  30SE  20SW  30NW.
+34 KT....... 80NE  50SE  30SW  80NW.
+12 FT SEAS..180NE 120SE 120SW 180NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+REPEAT...CENTER LOCATED NEAR 22.0N  45.7W AT 05/1500Z
+AT 05/1200Z CENTER WAS LOCATED NEAR 21.7N  45.2W
+
+FORECAST VALID 06/0000Z 22.7N  47.2W
+MAX WIND 110 KT...GUSTS 135 KT.
+64 KT... 15NE  15SE  10SW  15NW.
+50 KT... 30NE  30SE  20SW  30NW.
+34 KT... 80NE  60SE  30SW  70NW.
+
+FORECAST VALID 06/1200Z 23.8N  49.0W
+MAX WIND 100 KT...GUSTS 120 KT.
+64 KT... 15NE  15SE  10SW  15NW.
+50 KT... 30NE  30SE  20SW  30NW.
+34 KT... 80NE  70SE  30SW  70NW.
+
+FORECAST VALID 07/0000Z 24.7N  50.6W
+MAX WIND  95 KT...GUSTS 115 KT.
+64 KT... 20NE  15SE  10SW  20NW.
+50 KT... 40NE  30SE  20SW  40NW.
+34 KT... 90NE  80SE  40SW  80NW.
+
+FORECAST VALID 07/1200Z 25.1N  52.1W
+MAX WIND  90 KT...GUSTS 110 KT.
+64 KT... 20NE  15SE  10SW  20NW.
+50 KT... 40NE  30SE  20SW  40NW.
+34 KT... 90NE  80SE  40SW  80NW.
+
+FORECAST VALID 08/1200Z 25.7N  54.7W
+MAX WIND  90 KT...GUSTS 110 KT.
+50 KT... 50NE  30SE  30SW  40NW.
+34 KT...100NE  90SE  60SW  80NW.
+
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+
+OUTLOOK VALID 09/1200Z 27.0N  57.0W
+MAX WIND  95 KT...GUSTS 115 KT.
+
+OUTLOOK VALID 10/1200Z 28.5N  59.0W
+MAX WIND  95 KT...GUSTS 115 KT.
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 22.0N  45.7W
+
+NEXT ADVISORY AT 05/2100Z
+
+$$
+FORECASTER BERG/RHOME
+
+</pre>]]></description>
+      <pubDate>Wed, 05 Sep 2018 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2018/06/25.062018.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2018/06/25.062018.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

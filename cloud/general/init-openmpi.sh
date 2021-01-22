@@ -1,9 +1,9 @@
 #!/bin/bash
 
-TMP=$HOME/tmp
 OPT=${1-$HOME/opt}
 COMPILER=${2-intel}
 JOBS=${3-1}
+TMP=/tmp/$USER-asgs
 
 OPENMPI_VERSION=openmpi-1.8.1
 
@@ -32,7 +32,9 @@ fi
 OPT=${OPT}/$COMPILER
 echo "--prefix adjusted to $OPT"
 
-mkdir -p $TMP
+mkdir -p $TMP 2> /dev/null
+chmod 700 $TMP
+
 if [ ! -d $OPT ]; then
   mkdir -p $OPT
 else

@@ -1,1 +1,4 @@
 This directory should contain only custom modules.
+
+Note: Image::Magick is installed when ImageMagick
+is built and installed "--with-perl"

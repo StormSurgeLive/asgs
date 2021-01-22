@@ -123,6 +123,7 @@ C
       CHARACTER(80), PARAMETER :: version = "1.07"
 C
       REAL(8), ALLOCATABLE :: X(:),Y(:),XOUT(:),YOUT(:),XLON(:),YLAT(:)
+      REAL(8), ALLOCATABLE :: DEPTH(:),DEPTHOUT(:)
       REAL, ALLOCATABLE :: EAMP(:,:),EPHA(:,:)
       REAL, ALLOCATABLE :: ETAMP(:,:), ETPHA(:,:)
 C
@@ -149,7 +150,7 @@ C
       INTEGER :: NOPE, NETA, NVDLL 
       INTEGER :: NHC, J, NPP, IBEG, SNODE, II, IDUM, I1, I2, I3
       REAL(8) :: AEMIN, X4, Y4, X1, X2, X3, Y1, Y2, Y3, AREAS, E1R, E1I
-      REAL :: E2R, E2I, E3R, E3I, ETR, ETI, depth
+      REAL :: E2R, E2I, E3R, E3I, ETR, ETI
       REAL(8) :: STA1, STA2, STA3
       REAL(8) :: A1, A2, A3, AA, AE, AREA
       REAL(8) :: U1I, U1R, U2I, U2R, U3I, U3R, UTI, UTR, V1I, V1R
@@ -328,9 +329,9 @@ C...
 C...  READ TARGET LOCATIONS FOR HARMONIC ANALYSIS OUTPUT
       read(12,*) header
       read(12,*) tne,tnp
-      allocate(node(tnp),xlon(tnp),ylat(tnp))
+      allocate(node(tnp),xlon(tnp),ylat(tnp),depth(tnp))
       do n=1,tnp
-         read(12,*) node(n),xlon(n),ylat(n),depth
+         read(12,*) node(n),xlon(n),ylat(n),depth(n)
          if(xlon(n).lt.-180.) xlon(n)=xlon(n)+360.
          if(xlon(n).ge.180.) xlon(n)=xlon(n)-360.
       end do
@@ -341,7 +342,7 @@ C
       read(12,*) nope
       read(12,*) neta
       nout=neta
-      allocate(tnode(nout),xout(nout),yout(nout))
+      allocate(tnode(nout),xout(nout),yout(nout),depthout(nout))
       n=0
       do k=1,nope
          read(12,*) nvdll
@@ -362,6 +363,7 @@ C
       do n=1,nout
          xout(n)=xlon(tnode(n)) ! assumes the nodes are in order at top of file
          yout(n)=ylat(tnode(n))
+         depthout(n)=depth(tnode(n))
       end do
       close(12)
       ! write a log message with the node locations where the tides will be
@@ -636,27 +638,28 @@ C......WRITE THE RESULTS
             end do
          end do
       endif
-      if (adcircFormat.eqv..true.) then
-         write(1,'(i0,6x,"! NBFR: num freqencies on ocean boundary")') 
-     &      numTidalConstituents
-      endif
       do k=1,numTidalConstituents
          j = constituentList(k)
-         write(1,'(a)') trim(adjustl(hcname(j)))
+         if ((adcircFormat.eqv..true.).and.(k.eq.1)) then
+            write(1,'(a,10x,i0,6x,"! NBFR: num freqencies on ocean boundary; interpolated by ASGS from ",a," using ec2001v2d_tide_interp.f")') 
+     &         trim(adjustl(hcname(j))),numTidalConstituents, trim(tidaldb)
+         else
+            write(1,'(a)') trim(adjustl(hcname(j)))
+         endif
          do i=1,nout
             if (adcircFormat.eqv..true.) then
                if (includeVelocity.eqv..true.) then
                   write(1,4010) etamp(j,i),etpha(j,i),
-     &                    utamp(j,i),utpha(j,i),vtamp(j,i),vtpha(j,i)
+     &                    utamp(j,i),utpha(j,i),vtamp(j,i),vtpha(j,i),tnode(i),xout(i),yout(i),depthout(i)
                else            
-                  write(1,5010) etamp(j,i),etpha(j,i)
+                  write(1,5010) etamp(j,i),etpha(j,i),tnode(i),xout(i),yout(i),depthout(i)
                endif
             else  ! include 
                if (includeVelocity.eqv..true.) then
                   write(1,4000) xout(i),yout(i),etamp(j,i),etpha(j,i)
-     &                    ,utamp(j,i),utpha(j,i),vtamp(j,i),vtpha(j,i)
+     &                    ,utamp(j,i),utpha(j,i),vtamp(j,i),vtpha(j,i),tnode(i),xout(i),yout(i),depthout(i)
                else
-                  write(1,4000) xout(i),yout(i),etamp(j,i),etpha(j,i)
+                  write(1,4000) xout(i),yout(i),etamp(j,i),etpha(j,i),tnode(i),xout(i),yout(i),depthout(i)
                endif
             endif
          end do
@@ -666,9 +669,9 @@ C......WRITE THE RESULTS
       CLOSE(1)
       CLOSE(2)
       CLOSE(105)
- 4000 FORMAT(1X,2(F11.6,2X),3(E12.5,2X,F8.3,3X))
- 4010 FORMAT(1X,3(E12.5,2X,F8.3,3X))
- 5010 FORMAT(1X,E12.5,2X,F8.3) 
+ 4000 FORMAT(1X,2(F11.6,2X),3(E12.5,2X,F8.3,3X),'  ! node ',i0,' lon ',F11.6,' lat ',F11.6,' depth ',F11.6)
+ 4010 FORMAT(1X,3(E12.5,2X,F8.3,3X),'  ! node ',i0,' lon ',F11.6,' lat ',F11.6,' depth ',F11.6)
+ 5010 FORMAT(1X,E12.5,2X,F8.3,'  ! node ',i0,' lon ',F11.6,' lat ',F11.6,' depth ',F11.6) 
  4100 FORMAT("INFO: ec2001v2d_tide_interp: ",
      &  "RESULTS HAVE BEEN STORED IN FILE: '",A,"'.")
 !     -----------------------------------------------------------------

@@ -1,5 +1,5 @@
 #!/bin/bash
-#set -x
+# set -x
 #trap read debug
 #----------------------------------------------------------------
 # asgs_main.sh: This is the main driver script for the ADCIRC Surge Guidance
@@ -89,6 +89,7 @@ checkFileExistence()
         # if this is a mesh or nodal attributes file, attempt to download and uncompress it
         if [[ $FTYPE = "ADCIRC mesh file"  ]]; then
            logMessage "Downloading $FTYPE from ${MESHURL}/${FNAME}.xz."
+           curl --version >> $SYSLOG
            curl ${MESHURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download mesh from ${MESHURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
         fi
         if [[ $FTYPE = "ADCIRC nodal attributes (fort.13) file" ]]; then
@@ -1482,7 +1483,12 @@ variables_init()
    LASTSUBDIR=null
    FTPSITE=null
    ADCIRCDIR=${ADCIRCDIR:-null} # will respect ADCIRCDIR if already sent in the environment
-   SCRATCHDIR=null
+   # if not set, try to set SCRATCHDIR to SCRATCH (if set); otherwise default to "null"
+   # "SCRATCH" is set on TACC platforms in a USER's default environment; init-asgs.sh sets
+   # it for all others to provide some consistency
+   if [ -z "$SCRATCHDIR" ]; then
+     SCRATCHDIR=${SCRATCH:-null}
+   fi
    MAILINGLIST=null
    QUEUESYS=null
    QUEUENAME=null
@@ -1546,6 +1552,7 @@ variables_init()
    RMQMessaging_Enable="off"   # "on"|"off"
    RMQMessaging_Transmit="off" #  enables message transmission ("on" | "off")
    RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
+   RMQMessaging_Script_RP="${SCRIPTDIR}/monitoring/rp2json.py"
    RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
    RMQMessaging_NcoHome="/set/RMQMessaging_NcoHome/in/asgs/config"
    namedot=${HPCENVSHORT}.
@@ -1622,6 +1629,7 @@ writeProperties()
    echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable " >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.script : $RMQMessaging_Script" >> $STORMDIR/run.properties  
+   echo "monitoring.rmqmessaging.scriptrp : $RMQMessaging_Script_RP" >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.ncohome : $RMQMessaging_NcoHome" >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.locationname : $RMQMessaging_LocationName" >> $STORMDIR/run.properties  
    echo "monitoring.rmqmessaging.clustername : $RMQMessaging_ClusterName" >> $STORMDIR/run.properties  
@@ -1852,6 +1860,7 @@ done
 # determine hpc environment via function from platforms.sh
 source ${SCRIPTDIR}/monitoring/logging.sh
 source ${SCRIPTDIR}/platforms.sh
+
 if [[ $HPCENVSHORT = "null" ]]; then
    set_hpc
 fi
@@ -1890,8 +1899,8 @@ fi
 #
 # Send message with config file contents as the message body.  This is only done once at ASGS startup
 logMessage "Sending a message with the asgs configuration file as the message body."
-temp=`cat $CONFIG | sed '/^#/d' | sed '/^$/d'` 
-RMQMessageStartup "$temp"
+#temp=`cat $CONFIG | sed '/^#/d' | sed '/^$/d'` 
+#RMQMessageStartup "$temp"
 #
 # set a RunParams string for messaging
 RMQRunParams="$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
@@ -1921,6 +1930,7 @@ if [[ $ONESHOT = yes ]]; then
       HOTORCOLD=coldstart
    fi
 else
+
    # if we are not starting from cron, use the default statefile name,
    # and load it if it is there; if it is not there, just go by the 
    # info in the config file
@@ -2055,8 +2065,8 @@ hotstartPath=${LASTSUBDIR}/nowcast # only for reading from local filesystem
 hotstartURL=null
 if [[ $HOTORCOLD = hotstart ]]; then
    # check to see if the LASTSUBDIR is actually a URL
-   urlCheck=`expr match "$LASTSUBDIR" 'http:'`
-   if [[ $urlCheck -eq 5 ]]; then
+   urlCheck=`expr match "$LASTSUBDIR" 'http'`
+   if [[ $urlCheck -eq 4 ]]; then
       # always look for fort.68.nc from a URL because only a forecast
       # will be posted to a URL, and only the hotstart file that was used
       # to start the forecast will be posted ... asgs always hotstarts from 
@@ -2257,6 +2267,8 @@ if [[ $START = coldstart ]]; then
    logMessage "$ENSTORM: $THIS: The initial hindcast duration is '$HINDCASTLENGTH' days."
    writeProperties $STORMDIR
    writeScenarioProperties $SCENARIODIR
+   # send current run.properties to RMQ
+   #RMQMessageRunProp $STORMDIR
 
    # prepare hindcast control (fort.15) file
    # calculate periodic fux data for insertion in fort.15 if necessary
@@ -2271,14 +2283,11 @@ if [[ $START = coldstart ]]; then
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
    if [[ $NOFORCING = true ]]; then
-      CONTROLOPTIONS="$CONTROLOPTIONS --specifiedRunLength $HINDCASTLENGTH"
+      CONTROLOPTIONS="$_RPCONTROLOPTIONS --specifiedRunLength $HINDCASTLENGTH"
    else
       CONTROLOPTIONS="$CONTROLOPTIONS --endtime $HINDCASTLENGTH  --nws $NWS  --advisorynum 0" 
    fi
-   if [[ $DEFAULTSFILE != null ]]; then
-      CONTROLOPTIONS="$CONTROLOPTIONS --defaultfile $DEFAULTSFILE"
-      #CONTROLOPTIONS="$CONTROLOPTIONS --defaultfile $DEFAULTFILE"
-   fi
+
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Constructing control file."
    logMessage "$ENSTORM: $THIS: Constructing control file with the following options: $CONTROLOPTIONS."
 
@@ -2358,6 +2367,9 @@ if [[ $START = coldstart ]]; then
    echo LASTSUBDIR=${OLDADVISDIR} >> $STATEFILE 2>> ${SYSLOG}
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
+   # send current run.properties to RMQ
+   #RMQMessageRunProp $STORMDIR
+
 else
    # start from   H O T S T A R T   file
    if [[ $hotstartURL = null ]]; then
@@ -2504,7 +2516,7 @@ while [ true ]; do
           mkdir $NOWCASTDIR 2>> ${SYSLOG}
       fi
       SCENARIODIR=$CYCLEDIR/$SCENARIO
-      SCENARIOLOG=$SCENARIO/scenario.log
+      SCENARIOLOG=$SCENARIODIR/scenario.log
       mv $RUNDIR/run.properties $SCENARIODIR 2>> $SYSLOG
       writeScenarioProperties $SCENARIODIR
       #
@@ -2523,7 +2535,7 @@ while [ true ]; do
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Generating ADCIRC Met File (fort.22) for nowcast."
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
 #BB
-      echo ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS
+#BB      echo ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS
 #BB
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
@@ -2690,10 +2702,7 @@ while [ true ]; do
    CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
-   if [[ $DEFAULTSFILE != null ]]; then
-      CONTROLOPTIONS="$CONTROLOPTIONS --defaultfile $DEFAULTSFILE"
-      #CONTROLOPTIONS="$CONTROLOPTIONS --defaultfile $DEFAULTFILE"
-   fi   
+
    # generate fort.15 file
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Generating ADCIRC Control File (fort.15) for $ENSTORM."
    logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
@@ -2791,6 +2800,9 @@ while [ true ]; do
       CURRENT_STATE="PEND"
       RMQMessage "INFO" "$CURRENT_EVENT" "$JOBTYPE" "$CURRENT_STATE" "Submitting $ENSTORM:$JOBTYPE job."
       logMessage "$ENSTORM: $THIS: Submitting $ENSTORM job."
+      # send current run.properties to RMQ
+      #RMQMessageRunProp "$ADVISDIR/$ENSTORM/"
+
       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
       logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE"
       writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
@@ -2843,6 +2855,9 @@ while [ true ]; do
       logMessage "$ENSTORM: $THIS: Skipping the submission of the nowcast job and proceeding directly to the forecast(s)."
       NOWCASTDIR=$FROMDIR
    fi
+   # send current run.properties to RMQ
+   #RMQMessageRunProp "$STORMDIR"
+
    # write the ASGS state file
    if [[ $hotstartURL != "null" ]]; then
       hotstartURL=null
@@ -3186,6 +3201,8 @@ while [ true ]; do
             writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
 
             echo "hpc.job.${JOBTYPE}.limit.walltime : $FORECASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
+            # send current run.properties to RMQ
+            #RMQMessageRunProp "$ADVISDIR/$ENSTORM/"
 
             submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
             THIS="asgs_main.sh"
@@ -3225,6 +3242,8 @@ while [ true ]; do
    	       CURRENT_EVENT="FORE"
                CURRENT_STATE="CMPL"
    	       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Forecast Complete for Adv=$ADVISORY Ens=$ENSTORM"
+               # send current run.properties to RMQ
+               #RMQMessageRunProp "$STORMDIR"
             ) &
          fi
 #      else
@@ -3235,7 +3254,7 @@ while [ true ]; do
    SCENARIOLOG=null
    THIS="asgs_main.sh"
    # allow all scenarios and associated post processing to complete
-   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "RUNN" "All forecast ensemble members have been submitted."
+   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "RUNN" "All scenario members have been submitted."
    logMessage "$ENSTORM: $THIS: All scenarios have been submitted."
    CURRENT_EVENT="FEND"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL" "Forecast Cycle Complete for Adv=$ADVISORY"
