@@ -23,7 +23,7 @@ and work using the latest installed ASGS environment.
   modules to be installed; if this is required PLEASE ASK about
   the best approach. The official Perl module list is contained in
   ./PERL-MODULES file; these are installed automatically when ASGS
-  is installed or deeply updated ('update-asgsh " "')
+  is installed or deeply updated ('update-asgs " "')
 * Python scripts are fine as long as they do not require additional
   modules or dependencies; this is a little more tedious to manage
   than the Perl environment. We're also using a "deprecated" version

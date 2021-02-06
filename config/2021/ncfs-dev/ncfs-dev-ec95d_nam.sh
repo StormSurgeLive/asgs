@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2020 Jason Fleming
+# Copyright(C) 2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -27,82 +27,78 @@
 
 # Fundamental
 
-INSTANCENAME=SABv20a_nam_bde # "name" of this ASGS process
-ACCOUNT=ADCIRC
-QOS=vip7000 # for priority during a storm
-QUEUENAME=normal # same as SLURM partition
-SERQUEUE=normal
-PPN=24
-GROUP="G-803086"
-ASGSADMIN="asgsnotifications@opayq.com"
+INSTANCENAME="ec95d-nam-bob-rptest"      # "name" of this ASGS process
+SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
 
 # Input files and templates
 
-GRIDNAME=SABv20a
+GRIDNAME=ec95d
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020100800
-HOTORCOLD=coldstart
+COLDSTARTDATE=2020121500  # calendar year month day hour YYYYMMDDHH24
+HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null
-
-RMQMessaging_Enable="on"
-RMQMessaging_Transmit="on"
-
-#FTPSITE=ftp.nhc-replay.stormsurge.email
-#RSSSITE=nhc-replay.stormsurge.email
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
 TIDEFAC=on               # tide factor recalc
-   HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on        # NAM download/forcing
+   HINDCASTLENGTH=22.0   # length of initial hindcast, from cold (days)
+BACKGROUNDMET=on         # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
-TROPICALCYCLONE=off       # tropical cyclone forcing
-   STORM=28              # storm number, e.g. 05=ernesto in 2006
-   YEAR=2020             # year of the storm
-WAVES=on                # wave forcing
+TROPICALCYCLONE=off      # tropical cyclone forcing
+   STORM=-1              # storm number, e.g. 05=ernesto in 2006
+   YEAR=2021             # year of the storm
+WAVES=off                # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off              # variable river flux forcing
-#STATICOFFSET=0.30
-#
+   RIVERSITE=data.disaster.renci.org
+   RIVERDIR=/opt/ldm/storage/SCOOP/RHLRv9-OKU
+   RIVERUSER=bblanton
+   RIVERDATAPROTOCOL=scp
 CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=959               # number of compute CPUs for all simulations
-NCPUCAPACITY=9999
+NCPU=63                     # number of compute CPUs for all simulations
+NCPUCAPACITY=128
 NUMWRITERS=1
+ACCOUNT=null
 
 # Post processing and publication
-INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
-POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,rluettich1@gmail.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com,pbacopoulos@lsu.edu,mbilskie@uga.edu"
-NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( tacc_tds lsu_tds )
+
+INTENDEDAUDIENCE=developers-only    # "general" | "developers-only" | "professional"
+#POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+#OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="bblanton@renci.org"
+NOTIFY_SCRIPT=ncfs_nam_notify.sh
+
 
 # Scenario package
-SCENARIOPACKAGESIZE=2
+
+#PERCENT=default
+SCENARIOPACKAGESIZE=2 
 case $si in
-   -2)
+   -2) 
        ENSTORM=hindcast
        ;;
-   -1)
+   -1)      
        # do nothing ... this is not a forecast
        ENSTORM=nowcast
        ;;
     0)
        ENSTORM=namforecastWind10m
-       ;; 
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
     1)
        ENSTORM=namforecast
-       ;; 
-    *)
-       echo "CONFIGURATION ERROR: Unknown ensemble member number: '$si'."
+       ;;
+    *)   
+       echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
       ;;
 esac
-source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-#
+
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
