@@ -3,7 +3,7 @@
 PERLBREW_ROOT=${1-"$HOME/perl5"}
 export PERLBREW_ROOT
 ACTION=${2-"install"}
-PERL_VERSION=${3-"perl-5.28.2"}
+PERL_VERSION=${3-"perl-5.32.0"}
 
 if [ "$ACTION" == "clean" ]; then
 
@@ -38,7 +38,7 @@ source $PERLBREW_ROOT/etc/bashrc
 if [ ! -e "$PERLBREW_ROOT/perls/$PERL_VERSION/bin/perl" ]; then
 
   # --notest is just to increase the speed of the installation
-  perlbrew --notest install $PERL_VERSION
+  perlbrew --verbose --notest install $PERL_VERSION
 
   if [ $? -ne 0 ]; then
     echo perlbrew failed to install perl $PERL_VERSION

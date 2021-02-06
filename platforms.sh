@@ -54,10 +54,6 @@ init_supermike()
   QSCRIPTGEN=tezpur.pbs.pl
   PPN=16
   TDS=(lsu_tds)
-  if [[ $operator = "jgflemin" ]]; then
-     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
-     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-  fi
   MAKEJOBS=8
 }
 #
@@ -100,34 +96,6 @@ init_queenbee()
     $PLATFORMMODULES
     $SERIALMODULES
   fi
-  if [[ $operator = "jgflemin" || $USER = "jgflemin" ]]; then
-     ACCOUNT=loni_cera_2020
-     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
-     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     JOBENV=( ) # all exes are in /work/jgflemin/opt/default/bin ; all libs are in /work/jgflemin/default/lib
-     for script in $JOBENV; do
-        source $JOBENVDIR/$script
-     done
-     MATLABEXE=mex  # "mex" means use the precompiled mex files
-  fi
-  if [[ $operator == "mbilskie" || $USER = "mbilskie" ]]; then
-     ACCOUNT=loni_lsu_ccr_19
-     ADCIRCDIR=/home/mbilskie/src/PADCIRC/adcirc-cg-53.04/work # ADCIRC executables
-     SWANDIR=/home/mbilskie/src/PADCIRC/adcirc-cg-53.04/swan # ADCIRC executables
-     # needed for asgs perl
-     source /project/mbilskie/perlbrew/etc/bashrc
-     JOBENV=( perlbrew.sh )
-     for script in $JOBENV; do
-        source $JOBENVDIR/$script
-     done
-     TDS=(lsu_ccr_tds)
-     RMQMessaging_LocationName="QB2"
-     RMQMessaging_ClusterName="Queenbee2"
-     RMQMessaging_Enable="on"      # "on"|"off"
-     RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-     RMQMessaging_NcoHome="$HOME/local"
-     SCRATCH=/work/$operator/asgs/2019/runs/
-  fi
   THIS=platforms.sh
   SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
@@ -168,10 +136,6 @@ init_rostam()
   RESERVATION=null
   REMOVALCMD="rm"
   TDS=( lsu_tds )
-  if [[ $operator = "jgflemin" ]]; then
-     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
-     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-  fi
   PLATFORMMODULES='module load mpi/mpich-3.0-x86_64'
   $PLATFORMMODULES
   # modules for CPRA post processing
@@ -212,16 +176,6 @@ init_supermic()
   JOBENVDIR=$SCRIPTDIR/config/machines/supermic
   PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
   JOBENV=( )
-  if [[ $operator = "jgflemin" ]]; then
-     ACCOUNT=hpc_cera_2019c
-     JOBENV=( )
-     for script in $JOBENV; do
-        source $JOBENVDIR/$script
-     done
-  fi
-  if [[ $operator = "alireza" ]]; then  # User config for Al
-     ACCOUNT=hpc_cera_2020
-  fi
   THIS="platforms.sh>env_dispatch()>init_supermic()"
   SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
@@ -298,22 +252,10 @@ init_pod()
   SERIALMODULES='module load '
   PARALLELMODULES='module load openmpi/2.1.2/gcc.6.2.0'
   JOBENV=( )
-  if [[ $operator = "jgflemin" ]]; then
-     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
-     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     JOBENV=( netcdf.sh )
-     for script in $JOBENV; do
-        source $JOBENVDIR/$script
-     done
-  fi
   THIS="platforms.sh>env_dispatch()>init_pod()"
   SSHKEY=~/.ssh/id_rsa.pub
   RESERVATION=null
   PPN=28
-   if [[ $operator = bblanton ]]; then
-      SCRATCH=/home/bblanton/asgs_scratch
-      RMQMessaging_NcoHome="/home/bblanton/"
-   fi
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
   ARCHIVEDIR=$SCRATCH
@@ -361,44 +303,7 @@ init_hatteras()
   # specify location of platform- and Operator-specific scripts to 
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/hatteras
-  #JOBENV=( gdal.sh gmt.sh fftw.sh netcdf.sh )
-  JOBENV=(  ) # <---<<< let's deprecate this approach
-  case $USER in 
-  bblanton) 
-     export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
-     ACCOUNT=bblanton # Brian you can override these values in your asgs config file for each instance (or even make these values different for different ensemble members)
-     SCRATCH=/scratch/bblanton/data
-     PYTHONVENV=/projects/storm_surge/anaconda
-     PLATFORMMODULES='module load mvapich2/2.0-acis'
-     SERIALMODULES='module load' # no extra modules for serial jobs
-     ;;
-  ncfs-dev)
-     export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
-     ADCIRCDIR="${HOME}/ADCIRC/v53release/work" # ADCIRC executables
-     SWANDIR="${HOME}/ADCIRC/v53release/swan" # ADCIRC executables
-     SCRATCH=/projects/ncfs-dev/
-     ACCOUNT=ncfs-dev
-     PARTITION=ncfs       # ncfs or batch, gives priority
-     PYTHONVENV="$HOME/miniconda2"
-     RMQMessaging_NcoHome="${HOME}"
-
-     TDS=(renci_tds)
-     ;;
-  ncfs)
-     export MODULEPATH=$MODULEPATH:/projects/acis/modules/modulefiles
-     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
-     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     ACCOUNT=ncfs
-     QUEUENAME=ncfs     # SLURM partition---ncfs or batch---gives priority
-     PYTHONVENV=~/asgs/asgspy/venv
-     PLATFORMMODULES='module load intelc/18.0.0 intelfort/18.0.0 zlib/1.2.11_intel-18.0.0'
-     PLATFORMMODULES="$PLATFORMMODULES mvapich2/2.0-acis"
-     SERIALMODULES='module load' # no extra modules for serial jobs
-     ;;
-  *)
-     PLATFORMMODULES='module load intelc/18.0.0 openmpi/intel_3.0.0'
-     ;;
-  esac
+  JOBENV=( gdal.sh gmt.sh fftw.sh netcdf.sh )
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
   ARCHIVEDIR=$SCRATCH
@@ -443,16 +348,6 @@ init_frontera()
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/frontera
   JOBENV=( )
-  if [[ $operator = jgflemin ]]; then
-     ADCIRCDIR=${WORK}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
-     SWANDIR=${WORK}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     ACCOUNT=ASC20001
-     # don't use built in netcdf module
-     JOBENV=( netcdf.sh gmt.sh gdal.sh )
-     for script in $JOBENV; do 
-        source $JOBENVDIR/$script
-     done
-  fi
   THIS="platforms.sh>env_dispatch()>init_frontera()"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
@@ -491,16 +386,6 @@ init_stampede2()
   RMQMessaging_NcoHome=$WORK/local
   JOBENVDIR=$SCRIPTDIR/config/machines/stampede2
   JOBENV=( )
-  if [[ $operator = jgflemin ]]; then
-     ADCIRCDIR=${WORK}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
-     SWANDIR=${WORK}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     ACCOUNT=DesignSafe-CERA
-     # don't use built in netcdf module
-     JOBENV=( netcdf.sh gmt.sh gdal.sh )
-     for script in $JOBENV; do 
-        source $JOBENVDIR/$script
-     done
-  fi
   THIS="platforms.sh>env_dispatch()>init_stampede2()"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
@@ -545,16 +430,6 @@ init_lonestar5()
   # set up environment for different types of jobs
   JOBENVDIR=$SCRIPTDIR/config/machines/lonestar5
   JOBENV=( )
-  if [[ $operator = jgflemin ]]; then
-     ADCIRCDIR=${WORK}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
-     SWANDIR=${WORK}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     ACCOUNT=ADCIRC
-     # don't use built in netcdf module
-     JOBENV=( )
-     for script in $JOBENV; do
-        source $JOBENVDIR/$script
-     done
-  fi
   THIS="platforms.sh>env_dispatch()>init_lonestar5()"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
@@ -587,15 +462,6 @@ init_desktop()
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
   SWANMACROSINC=macros.inc.gfortran
-  if [[ $operator = "jason" ]]; then
-     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
-     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     RMQMessaging_Enable="on"   # "on"|"off"
-     RMQMessaging_Transmit="on" #  enables message transmission ("on" | "off")
-     RMQMessaging_NcoHome=$HOME
-     RMQMessaging_LocationName="Seahorse"
-     RMQMessaging_ClusterName="jason-desktop"
-  fi
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
   ARCHIVEDIR=$SCRATCH
@@ -615,16 +481,6 @@ init_desktop_serial() # changed from init_desktop-serial due to bash complaints
   SSHKEY=id_rsa_jason-desktop-serial
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop-serial'
   SWANMACROSINC=macros.inc.gfortran
-  if [[ $operator = "jason" ]]; then
-     ADCIRCDIR=${HOME}/adcirc-cg/jasonfleming/v53release/work # ADCIRC executables
-     SWANDIR=${HOME}/adcirc-cg/jasonfleming/v53release/swan   # SWAN executables
-     RMQMessaging_Enable="on"   # "on"|"off"
-     RMQMessaging_Transmit="on" #  enables message transmission ("on" | "off")
-     RMQMessaging_Script="/set/RMQMessaging_Script/in/asgs/config"
-     RMQMessaging_NcoHome=$HOME
-     RMQMessaging_LocationName="Seahorse"
-     RMQMessaging_ClusterName="jason-desktop-serial"
-  fi
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
   ARCHIVEDIR=$SCRATCH
