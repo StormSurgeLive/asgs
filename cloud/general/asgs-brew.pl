@@ -928,10 +928,85 @@ sub get_steps {
             command             => qq{bash ./cloud/general/init-python.sh install $pythonpath $pythonversion},
             clean               => qq{bash ./cloud/general/init-python.sh clean   $pythonpath $pythonversion},
             skip_if             => sub { 0 },
-            precondition_check  => sub { 1 },                                                                    # for now, assuming success; should have a simple python script that attempts to load all of these modules
+            precondition_check  => sub { 1 },
             postcondition_check => sub {
                 local $?;
                 system(qq{./cloud/general/t/verify-python-modules.py 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+        },
+        {
+            key         => q{ffmpeg},
+            name        => q{Step for installing ffmpeg},
+            description => q{Install ffmpeg and required libraries (nasm)},
+            pwd         => q{./},
+            command     => qq{bash ./cloud/general/init-ffmpeg.sh $asgs_install_path gfortran 4},
+            clean       => qq{bash ./cloud/general/init-ffmpeg.sh $asgs_install_path clean},
+            skip_if     => sub {
+                local $?;
+                system(qq{$asgs_install_path/bin/ffmpeg -version > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+            precondition_check  => sub { 1 },
+            postcondition_check => sub {
+                local $?;
+                system(qq{$asgs_install_path/bin/ffmpeg -version > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+        },
+        {
+            key         => q{gnuplot},
+            name        => q{Step for installing gnuplot},
+            description => q{Install gnuplot (commandline only)},
+            pwd         => q{./},
+            command     => qq{bash ./cloud/general/init-gnuplot-noX11.sh $asgs_install_path gfortran 4},
+            clean       => qq{bash ./cloud/general/init-gnuplot-noX11.sh $asgs_install_path clean},
+            skip_if     => sub {
+                local $?;
+                system(qq{$asgs_install_path/bin/gnuplot --version > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+            precondition_check  => sub { 1 },
+            postcondition_check => sub {
+                local $?;
+                system(qq{$asgs_install_path/bin/gnuplot --version > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+        },
+        {
+            key         => q{units},
+            name        => q{Step for installing units},
+            description => q{Install GNU Units utility},
+            pwd         => q{./},
+            command     => qq{bash ./cloud/general/init-gnu-units.sh $asgs_install_path gfortran 4},
+            clean       => qq{bash ./cloud/general/init-gnu-units.sh $asgs_install_path clean},
+            skip_if     => sub {
+                local $?;
+                system(qq{$asgs_install_path/bin/units --version > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+            precondition_check  => sub { 1 },
+            postcondition_check => sub {
+                local $?;
+                system(qq{$asgs_install_path/bin/units --version > /dev/null 2>&1});
 
                 # look for zero exit code on success
                 my $exit_code = ( $? >> 8 );
