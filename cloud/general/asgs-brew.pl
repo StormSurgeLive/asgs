@@ -468,7 +468,7 @@ export _ASGSH_PID=\$\$
 
 # denotes which environmental variables we care about when saving a profile - includes variables that
 # are meaningful to ASGS Shell, but not set in asgs-brew.pl
-export _ASGS_EXPORTED_VARS="$_asgs_exported_vars _ASGS_EXPORTED_VARS WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_MAKE_CMD ADCIRC_BINS SWAN_BINS"
+export _ASGS_EXPORTED_VARS="$_asgs_exported_vars _ASGS_EXPORTED_VARS WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS"
 $env_summary
 
 # export opts for processing in $rcfile
