@@ -3,7 +3,7 @@
 # get_nam.pl: downloads background meteorology data from NCEP
 # for ASGS nowcasts and forecasts
 #--------------------------------------------------------------
-# Copyright(C) 2010--2018 Jason Fleming
+# Copyright(C) 2010--2021 Jason Fleming
 # 
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 # 
@@ -27,6 +27,26 @@
 #
 # If forecast data is requested, the script will grab the 
 # forecast data corresponding to the current ADCIRC time.
+#--------------------------------------------------------------
+# ref: http://www.cpc.ncep.noaa.gov/products/wesley/fast_downloading_grib.html
+#--------------------------------------------------------------
+# sample line to test this script :
+#
+# perl get_nam.pl --statefile /scratch/Shinnecock_nam_jgf.state 
+#                 --rundir /scratch/asgs2827 
+#                 --backsite ftp.ncep.noaa.gov 
+#                 --backdir /pub/data/nccf/com/nam/prod 
+#                 --enstorm nowcast
+#                 --csdate 2021021500
+#                 --forecastlength 84
+#                 --hstime 432000.0
+#                 --altnamdirs /projects/ncfs/data/asgs5463,/projects/ncfs/data/asgs14174
+#                 --archivedruns /scratch
+#                 --forecastcycle 00,06,12,18
+#                 --scriptdir /work/asgs  
+#
+# (the $statefile variable does not seem to be used anywhere in
+# this script, this has been recorded as issue)
 #--------------------------------------------------------------
 $^W++;
 use strict;
@@ -57,6 +77,8 @@ our $num_retries = 0;
 our $had_enough = 0;
 my @nowcasts_downloaded;  # list of nowcast files that were 
                           # successfully downloaded
+my @grib_fields = ( "PRMSL","UGRD:10 m above ground","VGRD:10 m above ground" );
+
 #
 GetOptions(
            "statefile=s" => \$statefile,
@@ -303,10 +325,118 @@ foreach my $dir (@targetDirs) {
       }
       my $hourString = sprintf("%02d",$nchour);
       my $f = "nam.t".$hourString."z.awip1200.tm00.grib2";
+      #--------------------------------------------------------
+      #    G R I B   I N V E N T O R Y  A N D   R A N G E S
+      #--------------------------------------------------------
+      my $idx = "ftp://$backsite$backdir/nam.$dirDate/nam.t".$hourString."z.awip1200.tm00.grib2.idx";
+      stderrMessage("INFO","Downloading '$idx'.");
+      my @gribInventoryLines = `curl -f -s $idx`; # the grib inventory file from the ftp site
+      my @rangeLines;  # inventory with computed ranges 
+      stderrMessage("INFO","Parsing '$idx' to determine byte ranges of U, V, and P.");
+      my $last = 0;      # number of immediately preceding lines with same starting byte index
+      my $lastnum = -1;  # starting byte range of previous line (or lines if there are repeats) 
+      my @old_lines;     # contiguous lines in inventory with same starting byte
+      my $has_range = 0; # set to 1 if the inventory already has a range field
+      foreach my $li (@gribInventoryLines) {
+         chomp($li);
+         #stderrMessage("INFO","$li");
+         # check to see if this is grib2 inventory that already has a range field
+         # if so, don't need to calculate the range
+ 
+         if ($li =~ /:range=/) {
+            $has_range = 1;
+            push(@rangeLines,"$li\n");
+         } else {
+            # grib1/2 inventory, compute range field
+            # e.g.: 
+            # 1:0:d=2021030106:PRMSL:mean sea level:anl:
+            # 2:233889:d=2021030106:PRES:1 hybrid level:anl:
+            # 3:476054:d=2021030106:RWMR:1 hybrid level:anl:
+            my ($f1,$startingByteIndex,$rest) = split(/:/,$li,3);
+            # see if the starting byte index is different on this line
+            # compared to the previous one (and this is not the first line)
+            if ($lastnum != $startingByteIndex && $last != 0) {
+               # compute the end of the byte range for the previous line
+               my $previousEndingByteIndex = $startingByteIndex - 1;
+               # add this byte range to all the old_lines we've stored due to their
+               # repeated starting byte index
+               foreach my $ol (@old_lines) {
+                  $ol = "$ol:range=$lastnum-$previousEndingByteIndex\n";
+               }
+               # now add these old lines to the list of lines with our newly computed ranges
+               @rangeLines = (@rangeLines,@old_lines);
+               @old_lines = (); 
+               $last = 1;
+            }  else {
+               $last++;
+            }
+            push(@old_lines,$li);
+            $lastnum = $startingByteIndex;
+         }
+      }
+      if ( $has_range == 0 ) {
+         foreach my $ol (@old_lines) {
+            $ol = "$ol:range=$lastnum\n";
+         }
+         @rangeLines = (@rangeLines,@old_lines);         
+      }
+      # jgfdebug
+      #foreach my $li (@rangeLines) {
+      #   print $li;
+      #}
+      my $range="";
+      my $lastfrom='';
+      my $lastto=-100;
+      foreach my $li (@rangeLines) {
+         my $match = 0;
+         # check to see if the line matches one of the fields of interest
+         foreach my $gf (@grib_fields) {
+            if ( $li =~ /$gf/ ) {
+               #print "$li matches $gf\n";
+               $match = 1;
+               last;
+            }
+         }
+         # if this is not one of the fields we want, go to the next one
+         if ( $match == 0 ) {
+            next;
+         }
+         chomp($li);
+         my $from='';
+         if ($li =~ /:range=([0-9]*)/) {
+            $from=$1;
+            #print "from is $from\n";
+         };
+         my $to='';
+         if ($li =~ /:range=[0-9]*-([0-9]*)/ ) {
+            $to=$1;
+            #print "to is $to\n";
+         };
+         if ($lastto+1 == $from) {
+            # delay writing out last range specification
+            $lastto = $to;
+         } elsif ($lastto ne $to) {
+            # write out last range specification
+            if ($lastfrom ne '') {
+               if ($range eq '') { $range="$lastfrom-$lastto"; }
+               else { $range="$range,$lastfrom-$lastto"; }
+               #print "$range\n";
+            }
+            $lastfrom=$from;
+            $lastto=$to;
+         }
+      }
+      if ($lastfrom ne '') {
+         if ($range eq '') { $range="$lastfrom-$lastto"; }
+         else { $range="$range,$lastfrom-$lastto"; }
+         #print "$range\n";
+      }
+      #die;
       stderrMessage("INFO","Downloading '$f' to '$localDir'.");
-      my $success = $ftp->get($f,$localDir."/".$f);
-      unless ( $success ) {
-         stderrMessage("INFO","ftp: Get '$f' failed: " . $ftp->message);
+      print "curl -f -s -r \"$range\" ftp://$backsite$backdir/nam.$dirDate/$f > $localDir/$f\n";
+      my $err=system("curl -f -s -r \"$range\" ftp://$backsite$backdir/nam.$dirDate/$f > $localDir/$f");
+      unless ( $err == 0 ) {
+         stderrMessage("INFO","curl: Get '$f' failed.");
          next;
       } else {
          stderrMessage("INFO","Download complete.");
@@ -314,6 +444,18 @@ foreach my $dir (@targetDirs) {
          #stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
          $dl++;
       }
+
+      #my $success = $ftp->get($f,$localDir."/".$f);
+      #unless ( $success ) {
+      #   stderrMessage("INFO","ftp: Get '$f' failed: " . $ftp->message);
+      #   next;
+      #} else {
+      #   stderrMessage("INFO","Download complete.");
+      #   push(@nowcasts_downloaded,$dirDate.$hourString);
+      #   #stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
+      #   $dl++;
+      #}
+
    }
    $hcDirSuccess = $ftp->cdup();
    unless ( $hcDirSuccess ) {

@@ -84,6 +84,8 @@ my ( $OWItimeRef, $startTime, $endTime, $timeStep, $mainHeader, @OWItime, $recor
 my $applyRamp    = "no";                                    # whether or not to apply a spatial extrapolation ramp
 my $rampDistance = 1.0;                                     # distance in lambert coords to ramp vals to zero
 my ( @ugrd_store_files, @vgrd_store_files, @atmp_store_files );
+our $scenario = "nullscenario";
+
 
 # @ugrd holds the lambert gridded u wind velocity data, across all time steps
 # @vgrd holds the lambert gridded v wind velocity data, across all time steps
@@ -118,16 +120,18 @@ our %properties;
 # open properties file 
 unless (open(RUNPROP,"<run.properties")) {
    stderrMessage("ERROR","Failed to open run.properties: $!.");
-   die;
+   #die;
+} else {
+    while (<RUNPROP>) {
+        my @fields = split ':',$_, 2 ;
+        # strip leading and trailing spaces and tabs
+        $fields[0] =~ s/^\s|\s+$//g ;
+        $fields[1] =~ s/^\s|\s+$//g ;
+        $properties{$fields[0]} = $fields[1];
+    }
+    close(RUNPROP);
+    $scenario = $properties{"scenario"};
 }
-while (<RUNPROP>) {
-   my @fields = split ':',$_, 2 ;
-   # strip leading and trailing spaces and tabs
-   $fields[0] =~ s/^\s|\s+$//g ;
-   $fields[1] =~ s/^\s|\s+$//g ;
-   $properties{$fields[0]} = $fields[1];
-}
-close(RUNPROP);
 #
 # open an application log file for get_nam.pl
 unless ( open(APPLOGFILE,">>NAMtoOWIRamp.pl.log") ) {
@@ -858,6 +862,6 @@ sub appMessage () {
    my $year = 1900 + $yearOffset;
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-   my $scenario = $properties{"scenario"};
+
    printf APPLOGFILE "$theTime $level: $scenario: get_nam.pl: $message\n";
 }
