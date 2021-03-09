@@ -439,9 +439,21 @@ init_lonestar5()
   MAKEJOBS=8
 }
 
-# placeholder for docker bootstrap
+# docker bootstrap
 init_docker()
 {
+  THIS="platforms.sh>env_dispatch()>init_docker()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
+  HPCENV=docker.stormsurge.live
+  QUEUESYS=mpiexec
+  QCHECKCMD="ps -aux | grep mpiexec "
+  SUBMITSTRING="mpiexec "
+  SCRATCH=/scratch
+  SSHKEY=id_rsa_docker
+  ARCHIVE=enstorm_pedir_removal.sh
+  ARCHIVEBASE=$SCRATCH
+  ARCHIVEDIR=$SCRATCH
+  TDS=()
   MAKEJOBS=2
 }
 
@@ -656,6 +668,12 @@ set_hpc() {
       HPCENV=desktop.seahorsecoastal.com
       HPCENVSHORT=desktop
    fi 
+   # this whole function will be replaced with guess, but for now ...
+   if [[ $HPCENVSHORT = "null" ]]; then
+      plat=`$WORK/asgs/bin/guess platform`
+      HPCENVSHORT=$plat
+      HPCENV=$plat
+   fi
    echo "$THIS: The value of HPCENV is ${HPCENV}."
    echo "$THIS: The value of HPCENVSHORT is ${HPCENVSHORT}."
 }
