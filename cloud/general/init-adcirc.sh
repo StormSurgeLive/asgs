@@ -99,10 +99,17 @@ fi
 # ADCIRC_GIT_URL    - git repo remote URL, set via --adcirc-git-remote in asgs-brew.pl
 # ADCIRC_GIT_REPO   - git repository (likely 'adcirc-cg')
 
-ADCIRC_BINS="padcirc adcirc adcswan padcswan adcprep hstime aswip"
-ADCIRC_MAKE_CMD="make $ADCIRC_BINS SWAN=enable compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} NETCDFROOT=${NETCDFROOT} MACHINENAME=${ASGS_MACHINE_NAME}"
-SWAN_BINS="unhcat.exe"
-SWAN_MAKE_CMD="make unhcat compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} NETCDFROOT=${NETCDFROOT} MACHINENAME=${ASGS_MACHINE_NAME}"
+# first class ADCIRC related binaries
+ADCIRC_BINS="padcirc adcirc adcprep hstime aswip"
+ADCIRC_MAKE_CMD="make $ADCIRC_BINS compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} NETCDFROOT=${NETCDFROOT} MACHINENAME=${ASGS_MACHINE_NAME}"
+
+# for building coupled adcswan/padcswan (no netCDF)
+ADCSWAN_BINS="adcswan padcswan"
+ADCSWAN_MAKE_CMD="make $ADCSWAN_BINS SWAN=enable compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME}"
+
+# SWAN related utilities other than adcswan/padcswan
+SWAN_UTIL_BINS="unhcat.exe"
+SWAN_UTIL_BINS_MAKE_CMD="make unhcat compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} NETCDFROOT=${NETCDFROOT} MACHINENAME=${ASGS_MACHINE_NAME}"
 
 if [ ! -d ${ADCIRCBASE} ]; then
   if [ "$INTERACTIVE" == "yes" ]; then
@@ -184,7 +191,20 @@ if [ -d "$ADCIRCBASE/.git" ]; then
 fi
 
 ADCIRCDIR=${ADCIRCBASE}/work
-SWANDIR=${ADCIRCBASE}/swan
+
+# deal with SWAN coupling build based on supported ADCIRC branches (versions):
+case "${ADCIRC_GIT_BRANCH}" in
+  v53release|v53release-qbc|v54release)
+    SWANDIR=${ADCIRCBASE}/swan
+    ;;
+  v55release|v55release-qbc)
+    SWANDIR=${ADCIRCBASE}/thirdparty/swan
+    ;;   
+  *)
+    echo Branch \"${ADCIRC_GIT_BRANCH}\" is not officially supported at this time. 
+    exit 1
+esac
+
 # final check to make sure it looks like the expected ADCIRC source
 if [ ! -d "$ADCIRCDIR" ]; then
   echo "$ADCIRCDIR is missing the './work' directory. Exiting install."
@@ -197,9 +217,10 @@ if [ "$INTERACTIVE" = "yes" ]; then
   echo "About to build ADCIRC in $ADCIRCDIR with the following command:"
   echo
   echo "cd $SWANDIR && \\"
-  echo "   $SWAN_MAKE_CMD && \\"
+  echo "   $SWAN_UTIL_BINS_MAKE_CMD && \\"
   echo "cd $ADCIRCDIR && \\"
-  echo "   $ADCIRC_MAKE_CMD"
+  echo "   $ADCIRC_MAKE_CMD && \\"
+  echo "   $ADCSWAN_MAKE_CMD"
   echo
   _answer=yes
   read -p "Proceed to build? [$_answer] " answer
@@ -214,10 +235,11 @@ if [ "$INTERACTIVE" = "yes" ]; then
 fi
 
 # attempt to build
-cd $SWANDIR    && \
-$SWAN_MAKE_CMD && \
-cd $ADCIRCDIR  && \
-$ADCIRC_MAKE_CMD
+cd $SWANDIR          && \
+$SWAN_UTIL_BINS_MAKE_CMD && \
+cd $ADCIRCDIR        && \
+$ADCIRC_MAKE_CMD     && \
+$ADCSWAN_MAKE_CMD
 
 # catch failed exit status, for both interactive and initial asgs-brew.pl build
 EXIT=$?
@@ -231,22 +253,24 @@ mkdir -p $ADCIRC_META_DIR 2> /dev/null
 
 # set default if not set
 ADCIRC_META_FILE=$ADCIRC_META_DIR/$ADCIRC_PROFILE_NAME
-echo 'export ASGS_HOME='$ASGS_HOME                      >  $ADCIRC_META_FILE
-echo 'export ASGS_MACHINE_NAME='$ASGS_MACHINE_NAME      >> $ADCIRC_META_FILE
-echo 'export NETCDFHOME='$NETCDFHOME                    >> $ADCIRC_META_FILE
-echo 'export ADCIRCBASE='$ADCIRCBASE                    >> $ADCIRC_META_FILE
-echo 'export ADCIRCDIR='$ADCIRCDIR                      >> $ADCIRC_META_FILE
-echo "export SWANDIR='$SWANDIR'"                        >> $ADCIRC_META_FILE
-echo 'export ADCIRC_COMPILER='$ADCIRC_COMPILER          >> $ADCIRC_META_FILE
-echo 'export ADCIRC_GIT_BRANCH='$ADCIRC_GIT_BRANCH      >> $ADCIRC_META_FILE
-echo 'export ADCIRC_GIT_URL='$ADCIRC_GIT_URL            >> $ADCIRC_META_FILE
-echo 'export ADCIRC_GIT_REPO='$ADCIRC_GIT_REPO          >> $ADCIRC_META_FILE
-echo 'export ASGS_MAKEJOBS='$ASGS_MAKEJOBS              >> $ADCIRC_META_FILE
-echo "export ADCIRC_MAKE_CMD='$ADCIRC_MAKE_CMD'"        >> $ADCIRC_META_FILE
-echo "export SWAN_MAKE_CMD='$SWAN_MAKE_CMD'"            >> $ADCIRC_META_FILE
-echo "export ADCIRC_PROFILE_NAME=$ADCIRC_PROFILE_NAME"  >> $ADCIRC_META_FILE
-echo "export ADCIRC_BINS='$ADCIRC_BINS'"                >> $ADCIRC_META_FILE
-echo "export SWAN_BINS='$SWAN_BINS'"                    >> $ADCIRC_META_FILE
+echo 'export ASGS_HOME='$ASGS_HOME                               >  $ADCIRC_META_FILE
+echo 'export ASGS_MACHINE_NAME='$ASGS_MACHINE_NAME               >> $ADCIRC_META_FILE
+echo 'export NETCDFHOME='$NETCDFHOME                             >> $ADCIRC_META_FILE
+echo 'export ADCIRCBASE='$ADCIRCBASE                             >> $ADCIRC_META_FILE
+echo 'export ADCIRCDIR='$ADCIRCDIR                               >> $ADCIRC_META_FILE
+echo "export SWANDIR='$SWANDIR'"                                 >> $ADCIRC_META_FILE
+echo 'export ADCIRC_COMPILER='$ADCIRC_COMPILER                   >> $ADCIRC_META_FILE
+echo 'export ADCIRC_GIT_BRANCH='$ADCIRC_GIT_BRANCH               >> $ADCIRC_META_FILE
+echo 'export ADCIRC_GIT_URL='$ADCIRC_GIT_URL                     >> $ADCIRC_META_FILE
+echo 'export ADCIRC_GIT_REPO='$ADCIRC_GIT_REPO                   >> $ADCIRC_META_FILE
+echo 'export ASGS_MAKEJOBS='$ASGS_MAKEJOBS                       >> $ADCIRC_META_FILE
+echo "export ADCIRC_MAKE_CMD='$ADCIRC_MAKE_CMD'"                 >> $ADCIRC_META_FILE
+echo "export SWAN_UTIL_BINS_MAKE_CMD='$SWAN_UTIL_BINS_MAKE_CMD'" >> $ADCIRC_META_FILE
+echo "export ADCSWAN_MAKE_CMD='$ADCSWAN_MAKE_CMD'"               >> $ADCIRC_META_FILE
+echo "export ADCIRC_PROFILE_NAME=$ADCIRC_PROFILE_NAME"           >> $ADCIRC_META_FILE
+echo "export ADCIRC_BINS='$ADCIRC_BINS'"                         >> $ADCIRC_META_FILE
+echo "export ADCSWAN_BINS='$ADCSWAN_BINS'"                       >> $ADCIRC_META_FILE
+echo "export SWAN_UTIL_BINS='$SWAN_UTIL_BINS'"                   >> $ADCIRC_META_FILE
 
 if [ "$INTERACTIVE" == "yes" ]; then
   echo
