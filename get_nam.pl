@@ -324,12 +324,21 @@ foreach my $dir (@targetDirs) {
          }
       }
       my $hourString = sprintf("%02d",$nchour);
-      my $f = "nam.t".$hourString."z.awip1200.tm00.grib2";
+      my $fbase = "nam.t".$hourString."z.awip1200.tm00"; 
+      my $f = $fbase . ".grib2";
+      my $idxfile = $fbase . ".idx";
       #--------------------------------------------------------
       #    G R I B   I N V E N T O R Y  A N D   R A N G E S
       #--------------------------------------------------------
-      my $idx = "ftp://$backsite$backdir/nam.$dirDate/nam.t".$hourString."z.awip1200.tm00.grib2.idx";
-      stderrMessage("INFO","Downloading '$idx'.");
+
+      my $idx = "ftp://$backsite$backdir/nam.$dirDate/$idxfile";
+      stderrMessage("INFO","Downloading '$idx' with the command 'curl -f -s $idx'.");
+      # jgfdebug: save a local copy of the inventory file
+      my $err=system("curl -f -s $idx > $localDir/$idxfile");  # jgfdebug
+      unless ( $err == 0 ) {                                   # jgfdebug
+         stderrMessage("INFO","curl: Get '$idx' failed.");     # jgfdebug
+      }                                                        # jgfdebug
+      # non-debug : download directly into list
       my @gribInventoryLines = `curl -f -s $idx`; # the grib inventory file from the ftp site
       my @rangeLines;  # inventory with computed ranges 
       stderrMessage("INFO","Parsing '$idx' to determine byte ranges of U, V, and P.");
@@ -342,13 +351,13 @@ foreach my $dir (@targetDirs) {
          #stderrMessage("INFO","$li");
          # check to see if this is grib2 inventory that already has a range field
          # if so, don't need to calculate the range
- 
          if ($li =~ /:range=/) {
             $has_range = 1;
             push(@rangeLines,"$li\n");
          } else {
-            # grib1/2 inventory, compute range field
-            # e.g.: 
+            # grib1/2 inventory, 
+            #    c o m p u t e   r a n g e   f i e l d 
+            # inventory line format without range field e.g.: 
             # 1:0:d=2021030106:PRMSL:mean sea level:anl:
             # 2:233889:d=2021030106:PRES:1 hybrid level:anl:
             # 3:476054:d=2021030106:RWMR:1 hybrid level:anl:
@@ -380,10 +389,15 @@ foreach my $dir (@targetDirs) {
          }
          @rangeLines = (@rangeLines,@old_lines);         
       }
+      #   r a n g e   f i e l d s   h a v e  n o w   b e e n  c o m p u t e d   o r   p r o v i d e d
+      # 
+      # download and concatenate grib2 byte ranges
       # jgfdebug
       #foreach my $li (@rangeLines) {
       #   print $li;
       #}
+      # now iterate through them and download the fields of interest,
+      # concatenating into a single file 
       my $range="";
       my $lastfrom='';
       my $lastto=-100;
@@ -393,56 +407,23 @@ foreach my $dir (@targetDirs) {
          foreach my $gf (@grib_fields) {
             if ( $li =~ /$gf/ ) {
                #print "$li matches $gf\n";
-               $match = 1;
-               last;
+               # want to download this field 
+               chomp($li);
+               $li =~ /:range=[0-9]*-([0-9]*)/;
+               $range=$1 . "-" . $2;
+               stderrMessage("INFO","Downloading '$f' to '$localDir' with curl -f -s -r \"$range\" ftp://$backsite$backdir/nam.$dirDate/$f >> $localDir/$f.");
+            }
+            my $err=system("curl -f -s -r \"$range\" ftp://$backsite$backdir/nam.$dirDate/$f >> $localDir/$f");
+            if ( $err != 0 ) {
+               stderrMessage("INFO","Download complete.");
+               push(@nowcasts_downloaded,$dirDate.$hourString);
+               $dl++;
+               #stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
+              
+            } else {               
+               stderrMessage("INFO","curl: Get '$f' failed.");
             }
          }
-         # if this is not one of the fields we want, go to the next one
-         if ( $match == 0 ) {
-            next;
-         }
-         chomp($li);
-         my $from='';
-         if ($li =~ /:range=([0-9]*)/) {
-            $from=$1;
-            #print "from is $from\n";
-         };
-         my $to='';
-         if ($li =~ /:range=[0-9]*-([0-9]*)/ ) {
-            $to=$1;
-            #print "to is $to\n";
-         };
-         if ($lastto+1 == $from) {
-            # delay writing out last range specification
-            $lastto = $to;
-         } elsif ($lastto ne $to) {
-            # write out last range specification
-            if ($lastfrom ne '') {
-               if ($range eq '') { $range="$lastfrom-$lastto"; }
-               else { $range="$range,$lastfrom-$lastto"; }
-               #print "$range\n";
-            }
-            $lastfrom=$from;
-            $lastto=$to;
-         }
-      }
-      if ($lastfrom ne '') {
-         if ($range eq '') { $range="$lastfrom-$lastto"; }
-         else { $range="$range,$lastfrom-$lastto"; }
-         #print "$range\n";
-      }
-      #die;
-      stderrMessage("INFO","Downloading '$f' to '$localDir'.");
-      print "curl -f -s -r \"$range\" ftp://$backsite$backdir/nam.$dirDate/$f > $localDir/$f\n";
-      my $err=system("curl -f -s -r \"$range\" ftp://$backsite$backdir/nam.$dirDate/$f > $localDir/$f");
-      unless ( $err == 0 ) {
-         stderrMessage("INFO","curl: Get '$f' failed.");
-         next;
-      } else {
-         stderrMessage("INFO","Download complete.");
-         push(@nowcasts_downloaded,$dirDate.$hourString);
-         #stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
-         $dl++;
       }
 
       #my $success = $ftp->get($f,$localDir."/".$f);
