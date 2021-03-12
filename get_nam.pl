@@ -47,6 +47,7 @@
 #
 # (the $statefile variable does not seem to be used anywhere in
 # this script, this has been recorded as issue)
+# perl /work/asgs/get_nam.pl --statefile /scratch/Shinnecock_nam_jgf.state --rundir /scratch/asgs2827 --backsite ftp.ncep.noaa.gov --backdir /pub/data/nccf/com/nam/prod --enstorm nowcast --csdate 2021021500 --forecastlength 84 --hstime 432000.0 --altnamdirs /projects/ncfs/data/asgs5463,/projects/ncfs/data/asgs14174 --archivedruns /scratch --forecastcycle 00,06,12,18  --scriptdir /work/asgs
 #--------------------------------------------------------------
 $^W++;
 use strict;
@@ -100,6 +101,9 @@ unless ( open(APPLOGFILE,">>$rundir/get_nam.pl.log") ) {
    stderrMessage("ERROR","Could not open '$rundir/get_nam.pl.log' for appending: $!.");
    exit 1;
 }
+
+
+
 &appMessage("DEBUG","hstime is $hstime");
 &appMessage("DEBUG","Connecting to $backsite:$backdir");
 our $dl = 0;   # true if we were able to download the file(s) successfully
@@ -337,34 +341,43 @@ foreach my $dir (@targetDirs) {
       my $hourString = sprintf("%02d",$nchour);
       my $fbase = "nam.t".$hourString."z.awip1200.tm00"; 
       my $f = $fbase . ".grib2";
-      my $idxfile = $fbase . ".idx";
+      my $idxfile = $f . ".idx";  
       #--------------------------------------------------------
       #    G R I B   I N V E N T O R Y  A N D   R A N G E S
       #--------------------------------------------------------
-
-      my $idx = "ftp://$backsite$backdir/nam.$dirDate/$idxfile";
-      stderrMessage("INFO","Downloading '$idx' with the command 'curl -f -s $idx'.");
+      # FIXME: undo this hardcode for downloading files with curl using https://nomads 
+      my $idx = "https://nomads.ncep.noaa.gov$backdir/nam.$dirDate/$idxfile";
       # jgfdebug: save a local copy of the inventory file
-      my $err=system("curl -f -s $idx > $localDir/$idxfile");  # jgfdebug
-      unless ( $err == 0 ) {                                   # jgfdebug
-         stderrMessage("INFO","curl: Get '$idx' failed.");     # jgfdebug
-      }                                                        # jgfdebug
-      # non-debug : download directly into list
-      my @gribInventoryLines = `curl -f -s $idx`; # the grib inventory file from the ftp site
-      my @rangeLines;  # inventory with computed ranges 
-      stderrMessage("INFO","Parsing '$idx' to determine byte ranges of U, V, and P.");
+      stderrMessage("DEBUG","Downloading '$idx' with the command 'curl -f -s $idx -o $localDir/$idxfile'.");      
+      my $err=system("curl -f -s $idx -o $localDir/$idxfile");  
+      unless ( $err == 0 ) {                                   
+         stderrMessage("INFO","curl: Get '$idx' failed.");
+         unlink("$localDir/$idxfile");
+         next;     
+      }                                                        
+      # download directly into list
+      #stderrMessage("INFO","Downloading '$idx' with the command 'curl -f -s $idx'.");
+      #my @gribInventoryLines = `curl -f -s $idx`; # the grib inventory file from the ftp site
+      my @rangeLines;    # inventory with computed ranges 
       my $last = 0;      # number of immediately preceding lines with same starting byte index
       my $lastnum = -1;  # starting byte range of previous line (or lines if there are repeats) 
       my @old_lines;     # contiguous lines in inventory with same starting byte
       my $has_range = 0; # set to 1 if the inventory already has a range field
-      foreach my $li (@gribInventoryLines) {
-         chomp($li);
+      #
+      # open index file for this time period
+      stderrMessage("INFO","Parsing '$idx' to determine byte ranges of U, V, and P.");
+      unless ( open(GRIBINVENTORY,"<$localDir/$idxfile") ) { 
+         stderrMessage("ERROR","Could not open '$localDir/$idxfile' for appending: $!.");
+         next;
+      }
+      while(<GRIBINVENTORY>) {
+         chomp($_);
          #stderrMessage("INFO","$li");
          # check to see if this is grib2 inventory that already has a range field
          # if so, don't need to calculate the range
-         if ($li =~ /:range=/) {
+         if ($_ =~ /:range=/) {
             $has_range = 1;
-            push(@rangeLines,"$li\n");
+            push(@rangeLines,"$_\n");
          } else {
             # grib1/2 inventory, 
             #    c o m p u t e   r a n g e   f i e l d 
@@ -372,7 +385,7 @@ foreach my $dir (@targetDirs) {
             # 1:0:d=2021030106:PRMSL:mean sea level:anl:
             # 2:233889:d=2021030106:PRES:1 hybrid level:anl:
             # 3:476054:d=2021030106:RWMR:1 hybrid level:anl:
-            my ($f1,$startingByteIndex,$rest) = split(/:/,$li,3);
+            my ($f1,$startingByteIndex,$rest) = split(/:/,$_,3);
             # see if the starting byte index is different on this line
             # compared to the previous one (and this is not the first line)
             if ($lastnum != $startingByteIndex && $last != 0) {
@@ -390,7 +403,7 @@ foreach my $dir (@targetDirs) {
             }  else {
                $last++;
             }
-            push(@old_lines,$li);
+            push(@old_lines,$_);
             $lastnum = $startingByteIndex;
          }
       }
@@ -400,41 +413,44 @@ foreach my $dir (@targetDirs) {
          }
          @rangeLines = (@rangeLines,@old_lines);         
       }
-      #   r a n g e   f i e l d s   h a v e  n o w   b e e n  c o m p u t e d   o r   p r o v i d e d
+      #   r a n g e   f i e l d s   h a v e   n o w   b e e n   c o m p u t e d   o r   p r o v i d e d
       # 
       # download and concatenate grib2 byte ranges
       # jgfdebug
       #foreach my $li (@rangeLines) {
       #   print $li;
       #}
-      # now iterate through them and download the fields of interest,
-      # concatenating into a single file 
-      my $range="";
-      my $lastfrom='';
-      my $lastto=-100;
+      # now iterate through them and collect the relevant byte ranges
+      my @ranges;      # byte ranges to download 
       foreach my $li (@rangeLines) {
          my $match = 0;
          # check to see if the line matches one of the fields of interest
          foreach my $gf (@grib_fields) {
             if ( $li =~ /$gf/ ) {
-               #print "$li matches $gf\n";
+               print "$li matches $gf\n";
                # want to download this field 
                chomp($li);
-               $li =~ /:range=[0-9]*-([0-9]*)/;
-               $range=$1 . "-" . $2;
-               stderrMessage("INFO","Downloading '$f' to '$localDir' with curl -f -s -r \"$range\" ftp://$backsite$backdir/nam.$dirDate/$f >> $localDir/$f.");
-            }
-            my $err=system("curl -f -s -r \"$range\" ftp://$backsite$backdir/nam.$dirDate/$f >> $localDir/$f");
-            if ( $err != 0 ) {
-               stderrMessage("INFO","Download complete.");
-               push(@nowcasts_downloaded,$dirDate.$hourString);
-               $dl++;
-               #stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
-              
-            } else {               
-               stderrMessage("INFO","curl: Get '$f' failed.");
+               $li =~ /:range=([0-9]*)-([0-9]*)/;
+               my $newrange = $1 . "-" . $2;
+               # don't request the same range twice in a row (e.g., U and V will have the same range)
+               unless ( @ranges > 0 && $newrange eq $ranges[-1] ) {
+                  push(@ranges,$newrange);
+               }
             }
          }
+      }
+      # now join selected ranges and actually download the specified data
+      my $range=join(",",@ranges);
+      stderrMessage("INFO","Downloading '$f' to '$localDir' with curl -f -s -r \"$range\" https://nomads.ncep.noaa.gov$backdir/nam.$dirDate/$f -o $localDir/$f.");
+      my $err=system("curl -f -s -r \"$range\" https://nomads.ncep.noaa.gov$backdir/nam.$dirDate/$f -o $localDir/$f");
+      if ( $err != 0 ) {
+         stderrMessage("INFO","Download complete.");
+         push(@nowcasts_downloaded,$dirDate.$hourString);
+         $dl++;
+         #stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
+      } else {               
+         stderrMessage("INFO","curl: Get '$f' failed.");
+         unlink("$localDir/$f");
       }
 
       #my $success = $ftp->get($f,$localDir."/".$f);
