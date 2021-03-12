@@ -711,14 +711,13 @@ sub getGrib2 {
             die "$file not found.\n" if ( !-f $file );
             my $com = "$scriptDir/wgrib2 $file -match \"UGRD:10\" -inv /dev/null -text -";
             @rawU = `$com`;
+            die "rawU is empty, com=$com\n" unless (@rawU);            
             $com  = "$scriptDir/wgrib2 $file -match \"VGRD:10\" -inv /dev/null -text -";
             @rawV = `$com`;
+            die "rawV is empty, com=$com\n" unless (@rawV);            
             $com  = "$scriptDir/wgrib2 $file -match \"PRMSL\" -inv /dev/null -text -";
             @rawP = `$com`;
-            die "rawU is empty, com=$com\n" unless (@rawU);
-            die "rawV is empty, com=$com\n" unless (@rawV);
             die "rawP is empty, com=$com\n" unless (@rawP);
-
         }
         if ( $namFormat eq "grb" ) {
             #
