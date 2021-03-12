@@ -65,11 +65,16 @@ $has_range = 0;
 while (<In>) {
   if (/:range=/) {
 #    grib2 inventory has range field
+     # just pass the stdin to the stdout
      $has_range = 1;
      print $_;
   }
   else {
 #    grib1/2 inventory, figure range field
+     # e.g.: 
+     # 1:0:d=2021030106:PRMSL:mean sea level:anl:
+     # 2:233889:d=2021030106:PRES:1 hybrid level:anl:
+     # 3:476054:d=2021030106:RWMR:1 hybrid level:anl:
      chomp;
      ($f1,$num,$rest) = split(/:/,$_,3);
 
@@ -84,15 +89,16 @@ while (<In>) {
      if ($lastnum != $num && $last != 0) {
         $n = $num - 1;
         for ($i = 0; $i < $last; $i++) {
+            print "$_\n"; # jgfdebug
             print "$old_lines[$i]:range=$lastnum-$n\n";
         }
         $lastnum = $num;
-	$last = 1;
+	      $last = 1;
         $old_lines[0] = $_;
      }
      else {
         $old_lines[$last++] = $_;
-	$lastnum = $num;
+	      $lastnum = $num;
      }
   }
 }

@@ -103,6 +103,7 @@ unless ( open(APPLOGFILE,">>$rundir/get_nam.pl.log") ) {
 &appMessage("DEBUG","hstime is $hstime");
 &appMessage("DEBUG","Connecting to $backsite:$backdir");
 our $dl = 0;   # true if we were able to download the file(s) successfully
+# open ftp connection
 our $ftp = Net::FTP->new($backsite, Debug => 0, Passive => 1); 
 unless ( defined $ftp ) {
    stderrMessage("ERROR","ftp: Cannot connect to $backsite: $@");
@@ -125,6 +126,8 @@ unless ( $hcDirSuccess ) {
    printf STDOUT $dl;
    exit 1;
 }
+# if this is not a nowcast, jump to the sub to get the 
+# forecast data for this cycle
 if ( defined $enstorm ) { 
    unless ( $enstorm eq "nowcast" ) {
       @forecastcycle = split(/,/,join(',',@forecastcycle));
@@ -133,7 +136,11 @@ if ( defined $enstorm ) {
    }
 }
 #
-# if alternate directories for NAM data were supplied, then remove the
+# everything below is designed to determine if there is 
+# new nowcast data, and if so, to download it to bring the 
+# simulation state up to date with the latest
+#
+# if alternate (local) directories for NAM data were supplied, then remove the
 # commas from these directories
 if ( @altnamdirs ) { 
    @altnamdirs = split(/,/,join(',',@altnamdirs));
@@ -148,7 +155,8 @@ if ( @altnamdirs ) {
 push(@altnamdirs,$rundir);
 #
 # determine date and hour corresponding to current ADCIRC time
-# first, extract the date/time components from the incoming string
+# first (i.e., time of the most recent hotstart file);
+# extract the date/time components 
 $csdate =~ /(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
 my $cy = $1;
 my $cm = $2;
@@ -177,6 +185,9 @@ $hour = sprintf("%02d",$nh);
 #
 # now go to the ftp site and download the files
 # get the list of nam dates where data is available
+# compare this list to the current adcirc hotstart time
+# to see if there is new data available on the site
+# (later than the current adcirc hotstart time)
 my @ncepDirs = $ftp->ls(); # gets all the current data dirs, incl. nam dirs
 my @namDirs; 
 foreach my $dir (@ncepDirs) { 
@@ -199,7 +210,7 @@ foreach my $dir (@sortedNamDirs) {
    }
 }
 #
-# determine the most recent date/hour ... this is the cycle time
+# determine the most recent date/hour ... this is the latest nam cycle time
 $targetDirs[-1] =~ /nam.(\d+)/;
 my $cycledate = $1; 
 &appMessage("DEBUG","The cycledate is '$cycledate'.");
@@ -256,7 +267,7 @@ unless ( $hcDirSuccess ) {
    printf STDOUT $dl;
    exit;
 }
-# create the directores for this cycle if needed
+# create the local directores for this cycle if needed
 unless ( -e $cycletime ) { 
    unless ( mkdir($cycletime,0777) ) {
       stderrMessage("ERROR","Could not make directory '$cycletime': $!.");
