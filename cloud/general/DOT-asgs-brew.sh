@@ -96,22 +96,17 @@ load() {
       else
         __ADCIRC_BUILD=${2}
       fi
-      echo "loading ADCIRC build, '$__ADCIRC_BUILD' ... don't forget to save profile to persist this action."
+      echo "loading ADCIRC build, '$__ADCIRC_BUILD'."
       if [ -e "${ADCIRC_META_DIR}/${__ADCIRC_BUILD}" ]; then
           # source it
           . ${ADCIRC_META_DIR}/${__ADCIRC_BUILD}
-          echo creating symlinks to ADCIRC binaries in $ASGS_INSTALL_PATH/bin
-          for b in $ADCIRC_BINS; do
-            echo -n linking $b
-            ln -sf $ADCIRCDIR/$b $ASGS_INSTALL_PATH/bin/$b && echo ... ok
-          done          
-          echo creating symlinks to SWAN binaries in $ASGS_INSTALL_PATH/bin
-          for b in $SWAN_BINS; do
-            echo -n linking $b
-            ln -sf $SWANDIR/$b $ASGS_INSTALL_PATH/bin/$b && echo ... ok
-          done          
+          echo Prepending ADCIRCDIR and SWANDIR to PATH
+          echo + $ADCIRCDIR
+          echo + $SWANDIR
+          export PATH=${SWANDIR}:${ADCIRCDIR}:${PATH}
+          echo
+          echo "* don't forget to save profile"
           export PS1="asgs (${_ASGSH_CURRENT_PROFILE}*)> "
-          echo "don't forget to save profile"
       else
           echo "ADCIRC build, '$__ADCIRC_BUILD' does not exist. Use 'list adcirc' to see a which ADCIRCs are available to load"
       fi
