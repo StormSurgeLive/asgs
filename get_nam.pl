@@ -489,6 +489,8 @@ sub getForecastData() {
       stderrMessage("ERROR","Could not open '$rundir/forecast.properties' for writing: $!.");
       exit 1;
    }
+   # read the special purpose file that describes the latest cycle that we 
+   # have nowcasted to (there has to be a better way)
    unless ( open(CYCLENUM,"<$rundir/currentCycle") ) { 
       stderrMessage("ERROR","Could not open '$rundir/currentCycle' for reading: $!.");
       exit 1;
@@ -523,14 +525,22 @@ sub getForecastData() {
    #stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
    foreach my $cycle (@forecastcycle) {
       if ( $cycle eq $cyclehour ) {
-         $runme = 1;
+         $runme = 1;  # operator wants to forecast this cycle
          last;
       }
       # allow for the possibility that we aren't supposed to run any forecasts
       if ( $cycle eq "none" ) {
-         $noforecast = 1;
+         $noforecast = 1; # operator doesn't want any forecasts
          last;
       }
+   }
+   # if the Operator strictly wants to only forecast certain cycles,
+   # and this is not one of them, then do not run this forecast, 
+   # and prevent this forecast from running as an unscheduled
+   # "make up" forecast for a previous forecast that was supposed
+   # to run and did not
+   if ( $runme == 0 && $forecastselection eq "strict" ) {
+      $noforecast = 1;   # operator doesn't want a forecast to run for this cycle
    }
    # we may still want to run the forecast to make up for an earlier 
    # forecast that failed or was otherwise missed (24 hour lookback)
