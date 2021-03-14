@@ -115,6 +115,15 @@ wait
 # archive the subdomain fort.16 log files
 tar cjf fort.16.tar.bz2 ./PE*/fort.16 1> tar.log 2> errmsg && cat tar.log | tee -a $LOGFILE >> $SCENARIOLOG || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not create a tar archive of subdomain fort.16 files: `cat errmsg`." $LOGFILE
 #
+# archive grib2 files if any
+if ls *grib* >&/dev/null ; then
+   scenarioMessage "$THIS: Archiving grib files." $LOGFILE 
+   tar czf grib.tar.gz *grib* 1> tar.log 2> errmsg && cat tar.log | tee -a $LOGFILE >> $SCENARIOLOG || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not create a tar archive of grib2 files: `cat errmsg`." $LOGFILE
+   rm -rf *grib* 2>> $SYSLOG
+else
+   scenarioMessage "$THIS: There are no grib files to archive." $LOGFILE   
+fi
+#
 #
 # pull in platform-specific value for the command used to remove directories
 # (some platforms have a special command that is nicer for their filesystem)

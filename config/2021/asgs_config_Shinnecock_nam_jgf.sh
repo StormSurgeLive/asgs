@@ -75,7 +75,7 @@ TDS=( )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2021021500
+COLDSTARTDATE=2021030700
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 # location on lonestar5 ______________________________________________
 LASTSUBDIR=null
