@@ -34,34 +34,35 @@ CYCLETIMELIMIT="05:00:00"
 #HDIR=${FDIR}
 STORM=07                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2018                        # year of the storm
-TRIGGER=rssembedded              # either "ftp" or "rss"
-RSSSITE=www.nhc.noaa.gov         # site information for retrieving advisories
-FTPSITE=ftp.nhc.noaa.gov         # hindcast/nowcast ATCF formatted files
-FDIR=/atcf/afst                  # forecast dir on nhc ftp site
-HDIR=/atcf/btk                   # hindcast dir on nhc ftp site
-RMAX=default
-PERCENT=default
-VORTEXMODEL=GAHM
-PSEUDOSTORM=no
+TRIGGER="rssembedded"            # either "ftp" or "rss"
+RSSSITE="www.nhc.noaa.gov"       # site information for retrieving advisories
+FTPSITE="ftp.nhc.noaa.gov"       # hindcast/nowcast ATCF formatted files
+FDIR="/atcf/afst"                # forecast dir on nhc ftp site
+HDIR="/atcf/btk"                 # hindcast dir on nhc ftp site
+RMAX="default"
+PERCENT="default"
+VORTEXMODEL="GAHM"
+PSEUDOSTORM="no"
 #
 #  Meteorological Forcing : North American Mesoscale (NAM) Model
 # 
 FORECASTCYCLE="06"
-BACKSITE=ftp.ncep.noaa.gov          # NAM forecast data from NCEP
-BACKDIR=/pub/data/nccf/com/nam/prod # contains the nam.yyyymmdd files
-FORECASTLENGTH=84                   # hours of NAM forecast to run (max 84)
-PTFILE=ptFile_oneEighth.txt         # the lat/lons for the OWI background met
+BACKSITE="ftp.ncep.noaa.gov"          # NAM forecast data from NCEP
+BACKDIR="/pub/data/nccf/com/nam/prod" # contains the nam.yyyymmdd files
+FORECASTLENGTH=84                     # hours of NAM forecast to run (max 84)
+PTFILE="ptFile_oneEighth.txt"         # the lat/lons for the OWI background met
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
 VELOCITYMULTIPLIER=1.0
+forecastSelection="latest"            # "latest" or "strict"
 #
 # External data sources : River Flux
 #
-RIVERSITE=ftp.nssl.noaa.gov
-RIVERDIR=/projects/ciflow/adcirc_info
-RIVERUSER=ldm
-RIVERDATAPROTOCOL=scp
+RIVERSITE="ftp.nssl.noaa.gov"
+RIVERDIR="/projects/ciflow/adcirc_info"
+RIVERUSER="ldm"
+RIVERDATAPROTOCOL="scp"
 #
 # Model coupling : SWAN
 #
-REINITIALIZESWAN=no
-SWANHSCOMPRESSION=no
+REINITIALIZESWAN="no"
+SWANHSCOMPRESSION="no"

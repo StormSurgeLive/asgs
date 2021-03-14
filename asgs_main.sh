@@ -1706,6 +1706,7 @@ writeNAMProperties()
    echo "forcing.nwp.model : nam" >> $STORMDIR/run.properties   
    echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $STORMDIR/run.properties 
    echo "forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties 
+   echo "forcing.nwp.schedule.forecast.forecastselection : $forecastSelection" >> $STORMDIR/run.properties 
    echo "forcing.nam.backsite : $BACKSITE" >> $STORMDIR/run.properties 
    echo "forcing.nam.backdir : $BACKDIR" >> $STORMDIR/run.properties 
    echo "forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR/run.properties 
