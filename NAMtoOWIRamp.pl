@@ -139,9 +139,13 @@ unless ( open(APPLOGFILE,">>NAMtoOWIRamp.pl.log") ) {
    exit 1;
 }
 &stderrMessage( "INFO", "Started processing NAM data." );
+#
+# check to make sure that outDir and dataDir have slashes at the
+# end (this script assumes they do)
+if ( substr($outDir,-1,1) ne "/" ) { $outDir .= "/"; }
+if ( substr($dataDir,-1,1) ne "/" ) { $dataDir .= "/"; }
 &stderrMessage( "INFO", "Started processing point file." );
 $geoHeader = &processPtFile($ptFile);
-
 # load NAM data
 if ( ( $namFormat eq "grib2" ) || ( $namFormat eq "grb2" ) || ( $namFormat eq "grb" ) ) {
     &stderrMessage( "INFO", "Processing file(s)." );

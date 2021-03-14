@@ -58,8 +58,8 @@ use Cwd;
 #
 our $rundir;   # directory where the ASGS is running
 my $statefile = "null"; # file that holds the current simulation state
-my $backsite; # ncep ftp site for nam data
-my $backdir;  # dir on ncep ftp site
+our $backsite; # ncep ftp site for nam data
+our $backdir;  # dir on ncep ftp site
 our $enstorm;  # hindcast, nowcast, or forecast
 my $csdate;   # UTC date and hour (YYYYMMDDHH) of ADCIRC cold start
 my $hstime;   # hotstart time, i.e., time since ADCIRC cold start (in seconds)
@@ -78,7 +78,7 @@ our $num_retries = 0;
 our $had_enough = 0;
 my @nowcasts_downloaded;  # list of nowcast files that were 
                           # successfully downloaded
-my @grib_fields = ( "PRMSL","UGRD:10 m above ground","VGRD:10 m above ground" );
+our @grib_fields = ( "PRMSL","UGRD:10 m above ground","VGRD:10 m above ground" );
 
 #
 GetOptions(
@@ -101,9 +101,6 @@ unless ( open(APPLOGFILE,">>$rundir/get_nam.pl.log") ) {
    stderrMessage("ERROR","Could not open '$rundir/get_nam.pl.log' for appending: $!.");
    exit 1;
 }
-
-
-
 &appMessage("DEBUG","hstime is $hstime");
 &appMessage("DEBUG","Connecting to $backsite:$backdir");
 our $dl = 0;   # true if we were able to download the file(s) successfully
@@ -342,128 +339,18 @@ foreach my $dir (@targetDirs) {
       my $fbase = "nam.t".$hourString."z.awip1200.tm00"; 
       my $f = $fbase . ".grib2";
       my $idxfile = $f . ".idx";  
-      #--------------------------------------------------------
-      #    G R I B   I N V E N T O R Y  A N D   R A N G E S
-      #--------------------------------------------------------
-      # FIXME: undo this hardcode for downloading files with curl using https://nomads 
-      my $idx = "https://nomads.ncep.noaa.gov$backdir/nam.$dirDate/$idxfile";
-      # jgfdebug: save a local copy of the inventory file
-      stderrMessage("DEBUG","Downloading '$idx' with the command 'curl -f -s $idx -o $localDir/$idxfile'.");      
-      my $err=system("curl -f -s $idx -o $localDir/$idxfile");  
-      unless ( $err == 0 ) {                                   
-         stderrMessage("INFO","curl: Get '$idx' failed.");
-         unlink("$localDir/$idxfile");
-         next;     
-      }                                                        
-      # download directly into list
-      #stderrMessage("INFO","Downloading '$idx' with the command 'curl -f -s $idx'.");
-      #my @gribInventoryLines = `curl -f -s $idx`; # the grib inventory file from the ftp site
-      my @rangeLines;    # inventory with computed ranges 
-      my $last = 0;      # number of immediately preceding lines with same starting byte index
-      my $lastnum = -1;  # starting byte range of previous line (or lines if there are repeats) 
-      my @old_lines;     # contiguous lines in inventory with same starting byte
-      my $has_range = 0; # set to 1 if the inventory already has a range field
-      #
-      # open index file for this time period
-      stderrMessage("INFO","Parsing '$idx' to determine byte ranges of U, V, and P.");
-      unless ( open(GRIBINVENTORY,"<$localDir/$idxfile") ) { 
-         stderrMessage("ERROR","Could not open '$localDir/$idxfile' for appending: $!.");
+   
+      #my $success = $ftp->get($f,$localDir."/".$f);
+      my $err = &partialGribDownload($dirDate, $f, $idxfile, $localDir);
+      unless ( $err == 0 ) {
+         stderrMessage("INFO","Get '$f' failed.");
          next;
-      }
-      while(<GRIBINVENTORY>) {
-         chomp($_);
-         #stderrMessage("INFO","$li");
-         # check to see if this is grib2 inventory that already has a range field
-         # if so, don't need to calculate the range
-         if ($_ =~ /:range=/) {
-            $has_range = 1;
-            push(@rangeLines,"$_\n");
-         } else {
-            # grib1/2 inventory, 
-            #    c o m p u t e   r a n g e   f i e l d 
-            # inventory line format without range field e.g.: 
-            # 1:0:d=2021030106:PRMSL:mean sea level:anl:
-            # 2:233889:d=2021030106:PRES:1 hybrid level:anl:
-            # 3:476054:d=2021030106:RWMR:1 hybrid level:anl:
-            my ($f1,$startingByteIndex,$rest) = split(/:/,$_,3);
-            # see if the starting byte index is different on this line
-            # compared to the previous one (and this is not the first line)
-            if ($lastnum != $startingByteIndex && $last != 0) {
-               # compute the end of the byte range for the previous line
-               my $previousEndingByteIndex = $startingByteIndex - 1;
-               # add this byte range to all the old_lines we've stored due to their
-               # repeated starting byte index
-               foreach my $ol (@old_lines) {
-                  $ol = "$ol:range=$lastnum-$previousEndingByteIndex\n";
-               }
-               # now add these old lines to the list of lines with our newly computed ranges
-               @rangeLines = (@rangeLines,@old_lines);
-               @old_lines = (); 
-               $last = 1;
-            }  else {
-               $last++;
-            }
-            push(@old_lines,$_);
-            $lastnum = $startingByteIndex;
-         }
-      }
-      if ( $has_range == 0 ) {
-         foreach my $ol (@old_lines) {
-            $ol = "$ol:range=$lastnum\n";
-         }
-         @rangeLines = (@rangeLines,@old_lines);         
-      }
-      #   r a n g e   f i e l d s   h a v e   n o w   b e e n   c o m p u t e d   o r   p r o v i d e d
-      # 
-      # download and concatenate grib2 byte ranges
-      # jgfdebug
-      #foreach my $li (@rangeLines) {
-      #   print $li;
-      #}
-      # now iterate through them and collect the relevant byte ranges
-      my @ranges;      # byte ranges to download 
-      foreach my $li (@rangeLines) {
-         my $match = 0;
-         # check to see if the line matches one of the fields of interest
-         foreach my $gf (@grib_fields) {
-            if ( $li =~ /$gf/ ) {
-               print "$li matches $gf\n";
-               # want to download this field 
-               chomp($li);
-               $li =~ /:range=([0-9]*)-([0-9]*)/;
-               my $newrange = $1 . "-" . $2;
-               # don't request the same range twice in a row (e.g., U and V will have the same range)
-               unless ( @ranges > 0 && $newrange eq $ranges[-1] ) {
-                  push(@ranges,$newrange);
-               }
-            }
-         }
-      }
-      # now join selected ranges and actually download the specified data
-      my $range=join(",",@ranges);
-      stderrMessage("INFO","Downloading '$f' to '$localDir' with curl -f -s -r \"$range\" https://nomads.ncep.noaa.gov$backdir/nam.$dirDate/$f -o $localDir/$f.");
-      my $err=system("curl -f -s -r \"$range\" https://nomads.ncep.noaa.gov$backdir/nam.$dirDate/$f -o $localDir/$f");
-      if ( $err != 0 ) {
+      } else {
          stderrMessage("INFO","Download complete.");
          push(@nowcasts_downloaded,$dirDate.$hourString);
-         $dl++;
          #stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
-      } else {               
-         stderrMessage("INFO","curl: Get '$f' failed.");
-         unlink("$localDir/$f");
+         $dl++;
       }
-
-      #my $success = $ftp->get($f,$localDir."/".$f);
-      #unless ( $success ) {
-      #   stderrMessage("INFO","ftp: Get '$f' failed: " . $ftp->message);
-      #   next;
-      #} else {
-      #   stderrMessage("INFO","Download complete.");
-      #   push(@nowcasts_downloaded,$dirDate.$hourString);
-      #   #stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
-      #   $dl++;
-      #}
-
    }
    $hcDirSuccess = $ftp->cdup();
    unless ( $hcDirSuccess ) {
@@ -505,7 +392,7 @@ while ($datetime_needed <= $cycletime) {
                   $localDir = $cycletime."/nowcast/erl.".substr($date_needed,2);
                   # perform a smoke test on the file we found to check that it is
                   # not corrupted (not a definitive test but better than nothing)
-	          unless ( `$scriptDir/wgrib2 $alt_location -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
+                  unless ( `$scriptDir/wgrib2 $alt_location -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
                      stderrMessage("INFO","The file '$alt_location' appears to be corrupted and will not be used.");
                      next;
                   }
@@ -570,6 +457,7 @@ sub getForecastData() {
       stderrMessage("ERROR","Could not open '$rundir/forecast.properties' for writing: $!.");
       exit 1;
    }
+   # FIXME: this should come from the run.properties file
    unless ( open(CYCLENUM,"<$rundir/currentCycle") ) { 
       stderrMessage("ERROR","Could not open '$rundir/currentCycle' for reading: $!.");
       exit 1;
@@ -717,9 +605,11 @@ sub getForecastData() {
       stderrMessage("INFO","Downloading '$f' to '$localDir'.");
       my $success = 0;
       $num_retries = 1;
+      my $idxfile = $f . ".idx";
       while ( $success == 0 && $num_retries < $max_retries ) {
-         my $stat = $ftp->get($f,$localDir."/".$f);
-         unless ( $stat ) {
+         my $stat = &partialGribDownload($cycledate, $f, $idxfile, $localDir);
+         # my $stat = $ftp->get($f,$localDir."/".$f);
+         unless ( $stat == 0 ) {
             stderrMessage("INFO","ftp: Get '$f' failed: " . $ftp->message);
             $num_retries++;
             #stderrMessage("DEBUG","num_retries is $num_retries");
@@ -757,6 +647,127 @@ sub getForecastData() {
    my $end_date = sprintf("%04d%02d%02d%02d",$ey,$em,$ed,$eh); 
    printf FP "forecastValidEnd : $end_date" . "0000\n";
    close(FP);
+}
+#
+# perform partial grib download using curl
+# only gets the U, V, P at mean sea level
+sub partialGribDownload () {
+   my $dirDate = shift;
+   my $f = shift;
+   my $idxfile = shift;
+   my $localDir = shift;
+   #--------------------------------------------------------
+   #    G R I B   I N V E N T O R Y  A N D   R A N G E S
+   #--------------------------------------------------------
+   # FIXME: undo this hardcode for downloading files with curl using 
+   # https://nomads rather than $backsite 
+   my $idx = "https://nomads.ncep.noaa.gov$backdir/nam.$dirDate/$idxfile";
+   # jgfdebug: save a local copy of the inventory file
+   stderrMessage("DEBUG","Downloading '$idx' with the command 'curl -f -s $idx -o $localDir/$idxfile'.");      
+   my $err=system("curl -f -s $idx -o $localDir/$idxfile");  
+   if ( $err != 0 ) {                                   
+      stderrMessage("INFO","curl: Get '$idx' failed.");
+      unlink("$localDir/$idxfile");
+      return $err;     
+   }                                                        
+   # download directly into list
+   #stderrMessage("INFO","Downloading '$idx' with the command 'curl -f -s $idx'.");
+   #my @gribInventoryLines = `curl -f -s $idx`; # the grib inventory file from the ftp site
+   my @rangeLines;    # inventory with computed ranges 
+   my $last = 0;      # number of immediately preceding lines with same starting byte index
+   my $lastnum = -1;  # starting byte range of previous line (or lines if there are repeats) 
+   my @old_lines;     # contiguous lines in inventory with same starting byte
+   my $has_range = 0; # set to 1 if the inventory already has a range field
+   #
+   # open index file for this time period
+   stderrMessage("INFO","Parsing '$idx' to determine byte ranges of U, V, and P.");
+   unless ( open(GRIBINVENTORY,"<$localDir/$idxfile") ) { 
+      stderrMessage("ERROR","Could not open '$localDir/$idxfile' for appending: $!.");
+      return 1;
+   }
+   while(<GRIBINVENTORY>) {
+      chomp($_);
+      #stderrMessage("INFO","$li");
+      # check to see if this is grib2 inventory that already has a range field
+      # if so, don't need to calculate the range
+      if ($_ =~ /:range=/) {
+         $has_range = 1;
+         push(@rangeLines,"$_\n");
+      } else {
+         # grib1/2 inventory, 
+         #    c o m p u t e   r a n g e   f i e l d 
+         # inventory line format without range field e.g.: 
+         # 1:0:d=2021030106:PRMSL:mean sea level:anl:
+         # 2:233889:d=2021030106:PRES:1 hybrid level:anl:
+         # 3:476054:d=2021030106:RWMR:1 hybrid level:anl:
+         my ($f1,$startingByteIndex,$rest) = split(/:/,$_,3);
+         # see if the starting byte index is different on this line
+         # compared to the previous one (and this is not the first line)
+         if ($lastnum != $startingByteIndex && $last != 0) {
+            # compute the end of the byte range for the previous line
+            my $previousEndingByteIndex = $startingByteIndex - 1;
+            # add this byte range to all the old_lines we've stored due to their
+            # repeated starting byte index
+            foreach my $ol (@old_lines) {
+               $ol = "$ol:range=$lastnum-$previousEndingByteIndex\n";
+            }
+            # now add these old lines to the list of lines with our newly computed ranges
+            @rangeLines = (@rangeLines,@old_lines);
+            @old_lines = (); 
+            $last = 1;
+         }  else {
+            $last++;
+         }
+         push(@old_lines,$_);
+         $lastnum = $startingByteIndex;
+      }
+   }
+   close(GRIBINVENTORY);
+   if ( $has_range == 0 ) {
+      foreach my $ol (@old_lines) {
+         $ol = "$ol:range=$lastnum\n";
+      }
+      @rangeLines = (@rangeLines,@old_lines);         
+   }
+   #   r a n g e   f i e l d s   h a v e   n o w   b e e n   c o m p u t e d   o r   p r o v i d e d
+   # 
+   # download and concatenate grib2 byte ranges
+   # jgfdebug
+   #foreach my $li (@rangeLines) {
+   #   print $li;
+   #}
+   # now iterate through them and collect the relevant byte ranges
+   my @ranges;      # byte ranges to download 
+   foreach my $li (@rangeLines) {
+      my $match = 0;
+      # check to see if the line matches one of the fields of interest
+      foreach my $gf (@grib_fields) {
+         if ( $li =~ /$gf/ ) {
+            #print "$li matches $gf\n";
+            # want to download this field 
+            chomp($li);
+            $li =~ /:range=([0-9]*)-([0-9]*)/;
+            my $newrange = $1 . "-" . $2;
+            # don't request the same range twice in a row (e.g., U and V will have the same range)
+            unless ( @ranges > 0 && $newrange eq $ranges[-1] ) {
+               push(@ranges,$newrange);
+            }
+         }
+      }
+   }
+   # now join selected ranges and actually download the specified data
+   my $range=join(",",@ranges);
+   stderrMessage("INFO","Downloading '$f' to '$localDir' with curl -f -s -r \"$range\" https://nomads.ncep.noaa.gov$backdir/nam.$dirDate/$f -o $localDir/$f.");
+   my $err=system("curl -f -s -r \"$range\" https://nomads.ncep.noaa.gov$backdir/nam.$dirDate/$f -o $localDir/$f");
+   if ( $err == 0 ) {
+      stderrMessage("INFO","Download complete.");
+      return 0;
+      #stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
+   } else {               
+      stderrMessage("INFO","curl: Get '$f' failed.");
+      unlink("$localDir/$f");
+      return 1;
+   }
 }
 #
 # write a log message to stderr
