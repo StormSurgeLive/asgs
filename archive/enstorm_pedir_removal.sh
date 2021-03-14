@@ -3,7 +3,7 @@
 # esnstorm_pedir_removal.sh: Removes the PE* subdirectories that were
 # created by adcprep for use in a parallel adcirc simulation.  
 #----------------------------------------------------------------
-# Copyright(C) 2017--2019 Jason Fleming
+# Copyright(C) 2017--2021 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #

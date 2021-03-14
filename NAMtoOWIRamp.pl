@@ -3,7 +3,7 @@
 # NAMtoOWIRamp.pl
 #--------------------------------------------------------------------------
 # Copyright(C) 2019 Brett Estrade
-# Copyright(C) 2011--2019 Jason Fleming
+# Copyright(C) 2011--2021 Jason Fleming
 # Copyright(C) 2010--2011 Eve-Marie Devaliere
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
