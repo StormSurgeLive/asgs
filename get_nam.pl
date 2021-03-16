@@ -503,7 +503,8 @@ sub getForecastData() {
       exit 1;
    }
    # read the special purpose file that describes the latest cycle that we 
-   # have nowcasted to (there has to be a better way)
+   # have nowcasted to 
+   # FIXME : there has to be a better way
    unless ( open(CYCLENUM,"<$rundir/currentCycle") ) { 
       stderrMessage("ERROR","Could not open '$rundir/currentCycle' for reading: $!.");
       exit 1;
