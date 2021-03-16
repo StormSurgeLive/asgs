@@ -80,6 +80,7 @@ COLDSTARTDATE=2021021500
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 # location on lonestar5 ______________________________________________
 LASTSUBDIR=null
+COLDSTARTDATE=2021030700  # updated this on a different branch
 
 # Scenario package 
 
