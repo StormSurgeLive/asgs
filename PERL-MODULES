@@ -19,3 +19,5 @@ XML::RSS
 Template
 Perl::Tidy
 Weather::NHC::TropicalCyclone
+YAML::Tiny
+JSON::XS
