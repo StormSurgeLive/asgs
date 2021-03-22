@@ -179,6 +179,10 @@ unless  ($metadatafile eq "null") {
                     if ( $list_items[0] eq "(" ) {
                         shift(@list_items);
                     }
+                    # if the list is empty, add the list item "null"
+                    if ( @list_items == 0 ) {
+                        push(@list_items,"null");
+                    }
                     $properties{$pp} = \@list_items; # add list to hash to replace scalar representation of this list
                 }             
             }
@@ -192,14 +196,21 @@ unless  ($metadatafile eq "null") {
             }
             # turn the output file properties into a sublist
             # with their own hashes for file name, file format, etc
+            my @outputlist; 
             foreach my $op (@outputfile_properties) {
                 if ( exists($properties{"$op File Name"}) ) {
                     # add the $op as the new key
                     # populate it with a hash containing File Name and Format
                     # delete the old "$op File Name" and "$op Format" keys
-                    # <<<<<<<<<<<<>>>>>>>>>>>>>>>>>
+                    my $fn = $properties{"$op File Name"};
+                    my $ff = $properties{"$op Format"};
+                    delete $properties{"$op File Name"};
+                    delete $properties{"$op Format"};
+                    my %fp = ( "description", $op, "name", $fn, "format", $ff );
+                    push(@outputlist,\%fp);
                 }
             } 
+            $properties{"adcirc.files.output"} = \@outputlist;
             my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%properties);
             unless ( open(SJ,">scenario.json") ) {
                 &stderrMessage("ERROR","Could not open 'scenario.json' for writing: $!.");
