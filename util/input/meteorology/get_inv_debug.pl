@@ -91,7 +91,7 @@ while (<In>) {
      } else {
         $old_lines[$last++] = $_;
      }
-   	$lastnum = $num;
+        $lastnum = $num;
   }
 }
 
@@ -109,7 +109,7 @@ while (<In>) {
   }
   else {
 #    grib1/2 inventory, figure range field
-     # e.g.: 
+     # e.g.:
      # 1:0:d=2021030106:PRMSL:mean sea level:anl:
      # 2:233889:d=2021030106:PRES:1 hybrid level:anl:
      # 3:476054:d=2021030106:RWMR:1 hybrid level:anl:
@@ -123,7 +123,7 @@ while (<In>) {
         sleep(3);
         exit 7;
      }
-     # if the byte index for the start of the data has not 
+     # if the byte index for the start of the data has not
      # changed from the previous line, and this is not the first
      # trip through the loop
      if ($lastStartRange != $startRange && $firstCall != 1) {
@@ -139,7 +139,7 @@ while (<In>) {
      else {
         # byte index same as last line, just record stdin
         $old_lines[$repeated++] = $_;
-	    $lastStartRange = $startRange;   
+	    $lastStartRange = $startRange;
      }
   }
 }
