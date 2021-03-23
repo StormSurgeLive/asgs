@@ -105,137 +105,137 @@ GetOptions(
            "jsonify" => \$jsonify           
           );
 # open metadata file
-unless  ($metadatafile eq "null") { 
-    # remove a trailing slash (if any, just in case)
-    if ( substr($metadatafile,-1,1) eq "/" ) {
-        chop($metadatafile);
-    }
-    # determine the file type by grabbing all characters from last dot to end of line
-    my ($type) = $metadatafile =~ /(\.[^.]+)$/;
-    # determine path to the metadata file (if any was provided)
-    my $dirpath = "";
-    $last_slash = rindex($metadatafile,"/");
-    if ( $last_slash != -1 ) {
-        $dirpath = substr($metadatafile,0,$last_slash);
-    }
-    #
-    #  J S O N
-    if ( $type eq ".json" ) {
-        unless (open(F,"<$metadatafile")) {
-            &stderrMessage("ERROR","Failed to open '$metadatafile': $!.");
-            die;
-        }
-        # slurp the file contents into a scalar variable
-        $file_content = do { local $/; <F> };
-        close(F);        
-        my $ref = JSON::PP->new->decode($file_content);
-        %mapping = %$ref;
-        if ($keys ne "null" && exists($mapping{$keys})) {
-            print $mapping{$keys};
-        } else {
-            print "null";
-        }     
-    #
-    #  Y A M L   
-    } elsif ( $type eq ".yaml" ) {
-        $yaml = YAML::Tiny->read($metadatafile);
-        if ($keys ne "null") {
-            my $value = $yaml->[0]->{$keys};
-            if (defined $value) {
-                print $value;
-            } else {
-                print "null";
-            }
-        }
-    #
-    #  R U N . P R O P E R T I E S
-    } elsif ( $type eq ".properties" ) {
-        unless (open(RUNPROP,"<$metadatafile")) {
-            &stderrMessage("ERROR","Failed to open '$metadatafile': $!.");
-            die;
-        }
-        my %properties;
-        while (<RUNPROP>) {
-            my @fields = split ':',$_, 2 ;
-            # strip leading and trailing spaces and tabs
-            $fields[0] =~ s/^\s|\s+$//g ;
-            $fields[1] =~ s/^\s|\s+$//g ;
-            $properties{$fields[0]} = $fields[1];
-        }
-        close(RUNPROP);
-        # filter out deprecated properties
-        foreach my $dp (@deprecated_properties) {
-            delete $properties{$dp};
-        }
-        # if a property value was requested, write the value to stdout and exit
-        if ($keys ne "null") {
-            if ( exists($properties{$keys})) {
-                print $properties{$keys};
-            } else {
-              print "null";
-            } 
-            exit;
-        }
-        # convert the run.properties file to scenario.json, creating json arrays
-        # and subarrays in the appropriate places 
-        if ( $jsonify ) {
-            foreach my $pp (@paren_properties) {
-                if ( exists($properties{$pp})) {
-                    my @list_items = split(" ",$properties{$pp});
-                    # remove leading and trailing parentheses, which will be the first and last fields
-                    if ( $list_items[-1] eq ")" ) {
-                        pop(@list_items);
-                    }
-                    if ( $list_items[0] eq "(" ) {
-                        shift(@list_items);
-                    }
-                    # if the list is empty, add the list item "null"
-                    if ( @list_items == 0 ) {
-                        push(@list_items,"null");
-                    }
-                    $properties{$pp} = \@list_items; # add list to hash to replace scalar representation of this list
-                }             
-            }
-            # turn property values that are meant to be a list (comma separated)
-            # into a json array
-            foreach my $cp (@comma_properties) {
-                if ( exists($properties{$cp})) {
-                    my @list_items = split(",",$properties{$cp});
-                    $properties{$cp} = \@list_items; # add list to hash to replace scalar representation of this list
-                }             
-            }
-            # turn the output file properties into a sublist
-            # with their own hashes for file name, file format, etc
-            my @outputlist; 
-            foreach my $op (@outputfile_properties) {
-                if ( exists($properties{"$op File Name"}) ) {
-                    # add the $op as the new key
-                    # populate it with a hash containing File Name and Format
-                    # delete the old "$op File Name" and "$op Format" keys
-                    my $fn = $properties{"$op File Name"};
-                    my $ff = $properties{"$op Format"};
-                    delete $properties{"$op File Name"};
-                    delete $properties{"$op Format"};
-                    my %fp = ( "description", $op, "name", $fn, "format", $ff );
-                    push(@outputlist,\%fp);
-                }
-            } 
-            $properties{"adcirc.files.output"} = \@outputlist;
-            # now encode as json and write out
-            unless ( open(SJ,">$dirpath/scenario.json") ) {
-                &stderrMessage("ERROR","Could not open '$dirpath/scenario.json' for writing: $!.");
-            }
-            my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%properties);
-            print SJ $json;
-            close(SJ);
-        }
-    } else {
-        &stderrMessage("ERROR","File type was not recognized (requires either 'json' or 'yaml' or '.properties').");
-    }
-} else {
+if ($metadatafile eq "null") { 
    &stderrMessage("ERROR","Did not provide the name of the metadata file.");
    exit 1;
+}    
+# remove a trailing slash (if any, just in case)
+if ( substr($metadatafile,-1,1) eq "/" ) {
+    chop($metadatafile);
 }
+# determine the file type by grabbing all characters from last dot to end of line
+my ($type) = $metadatafile =~ /(\.[^.]+)$/;
+# determine path to the metadata file (if any was provided)
+my $dirpath = "";
+$last_slash = rindex($metadatafile,"/");
+if ( $last_slash != -1 ) {
+    $dirpath = substr($metadatafile,0,$last_slash);
+}
+#
+#  J S O N
+if ( $type eq ".json" ) {
+    unless (open(F,"<$metadatafile")) {
+        &stderrMessage("ERROR","Failed to open '$metadatafile': $!.");
+        die;
+    }
+    # slurp the file contents into a scalar variable
+    $file_content = do { local $/; <F> };
+    close(F);        
+    my $ref = JSON::PP->new->decode($file_content);
+    %mapping = %$ref;
+    if ($keys ne "null" && exists($mapping{$keys})) {
+        print $mapping{$keys};
+    } else {
+        print "null";
+    }     
+#
+#  Y A M L   
+} elsif ( $type eq ".yaml" ) {
+    $yaml = YAML::Tiny->read($metadatafile);
+    if ($keys ne "null") {
+        my $value = $yaml->[0]->{$keys};
+        if (defined $value) {
+            print $value;
+        } else {
+            print "null";
+        }
+    }
+#
+#  R U N . P R O P E R T I E S
+} elsif ( $type eq ".properties" ) {
+    unless (open(RUNPROP,"<$metadatafile")) {
+        &stderrMessage("ERROR","Failed to open '$metadatafile': $!.");
+        die;
+    }
+    my %properties;
+    while (<RUNPROP>) {
+        my @fields = split ':',$_, 2 ;
+        # strip leading and trailing spaces and tabs
+        $fields[0] =~ s/^\s|\s+$//g ;
+        $fields[1] =~ s/^\s|\s+$//g ;
+        $properties{$fields[0]} = $fields[1];
+    }
+    close(RUNPROP);
+    # filter out deprecated properties
+    foreach my $dp (@deprecated_properties) {
+        delete $properties{$dp};
+    }
+    # if a property value was requested, write the value to stdout and exit
+    if ($keys ne "null") {
+        if ( exists($properties{$keys})) {
+            print $properties{$keys};
+        } else {
+            print "null";
+        } 
+        exit;
+    }
+    # convert the run.properties file to scenario.json, creating json arrays
+    # and subarrays in the appropriate places 
+    if ( $jsonify ) {
+        foreach my $pp (@paren_properties) {
+            if ( exists($properties{$pp})) {
+                my @list_items = split(" ",$properties{$pp});
+                # remove leading and trailing parentheses, which will be the first and last fields
+                if ( $list_items[-1] eq ")" ) {
+                    pop(@list_items);
+                }
+                if ( $list_items[0] eq "(" ) {
+                    shift(@list_items);
+                }
+                # if the list is empty, add the list item "null"
+                if ( @list_items == 0 ) {
+                    push(@list_items,"null");
+                }
+                $properties{$pp} = \@list_items; # add list to hash to replace scalar representation of this list
+            }             
+        }
+        # turn property values that are meant to be a list (comma separated)
+        # into a json array
+        foreach my $cp (@comma_properties) {
+            if ( exists($properties{$cp})) {
+                my @list_items = split(",",$properties{$cp});
+                $properties{$cp} = \@list_items; # add list to hash to replace scalar representation of this list
+            }             
+        }
+        # turn the output file properties into a sublist
+        # with their own hashes for file name, file format, etc
+        my @outputlist; 
+        foreach my $op (@outputfile_properties) {
+            if ( exists($properties{"$op File Name"}) ) {
+                # add the $op as the new key
+                # populate it with a hash containing File Name and Format
+                # delete the old "$op File Name" and "$op Format" keys
+                my $fn = $properties{"$op File Name"};
+                my $ff = $properties{"$op Format"};
+                delete $properties{"$op File Name"};
+                delete $properties{"$op Format"};
+                my %fp = ( "description", $op, "name", $fn, "format", $ff );
+                push(@outputlist,\%fp);
+            }
+        } 
+        $properties{"adcirc.files.output"} = \@outputlist;
+        # now encode as json and write out
+        unless ( open(SJ,">$dirpath/scenario.json") ) {
+            &stderrMessage("ERROR","Could not open '$dirpath/scenario.json' for writing: $!.");
+        }
+        my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%properties);
+        print SJ $json;
+        close(SJ);
+    }
+} else {
+    &stderrMessage("ERROR","File type was not recognized (requires either 'json' or 'yaml' or '.properties').");
+}
+
 1;
 
 #
