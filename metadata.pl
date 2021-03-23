@@ -106,8 +106,18 @@ GetOptions(
           );
 # open metadata file
 unless  ($metadatafile eq "null") { 
+    # remove a trailing slash (if any, just in case)
+    if ( substr($metadatafile,-1,1) eq "/" ) {
+        chop($metadatafile);
+    }
     # determine the file type by grabbing all characters from last dot to end of line
     my ($type) = $metadatafile =~ /(\.[^.]+)$/;
+    # determine path to the metadata file (if any was provided)
+    my $dirpath = "";
+    $last_slash = rindex($metadatafile,"/");
+    if ( $last_slash != -1 ) {
+        $dirpath = substr($metadatafile,0,$last_slash);
+    }
     #
     #  J S O N
     if ( $type eq ".json" ) {
@@ -211,10 +221,11 @@ unless  ($metadatafile eq "null") {
                 }
             } 
             $properties{"adcirc.files.output"} = \@outputlist;
-            my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%properties);
-            unless ( open(SJ,">scenario.json") ) {
-                &stderrMessage("ERROR","Could not open 'scenario.json' for writing: $!.");
+            # now encode as json and write out
+            unless ( open(SJ,">$dirpath/scenario.json") ) {
+                &stderrMessage("ERROR","Could not open '$dirpath/scenario.json' for writing: $!.");
             }
+            my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%properties);
             print SJ $json;
             close(SJ);
         }
