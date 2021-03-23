@@ -24,7 +24,7 @@
 # You should have received a copy of the GNU General Public License along with
 # the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------
-# The defaults for parameters that can be reset in this config file 
+# The defaults for parameters that can be reset in this config file
 # are preset in the following scripts:
 # {SCRIPTDIR/platforms.sh               # also contains Operator-specific info
 # {SCRIPTDIR/config/config_defaults.sh
@@ -80,7 +80,7 @@ HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 # location on lonestar5 ______________________________________________
 LASTSUBDIR=null
 
-# Scenario package 
+# Scenario package
 
 #PERCENT=default
 SCENARIOPACKAGESIZE=2 # number of storms in the ensemble

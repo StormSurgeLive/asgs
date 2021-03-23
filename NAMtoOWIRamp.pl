@@ -48,7 +48,7 @@
 # perl ~/asgs/2014stable/NAMtoOWIRamp.pl --ptFile ~/asgs/2014stable/input/ptFile_hsofs.txt --namFormat grib2 --namType nowcast --awipGridNumber 218 --dataDir ./ --outDir ./ --velocityMultiplier 1.0 --scriptDir ~/asgs/2014stable --applyRamp yes --rampDistance 1.0
 #
 # Example of partial grib2 download of NAM reanalysis :
-# day=1 ; while [[ $day -lt 32 ]]; do daystring=`printf %02d $day`; echo $daystring ; TARGETURL=https://www.ncei.noaa.gov/data/north-american-mesoscale-model/access/historical/analysis/201907/201907${daystring} ; for cycle in 00 06 12 18 ; do  $METSCRIPTDIR/get_inv.pl $TARGETURL/namanl_218_201907${daystring}_${cycle}00_000.inv | grep -E "(PRMSL|UGRD:10 m above ground|VGRD:10 m above ground)" | $METSCRIPTDIR/get_grib.pl $TARGETURL/namanl_218_201907${daystring}_${cycle}00_000.grb2 namanl_218_201907${daystring}_${cycle}00_000.grb2 ; done ; day=`expr $day + 1`; done 
+# day=1 ; while [[ $day -lt 32 ]]; do daystring=`printf %02d $day`; echo $daystring ; TARGETURL=https://www.ncei.noaa.gov/data/north-american-mesoscale-model/access/historical/analysis/201907/201907${daystring} ; for cycle in 00 06 12 18 ; do  $METSCRIPTDIR/get_inv.pl $TARGETURL/namanl_218_201907${daystring}_${cycle}00_000.inv | grep -E "(PRMSL|UGRD:10 m above ground|VGRD:10 m above ground)" | $METSCRIPTDIR/get_grib.pl $TARGETURL/namanl_218_201907${daystring}_${cycle}00_000.grb2 namanl_218_201907${daystring}_${cycle}00_000.grb2 ; done ; day=`expr $day + 1`; done
 #
 #
 ######################################################
@@ -117,7 +117,7 @@ GetOptions(
 #
 # create a hash of properties from run.properties
 our %properties;
-# open properties file 
+# open properties file
 unless (open(RUNPROP,"<run.properties")) {
    stderrMessage("ERROR","Failed to open run.properties: $!.");
    #die;
@@ -135,7 +135,7 @@ unless (open(RUNPROP,"<run.properties")) {
 #
 # open an application log file for get_nam.pl
 unless ( open(APPLOGFILE,">>NAMtoOWIRamp.pl.log") ) {
-   stderrMessage("ERROR","Could not open 'NAMtoOWIRamp.pl.log' for appending: $!.");        
+   stderrMessage("ERROR","Could not open 'NAMtoOWIRamp.pl.log' for appending: $!.");
    exit 1;
 }
 &stderrMessage( "INFO", "Started processing NAM data." );
@@ -715,10 +715,10 @@ sub getGrib2 {
             die "$file not found.\n" if ( !-f $file );
             my $com = "$scriptDir/wgrib2 $file -match \"UGRD:10\" -inv /dev/null -text -";
             @rawU = `$com`;
-            die "rawU is empty, com=$com\n" unless (@rawU);            
+            die "rawU is empty, com=$com\n" unless (@rawU);
             $com  = "$scriptDir/wgrib2 $file -match \"VGRD:10\" -inv /dev/null -text -";
             @rawV = `$com`;
-            die "rawV is empty, com=$com\n" unless (@rawV);            
+            die "rawV is empty, com=$com\n" unless (@rawV);
             $com  = "$scriptDir/wgrib2 $file -match \"PRMSL\" -inv /dev/null -text -";
             @rawP = `$com`;
             die "rawP is empty, com=$com\n" unless (@rawP);
@@ -856,7 +856,7 @@ sub stderrMessage () {
 }
 
 #
-# write a log message to a log file dedicated to this script (typically debug messages)        
+# write a log message to a log file dedicated to this script (typically debug messages)
 sub appMessage () {
    my $level = shift;
    my $message = shift;
