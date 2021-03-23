@@ -57,9 +57,8 @@ use Date::Calc;
 use Cwd;
 #
 our $rundir;   # directory where the ASGS is running
-my $statefile = "null"; # file that holds the current simulation state
-our $backsite; # ncep ftp site for nam data
-our $backdir;  # dir on ncep ftp site
+my $backsite; # ncep ftp site for nam data
+my $backdir;  # dir on ncep ftp site
 our $enstorm;  # hindcast, nowcast, or forecast
 my $csdate;   # UTC date and hour (YYYYMMDDHH) of ADCIRC cold start
 my $hstime;   # hotstart time, i.e., time since ADCIRC cold start (in seconds)
@@ -82,7 +81,6 @@ our @grib_fields = ( "PRMSL","UGRD:10 m above ground","VGRD:10 m above ground" )
 
 #
 GetOptions(
-           "statefile=s" => \$statefile,
            "rundir=s" => \$rundir,
            "backsite=s" => \$backsite,
            "backdir=s" => \$backdir,
