@@ -1,0 +1,9 @@
+Mesh: nc_inundation_v9.99_w_rivers
+Storm: al05
+Advisory: 54
+Ensemble: veerLeft100
+
+The North Carolina Forecast System (NCFS) has produced guidance for advisory 54 / veerLeft100 on the nc_inundation_v9.99_w_rivers mesh.  This guidance includes predictions of maximum values for water levels in feet above NAVD88. The guidance is attached to this email in a GIS shapefile. The enhanced resolution post-processing and visualization of the maximum water levels took 40 minutes and 24 seconds to complete, without removal of overpredicted water levels.
+
+For more information, including visualizations of maxima and time series for other parameters, please visit the CERA Web site for North Carolina: http://nc-cera.renci.org/
+
