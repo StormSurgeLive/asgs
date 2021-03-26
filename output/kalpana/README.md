@@ -8,11 +8,11 @@ This file contains two important lines of information: startDateTime and address
 
 ## ncsu-viz-mailer.sh
 
-This is the main file used to run the script. Once invoked, it will run continuously until it is canceled or encounters an error. It should be run by opening a linux screen using the `screen` command, and is invoked via the following command:
+This is the main file used to run the script. Once invoked, it will run continuously until it is canceled or encounters an error. It should be run by opening a linux screen using the `screen` command, and is invoked via the following:
 ```
 bash ncsu-viz-mailer.sh -c ncsu-viz-config.sh
 ```
-To kill the process, use Ctrl+c. To leave the screen but keep it active, use Ctrl+a+d. To return to an existing screen, type 'screen -r'. Job progress output is written to a log file in the logs directory.
+To kill the process, use `Ctrl+c`. To leave the screen but keep it active, use `Ctrl+a+d`. To return to an existing screen, type `screen -r`. Job progress output is written to a log file in the logs directory.
 
 The bash script as currently configured requires several files to be present in the working directory:
 
