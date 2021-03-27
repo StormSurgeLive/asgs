@@ -56,7 +56,6 @@ export MAGICK_HOME=$ASGS_INSTALL_PATH
 export LDFLAGS
 ./configure --prefix=$ASGS_INSTALL_PATH --with-gcc-arch=native --with-perl=$(which perl)  \
 	    --without-magick-plus-plus --disable-openmp --enable-shared --with-modules
-
 make #-j $JOBS
 make install
 

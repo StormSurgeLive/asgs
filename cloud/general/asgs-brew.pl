@@ -702,11 +702,12 @@ sub get_steps {
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                CPPFLAGS    => { value => qq{-I $asgs_install_path/include}, how => q{append}, separator => q{ }},
-                LDFLAGS     => { value => qq{-L $asgs_install_path/lib},     how => q{append}, separator => q{ }},
-                HDF5_DIR    => { value => qq{$asgs_install_path},            how => q{replace}},    # needed for netCDF4 python module
-                HDF5_LIBDIR => { value => qq{$asgs_install_path/lib},        how => q{replace}},    # needed for netCDF4 python module
-                HDF5_INCDIR => { value => qq{$asgs_install_path/include},    how => q{replace}},    # needed for netCDF4 python module
+                CPPFLAGS    => { value => qq{-I$asgs_install_path/include},  how => q{append}, separator => q{ }},
+                LDFLAGS     => { value => qq{-L$asgs_install_path/lib},      how => q{append}, separator => q{ }},
+                # the following HDF5* vars are needed for netCDF4 python module
+                HDF5_DIR    => { value => qq{$asgs_install_path},            how => q{replace}},
+                HDF5_LIBDIR => { value => qq{$asgs_install_path/lib},        how => q{replace}},
+                HDF5_INCDIR => { value => qq{$asgs_install_path/include},    how => q{replace}},
             },
             skip_if => sub {
                 my ( $op, $opts_ref ) = @_;
@@ -899,7 +900,7 @@ sub get_steps {
                 my ( $op, $opts_ref ) = @_;
                 my $bins_ok = -x qq{$asgs_install_path/bin/convert};
                 local $?;
-                system( qw/perl -MImage::Magick -e/, 'print qq{..ensuring Image::Magick is available.\n}' );
+                system( q[perl -MImage::Magick -e 'print qq{..ensuring Image::Magick is available.\n}' > /dev/null 2>&1] );
 
                 # perldoc -f system  for more info on getting child process info
                 # regarding the exit status
@@ -913,9 +914,9 @@ sub get_steps {
                 my ( $op, $opts_ref ) = @_;
                 my $bins_ok = -x qq{$asgs_install_path/bin/convert};
                 local $?;
-                system( qw/perl -MImage::Magick -e/, 'print qq{..ensuring Image::Magick is available.\n}' );
+                system( q[perl -MImage::Magick -e 'print qq{..ensuring Image::Magick is available.\n}' > /dev/null 2>&1] );
 
-                # perldoc -f system  for more info on getting child process info
+                # perldoc -f system for more info on getting child process info
                 # regarding the exit status
                 my $exit_code = $? >> 8;
 
