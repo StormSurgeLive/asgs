@@ -392,8 +392,12 @@ prep()
     NAFILE=${17}  # full domain nodal attributes file
     #
     THIS="asgs_main.sh>prep()"
+<<<<<<< HEAD
     #debugMessage "top of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY LASTADVISORYNUM=$LASTADVISORYNUM STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+=======
+    #debugMessage "top of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY LASTADVISORYNUM=$LASTADVISORYNUM STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+>>>>>>> master
     echo "time.adcprep.start : ${DATETIME}" >> ${STORMDIR}/run.properties
     # set the name of the archive of preprocessed input files
     PREPPED=$PREPPEDARCHIVE
@@ -434,6 +438,7 @@ prep()
     else
        # hotstart
        #
+<<<<<<< HEAD
        # TODO: Autodetect the format of the hotstart files to read (the
        # type of hotstart files to write is determined by the HOTSTARTCOMP
        # and HOTSTARTFORMAT parameters in io_defaults.sh).
@@ -447,6 +452,8 @@ prep()
        # This would be best accomplished by writing/reading properties
        # to/from the run.properties file.
        #
+=======
+>>>>>>> master
        # copy in the swaninit file which contains the name of the swan
        # control file (conventionally named fort.26 when used with ADCIRC)
        if [[ $WAVES = on ]]; then
