@@ -547,6 +547,7 @@ sub _setup_ENV {
 
 	# remove new line, replace with a space (for cleaner definitions in "step" definitions)
 	$value =~ s/\n/ /g;
+        $value =~ s/ +/ /g;
 
         # default "how" mode is to prepend if the envar is already defined
         if ( not defined $op->{export_ENV}->{$envar}->{how} or $op->{export_ENV}->{$envar}->{how} eq q{prepend} ) {
