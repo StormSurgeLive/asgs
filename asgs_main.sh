@@ -392,23 +392,7 @@ prep()
     NAFILE=${17}  # full domain nodal attributes file
     #
     THIS="asgs_main.sh>prep()"
-    debugMessage "top of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY LASTADVISORYNUM=$LASTADVISORYNUM STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
-    HPCENVSHORT=$6     # machine to run on (jade, desktop, queenbee, etc)
-    NCPU=$7     # number of CPUs to request in parallel jobs
-    PREPPEDARCHIVE=$8 # preprocessed fort.13 and fort.14 package
-    GRIDFILE=$9 # fulldomain grid
-    ACCOUNT=${10} # account to charge time to
-    OUTPUTOPTIONS="${11}" # contains list of args for appending files
-    HOTSTARTCOMP=${12} # fulldomain or subdomain
-    WALLTIME=${13} # HH:MM:SS format
-    HOTSTARTFORMAT=${14}   # "binary" or "netcdf"
-    MINMAX=${15}           # "continuous" or "reset"
-    HOTSWAN=${16} # "yes" or "no" to reinitialize SWAN only
-    NAFILE=${17}  # full domain nodal attributes file, must be last in the
-
-
-
-    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+    #debugMessage "top of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY LASTADVISORYNUM=$LASTADVISORYNUM STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
     echo "time.adcprep.start : ${DATETIME}" >> ${STORMDIR}/run.properties
     # set the name of the archive of preprocessed input files
     PREPPED=$PREPPEDARCHIVE
