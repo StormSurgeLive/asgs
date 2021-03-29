@@ -6,8 +6,8 @@
 # System (ASGS). It performs configuration tasks via config.sh, then enters a
 # loop which is executed once per advisory cycle.
 #----------------------------------------------------------------
-# Copyright(C) 2006--2019 Jason Fleming
-# Copyright(C) 2006--2007, 2019 Brett Estrade
+# Copyright(C) 2006--2021 Jason Fleming
+# Copyright(C) 2006--2007, 2019--2021 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -178,14 +178,14 @@ checkHotstart()
    FROMDIR=$1
    HOTSTARTFORMAT=$2
    LUN=$3
-#
+   # TODO: This function should autodetect the hotstart file format,
+   # composition, and location rather than assuming it based on the
+   # current ASGS configuration file.
    THIS="asgs_main.sh>checkHotstart()"
-   HOTSTARTFILE=''
    # set name and specific file location based on format (netcdf or binary)
-   if [[ $HOTSTARTFORMAT = netcdf ]]; then
-      HOTSTARTFILE=$FROMDIR/fort.$LUN.nc
-   else
-      HOTSTARTFILE=$FROMDIR/PE0000/fort.$LUN
+   HOTSTARTFILE=$FROMDIR/fort.$LUN.nc # netcdf format is the default
+   if [[ $HOTSTARTFORMAT = binary ]]; then
+      HOTSTARTFILE=$FROMDIR/PE0000/fort.$LUN # could be either fulldomain or subdomain
    fi
    # check for existence of hotstart file
    if [ ! -e $HOTSTARTFILE ]; then
@@ -392,7 +392,8 @@ prep()
     NAFILE=${17}  # full domain nodal attributes file
     #
     THIS="asgs_main.sh>prep()"
-    #debugMessage "top of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY LASTADVISORYNUM=$LASTADVISORYNUM STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+    #debugMessage "top of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY LASTADVISORYNUM=$LASTADVISORYNUM STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
+    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
     echo "time.adcprep.start : ${DATETIME}" >> ${STORMDIR}/run.properties
     # set the name of the archive of preprocessed input files
     PREPPED=$PREPPEDARCHIVE
@@ -432,6 +433,19 @@ prep()
        fi
     else
        # hotstart
+       #
+       # TODO: Autodetect the format of the hotstart files to read (the
+       # type of hotstart files to write is determined by the HOTSTARTCOMP
+       # and HOTSTARTFORMAT parameters in io_defaults.sh).
+       # The io_defaults.sh values are "fulldomain" and "netcdf", respectively.
+       # Supported use cases include : (a) reading fulldomain binary hotstart
+       # file from $FROMDIR or $FROMDIR/PE0000; (b) reading subdomain binary
+       # hotstart files from PE* directories or from a .tar.gz archive;
+       # (c) reading fulldomain netcdf hotstart files; (d) starting serial
+       # run from subdomain and (e) hotstarting from subdomain binary hotstart
+       # files decomposed to a different number of cores than the source run.
+       # This would be best accomplished by writing/reading properties
+       # to/from the run.properties file.
        #
        # copy in the swaninit file which contains the name of the swan
        # control file (conventionally named fort.26 when used with ADCIRC)
@@ -597,8 +611,6 @@ prep()
           if [[ $HOTSTARTFORMAT = netcdf ]]; then
              # copy netcdf file so we overwrite the one that adcprep created
              cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG 2>&1
-	     mv fort.68.nc fort.68.nc.orig
-  	     nccopy -d0 fort.68.nc.orig fort.68.nc
           else
              ln -s $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG 2>&1
           fi
@@ -1284,7 +1296,7 @@ submitJob()
    fi
    # record the number of requested CPUs for use in determining capacity to run another job
    if [[ $HOTSTARTCOMP = subdomain ]]; then
-      CLOPTIONS="${CLOPTIONS} -S"
+      CLOPTIONS="${CLOPTIONS} -S -R"
       LOCALHOTSTART="--localhotstart"
    fi
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $ADVISDIR/$ENSTORM/run.properties
