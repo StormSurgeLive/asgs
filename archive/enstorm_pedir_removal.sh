@@ -42,6 +42,7 @@ LOGFILE=${SCENARIODIR}/enstorm_pedir_removal.sh.log
 # run configuration
 WAVES=${properties["coupling.waves"]}
 SWANHSCOMPRESSION=${properties["coupling.waves.swan.swanhscompression"]}
+hotstartcomp=${properties['adcirc.hotstartcomp']}
 #
 scenarioMessage "$THIS: Starting cleanup of subdomain (PE*) subdirectories." $LOGFILE
 #
@@ -133,9 +134,15 @@ env_dispatch ${HPCENVSHORT}
 THIS=archive/enstorm_pedir_removal.sh
 # now delete the subdomain directories
 rm errmsg ; touch errmsg
-for dir in `ls -d PE*`; do
-   $REMOVALCMD $dir 2>> errmsg | tee -a $LOGFILE >> $SCENARIOLOG
-done
+# FIXME : this needs to be cleaned up so that the subdomain hotstart
+# files are archived in a .tar.gz file or even post processed into
+# a fulldomain hotstart file instead of just turning
+# off the deletion of the PE* subdirectories
+if [[ $hotstartcomp != "subdomain" ]]; then
+   for dir in `ls -d PE*`; do
+      $REMOVALCMD $dir 2>> errmsg | tee -a $LOGFILE >> $SCENARIOLOG
+   done
+fi
 if [[ -s errmsg  ]]; then
    warn "cycle $CYCLE: $SCENARIO: $THIS: Could not remove PE subdirectories: `cat errmsg`." $LOGFILE
 fi
