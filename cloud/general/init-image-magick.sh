@@ -60,9 +60,8 @@ patch ./PerlMagick/Makefile.PL.in $SCRIPTDIR/patches/ImageMagick-7/PerlMagic/Mak
 patch ./PerlMagick/default/Makefile.PL.in $SCRIPTDIR/patches/ImageMagick-7/PerlMagic/default/Makefile.PL.in.patch
 patch ./PerlMagick/quantum/Makefile.PL.in $SCRIPTDIR/patches/ImageMagick-7/PerlMagic/quantum/Makefile.PL.in.patch
 
-
 ./configure --prefix=$ASGS_INSTALL_PATH --with-gcc-arch=native --with-perl=$(which perl) \
-    --without-magick-plus-plus --disable-openmp --enable-shared --with-modules
+    --without-magick-plus-plus --disable-openmp
 
 make
 make install

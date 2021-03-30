@@ -27,7 +27,7 @@ RUN chown -R asgsuser /work
 RUN chown -R asgsuser /scratch
 
 # get git repo
-RUN su -c 'cd /home/asgsuser && git clone https://github.com/jasonfleming/asgs.git && cd ./asgs && git checkout master' - asgsuser
+RUN su -c 'cd /home/asgsuser && git clone https://github.com/jasonfleming/asgs.git && cd ./asgs && git checkout docker-debian' - asgsuser
 RUN su -c 'cd /home/asgsuser/asgs && git config --global user.email "asgsuser@noemail" && git config --global user.name "asgsuser"'
 
 # persist env in .bash_profile
@@ -39,7 +39,8 @@ USER asgsuser
 
 # actually build all of ASGS
 RUN export _ASGS_CONTAINER=docker && \ 
-      cd /home/asgsuser/asgs      && \ 
-      ./init-asgs.sh BATCH=YES
+      cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh BATCH=YES    || \
+      echo something went wonky but preserving docker image
 
 ENTRYPOINT ["tail", "-f", "/dev/null"]#
