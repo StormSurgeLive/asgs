@@ -57,9 +57,12 @@ use Date::Calc;
 use Cwd;
 #
 our $rundir;   # directory where the ASGS is running
+my $scenariodir = "null"; # subdirectory where results are produced for a particular scenario
 my $backsite; # ncep ftp site for nam data
 my $backdir;  # dir on ncep ftp site
-our $enstorm;  # hindcast, nowcast, or forecast
+# FIXME : $enstorm needs to be eliminated in favor of $stage which can be "nowcast" or "forecast"
+# and $scenario which will contain the name of the subdirectory where the results are produced
+our $enstorm;  # nowcast, or something else (which counts as a forecast) ; also the name of the subdir where the results are produced
 my $csdate;   # UTC date and hour (YYYYMMDDHH) of ADCIRC cold start
 my $hstime;   # hotstart time, i.e., time since ADCIRC cold start (in seconds)
 my @altnamdirs; # alternate directories to look in for NAM data
@@ -77,10 +80,12 @@ our $num_retries = 0;
 our $had_enough = 0;
 my @nowcasts_downloaded;  # list of nowcast files that were
                           # successfully downloaded
+my $forecastselection = "null"; # "strict" or "latest"
+#
 our @grib_fields = ( "PRMSL","UGRD:10 m above ground","VGRD:10 m above ground" );
-
 #
 GetOptions(
+           "scenariodir=s" => \$scenariodir,
            "rundir=s" => \$rundir,
            "backsite=s" => \$backsite,
            "backdir=s" => \$backdir,
@@ -91,14 +96,53 @@ GetOptions(
            "altnamdirs=s" => \@altnamdirs,
            "archivedruns=s" => \$archivedruns,
            "forecastcycle=s" => \@forecastcycle,
+           "forecastselection=s" => \$forecastselection,
            "scriptdir=s" => \$scriptDir
           );
 #
-# open an application log file for get_nam.pl
-unless ( open(APPLOGFILE,">>$rundir/get_nam.pl.log") ) {
-   stderrMessage("ERROR","Could not open '$rundir/get_nam.pl.log' for appending: $!.");
-   exit 1;
+# create a hash of properties from run.properties
+our %properties;
+our $have_properties = 1;
+# open the run.properties file : it will be in $rundir on a nowcast
+# and it will be in $rundir/$enstorm on a forecast
+my $proppath = $scenariodir;
+if ( $enstorm eq "nowcast" ) {
+   $proppath = $rundir; # we don't have the latest data yet, so we don't know what cycle we are on
 }
+unless (open(RUNPROP,"<$proppath/run.properties")) {
+   &stderrMessage("WARNING","Failed to open $proppath/run.properties: $!.");
+   &appMessage("WARNING","Failed to open $proppath/run.properties: $!.");
+   $have_properties = 0;
+} else {
+   &appMessage("INFO","Opened $proppath/run.properties.");
+   while (<RUNPROP>) {
+      my @fields = split ':',$_, 2 ;
+      # strip leading and trailing spaces and tabs
+      $fields[0] =~ s/^\s|\s+$//g ;
+      $fields[1] =~ s/^\s|\s+$//g ;
+      $properties{$fields[0]} = $fields[1];
+   }
+   close(RUNPROP);
+   &appMessage("INFO","Closed $proppath/run.properties.");
+}
+#
+# get forecast selection preference from run.properties
+# file if it was not specified on the command line
+# (i.e., command line option takes precedence)
+if ( $forecastselection eq "null" ) {
+   &appMessage("INFO","forecastselection was not specified on the command line.");
+   if ( $have_properties &&
+     exists($properties{"forcing.nwp.schedule.forecast.forecastselection"}) ) {
+      $forecastselection = $properties{"forcing.nwp.schedule.forecast.forecastselection"};
+      &appMessage("INFO","forcing.nwp.schedule.forecast.forecastselection was set to '$forecastselection' from the run.properties file.");
+   } else {
+      $forecastselection = "latest";
+      &appMessage("INFO","forcing.nwp.schedule.forecast.forecastselection was not available from the run.properties file. Setting it to the default value of 'latest'.");
+   }
+} else {
+   &appMessage("WARNING","forecastselection was set to '$forecastselection' on  the command line.");
+}
+#
 &appMessage("DEBUG","hstime is $hstime");
 &appMessage("DEBUG","Connecting to $backsite:$backdir");
 our $dl = 0;   # true if we were able to download the file(s) successfully
@@ -180,7 +224,8 @@ if ( defined $hstime && $hstime != 0 ) {
 # form the date and hour of the current ADCIRC time
 $date = sprintf("%4d%02d%02d",$ny ,$nm, $nd);
 $hour = sprintf("%02d",$nh);
-&appMessage("DEBUG","The current ADCIRC time is $date$hour.");
+my $adcirctime = $date . $hour;
+&appMessage("DEBUG","The current ADCIRC time is $adcirctime.");
 #
 # now go to the ftp site and download the files
 # get the list of nam dates where data is available
@@ -197,7 +242,7 @@ foreach my $dir (@ncepDirs) {
 # now sort the NAM dirs from lowest to highest (it appears that ls() does
 # not automatically do this for us)
 my @sortedNamDirs = sort { lc($a) cmp lc($b) } @namDirs;
-# narrow the list to the target date and any later dates
+# narrow the list to target the latest hotstart date and any later dates
 my @targetDirs;
 foreach my $dir (@sortedNamDirs) {
    #stderrMessage("DEBUG","Found the directory '$dir' on the NCEP ftp site.");
@@ -232,22 +277,50 @@ if (!@allFiles){
    #die "no awip1200 files yet in $targetDirs[-1]\n";
    stderrMessage("ERROR","No awip1200.tm00 files yet in $targetDirs[-1].");
 }
-
-foreach my $file (@allFiles) {
+# now sort the NAM files from lowest to highest (it appears that ls() does
+# not automatically do this for us)
+my @sortedFiles = sort { lc($a) cmp lc($b) } @allFiles;
+#
+# if the forecastselection was set to "strict", then we want
+# to nowcast to a cycle that occurs
+#    (a) today
+#    (b) after the adcirc (hotstart) time
+#    (c) as recently as possible
+#    (d) earliest in the list of forecastcycles, if that is
+#        before the current cycle time
+# So in this case we will want to compare the hotstart time
+# with the specified forecast cycles, pick the earliest forecast
+# cycle that is after the hotstart time, and discard nowcast files
+# after that.
+my $cycletime;
+TODAYSFILES : foreach my $file (@sortedFiles) {
    if ( $file =~ /nam.t(\d+)z.awip1200.tm00.grib2/ ) {
       $cyclehour = $1;
-#      stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
+      $cycletime = $cycledate . $cyclehour;
+      if ( $forecastselection eq "latest" ) {
+         next;
+      }
+      if ( $forecastselection eq "strict" ) {
+         # find the first selected forecast cycle that
+         # is available after the adcirc time today
+         # (rather than just running the latest)
+         OURCYCLES : foreach my $fc (@forecastcycle) {
+            my $selected_cycle = $cycledate . $fc;
+            if ( $selected_cycle > $adcirctime && $selected_cycle == $cycletime) {
+               last TODAYSFILES;
+            }
+         }
+      }
    }
 }
-my $cycletime;
-
+stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
 unless (defined $cyclehour ) {
    stderrMessage("WARNING","Could not download the list of NAM files from NCEP.");
    exit;
 } else {
    $cycletime = $cycledate . $cyclehour;
 }
-#stderrMessage("DEBUG","The cycletime is '$cycletime'.");
+stderrMessage("DEBUG","The cycletime is '$cycletime'.");
 #
 # we need to have at least one set of files beyond the current nowcast
 # time, i.e., we need fresh new files that we have not run with yet
@@ -455,7 +528,9 @@ sub getForecastData() {
       stderrMessage("ERROR","Could not open '$rundir/forecast.properties' for writing: $!.");
       exit 1;
    }
-   # FIXME: this should come from the run.properties file
+   # read the special purpose file that describes the latest cycle that we
+   # have nowcasted to
+   # FIXME : there has to be a better way
    unless ( open(CYCLENUM,"<$rundir/currentCycle") ) {
       stderrMessage("ERROR","Could not open '$rundir/currentCycle' for reading: $!.");
       exit 1;
@@ -490,14 +565,22 @@ sub getForecastData() {
    #stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
    foreach my $cycle (@forecastcycle) {
       if ( $cycle eq $cyclehour ) {
-         $runme = 1;
+         $runme = 1;  # operator wants to forecast this cycle
          last;
       }
       # allow for the possibility that we aren't supposed to run any forecasts
       if ( $cycle eq "none" ) {
-         $noforecast = 1;
+         $noforecast = 1; # operator doesn't want any forecasts
          last;
       }
+   }
+   # if the Operator strictly wants to only forecast certain cycles,
+   # and this is not one of them, then do not run this forecast,
+   # and prevent this forecast from running as an unscheduled
+   # "make up" forecast for a previous forecast that was supposed
+   # to run and did not
+   if ( $runme == 0 && $forecastselection eq "strict" ) {
+      $noforecast = 1;   # operator doesn't want a forecast to run for this cycle
    }
    # we may still want to run the forecast to make up for an earlier
    # forecast that failed or was otherwise missed (24 hour lookback)
@@ -789,5 +872,11 @@ sub appMessage () {
    my $year = 1900 + $yearOffset;
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
+   #
+   # open an application log file for get_nam.pl
+   unless ( open(APPLOGFILE,">>$rundir/get_nam.pl.log") ) {
+      &stderrMessage("ERROR","Could not open $rundir/get_nam.pl.log for appending: $!.");
+   }
    printf APPLOGFILE "$theTime $level: $enstorm: get_nam.pl: $message\n";
+   close(APPLOGFILE);
 }
