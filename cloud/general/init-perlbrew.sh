@@ -33,12 +33,12 @@ else
 fi
 
 # source for this session
-source $PERLBREW_ROOT/etc/bashrc
+source $PERLBREW_ROOT/etc/bashrc > /dev/null 2>&1
 
 if [ ! -e "$PERLBREW_ROOT/perls/$PERL_VERSION/bin/perl" ]; then
 
   # --notest is just to increase the speed of the installation
-  perlbrew --verbose --notest install $PERL_VERSION
+  perlbrew --verbose --notest install $PERL_VERSION  # -D useshrplib #<- to build libperl.so rather than libperl.a
 
   if [ $? -ne 0 ]; then
     echo perlbrew failed to install perl $PERL_VERSION
