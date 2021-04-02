@@ -54,7 +54,7 @@ PTFILE="ptFile_oneEighth.txt"         # the lat/lons for the OWI background met
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
 VELOCITYMULTIPLIER=1.0
 forecastSelection="latest"            # "latest" or "strict"
-forecastDownload="only-to-use"        # "only-to-use" or "all"
+forecastDownload="only-to-run"        # "only-to-run" or "all"
 #
 # External data sources : River Flux
 #

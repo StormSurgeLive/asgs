@@ -677,8 +677,9 @@ sub getForecastData() {
    } else {
       # don't download forecast files that are not needed unless
       # specifically requested
-      if ( $forecastdownload eq "only-to-use" ) {
+      if ( $forecastdownload eq "only-to-run" ) {
          stderrMessage("INFO","This forecast is not scheduled to run so the files will not be downloaded.");
+         printf STDOUT "forecast-not-needed";
          exit 0;
       }
    }
