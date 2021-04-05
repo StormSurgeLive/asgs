@@ -1545,6 +1545,36 @@ variables_init()
    declare -a subshellPIDs  # list of process IDs of subshells
    declare -a logFiles      # list of log files to be tailed onto scenario.log
    PYTHONVENV=null # path to python virtual environment, e.g., ~/asgs/asgspy/venv
+   # startup hooks
+   declare -a START_INIT=( )     # start execution
+   declare -a FINISH_INIT=( )    # finish platform selection, sanity checks, etc
+   # spinup hooks
+   declare -a START_SPINUP_STAGE=( )
+   declare -a BUILD_SPINUP=( )           # constructing input files for model coldstart initialization
+   declare -a SUBMIT_SPINUP=( )          # submit spinup compute job for model coldstart
+   declare -a FINISH_SPINUP_SCENARIO=( ) # coldstart spinup compute job finished
+   declare -a HOT_SPINUP=( )             # if asgs is starting hot, acquire hotstart files
+   declare -a FINISH_SPINUP_STAGE=( )
+   # nowcast hooks
+   declare -a START_NOWCAST_STAGE=( )
+   declare -a NOWCAST_POLLING=( )         # start looking for new nowcast data
+   declare -a NOWCAST_TRIGGERED=( )       # found new nowcast data
+   declare -a BUILD_NOWCAST_SCENARIO=( )  # constructing input files for nowcast scenario
+   declare -a SUBMIT_NOWCAST_SCENARIO=( ) # submit nowcast compute job
+   declare -a FINISH_NOWCAST_SCENARIO=( ) # nowcast compute job finished
+   declare -a FINISH_NOWCAST_STAGE=( )
+   # forecast hooks
+   declare -a START_FORECAST_STAGE=( )
+   declare -a FORECAST_POLLING=( )         # start looking for new nowcast data
+   declare -a FORECAST_TRIGGERED=( )       # found new forecast data
+   declare -a BUILD_FORECAST_SCENARIO=( )  # constructing input files for forecast scenario
+   declare -a CAPACITY_WAIT=( )            # check to see if there are enough cores to run this scenario
+   declare -a SUBMIT_FORECAST_SCENARIO=( ) # constructing input files for forecast scenario
+   declare -a FINISH_FORECAST_SCENARIO=( ) # forecast compute job finished
+   declare -a FINISH_FORECAST_STAGE=( )
+   # exit hook
+   declare -a EXIT_STAGE=( )
+   stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
 # RMQMessaging defaults
    RMQMessaging_Enable="off"   # "on"|"off"
    RMQMessaging_Transmit="off" #  enables message transmission ("on" | "off")
@@ -1801,6 +1831,7 @@ writeJobResourceRequestProperties()
 #               B E G I N     E X E C U T I O N
 #####################################################################
 THIS="asgs_main.sh"
+
 CURRENT_EVENT="STRT" # used for RMQ messages
 CURRENT_STATE="INIT" # used for RMQ messages
 RMQADVISORY=0  #  "Fake" ADVISORY number for RMQ Messages.
@@ -1825,6 +1856,11 @@ EXIT_OK=0
 # get the value of SCRIPTDIR
 SCRIPTDIR=${0%%/asgs_main.sh}  # ASGS scripts/executables
 SYSLOG=$PWD/asgs.log
+i=0 # execute START_INIT hooks
+while [[ $i -lt ${#START_INIT[@]} ]]; do
+   ${START_INIT[$i]} >> ${SYSLOG} 2>&1
+   i=`expr $i + 1`
+done
 si=-2  # storm index for forecast scenario; -1 indicates nowcast, -2 hindcast
 # need to determine standard time format to be used for pasting log files
 STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
