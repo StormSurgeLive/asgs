@@ -1,0 +1,15 @@
+---
+input : fort.22
+advisory : 22
+timestep : 1800.0
+meshfile : fort.14
+description : "streamlines visualization" 
+plot max wind speed : auto
+nws : 20
+rmax : 0
+vmax : 0
+timeoffset : 86400.0
+timezone : GMT
+scriptdir : /work/asgs
+adcircdir : /work/opt/default/bin/adcirc
+...
