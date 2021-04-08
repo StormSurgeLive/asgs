@@ -628,7 +628,7 @@ case $GRIDNAME in
       ELEVSTATIONS=cera_stations.txt
       VELSTATIONS=cera_stations.txt
       METSTATIONS=cera_stations.txt
-      NAFILE=null
+      NAFILE=ec2001_v2e.13
       NAPROPERTIES=${NAFILE}.properties
       SWANTEMPLATE=fort.26.nolimiter.template   # only used if WAVES=on
       RIVERINIT=null                            # this mesh has no rivers ...
