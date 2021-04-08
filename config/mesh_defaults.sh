@@ -618,16 +618,16 @@ case $GRIDNAME in
       ;;
    "ec2001_v2e"|"EC2001v2e")
       #
-      INPUTDIR=$SCRIPTDIR/input/meshes/EC2001v2e
+      INPUTDIR=$SCRIPTDIR/input/meshes/EC2001
       GRIDFILE=ec2001_v2e.grd   # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=ec2001_v2e_fort.15_template   # fort.15 template
       # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=ec2001_v2e_nowindreduction.fort.15_template
+      CONTROLTEMPLATENOROUGH=$CONTROLTEMPLATE  # same b/c no inundation coverage
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-      ELEVSTATIONS=cera_stations.txt
-      VELSTATIONS=cera_stations.txt
-      METSTATIONS=cera_stations.txt
+      ELEVSTATIONS=hsofs_stations_20180907.txt
+      VELSTATIONS=$ELEVSTATIONS
+      METSTATIONS=$ELEVSTATIONS
       NAFILE=ec2001_v2e.13
       NAPROPERTIES=${NAFILE}.properties
       SWANTEMPLATE=fort.26.nolimiter.template   # only used if WAVES=on
@@ -642,8 +642,35 @@ case $GRIDNAME in
       ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="01:00:00" # forecast wall clock time
-      # FIXME: no unit offset url
-
+      UNITOFFSETFILE=null
+   "OPENWATERv1e")
+      #
+      INPUTDIR=$SCRIPTDIR/input/meshes/OPENWATER
+      GRIDFILE=openwater.grd  # mesh (fort.14) file
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=openwater.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=openwater_nowindreduction.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=hsofs_stations_20180907.txt
+      VELSTATIONS=$ELEVSTATIONS
+      METSTATIONS=$ELEVSTATIONS
+      NAFILE=openwater.13
+      NAPROPERTIES=${NAFILE}.properties
+      #SWANTEMPLATE=fort.26.template # only used if WAVES=on
+      SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
+      RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
+      SWANDT=1800                 # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      UNITOFFSETFILE=null
+      ;;
    *)
       warn "cycle $CYCLE: $SCENARIO: $THIS: Mesh GRIDNAME $GRIDNAME was not recognized."
       ;;
