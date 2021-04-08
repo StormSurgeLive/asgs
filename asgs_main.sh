@@ -144,7 +144,6 @@ checkArchiveFreshness()
          if [ $SCRATCHDIR/$archiveFile -ot $INPUTDIR/$inputFile ]; then
             logMessage "$THIS: A change in the input files has been detected. The archive file $archiveFile is older than the last modification time of the input file ${inputFile}. The archive file is therefore stale and will be deleted. A fresh one will automatically be created the next time adcprep is run."
             rm $SCRATCHDIR/$archiveFile 2>> $SYSLOG
-            break
          fi
       done
    done
@@ -984,6 +983,11 @@ downloadCycloneData()
     if [[ $FTPSITE = filesystem ]]; then
        cp $HDIR/$hindcastFileName $hindcastFileName 2>> ${SYSLOG}
     fi
+    # write the start and end dates of the forecast to the run.properties file
+    if [[ -e $RUNDIR/forecast.properties ]]; then
+      cat $RUNDIR/forecast.properties >> ${SCENARIODIR}/run.properties
+      mv $RUNDIR/forecast.properties ${SCENARIODIR} 2>> ${SYSLOG}
+    fi
 }
 #
 # subroutine that polls an external ftp site for background meteorology data,
@@ -1025,7 +1029,17 @@ downloadBackgroundMet()
       OPTIONS="--scenariodir $SCENARIODIR --rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle $FORECASTCYCLE --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
       appMessage "Downloading NAM data with the following command: perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}" $APPLOGFILE
       newAdvisoryNum=`perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}`
-
+      # if this forecast is not needed, then write a file to indicate
+      # that and return
+      if [[ $ENSTORM != "nowcast" && $newAdvisoryNum = "forecast-not-needed" ]]; then
+         echo "perl ${SCRIPTDIR}/get_nam.pl $OPTIONS" > "$SCENARIODIR/forecast-not-needed"
+         # write the start and end dates of the forecast to the run.properties file
+         if [[ -e $RUNDIR/forecast.properties ]]; then
+            cat $RUNDIR/forecast.properties >> ${SCENARIODIR}/run.properties
+            mv $RUNDIR/forecast.properties ${SCENARIODIR} 2>> ${SYSLOG}
+         fi
+         return
+      fi
       if [[ $newAdvisoryNum -lt 2 ]]; then
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
          sleep 60
@@ -1038,6 +1052,11 @@ downloadBackgroundMet()
    sed 's/ADVISORY=.*/ADVISORY='$newAdvisoryNum'/' $STATEFILE > ${STATEFILE}.new
    logMessage "Updating statefile $STATEFILE with new cycle number ${newAdvisoryNum}." $APPLOGFILE
    cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG} 2>&1
+   # write the start and end dates of the forecast to the run.properties file
+   if [[ -e $RUNDIR/forecast.properties ]]; then
+      cat $RUNDIR/forecast.properties >> ${SCENARIODIR}/run.properties
+      mv $RUNDIR/forecast.properties ${SCENARIODIR} 2>> ${SYSLOG}
+   fi
 }
 #
 # subroutine that downloads river flux data from an external ftp site
@@ -1563,8 +1582,15 @@ variables_init()
 writeProperties()
 {
    STORMDIR=$1
+   WASTHIS=$THIS
+   THIS="asgs_main->writeProperties()"
+   logMessage "$THIS: Writing properties associated with ASGS configuration to $1/run.properties."
+   # this is the first set of properties that will be written; if there is
+   # a stray file from a previous (interrupted) asgs execution, this function
+   # should overwrite whatever may have been there
+   #
    # basic asgs configuration
-   echo "config.file : $CONFIG" >> $STORMDIR/run.properties
+   echo "config.file : $CONFIG" > $STORMDIR/run.properties  # <--<< OVERWRITE
    echo "instancename : $INSTANCENAME" >> $STORMDIR/run.properties
    echo "operator : $operator" >> $STORMDIR/run.properties
    echo "adcirc.time.coldstartdate : $CSDATE" >> $STORMDIR/run.properties
@@ -1676,6 +1702,7 @@ writeProperties()
    echo "instance : $INSTANCENAME" >> $STORMDIR/run.properties
    echo "pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties
    echo "intendedAudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
+   THIS=$WASTHIS
 }
 #
 # write properties that depend on the scenario but are not known
@@ -1683,6 +1710,9 @@ writeProperties()
 writeScenarioProperties()
 {
    STORMDIR=$1
+   WASTHIS=$THIS
+   THIS="asgs_main->writeScenarioProperties()"
+   logMessage "$THIS: Writing properties associated with this scenario to $1/run.properties."
    echo "path.cycledir : $ADVISDIR" >> $STORMDIR/run.properties
    echo "path.scenariodir : $STORMDIR" >> $STORMDIR/run.properties
    echo "monitoring.logging.file.cyclelog : $CYCLELOG" >> $STORMDIR/run.properties
@@ -1693,6 +1723,7 @@ writeScenarioProperties()
    echo "asgs.path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
    echo "path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
    echo "path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
+   THIS=$WASTHIS
 }
 #
 # write properties to the run.properties file that are associated with
@@ -1700,10 +1731,14 @@ writeScenarioProperties()
 writeNAMProperties()
 {
    STORMDIR=$1
+   WASTHIS=$THIS
+   THIS="asgs_main->writeNAMProperties()"
+   logMessage "$THIS: Writing properties associated with meterorological forcing with the NAM model to $1/run.properties."
    echo "forcing.nwp.model : nam" >> $STORMDIR/run.properties
    echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $STORMDIR/run.properties
    echo "forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties
    echo "forcing.nwp.schedule.forecast.forecastselection : $forecastSelection" >> $STORMDIR/run.properties
+   echo "forcing.nam.forecast.download : $forecastDownload" >> $STORMDIR/run.properties
    echo "forcing.nam.backsite : $BACKSITE" >> $STORMDIR/run.properties
    echo "forcing.nam.backdir : $BACKDIR" >> $STORMDIR/run.properties
    echo "forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR/run.properties
@@ -1716,6 +1751,7 @@ writeNAMProperties()
    echo "config.forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR/run.properties
    echo "config.forcing.nam.reprojection.ptfile : $PTFILE" >> $STORMDIR/run.properties
    echo "config.forcing.nam.local.altnamdir : $ALTNAMDIR" >> $STORMDIR/run.properties
+   THIS=$WASTHIS
 }
 #
 # write properties to the run.properties file that are associated with
@@ -1723,6 +1759,9 @@ writeNAMProperties()
 writeTropicalCycloneProperties()
 {
    STORMDIR=$1
+   WASTHIS=$THIS
+   THIS="asgs_main->writeTropicalCycloneProperties()"
+   logMessage "$THIS: Writing properties associated with meterorological forcing with a parametric vortex model to $1/run.properties."
    echo "forcing.tropicalcyclone.vortexmodel : $VORTEXMODEL" >> $STORMDIR/run.properties
    echo "forcing.tropicalcyclone.stormnumber : $STORM" >> $STORMDIR/run.properties
    echo "forcing.tropicalcyclone.year : $YEAR" >> $STORMDIR/run.properties
@@ -1742,6 +1781,7 @@ writeTropicalCycloneProperties()
    # legacy properties
    echo "storm : $STORM" >> $STORMDIR/run.properties
    echo "stormnumber : $STORM" >> $STORMDIR/run.properties
+   THIS=$WASTHIS
 }
 #
 # write properties to the run.properties file that are associated with
@@ -1749,11 +1789,15 @@ writeTropicalCycloneProperties()
 writeWaveCouplingProperties()
 {
    STORMDIR=$1
+   WASTHIS=$THIS
+   THIS="asgs_main->writeWaveCouplingProperties()"
+   logMessage "$THIS: Writing properties associated with wave coupling to $1/run.properties."
    echo "path.swandir : $SWANDIR" >> $STORMDIR/run.properties
    echo "coupling.waves.swan.reinitializeswan : $REINITIALIZESWAN" >> $STORMDIR/run.properties
    echo "coupling.waves.swan.swanhscompression : $SWANHSCOMPRESSION" >> $STORMDIR/run.properties
    echo "swan.swandt : $SWANDT" >> $STORMDIR/run.properties
    echo "swan.input.file.swantemplate : $SWANTEMPLATE" >> $STORMDIR/run.properties
+   THIS=$WASTHIS
 }
 #
 # write properties to the run.properties file that are associated with
@@ -1761,6 +1805,9 @@ writeWaveCouplingProperties()
 writeJobResourceRequestProperties()
 {
    STORMDIR=$1
+   WASTHIS=$THIS
+   THIS="asgs_main->writeJobResourceRequestProperties()"
+   logMessage "$THIS: Writing properties associated with compute job to $1/run.properties."
    echo "hpc.job.${JOBTYPE}.queuename : $QUEUENAME" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $STORMDIR/run.properties
@@ -1792,6 +1839,7 @@ writeJobResourceRequestProperties()
    echo "cpurequest : $CPUREQUEST" >> ${STORMDIR}/run.properties
    echo "ncpu : $NCPU" >> ${STORMDIR}/run.properties  # number of compute CPUs
    echo "numwriters : $NUMWRITERS" >> ${STORMDIR}/run.properties  # number of dedicated writer CPUs
+   THIS=$WASTHIS
 }
 #####################################################################
 #                 E N D  F U N C T I O N S
@@ -2436,7 +2484,6 @@ while [ true ]; do
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Looking for the directory $OLDADVISDIR/${dir}."
          if [[ -d $OLDADVISDIR/$dir ]]; then
             FROMDIR=$OLDADVISDIR/$dir
-            break
          fi
       done
    else
@@ -2451,13 +2498,11 @@ while [ true ]; do
          if [[ -e $FROMDIR/$swanhsfile ]]; then
             HOTSWAN=on
             logMessage "Found SWAN hotstart file $FROMDIR/${swanhsfile}."
-            break
          fi
          for swanhssuffix in tar.gz tar.bz2 gz bz2; do
             if [[ -e $FROMDIR/${swanhsfile}.${swanhssuffix} ]]; then
                HOTSWAN=on
                logMessage "Found SWAN hotstart file $FROMDIR/${swanhsfile}."
-               break
             fi
          done
       done
@@ -2909,9 +2954,7 @@ while [ true ]; do
       THIS=asgs_main.sh
       # write the properties associated with asgs configuration to the
       # run.properties file
-      if [[ -e $RUNDIR/run.properties ]]; then
-         rm $RUNDIR/run.properties 2>> $SYSLOG # remove a stray run.properties if one was left in $RUNDIR
-      fi
+
       writeProperties $RUNDIR 2>> $SYSLOG
       if [[ $TROPICALCYCLONE = on ]]; then
          writeTropicalCycloneProperties $RUNDIR
@@ -3032,7 +3075,8 @@ while [ true ]; do
       SCENARIOLOG=$SCENARIODIR/scenario.log
       mv $RUNDIR/run.properties $SCENARIODIR 2>> $SYSLOG
       writeScenarioProperties $SCENARIODIR 2>> $SYSLOG
-      writeJobResourceRequestProperties $SCENARIODIR 2>> $SYSLOG
+
+      echo "forecast.scenario.number : $si" >> ${SCENARIODIR}/run.properties
       RUNFORECAST=yes
       # TROPICAL CYCLONE ONLY
       if [[ $TROPICALCYCLONE = on ]]; then
@@ -3102,22 +3146,29 @@ while [ true ]; do
          logMessage "$ENSTORM: $THIS: Downloading background meteorology."
          logMessage "$ENSTORM: $THIS: downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
          downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
-
          THIS="asgs_main.sh"
-         cd $ADVISDIR/${ENSTORM} 2>> ${SYSLOG}
-         NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --applyRamp $SPATIALEXTRAPOLATIONRAMP --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE --awipGridNumber 218 --dataDir ${STORMDIR} --outDir ${STORMDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
+         cd $SCENARIODIR 2>> ${SYSLOG}
+         if [[ ! -e "$SCENARIODIR/runme" || -e "$SCENARIOIR/forecast-not-needed" ]]; then
+            RUNFORECAST=no
+            # increment the scenario counter
+            si=`expr $si + 1`
+            if [[ $si -ge $SCENARIOPACKAGESIZE ]]; then
+               logMessage "${ADVISORY}.${SCENARIO}: $THIS: This forecast will not be run. Moving on to seeking the next nowcast."
+            else
+               logMessage "${ADVISORY}.${SCENARIO}: $THIS: This forecast will not be run. Moving on to the next forecast scenario."
+            fi
+            continue # no reason to continue processing this NAM forecast scenario at this point if it will not be run
+         fi
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Converting NAM data to OWI format."
+         NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --applyRamp $SPATIALEXTRAPOLATIONRAMP --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE --awipGridNumber 218 --dataDir ${STORMDIR} --outDir ${STORMDIR}/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
          logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format with the following options : $NAMOPTIONS"
          perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1
-         CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --advisorynum $ADVISORY --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          # create links to the OWI files
          NAM221=`ls NAM*.221`;
          NAM222=`ls NAM*.222`;
          ln -s $NAM221 fort.221 2>> ${SYSLOG}
          ln -s $NAM222 fort.222 2>> ${SYSLOG}
-         if [[ ! -e $STORMDIR/runme ]]; then
-            RUNFORECAST=no
-         fi
+         CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --advisorynum $ADVISORY --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       fi
       # if there is no forcing from an external data source, set control options
       if [[ $NOFORCING = true ]]; then
@@ -3138,7 +3189,7 @@ while [ true ]; do
       THIS="asgs_main.sh"
       debugMessage "$THIS: $ENSTORM: Building fort.15 file."
       perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
-      if [ ! -s "fort.15" ] ; then
+      if [[ ! -s "fort.15" && -e $STORMDIR/runme ]] ; then
          warn "$THIS: $ENSTORM: fort.15 file is 0-length. The $ENSTORM run will be abandoned."
          echo "$THIS: $ENSTORM: fort.15 file is 0-length. The $ENSTORM run will be abandoned." >> jobFailed
          handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
@@ -3149,7 +3200,10 @@ while [ true ]; do
          scenarioMessage "$ENSTORM: $THIS: tide_fac.out is as follows:"
          cat tide_fac.out >> scenario.log
       fi
-
+      # if the $STORMDIR is not there, it is probably because handleFailedJob has
+      # moved it ... should we increment the scenario counter and just go on?
+      # ... just using "continue" as below will have the effect of retrying this
+      # forecast scenario
       if [[ ! -d $STORMDIR ]]; then continue; fi
       # get river flux nowcast data, if configured to do so
       if [[ $VARFLUX = on ]]; then
@@ -3159,10 +3213,7 @@ while [ true ]; do
       if [[ $VARFLUX = default ]]; then
          ln -s ${INPUTDIR}/${RIVERFLUX} ./fort.20 2>> ${SYSLOG}
       fi
-      # write the start and end dates of the forecast to the run.properties file
-      if [[ -e $RUNDIR/forecast.properties ]]; then
-         cat $RUNDIR/forecast.properties >> ${SCENARIODIR}/run.properties
-      fi
+
       #debugMessage "MESHPROPERTIES is $MESHPROPERTIES CONTROLPROPERTIES is $CONTROLPROPERTIES NAPROPERTIES is $NAPROPERTIES"
       for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
          if [[ -e ${INPUTDIR}/$inputProperties ]]; then
@@ -3175,8 +3226,6 @@ while [ true ]; do
       # balancing the postprocessing, particularly for CERA
       CURRENT_EVENT="FORE"
       CURRENT_STATE="WAIT"
-      echo "forecast.scenario.number : $si" >> ${SCENARIODIR}/run.properties
-      writeJobResourceRequestProperties $SCENARIODIR
       # copy log data to scenario.log
       for file in lambert_diag.out reproject.log ; do
          if [[ -e $ADVISDIR/$file ]]; then
@@ -3185,6 +3234,7 @@ while [ true ]; do
          fi
       done
       if [[ $RUNFORECAST = yes ]]; then
+         writeJobResourceRequestProperties $SCENARIODIR 2>> $SYSLOG
          # set up post processing for the forecast, including initiation
          # of real time post processing
          ${OUTPUTDIR}/${INITPOST} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENVSHORT $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
