@@ -169,6 +169,7 @@ RUN apt-get update
 RUN apt-get install -y build-essential checkinstall
 RUN apt-get install -y zlib1g-dev libssl-dev libexpat1-dev
 RUN apt-get install -y gfortran wget curl vim screen htop tmux git sudo
+# to build nco
 RUN apt-get install -y flex
 RUN apt-get install -y zip
 
