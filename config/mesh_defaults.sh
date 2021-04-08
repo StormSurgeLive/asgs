@@ -643,6 +643,7 @@ case $GRIDNAME in
       NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="01:00:00" # forecast wall clock time
       UNITOFFSETFILE=null
+      ;;
    "OPENWATERv1e")
       #
       INPUTDIR=$SCRIPTDIR/input/meshes/OPENWATER
