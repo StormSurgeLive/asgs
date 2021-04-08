@@ -621,7 +621,7 @@ case $GRIDNAME in
       INPUTDIR=$SCRIPTDIR/input/meshes/EC2001
       GRIDFILE=ec2001_v2e.grd   # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=ec2001_v2e_fort.15_template   # fort.15 template
+      CONTROLTEMPLATE=ec2001_v2e_fort.15.template   # fort.15 template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=$CONTROLTEMPLATE  # same b/c no inundation coverage
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
