@@ -16,7 +16,7 @@ ASGS cs:20210320000000 cy: ASGS hindcast
 0                   ! NWS - WIND STRESS AND BAROMETRIC PRESSURE OPTION PARAMETER
 1                       ! NRAMP - RAMP FUNCTION OPTION
 9.81                    ! G - ACCELERATION DUE TO GRAVITY - DETERMINES UNITS
-0.032   # 8*(5*DTDP)                 ! TAU0 - WEIGHTING FACTOR IN GWCE
+0.032   # 8/(5*DTDP)                 ! TAU0 - WEIGHTING FACTOR IN GWCE
 50.0    # guess                ! DT - TIME STEP (IN SECONDS)
 0.0                     ! STATIM - STARTING TIME (IN DAYS)
 0.0                     ! REFTIM - REFERENCE TIME (IN DAYS)
@@ -2936,16 +2936,16 @@ K2
 -76.61057  36.05635 ! EWPN7 ! NCEM ! Chowan R. at Edenton Waterfront Park
 -75.98735  35.11537 ! OCAN7 ! NCEM ! Pamlico Sound at Ocracoke - NCCAT Campus
 -90.12359 30.02416 ! 17StCanal ! CPRA ! Outfall 17th St London Ave Orleans Ave Outfall Canals (cf USACE 85625)
--90.03579 30.03415 ! IHNC01   ! CPRA ! Seabrook Complex - Flood Side (cf USACE 76065)  
+-90.03579 30.03415 ! IHNC01   ! CPRA ! Seabrook Complex - Flood Side (cf USACE 76065)
 -89.90000 29.99000 ! IHNC02   ! CPRA ! IHNC Surge Barrier East - Flood Side (cf USACE 76030)
 -90.07232 29.81197 ! WBV90    ! CPRA ! GIWW at West Closure Complex - Flood Side (cf USACE 76265)
--90.03692 29.79062 ! WBV09b   ! CPRA ! Hero Canal Stop-Log Gate - Flood Side/West (cf USACE 82762) 
--90.03417 29.78305 ! WBV09a   ! CPRA ! Oakville Sluice Gate - Flood Side/South (cf USACE 82770) 
--90.15714 29.88288 ! WBV162   ! CPRA ! Bayou Segnette Closure - Flood Side (cf USACE 82742) 
--89.90434 29.85293 ! LPV149   ! CPRA ! Caernarvon Canal Sector Gate - South/Flood Side (cf USACE 85760) 
+-90.03692 29.79062 ! WBV09b   ! CPRA ! Hero Canal Stop-Log Gate - Flood Side/West (cf USACE 82762)
+-90.03417 29.78305 ! WBV09a   ! CPRA ! Oakville Sluice Gate - Flood Side/South (cf USACE 82770)
+-90.15714 29.88288 ! WBV162   ! CPRA ! Bayou Segnette Closure - Flood Side (cf USACE 82742)
+-89.90434 29.85293 ! LPV149   ! CPRA ! Caernarvon Canal Sector Gate - South/Flood Side (cf USACE 85760)
 -89.83563 29.93600 ! LPV144   ! CPRA ! Bayou Dupre Sector Gate - East/Flood Side (cf USACE 76010)
 -90.27097 29.90839 ! WBV7274  ! CPRA ! Bayou Verret / Western Tie-In Sector Gate - Flood Side (cf USACE 82715)
--89.60107 29.37341 ! NOV13    ! CPRA ! Mississippi River at Empire Floodgate (cf USACE 01440) 
+-89.60107 29.37341 ! NOV13    ! CPRA ! Mississippi River at Empire Floodgate (cf USACE 01440)
 -89.59600 29.38935 ! NOV14    ! CPRA ! Mississippi River at Empire Lock (cf USACE 01440)  ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS, FOLLOWED BY LOCATIONS ON PROCEEDING LINES
 0 0.0 365.0 99999  ! NOUTV,TOUTSV,TOUTFV,NSPOOLV:VEL STATION OUTPUT INFO (UNIT  62)
 835 /work/asgs/input/meshes/EC2001/hsofs_stations_20180907.txt NSTAV
@@ -3773,16 +3773,16 @@ K2
 -76.61057  36.05635 ! EWPN7 ! NCEM ! Chowan R. at Edenton Waterfront Park
 -75.98735  35.11537 ! OCAN7 ! NCEM ! Pamlico Sound at Ocracoke - NCCAT Campus
 -90.12359 30.02416 ! 17StCanal ! CPRA ! Outfall 17th St London Ave Orleans Ave Outfall Canals (cf USACE 85625)
--90.03579 30.03415 ! IHNC01   ! CPRA ! Seabrook Complex - Flood Side (cf USACE 76065)  
+-90.03579 30.03415 ! IHNC01   ! CPRA ! Seabrook Complex - Flood Side (cf USACE 76065)
 -89.90000 29.99000 ! IHNC02   ! CPRA ! IHNC Surge Barrier East - Flood Side (cf USACE 76030)
 -90.07232 29.81197 ! WBV90    ! CPRA ! GIWW at West Closure Complex - Flood Side (cf USACE 76265)
--90.03692 29.79062 ! WBV09b   ! CPRA ! Hero Canal Stop-Log Gate - Flood Side/West (cf USACE 82762) 
--90.03417 29.78305 ! WBV09a   ! CPRA ! Oakville Sluice Gate - Flood Side/South (cf USACE 82770) 
--90.15714 29.88288 ! WBV162   ! CPRA ! Bayou Segnette Closure - Flood Side (cf USACE 82742) 
--89.90434 29.85293 ! LPV149   ! CPRA ! Caernarvon Canal Sector Gate - South/Flood Side (cf USACE 85760) 
+-90.03692 29.79062 ! WBV09b   ! CPRA ! Hero Canal Stop-Log Gate - Flood Side/West (cf USACE 82762)
+-90.03417 29.78305 ! WBV09a   ! CPRA ! Oakville Sluice Gate - Flood Side/South (cf USACE 82770)
+-90.15714 29.88288 ! WBV162   ! CPRA ! Bayou Segnette Closure - Flood Side (cf USACE 82742)
+-89.90434 29.85293 ! LPV149   ! CPRA ! Caernarvon Canal Sector Gate - South/Flood Side (cf USACE 85760)
 -89.83563 29.93600 ! LPV144   ! CPRA ! Bayou Dupre Sector Gate - East/Flood Side (cf USACE 76010)
 -90.27097 29.90839 ! WBV7274  ! CPRA ! Bayou Verret / Western Tie-In Sector Gate - Flood Side (cf USACE 82715)
--89.60107 29.37341 ! NOV13    ! CPRA ! Mississippi River at Empire Floodgate (cf USACE 01440) 
+-89.60107 29.37341 ! NOV13    ! CPRA ! Mississippi River at Empire Floodgate (cf USACE 01440)
 -89.59600 29.38935 ! NOV14    ! CPRA ! Mississippi River at Empire Lock (cf USACE 01440)   ! NSTAV - NUMBER OF ELEVATION RECORDING STATIONS, FOLLOWED BY LOCATIONS ON PROCEEDING LINES
 -5 0.0 365.0 72      ! NOUTGE,TOUTSGE,TOUTFGE,NSPOOLGE : GLOBAL ELEVATION OUTPUT INFO (UNIT  63)
 -5 0.0 365.0 72      ! NOUTGV,TOUTSGV,TOUTFGV,NSPOOLGV : GLOBAL VELOCITY  OUTPUT INFO (UNIT  64)
