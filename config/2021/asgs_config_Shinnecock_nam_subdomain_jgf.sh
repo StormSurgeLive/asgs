@@ -36,7 +36,7 @@
 
 # Fundamental
 
-INSTANCENAME=Shinnecock_nam_jgf  # "name" of this ASGS process
+INSTANCENAME=Shinnecock_nam_subdomain_jgf  # "name" of this ASGS process
 
 # Input files and templates
 
@@ -76,11 +76,17 @@ TDS=( )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2021030700
+COLDSTARTDATE=2021031700
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-# location on lonestar5 ______________________________________________
 LASTSUBDIR=null
-COLDSTARTDATE=2021030700  # updated this on a different branch
+
+# I/O parameters
+
+# Add for testing with ADCIRPOLATE
+# fulldomain or subdomain hotstart files
+HOTSTARTCOMP=subdomain
+# binary or netcdf hotstart files
+HOTSTARTFORMAT=binary
 
 # Scenario package
 
@@ -97,6 +103,14 @@ case $si in
  0)
    ENSTORM=namforecastWind10m
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   # Add for testing with ADCIRPOLATE
+   # FIXME: had to add these here due to them getting reset in io_defaults.sh; need
+   # to have ASGS handle this automatically
+   # fulldomain or subdomain hotstart files
+   HOTSTARTCOMP=subdomain
+   # binary or netcdf hotstart files
+   HOTSTARTFORMAT=binary
+   NCPU=2
    ;;
 1)
    ENSTORM=namforecast

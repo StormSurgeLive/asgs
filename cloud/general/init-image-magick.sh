@@ -51,15 +51,17 @@ fi
 tar -xvf $IMAGEMAGICK_VERSION.tar.gz
 cd ImageMagick-$IMAGEMAGICK_VERSION 
 
-CC=gcc
+export CC=gcc
 export MAGICK_HOME=$ASGS_INSTALL_PATH
-./configure --prefix=$ASGS_INSTALL_PATH --with-gcc-arch=native --with-perl
-make #-j $JOBS
-make install
-# Note:
-# these gymnastics are necessary for the Perl module because there is a bug in the supplied Makefile
-# that seems to lose the location of some required shared libraries provided by ImageMagick itself
-cd ./PerlMagick
-perl ./Makefile.PL
+
+# apply patches to Makefile.PL.in files before ./configure is run
+echo Patching Makefile.PL.in files ...
+patch ./PerlMagick/Makefile.PL.in $SCRIPTDIR/patches/ImageMagick-7/PerlMagic/Makefile.PL.in.patch
+patch ./PerlMagick/default/Makefile.PL.in $SCRIPTDIR/patches/ImageMagick-7/PerlMagic/default/Makefile.PL.in.patch
+patch ./PerlMagick/quantum/Makefile.PL.in $SCRIPTDIR/patches/ImageMagick-7/PerlMagic/quantum/Makefile.PL.in.patch
+
+./configure --prefix=$ASGS_INSTALL_PATH --with-gcc-arch=native --with-perl=$(which perl) \
+    --without-magick-plus-plus --disable-openmp
+
 make
 make install

@@ -4,6 +4,7 @@ ACTION=${1-install}
 OPT=${2-$PYTHONPATH}
 PYTHON_VERSION=${3-2.7.18}
 TMP=/tmp/$USER-asgs
+PIP_URL=https://bootstrap.pypa.io/pip/2.7/get-pip.py
 
 if [ "$ACTION" == "clean" ]; then
   # remove installed binaries from upstream build
@@ -45,7 +46,7 @@ _install_asgs_python_modules () {
    cd $TMP
  
    # this must use a deprecated and archived version of the install pip script
-   wget https://bootstrap.pypa.io/2.7/get-pip.py -O ./get-pip.py
+   wget $PIP_URL -O ./get-pip.py
    python - --prefix=$PYTHONPATH < ./get-pip.py
    pip install 'pika==1.1.0'    -I --force-reinstall --ignore-installed --prefix=$PYTHONPATH
    # version constrain is due to Unidata's drop in support of Python 2.7 in v1.5.4 of the netCDF4 module
