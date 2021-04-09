@@ -240,7 +240,7 @@ sub _run_steps {
         chdir $op->{pwd};
 
         # augment ENV based on $op->{export_ENV}
-        $self->_setup_ENV( $op, $opts_ref );
+        $self->_setup_ENV( $ENV, $op, $opts_ref );
         next RUN_STEPS if $opts_ref->{'update-shell'};
 
         # check for skip condition for run step, unless --force or --clean is used
@@ -468,7 +468,7 @@ export _ASGSH_PID=\$\$
 
 # denotes which environmental variables we care about when saving a profile - includes variables that
 # are meaningful to ASGS Shell, but not set in asgs-brew.pl
-export _ASGS_EXPORTED_VARS="$_asgs_exported_vars _ASGS_EXPORTED_VARS WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_MAKE_CMD ADCIRC_BINS SWAN_BINS"
+export _ASGS_EXPORTED_VARS="$_asgs_exported_vars _ASGS_EXPORTED_VARS WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS"
 $env_summary
 
 # export opts for processing in $rcfile
@@ -529,22 +529,35 @@ sub _get_env_summary {
 }
 
 sub _setup_ENV {
-    my ( $self, $op, $opts_ref ) = @_;
+    my ( $self, $ENV, $op, $opts_ref ) = @_;
+
+    # default separator
+    my $default_separator = q{:};
     my $asgs_install_path = $opts_ref->{'install-path'};
   SETUP_ENV:
     foreach my $envar ( keys %{ $op->{export_ENV} } ) {
         next SETUP_ENV if not $op->{export_ENV}->{$envar};
-        ++$AFFECTED_ENV_VARS->{$envar};    # track all environmental variables that are touched
+        ++$AFFECTED_ENV_VARS->{$envar};    # track all environmental variables that are touched at least once
+
+	# establish separator for available operations affecting envar, below
+        my $separator = $op->{export_ENV}->{$envar}->{separator} // $default_separator;
+
+	# value
+        my $value = $op->{export_ENV}->{$envar}->{value} // q{};
+
+	# remove new line, replace with a space (for cleaner definitions in "step" definitions)
+	$value =~ s/\n//g;
+	$value =~ s/ +/ /g;
 
         # default "how" mode is to prepend if the envar is already defined
         if ( not defined $op->{export_ENV}->{$envar}->{how} or $op->{export_ENV}->{$envar}->{how} eq q{prepend} ) {
-            $ENV{$envar} = sprintf( "%s%s", $op->{export_ENV}->{$envar}->{value}, ( $ENV{$envar} ) ? q{:} . $ENV{$envar} : q{} );
+            $ENV{$envar} = sprintf( "%s%s", $value, ( $ENV{$envar} ) ? $separator . $ENV{$envar} : q{} );
         }
         elsif ( $op->{export_ENV}->{$envar}->{how} eq q{append} ) {
-            $ENV{$envar} = sprintf( "%s%s", ( $ENV{$envar} ) ? $ENV{$envar} . q{:} : q{}, $op->{export_ENV}->{$envar}->{value} );
+            $ENV{$envar} = sprintf( "%s%s", ( $ENV{$envar} ) ? $ENV{$envar} . $separator : q{}, $value );
         }
         elsif ( $op->{export_ENV}->{$envar}->{how} eq q{replace} ) {
-            $ENV{$envar} = $op->{export_ENV}->{$envar}->{value};
+            $ENV{$envar} = $value;
         }
     }
     return 1;
@@ -689,11 +702,12 @@ sub get_steps {
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                CPPFLAGS    => { value => qq{-I$asgs_install_path/include}, how => q{append} },
-                LDFLAGS     => { value => qq{-L$asgs_install_path/lib},     how => q{append} },
-                HDF5_DIR    => { value => qq{$asgs_install_path},           how => q{replace} },    # needed for netCDF4 python module
-                HDF5_LIBDIR => { value => qq{$asgs_install_path/lib},       how => q{replace} },    # needed for netCDF4 python module
-                HDF5_INCDIR => { value => qq{$asgs_install_path/include},   how => q{replace} },    # needed for netCDF4 python module
+                CPPFLAGS    => { value => qq{-I$asgs_install_path/include},  how => q{append}, separator => q{ }},
+                LDFLAGS     => { value => qq{-L$asgs_install_path/lib},      how => q{append}, separator => q{ }},
+                # the following HDF5* vars are needed for netCDF4 python module
+                HDF5_DIR    => { value => qq{$asgs_install_path},            how => q{replace}},
+                HDF5_LIBDIR => { value => qq{$asgs_install_path/lib},        how => q{replace}},
+                HDF5_INCDIR => { value => qq{$asgs_install_path/include},    how => q{replace}},
             },
             skip_if => sub {
                 my ( $op, $opts_ref ) = @_;
@@ -833,14 +847,14 @@ sub get_steps {
             # augment existing %ENV (cumulative) - this assumes that perlbrew is installed in $HOME and we're
             # using perl-5.32.0
             export_ENV => {
-                PERLBREW_PERL    => { value => q{perl-5.32.0},                                                                  how => q{replace} },
-                PATH             => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.32.0/bin}, how => q{prepend} },
-                PERLBREW_HOME    => { value => qq{$asgs_install_path/perl5/perlbrew},                                           how => q{replace} },
-                PERL_CPANM_HOME  => { value => qq{$asgs_install_path/perl5/.cpanm},                                             how => q{replace} },
-                PERLBREW_PATH    => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.32.0/bin}, how => q{prepend} },
-                PERLBREW_MANPATH => { value => qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.32.0/man},                     how => q{prepend} },
-                PERLBREW_ROOT    => { value => qq{$asgs_install_path/perl5/perlbrew},                                           how => q{replace} },
-                PERL5LIB         => { value => qq{$asgs_install_path/perl5/perls/perl-5.32.0/lib/site_perl/5.28.2/},            how => q{prepend} },
+                PERLBREW_PERL    => { value => q{perl-5.32.0},                                                                   how => q{replace} },
+                PATH             => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.32.0/bin},  how => q{prepend} },
+                PERLBREW_HOME    => { value => qq{$asgs_install_path/perl5/perlbrew},                                            how => q{replace} },
+                PERL_CPANM_HOME  => { value => qq{$asgs_install_path/perl5/.cpanm},                                              how => q{replace} },
+                PERLBREW_PATH    => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.32.0/bin},  how => q{prepend} },
+                PERLBREW_MANPATH => { value => qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.32.0/man},                      how => q{prepend} },
+                PERLBREW_ROOT    => { value => qq{$asgs_install_path/perl5/perlbrew},                                            how => q{replace} },
+                PERL5LIB         => { value => qq{$asgs_install_path/perl5/perls/perl-5.32.0/lib/site_perl/5.28.2/},             how => q{prepend} },
             },
             skip_if => sub {
                 my ( $op, $opts_ref ) = @_;
@@ -869,7 +883,7 @@ sub get_steps {
             },
         },
         {
-            key         => q{ImageMagick},
+            key         => q{image-magick},
             name        => q{Step for ImageMagick},
             description => q{Installs local ImageMagick tools and Perl module Image::Magick.},
             pwd         => q{./},
@@ -886,7 +900,7 @@ sub get_steps {
                 my ( $op, $opts_ref ) = @_;
                 my $bins_ok = -x qq{$asgs_install_path/bin/convert};
                 local $?;
-                system( qw/perl -MImage::Magick -e/, 'print qq{..ensuring Image::Magick is available.\n}' );
+                system( q[perl -MImage::Magick -e 'print qq{..ensuring Image::Magick is available.\n}' > /dev/null 2>&1] );
 
                 # perldoc -f system  for more info on getting child process info
                 # regarding the exit status
@@ -900,9 +914,9 @@ sub get_steps {
                 my ( $op, $opts_ref ) = @_;
                 my $bins_ok = -x qq{$asgs_install_path/bin/convert};
                 local $?;
-                system( qw/perl -MImage::Magick -e/, 'print qq{..ensuring Image::Magick is available.\n}' );
+                system( q[perl -MImage::Magick -e 'print qq{..ensuring Image::Magick is available.\n}' > /dev/null 2>&1] );
 
-                # perldoc -f system  for more info on getting child process info
+                # perldoc -f system for more info on getting child process info
                 # regarding the exit status
                 my $exit_code = $? >> 8;
 
@@ -1007,6 +1021,31 @@ sub get_steps {
             postcondition_check => sub {
                 local $?;
                 system(qq{$asgs_install_path/bin/units --version > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+        },
+        {
+            key         => q{nco},
+            name        => q{Step for installing the NCO Toolkit},
+            description => q{Install The netCDF Operators (NCO) Toolkit}, 
+            pwd         => q{./},
+            command     => qq{bash ./cloud/general/init-nco.sh $asgs_install_path gfortran 4},
+            clean       => qq{bash ./cloud/general/init-nco.sh $asgs_install_path clean},
+            skip_if     => sub {
+                local $?;
+                system(qq{$asgs_install_path/bin/ncwa --version > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+            precondition_check  => sub { 1 },
+            postcondition_check => sub {
+                local $?;
+                system(qq{$asgs_install_path/bin/ncwa --version > /dev/null 2>&1});
 
                 # look for zero exit code on success
                 my $exit_code = ( $? >> 8 );
