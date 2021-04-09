@@ -6,7 +6,7 @@ FROM debian:stretch-slim
 RUN apt-get update
 RUN apt-get install -y apt-utils build-essential checkinstall
 RUN apt-get install -y zlib1g-dev libssl-dev libexpat1-dev
-RUN apt-get install -y gfortran wget curl vim screen htop tmux git sudo
+RUN apt-get install -y gfortran wget curl vim screen htop tmux git sudo bc
 RUN apt-get install -y flex
 RUN apt-get install -y zip
 
