@@ -621,7 +621,10 @@ case $GRIDNAME in
       INPUTDIR=$SCRIPTDIR/input/meshes/EC2001
       GRIDFILE=ec2001_v2e.grd   # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=ec2001_v2e_fort.15.template   # fort.15 template
+      CONTROLTEMPLATE=ec2001_v2e_fort.15.template   # fort.15 template (designed for 1s timestep)
+      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+      # CONTROLTEMPLATE=ec2001_v2e_adcircv55_fort.15.template # designed for larger timestep (e.g., 50s)
+      # TIMESTEPSIZE=50.0
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=$CONTROLTEMPLATE  # same b/c no inundation coverage
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
@@ -635,7 +638,6 @@ case $GRIDNAME in
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
       SWANDT=1200                # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="06:00:00" # hindcast wall clock time
@@ -649,9 +651,12 @@ case $GRIDNAME in
       INPUTDIR=$SCRIPTDIR/input/meshes/OPENWATER
       GRIDFILE=openwater.grd  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=openwater.15.template
+      CONTROLTEMPLATE=openwater.fort.15.template  # designed for 2s timestep (any adcirc version)
+      TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
+      # CONTROLTEMPLATE=openwater_adcircv55.fort.15.template # designed for larger timestep (adcirc v55 only)
+      # TIMESTEPSIZE=50.0            # adcirc time step size (seconds)
       # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=openwater_nowindreduction.15.template
+      CONTROLTEMPLATENOROUGH=${CONTROLTEMPLATE} # same b/c no inundation area
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=hsofs_stations_20180907.txt
       VELSTATIONS=$ELEVSTATIONS
