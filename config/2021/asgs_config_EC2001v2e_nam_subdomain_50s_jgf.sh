@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2021 Jason Fleming
+# Copyright(C) 2018--2021 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -36,12 +36,15 @@
 
 # Fundamental
 
-INSTANCENAME=OPENWATERv1e_nam_1s_jgf  # "name" of this ASGS process
+INSTANCENAME=EC2001v2e_nam_50s_jgf  # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=OPENWATERv1e
+GRIDNAME=EC2001v2e
 source $SCRIPTDIR/config/mesh_defaults.sh
+# change values loaded from mesh_defaults.sh:
+CONTROLTEMPLATE=ec2001_v2e_adcircv55_fort.15.template # designed for larger timestep (e.g., 50s)
+TIMESTEPSIZE=50.0
 
 # Physical forcing (defaults set in config/forcing_defaults)
 
@@ -63,12 +66,6 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=15                # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
-# need to estimate larger wall clock time due to small number of cores
-# and small time step
-HINDCASTWALLTIME="36:00:00" # hindcast wall clock time
-ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="18:00:00"  # longest nowcast wall clock time
-FORECASTWALLTIME="18:00:00" # forecast wall clock time
 # since this will only run on one node, even in parallel, need
 # to submit it to the single queue on queenbeeC
 if [[ $HPCENV = "qbc.loni.org" && $NCPU -lt 48 ]]; then
@@ -86,7 +83,7 @@ TDS=( )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2021040100
+COLDSTARTDATE=2021032000
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
