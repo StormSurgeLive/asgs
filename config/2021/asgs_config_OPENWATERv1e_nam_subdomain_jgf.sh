@@ -120,7 +120,7 @@ case $si in
    HOTSTARTCOMP=subdomain
    # binary or netcdf hotstart files
    HOTSTARTFORMAT=binary
-   NCPU=2
+   NCPU=15
    ;;
 1)
    ENSTORM=namforecast
