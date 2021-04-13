@@ -252,136 +252,6 @@ function float_cond()
     return $stat
 }
 #
-# FIXME: this function is not used and should be deprecated and removed
-#
-# Retrieve and build ADCIRC(+SWAN) executables. This function will set
-# the value of ADCIRCDIR if ADCIRCBUILD = "dynamic".
-get_adcirc()
-{
-   ADCIRCDIR=$1 # this value may be changed in this function
-   DEBUG=$2
-   SWAN=$3
-   NETCDF=$4
-   NETCDF4=$5
-   NETCDF4_COMPRESSION=$6
-   XDMF=$7
-   SOURCEURL=$8
-   AUTOUPDATE=$9
-   EXEBASEPATH=${10}
-   SCRIPTDIR=${11}
-   SWANMACROSINC=${12}
-   ADCOPTIONS="${13}"
-   SYSLOG=${14}
-   #
-   # If the path to the ADCIRC executables is hard coded, just verify
-   # their existence and return.
-   if [[ $ADCIRCBUILD = static ]]; then
-      for executable in adcirc padcirc padcswan adcprep hstime aswip; do
-         if [[ ! -e $ADCIRCDIR/$executable ]]; then
-            warn "Could not find the executable file $ADCIRCDIR/${executable}."
-            return 1
-         fi
-      done
-      # leave the value of ADCIRCDIR as-is
-      logMessage "All ADCIRC(+SWAN) executable files were found successfully."
-      return 0
-   fi
-   #
-   # Set the name of the properties file that describes the executables that
-   # we're about to generate.
-   PROPERTIES=executables.properties
-   #
-   logMessage "Checking for suitable ADCIRC(+SWAN) executables."
-   #
-   # Check to see if we already have executables in a directory that
-   # matches the specification.
-   #
-   # Start by generating the path that is specified by this combination of
-   # parameters.  Assume the SOURCEURL is an http URL for an svn repository;
-   # extract the end of the path for use in naming the directory where the
-   # executables will be compiled.
-   EXEPATH=`basename $SOURCEURL`
-   #
-   # Add the first letter of each of the arguments to the path name
-   EXEPATH="${EXEPATH}_D${DEBUG:0:1}S${SWAN:0:1}N${NETCDF:0:1}N4${NETCDF4:0:1}N4C${NETCDF4_COMPRESSION:0:1}X${XDMF:0:1}"
-   #
-   # Prepend the base executables path to the path we've constructed.
-   EXEPATH=$EXEBASEPATH/$EXEPATH
-   #
-   # Check for existence of executables.
-   EXEFOUND=t
-   for executable in adcirc padcirc padcswan adcprep hstime aswip; do
-      if [[ ! -e $EXEPATH/work/$executable ]]; then
-         EXEFOUND=f
-      fi
-   done
-   #
-   # If we found all the executables, and we aren't supposed to try to
-   # update and recompile them, then we're done.
-   if [[ $EXEFOUND = t && $AUTOUPDATE = off ]]; then
-      logMessage "Existing ADCIRC(+SWAN) executables were successfully found."
-      ADCIRCDIR=$EXEPATH/work # <-- setting the value of ADCIRCDIR
-      return 0
-   fi
-   #
-   logMessage "ADCIRC(+SWAN) executables were not found. They will be (re)built."
-   #
-   # Check the code out of svn and into the specified directory.
-   # TODO: Deal with svn username/password.
-   if [[ ! -d $EXEPATH ]]; then
-      mkdir -p $EXEPATH 2>> $SYSLOG
-   fi
-   cd $EXEPATH 2>> $SYSLOG
-   #
-   # Check the source code out of the repository. TODO: Enable other sources
-   # of source code, e.g., a tar.gz file on the local file system.
-   logMessage "Retrieving source code."
-   # TODO: Figure out how/when to 'svn update' source code already in place if
-   # AUTOUPDATE is on.
-   svn checkout $SOURCEURL . >> build.log 2>> $SYSLOG
-   mv build.log $EXEPATH/work 2>> $SYSLOG
-   #
-   # Now build the ADCIRC and ADCIRC+SWAN executables.
-   cd $EXEPATH/work 2>> $SYSLOG
-   #
-   # Write properties file to record what this script is attempting to do
-   # and make it easy to look in the executables directory to see how the
-   # code was compiled.
-   echo "DEBUG : $DEBUG" > $PROPERTIES
-   echo "SWAN : $SWAN" >> $PROPERTIES
-   echo "NETCDF : $NETCDF" >> $PROPERTIES
-   echo "NETCDF4 : $NETCDF4" >> $PROPERTIES
-   echo "NETCDF4_COMPRESSION : $NETCDF4_COMPRESSION" >> $PROPERTIES
-   echo "XDMF : $XDMF" >> $PROPERTIES
-   echo "SOURCEURL : $SOURCEURL" >> $PROPERTIES
-   echo "AUTOUPDATE : $AUTOUPDATE" >> $PROPERTIES
-   echo "EXEBASEPATH : $EXEBASEPATH" >> $PROPERTIES
-   echo "SCRIPTDIR : $SCRIPTDIR" >> $PROPERTIES
-   echo "SWANMACROSINC : $SWANMACROSINC" >> $PROPERTIES
-   echo "ADCOPTIONS : $ADCOPTIONS" >> $PROPERTIES
-   echo "SYSLOG : $SYSLOG" >> $PROPERTIES
-   #
-   # Set the correct SWAN compiler flags for this HPC platform.
-   cp ../swan/$SWANMACROSINC ../swan/macros.inc 2>> $SYSLOG
-   #
-   # Build the executables using the settings listed in the platforms.sh file.
-   logMessage "Building executables."
-   for executable in adcirc padcirc padcswan adcprep hstime aswip; do
-      logMessage "Building ${executable}."
-      MAKECMDLINE="make $executable $ADCOPTIONS DEBUG=$DEBUG SWAN=$SWAN NETCDF=$NETCDF NETCDF4=$NETCDF4 NETCDF4_COMPRESSION=$NETCDF4_COMPRESSION XDMF=$XDMF"
-      echo "MAKECMDLINE is $MAKECMDLINE" >> build.log 2>> $SYSLOG
-      $MAKECMDLINE >> build.log 2>&1
-      if [[ $? == 0 ]]; then
-         logMessage "Successfully built ${executable}."
-      else
-         warn "Failed to build $EXEPATH/work/${executable}."
-         return 1
-      fi
-   done
-   # All executables were built successfully; set the value of ADCIRCDIR.
-   ADCIRCDIR=$EXEPATH/work
-}
-#
 # subroutine to run adcprep, using a pre-prepped archive of fort.13,
 # fort.14 and fort.18 files
 #
@@ -2371,12 +2241,6 @@ if [[ $START = coldstart ]]; then
    si=-2      # represents a hindcast
    readConfig
    THIS=asgs_main.sh
-   # Obtain and/or verify ADCIRC(+SWAN) executables
-   #get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG
-   #if [[ $? = 1 ]]; then
-   #   warn "Failed to find or build ADCIRC(+SWAN) executables for hindcast."
-   #   exit ${EXIT_NOT_OK} # can't really come back from this
-   #fi
    ADVISDIR=$RUNDIR/initialize
    mkdir -p $ADVISDIR 2>> ${SYSLOG}
    CYCLEDIR=$ADVISDIR
@@ -2587,12 +2451,6 @@ while [ true ]; do
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
    readConfig
    THIS=asgs_main.sh
-   # Obtain and/or verify ADCIRC(+SWAN) executables
-   #get_adcirc $ADCIRCDIR $DEBUG $SWAN $NETCDF $NETCDF4 $NETCDF4_COMPRESSION $XDMF $SOURCEURL $AUTOUPDATE $EXEBASEPATH $SCRIPTDIR $SWANMACROSINC "$ADCOPTIONS" $SYSLOG
-   #if [[ $? = 1 ]]; then
-   #   warn "Failed to find or build ADCIRC(+SWAN) executables for hindcast."
-   #   exit ${EXIT_NOT_OK} # can't really come back from this
-   #fi
    FROMDIR=null
    CURRENT_EVENT="PRE1"
    CURRENT_STATE="INIT"
