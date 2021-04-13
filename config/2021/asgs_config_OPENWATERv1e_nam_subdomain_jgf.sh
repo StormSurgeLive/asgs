@@ -86,7 +86,7 @@ TDS=( )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2021040100
+COLDSTARTDATE=2021032700
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
