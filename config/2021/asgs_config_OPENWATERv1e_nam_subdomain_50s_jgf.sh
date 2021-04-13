@@ -36,12 +36,15 @@
 
 # Fundamental
 
-INSTANCENAME=OPENWATERv1e_nam_1s_jgf  # "name" of this ASGS process
+INSTANCENAME=OPENWATERv1e_nam_50s_jgf  # "name" of this ASGS process
 
 # Input files and templates
 
 GRIDNAME=OPENWATERv1e
 source $SCRIPTDIR/config/mesh_defaults.sh
+# change values loaded from mesh_defaults.sh:
+TIMESTEPSIZE=50.0
+CONTROLTEMPLATE=openwater_adcircv55.fort.15.template  # designed for larger timestep (e.g., 50s)
 
 # Physical forcing (defaults set in config/forcing_defaults)
 
@@ -65,10 +68,10 @@ NUMWRITERS=1
 NCPUCAPACITY=9999
 # need to estimate larger wall clock time due to small number of cores
 # and small time step
-HINDCASTWALLTIME="36:00:00" # hindcast wall clock time
+HINDCASTWALLTIME="06:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
-NOWCASTWALLTIME="18:00:00"  # longest nowcast wall clock time
-FORECASTWALLTIME="18:00:00" # forecast wall clock time
+NOWCASTWALLTIME="06:00:00"  # longest nowcast wall clock time
+FORECASTWALLTIME="06:00:00" # forecast wall clock time
 # since this will only run on one node, even in parallel, need
 # to submit it to the single queue on queenbeeC
 if [[ $HPCENV = "qbc.loni.org" && $NCPU -lt 48 ]]; then
