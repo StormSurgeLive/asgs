@@ -5,7 +5,7 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    branches: [ master ]
+    branches: [ ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -19,10 +19,16 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       # Runs a set of commands using the runners shell
-      - name: Install ASGS and ADCIRC prerequisits
+      - name: Install ASGS prerequisits
+        env:
+          WORK: $GITHUB_WORKSPACE/work
+          SCRATCH: $GITHUB_WORKSPACE/scratch
+          _ASGS_CONTAINER: docker
         run: |
           sudo apt-get update  -y
           sudo apt-get install -y apt-utils build-essential checkinstall
           sudo apt-get install -y zlib1g-dev libssl-dev libexpat1-dev gfortran wget curl vim
           sudo apt-get install -y screen htop tmux git sudo bc zip flex
-
+          mkdir -p $WORK
+          mkdir -p $SCRATCH
+          ./init-asgs.sh BATCH=YES
