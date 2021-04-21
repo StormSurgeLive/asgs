@@ -19,10 +19,10 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Install ASGS and ADCIRC prerequisits
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y apt-utils build-essential checkinstall  && \
-          zlib1g-dev libssl-dev libexpat1-dev gfortran wget curl vim && \
-          screen htop tmux git sudo bc zip flex
+          sudo apt-get update  -y
+          sudo apt-get install -y apt-utils build-essential checkinstall
+          sudo apt-get install -y zlib1g-dev libssl-dev libexpat1-dev gfortran wget curl vim
+          sudo apt-get install -y screen htop tmux git sudo bc zip flex
 
