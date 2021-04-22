@@ -32,14 +32,15 @@ fi
 
 _show_supported_versions()
 {
-  echo  '                                       ||ASGS Supported ADCIRC versions||'
-  echo  '/~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\'
-  echo  '|* v53release              | standard version traditionally used        |'
-  echo  '|* v53release-qbc          | v53 with makefile support for LONIs qbc    |'
-  echo  '|* v53release+adcircpolate | v53 with required ADCIRCpolate support     |'
-  echo  '|* v55.00                  | formerally  v55release                     |'
-  echo  '|* v55release-qbc          | v55.00 with makefile support for LONIs qbc |'
-  echo  '\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/'
+  echo  '                                           ||ASGS Supported ADCIRC versions||'
+  echo  '/~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\'
+  echo  '|* v53release              | standard version traditionally used            |'
+  echo  '|* v53release-qbc          | v53 with makefile support for LONIs qbc        |'
+  echo  '|* v53release-testsuite    | standard version + tools supporting testsuite  |'
+  echo  '|* v53release-adcircpolate | v53 with required ADCIRCpolate support         |'
+  echo  '|* v55release              | standard v55release                            |'
+  echo  '|* v55release-qbc          | v55release with makefile support for LONIs qbc |'
+  echo  '\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/'
   echo
   if [ "${1}" != "noexit" ]; then
     # exits on error if '1' is optionally passed, defaults to 0 (no error)
@@ -88,12 +89,24 @@ if [ "$INTERACTIVE" == "yes" ]; then
   PATCHSET_NAME=
   PATCHSET_DIR=
   case "${ADCIRC_GIT_BRANCH}" in
-    v53release|v53release-qbc)
+    v53release)
       #noop
       ;;
-    v53release+adcircpolate)
-      PATCHSET_NAME="v53release+adcircpolate"
+    v53release-qbc)
+      PATCHSET_NAME="v53release-qbc"
+      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/v53release-qbc
+      # update to proper base branch
+      ADCIRC_GIT_BRANCH=v53release
+      ;;
+    v53release-adcircpolate)
+      PATCHSET_NAME="v53release-adcircpolate"
       PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/v53release-Clint-Interpolation
+      # update to proper base branch
+      ADCIRC_GIT_BRANCH=v53release
+      ;;
+    v53release-testsuite)
+      PATCHSET_NAME="v53release-testsuite"
+      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/v53release-testsuite
       # update to proper base branch
       ADCIRC_GIT_BRANCH=v53release
       ;;
@@ -101,17 +114,16 @@ if [ "$INTERACTIVE" == "yes" ]; then
       #noop
       ;;
     v55release)
-      echo
-      echo '(fatal) The ADCIRC upstream "v55release" branche has been removed,'
-      echo '...specify "v55.00" instead.' 
-      echo
-      _show_supported_versions 1
-      ;;
-    v55.00|v55release-qbc)
       #noop
+      ;;
+    v55release-qbc)
+      PATCHSET_NAME="v55release-qbc"
+      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/v55release-qbc
+      # update to proper base branch
+      ADCIRC_GIT_BRANCH=v55release
       ;;   
     *)
-      echo Branch \"${ADCIRC_GIT_BRANCH}\" is not officially supported at this time. 
+      echo 'ADCIRC "version" "${ADCIRC_GIT_BRANCH}" is not officially supported at this time.'
       exit 1
   esac
 
@@ -159,10 +171,7 @@ fi
     v54release)
       SWANDIR=${ADCIRCBASE}/swan
       ;;
-    v55release)
-      #noop
-      ;;
-    v55.00|v55release-qbc)
+    v55release|v55release-qbc)
       SWANDIR=${ADCIRCBASE}/thirdparty/swan
       ;;   
     *)
