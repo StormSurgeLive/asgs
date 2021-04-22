@@ -701,7 +701,7 @@ build () {
   TO_BUILD=${1}
   case "${1}" in
     adcirc)
-      init-adcirc.sh $@
+      init-adcirc.sh ${2}
       ;;
     *)
       echo "Only 'adcirc' supported at this time."
