@@ -36,14 +36,16 @@
 
 # Fundamental
 
-INSTANCENAME=HSOFS_nam_jgf  # "name" of this ASGS process
+INSTANCENAME=LAv20a_nam_jgf_26kcms  # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=HSOFS
+GRIDNAME=LA_v20a-WithUpperAtch_chk
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults)
+
+CONTROLTEMPLATE=LAv20a_26kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
@@ -106,3 +108,4 @@ esac
 
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
+
