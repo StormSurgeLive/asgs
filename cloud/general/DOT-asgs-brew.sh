@@ -694,7 +694,7 @@ echo
 
 # runs script to install ADCIRC interactively
 initadcirc() {
-  init-adcirc.sh
+  init-adcirc.sh $@
 }
 
 # alias to edit that may be more semantically correct in some

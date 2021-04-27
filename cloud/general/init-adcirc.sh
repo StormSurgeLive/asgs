@@ -30,6 +30,25 @@ if [ "${1}" = "clean" ]; then
   exit 0
 fi
 
+_show_supported_versions()
+{
+  echo  '                                       ||ASGS Supported ADCIRC versions||'
+  echo  '/~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\'
+  echo  '|* v53release              | standard version traditionally used        |'
+  echo  '|* v53release-qbc          | v53 with makefile support for LONIs qbc    |'
+  #echo  '|* v53release+adcircpolate | v53 with required ADCIRCpolate support     |'
+  echo  '|* v55.00                  | formerally  v55release                     |'
+  echo  '|* v55release-qbc          | v55.00 with makefile support for LONIs qbc |'
+  echo  '\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/'
+  echo
+  # exits on error if '1' is optionally passed, defaults to 0 (no error)
+  exit ${1:-0} 
+}
+
+if [ "${1}" = "supported" ]; then
+  _show_supported_versions
+fi
+
 # preconditions
 if [ -z "$ADCIRC_META_DIR" ]; then
   echo "ADCIRC_META_DIR is not set. Run interactively through asgsh or automatically via asgs-brew.pl."
@@ -62,6 +81,30 @@ if [ "$INTERACTIVE" == "yes" ]; then
   else
     ADCIRC_GIT_BRANCH=$__ADCIRC_GIT_BRANCH
   fi
+
+  ADCIRCDIR=${ADCIRCBASE}/work
+  # deal with SWAN coupling build based on supported ADCIRC branches (versions):
+  case "${ADCIRC_GIT_BRANCH}" in
+    v53release|v53release-qbc)
+      SWANDIR=${ADCIRCBASE}/swan
+      ;;
+    v54release)
+      SWANDIR=${ADCIRCBASE}/swan
+      ;;
+    v55release)
+      echo
+      echo '(fatal) The ADCIRC upstream "v55release" branche has been removed,'
+      echo '...specify "v55.00" instead.' 
+      echo
+      _show_supported_versions 1
+      ;;
+    v55.00|v55release-qbc)
+      SWANDIR=${ADCIRCBASE}/thirdparty/swan
+      ;;   
+    *)
+      echo Branch \"${ADCIRC_GIT_BRANCH}\" is not officially supported at this time. 
+      exit 1
+  esac
 
   echo
   # determine what to name the ADCIRC profile
@@ -189,21 +232,6 @@ if [ -d "$ADCIRCBASE/.git" ]; then
     fi
   fi
 fi
-
-ADCIRCDIR=${ADCIRCBASE}/work
-
-# deal with SWAN coupling build based on supported ADCIRC branches (versions):
-case "${ADCIRC_GIT_BRANCH}" in
-  v53release|v53release-qbc|v54release)
-    SWANDIR=${ADCIRCBASE}/swan
-    ;;
-  v55release|v55release-qbc)
-    SWANDIR=${ADCIRCBASE}/thirdparty/swan
-    ;;   
-  *)
-    echo Branch \"${ADCIRC_GIT_BRANCH}\" is not officially supported at this time. 
-    exit 1
-esac
 
 # final check to make sure it looks like the expected ADCIRC source
 if [ ! -d "$ADCIRCDIR" ]; then

@@ -19,3 +19,4 @@ XML::RSS
 Template
 Perl::Tidy
 Weather::NHC::TropicalCyclone
+PDL
