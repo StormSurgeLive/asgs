@@ -36,13 +36,15 @@ _show_supported_versions()
   echo  '/~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\'
   echo  '|* v53release              | standard version traditionally used        |'
   echo  '|* v53release-qbc          | v53 with makefile support for LONIs qbc    |'
-  #echo  '|* v53release+adcircpolate | v53 with required ADCIRCpolate support     |'
+  echo  '|* v53release+adcircpolate | v53 with required ADCIRCpolate support     |'
   echo  '|* v55.00                  | formerally  v55release                     |'
   echo  '|* v55release-qbc          | v55.00 with makefile support for LONIs qbc |'
   echo  '\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/'
   echo
-  # exits on error if '1' is optionally passed, defaults to 0 (no error)
-  exit ${1:-0} 
+  if [ "${1}" != "noexit" ]; then
+    # exits on error if '1' is optionally passed, defaults to 0 (no error)
+    exit ${1:-0} 
+  fi
 }
 
 if [ "${1}" = "supported" ]; then
@@ -70,11 +72,10 @@ fi
 
 # Ask user for preferences, but offer defaults in the present in the asgsh environment
 if [ "$INTERACTIVE" == "yes" ]; then
-  echo NOTE: ASGS generally uses the "'v53release'" version of ADCIRC. 
-  echo
+  _show_supported_versions noexit 
   # get branch/tag/sha to checkout
   __ADCIRC_GIT_BRANCH=v53release # current preferred default
-  read -p "What git branch (or tag, commit SHA) of the ADCIRC source do you wish to build? [$__ADCIRC_GIT_BRANCH] " _ADCIRC_GIT_BRANCH
+  read -p "What supported 'version' of the ADCIRC source do you wish to build? [$__ADCIRC_GIT_BRANCH] " _ADCIRC_GIT_BRANCH
   if [ -n "$_ADCIRC_GIT_BRANCH" ]; then
     # do not export, don't affect current environment after build
     ADCIRC_GIT_BRANCH=$_ADCIRC_GIT_BRANCH
@@ -82,14 +83,22 @@ if [ "$INTERACTIVE" == "yes" ]; then
     ADCIRC_GIT_BRANCH=$__ADCIRC_GIT_BRANCH
   fi
 
-  ADCIRCDIR=${ADCIRCBASE}/work
-  # deal with SWAN coupling build based on supported ADCIRC branches (versions):
+# First pass check
+  __ADCIRC_PATCHSET_BASE=${SCRIPTDIR}/patches/ADCIRC
+  PATCHSET_NAME=
+  PATCHSET_DIR=
   case "${ADCIRC_GIT_BRANCH}" in
     v53release|v53release-qbc)
-      SWANDIR=${ADCIRCBASE}/swan
+      #noop
+      ;;
+    v53release+adcircpolate)
+      PATCHSET_NAME="v53release+adcircpolate"
+      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/v53release-Clint-Interpolation
+      # update to proper base branch
+      ADCIRC_GIT_BRANCH=v53release
       ;;
     v54release)
-      SWANDIR=${ADCIRCBASE}/swan
+      #noop
       ;;
     v55release)
       echo
@@ -99,7 +108,7 @@ if [ "$INTERACTIVE" == "yes" ]; then
       _show_supported_versions 1
       ;;
     v55.00|v55release-qbc)
-      SWANDIR=${ADCIRCBASE}/thirdparty/swan
+      #noop
       ;;   
     *)
       echo Branch \"${ADCIRC_GIT_BRANCH}\" is not officially supported at this time. 
@@ -108,7 +117,11 @@ if [ "$INTERACTIVE" == "yes" ]; then
 
   echo
   # determine what to name the ADCIRC profile
-  __ADCIRC_PROFILE_NAME=$ADCIRC_GIT_BRANCH-$ADCIRC_COMPILER
+  if [ -n "$PATCHSET_NAME" ]; then
+    __ADCIRC_PROFILE_NAME=${PATCHSET_NAME}-${ADCIRC_COMPILER}
+  else
+    __ADCIRC_PROFILE_NAME=${ADCIRC_GIT_BRANCH}-${ADCIRC_COMPILER}
+  fi
   read -p "What would you like to name this ADCIRC build profile? [$__ADCIRC_PROFILE_NAME] " _ADCIRC_PROFILE_NAME
   if [ -n "$_ADCIRC_PROFILE_NAME" ]; then
     ADCIRC_PROFILE_NAME=$_ADCIRC_PROFILE_NAME
@@ -119,18 +132,43 @@ if [ "$INTERACTIVE" == "yes" ]; then
 
   # determine where to look for source directory or checkout git repo for the build
   if [ -e "$WORK" ]; then
-    __ADCIRCBASE=$WORK/adcirc-cg-$ADCIRC_PROFILE_NAME
+    __ADCIRCBASE=${WORK}/adcirc-cg-${ADCIRC_PROFILE_NAME}
   else
-    __ADCIRCBASE=$ASGS_HOME/adcirc-cg-$ADCIRC_PROFILE_NAME
+    __ADCIRCBASE=${ASGS_HOME}/adcirc-cg-${ADCIRC_PROFILE_NAME}
   fi
-  read -p "In what directory would you like to build ADCIRC? [$__ADCIRCBASE] " _ADCIRCBASE
-  if [ -n "$_ADCIRCBASE" ]; then
+  read -p "In what directory would you like to build ADCIRC? [${__ADCIRCBASE}] " _ADCIRCBASE
+  if [ -n "${_ADCIRCBASE}" ]; then
     ADCIRCBASE=$_ADCIRCBASE
   else
     ADCIRCBASE=$__ADCIRCBASE
   fi
   echo
 fi
+
+  ADCIRCDIR=${ADCIRCBASE}/work
+  # deal with SWAN coupling build based on supported ADCIRC branches (versions):
+  # and potential patching of ADCIRC or SWAN
+  __ADCIRC_PATCHSET_BASE=${SCRIPTDIR}/patches/ADCIRC
+  case "${ADCIRC_GIT_BRANCH}" in
+    v53release|v53release-qbc)
+      SWANDIR=${ADCIRCBASE}/swan
+      ;;
+    v53release+adcircpolate)
+      SWANDIR=${ADCIRCBASE}/swan
+      ;;
+    v54release)
+      SWANDIR=${ADCIRCBASE}/swan
+      ;;
+    v55release)
+      #noop
+      ;;
+    v55.00|v55release-qbc)
+      SWANDIR=${ADCIRCBASE}/thirdparty/swan
+      ;;   
+    *)
+      echo Branch \"${ADCIRC_GIT_BRANCH}\" is not officially supported at this time. 
+      exit 1
+  esac
 
 # meant to be run under the asgs-brew.pl environment
 # looks for:
@@ -162,7 +200,7 @@ if [ ! -d ${ADCIRCBASE} ]; then
       answer=$_answer
     fi
     if [ "$answer" != 'yes' ]; then
-      echo 'no directory was created. Exiting install.'
+      echo '(fatal) no directory was created. Exiting install.'
       exit
     fi
     echo
@@ -183,7 +221,6 @@ if [ ! -d ${ADCIRCBASE}/.git ]; then
       echo
       git clone ${ADCIRC_GIT_URL}/${ADCIRC_GIT_REPO}.git ${ADCIRCBASE}
     fi
-    echo
   fi
 else
   echo "$ADCIRCBASE appears to already contain a git repository."
@@ -193,7 +230,7 @@ fi
 # requested is available locally (via origin or any other manually
 # added remotes (see, git remote --help for more information)
 if [ ! -d "$ADCIRCBASE" ]; then
-  echo "$ADCIRCBASE not found. Exiting install."
+  echo "(fatal) $ADCIRCBASE not found. Exiting install."
   exit 1
 else
   cd ${ADCIRCBASE}
@@ -220,7 +257,7 @@ if [ -d "$ADCIRCBASE/.git" ]; then
       git checkout ${ADCIRC_GIT_BRANCH}
       EXIT=$?
       if [ $EXIT -gt 0 ]; then
-        echo "error checking out git repository. Exiting ($EXIT)."
+        echo "(fatal) error checking out git repository. Exiting ($EXIT)."
         exit $EXIT
       fi
       # check to make sure we're really on the desired branch
@@ -235,8 +272,32 @@ fi
 
 # final check to make sure it looks like the expected ADCIRC source
 if [ ! -d "$ADCIRCDIR" ]; then
-  echo "$ADCIRCDIR is missing the './work' directory. Exiting install."
+  echo "(fatal) $ADCIRCDIR is missing the './work' directory. Exiting install."
   exit 1
+fi
+
+# ~ A P P L Y  P A T C H S E T ~
+if [ -d "${PATCHSET_DIR}/" ]; then
+  echo
+  echo applying patches from $PATCHSET_DIR ...
+  # apply from perspective of $ADCIRCBASE, since it's possible we could also
+  # be patching in a third party directory
+  pCOUNT=1
+  for diff in $(find ${PATCHSET_DIR} -type f  | sort -n); do
+    printf "patch %02d - applying %s\n" $pCOUNT $diff
+    OUT=$(patch -p1 < $diff 2>&1)
+    EXIT=$?
+    if [ $EXIT -gt 0 ]; then
+      echo $OUT
+      echo "(fatal) error applying patch: $diff"
+      echo Exiting.
+      exit $EXIT
+    fi
+    pCOUNT=$((pCOUNT+1))
+  done
+else
+  echo "(fatal) patch set directory not found. Exiting."
+  exit 1 
 fi
 
 if [ "$INTERACTIVE" = "yes" ]; then
