@@ -1469,7 +1469,6 @@ variables_init()
    RESERVATION=null # for SLURM
    CONSTRAINT=null # for SLURM
    QOS=null
-   ASGSADMIN=ASGSADMIN
    PERIODICFLUX=null
    SPATIALEXTRAPOLATIONRAMP=yes
    SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
@@ -1813,7 +1812,7 @@ RMQADVISORY=0  #  "Fake" ADVISORY number for RMQ Messages.
 #
 # mail alert
 operator=$USER
-ASGSADMIN=$operator
+#ASGSADMIN Operators should set this value in their ~/.asgsh_profile files on each platform
 #
 # exit statuses
 EXIT_NOT_OK=1
