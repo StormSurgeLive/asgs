@@ -31,7 +31,7 @@ RUN ln -s /usr/bin/env /bin/env > /dev/null 2>&1 || echo /usr/bin/env already li
 ENV _ASGS_CONTAINER="docker"
 
 # asgsuser
-RUN useradd -ms /bin/bash asgsuser 
+RUN useradd -ms /bin/bash asgsuser
 RUN echo "asgsuser ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # set up WORK and SCRATCH targets

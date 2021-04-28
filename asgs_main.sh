@@ -340,6 +340,14 @@ prep()
        #
        # copy in the swaninit file which contains the name of the swan
        # control file (conventionally named fort.26 when used with ADCIRC)
+       #
+       # Also need to add a check on the copying of subdomain hotstart
+       # files; on certain platforms, this copying will sometimes fail
+       # (one of the hotstart files will be missed). It is also possible
+       # for hotstart files to be copied but the parallel job that reads
+       # them will start very soon after and the filesystem will report
+       # that these files are missing.
+       #
        if [[ $WAVES = on ]]; then
           cp $INPUTDIR/swaninit.template $ADVISDIR/$ENSTORM/swaninit 2>> ${SYSLOG}
        fi
@@ -521,6 +529,13 @@ prep()
              PE=`expr $PE + 1`
           done
           logMessage "$ENSTORM: $THIS: Completed copy of subdomain hotstart files."
+          # add a delay here because on certain platforms, the filesystem
+          # cannot keep up with this many files being copied, and when the
+          # parallel compute job starts, the filesystem may report files not
+          # found. This is a stopgap until a proper sanity check on the file
+          # copy process can be implemented.
+          logMessage "$ENSTORM: $THIS: Pausing 30 seconds after copying subdomain hotstart files."
+          sleep 30
        fi
        #
        #  H O T S T A R T I N G   S W A N
@@ -584,6 +599,13 @@ prep()
                    PE=`expr $PE + 1`
                 done
                 logMessage "$ENSTORM: $THIS: Completed copy of subdomain hotstart files."
+                # add a delay here because on certain platforms, the filesystem
+                # cannot keep up with this many files being copied, and when the
+                # parallel compute job starts, the filesystem may report files not
+                # found. This is a stopgap until a proper sanity check on the file
+                # copy process can be implemented.
+                logMessage "$ENSTORM: $THIS: Pausing 30 seconds after copying SWAN subdomain hotstart files."
+                sleep 30
                 swanHotstartOK=yes
              fi
              # subdomain SWAN hotstart files in a tar archive
