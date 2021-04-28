@@ -89,12 +89,12 @@ sub run {
 
         # note: 'adcirc-dir' is finalized in _parse_options after ASGS_HOME is determined
         'adcirc-git-branch' => q{v53release},
-        'adcirc-git-url'    => q{https://github.com/adcirc},    # https so that it prompts for username/password
+        'adcirc-git-url'    => q{git@github.com:adcirc},    # ssh keys required for adcirc
         'adcirc-git-repo'   => q{adcirc-cg},
         brewflags           => join( q{ }, @$args_ref ),
         compiler            => q{gfortran},
         'make-jobs'         => 1,
-        scriptdir           => Cwd::getcwd(),                   # fixed throughout, no option to changes this
+        scriptdir           => Cwd::getcwd(),               # fixed throughout, no option to changes this
     };
 
     $self->_parse_options( $args_ref, $opts_ref );    # exits with 255 if error with options
