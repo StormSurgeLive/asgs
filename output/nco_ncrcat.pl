@@ -2,7 +2,7 @@
 #----------------------------------------------------------------
 # nco_ncrcat.pl
 #
-# concatenate fort.61.nc files at various time spans to 
+# concatenate fort.61.nc files at various time spans to
 # facilitate validation
 #----------------------------------------------------------------
 # Copyright(C) 2021 Jason Fleming
@@ -29,17 +29,17 @@
 # and this way for files that are still in-situ in the directories
 # of an asgs instance on the hpc machine:
 # $root_data_dir/yyyymmddhh24/scenario/file
-# For example: 
+# For example:
 #./2021/nam/2021012918/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.61.nc
 # or
 # /work/jgflemin/asgs45806/2021042400/nowcast/fort.61.nc
-# Then the script concatenates the output files over different time 
+# Then the script concatenates the output files over different time
 # periods as follows (in days):
 # 0.25 0.5 1.0 2.0 4.0 8.0 16.0 32.0
-# with "now" date given as the final date in the file. 
+# with "now" date given as the final date in the file.
 #----------------------------------------------------------------
-# Assumptions : 
-#   1. all files have the same cold start date (so the time in 
+# Assumptions :
+#   1. all files have the same cold start date (so the time in
 #      seconds is all that is needed)
 #   2. if the target date is not given, the script uses the latest
 #      target date available
@@ -60,12 +60,12 @@ use Getopt::Long;
 sub stderrMessage($$);
 #
 my $root_data_dir = ".";     # directory containing subdirectories with data of interest
-my $datafile = "fort.61.nc"; # file containing data at each station 
+my $datafile = "fort.61.nc"; # file containing data at each station
 my $cold_start_date = "null";  # yyyymmddhh24 when the simulation was coldstarted; used to compute calendar dates/times
 my $target_end_sec = "null"; # the end of the target data file in seconds
-my $target_date = "null";    # yyyymmddhh24 DIRECTORY to count back from 
+my $target_date = "null";    # yyyymmddhh24 DIRECTORY to count back from
 my @datafiles_in_period;     # datafiles that fall between the target date and the longest time period
-my $csy; my $csm; my $csd; my $csh; # cold start date components  
+my $csy; my $csm; my $csd; my $csh; # cold start date components
 my @time_periods = qw( 0.25 0.5 1.0 2.0 4.0 8.0 16.0 32.0 );
 my @time_period_prefixes = qw( 6_hours 12_hours 1_day 2_days 4_days 8_days 16_days 32_days );
 my @files_of_interest;       # list of files to concatenate
@@ -110,14 +110,14 @@ if ( $target_date eq "null" ) {
    my @target_path_parts = split("/", $sub_target_path) ;
    $target_date = $target_path_parts[3];
 }
-print "target_date is $target_date\n"; 
-# 
+print "target_date is $target_date\n";
+#
 # go through the list of files and build up the
 # concatenated file
-my @files_in_period; 
+my @files_in_period;
 my $datePathLocation = 3; # true if the files were posted to opendap server
 if ( $insitu ) {
-   $datePathLocation = 0; # true if the files are still on the hpc 
+   $datePathLocation = 0; # true if the files are still on the hpc
 }
 foreach my $f (@reverse_files) {
     my $sub_target_path = substr($f,length($root_data_dir));
@@ -126,7 +126,7 @@ foreach my $f (@reverse_files) {
     foreach my $p (@target_path_parts) {
         #stderrMessage("DEBUG","$p");
      }
-    # if the sub_target_path starts with / then the 
+    # if the sub_target_path starts with / then the
     # first element of @target_path_parts will be empty
     if ( $target_path_parts[0] eq "" ) {
         shift(@target_path_parts);
@@ -139,7 +139,7 @@ foreach my $f (@reverse_files) {
     # add this file to the list of files of interest (this list is in chronological order)
     chomp($f);
     unshift(@files_of_interest,$f);
-    # 
+    #
     # determine the final time in seconds in the target data file
     # if this has not been done already
     if ( $target_end_sec eq "null" ) {
@@ -150,38 +150,38 @@ foreach my $f (@reverse_files) {
             if ( $tl =~ /time:base_date = "(\d\d\d\d)-(\d\d)-(\d\d) (\d\d)\:(\d\d)\:(\d\d)"/ ) {
                 $cold_start_date = $1 . $2 . $3 . $4;
                 $csy = $1 ; $csm = $2 ; $csd = $3 ; $csh = $4;
-                # FIXME: we're assuming all files have the same cold start date 
-                print "cold start date is $cold_start_date\n"; 
+                # FIXME: we're assuming all files have the same cold start date
+                print "cold start date is $cold_start_date\n";
             }
             if ( $tl =~ /time = (\d+)/ ) {
-                $target_end_sec = $1; 
-                print "target_end_sec is $target_end_sec\n";                 
+                $target_end_sec = $1;
+                print "target_end_sec is $target_end_sec\n";
             }
         }
     }
     #
     # determine time in seconds at the start of the file of interest
-    my $this_file_start_sec; 
+    my $this_file_start_sec;
     my @timelines = `ncks -v time -d time,1 $f`;
     foreach my $tl (@timelines) {
         if ( $tl =~ /time = (\d+)/ ) {
-            $this_file_start_sec = $1; 
+            $this_file_start_sec = $1;
             print "this_file_start_sec is $this_file_start_sec\n";
             last;
        }
     }
     # get the start of the current time period of interest in seconds
     my $this_period_start_sec = $target_end_sec - ($time_periods[0] * 86400.0);
-    # check to see if this data file starts before the period of interest,  
+    # check to see if this data file starts before the period of interest,
     # and if so, concatenate the list of files we have so far
-    # for this time period and write it out 
+    # for this time period and write it out
     # FIXME: this will probably result in concatenating too much data,
-    # at least sometimes 
+    # at least sometimes
     if ( $this_file_start_sec < $this_period_start_sec ) {
         my $period_file_list = join(" ",@files_of_interest);
         #stderrMessage("DEBUG","period_file_list $period_file_list");
-        my $period_file_name = $time_period_prefixes[0] . "_fort.61.nc"; 
-        # -O will overwrite an existing file 
+        my $period_file_name = $time_period_prefixes[0] . "_fort.61.nc";
+        # -O will overwrite an existing file
         # -D 0 will set the debug level to 0 and hopefully suppress spurious warnings
         system("ncrcat -O -D 0 $period_file_list $period_file_name");
         #stderrMessage("DEBUG","system(ncrcat $period_file_list $period_file_name)");
@@ -189,14 +189,14 @@ foreach my $f (@reverse_files) {
         shift(@time_periods);
         shift(@time_period_prefixes);
     }
-    # end when we run out of time periods to write values for 
+    # end when we run out of time periods to write values for
     if ( @time_periods == 0 ) {
         last;
     }
 }
 #
 #-----------------------------------------------------------------
-#       F U N C T I O N    S T D E R R  M E S S A G E 
+#       F U N C T I O N    S T D E R R  M E S S A G E
 #-----------------------------------------------------------------
 sub stderrMessage ($$) {
    my $level = shift;
