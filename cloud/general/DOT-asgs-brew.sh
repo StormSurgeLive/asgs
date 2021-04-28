@@ -62,7 +62,7 @@ help() {
   echo "           syslog              - open up SYSLOG (if set) in EDITOR for easier forensics"
   echo "   goto    <param>             - change CWD to a supported directory. Type 'goto options' to see the currently supported options"
   echo "   guess   platform            - attempts to guess the current platform as supported by platforms.sh (e.g., frontera, supermic, etc)" 
-  echo "   initadcirc                  - interactive tool for building and local registering versions of ADCIRC for use with ASGS"
+  echo "   build adcirc                  - interactive tool for building and local registering versions of ADCIRC for use with ASGS"
   echo "   inspect <option>            - alias to 'edit' for better semantics; e.g., 'inspect syslog' or 'inspect statefile'"
   echo "   list    <param>             - lists different things, please see the following options; type 'list options' to see currently supported options"
   echo "   load    profile <name>      - loads a saved profile by name; use 'list profiles' to see what's available"
@@ -677,7 +677,7 @@ fi
 export PS1='asgs (none)>'
 echo
 echo "Quick start:"
-echo "  'initadcirc' to build and local register versions of ADCIRC"
+echo "  'build adcirc' to build and local register versions of ADCIRC"
 echo "  'list profiles' to see what scenario package profiles exist"
 echo "  'load profile <profile_name>' to load saved profile"
 echo "  'list adcirc' to see what builds of ADCIRC exist"
@@ -693,8 +693,29 @@ echo " --update-shell option"
 echo
 
 # runs script to install ADCIRC interactively
-initadcirc() {
-  init-adcirc.sh $@
+build () {
+  if [ -z "${1}" ]; then
+    echo "The 'build' command requires an argument specifying what to build, e.g., 'build adcirc'"
+    exit
+  fi
+  TO_BUILD=${1}
+  case "${1}" in
+    adcirc)
+      init-adcirc.sh $@
+      ;;
+    *)
+      echo "Only 'adcirc' supported at this time."
+      exit
+      ;;
+  esac
+}
+
+# deprecation (may change *again* if we create a general install manager
+initadcirc(){
+  echo "(deprecation notice): 'initadcirc' should now be called as, 'build adcirc'."
+  echo "No action taken..."
+  echo
+  return
 }
 
 # alias to edit that may be more semantically correct in some
