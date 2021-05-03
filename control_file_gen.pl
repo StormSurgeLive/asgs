@@ -525,15 +525,21 @@ if ( $waves eq "on" ) {
    #
    stderrMessage("INFO","Filling in swan control template (fort.26).");
    while(<TEMPLATE>) {
+       # use the year as the run number
+       my $ny72 = substr($ny,0,4);                  # 'nr' in SWAN documentation, max 4 characters
+       s/%nr%/$ny72/;
        # if we are looking at the first line, fill in the name of the storm
        # and the advisory number, if available
-       s/%StormName%/$rundesc/;
+       my $rundesc72 = substr($rundesc,0,72);       # 'title1' in SWAN documentation, max 72 char
+       s/%StormName%/$rundesc72/;
        # if we are looking at the DT line, fill in the time step (seconds)
        s/%swandt%/$swandt/;
        # fill in ensemble name -- this is in the comment line
+       my $ensembleid72 = substr($ensembleid,0,72); # 'title2' in SWAN documentation, max 72 char
        s/%EnsembleID%/$ensembleid/;
        # may be asymmetric parameters, or wtiminc, rstiminc, etc
-       s/%WTIMINC%/$wtiminc/;
+       my $wtiminc72 = substr($wtiminc,0,72);
+       s/%WTIMINC%/$wtiminc72/;                     # 'title3' in SWAN documentation, max 72 char
        #
        s/%hotstart%/$swanhs/;
        # swan start time -- corresponds to adcirc hot start time

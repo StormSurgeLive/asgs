@@ -26,6 +26,11 @@ MESHURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/meshes
 NODALATTRIBUTESURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/nodal-attributes
 OFFSETURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets
 UNITOFFSETFILE=null
+# The following is common to all meshes and is only used
+# for SWAN (WAVES=on); may not give good numerical results
+# with ADCIRC+SWAN v52; not clear whether it is correctly
+# formatted with ADCIRC+SWAN v55 yet.
+SWANTEMPLATE=adcirc_swan_v53_fort.26.template # found in input/meshes/common/swan
 #
 case $GRIDNAME in
       #
@@ -43,7 +48,6 @@ case $GRIDNAME in
       METSTATIONS=combined_stations_20190327.txt
       NAFILE=LA_v19k-WithUpperAtch_chk.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=LA_v19k-WithUpperAtch.26.template   # only used if WAVES=on
       RIVERINIT=null                           # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
@@ -73,7 +77,6 @@ case $GRIDNAME in
       METSTATIONS=$ELEVSTATIONS
       NAFILE=LA_v20a-WithUpperAtch_chk.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=LA_v20a-WithUpperAtch.26.template   # only used if WAVES=on
       RIVERINIT=null                           # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
@@ -102,7 +105,6 @@ case $GRIDNAME in
       METSTATIONS=cera_stations.txt
       NAFILE=null
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=fort.26.nolimiter.template   # only used if WAVES=on
       RIVERINIT=null                            # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
@@ -131,7 +133,6 @@ case $GRIDNAME in
       METSTATIONS=tx2008r35h_stations_20170618.txt
       NAFILE=tx2008_r35h.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=fort.26.nolimiter.template    # only used if WAVES=on
       RIVERINIT=null                           # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
@@ -161,7 +162,6 @@ case $GRIDNAME in
       METSTATIONS=tx2008r35h_stations_20170618.txt
       NAFILE=ctx_gr_p01E02_na_p02_fort.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=fort.26.nolimiter.template    # only used if WAVES=on
       RIVERINIT=null                           # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
@@ -190,7 +190,6 @@ case $GRIDNAME in
       METSTATIONS=tx2008r35h_stations_20170618.txt
       NAFILE=tx2020a.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=fort.26.nolimiter.template    # only used if WAVES=on
       RIVERINIT=null                           # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
@@ -221,7 +220,6 @@ case $GRIDNAME in
       METSTATIONS=${ELEVSTATIONS}
       NAFILE=neflga_v12.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=fort.26.nolimiter.template    # only used if WAVES=on
       RIVERINIT=null                           # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
@@ -251,7 +249,6 @@ case $GRIDNAME in
       METSTATIONS=${ELEVSTATIONS}
       NAFILE=nc_inundation_v9.99_rivers.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=fort.26.template
       RIVERINIT=v6brivers.88
       RIVERFLUX=v6brivers_fort.20_default
       HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
@@ -279,8 +276,6 @@ case $GRIDNAME in
       METSTATIONS=$ELEVSTATIONS
       NAFILE=hsofs_NE-hires_v2_with_mann_advstate.13
       NAPROPERTIES=${NAFILE}.properties
-      #SWANTEMPLATE=fort.26.template # only used if WAVES=on
-      SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
       RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
       HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
@@ -308,8 +303,6 @@ case $GRIDNAME in
       METSTATIONS=$ELEVSTATIONS
       NAFILE=hsofs.13
       NAPROPERTIES=${NAFILE}.properties
-      #SWANTEMPLATE=fort.26.template # only used if WAVES=on
-      SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
       RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
       HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
@@ -337,8 +330,6 @@ case $GRIDNAME in
       METSTATIONS=$ELEVSTATIONS
       NAFILE=SABv20a.13
       NAPROPERTIES=${NAFILE}.properties
-      #SWANTEMPLATE=fort.26.template # only used if WAVES=on
-      SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
       RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
       HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
@@ -367,8 +358,6 @@ case $GRIDNAME in
       METSTATIONS=$ELEVSTATIONS
       NAFILE=fema_wfl_fort.13
       NAPROPERTIES=${NAFILE}.properties
-      #SWANTEMPLATE=fort.26.template # only used if WAVES=on
-      SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
       RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
       HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
@@ -397,7 +386,6 @@ case $GRIDNAME in
       METSTATIONS=southfl_stations_20190502.txt
       NAFILE=southfl_v11-1_final-production.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=fort.26.nolimiter.template
       RIVERINIT=null                           # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
@@ -426,7 +414,6 @@ case $GRIDNAME in
       METSTATIONS=${ELEVSTATIONS}
       NAFILE=cenfl_v7.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=fort.26.nolimiter.template
       RIVERINIT=null                           # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
@@ -455,7 +442,6 @@ case $GRIDNAME in
       METSTATIONS=${ELEVSTATIONS}
       NAFILE=FEMA_R3_20110303_MSL.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=fort.26.nolimiter.template
       RIVERINIT=null                           # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
@@ -485,7 +471,6 @@ case $GRIDNAME in
       METSTATIONS=${ELEVSTATIONS}
       NAFILE=FEMA_R2_01262012_refrac_fort.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=fort.26.nolimiter.template
       RIVERINIT=null                           # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
@@ -514,7 +499,6 @@ case $GRIDNAME in
       METSTATIONS=${ELEVSTATIONS}
       NAFILE=NAC2014_R01.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=fort.26.nolimiter.template
       RIVERINIT=null                           # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
@@ -543,7 +527,6 @@ case $GRIDNAME in
       METSTATIONS=NGOM_RT_v19b_stations_08282018.txt
       NAFILE=NGOM_RT_v19b_chk.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=fort.26.template   # only used if WAVES=on
       RIVERINIT=null                           # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
@@ -573,7 +556,6 @@ case $GRIDNAME in
       METSTATIONS=EGOM-RT_v20b_stations.txt
       NAFILE=EGOM-RT_v20b_asgs_chk.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=fort.26.nolimiter.template   # only used if WAVES=on
       RIVERINIT=null                            # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
@@ -602,7 +584,6 @@ case $GRIDNAME in
       METSTATIONS=$ELEVSTATIONS
       NAFILE=null
       NAPROPERTIES=shinnecock_nodal_attributes.properties
-      SWANTEMPLATE=fort.26.shinnecock.template
       RIVERINIT=null                            # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
@@ -633,7 +614,6 @@ case $GRIDNAME in
       METSTATIONS=$ELEVSTATIONS
       NAFILE=ec2001_v2e.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=fort.26.nolimiter.template   # only used if WAVES=on
       RIVERINIT=null                            # this mesh has no rivers ...
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
@@ -663,8 +643,6 @@ case $GRIDNAME in
       METSTATIONS=$ELEVSTATIONS
       NAFILE=openwater.13
       NAPROPERTIES=${NAFILE}.properties
-      #SWANTEMPLATE=fort.26.template # only used if WAVES=on
-      SWANTEMPLATE=fort.26.nolimiter.template # need to use this with ADCIRC+SWAN v53
       RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
       HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
