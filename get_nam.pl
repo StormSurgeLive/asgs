@@ -274,6 +274,14 @@ foreach my $dir (@sortedNamDirs) {
       push(@targetDirs,$dir);
    }
 }
+# getting the directory listin with NAM data directories in it;
+# if so, it is generally harmles because the asgs will just respawn get_nam.pl
+my $numTargetDirs = @targetDirs;
+if ( $numTargetDirs == 0 ) {
+   stderrMessage("INFO","Failed to find any NAM data directories. This script will be respawned.");
+   printf STDOUT $dl;
+   exit;
+}
 #
 # determine the most recent date/hour ... this is the latest nam cycle time
 $targetDirs[-1] =~ /nam.(\d+)/;
