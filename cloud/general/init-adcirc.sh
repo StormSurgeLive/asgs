@@ -40,6 +40,7 @@ _show_supported_versions()
   echo  '|* v53release-adcircpolate | v53 with required ADCIRCpolate support         |'
   echo  '|* v55release              | standard v55release                            |'
   echo  '|* v55release-qbc          | v55release with makefile support for LONIs qbc |'
+  echo  '|* v55release-swan-gfortran| v55release with gfortran default for swan      |'
   echo  '\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/'
   echo
   if [ "${1}" != "noexit" ]; then
@@ -120,8 +121,14 @@ if [ "$INTERACTIVE" == "yes" ]; then
       PATCHSET_NAME="v55release-qbc"
       PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/v55release-qbc
       # update to proper base branch
-      ADCIRC_GIT_BRANCH=v55release
-      ;;   
+      ADCIRC_GIT_BRANCH=92ccdb974b7fb150 # v55release
+      ;;
+    v55release-swan-gfortran)
+      PATCHSET_NAME="v55release-swan-gfortran"
+      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/v55release-swan-gfortran
+      # update to proper base branch
+      ADCIRC_GIT_BRANCH=92ccdb974b7fb150 # v55release
+      ;;
     *)
       echo 'ADCIRC "version" "${ADCIRC_GIT_BRANCH}" is not officially supported at this time.'
       exit 1
@@ -171,7 +178,8 @@ fi
     v54release)
       SWANDIR=${ADCIRCBASE}/swan
       ;;
-    v55release|v55release-qbc)
+    v55release|v55release-qbc|v55release-swan-gfortran|92ccdb974b7fb150)
+      # Note v55release = sha256:92ccdb974b7fb150bb42b2536fce4d8c0bcee726
       SWANDIR=${ADCIRCBASE}/thirdparty/swan
       ;;   
     *)
@@ -268,12 +276,6 @@ if [ -d "$ADCIRCBASE/.git" ]; then
       if [ $EXIT -gt 0 ]; then
         echo "(fatal) error checking out git repository. Exiting ($EXIT)."
         exit $EXIT
-      fi
-      # check to make sure we're really on the desired branch
-      CURRENT_BRANCH=$(git branch | egrep '^\*' | awk '{ print $2 }')
-      if [ "${ADCIRC_GIT_BRANCH}" != "${CURRENT_BRANCH}" ]; then
-        echo "git branch in $ADCIRCBASE isn't '$ADCIRC_GIT_BRANCH' (currently '$CURRENT_BRANCH')"
-        exit 1
       fi
     fi
   fi
