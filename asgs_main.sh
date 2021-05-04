@@ -726,13 +726,6 @@ prepFile()
     echo "hpc.job.${JOBTYPE}.for.ncpu : $NCPU" >> $ADVISDIR/$ENSTORM/run.properties
     echo "hpc.job.${JOBTYPE}.limit.walltime : $ADCPREPWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
     echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $ADVISDIR/$ENSTORM/run.properties
-   JOBENVSTRING="( "
-   for string in ${JOBENV[*]}; do
-      JOBENVSTRING="$JOBENVSTRING $string"
-   done
-   JOBENVSTRING="$JOBENVSTRING )"
-   echo "hpc.job.${JOBTYPE}.jobenv : $JOBENVSTRING" >> $STORMDIR/run.properties
-   echo "hpc.job.${JOBTYPE}.path.jobenvdir : $JOBENVDIR" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $ADVISDIR/$ENSTORM/run.properties
    echo "hpc.job.${JOBTYPE}.parallelism : serial" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
@@ -1477,8 +1470,6 @@ variables_init()
    ENSEMBLESIZE=null # deprecated in favor of SCENARIOPACKAGESIZE
    SCENARIOPACKAGESIZE=null
    declare -a INITPOST=( null_post.sh )
-   declare -a JOBENV=( null )  # array of shell scripts to 'source' for compute job
-   JOBENVDIR=null
    declare -a subshellPIDs  # list of process IDs of subshells
    declare -a logFiles      # list of log files to be tailed onto scenario.log
    PYTHONVENV=null # path to python virtual environment, e.g., ~/asgs/asgspy/venv
@@ -1774,13 +1765,6 @@ writeJobResourceRequestProperties()
       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.qos : $QOS" >> $STORMDIR/run.properties
    fi
-   JOBENVSTRING="( "
-   for string in ${JOBENV[*]}; do
-      JOBENVSTRING="$JOBENVSTRING $string"
-   done
-   JOBENVSTRING="$JOBENVSTRING )"
-   echo "hpc.job.${JOBTYPE}.jobenv : $JOBENVSTRING" >> $STORMDIR/run.properties
-   echo "hpc.job.${JOBTYPE}.path.jobenvdir : $JOBENVDIR" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.ppn : $PPN" >> $STORMDIR/run.properties
    # legacy properties
    echo "cpurequest : $CPUREQUEST" >> ${STORMDIR}/run.properties

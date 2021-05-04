@@ -294,9 +294,6 @@ while(<TEMPLATE>) {
        # name of the queue on which to run
        s/%queuename%/$properties{"hpc.job.$jobtype.queuename"}/;
     }
-    # fill in job library paths and executable paths
-    s/%jobenv%/$properties{"hpc.job.$jobtype.jobenv"}/g;
-    s/%jobenvdir%/$properties{"hpc.job.$jobtype.path.jobenvdir"}/g;
     # copy non-null lines to the queue script
     unless ( $_ =~ /noLineHere/ || $_ =~ /null/ ) {
        print QSCRIPT $_;
