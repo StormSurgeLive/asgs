@@ -36,14 +36,17 @@
 
 # Fundamental
 
-INSTANCENAME=CTXCS2017_nam_jgf  # "name" of this ASGS process
+INSTANCENAME=OPENWATERv1e_al062018_50s_jgf  # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=CTXCS2017
+GRIDNAME=OPENWATERv1e
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults)
+
+TIMESTEPSIZE=50.0
+CONTROLTEMPLATE=openwater_adcircv55.fort.15.template
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
