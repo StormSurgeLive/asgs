@@ -75,8 +75,10 @@
 #
 #     or
 #
-#     cd ./asgs/cloud/Dockerfiles && docker build . --file Dockerfile.dev -t asgs.dev.image
+#     cd ./asgs/cloud/Dockerfiles && docker build . --no-cache=true --file Dockerfile.dev -t asgs.dev.image
 #
+# The --no-cache=true option prevents the use of the Docker cache and
+# so that 'RUN apt-get update' works properly.
 # This image expects its containers to have /work /scratch and
 # /home/asgsuser mounted to appropriate places on the command line
 # that instantiated the container. These locations have the
