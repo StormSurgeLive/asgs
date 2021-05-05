@@ -349,7 +349,7 @@ prep()
        # that these files are missing.
        #
        if [[ $WAVES = on ]]; then
-          cp $INPUTDIR/swaninit.template $ADVISDIR/$ENSTORM/swaninit 2>> ${SYSLOG}
+          cp $SCRIPTDIR/input/meshes/common/swan/swaninit.template $ADVISDIR/$ENSTORM/swaninit 2>> ${SYSLOG}
        fi
        # jgfdebug: TODO: FIXME: Hardcoded the time varying weirs input file
        if [ -e $INPUTDIR/time-bonnet.in ]; then
@@ -1744,6 +1744,7 @@ writeWaveCouplingProperties()
    echo "coupling.waves.swan.swanhscompression : $SWANHSCOMPRESSION" >> $STORMDIR/run.properties
    echo "swan.swandt : $SWANDT" >> $STORMDIR/run.properties
    echo "swan.input.file.swantemplate : $SWANTEMPLATE" >> $STORMDIR/run.properties
+   echo "swan.input.file.swaninit : swaninit.template" >> $STORMDIR/run.properties
    THIS=$WASTHIS
 }
 #
@@ -2015,8 +2016,8 @@ fi
 if [[ $WAVES = on ]]; then
    JOBTYPE=padcswan
    checkDirExistence $SWANDIR "SWAN executables directory (SWANDIR)"
-   checkFileExistence $INPUTDIR "SWAN initialization template file " swaninit.template
-   checkFileExistence $INPUTDIR "SWAN control template file" $SWANTEMPLATE
+   checkFileExistence $SCRIPTDIR/input/meshes/common/swan "SWAN initialization template file " swaninit.template
+   checkFileExistence $SCRIPTDIR/input/meshes/common/swan "SWAN control template file" $SWANTEMPLATE
    if [[ $QUEUESYS = serial ]]; then
       JOBTYPE=adcswan
       checkFileExistence $ADCIRCDIR "ADCIRC+SWAN serial executable" adcswan
@@ -2787,7 +2788,7 @@ while [ true ]; do
    fi
    # activate padcswan based on ASGS configuration
    if [[ $WAVES = on ]]; then
-      CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
+      CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
    fi
    CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
@@ -3266,7 +3267,7 @@ while [ true ]; do
          CONTROLOPTIONS="${CONTROLOPTIONS} --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       fi
       if [[ $WAVES = on ]]; then
-         CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${INPUTDIR}/${SWANTEMPLATE} --hotswan $HOTSWAN"
+         CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
       fi
       CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
       CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
