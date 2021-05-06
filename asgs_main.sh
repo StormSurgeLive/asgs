@@ -1756,6 +1756,11 @@ writeJobResourceRequestProperties()
    WASTHIS=$THIS
    THIS="asgs_main->writeJobResourceRequestProperties()"
    logMessage "$THIS: Writing properties associated with compute job to $1/run.properties."
+   # on queenbeeC, if a parallel job uses 48 or fewer cores, it
+   # should be submitted to the single queue to avoid "low utilization" emails
+   if [[ $HPCENV = "qbc.loni.org" && $CPUREQUEST -le 48 ]]; then
+      QUEUENAME="single"
+   fi
    echo "hpc.job.${JOBTYPE}.queuename : $QUEUENAME" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $STORMDIR/run.properties
