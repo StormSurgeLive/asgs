@@ -20,3 +20,5 @@ Template
 Perl::Tidy
 Weather::NHC::TropicalCyclone
 PDL
+GD
+Archive::Zip
