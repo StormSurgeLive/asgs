@@ -76,8 +76,7 @@ echo "INFO: $THIS: LD_LIBRARY_PATH : $LD_LIBRARY_PATH"
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 echo "time.hpc.job.%jobtype%.start : $DATETIME" >> run.properties
 echo "hpc.job.%jobtype%.jobid : ${%JOBID%}" >> run.properties
-#PBS_JOB_NODELIST=`cat $%JOBNODES%`
-echo "hpc.job.%jobtype%.nodelist : ( $%JOBNODES% )" >> run.properties
+echo "hpc.job.%jobtype%.nodelist : ( %JOBNODES% )" >> run.properties
 echo "hpc.job.%jobtype%.hostname : $HOSTNAME" >> run.properties
 echo "hpc.job.%jobtype%.qnnodes : $%JOBNNODES%" >> run.properties
 echo "hpc.job.%jobtype%.qntasks-per-node : $%JOBNTASKSPERNODE%" >> run.properties

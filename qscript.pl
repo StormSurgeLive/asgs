@@ -208,7 +208,7 @@ while(<TEMPLATE>) {
        s/%JOBID%/PBS_JOBID/g;
        s/%JOBDIR%/PBS_O_WORKDIR/g;
        s/%JOBHOST%/PBS_O_HOST/g;
-       s/%JOBNODES%/PBS_NODEFILE/g;
+       s/%JOBNODES%/"`cat \$PBS_NODEFILE`"/g;  # PBS var contains name of node list file
        s/%JOBNNODES%/PBS_NUM_NODES/g;
        s/%JOBNTASKSPERNODE%/PBS_NUM_PPN/g;
        s/%JOBNTASKS%/PBS_TASKNUM/g;
@@ -218,7 +218,7 @@ while(<TEMPLATE>) {
        s/%JOBID%/SLURM_JOBID/g;
        s/%JOBDIR%/SLURM_SUBMIT_DIR/g;
        s/%JOBHOST%/SLURM_SUBMIT_HOST/g;
-       s/%JOBNODES%/SLURM_JOB_NODELIST/g;
+       s/%JOBNODES%/\$SLURM_JOB_NODELIST/g;  # SLURM var contains node list
        s/%JOBNNODES%/SLURM_NNODES/g;
        s/%JOBNTASKSPERNODE%/SLURM_NTASKS_PER_NODE/g;
        s/%JOBNTASKS%/SLURM_NTASKS/g;
