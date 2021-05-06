@@ -36,14 +36,17 @@
 
 # Fundamental
 
-INSTANCENAME=CTXCS2017_nam_jgf  # "name" of this ASGS process
+INSTANCENAME=HSOFS_nam_50s_jgf  # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=CTXCS2017
+GRIDNAME=HSOFS
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults)
+
+TIMESTEPSIZE=50.0
+CONTROLTEMPLATE=ec2001_v2e_adcircv55_fort.15.template 
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
@@ -61,9 +64,16 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=959                     # number of compute CPUs for all simulations
+NCPU=19                     # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
+#
+# need to estimate larger wall clock time due to small number of cores
+# and small time step
+HINDCASTWALLTIME="06:00:00" # hindcast wall clock time
+ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
+NOWCASTWALLTIME="06:00:00"  # longest nowcast wall clock time
+FORECASTWALLTIME="06:00:00" # forecast wall clock time
 
 # Post processing and publication
 
@@ -71,14 +81,22 @@ INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #POSTPROCESS=( createMaxCSV.sh includeWind10m.sh cpra_slide_deck_post.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="jason.g.fleming@gmail.com"
 TDS=( lsu_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2021032000
+COLDSTARTDATE=2021032700
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null
+
+# I/O parameters
+
+# Add for testing with ADCIRPOLATE
+# fulldomain or subdomain hotstart files
+HOTSTARTCOMP=subdomain
+# binary or netcdf hotstart files
+HOTSTARTFORMAT=binary
 
 # Scenario package 
 
@@ -95,6 +113,14 @@ case $si in
  0)
    ENSTORM=namforecastWind10m
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   # add for testing with ADCIRPOLATE
+   # FIXME: had to add these here due to them getting reset in io_defaults.sh; need
+   # to have ASGS handle this automatically
+   # fulldomain or subdomain hotstart files
+   HOTSTARTCOMP=subdomain
+   # binary or netcdf hotstart files
+   HOTSTARTFORMAT=binary
+   NCPU=15
    ;;
 1)
    ENSTORM=namforecast
