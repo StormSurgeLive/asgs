@@ -33,15 +33,15 @@ fi
 _show_supported_versions()
 {
   echo  '                                           ||ASGS Supported ADCIRC versions||'
-  echo  '/~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\'
-  echo  '|* v53release              | standard version traditionally used            |'
-  echo  '|* v53release-qbc          | v53 with makefile support for LONIs qbc        |'
-  echo  '|* v53release-testsuite    | standard version + tools supporting testsuite  |'
-  echo  '|* v53release-adcircpolate | v53 with required ADCIRCpolate support         |'
-  echo  '|* v55release              | standard v55release                            |'
-  echo  '|* v55release-qbc          | v55release with makefile support for LONIs qbc |'
-  echo  '|* v55release-swan-gfortran| v55release with gfortran default for swan      |'
-  echo  '\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/'
+  echo  '/~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\'
+  echo  '|1) v53release              | standard version traditionally used            |'
+  echo  '|2) v53release-qbc          | v53 with makefile support for LONIs qbc        |'
+  echo  '|3) v53release-testsuite    | standard version + tools supporting testsuite  |'
+  echo  '|4) v53release-adcircpolate | v53 with required ADCIRCpolate support         |'
+  echo  '|5) v55release              | standard v55release                            |'
+  echo  '|6) v55release-qbc          | v55release with makefile support for LONIs qbc |'
+  echo  '|7) v55release-swan-gfortran| v55release with gfortran default for swan      |'
+  echo  '\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/'
   echo
   if [ "${1}" != "noexit" ]; then
     # exits on error if '1' is optionally passed, defaults to 0 (no error)
