@@ -134,12 +134,8 @@ init_rostam()
   RESERVATION=null
   REMOVALCMD="rm"
   TDS=( lsu_tds )
-  PLATFORMMODULES='module load mpi/mpich-3.0-x86_64'
-  $PLATFORMMODULES
   # modules for CPRA post processing
-  #module load mpi/mpich-3.0-x86_64
   module purge
-  module load impi/2017.3.196
   MAKEJOBS=8
 }
 init_supermic()
@@ -613,6 +609,11 @@ set_hpc() {
    echo "$THIS: The fully qualified domain name is ${fqdn}."
    HPCENV=null
    HPCENVSHORT=null
+   if [[ ${fqdn:(-18)} = "rostam.cct.lsu.edu" ]]; then
+      HPCENV=${fqdn:(-18)}
+      HPCENVSHORT=rostam
+      return
+   fi
    if [[ ${fqdn:(-25)} = "stampede2.tacc.utexas.edu" ]]; then
       HPCENV=${fqdn:(-25)}
       HPCENVSHORT=stampede2

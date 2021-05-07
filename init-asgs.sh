@@ -62,6 +62,10 @@ case "$platform" in
     SCRATCH=${SCRATCH:-/scratch}
     DEFAULT_COMPILER=gfortran
     ;; 
+  rostam)
+    DEFAULT_COMPILER=gfortran
+    export FCFLAGS="${FCLAGS} -fallow-argument-mismatch" # <-needed for OpenMPI to compile on Rostam + gcc version 10.2.0
+    ;;
   hatteras)
     WORK=${WORK:-$HOME}
     SCRATCH=${SCRATCH:-"/projects/$USER"}
