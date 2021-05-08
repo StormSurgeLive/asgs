@@ -30,6 +30,17 @@ if [ "${1}" = "clean" ]; then
   exit 0
 fi
 
+ADCIRCS=(
+"v53release"
+"v53release-qbc"
+"v53release-testsuite"
+"v53release-adcircpolate"
+"v55release"
+"v55release-qbc"
+"v55release-swan-gfortran"
+)
+NUM_ADC=${#ADCIRCS[@]}
+
 _show_supported_versions()
 {
   echo  '                                           ||ASGS Supported ADCIRC versions||'
@@ -47,6 +58,17 @@ _show_supported_versions()
     # exits on error if '1' is optionally passed, defaults to 0 (no error)
     exit ${1:-0} 
   fi
+}
+
+_is_a_num()
+{
+  re='[1-9][0-9]?$'
+  if [[ "${1}" =~ $re ]] ; then
+    echo -n $1 
+  else
+    echo -n -1 
+  fi
+  return
 }
 
 if [ "${1}" = "supported" ]; then
@@ -76,9 +98,26 @@ fi
 if [ "$INTERACTIVE" == "yes" ]; then
   _show_supported_versions noexit 
   # get branch/tag/sha to checkout
-  __ADCIRC_GIT_BRANCH=v53release # current preferred default
-  read -p "What supported 'version' of the ADCIRC source do you wish to build? [$__ADCIRC_GIT_BRANCH] " _ADCIRC_GIT_BRANCH
+  __ADCIRC_GIT_BRANCH=${ADCIRCS[0]} # current preferred default
+  read -p "What supported 'version' of the ADCIRC source do you wish to build (by name or select 1-${NUM_ADC})? [$__ADCIRC_GIT_BRANCH] " _ADCIRC_GIT_BRANCH
+
+  #
+#   # Handles selection by number
+  #
   if [ -n "$_ADCIRC_GIT_BRANCH" ]; then
+    echo
+    # check for number selection
+    _isnum=$(_is_a_num $_ADCIRC_GIT_BRANCH)
+    if [ $_isnum -gt -1 ]; then
+      _ADCIRC_GIT_BRANCH=${ADCIRCS[$(($_isnum-1))]} # zero indexed
+      if [ -z "$_ADCIRC_GIT_BRANCH" ]; then
+        echo "(fatal) invalid value..."
+        echo
+        exit 1
+      else
+        echo "(info) Selection: '$_ADCIRC_GIT_BRANCH'"
+      fi
+    fi
     # do not export, don't affect current environment after build
     ADCIRC_GIT_BRANCH=$_ADCIRC_GIT_BRANCH
   else
@@ -130,7 +169,7 @@ if [ "$INTERACTIVE" == "yes" ]; then
       ADCIRC_GIT_BRANCH=92ccdb974b7fb150 # v55release
       ;;
     *)
-      echo 'ADCIRC "version" "${ADCIRC_GIT_BRANCH}" is not officially supported at this time.'
+      echo "ADCIRC 'version' '${ADCIRC_GIT_BRANCH}' is not officially supported at this time."
       exit 1
   esac
 
