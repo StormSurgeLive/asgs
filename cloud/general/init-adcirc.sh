@@ -288,7 +288,11 @@ if [ ! -d "$ADCIRCDIR" ]; then
 fi
 
 # ~ A P P L Y  P A T C H S E T ~
-if [ -d "${PATCHSET_DIR}/" ]; then
+if [ -n "${PATCHSET_DIR}" ]; then
+  if [ -d "${PATCHSET_DIR}" ]; then
+    echo "(fatal) patch set directory not found. Exiting."
+    exit 1
+  fi
   echo
   echo applying patches from $PATCHSET_DIR ...
   # apply from perspective of $ADCIRCBASE, since it's possible we could also
@@ -306,9 +310,6 @@ if [ -d "${PATCHSET_DIR}/" ]; then
     fi
     pCOUNT=$((pCOUNT+1))
   done
-else
-  echo "(fatal) patch set directory not found. Exiting."
-  exit 1 
 fi
 
 if [ "$INTERACTIVE" = "yes" ]; then
