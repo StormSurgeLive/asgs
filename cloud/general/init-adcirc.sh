@@ -36,7 +36,6 @@ ADCIRCS=(
 "v53release-testsuite"
 "v53release-adcircpolate"
 "v55release"
-"v55release-qbc"
 "v55release-swan-gfortran"
 )
 NUM_ADC=${#ADCIRCS[@]}
