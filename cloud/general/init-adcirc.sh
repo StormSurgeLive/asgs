@@ -49,9 +49,8 @@ _show_supported_versions()
   echo  '|2) v53release-qbc          | v53 with makefile support for LONIs qbc        |'
   echo  '|3) v53release-testsuite    | standard version + tools supporting testsuite  |'
   echo  '|4) v53release-adcircpolate | v53 with required ADCIRCpolate support         |'
-  echo  '|5) v55release              | standard v55release                            |'
-  echo  '|6) v55release-qbc          | v55release with makefile support for LONIs qbc |'
-  echo  '|7) v55release-swan-gfortran| v55release with gfortran default for swan      |'
+  echo  '|5) v55release              | standard version + build support for LONIs qbc |'
+  echo  '|6) v55release-swan-gfortran| v55release with gfortran default for swan      |'
   echo  '\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/'
   echo
   if [ "${1}" != "noexit" ]; then
@@ -129,42 +128,36 @@ if [ "$INTERACTIVE" == "yes" ]; then
   PATCHSET_NAME=
   PATCHSET_DIR=
   case "${ADCIRC_GIT_BRANCH}" in
-    v53release)
-      #noop
+    v53release|v54release)
+      #noop - branches exist "upstream"
       ;;
     v53release-qbc)
       PATCHSET_NAME="v53release-qbc"
-      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/v53release-qbc
+      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
       # update to proper base branch
       ADCIRC_GIT_BRANCH=v53release
       ;;
     v53release-adcircpolate)
       PATCHSET_NAME="v53release-adcircpolate"
-      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/v53release-Clint-Interpolation
+      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
       # update to proper base branch
       ADCIRC_GIT_BRANCH=v53release
       ;;
     v53release-testsuite)
       PATCHSET_NAME="v53release-testsuite"
-      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/v53release-testsuite
+      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
       # update to proper base branch
       ADCIRC_GIT_BRANCH=v53release
       ;;
-    v54release)
-      #noop
-      ;;
     v55release)
-      #noop
-      ;;
-    v55release-qbc)
-      PATCHSET_NAME="v55release-qbc"
-      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/v55release-qbc
+      PATCHSET_NAME="v55release"
+      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
       # update to proper base branch
       ADCIRC_GIT_BRANCH=92ccdb974b7fb150 # v55release
       ;;
     v55release-swan-gfortran)
       PATCHSET_NAME="v55release-swan-gfortran"
-      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/v55release-swan-gfortran
+      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
       # update to proper base branch
       ADCIRC_GIT_BRANCH=92ccdb974b7fb150 # v55release
       ;;
@@ -217,7 +210,7 @@ fi
     v54release)
       SWANDIR=${ADCIRCBASE}/swan
       ;;
-    v55release|v55release-qbc|v55release-swan-gfortran|92ccdb974b7fb150)
+    v55release|v55release-swan-gfortran|92ccdb974b7fb150)
       # Note v55release = sha256:92ccdb974b7fb150bb42b2536fce4d8c0bcee726
       SWANDIR=${ADCIRCBASE}/thirdparty/swan
       ;;   
@@ -327,28 +320,41 @@ if [ ! -d "$ADCIRCDIR" ]; then
 fi
 
 # ~ A P P L Y  P A T C H S E T ~
+#
+# Notes:
+# 1. Fails if patchset is define, but directory doesn't exit
+# 2. Informs and skips patching if patches have already been applied
+# 3. Adding a patch set is not too difficult, but is not done here; look "up"
+#
+PTOUCH="$(pwd)/${ADCIRC_GIT_BRANCH}-applied.out"
 if [ -n "${PATCHSET_DIR}" ]; then
-  if [ -d "${PATCHSET_DIR}" ]; then
-    echo "(fatal) patch set directory not found. Exiting."
-    exit 1
-  fi
-  echo
-  echo applying patches from $PATCHSET_DIR ...
-  # apply from perspective of $ADCIRCBASE, since it's possible we could also
-  # be patching in a third party directory
-  pCOUNT=1
-  for diff in $(find ${PATCHSET_DIR} -type f  | sort -n); do
-    printf "patch %02d - applying %s\n" $pCOUNT $diff
-    OUT=$(patch -p1 < $diff 2>&1)
-    EXIT=$?
-    if [ $EXIT -gt 0 ]; then
-      echo $OUT
-      echo "(fatal) error applying patch: $diff"
-      echo Exiting.
-      exit $EXIT
+  if [ -e "${PTOUCH}" ]; then
+    echo "(info) patches already applied, skipping ..."
+  else
+    if [ ! -d "${PATCHSET_DIR}" ]; then
+      echo "(fatal) patch set directory not found. Exiting."
+      exit 1
     fi
-    pCOUNT=$((pCOUNT+1))
-  done
+    echo
+    echo applying patches from $PATCHSET_DIR ...
+    # apply from perspective of $ADCIRCBASE, since it's possible we could also
+    # be patching in a third party directory
+    pCOUNT=1
+    for diff in $(find ${PATCHSET_DIR} -type f  | sort -n); do
+      printf "patch %02d - applying %s\n" $pCOUNT $diff
+      OUT=$(patch -p1 < $diff 2>&1)
+      EXIT=$?
+      if [ $EXIT -gt 0 ]; then
+        echo $OUT
+        echo "(fatal) error applying patch: $diff"
+        echo Exiting.
+        exit $EXIT
+      fi
+      _app_date=$(date "+%D %T %Z")
+      echo "$_app_date $diff" >> $PTOUCH
+      pCOUNT=$((pCOUNT+1))
+    done
+  fi
 fi
 
 if [ "$INTERACTIVE" = "yes" ]; then
