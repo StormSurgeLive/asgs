@@ -667,7 +667,7 @@ env_dispatch() {
  HPCENVSHORT=$1
  THIS="platforms.sh>env_dispatch()"
  scenarioMessage "$THIS: Initializing settings for ${HPCENVSHORT}."
- echo "$THIS: Initializing settings for ${HPCENVSHORT}."
+ echo "(info)    $THIS: Initializing settings for ${HPCENVSHORT}."
  case $HPCENVSHORT in
   "pod") allMessage "$THIS: POD (Penguin) configuration found."
           init_pod
