@@ -44,12 +44,12 @@ _show_supported_versions()
 {
   echo  '                                           ||ASGS Supported ADCIRC versions||'
   echo  '/~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\'
-  echo  '|1) v53release              | standard version traditionally used            |'
-  echo  '|2) v53release-qbc          | v53 with makefile support for LONIs qbc        |'
-  echo  '|3) v53release-testsuite    | standard version + tools supporting testsuite  |'
-  echo  '|4) v53release-adcircpolate | v53 with required ADCIRCpolate support         |'
-  echo  '|5) v55release              | standard version + build support for LONIs qbc |'
-  echo  '|6) v55release-swan-gfortran| v55release with gfortran default for swan      |'
+  echo  '|1. v53release              | standard version traditionally used            |'
+  echo  '|2. v53release-qbc          | v53 with makefile support for LONIs qbc        |'
+  echo  '|3. v53release-testsuite    | standard version + tools supporting testsuite  |'
+  echo  '|4. v53release-adcircpolate | v53 with required ADCIRCpolate support         |'
+  echo  '|5. v55release              | standard version + build support for LONIs qbc |'
+  echo  '|6. v55release-swan-gfortran| v55release with gfortran default for swan      |'
   echo  '\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/'
   echo
   if [ "${1}" != "noexit" ]; then

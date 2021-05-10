@@ -29,6 +29,9 @@
 # impact can't be offloaded to the child process that is invoked when
 # running external scripts.
 
+I="(info)   "
+W="(warning)"
+
 asgsh() {  # disable
   echo "The nesting of \"asgsh\" inside of asgsh (you're in it now, pid: $_ASGSH_PID) is not allowed."
 }
@@ -82,58 +85,172 @@ help() {
   echo "   exit                        - exits ASGS shell, returns \$USER to login shell"
 }
 
+_is_a_num()
+{
+  re='[1-9][0-9]?$'
+  if [[ "${1}" =~ $re ]] ; then
+    echo -n $1 
+  else
+    echo -n -1 
+  fi
+  return
+}
+
+_pwd() {
+  echo "${I} ... $(pwd)"
+}
+
+# change to a directory know by asgsh
+goto() {
+  case "${1}" in
+  adcircworkdir)
+    if [ -e "$ADCIRCDIR/work" ]; then
+      cd $ADCIRCDIR/work
+      _pwd
+    else
+      echo "ADCIRCDIR not yet defined"
+    fi
+    ;;
+  adcircdir)
+    if [ -e "$ADCIRCDIR" ]; then
+      cd $ADCIRCDIR
+      _pwd
+    else
+      echo "ADCIRCDIR not yet defined"
+    fi
+    ;;
+  installdir)
+    if [ -e "$ASGS_INSTALL_PATH" ]; then
+      cd $ASGS_INSTALL_PATH
+      _pwd
+    else
+      echo "ASGS_INSTALL_PATH not defined, which is concerning. Did you complete the installation of ASGS?"
+    fi
+    ;;
+  rundir)
+    if [ -e "$RUNDIR" ]; then
+      cd $RUNDIR
+      _pwd
+    else
+      echo "RUNDIR not yet defined"
+    fi
+    ;;
+  scratchdir)
+    if [ -e "$SCRATCH" ]; then
+      cd $SCRATCH
+      _pwd
+    else
+      echo "SCRATCH not yet defined"
+    fi
+    ;;
+  scriptdir)
+    if [ "$SCRIPTDIR" ]; then
+      cd $SCRIPTDIR
+      _pwd
+    else
+      echo "scriptdir not yet defined"
+    fi
+    ;;
+  workdir)
+    if [ "$WORK" ]; then
+      cd $WORKDIR
+      _pwd
+    else
+      echo "workdir not yet defined"
+    fi
+    ;;
+  *)
+    echo 'Only "adcircdir", "rundir", "scratchdir", "scriptdir", and "workdir" are supported at this time.'
+    ;;
+  esac
+}
+
 # load environment related things like an ADCIRC environment or saved ASGS environment
 load() {
+  CHOICES=();
   case "${1}" in
     adcirc)
       if [ -z "${2}" ]; then
-        if [ $(list adcirc | wc -l) -eq 1 ]; then
-          __ADCIRC_BUILD=$(list adcirc | awk '{print $2}')
-        else
-          echo "'load adcirc' requires a name parameter unless there's exactly 1 build available; use 'list adcirc' to list available ADCIRC builds"
+        for i in $(list adcirc | awk '{print $2}'); do
+          CHOICES+=("$i")
+        done 
+        C=${#CHOICES[@]}
+        if [ $C -eq 0 ]; then
+          echo "No versions of ADCIRC are available. Run 'build adcirc' to install one." 
           return
-        fi 
+        elif [ $C -eq 1 ]; then
+          __ADCIRC_BUILD=$(list adcirc | awk '{print $2}')
+        elif [ $C -gt 1 ]; then
+          list adcirc
+          read -p "Choose a number (1-$C) or name from above: " _SELECTION
+          _isnum=$(_is_a_num $_SELECTION)
+          if [[ $_isnum -gt -1 && $_isnum -le $C ]]; then
+            __ADCIRC_BUILD=${CHOICES[$(($_isnum-1))]}
+          elif [ -n "$_SELECTION" ]; then
+            __ADCIRC_BUILD=$_SELECTION
+          else
+            echo "A valid selection must be made to proceed."
+            return
+          fi 
+        fi
       else
         __ADCIRC_BUILD=${2}
       fi
-      echo "loading ADCIRC build, '$__ADCIRC_BUILD'."
+      echo "${I} loading ADCIRC build, '$__ADCIRC_BUILD'."
       if [ -e "${ADCIRC_META_DIR}/${__ADCIRC_BUILD}" ]; then
           # source it
           . ${ADCIRC_META_DIR}/${__ADCIRC_BUILD}
-          echo Prepending ADCIRCDIR and SWANDIR to PATH
-          echo + $ADCIRCDIR
-          echo + $SWANDIR
-          export PATH=${SWANDIR}:${ADCIRCDIR}:${PATH}
-          echo
-          echo "* don't forget to save profile"
-          export PS1="asgs (${_ASGSH_CURRENT_PROFILE}*)> "
+          echo "${I} prepending ADCIRCDIR and SWANDIR to PATH"
+          echo "${I}   + $ADCIRCDIR"
+          echo "${I}   + $SWANDIR"
+          PATH=${SWANDIR}:${ADCIRCDIR}:${PATH}
+          export PATH
+          save profile ${_ASGSH_CURRENT_PROFILE}
       else
           echo "ADCIRC build, '$__ADCIRC_BUILD' does not exist. Use 'list adcirc' to see a which ADCIRCs are available to load"
       fi
       ;;
     profile)
       if [ -z "${2}" ]; then
-        echo "'load' requires a name parameter, use 'list profiles' to list saved profiles"
-        return
+        for i in $(list profiles | awk '{print $2}'); do
+          CHOICES+=("$i")
+        done 
+        C=${#CHOICES[@]}
+        if [ $C -eq 1 ]; then
+          NAME=$(list profiles | awk '{print $2}')
+        elif [ $C -gt 1 ]; then
+          list profiles
+          read -p "Choose a number (1-$C) or name from above: " _SELECTION
+          _isnum=$(_is_a_num $_SELECTION)
+          if [[ $_isnum -gt -1 && $_isnum -le $C ]]; then
+            NAME=${CHOICES[$(($_isnum-1))]}
+          elif [ -n "$_SELECTION" ]; then
+            NAME=$_SELECTION
+          else
+            echo "${W} A valid selection must be made to proceed."
+            return
+          fi 
+        fi
+      else
+        NAME=${2}
       fi
-      NAME=${2}
       if [ -e "$ASGS_HOME/.asgs/$NAME" ]; then
+        export _ASGSH_CURRENT_PROFILE="$NAME"
         _reset_ephemeral_envars
         . "$ASGS_HOME/.asgs/$NAME"
-        _ASGSH_CURRENT_PROFILE="$NAME"
         export PS1="asgs ($_ASGSH_CURRENT_PROFILE)> "
-        echo loaded \'$NAME\' into current profile;
-        if [ -n "$ASGS_CONFIG" ]; then
-          # extracts info such as 'instancename' so we can derive the location of the state file, then the log file path and actual run directory
+        echo "${I} loaded '$NAME' into current profile"
+        if [ -e "$ASGS_CONFIG" ]; then
+          # extracts info such as 'instancename' so we can derive the location of
+          # the state file, then the log file path and actual run directory
           _parse_config $ASGS_CONFIG
         fi
-        export _ASGSH_CURRENT_PROFILE="${2}"
       else
-        echo "ASGS profile, '$NAME' does not exist. Use 'list profile' to see a which profile are available to load"
+        echo "${W} ASGS profile, '$NAME' does not exist. Use 'list profiles' to see a which profile are available to load"
       fi
       ;;
     *)
-      echo "'load' requires 2 parameters: 'adcirc' or 'profile' as the first; the second parameter defines what to load."
+      echo "${W} 'load' requires 2 parameters: 'adcirc' or 'profile' as the first; the second parameter defines what to load."
       return
   esac
 }
@@ -157,47 +274,32 @@ _reset_ephemeral_envars() {
 
 _parse_config() {
   if [ ! -e "${1}" ]; then
-    echo "warning: config file is defined, but the file '${1}' does not exist!"
+    echo "${W} config file is defined, but the file '${1}' does not exist!"
     return
   fi
-
   # pull out var info the old fashion way...
   export INSTANCENAME=$(egrep '^ *INSTANCENAME=' "${1}" | sed 's/^ *INSTANCENAME=//' | sed 's/ *#.*$//g')
-  echo "config file found, instance name is '$INSTANCENAME'"
-
+  echo "${I} config file found, instance name is '$INSTANCENAME'"
   export STATEFILE="$SCRATCH/${INSTANCENAME}.state"
-  echo "loading latest state file information from '${STATEFILE}'."
-
   _load_state_file $STATEFILE
 }
 
 _load_state_file() {
-  if [ ! -e "${1}" ]; then
-    echo "warning: state file '${1}' does not exist! No indication of first run yet?"
-    return
+  if [ -e "${1}" ]; then
+    STATEFILE=${1}
+    . $STATEFILE
+  else
+    echo "${W} state file '${1}' does not exist."
+    echo "${I} no indication of first run yet?"
   fi
 
-  # we only are about RUNDIR and SYSLOG since they do not change from run to run 
-  . $STATEFILE
-
-  if [ -z "$RUNDIR" ]; then
-    echo "warning: state file does not contain 'RUNDIR' information. Check again later."
-    return
+  if [ -d "$RUNDIR" ]; then
+    PROPERTIESFILE="$RUNDIR/run.properties"
+    if [ -e "$PROPERTIESFILE" ]; then
+      echo "... found 'run.properties' file, at '$PROPERTIESFILE'"
+    fi
   fi
-
-  if [ -z "$SYSLOG" ]; then
-    echo "warning: state file does not contain 'SYSLOG' information. Check again later."
-    return
-  fi
-
-  echo "... found 'RUNDIR' information, defined as '$RUNDIR'"
-  echo "... found 'SYSLOG' information, defined as '$SYSLOG'"
-
-  PROPERTIESFILE="$RUNDIR/run.properties"
-
-  if [ -e "$PROPERTIESFILE" ]; then
-    echo "... found 'run.properties' file, at '$PROPERTIESFILE'"
-  fi
+  return
 }
 
 # saves environment as a file named what is passed to the command, gets the
@@ -206,13 +308,8 @@ save() {
   case "${1}" in
     profile)
       DO_RELOAD=1
-      if [ -n "${2}" ]; then 
-        NAME=${2}
-        DO_RELOAD=0
-      elif [ -z "${NAME}" ]; then
-        echo "'save' requires a name parameter or pre-loaded profile"
-        return
-      fi
+      NAME=${2:-$_ASGSH_CURRENT_PROFILE}
+      DO_RELOAD=0
     
       if [ ! -d $ASGS_HOME/.asgs ]; then
         mkdir -p $ASGS_HOME/.asgs
@@ -238,13 +335,13 @@ save() {
   
   # print different message based on whether or not the profile already exists
   if [ -n "$IS_UPDATE" ]; then
-    echo profile \'$NAME\' was updated
+    echo "${I} profile '$NAME' was updated"
   else
-    echo profile \'$NAME\' was written
+    echo "${I} profile '$NAME' was written"
   fi
 
   # update prompt so that it's easy to tell at first glance what's loaded
-  _ASGSH_CURRENT_PROFILE=$NAME
+  export _ASGSH_CURRENT_PROFILE=$NAME
   export PS1="asgs (${_ASGSH_CURRENT_PROFILE})> "
 
   if [ 1 -eq "$DO_RELOAD" ]; then
@@ -338,15 +435,15 @@ define() {
   case "${1}" in
     adcircdir)
       export ADCIRCDIR=${2}
-      echo "ADCIRCDIR is defined as '${ADCIRCDIR}'"
+      echo "${I} ADCIRCDIR is defined as '${ADCIRCDIR}'"
       ;;
     adcircbranch)
       export ADCIRC_GIT_BRANCH=${2}
-      echo "ADCIRC_GIT_BRANCH is defined as '${ADCIRC_GIT_BRANCH}'"
+      echo "${I} ADCIRC_GIT_BRANCH is defined as '${ADCIRC_GIT_BRANCH}'"
       ;;
     adcircremote)
       export ADCIRC_GIT_REMOTE=${2}
-      echo "ADCIRC_GIT_REMOTE is defined as '${ADCIRC_GIT_REMOTE}'"
+      echo "${I} ADCIRC_GIT_REMOTE is defined as '${ADCIRC_GIT_REMOTE}'"
       ;;
     config)
       # converts relative path to absolute path so the file is available regardless of the `pwd`
@@ -358,23 +455,23 @@ define() {
         return
       fi 
       export ASGS_CONFIG=${ABS_PATH}
-      echo "ASGS_CONFIG is defined as '${ASGS_CONFIG}'"
+      echo "${I} ASGS_CONFIG is defined as '${ASGS_CONFIG}'"
       ;;
     editor)
       export EDITOR=${2}
-      echo "EDITOR is defined as '${EDITOR}'"
+      echo "${I} EDITOR is defined as '${EDITOR}'"
       ;;
     scriptdir)
       export SCRIPTDIR=${2} 
-      echo "SCRIPTDIR is now defined as '${SCRIPTDIR}'"
+      echo "${I} SCRIPTDIR is now defined as '${SCRIPTDIR}'"
       ;;
     workdir)
       export WORK=${2} 
-      echo "WORK is now defined as '${WORK}'"
+      echo "${I} WORK is now defined as '${WORK}'"
       ;;
     scratchdir)
       export SCRATCH=${2} 
-      echo "SCRATCH is now defined as '${SCRATCH}'"
+      echo "${I} SCRATCH is now defined as '${SCRATCH}'"
       ;;
     *) echo "define requires one of the supported parameters: adcircdir, adcircbranch, adcircremote, config, editor, scratchdir, scriptdir, or workdir"
       _DEFINE_OK=0
@@ -492,71 +589,6 @@ edit() {
   esac
 }
 
-# change to a directory know by asgsh
-goto() {
-  case "${1}" in
-  adcircworkdir)
-    if [ -e "$ADCIRCDIR/work" ]; then
-      cd $ADCIRCDIR/work
-      pwd
-    else
-      echo 'ADCIRCDIR not yet defined'
-    fi 
-    ;;
-  adcircdir)
-    if [ -e "$ADCIRCDIR" ]; then
-      cd $ADCIRCDIR
-      pwd
-    else
-      echo 'ADCIRCDIR not yet defined'
-    fi 
-    ;;
-  installdir)
-    if [ -e "$ASGS_INSTALL_PATH" ]; then
-      cd $ASGS_INSTALL_PATH
-      pwd
-    else
-      echo 'ASGS_INSTALL_PATH not defined, which is concerning. Did you complete the installation of ASGS?'
-    fi 
-    ;;
-  rundir)
-    if [ -e "$RUNDIR" ]; then
-      cd $RUNDIR
-      pwd
-    else
-      echo 'RUNDIR not yet defined'
-    fi 
-    ;;
-  scratchdir)
-    if [ -e "$SCRATCH" ]; then
-      cd $SCRATCH
-      pwd
-    else
-      echo 'SCRATCH not yet defined'
-    fi 
-    ;;
-  scriptdir)
-    if [ "$SCRIPTDIR" ]; then
-      cd $SCRIPTDIR
-      pwd
-    else
-      echo 'scriptdir not yet defined'
-    fi 
-    ;;
-  workdir)
-    if [ "$WORK" ]; then
-      cd $WORKDIR
-      pwd
-    else
-      echo 'workdir not yet defined'
-    fi 
-    ;;
-  *)
-    echo "Only 'adcircdir', 'rundir', 'scratchdir', 'scriptdir', and 'workdir' are supported at this time."
-    ;;
-  esac
-}
-
 # deletes a saved profile by name
 delete() {
   case "${1}" in
@@ -649,32 +681,33 @@ purge() {
 if [ 1 = "${skip_platform_profiles}" ]; then
   echo "(-x used) ... skipping the loading platform.sh and properties.sh ..." 
 else
-  echo initializing...
+  echo "${I} initializing..."
   # loading support for reading of run.properties file
   if [ -e "$SCRIPTDIR/properties.sh" ]; then
-    echo "found properties.sh"
+    echo "${I} found properties.sh"
     . $SCRIPTDIR/properties.sh
   else
-    echo "warning: could not find $SCRIPTDIR/properties.sh"
+    echo "${W} could not find $SCRIPTDIR/properties.sh"
   fi
   # initializing ASGS environment and platform, based on $asgs_machine_name
   if [ -e "$SCRIPTDIR/monitoring/logging.sh" ]; then
-    echo "found logging.sh"
+    echo "${I} found logging.sh"
     . $SCRIPTDIR/monitoring/logging.sh 
     if [ -e "$SCRIPTDIR/platforms.sh" ]; then
-      echo "found platforms.sh"
+      echo "${I} found platforms.sh"
       . $SCRIPTDIR/platforms.sh
       env_dispatch $ASGS_MACHINE_NAME
     else
-      echo "warning: could not find $SCRIPTDIR/platforms.sh"
+      echo "${W} could not find $SCRIPTDIR/platforms.sh"
     fi
   else
-    echo "warning: could not find $SCRIPTDIR/monitoring/logging.sh"
+    echo "${W} could not find $SCRIPTDIR/monitoring/logging.sh"
   fi
 fi
 
 # initialization, do after bash functions have been loaded
 export PS1='asgs (none)>'
+if [ -n "$_asgsh_splash" ]; then
 echo
 echo "Quick start:"
 echo "  'build adcirc' to build and local register versions of ADCIRC"
@@ -685,12 +718,14 @@ echo "  'load adcirc <adcirc_build_name>' to load a specific ADCIRC build"
 echo "  'run' to initiated ASGS for loaded profile"
 echo "  'help' for full list of options and features"
 echo "  'goto scriptdir' to change current directory to ASGS' script directory"
+echo "  'verify' the current ASGS Shell Environment is set up properly"
 echo "  'exit' to return to the login shell"
 echo
 echo "NOTE: This is a fully function bash shell environment; to update asgsh"
 echo "or to recreate it, exit this shell and run asgs-brew.pl with the"
 echo " --update-shell option"
 echo
+fi
 
 # runs script to install ADCIRC interactively
 build () {
@@ -720,6 +755,10 @@ initadcirc(){
 
 # alias to edit that may be more semantically correct in some
 # cases; e.g., "inspect statefile" or "inspect log"
+cpann() { # disable
+  echo 'To install a Perl module, use "cpanm" instead.'
+}
+
 inspect() {
   edit $@
 }
@@ -763,15 +802,36 @@ alias vp="verify perl"
 alias vpy="verify python"
 alias vr="verify regressions"
 
-# when started, ASGS Shell loads the 'default' profile, this can be made variable at some point
-load profile ${profile-default}
-
+if [ -n "$_asgsh_splash" ]; then
 # show important directories
 show scriptdir
 show scratchdir
-
-# start off in $SCRIPTDIR
 goto scriptdir
+else
+goto scriptdir >/dev/null 2>&1
+fi
 
-# provide a new line
+# when started, ASGS Shell loads the 'default' profile,
+# this can be made variable at some point
+load profile ${profile-default}
 echo
+
+# construct to handle "autorun" options
+case "$_asgsh_flag_do" in
+  run_list)
+    list ${_asgsh_flag_do_args}
+    exit
+  ;;
+  run_profile)
+    run
+  ;;
+  run_tailf_syslog)
+    tailf syslog
+  ;;
+  run_verify_and_quit)
+    verify
+    exit
+  ;;
+  *)
+  ;;
+esac
