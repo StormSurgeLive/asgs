@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+
+if [ -z "$_ASGSH_PID" ]; then
+  echo "This script is meant to run inside of the ASGS Shell Environment, asgsh."
+  exit 1;
+fi
+
+I="(info)   "
+W="(warning)"
+
+_pwd() {
+  echo "${I} ... $(pwd)"
+}
+
+# change to a directory know by asgsh
+_goto() {
+  case "${1}" in
+  adcircworkdir)
+    if [ -e "$ADCIRCDIR/work" ]; then
+      cd $ADCIRCDIR/work
+      _pwd
+    else
+      echo "ADCIRCDIR not yet defined"
+    fi
+    ;;
+  adcircdir)
+    if [ -e "$ADCIRCDIR" ]; then
+      cd $ADCIRCDIR
+      _pwd
+    else
+      echo "ADCIRCDIR not yet defined"
+    fi
+    ;;
+  installdir)
+    if [ -e "$ASGS_INSTALL_PATH" ]; then
+      cd $ASGS_INSTALL_PATH
+      _pwd
+    else
+      echo "ASGS_INSTALL_PATH not defined, which is concerning. Did you complete the installation of ASGS?"
+    fi
+    ;;
+  rundir)
+    if [ -e "$RUNDIR" ]; then
+      cd $RUNDIR
+      _pwd
+    else
+      echo "RUNDIR not yet defined"
+    fi
+    ;;
+  scratchdir)
+    if [ -e "$SCRATCH" ]; then
+      cd $SCRATCH
+      _pwd
+    else
+      echo "SCRATCH not yet defined"
+    fi
+    ;;
+  scriptdir)
+    if [ "$SCRIPTDIR" ]; then
+      cd $SCRIPTDIR
+      _pwd
+    else
+      echo "scriptdir not yet defined"
+    fi
+    ;;
+  workdir)
+    if [ "$WORK" ]; then
+      cd $WORKDIR
+      _pwd
+    else
+      echo "workdir not yet defined"
+    fi
+    ;;
+  *)
+    echo 'Only "adcircdir", "rundir", "scratchdir", "scriptdir", and "workdir" are supported at this time.'
+    ;;
+  esac
+}
+
+_goto $@

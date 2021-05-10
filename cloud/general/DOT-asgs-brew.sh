@@ -96,6 +96,7 @@ _is_a_num()
   return
 }
 
+<<<<<<< HEAD
 _pwd() {
   echo "${I} ... $(pwd)"
 }
