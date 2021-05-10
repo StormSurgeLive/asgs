@@ -29,6 +29,7 @@ fi
 if [ $COMPILER == "gfortran" ]; then 
   export CC=gcc
   export FC=gfortran
+  export FFLAGS=${FFLAGS}
   export CXX=g++
 fi
 OPT=${OPT}/$COMPILER
