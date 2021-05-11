@@ -280,17 +280,13 @@ while(<TEMPLATE>) {
     }
     # fills in the number of nodes on platforms that require it
     s/%nnodes%/$nnodes/g;
-    # fill in the module commands generally needed on this platform
-    s/%platformmodules%/$properties{"hpc.platformmodules"}/g;
-    # fill in serial modules for serial job
+    # fill in serial queue
     if ( $parallelism eq "serial" ) {
-       s/%jobmodules%/$properties{"hpc.job.$jobtype.serialmodules"}/g;
        # name of the queue on which to run
        s/%queuename%/$properties{"hpc.job.$jobtype.serqueue"}/;
     }
-    # fill in parallel modules for parallel job
+    # fill in parallel queue
     if ( $parallelism eq "parallel" ) {
-       s/%jobmodules%/$properties{"hpc.job.$jobtype.parallelmodules"}/g;
        # name of the queue on which to run
        s/%queuename%/$properties{"hpc.job.$jobtype.queuename"}/;
     }
