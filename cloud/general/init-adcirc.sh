@@ -33,6 +33,7 @@ fi
 ADCIRCS=(
 "v53release"
 "v53release-qbc"
+"v53release-gfortran-10.x"
 "v53release-testsuite"
 "v53release-adcircpolate"
 "v55release"
@@ -47,10 +48,11 @@ _show_supported_versions()
   echo  '/~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\'
   echo  '|1. v53release              | standard version traditionally used            |'
   echo  '|2. v53release-qbc          | v53 with makefile support for LONIs qbc        |'
-  echo  '|3. v53release-testsuite    | standard version + tools supporting testsuite  |'
-  echo  '|4. v53release-adcircpolate | v53 with required ADCIRCpolate support         |'
-  echo  '|5. v55release              | standard version + build support for LONIs qbc |'
-  echo  '|6. v55release-swan-gfortran| v55release with gfortran default for swan      |'
+  echo  '|3. v53release-gfortran-10.x| v53 with makefile support for gfortran 10.x    |'
+  echo  '|4. v53release-testsuite    | v53 with tools supporting testsuite            |'
+  echo  '|5. v53release-adcircpolate | v53 with required ADCIRCpolate support         |'
+  echo  '|6. v55release              | standard version + build support for LONIs qbc |'
+  echo  '|7. v55release-swan-gfortran| v55release with gfortran default for swan      |'
   echo  '\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/'
   echo
   if [ "${1}" != "noexit" ]; then
@@ -131,6 +133,12 @@ if [ "$INTERACTIVE" == "yes" ]; then
     v53release|v54release)
       #noop - branches exist "upstream"
       ;;
+    v53release-gfortran-10.x)
+      PATCHSET_NAME="v53release-gfortran-10.x"
+      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
+      # update to proper base branch
+      ADCIRC_GIT_BRANCH=v53release
+      ;;
     v53release-qbc)
       PATCHSET_NAME="v53release-qbc"
       PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
@@ -201,10 +209,7 @@ fi
   # and potential patching of ADCIRC or SWAN
   __ADCIRC_PATCHSET_BASE=${SCRIPTDIR}/patches/ADCIRC
   case "${ADCIRC_GIT_BRANCH}" in
-    v53release|v53release-qbc)
-      SWANDIR=${ADCIRCBASE}/swan
-      ;;
-    v53release+adcircpolate)
+    v53release|v53release-qbc|v53release-gfortran-10.x|v53release-adcircpolate)
       SWANDIR=${ADCIRCBASE}/swan
       ;;
     v54release)
