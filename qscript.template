@@ -43,23 +43,6 @@ SCENARIOLOG=$SCENARIODIR/scenario.log
 cd $SCENARIODIR 2> >(awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a $SYSLOG | tee -a $CYCLELOG | tee -a $SCENARIOLOG )
 #
 #----------------------------------------------------------------------------
-#            C R E A T E   J O B   E N V I R O N M E N T
-#----------------------------------------------------------------------------
-# Note: we don't want to load modules that are not already present in the asgsh
-# environment in the queue script
-if [ -z "$_ASGSH_PID" ]; then
-  module purge
-  %platformmodules%
-  %jobmodules%
-else
-  echo "asgsh environment detected, not loading unexpected modules; if you need"
-  echo "an environment provided by a module, please load it inside of asgsh"
-  echo "directly before running asgs_main.sh or submitting a job to the queues"
-fi
-module list
-THIS=%jobtype%.%queuesyslc%  # reset script name for use in log messages
-#
-#----------------------------------------------------------------------------
 #        L O G   M E S S A G E S   T O   S T A R T   T H E   J O B
 #----------------------------------------------------------------------------
 echo "Starting $THIS in $SCENARIODIR with %queuesys% Job ID ${%JOBID%}; %queuesys% submit directory ${%JOBDIR%}; and %queuesys% submit host ${%JOBHOST%}."  2>&1 | awk -v this=$THIS -v level=INFO -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG | tee --append %jobtype%.%scenario%.run.start
