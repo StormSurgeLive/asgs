@@ -10,6 +10,7 @@ def ReadRPToDict(input_filename, uid, instance_name, physical_location):
     """
     """
     rp={"uid": uid, "instance_name": instance_name, "physical_location": physical_location}
+
     #dsub={}
     #with open("run.properties") as f:
     #    for line in f:
@@ -31,8 +32,7 @@ def ReadRPToDict(input_filename, uid, instance_name, physical_location):
 def DictToJson(in_dict):
     """
     """
-    out_json = json.dumps(in_dict, indent = 4)   
-    return out_json
+    return json.dumps(in_dict, indent = 4)   
 
 def queue_message(message):
     """
@@ -50,6 +50,7 @@ def main(args):
     """
     Main entry point 
     """
+
     uid = args.Uid
     instance_name = args.InstanceName
     physical_location = args.LocationName
@@ -57,6 +58,7 @@ def main(args):
     output_filename = args.output_filename
     #tmpDateTime = datetime.datetime.utcnow()
     #UTCDateTime = tmpDateTime.strftime("%Y-%m-%d %H:%M:%S")
+
     if not os.path.exists(input_filename):
         print("{} DNE. No message to send.".format(input_filename))
         sys.exit(-1)
@@ -68,12 +70,11 @@ def main(args):
         with open(output_filename, "w") as outfile:  
             json.dump(rp_dict, outfile) 
 
-    if args.Transmit is "on": 
+    if args.Transmit: 
         queue_message(rp_json)
 
-    #print(args)
-    #if args.print: 
-        #print(rp_json)
+    if args.Print: 
+        print(rp_json)
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
@@ -84,8 +85,8 @@ if __name__ == '__main__':
     parser.add_argument('--LocationName', default="Unknown", help='HPC Name/Tag', type=str)
     parser.add_argument('--input_filename', default="run.properties", help='run.properties filename', type=str)
     parser.add_argument('--output_filename', default="run.properties.json", help='Filename for outputting json', type=str)
-    parser.add_argument('--Transmit', default="off", help='Whether (or not) to send message', type=str)
-    parser.add_argument('--print', default=False, help='Whether (or not) to print json to terminal', type=bool)
+    parser.add_argument('--Transmit', default=False, help='Whether (or not) to send message', type=bool)
+    parser.add_argument('--Print', default=False, help='Whether (or not) to print json to terminal', type=bool)
     args = parser.parse_args()
     sys.exit(main(args))
 
