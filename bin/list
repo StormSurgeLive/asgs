@@ -11,7 +11,7 @@ _list() {
   case "${1}" in
     adcirc|adcircs)
       if [ ! -d "$ADCIRC_META_DIR/" ]; then
-        echo "nothing is available to list, run 'initadcirc' to build and register a version of ADCIRC."
+        echo "nothing is available to list, run 'build adcirc' to build and register a version of ADCIRC."
       else
         for adcirc in $(ls -1 "$ADCIRC_META_DIR/" | sort); do
           printf "% 2d. %s\n" $LISTNUM $adcirc
