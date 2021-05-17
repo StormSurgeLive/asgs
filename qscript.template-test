@@ -41,18 +41,7 @@ SCENARIODIR=$CYCLEDIR/$SCENARIO
 SCENARIOLOG=$SCENARIODIR/scenario.log
 #
 cd $SCENARIODIR 2> >(awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a $SYSLOG | tee -a $CYCLELOG | tee -a $SCENARIOLOG )
-#
-#----------------------------------------------------------------------------
-#            C R E A T E   J O B   E N V I R O N M E N T
-#----------------------------------------------------------------------------
-if [ -z "${_ASGSH_PID}" ]; then
-module purge
-%platformmodules%
-%jobmodules%
-else
-  echo "ASGS Shell environment detected, using this environment untouched."
-  env
-fi
+
 module list
 # dump entire environment
 env
