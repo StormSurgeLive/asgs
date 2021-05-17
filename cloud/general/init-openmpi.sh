@@ -5,7 +5,9 @@ COMPILER=${2-intel}
 JOBS=${3-1}
 TMP=/tmp/$USER-asgs
 
-OPENMPI_VERSION=openmpi-1.8.1
+OPENMPI_MAJOR_VERSION=1.8
+OPENMPI_MINOR_VERSION=1
+OPENMPI_FULL_VERSION=openmpi-${OPENMPI_MAJOR_VERSION}.${OPENMPI_MINOR_VERSION}
 
 if [ $2 == "clean" ]; then 
   echo Cleaning OpenMPI libraries and utilities
@@ -27,6 +29,7 @@ fi
 if [ $COMPILER == "gfortran" ]; then 
   export CC=gcc
   export FC=gfortran
+  export FFLAGS=${FFLAGS}
   export CXX=g++
 fi
 OPT=${OPT}/$COMPILER
@@ -45,15 +48,15 @@ else
 fi
 cd $TMP
 
-if [ ! -e ${OPENMPI_VERSION}.tar.gz ]; then 
-  wget https://www.open-mpi.org/software/ompi/v1.8/downloads/${OPENMPI_VERSION}.tar.gz
+if [ ! -e ${OPENMPI_FULL_VERSION}.tar.gz ]; then 
+  wget https://www.open-mpi.org/software/ompi/v${OPENMPI_MAJOR_VERSION}/downloads/${OPENMPI_FULL_VERSION}.tar.gz
 else
-  echo Found $TMP/${OPENMPI_VERSION}.tar.gz
-  rm -rf ./${OPENMPI_VERSION} >/dev/null 2>&1
+  echo Found $TMP/${OPENMPI_FULL_VERSION}.tar.gz
+  rm -rf ./${OPENMPI_FULL_VERSION} >/dev/null 2>&1
 fi
-tar -xvf $OPENMPI_VERSION.tar.gz
-cd $OPENMPI_VERSION 
+tar -xvf $OPENMPI_FULL_VERSION.tar.gz
+cd $OPENMPI_FULL_VERSION 
 
-./configure --prefix=$OPT --disable-oshmem-fortran --disable-oshmem --disable-vt --disable-libompitrace
+./configure --prefix=$OPT --disable-oshmem-fortran --disable-oshmem --disable-vt --disable-libompitrace --disable-io-romio --disable-debug-symbols --disable-io-ompio
 make -j $JOBS
 make -j $JOBS install

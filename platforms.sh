@@ -569,6 +569,11 @@ set_hpc() {
    echo "$THIS: The fully qualified domain name is ${fqdn}."
    HPCENV=null
    HPCENVSHORT=null
+   if [[ ${fqdn:(-18)} = "rostam.cct.lsu.edu" ]]; then
+      HPCENV=${fqdn:(-18)}
+      HPCENVSHORT=rostam
+      return
+   fi
    if [[ ${fqdn:(-25)} = "stampede2.tacc.utexas.edu" ]]; then
       HPCENV=${fqdn:(-25)}
       HPCENVSHORT=stampede2
