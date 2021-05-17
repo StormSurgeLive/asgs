@@ -77,8 +77,10 @@ def main(args):
         print(rp_json)
 
 if __name__ == '__main__':
+
     from argparse import ArgumentParser
     import sys
+
     parser = ArgumentParser(description=main.__doc__)
     parser.add_argument('--Uid', default=-1, help='ASGS UID', type=int)
     parser.add_argument('--InstanceName', default="Unknown", help='ASGS Instance name', type=str)
@@ -87,6 +89,8 @@ if __name__ == '__main__':
     parser.add_argument('--output_filename', default="run.properties.json", help='Filename for outputting json', type=str)
     parser.add_argument('--Transmit', default=False, help='Whether (or not) to send message', type=bool)
     parser.add_argument('--Print', default=False, help='Whether (or not) to print json to terminal', type=bool)
+
     args = parser.parse_args()
+
     sys.exit(main(args))
 

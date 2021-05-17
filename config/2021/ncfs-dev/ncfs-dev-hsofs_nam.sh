@@ -78,7 +78,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=620                     # number of compute CPUs for all simulations
+NCPU=480                     # number of compute CPUs for all simulations
 NCPUCAPACITY=640
 #NCPU=511                     # number of compute CPUs for all simulations
 #NCPUCAPACITY=512

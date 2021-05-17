@@ -243,7 +243,14 @@ RMQMessageRunProp()  # send run.properties as a message to the asgs monitor queu
 #  else
 
      # Send message to RabbitMQ queue.  The queue parameters are in the rp2json.py code
-     echo "+"${RMQMessaging_Script_RP}"+"
+     # echo "+"${RMQMessaging_Script_RP}"+"
+     echo ${RMQMessaging_Script_RP} \
+         --Uid $$ \
+         --LocationName ${RMQMessaging_LocationName} \
+         --InstanceName $INSTANCENAME \
+         --Transmit ${RMQMessaging_Transmit} \
+         --input_filename "$RPDIR/run.properties" \
+         --output_filename "$RPDIR/run.properties.json" #\
      ${RMQMessaging_Script_RP} \
          --Uid $$ \
          --LocationName ${RMQMessaging_LocationName} \
