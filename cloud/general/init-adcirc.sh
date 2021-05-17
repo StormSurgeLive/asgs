@@ -33,24 +33,29 @@ fi
 ADCIRCS=(
 "v53release"
 "v53release-qbc"
+"v53release-gfortran-10"
 "v53release-testsuite"
 "v53release-adcircpolate"
 "v55release"
+"v55release-qbc"
 "v55release-swan-gfortran"
+"v55release-swan-gfortran-10"
 )
 NUM_ADC=${#ADCIRCS[@]}
 
 _show_supported_versions()
 {
-  echo  '                                           ||ASGS Supported ADCIRC versions||'
-  echo  '/~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\'
-  echo  '|1. v53release              | standard version traditionally used            |'
-  echo  '|2. v53release-qbc          | v53 with makefile support for LONIs qbc        |'
-  echo  '|3. v53release-testsuite    | standard version + tools supporting testsuite  |'
-  echo  '|4. v53release-adcircpolate | v53 with required ADCIRCpolate support         |'
-  echo  '|5. v55release              | standard version + build support for LONIs qbc |'
-  echo  '|6. v55release-swan-gfortran| v55release with gfortran default for swan      |'
-  echo  '\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/'
+  echo  '                                              ||ASGS Supported ADCIRC versions||'
+  echo  '/~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\'
+  echo  '|1. v53release                 | standard version traditionally used           |'
+  echo  '|2. v53release-qbc             | v53 with makefile support for LONIs qbc       |'
+  echo  '|3. v53release-gfortran-10     | v53 with makefile support for gfortran 10     |'
+  echo  '|4. v53release-testsuite       | v53 with tools supporting testsuite           |'
+  echo  '|5. v53release-adcircpolate    | v53 with required ADCIRCpolate support        |'
+  echo  '|6. v55release                 | standard version + build support for LONIs qbc|'
+  echo  '|7. v55release-swan-gfortran   | v55release with gfortran default for swan     |'
+  echo  '|8. v55release-swan-gfortran-10| v55release with gfortran 10 default for swan  |'
+  echo  '\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/'
   echo
   if [ "${1}" != "noexit" ]; then
     # exits on error if '1' is optionally passed, defaults to 0 (no error)
@@ -130,6 +135,12 @@ if [ "$INTERACTIVE" == "yes" ]; then
     v53release|v54release)
       #noop - branches exist "upstream"
       ;;
+    v53release-gfortran-10)
+      PATCHSET_NAME="v53release-gfortran-10"
+      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
+      # update to proper base branch
+      ADCIRC_GIT_BRANCH=v53release
+      ;;
     v53release-qbc)
       PATCHSET_NAME="v53release-qbc"
       PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
@@ -156,6 +167,12 @@ if [ "$INTERACTIVE" == "yes" ]; then
       ;;
     v55release-swan-gfortran)
       PATCHSET_NAME="v55release-swan-gfortran"
+      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
+      # update to proper base branch
+      ADCIRC_GIT_BRANCH=92ccdb974b7fb150 # v55release
+      ;;
+    v55release-swan-gfortran-10)
+      PATCHSET_NAME="v55release-swan-gfortran-10"
       PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
       # update to proper base branch
       ADCIRC_GIT_BRANCH=92ccdb974b7fb150 # v55release
@@ -200,16 +217,13 @@ fi
   # and potential patching of ADCIRC or SWAN
   __ADCIRC_PATCHSET_BASE=${SCRIPTDIR}/patches/ADCIRC
   case "${ADCIRC_GIT_BRANCH}" in
-    v53release|v53release-qbc)
-      SWANDIR=${ADCIRCBASE}/swan
-      ;;
-    v53release+adcircpolate)
+    v53release|v53release-qbc|v53release-gfortran-10|v53release-adcircpolate)
       SWANDIR=${ADCIRCBASE}/swan
       ;;
     v54release)
       SWANDIR=${ADCIRCBASE}/swan
       ;;
-    v55release|v55release-swan-gfortran|92ccdb974b7fb150)
+    v55release|v55release-swan-gfortran|v55release-swan-gfortran-10|92ccdb974b7fb150)
       # Note v55release = sha256:92ccdb974b7fb150bb42b2536fce4d8c0bcee726
       SWANDIR=${ADCIRCBASE}/thirdparty/swan
       ;;   
@@ -302,7 +316,8 @@ if [ -d "$ADCIRCBASE/.git" ]; then
   if [ "$do_checkout" == "yes" ]; then
     CURRENT_BRANCH=$(git branch | egrep '^\*' | awk '{ print $2 }')
     if [ "${ADCIRC_GIT_BRANCH}" != "${CURRENT_BRANCH}" ]; then
-      git checkout ${ADCIRC_GIT_BRANCH}
+      git config advice.detachedHead=false
+      git -c advice.detachedHead=false checkout ${ADCIRC_GIT_BRANCH}
       EXIT=$?
       if [ $EXIT -gt 0 ]; then
         echo "(fatal) error checking out git repository. Exiting ($EXIT)."
