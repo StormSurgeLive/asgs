@@ -37,22 +37,30 @@ SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
 source $SCRIPTDIR/properties.sh
 # load run.properties file into associative array
 loadProperties $RUNPROPERTIES
-echo "Finished loading properties."   
-CONFIG=${properties['config.file']}
-CYCLEDIR=${properties['path.advisdir']}
-CYCLE=${properties['advisory']}
-HPCENV=${properties['hpc.hpcenv']}
-SCENARIO=${properties['scenario']}
-HSTIME=${properties['InitialHotStartTime']}
-SYSLOG=${properties['monitoring.logging.file.syslog']}
-CYCLELOG=${properties['monitoring.logging.file.cyclelog']}
-SCENARIOLOG=${properties['monitoring.logging.file.scenariolog']}
-echo source $SCRIPTDIR/monitoring/logging.sh
+#echo "Finished loading properties."   
+#CONFIG=${properties['config.file']}
+#CYCLEDIR=${properties['path.advisdir']}
+#CYCLE=${properties['advisory']}
+#HPCENV=${properties['hpc.hpcenv']}
+#SCENARIO=${properties['scenario']}
+#HSTIME=${properties['InitialHotStartTime']}
+#SYSLOG=${properties['monitoring.logging.file.syslog']}
+#CYCLELOG=${properties['monitoring.logging.file.cyclelog']}
+#SCENARIOLOG=${properties['monitoring.logging.file.scenariolog']}
+#echo source $SCRIPTDIR/monitoring/logging.sh
 source $SCRIPTDIR/monitoring/logging.sh
-#source $SCRIPTDIR/platforms.sh
+source $SCRIPTDIR/platforms.sh
 
 export RMQMessaging_Script_RP=${properties['monitoring.rmqmessaging.scriptrp']}
+export RMQMessaging_LocationName=${properties['monitoring.rmqmessaging.locationname']}
+export RMQMessaging_Transmit=${properties['monitoring.rmqmessaging.transmit']}
 
-RMQMessageRunProp "$SCENARIODIR"  # BB
-date > rps.transmitted
+# RMQMessageRunProp is in monitoring/logging.sh
+RMQMessageRunProp "$SCENARIODIR" 
+
+if [ $? == 0 ] ; then
+        date > rps.transmitted
+else
+        touch rps.transmit.failed
+fi
 

@@ -217,6 +217,7 @@ RMQMessage()  # MTYPE EVENT PROCESS STATE MSG PCTCOM
          --Transmit ${RMQMessaging_Transmit} >> ${SYSLOG} 2>&1
    fi
 }
+
 RMQMessageRunProp()  # send run.properties as a message to the asgs monitor queue
 { 
   if [[ ${RMQMessaging_Enable} == "off" ]] ; then return; fi
@@ -230,36 +231,18 @@ RMQMessageRunProp()  # send run.properties as a message to the asgs monitor queu
   # replace echoing messages to the console
   APPLOGFILE=$RUNDIR/RMQMessaging.log
 
-  if [[ 10#$RMQADVISORY -lt 0 ]] ; then
-    echo "warn: RMQA ($RMQADVISORY) < 0.  Not sending RunProp message ..."
-    appMessage "warn: RMQA ($RMQADVISORY) < 0.  Not sending RunProp message ..." $APPLOGFILE
-	return
-  fi
-
-#  re='^[0-9]+([.][0-9]+)?$' 
-#  if ! [[ $PCTCOM =~ $re ]] ; then
-#      echo "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message ..." 
-#      appMessage "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message ..." $APPLOGFILE
-#  else
-
-     # Send message to RabbitMQ queue.  The queue parameters are in the rp2json.py code
-     # echo "+"${RMQMessaging_Script_RP}"+"
-     echo ${RMQMessaging_Script_RP} \
-         --Uid $$ \
-         --LocationName ${RMQMessaging_LocationName} \
-         --InstanceName $INSTANCENAME \
-         --Transmit ${RMQMessaging_Transmit} \
-         --input_filename "$RPDIR/run.properties" \
-         --output_filename "$RPDIR/run.properties.json" #\
-     ${RMQMessaging_Script_RP} \
-         --Uid $$ \
-         --LocationName ${RMQMessaging_LocationName} \
-         --InstanceName $INSTANCENAME \
-         --Transmit ${RMQMessaging_Transmit} \
-         --input_filename "$RPDIR/run.properties" \
-         --output_filename "$RPDIR/run.properties.json" #\
-          #>> ${SYSLOG} 2>&1
-#   fi
+  #if [[ 10#$RMQADVISORY -lt 0 ]] ; then
+  #  echo "warn: RMQA ($RMQADVISORY) < 0.  Not sending RunProp message ..."
+  #  appMessage "warn: RMQA ($RMQADVISORY) < 0.  Not sending RunProp message ..." $APPLOGFILE
+  #	return
+  #fi
+  ${RMQMessaging_Script_RP} \
+     --Uid $$ \
+     --LocationName ${RMQMessaging_LocationName} \
+     --InstanceName $INSTANCENAME \
+     --Transmit ${RMQMessaging_Transmit} \
+     --input_filename "$RPDIR/run.properties" \
+     --output_filename "$RPDIR/run.properties.json" >> ${SYSLOG} 2>&1
 }
 #
 # set the name of the asgs log file
