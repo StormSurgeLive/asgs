@@ -50,6 +50,7 @@ verify_perl() {
   echo ++ Verifying Perl Environment:
   pushd $SCRIPTDIR > /dev/null 2>&1
   perl $SCRIPTDIR/cloud/general/t/verify-perl-modules.t
+  perl $SCRIPTDIR/cloud/general/t/verify-image-magick.t
   for file in $(find . -name "*.pl"); do
     perl -c $file > /dev/null 2>&1 && echo ok $file || echo not ok $file;
   done

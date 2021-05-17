@@ -82,7 +82,7 @@ while (!$dl) {
    #
    # OPEN FTP SESSION (if needed)
    if ( $ftpsite ne "filesystem" ) {
-      $ftp = Net::FTP->new($ftpsite, Debug => 0, Passive => 1); 
+      $ftp = Net::FTP->new($ftpsite, Debug => 1, Passive => 1); 
       unless ( defined $ftp ) {
          stderrMessage("ERROR","ftp: Cannot connect to $ftpsite: $@");
          next;
@@ -219,10 +219,17 @@ while (!$dl) {
          #stderrMessage("DEBUG","ok is $ok");
          #stderrMessage("DEBUG","why is $why");
          my %attributes = ();
+
+         # comment here just to remind us that we're not verifying SSL even
+         # if 'https' is used in productin (NOAA's URL)
          #$attributes{'verify_SSL'} = 1;
 
          my $http = HTTP::Tiny->new(%attributes);
-         my $protocol = ( $rsssite =~ m/^nhc-replay\.stormsurge\.email$/ ) ? q{http} : q{https};
+         # note: only use "https:" when NOAA's production hostname is being utilized
+         # this is to make testing with 'replay' servers easier by not having to
+         # create an https endpoint (doable but inconvenient for testing)
+         my $protocol = ( $rsssite =~ m/nhc\.noaa\.gov$/ ) ? q{https} : q{http};
+
          my $url = sprintf("%s://%s/index-at.xml", $protocol, $rsssite);
          my $response = $http->get($url);
 

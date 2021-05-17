@@ -144,7 +144,7 @@ are changed, the resulting variables specified inside of the ASGS profile are:
 environmental variables:
 
 	ADCIRCDIR=/home/$USER/adcirc-cg-v53release
-	ADCIRC_GIT_URL=https://github.com/adcirc
+	ADCIRC_GIT_URL=git@github.com:adcirc
 	ADCIRC_COMPILER=intel
 	ADCIRC_PROFILE_NAME=v53release-intel
 	ADCIRC_GIT_BRANCH=v53release
@@ -152,12 +152,8 @@ environmental variables:
 	ADCIRC_GIT_REPO=adcirc-cg
 	ADCIRC_MAKE_CMD='make -j 1 adcirc padcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=intel NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=/home/$USER/opt/default MACHINENAME=queenbee'
 
-NOTE: If an operator wishes to use the ssh form of the git url, they will need
-to update the environmental variable ADCIRC_GIT_URL to use the url,
-    
-       export ADCIRC_GIT_URL=git@github.com:adcirc
-
-before running 'initadcirc'.
+Note: It appears GitHub is not supporting the "https" git urls, so ADCIRC_GIT_URL
+(above) is effectively fixed to "git@github.com:adcirc" when using github URLs.
 
 The most important of these is ADCIRCDIR, which is used by asgs_main.sh to locate
 the required ADCIRC executables and utilities. The other variables simply record
@@ -176,7 +172,7 @@ with the "v53release-intel" build are:
 	export ADCIRCDIR=/home/$USER/adcirc-cg-v53release
 	export ADCIRC_COMPILER=intel
 	export ADCIRC_GIT_BRANCH=v53release
-	export ADCIRC_GIT_URL=https://github.com/adcirc
+	export ADCIRC_GIT_URL=git@github.com:adcirc
 	export ADCIRC_GIT_REPO=adcirc-cg
 	export ASGS_MAKEJOBS=1
 	export ADCIRC_MAKE_CMD='make -j 1 adcirc padcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=intel NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=/home/$USER/opt/default MACHINENAME=queenbee'
@@ -187,16 +183,16 @@ export into the current environment:
 
 	asgs (default)> list adcirc
 	- v53release-intel
-	- v54release-intel
+	- v55release-intel
 
 Each ADCIRC "profile" can then be loaded into the current environment using the command,
 'load adcirc <ADCIRC-name>'; for example the following shows the exporting of a build named,
-"v54release-intel", proven by showing the value of ADCIRCDIR. This is followed by the loading
+"v55release-intel", proven by showing the value of ADCIRCDIR. This is followed by the loading
 of "v53release-intel" and showing that ADCIRCDIR has changed.
 
-	asgs (default)> load adcirc v54release-intel
+	asgs (default)> load adcirc v55release-intel
 	asgs (default)> show adcircdir
-	ADCIRCDIR is defined as '/work/$USER/adcirc-cg-v54release-intel'
+	ADCIRCDIR is defined as '/work/$USER/adcirc-cg-v55release-intel'
 	asgs (default)> load adcirc v53release-intel
 	asgs (default)> show adcircdir
 	ADCIRCDIR is defined as '/home/$USER/adcirc-cg-v53release'
@@ -220,17 +216,17 @@ steps:
 	- default-v53
 	asgs (default-v53)> load profile default
 	loaded 'default' into current profile
-	asgs (default)> load adcirc v54release-intel
+	asgs (default)> load adcirc v55release-intel
 	asgs (default)> show adcircdir
-	ADCIRCDIR is defined as '/work/$USER/adcirc-cg-v54release-intel'
-	asgs (default)> save default-v54
-	profile 'default-v54' was written
-	asgs (default-v54)> load profile default
+	ADCIRCDIR is defined as '/work/$USER/adcirc-cg-v55release-intel'
+	asgs (default)> save default-v55
+	profile 'default-v55' was written
+	asgs (default-v55)> load profile default
 	loaded 'default' into current profile
 	asgs (default)> list profiles
 	- default
 	- default-v53
-	- default-v54
+	- default-v55
 	asgs (default)> 
 
 In summary, ADCIRC build profiles are used to augment ASGS profiles; but the ASGS profiles

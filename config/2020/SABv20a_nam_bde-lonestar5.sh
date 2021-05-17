@@ -43,7 +43,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020100700
+COLDSTARTDATE=2020100800
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 
@@ -57,9 +57,9 @@ RMQMessaging_Transmit="on"
 
 TIDEFAC=on               # tide factor recalc
    HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=off        # NAM download/forcing
+BACKGROUNDMET=on        # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
-TROPICALCYCLONE=on       # tropical cyclone forcing
+TROPICALCYCLONE=off       # tropical cyclone forcing
    STORM=28              # storm number, e.g. 05=ernesto in 2006
    YEAR=2020             # year of the storm
 WAVES=on                # wave forcing

@@ -3,7 +3,7 @@
 # NAMtoOWIRamp.pl
 #--------------------------------------------------------------------------
 # Copyright(C) 2019 Brett Estrade
-# Copyright(C) 2011--2019 Jason Fleming
+# Copyright(C) 2011--2021 Jason Fleming
 # Copyright(C) 2010--2011 Eve-Marie Devaliere
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -48,7 +48,7 @@
 # perl ~/asgs/2014stable/NAMtoOWIRamp.pl --ptFile ~/asgs/2014stable/input/ptFile_hsofs.txt --namFormat grib2 --namType nowcast --awipGridNumber 218 --dataDir ./ --outDir ./ --velocityMultiplier 1.0 --scriptDir ~/asgs/2014stable --applyRamp yes --rampDistance 1.0
 #
 # Example of partial grib2 download of NAM reanalysis :
-# day=1 ; while [[ $day -lt 32 ]]; do daystring=`printf %02d $day`; echo $daystring ; TARGETURL=https://www.ncei.noaa.gov/data/north-american-mesoscale-model/access/historical/analysis/201907/201907${daystring} ; for cycle in 00 06 12 18 ; do  $METSCRIPTDIR/get_inv.pl $TARGETURL/namanl_218_201907${daystring}_${cycle}00_000.inv | grep -E "(PRMSL|UGRD:10 m above ground|VGRD:10 m above ground)" | $METSCRIPTDIR/get_grib.pl $TARGETURL/namanl_218_201907${daystring}_${cycle}00_000.grb2 namanl_218_201907${daystring}_${cycle}00_000.grb2 ; done ; day=`expr $day + 1`; done 
+# day=1 ; while [[ $day -lt 32 ]]; do daystring=`printf %02d $day`; echo $daystring ; TARGETURL=https://www.ncei.noaa.gov/data/north-american-mesoscale-model/access/historical/analysis/201907/201907${daystring} ; for cycle in 00 06 12 18 ; do  $METSCRIPTDIR/get_inv.pl $TARGETURL/namanl_218_201907${daystring}_${cycle}00_000.inv | grep -E "(PRMSL|UGRD:10 m above ground|VGRD:10 m above ground)" | $METSCRIPTDIR/get_grib.pl $TARGETURL/namanl_218_201907${daystring}_${cycle}00_000.grb2 namanl_218_201907${daystring}_${cycle}00_000.grb2 ; done ; day=`expr $day + 1`; done
 #
 #
 ######################################################
@@ -84,6 +84,8 @@ my ( $OWItimeRef, $startTime, $endTime, $timeStep, $mainHeader, @OWItime, $recor
 my $applyRamp    = "no";                                    # whether or not to apply a spatial extrapolation ramp
 my $rampDistance = 1.0;                                     # distance in lambert coords to ramp vals to zero
 my ( @ugrd_store_files, @vgrd_store_files, @atmp_store_files );
+our $scenario = "nullscenario";
+
 
 # @ugrd holds the lambert gridded u wind velocity data, across all time steps
 # @vgrd holds the lambert gridded v wind velocity data, across all time steps
@@ -115,29 +117,35 @@ GetOptions(
 #
 # create a hash of properties from run.properties
 our %properties;
-# open properties file 
+# open properties file
 unless (open(RUNPROP,"<run.properties")) {
    stderrMessage("ERROR","Failed to open run.properties: $!.");
-   die;
+   #die;
+} else {
+    while (<RUNPROP>) {
+        my @fields = split ':',$_, 2 ;
+        # strip leading and trailing spaces and tabs
+        $fields[0] =~ s/^\s|\s+$//g ;
+        $fields[1] =~ s/^\s|\s+$//g ;
+        $properties{$fields[0]} = $fields[1];
+    }
+    close(RUNPROP);
+    $scenario = $properties{"scenario"};
 }
-while (<RUNPROP>) {
-   my @fields = split ':',$_, 2 ;
-   # strip leading and trailing spaces and tabs
-   $fields[0] =~ s/^\s|\s+$//g ;
-   $fields[1] =~ s/^\s|\s+$//g ;
-   $properties{$fields[0]} = $fields[1];
-}
-close(RUNPROP);
 #
 # open an application log file for get_nam.pl
 unless ( open(APPLOGFILE,">>NAMtoOWIRamp.pl.log") ) {
-   stderrMessage("ERROR","Could not open 'NAMtoOWIRamp.pl.log' for appending: $!.");        
+   stderrMessage("ERROR","Could not open 'NAMtoOWIRamp.pl.log' for appending: $!.");
    exit 1;
 }
 &stderrMessage( "INFO", "Started processing NAM data." );
+#
+# check to make sure that outDir and dataDir have slashes at the
+# end (this script assumes they do)
+if ( substr($outDir,-1,1) ne "/" ) { $outDir .= "/"; }
+if ( substr($dataDir,-1,1) ne "/" ) { $dataDir .= "/"; }
 &stderrMessage( "INFO", "Started processing point file." );
 $geoHeader = &processPtFile($ptFile);
-
 # load NAM data
 if ( ( $namFormat eq "grib2" ) || ( $namFormat eq "grb2" ) || ( $namFormat eq "grb" ) ) {
     &stderrMessage( "INFO", "Processing file(s)." );
@@ -707,14 +715,13 @@ sub getGrib2 {
             die "$file not found.\n" if ( !-f $file );
             my $com = "$scriptDir/wgrib2 $file -match \"UGRD:10\" -inv /dev/null -text -";
             @rawU = `$com`;
+            die "rawU is empty, com=$com\n" unless (@rawU);
             $com  = "$scriptDir/wgrib2 $file -match \"VGRD:10\" -inv /dev/null -text -";
             @rawV = `$com`;
+            die "rawV is empty, com=$com\n" unless (@rawV);
             $com  = "$scriptDir/wgrib2 $file -match \"PRMSL\" -inv /dev/null -text -";
             @rawP = `$com`;
-            die "rawU is empty, com=$com\n" unless (@rawU);
-            die "rawV is empty, com=$com\n" unless (@rawV);
             die "rawP is empty, com=$com\n" unless (@rawP);
-
         }
         if ( $namFormat eq "grb" ) {
             #
@@ -849,7 +856,7 @@ sub stderrMessage () {
 }
 
 #
-# write a log message to a log file dedicated to this script (typically debug messages)        
+# write a log message to a log file dedicated to this script (typically debug messages)
 sub appMessage () {
    my $level = shift;
    my $message = shift;
@@ -858,6 +865,6 @@ sub appMessage () {
    my $year = 1900 + $yearOffset;
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-   my $scenario = $properties{"scenario"};
+
    printf APPLOGFILE "$theTime $level: $scenario: get_nam.pl: $message\n";
 }

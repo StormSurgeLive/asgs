@@ -1,9 +1,9 @@
 #!/bin/bash
 #----------------------------------------------------------------
 # esnstorm_pedir_removal.sh: Removes the PE* subdirectories that were
-# created by adcprep for use in a parallel adcirc simulation.  
+# created by adcprep for use in a parallel adcirc simulation.
 #----------------------------------------------------------------
-# Copyright(C) 2017--2019 Jason Fleming
+# Copyright(C) 2017--2021 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -20,13 +20,15 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
-# This script gets all the information it needs from the 
-# run.properties file instead of using command line arguments. 
+# This script gets all the information it needs from the
+# run.properties file instead of using command line arguments.
 #----------------------------------------------------------------
 THIS=archive/enstorm_pedir_removal.sh
 # this assumes this script is executed in the dirctory that is to be archived
 SCENARIODIR=$PWD
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties`
+#echo "scriptdir is $SCRIPTDIR" # jgfdebug
+#echo "PWD is $PWD" # jgfdebug
 . ${SCRIPTDIR}/monitoring/logging.sh
 . ${SCRIPTDIR}/platforms.sh           # contains hpc platform configurations
 . ${SCRIPTDIR}/properties.sh          # contains loadProperties subroutine
@@ -42,6 +44,8 @@ LOGFILE=${SCENARIODIR}/enstorm_pedir_removal.sh.log
 # run configuration
 WAVES=${properties["coupling.waves"]}
 SWANHSCOMPRESSION=${properties["coupling.waves.swan.swanhscompression"]}
+hotstartcomp=${properties['adcirc.hotstartcomp']}
+#echo "hotstartcomp is $hotstartcomp" # jgfdebug
 #
 scenarioMessage "$THIS: Starting cleanup of subdomain (PE*) subdirectories." $LOGFILE
 #
@@ -69,7 +73,7 @@ if [[ $WAVES = on ]]; then
    # preserve the swan log file and swan Errfile (if any) so we can see it later
    # FIXME: the name of the asgs_swan.prt file is provided in swaninit but it
    # is hardcoded here as asgs_swan.prt
-   for file in ./PE0000/asgs_swan.prt ./PE0000/Errfile ; do 
+   for file in ./PE0000/asgs_swan.prt ./PE0000/Errfile ; do
       if [[ -e $file ]]; then
          scenarioMessage "$THIS: Preserving SWAN $file file." $LOGFILE
          cp $file . > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not copy '$file' to $PWD: `cat errmsg`." $LOGFILE
@@ -87,14 +91,14 @@ if [[ $WAVES = on ]]; then
          (
             scenarioMessage "$THIS: Creating tar archive of subdomain $file files."
             tar cf ${file}.tar ./PE*/$file 1> tar.log 2> errmsg && cat tar.log | tee -a $LOGFILE >> $SCENARIOLOG || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not create a tar archive of subdomain $file files: `cat errmsg`." $LOGFILE
-            if [[ $SWANHSCOMPRESSION = yes ]]; then 
+            if [[ $SWANHSCOMPRESSION = yes ]]; then
                bzip2 ${file}.tar > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not bzip2 '${file}.tar': `cat errmsg`." $LOGFILE
             fi
             scenarioMessage "$THIS: Finished creating tar archive of subdomain $file files." $LOGFILE
          ) &
          (
-            scenarioMessage "$THIS: Creating fulldomain SWAN hotstart file from subdomain $file files." $LOGFILE        
-            ${SWANDIR}/$hSWANExe <<EndInput | tee $LOGFILE >> $SCENARIOLOG 2>&1 
+            scenarioMessage "$THIS: Creating fulldomain SWAN hotstart file from subdomain $file files." $LOGFILE
+            ${SWANDIR}/$hSWANExe <<EndInput | tee $LOGFILE >> $SCENARIOLOG 2>&1
 1
 $file
 F
@@ -108,12 +112,21 @@ EndInput
    done
 fi
 #
-# allow all backgrounded processes to finish before going on to 
+# allow all backgrounded processes to finish before going on to
 # delete subdomain directories
-wait 
+wait
 #
 # archive the subdomain fort.16 log files
 tar cjf fort.16.tar.bz2 ./PE*/fort.16 1> tar.log 2> errmsg && cat tar.log | tee -a $LOGFILE >> $SCENARIOLOG || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not create a tar archive of subdomain fort.16 files: `cat errmsg`." $LOGFILE
+#
+# archive grib2 files if any
+if ls *grib* >&/dev/null ; then
+   scenarioMessage "$THIS: Archiving grib files." $LOGFILE
+   tar czf grib.tar.gz *grib* 1> tar.log 2> errmsg && cat tar.log | tee -a $LOGFILE >> $SCENARIOLOG || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not create a tar archive of grib2 files: `cat errmsg`." $LOGFILE
+   rm -rf *grib* 2>> $SYSLOG
+else
+   scenarioMessage "$THIS: There are no grib files to archive." $LOGFILE
+fi
 #
 #
 # pull in platform-specific value for the command used to remove directories
@@ -124,14 +137,20 @@ env_dispatch ${HPCENVSHORT}
 THIS=archive/enstorm_pedir_removal.sh
 # now delete the subdomain directories
 rm errmsg ; touch errmsg
-for dir in `ls -d PE*`; do 
-   $REMOVALCMD $dir 2>> errmsg | tee -a $LOGFILE >> $SCENARIOLOG 
-done
-if [[ -s errmsg  ]]; then 
+# FIXME : this needs to be cleaned up so that the subdomain hotstart
+# files are archived in a .tar.gz file or even post processed into
+# a fulldomain hotstart file instead of just turning
+# off the deletion of the PE* subdirectories
+if [[ $hotstartcomp != "subdomain" ]]; then
+   for dir in `ls -d PE*`; do
+      $REMOVALCMD $dir 2>> errmsg | tee -a $LOGFILE >> $SCENARIOLOG
+   done
+fi
+if [[ -s errmsg  ]]; then
    warn "cycle $CYCLE: $SCENARIO: $THIS: Could not remove PE subdirectories: `cat errmsg`." $LOGFILE
 fi
 for file in metis_graph.txt partmesh.txt fort.80 ; do
-   if [[ -e $file ]]; then 
+   if [[ -e $file ]]; then
       $REMOVALCMD partmesh.txt
    fi
 done
