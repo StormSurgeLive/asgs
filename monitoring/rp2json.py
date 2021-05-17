@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-import errno
+3import errno
 import pika
 import datetime
 import json
@@ -56,8 +56,6 @@ def main(args):
     physical_location = args.LocationName
     input_filename = args.input_filename
     output_filename = args.output_filename
-    #tmpDateTime = datetime.datetime.utcnow()
-    #UTCDateTime = tmpDateTime.strftime("%Y-%m-%d %H:%M:%S")
 
     if not os.path.exists(input_filename):
         print("{} DNE. No message to send.".format(input_filename))
