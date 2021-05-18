@@ -80,21 +80,7 @@ init_queenbee()
   RMQMessaging_NcoHome="$HOME/local"
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
-  PLATFORMMODULES='module load intel netcdf netcdf_fortran'
-  # modules for CPRA post processing
-  MATLABEXE=script # "script" means just execute matlab
-  MCRROOT=/usr/local/packages/license/matlab/r2017a
-  SERIALMODULES='module load matlab/r2015b'
-  PARALLELMODULES='module load mvapich2'
   TDS=( lsu_tds )
-  # needed for asgs perl
-  #source ~/perl5/perlbrew/etc/bashrc
-  if [ -z "$_ASGSH_PID" ]; then
-    module purge
-    $PLATFORMMODULES
-    $SERIALMODULES
-  fi
-  THIS=platforms.sh
   SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
   ARCHIVE=enstorm_pedir_removal.sh
@@ -133,8 +119,6 @@ init_rostam()
   RESERVATION=null
   REMOVALCMD="rm"
   TDS=( lsu_tds )
-  # modules for CPRA post processing
-  module purge
   MAKEJOBS=8
 }
 init_supermic()
@@ -160,12 +144,6 @@ init_supermic()
   RMQMessaging_NcoHome="$HOME/local"
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
-  PLATFORMMODULES='module load intel/14.0.2 hdf5/1.8.12/INTEL-140-MVAPICH2-2.0 netcdf/4.2.1.1/INTEL-140-MVAPICH2-2.0 netcdf_fortran/4.2/INTEL-140-MVAPICH2-2.0'
-  # modules for CPRA post processing
-  MATLABEXE=script # "script" means just execute matlab; only for LSU staff, not affiliates
-  MCRROOT=/usr/local/packages/license/matlab/r2017a
-  SERIALMODULES='module load matlab/r2017a'
-  PARALLELMODULES='module load mvapich2'
   PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
   THIS="platforms.sh>env_dispatch()>init_supermic()"
   SSHKEY=~/.ssh/id_rsa.pub
@@ -174,17 +152,12 @@ init_supermic()
   ARCHIVEBASE=$SCRATCH
   ARCHIVEDIR=$SCRATCH
   TDS=( lsu_tds )
-  module purge
-  $PLATFORMMODULES
-  $SERIALMODULES
   MAKEJOBS=8
 }
 
 # Note 0: This entry is meant to model a minimal entry
 # Note 1: We're moving to placing conditional environements based on user or operator
 # into $HOME/.asgsh_profile; e.g., setting MATLABEXE ('mex' or 'script' should go there)
-# Note 2: We're moving modules to load that are not already done so in a user's default shell
-# out of here
 # Note 3: Anything that is initialized without a value or as "null" should not be in here, but
 # the variables should be documented somewhere
 # Note 4: init-asgsh.sh should be run to ensure $WORK and $SCRATCH is set properly so that it
@@ -237,10 +210,6 @@ init_pod()
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$HOME/local"
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
-  PLATFORMMODULES='module load gcc/6.2.0'
-  # modules for CPRA post processing
-  SERIALMODULES='module load '
-  PARALLELMODULES='module load openmpi/2.1.2/gcc.6.2.0'
   THIS="platforms.sh>env_dispatch()>init_pod()"
   SSHKEY=~/.ssh/id_rsa.pub
   RESERVATION=null
@@ -249,9 +218,6 @@ init_pod()
   ARCHIVEBASE=$SCRATCH
   ARCHIVEDIR=$SCRATCH
   TDS=(renci_tds)
-  module purge
-  $PLATFORMMODULES
-  $SERIALMODULES
   MAKEJOBS=8
 }
 init_hatteras()
@@ -294,10 +260,6 @@ init_hatteras()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
   ARCHIVEDIR=$SCRATCH
-  module purge
-  $PLATFORMMODULES
-  $PARALLELMODULES
-  $SERIALMODULES
   MAKEJOBS=8
 }
 #
@@ -408,13 +370,11 @@ init_lonestar5()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome=$WORK/local
-  PLATFORMMODULES='module load TACC/1.0' # BDE - for some reason this is required
   THIS="platforms.sh>env_dispatch()>init_lonestar5()"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2020
   TDS=(tacc_tds)
-  $PLATFORMMODULES
   MAKEJOBS=8
 }
 
