@@ -729,7 +729,6 @@ prepFile()
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $ADVISDIR/$ENSTORM/run.properties
    echo "hpc.job.${JOBTYPE}.parallelism : serial" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
-   echo "hpc.job.${JOBTYPE}.serialmodules : $SERIALMODULES" >> $STORMDIR/run.properties
    # FIXME: there is a hack in qscript.pl to change this to 20 for the priority queue on
    # queenbee and supermic per LONI/LSU requirements (idiosyncracy on those platforms)
    echo "hpc.job.${JOBTYPE}.ppn : 1" >> $STORMDIR/run.properties
@@ -1549,7 +1548,6 @@ writeProperties()
    echo "hpc.hpcenvshort : $HPCENVSHORT" >> $STORMDIR/run.properties
    echo "hpc.queuesys : $QUEUESYS" >> $STORMDIR/run.properties
    echo "hpc.joblauncher : $JOBLAUNCHER" >> $STORMDIR/run.properties
-   echo "hpc.platformmodules : $PLATFORMMODULES" >> $STORMDIR/run.properties
    echo "hpc.submitstring : $SUBMITSTRING" >> $STORMDIR/run.properties
    echo "hpc.executable.qscriptgen : $QSCRIPTGEN" >> $STORMDIR/run.properties
    echo "hpc.jobs.ncpucapacity : $NCPUCAPACITY" >> $STORMDIR/run.properties
@@ -1759,7 +1757,6 @@ writeJobResourceRequestProperties()
    echo "hpc.job.${JOBTYPE}.ncpu : $NCPU" >> $STORMDIR/run.properties
    if [[ $NCPU -gt 1 ]]; then
       echo "hpc.job.${JOBTYPE}.parallelism : parallel" >> $STORMDIR/run.properties
-      echo "hpc.job.${JOBTYPE}.parallelmodules : $PARALLELMODULES" >> $STORMDIR/run.properties
       echo "hpc.job.${JOBTYPE}.numwriters : $NUMWRITERS" >> $STORMDIR/run.properties
    fi
    echo "hpc.job.limit.hindcastwalltime : $HINDCASTWALLTIME" >> $STORMDIR/run.properties
@@ -1980,7 +1977,6 @@ RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "ASGS state file is 
 #
 checkDirExistence $INPUTDIR "directory for input files"
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
-#checkDirExistence $SCRIPTDIR/PERL "directory for the Date::Pcalc perl module"
 #
 if [[ $QUEUESYS = serial ]]; then
    checkFileExistence $ADCIRCDIR "ADCIRC serial executable" adcirc
@@ -2150,16 +2146,12 @@ while [[ $scriptIndex -lt ${#POSTPROCESS[@]} ]]; do
 done
 checkFileExistence $OUTPUTDIR "email notification script" $NOTIFY_SCRIPT
 checkFileExistence ${SCRIPTDIR}/archive "data archival script" $ARCHIVE
-#
-#checkDirExistence ${PERL5LIB}/Date "subdirectory for the Pcalc.pm perl module"
-#checkFileExistence ${PERL5LIB}/Date "perl module for date calculations" Pcalc.pm
 
 THIS="asgs_main.sh"
 #
 if [[ $PERIODICFLUX != null ]]; then
    logMessage "$THIS: checking for FLUXCALCULATOR script"
    checkFileExistence "" "perl script for calculating periodic flux boundary" $FLUXCALCULATOR
-#   checkFileExistence $SCRIPTDIR/PERL "AdcGrid perl module used by flux calculator" AdcGrid.pm
 fi
 #
 # # @jasonfleming : temporarily disable until we can get this to work reliably
@@ -2182,8 +2174,6 @@ logMessage "$THIS: The directory $RUNDIR will be used for all files associated w
 # add the run directory to the list of alternate directories to look for
 # NAM data in
 ALTNAMDIR="${ALTNAMDIR},$RUNDIR"
-# set directory to get perl date calcs module from
-#export PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL #<- augment, don't write over existing
 #
 # send out an email to notify users that the ASGS is ACTIVATED
 ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $RUNDIR advisory enstorm $GRIDFILE activation $EMAILNOTIFY $SYSLOG "${ACTIVATE_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
