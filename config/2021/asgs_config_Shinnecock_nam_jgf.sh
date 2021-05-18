@@ -24,7 +24,7 @@
 # You should have received a copy of the GNU General Public License along with
 # the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------
-# The defaults for parameters that can be reset in this config file 
+# The defaults for parameters that can be reset in this config file
 # are preset in the following scripts:
 # {SCRIPTDIR/platforms.sh               # also contains Operator-specific info
 # {SCRIPTDIR/config/config_defaults.sh
@@ -48,11 +48,12 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=5.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on      # NAM download/forcing
-FORECASTCYCLE="00,06,12,18"
+FORECASTCYCLE="06"
+   forecastSelection="strict"
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #STORM=07             # storm number, e.g. 05=ernesto in 2006
 #YEAR=2018            # year of the storm
-WAVES=off             # wave forcing
+WAVES=on              # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
@@ -75,12 +76,12 @@ TDS=( )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2021021500
+COLDSTARTDATE=2021042500
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 # location on lonestar5 ______________________________________________
 LASTSUBDIR=null
 
-# Scenario package 
+# Scenario package
 
 #PERCENT=default
 SCENARIOPACKAGESIZE=2 # number of storms in the ensemble

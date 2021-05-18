@@ -4,7 +4,7 @@ OPT=${1-$ASGS_INSTALL_PATH}
 JOBS=${2-$ASGS_MAKEJOBS}
 TMP=/tmp/$USER-asgs
 
-IMAGEMAGICK_VERSION="7.0.10-57"
+IMAGEMAGICK_VERSION="7.0.11-10"
 
 if [ "$2" == "clean" ]; then 
   echo Cleaning Image Magick libraries and utilities
@@ -51,15 +51,11 @@ fi
 tar -xvf $IMAGEMAGICK_VERSION.tar.gz
 cd ImageMagick-$IMAGEMAGICK_VERSION 
 
-CC=gcc
+export CC=gcc
 export MAGICK_HOME=$ASGS_INSTALL_PATH
-./configure --prefix=$ASGS_INSTALL_PATH --with-gcc-arch=native --with-perl
-make #-j $JOBS
-make install
-# Note:
-# these gymnastics are necessary for the Perl module because there is a bug in the supplied Makefile
-# that seems to lose the location of some required shared libraries provided by ImageMagick itself
-cd ./PerlMagick
-perl ./Makefile.PL
+
+./configure --prefix=$ASGS_INSTALL_PATH --with-gcc-arch=native --with-perl=$(which perl) \
+    --without-magick-plus-plus --disable-openmp
+
 make
 make install

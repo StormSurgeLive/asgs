@@ -1,7 +1,6 @@
 IO::Socket::SSL
 Config::Tiny
 Date::Calc
-Date::Handler
 DateTime
 DateTime::Format::Builder
 Email::Sender::Simple
@@ -21,3 +20,6 @@ Perl::Tidy
 Weather::NHC::TropicalCyclone
 YAML::Tiny
 JSON::XS
+File::ShareDir
+PDL
+Archive::Zip
