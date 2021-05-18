@@ -37,17 +37,6 @@ SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
 source $SCRIPTDIR/properties.sh
 # load run.properties file into associative array
 loadProperties $RUNPROPERTIES
-#echo "Finished loading properties."   
-#CONFIG=${properties['config.file']}
-#CYCLEDIR=${properties['path.advisdir']}
-#CYCLE=${properties['advisory']}
-#HPCENV=${properties['hpc.hpcenv']}
-#SCENARIO=${properties['scenario']}
-#HSTIME=${properties['InitialHotStartTime']}
-#SYSLOG=${properties['monitoring.logging.file.syslog']}
-#CYCLELOG=${properties['monitoring.logging.file.cyclelog']}
-#SCENARIOLOG=${properties['monitoring.logging.file.scenariolog']}
-#echo source $SCRIPTDIR/monitoring/logging.sh
 source $SCRIPTDIR/monitoring/logging.sh
 source $SCRIPTDIR/platforms.sh
 

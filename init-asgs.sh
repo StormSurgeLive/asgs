@@ -203,9 +203,6 @@ if [ -z "$BATCH" ]; then
   read -p "Run command above, y/N? [N] " run
 fi
 
-# creates a script that is basically a wrapper around the asgs-brew.ps
-# command that results from the use of this guide installation
-
 if [[ "$run" = "y" || -n "$BATCH" ]]; then
   mkdir $HOME/bin 2> /dev/null
   scriptdir=$(pwd)

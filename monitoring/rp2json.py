@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-3import errno
 import pika
 import datetime
 import json
@@ -10,15 +9,6 @@ def ReadRPToDict(input_filename, uid, instance_name, physical_location):
     """
     """
     rp={"uid": uid, "instance_name": instance_name, "physical_location": physical_location}
-
-    #dsub={}
-    #with open("run.properties") as f:
-    #    for line in f:
-    #        (key, val) = line.split(' : ')
-    #        key=key.replace(' ','_')
-    #        dsub[key] = val.strip()
-    # dmain['param_list']=dsub
-
     param_list=[]
     with open(input_filename) as f:
         for line in f:
@@ -37,7 +27,6 @@ def DictToJson(in_dict):
 def queue_message(message):
     """
     """
-    ########## NEED TO GET THIS STUFF FROM YAML FILE #########################
     credentials = pika.PlainCredentials('asgs', 'ZippityD0Da')
     parameters = pika.ConnectionParameters('asgs-monitor.renci.org', 5672, '/', credentials, socket_timeout=2)
     connection = pika.BlockingConnection(parameters)
@@ -50,7 +39,6 @@ def main(args):
     """
     Main entry point 
     """
-
     uid = args.Uid
     instance_name = args.InstanceName
     physical_location = args.LocationName
@@ -89,6 +77,4 @@ if __name__ == '__main__':
     parser.add_argument('--Print', default=False, help='Whether (or not) to print json to terminal', type=bool)
 
     args = parser.parse_args()
-
     sys.exit(main(args))
-
