@@ -680,8 +680,8 @@ sub get_steps {
                 PATH => { value => qq{$asgs_install_path/$asgs_compiler/bin}, how => q{prepend} },
             },
 
-            # skip this step if the compiler is not set to gfortran
-            skip_if             => sub { return ( ( $asgs_compiler ne q{gfortran} ) ) ? 1 : 0 },
+            # don't build if mpif90, etc are already available in the build environment
+            skip_if             => sub { return not system(qw/which mpif90/) },
             precondition_check  => sub { 1 },
             postcondition_check => sub {
                 my ( $op, $opts_ref ) = @_;
