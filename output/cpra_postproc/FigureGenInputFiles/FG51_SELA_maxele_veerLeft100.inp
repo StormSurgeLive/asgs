@@ -1,0 +1,66 @@
+FOR BEST RESULTS, PLEASE KEEP COMMENTS OUT OF THE FIRST 50 CHARACTERS ON EACH LINE.
+12345678901234567890123456789012345678901234567890
+4                                                  ! Level of screen output.
+                                                   ! Path where GMT executables are located.
+                                                   ! Path where GhostScript executable is located.
+Temp/                                              ! Path where temporary files will be created.
+AL28_GAHM_Adv17_veerLeft100_maxele_
+0,%Title%                                          ! Plot label flag and plot label.
+0,2005,8,23,18,0,0                                 ! Time bar flag: 0 to ignore, 1 to plot time bar.
+-94.00                                             ! Lat/lon box.
+-88.3387                                           !
+28.5383                                            !
+30.7884                                            !
+fort.14                                            ! Name of grid file.
+0                                                  ! Plot grid flag: 0 to ignore, 1 to plot triangular grid on figure.
+PARAMETERS FOR CONTOURS:
+1                                                  ! Contour fill flag: 0 to ignore, 1 to plot filled contours, 2 to plot differences.
+0                                                  ! Contour lines flag: 0 to ignore, 1 to plot contour lines, 2 to plot differences.
+AL28_17_veerLeft100.maxele.63.nc
+ADCIRC-OUTPUT                                      ! Contour file format flag: ADCIRC-OUTPUT, GRID-BATH/SIZE/DECOMP-#, 13-MANNING/CANOPY/TAU0/EVIS/WIND-REDUCTION(-#).
+3.280840                                           ! Unit conversion factor for contours.
+ft                                                 ! Alphanumeric label for units after conversion.
+SMS                                                ! Color palette flag: RGB, SMS(+INTERVALS), CPT(+INTERVALS).
+Default2.pal                                       ! Name of SMS color palette.
+DEFAULT                                            ! Color lines flag: DEFAULT, CONTOUR-LINES, GRID-BATH/SIZE/DECOMP-#.  Requires GMT4.3.0.
+0,10                                               ! Minimum,maximum in contour range (or FIND to determine from file).
+1.0                                                ! Interval in contour range.
+100                                                ! Number of times to split contour interval (for smoother plots).
+1                                                  ! Label every xth contour line on the plot (or 0 for no labels).
+1.0                                                ! Require contour line labels to be more than x inches apart.
+0                                                  ! Rotation angle for contour line labels (or n for normal or p for parallel.)
+10                                                 ! Font size for contour line labels.
+2.0                                                ! Label the scale at intervals of x.
+0.25                                               ! Width (inches) of scale.
+PARAMETERS FOR PARTICLES:
+0                                                  ! Particle flag: 0 to ignore, N to plot every Nth particle in the file.
+pth.201006290000.nc                                ! Name of path file to use for particles (*.pth).
+1,0,Brown                                          ! Particle size (pixels), pattern and color.
+PARAMETERS FOR VECTORS:
+0                                                  ! Vector flag: 0 to ignore, 1 to plot vectors.
+fort.74.nc                                         ! Name of file to use for vectors (fort.64, fort.74).
+ADCIRC-OUTPUT                                      ! Vector file format flag: ADCIRC-OUTPUT.
+1                                                  ! Unit conversion factor for vectors.
+m/s                                                ! Alphanumeric label for units after conversion.
+80                                                 ! Magnitude of vector corresponding to one inch on the page.
+0.15                                               ! Spacing between vectors in degrees.
+0.06,0.04,0.01                                     ! Vector head length, head width, tail width.
+60                                                 ! Magnitude of vector to show in the vector scale (or FIND to determine from file).
+PARAMETERS FOR OVERALL PLOT(S):
+1,Brown                                            ! Boundaries flag: 0 to ignore, 1 to plot roads/levees from grid.
+0,Gray,4,4,0.5                                     ! Coastline flag: 0 to ignore, 1 to plot coastline with color, resolution (1[Least]-4[Most]), water bodies (1[Least]-4[Most]).
+2,Black,fort.22.trk,1.0                            ! Dots/lines flag: 0 to ignore, 1 to plot unconnected dots, 2 to plot connected line segments from an external file.
+0,labels.txt                                       ! Labels flag: 0 to ignore, 1 to plot labels from external file.
+0,TR,1.75,LSU_UCF.eps                              ! Logo flag: 0 to ignore, 1 to plot logo at position (TL,TR,BL,BR) and width (inches) from an external file.
+0,MSAL-Oceans.txt                                  ! Background images: 0 to ignore, 1 to plot geo-referenced images from a list in an external file.
+8.00                                               ! Width (inches) of plot.
+0.25                                               ! Distance (inches) between edge of plot and contour scale, vector scale, time bar, plot label, etc.
+1.0                                                ! Alternate black and white boxes on the border at every xth degree.
+1.0                                                ! Annotate on the border at every xth degree.
+1                                                  ! Image trim flag: 0 to ignore, 1 to trim image close to plot.
+300                                                ! Resolution (dpi) of images.
+JPG                                                ! Raster file format(s): PNG, JPG, BMP, TIFF, EPS, PDF.
+0,75,2,20050828120000                              ! Flag for Google KMZ file, transparency (0-100) of images, number of layers, and time stamp of first record in 63 file for animation.
+0,0                                                ! Flag for georeferencing: (0 to ignore, 1 for images, 2 for zipped images), and lowermost layer (or 0 to optimize).
+1                                                  ! Number of records for which to produce images (or 0 for all).
+1                                                  ! List of records (ignored if the number of records is 0).

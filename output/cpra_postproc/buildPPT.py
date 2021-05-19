@@ -28,6 +28,7 @@ today = datetime.now(tz)
 
 # Get command line argument
 fname = sys.argv[1]
+rprop = sys.argv[2]
 
 # File names and stations
 fnames = ['WSE_IHNC02_USACE_76030.png',
@@ -123,7 +124,9 @@ staName_short = ['IHNC Surge Barrier East (IHNC-02)',
 
 # Read run.properties and make a property dictionary
 runProp = dict()
-f = open('run.properties','r')
+#f = open('run.properties','r')
+#f = open('AL26_04_nhcConsensus.run.properties','r')
+f = open(rprop,'r')
 for line in f:
     fields = line.split(':',1)
     try:
@@ -136,12 +139,15 @@ f.close()
 advisory_dt = datetime.strptime(runProp['time.forecast.valid.cdt'],'%Y%m%d%H%M%S')
 advisory_dt_long = datetime.strftime(advisory_dt,'%b-%d-%Y %I:%M %p')
 
-cycleAdvisory_dt = datetime.strptime(runProp['advisory'],'%Y%m%d%H')
+#cycleAdvisory_dt = datetime.strptime(runProp['advisory'],'%Y%m%d%H')
+cycleAdvisory_dt = datetime.strptime(runProp['forecastValidStart'],'%Y%m%d%H%M%S')
 cycleAdvisory_dt_long = datetime.strftime(cycleAdvisory_dt,'%b-%d-%Y %H:%M')
 
 scenario = runProp['asgs.enstorm']
 if scenario == 'nhcConsensus':
     scenario_readable = 'NHC Official Track'
+else:
+    scenario_readable = scenario
 if scenario == 'namforecast':
     scenario_readable = 'NAM Forecast'
 
@@ -161,24 +167,27 @@ subtitle = slide.placeholders[1]
 if runProp['forcing.tropicalcyclone'] != "off": 
     title.text = runProp['storm class'] + ' ' + runProp['stormname'] + ', ' + scenario_readable + ' Scenario'
     subtitle.text = "Advisory " + runProp['advisory'] + " Issued on " + advisory_dt_long + " CDT" + "\n\n" + \
-            'PPT generated on ' + today.strftime('%B %d, %Y %I:%M %p') + 'CDT'
+            'PPT generated on ' + today.strftime('%B %d, %Y %I:%M %p') + ' CDT'
 else:
     title.text = scenario_readable + " Cycle Issued on " + cycleAdvisory_dt_long + " UTC"
     subtitle.text = scenario_readable + " Cycle Issued in Local Time on " + advisory_dt_long + " CDT" + "\n\n" + \
-            'PPT generated on ' + today.strftime('%B %d, %Y %I:%M %p') + 'CDT'
+            'PPT generated on ' + today.strftime('%B %d, %Y %I:%M %p') + ' CDT'
 statement = 'For Official Use Only. Not For Release. \nModel results were produced by the ADCIRC Surge Guidance System (ASGS) and are based on the National Hurricane Center (NHC) forecast track. \nADCIRC-developed hydrographs are an operational planning tool for emergency-response personnel and are not a replacement for National Weather Service (NWS) forecasts.'
 
 fouo = slide.placeholders[10]
 fouo.text = statement
 numSlides = numSlides + 1
+#numSlides = numSlides + 3
 
 # Set slide layout
 #left = Inches(1.94)
 #top = Inches(1.06)
-left = Inches(0.51)
-top = Inches(1.06)
-iwidth = Inches(12.32)
-iheight = Inches(4.70)
+left = Inches(0.28)
+top = Inches(1.13)
+#iwidth = Inches(12.32)
+#iheight = Inches(4.70)
+iwidth = Inches(12.77)
+iheight = Inches(5.24)
 
 img_path = fname
 slide = prs.slides.add_slide(slide_layout)
@@ -229,6 +238,8 @@ top = Inches(0.81)
 iwidth = Inches(11.84)
 iheight = Inches(5.69)
 
+#numSlides = numSlides + 1
+
 i = 0
 for image in fnames:
     try: 
@@ -255,7 +266,7 @@ if runProp['forcing.tropicalcyclone'] != "off":
     pptFile = runProp['stormname'] + "_Adv" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
 else:
     #pptFile = runProp['WindModel'] + "_Cycle" + runProp['advisory'] + "_" + scenario + "_" + runProp['forecastValidStart'] + ".pptx"
-    pptFile = scenario + "_Cycle_" + runProp['advisory'] + "UTC" + ".pptx"
+    pptFile = scenario + "_Cycle_" + runProp['advisory'] + "UTC" + "+gahm.pptx"
 prs.save(pptFile)
 pFile = open('pptFile.temp','w')
 pFile.write(pptFile)

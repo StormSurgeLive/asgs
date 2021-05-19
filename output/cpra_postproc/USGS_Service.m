@@ -74,7 +74,8 @@ end
 
 try
     if length(A.ns1_colon_timeSeriesResponse.ns1_colon_timeSeries.ns1_colon_values) > 1
-        data = A.ns1_colon_timeSeriesResponse.ns1_colon_timeSeries.ns1_colon_values{1}.ns1_colon_value;
+%         data = A.ns1_colon_timeSeriesResponse.ns1_colon_timeSeries.ns1_colon_values{1}.ns1_colon_value;
+        data = A.ns1_colon_timeSeriesResponse.ns1_colon_timeSeries.ns1_colon_values{2}.ns1_colon_value;
     else
         data = A.ns1_colon_timeSeriesResponse.ns1_colon_timeSeries.ns1_colon_values.ns1_colon_value;
     end
