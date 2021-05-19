@@ -24,17 +24,17 @@ disp(msg);
 %%
 % User-defined inputs
 
-productionMode = true; % for ASGS
-% productionMode = false; % Manual mode
+% productionMode = true; % for ASGS
+productionMode = false; % Manual mode
 
 % Used for automatically calculating a static offset
-autoOffset = false;   
-% autoOffset = true;
+% autoOffset = false;   
+autoOffset = true;
 
 if productionMode == false
     plotSubset = false; % for ASGS
 %     plotSubset = true; % for debugging, etc.
-%     subsetIndex = [1];
+%     subsetIndex = [3];
 
     overrideedate = false; % for ASGS
 %     overrideedate = true; % for post-run analysis
@@ -55,8 +55,8 @@ else
 %     FIRST in the array
 %     The nhcConsensus for the current advsiory should be LAST in the array
     numEns = 2;
-    ensFileNames = {'NAM_2020060700.fort.61.nc','NAM_2020060706.fort.61.nc'};
-    propFile = {'NAM_2020060700.run.properties','NAM_2020060706.run.properties'};
+    ensFileNames = {'AL28_16_nhcConsensus.fort.61.nc', 'AL28_17_nhcConsensus.fort.61.nc'};
+    propFile = {'AL28_16_nhcConsensus.run.properties', 'AL28_17_nhcConsensus.run.properties'};
     plotPrevious = true;
 end
 %
@@ -171,6 +171,7 @@ end
 if autoOffset
     msg = sprintf('pra_hydrograph_plotter.m: An automatic offset will be applied.');
     disp(msg);
+    fid_offset_out = fopen('Automatic_Offset.csv','w'); % open file
 else
     staticOffsetFile = 'Static_Offset.xlsx';
     if exist(staticOffsetFile)
@@ -419,9 +420,14 @@ for f = 1:adcData(1).NumStations
                 tidx = find(wl(:,2) < -99);
                 wl(tidx,2) = NaN;
                                
-                % Remove data points > 10 x the average
-                tidx = find(wl(:,2) > 10*mean(wl(:,2)));
-                wl(tidx,2) = NaN;
+                if strcmp(gageID(1,:),'76030') == 0
+                    % Remove data points > 10 x the average
+                    tidx = find(wl(:,2) > 10*mean(wl(:,2)));
+                    wl(tidx,2) = NaN;
+                else
+                    tidx = find(wl(:,2) < -4);
+                    wl(tidx,2) = NaN;
+                end
 
                 % Find the min and max observed water levels
                 maxOWL = ceil(max(wl(:,2)));
@@ -450,7 +456,19 @@ for f = 1:adcData(1).NumStations
     end
         
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-       
+    % Remove bogus values from observations
+    if strcmp(gageID(1,:),'76030') == 0
+        if length(wl) > 2
+            meanObs = mean(wl(:,2));
+            for numObs = 2:length(wl)
+                if ( abs(wl(numObs,2)  - meanObs)) > 2
+                    wl(numObs,2) = NaN;
+                    maxOWL = ceil(max(wl(:,2)));
+                    minOWL = floor(min(wl(:,2)));
+                end
+            end
+        end   
+    end
     
     % Plot water levels as scatter points
     plotMe(legendCount) = scatter(wl(:,1),wl(:,2),50,'MarkerEdgeColor','black','Linewidth',1);hold on;
@@ -509,40 +527,57 @@ for f = 1:adcData(1).NumStations
                 legendCell{i+1} = strcat(enstorm,' (',datestr(dtAdvisory, dtformat),' CDT)');
             end
         else  
-            legendCell{i+1} = char(strcat(enstorm,{' (Advisory '},datestr(dtAdvisory, dtformat),' CDT{)}'));      
+            legendCell{i+1} = char(strcat(enstorm,{' (Advisory '},advisory, {' '}, datestr(dtAdvisory, dtformat),' CDT{)}'));      
         end
         
+        clear tempOffset;
         if autoOffset
-            
+
+            % Offset using the last observation date/time
+            [ d, ix ] = min( abs(wl(end,1) - adcData(i).STATION{f}.DATE(:)));
             if length(wl(:,2)) < 2
                 tempOffset = 0.0;
             elseif isnan(adcData(i).STATION{f}.DATA(1))
                 tempOffset = 0.0;
+%             elseif isnan(wl(ix,1))
+%                 tempOffset = 0.0;
             else
-                if isnan(wl(end,2));
-                    if isnan(wl(end-1,2))
-                        tempOffset = 0.0;
-                    else
-                        tempOffset = wl(end-1,2) - adcData(i).STATION{f}.DATA(1);
-                    end
+                lenwl = length(wl);
+                if isnan(wl(lenwl,2)) == 1
+                    tempOffset = wl(lenwl-1,2) - adcData(i).STATION{f}.DATA(ix);
+%                 if ( abs(wl(lenwl,2) - wl(lenwl-1,2)) > 2 )
+%                     tempOffset = wl(lenwl-1,2) - adcData(i).STATION{f}.DATA(ix);
                 else
-                    tempOffset = wl(end,2) - adcData(i).STATION{f}.DATA(1);
+                tempOffset = wl(end,2) - adcData(i).STATION{f}.DATA(ix);
                 end
             end
+            
             % Catch all
             if isnan(tempOffset)
-                tempOffset = 0.0
+                tempOffset = 0.0;
             end
-            msg = sprintf('cpra_hydrograph_plotter.m: An automatic offset of %f ft will be used', tempOffset);
-            disp(msg);
             
+            if strcmp(gageID,'76030')
+                tempOffset = 0.5;
+            end 
+            if strcmp(gageID,'073802516')
+                tempOffset = 2.0;
+            end 
+
+                        
             if tempOffset > 3.0
                 msg = sprintf('cpra_hydrograph_plotter.m: ***WARNING - An offset > 3 ft (%f ft) is being applied.***', tempOffset);
                 disp(msg);
             end
             
+            msg = sprintf('cpra_hydrograph_plotter.m: An automatic offset of %f ft will be used', tempOffset);
+            disp(msg);
+            
+            % Store offset used
+            offsetMap(gageID) = tempOffset;
+            fprintf(fid_offset_out, '%s\t%f\n',gageID,tempOffset);
+            
             adcData(i).STATION{f}.DATA = adcData(i).STATION{f}.DATA + tempOffset;
-%             tempOffset = 0;
             
         else 
             
@@ -603,6 +638,19 @@ for f = 1:adcData(1).NumStations
     
     minWL = min(minOWL,minMWL) - 1;
     maxWL = max(maxOWL,maxMWL) + 3;
+
+%     if strcmp(gageID(1,:),'76560') == 1
+%         maxWL = 10;
+%         minWL = -1;
+%     end
+%     if strcmp(gageID(1,:),'08017118') == 1
+%         maxWL = 12;
+%         minWL = -1;
+%     end
+%     if strcmp(gageID(1,:),'01275') == 1
+%         maxWL = 10;
+%         minWL = 3;
+%     end
     
     % Final bounds check...
     if minWL < -10
@@ -653,7 +701,8 @@ for f = 1:adcData(1).NumStations
                 else
                     triggerText = strcat('Water Level Trigger (',num2str(triggerMap(gageID),'%4.1f'),' ft)');
                 end
-                legendCell{i+2} = triggerText;
+                llc = length(legendCell);
+                legendCell{llc+1} = triggerText;
                 
                 plot([trigDate trigDate],[minWL maxWL],...
                     '--', 'color', 'black','Linewidth',0.75);
@@ -679,7 +728,8 @@ for f = 1:adcData(1).NumStations
                 else
                     triggerText2 = strcat('Water Level Trigger (',num2str(triggerMap2(gageID),'%4.1f'),' ft)');
                 end
-                legendCell{i+3} = triggerText2;
+                llc = length(legendCell);
+                legendCell{llc+1} = triggerText2;
                 
                 plot([trigDate trigDate],[minWL maxWL],...
                     '--', 'color', 'black','Linewidth',0.75);
@@ -772,7 +822,7 @@ for f = 1:adcData(1).NumStations
         title1 = strcat({'Storm: '},storm,{' - Advisory: '},advisory,{' Issued on '},...
             datestr(dtAdvisory,dtformat),{' CDT'},{' - grid: '},adcGrid);
     end
-    
+     
 	if (strcmp(cpraStationNames(cpraStationIndex),'Western Tie-In (WBV7274)') == 1)
 		title2 = strcat('Western Tie-In (WBV-72/74)  -  USACE Gage ID:',stations(cpraStationIndex),...
               {' - Datum Converstion to NAVD88: '},num2str(datumConvMap(gageID),'%0.2f'),{' ft'});
@@ -782,12 +832,14 @@ for f = 1:adcData(1).NumStations
 	else
 		title2 = strcat(cpraStationNames(cpraStationIndex),{'  -  '},gageAgency,{' Gage ID: '},stations(cpraStationIndex),...
             {' - Datum Converstion to NAVD88: '},num2str(datumConvMap(gageID),'%0.2f'),{' ft'});
-	end
-    
+    end
+        
     text(0,1.07,title1,'Units','normalized','Interpreter','None');
     text(0,1.03,title2,'Units','normalized','Interpreter','None');
     
-    legend(plotMe,legendCell,'Location','northeast');
+%     legend(plotMe,legendCell,'Location','northeast');
+    legend(plotMe,legendCell,'Location','northwest');
+%     legend(plotMe,legendCell,'Location','southwest');
        
     % Override some defaults
     set(gca,'LineWidth',1,'TickLength',[0.015 0.015]);
@@ -804,14 +856,16 @@ for f = 1:adcData(1).NumStations
     
     clear legendCell plotMe;
     
-    msg = sprintf('cpra_hydrograph_plotter.m: Station %s jpeg success.', stations{1,cpraStationIndex});
+    msg = sprintf('cpra_hydrograph_plotter.m: Station %s jpeg success.\n', stations{1,cpraStationIndex});
     disp(msg);
     
     clear wl;
 end
 
+fclose(fid_offset_out); % close file
+
 msg = sprintf('cpra_hydrograph_plotter.m: END cpra_hydrograph_plotter.m %s CDT',...
     datestr(datetime('now','TimeZone','America/Chicago'),'yyyymmdd HH:MM'));
 disp(msg);
 
-clear all; close all;
+%clear all; close all;
