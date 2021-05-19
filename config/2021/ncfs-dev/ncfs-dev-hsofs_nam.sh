@@ -27,10 +27,9 @@
 
 # Fundamental
 
-INSTANCENAME="hsofs-nam-bob-2021"      # "name" of this ASGS process
+INSTANCENAME=hsofs-nam-bob-2021      # "name" of this ASGS process
 SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
 RMQMessaging_Transmit=on
-RESERVATION=ncfs
 
 # Input files and templates
 
@@ -66,8 +65,8 @@ BACKGROUNDMET=on          # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off       # tropical cyclone forcing
    STORM=-1               # storm number, e.g. 05=ernesto in 2006
-   YEAR=2019              # year of the storm
-WAVES=on                  # wave forcing
+   YEAR=2021              # year of the storm
+WAVES=on                 # wave forcing
    REINITIALIZESWAN=no    # used to bounce the wave solution
 VARFLUX=off               # variable river flux forcing
    RIVERSITE=data.disaster.renci.org
@@ -78,26 +77,29 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-#NCPU=623                     # number of compute CPUs for all simulations
-#NCPUCAPACITY=640
 NCPU=511                     # number of compute CPUs for all simulations
 NCPUCAPACITY=512
+#NCPU=511                     # number of compute CPUs for all simulations
+#NCPUCAPACITY=512
 NUMWRITERS=1
 ACCOUNT=null
+RESERVATION=ncfs
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
+INTENDEDAUDIENCE=developers-only    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+#POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
+POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
-OPENDAPNOTIFY="bblanton@renci.org, asgs.cera.lsu@gmail.com, rluettich1@gmail.com, jason.g.fleming@gmail.com, asgsnotifications@opayq.com, cera.asgs.tk@gmail.com, asgsnotes4ian@gmail.com, janelle.fleming@seahorsecoastal.com"
+#OPENDAPNOTIFY="bblanton@renci.org, asgs.cera.lsu@gmail.com, rluettich1@gmail.com, jason.g.fleming@gmail.com, asgsnotifications@opayq.com, cera.asgs.tk@gmail.com, asgsnotes4ian@gmail.com, janelle.fleming@seahorsecoastal.com"
+OPENDAPNOTIFY="bblanton@renci.org"
 NOTIFY_SCRIPT=ncfs_nam_notify.sh
 
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2 
+SCENARIOPACKAGESIZE=1 
 case $si in
    -2) 
        ENSTORM=hindcast
@@ -107,11 +109,11 @@ case $si in
        ENSTORM=nowcast
        ;;
     0)
-       ENSTORM=namforecastWind10m
-       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ENSTORM=namforecast
        ;;
     1)
-       ENSTORM=namforecast
+       ENSTORM=namforecastWind10m
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
     *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."

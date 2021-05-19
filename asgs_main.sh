@@ -1670,6 +1670,8 @@ writeNAMProperties()
    WASTHIS=$THIS
    THIS="asgs_main->writeNAMProperties()"
    logMessage "$THIS: Writing properties associated with meterorological forcing with the NAM model to $1/run.properties."
+   echo "forcing.metclass : synoptic" >> $STORMDIR/run.properties
+   echo "forcing.stormname : NA" >> $STORMDIR/run.properties
    echo "forcing.nwp.model : nam" >> $STORMDIR/run.properties
    echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $STORMDIR/run.properties
    echo "forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties
@@ -1698,6 +1700,8 @@ writeTropicalCycloneProperties()
    WASTHIS=$THIS
    THIS="asgs_main->writeTropicalCycloneProperties()"
    logMessage "$THIS: Writing properties associated with meterorological forcing with a parametric vortex model to $1/run.properties."
+   echo "forcing.metclass : tropical" >> $STORMDIR/run.properties
+   echo "forcing.stormname : $STORM" >> $STORMDIR/run.properties
    echo "forcing.tropicalcyclone.vortexmodel : $VORTEXMODEL" >> $STORMDIR/run.properties
    echo "forcing.tropicalcyclone.stormnumber : $STORM" >> $STORMDIR/run.properties
    echo "forcing.tropicalcyclone.year : $YEAR" >> $STORMDIR/run.properties
@@ -1887,8 +1891,9 @@ fi
 #
 # Send message with config file contents as the message body.  This is only done once at ASGS startup
 logMessage "Sending a message with the asgs configuration file as the message body."
-#temp=`cat $CONFIG | sed '/^#/d' | sed '/^$/d'`
-#RMQMessageStartup "$temp"
+temp=`cat $CONFIG | sed '/^#/d' | sed '/^$/d'`
+RMQMessageStartup "$temp"
+
 #
 # set a RunParams string for messaging
 RMQRunParams="$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
@@ -1977,6 +1982,7 @@ RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "ASGS state file is 
 #
 checkDirExistence $INPUTDIR "directory for input files"
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
+#checkDirExistence $SCRIPTDIR/PERL "directory for the Date::Pcalc perl module"
 #
 if [[ $QUEUESYS = serial ]]; then
    checkFileExistence $ADCIRCDIR "ADCIRC serial executable" adcirc
@@ -2263,8 +2269,6 @@ if [[ $START = coldstart ]]; then
    logMessage "$ENSTORM: $THIS: The initial hindcast duration is '$HINDCASTLENGTH' days."
    writeProperties $STORMDIR
    writeScenarioProperties $SCENARIODIR
-   # send current run.properties to RMQ
-   #RMQMessageRunProp $STORMDIR
 
    # prepare hindcast control (fort.15) file
    # calculate periodic fux data for insertion in fort.15 if necessary
@@ -2370,8 +2374,7 @@ if [[ $START = coldstart ]]; then
    echo LASTSUBDIR=${OLDADVISDIR} >> $STATEFILE 2>> ${SYSLOG}
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
-   # send current run.properties to RMQ
-   #RMQMessageRunProp $STORMDIR
+
    #
    hs=0 # hook script counter ; execute FINISH_SPINUP_SCENARIO hooks
    while [[ $hs -lt ${#FINISH_SPINUP_SCENARIO[@]} ]]; do
@@ -2379,6 +2382,7 @@ if [[ $START = coldstart ]]; then
       hs=`expr $hs + 1`
    done
    #
+
 else
    # start from   H O T S T A R T   file
    #
@@ -2435,13 +2439,13 @@ while [ true ]; do
 
    # determine if this date/advisory is the next cycle
    if [[  -e "$OLDADVISDIR/$ENSTORM/padcirc.$ENSTORM.run.finish"  ||  -e "$OLDADVISDIR/$ENSTORM/padcswan.$ENSTORM.run.finish"  ]] ; then
-	   if [[ "$TROPICALCYCLONE" == "off" ]]; then
-	   	RMQADVISORY=$(IncrementNCEPCycle $ADVISORY)
-	   else
-		RMQADVISORY=$[10#$ADVISORY +1]
-	   fi
+      if [[ "$TROPICALCYCLONE" == "off" ]]; then
+         RMQADVISORY=$(IncrementNCEPCycle $ADVISORY)
+      else
+         RMQADVISORY=$[10#$ADVISORY +1]
+      fi
    else
-	   RMQADVISORY=$ADVISORY
+      RMQADVISORY=$ADVISORY
    fi
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting new NC/FC Cycle for ADVISORY $RMQADVISORY."
 
@@ -2589,9 +2593,6 @@ while [ true ]; do
       CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Generating ADCIRC Met File (fort.22) for nowcast."
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
-#BB
-#BB      echo ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS
-#BB
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
       logMessage "$ENSTORM: $THIS: Detecting storm name in run.properties file."
@@ -2843,8 +2844,8 @@ while [ true ]; do
       # nowcast directory; therefore, the non-existence of the nowcast
       # directory is evidence that something has gone wrong in prep
       if [[ ! -d $NOWCASTDIR ]]; then
-   	CURRENT_EVENT="REND"
-	   CURRENT_STATE="CMPL"
+         CURRENT_EVENT="REND"
+         CURRENT_STATE="CMPL"
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "NC/FC Cycle restarting due to nowcast failure."
          continue  # abandon this nowcast and wait for the next one
       fi
@@ -2870,8 +2871,6 @@ while [ true ]; do
       CURRENT_STATE="PEND"
       RMQMessage "INFO" "$CURRENT_EVENT" "$JOBTYPE" "$CURRENT_STATE" "Submitting $ENSTORM:$JOBTYPE job."
       logMessage "$ENSTORM: $THIS: Submitting $ENSTORM job."
-      # send current run.properties to RMQ
-      #RMQMessageRunProp "$ADVISDIR/$ENSTORM/"
 
       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
       #
@@ -2932,16 +2931,13 @@ while [ true ]; do
       logMessage "$ENSTORM: $THIS: Skipping the submission of the nowcast job and proceeding directly to the forecast(s)."
       NOWCASTDIR=$FROMDIR
    fi
+
    #
    hs=0 # hook script counter ; execute FINISH_NOWCAST_SCENARIO hooks
    while [[ $hs -lt ${#FINISH_NOWCAST_SCENARIO[@]} ]]; do
       ${FINISH_NOWCAST_SCENARIO[$hs]} >> ${SYSLOG} 2>&1
       hs=`expr $hs + 1`
    done
-   #
-   #
-   # send current run.properties to RMQ
-   #RMQMessageRunProp "$STORMDIR"
 
    # write the ASGS state file
    if [[ $hotstartURL != "null" ]]; then
@@ -3335,15 +3331,13 @@ while [ true ]; do
             writeJobResourceRequestProperties $SCENARIODIR
 
             echo "hpc.job.${JOBTYPE}.limit.walltime : $FORECASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
-            # send current run.properties to RMQ
-            #RMQMessageRunProp "$ADVISDIR/$ENSTORM/"
             #
             hs=0 # hook script counter ; execute BUILD_FORECAST_SCENARIO hooks
             while [[ $hs -lt ${#SUBMIT_FORECAST_SCENARIO[@]} ]]; do
                ${SUBMIT_FORECAST_SCENARIO[$hs]} >> ${SYSLOG} 2>&1
                hs=`expr $hs + 1`
             done
-            #
+            
             submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
             THIS="asgs_main.sh"
             # monitor for completion and post process in a subshell running
@@ -3363,8 +3357,7 @@ while [ true ]; do
                   echo "time.post.start : $DATETIME" >> ${STORMDIR}/run.properties
                   scriptIndex=0
                   while [[ $scriptIndex -lt ${#POSTPROCESS[@]} ]]; do
-                     #com="${OUTPUTDIR}/${POSTPROCESS[$scriptIndex]} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
-                     com="${OUTPUTDIR}/${POSTPROCESS[$scriptIndex]} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY "
+                     com="${OUTPUTDIR}/${POSTPROCESS[$scriptIndex]} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
                      RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WAIT" "${POSTPROCESS[$scriptIndex]} $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR"
                      $com
                      scriptIndex=`expr $scriptIndex + 1`
@@ -3381,9 +3374,7 @@ while [ true ]; do
                fi
                CURRENT_EVENT="FORE"
                CURRENT_STATE="CMPL"
-   	         RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Forecast Complete for Adv=$ADVISORY Ens=$ENSTORM"
-               # send current run.properties to RMQ
-               #RMQMessageRunProp "$STORMDIR"
+               RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Forecast Complete for Adv=$ADVISORY Ens=$ENSTORM"
             ) &
          fi
 #      else
@@ -3420,5 +3411,6 @@ while [ true ]; do
    CURRENT_EVENT="REND"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL" "NC/FC Cycle Complete"
    CYCLELOG=null
+
 done
 
