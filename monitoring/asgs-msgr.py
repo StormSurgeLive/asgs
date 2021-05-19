@@ -157,12 +157,8 @@ def main(argv):
 
 	if (Transmit == 'on'):
                 queue_message(msg)
-	       #print('\n')
-	       #print(msg)
-	       #print('\n')
         else:
                 print('Message not transmitted.\n')
-                #print('\n')
 
 
 if __name__ == "__main__":
