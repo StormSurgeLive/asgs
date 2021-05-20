@@ -17,7 +17,7 @@
 # for deployment, since it won't need to be modified in production.
 #
 # As a result, this image also doesn't contain ADCIRC
-# source or binaries; run `initadcirc` in ASGS Shell to
+# source or binaries; run `build adcirc` in ASGS Shell to
 # obtain. It also doesn't contain ASGS source or binaries;
 # the ASGS repository is cloned and edited outside the
 # container and then built inside the container. Running ASGS

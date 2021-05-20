@@ -21,3 +21,5 @@ Weather::NHC::TropicalCyclone
 File::ShareDir
 PDL
 Archive::Zip
+JSON::XS
+YAML::Tiny

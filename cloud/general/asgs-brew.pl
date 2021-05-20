@@ -366,7 +366,7 @@ Then run the shell:
    asgsh
 
 If you didn't optionally build ADCIRC, the you can do so using the guided
-utility available under asgsh, 'initadcirc'
+utility available under asgsh, 'build adcirc'
 
 NOTE:
 Once this is run, you may assume the above environment is available. This
