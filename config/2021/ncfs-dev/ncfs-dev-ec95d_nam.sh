@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME="ec95d-nam-bob-rptest"      # "name" of this ASGS process
+INSTANCENAME=ec95d-nam-bob-rptest      # "name" of this ASGS process
 SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
 
 # Input files and templates
@@ -37,20 +37,20 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020121500  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2021041600  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
 TIDEFAC=on               # tide factor recalc
-   HINDCASTLENGTH=22.0   # length of initial hindcast, from cold (days)
+   HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on         # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off      # tropical cyclone forcing
    STORM=-1              # storm number, e.g. 05=ernesto in 2006
    YEAR=2021             # year of the storm
-WAVES=off                # wave forcing
+WAVES=on                 # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off              # variable river flux forcing
    RIVERSITE=data.disaster.renci.org
@@ -61,16 +61,17 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=63                     # number of compute CPUs for all simulations
+NCPU=128                     # number of compute CPUs for all simulations
 NCPUCAPACITY=128
-NUMWRITERS=1
+NUMWRITERS=0
 ACCOUNT=null
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=developers-only    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
+#POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
 OPENDAPNOTIFY="bblanton@renci.org"
 NOTIFY_SCRIPT=ncfs_nam_notify.sh
@@ -79,7 +80,7 @@ NOTIFY_SCRIPT=ncfs_nam_notify.sh
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2 
+SCENARIOPACKAGESIZE=1
 case $si in
    -2) 
        ENSTORM=hindcast
@@ -89,11 +90,11 @@ case $si in
        ENSTORM=nowcast
        ;;
     0)
-       ENSTORM=namforecastWind10m
-       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ENSTORM=namforecast
        ;;
     1)
-       ENSTORM=namforecast
+       ENSTORM=namforecastWind10m
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
     *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."

@@ -17,9 +17,15 @@ if [[ ! -e ${RMQMessaging_Python} ]] ; then
 fi
 echo "RMQMessaging:Python=$RMQMessaging_Python"
 echo "RMQMessaging:Script=$RMQMessaging_Script"
+echo "RMQMessaging:Script_RP=$RMQMessaging_Script_RP"
 
 if [[ ! -e ${RMQMessaging_Script} ]] ; then 
 	echo "Messaging script not found. Turning off RMQMessaging."
+	RMQMessaging_Enable="off"
+	return 1
+fi
+if [[ ! -e ${RMQMessaging_Script_RP} ]] ; then 
+	echo "Messaging_RP script not found. Turning off RMQMessaging."
 	RMQMessaging_Enable="off"
 	return 1
 fi
