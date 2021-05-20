@@ -22,7 +22,7 @@
 #    
 #   export ADCIRC_GIT_URL=git@github.com:adcirc
 #
-# before running 'initadcirc' in asgsh
+# before running 'build adcirc' in asgsh
 #
 
 if [ "${1}" = "clean" ]; then

@@ -87,7 +87,7 @@ Loading a profile when default is yet loaded would look like:
 ADCIRC Build Management 
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The 'initadcirc' command in asgsh is used to interactively guide a user through a
+The 'build adcirc' command in asgsh is used to interactively guide a user through a
 series of questions that ultimately result in the building of ADCIRC. It assumes
 that the source is to be downloaded using git and the user has access to the official
 upstream ADCIRC repository. But depending on how the questions are answered, one may
@@ -99,7 +99,7 @@ entering in a username and password that has access to the private ADCIRC reposi
 
 The following interaction is an example interaction:
 
-	asgs (default)> initadcirc
+	asgs (default)> build adcirc
 	What git branch (or tag, commit SHA) of the ADCIRC source do you wish to build [v53release]? 
 
 	Where would you like to build ADCIRC? [/home/$USER/adcirc-cg-v53release-intel] /work/$USER/adcirc-cg-demo 
@@ -299,7 +299,7 @@ Appendix A - Current Set of Commands (this may be outdated, see 'help' for most 
 	   edit   profile <name>      - directly edit the named ASGSH Shell profile
 	   edit   syslog              - open up SYSLOG in EDITOR for easier forensics
 	   goto   <param>             - change CWD to a supported directory. Type 'goto options' to see the currently supported options
-	   initadcirc                 - interactive tool for building and local registering versions of ADCIRC for use with ASGS
+	   build adcirc               - interactive tool for building and local registering versions of ADCIRC for use with ASGS
 	   list   <param>             - lists different things, please see the following options; type 'list options' to see currently supported options
 	   load   profile <name>      - loads a saved profile by name; use 'list profiles' to see what's available
 	   load   adcirc  <name>      - loads information a version of ADCIRC into the current environment. Use 'list adcirc' to see what's available
