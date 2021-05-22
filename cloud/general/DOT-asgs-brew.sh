@@ -29,6 +29,8 @@
 # impact can't be offloaded to the child process that is invoked when
 # running external scripts.
 
+I="(info) "
+
 asgsh() {  # disable
   echo "The nesting of \"asgsh\" inside of asgsh (you're in it now, pid: $_ASGSH_PID) is not allowed."
 }
@@ -36,25 +38,27 @@ asgsh() {  # disable
 help() {
   echo Command Line Options \(used when invoking asgsh from login shell\):
   echo "   -d                          - debug mode, turns on 'set -x'"
-  echo "   -h                          - displays available asgsh command line flags, then exits."
-  echo "   -p     profile              - launches the ASGS Shell environment and immediate loads specified profile on start, if it exists."
+  echo "   -h                          - displays available asgsh command line flags, then exits"
+  echo "   -p     profile              - launches the ASGS Shell environment and immediate loads specified profile on start, if it exists"
+  echo "   -v                          - run 'verify' command, then exist shell"
   echo "   -x                          - skips loading of platforms.sh and properties.sh (could become default)"
   echo
   echo ASGS Shell Commands:
-  echo "   clone   profile             - launches guided process for cloning the current profile, including copying the configuratin file."
-  echo "   define  config              - defines ASGS configuration file used by 'run', (\$ASGS_CONFIG). 'define' replaces old 'set' command."
+  echo "   build   adcirc              - interactive tool for building and local registering versions of ADCIRC for use with ASGS"
+  echo "   clone   profile             - launches guided process for cloning the current profile, including copying the configuratin file"
+  echo "   define  config              - defines ASGS configuration file used by 'run', (\$ASGS_CONFIG). 'define' replaces old 'set' command"
   echo "           editor              - defines default editor, (\$EDITOR)"
-  echo "           scratchdir          - defines ASGS main script directory used by all underlying scripts, (\$SCRATCH)"
+  echo "           scratch             - defines ASGS main script directory used by all underlying scripts, (\$SCRATCH)"
   echo "           scriptdir           - defines ASGS main script directory used by all underlying scripts, (\$SCRIPTDIR)"
   echo "           workdir             - defines ASGS main script directory used by all underlying scripts, (\$WORK)"
   echo "   delete  profile <name>      - deletes named profile"
   echo "           adcirc  <name>      - deletes named ADCIRC profile"
-  echo "           config              - deletes configuration file for current profile, unsets 'config' var. Interactively confirms."
+  echo "           config              - deletes configuration file for current profile, unsets 'config' var. Interactively confirms"
   echo "           statefile           - deletes the state file associated with a profile, effectively for restarting from the initial advisory"
   echo "   dump    <param>             - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog" 
   echo "   edit    adcirc  <name>      - directly edit the named ADCIRC environment file"
   echo "           config              - directly edit currently registered ASGS configuration file (used by asgs_main.sh)"
-  echo "           jobs                - if RUNDIR is defined and exists, lists all job Ids associated with the current profile."
+  echo "           jobs                - if RUNDIR is defined and exists, lists all job Ids associated with the current profile"
   echo "           meshes              - directly inspect or edit the list of supported meshes"
   echo "           platforms           - directly inspect or edit the list of supported platforms"
   echo "           profile <name>      - directly edit the named ASGSH Shell profile"
@@ -62,7 +66,6 @@ help() {
   echo "           syslog              - open up SYSLOG (if set) in EDITOR for easier forensics"
   echo "   goto    <param>             - change CWD to a supported directory. Type 'goto options' to see the currently supported options"
   echo "   guess   platform            - attempts to guess the current platform as supported by platforms.sh (e.g., frontera, supermic, etc)" 
-  echo "   build adcirc                  - interactive tool for building and local registering versions of ADCIRC for use with ASGS"
   echo "   inspect <option>            - alias to 'edit' for better semantics; e.g., 'inspect syslog' or 'inspect statefile'"
   echo "   list    <param>             - lists different things, please see the following options; type 'list options' to see currently supported options"
   echo "   load    profile <name>      - loads a saved profile by name; use 'list profiles' to see what's available"
@@ -78,7 +81,13 @@ help() {
   echo "   sq                          - shortcut for \"squeue -u \$USER\" (if squeue is available)"
   echo "   switch  <option>            - alias to 'load' for better semantics; e.g., 'switch profile next-profile'"
   echo "   tailf   syslog              - executes 'tail -f' on ASGS instance's system log"
-  echo "   verify                      - verfies Perl and Python environments"
+  echo "   verify  [<option>]          - verfies the ASGSH installation"
+  echo "           adcirc              - verifies ADCIRC, if available"
+  echo "           email_config        - verifies email configuration is correct"
+  echo "           regressions         - runs regression test suite for previously solved issues"
+  echo "           perl                - verifies the Perl environment and modules"
+  echo "           python              - verifies the Python 2.7 environment and modules"
+  echo "           ssh_config          - checks \$HOME/.ssh/config is set up properly"
   echo "   exit                        - exits ASGS shell, returns \$USER to login shell"
 }
 
@@ -202,7 +211,7 @@ load() {
         . "$ASGS_HOME/.asgs/$NAME"
         _ASGSH_CURRENT_PROFILE="$NAME"
         export PS1="asgs ($_ASGSH_CURRENT_PROFILE)> "
-        echo loaded \'$NAME\' into current profile;
+        echo "${I} loaded '$NAME' into current profile..."
         if [ -n "$ASGS_CONFIG" ]; then
           # extracts info such as 'instancename' so we can derive the location of the state file, then the log file path and actual run directory
           _parse_config $ASGS_CONFIG
@@ -448,15 +457,15 @@ define() {
       export SCRIPTDIR=${2} 
       echo "SCRIPTDIR is now defined as '${SCRIPTDIR}'"
       ;;
-    workdir)
+    work)
       export WORK=${2} 
       echo "WORK is now defined as '${WORK}'"
       ;;
-    scratchdir)
+    scratch)
       export SCRATCH=${2} 
       echo "SCRATCH is now defined as '${SCRATCH}'"
       ;;
-    *) echo "define requires one of the supported parameters: adcircdir, adcircbranch, adcircremote, config, editor, scratchdir, scriptdir, or workdir"
+    *) echo "define requires one of the supported parameters: adcircdir, adcircbranch, adcircremote, config, editor, scratch, scriptdir, or work"
       _DEFINE_OK=0
       ;;
   esac 
@@ -729,20 +738,20 @@ purge() {
 if [ 1 = "${skip_platform_profiles}" ]; then
   echo "(-x used) ... skipping the loading platform.sh and properties.sh ..." 
 else
-  echo initializing...
+  echo "${I} initializing..."
   # loading support for reading of run.properties file
   if [ -e "$SCRIPTDIR/properties.sh" ]; then
-    echo "found properties.sh"
+    echo "${I} found properties.sh"
     . $SCRIPTDIR/properties.sh
   else
     echo "warning: could not find $SCRIPTDIR/properties.sh"
   fi
   # initializing ASGS environment and platform, based on $asgs_machine_name
   if [ -e "$SCRIPTDIR/monitoring/logging.sh" ]; then
-    echo "found logging.sh"
+    echo "${I} found logging.sh"
     . $SCRIPTDIR/monitoring/logging.sh 
     if [ -e "$SCRIPTDIR/platforms.sh" ]; then
-      echo "found platforms.sh"
+      echo "${I} found platforms.sh"
       . $SCRIPTDIR/platforms.sh
       env_dispatch $ASGS_MACHINE_NAME
     else
@@ -755,22 +764,25 @@ fi
 
 # initialization, do after bash functions have been loaded
 export PS1='asgs (none)>'
-echo
-echo "Quick start:"
-echo "  'build adcirc' to build and local register versions of ADCIRC"
-echo "  'list profiles' to see what scenario package profiles exist"
-echo "  'load profile <profile_name>' to load saved profile"
-echo "  'list adcirc' to see what builds of ADCIRC exist"
-echo "  'load adcirc <adcirc_build_name>' to load a specific ADCIRC build"
-echo "  'run' to initiated ASGS for loaded profile"
-echo "  'help' for full list of options and features"
-echo "  'goto scriptdir' to change current directory to ASGS' script directory"
-echo "  'exit' to return to the login shell"
-echo
-echo "NOTE: This is a fully function bash shell environment; to update asgsh"
-echo "or to recreate it, exit this shell and run asgs-brew.pl with the"
-echo " --update-shell option"
-echo
+
+if [ -n "$_asgsh_splash" ]; then
+  echo
+  echo "Quick start:"
+  echo "  'build adcirc' to build and local register versions of ADCIRC"
+  echo "  'list profiles' to see what scenario package profiles exist"
+  echo "  'load profile <profile_name>' to load saved profile"
+  echo "  'list adcirc' to see what builds of ADCIRC exist"
+  echo "  'load adcirc <adcirc_build_name>' to load a specific ADCIRC build"
+  echo "  'run' to initiated ASGS for loaded profile"
+  echo "  'help' for full list of options and features"
+  echo "  'goto scriptdir' to change current directory to ASGS' script directory"
+  echo "  'exit' to return to the login shell"
+  echo
+  echo "NOTE: This is a fully function bash shell environment; to update asgsh"
+  echo "or to recreate it, exit this shell and run asgs-brew.pl with the"
+  echo " --update-shell option"
+  echo
+fi
 
 # runs script to install ADCIRC interactively
 build () {
@@ -843,15 +855,36 @@ alias vp="verify perl"
 alias vpy="verify python"
 alias vr="verify regressions"
 
-# when started, ASGS Shell loads the 'default' profile, this can be made variable at some point
-load profile ${profile-default}
-
+if [ -n "$_asgsh_splash" ]; then
 # show important directories
 show scriptdir
 show scratchdir
-
-# start off in $SCRIPTDIR
 goto scriptdir
+else
+goto scriptdir >/dev/null 2>&1
+fi
 
-# provide a new line
+# when started, ASGS Shell loads the 'default' profile,
+# this can be made variable at some point
+load profile ${profile-default}
 echo
+
+# construct to handle "autorun" options
+case "$_asgsh_flag_do" in
+  run_list)
+    list ${_asgsh_flag_do_args}
+    exit
+  ;;
+  run_profile)
+    run
+  ;;
+  run_tailf_syslog)
+    tailf syslog
+  ;;
+  run_verify_and_quit)
+    verify
+    exit
+  ;;
+  *)
+  ;;
+esac
