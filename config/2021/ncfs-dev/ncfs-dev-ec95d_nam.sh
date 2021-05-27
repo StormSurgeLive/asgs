@@ -29,6 +29,7 @@
 
 INSTANCENAME=ec95d-nam-bob-rptest      # "name" of this ASGS process
 SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
+RMQMessaging_Transmit=on
 
 # Input files and templates
 
