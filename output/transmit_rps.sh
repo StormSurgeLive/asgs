@@ -25,16 +25,34 @@ THIS="output/transmit_rps.sh"
 declare -A properties
 SCENARIODIR=$PWD
 RUNPROPERTIES=$SCENARIODIR/run.properties
-if [[ $# -eq 1 ]]; then
-   RUNPROPERTIES=$1
-   SCENARIODIR=`dirname $RUNPROPERTIES`
+if [ -e "$RUNPROPERTIES" ] ; then
+        echo "Found run.properties file"
+else
+        echo "run.properties not found file"
+        exit 1
 fi
+
+if [[ $# -eq 1 ]]; then
+   ppid=$1
+else
+   # get the grandparent pid, which is the ASGS pid 
+   # this is needed for bookkeeping in the rp database
+   ppid=`ps -o ppid $$ | sed '1d'|  sed -r 's/^ *//g'`
+   ppid=`ps -o ppid $ppid | sed '1d'|  sed -r 's/^ *//g'`
+fi
+
+#if [[ $# -eq 1 ]]; then
+#   RUNPROPERTIES=$1
+#   SCENARIODIR=`dirname $RUNPROPERTIES`
+#fi
+
 # this script can be called with just one command line option: the
 # full path to the run.properties file
-echo "Loading properties."
+
 # get loadProperties function
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
 source $SCRIPTDIR/properties.sh
+
 # load run.properties file into associative array
 loadProperties $RUNPROPERTIES
 source $SCRIPTDIR/monitoring/logging.sh
@@ -46,15 +64,12 @@ export RMQMessaging_LocationName=${properties['monitoring.rmqmessaging.locationn
 export RMQMessaging_Transmit=${properties['monitoring.rmqmessaging.transmit']}
 export INSTANCENAME=${properties['instancename']}
 
-# get the parent uid
-ppid=`ps -o ppid $$ | sed '1d'|  sed -r 's/^ *//g'`
-
 # RMQMessageRunProp is in monitoring/logging.sh
 RMQMessageRunProp "$SCENARIODIR"  "$ppid"
 
 if [ $? == 0 ] ; then
-        date > rps.transmitted
+        date > rps.transmit.succeeded
 else
-        touch rps.transmit.failed
+        date > rps.transmit.failed
 fi
 

@@ -29,6 +29,7 @@
 
 INSTANCENAME=ec95d-nam-bob-rptest      # "name" of this ASGS process
 SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
+RMQMessaging_Transmit=on
 
 # Input files and templates
 
@@ -75,7 +76,6 @@ POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
 OPENDAPNOTIFY="bblanton@renci.org"
 NOTIFY_SCRIPT=ncfs_nam_notify.sh
-
 
 # Scenario package
 
