@@ -1891,7 +1891,7 @@ fi
 #
 # Send message with config file contents as the message body.  This is only done once at ASGS startup
 logMessage "Sending a message with the asgs configuration file as the message body."
-temp=`cat $CONFIG | sed '/^#/d' | sed '/^$/d'`
+temp=$(cat $CONFIG | sed '/^#/d' | sed '/^$/d')
 RMQMessageStartup "$temp"
 
 #
@@ -1982,7 +1982,6 @@ RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "ASGS state file is 
 #
 checkDirExistence $INPUTDIR "directory for input files"
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
-#checkDirExistence $SCRIPTDIR/PERL "directory for the Date::Pcalc perl module"
 #
 if [[ $QUEUESYS = serial ]]; then
    checkFileExistence $ADCIRCDIR "ADCIRC serial executable" adcirc

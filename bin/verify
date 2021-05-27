@@ -12,6 +12,9 @@ _verify() {
     adcirc)
      verify_adcirc
      ;;
+    email_config)
+     verify_email_config
+     ;;
     perl)
      verify_perl
      ;;
@@ -23,9 +26,6 @@ _verify() {
      ;;
     ssh_config)
      verify_ssh_config
-     ;;
-    email_config)
-     verify_email_config
      ;;
     *)
      verify_perl

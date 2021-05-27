@@ -38,7 +38,6 @@ source $SCRIPTDIR/properties.sh
 # load run.properties file into associative array
 loadProperties $RUNPROPERTIES
 THIS="output/opendap_post.sh"
-echo "Finished loading properties."   
 CONFIG=${properties['config.file']}
 CYCLEDIR=${properties['path.advisdir']}
 CYCLE=${properties['advisory']}

@@ -25,6 +25,7 @@ THIS="output/transmit_rps.sh"
 declare -A properties
 SCENARIODIR=$PWD
 RUNPROPERTIES=$SCENARIODIR/run.properties
+
 if [ -e "$RUNPROPERTIES" ] ; then
         echo "Found run.properties file"
 else
@@ -51,6 +52,7 @@ fi
 
 # get loadProperties function
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
+
 source $SCRIPTDIR/properties.sh
 
 # load run.properties file into associative array
