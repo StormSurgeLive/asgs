@@ -11,7 +11,7 @@ your $WORK directory. The asgs directory has the potential to grow quite
 large due to the way it currently handles downloaded needed input files
 like ADCIRC meshes and other input files. An attempt to have all interactive
 installation tools prefer the $WORK directory has been made (including
-initadcirc, which is a guided installation of ADCIRC).
+'build adcirc', which is a guided installation of ADCIRC).
 
 1. ./init-asgs.sh is a wrapper script around ./cloud/general/asgs-brew.pl
 that guides a user through a few questions. It concludes by asking the
