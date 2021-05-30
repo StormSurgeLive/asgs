@@ -30,7 +30,7 @@
 # automatically using the file extension (.json, .yaml, or 
 # .properties).
 #--------------------------------------------------------------
-$^W++;
+use warnings;
 use strict;
 use Getopt::Long;
 use JSON::PP;
@@ -101,7 +101,7 @@ our $this = "metadata.pl";
 GetOptions(
            "metadatafile=s" => \$metadatafile,    
            "keys=s" => \$keys,
-           "mapsacalar=s" => \$mapscalar,
+           "mapscalar=s" => \$mapscalar,
            "jsonify" => \$jsonify           
           );
 # open metadata file
@@ -117,20 +117,21 @@ if ( substr($metadatafile,-1,1) eq "/" ) {
 my ($type) = $metadatafile =~ /(\.[^.]+)$/;
 # determine path to the metadata file (if any was provided)
 my $dirpath = "";
-$last_slash = rindex($metadatafile,"/");
+my $last_slash = rindex($metadatafile,"/");
 if ( $last_slash != -1 ) {
     $dirpath = substr($metadatafile,0,$last_slash);
 }
 #
 #  J S O N
 if ( $type eq ".json" ) {
-    unless (open(F,"<$metadatafile")) {
+    my $F; # needed to keep $F in lexical scope for success condition
+    unless (open($F, q{<}, $metadatafile)) {
         &stderrMessage("ERROR","Failed to open '$metadatafile': $!.");
         die;
     }
     # slurp the file contents into a scalar variable
-    $file_content = do { local $/; <F> };
-    close(F);        
+    $file_content = do { local $/; scalar <$F> };
+    close $F;        
     my $ref = JSON::PP->new->decode($file_content);
     %mapping = %$ref;
     if ($keys ne "null" && exists($mapping{$keys})) {
@@ -153,19 +154,20 @@ if ( $type eq ".json" ) {
 #
 #  R U N . P R O P E R T I E S
 } elsif ( $type eq ".properties" ) {
-    unless (open(RUNPROP,"<$metadatafile")) {
+    my $RUNPROP; # needed to keep in lexical scope for success condition
+    unless (open($RUNPROP, q{<}, $metadatafile)) {
         &stderrMessage("ERROR","Failed to open '$metadatafile': $!.");
         die;
     }
     my %properties;
-    while (<RUNPROP>) {
+    while (<$RUNPROP>) {
         my @fields = split ':',$_, 2 ;
         # strip leading and trailing spaces and tabs
         $fields[0] =~ s/^\s|\s+$//g ;
         $fields[1] =~ s/^\s|\s+$//g ;
         $properties{$fields[0]} = $fields[1];
     }
-    close(RUNPROP);
+    close $RUNPROP;
     # filter out deprecated properties
     foreach my $dp (@deprecated_properties) {
         delete $properties{$dp};
