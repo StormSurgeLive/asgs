@@ -229,8 +229,9 @@ init_hatteras()
   QUEUENAME=batch # <---<< PARTITION synonym on slurm
   SERQUEUE=batch
   PPN=null
-  CONSTRAINT=null      # ivybridge or sandybridge
+  CONSTRAINT=null     # ivybridge or sandybridge
   RESERVATION=null    # ncfs or null, causes job to run on dedicated cores
+  EXCLUDE=null        # exclude listed nodes from job
   PARTITION=null
   QCHECKCMD=sacct
   JOBLAUNCHER='srun '
@@ -238,7 +239,7 @@ init_hatteras()
   SUBMITSTRING=sbatch
   SCRATCH=/projects/ncfs/data
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTTEMPLATE=$SCRIPTDIR/config/2021/ncfs-dev/qscript.template.renci
   QSCRIPTGEN=qscript.pl
   WALLTIMEFORMAT="minutes"
   QSUMMARYCMD=null

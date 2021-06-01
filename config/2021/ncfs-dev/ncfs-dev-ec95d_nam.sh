@@ -66,6 +66,7 @@ NCPU=128                     # number of compute CPUs for all simulations
 NCPUCAPACITY=128
 NUMWRITERS=0
 ACCOUNT=null
+#EXCLUDE="compute-9-xx"
 
 # Post processing and publication
 
