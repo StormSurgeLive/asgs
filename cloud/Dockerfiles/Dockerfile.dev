@@ -164,6 +164,12 @@
 # with an openssl version that breaks Perl's Net::SSLeay
 FROM ubuntu:xenial
 
+# from https://rtfm.co.ua/en/docker-configure-tzdata-and-timezone-during-build/
+#ENV TZ=America/Chicago
+ENV TZ=America/New_York
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+# endfrom
+
 # update to latest security updates and package sources
 RUN apt-get update
 
@@ -173,6 +179,7 @@ RUN apt-get install -y zlib1g-dev libssl-dev libexpat1-dev
 RUN apt-get install -y gfortran wget curl vim screen htop tmux git sudo bc
 RUN apt-get install -y zip flex
 RUN apt-get install -y libgd-dev
+RUN apt-get install -y ghostscript ghostscript-x
 
 # symlink for /bin/env
 RUN ln -s /usr/bin/env /bin/env > /dev/null 2>&1 || echo /usr/bin/env already links to /bin/env
