@@ -29,8 +29,8 @@
 # impact can't be offloaded to the child process that is invoked when
 # running external scripts.
 
-I="(info)   "
-W="(warning)"
+I="(info)      "
+W="(!! warning)"
 
 asgsh() {  # disable
   echo "The nesting of \"asgsh\" inside of asgsh (you're in it now, pid: $_ASGSH_PID) is not allowed."

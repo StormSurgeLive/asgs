@@ -485,9 +485,9 @@ fi
 # denotes we're in an active asgsh session
 export _ASGSH_PID=\$\$
 
-# denotes which environmental variables we care about when saving a profile - includes variables that
-# are meaningful to ASGS Shell, but not set in asgs-brew.pl
-export _ASGS_EXPORTED_VARS="$_asgs_exported_vars _ASGS_EXPORTED_VARS WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS"
+# denotes which environmental variables are saved with a profile - includes variables that
+# are meaningful to ASGS Shell, but not set explicitly via asgs-brew.pl
+export _ASGS_EXPORTED_VARS="$_asgs_exported_vars _ASGS_EXPORTED_VARS WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS HINDCASTWALLTIME ADCPREPWALLTIME NOWCASTWALLTIME FORECASTWALLTIME QUEUENAME SERQUEUE ACCOUNT PPN INTENDEDAUDIENCE USERIVERFILEONLY RIVERSITE RIVERDIR RIVERUSER RIVERDATAPROTOCOL FTPSITE"
 $env_summary
 
 # export opts for processing in $rcfile
@@ -558,15 +558,15 @@ sub _setup_ENV {
         next SETUP_ENV if not $op->{export_ENV}->{$envar};
         ++$AFFECTED_ENV_VARS->{$envar};    # track all environmental variables that are touched at least once
 
-	# establish separator for available operations affecting envar, below
+        # establish separator for available operations affecting envar, below
         my $separator = $op->{export_ENV}->{$envar}->{separator} // $default_separator;
 
-	# value
+        # value
         my $value = $op->{export_ENV}->{$envar}->{value} // q{};
 
-	# remove new line, replace with a space (for cleaner definitions in "step" definitions)
-	$value =~ s/\n//g;
-	$value =~ s/ +/ /g;
+        # remove new line, replace with a space (for cleaner definitions in "step" definitions)
+        $value =~ s/\n//g;
+        $value =~ s/ +/ /g;
 
         # default "how" mode is to prepend if the envar is already defined
         if ( not defined $op->{export_ENV}->{$envar}->{how} or $op->{export_ENV}->{$envar}->{how} eq q{prepend} ) {
@@ -665,25 +665,25 @@ sub get_steps {
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                PATH               => { value => $_get_all_paths->(), how => q{prepend} },                       # prefer ASGS binaries and tools; full list managed above
-                WORK               => { value => $ENV{WORK}    // q{}, how => q{replace} },                      # standardize across all platforms
-                SCRATCH            => { value => $ENV{SCRATCH} // q{}, how => q{replace} },                      # standardize across all platforms
-                LIBRARY_PATH       => { value => qq{$asgs_install_path/lib},             how => q{prepend} },    # for use by linkers
-                LD_LIBRARY_PATH    => { value => qq{$asgs_install_path/lib},             how => q{prepend} },    # for use by linkers
-                LD_RUN_PATH        => { value => qq{$asgs_install_path/lib},             how => q{prepend} },    # for use by binaries
-                LD_INCLUDE_PATH    => { value => qq{$asgs_install_path/include},         how => q{prepend} },    # for use by compilers
-                SCRIPTDIR          => { value => qq{$scriptdir},                         how => q{replace} },    # base ASGS dir, used by asgs_main.sh
-                PERL5LIB           => { value => qq{$scriptdir/PERL},                    how => q{append} },     # place for distributed Perl libraries
-                ADCIRC_META_DIR    => { value => qq{$asgs_home/.adcirc-meta},            how => q{replace} },    # where to track ASGS profiles (always)
-                ASGS_META_DIR      => { value => qq{$asgs_home/.asgs},                   how => q{replace} },    # where to track ADCIRC installs build information (always)
-                ASGS_BREW_FLAGS    => { value => qq{'$brewflags'},                       how => q{replace} },    # make brew flags available for later use
-                ASGS_HOME          => { value => qq{$asgs_home},                         how => q{replace} },    # used in preference of $HOME in most cases
-                ASGS_MACHINE_NAME  => { value => qq{$asgs_machine_name},                 how => q{replace} },    # machine referred to as in platforms.sh & cmplrflags.mk
-                ASGS_COMPILER      => { value => qq{$asgs_compiler},                     how => q{replace} },    # compiler family designated during asgs-brew.pl build
-                ASGS_INSTALL_PATH  => { value => qq{$asgs_install_path},                 how => q{replace} },    # where asgs-brew.pl installs supporting bins & libs
-                ASGS_MAKEJOBS      => { value => qq{$makejobs},                          how => q{replace} },    # passed to make commands where Makefile supports
-                ASGS_MESH_DEFAULTS => { value => qq{$scriptdir/config/mesh_defaults.sh}, how => q{replace} },    # list of supported meshes
-                ASGS_PLATFORMS     => { value => qq{$scriptdir/platforms.sh},            how => q{replace} },    # list of supported platforms
+                PATH               => { value => $_get_all_paths->(), how => q{prepend} },                                 # prefer ASGS binaries and tools; full list managed above
+                WORK               => { value => $ENV{WORK}    // $asgs_home // q{}, how => q{replace} },                  # standardize across all platforms
+                SCRATCH            => { value => $ENV{SCRATCH} // $ENV{WORK} // $asgs_home // q{}, how => q{replace} },    # standardize across all platforms
+                LIBRARY_PATH       => { value => qq{$asgs_install_path/lib},             how => q{prepend} },              # for use by linkers
+                LD_LIBRARY_PATH    => { value => qq{$asgs_install_path/lib},             how => q{prepend} },              # for use by linkers
+                LD_RUN_PATH        => { value => qq{$asgs_install_path/lib},             how => q{prepend} },              # for use by binaries
+                LD_INCLUDE_PATH    => { value => qq{$asgs_install_path/include},         how => q{prepend} },              # for use by compilers
+                SCRIPTDIR          => { value => qq{$scriptdir},                         how => q{replace} },              # base ASGS dir, used by asgs_main.sh
+                PERL5LIB           => { value => qq{$scriptdir/PERL},                    how => q{append} },               # place for distributed Perl libraries
+                ADCIRC_META_DIR    => { value => qq{$asgs_home/.adcirc-meta},            how => q{replace} },              # where to track ASGS profiles (always)
+                ASGS_META_DIR      => { value => qq{$asgs_home/.asgs},                   how => q{replace} },              # where to track ADCIRC installs build information (always)
+                ASGS_BREW_FLAGS    => { value => qq{'$brewflags'},                       how => q{replace} },              # make brew flags available for later use
+                ASGS_HOME          => { value => qq{$asgs_home},                         how => q{replace} },              # used in preference of $HOME in most cases
+                ASGS_MACHINE_NAME  => { value => qq{$asgs_machine_name},                 how => q{replace} },              # machine referred to as in platforms.sh & cmplrflags.mk
+                ASGS_COMPILER      => { value => qq{$asgs_compiler},                     how => q{replace} },              # compiler family designated during asgs-brew.pl build
+                ASGS_INSTALL_PATH  => { value => qq{$asgs_install_path},                 how => q{replace} },              # where asgs-brew.pl installs supporting bins & libs
+                ASGS_MAKEJOBS      => { value => qq{$makejobs},                          how => q{replace} },              # passed to make commands where Makefile supports
+                ASGS_MESH_DEFAULTS => { value => qq{$scriptdir/config/mesh_defaults.sh}, how => q{replace} },              # list of supported meshes
+                ASGS_PLATFORMS     => { value => qq{$scriptdir/platforms.sh},            how => q{replace} },              # list of supported platforms
             },
         },
         {
@@ -721,12 +721,13 @@ sub get_steps {
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                CPPFLAGS    => { value => qq{-I$asgs_install_path/include},  how => q{append}, separator => q{ }},
-                LDFLAGS     => { value => qq{-L$asgs_install_path/lib},      how => q{append}, separator => q{ }},
+                CPPFLAGS => { value => qq{-I$asgs_install_path/include}, how => q{append}, separator => q{ } },
+                LDFLAGS  => { value => qq{-L$asgs_install_path/lib},     how => q{append}, separator => q{ } },
+
                 # the following HDF5* vars are needed for netCDF4 python module
-                HDF5_DIR    => { value => qq{$asgs_install_path},            how => q{replace}},
-                HDF5_LIBDIR => { value => qq{$asgs_install_path/lib},        how => q{replace}},
-                HDF5_INCDIR => { value => qq{$asgs_install_path/include},    how => q{replace}},
+                HDF5_DIR    => { value => qq{$asgs_install_path},         how => q{replace} },
+                HDF5_LIBDIR => { value => qq{$asgs_install_path/lib},     how => q{replace} },
+                HDF5_INCDIR => { value => qq{$asgs_install_path/include}, how => q{replace} },
             },
             skip_if => sub {
                 my ( $op, $opts_ref ) = @_;
@@ -866,14 +867,14 @@ sub get_steps {
             # augment existing %ENV (cumulative) - this assumes that perlbrew is installed in $HOME and we're
             # using perl-5.32.0
             export_ENV => {
-                PERLBREW_PERL    => { value => q{perl-5.32.0},                                                                   how => q{replace} },
-                PATH             => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.32.0/bin},  how => q{prepend} },
-                PERLBREW_HOME    => { value => qq{$asgs_install_path/perl5/perlbrew},                                            how => q{replace} },
-                PERL_CPANM_HOME  => { value => qq{$asgs_install_path/perl5/.cpanm},                                              how => q{replace} },
-                PERLBREW_PATH    => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.32.0/bin},  how => q{prepend} },
-                PERLBREW_MANPATH => { value => qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.32.0/man},                      how => q{prepend} },
-                PERLBREW_ROOT    => { value => qq{$asgs_install_path/perl5/perlbrew},                                            how => q{replace} },
-                PERL5LIB         => { value => qq{$asgs_install_path/perl5/perls/perl-5.32.0/lib/site_perl/5.28.2/},             how => q{prepend} },
+                PERLBREW_PERL    => { value => q{perl-5.32.0},                                                                  how => q{replace} },
+                PATH             => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.32.0/bin}, how => q{prepend} },
+                PERLBREW_HOME    => { value => qq{$asgs_install_path/perl5/perlbrew},                                           how => q{replace} },
+                PERL_CPANM_HOME  => { value => qq{$asgs_install_path/perl5/.cpanm},                                             how => q{replace} },
+                PERLBREW_PATH    => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.32.0/bin}, how => q{prepend} },
+                PERLBREW_MANPATH => { value => qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.32.0/man},                     how => q{prepend} },
+                PERLBREW_ROOT    => { value => qq{$asgs_install_path/perl5/perlbrew},                                           how => q{replace} },
+                PERL5LIB         => { value => qq{$asgs_install_path/perl5/perls/perl-5.32.0/lib/site_perl/5.28.2/},            how => q{prepend} },
             },
             skip_if => sub {
                 my ( $op, $opts_ref ) = @_;
@@ -919,7 +920,7 @@ sub get_steps {
                 my ( $op, $opts_ref ) = @_;
                 my $bins_ok = -x qq{$asgs_install_path/bin/convert};
                 local $?;
-                system( q[perl -MImage::Magick -e 'print qq{..ensuring Image::Magick is available.\n}' > /dev/null 2>&1] );
+                system(q[perl -MImage::Magick -e 'print qq{..ensuring Image::Magick is available.\n}' > /dev/null 2>&1]);
 
                 # perldoc -f system  for more info on getting child process info
                 # regarding the exit status
@@ -933,7 +934,7 @@ sub get_steps {
                 my ( $op, $opts_ref ) = @_;
                 my $bins_ok = -x qq{$asgs_install_path/bin/convert};
                 local $?;
-                system( q[perl -MImage::Magick -e 'print qq{..ensuring Image::Magick is available.\n}' > /dev/null 2>&1] );
+                system(q[perl -MImage::Magick -e 'print qq{..ensuring Image::Magick is available.\n}' > /dev/null 2>&1]);
 
                 # perldoc -f system for more info on getting child process info
                 # regarding the exit status
@@ -1049,7 +1050,7 @@ sub get_steps {
         {
             key         => q{nco},
             name        => q{Step for installing the NCO Toolkit},
-            description => q{Install The netCDF Operators (NCO) Toolkit}, 
+            description => q{Install The netCDF Operators (NCO) Toolkit},
             pwd         => q{./},
             command     => qq{bash ./cloud/general/init-nco.sh $asgs_install_path gfortran 4},
             clean       => qq{bash ./cloud/general/init-nco.sh $asgs_install_path clean},
