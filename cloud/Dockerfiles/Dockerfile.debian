@@ -27,7 +27,7 @@ RUN chown -R asgsuser /work
 RUN chown -R asgsuser /scratch
 
 # get git repo
-RUN su -c 'cd /home/asgsuser && git clone https://github.com/jasonfleming/asgs.git && cd ./asgs && git checkout master' - asgsuser
+RUN su -c 'cd /home/asgsuser && git clone git@github.com:StormSurgeLive/asgs.git && cd ./asgs && git checkout master' - asgsuser
 RUN su -c 'cd /home/asgsuser/asgs && git config --global user.email "asgsuser@noemail" && git config --global user.name "asgsuser"'
 
 # persist env in .bash_profile
