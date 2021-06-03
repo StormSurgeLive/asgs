@@ -237,7 +237,7 @@ init_hatteras()
   JOBLAUNCHER='srun '
   ACCOUNT=null
   SUBMITSTRING=sbatch
-  SCRATCH=/projects/ncfs/data
+  SCRATCH=/projects/ncfs-dev
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPTTEMPLATE=$SCRIPTDIR/config/2021/ncfs-dev/qscript.template.renci
   QSCRIPTGEN=qscript.pl
