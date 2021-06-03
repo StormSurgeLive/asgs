@@ -25,7 +25,7 @@ at a later time, but the general steps should still conceptually work.
 3. ON HOST machine (laptop):
 
   % cd $HOME
-  % git clone https://github.com/jasonfleming/asgs.git
+  % git clone https://github.com/StormSurgeLive/asgs.git
   % cd $HOME/asgs/cloud/bento-ubuntu-18.10
   % git checkout master 
   % vagrant up

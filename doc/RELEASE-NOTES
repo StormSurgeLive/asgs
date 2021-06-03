@@ -33,4 +33,4 @@ and install this version anew. Basic steps: 1) rename old asgs director, 2) chec
 asgs's 2019stable branch from Github, 3) run ./init-asgs.sh, 4) follow the instructions
 output. Please report bugs or request enhancements at
 
-https://github.com/jasonfleming/asgs/milestone/19
+https://github.com/StormSurgeLive/asgs/issues

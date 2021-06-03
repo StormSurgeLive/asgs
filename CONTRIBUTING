@@ -2,9 +2,20 @@ This document describes the development workflow and expectations from
 anyone contributing to the code base. The basics are covered here, but
 will be expanded as time and need permit.
 
+NOTE 1: Do not hesitate to ask for help. ASGS developers are friendly and always
+willing to assist those wishing to contribute in some way - creating issues for
+bugs, contributing code, documentation, etc.
+
+NOTE 2: The best way to learn git is: practice, practice, practice! It is a skill
+that's developed over a long time and by working through many different situations
+and collaborating with many individuals using many types of workflows. So be
+be patient, it's something that comes with time. But once the learning curve is
+climbed, git is an incredibly flexible and powerful tool for development inside and
+among teams.
+
 The general workflow is:
 
-A. create an "issue" (not required until the pull request (PR) is created).
+A. create an "issue" (not required until the pull request (PR) is created). [1,2]
 B. create a branch on your "local" checkout of YOUR remote (See Appendix A below).
 
     git checkout master
@@ -15,7 +26,8 @@ C. make changes...now ready for a PR,
 
 Note: your branch may contain any number of commits, but it is preferred to have
 one squashed commit and a meaningful commit message that references the issue
-associated with the change. See Appendix B for that.
+associated with the change. It is often the case that some commits should remain
+isolated, if in doubt please ask. See Appendix B for more information on that.
 
 D. make sure your branch is pushed to your remote,
   
@@ -43,7 +55,8 @@ flag when making commiting the fix to any that needs to be done.
 
 Appendix A - Setting up your own remote repository
 
-1. create your own "remote" fork
+1. create your own "remote" fork via the Github web interface, this is visible
+when viewing the main "upstream" repo.
 
 To begin, anyone developing  should clone the repository in their own
 github space (they have good documentation, please refer to it).
@@ -56,20 +69,36 @@ remote locally as "origin"
 
 3. add the main repo as the "upstream" remote
 
-  git remote add upstream git@github.com:jasonfleming/asgs.git
+  git remote add upstream git@github.com:StormSurgeLive/asgs.git 
 
 Now verify the remotes are set up properly:
   
   git remote -v
-  origin  git@github.com:<your-gh-user>/asgs.git (fetch)
-  origin  git@github.com:<your-gh-user>/asgs.git (push)
-  upstream        git@github.com:jasonfleming/asgs.git (fetch)
-  upstream        git@github.com:jasonfleming/asgs.git (push)
+  origin          git@github.com:<your-gh-user>/asgs.git (fetch)
+  origin          git@github.com:<your-gh-user>/asgs.git (push)
+  upstream        git@github.com:StormSurgeLive/asgs.git (fetch)
+  upstream        git@github.com:StormSurgeLive/asgs.git (push)
 
 From here on out, "origin" will refer to YOUR remote repository
-and "upstream" will refer to the canonical one, "jasonfleming/asgs.git".
+and "upstream" will refer to the canonical one, "StormSurgeLive/asgs.git".
 
 Appendix B - Commit messages and squashing commits for pull requests
+
+0. Use one of Github's idioms in the text of the commit message for
+linking the PR/commit(s) to a formal issue; e.g.:
+
+```
+  Commit "subjected"
+
+  Issue <issue-number>: helpful description of change, reason for change,
+  design decisions, etc.
+
+  Resolves #<issue-number>. 
+```
+
+Note: blank lines are important to the format.
+
+See more - https://guides.github.com/features/issues/
 
 1. make your commit messages informative and properly formatted
 
@@ -83,3 +112,9 @@ commit messages in there than good ones.
 2. Add the issue number and any related issue numbers to the commit
 message. If github sees a "#" in front of a number, it will attempt to link
 it to an issue or pull request from the same upstream repo (or its own).-
+
+
+Appendix C - References
+
+1. https://guides.github.com/features/issues
+2. https://github.com/StormSurgeLive/asgs/issues

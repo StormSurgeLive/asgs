@@ -1034,7 +1034,7 @@ in the fork back to the main repository.
 
 The main ASGS repository is located at the following URL:
 
-    https://github.com/jasonfleming/asgs
+    https://github.com/StormSurgeLive/asgs
 
 Policies
 ~~~~~~~~
