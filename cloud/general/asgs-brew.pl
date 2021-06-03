@@ -485,9 +485,9 @@ fi
 # denotes we're in an active asgsh session
 export _ASGSH_PID=\$\$
 
-# denotes which environmental variables we care about when saving a profile - includes variables that
-# are meaningful to ASGS Shell, but not set in asgs-brew.pl
-export _ASGS_EXPORTED_VARS="$_asgs_exported_vars _ASGS_EXPORTED_VARS WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS"
+# denotes which environmental variables are saved with a profile - includes variables that
+# are meaningful to ASGS Shell, but not set explicitly via asgs-brew.pl
+export _ASGS_EXPORTED_VARS="$_asgs_exported_vars _ASGS_EXPORTED_VARS WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS HINDCASTWALLTIME ADCPREPWALLTIME NOWCASTWALLTIME FORECASTWALLTIME QUEUENAME SERQUEUE ACCOUNT PPN INTENDEDAUDIENCE USERIVERFILEONLY RIVERSITE RIVERDIR RIVERUSER RIVERDATAPROTOCOL FTPSITE"
 $env_summary
 
 # export opts for processing in $rcfile
