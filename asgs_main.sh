@@ -1379,7 +1379,7 @@ variables_init()
    RIVERSITE=${RIVERSITE:-"ftp.nssl.noaa.gov"}
    RIVERDIR=${RIVERDIR:-"/projects/ciflow/adcirc_info"}
    RIVERUSER=${RIVERUSER:-null}
-   RIVERDATAPROTOCOL${RIVERDATAPROTOCOL:-null}
+   RIVERDATAPROTOCOL=${RIVERDATAPROTOCOL:-null}
    ELEVSTATIONS=null
    VELSTATIONS=null
    METSTATIONS=null
