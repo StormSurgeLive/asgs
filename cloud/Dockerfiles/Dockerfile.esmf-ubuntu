@@ -51,14 +51,18 @@ ENV ESMF_CONFIG_FILE=/root/src/esmf/lib/libO/Linux.gfortran.64.mpiuni.default/es
 
 WORKDIR /root
 ENV FC=mpif90
-RUN rm -f master.zip > /dev/null 2>&1
-RUN wget https://github.com/ccht-ncsu/Adcirpolate/archive/refs/heads/master.zip
-RUN rm -rf Adcirpolate-master > /dev/null 2>&1
-RUN unzip master.zip
+RUN rm -f jadcirpolate-NetCDF.zip > /dev/null 2>&1
+# jgf20210602 : latest developments for fulldomain hotstart files are on the NetCDF branch
+# ... using my personal fork for development
+RUN wget https://github.com/jasonfleming/jadcirpolate/archive/refs/heads/NetCDF.zip
+RUN rm -rf jadcirpolate-NetCDF > /dev/null 2>&1
+RUN unzip NetCDF.zip
 
 RUN apt-get -y install cmake
-#WORKDIR /root/Adcirpolate-master
-#RUN cmake ./CMakeLists.txt
-#RUN make all
+WORKDIR /root/jadcirpolate-NetCDF
+RUN cmake ./CMakeLists.txt
+RUN make all
 
-CMD [ "tail", "-f", "/dev/null" ]
+ENV PATH="/usr/local/esmf/bin:/root/jadcirpolate-NetCDF:${PATH}"
+RUN mkdir /data
+WORKDIR /data
