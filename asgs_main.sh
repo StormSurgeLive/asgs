@@ -1379,7 +1379,7 @@ variables_init()
    RIVERSITE=${RIVERSITE:-"ftp.nssl.noaa.gov"}
    RIVERDIR=${RIVERDIR:-"/projects/ciflow/adcirc_info"}
    RIVERUSER=${RIVERUSER:-null}
-   RIVERDATAPROTOCOL${RIVERDATAPROTOCOL:-null}
+   RIVERDATAPROTOCOL=${RIVERDATAPROTOCOL:-null}
    ELEVSTATIONS=null
    VELSTATIONS=null
    METSTATIONS=null
@@ -1639,6 +1639,10 @@ writeProperties()
    echo "instance : $INSTANCENAME" >> $STORMDIR/run.properties
    echo "pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties
    echo "intendedAudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
+<<<<<<< HEAD
+=======
+   THIS=$WASTHIS
+>>>>>>> upstream/master
    # convert to scenario.json
    $SCRIPTDIR/metadata.pl --jsonify --metadatafile $STORMDIR/run.properties 
 }

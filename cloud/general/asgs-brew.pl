@@ -375,7 +375,7 @@ example, `which ncdump` should find the utility in $asgs_install_path/bin
 
 To report bugs or request enhancements, please file them at
 
-   https://github.com/jasonfleming/asgs/milestone/19
+   https://github.com/StormSurgeLive/asgs/issues
 
 Happy ASGS'ing.
 

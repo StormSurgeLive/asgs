@@ -4,7 +4,7 @@ There is a script that is going to support a single command to build the
 required environment for ASGS on all platforms.
 
         cd $HOME
-        git clone https://github.com/jasonfleming/asgs.git
+        git clone https://github.com/StormSurgeLive/asgs.git
 	cd ./asgs
         git checkout master # or whatever branch you're going to be using
 	perl ./cloud/general/asgs-brew.pl --compiler=intel --machinename=<name-used-in-makefiles> --install-path=$HOME/opt
