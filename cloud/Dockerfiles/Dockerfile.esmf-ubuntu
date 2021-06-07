@@ -1,3 +1,13 @@
+# Dockerfile.esmf-ubuntu
+#
+# jgf: built image as follows:
+# cd ./asgs/cloud/Dockerfiles && docker build . --file  Dockerfile.esmf-ubuntu -t jadcirpolate-netcdf.image
+# ran container as follows on desktop machine:
+# docker run -d -it --name jadcirpolate-netcdf -v /srv/scratch/asgs.dev:/data jadcirpolate-netcdf.image
+# executed adcirpolate as follows on desktop machine:
+# docker exec -it --workdir=/data/asgs41098/2021040706 jadcirpolate-netcdf mpirun -np 2 adcirpolate
+
+
 FROM ubuntu:latest
 
 RUN apt-get -y update
@@ -5,52 +15,57 @@ RUN apt-get -y install software-properties-common
 RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt-get -y update
 RUN apt-get -y upgrade
+# openmpi not necessarily needed for ESMF but is needed for Adcirpolate
 RUN apt-get -y install git tcsh pkg-config gfortran netcdf-bin libnetcdf-dev libnetcdff-dev openmpi-bin  \
-      libopenmpi-dev bash vim curl wget jq zip unzip make build-essential                                \
+      libopenmpi-dev openmpi-common bash vim curl wget jq zip unzip make build-essential                 \
       python3.7 zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev \
       ca-certificates bzip2 libglib2.0-0 libxext6 libsm6 libxrender1
 
 ENV ESMF_DIR=/root/src/esmf
 ENV ESMF_INSTALL_PREFIX=/usr/local/esmf
-ENV ESMF_OS=Linux
-ENV ESMF_NETCDF="local"
-ENV ESMF_F90COMPILER=gfortran
-ENV ESMF_CXXCOMPILER=g++
-ENV ESMF_TESTEXHAUSTIVE=on
-ENV ESMF_TESTSHAREDOBJ=on
-ENV ESMF_NETCDF_INCLUDE=/usr/include
-ENV ESMF_NETCDF_LIBS="-lnetcdf -lnetcdff"
-ENV ESMF_NETCDF_LIBPATH=/usr/local/lib
-ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
-ENV ESMF_COMM=mpiuni
-#ENV ESMF_COMM=openmpi
+ENV ESMF_COMPILER=gfortran
+ENV ESMF_COMM=openmpi
 ENV ESMF_ABI=64
-ENV ESMF_CONFIG_FILE=src/esmf/lib/libO/Linux.gfortran.64.mpiuni.default/esmf.mk
+#ENV ESMF_OS=Linux
+#ENV ESMF_NETCDF="local"
+# for some reason, with the following two
+# environmental variables set, the ESMF build
+# was failing b/c it could not find
+#ENV ESMF_F90COMPILER=gfortran
+#ENV ESMF_CXXCOMPILER=g++
+#ENV ESMF_TESTEXHAUSTIVE=on
+#ENV ESMF_TESTSHAREDOBJ=on
+#ENV ESMF_NETCDF_INCLUDE=/usr/include
+#ENV ESMF_NETCDF_LIBS="-lnetcdf -lnetcdff"
+#ENV ESMF_NETCDF_LIBPATH=/usr/local/lib
+#ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+# mpi bypass library; this is the default on linux and mac
+# but doesn't seem to work if ESMF is using mpiuni and
+# adcirpolate is using openmpi
+#ENV ESMF_COMM=mpiuni
 
+# existing examples are known to run with ESMF v8.0.1
 WORKDIR /root/src
-RUN wget https://github.com/esmf-org/esmf/archive/refs/tags/ESMF_8_1_0.tar.gz
-RUN tar zxvf ESMF_8_1_0.tar.gz
+RUN wget https://github.com/esmf-org/esmf/archive/refs/tags/ESMF_8_0_1.tar.gz
+RUN tar zxvf ESMF_8_0_1.tar.gz
 
-RUN mv esmf-ESMF_8_1_0 /root/src/esmf
-RUN cd esmf           && \
-    make all          && \
-    make install      && \
-    make installcheck
+RUN mv esmf-ESMF_8_0_1 /root/src/esmf
+RUN cd esmf             && \
+    make all
+#    && \
+#    make install        && \
+#    make installcheck
 
-WORKDIR /root/src
-RUN wget https://github.com/esmf-org/esmf/archive/refs/tags/ESMF_8_1_0.tar.gz
-RUN tar zxvf ESMF_8_1_0.tar.gz
-
-RUN mv esmf-ESMF_8_1_0 /root/src/esmf
-RUN cd esmf           && \
-    make all          && \
-    make install      && \
-    make installcheck
-
-ENV ESMF_CONFIG_FILE=/root/src/esmf/lib/libO/Linux.gfortran.64.mpiuni.default/esmf.mk
+# if the adcirpolate code has changed, we don't want use the version from
+# the docker build cache; in this case, set the following on the docker
+# build command line :
+# --build-arg CACHEBUST=$(date +%s)
+# (value can also be arbitrary, here it is current datetime, to ensure its uniqueness across runs)
+ARG CACHEBUST=1
 
 WORKDIR /root
 ENV FC=mpif90
+ENV ESMF_CONFIG_FILE=/root/src/esmf/lib/libO/Linux.gfortran.64.openmpi.default/esmf.mk
 RUN rm -f jadcirpolate-NetCDF.zip > /dev/null 2>&1
 # jgf20210602 : latest developments for fulldomain hotstart files are on the NetCDF branch
 # ... using my personal fork for development
@@ -65,4 +80,3 @@ RUN make all
 
 ENV PATH="/usr/local/esmf/bin:/root/jadcirpolate-NetCDF:${PATH}"
 RUN mkdir /data
-WORKDIR /data
