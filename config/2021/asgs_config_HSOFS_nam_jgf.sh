@@ -53,7 +53,7 @@ FORECASTCYCLE="06"
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #STORM=07             # storm number, e.g. 05=ernesto in 2006
 #YEAR=2018            # year of the storm
-WAVES=on              # wave forcing
+WAVES=off             # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
@@ -77,8 +77,8 @@ TDS=( lsu_tds )
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
 COLDSTARTDATE=2021032000
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2021/nam/2021060406/HSOFS/supermic.hpc.lsu.edu/HSOFS_nam_jgf/nhcConsensus
 
 # Scenario package 
 
