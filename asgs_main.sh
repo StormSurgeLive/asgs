@@ -1220,10 +1220,8 @@ submitJob()
    #
    CLOPTIONS=""     # command line options
    LOCALHOTSTART=""
-   CPUREQUEST=$NCPU
    if [[ $NUMWRITERS != "0" ]]; then
       CLOPTIONS="-W $NUMWRITERS"
-      CPUREQUEST=`expr $NCPU + $NUMWRITERS`
    fi
    # record the number of requested CPUs for use in determining capacity to run another job
    if [[ $HOTSTARTCOMP = subdomain ]]; then
@@ -1293,6 +1291,7 @@ submitJob()
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'%z`
       echo "time.${JOBTYPE}.start : $DATETIME" >> run.properties
       echo "[${DATETIME}] Starting ${JOBTYPE}.${ENSTORM} job in $PWD." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start
+      CPUREQUEST=`expr $NCPU + $NUMWRITERS`
       logMessage "$ENSTORM: $THIS: Submitting job via $SUBMITSTRING -n $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
       # submit the parallel job in a subshell
       (
@@ -1754,6 +1753,7 @@ writeJobResourceRequestProperties()
    logMessage "$THIS: Writing properties associated with compute job to $1/run.properties."
    # on queenbeeC, if a parallel job uses 48 or fewer cores, it
    # should be submitted to the single queue to avoid "low utilization" emails
+   CPUREQUEST=`expr $NCPU + $NUMWRITERS`
    if [[ $HPCENV = "qbc.loni.org" && $CPUREQUEST -le 48 ]]; then
       QUEUENAME="single"
    fi
