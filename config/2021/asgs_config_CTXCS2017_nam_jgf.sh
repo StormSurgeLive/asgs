@@ -72,13 +72,13 @@ INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 #POSTPROCESS=( createMaxCSV.sh includeWind10m.sh cpra_slide_deck_post.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
-TDS=( lsu_tds )
+TDS=( tacc_tds )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
 COLDSTARTDATE=2021032000
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2021/nam/2021060606/CTXCS2017/supermic.hpc.lsu.edu/CTXCS2017_nam_jgf/namforecast
 
 # Scenario package 
 
