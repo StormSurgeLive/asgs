@@ -62,7 +62,7 @@
 # Go to the directory where you want to work on the code
 # and clone the repository :
 #
-#   cd /srv/work/asgs.dev && git clone https://github.com/jasonfleming/asgs
+#   cd /srv/work/asgs.dev && git clone https://github.com/StormSurgeLive/asgs
 #
 # Switch to your development branch (if necessary)
 #
