@@ -123,7 +123,7 @@ verify_ssh_config() {
       echo "ok, permissions fixed for $HOME/.ssh/config"
   fi
   echo ++ Verifying connections to supported THREDDS servers
-  for S in lsu_tds renci_tds tacc_tds; do
+  for S in lsu_tds renci_tds tacc_tds tacc_tds2; do
     ssh -o ConnectTimeout=1 $S "echo ok connected to $S from \$(echo \$SSH_CLIENT|awk '{print \$1}') VIA Port \$(echo \$SSH_CLIENT|awk '{print \$3}')" 2>/dev/null
     err=$?
     if [ "$err" -gt 0 ]; then

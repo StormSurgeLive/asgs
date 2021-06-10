@@ -542,6 +542,17 @@ writeTDSProperties()
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
       echo "post.opendap.${SERVER}.copyablehosts : ( lonestar5 stampede2 frontera )" >> run.properties
       ;;
+   "tacc_tds2")
+      THREDDSHOST=chg-1.oden.acc.utexas.edu # WWW hostname for emailed links
+      OPENDAPHOST=tacc_tds2                 # alias in $HOME/.ssh/config
+      OPENDAPPORT=":80"                     # ':80' can be an empty string, but for clarity it's here
+      OPENDAPPROTOCOL="http"
+      DOWNLOADPREFIX=/asgs
+      CATALOGPREFIX=/asgs
+      OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
+      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
+      echo "post.opendap.${SERVER}.copyablehosts : ( lonestar5 stampede2 frontera )" >> run.properties
+      ;;
    *)
       echo "$THIS: ERROR: THREDDS Data Server $SERVER was not recognized."
    esac
@@ -680,7 +691,7 @@ env_dispatch() {
   "test") allMessage "$THIS: test environment (default) configuration found."
           init_test
            ;;
-  *) fatal "$THIS: '$HPCENVSHORT' is not a supported environment; currently supported options: stampede2, lonestar5, supermike, queenbee, supermic, hatteras, desktop, desktop-serial, su_tds, lsu_ccr_tds, renci_tds, tacc_tds"
+  *) fatal "$THIS: '$HPCENVSHORT' is not a supported environment; currently supported options: stampede2, lonestar5, supermike, queenbee, supermic, hatteras, desktop, desktop-serial, su_tds, lsu_ccr_tds, renci_tds, tacc_tds, tacc_tds2"
      ;;
   esac
 
