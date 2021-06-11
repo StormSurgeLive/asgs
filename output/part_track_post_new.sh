@@ -51,12 +51,12 @@
 
 #  Create config file for particle tracking and visualizations
  echo "#!/bin/bash              "  > PartTrack_config.conf
-if [ $TROPICALCYCLONE -eq "off" ];then
-  STORM=${ADVISORY}
-  KIND=NAM
-else
+if [ $TROPICALCYCLONE = "on" ];then
   STORM=$STORM
   KIND=TC
+else
+  STORM=${ADVISORY}
+  KIND=NAM
 fi
  echo "STORM=${STORM}           " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "STORMNAME=${STORM}       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf

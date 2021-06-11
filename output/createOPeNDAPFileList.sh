@@ -56,7 +56,7 @@ HPCENV=${properties['hpc.hpcenv']}
 WAVES=${properties['coupling.waves']}
 TROPICALCYCLONE=${properties['forcing.tropicalcyclone']}
 WAVES=${properties['coupling.waves']}
-if [[ $TROPICALCYCLONE != "off" ]]; then
+if [[ $TROPICALCYCLONE = "on" ]]; then
    STORM=${properties['forcing.tropicalcyclone.stormnumber']}
    YEAR=${properties['forcing.tropicalcyclone.year']}
 else

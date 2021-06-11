@@ -92,7 +92,7 @@ done
 #
 # check to see if this is a tropical cyclone
 TROPICALCYCLONE=${properties['forcing.tropicalcyclone']}
-if [[ $TROPICALCYCLONE != "off" ]]; then
+if [[ $TROPICALCYCLONE = "on" ]]; then
    STORM=${properties['forcing.tropicalcyclone.stormnumber']}
    YEAR=${properties['forcing.tropicalcyclone.year']}
    STORMNAME=${properties['forcing.tropicalcyclone.stormname']}

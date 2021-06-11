@@ -51,7 +51,7 @@ POSTPROCDIR=${properties["post.path.cpra.post.postprocdir"]}
 fname=${properties["post.file.cpra.figuregen.maxele.fname"]}
 coldStartTime=${properties["adcirc.time.coldstartdate"]}
 TROPCIALCYCLONE=${properties["forcing.tropicalcyclone"]} 
-if [[ $TROPICALCYCLONE != "off" ]]; then
+if [[ $TROPICALCYCLONE = "on" ]]; then
    # Parse run.properties to get storm name and ensemble
    stormname=${properties["forcing.tropicalcyclone.stormname"]}
 else

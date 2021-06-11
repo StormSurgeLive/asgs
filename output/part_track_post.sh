@@ -49,20 +49,20 @@
   
 #  Create config file for particle tracking and visualizations
  echo "#!/bin/bash              "  > ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
-if [ $TROPICALCYCLONE == "off" ];then
-  STORM=${ADVISORY}
-  KIND=NAM
-  WINDVECT=50
-  VECTORLIM=30
-  VECTCUT=2
-  CONTOURLIMmax=2
-else
+if [ $TROPICALCYCLONE = "on" ];then
   STORM=$STORM
   KIND=TC
   WINDVECT=120
   VECTORLIM=50
   VECTCUT=5
   CONTOURLIMmax=3.5
+else
+  STORM=${ADVISORY}
+  KIND=NAM
+  WINDVECT=50
+  VECTORLIM=30
+  VECTCUT=2
+  CONTOURLIMmax=2
 fi
  echo "STORM=${STORM}           " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf
  echo "STORMNAME=${STORM}       " >> ${ADVISDIR}/${ENSTORM}/PartTrack/PartTrack_config.conf

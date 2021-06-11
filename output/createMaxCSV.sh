@@ -53,7 +53,7 @@ SSHKEY=${properties['post.file.sshkey']}
 HPCENVSHORT=${properties['hpc.hpcenvshort']}
 HPCENV=${properties['hpc.hpcenv']}
 TROPICALCYCLONE=${properties['forcing.tropicalcyclone']}
-if [[ $TROPICALCYCLONE != "off" ]]; then
+if [[ $TROPICALCYCLONE = "on" ]]; then
    STORM=${properties['forcing.tropicalcyclone.stormnumber']}
    YEAR=${properties['forcing.tropicalcyclone.year']}
 else
@@ -78,7 +78,7 @@ cd ${SCENARIODIR} 2>&1 > errmsg || warn "cycle $CYCLE: $SCENARIO: $THIS: Could n
 #------------------------------------------------------------------------
 # form the csv file name, e.g.: jose2017adv44HSOFSnhcConsensusMax.csv
 STORMNAMELC=nam
-if [[ $TROPICALCYCLONE != off ]]; then
+if [[ $TROPICALCYCLONE = on ]]; then
    STORMNAME=${properties['forcing.tropicalcyclone.stormname']}
    # make the storm name lower case
    STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'` 2>> ${SYSLOG}

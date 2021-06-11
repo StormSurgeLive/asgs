@@ -29,7 +29,7 @@
 #                B E G I N   F U N C T I O N S
 #####################################################################
 #
-# FIXME: Not sure this function still has any use. Deprecate it?
+# keep this, "./asgs_main.sh -h" is helpful
 echoHelp()
 { clear
   echo "@@@ Help @@@"
@@ -58,12 +58,14 @@ readConfig()
    source ${SCRIPTDIR}/config/model_defaults.sh
    # HPC environment defaults (using the functions in platforms.sh)
    env_dispatch ${HPCENVSHORT}
-   # set email addresses etc according to the Operator
-   source ${SCRIPTDIR}/config/operator_defaults.sh
    # set default output file formats and frequencies
    source ${SCRIPTDIR}/config/io_defaults.sh
    # set default values related to forcing URLs etc
    source ${SCRIPTDIR}/config/forcing_defaults.sh
+   # set custom defaults, last thing source'd in before $CONFIG
+   if [ -e $HOME/.asgsh_profile ]; then
+     source $HOME/.asgsh_profile
+   fi
    # pick up config parameters, set by the Operator, that differ from the defaults
    source ${CONFIG}
    # maintain backward compatibility with old config files
@@ -1374,7 +1376,7 @@ variables_init()
    MINMAX=reset
    REINITIALIZESWAN=no
    USERIVERFILEONLY=${USERIVERFILEONLY:-no}
-   STORMNAME=stormname
+   STORMNAME=${STORMNAME:-stormname}
    RIVERSITE=${RIVERSITE:-"ftp.nssl.noaa.gov"}
    RIVERDIR=${RIVERDIR:-"/projects/ciflow/adcirc_info"}
    RIVERUSER=${RIVERUSER:-null}
@@ -1539,6 +1541,12 @@ writeProperties()
    echo "forcing.backgroundmet : $BACKGROUNDMET" >> $STORMDIR/run.properties
    echo "forcing.tidefac : $TIDEFAC" >> $STORMDIR/run.properties
    echo "forcing.tropicalcyclone : $TROPICALCYCLONE" >> $STORMDIR/run.properties
+   case "$TROPICALCYCLONE" in
+     monitor)
+       echo "forcing.tropicalcyclone.year : $YEAR" >> $STORMDIR/run.properties
+       echo "forcing.tropicalcyclone.stormname : $STORMNAME" >> $STORMDIR/run.properties
+     ;; 
+   esac
    echo "forcing.varflux : $VARFLUX" >> $STORMDIR/run.properties
    echo "forcing.staticoffset : $STATICOFFSET" >> $STORMDIR/run.properties
    echo "forcing.schedule.cycletimelimit : $CYCLETIMELIMIT" >> $STORMDIR/run.properties
@@ -1586,12 +1594,15 @@ writeProperties()
    echo "notification.email.asgsadmin : $ASGSADMIN" >> $STORMDIR/run.properties
    # monitoring (includes logging)
    echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable " >> $STORMDIR/run.properties
-   echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $STORMDIR/run.properties
-   echo "monitoring.rmqmessaging.script : $RMQMessaging_Script" >> $STORMDIR/run.properties
-   echo "monitoring.rmqmessaging.scriptrp : $RMQMessaging_Script_RP" >> $STORMDIR/run.properties
-   echo "monitoring.rmqmessaging.ncohome : $RMQMessaging_NcoHome" >> $STORMDIR/run.properties
-   echo "monitoring.rmqmessaging.locationname : $RMQMessaging_LocationName" >> $STORMDIR/run.properties
-   echo "monitoring.rmqmessaging.clustername : $RMQMessaging_ClusterName" >> $STORMDIR/run.properties
+   # only put the rest of this in run.properties if messaging is enabled
+   if [ "$RMQMessaging_Enable" = "yes" ]; then
+     echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $STORMDIR/run.properties
+     echo "monitoring.rmqmessaging.script : $RMQMessaging_Script" >> $STORMDIR/run.properties
+     echo "monitoring.rmqmessaging.scriptrp : $RMQMessaging_Script_RP" >> $STORMDIR/run.properties
+     echo "monitoring.rmqmessaging.ncohome : $RMQMessaging_NcoHome" >> $STORMDIR/run.properties
+     echo "monitoring.rmqmessaging.locationname : $RMQMessaging_LocationName" >> $STORMDIR/run.properties
+     echo "monitoring.rmqmessaging.clustername : $RMQMessaging_ClusterName" >> $STORMDIR/run.properties
+   fi
    echo "monitoring.logging.file.syslog : $SYSLOG" >> $STORMDIR/run.properties
    # post processing
    echo "post.intendedaudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
@@ -1704,6 +1715,7 @@ writeTropicalCycloneProperties()
    logMessage "$THIS: Writing properties associated with meterorological forcing with a parametric vortex model to $1/run.properties."
    echo "forcing.metclass : tropical" >> $STORMDIR/run.properties
    echo "forcing.stormname : $STORM" >> $STORMDIR/run.properties
+   echo "forcing.tropicalcyclone.mode: $TROPICALCYCLONE" >> $STORMDIR/run.properties
    echo "forcing.tropicalcyclone.vortexmodel : $VORTEXMODEL" >> $STORMDIR/run.properties
    echo "forcing.tropicalcyclone.stormnumber : $STORM" >> $STORMDIR/run.properties
    echo "forcing.tropicalcyclone.year : $YEAR" >> $STORMDIR/run.properties
@@ -1719,6 +1731,26 @@ writeTropicalCycloneProperties()
    fi
    if [[ $PERCENT != default ]]; then
       echo "forcing.tropicalcyclone.enstorm.variation.percent : $PERCENT" >> $STORMDIR/run.properties
+   fi
+   # legacy properties
+   echo "storm : $STORM" >> $STORMDIR/run.properties
+   echo "stormnumber : $STORM" >> $STORMDIR/run.properties
+   THIS=$WASTHIS
+}
+# write properties to the run.properties file that are associated with
+# tropical cyclone when TROPICALCYCLONE is set to "monitor" 
+writeMonitoredTropicalCycloneProperties()
+{
+   STORMDIR=$1
+   WASTHIS=$THIS
+   THIS="asgs_main->writeMonitoredTropicalCycloneProperties()"
+   logMessage "$THIS: Writing properties associated with meterorological forcing with a parametric vortex model to $1/run.properties."
+   echo "forcing.tropicalcyclone.mode: $TROPICALCYCLONE" >> $STORMDIR/run.properties
+   echo "forcing.metclass : synoptic" >> $STORMDIR/run.properties
+   echo "forcing.stormnumber : $STORM" >> $STORMDIR/run.properties
+   echo "forcing.tropicalcyclone.year : $YEAR" >> $STORMDIR/run.properties
+   if [ -n "$STORMNAME" ]; then
+     echo "forcing.stormname : $STORMNAME" >> $STORMDIR/run.properties
    fi
    # legacy properties
    echo "storm : $STORM" >> $STORMDIR/run.properties
@@ -2161,13 +2193,6 @@ if [[ $PERIODICFLUX != null ]]; then
    logMessage "$THIS: checking for FLUXCALCULATOR script"
    checkFileExistence "" "perl script for calculating periodic flux boundary" $FLUXCALCULATOR
 fi
-#
-# # @jasonfleming : temporarily disable until we can get this to work reliably
-# on all platforms without having to build and install additional perl modules
-#
-#if [[ $TROPICALCYCLONE != off ]]; then
-#   checkFileExistence ${PERL5LIB} "perl library to support downloading forecast/advisories from the National Hurricane Center website" Tiny.pm
-#fi
 THIS="asgs_main.sh"
 #
 # Check for any issues or inconsistencies in configuration parameters.
@@ -2197,14 +2222,15 @@ RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "ASGS has completed 
 if [[ $BACKGROUNDMET = on && $TROPICALCYCLONE = on ]]; then
    NWS=29
    # not ready for this yet
-   RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS" "FAIL" "Background met and tc forcing are both turned on but simultaneous use not yet supported in ASGS."
-   fatal "$THIS: Background meteorology and tropical cyclone forcing are both turned on in ${CONFIG} but simultaneous use of these two forcing types is not yet supported in ASGS."
+   RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS" "FAIL" "Background met and tc forcing are both turned on but simultaneous use not supported in ASGS."
+   fatal "$THIS: Background meteorology and tropical cyclone forcing are both turned on in ${CONFIG} but simultaneous use of these two forcing types is not supported in ASGS."
 fi
 NOFORCING=false
 # If there is no forcing from an external data source, set a flag; this
 # is most often used in running test cases for ADCIRC.
-if [[ $BACKGROUNDMET = off && $TIDEFAC = off && $TROPICALCYCLONE = off && $WAVES = off && $VARFLUX = off ]]; then
-   NOFORCING=true
+if [[ $BACKGROUNDMET = off && $TIDEFAC = off && $WAVES = off && $VARFLUX = off && $TROPICALCYCLONE != on ]]
+then
+  NOFORCING=true
 fi
 #
 # If we are coldstarting, perform a hindcast ... this is necessary
@@ -2441,11 +2467,14 @@ while [ true ]; do
 
    # determine if this date/advisory is the next cycle
    if [[  -e "$OLDADVISDIR/$ENSTORM/padcirc.$ENSTORM.run.finish"  ||  -e "$OLDADVISDIR/$ENSTORM/padcswan.$ENSTORM.run.finish"  ]] ; then
-      if [[ "$TROPICALCYCLONE" == "off" ]]; then
-         RMQADVISORY=$(IncrementNCEPCycle $ADVISORY)
-      else
+      case "$TROPICALCYCLONE" in
+        on)
          RMQADVISORY=$[10#$ADVISORY +1]
-      fi
+         ;;
+        *)
+         RMQADVISORY=$(IncrementNCEPCycle $ADVISORY)
+         ;;
+      esac
    else
       RMQADVISORY=$ADVISORY
    fi
@@ -2505,9 +2534,17 @@ while [ true ]; do
    # write the properties associated with asgs configuration to the
    # run.properties file
    writeProperties $RUNDIR
-   if [[ $TROPICALCYCLONE = on ]]; then
+   # support different TROPICALCYCLONE modes
+   case "$TROPICALCYCLONE" in
+     on)
       writeTropicalCycloneProperties $RUNDIR
-   fi
+      ;;
+     monitor)
+      writeMonitoredTropicalCycloneProperties $RUNDIR
+      ;;
+     off)
+      ;;
+   esac
    if [[ $BACKGROUNDMET != off ]]; then
       case $BACKGROUNDMET in
          on|NAM)
@@ -3010,9 +3047,16 @@ while [ true ]; do
       # run.properties file
 
       writeProperties $RUNDIR 2>> $SYSLOG
-      if [[ $TROPICALCYCLONE = on ]]; then
-         writeTropicalCycloneProperties $RUNDIR
-      fi
+      case "$TROPICALCYCLONE" in
+        on)
+          writeTropicalCycloneProperties $RUNDIR
+          ;;
+        monitor)
+          writeMonitoredTropicalCycloneProperties $RUNDIR
+          ;;
+        off)
+          ;;
+       esac
       if [[ $BACKGROUNDMET != off ]]; then
          case $BACKGROUNDMET in
             on|NAM)

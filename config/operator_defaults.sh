@@ -22,9 +22,4 @@
 #----------------------------------------------------------------
 THIS=config/operator_defaults.sh
 allMessage "$THIS is deprecated and will be removed in the future. In the meantime, source'ing $HOME/.asgsh_profile if it is present."
-
-if [ -e $HOME/.asgsh_profile ]; then
-  source $HOME/.asgsh_profile
-fi
-
 # ----- D O  N O T  A D D  A N Y T H I N G  I N  T H I S  F I L E ------

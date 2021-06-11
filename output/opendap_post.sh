@@ -265,7 +265,7 @@ END
       done
       #
       # add a symbolic link for the storm name if this is tropicalcyclone forcing
-      if [[ $TROPICALCYCLONE != off ]]; then 
+      if [[ $TROPICALCYCLONE = on ]]; then 
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do 
             ssh $OPENDAPHOST "ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH" 2>> $SYSLOG
@@ -455,7 +455,7 @@ END
       done
       #
       # create link with storm name instead of storm number
-      if [[ $TROPICALCYCLONE != off ]]; then
+      if [[ $TROPICALCYCLONE = on ]]; then
          ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH 2>> $SYSLOG
       fi
       for file in ${FILES[*]}; do 
