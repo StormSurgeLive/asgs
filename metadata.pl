@@ -117,7 +117,7 @@ if ( substr($metadatafile,-1,1) eq "/" ) {
 my ($type) = $metadatafile =~ /(\.[^.]+)$/;
 # determine path to the metadata file (if any was provided)
 my $dirpath = "";
-$last_slash = rindex($metadatafile,"/");
+my $last_slash = rindex($metadatafile,"/");
 if ( $last_slash != -1 ) {
     $dirpath = substr($metadatafile,0,$last_slash);
 }
