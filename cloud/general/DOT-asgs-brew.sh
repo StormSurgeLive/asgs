@@ -812,7 +812,6 @@ alias vr="verify regressions"
 if [ -n "$_asgsh_splash" ]; then
 # show important directories
 show scriptdir
-show scratchdir
 goto scriptdir
 else
 goto scriptdir >/dev/null 2>&1
@@ -821,6 +820,8 @@ fi
 # when started, ASGS Shell loads the 'default' profile,
 # this can be made variable at some point
 load profile ${profile-default}
+show scratchdir
+show workdir
 echo
 
 # construct to handle "autorun" options
