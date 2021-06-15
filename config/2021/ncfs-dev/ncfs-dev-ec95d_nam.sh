@@ -66,13 +66,14 @@ NCPU=128                     # number of compute CPUs for all simulations
 NCPUCAPACITY=128
 NUMWRITERS=0
 ACCOUNT=null
+PARTITION=batch
 #EXCLUDE="compute-9-xx"
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=developers-only    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
+POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh opendap_post_nowcast.sh )
 #POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
 OPENDAPNOTIFY="bblanton@renci.org"

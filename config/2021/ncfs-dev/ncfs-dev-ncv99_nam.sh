@@ -27,40 +27,27 @@
 
 # Fundamental
 
-INSTANCENAME=hsofs-nam-bob-2021      # "name" of this ASGS process
+INSTANCENAME=ncv99-nam-bob-2021      # "name" of this ASGS process
 SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
 RMQMessaging_Transmit=on
 
 # Input files and templates
 
-GRIDNAME=hsofs
+GRIDNAME=nc_inundation_v9.99_w_rivers
 source $SCRIPTDIR/config/mesh_defaults.sh
-
-#--------------------------------------------------------------------------
-#  changes for 0.2286m sea_surface_height_above_geoid
-# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-# The default values of the following parameters are set in
-# config/mesh_defaults.sh, so these settings have to come after the
-# sourcing of the mesh_defaults.sh script.
-CONTROLTEMPLATE=hsofs_explicit.15.template
-CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-NAFILE=hsofs.13
-NAPROPERTIES=${NAFILE}.properties
 STATICOFFSET=0.0
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-#  changes for 0.2286m sea_surface_height_above_geoid
-#--------------------------------------------------------------------------
+CONTROLTEMPLATE=nc_9.99wrivers_vortex_constantRivers.fort.15.template
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020121500  #  2020080100  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2021050100  #  2020080100  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
 TIDEFAC=on                # tide factor recalc
-   HINDCASTLENGTH=18    # length of initial hindcast, from cold (days)
+   HINDCASTLENGTH=30    # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on          # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off       # tropical cyclone forcing
@@ -83,15 +70,14 @@ NCPUCAPACITY=512
 #NCPUCAPACITY=512
 NUMWRITERS=1
 ACCOUNT=null
-#RESERVATION=ncfs
-PARTITION=batch
+RESERVATION=ncfs
 
 # Post processing and publication
 
 INTENDEDAUDIENCE="general" # ( | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
-POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh opendap_post_nowcast.sh )
+POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh opendap_post_nowcast.sh transmit_rps.sh ncfs_post_to_current.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
 OPENDAPNOTIFY="bblanton@renci.org, asgs.cera.lsu@gmail.com, rluettich1@gmail.com, jason.g.fleming@gmail.com, asgsnotifications@opayq.com, cera.asgs.tk@gmail.com, asgsnotes4ian@gmail.com, janelle.fleming@seahorsecoastal.com"
 #OPENDAPNOTIFY="bblanton@renci.org"
