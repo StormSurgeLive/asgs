@@ -66,6 +66,7 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=959                     # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
+QUEUENAME=priority
 
 # Post processing and publication
 
@@ -75,10 +76,11 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,janelle.fleming
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-HINDCASTENDDATE=20210604
-COLDSTARTDATE=$(date --date="${HINDCASTENDDATE} -${HINDCASTLENGTH} days" +%Y%m%d%H)
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null
+#HINDCASTENDDATE=20210604
+#COLDSTARTDATE=$(date --date="${HINDCASTENDDATE} -${HINDCASTLENGTH} days" +%Y%m%d%H)
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2021/nam/2021061618/LA_v20a-WithUpperAtch_chk/qbc.loni.org/LAv20a_nam_akheir_23kcms/namforecast
 
 # Scenario package 
 
