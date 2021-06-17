@@ -64,6 +64,7 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=1999              # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
+QUEUENAME=priority
 
 # Post processing and publication
 
