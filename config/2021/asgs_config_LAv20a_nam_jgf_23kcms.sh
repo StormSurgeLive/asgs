@@ -50,8 +50,8 @@ CONTROLTEMPLATE=LAv20a_23kcms.15.template # <---<<< default is LA_v20a-WithUpper
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30     # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on      # NAM download/forcing
-FORECASTCYCLE="06"
-   forecastSelection="strict"
+FORECASTCYCLE="00,06,12,18"
+#   forecastSelection="strict"
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #STORM=07             # storm number, e.g. 05=ernesto in 2006
 #YEAR=2018            # year of the storm
