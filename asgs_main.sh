@@ -895,11 +895,6 @@ downloadCycloneData()
     if [[ $FTPSITE = filesystem ]]; then
        cp $HDIR/$hindcastFileName $hindcastFileName 2>> ${SYSLOG}
     fi
-    # write the start and end dates of the forecast to the run.properties file
-    if [[ -e $RUNDIR/forecast.properties ]]; then
-      cat $RUNDIR/forecast.properties >> ${SCENARIODIR}/run.properties
-      mv $RUNDIR/forecast.properties ${SCENARIODIR} 2>> ${SYSLOG}
-    fi
 }
 #
 # subroutine that polls an external ftp site for background meteorology data
@@ -1695,13 +1690,13 @@ writeNAMProperties()
 }
 #
 # write properties to the run.properties file that are associated with
-# tropical cyclone forcing.
+# tropical cyclone forcing configuration.
 writeTropicalCycloneProperties()
 {
    STORMDIR=$1
    WASTHIS=$THIS
    THIS="asgs_main->writeTropicalCycloneProperties()"
-   logMessage "$THIS: Writing properties associated with meterorological forcing with a parametric vortex model to $1/run.properties."
+   logMessage "$THIS: Writing properties associated with meterorological forcing configuration with a parametric vortex model to $1/run.properties."
    echo "forcing.metclass : tropical" >> $STORMDIR/run.properties
    echo "forcing.stormname : $STORM" >> $STORMDIR/run.properties
    echo "forcing.tropicalcyclone.vortexmodel : $VORTEXMODEL" >> $STORMDIR/run.properties
@@ -1723,6 +1718,21 @@ writeTropicalCycloneProperties()
    # legacy properties
    echo "storm : $STORM" >> $STORMDIR/run.properties
    echo "stormnumber : $STORM" >> $STORMDIR/run.properties
+   THIS=$WASTHIS
+}
+#
+# write properties to the run.properties file that are associated with
+# tropical cyclone forcing configuration.
+writeTropicalCycloneForecastProperties()
+{
+   STORMDIR=$1
+   WASTHIS=$THIS
+   THIS="asgs_main->writeTropicalCycloneForecastProperties()"
+   logMessage "$THIS: Writing properties associated with a particular forecast using a parametric vortex model to $1/run.properties."
+    # write the start and end dates of the forecast to the run.properties file
+    if [[ -e $RUNDIR/forecast.properties ]]; then
+      cat $RUNDIR/forecast.properties >> ${STORMDIR}/run.properties
+    fi
    THIS=$WASTHIS
 }
 #
@@ -3169,6 +3179,7 @@ while [ true ]; do
             echo "modified : n" >> run.properties 2>> ${SYSLOG}
             echo "track_modified : n" >> run.properties 2>> ${SYSLOG}
          fi
+         writeTropicalCycloneForecastProperties $STORMDIR
          CONTROLOPTIONS="--cst $CSDATE --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile ${STORMDIR}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Generating ADCIRC Met File (fort.22) for $ENSTORM."
          logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
