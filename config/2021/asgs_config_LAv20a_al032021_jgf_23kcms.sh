@@ -36,7 +36,7 @@
 
 # Fundamental
 
-INSTANCENAME=LAv20a_nam_jgf_23kcms  # "name" of this ASGS process
+INSTANCENAME=LAv20a_al032021_jgf_23kcms  # "name" of this ASGS process
 
 # Input files and templates
 
@@ -49,12 +49,12 @@ CONTROLTEMPLATE=LAv20a_23kcms.15.template # <---<<< default is LA_v20a-WithUpper
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30     # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on      # NAM download/forcing
+BACKGROUNDMET=off      # NAM download/forcing
 FORECASTCYCLE="00,06,12,18"
 #   forecastSelection="strict"
-TROPICALCYCLONE=off   # tropical cyclone forcing
-#STORM=07             # storm number, e.g. 05=ernesto in 2006
-#YEAR=2018            # year of the storm
+TROPICALCYCLONE=on   # tropical cyclone forcing
+STORM=03             # storm number, e.g. 05=ernesto in 2006
+YEAR=2021            # year of the storm
 WAVES=off              # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -76,11 +76,11 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,janelle.fleming
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-HINDCASTENDDATE=20210614
-COLDSTARTDATE=$(date --date="${HINDCASTENDDATE} -${HINDCASTLENGTH} days" +%Y%m%d%H)
-#COLDSTARTDATE=auto
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null
+#HINDCASTENDDATE=20210614
+#COLDSTARTDATE=$(date --date="${HINDCASTENDDATE} -${HINDCASTLENGTH} days" +%Y%m%d%H)
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+LASTSUBDIR=/work/jgflemin/asgs32071/initialize
 
 # Scenario package 
 
@@ -95,11 +95,11 @@ case $si in
    ENSTORM=nowcast
    ;;
  0)
-   ENSTORM=namforecastWind10m
+   ENSTORM=nhcConsensusWind10m
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
 1)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
