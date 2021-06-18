@@ -27,7 +27,7 @@
 
 # Fundamental
 
-INSTANCENAME=ec95d-nam-bob-postNowcast      # "name" of this ASGS process
+INSTANCENAME=ec95d-al03-bob      # "name" of this ASGS process
 SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
 RMQMessaging_Transmit=on
 QSCRIPTTEMPLATE=$SCRIPTDIR/config/2021/ncfs-dev/qscript.template.renci
@@ -40,17 +40,19 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
 COLDSTARTDATE=2021051600  # calendar year month day hour YYYYMMDDHH24
-HOTORCOLD=coldstart       # "hotstart" or "coldstart"
-LASTSUBDIR=null
+HOTORCOLD=hotstart       # "hotstart" or "coldstart"
+#LASTSUBDIR=null
+LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2021/nam/2021061712/ec95d/hatteras.renci.org/ec95d-nam-bob-postNowcast/namforecast
+
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
 TIDEFAC=on               # tide factor recalc
-   HINDCASTLENGTH=16.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on         # NAM download/forcing
+   HINDCASTLENGTH=18.0   # length of initial hindcast, from cold (days)
+BACKGROUNDMET=off         # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
-TROPICALCYCLONE=off      # tropical cyclone forcing
-   STORM=-1              # storm number, e.g. 05=ernesto in 2006
+TROPICALCYCLONE=on      # tropical cyclone forcing
+   STORM=03              # storm number, e.g. 05=ernesto in 2006
    YEAR=2021             # year of the storm
 WAVES=on                 # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -83,7 +85,7 @@ NOTIFY_SCRIPT=ncfs_nam_notify.sh
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=1
+SCENARIOPACKAGESIZE=6
 case $si in
    -2) 
        ENSTORM=hindcast
@@ -93,12 +95,32 @@ case $si in
        ENSTORM=nowcast
        ;;
     0)
-       ENSTORM=namforecast
-       ;;
-    1)
-       ENSTORM=namforecastWind10m
+       ENSTORM=nhcOfclWind10m
        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
+    1)
+       ENSTORM=nhcOfcl
+       ;;
+    2)
+       ENSTORM=veerLeft100Wind10m
+       PERCENT=-100
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    3)
+       ENSTORM=veerLeft100
+       PERCENT=-100
+       ;;
+
+    4)
+       ENSTORM=veerRight100Wind10m
+       PERCENT=100
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    5)
+       ENSTORM=veerRight100
+       PERCENT=100
+       ;;
+
     *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."
       ;;

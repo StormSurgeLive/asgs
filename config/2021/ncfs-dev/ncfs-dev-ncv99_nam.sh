@@ -27,34 +27,36 @@
 
 # Fundamental
 
-INSTANCENAME=ec95d-nam-bob-postNowcast      # "name" of this ASGS process
+INSTANCENAME=ncv99-nam-bob-2021      # "name" of this ASGS process
 SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
 RMQMessaging_Transmit=on
 QSCRIPTTEMPLATE=$SCRIPTDIR/config/2021/ncfs-dev/qscript.template.renci
 
 # Input files and templates
 
-GRIDNAME=ec95d
+GRIDNAME=nc_inundation_v9.99_w_rivers
 source $SCRIPTDIR/config/mesh_defaults.sh
+STATICOFFSET=0.0
+CONTROLTEMPLATE=nc_9.99wrivers_vortex_constantRivers.fort.15.template
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2021051600  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2021050100  #  2020080100  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
-TIDEFAC=on               # tide factor recalc
-   HINDCASTLENGTH=16.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on         # NAM download/forcing
+TIDEFAC=on                # tide factor recalc
+   HINDCASTLENGTH=30    # length of initial hindcast, from cold (days)
+BACKGROUNDMET=on          # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
-TROPICALCYCLONE=off      # tropical cyclone forcing
-   STORM=-1              # storm number, e.g. 05=ernesto in 2006
-   YEAR=2021             # year of the storm
+TROPICALCYCLONE=off       # tropical cyclone forcing
+   STORM=-1               # storm number, e.g. 05=ernesto in 2006
+   YEAR=2021              # year of the storm
 WAVES=on                 # wave forcing
-   REINITIALIZESWAN=no   # used to bounce the wave solution
-VARFLUX=off              # variable river flux forcing
+   REINITIALIZESWAN=no    # used to bounce the wave solution
+VARFLUX=off               # variable river flux forcing
    RIVERSITE=data.disaster.renci.org
    RIVERDIR=/opt/ldm/storage/SCOOP/RHLRv9-OKU
    RIVERUSER=bblanton
@@ -63,27 +65,29 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=128                     # number of compute CPUs for all simulations
-NCPUCAPACITY=128
-NUMWRITERS=0
+NCPU=511                     # number of compute CPUs for all simulations
+NCPUCAPACITY=512
+#NCPU=511                     # number of compute CPUs for all simulations
+#NCPUCAPACITY=512
+NUMWRITERS=1
 ACCOUNT=null
-PARTITION=batch
-#EXCLUDE="compute-9-xx"
+RESERVATION=ncfs
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=developers-only    # "general" | "developers-only" | "professional"
+INTENDEDAUDIENCE="general" # ( | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh opendap_post_nowcast.sh )
 #POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
+POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh opendap_post_nowcast.sh transmit_rps.sh ncfs_post_to_current.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
-OPENDAPNOTIFY="bblanton@renci.org"
+OPENDAPNOTIFY="bblanton@renci.org, asgs.cera.lsu@gmail.com, rluettich1@gmail.com, jason.g.fleming@gmail.com, asgsnotifications@opayq.com, cera.asgs.tk@gmail.com, asgsnotes4ian@gmail.com, janelle.fleming@seahorsecoastal.com"
+#OPENDAPNOTIFY="bblanton@renci.org"
 NOTIFY_SCRIPT=ncfs_nam_notify.sh
 
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=1
+SCENARIOPACKAGESIZE=1 
 case $si in
    -2) 
        ENSTORM=hindcast

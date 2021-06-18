@@ -238,7 +238,7 @@ init_hatteras()
   SUBMITSTRING=sbatch
   SCRATCH=/projects/ncfs/data
   SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  QSCRIPTTEMPLATE=$SCRIPTDIR/config/2021/ncfs-dev/qscript.template.renci
   QSCRIPTGEN=qscript.pl
   WALLTIMEFORMAT="minutes"
   QSUMMARYCMD=null
