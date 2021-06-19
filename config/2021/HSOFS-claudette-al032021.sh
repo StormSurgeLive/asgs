@@ -51,7 +51,7 @@ RMQMessaging_Enable="on"      # "on"|"off"
 RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
-COLDSTARTDATE=$(get-coldstart-date)
+COLDSTARTDATE=auto #$(get-coldstart-date)
 HOTORCOLD=hotstart
 LASTSUBDIR=http://tds.renci.org:8080/thredds/fileServer/2021/nam/2021061712/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast
 
