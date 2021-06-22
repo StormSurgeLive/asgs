@@ -543,7 +543,7 @@ writeTDSProperties()
       echo "post.opendap.${SERVER}.copyablehosts : ( lonestar5 stampede2 frontera )" >> run.properties
       ;;
    "tacc_tds2")
-      THREDDSHOST=chg-1.oden.acc.utexas.edu # WWW hostname for emailed links
+      THREDDSHOST=chg-1.oden.tacc.utexas.edu # WWW hostname for emailed links
       OPENDAPHOST=tacc_tds2                 # alias in $HOME/.ssh/config
       OPENDAPPORT=":80"                     # ':80' can be an empty string, but for clarity it's here
       OPENDAPPROTOCOL="http"
