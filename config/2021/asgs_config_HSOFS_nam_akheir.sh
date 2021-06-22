@@ -72,11 +72,12 @@ POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com,kheirkhahan@gmail.com"
 TDS=( lsu_tds )
 
+#RMQMessaging_Enable=off
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
 COLDSTARTDATE=auto
 HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2021/nam/2021060906/HSOFS/qbc.loni.org/HSOFS_nam_jgf/namforecast/
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2021/nam/2021062118/HSOFS/supermic.hpc.lsu.edu/HSOFS_nam_bde/namforecast/
 
 # Scenario package 
 

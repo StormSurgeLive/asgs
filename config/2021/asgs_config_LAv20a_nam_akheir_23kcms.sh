@@ -50,7 +50,7 @@ CONTROLTEMPLATE=LAv20a_23kcms.15.template # <---<<< default is LA_v20a-WithUpper
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30     # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on      # NAM download/forcing
-FORECASTCYCLE="00,06,12,18"
+FORECASTCYCLE="06"
    forecastSelection="strict"
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #STORM=07             # storm number, e.g. 05=ernesto in 2006
@@ -75,10 +75,14 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,cera.asgs.tk@gm
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-HINDCASTENDDATE=20210604
-COLDSTARTDATE=$(date --date="${HINDCASTENDDATE} -${HINDCASTLENGTH} days" +%Y%m%d%H)
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null
+#HINDCASTENDDATE=20210604
+#COLDSTARTDATE=$(date --date="${HINDCASTENDDATE} -${HINDCASTLENGTH} days" +%Y%m%d%H)
+#HOTORCOLD=coldstart      # "hotstart" or "coldstart"
+#LASTSUBDIR=null
+
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2021/nam/2021062106/LA_v20a-WithUpperAtch_chk/supermic.hpc.lsu.edu/LAv20a_nam_jgf_23kcms/namforecast/
 
 # Scenario package 
 
