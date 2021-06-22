@@ -36,24 +36,26 @@
 
 # Fundamental
 
-INSTANCENAME=CTXCS2017_nam_jgf  # "name" of this ASGS process
+INSTANCENAME=LAv20a_nam_akheir_23kcms  # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=CTXCS2017
+GRIDNAME=LA_v20a-WithUpperAtch_chk
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults)
 
+CONTROLTEMPLATE=LAv20a_23kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
+
 TIDEFAC=on            # tide factor recalc
-HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
+HINDCASTLENGTH=30     # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on      # NAM download/forcing
-FORECASTCYCLE="00,06,12,18"
-# forecastSelection="strict"
+FORECASTCYCLE="06"
+   forecastSelection="strict"
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #STORM=07             # storm number, e.g. 05=ernesto in 2006
 #YEAR=2018            # year of the storm
-WAVES=off             # wave forcing
+WAVES=off              # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
@@ -61,23 +63,26 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=1999              # number of compute CPUs for all simulations
+NCPU=959                     # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
-QUEUENAME=priority
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
-#POSTPROCESS=( createMaxCSV.sh includeWind10m.sh cpra_slide_deck_post.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com,kheirkhahan@gmail.com"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2021032000
+#HINDCASTENDDATE=20210604
+#COLDSTARTDATE=$(date --date="${HINDCASTENDDATE} -${HINDCASTLENGTH} days" +%Y%m%d%H)
+#HOTORCOLD=coldstart      # "hotstart" or "coldstart"
+#LASTSUBDIR=null
+
+COLDSTARTDATE=auto
 HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2021/nam/2021060606/CTXCS2017/supermic.hpc.lsu.edu/CTXCS2017_nam_jgf/namforecast
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2021/nam/2021062106/LA_v20a-WithUpperAtch_chk/supermic.hpc.lsu.edu/LAv20a_nam_jgf_23kcms/namforecast/
 
 # Scenario package 
 

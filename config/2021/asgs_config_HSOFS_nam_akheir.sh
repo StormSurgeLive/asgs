@@ -36,11 +36,11 @@
 
 # Fundamental
 
-INSTANCENAME=CTXCS2017_nam_jgf  # "name" of this ASGS process
+INSTANCENAME=HSOFS_nam_akheir  # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=CTXCS2017
+GRIDNAME=HSOFS
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults)
@@ -48,8 +48,8 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on      # NAM download/forcing
-FORECASTCYCLE="00,06,12,18"
-# forecastSelection="strict"
+FORECASTCYCLE="06"
+   forecastSelection="strict"
 TROPICALCYCLONE=off   # tropical cyclone forcing
 #STORM=07             # storm number, e.g. 05=ernesto in 2006
 #YEAR=2018            # year of the storm
@@ -61,23 +61,23 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=1999              # number of compute CPUs for all simulations
+NCPU=959                     # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
-QUEUENAME=priority
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
-#POSTPROCESS=( createMaxCSV.sh includeWind10m.sh cpra_slide_deck_post.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,cera.asgs.tk@gmail.com,asgsnotes4ian@gmail.com,asgsnotifications@opayq.com,kheirkhahan@gmail.com"
+TDS=( lsu_tds )
 
+#RMQMessaging_Enable=off
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2021032000
+COLDSTARTDATE=auto
 HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2021/nam/2021060606/CTXCS2017/supermic.hpc.lsu.edu/CTXCS2017_nam_jgf/namforecast
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2021/nam/2021062118/HSOFS/supermic.hpc.lsu.edu/HSOFS_nam_bde/namforecast/
 
 # Scenario package 
 
@@ -105,4 +105,3 @@ esac
 
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
-

@@ -895,11 +895,6 @@ downloadCycloneData()
     if [[ $FTPSITE = filesystem ]]; then
        cp $HDIR/$hindcastFileName $hindcastFileName 2>> ${SYSLOG}
     fi
-    # write the start and end dates of the forecast to the run.properties file
-    if [[ -e $RUNDIR/forecast.properties ]]; then
-      cat $RUNDIR/forecast.properties >> ${SCENARIODIR}/run.properties
-      mv $RUNDIR/forecast.properties ${SCENARIODIR} 2>> ${SYSLOG}
-    fi
 }
 #
 # subroutine that polls an external ftp site for background meteorology data
@@ -1220,10 +1215,8 @@ submitJob()
    #
    CLOPTIONS=""     # command line options
    LOCALHOTSTART=""
-   CPUREQUEST=$NCPU
    if [[ $NUMWRITERS != "0" ]]; then
       CLOPTIONS="-W $NUMWRITERS"
-      CPUREQUEST=`expr $NCPU + $NUMWRITERS`
    fi
    # record the number of requested CPUs for use in determining capacity to run another job
    if [[ $HOTSTARTCOMP = subdomain ]]; then
@@ -1293,6 +1286,7 @@ submitJob()
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'%z`
       echo "time.${JOBTYPE}.start : $DATETIME" >> run.properties
       echo "[${DATETIME}] Starting ${JOBTYPE}.${ENSTORM} job in $PWD." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start
+      CPUREQUEST=`expr $NCPU + $NUMWRITERS`
       logMessage "$ENSTORM: $THIS: Submitting job via $SUBMITSTRING -n $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
       # submit the parallel job in a subshell
       (
@@ -1699,13 +1693,13 @@ writeNAMProperties()
 }
 #
 # write properties to the run.properties file that are associated with
-# tropical cyclone forcing.
+# tropical cyclone forcing configuration.
 writeTropicalCycloneProperties()
 {
    STORMDIR=$1
    WASTHIS=$THIS
    THIS="asgs_main->writeTropicalCycloneProperties()"
-   logMessage "$THIS: Writing properties associated with meterorological forcing with a parametric vortex model to $1/run.properties."
+   logMessage "$THIS: Writing properties associated with meterorological forcing configuration with a parametric vortex model to $1/run.properties."
    echo "forcing.metclass : tropical" >> $STORMDIR/run.properties
    echo "forcing.stormname : $STORM" >> $STORMDIR/run.properties
    echo "forcing.tropicalcyclone.vortexmodel : $VORTEXMODEL" >> $STORMDIR/run.properties
@@ -1727,6 +1721,21 @@ writeTropicalCycloneProperties()
    # legacy properties
    echo "storm : $STORM" >> $STORMDIR/run.properties
    echo "stormnumber : $STORM" >> $STORMDIR/run.properties
+   THIS=$WASTHIS
+}
+#
+# write properties to the run.properties file that are associated with
+# tropical cyclone forcing configuration.
+writeTropicalCycloneForecastProperties()
+{
+   STORMDIR=$1
+   WASTHIS=$THIS
+   THIS="asgs_main->writeTropicalCycloneForecastProperties()"
+   logMessage "$THIS: Writing properties associated with a particular forecast using a parametric vortex model to $1/run.properties."
+    # write the start and end dates of the forecast to the run.properties file
+    if [[ -e $RUNDIR/forecast.properties ]]; then
+      cat $RUNDIR/forecast.properties >> ${STORMDIR}/run.properties
+    fi
    THIS=$WASTHIS
 }
 #
@@ -1757,6 +1766,7 @@ writeJobResourceRequestProperties()
    logMessage "$THIS: Writing properties associated with compute job to $1/run.properties."
    # on queenbeeC, if a parallel job uses 48 or fewer cores, it
    # should be submitted to the single queue to avoid "low utilization" emails
+   CPUREQUEST=`expr $NCPU + $NUMWRITERS`
    if [[ $HPCENV = "qbc.loni.org" && $CPUREQUEST -le 48 ]]; then
       QUEUENAME="single"
    fi
@@ -3172,6 +3182,7 @@ while [ true ]; do
             echo "modified : n" >> run.properties 2>> ${SYSLOG}
             echo "track_modified : n" >> run.properties 2>> ${SYSLOG}
          fi
+         writeTropicalCycloneForecastProperties $STORMDIR
          CONTROLOPTIONS="--cst $CSDATE --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile ${STORMDIR}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Generating ADCIRC Met File (fort.22) for $ENSTORM."
          logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
@@ -3370,7 +3381,7 @@ while [ true ]; do
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
                   echo "time.post.finish : $DATETIME" >> ${STORMDIR}/run.properties
                   # notify analysts that new results are available
-                  ${OUTPUTDIARCHIVER}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
+                  ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
                   # archive the files for this scenario
                   logMessage "$ENSTORM: $THIS: Initiating archival process, if any."
                   ${SCRIPTDIR}/archive/${ARCHIVE} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENVSHORT $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1

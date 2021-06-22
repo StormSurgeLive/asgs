@@ -71,6 +71,7 @@ help() {
   echo "   list    <param>             - lists different things, please see the following options; type 'list options' to see currently supported options"
   echo "   load    profile <name>      - loads a saved profile by name; use 'list profiles' to see what's available"
   echo "           adcirc  <name>      - loads information a version of ADCIRC into the current environment. Use 'list adcirc' to see what's available"
+  echo "   move    statefile           - moves statefile out of the way, safer and more future friendly than delete"
   echo "   purge   <param>             - deletes specified file or directory"
   echo "           rundir              - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
   echo "   rebuild profile             - wizard for recreating an ASGS profile using an existing configuration file"
@@ -656,6 +657,24 @@ delete() {
   esac
 }
 
+# moves out of the way
+move() {
+  case "${1}" in
+    statefile)
+     read -p "This will the move state file, \"${STATEFILE}\". Type 'y' to proceed. [N] " MOVE_STATEFILE
+     if [ 'y' == "${MOVE_STATEFILE}" ]; then
+       _epoch=$(date +%s)
+       mv -vf "${STATEFILE}" "${STATEFILE}.$$.${_epoch}"
+     else
+       echo "move of state file cancelled."
+     fi
+    ;;
+    *)
+      echo "only 'move statefile' is supported at this time ..."
+      return
+  esac
+}
+
 purge() {
   if [ -z "${1}" ]; then
     echo "'purge' requires 1 argument - currently only supports 'rundir' and 'scratchdir''."
@@ -812,7 +831,6 @@ alias vr="verify regressions"
 if [ -n "$_asgsh_splash" ]; then
 # show important directories
 show scriptdir
-show scratchdir
 goto scriptdir
 else
 goto scriptdir >/dev/null 2>&1
@@ -821,6 +839,8 @@ fi
 # when started, ASGS Shell loads the 'default' profile,
 # this can be made variable at some point
 load profile ${profile-default}
+show scratchdir
+show workdir
 echo
 
 # construct to handle "autorun" options
