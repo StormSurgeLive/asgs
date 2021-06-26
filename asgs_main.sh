@@ -1861,6 +1861,7 @@ while getopts "c:e:s:h" optname; do
          ;;
    esac
 done
+
 #
 # determine hpc environment via function from platforms.sh
 source ${SCRIPTDIR}/monitoring/logging.sh
@@ -1872,6 +1873,7 @@ fi
 readConfig # now we have the instancename and can name the asgs log file after it
 THIS=asgs_main.sh
 setSyslogFileName
+
 #
 # set a trap for a signal to reread the ASGS config file
 trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; readConfig' USR1
@@ -1881,7 +1883,7 @@ trap 'sigterm' TERM
 trap 'sigexit' EXIT
 #
 # clear orphaned logging processes
-findAndClearOrphans
+findAndReportOrphans
 #
 # set the file and directory permissions, which are platform dependent
 umask $UMASK
@@ -2462,7 +2464,7 @@ while [ true ]; do
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting new NC/FC Cycle for ADVISORY $RMQADVISORY."
 
    # clear orphaned logging processes (if any)
-   findAndClearOrphans
+   findAndReportOrphans
 
    si=-1
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
@@ -2988,7 +2990,7 @@ while [ true ]; do
    allMessage "$ENSTORM: $THIS: Starting forecast scenarios for advisory '$ADVISORY'."
 
    # clear orphaned logging processes (if any)
-   findAndClearOrphans
+   findAndReportOrphans
 
    checkHotstart $NOWCASTDIR $HOTSTARTFORMAT 67
    THIS="asgs_main.sh"
