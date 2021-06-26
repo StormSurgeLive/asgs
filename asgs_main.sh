@@ -1883,7 +1883,7 @@ trap 'sigterm' TERM
 trap 'sigexit' EXIT
 #
 # clear orphaned logging processes
-findAndReportOrphans
+findAndClearOrphans
 #
 # set the file and directory permissions, which are platform dependent
 umask $UMASK
@@ -2464,7 +2464,7 @@ while [ true ]; do
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting new NC/FC Cycle for ADVISORY $RMQADVISORY."
 
    # clear orphaned logging processes (if any)
-   findAndReportOrphans
+   findAndClearOrphans
 
    si=-1
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
@@ -2990,7 +2990,7 @@ while [ true ]; do
    allMessage "$ENSTORM: $THIS: Starting forecast scenarios for advisory '$ADVISORY'."
 
    # clear orphaned logging processes (if any)
-   findAndReportOrphans
+   findAndClearOrphans
 
    checkHotstart $NOWCASTDIR $HOTSTARTFORMAT 67
    THIS="asgs_main.sh"
