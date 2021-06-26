@@ -30,15 +30,15 @@
 INSTANCENAME=ecd95_nam_bde     # "name" of this ASGS process
 ASGSADMIN="asgsnotifications@opayq.com"
 
-ACCOUNT=ASC20001 #DesignSafe-CERA
+#ACCOUNT=ASC20001 #DesignSafe-CERA
 #QOS=vip # for priority during a storm
-QUEUENAME=normal # same as SLURM partition
-SERQUEUE=normal
-PPN=24 # doing this specifically for ec95d so 48 process is divided between 2 compute nodes
-GROUP="G-803086"
+#QUEUENAME=normal # same as SLURM partition
+#SERQUEUE=normal
+PPN=16 # doing this specifically for ec95d so 48 process is divided between 2 compute nodes
+#GROUP="G-803086"
 
-RMQMessaging_Enable="on"
-RMQMessaging_Transmit="on"
+RMQMessaging_Enable="off"
+RMQMessaging_Transmit="off"
 
 # Input files and templates
 
@@ -66,22 +66,22 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=48                    # number of compute CPUs for all simulations
+NCPU=15                    # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
+INTENDEDAUDIENCE=developers-only # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgsnotifications@opayq.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( tacc_tds )
+TDS=( )
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020072400
+COLDSTARTDATE=$(get-coldstart-date)
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 #

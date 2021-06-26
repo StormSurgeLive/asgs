@@ -41,6 +41,7 @@ sigterm() {
    trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group 
    exit 0
 }
+
 #
 # send message when shutting down on EXIT and clear all processes
 sigexit() {
@@ -107,13 +108,12 @@ finalizeCentralizedScenarioLogging() {
 # Find and clear stray orphan tail -f processes that have not been cleaned
 # up. Normally there should not be any stray orphan processes, but there
 # could be, and we want to avoid a proliferation of orphan processes. 
-findAndClearOrphans() {
+findAndReportOrphans() {
    #
    # send SIGTERM to tail processes owned by this Operator that are children
    # of init (i.e., process)
    for pid in `ps -eo pid,ppid,user,comm | awk -v user=$USER '$3==user && $2==1 && $4~/tail/ { print $1 } '`; do
       logMessage "Found orphan 'tail -f' process ID $pid and now clearing it." 
-      kill $pid 
    done
 }
 
