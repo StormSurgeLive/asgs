@@ -36,7 +36,7 @@
 
 # Fundamental
 
-INSTANCENAME=HSOFS_nam_jgf  # "name" of this ASGS process
+INSTANCENAME=HSOFS_al052021_jgf  # "name" of this ASGS process
 
 # Input files and templates
 
@@ -47,10 +47,10 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on      # NAM download/forcing
+BACKGROUNDMET=off      # NAM download/forcing
 FORECASTCYCLE="06"
    forecastSelection="strict"
-TROPICALCYCLONE=off   # tropical cyclone forcing
+TROPICALCYCLONE=on   # tropical cyclone forcing
 STORM=05             # storm number, e.g. 05=ernesto in 2006
 YEAR=2021            # year of the storm
 WAVES=on             # wave forcing
@@ -92,11 +92,11 @@ case $si in
    ENSTORM=nowcast
    ;;
  0)
-   ENSTORM=namforecastWind10m
+   ENSTORM=nhcConsensusWind10m
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
 1)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
