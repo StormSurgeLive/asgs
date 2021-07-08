@@ -270,7 +270,7 @@ init_frontera()
   HPCENV=frontera.tacc.utexas.edu
   QUEUESYS=SLURM
   QUEUENAME=normal
-  SERQUEUE=normal
+  SERQUEUE=small
   PPN=56
   CONSTRAINT=null
   RESERVATION=null
