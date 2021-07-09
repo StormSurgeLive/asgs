@@ -40,11 +40,19 @@ loadProperties $RUNPROPERTIES
 THIS="output/opendap_post.sh"
 echo "Finished loading properties."   
 CONFIG=${properties['config.file']}
+COLDSTARTDATE=${properties["adcirc.time.coldstartdate"]} # used for the hindcast path
 CYCLEDIR=${properties['path.advisdir']}
 CYCLE=${properties['advisory']}
+# if this is an initialization, there is no advisory number
+# to use in the opendap path
+if [[ ${properties['advisory']} = "0" ]]; then
+   CYCLE=$COLDSTARTDATE
+else
+   # this does not actually seem to be used in this script
+   HSTIME=${properties['InitialHotStartTime']}
+fi
 HPCENV=${properties['hpc.hpcenv']}
 SCENARIO=${properties['scenario']}
-HSTIME=${properties['InitialHotStartTime']}
 SYSLOG=${properties['monitoring.logging.file.syslog']}
 CYCLELOG=${properties['monitoring.logging.file.cyclelog']}
 SCENARIOLOG=${properties['monitoring.logging.file.scenariolog']}
@@ -77,7 +85,11 @@ HPCENVSHORT=${properties["hpc.hpcenvshort"]}
 TROPICALCYCLONE=${properties["forcing.tropicalcyclone"]}
 BACKGROUNDMET=${properties["forcing.backgroundmet"]}
 # get the scenario number from Operator config
-SCENARIONUMBER=${properties["forecast.scenario.number"]}
+if [[ $SCENARIO != "hindcast" && $SCENARIO != "nowcast" ]]; then
+   SCENARIONUMBER=${properties["forecast.scenario.number"]} # this is used in the subject line of the email
+else
+   SCENARIONUMBER=-2
+fi
 env_dispatch $HPCENVSHORT # set up JOBENV with perlbrew for asgs-sendmail.pl etc
 THIS="output/opendap_post.sh"
 OPENDAPMAILSERVER=${properties["notification.opendap.email.opendapmailserver"]}
@@ -126,6 +138,10 @@ for server in ${SERVERS[*]}; do
       basin="al" # FIXME: write/read a property instead of hardcoding the atlantic basin
       STORMNAMEPATH=$YEAR/$basin$STORMNUMBER
       ALTSTORMNAMEPATH=$YEAR/$STORMNAMELC  # symbolic link with name
+   fi
+   if [[ $SCENARIO = "hindcast" ]]; then 
+      YEAR=${COLDSTARTDATE:0:4}
+      STORMNAMEPATH=$YEAR/initialize
    fi
    OPENDAPSUFFIX=$CYCLE/$GRIDNAME/$HPCENV/$INSTANCENAME/$SCENARIO
    echo "post.opendap.${server}.opendapsuffix : $OPENDAPSUFFIX" >> run.properties 2>> $SYSLOG

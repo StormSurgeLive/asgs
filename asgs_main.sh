@@ -1670,7 +1670,7 @@ writeNAMProperties()
    echo "forcing.metclass : synoptic" >> $STORMDIR/run.properties
    echo "forcing.stormname : NA" >> $STORMDIR/run.properties
    echo "forcing.nwp.model : nam" >> $STORMDIR/run.properties
-   echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $STORMDIR/run.properties
+
    echo "forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties
    echo "forcing.nwp.schedule.forecast.forecastselection : $forecastSelection" >> $STORMDIR/run.properties
    echo "forcing.nam.forecast.download : $forecastDownload" >> $STORMDIR/run.properties
@@ -2646,6 +2646,7 @@ while [ true ]; do
          #
          downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
          THIS="asgs_main.sh"
+         echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
          #
          hs=0 # hook script counter ; execute NOWCAST_TRIGGERED hooks
          while [[ $hs -lt ${#NOWCAST_TRIGGERED[@]} ]]; do
