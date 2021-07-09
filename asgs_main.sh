@@ -1767,6 +1767,12 @@ writeJobResourceRequestProperties()
    if [[ $HPCENV = "qbc.loni.org" && $CPUREQUEST -le 48 ]]; then
       QUEUENAME="single"
    fi
+   # on frontera, if a job uses only 1 or 2 nodes, it must be submitted to the 
+   # "small" queue ... this includes wind-only parallel jobs ... the PPN 
+   # for frontera is 56, so this hack would have to be updated if that changes
+   if [[ $HPCENV = "frontera.tacc.utexas.edu" && $CPUREQUEST -le 112 ]]; then
+      QUEUENAME="small"
+   fi
    echo "hpc.job.${JOBTYPE}.queuename : $QUEUENAME" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $STORMDIR/run.properties

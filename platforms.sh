@@ -271,7 +271,7 @@ init_frontera()
   QUEUESYS=SLURM
   QUEUENAME=normal
   SERQUEUE=small
-  PPN=56
+  PPN=56    # if this changes, also need to change the "small" queue defn in asgs_main.sh
   CONSTRAINT=null
   RESERVATION=null
   QOS=null
