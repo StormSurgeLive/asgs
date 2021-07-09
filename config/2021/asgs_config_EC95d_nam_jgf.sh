@@ -63,23 +63,6 @@ CYCLETIMELIMIT="99:00:00"
 NCPU=19                    # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
-#QUEUENAME=priority
-#SERQUEUE=priority
-#
-ADCIRCDIR=/work/jgflemin/adcirc-cg/work
-SWANDIR=/work/jgflemin/adcirc-cg/swan
-
-if [[ $HPCENVSHORT = frontera ]]; then
-   ADCIRCDIR=/work/00976/jgflemin/$HPCENVSHORT/adcirc-cg/work
-   SWANDIR=/work/00976/jgflemin/$HPCENVSHORT/adcirc-cg/swan
-fi
-if [[ $HPCENVSHORT = lonestar5 ]]; then
-   ADCIRCDIR=/work/00976/jgflemin/lonestar/adcirc-cg/work
-   SWANDIR=/work/00976/jgflemin/lonestar/adcirc-cg/swan
-fi
-if [[ $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then
-   QOS=vip
-fi
 
 # Post processing and publication
 
