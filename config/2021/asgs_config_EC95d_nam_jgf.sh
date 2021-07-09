@@ -24,7 +24,7 @@
 # You should have received a copy of the GNU General Public License along with
 # the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------
-# The defaults for parameters that can be reset in this config file 
+# The defaults for parameters that can be reset in this config file
 # are preset in the following scripts:
 # {SCRIPTDIR/platforms.sh               # also contains Operator-specific info
 # {SCRIPTDIR/config/config_defaults.sh
@@ -77,13 +77,15 @@ if [[ $HPCENVSHORT = lonestar5 ]]; then
    ADCIRCDIR=/work/00976/jgflemin/lonestar/adcirc-cg/work
    SWANDIR=/work/00976/jgflemin/lonestar/adcirc-cg/swan
 fi
-if [[ $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then 
+if [[ $HPCENVSHORT = stampede2 || $HPCENVSHORT = lonestar5 ]]; then
    QOS=vip
 fi
 
 # Post processing and publication
 
 INTENDEDAUDIENCE=developers-only    # can also be "developers-only" or "professional"
+FINISH_NOWCAST_SCENARIO=( createOPeNDAPFileList.sh opendap_post.sh )
+FINISH_SPINUP_SCENARIO=( createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="jason.g.fleming@gmail.com"
 
@@ -93,19 +95,17 @@ COLDSTARTDATE=2021060400
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
-# Scenario package 
+# Scenario package
 
 #PERCENT=default
 SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
 case $si in
- -2)
+-2)
    ENSTORM=hindcast
-   POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh )
    OPENDAPNOTIFY="jason.g.fleming@gmail.com,janelle.fleming@seahorsecoastal.com"
    ;;
 -1)
    ENSTORM=nowcast
-   POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh )
    OPENDAPNOTIFY="jason.g.fleming@gmail.com,janelle.fleming@seahorsecoastal.com"
    ;;
 0)
