@@ -2951,6 +2951,13 @@ while [ true ]; do
       CURRENT_STATE="CMPL"
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Nowcast complete for advisory $ADVISORY ."
       logMessage "$ENSTORM: $THIS: Nowcast complete for advisory '$ADVISORY.'"
+      #
+      hs=0 # hook script counter ; execute FINISH_NOWCAST_SCENARIO hooks
+      while [[ $hs -lt ${#FINISH_NOWCAST_SCENARIO[@]} ]]; do
+         logMessage "$SCENARIO: $THIS: Executing FINISH_NOWCAST_SCENARIO hook $SCRIPTDIR/${FINISH_NOWCAST_SCENARIO[$hs]}."
+         $SCRIPTDIR/${FINISH_NOWCAST_SCENARIO[$hs]} >> ${SYSLOG} 2>&1
+         hs=$[$hs + 1]
+      done
       cd $ADVISDIR 2>> ${SYSLOG}
    else
       # we didn't run the nowcast, because our latest nowcast data end
@@ -2962,14 +2969,6 @@ while [ true ]; do
       logMessage "$ENSTORM: $THIS: Skipping the submission of the nowcast job and proceeding directly to the forecast(s)."
       NOWCASTDIR=$FROMDIR
    fi
-
-   #
-   hs=0 # hook script counter ; execute FINISH_NOWCAST_SCENARIO hooks
-   while [[ $hs -lt ${#FINISH_NOWCAST_SCENARIO[@]} ]]; do
-      logMessage "$SCENARIO: $THIS: Executing FINISH_NOWCAST_SCENARIO hook $SCRIPTDIR/${FINISH_NOWCAST_SCENARIO[$hs]}."
-      $SCRIPTDIR/${FINISH_NOWCAST_SCENARIO[$hs]} >> ${SYSLOG} 2>&1
-      hs=$[$hs + 1]
-   done
 
    # write the ASGS state file
    if [[ $hotstartURL != "null" ]]; then
