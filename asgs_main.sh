@@ -1958,6 +1958,7 @@ else
       # exist yet, so create it now using info straight from the
       # ASGS config file
       echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
+      echo SCRIPTDIR=${SCRIPTDIR} >> $STATEFILE 2>> ${SYSLOG}
       echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
       echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
       echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
@@ -2384,15 +2385,6 @@ if [[ $START = coldstart ]]; then
    CURRENT_STATE="CMPL"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "The hindcast run has finished."
    scenarioMessage "$ENSTORM: $THIS: $ENSTORM run finished."
-   cd $ADVISDIR 2>> ${SYSLOG}
-   OLDADVISDIR=$ADVISDIR
-   START=hotstart
-   #
-   echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
-   echo LASTSUBDIR=${OLDADVISDIR} >> $STATEFILE 2>> ${SYSLOG}
-   echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
-   echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
-
    #
    hs=0 # hook script counter ; execute FINISH_SPINUP_SCENARIO hooks
    while [[ $hs -lt ${#FINISH_SPINUP_SCENARIO[@]} ]]; do
@@ -2401,6 +2393,15 @@ if [[ $START = coldstart ]]; then
       hs=$[$hs + 1]
    done
    #
+   cd $ADVISDIR 2>> ${SYSLOG}
+   OLDADVISDIR=$ADVISDIR
+   START=hotstart
+   #
+   echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
+   echo SCRIPTDIR=${SCRIPTDIR} >> $STATEFILE 2>> ${SYSLOG}
+   echo LASTSUBDIR=${OLDADVISDIR} >> $STATEFILE 2>> ${SYSLOG}
+   echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
+   echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
 
 else
    # start from   H O T S T A R T   file
@@ -2979,6 +2980,7 @@ while [ true ]; do
    LASTSUBDIR=`echo $NOWCASTDIR | sed 's/\/nowcast//g ; s/\/hindcast//g'`
    logMessage "RUNDIR is $RUNDIR STATEFILE is $STATEFILE SYSLOG is $SYSLOG" #jgfdebug
    echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
+   echo SCRIPTDIR=${SCRIPTDIR} >> $STATEFILE 2>> ${SYSLOG}
    echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
