@@ -270,8 +270,8 @@ init_frontera()
   HPCENV=frontera.tacc.utexas.edu
   QUEUESYS=SLURM
   QUEUENAME=normal
-  SERQUEUE=normal
-  PPN=56
+  SERQUEUE=small
+  PPN=56    # if this changes, also need to change the "small" queue defn in asgs_main.sh
   CONSTRAINT=null
   RESERVATION=null
   QOS=null
