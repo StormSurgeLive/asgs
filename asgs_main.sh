@@ -1753,8 +1753,8 @@ writeJobResourceRequestProperties()
    if [[ $HPCENV = "qbc.loni.org" && $CPUREQUEST -le 48 ]]; then
       QUEUENAME="single"
    fi
-   # on frontera, if a job uses only 1 or 2 nodes, it must be submitted to the 
-   # "small" queue ... this includes wind-only parallel jobs ... the PPN 
+   # on frontera, if a job uses only 1 or 2 nodes, it must be submitted to the
+   # "small" queue ... this includes wind-only parallel jobs ... the PPN
    # for frontera is 56, so this hack would have to be updated if that changes
    if [[ $HPCENV = "frontera.tacc.utexas.edu" && $CPUREQUEST -le 112 ]]; then
       QUEUENAME="small"
@@ -3338,7 +3338,7 @@ while [ true ]; do
             echo "hpc.job.${JOBTYPE}.limit.walltime : $FORECASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
             #
             # execute BUILD_FORECAST_SCENARIO hooks
-            for hs "${SUBMIT_FORECAST_SCENARIO[@]}" ; do
+            for hs in "${SUBMIT_FORECAST_SCENARIO[@]}" ; do
                logMessage "$SCENARIO: $THIS: Executing SUBMIT_FORECAST_SCENARIO hook $SCRIPTDIR/$hs."
                $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
             done
